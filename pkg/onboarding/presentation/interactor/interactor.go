@@ -3,7 +3,8 @@
 package interactor
 
 import (
-	"github.com/savannahghi/onboarding-service/pkg/onboarding/usecases"
+	pg "github.com/savannahghi/onboarding-service/pkg/onboarding/infrastructure/database/postgres"
+	"github.com/savannahghi/onboarding-service/pkg/onboarding/usecases/facility"
 	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure"
 	libOnboardingUsecase "github.com/savannahghi/onboarding/pkg/onboarding/usecases"
 )
@@ -11,22 +12,22 @@ import (
 // Interactor represents an assemble of all use cases into a single object that can be instantiated anywhere
 type Interactor struct {
 	OpenSourceInfra    infrastructure.Infrastructure
+	database           pg.OnboardingDb
 	OpenSourceUsecases libOnboardingUsecase.Interactor
-	SignUpUseCase      usecases.UseCaseSignUp
-	LoginUseCase       usecases.UseCaseLogin
+	FacilityUsecase    facility.UseCasesFacility
 }
 
 // NewOnboardingInteractor returns a new onboarding interactor
 func NewOnboardingInteractor(
 	openSourceInfra infrastructure.Infrastructure,
+	database pg.OnboardingDb,
 	openSourceUsecases libOnboardingUsecase.Interactor,
-	signupUsecase usecases.UseCaseSignUp,
-	loginUseCase usecases.UseCaseLogin,
+	facilityUseCase facility.UseCasesFacility,
 ) (*Interactor, error) {
 	return &Interactor{
 		OpenSourceInfra:    openSourceInfra,
+		database:           database,
 		OpenSourceUsecases: openSourceUsecases,
-		SignUpUseCase:      signupUsecase,
-		LoginUseCase:       loginUseCase,
+		FacilityUsecase:    facilityUseCase,
 	}, nil
 }

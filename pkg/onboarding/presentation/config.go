@@ -15,10 +15,12 @@ import (
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
+	postgres "github.com/savannahghi/onboarding-service/pkg/onboarding/infrastructure/database/postgres"
+	"github.com/savannahghi/onboarding-service/pkg/onboarding/infrastructure/database/postgres/gorm"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/presentation/graph"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/presentation/graph/generated"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/presentation/interactor"
-	"github.com/savannahghi/onboarding-service/pkg/onboarding/usecases"
+	"github.com/savannahghi/onboarding-service/pkg/onboarding/usecases/facility"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/extension"
 	osinfra "github.com/savannahghi/onboarding/pkg/onboarding/infrastructure"
 	openSourcePresentation "github.com/savannahghi/onboarding/pkg/onboarding/presentation"
@@ -67,15 +69,20 @@ func Router(ctx context.Context) (*mux.Router, error) {
 
 	openSourceUsecases := osusecases.NewUsecasesInteractor(infrastructure, baseExt, pinExt)
 
-	var signupUsecase usecases.UseCaseSignUp
-	var loginUsecase usecases.UseCaseLogin
+	var facilityUseCase facility.UseCasesFacility
+	pg, err := gorm.NewPGInstance()
+	if err != nil {
+		return nil, fmt.Errorf("can't instantiate repository in resolver: %v", err)
+	}
+
+	db := postgres.NewOnboardingDb(pg, pg)
 
 	// Initialize the interactor
 	i, err := interactor.NewOnboardingInteractor(
 		infrastructure,
+		*db,
 		openSourceUsecases,
-		signupUsecase,
-		loginUsecase,
+		facilityUseCase,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("can't instantiate service : %w", err)

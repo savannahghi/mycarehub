@@ -17,6 +17,8 @@ import (
 	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/firebasetools"
+	dto1 "github.com/savannahghi/onboarding-service/pkg/onboarding/application/dto"
+	domain1 "github.com/savannahghi/onboarding-service/pkg/onboarding/domain"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/dto"
 	"github.com/savannahghi/onboarding/pkg/onboarding/domain"
 	"github.com/savannahghi/profileutils"
@@ -44,6 +46,7 @@ type Config struct {
 
 type ResolverRoot interface {
 	Entity() EntityResolver
+	Facility() FacilityResolver
 	Mutation() MutationResolver
 	Query() QueryResolver
 	UserProfile() UserProfileResolver
@@ -82,6 +85,15 @@ type ComplexityRoot struct {
 		FindUserProfileByID       func(childComplexity int, id string) int
 	}
 
+	Facility struct {
+		Active      func(childComplexity int) int
+		Code        func(childComplexity int) int
+		County      func(childComplexity int) int
+		Description func(childComplexity int) int
+		FacilityID  func(childComplexity int) int
+		Name        func(childComplexity int) int
+	}
+
 	GroupedNavigationActions struct {
 		Primary   func(childComplexity int) int
 		Secondary func(childComplexity int) int
@@ -112,6 +124,7 @@ type ComplexityRoot struct {
 		AssignMultipleRoles           func(childComplexity int, userID string, roleIDs []string) int
 		AssignRole                    func(childComplexity int, userID string, roleID string) int
 		CompleteSignup                func(childComplexity int, flavour feedlib.Flavour) int
+		CreateFacility                func(childComplexity int, input dto1.FacilityInput) int
 		CreateRole                    func(childComplexity int, input dto.RoleInput) int
 		DeactivateRole                func(childComplexity int, roleID string) int
 		DeleteFavoriteNavAction       func(childComplexity int, title string) int
@@ -182,6 +195,7 @@ type ComplexityRoot struct {
 		FetchUserNavigationActions    func(childComplexity int) int
 		FindRoleByName                func(childComplexity int, roleName *string) int
 		FindUserByPhone               func(childComplexity int, phoneNumber string) int
+		FindUsersByPhone              func(childComplexity int, phoneNumber string) int
 		GetAddresses                  func(childComplexity int) int
 		GetAllPermissions             func(childComplexity int) int
 		GetAllRoles                   func(childComplexity int) int
@@ -260,7 +274,11 @@ type EntityResolver interface {
 	FindPageInfoByHasNextPage(ctx context.Context, hasNextPage bool) (*firebasetools.PageInfo, error)
 	FindUserProfileByID(ctx context.Context, id string) (*profileutils.UserProfile, error)
 }
+type FacilityResolver interface {
+	FacilityID(ctx context.Context, obj *domain1.Facility) (*int, error)
+}
 type MutationResolver interface {
+	CreateFacility(ctx context.Context, input dto1.FacilityInput) (*domain1.Facility, error)
 	TestMutation(ctx context.Context) (*bool, error)
 	CompleteSignup(ctx context.Context, flavour feedlib.Flavour) (bool, error)
 	UpdateUserProfile(ctx context.Context, input dto.UserProfileInput) (*profileutils.UserProfile, error)
@@ -306,6 +324,7 @@ type QueryResolver interface {
 	FindRoleByName(ctx context.Context, roleName *string) ([]*dto.RoleOutput, error)
 	GetAllPermissions(ctx context.Context) ([]*profileutils.Permission, error)
 	FindUserByPhone(ctx context.Context, phoneNumber string) (*profileutils.UserProfile, error)
+	FindUsersByPhone(ctx context.Context, phoneNumber string) ([]*profileutils.UserProfile, error)
 	GetNavigationActions(ctx context.Context) (*dto.GroupedNavigationActions, error)
 }
 type UserProfileResolver interface {
@@ -451,6 +470,48 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Entity.FindUserProfileByID(childComplexity, args["id"].(string)), true
+
+	case "Facility.active":
+		if e.complexity.Facility.Active == nil {
+			break
+		}
+
+		return e.complexity.Facility.Active(childComplexity), true
+
+	case "Facility.code":
+		if e.complexity.Facility.Code == nil {
+			break
+		}
+
+		return e.complexity.Facility.Code(childComplexity), true
+
+	case "Facility.county":
+		if e.complexity.Facility.County == nil {
+			break
+		}
+
+		return e.complexity.Facility.County(childComplexity), true
+
+	case "Facility.description":
+		if e.complexity.Facility.Description == nil {
+			break
+		}
+
+		return e.complexity.Facility.Description(childComplexity), true
+
+	case "Facility.facilityID":
+		if e.complexity.Facility.FacilityID == nil {
+			break
+		}
+
+		return e.complexity.Facility.FacilityID(childComplexity), true
+
+	case "Facility.name":
+		if e.complexity.Facility.Name == nil {
+			break
+		}
+
+		return e.complexity.Facility.Name(childComplexity), true
 
 	case "GroupedNavigationActions.primary":
 		if e.complexity.GroupedNavigationActions.Primary == nil {
@@ -631,6 +692,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.CompleteSignup(childComplexity, args["flavour"].(feedlib.Flavour)), true
+
+	case "Mutation.createFacility":
+		if e.complexity.Mutation.CreateFacility == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createFacility_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateFacility(childComplexity, args["input"].(dto1.FacilityInput)), true
 
 	case "Mutation.createRole":
 		if e.complexity.Mutation.CreateRole == nil {
@@ -1090,6 +1163,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.FindUserByPhone(childComplexity, args["phoneNumber"].(string)), true
 
+	case "Query.findUsersByPhone":
+		if e.complexity.Query.FindUsersByPhone == nil {
+			break
+		}
+
+		args, err := ec.field_Query_findUsersByPhone_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.FindUsersByPhone(childComplexity, args["phoneNumber"].(string)), true
+
 	case "Query.getAddresses":
 		if e.complexity.Query.GetAddresses == nil {
 			break
@@ -1514,6 +1599,18 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 }
 
 var sources = []*ast.Source{
+	{Name: "pkg/onboarding/presentation/graph/facility.graphql", Input: `
+extend type Mutation {
+    createFacility(input: FacilityInput!): Facility!
+}`, BuiltIn: false},
+	{Name: "pkg/onboarding/presentation/graph/input.graphql", Input: `input FacilityInput {
+  name: String!
+  code: String!
+  active: Boolean!
+  county: String!
+  description: String!
+}
+`, BuiltIn: false},
 	{Name: "pkg/onboarding/presentation/graph/profile.graphql", Input: `extend type Query {
   testQuery: Boolean
 }
@@ -1522,6 +1619,15 @@ extend type Mutation {
   testMutation: Boolean
 }
 `, BuiltIn: false},
+	{Name: "pkg/onboarding/presentation/graph/types.graphql", Input: `
+type Facility {
+  facilityID: Int
+  name: String!
+  code: String!
+  active: Boolean!
+  county: String!
+  description: String!
+}`, BuiltIn: false},
 	{Name: "federation/directives.graphql", Input: `
 scalar _Any
 scalar _FieldSet
@@ -1757,7 +1863,7 @@ extend type Query {
   userProfile: UserProfile!
 
   resumeWithPIN(pin: String!): Boolean!
-  
+
   getAddresses: UserAddresses!
 
   getUserCommunicationsSettings: UserCommunicationsSetting!
@@ -1773,6 +1879,8 @@ extend type Query {
   getAllPermissions: [Permission!]!
 
   findUserByPhone(phoneNumber: String!): UserProfile!
+
+  findUsersByPhone(phoneNumber: String!): [UserProfile]
 
   getNavigationActions: GroupedNavigationActions
 }
@@ -1799,7 +1907,7 @@ extend type Mutation {
   updateUserName(username: String!): Boolean!
 
   registerPushToken(token: String!): Boolean!
-   
+
   recordPostVisitSurvey(input: PostVisitSurveyInput!): Boolean!
 
   setupAsExperimentParticipant(participate: Boolean): Boolean!
@@ -2189,6 +2297,21 @@ func (ec *executionContext) field_Mutation_completeSignup_args(ctx context.Conte
 		}
 	}
 	args["flavour"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_createFacility_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 dto1.FacilityInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNFacilityInput2githubᚗcomᚋsavannahghiᚋonboardingᚑserviceᚋpkgᚋonboardingᚋapplicationᚋdtoᚐFacilityInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
 	return args, nil
 }
 
@@ -2625,6 +2748,21 @@ func (ec *executionContext) field_Query_findRoleByName_args(ctx context.Context,
 }
 
 func (ec *executionContext) field_Query_findUserByPhone_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["phoneNumber"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("phoneNumber"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["phoneNumber"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_findUsersByPhone_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
@@ -3242,6 +3380,213 @@ func (ec *executionContext) _Entity_findUserProfileByID(ctx context.Context, fie
 	return ec.marshalNUserProfile2ᚖgithubᚗcomᚋsavannahghiᚋprofileutilsᚐUserProfile(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Facility_facilityID(ctx context.Context, field graphql.CollectedField, obj *domain1.Facility) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Facility",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Facility().FacilityID(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*int)
+	fc.Result = res
+	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Facility_name(ctx context.Context, field graphql.CollectedField, obj *domain1.Facility) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Facility",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Facility_code(ctx context.Context, field graphql.CollectedField, obj *domain1.Facility) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Facility",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Code, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Facility_active(ctx context.Context, field graphql.CollectedField, obj *domain1.Facility) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Facility",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Active, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Facility_county(ctx context.Context, field graphql.CollectedField, obj *domain1.Facility) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Facility",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.County, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Facility_description(ctx context.Context, field graphql.CollectedField, obj *domain1.Facility) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Facility",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Description, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _GroupedNavigationActions_primary(ctx context.Context, field graphql.CollectedField, obj *dto.GroupedNavigationActions) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -3636,6 +3981,48 @@ func (ec *executionContext) _Microservice_description(ctx context.Context, field
 	res := resTmp.(string)
 	fc.Result = res
 	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_createFacility(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_createFacility_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CreateFacility(rctx, args["input"].(dto1.FacilityInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*domain1.Facility)
+	fc.Result = res
+	return ec.marshalNFacility2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚑserviceᚋpkgᚋonboardingᚋdomainᚐFacility(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_testMutation(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -6075,6 +6462,45 @@ func (ec *executionContext) _Query_findUserByPhone(ctx context.Context, field gr
 	res := resTmp.(*profileutils.UserProfile)
 	fc.Result = res
 	return ec.marshalNUserProfile2ᚖgithubᚗcomᚋsavannahghiᚋprofileutilsᚐUserProfile(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_findUsersByPhone(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_findUsersByPhone_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().FindUsersByPhone(rctx, args["phoneNumber"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*profileutils.UserProfile)
+	fc.Result = res
+	return ec.marshalOUserProfile2ᚕᚖgithubᚗcomᚋsavannahghiᚋprofileutilsᚐUserProfile(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_getNavigationActions(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -8652,6 +9078,58 @@ func (ec *executionContext) ___Type_ofType(ctx context.Context, field graphql.Co
 
 // region    **************************** input.gotpl *****************************
 
+func (ec *executionContext) unmarshalInputFacilityInput(ctx context.Context, obj interface{}) (dto1.FacilityInput, error) {
+	var it dto1.FacilityInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			it.Name, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "code":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("code"))
+			it.Code, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "active":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("active"))
+			it.Active, err = ec.unmarshalNBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "county":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("county"))
+			it.County, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "description":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("description"))
+			it.Description, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputFilterInput(ctx context.Context, obj interface{}) (firebasetools.FilterInput, error) {
 	var it firebasetools.FilterInput
 	var asMap = obj.(map[string]interface{})
@@ -9297,6 +9775,64 @@ func (ec *executionContext) _Entity(ctx context.Context, sel ast.SelectionSet) g
 	return out
 }
 
+var facilityImplementors = []string{"Facility"}
+
+func (ec *executionContext) _Facility(ctx context.Context, sel ast.SelectionSet, obj *domain1.Facility) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, facilityImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Facility")
+		case "facilityID":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Facility_facilityID(ctx, field, obj)
+				return res
+			})
+		case "name":
+			out.Values[i] = ec._Facility_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "code":
+			out.Values[i] = ec._Facility_code(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "active":
+			out.Values[i] = ec._Facility_active(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "county":
+			out.Values[i] = ec._Facility_county(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "description":
+			out.Values[i] = ec._Facility_description(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var groupedNavigationActionsImplementors = []string{"GroupedNavigationActions"}
 
 func (ec *executionContext) _GroupedNavigationActions(ctx context.Context, sel ast.SelectionSet, obj *dto.GroupedNavigationActions) graphql.Marshaler {
@@ -9414,6 +9950,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Mutation")
+		case "createFacility":
+			out.Values[i] = ec._Mutation_createFacility(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "testMutation":
 			out.Values[i] = ec._Mutation_testMutation(ctx, field)
 		case "completeSignup":
@@ -9943,6 +10484,17 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
+				return res
+			})
+		case "findUsersByPhone":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_findUsersByPhone(ctx, field)
 				return res
 			})
 		case "getNavigationActions":
@@ -10638,6 +11190,25 @@ func (ec *executionContext) marshalNDate2ᚖgithubᚗcomᚋsavannahghiᚋscalaru
 		return graphql.Null
 	}
 	return v
+}
+
+func (ec *executionContext) marshalNFacility2githubᚗcomᚋsavannahghiᚋonboardingᚑserviceᚋpkgᚋonboardingᚋdomainᚐFacility(ctx context.Context, sel ast.SelectionSet, v domain1.Facility) graphql.Marshaler {
+	return ec._Facility(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNFacility2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚑserviceᚋpkgᚋonboardingᚋdomainᚐFacility(ctx context.Context, sel ast.SelectionSet, v *domain1.Facility) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._Facility(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNFacilityInput2githubᚗcomᚋsavannahghiᚋonboardingᚑserviceᚋpkgᚋonboardingᚋapplicationᚋdtoᚐFacilityInput(ctx context.Context, v interface{}) (dto1.FacilityInput, error) {
+	res, err := ec.unmarshalInputFacilityInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalNFieldType2githubᚗcomᚋsavannahghiᚋenumutilsᚐFieldType(ctx context.Context, v interface{}) (enumutils.FieldType, error) {
@@ -11664,6 +12235,21 @@ func (ec *executionContext) unmarshalOInt2int(ctx context.Context, v interface{}
 
 func (ec *executionContext) marshalOInt2int(ctx context.Context, sel ast.SelectionSet, v int) graphql.Marshaler {
 	return graphql.MarshalInt(v)
+}
+
+func (ec *executionContext) unmarshalOInt2ᚖint(ctx context.Context, v interface{}) (*int, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := graphql.UnmarshalInt(v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOInt2ᚖint(ctx context.Context, sel ast.SelectionSet, v *int) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return graphql.MarshalInt(*v)
 }
 
 func (ec *executionContext) marshalOLink2githubᚗcomᚋsavannahghiᚋfeedlibᚐLink(ctx context.Context, sel ast.SelectionSet, v feedlib.Link) graphql.Marshaler {

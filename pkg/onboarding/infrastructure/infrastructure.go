@@ -13,9 +13,18 @@ const (
 	engagementService = "engagement"
 )
 
+type Infrastructure struct {
+	Create
+	libOnboardingUsecase.LoginUseCases
+	libOnboardingUsecase.SignUpUseCases
+	engagementSvc.ServiceEngagementImpl
+	libOnboardingUsecase.ProfileUseCase
+}
+
 // Interactor is an implementation of the infrastructure interface
 // It combines each individual service implementation
 type Interactor struct {
+	Create
 	libOnboardingUsecase.LoginUseCases
 	libOnboardingUsecase.SignUpUseCases
 	engagementSvc.ServiceEngagementImpl
@@ -35,8 +44,10 @@ func NewInteractor() Interactor {
 	signup := libOnboardingUsecase.NewSignUpUseCases(i, profile, userPinUseCase, baseExtension)
 	engagementClient := libUtils.NewInterServiceClient(engagementService, baseExtension)
 	engagement := engagementSvc.NewServiceEngagementImpl(engagementClient, baseExtension)
+	create := NewServicServiceCreateeEngagementImpl()
 
 	return Interactor{
+		create,
 		login,
 		signup,
 		*engagement,

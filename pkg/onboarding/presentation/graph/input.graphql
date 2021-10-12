@@ -1,0 +1,7 @@
+input FacilityInput {
+  name: String!
+  code: String!
+  active: Boolean!
+  county: String!
+  description: String!
+}

@@ -2,25 +2,23 @@ package usecases
 
 import (
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/infrastructure"
+	"github.com/savannahghi/onboarding-service/pkg/onboarding/usecases/facility"
 	engagementSvc "github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/engagement"
 )
 
 // Interactor is an implementation of the usecases interface
 type Interactor struct {
-	*UseCaseSignUpImpl
 	*engagementSvc.ServiceEngagementImpl
-	*UsecaseProfileImpl
+	*facility.UseCaseFacilityImpl
 }
 
 // NewUsecasesInteractor initializes a new usecases interactor
 func NewUsecasesInteractor(infrastructure infrastructure.Interactor) Interactor {
-	signup := NewSignUpUseCase(infrastructure)
 	var engagement *engagementSvc.ServiceEngagementImpl
-	profile := NewProfileUseCase(infrastructure)
+	facility := facility.NewFacilityUsecase(infrastructure)
 
 	return Interactor{
-		signup,
 		engagement,
-		profile,
+		facility,
 	}
 }

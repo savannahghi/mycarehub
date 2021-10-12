@@ -5,6 +5,7 @@ package graph
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/savannahghi/enumutils"
@@ -486,6 +487,10 @@ func (r *queryResolver) FindUserByPhone(ctx context.Context, phoneNumber string)
 	defer serverutils.RecordGraphqlResolverMetrics(ctx, startTime, "findUserByPhone", err)
 
 	return profile, err
+}
+
+func (r *queryResolver) FindUsersByPhone(ctx context.Context, phoneNumber string) ([]*profileutils.UserProfile, error) {
+	panic(fmt.Errorf("not implemented"))
 }
 
 func (r *queryResolver) GetNavigationActions(ctx context.Context) (*dto.GroupedNavigationActions, error) {

@@ -5,7 +5,7 @@ extend type Query {
   userProfile: UserProfile!
 
   resumeWithPIN(pin: String!): Boolean!
-  
+
   getAddresses: UserAddresses!
 
   getUserCommunicationsSettings: UserCommunicationsSetting!
@@ -21,6 +21,8 @@ extend type Query {
   getAllPermissions: [Permission!]!
 
   findUserByPhone(phoneNumber: String!): UserProfile!
+
+  findUsersByPhone(phoneNumber: String!): [UserProfile]
 
   getNavigationActions: GroupedNavigationActions
 }
@@ -47,7 +49,7 @@ extend type Mutation {
   updateUserName(username: String!): Boolean!
 
   registerPushToken(token: String!): Boolean!
-   
+
   recordPostVisitSurvey(input: PostVisitSurveyInput!): Boolean!
 
   setupAsExperimentParticipant(participate: Boolean): Boolean!

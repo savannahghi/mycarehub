@@ -1,0 +1,4 @@
+
+extend type Mutation {
+    createFacility(input: FacilityInput!): Facility!
+}

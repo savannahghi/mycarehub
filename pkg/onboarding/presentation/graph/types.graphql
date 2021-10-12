@@ -1,0 +1,9 @@
+
+type Facility {
+  facilityID: Int
+  name: String!
+  code: String!
+  active: Boolean!
+  county: String!
+  description: String!
+}

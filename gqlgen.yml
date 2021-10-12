@@ -36,6 +36,8 @@ resolver:
 autobind:
   - "github.com/savannahghi/onboarding/pkg/onboarding/domain"
   - "github.com/savannahghi/onboarding/pkg/onboarding/application/dto"
+  - "github.com/savannahghi/onboarding-service/pkg/onboarding/domain"
+  - "github.com/savannahghi/onboarding-service/pkg/onboarding/application/dto"
   - "github.com/savannahghi/enumutils"
   - "github.com/savannahghi/scalarutils"
   - "github.com/savannahghi/serverutils"
@@ -76,6 +78,9 @@ models:
   Permission:
     model:
       - github.com/savannahghi/profileutils.Permission
+  FacilityInput:
+    model:
+      - github.com/savannahghi/onboarding-service/pkg/onboarding/application/dto.FacilityInput
   UserProfile:
     fields:
       roleDetails:
