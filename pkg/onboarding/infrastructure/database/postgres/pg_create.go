@@ -9,7 +9,9 @@ import (
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/infrastructure/database/postgres/gorm"
 )
 
-// CreateFacility ...
+// CreateFacility is responsible from creating a representation of a facility
+// A facility here is the healthcare facility that are on the platform.
+// A facility MFL CODE must be unique across the platform. I forms part of the unique identifiers
 func (d *OnboardingDb) CreateFacility(ctx context.Context, facility *dto.FacilityInput) (*domain.Facility, error) {
 
 	facilityObj := &gorm.Facility{

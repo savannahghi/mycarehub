@@ -2,7 +2,6 @@ package facility
 
 import (
 	"context"
-	"log"
 
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/application/dto"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/domain"
@@ -81,8 +80,7 @@ func NewFacilityUsecase(infra infrastructure.Interactor) *UseCaseFacilityImpl {
 }
 
 // CreateFacility creates a new facility
-func (f *UseCaseFacilityImpl) CreateFacility(ctx context.Context, facility *dto.FacilityInput) (*domain.Facility, error) {
-	log.Printf("this is where we are %v", facility)
+func (f *UseCaseFacilityImpl) CreateFacility(ctx context.Context, facility dto.FacilityInput) (*domain.Facility, error) {
 	return f.Infrastructure.CreateFacility(ctx, facility)
 }
 

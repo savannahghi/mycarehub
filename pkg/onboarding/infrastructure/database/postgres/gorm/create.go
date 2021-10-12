@@ -17,13 +17,6 @@ func (db *PGInstance) CreateFacility(ctx context.Context, facility *Facility) (*
 	if err != nil {
 		return nil, fmt.Errorf("failed to create a facility: %v", err)
 	}
-	facilityResp := &Facility{
-		Name:        facility.Name,
-		Code:        facility.Code,
-		Active:      facility.Active,
-		County:      facility.County,
-		Description: facility.Description,
-	}
 
-	return facilityResp, nil
+	return facility, nil
 }

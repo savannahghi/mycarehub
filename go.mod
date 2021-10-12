@@ -27,7 +27,6 @@ require (
 	github.com/savannahghi/scalarutils v0.0.4
 	github.com/savannahghi/serverutils v0.0.6
 	github.com/sirupsen/logrus v1.8.1
-	github.com/stretchr/testify v1.7.0
 	github.com/tj/assert v0.0.3
 	github.com/vektah/gqlparser/v2 v2.1.0
 	go.opencensus.io v0.23.0

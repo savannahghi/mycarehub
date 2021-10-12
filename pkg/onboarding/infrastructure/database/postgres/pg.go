@@ -4,7 +4,7 @@ import (
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/infrastructure/database/postgres/gorm"
 )
 
-// OnboardingDb struct implements ther service's business specific calls to the database
+// OnboardingDb struct implements the service's business specific calls to the database
 type OnboardingDb struct {
 	create gorm.Create
 	query  gorm.Query

@@ -5,7 +5,6 @@ package graph
 
 import (
 	"context"
-	"log"
 
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/application/dto"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/domain"
@@ -13,7 +12,6 @@ import (
 )
 
 func (r *mutationResolver) CreateFacility(ctx context.Context, input dto.FacilityInput) (*domain.Facility, error) {
-	log.Printf("\n\n\n\n\n\n\n\n\n\nthis is where we are %v", input)
 	return r.interactor.FacilityUsecase.CreateFacility(ctx, input)
 }
 
