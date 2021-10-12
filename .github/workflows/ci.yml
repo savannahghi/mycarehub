@@ -31,7 +31,17 @@ jobs:
         go-version: [1.16.x]
         os: [ubuntu-latest]
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 80
+    services:
+      postgres:
+        image: postgres:10.8
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: test
+          POSTGRES_PORT: 5432
+        ports:
+          - 5432:5432
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
     steps:
       - uses: actions/checkout@v2
       - uses: google-github-actions/setup-gcloud@master
@@ -62,6 +72,14 @@ jobs:
           go get golang.org/x/oauth2/internal
 
       - name: Run lint and test
+        env:
+          # These are the expected  database envs
+          DB_HOST: localhost
+          DB_USER: test
+          DB_PASS: test
+          DB_NAME: test
+          DB_PORT: 5432
+          IS_LOCAL_DB: True
         run: |
           staticcheck ./...
           bewellcli service validate-schema --name onboarding --version $GITHUB_SHA --url ${{ secrets.SERVICE_GRAPHQL_URL }}
