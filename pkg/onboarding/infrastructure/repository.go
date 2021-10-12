@@ -32,23 +32,27 @@ func (f ServiceCreateImpl) CreateFacility(ctx context.Context, facility dto.Faci
 	return f.onboarding.CreateFacility(ctx, &facility)
 }
 
-// Query represents a contract that contains all `get` ops to the database
-//
-// All the  contracts for get operations are assembled here
+// Query contains all query methods
 type Query interface {
+	RetrieveFacility(ctx context.Context, id *int64) (*domain.Facility, error)
 	GetFacilities(ctx context.Context) ([]*domain.Facility, error)
 }
 
-// ServiceQueryImpl represents create contract implementation object
+// ServiceQueryImpl contains implementation for the Query interface
 type ServiceQueryImpl struct {
 	onboarding pg.OnboardingDb
 }
 
-// NewServiceQueryImpl returns new instance of ServiceQueryImpl
-func NewServiceQueryImpl(on pg.OnboardingDb) Query {
+// NewServiceQueryImpl is the initializer for Service query
+func NewServiceQueryImpl(on pg.OnboardingDb) *ServiceQueryImpl {
 	return &ServiceQueryImpl{
 		onboarding: on,
 	}
+}
+
+// RetrieveFacility  is a repository implementation method for RetrieveFacility
+func (q ServiceQueryImpl) RetrieveFacility(ctx context.Context, id *int64) (*domain.Facility, error) {
+	return q.onboarding.RetrieveFacility(ctx, id)
 }
 
 //GetFacilities is responsible for returning a slice of healthcare facilities in the platform.

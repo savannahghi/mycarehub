@@ -33,3 +33,16 @@ func (d *OnboardingDb) GetFacilities(ctx context.Context) ([]*domain.Facility, e
 
 	return facility, nil
 }
+
+// RetrieveFacility gets a facility by ID from the database
+func (d *OnboardingDb) RetrieveFacility(ctx context.Context, id *int64) (*domain.Facility, error) {
+	if id == nil {
+		return nil, fmt.Errorf("facility ID should be defined")
+	}
+	facilitySession, err := d.query.RetrieveFacility(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("failed query and retrieve one facility: %s", err)
+	}
+
+	return d.mapFacilityObjectToDomain(facilitySession), nil
+}
