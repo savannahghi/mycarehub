@@ -6,8 +6,6 @@ package graph
 import (
 	"context"
 	"fmt"
-
-	"github.com/savannahghi/onboarding-service/pkg/onboarding/presentation/graph/generated"
 )
 
 func (r *mutationResolver) TestMutation(ctx context.Context) (*bool, error) {
@@ -17,8 +15,3 @@ func (r *mutationResolver) TestMutation(ctx context.Context) (*bool, error) {
 func (r *queryResolver) TestQuery(ctx context.Context) (*bool, error) {
 	panic(fmt.Errorf("not implemented"))
 }
-
-// Query returns generated.QueryResolver implementation.
-func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
-
-type queryResolver struct{ *Resolver }

@@ -2,3 +2,7 @@
 extend type Mutation {
     createFacility(input: FacilityInput!): Facility!
 }
+
+extend type Query {
+   fetchFacilities: [Facility]
+}
