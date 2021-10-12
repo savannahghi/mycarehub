@@ -1,7 +1,11 @@
 package infrastructure
 
 import (
+	"log"
+
 	"github.com/savannahghi/firebasetools"
+	pg "github.com/savannahghi/onboarding-service/pkg/onboarding/infrastructure/database/postgres"
+	"github.com/savannahghi/onboarding-service/pkg/onboarding/infrastructure/database/postgres/gorm"
 	baseExt "github.com/savannahghi/onboarding/pkg/onboarding/application/extension"
 	libUtils "github.com/savannahghi/onboarding/pkg/onboarding/application/utils"
 	libInfra "github.com/savannahghi/onboarding/pkg/onboarding/infrastructure"
@@ -13,6 +17,8 @@ const (
 	engagementService = "engagement"
 )
 
+// Infrastructure is an implementation of the infrastructure interface
+// It combines each individual service implementation
 type Infrastructure struct {
 	Create
 	libOnboardingUsecase.LoginUseCases
@@ -44,7 +50,12 @@ func NewInteractor() Interactor {
 	signup := libOnboardingUsecase.NewSignUpUseCases(i, profile, userPinUseCase, baseExtension)
 	engagementClient := libUtils.NewInterServiceClient(engagementService, baseExtension)
 	engagement := engagementSvc.NewServiceEngagementImpl(engagementClient, baseExtension)
-	create := NewServicServiceCreateeEngagementImpl()
+	postgres, err := gorm.NewPGInstance()
+	if err != nil {
+		log.Fatal(err)
+	}
+	db := pg.NewOnboardingDb(postgres, postgres)
+	create := NewServiceCreateImpl(*db)
 
 	return Interactor{
 		create,

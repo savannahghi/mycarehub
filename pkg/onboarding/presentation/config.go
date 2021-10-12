@@ -15,6 +15,7 @@ import (
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
+	infra "github.com/savannahghi/onboarding-service/pkg/onboarding/infrastructure"
 	postgres "github.com/savannahghi/onboarding-service/pkg/onboarding/infrastructure/database/postgres"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/infrastructure/database/postgres/gorm"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/presentation/graph"
@@ -69,7 +70,11 @@ func Router(ctx context.Context) (*mux.Router, error) {
 
 	openSourceUsecases := osusecases.NewUsecasesInteractor(infrastructure, baseExt, pinExt)
 
-	var facilityUseCase facility.UseCasesFacility
+	// initialize internal infrastructure
+	infra := infra.NewInteractor()
+
+	// Initialize facility usecase
+	facilityUseCase := facility.NewFacilityUsecase(infra)
 	pg, err := gorm.NewPGInstance()
 	if err != nil {
 		return nil, fmt.Errorf("can't instantiate repository in resolver: %v", err)
