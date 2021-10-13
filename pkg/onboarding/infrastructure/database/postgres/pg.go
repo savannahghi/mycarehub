@@ -9,10 +9,10 @@ type OnboardingDb struct {
 	create gorm.Create
 	query  gorm.Query
 	// update gorm.Update
-	// delete gorm.Delete
+	delete gorm.Delete
 }
 
 // NewOnboardingDb initializes a new instance of the OnboardingDB struct
-func NewOnboardingDb(c gorm.Create, q gorm.Query) *OnboardingDb {
-	return &OnboardingDb{create: c, query: q}
+func NewOnboardingDb(c gorm.Create, q gorm.Query, d gorm.Delete) *OnboardingDb {
+	return &OnboardingDb{create: c, query: q, delete: d}
 }

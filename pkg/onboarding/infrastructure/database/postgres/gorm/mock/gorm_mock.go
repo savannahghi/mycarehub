@@ -13,6 +13,7 @@ type GormMock struct {
 	CreateFacilityFn   func(ctx context.Context, facility *gorm.Facility) (*gorm.Facility, error)
 	RetrieveFacilityFn func(ctx context.Context, id *int64) (*gorm.Facility, error)
 	GetFacilitiesFn    func(ctx context.Context) ([]gorm.Facility, error)
+	DeleteFacilityFn   func(ctx context.Context, mfl_code string) (bool, error)
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -66,6 +67,10 @@ func NewGormMock() *GormMock {
 			})
 			return facilities, nil
 		},
+
+		DeleteFacilityFn: func(ctx context.Context, mfl_code string) (bool, error) {
+			return true, nil
+		},
 	}
 }
 
@@ -82,4 +87,9 @@ func (gm *GormMock) RetrieveFacility(ctx context.Context, id *int64) (*gorm.Faci
 // GetFacilities mocks the implementation of `gorm's` GetFacilities method.
 func (gm *GormMock) GetFacilities(ctx context.Context) ([]gorm.Facility, error) {
 	return gm.GetFacilitiesFn(ctx)
+}
+
+// DeleteFacility mocks the implementation of  DeleteFacility method.
+func (gm *GormMock) DeleteFacility(ctx context.Context, mflcode string) (bool, error) {
+	return gm.DeleteFacilityFn(ctx, mflcode)
 }

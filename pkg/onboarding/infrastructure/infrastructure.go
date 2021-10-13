@@ -21,6 +21,7 @@ const (
 // It combines each individual service implementation
 type Infrastructure struct {
 	Create
+	Delete
 	Query
 	libOnboardingUsecase.LoginUseCases
 	libOnboardingUsecase.SignUpUseCases
@@ -32,6 +33,7 @@ type Infrastructure struct {
 // It combines each individual service implementation
 type Interactor struct {
 	Create
+	Delete
 	Query
 	libOnboardingUsecase.LoginUseCases
 	libOnboardingUsecase.SignUpUseCases
@@ -56,12 +58,14 @@ func NewInteractor() Interactor {
 	if err != nil {
 		log.Fatal(err)
 	}
-	db := pg.NewOnboardingDb(postgres, postgres)
+	db := pg.NewOnboardingDb(postgres, postgres, postgres)
 	create := NewServiceCreateImpl(*db)
+	delete := NewServiceDeleteImpl(*db)
 	query := NewServiceQueryImpl(*db)
 
 	return Interactor{
 		create,
+		delete,
 		query,
 		login,
 		signup,
