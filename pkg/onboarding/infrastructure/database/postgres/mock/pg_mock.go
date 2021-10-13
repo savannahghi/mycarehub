@@ -12,7 +12,7 @@ import (
 type PostgresMock struct {
 	CreateFacilityFn   func(ctx context.Context, facility *dto.FacilityInput) (*domain.Facility, error)
 	GetFacilitiesFn    func(ctx context.Context) ([]*domain.Facility, error)
-	RetrieveFacilityFn func(ctx context.Context, id *uuid.UUID) (*domain.Facility, error)
+	RetrieveFacilityFn func(ctx context.Context, id *uuid.UUID, isActive bool) (*domain.Facility, error)
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -50,7 +50,7 @@ func NewPostgresMock() *PostgresMock {
 				},
 			}, nil
 		},
-		RetrieveFacilityFn: func(ctx context.Context, id *uuid.UUID) (*domain.Facility, error) {
+		RetrieveFacilityFn: func(ctx context.Context, id *uuid.UUID, isActive bool) (*domain.Facility, error) {
 			facilityID := uuid.New()
 			name := "test-facility"
 			code := "t-100"
@@ -74,6 +74,6 @@ func (gm *PostgresMock) CreateFacility(ctx context.Context, facility *dto.Facili
 }
 
 // RetrieveFacility mocks the implementation of `gorm's` CreateFacility method.
-func (gm *PostgresMock) RetrieveFacility(ctx context.Context, id *uuid.UUID) (*domain.Facility, error) {
-	return gm.RetrieveFacilityFn(ctx, id)
+func (gm *PostgresMock) RetrieveFacility(ctx context.Context, id *uuid.UUID, isActive bool) (*domain.Facility, error) {
+	return gm.RetrieveFacilityFn(ctx, id, isActive)
 }

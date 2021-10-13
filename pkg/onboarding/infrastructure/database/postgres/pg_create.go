@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 	"fmt"
+	"strconv"
 
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/application/dto"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/domain"
@@ -23,7 +24,7 @@ func (d *OnboardingDb) CreateFacility(ctx context.Context, facility *dto.Facilit
 	facilityObj := &gorm.Facility{
 		Name:        facility.Name,
 		Code:        facility.Code,
-		Active:      facility.Active,
+		Active:      strconv.FormatBool(facility.Active),
 		County:      facility.Code,
 		Description: facility.Description,
 	}

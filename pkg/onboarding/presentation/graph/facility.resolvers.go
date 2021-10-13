@@ -25,12 +25,12 @@ func (r *queryResolver) FetchFacilities(ctx context.Context) ([]*domain.Facility
 	return r.interactor.FacilityUsecase.FetchFacilities(ctx)
 }
 
-func (r *queryResolver) RetrieveFacility(ctx context.Context, id string) (*domain.Facility, error) {
+func (r *queryResolver) RetrieveFacility(ctx context.Context, id string, active bool) (*domain.Facility, error) {
 	newID, err := uuid.Parse(id)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse ID to UUID: %v", err)
 	}
-	return r.interactor.FacilityUsecase.RetrieveFacility(ctx, &newID)
+	return r.interactor.FacilityUsecase.RetrieveFacility(ctx, &newID, active)
 }
 
 // Mutation returns generated.MutationResolver implementation.

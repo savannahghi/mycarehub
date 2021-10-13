@@ -46,7 +46,7 @@ func (f ServiceCreateImpl) CollectMetrics(ctx context.Context, metric *dto.Metri
 
 // Query contains all query methods
 type Query interface {
-	RetrieveFacility(ctx context.Context, id *uuid.UUID) (*domain.Facility, error)
+	RetrieveFacility(ctx context.Context, id *uuid.UUID, isActive bool) (*domain.Facility, error)
 	GetFacilities(ctx context.Context) ([]*domain.Facility, error)
 }
 
@@ -63,8 +63,8 @@ func NewServiceQueryImpl(on pg.OnboardingDb) *ServiceQueryImpl {
 }
 
 // RetrieveFacility  is a repository implementation method for RetrieveFacility
-func (q ServiceQueryImpl) RetrieveFacility(ctx context.Context, id *uuid.UUID) (*domain.Facility, error) {
-	return q.onboarding.RetrieveFacility(ctx, id)
+func (q ServiceQueryImpl) RetrieveFacility(ctx context.Context, id *uuid.UUID, isActive bool) (*domain.Facility, error) {
+	return q.onboarding.RetrieveFacility(ctx, id, isActive)
 }
 
 //GetFacilities is responsible for returning a slice of healthcare facilities in the platform.

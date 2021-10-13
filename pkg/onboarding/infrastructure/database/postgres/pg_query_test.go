@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"testing"
 
 	"github.com/google/uuid"
@@ -73,7 +74,7 @@ func TestOnboardingDb_GetFacilities(t *testing.T) {
 						FacilityID:  &facilityID,
 						Name:        name,
 						Code:        code,
-						Active:      true,
+						Active:      strconv.FormatBool(true),
 						County:      county,
 						Description: description,
 					})

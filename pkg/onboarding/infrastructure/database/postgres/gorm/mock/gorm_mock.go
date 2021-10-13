@@ -2,6 +2,7 @@ package mock
 
 import (
 	"context"
+	"strconv"
 	"time"
 
 	"github.com/google/uuid"
@@ -16,7 +17,7 @@ import (
 // This mock struct should be separate from our own internal methods.
 type GormMock struct {
 	CreateFacilityFn   func(ctx context.Context, facility *gorm.Facility) (*gorm.Facility, error)
-	RetrieveFacilityFn func(ctx context.Context, id *uuid.UUID) (*gorm.Facility, error)
+	RetrieveFacilityFn func(ctx context.Context, id *uuid.UUID, isActive bool) (*gorm.Facility, error)
 	GetFacilitiesFn    func(ctx context.Context) ([]gorm.Facility, error)
 	DeleteFacilityFn   func(ctx context.Context, mfl_code string) (bool, error)
 	CollectMetricsFn   func(ctx context.Context, metrics *gorm.Metric) (*gorm.Metric, error)
@@ -35,13 +36,13 @@ func NewGormMock() *GormMock {
 				FacilityID:  &id,
 				Name:        name,
 				Code:        code,
-				Active:      true,
+				Active:      strconv.FormatBool(true),
 				County:      county,
 				Description: description,
 			}, nil
 		},
 
-		RetrieveFacilityFn: func(ctx context.Context, id *uuid.UUID) (*gorm.Facility, error) {
+		RetrieveFacilityFn: func(ctx context.Context, id *uuid.UUID, isActive bool) (*gorm.Facility, error) {
 			facilityID := uuid.New()
 			name := "Kanairo One"
 			code := "KN001"
@@ -51,7 +52,7 @@ func NewGormMock() *GormMock {
 				FacilityID:  &facilityID,
 				Name:        name,
 				Code:        code,
-				Active:      true,
+				Active:      strconv.FormatBool(true),
 				County:      county,
 				Description: description,
 			}, nil
@@ -67,7 +68,7 @@ func NewGormMock() *GormMock {
 				FacilityID:  &facilityID,
 				Name:        name,
 				Code:        code,
-				Active:      true,
+				Active:      strconv.FormatBool(true),
 				County:      county,
 				Description: description,
 			})
@@ -98,8 +99,8 @@ func (gm *GormMock) CreateFacility(ctx context.Context, facility *gorm.Facility)
 }
 
 // RetrieveFacility mocks the implementation of `gorm's` RetrieveFacility method.
-func (gm *GormMock) RetrieveFacility(ctx context.Context, id *uuid.UUID) (*gorm.Facility, error) {
-	return gm.RetrieveFacilityFn(ctx, id)
+func (gm *GormMock) RetrieveFacility(ctx context.Context, id *uuid.UUID, isActive bool) (*gorm.Facility, error) {
+	return gm.RetrieveFacilityFn(ctx, id, isActive)
 }
 
 // GetFacilities mocks the implementation of `gorm's` GetFacilities method.

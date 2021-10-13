@@ -61,7 +61,7 @@ func (f *CreateMock) CollectMetrics(ctx context.Context, metric *dto.MetricInput
 
 // QueryMock is a mock of the query methods
 type QueryMock struct {
-	RetrieveFacilityFn func(ctx context.Context, id *uuid.UUID) (*domain.Facility, error)
+	RetrieveFacilityFn func(ctx context.Context, id *uuid.UUID, isActive bool) (*domain.Facility, error)
 	GetFacilitiesFn    func(ctx context.Context) ([]*domain.Facility, error)
 }
 
@@ -69,7 +69,7 @@ type QueryMock struct {
 func NewQueryMock() *QueryMock {
 	return &QueryMock{
 
-		RetrieveFacilityFn: func(ctx context.Context, id *uuid.UUID) (*domain.Facility, error) {
+		RetrieveFacilityFn: func(ctx context.Context, id *uuid.UUID, isActive bool) (*domain.Facility, error) {
 			facilityID := uuid.New()
 			name := "test-facility"
 			code := "t-100"
@@ -105,8 +105,8 @@ func NewQueryMock() *QueryMock {
 }
 
 // RetrieveFacility mocks the implementation of `gorm's` RetrieveFacility method.
-func (f *QueryMock) RetrieveFacility(ctx context.Context, id *uuid.UUID) (*domain.Facility, error) {
-	return f.RetrieveFacilityFn(ctx, id)
+func (f *QueryMock) RetrieveFacility(ctx context.Context, id *uuid.UUID, isActive bool) (*domain.Facility, error) {
+	return f.RetrieveFacilityFn(ctx, id, isActive)
 }
 
 // GetFacilities mocks the implementation of `gorm's` GetFacilities method

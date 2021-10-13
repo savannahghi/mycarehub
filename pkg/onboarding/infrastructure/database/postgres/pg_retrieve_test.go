@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"testing"
 
 	"github.com/google/uuid"
@@ -36,8 +37,9 @@ func TestOnboardingDb_RetrieveFacility(t *testing.T) {
 	invalidID := uuid.New()
 
 	type args struct {
-		ctx context.Context
-		id  *uuid.UUID
+		ctx    context.Context
+		id     *uuid.UUID
+		active bool
 	}
 	tests := []struct {
 		name    string
@@ -48,23 +50,26 @@ func TestOnboardingDb_RetrieveFacility(t *testing.T) {
 		{
 			name: "happy case - valid ID passed",
 			args: args{
-				ctx: ctx,
-				id:  &id,
+				ctx:    ctx,
+				id:     &id,
+				active: true,
 			},
 			wantErr: false,
 		},
 		{
 			name: "sad case - no ID passed",
 			args: args{
-				ctx: ctx,
+				ctx:    ctx,
+				active: false,
 			},
 			wantErr: true,
 		},
 		{
 			name: "sad case - invalid ID",
 			args: args{
-				ctx: ctx,
-				id:  &invalidID,
+				ctx:    ctx,
+				id:     &invalidID,
+				active: false,
 			},
 			wantErr: true,
 		},
@@ -72,15 +77,15 @@ func TestOnboardingDb_RetrieveFacility(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			got, err := d.RetrieveFacility(ctx, tt.args.id)
+			got, err := d.RetrieveFacility(ctx, tt.args.id, tt.args.active)
 
 			if tt.name == "happy case - valid ID passed" {
-				fakeGorm.RetrieveFacilityFn = func(ctx context.Context, id *uuid.UUID) (*gorm.Facility, error) {
+				fakeGorm.RetrieveFacilityFn = func(ctx context.Context, id *uuid.UUID, isActive bool) (*gorm.Facility, error) {
 					return &gorm.Facility{
 						FacilityID:  &facility.ID,
 						Name:        facility.Name,
 						Code:        facility.Code,
-						Active:      facility.Active,
+						Active:      strconv.FormatBool(facility.Active),
 						County:      facility.County,
 						Description: facility.Description,
 					}, nil
@@ -88,13 +93,13 @@ func TestOnboardingDb_RetrieveFacility(t *testing.T) {
 			}
 
 			if tt.name == "sad case - no ID passed" {
-				fakeGorm.RetrieveFacilityFn = func(ctx context.Context, id *uuid.UUID) (*gorm.Facility, error) {
+				fakeGorm.RetrieveFacilityFn = func(ctx context.Context, id *uuid.UUID, isActive bool) (*gorm.Facility, error) {
 					return nil, fmt.Errorf("failed to create facility")
 				}
 			}
 
 			if tt.name == "sad case - invalid ID" {
-				fakeGorm.RetrieveFacilityFn = func(ctx context.Context, id *uuid.UUID) (*gorm.Facility, error) {
+				fakeGorm.RetrieveFacilityFn = func(ctx context.Context, id *uuid.UUID, isActive bool) (*gorm.Facility, error) {
 					return nil, fmt.Errorf("failed to create facility")
 				}
 			}

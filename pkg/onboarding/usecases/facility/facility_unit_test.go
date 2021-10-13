@@ -119,8 +119,9 @@ func TestUnit_RetrieveFacility(t *testing.T) {
 	invalidID := uuid.New()
 
 	type args struct {
-		ctx context.Context
-		id  *uuid.UUID
+		ctx    context.Context
+		id     *uuid.UUID
+		active bool
 	}
 	tests := []struct {
 		name    string
@@ -131,8 +132,9 @@ func TestUnit_RetrieveFacility(t *testing.T) {
 		{
 			name: "happy case - valid ID passed",
 			args: args{
-				ctx: ctx,
-				id:  &id,
+				ctx:    ctx,
+				id:     &id,
+				active: true,
 			},
 			wantErr: false,
 			want:    facility,
@@ -140,15 +142,17 @@ func TestUnit_RetrieveFacility(t *testing.T) {
 		{
 			name: "sad case - no ID passed",
 			args: args{
-				ctx: ctx,
+				ctx:    ctx,
+				active: true,
 			},
 			wantErr: true,
 		},
 		{
 			name: "sad case - invalid ID",
 			args: args{
-				ctx: ctx,
-				id:  &invalidID,
+				ctx:    ctx,
+				id:     &invalidID,
+				active: true,
 			},
 			wantErr: true,
 		},
@@ -156,23 +160,23 @@ func TestUnit_RetrieveFacility(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.name == "happy case - valid ID passed" {
-				fakeQuery.RetrieveFacilityFn = func(ctx context.Context, id *uuid.UUID) (*domain.Facility, error) {
+				fakeQuery.RetrieveFacilityFn = func(ctx context.Context, id *uuid.UUID, isActive bool) (*domain.Facility, error) {
 					return facility, nil
 				}
 			}
 			if tt.name == "sad case - no ID passed" {
-				fakeQuery.RetrieveFacilityFn = func(ctx context.Context, id *uuid.UUID) (*domain.Facility, error) {
+				fakeQuery.RetrieveFacilityFn = func(ctx context.Context, id *uuid.UUID, isActive bool) (*domain.Facility, error) {
 					return nil, fmt.Errorf("failed to create facility")
 				}
 			}
 
 			if tt.name == "sad case - invalid ID" {
-				fakeQuery.RetrieveFacilityFn = func(ctx context.Context, id *uuid.UUID) (*domain.Facility, error) {
+				fakeQuery.RetrieveFacilityFn = func(ctx context.Context, id *uuid.UUID, isActive bool) (*domain.Facility, error) {
 					return nil, fmt.Errorf("failed to create facility")
 				}
 			}
 
-			got, err := f.RetrieveFacility(tt.args.ctx, tt.args.id)
+			got, err := f.RetrieveFacility(tt.args.ctx, tt.args.id, tt.args.active)
 
 			if (err != nil) != tt.wantErr {
 				t.Errorf("OnboardingDb.RetrieveFacility() error = %v, wantErr %v", err, tt.wantErr)

@@ -205,7 +205,7 @@ type ComplexityRoot struct {
 		GetUserCommunicationsSettings func(childComplexity int) int
 		ListMicroservices             func(childComplexity int) int
 		ResumeWithPin                 func(childComplexity int, pin string) int
-		RetrieveFacility              func(childComplexity int, id string) int
+		RetrieveFacility              func(childComplexity int, id string, active bool) int
 		TestQuery                     func(childComplexity int) int
 		UserProfile                   func(childComplexity int) int
 		__resolve__service            func(childComplexity int) int
@@ -317,7 +317,7 @@ type MutationResolver interface {
 }
 type QueryResolver interface {
 	FetchFacilities(ctx context.Context) ([]*domain1.Facility, error)
-	RetrieveFacility(ctx context.Context, id string) (*domain1.Facility, error)
+	RetrieveFacility(ctx context.Context, id string, active bool) (*domain1.Facility, error)
 	TestQuery(ctx context.Context) (*bool, error)
 	DummyQuery(ctx context.Context) (*bool, error)
 	UserProfile(ctx context.Context) (*profileutils.UserProfile, error)
@@ -1264,7 +1264,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.RetrieveFacility(childComplexity, args["id"].(string)), true
+		return e.complexity.Query.RetrieveFacility(childComplexity, args["id"].(string), args["active"].(bool)), true
 
 	case "Query.testQuery":
 		if e.complexity.Query.TestQuery == nil {
@@ -1644,7 +1644,7 @@ extend type Mutation {
 
 extend type Query {
    fetchFacilities: [Facility]
-   RetrieveFacility(id: String!): Facility!
+   RetrieveFacility(id: String!, active: Boolean!): Facility!
 }`, BuiltIn: false},
 	{Name: "pkg/onboarding/presentation/graph/input.graphql", Input: `input FacilityInput {
   name: String!
@@ -2772,6 +2772,15 @@ func (ec *executionContext) field_Query_RetrieveFacility_args(ctx context.Contex
 		}
 	}
 	args["id"] = arg0
+	var arg1 bool
+	if tmp, ok := rawArgs["active"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("active"))
+		arg1, err = ec.unmarshalNBoolean2bool(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["active"] = arg1
 	return args, nil
 }
 
@@ -6213,7 +6222,7 @@ func (ec *executionContext) _Query_RetrieveFacility(ctx context.Context, field g
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().RetrieveFacility(rctx, args["id"].(string))
+		return ec.resolvers.Query().RetrieveFacility(rctx, args["id"].(string), args["active"].(bool))
 	})
 	if err != nil {
 		ec.Error(ctx, err)

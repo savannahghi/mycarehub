@@ -2,7 +2,6 @@ package facility_test
 
 import (
 	"context"
-	"reflect"
 	"testing"
 
 	"github.com/google/uuid"
@@ -83,6 +82,7 @@ func TestUseCaseFacilityImpl_RetrieveFacility(t *testing.T) {
 	facilityInput := &dto.FacilityInput{
 		Name:        "Kanairo One",
 		Code:        ksuid.New().String(),
+		Active:      true,
 		County:      "Kanairo",
 		Description: "This is just for mocking",
 	}
@@ -95,11 +95,12 @@ func TestUseCaseFacilityImpl_RetrieveFacility(t *testing.T) {
 
 	id := facility.ID
 
-	invalidID := uuid.New()
+	invalidID, _ := uuid.NewUUID()
 
 	type args struct {
-		ctx context.Context
-		id  *uuid.UUID
+		ctx    context.Context
+		id     *uuid.UUID
+		active bool
 	}
 	tests := []struct {
 		name    string
@@ -110,8 +111,9 @@ func TestUseCaseFacilityImpl_RetrieveFacility(t *testing.T) {
 		{
 			name: "happy case - valid ID passed",
 			args: args{
-				ctx: ctx,
-				id:  &id,
+				ctx:    ctx,
+				id:     &id,
+				active: true,
 			},
 			wantErr: false,
 			want:    facility,
@@ -119,7 +121,8 @@ func TestUseCaseFacilityImpl_RetrieveFacility(t *testing.T) {
 		{
 			name: "sad case - no ID passed",
 			args: args{
-				ctx: ctx,
+				ctx:    ctx,
+				active: false,
 			},
 			wantErr: true,
 		},
@@ -134,13 +137,15 @@ func TestUseCaseFacilityImpl_RetrieveFacility(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := f.RetrieveFacility(tt.args.ctx, tt.args.id)
+			got, err := f.RetrieveFacility(tt.args.ctx, tt.args.id, tt.args.active)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCaseFacilityImpl.RetrieveFacility() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("UseCaseFacilityImpl.RetrieveFacility() = %v, want %v", got, tt.want)
+
+			if tt.wantErr && got != nil {
+				t.Errorf("UseCaseFacilityImpl.RetrieveFacility")
+				return
 			}
 		})
 	}
@@ -155,8 +160,9 @@ func TestUseCaseFacilityImpl_DeleteFacility_Integration(t *testing.T) {
 	//Create facility
 	facilityInput := &dto.FacilityInput{
 		Name:        "Kanairo One",
-		Code:        "KN001",
+		Code:        "KN004",
 		County:      "Kanairo",
+		Active:      true,
 		Description: "This is just for integration testing",
 	}
 
@@ -166,7 +172,7 @@ func TestUseCaseFacilityImpl_DeleteFacility_Integration(t *testing.T) {
 	assert.NotNil(t, facility)
 
 	// retrieve the facility
-	facility1, err := i.RetrieveFacility(ctx, &facility.ID)
+	facility1, err := i.RetrieveFacility(ctx, &facility.ID, true)
 	assert.Nil(t, err)
 	assert.NotNil(t, facility1)
 
@@ -177,8 +183,8 @@ func TestUseCaseFacilityImpl_DeleteFacility_Integration(t *testing.T) {
 	assert.Equal(t, true, isDeleted)
 
 	// retrieve the facility checks if the facility is deleted
-	facility2, err := i.RetrieveFacility(ctx, &facility.ID)
-	assert.NotNil(t, err)
+	facility2, err := i.RetrieveFacility(ctx, &facility.ID, true)
+	assert.Nil(t, err)
 	assert.Nil(t, facility2)
 
 	//Delete a facility again.
