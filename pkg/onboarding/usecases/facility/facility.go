@@ -66,7 +66,7 @@ type IFacilityList interface {
 
 // IFacilityRetrieve contains the method to retrieve a facility
 type IFacilityRetrieve interface {
-	Retrieve(id string) (*domain.Facility, error)
+	RetrieveFacility(ctx context.Context, id *int64) (*domain.Facility, error)
 }
 
 // UseCaseFacilityImpl represents facility implementation object
@@ -117,9 +117,9 @@ func (f *UseCaseFacilityImpl) List(
 	return nil, nil
 }
 
-// Retrieve find the health facility by ID
-func (f *UseCaseFacilityImpl) Retrieve(id string) (*domain.Facility, error) {
-	return nil, nil
+// RetrieveFacility find the health facility by ID
+func (f *UseCaseFacilityImpl) RetrieveFacility(ctx context.Context, id *int64) (*domain.Facility, error) {
+	return f.Infrastructure.RetrieveFacility(ctx, id)
 }
 
 // FetchFacilities fetches healthcare facilities in platform

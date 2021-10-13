@@ -26,6 +26,7 @@ require (
 	github.com/savannahghi/profileutils v0.0.17
 	github.com/savannahghi/scalarutils v0.0.4
 	github.com/savannahghi/serverutils v0.0.6
+	github.com/segmentio/ksuid v1.0.4
 	github.com/sirupsen/logrus v1.8.1
 	github.com/tj/assert v0.0.3
 	github.com/vektah/gqlparser/v2 v2.1.0

@@ -19,6 +19,11 @@ func (r *queryResolver) FetchFacilities(ctx context.Context) ([]*domain.Facility
 	return r.interactor.FacilityUsecase.FetchFacilities(ctx)
 }
 
+func (r *queryResolver) RetrieveFacility(ctx context.Context, id int) (*domain.Facility, error) {
+	intID := int64(id)
+	return r.interactor.FacilityUsecase.RetrieveFacility(ctx, &intID)
+}
+
 // Mutation returns generated.MutationResolver implementation.
 func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
 

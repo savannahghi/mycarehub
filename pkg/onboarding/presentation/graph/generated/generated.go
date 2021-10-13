@@ -203,6 +203,7 @@ type ComplexityRoot struct {
 		GetUserCommunicationsSettings func(childComplexity int) int
 		ListMicroservices             func(childComplexity int) int
 		ResumeWithPin                 func(childComplexity int, pin string) int
+		RetrieveFacility              func(childComplexity int, id int) int
 		TestQuery                     func(childComplexity int) int
 		UserProfile                   func(childComplexity int) int
 		__resolve__service            func(childComplexity int) int
@@ -310,6 +311,7 @@ type MutationResolver interface {
 }
 type QueryResolver interface {
 	FetchFacilities(ctx context.Context) ([]*domain1.Facility, error)
+	RetrieveFacility(ctx context.Context, id int) (*domain1.Facility, error)
 	TestQuery(ctx context.Context) (*bool, error)
 	DummyQuery(ctx context.Context) (*bool, error)
 	UserProfile(ctx context.Context) (*profileutils.UserProfile, error)
@@ -1234,6 +1236,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.ResumeWithPin(childComplexity, args["pin"].(string)), true
 
+	case "Query.RetrieveFacility":
+		if e.complexity.Query.RetrieveFacility == nil {
+			break
+		}
+
+		args, err := ec.field_Query_RetrieveFacility_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.RetrieveFacility(childComplexity, args["id"].(int)), true
+
 	case "Query.testQuery":
 		if e.complexity.Query.TestQuery == nil {
 			break
@@ -1611,6 +1625,7 @@ extend type Mutation {
 
 extend type Query {
    fetchFacilities: [Facility]
+   RetrieveFacility(id: Int!): Facility!
 }`, BuiltIn: false},
 	{Name: "pkg/onboarding/presentation/graph/input.graphql", Input: `input FacilityInput {
   name: String!
@@ -2708,6 +2723,21 @@ func (ec *executionContext) field_Mutation_updateUserProfile_args(ctx context.Co
 		}
 	}
 	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_RetrieveFacility_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNInt2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
 	return args, nil
 }
 
@@ -6080,6 +6110,48 @@ func (ec *executionContext) _Query_fetchFacilities(ctx context.Context, field gr
 	res := resTmp.([]*domain1.Facility)
 	fc.Result = res
 	return ec.marshalOFacility2ᚕᚖgithubᚗcomᚋsavannahghiᚋonboardingᚑserviceᚋpkgᚋonboardingᚋdomainᚐFacility(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_RetrieveFacility(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_RetrieveFacility_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().RetrieveFacility(rctx, args["id"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*domain1.Facility)
+	fc.Result = res
+	return ec.marshalNFacility2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚑserviceᚋpkgᚋonboardingᚋdomainᚐFacility(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_testQuery(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -10380,6 +10452,20 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_fetchFacilities(ctx, field)
+				return res
+			})
+		case "RetrieveFacility":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_RetrieveFacility(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
 				return res
 			})
 		case "testQuery":
