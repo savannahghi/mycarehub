@@ -27,7 +27,7 @@ type Facility struct {
 	Name string `gorm:"column:name"`
 	// MFL Code for Kenyan facilities, globally unique
 	Code        string `gorm:"unique;column:mfl_code"`
-	Active      bool   `gorm:"column:active"`
+	Active      string `gorm:"column:active"`
 	County      string `gorm:"column:county"` // TODO: Controlled list of counties
 	Description string `gorm:"column:description"`
 }

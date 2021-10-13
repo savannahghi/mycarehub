@@ -7,12 +7,12 @@ import (
 
 // Create contains all the methods used to perform a create operation in DB
 type Create interface {
-	CreateFacility(ctx context.Context, facility *Facility) (*Facility, error)
+	GetOrCreateFacility(ctx context.Context, facility *Facility) (*Facility, error)
 	CollectMetrics(ctx context.Context, metrics *Metric) (*Metric, error)
 }
 
-// CreateFacility ...
-func (db *PGInstance) CreateFacility(ctx context.Context, facility *Facility) (*Facility, error) {
+// GetOrCreateFacility ...
+func (db *PGInstance) GetOrCreateFacility(ctx context.Context, facility *Facility) (*Facility, error) {
 	err := db.DB.Create(facility).Error
 
 	if err != nil {

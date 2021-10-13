@@ -2,6 +2,8 @@ package facility
 
 import (
 	"context"
+	"fmt"
+	"strings"
 
 	"github.com/google/uuid"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/application/dto"
@@ -24,7 +26,7 @@ type UseCasesFacility interface {
 type IFacilityCreate interface {
 	// TODO Ensure blank ID when creating
 	// TODO Since `id` is optional, ensure pre-condition check
-	CreateFacility(ctx context.Context, facility dto.FacilityInput) (*domain.Facility, error)
+	GetOrCreateFacility(ctx context.Context, facility dto.FacilityInput) (*domain.Facility, error)
 }
 
 // IFacilityUpdate contains the method to update facility details
@@ -66,7 +68,8 @@ type IFacilityList interface {
 
 // IFacilityRetrieve contains the method to retrieve a facility
 type IFacilityRetrieve interface {
-	RetrieveFacility(ctx context.Context, id *uuid.UUID) (*domain.Facility, error)
+	RetrieveFacility(ctx context.Context, id *uuid.UUID, isActive bool) (*domain.Facility, error)
+	RetrieveFacilityByMFLCode(ctx context.Context, MFLCode string, isActive bool) (*domain.Facility, error)
 }
 
 // UseCaseFacilityImpl represents facility implementation object
@@ -81,9 +84,16 @@ func NewFacilityUsecase(infra infrastructure.Interactor) *UseCaseFacilityImpl {
 	}
 }
 
-// CreateFacility creates a new facility
-func (f *UseCaseFacilityImpl) CreateFacility(ctx context.Context, facility dto.FacilityInput) (*domain.Facility, error) {
-	return f.Infrastructure.CreateFacility(ctx, facility)
+// GetOrCreateFacility creates a new facility
+func (f *UseCaseFacilityImpl) GetOrCreateFacility(ctx context.Context, facility dto.FacilityInput) (*domain.Facility, error) {
+	fetchedFacility, err := f.Infrastructure.RetrieveFacilityByMFLCode(ctx, facility.Code, facility.Active)
+	if err != nil {
+		if strings.Contains(err.Error(), "failed query and retrieve facility by MFLCode") {
+			return f.Infrastructure.GetOrCreateFacility(ctx, facility)
+		}
+		return nil, fmt.Errorf("failed to retrieve facility")
+	}
+	return fetchedFacility, nil
 }
 
 // Update creates a new facility
@@ -118,8 +128,13 @@ func (f *UseCaseFacilityImpl) Reactivate(id string) (*domain.Facility, error) {
 // }
 
 // RetrieveFacility find the health facility by ID
-func (f *UseCaseFacilityImpl) RetrieveFacility(ctx context.Context, id *uuid.UUID) (*domain.Facility, error) {
-	return f.Infrastructure.RetrieveFacility(ctx, id)
+func (f *UseCaseFacilityImpl) RetrieveFacility(ctx context.Context, id *uuid.UUID, isActive bool) (*domain.Facility, error) {
+	return f.Infrastructure.RetrieveFacility(ctx, id, isActive)
+}
+
+// RetrieveFacilityByMFLCode find the health facility by MFL Code
+func (f *UseCaseFacilityImpl) RetrieveFacilityByMFLCode(ctx context.Context, MFLCode string, isActive bool) (*domain.Facility, error) {
+	return f.Infrastructure.RetrieveFacilityByMFLCode(ctx, MFLCode, isActive)
 }
 
 // FetchFacilities fetches healthcare facilities in platform

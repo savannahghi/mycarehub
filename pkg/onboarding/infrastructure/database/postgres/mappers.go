@@ -1,6 +1,8 @@
 package postgres
 
 import (
+	"strconv"
+
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/domain"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/infrastructure/database/postgres/gorm"
 )
@@ -12,11 +14,16 @@ func (d *OnboardingDb) mapFacilityObjectToDomain(facilityObject *gorm.Facility) 
 		return nil
 	}
 
+	active, err := strconv.ParseBool(facilityObject.Active)
+	if err != nil {
+		return nil
+	}
+
 	return &domain.Facility{
 		ID:          *facilityObject.FacilityID,
 		Name:        facilityObject.Name,
 		Code:        facilityObject.Code,
-		Active:      facilityObject.Active,
+		Active:      active,
 		County:      facilityObject.County,
 		Description: facilityObject.Description,
 	}

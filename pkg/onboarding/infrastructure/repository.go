@@ -13,7 +13,7 @@ import (
 //
 // All the  contracts for create operations are assembled here
 type Create interface {
-	CreateFacility(ctx context.Context, facility dto.FacilityInput) (*domain.Facility, error)
+	GetOrCreateFacility(ctx context.Context, facility dto.FacilityInput) (*domain.Facility, error)
 	CollectMetrics(ctx context.Context, metric *dto.MetricInput) (*domain.Metric, error)
 }
 
@@ -34,9 +34,9 @@ func NewServiceCreateImpl(on pg.OnboardingDb) Create {
 	}
 }
 
-// CreateFacility is responsible for creating a representation of a facility
-func (f ServiceCreateImpl) CreateFacility(ctx context.Context, facility dto.FacilityInput) (*domain.Facility, error) {
-	return f.onboarding.CreateFacility(ctx, &facility)
+// GetOrCreateFacility is responsible for creating a representation of a facility
+func (f ServiceCreateImpl) GetOrCreateFacility(ctx context.Context, facility dto.FacilityInput) (*domain.Facility, error) {
+	return f.onboarding.GetOrCreateFacility(ctx, &facility)
 }
 
 // CollectMetrics is responsible for creating a representation of a metric
@@ -46,8 +46,9 @@ func (f ServiceCreateImpl) CollectMetrics(ctx context.Context, metric *dto.Metri
 
 // Query contains all query methods
 type Query interface {
-	RetrieveFacility(ctx context.Context, id *uuid.UUID) (*domain.Facility, error)
+	RetrieveFacility(ctx context.Context, id *uuid.UUID, isActive bool) (*domain.Facility, error)
 	GetFacilities(ctx context.Context) ([]*domain.Facility, error)
+	RetrieveFacilityByMFLCode(ctx context.Context, MFLCode string, isActive bool) (*domain.Facility, error)
 }
 
 // ServiceQueryImpl contains implementation for the Query interface
@@ -63,8 +64,13 @@ func NewServiceQueryImpl(on pg.OnboardingDb) *ServiceQueryImpl {
 }
 
 // RetrieveFacility  is a repository implementation method for RetrieveFacility
-func (q ServiceQueryImpl) RetrieveFacility(ctx context.Context, id *uuid.UUID) (*domain.Facility, error) {
-	return q.onboarding.RetrieveFacility(ctx, id)
+func (q ServiceQueryImpl) RetrieveFacility(ctx context.Context, id *uuid.UUID, isActive bool) (*domain.Facility, error) {
+	return q.onboarding.RetrieveFacility(ctx, id, isActive)
+}
+
+// RetrieveFacilityByMFLCode  is a repository implementation method for RetrieveFacilityByMFLCode
+func (q ServiceQueryImpl) RetrieveFacilityByMFLCode(ctx context.Context, MFLCode string, isActive bool) (*domain.Facility, error) {
+	return q.onboarding.RetrieveByFacilityMFLCode(ctx, MFLCode, isActive)
 }
 
 //GetFacilities is responsible for returning a slice of healthcare facilities in the platform.

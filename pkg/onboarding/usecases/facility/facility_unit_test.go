@@ -61,12 +61,16 @@ func TestUnit_CreateFacility(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.name == "sad case - facility code not defined" {
-				fakeCreate.CreateFacilityFn = func(ctx context.Context, facility dto.FacilityInput) (*domain.Facility, error) {
+				fakeCreate.GetOrCreateFacilityFn = func(ctx context.Context, facility dto.FacilityInput) (*domain.Facility, error) {
 					return nil, fmt.Errorf("failed to create facility")
 				}
 			}
 			if tt.name == "happy case - valid payload" {
-				fakeCreate.CreateFacilityFn = func(ctx context.Context, facility dto.FacilityInput) (*domain.Facility, error) {
+				fakeQuery.RetrieveFacilityByMFLCodeFn = func(ctx context.Context, MFLCode string, isActive bool) (*domain.Facility, error) {
+					return nil, fmt.Errorf("failed query and retrieve facility by MFLCode")
+				}
+
+				fakeCreate.GetOrCreateFacilityFn = func(ctx context.Context, facility dto.FacilityInput) (*domain.Facility, error) {
 					return &domain.Facility{
 						Name:        facility.Name,
 						Code:        facility.Code,
@@ -77,14 +81,14 @@ func TestUnit_CreateFacility(t *testing.T) {
 				}
 			}
 
-			got, err := f.CreateFacility(tt.args.ctx, tt.args.facility)
+			got, err := f.GetOrCreateFacility(tt.args.ctx, tt.args.facility)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("UseCaseFacilityImpl.CreateFacility() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("UseCaseFacilityImpl.GetOrCreateFacility() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 
 			if (err != nil) != tt.wantErr {
-				t.Errorf("OnboardingDb.CreateFacility() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("OnboardingDb.GetOrCreateFacility() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if tt.wantErr && got != nil {
@@ -101,93 +105,221 @@ func TestUnit_CreateFacility(t *testing.T) {
 	// TODO: add teardown
 }
 
-func TestUnit_RetrieveFacility(t *testing.T) {
-	f := testFakeInfrastructureInteractor
-
+func TestUseCaseFacilityImpl_RetrieveFacility_Unittest(t *testing.T) {
 	ctx := context.Background()
 
-	id := uuid.New()
-	facility := &domain.Facility{
-		ID:          id,
-		Name:        "test-name",
-		Code:        "c123",
-		Active:      true,
-		County:      "test",
-		Description: "test description",
-	}
+	f := testFakeInfrastructureInteractor
 
-	invalidID := uuid.New()
+	ID := uuid.New()
 
 	type args struct {
-		ctx context.Context
-		id  *uuid.UUID
+		ctx      context.Context
+		id       *uuid.UUID
+		isActive bool
 	}
 	tests := []struct {
 		name    string
 		args    args
-		want    *domain.Facility
 		wantErr bool
 	}{
 		{
-			name: "happy case - valid ID passed",
+			name: "Happy case",
 			args: args{
-				ctx: ctx,
-				id:  &id,
+				ctx:      ctx,
+				id:       &ID,
+				isActive: true,
 			},
 			wantErr: false,
-			want:    facility,
 		},
+
 		{
-			name: "sad case - no ID passed",
+			name: "Sad case",
 			args: args{
-				ctx: ctx,
+				ctx:      ctx,
+				id:       &ID,
+				isActive: true,
 			},
 			wantErr: true,
 		},
+
 		{
-			name: "sad case - invalid ID",
+			name: "Sad case - no id",
 			args: args{
-				ctx: ctx,
-				id:  &invalidID,
+				ctx:      ctx,
+				isActive: false,
 			},
 			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if tt.name == "happy case - valid ID passed" {
-				fakeQuery.RetrieveFacilityFn = func(ctx context.Context, id *uuid.UUID) (*domain.Facility, error) {
-					return facility, nil
+			if tt.name == "Happy case" {
+				fakeCreate.GetOrCreateFacilityFn = func(ctx context.Context, facility dto.FacilityInput) (*domain.Facility, error) {
+					ID := uuid.New()
+					return &domain.Facility{
+						ID:          ID,
+						Name:        "facility.Name",
+						Code:        "facility.Code",
+						Active:      true,
+						County:      "facility.County",
+						Description: "facility.Description",
+					}, nil
 				}
-			}
-			if tt.name == "sad case - no ID passed" {
-				fakeQuery.RetrieveFacilityFn = func(ctx context.Context, id *uuid.UUID) (*domain.Facility, error) {
-					return nil, fmt.Errorf("failed to create facility")
+
+				fakeQuery.RetrieveFacilityFn = func(ctx context.Context, id *uuid.UUID, isActive bool) (*domain.Facility, error) {
+					ID := uuid.New()
+					return &domain.Facility{
+						ID:          ID,
+						Name:        "facility.Name",
+						Code:        "facility.Code",
+						Active:      true,
+						County:      "facility.County",
+						Description: "facility.Description",
+					}, nil
 				}
 			}
 
-			if tt.name == "sad case - invalid ID" {
-				fakeQuery.RetrieveFacilityFn = func(ctx context.Context, id *uuid.UUID) (*domain.Facility, error) {
-					return nil, fmt.Errorf("failed to create facility")
+			if tt.name == "Sad case" {
+				fakeQuery.RetrieveFacilityFn = func(ctx context.Context, id *uuid.UUID, isActive bool) (*domain.Facility, error) {
+					return nil, fmt.Errorf("an error occurred while retrieving facility")
 				}
 			}
 
-			got, err := f.RetrieveFacility(tt.args.ctx, tt.args.id)
-
+			if tt.name == "Sad case - no id" {
+				fakeQuery.RetrieveFacilityFn = func(ctx context.Context, id *uuid.UUID, isActive bool) (*domain.Facility, error) {
+					return nil, fmt.Errorf("an error occurred while retrieving facility")
+				}
+			}
+			got, err := f.RetrieveFacility(tt.args.ctx, tt.args.id, tt.args.isActive)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("OnboardingDb.RetrieveFacility() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("UseCaseFacilityImpl.RetrieveFacility() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if tt.wantErr && got != nil {
-				t.Errorf("expected facility to be nil for %v", tt.name)
+				t.Errorf("expected facilities to be nil for %v", tt.name)
 				return
 			}
 
 			if !tt.wantErr && got == nil {
-				t.Errorf("expected facility not to be nil for %v", tt.name)
+				t.Errorf("expected facilities not to be nil for %v", tt.name)
 				return
 			}
 		})
 	}
-	// TODO: add teardown
+}
+
+func TestUseCaseFacilityImpl_RetrieveFacilityByMFLCode_Unittest(t *testing.T) {
+	ctx := context.Background()
+
+	f := testFakeInfrastructureInteractor
+
+	MFLCode := ksuid.New().String()
+
+	type args struct {
+		ctx      context.Context
+		MFLCode  string
+		isActive bool
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:      ctx,
+				MFLCode:  MFLCode,
+				isActive: true,
+			},
+			wantErr: false,
+		},
+
+		{
+			name: "Sad case",
+			args: args{
+				ctx:      ctx,
+				MFLCode:  MFLCode,
+				isActive: true,
+			},
+			wantErr: true,
+		},
+
+		{
+			name: "Sad case#1",
+			args: args{
+				ctx:      ctx,
+				MFLCode:  MFLCode,
+				isActive: false,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "Happy case" {
+				fakeCreate.GetOrCreateFacilityFn = func(ctx context.Context, facility dto.FacilityInput) (*domain.Facility, error) {
+					ID := uuid.New()
+					return &domain.Facility{
+						ID:          ID,
+						Name:        "facility.Name",
+						Code:        "facility.Code",
+						Active:      true,
+						County:      "facility.County",
+						Description: "facility.Description",
+					}, nil
+				}
+
+				fakeQuery.RetrieveFacilityByMFLCodeFn = func(ctx context.Context, MFLCode string, isActive bool) (*domain.Facility, error) {
+					ID := uuid.New()
+					return &domain.Facility{
+						ID:          ID,
+						Name:        "facility.Name",
+						Code:        "facility.Code",
+						Active:      true,
+						County:      "facility.County",
+						Description: "facility.Description",
+					}, nil
+				}
+			}
+
+			if tt.name == "Sad case" {
+				fakeCreate.GetOrCreateFacilityFn = func(ctx context.Context, facility dto.FacilityInput) (*domain.Facility, error) {
+					ID := uuid.New()
+					return &domain.Facility{
+						ID:          ID,
+						Name:        "facility.Name",
+						Code:        "facility.Code",
+						Active:      true,
+						County:      "facility.County",
+						Description: "facility.Description",
+					}, nil
+				}
+
+				fakeQuery.RetrieveFacilityByMFLCodeFn = func(ctx context.Context, MFLCode string, isActive bool) (*domain.Facility, error) {
+					return nil, fmt.Errorf("an error occurred while retrieving facility by MFLCode")
+				}
+			}
+
+			if tt.name == "Sad case#1" {
+				fakeQuery.RetrieveFacilityByMFLCodeFn = func(ctx context.Context, MFLCode string, isActive bool) (*domain.Facility, error) {
+					return nil, fmt.Errorf("an error occurred while retrieving facility by MFLCode")
+				}
+			}
+			got, err := f.RetrieveFacilityByMFLCode(tt.args.ctx, tt.args.MFLCode, tt.args.isActive)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCaseFacilityImpl.RetrieveFacilityByMFLCode() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if tt.wantErr && got != nil {
+				t.Errorf("expected facilities to be nil for %v", tt.name)
+				return
+			}
+
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected facilities not to be nil for %v", tt.name)
+				return
+			}
+		})
+	}
 }
