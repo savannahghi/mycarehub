@@ -3,6 +3,7 @@ package mock
 import (
 	"context"
 
+	"github.com/google/uuid"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/infrastructure/database/postgres/gorm"
 )
 
@@ -11,7 +12,7 @@ import (
 // This mock struct should be separate from our own internal methods.
 type GormMock struct {
 	CreateFacilityFn   func(ctx context.Context, facility *gorm.Facility) (*gorm.Facility, error)
-	RetrieveFacilityFn func(ctx context.Context, id *int64) (*gorm.Facility, error)
+	RetrieveFacilityFn func(ctx context.Context, id *uuid.UUID) (*gorm.Facility, error)
 	GetFacilitiesFn    func(ctx context.Context) ([]gorm.Facility, error)
 	DeleteFacilityFn   func(ctx context.Context, mfl_code string) (bool, error)
 }
@@ -20,7 +21,7 @@ type GormMock struct {
 func NewGormMock() *GormMock {
 	return &GormMock{
 		CreateFacilityFn: func(ctx context.Context, facility *gorm.Facility) (*gorm.Facility, error) {
-			id := int64(1)
+			id := uuid.New()
 			name := "Kanairo One"
 			code := "KN001"
 			county := "Kanairo"
@@ -35,8 +36,8 @@ func NewGormMock() *GormMock {
 			}, nil
 		},
 
-		RetrieveFacilityFn: func(ctx context.Context, id *int64) (*gorm.Facility, error) {
-			facilityID := int64(1)
+		RetrieveFacilityFn: func(ctx context.Context, id *uuid.UUID) (*gorm.Facility, error) {
+			facilityID := uuid.New()
 			name := "Kanairo One"
 			code := "KN001"
 			county := "Kanairo"
@@ -52,7 +53,7 @@ func NewGormMock() *GormMock {
 		},
 		GetFacilitiesFn: func(ctx context.Context) ([]gorm.Facility, error) {
 			var facilities []gorm.Facility
-			facilityID := int64(1)
+			facilityID := uuid.New()
 			name := "Kanairo One"
 			code := "KN001"
 			county := "Kanairo"
@@ -80,7 +81,7 @@ func (gm *GormMock) CreateFacility(ctx context.Context, facility *gorm.Facility)
 }
 
 // RetrieveFacility mocks the implementation of `gorm's` RetrieveFacility method.
-func (gm *GormMock) RetrieveFacility(ctx context.Context, id *int64) (*gorm.Facility, error) {
+func (gm *GormMock) RetrieveFacility(ctx context.Context, id *uuid.UUID) (*gorm.Facility, error) {
 	return gm.RetrieveFacilityFn(ctx, id)
 }
 

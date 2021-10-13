@@ -3,6 +3,7 @@ package mock
 import (
 	"context"
 
+	"github.com/google/uuid"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/application/dto"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/domain"
 )
@@ -16,7 +17,7 @@ type CreateMock struct {
 func NewCreateMock() *CreateMock {
 	return &CreateMock{
 		CreateFacilityFn: func(ctx context.Context, facility dto.FacilityInput) (*domain.Facility, error) {
-			id := int64(1)
+			id := uuid.New()
 			name := "Kanairo One"
 			code := "KN001"
 			county := "Kanairo"
@@ -40,7 +41,7 @@ func (f *CreateMock) CreateFacility(ctx context.Context, facility dto.FacilityIn
 
 // QueryMock is a mock of the query methods
 type QueryMock struct {
-	RetrieveFacilityFn func(ctx context.Context, id *int64) (*domain.Facility, error)
+	RetrieveFacilityFn func(ctx context.Context, id *uuid.UUID) (*domain.Facility, error)
 	GetFacilitiesFn    func(ctx context.Context) ([]*domain.Facility, error)
 }
 
@@ -48,8 +49,8 @@ type QueryMock struct {
 func NewQueryMock() *QueryMock {
 	return &QueryMock{
 
-		RetrieveFacilityFn: func(ctx context.Context, id *int64) (*domain.Facility, error) {
-			facilityID := int64(1)
+		RetrieveFacilityFn: func(ctx context.Context, id *uuid.UUID) (*domain.Facility, error) {
+			facilityID := uuid.New()
 			name := "test-facility"
 			code := "t-100"
 			county := "test-county"
@@ -64,7 +65,7 @@ func NewQueryMock() *QueryMock {
 			}, nil
 		},
 		GetFacilitiesFn: func(ctx context.Context) ([]*domain.Facility, error) {
-			facilityID := int64(1)
+			facilityID := uuid.New()
 			name := "test-facility"
 			code := "t-100"
 			county := "test-county"
@@ -84,7 +85,7 @@ func NewQueryMock() *QueryMock {
 }
 
 // RetrieveFacility mocks the implementation of `gorm's` RetrieveFacility method.
-func (f *QueryMock) RetrieveFacility(ctx context.Context, id *int64) (*domain.Facility, error) {
+func (f *QueryMock) RetrieveFacility(ctx context.Context, id *uuid.UUID) (*domain.Facility, error) {
 	return f.RetrieveFacilityFn(ctx, id)
 }
 

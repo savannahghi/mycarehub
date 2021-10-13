@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/google/uuid"
+
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/domain"
 )
 
@@ -20,7 +22,7 @@ func (d *OnboardingDb) GetFacilities(ctx context.Context) ([]*domain.Facility, e
 	}
 	for _, m := range facilities {
 		singleFacility := domain.Facility{
-			ID:          int64(m.ID),
+			ID:          *m.FacilityID,
 			Name:        m.Name,
 			Code:        m.Code,
 			Active:      m.Active,
@@ -35,7 +37,7 @@ func (d *OnboardingDb) GetFacilities(ctx context.Context) ([]*domain.Facility, e
 }
 
 // RetrieveFacility gets a facility by ID from the database
-func (d *OnboardingDb) RetrieveFacility(ctx context.Context, id *int64) (*domain.Facility, error) {
+func (d *OnboardingDb) RetrieveFacility(ctx context.Context, id *uuid.UUID) (*domain.Facility, error) {
 	if id == nil {
 		return nil, fmt.Errorf("facility ID should be defined")
 	}

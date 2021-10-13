@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/google/uuid"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/application/dto"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/domain"
 	"github.com/segmentio/ksuid"
@@ -105,7 +106,7 @@ func TestUnit_RetrieveFacility(t *testing.T) {
 
 	ctx := context.Background()
 
-	id := int64(1)
+	id := uuid.New()
 	facility := &domain.Facility{
 		ID:          id,
 		Name:        "test-name",
@@ -115,11 +116,11 @@ func TestUnit_RetrieveFacility(t *testing.T) {
 		Description: "test description",
 	}
 
-	invalidID := int64(-100)
+	invalidID := uuid.New()
 
 	type args struct {
 		ctx context.Context
-		id  *int64
+		id  *uuid.UUID
 	}
 	tests := []struct {
 		name    string
@@ -155,18 +156,18 @@ func TestUnit_RetrieveFacility(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.name == "happy case - valid ID passed" {
-				fakeQuery.RetrieveFacilityFn = func(ctx context.Context, id *int64) (*domain.Facility, error) {
+				fakeQuery.RetrieveFacilityFn = func(ctx context.Context, id *uuid.UUID) (*domain.Facility, error) {
 					return facility, nil
 				}
 			}
 			if tt.name == "sad case - no ID passed" {
-				fakeQuery.RetrieveFacilityFn = func(ctx context.Context, id *int64) (*domain.Facility, error) {
+				fakeQuery.RetrieveFacilityFn = func(ctx context.Context, id *uuid.UUID) (*domain.Facility, error) {
 					return nil, fmt.Errorf("failed to create facility")
 				}
 			}
 
 			if tt.name == "sad case - invalid ID" {
-				fakeQuery.RetrieveFacilityFn = func(ctx context.Context, id *int64) (*domain.Facility, error) {
+				fakeQuery.RetrieveFacilityFn = func(ctx context.Context, id *uuid.UUID) (*domain.Facility, error) {
 					return nil, fmt.Errorf("failed to create facility")
 				}
 			}

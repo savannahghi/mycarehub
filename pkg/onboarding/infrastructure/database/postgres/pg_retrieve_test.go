@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/google/uuid"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/application/dto"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/domain"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/infrastructure/database/postgres/gorm"
@@ -32,11 +33,11 @@ func TestOnboardingDb_RetrieveFacility(t *testing.T) {
 
 	id := facility.ID
 
-	invalidID := int64(-100)
+	invalidID := uuid.New()
 
 	type args struct {
 		ctx context.Context
-		id  *int64
+		id  *uuid.UUID
 	}
 	tests := []struct {
 		name    string
@@ -74,7 +75,7 @@ func TestOnboardingDb_RetrieveFacility(t *testing.T) {
 			got, err := d.RetrieveFacility(ctx, tt.args.id)
 
 			if tt.name == "happy case - valid ID passed" {
-				fakeGorm.RetrieveFacilityFn = func(ctx context.Context, id *int64) (*gorm.Facility, error) {
+				fakeGorm.RetrieveFacilityFn = func(ctx context.Context, id *uuid.UUID) (*gorm.Facility, error) {
 					return &gorm.Facility{
 						FacilityID:  &facility.ID,
 						Name:        facility.Name,
@@ -87,13 +88,13 @@ func TestOnboardingDb_RetrieveFacility(t *testing.T) {
 			}
 
 			if tt.name == "sad case - no ID passed" {
-				fakeGorm.RetrieveFacilityFn = func(ctx context.Context, id *int64) (*gorm.Facility, error) {
+				fakeGorm.RetrieveFacilityFn = func(ctx context.Context, id *uuid.UUID) (*gorm.Facility, error) {
 					return nil, fmt.Errorf("failed to create facility")
 				}
 			}
 
 			if tt.name == "sad case - invalid ID" {
-				fakeGorm.RetrieveFacilityFn = func(ctx context.Context, id *int64) (*gorm.Facility, error) {
+				fakeGorm.RetrieveFacilityFn = func(ctx context.Context, id *uuid.UUID) (*gorm.Facility, error) {
 					return nil, fmt.Errorf("failed to create facility")
 				}
 			}

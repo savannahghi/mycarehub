@@ -3,6 +3,7 @@ package facility
 import (
 	"context"
 
+	"github.com/google/uuid"
 	"github.com/savannahghi/firebasetools"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/application/dto"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/domain"
@@ -66,7 +67,7 @@ type IFacilityList interface {
 
 // IFacilityRetrieve contains the method to retrieve a facility
 type IFacilityRetrieve interface {
-	RetrieveFacility(ctx context.Context, id *int64) (*domain.Facility, error)
+	RetrieveFacility(ctx context.Context, id *uuid.UUID) (*domain.Facility, error)
 }
 
 // UseCaseFacilityImpl represents facility implementation object
@@ -118,7 +119,7 @@ func (f *UseCaseFacilityImpl) List(
 }
 
 // RetrieveFacility find the health facility by ID
-func (f *UseCaseFacilityImpl) RetrieveFacility(ctx context.Context, id *int64) (*domain.Facility, error) {
+func (f *UseCaseFacilityImpl) RetrieveFacility(ctx context.Context, id *uuid.UUID) (*domain.Facility, error) {
 	return f.Infrastructure.RetrieveFacility(ctx, id)
 }
 

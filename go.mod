@@ -13,7 +13,7 @@ require (
 	github.com/99designs/gqlgen v0.13.0
 	github.com/GoogleCloudPlatform/cloudsql-proxy v1.26.0
 	github.com/casbin/casbin/v2 v2.31.3
-	github.com/google/uuid v1.2.0
+	github.com/google/uuid v1.3.0
 	github.com/gorilla/handlers v1.5.1
 	github.com/gorilla/mux v1.8.0
 	github.com/imroc/req v0.3.0

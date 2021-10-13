@@ -6,5 +6,5 @@ extend type Mutation {
 
 extend type Query {
    fetchFacilities: [Facility]
-   RetrieveFacility(id: Int!): Facility!
+   RetrieveFacility(id: String!): Facility!
 }

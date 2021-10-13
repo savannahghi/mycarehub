@@ -1,11 +1,13 @@
 package domain
 
+import "github.com/google/uuid"
+
 // Facility models the details of healthcare facilities that are on the platform.
 //
 // e.g CCC clinics, Pharmacies.
 type Facility struct {
 	// ID is the Global customer ID(GCID)
-	ID int64
+	ID uuid.UUID
 	// unique within this structure
 	Name string
 	// MFL Code for Kenyan facilities, globally unique
