@@ -14,6 +14,7 @@ import (
 // All the  contracts for create operations are assembled here
 type Create interface {
 	CreateFacility(ctx context.Context, facility dto.FacilityInput) (*domain.Facility, error)
+	CollectMetrics(ctx context.Context, metric *dto.MetricInput) (*domain.Metric, error)
 }
 
 // Delete represents all the deletion action interfaces
@@ -36,6 +37,11 @@ func NewServiceCreateImpl(on pg.OnboardingDb) Create {
 // CreateFacility is responsible for creating a representation of a facility
 func (f ServiceCreateImpl) CreateFacility(ctx context.Context, facility dto.FacilityInput) (*domain.Facility, error) {
 	return f.onboarding.CreateFacility(ctx, &facility)
+}
+
+// CollectMetrics is responsible for creating a representation of a metric
+func (f ServiceCreateImpl) CollectMetrics(ctx context.Context, metric *dto.MetricInput) (*domain.Metric, error) {
+	return f.onboarding.CollectMetrics(ctx, metric)
 }
 
 // Query contains all query methods

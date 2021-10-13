@@ -27,6 +27,7 @@ type Infrastructure struct {
 	libOnboardingUsecase.SignUpUseCases
 	engagementSvc.ServiceEngagementImpl
 	libOnboardingUsecase.ProfileUseCase
+	baseExt.PINExtension
 }
 
 // Interactor is an implementation of the infrastructure interface
@@ -39,6 +40,7 @@ type Interactor struct {
 	libOnboardingUsecase.SignUpUseCases
 	engagementSvc.ServiceEngagementImpl
 	libOnboardingUsecase.ProfileUseCase
+	baseExt.PINExtension
 }
 
 // NewInteractor initializes a new infrastructure interactor
@@ -62,6 +64,7 @@ func NewInteractor() Interactor {
 	create := NewServiceCreateImpl(*db)
 	delete := NewServiceDeleteImpl(*db)
 	query := NewServiceQueryImpl(*db)
+	pinExt := baseExt.NewPINExtensionImpl()
 
 	return Interactor{
 		create,
@@ -71,5 +74,6 @@ func NewInteractor() Interactor {
 		signup,
 		*engagement,
 		profile,
+		pinExt,
 	}
 }

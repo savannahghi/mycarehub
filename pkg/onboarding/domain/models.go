@@ -1,6 +1,11 @@
 package domain
 
-import "github.com/google/uuid"
+import (
+	"time"
+
+	"github.com/google/uuid"
+	"gorm.io/datatypes"
+)
 
 // Facility models the details of healthcare facilities that are on the platform.
 //
@@ -32,3 +37,23 @@ type Facility struct {
 // 	DataType string // TODO: Ideally a controlled list i.e enum
 // 	Date     string // TODO: Clear spec on validation e.g dates must be ISO 8601
 // }
+
+// Metric reprents the metrics data structure input
+type Metric struct {
+	// ensures we don't re-save the same metric; opaque; globally unique
+	MetricID uuid.UUID
+
+	// TODO Metric types should be a controlled list i.e enum
+	Type MetricType
+
+	// this will vary by context
+	// should not identify the user (there's a UID field)
+	// focus on the actual event
+	Payload datatypes.JSON `gorm:"column:payload"`
+
+	Timestamp time.Time
+
+	// a user identifier, can be hashed for anonymity
+	// with a predictable one way hash
+	UID string
+}

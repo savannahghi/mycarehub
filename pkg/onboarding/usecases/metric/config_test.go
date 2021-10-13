@@ -1,4 +1,4 @@
-package facility_test
+package metric_test
 
 import (
 	"context"
@@ -16,7 +16,6 @@ var (
 	testFakeInfrastructureInteractor usecases.Interactor
 
 	fakeCreate usecaseMock.CreateMock
-	fakeQuery  usecaseMock.QueryMock
 )
 
 func TestMain(m *testing.M) {
@@ -58,12 +57,10 @@ func InitializeTestInfrastructure(ctx context.Context) (infrastructure.Interacto
 func InitializeFakeTestlInteractor(ctx context.Context) (usecases.Interactor, error) {
 
 	var create infrastructure.Create = &fakeCreate
-	var query infrastructure.Query = &fakeQuery
 
 	infra := func() infrastructure.Interactor {
 		return infrastructure.Interactor{
 			Create: create,
-			Query:  query,
 		}
 	}()
 
