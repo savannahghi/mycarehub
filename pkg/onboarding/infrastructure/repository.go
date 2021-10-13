@@ -3,6 +3,7 @@ package infrastructure
 import (
 	"context"
 
+	"github.com/google/uuid"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/application/dto"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/domain"
 	pg "github.com/savannahghi/onboarding-service/pkg/onboarding/infrastructure/database/postgres"
@@ -39,7 +40,7 @@ func (f ServiceCreateImpl) CreateFacility(ctx context.Context, facility dto.Faci
 
 // Query contains all query methods
 type Query interface {
-	RetrieveFacility(ctx context.Context, id *int64) (*domain.Facility, error)
+	RetrieveFacility(ctx context.Context, id *uuid.UUID) (*domain.Facility, error)
 	GetFacilities(ctx context.Context) ([]*domain.Facility, error)
 }
 
@@ -56,7 +57,7 @@ func NewServiceQueryImpl(on pg.OnboardingDb) *ServiceQueryImpl {
 }
 
 // RetrieveFacility  is a repository implementation method for RetrieveFacility
-func (q ServiceQueryImpl) RetrieveFacility(ctx context.Context, id *int64) (*domain.Facility, error) {
+func (q ServiceQueryImpl) RetrieveFacility(ctx context.Context, id *uuid.UUID) (*domain.Facility, error) {
 	return q.onboarding.RetrieveFacility(ctx, id)
 }
 

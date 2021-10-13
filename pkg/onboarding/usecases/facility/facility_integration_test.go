@@ -5,6 +5,7 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/google/uuid"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/application/dto"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/domain"
 	"github.com/segmentio/ksuid"
@@ -94,11 +95,11 @@ func TestUseCaseFacilityImpl_RetrieveFacility(t *testing.T) {
 
 	id := facility.ID
 
-	invalidID := int64(-100)
+	invalidID := uuid.New()
 
 	type args struct {
 		ctx context.Context
-		id  *int64
+		id  *uuid.UUID
 	}
 	tests := []struct {
 		name    string

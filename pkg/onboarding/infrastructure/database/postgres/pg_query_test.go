@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/google/uuid"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/domain"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/infrastructure/database/postgres/gorm"
 	gormMock "github.com/savannahghi/onboarding-service/pkg/onboarding/infrastructure/database/postgres/gorm/mock"
@@ -12,7 +13,7 @@ import (
 
 func TestOnboardingDb_GetFacilities(t *testing.T) {
 	ctx := context.Background()
-	id := int64(1)
+	id := uuid.New()
 	name := "Kanairo One"
 	code := "KN001"
 	county := "Kanairo"
@@ -63,7 +64,7 @@ func TestOnboardingDb_GetFacilities(t *testing.T) {
 			if tt.name == "happy case - valid payload" {
 				fakeGorm.GetFacilitiesFn = func(ctx context.Context) ([]gorm.Facility, error) {
 					var facilities []gorm.Facility
-					facilityID := int64(1)
+					facilityID := uuid.New()
 					name := "Kanairo One"
 					code := "KN001"
 					county := "Kanairo"

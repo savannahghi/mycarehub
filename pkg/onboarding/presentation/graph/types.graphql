@@ -1,6 +1,6 @@
 
 type Facility {
-  ID: Int!
+  ID: String!
   name: String!
   code: String!
   active: Boolean!

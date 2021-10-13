@@ -5,7 +5,9 @@ package graph
 
 import (
 	"context"
+	"fmt"
 
+	"github.com/google/uuid"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/application/dto"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/domain"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/presentation/graph/generated"
@@ -23,9 +25,12 @@ func (r *queryResolver) FetchFacilities(ctx context.Context) ([]*domain.Facility
 	return r.interactor.FacilityUsecase.FetchFacilities(ctx)
 }
 
-func (r *queryResolver) RetrieveFacility(ctx context.Context, id int) (*domain.Facility, error) {
-	intID := int64(id)
-	return r.interactor.FacilityUsecase.RetrieveFacility(ctx, &intID)
+func (r *queryResolver) RetrieveFacility(ctx context.Context, id string) (*domain.Facility, error) {
+	newID, err := uuid.Parse(id)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse ID to UUID: %v", err)
+	}
+	return r.interactor.FacilityUsecase.RetrieveFacility(ctx, &newID)
 }
 
 // Mutation returns generated.MutationResolver implementation.
