@@ -1,18 +1,13 @@
 package dto
 
-import (
-	"github.com/savannahghi/firebasetools"
-	"github.com/savannahghi/onboarding-service/pkg/onboarding/domain"
-)
+// // FacilityEdge is used to serialize GraphQL Relay edges for healthcare facilities
+// type FacilityEdge struct {
+// 	Cursor *string          `json:"cursor"`
+// 	Node   *domain.Facility `json:"node"`
+// }
 
-// FacilityEdge is used to serialize GraphQL Relay edges for healthcare facilities
-type FacilityEdge struct {
-	Cursor *string          `json:"cursor"`
-	Node   *domain.Facility `json:"node"`
-}
-
-// FacilityConnection is used to serialize GraphQL Relay connections for healthcare facilities
-type FacilityConnection struct {
-	Edges    []*FacilityEdge         `json:"edges"`
-	PageInfo *firebasetools.PageInfo `json:"pageInfo"`
-}
+// // FacilityConnection is used to serialize GraphQL Relay connections for healthcare facilities
+// type FacilityConnection struct {
+// 	Edges    []*FacilityEdge         `json:"edges"`
+// 	PageInfo *firebasetools.PageInfo `json:"pageInfo"`
+// }
