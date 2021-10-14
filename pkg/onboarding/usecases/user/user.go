@@ -140,8 +140,8 @@ type IUserInvite interface {
 	Invite(userID string, flavour string) (bool, error)
 }
 
-// UserUseCases group all business logic usecases related to user
-type UserUseCases interface {
+// UseCasesUser group all business logic usecases related to user
+type UseCasesUser interface {
 	IUserInvite
 	IUserForget
 	ISetUserPIN
@@ -154,14 +154,14 @@ type UserUseCases interface {
 	IUpdateLanguagePreferences
 }
 
-// UserUseCasesImpl represents user implementation object
-type UserUseCasesImpl struct {
+// UseCasesUserImpl represents user implementation object
+type UseCasesUserImpl struct {
 	Infrastructure infrastructure.Interactor
 }
 
-// NewUserUseCasesImpl returns a new user service
-func NewUserUseCasesImpl(infra infrastructure.Interactor) *UserUseCasesImpl {
-	return &UserUseCasesImpl{
+// NewUseCasesUserImpl returns a new user service
+func NewUseCasesUserImpl(infra infrastructure.Interactor) *UseCasesUserImpl {
+	return &UseCasesUserImpl{
 		Infrastructure: infra,
 	}
 }

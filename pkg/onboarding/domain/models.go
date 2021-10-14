@@ -251,3 +251,23 @@ type Metric struct {
 	// with a predictable one way hash
 	UID string
 }
+
+// StaffProfile contains all the information a staff should have about themselves
+type StaffProfile struct {
+	ID *string
+
+	UserID string // foreign key to user
+
+	StaffNumber string
+
+	Facilities []*Facility // TODO: needs at least one
+
+	// A UI switcher optionally toggles the default
+	// TODO: the list of facilities to switch between is strictly those that the user is assigned to
+	DefaultFacilityID string // TODO: required, FK to facility
+
+	// there is nothing special about super-admin; just the set of roles they have
+	Roles []string // TODO: roles are an enum (controlled list), known to both FE and BE
+
+	Addresses []*Address
+}
