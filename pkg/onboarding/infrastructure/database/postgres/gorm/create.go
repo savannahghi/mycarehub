@@ -8,6 +8,7 @@ import (
 // Create contains all the methods used to perform a create operation in DB
 type Create interface {
 	CreateFacility(ctx context.Context, facility *Facility) (*Facility, error)
+	CollectMetrics(ctx context.Context, metrics *Metric) (*Metric, error)
 }
 
 // CreateFacility ...
@@ -19,4 +20,15 @@ func (db *PGInstance) CreateFacility(ctx context.Context, facility *Facility) (*
 	}
 
 	return facility, nil
+}
+
+// CollectMetrics takes the collected metrics and saves them in the database.
+func (db *PGInstance) CollectMetrics(ctx context.Context, metrics *Metric) (*Metric, error) {
+	err := db.DB.Create(metrics).Error
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to create a facility: %v", err)
+	}
+
+	return metrics, nil
 }

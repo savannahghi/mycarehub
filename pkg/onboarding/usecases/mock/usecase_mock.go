@@ -2,15 +2,19 @@ package mock
 
 import (
 	"context"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/application/dto"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/domain"
+	"github.com/segmentio/ksuid"
+	"gorm.io/datatypes"
 )
 
 // CreateMock is a mock of the create methods
 type CreateMock struct {
 	CreateFacilityFn func(ctx context.Context, facility dto.FacilityInput) (*domain.Facility, error)
+	CollectMetricsFn func(ctx context.Context, metric *dto.MetricInput) (*domain.Metric, error)
 }
 
 // NewCreateMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -31,12 +35,28 @@ func NewCreateMock() *CreateMock {
 				Description: description,
 			}, nil
 		},
+
+		CollectMetricsFn: func(ctx context.Context, metric *dto.MetricInput) (*domain.Metric, error) {
+			metricID := uuid.New()
+			return &domain.Metric{
+				MetricID:  metricID,
+				Type:      domain.EngagementMetrics,
+				Payload:   datatypes.JSON([]byte(`{"who": "test user", "keyword": "suicidal"}`)),
+				Timestamp: time.Now(),
+				UID:       ksuid.New().String(),
+			}, nil
+		},
 	}
 }
 
 // CreateFacility mocks the implementation of `gorm's` CreateFacility method.
 func (f *CreateMock) CreateFacility(ctx context.Context, facility dto.FacilityInput) (*domain.Facility, error) {
 	return f.CreateFacilityFn(ctx, facility)
+}
+
+// CollectMetrics mocks the implementation of `gorm's` CollectMetrics method.
+func (f *CreateMock) CollectMetrics(ctx context.Context, metric *dto.MetricInput) (*domain.Metric, error) {
+	return f.CollectMetricsFn(ctx, metric)
 }
 
 // QueryMock is a mock of the query methods

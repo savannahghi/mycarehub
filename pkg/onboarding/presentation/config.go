@@ -21,7 +21,9 @@ import (
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/presentation/graph"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/presentation/graph/generated"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/presentation/interactor"
+	internalRest "github.com/savannahghi/onboarding-service/pkg/onboarding/presentation/rest"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/usecases/facility"
+	metrics "github.com/savannahghi/onboarding-service/pkg/onboarding/usecases/metric"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/extension"
 	osinfra "github.com/savannahghi/onboarding/pkg/onboarding/infrastructure"
 	openSourcePresentation "github.com/savannahghi/onboarding/pkg/onboarding/presentation"
@@ -75,6 +77,10 @@ func Router(ctx context.Context) (*mux.Router, error) {
 
 	// Initialize facility usecase
 	facilityUseCase := facility.NewFacilityUsecase(infra)
+
+	//Initialize metric usecases
+	metricsUsecase := metrics.NewMetricUsecase(infra)
+
 	pg, err := gorm.NewPGInstance()
 	if err != nil {
 		return nil, fmt.Errorf("can't instantiate repository in resolver: %v", err)
@@ -88,12 +94,14 @@ func Router(ctx context.Context) (*mux.Router, error) {
 		*db,
 		openSourceUsecases,
 		facilityUseCase,
+		metricsUsecase,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("can't instantiate service : %w", err)
 	}
 
 	h := rest.NewHandlersInterfaces(infrastructure, openSourceUsecases)
+	internalHandlers := internalRest.NewOnboardingHandlersInterfaces(infra, *i)
 
 	r := mux.NewRouter() // gorilla mux
 	r.Use(otelmux.Middleware(serverutils.MetricsCollectorService("onboarding")))
@@ -114,6 +122,11 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	openSourcePresentation.SharedAuthenticatedISCRoutes(h, r)
 	// Shared authenticated routes
 	openSourcePresentation.SharedAuthenticatedRoutes(h, r)
+
+	// Onboarding service rest routes
+	r.Path("/collect_metrics").
+		Methods(http.MethodPost, http.MethodOptions).
+		HandlerFunc(internalHandlers.CollectMetricsHandler())
 
 	// Graphql route
 	authR := r.Path("/graphql").Subrouter()

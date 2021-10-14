@@ -35,3 +35,25 @@ func (d *OnboardingDb) CreateFacility(ctx context.Context, facility *dto.Facilit
 
 	return d.mapFacilityObjectToDomain(facilitySession), nil
 }
+
+// CollectMetrics is responsible for cretating a representation of metrics data.
+func (d *OnboardingDb) CollectMetrics(ctx context.Context, metric *dto.MetricInput) (*domain.Metric, error) {
+
+	if metric.Type == "" {
+		return nil, fmt.Errorf("metric type must be specified")
+	}
+
+	metricObj := &gorm.Metric{
+		Type:      metric.Type,
+		Payload:   metric.Payload,
+		Timestamp: metric.Timestamp,
+		UID:       metric.UID,
+	}
+
+	metricSession, err := d.create.CollectMetrics(ctx, metricObj)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create facility: %v", err)
+	}
+
+	return d.mapMetricObjectToDomain(metricSession), nil
+}

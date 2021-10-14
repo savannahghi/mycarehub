@@ -21,3 +21,19 @@ func (d *OnboardingDb) mapFacilityObjectToDomain(facilityObject *gorm.Facility) 
 		Description: facilityObject.Description,
 	}
 }
+
+// mapMetricObjectToDomain maps the db metrics to a domain model.
+// It searches the database to fetch items specific to the metrics
+func (d *OnboardingDb) mapMetricObjectToDomain(metricObject *gorm.Metric) *domain.Metric {
+	if metricObject == nil {
+		return nil
+	}
+
+	return &domain.Metric{
+		MetricID:  *metricObject.MetricID,
+		Type:      metricObject.Type,
+		Payload:   metricObject.Payload,
+		Timestamp: metricObject.Timestamp,
+		UID:       metricObject.UID,
+	}
+}
