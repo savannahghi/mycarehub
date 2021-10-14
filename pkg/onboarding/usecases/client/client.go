@@ -1,15 +1,18 @@
 package client
 
-import "github.com/savannahghi/onboarding-service/pkg/onboarding/domain"
+import (
+	"github.com/savannahghi/onboarding-service/pkg/onboarding/domain"
+	"github.com/savannahghi/onboarding-service/pkg/onboarding/infrastructure"
+)
 
 // IRegisterClient ...
 type IRegisterClient interface {
 	// TODO: the input client profile must not have an ID set
 	//		validate identifiers when creating
-	//		if the enrollemnt date is not supplied, set it automatically
+	//		if the enrolment date is not supplied, set it automatically
 	//		default to the client profile being active right after creation
 	//		create a patient on FHIR (HealthRecordID
-	//		if identifers not supplied (e.g patient being created on app), set
+	//		if identifiers not supplied (e.g patient being created on app), set
 	//			an internal identifier as the default. It should be updated later
 	//			with the CCC number or other final identifier
 	// TODO: ensure the user exists...supplied user ID
@@ -86,8 +89,8 @@ type IAddRelatedPerson interface {
 	) (*domain.RelatedPerson, bool)
 }
 
-// ClientProfileUseCases ...
-type ClientProfileUseCases interface {
+// UseCasesClientProfile ...
+type UseCasesClientProfile interface {
 	IAddClientIdentifier
 	IGetClientIdentifiers
 	IInactivateClientIdentifier
@@ -98,4 +101,16 @@ type ClientProfileUseCases interface {
 	IAssignTreatmentSupporter
 	IUnassignTreatmentSupporter
 	IAddRelatedPerson
+}
+
+// UseCasesClientProfileImpl represents user implementation object
+type UseCasesClientProfileImpl struct {
+	Infrastructure infrastructure.Interactor
+}
+
+// NewUseCasesClientProfileImpl returns a new client profile service
+func NewUseCasesClientProfileImpl(infra infrastructure.Interactor) *UseCasesClientProfileImpl {
+	return &UseCasesClientProfileImpl{
+		Infrastructure: infra,
+	}
 }
