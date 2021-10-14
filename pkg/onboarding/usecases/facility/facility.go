@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/google/uuid"
-	"github.com/savannahghi/firebasetools"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/application/dto"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/domain"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/infrastructure"
@@ -108,15 +107,15 @@ func (f *UseCaseFacilityImpl) Reactivate(id string) (*domain.Facility, error) {
 	return nil, nil
 }
 
-// List returns a list if health facility
-// TODO Document: callers should specify active
-func (f *UseCaseFacilityImpl) List(
-	pagination *firebasetools.PaginationInput,
-	filter []*dto.FacilityFilterInput,
-	sort []*dto.FacilitySortInput,
-) (*dto.FacilityConnection, error) {
-	return nil, nil
-}
+// // List returns a list if health facility
+// // TODO Document: callers should specify active
+// func (f *UseCaseFacilityImpl) List(
+// 	pagination *firebasetools.PaginationInput,
+// 	filter []*dto.FacilityFilterInput,
+// 	sort []*dto.FacilitySortInput,
+// ) (*dto.FacilityConnection, error) {
+// 	return nil, nil
+// }
 
 // RetrieveFacility find the health facility by ID
 func (f *UseCaseFacilityImpl) RetrieveFacility(ctx context.Context, id *uuid.UUID) (*domain.Facility, error) {
