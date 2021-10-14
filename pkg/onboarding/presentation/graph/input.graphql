@@ -1,3 +1,4 @@
+# Facility Inputs
 input FacilityInput {
   name: String!
   code: String!
@@ -5,3 +6,16 @@ input FacilityInput {
   county: String!
   description: String!
 }
+
+input FacilityFilterInput {
+  Search: String
+  Name: String
+  MFLCode: String
+} 
+
+input FacilitySortInput {
+	Name:     SortOrder
+	MFLCode: SortOrder
+}
+
+

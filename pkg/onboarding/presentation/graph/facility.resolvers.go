@@ -8,6 +8,7 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
+	"github.com/savannahghi/firebasetools"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/application/dto"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/domain"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/presentation/graph/generated"
@@ -31,6 +32,12 @@ func (r *queryResolver) RetrieveFacility(ctx context.Context, id string) (*domai
 		return nil, fmt.Errorf("failed to parse ID to UUID: %v", err)
 	}
 	return r.interactor.FacilityUsecase.RetrieveFacility(ctx, &newID)
+}
+
+func (r *queryResolver) FindFacility(ctx context.Context, pagination *firebasetools.PaginationInput, filter []*dto.FacilityFilterInput, sort []*dto.FacilitySortInput) (*dto.FacilityConnection, error) {
+	provider, err := r.interactor.FacilityUsecase.FindFacility(ctx, pagination, filter, sort)
+
+	return provider, err
 }
 
 // Mutation returns generated.MutationResolver implementation.

@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/google/uuid"
+	"github.com/savannahghi/firebasetools"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/application/dto"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/domain"
 	pg "github.com/savannahghi/onboarding-service/pkg/onboarding/infrastructure/database/postgres"
@@ -48,6 +49,7 @@ func (f ServiceCreateImpl) CollectMetrics(ctx context.Context, metric *dto.Metri
 type Query interface {
 	RetrieveFacility(ctx context.Context, id *uuid.UUID) (*domain.Facility, error)
 	GetFacilities(ctx context.Context) ([]*domain.Facility, error)
+	FindFacility(ctx context.Context, pagination *firebasetools.PaginationInput, filter []*dto.FacilityFilterInput, sort []*dto.FacilitySortInput) (*dto.FacilityConnection, error)
 }
 
 // ServiceQueryImpl contains implementation for the Query interface
@@ -72,9 +74,8 @@ func (q ServiceQueryImpl) GetFacilities(ctx context.Context) ([]*domain.Facility
 	return q.onboarding.GetFacilities(ctx)
 }
 
-// DeleteFacility is responsible for deletion of a facility from the database using the facility's id
-func (f ServiceDeleteImpl) DeleteFacility(ctx context.Context, id string) (bool, error) {
-	return f.onboarding.DeleteFacility(ctx, id)
+func (q ServiceQueryImpl) FindFacility(ctx context.Context, pagination *firebasetools.PaginationInput, filter []*dto.FacilityFilterInput, sort []*dto.FacilitySortInput) (*dto.FacilityConnection, error) {
+	return q.onboarding.FindFacility(ctx, pagination, filter, sort)
 }
 
 // ServiceDeleteImpl represents delete facility implementation object
@@ -87,4 +88,9 @@ func NewServiceDeleteImpl(on pg.OnboardingDb) Delete {
 	return &ServiceDeleteImpl{
 		onboarding: on,
 	}
+}
+
+// DeleteFacility is responsible for deletion of a facility from the database using the facility's id
+func (f ServiceDeleteImpl) DeleteFacility(ctx context.Context, id string) (bool, error) {
+	return f.onboarding.DeleteFacility(ctx, id)
 }

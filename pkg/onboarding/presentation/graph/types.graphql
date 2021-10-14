@@ -7,3 +7,13 @@ type Facility {
   county: String!
   description: String!
 }
+
+type FacilityEdge  {
+	Cursor: String
+	Node:   Facility
+}
+
+type FacilityConnection {
+	Edges: [FacilityEdge]
+	PageInfo: PageInfo
+}

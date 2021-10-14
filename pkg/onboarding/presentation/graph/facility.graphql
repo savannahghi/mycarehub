@@ -6,5 +6,11 @@ extend type Mutation {
 
 extend type Query {
    fetchFacilities: [Facility]
-   RetrieveFacility(id: String!): Facility!
+   retrieveFacility(id: String!): Facility!
+   findFacility(
+    pagination: PaginationInput
+    filter: [FacilityFilterInput]
+    sort: [FacilitySortInput]
+  ): FacilityConnection!
+
 }

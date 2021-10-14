@@ -34,8 +34,8 @@ type Facility struct {
 // // FilterParam models the structure of the the filter parameters
 // type FilterParam struct {
 // 	Name     string
-// 	DataType string // TODO: Ideally a controlled list i.e enum
-// 	Date     string // TODO: Clear spec on validation e.g dates must be ISO 8601
+// 	DataType FacilityIdentifiers // TODO: Ideally a controlled list i.e enum (MFL code, Active, County )
+// 	Value    string              // TODO: Clear spec on validation e.g dates must be ISO 8601. This is the actual data being filtered
 // }
 
 // Metric reprents the metrics data structure input

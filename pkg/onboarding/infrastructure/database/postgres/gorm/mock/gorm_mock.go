@@ -5,6 +5,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/savannahghi/firebasetools"
+	"github.com/savannahghi/onboarding-service/pkg/onboarding/application/dto"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/domain"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/infrastructure/database/postgres/gorm"
 	"github.com/segmentio/ksuid"
@@ -20,6 +22,7 @@ type GormMock struct {
 	GetFacilitiesFn    func(ctx context.Context) ([]gorm.Facility, error)
 	DeleteFacilityFn   func(ctx context.Context, mfl_code string) (bool, error)
 	CollectMetricsFn   func(ctx context.Context, metrics *gorm.Metric) (*gorm.Metric, error)
+	FindFacilityFn     func(ctx context.Context, pagination *firebasetools.PaginationInput, filter []*dto.FacilityFilterInput, sort []*dto.FacilitySortInput) (*dto.FacilityConnection, error)
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -74,6 +77,39 @@ func NewGormMock() *GormMock {
 			return facilities, nil
 		},
 
+		FindFacilityFn: func(ctx context.Context, pagination *firebasetools.PaginationInput, filter []*dto.FacilityFilterInput, sort []*dto.FacilitySortInput) (*dto.FacilityConnection, error) {
+			id := uuid.New()
+			name := "Kanairo One"
+			code := "KN001"
+			county := "Kanairo"
+			description := "This is just for mocking"
+
+			cursor := "1"
+			startCursor := "1"
+			endCursor := "1"
+
+			return &dto.FacilityConnection{
+				Edges: []*dto.FacilityEdge{
+					{
+						Cursor: &cursor,
+						Node: &domain.Facility{
+							ID:          id,
+							Name:        name,
+							Code:        code,
+							Active:      true,
+							County:      county,
+							Description: description,
+						},
+					},
+				},
+				PageInfo: &firebasetools.PageInfo{
+					HasNextPage:     false,
+					HasPreviousPage: false,
+					StartCursor:     &startCursor,
+					EndCursor:       &endCursor,
+				},
+			}, nil
+		},
 		DeleteFacilityFn: func(ctx context.Context, mfl_code string) (bool, error) {
 			return true, nil
 		},
@@ -115,4 +151,9 @@ func (gm *GormMock) DeleteFacility(ctx context.Context, mflcode string) (bool, e
 // CollectMetrics mocks the implementation of  CollectMetrics method.
 func (gm *GormMock) CollectMetrics(ctx context.Context, metrics *gorm.Metric) (*gorm.Metric, error) {
 	return gm.CollectMetricsFn(ctx, metrics)
+}
+
+// FindFacility mocks the implementation of  FindFacility method.
+func (gm *GormMock) FindFacility(ctx context.Context, pagination *firebasetools.PaginationInput, filter []*dto.FacilityFilterInput, sort []*dto.FacilitySortInput) (*dto.FacilityConnection, error) {
+	return gm.FindFacilityFn(ctx, pagination, filter, sort)
 }

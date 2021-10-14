@@ -19,6 +19,7 @@ type UseCasesFacility interface {
 	IFacilityDelete
 	IFacilityInactivate
 	IFacilityReactivate
+	IFacilityFind
 }
 
 // IFacilityCreate contains the method used to create a facility
@@ -68,6 +69,11 @@ type IFacilityList interface {
 // IFacilityRetrieve contains the method to retrieve a facility
 type IFacilityRetrieve interface {
 	RetrieveFacility(ctx context.Context, id *uuid.UUID) (*domain.Facility, error)
+}
+
+// IFacilityFind contains the method to sort, search and filter a facility
+type IFacilityFind interface {
+	FindFacility(ctx context.Context, pagination *firebasetools.PaginationInput, filter []*dto.FacilityFilterInput, sort []*dto.FacilitySortInput) (*dto.FacilityConnection, error)
 }
 
 // UseCaseFacilityImpl represents facility implementation object
@@ -126,4 +132,9 @@ func (f *UseCaseFacilityImpl) RetrieveFacility(ctx context.Context, id *uuid.UUI
 // FetchFacilities fetches healthcare facilities in platform
 func (f *UseCaseFacilityImpl) FetchFacilities(ctx context.Context) ([]*domain.Facility, error) {
 	return f.Infrastructure.GetFacilities(ctx)
+}
+
+// FindFacility sorts, searches, filters facilities
+func (f *UseCaseFacilityImpl) FindFacility(ctx context.Context, pagination *firebasetools.PaginationInput, filter []*dto.FacilityFilterInput, sort []*dto.FacilitySortInput) (*dto.FacilityConnection, error) {
+	return f.Infrastructure.FindFacility(ctx, pagination, filter, sort)
 }

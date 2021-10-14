@@ -6,6 +6,8 @@ import (
 
 	"github.com/google/uuid"
 
+	"github.com/savannahghi/firebasetools"
+	"github.com/savannahghi/onboarding-service/pkg/onboarding/application/dto"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/domain"
 )
 
@@ -47,4 +49,14 @@ func (d *OnboardingDb) RetrieveFacility(ctx context.Context, id *uuid.UUID) (*do
 	}
 
 	return d.mapFacilityObjectToDomain(facilitySession), nil
+}
+
+// / FindFacility gets a facility by ID from the database
+func (d *OnboardingDb) FindFacility(ctx context.Context, pagination *firebasetools.PaginationInput, filter []*dto.FacilityFilterInput, sort []*dto.FacilitySortInput) (*dto.FacilityConnection, error) {
+	facilitySession, err := d.query.FindFacility(ctx, pagination, filter, sort)
+	if err != nil {
+		return nil, fmt.Errorf("failed to find facility: %v", err)
+	}
+
+	return facilitySession, nil
 }

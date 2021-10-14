@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/savannahghi/firebasetools"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/application/dto"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/domain"
 	"github.com/segmentio/ksuid"
@@ -63,6 +64,7 @@ func (f *CreateMock) CollectMetrics(ctx context.Context, metric *dto.MetricInput
 type QueryMock struct {
 	RetrieveFacilityFn func(ctx context.Context, id *uuid.UUID) (*domain.Facility, error)
 	GetFacilitiesFn    func(ctx context.Context) ([]*domain.Facility, error)
+	FindFacilityFn     func(ctx context.Context, pagination *firebasetools.PaginationInput, filter []*dto.FacilityFilterInput, sort []*dto.FacilitySortInput) (*dto.FacilityConnection, error)
 }
 
 // NewQueryMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -101,6 +103,39 @@ func NewQueryMock() *QueryMock {
 				},
 			}, nil
 		},
+		FindFacilityFn: func(ctx context.Context, pagination *firebasetools.PaginationInput, filter []*dto.FacilityFilterInput, sort []*dto.FacilitySortInput) (*dto.FacilityConnection, error) {
+			id := uuid.New()
+			name := "Kanairo One"
+			code := "KN001"
+			county := "Kanairo"
+			description := "This is just for mocking"
+
+			cursor := "1"
+			startCursor := "1"
+			endCursor := "1"
+
+			return &dto.FacilityConnection{
+				Edges: []*dto.FacilityEdge{
+					{
+						Cursor: &cursor,
+						Node: &domain.Facility{
+							ID:          id,
+							Name:        name,
+							Code:        code,
+							Active:      true,
+							County:      county,
+							Description: description,
+						},
+					},
+				},
+				PageInfo: &firebasetools.PageInfo{
+					HasNextPage:     false,
+					HasPreviousPage: false,
+					StartCursor:     &startCursor,
+					EndCursor:       &endCursor,
+				},
+			}, nil
+		},
 	}
 }
 
@@ -112,4 +147,9 @@ func (f *QueryMock) RetrieveFacility(ctx context.Context, id *uuid.UUID) (*domai
 // GetFacilities mocks the implementation of `gorm's` GetFacilities method
 func (f *QueryMock) GetFacilities(ctx context.Context) ([]*domain.Facility, error) {
 	return f.GetFacilitiesFn(ctx)
+}
+
+// FindFacility mocks the implementation of  FindFacility method.
+func (gm *QueryMock) FindFacility(ctx context.Context, pagination *firebasetools.PaginationInput, filter []*dto.FacilityFilterInput, sort []*dto.FacilitySortInput) (*dto.FacilityConnection, error) {
+	return gm.FindFacilityFn(ctx, pagination, filter, sort)
 }
