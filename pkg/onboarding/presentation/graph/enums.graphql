@@ -1,0 +1,6 @@
+enum RoleType {
+    PRACTITIONER
+    CLIENT
+    CAREGIVER
+    MODERATOR
+}

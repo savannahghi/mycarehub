@@ -15,6 +15,7 @@ import (
 type CreateMock struct {
 	GetOrCreateFacilityFn func(ctx context.Context, facility dto.FacilityInput) (*domain.Facility, error)
 	CollectMetricsFn      func(ctx context.Context, metric *dto.MetricInput) (*domain.Metric, error)
+	RegisterStaffUserFn   func(ctx context.Context, user dto.UserInput, profile dto.StaffProfileInput) (*domain.StaffUserProfileOutput, error)
 }
 
 // NewCreateMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -46,6 +47,78 @@ func NewCreateMock() *CreateMock {
 				UID:       ksuid.New().String(),
 			}, nil
 		},
+		RegisterStaffUserFn: func(ctx context.Context, user dto.UserInput, profile dto.StaffProfileInput) (*domain.StaffUserProfileOutput, error) {
+			userID := uuid.New().String()
+			staffID := uuid.New().String()
+			contactID := uuid.New().String()
+			testTime := time.Now()
+			facilityID := uuid.New().String()
+			addressesID := uuid.New().String()
+
+			testText := "testtext"
+
+			userOutput := &domain.User{
+				ID:          &userID,
+				Username:    "user",
+				DisplayName: "alias",
+				FirstName:   "firstname",
+				MiddleName:  &testText,
+				LastName:    "lastname",
+				UserType:    "doctor", //TODO: enum
+				Gender:      "female", // TODO: enum
+				Contacts: []*domain.Contact{
+					{
+						ID:      &contactID,
+						Type:    "email",          //TODO: enum
+						Contact: "user@email.com", //TODO: validate
+						Active:  true,
+						OptedIn: true,
+					},
+				},
+				Languages:           []string{"en", "ksw"}, // TODO: slice of enums
+				PushTokens:          []string{string(ksuid.New().String())},
+				LastSuccessfulLogin: &testTime,
+				LastFailedLogin:     &testTime,
+				FailedLoginCount:    0,
+				NextAllowedLogin:    &testTime,
+				TermsAccepted:       true,
+				AcceptedTermsID:     ksuid.New().String(), //TODO: add terms relation in db
+			}
+
+			staffProfileOutput := &domain.StaffProfile{
+				ID:          &staffID,
+				UserID:      &userID,
+				StaffNumber: "st1010101",
+				Facilities: []*domain.Facility{
+					{
+						ID:          &facilityID,
+						Name:        "test-name",
+						Code:        "c0032",
+						Active:      true,
+						County:      "Nakuru",
+						Description: "This is just for mocking",
+					},
+				},
+				DefaultFacilityID: &facilityID,
+				Roles:             []domain.RoleType{domain.RoleTypePractitioner}, //TODO: enum
+				Addresses: []*domain.UserAddress{
+					{
+						ID:         &addressesID,
+						Type:       "postal", //TODO: enum
+						Text:       "1123 Nairobi",
+						Country:    "Kenya", //TODO: enum
+						PostalCode: "10100",
+						County:     "Nakuru", //TODO: counties belong to a country
+						Active:     true,
+					},
+				},
+			}
+
+			return &domain.StaffUserProfileOutput{
+				User:         *userOutput,
+				StaffProfile: *staffProfileOutput,
+			}, nil
+		},
 	}
 }
 
@@ -57,6 +130,11 @@ func (f *CreateMock) GetOrCreateFacility(ctx context.Context, facility dto.Facil
 // CollectMetrics mocks the implementation of `gorm's` CollectMetrics method.
 func (f *CreateMock) CollectMetrics(ctx context.Context, metric *dto.MetricInput) (*domain.Metric, error) {
 	return f.CollectMetricsFn(ctx, metric)
+}
+
+// RegisterStaffUser mocks the implementation of `gorm's` RegisterStaffUser method
+func (f *CreateMock) RegisterStaffUser(ctx context.Context, user dto.UserInput, profile dto.StaffProfileInput) (*domain.StaffUserProfileOutput, error) {
+	return f.RegisterStaffUserFn(ctx, user, profile)
 }
 
 // QueryMock is a mock of the query methods

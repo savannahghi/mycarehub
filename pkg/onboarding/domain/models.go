@@ -3,7 +3,6 @@ package domain
 import (
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/savannahghi/feedlib"
 	"gorm.io/datatypes"
 )
@@ -136,7 +135,7 @@ type ClientProfile struct {
 	// every client is a user first
 	// biodata is linked to the user record
 	// the client record is for bridging to other identifiers e.g patient record IDs
-	UserID uuid.UUID // TODO: Foreign key to User
+	UserID *string // TODO: Foreign key to User
 
 	TreatmentEnrollmentDate *time.Time // use for date of treatment enrollment
 
@@ -164,7 +163,7 @@ type ClientProfile struct {
 	ClientCounselled bool
 }
 
-// UserAddress are value objects for user UserAddress e.g postal code
+// UserAddress are value objects for user address e.g postal code
 type UserAddress struct {
 	ID *string
 
@@ -210,7 +209,7 @@ type ClientProfileRegistrationPayload struct {
 
 	Addresses []*UserAddress
 
-	FacilityID uuid.UUID
+	FacilityID *string
 
 	TreatmentEnrollmentDate *time.Time
 
@@ -221,7 +220,7 @@ type ClientProfileRegistrationPayload struct {
 
 // Contact hold contact information/details for users
 type Contact struct {
-	ID *string
+	ID *string // globally unique
 
 	Type string // TODO enum
 
@@ -258,7 +257,7 @@ type Metric struct {
 type StaffProfile struct {
 	ID *string
 
-	UserID uuid.UUID // foreign key to user
+	UserID *string // foreign key to user
 
 	StaffNumber string
 
@@ -266,10 +265,16 @@ type StaffProfile struct {
 
 	// A UI switcher optionally toggles the default
 	// TODO: the list of facilities to switch between is strictly those that the user is assigned to
-	DefaultFacilityID string // TODO: required, FK to facility
+	DefaultFacilityID *string // TODO: required, FK to facility
 
 	// there is nothing special about super-admin; just the set of roles they have
-	Roles []string // TODO: roles are an enum (controlled list), known to both FE and BE
+	Roles []RoleType // TODO: roles are an enum (controlled list), known to both FE and BE
 
 	Addresses []*UserAddress
+}
+
+// StaffUserProfileOutput combines the output of a user profile and staffprofile
+type StaffUserProfileOutput struct {
+	StaffProfile
+	User
 }

@@ -5,6 +5,7 @@ import (
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/usecases/client"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/usecases/facility"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/usecases/metric"
+	"github.com/savannahghi/onboarding-service/pkg/onboarding/usecases/staff"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/usecases/user"
 	engagementSvc "github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/engagement"
 )
@@ -16,6 +17,7 @@ type Interactor struct {
 	*metric.UsecaseMetricsImpl
 	*user.UseCasesUserImpl
 	*client.UseCasesClientImpl
+	*staff.UsecasesStaffProfileImpl
 }
 
 // NewUsecasesInteractor initializes a new usecases interactor
@@ -25,6 +27,7 @@ func NewUsecasesInteractor(infrastructure infrastructure.Interactor) Interactor 
 	metrics := metric.NewMetricUsecase(infrastructure)
 	user := user.NewUseCasesUserImpl(infrastructure)
 	client := client.NewUseCasesClientImpl(infrastructure)
+	staff := staff.NewUsecasesStaffProfileImpl(infrastructure)
 
 	return Interactor{
 		engagement,
@@ -32,5 +35,6 @@ func NewUsecasesInteractor(infrastructure infrastructure.Interactor) Interactor 
 		metrics,
 		user,
 		client,
+		staff,
 	}
 }

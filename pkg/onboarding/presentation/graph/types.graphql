@@ -1,9 +1,67 @@
-
 type Facility {
-  ID: String!
+  id: String!
   name: String!
   code: String!
   active: Boolean!
   county: String!
   description: String!
 }
+
+type Contact {
+  id: String!
+  type: String! # TODO: enum
+  contact: String! # TODO: Validate
+  active: Boolean!
+  optedIn: Boolean!
+
+}
+
+type UserAddress {
+  id: String!
+	type: String! # TODO: enum; postal, physical or both
+	text: String! # actual address, can be multi-line
+	country: String! # TODO: enum
+	postalCode: String!
+	county: String! # TODO: counties belong to a country
+	active: Boolean!
+}
+
+
+type StaffProfile{
+  id: String!
+  userID: String!
+  staffNumber: String!
+  facilities: [Facility!]
+  defaultFacilityID: String!
+  roles: [String!] # TODO: roles are an enum (controlled list), known to both FE and BE
+  addresses: [UserAddress!]
+}
+
+type User {
+  id: String!
+  username: String!
+  displayName: String!
+  firstName: String!
+  middleName: String!
+  lastName: String!
+  userType: String! # TODO enum; e.g client, health care worker
+  gender: String! # TODO enum; genders; keep it simple
+  active: Boolean!
+  contacts: [Contact!]
+  languages: [String!]
+  pushTokens: [String!]
+  lastSuccessfulLogin: Time!
+  lastFailedLogin: Time!
+  failedLoginCount: Int!
+  nextAllowedLogin: Time!
+  termsAccepted: Boolean!
+  acceptedTermsID: String!
+}
+
+type StaffUserProfileOutput {
+  user: User
+  staffProfile: StaffProfile
+}
+
+
+

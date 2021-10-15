@@ -58,3 +58,39 @@ func (d *OnboardingDb) CollectMetrics(ctx context.Context, metric *dto.MetricInp
 
 	return d.mapMetricObjectToDomain(metricSession), nil
 }
+
+// RegisterStaffUser is responsible for cretating a representation of metrics data.
+func (d *OnboardingDb) RegisterStaffUser(ctx context.Context, user *dto.UserInput, profile *dto.StaffProfileInput) (*domain.StaffUserProfileOutput, error) {
+
+	userObj := &gorm.User{
+		Username:    user.Username,
+		DisplayName: user.DisplayName,
+		FirstName:   user.FirstName,
+		MiddleName:  user.MiddleName,
+		LastName:    user.LastName,
+		UserType:    user.UserType,
+		Gender:      user.Gender,
+		Contacts:    user.Contacts,
+		Languages:   user.Languages,
+	}
+
+	staffProfileObj := &gorm.StaffProfile{
+		StaffNumber:       profile.StaffNumber,
+		Facilities:        profile.Facilities,
+		DefaultFacilityID: profile.DefaultFacilityID,
+		Roles:             profile.Roles,
+		Addresses:         profile.Addresses,
+	}
+
+	userProfileSession, err := d.create.RegisterStaffUser(ctx, *userObj, *staffProfileObj)
+	if err != nil {
+		return nil, fmt.Errorf("failed to register a client: %v", err)
+	}
+
+	userMap, profileMap := d.mapStaffRegistrationObjectToDomainRegisterStaffUser(&userProfileSession.User, &userProfileSession.StaffProfile)
+
+	return &domain.StaffUserProfileOutput{
+		User:         *userMap,
+		StaffProfile: *profileMap,
+	}, nil
+}

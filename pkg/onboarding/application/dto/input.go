@@ -83,3 +83,63 @@ type MetricInput struct {
 	// with a predictable one way hash
 	UID string `json:"uid"`
 }
+
+// UserInput contains the input for the User
+type UserInput struct {
+	Username string // @handle, also globally unique; nickname
+
+	DisplayName string // user's preferred display name
+
+	// TODO Consider making the names optional in DB; validation in frontends
+	FirstName  string // given name
+	MiddleName *string
+	LastName   string
+
+	UserType string // TODO enum; e.g client, health care worker
+
+	Gender string // TODO enum; genders; keep it simple
+
+	Contacts []*domain.Contact // TODO: validate, ensure
+
+	// for the preferred language list, order matters
+	Languages []string // TODO: turn this into a slice of enums, start small (en, sw)
+}
+
+// StaffProfileInput contains input required to register a staff
+type StaffProfileInput struct {
+	StaffNumber string
+
+	Facilities []*domain.Facility // TODO: needs at least one
+
+	// A UI switcher optionally toggles the default
+	// TODO: the list of facilities to switch between is strictly those that the user is assigned to
+	DefaultFacilityID *string // TODO: required, FK to facility
+
+	// there is nothing special about super-admin; just the set of roles they have
+	Roles []domain.RoleType `json:"roles"` // TODO: roles are an enum (controlled list), known to both FE and BE
+
+	Addresses []*domain.UserAddress
+}
+
+// ContactInput hold contact information/details for users
+type ContactInput struct {
+	Type string // TODO enum
+
+	Contact string // TODO Validate: phones are E164, emails are valid
+
+	Active bool
+
+	// a user may opt not to be contacted via this contact
+	// e.g if it's a shared phone owned by a teenager
+	OptedIn bool
+}
+
+// ContactAddressInput are value objects for user address e.g postal code
+type ContactAddressInput struct {
+	Type       string // TODO: enum; postal, physical or both
+	Text       string // actual address, can be multi-line
+	Country    string // TODO: enum
+	PostalCode string
+	County     string // TODO: counties belong to a country
+	Active     bool
+}

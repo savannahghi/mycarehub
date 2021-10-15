@@ -5,3 +5,39 @@ input FacilityInput {
   county: String!
   description: String!
 }
+
+input UserInput {
+  username: String!
+  displayName: String!
+  firstName: String!
+  middleName: String!
+  lastName: String!
+  userType: String! # TODO enum; e.g client, health care worker
+  gender: String! # TODO enum; genders; keep it simple
+  # contacts: [ContactInput!]
+  languages: [String]
+}
+
+input StaffProfileInput {
+  staffNumber: String!
+  # facilities: [FacilityInput!]
+  defaultFacilityID: String!
+  # roles: [RoleType] # TODO: roles are an enum (controlled list), known to both FE and BE
+  # addresses: [ContactAddressInput!]
+}
+
+# input ContactInput {
+#   type: String! # TODO: enum
+#   contact: String! # TODO: Validate
+#   active: Boolean!
+#   optedIn: Boolean!
+# }
+
+# input ContactAddressInput {
+# 	type: String! # TODO: enum; postal, physical or both
+# 	text: String! # actual address, can be multi-line
+# 	country: String! # TODO: enum
+# 	postalCode: String!
+# 	county: String! # TODO: counties belong to a country
+# 	active: Boolean!
+# }

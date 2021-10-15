@@ -60,3 +60,25 @@ func (m MetricType) MarshalGQL(w io.Writer) {
 		log.Printf("%v\n", err)
 	}
 }
+
+// RoleType defines the type of role a subject has
+// and the associated permissions
+type RoleType string
+
+// Various roles in JnJ
+const (
+	RoleTypePractitioner RoleType = "PRACTITIONER"
+	RoleTypeClient       RoleType = "CLIENT"
+	RoleTypeCareGiver    RoleType = "CAREGIVER"
+	RoleTypeModerator    RoleType = "MODERATOR"
+)
+
+// IsValid checks if the role type is valid
+func (r RoleType) IsValid() bool {
+	switch r {
+	case RoleTypePractitioner, RoleTypeClient, RoleTypeCareGiver, RoleTypeModerator:
+		return true
+	default:
+		return false
+	}
+}

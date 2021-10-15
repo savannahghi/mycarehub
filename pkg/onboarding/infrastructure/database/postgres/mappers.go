@@ -1,6 +1,7 @@
 package postgres
 
 import (
+	"fmt"
 	"strconv"
 
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/domain"
@@ -43,4 +44,39 @@ func (d *OnboardingDb) mapMetricObjectToDomain(metricObject *gorm.Metric) *domai
 		Timestamp: metricObject.Timestamp,
 		UID:       metricObject.UID,
 	}
+}
+
+// mapStaffRegistrationObjectToDomain maps the db Staff Registration to a domain model.
+// It searches the database to fetch items specific to the Staff Registration
+func (d *OnboardingDb) mapStaffRegistrationObjectToDomainRegisterStaffUser(userObj *gorm.User, profileObj *gorm.StaffProfile) (*domain.User, *domain.StaffProfile) {
+	fmt.Println(">>>@here")
+	fmt.Println("user obj, ???>>>", userObj)
+	fmt.Println("staff objs >>>>>", profileObj)
+	if userObj == nil || profileObj == nil {
+		return nil, nil
+	}
+
+	user := &domain.User{
+		ID:          userObj.UserID,
+		Username:    userObj.Username,
+		DisplayName: userObj.DisplayName,
+		FirstName:   userObj.FirstName,
+		MiddleName:  userObj.MiddleName,
+		LastName:    userObj.LastName,
+		UserType:    userObj.UserType,
+		Gender:      userObj.Gender,
+		Contacts:    userObj.Contacts,
+		Languages:   userObj.Languages,
+	}
+
+	staffProfile := &domain.StaffProfile{
+		ID:                profileObj.StaffProfileID,
+		StaffNumber:       profileObj.StaffNumber,
+		Facilities:        profileObj.Facilities,
+		DefaultFacilityID: profileObj.DefaultFacilityID,
+		Roles:             profileObj.Roles,
+		Addresses:         profileObj.Addresses,
+	}
+
+	return user, staffProfile
 }

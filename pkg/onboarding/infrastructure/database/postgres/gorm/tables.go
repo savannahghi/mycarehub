@@ -100,7 +100,7 @@ type User struct {
 
 	Active bool `gorm:"column:active"`
 
-	Contacts []Contact `gorm:"many2many:user_contact;"` // TODO: validate, ensure
+	Contacts []*domain.Contact `gorm:"many2many:user_contact;"` // TODO: validate, ensure
 
 	// for the preferred language list, order matters
 	Languages []string `gorm:"type:text[];column:languages"` // TODO: turn this into a slice of enums, start small (en, sw)
@@ -121,9 +121,9 @@ type User struct {
 	// calculated each time there is a failed login
 	NextAllowedLogin *time.Time `gorm:"type:time;column:next_allowed_login"`
 
-	TermsAccepted   bool   `gorm:"type:bool;column:terms_accepted"`
-	AcceptedTermsID string `gorm:"column:accepted_terms_id"` // foreign key to version of terms they accepted
-	Flavour         feedlib.Flavour
+	TermsAccepted   bool            `gorm:"type:bool;column:terms_accepted"`
+	AcceptedTermsID string          `gorm:"column:accepted_terms_id"` // foreign key to version of terms they accepted
+	Flavour         feedlib.Flavour `gorm:"column:flavour"`
 }
 
 // BeforeCreate is a hook run before creating a new user
@@ -176,17 +176,17 @@ type StaffProfile struct {
 
 	StaffNumber string `gorm:"column:staff_number"`
 
-	Facilities []*Facility `gorm:"many2many:staffprofile_facility;not null;"` // TODO: needs at least one
+	Facilities []*domain.Facility `gorm:"many2many:staffprofile_facility;not null;"` // TODO: needs at least one
 
 	// A UI switcher optionally toggles the default
 	// TODO: the list of facilities to switch between is strictly those that the user is assigned to
-	DefaultFacilityID uuid.UUID `gorm:"column:default_facility_id"` // TODO: required, FK to facility
-	Facility          Facility  `gorm:"foreignKey:default_facility_id;references:facility_id;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
+	DefaultFacilityID *string  `gorm:"column:default_facility_id"` // TODO: required, FK to facility
+	Facility          Facility `gorm:"foreignKey:default_facility_id;references:facility_id;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 
 	// there is nothing special about super-admin; just the set of roles they have
-	Roles []string `gorm:"type:text[];column:roles"` // TODO: roles are an enum (controlled list), known to both FE and BE
+	Roles []domain.RoleType `gorm:"type:text[];column:roles"` // TODO: roles are an enum (controlled list), known to both FE and BE
 
-	Addresses []*UserAddress `gorm:"many2many:staffprofile_useraddress;"`
+	Addresses []*domain.UserAddress `gorm:"many2many:staffprofile_useraddress;"`
 }
 
 // BeforeCreate is a hook run before creating a new staff profile
@@ -223,6 +223,12 @@ func (a *UserAddress) BeforeCreate(tx *gorm.DB) (err error) {
 // TableName customizes how the table name is generated
 func (UserAddress) TableName() string {
 	return "useraddress"
+}
+
+// StaffUserProfileTable combines the  of a user profile and staffprofile table outputs
+type StaffUserProfileTable struct {
+	User
+	StaffProfile
 }
 
 func allTables() []interface{} {

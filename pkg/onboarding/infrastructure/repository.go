@@ -14,6 +14,7 @@ import (
 type Create interface {
 	GetOrCreateFacility(ctx context.Context, facility dto.FacilityInput) (*domain.Facility, error)
 	CollectMetrics(ctx context.Context, metric *dto.MetricInput) (*domain.Metric, error)
+	RegisterStaffUser(ctx context.Context, user dto.UserInput, profile dto.StaffProfileInput) (*domain.StaffUserProfileOutput, error)
 }
 
 // Delete represents all the deletion action interfaces
@@ -41,6 +42,10 @@ func (f ServiceCreateImpl) GetOrCreateFacility(ctx context.Context, facility dto
 // CollectMetrics is responsible for creating a representation of a metric
 func (f ServiceCreateImpl) CollectMetrics(ctx context.Context, metric *dto.MetricInput) (*domain.Metric, error) {
 	return f.onboarding.CollectMetrics(ctx, metric)
+}
+
+func (f ServiceCreateImpl) RegisterStaffUser(ctx context.Context, user dto.UserInput, profile dto.StaffProfileInput) (*domain.StaffUserProfileOutput, error) {
+	return f.onboarding.RegisterStaffUser(ctx, &user, &profile)
 }
 
 // Query contains all query methods
