@@ -81,6 +81,9 @@ models:
   FacilityInput:
     model:
       - github.com/savannahghi/onboarding-service/pkg/onboarding/application/dto.FacilityInput
+  PINInput:
+    model:
+      - github.com/savannahghi/onboarding-service/pkg/onboarding/application/dto.PINInput
   UserProfile:
     fields:
       roleDetails:

@@ -7,3 +7,10 @@ type Facility {
   county: String!
   description: String!
 }
+
+type PIN {
+  user: String!
+  pin: String!
+  confirmedPin: String!,
+  flavour: String!
+}

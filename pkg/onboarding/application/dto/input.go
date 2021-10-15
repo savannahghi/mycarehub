@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/savannahghi/enumutils"
+	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/domain"
 	"gorm.io/datatypes"
 )
@@ -82,4 +83,18 @@ type MetricInput struct {
 	// a user identifier, can be hashed for anonymity
 	// with a predictable one way hash
 	UID string `json:"uid"`
+}
+
+// PINInput represents the PIN input data structure
+type PINInput struct {
+	PIN          string          `json:"pin"`
+	ConfirmedPin string          `json:"confirmed_pin"`
+	Flavour      feedlib.Flavour `json:"flavour"`
+}
+
+// LoginInput represents the Login input data structure
+type LoginInput struct {
+	UserID  string          `json:"user_id"`
+	PIN     string          `json:"pin"`
+	Flavour feedlib.Flavour `json:"flavour"`
 }

@@ -15,6 +15,7 @@ import (
 type CreateMock struct {
 	GetOrCreateFacilityFn func(ctx context.Context, facility dto.FacilityInput) (*domain.Facility, error)
 	CollectMetricsFn      func(ctx context.Context, metric *dto.MetricInput) (*domain.Metric, error)
+	SetUserPINFn          func(ctx context.Context, input *domain.UserPIN) (bool, error)
 }
 
 // NewCreateMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -46,6 +47,10 @@ func NewCreateMock() *CreateMock {
 				UID:       ksuid.New().String(),
 			}, nil
 		},
+
+		SetUserPINFn: func(ctx context.Context, input *domain.UserPIN) (bool, error) {
+			return true, nil
+		},
 	}
 }
 
@@ -59,11 +64,18 @@ func (f *CreateMock) CollectMetrics(ctx context.Context, metric *dto.MetricInput
 	return f.CollectMetricsFn(ctx, metric)
 }
 
+//SetUserPIN mocks the implementation of SetUserPIN method
+func (f *CreateMock) SetUserPIN(ctx context.Context, pinData *domain.UserPIN) (bool, error) {
+	return f.SetUserPINFn(ctx, pinData)
+}
+
 // QueryMock is a mock of the query methods
 type QueryMock struct {
 	RetrieveFacilityFn          func(ctx context.Context, id *string, isActive bool) (*domain.Facility, error)
 	RetrieveFacilityByMFLCodeFn func(ctx context.Context, MFLCode string, isActive bool) (*domain.Facility, error)
 	GetFacilitiesFn             func(ctx context.Context) ([]*domain.Facility, error)
+	GetUserPINByUserIDFn        func(ctx context.Context, userID string) (*domain.UserPIN, error)
+	GetUserProfileByUserIDFn    func(ctx context.Context, userID string, flavour string) (*domain.User, error)
 }
 
 // NewQueryMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -119,6 +131,18 @@ func NewQueryMock() *QueryMock {
 				},
 			}, nil
 		},
+
+		GetUserPINByUserIDFn: func(ctx context.Context, userID string) (*domain.UserPIN, error) {
+			return &domain.UserPIN{
+				UserID:    userID,
+				HashedPIN: "mbzcbvhbxchjbvhdbvhhjdfskgbfhas832y38hjsdnfkjbh73y73y72",
+				ValidFrom: time.Now(),
+				ValidTo:   time.Now(),
+				Flavour:   "CONSUMER",
+				IsValid:   true,
+				Salt:      "test-salt",
+			}, nil
+		},
 	}
 }
 
@@ -135,4 +159,71 @@ func (f *QueryMock) RetrieveFacilityByMFLCode(ctx context.Context, MFLCode strin
 // GetFacilities mocks the implementation of `gorm's` GetFacilities method
 func (f *QueryMock) GetFacilities(ctx context.Context) ([]*domain.Facility, error) {
 	return f.GetFacilitiesFn(ctx)
+}
+
+// GetUserPINByUserID ...
+func (f *QueryMock) GetUserPINByUserID(ctx context.Context, userID string) (*domain.UserPIN, error) {
+	return f.GetUserPINByUserIDFn(ctx, userID)
+}
+
+// GetUserProfileByUserID gets user profile by user ID
+func (f *QueryMock) GetUserProfileByUserID(ctx context.Context, userID string, flavour string) (*domain.User, error) {
+	return f.GetUserProfileByUserIDFn(ctx, userID, flavour)
+}
+
+// UpdateMock ...
+type UpdateMock struct {
+	UpdateUserLastSuccessfulLoginFn func(ctx context.Context, userID string, lastLoginTime time.Time, flavour string) error
+	UpdateUserLastFailedLoginFn     func(ctx context.Context, userID string, lastFailedLoginTime time.Time, flavour string) error
+	UpdateUserFailedLoginCountFn    func(ctx context.Context, userID string, failedLoginCount string, flavour string) error
+	UpdateUserNextAllowedLoginFn    func(ctx context.Context, userID string, nextAllowedLoginTime time.Time, flavour string) error
+}
+
+// NewUpdateMock initializes a new instance of `GormMock` then mocking the case of success.
+func NewUpdateMock() *UpdateMock {
+	return &UpdateMock{
+		UpdateUserLastSuccessfulLoginFn: func(ctx context.Context, userID string, lastLoginTime time.Time, flavour string) error {
+			return nil
+		},
+
+		UpdateUserLastFailedLoginFn: func(ctx context.Context, userID string, lastFailedLoginTime time.Time, flavour string) error {
+			return nil
+		},
+
+		UpdateUserFailedLoginCountFn: func(ctx context.Context, userID, failedLoginCount, flavour string) error {
+			return nil
+		},
+
+		UpdateUserNextAllowedLoginFn: func(ctx context.Context, userID string, nextAllowedLoginTime time.Time, flavour string) error {
+			return nil
+		},
+	}
+}
+
+//UpdateUserLastSuccessfulLogin ...
+func (um *UpdateMock) UpdateUserLastSuccessfulLogin(ctx context.Context, userID string, lastLoginTime time.Time, flavour string) error {
+	return um.UpdateUserLastSuccessfulLoginFn(ctx, userID, lastLoginTime, flavour)
+}
+
+// UpdateUserLastFailedLogin ...
+func (um *UpdateMock) UpdateUserLastFailedLogin(ctx context.Context, userID string, lastFailedLoginTime time.Time, flavour string) error {
+	return um.UpdateUserLastFailedLoginFn(ctx, userID, lastFailedLoginTime, flavour)
+}
+
+// UpdateUserFailedLoginCount ...
+func (um *UpdateMock) UpdateUserFailedLoginCount(ctx context.Context, userID string, failedLoginCount string, flavour string) error {
+	return um.UpdateUserFailedLoginCountFn(ctx, userID, failedLoginCount, flavour)
+}
+
+// UpdateUserNextAllowedLogin ...
+func (um *UpdateMock) UpdateUserNextAllowedLogin(ctx context.Context, userID string, nextAllowedLoginTime time.Time, flavour string) error {
+	return um.UpdateUserNextAllowedLoginFn(ctx, userID, nextAllowedLoginTime, flavour)
+}
+
+// DeleteMock ....
+type DeleteMock struct{}
+
+// NewDeleteMock initializes a new instance of `GormMock` then mocking the case of success.
+func NewDeleteMock() *DeleteMock {
+	return &DeleteMock{}
 }

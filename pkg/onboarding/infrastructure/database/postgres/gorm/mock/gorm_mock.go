@@ -22,6 +22,15 @@ type GormMock struct {
 	GetFacilitiesFn             func(ctx context.Context) ([]gorm.Facility, error)
 	DeleteFacilityFn            func(ctx context.Context, mfl_code string) (bool, error)
 	CollectMetricsFn            func(ctx context.Context, metrics *gorm.Metric) (*gorm.Metric, error)
+	SetUserPINFn                func(ctx context.Context, pinData *gorm.PINData) (bool, error)
+	GetUserPINByUserIDFn        func(ctx context.Context, userID string) (*gorm.PINData, error)
+	GetUserProfileByUserIDFn    func(ctx context.Context, userID string, flavour string) (*gorm.User, error)
+
+	//Updates
+	UpdateUserLastSuccessfulLoginFn func(ctx context.Context, userID string, lastLoginTime time.Time, flavour string) error
+	UpdateUserLastFailedLoginFn     func(ctx context.Context, userID string, lastFailedLoginTime time.Time, flavour string) error
+	UpdateUserFailedLoginCountFn    func(ctx context.Context, userID string, failedLoginCount string, flavour string) error
+	UpdateUserNextAllowedLoginFn    func(ctx context.Context, userID string, nextAllowedLoginTime time.Time, flavour string) error
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -107,6 +116,72 @@ func NewGormMock() *GormMock {
 				Description: description,
 			}, nil
 		},
+
+		SetUserPINFn: func(ctx context.Context, pinData *gorm.PINData) (bool, error) {
+			return true, nil
+		},
+
+		GetUserProfileByUserIDFn: func(ctx context.Context, userID, flavour string) (*gorm.User, error) {
+			id := uuid.New().String()
+			usercontact := &gorm.Contact{
+				ContactID: &id,
+				Type:      "test",
+				Contact:   "test",
+				Active:    true,
+				OptedIn:   true,
+			}
+			time := time.Now()
+			return &gorm.User{
+				Base:                gorm.Base{},
+				UserID:              &id,
+				Username:            "test",
+				DisplayName:         "test",
+				FirstName:           "test",
+				MiddleName:          "test",
+				LastName:            "test",
+				Flavour:             "test",
+				UserType:            "test",
+				Gender:              "test",
+				Active:              false,
+				Contacts:            []gorm.Contact{*usercontact},
+				Languages:           []string{"en"},
+				PushTokens:          []string{"push-token"},
+				LastSuccessfulLogin: &time,
+				LastFailedLogin:     &time,
+				FailedLoginCount:    "test",
+				NextAllowedLogin:    &time,
+				TermsAccepted:       false,
+				AcceptedTermsID:     "test",
+			}, nil
+		},
+
+		GetUserPINByUserIDFn: func(ctx context.Context, userID string) (*gorm.PINData, error) {
+			return &gorm.PINData{
+				UserID:    userID,
+				HashedPIN: "mbzcbvhbxchjbvhdbvhhjdfskgbfhas832y38hjsdnfkjbh73y73y72",
+				ValidFrom: time.Now(),
+				ValidTo:   time.Now(),
+				Flavour:   "CONSUMER",
+				IsValid:   true,
+				Salt:      "test-salt",
+			}, nil
+		},
+
+		UpdateUserLastSuccessfulLoginFn: func(ctx context.Context, userID string, lastLoginTime time.Time, flavour string) error {
+			return nil
+		},
+
+		UpdateUserLastFailedLoginFn: func(ctx context.Context, userID string, lastFailedLoginTime time.Time, flavour string) error {
+			return nil
+		},
+
+		UpdateUserFailedLoginCountFn: func(ctx context.Context, userID, failedLoginCount, flavour string) error {
+			return nil
+		},
+
+		UpdateUserNextAllowedLoginFn: func(ctx context.Context, userID string, nextAllowedLoginTime time.Time, flavour string) error {
+			return nil
+		},
 	}
 }
 
@@ -138,4 +213,39 @@ func (gm *GormMock) DeleteFacility(ctx context.Context, mflcode string) (bool, e
 // CollectMetrics mocks the implementation of  CollectMetrics method.
 func (gm *GormMock) CollectMetrics(ctx context.Context, metrics *gorm.Metric) (*gorm.Metric, error) {
 	return gm.CollectMetricsFn(ctx, metrics)
+}
+
+//SetUserPIN mocks the implementation of SetUserPIN method
+func (gm *GormMock) SetUserPIN(ctx context.Context, pinData *gorm.PINData) (bool, error) {
+	return gm.SetUserPINFn(ctx, pinData)
+}
+
+// GetUserPINByUserID ...
+func (gm *GormMock) GetUserPINByUserID(ctx context.Context, userID string) (*gorm.PINData, error) {
+	return gm.GetUserPINByUserIDFn(ctx, userID)
+}
+
+// GetUserProfileByUserID gets user profile by user ID
+func (gm *GormMock) GetUserProfileByUserID(ctx context.Context, userID string, flavour string) (*gorm.User, error) {
+	return gm.GetUserProfileByUserIDFn(ctx, userID, flavour)
+}
+
+//UpdateUserLastSuccessfulLogin ...
+func (gm *GormMock) UpdateUserLastSuccessfulLogin(ctx context.Context, userID string, lastLoginTime time.Time, flavour string) error {
+	return gm.UpdateUserLastSuccessfulLoginFn(ctx, userID, lastLoginTime, flavour)
+}
+
+// UpdateUserLastFailedLogin ...
+func (gm *GormMock) UpdateUserLastFailedLogin(ctx context.Context, userID string, lastFailedLoginTime time.Time, flavour string) error {
+	return gm.UpdateUserLastFailedLoginFn(ctx, userID, lastFailedLoginTime, flavour)
+}
+
+// UpdateUserFailedLoginCount ...
+func (gm *GormMock) UpdateUserFailedLoginCount(ctx context.Context, userID string, failedLoginCount string, flavour string) error {
+	return gm.UpdateUserFailedLoginCountFn(ctx, userID, failedLoginCount, flavour)
+}
+
+// UpdateUserNextAllowedLogin ...
+func (gm *GormMock) UpdateUserNextAllowedLogin(ctx context.Context, userID string, nextAllowedLoginTime time.Time, flavour string) error {
+	return gm.UpdateUserNextAllowedLoginFn(ctx, userID, nextAllowedLoginTime, flavour)
 }

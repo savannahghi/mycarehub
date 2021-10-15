@@ -51,8 +51,10 @@ type User struct {
 
 	// TODO Consider making the names optional in DB; validation in frontends
 	FirstName  string // given name
-	MiddleName *string
+	MiddleName string
 	LastName   string
+
+	Flavour feedlib.Flavour
 
 	UserType string // TODO enum; e.g client, health care worker
 
@@ -76,14 +78,13 @@ type User struct {
 
 	// each time there is a failed login, **increment** this
 	// set to zero after successful login
-	FailedLoginCount int
+	FailedLoginCount string
 
 	// calculated each time there is a failed login
 	NextAllowedLogin *time.Time
 
 	TermsAccepted   bool
 	AcceptedTermsID string // foreign key to version of terms they accepted
-	Flavour         feedlib.Flavour
 }
 
 // AuthCredentials is the authentication credentials for a given user
@@ -92,21 +93,18 @@ type AuthCredentials struct {
 
 	RefreshToken string
 	IDToken      string
-	ExpiresIn    time.Time
+	ExpiresIn    string
 }
 
 // UserPIN is used to store users' PINs and their entire change history.
 type UserPIN struct {
-	UserID *string // TODO: At the DB, this should be indexed
-
-	HashedPIN string
-	ValidFrom time.Time
-	ValidTo   time.Time
-
-	// TODO: Compute this each time an operation involving the PIN is carried out
-	// 	in order to make routine things e.g login via PIN fast
-	IsValid bool // TODO: Consider a composite or partial DB index with UserID, IsValid, flavour
-	Flavour string
+	UserID    string          `json:"user_id"`
+	HashedPIN string          `json:"column:hashed_pin"`
+	ValidFrom time.Time       `json:"column:valid_from"`
+	ValidTo   time.Time       `json:"column:valid_to"`
+	Flavour   feedlib.Flavour `json:"flavour"`
+	IsValid   bool            `json:"is_valid"`
+	Salt      string          `json:"salt"`
 }
 
 // Identifier are specific/unique identifiers for a user
@@ -164,9 +162,9 @@ type ClientProfile struct {
 	ClientCounselled bool
 }
 
-// UserAddress are value objects for user UserAddress e.g postal code
+// UserAddress are value objects for user address e.g postal code
 type UserAddress struct {
-	ID *string
+	ID string
 
 	Type       string // TODO: enum; postal, physical or both
 	Text       string // actual address, can be multi-line
@@ -272,4 +270,12 @@ type StaffProfile struct {
 	Roles []string // TODO: roles are an enum (controlled list), known to both FE and BE
 
 	Addresses []*UserAddress
+}
+
+// PIN model contain the information about given PIN
+type PIN struct {
+	UserID       string
+	PIN          string
+	ConfirmedPin string
+	Flavour      feedlib.Flavour
 }

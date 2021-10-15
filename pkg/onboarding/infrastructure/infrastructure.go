@@ -60,7 +60,7 @@ func NewInteractor() Interactor {
 	if err != nil {
 		log.Fatal(err)
 	}
-	db := pg.NewOnboardingDb(postgres, postgres, postgres)
+	db := pg.NewOnboardingDb(postgres, postgres, postgres, postgres)
 	create := NewServiceCreateImpl(*db)
 	delete := NewServiceDeleteImpl(*db)
 	query := NewServiceQueryImpl(*db)
