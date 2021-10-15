@@ -129,12 +129,12 @@ type Identifier struct {
 //It is a linkage model e.g to tie together all of a person's identifiers
 // and their health record ID
 type ClientProfile struct {
-	ID string // globally unique identifier; synthetic i.e has no encoded meaning
+	ID uuid.UUID // globally unique identifier; synthetic i.e has no encoded meaning
 
 	// every client is a user first
 	// biodata is linked to the user record
 	// the client record is for bridging to other identifiers e.g patient record IDs
-	UserID string // TODO: Foreign key to User
+	UserID uuid.UUID // TODO: Foreign key to User
 
 	TreatmentEnrollmentDate *time.Time // use for date of treatment enrollment
 
@@ -200,7 +200,7 @@ type ClientProfileRegistrationPayload struct {
 	// every client is a user first
 	// biodata is linked to the user record
 	// the client record is for bridging to other identifiers e.g patient record IDs
-	UserID string // TODO: Foreign key to User
+	UserID uuid.UUID // TODO: Foreign key to User
 
 	ClientType string // TODO: enum; e.g PMTCT, OVC
 
@@ -208,7 +208,7 @@ type ClientProfileRegistrationPayload struct {
 
 	Addresses []*Address
 
-	FacilityID string
+	FacilityID uuid.UUID
 
 	TreatmentEnrollmentDate *time.Time
 
@@ -256,7 +256,7 @@ type Metric struct {
 type StaffProfile struct {
 	ID *string
 
-	UserID string // foreign key to user
+	UserID uuid.UUID // foreign key to user
 
 	StaffNumber string
 

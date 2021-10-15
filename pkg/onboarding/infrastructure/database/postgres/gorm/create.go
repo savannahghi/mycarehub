@@ -9,6 +9,7 @@ import (
 type Create interface {
 	GetOrCreateFacility(ctx context.Context, facility *Facility) (*Facility, error)
 	CollectMetrics(ctx context.Context, metrics *Metric) (*Metric, error)
+	// RegisterStaffUser(user User, profile StaffProfile) (*User, *StaffProfile, error)
 }
 
 // GetOrCreateFacility ...
