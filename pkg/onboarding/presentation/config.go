@@ -133,6 +133,11 @@ func Router(ctx context.Context) (*mux.Router, error) {
 		Methods(http.MethodPost, http.MethodOptions).
 		HandlerFunc(internalHandlers.CollectMetricsHandler())
 
+		// Onboarding service rest routes
+	r.Path("/login").
+		Methods(http.MethodPost, http.MethodOptions).
+		HandlerFunc(internalHandlers.LoginHandler())
+
 	// Graphql route
 	authR := r.Path("/graphql").Subrouter()
 	authR.Use(firebasetools.AuthenticationMiddleware(firebaseApp))

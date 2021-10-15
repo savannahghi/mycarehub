@@ -50,7 +50,6 @@ type ResolverRoot interface {
 	Mutation() MutationResolver
 	PIN() PINResolver
 	Query() QueryResolver
-	User() UserResolver
 	UserProfile() UserProfileResolver
 	VerifiedIdentifier() VerifiedIdentifierResolver
 }
@@ -358,7 +357,7 @@ type PINResolver interface {
 	User(ctx context.Context, obj *domain.PIN) (string, error)
 	Pin(ctx context.Context, obj *domain.PIN) (string, error)
 	ConfirmedPin(ctx context.Context, obj *domain.PIN) (string, error)
-	Flavour(ctx context.Context, obj *domain.PIN) (string, error)
+	Flavour(ctx context.Context, obj *domain.PIN) (feedlib.Flavour, error)
 }
 type QueryResolver interface {
 	FetchFacilities(ctx context.Context) ([]*domain1.Facility, error)
@@ -378,9 +377,6 @@ type QueryResolver interface {
 	FindUserByPhone(ctx context.Context, phoneNumber string) (*profileutils.UserProfile, error)
 	FindUsersByPhone(ctx context.Context, phoneNumber string) ([]*profileutils.UserProfile, error)
 	GetNavigationActions(ctx context.Context) (*dto.GroupedNavigationActions, error)
-}
-type UserResolver interface {
-	FailedLoginCount(ctx context.Context, obj *domain1.User) (*int, error)
 }
 type UserProfileResolver interface {
 	RoleDetails(ctx context.Context, obj *profileutils.UserProfile) ([]*dto.RoleOutput, error)
@@ -1919,7 +1915,7 @@ input UserInput {
   # gender: String! # TODO enum; genders; keep it simple
   # contacts: [ContactInput!]
   # languages: [String]
-  # flavour: String!
+  flavour: Flavour!
 }
 
 input StaffProfileInput {
@@ -1957,7 +1953,7 @@ type PIN {
   user: String!
   pin: String!
   confirmedPin: String!,
-  flavour: String!
+  flavour: Flavour!
 }
 
 type User {
@@ -1975,7 +1971,7 @@ type User {
   # pushTokens: [String!]
   lastSuccessfulLogin: Time
   lastFailedLogin: Time
-  failedLoginCount: Int
+  failedLoginCount: String
   nextAllowedLogin: Time
   termsAccepted: Boolean
   acceptedTermsID: String
@@ -6495,9 +6491,9 @@ func (ec *executionContext) _PIN_flavour(ctx context.Context, field graphql.Coll
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(feedlib.Flavour)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNFlavour2githubᚗcomᚋsavannahghiᚋfeedlibᚐFlavour(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _PageInfo_hasNextPage(ctx context.Context, field graphql.CollectedField, obj *firebasetools.PageInfo) (ret graphql.Marshaler) {
@@ -8368,14 +8364,14 @@ func (ec *executionContext) _User_failedLoginCount(ctx context.Context, field gr
 		Object:     "User",
 		Field:      field,
 		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.User().FailedLoginCount(rctx, obj)
+		return obj.FailedLoginCount, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -8384,9 +8380,9 @@ func (ec *executionContext) _User_failedLoginCount(ctx context.Context, field gr
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*int)
+	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
+	return ec.marshalOString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _User_nextAllowedLogin(ctx context.Context, field graphql.CollectedField, obj *domain1.User) (ret graphql.Marshaler) {
@@ -11132,6 +11128,14 @@ func (ec *executionContext) unmarshalInputUserInput(ctx context.Context, obj int
 			if err != nil {
 				return it, err
 			}
+		case "flavour":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("flavour"))
+			it.Flavour, err = ec.unmarshalNFlavour2githubᚗcomᚋsavannahghiᚋfeedlibᚐFlavour(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		}
 	}
 
@@ -12451,53 +12455,44 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 		case "id":
 			out.Values[i] = ec._User_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
+				invalids++
 			}
 		case "username":
 			out.Values[i] = ec._User_username(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
+				invalids++
 			}
 		case "displayName":
 			out.Values[i] = ec._User_displayName(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
+				invalids++
 			}
 		case "firstName":
 			out.Values[i] = ec._User_firstName(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
+				invalids++
 			}
 		case "middleName":
 			out.Values[i] = ec._User_middleName(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
+				invalids++
 			}
 		case "lastName":
 			out.Values[i] = ec._User_lastName(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
+				invalids++
 			}
 		case "active":
 			out.Values[i] = ec._User_active(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
+				invalids++
 			}
 		case "lastSuccessfulLogin":
 			out.Values[i] = ec._User_lastSuccessfulLogin(ctx, field, obj)
 		case "lastFailedLogin":
 			out.Values[i] = ec._User_lastFailedLogin(ctx, field, obj)
 		case "failedLoginCount":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._User_failedLoginCount(ctx, field, obj)
-				return res
-			})
+			out.Values[i] = ec._User_failedLoginCount(ctx, field, obj)
 		case "nextAllowedLogin":
 			out.Values[i] = ec._User_nextAllowedLogin(ctx, field, obj)
 		case "termsAccepted":
@@ -14196,21 +14191,6 @@ func (ec *executionContext) unmarshalOInt2int(ctx context.Context, v interface{}
 
 func (ec *executionContext) marshalOInt2int(ctx context.Context, sel ast.SelectionSet, v int) graphql.Marshaler {
 	return graphql.MarshalInt(v)
-}
-
-func (ec *executionContext) unmarshalOInt2ᚖint(ctx context.Context, v interface{}) (*int, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := graphql.UnmarshalInt(v)
-	return &res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalOInt2ᚖint(ctx context.Context, sel ast.SelectionSet, v *int) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return graphql.MarshalInt(*v)
 }
 
 func (ec *executionContext) marshalOLink2githubᚗcomᚋsavannahghiᚋfeedlibᚐLink(ctx context.Context, sel ast.SelectionSet, v feedlib.Link) graphql.Marshaler {

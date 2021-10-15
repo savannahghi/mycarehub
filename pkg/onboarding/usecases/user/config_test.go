@@ -30,6 +30,7 @@ var (
 
 	fakeCreate usecaseMock.CreateMock
 	fakeQuery  usecaseMock.QueryMock
+	fakeUpdate usecaseMock.UpdateMock
 	fakePIN    pinExtMock.PINExtensionImpl
 )
 
@@ -97,11 +98,13 @@ func InitializeFakeTestlInteractor(ctx context.Context) (usecases.Interactor, er
 
 	var create infrastructure.Create = &fakeCreate
 	var query infrastructure.Query = &fakeQuery
+	var update infrastructure.Update = &fakeUpdate
 
 	infra := func() infrastructure.Interactor {
 		return infrastructure.Interactor{
 			Create: create,
 			Query:  query,
+			Update: update,
 		}
 	}()
 

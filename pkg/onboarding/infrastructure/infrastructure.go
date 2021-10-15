@@ -23,6 +23,7 @@ type Infrastructure struct {
 	Create
 	Delete
 	Query
+	Update
 	libOnboardingUsecase.LoginUseCases
 	libOnboardingUsecase.SignUpUseCases
 	engagementSvc.ServiceEngagementImpl
@@ -36,6 +37,7 @@ type Interactor struct {
 	Create
 	Delete
 	Query
+	Update
 	libOnboardingUsecase.LoginUseCases
 	libOnboardingUsecase.SignUpUseCases
 	engagementSvc.ServiceEngagementImpl
@@ -64,12 +66,14 @@ func NewInteractor() Interactor {
 	create := NewServiceCreateImpl(*db)
 	delete := NewServiceDeleteImpl(*db)
 	query := NewServiceQueryImpl(*db)
+	update := NewServiceUpdateImpl(*db)
 	pinExt := baseExt.NewPINExtensionImpl()
 
 	return Interactor{
 		create,
 		delete,
 		query,
+		update,
 		login,
 		signup,
 		*engagement,

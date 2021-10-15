@@ -7,7 +7,7 @@ import (
 	"context"
 	"fmt"
 
-	domain1 "github.com/savannahghi/onboarding-service/pkg/onboarding/domain"
+	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/presentation/graph/generated"
 	"github.com/savannahghi/onboarding/pkg/onboarding/domain"
 )
@@ -24,19 +24,11 @@ func (r *pINResolver) ConfirmedPin(ctx context.Context, obj *domain.PIN) (string
 	panic(fmt.Errorf("not implemented"))
 }
 
-func (r *pINResolver) Flavour(ctx context.Context, obj *domain.PIN) (string, error) {
-	panic(fmt.Errorf("not implemented"))
-}
-
-func (r *userResolver) FailedLoginCount(ctx context.Context, obj *domain1.User) (*int, error) {
+func (r *pINResolver) Flavour(ctx context.Context, obj *domain.PIN) (feedlib.Flavour, error) {
 	panic(fmt.Errorf("not implemented"))
 }
 
 // PIN returns generated.PINResolver implementation.
 func (r *Resolver) PIN() generated.PINResolver { return &pINResolver{r} }
 
-// User returns generated.UserResolver implementation.
-func (r *Resolver) User() generated.UserResolver { return &userResolver{r} }
-
 type pINResolver struct{ *Resolver }
-type userResolver struct{ *Resolver }

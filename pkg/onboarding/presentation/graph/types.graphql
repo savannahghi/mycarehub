@@ -12,7 +12,7 @@ type PIN {
   user: String!
   pin: String!
   confirmedPin: String!,
-  flavour: String!
+  flavour: Flavour!
 }
 
 type User {
@@ -30,7 +30,7 @@ type User {
   # pushTokens: [String!]
   lastSuccessfulLogin: Time
   lastFailedLogin: Time
-  failedLoginCount: Int
+  failedLoginCount: String
   nextAllowedLogin: Time
   termsAccepted: Boolean
   acceptedTermsID: String
