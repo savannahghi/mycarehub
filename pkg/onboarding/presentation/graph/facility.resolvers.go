@@ -14,7 +14,7 @@ import (
 )
 
 func (r *mutationResolver) CreateFacility(ctx context.Context, input dto.FacilityInput) (*domain.Facility, error) {
-	return r.interactor.FacilityUsecase.CreateFacility(ctx, input)
+	return r.interactor.FacilityUsecase.GetOrCreateFacility(ctx, input)
 }
 
 func (r *mutationResolver) DeleteFacility(ctx context.Context, id string) (bool, error) {
@@ -25,12 +25,16 @@ func (r *queryResolver) FetchFacilities(ctx context.Context) ([]*domain.Facility
 	return r.interactor.FacilityUsecase.FetchFacilities(ctx)
 }
 
-func (r *queryResolver) RetrieveFacility(ctx context.Context, id string) (*domain.Facility, error) {
+func (r *queryResolver) RetrieveFacility(ctx context.Context, id string, active bool) (*domain.Facility, error) {
 	newID, err := uuid.Parse(id)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse ID to UUID: %v", err)
 	}
-	return r.interactor.FacilityUsecase.RetrieveFacility(ctx, &newID)
+	return r.interactor.FacilityUsecase.RetrieveFacility(ctx, &newID, active)
+}
+
+func (r *queryResolver) RetrieveFacilityByMFLCode(ctx context.Context, mflCode string, isActive bool) (*domain.Facility, error) {
+	return r.interactor.FacilityUsecase.RetrieveFacilityByMFLCode(ctx, mflCode, isActive)
 }
 
 // Mutation returns generated.MutationResolver implementation.

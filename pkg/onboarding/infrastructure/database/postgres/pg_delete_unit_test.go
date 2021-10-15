@@ -23,7 +23,7 @@ func TestOnboardingDb_DeleteFacility_Unittest(t *testing.T) {
 	}
 
 	// create a facility
-	facility, err := d.CreateFacility(ctx, facilityInput)
+	facility, err := d.GetOrCreateFacility(ctx, facilityInput)
 	if err != nil {
 		t.Errorf("failed to create new facility: %v", err)
 	}

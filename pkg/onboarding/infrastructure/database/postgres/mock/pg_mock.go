@@ -10,15 +10,15 @@ import (
 
 // PostgresMock struct implements mocks of `postgres's` internal methods.
 type PostgresMock struct {
-	CreateFacilityFn   func(ctx context.Context, facility *dto.FacilityInput) (*domain.Facility, error)
-	GetFacilitiesFn    func(ctx context.Context) ([]*domain.Facility, error)
-	RetrieveFacilityFn func(ctx context.Context, id *uuid.UUID) (*domain.Facility, error)
+	GetOrCreateFacilityFn func(ctx context.Context, facility *dto.FacilityInput) (*domain.Facility, error)
+	GetFacilitiesFn       func(ctx context.Context) ([]*domain.Facility, error)
+	RetrieveFacilityFn    func(ctx context.Context, id *uuid.UUID, isActive bool) (*domain.Facility, error)
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
 func NewPostgresMock() *PostgresMock {
 	return &PostgresMock{
-		CreateFacilityFn: func(ctx context.Context, facility *dto.FacilityInput) (*domain.Facility, error) {
+		GetOrCreateFacilityFn: func(ctx context.Context, facility *dto.FacilityInput) (*domain.Facility, error) {
 			id := uuid.New()
 			name := "Kanairo One"
 			code := "KN001"
@@ -50,7 +50,7 @@ func NewPostgresMock() *PostgresMock {
 				},
 			}, nil
 		},
-		RetrieveFacilityFn: func(ctx context.Context, id *uuid.UUID) (*domain.Facility, error) {
+		RetrieveFacilityFn: func(ctx context.Context, id *uuid.UUID, isActive bool) (*domain.Facility, error) {
 			facilityID := uuid.New()
 			name := "test-facility"
 			code := "t-100"
@@ -68,12 +68,12 @@ func NewPostgresMock() *PostgresMock {
 	}
 }
 
-// CreateFacility mocks the implementation of `gorm's` CreateFacility method.
-func (gm *PostgresMock) CreateFacility(ctx context.Context, facility *dto.FacilityInput) (*domain.Facility, error) {
-	return gm.CreateFacilityFn(ctx, facility)
+// GetOrCreateFacility mocks the implementation of `gorm's` GetOrCreateFacility method.
+func (gm *PostgresMock) GetOrCreateFacility(ctx context.Context, facility *dto.FacilityInput) (*domain.Facility, error) {
+	return gm.GetOrCreateFacilityFn(ctx, facility)
 }
 
-// RetrieveFacility mocks the implementation of `gorm's` CreateFacility method.
-func (gm *PostgresMock) RetrieveFacility(ctx context.Context, id *uuid.UUID) (*domain.Facility, error) {
-	return gm.RetrieveFacilityFn(ctx, id)
+// RetrieveFacility mocks the implementation of `gorm's` GetOrCreateFacility method.
+func (gm *PostgresMock) RetrieveFacility(ctx context.Context, id *uuid.UUID, isActive bool) (*domain.Facility, error) {
+	return gm.RetrieveFacilityFn(ctx, id, isActive)
 }

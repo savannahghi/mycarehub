@@ -63,19 +63,19 @@ func TestOnboardingDb_CreateFacility(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			var fakeGorm = gormMock.NewGormMock()
 			d := NewOnboardingDb(fakeGorm, fakeGorm, fakeGorm)
-			got, err := d.CreateFacility(tt.args.ctx, tt.args.facility)
+			got, err := d.GetOrCreateFacility(tt.args.ctx, tt.args.facility)
 			if tt.name == "sad case - facility code not defined" {
-				fakeGorm.CreateFacilityFn = func(ctx context.Context, facility *gorm.Facility) (*gorm.Facility, error) {
+				fakeGorm.GetOrCreateFacilityFn = func(ctx context.Context, facility *gorm.Facility) (*gorm.Facility, error) {
 					return nil, fmt.Errorf("failed to create facility")
 				}
 			}
 			if tt.name == "happy case - valid payload" {
-				fakeGorm.CreateFacilityFn = func(ctx context.Context, facility *gorm.Facility) (*gorm.Facility, error) {
+				fakeGorm.GetOrCreateFacilityFn = func(ctx context.Context, facility *gorm.Facility) (*gorm.Facility, error) {
 					return facility, nil
 				}
 			}
 			if (err != nil) != tt.wantErr {
-				t.Errorf("OnboardingDb.CreateFacility() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("OnboardingDb.GetOrCreateFacility() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if tt.wantErr && got != nil {

@@ -2,7 +2,6 @@ package facility_test
 
 import (
 	"context"
-	"reflect"
 	"testing"
 
 	"github.com/google/uuid"
@@ -56,95 +55,116 @@ func TestUseCaseFacilityImpl_CreateFacility(t *testing.T) {
 				},
 			},
 			wantErr: true,
-			wantNil: true,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			got, err := f.CreateFacility(tt.args.ctx, tt.args.facility)
+			got, err := f.GetOrCreateFacility(tt.args.ctx, tt.args.facility)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("UseCaseFacilityImpl.CreateFacility() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("UseCaseFacilityImpl.GetOrCreateFacility() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if !tt.wantNil && got == nil {
-				t.Errorf("UseCaseFacilityImpl.CreateFacility() expected to return a value, got:  %v", got)
+			if tt.wantErr && got != nil {
+				t.Errorf("expected facilities to be nil for %v", tt.name)
+				return
+			}
+
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected facilities not to be nil for %v", tt.name)
+				return
 			}
 		})
 	}
 	// TODO: add teardown
+
 }
 
-func TestUseCaseFacilityImpl_RetrieveFacility(t *testing.T) {
-	f := testInfrastructureInteractor
-
+func TestUseCaseFacilityImpl_RetrieveFacility_Integration(t *testing.T) {
 	ctx := context.Background()
+
+	f := testInfrastructureInteractor
 
 	facilityInput := &dto.FacilityInput{
 		Name:        "Kanairo One",
-		Code:        ksuid.New().String(),
+		Code:        "KN002",
+		Active:      true,
 		County:      "Kanairo",
 		Description: "This is just for mocking",
 	}
 
 	// Setup, create a facility
-	facility, err := f.CreateFacility(ctx, *facilityInput)
+	facility, err := f.GetOrCreateFacility(ctx, *facilityInput)
 	if err != nil {
 		t.Errorf("failed to create new facility: %v", err)
 	}
 
-	id := facility.ID
-
-	invalidID := uuid.New()
+	ID := facility.ID
+	active := facility.Active
 
 	type args struct {
-		ctx context.Context
-		id  *uuid.UUID
+		ctx      context.Context
+		id       *uuid.UUID
+		isActive bool
 	}
 	tests := []struct {
 		name    string
 		args    args
-		want    *domain.Facility
 		wantErr bool
 	}{
 		{
-			name: "happy case - valid ID passed",
+			name: "Happy case",
 			args: args{
-				ctx: ctx,
-				id:  &id,
+				ctx:      ctx,
+				id:       &ID,
+				isActive: active,
 			},
 			wantErr: false,
-			want:    facility,
 		},
+
 		{
-			name: "sad case - no ID passed",
+			name: "Sad case - nil ID",
 			args: args{
-				ctx: ctx,
+				ctx:      ctx,
+				id:       nil,
+				isActive: false,
 			},
 			wantErr: true,
 		},
+
 		{
-			name: "sad case - invalid ID",
+			name: "Sad case - no id",
 			args: args{
-				ctx: ctx,
-				id:  &invalidID,
+				ctx:      ctx,
+				isActive: false,
 			},
 			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := f.RetrieveFacility(tt.args.ctx, tt.args.id)
+			got, err := f.RetrieveFacility(tt.args.ctx, tt.args.id, tt.args.isActive)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCaseFacilityImpl.RetrieveFacility() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("UseCaseFacilityImpl.RetrieveFacility() = %v, want %v", got, tt.want)
+			if tt.wantErr && got != nil {
+				t.Errorf("expected facilities to be nil for %v", tt.name)
+				return
+			}
+
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected facilities not to be nil for %v", tt.name)
+				return
 			}
 		})
 	}
-	// TODO: add teardown
+
+	_, err = f.DeleteFacility(ctx, string(facility.Code))
+	if err != nil {
+		t.Errorf("unable to felete facility")
+		return
+	}
 }
 
 func TestUseCaseFacilityImpl_DeleteFacility_Integration(t *testing.T) {
@@ -155,18 +175,19 @@ func TestUseCaseFacilityImpl_DeleteFacility_Integration(t *testing.T) {
 	//Create facility
 	facilityInput := &dto.FacilityInput{
 		Name:        "Kanairo One",
-		Code:        "KN001",
+		Code:        "KN005",
 		County:      "Kanairo",
+		Active:      true,
 		Description: "This is just for integration testing",
 	}
 
 	// create a facility
-	facility, err := i.CreateFacility(ctx, *facilityInput)
+	facility, err := i.GetOrCreateFacility(ctx, *facilityInput)
 	assert.Nil(t, err)
 	assert.NotNil(t, facility)
 
 	// retrieve the facility
-	facility1, err := i.RetrieveFacility(ctx, &facility.ID)
+	facility1, err := i.RetrieveFacility(ctx, &facility.ID, true)
 	assert.Nil(t, err)
 	assert.NotNil(t, facility1)
 
@@ -177,8 +198,8 @@ func TestUseCaseFacilityImpl_DeleteFacility_Integration(t *testing.T) {
 	assert.Equal(t, true, isDeleted)
 
 	// retrieve the facility checks if the facility is deleted
-	facility2, err := i.RetrieveFacility(ctx, &facility.ID)
-	assert.NotNil(t, err)
+	facility2, err := i.RetrieveFacility(ctx, &facility.ID, true)
+	assert.Nil(t, err)
 	assert.Nil(t, facility2)
 
 	//Delete a facility again.
@@ -186,4 +207,78 @@ func TestUseCaseFacilityImpl_DeleteFacility_Integration(t *testing.T) {
 	assert.Nil(t, err)
 	assert.NotNil(t, isDeleted1)
 	assert.Equal(t, true, isDeleted1)
+}
+
+func TestUseCaseFacilityImpl_RetrieveFacilityByMFLCode_Integration(t *testing.T) {
+	ctx := context.Background()
+
+	f := testInfrastructureInteractor
+
+	facilityInput := &dto.FacilityInput{
+		Name:        "Kanairo One",
+		Code:        "KN001",
+		Active:      true,
+		County:      "Kanairo",
+		Description: "This is just for mocking",
+	}
+
+	// Setup, create a facility
+	facility, err := f.GetOrCreateFacility(ctx, *facilityInput)
+	if err != nil {
+		t.Errorf("failed to create new facility: %v", err)
+	}
+
+	mflCode := facility.Code
+
+	invalidMFLCode := ksuid.New().String()
+
+	type args struct {
+		ctx      context.Context
+		MFLCode  string
+		isActive bool
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *domain.Facility
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:      ctx,
+				MFLCode:  mflCode,
+				isActive: true,
+			},
+			wantErr: false,
+		},
+
+		{
+			name: "Sad case",
+			args: args{
+				ctx:      ctx,
+				MFLCode:  invalidMFLCode,
+				isActive: true,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := f.RetrieveFacilityByMFLCode(tt.args.ctx, tt.args.MFLCode, tt.args.isActive)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCaseFacilityImpl.RetrieveFacilityByMFLCode() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if tt.wantErr && got != nil {
+				t.Errorf("expected facilities to be nil for %v", tt.name)
+				return
+			}
+
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected facilities not to be nil for %v", tt.name)
+				return
+			}
+		})
+	}
 }
