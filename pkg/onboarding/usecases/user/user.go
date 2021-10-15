@@ -165,3 +165,53 @@ func NewUseCasesUserImpl(infra infrastructure.Interactor) *UseCasesUserImpl {
 		Infrastructure: infra,
 	}
 }
+
+// Login is used to login the user into the application
+func (us *UseCasesUserImpl) Login(userID string, pin string, flavour string) (*domain.AuthCredentials, string, error) {
+	return nil, "", nil
+}
+
+// ResetPIN resets user PIN
+func (us *UseCasesUserImpl) ResetPIN(userID string, flavour string) (bool, error) {
+	return true, nil
+}
+
+// VerifyPIN verifies user PIN
+func (us *UseCasesUserImpl) VerifyPIN(userID string, flavour string, pin string) (bool, error) {
+	return true, nil
+}
+
+// ReviewTerms is used to accept or review terms
+func (us *UseCasesUserImpl) ReviewTerms(userID string, accepted bool, flavour string) (bool, error) {
+	return true, nil
+}
+
+// GetAnonymizedUserIdentifier is used to get an opaque (but **stable**) user
+//
+// identifier for events, analytics etc
+func (us *UseCasesUserImpl) GetAnonymizedUserIdentifier(userID string, flavour string) (string, error) {
+	return "", nil
+}
+
+// AddPushtoken adds push token to a user
+func (us *UseCasesUserImpl) AddPushtoken(userID string, flavour string) (bool, error) {
+	return true, nil
+}
+
+// RemovePushToken removes/retires user push token
+func (us *UseCasesUserImpl) RemovePushToken(userID string, flavour string) (bool, error) {
+	return true, nil
+}
+
+// UpdateLanguagePreferences updates user language preferences
+func (us *UseCasesUserImpl) UpdateLanguagePreferences(userID string, language string) (bool, error) {
+	return true, nil
+}
+
+// Invite is sends an invite to a  user (client/staff)
+// The invite contains: link to app/play store, temporary PIN that **MUST** be changed on first login
+//
+// The default invite channel is SMS
+func (us *UseCasesUserImpl) Invite(userID string, flavour string) (bool, error) {
+	return false, nil
+}

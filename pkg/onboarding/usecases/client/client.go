@@ -103,14 +103,82 @@ type UseCasesClientProfile interface {
 	IAddRelatedPerson
 }
 
-// UseCasesClientProfileImpl represents user implementation object
-type UseCasesClientProfileImpl struct {
+// UseCasesClientImpl represents user implementation object
+type UseCasesClientImpl struct {
 	Infrastructure infrastructure.Interactor
 }
 
-// NewUseCasesClientProfileImpl returns a new client profile service
-func NewUseCasesClientProfileImpl(infra infrastructure.Interactor) *UseCasesClientProfileImpl {
-	return &UseCasesClientProfileImpl{
+// NewUseCasesClientImpl returns a new Client service
+func NewUseCasesClientImpl(infra infrastructure.Interactor) *UseCasesClientImpl {
+	return &UseCasesClientImpl{
 		Infrastructure: infra,
 	}
+}
+
+// RegisterClient registers a client into the platform
+func (cl *UseCasesClientImpl) RegisterClient(user domain.User, profile domain.ClientProfileRegistrationPayload) (*domain.ClientProfile, error) {
+	return nil, nil
+}
+
+// AddIdentifier stages and adds client identifiers
+func (cl *UseCasesClientImpl) AddIdentifier(clientID string, idType string, idValue string, isPrimary bool) (*domain.Identifier, error) {
+	return nil, nil
+}
+
+// InactivateClient makes a client inactive and removes the client from the list of active users
+func (cl *UseCasesClientImpl) InactivateClient(clientID string, reason string, notes string) (bool, error) {
+	return true, nil
+}
+
+// ReactivateClient makes inactive client active and returns the client to the list of active user
+func (cl *UseCasesClientImpl) ReactivateClient(clientID string, reason string, notes string) (bool, error) {
+	return true, nil
+}
+
+// TransferClient transfer a client from one facility to another facility
+func (cl *UseCasesClientImpl) TransferClient(
+	clientID string,
+	OriginFacilityID string,
+	DestinationFacilityID string,
+	Reason string, // TODO: consider making this an enum
+	Notes string, // optional notes...e.g if the reason given is "Other"
+) (bool, error) {
+	return true, nil
+}
+
+// GetIdentifiers fetches and returns a list of client active identifiers
+func (cl *UseCasesClientImpl) GetIdentifiers(clientID string, active bool) ([]*domain.Identifier, error) {
+	return nil, nil
+}
+
+// InactivateIdentifier toggles and make client identifier inactive
+func (cl *UseCasesClientImpl) InactivateIdentifier(clientID string, identifierID string) (bool, error) {
+	return true, nil
+}
+
+// AssignTreatmentSupporter assigns a treatment supporter to a client
+func (cl *UseCasesClientImpl) AssignTreatmentSupporter(
+	clientID string,
+	treatmentSupporterID string,
+	treatmentSupporterType string, // TODO: enum, start with CHV and Treatment buddy
+) (bool, error) {
+	return true, nil
+}
+
+// UnassignTreatmentSupporter unassign treatment supporter from a client
+func (cl *UseCasesClientImpl) UnassignTreatmentSupporter(
+	clientID string,
+	treatmentSupporterID string,
+	reason string, // TODO: ensure these are in an audit log
+	notes string, // TODO: Optional
+) (bool, error) {
+	return true, nil
+}
+
+// AddRelatedPerson adds client related person. The related person here is like Next of Kin
+func (cl *UseCasesClientImpl) AddRelatedPerson(
+	clientID string,
+	relatedPerson *domain.RelatedPerson,
+) (*domain.RelatedPerson, bool) {
+	return nil, false
 }
