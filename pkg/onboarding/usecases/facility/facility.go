@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/google/uuid"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/application/dto"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/domain"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/infrastructure"
@@ -68,7 +67,7 @@ type IFacilityList interface {
 
 // IFacilityRetrieve contains the method to retrieve a facility
 type IFacilityRetrieve interface {
-	RetrieveFacility(ctx context.Context, id *uuid.UUID, isActive bool) (*domain.Facility, error)
+	RetrieveFacility(ctx context.Context, id *string, isActive bool) (*domain.Facility, error)
 	RetrieveFacilityByMFLCode(ctx context.Context, MFLCode string, isActive bool) (*domain.Facility, error)
 }
 
@@ -128,7 +127,7 @@ func (f *UseCaseFacilityImpl) Reactivate(id string) (*domain.Facility, error) {
 // }
 
 // RetrieveFacility find the health facility by ID
-func (f *UseCaseFacilityImpl) RetrieveFacility(ctx context.Context, id *uuid.UUID, isActive bool) (*domain.Facility, error) {
+func (f *UseCaseFacilityImpl) RetrieveFacility(ctx context.Context, id *string, isActive bool) (*domain.Facility, error) {
 	return f.Infrastructure.RetrieveFacility(ctx, id, isActive)
 }
 

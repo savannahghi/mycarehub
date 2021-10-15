@@ -4,7 +4,6 @@ import (
 	"context"
 	"testing"
 
-	"github.com/google/uuid"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/application/dto"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/domain"
 	"github.com/segmentio/ksuid"
@@ -104,7 +103,7 @@ func TestUseCaseFacilityImpl_RetrieveFacility_Integration(t *testing.T) {
 
 	type args struct {
 		ctx      context.Context
-		id       *uuid.UUID
+		id       *string
 		isActive bool
 	}
 	tests := []struct {
@@ -116,7 +115,7 @@ func TestUseCaseFacilityImpl_RetrieveFacility_Integration(t *testing.T) {
 			name: "Happy case",
 			args: args{
 				ctx:      ctx,
-				id:       &ID,
+				id:       ID,
 				isActive: active,
 			},
 			wantErr: false,
@@ -187,7 +186,7 @@ func TestUseCaseFacilityImpl_DeleteFacility_Integration(t *testing.T) {
 	assert.NotNil(t, facility)
 
 	// retrieve the facility
-	facility1, err := i.RetrieveFacility(ctx, &facility.ID, true)
+	facility1, err := i.RetrieveFacility(ctx, facility.ID, true)
 	assert.Nil(t, err)
 	assert.NotNil(t, facility1)
 
@@ -198,7 +197,7 @@ func TestUseCaseFacilityImpl_DeleteFacility_Integration(t *testing.T) {
 	assert.Equal(t, true, isDeleted)
 
 	// retrieve the facility checks if the facility is deleted
-	facility2, err := i.RetrieveFacility(ctx, &facility.ID, true)
+	facility2, err := i.RetrieveFacility(ctx, facility.ID, true)
 	assert.Nil(t, err)
 	assert.Nil(t, facility2)
 

@@ -21,13 +21,13 @@ type CreateMock struct {
 func NewCreateMock() *CreateMock {
 	return &CreateMock{
 		GetOrCreateFacilityFn: func(ctx context.Context, facility dto.FacilityInput) (*domain.Facility, error) {
-			id := uuid.New()
+			id := uuid.New().String()
 			name := "Kanairo One"
 			code := "KN001"
 			county := "Kanairo"
 			description := "This is just for mocking"
 			return &domain.Facility{
-				ID:          id,
+				ID:          &id,
 				Name:        name,
 				Code:        code,
 				Active:      true,
@@ -37,9 +37,9 @@ func NewCreateMock() *CreateMock {
 		},
 
 		CollectMetricsFn: func(ctx context.Context, metric *dto.MetricInput) (*domain.Metric, error) {
-			metricID := uuid.New()
+			metricID := uuid.New().String()
 			return &domain.Metric{
-				MetricID:  metricID,
+				MetricID:  &metricID,
 				Type:      domain.EngagementMetrics,
 				Payload:   datatypes.JSON([]byte(`{"who": "test user", "keyword": "suicidal"}`)),
 				Timestamp: time.Now(),
@@ -61,7 +61,7 @@ func (f *CreateMock) CollectMetrics(ctx context.Context, metric *dto.MetricInput
 
 // QueryMock is a mock of the query methods
 type QueryMock struct {
-	RetrieveFacilityFn          func(ctx context.Context, id *uuid.UUID, isActive bool) (*domain.Facility, error)
+	RetrieveFacilityFn          func(ctx context.Context, id *string, isActive bool) (*domain.Facility, error)
 	RetrieveFacilityByMFLCodeFn func(ctx context.Context, MFLCode string, isActive bool) (*domain.Facility, error)
 	GetFacilitiesFn             func(ctx context.Context) ([]*domain.Facility, error)
 }
@@ -70,14 +70,14 @@ type QueryMock struct {
 func NewQueryMock() *QueryMock {
 	return &QueryMock{
 
-		RetrieveFacilityFn: func(ctx context.Context, id *uuid.UUID, isActive bool) (*domain.Facility, error) {
-			facilityID := uuid.New()
+		RetrieveFacilityFn: func(ctx context.Context, id *string, isActive bool) (*domain.Facility, error) {
+			facilityID := uuid.New().String()
 			name := "test-facility"
 			code := "t-100"
 			county := "test-county"
 			description := "test description"
 			return &domain.Facility{
-				ID:          facilityID,
+				ID:          &facilityID,
 				Name:        name,
 				Code:        code,
 				Active:      true,
@@ -87,13 +87,13 @@ func NewQueryMock() *QueryMock {
 		},
 
 		RetrieveFacilityByMFLCodeFn: func(ctx context.Context, MFLCode string, isActive bool) (*domain.Facility, error) {
-			facilityID := uuid.New()
+			facilityID := uuid.New().String()
 			name := "test-facility"
 			code := "t-100"
 			county := "test-county"
 			description := "test description"
 			return &domain.Facility{
-				ID:          facilityID,
+				ID:          &facilityID,
 				Name:        name,
 				Code:        code,
 				Active:      true,
@@ -103,14 +103,14 @@ func NewQueryMock() *QueryMock {
 		},
 
 		GetFacilitiesFn: func(ctx context.Context) ([]*domain.Facility, error) {
-			facilityID := uuid.New()
+			facilityID := uuid.New().String()
 			name := "test-facility"
 			code := "t-100"
 			county := "test-county"
 			description := "test description"
 			return []*domain.Facility{
 				{
-					ID:          facilityID,
+					ID:          &facilityID,
 					Name:        name,
 					Code:        code,
 					Active:      true,
@@ -123,7 +123,7 @@ func NewQueryMock() *QueryMock {
 }
 
 // RetrieveFacility mocks the implementation of `gorm's` RetrieveFacility method.
-func (f *QueryMock) RetrieveFacility(ctx context.Context, id *uuid.UUID, isActive bool) (*domain.Facility, error) {
+func (f *QueryMock) RetrieveFacility(ctx context.Context, id *string, isActive bool) (*domain.Facility, error) {
 	return f.RetrieveFacilityFn(ctx, id, isActive)
 }
 
