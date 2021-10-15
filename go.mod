@@ -17,6 +17,7 @@ require (
 	github.com/gorilla/handlers v1.5.1
 	github.com/gorilla/mux v1.8.0
 	github.com/imroc/req v0.3.0
+	github.com/lib/pq v1.10.3
 	github.com/savannahghi/converterandformatter v0.0.9
 	github.com/savannahghi/enumutils v0.0.3
 	github.com/savannahghi/feedlib v0.0.4
