@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/google/uuid"
-
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/domain"
 )
 
@@ -27,7 +25,7 @@ func (d *OnboardingDb) GetFacilities(ctx context.Context) ([]*domain.Facility, e
 			return nil, fmt.Errorf("failed to parse facility.Active to boolean")
 		}
 		singleFacility := domain.Facility{
-			ID:          *m.FacilityID,
+			ID:          m.FacilityID,
 			Name:        m.Name,
 			Code:        m.Code,
 			Active:      active,
@@ -42,7 +40,7 @@ func (d *OnboardingDb) GetFacilities(ctx context.Context) ([]*domain.Facility, e
 }
 
 // RetrieveFacility gets a facility by ID from the database
-func (d *OnboardingDb) RetrieveFacility(ctx context.Context, id *uuid.UUID, isActive bool) (*domain.Facility, error) {
+func (d *OnboardingDb) RetrieveFacility(ctx context.Context, id *string, isActive bool) (*domain.Facility, error) {
 	if id == nil {
 		return nil, fmt.Errorf("facility ID should be defined")
 	}

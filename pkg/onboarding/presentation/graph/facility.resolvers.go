@@ -5,9 +5,7 @@ package graph
 
 import (
 	"context"
-	"fmt"
 
-	"github.com/google/uuid"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/application/dto"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/domain"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/presentation/graph/generated"
@@ -26,11 +24,7 @@ func (r *queryResolver) FetchFacilities(ctx context.Context) ([]*domain.Facility
 }
 
 func (r *queryResolver) RetrieveFacility(ctx context.Context, id string, active bool) (*domain.Facility, error) {
-	newID, err := uuid.Parse(id)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse ID to UUID: %v", err)
-	}
-	return r.interactor.FacilityUsecase.RetrieveFacility(ctx, &newID, active)
+	return r.interactor.FacilityUsecase.RetrieveFacility(ctx, &id, active)
 }
 
 func (r *queryResolver) RetrieveFacilityByMFLCode(ctx context.Context, mflCode string, isActive bool) (*domain.Facility, error) {

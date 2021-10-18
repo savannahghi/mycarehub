@@ -35,11 +35,11 @@ func TestOnboardingDb_RetrieveFacility_Unittest(t *testing.T) {
 
 	id := facility.ID
 
-	invalidID := uuid.New()
+	invalidID := uuid.New().String()
 
 	type args struct {
 		ctx    context.Context
-		id     *uuid.UUID
+		id     *string
 		active bool
 	}
 	tests := []struct {
@@ -52,7 +52,7 @@ func TestOnboardingDb_RetrieveFacility_Unittest(t *testing.T) {
 			name: "happy case - valid ID passed",
 			args: args{
 				ctx:    ctx,
-				id:     &id,
+				id:     id,
 				active: true,
 			},
 			wantErr: false,
@@ -81,9 +81,9 @@ func TestOnboardingDb_RetrieveFacility_Unittest(t *testing.T) {
 			got, err := d.RetrieveFacility(ctx, tt.args.id, tt.args.active)
 
 			if tt.name == "happy case - valid ID passed" {
-				fakeGorm.RetrieveFacilityFn = func(ctx context.Context, id *uuid.UUID, isActive bool) (*gorm.Facility, error) {
+				fakeGorm.RetrieveFacilityFn = func(ctx context.Context, id *string, isActive bool) (*gorm.Facility, error) {
 					return &gorm.Facility{
-						FacilityID:  &facility.ID,
+						FacilityID:  facility.ID,
 						Name:        facility.Name,
 						Code:        facility.Code,
 						Active:      strconv.FormatBool(facility.Active),
@@ -94,13 +94,13 @@ func TestOnboardingDb_RetrieveFacility_Unittest(t *testing.T) {
 			}
 
 			if tt.name == "sad case - no ID passed" {
-				fakeGorm.RetrieveFacilityFn = func(ctx context.Context, id *uuid.UUID, isActive bool) (*gorm.Facility, error) {
+				fakeGorm.RetrieveFacilityFn = func(ctx context.Context, id *string, isActive bool) (*gorm.Facility, error) {
 					return nil, fmt.Errorf("failed to create facility")
 				}
 			}
 
 			if tt.name == "sad case - invalid ID" {
-				fakeGorm.RetrieveFacilityFn = func(ctx context.Context, id *uuid.UUID, isActive bool) (*gorm.Facility, error) {
+				fakeGorm.RetrieveFacilityFn = func(ctx context.Context, id *string, isActive bool) (*gorm.Facility, error) {
 					return nil, fmt.Errorf("failed to create facility")
 				}
 			}
@@ -124,14 +124,14 @@ func TestOnboardingDb_RetrieveFacility_Unittest(t *testing.T) {
 
 func TestOnboardingDb_GetFacilities(t *testing.T) {
 	ctx := context.Background()
-	id := uuid.New()
+	id := uuid.New().String()
 	name := "Kanairo One"
 	code := "KN001"
 	county := "Kanairo"
 	description := "This is just for mocking"
 
 	facility := &domain.Facility{
-		ID:          id,
+		ID:          &id,
 		Name:        name,
 		Code:        code,
 		Active:      true,
@@ -175,7 +175,7 @@ func TestOnboardingDb_GetFacilities(t *testing.T) {
 			if tt.name == "happy case - valid payload" {
 				fakeGorm.GetFacilitiesFn = func(ctx context.Context) ([]gorm.Facility, error) {
 					var facilities []gorm.Facility
-					facilityID := uuid.New()
+					facilityID := uuid.New().String()
 					name := "Kanairo One"
 					code := "KN001"
 					county := "Kanairo"
@@ -268,7 +268,7 @@ func TestOnboardingDb_RetrieveByFacilityMFLCode(t *testing.T) {
 			if tt.name == "Happy case" {
 				fakeGorm.RetrieveFacilityByMFLCodeFn = func(ctx context.Context, MFLCode string, isActive bool) (*gorm.Facility, error) {
 					return &gorm.Facility{
-						FacilityID:  &facility.ID,
+						FacilityID:  facility.ID,
 						Name:        facility.Name,
 						Code:        facility.Code,
 						Active:      strconv.FormatBool(facility.Active),

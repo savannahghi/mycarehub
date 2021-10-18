@@ -17,7 +17,7 @@ import (
 // This mock struct should be separate from our own internal methods.
 type GormMock struct {
 	GetOrCreateFacilityFn       func(ctx context.Context, facility *gorm.Facility) (*gorm.Facility, error)
-	RetrieveFacilityFn          func(ctx context.Context, id *uuid.UUID, isActive bool) (*gorm.Facility, error)
+	RetrieveFacilityFn          func(ctx context.Context, id *string, isActive bool) (*gorm.Facility, error)
 	RetrieveFacilityByMFLCodeFn func(ctx context.Context, MFLCode string, isActive bool) (*gorm.Facility, error)
 	GetFacilitiesFn             func(ctx context.Context) ([]gorm.Facility, error)
 	DeleteFacilityFn            func(ctx context.Context, mfl_code string) (bool, error)
@@ -28,7 +28,7 @@ type GormMock struct {
 func NewGormMock() *GormMock {
 	return &GormMock{
 		GetOrCreateFacilityFn: func(ctx context.Context, facility *gorm.Facility) (*gorm.Facility, error) {
-			id := uuid.New()
+			id := uuid.New().String()
 			name := "Kanairo One"
 			code := "KN001"
 			county := "Kanairo"
@@ -43,8 +43,8 @@ func NewGormMock() *GormMock {
 			}, nil
 		},
 
-		RetrieveFacilityFn: func(ctx context.Context, id *uuid.UUID, isActive bool) (*gorm.Facility, error) {
-			facilityID := uuid.New()
+		RetrieveFacilityFn: func(ctx context.Context, id *string, isActive bool) (*gorm.Facility, error) {
+			facilityID := uuid.New().String()
 			name := "Kanairo One"
 			code := "KN001"
 			county := "Kanairo"
@@ -60,7 +60,7 @@ func NewGormMock() *GormMock {
 		},
 		GetFacilitiesFn: func(ctx context.Context) ([]gorm.Facility, error) {
 			var facilities []gorm.Facility
-			facilityID := uuid.New()
+			facilityID := uuid.New().String()
 			name := "Kanairo One"
 			code := "KN001"
 			county := "Kanairo"
@@ -82,7 +82,7 @@ func NewGormMock() *GormMock {
 
 		CollectMetricsFn: func(ctx context.Context, metrics *gorm.Metric) (*gorm.Metric, error) {
 			now := time.Now()
-			metricID := uuid.New()
+			metricID := uuid.New().String()
 			return &gorm.Metric{
 				MetricID:  &metricID,
 				Type:      domain.EngagementMetrics,
@@ -93,7 +93,7 @@ func NewGormMock() *GormMock {
 		},
 
 		RetrieveFacilityByMFLCodeFn: func(ctx context.Context, MFLCode string, isActive bool) (*gorm.Facility, error) {
-			facilityID := uuid.New()
+			facilityID := uuid.New().String()
 			name := "Kanairo One"
 			code := "KN001"
 			county := "Kanairo"
@@ -116,7 +116,7 @@ func (gm *GormMock) GetOrCreateFacility(ctx context.Context, facility *gorm.Faci
 }
 
 // RetrieveFacility mocks the implementation of `gorm's` RetrieveFacility method.
-func (gm *GormMock) RetrieveFacility(ctx context.Context, id *uuid.UUID, isActive bool) (*gorm.Facility, error) {
+func (gm *GormMock) RetrieveFacility(ctx context.Context, id *string, isActive bool) (*gorm.Facility, error) {
 	return gm.RetrieveFacilityFn(ctx, id, isActive)
 }
 

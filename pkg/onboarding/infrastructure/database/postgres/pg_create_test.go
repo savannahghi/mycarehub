@@ -143,7 +143,7 @@ func TestOnboardingDb_CollectMetrics_Unittest(t *testing.T) {
 			if tt.name == "Happy case" {
 				fakeGorm.CollectMetricsFn = func(ctx context.Context, metrics *gorm.Metric) (*gorm.Metric, error) {
 					now := time.Now()
-					metricID := uuid.New()
+					metricID := uuid.New().String()
 					return &gorm.Metric{
 						MetricID:  &metricID,
 						Type:      domain.EngagementMetrics,

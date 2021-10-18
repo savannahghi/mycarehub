@@ -46,7 +46,6 @@ type Config struct {
 
 type ResolverRoot interface {
 	Entity() EntityResolver
-	Facility() FacilityResolver
 	Mutation() MutationResolver
 	Query() QueryResolver
 	UserProfile() UserProfileResolver
@@ -277,9 +276,6 @@ type ComplexityRoot struct {
 type EntityResolver interface {
 	FindPageInfoByHasNextPage(ctx context.Context, hasNextPage bool) (*firebasetools.PageInfo, error)
 	FindUserProfileByID(ctx context.Context, id string) (*profileutils.UserProfile, error)
-}
-type FacilityResolver interface {
-	ID(ctx context.Context, obj *domain1.Facility) (string, error)
 }
 type MutationResolver interface {
 	CreateFacility(ctx context.Context, input dto1.FacilityInput) (*domain1.Facility, error)
@@ -1658,7 +1654,7 @@ extend type Mutation {
 
 extend type Query {
    fetchFacilities: [Facility]
-   retrieveFacility(id: String!, active: Boolean!): Facility!
+   retrieveFacility(id: String!, active: Boolean!): Facility
    retrieveFacilityByMFLCode(mflCode: String!, isActive: Boolean!): Facility!
 }`, BuiltIn: false},
 	{Name: "pkg/onboarding/presentation/graph/input.graphql", Input: `input FacilityInput {
@@ -3512,14 +3508,14 @@ func (ec *executionContext) _Facility_ID(ctx context.Context, field graphql.Coll
 		Object:     "Facility",
 		Field:      field,
 		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Facility().ID(rctx, obj)
+		return obj.ID, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3531,9 +3527,9 @@ func (ec *executionContext) _Facility_ID(ctx context.Context, field graphql.Coll
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*string)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Facility_name(ctx context.Context, field graphql.CollectedField, obj *domain1.Facility) (ret graphql.Marshaler) {
@@ -6268,14 +6264,11 @@ func (ec *executionContext) _Query_retrieveFacility(ctx context.Context, field g
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.(*domain1.Facility)
 	fc.Result = res
-	return ec.marshalNFacility2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚑserviceᚋpkgᚋonboardingᚋdomainᚐFacility(ctx, field.Selections, res)
+	return ec.marshalOFacility2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚑserviceᚋpkgᚋonboardingᚋdomainᚐFacility(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_retrieveFacilityByMFLCode(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -10069,43 +10062,34 @@ func (ec *executionContext) _Facility(ctx context.Context, sel ast.SelectionSet,
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Facility")
 		case "ID":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Facility_ID(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
-			})
+			out.Values[i] = ec._Facility_ID(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "name":
 			out.Values[i] = ec._Facility_name(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
+				invalids++
 			}
 		case "code":
 			out.Values[i] = ec._Facility_code(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
+				invalids++
 			}
 		case "active":
 			out.Values[i] = ec._Facility_active(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
+				invalids++
 			}
 		case "county":
 			out.Values[i] = ec._Facility_county(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
+				invalids++
 			}
 		case "description":
 			out.Values[i] = ec._Facility_description(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
+				invalids++
 			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -10643,9 +10627,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_retrieveFacility(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			})
 		case "retrieveFacilityByMFLCode":

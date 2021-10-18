@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/domain"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
@@ -22,7 +23,7 @@ type Base struct {
 type Facility struct {
 	Base
 	//globally unique when set
-	FacilityID *uuid.UUID `gorm:"primaryKey;unique;column:facility_id"`
+	FacilityID *string `gorm:"primaryKey;unique;column:facility_id"`
 	// unique within this structure
 	Name string `gorm:"column:name"`
 	// MFL Code for Kenyan facilities, globally unique
@@ -34,7 +35,7 @@ type Facility struct {
 
 // BeforeCreate is a hook run before creating a new facility
 func (f *Facility) BeforeCreate(tx *gorm.DB) (err error) {
-	id := uuid.New()
+	id := uuid.New().String()
 	f.FacilityID = &id
 	return
 }
@@ -49,7 +50,7 @@ type Metric struct {
 	Base
 
 	// ensures we don't re-save the same metric; opaque; globally unique
-	MetricID *uuid.UUID `gorm:"primaryKey;autoIncrement:true;unique;column:metric_id"`
+	MetricID *string `gorm:"primaryKey;autoIncrement:true;unique;column:metric_id"`
 
 	// TODO Metric types should be a controlled list i.e enum
 	Type domain.MetricType `gorm:"column:metric_type"`
@@ -68,7 +69,7 @@ type Metric struct {
 
 // BeforeCreate is a hook run before creating a new facility
 func (m *Metric) BeforeCreate(tx *gorm.DB) (err error) {
-	id := uuid.New()
+	id := uuid.New().String()
 	m.MetricID = &id
 	return
 }
@@ -82,7 +83,7 @@ func (Metric) TableName() string {
 type User struct {
 	Base
 
-	UserID *uuid.UUID `gorm:"primaryKey;unique;column:user_id"` // globally unique ID
+	UserID *string `gorm:"primaryKey;unique;column:user_id"` // globally unique ID
 
 	Username string `gorm:"column:username"` // @handle, also globally unique; nickname
 
@@ -122,6 +123,14 @@ type User struct {
 
 	TermsAccepted   bool   `gorm:"type:bool;column:terms_accepted"`
 	AcceptedTermsID string `gorm:"column:accepted_terms_id"` // foreign key to version of terms they accepted
+	Flavour         feedlib.Flavour
+}
+
+// BeforeCreate is a hook run before creating a new user
+func (u *User) BeforeCreate(tx *gorm.DB) (err error) {
+	id := uuid.New().String()
+	u.UserID = &id
+	return
 }
 
 // TableName customizes how the table name is generated
@@ -133,7 +142,7 @@ func (User) TableName() string {
 type Contact struct {
 	Base
 
-	ContactID uuid.UUID `gorm:"primaryKey;unique;column:contact_id"`
+	ContactID *string `gorm:"primaryKey;unique;column:contact_id"`
 
 	Type string `gorm:"column:type"` // TODO enum
 
@@ -146,6 +155,13 @@ type Contact struct {
 	OptedIn bool `gorm:"column:opted_in"`
 }
 
+// BeforeCreate is a hook run before creating a new contact
+func (c *Contact) BeforeCreate(tx *gorm.DB) (err error) {
+	id := uuid.New().String()
+	c.ContactID = &id
+	return
+}
+
 // TableName customizes how the table name is generated
 func (Contact) TableName() string {
 	return "contact"
@@ -153,10 +169,10 @@ func (Contact) TableName() string {
 
 // StaffProfile contains all the information a staff should have about themselves
 type StaffProfile struct {
-	StaffProfileID *uuid.UUID `gorm:"primaryKey;unique;column:staff_profile_id"`
+	StaffProfileID *string `gorm:"primaryKey;unique;column:staff_profile_id"`
 
-	UserID *uuid.UUID `gorm:"unique;column:user_id"` // foreign key to user
-	User   User       `gorm:"foreignKey:user_id;references:user_id;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
+	UserID *string `gorm:"unique;column:user_id"` // foreign key to user
+	User   User    `gorm:"foreignKey:user_id;references:user_id;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 
 	StaffNumber string `gorm:"column:staff_number"`
 
@@ -170,7 +186,14 @@ type StaffProfile struct {
 	// there is nothing special about super-admin; just the set of roles they have
 	Roles []string `gorm:"type:text[];column:roles"` // TODO: roles are an enum (controlled list), known to both FE and BE
 
-	Addresses []*Address `gorm:"many2many:staffprofile_address;"`
+	Addresses []*UserAddress `gorm:"many2many:staffprofile_useraddress;"`
+}
+
+// BeforeCreate is a hook run before creating a new staff profile
+func (s *StaffProfile) BeforeCreate(tx *gorm.DB) (err error) {
+	id := uuid.New().String()
+	s.StaffProfileID = &id
+	return
 }
 
 // TableName customizes how the table name is generated
@@ -178,9 +201,9 @@ func (StaffProfile) TableName() string {
 	return "staffprofile"
 }
 
-// Address are value objects for user address e.g postal code
-type Address struct {
-	AddressID *uuid.UUID `gorm:"primaryKey;unique;column:address_id"` // globally unique
+// UserAddress are value objects for user address e.g postal code
+type UserAddress struct {
+	UserAddressID *string `gorm:"primaryKey;unique;column:useraddress_id"` // globally unique
 
 	Type       string `gorm:"column:type"`    // TODO: enum; postal, physical or both
 	Text       string `gorm:"column:text"`    // actual address, can be multi-line
@@ -190,9 +213,16 @@ type Address struct {
 	Active     bool   `gorm:"column:active"`
 }
 
+// BeforeCreate is a hook run before creating a new address
+func (a *UserAddress) BeforeCreate(tx *gorm.DB) (err error) {
+	id := uuid.New().String()
+	a.UserAddressID = &id
+	return
+}
+
 // TableName customizes how the table name is generated
-func (Address) TableName() string {
-	return "address"
+func (UserAddress) TableName() string {
+	return "useraddress"
 }
 
 func allTables() []interface{} {
@@ -202,7 +232,7 @@ func allTables() []interface{} {
 		&User{},
 		&Contact{},
 		&StaffProfile{},
-		&Address{},
+		&UserAddress{},
 	}
 	return tables
 }

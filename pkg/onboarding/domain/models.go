@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/savannahghi/feedlib"
 	"gorm.io/datatypes"
 )
 
@@ -12,7 +13,7 @@ import (
 // e.g CCC clinics, Pharmacies.
 type Facility struct {
 	// ID is the Global facility ID(GCID)
-	ID uuid.UUID
+	ID *string
 	// unique within this structure
 	Name string
 	// MFL Code for Kenyan facilities, globally unique
@@ -42,7 +43,7 @@ type Facility struct {
 //
 // Client and Staff cannot exist without being a user
 type User struct {
-	ID uuid.UUID // globally unique ID
+	ID *string // globally unique ID
 
 	Username string // @handle, also globally unique; nickname
 
@@ -82,6 +83,7 @@ type User struct {
 
 	TermsAccepted   bool
 	AcceptedTermsID string // foreign key to version of terms they accepted
+	Flavour         feedlib.Flavour
 }
 
 // AuthCredentials is the authentication credentials for a given user
@@ -95,7 +97,7 @@ type AuthCredentials struct {
 
 // UserPIN is used to store users' PINs and their entire change history.
 type UserPIN struct {
-	UserID string // TODO: At the DB, this should be indexed
+	UserID *string // TODO: At the DB, this should be indexed
 
 	HashedPIN string
 	ValidFrom time.Time
@@ -129,7 +131,7 @@ type Identifier struct {
 //It is a linkage model e.g to tie together all of a person's identifiers
 // and their health record ID
 type ClientProfile struct {
-	ID uuid.UUID // globally unique identifier; synthetic i.e has no encoded meaning
+	ID *string // globally unique identifier; synthetic i.e has no encoded meaning
 
 	// every client is a user first
 	// biodata is linked to the user record
@@ -148,7 +150,7 @@ type ClientProfile struct {
 	// (implement reverse relation lookup)
 	Identifiers []*Identifier
 
-	Addresses []*Address
+	Addresses []*UserAddress
 
 	RelatedPersons []*RelatedPerson // e.g next of kin
 
@@ -162,9 +164,9 @@ type ClientProfile struct {
 	ClientCounselled bool
 }
 
-// Address are value objects for user address e.g postal code
-type Address struct {
-	ID string
+// UserAddress are value objects for user UserAddress e.g postal code
+type UserAddress struct {
+	ID *string
 
 	Type       string // TODO: enum; postal, physical or both
 	Text       string // actual address, can be multi-line
@@ -178,7 +180,7 @@ type Address struct {
 //
 // It servers as Next of Kin details
 type RelatedPerson struct {
-	ID string
+	ID *string
 
 	Active           bool
 	RelatedTo        string // TODO: FK to client
@@ -188,9 +190,9 @@ type RelatedPerson struct {
 	OtherName        string // TODO: optional
 	Gender           string // TODO: enum
 
-	DateOfBirth *time.Time // TODO: optional
-	Addresses   []*Address // TODO: optional
-	Contacts    []*Contact // TODO: optional
+	DateOfBirth *time.Time     // TODO: optional
+	Addresses   []*UserAddress // TODO: optional
+	Contacts    []*Contact     // TODO: optional
 }
 
 // ClientProfileRegistrationPayload holds the registration input we need to register a client
@@ -200,13 +202,13 @@ type ClientProfileRegistrationPayload struct {
 	// every client is a user first
 	// biodata is linked to the user record
 	// the client record is for bridging to other identifiers e.g patient record IDs
-	UserID uuid.UUID // TODO: Foreign key to User
+	UserID *string // TODO: Foreign key to User
 
 	ClientType string // TODO: enum; e.g PMTCT, OVC
 
 	PrimaryIdentifier *Identifier // TODO: optional, default set if not givemn
 
-	Addresses []*Address
+	Addresses []*UserAddress
 
 	FacilityID uuid.UUID
 
@@ -219,7 +221,7 @@ type ClientProfileRegistrationPayload struct {
 
 // Contact hold contact information/details for users
 type Contact struct {
-	ID string
+	ID *string
 
 	Type string // TODO enum
 
@@ -235,7 +237,7 @@ type Contact struct {
 // Metric reprents the metrics data structure input
 type Metric struct {
 	// ensures we don't re-save the same metric; opaque; globally unique
-	MetricID uuid.UUID
+	MetricID *string
 
 	// TODO Metric types should be a controlled list i.e enum
 	Type MetricType
@@ -269,5 +271,5 @@ type StaffProfile struct {
 	// there is nothing special about super-admin; just the set of roles they have
 	Roles []string // TODO: roles are an enum (controlled list), known to both FE and BE
 
-	Addresses []*Address
+	Addresses []*UserAddress
 }

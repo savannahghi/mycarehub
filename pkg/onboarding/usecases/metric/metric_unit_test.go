@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/application/dto"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/domain"
 	"github.com/segmentio/ksuid"
@@ -67,8 +68,9 @@ func TestUsecaseMetricsImpl_CollectMetrics_Unittest(t *testing.T) {
 			}
 			if tt.name == "Happy case" {
 				fakeCreate.CollectMetricsFn = func(ctx context.Context, metric *dto.MetricInput) (*domain.Metric, error) {
+					metricID := uuid.New().String()
 					return &domain.Metric{
-						MetricID:  [16]byte{12},
+						MetricID:  &metricID,
 						Type:      domain.EngagementMetrics,
 						Payload:   datatypes.JSON([]byte(`{"who": "test user", "keyword": "bored"}`)),
 						Timestamp: time.Now(),

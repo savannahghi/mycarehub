@@ -20,7 +20,7 @@ func (d *OnboardingDb) mapFacilityObjectToDomain(facilityObject *gorm.Facility) 
 	}
 
 	return &domain.Facility{
-		ID:          *facilityObject.FacilityID,
+		ID:          facilityObject.FacilityID,
 		Name:        facilityObject.Name,
 		Code:        facilityObject.Code,
 		Active:      active,
@@ -37,7 +37,7 @@ func (d *OnboardingDb) mapMetricObjectToDomain(metricObject *gorm.Metric) *domai
 	}
 
 	return &domain.Metric{
-		MetricID:  *metricObject.MetricID,
+		MetricID:  metricObject.MetricID,
 		Type:      metricObject.Type,
 		Payload:   metricObject.Payload,
 		Timestamp: metricObject.Timestamp,
