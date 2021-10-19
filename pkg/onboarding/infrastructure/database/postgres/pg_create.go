@@ -29,17 +29,17 @@ func (d *OnboardingDb) GetOrCreateFacility(ctx context.Context, facility *dto.Fa
 		Description: facility.Description,
 	}
 
-	facilitySession, err := d.create.GetOrCreateFacility(ctx, facilityObj)
+	facilityData, err := d.create.GetOrCreateFacility(ctx, facilityObj)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create facility: %v", err)
 	}
 
-	return d.mapFacilityObjectToDomain(facilitySession), nil
+	return d.mapFacilityObjectToDomain(facilityData), nil
 }
 
-// CollectMetrics is responsible for cretating a representation of metrics data.
+// CollectMetrics is responsible for creating a representation of metrics data.
 func (d *OnboardingDb) CollectMetrics(ctx context.Context, metric *dto.MetricInput) (*domain.Metric, error) {
-
+	// TODO: make this checks helpers in a different place
 	if metric.Type == "" {
 		return nil, fmt.Errorf("metric type must be specified")
 	}
@@ -51,10 +51,39 @@ func (d *OnboardingDb) CollectMetrics(ctx context.Context, metric *dto.MetricInp
 		UID:       metric.UID,
 	}
 
-	metricSession, err := d.create.CollectMetrics(ctx, metricObj)
+	metricData, err := d.create.CollectMetrics(ctx, metricObj)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create facility: %v", err)
 	}
 
-	return d.mapMetricObjectToDomain(metricSession), nil
+	return d.mapMetricObjectToDomain(metricData), nil
+}
+
+// CreateUser is responsible from creating a representation of a user
+func (d *OnboardingDb) CreateUser(
+	ctx context.Context,
+	input *dto.CreateUserInput,
+) (*domain.User, error) {
+	// TODO: make this checks helpers in a different place
+	if *input.UserType == "" {
+		return nil, fmt.Errorf("user type must be specified")
+	}
+	if *input.Gender == "" {
+		return nil, fmt.Errorf("gender must be specified")
+	}
+
+	userObject := &gorm.User{
+		Username:   *input.FirstName,
+		LastName:   *input.LastName,
+		MiddleName: input.MiddleName,
+		Gender:     *input.Gender,
+		UserType:   *input.UserType,
+		Active:     input.Active,
+	}
+
+	userData, err := d.create.CreateUser(ctx, userObject)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create user: %v", err)
+	}
+	return d.mapUserObjectToDomain(userData), nil
 }

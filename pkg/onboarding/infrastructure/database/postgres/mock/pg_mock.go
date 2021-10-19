@@ -13,6 +13,10 @@ type PostgresMock struct {
 	GetOrCreateFacilityFn func(ctx context.Context, facility *dto.FacilityInput) (*domain.Facility, error)
 	GetFacilitiesFn       func(ctx context.Context) ([]*domain.Facility, error)
 	RetrieveFacilityFn    func(ctx context.Context, id *uuid.UUID, isActive bool) (*domain.Facility, error)
+	CreateUserFn          func(
+		ctx context.Context,
+		input *dto.CreateUserInput,
+	) (*domain.User, error)
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -63,6 +67,26 @@ func NewPostgresMock() *PostgresMock {
 				Active:      true,
 				County:      county,
 				Description: description,
+			}, nil
+		},
+		CreateUserFn: func(
+			ctx context.Context,
+			input *dto.CreateUserInput,
+		) (*domain.User, error) {
+			userID := uuid.New()
+			Username := "MockUsername"
+			DisplayName := "Just a mock name"
+			FirstName := "FirstName"
+			gender := "male"
+			userType := "client"
+			return &domain.User{
+				ID:          userID,
+				Username:    Username,
+				DisplayName: DisplayName,
+				FirstName:   FirstName,
+				UserType:    userType,
+				Gender:      gender,
+				Active:      true,
 			}, nil
 		},
 	}

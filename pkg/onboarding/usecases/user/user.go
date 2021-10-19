@@ -1,6 +1,9 @@
 package user
 
 import (
+	"context"
+
+	"github.com/savannahghi/onboarding-service/pkg/onboarding/application/dto"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/domain"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/infrastructure"
 )
@@ -123,6 +126,14 @@ type IUpdateLanguagePreferences interface {
 	UpdateLanguagePreferences(userID string, language string) (bool, error)
 }
 
+// ICreateUser is an interface  defines the method to creates a new user on the platform
+type ICreateUser interface {
+	CreateUser(
+		ctx context.Context,
+		input dto.CreateUserInput,
+	) (*domain.User, error)
+}
+
 // IUserInvite ...
 type IUserInvite interface {
 
@@ -214,4 +225,14 @@ func (us *UseCasesUserImpl) UpdateLanguagePreferences(userID string, language st
 // The default invite channel is SMS
 func (us *UseCasesUserImpl) Invite(userID string, flavour string) (bool, error) {
 	return false, nil
+}
+
+// CreateUser creates a new user on the
+// This logic ensure that client/staff exists first as a user
+func (us *UseCasesUserImpl) CreateUser(
+	ctx context.Context,
+	input dto.CreateUserInput,
+) (*domain.User, error) {
+	// TODO: some checks before create
+	return us.Infrastructure.CreateUser(ctx, &input)
 }

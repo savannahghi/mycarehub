@@ -83,3 +83,17 @@ type MetricInput struct {
 	// with a predictable one way hash
 	UID string `json:"uid"`
 }
+
+// CreateUserInput is the data required to creat a new user.
+// this data can be used by cross service requests
+type CreateUserInput struct {
+	FirstName  *string           `json:"firstName"`
+	LastName   *string           `json:"lastName"`
+	MiddleName *string           `json:"middleName"`
+	Gender     *enumutils.Gender `json:"gender"`
+	ContactIDs *string           `json:"contactIDs"`
+	// DateOfBirth *scalarutils.Date `json:"dateOfBirth"`
+	RoleIDs  []string         `json:"roleIDs"`
+	UserType *domain.UserType `json:"userType"`
+	Active   bool             `json:"active"`
+}

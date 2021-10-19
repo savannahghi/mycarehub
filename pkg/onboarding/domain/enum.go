@@ -60,3 +60,50 @@ func (m MetricType) MarshalGQL(w io.Writer) {
 		log.Printf("%v\n", err)
 	}
 }
+
+// UserType is a code system for administrative user type.
+type UserType string
+
+// user type constants
+const (
+	UserTypeClient UserType = "client"
+	UserTypeHCW    UserType = "healthcare worker"
+)
+
+// AllGender is a list of known genders
+var AllClient = []UserType{
+	UserTypeClient,
+	UserTypeHCW,
+}
+
+// IsValid returns True if the enum value is valid
+func (c UserType) IsValid() bool {
+	switch c {
+	case UserTypeClient, UserTypeHCW:
+		return true
+	}
+	return false
+}
+
+func (c UserType) String() string {
+	return string(c)
+}
+
+// UnmarshalGQL translates from the supplied value to a valid enum value
+func (c *UserType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*c = UserType(str)
+	if !c.IsValid() {
+		return fmt.Errorf("%s is not a valid user type", str)
+	}
+	return nil
+}
+
+// MarshalGQL writes the enum value to the supplied writer
+func (c UserType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(c.String()))
+}

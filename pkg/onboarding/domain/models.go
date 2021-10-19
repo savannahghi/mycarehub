@@ -59,7 +59,7 @@ type User struct {
 
 	Active bool
 
-	Contacts []*Contact // TODO: validate, ensure
+	Contacts string // TODO: validate, ensure - Make this come from contact
 
 	// for the preferred language list, order matters
 	Languages []string // TODO: turn this into a slice of enums, start small (en, sw)

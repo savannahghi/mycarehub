@@ -15,6 +15,10 @@ import (
 type CreateMock struct {
 	GetOrCreateFacilityFn func(ctx context.Context, facility dto.FacilityInput) (*domain.Facility, error)
 	CollectMetricsFn      func(ctx context.Context, metric *dto.MetricInput) (*domain.Metric, error)
+	CreateUserFn          func(
+		ctx context.Context,
+		input dto.CreateUserInput,
+	) (*domain.User, error)
 }
 
 // NewCreateMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -46,6 +50,25 @@ func NewCreateMock() *CreateMock {
 				UID:       ksuid.New().String(),
 			}, nil
 		},
+		CreateUserFn: func(
+			ctx context.Context,
+			input dto.CreateUserInput,
+		) (*domain.User, error) {
+			id := uuid.New()
+			Username := "MockUsername"
+			DisplayName := "Just a mock name"
+			FirstName := "FirstName"
+			gender := "male"
+			userType := "client"
+			return &domain.User{
+				ID:          id,
+				Username:    Username,
+				DisplayName: DisplayName,
+				FirstName:   FirstName,
+				Gender:      gender,
+				UserType:    userType,
+			}, nil
+		},
 	}
 }
 
@@ -57,6 +80,14 @@ func (f *CreateMock) GetOrCreateFacility(ctx context.Context, facility dto.Facil
 // CollectMetrics mocks the implementation of `gorm's` CollectMetrics method.
 func (f *CreateMock) CollectMetrics(ctx context.Context, metric *dto.MetricInput) (*domain.Metric, error) {
 	return f.CollectMetricsFn(ctx, metric)
+}
+
+// CreateUser mocks the implementation of `gorm's` CreateUser method.
+func (f *CreateMock) CreateUser(
+	ctx context.Context,
+	input dto.CreateUserInput,
+) (*domain.User, error) {
+	return f.CreateUserFn(ctx, input)
 }
 
 // QueryMock is a mock of the query methods

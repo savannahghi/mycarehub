@@ -44,3 +44,31 @@ func (d *OnboardingDb) mapMetricObjectToDomain(metricObject *gorm.Metric) *domai
 		UID:       metricObject.UID,
 	}
 }
+
+// mapMetricObjectToDomain maps the db metrics to a domain model.
+// It searches the database to fetch items specific to the metrics
+func (d *OnboardingDb) mapUserObjectToDomain(userObject *gorm.User) *domain.User {
+	if userObject == nil {
+		return nil
+	}
+
+	return &domain.User{
+		ID:                  *userObject.UserID,
+		Username:            userObject.Username,
+		DisplayName:         userObject.DisplayName,
+		FirstName:           userObject.FirstName,
+		MiddleName:          userObject.MiddleName,
+		LastName:            userObject.LastName,
+		UserType:            string(userObject.UserType),
+		Gender:              string(userObject.Gender),
+		Active:              userObject.Active,
+		Contacts:            userObject.Contacts,
+		Languages:           userObject.Languages,
+		PushTokens:          userObject.PushTokens,
+		LastSuccessfulLogin: userObject.LastSuccessfulLogin,
+		FailedLoginCount:    userObject.FailedLoginCount,
+		NextAllowedLogin:    userObject.NextAllowedLogin,
+		TermsAccepted:       userObject.TermsAccepted,
+		AcceptedTermsID:     userObject.AcceptedTermsID,
+	}
+}

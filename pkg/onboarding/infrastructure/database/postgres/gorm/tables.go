@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/domain"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
@@ -84,4 +85,48 @@ func (m *Metric) BeforeCreate(tx *gorm.DB) (err error) {
 // TableName customizes how the table name is generated
 func (Metric) TableName() string {
 	return "metric"
+}
+
+type User struct {
+	Base
+	//globally unique when set
+	UserID   *uuid.UUID `gorm:"primaryKey;unique;column:user_id"`
+	Username string     `gorm:"column:username"` // @handle, also globally unique; nickname
+
+	DisplayName string `gorm:"column:displayName"` // user's preferred display name
+
+	// TODO Consider making the names optional in DB; validation in frontends
+	FirstName  string  `gorm:"column:firstName"` // given name
+	MiddleName *string `gorm:"column:middleName"`
+	LastName   string  `gorm:"column:lastName"`
+
+	UserType domain.UserType `gorm:"column:userType"` // TODO enum; e.g client, health care worker
+
+	Gender enumutils.Gender `gorm:"column:gender"`
+
+	Active bool `gorm:"column:active"`
+
+	Contacts []*string `gorm:"column:contacts"` // TODO: validate, ensure. This should come from contacts
+
+	// for the preferred language list, order matters
+	Languages []string `gorm:"column:languages"` // TODO: turn this into a slice of enums, start small (en, sw)
+
+	PushTokens []string `gorm:"column:push_tokens"`
+
+	// when a user logs in successfully, set this
+	LastSuccessfulLogin *time.Time `gorm:"column:last_successful_login"`
+
+	// whenever there is a failed login (e.g bad PIN), set this
+	// reset to null / blank when they succeed at logging in
+	LastFailedLogin *time.Time `gorm:"column:last_failed_login"`
+
+	// each time there is a failed login, **increment** this
+	// set to zero after successful login
+	FailedLoginCount int `gorm:"column:failed_login_count"`
+
+	// calculated each time there is a failed login
+	NextAllowedLogin *time.Time `gorm:"column:next_allowed_login"`
+
+	TermsAccepted   bool   `gorm:"column:terms_accepted"`
+	AcceptedTermsID string `gorm:"column:accepted_terms_id"`
 }

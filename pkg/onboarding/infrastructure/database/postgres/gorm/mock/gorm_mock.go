@@ -22,6 +22,7 @@ type GormMock struct {
 	GetFacilitiesFn             func(ctx context.Context) ([]gorm.Facility, error)
 	DeleteFacilityFn            func(ctx context.Context, mfl_code string) (bool, error)
 	CollectMetricsFn            func(ctx context.Context, metrics *gorm.Metric) (*gorm.Metric, error)
+	CreateUserFn                func(ctx context.Context, user *gorm.User) (*gorm.User, error)
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -107,6 +108,19 @@ func NewGormMock() *GormMock {
 				Description: description,
 			}, nil
 		},
+		CreateUserFn: func(ctx context.Context, user *gorm.User) (*gorm.User, error) {
+			userID := uuid.New()
+			Username := "MockUsername"
+			DisplayName := "Just a mock name"
+			FirstName := "FirstName"
+			return &gorm.User{
+				UserID:        &userID,
+				Username:      Username,
+				DisplayName:   DisplayName,
+				FirstName:     FirstName,
+				TermsAccepted: true,
+			}, nil
+		},
 	}
 }
 
@@ -138,4 +152,9 @@ func (gm *GormMock) DeleteFacility(ctx context.Context, mflcode string) (bool, e
 // CollectMetrics mocks the implementation of  CollectMetrics method.
 func (gm *GormMock) CollectMetrics(ctx context.Context, metrics *gorm.Metric) (*gorm.Metric, error) {
 	return gm.CollectMetricsFn(ctx, metrics)
+}
+
+// CreateUser mocks the implementation of  CreateUser method.
+func (gm *GormMock) CreateUser(ctx context.Context, user *gorm.User) (*gorm.User, error) {
+	return gm.CreateUserFn(ctx, user)
 }
