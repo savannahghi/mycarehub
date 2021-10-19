@@ -16,6 +16,7 @@ import (
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/usecases/facility"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/usecases/metric"
 	usecaseMock "github.com/savannahghi/onboarding-service/pkg/onboarding/usecases/mock"
+	"github.com/savannahghi/onboarding-service/pkg/onboarding/usecases/staff"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/usecases/user"
 	baseExt "github.com/savannahghi/onboarding/pkg/onboarding/application/extension"
 	openSourceInfra "github.com/savannahghi/onboarding/pkg/onboarding/infrastructure"
@@ -86,7 +87,8 @@ func InitializeTestInteractor(ctx context.Context) interactor.Interactor {
 	pinExtension := baseExt.NewPINExtensionImpl()
 	libUsecasee := libOnboardingUsecase.NewUsecasesInteractor(osinfra, baseExtension, pinExtension)
 	userUsecase := user.NewUseCasesUserImpl(infra)
-	i := interactor.NewOnboardingInteractor(osinfra, *db, libUsecasee, facilityUsecase, metricUsecase, userUsecase)
+	staff := staff.NewUsecasesStaffProfileImpl(infra)
+	i := interactor.NewOnboardingInteractor(osinfra, *db, libUsecasee, facilityUsecase, metricUsecase, userUsecase, staff)
 
 	return *i
 }

@@ -53,18 +53,18 @@ func (d *OnboardingDb) mapProfileObjectToDomain(profileObject *gorm.User) *domai
 	}
 
 	return &domain.User{
-		ID:                  profileObject.UserID,
-		Username:            profileObject.Username,
-		DisplayName:         profileObject.DisplayName,
-		FirstName:           profileObject.FirstName,
-		MiddleName:          profileObject.MiddleName,
-		LastName:            profileObject.LastName,
-		Flavour:             profileObject.Flavour,
-		UserType:            profileObject.UserType,
-		Gender:              profileObject.Gender,
-		Active:              profileObject.Active,
-		Languages:           profileObject.Languages,
-		PushTokens:          profileObject.PushTokens,
+		ID:          profileObject.UserID,
+		Username:    profileObject.Username,
+		DisplayName: profileObject.DisplayName,
+		FirstName:   profileObject.FirstName,
+		MiddleName:  profileObject.MiddleName,
+		LastName:    profileObject.LastName,
+		Flavour:     profileObject.Flavour,
+		// UserType:            profileObject.UserType,
+		// Gender:              profileObject.Gender,
+		Active: profileObject.Active,
+		// Languages:           profileObject.Languages,
+		// PushTokens:          profileObject.PushTokens,
 		LastSuccessfulLogin: profileObject.LastSuccessfulLogin,
 		LastFailedLogin:     profileObject.LastFailedLogin,
 		FailedLoginCount:    profileObject.FailedLoginCount,
@@ -89,5 +89,43 @@ func (d *OnboardingDb) mapPINObjectToDomain(pinObj *gorm.PINData) *domain.UserPI
 		Flavour:   pinObj.Flavour,
 		IsValid:   pinObj.IsValid,
 		Salt:      pinObj.Salt,
+	}
+}
+
+// mapUserObjectToDomain maps the db user to a domain model.
+// It searches the database to fetch items specific to the user
+func (d *OnboardingDb) mapRegisterStaffObjectToDomain(userStaffObject *gorm.StaffUserProfile) *domain.StaffUserProfile {
+
+	userObject := userStaffObject.User
+	staffObject := userStaffObject.Staff
+
+	user := &domain.User{
+		ID:                  userObject.UserID,
+		Username:            userObject.Username,
+		DisplayName:         userObject.DisplayName,
+		FirstName:           userObject.FirstName,
+		MiddleName:          userObject.MiddleName,
+		LastName:            userObject.LastName,
+		Active:              userObject.Active,
+		LastSuccessfulLogin: userObject.LastSuccessfulLogin,
+		LastFailedLogin:     userObject.LastFailedLogin,
+		FailedLoginCount:    userObject.FailedLoginCount,
+		NextAllowedLogin:    userObject.NextAllowedLogin,
+		TermsAccepted:       userObject.TermsAccepted,
+		AcceptedTermsID:     userObject.AcceptedTermsID,
+	}
+
+	staffProfile := &domain.StaffProfile{
+		ID:          staffObject.StaffProfileID,
+		UserID:      userObject.UserID,
+		StaffNumber: staffObject.StaffNumber,
+		// Facilities:        staffObject.Facilities,
+		DefaultFacilityID: staffObject.DefaultFacilityID,
+		// Roles:             staffObject.Roles,
+		// Addresses:         staffObject.Addresses,
+	}
+	return &domain.StaffUserProfile{
+		User:  user,
+		Staff: staffProfile,
 	}
 }

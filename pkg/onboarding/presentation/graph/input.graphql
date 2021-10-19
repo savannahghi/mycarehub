@@ -11,3 +11,27 @@ input PINInput {
   confirmedPin: String!,
   flavour: Flavour!
 }
+
+
+input UserInput {
+  username: String!
+  displayName: String!
+  firstName: String!
+  middleName: String!
+  lastName: String!
+  # userType: String! # TODO enum; e.g client, health care worker
+  # gender: String! # TODO enum; genders; keep it simple
+  # contacts: [ContactInput!]
+  # languages: [String]
+  # flavour: String!
+}
+
+input StaffProfileInput {
+  staffNumber: String!
+  # facilities: [FacilityInput!]
+  defaultFacilityID: String!
+  # roles: [RoleType] # TODO: roles are an enum (controlled list), known to both FE and BE
+  # addresses: [ContactAddressInput!]
+}
+
+

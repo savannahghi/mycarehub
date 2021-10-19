@@ -54,20 +54,18 @@ type User struct {
 	MiddleName string
 	LastName   string
 
-	Flavour feedlib.Flavour
+	// UserType string // TODO enum; e.g client, health care worker
 
-	UserType string // TODO enum; e.g client, health care worker
-
-	Gender string // TODO enum; genders; keep it simple
+	// Gender string // TODO enum; genders; keep it simple
 
 	Active bool
 
-	Contacts []*Contact // TODO: validate, ensure
+	// Contacts []*Contact // TODO: validate, ensure
 
-	// for the preferred language list, order matters
-	Languages []string // TODO: turn this into a slice of enums, start small (en, sw)
+	// // for the preferred language list, order matters
+	// Languages []string // TODO: turn this into a slice of enums, start small (en, sw)
 
-	PushTokens []string
+	// PushTokens []string
 
 	// when a user logs in successfully, set this
 	LastSuccessfulLogin *time.Time
@@ -85,6 +83,7 @@ type User struct {
 
 	TermsAccepted   bool
 	AcceptedTermsID string // foreign key to version of terms they accepted
+	Flavour         feedlib.Flavour
 }
 
 // AuthCredentials is the authentication credentials for a given user
@@ -256,7 +255,7 @@ type Metric struct {
 type StaffProfile struct {
 	ID *string
 
-	UserID uuid.UUID // foreign key to user
+	UserID *string // foreign key to user
 
 	StaffNumber string
 
@@ -264,7 +263,7 @@ type StaffProfile struct {
 
 	// A UI switcher optionally toggles the default
 	// TODO: the list of facilities to switch between is strictly those that the user is assigned to
-	DefaultFacilityID string // TODO: required, FK to facility
+	DefaultFacilityID *string // TODO: required, FK to facility
 
 	// there is nothing special about super-admin; just the set of roles they have
 	Roles []string // TODO: roles are an enum (controlled list), known to both FE and BE
@@ -278,4 +277,10 @@ type PIN struct {
 	PIN          string
 	ConfirmedPin string
 	Flavour      feedlib.Flavour
+}
+
+// StaffUserProfile combines user and staff profile
+type StaffUserProfile struct {
+	User  *User
+	Staff *StaffProfile
 }

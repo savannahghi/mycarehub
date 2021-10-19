@@ -94,8 +94,6 @@ type User struct {
 	MiddleName string `gorm:"column:middle_name"`
 	LastName   string `gorm:"column:last_name"`
 
-	Flavour feedlib.Flavour `gorm:"column:flavour"`
-
 	UserType string `gorm:"column:user_type"` // TODO enum; e.g client, health care worker
 
 	Gender string `gorm:"column:gender"` // TODO enum; genders; keep it simple
@@ -104,7 +102,7 @@ type User struct {
 
 	Contacts []Contact `gorm:"many2many:user_contact;"` // TODO: validate, ensure
 
-	// for the preferred language list, order matters
+	// // for the preferred language list, order matters
 	Languages []string `gorm:"type:text[];column:languages"` // TODO: turn this into a slice of enums, start small (en, sw)
 
 	PushTokens []string `gorm:"type:text[];column:push_tokens"`
@@ -123,8 +121,9 @@ type User struct {
 	// calculated each time there is a failed login
 	NextAllowedLogin *time.Time `gorm:"type:time;column:next_allowed_login"`
 
-	TermsAccepted   bool   `gorm:"type:bool;column:terms_accepted"`
-	AcceptedTermsID string `gorm:"column:accepted_terms_id"` // foreign key to version of terms they accepted
+	TermsAccepted   bool            `gorm:"type:bool;column:terms_accepted"`
+	AcceptedTermsID string          `gorm:"column:accepted_terms_id"` // foreign key to version of terms they accepted
+	Flavour         feedlib.Flavour `gorm:"column:flavour"`
 }
 
 // BeforeCreate is a hook run before creating a new user
@@ -173,21 +172,21 @@ type StaffProfile struct {
 	StaffProfileID *string `gorm:"primaryKey;unique;column:staff_profile_id"`
 
 	UserID *string `gorm:"unique;column:user_id"` // foreign key to user
-	User   User    `gorm:"foreignKey:user_id;references:user_id;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
+	User   User    `gorm:"foreignKey:user_id;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 
 	StaffNumber string `gorm:"column:staff_number"`
 
-	Facilities []*Facility `gorm:"many2many:staffprofile_facility;not null;"` // TODO: needs at least one
+	// Facilities []*Facility `gorm:"many2many:staffprofile_facility;not null;"` // TODO: needs at least one
 
 	// A UI switcher optionally toggles the default
 	// TODO: the list of facilities to switch between is strictly those that the user is assigned to
-	DefaultFacilityID uuid.UUID `gorm:"column:default_facility_id"` // TODO: required, FK to facility
-	Facility          Facility  `gorm:"foreignKey:default_facility_id;references:facility_id;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
+	DefaultFacilityID *string  `gorm:"column:default_facility_id"` // TODO: required, FK to facility
+	Facility          Facility `gorm:"foreignKey:default_facility_id;references:facility_id;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 
-	// there is nothing special about super-admin; just the set of roles they have
-	Roles []string `gorm:"type:text[];column:roles"` // TODO: roles are an enum (controlled list), known to both FE and BE
+	// // there is nothing special about super-admin; just the set of roles they have
+	// Roles []string `gorm:"type:text[];column:roles"` // TODO: roles are an enum (controlled list), known to both FE and BE
 
-	Addresses []*UserAddress `gorm:"many2many:staffprofile_useraddress;"`
+	// Addresses []*UserAddress `gorm:"many2many:staffprofile_useraddress;"`
 }
 
 // BeforeCreate is a hook run before creating a new staff profile
@@ -224,6 +223,12 @@ func (a *UserAddress) BeforeCreate(tx *gorm.DB) (err error) {
 // TableName customizes how the table name is generated
 func (UserAddress) TableName() string {
 	return "useraddress"
+}
+
+// StaffUserProfile combines user and staff profile
+type StaffUserProfile struct {
+	User  *User
+	Staff *StaffProfile
 }
 
 func allTables() []interface{} {

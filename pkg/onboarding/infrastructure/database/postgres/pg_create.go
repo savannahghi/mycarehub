@@ -83,3 +83,31 @@ func (d *OnboardingDb) CollectMetrics(ctx context.Context, metric *dto.MetricInp
 
 	return d.mapMetricObjectToDomain(metricSession), nil
 }
+
+// RegisterStaffUser creates both the user profile and the staff profile.
+func (d *OnboardingDb) RegisterStaffUser(ctx context.Context, user *dto.UserInput, staff *dto.StaffProfileInput) (*domain.StaffUserProfile, error) {
+	if staff.DefaultFacilityID == nil {
+		return nil, fmt.Errorf("expected default facility ID to be provided")
+	}
+	userObject := &gorm.User{
+		Username:    user.Username,
+		DisplayName: user.DisplayName,
+		FirstName:   user.FirstName,
+		MiddleName:  user.MiddleName,
+		LastName:    user.LastName,
+	}
+
+	staffObject := &gorm.StaffProfile{
+		StaffNumber:       staff.StaffNumber,
+		DefaultFacilityID: staff.DefaultFacilityID,
+	}
+
+	userStaffProfile, err := d.create.RegisterStaffUser(ctx, userObject, staffObject)
+	if err != nil {
+
+		return nil, fmt.Errorf("failed to create user session %v", err)
+	}
+
+	return d.mapRegisterStaffObjectToDomain(userStaffProfile), nil
+
+}

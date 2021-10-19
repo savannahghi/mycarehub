@@ -25,6 +25,7 @@ type GormMock struct {
 	SetUserPINFn                func(ctx context.Context, pinData *gorm.PINData) (bool, error)
 	GetUserPINByUserIDFn        func(ctx context.Context, userID string) (*gorm.PINData, error)
 	GetUserProfileByUserIDFn    func(ctx context.Context, userID string, flavour string) (*gorm.User, error)
+	RegisterStaffUserFn         func(ctx context.Context, user *gorm.User, staff *gorm.StaffProfile) (*gorm.StaffUserProfile, error)
 
 	//Updates
 	UpdateUserLastSuccessfulLoginFn func(ctx context.Context, userID string, lastLoginTime time.Time, flavour string) error
@@ -182,6 +183,33 @@ func NewGormMock() *GormMock {
 		UpdateUserNextAllowedLoginFn: func(ctx context.Context, userID string, nextAllowedLoginTime time.Time, flavour string) error {
 			return nil
 		},
+		RegisterStaffUserFn: func(ctx context.Context, user *gorm.User, staff *gorm.StaffProfile) (*gorm.StaffUserProfile, error) {
+			ID := uuid.New().String()
+			testTime := time.Now()
+			return &gorm.StaffUserProfile{
+				User: &gorm.User{
+					UserID:              &ID,
+					Username:            "test",
+					DisplayName:         "test",
+					FirstName:           "test",
+					MiddleName:          "test",
+					LastName:            "test",
+					Active:              true,
+					LastSuccessfulLogin: &testTime,
+					LastFailedLogin:     &testTime,
+					NextAllowedLogin:    &testTime,
+					FailedLoginCount:    "0",
+					TermsAccepted:       true,
+					AcceptedTermsID:     ID,
+				},
+				Staff: &gorm.StaffProfile{
+					StaffProfileID:    &ID,
+					UserID:            &ID,
+					StaffNumber:       "s123",
+					DefaultFacilityID: &ID,
+				},
+			}, nil
+		},
 	}
 }
 
@@ -248,4 +276,9 @@ func (gm *GormMock) UpdateUserFailedLoginCount(ctx context.Context, userID strin
 // UpdateUserNextAllowedLogin ...
 func (gm *GormMock) UpdateUserNextAllowedLogin(ctx context.Context, userID string, nextAllowedLoginTime time.Time, flavour string) error {
 	return gm.UpdateUserNextAllowedLoginFn(ctx, userID, nextAllowedLoginTime, flavour)
+}
+
+// RegisterStaffUser mocks the implementation of  RegisterStaffUser method.
+func (gm *GormMock) RegisterStaffUser(ctx context.Context, user *gorm.User, staff *gorm.StaffProfile) (*gorm.StaffUserProfile, error) {
+	return gm.RegisterStaffUserFn(ctx, user, staff)
 }
