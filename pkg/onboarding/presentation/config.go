@@ -22,6 +22,7 @@ import (
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/presentation/graph/generated"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/presentation/interactor"
 	internalRest "github.com/savannahghi/onboarding-service/pkg/onboarding/presentation/rest"
+	"github.com/savannahghi/onboarding-service/pkg/onboarding/usecases/client"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/usecases/facility"
 	metrics "github.com/savannahghi/onboarding-service/pkg/onboarding/usecases/metric"
 	staff "github.com/savannahghi/onboarding-service/pkg/onboarding/usecases/staff"
@@ -87,6 +88,9 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	// Initialize staff usecases
 	staffUsecase := staff.NewUsecasesStaffProfileImpl(infra)
 
+	// Initialize client usecases
+	clientUseCase := client.NewUseCasesClientImpl(infra)
+
 	pg, err := gorm.NewPGInstance()
 	if err != nil {
 		return nil, fmt.Errorf("can't instantiate repository in resolver: %v", err)
@@ -103,6 +107,7 @@ func Router(ctx context.Context) (*mux.Router, error) {
 		metricsUsecase,
 		userUsecase,
 		staffUsecase,
+		clientUseCase,
 	)
 
 	h := rest.NewHandlersInterfaces(infrastructure, openSourceUsecases)

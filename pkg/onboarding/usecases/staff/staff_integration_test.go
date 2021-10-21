@@ -29,7 +29,7 @@ func TestUseCaseStaffProfileImpl_RegisterStaffUser(t *testing.T) {
 	}
 
 	userInput := &dto.UserInput{
-		Username:    "test",
+		UserName:    "test",
 		DisplayName: "test",
 		FirstName:   "test",
 		MiddleName:  "test",

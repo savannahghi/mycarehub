@@ -13,6 +13,7 @@ import (
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/infrastructure/database/postgres/gorm"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/presentation/interactor"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/usecases"
+	"github.com/savannahghi/onboarding-service/pkg/onboarding/usecases/client"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/usecases/facility"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/usecases/metric"
 	usecaseMock "github.com/savannahghi/onboarding-service/pkg/onboarding/usecases/mock"
@@ -89,7 +90,8 @@ func InitializeTestInteractor(ctx context.Context) interactor.Interactor {
 	libUsecasee := libOnboardingUsecase.NewUsecasesInteractor(osinfra, baseExtension, pinExtension)
 	userUsecase := user.NewUseCasesUserImpl(infra)
 	staff := staff.NewUsecasesStaffProfileImpl(infra)
-	i := interactor.NewOnboardingInteractor(osinfra, *db, libUsecasee, facilityUsecase, metricUsecase, userUsecase, staff)
+	client := client.NewUseCasesClientImpl(infra)
+	i := interactor.NewOnboardingInteractor(osinfra, *db, libUsecasee, facilityUsecase, metricUsecase, userUsecase, staff, client)
 
 	return *i
 }

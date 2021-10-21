@@ -8,21 +8,7 @@ input FacilityInput {
 
 input PINInput {
   pin: String!
-  confirmedPin: String!,
-  flavour: Flavour!
-}
-
-
-input UserInput {
-  username: String!
-  displayName: String!
-  firstName: String!
-  middleName: String!
-  lastName: String!
-  # userType: String! # TODO enum; e.g client, health care worker
-  # gender: String! # TODO enum; genders; keep it simple
-  # contacts: [ContactInput!]
-  # languages: [String]
+  confirmedPin: String!
   flavour: Flavour!
 }
 
@@ -34,4 +20,19 @@ input StaffProfileInput {
   # addresses: [ContactAddressInput!]
 }
 
+input UserInput {
+  firstName: String
+  lastName: String
+  middleName: String
+  userName: String
+  displayName: String
+  gender: Gender
+  # userType: String! # TODO enum; e.g client, health care worker
+  # contacts: [ContactInput!]
+  # languages: [String]
+  # flavour: String!
+}
 
+input ClientProfileInput {
+  clientType: ClientType!
+}

@@ -7,7 +7,9 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/application/dto"
+	"github.com/savannahghi/onboarding-service/pkg/onboarding/application/enums"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/domain"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/infrastructure/database/postgres/gorm"
 	gormMock "github.com/savannahghi/onboarding-service/pkg/onboarding/infrastructure/database/postgres/gorm/mock"
@@ -95,7 +97,7 @@ func TestOnboardingDb_CollectMetrics_Unittest(t *testing.T) {
 	ctx := context.Background()
 
 	metric := &dto.MetricInput{
-		Type:      domain.EngagementMetrics,
+		Type:      enums.EngagementMetrics,
 		Payload:   datatypes.JSON([]byte(`{"who": "test user", "keyword": "suicidal"}`)),
 		Timestamp: time.Now(),
 		UID:       ksuid.New().String(),
@@ -146,7 +148,7 @@ func TestOnboardingDb_CollectMetrics_Unittest(t *testing.T) {
 					metricID := uuid.New().String()
 					return &gorm.Metric{
 						MetricID:  &metricID,
-						Type:      domain.EngagementMetrics,
+						Type:      enums.EngagementMetrics,
 						Payload:   datatypes.JSON([]byte(`{"who": "test user", "keyword": "suicidal"}`)),
 						Timestamp: now,
 						UID:       ksuid.New().String(),
@@ -247,7 +249,7 @@ func TestOnboardingDb_RegisterStaffUser(t *testing.T) {
 	}
 
 	userInput := &dto.UserInput{
-		Username:    "test",
+		UserName:    "test",
 		DisplayName: "test",
 		FirstName:   "test",
 		MiddleName:  "test",
@@ -341,6 +343,72 @@ func TestOnboardingDb_RegisterStaffUser(t *testing.T) {
 			if (err != nil) != tt.wantErr {
 				t.Errorf("OnboardingDb.RegisterStaffUser() error = %v, wantErr %v", err, tt.wantErr)
 				return
+			}
+		})
+	}
+}
+
+func TestOnboardingDb_RegisterClient(t *testing.T) {
+	ctx := context.Background()
+	userInput := &dto.UserInput{
+		FirstName:   "John",
+		LastName:    "Joe",
+		UserName:    "Jontez",
+		MiddleName:  "Johnny",
+		DisplayName: "jo",
+		Gender:      enumutils.GenderMale,
+	}
+
+	clientInput := dto.ClientProfileInput{
+		ClientType: enums.ClientTypeOvc,
+	}
+	type args struct {
+		ctx         context.Context
+		userInput   *dto.UserInput
+		clientInput *dto.ClientProfileInput
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy Case",
+			args: args{
+				ctx:         ctx,
+				userInput:   userInput,
+				clientInput: &clientInput,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad Case: Fail to create user",
+			args: args{
+				ctx:         ctx,
+				userInput:   userInput,
+				clientInput: &clientInput,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var fakeGorm = gormMock.NewGormMock()
+			d := NewOnboardingDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			if tt.name == "Sad Case: Fail to create user" {
+				fakeGorm.RegisterClientFn = func(ctx context.Context, userInput *gorm.User, clientInput *gorm.ClientProfile) (*gorm.ClientUserProfile, error) {
+					return nil, fmt.Errorf("failed to create a client user")
+				}
+			}
+
+			got, err := d.RegisterClient(tt.args.ctx, tt.args.userInput, tt.args.clientInput)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("OnboardingDb.RegisterClient() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected a response but got :%v", got)
 			}
 		})
 	}

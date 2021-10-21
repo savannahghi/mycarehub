@@ -90,7 +90,7 @@ func (d *OnboardingDb) RegisterStaffUser(ctx context.Context, user *dto.UserInpu
 		return nil, fmt.Errorf("expected default facility ID to be provided")
 	}
 	userObject := &gorm.User{
-		Username:    user.Username,
+		Username:    user.UserName,
 		DisplayName: user.DisplayName,
 		FirstName:   user.FirstName,
 		MiddleName:  user.MiddleName,
@@ -111,4 +111,39 @@ func (d *OnboardingDb) RegisterStaffUser(ctx context.Context, user *dto.UserInpu
 
 	return d.mapRegisterStaffObjectToDomain(userStaffProfile), nil
 
+}
+
+// RegisterClient is responsible for registering and saving the client's data to the database
+func (d *OnboardingDb) RegisterClient(
+	ctx context.Context,
+	userInput *dto.UserInput,
+	clientInput *dto.ClientProfileInput,
+) (*domain.ClientUserProfile, error) {
+	if clientInput == nil {
+		return nil, fmt.Errorf("expected client input to be provided")
+	}
+
+	if userInput == nil {
+		return nil, fmt.Errorf("expected user input to be provided")
+	}
+
+	userObject := &gorm.User{
+		FirstName:   userInput.FirstName,
+		LastName:    userInput.LastName,
+		Username:    userInput.UserName,
+		MiddleName:  userInput.MiddleName,
+		DisplayName: userInput.DisplayName,
+		Gender:      userInput.Gender,
+	}
+
+	clientObject := &gorm.ClientProfile{
+		ClientType: clientInput.ClientType,
+	}
+
+	clientUserProfile, err := d.create.RegisterClient(ctx, userObject, clientObject)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create client: %v", err)
+	}
+
+	return d.mapRegisterClientObjectToDomain(clientUserProfile), nil
 }

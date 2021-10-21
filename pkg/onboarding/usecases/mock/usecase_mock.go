@@ -5,7 +5,9 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/application/dto"
+	"github.com/savannahghi/onboarding-service/pkg/onboarding/application/enums"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/domain"
 	"github.com/segmentio/ksuid"
 	"gorm.io/datatypes"
@@ -17,11 +19,41 @@ type CreateMock struct {
 	CollectMetricsFn      func(ctx context.Context, metric *dto.MetricInput) (*domain.Metric, error)
 	RegisterStaffUserFn   func(ctx context.Context, user *dto.UserInput, staff *dto.StaffProfileInput) (*domain.StaffUserProfile, error)
 	SetUserPINFn          func(ctx context.Context, input *domain.UserPIN) (bool, error)
+	RegisterClientFn      func(ctx context.Context, userInput *dto.UserInput, clientInput *dto.ClientProfileInput) (*domain.ClientUserProfile, error)
 }
 
 // NewCreateMock creates in itializes create type mocks
 func NewCreateMock() *CreateMock {
 	return &CreateMock{
+		RegisterClientFn: func(ctx context.Context, userInput *dto.UserInput, clientInput *dto.ClientProfileInput) (*domain.ClientUserProfile, error) {
+			ID := uuid.New().String()
+			testTime := time.Now()
+
+			return &domain.ClientUserProfile{
+				User: &domain.User{
+					ID:                  &ID,
+					FirstName:           "FirstName",
+					LastName:            "Last Name",
+					Username:            "User Name",
+					MiddleName:          "Middle Name",
+					DisplayName:         "Display Name",
+					Gender:              enumutils.GenderMale,
+					Active:              true,
+					LastSuccessfulLogin: &testTime,
+					LastFailedLogin:     &testTime,
+					NextAllowedLogin:    &testTime,
+					TermsAccepted:       true,
+					AcceptedTermsID:     ID,
+				},
+				Client: &domain.ClientProfile{
+					ID:             &ID,
+					UserID:         &ID,
+					ClientType:     enums.ClientTypeOvc,
+					HealthRecordID: &ID,
+				},
+			}, nil
+		},
+
 		GetOrCreateFacilityFn: func(ctx context.Context, facility dto.FacilityInput) (*domain.Facility, error) {
 			id := uuid.New().String()
 			name := "Kanairo One"
@@ -42,7 +74,7 @@ func NewCreateMock() *CreateMock {
 			metricID := uuid.New().String()
 			return &domain.Metric{
 				MetricID:  &metricID,
-				Type:      domain.EngagementMetrics,
+				Type:      enums.EngagementMetrics,
 				Payload:   datatypes.JSON([]byte(`{"who": "test user", "keyword": "suicidal"}`)),
 				Timestamp: time.Now(),
 				UID:       ksuid.New().String(),
@@ -100,6 +132,15 @@ func (f *CreateMock) SetUserPIN(ctx context.Context, pinData *domain.UserPIN) (b
 // RegisterStaffUser mocks the implementation of  RegisterStaffUser method.
 func (f *CreateMock) RegisterStaffUser(ctx context.Context, user *dto.UserInput, staff *dto.StaffProfileInput) (*domain.StaffUserProfile, error) {
 	return f.RegisterStaffUserFn(ctx, user, staff)
+}
+
+// RegisterClient mocks the implementation of `gorm's` RegisterClient method
+func (f *CreateMock) RegisterClient(
+	ctx context.Context,
+	userInput *dto.UserInput,
+	clientInput *dto.ClientProfileInput,
+) (*domain.ClientUserProfile, error) {
+	return f.RegisterClientFn(ctx, userInput, clientInput)
 }
 
 // QueryMock is a mock of the query methods

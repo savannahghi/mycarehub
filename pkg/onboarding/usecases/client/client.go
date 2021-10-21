@@ -1,6 +1,9 @@
 package client
 
 import (
+	"context"
+
+	"github.com/savannahghi/onboarding-service/pkg/onboarding/application/dto"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/domain"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/infrastructure"
 )
@@ -18,7 +21,11 @@ type IRegisterClient interface {
 	// TODO: ensure the user exists...supplied user ID
 	// TODO: only register clients who've been counselled
 	// TODO: consider: after successful registration, send invite link automatically
-	RegisterClient(user domain.User, profile domain.ClientProfileRegistrationPayload) (*domain.ClientProfile, error)
+	RegisterClient(
+		ctx context.Context,
+		userInput *dto.UserInput,
+		clientInput *dto.ClientProfileInput,
+	) (*domain.ClientUserProfile, error)
 }
 
 // IAddClientIdentifier ...
@@ -116,8 +123,12 @@ func NewUseCasesClientImpl(infra infrastructure.Interactor) *UseCasesClientImpl 
 }
 
 // RegisterClient registers a client into the platform
-func (cl *UseCasesClientImpl) RegisterClient(user domain.User, profile domain.ClientProfileRegistrationPayload) (*domain.ClientProfile, error) {
-	return nil, nil
+func (cl *UseCasesClientImpl) RegisterClient(
+	ctx context.Context,
+	userInput *dto.UserInput,
+	clientInput *dto.ClientProfileInput,
+) (*domain.ClientUserProfile, error) {
+	return cl.Infrastructure.RegisterClient(ctx, userInput, clientInput)
 }
 
 // AddIdentifier stages and adds client identifiers

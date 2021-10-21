@@ -38,6 +38,7 @@ autobind:
   - "github.com/savannahghi/onboarding/pkg/onboarding/application/dto"
   - "github.com/savannahghi/onboarding-service/pkg/onboarding/domain"
   - "github.com/savannahghi/onboarding-service/pkg/onboarding/application/dto"
+  - "github.com/savannahghi/onboarding-service/pkg/onboarding/application/enums"
   - "github.com/savannahghi/enumutils"
   - "github.com/savannahghi/scalarutils"
   - "github.com/savannahghi/serverutils"
