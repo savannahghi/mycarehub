@@ -47,6 +47,7 @@ type Config struct {
 type ResolverRoot interface {
 	Entity() EntityResolver
 	Mutation() MutationResolver
+	PIN() PINResolver
 	Query() QueryResolver
 	UserProfile() UserProfileResolver
 	VerifiedIdentifier() VerifiedIdentifierResolver
@@ -142,6 +143,7 @@ type ComplexityRoot struct {
 		SetPrimaryEmailAddress        func(childComplexity int, email string, otp string) int
 		SetPrimaryPhoneNumber         func(childComplexity int, phone string, otp string) int
 		SetUserCommunicationsSettings func(childComplexity int, allowWhatsApp *bool, allowTextSms *bool, allowPush *bool, allowEmail *bool) int
+		SetUserPin                    func(childComplexity int, input *dto1.PINInput) int
 		SetupAsExperimentParticipant  func(childComplexity int, participate *bool) int
 		TestMutation                  func(childComplexity int) int
 		UpdateRolePermissions         func(childComplexity int, input dto.RolePermissionInput) int
@@ -174,6 +176,13 @@ type ComplexityRoot struct {
 	NestedNavAction struct {
 		OnTapRoute func(childComplexity int) int
 		Title      func(childComplexity int) int
+	}
+
+	Pin struct {
+		ConfirmedPin func(childComplexity int) int
+		Flavour      func(childComplexity int) int
+		Pin          func(childComplexity int) int
+		User         func(childComplexity int) int
 	}
 
 	PageInfo struct {
@@ -280,6 +289,7 @@ type EntityResolver interface {
 type MutationResolver interface {
 	CreateFacility(ctx context.Context, input dto1.FacilityInput) (*domain1.Facility, error)
 	DeleteFacility(ctx context.Context, id string) (bool, error)
+	SetUserPin(ctx context.Context, input *dto1.PINInput) (bool, error)
 	TestMutation(ctx context.Context) (*bool, error)
 	CompleteSignup(ctx context.Context, flavour feedlib.Flavour) (bool, error)
 	UpdateUserProfile(ctx context.Context, input dto.UserProfileInput) (*profileutils.UserProfile, error)
@@ -311,6 +321,12 @@ type MutationResolver interface {
 	RevokeRole(ctx context.Context, userID string, roleID string, reason string) (bool, error)
 	ActivateRole(ctx context.Context, roleID string) (*dto.RoleOutput, error)
 	DeactivateRole(ctx context.Context, roleID string) (*dto.RoleOutput, error)
+}
+type PINResolver interface {
+	User(ctx context.Context, obj *domain.PIN) (string, error)
+	Pin(ctx context.Context, obj *domain.PIN) (string, error)
+	ConfirmedPin(ctx context.Context, obj *domain.PIN) (string, error)
+	Flavour(ctx context.Context, obj *domain.PIN) (string, error)
 }
 type QueryResolver interface {
 	FetchFacilities(ctx context.Context) ([]*domain1.Facility, error)
@@ -920,6 +936,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.SetUserCommunicationsSettings(childComplexity, args["allowWhatsApp"].(*bool), args["allowTextSMS"].(*bool), args["allowPush"].(*bool), args["allowEmail"].(*bool)), true
 
+	case "Mutation.setUserPIN":
+		if e.complexity.Mutation.SetUserPin == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_setUserPIN_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.SetUserPin(childComplexity, args["input"].(*dto1.PINInput)), true
+
 	case "Mutation.setupAsExperimentParticipant":
 		if e.complexity.Mutation.SetupAsExperimentParticipant == nil {
 			break
@@ -1084,6 +1112,34 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.NestedNavAction.Title(childComplexity), true
+
+	case "PIN.confirmedPin":
+		if e.complexity.Pin.ConfirmedPin == nil {
+			break
+		}
+
+		return e.complexity.Pin.ConfirmedPin(childComplexity), true
+
+	case "PIN.flavour":
+		if e.complexity.Pin.Flavour == nil {
+			break
+		}
+
+		return e.complexity.Pin.Flavour(childComplexity), true
+
+	case "PIN.pin":
+		if e.complexity.Pin.Pin == nil {
+			break
+		}
+
+		return e.complexity.Pin.Pin(childComplexity), true
+
+	case "PIN.user":
+		if e.complexity.Pin.User == nil {
+			break
+		}
+
+		return e.complexity.Pin.User(childComplexity), true
 
 	case "PageInfo.endCursor":
 		if e.complexity.PageInfo.EndCursor == nil {
@@ -1650,6 +1706,7 @@ var sources = []*ast.Source{
 extend type Mutation {
     createFacility(input: FacilityInput!): Facility!
     deleteFacility(id: String!): Boolean!
+    setUserPIN(input: PINInput): Boolean!
 }
 
 extend type Query {
@@ -1663,6 +1720,12 @@ extend type Query {
   active: Boolean!
   county: String!
   description: String!
+}
+
+input PINInput {
+  pin: String!
+  confirmedPin: String!,
+  flavour: Flavour!
 }
 `, BuiltIn: false},
 	{Name: "pkg/onboarding/presentation/graph/profile.graphql", Input: `extend type Query {
@@ -1681,6 +1744,13 @@ type Facility {
   active: Boolean!
   county: String!
   description: String!
+}
+
+type PIN {
+  user: String!
+  pin: String!
+  confirmedPin: String!,
+  flavour: String!
 }`, BuiltIn: false},
 	{Name: "federation/directives.graphql", Input: `
 scalar _Any
@@ -2684,6 +2754,21 @@ func (ec *executionContext) field_Mutation_setUserCommunicationsSettings_args(ct
 		}
 	}
 	args["allowEmail"] = arg3
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_setUserPIN_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *dto1.PINInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalOPINInput2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚑserviceᚋpkgᚋonboardingᚋapplicationᚋdtoᚐPINInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
 	return args, nil
 }
 
@@ -4171,6 +4256,48 @@ func (ec *executionContext) _Mutation_deleteFacility(ctx context.Context, field 
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Mutation().DeleteFacility(rctx, args["id"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_setUserPIN(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_setUserPIN_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().SetUserPin(rctx, args["input"].(*dto1.PINInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5924,6 +6051,146 @@ func (ec *executionContext) _NestedNavAction_onTapRoute(ctx context.Context, fie
 	res := resTmp.(string)
 	fc.Result = res
 	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _PIN_user(ctx context.Context, field graphql.CollectedField, obj *domain.PIN) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "PIN",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.PIN().User(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _PIN_pin(ctx context.Context, field graphql.CollectedField, obj *domain.PIN) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "PIN",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.PIN().Pin(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _PIN_confirmedPin(ctx context.Context, field graphql.CollectedField, obj *domain.PIN) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "PIN",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.PIN().ConfirmedPin(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _PIN_flavour(ctx context.Context, field graphql.CollectedField, obj *domain.PIN) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "PIN",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.PIN().Flavour(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _PageInfo_hasNextPage(ctx context.Context, field graphql.CollectedField, obj *firebasetools.PageInfo) (ret graphql.Marshaler) {
@@ -9513,6 +9780,42 @@ func (ec *executionContext) unmarshalInputMicroserviceInput(ctx context.Context,
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputPINInput(ctx context.Context, obj interface{}) (dto1.PINInput, error) {
+	var it dto1.PINInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "pin":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("pin"))
+			it.PIN, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "confirmedPin":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("confirmedPin"))
+			it.ConfirmedPin, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "flavour":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("flavour"))
+			it.Flavour, err = ec.unmarshalNFlavour2githubᚗcomᚋsavannahghiᚋfeedlibᚐFlavour(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputPaginationInput(ctx context.Context, obj interface{}) (firebasetools.PaginationInput, error) {
 	var it firebasetools.PaginationInput
 	var asMap = obj.(map[string]interface{})
@@ -10229,6 +10532,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "setUserPIN":
+			out.Values[i] = ec._Mutation_setUserPIN(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "testMutation":
 			out.Values[i] = ec._Mutation_testMutation(ctx, field)
 		case "completeSignup":
@@ -10503,6 +10811,84 @@ func (ec *executionContext) _NestedNavAction(ctx context.Context, sel ast.Select
 			out.Values[i] = ec._NestedNavAction_title(ctx, field, obj)
 		case "onTapRoute":
 			out.Values[i] = ec._NestedNavAction_onTapRoute(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var pINImplementors = []string{"PIN"}
+
+func (ec *executionContext) _PIN(ctx context.Context, sel ast.SelectionSet, obj *domain.PIN) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, pINImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("PIN")
+		case "user":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._PIN_user(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "pin":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._PIN_pin(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "confirmedPin":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._PIN_confirmedPin(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "flavour":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._PIN_flavour(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -12745,6 +13131,14 @@ func (ec *executionContext) marshalONestedNavAction2ᚕgithubᚗcomᚋsavannahgh
 	}
 	wg.Wait()
 	return ret
+}
+
+func (ec *executionContext) unmarshalOPINInput2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚑserviceᚋpkgᚋonboardingᚋapplicationᚋdtoᚐPINInput(ctx context.Context, v interface{}) (*dto1.PINInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputPINInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalOPermission2githubᚗcomᚋsavannahghiᚋprofileutilsᚐPermission(ctx context.Context, sel ast.SelectionSet, v profileutils.Permission) graphql.Marshaler {

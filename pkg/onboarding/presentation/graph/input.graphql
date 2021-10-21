@@ -5,3 +5,9 @@ input FacilityInput {
   county: String!
   description: String!
 }
+
+input PINInput {
+  pin: String!
+  confirmedPin: String!,
+  flavour: Flavour!
+}

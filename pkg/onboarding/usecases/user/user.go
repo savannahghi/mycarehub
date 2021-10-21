@@ -1,8 +1,16 @@
 package user
 
 import (
+	"context"
+	"fmt"
+	"time"
+
+	"github.com/savannahghi/onboarding-service/pkg/onboarding/application/dto"
+	"github.com/savannahghi/onboarding-service/pkg/onboarding/application/extension"
+	"github.com/savannahghi/onboarding-service/pkg/onboarding/application/utils"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/domain"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/infrastructure"
+	"github.com/segmentio/ksuid"
 )
 
 // ILogin ...
@@ -33,7 +41,7 @@ type ILogin interface {
 	//	default this base to 4...but override to 3 for a start in env
 	// TODO: Only users who have accepted terms can login
 	// TODO: Update metrics e.g login count, failed login count, successful login count etc
-	Login(userID string, pin string, flavour string) (*domain.AuthCredentials, string, error)
+	Login(ctx context.Context, userID string, pin string, flavour string) (*domain.AuthCredentials, string, error)
 }
 
 // IUserForget models the behavior needed to comply with privacy laws e.g GDPR
@@ -76,7 +84,7 @@ type ISetUserPIN interface {
 	// entry in the table; and also invalidate past PINs.
 	// it means that the same table can be used to check for PIN reuse.
 	// TODO: all PINs are hashed
-	SetUserPIN(userID string, pin string, confirm string, flavour string) (bool, error)
+	SetUserPIN(ctx context.Context, input *dto.PINInput) (bool, error)
 }
 
 // ResetPIN ...
@@ -167,7 +175,8 @@ func NewUseCasesUserImpl(infra infrastructure.Interactor) *UseCasesUserImpl {
 }
 
 // Login is used to login the user into the application
-func (us *UseCasesUserImpl) Login(userID string, pin string, flavour string) (*domain.AuthCredentials, string, error) {
+func (us *UseCasesUserImpl) Login(ctx context.Context, userID string, pin string, flavour string) (*domain.AuthCredentials, string, error) {
+
 	return nil, "", nil
 }
 
@@ -214,4 +223,43 @@ func (us *UseCasesUserImpl) UpdateLanguagePreferences(userID string, language st
 // The default invite channel is SMS
 func (us *UseCasesUserImpl) Invite(userID string, flavour string) (bool, error) {
 	return false, nil
+}
+
+// SetUserPIN sets a user's PIN.
+func (us *UseCasesUserImpl) SetUserPIN(ctx context.Context, input *dto.PINInput) (bool, error) {
+	err := utils.ValidatePIN(input.PIN)
+	if err != nil {
+		return false, fmt.Errorf("invalid PIN provided: %v", err)
+	}
+	salt, encryptedPIN := extension.EncryptPIN(input.PIN, nil)
+
+	isMatch := extension.ComparePIN(input.ConfirmedPin, salt, encryptedPIN, nil)
+	if !isMatch {
+		return false, fmt.Errorf("the provided PINs do not match")
+	}
+
+	// Ensure that the PIN is only valid for the next 24 hours.
+	validTo := utils.GetHourMinuteSecond(24, 0, 0)
+
+	pinDataInput := &domain.UserPIN{
+		UserID:    ksuid.New().String(),
+		HashedPIN: encryptedPIN,
+		ValidFrom: time.Now(),
+		ValidTo:   validTo, // Consult for appropriate timings
+		Flavour:   input.Flavour,
+		IsValid:   isMatch,
+		Salt:      salt,
+	}
+
+	return us.Infrastructure.SetUserPIN(ctx, pinDataInput)
+}
+
+// Forget ...
+func (us *UseCasesUserImpl) Forget(userID string, pin string, flavour string) (bool, error) {
+	return true, nil
+}
+
+// RequestDataExport ...
+func (us *UseCasesUserImpl) RequestDataExport(userID string, pin string, flavour string) (bool, error) {
+	return true, nil
 }

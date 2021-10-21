@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 	"reflect"
 	"testing"
+	"time"
 
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/extension"
 	"github.com/tj/assert"
@@ -138,6 +139,34 @@ func TestCompareUID(t *testing.T) {
 				assert.False(t, isEncypted)
 				assert.Equal(t, tt.want, isEncypted)
 			}
+		})
+	}
+}
+
+func TestGetHourMinuteSecond(t *testing.T) {
+	type args struct {
+		hour   time.Duration
+		minute time.Duration
+		second time.Duration
+	}
+	tests := []struct {
+		name string
+		args args
+		want time.Time
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				hour:   20,
+				minute: 1,
+				second: 0,
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := GetHourMinuteSecond(tt.args.hour, tt.args.minute, tt.args.second)
+			assert.NotNil(t, got)
 		})
 	}
 }

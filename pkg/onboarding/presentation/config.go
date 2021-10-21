@@ -24,6 +24,7 @@ import (
 	internalRest "github.com/savannahghi/onboarding-service/pkg/onboarding/presentation/rest"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/usecases/facility"
 	metrics "github.com/savannahghi/onboarding-service/pkg/onboarding/usecases/metric"
+	userusecase "github.com/savannahghi/onboarding-service/pkg/onboarding/usecases/user"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/extension"
 	osinfra "github.com/savannahghi/onboarding/pkg/onboarding/infrastructure"
 	openSourcePresentation "github.com/savannahghi/onboarding/pkg/onboarding/presentation"
@@ -81,24 +82,24 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	//Initialize metric usecases
 	metricsUsecase := metrics.NewMetricUsecase(infra)
 
+	userUsecase := userusecase.NewUseCasesUserImpl(infra)
+
 	pg, err := gorm.NewPGInstance()
 	if err != nil {
 		return nil, fmt.Errorf("can't instantiate repository in resolver: %v", err)
 	}
 
-	db := postgres.NewOnboardingDb(pg, pg, pg)
+	db := postgres.NewOnboardingDb(pg, pg, pg, pg)
 
 	// Initialize the interactor
-	i, err := interactor.NewOnboardingInteractor(
+	i := interactor.NewOnboardingInteractor(
 		infrastructure,
 		*db,
 		openSourceUsecases,
 		facilityUseCase,
 		metricsUsecase,
+		userUsecase,
 	)
-	if err != nil {
-		return nil, fmt.Errorf("can't instantiate service : %w", err)
-	}
 
 	h := rest.NewHandlersInterfaces(infrastructure, openSourceUsecases)
 	internalHandlers := internalRest.NewOnboardingHandlersInterfaces(infra, *i)

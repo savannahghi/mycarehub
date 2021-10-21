@@ -62,7 +62,7 @@ func TestOnboardingDb_CreateFacility(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var fakeGorm = gormMock.NewGormMock()
-			d := NewOnboardingDb(fakeGorm, fakeGorm, fakeGorm)
+			d := NewOnboardingDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
 			got, err := d.GetOrCreateFacility(tt.args.ctx, tt.args.facility)
 			if tt.name == "sad case - facility code not defined" {
 				fakeGorm.GetOrCreateFacilityFn = func(ctx context.Context, facility *gorm.Facility) (*gorm.Facility, error) {
@@ -138,7 +138,7 @@ func TestOnboardingDb_CollectMetrics_Unittest(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var fakeGorm = gormMock.NewGormMock()
-			d := NewOnboardingDb(fakeGorm, fakeGorm, fakeGorm)
+			d := NewOnboardingDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
 
 			if tt.name == "Happy case" {
 				fakeGorm.CollectMetricsFn = func(ctx context.Context, metrics *gorm.Metric) (*gorm.Metric, error) {
@@ -163,6 +163,69 @@ func TestOnboardingDb_CollectMetrics_Unittest(t *testing.T) {
 			_, err := d.CollectMetrics(tt.args.ctx, tt.args.metric)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("OnboardingDb.CollectMetrics() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}
+
+func TestOnboardingDb_SetUserPIN(t *testing.T) {
+	ctx := context.Background()
+
+	validPINDataINput := &domain.UserPIN{
+		UserID:    ksuid.New().String(),
+		HashedPIN: "test-Pin",
+		ValidFrom: time.Time{},
+		ValidTo:   time.Time{},
+		Flavour:   "CONSUMER",
+		IsValid:   false,
+		Salt:      "salt",
+	}
+
+	invalidPINDataINput := &domain.UserPIN{
+		UserID:    "",
+		HashedPIN: "test-Pin",
+		ValidFrom: time.Time{},
+		ValidTo:   time.Time{},
+		Flavour:   "CONSUMER",
+		IsValid:   false,
+		Salt:      "salt",
+	}
+	type args struct {
+		ctx     context.Context
+		pinData *domain.UserPIN
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:     ctx,
+				pinData: validPINDataINput,
+			},
+			wantErr: false,
+		},
+
+		{
+			name: "Sad case",
+			args: args{
+				ctx:     ctx,
+				pinData: invalidPINDataINput,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var fakeGorm = gormMock.NewGormMock()
+			d := NewOnboardingDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			_, err := d.SetUserPIN(tt.args.ctx, tt.args.pinData)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("OnboardingDb.SetUserPIN() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 		})

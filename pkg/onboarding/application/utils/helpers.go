@@ -1,9 +1,20 @@
 package utils
 
 import (
+	"fmt"
 	"hash"
+	"time"
 
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/infrastructure"
+	"github.com/savannahghi/onboarding/pkg/onboarding/application/exceptions"
+	"github.com/savannahghi/onboarding/pkg/onboarding/application/extension"
+)
+
+const (
+	// Default min length of the date
+	minPINLength = 4
+	// Default max length of the date
+	maxPINLength = 4
 )
 
 // Options is a struct for custom values of salt length, number of iterations, the encoded key's length,
@@ -31,4 +42,34 @@ func CompareUID(rawUID string, salt string, encodedUID string, options *Options)
 
 	interactor := infrastructure.NewInteractor()
 	return interactor.PINExtension.ComparePIN(rawUID, salt, encodedUID, nil)
+}
+
+// ValidatePIN ...
+func ValidatePIN(pin string) error {
+	validatePINErr := ValidatePINLength(pin)
+	if validatePINErr != nil {
+		return validatePINErr
+	}
+
+	pinDigitsErr := extension.ValidatePINDigits(pin)
+	if pinDigitsErr != nil {
+		return pinDigitsErr
+	}
+	return nil
+}
+
+// ValidatePINLength ...
+func ValidatePINLength(pin string) error {
+	// make sure pin length is [4]
+	if len(pin) < minPINLength || len(pin) > maxPINLength {
+		return exceptions.ValidatePINLengthError(fmt.Errorf("PIN should be of 4 digits"))
+	}
+	return nil
+}
+
+// GetHourMinuteSecond will be used to calculate time in the past or the future
+func GetHourMinuteSecond(hour, minute, second time.Duration) time.Time {
+
+	return time.Now().Add(time.Hour*hour + time.Minute*minute + time.Second*second)
+
 }

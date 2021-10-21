@@ -90,9 +90,11 @@ type User struct {
 	DisplayName string `gorm:"column:display_name"` // user's preferred display name
 
 	// TODO Consider making the names optional in DB; validation in frontends
-	FirstName  string  `gorm:"column:first_name"` // given name
-	MiddleName *string `gorm:"column:user_id"`
-	LastName   string  `gorm:"column:last_name"`
+	FirstName  string `gorm:"column:first_name"` // given name
+	MiddleName string `gorm:"column:middle_name"`
+	LastName   string `gorm:"column:last_name"`
+
+	Flavour feedlib.Flavour `gorm:"column:flavour"`
 
 	UserType string `gorm:"column:user_type"` // TODO enum; e.g client, health care worker
 
@@ -116,14 +118,13 @@ type User struct {
 
 	// each time there is a failed login, **increment** this
 	// set to zero after successful login
-	FailedLoginCount int `gorm:"column:failed_login_count"`
+	FailedLoginCount string `gorm:"column:failed_login_count"`
 
 	// calculated each time there is a failed login
 	NextAllowedLogin *time.Time `gorm:"type:time;column:next_allowed_login"`
 
 	TermsAccepted   bool   `gorm:"type:bool;column:terms_accepted"`
 	AcceptedTermsID string `gorm:"column:accepted_terms_id"` // foreign key to version of terms they accepted
-	Flavour         feedlib.Flavour
 }
 
 // BeforeCreate is a hook run before creating a new user
@@ -233,6 +234,33 @@ func allTables() []interface{} {
 		&Contact{},
 		&StaffProfile{},
 		&UserAddress{},
+		&PINData{},
 	}
 	return tables
+}
+
+// PINData is the PIN's gorm data model.
+type PINData struct {
+	Base
+
+	PINDataID *uuid.UUID      `gorm:"primaryKey;unique;column:pin_data_id"`
+	UserID    string          `gorm:"unique;column:user_id"`
+	HashedPIN string          `gorm:"column:hashed_pin"`
+	ValidFrom time.Time       `gorm:"column:valid_from"`
+	ValidTo   time.Time       `gorm:"column:valid_to"`
+	IsValid   bool            `gorm:"column:is_valid"`
+	Flavour   feedlib.Flavour `gorm:"column:flavour"`
+	Salt      string          `gorm:"column:salt"`
+}
+
+// BeforeCreate is a hook run before creating a new facility
+func (p *PINData) BeforeCreate(tx *gorm.DB) (err error) {
+	id := uuid.New()
+	p.PINDataID = &id
+	return
+}
+
+// TableName customizes how the table name is generated
+func (PINData) TableName() string {
+	return "pindata"
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strconv"
+	"time"
 
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/application/dto"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/domain"
@@ -35,6 +36,30 @@ func (d *OnboardingDb) GetOrCreateFacility(ctx context.Context, facility *dto.Fa
 	}
 
 	return d.mapFacilityObjectToDomain(facilitySession), nil
+}
+
+// SetUserPIN does the actual saving of the users PIN in the database
+func (d *OnboardingDb) SetUserPIN(ctx context.Context, pinData *domain.UserPIN) (bool, error) {
+	if pinData.UserID == "" {
+		return false, fmt.Errorf("userID cannot be empty")
+	}
+	pinObj := &gorm.PINData{
+		Base:      gorm.Base{},
+		UserID:    pinData.UserID,
+		HashedPIN: pinData.HashedPIN,
+		ValidFrom: time.Time{},
+		ValidTo:   time.Time{},
+		IsValid:   pinData.IsValid,
+		Flavour:   pinData.Flavour,
+		Salt:      pinData.Salt,
+	}
+
+	_, err := d.create.SetUserPIN(ctx, pinObj)
+	if err != nil {
+		return false, fmt.Errorf("failed to set user pin: %v", err)
+	}
+
+	return true, nil
 }
 
 // CollectMetrics is responsible for cretating a representation of metrics data.

@@ -64,3 +64,23 @@ func (d *OnboardingDb) RetrieveByFacilityMFLCode(ctx context.Context, MFLCode st
 
 	return d.mapFacilityObjectToDomain(facilitySession), nil
 }
+
+// GetUserProfileByUserID fetches a user profile facility using the user ID
+func (d *OnboardingDb) GetUserProfileByUserID(ctx context.Context, userID string, flavour string) (*domain.User, error) {
+	user, err := d.query.GetUserProfileByUserID(ctx, userID, flavour)
+	if err != nil {
+		return nil, fmt.Errorf("failed query and retrieve user profile by user ID: %s", err)
+	}
+
+	return d.mapProfileObjectToDomain(user), nil
+}
+
+// GetUserPINByUserID fetches a user profile facility using the user ID
+func (d *OnboardingDb) GetUserPINByUserID(ctx context.Context, userID string) (*domain.UserPIN, error) {
+	pinData, err := d.query.GetUserPINByUserID(ctx, userID)
+	if err != nil {
+		return nil, fmt.Errorf("failed query and retrieve user PIN data by user ID: %s", err)
+	}
+
+	return d.mapPINObjectToDomain(pinData), nil
+}
