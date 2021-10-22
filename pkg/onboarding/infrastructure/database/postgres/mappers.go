@@ -3,6 +3,7 @@ package postgres
 import (
 	"strconv"
 
+	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/domain"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/infrastructure/database/postgres/gorm"
 )
@@ -99,21 +100,7 @@ func (d *OnboardingDb) mapRegisterStaffObjectToDomain(userStaffObject *gorm.Staf
 	userObject := userStaffObject.User
 	staffObject := userStaffObject.Staff
 
-	user := &domain.User{
-		ID:                  userObject.UserID,
-		Username:            userObject.Username,
-		DisplayName:         userObject.DisplayName,
-		FirstName:           userObject.FirstName,
-		MiddleName:          userObject.MiddleName,
-		LastName:            userObject.LastName,
-		Active:              userObject.Active,
-		LastSuccessfulLogin: userObject.LastSuccessfulLogin,
-		LastFailedLogin:     userObject.LastFailedLogin,
-		FailedLoginCount:    userObject.FailedLoginCount,
-		NextAllowedLogin:    userObject.NextAllowedLogin,
-		TermsAccepted:       userObject.TermsAccepted,
-		AcceptedTermsID:     userObject.AcceptedTermsID,
-	}
+	user := createMapUser(userObject)
 
 	staffProfile := &domain.StaffProfile{
 		ID:          staffObject.StaffProfileID,
@@ -135,21 +122,7 @@ func (d *OnboardingDb) mapRegisterClientObjectToDomain(clientObject *gorm.Client
 	userObject := clientObject.User
 	client := clientObject.Client
 
-	user := &domain.User{
-		ID:                  userObject.UserID,
-		Username:            userObject.Username,
-		DisplayName:         userObject.DisplayName,
-		FirstName:           userObject.FirstName,
-		MiddleName:          userObject.MiddleName,
-		LastName:            userObject.LastName,
-		Active:              userObject.Active,
-		LastSuccessfulLogin: userObject.LastSuccessfulLogin,
-		LastFailedLogin:     userObject.LastFailedLogin,
-		FailedLoginCount:    userObject.FailedLoginCount,
-		NextAllowedLogin:    userObject.NextAllowedLogin,
-		TermsAccepted:       userObject.TermsAccepted,
-		AcceptedTermsID:     userObject.AcceptedTermsID,
-	}
+	user := createMapUser(userObject)
 
 	clientProfile := &domain.ClientProfile{
 		ID:         client.ID,
@@ -161,4 +134,49 @@ func (d *OnboardingDb) mapRegisterClientObjectToDomain(clientObject *gorm.Client
 		User:   user,
 		Client: clientProfile,
 	}
+}
+
+// a helper method to create mapped user
+func createMapUser(userObject *gorm.User) *domain.User {
+	contacts := []*domain.Contact{}
+	if len(userObject.Contacts) > 0 {
+		for _, u := range userObject.Contacts {
+			contact := &domain.Contact{
+				ID:      u.ContactID,
+				Type:    u.Type,
+				Contact: u.Contact,
+				Active:  u.Active,
+				OptedIn: u.OptedIn,
+			}
+			contacts = append(contacts, contact)
+		}
+	}
+
+	languages := []enumutils.Language{}
+	for _, l := range userObject.Languages {
+		languages = append(languages, enumutils.Language(l))
+
+	}
+
+	user := &domain.User{
+		ID:                  userObject.UserID,
+		Username:            userObject.Username,
+		DisplayName:         userObject.DisplayName,
+		FirstName:           userObject.FirstName,
+		MiddleName:          userObject.MiddleName,
+		LastName:            userObject.LastName,
+		Gender:              userObject.Gender,
+		UserType:            userObject.UserType,
+		Contacts:            contacts,
+		Languages:           languages,
+		Active:              userObject.Active,
+		LastSuccessfulLogin: userObject.LastSuccessfulLogin,
+		LastFailedLogin:     userObject.LastFailedLogin,
+		FailedLoginCount:    userObject.FailedLoginCount,
+		NextAllowedLogin:    userObject.NextAllowedLogin,
+		TermsAccepted:       userObject.TermsAccepted,
+		AcceptedTermsID:     userObject.AcceptedTermsID,
+		Flavour:             userObject.Flavour,
+	}
+	return user
 }

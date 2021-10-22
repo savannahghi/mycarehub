@@ -17,7 +17,7 @@ func TestUseCasesClientImplIntegration_RegisterClient(t *testing.T) {
 	userPayload := &dto.UserInput{
 		FirstName:   "FirstName",
 		LastName:    "Last Name",
-		UserName:    "User Name",
+		Username:    "User Name",
 		MiddleName:  "Middle Name",
 		DisplayName: "Display Name",
 		Gender:      enumutils.GenderMale,

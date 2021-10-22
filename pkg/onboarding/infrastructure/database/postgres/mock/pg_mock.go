@@ -5,7 +5,10 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/savannahghi/enumutils"
+	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/application/dto"
+	"github.com/savannahghi/onboarding-service/pkg/onboarding/application/enums"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/domain"
 )
 
@@ -83,13 +86,13 @@ func NewPostgresMock() *PostgresMock {
 
 		GetUserProfileByUserIDFn: func(ctx context.Context, userID, flavour string) (*domain.User, error) {
 			id := uuid.New().String()
-			// contact := &domain.Contact{
-			// 	ID:      &id,
-			// 	Type:    "test",
-			// 	Contact: "test",
-			// 	Active:  true,
-			// 	OptedIn: true,
-			// }
+			contact := &domain.Contact{
+				ID:      &id,
+				Type:    enums.PhoneContact,
+				Contact: "test",
+				Active:  true,
+				OptedIn: true,
+			}
 			time := time.Now()
 			return &domain.User{
 				ID:          &id,
@@ -98,12 +101,11 @@ func NewPostgresMock() *PostgresMock {
 				FirstName:   "test",
 				MiddleName:  "test",
 				LastName:    "test",
-				Flavour:     "test",
-				// UserType:            "test",
-				// Gender:              "test",
-				Active: false,
-				// Contacts:            []*domain.Contact{contact},
-				// Languages:           []string{"en"},
+				UserType:    enums.HealthcareWorkerUser,
+				Gender:      enumutils.GenderMale,
+				Active:      false,
+				Contacts:    []*domain.Contact{contact},
+				Languages:   []enumutils.Language{enumutils.LanguageEn},
 				// PushTokens:          []string{"push-token"},
 				LastSuccessfulLogin: &time,
 				LastFailedLogin:     &time,
@@ -111,6 +113,7 @@ func NewPostgresMock() *PostgresMock {
 				NextAllowedLogin:    &time,
 				TermsAccepted:       false,
 				AcceptedTermsID:     "test",
+				Flavour:             feedlib.FlavourPro,
 			}, nil
 		},
 

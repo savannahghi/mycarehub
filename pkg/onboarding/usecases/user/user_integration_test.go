@@ -96,7 +96,7 @@ func TestUseCasesUserImpl_Login_Integration_Test(t *testing.T) {
 	}
 
 	userInput := &dto.UserInput{
-		UserName:    "test",
+		Username:    "test",
 		DisplayName: "test",
 		FirstName:   "test",
 		MiddleName:  "test",

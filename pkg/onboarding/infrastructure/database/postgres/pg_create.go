@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/lib/pq"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/application/dto"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/domain"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/infrastructure/database/postgres/gorm"
@@ -89,14 +90,8 @@ func (d *OnboardingDb) RegisterStaffUser(ctx context.Context, user *dto.UserInpu
 	if staff.DefaultFacilityID == nil {
 		return nil, fmt.Errorf("expected default facility ID to be provided")
 	}
-	userObject := &gorm.User{
-		Username:    user.UserName,
-		DisplayName: user.DisplayName,
-		FirstName:   user.FirstName,
-		MiddleName:  user.MiddleName,
-		LastName:    user.LastName,
-		Flavour:     user.Flavour,
-	}
+
+	userObject := createUserObject(user)
 
 	staffObject := &gorm.StaffProfile{
 		StaffNumber:       staff.StaffNumber,
@@ -127,14 +122,7 @@ func (d *OnboardingDb) RegisterClient(
 		return nil, fmt.Errorf("expected user input to be provided")
 	}
 
-	userObject := &gorm.User{
-		FirstName:   userInput.FirstName,
-		LastName:    userInput.LastName,
-		Username:    userInput.UserName,
-		MiddleName:  userInput.MiddleName,
-		DisplayName: userInput.DisplayName,
-		Gender:      userInput.Gender,
-	}
+	userObject := createUserObject(userInput)
 
 	clientObject := &gorm.ClientProfile{
 		ClientType: clientInput.ClientType,
@@ -146,4 +134,39 @@ func (d *OnboardingDb) RegisterClient(
 	}
 
 	return d.mapRegisterClientObjectToDomain(clientUserProfile), nil
+}
+
+// A helper method to create a user object
+func createUserObject(user *dto.UserInput) *gorm.User {
+	contacts := []gorm.Contact{}
+	if len(user.Contacts) > 0 {
+		for _, u := range user.Contacts {
+			contact := gorm.Contact{
+				Type:    u.Type,
+				Contact: u.Contact,
+				Active:  u.Active,
+				OptedIn: u.OptedIn,
+			}
+			contacts = append(contacts, contact)
+		}
+	}
+
+	languages := []string{}
+	for _, l := range user.Languages {
+		languages = append(languages, l.String())
+	}
+
+	userObject := &gorm.User{
+		Username:    user.Username,
+		DisplayName: user.DisplayName,
+		FirstName:   user.FirstName,
+		MiddleName:  user.MiddleName,
+		LastName:    user.LastName,
+		Gender:      user.Gender,
+		Contacts:    contacts,
+		UserType:    user.UserType,
+		Languages:   pq.StringArray(languages),
+		Flavour:     user.Flavour,
+	}
+	return userObject
 }

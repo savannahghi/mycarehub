@@ -7,11 +7,44 @@ type Facility {
   description: String!
 }
 
+
 type PIN {
   user: String!
   pin: String!
   confirmedPin: String!
   flavour: Flavour!
+}
+
+type User {
+  id: String!
+  username: String
+  displayName: String
+  middleName: String
+  firstName: String
+  lastName: String
+  gender: Gender
+  userType: UsersType
+  active: Boolean
+  contacts: [Contact!]!
+  languages: [Language]
+  # pushTokens: [String!]
+  lastSuccessfulLogin: Time
+  lastFailedLogin: Time
+  failedLoginCount: String!
+  nextAllowedLogin: Time
+  termsAccepted: Boolean
+  acceptedTermsID: String
+  flavour: Flavour!
+}
+
+type Contact {
+  ID: String!
+	Type: ContactType!
+	Contact: String! #TODO Validate: phones are E164, emails are valid
+	Active: Boolean!
+  #a user may opt not to be contacted via this contact
+  #e.g if it's a shared phone owned by a teenager
+	OptedIn: Boolean!
 }
 
 type StaffProfile {
@@ -27,26 +60,6 @@ type StaffProfile {
 type StaffUserProfile {
   user: User!
   staff: StaffProfile!
-}
-
-type User {
-  id: String!
-  firstName: String
-  lastName: String
-  gender: Gender
-  userName: String
-  displayName: String
-  active: Boolean
-  # contacts: [Contact!]
-  languages: [Language]
-  # pushTokens: [String!]
-  lastSuccessfulLogin: Time
-  lastFailedLogin: Time
-  failedLoginCount: String
-  nextAllowedLogin: Time
-  termsAccepted: Boolean
-  acceptedTermsID: String
-  # flavour: String!
 }
 
 type ClientProfile {

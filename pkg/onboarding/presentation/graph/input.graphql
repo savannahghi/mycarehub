@@ -12,6 +12,20 @@ input PINInput {
   flavour: Flavour!
 }
 
+
+input UserInput {
+  username: String!
+  displayName: String!
+  firstName: String!
+  middleName: String!
+  lastName: String!
+  userType: UsersType! # TODO enum; e.g client, health care worker
+  gender: Gender! # TODO enum; genders; keep it simple
+  contacts: [ContactInput!]!
+  languages: [Language!]!
+  flavour: Flavour!
+}
+
 input StaffProfileInput {
   staffNumber: String!
   # facilities: [FacilityInput!]
@@ -20,18 +34,15 @@ input StaffProfileInput {
   # addresses: [ContactAddressInput!]
 }
 
-input UserInput {
-  firstName: String
-  lastName: String
-  middleName: String
-  userName: String
-  displayName: String
-  gender: Gender
-  # userType: String! # TODO enum; e.g client, health care worker
-  # contacts: [ContactInput!]
-  # languages: [String]
-  # flavour: String!
+input ContactInput {
+	Type: ContactType!
+	Contact: String! #TODO Validate: phones are E164, emails are valid
+	Active: Boolean!
+  #a user may opt not to be contacted via this contact
+  #e.g if it's a shared phone owned by a teenager
+	OptedIn: Boolean!
 }
+
 
 input ClientProfileInput {
   clientType: ClientType!

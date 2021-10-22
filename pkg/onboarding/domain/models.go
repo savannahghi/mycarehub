@@ -57,13 +57,13 @@ type User struct {
 	MiddleName string
 	LastName   string
 
-	// UserType string // TODO enum; e.g client, health care worker
+	UserType enums.UsersType // TODO enum; e.g client, health care worker
 
-	Gender enumutils.Gender
+	Gender enumutils.Gender // TODO enum; genders; keep it simple
 
 	Active bool
 
-	// Contacts []*Contact // TODO: validate, ensure
+	Contacts []*Contact // TODO: validate, ensure
 
 	// for the preferred language list, order matters
 	Languages []enumutils.Language // TODO: turn this into a slice of enums, start small (en, sw)
@@ -223,7 +223,7 @@ type ClientProfileRegistrationPayload struct {
 type Contact struct {
 	ID *string
 
-	Type string // TODO enum
+	Type enums.ContactType // TODO enum
 
 	Contact string // TODO Validate: phones are E164, emails are valid
 

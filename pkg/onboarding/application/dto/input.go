@@ -122,17 +122,32 @@ type ClientProfileInput struct {
 
 // UserInput is used to supply user input for registration
 type UserInput struct {
-	// TODO Consider making the names optional in DB; validation in frontends
-	FirstName   string           `json:"firstName"`
-	MiddleName  string           `json:"middleName"`
-	LastName    string           `json:"lastName"`
-	UserName    string           `json:"userName"`
-	DisplayName string           `json:"displayName"`
-	Gender      enumutils.Gender `json:"gender"`
-	Flavour     feedlib.Flavour  `json:"flavour"`
+	Username string // @handle, also globally unique; nickname
 
-	// UserType string // TODO enum; e.g client, health care worker
-	// Contacts []*domain.Contact // TODO: validate, ensure
+	DisplayName string // user's preferred display name
+
+	// TODO Consider making the names optional in DB; validation in frontends
+	FirstName  string // given name
+	MiddleName string
+	LastName   string
+
+	UserType enums.UsersType // TODO enum; e.g client, health care worker
+
+	Gender enumutils.Gender // TODO enum; genders; keep it simple
+
+	Contacts []*ContactInput // TODO: validate, ensure
+
 	// // for the preferred language list, order matters
-	// Languages []string // TODO: turn this into a slice of enums, start small (en, sw)
+	Languages []enumutils.Language // TODO: turn this into a slice of enums, start small (en, sw)
+	Flavour   feedlib.Flavour
+}
+
+// ContactInput contains input required to register a user
+type ContactInput struct {
+	Type    enums.ContactType
+	Contact string //TODO Validate: phones are E164, emails are valid
+	Active  bool
+	//   a user may opt not to be contacted via this contact
+	//   e.g if it's a shared phone owned by a teenager
+	OptedIn bool
 }

@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/lib/pq"
 	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/application/enums"
@@ -53,6 +54,7 @@ type Metric struct {
 	// ensures we don't re-save the same metric; opaque; globally unique
 	MetricID *string `gorm:"primaryKey;autoIncrement:true;unique;column:metric_id"`
 
+	// TODO Metric types should be a controlled list i.e enum
 	Type enums.MetricType `gorm:"column:metric_type"`
 
 	// this will vary by context
@@ -94,16 +96,16 @@ type User struct {
 	MiddleName string `gorm:"column:middle_name"`
 	LastName   string `gorm:"column:last_name"`
 
-	UserType string `gorm:"column:user_type"` // TODO enum; e.g client, health care worker
+	UserType enums.UsersType `gorm:"column:user_type"` // TODO enum; e.g client, health care worker
 
-	Gender enumutils.Gender `gorm:"column:gender"`
+	Gender enumutils.Gender `gorm:"column:gender"` // TODO enum; genders; keep it simple
 
 	Active bool `gorm:"column:active"`
 
-	Contacts []Contact `gorm:"many2many:user_contact;"` // TODO: validate, ensure
+	Contacts []Contact `gorm:"ForeignKey:UserID"` // TODO: validate, ensure
 
 	// // for the preferred language list, order matters
-	Languages []string `gorm:"type:text[];column:languages"` // TODO: turn this into a slice of enums, start small (en, sw)
+	Languages pq.StringArray `gorm:"type:text[];column:languages"` // TODO: turn this into a slice of enums, start small (en, sw)
 
 	PushTokens []string `gorm:"type:text[];column:push_tokens"`
 
@@ -144,15 +146,17 @@ type Contact struct {
 
 	ContactID *string `gorm:"primaryKey;unique;column:contact_id"`
 
-	Type string `gorm:"column:type"` // TODO enum
+	Type enums.ContactType `gorm:"column:type"` // TODO enum
 
-	Contact string `gorm:"column:contact"` // TODO Validate: phones are E164, emails are valid
+	Contact string `gorm:"unique;column:contact"` // TODO Validate: phones are E164, emails are valid
 
 	Active bool `gorm:"column:active"`
 
 	// a user may opt not to be contacted via this contact
 	// e.g if it's a shared phone owned by a teenager
 	OptedIn bool `gorm:"column:opted_in"`
+
+	UserID *string `gorm:"column:user_id"` // Foreign key
 }
 
 // BeforeCreate is a hook run before creating a new contact
@@ -172,9 +176,9 @@ type StaffProfile struct {
 	StaffProfileID *string `gorm:"primaryKey;unique;column:staff_profile_id"`
 
 	UserID *string `gorm:"unique;column:user_id"` // foreign key to user
-	User   User    `gorm:"foreignKey:user_id;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
+	User   User    `gorm:"foreignKey:user_id;references:user_id;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 
-	StaffNumber string `gorm:"column:staff_number"`
+	StaffNumber string `gorm:"unique;column:staff_number"`
 
 	// Facilities []*Facility `gorm:"many2many:staffprofile_facility;not null;"` // TODO: needs at least one
 
@@ -284,22 +288,8 @@ func (ClientProfile) TableName() string {
 // ClientUserProfile holds the details of end users who are not using the system in
 // a professional capacity e.g consumers, patients etc together with their user profile
 type ClientUserProfile struct {
-	User   *User          `json:"user"`
-	Client *ClientProfile `json:"client"`
-}
-
-func allTables() []interface{} {
-	tables := []interface{}{
-		&Facility{},
-		&Metric{},
-		&User{},
-		&ClientProfile{},
-		&Contact{},
-		&StaffProfile{},
-		&UserAddress{},
-		&PINData{},
-	}
-	return tables
+	User   *User
+	Client *ClientProfile
 }
 
 // PINData is the PIN's gorm data model.
@@ -326,4 +316,18 @@ func (p *PINData) BeforeCreate(tx *gorm.DB) (err error) {
 // TableName customizes how the table name is generated
 func (PINData) TableName() string {
 	return "pindata"
+}
+
+func allTables() []interface{} {
+	tables := []interface{}{
+		&Facility{},
+		&Metric{},
+		&User{},
+		&Contact{},
+		&StaffProfile{},
+		&ClientProfile{},
+		&UserAddress{},
+		&PINData{},
+	}
+	return tables
 }
