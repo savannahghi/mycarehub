@@ -118,6 +118,7 @@ type UserInput struct {
 
 	// // for the preferred language list, order matters
 	// Languages []string // TODO: turn this into a slice of enums, start small (en, sw)
+	Flavour feedlib.Flavour
 }
 
 // StaffProfileInput contains input required to register a staff

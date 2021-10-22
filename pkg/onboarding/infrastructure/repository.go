@@ -2,6 +2,7 @@ package infrastructure
 
 import (
 	"context"
+	"time"
 
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/application/dto"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/domain"
@@ -116,4 +117,44 @@ func NewServiceDeleteImpl(on pg.OnboardingDb) Delete {
 	return &ServiceDeleteImpl{
 		onboarding: on,
 	}
+}
+
+// Update contains all update methods
+type Update interface {
+	UpdateUserLastSuccessfulLogin(ctx context.Context, userID string, lastLoginTime time.Time, flavour string) error
+	UpdateUserLastFailedLogin(ctx context.Context, userID string, lastFailedLoginTime time.Time, flavour string) error
+	UpdateUserFailedLoginCount(ctx context.Context, userID string, failedLoginCount string, flavour string) error
+	UpdateUserNextAllowedLogin(ctx context.Context, userID string, nextAllowedLoginTime time.Time, flavour string) error
+}
+
+// ServiceUpdateImpl represents update user implementation object
+type ServiceUpdateImpl struct {
+	onboarding pg.OnboardingDb
+}
+
+// NewServiceUpdateImpl returns new instance of NewServiceUpdateImpl
+func NewServiceUpdateImpl(on pg.OnboardingDb) Update {
+	return &ServiceUpdateImpl{
+		onboarding: on,
+	}
+}
+
+// UpdateUserLastSuccessfulLogin ...
+func (u *ServiceUpdateImpl) UpdateUserLastSuccessfulLogin(ctx context.Context, userID string, lastLoginTime time.Time, flavour string) error {
+	return u.onboarding.UpdateUserLastSuccessfulLogin(ctx, userID, lastLoginTime, flavour)
+}
+
+// UpdateUserLastFailedLogin ...
+func (u *ServiceUpdateImpl) UpdateUserLastFailedLogin(ctx context.Context, userID string, lastFailedLoginTime time.Time, flavour string) error {
+	return u.onboarding.UpdateUserLastFailedLogin(ctx, userID, lastFailedLoginTime, flavour)
+}
+
+// UpdateUserFailedLoginCount ...
+func (u *ServiceUpdateImpl) UpdateUserFailedLoginCount(ctx context.Context, userID string, failedLoginCount string, flavour string) error {
+	return u.onboarding.UpdateUserFailedLoginCount(ctx, userID, failedLoginCount, flavour)
+}
+
+// UpdateUserNextAllowedLogin ...
+func (u *ServiceUpdateImpl) UpdateUserNextAllowedLogin(ctx context.Context, userID string, nextAllowedLoginTime time.Time, flavour string) error {
+	return u.onboarding.UpdateUserNextAllowedLogin(ctx, userID, nextAllowedLoginTime, flavour)
 }

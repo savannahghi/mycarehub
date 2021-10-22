@@ -23,7 +23,7 @@ input UserInput {
   # gender: String! # TODO enum; genders; keep it simple
   # contacts: [ContactInput!]
   # languages: [String]
-  # flavour: String!
+  flavour: Flavour!
 }
 
 input StaffProfileInput {

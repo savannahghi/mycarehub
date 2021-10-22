@@ -3,14 +3,16 @@ package user
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"time"
 
+	"github.com/savannahghi/firebasetools"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/application/dto"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/application/extension"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/application/utils"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/domain"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/infrastructure"
-	"github.com/segmentio/ksuid"
+	"github.com/savannahghi/onboarding/pkg/onboarding/application/exceptions"
 )
 
 // ILogin ...
@@ -176,8 +178,78 @@ func NewUseCasesUserImpl(infra infrastructure.Interactor) *UseCasesUserImpl {
 
 // Login is used to login the user into the application
 func (us *UseCasesUserImpl) Login(ctx context.Context, userID string, pin string, flavour string) (*domain.AuthCredentials, string, error) {
+	// Get user profile by UserID
+	userProfile, err := us.Infrastructure.GetUserProfileByUserID(ctx, userID, flavour)
+	if err != nil {
+		return nil, "", fmt.Errorf("unable to get user profile by userID: %v", err)
+	}
 
-	return nil, "", nil
+	//Fetch PIN by UserID
+	userPINData, err := us.Infrastructure.GetUserPINByUserID(ctx, userID)
+	if err != nil {
+		return nil, "", fmt.Errorf("unable to get user PIN by userID: %v", err)
+	}
+
+	//Compare PIN to check for validity
+	isMatch := extension.ComparePIN(pin, userPINData.Salt, userPINData.HashedPIN, nil)
+	// On any mis-match:
+	if !isMatch {
+		failedLoginCount, err := strconv.Atoi(userProfile.FailedLoginCount)
+		if err != nil {
+			return nil, "", err
+		}
+		trials := failedLoginCount + 1
+		//Convert trials to string
+		numberOfTrials := strconv.Itoa(trials)
+
+		// Implement exponential back-off, record the number of trials and last successful login
+		// 1. Record the user's number of failed login time
+		if err := us.Infrastructure.UpdateUserFailedLoginCount(ctx, userID, numberOfTrials, flavour); err != nil {
+			return nil, "unable to update number of user failed login counts", fmt.Errorf("unable to update number of user failed login counts: %v", err)
+		}
+
+		// 2. Update user's last failed login time
+		lastFailedLoginTime := time.Now()
+		if err := us.Infrastructure.UpdateUserLastFailedLogin(ctx, userID, lastFailedLoginTime, flavour); err != nil {
+			return nil, "unable to update number of user last failed login time", fmt.Errorf("unable to update number of user last failed login time: %v", err)
+		}
+
+		// TODO: Implement exponential back-off
+
+		return nil, "", fmt.Errorf("an error occurred")
+	}
+
+	// Update last successful login
+	currentTime := time.Now()
+	if err := us.Infrastructure.UpdateUserLastSuccessfulLogin(ctx, userID, currentTime, flavour); err != nil {
+		return nil, "", fmt.Errorf("unable to update user last successful login: %v", err)
+	}
+
+	// Reset failed login count to zero after successful login
+	if err := us.Infrastructure.UpdateUserFailedLoginCount(ctx, userID, "0", flavour); err != nil {
+		return nil, "unable to reset the number of failed user's failed login attempts", fmt.Errorf("unable to reset the number of failed user's failed login attempts: %v", err)
+	}
+
+	customToken, err := firebasetools.CreateFirebaseCustomToken(ctx, *userProfile.ID)
+	if err != nil {
+		return nil, "", exceptions.CustomTokenError(err)
+	}
+
+	userTokens, err := firebasetools.AuthenticateCustomFirebaseToken(customToken)
+	if err != nil {
+		return nil, "", exceptions.AuthenticateTokenError(err)
+	}
+
+	//Generate Authentication credentials
+	authCredentials := &domain.AuthCredentials{
+		User:         userProfile,
+		RefreshToken: userTokens.RefreshToken,
+		IDToken:      userTokens.IDToken,
+		ExpiresIn:    userTokens.ExpiresIn,
+	}
+
+	//Return authentication credentials, string and an error.
+	return authCredentials, "login successful", nil
 }
 
 // ResetPIN resets user PIN
@@ -227,6 +299,8 @@ func (us *UseCasesUserImpl) Invite(userID string, flavour string) (bool, error) 
 
 // SetUserPIN sets a user's PIN.
 func (us *UseCasesUserImpl) SetUserPIN(ctx context.Context, input *dto.PINInput) (bool, error) {
+	//Get user profile PIN
+
 	err := utils.ValidatePIN(input.PIN)
 	if err != nil {
 		return false, fmt.Errorf("invalid PIN provided: %v", err)
@@ -242,7 +316,7 @@ func (us *UseCasesUserImpl) SetUserPIN(ctx context.Context, input *dto.PINInput)
 	validTo := utils.GetHourMinuteSecond(24, 0, 0)
 
 	pinDataInput := &domain.UserPIN{
-		UserID:    ksuid.New().String(),
+		UserID:    "2c301ec0-7ee2-4b65-8e9f-9b99756a1072",
 		HashedPIN: encryptedPIN,
 		ValidFrom: time.Now(),
 		ValidTo:   validTo, // Consult for appropriate timings

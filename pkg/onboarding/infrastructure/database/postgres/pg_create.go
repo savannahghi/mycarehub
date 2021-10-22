@@ -95,6 +95,7 @@ func (d *OnboardingDb) RegisterStaffUser(ctx context.Context, user *dto.UserInpu
 		FirstName:   user.FirstName,
 		MiddleName:  user.MiddleName,
 		LastName:    user.LastName,
+		Flavour:     user.Flavour,
 	}
 
 	staffObject := &gorm.StaffProfile{

@@ -13,6 +13,7 @@ import (
 type OnboardingHandlersInterfaces interface {
 	//Collect metrics handler
 	CollectMetricsHandler() http.HandlerFunc
+	LoginHandler() http.HandlerFunc
 }
 
 // OnboardingHandlersInterfacesImpl represents the usecase implementation object
@@ -35,6 +36,24 @@ func (h *OnboardingHandlersInterfacesImpl) CollectMetricsHandler() http.HandlerF
 		serverutils.DecodeJSONToTargetStruct(w, r, metric)
 
 		response, err := h.interactor.MetricUsecase.CollectMetrics(ctx, metric)
+		if err != nil {
+			serverutils.WriteJSONResponse(w, err, http.StatusBadRequest)
+			return
+		}
+
+		serverutils.WriteJSONResponse(w, response, http.StatusCreated)
+	}
+}
+
+// LoginHandler is an unauthenticated endpoint that is called to login user
+func (h *OnboardingHandlersInterfacesImpl) LoginHandler() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+
+		loginPayload := &dto.LoginInput{}
+		serverutils.DecodeJSONToTargetStruct(w, r, loginPayload)
+
+		response, _, err := h.interactor.UserUsecase.Login(ctx, loginPayload.UserID, loginPayload.PIN, loginPayload.Flavour.String())
 		if err != nil {
 			serverutils.WriteJSONResponse(w, err, http.StatusBadRequest)
 			return
