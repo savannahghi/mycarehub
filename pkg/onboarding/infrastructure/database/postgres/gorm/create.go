@@ -16,6 +16,11 @@ type Create interface {
 		userInput *User,
 		clientInput *ClientProfile,
 	) (*ClientUserProfile, error)
+
+	AddIdentifier(
+		ctx context.Context,
+		identifier *Identifier,
+	) (*Identifier, error)
 }
 
 // GetOrCreateFacility ...
@@ -131,4 +136,12 @@ func (db *PGInstance) RegisterClient(
 		Client: clientProfile,
 	}, nil
 
+}
+
+// AddIdentifier saves a client's identifier record to the database
+func (db *PGInstance) AddIdentifier(ctx context.Context, identifier *Identifier) (*Identifier, error) {
+	if err := db.DB.Create(identifier).Error; err != nil {
+		return nil, fmt.Errorf("failed to create identifier: %v", err)
+	}
+	return identifier, nil
 }

@@ -20,6 +20,7 @@ type CreateMock struct {
 	RegisterStaffUserFn   func(ctx context.Context, user *dto.UserInput, staff *dto.StaffProfileInput) (*domain.StaffUserProfile, error)
 	SetUserPINFn          func(ctx context.Context, input *domain.UserPIN) (bool, error)
 	RegisterClientFn      func(ctx context.Context, userInput *dto.UserInput, clientInput *dto.ClientProfileInput) (*domain.ClientUserProfile, error)
+	AddIdentifierFn       func(ctx context.Context, clientID string, idType enums.IdentifierType, idValue string, isPrimary bool) (*domain.Identifier, error)
 }
 
 // NewCreateMock creates in itializes create type mocks
@@ -143,13 +144,19 @@ func (f *CreateMock) RegisterClient(
 	return f.RegisterClientFn(ctx, userInput, clientInput)
 }
 
+// AddIdentifier mocks the implementation of `gorm's` AddIdentifier method
+func (f *CreateMock) AddIdentifier(ctx context.Context, clientID string, idType enums.IdentifierType, idValue string, isPrimary bool) (*domain.Identifier, error) {
+	return f.AddIdentifierFn(ctx, clientID, idType, idValue, isPrimary)
+}
+
 // QueryMock is a mock of the query methods
 type QueryMock struct {
-	RetrieveFacilityFn          func(ctx context.Context, id *string, isActive bool) (*domain.Facility, error)
-	RetrieveFacilityByMFLCodeFn func(ctx context.Context, MFLCode string, isActive bool) (*domain.Facility, error)
-	GetFacilitiesFn             func(ctx context.Context) ([]*domain.Facility, error)
-	GetUserPINByUserIDFn        func(ctx context.Context, userID string) (*domain.UserPIN, error)
-	GetUserProfileByUserIDFn    func(ctx context.Context, userID string, flavour string) (*domain.User, error)
+	RetrieveFacilityFn           func(ctx context.Context, id *string, isActive bool) (*domain.Facility, error)
+	RetrieveFacilityByMFLCodeFn  func(ctx context.Context, MFLCode string, isActive bool) (*domain.Facility, error)
+	GetFacilitiesFn              func(ctx context.Context) ([]*domain.Facility, error)
+	GetUserPINByUserIDFn         func(ctx context.Context, userID string) (*domain.UserPIN, error)
+	GetUserProfileByUserIDFn     func(ctx context.Context, userID string, flavour string) (*domain.User, error)
+	GetClientProfileByClientIDFn func(ctx context.Context, clientID string) (*domain.ClientProfile, error)
 }
 
 // NewQueryMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -243,6 +250,11 @@ func (f *QueryMock) GetUserPINByUserID(ctx context.Context, userID string) (*dom
 // GetUserProfileByUserID gets user profile by user ID
 func (f *QueryMock) GetUserProfileByUserID(ctx context.Context, userID string, flavour string) (*domain.User, error) {
 	return f.GetUserProfileByUserIDFn(ctx, userID, flavour)
+}
+
+// GetClientProfileByClientID defines a mock for fetching a client profile using the client's ID
+func (f *QueryMock) GetClientProfileByClientID(ctx context.Context, clientID string) (*domain.ClientProfile, error) {
+	return f.GetClientProfileByClientIDFn(ctx, clientID)
 }
 
 // UpdateMock ...

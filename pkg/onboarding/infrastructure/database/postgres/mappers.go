@@ -180,3 +180,44 @@ func createMapUser(userObject *gorm.User) *domain.User {
 	}
 	return user
 }
+
+// mapIdentifierObjectToDomain maps the identifier object to our domain defined type
+func (d *OnboardingDb) mapIdentifierObjectToDomain(identifierObject *gorm.Identifier) *domain.Identifier {
+	if identifierObject == nil {
+		return nil
+	}
+
+	return &domain.Identifier{
+		ID:                  identifierObject.ID,
+		ClientID:            identifierObject.ClientID,
+		IdentifierType:      identifierObject.IdentifierType,
+		IdentifierUse:       identifierObject.IdentifierUse,
+		IdentifierValue:     identifierObject.IdentifierValue,
+		Description:         identifierObject.Description,
+		ValidFrom:           identifierObject.ValidFrom,
+		ValidTo:             identifierObject.ValidTo,
+		Active:              identifierObject.Active,
+		IsPrimaryIdentifier: identifierObject.IsPrimaryIdentifier,
+	}
+}
+
+// mapClientObjectToDomain maps the client object to the domain defined type
+func (d *OnboardingDb) mapClientObjectToDomain(client *gorm.ClientProfile) *domain.ClientProfile {
+	if client == nil {
+		return nil
+	}
+
+	return &domain.ClientProfile{
+		ID:                      client.ID,
+		UserID:                  client.UserID,
+		TreatmentEnrollmentDate: client.TreatmentEnrollmentDate,
+		ClientType:              client.ClientType,
+		Active:                  client.Active,
+		HealthRecordID:          client.HealthRecordID,
+		// Identifiers:             client.Identifiers,
+		FacilityID:           client.FacilityID,
+		TreatmentBuddyUserID: client.TreatmentBuddy,
+		CHVUserID:            client.CHVUserID,
+		ClientCounselled:     client.ClientCounselled,
+	}
+}

@@ -17,17 +17,19 @@ import (
 //
 // This mock struct should be separate from our own internal methods.
 type GormMock struct {
-	GetOrCreateFacilityFn       func(ctx context.Context, facility *gorm.Facility) (*gorm.Facility, error)
-	RetrieveFacilityFn          func(ctx context.Context, id *string, isActive bool) (*gorm.Facility, error)
-	RetrieveFacilityByMFLCodeFn func(ctx context.Context, MFLCode string, isActive bool) (*gorm.Facility, error)
-	GetFacilitiesFn             func(ctx context.Context) ([]gorm.Facility, error)
-	DeleteFacilityFn            func(ctx context.Context, mfl_code string) (bool, error)
-	CollectMetricsFn            func(ctx context.Context, metrics *gorm.Metric) (*gorm.Metric, error)
-	SetUserPINFn                func(ctx context.Context, pinData *gorm.PINData) (bool, error)
-	GetUserPINByUserIDFn        func(ctx context.Context, userID string) (*gorm.PINData, error)
-	GetUserProfileByUserIDFn    func(ctx context.Context, userID string, flavour string) (*gorm.User, error)
-	RegisterStaffUserFn         func(ctx context.Context, user *gorm.User, staff *gorm.StaffProfile) (*gorm.StaffUserProfile, error)
-	RegisterClientFn            func(ctx context.Context, userInput *gorm.User, clientInput *gorm.ClientProfile) (*gorm.ClientUserProfile, error)
+	GetOrCreateFacilityFn        func(ctx context.Context, facility *gorm.Facility) (*gorm.Facility, error)
+	RetrieveFacilityFn           func(ctx context.Context, id *string, isActive bool) (*gorm.Facility, error)
+	RetrieveFacilityByMFLCodeFn  func(ctx context.Context, MFLCode string, isActive bool) (*gorm.Facility, error)
+	GetFacilitiesFn              func(ctx context.Context) ([]gorm.Facility, error)
+	DeleteFacilityFn             func(ctx context.Context, mfl_code string) (bool, error)
+	CollectMetricsFn             func(ctx context.Context, metrics *gorm.Metric) (*gorm.Metric, error)
+	SetUserPINFn                 func(ctx context.Context, pinData *gorm.PINData) (bool, error)
+	GetUserPINByUserIDFn         func(ctx context.Context, userID string) (*gorm.PINData, error)
+	GetUserProfileByUserIDFn     func(ctx context.Context, userID string, flavour string) (*gorm.User, error)
+	RegisterStaffUserFn          func(ctx context.Context, user *gorm.User, staff *gorm.StaffProfile) (*gorm.StaffUserProfile, error)
+	RegisterClientFn             func(ctx context.Context, userInput *gorm.User, clientInput *gorm.ClientProfile) (*gorm.ClientUserProfile, error)
+	AddIdentifierFn              func(ctx context.Context, identifier *gorm.Identifier) (*gorm.Identifier, error)
+	GetClientProfileByClientIDFn func(ctx context.Context, clientID string) (*gorm.ClientProfile, error)
 
 	//Updates
 	UpdateUserLastSuccessfulLoginFn func(ctx context.Context, userID string, lastLoginTime time.Time, flavour string) error
@@ -52,6 +54,24 @@ func NewGormMock() *GormMock {
 				Client: &gorm.ClientProfile{
 					ClientType: enums.ClientTypeOvc,
 				},
+			}, nil
+		},
+
+		AddIdentifierFn: func(ctx context.Context, identifier *gorm.Identifier) (*gorm.Identifier, error) {
+			return &gorm.Identifier{
+				ClientID:        identifier.ClientID,
+				IdentifierType:  enums.IdentifierTypeCCC,
+				IdentifierUse:   enums.IdentifierUseOfficial,
+				IdentifierValue: "Just a random value",
+				Description:     "Random description",
+			}, nil
+		},
+
+		GetClientProfileByClientIDFn: func(ctx context.Context, clientID string) (*gorm.ClientProfile, error) {
+			ID := uuid.New().String()
+			return &gorm.ClientProfile{
+				ID:     &clientID,
+				UserID: &ID,
 			}, nil
 		},
 
@@ -308,4 +328,17 @@ func (gm *GormMock) RegisterClient(
 	clientInput *gorm.ClientProfile,
 ) (*gorm.ClientUserProfile, error) {
 	return gm.RegisterClientFn(ctx, userInput, clientInput)
+}
+
+// AddIdentifier mocks the `AddIdentifier` implementation
+func (gm *GormMock) AddIdentifier(
+	ctx context.Context,
+	identifier *gorm.Identifier,
+) (*gorm.Identifier, error) {
+	return gm.AddIdentifierFn(ctx, identifier)
+}
+
+// GetClientProfileByClientID mocks the method that fetches a client profile by the ID
+func (gm *GormMock) GetClientProfileByClientID(ctx context.Context, clientID string) (*gorm.ClientProfile, error) {
+	return gm.GetClientProfileByClientIDFn(ctx, clientID)
 }

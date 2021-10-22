@@ -39,3 +39,72 @@ func TestUseCasesClientImplIntegration_RegisterClient(t *testing.T) {
 
 	// TODO: Try creating the same user twice, should throw an error after we check for uniqueness
 }
+
+func TestUseCasesClientImpl_AddIdentifier(t *testing.T) {
+	ctx := context.Background()
+	f := testInfrastructureInteractor
+
+	userPayload := &dto.UserInput{
+		FirstName:   "FirstName",
+		LastName:    "Last Name",
+		Username:    "User Name",
+		MiddleName:  "Middle Name",
+		DisplayName: "Display Name",
+		Gender:      enumutils.GenderMale,
+	}
+
+	clientPayload := &dto.ClientProfileInput{
+		ClientType: enums.ClientTypeOvc,
+	}
+	client, err := f.RegisterClient(ctx, userPayload, clientPayload)
+	if err != nil {
+		t.Errorf("failed to create client: %v", err)
+		return
+	}
+
+	type args struct {
+		ctx       context.Context
+		clientID  string
+		idType    enums.IdentifierType
+		idValue   string
+		isPrimary bool
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Successfully add identifier",
+			args: args{
+				ctx:       ctx,
+				clientID:  *client.Client.ID,
+				idType:    enums.IdentifierTypeCCC,
+				idValue:   "12345",
+				isPrimary: true,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad Case - Fail to add identifier",
+			args: args{
+				ctx:      ctx,
+				clientID: "non-existent",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := f.AddIdentifier(tt.args.ctx, tt.args.clientID, tt.args.idType, tt.args.idValue, tt.args.isPrimary)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCasesClientImpl.AddIdentifier() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected a response but got: %v", got)
+				return
+			}
+		})
+	}
+}

@@ -111,19 +111,19 @@ type UserPIN struct {
 
 // Identifier are specific/unique identifiers for a user
 type Identifier struct {
-	ID             *string // globally unique identifier
-	ClientID       string  // TODO: FK to client
-	IdentifierType string  // TODO: Enum; start with basics e.g CCC number, ID number
-	IdentifierUse  string  // TODO: Enum; e.g official, temporary, old (see FHIR Person for enum)
+	ID             *string              `json:"id"`
+	ClientID       string               `json:"clientID"`
+	IdentifierType enums.IdentifierType `json:"identifierType"`
+	IdentifierUse  enums.IdentifierUse  `json:"identifierUse"`
 
 	// TODO: Validate identifier value against type e.g format of CCC number
 	// TODO: Unique together: identifier value & type i.e the same identifier can't be used for more than one client
-	IdentifierValue     string // the actual identifier e.g CCC number
-	Description         string
-	ValidFrom           *time.Time
-	ValidTo             *time.Time
-	Active              bool
-	IsPrimaryIdentifier bool
+	IdentifierValue     string     `json:"identifierValue"`
+	Description         string     `json:"description"`
+	ValidFrom           *time.Time `json:"validFrom"`
+	ValidTo             *time.Time `json:"validTo"`
+	Active              bool       `json:"active"`
+	IsPrimaryIdentifier bool       `json:"isPrimaryIdentifier"`
 }
 
 // ClientProfile holds the details of end users who are not using the system in
@@ -138,7 +138,7 @@ type ClientProfile struct {
 	// the client record is for bridging to other identifiers e.g patient record IDs
 	UserID *string // TODO: Foreign key to User
 
-	TreatmentEnrollmentDate *scalarutils.Date // use for date of treatment enrollment
+	TreatmentEnrollmentDate *time.Time // use for date of treatment enrollment
 
 	ClientType enums.ClientType
 

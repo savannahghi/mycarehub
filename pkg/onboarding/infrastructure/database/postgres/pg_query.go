@@ -84,3 +84,13 @@ func (d *OnboardingDb) GetUserPINByUserID(ctx context.Context, userID string) (*
 
 	return d.mapPINObjectToDomain(pinData), nil
 }
+
+// GetClientProfileByClientID retrieves a client profile using the client ID
+func (d *OnboardingDb) GetClientProfileByClientID(ctx context.Context, clientID string) (*domain.ClientProfile, error) {
+	client, err := d.query.GetClientProfileByClientID(ctx, clientID)
+	if err != nil {
+		return nil, err
+	}
+
+	return d.mapClientObjectToDomain(client), err
+}

@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/application/dto"
+	"github.com/savannahghi/onboarding-service/pkg/onboarding/application/enums"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/domain"
 	pg "github.com/savannahghi/onboarding-service/pkg/onboarding/infrastructure/database/postgres"
 )
@@ -22,6 +23,13 @@ type Create interface {
 		userInput *dto.UserInput,
 		clientInput *dto.ClientProfileInput,
 	) (*domain.ClientUserProfile, error)
+	AddIdentifier(
+		ctx context.Context,
+		clientID string,
+		idType enums.IdentifierType,
+		idValue string,
+		isPrimary bool,
+	) (*domain.Identifier, error)
 }
 
 // Delete represents all the deletion action interfaces
@@ -61,6 +69,17 @@ func (f ServiceCreateImpl) RegisterStaffUser(ctx context.Context, user *dto.User
 	return f.onboarding.RegisterStaffUser(ctx, user, staff)
 }
 
+// AddIdentifier adds an identifier that is associated to a given client
+func (f ServiceCreateImpl) AddIdentifier(
+	ctx context.Context,
+	clientID string,
+	idType enums.IdentifierType,
+	idValue string,
+	isPrimary bool,
+) (*domain.Identifier, error) {
+	return f.onboarding.AddIdentifier(ctx, clientID, idType, idValue, isPrimary)
+}
+
 // RegisterClient creates a client user and saves the details in the database
 func (f ServiceCreateImpl) RegisterClient(
 	ctx context.Context,
@@ -77,6 +96,7 @@ type Query interface {
 	RetrieveFacilityByMFLCode(ctx context.Context, MFLCode string, isActive bool) (*domain.Facility, error)
 	GetUserProfileByUserID(ctx context.Context, userID string, flavour string) (*domain.User, error)
 	GetUserPINByUserID(ctx context.Context, userID string) (*domain.UserPIN, error)
+	GetClientProfileByClientID(ctx context.Context, clientID string) (*domain.ClientProfile, error)
 }
 
 // ServiceQueryImpl contains implementation for the Query interface
@@ -119,6 +139,11 @@ func (q ServiceQueryImpl) GetUserProfileByUserID(ctx context.Context, userID str
 // GetUserPINByUserID gets user PIN by user ID
 func (q ServiceQueryImpl) GetUserPINByUserID(ctx context.Context, userID string) (*domain.UserPIN, error) {
 	return q.onboarding.GetUserPINByUserID(ctx, userID)
+}
+
+// GetClientProfileByClientID fetches a client profile using the client ID
+func (q ServiceQueryImpl) GetClientProfileByClientID(ctx context.Context, clientID string) (*domain.ClientProfile, error) {
+	return q.onboarding.GetClientProfileByClientID(ctx, clientID)
 }
 
 // ServiceDeleteImpl represents delete facility implementation object

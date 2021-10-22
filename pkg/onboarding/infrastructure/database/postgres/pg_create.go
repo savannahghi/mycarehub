@@ -8,6 +8,7 @@ import (
 
 	"github.com/lib/pq"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/application/dto"
+	"github.com/savannahghi/onboarding-service/pkg/onboarding/application/enums"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/domain"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/infrastructure/database/postgres/gorm"
 )
@@ -106,6 +107,31 @@ func (d *OnboardingDb) RegisterStaffUser(ctx context.Context, user *dto.UserInpu
 
 	return d.mapRegisterStaffObjectToDomain(userStaffProfile), nil
 
+}
+
+// AddIdentifier is responsible for creating an identifier and associating it with a specific client
+func (d *OnboardingDb) AddIdentifier(
+	ctx context.Context,
+	clientID string,
+	idType enums.IdentifierType,
+	idValue string,
+	isPrimary bool,
+) (*domain.Identifier, error) {
+	identifierPayload := &gorm.Identifier{
+		ClientID:            clientID,
+		IdentifierType:      idType,
+		IdentifierValue:     idValue,
+		IdentifierUse:       enums.IdentifierUseOfficial,
+		IsPrimaryIdentifier: isPrimary,
+		Active:              true,
+	}
+
+	identifier, err := d.create.AddIdentifier(ctx, identifierPayload)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create identifier: %v", err)
+	}
+
+	return d.mapIdentifierObjectToDomain(identifier), nil
 }
 
 // RegisterClient is responsible for registering and saving the client's data to the database

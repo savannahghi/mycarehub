@@ -439,3 +439,63 @@ func TestOnboardingDb_RegisterClient(t *testing.T) {
 		})
 	}
 }
+
+func TestOnboardingDb_AddIdentifier(t *testing.T) {
+	ctx := context.Background()
+	type args struct {
+		ctx       context.Context
+		clientID  string
+		idType    enums.IdentifierType
+		idValue   string
+		isPrimary bool
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *domain.Identifier
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Successfully add identifier",
+			args: args{
+				ctx:       ctx,
+				clientID:  "12345",
+				idType:    enums.IdentifierTypeCCC,
+				idValue:   "1224",
+				isPrimary: true,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad Case - Fail to add identifier",
+			args: args{
+				ctx:       ctx,
+				clientID:  "12345",
+				idType:    enums.IdentifierTypeCCC,
+				idValue:   "1224",
+				isPrimary: true,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var fakeGorm = gormMock.NewGormMock()
+			d := NewOnboardingDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			if tt.name == "Sad Case - Fail to add identifier" {
+				fakeGorm.AddIdentifierFn = func(ctx context.Context, identifier *gorm.Identifier) (*gorm.Identifier, error) {
+					return nil, fmt.Errorf("failed to add identifier")
+				}
+			}
+			got, err := d.AddIdentifier(tt.args.ctx, tt.args.clientID, tt.args.idType, tt.args.idValue, tt.args.isPrimary)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("OnboardingDb.AddIdentifier() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected a response but got :%v", got)
+			}
+		})
+	}
+}

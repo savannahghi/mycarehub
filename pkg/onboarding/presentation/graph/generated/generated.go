@@ -127,6 +127,19 @@ type ComplexityRoot struct {
 		Secondary func(childComplexity int) int
 	}
 
+	Identifier struct {
+		Active              func(childComplexity int) int
+		ClientID            func(childComplexity int) int
+		Description         func(childComplexity int) int
+		ID                  func(childComplexity int) int
+		IdentifierType      func(childComplexity int) int
+		IdentifierUse       func(childComplexity int) int
+		IdentifierValue     func(childComplexity int) int
+		IsPrimaryIdentifier func(childComplexity int) int
+		ValidFrom           func(childComplexity int) int
+		ValidTo             func(childComplexity int) int
+	}
+
 	Link struct {
 		Description func(childComplexity int) int
 		ID          func(childComplexity int) int
@@ -146,6 +159,7 @@ type ComplexityRoot struct {
 	Mutation struct {
 		ActivateRole                  func(childComplexity int, roleID string) int
 		AddAddress                    func(childComplexity int, input dto.UserAddressInput, addressType enumutils.AddressType) int
+		AddIdentifier                 func(childComplexity int, clientID string, idType enums.IdentifierType, idValue string, isPrimary bool) int
 		AddPermissionsToRole          func(childComplexity int, input dto.RolePermissionInput) int
 		AddSecondaryEmailAddress      func(childComplexity int, email []string) int
 		AddSecondaryPhoneNumber       func(childComplexity int, phone []string) int
@@ -351,6 +365,7 @@ type EntityResolver interface {
 }
 type MutationResolver interface {
 	RegisterClientUser(ctx context.Context, userInput dto1.UserInput, clientInput dto1.ClientProfileInput) (*domain1.ClientUserProfile, error)
+	AddIdentifier(ctx context.Context, clientID string, idType enums.IdentifierType, idValue string, isPrimary bool) (*domain1.Identifier, error)
 	CreateFacility(ctx context.Context, input dto1.FacilityInput) (*domain1.Facility, error)
 	DeleteFacility(ctx context.Context, id string) (bool, error)
 	SetUserPin(ctx context.Context, input *dto1.PINInput) (bool, error)
@@ -731,6 +746,76 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.GroupedNavigationActions.Secondary(childComplexity), true
 
+	case "Identifier.active":
+		if e.complexity.Identifier.Active == nil {
+			break
+		}
+
+		return e.complexity.Identifier.Active(childComplexity), true
+
+	case "Identifier.clientID":
+		if e.complexity.Identifier.ClientID == nil {
+			break
+		}
+
+		return e.complexity.Identifier.ClientID(childComplexity), true
+
+	case "Identifier.description":
+		if e.complexity.Identifier.Description == nil {
+			break
+		}
+
+		return e.complexity.Identifier.Description(childComplexity), true
+
+	case "Identifier.id":
+		if e.complexity.Identifier.ID == nil {
+			break
+		}
+
+		return e.complexity.Identifier.ID(childComplexity), true
+
+	case "Identifier.identifierType":
+		if e.complexity.Identifier.IdentifierType == nil {
+			break
+		}
+
+		return e.complexity.Identifier.IdentifierType(childComplexity), true
+
+	case "Identifier.identifierUse":
+		if e.complexity.Identifier.IdentifierUse == nil {
+			break
+		}
+
+		return e.complexity.Identifier.IdentifierUse(childComplexity), true
+
+	case "Identifier.identifierValue":
+		if e.complexity.Identifier.IdentifierValue == nil {
+			break
+		}
+
+		return e.complexity.Identifier.IdentifierValue(childComplexity), true
+
+	case "Identifier.isPrimaryIdentifier":
+		if e.complexity.Identifier.IsPrimaryIdentifier == nil {
+			break
+		}
+
+		return e.complexity.Identifier.IsPrimaryIdentifier(childComplexity), true
+
+	case "Identifier.validFrom":
+		if e.complexity.Identifier.ValidFrom == nil {
+			break
+		}
+
+		return e.complexity.Identifier.ValidFrom(childComplexity), true
+
+	case "Identifier.validTo":
+		if e.complexity.Identifier.ValidTo == nil {
+			break
+		}
+
+		return e.complexity.Identifier.ValidTo(childComplexity), true
+
 	case "Link.Description":
 		if e.complexity.Link.Description == nil {
 			break
@@ -824,6 +909,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.AddAddress(childComplexity, args["input"].(dto.UserAddressInput), args["addressType"].(enumutils.AddressType)), true
+
+	case "Mutation.addIdentifier":
+		if e.complexity.Mutation.AddIdentifier == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_addIdentifier_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.AddIdentifier(childComplexity, args["clientID"].(string), args["idType"].(enums.IdentifierType), args["idValue"].(string), args["isPrimary"].(bool)), true
 
 	case "Mutation.addPermissionsToRole":
 		if e.complexity.Mutation.AddPermissionsToRole == nil {
@@ -2083,6 +2180,13 @@ var sources = []*ast.Source{
     userInput: UserInput!
     clientInput: ClientProfileInput!
   ): ClientUserProfile!
+
+  addIdentifier(
+    clientID: String!
+    idType: IdentifierType!
+    idValue: String!
+    isPrimary: Boolean!
+  ): Identifier!
 }
 `, BuiltIn: false},
 	{Name: "pkg/onboarding/presentation/graph/emum.graphql", Input: `enum ContactType {
@@ -2098,6 +2202,17 @@ enum UsersType {
 	{Name: "pkg/onboarding/presentation/graph/enums.graphql", Input: `enum ClientType {
   PMTCT
   OVC
+}
+
+enum IdentifierType {
+  CCC
+  ID
+  PASSPORT
+}
+
+enum IdentifierUse {
+  OFFICIAL
+  TEMPORARY
 }
 `, BuiltIn: false},
 	{Name: "pkg/onboarding/presentation/graph/facility.graphql", Input: `
@@ -2182,7 +2297,6 @@ extend type Mutation {
   description: String!
 }
 
-
 type PIN {
   user: String!
   pin: String!
@@ -2214,12 +2328,12 @@ type User {
 
 type Contact {
   ID: String!
-	Type: ContactType!
-	Contact: String! #TODO Validate: phones are E164, emails are valid
-	Active: Boolean!
+  Type: ContactType!
+  Contact: String! #TODO Validate: phones are E164, emails are valid
+  Active: Boolean!
   #a user may opt not to be contacted via this contact
   #e.g if it's a shared phone owned by a teenager
-	OptedIn: Boolean!
+  OptedIn: Boolean!
 }
 
 type StaffProfile {
@@ -2253,6 +2367,19 @@ type ClientProfile {
 type ClientUserProfile {
   user: User!
   client: ClientProfile!
+}
+
+type Identifier {
+  id: String!
+  clientID: String!
+  identifierType: IdentifierType!
+  identifierUse: IdentifierUse!
+  identifierValue: String!
+  description: String
+  validFrom: Date
+  validTo: Date
+  active: Boolean!
+  isPrimaryIdentifier: Boolean!
 }
 `, BuiltIn: false},
 	{Name: "federation/directives.graphql", Input: `
@@ -2816,6 +2943,48 @@ func (ec *executionContext) field_Mutation_addAddress_args(ctx context.Context, 
 		}
 	}
 	args["addressType"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_addIdentifier_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["clientID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clientID"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["clientID"] = arg0
+	var arg1 enums.IdentifierType
+	if tmp, ok := rawArgs["idType"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idType"))
+		arg1, err = ec.unmarshalNIdentifierType2githubᚗcomᚋsavannahghiᚋonboardingᚑserviceᚋpkgᚋonboardingᚋapplicationᚋenumsᚐIdentifierType(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["idType"] = arg1
+	var arg2 string
+	if tmp, ok := rawArgs["idValue"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idValue"))
+		arg2, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["idValue"] = arg2
+	var arg3 bool
+	if tmp, ok := rawArgs["isPrimary"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("isPrimary"))
+		arg3, err = ec.unmarshalNBoolean2bool(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["isPrimary"] = arg3
 	return args, nil
 }
 
@@ -4978,6 +5147,347 @@ func (ec *executionContext) _GroupedNavigationActions_secondary(ctx context.Cont
 	return ec.marshalONavigationAction2ᚕgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐNavigationAction(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Identifier_id(ctx context.Context, field graphql.CollectedField, obj *domain1.Identifier) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Identifier",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalNString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Identifier_clientID(ctx context.Context, field graphql.CollectedField, obj *domain1.Identifier) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Identifier",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ClientID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Identifier_identifierType(ctx context.Context, field graphql.CollectedField, obj *domain1.Identifier) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Identifier",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.IdentifierType, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(enums.IdentifierType)
+	fc.Result = res
+	return ec.marshalNIdentifierType2githubᚗcomᚋsavannahghiᚋonboardingᚑserviceᚋpkgᚋonboardingᚋapplicationᚋenumsᚐIdentifierType(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Identifier_identifierUse(ctx context.Context, field graphql.CollectedField, obj *domain1.Identifier) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Identifier",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.IdentifierUse, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(enums.IdentifierUse)
+	fc.Result = res
+	return ec.marshalNIdentifierUse2githubᚗcomᚋsavannahghiᚋonboardingᚑserviceᚋpkgᚋonboardingᚋapplicationᚋenumsᚐIdentifierUse(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Identifier_identifierValue(ctx context.Context, field graphql.CollectedField, obj *domain1.Identifier) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Identifier",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.IdentifierValue, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Identifier_description(ctx context.Context, field graphql.CollectedField, obj *domain1.Identifier) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Identifier",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Description, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Identifier_validFrom(ctx context.Context, field graphql.CollectedField, obj *domain1.Identifier) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Identifier",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ValidFrom, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*scalarutils.Date)
+	fc.Result = res
+	return ec.marshalODate2ᚖgithubᚗcomᚋsavannahghiᚋscalarutilsᚐDate(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Identifier_validTo(ctx context.Context, field graphql.CollectedField, obj *domain1.Identifier) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Identifier",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ValidTo, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*scalarutils.Date)
+	fc.Result = res
+	return ec.marshalODate2ᚖgithubᚗcomᚋsavannahghiᚋscalarutilsᚐDate(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Identifier_active(ctx context.Context, field graphql.CollectedField, obj *domain1.Identifier) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Identifier",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Active, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Identifier_isPrimaryIdentifier(ctx context.Context, field graphql.CollectedField, obj *domain1.Identifier) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Identifier",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.IsPrimaryIdentifier, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Link_ID(ctx context.Context, field graphql.CollectedField, obj *feedlib.Link) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -5350,6 +5860,48 @@ func (ec *executionContext) _Mutation_registerClientUser(ctx context.Context, fi
 	res := resTmp.(*domain1.ClientUserProfile)
 	fc.Result = res
 	return ec.marshalNClientUserProfile2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚑserviceᚋpkgᚋonboardingᚋdomainᚐClientUserProfile(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_addIdentifier(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_addIdentifier_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().AddIdentifier(rctx, args["clientID"].(string), args["idType"].(enums.IdentifierType), args["idValue"].(string), args["isPrimary"].(bool))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*domain1.Identifier)
+	fc.Result = res
+	return ec.marshalNIdentifier2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚑserviceᚋpkgᚋonboardingᚋdomainᚐIdentifier(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_createFacility(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -12743,6 +13295,69 @@ func (ec *executionContext) _GroupedNavigationActions(ctx context.Context, sel a
 	return out
 }
 
+var identifierImplementors = []string{"Identifier"}
+
+func (ec *executionContext) _Identifier(ctx context.Context, sel ast.SelectionSet, obj *domain1.Identifier) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, identifierImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Identifier")
+		case "id":
+			out.Values[i] = ec._Identifier_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "clientID":
+			out.Values[i] = ec._Identifier_clientID(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "identifierType":
+			out.Values[i] = ec._Identifier_identifierType(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "identifierUse":
+			out.Values[i] = ec._Identifier_identifierUse(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "identifierValue":
+			out.Values[i] = ec._Identifier_identifierValue(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "description":
+			out.Values[i] = ec._Identifier_description(ctx, field, obj)
+		case "validFrom":
+			out.Values[i] = ec._Identifier_validFrom(ctx, field, obj)
+		case "validTo":
+			out.Values[i] = ec._Identifier_validTo(ctx, field, obj)
+		case "active":
+			out.Values[i] = ec._Identifier_active(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "isPrimaryIdentifier":
+			out.Values[i] = ec._Identifier_isPrimaryIdentifier(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var linkImplementors = []string{"Link"}
 
 func (ec *executionContext) _Link(ctx context.Context, sel ast.SelectionSet, obj *feedlib.Link) graphql.Marshaler {
@@ -12836,6 +13451,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = graphql.MarshalString("Mutation")
 		case "registerClientUser":
 			out.Values[i] = ec._Mutation_registerClientUser(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "addIdentifier":
+			out.Values[i] = ec._Mutation_addIdentifier(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -14580,6 +15200,40 @@ func (ec *executionContext) marshalNID2ᚕstringᚄ(ctx context.Context, sel ast
 	}
 
 	return ret
+}
+
+func (ec *executionContext) marshalNIdentifier2githubᚗcomᚋsavannahghiᚋonboardingᚑserviceᚋpkgᚋonboardingᚋdomainᚐIdentifier(ctx context.Context, sel ast.SelectionSet, v domain1.Identifier) graphql.Marshaler {
+	return ec._Identifier(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNIdentifier2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚑserviceᚋpkgᚋonboardingᚋdomainᚐIdentifier(ctx context.Context, sel ast.SelectionSet, v *domain1.Identifier) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._Identifier(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNIdentifierType2githubᚗcomᚋsavannahghiᚋonboardingᚑserviceᚋpkgᚋonboardingᚋapplicationᚋenumsᚐIdentifierType(ctx context.Context, v interface{}) (enums.IdentifierType, error) {
+	var res enums.IdentifierType
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNIdentifierType2githubᚗcomᚋsavannahghiᚋonboardingᚑserviceᚋpkgᚋonboardingᚋapplicationᚋenumsᚐIdentifierType(ctx context.Context, sel ast.SelectionSet, v enums.IdentifierType) graphql.Marshaler {
+	return v
+}
+
+func (ec *executionContext) unmarshalNIdentifierUse2githubᚗcomᚋsavannahghiᚋonboardingᚑserviceᚋpkgᚋonboardingᚋapplicationᚋenumsᚐIdentifierUse(ctx context.Context, v interface{}) (enums.IdentifierUse, error) {
+	var res enums.IdentifierUse
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNIdentifierUse2githubᚗcomᚋsavannahghiᚋonboardingᚑserviceᚋpkgᚋonboardingᚋapplicationᚋenumsᚐIdentifierUse(ctx context.Context, sel ast.SelectionSet, v enums.IdentifierUse) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) unmarshalNInt2int(ctx context.Context, v interface{}) (int, error) {

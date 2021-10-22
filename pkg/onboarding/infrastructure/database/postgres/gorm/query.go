@@ -16,6 +16,7 @@ type Query interface {
 	GetFacilities(ctx context.Context) ([]Facility, error)
 	GetUserProfileByUserID(ctx context.Context, userID string, flavour string) (*User, error)
 	GetUserPINByUserID(ctx context.Context, userID string) (*PINData, error)
+	GetClientProfileByClientID(ctx context.Context, clientID string) (*ClientProfile, error)
 }
 
 // RetrieveFacility fetches a single facility
@@ -67,4 +68,14 @@ func (db *PGInstance) GetFacilities(ctx context.Context) ([]Facility, error) {
 	// }
 	log.Printf("these are the facilities %v", facility)
 	return facility, nil
+}
+
+// GetClientProfileByClientID retrieves a client profile by ID
+func (db *PGInstance) GetClientProfileByClientID(ctx context.Context, clientID string) (*ClientProfile, error) {
+	var client ClientProfile
+	if err := db.DB.Where(&ClientProfile{ID: &clientID}).First(&client).Error; err != nil {
+		return nil, err
+	}
+
+	return &client, nil
 }

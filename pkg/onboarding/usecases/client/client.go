@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/application/dto"
+	"github.com/savannahghi/onboarding-service/pkg/onboarding/application/enums"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/domain"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/infrastructure"
 )
@@ -30,9 +31,8 @@ type IRegisterClient interface {
 
 // IAddClientIdentifier ...
 type IAddClientIdentifier interface {
-	// TODO idType is an enum
 	// TODO use idType and settings to decide if it's a primary identifier or not
-	AddIdentifier(clientID string, idType string, idValue string, isPrimary bool) (*domain.Identifier, error)
+	AddIdentifier(ctx context.Context, clientID string, idType enums.IdentifierType, idValue string, isPrimary bool) (*domain.Identifier, error)
 }
 
 // IInactivateClient ...
@@ -132,8 +132,8 @@ func (cl *UseCasesClientImpl) RegisterClient(
 }
 
 // AddIdentifier stages and adds client identifiers
-func (cl *UseCasesClientImpl) AddIdentifier(clientID string, idType string, idValue string, isPrimary bool) (*domain.Identifier, error) {
-	return nil, nil
+func (cl *UseCasesClientImpl) AddIdentifier(ctx context.Context, clientID string, idType enums.IdentifierType, idValue string, isPrimary bool) (*domain.Identifier, error) {
+	return cl.Infrastructure.AddIdentifier(ctx, clientID, idType, idValue, isPrimary)
 }
 
 // InactivateClient makes a client inactive and removes the client from the list of active users
