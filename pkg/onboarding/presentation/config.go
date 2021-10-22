@@ -24,6 +24,7 @@ import (
 	internalRest "github.com/savannahghi/onboarding-service/pkg/onboarding/presentation/rest"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/usecases/facility"
 	metrics "github.com/savannahghi/onboarding-service/pkg/onboarding/usecases/metric"
+	staff "github.com/savannahghi/onboarding-service/pkg/onboarding/usecases/staff"
 	userusecase "github.com/savannahghi/onboarding-service/pkg/onboarding/usecases/user"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/extension"
 	osinfra "github.com/savannahghi/onboarding/pkg/onboarding/infrastructure"
@@ -83,6 +84,8 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	metricsUsecase := metrics.NewMetricUsecase(infra)
 
 	userUsecase := userusecase.NewUseCasesUserImpl(infra)
+	// Initialize staff usecases
+	staffUsecase := staff.NewUsecasesStaffProfileImpl(infra)
 
 	pg, err := gorm.NewPGInstance()
 	if err != nil {
@@ -99,6 +102,7 @@ func Router(ctx context.Context) (*mux.Router, error) {
 		facilityUseCase,
 		metricsUsecase,
 		userUsecase,
+		staffUsecase,
 	)
 
 	h := rest.NewHandlersInterfaces(infrastructure, openSourceUsecases)

@@ -15,10 +15,11 @@ import (
 type CreateMock struct {
 	GetOrCreateFacilityFn func(ctx context.Context, facility dto.FacilityInput) (*domain.Facility, error)
 	CollectMetricsFn      func(ctx context.Context, metric *dto.MetricInput) (*domain.Metric, error)
+	RegisterStaffUserFn   func(ctx context.Context, user *dto.UserInput, staff *dto.StaffProfileInput) (*domain.StaffUserProfile, error)
 	SetUserPINFn          func(ctx context.Context, input *domain.UserPIN) (bool, error)
 }
 
-// NewCreateMock initializes a new instance of `GormMock` then mocking the case of success.
+// NewCreateMock creates in itializes create type mocks
 func NewCreateMock() *CreateMock {
 	return &CreateMock{
 		GetOrCreateFacilityFn: func(ctx context.Context, facility dto.FacilityInput) (*domain.Facility, error) {
@@ -51,6 +52,33 @@ func NewCreateMock() *CreateMock {
 		SetUserPINFn: func(ctx context.Context, input *domain.UserPIN) (bool, error) {
 			return true, nil
 		},
+		RegisterStaffUserFn: func(ctx context.Context, user *dto.UserInput, staff *dto.StaffProfileInput) (*domain.StaffUserProfile, error) {
+			ID := uuid.New().String()
+			testTime := time.Now()
+			return &domain.StaffUserProfile{
+				User: &domain.User{
+					ID:                  &ID,
+					Username:            "test",
+					DisplayName:         "test",
+					FirstName:           "test",
+					MiddleName:          "test",
+					LastName:            "test",
+					Active:              true,
+					LastSuccessfulLogin: &testTime,
+					LastFailedLogin:     &testTime,
+					NextAllowedLogin:    &testTime,
+					FailedLoginCount:    "0",
+					TermsAccepted:       true,
+					AcceptedTermsID:     ID,
+				},
+				Staff: &domain.StaffProfile{
+					ID:                &ID,
+					UserID:            &ID,
+					StaffNumber:       "s123",
+					DefaultFacilityID: &ID,
+				},
+			}, nil
+		},
 	}
 }
 
@@ -67,6 +95,11 @@ func (f *CreateMock) CollectMetrics(ctx context.Context, metric *dto.MetricInput
 //SetUserPIN mocks the implementation of SetUserPIN method
 func (f *CreateMock) SetUserPIN(ctx context.Context, pinData *domain.UserPIN) (bool, error) {
 	return f.SetUserPINFn(ctx, pinData)
+}
+
+// RegisterStaffUser mocks the implementation of  RegisterStaffUser method.
+func (f *CreateMock) RegisterStaffUser(ctx context.Context, user *dto.UserInput, staff *dto.StaffProfileInput) (*domain.StaffUserProfile, error) {
+	return f.RegisterStaffUserFn(ctx, user, staff)
 }
 
 // QueryMock is a mock of the query methods

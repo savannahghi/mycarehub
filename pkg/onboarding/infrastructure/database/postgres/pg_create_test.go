@@ -231,3 +231,117 @@ func TestOnboardingDb_SetUserPIN(t *testing.T) {
 		})
 	}
 }
+
+func TestOnboardingDb_RegisterStaffUser(t *testing.T) {
+	ctx := context.Background()
+
+	testFacilityID := uuid.New().String()
+	testUserID := uuid.New().String()
+	testTime := time.Now()
+	testID := uuid.New().String()
+
+	type args struct {
+		ctx   context.Context
+		user  *dto.UserInput
+		staff *dto.StaffProfileInput
+	}
+
+	userInput := &dto.UserInput{
+		Username:    "test",
+		DisplayName: "test",
+		FirstName:   "test",
+		MiddleName:  "test",
+		LastName:    "test",
+	}
+
+	staffInput := &dto.StaffProfileInput{
+		StaffNumber:       "s123",
+		DefaultFacilityID: &testFacilityID,
+	}
+	staffNoFacilityIDInput := &dto.StaffProfileInput{
+		StaffNumber: "s123",
+	}
+
+	tests := []struct {
+		name    string
+		args    args
+		want    *domain.StaffUserProfile
+		wantErr bool
+	}{
+		{
+			name: "happy case",
+			args: args{
+				ctx:   ctx,
+				user:  userInput,
+				staff: staffInput,
+			},
+			wantErr: false,
+		},
+		{
+			name: "invalid: missing facility",
+			args: args{
+				ctx:   ctx,
+				user:  userInput,
+				staff: staffNoFacilityIDInput,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		var fakeGorm = gormMock.NewGormMock()
+		d := NewOnboardingDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+		t.Run(tt.name, func(t *testing.T) {
+
+			if tt.name == "Happy case" {
+
+				fakeGorm.GetOrCreateFacilityFn = func(ctx context.Context, facility *gorm.Facility) (*gorm.Facility, error) {
+					return &gorm.Facility{
+						FacilityID:  &testFacilityID,
+						Name:        "test",
+						Code:        "f1234",
+						Active:      "true",
+						County:      "test",
+						Description: "test description",
+					}, nil
+				}
+				fakeGorm.RegisterStaffUserFn = func(ctx context.Context, user *gorm.User, staff *gorm.StaffProfile) (*gorm.StaffUserProfile, error) {
+					return &gorm.StaffUserProfile{
+						User: &gorm.User{
+							UserID:              &testUserID,
+							Username:            "test",
+							DisplayName:         "test",
+							FirstName:           "test",
+							MiddleName:          "test",
+							LastName:            "test",
+							Active:              true,
+							LastSuccessfulLogin: &testTime,
+							LastFailedLogin:     &testTime,
+							NextAllowedLogin:    &testTime,
+							FailedLoginCount:    "0",
+							TermsAccepted:       true,
+							AcceptedTermsID:     testID,
+						},
+						Staff: &gorm.StaffProfile{
+							StaffProfileID:    &testID,
+							UserID:            &testUserID,
+							StaffNumber:       "s123",
+							DefaultFacilityID: &testFacilityID,
+						},
+					}, nil
+				}
+			}
+
+			if tt.name == "invalid: missing facility" {
+				fakeGorm.RegisterStaffUserFn = func(ctx context.Context, user *gorm.User, staff *gorm.StaffProfile) (*gorm.StaffUserProfile, error) {
+					return nil, fmt.Errorf("test error")
+				}
+			}
+
+			_, err := d.RegisterStaffUser(tt.args.ctx, tt.args.user, tt.args.staff)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("OnboardingDb.RegisterStaffUser() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}

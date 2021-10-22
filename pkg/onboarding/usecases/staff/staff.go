@@ -1,6 +1,9 @@
 package staff
 
 import (
+	"context"
+
+	"github.com/savannahghi/onboarding-service/pkg/onboarding/application/dto"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/domain"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/infrastructure"
 )
@@ -11,31 +14,31 @@ type IRegisterStaffUser interface {
 	//		validation: ensure the staff profile has at least one facility
 	//		ensure that the default facility is one of these
 	// TODO: ensure the user exists...userID in profile
-	RegisterStaffUser(user domain.User, profile domain.StaffProfile) (*domain.User, *domain.StaffProfile, error)
+	RegisterStaffUser(ctx context.Context, user *dto.UserInput, staff *dto.StaffProfileInput) (*domain.StaffUserProfile, error)
 }
 
-// IAddRoles contains add staff role methods
-type IAddRoles interface {
-	AddRoles(userID string, roles []string) (bool, error)
-}
+// // IAddRoles contains add staff role methods
+// type IAddRoles interface {
+// 	AddRoles(userID string, roles []string) (bool, error)
+// }
 
-// IRemoveRole contains remove role methods for staff
-type IRemoveRole interface {
-	RemoveRole(userID string, role string) (bool, error)
-}
+// // IRemoveRole contains remove role methods for staff
+// type IRemoveRole interface {
+// 	RemoveRole(userID string, role string) (bool, error)
+// }
 
-// IUpdateDefaultFacility contains update default facility methods for staff
-type IUpdateDefaultFacility interface {
-	// TODO: the list of facilities to switch between is strictly those that the user is assigned to
-	UpdateDefaultFacility(userID string, facilityID string) (bool, error)
-}
+// // IUpdateDefaultFacility contains update default facility methods for staff
+// type IUpdateDefaultFacility interface {
+// 	// TODO: the list of facilities to switch between is strictly those that the user is assigned to
+// 	UpdateDefaultFacility(userID string, facilityID string) (bool, error)
+// }
 
 // UsecasesStaffProfile contains all the staff profile usecases
 type UsecasesStaffProfile interface {
 	IRegisterStaffUser
-	IAddRoles
-	IRemoveRole
-	IUpdateDefaultFacility
+	// IAddRoles
+	// IRemoveRole
+	// IUpdateDefaultFacility
 }
 
 // UsecasesStaffProfileImpl represents user implementation object
@@ -48,4 +51,9 @@ func NewUsecasesStaffProfileImpl(infra infrastructure.Interactor) *UsecasesStaff
 	return &UsecasesStaffProfileImpl{
 		Infrastructure: infra,
 	}
+}
+
+// RegisterStaffUser returns a staff profile
+func (u *UsecasesStaffProfileImpl) RegisterStaffUser(ctx context.Context, user *dto.UserInput, staff *dto.StaffProfileInput) (*domain.StaffUserProfile, error) {
+	return u.Infrastructure.RegisterStaffUser(ctx, user, staff)
 }

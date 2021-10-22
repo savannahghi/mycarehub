@@ -15,6 +15,7 @@ type Create interface {
 	GetOrCreateFacility(ctx context.Context, facility dto.FacilityInput) (*domain.Facility, error)
 	CollectMetrics(ctx context.Context, metric *dto.MetricInput) (*domain.Metric, error)
 	SetUserPIN(ctx context.Context, pinInput *domain.UserPIN) (bool, error)
+	RegisterStaffUser(ctx context.Context, user *dto.UserInput, staff *dto.StaffProfileInput) (*domain.StaffUserProfile, error)
 }
 
 // Delete represents all the deletion action interfaces
@@ -47,6 +48,11 @@ func (f ServiceCreateImpl) CollectMetrics(ctx context.Context, metric *dto.Metri
 // SetUserPIN saves user's PIN data
 func (f ServiceCreateImpl) SetUserPIN(ctx context.Context, input *domain.UserPIN) (bool, error) {
 	return f.onboarding.SetUserPIN(ctx, input)
+}
+
+// RegisterStaffUser is responsible for creating a representation of a staff user
+func (f ServiceCreateImpl) RegisterStaffUser(ctx context.Context, user *dto.UserInput, staff *dto.StaffProfileInput) (*domain.StaffUserProfile, error) {
+	return f.onboarding.RegisterStaffUser(ctx, user, staff)
 }
 
 // Query contains all query methods

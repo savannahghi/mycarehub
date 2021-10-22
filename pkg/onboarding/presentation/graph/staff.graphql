@@ -1,0 +1,3 @@
+extend type Mutation {
+    registerStaffUser(userInput: UserInput!, staffInput: StaffProfileInput!) :StaffUserProfile
+}

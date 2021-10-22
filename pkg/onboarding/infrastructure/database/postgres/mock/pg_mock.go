@@ -18,6 +18,7 @@ type PostgresMock struct {
 	SetUserPINFn             func(ctx context.Context, pinData *domain.UserPIN) (bool, error)
 	GetUserPINByUserIDFn     func(ctx context.Context, userID string) (*domain.UserPIN, error)
 	GetUserProfileByUserIDFn func(ctx context.Context, userID string, flavour string) (*domain.User, error)
+	RegisterStaffUserFn      func(ctx context.Context, user *dto.UserInput, staff *dto.StaffProfileInput) (*domain.StaffUserProfile, error)
 
 	//Updates
 	UpdateUserLastSuccessfulLoginFn func(ctx context.Context, userID string, lastLoginTime time.Time, flavour string) error
@@ -82,28 +83,28 @@ func NewPostgresMock() *PostgresMock {
 
 		GetUserProfileByUserIDFn: func(ctx context.Context, userID, flavour string) (*domain.User, error) {
 			id := uuid.New().String()
-			contact := &domain.Contact{
-				ID:      &id,
-				Type:    "test",
-				Contact: "test",
-				Active:  true,
-				OptedIn: true,
-			}
+			// contact := &domain.Contact{
+			// 	ID:      &id,
+			// 	Type:    "test",
+			// 	Contact: "test",
+			// 	Active:  true,
+			// 	OptedIn: true,
+			// }
 			time := time.Now()
 			return &domain.User{
-				ID:                  &id,
-				Username:            "test",
-				DisplayName:         "test",
-				FirstName:           "test",
-				MiddleName:          "test",
-				LastName:            "test",
-				Flavour:             "test",
-				UserType:            "test",
-				Gender:              "test",
-				Active:              false,
-				Contacts:            []*domain.Contact{contact},
-				Languages:           []string{"en"},
-				PushTokens:          []string{"push-token"},
+				ID:          &id,
+				Username:    "test",
+				DisplayName: "test",
+				FirstName:   "test",
+				MiddleName:  "test",
+				LastName:    "test",
+				Flavour:     "test",
+				// UserType:            "test",
+				// Gender:              "test",
+				Active: false,
+				// Contacts:            []*domain.Contact{contact},
+				// Languages:           []string{"en"},
+				// PushTokens:          []string{"push-token"},
 				LastSuccessfulLogin: &time,
 				LastFailedLogin:     &time,
 				FailedLoginCount:    "test",
@@ -140,6 +141,33 @@ func NewPostgresMock() *PostgresMock {
 		UpdateUserNextAllowedLoginFn: func(ctx context.Context, userID string, nextAllowedLoginTime time.Time, flavour string) error {
 			return nil
 		},
+		RegisterStaffUserFn: func(ctx context.Context, user *dto.UserInput, staff *dto.StaffProfileInput) (*domain.StaffUserProfile, error) {
+			ID := uuid.New().String()
+			testTime := time.Now()
+			return &domain.StaffUserProfile{
+				User: &domain.User{
+					ID:                  &ID,
+					Username:            "test",
+					DisplayName:         "test",
+					FirstName:           "test",
+					MiddleName:          "test",
+					LastName:            "test",
+					Active:              true,
+					LastSuccessfulLogin: &testTime,
+					LastFailedLogin:     &testTime,
+					NextAllowedLogin:    &testTime,
+					FailedLoginCount:    "0",
+					TermsAccepted:       true,
+					AcceptedTermsID:     ID,
+				},
+				Staff: &domain.StaffProfile{
+					ID:                &ID,
+					UserID:            &ID,
+					StaffNumber:       "s123",
+					DefaultFacilityID: &ID,
+				},
+			}, nil
+		},
 	}
 }
 
@@ -148,7 +176,7 @@ func (gm *PostgresMock) GetOrCreateFacility(ctx context.Context, facility *dto.F
 	return gm.GetOrCreateFacilityFn(ctx, facility)
 }
 
-// RetrieveFacility mocks the implementation of `gorm's` GetOrCreateFacility method.
+// RetrieveFacility mocks the implementation of `gorm's` RetrieveFacility method.
 func (gm *PostgresMock) RetrieveFacility(ctx context.Context, id *string, isActive bool) (*domain.Facility, error) {
 	return gm.RetrieveFacilityFn(ctx, id, isActive)
 }
@@ -186,4 +214,9 @@ func (gm *PostgresMock) UpdateUserFailedLoginCount(ctx context.Context, userID s
 // UpdateUserNextAllowedLogin ...
 func (gm *PostgresMock) UpdateUserNextAllowedLogin(ctx context.Context, userID string, nextAllowedLoginTime time.Time, flavour string) error {
 	return gm.UpdateUserNextAllowedLoginFn(ctx, userID, nextAllowedLoginTime, flavour)
+}
+
+// RegisterStaffUser mocks the implementation of `gorm's` RegisterStaffUser method.
+func (gm *PostgresMock) RegisterStaffUser(ctx context.Context, user *dto.UserInput, staff *dto.StaffProfileInput) (*domain.StaffUserProfile, error) {
+	return gm.RegisterStaffUserFn(ctx, user, staff)
 }
