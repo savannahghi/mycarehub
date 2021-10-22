@@ -17,6 +17,11 @@ type Create interface {
 	CollectMetrics(ctx context.Context, metric *dto.MetricInput) (*domain.Metric, error)
 	SetUserPIN(ctx context.Context, pinInput *domain.UserPIN) (bool, error)
 	RegisterStaffUser(ctx context.Context, user *dto.UserInput, staff *dto.StaffProfileInput) (*domain.StaffUserProfile, error)
+	RegisterClient(
+		ctx context.Context,
+		userInput *dto.UserInput,
+		clientInput *dto.ClientProfileInput,
+	) (*domain.ClientUserProfile, error)
 }
 
 // Delete represents all the deletion action interfaces
@@ -54,6 +59,15 @@ func (f ServiceCreateImpl) SetUserPIN(ctx context.Context, input *domain.UserPIN
 // RegisterStaffUser is responsible for creating a representation of a staff user
 func (f ServiceCreateImpl) RegisterStaffUser(ctx context.Context, user *dto.UserInput, staff *dto.StaffProfileInput) (*domain.StaffUserProfile, error) {
 	return f.onboarding.RegisterStaffUser(ctx, user, staff)
+}
+
+// RegisterClient creates a client user and saves the details in the database
+func (f ServiceCreateImpl) RegisterClient(
+	ctx context.Context,
+	userInput *dto.UserInput,
+	clientInput *dto.ClientProfileInput,
+) (*domain.ClientUserProfile, error) {
+	return f.onboarding.RegisterClient(ctx, userInput, clientInput)
 }
 
 // Query contains all query methods

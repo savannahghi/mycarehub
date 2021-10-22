@@ -22,7 +22,7 @@ func TestOnboardingDb_RegisterStaffUser(t *testing.T) {
 	d := testFakeInfrastructureInteractor
 
 	userInput := &dto.UserInput{
-		Username:    "test",
+		UserName:    "test",
 		DisplayName: "test",
 		FirstName:   "test",
 		MiddleName:  "test",

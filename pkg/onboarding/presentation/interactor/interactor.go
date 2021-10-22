@@ -4,6 +4,7 @@ package interactor
 
 import (
 	pg "github.com/savannahghi/onboarding-service/pkg/onboarding/infrastructure/database/postgres"
+	"github.com/savannahghi/onboarding-service/pkg/onboarding/usecases/client"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/usecases/facility"
 	metrics "github.com/savannahghi/onboarding-service/pkg/onboarding/usecases/metric"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/usecases/staff"
@@ -21,6 +22,7 @@ type Interactor struct {
 	MetricUsecase      metrics.UsecasesMetrics
 	UserUsecase        userusecase.UseCasesUser
 	StaffUsecase       staff.UsecasesStaffProfile
+	ClientUseCase      client.UseCasesClientProfile
 }
 
 // NewOnboardingInteractor returns a new onboarding interactor
@@ -32,6 +34,7 @@ func NewOnboardingInteractor(
 	metricUsecase metrics.UsecasesMetrics,
 	usecaseUser userusecase.UseCasesUser,
 	staffProfileUsecase staff.UsecasesStaffProfile,
+	clientUseCase client.UseCasesClientProfile,
 ) *Interactor {
 	return &Interactor{
 		OpenSourceInfra:    openSourceInfra,
@@ -41,5 +44,6 @@ func NewOnboardingInteractor(
 		MetricUsecase:      metricUsecase,
 		StaffUsecase:       staffProfileUsecase,
 		UserUsecase:        usecaseUser,
+		ClientUseCase:      clientUseCase,
 	}
 }

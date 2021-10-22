@@ -4,8 +4,9 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/feedlib"
-	"github.com/savannahghi/onboarding-service/pkg/onboarding/domain"
+	"github.com/savannahghi/onboarding-service/pkg/onboarding/application/enums"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
 )
@@ -52,8 +53,7 @@ type Metric struct {
 	// ensures we don't re-save the same metric; opaque; globally unique
 	MetricID *string `gorm:"primaryKey;autoIncrement:true;unique;column:metric_id"`
 
-	// TODO Metric types should be a controlled list i.e enum
-	Type domain.MetricType `gorm:"column:metric_type"`
+	Type enums.MetricType `gorm:"column:metric_type"`
 
 	// this will vary by context
 	// should not identify the user (there's a UID field)
@@ -96,7 +96,7 @@ type User struct {
 
 	UserType string `gorm:"column:user_type"` // TODO enum; e.g client, health care worker
 
-	Gender string `gorm:"column:gender"` // TODO enum; genders; keep it simple
+	Gender enumutils.Gender `gorm:"column:gender"`
 
 	Active bool `gorm:"column:active"`
 
@@ -231,11 +231,69 @@ type StaffUserProfile struct {
 	Staff *StaffProfile
 }
 
+// ClientProfile holds the details of end users who are not using the system in
+// a professional capacity e.g consumers, patients etc.
+// It is a linkage model e.g to tie together all of a person's identifiers
+// and their health record ID
+type ClientProfile struct {
+	Base
+
+	ID *string `gorm:"primaryKey;unique;column:id"`
+
+	UserID *string `gorm:"unique;column:user_id"`
+	User   User    `gorm:"foreignKey:user_id;references:user_id;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
+
+	TreatmentEnrollmentDate *time.Time
+
+	ClientType enums.ClientType `gorm:"column:client_type"`
+
+	Active bool `gorm:"column:active"`
+
+	HealthRecordID *string `gorm:"column:health_record_id"`
+
+	// TODO: a client can have many identifiers; an identifier belongs to a client
+	// (implement reverse relation lookup)
+	// Identifiers []*domain.Identifier `gorm:"column:identifiers"`
+
+	// Addresses []*domain.UserAddress `gorm:"column:addresses"`
+
+	// RelatedPersons []*domain.RelatedPerson `gorm:"column:related_persons"`
+
+	// client's currently assigned facility
+	FacilityID string `gorm:"column:facility_id"` // TODO: FK
+
+	TreatmentBuddy string `gorm:"column:treatment_buddy"` // TODO: optional, free text OR FK to user?
+
+	CHVUserID string `gorm:"column:chvuser_id"` // TODO: optional, FK to User
+
+	ClientCounselled bool `gorm:"column:client_counselled"`
+}
+
+// BeforeCreate is a hook run before creating a client profile
+func (c *ClientProfile) BeforeCreate(tx *gorm.DB) (err error) {
+	id := uuid.New().String()
+	c.ID = &id
+	return
+}
+
+// TableName customizes how the table name is generated
+func (ClientProfile) TableName() string {
+	return "clientprofile"
+}
+
+// ClientUserProfile holds the details of end users who are not using the system in
+// a professional capacity e.g consumers, patients etc together with their user profile
+type ClientUserProfile struct {
+	User   *User          `json:"user"`
+	Client *ClientProfile `json:"client"`
+}
+
 func allTables() []interface{} {
 	tables := []interface{}{
 		&Facility{},
 		&Metric{},
 		&User{},
+		&ClientProfile{},
 		&Contact{},
 		&StaffProfile{},
 		&UserAddress{},

@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/application/dto"
+	"github.com/savannahghi/onboarding-service/pkg/onboarding/application/enums"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/application/utils"
-	"github.com/savannahghi/onboarding-service/pkg/onboarding/domain"
 	"github.com/segmentio/ksuid"
 	"github.com/tj/assert"
 	"gorm.io/datatypes"
@@ -19,7 +19,7 @@ func TestUsecaseMetricsImpl_CollectMetrics_Integration_Test(t *testing.T) {
 	m := testInfrastructureInteractor
 
 	metric := &dto.MetricInput{
-		Type:      domain.EngagementMetrics,
+		Type:      enums.EngagementMetrics,
 		Payload:   datatypes.JSON([]byte(`{"who": "test user", "keyword": "suicidal"}`)),
 		Timestamp: time.Now(),
 		UID:       ksuid.New().String(),

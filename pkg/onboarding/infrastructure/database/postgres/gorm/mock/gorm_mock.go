@@ -6,7 +6,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/savannahghi/onboarding-service/pkg/onboarding/domain"
+	"github.com/savannahghi/enumutils"
+	"github.com/savannahghi/onboarding-service/pkg/onboarding/application/enums"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/infrastructure/database/postgres/gorm"
 	"github.com/segmentio/ksuid"
 	"gorm.io/datatypes"
@@ -26,6 +27,7 @@ type GormMock struct {
 	GetUserPINByUserIDFn        func(ctx context.Context, userID string) (*gorm.PINData, error)
 	GetUserProfileByUserIDFn    func(ctx context.Context, userID string, flavour string) (*gorm.User, error)
 	RegisterStaffUserFn         func(ctx context.Context, user *gorm.User, staff *gorm.StaffProfile) (*gorm.StaffUserProfile, error)
+	RegisterClientFn            func(ctx context.Context, userInput *gorm.User, clientInput *gorm.ClientProfile) (*gorm.ClientUserProfile, error)
 
 	//Updates
 	UpdateUserLastSuccessfulLoginFn func(ctx context.Context, userID string, lastLoginTime time.Time, flavour string) error
@@ -37,6 +39,22 @@ type GormMock struct {
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
 func NewGormMock() *GormMock {
 	return &GormMock{
+		RegisterClientFn: func(ctx context.Context, userInput *gorm.User, clientInput *gorm.ClientProfile) (*gorm.ClientUserProfile, error) {
+			return &gorm.ClientUserProfile{
+				User: &gorm.User{
+					FirstName:   "FirstName",
+					LastName:    "Last Name",
+					Username:    "User Name",
+					MiddleName:  userInput.MiddleName,
+					DisplayName: "Display Name",
+					Gender:      enumutils.GenderMale,
+				},
+				Client: &gorm.ClientProfile{
+					ClientType: enums.ClientTypeOvc,
+				},
+			}, nil
+		},
+
 		GetOrCreateFacilityFn: func(ctx context.Context, facility *gorm.Facility) (*gorm.Facility, error) {
 			id := uuid.New().String()
 			name := "Kanairo One"
@@ -95,7 +113,7 @@ func NewGormMock() *GormMock {
 			metricID := uuid.New().String()
 			return &gorm.Metric{
 				MetricID:  &metricID,
-				Type:      domain.EngagementMetrics,
+				Type:      enums.EngagementMetrics,
 				Payload:   datatypes.JSON([]byte(`{"who": "test user", "keyword": "suicidal"}`)),
 				Timestamp: now,
 				UID:       ksuid.New().String(),
@@ -281,4 +299,13 @@ func (gm *GormMock) UpdateUserNextAllowedLogin(ctx context.Context, userID strin
 // RegisterStaffUser mocks the implementation of  RegisterStaffUser method.
 func (gm *GormMock) RegisterStaffUser(ctx context.Context, user *gorm.User, staff *gorm.StaffProfile) (*gorm.StaffUserProfile, error) {
 	return gm.RegisterStaffUserFn(ctx, user, staff)
+}
+
+// RegisterClient mocks the implementation of RegisterClient method
+func (gm *GormMock) RegisterClient(
+	ctx context.Context,
+	userInput *gorm.User,
+	clientInput *gorm.ClientProfile,
+) (*gorm.ClientUserProfile, error) {
+	return gm.RegisterClientFn(ctx, userInput, clientInput)
 }

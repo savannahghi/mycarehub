@@ -1,4 +1,3 @@
-
 type Facility {
   ID: String!
   name: String!
@@ -11,33 +10,11 @@ type Facility {
 type PIN {
   user: String!
   pin: String!
-  confirmedPin: String!,
+  confirmedPin: String!
   flavour: Flavour!
 }
 
-type User {
-  id: String!
-  username: String!
-  displayName: String!
-  firstName: String!
-  middleName: String!
-  lastName: String!
-  # userType: String! # TODO enum; e.g client, health care worker
-  # gender: String! # TODO enum; genders; keep it simple
-  active: Boolean!
-  # contacts: [Contact!]
-  # languages: [String!]
-  # pushTokens: [String!]
-  lastSuccessfulLogin: Time
-  lastFailedLogin: Time
-  failedLoginCount: String
-  nextAllowedLogin: Time
-  termsAccepted: Boolean
-  acceptedTermsID: String
-  # flavour: String!
-}
-
-type StaffProfile{
+type StaffProfile {
   id: String!
   userID: String!
   staffNumber: String!
@@ -50,4 +27,42 @@ type StaffProfile{
 type StaffUserProfile {
   user: User!
   staff: StaffProfile!
+}
+
+type User {
+  id: String!
+  firstName: String
+  lastName: String
+  gender: Gender
+  userName: String
+  displayName: String
+  active: Boolean
+  # contacts: [Contact!]
+  languages: [Language]
+  # pushTokens: [String!]
+  lastSuccessfulLogin: Time
+  lastFailedLogin: Time
+  failedLoginCount: String
+  nextAllowedLogin: Time
+  termsAccepted: Boolean
+  acceptedTermsID: String
+  # flavour: String!
+}
+
+type ClientProfile {
+  id: String!
+  userID: String!
+  clientType: ClientType
+  active: Boolean
+  treatmentEnrollmentDate: Date
+  healthRecordID: String
+  facilityID: String
+  treatmentBuddyUserID: String
+  chvUserID: String
+  clientCounselled: Boolean
+}
+
+type ClientUserProfile {
+  user: User!
+  client: ClientProfile!
 }

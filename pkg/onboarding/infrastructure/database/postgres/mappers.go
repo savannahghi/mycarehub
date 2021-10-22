@@ -129,3 +129,36 @@ func (d *OnboardingDb) mapRegisterStaffObjectToDomain(userStaffObject *gorm.Staf
 		Staff: staffProfile,
 	}
 }
+
+// mapRegisterClientObjectToDomain maps the database client object to our custom domain type
+func (d *OnboardingDb) mapRegisterClientObjectToDomain(clientObject *gorm.ClientUserProfile) *domain.ClientUserProfile {
+	userObject := clientObject.User
+	client := clientObject.Client
+
+	user := &domain.User{
+		ID:                  userObject.UserID,
+		Username:            userObject.Username,
+		DisplayName:         userObject.DisplayName,
+		FirstName:           userObject.FirstName,
+		MiddleName:          userObject.MiddleName,
+		LastName:            userObject.LastName,
+		Active:              userObject.Active,
+		LastSuccessfulLogin: userObject.LastSuccessfulLogin,
+		LastFailedLogin:     userObject.LastFailedLogin,
+		FailedLoginCount:    userObject.FailedLoginCount,
+		NextAllowedLogin:    userObject.NextAllowedLogin,
+		TermsAccepted:       userObject.TermsAccepted,
+		AcceptedTermsID:     userObject.AcceptedTermsID,
+	}
+
+	clientProfile := &domain.ClientProfile{
+		ID:         client.ID,
+		UserID:     client.UserID,
+		ClientType: client.ClientType,
+	}
+
+	return &domain.ClientUserProfile{
+		User:   user,
+		Client: clientProfile,
+	}
+}

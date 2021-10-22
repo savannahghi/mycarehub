@@ -8,6 +8,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/application/dto"
+	"github.com/savannahghi/onboarding-service/pkg/onboarding/application/enums"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/domain"
 	"github.com/segmentio/ksuid"
 	"gorm.io/datatypes"
@@ -19,7 +20,7 @@ func TestUsecaseMetricsImpl_CollectMetrics_Unittest(t *testing.T) {
 	f := testFakeInfrastructureInteractor
 
 	metric := &dto.MetricInput{
-		Type:      domain.EngagementMetrics,
+		Type:      enums.EngagementMetrics,
 		Payload:   datatypes.JSON([]byte(`{"who": "test user", "keyword": "suicidal"}`)),
 		Timestamp: time.Now(),
 		UID:       ksuid.New().String(),
@@ -71,7 +72,7 @@ func TestUsecaseMetricsImpl_CollectMetrics_Unittest(t *testing.T) {
 					metricID := uuid.New().String()
 					return &domain.Metric{
 						MetricID:  &metricID,
-						Type:      domain.EngagementMetrics,
+						Type:      enums.EngagementMetrics,
 						Payload:   datatypes.JSON([]byte(`{"who": "test user", "keyword": "bored"}`)),
 						Timestamp: time.Now(),
 						UID:       ksuid.New().String(),

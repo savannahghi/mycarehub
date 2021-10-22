@@ -6,7 +6,7 @@ import (
 
 	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/feedlib"
-	"github.com/savannahghi/onboarding-service/pkg/onboarding/domain"
+	"github.com/savannahghi/onboarding-service/pkg/onboarding/application/enums"
 	"gorm.io/datatypes"
 )
 
@@ -71,7 +71,7 @@ func (i *FacilitySortInput) ToURLValues() (values url.Values) {
 type MetricInput struct {
 
 	// TODO Metric types should be a controlled list i.e enum
-	Type domain.MetricType `json:"metric_type"`
+	Type enums.MetricType `json:"metric_type"`
 
 	// this will vary by context
 	// should not identify the user (there's a UID field)
@@ -99,28 +99,6 @@ type LoginInput struct {
 	Flavour feedlib.Flavour `json:"flavour"`
 }
 
-// UserInput contains the input for the User
-type UserInput struct {
-	Username string // @handle, also globally unique; nickname
-
-	DisplayName string // user's preferred display name
-
-	// TODO Consider making the names optional in DB; validation in frontends
-	FirstName  string // given name
-	MiddleName string
-	LastName   string
-
-	// UserType string // TODO enum; e.g client, health care worker
-
-	// Gender string // TODO enum; genders; keep it simple
-
-	// Contacts []*domain.Contact // TODO: validate, ensure
-
-	// // for the preferred language list, order matters
-	// Languages []string // TODO: turn this into a slice of enums, start small (en, sw)
-	Flavour feedlib.Flavour
-}
-
 // StaffProfileInput contains input required to register a staff
 type StaffProfileInput struct {
 	StaffNumber string
@@ -135,4 +113,26 @@ type StaffProfileInput struct {
 	// Roles []domain.RoleType `json:"roles"` // TODO: roles are an enum (controlled list), known to both FE and BE
 
 	// Addresses []*domain.UserAddress
+}
+
+// ClientProfileInput is used to supply the client profile input
+type ClientProfileInput struct {
+	ClientType enums.ClientType `json:"clientType"`
+}
+
+// UserInput is used to supply user input for registration
+type UserInput struct {
+	// TODO Consider making the names optional in DB; validation in frontends
+	FirstName   string           `json:"firstName"`
+	MiddleName  string           `json:"middleName"`
+	LastName    string           `json:"lastName"`
+	UserName    string           `json:"userName"`
+	DisplayName string           `json:"displayName"`
+	Gender      enumutils.Gender `json:"gender"`
+	Flavour     feedlib.Flavour  `json:"flavour"`
+
+	// UserType string // TODO enum; e.g client, health care worker
+	// Contacts []*domain.Contact // TODO: validate, ensure
+	// // for the preferred language list, order matters
+	// Languages []string // TODO: turn this into a slice of enums, start small (en, sw)
 }

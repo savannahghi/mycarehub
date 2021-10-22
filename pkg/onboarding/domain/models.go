@@ -4,7 +4,10 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/feedlib"
+	"github.com/savannahghi/onboarding-service/pkg/onboarding/application/enums"
+	"github.com/savannahghi/scalarutils"
 	"gorm.io/datatypes"
 )
 
@@ -56,14 +59,14 @@ type User struct {
 
 	// UserType string // TODO enum; e.g client, health care worker
 
-	// Gender string // TODO enum; genders; keep it simple
+	Gender enumutils.Gender
 
 	Active bool
 
 	// Contacts []*Contact // TODO: validate, ensure
 
-	// // for the preferred language list, order matters
-	// Languages []string // TODO: turn this into a slice of enums, start small (en, sw)
+	// for the preferred language list, order matters
+	Languages []enumutils.Language // TODO: turn this into a slice of enums, start small (en, sw)
 
 	// PushTokens []string
 
@@ -133,11 +136,11 @@ type ClientProfile struct {
 	// every client is a user first
 	// biodata is linked to the user record
 	// the client record is for bridging to other identifiers e.g patient record IDs
-	UserID uuid.UUID // TODO: Foreign key to User
+	UserID *string // TODO: Foreign key to User
 
-	TreatmentEnrollmentDate *time.Time // use for date of treatment enrollment
+	TreatmentEnrollmentDate *scalarutils.Date // use for date of treatment enrollment
 
-	ClientType string // TODO: enum; e.g PMTCT, OVC
+	ClientType enums.ClientType
 
 	Active bool
 
@@ -187,9 +190,9 @@ type RelatedPerson struct {
 	OtherName        string // TODO: optional
 	Gender           string // TODO: enum
 
-	DateOfBirth *time.Time     // TODO: optional
-	Addresses   []*UserAddress // TODO: optional
-	Contacts    []*Contact     // TODO: optional
+	DateOfBirth *scalarutils.Date // TODO: optional
+	Addresses   []*UserAddress    // TODO: optional
+	Contacts    []*Contact        // TODO: optional
 }
 
 // ClientProfileRegistrationPayload holds the registration input we need to register a client
@@ -237,7 +240,7 @@ type Metric struct {
 	MetricID *string
 
 	// TODO Metric types should be a controlled list i.e enum
-	Type MetricType
+	Type enums.MetricType
 
 	// this will vary by context
 	// should not identify the user (there's a UID field)
@@ -283,4 +286,10 @@ type PIN struct {
 type StaffUserProfile struct {
 	User  *User
 	Staff *StaffProfile
+}
+
+// ClientUserProfile represents the clients profile and associated user profile
+type ClientUserProfile struct {
+	User   *User          `json:"user"`
+	Client *ClientProfile `json:"client"`
 }
