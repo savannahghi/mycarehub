@@ -190,7 +190,7 @@ type StaffProfile struct {
 	// // there is nothing special about super-admin; just the set of roles they have
 	// Roles []string `gorm:"type:text[];column:roles"` // TODO: roles are an enum (controlled list), known to both FE and BE
 
-	// Addresses []*UserAddress `gorm:"many2many:staffprofile_useraddress;"`
+	Addresses []*Addresses `gorm:"ForeignKey:StaffProfileID"`
 }
 
 // BeforeCreate is a hook run before creating a new staff profile
@@ -205,28 +205,29 @@ func (StaffProfile) TableName() string {
 	return "staffprofile"
 }
 
-// UserAddress are value objects for user address e.g postal code
-type UserAddress struct {
-	UserAddressID *string `gorm:"primaryKey;unique;column:useraddress_id"` // globally unique
+// Addresses are value objects for user address e.g postal code
+type Addresses struct {
+	AddressesID *string `gorm:"primaryKey;unique;column:useraddress_id"` // globally unique
 
-	Type       string `gorm:"column:type"`    // TODO: enum; postal, physical or both
-	Text       string `gorm:"column:text"`    // actual address, can be multi-line
-	Country    string `gorm:"column:country"` // TODO: enum
-	PostalCode string `gorm:"column:postal_code"`
-	County     string `gorm:"column:county"` // TODO: counties belong to a country
-	Active     bool   `gorm:"column:active"`
+	Type           enums.AddressesType `gorm:"column:type"`    // TODO: enum; postal, physical or both
+	Text           string              `gorm:"column:text"`    // actual address, can be multi-line
+	Country        enums.CountryType   `gorm:"column:country"` // TODO: enum
+	PostalCode     string              `gorm:"column:postal_code"`
+	County         enums.CountyType    `gorm:"column:county"` // TODO: counties belong to a country
+	Active         bool                `gorm:"column:active"`
+	StaffProfileID *string             `gorm:"column:staff_profile_id"`
 }
 
 // BeforeCreate is a hook run before creating a new address
-func (a *UserAddress) BeforeCreate(tx *gorm.DB) (err error) {
+func (a *Addresses) BeforeCreate(tx *gorm.DB) (err error) {
 	id := uuid.New().String()
-	a.UserAddressID = &id
+	a.AddressesID = &id
 	return
 }
 
 // TableName customizes how the table name is generated
-func (UserAddress) TableName() string {
-	return "useraddress"
+func (Addresses) TableName() string {
+	return "address"
 }
 
 // StaffUserProfile combines user and staff profile
@@ -259,7 +260,7 @@ type ClientProfile struct {
 	// (implement reverse relation lookup)
 	Identifiers []*Identifier `gorm:"foreignKey:ClientID"`
 
-	// Addresses []*domain.UserAddress `gorm:"column:addresses"`
+	// Addresses []*domain.Addresses `gorm:"column:addresses"`
 
 	// RelatedPersons []*domain.RelatedPerson `gorm:"column:related_persons"`
 
@@ -360,7 +361,7 @@ func allTables() []interface{} {
 		&StaffProfile{},
 		&ClientProfile{},
 		&Identifier{},
-		&UserAddress{},
+		&Addresses{},
 		&PINData{},
 	}
 	return tables

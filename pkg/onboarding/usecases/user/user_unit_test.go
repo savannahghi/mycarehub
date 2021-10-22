@@ -16,13 +16,13 @@ func TestUseCasesUserImpl_SetUserPIN_Unittest(t *testing.T) {
 
 	f := testFakeInfrastructureInteractor
 
-	validPINInput := &dto.PINInput{
+	validPINInput := &dto.PinInput{
 		PIN:          "1234",
 		ConfirmedPin: "1234",
 		Flavour:      feedlib.FlavourConsumer,
 	}
 
-	invalidPINInput := &dto.PINInput{
+	invalidPINInput := &dto.PinInput{
 		PIN:          "",
 		ConfirmedPin: "1234",
 		Flavour:      "CONSUMER",
@@ -30,7 +30,7 @@ func TestUseCasesUserImpl_SetUserPIN_Unittest(t *testing.T) {
 
 	type args struct {
 		ctx   context.Context
-		input *dto.PINInput
+		input *dto.PinInput
 	}
 	tests := []struct {
 		name    string

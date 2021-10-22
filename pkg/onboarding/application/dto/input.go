@@ -71,12 +71,12 @@ func (i *FacilitySortInput) ToURLValues() (values url.Values) {
 type MetricInput struct {
 
 	// TODO Metric types should be a controlled list i.e enum
-	Type enums.MetricType `json:"metric_type"`
+	Type enums.MetricType `json:"metricType"`
 
 	// this will vary by context
 	// should not identify the user (there's a UID field)
 	// focus on the actual event
-	Payload datatypes.JSON `gorm:"column:payload"`
+	Payload datatypes.JSON `json:"payload"`
 
 	Timestamp time.Time `json:"time"`
 
@@ -85,34 +85,34 @@ type MetricInput struct {
 	UID string `json:"uid"`
 }
 
-// PINInput represents the PIN input data structure
-type PINInput struct {
+// PinInput represents the PIN input data structure
+type PinInput struct {
 	PIN          string          `json:"pin"`
-	ConfirmedPin string          `json:"confirmed_pin"`
+	ConfirmedPin string          `json:"confirmedPin"`
 	Flavour      feedlib.Flavour `json:"flavour"`
 }
 
 // LoginInput represents the Login input data structure
 type LoginInput struct {
-	UserID  string          `json:"user_id"`
+	UserID  string          `json:"userID"`
 	PIN     string          `json:"pin"`
 	Flavour feedlib.Flavour `json:"flavour"`
 }
 
 // StaffProfileInput contains input required to register a staff
 type StaffProfileInput struct {
-	StaffNumber string
+	StaffNumber string `json:"staffNumber"`
 
-	// Facilities []*domain.Facility // TODO: needs at least one
+	// Facilities []*domain.Facility `json:"facilities"` // TODO: needs at least one
 
 	// A UI switcher optionally toggles the default
 	// TODO: the list of facilities to switch between is strictly those that the user is assigned to
-	DefaultFacilityID *string // TODO: required, FK to facility
+	DefaultFacilityID *string `json:"defaultFacilityID"`
 
 	// // there is nothing special about super-admin; just the set of roles they have
 	// Roles []domain.RoleType `json:"roles"` // TODO: roles are an enum (controlled list), known to both FE and BE
 
-	// Addresses []*domain.UserAddress
+	Addresses []*AddressesInput `json:"addresses"`
 }
 
 // ClientProfileInput is used to supply the client profile input
@@ -122,32 +122,42 @@ type ClientProfileInput struct {
 
 // UserInput is used to supply user input for registration
 type UserInput struct {
-	Username string // @handle, also globally unique; nickname
+	Username string `json:"username"` // @handle, also globally unique; nickname
 
-	DisplayName string // user's preferred display name
+	DisplayName string `json:"dispalyName"` // user's preferred display name
 
 	// TODO Consider making the names optional in DB; validation in frontends
-	FirstName  string // given name
-	MiddleName string
-	LastName   string
+	FirstName  string `json:"firstName"` // given name
+	MiddleName string `json:"middleName"`
+	LastName   string `json:"lastName"`
 
-	UserType enums.UsersType // TODO enum; e.g client, health care worker
+	UserType enums.UsersType `json:"userType"`
 
-	Gender enumutils.Gender // TODO enum; genders; keep it simple
+	Gender enumutils.Gender `json:"gender"`
 
-	Contacts []*ContactInput // TODO: validate, ensure
+	Contacts []*ContactInput `json:"contactInput"` // TODO: validate, ensure
 
-	// // for the preferred language list, order matters
-	Languages []enumutils.Language // TODO: turn this into a slice of enums, start small (en, sw)
-	Flavour   feedlib.Flavour
+	// for the preferred language list, order matters
+	Languages []enumutils.Language `json:"languages"`
+	Flavour   feedlib.Flavour      `json:"flavour"`
 }
 
 // ContactInput contains input required to register a user
 type ContactInput struct {
-	Type    enums.ContactType
-	Contact string //TODO Validate: phones are E164, emails are valid
-	Active  bool
+	Type    enums.ContactType `json:"type"`
+	Contact string            `json:"contact"` //TODO Validate: phones are E164, emails are valid
+	Active  bool              `json:"active"`
 	//   a user may opt not to be contacted via this contact
 	//   e.g if it's a shared phone owned by a teenager
-	OptedIn bool
+	OptedIn bool `json:"optedIn"`
+}
+
+// AddressesInput defines the values required when setting up user information
+type AddressesInput struct {
+	Type       enums.AddressesType `json:"type"`
+	Text       string              `json:"text"` // actual address, can be multi-line
+	Country    enums.CountryType   `json:"country"`
+	PostalCode string              `json:"postalCode"`
+	County     enums.CountyType    `json:"county"`
+	Active     bool                `json:"active"`
 }

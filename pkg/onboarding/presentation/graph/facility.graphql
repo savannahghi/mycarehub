@@ -2,7 +2,7 @@
 extend type Mutation {
     createFacility(input: FacilityInput!): Facility!
     deleteFacility(id: String!): Boolean!
-    setUserPIN(input: PINInput): Boolean!
+    setUserPIN(input: PinInput): Boolean!
 }
 
 extend type Query {

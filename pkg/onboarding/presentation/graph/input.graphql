@@ -6,8 +6,8 @@ input FacilityInput {
   description: String!
 }
 
-input PINInput {
-  pin: String!
+input PinInput {
+  Pin: String!
   confirmedPin: String!
   flavour: Flavour!
 }
@@ -19,25 +19,25 @@ input UserInput {
   firstName: String!
   middleName: String!
   lastName: String!
-  userType: UsersType! # TODO enum; e.g client, health care worker
-  gender: Gender! # TODO enum; genders; keep it simple
+  userType: UsersType!
+  gender: Gender!
   contacts: [ContactInput!]!
   languages: [Language!]!
   flavour: Flavour!
 }
 
 input StaffProfileInput {
-  staffNumber: String!
-  # facilities: [FacilityInput!]
+  staffNumber:       String!
+  # facilities:      [FacilityInput!]
   defaultFacilityID: String!
-  # roles: [RoleType] # TODO: roles are an enum (controlled list), known to both FE and BE
-  # addresses: [ContactAddressInput!]
+  # roles:           [RoleType] # TODO: roles are an enum (controlled list), known to both FE and BE
+  addresses:         [AddressesInput!]!
 }
 
 input ContactInput {
-	Type: ContactType!
+	Type:    ContactType!
 	Contact: String! #TODO Validate: phones are E164, emails are valid
-	Active: Boolean!
+	Active:  Boolean!
   #a user may opt not to be contacted via this contact
   #e.g if it's a shared phone owned by a teenager
 	OptedIn: Boolean!
@@ -46,4 +46,13 @@ input ContactInput {
 
 input ClientProfileInput {
   clientType: ClientType!
+}
+
+input AddressesInput {
+	Type:       AddressesType!
+	Text:       String!
+	Country:    CountryType!
+	PostalCode: String!
+	County:     CountyType!
+	Active:     Boolean!
 }

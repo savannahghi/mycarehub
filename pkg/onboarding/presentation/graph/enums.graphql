@@ -14,3 +14,76 @@ enum IdentifierUse {
   TEMPORARY
   OLD
 }
+enum ContactType {
+  PHONE
+  EMAIL
+}
+
+enum UsersType {
+    HEALTHCAREWORKER
+    CLIENT
+}
+
+enum CountryType {
+  KENYA 
+  # other countries
+}
+
+enum CountyType {
+  Mombasa
+  Kwale
+  Kilifi
+  Tana_River
+  Lamu
+  Taita_Taveta
+  Garissa
+  Wajir
+  Mandera
+  Marsabit
+  Isiolo
+  Meru
+  Tharaka_Nithi
+  Embu
+  Kitui
+  Machakos
+  Makueni
+  Nyandarua
+  Nyeri
+  Kirinyaga
+  Muranga
+  Kiambu
+  Turkana
+  West_Pokot
+  Samburu
+  Trans_Nzoia
+  Uasin_Gishu
+  Elgeyo_Marakwet
+  Nandi
+  Baringo
+  Laikipia
+  Nakuru
+  Narok
+  Kajiado
+  Kericho
+  Bomet
+  Kakamega
+  Vihiga
+  Bungoma
+  Busia
+  Siaya
+  Kisumu
+  Homa_Bay
+  Migori
+  Kisii
+  Nyamira
+  Nairobi
+  # other counties
+ 
+}
+
+enum AddressesType {
+  POSTAL
+  PHYSICAL
+  POSTALPHYSICAL
+}
+

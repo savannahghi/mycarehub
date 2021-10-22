@@ -94,9 +94,30 @@ func (d *OnboardingDb) RegisterStaffUser(ctx context.Context, user *dto.UserInpu
 
 	userObject := createUserObject(user)
 
+	addresses := []*gorm.Addresses{}
+	if len(staff.Addresses) > 0 {
+		for _, a := range staff.Addresses {
+			// ensure counties belong to a country
+			err := enums.ValidateCountiesOfCountries(enums.CountryType(a.Country), enums.CountyType(a.County))
+			if err != nil {
+				return nil, fmt.Errorf("failed to validate %v county belongs to %v: %v", a.County, a.Country, err)
+			}
+			address := &gorm.Addresses{
+				Type:       a.Type,
+				Text:       a.Text,
+				Country:    a.Country,
+				PostalCode: a.PostalCode,
+				County:     a.County,
+				Active:     a.Active,
+			}
+			addresses = append(addresses, address)
+		}
+	}
+
 	staffObject := &gorm.StaffProfile{
 		StaffNumber:       staff.StaffNumber,
 		DefaultFacilityID: staff.DefaultFacilityID,
+		Addresses:         addresses,
 	}
 
 	userStaffProfile, err := d.create.RegisterStaffUser(ctx, userObject, staffObject)

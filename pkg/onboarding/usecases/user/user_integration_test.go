@@ -21,19 +21,19 @@ func TestUseCasesUserImpl_SetUserPIN_Integration(t *testing.T) {
 
 	m := testInfrastructureInteractor
 
-	validPINInput := &dto.PINInput{
+	validPINInput := &dto.PinInput{
 		PIN:          "1234",
 		ConfirmedPin: "1234",
 		Flavour:      feedlib.FlavourConsumer,
 	}
 
-	invalidPINInput := &dto.PINInput{
+	invalidPINInput := &dto.PinInput{
 		PIN:          "12",
 		ConfirmedPin: "1234",
 		Flavour:      "CONSUMER",
 	}
 
-	invalidPINInput2 := &dto.PINInput{
+	invalidPINInput2 := &dto.PinInput{
 		PIN:          "",
 		ConfirmedPin: "",
 		Flavour:      "CONSUMER",
@@ -119,7 +119,7 @@ func TestUseCasesUserImpl_Login_Integration_Test(t *testing.T) {
 	assert.NotNil(t, encodedPIN)
 	assert.NotNil(t, salt)
 
-	PINInput := &domain.UserPIN{
+	PinInput := &domain.UserPIN{
 		UserID:    *staffUserProfile.User.ID,
 		HashedPIN: encodedPIN,
 		ValidFrom: time.Now(),
@@ -129,7 +129,7 @@ func TestUseCasesUserImpl_Login_Integration_Test(t *testing.T) {
 		Salt:      salt,
 	}
 
-	isSet, err := m.SetUserPIN(ctx, PINInput)
+	isSet, err := m.SetUserPIN(ctx, PinInput)
 	assert.Nil(t, err)
 	assert.Equal(t, true, isSet)
 

@@ -273,6 +273,16 @@ func TestOnboardingDb_RegisterStaffUser(t *testing.T) {
 	staffInput := &dto.StaffProfileInput{
 		StaffNumber:       "s123",
 		DefaultFacilityID: &testFacilityID,
+		Addresses: []*dto.AddressesInput{
+			{
+				Type:       enums.AddressesTypePhysical,
+				Text:       "test",
+				Country:    enums.CountryTypeKenya,
+				PostalCode: "test code",
+				County:     enums.CountyTypeBaringo,
+				Active:     true,
+			},
+		},
 	}
 	staffNoFacilityIDInput := &dto.StaffProfileInput{
 		StaffNumber: "s123",
@@ -354,6 +364,17 @@ func TestOnboardingDb_RegisterStaffUser(t *testing.T) {
 							UserID:            &testUserID,
 							StaffNumber:       "s123",
 							DefaultFacilityID: &testFacilityID,
+							Addresses: []*gorm.Addresses{
+								{
+									AddressesID: &testID,
+									Type:        enums.AddressesTypePhysical,
+									Text:        "test",
+									Country:     enums.CountryTypeKenya,
+									PostalCode:  "test code",
+									County:      enums.CountyTypeBaringo,
+									Active:      true,
+								},
+							},
 						},
 					}, nil
 				}

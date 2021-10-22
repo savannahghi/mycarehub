@@ -1,9 +1,0 @@
-enum ContactType {
-  PHONE
-  EMAIL
-}
-
-enum UsersType {
-    HEALTHCAREWORKER
-    CLIENT
-}

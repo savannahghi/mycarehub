@@ -245,6 +245,17 @@ func NewGormMock() *GormMock {
 					UserID:            &ID,
 					StaffNumber:       "s123",
 					DefaultFacilityID: &ID,
+					Addresses: []*gorm.Addresses{
+						{
+							AddressesID: &ID,
+							Type:        enums.AddressesTypePhysical,
+							Text:        "test",
+							Country:     enums.CountryTypeKenya,
+							PostalCode:  "test code",
+							County:      "test",
+							Active:      true,
+						},
+					},
 				},
 			}, nil
 		},

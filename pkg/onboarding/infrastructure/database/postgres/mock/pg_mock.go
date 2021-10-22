@@ -168,6 +168,17 @@ func NewPostgresMock() *PostgresMock {
 					UserID:            &ID,
 					StaffNumber:       "s123",
 					DefaultFacilityID: &ID,
+					Addresses: []*domain.Addresses{
+						{
+							ID:         ID,
+							Type:       enums.AddressesTypePhysical,
+							Text:       "test",
+							Country:    enums.CountryTypeKenya,
+							PostalCode: "test code",
+							County:     enums.CountyTypeBaringo,
+							Active:     true,
+						},
+					},
 				},
 			}, nil
 		},

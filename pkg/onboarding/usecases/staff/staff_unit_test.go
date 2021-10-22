@@ -133,6 +133,17 @@ func TestOnboardingDb_RegisterStaffUser(t *testing.T) {
 							UserID:            &testUserID,
 							StaffNumber:       "s123",
 							DefaultFacilityID: &testFacilityID,
+							Addresses: []*domain.Addresses{
+								{
+									ID:         testID,
+									Type:       enums.AddressesTypePhysical,
+									Text:       "test",
+									Country:    enums.CountryTypeKenya,
+									PostalCode: "test code",
+									County:     enums.CountyTypeBaringo,
+									Active:     true,
+								},
+							},
 						},
 					}, nil
 				}

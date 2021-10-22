@@ -16,14 +16,14 @@ import (
 // e.g CCC clinics, Pharmacies.
 type Facility struct {
 	// ID is the Global facility ID(GCID)
-	ID *string
+	ID *string `json:"id"`
 	// unique within this structure
-	Name string
+	Name string `json:"name"`
 	// MFL Code for Kenyan facilities, globally unique
-	Code        string
-	Active      bool
-	County      string // TODO: Controlled list of counties
-	Description string
+	Code        string `json:"code"`
+	Active      bool   `json:"active"`
+	County      string `json:"county"` // TODO: Controlled list of counties
+	Description string `json:"description"`
 }
 
 // // FacilityPage models the structure of all facilities including pagination
@@ -46,66 +46,65 @@ type Facility struct {
 //
 // Client and Staff cannot exist without being a user
 type User struct {
-	ID *string // globally unique ID
+	ID *string `json:"id"` // globally unique ID
 
-	Username string // @handle, also globally unique; nickname
+	Username string `json:"username"` // @handle, also globally unique; nickname
 
-	DisplayName string // user's preferred display name
+	DisplayName string `json:"displayName"` // user's preferred display name
 
 	// TODO Consider making the names optional in DB; validation in frontends
-	FirstName  string // given name
-	MiddleName string
-	LastName   string
+	FirstName  string `json:"firstName"` // given name
+	MiddleName string `json:"middleName"`
+	LastName   string `json:"lastName"`
 
-	UserType enums.UsersType // TODO enum; e.g client, health care worker
+	UserType enums.UsersType `json:"userType"`
 
-	Gender enumutils.Gender // TODO enum; genders; keep it simple
-
+	Gender enumutils.Gender `json:"gender"`
 	Active bool
 
-	Contacts []*Contact // TODO: validate, ensure
+	Contacts []*Contact `json:"contact"` // TODO: validate, ensure
 
 	// for the preferred language list, order matters
-	Languages []enumutils.Language // TODO: turn this into a slice of enums, start small (en, sw)
+	Languages []enumutils.Language `json:"languages"`
 
 	// PushTokens []string
 
 	// when a user logs in successfully, set this
-	LastSuccessfulLogin *time.Time
+	LastSuccessfulLogin *time.Time `json:"lastSuccessfulLogin"`
 
 	// whenever there is a failed login (e.g bad PIN), set this
 	// reset to null / blank when they succeed at logging in
-	LastFailedLogin *time.Time
+	LastFailedLogin *time.Time `json:"lastFailedLogin"`
 
 	// each time there is a failed login, **increment** this
 	// set to zero after successful login
-	FailedLoginCount string
+	FailedLoginCount string `json:"failedLoginCount"`
 
 	// calculated each time there is a failed login
-	NextAllowedLogin *time.Time
+	NextAllowedLogin *time.Time `json:"NextAllowedLogin"`
 
-	TermsAccepted   bool
-	AcceptedTermsID string // foreign key to version of terms they accepted
-	Flavour         feedlib.Flavour
+	TermsAccepted   bool            `json:"termsAccepted"`
+	AcceptedTermsID string          `json:"AcceptedTermsID"` // foreign key to version of terms they accepted
+	Flavour         feedlib.Flavour `json:"flavour"`
 }
 
 // AuthCredentials is the authentication credentials for a given user
 type AuthCredentials struct {
-	User *User
+	User *User `json:"user"`
 
-	RefreshToken string
-	IDToken      string
-	ExpiresIn    string
+	RefreshToken string `json:"refreshToken"`
+	IDToken      string `json:"idToken"`
+	ExpiresIn    string `json:"expiresIn"`
 }
 
 // UserPIN is used to store users' PINs and their entire change history.
 type UserPIN struct {
-	UserID    string          `json:"user_id"`
-	HashedPIN string          `json:"column:hashed_pin"`
-	ValidFrom time.Time       `json:"column:valid_from"`
-	ValidTo   time.Time       `json:"column:valid_to"`
+	UserID    string          `json:"userID"`
+	HashedPIN string          `json:"column:hashedPin"`
+	ValidFrom time.Time       `json:"column:validFrom"`
+	ValidTo   time.Time       `json:"column:validTo"`
 	Flavour   feedlib.Flavour `json:"flavour"`
-	IsValid   bool            `json:"is_valid"`
+	IsValid   bool            `json:"isValid"`
 	Salt      string          `json:"salt"`
 }
 
@@ -131,49 +130,48 @@ type Identifier struct {
 //It is a linkage model e.g to tie together all of a person's identifiers
 // and their health record ID
 type ClientProfile struct {
-	ID *string // globally unique identifier; synthetic i.e has no encoded meaning
+	ID *string `json:"id"` // globally unique identifier; synthetic i.e has no encoded meaning
 
 	// every client is a user first
 	// biodata is linked to the user record
 	// the client record is for bridging to other identifiers e.g patient record IDs
-	UserID *string // TODO: Foreign key to User
+	UserID *string `json:"userID"`
 
-	TreatmentEnrollmentDate *time.Time // use for date of treatment enrollment
+	TreatmentEnrollmentDate *time.Time `json:"treatmentEnrollmentDate"` // use for date of treatment enrollment
 
-	ClientType enums.ClientType
+	ClientType enums.ClientType `json:"ClientType"`
 
-	Active bool
+	Active bool `json:"Active"`
 
-	HealthRecordID *string // optional link to a health record e.g FHIR Patient ID
+	HealthRecordID *string `json:"healthRecordID"` // optional link to a health record e.g FHIR Patient ID
 
 	// TODO: a client can have many identifiers; an identifier belongs to a client
 	// (implement reverse relation lookup)
-	Identifiers []*Identifier
+	Identifiers []*Identifier `json:"identifiers"`
 
-	Addresses []*UserAddress
+	Addresses []*Addresses `json:"addresses"`
 
-	RelatedPersons []*RelatedPerson // e.g next of kin
+	RelatedPersons []*RelatedPerson `json:"relatedPersons"` // e.g next of kin
 
 	// client's currently assigned facility
-	FacilityID string // TODO: FK
+	FacilityID string `json:"facilityID"` // TODO: FK
 
-	TreatmentBuddyUserID string // TODO: optional, FK to User
+	TreatmentBuddyUserID string `json:"treatmentBuddyUserID"` // TODO: optional, FK to User
 
-	CHVUserID string // TODO: optional, FK to User
+	CHVUserID string `json:"CHVUserID"` // TODO: optional, FK to User
 
-	ClientCounselled bool
+	ClientCounselled bool `json:"clientCounselled"`
 }
 
-// UserAddress are value objects for user address e.g postal code
-type UserAddress struct {
-	ID string
-
-	Type       string // TODO: enum; postal, physical or both
-	Text       string // actual address, can be multi-line
-	Country    string // TODO: enum
-	PostalCode string
-	County     string // TODO: counties belong to a country
-	Active     bool
+// Addresses are value objects for user address e.g postal code
+type Addresses struct {
+	ID         string              `json:"id"`
+	Type       enums.AddressesType `json:"type"`
+	Text       string              `json:"text"` // actual address, can be multi-line
+	Country    enums.CountryType   `json:"country"`
+	PostalCode string              `json:"postalCode"`
+	County     enums.CountyType    `json:"county"`
+	Active     bool                `json:"active"`
 }
 
 // RelatedPerson holds the details for person we consider relates to a Client
@@ -191,7 +189,7 @@ type RelatedPerson struct {
 	Gender           string // TODO: enum
 
 	DateOfBirth *scalarutils.Date // TODO: optional
-	Addresses   []*UserAddress    // TODO: optional
+	Addresses   []*Addresses      // TODO: optional
 	Contacts    []*Contact        // TODO: optional
 }
 
@@ -208,7 +206,7 @@ type ClientProfileRegistrationPayload struct {
 
 	PrimaryIdentifier *Identifier // TODO: optional, default set if not givemn
 
-	Addresses []*UserAddress
+	Addresses []*Addresses
 
 	FacilityID uuid.UUID
 
@@ -223,8 +221,7 @@ type ClientProfileRegistrationPayload struct {
 type Contact struct {
 	ID *string
 
-	Type enums.ContactType // TODO enum
-
+	Type    enums.ContactType
 	Contact string // TODO Validate: phones are E164, emails are valid
 
 	Active bool
@@ -239,7 +236,6 @@ type Metric struct {
 	// ensures we don't re-save the same metric; opaque; globally unique
 	MetricID *string
 
-	// TODO Metric types should be a controlled list i.e enum
 	Type enums.MetricType
 
 	// this will vary by context
@@ -266,16 +262,16 @@ type StaffProfile struct {
 
 	// A UI switcher optionally toggles the default
 	// TODO: the list of facilities to switch between is strictly those that the user is assigned to
-	DefaultFacilityID *string // TODO: required, FK to facility
+	DefaultFacilityID *string
 
 	// there is nothing special about super-admin; just the set of roles they have
 	Roles []string // TODO: roles are an enum (controlled list), known to both FE and BE
 
-	Addresses []*UserAddress
+	Addresses []*Addresses
 }
 
-// PIN model contain the information about given PIN
-type PIN struct {
+// Pin model contain the information about given PIN
+type Pin struct {
 	UserID       string
 	PIN          string
 	ConfirmedPin string

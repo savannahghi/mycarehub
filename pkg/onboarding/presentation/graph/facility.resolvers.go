@@ -19,7 +19,7 @@ func (r *mutationResolver) DeleteFacility(ctx context.Context, id string) (bool,
 	return r.interactor.FacilityUsecase.DeleteFacility(ctx, id)
 }
 
-func (r *mutationResolver) SetUserPin(ctx context.Context, input *dto.PINInput) (bool, error) {
+func (r *mutationResolver) SetUserPin(ctx context.Context, input *dto.PinInput) (bool, error) {
 	return r.interactor.UserUsecase.SetUserPIN(ctx, input)
 }
 
