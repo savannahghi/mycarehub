@@ -7,7 +7,10 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/savannahghi/enumutils"
+	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/application/dto"
+	"github.com/savannahghi/onboarding-service/pkg/onboarding/application/enums"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/domain"
 )
 
@@ -21,12 +24,24 @@ func TestOnboardingDb_RegisterStaffUser(t *testing.T) {
 
 	d := testFakeInfrastructureInteractor
 
+	contactInput := &dto.ContactInput{
+		Type:    enums.PhoneContact,
+		Contact: "+254700000000",
+		Active:  true,
+		OptedIn: true,
+	}
+
 	userInput := &dto.UserInput{
-		UserName:    "test",
+		Username:    "test",
 		DisplayName: "test",
 		FirstName:   "test",
 		MiddleName:  "test",
 		LastName:    "test",
+		Gender:      enumutils.GenderMale,
+		UserType:    enums.HealthcareWorkerUser,
+		Contacts:    []*dto.ContactInput{contactInput},
+		Languages:   []enumutils.Language{enumutils.LanguageEn},
+		Flavour:     feedlib.FlavourPro,
 	}
 
 	staffInput := &dto.StaffProfileInput{
@@ -85,6 +100,13 @@ func TestOnboardingDb_RegisterStaffUser(t *testing.T) {
 					}, nil
 				}
 				fakeCreate.RegisterStaffUserFn = func(ctx context.Context, user *dto.UserInput, staff *dto.StaffProfileInput) (*domain.StaffUserProfile, error) {
+					contact := &domain.Contact{
+						ID:      &testID,
+						Type:    enums.PhoneContact,
+						Contact: "+254700000000",
+						Active:  true,
+						OptedIn: true,
+					}
 					return &domain.StaffUserProfile{
 						User: &domain.User{
 							ID:                  &testUserID,
@@ -93,13 +115,18 @@ func TestOnboardingDb_RegisterStaffUser(t *testing.T) {
 							FirstName:           "test",
 							MiddleName:          "test",
 							LastName:            "test",
+							Gender:              enumutils.GenderMale,
 							Active:              true,
+							Contacts:            []*domain.Contact{contact},
+							UserType:            enums.HealthcareWorkerUser,
+							Languages:           []enumutils.Language{enumutils.LanguageEn},
 							LastSuccessfulLogin: &testTime,
 							LastFailedLogin:     &testTime,
 							NextAllowedLogin:    &testTime,
 							FailedLoginCount:    "0",
 							TermsAccepted:       true,
 							AcceptedTermsID:     testID,
+							Flavour:             feedlib.FlavourPro,
 						},
 						Staff: &domain.StaffProfile{
 							ID:                &testID,

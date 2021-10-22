@@ -4,98 +4,127 @@ import (
 	"context"
 	"testing"
 
+	"github.com/Pallinder/go-randomdata"
 	"github.com/google/uuid"
+	"github.com/savannahghi/enumutils"
+	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/application/dto"
+	"github.com/savannahghi/onboarding-service/pkg/onboarding/application/enums"
+	"github.com/segmentio/ksuid"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestUseCaseStaffProfileImpl_RegisterStaffUser(t *testing.T) {
+
 	f := testInfrastructureInteractor
 	ctx := context.Background()
 
 	testFacilityID := uuid.New().String()
 
+	code := ksuid.New().String()
 	facilityInput := dto.FacilityInput{
 		Name:        "test",
-		Code:        "c123",
+		Code:        code,
 		Active:      true,
 		County:      "test",
 		Description: "test description",
 	}
 
-	// Create a facility
+	//valid: Create a facility
 	facility, err := f.GetOrCreateFacility(ctx, facilityInput)
-	if err != nil {
-		t.Errorf("Failed to create facility: %v", err)
+	assert.Nil(t, err)
+	assert.NotNil(t, facility)
+
+	// First Set of Valid Input
+	contactInput := &dto.ContactInput{
+		Type:    enums.PhoneContact,
+		Contact: randomdata.PhoneNumber(),
+		Active:  true,
+		OptedIn: true,
 	}
 
 	userInput := &dto.UserInput{
-		UserName:    "test",
+		Username:    "test",
 		DisplayName: "test",
 		FirstName:   "test",
 		MiddleName:  "test",
 		LastName:    "test",
+		Gender:      enumutils.GenderMale,
+		UserType:    enums.HealthcareWorkerUser,
+		Contacts:    []*dto.ContactInput{contactInput},
+		Languages:   []enumutils.Language{enumutils.LanguageEn},
+		Flavour:     feedlib.FlavourPro,
 	}
 
+	staffID := ksuid.New().String()
 	staffInput := &dto.StaffProfileInput{
-		StaffNumber:       "s123",
+		StaffNumber:       staffID,
 		DefaultFacilityID: facility.ID,
 	}
 
+	// Second set of valid Inputs
+	contactInput2 := &dto.ContactInput{
+		Type:    enums.PhoneContact,
+		Contact: randomdata.PhoneNumber(),
+		Active:  true,
+		OptedIn: true,
+	}
+
+	userInput2 := &dto.UserInput{
+		Username:    "test",
+		DisplayName: "test",
+		FirstName:   "test",
+		MiddleName:  "test",
+		LastName:    "test",
+		Gender:      enumutils.GenderMale,
+		UserType:    enums.HealthcareWorkerUser,
+		Contacts:    []*dto.ContactInput{contactInput2},
+		Languages:   []enumutils.Language{enumutils.LanguageEn},
+		Flavour:     feedlib.FlavourPro,
+	}
+
+	staffID2 := ksuid.New().String()
+	staffInpu2 := &dto.StaffProfileInput{
+		StaffNumber:       staffID2,
+		DefaultFacilityID: facility.ID,
+	}
+
+	// Invalid facility id
 	staffInputNoFacility := &dto.StaffProfileInput{
-		StaffNumber:       "s123",
+		StaffNumber:       ksuid.New().String(),
 		DefaultFacilityID: &testFacilityID,
 	}
 
-	type args struct {
-		ctx   context.Context
-		user  *dto.UserInput
-		staff *dto.StaffProfileInput
-	}
-	tests := []struct {
-		name    string
-		args    args
-		wantNil bool
-		wantErr bool
-	}{
-		{
-			name: "happy case",
-			args: args{
-				ctx:   ctx,
-				user:  userInput,
-				staff: staffInput,
-			},
-			wantErr: false,
-			wantNil: false,
-		},
-		{
-			name: "invalid: missing facility",
-			args: args{
-				ctx:   ctx,
-				user:  userInput,
-				staff: staffInputNoFacility,
-			},
-			wantErr: true,
-			wantNil: true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+	//valid: create a staff user with valid parameters
+	useStaffProfile, err := f.RegisterStaffUser(ctx, userInput, staffInput)
+	assert.Nil(t, err)
+	assert.NotNil(t, useStaffProfile)
 
-			got, err := f.RegisterStaffUser(tt.args.ctx, tt.args.user, tt.args.staff)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("UseCaseStaffUserImpl.RegisterStaffUser() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if tt.wantErr && got != nil {
-				t.Errorf("expected staff profile to be nil for %v", tt.name)
-				return
-			}
+	//Invalid: creating a user with duplicate staff number and contact
+	useStaffProfile, err = f.RegisterStaffUser(ctx, userInput, staffInput)
+	assert.Nil(t, useStaffProfile)
+	assert.NotNil(t, err)
 
-			if !tt.wantErr && got == nil {
-				t.Errorf("expected staff profile not to be nil for %v", tt.name)
-				return
-			}
-		})
-	}
+	//Invalid: creating a user with duplicate staff number (changed contact only)
+	useStaffProfile, err = f.RegisterStaffUser(ctx, userInput2, staffInput)
+	assert.Nil(t, useStaffProfile)
+	assert.NotNil(t, err)
+
+	//Invalid: creating a user with duplicate Contact (changed staff number only)
+	useStaffProfile, err = f.RegisterStaffUser(ctx, userInput, staffInpu2)
+	assert.Nil(t, useStaffProfile)
+	assert.NotNil(t, err)
+
+	// Valid: saves again if the duplicate Contact and Staff number are rectified
+	useStaffProfile, err = f.RegisterStaffUser(ctx, userInput2, staffInpu2)
+	assert.Nil(t, err)
+	assert.NotNil(t, useStaffProfile)
+
+	//  invalid: non existent facility assignment
+	useStaffProfile, err = f.RegisterStaffUser(ctx, userInput, staffInputNoFacility)
+	assert.Nil(t, useStaffProfile)
+	assert.NotNil(t, err)
+
+	// TODO: teardown the user and replace randomdata with gofakeit
 
 }

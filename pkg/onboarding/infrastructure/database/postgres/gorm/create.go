@@ -118,7 +118,7 @@ func (db *PGInstance) RegisterClient(
 
 	if err := tx.Create(clientProfile).Error; err != nil {
 		tx.Rollback()
-		return nil, fmt.Errorf("failed to create a staff profile %v", err)
+		return nil, fmt.Errorf("failed to create a client profile %v", err)
 	}
 
 	if err := tx.Commit().Error; err != nil {

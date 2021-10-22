@@ -36,7 +36,7 @@ type UserProfile struct {
 	// unique user name. Synonymous to a handle
 	// e.g @juliusowino
 	// this will be auto-generated on first login, meaning a user must have a username
-	UserName string `json:"userName" firestore:"userName"`
+	Username string `json:"userName" firestore:"userName"`
 
 	// VerifiedIdentifiers represent various ways the user has been able to login
 	// and these providers point to the same user

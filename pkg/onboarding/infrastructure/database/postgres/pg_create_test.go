@@ -7,7 +7,9 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/lib/pq"
 	"github.com/savannahghi/enumutils"
+	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/application/dto"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/application/enums"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/domain"
@@ -248,12 +250,24 @@ func TestOnboardingDb_RegisterStaffUser(t *testing.T) {
 		staff *dto.StaffProfileInput
 	}
 
+	contactInput := &dto.ContactInput{
+		Type:    enums.PhoneContact,
+		Contact: "+254700000000",
+		Active:  true,
+		OptedIn: true,
+	}
+
 	userInput := &dto.UserInput{
-		UserName:    "test",
+		Username:    "test",
 		DisplayName: "test",
 		FirstName:   "test",
 		MiddleName:  "test",
 		LastName:    "test",
+		Gender:      enumutils.GenderMale,
+		UserType:    enums.HealthcareWorkerUser,
+		Contacts:    []*dto.ContactInput{contactInput},
+		Languages:   []enumutils.Language{enumutils.LanguageEn},
+		Flavour:     feedlib.FlavourPro,
 	}
 
 	staffInput := &dto.StaffProfileInput{
@@ -307,6 +321,13 @@ func TestOnboardingDb_RegisterStaffUser(t *testing.T) {
 					}, nil
 				}
 				fakeGorm.RegisterStaffUserFn = func(ctx context.Context, user *gorm.User, staff *gorm.StaffProfile) (*gorm.StaffUserProfile, error) {
+					contact := gorm.Contact{
+						ContactID: &testID,
+						Type:      enums.PhoneContact,
+						Contact:   "+254700000000",
+						Active:    true,
+						OptedIn:   true,
+					}
 					return &gorm.StaffUserProfile{
 						User: &gorm.User{
 							UserID:              &testUserID,
@@ -315,13 +336,18 @@ func TestOnboardingDb_RegisterStaffUser(t *testing.T) {
 							FirstName:           "test",
 							MiddleName:          "test",
 							LastName:            "test",
+							Gender:              enumutils.GenderMale,
 							Active:              true,
+							Contacts:            []gorm.Contact{contact},
+							UserType:            enums.HealthcareWorkerUser,
+							Languages:           pq.StringArray{"EN", "SW"},
 							LastSuccessfulLogin: &testTime,
 							LastFailedLogin:     &testTime,
 							NextAllowedLogin:    &testTime,
 							FailedLoginCount:    "0",
 							TermsAccepted:       true,
 							AcceptedTermsID:     testID,
+							Flavour:             feedlib.FlavourPro,
 						},
 						Staff: &gorm.StaffProfile{
 							StaffProfileID:    &testID,
@@ -353,7 +379,7 @@ func TestOnboardingDb_RegisterClient(t *testing.T) {
 	userInput := &dto.UserInput{
 		FirstName:   "John",
 		LastName:    "Joe",
-		UserName:    "Jontez",
+		Username:    "Jontez",
 		MiddleName:  "Johnny",
 		DisplayName: "jo",
 		Gender:      enumutils.GenderMale,
