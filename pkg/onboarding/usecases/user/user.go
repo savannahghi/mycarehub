@@ -184,6 +184,20 @@ func (us *UseCasesUserImpl) Login(ctx context.Context, userID string, pin string
 		return nil, "", fmt.Errorf("unable to get user profile by userID: %v", err)
 	}
 
+	var nextAllowedLoginTime time.Time
+
+	if userProfile.NextAllowedLogin == nil {
+		nextAllowedLoginTime = time.Now()
+	} else {
+		nextAllowedLoginTime = *userProfile.NextAllowedLogin
+	}
+
+	checkCurrentTime := time.Now()
+	if checkCurrentTime.Before(nextAllowedLoginTime) {
+		waitTime := nextAllowedLoginTime.Sub(checkCurrentTime).Seconds()
+		return nil, "", fmt.Errorf("unable to login at the moment. Please try again after %v seconds", waitTime)
+	}
+
 	//Fetch PIN by UserID
 	userPINData, err := us.Infrastructure.GetUserPINByUserID(ctx, userID)
 	if err != nil {
@@ -198,13 +212,13 @@ func (us *UseCasesUserImpl) Login(ctx context.Context, userID string, pin string
 		if err != nil {
 			return nil, "", err
 		}
-		trials := failedLoginCount + 1
+		failedLoginAttempts := failedLoginCount + 1
 		//Convert trials to string
-		numberOfTrials := strconv.Itoa(trials)
+		numberOfFailedAttempts := strconv.Itoa(failedLoginAttempts)
 
 		// Implement exponential back-off, record the number of trials and last successful login
 		// 1. Record the user's number of failed login time
-		if err := us.Infrastructure.UpdateUserFailedLoginCount(ctx, userID, numberOfTrials, flavour); err != nil {
+		if err := us.Infrastructure.UpdateUserFailedLoginCount(ctx, userID, numberOfFailedAttempts, flavour); err != nil {
 			return nil, "unable to update number of user failed login counts", fmt.Errorf("unable to update number of user failed login counts: %v", err)
 		}
 
@@ -214,7 +228,11 @@ func (us *UseCasesUserImpl) Login(ctx context.Context, userID string, pin string
 			return nil, "unable to update number of user last failed login time", fmt.Errorf("unable to update number of user last failed login time: %v", err)
 		}
 
-		// TODO: Implement exponential back-off
+		// Exponential back-off and Next Allowed Login time
+		nextAllowedLoginTime := utils.NextAllowedLoginTime(failedLoginAttempts)
+		if err := us.Infrastructure.UpdateUserNextAllowedLogin(ctx, userID, nextAllowedLoginTime, flavour); err != nil {
+			return nil, "unable to update user next allowed login time", fmt.Errorf("unable to update user next allowed: %v", err)
+		}
 
 		return nil, "", fmt.Errorf("an error occurred")
 	}
@@ -316,7 +334,7 @@ func (us *UseCasesUserImpl) SetUserPIN(ctx context.Context, input *dto.PINInput)
 	validTo := utils.GetHourMinuteSecond(24, 0, 0)
 
 	pinDataInput := &domain.UserPIN{
-		UserID:    "2c301ec0-7ee2-4b65-8e9f-9b99756a1072",
+		UserID:    "57d64e09-4e15-4d38-983c-6d33cb6416ed",
 		HashedPIN: encryptedPIN,
 		ValidFrom: time.Now(),
 		ValidTo:   validTo, // Consult for appropriate timings

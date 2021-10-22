@@ -170,3 +170,28 @@ func TestGetHourMinuteSecond(t *testing.T) {
 		})
 	}
 }
+
+func TestNextAllowedLoginTime(t *testing.T) {
+	type args struct {
+		trials int
+	}
+	tests := []struct {
+		name      string
+		args      args
+		wantError bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				trials: 3,
+			},
+			wantError: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := NextAllowedLoginTime(tt.args.trials)
+			assert.NotNil(t, got)
+		})
+	}
+}
