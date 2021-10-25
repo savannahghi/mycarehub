@@ -47,6 +47,7 @@ func TestOnboardingDb_RegisterStaffUser(t *testing.T) {
 	staffInput := &dto.StaffProfileInput{
 		StaffNumber:       "s123",
 		DefaultFacilityID: &testFacilityID,
+		Roles:             []enums.RolesType{enums.RolesTypeCanInviteClient},
 	}
 
 	staffNoFacilityInput := &dto.StaffProfileInput{
@@ -144,6 +145,7 @@ func TestOnboardingDb_RegisterStaffUser(t *testing.T) {
 									Active:     true,
 								},
 							},
+							Roles: []enums.RolesType{enums.RolesTypeCanInviteClient},
 						},
 					}, nil
 				}

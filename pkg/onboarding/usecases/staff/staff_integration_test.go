@@ -70,6 +70,7 @@ func TestUseCaseStaffProfileImpl_RegisterStaffUser(t *testing.T) {
 				Active:     true,
 			},
 		},
+		Roles: []enums.RolesType{enums.RolesTypeCanInviteClient},
 	}
 
 	// Second set of valid Inputs
@@ -107,6 +108,7 @@ func TestUseCaseStaffProfileImpl_RegisterStaffUser(t *testing.T) {
 				Active:     true,
 			},
 		},
+		Roles: []enums.RolesType{enums.RolesTypeCanInviteClient},
 	}
 
 	// Invalid facility id
@@ -129,6 +131,13 @@ func TestUseCaseStaffProfileImpl_RegisterStaffUser(t *testing.T) {
 				Active:     true,
 			},
 		},
+	}
+
+	// Invalid role
+	staffInputInvalidRole := &dto.StaffProfileInput{
+		StaffNumber:       ksuid.New().String(),
+		DefaultFacilityID: &testFacilityID,
+		Roles:             []enums.RolesType{"invalid"},
 	}
 
 	// Invalid county input
@@ -163,6 +172,16 @@ func TestUseCaseStaffProfileImpl_RegisterStaffUser(t *testing.T) {
 	assert.NotNil(t, err)
 
 	// TODO:add case where county is valid but does not belong to country after another country is available
+
+	//  invalid: non existent facility assignment
+	useStaffProfile, err = f.RegisterStaffUser(ctx, userInput, staffInputNoFacility)
+	assert.Nil(t, useStaffProfile)
+	assert.NotNil(t, err)
+
+	//  invalid: invalid tole provided
+	useStaffProfile, err = f.RegisterStaffUser(ctx, userInput, staffInputInvalidRole)
+	assert.Nil(t, useStaffProfile)
+	assert.NotNil(t, err)
 
 	//valid: create a staff user with valid parameters
 	useStaffProfile, err = f.RegisterStaffUser(ctx, userInput, staffInput)

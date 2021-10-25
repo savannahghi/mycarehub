@@ -114,10 +114,20 @@ func (d *OnboardingDb) RegisterStaffUser(ctx context.Context, user *dto.UserInpu
 		}
 	}
 
+	roles := []string{}
+	for _, r := range staff.Roles {
+		if !r.IsValid() {
+			return nil, fmt.Errorf("role %s is not valid", r)
+		}
+
+		roles = append(roles, r.String())
+	}
+
 	staffObject := &gorm.StaffProfile{
 		StaffNumber:       staff.StaffNumber,
 		DefaultFacilityID: staff.DefaultFacilityID,
 		Addresses:         addresses,
+		Roles:             roles,
 	}
 
 	userStaffProfile, err := d.create.RegisterStaffUser(ctx, userObject, staffObject)

@@ -52,8 +52,8 @@ type StaffProfile {
   staffNumber: String!
   # facilities: [Facility!]
   defaultFacilityID: String!
-  # roles: [String!] # TODO: roles are an enum (controlled list), known to both FE and BE
   addresses: [Addresses!]
+  roles: [RolesType!]
 }
 
 type StaffUserProfile {

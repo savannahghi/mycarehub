@@ -243,6 +243,7 @@ func TestOnboardingDb_RegisterStaffUser(t *testing.T) {
 	testUserID := uuid.New().String()
 	testTime := time.Now()
 	testID := uuid.New().String()
+	rolesInput := []enums.RolesType{enums.RolesTypeCanInviteClient}
 
 	type args struct {
 		ctx   context.Context
@@ -283,6 +284,7 @@ func TestOnboardingDb_RegisterStaffUser(t *testing.T) {
 				Active:     true,
 			},
 		},
+		Roles: rolesInput,
 	}
 	staffNoFacilityIDInput := &dto.StaffProfileInput{
 		StaffNumber: "s123",
@@ -375,6 +377,7 @@ func TestOnboardingDb_RegisterStaffUser(t *testing.T) {
 									Active:      true,
 								},
 							},
+							Roles: []string{enums.RolesTypeCanInviteClient.String()},
 						},
 					}, nil
 				}

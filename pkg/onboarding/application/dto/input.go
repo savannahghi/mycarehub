@@ -109,8 +109,8 @@ type StaffProfileInput struct {
 	// TODO: the list of facilities to switch between is strictly those that the user is assigned to
 	DefaultFacilityID *string `json:"defaultFacilityID"`
 
-	// // there is nothing special about super-admin; just the set of roles they have
-	// Roles []domain.RoleType `json:"roles"` // TODO: roles are an enum (controlled list), known to both FE and BE
+	// there is nothing special about super-admin; just the set of roles they have
+	Roles []enums.RolesType `json:"roles"` // TODO: roles are an enum (controlled list), known to both FE and BE
 
 	Addresses []*AddressesInput `json:"addresses"`
 }

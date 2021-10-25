@@ -30,8 +30,8 @@ input StaffProfileInput {
   staffNumber:       String!
   # facilities:      [FacilityInput!]
   defaultFacilityID: String!
-  # roles:           [RoleType] # TODO: roles are an enum (controlled list), known to both FE and BE
   addresses:         [AddressesInput!]!
+  roles: [RolesType] # TODO: roles are an enum (controlled list), known to both FE and BE
 }
 
 input ContactInput {

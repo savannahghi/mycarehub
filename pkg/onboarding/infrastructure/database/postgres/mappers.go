@@ -4,6 +4,7 @@ import (
 	"strconv"
 
 	"github.com/savannahghi/enumutils"
+	"github.com/savannahghi/onboarding-service/pkg/onboarding/application/enums"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/domain"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/infrastructure/database/postgres/gorm"
 )
@@ -115,14 +116,20 @@ func (d *OnboardingDb) mapRegisterStaffObjectToDomain(userStaffObject *gorm.Staf
 		addresses = append(addresses, address)
 	}
 
+	roles := []enums.RolesType{}
+	for _, r := range staffObject.Roles {
+		roles = append(roles, enums.RolesType(r))
+
+	}
+
 	staffProfile := &domain.StaffProfile{
 		ID:          staffObject.StaffProfileID,
 		UserID:      userObject.UserID,
 		StaffNumber: staffObject.StaffNumber,
 		// Facilities:        staffObject.Facilities,
 		DefaultFacilityID: staffObject.DefaultFacilityID,
-		// Roles:             staffObject.Roles,
-		Addresses: addresses,
+		Addresses:         addresses,
+		Roles:             roles,
 	}
 	return &domain.StaffUserProfile{
 		User:  user,

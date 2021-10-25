@@ -147,6 +147,8 @@ func NewPostgresMock() *PostgresMock {
 		RegisterStaffUserFn: func(ctx context.Context, user *dto.UserInput, staff *dto.StaffProfileInput) (*domain.StaffUserProfile, error) {
 			ID := uuid.New().String()
 			testTime := time.Now()
+			roles := []enums.RolesType{enums.RolesTypeCanInviteClient}
+			languages := []enumutils.Language{enumutils.LanguageEn}
 			return &domain.StaffUserProfile{
 				User: &domain.User{
 					ID:                  &ID,
@@ -162,6 +164,7 @@ func NewPostgresMock() *PostgresMock {
 					FailedLoginCount:    "0",
 					TermsAccepted:       true,
 					AcceptedTermsID:     ID,
+					Languages:           languages,
 				},
 				Staff: &domain.StaffProfile{
 					ID:                &ID,
@@ -179,6 +182,7 @@ func NewPostgresMock() *PostgresMock {
 							Active:     true,
 						},
 					},
+					Roles: roles,
 				},
 			}, nil
 		},

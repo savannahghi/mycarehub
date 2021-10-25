@@ -265,7 +265,7 @@ type StaffProfile struct {
 	DefaultFacilityID *string
 
 	// there is nothing special about super-admin; just the set of roles they have
-	Roles []string // TODO: roles are an enum (controlled list), known to both FE and BE
+	Roles []enums.RolesType // TODO: roles are an enum (controlled list), known to both FE and BE
 
 	Addresses []*Addresses
 }
