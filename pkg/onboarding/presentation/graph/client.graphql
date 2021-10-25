@@ -3,4 +3,11 @@ extend type Mutation {
     userInput: UserInput!
     clientInput: ClientProfileInput!
   ): ClientUserProfile!
+
+  addIdentifier(
+    clientID: String!
+    idType: IdentifierType!
+    idValue: String!
+    isPrimary: Boolean!
+  ): Identifier!
 }

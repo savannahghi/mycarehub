@@ -257,7 +257,7 @@ type ClientProfile struct {
 
 	// TODO: a client can have many identifiers; an identifier belongs to a client
 	// (implement reverse relation lookup)
-	// Identifiers []*domain.Identifier `gorm:"column:identifiers"`
+	Identifiers []*Identifier `gorm:"foreignKey:ClientID"`
 
 	// Addresses []*domain.UserAddress `gorm:"column:addresses"`
 
@@ -318,6 +318,39 @@ func (PINData) TableName() string {
 	return "pindata"
 }
 
+// Identifier are specific/unique identifiers for a user
+type Identifier struct {
+	Base
+
+	ID *string `gorm:"primaryKey;unique;column:id"`
+
+	ClientID string `gorm:"column:client_id"`
+
+	IdentifierType enums.IdentifierType `gorm:"identifier_type"`
+	IdentifierUse  enums.IdentifierUse  `gorm:"identifier_use"`
+
+	// TODO: Validate identifier value against type e.g format of CCC number
+	// TODO: Unique together: identifier value & type i.e the same identifier can't be used for more than one client
+	IdentifierValue     string     `gorm:"identifier_value"`
+	Description         string     `gorm:"description"`
+	ValidFrom           *time.Time `gorm:"valid_from"`
+	ValidTo             *time.Time `gorm:"valid_to"`
+	Active              bool       `gorm:"active"`
+	IsPrimaryIdentifier bool       `gorm:"is_primary_identifier"`
+}
+
+// BeforeCreate is a hook run before creating a client profile
+func (c *Identifier) BeforeCreate(tx *gorm.DB) (err error) {
+	id := uuid.New().String()
+	c.ID = &id
+	return
+}
+
+// TableName customizes how the table name is generated
+func (Identifier) TableName() string {
+	return "client_clientidentifier"
+}
+
 func allTables() []interface{} {
 	tables := []interface{}{
 		&Facility{},
@@ -326,6 +359,7 @@ func allTables() []interface{} {
 		&Contact{},
 		&StaffProfile{},
 		&ClientProfile{},
+		&Identifier{},
 		&UserAddress{},
 		&PINData{},
 	}

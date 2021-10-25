@@ -7,7 +7,6 @@ type Facility {
   description: String!
 }
 
-
 type PIN {
   user: String!
   pin: String!
@@ -39,12 +38,12 @@ type User {
 
 type Contact {
   ID: String!
-	Type: ContactType!
-	Contact: String! #TODO Validate: phones are E164, emails are valid
-	Active: Boolean!
+  Type: ContactType!
+  Contact: String! #TODO Validate: phones are E164, emails are valid
+  Active: Boolean!
   #a user may opt not to be contacted via this contact
   #e.g if it's a shared phone owned by a teenager
-	OptedIn: Boolean!
+  OptedIn: Boolean!
 }
 
 type StaffProfile {
@@ -78,4 +77,17 @@ type ClientProfile {
 type ClientUserProfile {
   user: User!
   client: ClientProfile!
+}
+
+type Identifier {
+  id: String!
+  clientID: String!
+  identifierType: IdentifierType!
+  identifierUse: IdentifierUse!
+  identifierValue: String!
+  description: String
+  validFrom: Date
+  validTo: Date
+  active: Boolean!
+  isPrimaryIdentifier: Boolean!
 }

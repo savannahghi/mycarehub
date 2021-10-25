@@ -2,3 +2,15 @@ enum ClientType {
   PMTCT
   OVC
 }
+
+enum IdentifierType {
+  CCC
+  ID
+  PASSPORT
+}
+
+enum IdentifierUse {
+  OFFICIAL
+  TEMPORARY
+  OLD
+}
