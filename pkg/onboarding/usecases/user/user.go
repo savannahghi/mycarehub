@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/firebasetools"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/application/dto"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/application/extension"
@@ -43,7 +44,7 @@ type ILogin interface {
 	//	default this base to 4...but override to 3 for a start in env
 	// TODO: Only users who have accepted terms can login
 	// TODO: Update metrics e.g login count, failed login count, successful login count etc
-	Login(ctx context.Context, userID string, pin string, flavour string) (*domain.AuthCredentials, string, error)
+	Login(ctx context.Context, userID string, pin string, flavour feedlib.Flavour) (*domain.AuthCredentials, string, error)
 }
 
 // IUserForget models the behavior needed to comply with privacy laws e.g GDPR
@@ -177,7 +178,7 @@ func NewUseCasesUserImpl(infra infrastructure.Interactor) *UseCasesUserImpl {
 }
 
 // Login is used to login the user into the application
-func (us *UseCasesUserImpl) Login(ctx context.Context, userID string, pin string, flavour string) (*domain.AuthCredentials, string, error) {
+func (us *UseCasesUserImpl) Login(ctx context.Context, userID string, pin string, flavour feedlib.Flavour) (*domain.AuthCredentials, string, error) {
 	// Get user profile by UserID
 	userProfile, err := us.Infrastructure.GetUserProfileByUserID(ctx, userID, flavour)
 	if err != nil {

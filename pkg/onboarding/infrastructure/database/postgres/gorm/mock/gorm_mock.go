@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/savannahghi/enumutils"
+	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/application/enums"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/infrastructure/database/postgres/gorm"
 	"github.com/segmentio/ksuid"
@@ -25,17 +26,19 @@ type GormMock struct {
 	CollectMetricsFn             func(ctx context.Context, metrics *gorm.Metric) (*gorm.Metric, error)
 	SetUserPINFn                 func(ctx context.Context, pinData *gorm.PINData) (bool, error)
 	GetUserPINByUserIDFn         func(ctx context.Context, userID string) (*gorm.PINData, error)
-	GetUserProfileByUserIDFn     func(ctx context.Context, userID string, flavour string) (*gorm.User, error)
+	GetUserProfileByUserIDFn     func(ctx context.Context, userID string, flavour feedlib.Flavour) (*gorm.User, error)
 	RegisterStaffUserFn          func(ctx context.Context, user *gorm.User, staff *gorm.StaffProfile) (*gorm.StaffUserProfile, error)
 	RegisterClientFn             func(ctx context.Context, userInput *gorm.User, clientInput *gorm.ClientProfile) (*gorm.ClientUserProfile, error)
 	AddIdentifierFn              func(ctx context.Context, identifier *gorm.Identifier) (*gorm.Identifier, error)
 	GetClientProfileByClientIDFn func(ctx context.Context, clientID string) (*gorm.ClientProfile, error)
+	GetStaffProfileFn            func(ctx context.Context, staffNumber string) (*gorm.StaffProfile, error)
 
 	//Updates
-	UpdateUserLastSuccessfulLoginFn func(ctx context.Context, userID string, lastLoginTime time.Time, flavour string) error
-	UpdateUserLastFailedLoginFn     func(ctx context.Context, userID string, lastFailedLoginTime time.Time, flavour string) error
-	UpdateUserFailedLoginCountFn    func(ctx context.Context, userID string, failedLoginCount string, flavour string) error
-	UpdateUserNextAllowedLoginFn    func(ctx context.Context, userID string, nextAllowedLoginTime time.Time, flavour string) error
+	UpdateUserLastSuccessfulLoginFn func(ctx context.Context, userID string, lastLoginTime time.Time, flavour feedlib.Flavour) error
+	UpdateUserLastFailedLoginFn     func(ctx context.Context, userID string, lastFailedLoginTime time.Time, flavour feedlib.Flavour) error
+	UpdateUserFailedLoginCountFn    func(ctx context.Context, userID string, failedLoginCount string, flavour feedlib.Flavour) error
+	UpdateUserNextAllowedLoginFn    func(ctx context.Context, userID string, nextAllowedLoginTime time.Time, flavour feedlib.Flavour) error
+	UpdateStaffUserFn               func(ctx context.Context, userID string, user *gorm.User, staff *gorm.StaffProfile) (bool, error)
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -160,7 +163,7 @@ func NewGormMock() *GormMock {
 			return true, nil
 		},
 
-		GetUserProfileByUserIDFn: func(ctx context.Context, userID, flavour string) (*gorm.User, error) {
+		GetUserProfileByUserIDFn: func(ctx context.Context, userID string, flavour feedlib.Flavour) (*gorm.User, error) {
 			id := uuid.New().String()
 			usercontact := &gorm.Contact{
 				ContactID: &id,
@@ -206,21 +209,47 @@ func NewGormMock() *GormMock {
 			}, nil
 		},
 
-		UpdateUserLastSuccessfulLoginFn: func(ctx context.Context, userID string, lastLoginTime time.Time, flavour string) error {
+		GetStaffProfileFn: func(ctx context.Context, staffNumber string) (*gorm.StaffProfile, error) {
+			testUID := ksuid.New().String()
+			address := &gorm.Addresses{
+				Type:           "test",
+				Text:           "test",
+				Country:        "test",
+				PostalCode:     "test",
+				County:         "test",
+				Active:         false,
+				StaffProfileID: new(string),
+			}
+			return &gorm.StaffProfile{
+				StaffProfileID:    &testUID,
+				UserID:            &testUID,
+				User:              gorm.User{},
+				StaffNumber:       "s100",
+				DefaultFacilityID: &testUID,
+				Addresses:         []*gorm.Addresses{address},
+			}, nil
+		},
+
+		UpdateUserLastSuccessfulLoginFn: func(ctx context.Context, userID string, lastLoginTime time.Time, flavour feedlib.Flavour) error {
 			return nil
 		},
 
-		UpdateUserLastFailedLoginFn: func(ctx context.Context, userID string, lastFailedLoginTime time.Time, flavour string) error {
+		UpdateUserLastFailedLoginFn: func(ctx context.Context, userID string, lastFailedLoginTime time.Time, flavour feedlib.Flavour) error {
 			return nil
 		},
 
-		UpdateUserFailedLoginCountFn: func(ctx context.Context, userID, failedLoginCount, flavour string) error {
+		UpdateUserFailedLoginCountFn: func(ctx context.Context, userID, failedLoginCount string, flavour feedlib.Flavour) error {
 			return nil
 		},
 
-		UpdateUserNextAllowedLoginFn: func(ctx context.Context, userID string, nextAllowedLoginTime time.Time, flavour string) error {
+		UpdateUserNextAllowedLoginFn: func(ctx context.Context, userID string, nextAllowedLoginTime time.Time, flavour feedlib.Flavour) error {
 			return nil
 		},
+
+		UpdateStaffUserFn: func(ctx context.Context, userID string, user *gorm.User, staff *gorm.StaffProfile) (bool, error) {
+			return true, nil
+		},
+
 		RegisterStaffUserFn: func(ctx context.Context, user *gorm.User, staff *gorm.StaffProfile) (*gorm.StaffUserProfile, error) {
 			ID := uuid.New().String()
 			testTime := time.Now()
@@ -307,33 +336,43 @@ func (gm *GormMock) GetUserPINByUserID(ctx context.Context, userID string) (*gor
 }
 
 // GetUserProfileByUserID gets user profile by user ID
-func (gm *GormMock) GetUserProfileByUserID(ctx context.Context, userID string, flavour string) (*gorm.User, error) {
+func (gm *GormMock) GetUserProfileByUserID(ctx context.Context, userID string, flavour feedlib.Flavour) (*gorm.User, error) {
 	return gm.GetUserProfileByUserIDFn(ctx, userID, flavour)
 }
 
-//UpdateUserLastSuccessfulLogin ...
-func (gm *GormMock) UpdateUserLastSuccessfulLogin(ctx context.Context, userID string, lastLoginTime time.Time, flavour string) error {
+//UpdateUserLastSuccessfulLogin updates the user's last successful login time
+func (gm *GormMock) UpdateUserLastSuccessfulLogin(ctx context.Context, userID string, lastLoginTime time.Time, flavour feedlib.Flavour) error {
 	return gm.UpdateUserLastSuccessfulLoginFn(ctx, userID, lastLoginTime, flavour)
 }
 
-// UpdateUserLastFailedLogin ...
-func (gm *GormMock) UpdateUserLastFailedLogin(ctx context.Context, userID string, lastFailedLoginTime time.Time, flavour string) error {
+// UpdateUserLastFailedLogin updates the user's last failed login
+func (gm *GormMock) UpdateUserLastFailedLogin(ctx context.Context, userID string, lastFailedLoginTime time.Time, flavour feedlib.Flavour) error {
 	return gm.UpdateUserLastFailedLoginFn(ctx, userID, lastFailedLoginTime, flavour)
 }
 
-// UpdateUserFailedLoginCount ...
-func (gm *GormMock) UpdateUserFailedLoginCount(ctx context.Context, userID string, failedLoginCount string, flavour string) error {
+// UpdateUserFailedLoginCount updates the users failed login count
+func (gm *GormMock) UpdateUserFailedLoginCount(ctx context.Context, userID string, failedLoginCount string, flavour feedlib.Flavour) error {
 	return gm.UpdateUserFailedLoginCountFn(ctx, userID, failedLoginCount, flavour)
 }
 
-// UpdateUserNextAllowedLogin ...
-func (gm *GormMock) UpdateUserNextAllowedLogin(ctx context.Context, userID string, nextAllowedLoginTime time.Time, flavour string) error {
+// UpdateUserNextAllowedLogin updates the user's next allowed login time
+func (gm *GormMock) UpdateUserNextAllowedLogin(ctx context.Context, userID string, nextAllowedLoginTime time.Time, flavour feedlib.Flavour) error {
 	return gm.UpdateUserNextAllowedLoginFn(ctx, userID, nextAllowedLoginTime, flavour)
 }
 
 // RegisterStaffUser mocks the implementation of  RegisterStaffUser method.
 func (gm *GormMock) RegisterStaffUser(ctx context.Context, user *gorm.User, staff *gorm.StaffProfile) (*gorm.StaffUserProfile, error) {
 	return gm.RegisterStaffUserFn(ctx, user, staff)
+}
+
+// UpdateStaffUserProfile mocks the implementation of  UpdateStaffUserProfile method.
+func (gm *GormMock) UpdateStaffUserProfile(ctx context.Context, userID string, user *gorm.User, staff *gorm.StaffProfile) (bool, error) {
+	return gm.UpdateStaffUserFn(ctx, userID, user, staff)
+}
+
+// GetStaffProfile mocks the implementation of  GetStaffProfile method.
+func (gm *GormMock) GetStaffProfile(ctx context.Context, staffNumber string) (*gorm.StaffProfile, error) {
+	return gm.GetStaffProfileFn(ctx, staffNumber)
 }
 
 // RegisterClient mocks the implementation of RegisterClient method

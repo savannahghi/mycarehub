@@ -211,3 +211,117 @@ func TestUseCaseStaffProfileImpl_RegisterStaffUser(t *testing.T) {
 	// TODO: teardown the user and replace randomdata with gofakeit
 
 }
+
+func TestUsecasesStaffProfileImpl_UpdateStaffUser_Integration(t *testing.T) {
+	ctx := context.Background()
+
+	f := testInfrastructureInteractor
+	i := testInteractor
+
+	testFacilityID := uuid.New().String()
+
+	code := ksuid.New().String()
+	facilityInput := dto.FacilityInput{
+		Name:        "test",
+		Code:        code,
+		Active:      true,
+		County:      "test",
+		Description: "test description",
+	}
+
+	//valid: Create a facility
+	facility, err := f.GetOrCreateFacility(ctx, facilityInput)
+	assert.Nil(t, err)
+	assert.NotNil(t, facility)
+
+	// First Set of Valid Input
+	contactInput := &dto.ContactInput{
+		Type:    enums.PhoneContact,
+		Contact: randomdata.PhoneNumber(),
+		Active:  true,
+		OptedIn: true,
+	}
+
+	userInput := &dto.UserInput{
+		Username:    "test",
+		DisplayName: "test",
+		FirstName:   "test",
+		MiddleName:  "test",
+		LastName:    "test",
+		Gender:      enumutils.GenderMale,
+		UserType:    enums.HealthcareWorkerUser,
+		Contacts:    []*dto.ContactInput{contactInput},
+		Languages:   []enumutils.Language{enumutils.LanguageEn},
+		Flavour:     feedlib.FlavourPro,
+	}
+
+	staffID := ksuid.New().String()
+	staffInput := &dto.StaffProfileInput{
+		StaffNumber:       staffID,
+		DefaultFacilityID: facility.ID,
+	}
+
+	// Second set of valid Inputs
+	contactInput2 := &dto.ContactInput{
+		Type:    enums.PhoneContact,
+		Contact: randomdata.PhoneNumber(),
+		Active:  true,
+		OptedIn: true,
+	}
+
+	userInput2 := &dto.UserInput{
+		Username:    "test",
+		DisplayName: "test",
+		FirstName:   "test",
+		MiddleName:  "test",
+		LastName:    "test",
+		Gender:      enumutils.GenderMale,
+		UserType:    enums.HealthcareWorkerUser,
+		Contacts:    []*dto.ContactInput{contactInput2},
+		Languages:   []enumutils.Language{enumutils.LanguageSw},
+		Flavour:     feedlib.FlavourPro,
+	}
+
+	staffInput2 := &dto.StaffProfileInput{
+		StaffNumber:       staffID,
+		DefaultFacilityID: facility.ID,
+	}
+
+	// Invalid facility id
+	staffInputNoFacility := &dto.StaffProfileInput{
+		StaffNumber:       ksuid.New().String(),
+		DefaultFacilityID: &testFacilityID,
+	}
+
+	//valid: create a staff user with valid parameters
+	userStaffProfile, err := f.RegisterStaffUser(ctx, userInput, staffInput)
+	assert.Nil(t, err)
+	assert.NotNil(t, userStaffProfile)
+
+	// Valid userID
+	userProfile, err := f.GetUserProfileByUserID(ctx, *userStaffProfile.User.ID, userStaffProfile.User.Flavour)
+	assert.Nil(t, err)
+	assert.NotNil(t, userProfile)
+
+	staffProfile, err5 := f.GetStaffProfile(ctx, staffID)
+	assert.Nil(t, err5)
+	assert.NotNil(t, staffProfile)
+
+	updated, err := i.StaffUsecase.UpdateStaffUserProfile(ctx, *userStaffProfile.User.ID, userInput2, staffInput2)
+	assert.Nil(t, err)
+	assert.Equal(t, true, updated)
+
+	//Invalid: update user with wrong data
+	userProfile2, err := f.GetUserProfileByUserID(ctx, *userStaffProfile.User.ID, userStaffProfile.User.Flavour)
+	assert.Nil(t, err)
+	assert.NotNil(t, userProfile2)
+
+	staffProfile3, err6 := f.GetStaffProfile(ctx, "staffID")
+	assert.NotNil(t, err6)
+	assert.Nil(t, staffProfile3)
+
+	updated2, err := i.StaffUsecase.UpdateStaffUserProfile(ctx, *userStaffProfile.User.ID, userInput2, staffInputNoFacility)
+	assert.NotNil(t, err)
+	assert.Equal(t, false, updated2)
+
+}

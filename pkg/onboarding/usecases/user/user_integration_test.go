@@ -134,7 +134,7 @@ func TestUseCasesUserImpl_Login_Integration_Test(t *testing.T) {
 	assert.Equal(t, true, isSet)
 
 	// Valid userID
-	userProfile, err := m.GetUserProfileByUserID(ctx, *staffUserProfile.User.ID, string(flavour))
+	userProfile, err := m.GetUserProfileByUserID(ctx, *staffUserProfile.User.ID, flavour)
 	assert.Nil(t, err)
 	assert.NotNil(t, userProfile)
 
@@ -147,10 +147,10 @@ func TestUseCasesUserImpl_Login_Integration_Test(t *testing.T) {
 	assert.Equal(t, true, isMatch)
 
 	successTime := time.Now()
-	err = m.UpdateUserLastSuccessfulLogin(ctx, *userProfile.ID, successTime, string(flavour))
+	err = m.UpdateUserLastSuccessfulLogin(ctx, *userProfile.ID, successTime, flavour)
 	assert.Nil(t, err)
 
-	err = m.UpdateUserFailedLoginCount(ctx, *userProfile.ID, "0", string(flavour))
+	err = m.UpdateUserFailedLoginCount(ctx, *userProfile.ID, "0", flavour)
 	assert.Nil(t, err)
 
 	customToken, err := firebasetools.CreateFirebaseCustomToken(ctx, *userProfile.ID)
@@ -162,7 +162,7 @@ func TestUseCasesUserImpl_Login_Integration_Test(t *testing.T) {
 	assert.NotNil(t, userTokens)
 
 	//Login
-	authCred, str, err := i.UserUsecase.Login(ctx, *userProfile.ID, pin, string(userProfile.Flavour))
+	authCred, str, err := i.UserUsecase.Login(ctx, *userProfile.ID, pin, userProfile.Flavour)
 	assert.Nil(t, err)
 	assert.NotEmpty(t, str)
 	assert.NotNil(t, str)
@@ -170,7 +170,7 @@ func TestUseCasesUserImpl_Login_Integration_Test(t *testing.T) {
 
 	// Invalid
 	invalidPIN1 := "4321"
-	profile, err1 := m.GetUserProfileByUserID(ctx, *staffUserProfile.User.ID, string(flavour))
+	profile, err1 := m.GetUserProfileByUserID(ctx, *staffUserProfile.User.ID, flavour)
 	assert.Nil(t, err1)
 	assert.NotNil(t, profile)
 
@@ -182,21 +182,21 @@ func TestUseCasesUserImpl_Login_Integration_Test(t *testing.T) {
 	isMatch = extension.ComparePIN(invalidPIN1, userPINData.Salt, userPINData.HashedPIN, nil)
 	assert.Equal(t, false, isMatch)
 
-	err3 := m.UpdateUserFailedLoginCount(ctx, *profile.ID, "1", string(flavour))
+	err3 := m.UpdateUserFailedLoginCount(ctx, *profile.ID, "1", flavour)
 	assert.Nil(t, err3)
 
 	lastFailedLoginTime := time.Now()
-	err4 := m.UpdateUserLastFailedLogin(ctx, *staffUserProfile.User.ID, lastFailedLoginTime, string(flavour))
+	err4 := m.UpdateUserLastFailedLogin(ctx, *staffUserProfile.User.ID, lastFailedLoginTime, flavour)
 	assert.Nil(t, err4)
 
 	//Cannot Login
-	authCred, str, err = i.UserUsecase.Login(ctx, *staffUserProfile.User.ID, invalidPIN1, flavour.String())
+	authCred, str, err = i.UserUsecase.Login(ctx, *staffUserProfile.User.ID, invalidPIN1, flavour)
 	assert.NotNil(t, err)
 	assert.Empty(t, str)
 	assert.Nil(t, authCred)
 
 	invalidPIN2 := "4321"
-	profile2, err5 := m.GetUserProfileByUserID(ctx, *staffUserProfile.User.ID, string(flavour))
+	profile2, err5 := m.GetUserProfileByUserID(ctx, *staffUserProfile.User.ID, flavour)
 	assert.Nil(t, err5)
 	assert.NotNil(t, profile2)
 
@@ -216,21 +216,21 @@ func TestUseCasesUserImpl_Login_Integration_Test(t *testing.T) {
 		numberOfTrials := strconv.Itoa(trials)
 		assert.NotNil(t, numberOfTrials)
 
-		err8 := m.UpdateUserFailedLoginCount(ctx, *profile2.ID, numberOfTrials, string(flavour))
+		err8 := m.UpdateUserFailedLoginCount(ctx, *profile2.ID, numberOfTrials, flavour)
 		assert.Nil(t, err8)
 
 		lastFailedLoginTime := time.Now()
-		err9 := m.UpdateUserLastFailedLogin(ctx, *profile2.ID, lastFailedLoginTime, string(flavour))
+		err9 := m.UpdateUserLastFailedLogin(ctx, *profile2.ID, lastFailedLoginTime, flavour)
 		assert.Nil(t, err9)
 
 		nextAllowedLoginTime := utils.NextAllowedLoginTime(trials)
-		err10 := m.UpdateUserNextAllowedLogin(ctx, *profile2.ID, nextAllowedLoginTime, string(flavour))
+		err10 := m.UpdateUserNextAllowedLogin(ctx, *profile2.ID, nextAllowedLoginTime, flavour)
 		assert.Nil(t, err10)
 
 	}
 
 	//Cannot Login
-	authCred, str, err = i.UserUsecase.Login(ctx, *staffUserProfile.User.ID, invalidPIN2, flavour.String())
+	authCred, str, err = i.UserUsecase.Login(ctx, *staffUserProfile.User.ID, invalidPIN2, flavour)
 	assert.NotNil(t, err)
 	assert.Empty(t, str)
 	assert.Nil(t, authCred)

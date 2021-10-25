@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/domain"
 )
 
@@ -66,10 +67,10 @@ func (d *OnboardingDb) RetrieveByFacilityMFLCode(ctx context.Context, MFLCode st
 }
 
 // GetUserProfileByUserID fetches a user profile facility using the user ID
-func (d *OnboardingDb) GetUserProfileByUserID(ctx context.Context, userID string, flavour string) (*domain.User, error) {
+func (d *OnboardingDb) GetUserProfileByUserID(ctx context.Context, userID string, flavour feedlib.Flavour) (*domain.User, error) {
 	user, err := d.query.GetUserProfileByUserID(ctx, userID, flavour)
 	if err != nil {
-		return nil, fmt.Errorf("failed query and retrieve user profile by user ID: %s", err)
+		return nil, fmt.Errorf("failed to retrieve user profile by user ID: %s", err)
 	}
 
 	return d.mapProfileObjectToDomain(user), nil
@@ -93,4 +94,14 @@ func (d *OnboardingDb) GetClientProfileByClientID(ctx context.Context, clientID 
 	}
 
 	return d.mapClientObjectToDomain(client), err
+}
+
+// GetStaffProfile retrieves a staff profile using the staff number
+func (d *OnboardingDb) GetStaffProfile(ctx context.Context, staffNumber string) (*domain.StaffProfile, error) {
+	staff, err := d.query.GetStaffProfile(ctx, staffNumber)
+	if err != nil {
+		return nil, err
+	}
+
+	return d.mapStaffObjectToDomain(staff), err
 }

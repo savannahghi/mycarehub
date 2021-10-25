@@ -17,6 +17,15 @@ type IRegisterStaffUser interface {
 	RegisterStaffUser(ctx context.Context, user *dto.UserInput, staff *dto.StaffProfileInput) (*domain.StaffUserProfile, error)
 }
 
+// IUpdateStaffUser contains staff update methods
+type IUpdateStaffUser interface {
+	// TODO: ensure default facility is set
+	//		validation: ensure the staff profile has at least one facility
+	//		ensure that the default facility is one of these
+	// TODO: ensure the user exists...userID in profile
+	UpdateStaffUserProfile(ctx context.Context, userID string, user *dto.UserInput, staff *dto.StaffProfileInput) (bool, error)
+}
+
 // // IAddRoles contains add staff role methods
 // type IAddRoles interface {
 // 	AddRoles(userID string, roles []string) (bool, error)
@@ -36,6 +45,7 @@ type IRegisterStaffUser interface {
 // UsecasesStaffProfile contains all the staff profile usecases
 type UsecasesStaffProfile interface {
 	IRegisterStaffUser
+	IUpdateStaffUser
 	// IAddRoles
 	// IRemoveRole
 	// IUpdateDefaultFacility
@@ -56,4 +66,9 @@ func NewUsecasesStaffProfileImpl(infra infrastructure.Interactor) *UsecasesStaff
 // RegisterStaffUser returns a staff profile
 func (u *UsecasesStaffProfileImpl) RegisterStaffUser(ctx context.Context, user *dto.UserInput, staff *dto.StaffProfileInput) (*domain.StaffUserProfile, error) {
 	return u.Infrastructure.RegisterStaffUser(ctx, user, staff)
+}
+
+// UpdateStaffUserProfile updates a staff profile usinf their userID
+func (u *UsecasesStaffProfileImpl) UpdateStaffUserProfile(ctx context.Context, userID string, user *dto.UserInput, staff *dto.StaffProfileInput) (bool, error) {
+	return u.Infrastructure.UpdateStaffUserProfile(ctx, userID, user, staff)
 }

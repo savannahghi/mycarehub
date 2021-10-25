@@ -200,6 +200,7 @@ type ComplexityRoot struct {
 		SetupAsExperimentParticipant  func(childComplexity int, participate *bool) int
 		TestMutation                  func(childComplexity int) int
 		UpdateRolePermissions         func(childComplexity int, input dto.RolePermissionInput) int
+		UpdateStaffUserProfile        func(childComplexity int, userID string, userInput *dto1.UserInput, staffInput *dto1.StaffProfileInput) int
 		UpdateUserName                func(childComplexity int, username string) int
 		UpdateUserPin                 func(childComplexity int, phone string, pin string) int
 		UpdateUserProfile             func(childComplexity int, input dto.UserProfileInput) int
@@ -382,6 +383,7 @@ type MutationResolver interface {
 	SetUserPin(ctx context.Context, input *dto1.PinInput) (bool, error)
 	TestMutation(ctx context.Context) (*bool, error)
 	RegisterStaffUser(ctx context.Context, userInput dto1.UserInput, staffInput dto1.StaffProfileInput) (*domain1.StaffUserProfile, error)
+	UpdateStaffUserProfile(ctx context.Context, userID string, userInput *dto1.UserInput, staffInput *dto1.StaffProfileInput) (bool, error)
 	CompleteSignup(ctx context.Context, flavour feedlib.Flavour) (bool, error)
 	UpdateUserProfile(ctx context.Context, input dto.UserProfileInput) (*profileutils.UserProfile, error)
 	UpdateUserPin(ctx context.Context, phone string, pin string) (bool, error)
@@ -1337,6 +1339,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.UpdateRolePermissions(childComplexity, args["input"].(dto.RolePermissionInput)), true
+
+	case "Mutation.updateStaffUserProfile":
+		if e.complexity.Mutation.UpdateStaffUserProfile == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateStaffUserProfile_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateStaffUserProfile(childComplexity, args["userID"].(string), args["userInput"].(*dto1.UserInput), args["staffInput"].(*dto1.StaffProfileInput)), true
 
 	case "Mutation.updateUserName":
 		if e.complexity.Mutation.UpdateUserName == nil {
@@ -2444,6 +2458,7 @@ extend type Mutation {
 `, BuiltIn: false},
 	{Name: "pkg/onboarding/presentation/graph/staff.graphql", Input: `extend type Mutation {
     registerStaffUser(userInput: UserInput!, staffInput: StaffProfileInput!) :StaffUserProfile
+    updateStaffUserProfile(userID: String!, userInput: UserInput, staffInput: StaffProfileInput): Boolean!
 }`, BuiltIn: false},
 	{Name: "pkg/onboarding/presentation/graph/types.graphql", Input: `type Facility {
   ID: String!
@@ -3686,6 +3701,39 @@ func (ec *executionContext) field_Mutation_updateRolePermissions_args(ctx contex
 		}
 	}
 	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_updateStaffUserProfile_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["userID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userID"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["userID"] = arg0
+	var arg1 *dto1.UserInput
+	if tmp, ok := rawArgs["userInput"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userInput"))
+		arg1, err = ec.unmarshalOUserInput2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚑserviceᚋpkgᚋonboardingᚋapplicationᚋdtoᚐUserInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["userInput"] = arg1
+	var arg2 *dto1.StaffProfileInput
+	if tmp, ok := rawArgs["staffInput"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("staffInput"))
+		arg2, err = ec.unmarshalOStaffProfileInput2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚑserviceᚋpkgᚋonboardingᚋapplicationᚋdtoᚐStaffProfileInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["staffInput"] = arg2
 	return args, nil
 }
 
@@ -6511,6 +6559,48 @@ func (ec *executionContext) _Mutation_registerStaffUser(ctx context.Context, fie
 	res := resTmp.(*domain1.StaffUserProfile)
 	fc.Result = res
 	return ec.marshalOStaffUserProfile2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚑserviceᚋpkgᚋonboardingᚋdomainᚐStaffUserProfile(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_updateStaffUserProfile(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_updateStaffUserProfile_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UpdateStaffUserProfile(rctx, args["userID"].(string), args["userInput"].(*dto1.UserInput), args["staffInput"].(*dto1.StaffProfileInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_completeSignup(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -14087,6 +14177,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec._Mutation_testMutation(ctx, field)
 		case "registerStaffUser":
 			out.Values[i] = ec._Mutation_registerStaffUser(ctx, field)
+		case "updateStaffUserProfile":
+			out.Values[i] = ec._Mutation_updateStaffUserProfile(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "completeSignup":
 			out.Values[i] = ec._Mutation_completeSignup(ctx, field)
 			if out.Values[i] == graphql.Null {
@@ -17612,6 +17707,14 @@ func (ec *executionContext) unmarshalOSortParam2ᚖgithubᚗcomᚋsavannahghiᚋ
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) unmarshalOStaffProfileInput2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚑserviceᚋpkgᚋonboardingᚋapplicationᚋdtoᚐStaffProfileInput(ctx context.Context, v interface{}) (*dto1.StaffProfileInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputStaffProfileInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) marshalOStaffUserProfile2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚑserviceᚋpkgᚋonboardingᚋdomainᚐStaffUserProfile(ctx context.Context, sel ast.SelectionSet, v *domain1.StaffUserProfile) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
@@ -17728,6 +17831,14 @@ func (ec *executionContext) marshalOTime2ᚖtimeᚐTime(ctx context.Context, sel
 		return graphql.Null
 	}
 	return graphql.MarshalTime(*v)
+}
+
+func (ec *executionContext) unmarshalOUserInput2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚑserviceᚋpkgᚋonboardingᚋapplicationᚋdtoᚐUserInput(ctx context.Context, v interface{}) (*dto1.UserInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputUserInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalOUserProfile2ᚕᚖgithubᚗcomᚋsavannahghiᚋprofileutilsᚐUserProfile(ctx context.Context, sel ast.SelectionSet, v []*profileutils.UserProfile) graphql.Marshaler {
