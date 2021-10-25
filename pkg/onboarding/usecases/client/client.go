@@ -50,11 +50,12 @@ type IReactivateClient interface {
 type ITransferClient interface {
 	// TODO: maintain log of past transfers, who did it etc
 	TransferClient(
+		ctx context.Context,
 		clientID string,
-		OriginFacilityID string,
-		DestinationFacilityID string,
-		Reason string, // TODO: consider making this an enum
-		Notes string, // optional notes...e.g if the reason given is "Other"
+		originFacilityID string,
+		destinationFacilityID string,
+		reason enums.TransferReason,
+		notes string,
 	) (bool, error)
 }
 
@@ -146,15 +147,16 @@ func (cl *UseCasesClientImpl) ReactivateClient(clientID string, reason string, n
 	return true, nil
 }
 
-// TransferClient transfer a client from one facility to another facility
+// TransferClient transfers a client from one facility to another facility for various reasons
 func (cl *UseCasesClientImpl) TransferClient(
+	ctx context.Context,
 	clientID string,
-	OriginFacilityID string,
-	DestinationFacilityID string,
-	Reason string, // TODO: consider making this an enum
-	Notes string, // optional notes...e.g if the reason given is "Other"
+	originFacilityID string,
+	destinationFacilityID string,
+	reason enums.TransferReason,
+	notes string,
 ) (bool, error) {
-	return true, nil
+	return cl.Infrastructure.TransferClient(ctx, clientID, originFacilityID, destinationFacilityID, reason, notes)
 }
 
 // GetIdentifiers fetches and returns a list of client active identifiers

@@ -68,7 +68,7 @@ func (u *UsecasesStaffProfileImpl) RegisterStaffUser(ctx context.Context, user *
 	return u.Infrastructure.RegisterStaffUser(ctx, user, staff)
 }
 
-// UpdateStaffUserProfile updates a staff profile usinf their userID
+// UpdateStaffUserProfile updates a staff profile
 func (u *UsecasesStaffProfileImpl) UpdateStaffUserProfile(ctx context.Context, userID string, user *dto.UserInput, staff *dto.StaffProfileInput) (bool, error) {
 	return u.Infrastructure.UpdateStaffUserProfile(ctx, userID, user, staff)
 }

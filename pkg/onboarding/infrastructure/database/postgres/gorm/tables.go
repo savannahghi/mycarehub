@@ -286,6 +286,30 @@ func (ClientProfile) TableName() string {
 	return "clientprofile"
 }
 
+//ClientTransfer hold the client transfer details
+type ClientTransfer struct {
+	Base
+
+	ID                    *string              `gorm:"primaryKey;unique;column:id"`
+	ClientID              string               `gorm:"column:client_id"`
+	OriginFacilityID      string               `gorm:"column:original_facility_id"`
+	DestinationFacilityID string               `gorm:"column:destination_facility_id"`
+	Reason                enums.TransferReason `gorm:"column:reason"`
+	Notes                 string               `gorm:"column:notes"`
+}
+
+// BeforeCreate is a hook run before transferring the client
+func (c *ClientTransfer) BeforeCreate(tx *gorm.DB) (err error) {
+	id := uuid.New().String()
+	c.ID = &id
+	return
+}
+
+// TableName customizes how the table name is generated
+func (ClientTransfer) TableName() string {
+	return "client_transfer"
+}
+
 // ClientUserProfile holds the details of end users who are not using the system in
 // a professional capacity e.g consumers, patients etc together with their user profile
 type ClientUserProfile struct {
@@ -363,6 +387,7 @@ func allTables() []interface{} {
 		&Identifier{},
 		&Addresses{},
 		&PINData{},
+		&ClientTransfer{},
 	}
 	return tables
 }

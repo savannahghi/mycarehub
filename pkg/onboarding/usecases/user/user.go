@@ -282,7 +282,7 @@ func (us *UseCasesUserImpl) Login(ctx context.Context, userID string, pin string
 	}
 
 	//Return authentication credentials, string and an error.
-	return authCredentials, "login successful", nil
+	return authCredentials, "", nil
 }
 
 // ResetPIN resets user PIN

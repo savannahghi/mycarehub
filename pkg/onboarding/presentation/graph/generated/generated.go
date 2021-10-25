@@ -200,6 +200,7 @@ type ComplexityRoot struct {
 		SetUserPin                    func(childComplexity int, input *dto1.PinInput) int
 		SetupAsExperimentParticipant  func(childComplexity int, participate *bool) int
 		TestMutation                  func(childComplexity int) int
+		TransferClient                func(childComplexity int, clientID string, originFacilityID *string, destinationFacilityID *string, reason enums.TransferReason, notes string) int
 		UpdateRolePermissions         func(childComplexity int, input dto.RolePermissionInput) int
 		UpdateStaffUserProfile        func(childComplexity int, userID string, userInput *dto1.UserInput, staffInput *dto1.StaffProfileInput) int
 		UpdateUserName                func(childComplexity int, username string) int
@@ -380,6 +381,7 @@ type MutationResolver interface {
 	RegisterClientUser(ctx context.Context, userInput dto1.UserInput, clientInput dto1.ClientProfileInput) (*domain1.ClientUserProfile, error)
 	AddIdentifier(ctx context.Context, clientID string, idType enums.IdentifierType, idValue string, isPrimary bool) (*domain1.Identifier, error)
 	InviteClient(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
+	TransferClient(ctx context.Context, clientID string, originFacilityID *string, destinationFacilityID *string, reason enums.TransferReason, notes string) (bool, error)
 	CreateFacility(ctx context.Context, input dto1.FacilityInput) (*domain1.Facility, error)
 	DeleteFacility(ctx context.Context, id string) (bool, error)
 	SetUserPin(ctx context.Context, input *dto1.PinInput) (bool, error)
@@ -1342,6 +1344,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.TestMutation(childComplexity), true
 
+	case "Mutation.transferClient":
+		if e.complexity.Mutation.TransferClient == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_transferClient_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.TransferClient(childComplexity, args["clientID"].(string), args["OriginFacilityID"].(*string), args["destinationFacilityID"].(*string), args["Reason"].(enums.TransferReason), args["Notes"].(string)), true
+
 	case "Mutation.updateRolePermissions":
 		if e.complexity.Mutation.UpdateRolePermissions == nil {
 			break
@@ -2285,6 +2299,14 @@ var sources = []*ast.Source{
   ): Identifier!
 
   inviteClient(userID: String!, flavour: Flavour!): Boolean!
+  transferClient(
+    clientID: String!
+		OriginFacilityID: String
+		destinationFacilityID: String
+		Reason: TransferReason!
+		Notes: String!
+  ): Boolean!
+  
 }
 `, BuiltIn: false},
 	{Name: "pkg/onboarding/presentation/graph/enums.graphql", Input: `enum RolesType {
@@ -2319,6 +2341,7 @@ enum IdentifierUse {
   TEMPORARY
   OLD
 }
+
 enum ContactType {
   PHONE
   EMAIL
@@ -2392,6 +2415,10 @@ enum AddressesType {
   POSTALPHYSICAL
 }
 
+enum TransferReason {
+    RELOCATION
+    OTHER
+}
 `, BuiltIn: false},
 	{Name: "pkg/onboarding/presentation/graph/facility.graphql", Input: `
 extend type Mutation {
@@ -3726,6 +3753,57 @@ func (ec *executionContext) field_Mutation_setupAsExperimentParticipant_args(ctx
 		}
 	}
 	args["participate"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_transferClient_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["clientID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clientID"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["clientID"] = arg0
+	var arg1 *string
+	if tmp, ok := rawArgs["OriginFacilityID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("OriginFacilityID"))
+		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["OriginFacilityID"] = arg1
+	var arg2 *string
+	if tmp, ok := rawArgs["destinationFacilityID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("destinationFacilityID"))
+		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["destinationFacilityID"] = arg2
+	var arg3 enums.TransferReason
+	if tmp, ok := rawArgs["Reason"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Reason"))
+		arg3, err = ec.unmarshalNTransferReason2githubᚗcomᚋsavannahghiᚋonboardingᚑserviceᚋpkgᚋonboardingᚋapplicationᚋenumsᚐTransferReason(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["Reason"] = arg3
+	var arg4 string
+	if tmp, ok := rawArgs["Notes"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Notes"))
+		arg4, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["Notes"] = arg4
 	return args, nil
 }
 
@@ -6430,6 +6508,48 @@ func (ec *executionContext) _Mutation_inviteClient(ctx context.Context, field gr
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Mutation().InviteClient(rctx, args["userID"].(string), args["flavour"].(feedlib.Flavour))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_transferClient(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_transferClient_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().TransferClient(rctx, args["clientID"].(string), args["OriginFacilityID"].(*string), args["destinationFacilityID"].(*string), args["Reason"].(enums.TransferReason), args["Notes"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -14245,6 +14365,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "transferClient":
+			out.Values[i] = ec._Mutation_transferClient(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "createFacility":
 			out.Values[i] = ec._Mutation_createFacility(ctx, field)
 			if out.Values[i] == graphql.Null {
@@ -16451,6 +16576,16 @@ func (ec *executionContext) marshalNString2ᚖstring(ctx context.Context, sel as
 
 func (ec *executionContext) marshalNThinAddress2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐThinAddress(ctx context.Context, sel ast.SelectionSet, v domain.ThinAddress) graphql.Marshaler {
 	return ec._ThinAddress(ctx, sel, &v)
+}
+
+func (ec *executionContext) unmarshalNTransferReason2githubᚗcomᚋsavannahghiᚋonboardingᚑserviceᚋpkgᚋonboardingᚋapplicationᚋenumsᚐTransferReason(ctx context.Context, v interface{}) (enums.TransferReason, error) {
+	var res enums.TransferReason
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNTransferReason2githubᚗcomᚋsavannahghiᚋonboardingᚑserviceᚋpkgᚋonboardingᚋapplicationᚋenumsᚐTransferReason(ctx context.Context, sel ast.SelectionSet, v enums.TransferReason) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) marshalNUser2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚑserviceᚋpkgᚋonboardingᚋdomainᚐUser(ctx context.Context, sel ast.SelectionSet, v *domain1.User) graphql.Marshaler {

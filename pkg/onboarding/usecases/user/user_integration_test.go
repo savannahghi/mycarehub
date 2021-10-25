@@ -163,7 +163,7 @@ func TestUseCasesUserImpl_Login_Integration_Test(t *testing.T) {
 	//Login
 	authCred, str, err := i.UserUsecase.Login(ctx, *userProfile.ID, pin, userProfile.Flavour)
 	assert.Nil(t, err)
-	assert.NotEmpty(t, str)
+	assert.Empty(t, str)
 	assert.NotNil(t, str)
 	assert.NotNil(t, authCred)
 

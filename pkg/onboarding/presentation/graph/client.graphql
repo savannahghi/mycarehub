@@ -12,4 +12,12 @@ extend type Mutation {
   ): Identifier!
 
   inviteClient(userID: String!, flavour: Flavour!): Boolean!
+  transferClient(
+    clientID: String!
+		OriginFacilityID: String
+		destinationFacilityID: String
+		Reason: TransferReason!
+		Notes: String!
+  ): Boolean!
+  
 }
