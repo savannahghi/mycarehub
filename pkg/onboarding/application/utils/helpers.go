@@ -3,6 +3,7 @@ package utils
 import (
 	"fmt"
 	"hash"
+	"math"
 	"time"
 
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/infrastructure"
@@ -15,6 +16,8 @@ const (
 	minPINLength = 4
 	// Default max length of the date
 	maxPINLength = 4
+	//BackOffWaitTime is the default time to wait
+	BackOffWaitTime = 3
 )
 
 // Options is a struct for custom values of salt length, number of iterations, the encoded key's length,
@@ -72,4 +75,13 @@ func GetHourMinuteSecond(hour, minute, second time.Duration) time.Time {
 
 	return time.Now().Add(time.Hour*hour + time.Minute*minute + time.Second*second)
 
+}
+
+// NextAllowedLoginTime calculates the next allowed time to login.
+// It depends on the number of user's failed login attempts.
+func NextAllowedLoginTime(trials int) time.Time {
+	baseValue := float64(trials)
+	result := math.Pow(baseValue, BackOffWaitTime)
+	nextAllowedLoginTime := GetHourMinuteSecond(0, 0, time.Duration(result))
+	return nextAllowedLoginTime
 }

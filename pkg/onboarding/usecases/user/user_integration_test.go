@@ -105,7 +105,7 @@ func TestUseCasesUserImpl_Login_Integration_Test(t *testing.T) {
 	}
 
 	staffInput := &dto.StaffProfileInput{
-		StaffNumber:       "s123",
+		StaffNumber:       ksuid.New().String(),
 		DefaultFacilityID: facility.ID,
 	}
 
@@ -139,7 +139,7 @@ func TestUseCasesUserImpl_Login_Integration_Test(t *testing.T) {
 	assert.NotNil(t, userProfile)
 
 	//Valid: Fetch PIN by UserID
-	userPINData, err := m.GetUserPINByUserID(ctx, *staffUserProfile.User.ID)
+	userPINData, err := m.GetUserPINByUserID(ctx, *userProfile.ID)
 	assert.Nil(t, err)
 	assert.NotNil(t, userPINData)
 
@@ -147,10 +147,10 @@ func TestUseCasesUserImpl_Login_Integration_Test(t *testing.T) {
 	assert.Equal(t, true, isMatch)
 
 	successTime := time.Now()
-	err = m.UpdateUserLastSuccessfulLogin(ctx, *staffUserProfile.User.ID, successTime, string(flavour))
+	err = m.UpdateUserLastSuccessfulLogin(ctx, *userProfile.ID, successTime, string(flavour))
 	assert.Nil(t, err)
 
-	err = m.UpdateUserFailedLoginCount(ctx, *staffUserProfile.User.ID, "0", string(flavour))
+	err = m.UpdateUserFailedLoginCount(ctx, *userProfile.ID, "0", string(flavour))
 	assert.Nil(t, err)
 
 	customToken, err := firebasetools.CreateFirebaseCustomToken(ctx, *userProfile.ID)
@@ -162,7 +162,7 @@ func TestUseCasesUserImpl_Login_Integration_Test(t *testing.T) {
 	assert.NotNil(t, userTokens)
 
 	//Login
-	authCred, str, err := i.UserUsecase.Login(ctx, *staffUserProfile.User.ID, pin, flavour.String())
+	authCred, str, err := i.UserUsecase.Login(ctx, *userProfile.ID, pin, string(userProfile.Flavour))
 	assert.Nil(t, err)
 	assert.NotEmpty(t, str)
 	assert.NotNil(t, str)
@@ -216,12 +216,16 @@ func TestUseCasesUserImpl_Login_Integration_Test(t *testing.T) {
 		numberOfTrials := strconv.Itoa(trials)
 		assert.NotNil(t, numberOfTrials)
 
-		err8 := m.UpdateUserFailedLoginCount(ctx, *staffUserProfile.User.ID, numberOfTrials, string(flavour))
+		err8 := m.UpdateUserFailedLoginCount(ctx, *profile2.ID, numberOfTrials, string(flavour))
 		assert.Nil(t, err8)
 
 		lastFailedLoginTime := time.Now()
-		err9 := m.UpdateUserLastFailedLogin(ctx, *staffUserProfile.User.ID, lastFailedLoginTime, string(flavour))
+		err9 := m.UpdateUserLastFailedLogin(ctx, *profile2.ID, lastFailedLoginTime, string(flavour))
 		assert.Nil(t, err9)
+
+		nextAllowedLoginTime := utils.NextAllowedLoginTime(trials)
+		err10 := m.UpdateUserNextAllowedLogin(ctx, *profile2.ID, nextAllowedLoginTime, string(flavour))
+		assert.Nil(t, err10)
 
 	}
 
