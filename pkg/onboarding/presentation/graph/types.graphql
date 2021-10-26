@@ -7,9 +7,9 @@ type Facility {
   description: String!
 }
 
-type PIN {
-  user: String!
-  pin: String!
+type Pin {
+  userID: String!
+  Pin: String!
   confirmedPin: String!
   flavour: Flavour!
 }
@@ -53,7 +53,7 @@ type StaffProfile {
   # facilities: [Facility!]
   defaultFacilityID: String!
   # roles: [String!] # TODO: roles are an enum (controlled list), known to both FE and BE
-  # addresses: [UserAddress!]
+  addresses: [Addresses!]
 }
 
 type StaffUserProfile {
@@ -66,7 +66,7 @@ type ClientProfile {
   userID: String!
   clientType: ClientType
   active: Boolean
-  treatmentEnrollmentDate: Date
+  treatmentEnrollmentDate: Time
   healthRecordID: String
   facilityID: String
   treatmentBuddyUserID: String
@@ -86,8 +86,18 @@ type Identifier {
   identifierUse: IdentifierUse!
   identifierValue: String!
   description: String
-  validFrom: Date
-  validTo: Date
+  validFrom: Time
+  validTo: Time
   active: Boolean!
   isPrimaryIdentifier: Boolean!
+}
+
+type Addresses {
+  ID:         String!
+	Type:       AddressesType!
+	Text:       String!
+	Country:    CountryType!
+	PostalCode: String!
+	County:     CountyType!
+	Active:     Boolean!
 }

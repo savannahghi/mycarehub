@@ -60,6 +60,16 @@ func TestUseCaseStaffProfileImpl_RegisterStaffUser(t *testing.T) {
 	staffInput := &dto.StaffProfileInput{
 		StaffNumber:       staffID,
 		DefaultFacilityID: facility.ID,
+		Addresses: []*dto.AddressesInput{
+			{
+				Type:       enums.AddressesTypePhysical,
+				Text:       "test",
+				Country:    enums.CountryTypeKenya,
+				PostalCode: "test code",
+				County:     enums.CountyTypeNakuru,
+				Active:     true,
+			},
+		},
 	}
 
 	// Second set of valid Inputs
@@ -87,6 +97,16 @@ func TestUseCaseStaffProfileImpl_RegisterStaffUser(t *testing.T) {
 	staffInpu2 := &dto.StaffProfileInput{
 		StaffNumber:       staffID2,
 		DefaultFacilityID: facility.ID,
+		Addresses: []*dto.AddressesInput{
+			{
+				Type:       enums.AddressesTypePhysical,
+				Text:       "test",
+				Country:    enums.CountryTypeKenya,
+				PostalCode: "test code",
+				County:     enums.CountyTypeBaringo,
+				Active:     true,
+			},
+		},
 	}
 
 	// Invalid facility id
@@ -95,8 +115,57 @@ func TestUseCaseStaffProfileImpl_RegisterStaffUser(t *testing.T) {
 		DefaultFacilityID: &testFacilityID,
 	}
 
+	// Invalid country input
+	staffInputInvalidCountry := &dto.StaffProfileInput{
+		StaffNumber:       staffID2,
+		DefaultFacilityID: facility.ID,
+		Addresses: []*dto.AddressesInput{
+			{
+				Type:       enums.AddressesTypePhysical,
+				Text:       "test",
+				Country:    "Invalid",
+				PostalCode: "test code",
+				County:     enums.CountyTypeBaringo,
+				Active:     true,
+			},
+		},
+	}
+
+	// Invalid county input
+	staffInputInvalidCounty := &dto.StaffProfileInput{
+		StaffNumber:       staffID2,
+		DefaultFacilityID: facility.ID,
+		Addresses: []*dto.AddressesInput{
+			{
+				Type:       enums.AddressesTypePhysical,
+				Text:       "test",
+				Country:    enums.CountryTypeKenya,
+				PostalCode: "test code",
+				County:     "Invalid",
+				Active:     true,
+			},
+		},
+	}
+
+	//  invalid: non existent facility assignment
+	useStaffProfile, err := f.RegisterStaffUser(ctx, userInput, staffInputNoFacility)
+	assert.Nil(t, useStaffProfile)
+	assert.NotNil(t, err)
+
+	//  invalid: non existent country
+	useStaffProfile, err = f.RegisterStaffUser(ctx, userInput, staffInputInvalidCountry)
+	assert.Nil(t, useStaffProfile)
+	assert.NotNil(t, err)
+
+	//  invalid: non existent county
+	useStaffProfile, err = f.RegisterStaffUser(ctx, userInput, staffInputInvalidCounty)
+	assert.Nil(t, useStaffProfile)
+	assert.NotNil(t, err)
+
+	// TODO:add case where county is valid but does not belong to country after another country is available
+
 	//valid: create a staff user with valid parameters
-	useStaffProfile, err := f.RegisterStaffUser(ctx, userInput, staffInput)
+	useStaffProfile, err = f.RegisterStaffUser(ctx, userInput, staffInput)
 	assert.Nil(t, err)
 	assert.NotNil(t, useStaffProfile)
 
@@ -119,11 +188,6 @@ func TestUseCaseStaffProfileImpl_RegisterStaffUser(t *testing.T) {
 	useStaffProfile, err = f.RegisterStaffUser(ctx, userInput2, staffInpu2)
 	assert.Nil(t, err)
 	assert.NotNil(t, useStaffProfile)
-
-	//  invalid: non existent facility assignment
-	useStaffProfile, err = f.RegisterStaffUser(ctx, userInput, staffInputNoFacility)
-	assert.Nil(t, useStaffProfile)
-	assert.NotNil(t, err)
 
 	// TODO: teardown the user and replace randomdata with gofakeit
 

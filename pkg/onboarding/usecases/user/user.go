@@ -86,7 +86,7 @@ type ISetUserPIN interface {
 	// entry in the table; and also invalidate past PINs.
 	// it means that the same table can be used to check for PIN reuse.
 	// TODO: all PINs are hashed
-	SetUserPIN(ctx context.Context, input *dto.PINInput) (bool, error)
+	SetUserPIN(ctx context.Context, input *dto.PinInput) (bool, error)
 }
 
 // ResetPIN ...
@@ -316,7 +316,7 @@ func (us *UseCasesUserImpl) Invite(userID string, flavour string) (bool, error) 
 }
 
 // SetUserPIN sets a user's PIN.
-func (us *UseCasesUserImpl) SetUserPIN(ctx context.Context, input *dto.PINInput) (bool, error) {
+func (us *UseCasesUserImpl) SetUserPIN(ctx context.Context, input *dto.PinInput) (bool, error) {
 	//Get user profile PIN
 
 	err := utils.ValidatePIN(input.PIN)
