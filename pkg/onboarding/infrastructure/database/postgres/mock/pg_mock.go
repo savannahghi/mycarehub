@@ -187,6 +187,11 @@ func NewPostgresMock() *PostgresMock {
 			testTime := time.Now()
 			roles := []enums.RolesType{enums.RolesTypeCanInviteClient}
 			languages := []enumutils.Language{enumutils.LanguageEn}
+			name := "Kanairo One"
+			code := "KN001"
+			county := "Kanairo"
+			description := "This is just for mocking"
+			facilityID := uuid.New().String()
 			return &domain.StaffUserProfile{
 				User: &domain.User{
 					ID:                  &ID,
@@ -221,6 +226,14 @@ func NewPostgresMock() *PostgresMock {
 						},
 					},
 					Roles: roles,
+					Facilities: []*domain.Facility{{
+						ID:          &facilityID,
+						Name:        name,
+						Code:        code,
+						Active:      true,
+						County:      county,
+						Description: description,
+					}},
 				},
 			}, nil
 		},

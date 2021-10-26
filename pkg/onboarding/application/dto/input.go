@@ -103,7 +103,7 @@ type LoginInput struct {
 type StaffProfileInput struct {
 	StaffNumber string `json:"staffNumber"`
 
-	// Facilities []*domain.Facility `json:"facilities"` // TODO: needs at least one
+	Facilities []*string // TODO: needs at least one
 
 	// A UI switcher optionally toggles the default
 	// TODO: the list of facilities to switch between is strictly those that the user is assigned to

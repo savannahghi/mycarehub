@@ -180,12 +180,12 @@ type StaffProfile struct {
 
 	StaffNumber string `gorm:"unique;column:staff_number"`
 
-	// Facilities []*Facility `gorm:"many2many:staffprofile_facility;not null;"` // TODO: needs at least one
+	Facilities []*Facility `gorm:"many2many:staffprofile_facility;foreignKey:StaffProfileID;joinForeignKey:StaffProfileID;References:FacilityID;joinReferences:FacilityID"` // TODO: needs at least one
 
 	// A UI switcher optionally toggles the default
 	// TODO: the list of facilities to switch between is strictly those that the user is assigned to
-	DefaultFacilityID *string  `gorm:"column:default_facility_id"` // TODO: required, FK to facility
-	Facility          Facility `gorm:"foreignKey:default_facility_id;references:facility_id;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
+	DefaultFacilityID *string  `gorm:"column:defaultfacility_id"` // TODO: required, FK to facility
+	Facility          Facility `gorm:"foreignKey:defaultfacility_id;references:facility_id;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 
 	// there is nothing special about super-admin; just the set of roles they have
 	Roles pq.StringArray `gorm:"type:text[];column:roles"` // TODO: roles are an enum (controlled list), known to both FE and BE
@@ -216,6 +216,17 @@ type Addresses struct {
 	County         enums.CountyType    `gorm:"column:county"` // TODO: counties belong to a country
 	Active         bool                `gorm:"column:active"`
 	StaffProfileID *string             `gorm:"column:staff_profile_id"`
+}
+
+// StaffprofileFacility is a join table for staffprofile and facility
+type StaffprofileFacility struct {
+	StaffProfileID string `gorm:"column:staff_profile_id"`
+	FacilityID     string `gorm:"column:facility_id"`
+}
+
+// TableName customizes how the table name is generated
+func (StaffprofileFacility) TableName() string {
+	return "staffprofile_facility"
 }
 
 // BeforeCreate is a hook run before creating a new address

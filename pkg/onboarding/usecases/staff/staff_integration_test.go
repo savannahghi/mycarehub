@@ -21,6 +21,11 @@ func TestUseCaseStaffProfileImpl_RegisterStaffUser(t *testing.T) {
 
 	testFacilityID := uuid.New().String()
 
+	// Type cast the ID values
+	type tempID struct {
+		ID string
+	}
+
 	code := ksuid.New().String()
 	facilityInput := dto.FacilityInput{
 		Name:        "test",
@@ -30,10 +35,24 @@ func TestUseCaseStaffProfileImpl_RegisterStaffUser(t *testing.T) {
 		Description: "test description",
 	}
 
+	code2 := ksuid.New().String()
+	facilityInput2 := dto.FacilityInput{
+		Name:        "test",
+		Code:        code2,
+		Active:      true,
+		County:      "test",
+		Description: "test description",
+	}
+
 	//valid: Create a facility
 	facility, err := f.GetOrCreateFacility(ctx, facilityInput)
 	assert.Nil(t, err)
 	assert.NotNil(t, facility)
+
+	//valid: Create another facility
+	facility2, err := f.GetOrCreateFacility(ctx, facilityInput2)
+	assert.Nil(t, err)
+	assert.NotNil(t, facility2)
 
 	// First Set of Valid Input
 	contactInput := &dto.ContactInput{
@@ -70,10 +89,11 @@ func TestUseCaseStaffProfileImpl_RegisterStaffUser(t *testing.T) {
 				Active:     true,
 			},
 		},
-		Roles: []enums.RolesType{enums.RolesTypeCanInviteClient},
+		Roles:      []enums.RolesType{enums.RolesTypeCanInviteClient},
+		Facilities: []*string{facility2.ID},
 	}
 
-	// Second set of valid Inputs
+	// Second set of valid Inputs (with duplicate facilities input)
 	contactInput2 := &dto.ContactInput{
 		Type:    enums.PhoneContact,
 		Contact: randomdata.PhoneNumber(),
@@ -108,7 +128,8 @@ func TestUseCaseStaffProfileImpl_RegisterStaffUser(t *testing.T) {
 				Active:     true,
 			},
 		},
-		Roles: []enums.RolesType{enums.RolesTypeCanInviteClient},
+		Roles:      []enums.RolesType{enums.RolesTypeCanInviteClient},
+		Facilities: []*string{facility2.ID, facility.ID, facility2.ID},
 	}
 
 	// Invalid facility id
@@ -187,6 +208,15 @@ func TestUseCaseStaffProfileImpl_RegisterStaffUser(t *testing.T) {
 	useStaffProfile, err = f.RegisterStaffUser(ctx, userInput, staffInput)
 	assert.Nil(t, err)
 	assert.NotNil(t, useStaffProfile)
+	// ensure the length of facilities is 2 for the first input
+	assert.Equal(t, len(useStaffProfile.Staff.Facilities), 2)
+	// ensure the default facility ID appears at index 1
+
+	var defaultFacilityID = tempID{}
+	var staffFacilityIndex0 = tempID{}
+	defaultFacilityID.ID = *useStaffProfile.Staff.DefaultFacilityID
+	staffFacilityIndex0.ID = *useStaffProfile.Staff.Facilities[0].ID
+	assert.Equal(t, staffFacilityIndex0.ID, defaultFacilityID.ID)
 
 	//Invalid: creating a user with duplicate staff number and contact
 	useStaffProfile, err = f.RegisterStaffUser(ctx, userInput, staffInput)
@@ -207,6 +237,12 @@ func TestUseCaseStaffProfileImpl_RegisterStaffUser(t *testing.T) {
 	useStaffProfile, err = f.RegisterStaffUser(ctx, userInput2, staffInpu2)
 	assert.Nil(t, err)
 	assert.NotNil(t, useStaffProfile)
+	// ensure the length of facilities is 2 for the second input when given duplicate facility IDs in input
+	assert.Equal(t, len(useStaffProfile.Staff.Facilities), 2)
+	// ensure the default facility ID appears at index 1
+	defaultFacilityID.ID = *useStaffProfile.Staff.DefaultFacilityID
+	staffFacilityIndex0.ID = *useStaffProfile.Staff.Facilities[0].ID
+	assert.Equal(t, staffFacilityIndex0.ID, defaultFacilityID.ID)
 
 	// TODO: teardown the user and replace randomdata with gofakeit
 

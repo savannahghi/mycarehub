@@ -58,7 +58,6 @@ func (db *PGInstance) CollectMetrics(ctx context.Context, metrics *Metric) (*Met
 
 // RegisterStaffUser creates both the user profile and the staff profile.
 func (db *PGInstance) RegisterStaffUser(ctx context.Context, user *User, staff *StaffProfile) (*StaffUserProfile, error) {
-	// Initialize a database transaction
 	tx := db.DB.Begin()
 	defer func() {
 		if r := recover(); r != nil {
@@ -78,10 +77,39 @@ func (db *PGInstance) RegisterStaffUser(ctx context.Context, user *User, staff *
 	// assign userID in staff a value due to foreign keys constraint
 	staff.UserID = user.UserID
 
+	// Save the staff facilities in a temporary variable to be used when appending associations
+	tempFacilities := staff.Facilities
+
+	// Purge the staff facilities so we wont have duplicate facilities in results (We are using tempFacilities)
+	staff.Facilities = []*Facility{}
+
 	// create a staff profile, then rollback the transaction if it is unsuccessful
-	if err := tx.Create(staff).Error; err != nil {
+	// Omit the creation of facilities since we don't want to create new facilities when creating staff
+	// Associate staff to facilities and append  the temp facilities
+	if err := tx.Omit("Facilities").Create(staff).Association("Facilities").Append(tempFacilities); err != nil {
 		tx.Rollback()
 		return nil, fmt.Errorf("failed to create a staff profile %v", err)
+	}
+
+	// TODO: remove manual saving of the associations
+	// Appending temp facilities is not saving data in the join table
+	// hence this manual save to the join table
+	for _, f := range tempFacilities {
+		// Prepare the join table with the  facilities and staff IDs
+		staffProfileFacility := StaffprofileFacility{
+			StaffProfileID: *staff.StaffProfileID,
+			FacilityID:     *f.FacilityID,
+		}
+		// Search for unique together fields in the join table and if they do not exist, insert the values for staffID and facilityID
+		var count int64
+		tx.Where("staff_profile_id = ? AND facility_id = ?", staff.StaffProfileID, f.FacilityID).Find(&staffProfileFacility).Count(&count)
+		if count < 1 {
+			err := tx.Create(staffProfileFacility).Error
+			if err != nil {
+				tx.Rollback()
+				return nil, fmt.Errorf("failed to create a values in staffprofile - facility join table %v", err)
+			}
+		}
 	}
 
 	// try to commit the transactions

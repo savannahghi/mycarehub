@@ -84,6 +84,24 @@ func (d *OnboardingDb) mapRegisterStaffObjectToDomain(userStaffObject *gorm.Staf
 	userObject := userStaffObject.User
 	staffObject := userStaffObject.Staff
 
+	facilities := []*domain.Facility{}
+
+	for _, f := range staffObject.Facilities {
+		active, err := strconv.ParseBool(f.Active)
+		if err != nil {
+			return nil
+		}
+		facility := &domain.Facility{
+			ID:          f.FacilityID,
+			Name:        f.Name,
+			Code:        f.Code,
+			Active:      active,
+			County:      f.County,
+			Description: f.Description,
+		}
+		facilities = append(facilities, facility)
+	}
+
 	user := createMapUser(userObject)
 
 	addresses := []*domain.Addresses{}
@@ -106,10 +124,10 @@ func (d *OnboardingDb) mapRegisterStaffObjectToDomain(userStaffObject *gorm.Staf
 	}
 
 	staffProfile := &domain.StaffProfile{
-		ID:          staffObject.StaffProfileID,
-		UserID:      userObject.UserID,
-		StaffNumber: staffObject.StaffNumber,
-		// Facilities:        staffObject.Facilities,
+		ID:                staffObject.StaffProfileID,
+		UserID:            userObject.UserID,
+		StaffNumber:       staffObject.StaffNumber,
+		Facilities:        facilities,
 		DefaultFacilityID: staffObject.DefaultFacilityID,
 		Addresses:         addresses,
 		Roles:             roles,

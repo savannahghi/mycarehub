@@ -27,8 +27,8 @@ input UserInput {
 }
 
 input StaffProfileInput {
-  staffNumber:       String!
-  # facilities:      [FacilityInput!]
+  staffNumber: String!
+  facilities: [String!]
   defaultFacilityID: String!
   addresses:         [AddressesInput!]!
   roles: [RolesType] # TODO: roles are an enum (controlled list), known to both FE and BE

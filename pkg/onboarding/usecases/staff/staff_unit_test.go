@@ -148,6 +148,16 @@ func TestOnboardingDb_RegisterStaffUser(t *testing.T) {
 								},
 							},
 							Roles: []enums.RolesType{enums.RolesTypeCanInviteClient},
+							Facilities: []*domain.Facility{
+								{
+									ID:          &testFacilityID,
+									Name:        "test",
+									Code:        "f1234",
+									Active:      true,
+									County:      "test",
+									Description: "test description",
+								},
+							},
 						},
 					}, nil
 				}

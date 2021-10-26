@@ -92,6 +92,31 @@ func (d *OnboardingDb) RegisterStaffUser(ctx context.Context, user *dto.UserInpu
 		return nil, fmt.Errorf("expected default facility ID to be provided")
 	}
 
+	defaultFacilityID := staff.DefaultFacilityID
+
+	facilities := []*gorm.Facility{}
+
+	facilitiesInput := []string{}
+
+	// append default facility at index 0 in the slice of facilitiesInput
+	facilitiesInput = append(facilitiesInput, *defaultFacilityID)
+
+	// Append other facilities in the facilitiesInput
+	for _, staffFacility := range staff.Facilities {
+		facilitiesInput = append(facilitiesInput, *staffFacility)
+	}
+
+	// ensure we don't assign duplicate facilities
+	sanitizedFacilities := uniqueSliceOfString(facilitiesInput)
+
+	for _, f := range sanitizedFacilities {
+		facility, err := d.query.RetrieveFacility(ctx, &f, true)
+		if err != nil {
+			return nil, fmt.Errorf("failed to retrieve facility with id %v: %v", f, err)
+		}
+		facilities = append(facilities, facility)
+	}
+
 	userObject := createUserObject(user)
 
 	addresses := []*gorm.Addresses{}
@@ -128,12 +153,13 @@ func (d *OnboardingDb) RegisterStaffUser(ctx context.Context, user *dto.UserInpu
 		DefaultFacilityID: staff.DefaultFacilityID,
 		Addresses:         addresses,
 		Roles:             roles,
+		Facilities:        facilities,
 	}
 
 	userStaffProfile, err := d.create.RegisterStaffUser(ctx, userObject, staffObject)
 	if err != nil {
 
-		return nil, fmt.Errorf("failed to create user session %v", err)
+		return nil, fmt.Errorf("failed to create user session: %v", err)
 	}
 
 	return d.mapRegisterStaffObjectToDomain(userStaffProfile), nil
@@ -226,4 +252,20 @@ func createUserObject(user *dto.UserInput) *gorm.User {
 		Flavour:     user.Flavour,
 	}
 	return userObject
+}
+
+// A helper function that ensures sanitizes the facility ID inputs for staff
+func uniqueSliceOfString(slice []string) []string {
+	var unique []string
+sampleLoop:
+	for _, v := range slice {
+		for i, u := range unique {
+			if v == u {
+				unique[i] = v
+				continue sampleLoop
+			}
+		}
+		unique = append(unique, v)
+	}
+	return unique
 }

@@ -50,7 +50,7 @@ type StaffProfile {
   id: String!
   userID: String!
   staffNumber: String!
-  # facilities: [Facility!]
+  facilities: [Facility!]
   defaultFacilityID: String!
   addresses: [Addresses!]
   roles: [RolesType!]

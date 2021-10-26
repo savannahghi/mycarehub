@@ -290,6 +290,7 @@ type ComplexityRoot struct {
 	StaffProfile struct {
 		Addresses         func(childComplexity int) int
 		DefaultFacilityID func(childComplexity int) int
+		Facilities        func(childComplexity int) int
 		ID                func(childComplexity int) int
 		Roles             func(childComplexity int) int
 		StaffNumber       func(childComplexity int) int
@@ -1829,6 +1830,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.StaffProfile.DefaultFacilityID(childComplexity), true
 
+	case "StaffProfile.facilities":
+		if e.complexity.StaffProfile.Facilities == nil {
+			break
+		}
+
+		return e.complexity.StaffProfile.Facilities(childComplexity), true
+
 	case "StaffProfile.id":
 		if e.complexity.StaffProfile.ID == nil {
 			break
@@ -2461,8 +2469,8 @@ input UserInput {
 }
 
 input StaffProfileInput {
-  staffNumber:       String!
-  # facilities:      [FacilityInput!]
+  staffNumber: String!
+  facilities: [String!]
   defaultFacilityID: String!
   addresses:         [AddressesInput!]!
   roles: [RolesType] # TODO: roles are an enum (controlled list), known to both FE and BE
@@ -2555,7 +2563,7 @@ type StaffProfile {
   id: String!
   userID: String!
   staffNumber: String!
-  # facilities: [Facility!]
+  facilities: [Facility!]
   defaultFacilityID: String!
   addresses: [Addresses!]
   roles: [RolesType!]
@@ -10025,6 +10033,38 @@ func (ec *executionContext) _StaffProfile_staffNumber(ctx context.Context, field
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _StaffProfile_facilities(ctx context.Context, field graphql.CollectedField, obj *domain1.StaffProfile) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "StaffProfile",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Facilities, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*domain1.Facility)
+	fc.Result = res
+	return ec.marshalOFacility2ᚕᚖgithubᚗcomᚋsavannahghiᚋonboardingᚑserviceᚋpkgᚋonboardingᚋdomainᚐFacilityᚄ(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _StaffProfile_defaultFacilityID(ctx context.Context, field graphql.CollectedField, obj *domain1.StaffProfile) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -13503,6 +13543,14 @@ func (ec *executionContext) unmarshalInputStaffProfileInput(ctx context.Context,
 			if err != nil {
 				return it, err
 			}
+		case "facilities":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("facilities"))
+			it.Facilities, err = ec.unmarshalOString2ᚕᚖstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		case "defaultFacilityID":
 			var err error
 
@@ -15140,6 +15188,8 @@ func (ec *executionContext) _StaffProfile(ctx context.Context, sel ast.Selection
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "facilities":
+			out.Values[i] = ec._StaffProfile_facilities(ctx, field, obj)
 		case "defaultFacilityID":
 			out.Values[i] = ec._StaffProfile_defaultFacilityID(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -17243,6 +17293,46 @@ func (ec *executionContext) marshalOFacility2ᚕᚖgithubᚗcomᚋsavannahghiᚋ
 	return ret
 }
 
+func (ec *executionContext) marshalOFacility2ᚕᚖgithubᚗcomᚋsavannahghiᚋonboardingᚑserviceᚋpkgᚋonboardingᚋdomainᚐFacilityᚄ(ctx context.Context, sel ast.SelectionSet, v []*domain1.Facility) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNFacility2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚑserviceᚋpkgᚋonboardingᚋdomainᚐFacility(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
 func (ec *executionContext) marshalOFacility2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚑserviceᚋpkgᚋonboardingᚋdomainᚐFacility(ctx context.Context, sel ast.SelectionSet, v *domain1.Facility) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
@@ -18020,6 +18110,42 @@ func (ec *executionContext) marshalOString2ᚕstringᚄ(ctx context.Context, sel
 	ret := make(graphql.Array, len(v))
 	for i := range v {
 		ret[i] = ec.marshalNString2string(ctx, sel, v[i])
+	}
+
+	return ret
+}
+
+func (ec *executionContext) unmarshalOString2ᚕᚖstringᚄ(ctx context.Context, v interface{}) ([]*string, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]*string, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNString2ᚖstring(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalOString2ᚕᚖstringᚄ(ctx context.Context, sel ast.SelectionSet, v []*string) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	for i := range v {
+		ret[i] = ec.marshalNString2ᚖstring(ctx, sel, v[i])
 	}
 
 	return ret
