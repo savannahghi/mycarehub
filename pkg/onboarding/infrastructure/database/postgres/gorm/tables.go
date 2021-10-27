@@ -187,8 +187,8 @@ type StaffProfile struct {
 	DefaultFacilityID *string  `gorm:"column:default_facility_id"` // TODO: required, FK to facility
 	Facility          Facility `gorm:"foreignKey:default_facility_id;references:facility_id;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 
-	// // there is nothing special about super-admin; just the set of roles they have
-	// Roles []string `gorm:"type:text[];column:roles"` // TODO: roles are an enum (controlled list), known to both FE and BE
+	// there is nothing special about super-admin; just the set of roles they have
+	Roles pq.StringArray `gorm:"type:text[];column:roles"` // TODO: roles are an enum (controlled list), known to both FE and BE
 
 	Addresses []*Addresses `gorm:"ForeignKey:StaffProfileID"`
 }

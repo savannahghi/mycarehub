@@ -224,6 +224,8 @@ func NewGormMock() *GormMock {
 		RegisterStaffUserFn: func(ctx context.Context, user *gorm.User, staff *gorm.StaffProfile) (*gorm.StaffUserProfile, error) {
 			ID := uuid.New().String()
 			testTime := time.Now()
+			roles := []string{enums.RolesTypeCanInviteClient.String()}
+			languages := []string{string(enumutils.LanguageEn)}
 			return &gorm.StaffUserProfile{
 				User: &gorm.User{
 					UserID:              &ID,
@@ -239,6 +241,7 @@ func NewGormMock() *GormMock {
 					FailedLoginCount:    "0",
 					TermsAccepted:       true,
 					AcceptedTermsID:     ID,
+					Languages:           languages,
 				},
 				Staff: &gorm.StaffProfile{
 					StaffProfileID:    &ID,
@@ -256,6 +259,7 @@ func NewGormMock() *GormMock {
 							Active:      true,
 						},
 					},
+					Roles: roles,
 				},
 			}, nil
 		},

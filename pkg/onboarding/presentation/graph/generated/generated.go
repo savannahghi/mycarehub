@@ -288,6 +288,7 @@ type ComplexityRoot struct {
 		Addresses         func(childComplexity int) int
 		DefaultFacilityID func(childComplexity int) int
 		ID                func(childComplexity int) int
+		Roles             func(childComplexity int) int
 		StaffNumber       func(childComplexity int) int
 		UserID            func(childComplexity int) int
 	}
@@ -1793,6 +1794,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.StaffProfile.ID(childComplexity), true
 
+	case "StaffProfile.roles":
+		if e.complexity.StaffProfile.Roles == nil {
+			break
+		}
+
+		return e.complexity.StaffProfile.Roles(childComplexity), true
+
 	case "StaffProfile.staffNumber":
 		if e.complexity.StaffProfile.StaffNumber == nil {
 			break
@@ -2249,7 +2257,23 @@ var sources = []*ast.Source{
   ): Identifier!
 }
 `, BuiltIn: false},
-	{Name: "pkg/onboarding/presentation/graph/enums.graphql", Input: `enum ClientType {
+	{Name: "pkg/onboarding/presentation/graph/enums.graphql", Input: `enum RolesType {
+  CAN_REGISTER_STAFF
+  CAN_INVITE_STAFF
+  CAN_SUSPEND_STAFF
+  CAN_ACTIVATE_STAFF
+  CAN_DELETE_STAFF
+  CAN_INACTIVATE_STAFF
+
+  CAN_REGISTER_CLIENT
+  CAN_INVITE_CLIENT
+  CAN_SUSPEND_CLIENT
+  CAN_ACTIVATE_CLIENT
+  CAN_DELETE_CLIENT
+  CAN_INACTIVATE_CLIENT
+}
+
+enum ClientType {
   PMTCT
   OVC
 }
@@ -2383,8 +2407,8 @@ input StaffProfileInput {
   staffNumber:       String!
   # facilities:      [FacilityInput!]
   defaultFacilityID: String!
-  # roles:           [RoleType] # TODO: roles are an enum (controlled list), known to both FE and BE
   addresses:         [AddressesInput!]!
+  roles: [RolesType] # TODO: roles are an enum (controlled list), known to both FE and BE
 }
 
 input ContactInput {
@@ -2475,8 +2499,8 @@ type StaffProfile {
   staffNumber: String!
   # facilities: [Facility!]
   defaultFacilityID: String!
-  # roles: [String!] # TODO: roles are an enum (controlled list), known to both FE and BE
   addresses: [Addresses!]
+  roles: [RolesType!]
 }
 
 type StaffUserProfile {
@@ -9776,6 +9800,38 @@ func (ec *executionContext) _StaffProfile_addresses(ctx context.Context, field g
 	return ec.marshalOAddresses2ᚕᚖgithubᚗcomᚋsavannahghiᚋonboardingᚑserviceᚋpkgᚋonboardingᚋdomainᚐAddressesᚄ(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _StaffProfile_roles(ctx context.Context, field graphql.CollectedField, obj *domain1.StaffProfile) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "StaffProfile",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Roles, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]enums.RolesType)
+	fc.Result = res
+	return ec.marshalORolesType2ᚕgithubᚗcomᚋsavannahghiᚋonboardingᚑserviceᚋpkgᚋonboardingᚋapplicationᚋenumsᚐRolesTypeᚄ(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _StaffUserProfile_user(ctx context.Context, field graphql.CollectedField, obj *domain1.StaffUserProfile) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -13171,6 +13227,14 @@ func (ec *executionContext) unmarshalInputStaffProfileInput(ctx context.Context,
 			if err != nil {
 				return it, err
 			}
+		case "roles":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("roles"))
+			it.Roles, err = ec.unmarshalORolesType2ᚕgithubᚗcomᚋsavannahghiᚋonboardingᚑserviceᚋpkgᚋonboardingᚋapplicationᚋenumsᚐRolesType(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		}
 	}
 
@@ -14776,6 +14840,8 @@ func (ec *executionContext) _StaffProfile(ctx context.Context, sel ast.Selection
 			}
 		case "addresses":
 			out.Values[i] = ec._StaffProfile_addresses(ctx, field, obj)
+		case "roles":
+			out.Values[i] = ec._StaffProfile_roles(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -16094,6 +16160,22 @@ func (ec *executionContext) unmarshalNRolePermissionInput2githubᚗcomᚋsavanna
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) unmarshalNRolesType2githubᚗcomᚋsavannahghiᚋonboardingᚑserviceᚋpkgᚋonboardingᚋapplicationᚋenumsᚐRolesType(ctx context.Context, v interface{}) (enums.RolesType, error) {
+	tmp, err := graphql.UnmarshalString(v)
+	res := enums.RolesType(tmp)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNRolesType2githubᚗcomᚋsavannahghiᚋonboardingᚑserviceᚋpkgᚋonboardingᚋapplicationᚋenumsᚐRolesType(ctx context.Context, sel ast.SelectionSet, v enums.RolesType) graphql.Marshaler {
+	res := graphql.MarshalString(string(v))
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+	}
+	return res
+}
+
 func (ec *executionContext) unmarshalNSortOrder2githubᚗcomᚋsavannahghiᚋenumutilsᚐSortOrder(ctx context.Context, v interface{}) (enumutils.SortOrder, error) {
 	var res enumutils.SortOrder
 	err := res.UnmarshalGQL(v)
@@ -17358,6 +17440,144 @@ func (ec *executionContext) marshalORoleOutput2ᚖgithubᚗcomᚋsavannahghiᚋo
 		return graphql.Null
 	}
 	return ec._RoleOutput(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalORolesType2githubᚗcomᚋsavannahghiᚋonboardingᚑserviceᚋpkgᚋonboardingᚋapplicationᚋenumsᚐRolesType(ctx context.Context, v interface{}) (enums.RolesType, error) {
+	tmp, err := graphql.UnmarshalString(v)
+	res := enums.RolesType(tmp)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalORolesType2githubᚗcomᚋsavannahghiᚋonboardingᚑserviceᚋpkgᚋonboardingᚋapplicationᚋenumsᚐRolesType(ctx context.Context, sel ast.SelectionSet, v enums.RolesType) graphql.Marshaler {
+	return graphql.MarshalString(string(v))
+}
+
+func (ec *executionContext) unmarshalORolesType2ᚕgithubᚗcomᚋsavannahghiᚋonboardingᚑserviceᚋpkgᚋonboardingᚋapplicationᚋenumsᚐRolesType(ctx context.Context, v interface{}) ([]enums.RolesType, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]enums.RolesType, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalORolesType2githubᚗcomᚋsavannahghiᚋonboardingᚑserviceᚋpkgᚋonboardingᚋapplicationᚋenumsᚐRolesType(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalORolesType2ᚕgithubᚗcomᚋsavannahghiᚋonboardingᚑserviceᚋpkgᚋonboardingᚋapplicationᚋenumsᚐRolesType(ctx context.Context, sel ast.SelectionSet, v []enums.RolesType) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalORolesType2githubᚗcomᚋsavannahghiᚋonboardingᚑserviceᚋpkgᚋonboardingᚋapplicationᚋenumsᚐRolesType(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) unmarshalORolesType2ᚕgithubᚗcomᚋsavannahghiᚋonboardingᚑserviceᚋpkgᚋonboardingᚋapplicationᚋenumsᚐRolesTypeᚄ(ctx context.Context, v interface{}) ([]enums.RolesType, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]enums.RolesType, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNRolesType2githubᚗcomᚋsavannahghiᚋonboardingᚑserviceᚋpkgᚋonboardingᚋapplicationᚋenumsᚐRolesType(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalORolesType2ᚕgithubᚗcomᚋsavannahghiᚋonboardingᚑserviceᚋpkgᚋonboardingᚋapplicationᚋenumsᚐRolesTypeᚄ(ctx context.Context, sel ast.SelectionSet, v []enums.RolesType) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNRolesType2githubᚗcomᚋsavannahghiᚋonboardingᚑserviceᚋpkgᚋonboardingᚋapplicationᚋenumsᚐRolesType(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
 }
 
 func (ec *executionContext) unmarshalOSortParam2ᚕᚖgithubᚗcomᚋsavannahghiᚋfirebasetoolsᚐSortParam(ctx context.Context, v interface{}) ([]*firebasetools.SortParam, error) {
