@@ -14,15 +14,15 @@ input PinInput {
 
 
 input UserInput {
-  username: String!
-  displayName: String!
+  username: String
+  displayName: String
   firstName: String!
   middleName: String!
   lastName: String!
   userType: UsersType!
   gender: Gender!
   contacts: [ContactInput!]!
-  languages: [Language!]!
+  languages: [Language]
   flavour: Flavour!
 }
 
@@ -46,6 +46,23 @@ input ContactInput {
 
 input ClientProfileInput {
   clientType: ClientType!
+  treatmentEnrollmentDate: Time!
+  addresses: [AddressesInput!]!
+  relatedPerson: [RelatedPersonInput!]!
+  facilityID: String!
+  clientCounselled: Boolean!
+}
+
+input RelatedPersonInput {
+	active:           Boolean!
+	relationshipType: String! 
+	firstName:        String!
+	lastName:         String!
+	otherName:        String
+	gender:           Gender!
+	dateOfBirth: Time
+	addresses:   [AddressesInput]
+	contacts:    [ContactInput]
 }
 
 input AddressesInput {

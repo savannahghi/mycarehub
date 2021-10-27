@@ -181,9 +181,7 @@ func (d *OnboardingDb) RegisterClient(
 
 	userObject := createUserObject(userInput)
 
-	clientObject := &gorm.ClientProfile{
-		ClientType: clientInput.ClientType,
-	}
+	clientObject := createClientObject(clientInput)
 
 	clientUserProfile, err := d.create.RegisterClient(ctx, userObject, clientObject)
 	if err != nil {
@@ -226,4 +224,90 @@ func createUserObject(user *dto.UserInput) *gorm.User {
 		Flavour:     user.Flavour,
 	}
 	return userObject
+}
+
+func createClientObject(clientInput *dto.ClientProfileInput) *gorm.ClientProfile {
+	addresses := []*gorm.Addresses{}
+	if len(clientInput.Addresses) > 0 {
+		for _, a := range clientInput.Addresses {
+			// ensure counties belong to a country
+			err := enums.ValidateCountiesOfCountries(enums.CountryType(a.Country), enums.CountyType(a.County))
+			if err != nil {
+				return nil
+			}
+			address := &gorm.Addresses{
+				Type:       a.Type,
+				Text:       a.Text,
+				Country:    a.Country,
+				PostalCode: a.PostalCode,
+				County:     a.County,
+				Active:     a.Active,
+			}
+			addresses = append(addresses, address)
+		}
+	}
+
+	relatedPersons := []*gorm.RelatedPerson{}
+	if len(clientInput.RelatedPerson) > 0 {
+		for _, rp := range clientInput.RelatedPerson {
+
+			//Related person address
+			relatedPersonAdddress := []*gorm.Addresses{}
+			for _, rpa := range rp.Addresses {
+				// ensure counties belong to a country
+				err := enums.ValidateCountiesOfCountries(enums.CountryType(rpa.Country), enums.CountyType(rpa.County))
+				if err != nil {
+					return nil
+				}
+
+				rpaddress := &gorm.Addresses{
+					Type:       rpa.Type,
+					Text:       rpa.Text,
+					Country:    rpa.Country,
+					PostalCode: rpa.PostalCode,
+					County:     rpa.County,
+					Active:     rpa.Active,
+				}
+				relatedPersonAdddress = append(relatedPersonAdddress, rpaddress)
+			}
+
+			//Related person contact
+			relatedPersonContact := []*gorm.Contact{}
+			for _, rpc := range rp.Contacts {
+				rpContact := &gorm.Contact{
+					Type:    rpc.Type,
+					Contact: rpc.Contact,
+					Active:  rpc.Active,
+					OptedIn: rpc.OptedIn,
+				}
+				relatedPersonContact = append(relatedPersonContact, rpContact)
+			}
+
+			relatedPerson := &gorm.RelatedPerson{
+				Active:           rp.Active,
+				RelatedTo:        &rp.RelatedTo,
+				RelationshipType: rp.RelationshipType,
+				FirstName:        rp.FirstName,
+				LastName:         rp.LastName,
+				OtherName:        rp.OtherName,
+				Gender:           rp.Gender,
+				DateOfBirth:      rp.DateOfBirth,
+				Addresses:        relatedPersonAdddress,
+				Contacts:         relatedPersonContact,
+			}
+			relatedPersons = append(relatedPersons, relatedPerson)
+		}
+	}
+
+	clientObject := &gorm.ClientProfile{
+		TreatmentEnrollmentDate: clientInput.TreatmentEnrollmentDate,
+		ClientType:              clientInput.ClientType,
+		Addresses:               addresses,
+		RelatedPersons:          relatedPersons,
+		FacilityID:              clientInput.FacilityID,
+		Active:                  true,
+		ClientCounselled:        clientInput.ClientCounselled,
+	}
+
+	return clientObject
 }

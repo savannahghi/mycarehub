@@ -92,6 +92,19 @@ type Identifier {
   isPrimaryIdentifier: Boolean!
 }
 
+type RelatedPerson {
+  id: String!
+	active:           Boolean!
+	relationshipType: String! 
+	firstName:        String!
+	lastName:         String!
+	otherName:        String
+	gender:           Gender!
+	dateOfBirth: Time!
+	addresses:   [Addresses!]
+	contacts:    [Contact!]! 
+}
+
 type Addresses {
   ID:         String!
 	Type:       AddressesType!

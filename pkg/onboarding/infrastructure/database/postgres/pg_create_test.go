@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/brianvoe/gofakeit"
 	"github.com/google/uuid"
 	"github.com/lib/pq"
 	"github.com/savannahghi/enumutils"
@@ -409,8 +410,51 @@ func TestOnboardingDb_RegisterClient(t *testing.T) {
 		Gender:      enumutils.GenderMale,
 	}
 
+	clientAddress := &dto.AddressesInput{
+		Type:       "test-type",
+		Text:       "test-text",
+		Country:    enums.CountryTypeKenya,
+		PostalCode: "test-postal-code",
+		County:     enums.CountyTypeBaringo,
+		Active:     true,
+	}
+
+	relatedPersonAddress := &dto.AddressesInput{
+		Type:       "related-person-type",
+		Text:       "related-person-text",
+		Country:    enums.CountryTypeKenya,
+		PostalCode: "related-person-postal-code",
+		County:     enums.CountyTypeBaringo,
+		Active:     true,
+	}
+
+	relatedPersonContact := &dto.ContactInput{
+		Type:    "test",
+		Contact: "test",
+		Active:  true,
+		OptedIn: true,
+	}
+
+	relatedPerson := &dto.RelatedPersonInput{
+		Active:           true,
+		RelatedTo:        userInput.DisplayName,
+		RelationshipType: "test-relationship-type",
+		FirstName:        gofakeit.FirstName(),
+		LastName:         gofakeit.LastName(),
+		OtherName:        "test-other-name",
+		Gender:           enumutils.GenderFemale,
+		DateOfBirth:      &time.Time{},
+		Addresses:        []*dto.AddressesInput{relatedPersonAddress},
+		Contacts:         []*dto.ContactInput{relatedPersonContact},
+	}
+
 	clientInput := dto.ClientProfileInput{
-		ClientType: enums.ClientTypeOvc,
+		ClientType:              enums.ClientTypeOvc,
+		TreatmentEnrollmentDate: &time.Time{},
+		Addresses:               []*dto.AddressesInput{clientAddress},
+		RelatedPerson:           []dto.RelatedPersonInput{*relatedPerson},
+		FacilityID:              ksuid.New().String(),
+		ClientCounselled:        true,
 	}
 	type args struct {
 		ctx         context.Context

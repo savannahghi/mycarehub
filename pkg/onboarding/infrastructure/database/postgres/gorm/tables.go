@@ -156,7 +156,8 @@ type Contact struct {
 	// e.g if it's a shared phone owned by a teenager
 	OptedIn bool `gorm:"column:opted_in"`
 
-	UserID *string `gorm:"column:user_id"` // Foreign key
+	UserID          *string `gorm:"column:user_id"`           // Foreign key
+	RelatedPersonID *string `gorm:"column:related_person_id"` // Foreign key
 }
 
 // BeforeCreate is a hook run before creating a new contact
@@ -209,13 +210,32 @@ func (StaffProfile) TableName() string {
 type Addresses struct {
 	AddressesID *string `gorm:"primaryKey;unique;column:useraddress_id"` // globally unique
 
-	Type           enums.AddressesType `gorm:"column:type"`    // TODO: enum; postal, physical or both
-	Text           string              `gorm:"column:text"`    // actual address, can be multi-line
-	Country        enums.CountryType   `gorm:"column:country"` // TODO: enum
-	PostalCode     string              `gorm:"column:postal_code"`
-	County         enums.CountyType    `gorm:"column:county"` // TODO: counties belong to a country
-	Active         bool                `gorm:"column:active"`
-	StaffProfileID *string             `gorm:"column:staff_profile_id"`
+	Type            enums.AddressesType `gorm:"column:type"`    // TODO: enum; postal, physical or both
+	Text            string              `gorm:"column:text"`    // actual address, can be multi-line
+	Country         enums.CountryType   `gorm:"column:country"` // TODO: enum
+	PostalCode      string              `gorm:"column:postal_code"`
+	County          enums.CountyType    `gorm:"column:county"` // TODO: counties belong to a country
+	Active          bool                `gorm:"column:active"`
+	StaffProfileID  *string             `gorm:"column:staff_profile_id"`
+	ClientID        *string             `gorm:"column:client_id"`
+	RelatedPersonID *string             `gorm:"column:related_person_id"`
+}
+
+// RelatedPerson are holds the client related person(s) information
+type RelatedPerson struct {
+	RelatedPersonID *string `gorm:"primaryKey;unique;column:relatedperson_id"`
+
+	Active           bool             `gorm:"column:active"`
+	RelatedTo        *string          `gorm:"column:related_to"`
+	RelationshipType string           `gorm:"column:relationship_type"`
+	FirstName        string           `gorm:"column:firstname"`
+	LastName         string           `gorm:"column:lastname"`
+	OtherName        string           `gorm:"column:othername"`
+	Gender           enumutils.Gender `gorm:"column:gender"`
+
+	DateOfBirth *time.Time   `gorm:"column:date_of_birth"`
+	Addresses   []*Addresses `gorm:"ForeignKey:RelatedPersonID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
+	Contacts    []*Contact   `gorm:"ForeignKey:RelatedPersonID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 }
 
 // BeforeCreate is a hook run before creating a new address
@@ -225,9 +245,21 @@ func (a *Addresses) BeforeCreate(tx *gorm.DB) (err error) {
 	return
 }
 
+// BeforeCreate is a hook run before creating a new address
+func (r *RelatedPerson) BeforeCreate(tx *gorm.DB) (err error) {
+	id := uuid.New().String()
+	r.RelatedPersonID = &id
+	return
+}
+
 // TableName customizes how the table name is generated
 func (Addresses) TableName() string {
 	return "address"
+}
+
+// TableName customizes how the table name is generated
+func (RelatedPerson) TableName() string {
+	return "related_person"
 }
 
 // StaffUserProfile combines user and staff profile
@@ -260,9 +292,9 @@ type ClientProfile struct {
 	// (implement reverse relation lookup)
 	Identifiers []*Identifier `gorm:"foreignKey:ClientID"`
 
-	// Addresses []*domain.Addresses `gorm:"column:addresses"`
+	Addresses []*Addresses `gorm:"ForeignKey:ClientID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 
-	// RelatedPersons []*domain.RelatedPerson `gorm:"column:related_persons"`
+	RelatedPersons []*RelatedPerson `gorm:"ForeignKey:RelatedTo;"`
 
 	// client's currently assigned facility
 	FacilityID string `gorm:"column:facility_id"` // TODO: FK
@@ -373,7 +405,7 @@ func (c *Identifier) BeforeCreate(tx *gorm.DB) (err error) {
 
 // TableName customizes how the table name is generated
 func (Identifier) TableName() string {
-	return "client_clientidentifier"
+	return "client_identifier"
 }
 
 func allTables() []interface{} {
@@ -381,6 +413,7 @@ func allTables() []interface{} {
 		&Facility{},
 		&Metric{},
 		&User{},
+		&RelatedPerson{},
 		&Contact{},
 		&StaffProfile{},
 		&ClientProfile{},

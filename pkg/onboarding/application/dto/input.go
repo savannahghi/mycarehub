@@ -117,7 +117,12 @@ type StaffProfileInput struct {
 
 // ClientProfileInput is used to supply the client profile input
 type ClientProfileInput struct {
-	ClientType enums.ClientType `json:"clientType"`
+	ClientType              enums.ClientType     `json:"clientType"`
+	TreatmentEnrollmentDate *time.Time           `json:"enrollmentDate"`
+	Addresses               []*AddressesInput    `json:"addresses"`
+	RelatedPerson           []RelatedPersonInput `json:"relatedPerson"`
+	FacilityID              string               `json:"facility_id"`
+	ClientCounselled        bool                 `json:"clientCounselled"`
 }
 
 // UserInput is used to supply user input for registration
@@ -161,6 +166,23 @@ type AddressesInput struct {
 	PostalCode string              `json:"postalCode"`
 	County     enums.CountyType    `json:"county"`
 	Active     bool                `json:"active"`
+}
+
+// RelatedPersonInput holds the details for person we consider relates to a Client
+//
+// It servers as Next of Kin details
+type RelatedPersonInput struct {
+	Active           bool
+	RelatedTo        string // TODO: FK to client
+	RelationshipType string // TODO: enum
+	FirstName        string
+	LastName         string
+	OtherName        string           // TODO: optional
+	Gender           enumutils.Gender // TODO: enum
+
+	DateOfBirth *time.Time        // TODO: optional
+	Addresses   []*AddressesInput // TODO: optional
+	Contacts    []*ContactInput   // TODO: optional
 }
 
 // SMSPayload defines the payload that should be passed when sending a text message

@@ -7,7 +7,6 @@ import (
 	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/application/enums"
-	"github.com/savannahghi/scalarutils"
 	"gorm.io/datatypes"
 )
 
@@ -185,12 +184,12 @@ type RelatedPerson struct {
 	RelationshipType string // TODO: enum
 	FirstName        string
 	LastName         string
-	OtherName        string // TODO: optional
-	Gender           string // TODO: enum
+	OtherName        string           // TODO: optional
+	Gender           enumutils.Gender // TODO: enum
 
-	DateOfBirth *scalarutils.Date // TODO: optional
-	Addresses   []*Addresses      // TODO: optional
-	Contacts    []*Contact        // TODO: optional
+	DateOfBirth *time.Time   // TODO: optional
+	Addresses   []*Addresses // TODO: optional
+	Contacts    []*Contact   // TODO: optional
 }
 
 // ClientProfileRegistrationPayload holds the registration input we need to register a client
