@@ -162,3 +162,10 @@ type AddressesInput struct {
 	County     enums.CountyType    `json:"county"`
 	Active     bool                `json:"active"`
 }
+
+// SMSPayload defines the payload that should be passed when sending a text message
+type SMSPayload struct {
+	To      []string           `json:"to"`
+	Message string             `json:"message"`
+	Sender  enumutils.SenderID `json:"sender"`
+}

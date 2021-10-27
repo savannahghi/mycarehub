@@ -19,7 +19,7 @@ type CreateMock struct {
 	GetOrCreateFacilityFn func(ctx context.Context, facility dto.FacilityInput) (*domain.Facility, error)
 	CollectMetricsFn      func(ctx context.Context, metric *dto.MetricInput) (*domain.Metric, error)
 	RegisterStaffUserFn   func(ctx context.Context, user *dto.UserInput, staff *dto.StaffProfileInput) (*domain.StaffUserProfile, error)
-	SetUserPINFn          func(ctx context.Context, input *domain.UserPIN) (bool, error)
+	SavePinFn             func(ctx context.Context, input *domain.UserPIN) (bool, error)
 	RegisterClientFn      func(ctx context.Context, userInput *dto.UserInput, clientInput *dto.ClientProfileInput) (*domain.ClientUserProfile, error)
 	AddIdentifierFn       func(ctx context.Context, clientID string, idType enums.IdentifierType, idValue string, isPrimary bool) (*domain.Identifier, error)
 }
@@ -83,7 +83,7 @@ func NewCreateMock() *CreateMock {
 			}, nil
 		},
 
-		SetUserPINFn: func(ctx context.Context, input *domain.UserPIN) (bool, error) {
+		SavePinFn: func(ctx context.Context, input *domain.UserPIN) (bool, error) {
 			return true, nil
 		},
 		RegisterStaffUserFn: func(ctx context.Context, user *dto.UserInput, staff *dto.StaffProfileInput) (*domain.StaffUserProfile, error) {
@@ -141,9 +141,9 @@ func (f *CreateMock) CollectMetrics(ctx context.Context, metric *dto.MetricInput
 	return f.CollectMetricsFn(ctx, metric)
 }
 
-//SetUserPIN mocks the implementation of SetUserPIN method
-func (f *CreateMock) SetUserPIN(ctx context.Context, pinData *domain.UserPIN) (bool, error) {
-	return f.SetUserPINFn(ctx, pinData)
+//SavePin mocks the implementation of SavePin method
+func (f *CreateMock) SavePin(ctx context.Context, pinData *domain.UserPIN) (bool, error) {
+	return f.SavePinFn(ctx, pinData)
 }
 
 // RegisterStaffUser mocks the implementation of  RegisterStaffUser method.

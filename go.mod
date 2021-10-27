@@ -18,6 +18,7 @@ require (
 	github.com/gorilla/handlers v1.5.1
 	github.com/gorilla/mux v1.8.0
 	github.com/imroc/req v0.3.0
+	github.com/labstack/gommon v0.3.0
 	github.com/lib/pq v1.10.3
 	github.com/savannahghi/converterandformatter v0.0.9
 	github.com/savannahghi/enumutils v0.0.3
@@ -35,7 +36,9 @@ require (
 	github.com/vektah/gqlparser/v2 v2.1.0
 	go.opencensus.io v0.23.0
 	go.opentelemetry.io/contrib/instrumentation/github.com/gorilla/mux/otelmux v0.21.0
+	gopkg.in/yaml.v2 v2.4.0
 	gorm.io/datatypes v1.0.2
 	gorm.io/driver/postgres v1.1.2
 	gorm.io/gorm v1.21.16
+	moul.io/http2curl v1.0.0 // indirect
 )

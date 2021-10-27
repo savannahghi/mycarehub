@@ -40,8 +40,8 @@ func (d *OnboardingDb) GetOrCreateFacility(ctx context.Context, facility *dto.Fa
 	return d.mapFacilityObjectToDomain(facilitySession), nil
 }
 
-// SetUserPIN does the actual saving of the users PIN in the database
-func (d *OnboardingDb) SetUserPIN(ctx context.Context, pinData *domain.UserPIN) (bool, error) {
+// SavePin does the actual saving of the users PIN in the database
+func (d *OnboardingDb) SavePin(ctx context.Context, pinData *domain.UserPIN) (bool, error) {
 	if pinData.UserID == "" {
 		return false, fmt.Errorf("userID cannot be empty")
 	}
@@ -56,7 +56,7 @@ func (d *OnboardingDb) SetUserPIN(ctx context.Context, pinData *domain.UserPIN) 
 		Salt:      pinData.Salt,
 	}
 
-	_, err := d.create.SetUserPIN(ctx, pinObj)
+	_, err := d.create.SavePin(ctx, pinObj)
 	if err != nil {
 		return false, fmt.Errorf("failed to set user pin: %v", err)
 	}

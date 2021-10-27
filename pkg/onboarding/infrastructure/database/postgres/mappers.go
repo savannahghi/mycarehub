@@ -54,26 +54,9 @@ func (d *OnboardingDb) mapProfileObjectToDomain(profileObject *gorm.User) *domai
 		return nil
 	}
 
-	return &domain.User{
-		ID:          profileObject.UserID,
-		Username:    profileObject.Username,
-		DisplayName: profileObject.DisplayName,
-		FirstName:   profileObject.FirstName,
-		MiddleName:  profileObject.MiddleName,
-		LastName:    profileObject.LastName,
-		Flavour:     profileObject.Flavour,
-		// UserType:            profileObject.UserType,
-		// Gender:              profileObject.Gender,
-		Active: profileObject.Active,
-		// Languages:           profileObject.Languages,
-		// PushTokens:          profileObject.PushTokens,
-		LastSuccessfulLogin: profileObject.LastSuccessfulLogin,
-		LastFailedLogin:     profileObject.LastFailedLogin,
-		FailedLoginCount:    profileObject.FailedLoginCount,
-		NextAllowedLogin:    profileObject.NextAllowedLogin,
-		TermsAccepted:       profileObject.TermsAccepted,
-		AcceptedTermsID:     profileObject.AcceptedTermsID,
-	}
+	user := createMapUser(profileObject)
+
+	return user
 }
 
 // mapPINObjectToDomain maps the db pin data to a domain model.
