@@ -172,6 +172,14 @@ type Update interface {
 	UpdateUserFailedLoginCount(ctx context.Context, userID string, failedLoginCount string, flavour feedlib.Flavour) error
 	UpdateUserNextAllowedLogin(ctx context.Context, userID string, nextAllowedLoginTime time.Time, flavour feedlib.Flavour) error
 	UpdateStaffUserProfile(ctx context.Context, userID string, user *dto.UserInput, staff *dto.StaffProfileInput) (bool, error)
+	TransferClient(
+		ctx context.Context,
+		clientID string,
+		OriginFacilityID string,
+		destinationFacilityID string,
+		reason enums.TransferReason,
+		notes string,
+	) (bool, error)
 }
 
 // ServiceUpdateImpl represents update user implementation object
@@ -209,4 +217,16 @@ func (u *ServiceUpdateImpl) UpdateUserNextAllowedLogin(ctx context.Context, user
 // UpdateStaffUserProfile updates the staffs data
 func (u *ServiceUpdateImpl) UpdateStaffUserProfile(ctx context.Context, userID string, user *dto.UserInput, staff *dto.StaffProfileInput) (bool, error) {
 	return u.onboarding.UpdateStaffUserProfile(ctx, userID, user, staff)
+}
+
+// TransferClient implements the clients transfer
+func (u *ServiceUpdateImpl) TransferClient(
+	ctx context.Context,
+	clientID string,
+	originFacilityID string,
+	destinationFacilityID string,
+	reason enums.TransferReason,
+	notes string,
+) (bool, error) {
+	return u.onboarding.TransferClient(ctx, clientID, originFacilityID, destinationFacilityID, reason, notes)
 }

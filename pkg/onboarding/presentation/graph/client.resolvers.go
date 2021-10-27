@@ -25,6 +25,10 @@ func (r *mutationResolver) InviteClient(ctx context.Context, userID string, flav
 	return r.interactor.UserUsecase.Invite(ctx, userID, flavour)
 }
 
+func (r *mutationResolver) TransferClient(ctx context.Context, clientID string, originFacilityID *string, destinationFacilityID *string, reason enums.TransferReason, notes string) (bool, error) {
+	return r.interactor.ClientUseCase.TransferClient(ctx, clientID, *originFacilityID, *destinationFacilityID, reason, notes)
+}
+
 // Mutation returns generated.MutationResolver implementation.
 func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
 

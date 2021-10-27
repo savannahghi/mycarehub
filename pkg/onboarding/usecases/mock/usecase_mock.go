@@ -285,7 +285,15 @@ type UpdateMock struct {
 	UpdateUserLastFailedLoginFn     func(ctx context.Context, userID string, lastFailedLoginTime time.Time, flavour feedlib.Flavour) error
 	UpdateUserFailedLoginCountFn    func(ctx context.Context, userID string, failedLoginCount string, flavour feedlib.Flavour) error
 	UpdateUserNextAllowedLoginFn    func(ctx context.Context, userID string, nextAllowedLoginTime time.Time, flavour feedlib.Flavour) error
-	UpdateStaffUserFn               func(ctx context.Context, userID string, user *dto.UserInput, staff *dto.StaffProfileInput) (bool, error)
+	UpdateStaffUserProfileFn        func(ctx context.Context, userID string, user *dto.UserInput, staff *dto.StaffProfileInput) (bool, error)
+	TransferClientFn                func(
+		ctx context.Context,
+		clientID string,
+		originFacilityID string,
+		destinationFacilityID string,
+		reason enums.TransferReason,
+		notes string,
+	) (bool, error)
 }
 
 // NewUpdateMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -307,7 +315,11 @@ func NewUpdateMock() *UpdateMock {
 			return nil
 		},
 
-		UpdateStaffUserFn: func(ctx context.Context, userID string, user *dto.UserInput, staff *dto.StaffProfileInput) (bool, error) {
+		UpdateStaffUserProfileFn: func(ctx context.Context, userID string, user *dto.UserInput, staff *dto.StaffProfileInput) (bool, error) {
+			return true, nil
+		},
+
+		TransferClientFn: func(ctx context.Context, clientID, originFacilityID, destinationFacilityID string, reason enums.TransferReason, notes string) (bool, error) {
 			return true, nil
 		},
 	}
@@ -335,7 +347,19 @@ func (um *UpdateMock) UpdateUserNextAllowedLogin(ctx context.Context, userID str
 
 // UpdateStaffUserProfile mocks the implementation of  UpdateStaffUserProfile method.
 func (um *UpdateMock) UpdateStaffUserProfile(ctx context.Context, userID string, user *dto.UserInput, staff *dto.StaffProfileInput) (bool, error) {
-	return um.UpdateStaffUserFn(ctx, userID, user, staff)
+	return um.UpdateStaffUserProfileFn(ctx, userID, user, staff)
+}
+
+// TransferClient mocks the implementation of  TransferClient method
+func (um *UpdateMock) TransferClient(
+	ctx context.Context,
+	clientID string,
+	originFacilityID string,
+	destinationFacilityID string,
+	reason enums.TransferReason,
+	notes string,
+) (bool, error) {
+	return um.TransferClientFn(ctx, clientID, originFacilityID, destinationFacilityID, reason, notes)
 }
 
 // DeleteMock ....

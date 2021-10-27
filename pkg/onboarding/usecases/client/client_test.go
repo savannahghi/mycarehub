@@ -7,6 +7,7 @@ import (
 	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/application/dto"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/application/enums"
+	"github.com/segmentio/ksuid"
 	"github.com/tj/assert"
 )
 
@@ -107,4 +108,45 @@ func TestUseCasesClientImpl_AddIdentifier(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestUseCasesClientImpl_TransferClient_Integration(t *testing.T) {
+	ctx := context.Background()
+
+	m := testInfrastructureInteractor
+	i := testInteractor
+
+	originalFacilityID := ksuid.New().String()
+	destinationFacilityID := ksuid.New().String()
+	reason := enums.RelocationTransferReason
+	notes := "Other"
+
+	userPayload := &dto.UserInput{
+		FirstName:   "FirstName",
+		LastName:    "Last Name",
+		Username:    "User Name",
+		MiddleName:  "Middle Name",
+		DisplayName: "Display Name",
+		Gender:      enumutils.GenderMale,
+	}
+
+	clientPayload := &dto.ClientProfileInput{
+		ClientType: enums.ClientTypeOvc,
+	}
+	client, err := m.RegisterClient(ctx, userPayload, clientPayload)
+	assert.Nil(t, err)
+	assert.NotNil(t, client)
+
+	clientProfile, err1 := m.GetClientProfileByClientID(ctx, *client.Client.ID)
+	assert.Nil(t, err1)
+	assert.NotNil(t, clientProfile)
+
+	bool, err2 := i.ClientUseCase.TransferClient(ctx, *clientProfile.ID, originalFacilityID, destinationFacilityID, reason, notes)
+	assert.Nil(t, err2)
+	assert.Equal(t, true, bool)
+
+	bool1, err3 := i.ClientUseCase.TransferClient(ctx, "", originalFacilityID, destinationFacilityID, reason, notes)
+	assert.NotNil(t, err3)
+	assert.Equal(t, false, bool1)
+
 }

@@ -39,6 +39,14 @@ type GormMock struct {
 	UpdateUserFailedLoginCountFn    func(ctx context.Context, userID string, failedLoginCount string, flavour feedlib.Flavour) error
 	UpdateUserNextAllowedLoginFn    func(ctx context.Context, userID string, nextAllowedLoginTime time.Time, flavour feedlib.Flavour) error
 	UpdateStaffUserFn               func(ctx context.Context, userID string, user *gorm.User, staff *gorm.StaffProfile) (bool, error)
+	TransferClientFn                func(
+		ctx context.Context,
+		clientID string,
+		originFacilityID string,
+		destinationFacilityID string,
+		reason enums.TransferReason,
+		notes string,
+	) (bool, error)
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -292,6 +300,10 @@ func NewGormMock() *GormMock {
 				},
 			}, nil
 		},
+
+		TransferClientFn: func(ctx context.Context, clientID, originFacilityID, destinationFacilityID string, reason enums.TransferReason, notes string) (bool, error) {
+			return true, nil
+		},
 	}
 }
 
@@ -395,4 +407,16 @@ func (gm *GormMock) AddIdentifier(
 // GetClientProfileByClientID mocks the method that fetches a client profile by the ID
 func (gm *GormMock) GetClientProfileByClientID(ctx context.Context, clientID string) (*gorm.ClientProfile, error) {
 	return gm.GetClientProfileByClientIDFn(ctx, clientID)
+}
+
+// TransferClient mocks the implementation of  TransferClient method
+func (gm *GormMock) TransferClient(
+	ctx context.Context,
+	clientID string,
+	originFacilityID string,
+	destinationFacilityID string,
+	reason enums.TransferReason,
+	notes string,
+) (bool, error) {
+	return gm.TransferClientFn(ctx, clientID, originFacilityID, destinationFacilityID, reason, notes)
 }

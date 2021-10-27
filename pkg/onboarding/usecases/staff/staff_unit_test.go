@@ -320,7 +320,7 @@ func TestUsecasesStaffProfileImpl_UpdateStaffUser_Unittest(t *testing.T) {
 					}, nil
 				}
 
-				fakeUpdate.UpdateStaffUserFn = func(ctx context.Context, userID string, user *dto.UserInput, staff *dto.StaffProfileInput) (bool, error) {
+				fakeUpdate.UpdateStaffUserProfileFn = func(ctx context.Context, userID string, user *dto.UserInput, staff *dto.StaffProfileInput) (bool, error) {
 					return true, nil
 				}
 			}
@@ -337,7 +337,7 @@ func TestUsecasesStaffProfileImpl_UpdateStaffUser_Unittest(t *testing.T) {
 					}, nil
 				}
 
-				fakeUpdate.UpdateStaffUserFn = func(ctx context.Context, userID string, user *dto.UserInput, staff *dto.StaffProfileInput) (bool, error) {
+				fakeUpdate.UpdateStaffUserProfileFn = func(ctx context.Context, userID string, user *dto.UserInput, staff *dto.StaffProfileInput) (bool, error) {
 					return false, fmt.Errorf("an error occurred while updating staff")
 				}
 			}

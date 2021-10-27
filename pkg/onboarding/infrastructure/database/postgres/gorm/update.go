@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/savannahghi/feedlib"
+	"github.com/savannahghi/onboarding-service/pkg/onboarding/application/enums"
 )
 
 // Update represents all `update` ops to the database
@@ -15,6 +16,14 @@ type Update interface {
 	UpdateUserFailedLoginCount(ctx context.Context, userID string, failedLoginCount string, flavour feedlib.Flavour) error
 	UpdateUserNextAllowedLogin(ctx context.Context, userID string, nextAllowedLoginTime time.Time, flavour feedlib.Flavour) error
 	UpdateStaffUserProfile(ctx context.Context, userID string, user *User, staff *StaffProfile) (bool, error)
+	TransferClient(
+		ctx context.Context,
+		clientID string,
+		originFacilityID string,
+		destinationFacilityID string,
+		reason enums.TransferReason,
+		notes string,
+	) (bool, error)
 }
 
 // UpdateUserLastSuccessfulLogin updates users last successful login time
@@ -70,6 +79,7 @@ func (db *PGInstance) UpdateStaffUserProfile(ctx context.Context, userID string,
 		return false, fmt.Errorf("unable to get staff profile by staff number: %v", err)
 	}
 
+	// Initialize a database transaction
 	tx := db.DB.Begin()
 	defer func() {
 		if r := recover(); r != nil {
@@ -126,6 +136,64 @@ func (db *PGInstance) UpdateStaffUserProfile(ctx context.Context, userID string,
 	if err := tx.Commit().Error; err != nil {
 		tx.Rollback()
 		return false, fmt.Errorf("transaction commit to update a staff profile failed: %v", err)
+	}
+
+	return true, nil
+}
+
+// TransferClient handles transfer of a client
+func (db *PGInstance) TransferClient(
+	ctx context.Context,
+	clientID string,
+	originFacilityID string,
+	destinationFacilityID string,
+	reason enums.TransferReason,
+	notes string,
+) (bool, error) {
+	if clientID == "" {
+		return false, fmt.Errorf("clientID cannot be empty")
+	}
+
+	clientProfile, err := db.GetClientProfileByClientID(ctx, clientID)
+	if err != nil {
+		return false, fmt.Errorf("unable to get client profile with the provided client ID: %v", err)
+	}
+
+	transferRecord := &ClientTransfer{
+		ClientID:              clientID,
+		OriginFacilityID:      originFacilityID,
+		DestinationFacilityID: destinationFacilityID,
+		Reason:                reason,
+		Notes:                 notes,
+	}
+
+	tx := db.DB.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+	if err := tx.Error; err != nil {
+		return false, fmt.Errorf("unable to initialize database transaction: %v", err)
+	}
+
+	//Update client profile with the new facility. Rollback if transaction fails
+	if err := tx.Model(&ClientProfile{}).Where(&ClientProfile{UserID: clientProfile.UserID}).Updates(&ClientProfile{
+		FacilityID: destinationFacilityID,
+	}).Error; err != nil {
+		tx.Rollback()
+		return false, fmt.Errorf("failed to update client profile: %v", err)
+	}
+
+	//Create transfer record for the client
+	if err := tx.Create(transferRecord).Error; err != nil {
+		tx.Rollback()
+		return false, fmt.Errorf("failed to create client transfer record: %v", err)
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		tx.Rollback()
+		return false, fmt.Errorf("failed to commit the transaction: %v", err)
 	}
 
 	return true, nil

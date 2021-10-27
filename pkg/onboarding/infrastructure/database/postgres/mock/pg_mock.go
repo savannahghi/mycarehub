@@ -32,6 +32,14 @@ type PostgresMock struct {
 	UpdateUserFailedLoginCountFn    func(ctx context.Context, userID string, failedLoginCount string, flavour feedlib.Flavour) error
 	UpdateUserNextAllowedLoginFn    func(ctx context.Context, userID string, nextAllowedLoginTime time.Time, flavour feedlib.Flavour) error
 	UpdateStaffUserFn               func(ctx context.Context, userID string, user *gorm.User, staff *gorm.StaffProfile) (bool, error)
+	TransferClientFn                func(
+		ctx context.Context,
+		clientID string,
+		originFacilityID string,
+		destinationFacilityID string,
+		reason enums.TransferReason,
+		notes string,
+	) (bool, error)
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -216,6 +224,10 @@ func NewPostgresMock() *PostgresMock {
 				},
 			}, nil
 		},
+
+		TransferClientFn: func(ctx context.Context, clientID, originFacilityID, destinationFacilityID string, reason enums.TransferReason, notes string) (bool, error) {
+			return true, nil
+		},
 	}
 }
 
@@ -272,4 +284,16 @@ func (gm *PostgresMock) UpdateStaffUserProfile(ctx context.Context, userID strin
 // RegisterStaffUser mocks the implementation of `gorm's` RegisterStaffUser method.
 func (gm *PostgresMock) RegisterStaffUser(ctx context.Context, user *dto.UserInput, staff *dto.StaffProfileInput) (*domain.StaffUserProfile, error) {
 	return gm.RegisterStaffUserFn(ctx, user, staff)
+}
+
+// TransferClient mocks the implementation of  TransferClient method
+func (gm *PostgresMock) TransferClient(
+	ctx context.Context,
+	clientID string,
+	originFacilityID string,
+	destinationFacilityID string,
+	reason enums.TransferReason,
+	notes string,
+) (bool, error) {
+	return gm.TransferClientFn(ctx, clientID, originFacilityID, destinationFacilityID, reason, notes)
 }

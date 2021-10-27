@@ -6,6 +6,7 @@ import (
 
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/application/dto"
+	"github.com/savannahghi/onboarding-service/pkg/onboarding/application/enums"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/infrastructure/database/postgres/gorm"
 )
 
@@ -85,5 +86,16 @@ func (d *OnboardingDb) UpdateStaffUserProfile(ctx context.Context, userID string
 	}
 
 	return d.update.UpdateStaffUserProfile(ctx, userID, userData, staffData)
+}
 
+// TransferClient transfers client
+func (d *OnboardingDb) TransferClient(
+	ctx context.Context,
+	clientID string,
+	originFacilityID string,
+	destinationFacilityID string,
+	reason enums.TransferReason,
+	notes string,
+) (bool, error) {
+	return d.update.TransferClient(ctx, clientID, originFacilityID, destinationFacilityID, reason, notes)
 }

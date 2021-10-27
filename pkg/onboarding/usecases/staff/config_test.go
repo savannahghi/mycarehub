@@ -35,6 +35,10 @@ var (
 	fakeUpdate usecaseMock.UpdateMock
 )
 
+const (
+	engagementService = "engagement"
+)
+
 func TestMain(m *testing.M) {
 	ctx := context.Background()
 
@@ -44,8 +48,6 @@ func TestMain(m *testing.M) {
 	}
 
 	interactor := InitializeTestInteractor(ctx)
-
-	testInteractor = interactor
 
 	fakeInfra, err := InitializeFakeTestlInteractor(ctx)
 	if err != nil {
@@ -60,6 +62,7 @@ func TestMain(m *testing.M) {
 	purgeRecords()
 
 	testInfrastructureInteractor = infra
+	testInteractor = interactor
 
 	// run the tests
 	log.Printf("about to run tests\n")
@@ -73,6 +76,32 @@ func TestMain(m *testing.M) {
 func InitializeTestInfrastructure(ctx context.Context) (infrastructure.Interactor, error) {
 	i := infrastructure.NewInteractor()
 	return i, nil
+}
+
+func InitializeTestInteractor(ctx context.Context) interactor.Interactor {
+	osinfra := openSourceInfra.NewInfrastructureInteractor()
+	pgInstance, err := gorm.NewPGInstance()
+	if err != nil {
+		log.Fatal(err)
+	}
+	// Initialize ISC clients
+	engagementISC := onboardingExtension.NewInterServiceClient(engagementService)
+	infra := infrastructure.NewInteractor()
+	facilityUsecase := facility.NewFacilityUsecase(infra)
+	metricUsecase := metric.NewMetricUsecase(infra)
+	db := postgres.NewOnboardingDb(pgInstance, pgInstance, pgInstance, pgInstance)
+	var fc firebasetools.IFirebaseClient
+	baseExtension := baseExt.NewBaseExtensionImpl(fc)
+	pinExtension := baseExt.NewPINExtensionImpl()
+	onboardingExtension := onboardingExtension.NewOnboardingLibImpl()
+	engagement := engagement.NewServiceEngagementImpl(engagementISC, baseExtension)
+	libUsecasee := libOnboardingUsecase.NewUsecasesInteractor(osinfra, baseExtension, pinExtension)
+	userUsecase := user.NewUseCasesUserImpl(infra, onboardingExtension, engagement)
+	staff := staff.NewUsecasesStaffProfileImpl(infra)
+	client := client.NewUseCasesClientImpl(infra)
+	i := interactor.NewOnboardingInteractor(osinfra, *db, libUsecasee, facilityUsecase, metricUsecase, userUsecase, staff, client)
+
+	return *i
 }
 
 func InitializeFakeTestlInteractor(ctx context.Context) (usecases.Interactor, error) {
@@ -92,31 +121,4 @@ func InitializeFakeTestlInteractor(ctx context.Context) (usecases.Interactor, er
 	i := usecases.NewUsecasesInteractor(infra)
 
 	return i, nil
-}
-
-func InitializeTestInteractor(ctx context.Context) interactor.Interactor {
-	osinfra := openSourceInfra.NewInfrastructureInteractor()
-	pgInstance, err := gorm.NewPGInstance()
-	if err != nil {
-		log.Fatal(err)
-	}
-	// Initialize ISC clients
-	engagementISC := onboardingExtension.NewInterServiceClient("engagement")
-
-	infra := infrastructure.NewInteractor()
-	facilityUsecase := facility.NewFacilityUsecase(infra)
-	metricUsecase := metric.NewMetricUsecase(infra)
-	db := postgres.NewOnboardingDb(pgInstance, pgInstance, pgInstance, pgInstance)
-	var fc firebasetools.IFirebaseClient
-	baseExtension := baseExt.NewBaseExtensionImpl(fc)
-	pinExtension := baseExt.NewPINExtensionImpl()
-	libUsecasee := libOnboardingUsecase.NewUsecasesInteractor(osinfra, baseExtension, pinExtension)
-	onboardingExtension := onboardingExtension.NewOnboardingLibImpl()
-	engagement := engagement.NewServiceEngagementImpl(engagementISC, baseExtension)
-	userUsecase := user.NewUseCasesUserImpl(infra, onboardingExtension, engagement)
-	staff := staff.NewUsecasesStaffProfileImpl(infra)
-	client := client.NewUseCasesClientImpl(infra)
-	i := interactor.NewOnboardingInteractor(osinfra, *db, libUsecasee, facilityUsecase, metricUsecase, userUsecase, staff, client)
-
-	return *i
 }

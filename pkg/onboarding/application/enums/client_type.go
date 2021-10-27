@@ -55,3 +55,52 @@ func (e *ClientType) UnmarshalGQL(v interface{}) error {
 func (e ClientType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
+
+// TransferReason defines various transfer reasons
+type TransferReason string
+
+const (
+	// RelocationTransferReason represents relocation transfer reason
+	RelocationTransferReason TransferReason = "RELOCATION"
+	//OtherTransferReason represents any other transfer reason
+	OtherTransferReason TransferReason = "OTHER"
+)
+
+// AllTransferReasons represents a slice of all possible TransferReason values
+var AllTransferReasons = []TransferReason{
+	RelocationTransferReason,
+	OtherTransferReason,
+}
+
+// IsValid returns true if a client type is valid
+func (t TransferReason) IsValid() bool {
+	switch t {
+	case RelocationTransferReason, OtherTransferReason:
+		return true
+	}
+	return false
+}
+
+// String ...
+func (t TransferReason) String() string {
+	return string(t)
+}
+
+// UnmarshalGQL converts the supplied value to a metric type.
+func (t *TransferReason) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*t = TransferReason(str)
+	if !t.IsValid() {
+		return fmt.Errorf("%s is not a valid transfer reason", str)
+	}
+	return nil
+}
+
+// MarshalGQL writes the metric type to the supplied writer
+func (t TransferReason) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(t.String()))
+}
