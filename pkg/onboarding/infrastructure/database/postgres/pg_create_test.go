@@ -227,7 +227,7 @@ func TestOnboardingDb_SetUserPIN(t *testing.T) {
 			var fakeGorm = gormMock.NewGormMock()
 			d := NewOnboardingDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
 
-			_, err := d.SetUserPIN(tt.args.ctx, tt.args.pinData)
+			_, err := d.SavePin(tt.args.ctx, tt.args.pinData)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("OnboardingDb.SetUserPIN() error = %v, wantErr %v", err, tt.wantErr)
 				return

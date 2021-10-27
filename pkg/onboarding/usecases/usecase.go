@@ -1,6 +1,7 @@
 package usecases
 
 import (
+	"github.com/savannahghi/onboarding-service/pkg/onboarding/application/extension"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/infrastructure"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/usecases/client"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/usecases/facility"
@@ -23,9 +24,10 @@ type Interactor struct {
 // NewUsecasesInteractor initializes a new usecases interactor
 func NewUsecasesInteractor(infrastructure infrastructure.Interactor) Interactor {
 	var engagement *engagementSvc.ServiceEngagementImpl
+	onboardingExt := extension.NewOnboardingLibImpl()
 	facility := facility.NewFacilityUsecase(infrastructure)
 	metrics := metric.NewMetricUsecase(infrastructure)
-	user := user.NewUseCasesUserImpl(infrastructure)
+	user := user.NewUseCasesUserImpl(infrastructure, onboardingExt, engagement)
 	client := client.NewUseCasesClientImpl(infrastructure)
 	staff := staff.NewUsecasesStaffProfileImpl(infrastructure)
 

@@ -17,7 +17,7 @@ import (
 type Create interface {
 	GetOrCreateFacility(ctx context.Context, facility dto.FacilityInput) (*domain.Facility, error)
 	CollectMetrics(ctx context.Context, metric *dto.MetricInput) (*domain.Metric, error)
-	SetUserPIN(ctx context.Context, pinInput *domain.UserPIN) (bool, error)
+	SavePin(ctx context.Context, pinInput *domain.UserPIN) (bool, error)
 	RegisterStaffUser(ctx context.Context, user *dto.UserInput, staff *dto.StaffProfileInput) (*domain.StaffUserProfile, error)
 	RegisterClient(
 		ctx context.Context,
@@ -60,9 +60,9 @@ func (f ServiceCreateImpl) CollectMetrics(ctx context.Context, metric *dto.Metri
 	return f.onboarding.CollectMetrics(ctx, metric)
 }
 
-// SetUserPIN saves user's PIN data
-func (f ServiceCreateImpl) SetUserPIN(ctx context.Context, input *domain.UserPIN) (bool, error) {
-	return f.onboarding.SetUserPIN(ctx, input)
+// SavePin saves user's PIN data
+func (f ServiceCreateImpl) SavePin(ctx context.Context, input *domain.UserPIN) (bool, error) {
+	return f.onboarding.SavePin(ctx, input)
 }
 
 // RegisterStaffUser is responsible for creating a representation of a staff user

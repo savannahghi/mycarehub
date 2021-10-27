@@ -7,7 +7,8 @@ import (
 	"testing"
 
 	"github.com/savannahghi/firebasetools"
-	pinExtMock "github.com/savannahghi/onboarding-service/pkg/onboarding/application/extension/mock"
+	onboardingExtension "github.com/savannahghi/onboarding-service/pkg/onboarding/application/extension"
+	onboardingExtMock "github.com/savannahghi/onboarding-service/pkg/onboarding/application/extension/mock"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/infrastructure"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/infrastructure/database/postgres"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/infrastructure/database/postgres/gorm"
@@ -21,6 +22,7 @@ import (
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/usecases/user"
 	baseExt "github.com/savannahghi/onboarding/pkg/onboarding/application/extension"
 	openSourceInfra "github.com/savannahghi/onboarding/pkg/onboarding/infrastructure"
+	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/engagement"
 	libOnboardingUsecase "github.com/savannahghi/onboarding/pkg/onboarding/usecases"
 )
 
@@ -29,10 +31,14 @@ var (
 	testInteractor                   interactor.Interactor
 	testFakeInfrastructureInteractor usecases.Interactor
 
-	fakeCreate usecaseMock.CreateMock
-	fakeQuery  usecaseMock.QueryMock
-	fakeUpdate usecaseMock.UpdateMock
-	fakePIN    pinExtMock.PINExtensionImpl
+	fakeCreate     usecaseMock.CreateMock
+	fakeQuery      usecaseMock.QueryMock
+	fakeUpdate     usecaseMock.UpdateMock
+	fakeOnboarding onboardingExtMock.FakeOnboardingLibraryExtensionImpl
+)
+
+const (
+	engagementService = "engagement"
 )
 
 func TestMain(m *testing.M) {
@@ -80,6 +86,8 @@ func InitializeTestInteractor(ctx context.Context) interactor.Interactor {
 	if err != nil {
 		log.Fatal(err)
 	}
+	// Initialize ISC clients
+	engagementISC := onboardingExtension.NewInterServiceClient(engagementService)
 	infra := infrastructure.NewInteractor()
 	facilityUsecase := facility.NewFacilityUsecase(infra)
 	metricUsecase := metric.NewMetricUsecase(infra)
@@ -87,8 +95,10 @@ func InitializeTestInteractor(ctx context.Context) interactor.Interactor {
 	var fc firebasetools.IFirebaseClient
 	baseExtension := baseExt.NewBaseExtensionImpl(fc)
 	pinExtension := baseExt.NewPINExtensionImpl()
+	onboardingExtension := onboardingExtension.NewOnboardingLibImpl()
+	engagement := engagement.NewServiceEngagementImpl(engagementISC, baseExtension)
 	libUsecasee := libOnboardingUsecase.NewUsecasesInteractor(osinfra, baseExtension, pinExtension)
-	userUsecase := user.NewUseCasesUserImpl(infra)
+	userUsecase := user.NewUseCasesUserImpl(infra, onboardingExtension, engagement)
 	staff := staff.NewUsecasesStaffProfileImpl(infra)
 	client := client.NewUseCasesClientImpl(infra)
 	i := interactor.NewOnboardingInteractor(osinfra, *db, libUsecasee, facilityUsecase, metricUsecase, userUsecase, staff, client)

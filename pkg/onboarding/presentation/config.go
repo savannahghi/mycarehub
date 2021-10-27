@@ -15,6 +15,7 @@ import (
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
+	onboardingExtension "github.com/savannahghi/onboarding-service/pkg/onboarding/application/extension"
 	infra "github.com/savannahghi/onboarding-service/pkg/onboarding/infrastructure"
 	postgres "github.com/savannahghi/onboarding-service/pkg/onboarding/infrastructure/database/postgres"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/infrastructure/database/postgres/gorm"
@@ -29,6 +30,7 @@ import (
 	userusecase "github.com/savannahghi/onboarding-service/pkg/onboarding/usecases/user"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/extension"
 	osinfra "github.com/savannahghi/onboarding/pkg/onboarding/infrastructure"
+	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/engagement"
 	openSourcePresentation "github.com/savannahghi/onboarding/pkg/onboarding/presentation"
 	"github.com/savannahghi/onboarding/pkg/onboarding/presentation/rest"
 	osusecases "github.com/savannahghi/onboarding/pkg/onboarding/usecases"
@@ -39,6 +41,7 @@ import (
 const (
 	mbBytes              = 1048576
 	serverTimeoutSeconds = 120
+	engagementService    = "engagement"
 )
 
 // AllowedOrigins is list of CORS origins allowed to interact with
@@ -66,12 +69,16 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	baseExt := extension.NewBaseExtensionImpl(fc)
 
 	// Initialize ISC clients
+	engagementISC := onboardingExtension.NewInterServiceClient(engagementService)
 
 	pinExt := extension.NewPINExtensionImpl()
+	onboardingExt := onboardingExtension.NewOnboardingLibImpl()
 
 	// Initialize new instances of the infrastructure services
 	// Initialize new open source interactors
 	infrastructure := osinfra.NewInfrastructureInteractor()
+
+	engagement := engagement.NewServiceEngagementImpl(engagementISC, baseExt)
 
 	openSourceUsecases := osusecases.NewUsecasesInteractor(infrastructure, baseExt, pinExt)
 
@@ -84,7 +91,7 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	//Initialize metric usecases
 	metricsUsecase := metrics.NewMetricUsecase(infra)
 
-	userUsecase := userusecase.NewUseCasesUserImpl(infra)
+	userUsecase := userusecase.NewUseCasesUserImpl(infra, onboardingExt, engagement)
 	// Initialize staff usecases
 	staffUsecase := staff.NewUsecasesStaffProfileImpl(infra)
 

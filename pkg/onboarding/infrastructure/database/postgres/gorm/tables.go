@@ -298,7 +298,7 @@ type PINData struct {
 	Base
 
 	PINDataID *uuid.UUID      `gorm:"primaryKey;unique;column:pin_data_id"`
-	UserID    string          `gorm:"unique;column:user_id"`
+	UserID    string          `gorm:"column:user_id"`
 	HashedPIN string          `gorm:"column:hashed_pin"`
 	ValidFrom time.Time       `gorm:"column:valid_from"`
 	ValidTo   time.Time       `gorm:"column:valid_to"`

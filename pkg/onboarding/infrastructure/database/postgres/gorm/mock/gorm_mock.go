@@ -24,7 +24,7 @@ type GormMock struct {
 	GetFacilitiesFn              func(ctx context.Context) ([]gorm.Facility, error)
 	DeleteFacilityFn             func(ctx context.Context, mfl_code string) (bool, error)
 	CollectMetricsFn             func(ctx context.Context, metrics *gorm.Metric) (*gorm.Metric, error)
-	SetUserPINFn                 func(ctx context.Context, pinData *gorm.PINData) (bool, error)
+	SavePinFn                    func(ctx context.Context, pinData *gorm.PINData) (bool, error)
 	GetUserPINByUserIDFn         func(ctx context.Context, userID string) (*gorm.PINData, error)
 	GetUserProfileByUserIDFn     func(ctx context.Context, userID string, flavour feedlib.Flavour) (*gorm.User, error)
 	RegisterStaffUserFn          func(ctx context.Context, user *gorm.User, staff *gorm.StaffProfile) (*gorm.StaffUserProfile, error)
@@ -159,7 +159,7 @@ func NewGormMock() *GormMock {
 			}, nil
 		},
 
-		SetUserPINFn: func(ctx context.Context, pinData *gorm.PINData) (bool, error) {
+		SavePinFn: func(ctx context.Context, pinData *gorm.PINData) (bool, error) {
 			return true, nil
 		},
 
@@ -325,9 +325,9 @@ func (gm *GormMock) CollectMetrics(ctx context.Context, metrics *gorm.Metric) (*
 	return gm.CollectMetricsFn(ctx, metrics)
 }
 
-//SetUserPIN mocks the implementation of SetUserPIN method
-func (gm *GormMock) SetUserPIN(ctx context.Context, pinData *gorm.PINData) (bool, error) {
-	return gm.SetUserPINFn(ctx, pinData)
+//SavePin mocks the implementation of SetUserPIN method
+func (gm *GormMock) SavePin(ctx context.Context, pinData *gorm.PINData) (bool, error) {
+	return gm.SavePinFn(ctx, pinData)
 }
 
 // GetUserPINByUserID ...

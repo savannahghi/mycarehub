@@ -183,6 +183,7 @@ type ComplexityRoot struct {
 		DeleteRole                    func(childComplexity int, roleID string) int
 		DeregisterAllMicroservices    func(childComplexity int) int
 		DeregisterMicroservice        func(childComplexity int, id string) int
+		InviteClient                  func(childComplexity int, userID string, flavour feedlib.Flavour) int
 		RecordPostVisitSurvey         func(childComplexity int, input dto.PostVisitSurveyInput) int
 		RegisterClientUser            func(childComplexity int, userInput dto1.UserInput, clientInput dto1.ClientProfileInput) int
 		RegisterMicroservice          func(childComplexity int, input domain.Microservice) int
@@ -378,6 +379,7 @@ type EntityResolver interface {
 type MutationResolver interface {
 	RegisterClientUser(ctx context.Context, userInput dto1.UserInput, clientInput dto1.ClientProfileInput) (*domain1.ClientUserProfile, error)
 	AddIdentifier(ctx context.Context, clientID string, idType enums.IdentifierType, idValue string, isPrimary bool) (*domain1.Identifier, error)
+	InviteClient(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
 	CreateFacility(ctx context.Context, input dto1.FacilityInput) (*domain1.Facility, error)
 	DeleteFacility(ctx context.Context, id string) (bool, error)
 	SetUserPin(ctx context.Context, input *dto1.PinInput) (bool, error)
@@ -1140,6 +1142,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.DeregisterMicroservice(childComplexity, args["id"].(string)), true
+
+	case "Mutation.inviteClient":
+		if e.complexity.Mutation.InviteClient == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_inviteClient_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.InviteClient(childComplexity, args["userID"].(string), args["flavour"].(feedlib.Flavour)), true
 
 	case "Mutation.recordPostVisitSurvey":
 		if e.complexity.Mutation.RecordPostVisitSurvey == nil {
@@ -2269,6 +2283,8 @@ var sources = []*ast.Source{
     idValue: String!
     isPrimary: Boolean!
   ): Identifier!
+
+  inviteClient(userID: String!, flavour: Flavour!): Boolean!
 }
 `, BuiltIn: false},
 	{Name: "pkg/onboarding/presentation/graph/enums.graphql", Input: `enum RolesType {
@@ -3380,6 +3396,30 @@ func (ec *executionContext) field_Mutation_deregisterMicroservice_args(ctx conte
 		}
 	}
 	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_inviteClient_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["userID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userID"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["userID"] = arg0
+	var arg1 feedlib.Flavour
+	if tmp, ok := rawArgs["flavour"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("flavour"))
+		arg1, err = ec.unmarshalNFlavour2githubᚗcomᚋsavannahghiᚋfeedlibᚐFlavour(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["flavour"] = arg1
 	return args, nil
 }
 
@@ -6362,6 +6402,48 @@ func (ec *executionContext) _Mutation_addIdentifier(ctx context.Context, field g
 	res := resTmp.(*domain1.Identifier)
 	fc.Result = res
 	return ec.marshalNIdentifier2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚑserviceᚋpkgᚋonboardingᚋdomainᚐIdentifier(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_inviteClient(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_inviteClient_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().InviteClient(rctx, args["userID"].(string), args["flavour"].(feedlib.Flavour))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_createFacility(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -14155,6 +14237,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			}
 		case "addIdentifier":
 			out.Values[i] = ec._Mutation_addIdentifier(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "inviteClient":
+			out.Values[i] = ec._Mutation_inviteClient(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}

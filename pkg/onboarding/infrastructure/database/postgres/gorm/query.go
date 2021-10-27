@@ -44,7 +44,7 @@ func (db *PGInstance) RetrieveFacilityByMFLCode(ctx context.Context, MFLCode str
 // GetUserProfileByUserID fetches a user profile facility using the user ID
 func (db *PGInstance) GetUserProfileByUserID(ctx context.Context, userID string, flavour feedlib.Flavour) (*User, error) {
 	var user User
-	if err := db.DB.Preload("Contacts").Where(&User{UserID: &userID, Flavour: flavour}).First(&user).Error; err != nil {
+	if err := db.DB.Where(&User{UserID: &userID, Flavour: flavour}).Preload("Contacts").First(&user).Error; err != nil {
 		return nil, fmt.Errorf("failed to get user by userID %v: %v", userID, err)
 	}
 	return &user, nil

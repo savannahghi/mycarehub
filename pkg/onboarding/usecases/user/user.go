@@ -9,11 +9,18 @@ import (
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/firebasetools"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/application/dto"
+	"github.com/savannahghi/onboarding-service/pkg/onboarding/application/enums"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/application/extension"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/application/utils"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/domain"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/infrastructure"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/exceptions"
+	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/engagement"
+)
+
+const (
+	inviteSMSMessage = "You have been invited to My Afya Hub. Download the app on %v. Your single use pin is %v"
+	inviteLink       = "https://bwl.mobi/dl"
 )
 
 // ILogin ...
@@ -137,7 +144,6 @@ type IUpdateLanguagePreferences interface {
 // IUserInvite ...
 type IUserInvite interface {
 
-	// TODO: flavour is an enum; client or pro app
 	// TODO: send invite link via e.g SMS
 	//    the invite deep link: opens the app if installed OR goes to the store if not installed
 	//    a first time PIN is set and sent to the user
@@ -148,7 +154,7 @@ type IUserInvite interface {
 	// TODO: generate first time PIN, must change, link to user
 	// TODO: set the PIN valid to to the current moment so that the user is forced to change upon login
 	// TODO determine communication channel for invite (e.g SMS) from settings
-	Invite(userID string, flavour string) (bool, error)
+	Invite(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
 }
 
 // UseCasesUser group all business logic usecases related to user
@@ -168,12 +174,20 @@ type UseCasesUser interface {
 // UseCasesUserImpl represents user implementation object
 type UseCasesUserImpl struct {
 	Infrastructure infrastructure.Interactor
+	engagement     engagement.ServiceEngagement
+	onboardingExt  extension.OnboardingLibraryExtension
 }
 
 // NewUseCasesUserImpl returns a new user service
-func NewUseCasesUserImpl(infra infrastructure.Interactor) *UseCasesUserImpl {
+func NewUseCasesUserImpl(
+	infra infrastructure.Interactor,
+	onboarding extension.OnboardingLibraryExtension,
+	engagement engagement.ServiceEngagement,
+) *UseCasesUserImpl {
 	return &UseCasesUserImpl{
 		Infrastructure: infra,
+		onboardingExt:  onboarding,
+		engagement:     engagement,
 	}
 }
 
@@ -206,7 +220,7 @@ func (us *UseCasesUserImpl) Login(ctx context.Context, userID string, pin string
 	}
 
 	//Compare PIN to check for validity
-	isMatch := extension.ComparePIN(pin, userPINData.Salt, userPINData.HashedPIN, nil)
+	isMatch := us.onboardingExt.ComparePIN(pin, userPINData.Salt, userPINData.HashedPIN, nil)
 	// On any mis-match:
 	if !isMatch {
 		failedLoginCount, err := strconv.Atoi(userProfile.FailedLoginCount)
@@ -308,12 +322,53 @@ func (us *UseCasesUserImpl) UpdateLanguagePreferences(userID string, language st
 	return true, nil
 }
 
-// Invite is sends an invite to a  user (client/staff)
+// Invite sends an invite to a  user (client/staff)
 // The invite contains: link to app/play store, temporary PIN that **MUST** be changed on first login
 //
 // The default invite channel is SMS
-func (us *UseCasesUserImpl) Invite(userID string, flavour string) (bool, error) {
-	return false, nil
+func (us *UseCasesUserImpl) Invite(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
+	pin, err := us.onboardingExt.GenerateTempPIN(ctx)
+	if err != nil {
+		return false, err
+	}
+	salt, encryptedPin := us.onboardingExt.EncryptPIN(pin, nil)
+	// Set the pin to be valid for a week
+	expiryDate := time.Now().AddDate(0, 0, 7)
+
+	pinPayload := &domain.UserPIN{
+		UserID:    userID,
+		HashedPIN: encryptedPin,
+		Salt:      salt,
+		ValidFrom: time.Now(),
+		ValidTo:   expiryDate,
+		Flavour:   feedlib.FlavourConsumer,
+		IsValid:   true,
+	}
+
+	_, err = us.Infrastructure.SavePin(ctx, pinPayload)
+	if err != nil {
+		return false, err
+	}
+
+	user, err := us.Infrastructure.GetUserProfileByUserID(ctx, userID, flavour)
+	if err != nil {
+		return false, fmt.Errorf("failed to fetch a user profile: %v", err)
+	}
+
+	var phoneNumber string
+	for _, contact := range user.Contacts {
+		if contact.Type == enums.PhoneContact {
+			phoneNumber = contact.Contact
+		}
+	}
+
+	message := fmt.Sprintf(inviteSMSMessage, inviteLink, pin)
+	err = us.onboardingExt.SendSMS(ctx, []string{phoneNumber}, message)
+	if err != nil {
+		return false, fmt.Errorf("failed to send SMS: %v", err)
+	}
+
+	return true, nil
 }
 
 // SetUserPIN sets a user's PIN.
@@ -324,9 +379,9 @@ func (us *UseCasesUserImpl) SetUserPIN(ctx context.Context, input *dto.PinInput)
 	if err != nil {
 		return false, fmt.Errorf("invalid PIN provided: %v", err)
 	}
-	salt, encryptedPIN := extension.EncryptPIN(input.PIN, nil)
+	salt, encryptedPIN := us.onboardingExt.EncryptPIN(input.PIN, nil)
 
-	isMatch := extension.ComparePIN(input.ConfirmedPin, salt, encryptedPIN, nil)
+	isMatch := us.onboardingExt.ComparePIN(input.ConfirmedPin, salt, encryptedPIN, nil)
 	if !isMatch {
 		return false, fmt.Errorf("the provided PINs do not match")
 	}
@@ -344,7 +399,7 @@ func (us *UseCasesUserImpl) SetUserPIN(ctx context.Context, input *dto.PinInput)
 		Salt:      salt,
 	}
 
-	return us.Infrastructure.SetUserPIN(ctx, pinDataInput)
+	return us.Infrastructure.SavePin(ctx, pinDataInput)
 }
 
 // Forget ...

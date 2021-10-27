@@ -10,4 +10,6 @@ extend type Mutation {
     idValue: String!
     isPrimary: Boolean!
   ): Identifier!
+
+  inviteClient(userID: String!, flavour: Flavour!): Boolean!
 }

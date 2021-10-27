@@ -9,7 +9,7 @@ import (
 type Create interface {
 	GetOrCreateFacility(ctx context.Context, facility *Facility) (*Facility, error)
 	CollectMetrics(ctx context.Context, metrics *Metric) (*Metric, error)
-	SetUserPIN(ctx context.Context, pinData *PINData) (bool, error)
+	SavePin(ctx context.Context, pinData *PINData) (bool, error)
 	RegisterStaffUser(ctx context.Context, user *User, staff *StaffProfile) (*StaffUserProfile, error)
 	RegisterClient(
 		ctx context.Context,
@@ -34,8 +34,8 @@ func (db *PGInstance) GetOrCreateFacility(ctx context.Context, facility *Facilit
 	return facility, nil
 }
 
-// SetUserPIN does the actual saving of the users PIN in the database
-func (db *PGInstance) SetUserPIN(ctx context.Context, pinData *PINData) (bool, error) {
+// SavePin does the actual saving of the users PIN in the database
+func (db *PGInstance) SavePin(ctx context.Context, pinData *PINData) (bool, error) {
 	err := db.DB.Create(pinData).Error
 
 	if err != nil {

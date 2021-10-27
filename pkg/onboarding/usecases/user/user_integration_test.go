@@ -9,7 +9,6 @@ import (
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/firebasetools"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/application/dto"
-	"github.com/savannahghi/onboarding-service/pkg/onboarding/application/extension"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/application/utils"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/domain"
 	"github.com/segmentio/ksuid"
@@ -51,9 +50,9 @@ func TestUseCasesUserImpl_SetUserPIN_Integration(t *testing.T) {
 	err3 := utils.ValidatePIN(invalidPINInput2.PIN)
 	assert.NotNil(t, err3)
 
-	salt, encodedPIN := extension.EncryptPIN(validPINInput.PIN, nil)
+	salt, encodedPIN := m.EncryptPIN(validPINInput.PIN, nil)
 
-	isMatch := extension.ComparePIN(validPINInput.PIN, salt, encodedPIN, nil)
+	isMatch := m.ComparePIN(validPINInput.PIN, salt, encodedPIN, nil)
 
 	pinDataInput := &domain.UserPIN{
 		UserID:    ksuid.New().String(),
@@ -65,7 +64,7 @@ func TestUseCasesUserImpl_SetUserPIN_Integration(t *testing.T) {
 		Salt:      salt,
 	}
 
-	isTrue, err := m.SetUserPIN(ctx, pinDataInput)
+	isTrue, err := m.SavePin(ctx, pinDataInput)
 	assert.Nil(t, err)
 	assert.NotNil(t, isTrue)
 	assert.Equal(t, true, isTrue)
@@ -115,7 +114,7 @@ func TestUseCasesUserImpl_Login_Integration_Test(t *testing.T) {
 	assert.NotNil(t, staffUserProfile)
 
 	// Set PIN
-	salt, encodedPIN := extension.EncryptPIN(pin, nil)
+	salt, encodedPIN := m.EncryptPIN(pin, nil)
 	assert.NotNil(t, encodedPIN)
 	assert.NotNil(t, salt)
 
@@ -129,7 +128,7 @@ func TestUseCasesUserImpl_Login_Integration_Test(t *testing.T) {
 		Salt:      salt,
 	}
 
-	isSet, err := m.SetUserPIN(ctx, PinInput)
+	isSet, err := m.SavePin(ctx, PinInput)
 	assert.Nil(t, err)
 	assert.Equal(t, true, isSet)
 
@@ -143,7 +142,7 @@ func TestUseCasesUserImpl_Login_Integration_Test(t *testing.T) {
 	assert.Nil(t, err)
 	assert.NotNil(t, userPINData)
 
-	isMatch := extension.ComparePIN("1234", userPINData.Salt, userPINData.HashedPIN, nil)
+	isMatch := m.ComparePIN("1234", userPINData.Salt, userPINData.HashedPIN, nil)
 	assert.Equal(t, true, isMatch)
 
 	successTime := time.Now()
@@ -179,7 +178,7 @@ func TestUseCasesUserImpl_Login_Integration_Test(t *testing.T) {
 	assert.Nil(t, err2)
 	assert.NotNil(t, userPINData2)
 
-	isMatch = extension.ComparePIN(invalidPIN1, userPINData.Salt, userPINData.HashedPIN, nil)
+	isMatch = m.ComparePIN(invalidPIN1, userPINData.Salt, userPINData.HashedPIN, nil)
 	assert.Equal(t, false, isMatch)
 
 	err3 := m.UpdateUserFailedLoginCount(ctx, *profile.ID, "1", flavour)
@@ -205,7 +204,7 @@ func TestUseCasesUserImpl_Login_Integration_Test(t *testing.T) {
 	assert.Nil(t, err6)
 	assert.NotNil(t, userPINData3)
 
-	isMatch2 := extension.ComparePIN(invalidPIN2, userPINData.Salt, userPINData.HashedPIN, nil)
+	isMatch2 := m.ComparePIN(invalidPIN2, userPINData.Salt, userPINData.HashedPIN, nil)
 	assert.Equal(t, false, isMatch)
 	if !isMatch2 {
 		failedLoginCount, err7 := strconv.Atoi(profile2.FailedLoginCount)
