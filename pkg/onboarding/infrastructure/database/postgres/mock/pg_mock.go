@@ -10,6 +10,8 @@ import (
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/application/dto"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/application/enums"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/domain"
+	"github.com/savannahghi/onboarding-service/pkg/onboarding/infrastructure/database/postgres/gorm"
+	"github.com/segmentio/ksuid"
 )
 
 // PostgresMock struct implements mocks of `postgres's` internal methods.
@@ -20,14 +22,16 @@ type PostgresMock struct {
 	RetrieveFacilityFn       func(ctx context.Context, id *string, isActive bool) (*domain.Facility, error)
 	SetUserPINFn             func(ctx context.Context, pinData *domain.UserPIN) (bool, error)
 	GetUserPINByUserIDFn     func(ctx context.Context, userID string) (*domain.UserPIN, error)
-	GetUserProfileByUserIDFn func(ctx context.Context, userID string, flavour string) (*domain.User, error)
+	GetUserProfileByUserIDFn func(ctx context.Context, userID string, flavour feedlib.Flavour) (*domain.User, error)
 	RegisterStaffUserFn      func(ctx context.Context, user *dto.UserInput, staff *dto.StaffProfileInput) (*domain.StaffUserProfile, error)
+	GetStaffProfileFn        func(ctx context.Context, staffNumber string) (*gorm.StaffProfile, error)
 
 	//Updates
-	UpdateUserLastSuccessfulLoginFn func(ctx context.Context, userID string, lastLoginTime time.Time, flavour string) error
-	UpdateUserLastFailedLoginFn     func(ctx context.Context, userID string, lastFailedLoginTime time.Time, flavour string) error
-	UpdateUserFailedLoginCountFn    func(ctx context.Context, userID string, failedLoginCount string, flavour string) error
-	UpdateUserNextAllowedLoginFn    func(ctx context.Context, userID string, nextAllowedLoginTime time.Time, flavour string) error
+	UpdateUserLastSuccessfulLoginFn func(ctx context.Context, userID string, lastLoginTime time.Time, flavour feedlib.Flavour) error
+	UpdateUserLastFailedLoginFn     func(ctx context.Context, userID string, lastFailedLoginTime time.Time, flavour feedlib.Flavour) error
+	UpdateUserFailedLoginCountFn    func(ctx context.Context, userID string, failedLoginCount string, flavour feedlib.Flavour) error
+	UpdateUserNextAllowedLoginFn    func(ctx context.Context, userID string, nextAllowedLoginTime time.Time, flavour feedlib.Flavour) error
+	UpdateStaffUserFn               func(ctx context.Context, userID string, user *gorm.User, staff *gorm.StaffProfile) (bool, error)
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -84,7 +88,7 @@ func NewPostgresMock() *PostgresMock {
 			return true, nil
 		},
 
-		GetUserProfileByUserIDFn: func(ctx context.Context, userID, flavour string) (*domain.User, error) {
+		GetUserProfileByUserIDFn: func(ctx context.Context, userID string, flavour feedlib.Flavour) (*domain.User, error) {
 			id := uuid.New().String()
 			contact := &domain.Contact{
 				ID:      &id,
@@ -129,21 +133,47 @@ func NewPostgresMock() *PostgresMock {
 			}, nil
 		},
 
-		UpdateUserLastSuccessfulLoginFn: func(ctx context.Context, userID string, lastLoginTime time.Time, flavour string) error {
+		GetStaffProfileFn: func(ctx context.Context, staffNumber string) (*gorm.StaffProfile, error) {
+			testUID := ksuid.New().String()
+			address := &gorm.Addresses{
+				Type:           "test",
+				Text:           "test",
+				Country:        "test",
+				PostalCode:     "test",
+				County:         "test",
+				Active:         false,
+				StaffProfileID: new(string),
+			}
+			return &gorm.StaffProfile{
+				StaffProfileID:    &testUID,
+				UserID:            &testUID,
+				User:              gorm.User{},
+				StaffNumber:       "s100",
+				DefaultFacilityID: &testUID,
+				Addresses:         []*gorm.Addresses{address},
+			}, nil
+		},
+
+		UpdateUserLastSuccessfulLoginFn: func(ctx context.Context, userID string, lastLoginTime time.Time, flavour feedlib.Flavour) error {
 			return nil
 		},
 
-		UpdateUserLastFailedLoginFn: func(ctx context.Context, userID string, lastFailedLoginTime time.Time, flavour string) error {
+		UpdateUserLastFailedLoginFn: func(ctx context.Context, userID string, lastFailedLoginTime time.Time, flavour feedlib.Flavour) error {
 			return nil
 		},
 
-		UpdateUserFailedLoginCountFn: func(ctx context.Context, userID, failedLoginCount, flavour string) error {
+		UpdateUserFailedLoginCountFn: func(ctx context.Context, userID, failedLoginCount string, flavour feedlib.Flavour) error {
 			return nil
 		},
 
-		UpdateUserNextAllowedLoginFn: func(ctx context.Context, userID string, nextAllowedLoginTime time.Time, flavour string) error {
+		UpdateUserNextAllowedLoginFn: func(ctx context.Context, userID string, nextAllowedLoginTime time.Time, flavour feedlib.Flavour) error {
 			return nil
 		},
+
+		UpdateStaffUserFn: func(ctx context.Context, userID string, user *gorm.User, staff *gorm.StaffProfile) (bool, error) {
+			return true, nil
+		},
+
 		RegisterStaffUserFn: func(ctx context.Context, user *dto.UserInput, staff *dto.StaffProfileInput) (*domain.StaffUserProfile, error) {
 			ID := uuid.New().String()
 			testTime := time.Now()
@@ -210,28 +240,33 @@ func (gm *PostgresMock) GetUserPINByUserID(ctx context.Context, userID string) (
 }
 
 // GetUserProfileByUserID gets user profile by user ID
-func (gm *PostgresMock) GetUserProfileByUserID(ctx context.Context, userID string, flavour string) (*domain.User, error) {
+func (gm *PostgresMock) GetUserProfileByUserID(ctx context.Context, userID string, flavour feedlib.Flavour) (*domain.User, error) {
 	return gm.GetUserProfileByUserIDFn(ctx, userID, flavour)
 }
 
 //UpdateUserLastSuccessfulLogin ...
-func (gm *PostgresMock) UpdateUserLastSuccessfulLogin(ctx context.Context, userID string, lastLoginTime time.Time, flavour string) error {
+func (gm *PostgresMock) UpdateUserLastSuccessfulLogin(ctx context.Context, userID string, lastLoginTime time.Time, flavour feedlib.Flavour) error {
 	return gm.UpdateUserLastSuccessfulLoginFn(ctx, userID, lastLoginTime, flavour)
 }
 
 // UpdateUserLastFailedLogin ...
-func (gm *PostgresMock) UpdateUserLastFailedLogin(ctx context.Context, userID string, lastFailedLoginTime time.Time, flavour string) error {
+func (gm *PostgresMock) UpdateUserLastFailedLogin(ctx context.Context, userID string, lastFailedLoginTime time.Time, flavour feedlib.Flavour) error {
 	return gm.UpdateUserLastFailedLoginFn(ctx, userID, lastFailedLoginTime, flavour)
 }
 
 // UpdateUserFailedLoginCount ...
-func (gm *PostgresMock) UpdateUserFailedLoginCount(ctx context.Context, userID string, failedLoginCount string, flavour string) error {
+func (gm *PostgresMock) UpdateUserFailedLoginCount(ctx context.Context, userID string, failedLoginCount string, flavour feedlib.Flavour) error {
 	return gm.UpdateUserFailedLoginCountFn(ctx, userID, failedLoginCount, flavour)
 }
 
 // UpdateUserNextAllowedLogin ...
-func (gm *PostgresMock) UpdateUserNextAllowedLogin(ctx context.Context, userID string, nextAllowedLoginTime time.Time, flavour string) error {
+func (gm *PostgresMock) UpdateUserNextAllowedLogin(ctx context.Context, userID string, nextAllowedLoginTime time.Time, flavour feedlib.Flavour) error {
 	return gm.UpdateUserNextAllowedLoginFn(ctx, userID, nextAllowedLoginTime, flavour)
+}
+
+// UpdateStaffUserProfile mocks the implementation of  UpdateStaffUserProfile method.
+func (gm *PostgresMock) UpdateStaffUserProfile(ctx context.Context, userID string, user *gorm.User, staff *gorm.StaffProfile) (bool, error) {
+	return gm.UpdateStaffUserFn(ctx, userID, user, staff)
 }
 
 // RegisterStaffUser mocks the implementation of `gorm's` RegisterStaffUser method.

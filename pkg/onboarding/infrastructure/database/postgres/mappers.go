@@ -241,3 +241,34 @@ func (d *OnboardingDb) mapClientObjectToDomain(client *gorm.ClientProfile) *doma
 		ClientCounselled:     client.ClientCounselled,
 	}
 }
+
+//mapStaffObjectToDomain maps the staff object to the domain defined type
+func (d *OnboardingDb) mapStaffObjectToDomain(staff *gorm.StaffProfile) *domain.StaffProfile {
+	if staff == nil {
+		return nil
+	}
+
+	addresses := []*domain.Addresses{}
+	if len(staff.Addresses) > 0 {
+		for _, a := range staff.Addresses {
+			address := &domain.Addresses{
+				ID:         *a.AddressesID,
+				Type:       a.Type,
+				Text:       a.Text,
+				Country:    a.Country,
+				PostalCode: a.PostalCode,
+				County:     a.County,
+				Active:     a.Active,
+			}
+			addresses = append(addresses, address)
+		}
+	}
+
+	return &domain.StaffProfile{
+		ID:                staff.StaffProfileID,
+		UserID:            staff.UserID,
+		StaffNumber:       staff.StaffNumber,
+		DefaultFacilityID: staff.DefaultFacilityID,
+		Addresses:         addresses,
+	}
+}

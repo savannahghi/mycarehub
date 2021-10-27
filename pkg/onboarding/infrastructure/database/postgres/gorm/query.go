@@ -14,9 +14,10 @@ type Query interface {
 	RetrieveFacility(ctx context.Context, id *string, isActive bool) (*Facility, error)
 	RetrieveFacilityByMFLCode(ctx context.Context, MFLCode string, isActive bool) (*Facility, error)
 	GetFacilities(ctx context.Context) ([]Facility, error)
-	GetUserProfileByUserID(ctx context.Context, userID string, flavour string) (*User, error)
+	GetUserProfileByUserID(ctx context.Context, userID string, flavour feedlib.Flavour) (*User, error)
 	GetUserPINByUserID(ctx context.Context, userID string) (*PINData, error)
 	GetClientProfileByClientID(ctx context.Context, clientID string) (*ClientProfile, error)
+	GetStaffProfile(ctx context.Context, staffNumber string) (*StaffProfile, error)
 }
 
 // RetrieveFacility fetches a single facility
@@ -41,9 +42,9 @@ func (db *PGInstance) RetrieveFacilityByMFLCode(ctx context.Context, MFLCode str
 }
 
 // GetUserProfileByUserID fetches a user profile facility using the user ID
-func (db *PGInstance) GetUserProfileByUserID(ctx context.Context, userID string, flavour string) (*User, error) {
+func (db *PGInstance) GetUserProfileByUserID(ctx context.Context, userID string, flavour feedlib.Flavour) (*User, error) {
 	var user User
-	if err := db.DB.Where(&User{UserID: &userID, Flavour: feedlib.Flavour(flavour)}).First(&user).Error; err != nil {
+	if err := db.DB.Preload("Contacts").Where(&User{UserID: &userID, Flavour: flavour}).First(&user).Error; err != nil {
 		return nil, fmt.Errorf("failed to get user by userID %v: %v", userID, err)
 	}
 	return &user, nil
@@ -78,4 +79,14 @@ func (db *PGInstance) GetClientProfileByClientID(ctx context.Context, clientID s
 	}
 
 	return &client, nil
+}
+
+// GetStaffProfile retrieves a client profile by ID
+func (db *PGInstance) GetStaffProfile(ctx context.Context, staffNumber string) (*StaffProfile, error) {
+	var staff StaffProfile
+	if err := db.DB.Where(&StaffProfile{StaffNumber: staffNumber}).First(&staff).Error; err != nil {
+		return nil, err
+	}
+
+	return &staff, nil
 }

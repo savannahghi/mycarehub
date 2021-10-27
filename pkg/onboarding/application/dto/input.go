@@ -140,6 +140,7 @@ type UserInput struct {
 	// for the preferred language list, order matters
 	Languages []enumutils.Language `json:"languages"`
 	Flavour   feedlib.Flavour      `json:"flavour"`
+	Address   []*AddressesInput    `json:"addressInput"`
 }
 
 // ContactInput contains input required to register a user

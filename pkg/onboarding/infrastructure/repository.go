@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/application/dto"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/application/enums"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/domain"
@@ -94,9 +95,10 @@ type Query interface {
 	RetrieveFacility(ctx context.Context, id *string, isActive bool) (*domain.Facility, error)
 	GetFacilities(ctx context.Context) ([]*domain.Facility, error)
 	RetrieveFacilityByMFLCode(ctx context.Context, MFLCode string, isActive bool) (*domain.Facility, error)
-	GetUserProfileByUserID(ctx context.Context, userID string, flavour string) (*domain.User, error)
+	GetUserProfileByUserID(ctx context.Context, userID string, flavour feedlib.Flavour) (*domain.User, error)
 	GetUserPINByUserID(ctx context.Context, userID string) (*domain.UserPIN, error)
 	GetClientProfileByClientID(ctx context.Context, clientID string) (*domain.ClientProfile, error)
+	GetStaffProfile(ctx context.Context, staffNumber string) (*domain.StaffProfile, error)
 }
 
 // ServiceQueryImpl contains implementation for the Query interface
@@ -132,7 +134,7 @@ func (f ServiceDeleteImpl) DeleteFacility(ctx context.Context, id string) (bool,
 }
 
 // GetUserProfileByUserID gets user profile by user ID
-func (q ServiceQueryImpl) GetUserProfileByUserID(ctx context.Context, userID string, flavour string) (*domain.User, error) {
+func (q ServiceQueryImpl) GetUserProfileByUserID(ctx context.Context, userID string, flavour feedlib.Flavour) (*domain.User, error) {
 	return q.onboarding.GetUserProfileByUserID(ctx, userID, flavour)
 }
 
@@ -144,6 +146,11 @@ func (q ServiceQueryImpl) GetUserPINByUserID(ctx context.Context, userID string)
 // GetClientProfileByClientID fetches a client profile using the client ID
 func (q ServiceQueryImpl) GetClientProfileByClientID(ctx context.Context, clientID string) (*domain.ClientProfile, error) {
 	return q.onboarding.GetClientProfileByClientID(ctx, clientID)
+}
+
+// GetStaffProfile fetches a staffs profile using the staff number
+func (q ServiceQueryImpl) GetStaffProfile(ctx context.Context, staffNumber string) (*domain.StaffProfile, error) {
+	return q.onboarding.GetStaffProfile(ctx, staffNumber)
 }
 
 // ServiceDeleteImpl represents delete facility implementation object
@@ -160,10 +167,11 @@ func NewServiceDeleteImpl(on pg.OnboardingDb) Delete {
 
 // Update contains all update methods
 type Update interface {
-	UpdateUserLastSuccessfulLogin(ctx context.Context, userID string, lastLoginTime time.Time, flavour string) error
-	UpdateUserLastFailedLogin(ctx context.Context, userID string, lastFailedLoginTime time.Time, flavour string) error
-	UpdateUserFailedLoginCount(ctx context.Context, userID string, failedLoginCount string, flavour string) error
-	UpdateUserNextAllowedLogin(ctx context.Context, userID string, nextAllowedLoginTime time.Time, flavour string) error
+	UpdateUserLastSuccessfulLogin(ctx context.Context, userID string, lastLoginTime time.Time, flavour feedlib.Flavour) error
+	UpdateUserLastFailedLogin(ctx context.Context, userID string, lastFailedLoginTime time.Time, flavour feedlib.Flavour) error
+	UpdateUserFailedLoginCount(ctx context.Context, userID string, failedLoginCount string, flavour feedlib.Flavour) error
+	UpdateUserNextAllowedLogin(ctx context.Context, userID string, nextAllowedLoginTime time.Time, flavour feedlib.Flavour) error
+	UpdateStaffUserProfile(ctx context.Context, userID string, user *dto.UserInput, staff *dto.StaffProfileInput) (bool, error)
 }
 
 // ServiceUpdateImpl represents update user implementation object
@@ -179,21 +187,26 @@ func NewServiceUpdateImpl(on pg.OnboardingDb) Update {
 }
 
 // UpdateUserLastSuccessfulLogin ...
-func (u *ServiceUpdateImpl) UpdateUserLastSuccessfulLogin(ctx context.Context, userID string, lastLoginTime time.Time, flavour string) error {
+func (u *ServiceUpdateImpl) UpdateUserLastSuccessfulLogin(ctx context.Context, userID string, lastLoginTime time.Time, flavour feedlib.Flavour) error {
 	return u.onboarding.UpdateUserLastSuccessfulLogin(ctx, userID, lastLoginTime, flavour)
 }
 
 // UpdateUserLastFailedLogin ...
-func (u *ServiceUpdateImpl) UpdateUserLastFailedLogin(ctx context.Context, userID string, lastFailedLoginTime time.Time, flavour string) error {
+func (u *ServiceUpdateImpl) UpdateUserLastFailedLogin(ctx context.Context, userID string, lastFailedLoginTime time.Time, flavour feedlib.Flavour) error {
 	return u.onboarding.UpdateUserLastFailedLogin(ctx, userID, lastFailedLoginTime, flavour)
 }
 
 // UpdateUserFailedLoginCount ...
-func (u *ServiceUpdateImpl) UpdateUserFailedLoginCount(ctx context.Context, userID string, failedLoginCount string, flavour string) error {
+func (u *ServiceUpdateImpl) UpdateUserFailedLoginCount(ctx context.Context, userID string, failedLoginCount string, flavour feedlib.Flavour) error {
 	return u.onboarding.UpdateUserFailedLoginCount(ctx, userID, failedLoginCount, flavour)
 }
 
 // UpdateUserNextAllowedLogin ...
-func (u *ServiceUpdateImpl) UpdateUserNextAllowedLogin(ctx context.Context, userID string, nextAllowedLoginTime time.Time, flavour string) error {
+func (u *ServiceUpdateImpl) UpdateUserNextAllowedLogin(ctx context.Context, userID string, nextAllowedLoginTime time.Time, flavour feedlib.Flavour) error {
 	return u.onboarding.UpdateUserNextAllowedLogin(ctx, userID, nextAllowedLoginTime, flavour)
+}
+
+// UpdateStaffUserProfile updates the staffs data
+func (u *ServiceUpdateImpl) UpdateStaffUserProfile(ctx context.Context, userID string, user *dto.UserInput, staff *dto.StaffProfileInput) (bool, error) {
+	return u.onboarding.UpdateStaffUserProfile(ctx, userID, user, staff)
 }

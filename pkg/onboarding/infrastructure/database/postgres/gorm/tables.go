@@ -102,7 +102,7 @@ type User struct {
 
 	Active bool `gorm:"column:active"`
 
-	Contacts []Contact `gorm:"ForeignKey:UserID"` // TODO: validate, ensure
+	Contacts []Contact `gorm:"ForeignKey:UserID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"` // TODO: validate, ensure
 
 	// // for the preferred language list, order matters
 	Languages pq.StringArray `gorm:"type:text[];column:languages"` // TODO: turn this into a slice of enums, start small (en, sw)
@@ -190,7 +190,7 @@ type StaffProfile struct {
 	// there is nothing special about super-admin; just the set of roles they have
 	Roles pq.StringArray `gorm:"type:text[];column:roles"` // TODO: roles are an enum (controlled list), known to both FE and BE
 
-	Addresses []*Addresses `gorm:"ForeignKey:StaffProfileID"`
+	Addresses []*Addresses `gorm:"ForeignKey:StaffProfileID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 }
 
 // BeforeCreate is a hook run before creating a new staff profile

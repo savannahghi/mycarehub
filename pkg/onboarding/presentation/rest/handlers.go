@@ -53,7 +53,7 @@ func (h *OnboardingHandlersInterfacesImpl) LoginHandler() http.HandlerFunc {
 		loginPayload := &dto.LoginInput{}
 		serverutils.DecodeJSONToTargetStruct(w, r, loginPayload)
 
-		response, _, err := h.interactor.UserUsecase.Login(ctx, loginPayload.UserID, loginPayload.PIN, loginPayload.Flavour.String())
+		response, _, err := h.interactor.UserUsecase.Login(ctx, loginPayload.UserID, loginPayload.PIN, loginPayload.Flavour)
 		if err != nil {
 			serverutils.WriteJSONResponse(w, err, http.StatusBadRequest)
 			return

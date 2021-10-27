@@ -6,6 +6,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/savannahghi/enumutils"
+	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/application/dto"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/application/enums"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/domain"
@@ -170,8 +171,9 @@ type QueryMock struct {
 	RetrieveFacilityByMFLCodeFn  func(ctx context.Context, MFLCode string, isActive bool) (*domain.Facility, error)
 	GetFacilitiesFn              func(ctx context.Context) ([]*domain.Facility, error)
 	GetUserPINByUserIDFn         func(ctx context.Context, userID string) (*domain.UserPIN, error)
-	GetUserProfileByUserIDFn     func(ctx context.Context, userID string, flavour string) (*domain.User, error)
+	GetUserProfileByUserIDFn     func(ctx context.Context, userID string, flavour feedlib.Flavour) (*domain.User, error)
 	GetClientProfileByClientIDFn func(ctx context.Context, clientID string) (*domain.ClientProfile, error)
+	GetStaffProfileFn            func(ctx context.Context, staffNumber string) (*domain.StaffProfile, error)
 }
 
 // NewQueryMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -263,7 +265,7 @@ func (f *QueryMock) GetUserPINByUserID(ctx context.Context, userID string) (*dom
 }
 
 // GetUserProfileByUserID gets user profile by user ID
-func (f *QueryMock) GetUserProfileByUserID(ctx context.Context, userID string, flavour string) (*domain.User, error) {
+func (f *QueryMock) GetUserProfileByUserID(ctx context.Context, userID string, flavour feedlib.Flavour) (*domain.User, error) {
 	return f.GetUserProfileByUserIDFn(ctx, userID, flavour)
 }
 
@@ -272,53 +274,68 @@ func (f *QueryMock) GetClientProfileByClientID(ctx context.Context, clientID str
 	return f.GetClientProfileByClientIDFn(ctx, clientID)
 }
 
+// GetStaffProfile mocks the implementation of  GetStaffProfile method.
+func (f *QueryMock) GetStaffProfile(ctx context.Context, staffNumber string) (*domain.StaffProfile, error) {
+	return f.GetStaffProfileFn(ctx, staffNumber)
+}
+
 // UpdateMock ...
 type UpdateMock struct {
-	UpdateUserLastSuccessfulLoginFn func(ctx context.Context, userID string, lastLoginTime time.Time, flavour string) error
-	UpdateUserLastFailedLoginFn     func(ctx context.Context, userID string, lastFailedLoginTime time.Time, flavour string) error
-	UpdateUserFailedLoginCountFn    func(ctx context.Context, userID string, failedLoginCount string, flavour string) error
-	UpdateUserNextAllowedLoginFn    func(ctx context.Context, userID string, nextAllowedLoginTime time.Time, flavour string) error
+	UpdateUserLastSuccessfulLoginFn func(ctx context.Context, userID string, lastLoginTime time.Time, flavour feedlib.Flavour) error
+	UpdateUserLastFailedLoginFn     func(ctx context.Context, userID string, lastFailedLoginTime time.Time, flavour feedlib.Flavour) error
+	UpdateUserFailedLoginCountFn    func(ctx context.Context, userID string, failedLoginCount string, flavour feedlib.Flavour) error
+	UpdateUserNextAllowedLoginFn    func(ctx context.Context, userID string, nextAllowedLoginTime time.Time, flavour feedlib.Flavour) error
+	UpdateStaffUserFn               func(ctx context.Context, userID string, user *dto.UserInput, staff *dto.StaffProfileInput) (bool, error)
 }
 
 // NewUpdateMock initializes a new instance of `GormMock` then mocking the case of success.
 func NewUpdateMock() *UpdateMock {
 	return &UpdateMock{
-		UpdateUserLastSuccessfulLoginFn: func(ctx context.Context, userID string, lastLoginTime time.Time, flavour string) error {
+		UpdateUserLastSuccessfulLoginFn: func(ctx context.Context, userID string, lastLoginTime time.Time, flavour feedlib.Flavour) error {
 			return nil
 		},
 
-		UpdateUserLastFailedLoginFn: func(ctx context.Context, userID string, lastFailedLoginTime time.Time, flavour string) error {
+		UpdateUserLastFailedLoginFn: func(ctx context.Context, userID string, lastFailedLoginTime time.Time, flavour feedlib.Flavour) error {
 			return nil
 		},
 
-		UpdateUserFailedLoginCountFn: func(ctx context.Context, userID, failedLoginCount, flavour string) error {
+		UpdateUserFailedLoginCountFn: func(ctx context.Context, userID, failedLoginCount string, flavour feedlib.Flavour) error {
 			return nil
 		},
 
-		UpdateUserNextAllowedLoginFn: func(ctx context.Context, userID string, nextAllowedLoginTime time.Time, flavour string) error {
+		UpdateUserNextAllowedLoginFn: func(ctx context.Context, userID string, nextAllowedLoginTime time.Time, flavour feedlib.Flavour) error {
 			return nil
+		},
+
+		UpdateStaffUserFn: func(ctx context.Context, userID string, user *dto.UserInput, staff *dto.StaffProfileInput) (bool, error) {
+			return true, nil
 		},
 	}
 }
 
-//UpdateUserLastSuccessfulLogin ...
-func (um *UpdateMock) UpdateUserLastSuccessfulLogin(ctx context.Context, userID string, lastLoginTime time.Time, flavour string) error {
+//UpdateUserLastSuccessfulLogin updates users last successful login time
+func (um *UpdateMock) UpdateUserLastSuccessfulLogin(ctx context.Context, userID string, lastLoginTime time.Time, flavour feedlib.Flavour) error {
 	return um.UpdateUserLastSuccessfulLoginFn(ctx, userID, lastLoginTime, flavour)
 }
 
-// UpdateUserLastFailedLogin ...
-func (um *UpdateMock) UpdateUserLastFailedLogin(ctx context.Context, userID string, lastFailedLoginTime time.Time, flavour string) error {
+// UpdateUserLastFailedLogin updates the users last failed login time
+func (um *UpdateMock) UpdateUserLastFailedLogin(ctx context.Context, userID string, lastFailedLoginTime time.Time, flavour feedlib.Flavour) error {
 	return um.UpdateUserLastFailedLoginFn(ctx, userID, lastFailedLoginTime, flavour)
 }
 
-// UpdateUserFailedLoginCount ...
-func (um *UpdateMock) UpdateUserFailedLoginCount(ctx context.Context, userID string, failedLoginCount string, flavour string) error {
+// UpdateUserFailedLoginCount updates the users failed login count
+func (um *UpdateMock) UpdateUserFailedLoginCount(ctx context.Context, userID string, failedLoginCount string, flavour feedlib.Flavour) error {
 	return um.UpdateUserFailedLoginCountFn(ctx, userID, failedLoginCount, flavour)
 }
 
-// UpdateUserNextAllowedLogin ...
-func (um *UpdateMock) UpdateUserNextAllowedLogin(ctx context.Context, userID string, nextAllowedLoginTime time.Time, flavour string) error {
+// UpdateUserNextAllowedLogin updates the user's next allowed login time
+func (um *UpdateMock) UpdateUserNextAllowedLogin(ctx context.Context, userID string, nextAllowedLoginTime time.Time, flavour feedlib.Flavour) error {
 	return um.UpdateUserNextAllowedLoginFn(ctx, userID, nextAllowedLoginTime, flavour)
+}
+
+// UpdateStaffUserProfile mocks the implementation of  UpdateStaffUserProfile method.
+func (um *UpdateMock) UpdateStaffUserProfile(ctx context.Context, userID string, user *dto.UserInput, staff *dto.StaffProfileInput) (bool, error) {
+	return um.UpdateStaffUserFn(ctx, userID, user, staff)
 }
 
 // DeleteMock ....
