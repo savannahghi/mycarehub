@@ -236,7 +236,7 @@ func TestOnboardingDb_SetUserPIN(t *testing.T) {
 	}
 }
 
-func TestOnboardingDb_RegisterStaffUser(t *testing.T) {
+func TestOnboardingDb_GetOrCreateStaffUser(t *testing.T) {
 	ctx := context.Background()
 
 	testFacilityID := uuid.New().String()
@@ -332,7 +332,7 @@ func TestOnboardingDb_RegisterStaffUser(t *testing.T) {
 						Description: "test description",
 					}, nil
 				}
-				fakeGorm.RegisterStaffUserFn = func(ctx context.Context, user *gorm.User, staff *gorm.StaffProfile) (*gorm.StaffUserProfile, error) {
+				fakeGorm.GetOrCreateStaffUserserFn = func(ctx context.Context, user *gorm.User, staff *gorm.StaffProfile) (*gorm.StaffUserProfile, error) {
 					contact := gorm.Contact{
 						ContactID: &testID,
 						Type:      enums.PhoneContact,
@@ -384,14 +384,14 @@ func TestOnboardingDb_RegisterStaffUser(t *testing.T) {
 			}
 
 			if tt.name == "invalid: missing facility" {
-				fakeGorm.RegisterStaffUserFn = func(ctx context.Context, user *gorm.User, staff *gorm.StaffProfile) (*gorm.StaffUserProfile, error) {
+				fakeGorm.GetOrCreateStaffUserserFn = func(ctx context.Context, user *gorm.User, staff *gorm.StaffProfile) (*gorm.StaffUserProfile, error) {
 					return nil, fmt.Errorf("test error")
 				}
 			}
 
-			_, err := d.RegisterStaffUser(tt.args.ctx, tt.args.user, tt.args.staff)
+			_, err := d.GetOrCreateStaffUser(tt.args.ctx, tt.args.user, tt.args.staff)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("OnboardingDb.RegisterStaffUser() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("OnboardingDb.GetOrCreateStaffUser() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 		})

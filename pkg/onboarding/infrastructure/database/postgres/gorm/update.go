@@ -69,15 +69,15 @@ func (db *PGInstance) UpdateUserNextAllowedLogin(ctx context.Context, userID str
 
 // UpdateStaffUserProfile updates the staff user
 func (db *PGInstance) UpdateStaffUserProfile(ctx context.Context, userID string, user *User, staff *StaffProfile) (bool, error) {
-	userProfile, err := db.GetUserProfileByUserID(ctx, userID, user.Flavour)
-	if err != nil {
-		return false, fmt.Errorf("unable to get user profile by userID: %v", err)
-	}
 
-	staffProfile, err := db.GetStaffProfile(ctx, staff.StaffNumber)
+	staffProfileUser, err := db.GetStaffProfileByStaffNumber(ctx, staff.StaffNumber)
 	if err != nil {
 		return false, fmt.Errorf("unable to get staff profile by staff number: %v", err)
 	}
+
+	userProfile := staffProfileUser.User
+
+	staffProfile := staffProfileUser.Staff
 
 	// Initialize a database transaction
 	tx := db.DB.Begin()

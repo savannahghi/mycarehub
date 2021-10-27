@@ -109,7 +109,7 @@ func TestUseCasesUserImpl_Login_Integration_Test(t *testing.T) {
 	}
 
 	// Register user
-	staffUserProfile, err := i.StaffUsecase.RegisterStaffUser(ctx, userInput, staffInput)
+	staffUserProfile, err := i.StaffUsecase.GetOrCreateStaffUser(ctx, userInput, staffInput)
 	assert.Nil(t, err)
 	assert.NotNil(t, staffUserProfile)
 

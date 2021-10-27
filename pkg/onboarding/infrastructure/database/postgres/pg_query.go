@@ -90,18 +90,27 @@ func (d *OnboardingDb) GetUserPINByUserID(ctx context.Context, userID string) (*
 func (d *OnboardingDb) GetClientProfileByClientID(ctx context.Context, clientID string) (*domain.ClientProfile, error) {
 	client, err := d.query.GetClientProfileByClientID(ctx, clientID)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get client profile by client ID %v: %v", clientID, err)
 	}
 
 	return d.mapClientObjectToDomain(client), err
 }
 
-// GetStaffProfile retrieves a staff profile using the staff number
-func (d *OnboardingDb) GetStaffProfile(ctx context.Context, staffNumber string) (*domain.StaffProfile, error) {
-	staff, err := d.query.GetStaffProfile(ctx, staffNumber)
+// GetStaffProfileByStaffID retrieves a staff profile by staffProfileID
+func (d *OnboardingDb) GetStaffProfileByStaffID(ctx context.Context, staffProfileID string) (*domain.StaffUserProfile, error) {
+	staffUserObject, err := d.query.GetStaffProfileByStaffID(ctx, staffProfileID)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get StaffProfile by staffProfileID %v: %v", staffProfileID, err)
 	}
+	return d.mapStaffProfileUserObjectToDomain(staffUserObject), nil
 
-	return d.mapStaffObjectToDomain(staff), err
+}
+
+// GetStaffProfileByStaffNumber retrieves a staff profile by staffNumber
+func (d *OnboardingDb) GetStaffProfileByStaffNumber(ctx context.Context, staffNumber string) (*domain.StaffUserProfile, error) {
+	staffUserObject, err := d.query.GetStaffProfileByStaffNumber(ctx, staffNumber)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get StaffProfile by staffNumber %v: %v", staffNumber, err)
+	}
+	return d.mapStaffProfileUserObjectToDomain(staffUserObject), nil
 }

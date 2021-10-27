@@ -10,8 +10,8 @@ import (
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/domain"
 )
 
-func (r *mutationResolver) RegisterStaffUser(ctx context.Context, userInput dto.UserInput, staffInput dto.StaffProfileInput) (*domain.StaffUserProfile, error) {
-	return r.interactor.StaffUsecase.RegisterStaffUser(ctx, &userInput, &staffInput)
+func (r *mutationResolver) GetOrCreateStaffUser(ctx context.Context, userInput dto.UserInput, staffInput dto.StaffProfileInput) (*domain.StaffUserProfile, error) {
+	return r.interactor.StaffUsecase.GetOrCreateStaffUser(ctx, &userInput, &staffInput)
 }
 
 func (r *mutationResolver) UpdateStaffUserProfile(ctx context.Context, userID string, userInput *dto.UserInput, staffInput *dto.StaffProfileInput) (bool, error) {

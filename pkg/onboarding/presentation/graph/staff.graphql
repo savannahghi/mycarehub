@@ -1,4 +1,4 @@
 extend type Mutation {
-    registerStaffUser(userInput: UserInput!, staffInput: StaffProfileInput!) :StaffUserProfile
+    getOrCreateStaffUser(userInput: UserInput!, staffInput: StaffProfileInput!) :StaffUserProfile
     updateStaffUserProfile(userID: String!, userInput: UserInput, staffInput: StaffProfileInput): Boolean!
 }

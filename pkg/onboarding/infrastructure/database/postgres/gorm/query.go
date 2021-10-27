@@ -17,7 +17,8 @@ type Query interface {
 	GetUserProfileByUserID(ctx context.Context, userID string, flavour feedlib.Flavour) (*User, error)
 	GetUserPINByUserID(ctx context.Context, userID string) (*PINData, error)
 	GetClientProfileByClientID(ctx context.Context, clientID string) (*ClientProfile, error)
-	GetStaffProfile(ctx context.Context, staffNumber string) (*StaffProfile, error)
+	GetStaffProfileByStaffID(ctx context.Context, staffProfileID string) (*StaffUserProfile, error)
+	GetStaffProfileByStaffNumber(ctx context.Context, staffNumber string) (*StaffUserProfile, error)
 }
 
 // RetrieveFacility fetches a single facility
@@ -75,18 +76,41 @@ func (db *PGInstance) GetFacilities(ctx context.Context) ([]Facility, error) {
 func (db *PGInstance) GetClientProfileByClientID(ctx context.Context, clientID string) (*ClientProfile, error) {
 	var client ClientProfile
 	if err := db.DB.Where(&ClientProfile{ID: &clientID}).First(&client).Error; err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get client profile by client ID %v: %v", clientID, err)
 	}
 
 	return &client, nil
 }
 
-// GetStaffProfile retrieves a client profile by ID
-func (db *PGInstance) GetStaffProfile(ctx context.Context, staffNumber string) (*StaffProfile, error) {
+// GetStaffProfileByStaffID retrieves a staff profile by staffProfileID
+func (db *PGInstance) GetStaffProfileByStaffID(ctx context.Context, staffProfileID string) (*StaffUserProfile, error) {
 	var staff StaffProfile
-	if err := db.DB.Where(&StaffProfile{StaffNumber: staffNumber}).First(&staff).Error; err != nil {
-		return nil, err
+	var user User
+	if err := db.DB.Where(&StaffProfile{StaffProfileID: &staffProfileID}).Preload("Addresses").First(&staff).Error; err != nil {
+		return nil, fmt.Errorf("failed to get a staff profile by ID %v : %v", &staffProfileID, err)
 	}
+	if err := db.DB.Where(&User{UserID: staff.UserID}).Preload("Contacts").First(&user).Error; err != nil {
+		return nil, fmt.Errorf("failed to get a staff user: %v", err)
+	}
+	return &StaffUserProfile{
+		User:  &user,
+		Staff: &staff,
+	}, nil
 
-	return &staff, nil
+}
+
+// GetStaffProfileByStaffNumber retrieves a staff profile by staffNumber
+func (db *PGInstance) GetStaffProfileByStaffNumber(ctx context.Context, staffNumber string) (*StaffUserProfile, error) {
+	var staff StaffProfile
+	var user User
+	if err := db.DB.Where(&StaffProfile{StaffNumber: staffNumber}).Preload("Addresses").First(&staff).Error; err != nil {
+		return nil, fmt.Errorf("failed to get a staff profile by ID %v : %v", staffNumber, err)
+	}
+	if err := db.DB.Where(&User{UserID: staff.UserID}).Preload("Contacts").First(&user).Error; err != nil {
+		return nil, fmt.Errorf("failed to get a staff user: %v", err)
+	}
+	return &StaffUserProfile{
+		User:  &user,
+		Staff: &staff,
+	}, nil
 }

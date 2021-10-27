@@ -2,6 +2,8 @@ package staff
 
 import (
 	"context"
+	"fmt"
+	"strings"
 
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/application/dto"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/domain"
@@ -14,7 +16,7 @@ type IRegisterStaffUser interface {
 	//		validation: ensure the staff profile has at least one facility
 	//		ensure that the default facility is one of these
 	// TODO: ensure the user exists...userID in profile
-	RegisterStaffUser(ctx context.Context, user *dto.UserInput, staff *dto.StaffProfileInput) (*domain.StaffUserProfile, error)
+	GetOrCreateStaffUser(ctx context.Context, user *dto.UserInput, staff *dto.StaffProfileInput) (*domain.StaffUserProfile, error)
 }
 
 // IUpdateStaffUser contains staff update methods
@@ -63,9 +65,26 @@ func NewUsecasesStaffProfileImpl(infra infrastructure.Interactor) *UsecasesStaff
 	}
 }
 
-// RegisterStaffUser returns a staff profile
-func (u *UsecasesStaffProfileImpl) RegisterStaffUser(ctx context.Context, user *dto.UserInput, staff *dto.StaffProfileInput) (*domain.StaffUserProfile, error) {
-	return u.Infrastructure.RegisterStaffUser(ctx, user, staff)
+// GetOrCreateStaffUser returns a staff profile
+func (u *UsecasesStaffProfileImpl) GetOrCreateStaffUser(ctx context.Context, user *dto.UserInput, staff *dto.StaffProfileInput) (*domain.StaffUserProfile, error) {
+	// Try creating a facility
+	staffProfile, err := u.Infrastructure.GetOrCreateStaffUser(ctx, user, staff)
+	if err != nil {
+		contactKeyConstraintError := strings.Contains(err.Error(), "duplicate key value violates unique constraint \"contact_contact_key\"")
+		staffNumberConsraintError := strings.Contains(err.Error(), "duplicate key value violates unique constraint \"staffprofile_staff_number_key\"")
+		// if we find a duplicate staff number get the staff
+		if staffNumberConsraintError || contactKeyConstraintError {
+			staffProfileSession, err := u.Infrastructure.GetStaffProfileByStaffNumber(ctx, staff.StaffNumber)
+			if err != nil {
+				return nil, fmt.Errorf("failed query staff by staff number: %v", err)
+			}
+			return staffProfileSession, nil
+		}
+
+		return nil, fmt.Errorf("failed to get or create staff user profile: %v", err)
+	}
+
+	return staffProfile, nil
 }
 
 // UpdateStaffUserProfile updates a staff profile

@@ -183,12 +183,12 @@ type ComplexityRoot struct {
 		DeleteRole                    func(childComplexity int, roleID string) int
 		DeregisterAllMicroservices    func(childComplexity int) int
 		DeregisterMicroservice        func(childComplexity int, id string) int
+		GetOrCreateStaffUser          func(childComplexity int, userInput dto1.UserInput, staffInput dto1.StaffProfileInput) int
 		InviteClient                  func(childComplexity int, userID string, flavour feedlib.Flavour) int
 		RecordPostVisitSurvey         func(childComplexity int, input dto.PostVisitSurveyInput) int
 		RegisterClientUser            func(childComplexity int, userInput dto1.UserInput, clientInput dto1.ClientProfileInput) int
 		RegisterMicroservice          func(childComplexity int, input domain.Microservice) int
 		RegisterPushToken             func(childComplexity int, token string) int
-		RegisterStaffUser             func(childComplexity int, userInput dto1.UserInput, staffInput dto1.StaffProfileInput) int
 		RetireSecondaryEmailAddresses func(childComplexity int, emails []string) int
 		RetireSecondaryPhoneNumbers   func(childComplexity int, phones []string) int
 		RevokeRole                    func(childComplexity int, userID string, roleID string, reason string) int
@@ -386,7 +386,7 @@ type MutationResolver interface {
 	DeleteFacility(ctx context.Context, id string) (bool, error)
 	SetUserPin(ctx context.Context, input *dto1.PinInput) (bool, error)
 	TestMutation(ctx context.Context) (*bool, error)
-	RegisterStaffUser(ctx context.Context, userInput dto1.UserInput, staffInput dto1.StaffProfileInput) (*domain1.StaffUserProfile, error)
+	GetOrCreateStaffUser(ctx context.Context, userInput dto1.UserInput, staffInput dto1.StaffProfileInput) (*domain1.StaffUserProfile, error)
 	UpdateStaffUserProfile(ctx context.Context, userID string, userInput *dto1.UserInput, staffInput *dto1.StaffProfileInput) (bool, error)
 	CompleteSignup(ctx context.Context, flavour feedlib.Flavour) (bool, error)
 	UpdateUserProfile(ctx context.Context, input dto.UserProfileInput) (*profileutils.UserProfile, error)
@@ -1145,6 +1145,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.DeregisterMicroservice(childComplexity, args["id"].(string)), true
 
+	case "Mutation.getOrCreateStaffUser":
+		if e.complexity.Mutation.GetOrCreateStaffUser == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_getOrCreateStaffUser_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.GetOrCreateStaffUser(childComplexity, args["userInput"].(dto1.UserInput), args["staffInput"].(dto1.StaffProfileInput)), true
+
 	case "Mutation.inviteClient":
 		if e.complexity.Mutation.InviteClient == nil {
 			break
@@ -1204,18 +1216,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.RegisterPushToken(childComplexity, args["token"].(string)), true
-
-	case "Mutation.registerStaffUser":
-		if e.complexity.Mutation.RegisterStaffUser == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_registerStaffUser_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.RegisterStaffUser(childComplexity, args["userInput"].(dto1.UserInput), args["staffInput"].(dto1.StaffProfileInput)), true
 
 	case "Mutation.retireSecondaryEmailAddresses":
 		if e.complexity.Mutation.RetireSecondaryEmailAddresses == nil {
@@ -2500,7 +2500,7 @@ extend type Mutation {
 }
 `, BuiltIn: false},
 	{Name: "pkg/onboarding/presentation/graph/staff.graphql", Input: `extend type Mutation {
-    registerStaffUser(userInput: UserInput!, staffInput: StaffProfileInput!) :StaffUserProfile
+    getOrCreateStaffUser(userInput: UserInput!, staffInput: StaffProfileInput!) :StaffUserProfile
     updateStaffUserProfile(userID: String!, userInput: UserInput, staffInput: StaffProfileInput): Boolean!
 }`, BuiltIn: false},
 	{Name: "pkg/onboarding/presentation/graph/types.graphql", Input: `type Facility {
@@ -3426,6 +3426,30 @@ func (ec *executionContext) field_Mutation_deregisterMicroservice_args(ctx conte
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_getOrCreateStaffUser_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 dto1.UserInput
+	if tmp, ok := rawArgs["userInput"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userInput"))
+		arg0, err = ec.unmarshalNUserInput2githubᚗcomᚋsavannahghiᚋonboardingᚑserviceᚋpkgᚋonboardingᚋapplicationᚋdtoᚐUserInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["userInput"] = arg0
+	var arg1 dto1.StaffProfileInput
+	if tmp, ok := rawArgs["staffInput"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("staffInput"))
+		arg1, err = ec.unmarshalNStaffProfileInput2githubᚗcomᚋsavannahghiᚋonboardingᚑserviceᚋpkgᚋonboardingᚋapplicationᚋdtoᚐStaffProfileInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["staffInput"] = arg1
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_inviteClient_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -3516,30 +3540,6 @@ func (ec *executionContext) field_Mutation_registerPushToken_args(ctx context.Co
 		}
 	}
 	args["token"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_registerStaffUser_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 dto1.UserInput
-	if tmp, ok := rawArgs["userInput"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userInput"))
-		arg0, err = ec.unmarshalNUserInput2githubᚗcomᚋsavannahghiᚋonboardingᚑserviceᚋpkgᚋonboardingᚋapplicationᚋdtoᚐUserInput(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["userInput"] = arg0
-	var arg1 dto1.StaffProfileInput
-	if tmp, ok := rawArgs["staffInput"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("staffInput"))
-		arg1, err = ec.unmarshalNStaffProfileInput2githubᚗcomᚋsavannahghiᚋonboardingᚑserviceᚋpkgᚋonboardingᚋapplicationᚋdtoᚐStaffProfileInput(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["staffInput"] = arg1
 	return args, nil
 }
 
@@ -6724,7 +6724,7 @@ func (ec *executionContext) _Mutation_testMutation(ctx context.Context, field gr
 	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Mutation_registerStaffUser(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _Mutation_getOrCreateStaffUser(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -6741,7 +6741,7 @@ func (ec *executionContext) _Mutation_registerStaffUser(ctx context.Context, fie
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_registerStaffUser_args(ctx, rawArgs)
+	args, err := ec.field_Mutation_getOrCreateStaffUser_args(ctx, rawArgs)
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
@@ -6749,7 +6749,7 @@ func (ec *executionContext) _Mutation_registerStaffUser(ctx context.Context, fie
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().RegisterStaffUser(rctx, args["userInput"].(dto1.UserInput), args["staffInput"].(dto1.StaffProfileInput))
+		return ec.resolvers.Mutation().GetOrCreateStaffUser(rctx, args["userInput"].(dto1.UserInput), args["staffInput"].(dto1.StaffProfileInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -14387,8 +14387,8 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			}
 		case "testMutation":
 			out.Values[i] = ec._Mutation_testMutation(ctx, field)
-		case "registerStaffUser":
-			out.Values[i] = ec._Mutation_registerStaffUser(ctx, field)
+		case "getOrCreateStaffUser":
+			out.Values[i] = ec._Mutation_getOrCreateStaffUser(ctx, field)
 		case "updateStaffUserProfile":
 			out.Values[i] = ec._Mutation_updateStaffUserProfile(ctx, field)
 			if out.Values[i] == graphql.Null {

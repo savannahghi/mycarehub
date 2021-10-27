@@ -18,20 +18,22 @@ import (
 //
 // This mock struct should be separate from our own internal methods.
 type GormMock struct {
-	GetOrCreateFacilityFn        func(ctx context.Context, facility *gorm.Facility) (*gorm.Facility, error)
-	RetrieveFacilityFn           func(ctx context.Context, id *string, isActive bool) (*gorm.Facility, error)
-	RetrieveFacilityByMFLCodeFn  func(ctx context.Context, MFLCode string, isActive bool) (*gorm.Facility, error)
-	GetFacilitiesFn              func(ctx context.Context) ([]gorm.Facility, error)
-	DeleteFacilityFn             func(ctx context.Context, mfl_code string) (bool, error)
-	CollectMetricsFn             func(ctx context.Context, metrics *gorm.Metric) (*gorm.Metric, error)
-	SavePinFn                    func(ctx context.Context, pinData *gorm.PINData) (bool, error)
-	GetUserPINByUserIDFn         func(ctx context.Context, userID string) (*gorm.PINData, error)
-	GetUserProfileByUserIDFn     func(ctx context.Context, userID string, flavour feedlib.Flavour) (*gorm.User, error)
-	RegisterStaffUserFn          func(ctx context.Context, user *gorm.User, staff *gorm.StaffProfile) (*gorm.StaffUserProfile, error)
-	RegisterClientFn             func(ctx context.Context, userInput *gorm.User, clientInput *gorm.ClientProfile) (*gorm.ClientUserProfile, error)
-	AddIdentifierFn              func(ctx context.Context, identifier *gorm.Identifier) (*gorm.Identifier, error)
-	GetClientProfileByClientIDFn func(ctx context.Context, clientID string) (*gorm.ClientProfile, error)
-	GetStaffProfileFn            func(ctx context.Context, staffNumber string) (*gorm.StaffProfile, error)
+	GetOrCreateFacilityFn          func(ctx context.Context, facility *gorm.Facility) (*gorm.Facility, error)
+	RetrieveFacilityFn             func(ctx context.Context, id *string, isActive bool) (*gorm.Facility, error)
+	RetrieveFacilityByMFLCodeFn    func(ctx context.Context, MFLCode string, isActive bool) (*gorm.Facility, error)
+	GetFacilitiesFn                func(ctx context.Context) ([]gorm.Facility, error)
+	DeleteFacilityFn               func(ctx context.Context, mfl_code string) (bool, error)
+	CollectMetricsFn               func(ctx context.Context, metrics *gorm.Metric) (*gorm.Metric, error)
+	SavePinFn                      func(ctx context.Context, pinData *gorm.PINData) (bool, error)
+	GetUserPINByUserIDFn           func(ctx context.Context, userID string) (*gorm.PINData, error)
+	GetUserProfileByUserIDFn       func(ctx context.Context, userID string, flavour feedlib.Flavour) (*gorm.User, error)
+	GetOrCreateStaffUserserFn      func(ctx context.Context, user *gorm.User, staff *gorm.StaffProfile) (*gorm.StaffUserProfile, error)
+	RegisterClientFn               func(ctx context.Context, userInput *gorm.User, clientInput *gorm.ClientProfile) (*gorm.ClientUserProfile, error)
+	AddIdentifierFn                func(ctx context.Context, identifier *gorm.Identifier) (*gorm.Identifier, error)
+	GetClientProfileByClientIDFn   func(ctx context.Context, clientID string) (*gorm.ClientProfile, error)
+	GetStaffProfileFn              func(ctx context.Context, staffNumber string) (*gorm.StaffProfile, error)
+	GetStaffProfileByStaffIDFn     func(ctx context.Context, staffProfileID string) (*gorm.StaffUserProfile, error)
+	GetStaffProfileByStaffNumberFn func(ctx context.Context, staffNumber string) (*gorm.StaffUserProfile, error)
 
 	//Updates
 	UpdateUserLastSuccessfulLoginFn func(ctx context.Context, userID string, lastLoginTime time.Time, flavour feedlib.Flavour) error
@@ -258,7 +260,83 @@ func NewGormMock() *GormMock {
 			return true, nil
 		},
 
-		RegisterStaffUserFn: func(ctx context.Context, user *gorm.User, staff *gorm.StaffProfile) (*gorm.StaffUserProfile, error) {
+		GetOrCreateStaffUserserFn: func(ctx context.Context, user *gorm.User, staff *gorm.StaffProfile) (*gorm.StaffUserProfile, error) {
+			ID := uuid.New().String()
+			testTime := time.Now()
+			return &gorm.StaffUserProfile{
+				User: &gorm.User{
+					UserID:              &ID,
+					Username:            "test",
+					DisplayName:         "test",
+					FirstName:           "test",
+					MiddleName:          "test",
+					LastName:            "test",
+					Active:              true,
+					LastSuccessfulLogin: &testTime,
+					LastFailedLogin:     &testTime,
+					NextAllowedLogin:    &testTime,
+					FailedLoginCount:    "0",
+					TermsAccepted:       true,
+					AcceptedTermsID:     ID,
+				},
+				Staff: &gorm.StaffProfile{
+					StaffProfileID:    &ID,
+					UserID:            &ID,
+					StaffNumber:       "s123",
+					DefaultFacilityID: &ID,
+					Addresses: []*gorm.Addresses{
+						{
+							AddressesID: &ID,
+							Type:        enums.AddressesTypePhysical,
+							Text:        "test",
+							Country:     enums.CountryTypeKenya,
+							PostalCode:  "test code",
+							County:      "test",
+							Active:      true,
+						},
+					},
+				},
+			}, nil
+		},
+		GetStaffProfileByStaffIDFn: func(ctx context.Context, staffProfileID string) (*gorm.StaffUserProfile, error) {
+			ID := uuid.New().String()
+			testTime := time.Now()
+			return &gorm.StaffUserProfile{
+				User: &gorm.User{
+					UserID:              &ID,
+					Username:            "test",
+					DisplayName:         "test",
+					FirstName:           "test",
+					MiddleName:          "test",
+					LastName:            "test",
+					Active:              true,
+					LastSuccessfulLogin: &testTime,
+					LastFailedLogin:     &testTime,
+					NextAllowedLogin:    &testTime,
+					FailedLoginCount:    "0",
+					TermsAccepted:       true,
+					AcceptedTermsID:     ID,
+				},
+				Staff: &gorm.StaffProfile{
+					StaffProfileID:    &ID,
+					UserID:            &ID,
+					StaffNumber:       "s123",
+					DefaultFacilityID: &ID,
+					Addresses: []*gorm.Addresses{
+						{
+							AddressesID: &ID,
+							Type:        enums.AddressesTypePhysical,
+							Text:        "test",
+							Country:     enums.CountryTypeKenya,
+							PostalCode:  "test code",
+							County:      "test",
+							Active:      true,
+						},
+					},
+				},
+			}, nil
+		},
+		GetStaffProfileByStaffNumberFn: func(ctx context.Context, staffNumber string) (*gorm.StaffUserProfile, error) {
 			ID := uuid.New().String()
 			testTime := time.Now()
 			roles := []string{enums.RolesTypeCanInviteClient.String()}
@@ -372,19 +450,14 @@ func (gm *GormMock) UpdateUserNextAllowedLogin(ctx context.Context, userID strin
 	return gm.UpdateUserNextAllowedLoginFn(ctx, userID, nextAllowedLoginTime, flavour)
 }
 
-// RegisterStaffUser mocks the implementation of  RegisterStaffUser method.
-func (gm *GormMock) RegisterStaffUser(ctx context.Context, user *gorm.User, staff *gorm.StaffProfile) (*gorm.StaffUserProfile, error) {
-	return gm.RegisterStaffUserFn(ctx, user, staff)
+// GetOrCreateStaffUser mocks the implementation of  GetOrCreateStaffUser method.
+func (gm *GormMock) GetOrCreateStaffUser(ctx context.Context, user *gorm.User, staff *gorm.StaffProfile) (*gorm.StaffUserProfile, error) {
+	return gm.GetOrCreateStaffUserserFn(ctx, user, staff)
 }
 
 // UpdateStaffUserProfile mocks the implementation of  UpdateStaffUserProfile method.
 func (gm *GormMock) UpdateStaffUserProfile(ctx context.Context, userID string, user *gorm.User, staff *gorm.StaffProfile) (bool, error) {
 	return gm.UpdateStaffUserFn(ctx, userID, user, staff)
-}
-
-// GetStaffProfile mocks the implementation of  GetStaffProfile method.
-func (gm *GormMock) GetStaffProfile(ctx context.Context, staffNumber string) (*gorm.StaffProfile, error) {
-	return gm.GetStaffProfileFn(ctx, staffNumber)
 }
 
 // RegisterClient mocks the implementation of RegisterClient method
@@ -419,4 +492,14 @@ func (gm *GormMock) TransferClient(
 	notes string,
 ) (bool, error) {
 	return gm.TransferClientFn(ctx, clientID, originFacilityID, destinationFacilityID, reason, notes)
+}
+
+// GetStaffProfileByStaffID mocks the  GetStaffProfileByStaffID method.
+func (gm *GormMock) GetStaffProfileByStaffID(ctx context.Context, staffProfileID string) (*gorm.StaffUserProfile, error) {
+	return gm.GetStaffProfileByStaffIDFn(ctx, staffProfileID)
+}
+
+// GetStaffProfileByStaffNumber mocks the  GetStaffProfileByStaffNumber method.
+func (gm *GormMock) GetStaffProfileByStaffNumber(ctx context.Context, staffNumber string) (*gorm.StaffUserProfile, error) {
+	return gm.GetStaffProfileByStaffNumberFn(ctx, staffNumber)
 }

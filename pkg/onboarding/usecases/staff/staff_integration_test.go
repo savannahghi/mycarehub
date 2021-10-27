@@ -20,6 +20,7 @@ func TestUseCaseStaffProfileImpl_RegisterStaffUser(t *testing.T) {
 	ctx := context.Background()
 
 	testFacilityID := uuid.New().String()
+	i := testInteractor
 
 	code := ksuid.New().String()
 	facilityInput := dto.FacilityInput{
@@ -157,54 +158,54 @@ func TestUseCaseStaffProfileImpl_RegisterStaffUser(t *testing.T) {
 	}
 
 	//  invalid: non existent facility assignment
-	useStaffProfile, err := f.RegisterStaffUser(ctx, userInput, staffInputNoFacility)
+	useStaffProfile, err := f.GetOrCreateStaffUser(ctx, userInput, staffInputNoFacility)
 	assert.Nil(t, useStaffProfile)
 	assert.NotNil(t, err)
 
 	//  invalid: non existent country
-	useStaffProfile, err = f.RegisterStaffUser(ctx, userInput, staffInputInvalidCountry)
+	useStaffProfile, err = f.GetOrCreateStaffUser(ctx, userInput, staffInputInvalidCountry)
 	assert.Nil(t, useStaffProfile)
 	assert.NotNil(t, err)
 
 	//  invalid: non existent county
-	useStaffProfile, err = f.RegisterStaffUser(ctx, userInput, staffInputInvalidCounty)
+	useStaffProfile, err = f.GetOrCreateStaffUser(ctx, userInput, staffInputInvalidCounty)
 	assert.Nil(t, useStaffProfile)
 	assert.NotNil(t, err)
 
 	// TODO:add case where county is valid but does not belong to country after another country is available
 
 	//  invalid: non existent facility assignment
-	useStaffProfile, err = f.RegisterStaffUser(ctx, userInput, staffInputNoFacility)
+	useStaffProfile, err = f.GetOrCreateStaffUser(ctx, userInput, staffInputNoFacility)
 	assert.Nil(t, useStaffProfile)
 	assert.NotNil(t, err)
 
-	//  invalid: invalid tole provided
-	useStaffProfile, err = f.RegisterStaffUser(ctx, userInput, staffInputInvalidRole)
+	//  invalid: invalid role provided
+	useStaffProfile, err = f.GetOrCreateStaffUser(ctx, userInput, staffInputInvalidRole)
 	assert.Nil(t, useStaffProfile)
 	assert.NotNil(t, err)
 
 	//valid: create a staff user with valid parameters
-	useStaffProfile, err = f.RegisterStaffUser(ctx, userInput, staffInput)
+	useStaffProfile, err = f.GetOrCreateStaffUser(ctx, userInput, staffInput)
 	assert.Nil(t, err)
 	assert.NotNil(t, useStaffProfile)
 
-	//Invalid: creating a user with duplicate staff number and contact
-	useStaffProfile, err = f.RegisterStaffUser(ctx, userInput, staffInput)
-	assert.Nil(t, useStaffProfile)
-	assert.NotNil(t, err)
+	//Valid: creating a user with duplicate staff number and contact
+	useStaffProfile, err = i.StaffUsecase.GetOrCreateStaffUser(ctx, userInput, staffInput)
+	assert.Nil(t, err)
+	assert.NotNil(t, useStaffProfile)
 
 	//Invalid: creating a user with duplicate staff number (changed contact only)
-	useStaffProfile, err = f.RegisterStaffUser(ctx, userInput2, staffInput)
+	useStaffProfile, err = f.GetOrCreateStaffUser(ctx, userInput2, staffInput)
 	assert.Nil(t, useStaffProfile)
 	assert.NotNil(t, err)
 
 	//Invalid: creating a user with duplicate Contact (changed staff number only)
-	useStaffProfile, err = f.RegisterStaffUser(ctx, userInput, staffInpu2)
+	useStaffProfile, err = f.GetOrCreateStaffUser(ctx, userInput, staffInpu2)
 	assert.Nil(t, useStaffProfile)
 	assert.NotNil(t, err)
 
 	// Valid: saves again if the duplicate Contact and Staff number are rectified
-	useStaffProfile, err = f.RegisterStaffUser(ctx, userInput2, staffInpu2)
+	useStaffProfile, err = f.GetOrCreateStaffUser(ctx, userInput2, staffInpu2)
 	assert.Nil(t, err)
 	assert.NotNil(t, useStaffProfile)
 
@@ -255,9 +256,9 @@ func TestUsecasesStaffProfileImpl_UpdateStaffUser_Integration(t *testing.T) {
 		Flavour:     feedlib.FlavourPro,
 	}
 
-	staffID := ksuid.New().String()
+	StaffNumber := ksuid.New().String()
 	staffInput := &dto.StaffProfileInput{
-		StaffNumber:       staffID,
+		StaffNumber:       StaffNumber,
 		DefaultFacilityID: facility.ID,
 	}
 
@@ -283,7 +284,7 @@ func TestUsecasesStaffProfileImpl_UpdateStaffUser_Integration(t *testing.T) {
 	}
 
 	staffInput2 := &dto.StaffProfileInput{
-		StaffNumber:       staffID,
+		StaffNumber:       StaffNumber,
 		DefaultFacilityID: facility.ID,
 	}
 
@@ -294,7 +295,7 @@ func TestUsecasesStaffProfileImpl_UpdateStaffUser_Integration(t *testing.T) {
 	}
 
 	//valid: create a staff user with valid parameters
-	userStaffProfile, err := f.RegisterStaffUser(ctx, userInput, staffInput)
+	userStaffProfile, err := f.GetOrCreateStaffUser(ctx, userInput, staffInput)
 	assert.Nil(t, err)
 	assert.NotNil(t, userStaffProfile)
 
@@ -303,7 +304,7 @@ func TestUsecasesStaffProfileImpl_UpdateStaffUser_Integration(t *testing.T) {
 	assert.Nil(t, err)
 	assert.NotNil(t, userProfile)
 
-	staffProfile, err5 := f.GetStaffProfile(ctx, staffID)
+	staffProfile, err5 := f.GetStaffProfileByStaffNumber(ctx, StaffNumber)
 	assert.Nil(t, err5)
 	assert.NotNil(t, staffProfile)
 
@@ -316,7 +317,7 @@ func TestUsecasesStaffProfileImpl_UpdateStaffUser_Integration(t *testing.T) {
 	assert.Nil(t, err)
 	assert.NotNil(t, userProfile2)
 
-	staffProfile3, err6 := f.GetStaffProfile(ctx, "staffID")
+	staffProfile3, err6 := f.GetStaffProfileByStaffNumber(ctx, "StaffNumber")
 	assert.NotNil(t, err6)
 	assert.Nil(t, staffProfile3)
 

@@ -3,8 +3,7 @@ package postgres
 import (
 	"strconv"
 
-	"github.com/savannahghi/enumutils"
-	"github.com/savannahghi/onboarding-service/pkg/onboarding/application/enums"
+	"github.com/savannahghi/onboarding-service/pkg/onboarding/application/common/helpers"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/domain"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/infrastructure/database/postgres/gorm"
 )
@@ -54,7 +53,7 @@ func (d *OnboardingDb) mapProfileObjectToDomain(profileObject *gorm.User) *domai
 		return nil
 	}
 
-	user := createMapUser(profileObject)
+	user := helpers.CreateMapUser(profileObject)
 
 	return user
 }
@@ -79,44 +78,17 @@ func (d *OnboardingDb) mapPINObjectToDomain(pinObj *gorm.PINData) *domain.UserPI
 
 // mapUserObjectToDomain maps the db user to a domain model.
 // It searches the database to fetch items specific to the user
-func (d *OnboardingDb) mapRegisterStaffObjectToDomain(userStaffObject *gorm.StaffUserProfile) *domain.StaffUserProfile {
+func (d *OnboardingDb) mapStaffProfileUserObjectToDomain(userStaffObject *gorm.StaffUserProfile) *domain.StaffUserProfile {
 
 	userObject := userStaffObject.User
 	staffObject := userStaffObject.Staff
 
-	user := createMapUser(userObject)
+	user := helpers.CreateMapUser(userObject)
+	staff := helpers.CreateMapStaff(staffObject)
 
-	addresses := []*domain.Addresses{}
-	for _, a := range staffObject.Addresses {
-		address := &domain.Addresses{
-			Type:       a.Type,
-			Text:       a.Text,
-			Country:    a.Country,
-			PostalCode: a.PostalCode,
-			County:     a.County,
-			Active:     a.Active,
-		}
-		addresses = append(addresses, address)
-	}
-
-	roles := []enums.RolesType{}
-	for _, r := range staffObject.Roles {
-		roles = append(roles, enums.RolesType(r))
-
-	}
-
-	staffProfile := &domain.StaffProfile{
-		ID:          staffObject.StaffProfileID,
-		UserID:      userObject.UserID,
-		StaffNumber: staffObject.StaffNumber,
-		// Facilities:        staffObject.Facilities,
-		DefaultFacilityID: staffObject.DefaultFacilityID,
-		Addresses:         addresses,
-		Roles:             roles,
-	}
 	return &domain.StaffUserProfile{
 		User:  user,
-		Staff: staffProfile,
+		Staff: staff,
 	}
 }
 
@@ -125,7 +97,7 @@ func (d *OnboardingDb) mapRegisterClientObjectToDomain(clientObject *gorm.Client
 	userObject := clientObject.User
 	client := clientObject.Client
 
-	user := createMapUser(userObject)
+	user := helpers.CreateMapUser(userObject)
 
 	clientProfile := &domain.ClientProfile{
 		ID:         client.ID,
@@ -137,51 +109,6 @@ func (d *OnboardingDb) mapRegisterClientObjectToDomain(clientObject *gorm.Client
 		User:   user,
 		Client: clientProfile,
 	}
-}
-
-// a helper method to create mapped user
-func createMapUser(userObject *gorm.User) *domain.User {
-	contacts := []*domain.Contact{}
-	if len(userObject.Contacts) > 0 {
-		for _, u := range userObject.Contacts {
-			contact := &domain.Contact{
-				ID:      u.ContactID,
-				Type:    u.Type,
-				Contact: u.Contact,
-				Active:  u.Active,
-				OptedIn: u.OptedIn,
-			}
-			contacts = append(contacts, contact)
-		}
-	}
-
-	languages := []enumutils.Language{}
-	for _, l := range userObject.Languages {
-		languages = append(languages, enumutils.Language(l))
-
-	}
-
-	user := &domain.User{
-		ID:                  userObject.UserID,
-		Username:            userObject.Username,
-		DisplayName:         userObject.DisplayName,
-		FirstName:           userObject.FirstName,
-		MiddleName:          userObject.MiddleName,
-		LastName:            userObject.LastName,
-		Gender:              userObject.Gender,
-		UserType:            userObject.UserType,
-		Contacts:            contacts,
-		Languages:           languages,
-		Active:              userObject.Active,
-		LastSuccessfulLogin: userObject.LastSuccessfulLogin,
-		LastFailedLogin:     userObject.LastFailedLogin,
-		FailedLoginCount:    userObject.FailedLoginCount,
-		NextAllowedLogin:    userObject.NextAllowedLogin,
-		TermsAccepted:       userObject.TermsAccepted,
-		AcceptedTermsID:     userObject.AcceptedTermsID,
-		Flavour:             userObject.Flavour,
-	}
-	return user
 }
 
 // mapIdentifierObjectToDomain maps the identifier object to our domain defined type
@@ -222,36 +149,5 @@ func (d *OnboardingDb) mapClientObjectToDomain(client *gorm.ClientProfile) *doma
 		TreatmentBuddyUserID: client.TreatmentBuddy,
 		CHVUserID:            client.CHVUserID,
 		ClientCounselled:     client.ClientCounselled,
-	}
-}
-
-//mapStaffObjectToDomain maps the staff object to the domain defined type
-func (d *OnboardingDb) mapStaffObjectToDomain(staff *gorm.StaffProfile) *domain.StaffProfile {
-	if staff == nil {
-		return nil
-	}
-
-	addresses := []*domain.Addresses{}
-	if len(staff.Addresses) > 0 {
-		for _, a := range staff.Addresses {
-			address := &domain.Addresses{
-				ID:         *a.AddressesID,
-				Type:       a.Type,
-				Text:       a.Text,
-				Country:    a.Country,
-				PostalCode: a.PostalCode,
-				County:     a.County,
-				Active:     a.Active,
-			}
-			addresses = append(addresses, address)
-		}
-	}
-
-	return &domain.StaffProfile{
-		ID:                staff.StaffProfileID,
-		UserID:            staff.UserID,
-		StaffNumber:       staff.StaffNumber,
-		DefaultFacilityID: staff.DefaultFacilityID,
-		Addresses:         addresses,
 	}
 }

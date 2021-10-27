@@ -17,14 +17,16 @@ import (
 // PostgresMock struct implements mocks of `postgres's` internal methods.
 type PostgresMock struct {
 	//Get
-	GetOrCreateFacilityFn    func(ctx context.Context, facility *dto.FacilityInput) (*domain.Facility, error)
-	GetFacilitiesFn          func(ctx context.Context) ([]*domain.Facility, error)
-	RetrieveFacilityFn       func(ctx context.Context, id *string, isActive bool) (*domain.Facility, error)
-	SetUserPINFn             func(ctx context.Context, pinData *domain.UserPIN) (bool, error)
-	GetUserPINByUserIDFn     func(ctx context.Context, userID string) (*domain.UserPIN, error)
-	GetUserProfileByUserIDFn func(ctx context.Context, userID string, flavour feedlib.Flavour) (*domain.User, error)
-	RegisterStaffUserFn      func(ctx context.Context, user *dto.UserInput, staff *dto.StaffProfileInput) (*domain.StaffUserProfile, error)
-	GetStaffProfileFn        func(ctx context.Context, staffNumber string) (*gorm.StaffProfile, error)
+	GetOrCreateFacilityFn          func(ctx context.Context, facility *dto.FacilityInput) (*domain.Facility, error)
+	GetFacilitiesFn                func(ctx context.Context) ([]*domain.Facility, error)
+	RetrieveFacilityFn             func(ctx context.Context, id *string, isActive bool) (*domain.Facility, error)
+	SetUserPINFn                   func(ctx context.Context, pinData *domain.UserPIN) (bool, error)
+	GetUserPINByUserIDFn           func(ctx context.Context, userID string) (*domain.UserPIN, error)
+	GetUserProfileByUserIDFn       func(ctx context.Context, userID string, flavour feedlib.Flavour) (*domain.User, error)
+	GetOrCreateStaffUserserFn      func(ctx context.Context, user *dto.UserInput, staff *dto.StaffProfileInput) (*domain.StaffUserProfile, error)
+	GetStaffProfileFn              func(ctx context.Context, staffNumber string) (*gorm.StaffProfile, error)
+	GetStaffProfileByStaffIDFn     func(ctx context.Context, staffProfileID string) (*domain.StaffUserProfile, error)
+	GetStaffProfileByStaffNumberFn func(ctx context.Context, staffNumber string) (*domain.StaffUserProfile, error)
 
 	//Updates
 	UpdateUserLastSuccessfulLoginFn func(ctx context.Context, userID string, lastLoginTime time.Time, flavour feedlib.Flavour) error
@@ -182,7 +184,83 @@ func NewPostgresMock() *PostgresMock {
 			return true, nil
 		},
 
-		RegisterStaffUserFn: func(ctx context.Context, user *dto.UserInput, staff *dto.StaffProfileInput) (*domain.StaffUserProfile, error) {
+		GetOrCreateStaffUserserFn: func(ctx context.Context, user *dto.UserInput, staff *dto.StaffProfileInput) (*domain.StaffUserProfile, error) {
+			ID := uuid.New().String()
+			testTime := time.Now()
+			return &domain.StaffUserProfile{
+				User: &domain.User{
+					ID:                  &ID,
+					Username:            "test",
+					DisplayName:         "test",
+					FirstName:           "test",
+					MiddleName:          "test",
+					LastName:            "test",
+					Active:              true,
+					LastSuccessfulLogin: &testTime,
+					LastFailedLogin:     &testTime,
+					NextAllowedLogin:    &testTime,
+					FailedLoginCount:    "0",
+					TermsAccepted:       true,
+					AcceptedTermsID:     ID,
+				},
+				Staff: &domain.StaffProfile{
+					ID:                &ID,
+					UserID:            &ID,
+					StaffNumber:       "s123",
+					DefaultFacilityID: &ID,
+					Addresses: []*domain.Addresses{
+						{
+							ID:         ID,
+							Type:       enums.AddressesTypePhysical,
+							Text:       "test",
+							Country:    enums.CountryTypeKenya,
+							PostalCode: "test code",
+							County:     enums.CountyTypeBaringo,
+							Active:     true,
+						},
+					},
+				},
+			}, nil
+		},
+		GetStaffProfileByStaffIDFn: func(ctx context.Context, staffProfileID string) (*domain.StaffUserProfile, error) {
+			ID := uuid.New().String()
+			testTime := time.Now()
+			return &domain.StaffUserProfile{
+				User: &domain.User{
+					ID:                  &ID,
+					Username:            "test",
+					DisplayName:         "test",
+					FirstName:           "test",
+					MiddleName:          "test",
+					LastName:            "test",
+					Active:              true,
+					LastSuccessfulLogin: &testTime,
+					LastFailedLogin:     &testTime,
+					NextAllowedLogin:    &testTime,
+					FailedLoginCount:    "0",
+					TermsAccepted:       true,
+					AcceptedTermsID:     ID,
+				},
+				Staff: &domain.StaffProfile{
+					ID:                &ID,
+					UserID:            &ID,
+					StaffNumber:       "s123",
+					DefaultFacilityID: &ID,
+					Addresses: []*domain.Addresses{
+						{
+							ID:         ID,
+							Type:       enums.AddressesTypePhysical,
+							Text:       "test",
+							Country:    enums.CountryTypeKenya,
+							PostalCode: "test code",
+							County:     enums.CountyTypeBaringo,
+							Active:     true,
+						},
+					},
+				},
+			}, nil
+		},
+		GetStaffProfileByStaffNumberFn: func(ctx context.Context, staffNumber string) (*domain.StaffUserProfile, error) {
 			ID := uuid.New().String()
 			testTime := time.Now()
 			roles := []enums.RolesType{enums.RolesTypeCanInviteClient}
@@ -281,9 +359,19 @@ func (gm *PostgresMock) UpdateStaffUserProfile(ctx context.Context, userID strin
 	return gm.UpdateStaffUserFn(ctx, userID, user, staff)
 }
 
-// RegisterStaffUser mocks the implementation of `gorm's` RegisterStaffUser method.
-func (gm *PostgresMock) RegisterStaffUser(ctx context.Context, user *dto.UserInput, staff *dto.StaffProfileInput) (*domain.StaffUserProfile, error) {
-	return gm.RegisterStaffUserFn(ctx, user, staff)
+// GetOrCreateStaffUser mocks the implementation of `gorm's` GetOrCreateStaffUser method.
+func (gm *PostgresMock) GetOrCreateStaffUser(ctx context.Context, user *dto.UserInput, staff *dto.StaffProfileInput) (*domain.StaffUserProfile, error) {
+	return gm.GetOrCreateStaffUserserFn(ctx, user, staff)
+}
+
+// GetStaffProfileByStaffID mocks the implementation of `gorm's` GetStaffProfileByStaffID method.
+func (gm *PostgresMock) GetStaffProfileByStaffID(ctx context.Context, staffProfileID string) (*domain.StaffUserProfile, error) {
+	return gm.GetStaffProfileByStaffIDFn(ctx, staffProfileID)
+}
+
+// GetStaffProfileByStaffNumber mocks the implementation of `gorm's` GetStaffProfileByStaffNumber method.
+func (gm *PostgresMock) GetStaffProfileByStaffNumber(ctx context.Context, staffNumber string) (*domain.StaffUserProfile, error) {
+	return gm.GetStaffProfileByStaffNumberFn(ctx, staffNumber)
 }
 
 // TransferClient mocks the implementation of  TransferClient method

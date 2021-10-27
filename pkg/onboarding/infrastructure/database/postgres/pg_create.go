@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/lib/pq"
+	"github.com/savannahghi/onboarding-service/pkg/onboarding/application/common/helpers"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/application/dto"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/application/enums"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/domain"
@@ -86,57 +86,26 @@ func (d *OnboardingDb) CollectMetrics(ctx context.Context, metric *dto.MetricInp
 	return d.mapMetricObjectToDomain(metricSession), nil
 }
 
-// RegisterStaffUser creates both the user profile and the staff profile.
-func (d *OnboardingDb) RegisterStaffUser(ctx context.Context, user *dto.UserInput, staff *dto.StaffProfileInput) (*domain.StaffUserProfile, error) {
+// GetOrCreateStaffUser creates both the user profile and the staff profile.
+func (d *OnboardingDb) GetOrCreateStaffUser(ctx context.Context, user *dto.UserInput, staff *dto.StaffProfileInput) (*domain.StaffUserProfile, error) {
 	if staff.DefaultFacilityID == nil {
 		return nil, fmt.Errorf("expected default facility ID to be provided")
 	}
 
-	userObject := createUserObject(user)
+	userObject := helpers.CreateUserObject(user)
 
-	addresses := []*gorm.Addresses{}
-	if len(staff.Addresses) > 0 {
-		for _, a := range staff.Addresses {
-			// ensure counties belong to a country
-			err := enums.ValidateCountiesOfCountries(enums.CountryType(a.Country), enums.CountyType(a.County))
-			if err != nil {
-				return nil, fmt.Errorf("failed to validate %v county belongs to %v: %v", a.County, a.Country, err)
-			}
-			address := &gorm.Addresses{
-				Type:       a.Type,
-				Text:       a.Text,
-				Country:    a.Country,
-				PostalCode: a.PostalCode,
-				County:     a.County,
-				Active:     a.Active,
-			}
-			addresses = append(addresses, address)
-		}
+	staffObject, err := helpers.CreateStaffObject(staff)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create staff object: %v", err)
 	}
 
-	roles := []string{}
-	for _, r := range staff.Roles {
-		if !r.IsValid() {
-			return nil, fmt.Errorf("role %s is not valid", r)
-		}
-
-		roles = append(roles, r.String())
-	}
-
-	staffObject := &gorm.StaffProfile{
-		StaffNumber:       staff.StaffNumber,
-		DefaultFacilityID: staff.DefaultFacilityID,
-		Addresses:         addresses,
-		Roles:             roles,
-	}
-
-	userStaffProfile, err := d.create.RegisterStaffUser(ctx, userObject, staffObject)
+	userStaffProfile, err := d.create.GetOrCreateStaffUser(ctx, userObject, staffObject)
 	if err != nil {
 
-		return nil, fmt.Errorf("failed to create user session %v", err)
+		return nil, fmt.Errorf("failed to create staff user session: %v", err)
 	}
 
-	return d.mapRegisterStaffObjectToDomain(userStaffProfile), nil
+	return d.mapStaffProfileUserObjectToDomain(userStaffProfile), nil
 
 }
 
@@ -179,7 +148,7 @@ func (d *OnboardingDb) RegisterClient(
 		return nil, fmt.Errorf("expected user input to be provided")
 	}
 
-	userObject := createUserObject(userInput)
+	userObject := helpers.CreateUserObject(userInput)
 
 	clientObject := &gorm.ClientProfile{
 		ClientType: clientInput.ClientType,
@@ -191,39 +160,4 @@ func (d *OnboardingDb) RegisterClient(
 	}
 
 	return d.mapRegisterClientObjectToDomain(clientUserProfile), nil
-}
-
-// A helper method to create a user object
-func createUserObject(user *dto.UserInput) *gorm.User {
-	contacts := []gorm.Contact{}
-	if len(user.Contacts) > 0 {
-		for _, u := range user.Contacts {
-			contact := gorm.Contact{
-				Type:    u.Type,
-				Contact: u.Contact,
-				Active:  u.Active,
-				OptedIn: u.OptedIn,
-			}
-			contacts = append(contacts, contact)
-		}
-	}
-
-	languages := []string{}
-	for _, l := range user.Languages {
-		languages = append(languages, l.String())
-	}
-
-	userObject := &gorm.User{
-		Username:    user.Username,
-		DisplayName: user.DisplayName,
-		FirstName:   user.FirstName,
-		MiddleName:  user.MiddleName,
-		LastName:    user.LastName,
-		Gender:      user.Gender,
-		Contacts:    contacts,
-		UserType:    user.UserType,
-		Languages:   pq.StringArray(languages),
-		Flavour:     user.Flavour,
-	}
-	return userObject
 }

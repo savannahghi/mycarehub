@@ -5,9 +5,14 @@ import (
 	"fmt"
 	"strconv"
 	"testing"
+	"time"
 
 	"github.com/google/uuid"
+	"github.com/lib/pq"
+	"github.com/savannahghi/enumutils"
+	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/application/dto"
+	"github.com/savannahghi/onboarding-service/pkg/onboarding/application/enums"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/domain"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/infrastructure/database/postgres/gorm"
 	gormMock "github.com/savannahghi/onboarding-service/pkg/onboarding/infrastructure/database/postgres/gorm/mock"
@@ -346,6 +351,423 @@ func TestOnboardingDb_GetClientProfileByClientID(t *testing.T) {
 			}
 			if !tt.wantErr && got == nil {
 				t.Errorf("expected a response but got :%v", got)
+			}
+		})
+	}
+}
+
+func TestOnboardingDb_GetStaffProfileByStaffID(t *testing.T) {
+	ctx := context.Background()
+
+	testFacilityID := uuid.New().String()
+	testUserID := uuid.New().String()
+	testTime := time.Now()
+	testID := uuid.New().String()
+	staffProfileID := uuid.New().String()
+
+	type args struct {
+		ctx   context.Context
+		user  *dto.UserInput
+		staff *dto.StaffProfileInput
+	}
+
+	contactInput := &dto.ContactInput{
+		Type:    enums.PhoneContact,
+		Contact: "+254700000000",
+		Active:  true,
+		OptedIn: true,
+	}
+
+	userInput := &dto.UserInput{
+		Username:    "test",
+		DisplayName: "test",
+		FirstName:   "test",
+		MiddleName:  "test",
+		LastName:    "test",
+		Gender:      enumutils.GenderMale,
+		UserType:    enums.HealthcareWorkerUser,
+		Contacts:    []*dto.ContactInput{contactInput},
+		Languages:   []enumutils.Language{enumutils.LanguageEn},
+		Flavour:     feedlib.FlavourPro,
+	}
+
+	staffInput := &dto.StaffProfileInput{
+		StaffNumber:       "s123",
+		DefaultFacilityID: &testFacilityID,
+		Addresses: []*dto.AddressesInput{
+			{
+				Type:       enums.AddressesTypePhysical,
+				Text:       "test",
+				Country:    enums.CountryTypeKenya,
+				PostalCode: "test code",
+				County:     enums.CountyTypeBaringo,
+				Active:     true,
+			},
+		},
+	}
+	staffNoFacilityIDInput := &dto.StaffProfileInput{
+		StaffNumber: "s123",
+	}
+
+	tests := []struct {
+		name    string
+		args    args
+		want    *domain.StaffUserProfile
+		wantErr bool
+	}{
+		{
+			name: "happy case",
+			args: args{
+				ctx:   ctx,
+				user:  userInput,
+				staff: staffInput,
+			},
+			wantErr: false,
+		},
+		{
+			name: "invalid: missing facility",
+			args: args{
+				ctx:   ctx,
+				user:  userInput,
+				staff: staffNoFacilityIDInput,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		var fakeGorm = gormMock.NewGormMock()
+		d := NewOnboardingDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+		t.Run(tt.name, func(t *testing.T) {
+
+			if tt.name == "Happy case" {
+
+				fakeGorm.GetOrCreateFacilityFn = func(ctx context.Context, facility *gorm.Facility) (*gorm.Facility, error) {
+					return &gorm.Facility{
+						FacilityID:  &testFacilityID,
+						Name:        "test",
+						Code:        "f1234",
+						Active:      "true",
+						County:      "test",
+						Description: "test description",
+					}, nil
+				}
+				fakeGorm.GetOrCreateStaffUserserFn = func(ctx context.Context, user *gorm.User, staff *gorm.StaffProfile) (*gorm.StaffUserProfile, error) {
+					contact := gorm.Contact{
+						ContactID: &testID,
+						Type:      enums.PhoneContact,
+						Contact:   "+254700000000",
+						Active:    true,
+						OptedIn:   true,
+					}
+					return &gorm.StaffUserProfile{
+						User: &gorm.User{
+							UserID:              &testUserID,
+							Username:            "test",
+							DisplayName:         "test",
+							FirstName:           "test",
+							MiddleName:          "test",
+							LastName:            "test",
+							Gender:              enumutils.GenderMale,
+							Active:              true,
+							Contacts:            []gorm.Contact{contact},
+							UserType:            enums.HealthcareWorkerUser,
+							Languages:           pq.StringArray{"EN", "SW"},
+							LastSuccessfulLogin: &testTime,
+							LastFailedLogin:     &testTime,
+							NextAllowedLogin:    &testTime,
+							FailedLoginCount:    "0",
+							TermsAccepted:       true,
+							AcceptedTermsID:     testID,
+							Flavour:             feedlib.FlavourPro,
+						},
+						Staff: &gorm.StaffProfile{
+							StaffProfileID:    &staffProfileID,
+							UserID:            &testUserID,
+							StaffNumber:       "s123",
+							DefaultFacilityID: &testFacilityID,
+							Addresses: []*gorm.Addresses{
+								{
+									AddressesID: &testID,
+									Type:        enums.AddressesTypePhysical,
+									Text:        "test",
+									Country:     enums.CountryTypeKenya,
+									PostalCode:  "test code",
+									County:      enums.CountyTypeBaringo,
+									Active:      true,
+								},
+							},
+						},
+					}, nil
+				}
+				fakeGorm.GetStaffProfileByStaffIDFn = func(ctx context.Context, staffProfileID string) (*gorm.StaffUserProfile, error) {
+					contact := gorm.Contact{
+						ContactID: &testID,
+						Type:      enums.PhoneContact,
+						Contact:   "+254700000000",
+						Active:    true,
+						OptedIn:   true,
+					}
+					return &gorm.StaffUserProfile{
+						User: &gorm.User{
+							UserID:              &testUserID,
+							Username:            "test",
+							DisplayName:         "test",
+							FirstName:           "test",
+							MiddleName:          "test",
+							LastName:            "test",
+							Gender:              enumutils.GenderMale,
+							Active:              true,
+							Contacts:            []gorm.Contact{contact},
+							UserType:            enums.HealthcareWorkerUser,
+							Languages:           pq.StringArray{"EN", "SW"},
+							LastSuccessfulLogin: &testTime,
+							LastFailedLogin:     &testTime,
+							NextAllowedLogin:    &testTime,
+							FailedLoginCount:    "0",
+							TermsAccepted:       true,
+							AcceptedTermsID:     testID,
+							Flavour:             feedlib.FlavourPro,
+						},
+						Staff: &gorm.StaffProfile{
+							StaffProfileID:    &staffProfileID,
+							UserID:            &testUserID,
+							StaffNumber:       "s123",
+							DefaultFacilityID: &testFacilityID,
+							Addresses: []*gorm.Addresses{
+								{
+									AddressesID: &testID,
+									Type:        enums.AddressesTypePhysical,
+									Text:        "test",
+									Country:     enums.CountryTypeKenya,
+									PostalCode:  "test code",
+									County:      enums.CountyTypeBaringo,
+									Active:      true,
+								},
+							},
+						},
+					}, nil
+				}
+			}
+
+			if tt.name == "invalid: missing facility" {
+				fakeGorm.GetOrCreateStaffUserserFn = func(ctx context.Context, user *gorm.User, staff *gorm.StaffProfile) (*gorm.StaffUserProfile, error) {
+					return nil, fmt.Errorf("test error")
+				}
+			}
+
+			_, err := d.GetOrCreateStaffUser(tt.args.ctx, tt.args.user, tt.args.staff)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("OnboardingDb.GetOrCreateStaffUser() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}
+
+func TestOnboardingDb_GetStaffProfileByStaffNumber(t *testing.T) {
+	ctx := context.Background()
+
+	testFacilityID := uuid.New().String()
+	testUserID := uuid.New().String()
+	testTime := time.Now()
+	testID := uuid.New().String()
+	staffProfileID := uuid.New().String()
+	staffNumber := ksuid.New().String()
+
+	type args struct {
+		ctx   context.Context
+		user  *dto.UserInput
+		staff *dto.StaffProfileInput
+	}
+
+	contactInput := &dto.ContactInput{
+		Type:    enums.PhoneContact,
+		Contact: "+254700000000",
+		Active:  true,
+		OptedIn: true,
+	}
+
+	userInput := &dto.UserInput{
+		Username:    "test",
+		DisplayName: "test",
+		FirstName:   "test",
+		MiddleName:  "test",
+		LastName:    "test",
+		Gender:      enumutils.GenderMale,
+		UserType:    enums.HealthcareWorkerUser,
+		Contacts:    []*dto.ContactInput{contactInput},
+		Languages:   []enumutils.Language{enumutils.LanguageEn},
+		Flavour:     feedlib.FlavourPro,
+	}
+
+	staffInput := &dto.StaffProfileInput{
+		StaffNumber:       "s123",
+		DefaultFacilityID: &testFacilityID,
+		Addresses: []*dto.AddressesInput{
+			{
+				Type:       enums.AddressesTypePhysical,
+				Text:       "test",
+				Country:    enums.CountryTypeKenya,
+				PostalCode: "test code",
+				County:     enums.CountyTypeBaringo,
+				Active:     true,
+			},
+		},
+	}
+	staffNoFacilityIDInput := &dto.StaffProfileInput{
+		StaffNumber: "s123",
+	}
+
+	tests := []struct {
+		name    string
+		args    args
+		want    *domain.StaffUserProfile
+		wantErr bool
+	}{
+		{
+			name: "happy case",
+			args: args{
+				ctx:   ctx,
+				user:  userInput,
+				staff: staffInput,
+			},
+			wantErr: false,
+		},
+		{
+			name: "invalid: missing facility",
+			args: args{
+				ctx:   ctx,
+				user:  userInput,
+				staff: staffNoFacilityIDInput,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		var fakeGorm = gormMock.NewGormMock()
+		d := NewOnboardingDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+		t.Run(tt.name, func(t *testing.T) {
+
+			if tt.name == "Happy case" {
+
+				fakeGorm.GetOrCreateFacilityFn = func(ctx context.Context, facility *gorm.Facility) (*gorm.Facility, error) {
+					return &gorm.Facility{
+						FacilityID:  &testFacilityID,
+						Name:        "test",
+						Code:        "f1234",
+						Active:      "true",
+						County:      "test",
+						Description: "test description",
+					}, nil
+				}
+				fakeGorm.GetOrCreateStaffUserserFn = func(ctx context.Context, user *gorm.User, staff *gorm.StaffProfile) (*gorm.StaffUserProfile, error) {
+					contact := gorm.Contact{
+						ContactID: &testID,
+						Type:      enums.PhoneContact,
+						Contact:   "+254700000000",
+						Active:    true,
+						OptedIn:   true,
+					}
+					return &gorm.StaffUserProfile{
+						User: &gorm.User{
+							UserID:              &testUserID,
+							Username:            "test",
+							DisplayName:         "test",
+							FirstName:           "test",
+							MiddleName:          "test",
+							LastName:            "test",
+							Gender:              enumutils.GenderMale,
+							Active:              true,
+							Contacts:            []gorm.Contact{contact},
+							UserType:            enums.HealthcareWorkerUser,
+							Languages:           pq.StringArray{"EN", "SW"},
+							LastSuccessfulLogin: &testTime,
+							LastFailedLogin:     &testTime,
+							NextAllowedLogin:    &testTime,
+							FailedLoginCount:    "0",
+							TermsAccepted:       true,
+							AcceptedTermsID:     testID,
+							Flavour:             feedlib.FlavourPro,
+						},
+						Staff: &gorm.StaffProfile{
+							StaffProfileID:    &staffProfileID,
+							UserID:            &testUserID,
+							StaffNumber:       staffNumber,
+							DefaultFacilityID: &testFacilityID,
+							Addresses: []*gorm.Addresses{
+								{
+									AddressesID: &testID,
+									Type:        enums.AddressesTypePhysical,
+									Text:        "test",
+									Country:     enums.CountryTypeKenya,
+									PostalCode:  "test code",
+									County:      enums.CountyTypeBaringo,
+									Active:      true,
+								},
+							},
+						},
+					}, nil
+				}
+				fakeGorm.GetStaffProfileByStaffIDFn = func(ctx context.Context, staffProfileID string) (*gorm.StaffUserProfile, error) {
+					contact := gorm.Contact{
+						ContactID: &testID,
+						Type:      enums.PhoneContact,
+						Contact:   "+254700000000",
+						Active:    true,
+						OptedIn:   true,
+					}
+					return &gorm.StaffUserProfile{
+						User: &gorm.User{
+							UserID:              &testUserID,
+							Username:            "test",
+							DisplayName:         "test",
+							FirstName:           "test",
+							MiddleName:          "test",
+							LastName:            "test",
+							Gender:              enumutils.GenderMale,
+							Active:              true,
+							Contacts:            []gorm.Contact{contact},
+							UserType:            enums.HealthcareWorkerUser,
+							Languages:           pq.StringArray{"EN", "SW"},
+							LastSuccessfulLogin: &testTime,
+							LastFailedLogin:     &testTime,
+							NextAllowedLogin:    &testTime,
+							FailedLoginCount:    "0",
+							TermsAccepted:       true,
+							AcceptedTermsID:     testID,
+							Flavour:             feedlib.FlavourPro,
+						},
+						Staff: &gorm.StaffProfile{
+							StaffProfileID:    &staffProfileID,
+							UserID:            &testUserID,
+							StaffNumber:       staffNumber,
+							DefaultFacilityID: &testFacilityID,
+							Addresses: []*gorm.Addresses{
+								{
+									AddressesID: &testID,
+									Type:        enums.AddressesTypePhysical,
+									Text:        "test",
+									Country:     enums.CountryTypeKenya,
+									PostalCode:  "test code",
+									County:      enums.CountyTypeBaringo,
+									Active:      true,
+								},
+							},
+						},
+					}, nil
+				}
+			}
+
+			if tt.name == "invalid: missing facility" {
+				fakeGorm.GetOrCreateStaffUserserFn = func(ctx context.Context, user *gorm.User, staff *gorm.StaffProfile) (*gorm.StaffUserProfile, error) {
+					return nil, fmt.Errorf("test error")
+				}
+			}
+
+			_, err := d.GetOrCreateStaffUser(tt.args.ctx, tt.args.user, tt.args.staff)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("OnboardingDb.GetOrCreateStaffUser() error = %v, wantErr %v", err, tt.wantErr)
+				return
 			}
 		})
 	}

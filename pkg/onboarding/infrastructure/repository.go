@@ -18,7 +18,7 @@ type Create interface {
 	GetOrCreateFacility(ctx context.Context, facility dto.FacilityInput) (*domain.Facility, error)
 	CollectMetrics(ctx context.Context, metric *dto.MetricInput) (*domain.Metric, error)
 	SavePin(ctx context.Context, pinInput *domain.UserPIN) (bool, error)
-	RegisterStaffUser(ctx context.Context, user *dto.UserInput, staff *dto.StaffProfileInput) (*domain.StaffUserProfile, error)
+	GetOrCreateStaffUser(ctx context.Context, user *dto.UserInput, staff *dto.StaffProfileInput) (*domain.StaffUserProfile, error)
 	RegisterClient(
 		ctx context.Context,
 		userInput *dto.UserInput,
@@ -65,9 +65,9 @@ func (f ServiceCreateImpl) SavePin(ctx context.Context, input *domain.UserPIN) (
 	return f.onboarding.SavePin(ctx, input)
 }
 
-// RegisterStaffUser is responsible for creating a representation of a staff user
-func (f ServiceCreateImpl) RegisterStaffUser(ctx context.Context, user *dto.UserInput, staff *dto.StaffProfileInput) (*domain.StaffUserProfile, error) {
-	return f.onboarding.RegisterStaffUser(ctx, user, staff)
+// GetOrCreateStaffUser is responsible for creating a representation of a staff user
+func (f ServiceCreateImpl) GetOrCreateStaffUser(ctx context.Context, user *dto.UserInput, staff *dto.StaffProfileInput) (*domain.StaffUserProfile, error) {
+	return f.onboarding.GetOrCreateStaffUser(ctx, user, staff)
 }
 
 // AddIdentifier adds an identifier that is associated to a given client
@@ -98,7 +98,8 @@ type Query interface {
 	GetUserProfileByUserID(ctx context.Context, userID string, flavour feedlib.Flavour) (*domain.User, error)
 	GetUserPINByUserID(ctx context.Context, userID string) (*domain.UserPIN, error)
 	GetClientProfileByClientID(ctx context.Context, clientID string) (*domain.ClientProfile, error)
-	GetStaffProfile(ctx context.Context, staffNumber string) (*domain.StaffProfile, error)
+	GetStaffProfileByStaffID(ctx context.Context, staffProfileID string) (*domain.StaffUserProfile, error)
+	GetStaffProfileByStaffNumber(ctx context.Context, staffNumber string) (*domain.StaffUserProfile, error)
 }
 
 // ServiceQueryImpl contains implementation for the Query interface
@@ -148,9 +149,14 @@ func (q ServiceQueryImpl) GetClientProfileByClientID(ctx context.Context, client
 	return q.onboarding.GetClientProfileByClientID(ctx, clientID)
 }
 
-// GetStaffProfile fetches a staffs profile using the staff number
-func (q ServiceQueryImpl) GetStaffProfile(ctx context.Context, staffNumber string) (*domain.StaffProfile, error) {
-	return q.onboarding.GetStaffProfile(ctx, staffNumber)
+// GetStaffProfileByStaffID fetches a staff profile using the staff ID
+func (q ServiceQueryImpl) GetStaffProfileByStaffID(ctx context.Context, staffProfileID string) (*domain.StaffUserProfile, error) {
+	return q.onboarding.GetStaffProfileByStaffID(ctx, staffProfileID)
+}
+
+// GetStaffProfileByStaffNumber fetches a staff profile using the staff number
+func (q ServiceQueryImpl) GetStaffProfileByStaffNumber(ctx context.Context, staffNumber string) (*domain.StaffUserProfile, error) {
+	return q.onboarding.GetStaffProfileByStaffNumber(ctx, staffNumber)
 }
 
 // ServiceDeleteImpl represents delete facility implementation object

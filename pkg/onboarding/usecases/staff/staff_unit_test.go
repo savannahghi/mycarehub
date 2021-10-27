@@ -16,7 +16,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestOnboardingDb_RegisterStaffUser(t *testing.T) {
+func TestOnboardingDb_GetOrCreateStaffUser(t *testing.T) {
 	ctx := context.Background()
 
 	testFacilityID := uuid.New().String()
@@ -102,7 +102,7 @@ func TestOnboardingDb_RegisterStaffUser(t *testing.T) {
 						Description: "test description",
 					}, nil
 				}
-				fakeCreate.RegisterStaffUserFn = func(ctx context.Context, user *dto.UserInput, staff *dto.StaffProfileInput) (*domain.StaffUserProfile, error) {
+				fakeCreate.GetOrCreateStaffUserserFn = func(ctx context.Context, user *dto.UserInput, staff *dto.StaffProfileInput) (*domain.StaffUserProfile, error) {
 					contact := &domain.Contact{
 						ID:      &testID,
 						Type:    enums.PhoneContact,
@@ -154,14 +154,14 @@ func TestOnboardingDb_RegisterStaffUser(t *testing.T) {
 			}
 
 			if tt.name == "invalid: missing facility" {
-				fakeCreate.RegisterStaffUserFn = func(ctx context.Context, user *dto.UserInput, staff *dto.StaffProfileInput) (*domain.StaffUserProfile, error) {
+				fakeCreate.GetOrCreateStaffUserserFn = func(ctx context.Context, user *dto.UserInput, staff *dto.StaffProfileInput) (*domain.StaffUserProfile, error) {
 					return nil, fmt.Errorf("test error")
 				}
 			}
 
-			_, err := d.RegisterStaffUser(tt.args.ctx, tt.args.user, tt.args.staff)
+			_, err := d.GetOrCreateStaffUser(tt.args.ctx, tt.args.user, tt.args.staff)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("OnboardingDb.RegisterStaffUser() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("OnboardingDb.GetOrCreateStaffUser() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 		})
@@ -258,7 +258,7 @@ func TestUsecasesStaffProfileImpl_UpdateStaffUser_Unittest(t *testing.T) {
 					}, nil
 				}
 
-				fakeCreate.RegisterStaffUserFn = func(ctx context.Context, user *dto.UserInput, staff *dto.StaffProfileInput) (*domain.StaffUserProfile, error) {
+				fakeCreate.GetOrCreateStaffUserserFn = func(ctx context.Context, user *dto.UserInput, staff *dto.StaffProfileInput) (*domain.StaffUserProfile, error) {
 					contact := &domain.Contact{
 						ID:      &testID,
 						Type:    enums.PhoneContact,
@@ -327,14 +327,7 @@ func TestUsecasesStaffProfileImpl_UpdateStaffUser_Unittest(t *testing.T) {
 
 			if tt.name == "Sad case" {
 				fakeCreate.GetOrCreateFacilityFn = func(ctx context.Context, facility dto.FacilityInput) (*domain.Facility, error) {
-					return &domain.Facility{
-						ID:          &testFacilityID,
-						Name:        "test",
-						Code:        "f1234",
-						Active:      true,
-						County:      "test",
-						Description: "test description",
-					}, nil
+					return nil, fmt.Errorf("failed to create a fake facility")
 				}
 
 				fakeUpdate.UpdateStaffUserProfileFn = func(ctx context.Context, userID string, user *dto.UserInput, staff *dto.StaffProfileInput) (bool, error) {

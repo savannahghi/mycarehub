@@ -10,7 +10,7 @@ type Create interface {
 	GetOrCreateFacility(ctx context.Context, facility *Facility) (*Facility, error)
 	CollectMetrics(ctx context.Context, metrics *Metric) (*Metric, error)
 	SavePin(ctx context.Context, pinData *PINData) (bool, error)
-	RegisterStaffUser(ctx context.Context, user *User, staff *StaffProfile) (*StaffUserProfile, error)
+	GetOrCreateStaffUser(ctx context.Context, user *User, staff *StaffProfile) (*StaffUserProfile, error)
 	RegisterClient(
 		ctx context.Context,
 		userInput *User,
@@ -56,9 +56,8 @@ func (db *PGInstance) CollectMetrics(ctx context.Context, metrics *Metric) (*Met
 	return metrics, nil
 }
 
-// RegisterStaffUser creates both the user profile and the staff profile.
-func (db *PGInstance) RegisterStaffUser(ctx context.Context, user *User, staff *StaffProfile) (*StaffUserProfile, error) {
-	// Initialize a database transaction
+// GetOrCreateStaffUser creates both the user profile and the staff profile or gets if exists.
+func (db *PGInstance) GetOrCreateStaffUser(ctx context.Context, user *User, staff *StaffProfile) (*StaffUserProfile, error) {
 	tx := db.DB.Begin()
 	defer func() {
 		if r := recover(); r != nil {
@@ -72,7 +71,7 @@ func (db *PGInstance) RegisterStaffUser(ctx context.Context, user *User, staff *
 	// create a user profile, then rollback the transaction if it is unsuccessful
 	if err := tx.Create(user).Error; err != nil {
 		tx.Rollback()
-		return nil, fmt.Errorf("failed to create a user %v", err)
+		return nil, fmt.Errorf("failed to create a staff user: %v", err)
 	}
 
 	// assign userID in staff a value due to foreign keys constraint
@@ -81,7 +80,7 @@ func (db *PGInstance) RegisterStaffUser(ctx context.Context, user *User, staff *
 	// create a staff profile, then rollback the transaction if it is unsuccessful
 	if err := tx.Create(staff).Error; err != nil {
 		tx.Rollback()
-		return nil, fmt.Errorf("failed to create a staff profile %v", err)
+		return nil, fmt.Errorf("failed to create a staff profile: %v", err)
 	}
 
 	// try to commit the transactions
@@ -111,12 +110,12 @@ func (db *PGInstance) RegisterClient(
 	}()
 
 	if err := tx.Error; err != nil {
-		return nil, err
+		return nil, fmt.Errorf("register client transaction failed: %v", err)
 	}
 
 	if err := tx.Create(user).Error; err != nil {
 		tx.Rollback()
-		return nil, fmt.Errorf("failed to create a user %v", err)
+		return nil, fmt.Errorf("failed to create a client user: %v", err)
 	}
 
 	clientProfile.UserID = user.UserID
