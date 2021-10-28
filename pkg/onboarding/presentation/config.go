@@ -134,7 +134,7 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	r.Use(serverutils.CustomHTTPRequestMetricsMiddleware())
 
 	// Shared unauthenticated routes
-	openSourcePresentation.SharedUnauthenticatedRoutes(h, r)
+	// openSourcePresentation.SharedUnauthenticatedRoutes(h, r)
 	// Shared authenticated ISC routes
 	openSourcePresentation.SharedAuthenticatedISCRoutes(h, r)
 	// Shared authenticated routes
@@ -149,6 +149,11 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	r.Path("/login").
 		Methods(http.MethodPost, http.MethodOptions).
 		HandlerFunc(internalHandlers.LoginHandler())
+
+	r.Path("/reset_pin").Methods(
+		http.MethodPost,
+		http.MethodOptions,
+	).HandlerFunc(internalHandlers.ResetPin())
 
 	// Graphql route
 	authR := r.Path("/graphql").Subrouter()

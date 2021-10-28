@@ -58,7 +58,7 @@ func (d *OnboardingDb) SavePin(ctx context.Context, pinData *domain.UserPIN) (bo
 
 	_, err := d.create.SavePin(ctx, pinObj)
 	if err != nil {
-		return false, fmt.Errorf("failed to set user pin: %v", err)
+		return false, fmt.Errorf("failed to save user pin: %v", err)
 	}
 
 	return true, nil

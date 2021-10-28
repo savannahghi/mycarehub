@@ -47,6 +47,7 @@ type GormMock struct {
 		reason enums.TransferReason,
 		notes string,
 	) (bool, error)
+	InvalidatePINFn func(ctx context.Context, userID string) error
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -304,6 +305,10 @@ func NewGormMock() *GormMock {
 		TransferClientFn: func(ctx context.Context, clientID, originFacilityID, destinationFacilityID string, reason enums.TransferReason, notes string) (bool, error) {
 			return true, nil
 		},
+
+		InvalidatePINFn: func(ctx context.Context, userID string) error {
+			return nil
+		},
 	}
 }
 
@@ -419,4 +424,9 @@ func (gm *GormMock) TransferClient(
 	notes string,
 ) (bool, error) {
 	return gm.TransferClientFn(ctx, clientID, originFacilityID, destinationFacilityID, reason, notes)
+}
+
+// InvalidatePIN mocks the invalidate pin implementation
+func (gm *GormMock) InvalidatePIN(ctx context.Context, userID string) error {
+	return gm.InvalidatePINFn(ctx, userID)
 }

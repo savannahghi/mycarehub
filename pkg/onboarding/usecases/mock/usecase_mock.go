@@ -294,6 +294,7 @@ type UpdateMock struct {
 		reason enums.TransferReason,
 		notes string,
 	) (bool, error)
+	InvalidatePINFn func(ctx context.Context, userID string) error
 }
 
 // NewUpdateMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -321,6 +322,10 @@ func NewUpdateMock() *UpdateMock {
 
 		TransferClientFn: func(ctx context.Context, clientID, originFacilityID, destinationFacilityID string, reason enums.TransferReason, notes string) (bool, error) {
 			return true, nil
+		},
+
+		InvalidatePINFn: func(ctx context.Context, userID string) error {
+			return nil
 		},
 	}
 }
@@ -360,6 +365,11 @@ func (um *UpdateMock) TransferClient(
 	notes string,
 ) (bool, error) {
 	return um.TransferClientFn(ctx, clientID, originFacilityID, destinationFacilityID, reason, notes)
+}
+
+// InvalidatePIN mocks the invalidate pin method
+func (um *UpdateMock) InvalidatePIN(ctx context.Context, userID string) error {
+	return um.InvalidatePINFn(ctx, userID)
 }
 
 // DeleteMock ....

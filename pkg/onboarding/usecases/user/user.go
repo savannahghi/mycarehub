@@ -97,14 +97,14 @@ type ISetUserPIN interface {
 	SetUserPIN(ctx context.Context, input *dto.PinInput) (bool, error)
 }
 
-// ResetPIN ...
-type ResetPIN interface {
+// IResetPIN ...
+type IResetPIN interface {
 	// ResetPIN can be used by admins or healthcare workers to generate and send
 	// a new PIN for a client or other user.
 	// The new PIN is generated automatically and set to expire immediately so
 	// that a PIN change is forced on next login.
 	// TODO: Notify user after PIN reset
-	ResetPIN(userID string, flavour string) (bool, error)
+	ResetPIN(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
 }
 
 // IVerifyPIN is used e.g to check the PIN when accessing sensitive content
@@ -169,6 +169,7 @@ type UseCasesUser interface {
 	IAddPushToken
 	IRemovePushtoken
 	IUpdateLanguagePreferences
+	IResetPIN
 }
 
 // UseCasesUserImpl represents user implementation object
@@ -286,7 +287,42 @@ func (us *UseCasesUserImpl) Login(ctx context.Context, userID string, pin string
 }
 
 // ResetPIN resets user PIN
-func (us *UseCasesUserImpl) ResetPIN(userID string, flavour string) (bool, error) {
+func (us *UseCasesUserImpl) ResetPIN(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
+	_, err := us.Infrastructure.GetUserProfileByUserID(ctx, userID, flavour)
+	if err != nil {
+		return false, fmt.Errorf("failed to get user profile: %v", err)
+	}
+
+	pin, err := us.onboardingExt.GenerateTempPIN(ctx)
+	if err != nil {
+		return false, err
+	}
+	salt, encryptedPin := us.onboardingExt.EncryptPIN(pin, nil)
+	// Set the pin to be valid for a week
+	expiryDate := time.Now().AddDate(0, 0, 7)
+
+	pinPayload := &domain.UserPIN{
+		UserID:    userID,
+		HashedPIN: encryptedPin,
+		Salt:      salt,
+		ValidFrom: time.Now(),
+		ValidTo:   expiryDate,
+		Flavour:   flavour,
+		IsValid:   true,
+	}
+
+	err = us.Infrastructure.InvalidatePIN(ctx, userID)
+	if err != nil {
+		return false, fmt.Errorf("failed to invalidate existing pins: %v", err)
+	}
+
+	_, err = us.Infrastructure.SavePin(ctx, pinPayload)
+	if err != nil {
+		return false, err
+	}
+
+	// TODO: Notify user that pin reset occurred
+
 	return true, nil
 }
 
@@ -341,7 +377,7 @@ func (us *UseCasesUserImpl) Invite(ctx context.Context, userID string, flavour f
 		Salt:      salt,
 		ValidFrom: time.Now(),
 		ValidTo:   expiryDate,
-		Flavour:   feedlib.FlavourConsumer,
+		Flavour:   flavour,
 		IsValid:   true,
 	}
 

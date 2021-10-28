@@ -180,6 +180,7 @@ type Update interface {
 		reason enums.TransferReason,
 		notes string,
 	) (bool, error)
+	InvalidatePIN(ctx context.Context, userID string) error
 }
 
 // ServiceUpdateImpl represents update user implementation object
@@ -192,6 +193,11 @@ func NewServiceUpdateImpl(on pg.OnboardingDb) Update {
 	return &ServiceUpdateImpl{
 		onboarding: on,
 	}
+}
+
+// InvalidatePIN invalidates pin(s) that are linked to a user
+func (u *ServiceUpdateImpl) InvalidatePIN(ctx context.Context, userID string) error {
+	return u.onboarding.InvalidatePIN(ctx, userID)
 }
 
 // UpdateUserLastSuccessfulLogin ...

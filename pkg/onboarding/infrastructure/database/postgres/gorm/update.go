@@ -24,6 +24,7 @@ type Update interface {
 		reason enums.TransferReason,
 		notes string,
 	) (bool, error)
+	InvalidatePIN(ctx context.Context, userID string) error
 }
 
 // UpdateUserLastSuccessfulLogin updates users last successful login time
@@ -197,4 +198,9 @@ func (db *PGInstance) TransferClient(
 	}
 
 	return true, nil
+}
+
+// InvalidatePIN toggles the valid field of a pin from true to false
+func (db *PGInstance) InvalidatePIN(ctx context.Context, userID string) error {
+	return db.DB.Model(&PINData{}).Where(&PINData{UserID: userID, IsValid: true}).Select("IsValid").Updates(PINData{IsValid: false}).Error
 }
