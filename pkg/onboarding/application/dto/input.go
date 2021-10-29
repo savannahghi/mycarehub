@@ -169,3 +169,9 @@ type SMSPayload struct {
 	Message string             `json:"message"`
 	Sender  enumutils.SenderID `json:"sender"`
 }
+
+// ResetPinInput payload to set or change PIN information
+type ResetPinInput struct {
+	UserID  string          `json:"userID"`
+	Flavour feedlib.Flavour `json:"flavour"`
+}

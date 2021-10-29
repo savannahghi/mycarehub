@@ -53,7 +53,7 @@ func (db *PGInstance) GetUserProfileByUserID(ctx context.Context, userID string,
 // GetUserPINByUserID fetches a user profile facility using the user ID
 func (db *PGInstance) GetUserPINByUserID(ctx context.Context, userID string) (*PINData, error) {
 	var pin PINData
-	if err := db.DB.Where(&PINData{UserID: userID}).First(&pin).Error; err != nil {
+	if err := db.DB.Where(&PINData{UserID: userID, IsValid: true}).First(&pin).Error; err != nil {
 		return nil, fmt.Errorf("failed to get facility by MFL Code %v: %v", userID, err)
 	}
 	return &pin, nil

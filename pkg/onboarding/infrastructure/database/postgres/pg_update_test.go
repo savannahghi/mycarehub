@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/application/dto"
@@ -308,6 +309,52 @@ func TestOnboardingDb_UpdateStaffUser(t *testing.T) {
 				return
 			}
 			assert.NotNil(t, got)
+		})
+	}
+}
+
+func TestOnboardingDb_InvalidatePIN(t *testing.T) {
+	ctx := context.Background()
+
+	type args struct {
+		ctx    context.Context
+		userID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Successfully invalidate pin",
+			args: args{
+				ctx:    ctx,
+				userID: uuid.New().String(),
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad Case - Fail to invalidate pin",
+			args: args{
+				ctx:    ctx,
+				userID: uuid.New().String(),
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var fakeGorm = gormmock.NewGormMock()
+			d := NewOnboardingDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			if tt.name == "Sad Case - Fail to invalidate pin" {
+				fakeGorm.InvalidatePINFn = func(ctx context.Context, userID string) error {
+					return fmt.Errorf("failed to invalidate pin")
+				}
+			}
+			if err := d.InvalidatePIN(tt.args.ctx, tt.args.userID); (err != nil) != tt.wantErr {
+				t.Errorf("OnboardingDb.InvalidatePIN() error = %v, wantErr %v", err, tt.wantErr)
+			}
 		})
 	}
 }

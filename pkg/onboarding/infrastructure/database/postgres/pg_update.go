@@ -10,6 +10,12 @@ import (
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/infrastructure/database/postgres/gorm"
 )
 
+// InvalidatePIN invalidates a pin that is linked to the user profile.
+// This is done by toggling the IsValid field to false
+func (d *OnboardingDb) InvalidatePIN(ctx context.Context, userID string) error {
+	return d.update.InvalidatePIN(ctx, userID)
+}
+
 // UpdateUserLastSuccessfulLogin update the user with the last login time
 func (d *OnboardingDb) UpdateUserLastSuccessfulLogin(ctx context.Context, userID string, lastLoginTime time.Time, flavour feedlib.Flavour) error {
 	return d.update.UpdateUserLastSuccessfulLogin(ctx, userID, lastLoginTime, flavour)
