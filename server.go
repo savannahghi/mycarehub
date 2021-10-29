@@ -11,7 +11,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"go.opencensus.io/stats/view"
 
-	"github.com/savannahghi/onboarding-service/pkg/onboarding/presentation"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/presentation"
 )
 
 const waitSeconds = 30

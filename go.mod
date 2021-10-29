@@ -1,4 +1,4 @@
-module github.com/savannahghi/onboarding-service
+module github.com/savannahghi/mycarehub
 
 go 1.16
 
@@ -38,4 +38,5 @@ require (
 	gorm.io/datatypes v1.0.2
 	gorm.io/driver/postgres v1.1.2
 	gorm.io/gorm v1.21.16
+	moul.io/http2curl v1.0.0 // indirect
 )

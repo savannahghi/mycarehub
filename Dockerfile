@@ -15,7 +15,7 @@ CMD go mod download
 COPY . /app/
 
 # Build the binary.
-RUN cd /app/ && CGO_ENABLED=0 GOOS=linux go build -v -o server github.com/savannahghi/onboarding-service
+RUN cd /app/ && CGO_ENABLED=0 GOOS=linux go build -v -o server github.com/savannahghi/mycarehub
 
 # Use the official Alpine image for a lean production container.
 # https://hub.docker.com/_/alpine
@@ -29,8 +29,8 @@ RUN echo "Africa/Nairobi" >  /etc/timezone && date
 COPY --from=builder /app/server /server
 COPY --from=builder /app/deps.yaml /deps.yaml
 
-COPY --from=builder /app/pkg/onboarding/application/authorization/rbac_model.conf /app/pkg/onboarding/application/authorization/rbac_model.conf
-COPY --from=builder /app/pkg/onboarding/application/authorization/data/rbac_policy.csv /app/pkg/onboarding/application/authorization/data/rbac_policy.csv
+COPY --from=builder /app/pkg/mycarehub/application/authorization/rbac_model.conf /app/pkg/mycarehub/application/authorization/rbac_model.conf
+COPY --from=builder /app/pkg/mycarehub/application/authorization/data/rbac_policy.csv /app/pkg/mycarehub/application/authorization/data/rbac_policy.csv
 
 # Run the web service on container startup.
 CMD ["/server"]

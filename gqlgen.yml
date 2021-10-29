@@ -1,26 +1,26 @@
 # Where are all the schema files located? globs are supported eg  src/**/*.graphqls
 schema:
-  - pkg/onboarding/presentation/graph/*.graphql
+  - pkg/mycarehub/presentation/graph/*.graphql
 
 # Where should the generated server code go?
 exec:
-  filename: pkg/onboarding/presentation/graph/generated/generated.go
+  filename: pkg/mycarehub/presentation/graph/generated/generated.go
   package: generated
 
 federation:
-  filename: pkg/onboarding/presentation/graph/generated/federation.go
+  filename: pkg/mycarehub/presentation/graph/generated/federation.go
   package: generated
 
 # Where should any generated models go?
 model:
-  filename: pkg/onboarding/domain/model/models_gen.go
+  filename: pkg/mycarehub/domain/model/models_gen.go
   package: model
 
 # Where should the resolver implementations go?
 resolver:
   layout: follow-schema
   package: graph
-  dir: pkg/onboarding/presentation/graph
+  dir: pkg/mycarehub/presentation/graph
 
 # Optional: turn on use `gqlgen:"fieldName"` tags in your models
 # struct_tag: json
@@ -36,9 +36,9 @@ resolver:
 autobind:
   - "github.com/savannahghi/onboarding/pkg/onboarding/domain"
   - "github.com/savannahghi/onboarding/pkg/onboarding/application/dto"
-  - "github.com/savannahghi/onboarding-service/pkg/onboarding/domain"
-  - "github.com/savannahghi/onboarding-service/pkg/onboarding/application/dto"
-  - "github.com/savannahghi/onboarding-service/pkg/onboarding/application/enums"
+  - "github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
+  - "github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
+  - "github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
   - "github.com/savannahghi/enumutils"
   - "github.com/savannahghi/scalarutils"
   - "github.com/savannahghi/serverutils"
@@ -81,10 +81,10 @@ models:
       - github.com/savannahghi/profileutils.Permission
   FacilityInput:
     model:
-      - github.com/savannahghi/onboarding-service/pkg/onboarding/application/dto.FacilityInput
+      - github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto.FacilityInput
   PinInput:
     model:
-      - github.com/savannahghi/onboarding-service/pkg/onboarding/application/dto.PinInput
+      - github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto.PinInput
   UserProfile:
     fields:
       roleDetails:
