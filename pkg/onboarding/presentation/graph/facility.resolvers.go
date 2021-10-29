@@ -12,30 +12,35 @@ import (
 )
 
 func (r *mutationResolver) CreateFacility(ctx context.Context, input dto.FacilityInput) (*domain.Facility, error) {
+	r.checkPreconditions()
 	return r.interactor.FacilityUsecase.GetOrCreateFacility(ctx, input)
 }
 
 func (r *mutationResolver) DeleteFacility(ctx context.Context, id string) (bool, error) {
+	r.checkPreconditions()
 	return r.interactor.FacilityUsecase.DeleteFacility(ctx, id)
 }
 
-func (r *mutationResolver) SetUserPin(ctx context.Context, input *dto.PinInput) (bool, error) {
-	return r.interactor.UserUsecase.SetUserPIN(ctx, input)
-}
-
 func (r *queryResolver) FetchFacilities(ctx context.Context) ([]*domain.Facility, error) {
+	r.checkPreconditions()
 	return r.interactor.FacilityUsecase.FetchFacilities(ctx)
 }
 
 func (r *queryResolver) RetrieveFacility(ctx context.Context, id string, active bool) (*domain.Facility, error) {
+	r.checkPreconditions()
 	return r.interactor.FacilityUsecase.RetrieveFacility(ctx, &id, active)
 }
 
 func (r *queryResolver) RetrieveFacilityByMFLCode(ctx context.Context, mflCode string, isActive bool) (*domain.Facility, error) {
+	r.checkPreconditions()
 	return r.interactor.FacilityUsecase.RetrieveFacilityByMFLCode(ctx, mflCode, isActive)
 }
+
+// Mutation returns generated.MutationResolver implementation.
+func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
 
 // Query returns generated.QueryResolver implementation.
 func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
 
+type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }

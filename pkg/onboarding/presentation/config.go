@@ -15,22 +15,15 @@ import (
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
-	onboardingExtension "github.com/savannahghi/onboarding-service/pkg/onboarding/application/extension"
 	infra "github.com/savannahghi/onboarding-service/pkg/onboarding/infrastructure"
 	postgres "github.com/savannahghi/onboarding-service/pkg/onboarding/infrastructure/database/postgres"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/infrastructure/database/postgres/gorm"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/presentation/graph"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/presentation/graph/generated"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/presentation/interactor"
-	internalRest "github.com/savannahghi/onboarding-service/pkg/onboarding/presentation/rest"
-	"github.com/savannahghi/onboarding-service/pkg/onboarding/usecases/client"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/usecases/facility"
-	metrics "github.com/savannahghi/onboarding-service/pkg/onboarding/usecases/metric"
-	staff "github.com/savannahghi/onboarding-service/pkg/onboarding/usecases/staff"
-	userusecase "github.com/savannahghi/onboarding-service/pkg/onboarding/usecases/user"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/extension"
 	osinfra "github.com/savannahghi/onboarding/pkg/onboarding/infrastructure"
-	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/engagement"
 	openSourcePresentation "github.com/savannahghi/onboarding/pkg/onboarding/presentation"
 	"github.com/savannahghi/onboarding/pkg/onboarding/presentation/rest"
 	osusecases "github.com/savannahghi/onboarding/pkg/onboarding/usecases"
@@ -68,17 +61,11 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	// Initialize base (common) extension
 	baseExt := extension.NewBaseExtensionImpl(fc)
 
-	// Initialize ISC clients
-	engagementISC := onboardingExtension.NewInterServiceClient(engagementService)
-
 	pinExt := extension.NewPINExtensionImpl()
-	onboardingExt := onboardingExtension.NewOnboardingLibImpl()
 
 	// Initialize new instances of the infrastructure services
 	// Initialize new open source interactors
 	infrastructure := osinfra.NewInfrastructureInteractor()
-
-	engagement := engagement.NewServiceEngagementImpl(engagementISC, baseExt)
 
 	openSourceUsecases := osusecases.NewUsecasesInteractor(infrastructure, baseExt, pinExt)
 
@@ -88,37 +75,21 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	// Initialize facility usecase
 	facilityUseCase := facility.NewFacilityUsecase(infra)
 
-	//Initialize metric usecases
-	metricsUsecase := metrics.NewMetricUsecase(infra)
-
-	userUsecase := userusecase.NewUseCasesUserImpl(infra, onboardingExt, engagement)
-	// Initialize staff usecases
-	staffUsecase := staff.NewUsecasesStaffProfileImpl(infra)
-
-	// Initialize client usecases
-	clientUseCase := client.NewUseCasesClientImpl(infra)
-
 	pg, err := gorm.NewPGInstance()
 	if err != nil {
 		return nil, fmt.Errorf("can't instantiate repository in resolver: %v", err)
 	}
 
-	db := postgres.NewOnboardingDb(pg, pg, pg, pg)
+	db := postgres.NewOnboardingDb(pg, pg, pg)
 
 	// Initialize the interactor
 	i := interactor.NewOnboardingInteractor(
 		infrastructure,
 		*db,
-		openSourceUsecases,
 		facilityUseCase,
-		metricsUsecase,
-		userUsecase,
-		staffUsecase,
-		clientUseCase,
 	)
 
 	h := rest.NewHandlersInterfaces(infrastructure, openSourceUsecases)
-	internalHandlers := internalRest.NewOnboardingHandlersInterfaces(infra, *i)
 
 	r := mux.NewRouter() // gorilla mux
 	r.Use(otelmux.Middleware(serverutils.MetricsCollectorService("onboarding")))
@@ -139,21 +110,6 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	openSourcePresentation.SharedAuthenticatedISCRoutes(h, r)
 	// Shared authenticated routes
 	openSourcePresentation.SharedAuthenticatedRoutes(h, r)
-
-	// Onboarding service rest routes
-	r.Path("/collect_metrics").
-		Methods(http.MethodPost, http.MethodOptions).
-		HandlerFunc(internalHandlers.CollectMetricsHandler())
-
-		// Onboarding service rest routes
-	r.Path("/login").
-		Methods(http.MethodPost, http.MethodOptions).
-		HandlerFunc(internalHandlers.LoginHandler())
-
-	r.Path("/reset_pin").Methods(
-		http.MethodPost,
-		http.MethodOptions,
-	).HandlerFunc(internalHandlers.ResetPin())
 
 	// Graphql route
 	authR := r.Path("/graphql").Subrouter()

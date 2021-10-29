@@ -166,15 +166,16 @@ func TestUseCaseFacilityImpl_RetrieveFacility_Integration(t *testing.T) {
 	}
 }
 
-func TestUseCaseFacilityImpl_DeleteFacility_Integration(t *testing.T) {
+func TestUseCaseFacilityImpl_DeleteFacility_Integrationtest(t *testing.T) {
 	ctx := context.Background()
 
 	i := testInfrastructureInteractor
+	u := testInteractor
 
 	//Create facility
 	facilityInput := &dto.FacilityInput{
 		Name:        "Kanairo One",
-		Code:        "KN005",
+		Code:        ksuid.New().String(),
 		County:      "Kanairo",
 		Active:      true,
 		Description: "This is just for integration testing",
@@ -190,22 +191,51 @@ func TestUseCaseFacilityImpl_DeleteFacility_Integration(t *testing.T) {
 	assert.Nil(t, err)
 	assert.NotNil(t, facility1)
 
-	//Delete a facility
-	isDeleted, err := i.DeleteFacility(ctx, facility.Code)
-	assert.Nil(t, err)
-	assert.NotNil(t, isDeleted)
-	assert.Equal(t, true, isDeleted)
+	type args struct {
+		ctx context.Context
+		id  string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx: ctx,
+				id:  *facility1.ID,
+			},
+			wantErr: false,
+		},
 
-	// retrieve the facility checks if the facility is deleted
-	facility2, err := i.RetrieveFacility(ctx, facility.ID, true)
-	assert.Nil(t, err)
-	assert.Nil(t, facility2)
+		{
+			name: "Sad case - bad id",
+			args: args{
+				ctx: ctx,
+				id:  ksuid.New().String(),
+			},
+			wantErr: false,
+		},
 
-	//Delete a facility again.
-	isDeleted1, err := i.DeleteFacility(ctx, facility.Code)
-	assert.Nil(t, err)
-	assert.NotNil(t, isDeleted1)
-	assert.Equal(t, true, isDeleted1)
+		{
+			name: "Sad case - empty id",
+			args: args{
+				ctx: ctx,
+				id:  "",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := u.FacilityUsecase.DeleteFacility(tt.args.ctx, tt.args.id)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCaseFacilityImpl.DeleteFacility() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
 }
 
 func TestUseCaseFacilityImpl_RetrieveFacilityByMFLCode_Integration(t *testing.T) {

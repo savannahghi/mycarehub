@@ -5,6 +5,7 @@ package graph
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/savannahghi/firebasetools"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/presentation/graph/generated"
@@ -12,13 +13,11 @@ import (
 )
 
 func (r *entityResolver) FindPageInfoByHasNextPage(ctx context.Context, hasNextPage bool) (*firebasetools.PageInfo, error) {
-	return nil, nil
+	panic(fmt.Errorf("not implemented"))
 }
 
 func (r *entityResolver) FindUserProfileByID(ctx context.Context, id string) (*profileutils.UserProfile, error) {
-	r.checkPreconditions()
-	r.CheckUserTokenInContext(ctx)
-	return r.interactor.OpenSourceUsecases.GetProfileByID(ctx, &id)
+	panic(fmt.Errorf("not implemented"))
 }
 
 // Entity returns generated.EntityResolver implementation.

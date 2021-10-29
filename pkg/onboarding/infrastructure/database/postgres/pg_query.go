@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/domain"
 )
 
@@ -64,44 +63,4 @@ func (d *OnboardingDb) RetrieveByFacilityMFLCode(ctx context.Context, MFLCode st
 	}
 
 	return d.mapFacilityObjectToDomain(facilitySession), nil
-}
-
-// GetUserProfileByUserID fetches a user profile facility using the user ID
-func (d *OnboardingDb) GetUserProfileByUserID(ctx context.Context, userID string, flavour feedlib.Flavour) (*domain.User, error) {
-	user, err := d.query.GetUserProfileByUserID(ctx, userID, flavour)
-	if err != nil {
-		return nil, fmt.Errorf("failed to retrieve user profile by user ID: %s", err)
-	}
-
-	return d.mapProfileObjectToDomain(user), nil
-}
-
-// GetUserPINByUserID fetches a user profile facility using the user ID
-func (d *OnboardingDb) GetUserPINByUserID(ctx context.Context, userID string) (*domain.UserPIN, error) {
-	pinData, err := d.query.GetUserPINByUserID(ctx, userID)
-	if err != nil {
-		return nil, fmt.Errorf("failed query and retrieve user PIN data by user ID: %s", err)
-	}
-
-	return d.mapPINObjectToDomain(pinData), nil
-}
-
-// GetClientProfileByClientID retrieves a client profile using the client ID
-func (d *OnboardingDb) GetClientProfileByClientID(ctx context.Context, clientID string) (*domain.ClientProfile, error) {
-	client, err := d.query.GetClientProfileByClientID(ctx, clientID)
-	if err != nil {
-		return nil, err
-	}
-
-	return d.mapClientObjectToDomain(client), err
-}
-
-// GetStaffProfile retrieves a staff profile using the staff number
-func (d *OnboardingDb) GetStaffProfile(ctx context.Context, staffNumber string) (*domain.StaffProfile, error) {
-	staff, err := d.query.GetStaffProfile(ctx, staffNumber)
-	if err != nil {
-		return nil, err
-	}
-
-	return d.mapStaffObjectToDomain(staff), err
 }

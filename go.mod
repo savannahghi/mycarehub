@@ -12,7 +12,6 @@ require (
 	firebase.google.com/go v3.13.0+incompatible
 	github.com/99designs/gqlgen v0.13.0
 	github.com/GoogleCloudPlatform/cloudsql-proxy v1.26.0
-	github.com/Pallinder/go-randomdata v1.2.0
 	github.com/casbin/casbin/v2 v2.31.3
 	github.com/google/uuid v1.3.0
 	github.com/gorilla/handlers v1.5.1
@@ -22,7 +21,6 @@ require (
 	github.com/lib/pq v1.10.3
 	github.com/savannahghi/converterandformatter v0.0.9
 	github.com/savannahghi/enumutils v0.0.3
-	github.com/savannahghi/errorcodeutil v0.0.1
 	github.com/savannahghi/feedlib v0.0.4
 	github.com/savannahghi/firebasetools v0.0.15
 	github.com/savannahghi/interserviceclient v0.0.13
@@ -32,7 +30,6 @@ require (
 	github.com/savannahghi/serverutils v0.0.6
 	github.com/segmentio/ksuid v1.0.4
 	github.com/sirupsen/logrus v1.8.1
-	github.com/stretchr/testify v1.7.0
 	github.com/tj/assert v0.0.3
 	github.com/vektah/gqlparser/v2 v2.1.0
 	go.opencensus.io v0.23.0
@@ -41,5 +38,4 @@ require (
 	gorm.io/datatypes v1.0.2
 	gorm.io/driver/postgres v1.1.2
 	gorm.io/gorm v1.21.16
-	moul.io/http2curl v1.0.0 // indirect
 )
