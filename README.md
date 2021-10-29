@@ -1,14 +1,15 @@
-# Onboarding service
+# MyCareHub service
 
-![Linting and Tests](https://github.com/savannahghi/onboarding-service/actions/workflows/ci.yml/badge.svg)
-[![Coverage Status](https://coveralls.io/repos/github/savannahghi/onboarding-service/badge.svg?branch=main)](https://coveralls.io/github/savannahghi/onboarding-service?branch=main)
+![Linting and Tests](https://github.com/savannahghi/mycarehub/actions/workflows/ci.yml/badge.svg)
+[![Coverage Status](https://coveralls.io/repos/github/savannahghi/mycarehub/badge.svg?branch=main)](https://coveralls.io/github/savannahghi/mycarehub?branch=main)
 
-This service manages user onboarding process.
+This service contains the implementation of the mycarehub project.
 
 ## Description
 
 The project implements the `Clean Architecture` advocated by
 Robert Martin ('Uncle Bob').
+
 ### Clean Architecture
 
 A cleanly architected project should be:
@@ -97,8 +98,7 @@ export REPOSITORY="firebase" # when we switch to PG the value will be `postgres`
 
 ```
 
-Deployment
-----------
+## Deployment
 
 This application is deployed via Google Cloud Build ( <https://cloud.google.com/build> ) to Google Cloud Run ( <https://cloud.google.com/run> ).
 There's a `cloudbuild.yaml` file in the home folder. Secrets (e.g production settings) are managed with Google Secret Manager ( <https://cloud.google.com/secret-manager> ).

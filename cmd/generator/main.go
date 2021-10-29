@@ -20,7 +20,7 @@ func main() {
 	onboardingSources := onboardingLib.Sources()
 
 	err = api.Generate(cfg,
-		api.AddPlugin(serverutils.NewImportPlugin(onboardingSources, nil, true, "pkg/onboarding/presentation")),
+		api.AddPlugin(serverutils.NewImportPlugin(onboardingSources, nil, true, "pkg/mycarehub/presentation")),
 	)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err.Error())
