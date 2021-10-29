@@ -2,11 +2,8 @@ package infrastructure
 
 import (
 	"context"
-	"time"
 
-	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/application/dto"
-	"github.com/savannahghi/onboarding-service/pkg/onboarding/application/enums"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/domain"
 	pg "github.com/savannahghi/onboarding-service/pkg/onboarding/infrastructure/database/postgres"
 )
@@ -16,21 +13,6 @@ import (
 // All the  contracts for create operations are assembled here
 type Create interface {
 	GetOrCreateFacility(ctx context.Context, facility dto.FacilityInput) (*domain.Facility, error)
-	CollectMetrics(ctx context.Context, metric *dto.MetricInput) (*domain.Metric, error)
-	SavePin(ctx context.Context, pinInput *domain.UserPIN) (bool, error)
-	RegisterStaffUser(ctx context.Context, user *dto.UserInput, staff *dto.StaffProfileInput) (*domain.StaffUserProfile, error)
-	RegisterClient(
-		ctx context.Context,
-		userInput *dto.UserInput,
-		clientInput *dto.ClientProfileInput,
-	) (*domain.ClientUserProfile, error)
-	AddIdentifier(
-		ctx context.Context,
-		clientID string,
-		idType enums.IdentifierType,
-		idValue string,
-		isPrimary bool,
-	) (*domain.Identifier, error)
 }
 
 // Delete represents all the deletion action interfaces
@@ -55,50 +37,11 @@ func (f ServiceCreateImpl) GetOrCreateFacility(ctx context.Context, facility dto
 	return f.onboarding.GetOrCreateFacility(ctx, &facility)
 }
 
-// CollectMetrics is responsible for creating a representation of a metric
-func (f ServiceCreateImpl) CollectMetrics(ctx context.Context, metric *dto.MetricInput) (*domain.Metric, error) {
-	return f.onboarding.CollectMetrics(ctx, metric)
-}
-
-// SavePin saves user's PIN data
-func (f ServiceCreateImpl) SavePin(ctx context.Context, input *domain.UserPIN) (bool, error) {
-	return f.onboarding.SavePin(ctx, input)
-}
-
-// RegisterStaffUser is responsible for creating a representation of a staff user
-func (f ServiceCreateImpl) RegisterStaffUser(ctx context.Context, user *dto.UserInput, staff *dto.StaffProfileInput) (*domain.StaffUserProfile, error) {
-	return f.onboarding.RegisterStaffUser(ctx, user, staff)
-}
-
-// AddIdentifier adds an identifier that is associated to a given client
-func (f ServiceCreateImpl) AddIdentifier(
-	ctx context.Context,
-	clientID string,
-	idType enums.IdentifierType,
-	idValue string,
-	isPrimary bool,
-) (*domain.Identifier, error) {
-	return f.onboarding.AddIdentifier(ctx, clientID, idType, idValue, isPrimary)
-}
-
-// RegisterClient creates a client user and saves the details in the database
-func (f ServiceCreateImpl) RegisterClient(
-	ctx context.Context,
-	userInput *dto.UserInput,
-	clientInput *dto.ClientProfileInput,
-) (*domain.ClientUserProfile, error) {
-	return f.onboarding.RegisterClient(ctx, userInput, clientInput)
-}
-
 // Query contains all query methods
 type Query interface {
 	RetrieveFacility(ctx context.Context, id *string, isActive bool) (*domain.Facility, error)
 	GetFacilities(ctx context.Context) ([]*domain.Facility, error)
 	RetrieveFacilityByMFLCode(ctx context.Context, MFLCode string, isActive bool) (*domain.Facility, error)
-	GetUserProfileByUserID(ctx context.Context, userID string, flavour feedlib.Flavour) (*domain.User, error)
-	GetUserPINByUserID(ctx context.Context, userID string) (*domain.UserPIN, error)
-	GetClientProfileByClientID(ctx context.Context, clientID string) (*domain.ClientProfile, error)
-	GetStaffProfile(ctx context.Context, staffNumber string) (*domain.StaffProfile, error)
 }
 
 // ServiceQueryImpl contains implementation for the Query interface
@@ -133,26 +76,6 @@ func (f ServiceDeleteImpl) DeleteFacility(ctx context.Context, id string) (bool,
 	return f.onboarding.DeleteFacility(ctx, id)
 }
 
-// GetUserProfileByUserID gets user profile by user ID
-func (q ServiceQueryImpl) GetUserProfileByUserID(ctx context.Context, userID string, flavour feedlib.Flavour) (*domain.User, error) {
-	return q.onboarding.GetUserProfileByUserID(ctx, userID, flavour)
-}
-
-// GetUserPINByUserID gets user PIN by user ID
-func (q ServiceQueryImpl) GetUserPINByUserID(ctx context.Context, userID string) (*domain.UserPIN, error) {
-	return q.onboarding.GetUserPINByUserID(ctx, userID)
-}
-
-// GetClientProfileByClientID fetches a client profile using the client ID
-func (q ServiceQueryImpl) GetClientProfileByClientID(ctx context.Context, clientID string) (*domain.ClientProfile, error) {
-	return q.onboarding.GetClientProfileByClientID(ctx, clientID)
-}
-
-// GetStaffProfile fetches a staffs profile using the staff number
-func (q ServiceQueryImpl) GetStaffProfile(ctx context.Context, staffNumber string) (*domain.StaffProfile, error) {
-	return q.onboarding.GetStaffProfile(ctx, staffNumber)
-}
-
 // ServiceDeleteImpl represents delete facility implementation object
 type ServiceDeleteImpl struct {
 	onboarding pg.OnboardingDb
@@ -163,76 +86,4 @@ func NewServiceDeleteImpl(on pg.OnboardingDb) Delete {
 	return &ServiceDeleteImpl{
 		onboarding: on,
 	}
-}
-
-// Update contains all update methods
-type Update interface {
-	UpdateUserLastSuccessfulLogin(ctx context.Context, userID string, lastLoginTime time.Time, flavour feedlib.Flavour) error
-	UpdateUserLastFailedLogin(ctx context.Context, userID string, lastFailedLoginTime time.Time, flavour feedlib.Flavour) error
-	UpdateUserFailedLoginCount(ctx context.Context, userID string, failedLoginCount string, flavour feedlib.Flavour) error
-	UpdateUserNextAllowedLogin(ctx context.Context, userID string, nextAllowedLoginTime time.Time, flavour feedlib.Flavour) error
-	UpdateStaffUserProfile(ctx context.Context, userID string, user *dto.UserInput, staff *dto.StaffProfileInput) (bool, error)
-	TransferClient(
-		ctx context.Context,
-		clientID string,
-		OriginFacilityID string,
-		destinationFacilityID string,
-		reason enums.TransferReason,
-		notes string,
-	) (bool, error)
-	InvalidatePIN(ctx context.Context, userID string) error
-}
-
-// ServiceUpdateImpl represents update user implementation object
-type ServiceUpdateImpl struct {
-	onboarding pg.OnboardingDb
-}
-
-// NewServiceUpdateImpl returns new instance of NewServiceUpdateImpl
-func NewServiceUpdateImpl(on pg.OnboardingDb) Update {
-	return &ServiceUpdateImpl{
-		onboarding: on,
-	}
-}
-
-// InvalidatePIN invalidates pin(s) that are linked to a user
-func (u *ServiceUpdateImpl) InvalidatePIN(ctx context.Context, userID string) error {
-	return u.onboarding.InvalidatePIN(ctx, userID)
-}
-
-// UpdateUserLastSuccessfulLogin ...
-func (u *ServiceUpdateImpl) UpdateUserLastSuccessfulLogin(ctx context.Context, userID string, lastLoginTime time.Time, flavour feedlib.Flavour) error {
-	return u.onboarding.UpdateUserLastSuccessfulLogin(ctx, userID, lastLoginTime, flavour)
-}
-
-// UpdateUserLastFailedLogin ...
-func (u *ServiceUpdateImpl) UpdateUserLastFailedLogin(ctx context.Context, userID string, lastFailedLoginTime time.Time, flavour feedlib.Flavour) error {
-	return u.onboarding.UpdateUserLastFailedLogin(ctx, userID, lastFailedLoginTime, flavour)
-}
-
-// UpdateUserFailedLoginCount ...
-func (u *ServiceUpdateImpl) UpdateUserFailedLoginCount(ctx context.Context, userID string, failedLoginCount string, flavour feedlib.Flavour) error {
-	return u.onboarding.UpdateUserFailedLoginCount(ctx, userID, failedLoginCount, flavour)
-}
-
-// UpdateUserNextAllowedLogin ...
-func (u *ServiceUpdateImpl) UpdateUserNextAllowedLogin(ctx context.Context, userID string, nextAllowedLoginTime time.Time, flavour feedlib.Flavour) error {
-	return u.onboarding.UpdateUserNextAllowedLogin(ctx, userID, nextAllowedLoginTime, flavour)
-}
-
-// UpdateStaffUserProfile updates the staffs data
-func (u *ServiceUpdateImpl) UpdateStaffUserProfile(ctx context.Context, userID string, user *dto.UserInput, staff *dto.StaffProfileInput) (bool, error) {
-	return u.onboarding.UpdateStaffUserProfile(ctx, userID, user, staff)
-}
-
-// TransferClient implements the clients transfer
-func (u *ServiceUpdateImpl) TransferClient(
-	ctx context.Context,
-	clientID string,
-	originFacilityID string,
-	destinationFacilityID string,
-	reason enums.TransferReason,
-	notes string,
-) (bool, error) {
-	return u.onboarding.TransferClient(ctx, clientID, originFacilityID, destinationFacilityID, reason, notes)
 }

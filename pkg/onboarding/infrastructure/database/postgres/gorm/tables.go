@@ -379,15 +379,6 @@ func (Identifier) TableName() string {
 func allTables() []interface{} {
 	tables := []interface{}{
 		&Facility{},
-		&Metric{},
-		&User{},
-		&Contact{},
-		&StaffProfile{},
-		&ClientProfile{},
-		&Identifier{},
-		&Addresses{},
-		&PINData{},
-		&ClientTransfer{},
 	}
 	return tables
 }

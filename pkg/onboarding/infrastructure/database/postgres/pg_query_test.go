@@ -18,7 +18,7 @@ func TestOnboardingDb_RetrieveFacility_Unittest(t *testing.T) {
 	ctx := context.Background()
 
 	var fakeGorm = gormMock.NewGormMock()
-	d := NewOnboardingDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+	d := NewOnboardingDb(fakeGorm, fakeGorm, fakeGorm)
 
 	facilityInput := &dto.FacilityInput{
 		Name:        "Kanairo One",
@@ -165,7 +165,7 @@ func TestOnboardingDb_GetFacilities(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var fakeGorm = gormMock.NewGormMock()
-			d := NewOnboardingDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+			d := NewOnboardingDb(fakeGorm, fakeGorm, fakeGorm)
 
 			if tt.name == "sad case - facility want data not given" {
 				fakeGorm.GetFacilitiesFn = func(ctx context.Context) ([]gorm.Facility, error) {
@@ -213,7 +213,7 @@ func TestOnboardingDb_RetrieveByFacilityMFLCode(t *testing.T) {
 	ctx := context.Background()
 
 	var fakeGorm = gormMock.NewGormMock()
-	d := NewOnboardingDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+	d := NewOnboardingDb(fakeGorm, fakeGorm, fakeGorm)
 
 	facilityInput := &dto.FacilityInput{
 		Name:        "Kanairo One",
@@ -295,57 +295,6 @@ func TestOnboardingDb_RetrieveByFacilityMFLCode(t *testing.T) {
 			if !tt.wantErr && got == nil {
 				t.Errorf("expected facilities not to be nil for %v", tt.name)
 				return
-			}
-		})
-	}
-}
-
-func TestOnboardingDb_GetClientProfileByClientID(t *testing.T) {
-	ctx := context.Background()
-	var fakeGorm = gormMock.NewGormMock()
-	d := NewOnboardingDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
-
-	type args struct {
-		ctx      context.Context
-		clientID string
-	}
-	tests := []struct {
-		name    string
-		args    args
-		want    *domain.ClientProfile
-		wantErr bool
-	}{
-		{
-			name: "Happy Case - Successfully fetch client profile",
-			args: args{
-				ctx:      ctx,
-				clientID: "1234",
-			},
-			wantErr: false,
-		},
-		{
-			name: "Sad Case - Fail to get profile",
-			args: args{
-				ctx:      ctx,
-				clientID: "1234",
-			},
-			wantErr: true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if tt.name == "Sad Case - Fail to get profile" {
-				fakeGorm.GetClientProfileByClientIDFn = func(ctx context.Context, clientID string) (*gorm.ClientProfile, error) {
-					return nil, fmt.Errorf("failed to get client profile by ID")
-				}
-			}
-			got, err := d.GetClientProfileByClientID(tt.args.ctx, tt.args.clientID)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("OnboardingDb.GetClientProfileByClientID() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !tt.wantErr && got == nil {
-				t.Errorf("expected a response but got :%v", got)
 			}
 		})
 	}
