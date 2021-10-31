@@ -74,6 +74,11 @@ jobs:
           --set-env-vars "GOOGLE_PROJECT_NUMBER=${{ secrets.GOOGLE_PROJECT_NUMBER }}" \
           --set-env-vars "JAEGER_URL=${{ secrets.JAEGER_URL }}" \
           --set-env-vars "SENTRY_DSN=${{ secrets.SENTRY_DSN }}" \
+          --set-env-vars "DB_USER=${{ secrets.MYCAREHUB_DB_USER }}" \
+          --set-env-vars "DB_PASS=${{ secrets.MYCAREHUB_DB_PASS }}" \
+          --set-env-vars "DB_NAME=${{ secrets.TESTING_MYCAREHUB_DB_NAME }}" \
+          --set-env-vars "DATABASE_REGION=${{ secrets.PROD_DATABASE_REGION }}" \
+          --set-env-vars "DATABASE_INSTANCE=${{ secrets.PROD_DATABASE_INSTANCE }}" \
           --set-env-vars "ROOT_COLLECTION_SUFFIX=${{ secrets.ROOT_COLLECTION_SUFFIX }}" 
 
   deploy_to_prod:
@@ -115,4 +120,9 @@ jobs:
           --set-env-vars "GOOGLE_PROJECT_NUMBER=${{ secrets.GOOGLE_PROJECT_NUMBER }}" \
           --set-env-vars "JAEGER_URL=${{ secrets.JAEGER_URL }}" \
           --set-env-vars "SENTRY_DSN=${{ secrets.SENTRY_DSN }}" \
+          --set-env-vars "DB_USER=${{ secrets.MYCAREHUB_DB_USER }}" \
+          --set-env-vars "DB_PASS=${{ secrets.MYCAREHUB_DB_PASS }}" \
+          --set-env-vars "DB_NAME=${{ secrets.PROD_MYCAREHUB_DB_NAME }}" \
+          --set-env-vars "DATABASE_REGION=${{ secrets.PROD_DATABASE_REGION }}" \
+          --set-env-vars "DATABASE_INSTANCE=${{ secrets.PROD_DATABASE_INSTANCE }}" \
           --set-env-vars "ROOT_COLLECTION_SUFFIX=${{ secrets.ROOT_COLLECTION_SUFFIX }}" 
