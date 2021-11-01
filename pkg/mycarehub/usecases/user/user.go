@@ -5,7 +5,6 @@ import (
 
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
 	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/engagement"
@@ -162,21 +161,24 @@ type UseCasesUser interface {
 
 // UseCasesUserImpl represents user implementation object
 type UseCasesUserImpl struct {
-	Infrastructure infrastructure.Interactor
-	engagement     engagement.ServiceEngagement
-	onboardingExt  extension.OnboardingLibraryExtension
+	Create     infrastructure.Create
+	Query      infrastructure.Query
+	Delete     infrastructure.Delete
+	Engagement engagement.ServiceEngagement
 }
 
 // NewUseCasesUserImpl returns a new user service
 func NewUseCasesUserImpl(
-	infra infrastructure.Interactor,
-	onboarding extension.OnboardingLibraryExtension,
+	create infrastructure.Create,
+	query infrastructure.Query,
+	delete infrastructure.Delete,
 	engagement engagement.ServiceEngagement,
 ) *UseCasesUserImpl {
 	return &UseCasesUserImpl{
-		Infrastructure: infra,
-		onboardingExt:  onboarding,
-		engagement:     engagement,
+		Create:     create,
+		Query:      query,
+		Delete:     delete,
+		Engagement: engagement,
 	}
 }
 

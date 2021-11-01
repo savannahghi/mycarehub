@@ -113,13 +113,17 @@ type UseCasesClientProfile interface {
 
 // UseCasesClientImpl represents user implementation object
 type UseCasesClientImpl struct {
-	Infrastructure infrastructure.Interactor
+	Create infrastructure.Create
+	Query  infrastructure.Query
+	Delete infrastructure.Delete
 }
 
 // NewUseCasesClientImpl returns a new Client service
-func NewUseCasesClientImpl(infra infrastructure.Interactor) *UseCasesClientImpl {
+func NewUseCasesClientImpl(create infrastructure.Create, query infrastructure.Query, delete infrastructure.Delete) *UseCasesClientImpl {
 	return &UseCasesClientImpl{
-		Infrastructure: infra,
+		Create: create,
+		Query:  query,
+		Delete: delete,
 	}
 }
 
@@ -129,7 +133,7 @@ func (cl *UseCasesClientImpl) RegisterClient(
 	userInput *dto.UserInput,
 	clientInput *dto.ClientProfileInput,
 ) (*domain.ClientUserProfile, error) {
-	return cl.Infrastructure.RegisterClient(ctx, userInput, clientInput)
+	return cl.Create.RegisterClient(ctx, userInput, clientInput)
 }
 
 // AddIdentifier stages and adds client identifiers
