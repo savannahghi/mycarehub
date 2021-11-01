@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/lib/pq"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
@@ -35,4 +36,67 @@ func (d *OnboardingDb) GetOrCreateFacility(ctx context.Context, facility *dto.Fa
 	}
 
 	return d.mapFacilityObjectToDomain(facilitySession), nil
+}
+
+// RegisterClient is responsible for registering and saving the client's data to the database
+func (d *OnboardingDb) RegisterClient(
+	ctx context.Context,
+	userInput *dto.UserInput,
+	clientInput *dto.ClientProfileInput,
+) (*domain.ClientUserProfile, error) {
+	if clientInput == nil {
+		return nil, fmt.Errorf("expected client input to be provided")
+	}
+
+	if userInput == nil {
+		return nil, fmt.Errorf("expected user input to be provided")
+	}
+
+	userObject := createUserObject(userInput)
+
+	clientObject := &gorm.ClientProfile{
+		ClientType: clientInput.ClientType,
+	}
+
+	clientUserProfile, err := d.create.RegisterClient(ctx, userObject, clientObject)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create client: %v", err)
+	}
+
+	return d.mapRegisterClientObjectToDomain(clientUserProfile), nil
+}
+
+// A helper method to create a user object
+func createUserObject(user *dto.UserInput) *gorm.User {
+	contacts := []gorm.Contact{}
+	if len(user.Contacts) > 0 {
+		for _, u := range user.Contacts {
+			contact := gorm.Contact{
+				Type:    u.Type,
+				Contact: u.Contact,
+				Active:  u.Active,
+				OptedIn: u.OptedIn,
+			}
+			contacts = append(contacts, contact)
+		}
+	}
+
+	languages := []string{}
+	for _, l := range user.Languages {
+		languages = append(languages, l.String())
+	}
+
+	userObject := &gorm.User{
+		Username:    user.Username,
+		DisplayName: user.DisplayName,
+		FirstName:   user.FirstName,
+		MiddleName:  user.MiddleName,
+		LastName:    user.LastName,
+		Gender:      user.Gender,
+		Contacts:    contacts,
+		UserType:    user.UserType,
+		Languages:   pq.StringArray(languages),
+		Flavour:     user.Flavour,
+	}
+	return userObject
 }

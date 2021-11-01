@@ -13,6 +13,11 @@ import (
 // All the  contracts for create operations are assembled here
 type Create interface {
 	GetOrCreateFacility(ctx context.Context, facility dto.FacilityInput) (*domain.Facility, error)
+	RegisterClient(
+		ctx context.Context,
+		userInput *dto.UserInput,
+		clientInput *dto.ClientProfileInput,
+	) (*domain.ClientUserProfile, error)
 }
 
 // Delete represents all the deletion action interfaces
@@ -35,6 +40,15 @@ func NewServiceCreateImpl(on pg.OnboardingDb) Create {
 // GetOrCreateFacility is responsible for creating a representation of a facility
 func (f ServiceCreateImpl) GetOrCreateFacility(ctx context.Context, facility dto.FacilityInput) (*domain.Facility, error) {
 	return f.onboarding.GetOrCreateFacility(ctx, &facility)
+}
+
+// RegisterClient creates a client user and saves the details in the database
+func (f ServiceCreateImpl) RegisterClient(
+	ctx context.Context,
+	userInput *dto.UserInput,
+	clientInput *dto.ClientProfileInput,
+) (*domain.ClientUserProfile, error) {
+	return f.onboarding.RegisterClient(ctx, userInput, clientInput)
 }
 
 // Query contains all query methods

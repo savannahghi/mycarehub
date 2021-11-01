@@ -5,6 +5,8 @@ import (
 	"strconv"
 
 	"github.com/google/uuid"
+	"github.com/savannahghi/enumutils"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
 )
 
@@ -17,11 +19,27 @@ type GormMock struct {
 	RetrieveFacilityByMFLCodeFn func(ctx context.Context, MFLCode string, isActive bool) (*gorm.Facility, error)
 	GetFacilitiesFn             func(ctx context.Context) ([]gorm.Facility, error)
 	DeleteFacilityFn            func(ctx context.Context, mfl_code string) (bool, error)
+	RegisterClientFn            func(ctx context.Context, userInput *gorm.User, clientInput *gorm.ClientProfile) (*gorm.ClientUserProfile, error)
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
 func NewGormMock() *GormMock {
 	return &GormMock{
+		RegisterClientFn: func(ctx context.Context, userInput *gorm.User, clientInput *gorm.ClientProfile) (*gorm.ClientUserProfile, error) {
+			return &gorm.ClientUserProfile{
+				User: &gorm.User{
+					FirstName:   "FirstName",
+					LastName:    "Last Name",
+					Username:    "User Name",
+					MiddleName:  userInput.MiddleName,
+					DisplayName: "Display Name",
+					Gender:      enumutils.GenderMale,
+				},
+				Client: &gorm.ClientProfile{
+					ClientType: enums.ClientTypeOvc,
+				},
+			}, nil
+		},
 
 		GetOrCreateFacilityFn: func(ctx context.Context, facility *gorm.Facility) (*gorm.Facility, error) {
 			id := uuid.New().String()
@@ -117,4 +135,13 @@ func (gm *GormMock) GetFacilities(ctx context.Context) ([]gorm.Facility, error) 
 // DeleteFacility mocks the implementation of  DeleteFacility method.
 func (gm *GormMock) DeleteFacility(ctx context.Context, mflcode string) (bool, error) {
 	return gm.DeleteFacilityFn(ctx, mflcode)
+}
+
+// RegisterClient mocks the implementation of RegisterClient method
+func (gm *GormMock) RegisterClient(
+	ctx context.Context,
+	userInput *gorm.User,
+	clientInput *gorm.ClientProfile,
+) (*gorm.ClientUserProfile, error) {
+	return gm.RegisterClientFn(ctx, userInput, clientInput)
 }

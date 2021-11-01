@@ -137,7 +137,7 @@ func (u *User) BeforeCreate(tx *gorm.DB) (err error) {
 
 // TableName customizes how the table name is generated
 func (User) TableName() string {
-	return "user"
+	return "user_users"
 }
 
 // Contact hold contact information/details for users
@@ -379,6 +379,9 @@ func (Identifier) TableName() string {
 func allTables() []interface{} {
 	tables := []interface{}{
 		&Facility{},
+		&User{},
+		&Contact{},
+		&ClientProfile{},
 	}
 	return tables
 }

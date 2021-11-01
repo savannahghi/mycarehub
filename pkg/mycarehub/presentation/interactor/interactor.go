@@ -4,6 +4,7 @@ package interactor
 
 import (
 	pg "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/client"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/facility"
 	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure"
 )
@@ -13,6 +14,7 @@ type Interactor struct {
 	OpenSourceInfra infrastructure.Infrastructure
 	database        pg.OnboardingDb
 	FacilityUsecase facility.UseCasesFacility
+	ClientUseCase   client.UseCasesClientProfile
 }
 
 // NewOnboardingInteractor returns a new onboarding interactor
@@ -20,10 +22,12 @@ func NewOnboardingInteractor(
 	openSourceInfra infrastructure.Infrastructure,
 	database pg.OnboardingDb,
 	facilityUseCase facility.UseCasesFacility,
+	clientUseCase client.UseCasesClientProfile,
 ) *Interactor {
 	return &Interactor{
 		OpenSourceInfra: openSourceInfra,
 		database:        database,
 		FacilityUsecase: facilityUseCase,
+		ClientUseCase:   clientUseCase,
 	}
 }

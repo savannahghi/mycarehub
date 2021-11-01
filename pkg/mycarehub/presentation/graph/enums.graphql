@@ -37,12 +37,12 @@ enum ContactType {
 }
 
 enum UsersType {
-    HEALTHCAREWORKER
-    CLIENT
+  HEALTHCAREWORKER
+  CLIENT
 }
 
 enum CountryType {
-  KENYA 
+  KENYA
   # other countries
 }
 
@@ -95,7 +95,6 @@ enum CountyType {
   Nyamira
   Nairobi
   # other counties
- 
 }
 
 enum AddressesType {
@@ -105,6 +104,6 @@ enum AddressesType {
 }
 
 enum TransferReason {
-    RELOCATION
-    OTHER
+  RELOCATION
+  OTHER
 }
