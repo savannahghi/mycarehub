@@ -2,20 +2,52 @@ package mock
 
 import (
 	"context"
+	"time"
 
 	"github.com/google/uuid"
+	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 )
 
 // CreateMock is a mock of the create methods
 type CreateMock struct {
 	GetOrCreateFacilityFn func(ctx context.Context, facility dto.FacilityInput) (*domain.Facility, error)
+	RegisterClientFn      func(ctx context.Context, userInput *dto.UserInput, clientInput *dto.ClientProfileInput) (*domain.ClientUserProfile, error)
 }
 
 // NewCreateMock creates in itializes create type mocks
 func NewCreateMock() *CreateMock {
 	return &CreateMock{
+		RegisterClientFn: func(ctx context.Context, userInput *dto.UserInput, clientInput *dto.ClientProfileInput) (*domain.ClientUserProfile, error) {
+			ID := uuid.New().String()
+			testTime := time.Now()
+
+			return &domain.ClientUserProfile{
+				User: &domain.User{
+					ID:                  &ID,
+					FirstName:           "FirstName",
+					LastName:            "Last Name",
+					Username:            "User Name",
+					MiddleName:          "Middle Name",
+					DisplayName:         "Display Name",
+					Gender:              enumutils.GenderMale,
+					Active:              true,
+					LastSuccessfulLogin: &testTime,
+					LastFailedLogin:     &testTime,
+					NextAllowedLogin:    &testTime,
+					TermsAccepted:       true,
+					AcceptedTermsID:     ID,
+				},
+				Client: &domain.ClientProfile{
+					ID:             &ID,
+					UserID:         &ID,
+					ClientType:     enums.ClientTypeOvc,
+					HealthRecordID: &ID,
+				},
+			}, nil
+		},
 
 		GetOrCreateFacilityFn: func(ctx context.Context, facility dto.FacilityInput) (*domain.Facility, error) {
 			id := uuid.New().String()
@@ -38,6 +70,15 @@ func NewCreateMock() *CreateMock {
 // GetOrCreateFacility mocks the implementation of `gorm's` GetOrCreateFacility method.
 func (f *CreateMock) GetOrCreateFacility(ctx context.Context, facility dto.FacilityInput) (*domain.Facility, error) {
 	return f.GetOrCreateFacilityFn(ctx, facility)
+}
+
+// RegisterClient mocks the implementation of `gorm's` RegisterClient method
+func (f *CreateMock) RegisterClient(
+	ctx context.Context,
+	userInput *dto.UserInput,
+	clientInput *dto.ClientProfileInput,
+) (*domain.ClientUserProfile, error) {
+	return f.RegisterClientFn(ctx, userInput, clientInput)
 }
 
 // QueryMock is a mock of the query methods

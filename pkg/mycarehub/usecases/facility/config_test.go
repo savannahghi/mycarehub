@@ -11,6 +11,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/presentation/interactor"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/client"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/facility"
 	usecaseMock "github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/mock"
 	openSourceInfra "github.com/savannahghi/onboarding/pkg/onboarding/infrastructure"
@@ -72,8 +73,9 @@ func InitializeTestInteractor(ctx context.Context) interactor.Interactor {
 	}
 	infra := infrastructure.NewInteractor()
 	facilityUsecase := facility.NewFacilityUsecase(infra)
+	clientUseCase := client.NewUseCasesClientImpl(infra)
 	db := postgres.NewOnboardingDb(pgInstance, pgInstance, pgInstance)
-	i := interactor.NewOnboardingInteractor(osinfra, *db, facilityUsecase)
+	i := interactor.NewOnboardingInteractor(osinfra, *db, facilityUsecase, clientUseCase)
 
 	return *i
 }

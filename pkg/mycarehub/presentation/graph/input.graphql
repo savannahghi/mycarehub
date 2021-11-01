@@ -6,3 +6,28 @@ input FacilityInput {
   description: String!
 }
 
+input UserInput {
+  username: String
+  displayName: String
+  firstName: String!
+  middleName: String!
+  lastName: String!
+  userType: UsersType!
+  gender: Gender!
+  contacts: [ContactInput!]!
+  languages: [Language]
+  flavour: Flavour!
+}
+
+input ClientProfileInput {
+  clientType: ClientType!
+}
+
+input ContactInput {
+  Type: ContactType!
+  Contact: String! #TODO Validate: phones are E164, emails are valid
+  Active: Boolean!
+  #a user may opt not to be contacted via this contact
+  #e.g if it's a shared phone owned by a teenager
+  OptedIn: Boolean!
+}

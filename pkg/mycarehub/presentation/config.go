@@ -22,6 +22,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/presentation/graph"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/presentation/graph/generated"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/presentation/interactor"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/client"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/facility"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/extension"
 	osinfra "github.com/savannahghi/onboarding/pkg/onboarding/infrastructure"
@@ -76,6 +77,9 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	// Initialize facility usecase
 	facilityUseCase := facility.NewFacilityUsecase(infra)
 
+	// Initialize client usecase
+	clientUseCase := client.NewUseCasesClientImpl(infra)
+
 	pg, err := gorm.NewPGInstance()
 	if err != nil {
 		return nil, fmt.Errorf("can't instantiate repository in resolver: %v", err)
@@ -88,6 +92,7 @@ func Router(ctx context.Context) (*mux.Router, error) {
 		infrastructure,
 		*db,
 		facilityUseCase,
+		clientUseCase,
 	)
 
 	h := rest.NewHandlersInterfaces(infrastructure, openSourceUsecases)
