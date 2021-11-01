@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/brianvoe/gofakeit"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	gormMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm/mock"
 )
@@ -15,11 +16,17 @@ func TestOnboardingDb_DeleteFacility_Unittest(t *testing.T) {
 	var fakeGorm = gormMock.NewGormMock()
 	d := NewOnboardingDb(fakeGorm, fakeGorm, fakeGorm)
 
+	name := gofakeit.Name()
+	code := "KN001"
+	county := "Kanairo"
+	description := gofakeit.HipsterSentence(15)
+
 	facilityInput := &dto.FacilityInput{
-		Name:        "Kanairo One",
-		Code:        "KN001",
-		County:      "Kanairo",
-		Description: "This is just for mocking",
+		Name:        name,
+		Code:        code,
+		Active:      true,
+		County:      county,
+		Description: description,
 	}
 
 	// create a facility
@@ -76,19 +83,19 @@ func TestOnboardingDb_DeleteFacility_Unittest(t *testing.T) {
 			d := NewOnboardingDb(fakeGorm, fakeGorm, fakeGorm)
 
 			if tt.name == "Happy case" {
-				fakeGorm.DeleteFacilityFn = func(ctx context.Context, mfl_code string) (bool, error) {
+				fakeGorm.MockDeleteFacilityFn = func(ctx context.Context, mfl_code string) (bool, error) {
 					return true, nil
 				}
 			}
 
 			if tt.name == "Sad case" {
-				fakeGorm.DeleteFacilityFn = func(ctx context.Context, mfl_code string) (bool, error) {
+				fakeGorm.MockDeleteFacilityFn = func(ctx context.Context, mfl_code string) (bool, error) {
 					return false, nil
 				}
 			}
 
 			if tt.name == "Sad case - empty MFL Code" {
-				fakeGorm.DeleteFacilityFn = func(ctx context.Context, mfl_code string) (bool, error) {
+				fakeGorm.MockDeleteFacilityFn = func(ctx context.Context, mfl_code string) (bool, error) {
 					return false, fmt.Errorf("an error occurred while deleting")
 				}
 			}
