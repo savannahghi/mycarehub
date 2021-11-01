@@ -12,6 +12,7 @@ type Query interface {
 	RetrieveFacility(ctx context.Context, id *string, isActive bool) (*Facility, error)
 	RetrieveFacilityByMFLCode(ctx context.Context, MFLCode string, isActive bool) (*Facility, error)
 	GetFacilities(ctx context.Context) ([]Facility, error)
+	GetUserProfileByPhoneNumber(ctx context.Context, phoneNumber string) (*User, error)
 }
 
 // RetrieveFacility fetches a single facility
@@ -45,4 +46,13 @@ func (db *PGInstance) GetFacilities(ctx context.Context) ([]Facility, error) {
 	// }
 	log.Printf("these are the facilities %v", facility)
 	return facility, nil
+}
+
+// GetUserProfileByPhoneNumber retrieves a user profile using their phonenumber
+func (db *PGInstance) GetUserProfileByPhoneNumber(ctx context.Context, phoneNumber string) (*User, error) {
+	var user User
+	if err := db.DB.Preload("Contacts", db.DB.Where(&Contact{Contact: phoneNumber})).Find(&user).Error; err != nil {
+		return nil, fmt.Errorf("failed to get user by phonenumber %v: %v", phoneNumber, err)
+	}
+	return &user, nil
 }

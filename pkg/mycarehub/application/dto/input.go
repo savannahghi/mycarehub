@@ -87,6 +87,7 @@ type MetricInput struct {
 
 // PinInput represents the PIN input data structure
 type PinInput struct {
+	PhoneNumber  string          `json:"phoneNumber"`
 	PIN          string          `json:"pin"`
 	ConfirmedPin string          `json:"confirmedPin"`
 	Flavour      feedlib.Flavour `json:"flavour"`

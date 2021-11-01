@@ -31,3 +31,10 @@ input ContactInput {
   #e.g if it's a shared phone owned by a teenager
   OptedIn: Boolean!
 }
+
+input PinInput {
+  phoneNumber: String!
+  Pin: String!
+  confirmedPin: String!
+  flavour: Flavour!
+}

@@ -194,6 +194,7 @@ type ComplexityRoot struct {
 		SetPrimaryEmailAddress        func(childComplexity int, email string, otp string) int
 		SetPrimaryPhoneNumber         func(childComplexity int, phone string, otp string) int
 		SetUserCommunicationsSettings func(childComplexity int, allowWhatsApp *bool, allowTextSms *bool, allowPush *bool, allowEmail *bool) int
+		SetUserPin                    func(childComplexity int, input *dto1.PinInput) int
 		SetupAsExperimentParticipant  func(childComplexity int, participate *bool) int
 		UpdateRolePermissions         func(childComplexity int, input dto.RolePermissionInput) int
 		UpdateUserName                func(childComplexity int, username string) int
@@ -373,6 +374,7 @@ type MutationResolver interface {
 	RegisterClientUser(ctx context.Context, userInput dto1.UserInput, clientInput dto1.ClientProfileInput) (*domain1.ClientUserProfile, error)
 	CreateFacility(ctx context.Context, input dto1.FacilityInput) (*domain1.Facility, error)
 	DeleteFacility(ctx context.Context, id string) (bool, error)
+	SetUserPin(ctx context.Context, input *dto1.PinInput) (bool, error)
 	CompleteSignup(ctx context.Context, flavour feedlib.Flavour) (bool, error)
 	UpdateUserProfile(ctx context.Context, input dto.UserProfileInput) (*profileutils.UserProfile, error)
 	UpdateUserPin(ctx context.Context, phone string, pin string) (bool, error)
@@ -1260,6 +1262,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.SetUserCommunicationsSettings(childComplexity, args["allowWhatsApp"].(*bool), args["allowTextSMS"].(*bool), args["allowPush"].(*bool), args["allowEmail"].(*bool)), true
+
+	case "Mutation.setUserPIN":
+		if e.complexity.Mutation.SetUserPin == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_setUserPIN_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.SetUserPin(childComplexity, args["input"].(*dto1.PinInput)), true
 
 	case "Mutation.setupAsExperimentParticipant":
 		if e.complexity.Mutation.SetupAsExperimentParticipant == nil {
@@ -2343,6 +2357,17 @@ input ContactInput {
   #a user may opt not to be contacted via this contact
   #e.g if it's a shared phone owned by a teenager
   OptedIn: Boolean!
+}
+
+input PinInput {
+  phoneNumber: String!
+  Pin: String!
+  confirmedPin: String!
+  flavour: Flavour!
+}
+`, BuiltIn: false},
+	{Name: "pkg/mycarehub/presentation/graph/profile.graphql", Input: `extend type Mutation {
+  setUserPIN(input: PinInput): Boolean!
 }
 `, BuiltIn: false},
 	{Name: "pkg/mycarehub/presentation/graph/types.graphql", Input: `type Facility {
@@ -3475,6 +3500,21 @@ func (ec *executionContext) field_Mutation_setUserCommunicationsSettings_args(ct
 		}
 	}
 	args["allowEmail"] = arg3
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_setUserPIN_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *dto1.PinInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalOPinInput2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐPinInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
 	return args, nil
 }
 
@@ -6161,6 +6201,48 @@ func (ec *executionContext) _Mutation_deleteFacility(ctx context.Context, field 
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Mutation().DeleteFacility(rctx, args["id"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_setUserPIN(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_setUserPIN_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().SetUserPin(rctx, args["input"].(*dto1.PinInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -12549,6 +12631,50 @@ func (ec *executionContext) unmarshalInputPaginationInput(ctx context.Context, o
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputPinInput(ctx context.Context, obj interface{}) (dto1.PinInput, error) {
+	var it dto1.PinInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "phoneNumber":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("phoneNumber"))
+			it.PhoneNumber, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "Pin":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Pin"))
+			it.PIN, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "confirmedPin":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("confirmedPin"))
+			it.ConfirmedPin, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "flavour":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("flavour"))
+			it.Flavour, err = ec.unmarshalNFlavour2githubᚗcomᚋsavannahghiᚋfeedlibᚐFlavour(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputPostVisitSurveyInput(ctx context.Context, obj interface{}) (dto.PostVisitSurveyInput, error) {
 	var it dto.PostVisitSurveyInput
 	var asMap = obj.(map[string]interface{})
@@ -13562,6 +13688,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			}
 		case "deleteFacility":
 			out.Values[i] = ec._Mutation_deleteFacility(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "setUserPIN":
+			out.Values[i] = ec._Mutation_setUserPIN(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -16739,6 +16870,14 @@ func (ec *executionContext) marshalOPermissionType2ᚕgithubᚗcomᚋsavannahghi
 	}
 	wg.Wait()
 	return ret
+}
+
+func (ec *executionContext) unmarshalOPinInput2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐPinInput(ctx context.Context, v interface{}) (*dto1.PinInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputPinInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalORoleOutput2ᚕᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐRoleOutput(ctx context.Context, sel ast.SelectionSet, v []*dto.RoleOutput) graphql.Marshaler {

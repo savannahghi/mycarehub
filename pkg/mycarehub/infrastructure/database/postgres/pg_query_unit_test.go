@@ -7,6 +7,7 @@ import (
 
 	"github.com/brianvoe/gofakeit"
 	"github.com/google/uuid"
+	"github.com/savannahghi/interserviceclient"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
@@ -278,6 +279,72 @@ func TestOnboardingDb_RetrieveByFacilityMFLCode(t *testing.T) {
 
 			if !tt.wantErr && got == nil {
 				t.Errorf("expected facilities not to be nil for %v", tt.name)
+				return
+			}
+		})
+	}
+}
+
+func TestOnboardingDb_GetUserProfileByPhoneNumber(t *testing.T) {
+	ctx := context.Background()
+
+	type args struct {
+		ctx         context.Context
+		phoneNumber string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy Case- Successfully get a user profile by phonenumber",
+			args: args{
+				ctx:         ctx,
+				phoneNumber: interserviceclient.TestUserPhoneNumber,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad Case - Fail to get user profile by phonenumber",
+			args: args{
+				ctx:         ctx,
+				phoneNumber: "1234",
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - Missing phonenumber",
+			args: args{
+				ctx: ctx,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var fakeGorm = gormMock.NewGormMock()
+			d := NewOnboardingDb(fakeGorm, fakeGorm, fakeGorm)
+
+			if tt.name == "Sad Case - Fail to get user profile by phonenumber" {
+				fakeGorm.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*gorm.User, error) {
+					return nil, fmt.Errorf("failed to get user profile by phonenumber")
+				}
+			}
+
+			if tt.name == "Sad Case - Missing phonenumber" {
+				fakeGorm.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*gorm.User, error) {
+					return nil, fmt.Errorf("phone number should be provided")
+				}
+			}
+
+			got, err := d.GetUserProfileByPhoneNumber(tt.args.ctx, tt.args.phoneNumber)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("OnboardingDb.GetUserProfileByPhoneNumber() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected to get a response but got: %v", got)
 				return
 			}
 		})
