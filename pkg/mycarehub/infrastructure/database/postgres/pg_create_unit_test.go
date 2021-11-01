@@ -16,7 +16,7 @@ import (
 	gormMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm/mock"
 )
 
-func TestOnboardingDb_GetOrCreateFacility(t *testing.T) {
+func TestMyCareHubDb_GetOrCreateFacility(t *testing.T) {
 	ctx := context.Background()
 
 	name := gofakeit.Name()
@@ -69,7 +69,7 @@ func TestOnboardingDb_GetOrCreateFacility(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var fakeGorm = gormMock.NewGormMock()
-			d := NewOnboardingDb(fakeGorm, fakeGorm, fakeGorm)
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm)
 			got, err := d.GetOrCreateFacility(tt.args.ctx, tt.args.facility)
 			if tt.name == "sad case - facility code not defined" {
 				fakeGorm.MockGetOrCreateFacilityFn = func(ctx context.Context, facility *gorm.Facility) (*gorm.Facility, error) {
@@ -84,7 +84,7 @@ func TestOnboardingDb_GetOrCreateFacility(t *testing.T) {
 			}
 
 			if (err != nil) != tt.wantErr {
-				t.Errorf("OnboardingDb.GetOrCreateFacility() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("MyCareHubDb.GetOrCreateFacility() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if tt.wantErr && got != nil {
@@ -100,7 +100,7 @@ func TestOnboardingDb_GetOrCreateFacility(t *testing.T) {
 	}
 }
 
-func TestOnboardingDb_RegisterClient(t *testing.T) {
+func TestMyCareHubDb_RegisterClient(t *testing.T) {
 	ctx := context.Background()
 	userInput := &dto.UserInput{
 		FirstName:   gofakeit.FirstName(),
@@ -166,7 +166,7 @@ func TestOnboardingDb_RegisterClient(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var fakeGorm = gormMock.NewGormMock()
-			d := NewOnboardingDb(fakeGorm, fakeGorm, fakeGorm)
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm)
 
 			if tt.name == "Sad Case: Fail to create user with nil user input" {
 				fakeGorm.MockRegisterClientFn = func(ctx context.Context, userInput *gorm.User, clientInput *gorm.ClientProfile) (*gorm.ClientUserProfile, error) {
@@ -188,7 +188,7 @@ func TestOnboardingDb_RegisterClient(t *testing.T) {
 
 			got, err := d.RegisterClient(tt.args.ctx, tt.args.userInput, tt.args.clientInput)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("OnboardingDb.RegisterClient() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("MyCareHubDb.RegisterClient() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !tt.wantErr && got == nil {
@@ -244,7 +244,7 @@ func TestOnboardingDb_SavePin(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var fakeGorm = gormMock.NewGormMock()
-			d := NewOnboardingDb(fakeGorm, fakeGorm, fakeGorm)
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm)
 
 			if tt.name == "Sad Case - Fail to save pin" {
 				fakeGorm.MockSavePinFn = func(ctx context.Context, pinData *gorm.PINData) (bool, error) {

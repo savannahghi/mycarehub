@@ -3,7 +3,6 @@ package extension
 import (
 	"context"
 
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/extension"
 )
 
@@ -14,7 +13,6 @@ type OnboardingLibraryExtension interface {
 	EncryptPIN(rawPwd string, options *extension.Options) (string, string)
 	ComparePIN(rawPwd string, salt string, encodedPwd string, options *extension.Options) bool
 	GenerateTempPIN(ctx context.Context) (string, error)
-	SendSMS(ctx context.Context, phoneNumbers []string, message string) error
 }
 
 // OnboardingLibraryImpl represents onboarding library usecases
@@ -48,10 +46,4 @@ func (o *OnboardingLibraryImpl) ComparePIN(rawPwd string, salt string, encodedPw
 // The PIN will have 4 digits formatted as a string
 func (o *OnboardingLibraryImpl) GenerateTempPIN(ctx context.Context) (string, error) {
 	return o.pinExt.GenerateTempPIN(ctx)
-}
-
-// SendSMS does the actual delivery of messages to the provided phone numbers
-func (o *OnboardingLibraryImpl) SendSMS(ctx context.Context, phoneNumbers []string, message string) error {
-	interactor := infrastructure.NewInteractor()
-	return interactor.SendSMS(ctx, phoneNumbers, message)
 }

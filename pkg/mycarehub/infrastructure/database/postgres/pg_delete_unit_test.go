@@ -11,11 +11,11 @@ import (
 	gormMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm/mock"
 )
 
-func TestOnboardingDb_DeleteFacility_Unittest(t *testing.T) {
+func TestMyCareHubDb_DeleteFacility_Unittest(t *testing.T) {
 	ctx := context.Background()
 
 	var fakeGorm = gormMock.NewGormMock()
-	d := NewOnboardingDb(fakeGorm, fakeGorm, fakeGorm)
+	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm)
 
 	name := gofakeit.Name()
 	code := "KN001"
@@ -81,7 +81,7 @@ func TestOnboardingDb_DeleteFacility_Unittest(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var fakeGorm = gormMock.NewGormMock()
-			d := NewOnboardingDb(fakeGorm, fakeGorm, fakeGorm)
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm)
 
 			if tt.name == "Happy case" {
 				fakeGorm.MockDeleteFacilityFn = func(ctx context.Context, mfl_code string) (bool, error) {
@@ -103,7 +103,7 @@ func TestOnboardingDb_DeleteFacility_Unittest(t *testing.T) {
 
 			_, err := d.DeleteFacility(tt.args.ctx, tt.args.id)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("OnboardingDb.DeleteFacility() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("MyCareHubDb.DeleteFacility() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 		})

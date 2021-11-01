@@ -165,21 +165,27 @@ type UseCasesUser interface {
 
 // UseCasesUserImpl represents user implementation object
 type UseCasesUserImpl struct {
-	Infrastructure infrastructure.Interactor
-	engagement     engagement.ServiceEngagement
-	onboardingExt  extension.OnboardingLibraryExtension
+	Create        infrastructure.Create
+	Query         infrastructure.Query
+	Delete        infrastructure.Delete
+	OnboardingExt extension.OnboardingLibraryExtension
+	Engagement    engagement.ServiceEngagement
 }
 
 // NewUseCasesUserImpl returns a new user service
 func NewUseCasesUserImpl(
-	infra infrastructure.Interactor,
-	onboarding extension.OnboardingLibraryExtension,
+	create infrastructure.Create,
+	query infrastructure.Query,
+	delete infrastructure.Delete,
+	onboardingExt extension.OnboardingLibraryExtension,
 	engagement engagement.ServiceEngagement,
 ) *UseCasesUserImpl {
 	return &UseCasesUserImpl{
-		Infrastructure: infra,
-		onboardingExt:  onboarding,
-		engagement:     engagement,
+		Create:        create,
+		Query:         query,
+		Delete:        delete,
+		OnboardingExt: onboardingExt,
+		Engagement:    engagement,
 	}
 }
 
@@ -235,7 +241,7 @@ func (us *UseCasesUserImpl) Invite(ctx context.Context, userID string, flavour f
 
 // SetUserPIN sets a user's PIN.
 func (us *UseCasesUserImpl) SetUserPIN(ctx context.Context, input *dto.PinInput) (bool, error) {
-	userProfile, err := us.Infrastructure.GetUserProfileByPhoneNumber(ctx, input.PhoneNumber)
+	userProfile, err := us.Query.GetUserProfileByPhoneNumber(ctx, input.PhoneNumber)
 	if err != nil {
 		return false, fmt.Errorf("failed to get a user profile by phonenumber: %v", err)
 	}
@@ -245,9 +251,9 @@ func (us *UseCasesUserImpl) SetUserPIN(ctx context.Context, input *dto.PinInput)
 		return false, fmt.Errorf("invalid PIN provided: %v", err)
 	}
 
-	salt, encryptedPIN := us.onboardingExt.EncryptPIN(input.PIN, nil)
+	salt, encryptedPIN := us.OnboardingExt.EncryptPIN(input.PIN, nil)
 
-	isMatch := us.onboardingExt.ComparePIN(input.ConfirmedPin, salt, encryptedPIN, nil)
+	isMatch := us.OnboardingExt.ComparePIN(input.ConfirmedPin, salt, encryptedPIN, nil)
 	if !isMatch {
 		return false, fmt.Errorf("the provided PINs do not match")
 	}
@@ -264,7 +270,7 @@ func (us *UseCasesUserImpl) SetUserPIN(ctx context.Context, input *dto.PinInput)
 		Salt:      salt,
 	}
 
-	_, err = us.Infrastructure.SavePin(ctx, pinDataPayload)
+	_, err = us.Create.SavePin(ctx, pinDataPayload)
 	if err != nil {
 		return false, err
 	}

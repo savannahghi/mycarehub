@@ -16,11 +16,11 @@ import (
 	"github.com/segmentio/ksuid"
 )
 
-func TestOnboardingDb_RetrieveFacility_Unittest(t *testing.T) {
+func TestMyCareHubDb_RetrieveFacility_Unittest(t *testing.T) {
 	ctx := context.Background()
 
 	var fakeGorm = gormMock.NewGormMock()
-	d := NewOnboardingDb(fakeGorm, fakeGorm, fakeGorm)
+	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm)
 
 	id := ksuid.New().String()
 
@@ -98,7 +98,7 @@ func TestOnboardingDb_RetrieveFacility_Unittest(t *testing.T) {
 			got, err := d.RetrieveFacility(ctx, tt.args.id, tt.args.active)
 
 			if (err != nil) != tt.wantErr {
-				t.Errorf("OnboardingDb.RetrieveFacility() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("MyCareHubDb.RetrieveFacility() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if tt.wantErr && got != nil {
@@ -114,7 +114,7 @@ func TestOnboardingDb_RetrieveFacility_Unittest(t *testing.T) {
 	}
 }
 
-func TestOnboardingDb_GetFacilities(t *testing.T) {
+func TestMyCareHubDb_GetFacilities(t *testing.T) {
 	ctx := context.Background()
 
 	id := uuid.New().String()
@@ -159,7 +159,7 @@ func TestOnboardingDb_GetFacilities(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var fakeGorm = gormMock.NewGormMock()
-			d := NewOnboardingDb(fakeGorm, fakeGorm, fakeGorm)
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm)
 
 			if tt.name == "sad case - facility want data not given" {
 				fakeGorm.MockGetFacilitiesFn = func(ctx context.Context) ([]gorm.Facility, error) {
@@ -169,7 +169,7 @@ func TestOnboardingDb_GetFacilities(t *testing.T) {
 
 			got, err := d.GetFacilities(tt.args.ctx)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("OnboardingDb.GetFacilities() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("MyCareHubDb.GetFacilities() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if tt.wantErr && got != nil {
@@ -185,11 +185,11 @@ func TestOnboardingDb_GetFacilities(t *testing.T) {
 	}
 }
 
-func TestOnboardingDb_RetrieveByFacilityMFLCode(t *testing.T) {
+func TestMyCareHubDb_RetrieveFacilityByMFLCode(t *testing.T) {
 	ctx := context.Background()
 
 	var fakeGorm = gormMock.NewGormMock()
-	d := NewOnboardingDb(fakeGorm, fakeGorm, fakeGorm)
+	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm)
 
 	name := gofakeit.Name()
 	code := "KN001"
@@ -268,9 +268,9 @@ func TestOnboardingDb_RetrieveByFacilityMFLCode(t *testing.T) {
 				}
 			}
 
-			got, err := d.RetrieveByFacilityMFLCode(tt.args.ctx, tt.args.MFLCode, tt.args.isActive)
+			got, err := d.RetrieveFacilityByMFLCode(tt.args.ctx, tt.args.MFLCode, tt.args.isActive)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("OnboardingDb.RetrieveByFacilityMFLCode() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("MyCareHubDb.RetrieveFacilityByMFLCode() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if tt.wantErr && got != nil {
@@ -325,7 +325,7 @@ func TestOnboardingDb_GetUserProfileByPhoneNumber(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var fakeGorm = gormMock.NewGormMock()
-			d := NewOnboardingDb(fakeGorm, fakeGorm, fakeGorm)
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm)
 
 			if tt.name == "Sad Case - Fail to get user profile by phonenumber" {
 				fakeGorm.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*gorm.User, error) {
@@ -356,7 +356,7 @@ func TestOnboardingDb_ListFacilities(t *testing.T) {
 	ctx := context.Background()
 
 	var fakeGorm = gormMock.NewGormMock()
-	d := NewOnboardingDb(fakeGorm, fakeGorm, fakeGorm)
+	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm)
 
 	code := ksuid.New().String()
 	code2 := ksuid.New().String()

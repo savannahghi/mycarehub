@@ -10,7 +10,7 @@ import (
 )
 
 //GetFacilities returns a slice of healthcare facilities in the platform.
-func (d *OnboardingDb) GetFacilities(ctx context.Context) ([]*domain.Facility, error) {
+func (d *MyCareHubDb) GetFacilities(ctx context.Context) ([]*domain.Facility, error) {
 	var facility []*domain.Facility
 	facilities, err := d.query.GetFacilities(ctx)
 	if err != nil {
@@ -41,7 +41,7 @@ func (d *OnboardingDb) GetFacilities(ctx context.Context) ([]*domain.Facility, e
 }
 
 // RetrieveFacility gets a facility by ID from the database
-func (d *OnboardingDb) RetrieveFacility(ctx context.Context, id *string, isActive bool) (*domain.Facility, error) {
+func (d *MyCareHubDb) RetrieveFacility(ctx context.Context, id *string, isActive bool) (*domain.Facility, error) {
 	if id == nil {
 		return nil, fmt.Errorf("facility ID should be defined")
 	}
@@ -53,8 +53,8 @@ func (d *OnboardingDb) RetrieveFacility(ctx context.Context, id *string, isActiv
 	return d.mapFacilityObjectToDomain(facilitySession), nil
 }
 
-// RetrieveByFacilityMFLCode gets a facility by ID from the database
-func (d *OnboardingDb) RetrieveByFacilityMFLCode(ctx context.Context, MFLCode string, isActive bool) (*domain.Facility, error) {
+// RetrieveFacilityByMFLCode gets a facility by ID from the database
+func (d *MyCareHubDb) RetrieveFacilityByMFLCode(ctx context.Context, MFLCode string, isActive bool) (*domain.Facility, error) {
 	if MFLCode == "" {
 		return nil, fmt.Errorf("facility ID should be defined")
 	}
@@ -67,7 +67,7 @@ func (d *OnboardingDb) RetrieveByFacilityMFLCode(ctx context.Context, MFLCode st
 }
 
 // GetUserProfileByPhoneNumber fetches and returns a userprofile using their phonenumber
-func (d *OnboardingDb) GetUserProfileByPhoneNumber(ctx context.Context, phoneNumber string) (*domain.User, error) {
+func (d *MyCareHubDb) GetUserProfileByPhoneNumber(ctx context.Context, phoneNumber string) (*domain.User, error) {
 	if phoneNumber == "" {
 		return nil, fmt.Errorf("phone number should be provided")
 	}
@@ -82,7 +82,7 @@ func (d *OnboardingDb) GetUserProfileByPhoneNumber(ctx context.Context, phoneNum
 
 // ListFacilities gets facilities that are filtered from search and filter,
 // the results are also paginated
-func (d *OnboardingDb) ListFacilities(
+func (d *MyCareHubDb) ListFacilities(
 	ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, PaginationsInput dto.PaginationsInput) (*domain.FacilityPage, error) {
 	// if user did not provide current page, throw an error
 	if PaginationsInput.CurrentPage == 0 {
