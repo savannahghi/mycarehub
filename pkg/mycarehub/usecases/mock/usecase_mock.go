@@ -54,7 +54,7 @@ func NewCreateMock() *CreateMock {
 			id := uuid.New().String()
 			name := "Kanairo One"
 			code := "KN001"
-			county := "Kanairo"
+			county := enums.CountyTypeNairobi
 			description := "This is just for mocking"
 			return &domain.Facility{
 				ID:          &id,
@@ -96,6 +96,7 @@ type QueryMock struct {
 	RetrieveFacilityByMFLCodeFn   func(ctx context.Context, MFLCode string, isActive bool) (*domain.Facility, error)
 	GetFacilitiesFn               func(ctx context.Context) ([]*domain.Facility, error)
 	GetUserProfileByPhoneNumberFn func(ctx context.Context, phoneNumber string) (*domain.User, error)
+	ListFacilitiesFn              func(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, PaginationsInput dto.PaginationsInput) (*domain.FacilityPage, error)
 }
 
 // NewQueryMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -112,7 +113,7 @@ func NewQueryMock() *QueryMock {
 			facilityID := uuid.New().String()
 			name := "test-facility"
 			code := "t-100"
-			county := "test-county"
+			county := enums.CountyTypeNairobi
 			description := "test description"
 			return &domain.Facility{
 				ID:          &facilityID,
@@ -128,7 +129,7 @@ func NewQueryMock() *QueryMock {
 			facilityID := uuid.New().String()
 			name := "test-facility"
 			code := "t-100"
-			county := "test-county"
+			county := enums.CountyTypeNairobi
 			description := "test description"
 			return &domain.Facility{
 				ID:          &facilityID,
@@ -144,7 +145,7 @@ func NewQueryMock() *QueryMock {
 			facilityID := uuid.New().String()
 			name := "test-facility"
 			code := "t-100"
-			county := "test-county"
+			county := enums.CountyTypeNairobi
 			description := "test description"
 			return []*domain.Facility{
 				{
@@ -154,6 +155,35 @@ func NewQueryMock() *QueryMock {
 					Active:      true,
 					County:      county,
 					Description: description,
+				},
+			}, nil
+		},
+		ListFacilitiesFn: func(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, PaginationsInput dto.PaginationsInput) (*domain.FacilityPage, error) {
+			facilityID := uuid.New().String()
+			name := "test-facility"
+			code := "t-100"
+			county := enums.CountyTypeNairobi
+			description := "test description"
+			nextPage := 1
+			previousPage := 1
+			return &domain.FacilityPage{
+				Pagination: domain.Pagination{
+					Limit:        1,
+					CurrentPage:  1,
+					Count:        1,
+					TotalPages:   1,
+					NextPage:     &nextPage,
+					PreviousPage: &previousPage,
+				},
+				Facilities: []domain.Facility{
+					{
+						ID:          &facilityID,
+						Name:        name,
+						Code:        code,
+						Active:      true,
+						County:      county,
+						Description: description,
+					},
 				},
 			}, nil
 		},
@@ -178,6 +208,16 @@ func (f *QueryMock) GetFacilities(ctx context.Context) ([]*domain.Facility, erro
 // GetUserProfileByPhoneNumber mocks the implementation of fetching a user profile by phonenumber
 func (f *QueryMock) GetUserProfileByPhoneNumber(ctx context.Context, phoneNumber string) (*domain.User, error) {
 	return f.GetUserProfileByPhoneNumberFn(ctx, phoneNumber)
+}
+
+// ListFacilities mocks the implementation of  ListFacilities method.
+func (f *QueryMock) ListFacilities(
+	ctx context.Context,
+	searchTerm *string,
+	filterInput []*dto.FiltersInput,
+	PaginationsInput dto.PaginationsInput,
+) (*domain.FacilityPage, error) {
+	return f.ListFacilitiesFn(ctx, searchTerm, filterInput, PaginationsInput)
 }
 
 // UpdateMock ...

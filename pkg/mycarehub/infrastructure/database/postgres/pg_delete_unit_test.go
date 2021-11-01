@@ -7,6 +7,7 @@ import (
 
 	"github.com/brianvoe/gofakeit"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	gormMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm/mock"
 )
 
@@ -18,7 +19,7 @@ func TestOnboardingDb_DeleteFacility_Unittest(t *testing.T) {
 
 	name := gofakeit.Name()
 	code := "KN001"
-	county := "Kanairo"
+	county := enums.CountyTypeNairobi
 	description := gofakeit.HipsterSentence(15)
 
 	facilityInput := &dto.FacilityInput{

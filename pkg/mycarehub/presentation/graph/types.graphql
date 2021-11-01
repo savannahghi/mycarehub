@@ -3,7 +3,7 @@ type Facility {
   name: String!
   code: String!
   active: Boolean!
-  county: String!
+  county: CountyType!
   description: String!
 }
 
@@ -100,4 +100,18 @@ type Addresses {
   PostalCode: String!
   County: CountyType!
   Active: Boolean!
+}
+type Pagination {
+  Limit: Int!
+	CurrentPage: Int!       
+	Count:  Int        
+	TotalPages: Int
+	NextPage:      Int 
+  PreviousPage: Int
+}
+
+type FacilityPage {
+  Pagination: Pagination!
+  Facilities: [Facility]!
+
 }

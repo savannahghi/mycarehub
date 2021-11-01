@@ -131,6 +131,11 @@ type ComplexityRoot struct {
 		Name        func(childComplexity int) int
 	}
 
+	FacilityPage struct {
+		Facilities func(childComplexity int) int
+		Pagination func(childComplexity int) int
+	}
+
 	GroupedNavigationActions struct {
 		Primary   func(childComplexity int) int
 		Secondary func(childComplexity int) int
@@ -235,6 +240,15 @@ type ComplexityRoot struct {
 		StartCursor     func(childComplexity int) int
 	}
 
+	Pagination struct {
+		Count        func(childComplexity int) int
+		CurrentPage  func(childComplexity int) int
+		Limit        func(childComplexity int) int
+		NextPage     func(childComplexity int) int
+		PreviousPage func(childComplexity int) int
+		TotalPages   func(childComplexity int) int
+	}
+
 	Permission struct {
 		Allowed     func(childComplexity int) int
 		Description func(childComplexity int) int
@@ -261,6 +275,7 @@ type ComplexityRoot struct {
 		GetAllRoles                   func(childComplexity int) int
 		GetNavigationActions          func(childComplexity int) int
 		GetUserCommunicationsSettings func(childComplexity int) int
+		ListFacilities                func(childComplexity int, searchTerm *string, filterInput []*dto1.FiltersInput, paginationInput dto1.PaginationsInput) int
 		ListMicroservices             func(childComplexity int) int
 		ResumeWithPin                 func(childComplexity int, pin string) int
 		RetrieveFacility              func(childComplexity int, id string, active bool) int
@@ -410,6 +425,7 @@ type QueryResolver interface {
 	FetchFacilities(ctx context.Context) ([]*domain1.Facility, error)
 	RetrieveFacility(ctx context.Context, id string, active bool) (*domain1.Facility, error)
 	RetrieveFacilityByMFLCode(ctx context.Context, mflCode string, isActive bool) (*domain1.Facility, error)
+	ListFacilities(ctx context.Context, searchTerm *string, filterInput []*dto1.FiltersInput, paginationInput dto1.PaginationsInput) (*domain1.FacilityPage, error)
 	DummyQuery(ctx context.Context) (*bool, error)
 	UserProfile(ctx context.Context) (*profileutils.UserProfile, error)
 	ResumeWithPin(ctx context.Context, pin string) (bool, error)
@@ -777,6 +793,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Facility.Name(childComplexity), true
+
+	case "FacilityPage.Facilities":
+		if e.complexity.FacilityPage.Facilities == nil {
+			break
+		}
+
+		return e.complexity.FacilityPage.Facilities(childComplexity), true
+
+	case "FacilityPage.Pagination":
+		if e.complexity.FacilityPage.Pagination == nil {
+			break
+		}
+
+		return e.complexity.FacilityPage.Pagination(childComplexity), true
 
 	case "GroupedNavigationActions.primary":
 		if e.complexity.GroupedNavigationActions.Primary == nil {
@@ -1461,6 +1491,48 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.PageInfo.StartCursor(childComplexity), true
 
+	case "Pagination.Count":
+		if e.complexity.Pagination.Count == nil {
+			break
+		}
+
+		return e.complexity.Pagination.Count(childComplexity), true
+
+	case "Pagination.CurrentPage":
+		if e.complexity.Pagination.CurrentPage == nil {
+			break
+		}
+
+		return e.complexity.Pagination.CurrentPage(childComplexity), true
+
+	case "Pagination.Limit":
+		if e.complexity.Pagination.Limit == nil {
+			break
+		}
+
+		return e.complexity.Pagination.Limit(childComplexity), true
+
+	case "Pagination.NextPage":
+		if e.complexity.Pagination.NextPage == nil {
+			break
+		}
+
+		return e.complexity.Pagination.NextPage(childComplexity), true
+
+	case "Pagination.PreviousPage":
+		if e.complexity.Pagination.PreviousPage == nil {
+			break
+		}
+
+		return e.complexity.Pagination.PreviousPage(childComplexity), true
+
+	case "Pagination.TotalPages":
+		if e.complexity.Pagination.TotalPages == nil {
+			break
+		}
+
+		return e.complexity.Pagination.TotalPages(childComplexity), true
+
 	case "Permission.allowed":
 		if e.complexity.Permission.Allowed == nil {
 			break
@@ -1608,6 +1680,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.GetUserCommunicationsSettings(childComplexity), true
+
+	case "Query.listFacilities":
+		if e.complexity.Query.ListFacilities == nil {
+			break
+		}
+
+		args, err := ec.field_Query_listFacilities_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.ListFacilities(childComplexity, args["searchTerm"].(*string), args["filterInput"].([]*dto1.FiltersInput), args["paginationInput"].(dto1.PaginationsInput)), true
 
 	case "Query.listMicroservices":
 		if e.complexity.Query.ListMicroservices == nil {
@@ -2324,12 +2408,13 @@ extend type Query {
    fetchFacilities: [Facility]
    retrieveFacility(id: String!, active: Boolean!): Facility
    retrieveFacilityByMFLCode(mflCode: String!, isActive: Boolean!): Facility!
+   listFacilities(searchTerm: String, filterInput: [FiltersInput], paginationInput:PaginationsInput!):FacilityPage
 }`, BuiltIn: false},
 	{Name: "pkg/mycarehub/presentation/graph/input.graphql", Input: `input FacilityInput {
   name: String!
   code: String!
   active: Boolean!
-  county: String!
+  county: CountyType!
   description: String!
 }
 
@@ -2365,6 +2450,17 @@ input PinInput {
   confirmedPin: String!
   flavour: Flavour!
 }
+
+input PaginationsInput {
+  Limit: Int
+	CurrentPage: Int!          
+}
+
+input FiltersInput {
+  Name: String
+  # DataType: FilterDataType
+  Value: String
+}
 `, BuiltIn: false},
 	{Name: "pkg/mycarehub/presentation/graph/profile.graphql", Input: `extend type Mutation {
   setUserPIN(input: PinInput): Boolean!
@@ -2375,7 +2471,7 @@ input PinInput {
   name: String!
   code: String!
   active: Boolean!
-  county: String!
+  county: CountyType!
   description: String!
 }
 
@@ -2472,6 +2568,20 @@ type Addresses {
   PostalCode: String!
   County: CountyType!
   Active: Boolean!
+}
+type Pagination {
+  Limit: Int!
+	CurrentPage: Int!       
+	Count:  Int        
+	TotalPages: Int
+	NextPage:      Int 
+  PreviousPage: Int
+}
+
+type FacilityPage {
+  Pagination: Pagination!
+  Facilities: [Facility]!
+
 }
 `, BuiltIn: false},
 	{Name: "federation/directives.graphql", Input: `
@@ -3674,6 +3784,39 @@ func (ec *executionContext) field_Query_findUsersByPhone_args(ctx context.Contex
 		}
 	}
 	args["phoneNumber"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_listFacilities_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *string
+	if tmp, ok := rawArgs["searchTerm"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("searchTerm"))
+		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["searchTerm"] = arg0
+	var arg1 []*dto1.FiltersInput
+	if tmp, ok := rawArgs["filterInput"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filterInput"))
+		arg1, err = ec.unmarshalOFiltersInput2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐFiltersInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["filterInput"] = arg1
+	var arg2 dto1.PaginationsInput
+	if tmp, ok := rawArgs["paginationInput"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("paginationInput"))
+		arg2, err = ec.unmarshalNPaginationsInput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐPaginationsInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["paginationInput"] = arg2
 	return args, nil
 }
 
@@ -5314,9 +5457,9 @@ func (ec *executionContext) _Facility_county(ctx context.Context, field graphql.
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(enums.CountyType)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNCountyType2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐCountyType(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Facility_description(ctx context.Context, field graphql.CollectedField, obj *domain1.Facility) (ret graphql.Marshaler) {
@@ -5352,6 +5495,76 @@ func (ec *executionContext) _Facility_description(ctx context.Context, field gra
 	res := resTmp.(string)
 	fc.Result = res
 	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _FacilityPage_Pagination(ctx context.Context, field graphql.CollectedField, obj *domain1.FacilityPage) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "FacilityPage",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Pagination, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(domain1.Pagination)
+	fc.Result = res
+	return ec.marshalNPagination2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐPagination(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _FacilityPage_Facilities(ctx context.Context, field graphql.CollectedField, obj *domain1.FacilityPage) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "FacilityPage",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Facilities, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]domain1.Facility)
+	fc.Result = res
+	return ec.marshalNFacility2ᚕgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐFacility(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _GroupedNavigationActions_primary(ctx context.Context, field graphql.CollectedField, obj *dto.GroupedNavigationActions) (ret graphql.Marshaler) {
@@ -8100,6 +8313,204 @@ func (ec *executionContext) _PageInfo_endCursor(ctx context.Context, field graph
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Pagination_Limit(ctx context.Context, field graphql.CollectedField, obj *domain1.Pagination) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Pagination",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Limit, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Pagination_CurrentPage(ctx context.Context, field graphql.CollectedField, obj *domain1.Pagination) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Pagination",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CurrentPage, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Pagination_Count(ctx context.Context, field graphql.CollectedField, obj *domain1.Pagination) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Pagination",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Count, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(int64)
+	fc.Result = res
+	return ec.marshalOInt2int64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Pagination_TotalPages(ctx context.Context, field graphql.CollectedField, obj *domain1.Pagination) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Pagination",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TotalPages, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalOInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Pagination_NextPage(ctx context.Context, field graphql.CollectedField, obj *domain1.Pagination) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Pagination",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.NextPage, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*int)
+	fc.Result = res
+	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Pagination_PreviousPage(ctx context.Context, field graphql.CollectedField, obj *domain1.Pagination) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Pagination",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PreviousPage, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*int)
+	fc.Result = res
+	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Permission_scope(ctx context.Context, field graphql.CollectedField, obj *profileutils.Permission) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -8491,6 +8902,45 @@ func (ec *executionContext) _Query_retrieveFacilityByMFLCode(ctx context.Context
 	res := resTmp.(*domain1.Facility)
 	fc.Result = res
 	return ec.marshalNFacility2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐFacility(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_listFacilities(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_listFacilities_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().ListFacilities(rctx, args["searchTerm"].(*string), args["filterInput"].([]*dto1.FiltersInput), args["paginationInput"].(dto1.PaginationsInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*domain1.FacilityPage)
+	fc.Result = res
+	return ec.marshalOFacilityPage2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐFacilityPage(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_dummyQuery(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -12461,7 +12911,7 @@ func (ec *executionContext) unmarshalInputFacilityInput(ctx context.Context, obj
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("county"))
-			it.County, err = ec.unmarshalNString2string(ctx, v)
+			it.County, err = ec.unmarshalNCountyType2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐCountyType(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -12551,6 +13001,34 @@ func (ec *executionContext) unmarshalInputFilterParam(ctx context.Context, obj i
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputFiltersInput(ctx context.Context, obj interface{}) (dto1.FiltersInput, error) {
+	var it dto1.FiltersInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "Name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Name"))
+			it.Name, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "Value":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Value"))
+			it.Value, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputMicroserviceInput(ctx context.Context, obj interface{}) (domain.Microservice, error) {
 	var it domain.Microservice
 	var asMap = obj.(map[string]interface{})
@@ -12622,6 +13100,34 @@ func (ec *executionContext) unmarshalInputPaginationInput(ctx context.Context, o
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("before"))
 			it.Before, err = ec.unmarshalOString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputPaginationsInput(ctx context.Context, obj interface{}) (dto1.PaginationsInput, error) {
+	var it dto1.PaginationsInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "Limit":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Limit"))
+			it.Limit, err = ec.unmarshalOInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "CurrentPage":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("CurrentPage"))
+			it.CurrentPage, err = ec.unmarshalNInt2int(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -13496,6 +14002,38 @@ func (ec *executionContext) _Facility(ctx context.Context, sel ast.SelectionSet,
 	return out
 }
 
+var facilityPageImplementors = []string{"FacilityPage"}
+
+func (ec *executionContext) _FacilityPage(ctx context.Context, sel ast.SelectionSet, obj *domain1.FacilityPage) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, facilityPageImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("FacilityPage")
+		case "Pagination":
+			out.Values[i] = ec._FacilityPage_Pagination(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "Facilities":
+			out.Values[i] = ec._FacilityPage_Facilities(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var groupedNavigationActionsImplementors = []string{"GroupedNavigationActions"}
 
 func (ec *executionContext) _GroupedNavigationActions(ctx context.Context, sel ast.SelectionSet, obj *dto.GroupedNavigationActions) graphql.Marshaler {
@@ -14015,6 +14553,46 @@ func (ec *executionContext) _PageInfo(ctx context.Context, sel ast.SelectionSet,
 	return out
 }
 
+var paginationImplementors = []string{"Pagination"}
+
+func (ec *executionContext) _Pagination(ctx context.Context, sel ast.SelectionSet, obj *domain1.Pagination) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, paginationImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Pagination")
+		case "Limit":
+			out.Values[i] = ec._Pagination_Limit(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "CurrentPage":
+			out.Values[i] = ec._Pagination_CurrentPage(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "Count":
+			out.Values[i] = ec._Pagination_Count(ctx, field, obj)
+		case "TotalPages":
+			out.Values[i] = ec._Pagination_TotalPages(ctx, field, obj)
+		case "NextPage":
+			out.Values[i] = ec._Pagination_NextPage(ctx, field, obj)
+		case "PreviousPage":
+			out.Values[i] = ec._Pagination_PreviousPage(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var permissionImplementors = []string{"Permission"}
 
 func (ec *executionContext) _Permission(ctx context.Context, sel ast.SelectionSet, obj *profileutils.Permission) graphql.Marshaler {
@@ -14148,6 +14726,17 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
+				return res
+			})
+		case "listFacilities":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_listFacilities(ctx, field)
 				return res
 			})
 		case "dummyQuery":
@@ -15312,6 +15901,43 @@ func (ec *executionContext) marshalNFacility2githubᚗcomᚋsavannahghiᚋmycare
 	return ec._Facility(ctx, sel, &v)
 }
 
+func (ec *executionContext) marshalNFacility2ᚕgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐFacility(ctx context.Context, sel ast.SelectionSet, v []domain1.Facility) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOFacility2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐFacility(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
 func (ec *executionContext) marshalNFacility2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐFacility(ctx context.Context, sel ast.SelectionSet, v *domain1.Facility) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
@@ -15546,6 +16172,15 @@ func (ec *executionContext) marshalNPageInfo2ᚖgithubᚗcomᚋsavannahghiᚋfir
 		return graphql.Null
 	}
 	return ec._PageInfo(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNPagination2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐPagination(ctx context.Context, sel ast.SelectionSet, v domain1.Pagination) graphql.Marshaler {
+	return ec._Pagination(ctx, sel, &v)
+}
+
+func (ec *executionContext) unmarshalNPaginationsInput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐPaginationsInput(ctx context.Context, v interface{}) (dto1.PaginationsInput, error) {
+	res, err := ec.unmarshalInputPaginationsInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalNPermission2ᚕᚖgithubᚗcomᚋsavannahghiᚋprofileutilsᚐPermissionᚄ(ctx context.Context, sel ast.SelectionSet, v []*profileutils.Permission) graphql.Marshaler {
@@ -16371,6 +17006,10 @@ func (ec *executionContext) marshalODate2ᚖgithubᚗcomᚋsavannahghiᚋscalaru
 	return v
 }
 
+func (ec *executionContext) marshalOFacility2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐFacility(ctx context.Context, sel ast.SelectionSet, v domain1.Facility) graphql.Marshaler {
+	return ec._Facility(ctx, sel, &v)
+}
+
 func (ec *executionContext) marshalOFacility2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐFacility(ctx context.Context, sel ast.SelectionSet, v []*domain1.Facility) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
@@ -16418,6 +17057,13 @@ func (ec *executionContext) marshalOFacility2ᚖgithubᚗcomᚋsavannahghiᚋmyc
 	return ec._Facility(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalOFacilityPage2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐFacilityPage(ctx context.Context, sel ast.SelectionSet, v *domain1.FacilityPage) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._FacilityPage(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalOFilterParam2ᚕᚖgithubᚗcomᚋsavannahghiᚋfirebasetoolsᚐFilterParam(ctx context.Context, v interface{}) ([]*firebasetools.FilterParam, error) {
 	if v == nil {
 		return nil, nil
@@ -16447,6 +17093,38 @@ func (ec *executionContext) unmarshalOFilterParam2ᚖgithubᚗcomᚋsavannahghi�
 		return nil, nil
 	}
 	res, err := ec.unmarshalInputFilterParam(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOFiltersInput2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐFiltersInput(ctx context.Context, v interface{}) ([]*dto1.FiltersInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]*dto1.FiltersInput, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalOFiltersInput2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐFiltersInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalOFiltersInput2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐFiltersInput(ctx context.Context, v interface{}) (*dto1.FiltersInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputFiltersInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
@@ -16535,6 +17213,30 @@ func (ec *executionContext) unmarshalOInt2int(ctx context.Context, v interface{}
 
 func (ec *executionContext) marshalOInt2int(ctx context.Context, sel ast.SelectionSet, v int) graphql.Marshaler {
 	return graphql.MarshalInt(v)
+}
+
+func (ec *executionContext) unmarshalOInt2int64(ctx context.Context, v interface{}) (int64, error) {
+	res, err := graphql.UnmarshalInt64(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOInt2int64(ctx context.Context, sel ast.SelectionSet, v int64) graphql.Marshaler {
+	return graphql.MarshalInt64(v)
+}
+
+func (ec *executionContext) unmarshalOInt2ᚖint(ctx context.Context, v interface{}) (*int, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := graphql.UnmarshalInt(v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOInt2ᚖint(ctx context.Context, sel ast.SelectionSet, v *int) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return graphql.MarshalInt(*v)
 }
 
 func (ec *executionContext) unmarshalOLanguage2githubᚗcomᚋsavannahghiᚋenumutilsᚐLanguage(ctx context.Context, v interface{}) (enumutils.Language, error) {

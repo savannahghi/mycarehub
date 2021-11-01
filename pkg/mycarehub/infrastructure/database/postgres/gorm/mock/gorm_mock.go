@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
 )
 
@@ -21,6 +22,7 @@ type GormMock struct {
 	MockRegisterClientFn              func(ctx context.Context, userInput *gorm.User, clientInput *gorm.ClientProfile) (*gorm.ClientUserProfile, error)
 	MockGetUserProfileByPhoneNumberFn func(ctx context.Context, phoneNumber string) (*gorm.User, error)
 	MockSavePinFn                     func(ctx context.Context, pinData *gorm.PINData) (bool, error)
+	MockListFacilitiesFn              func(ctx context.Context, searchTerm *string, filter []*domain.FiltersParam, pagination domain.FacilityPage) (*domain.FacilityPage, error)
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -35,7 +37,7 @@ func NewGormMock() *GormMock {
 	facilityID := uuid.New().String()
 	name := gofakeit.Name()
 	code := "KN001"
-	county := "Kanairo"
+	county := enums.CountyTypeNairobi
 	description := gofakeit.HipsterSentence(15)
 
 	facility := &gorm.Facility{
@@ -61,6 +63,29 @@ func NewGormMock() *GormMock {
 		},
 		Client: &gorm.ClientProfile{
 			ClientType: enums.ClientTypeOvc,
+		},
+	}
+
+	nextPage := 3
+	previousPage := 1
+	facilitiesPage := &domain.FacilityPage{
+		Pagination: domain.Pagination{
+			Limit:        1,
+			CurrentPage:  2,
+			Count:        3,
+			TotalPages:   3,
+			NextPage:     &nextPage,
+			PreviousPage: &previousPage,
+		},
+		Facilities: []domain.Facility{
+			{
+				ID:          &facilityID,
+				Name:        name,
+				Code:        code,
+				Active:      true,
+				County:      county,
+				Description: description,
+			},
 		},
 	}
 
@@ -97,6 +122,9 @@ func NewGormMock() *GormMock {
 
 		MockRetrieveFacilityByMFLCodeFn: func(ctx context.Context, MFLCode string, isActive bool) (*gorm.Facility, error) {
 			return facility, nil
+		},
+		MockListFacilitiesFn: func(ctx context.Context, searchTerm *string, filter []*domain.FiltersParam, pagination domain.FacilityPage) (*domain.FacilityPage, error) {
+			return facilitiesPage, nil
 		},
 	}
 }
@@ -143,4 +171,9 @@ func (gm *GormMock) GetUserProfileByPhoneNumber(ctx context.Context, phoneNumber
 // SavePin mocks the implementation of saving the pin to the database
 func (gm *GormMock) SavePin(ctx context.Context, pinData *gorm.PINData) (bool, error) {
 	return gm.MockSavePinFn(ctx, pinData)
+}
+
+// ListFacilities mocks the implementation of  ListFacilities method.
+func (gm *GormMock) ListFacilities(ctx context.Context, searchTerm *string, filter []*domain.FiltersParam, pagination domain.FacilityPage) (*domain.FacilityPage, error) {
+	return gm.MockListFacilitiesFn(ctx, searchTerm, filter, pagination)
 }

@@ -53,15 +53,8 @@ type IFacilityReactivate interface {
 
 // IFacilityList contains the method to list of facilities
 type IFacilityList interface {
-	// // TODO Document: callers should specify active
-	// List(
-	// 	// search
-	// 	searchTerm *string,
-	// 	// filter
-	// 	filter []*domain.FilterParam,
-	// 	// paginate
-	// 	page int,
-	// ) (*domain.FacilityPage, error)
+	// TODO Document: callers should specify active
+	ListFacilities(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, PaginationsInput dto.PaginationsInput) (*domain.FacilityPage, error)
 	FetchFacilities(ctx context.Context) ([]*domain.Facility, error)
 }
 
@@ -119,7 +112,7 @@ func (f *UseCaseFacilityImpl) Reactivate(id string) (*domain.Facility, error) {
 // // List returns a list if health facility
 // // TODO Document: callers should specify active
 // func (f *UseCaseFacilityImpl) List(
-// 	pagination *firebasetools.PaginationInput,
+// 	pagination *firebasetools.PaginationsInput,
 // 	filter []*dto.FacilityFilterInput,
 // 	sort []*dto.FacilitySortInput,
 // ) (*dto.FacilityConnection, error) {
@@ -139,4 +132,9 @@ func (f *UseCaseFacilityImpl) RetrieveFacilityByMFLCode(ctx context.Context, MFL
 // FetchFacilities fetches healthcare facilities in platform
 func (f *UseCaseFacilityImpl) FetchFacilities(ctx context.Context) ([]*domain.Facility, error) {
 	return f.Infrastructure.GetFacilities(ctx)
+}
+
+//ListFacilities is responsible for returning a list of paginated facilities
+func (f *UseCaseFacilityImpl) ListFacilities(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, PaginationsInput dto.PaginationsInput) (*domain.FacilityPage, error) {
+	return f.Infrastructure.ListFacilities(ctx, searchTerm, filterInput, PaginationsInput)
 }

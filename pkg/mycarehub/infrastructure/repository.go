@@ -63,6 +63,7 @@ type Query interface {
 	GetFacilities(ctx context.Context) ([]*domain.Facility, error)
 	RetrieveFacilityByMFLCode(ctx context.Context, MFLCode string, isActive bool) (*domain.Facility, error)
 	GetUserProfileByPhoneNumber(ctx context.Context, phoneNumber string) (*domain.User, error)
+	ListFacilities(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, PaginationsInput dto.PaginationsInput) (*domain.FacilityPage, error)
 }
 
 // ServiceQueryImpl contains implementation for the Query interface
@@ -95,6 +96,12 @@ func (q ServiceQueryImpl) RetrieveFacilityByMFLCode(ctx context.Context, MFLCode
 //GetFacilities is responsible for returning a slice of healthcare facilities in the platform.
 func (q ServiceQueryImpl) GetFacilities(ctx context.Context) ([]*domain.Facility, error) {
 	return q.onboarding.GetFacilities(ctx)
+}
+
+//ListFacilities is responsible for returning a list of paginated facilities
+func (q ServiceQueryImpl) ListFacilities(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, PaginationsInput dto.PaginationsInput,
+) (*domain.FacilityPage, error) {
+	return q.onboarding.ListFacilities(ctx, searchTerm, filterInput, PaginationsInput)
 }
 
 // DeleteFacility is responsible for deletion of a facility from the database using the facility's id

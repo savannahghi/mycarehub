@@ -12,11 +12,11 @@ import (
 
 // FacilityInput describes the facility input
 type FacilityInput struct {
-	Name        string `json:"name"`
-	Code        string `json:"code"`
-	Active      bool   `json:"active"`
-	County      string `json:"county"`
-	Description string `json:"description"`
+	Name        string           `json:"name"`
+	Code        string           `json:"code"`
+	Active      bool             `json:"active"`
+	County      enums.CountyType `json:"county"`
+	Description string           `json:"description"`
 }
 
 // FacilityFilterInput is used to supply filter parameters for healthcare facility filter inputs
@@ -175,4 +175,16 @@ type SMSPayload struct {
 type ResetPinInput struct {
 	UserID  string          `json:"userID"`
 	Flavour feedlib.Flavour `json:"flavour"`
+}
+
+// PaginationsInput contains fields required for pagination
+type PaginationsInput struct {
+	Limit       int `json:"limit"`
+	CurrentPage int `json:"currentPage"`
+}
+
+// FiltersInput contains fields required for filtering
+type FiltersInput struct {
+	Name  *string `json:"Name"`
+	Value *string `json:"Value"`
 }

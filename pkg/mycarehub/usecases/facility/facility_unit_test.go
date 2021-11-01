@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/segmentio/ksuid"
 )
@@ -16,7 +17,7 @@ func TestUnit_CreateFacility(t *testing.T) {
 	ctx := context.Background()
 	name := "Kanairo One"
 	code := ksuid.New().String()
-	county := "Kanairo"
+	county := enums.CountyTypeNairobi
 	description := "This is just for mocking"
 
 	type args struct {
@@ -309,6 +310,141 @@ func TestUseCaseFacilityImpl_RetrieveFacilityByMFLCode_Unittest(t *testing.T) {
 			got, err := f.RetrieveFacilityByMFLCode(tt.args.ctx, tt.args.MFLCode, tt.args.isActive)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCaseFacilityImpl.RetrieveFacilityByMFLCode() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if tt.wantErr && got != nil {
+				t.Errorf("expected facilities to be nil for %v", tt.name)
+				return
+			}
+
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected facilities not to be nil for %v", tt.name)
+				return
+			}
+		})
+	}
+}
+
+func TestUnit_ListFacilities(t *testing.T) {
+	ctx := context.Background()
+
+	f := testFakeInfrastructureInteractor
+
+	searchTerm := "term"
+
+	filterName := "user"
+	filterValue := "value"
+
+	filterInput := []*dto.FiltersInput{
+		{
+			Name:  &filterName,
+			Value: &filterValue,
+		},
+	}
+
+	paginationInput := dto.PaginationsInput{
+		Limit:       1,
+		CurrentPage: 1,
+	}
+
+	type args struct {
+		ctx              context.Context
+		searchTerm       *string
+		filterInput      []*dto.FiltersInput
+		PaginationsInput dto.PaginationsInput
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:              ctx,
+				searchTerm:       &searchTerm,
+				filterInput:      filterInput,
+				PaginationsInput: paginationInput,
+			},
+			wantErr: false,
+		},
+
+		{
+			name: "Sad case",
+			args: args{
+				ctx:              ctx,
+				searchTerm:       &searchTerm,
+				filterInput:      filterInput,
+				PaginationsInput: paginationInput,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "Happy case" {
+				fakeCreate.GetOrCreateFacilityFn = func(ctx context.Context, facility dto.FacilityInput) (*domain.Facility, error) {
+					ID := uuid.New().String()
+					return &domain.Facility{
+						ID:          &ID,
+						Name:        facility.Name,
+						Code:        facility.Code,
+						Active:      facility.Active,
+						County:      facility.County,
+						Description: facility.Description,
+					}, nil
+				}
+			}
+			fakeQuery.ListFacilitiesFn = func(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationsInput dto.PaginationsInput) (*domain.FacilityPage, error) {
+				facilityID := uuid.New().String()
+				name := "test-facility"
+				code := "t-100"
+				county := enums.CountyTypeNairobi
+				description := "test description"
+				nextPage := 1
+				previousPage := 1
+				return &domain.FacilityPage{
+					Pagination: domain.Pagination{
+						Limit:        1,
+						CurrentPage:  1,
+						Count:        1,
+						TotalPages:   1,
+						NextPage:     &nextPage,
+						PreviousPage: &previousPage,
+					},
+					Facilities: []domain.Facility{
+						{
+							ID:          &facilityID,
+							Name:        name,
+							Code:        code,
+							Active:      true,
+							County:      county,
+							Description: description,
+						},
+					},
+				}, nil
+			}
+
+			if tt.name == "Sad case" {
+				fakeCreate.GetOrCreateFacilityFn = func(ctx context.Context, facility dto.FacilityInput) (*domain.Facility, error) {
+					ID := uuid.New().String()
+					return &domain.Facility{
+						ID:          &ID,
+						Name:        facility.Name,
+						Code:        facility.Code,
+						Active:      facility.Active,
+						County:      facility.County,
+						Description: facility.Description,
+					}, nil
+				}
+				fakeQuery.ListFacilitiesFn = func(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, PaginationsInput dto.PaginationsInput) (*domain.FacilityPage, error) {
+					return nil, fmt.Errorf("failed to list facilities")
+				}
+			}
+
+			got, err := f.ListFacilities(tt.args.ctx, tt.args.searchTerm, tt.args.filterInput, tt.args.PaginationsInput)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("OnboardingDb.ListFacilities() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if tt.wantErr && got != nil {

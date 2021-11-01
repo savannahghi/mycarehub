@@ -2,7 +2,7 @@ input FacilityInput {
   name: String!
   code: String!
   active: Boolean!
-  county: String!
+  county: CountyType!
   description: String!
 }
 
@@ -37,4 +37,15 @@ input PinInput {
   Pin: String!
   confirmedPin: String!
   flavour: Flavour!
+}
+
+input PaginationsInput {
+  Limit: Int
+	CurrentPage: Int!          
+}
+
+input FiltersInput {
+  Name: String
+  # DataType: FilterDataType
+  Value: String
 }
