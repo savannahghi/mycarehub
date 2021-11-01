@@ -105,3 +105,20 @@ func (d *MyCareHubDb) mapProfileObjectToDomain(profileObject *gorm.User) *domain
 
 	return user
 }
+
+// mapPINObjectToDomain maps the db pin data to a domain model.
+func (d *MyCareHubDb) mapPINObjectToDomain(pinObj *gorm.PINData) *domain.UserPIN {
+	if pinObj == nil {
+		return nil
+	}
+
+	return &domain.UserPIN{
+		UserID:    pinObj.UserID,
+		HashedPIN: pinObj.HashedPIN,
+		ValidFrom: pinObj.ValidFrom,
+		ValidTo:   pinObj.ValidTo,
+		Flavour:   pinObj.Flavour,
+		IsValid:   pinObj.IsValid,
+		Salt:      pinObj.Salt,
+	}
+}

@@ -95,9 +95,9 @@ type PinInput struct {
 
 // LoginInput represents the Login input data structure
 type LoginInput struct {
-	UserID  string          `json:"userID"`
-	PIN     string          `json:"pin"`
-	Flavour feedlib.Flavour `json:"flavour"`
+	PhoneNumber *string         `json:"phoneNumber"`
+	PIN         *string         `json:"pin"`
+	Flavour     feedlib.Flavour `json:"flavour"`
 }
 
 // StaffProfileInput contains input required to register a staff

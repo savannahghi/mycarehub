@@ -1,7 +1,7 @@
 # MyCareHub service
 
 ![Linting and Tests](https://github.com/savannahghi/mycarehub/actions/workflows/ci.yml/badge.svg)
-[![Coverage Status](https://coveralls.io/repos/github/savannahghi/mycarehub/badge.svg?branch=main)](https://coveralls.io/github/savannahghi/mycarehub?branch=main)
+[![Coverage Status](https://coveralls.io/repos/github/savannahghi/mycarehub/badge.svg)](https://coveralls.io/github/savannahghi/mycarehub)
 
 This service contains the implementation of the mycarehub project.
 

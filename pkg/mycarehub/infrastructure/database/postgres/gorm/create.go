@@ -70,11 +70,12 @@ func (db *PGInstance) RegisterClient(
 
 // SavePin saves the pin to the database
 func (db *PGInstance) SavePin(ctx context.Context, pinData *PINData) (bool, error) {
+	if pinData == nil {
+		return false, fmt.Errorf("nil pin data provided")
+	}
 	err := db.DB.Create(pinData).Error
-
 	if err != nil {
 		return false, fmt.Errorf("failed to save pin data: %v", err)
 	}
-
 	return true, nil
 }

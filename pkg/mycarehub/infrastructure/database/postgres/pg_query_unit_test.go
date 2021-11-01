@@ -505,3 +505,55 @@ func TestOnboardingDb_ListFacilities(t *testing.T) {
 		return
 	}
 }
+
+func TestOnboardingDb_GetUserPINByUserID(t *testing.T) {
+	ctx := context.Background()
+	type args struct {
+		ctx    context.Context
+		userID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Successfully get user pin by user ID",
+			args: args{
+				ctx:    ctx,
+				userID: "1234456",
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad Case - Fail to get user pin",
+			args: args{
+				ctx:    ctx,
+				userID: "12345",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var fakeGorm = gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm)
+
+			if tt.name == "Sad Case - Fail to get user pin" {
+				fakeGorm.MockGetUserPINByUserIDFn = func(ctx context.Context, userID string) (*gorm.PINData, error) {
+					return nil, fmt.Errorf("failed to get user pin")
+				}
+			}
+
+			got, err := d.GetUserPINByUserID(tt.args.ctx, tt.args.userID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("OnboardingDb.GetUserPINByUserID() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected to get a response but got: %v", got)
+				return
+			}
+		})
+	}
+}

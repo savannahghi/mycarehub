@@ -20,6 +20,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/presentation/graph"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/presentation/graph/generated"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/presentation/interactor"
+	internalRest "github.com/savannahghi/mycarehub/pkg/mycarehub/presentation/rest"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/client"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/facility"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/user"
@@ -90,7 +91,8 @@ func Router(ctx context.Context) (*mux.Router, error) {
 		userUsecase,
 	)
 
-	//h := rest.NewHandlersInterfaces(infrastructure, openSourceUsecases)
+	// h := rest.NewHandlersInterfaces(infrastructure, openSourceUsecases)
+	internalHandlers := internalRest.NewMyCareHubHandlersInterfaces(*i)
 
 	r := mux.NewRouter() // gorilla mux
 	r.Use(otelmux.Middleware(serverutils.MetricsCollectorService("onboarding")))
@@ -109,6 +111,11 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	// openSourcePresentation.SharedUnauthenticatedRoutes(h, r)
 	r.Path("/ide").HandlerFunc(playground.Handler("GraphQL IDE", "/graphql"))
 	r.Path("/health").HandlerFunc(HealthStatusCheck)
+
+	r.Path("/login_by_phone").Methods(
+		http.MethodOptions,
+		http.MethodPost,
+	).HandlerFunc(internalHandlers.LoginByPhone())
 	// Shared authenticated ISC routes
 	//openSourcePresentation.SharedAuthenticatedISCRoutes(h, r)
 	// Shared authenticated routes

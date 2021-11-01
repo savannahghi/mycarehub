@@ -97,6 +97,7 @@ type QueryMock struct {
 	GetFacilitiesFn               func(ctx context.Context) ([]*domain.Facility, error)
 	GetUserProfileByPhoneNumberFn func(ctx context.Context, phoneNumber string) (*domain.User, error)
 	ListFacilitiesFn              func(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, PaginationsInput dto.PaginationsInput) (*domain.FacilityPage, error)
+	GetUserPINByUserIDFn          func(ctx context.Context, userID string) (*domain.UserPIN, error)
 }
 
 // NewQueryMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -107,6 +108,10 @@ func NewQueryMock() *QueryMock {
 			return &domain.User{
 				ID: &id,
 			}, nil
+		},
+
+		GetUserPINByUserIDFn: func(ctx context.Context, userID string) (*domain.UserPIN, error) {
+			return &domain.UserPIN{}, nil
 		},
 
 		RetrieveFacilityFn: func(ctx context.Context, id *string, isActive bool) (*domain.Facility, error) {
@@ -218,6 +223,11 @@ func (f *QueryMock) ListFacilities(
 	PaginationsInput dto.PaginationsInput,
 ) (*domain.FacilityPage, error) {
 	return f.ListFacilitiesFn(ctx, searchTerm, filterInput, PaginationsInput)
+}
+
+// GetUserPINByUserID mocks the get user pin by ID implementation
+func (f *QueryMock) GetUserPINByUserID(ctx context.Context, userID string) (*domain.UserPIN, error) {
+	return f.GetUserPINByUserIDFn(ctx, userID)
 }
 
 // UpdateMock ...

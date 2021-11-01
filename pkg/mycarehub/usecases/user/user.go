@@ -5,8 +5,11 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/savannahghi/converterandformatter"
 	"github.com/savannahghi/feedlib"
+	"github.com/savannahghi/firebasetools"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
@@ -42,7 +45,7 @@ type ILogin interface {
 	//	default this base to 4...but override to 3 for a start in env
 	// TODO: Only users who have accepted terms can login
 	// TODO: Update metrics e.g login count, failed login count, successful login count etc
-	Login(ctx context.Context, userID string, pin string, flavour feedlib.Flavour) (*domain.AuthCredentials, string, error)
+	Login(ctx context.Context, phoneNumber string, pin string, flavour feedlib.Flavour) (*domain.AuthCredentials, string, error)
 }
 
 // IUserForget models the behavior needed to comply with privacy laws e.g GDPR
@@ -190,8 +193,53 @@ func NewUseCasesUserImpl(
 }
 
 // Login is used to login the user into the application
-func (us *UseCasesUserImpl) Login(ctx context.Context, userID string, pin string, flavour feedlib.Flavour) (*domain.AuthCredentials, string, error) {
-	return nil, "", nil
+func (us *UseCasesUserImpl) Login(ctx context.Context, phoneNumber string, pin string, flavour feedlib.Flavour) (*domain.AuthCredentials, string, error) {
+	phone, err := converterandformatter.NormalizeMSISDN(phoneNumber)
+	if err != nil {
+		return nil, "", exceptions.NormalizeMSISDNError(err)
+	}
+
+	profile, err := us.Query.GetUserProfileByPhoneNumber(ctx, *phone)
+	if err != nil {
+		return nil, "", err
+	}
+
+	pinData, err := us.Query.GetUserPINByUserID(ctx, *profile.ID)
+	if err != nil {
+		return nil, "", err
+	}
+
+	// If pin `ValidTo` field is in the past (expired), throw an error. This means the user has to
+	// change their pin on the next login
+	currentTime := time.Now()
+	pinExpired := currentTime.After(pinData.ValidTo)
+	if pinExpired {
+		return nil, "", exceptions.ExpiredPinError()
+	}
+
+	matched := us.OnboardingExt.ComparePIN(pin, pinData.Salt, pinData.HashedPIN, nil)
+	if !matched {
+		return nil, "", exceptions.PinMismatchError(err)
+	}
+
+	customToken, err := firebasetools.CreateFirebaseCustomToken(ctx, *profile.ID)
+	if err != nil {
+		return nil, "", err
+	}
+
+	userTokens, err := firebasetools.AuthenticateCustomFirebaseToken(customToken)
+	if err != nil {
+		return nil, "", err
+	}
+
+	authCredentials := &domain.AuthCredentials{
+		User:         profile,
+		RefreshToken: userTokens.RefreshToken,
+		IDToken:      userTokens.IDToken,
+		ExpiresIn:    userTokens.ExpiresIn,
+	}
+
+	return authCredentials, "", nil
 }
 
 // ResetPIN resets user PIN
