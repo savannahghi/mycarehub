@@ -13,6 +13,7 @@ import (
 	"go.opentelemetry.io/contrib/instrumentation/github.com/gorilla/mux/otelmux"
 
 	"github.com/99designs/gqlgen/graphql/handler"
+	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	infra "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
@@ -106,6 +107,8 @@ func Router(ctx context.Context) (*mux.Router, error) {
 
 	// Shared unauthenticated routes
 	// openSourcePresentation.SharedUnauthenticatedRoutes(h, r)
+	r.Path("/ide").HandlerFunc(playground.Handler("GraphQL IDE", "/graphql"))
+	r.Path("/health").HandlerFunc(HealthStatusCheck)
 	// Shared authenticated ISC routes
 	openSourcePresentation.SharedAuthenticatedISCRoutes(h, r)
 	// Shared authenticated routes
