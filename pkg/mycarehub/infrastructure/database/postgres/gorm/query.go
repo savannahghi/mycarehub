@@ -62,11 +62,21 @@ func (db *PGInstance) GetUserProfileByPhoneNumber(ctx context.Context, phoneNumb
 }
 
 // ListFacilities lists all facilities, the results returned are
-// from search, and provided filters. they are also paginated
-func (db *PGInstance) ListFacilities(
-	ctx context.Context, searchTerm *string, filter []*domain.FiltersParam, pagination domain.FacilityPage) (*domain.FacilityPage, error) {
+// from search, and provided filters. They are also paginated
+func (db *PGInstance) ListFacilities(ctx context.Context, searchTerm *string, filter []*domain.FiltersParam, pagination domain.FacilityPage) (*domain.FacilityPage, error) {
 	var facilities []Facility
+	// this will keep track of the results for pagination
+	// Count query is unreliable for this since it is returning the count for all rows instead of results
+	var resultCount int64
+
 	facilitiesOutput := []domain.Facility{}
+
+	for _, f := range filter {
+		err := f.Validate()
+		if err != nil {
+			return nil, fmt.Errorf("failed to validate filter %v: %v", f.Value, err)
+		}
+	}
 
 	paginatedFacilities := domain.FacilityPage{
 		Pagination: domain.Pagination{
@@ -80,7 +90,29 @@ func (db *PGInstance) ListFacilities(
 		Facilities: pagination.Facilities,
 	}
 
-	db.DB.Scopes(paginate(facilities, &paginatedFacilities.Pagination, db.DB)).Find(&facilities)
+	mappedFilterParams := filterParamsToMap(filter)
+
+	tx := db.DB.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	if err := tx.Error; err != nil {
+		return nil, fmt.Errorf("failed to initialize filter facilities transaction %v", err)
+	}
+
+	tx.Where(mappedFilterParams).Find(&facilities)
+	resultCount = int64(len(facilities))
+
+	tx.Scopes(paginate(facilities, &paginatedFacilities.Pagination, resultCount, db.DB)).Where(mappedFilterParams).Find(&facilities)
+
+	if err := tx.Commit().Error; err != nil {
+		tx.Rollback()
+		return nil, fmt.Errorf("failed to commit transaction list facilities transaction%v", err)
+	}
+
 	for _, f := range facilities {
 		active, err := strconv.ParseBool(f.Active)
 		if err != nil {
@@ -96,10 +128,11 @@ func (db *PGInstance) ListFacilities(
 		}
 		facilitiesOutput = append(facilitiesOutput, facility)
 	}
+
 	pagination.Pagination.Count = paginatedFacilities.Pagination.Count
 	pagination.Pagination.TotalPages = paginatedFacilities.Pagination.TotalPages
+	pagination.Pagination.Limit = paginatedFacilities.Pagination.Limit
 	pagination.Facilities = facilitiesOutput
-
 	pagination.Pagination.NextPage = paginatedFacilities.Pagination.NextPage
 
 	pagination.Pagination.PreviousPage = paginatedFacilities.Pagination.PreviousPage

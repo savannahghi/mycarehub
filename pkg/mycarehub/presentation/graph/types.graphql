@@ -115,3 +115,9 @@ type FacilityPage {
   Facilities: [Facility]!
 
 }
+
+type FiltersParam {
+	Name:     String
+	DataType: FilterDataType 
+	Value:   String 
+}

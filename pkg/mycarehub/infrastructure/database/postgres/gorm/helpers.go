@@ -8,20 +8,17 @@ import (
 )
 
 // paginate is a helper function that helps with querying paginated results
-func paginate(value interface{}, pagination *domain.Pagination, db *gorm.DB) func(db *gorm.DB) *gorm.DB {
-	var count int64
-	db.Model(value).Count(&count)
-
+func paginate(value interface{}, pagination *domain.Pagination, count int64, db *gorm.DB) func(db *gorm.DB) *gorm.DB {
 	pagination.Count = count
-	totalPages := int(math.Ceil(float64(count) / float64(pagination.Limit)))
-	pagination.TotalPages = totalPages
-
-	currentPage := pagination.GetPage()
 
 	// If no limit is specified, default to 10
 	if pagination.Limit == 0 {
 		pagination.Limit = pagination.GetLimit()
 	}
+	totalPages := int(math.Ceil(float64(count) / float64(pagination.Limit)))
+	pagination.TotalPages = totalPages
+
+	currentPage := pagination.GetPage()
 
 	nextPage := currentPage + 1
 	pagination.NextPage = &nextPage
@@ -40,6 +37,15 @@ func paginate(value interface{}, pagination *domain.Pagination, db *gorm.DB) fun
 	}
 
 	return func(db *gorm.DB) *gorm.DB {
-		return db.Offset(pagination.GetOffset()).Limit(pagination.GetLimit()).Order(pagination)
+		return db.Offset(pagination.GetOffset()).Limit(pagination.GetLimit())
 	}
+}
+
+// parse filter param values to map[string]interface{}
+func filterParamsToMap(mapString []*domain.FiltersParam) map[string]interface{} {
+	res := make(map[string]interface{})
+	for _, v := range mapString {
+		res[v.Name] = v.Value
+	}
+	return res
 }

@@ -45,7 +45,6 @@ input PaginationsInput {
 }
 
 input FiltersInput {
-  Name: String
-  # DataType: FilterDataType
+  DataType: FilterDataType
   Value: String
 }

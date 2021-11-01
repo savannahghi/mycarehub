@@ -136,6 +136,12 @@ type ComplexityRoot struct {
 		Pagination func(childComplexity int) int
 	}
 
+	FiltersParam struct {
+		DataType func(childComplexity int) int
+		Name     func(childComplexity int) int
+		Value    func(childComplexity int) int
+	}
+
 	GroupedNavigationActions struct {
 		Primary   func(childComplexity int) int
 		Secondary func(childComplexity int) int
@@ -807,6 +813,27 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.FacilityPage.Pagination(childComplexity), true
+
+	case "FiltersParam.DataType":
+		if e.complexity.FiltersParam.DataType == nil {
+			break
+		}
+
+		return e.complexity.FiltersParam.DataType(childComplexity), true
+
+	case "FiltersParam.Name":
+		if e.complexity.FiltersParam.Name == nil {
+			break
+		}
+
+		return e.complexity.FiltersParam.Name(childComplexity), true
+
+	case "FiltersParam.Value":
+		if e.complexity.FiltersParam.Value == nil {
+			break
+		}
+
+		return e.complexity.FiltersParam.Value(childComplexity), true
 
 	case "GroupedNavigationActions.primary":
 		if e.complexity.GroupedNavigationActions.Primary == nil {
@@ -2397,6 +2424,13 @@ enum TransferReason {
   RELOCATION
   OTHER
 }
+
+enum FilterDataType {
+  name
+  mfl_code
+  active
+  county
+}
 `, BuiltIn: false},
 	{Name: "pkg/mycarehub/presentation/graph/facility.graphql", Input: `
 extend type Mutation {
@@ -2457,8 +2491,7 @@ input PaginationsInput {
 }
 
 input FiltersInput {
-  Name: String
-  # DataType: FilterDataType
+  DataType: FilterDataType
   Value: String
 }
 `, BuiltIn: false},
@@ -2582,6 +2615,12 @@ type FacilityPage {
   Pagination: Pagination!
   Facilities: [Facility]!
 
+}
+
+type FiltersParam {
+	Name:     String
+	DataType: FilterDataType 
+	Value:   String 
 }
 `, BuiltIn: false},
 	{Name: "federation/directives.graphql", Input: `
@@ -5565,6 +5604,102 @@ func (ec *executionContext) _FacilityPage_Facilities(ctx context.Context, field 
 	res := resTmp.([]domain1.Facility)
 	fc.Result = res
 	return ec.marshalNFacility2ᚕgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐFacility(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _FiltersParam_Name(ctx context.Context, field graphql.CollectedField, obj *domain1.FiltersParam) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "FiltersParam",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _FiltersParam_DataType(ctx context.Context, field graphql.CollectedField, obj *domain1.FiltersParam) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "FiltersParam",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.DataType, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(enums.FilterDataType)
+	fc.Result = res
+	return ec.marshalOFilterDataType2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐFilterDataType(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _FiltersParam_Value(ctx context.Context, field graphql.CollectedField, obj *domain1.FiltersParam) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "FiltersParam",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Value, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalOString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _GroupedNavigationActions_primary(ctx context.Context, field graphql.CollectedField, obj *dto.GroupedNavigationActions) (ret graphql.Marshaler) {
@@ -13007,11 +13142,11 @@ func (ec *executionContext) unmarshalInputFiltersInput(ctx context.Context, obj 
 
 	for k, v := range asMap {
 		switch k {
-		case "Name":
+		case "DataType":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Name"))
-			it.Name, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("DataType"))
+			it.DataType, err = ec.unmarshalOFilterDataType2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐFilterDataType(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -13019,7 +13154,7 @@ func (ec *executionContext) unmarshalInputFiltersInput(ctx context.Context, obj 
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Value"))
-			it.Value, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			it.Value, err = ec.unmarshalOString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -14023,6 +14158,34 @@ func (ec *executionContext) _FacilityPage(ctx context.Context, sel ast.Selection
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var filtersParamImplementors = []string{"FiltersParam"}
+
+func (ec *executionContext) _FiltersParam(ctx context.Context, sel ast.SelectionSet, obj *domain1.FiltersParam) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, filtersParamImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("FiltersParam")
+		case "Name":
+			out.Values[i] = ec._FiltersParam_Name(ctx, field, obj)
+		case "DataType":
+			out.Values[i] = ec._FiltersParam_DataType(ctx, field, obj)
+		case "Value":
+			out.Values[i] = ec._FiltersParam_Value(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -17062,6 +17225,16 @@ func (ec *executionContext) marshalOFacilityPage2ᚖgithubᚗcomᚋsavannahghi�
 		return graphql.Null
 	}
 	return ec._FacilityPage(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOFilterDataType2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐFilterDataType(ctx context.Context, v interface{}) (enums.FilterDataType, error) {
+	var res enums.FilterDataType
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOFilterDataType2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐFilterDataType(ctx context.Context, sel ast.SelectionSet, v enums.FilterDataType) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) unmarshalOFilterParam2ᚕᚖgithubᚗcomᚋsavannahghiᚋfirebasetoolsᚐFilterParam(ctx context.Context, v interface{}) ([]*firebasetools.FilterParam, error) {

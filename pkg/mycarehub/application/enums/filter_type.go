@@ -9,18 +9,19 @@ import (
 // FilterDataType defines the various Filter data types
 type FilterDataType string
 
+// Note: the constant values should match the table field name
 const (
 	// FilterDataTypeName represents a Name Filter data type
-	FilterDataTypeName FilterDataType = "Name"
+	FilterDataTypeName FilterDataType = "name"
 
 	// FilterDataTypeMFLCode represents an MFL Code Filter data type
-	FilterDataTypeMFLCode FilterDataType = "Code"
+	FilterDataTypeMFLCode FilterDataType = "mfl_code"
 
 	// FilterDataTypeActive represents the Active Filter data type
-	FilterDataTypeActive FilterDataType = "Active"
+	FilterDataTypeActive FilterDataType = "active"
 
 	// FilterDataTypeCounty represents the County Filter data type
-	FilterDataTypeCounty FilterDataType = "County"
+	FilterDataTypeCounty FilterDataType = "county"
 
 	// Other Filter data Types
 )
