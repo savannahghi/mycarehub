@@ -21,7 +21,7 @@ func TestOnboardingDb_GetOrCreateFacility(t *testing.T) {
 
 	name := gofakeit.Name()
 	code := "KN001"
-	county := "Kanairo"
+	county := enums.CountyTypeNairobi
 	description := gofakeit.HipsterSentence(15)
 
 	facility := &dto.FacilityInput{

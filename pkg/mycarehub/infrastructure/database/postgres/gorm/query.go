@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"log"
 	"strconv"
+
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 )
 
 // Query contains all the db query methods
@@ -13,6 +15,7 @@ type Query interface {
 	RetrieveFacilityByMFLCode(ctx context.Context, MFLCode string, isActive bool) (*Facility, error)
 	GetFacilities(ctx context.Context) ([]Facility, error)
 	GetUserProfileByPhoneNumber(ctx context.Context, phoneNumber string) (*User, error)
+	ListFacilities(ctx context.Context, searchTerm *string, filter []*domain.FiltersParam, pagination domain.FacilityPage) (*domain.FacilityPage, error)
 }
 
 // RetrieveFacility fetches a single facility
@@ -55,4 +58,50 @@ func (db *PGInstance) GetUserProfileByPhoneNumber(ctx context.Context, phoneNumb
 		return nil, fmt.Errorf("failed to get user by phonenumber %v: %v", phoneNumber, err)
 	}
 	return &user, nil
+}
+
+// ListFacilities lists all facilities, the results returned are
+// from search, and provided filters. they are also paginated
+func (db *PGInstance) ListFacilities(
+	ctx context.Context, searchTerm *string, filter []*domain.FiltersParam, pagination domain.FacilityPage) (*domain.FacilityPage, error) {
+	var facilities []Facility
+	facilitiesOutput := []domain.Facility{}
+
+	paginatedFacilities := domain.FacilityPage{
+		Pagination: domain.Pagination{
+			Limit:        pagination.Pagination.Limit,
+			CurrentPage:  pagination.Pagination.CurrentPage,
+			Count:        pagination.Pagination.Count,
+			TotalPages:   pagination.Pagination.TotalPages,
+			NextPage:     pagination.Pagination.NextPage,
+			PreviousPage: pagination.Pagination.PreviousPage,
+		},
+		Facilities: pagination.Facilities,
+	}
+
+	db.DB.Scopes(paginate(facilities, &paginatedFacilities.Pagination, db.DB)).Find(&facilities)
+	for _, f := range facilities {
+		active, err := strconv.ParseBool(f.Active)
+		if err != nil {
+			return nil, fmt.Errorf("failed to format %s to bool: %v", f.Active, err)
+		}
+		facility := domain.Facility{
+			ID:          f.FacilityID,
+			Name:        f.Name,
+			Code:        f.Code,
+			Active:      active,
+			County:      f.County,
+			Description: f.Description,
+		}
+		facilitiesOutput = append(facilitiesOutput, facility)
+	}
+	pagination.Pagination.Count = paginatedFacilities.Pagination.Count
+	pagination.Pagination.TotalPages = paginatedFacilities.Pagination.TotalPages
+	pagination.Facilities = facilitiesOutput
+
+	pagination.Pagination.NextPage = paginatedFacilities.Pagination.NextPage
+
+	pagination.Pagination.PreviousPage = paginatedFacilities.Pagination.PreviousPage
+
+	return &pagination, nil
 }

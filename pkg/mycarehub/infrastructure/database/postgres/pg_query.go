@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 )
 
@@ -77,4 +78,27 @@ func (d *OnboardingDb) GetUserProfileByPhoneNumber(ctx context.Context, phoneNum
 	}
 
 	return d.mapProfileObjectToDomain(user), nil
+}
+
+// ListFacilities gets facilities that are filtered from search and filter,
+// the results are also paginated
+func (d *OnboardingDb) ListFacilities(
+	ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, PaginationsInput dto.PaginationsInput) (*domain.FacilityPage, error) {
+	// if user did not provide current page, throw an error
+	if PaginationsInput.CurrentPage == 0 {
+		return nil, fmt.Errorf("current page not provided")
+	}
+	paginationOutput := domain.FacilityPage{
+		Pagination: domain.Pagination{
+			Limit:       PaginationsInput.Limit,
+			CurrentPage: PaginationsInput.CurrentPage,
+		},
+	}
+	filtersOutput := []*domain.FiltersParam{}
+
+	facilities, err := d.query.ListFacilities(ctx, searchTerm, filtersOutput, paginationOutput)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get facilities: %v", err)
+	}
+	return facilities, nil
 }

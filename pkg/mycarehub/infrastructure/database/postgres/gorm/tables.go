@@ -29,10 +29,10 @@ type Facility struct {
 	// unique within this structure
 	Name string `gorm:"column:name"`
 	// MFL Code for Kenyan facilities, globally unique
-	Code        string `gorm:"unique;column:mfl_code"`
-	Active      string `gorm:"column:active"`
-	County      string `gorm:"column:county"` // TODO: Controlled list of counties
-	Description string `gorm:"column:description"`
+	Code        string           `gorm:"unique;column:mfl_code"`
+	Active      string           `gorm:"column:active"`
+	County      enums.CountyType `gorm:"column:county"` // TODO: Controlled list of counties
+	Description string           `gorm:"column:description"`
 }
 
 // BeforeCreate is a hook run before creating a new facility

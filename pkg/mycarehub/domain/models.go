@@ -20,10 +20,10 @@ type Facility struct {
 	// unique within this structure
 	Name string `json:"name"`
 	// MFL Code for Kenyan facilities, globally unique
-	Code        string `json:"code"`
-	Active      bool   `json:"active"`
-	County      string `json:"county"` // TODO: Controlled list of counties
-	Description string `json:"description"`
+	Code        string           `json:"code"`
+	Active      bool             `json:"active"`
+	County      enums.CountyType `json:"county"` // TODO: Controlled list of counties
+	Description string           `json:"description"`
 }
 
 // // FacilityPage models the structure of all facilities including pagination
@@ -288,4 +288,26 @@ type StaffUserProfile struct {
 type ClientUserProfile struct {
 	User   *User          `json:"user"`
 	Client *ClientProfile `json:"client"`
+}
+
+//FacilityPage returns a list of paginates facilities
+type FacilityPage struct {
+	Pagination Pagination
+	Facilities []Facility
+}
+
+// FiltersParam contains the inputs for filter parameters
+type FiltersParam struct {
+	Name string
+	// DataType enums.FilterDataType // TODO: Ideally a controlled list i.e enum (MFL code, Active, County )
+	Value string // TODO: Clear spec on validation e.g dates must be ISO 8601. This is the actual data being filtered
+}
+
+// Validate is a filter param method that performs validations
+func (f FiltersParam) Validate() error {
+	// Validate enums
+	// TODO: Very strict validation of data <-> data type
+	// 	     this is a good candidate for TDD with unit tests
+	// TODO: make sure this is always called before filter params are used
+	return nil
 }

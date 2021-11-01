@@ -9,6 +9,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/savannahghi/interserviceclient"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
 	gormMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm/mock"
@@ -119,7 +120,7 @@ func TestOnboardingDb_GetFacilities(t *testing.T) {
 	id := uuid.New().String()
 	name := gofakeit.Name()
 	code := "KN001"
-	county := "Kanairo"
+	county := enums.CountyTypeNairobi
 	description := gofakeit.HipsterSentence(15)
 
 	facility := &domain.Facility{
@@ -192,7 +193,7 @@ func TestOnboardingDb_RetrieveByFacilityMFLCode(t *testing.T) {
 
 	name := gofakeit.Name()
 	code := "KN001"
-	county := "Kanairo"
+	county := enums.CountyTypeNairobi
 	description := gofakeit.HipsterSentence(15)
 
 	facilityInput := &dto.FacilityInput{
@@ -348,5 +349,159 @@ func TestOnboardingDb_GetUserProfileByPhoneNumber(t *testing.T) {
 				return
 			}
 		})
+	}
+}
+
+func TestOnboardingDb_ListFacilities(t *testing.T) {
+	ctx := context.Background()
+
+	var fakeGorm = gormMock.NewGormMock()
+	d := NewOnboardingDb(fakeGorm, fakeGorm, fakeGorm)
+
+	code := ksuid.New().String()
+	code2 := ksuid.New().String()
+
+	facilityInput := &dto.FacilityInput{
+		Name:        "Kanairo One",
+		Code:        code,
+		Active:      true,
+		County:      enums.CountyTypeNairobi,
+		Description: "This is just for mocking",
+	}
+
+	facilityInput2 := &dto.FacilityInput{
+		Name:        "Baringo 2",
+		Code:        code2,
+		Active:      true,
+		County:      enums.CountyTypeBaringo,
+		Description: "This is just for mocking",
+	}
+
+	searchTerm := "term"
+
+	filterName := "user"
+	filterValue := "value"
+
+	filterInput := []*dto.FiltersInput{
+		{
+			Name:  &filterName,
+			Value: &filterValue,
+		},
+	}
+
+	paginationInput := dto.PaginationsInput{
+		Limit:       1,
+		CurrentPage: 1,
+	}
+	paginationInputNoCurrentPage := dto.PaginationsInput{
+		Limit: 1,
+	}
+
+	// Setup
+	// create a facility
+	facility, err := d.GetOrCreateFacility(ctx, facilityInput)
+	if err != nil {
+		t.Errorf("failed to create new facility: %v", err)
+	}
+	// Create another Facility
+	facility2, err := d.GetOrCreateFacility(ctx, facilityInput2)
+	if err != nil {
+		t.Errorf("failed to create new facility: %v", err)
+	}
+
+	type args struct {
+		ctx              context.Context
+		searchTerm       *string
+		filterInput      []*dto.FiltersInput
+		PaginationsInput dto.PaginationsInput
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:              ctx,
+				searchTerm:       &searchTerm,
+				filterInput:      filterInput,
+				PaginationsInput: paginationInput,
+			},
+			wantErr: false,
+		},
+
+		{
+			name: "Sad case",
+			args: args{
+				ctx:              ctx,
+				searchTerm:       &searchTerm,
+				filterInput:      filterInput,
+				PaginationsInput: paginationInput,
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid: missing current page",
+			args: args{
+				ctx:              ctx,
+				searchTerm:       &searchTerm,
+				filterInput:      filterInput,
+				PaginationsInput: paginationInputNoCurrentPage,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "Sad case" {
+				fakeGorm.MockGetOrCreateFacilityFn = func(ctx context.Context, facility *gorm.Facility) (*gorm.Facility, error) {
+					return &gorm.Facility{
+						FacilityID:  facility.FacilityID,
+						Name:        facility.Name,
+						Code:        facility.Code,
+						Active:      facility.Active,
+						County:      facility.County,
+						Description: facility.Description,
+					}, nil
+				}
+				fakeGorm.MockListFacilitiesFn = func(ctx context.Context, searchTerm *string, filter []*domain.FiltersParam, pagination domain.FacilityPage) (*domain.FacilityPage, error) {
+					return nil, fmt.Errorf("current page not provided")
+				}
+			}
+
+			if tt.name == "invalid: missing current page" {
+				fakeGorm.MockListFacilitiesFn = func(ctx context.Context, searchTerm *string, filter []*domain.FiltersParam, pagination domain.FacilityPage) (*domain.FacilityPage, error) {
+					return nil, fmt.Errorf("failed to list facilities")
+				}
+
+			}
+
+			got, err := d.ListFacilities(tt.args.ctx, tt.args.searchTerm, tt.args.filterInput, tt.args.PaginationsInput)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("OnboardingDb.ListFacilities() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if tt.wantErr && got != nil {
+				t.Errorf("expected facilities to be nil for %v", tt.name)
+				return
+			}
+
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected facilities not to be nil for %v", tt.name)
+				return
+			}
+		})
+	}
+	// Teardown
+	_, err = d.DeleteFacility(ctx, string(facility.Code))
+	if err != nil {
+		t.Errorf("unable to delete facility")
+		return
+	}
+	_, err = d.DeleteFacility(ctx, string(facility2.Code))
+	if err != nil {
+		t.Errorf("unable to delete facility")
+		return
 	}
 }
