@@ -13,6 +13,7 @@ type Create interface {
 		userInput *User,
 		clientInput *ClientProfile,
 	) (*ClientUserProfile, error)
+	SavePin(ctx context.Context, pinData *PINData) (bool, error)
 }
 
 // GetOrCreateFacility ...
@@ -65,4 +66,15 @@ func (db *PGInstance) RegisterClient(
 		User:   user,
 		Client: clientProfile,
 	}, nil
+}
+
+// SavePin saves the pin to the database
+func (db *PGInstance) SavePin(ctx context.Context, pinData *PINData) (bool, error) {
+	err := db.DB.Create(pinData).Error
+
+	if err != nil {
+		return false, fmt.Errorf("failed to save pin data: %v", err)
+	}
+
+	return true, nil
 }

@@ -93,3 +93,15 @@ func createMapUser(userObject *gorm.User) *domain.User {
 	}
 	return user
 }
+
+// mapProfileObjectToDomain maps the db metrics to a domain model.
+// It searches the database to fetch items specific to the metrics
+func (d *OnboardingDb) mapProfileObjectToDomain(profileObject *gorm.User) *domain.User {
+	if profileObject == nil {
+		return nil
+	}
+
+	user := createMapUser(profileObject)
+
+	return user
+}

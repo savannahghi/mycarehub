@@ -4,9 +4,11 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/brianvoe/gofakeit"
 	"github.com/savannahghi/enumutils"
+	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
@@ -191,6 +193,72 @@ func TestOnboardingDb_RegisterClient(t *testing.T) {
 			}
 			if !tt.wantErr && got == nil {
 				t.Errorf("expected a response but got :%v", got)
+			}
+		})
+	}
+}
+
+func TestOnboardingDb_SavePin(t *testing.T) {
+	ctx := context.Background()
+	type args struct {
+		ctx      context.Context
+		pinInput *domain.UserPIN
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Successfully save pin",
+			args: args{
+				ctx: ctx,
+				pinInput: &domain.UserPIN{
+					UserID:    "123456",
+					HashedPIN: "12345",
+					ValidFrom: time.Now(),
+					ValidTo:   time.Now(),
+					Flavour:   feedlib.FlavourConsumer,
+				},
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Sad Case - Fail to save pin",
+			args: args{
+				ctx: ctx,
+				pinInput: &domain.UserPIN{
+					UserID:    "123456",
+					HashedPIN: "12345",
+					ValidFrom: time.Now(),
+					ValidTo:   time.Now(),
+					Flavour:   feedlib.FlavourConsumer,
+				},
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var fakeGorm = gormMock.NewGormMock()
+			d := NewOnboardingDb(fakeGorm, fakeGorm, fakeGorm)
+
+			if tt.name == "Sad Case - Fail to save pin" {
+				fakeGorm.MockSavePinFn = func(ctx context.Context, pinData *gorm.PINData) (bool, error) {
+					return false, fmt.Errorf("failed to save pin")
+				}
+			}
+
+			got, err := d.SavePin(tt.args.ctx, tt.args.pinInput)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("OnboardingDb.SavePin() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("OnboardingDb.SavePin() = %v, want %v", got, tt.want)
 			}
 		})
 	}

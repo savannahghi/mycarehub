@@ -13,12 +13,14 @@ import (
 
 // GormMock struct implements mocks of `gorm's`internal methods.
 type GormMock struct {
-	MockGetOrCreateFacilityFn       func(ctx context.Context, facility *gorm.Facility) (*gorm.Facility, error)
-	MockRetrieveFacilityFn          func(ctx context.Context, id *string, isActive bool) (*gorm.Facility, error)
-	MockRetrieveFacilityByMFLCodeFn func(ctx context.Context, MFLCode string, isActive bool) (*gorm.Facility, error)
-	MockGetFacilitiesFn             func(ctx context.Context) ([]gorm.Facility, error)
-	MockDeleteFacilityFn            func(ctx context.Context, mfl_code string) (bool, error)
-	MockRegisterClientFn            func(ctx context.Context, userInput *gorm.User, clientInput *gorm.ClientProfile) (*gorm.ClientUserProfile, error)
+	MockGetOrCreateFacilityFn         func(ctx context.Context, facility *gorm.Facility) (*gorm.Facility, error)
+	MockRetrieveFacilityFn            func(ctx context.Context, id *string, isActive bool) (*gorm.Facility, error)
+	MockRetrieveFacilityByMFLCodeFn   func(ctx context.Context, MFLCode string, isActive bool) (*gorm.Facility, error)
+	MockGetFacilitiesFn               func(ctx context.Context) ([]gorm.Facility, error)
+	MockDeleteFacilityFn              func(ctx context.Context, mfl_code string) (bool, error)
+	MockRegisterClientFn              func(ctx context.Context, userInput *gorm.User, clientInput *gorm.ClientProfile) (*gorm.ClientUserProfile, error)
+	MockGetUserProfileByPhoneNumberFn func(ctx context.Context, phoneNumber string) (*gorm.User, error)
+	MockSavePinFn                     func(ctx context.Context, pinData *gorm.PINData) (bool, error)
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -63,6 +65,16 @@ func NewGormMock() *GormMock {
 	}
 
 	return &GormMock{
+		MockSavePinFn: func(ctx context.Context, pinData *gorm.PINData) (bool, error) {
+			return true, nil
+		},
+		MockGetUserProfileByPhoneNumberFn: func(ctx context.Context, phoneNumber string) (*gorm.User, error) {
+			ID := uuid.New().String()
+			return &gorm.User{
+				UserID: &ID,
+			}, nil
+		},
+
 		MockRegisterClientFn: func(ctx context.Context, userInput *gorm.User, clientInput *gorm.ClientProfile) (*gorm.ClientUserProfile, error) {
 			return clientProfile, nil
 		},
@@ -121,4 +133,14 @@ func (gm *GormMock) RegisterClient(
 	clientInput *gorm.ClientProfile,
 ) (*gorm.ClientUserProfile, error) {
 	return gm.MockRegisterClientFn(ctx, userInput, clientInput)
+}
+
+// GetUserProfileByPhoneNumber mocks the implementation of retrieving a user profile by phonenumber
+func (gm *GormMock) GetUserProfileByPhoneNumber(ctx context.Context, phoneNumber string) (*gorm.User, error) {
+	return gm.MockGetUserProfileByPhoneNumberFn(ctx, phoneNumber)
+}
+
+// SavePin mocks the implementation of saving the pin to the database
+func (gm *GormMock) SavePin(ctx context.Context, pinData *gorm.PINData) (bool, error) {
+	return gm.MockSavePinFn(ctx, pinData)
 }

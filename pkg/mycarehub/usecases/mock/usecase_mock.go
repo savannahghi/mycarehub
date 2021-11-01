@@ -15,6 +15,7 @@ import (
 type CreateMock struct {
 	GetOrCreateFacilityFn func(ctx context.Context, facility dto.FacilityInput) (*domain.Facility, error)
 	RegisterClientFn      func(ctx context.Context, userInput *dto.UserInput, clientInput *dto.ClientProfileInput) (*domain.ClientUserProfile, error)
+	SavePinFn             func(ctx context.Context, pinData *domain.UserPIN) (bool, error)
 }
 
 // NewCreateMock creates in itializes create type mocks
@@ -64,6 +65,9 @@ func NewCreateMock() *CreateMock {
 				Description: description,
 			}, nil
 		},
+		SavePinFn: func(ctx context.Context, pinData *domain.UserPIN) (bool, error) {
+			return true, nil
+		},
 	}
 }
 
@@ -81,16 +85,28 @@ func (f *CreateMock) RegisterClient(
 	return f.RegisterClientFn(ctx, userInput, clientInput)
 }
 
+// SavePin mocks the save pin implementation
+func (f *CreateMock) SavePin(ctx context.Context, pinData *domain.UserPIN) (bool, error) {
+	return f.SavePinFn(ctx, pinData)
+}
+
 // QueryMock is a mock of the query methods
 type QueryMock struct {
-	RetrieveFacilityFn          func(ctx context.Context, id *string, isActive bool) (*domain.Facility, error)
-	RetrieveFacilityByMFLCodeFn func(ctx context.Context, MFLCode string, isActive bool) (*domain.Facility, error)
-	GetFacilitiesFn             func(ctx context.Context) ([]*domain.Facility, error)
+	RetrieveFacilityFn            func(ctx context.Context, id *string, isActive bool) (*domain.Facility, error)
+	RetrieveFacilityByMFLCodeFn   func(ctx context.Context, MFLCode string, isActive bool) (*domain.Facility, error)
+	GetFacilitiesFn               func(ctx context.Context) ([]*domain.Facility, error)
+	GetUserProfileByPhoneNumberFn func(ctx context.Context, phoneNumber string) (*domain.User, error)
 }
 
 // NewQueryMock initializes a new instance of `GormMock` then mocking the case of success.
 func NewQueryMock() *QueryMock {
 	return &QueryMock{
+		GetUserProfileByPhoneNumberFn: func(ctx context.Context, phoneNumber string) (*domain.User, error) {
+			id := uuid.New().String()
+			return &domain.User{
+				ID: &id,
+			}, nil
+		},
 
 		RetrieveFacilityFn: func(ctx context.Context, id *string, isActive bool) (*domain.Facility, error) {
 			facilityID := uuid.New().String()
@@ -157,6 +173,11 @@ func (f *QueryMock) RetrieveFacilityByMFLCode(ctx context.Context, MFLCode strin
 // GetFacilities mocks the implementation of `gorm's` GetFacilities method
 func (f *QueryMock) GetFacilities(ctx context.Context) ([]*domain.Facility, error) {
 	return f.GetFacilitiesFn(ctx)
+}
+
+// GetUserProfileByPhoneNumber mocks the implementation of fetching a user profile by phonenumber
+func (f *QueryMock) GetUserProfileByPhoneNumber(ctx context.Context, phoneNumber string) (*domain.User, error) {
+	return f.GetUserProfileByPhoneNumberFn(ctx, phoneNumber)
 }
 
 // UpdateMock ...

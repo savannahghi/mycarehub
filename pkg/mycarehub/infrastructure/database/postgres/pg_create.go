@@ -100,3 +100,23 @@ func createUserObject(user *dto.UserInput) *gorm.User {
 	}
 	return userObject
 }
+
+// SavePin gets the pin details from the user and saves it in the database
+func (d *OnboardingDb) SavePin(ctx context.Context, pinInput *domain.UserPIN) (bool, error) {
+	pinObj := &gorm.PINData{
+		UserID:    pinInput.UserID,
+		HashedPIN: pinInput.HashedPIN,
+		ValidFrom: pinInput.ValidFrom,
+		ValidTo:   pinInput.ValidTo,
+		IsValid:   pinInput.IsValid,
+		Flavour:   pinInput.Flavour,
+		Salt:      pinInput.Salt,
+	}
+
+	_, err := d.create.SavePin(ctx, pinObj)
+	if err != nil {
+		return false, fmt.Errorf("failed to save user pin: %v", err)
+	}
+
+	return true, nil
+}

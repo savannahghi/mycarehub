@@ -6,6 +6,8 @@ import (
 	"os"
 	"testing"
 
+	"github.com/savannahghi/firebasetools"
+	onboardingExtension "github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
@@ -14,7 +16,10 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/client"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/facility"
 	usecaseMock "github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/mock"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/user"
+	"github.com/savannahghi/onboarding/pkg/onboarding/application/extension"
 	openSourceInfra "github.com/savannahghi/onboarding/pkg/onboarding/infrastructure"
+	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/engagement"
 )
 
 var (
@@ -71,11 +76,17 @@ func InitializeTestInteractor(ctx context.Context) interactor.Interactor {
 	if err != nil {
 		log.Fatal(err)
 	}
+	fc := &firebasetools.FirebaseClient{}
+	engagementISC := onboardingExtension.NewInterServiceClient("engagement")
+	baseExt := extension.NewBaseExtensionImpl(fc)
+	engagement := engagement.NewServiceEngagementImpl(engagementISC, baseExt)
+	onboardingExt := onboardingExtension.NewOnboardingLibImpl()
 	infra := infrastructure.NewInteractor()
 	facilityUsecase := facility.NewFacilityUsecase(infra)
 	clientUseCase := client.NewUseCasesClientImpl(infra)
+	userUsecase := user.NewUseCasesUserImpl(infra, onboardingExt, engagement)
 	db := postgres.NewOnboardingDb(pgInstance, pgInstance, pgInstance)
-	i := interactor.NewOnboardingInteractor(osinfra, *db, facilityUsecase, clientUseCase)
+	i := interactor.NewOnboardingInteractor(osinfra, *db, facilityUsecase, clientUseCase, userUsecase)
 
 	return *i
 }

@@ -321,7 +321,7 @@ type ClientUserProfile struct {
 type PINData struct {
 	Base
 
-	PINDataID *uuid.UUID      `gorm:"primaryKey;unique;column:pin_data_id"`
+	PINDataID *string         `gorm:"primaryKey;unique;column:pin_data_id"`
 	UserID    string          `gorm:"column:user_id"`
 	HashedPIN string          `gorm:"column:hashed_pin"`
 	ValidFrom time.Time       `gorm:"column:valid_from"`
@@ -333,7 +333,7 @@ type PINData struct {
 
 // BeforeCreate is a hook run before creating a new facility
 func (p *PINData) BeforeCreate(tx *gorm.DB) (err error) {
-	id := uuid.New()
+	id := uuid.New().String()
 	p.PINDataID = &id
 	return
 }
@@ -382,6 +382,7 @@ func allTables() []interface{} {
 		&User{},
 		&Contact{},
 		&ClientProfile{},
+		&PINData{},
 	}
 	return tables
 }

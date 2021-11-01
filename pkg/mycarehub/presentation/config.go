@@ -9,13 +9,12 @@ import (
 	"os"
 	"time"
 
-	"github.com/savannahghi/firebasetools"
-	"go.opentelemetry.io/contrib/instrumentation/github.com/gorilla/mux/otelmux"
-
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
+	"github.com/savannahghi/firebasetools"
+	onboardingExtension "github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
 	infra "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
 	postgres "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
@@ -24,13 +23,16 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/presentation/interactor"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/client"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/facility"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/user"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/extension"
 	osinfra "github.com/savannahghi/onboarding/pkg/onboarding/infrastructure"
+	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/engagement"
 	openSourcePresentation "github.com/savannahghi/onboarding/pkg/onboarding/presentation"
 	"github.com/savannahghi/onboarding/pkg/onboarding/presentation/rest"
 	osusecases "github.com/savannahghi/onboarding/pkg/onboarding/usecases"
 	"github.com/savannahghi/serverutils"
 	log "github.com/sirupsen/logrus"
+	"go.opentelemetry.io/contrib/instrumentation/github.com/gorilla/mux/otelmux"
 )
 
 const (
@@ -64,11 +66,14 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	baseExt := extension.NewBaseExtensionImpl(fc)
 
 	pinExt := extension.NewPINExtensionImpl()
+	onboardingExt := onboardingExtension.NewOnboardingLibImpl()
+	// Initialize ISC clients
+	engagementISC := onboardingExtension.NewInterServiceClient(engagementService)
 
 	// Initialize new instances of the infrastructure services
 	// Initialize new open source interactors
 	infrastructure := osinfra.NewInfrastructureInteractor()
-
+	engagement := engagement.NewServiceEngagementImpl(engagementISC, baseExt)
 	openSourceUsecases := osusecases.NewUsecasesInteractor(infrastructure, baseExt, pinExt)
 
 	// initialize internal infrastructure
@@ -80,6 +85,8 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	// Initialize client usecase
 	clientUseCase := client.NewUseCasesClientImpl(infra)
 
+	// Initialize user usecase
+	userUsecase := user.NewUseCasesUserImpl(infra, onboardingExt, engagement)
 	pg, err := gorm.NewPGInstance()
 	if err != nil {
 		return nil, fmt.Errorf("can't instantiate repository in resolver: %v", err)
@@ -93,6 +100,7 @@ func Router(ctx context.Context) (*mux.Router, error) {
 		*db,
 		facilityUseCase,
 		clientUseCase,
+		userUsecase,
 	)
 
 	h := rest.NewHandlersInterfaces(infrastructure, openSourceUsecases)

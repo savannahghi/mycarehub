@@ -64,3 +64,17 @@ func (d *OnboardingDb) RetrieveByFacilityMFLCode(ctx context.Context, MFLCode st
 
 	return d.mapFacilityObjectToDomain(facilitySession), nil
 }
+
+// GetUserProfileByPhoneNumber fetches and returns a userprofile using their phonenumber
+func (d *OnboardingDb) GetUserProfileByPhoneNumber(ctx context.Context, phoneNumber string) (*domain.User, error) {
+	if phoneNumber == "" {
+		return nil, fmt.Errorf("phone number should be provided")
+	}
+
+	user, err := d.query.GetUserProfileByPhoneNumber(ctx, phoneNumber)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get user profile by phonenumber: %v", err)
+	}
+
+	return d.mapProfileObjectToDomain(user), nil
+}

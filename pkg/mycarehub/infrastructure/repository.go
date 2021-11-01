@@ -18,6 +18,7 @@ type Create interface {
 		userInput *dto.UserInput,
 		clientInput *dto.ClientProfileInput,
 	) (*domain.ClientUserProfile, error)
+	SavePin(ctx context.Context, pinInput *domain.UserPIN) (bool, error)
 }
 
 // Delete represents all the deletion action interfaces
@@ -51,11 +52,17 @@ func (f ServiceCreateImpl) RegisterClient(
 	return f.onboarding.RegisterClient(ctx, userInput, clientInput)
 }
 
+// SavePin saves a user's pin in the database
+func (f ServiceCreateImpl) SavePin(ctx context.Context, pinInput *domain.UserPIN) (bool, error) {
+	return f.onboarding.SavePin(ctx, pinInput)
+}
+
 // Query contains all query methods
 type Query interface {
 	RetrieveFacility(ctx context.Context, id *string, isActive bool) (*domain.Facility, error)
 	GetFacilities(ctx context.Context) ([]*domain.Facility, error)
 	RetrieveFacilityByMFLCode(ctx context.Context, MFLCode string, isActive bool) (*domain.Facility, error)
+	GetUserProfileByPhoneNumber(ctx context.Context, phoneNumber string) (*domain.User, error)
 }
 
 // ServiceQueryImpl contains implementation for the Query interface
@@ -73,6 +80,11 @@ func NewServiceQueryImpl(on pg.OnboardingDb) *ServiceQueryImpl {
 // RetrieveFacility  is a repository implementation method for RetrieveFacility
 func (q ServiceQueryImpl) RetrieveFacility(ctx context.Context, id *string, isActive bool) (*domain.Facility, error) {
 	return q.onboarding.RetrieveFacility(ctx, id, isActive)
+}
+
+// GetUserProfileByPhoneNumber returns a user profile based on the provided phonenumber
+func (q ServiceQueryImpl) GetUserProfileByPhoneNumber(ctx context.Context, phoneNumber string) (*domain.User, error) {
+	return q.onboarding.GetUserProfileByPhoneNumber(ctx, phoneNumber)
 }
 
 // RetrieveFacilityByMFLCode  is a repository implementation method for RetrieveFacilityByMFLCode

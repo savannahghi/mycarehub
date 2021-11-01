@@ -2,12 +2,15 @@ package user
 
 import (
 	"context"
+	"fmt"
+	"time"
 
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
+	"github.com/savannahghi/onboarding/pkg/onboarding/application/utils"
 	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/engagement"
 )
 
@@ -232,7 +235,41 @@ func (us *UseCasesUserImpl) Invite(ctx context.Context, userID string, flavour f
 
 // SetUserPIN sets a user's PIN.
 func (us *UseCasesUserImpl) SetUserPIN(ctx context.Context, input *dto.PinInput) (bool, error) {
-	return false, nil
+	userProfile, err := us.Infrastructure.GetUserProfileByPhoneNumber(ctx, input.PhoneNumber)
+	if err != nil {
+		return false, fmt.Errorf("failed to get a user profile by phonenumber: %v", err)
+	}
+
+	err = utils.ValidatePIN(input.PIN)
+	if err != nil {
+		return false, fmt.Errorf("invalid PIN provided: %v", err)
+	}
+
+	salt, encryptedPIN := us.onboardingExt.EncryptPIN(input.PIN, nil)
+
+	isMatch := us.onboardingExt.ComparePIN(input.ConfirmedPin, salt, encryptedPIN, nil)
+	if !isMatch {
+		return false, fmt.Errorf("the provided PINs do not match")
+	}
+	// TODO: Make this an env variable
+	expiryDate := time.Now().AddDate(0, 0, 7)
+
+	pinDataPayload := &domain.UserPIN{
+		UserID:    *userProfile.ID,
+		HashedPIN: encryptedPIN,
+		ValidFrom: time.Now(),
+		ValidTo:   expiryDate,
+		Flavour:   input.Flavour,
+		IsValid:   true,
+		Salt:      salt,
+	}
+
+	_, err = us.Infrastructure.SavePin(ctx, pinDataPayload)
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
 }
 
 // Forget ...
