@@ -4,6 +4,7 @@ import (
 	"context"
 	"strconv"
 
+	"github.com/brianvoe/gofakeit"
 	"github.com/google/uuid"
 	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
@@ -11,130 +12,106 @@ import (
 )
 
 // GormMock struct implements mocks of `gorm's`internal methods.
-//
-// This mock struct should be separate from our own internal methods.
 type GormMock struct {
-	GetOrCreateFacilityFn       func(ctx context.Context, facility *gorm.Facility) (*gorm.Facility, error)
-	RetrieveFacilityFn          func(ctx context.Context, id *string, isActive bool) (*gorm.Facility, error)
-	RetrieveFacilityByMFLCodeFn func(ctx context.Context, MFLCode string, isActive bool) (*gorm.Facility, error)
-	GetFacilitiesFn             func(ctx context.Context) ([]gorm.Facility, error)
-	DeleteFacilityFn            func(ctx context.Context, mfl_code string) (bool, error)
-	RegisterClientFn            func(ctx context.Context, userInput *gorm.User, clientInput *gorm.ClientProfile) (*gorm.ClientUserProfile, error)
+	MockGetOrCreateFacilityFn       func(ctx context.Context, facility *gorm.Facility) (*gorm.Facility, error)
+	MockRetrieveFacilityFn          func(ctx context.Context, id *string, isActive bool) (*gorm.Facility, error)
+	MockRetrieveFacilityByMFLCodeFn func(ctx context.Context, MFLCode string, isActive bool) (*gorm.Facility, error)
+	MockGetFacilitiesFn             func(ctx context.Context) ([]gorm.Facility, error)
+	MockDeleteFacilityFn            func(ctx context.Context, mfl_code string) (bool, error)
+	MockRegisterClientFn            func(ctx context.Context, userInput *gorm.User, clientInput *gorm.ClientProfile) (*gorm.ClientUserProfile, error)
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
+//
+// This initialization initializes all the good cases of your mock tests. i.e all success cases should be defined here.
 func NewGormMock() *GormMock {
+
+	/*
+		In this section, you find commonly shared success case structs for mock tests
+	*/
+
+	facilityID := uuid.New().String()
+	name := gofakeit.Name()
+	code := "KN001"
+	county := "Kanairo"
+	description := gofakeit.HipsterSentence(15)
+
+	facility := &gorm.Facility{
+		FacilityID:  &facilityID,
+		Name:        name,
+		Code:        code,
+		Active:      strconv.FormatBool(true),
+		County:      county,
+		Description: description,
+	}
+
+	var facilities []gorm.Facility
+	facilities = append(facilities, *facility)
+
+	clientProfile := &gorm.ClientUserProfile{
+		User: &gorm.User{
+			FirstName:   gofakeit.FirstName(),
+			LastName:    gofakeit.LastName(),
+			Username:    gofakeit.Username(),
+			MiddleName:  gofakeit.Name(),
+			DisplayName: gofakeit.BeerAlcohol(),
+			Gender:      enumutils.GenderMale,
+		},
+		Client: &gorm.ClientProfile{
+			ClientType: enums.ClientTypeOvc,
+		},
+	}
+
 	return &GormMock{
-		RegisterClientFn: func(ctx context.Context, userInput *gorm.User, clientInput *gorm.ClientProfile) (*gorm.ClientUserProfile, error) {
-			return &gorm.ClientUserProfile{
-				User: &gorm.User{
-					FirstName:   "FirstName",
-					LastName:    "Last Name",
-					Username:    "User Name",
-					MiddleName:  userInput.MiddleName,
-					DisplayName: "Display Name",
-					Gender:      enumutils.GenderMale,
-				},
-				Client: &gorm.ClientProfile{
-					ClientType: enums.ClientTypeOvc,
-				},
-			}, nil
+		MockRegisterClientFn: func(ctx context.Context, userInput *gorm.User, clientInput *gorm.ClientProfile) (*gorm.ClientUserProfile, error) {
+			return clientProfile, nil
 		},
 
-		GetOrCreateFacilityFn: func(ctx context.Context, facility *gorm.Facility) (*gorm.Facility, error) {
-			id := uuid.New().String()
-			name := "Kanairo One"
-			code := "KN001"
-			county := "Kanairo"
-			description := "This is just for mocking"
-			return &gorm.Facility{
-				FacilityID:  &id,
-				Name:        name,
-				Code:        code,
-				Active:      strconv.FormatBool(true),
-				County:      county,
-				Description: description,
-			}, nil
+		MockGetOrCreateFacilityFn: func(ctx context.Context, facility *gorm.Facility) (*gorm.Facility, error) {
+			return facility, nil
 		},
 
-		RetrieveFacilityFn: func(ctx context.Context, id *string, isActive bool) (*gorm.Facility, error) {
-			facilityID := uuid.New().String()
-			name := "Kanairo One"
-			code := "KN001"
-			county := "Kanairo"
-			description := "This is just for mocking"
-			return &gorm.Facility{
-				FacilityID:  &facilityID,
-				Name:        name,
-				Code:        code,
-				Active:      strconv.FormatBool(true),
-				County:      county,
-				Description: description,
-			}, nil
+		MockRetrieveFacilityFn: func(ctx context.Context, id *string, isActive bool) (*gorm.Facility, error) {
+
+			return facility, nil
 		},
-		GetFacilitiesFn: func(ctx context.Context) ([]gorm.Facility, error) {
-			var facilities []gorm.Facility
-			facilityID := uuid.New().String()
-			name := "Kanairo One"
-			code := "KN001"
-			county := "Kanairo"
-			description := "This is just for mocking"
-			facilities = append(facilities, gorm.Facility{
-				FacilityID:  &facilityID,
-				Name:        name,
-				Code:        code,
-				Active:      strconv.FormatBool(true),
-				County:      county,
-				Description: description,
-			})
+		MockGetFacilitiesFn: func(ctx context.Context) ([]gorm.Facility, error) {
 			return facilities, nil
 		},
 
-		DeleteFacilityFn: func(ctx context.Context, mfl_code string) (bool, error) {
+		MockDeleteFacilityFn: func(ctx context.Context, mfl_code string) (bool, error) {
 			return true, nil
 		},
 
-		RetrieveFacilityByMFLCodeFn: func(ctx context.Context, MFLCode string, isActive bool) (*gorm.Facility, error) {
-			facilityID := uuid.New().String()
-			name := "Kanairo One"
-			code := "KN001"
-			county := "Kanairo"
-			description := "This is just for mocking"
-			return &gorm.Facility{
-				FacilityID:  &facilityID,
-				Name:        name,
-				Code:        code,
-				Active:      strconv.FormatBool(true),
-				County:      county,
-				Description: description,
-			}, nil
+		MockRetrieveFacilityByMFLCodeFn: func(ctx context.Context, MFLCode string, isActive bool) (*gorm.Facility, error) {
+			return facility, nil
 		},
 	}
 }
 
 // GetOrCreateFacility mocks the implementation of `gorm's` GetOrCreateFacility method.
 func (gm *GormMock) GetOrCreateFacility(ctx context.Context, facility *gorm.Facility) (*gorm.Facility, error) {
-	return gm.GetOrCreateFacilityFn(ctx, facility)
+	return gm.MockGetOrCreateFacilityFn(ctx, facility)
 }
 
 // RetrieveFacility mocks the implementation of `gorm's` RetrieveFacility method.
 func (gm *GormMock) RetrieveFacility(ctx context.Context, id *string, isActive bool) (*gorm.Facility, error) {
-	return gm.RetrieveFacilityFn(ctx, id, isActive)
+	return gm.MockRetrieveFacilityFn(ctx, id, isActive)
 }
 
 // RetrieveFacilityByMFLCode mocks the implementation of `gorm's` RetrieveFacility method.
 func (gm *GormMock) RetrieveFacilityByMFLCode(ctx context.Context, MFLCode string, isActive bool) (*gorm.Facility, error) {
-	return gm.RetrieveFacilityByMFLCodeFn(ctx, MFLCode, isActive)
+	return gm.MockRetrieveFacilityByMFLCodeFn(ctx, MFLCode, isActive)
 }
 
 // GetFacilities mocks the implementation of `gorm's` GetFacilities method.
 func (gm *GormMock) GetFacilities(ctx context.Context) ([]gorm.Facility, error) {
-	return gm.GetFacilitiesFn(ctx)
+	return gm.MockGetFacilitiesFn(ctx)
 }
 
 // DeleteFacility mocks the implementation of  DeleteFacility method.
 func (gm *GormMock) DeleteFacility(ctx context.Context, mflcode string) (bool, error) {
-	return gm.DeleteFacilityFn(ctx, mflcode)
+	return gm.MockDeleteFacilityFn(ctx, mflcode)
 }
 
 // RegisterClient mocks the implementation of RegisterClient method
@@ -143,5 +120,5 @@ func (gm *GormMock) RegisterClient(
 	userInput *gorm.User,
 	clientInput *gorm.ClientProfile,
 ) (*gorm.ClientUserProfile, error) {
-	return gm.RegisterClientFn(ctx, userInput, clientInput)
+	return gm.MockRegisterClientFn(ctx, userInput, clientInput)
 }

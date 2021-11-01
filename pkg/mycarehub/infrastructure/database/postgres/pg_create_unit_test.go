@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/brianvoe/gofakeit"
 	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
@@ -13,12 +14,29 @@ import (
 	gormMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm/mock"
 )
 
-func TestOnboardingDb_CreateFacility(t *testing.T) {
+func TestOnboardingDb_GetOrCreateFacility(t *testing.T) {
 	ctx := context.Background()
-	name := "Kanairo One"
+
+	name := gofakeit.Name()
 	code := "KN001"
 	county := "Kanairo"
-	description := "This is just for mocking"
+	description := gofakeit.HipsterSentence(15)
+
+	facility := &dto.FacilityInput{
+		Name:        name,
+		Code:        code,
+		Active:      true,
+		County:      county,
+		Description: description,
+	}
+
+	invalidFacility := &dto.FacilityInput{
+		Name:        name,
+		Active:      true,
+		County:      county,
+		Description: description,
+	}
+
 	type args struct {
 		ctx      context.Context
 		facility *dto.FacilityInput
@@ -32,27 +50,16 @@ func TestOnboardingDb_CreateFacility(t *testing.T) {
 		{
 			name: "happy case - valid payload",
 			args: args{
-				ctx: ctx,
-				facility: &dto.FacilityInput{
-					Name:        name,
-					Code:        code,
-					Active:      true,
-					County:      county,
-					Description: description,
-				},
+				ctx:      ctx,
+				facility: facility,
 			},
 			wantErr: false,
 		},
 		{
 			name: "sad case - facility code not defined",
 			args: args{
-				ctx: ctx,
-				facility: &dto.FacilityInput{
-					Name:        name,
-					Active:      true,
-					County:      county,
-					Description: description,
-				},
+				ctx:      ctx,
+				facility: invalidFacility,
 			},
 			wantErr: true,
 		},
@@ -63,15 +70,17 @@ func TestOnboardingDb_CreateFacility(t *testing.T) {
 			d := NewOnboardingDb(fakeGorm, fakeGorm, fakeGorm)
 			got, err := d.GetOrCreateFacility(tt.args.ctx, tt.args.facility)
 			if tt.name == "sad case - facility code not defined" {
-				fakeGorm.GetOrCreateFacilityFn = func(ctx context.Context, facility *gorm.Facility) (*gorm.Facility, error) {
+				fakeGorm.MockGetOrCreateFacilityFn = func(ctx context.Context, facility *gorm.Facility) (*gorm.Facility, error) {
 					return nil, fmt.Errorf("failed to create facility")
 				}
 			}
-			if tt.name == "happy case - valid payload" {
-				fakeGorm.GetOrCreateFacilityFn = func(ctx context.Context, facility *gorm.Facility) (*gorm.Facility, error) {
-					return facility, nil
+
+			if tt.name == "sad case - nil facility input" {
+				fakeGorm.MockGetOrCreateFacilityFn = func(ctx context.Context, facility *gorm.Facility) (*gorm.Facility, error) {
+					return nil, fmt.Errorf("failed to create facility")
 				}
 			}
+
 			if (err != nil) != tt.wantErr {
 				t.Errorf("OnboardingDb.GetOrCreateFacility() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -92,11 +101,11 @@ func TestOnboardingDb_CreateFacility(t *testing.T) {
 func TestOnboardingDb_RegisterClient(t *testing.T) {
 	ctx := context.Background()
 	userInput := &dto.UserInput{
-		FirstName:   "John",
-		LastName:    "Joe",
-		Username:    "Jontez",
-		MiddleName:  "Johnny",
-		DisplayName: "jo",
+		FirstName:   gofakeit.FirstName(),
+		LastName:    gofakeit.LastName(),
+		Username:    gofakeit.Username(),
+		MiddleName:  gofakeit.Name(),
+		DisplayName: gofakeit.BeerAlcohol(),
 		Gender:      enumutils.GenderMale,
 	}
 
@@ -123,7 +132,27 @@ func TestOnboardingDb_RegisterClient(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "Sad Case: Fail to create user",
+			name: "Sad Case: Fail to create user with nil user input",
+			args: args{
+				ctx:         ctx,
+				userInput:   nil,
+				clientInput: &clientInput,
+			},
+			wantErr: true,
+		},
+
+		{
+			name: "Sad Case: Fail to create user with nil client input",
+			args: args{
+				ctx:         ctx,
+				userInput:   userInput,
+				clientInput: nil,
+			},
+			wantErr: true,
+		},
+
+		{
+			name: "Sad Case: Fail to register client",
 			args: args{
 				ctx:         ctx,
 				userInput:   userInput,
@@ -137,8 +166,20 @@ func TestOnboardingDb_RegisterClient(t *testing.T) {
 			var fakeGorm = gormMock.NewGormMock()
 			d := NewOnboardingDb(fakeGorm, fakeGorm, fakeGorm)
 
-			if tt.name == "Sad Case: Fail to create user" {
-				fakeGorm.RegisterClientFn = func(ctx context.Context, userInput *gorm.User, clientInput *gorm.ClientProfile) (*gorm.ClientUserProfile, error) {
+			if tt.name == "Sad Case: Fail to create user with nil user input" {
+				fakeGorm.MockRegisterClientFn = func(ctx context.Context, userInput *gorm.User, clientInput *gorm.ClientProfile) (*gorm.ClientUserProfile, error) {
+					return nil, fmt.Errorf("failed to create a client user")
+				}
+			}
+
+			if tt.name == "Sad Case: Fail to create user with nil client input" {
+				fakeGorm.MockRegisterClientFn = func(ctx context.Context, userInput *gorm.User, clientInput *gorm.ClientProfile) (*gorm.ClientUserProfile, error) {
+					return nil, fmt.Errorf("failed to create a client user")
+				}
+			}
+
+			if tt.name == "Sad Case: Fail to register client" {
+				fakeGorm.MockRegisterClientFn = func(ctx context.Context, userInput *gorm.User, clientInput *gorm.ClientProfile) (*gorm.ClientUserProfile, error) {
 					return nil, fmt.Errorf("failed to create a client user")
 				}
 			}
