@@ -145,6 +145,9 @@ jobs:
         go-version: [1.16.x]
     runs-on: ubuntu-latest
     needs: [deploy_to_test]
+    env:
+      # Schema Registry URL
+      REGISTRY_URL: ${{ secrets.TEST_SCHEMA_REGISTRY_URL }}
     steps:
       - name: Checkout working branches
         uses: actions/checkout@v2
