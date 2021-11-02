@@ -2,6 +2,10 @@ name: Deployment
 
 on: push
 
+env:
+  # Schema Registry CLI command version
+  CLI_VERSION: v0.0.1
+  
 concurrency:
   group: build_and_push_image
 
