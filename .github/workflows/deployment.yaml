@@ -6,6 +6,7 @@ env:
   # Schema Registry CLI command version
   CLI_VERSION: v0.0.1
   
+  
 concurrency:
   group: build_and_push_image
 
@@ -44,6 +45,9 @@ jobs:
     environment:
       name: test
     needs: [build_and_push_image]
+    env:
+      # Schema Registry URL
+      REGISTRY_URL: ${{ secrets.TEST_SCHEMA_REGISTRY_URL }}
     steps:
       - name: Checkout working branches
         uses: actions/checkout@v2
@@ -91,6 +95,9 @@ jobs:
     environment:
       name: production
     needs: [build_and_push_image]
+    env:
+      # Schema Registry URL
+      REGISTRY_URL: ${{ secrets.PROD_SCHEMA_REGISTRY_URL }}
     steps:
       - name: Checkout working branches
         uses: actions/checkout@v2
