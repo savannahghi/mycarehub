@@ -185,6 +185,6 @@ type PaginationsInput struct {
 
 // FiltersInput contains fields required for filtering
 type FiltersInput struct {
-	Name  *string `json:"Name"`
-	Value *string `json:"Value"`
+	DataType enums.FilterDataType
+	Value    string // TODO: Clear spec on validation e.g dates must be ISO 8601. This is the actual data being filtered
 }

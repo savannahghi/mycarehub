@@ -3,6 +3,7 @@ package facility_test
 import (
 	"context"
 	"log"
+	"strconv"
 	"testing"
 
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
@@ -349,15 +350,104 @@ func TestUseCaseFacilityImpl_ListFacilities(t *testing.T) {
 		Description: "This is just for mocking",
 	}
 
+	noSearchTerm := ""
 	searchTerm := "term"
 
-	filterName := "user"
-	filterValue := "value"
+	noFilterInput := []*dto.FiltersInput{}
+
+	formatBool := strconv.FormatBool(true)
 
 	filterInput := []*dto.FiltersInput{
 		{
-			Name:  &filterName,
-			Value: &filterValue,
+			DataType: enums.FilterDataTypeName,
+			Value:    "Kanairo One",
+		},
+		{
+			DataType: enums.FilterDataTypeMFLCode,
+			Value:    code,
+		},
+		{
+			DataType: enums.FilterDataTypeActive,
+			Value:    formatBool,
+		},
+		{
+			DataType: enums.FilterDataTypeCounty,
+			Value:    enums.CountyTypeNairobi.String(),
+		},
+	}
+
+	filterEmptyName := []*dto.FiltersInput{
+		{
+			DataType: enums.FilterDataTypeName,
+			Value:    "",
+		},
+		{
+			DataType: enums.FilterDataTypeMFLCode,
+			Value:    code,
+		},
+		{
+			DataType: enums.FilterDataTypeActive,
+			Value:    formatBool,
+		},
+		{
+			DataType: enums.FilterDataTypeCounty,
+			Value:    enums.CountyTypeNairobi.String(),
+		},
+	}
+	filterEmptyMFLCode := []*dto.FiltersInput{
+		{
+			DataType: enums.FilterDataTypeName,
+			Value:    "Kanairo One",
+		},
+		{
+			DataType: enums.FilterDataTypeMFLCode,
+			Value:    "",
+		},
+		{
+			DataType: enums.FilterDataTypeActive,
+			Value:    formatBool,
+		},
+		{
+			DataType: enums.FilterDataTypeCounty,
+			Value:    enums.CountyTypeNairobi.String(),
+		},
+	}
+
+	filterInvalidBool := []*dto.FiltersInput{
+		{
+			DataType: enums.FilterDataTypeName,
+			Value:    "Kanairo One",
+		},
+		{
+			DataType: enums.FilterDataTypeMFLCode,
+			Value:    code,
+		},
+		{
+			DataType: enums.FilterDataTypeActive,
+			Value:    "invalid",
+		},
+		{
+			DataType: enums.FilterDataTypeCounty,
+			Value:    enums.CountyTypeNairobi.String(),
+		},
+	}
+
+	filterInvalidCounty := []*dto.FiltersInput{
+		{
+			DataType: enums.FilterDataTypeName,
+			Value:    "Kanairo One",
+		},
+		{
+			DataType: enums.FilterDataTypeMFLCode,
+			Value:    code,
+		},
+		{
+			DataType: enums.FilterDataTypeActive,
+			Value:    formatBool,
+		},
+		{
+			DataType: enums.FilterDataTypeCounty,
+			Value:    "kanairo",
 		},
 	}
 
@@ -397,7 +487,18 @@ func TestUseCaseFacilityImpl_ListFacilities(t *testing.T) {
 			name: "Happy case",
 			args: args{
 				ctx:              ctx,
-				searchTerm:       &searchTerm,
+				searchTerm:       &noSearchTerm,
+				filterInput:      noFilterInput,
+				PaginationsInput: paginationInput,
+			},
+			wantErr: false,
+		},
+
+		{
+			name: "valid: with valid filters",
+			args: args{
+				ctx:              ctx,
+				searchTerm:       &noSearchTerm,
 				filterInput:      filterInput,
 				PaginationsInput: paginationInput,
 			},
@@ -405,7 +506,14 @@ func TestUseCaseFacilityImpl_ListFacilities(t *testing.T) {
 		},
 
 		{
-			name: "Invalid: missing current page",
+			name: "invalid: no params passed",
+			args: args{
+				ctx: ctx,
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid: missing current page",
 			args: args{
 				ctx:              ctx,
 				searchTerm:       &searchTerm,
@@ -413,7 +521,47 @@ func TestUseCaseFacilityImpl_ListFacilities(t *testing.T) {
 				PaginationsInput: paginationInputNoCurrentPage,
 			},
 			wantErr: true,
-			want:    nil,
+		},
+		{
+			name: "invalid: empty name passed",
+			args: args{
+				ctx:              ctx,
+				searchTerm:       &searchTerm,
+				filterInput:      filterEmptyName,
+				PaginationsInput: paginationInput,
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid: empty MFL code",
+			args: args{
+				ctx:              ctx,
+				searchTerm:       &searchTerm,
+				filterInput:      filterEmptyMFLCode,
+				PaginationsInput: paginationInput,
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid: invalid bool",
+			args: args{
+				ctx:              ctx,
+				searchTerm:       &searchTerm,
+				filterInput:      filterInvalidBool,
+				PaginationsInput: paginationInput,
+			},
+			wantErr: true,
+		},
+
+		{
+			name: "invalid: invalid county",
+			args: args{
+				ctx:              ctx,
+				searchTerm:       &searchTerm,
+				filterInput:      filterInvalidCounty,
+				PaginationsInput: paginationInput,
+			},
+			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
@@ -423,6 +571,11 @@ func TestUseCaseFacilityImpl_ListFacilities(t *testing.T) {
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCaseFacilityImpl.ListFacilities() error = %v, wantErr %v", err, tt.wantErr)
 				return
+			}
+
+			// assert we get at least one value in the filter
+			if tt.name == "valid: with valid filters" {
+				assert.GreaterOrEqual(t, len(got.Facilities), 1)
 			}
 
 			if tt.wantErr && got != nil {

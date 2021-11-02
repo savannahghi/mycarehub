@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"testing"
 
 	"github.com/brianvoe/gofakeit"
@@ -377,15 +378,104 @@ func TestOnboardingDb_ListFacilities(t *testing.T) {
 		Description: "This is just for mocking",
 	}
 
+	noSearchTerm := ""
 	searchTerm := "term"
 
-	filterName := "user"
-	filterValue := "value"
+	noFilterInput := []*dto.FiltersInput{}
+
+	formatBool := strconv.FormatBool(true)
 
 	filterInput := []*dto.FiltersInput{
 		{
-			Name:  &filterName,
-			Value: &filterValue,
+			DataType: enums.FilterDataTypeName,
+			Value:    "Kanairo One",
+		},
+		{
+			DataType: enums.FilterDataTypeMFLCode,
+			Value:    code,
+		},
+		{
+			DataType: enums.FilterDataTypeActive,
+			Value:    formatBool,
+		},
+		{
+			DataType: enums.FilterDataTypeCounty,
+			Value:    enums.CountyTypeNairobi.String(),
+		},
+	}
+
+	filterEmptyName := []*dto.FiltersInput{
+		{
+			DataType: enums.FilterDataTypeName,
+			Value:    "",
+		},
+		{
+			DataType: enums.FilterDataTypeMFLCode,
+			Value:    code,
+		},
+		{
+			DataType: enums.FilterDataTypeActive,
+			Value:    formatBool,
+		},
+		{
+			DataType: enums.FilterDataTypeCounty,
+			Value:    enums.CountyTypeNairobi.String(),
+		},
+	}
+	filterEmptyMFLCode := []*dto.FiltersInput{
+		{
+			DataType: enums.FilterDataTypeName,
+			Value:    "Kanairo One",
+		},
+		{
+			DataType: enums.FilterDataTypeMFLCode,
+			Value:    "",
+		},
+		{
+			DataType: enums.FilterDataTypeActive,
+			Value:    formatBool,
+		},
+		{
+			DataType: enums.FilterDataTypeCounty,
+			Value:    enums.CountyTypeNairobi.String(),
+		},
+	}
+
+	filterInvalidBool := []*dto.FiltersInput{
+		{
+			DataType: enums.FilterDataTypeName,
+			Value:    "Kanairo One",
+		},
+		{
+			DataType: enums.FilterDataTypeMFLCode,
+			Value:    code,
+		},
+		{
+			DataType: enums.FilterDataTypeActive,
+			Value:    "invalid",
+		},
+		{
+			DataType: enums.FilterDataTypeCounty,
+			Value:    enums.CountyTypeNairobi.String(),
+		},
+	}
+
+	filterInvalidCounty := []*dto.FiltersInput{
+		{
+			DataType: enums.FilterDataTypeName,
+			Value:    "Kanairo One",
+		},
+		{
+			DataType: enums.FilterDataTypeMFLCode,
+			Value:    code,
+		},
+		{
+			DataType: enums.FilterDataTypeActive,
+			Value:    formatBool,
+		},
+		{
+			DataType: enums.FilterDataTypeCounty,
+			Value:    "kanairo",
 		},
 	}
 
@@ -424,7 +514,18 @@ func TestOnboardingDb_ListFacilities(t *testing.T) {
 			name: "Happy case",
 			args: args{
 				ctx:              ctx,
-				searchTerm:       &searchTerm,
+				searchTerm:       &noSearchTerm,
+				filterInput:      noFilterInput,
+				PaginationsInput: paginationInput,
+			},
+			wantErr: false,
+		},
+
+		{
+			name: "valid: with valid filters",
+			args: args{
+				ctx:              ctx,
+				searchTerm:       &noSearchTerm,
 				filterInput:      filterInput,
 				PaginationsInput: paginationInput,
 			},
@@ -451,6 +552,47 @@ func TestOnboardingDb_ListFacilities(t *testing.T) {
 			},
 			wantErr: true,
 		},
+		{
+			name: "invalid: empty name passed",
+			args: args{
+				ctx:              ctx,
+				searchTerm:       &searchTerm,
+				filterInput:      filterEmptyName,
+				PaginationsInput: paginationInput,
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid: empty MFL code",
+			args: args{
+				ctx:              ctx,
+				searchTerm:       &searchTerm,
+				filterInput:      filterEmptyMFLCode,
+				PaginationsInput: paginationInput,
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid: invalid bool",
+			args: args{
+				ctx:              ctx,
+				searchTerm:       &searchTerm,
+				filterInput:      filterInvalidBool,
+				PaginationsInput: paginationInput,
+			},
+			wantErr: true,
+		},
+
+		{
+			name: "invalid: invalid county",
+			args: args{
+				ctx:              ctx,
+				searchTerm:       &searchTerm,
+				filterInput:      filterInvalidCounty,
+				PaginationsInput: paginationInput,
+			},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -471,6 +613,36 @@ func TestOnboardingDb_ListFacilities(t *testing.T) {
 			}
 
 			if tt.name == "invalid: missing current page" {
+				fakeGorm.MockListFacilitiesFn = func(ctx context.Context, searchTerm *string, filter []*domain.FiltersParam, pagination domain.FacilityPage) (*domain.FacilityPage, error) {
+					return nil, fmt.Errorf("failed to list facilities")
+				}
+
+			}
+			if tt.name == "invalid: missing current page" {
+				fakeGorm.MockListFacilitiesFn = func(ctx context.Context, searchTerm *string, filter []*domain.FiltersParam, pagination domain.FacilityPage) (*domain.FacilityPage, error) {
+					return nil, fmt.Errorf("failed to list facilities")
+				}
+
+			}
+			if tt.name == "invalid: empty name passed" {
+				fakeGorm.MockListFacilitiesFn = func(ctx context.Context, searchTerm *string, filter []*domain.FiltersParam, pagination domain.FacilityPage) (*domain.FacilityPage, error) {
+					return nil, fmt.Errorf("failed to list facilities")
+				}
+
+			}
+			if tt.name == "invalid: empty MFL code" {
+				fakeGorm.MockListFacilitiesFn = func(ctx context.Context, searchTerm *string, filter []*domain.FiltersParam, pagination domain.FacilityPage) (*domain.FacilityPage, error) {
+					return nil, fmt.Errorf("failed to list facilities")
+				}
+
+			}
+			if tt.name == "invalid: invalid bool" {
+				fakeGorm.MockListFacilitiesFn = func(ctx context.Context, searchTerm *string, filter []*domain.FiltersParam, pagination domain.FacilityPage) (*domain.FacilityPage, error) {
+					return nil, fmt.Errorf("failed to list facilities")
+				}
+
+			}
+			if tt.name == "invalid: invalid county" {
 				fakeGorm.MockListFacilitiesFn = func(ctx context.Context, searchTerm *string, filter []*domain.FiltersParam, pagination domain.FacilityPage) (*domain.FacilityPage, error) {
 					return nil, fmt.Errorf("failed to list facilities")
 				}

@@ -107,3 +107,10 @@ enum TransferReason {
   RELOCATION
   OTHER
 }
+
+enum FilterDataType {
+  name
+  mfl_code
+  active
+  county
+}

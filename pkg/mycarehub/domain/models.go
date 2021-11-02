@@ -1,6 +1,8 @@
 package domain
 
 import (
+	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/google/uuid"
@@ -25,22 +27,6 @@ type Facility struct {
 	County      enums.CountyType `json:"county"` // TODO: Controlled list of counties
 	Description string           `json:"description"`
 }
-
-// // FacilityPage models the structure of all facilities including pagination
-// type FacilityPage struct {
-// 	Facilities   []*Facility
-// 	Count        int
-// 	CurrentPage  int
-// 	NextPage     *int
-// 	PreviousPage *int
-// }
-
-// // FilterParam models the structure of the the filter parameters
-// type FilterParam struct {
-// 	Name     string
-// 	DataType string // TODO: Ideally a controlled list i.e enum
-// 	Date     string // TODO: Clear spec on validation e.g dates must be ISO 8601
-// }
 
 // User  holds details that both the client and staff have in common
 //
@@ -298,13 +284,35 @@ type FacilityPage struct {
 
 // FiltersParam contains the inputs for filter parameters
 type FiltersParam struct {
-	Name string
-	// DataType enums.FilterDataType // TODO: Ideally a controlled list i.e enum (MFL code, Active, County )
-	Value string // TODO: Clear spec on validation e.g dates must be ISO 8601. This is the actual data being filtered
+	Name     string
+	DataType enums.FilterDataType
+	Value    string // TODO: Clear spec on validation e.g dates must be ISO 8601. This is the actual data being filtered
 }
 
 // Validate is a filter param method that performs validations
 func (f FiltersParam) Validate() error {
+	if f.DataType == enums.FilterDataTypeName {
+		if f.Value == "" {
+			return fmt.Errorf("name cannot be empty")
+		}
+	}
+	if f.DataType == enums.FilterDataTypeMFLCode {
+		if f.Value == "" {
+			return fmt.Errorf("MFL code cannot be empty")
+		}
+	}
+	if f.DataType == enums.FilterDataTypeActive {
+		_, err := strconv.ParseBool(f.Value)
+		if err != nil {
+			return fmt.Errorf("failed to convert to bool %v: %v", f.Value, err)
+		}
+	}
+	if f.DataType == enums.FilterDataTypeCounty {
+		ok := enums.CountyType(f.Value).IsValid()
+		if !ok {
+			return fmt.Errorf("invalid county passed: %v", f.Value)
+		}
+	}
 	// Validate enums
 	// TODO: Very strict validation of data <-> data type
 	// 	     this is a good candidate for TDD with unit tests

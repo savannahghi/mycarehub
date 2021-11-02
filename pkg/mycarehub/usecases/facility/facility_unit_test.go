@@ -3,10 +3,12 @@ package facility_test
 // import (
 // 	"context"
 // 	"fmt"
+// 	"strconv"
 // 	"testing"
 
 // 	"github.com/google/uuid"
 // 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
+// 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 // 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 // 	"github.com/segmentio/ksuid"
 // )
@@ -16,7 +18,7 @@ package facility_test
 // 	ctx := context.Background()
 // 	name := "Kanairo One"
 // 	code := ksuid.New().String()
-// 	county := "Kanairo"
+// 	county := enums.CountyTypeNairobi
 // 	description := "This is just for mocking"
 
 // 	type args struct {
@@ -88,7 +90,7 @@ package facility_test
 // 			}
 
 // 			if (err != nil) != tt.wantErr {
-// 				t.Errorf("MyCareHubDb.GetOrCreateFacility() error = %v, wantErr %v", err, tt.wantErr)
+// 				t.Errorf("OnboardingDb.GetOrCreateFacility() error = %v, wantErr %v", err, tt.wantErr)
 // 				return
 // 			}
 // 			if tt.wantErr && got != nil {
@@ -328,22 +330,114 @@ package facility_test
 // 	ctx := context.Background()
 
 // 	f := testFakeInfrastructureInteractor
+// 	code := ksuid.New().String()
 
+// 	noSearchTerm := ""
 // 	searchTerm := "term"
 
-// 	filterName := "user"
-// 	filterValue := "value"
+// 	noFilterInput := []*dto.FiltersInput{}
+
+// 	formatBool := strconv.FormatBool(true)
 
 // 	filterInput := []*dto.FiltersInput{
 // 		{
-// 			Name:  &filterName,
-// 			Value: &filterValue,
+// 			DataType: enums.FilterDataTypeName,
+// 			Value:    "Kanairo One",
+// 		},
+// 		{
+// 			DataType: enums.FilterDataTypeMFLCode,
+// 			Value:    code,
+// 		},
+// 		{
+// 			DataType: enums.FilterDataTypeActive,
+// 			Value:    formatBool,
+// 		},
+// 		{
+// 			DataType: enums.FilterDataTypeCounty,
+// 			Value:    enums.CountyTypeNairobi.String(),
 // 		},
 // 	}
 
+// 	filterEmptyName := []*dto.FiltersInput{
+// 		{
+// 			DataType: enums.FilterDataTypeName,
+// 			Value:    "",
+// 		},
+// 		{
+// 			DataType: enums.FilterDataTypeMFLCode,
+// 			Value:    code,
+// 		},
+// 		{
+// 			DataType: enums.FilterDataTypeActive,
+// 			Value:    formatBool,
+// 		},
+// 		{
+// 			DataType: enums.FilterDataTypeCounty,
+// 			Value:    enums.CountyTypeNairobi.String(),
+// 		},
+// 	}
+// 	filterEmptyMFLCode := []*dto.FiltersInput{
+// 		{
+// 			DataType: enums.FilterDataTypeName,
+// 			Value:    "Kanairo One",
+// 		},
+// 		{
+// 			DataType: enums.FilterDataTypeMFLCode,
+// 			Value:    "",
+// 		},
+// 		{
+// 			DataType: enums.FilterDataTypeActive,
+// 			Value:    formatBool,
+// 		},
+// 		{
+// 			DataType: enums.FilterDataTypeCounty,
+// 			Value:    enums.CountyTypeNairobi.String(),
+// 		},
+// 	}
+
+// 	filterInvalidBool := []*dto.FiltersInput{
+// 		{
+// 			DataType: enums.FilterDataTypeName,
+// 			Value:    "Kanairo One",
+// 		},
+// 		{
+// 			DataType: enums.FilterDataTypeMFLCode,
+// 			Value:    code,
+// 		},
+// 		{
+// 			DataType: enums.FilterDataTypeActive,
+// 			Value:    "invalid",
+// 		},
+// 		{
+// 			DataType: enums.FilterDataTypeCounty,
+// 			Value:    enums.CountyTypeNairobi.String(),
+// 		},
+// 	}
+
+// 	filterInvalidCounty := []*dto.FiltersInput{
+// 		{
+// 			DataType: enums.FilterDataTypeName,
+// 			Value:    "Kanairo One",
+// 		},
+// 		{
+// 			DataType: enums.FilterDataTypeMFLCode,
+// 			Value:    code,
+// 		},
+// 		{
+// 			DataType: enums.FilterDataTypeActive,
+// 			Value:    formatBool,
+// 		},
+// 		{
+// 			DataType: enums.FilterDataTypeCounty,
+// 			Value:    "kanairo",
+// 		},
+// 	}
 // 	paginationInput := dto.PaginationsInput{
 // 		Limit:       1,
 // 		CurrentPage: 1,
+// 	}
+// 	paginationInputNoCurrentPage := dto.PaginationsInput{
+// 		Limit: 1,
 // 	}
 
 // 	type args struct {
@@ -361,7 +455,18 @@ package facility_test
 // 			name: "Happy case",
 // 			args: args{
 // 				ctx:              ctx,
-// 				searchTerm:       &searchTerm,
+// 				searchTerm:       &noSearchTerm,
+// 				filterInput:      noFilterInput,
+// 				PaginationsInput: paginationInput,
+// 			},
+// 			wantErr: false,
+// 		},
+
+// 		{
+// 			name: "valid: with valid filters",
+// 			args: args{
+// 				ctx:              ctx,
+// 				searchTerm:       &noSearchTerm,
 // 				filterInput:      filterInput,
 // 				PaginationsInput: paginationInput,
 // 			},
@@ -378,52 +483,60 @@ package facility_test
 // 			},
 // 			wantErr: true,
 // 		},
+// 		{
+// 			name: "invalid: missing current page",
+// 			args: args{
+// 				ctx:              ctx,
+// 				searchTerm:       &searchTerm,
+// 				filterInput:      filterInput,
+// 				PaginationsInput: paginationInputNoCurrentPage,
+// 			},
+// 			wantErr: true,
+// 		},
+// 		{
+// 			name: "invalid: empty name passed",
+// 			args: args{
+// 				ctx:              ctx,
+// 				searchTerm:       &searchTerm,
+// 				filterInput:      filterEmptyName,
+// 				PaginationsInput: paginationInput,
+// 			},
+// 			wantErr: true,
+// 		},
+// 		{
+// 			name: "invalid: empty MFL code",
+// 			args: args{
+// 				ctx:              ctx,
+// 				searchTerm:       &searchTerm,
+// 				filterInput:      filterEmptyMFLCode,
+// 				PaginationsInput: paginationInput,
+// 			},
+// 			wantErr: true,
+// 		},
+// 		{
+// 			name: "invalid: invalid bool",
+// 			args: args{
+// 				ctx:              ctx,
+// 				searchTerm:       &searchTerm,
+// 				filterInput:      filterInvalidBool,
+// 				PaginationsInput: paginationInput,
+// 			},
+// 			wantErr: true,
+// 		},
+
+// 		{
+// 			name: "invalid: invalid county",
+// 			args: args{
+// 				ctx:              ctx,
+// 				searchTerm:       &searchTerm,
+// 				filterInput:      filterInvalidCounty,
+// 				PaginationsInput: paginationInput,
+// 			},
+// 			wantErr: true,
+// 		},
 // 	}
 // 	for _, tt := range tests {
 // 		t.Run(tt.name, func(t *testing.T) {
-// 			if tt.name == "Happy case" {
-// 				fakeCreate.GetOrCreateFacilityFn = func(ctx context.Context, facility dto.FacilityInput) (*domain.Facility, error) {
-// 					ID := uuid.New().String()
-// 					return &domain.Facility{
-// 						ID:          &ID,
-// 						Name:        facility.Name,
-// 						Code:        facility.Code,
-// 						Active:      facility.Active,
-// 						County:      facility.County,
-// 						Description: facility.Description,
-// 					}, nil
-// 				}
-// 			}
-// 			fakeQuery.ListFacilitiesFn = func(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationsInput dto.PaginationsInput) (*domain.FacilityPage, error) {
-// 				facilityID := uuid.New().String()
-// 				name := "test-facility"
-// 				code := "t-100"
-// 				county := enums.CountyTypeNairobi
-// 				description := "test description"
-// 				nextPage := 1
-// 				previousPage := 1
-// 				return &domain.FacilityPage{
-// 					Pagination: domain.Pagination{
-// 						Limit:        1,
-// 						CurrentPage:  1,
-// 						Count:        1,
-// 						TotalPages:   1,
-// 						NextPage:     &nextPage,
-// 						PreviousPage: &previousPage,
-// 					},
-// 					Facilities: []domain.Facility{
-// 						{
-// 							ID:          &facilityID,
-// 							Name:        name,
-// 							Code:        code,
-// 							Active:      true,
-// 							County:      county,
-// 							Description: description,
-// 						},
-// 					},
-// 				}, nil
-// 			}
-
 // 			if tt.name == "Sad case" {
 // 				fakeCreate.GetOrCreateFacilityFn = func(ctx context.Context, facility dto.FacilityInput) (*domain.Facility, error) {
 // 					ID := uuid.New().String()
@@ -439,6 +552,42 @@ package facility_test
 // 				fakeQuery.ListFacilitiesFn = func(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, PaginationsInput dto.PaginationsInput) (*domain.FacilityPage, error) {
 // 					return nil, fmt.Errorf("failed to list facilities")
 // 				}
+// 			}
+// 			if tt.name == "invalid: missing current page" {
+// 				fakeQuery.ListFacilitiesFn = func(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, PaginationsInput dto.PaginationsInput) (*domain.FacilityPage, error) {
+// 					return nil, fmt.Errorf("failed to list facilities")
+// 				}
+
+// 			}
+// 			if tt.name == "invalid: missing current page" {
+// 				fakeQuery.ListFacilitiesFn = func(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, PaginationsInput dto.PaginationsInput) (*domain.FacilityPage, error) {
+// 					return nil, fmt.Errorf("failed to list facilities")
+// 				}
+
+// 			}
+// 			if tt.name == "invalid: empty name passed" {
+// 				fakeQuery.ListFacilitiesFn = func(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, PaginationsInput dto.PaginationsInput) (*domain.FacilityPage, error) {
+// 					return nil, fmt.Errorf("failed to list facilities")
+// 				}
+
+// 			}
+// 			if tt.name == "invalid: empty MFL code" {
+// 				fakeQuery.ListFacilitiesFn = func(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, PaginationsInput dto.PaginationsInput) (*domain.FacilityPage, error) {
+// 					return nil, fmt.Errorf("failed to list facilities")
+// 				}
+
+// 			}
+// 			if tt.name == "invalid: invalid bool" {
+// 				fakeQuery.ListFacilitiesFn = func(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, PaginationsInput dto.PaginationsInput) (*domain.FacilityPage, error) {
+// 					return nil, fmt.Errorf("failed to list facilities")
+// 				}
+
+// 			}
+// 			if tt.name == "invalid: invalid county" {
+// 				fakeQuery.ListFacilitiesFn = func(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, PaginationsInput dto.PaginationsInput) (*domain.FacilityPage, error) {
+// 					return nil, fmt.Errorf("failed to list facilities")
+// 				}
+
 // 			}
 
 // 			got, err := f.ListFacilities(tt.args.ctx, tt.args.searchTerm, tt.args.filterInput, tt.args.PaginationsInput)

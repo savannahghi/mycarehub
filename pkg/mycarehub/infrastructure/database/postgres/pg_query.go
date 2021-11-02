@@ -95,6 +95,14 @@ func (d *MyCareHubDb) ListFacilities(
 		},
 	}
 	filtersOutput := []*domain.FiltersParam{}
+	for _, f := range filterInput {
+		filter := &domain.FiltersParam{
+			Name:     string(f.DataType),
+			DataType: f.DataType,
+			Value:    f.Value,
+		}
+		filtersOutput = append(filtersOutput, filter)
+	}
 
 	facilities, err := d.query.ListFacilities(ctx, searchTerm, filtersOutput, paginationOutput)
 	if err != nil {
