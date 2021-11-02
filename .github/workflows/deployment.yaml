@@ -1,8 +1,6 @@
 name: Deployment
 
-on: 
-  push:
-    branches: [develop]
+on: push
 
 concurrency:
   group: build_and_push_image
@@ -38,6 +36,7 @@ jobs:
   deploy_to_test:
     name: Deploy Test Server to Google Cloud Run
     runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/develop'
     environment:
       name: test
     needs: [build_and_push_image]
@@ -84,6 +83,7 @@ jobs:
   deploy_to_prod:
     name: Deploy Prod Server to Google Cloud Run
     runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
     environment:
       name: production
     needs: [build_and_push_image]
