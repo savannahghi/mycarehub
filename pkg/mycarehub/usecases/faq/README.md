@@ -11,6 +11,8 @@ The API schemas is defined in `GraphQL`.
 Base URLs:
 - https://mycarehub-testing.savannahghi.org/ide
 
+- https://mycarehub-staging.savannahghi.org/ide
+
 - https://mycarehub-prod.savannahghi.org/ide
 
 
