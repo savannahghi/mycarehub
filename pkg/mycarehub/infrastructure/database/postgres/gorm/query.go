@@ -16,6 +16,7 @@ type Query interface {
 	GetFacilities(ctx context.Context) ([]Facility, error)
 	GetUserProfileByPhoneNumber(ctx context.Context, phoneNumber string) (*User, error)
 	ListFacilities(ctx context.Context, searchTerm *string, filter []*domain.FiltersParam, pagination domain.FacilityPage) (*domain.FacilityPage, error)
+	GetUserPINByUserID(ctx context.Context, userID string) (*PINData, error)
 }
 
 // RetrieveFacility fetches a single facility
@@ -104,4 +105,13 @@ func (db *PGInstance) ListFacilities(
 	pagination.Pagination.PreviousPage = paginatedFacilities.Pagination.PreviousPage
 
 	return &pagination, nil
+}
+
+// GetUserPINByUserID fetches a user's pin using the user ID
+func (db *PGInstance) GetUserPINByUserID(ctx context.Context, userID string) (*PINData, error) {
+	var pin PINData
+	if err := db.DB.Where(&PINData{UserID: userID, IsValid: true}).First(&pin).Error; err != nil {
+		return nil, fmt.Errorf("failed to get pin: %v", err)
+	}
+	return &pin, nil
 }

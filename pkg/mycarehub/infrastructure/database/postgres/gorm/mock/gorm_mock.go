@@ -3,10 +3,12 @@ package mock
 import (
 	"context"
 	"strconv"
+	"time"
 
 	"github.com/brianvoe/gofakeit"
 	"github.com/google/uuid"
 	"github.com/savannahghi/enumutils"
+	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
@@ -23,6 +25,7 @@ type GormMock struct {
 	MockGetUserProfileByPhoneNumberFn func(ctx context.Context, phoneNumber string) (*gorm.User, error)
 	MockSavePinFn                     func(ctx context.Context, pinData *gorm.PINData) (bool, error)
 	MockListFacilitiesFn              func(ctx context.Context, searchTerm *string, filter []*domain.FiltersParam, pagination domain.FacilityPage) (*domain.FacilityPage, error)
+	MockGetUserPINByUserIDFn          func(ctx context.Context, userID string) (*gorm.PINData, error)
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -34,14 +37,14 @@ func NewGormMock() *GormMock {
 		In this section, you find commonly shared success case structs for mock tests
 	*/
 
-	facilityID := uuid.New().String()
+	ID := uuid.New().String()
 	name := gofakeit.Name()
 	code := "KN001"
 	county := enums.CountyTypeNairobi
 	description := gofakeit.HipsterSentence(15)
 
 	facility := &gorm.Facility{
-		FacilityID:  &facilityID,
+		FacilityID:  &ID,
 		Name:        name,
 		Code:        code,
 		Active:      strconv.FormatBool(true),
@@ -79,7 +82,7 @@ func NewGormMock() *GormMock {
 		},
 		Facilities: []domain.Facility{
 			{
-				ID:          &facilityID,
+				ID:          &ID,
 				Name:        name,
 				Code:        code,
 				Active:      true,
@@ -87,6 +90,16 @@ func NewGormMock() *GormMock {
 				Description: description,
 			},
 		},
+	}
+
+	pinData := &gorm.PINData{
+		PINDataID: &ID,
+		UserID:    gofakeit.UUID(),
+		HashedPIN: uuid.New().String(),
+		ValidFrom: time.Now(),
+		ValidTo:   time.Now(),
+		IsValid:   true,
+		Flavour:   feedlib.FlavourConsumer,
 	}
 
 	return &GormMock{
@@ -125,6 +138,9 @@ func NewGormMock() *GormMock {
 		},
 		MockListFacilitiesFn: func(ctx context.Context, searchTerm *string, filter []*domain.FiltersParam, pagination domain.FacilityPage) (*domain.FacilityPage, error) {
 			return facilitiesPage, nil
+		},
+		MockGetUserPINByUserIDFn: func(ctx context.Context, userID string) (*gorm.PINData, error) {
+			return pinData, nil
 		},
 	}
 }
@@ -176,4 +192,9 @@ func (gm *GormMock) SavePin(ctx context.Context, pinData *gorm.PINData) (bool, e
 // ListFacilities mocks the implementation of  ListFacilities method.
 func (gm *GormMock) ListFacilities(ctx context.Context, searchTerm *string, filter []*domain.FiltersParam, pagination domain.FacilityPage) (*domain.FacilityPage, error) {
 	return gm.MockListFacilitiesFn(ctx, searchTerm, filter, pagination)
+}
+
+// GetUserPINByUserID mocks the implementation of retrieving a user pin by user ID
+func (gm *GormMock) GetUserPINByUserID(ctx context.Context, userID string) (*gorm.PINData, error) {
+	return gm.MockGetUserPINByUserIDFn(ctx, userID)
 }

@@ -32,4 +32,5 @@ type Query interface {
 	RetrieveFacilityByMFLCode(ctx context.Context, MFLCode string, isActive bool) (*domain.Facility, error)
 	GetUserProfileByPhoneNumber(ctx context.Context, phoneNumber string) (*domain.User, error)
 	ListFacilities(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, PaginationsInput dto.PaginationsInput) (*domain.FacilityPage, error)
+	GetUserPINByUserID(ctx context.Context, userID string) (*domain.UserPIN, error)
 }

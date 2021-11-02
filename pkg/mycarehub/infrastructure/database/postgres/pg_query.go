@@ -102,3 +102,13 @@ func (d *MyCareHubDb) ListFacilities(
 	}
 	return facilities, nil
 }
+
+// GetUserPINByUserID fetches a user pin by the user ID
+func (d *MyCareHubDb) GetUserPINByUserID(ctx context.Context, userID string) (*domain.UserPIN, error) {
+	pinData, err := d.query.GetUserPINByUserID(ctx, userID)
+	if err != nil {
+		return nil, fmt.Errorf("failed query and retrieve user PIN data by user ID: %s", err)
+	}
+
+	return d.mapPINObjectToDomain(pinData), nil
+}
