@@ -3,7 +3,6 @@ package gorm
 import (
 	"context"
 	"fmt"
-	"log"
 	"strconv"
 
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
@@ -23,7 +22,7 @@ type Query interface {
 func (db *PGInstance) RetrieveFacility(ctx context.Context, id *string, isActive bool) (*Facility, error) {
 	var facility Facility
 	active := strconv.FormatBool(isActive)
-	err := db.DB.Where(&Facility{FacilityID: id, Active: active}).Find(&facility).Error
+	err := db.DB.Where(&Facility{FacilityID: id, Active: active}).First(&facility).Error
 	if err != nil {
 		return nil, fmt.Errorf("failed to get facility by ID %v: %v", id, err)
 	}
@@ -43,12 +42,10 @@ func (db *PGInstance) RetrieveFacilityByMFLCode(ctx context.Context, MFLCode str
 // GetFacilities fetches all the healthcare facilities in the platform.
 func (db *PGInstance) GetFacilities(ctx context.Context) ([]Facility, error) {
 	var facility []Facility
-	facilities := db.DB.Find(&facility).Error
-	log.Printf("these are the facilities %v", facilities)
-	// if err != nil {
-	// 	return nil, fmt.Errorf("failed to query all facilities %v", err)
-	// }
-	log.Printf("these are the facilities %v", facility)
+	err := db.DB.Find(&facility).Error
+	if err != nil {
+		return nil, fmt.Errorf("failed to query all facilities %v", err)
+	}
 	return facility, nil
 }
 
