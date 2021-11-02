@@ -3,33 +3,25 @@
 package interactor
 
 import (
-	pg "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/client"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/facility"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/user"
-	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure"
 )
 
 // Interactor represents an assemble of all use cases into a single object that can be instantiated anywhere
 type Interactor struct {
-	OpenSourceInfra infrastructure.Infrastructure
-	database        pg.OnboardingDb
 	FacilityUsecase facility.UseCasesFacility
 	ClientUseCase   client.UseCasesClientProfile
 	UserUseCase     user.UseCasesUser
 }
 
-// NewOnboardingInteractor returns a new onboarding interactor
-func NewOnboardingInteractor(
-	openSourceInfra infrastructure.Infrastructure,
-	database pg.OnboardingDb,
+// NewMyCareHubInteractor returns a new onboarding interactor
+func NewMyCareHubInteractor(
 	facilityUseCase facility.UseCasesFacility,
 	clientUseCase client.UseCasesClientProfile,
 	userUseCase user.UseCasesUser,
 ) *Interactor {
 	return &Interactor{
-		OpenSourceInfra: openSourceInfra,
-		database:        database,
 		FacilityUsecase: facilityUseCase,
 		ClientUseCase:   clientUseCase,
 		UserUseCase:     userUseCase,

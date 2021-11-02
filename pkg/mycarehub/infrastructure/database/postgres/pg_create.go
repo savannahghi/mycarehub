@@ -17,7 +17,7 @@ import (
 //
 // TODO: Create a helper the checks for all required fields
 // TODO: Make the create method idempotent
-func (d *OnboardingDb) GetOrCreateFacility(ctx context.Context, facility *dto.FacilityInput) (*domain.Facility, error) {
+func (d *MyCareHubDb) GetOrCreateFacility(ctx context.Context, facility *dto.FacilityInput) (*domain.Facility, error) {
 	if facility.Code == "" {
 		return nil, fmt.Errorf("`code` should be defined")
 	}
@@ -39,7 +39,7 @@ func (d *OnboardingDb) GetOrCreateFacility(ctx context.Context, facility *dto.Fa
 }
 
 // RegisterClient is responsible for registering and saving the client's data to the database
-func (d *OnboardingDb) RegisterClient(
+func (d *MyCareHubDb) RegisterClient(
 	ctx context.Context,
 	userInput *dto.UserInput,
 	clientInput *dto.ClientProfileInput,
@@ -102,7 +102,7 @@ func createUserObject(user *dto.UserInput) *gorm.User {
 }
 
 // SavePin gets the pin details from the user and saves it in the database
-func (d *OnboardingDb) SavePin(ctx context.Context, pinInput *domain.UserPIN) (bool, error) {
+func (d *MyCareHubDb) SavePin(ctx context.Context, pinInput *domain.UserPIN) (bool, error) {
 	pinObj := &gorm.PINData{
 		UserID:    pinInput.UserID,
 		HashedPIN: pinInput.HashedPIN,

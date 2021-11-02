@@ -13,7 +13,7 @@ import (
 
 func (r *mutationResolver) CreateFacility(ctx context.Context, input dto.FacilityInput) (*domain.Facility, error) {
 	r.checkPreconditions()
-	return r.interactor.FacilityUsecase.GetOrCreateFacility(ctx, input)
+	return r.interactor.FacilityUsecase.GetOrCreateFacility(ctx, &input)
 }
 
 func (r *mutationResolver) DeleteFacility(ctx context.Context, id string) (bool, error) {

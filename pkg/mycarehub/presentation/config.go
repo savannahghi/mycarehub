@@ -15,8 +15,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/savannahghi/firebasetools"
 	onboardingExtension "github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
-	infra "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
-	postgres "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/presentation/graph"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/presentation/graph/generated"
@@ -25,11 +24,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/facility"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/user"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/extension"
-	osinfra "github.com/savannahghi/onboarding/pkg/onboarding/infrastructure"
 	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/engagement"
-	openSourcePresentation "github.com/savannahghi/onboarding/pkg/onboarding/presentation"
-	"github.com/savannahghi/onboarding/pkg/onboarding/presentation/rest"
-	osusecases "github.com/savannahghi/onboarding/pkg/onboarding/usecases"
 	"github.com/savannahghi/serverutils"
 	log "github.com/sirupsen/logrus"
 	"go.opentelemetry.io/contrib/instrumentation/github.com/gorilla/mux/otelmux"
@@ -62,48 +57,40 @@ func Router(ctx context.Context) (*mux.Router, error) {
 		return nil, err
 	}
 
+	pg, err := gorm.NewPGInstance()
+	if err != nil {
+		return nil, fmt.Errorf("can't instantiate repository in resolver: %v", err)
+	}
+
 	// Initialize base (common) extension
 	baseExt := extension.NewBaseExtensionImpl(fc)
 
-	pinExt := extension.NewPINExtensionImpl()
 	onboardingExt := onboardingExtension.NewOnboardingLibImpl()
 	// Initialize ISC clients
 	engagementISC := onboardingExtension.NewInterServiceClient(engagementService)
 
 	// Initialize new instances of the infrastructure services
 	// Initialize new open source interactors
-	infrastructure := osinfra.NewInfrastructureInteractor()
 	engagement := engagement.NewServiceEngagementImpl(engagementISC, baseExt)
-	openSourceUsecases := osusecases.NewUsecasesInteractor(infrastructure, baseExt, pinExt)
 
-	// initialize internal infrastructure
-	infra := infra.NewInteractor()
+	db := postgres.NewMyCareHubDb(pg, pg, pg)
 
 	// Initialize facility usecase
-	facilityUseCase := facility.NewFacilityUsecase(infra)
+	facilityUseCase := facility.NewFacilityUsecase(db, db, db)
 
 	// Initialize client usecase
-	clientUseCase := client.NewUseCasesClientImpl(infra)
+	clientUseCase := client.NewUseCasesClientImpl(db, db, db)
 
-	// Initialize user usecase
-	userUsecase := user.NewUseCasesUserImpl(infra, onboardingExt, engagement)
-	pg, err := gorm.NewPGInstance()
-	if err != nil {
-		return nil, fmt.Errorf("can't instantiate repository in resolver: %v", err)
-	}
-
-	db := postgres.NewOnboardingDb(pg, pg, pg)
+	userUsecase := user.NewUseCasesUserImpl(db, db, db, onboardingExt, engagement)
 
 	// Initialize the interactor
-	i := interactor.NewOnboardingInteractor(
-		infrastructure,
-		*db,
+	i := interactor.NewMyCareHubInteractor(
 		facilityUseCase,
 		clientUseCase,
 		userUsecase,
 	)
 
-	h := rest.NewHandlersInterfaces(infrastructure, openSourceUsecases)
+	//h := rest.NewHandlersInterfaces(infrastructure, openSourceUsecases)
 
 	r := mux.NewRouter() // gorilla mux
 	r.Use(otelmux.Middleware(serverutils.MetricsCollectorService("onboarding")))
@@ -123,9 +110,9 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	r.Path("/ide").HandlerFunc(playground.Handler("GraphQL IDE", "/graphql"))
 	r.Path("/health").HandlerFunc(HealthStatusCheck)
 	// Shared authenticated ISC routes
-	openSourcePresentation.SharedAuthenticatedISCRoutes(h, r)
+	//openSourcePresentation.SharedAuthenticatedISCRoutes(h, r)
 	// Shared authenticated routes
-	openSourcePresentation.SharedAuthenticatedRoutes(h, r)
+	//openSourcePresentation.SharedAuthenticatedRoutes(h, r)
 
 	// Graphql route
 	authR := r.Path("/graphql").Subrouter()

@@ -10,7 +10,7 @@ import (
 
 // mapFacilityObjectToDomain maps the db facility to a domain model.
 // It fetches the database to fetch items specific to the facility
-func (d *OnboardingDb) mapFacilityObjectToDomain(facilityObject *gorm.Facility) *domain.Facility {
+func (d *MyCareHubDb) mapFacilityObjectToDomain(facilityObject *gorm.Facility) *domain.Facility {
 	if facilityObject == nil {
 		return nil
 	}
@@ -31,7 +31,7 @@ func (d *OnboardingDb) mapFacilityObjectToDomain(facilityObject *gorm.Facility) 
 }
 
 // mapRegisterClientObjectToDomain maps the database client object to our custom domain type
-func (d *OnboardingDb) mapRegisterClientObjectToDomain(clientObject *gorm.ClientUserProfile) *domain.ClientUserProfile {
+func (d *MyCareHubDb) mapRegisterClientObjectToDomain(clientObject *gorm.ClientUserProfile) *domain.ClientUserProfile {
 	userObject := clientObject.User
 	client := clientObject.Client
 
@@ -96,7 +96,7 @@ func createMapUser(userObject *gorm.User) *domain.User {
 
 // mapProfileObjectToDomain maps the db metrics to a domain model.
 // It searches the database to fetch items specific to the metrics
-func (d *OnboardingDb) mapProfileObjectToDomain(profileObject *gorm.User) *domain.User {
+func (d *MyCareHubDb) mapProfileObjectToDomain(profileObject *gorm.User) *domain.User {
 	if profileObject == nil {
 		return nil
 	}

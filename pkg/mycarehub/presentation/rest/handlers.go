@@ -1,22 +1,20 @@
 package rest
 
 import (
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/presentation/interactor"
 )
 
-// OnboardingHandlersInterfaces represents all the REST API logic
-type OnboardingHandlersInterfaces interface {
+// MyCareHubHandlersInterfaces represents all the REST API logic
+type MyCareHubHandlersInterfaces interface {
 	//Collect metrics handler
 }
 
-// OnboardingHandlersInterfacesImpl represents the usecase implementation object
-type OnboardingHandlersInterfacesImpl struct {
-	infrastructure infrastructure.Interactor
-	interactor     interactor.Interactor
+// MyCareHubHandlersInterfacesImpl represents the usecase implementation object
+type MyCareHubHandlersInterfacesImpl struct {
+	interactor interactor.Interactor
 }
 
-// NewOnboardingHandlersInterfaces initializes a new rest handlers usecase
-func NewOnboardingHandlersInterfaces(infrastructure infrastructure.Interactor, interactor interactor.Interactor) OnboardingHandlersInterfaces {
-	return &OnboardingHandlersInterfacesImpl{infrastructure, interactor}
+// NewMyCareHubHandlersInterfaces initializes a new rest handlers usecase
+func NewMyCareHubHandlersInterfaces(interactor interactor.Interactor) MyCareHubHandlersInterfaces {
+	return &MyCareHubHandlersInterfacesImpl{interactor}
 }

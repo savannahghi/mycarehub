@@ -25,7 +25,7 @@ type UseCasesFacility interface {
 type IFacilityCreate interface {
 	// TODO Ensure blank ID when creating
 	// TODO Since `id` is optional, ensure pre-condition check
-	GetOrCreateFacility(ctx context.Context, facility dto.FacilityInput) (*domain.Facility, error)
+	GetOrCreateFacility(ctx context.Context, facility *dto.FacilityInput) (*domain.Facility, error)
 }
 
 // IFacilityUpdate contains the method to update facility details
@@ -66,22 +66,26 @@ type IFacilityRetrieve interface {
 
 // UseCaseFacilityImpl represents facility implementation object
 type UseCaseFacilityImpl struct {
-	Infrastructure infrastructure.Interactor
+	Create infrastructure.Create
+	Query  infrastructure.Query
+	Delete infrastructure.Delete
 }
 
 // NewFacilityUsecase returns a new facility service
-func NewFacilityUsecase(infra infrastructure.Interactor) *UseCaseFacilityImpl {
+func NewFacilityUsecase(create infrastructure.Create, query infrastructure.Query, delete infrastructure.Delete) *UseCaseFacilityImpl {
 	return &UseCaseFacilityImpl{
-		Infrastructure: infra,
+		Create: create,
+		Query:  query,
+		Delete: delete,
 	}
 }
 
 // GetOrCreateFacility creates a new facility
-func (f *UseCaseFacilityImpl) GetOrCreateFacility(ctx context.Context, facility dto.FacilityInput) (*domain.Facility, error) {
-	fetchedFacility, err := f.Infrastructure.RetrieveFacilityByMFLCode(ctx, facility.Code, facility.Active)
+func (f *UseCaseFacilityImpl) GetOrCreateFacility(ctx context.Context, facility *dto.FacilityInput) (*domain.Facility, error) {
+	fetchedFacility, err := f.RetrieveFacilityByMFLCode(ctx, facility.Code, facility.Active)
 	if err != nil {
 		if strings.Contains(err.Error(), "failed query and retrieve facility by MFLCode") {
-			return f.Infrastructure.GetOrCreateFacility(ctx, facility)
+			return f.Create.GetOrCreateFacility(ctx, facility)
 		}
 		return nil, fmt.Errorf("failed to retrieve facility")
 	}
@@ -95,7 +99,7 @@ func (f *UseCaseFacilityImpl) Update(facility *domain.Facility) (*domain.Facilit
 
 // DeleteFacility deletes a facility from the database usinng the MFL Code
 func (f *UseCaseFacilityImpl) DeleteFacility(ctx context.Context, id string) (bool, error) {
-	return f.Infrastructure.DeleteFacility(ctx, id)
+	return f.Delete.DeleteFacility(ctx, id)
 }
 
 // Inactivate inactivates the health facility
@@ -121,20 +125,20 @@ func (f *UseCaseFacilityImpl) Reactivate(id string) (*domain.Facility, error) {
 
 // RetrieveFacility find the health facility by ID
 func (f *UseCaseFacilityImpl) RetrieveFacility(ctx context.Context, id *string, isActive bool) (*domain.Facility, error) {
-	return f.Infrastructure.RetrieveFacility(ctx, id, isActive)
-}
-
-// RetrieveFacilityByMFLCode find the health facility by MFL Code
-func (f *UseCaseFacilityImpl) RetrieveFacilityByMFLCode(ctx context.Context, MFLCode string, isActive bool) (*domain.Facility, error) {
-	return f.Infrastructure.RetrieveFacilityByMFLCode(ctx, MFLCode, isActive)
+	return f.Query.RetrieveFacility(ctx, id, isActive)
 }
 
 // FetchFacilities fetches healthcare facilities in platform
 func (f *UseCaseFacilityImpl) FetchFacilities(ctx context.Context) ([]*domain.Facility, error) {
-	return f.Infrastructure.GetFacilities(ctx)
+	return f.Query.GetFacilities(ctx)
+}
+
+// RetrieveFacilityByMFLCode find the health facility by MFL Code
+func (f *UseCaseFacilityImpl) RetrieveFacilityByMFLCode(ctx context.Context, MFLCode string, isActive bool) (*domain.Facility, error) {
+	return f.Query.RetrieveFacilityByMFLCode(ctx, MFLCode, isActive)
 }
 
 //ListFacilities is responsible for returning a list of paginated facilities
 func (f *UseCaseFacilityImpl) ListFacilities(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, PaginationsInput dto.PaginationsInput) (*domain.FacilityPage, error) {
-	return f.Infrastructure.ListFacilities(ctx, searchTerm, filterInput, PaginationsInput)
+	return f.Query.ListFacilities(ctx, searchTerm, filterInput, PaginationsInput)
 }
