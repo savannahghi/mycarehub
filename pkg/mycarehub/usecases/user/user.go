@@ -58,14 +58,14 @@ type IUserForget interface {
 	// This is irreversible and the UX should ensure confirmation
 	// Validate: A user can only forget themselves
 	// Validate: PIN is correct
-	Forget(userID string, pin string, flavour string) (bool, error)
+	//Forget(userID string, pin string, flavour string) (bool, error)
 }
 
 // IRequestDataExport allows a user to request data known about them
 // Mostly for legal compliance.
 // The first impl. will simply create a task (for manual follow up) and acknowledge
 type IRequestDataExport interface {
-	RequestDataExport(userID string, pin string, flavour string) (bool, error)
+	//RequestDataExport(userID string, pin string, flavour string) (bool, error)
 }
 
 // ISetUserPIN ...
@@ -98,41 +98,41 @@ type IResetPIN interface {
 	// The new PIN is generated automatically and set to expire immediately so
 	// that a PIN change is forced on next login.
 	// TODO: Notify user after PIN reset
-	ResetPIN(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
+	//ResetPIN(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
 }
 
 // IVerifyPIN is used e.g to check the PIN when accessing sensitive content
 type IVerifyPIN interface {
-	VerifyPIN(userID string, flavour string, pin string) (bool, error)
+	//VerifyPIN(userID string, flavour string, pin string) (bool, error)
 }
 
 // IReviewTerms ...
 type IReviewTerms interface {
 
 	// ReviewTerms can be used to accept or review terms
-	ReviewTerms(userID string, accepted bool, flavour string) (bool, error)
+	//ReviewTerms(userID string, accepted bool, flavour string) (bool, error)
 }
 
 // IAnonymizedIdentifier ...
 type IAnonymizedIdentifier interface {
 	// GetAnonymizedUserIdentifier is used to get an opaque (but **stable**) user
 	// identifier for events, analytics etc
-	GetAnonymizedUserIdentifier(userID string, flavour string) (string, error)
+	//GetAnonymizedUserIdentifier(userID string, flavour string) (string, error)
 }
 
 // IAddPushToken ...
 type IAddPushToken interface {
-	AddPushtoken(userID string, flavour string) (bool, error)
+	//AddPushtoken(userID string, flavour string) (bool, error)
 }
 
 // IRemovePushtoken ...
 type IRemovePushtoken interface {
-	RemovePushToken(userID string, flavour string) (bool, error)
+	//RemovePushToken(userID string, flavour string) (bool, error)
 }
 
 // IUpdateLanguagePreferences ...
 type IUpdateLanguagePreferences interface {
-	UpdateLanguagePreferences(userID string, language string) (bool, error)
+	//UpdateLanguagePreferences(userID string, language string) (bool, error)
 }
 
 // IUserInvite ...
@@ -148,7 +148,7 @@ type IUserInvite interface {
 	// TODO: generate first time PIN, must change, link to user
 	// TODO: set the PIN valid to to the current moment so that the user is forced to change upon login
 	// TODO determine communication channel for invite (e.g SMS) from settings
-	Invite(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
+	//Invite(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
 }
 
 // UseCasesUser group all business logic usecases related to user

@@ -503,7 +503,7 @@ func TestOnboardingDb_ListFacilities(t *testing.T) {
 		ctx              context.Context
 		searchTerm       *string
 		filterInput      []*dto.FiltersInput
-		PaginationsInput dto.PaginationsInput
+		paginationsInput *dto.PaginationsInput
 	}
 	tests := []struct {
 		name    string
@@ -516,7 +516,7 @@ func TestOnboardingDb_ListFacilities(t *testing.T) {
 				ctx:              ctx,
 				searchTerm:       &noSearchTerm,
 				filterInput:      noFilterInput,
-				PaginationsInput: paginationInput,
+				paginationsInput: &paginationInput,
 			},
 			wantErr: false,
 		},
@@ -527,7 +527,7 @@ func TestOnboardingDb_ListFacilities(t *testing.T) {
 				ctx:              ctx,
 				searchTerm:       &noSearchTerm,
 				filterInput:      filterInput,
-				PaginationsInput: paginationInput,
+				paginationsInput: &paginationInput,
 			},
 			wantErr: false,
 		},
@@ -538,7 +538,7 @@ func TestOnboardingDb_ListFacilities(t *testing.T) {
 				ctx:              ctx,
 				searchTerm:       &searchTerm,
 				filterInput:      filterInput,
-				PaginationsInput: paginationInput,
+				paginationsInput: &paginationInput,
 			},
 			wantErr: true,
 		},
@@ -548,7 +548,7 @@ func TestOnboardingDb_ListFacilities(t *testing.T) {
 				ctx:              ctx,
 				searchTerm:       &searchTerm,
 				filterInput:      filterInput,
-				PaginationsInput: paginationInputNoCurrentPage,
+				paginationsInput: &paginationInputNoCurrentPage,
 			},
 			wantErr: true,
 		},
@@ -558,7 +558,7 @@ func TestOnboardingDb_ListFacilities(t *testing.T) {
 				ctx:              ctx,
 				searchTerm:       &searchTerm,
 				filterInput:      filterEmptyName,
-				PaginationsInput: paginationInput,
+				paginationsInput: &paginationInput,
 			},
 			wantErr: true,
 		},
@@ -568,7 +568,7 @@ func TestOnboardingDb_ListFacilities(t *testing.T) {
 				ctx:              ctx,
 				searchTerm:       &searchTerm,
 				filterInput:      filterEmptyMFLCode,
-				PaginationsInput: paginationInput,
+				paginationsInput: &paginationInput,
 			},
 			wantErr: true,
 		},
@@ -578,7 +578,7 @@ func TestOnboardingDb_ListFacilities(t *testing.T) {
 				ctx:              ctx,
 				searchTerm:       &searchTerm,
 				filterInput:      filterInvalidBool,
-				PaginationsInput: paginationInput,
+				paginationsInput: &paginationInput,
 			},
 			wantErr: true,
 		},
@@ -589,7 +589,7 @@ func TestOnboardingDb_ListFacilities(t *testing.T) {
 				ctx:              ctx,
 				searchTerm:       &searchTerm,
 				filterInput:      filterInvalidCounty,
-				PaginationsInput: paginationInput,
+				paginationsInput: &paginationInput,
 			},
 			wantErr: true,
 		},
@@ -607,49 +607,49 @@ func TestOnboardingDb_ListFacilities(t *testing.T) {
 						Description: facility.Description,
 					}, nil
 				}
-				fakeGorm.MockListFacilitiesFn = func(ctx context.Context, searchTerm *string, filter []*domain.FiltersParam, pagination domain.FacilityPage) (*domain.FacilityPage, error) {
+				fakeGorm.MockListFacilitiesFn = func(ctx context.Context, searchTerm *string, filter []*domain.FiltersParam, pagination *domain.FacilityPage) (*domain.FacilityPage, error) {
 					return nil, fmt.Errorf("current page not provided")
 				}
 			}
 
 			if tt.name == "invalid: missing current page" {
-				fakeGorm.MockListFacilitiesFn = func(ctx context.Context, searchTerm *string, filter []*domain.FiltersParam, pagination domain.FacilityPage) (*domain.FacilityPage, error) {
+				fakeGorm.MockListFacilitiesFn = func(ctx context.Context, searchTerm *string, filter []*domain.FiltersParam, pagination *domain.FacilityPage) (*domain.FacilityPage, error) {
 					return nil, fmt.Errorf("failed to list facilities")
 				}
 
 			}
 			if tt.name == "invalid: missing current page" {
-				fakeGorm.MockListFacilitiesFn = func(ctx context.Context, searchTerm *string, filter []*domain.FiltersParam, pagination domain.FacilityPage) (*domain.FacilityPage, error) {
+				fakeGorm.MockListFacilitiesFn = func(ctx context.Context, searchTerm *string, filter []*domain.FiltersParam, pagination *domain.FacilityPage) (*domain.FacilityPage, error) {
 					return nil, fmt.Errorf("failed to list facilities")
 				}
 
 			}
 			if tt.name == "invalid: empty name passed" {
-				fakeGorm.MockListFacilitiesFn = func(ctx context.Context, searchTerm *string, filter []*domain.FiltersParam, pagination domain.FacilityPage) (*domain.FacilityPage, error) {
+				fakeGorm.MockListFacilitiesFn = func(ctx context.Context, searchTerm *string, filter []*domain.FiltersParam, pagination *domain.FacilityPage) (*domain.FacilityPage, error) {
 					return nil, fmt.Errorf("failed to list facilities")
 				}
 
 			}
 			if tt.name == "invalid: empty MFL code" {
-				fakeGorm.MockListFacilitiesFn = func(ctx context.Context, searchTerm *string, filter []*domain.FiltersParam, pagination domain.FacilityPage) (*domain.FacilityPage, error) {
+				fakeGorm.MockListFacilitiesFn = func(ctx context.Context, searchTerm *string, filter []*domain.FiltersParam, pagination *domain.FacilityPage) (*domain.FacilityPage, error) {
 					return nil, fmt.Errorf("failed to list facilities")
 				}
 
 			}
 			if tt.name == "invalid: invalid bool" {
-				fakeGorm.MockListFacilitiesFn = func(ctx context.Context, searchTerm *string, filter []*domain.FiltersParam, pagination domain.FacilityPage) (*domain.FacilityPage, error) {
+				fakeGorm.MockListFacilitiesFn = func(ctx context.Context, searchTerm *string, filter []*domain.FiltersParam, pagination *domain.FacilityPage) (*domain.FacilityPage, error) {
 					return nil, fmt.Errorf("failed to list facilities")
 				}
 
 			}
 			if tt.name == "invalid: invalid county" {
-				fakeGorm.MockListFacilitiesFn = func(ctx context.Context, searchTerm *string, filter []*domain.FiltersParam, pagination domain.FacilityPage) (*domain.FacilityPage, error) {
+				fakeGorm.MockListFacilitiesFn = func(ctx context.Context, searchTerm *string, filter []*domain.FiltersParam, pagination *domain.FacilityPage) (*domain.FacilityPage, error) {
 					return nil, fmt.Errorf("failed to list facilities")
 				}
 
 			}
 
-			got, err := d.ListFacilities(tt.args.ctx, tt.args.searchTerm, tt.args.filterInput, tt.args.PaginationsInput)
+			got, err := d.ListFacilities(tt.args.ctx, tt.args.searchTerm, tt.args.filterInput, tt.args.paginationsInput)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("OnboardingDb.ListFacilities() error = %v, wantErr %v", err, tt.wantErr)
 				return

@@ -32,69 +32,69 @@ type IRegisterClient interface {
 // IAddClientIdentifier ...
 type IAddClientIdentifier interface {
 	// TODO use idType and settings to decide if it's a primary identifier or not
-	AddIdentifier(ctx context.Context, clientID string, idType enums.IdentifierType, idValue string, isPrimary bool) (*domain.Identifier, error)
+	//AddIdentifier(ctx context.Context, clientID string, idType enums.IdentifierType, idValue string, isPrimary bool) (*domain.Identifier, error)
 }
 
 // IInactivateClient ...
 type IInactivateClient interface {
 	// TODO Consider making reasons an enum
-	InactivateClient(clientID string, reason string, notes string) (bool, error)
+	//InactivateClient(clientID string, reason string, notes string) (bool, error)
 }
 
 // IReactivateClient ...
 type IReactivateClient interface {
-	ReactivateClient(clientID string, reason string, notes string) (bool, error)
+	//ReactivateClient(clientID string, reason string, notes string) (bool, error)
 }
 
 // ITransferClient ...
 type ITransferClient interface {
 	// TODO: maintain log of past transfers, who did it etc
-	TransferClient(
-		ctx context.Context,
-		clientID string,
-		originFacilityID string,
-		destinationFacilityID string,
-		reason enums.TransferReason,
-		notes string,
-	) (bool, error)
+	// TransferClient(
+	// 	ctx context.Context,
+	// 	clientID string,
+	// 	originFacilityID string,
+	// 	destinationFacilityID string,
+	// 	reason enums.TransferReason,
+	// 	notes string,
+	// ) (bool, error)
 }
 
 // IGetClientIdentifiers ...
 type IGetClientIdentifiers interface {
-	GetIdentifiers(clientID string, active bool) ([]*domain.Identifier, error)
+	//GetIdentifiers(clientID string, active bool) ([]*domain.Identifier, error)
 }
 
 // IInactivateClientIdentifier ...
 type IInactivateClientIdentifier interface {
-	InactivateIdentifier(clientID string, identifierID string) (bool, error)
+	//InactivateIdentifier(clientID string, identifierID string) (bool, error)
 }
 
 // IAssignTreatmentSupporter ...
 type IAssignTreatmentSupporter interface {
-	AssignTreatmentSupporter(
-		clientID string,
-		treatmentSupporterID string,
-		treatmentSupporterType string, // TODO: enum, start with CHV and Treatment buddy
-	) (bool, error)
+	// AssignTreatmentSupporter(
+	// 	clientID string,
+	// 	treatmentSupporterID string,
+	// 	treatmentSupporterType string, // TODO: enum, start with CHV and Treatment buddy
+	// ) (bool, error)
 }
 
 // IUnassignTreatmentSupporter ...
 type IUnassignTreatmentSupporter interface {
-	UnassignTreatmentSupporter(
-		clientID string,
-		treatmentSupporterID string,
-		reason string, // TODO: ensure these are in an audit log
-		notes string, // TODO: Optional
-	) (bool, error)
+	// UnassignTreatmentSupporter(
+	// 	clientID string,
+	// 	treatmentSupporterID string,
+	// 	reason string, // TODO: ensure these are in an audit log
+	// 	notes string, // TODO: Optional
+	// ) (bool, error)
 }
 
 // IAddRelatedPerson ...
 type IAddRelatedPerson interface {
 	// add next of kin
-	AddRelatedPerson(
-		clientID string,
-		relatedPerson *domain.RelatedPerson,
-	) (*domain.RelatedPerson, bool)
+	// 	AddRelatedPerson(
+	// 		clientID string,
+	// 		relatedPerson *domain.RelatedPerson,
+	// 	) (*domain.RelatedPerson, bool)
 }
 
 // UseCasesClientProfile ...
