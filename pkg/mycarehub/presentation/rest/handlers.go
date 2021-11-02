@@ -52,7 +52,7 @@ func (h *MyCareHubHandlersInterfacesImpl) LoginByPhone() http.HandlerFunc {
 			return
 		}
 
-		resp, _, err := h.interactor.UserUseCase.Login(ctx, *payload.PhoneNumber, *payload.PIN, payload.Flavour)
+		resp, _, err := h.interactor.UserUsecase.Login(ctx, *payload.PhoneNumber, *payload.PIN, payload.Flavour)
 		if err != nil {
 			serverutils.WriteJSONResponse(w, err, http.StatusBadRequest)
 			return

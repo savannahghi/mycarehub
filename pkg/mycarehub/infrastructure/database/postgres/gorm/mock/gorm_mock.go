@@ -24,8 +24,8 @@ type GormMock struct {
 	MockRegisterClientFn              func(ctx context.Context, userInput *gorm.User, clientInput *gorm.ClientProfile) (*gorm.ClientUserProfile, error)
 	MockGetUserProfileByPhoneNumberFn func(ctx context.Context, phoneNumber string) (*gorm.User, error)
 	MockSavePinFn                     func(ctx context.Context, pinData *gorm.PINData) (bool, error)
-	MockListFacilitiesFn              func(ctx context.Context, searchTerm *string, filter []*domain.FiltersParam, pagination domain.FacilityPage) (*domain.FacilityPage, error)
 	MockGetUserPINByUserIDFn          func(ctx context.Context, userID string) (*gorm.PINData, error)
+	MockListFacilitiesFn              func(ctx context.Context, searchTerm *string, filter []*domain.FiltersParam, pagination *domain.FacilityPage) (*domain.FacilityPage, error)
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -136,7 +136,7 @@ func NewGormMock() *GormMock {
 		MockRetrieveFacilityByMFLCodeFn: func(ctx context.Context, MFLCode string, isActive bool) (*gorm.Facility, error) {
 			return facility, nil
 		},
-		MockListFacilitiesFn: func(ctx context.Context, searchTerm *string, filter []*domain.FiltersParam, pagination domain.FacilityPage) (*domain.FacilityPage, error) {
+		MockListFacilitiesFn: func(ctx context.Context, searchTerm *string, filter []*domain.FiltersParam, pagination *domain.FacilityPage) (*domain.FacilityPage, error) {
 			return facilitiesPage, nil
 		},
 		MockGetUserPINByUserIDFn: func(ctx context.Context, userID string) (*gorm.PINData, error) {
@@ -190,7 +190,7 @@ func (gm *GormMock) SavePin(ctx context.Context, pinData *gorm.PINData) (bool, e
 }
 
 // ListFacilities mocks the implementation of  ListFacilities method.
-func (gm *GormMock) ListFacilities(ctx context.Context, searchTerm *string, filter []*domain.FiltersParam, pagination domain.FacilityPage) (*domain.FacilityPage, error) {
+func (gm *GormMock) ListFacilities(ctx context.Context, searchTerm *string, filter []*domain.FiltersParam, pagination *domain.FacilityPage) (*domain.FacilityPage, error) {
 	return gm.MockListFacilitiesFn(ctx, searchTerm, filter, pagination)
 }
 

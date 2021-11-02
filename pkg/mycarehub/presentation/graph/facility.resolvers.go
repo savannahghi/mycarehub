@@ -37,7 +37,7 @@ func (r *queryResolver) RetrieveFacilityByMFLCode(ctx context.Context, mflCode s
 }
 
 func (r *queryResolver) ListFacilities(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationInput dto.PaginationsInput) (*domain.FacilityPage, error) {
-	return r.interactor.FacilityUsecase.ListFacilities(ctx, searchTerm, filterInput, paginationInput)
+	return r.interactor.FacilityUsecase.ListFacilities(ctx, searchTerm, filterInput, &paginationInput)
 }
 
 // Query returns generated.QueryResolver implementation.

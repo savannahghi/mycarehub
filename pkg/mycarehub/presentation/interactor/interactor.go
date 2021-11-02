@@ -12,7 +12,7 @@ import (
 type Interactor struct {
 	FacilityUsecase facility.UseCasesFacility
 	ClientUseCase   client.UseCasesClientProfile
-	UserUseCase     user.UseCasesUser
+	UserUsecase     user.UseCasesUser
 }
 
 // NewMyCareHubInteractor returns a new onboarding interactor
@@ -22,8 +22,8 @@ func NewMyCareHubInteractor(
 	userUseCase user.UseCasesUser,
 ) *Interactor {
 	return &Interactor{
-		FacilityUsecase: facilityUseCase,
-		ClientUseCase:   clientUseCase,
-		UserUseCase:     userUseCase,
+		facilityUseCase,
+		clientUseCase,
+		userUseCase,
 	}
 }

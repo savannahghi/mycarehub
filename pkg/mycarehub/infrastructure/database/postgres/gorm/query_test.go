@@ -250,7 +250,7 @@ func TestPGInstance_ListFacilities(t *testing.T) {
 		ctx        context.Context
 		searchTerm *string
 		filter     []*domain.FiltersParam
-		pagination domain.FacilityPage
+		pagination *domain.FacilityPage
 	}
 	tests := []struct {
 		name    string
