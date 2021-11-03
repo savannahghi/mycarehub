@@ -3,6 +3,8 @@ package gorm
 import (
 	"context"
 	"fmt"
+
+	"github.com/sirupsen/logrus"
 )
 
 // Create contains all the methods used to perform a create operation in DB
@@ -22,6 +24,7 @@ func (db *PGInstance) GetOrCreateFacility(ctx context.Context, facility *Facilit
 		return nil, fmt.Errorf("facility must be provided")
 	}
 	err := db.DB.Create(facility).Error
+	logrus.Print("27 CREATE: Facility SESSION: ", err)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create a facility: %v", err)
 	}

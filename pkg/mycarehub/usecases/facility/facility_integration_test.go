@@ -1,117 +1,104 @@
 package facility_test
 
-// import (
-// 	"context"
-// 	"fmt"
-// 	"log"
-// 	"os"
-// 	"testing"
+import (
+	"context"
+	"fmt"
+	"log"
+	"os"
+	"testing"
 
-// 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
-// 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
-// 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres"
-// 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
-// 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/facility"
-// 	"github.com/segmentio/ksuid"
-// 	"github.com/tj/assert"
-// )
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
+	mycarehubusecase "github.com/savannahghi/mycarehub/pkg/mycarehub/usecases"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/facility"
+	"github.com/segmentio/ksuid"
+)
 
-// var facilityUsecase facility.UseCasesFacility
-// var testingDB *gorm.PGInstance
+var myCareHubUsecase mycarehubusecase.MyCareHubUseCase
+var testingDB *gorm.PGInstance
 
-// func TestMain(m *testing.M) {
-// 	//osinfra := openSourceInfra.NewInfrastructureInteractor()
+func TestMain(m *testing.M) {
+	//osinfra := openSourceInfra.NewInfrastructureInteractor()
 
-// 	// fc := &firebasetools.FirebaseClient{}
-// 	// engagementISC := onboardingExtension.NewInterServiceClient("engagement")
-// 	// baseExt := extension.NewBaseExtensionImpl(fc)
-// 	// // engagement := engagement.NewServiceEngagementImpl(engagementISC, baseExt)
-// 	// // onboardingExt := onboardingExtension.NewOnboardingLibImpl()
+	// fc := &firebasetools.FirebaseClient{}
+	// engagementISC := onboardingExtension.NewInterServiceClient("engagement")
+	// baseExt := extension.NewBaseExtensionImpl(fc)
+	// // engagement := engagement.NewServiceEngagementImpl(engagementISC, baseExt)
+	// // onboardingExt := onboardingExtension.NewOnboardingLibImpl()
 
-// 	db := postgres.NewMyCareHubDb(testingDB, testingDB, testingDB)
+	db := postgres.NewMyCareHubDb(testingDB, testingDB, testingDB)
 
-// 	//infra := infrastructure.NewInteractor()
-// 	facilityUsecase := facility.NewFacilityUsecase(db, db, db)
-// 	// clientUseCase := client.NewUseCasesClientImpl(db, db, db)
-// 	// userUsecase := user.NewUseCasesUserImpl(db, db, db, onboardingExt, engagement)
+	facilityUseCase := facility.NewFacilityUsecase(db, db, db)
 
-// 	if facilityUsecase == nil {
-// 		panic(fmt.Errorf("can't instantiate usecases in resolver"))
-// 	}
+	//infra := infrastructure.NewInteractor()
+	myCareHubUsecase := mycarehubusecase.NewMyCareHubUseCase(facilityUseCase)
+	// clientUseCase := client.NewUseCasesClientImpl(db, db, db)
+	// userUsecase := user.NewUseCasesUserImpl(db, db, db, onboardingExt, engagement)
 
-// 	log.Printf("Running tests ...")
+	if myCareHubUsecase == nil {
+		panic(fmt.Errorf("can't instantiate usecases"))
+	}
 
-// 	os.Exit(m.Run())
-// }
+	log.Printf("Running tests ...")
 
-// func TestUseCaseFacilityImpl_CreateFacility(t *testing.T) {
+	os.Exit(m.Run())
+}
 
-// 	ctx := context.Background()
-// 	name := "Kanairo One"
-// 	code := ksuid.New().String()
-// 	county := enums.CountyTypeNairobi
-// 	description := "This is just for mocking"
+func TestUseCaseFacilityImpl_GetOrCreateFacility_Integration(t *testing.T) {
+	ctx := context.Background()
 
-// 	type args struct {
-// 		ctx      context.Context
-// 		facility *dto.FacilityInput
-// 	}
-// 	tests := []struct {
-// 		name    string
-// 		args    args
-// 		wantNil bool
-// 		wantErr bool
-// 	}{
-// 		{
-// 			name: "happy case - valid payload",
-// 			args: args{
-// 				ctx: ctx,
-// 				facility: &dto.FacilityInput{
-// 					Name:        name,
-// 					Code:        code,
-// 					Active:      true,
-// 					County:      county,
-// 					Description: description,
-// 				},
-// 			},
-// 			wantErr: false,
-// 		},
-// {
-// 	name: "sad case - facility code not defined",
-// 	args: args{
-// 		ctx: ctx,
-// 		facility: &dto.FacilityInput{
-// 			Name:        name,
-// 			Code:        "",
-// 			Active:      true,
-// 			County:      county,
-// 			Description: description,
-// 		},
-// 	},
-// 	wantErr: true,
-// },
-// 	}
-// 	for _, tt := range tests {
-// 		t.Run(tt.name, func(t *testing.T) {
+	name := "Kanairo One"
+	code := ksuid.New().String()
+	county := enums.CountyTypeNairobi
+	description := "This is just for mocking"
 
-// 			got, err := facilityUsecase.GetOrCreateFacility(tt.args.ctx, tt.args.facility)
-// 			fmt.Printf("98: THE ERROR IS: %v", err)
-// 			fmt.Printf("99: THE GOT IS: %v", got)
-// 			if (err != nil) != tt.wantErr {
-// 				t.Errorf("UseCaseFacilityImpl.GetOrCreateFacility() error = %v, wantErr %v", err, tt.wantErr)
-// 				return
-// 			}
+	facilityInput := &dto.FacilityInput{
+		Name:        name,
+		Code:        code,
+		Active:      true,
+		County:      county,
+		Description: description,
+	}
 
-// 			assert.NotNil(t, got)
-// 		})
-// 	}
-// 	// Teardown
-// 	_, err := facilityUsecase.DeleteFacility(ctx, code)
-// 	if err != nil {
-// 		log.Printf("failed to delete facility: %v", err)
-// 	}
+	type args struct {
+		ctx      context.Context
+		facility *dto.FacilityInput
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:      ctx,
+				facility: facilityInput,
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := myCareHubUsecase.GetOrCreateFacility(tt.args.ctx, tt.args.facility)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCaseFacilityImpl.GetOrCreateFacility() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if tt.wantErr && got != nil {
+				t.Errorf("expected facilities to be nil for %v", tt.name)
+				return
+			}
 
-// }
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected facilities not to be nil for %v", tt.name)
+				return
+			}
+		})
+	}
+}
 
 // func TestUseCaseFacilityImpl_RetrieveFacility_Integration(t *testing.T) {
 // 	ctx := context.Background()

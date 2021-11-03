@@ -8,6 +8,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
+	"github.com/sirupsen/logrus"
 )
 
 // UseCasesFacility ...
@@ -82,6 +83,7 @@ func NewFacilityUsecase(create infrastructure.Create, query infrastructure.Query
 
 // GetOrCreateFacility creates a new facility
 func (f *UseCaseFacilityImpl) GetOrCreateFacility(ctx context.Context, facility *dto.FacilityInput) (*domain.Facility, error) {
+	logrus.Print("Facility>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
 	if facility.Code == "" {
 		return nil, fmt.Errorf("facililty code cannot be nil")
 	}

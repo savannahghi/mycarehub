@@ -6,6 +6,7 @@ import (
 	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
+	"github.com/sirupsen/logrus"
 )
 
 // mapFacilityObjectToDomain maps the db facility to a domain model.
@@ -14,6 +15,7 @@ func (d *MyCareHubDb) mapFacilityObjectToDomain(facilityObject *gorm.Facility) *
 	if facilityObject == nil {
 		return nil
 	}
+	logrus.Printf("18 MAPPERS: Facility SESSION: ", facilityObject)
 
 	active, err := strconv.ParseBool(facilityObject.Active)
 	if err != nil {

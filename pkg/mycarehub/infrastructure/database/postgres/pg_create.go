@@ -9,6 +9,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
+	"github.com/sirupsen/logrus"
 )
 
 // GetOrCreateFacility is responsible from creating a representation of a facility
@@ -31,6 +32,7 @@ func (d *MyCareHubDb) GetOrCreateFacility(ctx context.Context, facility *dto.Fac
 	}
 
 	facilitySession, err := d.create.GetOrCreateFacility(ctx, facilityObj)
+	logrus.Printf("34 PG CREATE: Facility SESSION: ", facilitySession)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create facility: %v", err)
 	}
