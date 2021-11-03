@@ -163,5 +163,5 @@ jobs:
       - name: Install CLI command and push schema to registry
         run: |
           go install github.com/savannahghi/bewellcli@$CLI_VERSION
-          bewellcli service validate-schema --name mycarehub --version $GITHUB_SHA --url ${{ secrets.TEST_SERVICE_GRAPHQL_URL }}
-          bewellcli service push-schema --name mycarehub --version $GITHUB_SHA --url ${{ secrets.TEST_SERVICE_GRAPHQL_URL }}
+          bewellcli service validate-schema --name mycarehub --version $GITHUB_SHA --url https://mycarehub-testing.savannahghi.org/graphql
+          bewellcli service push-schema --name mycarehub --version $GITHUB_SHA --url https://mycarehub-testing.savannahghi.org/graphql
