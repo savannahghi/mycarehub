@@ -25,7 +25,6 @@ require (
 	github.com/savannahghi/firebasetools v0.0.15
 	github.com/savannahghi/interserviceclient v0.0.13
 	github.com/savannahghi/onboarding v0.0.29
-	github.com/savannahghi/profileutils v0.0.23
 	github.com/savannahghi/scalarutils v0.0.4
 	github.com/savannahghi/serverutils v0.0.6
 	github.com/segmentio/ksuid v1.0.4

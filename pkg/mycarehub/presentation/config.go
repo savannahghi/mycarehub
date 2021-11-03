@@ -24,8 +24,6 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/client"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/facility"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/user"
-	"github.com/savannahghi/onboarding/pkg/onboarding/application/extension"
-	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/engagement"
 	"github.com/savannahghi/serverutils"
 	log "github.com/sirupsen/logrus"
 	"go.opentelemetry.io/contrib/instrumentation/github.com/gorilla/mux/otelmux"
@@ -63,16 +61,10 @@ func Router(ctx context.Context) (*mux.Router, error) {
 		return nil, fmt.Errorf("can't instantiate repository in resolver: %v", err)
 	}
 
-	// Initialize base (common) extension
-	baseExt := extension.NewBaseExtensionImpl(fc)
-
 	onboardingExt := onboardingExtension.NewOnboardingLibImpl()
-	// Initialize ISC clients
-	engagementISC := onboardingExtension.NewInterServiceClient(engagementService)
 
 	// Initialize new instances of the infrastructure services
 	// Initialize new open source interactors
-	engagement := engagement.NewServiceEngagementImpl(engagementISC, baseExt)
 
 	db := postgres.NewMyCareHubDb(pg, pg, pg)
 
@@ -82,7 +74,7 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	// Initialize client usecase
 	clientUseCase := client.NewUseCasesClientImpl(db, db, db)
 
-	userUsecase := user.NewUseCasesUserImpl(db, db, db, onboardingExt, engagement)
+	userUsecase := user.NewUseCasesUserImpl(db, db, db, onboardingExt)
 
 	// Initialize the interactor
 	i := interactor.NewMyCareHubInteractor(
