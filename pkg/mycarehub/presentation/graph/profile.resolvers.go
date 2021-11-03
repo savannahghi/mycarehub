@@ -11,5 +11,5 @@ import (
 
 func (r *mutationResolver) SetUserPin(ctx context.Context, input *dto.PinInput) (bool, error) {
 	r.checkPreconditions()
-	return r.interactor.UserUseCase.SetUserPIN(ctx, input)
+	return r.interactor.UserUsecase.SetUserPIN(ctx, input)
 }

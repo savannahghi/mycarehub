@@ -14,8 +14,8 @@ type Query interface {
 	RetrieveFacilityByMFLCode(ctx context.Context, MFLCode string, isActive bool) (*Facility, error)
 	GetFacilities(ctx context.Context) ([]Facility, error)
 	GetUserProfileByPhoneNumber(ctx context.Context, phoneNumber string) (*User, error)
-	ListFacilities(ctx context.Context, searchTerm *string, filter []*domain.FiltersParam, pagination domain.FacilityPage) (*domain.FacilityPage, error)
 	GetUserPINByUserID(ctx context.Context, userID string) (*PINData, error)
+	ListFacilities(ctx context.Context, searchTerm *string, filter []*domain.FiltersParam, pagination *domain.FacilityPage) (*domain.FacilityPage, error)
 }
 
 // RetrieveFacility fetches a single facility
@@ -59,8 +59,9 @@ func (db *PGInstance) GetUserProfileByPhoneNumber(ctx context.Context, phoneNumb
 }
 
 // ListFacilities lists all facilities, the results returned are
-// from search, and provided filters. They are also paginated
-func (db *PGInstance) ListFacilities(ctx context.Context, searchTerm *string, filter []*domain.FiltersParam, pagination domain.FacilityPage) (*domain.FacilityPage, error) {
+// from search, and provided filters. they are also paginated
+func (db *PGInstance) ListFacilities(
+	ctx context.Context, searchTerm *string, filter []*domain.FiltersParam, pagination *domain.FacilityPage) (*domain.FacilityPage, error) {
 	var facilities []Facility
 	// this will keep track of the results for pagination
 	// Count query is unreliable for this since it is returning the count for all rows instead of results
@@ -134,7 +135,7 @@ func (db *PGInstance) ListFacilities(ctx context.Context, searchTerm *string, fi
 
 	pagination.Pagination.PreviousPage = paginatedFacilities.Pagination.PreviousPage
 
-	return &pagination, nil
+	return pagination, nil
 }
 
 // GetUserPINByUserID fetches a user's pin using the user ID

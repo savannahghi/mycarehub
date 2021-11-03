@@ -4,7 +4,6 @@ go 1.16
 
 require (
 	cloud.google.com/go/errorreporting v0.1.0 // indirect
-	cloud.google.com/go/firestore v1.5.0
 	cloud.google.com/go/kms v1.0.0 // indirect
 	cloud.google.com/go/monitoring v1.0.0 // indirect
 	cloud.google.com/go/profiler v0.1.0 // indirect
@@ -17,7 +16,6 @@ require (
 	github.com/google/uuid v1.3.0
 	github.com/gorilla/handlers v1.5.1
 	github.com/gorilla/mux v1.8.0
-	github.com/imroc/req v0.3.0
 	github.com/labstack/gommon v0.3.0
 	github.com/lib/pq v1.10.3
 	github.com/savannahghi/converterandformatter v0.0.9
@@ -40,5 +38,4 @@ require (
 	gorm.io/datatypes v1.0.2
 	gorm.io/driver/postgres v1.1.2
 	gorm.io/gorm v1.21.16
-	moul.io/http2curl v1.0.0 // indirect
 )

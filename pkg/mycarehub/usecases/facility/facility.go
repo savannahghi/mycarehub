@@ -31,7 +31,7 @@ type IFacilityCreate interface {
 // IFacilityUpdate contains the method to update facility details
 type IFacilityUpdate interface {
 	// TODO Pre-condition: ensure `id` is set and valid
-	Update(facility *domain.Facility) (*domain.Facility, error)
+	//Update(facility *domain.Facility) (*domain.Facility, error)
 }
 
 // IFacilityDelete contains the method to delete a facility
@@ -43,18 +43,18 @@ type IFacilityDelete interface {
 // IFacilityInactivate contains the method to activate a facility
 type IFacilityInactivate interface {
 	// TODO Toggle active boolean
-	Inactivate(id string) (*domain.Facility, error)
+	//Inactivate(id string) (*domain.Facility, error)
 }
 
 // IFacilityReactivate contains the method to re-activate a facility
 type IFacilityReactivate interface {
-	Reactivate(id string) (*domain.Facility, error)
+	//Reactivate(id string) (*domain.Facility, error)
 }
 
 // IFacilityList contains the method to list of facilities
 type IFacilityList interface {
 	// TODO Document: callers should specify active
-	ListFacilities(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, PaginationsInput dto.PaginationsInput) (*domain.FacilityPage, error)
+	ListFacilities(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationsInput *dto.PaginationsInput) (*domain.FacilityPage, error)
 	FetchFacilities(ctx context.Context) ([]*domain.Facility, error)
 }
 
@@ -82,6 +82,9 @@ func NewFacilityUsecase(create infrastructure.Create, query infrastructure.Query
 
 // GetOrCreateFacility creates a new facility
 func (f *UseCaseFacilityImpl) GetOrCreateFacility(ctx context.Context, facility *dto.FacilityInput) (*domain.Facility, error) {
+	if facility.Code == "" {
+		return nil, fmt.Errorf("facililty code cannot be nil")
+	}
 	fetchedFacility, err := f.RetrieveFacilityByMFLCode(ctx, facility.Code, facility.Active)
 	if err != nil {
 		if strings.Contains(err.Error(), "failed query and retrieve facility by MFLCode") {
@@ -125,6 +128,9 @@ func (f *UseCaseFacilityImpl) Reactivate(id string) (*domain.Facility, error) {
 
 // RetrieveFacility find the health facility by ID
 func (f *UseCaseFacilityImpl) RetrieveFacility(ctx context.Context, id *string, isActive bool) (*domain.Facility, error) {
+	if id == nil {
+		return nil, fmt.Errorf("facility id cannot be nil")
+	}
 	return f.Query.RetrieveFacility(ctx, id, isActive)
 }
 
@@ -135,10 +141,25 @@ func (f *UseCaseFacilityImpl) FetchFacilities(ctx context.Context) ([]*domain.Fa
 
 // RetrieveFacilityByMFLCode find the health facility by MFL Code
 func (f *UseCaseFacilityImpl) RetrieveFacilityByMFLCode(ctx context.Context, MFLCode string, isActive bool) (*domain.Facility, error) {
+	if MFLCode == "" {
+		return nil, fmt.Errorf("facility MFL code cannot be empty")
+	}
 	return f.Query.RetrieveFacilityByMFLCode(ctx, MFLCode, isActive)
 }
 
 //ListFacilities is responsible for returning a list of paginated facilities
-func (f *UseCaseFacilityImpl) ListFacilities(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, PaginationsInput dto.PaginationsInput) (*domain.FacilityPage, error) {
-	return f.Query.ListFacilities(ctx, searchTerm, filterInput, PaginationsInput)
+func (f *UseCaseFacilityImpl) ListFacilities(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationsInput *dto.PaginationsInput) (*domain.FacilityPage, error) {
+	if searchTerm == nil {
+		return nil, fmt.Errorf("search term cannot be nil")
+	}
+
+	if filterInput == nil {
+		return nil, fmt.Errorf("filter input cannot be nil")
+	}
+
+	if paginationsInput == nil {
+		return nil, fmt.Errorf("filter input cannot be nil")
+	}
+
+	return f.Query.ListFacilities(ctx, searchTerm, filterInput, paginationsInput)
 }

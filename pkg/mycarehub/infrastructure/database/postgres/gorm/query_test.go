@@ -246,11 +246,39 @@ func TestPGInstance_ListFacilities(t *testing.T) {
 		},
 	}
 
+	searchTerm := "test"
+
+	nextpage := 6
+	prevpage := 6
+
+	facilityPageInput := &domain.Pagination{
+		Limit:        1,
+		CurrentPage:  5,
+		Count:        10,
+		TotalPages:   100,
+		NextPage:     &nextpage,
+		PreviousPage: &prevpage,
+	}
+
+	domainFacility := &domain.Facility{
+		ID:          new(string),
+		Name:        "test",
+		Code:        "test",
+		Active:      true,
+		County:      enums.CountyTypeNairobi,
+		Description: "test",
+	}
+
+	paginationInput := &domain.FacilityPage{
+		Pagination: *facilityPageInput,
+		Facilities: []domain.Facility{*domainFacility},
+	}
+
 	type args struct {
 		ctx        context.Context
 		searchTerm *string
 		filter     []*domain.FiltersParam
-		pagination domain.FacilityPage
+		pagination *domain.FacilityPage
 	}
 	tests := []struct {
 		name    string
@@ -260,7 +288,10 @@ func TestPGInstance_ListFacilities(t *testing.T) {
 		{
 			name: "Happy Case - Successfully list facilities",
 			args: args{
-				filter: filter,
+				ctx:        ctx,
+				searchTerm: &searchTerm,
+				filter:     filter,
+				pagination: paginationInput,
 			},
 			wantErr: false,
 		},

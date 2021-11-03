@@ -83,15 +83,15 @@ func (d *MyCareHubDb) GetUserProfileByPhoneNumber(ctx context.Context, phoneNumb
 // ListFacilities gets facilities that are filtered from search and filter,
 // the results are also paginated
 func (d *MyCareHubDb) ListFacilities(
-	ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, PaginationsInput dto.PaginationsInput) (*domain.FacilityPage, error) {
+	ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationsInput *dto.PaginationsInput) (*domain.FacilityPage, error) {
 	// if user did not provide current page, throw an error
-	if PaginationsInput.CurrentPage == 0 {
+	if paginationsInput.CurrentPage == 0 {
 		return nil, fmt.Errorf("current page not provided")
 	}
 	paginationOutput := domain.FacilityPage{
 		Pagination: domain.Pagination{
-			Limit:       PaginationsInput.Limit,
-			CurrentPage: PaginationsInput.CurrentPage,
+			Limit:       paginationsInput.Limit,
+			CurrentPage: paginationsInput.CurrentPage,
 		},
 	}
 	filtersOutput := []*domain.FiltersParam{}
@@ -104,7 +104,7 @@ func (d *MyCareHubDb) ListFacilities(
 		filtersOutput = append(filtersOutput, filter)
 	}
 
-	facilities, err := d.query.ListFacilities(ctx, searchTerm, filtersOutput, paginationOutput)
+	facilities, err := d.query.ListFacilities(ctx, searchTerm, filtersOutput, &paginationOutput)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get facilities: %v", err)
 	}
