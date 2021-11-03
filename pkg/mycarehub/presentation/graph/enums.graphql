@@ -1,3 +1,5 @@
+scalar Time
+
 enum RolesType {
   CAN_REGISTER_STAFF
   CAN_INVITE_STAFF
@@ -113,4 +115,21 @@ enum FilterDataType {
   mfl_code
   active
   county
+}
+
+enum Flavour {
+  PRO
+  CONSUMER
+}
+
+enum Gender {
+  male
+  female
+  other
+  unknown
+}
+
+enum Language {
+  en
+  sw
 }

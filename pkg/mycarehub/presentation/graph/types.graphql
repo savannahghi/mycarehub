@@ -103,21 +103,20 @@ type Addresses {
 }
 type Pagination {
   Limit: Int!
-	CurrentPage: Int!       
-	Count:  Int        
-	TotalPages: Int
-	NextPage:      Int 
+  CurrentPage: Int!
+  Count: Int
+  TotalPages: Int
+  NextPage: Int
   PreviousPage: Int
 }
 
 type FacilityPage {
   Pagination: Pagination!
   Facilities: [Facility]!
-
 }
 
 type FiltersParam {
-	Name:     String
-	DataType: FilterDataType 
-	Value:   String 
+  Name: String
+  DataType: FilterDataType
+  Value: String
 }

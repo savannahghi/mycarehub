@@ -82,7 +82,7 @@ jobs:
           IS_LOCAL_DB: True
         run: |
           staticcheck ./...
-          bewellcli service validate-schema --name onboarding --version $GITHUB_SHA --url ${{ secrets.SERVICE_GRAPHQL_URL }}
+          bewellcli service validate-schema --name mycarehub --version $GITHUB_SHA --url ${{ secrets.SERVICE_GRAPHQL_URL }}
           go fmt $(go list ./... | grep -v /vendor/)
           go vet $(go list ./... | grep -v /vendor/)
           golint -set_exit_status $(go list ./... | grep -v /vendor/)
@@ -90,7 +90,7 @@ jobs:
           misspell -error .
           gosec -exclude=G304,G101 ./...
           go-acc -o coverage.txt --ignore generated,cmd  ./... -- -timeout 60m
-          grep -v "generated.go" coverage.txt | grep -v "_gen.go" | grep -v "mocks.go" | grep -v "*resolver*go" | grep -v "server.go" > coverage.out
+          grep -v "generated.go" coverage.txt | grep -v "_gen.go" | grep -v "mocks.go" | grep -v "*resolvers.go" | grep -v "server.go" > coverage.out
           go tool cover -html=coverage.out -o coverage.html
           gocov convert coverage.out > coverage.json
           gocov report coverage.json > coverage_report.txt
