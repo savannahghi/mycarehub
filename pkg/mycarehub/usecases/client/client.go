@@ -2,6 +2,7 @@ package client
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
@@ -133,6 +134,14 @@ func (cl *UseCasesClientImpl) RegisterClient(
 	userInput *dto.UserInput,
 	clientInput *dto.ClientProfileInput,
 ) (*domain.ClientUserProfile, error) {
+	if userInput == nil {
+		return nil, fmt.Errorf("user input cannot be nil")
+	}
+
+	if clientInput == nil {
+		return nil, fmt.Errorf("client input cannot be nil")
+	}
+
 	return cl.Create.RegisterClient(ctx, userInput, clientInput)
 }
 
