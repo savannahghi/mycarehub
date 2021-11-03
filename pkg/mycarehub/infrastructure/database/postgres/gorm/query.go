@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 )
 
@@ -74,6 +75,10 @@ func (db *PGInstance) ListFacilities(
 		if err != nil {
 			return nil, fmt.Errorf("failed to validate filter %v: %v", f.Value, err)
 		}
+		err = enums.ValidateFilterCategories(enums.FilterCategoryTypeFacility, f.DataType)
+		if err != nil {
+			return nil, fmt.Errorf("filter param %v is not available in facilities: %v", f.Value, err)
+		}
 	}
 
 	paginatedFacilities := domain.FacilityPage{
@@ -101,10 +106,19 @@ func (db *PGInstance) ListFacilities(
 		return nil, fmt.Errorf("failed to initialize filter facilities transaction %v", err)
 	}
 
-	tx.Where(mappedFilterParams).Find(&facilities)
+	tx.Where(
+		"name ~* ? OR  mfl_code ~* ? OR county ~* ? OR description ~* ?",
+		*searchTerm, *searchTerm, *searchTerm, *searchTerm,
+	).Where(mappedFilterParams).Find(&facilities).Find(&facilities)
+
 	resultCount = int64(len(facilities))
 
-	tx.Scopes(paginate(facilities, &paginatedFacilities.Pagination, resultCount, db.DB)).Where(mappedFilterParams).Find(&facilities)
+	tx.Scopes(
+		paginate(facilities, &paginatedFacilities.Pagination, resultCount, db.DB),
+	).Where(
+		"name ~* ? OR  mfl_code ~* ? OR county ~* ? OR description ~* ?",
+		*searchTerm, *searchTerm, *searchTerm, *searchTerm,
+	).Where(mappedFilterParams).Find(&facilities)
 
 	if err := tx.Commit().Error; err != nil {
 		tx.Rollback()

@@ -13,6 +13,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
+	"github.com/segmentio/ksuid"
 )
 
 func createTestFacility() *gorm.Facility {
@@ -224,61 +225,173 @@ func TestPGInstance_GetUserPINByUserID(t *testing.T) {
 
 func TestPGInstance_ListFacilities(t *testing.T) {
 	ctx := context.Background()
-	testFacility := createTestFacility()
-	facility, err := testingDB.GetOrCreateFacility(ctx, testFacility)
-	if err != nil {
-		t.Errorf("failed to create test facility")
-		return
+
+	d := testingDB
+
+	code := ksuid.New().String()
+	code2 := ksuid.New().String()
+
+	facilityInput := &gorm.Facility{
+		Name:        "Kanairo One",
+		Code:        code,
+		Active:      strconv.FormatBool(true),
+		County:      enums.CountyTypeNairobi,
+		Description: "This is just for mocking",
 	}
 
-	filter := []*domain.FiltersParam{
+	facilityInput2 := &gorm.Facility{
+		Name:        "Baringo 2",
+		Code:        code2,
+		Active:      strconv.FormatBool(true),
+		County:      enums.CountyTypeBaringo,
+		Description: "This is just for mocking",
+	}
+
+	noSearchTerm := ""
+	searchTerm := "ro"
+
+	noFilterInput := []*domain.FiltersParam{}
+
+	formatBool := strconv.FormatBool(true)
+
+	filterInput := []*domain.FiltersParam{
+		{
+			Name:     enums.FilterDataTypeName.String(),
+			DataType: enums.FilterDataTypeName,
+			Value:    "Kanairo One",
+		},
 		{
 			Name:     enums.FilterDataTypeMFLCode.String(),
 			DataType: enums.FilterDataTypeMFLCode,
-			Value:    facility.Code,
+			Value:    code,
 		},
-	}
-
-	invalidFilter := []*domain.FiltersParam{
 		{
-			Name:     "name",
-			DataType: enums.FilterDataTypeMFLCode,
+			Name:     enums.FilterDataTypeActive.String(),
+			DataType: enums.FilterDataTypeActive,
+			Value:    formatBool,
+		},
+		{
+			Name:     enums.FilterDataTypeCounty.String(),
+			DataType: enums.FilterDataTypeCounty,
+			Value:    enums.CountyTypeNairobi.String(),
 		},
 	}
 
-	searchTerm := "test"
-
-	nextpage := 6
-	prevpage := 6
-
-	facilityPageInput := &domain.Pagination{
-		Limit:        1,
-		CurrentPage:  5,
-		Count:        10,
-		TotalPages:   100,
-		NextPage:     &nextpage,
-		PreviousPage: &prevpage,
+	filterEmptyName := []*domain.FiltersParam{
+		{
+			Name:     enums.FilterDataTypeName.String(),
+			DataType: enums.FilterDataTypeCounty,
+			Value:    "",
+		},
+		{
+			Name:     enums.FilterDataTypeMFLCode.String(),
+			DataType: enums.FilterDataTypeMFLCode,
+			Value:    code,
+		},
+		{
+			Name:     enums.FilterDataTypeActive.String(),
+			DataType: enums.FilterDataTypeActive,
+			Value:    formatBool,
+		},
+		{
+			Name:     enums.FilterDataTypeCounty.String(),
+			DataType: enums.FilterDataTypeCounty,
+			Value:    enums.CountyTypeNairobi.String(),
+		},
+	}
+	filterEmptyMFLCode := []*domain.FiltersParam{
+		{
+			Name:     enums.FilterDataTypeName.String(),
+			DataType: enums.FilterDataTypeName,
+			Value:    "Kanairo One",
+		},
+		{
+			Name:     enums.FilterDataTypeMFLCode.String(),
+			DataType: enums.FilterDataTypeMFLCode,
+			Value:    "",
+		},
+		{
+			Name:     enums.FilterDataTypeActive.String(),
+			DataType: enums.FilterDataTypeActive,
+			Value:    formatBool,
+		},
+		{
+			Name:     enums.FilterDataTypeCounty.String(),
+			DataType: enums.FilterDataTypeCounty,
+			Value:    enums.CountyTypeNairobi.String(),
+		},
 	}
 
-	domainFacility := &domain.Facility{
-		ID:          new(string),
-		Name:        "test",
-		Code:        "test",
-		Active:      true,
-		County:      enums.CountyTypeNairobi,
-		Description: "test",
+	filterInvalidBool := []*domain.FiltersParam{
+		{
+			Name:     enums.FilterDataTypeName.String(),
+			DataType: enums.FilterDataTypeName,
+			Value:    "Kanairo One",
+		},
+		{
+			Name:     enums.FilterDataTypeMFLCode.String(),
+			DataType: enums.FilterDataTypeMFLCode,
+			Value:    code,
+		},
+		{
+			Name:     enums.FilterDataTypeActive.String(),
+			DataType: enums.FilterDataTypeActive,
+			Value:    "invalid",
+		},
+		{
+			Name:     enums.FilterDataTypeCounty.String(),
+			DataType: enums.FilterDataTypeCounty,
+			Value:    enums.CountyTypeNairobi.String(),
+		},
 	}
 
-	paginationInput := &domain.FacilityPage{
-		Pagination: *facilityPageInput,
-		Facilities: []domain.Facility{*domainFacility},
+	filterInvalidCounty := []*domain.FiltersParam{
+		{
+			Name:     enums.FilterDataTypeName.String(),
+			DataType: enums.FilterDataTypeName,
+			Value:    "Kanairo One",
+		},
+		{
+			Name:     enums.FilterDataTypeMFLCode.String(),
+			DataType: enums.FilterDataTypeMFLCode,
+			Value:    code,
+		},
+		{
+			Name:     enums.FilterDataTypeActive.String(),
+			DataType: enums.FilterDataTypeActive,
+			Value:    formatBool,
+		},
+		{
+			Name:     enums.FilterDataTypeCounty.String(),
+			DataType: enums.FilterDataTypeCounty,
+			Value:    "Kanairo",
+		},
+	}
+
+	paginationInput := domain.FacilityPage{
+		Pagination: domain.Pagination{
+			Limit:       1,
+			CurrentPage: 1,
+		},
+	}
+
+	// Setup
+	// create a facility
+	facility, err := d.GetOrCreateFacility(ctx, facilityInput)
+	if err != nil {
+		t.Errorf("failed to create new facility: %v", err)
+	}
+	// Create another Facility
+	facility2, err := d.GetOrCreateFacility(ctx, facilityInput2)
+	if err != nil {
+		t.Errorf("failed to create new facility: %v", err)
 	}
 
 	type args struct {
-		ctx        context.Context
-		searchTerm *string
-		filter     []*domain.FiltersParam
-		pagination *domain.FacilityPage
+		ctx              context.Context
+		searchTerm       *string
+		filterInput      []*domain.FiltersParam
+		PaginationsInput domain.FacilityPage
 	}
 	tests := []struct {
 		name    string
@@ -286,26 +399,93 @@ func TestPGInstance_ListFacilities(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "Happy Case - Successfully list facilities",
+			name: "Happy case",
 			args: args{
-				ctx:        ctx,
-				searchTerm: &searchTerm,
-				filter:     filter,
-				pagination: paginationInput,
+				ctx:              ctx,
+				searchTerm:       &noSearchTerm,
+				filterInput:      noFilterInput,
+				PaginationsInput: paginationInput,
+			},
+			wantErr: false,
+		},
+
+		{
+			name: "valid: with valid filters",
+			args: args{
+				ctx:              ctx,
+				searchTerm:       &noSearchTerm,
+				filterInput:      filterInput,
+				PaginationsInput: paginationInput,
+			},
+			wantErr: false,
+		},
+
+		{
+			name: "valid: with valid searchterm",
+			args: args{
+				ctx:              ctx,
+				searchTerm:       &searchTerm,
+				filterInput:      noFilterInput,
+				PaginationsInput: paginationInput,
+			},
+			wantErr: false,
+		},
+
+		{
+			name: "valid: with valid searchterm and filter",
+			args: args{
+				ctx:              ctx,
+				searchTerm:       &searchTerm,
+				filterInput:      filterInput,
+				PaginationsInput: paginationInput,
 			},
 			wantErr: false,
 		},
 		{
-			name: "Sad Case - Fail to filter",
+			name: "invalid: empty name passed",
 			args: args{
-				filter: invalidFilter,
+				ctx:              ctx,
+				searchTerm:       &searchTerm,
+				filterInput:      filterEmptyName,
+				PaginationsInput: paginationInput,
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid: empty MFL code",
+			args: args{
+				ctx:              ctx,
+				searchTerm:       &searchTerm,
+				filterInput:      filterEmptyMFLCode,
+				PaginationsInput: paginationInput,
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid: invalid bool",
+			args: args{
+				ctx:              ctx,
+				searchTerm:       &searchTerm,
+				filterInput:      filterInvalidBool,
+				PaginationsInput: paginationInput,
+			},
+			wantErr: true,
+		},
+
+		{
+			name: "invalid: invalid county",
+			args: args{
+				ctx:              ctx,
+				searchTerm:       &searchTerm,
+				filterInput:      filterInvalidCounty,
+				PaginationsInput: paginationInput,
 			},
 			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := testingDB.ListFacilities(tt.args.ctx, tt.args.searchTerm, tt.args.filter, tt.args.pagination)
+			got, err := d.ListFacilities(tt.args.ctx, tt.args.searchTerm, tt.args.filterInput, &tt.args.PaginationsInput)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("PGInstance.ListFacilities() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -315,6 +495,17 @@ func TestPGInstance_ListFacilities(t *testing.T) {
 				return
 			}
 		})
+	}
+	// Teardown
+	_, err = d.DeleteFacility(ctx, string(facility.Code))
+	if err != nil {
+		t.Errorf("unable to delete facility")
+		return
+	}
+	_, err = d.DeleteFacility(ctx, string(facility2.Code))
+	if err != nil {
+		t.Errorf("unable to delete facility")
+		return
 	}
 }
 
