@@ -3,6 +3,7 @@ package extension
 import (
 	"context"
 
+	"github.com/savannahghi/firebasetools"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/extension"
 )
 
@@ -13,6 +14,8 @@ type OnboardingLibraryExtension interface {
 	EncryptPIN(rawPwd string, options *extension.Options) (string, string)
 	ComparePIN(rawPwd string, salt string, encodedPwd string, options *extension.Options) bool
 	GenerateTempPIN(ctx context.Context) (string, error)
+	CreateFirebaseCustomToken(ctx context.Context, uid string) (string, error)
+	AuthenticateCustomFirebaseToken(customAuthToken string) (*firebasetools.FirebaseUserTokens, error)
 }
 
 // OnboardingLibraryImpl represents onboarding library usecases
@@ -46,4 +49,17 @@ func (o *OnboardingLibraryImpl) ComparePIN(rawPwd string, salt string, encodedPw
 // The PIN will have 4 digits formatted as a string
 func (o *OnboardingLibraryImpl) GenerateTempPIN(ctx context.Context) (string, error) {
 	return o.pinExt.GenerateTempPIN(ctx)
+}
+
+// CreateFirebaseCustomToken creates a custom auth token for the user with the
+// indicated UID
+func (o *OnboardingLibraryImpl) CreateFirebaseCustomToken(ctx context.Context, uid string) (string, error) {
+	return firebasetools.CreateFirebaseCustomToken(ctx, uid)
+}
+
+// AuthenticateCustomFirebaseToken takes a custom Firebase auth token and tries to fetch an ID token
+// If successful, a pointer to the ID token is returned
+// Otherwise, an error is returned
+func (o *OnboardingLibraryImpl) AuthenticateCustomFirebaseToken(customAuthToken string) (*firebasetools.FirebaseUserTokens, error) {
+	return firebasetools.AuthenticateCustomFirebaseToken(customAuthToken)
 }

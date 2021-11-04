@@ -3,15 +3,19 @@ package mock
 import (
 	"context"
 
+	"github.com/google/uuid"
+	"github.com/savannahghi/firebasetools"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/extension"
 )
 
 // FakeOnboardingLibraryExtensionImpl is a fake representation of the onboarding library
 type FakeOnboardingLibraryExtensionImpl struct {
-	MockEncryptPINFn      func(rawPwd string, options *extension.Options) (string, string)
-	MockComparePINFn      func(rawPwd string, salt string, encodedPwd string, options *extension.Options) bool
-	MockGenerateTempPINFn func(ctx context.Context) (string, error)
-	MockSendSMSFn         func(ctx context.Context, phoneNumbers []string, message string) error
+	MockEncryptPINFn                      func(rawPwd string, options *extension.Options) (string, string)
+	MockComparePINFn                      func(rawPwd string, salt string, encodedPwd string, options *extension.Options) bool
+	MockGenerateTempPINFn                 func(ctx context.Context) (string, error)
+	MockSendSMSFn                         func(ctx context.Context, phoneNumbers []string, message string) error
+	MockCreateFirebaseCustomTokenFn       func(ctx context.Context, uid string) (string, error)
+	MockAuthenticateCustomFirebaseTokenFn func(customAuthToken string) (*firebasetools.FirebaseUserTokens, error)
 }
 
 // NewFakeOnboardingLibraryExtension initializes a new onboarding library mocks
@@ -31,6 +35,18 @@ func NewFakeOnboardingLibraryExtension() *FakeOnboardingLibraryExtensionImpl {
 
 		MockSendSMSFn: func(ctx context.Context, phoneNumbers []string, message string) error {
 			return nil
+		},
+
+		MockCreateFirebaseCustomTokenFn: func(ctx context.Context, uid string) (string, error) {
+			return uuid.New().String(), nil
+		},
+
+		MockAuthenticateCustomFirebaseTokenFn: func(customAuthToken string) (*firebasetools.FirebaseUserTokens, error) {
+			return &firebasetools.FirebaseUserTokens{
+				IDToken:      uuid.New().String(),
+				RefreshToken: uuid.NewString(),
+				ExpiresIn:    "1000",
+			}, nil
 		},
 	}
 }
@@ -53,4 +69,14 @@ func (f *FakeOnboardingLibraryExtensionImpl) GenerateTempPIN(ctx context.Context
 // SendSMS mocks the send sms method
 func (f *FakeOnboardingLibraryExtensionImpl) SendSMS(ctx context.Context, phoneNumbers []string, message string) error {
 	return f.MockSendSMSFn(ctx, phoneNumbers, message)
+}
+
+// CreateFirebaseCustomToken mocks the create firebase custom token method
+func (f *FakeOnboardingLibraryExtensionImpl) CreateFirebaseCustomToken(ctx context.Context, uid string) (string, error) {
+	return f.MockCreateFirebaseCustomTokenFn(ctx, uid)
+}
+
+// AuthenticateCustomFirebaseToken mocks the authenticate custom firebase token method
+func (f *FakeOnboardingLibraryExtensionImpl) AuthenticateCustomFirebaseToken(customAuthToken string) (*firebasetools.FirebaseUserTokens, error) {
+	return f.MockAuthenticateCustomFirebaseTokenFn(customAuthToken)
 }

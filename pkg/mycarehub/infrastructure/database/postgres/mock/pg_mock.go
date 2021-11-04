@@ -130,7 +130,9 @@ func NewPostgresMock() *PostgresMock {
 			return facilityInput, nil
 		},
 		MockGetUserPINByUserIDFn: func(ctx context.Context, userID string) (*domain.UserPIN, error) {
-			return &domain.UserPIN{}, nil
+			return &domain.UserPIN{
+				ValidTo: time.Now().Add(time.Hour * 10),
+			}, nil
 		},
 	}
 }

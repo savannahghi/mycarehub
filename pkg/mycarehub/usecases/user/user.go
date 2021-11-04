@@ -7,7 +7,6 @@ import (
 
 	"github.com/savannahghi/converterandformatter"
 	"github.com/savannahghi/feedlib"
-	"github.com/savannahghi/firebasetools"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
@@ -209,9 +208,9 @@ func (us *UseCasesUserImpl) Login(ctx context.Context, phoneNumber string, pin s
 	// If pin `ValidTo` field is in the past (expired), throw an error. This means the user has to
 	// change their pin on the next login
 	currentTime := time.Now()
-	expired, expiryErr := utils.CheckPINExpiry(currentTime, pinData)
+	expired := utils.CheckPINExpiry(currentTime, pinData)
 	if expired {
-		return nil, "", expiryErr
+		return nil, "", exceptions.ExpiredPinError()
 	}
 
 	matched := us.OnboardingExt.ComparePIN(pin, pinData.Salt, pinData.HashedPIN, nil)
@@ -219,12 +218,12 @@ func (us *UseCasesUserImpl) Login(ctx context.Context, phoneNumber string, pin s
 		return nil, "", exceptions.PinMismatchError(err)
 	}
 
-	customToken, err := firebasetools.CreateFirebaseCustomToken(ctx, *profile.ID)
+	customToken, err := us.OnboardingExt.CreateFirebaseCustomToken(ctx, *profile.ID)
 	if err != nil {
 		return nil, "", err
 	}
 
-	userTokens, err := firebasetools.AuthenticateCustomFirebaseToken(customToken)
+	userTokens, err := us.OnboardingExt.AuthenticateCustomFirebaseToken(customToken)
 	if err != nil {
 		return nil, "", err
 	}

@@ -257,7 +257,6 @@ func TestUnit_ListFacilities(t *testing.T) {
 			},
 			wantErr: false,
 		},
-
 		{
 			name: "Sad case- empty search term",
 			args: args{
@@ -268,7 +267,6 @@ func TestUnit_ListFacilities(t *testing.T) {
 			},
 			wantErr: true,
 		},
-
 		{
 			name: "Sad case- nil filter input",
 			args: args{
@@ -279,7 +277,6 @@ func TestUnit_ListFacilities(t *testing.T) {
 			},
 			wantErr: true,
 		},
-
 		{
 			name: "Sad case- nil pagination input",
 			args: args{
@@ -300,21 +297,18 @@ func TestUnit_ListFacilities(t *testing.T) {
 			f := facility.NewFacilityUsecase(fakeDB, fakeDB, fakeDB)
 
 			if tt.name == "Sad case- empty search term" {
-
 				fakeFacility.MockListFacilitiesFn = func(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationsInput *dto.PaginationsInput) (*domain.FacilityPage, error) {
 					return nil, fmt.Errorf("failed to list facilities")
 				}
 			}
 
 			if tt.name == "Sad case- nil filter input" {
-
 				fakeFacility.MockListFacilitiesFn = func(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationsInput *dto.PaginationsInput) (*domain.FacilityPage, error) {
 					return nil, fmt.Errorf("failed to list facilities")
 				}
 			}
 
 			if tt.name == "Sad case- nil pagination input" {
-
 				fakeFacility.MockListFacilitiesFn = func(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationsInput *dto.PaginationsInput) (*domain.FacilityPage, error) {
 					return nil, fmt.Errorf("failed to list facilities")
 				}
