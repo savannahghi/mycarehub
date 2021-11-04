@@ -179,12 +179,19 @@ type ResetPinInput struct {
 
 // PaginationsInput contains fields required for pagination
 type PaginationsInput struct {
-	Limit       int `json:"limit"`
-	CurrentPage int `json:"currentPage"`
+	Limit       int        `json:"limit"`
+	CurrentPage int        `json:"currentPage"`
+	Sort        SortsInput `json:"sort"`
 }
 
 // FiltersInput contains fields required for filtering
 type FiltersInput struct {
-	DataType enums.FilterDataType
+	DataType enums.FilterSortDataType
 	Value    string // TODO: Clear spec on validation e.g dates must be ISO 8601. This is the actual data being filtered
+}
+
+// SortsInput includes the fields required for sorting the different types of fields
+type SortsInput struct {
+	Direction enums.SortDataType
+	Field     enums.FilterSortDataType
 }

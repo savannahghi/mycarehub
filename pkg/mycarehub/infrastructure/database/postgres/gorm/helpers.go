@@ -37,7 +37,7 @@ func paginate(value interface{}, pagination *domain.Pagination, count int64, db 
 	}
 
 	return func(db *gorm.DB) *gorm.DB {
-		return db.Offset(pagination.GetOffset()).Limit(pagination.GetLimit())
+		return db.Offset(pagination.GetOffset()).Limit(pagination.GetLimit()).Order(pagination.GetSort())
 	}
 }
 

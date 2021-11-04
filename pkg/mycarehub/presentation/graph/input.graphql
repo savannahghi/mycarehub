@@ -41,10 +41,16 @@ input PinInput {
 
 input PaginationsInput {
   Limit: Int
-	CurrentPage: Int!          
+	CurrentPage: Int! 
+  Sort:  SortsInput        
 }
 
 input FiltersInput {
-  DataType: FilterDataType
+  DataType: FilterSortDataType
   Value: String
+}
+
+input SortsInput {
+	Direction: SortDataType
+	Field:     FilterSortDataType
 }

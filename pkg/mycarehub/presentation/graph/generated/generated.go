@@ -1052,7 +1052,9 @@ enum TransferReason {
   OTHER
 }
 
-enum FilterDataType {
+enum FilterSortDataType {
+  created_at
+  updated_at
   name
   mfl_code
   active
@@ -1075,7 +1077,11 @@ enum Language {
   en
   sw
 }
-`, BuiltIn: false},
+
+enum SortDataType {
+  asc
+  desc
+}`, BuiltIn: false},
 	{Name: "pkg/mycarehub/presentation/graph/facility.graphql", Input: `
 extend type Mutation {
     createFacility(input: FacilityInput!): Facility!
@@ -1131,14 +1137,19 @@ input PinInput {
 
 input PaginationsInput {
   Limit: Int
-	CurrentPage: Int!          
+	CurrentPage: Int! 
+  Sort:  SortsInput        
 }
 
 input FiltersInput {
-  DataType: FilterDataType
+  DataType: FilterSortDataType
   Value: String
 }
-`, BuiltIn: false},
+
+input SortsInput {
+	Direction: SortDataType
+	Field:     FilterSortDataType
+}`, BuiltIn: false},
 	{Name: "pkg/mycarehub/presentation/graph/profile.graphql", Input: `extend type Mutation {
   setUserPIN(input: PinInput): Boolean!
 }
@@ -1262,7 +1273,7 @@ type FacilityPage {
 
 type FiltersParam {
   Name: String
-  DataType: FilterDataType
+  DataType: FilterSortDataType
   Value: String
 }
 `, BuiltIn: false},
@@ -2641,9 +2652,9 @@ func (ec *executionContext) _FiltersParam_DataType(ctx context.Context, field gr
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(enums.FilterDataType)
+	res := resTmp.(enums.FilterSortDataType)
 	fc.Result = res
-	return ec.marshalOFilterDataType2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐFilterDataType(ctx, field.Selections, res)
+	return ec.marshalOFilterSortDataType2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐFilterSortDataType(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _FiltersParam_Value(ctx context.Context, field graphql.CollectedField, obj *domain.FiltersParam) (ret graphql.Marshaler) {
@@ -5823,7 +5834,7 @@ func (ec *executionContext) unmarshalInputFiltersInput(ctx context.Context, obj 
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("DataType"))
-			it.DataType, err = ec.unmarshalOFilterDataType2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐFilterDataType(ctx, v)
+			it.DataType, err = ec.unmarshalOFilterSortDataType2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐFilterSortDataType(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -5860,6 +5871,14 @@ func (ec *executionContext) unmarshalInputPaginationsInput(ctx context.Context, 
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("CurrentPage"))
 			it.CurrentPage, err = ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "Sort":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Sort"))
+			it.Sort, err = ec.unmarshalOSortInput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐSortInput(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -5904,6 +5923,34 @@ func (ec *executionContext) unmarshalInputPinInput(ctx context.Context, obj inte
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("flavour"))
 			it.Flavour, err = ec.unmarshalNFlavour2githubᚗcomᚋsavannahghiᚋfeedlibᚐFlavour(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputSortInput(ctx context.Context, obj interface{}) (dto.SortsInput, error) {
+	var it dto.SortsInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "Direction":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Direction"))
+			it.Direction, err = ec.unmarshalOSortDataType2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐSortDataType(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "Field":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Field"))
+			it.Field, err = ec.unmarshalOFilterSortDataType2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐFilterSortDataType(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -7736,13 +7783,13 @@ func (ec *executionContext) marshalOFacilityPage2ᚖgithubᚗcomᚋsavannahghi�
 	return ec._FacilityPage(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOFilterDataType2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐFilterDataType(ctx context.Context, v interface{}) (enums.FilterDataType, error) {
-	var res enums.FilterDataType
+func (ec *executionContext) unmarshalOFilterSortDataType2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐFilterSortDataType(ctx context.Context, v interface{}) (enums.FilterSortDataType, error) {
+	var res enums.FilterSortDataType
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOFilterDataType2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐFilterDataType(ctx context.Context, sel ast.SelectionSet, v enums.FilterDataType) graphql.Marshaler {
+func (ec *executionContext) marshalOFilterSortDataType2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐFilterSortDataType(ctx context.Context, sel ast.SelectionSet, v enums.FilterSortDataType) graphql.Marshaler {
 	return v
 }
 
@@ -7965,6 +8012,21 @@ func (ec *executionContext) marshalORolesType2ᚕgithubᚗcomᚋsavannahghiᚋmy
 	}
 	wg.Wait()
 	return ret
+}
+
+func (ec *executionContext) unmarshalOSortDataType2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐSortDataType(ctx context.Context, v interface{}) (enums.SortDataType, error) {
+	var res enums.SortDataType
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOSortDataType2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐSortDataType(ctx context.Context, sel ast.SelectionSet, v enums.SortDataType) graphql.Marshaler {
+	return v
+}
+
+func (ec *executionContext) unmarshalOSortInput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐSortInput(ctx context.Context, v interface{}) (dto.SortsInput, error) {
+	res, err := ec.unmarshalInputSortInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalOString2string(ctx context.Context, v interface{}) (string, error) {

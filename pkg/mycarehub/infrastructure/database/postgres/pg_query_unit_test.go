@@ -387,94 +387,94 @@ func TestOnboardingDb_ListFacilities(t *testing.T) {
 
 	filterInput := []*dto.FiltersInput{
 		{
-			DataType: enums.FilterDataTypeName,
+			DataType: enums.FilterSortDataTypeName,
 			Value:    "Kanairo One",
 		},
 		{
-			DataType: enums.FilterDataTypeMFLCode,
+			DataType: enums.FilterSortDataTypeMFLCode,
 			Value:    code,
 		},
 		{
-			DataType: enums.FilterDataTypeActive,
+			DataType: enums.FilterSortDataTypeActive,
 			Value:    formatBool,
 		},
 		{
-			DataType: enums.FilterDataTypeCounty,
+			DataType: enums.FilterSortDataTypeCounty,
 			Value:    enums.CountyTypeNairobi.String(),
 		},
 	}
 
 	filterEmptyName := []*dto.FiltersInput{
 		{
-			DataType: enums.FilterDataTypeName,
+			DataType: enums.FilterSortDataTypeName,
 			Value:    "",
 		},
 		{
-			DataType: enums.FilterDataTypeMFLCode,
+			DataType: enums.FilterSortDataTypeMFLCode,
 			Value:    code,
 		},
 		{
-			DataType: enums.FilterDataTypeActive,
+			DataType: enums.FilterSortDataTypeActive,
 			Value:    formatBool,
 		},
 		{
-			DataType: enums.FilterDataTypeCounty,
+			DataType: enums.FilterSortDataTypeCounty,
 			Value:    enums.CountyTypeNairobi.String(),
 		},
 	}
 	filterEmptyMFLCode := []*dto.FiltersInput{
 		{
-			DataType: enums.FilterDataTypeName,
+			DataType: enums.FilterSortDataTypeName,
 			Value:    "Kanairo One",
 		},
 		{
-			DataType: enums.FilterDataTypeMFLCode,
+			DataType: enums.FilterSortDataTypeMFLCode,
 			Value:    "",
 		},
 		{
-			DataType: enums.FilterDataTypeActive,
+			DataType: enums.FilterSortDataTypeActive,
 			Value:    formatBool,
 		},
 		{
-			DataType: enums.FilterDataTypeCounty,
+			DataType: enums.FilterSortDataTypeCounty,
 			Value:    enums.CountyTypeNairobi.String(),
 		},
 	}
 
 	filterInvalidBool := []*dto.FiltersInput{
 		{
-			DataType: enums.FilterDataTypeName,
+			DataType: enums.FilterSortDataTypeName,
 			Value:    "Kanairo One",
 		},
 		{
-			DataType: enums.FilterDataTypeMFLCode,
+			DataType: enums.FilterSortDataTypeMFLCode,
 			Value:    code,
 		},
 		{
-			DataType: enums.FilterDataTypeActive,
+			DataType: enums.FilterSortDataTypeActive,
 			Value:    "invalid",
 		},
 		{
-			DataType: enums.FilterDataTypeCounty,
+			DataType: enums.FilterSortDataTypeCounty,
 			Value:    enums.CountyTypeNairobi.String(),
 		},
 	}
 
 	filterInvalidCounty := []*dto.FiltersInput{
 		{
-			DataType: enums.FilterDataTypeName,
+			DataType: enums.FilterSortDataTypeName,
 			Value:    "Kanairo One",
 		},
 		{
-			DataType: enums.FilterDataTypeMFLCode,
+			DataType: enums.FilterSortDataTypeMFLCode,
 			Value:    code,
 		},
 		{
-			DataType: enums.FilterDataTypeActive,
+			DataType: enums.FilterSortDataTypeActive,
 			Value:    formatBool,
 		},
 		{
-			DataType: enums.FilterDataTypeCounty,
+			DataType: enums.FilterSortDataTypeCounty,
 			Value:    "kanairo",
 		},
 	}

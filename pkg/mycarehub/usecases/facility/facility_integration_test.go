@@ -373,100 +373,110 @@ func TestUseCaseFacilityImpl_ListFacilities(t *testing.T) {
 	noSearchTerm := ""
 	searchTerm := "ro"
 
+	sortInput := dto.SortsInput{
+		Field:     enums.FilterSortDataTypeCreatedAt,
+		Direction: enums.SortDataTypeAsc,
+	}
+
+	invalidSortInput := dto.SortsInput{
+		Field:     "invalid",
+		Direction: enums.SortDataTypeAsc,
+	}
+
 	noFilterInput := []*dto.FiltersInput{}
 
 	formatBool := strconv.FormatBool(true)
 
 	filterInput := []*dto.FiltersInput{
 		{
-			DataType: enums.FilterDataTypeName,
+			DataType: enums.FilterSortDataTypeName,
 			Value:    "Kanairo One",
 		},
 		{
-			DataType: enums.FilterDataTypeMFLCode,
+			DataType: enums.FilterSortDataTypeMFLCode,
 			Value:    code,
 		},
 		{
-			DataType: enums.FilterDataTypeActive,
+			DataType: enums.FilterSortDataTypeActive,
 			Value:    formatBool,
 		},
 		{
-			DataType: enums.FilterDataTypeCounty,
+			DataType: enums.FilterSortDataTypeCounty,
 			Value:    enums.CountyTypeNairobi.String(),
 		},
 	}
 
 	filterEmptyName := []*dto.FiltersInput{
 		{
-			DataType: enums.FilterDataTypeName,
+			DataType: enums.FilterSortDataTypeName,
 			Value:    "",
 		},
 		{
-			DataType: enums.FilterDataTypeMFLCode,
+			DataType: enums.FilterSortDataTypeMFLCode,
 			Value:    code,
 		},
 		{
-			DataType: enums.FilterDataTypeActive,
+			DataType: enums.FilterSortDataTypeActive,
 			Value:    formatBool,
 		},
 		{
-			DataType: enums.FilterDataTypeCounty,
+			DataType: enums.FilterSortDataTypeCounty,
 			Value:    enums.CountyTypeNairobi.String(),
 		},
 	}
 	filterEmptyMFLCode := []*dto.FiltersInput{
 		{
-			DataType: enums.FilterDataTypeName,
+			DataType: enums.FilterSortDataTypeName,
 			Value:    "Kanairo One",
 		},
 		{
-			DataType: enums.FilterDataTypeMFLCode,
+			DataType: enums.FilterSortDataTypeMFLCode,
 			Value:    "",
 		},
 		{
-			DataType: enums.FilterDataTypeActive,
+			DataType: enums.FilterSortDataTypeActive,
 			Value:    formatBool,
 		},
 		{
-			DataType: enums.FilterDataTypeCounty,
+			DataType: enums.FilterSortDataTypeCounty,
 			Value:    enums.CountyTypeNairobi.String(),
 		},
 	}
 
 	filterInvalidBool := []*dto.FiltersInput{
 		{
-			DataType: enums.FilterDataTypeName,
+			DataType: enums.FilterSortDataTypeName,
 			Value:    "Kanairo One",
 		},
 		{
-			DataType: enums.FilterDataTypeMFLCode,
+			DataType: enums.FilterSortDataTypeMFLCode,
 			Value:    code,
 		},
 		{
-			DataType: enums.FilterDataTypeActive,
+			DataType: enums.FilterSortDataTypeActive,
 			Value:    "invalid",
 		},
 		{
-			DataType: enums.FilterDataTypeCounty,
+			DataType: enums.FilterSortDataTypeCounty,
 			Value:    enums.CountyTypeNairobi.String(),
 		},
 	}
 
 	filterInvalidCounty := []*dto.FiltersInput{
 		{
-			DataType: enums.FilterDataTypeName,
+			DataType: enums.FilterSortDataTypeName,
 			Value:    "Kanairo One",
 		},
 		{
-			DataType: enums.FilterDataTypeMFLCode,
+			DataType: enums.FilterSortDataTypeMFLCode,
 			Value:    code,
 		},
 		{
-			DataType: enums.FilterDataTypeActive,
+			DataType: enums.FilterSortDataTypeActive,
 			Value:    formatBool,
 		},
 		{
-			DataType: enums.FilterDataTypeCounty,
+			DataType: enums.FilterSortDataTypeCounty,
 			Value:    "kanairo",
 		},
 	}
@@ -474,6 +484,17 @@ func TestUseCaseFacilityImpl_ListFacilities(t *testing.T) {
 	paginationInput := dto.PaginationsInput{
 		Limit:       1,
 		CurrentPage: 1,
+	}
+	paginationInputWithSort := dto.PaginationsInput{
+		Limit:       1,
+		CurrentPage: 1,
+		Sort:        sortInput,
+	}
+
+	paginationInputInvalidSort := dto.PaginationsInput{
+		Limit:       1,
+		CurrentPage: 1,
+		Sort:        invalidSortInput,
 	}
 	paginationInputNoCurrentPage := dto.PaginationsInput{
 		Limit: 1,
@@ -534,6 +555,16 @@ func TestUseCaseFacilityImpl_ListFacilities(t *testing.T) {
 			wantErr: false,
 		},
 		{
+			name: "valid: with valid sort",
+			args: args{
+				ctx:              ctx,
+				searchTerm:       &noSearchTerm,
+				filterInput:      noFilterInput,
+				paginationsInput: &paginationInputWithSort,
+			},
+			wantErr: false,
+		},
+		{
 			name: "valid: with valid searchterm and filter",
 			args: args{
 				ctx:              ctx,
@@ -542,6 +573,46 @@ func TestUseCaseFacilityImpl_ListFacilities(t *testing.T) {
 				paginationsInput: &paginationInput,
 			},
 			wantErr: false,
+		},
+		{
+			name: "valid: with valid searchterm and sort",
+			args: args{
+				ctx:              ctx,
+				searchTerm:       &searchTerm,
+				filterInput:      noFilterInput,
+				paginationsInput: &paginationInputWithSort,
+			},
+			wantErr: false,
+		},
+		{
+			name: "valid: with valid sort and filter",
+			args: args{
+				ctx:              ctx,
+				filterInput:      filterInput,
+				searchTerm:       &noSearchTerm,
+				paginationsInput: &paginationInputWithSort,
+			},
+			wantErr: false,
+		},
+		{
+			name: "valid: with valid searchterm, filter and sort",
+			args: args{
+				ctx:              ctx,
+				searchTerm:       &searchTerm,
+				filterInput:      filterInput,
+				paginationsInput: &paginationInputWithSort,
+			},
+			wantErr: false,
+		},
+		{
+			name: "invalid: with invalid sort",
+			args: args{
+				ctx:              ctx,
+				searchTerm:       &noSearchTerm,
+				filterInput:      noFilterInput,
+				paginationsInput: &paginationInputInvalidSort,
+			},
+			wantErr: true,
 		},
 		{
 			name: "invalid: no params passed",
