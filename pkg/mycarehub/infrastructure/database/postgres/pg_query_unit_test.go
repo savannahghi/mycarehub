@@ -379,7 +379,7 @@ func TestOnboardingDb_ListFacilities(t *testing.T) {
 	}
 
 	noSearchTerm := ""
-	searchTerm := "term"
+	searchTerm := "ro"
 
 	noFilterInput := []*dto.FiltersInput{}
 
@@ -526,6 +526,28 @@ func TestOnboardingDb_ListFacilities(t *testing.T) {
 			args: args{
 				ctx:              ctx,
 				searchTerm:       &noSearchTerm,
+				filterInput:      filterInput,
+				paginationsInput: &paginationInput,
+			},
+			wantErr: false,
+		},
+
+		{
+			name: "valid: with valid searchterm",
+			args: args{
+				ctx:              ctx,
+				searchTerm:       &searchTerm,
+				filterInput:      noFilterInput,
+				paginationsInput: &paginationInput,
+			},
+			wantErr: false,
+		},
+
+		{
+			name: "valid: with valid searchterm and filter",
+			args: args{
+				ctx:              ctx,
+				searchTerm:       &searchTerm,
 				filterInput:      filterInput,
 				paginationsInput: &paginationInput,
 			},

@@ -341,6 +341,8 @@ package facility_test
 // func TestUseCaseFacilityImpl_ListFacilities(t *testing.T) {
 // 	ctx := context.Background()
 
+// 	f := testInteractor
+
 // 	code := ksuid.New().String()
 // 	code2 := ksuid.New().String()
 
@@ -361,7 +363,7 @@ package facility_test
 // 	}
 
 // 	noSearchTerm := ""
-// 	searchTerm := "term"
+// 	searchTerm := "ro"
 
 // 	noFilterInput := []*dto.FiltersInput{}
 
@@ -471,12 +473,12 @@ package facility_test
 
 // 	// Setup
 // 	// create a facility
-// 	facility, err := facilityUsecase.GetOrCreateFacility(ctx, facilityInput)
+// 	facility, err := f.FacilityUsecase.GetOrCreateFacility(ctx, facilityInput)
 // 	if err != nil {
 // 		t.Errorf("failed to create new facility: %v", err)
 // 	}
 // 	// Create another Facility
-// 	facility2, err := facilityUsecase.GetOrCreateFacility(ctx, facilityInput2)
+// 	facility2, err := f.FacilityUsecase.GetOrCreateFacility(ctx, facilityInput2)
 // 	if err != nil {
 // 		t.Errorf("failed to create new facility: %v", err)
 // 	}
@@ -485,7 +487,7 @@ package facility_test
 // 		ctx              context.Context
 // 		searchTerm       *string
 // 		filterInput      []*dto.FiltersInput
-// 		paginationsInput *dto.PaginationsInput
+// 		PaginationsInput dto.PaginationsInput
 // 	}
 // 	tests := []struct {
 // 		name    string
@@ -499,7 +501,7 @@ package facility_test
 // 				ctx:              ctx,
 // 				searchTerm:       &noSearchTerm,
 // 				filterInput:      noFilterInput,
-// 				paginationsInput: &paginationInput,
+// 				PaginationsInput: paginationInput,
 // 			},
 // 			wantErr: false,
 // 		},
@@ -510,7 +512,28 @@ package facility_test
 // 				ctx:              ctx,
 // 				searchTerm:       &noSearchTerm,
 // 				filterInput:      filterInput,
-// 				paginationsInput: &paginationInput,
+// 				PaginationsInput: paginationInput,
+// 			},
+// 			wantErr: false,
+// 		},
+// 		{
+// 			name: "valid: with valid searchterm",
+// 			args: args{
+// 				ctx:              ctx,
+// 				searchTerm:       &searchTerm,
+// 				filterInput:      noFilterInput,
+// 				PaginationsInput: paginationInput,
+// 			},
+// 			wantErr: false,
+// 		},
+
+// 		{
+// 			name: "valid: with valid searchterm and filter",
+// 			args: args{
+// 				ctx:              ctx,
+// 				searchTerm:       &searchTerm,
+// 				filterInput:      filterInput,
+// 				PaginationsInput: paginationInput,
 // 			},
 // 			wantErr: false,
 // 		},
@@ -528,7 +551,7 @@ package facility_test
 // 				ctx:              ctx,
 // 				searchTerm:       &searchTerm,
 // 				filterInput:      filterInput,
-// 				paginationsInput: &paginationInputNoCurrentPage,
+// 				PaginationsInput: paginationInputNoCurrentPage,
 // 			},
 // 			wantErr: true,
 // 		},
@@ -538,7 +561,7 @@ package facility_test
 // 				ctx:              ctx,
 // 				searchTerm:       &searchTerm,
 // 				filterInput:      filterEmptyName,
-// 				paginationsInput: &paginationInput,
+// 				PaginationsInput: paginationInput,
 // 			},
 // 			wantErr: true,
 // 		},
@@ -548,7 +571,7 @@ package facility_test
 // 				ctx:              ctx,
 // 				searchTerm:       &searchTerm,
 // 				filterInput:      filterEmptyMFLCode,
-// 				paginationsInput: &paginationInput,
+// 				PaginationsInput: paginationInput,
 // 			},
 // 			wantErr: true,
 // 		},
@@ -558,7 +581,7 @@ package facility_test
 // 				ctx:              ctx,
 // 				searchTerm:       &searchTerm,
 // 				filterInput:      filterInvalidBool,
-// 				paginationsInput: &paginationInput,
+// 				PaginationsInput: paginationInput,
 // 			},
 // 			wantErr: true,
 // 		},
@@ -569,7 +592,7 @@ package facility_test
 // 				ctx:              ctx,
 // 				searchTerm:       &searchTerm,
 // 				filterInput:      filterInvalidCounty,
-// 				paginationsInput: &paginationInput,
+// 				PaginationsInput: paginationInput,
 // 			},
 // 			wantErr: true,
 // 		},
@@ -577,7 +600,7 @@ package facility_test
 // 	for _, tt := range tests {
 // 		t.Run(tt.name, func(t *testing.T) {
 
-// 			got, err := facilityUsecase.ListFacilities(tt.args.ctx, tt.args.searchTerm, tt.args.filterInput, tt.args.paginationsInput)
+// 			got, err := f.FacilityUsecase.ListFacilities(tt.args.ctx, tt.args.searchTerm, tt.args.filterInput, tt.args.PaginationsInput)
 // 			if (err != nil) != tt.wantErr {
 // 				t.Errorf("UseCaseFacilityImpl.ListFacilities() error = %v, wantErr %v", err, tt.wantErr)
 // 				return
@@ -598,19 +621,19 @@ package facility_test
 // 				return
 // 			}
 // 			if !tt.wantErr {
-// 				assert.Equal(t, got.Pagination.Limit, tt.args.paginationsInput.Limit)
+// 				assert.Equal(t, got.Pagination.Limit, tt.args.PaginationsInput.Limit)
 // 				assert.Equal(t, got.Pagination.Limit, len(got.Facilities))
 // 			}
 
 // 		})
 // 	}
 // 	// Teardown
-// 	_, err = facilityUsecase.DeleteFacility(ctx, string(facility.Code))
+// 	_, err = f.FacilityUsecase.DeleteFacility(ctx, string(facility.Code))
 // 	if err != nil {
 // 		t.Errorf("unable to delete facility")
 // 		return
 // 	}
-// 	_, err = facilityUsecase.DeleteFacility(ctx, string(facility2.Code))
+// 	_, err = f.FacilityUsecase.DeleteFacility(ctx, string(facility2.Code))
 // 	if err != nil {
 // 		t.Errorf("unable to delete facility")
 // 		return
