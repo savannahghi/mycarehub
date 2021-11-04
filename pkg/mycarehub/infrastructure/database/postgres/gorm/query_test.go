@@ -256,122 +256,152 @@ func TestPGInstance_ListFacilities(t *testing.T) {
 
 	filterInput := []*domain.FiltersParam{
 		{
-			Name:     enums.FilterDataTypeName.String(),
-			DataType: enums.FilterDataTypeName,
+			Name:     enums.FilterSortDataTypeName.String(),
+			DataType: enums.FilterSortDataTypeName,
 			Value:    "Kanairo One",
 		},
 		{
-			Name:     enums.FilterDataTypeMFLCode.String(),
-			DataType: enums.FilterDataTypeMFLCode,
+			Name:     enums.FilterSortDataTypeMFLCode.String(),
+			DataType: enums.FilterSortDataTypeMFLCode,
 			Value:    code,
 		},
 		{
-			Name:     enums.FilterDataTypeActive.String(),
-			DataType: enums.FilterDataTypeActive,
+			Name:     enums.FilterSortDataTypeActive.String(),
+			DataType: enums.FilterSortDataTypeActive,
 			Value:    formatBool,
 		},
 		{
-			Name:     enums.FilterDataTypeCounty.String(),
-			DataType: enums.FilterDataTypeCounty,
+			Name:     enums.FilterSortDataTypeCounty.String(),
+			DataType: enums.FilterSortDataTypeCounty,
 			Value:    enums.CountyTypeNairobi.String(),
 		},
 	}
 
 	filterEmptyName := []*domain.FiltersParam{
 		{
-			Name:     enums.FilterDataTypeName.String(),
-			DataType: enums.FilterDataTypeCounty,
+			Name:     enums.FilterSortDataTypeName.String(),
+			DataType: enums.FilterSortDataTypeCounty,
 			Value:    "",
 		},
 		{
-			Name:     enums.FilterDataTypeMFLCode.String(),
-			DataType: enums.FilterDataTypeMFLCode,
+			Name:     enums.FilterSortDataTypeMFLCode.String(),
+			DataType: enums.FilterSortDataTypeMFLCode,
 			Value:    code,
 		},
 		{
-			Name:     enums.FilterDataTypeActive.String(),
-			DataType: enums.FilterDataTypeActive,
+			Name:     enums.FilterSortDataTypeActive.String(),
+			DataType: enums.FilterSortDataTypeActive,
 			Value:    formatBool,
 		},
 		{
-			Name:     enums.FilterDataTypeCounty.String(),
-			DataType: enums.FilterDataTypeCounty,
+			Name:     enums.FilterSortDataTypeCounty.String(),
+			DataType: enums.FilterSortDataTypeCounty,
 			Value:    enums.CountyTypeNairobi.String(),
 		},
 	}
 	filterEmptyMFLCode := []*domain.FiltersParam{
 		{
-			Name:     enums.FilterDataTypeName.String(),
-			DataType: enums.FilterDataTypeName,
+			Name:     enums.FilterSortDataTypeName.String(),
+			DataType: enums.FilterSortDataTypeName,
 			Value:    "Kanairo One",
 		},
 		{
-			Name:     enums.FilterDataTypeMFLCode.String(),
-			DataType: enums.FilterDataTypeMFLCode,
+			Name:     enums.FilterSortDataTypeMFLCode.String(),
+			DataType: enums.FilterSortDataTypeMFLCode,
 			Value:    "",
 		},
 		{
-			Name:     enums.FilterDataTypeActive.String(),
-			DataType: enums.FilterDataTypeActive,
+			Name:     enums.FilterSortDataTypeActive.String(),
+			DataType: enums.FilterSortDataTypeActive,
 			Value:    formatBool,
 		},
 		{
-			Name:     enums.FilterDataTypeCounty.String(),
-			DataType: enums.FilterDataTypeCounty,
+			Name:     enums.FilterSortDataTypeCounty.String(),
+			DataType: enums.FilterSortDataTypeCounty,
 			Value:    enums.CountyTypeNairobi.String(),
 		},
 	}
 
 	filterInvalidBool := []*domain.FiltersParam{
 		{
-			Name:     enums.FilterDataTypeName.String(),
-			DataType: enums.FilterDataTypeName,
+			Name:     enums.FilterSortDataTypeName.String(),
+			DataType: enums.FilterSortDataTypeName,
 			Value:    "Kanairo One",
 		},
 		{
-			Name:     enums.FilterDataTypeMFLCode.String(),
-			DataType: enums.FilterDataTypeMFLCode,
+			Name:     enums.FilterSortDataTypeMFLCode.String(),
+			DataType: enums.FilterSortDataTypeMFLCode,
 			Value:    code,
 		},
 		{
-			Name:     enums.FilterDataTypeActive.String(),
-			DataType: enums.FilterDataTypeActive,
+			Name:     enums.FilterSortDataTypeActive.String(),
+			DataType: enums.FilterSortDataTypeActive,
 			Value:    "invalid",
 		},
 		{
-			Name:     enums.FilterDataTypeCounty.String(),
-			DataType: enums.FilterDataTypeCounty,
+			Name:     enums.FilterSortDataTypeCounty.String(),
+			DataType: enums.FilterSortDataTypeCounty,
 			Value:    enums.CountyTypeNairobi.String(),
 		},
 	}
 
 	filterInvalidCounty := []*domain.FiltersParam{
 		{
-			Name:     enums.FilterDataTypeName.String(),
-			DataType: enums.FilterDataTypeName,
+			Name:     enums.FilterSortDataTypeName.String(),
+			DataType: enums.FilterSortDataTypeName,
 			Value:    "Kanairo One",
 		},
 		{
-			Name:     enums.FilterDataTypeMFLCode.String(),
-			DataType: enums.FilterDataTypeMFLCode,
+			Name:     enums.FilterSortDataTypeMFLCode.String(),
+			DataType: enums.FilterSortDataTypeMFLCode,
 			Value:    code,
 		},
 		{
-			Name:     enums.FilterDataTypeActive.String(),
-			DataType: enums.FilterDataTypeActive,
+			Name:     enums.FilterSortDataTypeActive.String(),
+			DataType: enums.FilterSortDataTypeActive,
 			Value:    formatBool,
 		},
 		{
-			Name:     enums.FilterDataTypeCounty.String(),
-			DataType: enums.FilterDataTypeCounty,
+			Name:     enums.FilterSortDataTypeCounty.String(),
+			DataType: enums.FilterSortDataTypeCounty,
 			Value:    "Kanairo",
 		},
+	}
+
+	noSortValues := domain.SortParam{
+		// Field:     enums.FilterSortDataTypeCreatedAt,
+		// Direction: enums.SortDataTypeAsc,
+	}
+
+	sortParams := domain.SortParam{
+		Field:     enums.FilterSortDataTypeCreatedAt,
+		Direction: enums.SortDataTypeAsc,
+	}
+	invalidSortInput := domain.SortParam{
+		Field:     "invalid",
+		Direction: enums.SortDataTypeAsc,
 	}
 
 	paginationInput := domain.FacilityPage{
 		Pagination: domain.Pagination{
 			Limit:       1,
 			CurrentPage: 1,
+			Sort:        &noSortValues,
+		},
+	}
+	paginationInputWithSort := domain.FacilityPage{
+		Pagination: domain.Pagination{
+			Limit:       1,
+			CurrentPage: 1,
+			Sort:        &sortParams,
+		},
+	}
+
+	paginationInputInvalidSort := domain.FacilityPage{
+		Pagination: domain.Pagination{
+			Limit:       1,
+			CurrentPage: 1,
+			Sort:        &invalidSortInput,
 		},
 	}
 
@@ -430,6 +460,26 @@ func TestPGInstance_ListFacilities(t *testing.T) {
 			},
 			wantErr: false,
 		},
+		{
+			name: "valid: with no sort values",
+			args: args{
+				ctx:              ctx,
+				searchTerm:       &noSearchTerm,
+				filterInput:      noFilterInput,
+				PaginationsInput: paginationInput,
+			},
+			wantErr: false,
+		},
+		{
+			name: "valid: with  sort values",
+			args: args{
+				ctx:              ctx,
+				searchTerm:       &noSearchTerm,
+				filterInput:      noFilterInput,
+				PaginationsInput: paginationInputWithSort,
+			},
+			wantErr: false,
+		},
 
 		{
 			name: "valid: with valid searchterm and filter",
@@ -440,6 +490,46 @@ func TestPGInstance_ListFacilities(t *testing.T) {
 				PaginationsInput: paginationInput,
 			},
 			wantErr: false,
+		},
+		{
+			name: "valid: with valid searchterm and sort",
+			args: args{
+				ctx:              ctx,
+				searchTerm:       &searchTerm,
+				filterInput:      noFilterInput,
+				PaginationsInput: paginationInputWithSort,
+			},
+			wantErr: false,
+		},
+		{
+			name: "valid: with valid sort and filter",
+			args: args{
+				ctx:              ctx,
+				filterInput:      filterInput,
+				searchTerm:       &noSearchTerm,
+				PaginationsInput: paginationInputWithSort,
+			},
+			wantErr: false,
+		},
+		{
+			name: "valid: with valid searchterm, filter and sort",
+			args: args{
+				ctx:              ctx,
+				searchTerm:       &searchTerm,
+				filterInput:      filterInput,
+				PaginationsInput: paginationInputWithSort,
+			},
+			wantErr: false,
+		},
+		{
+			name: "invalid: with invalid sort",
+			args: args{
+				ctx:              ctx,
+				searchTerm:       &noSearchTerm,
+				filterInput:      noFilterInput,
+				PaginationsInput: paginationInputInvalidSort,
+			},
+			wantErr: true,
 		},
 		{
 			name: "invalid: empty name passed",

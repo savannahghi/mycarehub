@@ -226,7 +226,7 @@ func TestUnit_ListFacilities(t *testing.T) {
 
 	filterInput := []*dto.FiltersInput{
 		{
-			DataType: enums.FilterDataTypeName,
+			DataType: enums.FilterSortDataTypeName,
 			Value:    filterValue,
 		},
 	}

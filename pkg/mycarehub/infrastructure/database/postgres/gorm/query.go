@@ -75,7 +75,7 @@ func (db *PGInstance) ListFacilities(
 		if err != nil {
 			return nil, fmt.Errorf("failed to validate filter %v: %v", f.Value, err)
 		}
-		err = enums.ValidateFilterCategories(enums.FilterCategoryTypeFacility, f.DataType)
+		err = enums.ValidateFilterSortCategories(enums.FilterSortCategoryTypeFacility, f.DataType)
 		if err != nil {
 			return nil, fmt.Errorf("filter param %v is not available in facilities: %v", f.Value, err)
 		}
@@ -89,6 +89,7 @@ func (db *PGInstance) ListFacilities(
 			TotalPages:   pagination.Pagination.TotalPages,
 			NextPage:     pagination.Pagination.NextPage,
 			PreviousPage: pagination.Pagination.PreviousPage,
+			Sort:         pagination.Pagination.Sort,
 		},
 		Facilities: pagination.Facilities,
 	}

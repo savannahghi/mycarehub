@@ -88,10 +88,16 @@ func (d *MyCareHubDb) ListFacilities(
 	if paginationsInput.CurrentPage == 0 {
 		return nil, fmt.Errorf("current page not provided")
 	}
+
+	sortOutput := &domain.SortParam{
+		Field:     paginationsInput.Sort.Field,
+		Direction: paginationsInput.Sort.Direction,
+	}
 	paginationOutput := domain.FacilityPage{
 		Pagination: domain.Pagination{
 			Limit:       paginationsInput.Limit,
 			CurrentPage: paginationsInput.CurrentPage,
+			Sort:        sortOutput,
 		},
 	}
 	filtersOutput := []*domain.FiltersParam{}

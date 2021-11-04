@@ -110,7 +110,9 @@ enum TransferReason {
   OTHER
 }
 
-enum FilterDataType {
+enum FilterSortDataType {
+  created_at
+  updated_at
   name
   mfl_code
   active
@@ -132,4 +134,9 @@ enum Gender {
 enum Language {
   en
   sw
+}
+
+enum SortDataType {
+  asc
+  desc
 }
