@@ -1,3 +1,0 @@
-# Error codes
-
-TODO: (dexter)
