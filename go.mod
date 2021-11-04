@@ -16,6 +16,7 @@ require (
 	github.com/google/uuid v1.3.0
 	github.com/gorilla/handlers v1.5.1
 	github.com/gorilla/mux v1.8.0
+	github.com/imroc/req v0.3.0
 	github.com/labstack/gommon v0.3.0
 	github.com/lib/pq v1.10.3
 	github.com/savannahghi/converterandformatter v0.0.9
