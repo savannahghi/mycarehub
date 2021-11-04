@@ -11,10 +11,9 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/utils"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
-	"github.com/savannahghi/onboarding/pkg/onboarding/application/utils"
-	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/engagement"
 )
 
 // ILogin ...
@@ -172,7 +171,6 @@ type UseCasesUserImpl struct {
 	Query         infrastructure.Query
 	Delete        infrastructure.Delete
 	OnboardingExt extension.OnboardingLibraryExtension
-	Engagement    engagement.ServiceEngagement
 }
 
 // NewUseCasesUserImpl returns a new user service
@@ -181,19 +179,18 @@ func NewUseCasesUserImpl(
 	query infrastructure.Query,
 	delete infrastructure.Delete,
 	onboardingExt extension.OnboardingLibraryExtension,
-	engagement engagement.ServiceEngagement,
 ) *UseCasesUserImpl {
 	return &UseCasesUserImpl{
 		Create:        create,
 		Query:         query,
 		Delete:        delete,
 		OnboardingExt: onboardingExt,
-		Engagement:    engagement,
 	}
 }
 
 // Login is used to login the user into the application
 func (us *UseCasesUserImpl) Login(ctx context.Context, phoneNumber string, pin string, flavour feedlib.Flavour) (*domain.AuthCredentials, string, error) {
+
 	phone, err := converterandformatter.NormalizeMSISDN(phoneNumber)
 	if err != nil {
 		return nil, "", exceptions.NormalizeMSISDNError(err)
@@ -212,9 +209,9 @@ func (us *UseCasesUserImpl) Login(ctx context.Context, phoneNumber string, pin s
 	// If pin `ValidTo` field is in the past (expired), throw an error. This means the user has to
 	// change their pin on the next login
 	currentTime := time.Now()
-	pinExpired := currentTime.After(pinData.ValidTo)
-	if pinExpired {
-		return nil, "", exceptions.ExpiredPinError()
+	expired, expiryErr := utils.CheckPINExpiry(currentTime, pinData)
+	if expired {
+		return nil, "", expiryErr
 	}
 
 	matched := us.OnboardingExt.ComparePIN(pin, pinData.Salt, pinData.HashedPIN, nil)
