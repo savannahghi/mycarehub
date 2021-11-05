@@ -3,7 +3,6 @@ package enums
 import (
 	"fmt"
 	"io"
-	"log"
 	"strconv"
 )
 
@@ -51,8 +50,5 @@ func (m *SortDataType) UnmarshalGQL(v interface{}) error {
 
 // MarshalGQL writes the sort type to the supplied
 func (m SortDataType) MarshalGQL(w io.Writer) {
-	_, err := fmt.Fprint(w, strconv.Quote(m.String()))
-	if err != nil {
-		log.Printf("%v\n", err)
-	}
+	fmt.Fprint(w, strconv.Quote(m.String()))
 }

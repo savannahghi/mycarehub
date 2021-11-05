@@ -2,6 +2,8 @@ package enums
 
 import (
 	"fmt"
+	"io"
+	"strconv"
 )
 
 // UsersType is a list of all the user types.
@@ -44,4 +46,9 @@ func (m *UsersType) UnmarshalGQL(v interface{}) error {
 		return fmt.Errorf("%s is not a valid UsersType", str)
 	}
 	return nil
+}
+
+// MarshalGQL writes the user type to the supplied
+func (m UsersType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(m.String()))
 }
