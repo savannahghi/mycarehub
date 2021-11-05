@@ -32,8 +32,10 @@ func NewUserUseCaseMock() *UserUseCaseMock {
 		},
 
 		MockLoginFn: func(ctx context.Context, phoneNumber, pin string, flavour feedlib.Flavour) (*domain.AuthCredentials, string, error) {
+			ID := uuid.New().String()
 			return &domain.AuthCredentials{
 				User: &domain.User{
+					ID:       &ID,
 					Username: gofakeit.Username(),
 				},
 				RefreshToken: gofakeit.HipsterSentence(15),

@@ -5,7 +5,6 @@ import (
 	"math"
 	"time"
 
-	mycarehubexceptions "github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/exceptions"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/extension"
@@ -59,10 +58,6 @@ func NextAllowedLoginTime(trials int) time.Time {
 }
 
 // CheckPINExpiry checks if PIN is expired
-func CheckPINExpiry(currentTime time.Time, pinData *domain.UserPIN) (bool, error) {
-	pinExpired := currentTime.After(pinData.ValidTo)
-	if pinExpired {
-		return true, mycarehubexceptions.ExpiredPinError()
-	}
-	return pinExpired, nil
+func CheckPINExpiry(currentTime time.Time, pinData *domain.UserPIN) bool {
+	return currentTime.After(pinData.ValidTo)
 }

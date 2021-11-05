@@ -82,9 +82,6 @@ func NewFacilityUsecase(create infrastructure.Create, query infrastructure.Query
 
 // GetOrCreateFacility creates a new facility
 func (f *UseCaseFacilityImpl) GetOrCreateFacility(ctx context.Context, facility *dto.FacilityInput) (*domain.Facility, error) {
-	if facility.Code == "" {
-		return nil, fmt.Errorf("facililty code cannot be nil")
-	}
 	fetchedFacility, err := f.RetrieveFacilityByMFLCode(ctx, facility.Code, facility.Active)
 	if err != nil {
 		if strings.Contains(err.Error(), "failed query and retrieve facility by MFLCode") {
