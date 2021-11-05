@@ -19,7 +19,7 @@ const (
 	BackOffWaitTime = 3
 )
 
-// ValidatePIN ...
+// ValidatePIN validates a pin
 func ValidatePIN(pin string) error {
 	validatePINErr := ValidatePINLength(pin)
 	if validatePINErr != nil {
