@@ -20,6 +20,7 @@ env:
   CLI_VERSION: v0.0.1
   #Schema Registry URL
   REGISTRY_URL: ${{ secrets.TEST_SCHEMA_REGISTRY_URL }}
+  GCR_NAME: ${{ secrets.GCR_NAME }}
 
 concurrency:
   group: lint-and-test
