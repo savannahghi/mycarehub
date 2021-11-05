@@ -6,67 +6,62 @@ import (
 	"testing"
 )
 
-func TestContactType_String(t *testing.T) {
+func TestCountryType_String(t *testing.T) {
 	tests := []struct {
 		name string
-		e    ContactType
+		e    CountryType
 		want string
 	}{
 		{
-			name: "PHONE",
-			e:    PhoneContact,
-			want: "PHONE",
-		},
-		{
-			name: "EMAIL",
-			e:    EmailContact,
-			want: "EMAIL",
+			name: "KENYA",
+			e:    CountryTypeKenya,
+			want: "KENYA",
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := tt.e.String(); got != tt.want {
-				t.Errorf("ContactType.String() = %v, want %v", got, tt.want)
+				t.Errorf("CountryType.String() = %v, want %v", got, tt.want)
 			}
 		})
 	}
 }
 
-func TestContactType_IsValid(t *testing.T) {
+func TestCountryType_IsValid(t *testing.T) {
 	tests := []struct {
 		name string
-		e    ContactType
+		e    CountryType
 		want bool
 	}{
 		{
 			name: "valid type",
-			e:    EmailContact,
+			e:    CountryTypeKenya,
 			want: true,
 		},
 		{
 			name: "invalid type",
-			e:    ContactType("invalid"),
+			e:    CountryType("invalid"),
 			want: false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := tt.e.IsValid(); got != tt.want {
-				t.Errorf("ContactType.IsValid() = %v, want %v", got, tt.want)
+				t.Errorf("CountryType.IsValid() = %v, want %v", got, tt.want)
 			}
 		})
 	}
 }
 
-func TestContactType_UnmarshalGQL(t *testing.T) {
-	pmtc := PhoneContact
-	invalid := ContactType("invalid")
+func TestCountryType_UnmarshalGQL(t *testing.T) {
+	pmtc := CountryTypeKenya
+	invalid := CountryType("invalid")
 	type args struct {
 		v interface{}
 	}
 	tests := []struct {
 		name    string
-		e       *ContactType
+		e       *CountryType
 		args    args
 		wantErr bool
 	}{
@@ -74,7 +69,7 @@ func TestContactType_UnmarshalGQL(t *testing.T) {
 			name: "valid type",
 			e:    &pmtc,
 			args: args{
-				v: "PHONE",
+				v: "KENYA",
 			},
 			wantErr: false,
 		},
@@ -98,33 +93,33 @@ func TestContactType_UnmarshalGQL(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if err := tt.e.UnmarshalGQL(tt.args.v); (err != nil) != tt.wantErr {
-				t.Errorf("ContactType.UnmarshalGQL() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("CountryType.UnmarshalGQL() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
 }
 
-func TestContactType_MarshalGQL(t *testing.T) {
+func TestCountryType_MarshalGQL(t *testing.T) {
 	w := &bytes.Buffer{}
 	tests := []struct {
 		name  string
-		e     ContactType
+		e     CountryType
 		b     *bytes.Buffer
 		wantW string
 		panic bool
 	}{
 		{
 			name:  "valid type enums",
-			e:     PhoneContact,
+			e:     CountryTypeKenya,
 			b:     w,
-			wantW: strconv.Quote("PHONE"),
+			wantW: strconv.Quote("KENYA"),
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			tt.e.MarshalGQL(tt.b)
 			if gotW := w.String(); gotW != tt.wantW {
-				t.Errorf("ContactType.MarshalGQL() = %v, want %v", gotW, tt.wantW)
+				t.Errorf("CountryType.MarshalGQL() = %v, want %v", gotW, tt.wantW)
 			}
 		})
 	}
