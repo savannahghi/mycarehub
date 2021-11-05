@@ -45,7 +45,6 @@ func ValidatePINLength(pin string) error {
 
 // GetHourMinuteSecond will be used to calculate time in the past or the future
 func GetHourMinuteSecond(hour, minute, second time.Duration) time.Time {
-
 	return time.Now().Add(time.Hour*hour + time.Minute*minute + time.Second*second)
 
 }

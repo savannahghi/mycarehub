@@ -66,3 +66,76 @@ func TestNextAllowedLoginTime(t *testing.T) {
 		})
 	}
 }
+
+func TestValidatePINLength(t *testing.T) {
+	type args struct {
+		pin string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Successfully validate pin length",
+			args: args{
+				pin: "1234",
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad Case - Invalid Pin",
+			args: args{
+				pin: "123456789",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := ValidatePINLength(tt.args.pin); (err != nil) != tt.wantErr {
+				t.Errorf("ValidatePINLength() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestValidatePIN(t *testing.T) {
+	type args struct {
+		pin string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Successfully validate pin",
+			args: args{
+				pin: "1234",
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad Case - Invalid pin length",
+			args: args{
+				pin: "12",
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - invalid pin",
+			args: args{
+				pin: "asdf",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := ValidatePIN(tt.args.pin); (err != nil) != tt.wantErr {
+				t.Errorf("ValidatePIN() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
