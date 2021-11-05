@@ -39,6 +39,11 @@ func TestValidateCountiesOfCountries(t *testing.T) {
 			},
 			wantErr: true,
 		},
+		{
+			name:    "empty params passed",
+			args:    args{},
+			wantErr: true,
+		},
 		// Todo: add test case to validate a county belongs to a country once another country is added.
 	}
 	for _, tt := range tests {
@@ -105,6 +110,12 @@ func Test_findSelectedCountryCounties(t *testing.T) {
 			want:  false,
 			want1: nil,
 		},
+		{
+			name:  "empty params passed",
+			args:  args{},
+			want:  false,
+			want1: nil,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -151,6 +162,11 @@ func Test_findCounty(t *testing.T) {
 				counties:    KenyanCounties,
 				countyInput: CountyType("invalid"),
 			},
+			wantErr: true,
+		},
+		{
+			name:    "empty params passed",
+			args:    args{},
 			wantErr: true,
 		},
 		{

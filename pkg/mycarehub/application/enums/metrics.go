@@ -3,7 +3,6 @@ package enums
 import (
 	"fmt"
 	"io"
-	"log"
 	"strconv"
 )
 
@@ -55,8 +54,5 @@ func (m *MetricType) UnmarshalGQL(v interface{}) error {
 
 // MarshalGQL writes the metric type to the supplied writer
 func (m MetricType) MarshalGQL(w io.Writer) {
-	_, err := fmt.Fprint(w, strconv.Quote(m.String()))
-	if err != nil {
-		log.Printf("%v\n", err)
-	}
+	fmt.Fprint(w, strconv.Quote(m.String()))
 }

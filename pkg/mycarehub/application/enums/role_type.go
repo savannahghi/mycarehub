@@ -2,6 +2,8 @@ package enums
 
 import (
 	"fmt"
+	"io"
+	"strconv"
 )
 
 // RolesType is a list of all the role types.
@@ -79,4 +81,9 @@ func (m *RolesType) UnmarshalGQL(v interface{}) error {
 		return fmt.Errorf("%s is not a valid RolesType", str)
 	}
 	return nil
+}
+
+// MarshalGQL writes the role type to the supplied writer
+func (m RolesType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(m.String()))
 }
