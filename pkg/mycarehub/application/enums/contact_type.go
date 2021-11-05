@@ -3,7 +3,6 @@ package enums
 import (
 	"fmt"
 	"io"
-	"log"
 	"strconv"
 )
 
@@ -51,8 +50,5 @@ func (m *ContactType) UnmarshalGQL(v interface{}) error {
 
 // MarshalGQL writes the contact type to the supplied
 func (m ContactType) MarshalGQL(w io.Writer) {
-	_, err := fmt.Fprint(w, strconv.Quote(m.String()))
-	if err != nil {
-		log.Printf("%v\n", err)
-	}
+	fmt.Fprint(w, strconv.Quote(m.String()))
 }
