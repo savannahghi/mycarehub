@@ -212,7 +212,6 @@ func (us *UseCasesUserImpl) Login(ctx context.Context, phoneNumber string, pin s
 	if expired {
 		return nil, "", exceptions.ExpiredPinError()
 	}
-
 	matched := us.OnboardingExt.ComparePIN(pin, pinData.Salt, pinData.HashedPIN, nil)
 	if !matched {
 		return nil, "", exceptions.PinMismatchError(err)
