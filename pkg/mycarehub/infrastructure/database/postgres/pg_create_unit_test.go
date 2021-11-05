@@ -9,6 +9,7 @@ import (
 	"github.com/brianvoe/gofakeit"
 	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/feedlib"
+	"github.com/savannahghi/interserviceclient"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
@@ -65,6 +66,14 @@ func TestMyCareHubDb_GetOrCreateFacility(t *testing.T) {
 			},
 			wantErr: true,
 		},
+		{
+			name: "Sad Case - Fail to get ot create facility",
+			args: args{
+				ctx:      ctx,
+				facility: invalidFacility,
+			},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -80,6 +89,12 @@ func TestMyCareHubDb_GetOrCreateFacility(t *testing.T) {
 			if tt.name == "sad case - nil facility input" {
 				fakeGorm.MockGetOrCreateFacilityFn = func(ctx context.Context, facility *gorm.Facility) (*gorm.Facility, error) {
 					return nil, fmt.Errorf("failed to create facility")
+				}
+			}
+
+			if tt.name == "Sad Case - Fail to get ot create facility" {
+				fakeGorm.MockGetOrCreateFacilityFn = func(ctx context.Context, facility *gorm.Facility) (*gorm.Facility, error) {
+					return nil, fmt.Errorf("failed to get or create facility")
 				}
 			}
 
@@ -109,6 +124,13 @@ func TestMyCareHubDb_RegisterClient(t *testing.T) {
 		MiddleName:  gofakeit.Name(),
 		DisplayName: gofakeit.BeerAlcohol(),
 		Gender:      enumutils.GenderMale,
+		Contacts: []*dto.ContactInput{
+			{
+				Contact: interserviceclient.TestUserPhoneNumber,
+				Type:    enums.PhoneContact,
+			},
+		},
+		Languages: enumutils.AllLanguage,
 	}
 
 	clientInput := dto.ClientProfileInput{
@@ -142,7 +164,6 @@ func TestMyCareHubDb_RegisterClient(t *testing.T) {
 			},
 			wantErr: true,
 		},
-
 		{
 			name: "Sad Case: Fail to create user with nil client input",
 			args: args{
@@ -152,7 +173,6 @@ func TestMyCareHubDb_RegisterClient(t *testing.T) {
 			},
 			wantErr: true,
 		},
-
 		{
 			name: "Sad Case: Fail to register client",
 			args: args{
