@@ -143,6 +143,8 @@ jobs:
         go-version: [1.16.x]
     runs-on: ubuntu-latest
     needs: [deploy_to_test]
+    environment:
+      name: test
     env:
       REGISTRY_URL: ${{ secrets.TEST_SCHEMA_REGISTRY_URL }}
     steps:
@@ -170,6 +172,8 @@ jobs:
         go-version: [1.16.x]
     runs-on: ubuntu-latest
     needs: [deploy_to_prod]
+    environment:
+      name: production
     env:
       REGISTRY_URL: ${{ secrets.PROD_SCHEMA_REGISTRY_URL }}
     steps:
