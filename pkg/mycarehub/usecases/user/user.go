@@ -8,11 +8,11 @@ import (
 	"github.com/savannahghi/converterandformatter"
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/utils"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
+	"github.com/savannahghi/onboarding/pkg/onboarding/application/exceptions"
 )
 
 // ILogin ...
@@ -189,7 +189,6 @@ func NewUseCasesUserImpl(
 
 // Login is used to login the user into the application
 func (us *UseCasesUserImpl) Login(ctx context.Context, phoneNumber string, pin string, flavour feedlib.Flavour) (*domain.AuthCredentials, string, error) {
-
 	phone, err := converterandformatter.NormalizeMSISDN(phoneNumber)
 	if err != nil {
 		return nil, "", exceptions.NormalizeMSISDNError(err)
@@ -197,12 +196,12 @@ func (us *UseCasesUserImpl) Login(ctx context.Context, phoneNumber string, pin s
 
 	profile, err := us.Query.GetUserProfileByPhoneNumber(ctx, *phone)
 	if err != nil {
-		return nil, "", err
+		return nil, "", exceptions.UserNotFoundError(err)
 	}
 
 	pinData, err := us.Query.GetUserPINByUserID(ctx, *profile.ID)
 	if err != nil {
-		return nil, "", err
+		return nil, "", exceptions.PinNotFoundError(err)
 	}
 
 	// If pin `ValidTo` field is in the past (expired), throw an error. This means the user has to
@@ -210,7 +209,7 @@ func (us *UseCasesUserImpl) Login(ctx context.Context, phoneNumber string, pin s
 	currentTime := time.Now()
 	expired := utils.CheckPINExpiry(currentTime, pinData)
 	if expired {
-		return nil, "", exceptions.ExpiredPinError()
+		return nil, "", fmt.Errorf("the provided pin has expired")
 	}
 
 	matched := us.OnboardingExt.ComparePIN(pin, pinData.Salt, pinData.HashedPIN, nil)
