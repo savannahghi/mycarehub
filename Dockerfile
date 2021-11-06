@@ -1,7 +1,7 @@
 # Use the official Golang image to create a build artifact.
 # This is based on Debian and sets the GOPATH to /go.
 # https://hub.docker.com/_/golang
-FROM golang:1.16 as builder
+FROM golang:1.17 as builder
 
 # Create and change to the app directory.
 WORKDIR /app
@@ -28,9 +28,6 @@ RUN echo "Africa/Nairobi" >  /etc/timezone && date
 # Copy the binary to the production image from the builder stage.
 COPY --from=builder /app/server /server
 COPY --from=builder /app/deps.yaml /deps.yaml
-
-COPY --from=builder /app/pkg/mycarehub/application/authorization/rbac_model.conf /app/pkg/mycarehub/application/authorization/rbac_model.conf
-COPY --from=builder /app/pkg/mycarehub/application/authorization/data/rbac_policy.csv /app/pkg/mycarehub/application/authorization/data/rbac_policy.csv
 
 # Run the web service on container startup.
 CMD ["/server"]

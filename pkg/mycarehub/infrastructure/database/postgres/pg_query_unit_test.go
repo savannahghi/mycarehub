@@ -287,72 +287,6 @@ func TestMyCareHubDb_RetrieveFacilityByMFLCode(t *testing.T) {
 	}
 }
 
-func TestOnboardingDb_GetUserProfileByPhoneNumber(t *testing.T) {
-	ctx := context.Background()
-
-	type args struct {
-		ctx         context.Context
-		phoneNumber string
-	}
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		{
-			name: "Happy Case- Successfully get a user profile by phonenumber",
-			args: args{
-				ctx:         ctx,
-				phoneNumber: interserviceclient.TestUserPhoneNumber,
-			},
-			wantErr: false,
-		},
-		{
-			name: "Sad Case - Fail to get user profile by phonenumber",
-			args: args{
-				ctx:         ctx,
-				phoneNumber: "1234",
-			},
-			wantErr: true,
-		},
-		{
-			name: "Sad Case - Missing phonenumber",
-			args: args{
-				ctx: ctx,
-			},
-			wantErr: true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			var fakeGorm = gormMock.NewGormMock()
-			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm)
-
-			if tt.name == "Sad Case - Fail to get user profile by phonenumber" {
-				fakeGorm.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*gorm.User, error) {
-					return nil, fmt.Errorf("failed to get user profile by phonenumber")
-				}
-			}
-
-			if tt.name == "Sad Case - Missing phonenumber" {
-				fakeGorm.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*gorm.User, error) {
-					return nil, fmt.Errorf("phone number should be provided")
-				}
-			}
-
-			got, err := d.GetUserProfileByPhoneNumber(tt.args.ctx, tt.args.phoneNumber)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("OnboardingDb.GetUserProfileByPhoneNumber() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !tt.wantErr && got == nil {
-				t.Errorf("expected to get a response but got: %v", got)
-				return
-			}
-		})
-	}
-}
-
 func TestOnboardingDb_ListFacilities(t *testing.T) {
 	ctx := context.Background()
 
@@ -697,6 +631,72 @@ func TestOnboardingDb_ListFacilities(t *testing.T) {
 	if err != nil {
 		t.Errorf("unable to delete facility")
 		return
+	}
+}
+
+func TestOnboardingDb_GetUserProfileByPhoneNumber(t *testing.T) {
+	ctx := context.Background()
+
+	type args struct {
+		ctx         context.Context
+		phoneNumber string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy Case- Successfully get a user profile by phonenumber",
+			args: args{
+				ctx:         ctx,
+				phoneNumber: interserviceclient.TestUserPhoneNumber,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad Case - Fail to get user profile by phonenumber",
+			args: args{
+				ctx:         ctx,
+				phoneNumber: "1234",
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - Missing phonenumber",
+			args: args{
+				ctx: ctx,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var fakeGorm = gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm)
+
+			if tt.name == "Sad Case - Fail to get user profile by phonenumber" {
+				fakeGorm.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*gorm.User, error) {
+					return nil, fmt.Errorf("failed to get user profile by phonenumber")
+				}
+			}
+
+			if tt.name == "Sad Case - Missing phonenumber" {
+				fakeGorm.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*gorm.User, error) {
+					return nil, fmt.Errorf("phone number should be provided")
+				}
+			}
+
+			got, err := d.GetUserProfileByPhoneNumber(tt.args.ctx, tt.args.phoneNumber)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("OnboardingDb.GetUserProfileByPhoneNumber() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected to get a response but got: %v", got)
+				return
+			}
+		})
 	}
 }
 

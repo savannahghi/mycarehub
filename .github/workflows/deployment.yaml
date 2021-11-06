@@ -4,7 +4,7 @@ on: push
 
 env:
   # Schema Registry CLI command version
-  CLI_VERSION: v0.0.1
+  CLI_VERSION: v0.0.2
   
   
 concurrency:

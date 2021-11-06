@@ -9,9 +9,11 @@ import (
 // SortDataType is a list of all the sort types.
 type SortDataType string
 
-// contacts type constants
 const (
-	SortDataTypeAsc  SortDataType = "asc"
+	// SortDataTypeAsc is used to request ascending sort
+	SortDataTypeAsc SortDataType = "asc"
+
+	// SortDataTypeDesc is used to request descending sort
 	SortDataTypeDesc SortDataType = "desc"
 )
 

@@ -4,12 +4,9 @@ import (
 	"context"
 	"strconv"
 	"testing"
-	"time"
 
 	"github.com/brianvoe/gofakeit"
 	"github.com/google/uuid"
-	"github.com/savannahghi/enumutils"
-	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
@@ -134,85 +131,6 @@ func TestPGInstance_RetrieveFacilityByMFLCode(t *testing.T) {
 			got, err := testingDB.RetrieveFacilityByMFLCode(tt.args.ctx, tt.args.MFLCode, tt.args.isActive)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("PGInstance.RetrieveFacilityByMFLCode() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !tt.wantErr && got == nil {
-				t.Errorf("expected a response but got: %v", got)
-				return
-			}
-		})
-	}
-}
-
-func TestPGInstance_GetUserPINByUserID(t *testing.T) {
-	ctx := context.Background()
-	User := &gorm.User{
-		FirstName:   gofakeit.FirstName(),
-		LastName:    gofakeit.LastName(),
-		Username:    gofakeit.Username(),
-		MiddleName:  gofakeit.Name(),
-		DisplayName: gofakeit.BeerAlcohol(),
-		Gender:      enumutils.GenderMale,
-	}
-	Client := &gorm.ClientProfile{
-		ClientType: enums.ClientTypeOvc,
-	}
-
-	user, err := testingDB.RegisterClient(ctx, User, Client)
-	if err != nil {
-		t.Errorf("failed to create test user")
-		return
-	}
-
-	id := uuid.New().String()
-	pinPayload := &gorm.PINData{
-		PINDataID: &id,
-		UserID:    *user.User.UserID,
-		HashedPIN: "1234",
-		ValidFrom: time.Now(),
-		ValidTo:   time.Now(),
-		IsValid:   true,
-		Flavour:   feedlib.FlavourConsumer,
-		Salt:      "1234",
-	}
-
-	_, err = testingDB.SavePin(ctx, pinPayload)
-	if err != nil {
-		t.Errorf("failed to save test pin")
-		return
-	}
-
-	type args struct {
-		ctx    context.Context
-		userID string
-	}
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		{
-			name: "Happy Case - Successfully get user pin by user ID",
-			args: args{
-				ctx:    ctx,
-				userID: *user.User.UserID,
-			},
-			wantErr: false,
-		},
-		{
-			name: "Sad Case - Fail to get pin",
-			args: args{
-				ctx:    ctx,
-				userID: "1234amklca",
-			},
-			wantErr: true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got, err := testingDB.GetUserPINByUserID(tt.args.ctx, tt.args.userID)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("PGInstance.GetUserPINByUserID() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !tt.wantErr && got == nil {
@@ -628,88 +546,6 @@ func TestPGInstance_GetFacilities(t *testing.T) {
 			got, err := testingDB.GetFacilities(tt.args.ctx)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("PGInstance.GetFacilities() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !tt.wantErr && got == nil {
-				t.Errorf("expected a response but got: %v", got)
-				return
-			}
-		})
-	}
-}
-
-func TestPGInstance_GetUserProfileByPhoneNumber(t *testing.T) {
-	ctx := context.Background()
-	ID := uuid.New().String()
-	User := &gorm.User{
-		UserID:      &ID,
-		FirstName:   gofakeit.FirstName(),
-		LastName:    gofakeit.LastName(),
-		Username:    gofakeit.Username(),
-		MiddleName:  gofakeit.Name(),
-		DisplayName: gofakeit.BeerAlcohol(),
-		Gender:      enumutils.GenderMale,
-		Contacts: []gorm.Contact{
-			{
-				Contact: uuid.New().String(),
-				Active:  true,
-				UserID:  &ID,
-			},
-		},
-	}
-	Client := &gorm.ClientProfile{
-		ClientType: enums.ClientTypeOvc,
-	}
-
-	client, err := testingDB.RegisterClient(ctx, User, Client)
-	if err != nil {
-		t.Errorf("failed to register test client: %v", err)
-		return
-	}
-
-	var phoneNumber string
-	for _, contact := range client.User.Contacts {
-		phoneNumber = contact.Contact
-	}
-
-	type args struct {
-		ctx         context.Context
-		phoneNumber string
-	}
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		{
-			name: "Happy Case - Successfully get the user profile",
-			args: args{
-				ctx:         ctx,
-				phoneNumber: phoneNumber,
-			},
-			wantErr: false,
-		},
-		{
-			name: "Sad Case - Fail to get the user profile",
-			args: args{
-				ctx: ctx,
-			},
-			wantErr: true,
-		},
-		{
-			name: "Sad Case - Fail to get profile",
-			args: args{
-				ctx:         ctx,
-				phoneNumber: "",
-			},
-			wantErr: true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got, err := testingDB.GetUserProfileByPhoneNumber(tt.args.ctx, tt.args.phoneNumber)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("PGInstance.GetUserProfileByPhoneNumber() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !tt.wantErr && got == nil {

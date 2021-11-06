@@ -1,47 +1,5 @@
 scalar Time
 
-enum RolesType {
-  CAN_REGISTER_STAFF
-  CAN_INVITE_STAFF
-  CAN_SUSPEND_STAFF
-  CAN_ACTIVATE_STAFF
-  CAN_DELETE_STAFF
-  CAN_INACTIVATE_STAFF
-
-  CAN_REGISTER_CLIENT
-  CAN_INVITE_CLIENT
-  CAN_SUSPEND_CLIENT
-  CAN_ACTIVATE_CLIENT
-  CAN_DELETE_CLIENT
-  CAN_INACTIVATE_CLIENT
-}
-
-enum ClientType {
-  PMTCT
-  OVC
-}
-
-enum IdentifierType {
-  CCC
-  ID
-  PASSPORT
-}
-
-enum IdentifierUse {
-  OFFICIAL
-  TEMPORARY
-  OLD
-}
-
-enum ContactType {
-  PHONE
-  EMAIL
-}
-
-enum UsersType {
-  HEALTHCAREWORKER
-  CLIENT
-}
 
 enum CountryType {
   KENYA
@@ -99,17 +57,6 @@ enum CountyType {
   # other counties
 }
 
-enum AddressesType {
-  POSTAL
-  PHYSICAL
-  POSTALPHYSICAL
-}
-
-enum TransferReason {
-  RELOCATION
-  OTHER
-}
-
 enum FilterSortDataType {
   created_at
   updated_at
@@ -117,23 +64,6 @@ enum FilterSortDataType {
   mfl_code
   active
   county
-}
-
-enum Flavour {
-  PRO
-  CONSUMER
-}
-
-enum Gender {
-  male
-  female
-  other
-  unknown
-}
-
-enum Language {
-  en
-  sw
 }
 
 enum SortDataType {
