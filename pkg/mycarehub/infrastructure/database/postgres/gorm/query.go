@@ -53,7 +53,7 @@ func (db *PGInstance) GetFacilities(ctx context.Context) ([]Facility, error) {
 // GetUserProfileByPhoneNumber retrieves a user profile using their phonenumber
 func (db *PGInstance) GetUserProfileByPhoneNumber(ctx context.Context, phoneNumber string) (*User, error) {
 	var user User
-	if err := db.DB.Preload("Contacts", db.DB.Where(&Contact{Contact: phoneNumber})).Find(&user).Error; err != nil {
+	if err := db.DB.Joins("JOIN contact on user_users.user_id = contact.user_id").Where("contact.contact = ?", phoneNumber).First(&user).Error; err != nil {
 		return nil, fmt.Errorf("failed to get user by phonenumber %v: %v", phoneNumber, err)
 	}
 	return &user, nil

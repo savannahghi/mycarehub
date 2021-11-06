@@ -637,3 +637,85 @@ func TestPGInstance_GetFacilities(t *testing.T) {
 		})
 	}
 }
+
+func TestPGInstance_GetUserProfileByPhoneNumber(t *testing.T) {
+	ctx := context.Background()
+	ID := uuid.New().String()
+	User := &gorm.User{
+		UserID:      &ID,
+		FirstName:   gofakeit.FirstName(),
+		LastName:    gofakeit.LastName(),
+		Username:    gofakeit.Username(),
+		MiddleName:  gofakeit.Name(),
+		DisplayName: gofakeit.BeerAlcohol(),
+		Gender:      enumutils.GenderMale,
+		Contacts: []gorm.Contact{
+			{
+				Contact: uuid.New().String(),
+				Active:  true,
+				UserID:  &ID,
+			},
+		},
+	}
+	Client := &gorm.ClientProfile{
+		ClientType: enums.ClientTypeOvc,
+	}
+
+	client, err := testingDB.RegisterClient(ctx, User, Client)
+	if err != nil {
+		t.Errorf("failed to register test client: %v", err)
+		return
+	}
+
+	var phoneNumber string
+	for _, contact := range client.User.Contacts {
+		phoneNumber = contact.Contact
+	}
+
+	type args struct {
+		ctx         context.Context
+		phoneNumber string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Successfully get the user profile",
+			args: args{
+				ctx:         ctx,
+				phoneNumber: phoneNumber,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad Case - Fail to get the user profile",
+			args: args{
+				ctx: ctx,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - Fail to get profile",
+			args: args{
+				ctx:         ctx,
+				phoneNumber: "",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := testingDB.GetUserProfileByPhoneNumber(tt.args.ctx, tt.args.phoneNumber)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.GetUserProfileByPhoneNumber() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected a response but got: %v", got)
+				return
+			}
+		})
+	}
+}
