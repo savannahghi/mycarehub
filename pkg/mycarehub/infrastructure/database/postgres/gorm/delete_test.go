@@ -9,13 +9,14 @@ import (
 	"github.com/google/uuid"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
+	"github.com/segmentio/ksuid"
 )
 
 func TestPGInstance_DeleteFacility(t *testing.T) {
 	ctx := context.Background()
 
 	ID := uuid.New().String()
-	name := gofakeit.Name()
+	name := ksuid.New().String()
 	code := uuid.New().String()
 	county := enums.CountyTypeNairobi
 	description := gofakeit.HipsterSentence(15)

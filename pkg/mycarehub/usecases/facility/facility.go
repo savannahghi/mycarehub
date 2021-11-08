@@ -31,7 +31,7 @@ type IFacilityCreate interface {
 // IFacilityUpdate contains the method to update facility details
 type IFacilityUpdate interface {
 	// TODO Pre-condition: ensure `id` is set and valid
-	//Update(facility *domain.Facility) (*domain.Facility, error)
+	UpdateFacility(ctx context.Context, id *string, facility *dto.FacilityInput) (bool, error)
 }
 
 // IFacilityDelete contains the method to delete a facility
@@ -55,7 +55,6 @@ type IFacilityReactivate interface {
 type IFacilityList interface {
 	// TODO Document: callers should specify active
 	ListFacilities(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationsInput *dto.PaginationsInput) (*domain.FacilityPage, error)
-	FetchFacilities(ctx context.Context) ([]*domain.Facility, error)
 }
 
 // IFacilityRetrieve contains the method to retrieve a facility
@@ -95,8 +94,8 @@ func (f *UseCaseFacilityImpl) GetOrCreateFacility(ctx context.Context, facility 
 }
 
 // UpdateFacility creates a new facility
-func (f *UseCaseFacilityImpl) UpdateFacility(facility *domain.Facility) (*domain.Facility, error) {
-	return nil, nil
+func (f *UseCaseFacilityImpl) UpdateFacility(ctx context.Context, id *string, facilityInput *dto.FacilityInput) (bool, error) {
+	return f.Update.UpdateFacility(ctx, id, facilityInput)
 }
 
 // DeleteFacility deletes a facility from the database usinng the MFL Code
@@ -115,27 +114,12 @@ func (f *UseCaseFacilityImpl) ReactivateFacility(ctx context.Context, mflCode *s
 	return f.Update.ReactivateFacility(ctx, mflCode)
 }
 
-// // List returns a list if health facility
-// // TODO Document: callers should specify active
-// func (f *UseCaseFacilityImpl) List(
-// 	pagination *firebasetools.PaginationsInput,
-// 	filter []*dto.FacilityFilterInput,
-// 	sort []*dto.FacilitySortInput,
-// ) (*dto.FacilityConnection, error) {
-// 	return nil, nil
-// }
-
 // RetrieveFacility find the health facility by ID
 func (f *UseCaseFacilityImpl) RetrieveFacility(ctx context.Context, id *string, isActive bool) (*domain.Facility, error) {
 	if id == nil {
 		return nil, fmt.Errorf("facility id cannot be nil")
 	}
 	return f.Query.RetrieveFacility(ctx, id, isActive)
-}
-
-// FetchFacilities fetches healthcare facilities in platform
-func (f *UseCaseFacilityImpl) FetchFacilities(ctx context.Context) ([]*domain.Facility, error) {
-	return f.Query.GetFacilities(ctx)
 }
 
 // RetrieveFacilityByMFLCode find the health facility by MFL Code

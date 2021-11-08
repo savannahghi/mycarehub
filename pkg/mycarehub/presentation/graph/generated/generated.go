@@ -70,6 +70,7 @@ type ComplexityRoot struct {
 		DeleteFacility     func(childComplexity int, mflCode string) int
 		InactivateFacility func(childComplexity int, mflCode string) int
 		ReactivateFacility func(childComplexity int, mflCode string) int
+		UpdateFacility     func(childComplexity int, id string, facilityInput dto.FacilityInput) int
 	}
 
 	Pagination struct {
@@ -82,7 +83,6 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		FetchFacilities           func(childComplexity int) int
 		ListFacilities            func(childComplexity int, searchTerm *string, filterInput []*dto.FiltersInput, paginationInput dto.PaginationsInput) int
 		RetrieveFacility          func(childComplexity int, id string, active bool) int
 		RetrieveFacilityByMFLCode func(childComplexity int, mflCode string, isActive bool) int
@@ -94,9 +94,9 @@ type MutationResolver interface {
 	DeleteFacility(ctx context.Context, mflCode string) (bool, error)
 	ReactivateFacility(ctx context.Context, mflCode string) (bool, error)
 	InactivateFacility(ctx context.Context, mflCode string) (bool, error)
+	UpdateFacility(ctx context.Context, id string, facilityInput dto.FacilityInput) (bool, error)
 }
 type QueryResolver interface {
-	FetchFacilities(ctx context.Context) ([]*domain.Facility, error)
 	RetrieveFacility(ctx context.Context, id string, active bool) (*domain.Facility, error)
 	RetrieveFacilityByMFLCode(ctx context.Context, mflCode string, isActive bool) (*domain.Facility, error)
 	ListFacilities(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationInput dto.PaginationsInput) (*domain.FacilityPage, error)
@@ -242,6 +242,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.ReactivateFacility(childComplexity, args["mflCode"].(string)), true
 
+	case "Mutation.updateFacility":
+		if e.complexity.Mutation.UpdateFacility == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateFacility_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateFacility(childComplexity, args["id"].(string), args["facilityInput"].(dto.FacilityInput)), true
+
 	case "Pagination.Count":
 		if e.complexity.Pagination.Count == nil {
 			break
@@ -283,13 +295,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Pagination.TotalPages(childComplexity), true
-
-	case "Query.fetchFacilities":
-		if e.complexity.Query.FetchFacilities == nil {
-			break
-		}
-
-		return e.complexity.Query.FetchFacilities(childComplexity), true
 
 	case "Query.listFacilities":
 		if e.complexity.Query.ListFacilities == nil {
@@ -469,10 +474,10 @@ extend type Mutation {
     deleteFacility(mflCode: String!): Boolean!
     reactivateFacility(mflCode: String!): Boolean!
     inactivateFacility(mflCode: String!): Boolean!
+    updateFacility(id: String!, facilityInput: FacilityInput!): Boolean!
 }
 
 extend type Query {
-   fetchFacilities: [Facility]
    retrieveFacility(id: String!, active: Boolean!): Facility
    retrieveFacilityByMFLCode(mflCode: String!, isActive: Boolean!): Facility!
    listFacilities(searchTerm: String, filterInput: [FiltersInput], paginationInput:PaginationsInput!):FacilityPage
@@ -603,6 +608,30 @@ func (ec *executionContext) field_Mutation_reactivateFacility_args(ctx context.C
 		}
 	}
 	args["mflCode"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_updateFacility_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	var arg1 dto.FacilityInput
+	if tmp, ok := rawArgs["facilityInput"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("facilityInput"))
+		arg1, err = ec.unmarshalNFacilityInput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐFacilityInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["facilityInput"] = arg1
 	return args, nil
 }
 
@@ -1284,6 +1313,48 @@ func (ec *executionContext) _Mutation_inactivateFacility(ctx context.Context, fi
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Mutation_updateFacility(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_updateFacility_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UpdateFacility(rctx, args["id"].(string), args["facilityInput"].(dto.FacilityInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Pagination_Limit(ctx context.Context, field graphql.CollectedField, obj *domain.Pagination) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -1480,38 +1551,6 @@ func (ec *executionContext) _Pagination_PreviousPage(ctx context.Context, field 
 	res := resTmp.(*int)
 	fc.Result = res
 	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Query_fetchFacilities(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().FetchFacilities(rctx)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.([]*domain.Facility)
-	fc.Result = res
-	return ec.marshalOFacility2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐFacility(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_retrieveFacility(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -3138,6 +3177,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "updateFacility":
+			out.Values[i] = ec._Mutation_updateFacility(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -3204,17 +3248,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Query")
-		case "fetchFacilities":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_fetchFacilities(ctx, field)
-				return res
-			})
 		case "retrieveFacility":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -3956,47 +3989,6 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 
 func (ec *executionContext) marshalOFacility2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐFacility(ctx context.Context, sel ast.SelectionSet, v domain.Facility) graphql.Marshaler {
 	return ec._Facility(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalOFacility2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐFacility(ctx context.Context, sel ast.SelectionSet, v []*domain.Facility) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalOFacility2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐFacility(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-
-	return ret
 }
 
 func (ec *executionContext) marshalOFacility2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐFacility(ctx context.Context, sel ast.SelectionSet, v *domain.Facility) graphql.Marshaler {

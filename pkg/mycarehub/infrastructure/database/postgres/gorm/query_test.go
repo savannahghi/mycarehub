@@ -150,7 +150,7 @@ func TestPGInstance_ListFacilities(t *testing.T) {
 	code2 := ksuid.New().String()
 
 	facilityInput := &gorm.Facility{
-		Name:        "Kanairo One",
+		Name:        ksuid.New().String(),
 		Code:        code,
 		Active:      strconv.FormatBool(true),
 		County:      enums.CountyTypeNairobi,
@@ -158,7 +158,7 @@ func TestPGInstance_ListFacilities(t *testing.T) {
 	}
 
 	facilityInput2 := &gorm.Facility{
-		Name:        "Baringo 2",
+		Name:        ksuid.New().String(),
 		Code:        code2,
 		Active:      strconv.FormatBool(true),
 		County:      enums.CountyTypeBaringo,
@@ -325,12 +325,12 @@ func TestPGInstance_ListFacilities(t *testing.T) {
 
 	// Setup
 	// create a facility
-	facility, err := d.GetOrCreateFacility(ctx, facilityInput)
+	_, err := d.GetOrCreateFacility(ctx, facilityInput)
 	if err != nil {
 		t.Errorf("failed to create new facility: %v", err)
 	}
 	// Create another Facility
-	facility2, err := d.GetOrCreateFacility(ctx, facilityInput2)
+	_, err = d.GetOrCreateFacility(ctx, facilityInput2)
 	if err != nil {
 		t.Errorf("failed to create new facility: %v", err)
 	}
@@ -504,54 +504,5 @@ func TestPGInstance_ListFacilities(t *testing.T) {
 			}
 		})
 	}
-	// Teardown
-	_, err = d.DeleteFacility(ctx, string(facility.Code))
-	if err != nil {
-		t.Errorf("unable to delete facility")
-		return
-	}
-	_, err = d.DeleteFacility(ctx, string(facility2.Code))
-	if err != nil {
-		t.Errorf("unable to delete facility")
-		return
-	}
-}
 
-func TestPGInstance_GetFacilities(t *testing.T) {
-	ctx := context.Background()
-	testFacility := createTestFacility()
-
-	_, err := testingDB.GetOrCreateFacility(ctx, testFacility)
-	if err != nil {
-		t.Errorf("failed to create test facility")
-		return
-	}
-
-	type args struct {
-		ctx context.Context
-	}
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		{
-			name:    "Happy Case - List all facilities",
-			args:    args{ctx: ctx},
-			wantErr: false,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got, err := testingDB.GetFacilities(tt.args.ctx)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("PGInstance.GetFacilities() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !tt.wantErr && got == nil {
-				t.Errorf("expected a response but got: %v", got)
-				return
-			}
-		})
-	}
 }

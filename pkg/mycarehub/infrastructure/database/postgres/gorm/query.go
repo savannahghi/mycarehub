@@ -13,7 +13,6 @@ import (
 type Query interface {
 	RetrieveFacility(ctx context.Context, id *string, isActive bool) (*Facility, error)
 	RetrieveFacilityByMFLCode(ctx context.Context, MFLCode string, isActive bool) (*Facility, error)
-	GetFacilities(ctx context.Context) ([]Facility, error)
 	ListFacilities(ctx context.Context, searchTerm *string, filter []*domain.FiltersParam, pagination *domain.FacilityPage) (*domain.FacilityPage, error)
 	GetUserProfileByPhoneNumber(ctx context.Context, phoneNumber string) (*User, error)
 	GetUserPINByUserID(ctx context.Context, userID string) (*PINData, error)
@@ -38,16 +37,6 @@ func (db *PGInstance) RetrieveFacilityByMFLCode(ctx context.Context, MFLCode str
 		return nil, fmt.Errorf("failed to get facility by MFL Code %v and status %v: %v", MFLCode, active, err)
 	}
 	return &facility, nil
-}
-
-// GetFacilities fetches all the healthcare facilities in the platform.
-func (db *PGInstance) GetFacilities(ctx context.Context) ([]Facility, error) {
-	var facility []Facility
-	err := db.DB.Find(&facility).Error
-	if err != nil {
-		return nil, fmt.Errorf("failed to query all facilities %v", err)
-	}
-	return facility, nil
 }
 
 // ListFacilities lists all facilities, the results returned are

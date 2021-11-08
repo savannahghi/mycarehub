@@ -895,3 +895,157 @@ func TearDown(t *testing.T) {
 	pg.DB.Migrator().DropTable(&gorm.User{})
 	pg.DB.Migrator().DropTable(&gorm.Facility{})
 }
+
+func TestUseCaseFacilityImpl_UpdateFacility(t *testing.T) {
+	ctx := context.Background()
+
+	i := InitializeTestService(ctx)
+
+	facilityInput := &dto.FacilityInput{
+		Name:        gofakeit.BeerHop(),
+		Code:        ksuid.New().String(),
+		Active:      true,
+		County:      enums.CountyTypeNairobi,
+		Description: "This is just for testing",
+	}
+
+	// Setup, create a facility
+	facility, err := i.FacilityUsecase.GetOrCreateFacility(ctx, facilityInput)
+	if err != nil {
+		t.Errorf("failed to create new facility: %v", err)
+		return
+	}
+
+	emptyText := ""
+
+	updateFacilityInput := &dto.FacilityInput{
+		Name:        "updated Name",
+		Code:        "1234",
+		Active:      false,
+		County:      enums.CountyTypeBaringo,
+		Description: "test description",
+	}
+
+	type args struct {
+		ctx           context.Context
+		id            *string
+		facilityInput *dto.FacilityInput
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "valid: successful update",
+			args: args{
+				ctx:           ctx,
+				id:            facility.ID,
+				facilityInput: updateFacilityInput,
+			},
+			wantErr: false,
+			want:    true,
+		},
+
+		{
+			name: "valid: update active only",
+			args: args{
+				ctx: ctx,
+				id:  facility.ID,
+				facilityInput: &dto.FacilityInput{
+					Active: false,
+				},
+			},
+			wantErr: false,
+			want:    true,
+		},
+		{
+			name: "valid: update county only",
+			args: args{
+				ctx: ctx,
+				id:  facility.ID,
+				facilityInput: &dto.FacilityInput{
+					County: enums.CountyTypeKakamega,
+				},
+			},
+			wantErr: false,
+			want:    true,
+		},
+		{
+			name: "valid: update description only",
+			args: args{
+				ctx: ctx,
+				id:  facility.ID,
+				facilityInput: &dto.FacilityInput{
+					Description: "test description2",
+				},
+			},
+			wantErr: false,
+			want:    true,
+		},
+		{
+			name: "valid: update code only",
+			args: args{
+				ctx: ctx,
+				id:  facility.ID,
+				facilityInput: &dto.FacilityInput{
+					Code: "12345",
+				},
+			},
+			wantErr: false,
+			want:    true,
+		},
+		{
+			name: "valid: update name only",
+			args: args{
+				ctx: ctx,
+				id:  facility.ID,
+				facilityInput: &dto.FacilityInput{
+					Name: "test name",
+				},
+			},
+			wantErr: false,
+			want:    true,
+		},
+		{
+			name: "invalid: nil facility input",
+			args: args{
+				ctx:           ctx,
+				id:            facility.ID,
+				facilityInput: nil,
+			},
+			wantErr: true,
+			want:    false,
+		},
+		{
+			name: "invalid: empty ID",
+			args: args{
+				ctx:           ctx,
+				id:            &emptyText,
+				facilityInput: updateFacilityInput,
+			},
+			wantErr: true,
+			want:    false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			got, err := i.FacilityUsecase.UpdateFacility(tt.args.ctx, tt.args.id, tt.args.facilityInput)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.UpdateFacility() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("PGInstance.UpdateFacility() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+	pg, err := gorm.NewPGInstance()
+	if err != nil {
+		return
+	}
+
+	pg.DB.Migrator().DropTable(&gorm.Facility{})
+}

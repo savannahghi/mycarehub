@@ -9,13 +9,14 @@ import (
 	"github.com/google/uuid"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
+	"github.com/segmentio/ksuid"
 )
 
 func TestPGInstance_GetOrCreateFacility(t *testing.T) {
 	ctx := context.Background()
 
 	ID := uuid.New().String()
-	name := gofakeit.Name()
+	name := ksuid.New().String()
 	code := uuid.New().String()
 	county := enums.CountyTypeNairobi
 	description := gofakeit.HipsterSentence(15)
@@ -48,7 +49,7 @@ func TestPGInstance_GetOrCreateFacility(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "Sad Case - Fail tp get or create facility",
+			name: "Sad Case - Fail to get or create facility",
 			args: args{
 				ctx:      ctx,
 				facility: nil,

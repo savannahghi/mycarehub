@@ -516,3 +516,297 @@ func TestUseCaseFacilityImpl_Reactivate_Unittest(t *testing.T) {
 		})
 	}
 }
+
+func TestUnit_UpdateFacility(t *testing.T) {
+	ctx := context.Background()
+
+	fakeDB := pgMock.NewPostgresMock()
+
+	f := facility.NewFacilityUsecase(fakeDB, fakeDB, fakeDB, fakeDB)
+
+	validID := ksuid.New().String()
+	longText := ksuid.New().String() + gofakeit.HipsterSentence(500)
+	emptyText := ""
+
+	updateFacilityInput := &dto.FacilityInput{
+		Name:        "updated Name",
+		Code:        "1234",
+		Active:      false,
+		County:      enums.CountyTypeBaringo,
+		Description: "test description",
+	}
+
+	type args struct {
+		ctx           context.Context
+		id            *string
+		facilityInput *dto.FacilityInput
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "valid: successful update",
+			args: args{
+				ctx:           ctx,
+				id:            &validID,
+				facilityInput: updateFacilityInput,
+			},
+			wantErr: false,
+			want:    true,
+		},
+
+		{
+			name: "valid: update active only",
+			args: args{
+				ctx: ctx,
+				id:  &validID,
+				facilityInput: &dto.FacilityInput{
+					Active: false,
+				},
+			},
+			wantErr: false,
+			want:    true,
+		},
+		{
+			name: "valid: update county only",
+			args: args{
+				ctx: ctx,
+				id:  &validID,
+				facilityInput: &dto.FacilityInput{
+					County: enums.CountyTypeKakamega,
+				},
+			},
+			wantErr: false,
+			want:    true,
+		},
+		{
+			name: "valid: update description only",
+			args: args{
+				ctx: ctx,
+				id:  &validID,
+				facilityInput: &dto.FacilityInput{
+					Description: "test description2",
+				},
+			},
+			wantErr: false,
+			want:    true,
+		},
+		{
+			name: "valid: update code only",
+			args: args{
+				ctx: ctx,
+				id:  &validID,
+				facilityInput: &dto.FacilityInput{
+					Code: "12345",
+				},
+			},
+			wantErr: false,
+			want:    true,
+		},
+		{
+			name: "valid: update name only",
+			args: args{
+				ctx: ctx,
+				id:  &validID,
+				facilityInput: &dto.FacilityInput{
+					Name: "test name",
+				},
+			},
+			wantErr: false,
+			want:    true,
+		},
+		{
+			name: "invalid: nil facility input",
+			args: args{
+				ctx:           ctx,
+				id:            &validID,
+				facilityInput: nil,
+			},
+			wantErr: true,
+			want:    false,
+		},
+		{
+			name: "invalid: long ID",
+			args: args{
+				ctx:           ctx,
+				id:            &longText,
+				facilityInput: updateFacilityInput,
+			},
+			wantErr: true,
+			want:    false,
+		},
+		{
+			name: "invalid: empty ID",
+			args: args{
+				ctx:           ctx,
+				id:            &emptyText,
+				facilityInput: updateFacilityInput,
+			},
+			wantErr: true,
+			want:    false,
+		},
+		{
+			name: "invalid: invalid ID input",
+			args: args{
+				ctx: ctx,
+				id:  &longText,
+				facilityInput: &dto.FacilityInput{
+					Name:        "test name",
+					Code:        gofakeit.BeerHop(),
+					Active:      true,
+					County:      enums.CountyTypeBaringo,
+					Description: "This is just for mocking",
+				},
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "invalid: short name",
+			args: args{
+				ctx: ctx,
+				id:  &validID,
+				facilityInput: &dto.FacilityInput{
+					Name:        "te",
+					Code:        gofakeit.BeerHop(),
+					Active:      true,
+					County:      enums.CountyTypeBaringo,
+					Description: "This is just for mocking",
+				},
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "invalid: long name",
+			args: args{
+				ctx: ctx,
+				id:  &validID,
+				facilityInput: &dto.FacilityInput{
+					Name:        longText,
+					Code:        gofakeit.BeerHop(),
+					Active:      true,
+					County:      enums.CountyTypeBaringo,
+					Description: "This is just for mocking",
+				},
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "invalid: long code",
+			args: args{
+				ctx: ctx,
+				id:  &validID,
+				facilityInput: &dto.FacilityInput{
+					Name:        "test name",
+					Code:        longText,
+					Active:      true,
+					County:      enums.CountyTypeBaringo,
+					Description: "This is just for mocking",
+				},
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "invalid: long description",
+			args: args{
+				ctx: ctx,
+				id:  &validID,
+				facilityInput: &dto.FacilityInput{
+					Name:        "test name",
+					Code:        ksuid.New().String(),
+					Active:      true,
+					County:      enums.CountyTypeBaringo,
+					Description: longText,
+				},
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "invalid: short description",
+			args: args{
+				ctx: ctx,
+				id:  &validID,
+				facilityInput: &dto.FacilityInput{
+					Name:        "test name",
+					Code:        ksuid.New().String(),
+					Active:      true,
+					County:      enums.CountyTypeBaringo,
+					Description: "sh",
+				},
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "invalid: nil facility input" {
+				fakeDB.MockUpdateFacilityFn = func(ctx context.Context, id *string, facilityInput *dto.FacilityInput) (bool, error) {
+					return false, fmt.Errorf("failed to update facility")
+				}
+			}
+			if tt.name == "invalid: long ID" {
+				fakeDB.MockUpdateFacilityFn = func(ctx context.Context, id *string, facilityInput *dto.FacilityInput) (bool, error) {
+					return false, fmt.Errorf("failed to update facility")
+				}
+			}
+			if tt.name == "invalid: empty ID" {
+				fakeDB.MockUpdateFacilityFn = func(ctx context.Context, id *string, facilityInput *dto.FacilityInput) (bool, error) {
+					return false, fmt.Errorf("failed to update facility")
+				}
+			}
+
+			if tt.name == "invalid: nil ID" {
+				fakeDB.MockUpdateFacilityFn = func(ctx context.Context, id *string, facilityInput *dto.FacilityInput) (bool, error) {
+					return false, fmt.Errorf("failed to update facility")
+				}
+			}
+			if tt.name == "invalid: invalid ID input" {
+				fakeDB.MockUpdateFacilityFn = func(ctx context.Context, id *string, facilityInput *dto.FacilityInput) (bool, error) {
+					return false, fmt.Errorf("failed to update facility")
+				}
+			}
+			if tt.name == "invalid: short name" {
+				fakeDB.MockUpdateFacilityFn = func(ctx context.Context, id *string, facilityInput *dto.FacilityInput) (bool, error) {
+					return false, fmt.Errorf("failed to update facility")
+				}
+			}
+			if tt.name == "invalid: long name" {
+				fakeDB.MockUpdateFacilityFn = func(ctx context.Context, id *string, facilityInput *dto.FacilityInput) (bool, error) {
+					return false, fmt.Errorf("failed to update facility")
+				}
+			}
+			if tt.name == "invalid: long code" {
+				fakeDB.MockUpdateFacilityFn = func(ctx context.Context, id *string, facilityInput *dto.FacilityInput) (bool, error) {
+					return false, fmt.Errorf("failed to update facility")
+				}
+			}
+			if tt.name == "invalid: long description" {
+				fakeDB.MockUpdateFacilityFn = func(ctx context.Context, id *string, facilityInput *dto.FacilityInput) (bool, error) {
+					return false, fmt.Errorf("failed to update facility")
+				}
+			}
+			if tt.name == "invalid: short description" {
+				fakeDB.MockUpdateFacilityFn = func(ctx context.Context, id *string, facilityInput *dto.FacilityInput) (bool, error) {
+					return false, fmt.Errorf("failed to update facility")
+				}
+			}
+
+			got, err := f.UpdateFacility(tt.args.ctx, tt.args.id, tt.args.facilityInput)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.UpdateFacility() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("PGInstance.UpdateFacility() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

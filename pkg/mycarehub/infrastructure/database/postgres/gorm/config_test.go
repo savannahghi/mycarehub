@@ -19,5 +19,17 @@ func TestMain(m *testing.M) {
 	}
 
 	log.Printf("Running tests ...")
-	os.Exit(m.Run())
+	code := m.Run()
+
+	defer tearDown()
+
+	os.Exit(code)
+
+}
+
+func tearDown() {
+	testingDB.DB.Migrator().DropTable(&gorm.Contact{})
+	testingDB.DB.Migrator().DropTable(&gorm.PINData{})
+	testingDB.DB.Migrator().DropTable(&gorm.User{})
+	testingDB.DB.Migrator().DropTable(&gorm.Facility{})
 }

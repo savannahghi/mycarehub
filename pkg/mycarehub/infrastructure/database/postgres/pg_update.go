@@ -3,6 +3,8 @@ package postgres
 import (
 	"context"
 	"fmt"
+
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 )
 
 // ReactivateFacility changes the status of an active facility from false to true
@@ -19,4 +21,12 @@ func (d *MyCareHubDb) InactivateFacility(ctx context.Context, mflCode *string) (
 		return false, fmt.Errorf("facility's MFL Code cannot be empty")
 	}
 	return d.update.InactivateFacility(ctx, mflCode)
+}
+
+// UpdateFacility changes the status of an active facility from true to false
+func (d *MyCareHubDb) UpdateFacility(ctx context.Context, id *string, facilityInput *dto.FacilityInput) (bool, error) {
+	if id == nil {
+		return false, fmt.Errorf("facility's id Code cannot be empty")
+	}
+	return d.update.UpdateFacility(ctx, id, facilityInput)
 }

@@ -31,9 +31,8 @@ func (r *mutationResolver) InactivateFacility(ctx context.Context, mflCode strin
 	return r.interactor.FacilityUsecase.InactivateFacility(ctx, &mflCode)
 }
 
-func (r *queryResolver) FetchFacilities(ctx context.Context) ([]*domain.Facility, error) {
-	r.checkPreconditions()
-	return r.interactor.FacilityUsecase.FetchFacilities(ctx)
+func (r *mutationResolver) UpdateFacility(ctx context.Context, id string, facilityInput dto.FacilityInput) (bool, error) {
+	return r.interactor.FacilityUsecase.UpdateFacility(ctx, &id, &facilityInput)
 }
 
 func (r *queryResolver) RetrieveFacility(ctx context.Context, id string, active bool) (*domain.Facility, error) {

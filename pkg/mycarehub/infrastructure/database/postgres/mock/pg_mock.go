@@ -15,7 +15,6 @@ import (
 type PostgresMock struct {
 	//Get
 	MockGetOrCreateFacilityFn         func(ctx context.Context, facility *dto.FacilityInput) (*domain.Facility, error)
-	MockGetFacilitiesFn               func(ctx context.Context) ([]*domain.Facility, error)
 	MockRetrieveFacilityFn            func(ctx context.Context, id *string, isActive bool) (*domain.Facility, error)
 	ListFacilitiesFn                  func(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationsInput *dto.PaginationsInput) (*domain.FacilityPage, error)
 	MockDeleteFacilityFn              func(ctx context.Context, id string) (bool, error)
@@ -24,6 +23,7 @@ type PostgresMock struct {
 	MockGetUserPINByUserIDFn          func(ctx context.Context, userID string) (*domain.UserPIN, error)
 	MockInactivateFacilityFn          func(ctx context.Context, mflCode *string) (bool, error)
 	MockReactivateFacilityFn          func(ctx context.Context, mflCode *string) (bool, error)
+	MockUpdateFacilityFn              func(ctx context.Context, id *string, facilityInput *dto.FacilityInput) (bool, error)
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -44,8 +44,6 @@ func NewPostgresMock() *PostgresMock {
 		Description: description,
 	}
 
-	var facilitiesList []*domain.Facility
-	facilitiesList = append(facilitiesList, facilityInput)
 	nextPage := 3
 	previousPage := 1
 	facilitiesPage := &domain.FacilityPage{
@@ -72,9 +70,6 @@ func NewPostgresMock() *PostgresMock {
 	return &PostgresMock{
 		MockGetOrCreateFacilityFn: func(ctx context.Context, facility *dto.FacilityInput) (*domain.Facility, error) {
 			return facilityInput, nil
-		},
-		MockGetFacilitiesFn: func(ctx context.Context) ([]*domain.Facility, error) {
-			return facilitiesList, nil
 		},
 		MockRetrieveFacilityFn: func(ctx context.Context, id *string, isActive bool) (*domain.Facility, error) {
 			return facilityInput, nil
@@ -105,6 +100,9 @@ func NewPostgresMock() *PostgresMock {
 		MockReactivateFacilityFn: func(ctx context.Context, mflCode *string) (bool, error) {
 			return true, nil
 		},
+		MockUpdateFacilityFn: func(ctx context.Context, id *string, facilityInput *dto.FacilityInput) (bool, error) {
+			return true, nil
+		},
 	}
 }
 
@@ -126,11 +124,6 @@ func (gm *PostgresMock) ListFacilities(
 	paginationsInput *dto.PaginationsInput,
 ) (*domain.FacilityPage, error) {
 	return gm.ListFacilitiesFn(ctx, searchTerm, filterInput, paginationsInput)
-}
-
-// GetFacilities mocks the implementation of `gorm's` GetFacilities method
-func (gm *PostgresMock) GetFacilities(ctx context.Context) ([]*domain.Facility, error) {
-	return gm.MockGetFacilitiesFn(ctx)
 }
 
 // DeleteFacility mocks the implementation of deleting a facility by ID
@@ -161,4 +154,9 @@ func (gm *PostgresMock) InactivateFacility(ctx context.Context, mflCode *string)
 // ReactivateFacility mocks the implementation of re-activating the active status of a particular facility
 func (gm *PostgresMock) ReactivateFacility(ctx context.Context, mflCode *string) (bool, error) {
 	return gm.MockReactivateFacilityFn(ctx, mflCode)
+}
+
+// UpdateFacility mocks the implementation of updating a facility
+func (gm *PostgresMock) UpdateFacility(ctx context.Context, id *string, facilityInput *dto.FacilityInput) (bool, error) {
+	return gm.MockUpdateFacilityFn(ctx, id, facilityInput)
 }
