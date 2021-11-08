@@ -16,7 +16,7 @@ func (db *PGInstance) DeleteFacility(ctx context.Context, mflcode string) (bool,
 	if mflcode == "" {
 		return false, fmt.Errorf("MFL code cannot be empty")
 	}
-	err := db.DB.Unscoped().Where("mfl_code", mflcode).Delete(&Facility{}).Error
+	err := db.DB.Where("mfl_code", mflcode).Delete(&Facility{}).Error
 	if err != nil {
 		return false, fmt.Errorf("an error occurred while deleting: %v", err)
 	}

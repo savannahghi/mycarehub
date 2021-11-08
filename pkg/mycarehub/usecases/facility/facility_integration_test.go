@@ -2,7 +2,6 @@ package facility_test
 
 import (
 	"context"
-	"log"
 	"strconv"
 	"testing"
 
@@ -41,8 +40,9 @@ func InitializeTestService(ctx context.Context) *interactor.Interactor {
 func TestUseCaseFacilityImpl_CreateFacility(t *testing.T) {
 
 	ctx := context.Background()
-	name := "Kanairo One"
+	name := "test facility"
 	code := ksuid.New().String()
+	code2 := ksuid.New().String()
 	county := enums.CountyTypeNairobi
 	description := "This is just for testing"
 
@@ -71,6 +71,35 @@ func TestUseCaseFacilityImpl_CreateFacility(t *testing.T) {
 				},
 			},
 			wantErr: false,
+		},
+
+		{
+			name: "happy case - idempotent, should not error when saving again",
+			args: args{
+				ctx: ctx,
+				facility: &dto.FacilityInput{
+					Name:        name,
+					Code:        code,
+					Active:      true,
+					County:      county,
+					Description: description,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "invalid - duplicate name",
+			args: args{
+				ctx: ctx,
+				facility: &dto.FacilityInput{
+					Name:        name,
+					Code:        code2,
+					Active:      true,
+					County:      county,
+					Description: description,
+				},
+			},
+			wantErr: true,
 		},
 		{
 			name: "sad case - facility code not defined",
@@ -108,10 +137,12 @@ func TestUseCaseFacilityImpl_CreateFacility(t *testing.T) {
 		})
 	}
 	// Teardown
-	_, err := i.FacilityUsecase.DeleteFacility(ctx, code)
+	pg, err := gorm.NewPGInstance()
 	if err != nil {
-		log.Printf("failed to delete facility: %v", err)
+		return
 	}
+
+	pg.DB.Migrator().DropTable(&gorm.Facility{})
 
 }
 
@@ -123,7 +154,7 @@ func TestUseCaseFacilityImpl_RetrieveFacility_Integration(t *testing.T) {
 	Code := "KN002"
 
 	facilityInput := &dto.FacilityInput{
-		Name:        "Kanairo One",
+		Name:        "test Kanairo facility",
 		Code:        Code,
 		Active:      true,
 		County:      enums.CountyTypeNairobi,
@@ -187,11 +218,13 @@ func TestUseCaseFacilityImpl_RetrieveFacility_Integration(t *testing.T) {
 		})
 	}
 
-	_, err = i.FacilityUsecase.DeleteFacility(ctx, string(facility.Code))
+	// teardown
+	pg, err := gorm.NewPGInstance()
 	if err != nil {
-		t.Errorf("unable to delete facility")
 		return
 	}
+
+	pg.DB.Migrator().DropTable(&gorm.Facility{})
 }
 
 func TestUseCaseFacilityImpl_DeleteFacility_Integrationtest(t *testing.T) {
@@ -269,7 +302,7 @@ func TestUseCaseFacilityImpl_RetrieveFacilityByMFLCode_Integration(t *testing.T)
 	i := InitializeTestService(ctx)
 
 	facilityInput := &dto.FacilityInput{
-		Name:        "Kanairo One",
+		Name:        "test facility name 22",
 		Code:        "KN001",
 		Active:      true,
 		County:      enums.CountyTypeNairobi,
@@ -335,11 +368,12 @@ func TestUseCaseFacilityImpl_RetrieveFacilityByMFLCode_Integration(t *testing.T)
 		})
 	}
 	// Teardown
-	_, err = i.FacilityUsecase.DeleteFacility(ctx, string(facility.Code))
+	pg, err := gorm.NewPGInstance()
 	if err != nil {
-		t.Errorf("unable to delete facility")
 		return
 	}
+
+	pg.DB.Migrator().DropTable(&gorm.Facility{})
 }
 
 func TestUseCaseFacilityImpl_ListFacilities(t *testing.T) {
@@ -718,7 +752,7 @@ func TestUseCaseFacilityImpl_Inactivate_Integration_test(t *testing.T) {
 	i := InitializeTestService(ctx)
 
 	facilityInput := &dto.FacilityInput{
-		Name:        "Kanairo One",
+		Name:        "test medical institution",
 		Code:        ksuid.New().String(),
 		Active:      true,
 		County:      enums.CountyTypeNairobi,
@@ -775,4 +809,11 @@ func TestUseCaseFacilityImpl_Inactivate_Integration_test(t *testing.T) {
 
 		})
 	}
+	// Teardown
+	pg, err := gorm.NewPGInstance()
+	if err != nil {
+		return
+	}
+
+	pg.DB.Migrator().DropTable(&gorm.Facility{})
 }
