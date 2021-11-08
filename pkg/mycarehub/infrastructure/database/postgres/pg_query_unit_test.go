@@ -297,7 +297,7 @@ func TestOnboardingDb_ListFacilities(t *testing.T) {
 	code2 := ksuid.New().String()
 
 	facilityInput := &dto.FacilityInput{
-		Name:        "Kanairo One",
+		Name:        gofakeit.BeerAlcohol(),
 		Code:        code,
 		Active:      true,
 		County:      enums.CountyTypeNairobi,
@@ -322,7 +322,7 @@ func TestOnboardingDb_ListFacilities(t *testing.T) {
 	filterInput := []*dto.FiltersInput{
 		{
 			DataType: enums.FilterSortDataTypeName,
-			Value:    "Kanairo One",
+			Value:    gofakeit.BeerAlcohol(),
 		},
 		{
 			DataType: enums.FilterSortDataTypeMFLCode,
@@ -359,7 +359,7 @@ func TestOnboardingDb_ListFacilities(t *testing.T) {
 	filterEmptyMFLCode := []*dto.FiltersInput{
 		{
 			DataType: enums.FilterSortDataTypeName,
-			Value:    "Kanairo One",
+			Value:    gofakeit.BeerAlcohol(),
 		},
 		{
 			DataType: enums.FilterSortDataTypeMFLCode,
@@ -378,7 +378,7 @@ func TestOnboardingDb_ListFacilities(t *testing.T) {
 	filterInvalidBool := []*dto.FiltersInput{
 		{
 			DataType: enums.FilterSortDataTypeName,
-			Value:    "Kanairo One",
+			Value:    gofakeit.BeerAlcohol(),
 		},
 		{
 			DataType: enums.FilterSortDataTypeMFLCode,
@@ -397,7 +397,7 @@ func TestOnboardingDb_ListFacilities(t *testing.T) {
 	filterInvalidCounty := []*dto.FiltersInput{
 		{
 			DataType: enums.FilterSortDataTypeName,
-			Value:    "Kanairo One",
+			Value:    gofakeit.BeerAlcohol(),
 		},
 		{
 			DataType: enums.FilterSortDataTypeMFLCode,

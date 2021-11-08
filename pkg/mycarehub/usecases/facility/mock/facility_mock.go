@@ -20,6 +20,7 @@ type FacilityUsecaseMock struct {
 	DeleteFacilityFn                func(ctx context.Context, id string) (bool, error)
 	FetchFacilitiesFn               func(ctx context.Context) ([]*domain.Facility, error)
 	MockInactivateFacilityFn        func(ctx context.Context, mflCode *string) (bool, error)
+	MockReactivateFacilityFn        func(ctx context.Context, mflCode *string) (bool, error)
 }
 
 // NewFacilityUsecaseMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -95,6 +96,9 @@ func NewFacilityUsecaseMock() *FacilityUsecaseMock {
 		MockInactivateFacilityFn: func(ctx context.Context, mflCode *string) (bool, error) {
 			return true, nil
 		},
+		MockReactivateFacilityFn: func(ctx context.Context, mflCode *string) (bool, error) {
+			return true, nil
+		},
 	}
 }
 
@@ -141,4 +145,9 @@ func (f *FacilityUsecaseMock) FetchFacilities(ctx context.Context) ([]*domain.Fa
 // InactivateFacility mocks the implementation of inactivating the active status of a particular facility
 func (f *FacilityUsecaseMock) InactivateFacility(ctx context.Context, mflCode *string) (bool, error) {
 	return f.MockInactivateFacilityFn(ctx, mflCode)
+}
+
+// ReactivateFacility mocks the implementation of re-activating the active status of a particular facility
+func (f *FacilityUsecaseMock) ReactivateFacility(ctx context.Context, mflCode *string) (bool, error) {
+	return f.MockReactivateFacilityFn(ctx, mflCode)
 }

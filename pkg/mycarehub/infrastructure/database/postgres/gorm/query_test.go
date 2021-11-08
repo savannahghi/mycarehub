@@ -32,6 +32,25 @@ func createTestFacility() *gorm.Facility {
 	return facility
 }
 
+func createInactiveTestFacility() *gorm.Facility {
+	ID := uuid.New().String()
+	name := gofakeit.Name()
+	code := uuid.New().String()
+	county := enums.CountyTypeNairobi
+	description := gofakeit.HipsterSentence(15)
+
+	facility := &gorm.Facility{
+		FacilityID:  &ID,
+		Name:        name,
+		Code:        code,
+		Active:      strconv.FormatBool(false),
+		County:      county,
+		Description: description,
+	}
+
+	return facility
+}
+
 func TestPGInstance_RetrieveFacility(t *testing.T) {
 	ctx := context.Background()
 	fakeID := "1234"
@@ -150,7 +169,7 @@ func TestPGInstance_ListFacilities(t *testing.T) {
 	code2 := ksuid.New().String()
 
 	facilityInput := &gorm.Facility{
-		Name:        "Kanairo One",
+		Name:        gofakeit.BeerAlcohol(),
 		Code:        code,
 		Active:      strconv.FormatBool(true),
 		County:      enums.CountyTypeNairobi,
@@ -176,7 +195,7 @@ func TestPGInstance_ListFacilities(t *testing.T) {
 		{
 			Name:     enums.FilterSortDataTypeName.String(),
 			DataType: enums.FilterSortDataTypeName,
-			Value:    "Kanairo One",
+			Value:    gofakeit.BeerAlcohol(),
 		},
 		{
 			Name:     enums.FilterSortDataTypeMFLCode.String(),
@@ -221,7 +240,7 @@ func TestPGInstance_ListFacilities(t *testing.T) {
 		{
 			Name:     enums.FilterSortDataTypeName.String(),
 			DataType: enums.FilterSortDataTypeName,
-			Value:    "Kanairo One",
+			Value:    gofakeit.BeerAlcohol(),
 		},
 		{
 			Name:     enums.FilterSortDataTypeMFLCode.String(),
@@ -244,7 +263,7 @@ func TestPGInstance_ListFacilities(t *testing.T) {
 		{
 			Name:     enums.FilterSortDataTypeName.String(),
 			DataType: enums.FilterSortDataTypeName,
-			Value:    "Kanairo One",
+			Value:    gofakeit.BeerAlcohol(),
 		},
 		{
 			Name:     enums.FilterSortDataTypeMFLCode.String(),
@@ -267,7 +286,7 @@ func TestPGInstance_ListFacilities(t *testing.T) {
 		{
 			Name:     enums.FilterSortDataTypeName.String(),
 			DataType: enums.FilterSortDataTypeName,
-			Value:    "Kanairo One",
+			Value:    gofakeit.BeerAlcohol(),
 		},
 		{
 			Name:     enums.FilterSortDataTypeMFLCode.String(),

@@ -2,9 +2,12 @@ package facility_test
 
 import (
 	"context"
+	"fmt"
 	"strconv"
 	"testing"
 
+	"github.com/brianvoe/gofakeit"
+	"github.com/google/uuid"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	externalExtension "github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
@@ -35,6 +38,40 @@ func InitializeTestService(ctx context.Context) *interactor.Interactor {
 
 	i := interactor.NewMyCareHubInteractor(facilityUseCase, userUsecase)
 	return i
+}
+
+func createTestFacility() *dto.FacilityInput {
+	name := gofakeit.Name()
+	code := uuid.New().String()
+	county := enums.CountyTypeNairobi
+	description := gofakeit.HipsterSentence(15)
+
+	facility := &dto.FacilityInput{
+		Name:        name,
+		Code:        code,
+		Active:      true,
+		County:      county,
+		Description: description,
+	}
+
+	return facility
+}
+
+func createInactiveTestFacility() *dto.FacilityInput {
+	name := gofakeit.Name()
+	code := uuid.New().String()
+	county := enums.CountyTypeNairobi
+	description := gofakeit.HipsterSentence(15)
+
+	facility := &dto.FacilityInput{
+		Name:        name,
+		Code:        code,
+		Active:      false,
+		County:      county,
+		Description: description,
+	}
+
+	return facility
 }
 
 func TestUseCaseFacilityImpl_CreateFacility(t *testing.T) {
@@ -234,7 +271,7 @@ func TestUseCaseFacilityImpl_DeleteFacility_Integrationtest(t *testing.T) {
 
 	//Create facility
 	facilityInput := &dto.FacilityInput{
-		Name:        "Kanairo One",
+		Name:        gofakeit.BeerAlcohol(),
 		Code:        ksuid.New().String(),
 		County:      enums.CountyTypeNairobi,
 		Active:      true,
@@ -385,7 +422,7 @@ func TestUseCaseFacilityImpl_ListFacilities(t *testing.T) {
 	code2 := ksuid.New().String()
 
 	facilityInput := &dto.FacilityInput{
-		Name:        "Kanairo One",
+		Name:        gofakeit.BeerAlcohol(),
 		Code:        code,
 		Active:      true,
 		County:      enums.CountyTypeNairobi,
@@ -420,7 +457,7 @@ func TestUseCaseFacilityImpl_ListFacilities(t *testing.T) {
 	filterInput := []*dto.FiltersInput{
 		{
 			DataType: enums.FilterSortDataTypeName,
-			Value:    "Kanairo One",
+			Value:    gofakeit.BeerAlcohol(),
 		},
 		{
 			DataType: enums.FilterSortDataTypeMFLCode,
@@ -457,7 +494,7 @@ func TestUseCaseFacilityImpl_ListFacilities(t *testing.T) {
 	filterEmptyMFLCode := []*dto.FiltersInput{
 		{
 			DataType: enums.FilterSortDataTypeName,
-			Value:    "Kanairo One",
+			Value:    gofakeit.BeerAlcohol(),
 		},
 		{
 			DataType: enums.FilterSortDataTypeMFLCode,
@@ -476,7 +513,7 @@ func TestUseCaseFacilityImpl_ListFacilities(t *testing.T) {
 	filterInvalidBool := []*dto.FiltersInput{
 		{
 			DataType: enums.FilterSortDataTypeName,
-			Value:    "Kanairo One",
+			Value:    gofakeit.BeerAlcohol(),
 		},
 		{
 			DataType: enums.FilterSortDataTypeMFLCode,
@@ -495,7 +532,7 @@ func TestUseCaseFacilityImpl_ListFacilities(t *testing.T) {
 	filterInvalidCounty := []*dto.FiltersInput{
 		{
 			DataType: enums.FilterSortDataTypeName,
-			Value:    "Kanairo One",
+			Value:    gofakeit.BeerAlcohol(),
 		},
 		{
 			DataType: enums.FilterSortDataTypeMFLCode,
@@ -747,20 +784,17 @@ func TestUseCaseFacilityImpl_ListFacilities(t *testing.T) {
 }
 
 func TestUseCaseFacilityImpl_Inactivate_Integration_test(t *testing.T) {
+	TearDown(t)
+
 	ctx := context.Background()
 
 	i := InitializeTestService(ctx)
 
-	facilityInput := &dto.FacilityInput{
-		Name:        "test medical institution",
-		Code:        ksuid.New().String(),
-		Active:      true,
-		County:      enums.CountyTypeNairobi,
-		Description: "This is just for testing",
-	}
+	facilityInput := createTestFacility()
 
 	// Setup, create a facility
 	facility, err := i.FacilityUsecase.GetOrCreateFacility(ctx, facilityInput)
+	fmt.Printf("THE TEST ACTIVE FACILITY IS: %v\n", facility)
 	if err != nil {
 		t.Errorf("failed to create new facility: %v", err)
 		return
@@ -809,11 +843,78 @@ func TestUseCaseFacilityImpl_Inactivate_Integration_test(t *testing.T) {
 
 		})
 	}
-	// Teardown
+
+	TearDown(t)
+}
+
+func TestUseCaseFacilityImpl_ReactivateFacility(t *testing.T) {
+	TearDown(t)
+
+	ctx := context.Background()
+
+	f := InitializeTestService(ctx)
+
+	testInactiveFacility := createInactiveTestFacility()
+
+	facility, err := f.FacilityUsecase.GetOrCreateFacility(ctx, testInactiveFacility)
+	if err != nil {
+		t.Errorf("failed to create new facility: %v", err)
+		return
+	}
+
+	type args struct {
+		ctx     context.Context
+		mflCode *string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:     ctx,
+				mflCode: &facility.Code,
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Sad case",
+			args: args{
+				ctx:     ctx,
+				mflCode: nil,
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := f.FacilityUsecase.ReactivateFacility(tt.args.ctx, tt.args.mflCode)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCaseFacilityImpl.ReactivateFacility() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("UseCaseFacilityImpl.ReactivateFacility() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+
+	TearDown(t)
+}
+
+func TearDown(t *testing.T) {
 	pg, err := gorm.NewPGInstance()
 	if err != nil {
 		return
 	}
 
+	pg.DB.Migrator().DropTable(&gorm.Contact{})
+	pg.DB.Migrator().DropTable(&gorm.PINData{})
+	pg.DB.Migrator().DropTable(&gorm.User{})
 	pg.DB.Migrator().DropTable(&gorm.Facility{})
 }
