@@ -43,7 +43,7 @@ type IFacilityDelete interface {
 // IFacilityInactivate contains the method to activate a facility
 type IFacilityInactivate interface {
 	// TODO Toggle active boolean
-	//Inactivate(id string) (*domain.Facility, error)
+	InactivateFacility(ctx context.Context, mflCode *string) (bool, error)
 }
 
 // IFacilityReactivate contains the method to re-activate a facility
@@ -69,14 +69,16 @@ type UseCaseFacilityImpl struct {
 	Create infrastructure.Create
 	Query  infrastructure.Query
 	Delete infrastructure.Delete
+	Update infrastructure.Update
 }
 
 // NewFacilityUsecase returns a new facility service
-func NewFacilityUsecase(create infrastructure.Create, query infrastructure.Query, delete infrastructure.Delete) *UseCaseFacilityImpl {
+func NewFacilityUsecase(create infrastructure.Create, query infrastructure.Query, delete infrastructure.Delete, update infrastructure.Update) *UseCaseFacilityImpl {
 	return &UseCaseFacilityImpl{
 		Create: create,
 		Query:  query,
 		Delete: delete,
+		Update: update,
 	}
 }
 
@@ -92,8 +94,8 @@ func (f *UseCaseFacilityImpl) GetOrCreateFacility(ctx context.Context, facility 
 	return fetchedFacility, nil
 }
 
-// Update creates a new facility
-func (f *UseCaseFacilityImpl) Update(facility *domain.Facility) (*domain.Facility, error) {
+// UpdateFacility creates a new facility
+func (f *UseCaseFacilityImpl) UpdateFacility(facility *domain.Facility) (*domain.Facility, error) {
 	return nil, nil
 }
 
@@ -102,10 +104,10 @@ func (f *UseCaseFacilityImpl) DeleteFacility(ctx context.Context, id string) (bo
 	return f.Delete.DeleteFacility(ctx, id)
 }
 
-// Inactivate inactivates the health facility
+// InactivateFacility inactivates the health facility
 // TODO Toggle active boolean
-func (f *UseCaseFacilityImpl) Inactivate(id string) (*domain.Facility, error) {
-	return nil, nil
+func (f *UseCaseFacilityImpl) InactivateFacility(ctx context.Context, mflCode *string) (bool, error) {
+	return f.Update.InactivateFacility(ctx, mflCode)
 }
 
 // Reactivate activates the inactivated health facility

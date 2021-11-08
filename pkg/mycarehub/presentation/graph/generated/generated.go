@@ -66,8 +66,9 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		CreateFacility func(childComplexity int, input dto.FacilityInput) int
-		DeleteFacility func(childComplexity int, id string) int
+		CreateFacility     func(childComplexity int, input dto.FacilityInput) int
+		DeleteFacility     func(childComplexity int, id string) int
+		InactivateFacility func(childComplexity int, mflCode string) int
 	}
 
 	Pagination struct {
@@ -90,6 +91,7 @@ type ComplexityRoot struct {
 type MutationResolver interface {
 	CreateFacility(ctx context.Context, input dto.FacilityInput) (*domain.Facility, error)
 	DeleteFacility(ctx context.Context, id string) (bool, error)
+	InactivateFacility(ctx context.Context, mflCode string) (bool, error)
 }
 type QueryResolver interface {
 	FetchFacilities(ctx context.Context) ([]*domain.Facility, error)
@@ -213,6 +215,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.DeleteFacility(childComplexity, args["id"].(string)), true
+
+	case "Mutation.inactivateFacility":
+		if e.complexity.Mutation.InactivateFacility == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_inactivateFacility_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.InactivateFacility(childComplexity, args["mflCode"].(string)), true
 
 	case "Pagination.Count":
 		if e.complexity.Pagination.Count == nil {
@@ -439,6 +453,7 @@ enum SortDataType {
 extend type Mutation {
     createFacility(input: FacilityInput!): Facility!
     deleteFacility(id: String!): Boolean!
+    inactivateFacility(mflCode: String!): Boolean!
 }
 
 extend type Query {
@@ -543,6 +558,21 @@ func (ec *executionContext) field_Mutation_deleteFacility_args(ctx context.Conte
 		}
 	}
 	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_inactivateFacility_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["mflCode"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("mflCode"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["mflCode"] = arg0
 	return args, nil
 }
 
@@ -1124,6 +1154,48 @@ func (ec *executionContext) _Mutation_deleteFacility(ctx context.Context, field 
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Mutation().DeleteFacility(rctx, args["id"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_inactivateFacility(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_inactivateFacility_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().InactivateFacility(rctx, args["mflCode"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2981,6 +3053,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			}
 		case "deleteFacility":
 			out.Values[i] = ec._Mutation_deleteFacility(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "inactivateFacility":
+			out.Values[i] = ec._Mutation_inactivateFacility(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}

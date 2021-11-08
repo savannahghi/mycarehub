@@ -9,9 +9,10 @@ type MyCareHubDb struct {
 	create gorm.Create
 	query  gorm.Query
 	delete gorm.Delete
+	update gorm.Update
 }
 
 // NewMyCareHubDb initializes a new instance of the MyCareHubDb struct
-func NewMyCareHubDb(c gorm.Create, q gorm.Query, d gorm.Delete) *MyCareHubDb {
-	return &MyCareHubDb{create: c, query: q, delete: d}
+func NewMyCareHubDb(c gorm.Create, q gorm.Query, d gorm.Delete, u gorm.Update) *MyCareHubDb {
+	return &MyCareHubDb{create: c, query: q, delete: d, update: u}
 }

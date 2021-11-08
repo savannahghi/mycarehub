@@ -21,7 +21,7 @@ func TestMyCareHubDb_RetrieveFacility_Unittest(t *testing.T) {
 	ctx := context.Background()
 
 	var fakeGorm = gormMock.NewGormMock()
-	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm)
+	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
 
 	id := ksuid.New().String()
 
@@ -160,7 +160,7 @@ func TestMyCareHubDb_GetFacilities(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var fakeGorm = gormMock.NewGormMock()
-			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm)
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
 
 			if tt.name == "sad case - facility want data not given" {
 				fakeGorm.MockGetFacilitiesFn = func(ctx context.Context) ([]gorm.Facility, error) {
@@ -190,7 +190,7 @@ func TestMyCareHubDb_RetrieveFacilityByMFLCode(t *testing.T) {
 	ctx := context.Background()
 
 	var fakeGorm = gormMock.NewGormMock()
-	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm)
+	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
 
 	name := gofakeit.Name()
 	code := "KN001"
@@ -291,7 +291,7 @@ func TestOnboardingDb_ListFacilities(t *testing.T) {
 	ctx := context.Background()
 
 	var fakeGorm = gormMock.NewGormMock()
-	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm)
+	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
 
 	code := ksuid.New().String()
 	code2 := ksuid.New().String()
@@ -673,7 +673,7 @@ func TestOnboardingDb_GetUserProfileByPhoneNumber(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var fakeGorm = gormMock.NewGormMock()
-			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm)
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
 
 			if tt.name == "Sad Case - Fail to get user profile by phonenumber" {
 				fakeGorm.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*gorm.User, error) {
@@ -731,7 +731,7 @@ func TestOnboardingDb_GetUserPINByUserID(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var fakeGorm = gormMock.NewGormMock()
-			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm)
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
 
 			if tt.name == "Sad Case - Fail to get user pin" {
 				fakeGorm.MockGetUserPINByUserIDFn = func(ctx context.Context, userID string) (*gorm.PINData, error) {
