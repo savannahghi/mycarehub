@@ -6,7 +6,6 @@ import (
 
 	"github.com/brianvoe/gofakeit"
 	"github.com/google/uuid"
-	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
@@ -19,18 +18,15 @@ type PostgresMock struct {
 	MockGetFacilitiesFn               func(ctx context.Context) ([]*domain.Facility, error)
 	MockRetrieveFacilityFn            func(ctx context.Context, id *string, isActive bool) (*domain.Facility, error)
 	ListFacilitiesFn                  func(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationsInput *dto.PaginationsInput) (*domain.FacilityPage, error)
-	MockRegisterClientFn              func(ctx context.Context, userInput *dto.UserInput, clientInput *dto.ClientProfileInput) (*domain.ClientUserProfile, error)
-	MockSavePinFn                     func(ctx context.Context, pinData *domain.UserPIN) (bool, error)
-	MockGetUserProfileByPhoneNumberFn func(ctx context.Context, phoneNumber string) (*domain.User, error)
 	MockDeleteFacilityFn              func(ctx context.Context, id string) (bool, error)
 	MockRetrieveFacilityByMFLCodeFn   func(ctx context.Context, MFLCode string, isActive bool) (*domain.Facility, error)
+	MockGetUserProfileByPhoneNumberFn func(ctx context.Context, phoneNumber string) (*domain.User, error)
 	MockGetUserPINByUserIDFn          func(ctx context.Context, userID string) (*domain.UserPIN, error)
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
 func NewPostgresMock() *PostgresMock {
 	ID := uuid.New().String()
-	testTime := time.Now()
 
 	name := gofakeit.Name()
 	code := "KN001"
@@ -48,31 +44,6 @@ func NewPostgresMock() *PostgresMock {
 
 	var facilitiesList []*domain.Facility
 	facilitiesList = append(facilitiesList, facilityInput)
-
-	clientProfile := &domain.ClientUserProfile{
-		User: &domain.User{
-			ID:                  &ID,
-			FirstName:           gofakeit.FirstName(),
-			LastName:            gofakeit.LastName(),
-			Username:            gofakeit.Username(),
-			MiddleName:          gofakeit.BeerAlcohol(),
-			DisplayName:         gofakeit.BeerHop(),
-			Gender:              enumutils.GenderMale,
-			Active:              true,
-			LastSuccessfulLogin: &testTime,
-			LastFailedLogin:     &testTime,
-			NextAllowedLogin:    &testTime,
-			TermsAccepted:       true,
-			AcceptedTermsID:     ID,
-		},
-		Client: &domain.ClientProfile{
-			ID:             &ID,
-			UserID:         &ID,
-			ClientType:     enums.ClientTypeOvc,
-			HealthRecordID: &ID,
-		},
-	}
-
 	nextPage := 3
 	previousPage := 1
 	facilitiesPage := &domain.FacilityPage{
@@ -109,20 +80,6 @@ func NewPostgresMock() *PostgresMock {
 		ListFacilitiesFn: func(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationsInput *dto.PaginationsInput) (*domain.FacilityPage, error) {
 			return facilitiesPage, nil
 		},
-
-		MockRegisterClientFn: func(ctx context.Context, userInput *dto.UserInput, clientInput *dto.ClientProfileInput) (*domain.ClientUserProfile, error) {
-			return clientProfile, nil
-		},
-
-		MockSavePinFn: func(ctx context.Context, pinData *domain.UserPIN) (bool, error) {
-			return true, nil
-		},
-		MockGetUserProfileByPhoneNumberFn: func(ctx context.Context, phoneNumber string) (*domain.User, error) {
-			id := uuid.New().String()
-			return &domain.User{
-				ID: &id,
-			}, nil
-		},
 		MockDeleteFacilityFn: func(ctx context.Context, id string) (bool, error) {
 			return true, nil
 		},
@@ -132,6 +89,12 @@ func NewPostgresMock() *PostgresMock {
 		MockGetUserPINByUserIDFn: func(ctx context.Context, userID string) (*domain.UserPIN, error) {
 			return &domain.UserPIN{
 				ValidTo: time.Now().Add(time.Hour * 10),
+			}, nil
+		},
+		MockGetUserProfileByPhoneNumberFn: func(ctx context.Context, phoneNumber string) (*domain.User, error) {
+			id := uuid.New().String()
+			return &domain.User{
+				ID: &id,
 			}, nil
 		},
 	}
@@ -157,25 +120,6 @@ func (gm *PostgresMock) ListFacilities(
 	return gm.ListFacilitiesFn(ctx, searchTerm, filterInput, paginationsInput)
 }
 
-// RegisterClient mocks the implementation of `gorm's` RegisterClient method
-func (gm *PostgresMock) RegisterClient(
-	ctx context.Context,
-	userInput *dto.UserInput,
-	clientInput *dto.ClientProfileInput,
-) (*domain.ClientUserProfile, error) {
-	return gm.MockRegisterClientFn(ctx, userInput, clientInput)
-}
-
-// SavePin mocks the save pin implementation
-func (gm *PostgresMock) SavePin(ctx context.Context, pinData *domain.UserPIN) (bool, error) {
-	return gm.MockSavePinFn(ctx, pinData)
-}
-
-// GetUserProfileByPhoneNumber mocks the implementation of fetching a user profile by phonenumber
-func (gm *PostgresMock) GetUserProfileByPhoneNumber(ctx context.Context, phoneNumber string) (*domain.User, error) {
-	return gm.MockGetUserProfileByPhoneNumberFn(ctx, phoneNumber)
-}
-
 // GetFacilities mocks the implementation of `gorm's` GetFacilities method
 func (gm *PostgresMock) GetFacilities(ctx context.Context) ([]*domain.Facility, error) {
 	return gm.MockGetFacilitiesFn(ctx)
@@ -189,6 +133,11 @@ func (gm *PostgresMock) DeleteFacility(ctx context.Context, id string) (bool, er
 // RetrieveFacilityByMFLCode mocks the implementation of `gorm's` RetrieveFacilityByMFLCode method.
 func (gm *PostgresMock) RetrieveFacilityByMFLCode(ctx context.Context, MFLCode string, isActive bool) (*domain.Facility, error) {
 	return gm.MockRetrieveFacilityByMFLCodeFn(ctx, MFLCode, isActive)
+}
+
+// GetUserProfileByPhoneNumber mocks the implementation of fetching a user profile by phonenumber
+func (gm *PostgresMock) GetUserProfileByPhoneNumber(ctx context.Context, phoneNumber string) (*domain.User, error) {
+	return gm.MockGetUserProfileByPhoneNumberFn(ctx, phoneNumber)
 }
 
 // GetUserPINByUserID mocks the get user pin by ID implementation

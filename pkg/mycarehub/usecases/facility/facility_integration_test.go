@@ -8,12 +8,11 @@ import (
 
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
-	onboardingExtension "github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
+	externalExtension "github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/presentation/interactor"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/client"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/facility"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/user"
 	"github.com/segmentio/ksuid"
@@ -26,19 +25,16 @@ func InitializeTestService(ctx context.Context) *interactor.Interactor {
 		return nil
 	}
 
-	onboardingExt := onboardingExtension.NewOnboardingLibImpl()
-
 	db := postgres.NewMyCareHubDb(pg, pg, pg)
+	externalExt := externalExtension.NewExternalMethodsImpl()
 
 	// Initialize facility usecase
 	facilityUseCase := facility.NewFacilityUsecase(db, db, db)
 
-	// Initialize client usecase
-	clientUseCase := client.NewUseCasesClientImpl(db, db, db)
+	// Initialize user usecase
+	userUsecase := user.NewUseCasesUserImpl(db, db, db, externalExt)
 
-	userUsecase := user.NewUseCasesUserImpl(db, db, db, onboardingExt)
-
-	i := interactor.NewMyCareHubInteractor(facilityUseCase, clientUseCase, userUsecase)
+	i := interactor.NewMyCareHubInteractor(facilityUseCase, userUsecase)
 	return i
 }
 

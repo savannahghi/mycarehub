@@ -73,23 +73,10 @@ models:
   Date:
     model:
       - "github.com/savannahghi/scalarutils.Date"
-  MicroserviceInput:
-    model:
-      - github.com/savannahghi/onboarding/pkg/onboarding/domain.Microservice
   Permission:
     model:
       - github.com/savannahghi/profileutils.Permission
   FacilityInput:
     model:
       - github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto.FacilityInput
-  PinInput:
-    model:
-      - github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto.PinInput
-  UserProfile:
-    fields:
-      roleDetails:
-        resolver: true
-  VerifiedIdentifier:
-    fields:
-      timestamp:
-        resolver: true
+

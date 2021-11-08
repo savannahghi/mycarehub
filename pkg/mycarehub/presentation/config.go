@@ -14,14 +14,13 @@ import (
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/savannahghi/firebasetools"
-	onboardingExtension "github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
+	externalExtension "github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/presentation/graph"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/presentation/graph/generated"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/presentation/interactor"
 	internalRest "github.com/savannahghi/mycarehub/pkg/mycarehub/presentation/rest"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/client"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/facility"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/user"
 	"github.com/savannahghi/serverutils"
@@ -32,7 +31,6 @@ import (
 const (
 	mbBytes              = 1048576
 	serverTimeoutSeconds = 120
-	engagementService    = "engagement"
 )
 
 // AllowedOrigins is list of CORS origins allowed to interact with
@@ -61,33 +59,25 @@ func Router(ctx context.Context) (*mux.Router, error) {
 		return nil, fmt.Errorf("can't instantiate repository in resolver: %v", err)
 	}
 
-	onboardingExt := onboardingExtension.NewOnboardingLibImpl()
-
-	// Initialize new instances of the infrastructure services
-	// Initialize new open source interactors
-
+	externalExt := externalExtension.NewExternalMethodsImpl()
 	db := postgres.NewMyCareHubDb(pg, pg, pg)
 
 	// Initialize facility usecase
 	facilityUseCase := facility.NewFacilityUsecase(db, db, db)
 
-	// Initialize client usecase
-	clientUseCase := client.NewUseCasesClientImpl(db, db, db)
-
-	userUsecase := user.NewUseCasesUserImpl(db, db, db, onboardingExt)
+	// Initialize user usecase
+	userUsecase := user.NewUseCasesUserImpl(db, db, db, externalExt)
 
 	// Initialize the interactor
 	i := interactor.NewMyCareHubInteractor(
 		facilityUseCase,
-		clientUseCase,
 		userUsecase,
 	)
 
-	// h := rest.NewHandlersInterfaces(infrastructure, openSourceUsecases)
 	internalHandlers := internalRest.NewMyCareHubHandlersInterfaces(*i)
 
 	r := mux.NewRouter() // gorilla mux
-	r.Use(otelmux.Middleware(serverutils.MetricsCollectorService("onboarding")))
+	r.Use(otelmux.Middleware(serverutils.MetricsCollectorService("mycarehub")))
 	r.Use(
 		handlers.RecoveryHandler(
 			handlers.PrintRecoveryStack(true),
@@ -108,10 +98,6 @@ func Router(ctx context.Context) (*mux.Router, error) {
 		http.MethodOptions,
 		http.MethodPost,
 	).HandlerFunc(internalHandlers.LoginByPhone())
-	// Shared authenticated ISC routes
-	//openSourcePresentation.SharedAuthenticatedISCRoutes(h, r)
-	// Shared authenticated routes
-	//openSourcePresentation.SharedAuthenticatedRoutes(h, r)
 
 	// Graphql route
 	authR := r.Path("/graphql").Subrouter()

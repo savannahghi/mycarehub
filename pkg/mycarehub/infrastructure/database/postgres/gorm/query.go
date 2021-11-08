@@ -14,9 +14,9 @@ type Query interface {
 	RetrieveFacility(ctx context.Context, id *string, isActive bool) (*Facility, error)
 	RetrieveFacilityByMFLCode(ctx context.Context, MFLCode string, isActive bool) (*Facility, error)
 	GetFacilities(ctx context.Context) ([]Facility, error)
+	ListFacilities(ctx context.Context, searchTerm *string, filter []*domain.FiltersParam, pagination *domain.FacilityPage) (*domain.FacilityPage, error)
 	GetUserProfileByPhoneNumber(ctx context.Context, phoneNumber string) (*User, error)
 	GetUserPINByUserID(ctx context.Context, userID string) (*PINData, error)
-	ListFacilities(ctx context.Context, searchTerm *string, filter []*domain.FiltersParam, pagination *domain.FacilityPage) (*domain.FacilityPage, error)
 }
 
 // RetrieveFacility fetches a single facility
@@ -48,15 +48,6 @@ func (db *PGInstance) GetFacilities(ctx context.Context) ([]Facility, error) {
 		return nil, fmt.Errorf("failed to query all facilities %v", err)
 	}
 	return facility, nil
-}
-
-// GetUserProfileByPhoneNumber retrieves a user profile using their phonenumber
-func (db *PGInstance) GetUserProfileByPhoneNumber(ctx context.Context, phoneNumber string) (*User, error) {
-	var user User
-	if err := db.DB.Joins("JOIN contact on user_users.user_id = contact.user_id").Where("contact.contact = ?", phoneNumber).First(&user).Error; err != nil {
-		return nil, fmt.Errorf("failed to get user by phonenumber %v: %v", phoneNumber, err)
-	}
-	return &user, nil
 }
 
 // ListFacilities lists all facilities, the results returned are
@@ -151,6 +142,15 @@ func (db *PGInstance) ListFacilities(
 	pagination.Pagination.PreviousPage = paginatedFacilities.Pagination.PreviousPage
 
 	return pagination, nil
+}
+
+// GetUserProfileByPhoneNumber retrieves a user profile using their phonenumber
+func (db *PGInstance) GetUserProfileByPhoneNumber(ctx context.Context, phoneNumber string) (*User, error) {
+	var user User
+	if err := db.DB.Joins("JOIN contact on user_users.user_id = contact.user_id").Where("contact.contact = ?", phoneNumber).First(&user).Error; err != nil {
+		return nil, fmt.Errorf("failed to get user by phonenumber %v: %v", phoneNumber, err)
+	}
+	return &user, nil
 }
 
 // GetUserPINByUserID fetches a user's pin using the user ID
