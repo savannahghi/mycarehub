@@ -21,6 +21,11 @@ func (r *mutationResolver) DeleteFacility(ctx context.Context, id string) (bool,
 	return r.interactor.FacilityUsecase.DeleteFacility(ctx, id)
 }
 
+func (r *mutationResolver) InactivateFacility(ctx context.Context, mflCode string) (bool, error) {
+	r.checkPreconditions()
+	return r.interactor.FacilityUsecase.InactivateFacility(ctx, &mflCode)
+}
+
 func (r *queryResolver) FetchFacilities(ctx context.Context) ([]*domain.Facility, error) {
 	r.checkPreconditions()
 	return r.interactor.FacilityUsecase.FetchFacilities(ctx)

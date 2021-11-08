@@ -22,6 +22,7 @@ type PostgresMock struct {
 	MockRetrieveFacilityByMFLCodeFn   func(ctx context.Context, MFLCode string, isActive bool) (*domain.Facility, error)
 	MockGetUserProfileByPhoneNumberFn func(ctx context.Context, phoneNumber string) (*domain.User, error)
 	MockGetUserPINByUserIDFn          func(ctx context.Context, userID string) (*domain.UserPIN, error)
+	MockInactivateFacilityFn          func(ctx context.Context, mflCode *string) (bool, error)
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -97,6 +98,9 @@ func NewPostgresMock() *PostgresMock {
 				ID: &id,
 			}, nil
 		},
+		MockInactivateFacilityFn: func(ctx context.Context, mflCode *string) (bool, error) {
+			return true, nil
+		},
 	}
 }
 
@@ -143,4 +147,9 @@ func (gm *PostgresMock) GetUserProfileByPhoneNumber(ctx context.Context, phoneNu
 // GetUserPINByUserID mocks the get user pin by ID implementation
 func (gm *PostgresMock) GetUserPINByUserID(ctx context.Context, userID string) (*domain.UserPIN, error) {
 	return gm.MockGetUserPINByUserIDFn(ctx, userID)
+}
+
+// InactivateFacility mocks the implementation of inactivating the active status of a particular facility
+func (gm *PostgresMock) InactivateFacility(ctx context.Context, mflCode *string) (bool, error) {
+	return gm.MockInactivateFacilityFn(ctx, mflCode)
 }

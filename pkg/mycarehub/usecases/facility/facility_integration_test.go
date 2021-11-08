@@ -25,11 +25,11 @@ func InitializeTestService(ctx context.Context) *interactor.Interactor {
 		return nil
 	}
 
-	db := postgres.NewMyCareHubDb(pg, pg, pg)
+	db := postgres.NewMyCareHubDb(pg, pg, pg, pg)
 	externalExt := externalExtension.NewExternalMethodsImpl()
 
 	// Initialize facility usecase
-	facilityUseCase := facility.NewFacilityUsecase(db, db, db)
+	facilityUseCase := facility.NewFacilityUsecase(db, db, db, db)
 
 	// Initialize user usecase
 	userUsecase := user.NewUseCasesUserImpl(db, db, db, externalExt)
@@ -709,5 +709,70 @@ func TestUseCaseFacilityImpl_ListFacilities(t *testing.T) {
 	if err != nil {
 		t.Errorf("unable to delete facility")
 		return
+	}
+}
+
+func TestUseCaseFacilityImpl_Inactivate_Integration_test(t *testing.T) {
+	ctx := context.Background()
+
+	i := InitializeTestService(ctx)
+
+	facilityInput := &dto.FacilityInput{
+		Name:        "Kanairo One",
+		Code:        ksuid.New().String(),
+		Active:      true,
+		County:      enums.CountyTypeNairobi,
+		Description: "This is just for testing",
+	}
+
+	// Setup, create a facility
+	facility, err := i.FacilityUsecase.GetOrCreateFacility(ctx, facilityInput)
+	if err != nil {
+		t.Errorf("failed to create new facility: %v", err)
+		return
+	}
+
+	type args struct {
+		ctx     context.Context
+		mflCode *string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy Case",
+			args: args{
+				ctx:     ctx,
+				mflCode: &facility.Code,
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Sad Case - empty mflCode",
+			args: args{
+				ctx:     ctx,
+				mflCode: nil,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			got, err := i.FacilityUsecase.InactivateFacility(tt.args.ctx, tt.args.mflCode)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCaseFacilityImpl.Inactivate() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			if got != tt.want {
+				t.Errorf("PGInstance.InactivateFacility() = %v, want %v", got, tt.want)
+			}
+
+		})
 	}
 }

@@ -28,3 +28,8 @@ type Query interface {
 	GetUserProfileByPhoneNumber(ctx context.Context, phoneNumber string) (*domain.User, error)
 	GetUserPINByUserID(ctx context.Context, userID string) (*domain.UserPIN, error)
 }
+
+// Update represents all the update action interfaces
+type Update interface {
+	InactivateFacility(ctx context.Context, mflCode *string) (bool, error)
+}

@@ -60,10 +60,13 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	}
 
 	externalExt := externalExtension.NewExternalMethodsImpl()
-	db := postgres.NewMyCareHubDb(pg, pg, pg)
+	db := postgres.NewMyCareHubDb(pg, pg, pg, pg)
+
+	// Initialize new instances of the infrastructure services
+	// Initialize new open source interactors
 
 	// Initialize facility usecase
-	facilityUseCase := facility.NewFacilityUsecase(db, db, db)
+	facilityUseCase := facility.NewFacilityUsecase(db, db, db, db)
 
 	// Initialize user usecase
 	userUsecase := user.NewUseCasesUserImpl(db, db, db, externalExt)

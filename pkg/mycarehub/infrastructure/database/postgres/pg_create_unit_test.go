@@ -74,7 +74,7 @@ func TestMyCareHubDb_GetOrCreateFacility(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var fakeGorm = gormMock.NewGormMock()
-			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm)
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
 			got, err := d.GetOrCreateFacility(tt.args.ctx, tt.args.facility)
 			if tt.name == "sad case - facility code not defined" {
 				fakeGorm.MockGetOrCreateFacilityFn = func(ctx context.Context, facility *gorm.Facility) (*gorm.Facility, error) {

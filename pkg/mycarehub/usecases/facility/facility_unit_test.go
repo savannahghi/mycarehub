@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/brianvoe/gofakeit"
 	"github.com/google/uuid"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
@@ -67,7 +68,7 @@ func TestUnit_CreateFacility(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
 			fakeFacility := mock.NewFacilityUsecaseMock()
 
-			f := facility.NewFacilityUsecase(fakeDB, fakeDB, fakeDB)
+			f := facility.NewFacilityUsecase(fakeDB, fakeDB, fakeDB, fakeDB)
 
 			if tt.name == "sad case - facility code empty" {
 				fakeFacility.MockGetOrCreateFacilityFn = func(ctx context.Context, facility *dto.FacilityInput) (*domain.Facility, error) {
@@ -129,7 +130,7 @@ func TestUseCaseFacilityImpl_RetrieveFacility_Unittest(t *testing.T) {
 			fakeFacility := mock.NewFacilityUsecaseMock()
 
 			fakeDB := pgMock.NewPostgresMock()
-			facility := facility.NewFacilityUsecase(fakeDB, fakeDB, fakeDB)
+			facility := facility.NewFacilityUsecase(fakeDB, fakeDB, fakeDB, fakeDB)
 
 			if tt.name == "Sad case - no id" {
 				fakeFacility.MockRetrieveFacilityFn = func(ctx context.Context, id *string, isActive bool) (*domain.Facility, error) {
@@ -190,7 +191,7 @@ func TestUseCaseFacilityImpl_RetrieveFacilityByMFLCode_Unittest(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
 			fakeFacility := mock.NewFacilityUsecaseMock()
 
-			f := facility.NewFacilityUsecase(fakeDB, fakeDB, fakeDB)
+			f := facility.NewFacilityUsecase(fakeDB, fakeDB, fakeDB, fakeDB)
 
 			if tt.name == "Sad case" {
 
@@ -294,7 +295,7 @@ func TestUnit_ListFacilities(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
 			fakeFacility := mock.NewFacilityUsecaseMock()
 
-			f := facility.NewFacilityUsecase(fakeDB, fakeDB, fakeDB)
+			f := facility.NewFacilityUsecase(fakeDB, fakeDB, fakeDB, fakeDB)
 
 			if tt.name == "Sad case- empty search term" {
 				fakeFacility.MockListFacilitiesFn = func(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationsInput *dto.PaginationsInput) (*domain.FacilityPage, error) {
@@ -328,6 +329,98 @@ func TestUnit_ListFacilities(t *testing.T) {
 				t.Errorf("expected facilities not to be nil for %v", tt.name)
 				return
 			}
+		})
+	}
+}
+
+func TestUseCaseFacilityImpl_Inactivate_Unittest(t *testing.T) {
+	ctx := context.Background()
+
+	validMFLCode := ksuid.New().String()
+	veryBadMFLCode := ksuid.New().String() + gofakeit.HipsterSentence(500)
+	emptyMFLCode := ""
+
+	type args struct {
+		ctx     context.Context
+		mflCode *string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy Case",
+			args: args{
+				ctx:     ctx,
+				mflCode: &validMFLCode,
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Sad Case - empty mflCode",
+			args: args{
+				ctx:     ctx,
+				mflCode: &emptyMFLCode,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - invalid mflCode",
+			args: args{
+				ctx:     ctx,
+				mflCode: &validMFLCode,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - very bad mflCode",
+			args: args{
+				ctx:     ctx,
+				mflCode: &veryBadMFLCode,
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+
+			f := facility.NewFacilityUsecase(fakeDB, fakeDB, fakeDB, fakeDB)
+
+			if tt.name == "Sad Case - empty mflCode" {
+				fakeDB.MockInactivateFacilityFn = func(ctx context.Context, mflCode *string) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+
+			if tt.name == "Sad Case - invalid mflCode" {
+				fakeDB.MockInactivateFacilityFn = func(ctx context.Context, mflCode *string) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+
+			if tt.name == "Sad Case - very bad mflCode" {
+				fakeDB.MockInactivateFacilityFn = func(ctx context.Context, mflCode *string) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+
+			got, err := f.InactivateFacility(tt.args.ctx, tt.args.mflCode)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCaseFacilityImpl.Inactivate() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			if got != tt.want {
+				t.Errorf("PGInstance.InactivateFacility() = %v, want %v", got, tt.want)
+			}
+
 		})
 	}
 }

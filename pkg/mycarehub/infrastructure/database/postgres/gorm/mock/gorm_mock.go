@@ -23,6 +23,7 @@ type GormMock struct {
 	MockListFacilitiesFn              func(ctx context.Context, searchTerm *string, filter []*domain.FiltersParam, pagination *domain.FacilityPage) (*domain.FacilityPage, error)
 	MockGetUserProfileByPhoneNumberFn func(ctx context.Context, phoneNumber string) (*gorm.User, error)
 	MockGetUserPINByUserIDFn          func(ctx context.Context, userID string) (*gorm.PINData, error)
+	MockInactivateFacilityFn          func(ctx context.Context, mflCode *string) (bool, error)
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -119,6 +120,10 @@ func NewGormMock() *GormMock {
 		MockGetUserPINByUserIDFn: func(ctx context.Context, userID string) (*gorm.PINData, error) {
 			return pinData, nil
 		},
+
+		MockInactivateFacilityFn: func(ctx context.Context, mflCode *string) (bool, error) {
+			return true, nil
+		},
 	}
 }
 
@@ -160,4 +165,9 @@ func (gm *GormMock) GetUserProfileByPhoneNumber(ctx context.Context, phoneNumber
 // GetUserPINByUserID mocks the implementation of retrieving a user pin by user ID
 func (gm *GormMock) GetUserPINByUserID(ctx context.Context, userID string) (*gorm.PINData, error) {
 	return gm.MockGetUserPINByUserIDFn(ctx, userID)
+}
+
+// InactivateFacility mocks the implementation of inactivating the active status of a particular facility
+func (gm *GormMock) InactivateFacility(ctx context.Context, mflCode *string) (bool, error) {
+	return gm.MockInactivateFacilityFn(ctx, mflCode)
 }
