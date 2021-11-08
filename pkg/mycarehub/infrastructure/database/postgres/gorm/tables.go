@@ -26,12 +26,12 @@ type Facility struct {
 	//globally unique when set
 	FacilityID *string `gorm:"primaryKey;unique;column:facility_id"`
 	// unique within this structure
-	Name string `gorm:"column:name"`
+	Name string `gorm:"column:name;unique;not null"`
 	// MFL Code for Kenyan facilities, globally unique
-	Code        string           `gorm:"unique;column:mfl_code"`
-	Active      string           `gorm:"column:active"`
-	County      enums.CountyType `gorm:"column:county"` // TODO: Controlled list of counties
-	Description string           `gorm:"column:description"`
+	Code        string           `gorm:"unique;column:mfl_code;not null"`
+	Active      string           `gorm:"column:active;not null"`
+	County      enums.CountyType `gorm:"column:county;not null"` // TODO: Controlled list of counties
+	Description string           `gorm:"column:description;not null"`
 }
 
 // BeforeCreate is a hook run before creating a new facility
@@ -52,25 +52,25 @@ type User struct {
 
 	UserID *string `gorm:"primaryKey;unique;column:user_id"` // globally unique ID
 
-	Username string `gorm:"column:username"` // @handle, also globally unique; nickname
+	Username string `gorm:"column:username;unique;not null"` // @handle, also globally unique; nickname
 
 	DisplayName string `gorm:"column:display_name"` // user's preferred display name
 
 	// TODO Consider making the names optional in DB; validation in frontends
-	FirstName  string `gorm:"column:first_name"` // given name
+	FirstName  string `gorm:"column:first_name;not null"` // given name
 	MiddleName string `gorm:"column:middle_name"`
-	LastName   string `gorm:"column:last_name"`
+	LastName   string `gorm:"column:last_name;not null"`
 
-	UserType enums.UsersType `gorm:"column:user_type"` // TODO enum; e.g client, health care worker
+	UserType enums.UsersType `gorm:"column:user_type;not null"` // TODO enum; e.g client, health care worker
 
-	Gender enumutils.Gender `gorm:"column:gender"` // TODO enum; genders; keep it simple
+	Gender enumutils.Gender `gorm:"column:gender;not null"` // TODO enum; genders; keep it simple
 
-	Active bool `gorm:"column:active"`
+	Active bool `gorm:"column:active;not null"`
 
-	Contacts []Contact `gorm:"ForeignKey:UserID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"` // TODO: validate, ensure
+	Contacts []Contact `gorm:"ForeignKey:UserID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;not null"` // TODO: validate, ensure
 
 	// // for the preferred language list, order matters
-	Languages pq.StringArray `gorm:"type:text[];column:languages"` // TODO: turn this into a slice of enums, start small (en, sw)
+	Languages pq.StringArray `gorm:"type:text[];column:languages;not null"` // TODO: turn this into a slice of enums, start small (en, sw)
 
 	PushTokens []string `gorm:"type:text[];column:push_tokens"`
 
@@ -88,9 +88,9 @@ type User struct {
 	// calculated each time there is a failed login
 	NextAllowedLogin *time.Time `gorm:"type:time;column:next_allowed_login"`
 
-	TermsAccepted   bool            `gorm:"type:bool;column:terms_accepted"`
+	TermsAccepted   bool            `gorm:"type:bool;column:terms_accepted;not null"`
 	AcceptedTermsID string          `gorm:"column:accepted_terms_id"` // foreign key to version of terms they accepted
-	Flavour         feedlib.Flavour `gorm:"column:flavour"`
+	Flavour         feedlib.Flavour `gorm:"column:flavour;not null"`
 }
 
 // BeforeCreate is a hook run before creating a new user
@@ -111,17 +111,17 @@ type Contact struct {
 
 	ContactID *string `gorm:"primaryKey;unique;column:contact_id"`
 
-	Type string `gorm:"column:type"` // TODO enum
+	Type string `gorm:"column:type;not null"` // TODO enum
 
-	Contact string `gorm:"unique;column:contact"` // TODO Validate: phones are E164, emails are valid
+	Contact string `gorm:"unique;column:contact;not null"` // TODO Validate: phones are E164, emails are valid
 
-	Active bool `gorm:"column:active"`
+	Active bool `gorm:"column:active;not null"`
 
 	// a user may opt not to be contacted via this contact
 	// e.g if it's a shared phone owned by a teenager
-	OptedIn bool `gorm:"column:opted_in"`
+	OptedIn bool `gorm:"column:opted_in;not null"`
 
-	UserID *string `gorm:"column:user_id"` // Foreign key
+	UserID *string `gorm:"column:user_id;not null"` // Foreign key
 }
 
 // BeforeCreate is a hook run before creating a new contact
@@ -141,13 +141,13 @@ type PINData struct {
 	Base
 
 	PINDataID *string         `gorm:"primaryKey;unique;column:pin_data_id"`
-	UserID    string          `gorm:"column:user_id"`
-	HashedPIN string          `gorm:"column:hashed_pin"`
-	ValidFrom time.Time       `gorm:"column:valid_from"`
-	ValidTo   time.Time       `gorm:"column:valid_to"`
-	IsValid   bool            `gorm:"column:is_valid"`
-	Flavour   feedlib.Flavour `gorm:"column:flavour"`
-	Salt      string          `gorm:"column:salt"`
+	UserID    string          `gorm:"column:user_id;not null"`
+	HashedPIN string          `gorm:"column:hashed_pin;not null"`
+	ValidFrom time.Time       `gorm:"column:valid_from;not null"`
+	ValidTo   time.Time       `gorm:"column:valid_to;not null"`
+	IsValid   bool            `gorm:"column:is_valid;not null"`
+	Flavour   feedlib.Flavour `gorm:"column:flavour;not null"`
+	Salt      string          `gorm:"column:salt;not null"`
 }
 
 // BeforeCreate is a hook run before creating a new facility

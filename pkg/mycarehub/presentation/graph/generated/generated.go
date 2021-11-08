@@ -67,7 +67,7 @@ type ComplexityRoot struct {
 
 	Mutation struct {
 		CreateFacility     func(childComplexity int, input dto.FacilityInput) int
-		DeleteFacility     func(childComplexity int, id string) int
+		DeleteFacility     func(childComplexity int, mflCode string) int
 		InactivateFacility func(childComplexity int, mflCode string) int
 	}
 
@@ -90,7 +90,7 @@ type ComplexityRoot struct {
 
 type MutationResolver interface {
 	CreateFacility(ctx context.Context, input dto.FacilityInput) (*domain.Facility, error)
-	DeleteFacility(ctx context.Context, id string) (bool, error)
+	DeleteFacility(ctx context.Context, mflCode string) (bool, error)
 	InactivateFacility(ctx context.Context, mflCode string) (bool, error)
 }
 type QueryResolver interface {
@@ -214,7 +214,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.DeleteFacility(childComplexity, args["id"].(string)), true
+		return e.complexity.Mutation.DeleteFacility(childComplexity, args["mflCode"].(string)), true
 
 	case "Mutation.inactivateFacility":
 		if e.complexity.Mutation.InactivateFacility == nil {
@@ -452,7 +452,7 @@ enum SortDataType {
 	{Name: "pkg/mycarehub/presentation/graph/facility.graphql", Input: `
 extend type Mutation {
     createFacility(input: FacilityInput!): Facility!
-    deleteFacility(id: String!): Boolean!
+    deleteFacility(mflCode: String!): Boolean!
     inactivateFacility(mflCode: String!): Boolean!
 }
 
@@ -550,14 +550,14 @@ func (ec *executionContext) field_Mutation_deleteFacility_args(ctx context.Conte
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
-	if tmp, ok := rawArgs["id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+	if tmp, ok := rawArgs["mflCode"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("mflCode"))
 		arg0, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["id"] = arg0
+	args["mflCode"] = arg0
 	return args, nil
 }
 
@@ -1153,7 +1153,7 @@ func (ec *executionContext) _Mutation_deleteFacility(ctx context.Context, field 
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().DeleteFacility(rctx, args["id"].(string))
+		return ec.resolvers.Mutation().DeleteFacility(rctx, args["mflCode"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)

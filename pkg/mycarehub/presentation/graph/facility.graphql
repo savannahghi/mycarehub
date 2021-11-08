@@ -1,7 +1,7 @@
 
 extend type Mutation {
     createFacility(input: FacilityInput!): Facility!
-    deleteFacility(id: String!): Boolean!
+    deleteFacility(mflCode: String!): Boolean!
     inactivateFacility(mflCode: String!): Boolean!
 }
 

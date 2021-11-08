@@ -71,8 +71,8 @@ func (d *MyCareHubDb) RetrieveFacilityByMFLCode(ctx context.Context, MFLCode str
 func (d *MyCareHubDb) ListFacilities(
 	ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationsInput *dto.PaginationsInput) (*domain.FacilityPage, error) {
 	// if user did not provide current page, throw an error
-	if paginationsInput.CurrentPage == 0 {
-		return nil, fmt.Errorf("current page not provided")
+	if err := paginationsInput.Validate(); err != nil {
+		return nil, fmt.Errorf("pagination input validation failed: %v", err)
 	}
 
 	sortOutput := &domain.SortParam{

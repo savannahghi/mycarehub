@@ -17,8 +17,8 @@ import (
 // TODO: Create a helper the checks for all required fields
 // TODO: Make the create method idempotent
 func (d *MyCareHubDb) GetOrCreateFacility(ctx context.Context, facility *dto.FacilityInput) (*domain.Facility, error) {
-	if facility.Code == "" {
-		return nil, fmt.Errorf("`code` should be defined")
+	if err := facility.Validate(); err != nil {
+		return nil, fmt.Errorf("facility input validation failed: %s", err)
 	}
 
 	facilityObj := &gorm.Facility{
