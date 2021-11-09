@@ -10,7 +10,10 @@ import (
 	"time"
 
 	"github.com/brianvoe/gofakeit"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
+	"github.com/segmentio/ksuid"
 )
 
 func TestCreateFacility(t *testing.T) {
@@ -272,15 +275,328 @@ func TestCreateFacility(t *testing.T) {
 
 		})
 	}
-	pg, pgError := gorm.NewPGInstance()
-	if pgError != nil {
-		t.Errorf("can't instantiate test repository: %v", pgError)
+	TearDown(t)
+
+}
+
+func TestInactivateFacility(t *testing.T) {
+
+	ctx := context.Background()
+
+	i, err := InitializeTestService(ctx)
+	if err != nil {
+		t.Errorf("an error occurred: %v", err)
 	}
 
-	// Teardown
-	pgError = pg.DB.Unscoped().Where("mfl_code", mflcode).Delete(&gorm.Facility{}).Error
-	if pgError != nil {
-		t.Errorf("Error deleting facility: %v", pgError)
+	graphQLURL := fmt.Sprintf("%s/%s", baseURL, "graphql")
+
+	headers, err := GetGraphQLHeaders(ctx)
+	if err != nil {
+		t.Errorf("failed to get GraphQL headers: %v", err)
 		return
 	}
+
+	mflcode := ksuid.New().String()
+	facilityName := ksuid.New().String()
+	description := gofakeit.HipsterSentence(10)
+
+	facilityInput := &dto.FacilityInput{
+		Name:        facilityName,
+		Code:        mflcode,
+		Active:      true,
+		County:      enums.CountyTypeBaringo,
+		Description: description,
+	}
+
+	facility, err := i.FacilityUsecase.GetOrCreateFacility(ctx, facilityInput)
+	if err != nil {
+		t.Errorf("an error occurred: %v", err)
+	}
+
+	graphqlMutation := `
+	mutation inactivateFacility($mflCode: String!) {
+		inactivateFacility (mflCode: $mflCode)
+	  }
+	`
+
+	type args struct {
+		query map[string]interface{}
+	}
+
+	tests := []struct {
+		name       string
+		args       args
+		wantStatus int
+		wantErr    bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				query: map[string]interface{}{
+					"query": graphqlMutation,
+					"variables": map[string]interface{}{
+						"mflCode": facility.Code,
+					},
+				},
+			},
+			wantStatus: http.StatusOK,
+			wantErr:    false,
+		},
+		{
+			name: "Sad case - nil MFL Code",
+			args: args{
+				query: map[string]interface{}{
+					"query": graphqlMutation,
+					"variables": map[string]interface{}{
+						"mflCode": nil,
+					},
+				},
+			},
+			wantStatus: http.StatusUnprocessableEntity,
+			wantErr:    true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			body, err := mapToJSONReader(tt.args.query)
+			if err != nil {
+				t.Errorf("unable to get GQL JSON io Reader: %s", err)
+				return
+			}
+
+			r, err := http.NewRequest(
+				http.MethodPost,
+				graphQLURL,
+				body,
+			)
+			if err != nil {
+				t.Errorf("unable to compose request: %s", err)
+				return
+			}
+
+			if r == nil {
+				t.Errorf("nil request")
+				return
+			}
+
+			for k, v := range headers {
+				r.Header.Add(k, v)
+			}
+			client := http.Client{
+				Timeout: time.Second * testHTTPClientTimeout,
+			}
+			resp, err := client.Do(r)
+			if err != nil {
+				t.Errorf("request error: %s", err)
+				return
+			}
+			dataResponse, err := ioutil.ReadAll(resp.Body)
+			if err != nil {
+				t.Errorf("can't read request body: %s", err)
+				return
+			}
+			if dataResponse == nil {
+				t.Errorf("nil response data")
+				return
+			}
+
+			data := map[string]interface{}{}
+			err = json.Unmarshal(dataResponse, &data)
+			if err != nil {
+				t.Errorf("bad data returned")
+				return
+			}
+
+			if tt.wantErr {
+				errMsg, ok := data["errors"]
+				if !ok {
+					t.Errorf("GraphQL error: %s", errMsg)
+					return
+				}
+			}
+
+			if !tt.wantErr {
+				_, ok := data["errors"]
+				if ok {
+					t.Errorf("error not expected")
+					return
+				}
+			}
+			if tt.wantStatus != resp.StatusCode {
+				t.Errorf("Bad status response returned")
+				return
+			}
+
+		})
+	}
+
+	TearDown(t)
+}
+
+func TestReactivateFacility(t *testing.T) {
+	TearDown(t)
+
+	ctx := context.Background()
+
+	i, err := InitializeTestService(ctx)
+	if err != nil {
+		t.Errorf("an error occurred: %v", err)
+	}
+
+	graphQLURL := fmt.Sprintf("%s/%s", baseURL, "graphql")
+
+	headers, err := GetGraphQLHeaders(ctx)
+	if err != nil {
+		t.Errorf("failed to get GraphQL headers: %v", err)
+		return
+	}
+
+	mflcode := ksuid.New().String()
+	facilityName := ksuid.New().String()
+	description := gofakeit.HipsterSentence(10)
+
+	facilityInput := &dto.FacilityInput{
+		Name:        facilityName,
+		Code:        mflcode,
+		Active:      false,
+		County:      enums.CountyTypeBaringo,
+		Description: description,
+	}
+
+	facility, err := i.FacilityUsecase.GetOrCreateFacility(ctx, facilityInput)
+	if err != nil {
+		t.Errorf("an error occurred: %v", err)
+	}
+
+	graphqlMutation := `
+	mutation reactivateFacility($mflCode: String!) {
+		reactivateFacility (mflCode: $mflCode)
+	  }
+	`
+
+	type args struct {
+		query map[string]interface{}
+	}
+
+	tests := []struct {
+		name       string
+		args       args
+		wantStatus int
+		wantErr    bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				query: map[string]interface{}{
+					"query": graphqlMutation,
+					"variables": map[string]interface{}{
+						"mflCode": facility.Code,
+					},
+				},
+			},
+			wantStatus: http.StatusOK,
+			wantErr:    false,
+		},
+		{
+			name: "Sad case - nil MFL Code",
+			args: args{
+				query: map[string]interface{}{
+					"query": graphqlMutation,
+					"variables": map[string]interface{}{
+						"mflCode": nil,
+					},
+				},
+			},
+			wantStatus: http.StatusUnprocessableEntity,
+			wantErr:    true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			body, err := mapToJSONReader(tt.args.query)
+			if err != nil {
+				t.Errorf("unable to get GQL JSON io Reader: %s", err)
+				return
+			}
+
+			r, err := http.NewRequest(
+				http.MethodPost,
+				graphQLURL,
+				body,
+			)
+			if err != nil {
+				t.Errorf("unable to compose request: %s", err)
+				return
+			}
+
+			if r == nil {
+				t.Errorf("nil request")
+				return
+			}
+
+			for k, v := range headers {
+				r.Header.Add(k, v)
+			}
+			client := http.Client{
+				Timeout: time.Second * testHTTPClientTimeout,
+			}
+			resp, err := client.Do(r)
+			if err != nil {
+				t.Errorf("request error: %s", err)
+				return
+			}
+			dataResponse, err := ioutil.ReadAll(resp.Body)
+			if err != nil {
+				t.Errorf("can't read request body: %s", err)
+				return
+			}
+			if dataResponse == nil {
+				t.Errorf("nil response data")
+				return
+			}
+
+			data := map[string]interface{}{}
+			err = json.Unmarshal(dataResponse, &data)
+			if err != nil {
+				t.Errorf("bad data returned")
+				return
+			}
+
+			if tt.wantErr {
+				errMsg, ok := data["errors"]
+				if !ok {
+					t.Errorf("GraphQL error: %s", errMsg)
+					return
+				}
+			}
+
+			if !tt.wantErr {
+				_, ok := data["errors"]
+				if ok {
+					t.Errorf("error not expected")
+					return
+				}
+			}
+			if tt.wantStatus != resp.StatusCode {
+				t.Errorf("Bad status response returned")
+				return
+			}
+
+		})
+	}
+
+	TearDown(t)
+}
+
+func TearDown(t *testing.T) {
+	// Teardown
+	pg, err := gorm.NewPGInstance()
+	if err != nil {
+		return
+	}
+
+	pg.DB.Migrator().DropTable(&gorm.Contact{})
+	pg.DB.Migrator().DropTable(&gorm.PINData{})
+	pg.DB.Migrator().DropTable(&gorm.User{})
+	pg.DB.Migrator().DropTable(&gorm.Facility{})
 }

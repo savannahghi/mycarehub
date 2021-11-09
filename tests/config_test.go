@@ -65,7 +65,7 @@ func TestMain(m *testing.M) {
 		log.Printf("can't instantiate test repository: %v", err)
 	}
 
-	_, err = initializeTestService(ctx)
+	_, err = InitializeTestService(ctx)
 	if err != nil {
 		log.Printf("Error initializing test service: %v", err)
 	}
@@ -136,7 +136,7 @@ func GetBearerTokenHeader(ctx context.Context) (string, error) {
 	return fmt.Sprintf("Bearer %s", idTokens.IDToken), nil
 }
 
-func initializeTestService(ctx context.Context) (*interactor.Interactor, error) {
+func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) {
 	fc := &firebasetools.FirebaseClient{}
 	_, err := fc.InitFirebase()
 	if err != nil {
