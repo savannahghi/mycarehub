@@ -2,6 +2,7 @@
 extend type Mutation {
     createFacility(input: FacilityInput!): Facility!
     deleteFacility(mflCode: String!): Boolean!
+    reactivateFacility(mflCode: String!): Boolean!
     inactivateFacility(mflCode: String!): Boolean!
 }
 

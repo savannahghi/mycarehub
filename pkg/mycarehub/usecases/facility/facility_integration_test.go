@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/brianvoe/gofakeit"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	externalExtension "github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
@@ -744,6 +745,8 @@ func TestUseCaseFacilityImpl_ListFacilities(t *testing.T) {
 		t.Errorf("unable to delete facility")
 		return
 	}
+
+	TearDown(t)
 }
 
 func TestUseCaseFacilityImpl_Inactivate_Integration_test(t *testing.T) {
@@ -809,11 +812,86 @@ func TestUseCaseFacilityImpl_Inactivate_Integration_test(t *testing.T) {
 
 		})
 	}
+
+	TearDown(t)
+}
+
+func TestUseCaseFacilityImpl_Reactivate_Integration_test(t *testing.T) {
+	ctx := context.Background()
+
+	i := InitializeTestService(ctx)
+
+	facilityInput := &dto.FacilityInput{
+		Name:        gofakeit.Name(),
+		Code:        ksuid.New().String(),
+		Active:      false,
+		County:      enums.CountyTypeNairobi,
+		Description: "This is just for testing",
+	}
+
+	// Setup, create a facility
+	facility, err := i.FacilityUsecase.GetOrCreateFacility(ctx, facilityInput)
+	if err != nil {
+		t.Errorf("failed to create new facility: %v", err)
+		return
+	}
+
+	type args struct {
+		ctx     context.Context
+		mflCode *string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy Case",
+			args: args{
+				ctx:     ctx,
+				mflCode: &facility.Code,
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Sad Case - empty mflCode",
+			args: args{
+				ctx:     ctx,
+				mflCode: nil,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			got, err := i.FacilityUsecase.ReactivateFacility(tt.args.ctx, tt.args.mflCode)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCaseFacilityImpl.ReactivateFacility() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			if got != tt.want {
+				t.Errorf("PGInstance.ReactivateFacility() = %v, want %v", got, tt.want)
+			}
+
+		})
+	}
+
+	TearDown(t)
+}
+
+func TearDown(t *testing.T) {
 	// Teardown
 	pg, err := gorm.NewPGInstance()
 	if err != nil {
 		return
 	}
 
+	pg.DB.Migrator().DropTable(&gorm.Contact{})
+	pg.DB.Migrator().DropTable(&gorm.PINData{})
+	pg.DB.Migrator().DropTable(&gorm.User{})
 	pg.DB.Migrator().DropTable(&gorm.Facility{})
 }
