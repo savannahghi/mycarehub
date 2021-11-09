@@ -102,16 +102,6 @@ func TestFacilityInput_Validate(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "invalid: missing Active",
-			fields: fields{
-				Name:        "test name",
-				Code:        "22344",
-				County:      enums.CountyTypeNairobi,
-				Description: "test description",
-			},
-			wantErr: true,
-		},
-		{
 			name: "invalid: missing county",
 			fields: fields{
 				Name:        "test name",

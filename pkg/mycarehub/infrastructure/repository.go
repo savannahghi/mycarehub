@@ -32,4 +32,5 @@ type Query interface {
 // Update represents all the update action interfaces
 type Update interface {
 	InactivateFacility(ctx context.Context, mflCode *string) (bool, error)
+	ReactivateFacility(ctx context.Context, mflCode *string) (bool, error)
 }

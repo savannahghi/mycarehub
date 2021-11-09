@@ -48,7 +48,7 @@ type IFacilityInactivate interface {
 
 // IFacilityReactivate contains the method to re-activate a facility
 type IFacilityReactivate interface {
-	//Reactivate(id string) (*domain.Facility, error)
+	ReactivateFacility(ctx context.Context, mflCode *string) (bool, error)
 }
 
 // IFacilityList contains the method to list of facilities
@@ -110,9 +110,9 @@ func (f *UseCaseFacilityImpl) InactivateFacility(ctx context.Context, mflCode *s
 	return f.Update.InactivateFacility(ctx, mflCode)
 }
 
-// Reactivate activates the inactivated health facility
-func (f *UseCaseFacilityImpl) Reactivate(id string) (*domain.Facility, error) {
-	return nil, nil
+// ReactivateFacility activates the inactivated health facility
+func (f *UseCaseFacilityImpl) ReactivateFacility(ctx context.Context, mflCode *string) (bool, error) {
+	return f.Update.ReactivateFacility(ctx, mflCode)
 }
 
 // // List returns a list if health facility

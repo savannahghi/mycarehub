@@ -15,7 +15,7 @@ import (
 
 func createTestFacility() *gorm.Facility {
 	ID := uuid.New().String()
-	name := gofakeit.Name()
+	name := ksuid.New().String()
 	code := uuid.New().String()
 	county := enums.CountyTypeNairobi
 	description := gofakeit.HipsterSentence(15)

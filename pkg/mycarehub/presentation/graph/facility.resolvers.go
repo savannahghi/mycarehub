@@ -21,6 +21,11 @@ func (r *mutationResolver) DeleteFacility(ctx context.Context, mflCode string) (
 	return r.interactor.FacilityUsecase.DeleteFacility(ctx, mflCode)
 }
 
+func (r *mutationResolver) ReactivateFacility(ctx context.Context, mflCode string) (bool, error) {
+	r.checkPreconditions()
+	return r.interactor.FacilityUsecase.ReactivateFacility(ctx, &mflCode)
+}
+
 func (r *mutationResolver) InactivateFacility(ctx context.Context, mflCode string) (bool, error) {
 	r.checkPreconditions()
 	return r.interactor.FacilityUsecase.InactivateFacility(ctx, &mflCode)
