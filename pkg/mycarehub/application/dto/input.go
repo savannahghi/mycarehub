@@ -8,11 +8,11 @@ import (
 
 // FacilityInput describes the facility input
 type FacilityInput struct {
-	Name        string           `json:"name" validate:"required,min=3,max=100"`
-	Code        string           `json:"code" validate:"required"`
-	Active      bool             `json:"active"`
-	County      enums.CountyType `json:"county" validate:"required"`
-	Description string           `json:"description" validate:"required,min=3,max=256"`
+	Name        string `json:"name" validate:"required,min=3,max=100"`
+	Code        int    `json:"code" validate:"required"`
+	Active      bool   `json:"active"`
+	County      string `json:"county" validate:"required"`
+	Description string `json:"description" validate:"required,min=3,max=256"`
 }
 
 // Validate helps with validation of facility input fields

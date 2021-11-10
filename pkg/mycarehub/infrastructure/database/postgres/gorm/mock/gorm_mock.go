@@ -2,13 +2,11 @@ package mock
 
 import (
 	"context"
-	"strconv"
 	"time"
 
 	"github.com/brianvoe/gofakeit"
 	"github.com/google/uuid"
 	"github.com/savannahghi/feedlib"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
 )
@@ -17,14 +15,14 @@ import (
 type GormMock struct {
 	MockGetOrCreateFacilityFn         func(ctx context.Context, facility *gorm.Facility) (*gorm.Facility, error)
 	MockRetrieveFacilityFn            func(ctx context.Context, id *string, isActive bool) (*gorm.Facility, error)
-	MockRetrieveFacilityByMFLCodeFn   func(ctx context.Context, MFLCode string, isActive bool) (*gorm.Facility, error)
+	MockRetrieveFacilityByMFLCodeFn   func(ctx context.Context, MFLCode int, isActive bool) (*gorm.Facility, error)
 	MockGetFacilitiesFn               func(ctx context.Context) ([]gorm.Facility, error)
-	MockDeleteFacilityFn              func(ctx context.Context, mfl_code string) (bool, error)
+	MockDeleteFacilityFn              func(ctx context.Context, mflCode int) (bool, error)
 	MockListFacilitiesFn              func(ctx context.Context, searchTerm *string, filter []*domain.FiltersParam, pagination *domain.FacilityPage) (*domain.FacilityPage, error)
 	MockGetUserProfileByPhoneNumberFn func(ctx context.Context, phoneNumber string) (*gorm.User, error)
 	MockGetUserPINByUserIDFn          func(ctx context.Context, userID string) (*gorm.PINData, error)
-	MockInactivateFacilityFn          func(ctx context.Context, mflCode *string) (bool, error)
-	MockReactivateFacilityFn          func(ctx context.Context, mflCode *string) (bool, error)
+	MockInactivateFacilityFn          func(ctx context.Context, mflCode *int) (bool, error)
+	MockReactivateFacilityFn          func(ctx context.Context, mflCode *int) (bool, error)
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -38,15 +36,15 @@ func NewGormMock() *GormMock {
 
 	ID := uuid.New().String()
 	name := gofakeit.Name()
-	code := "KN001"
-	county := enums.CountyTypeNairobi
+	code := gofakeit.Number(0, 100)
+	county := "Nairobi"
 	description := gofakeit.HipsterSentence(15)
 
 	facility := &gorm.Facility{
 		FacilityID:  &ID,
 		Name:        name,
 		Code:        code,
-		Active:      strconv.FormatBool(true),
+		Active:      true,
 		County:      county,
 		Description: description,
 	}
@@ -100,11 +98,11 @@ func NewGormMock() *GormMock {
 			return facilities, nil
 		},
 
-		MockDeleteFacilityFn: func(ctx context.Context, mfl_code string) (bool, error) {
+		MockDeleteFacilityFn: func(ctx context.Context, mflCode int) (bool, error) {
 			return true, nil
 		},
 
-		MockRetrieveFacilityByMFLCodeFn: func(ctx context.Context, MFLCode string, isActive bool) (*gorm.Facility, error) {
+		MockRetrieveFacilityByMFLCodeFn: func(ctx context.Context, MFLCode int, isActive bool) (*gorm.Facility, error) {
 			return facility, nil
 		},
 		MockListFacilitiesFn: func(ctx context.Context, searchTerm *string, filter []*domain.FiltersParam, pagination *domain.FacilityPage) (*domain.FacilityPage, error) {
@@ -122,10 +120,10 @@ func NewGormMock() *GormMock {
 			return pinData, nil
 		},
 
-		MockInactivateFacilityFn: func(ctx context.Context, mflCode *string) (bool, error) {
+		MockInactivateFacilityFn: func(ctx context.Context, mflCode *int) (bool, error) {
 			return true, nil
 		},
-		MockReactivateFacilityFn: func(ctx context.Context, mflCode *string) (bool, error) {
+		MockReactivateFacilityFn: func(ctx context.Context, mflCode *int) (bool, error) {
 			return true, nil
 		},
 	}
@@ -142,7 +140,7 @@ func (gm *GormMock) RetrieveFacility(ctx context.Context, id *string, isActive b
 }
 
 // RetrieveFacilityByMFLCode mocks the implementation of `gorm's` RetrieveFacility method.
-func (gm *GormMock) RetrieveFacilityByMFLCode(ctx context.Context, MFLCode string, isActive bool) (*gorm.Facility, error) {
+func (gm *GormMock) RetrieveFacilityByMFLCode(ctx context.Context, MFLCode int, isActive bool) (*gorm.Facility, error) {
 	return gm.MockRetrieveFacilityByMFLCodeFn(ctx, MFLCode, isActive)
 }
 
@@ -152,7 +150,7 @@ func (gm *GormMock) GetFacilities(ctx context.Context) ([]gorm.Facility, error) 
 }
 
 // DeleteFacility mocks the implementation of  DeleteFacility method.
-func (gm *GormMock) DeleteFacility(ctx context.Context, mflcode string) (bool, error) {
+func (gm *GormMock) DeleteFacility(ctx context.Context, mflcode int) (bool, error) {
 	return gm.MockDeleteFacilityFn(ctx, mflcode)
 }
 
@@ -172,11 +170,11 @@ func (gm *GormMock) GetUserPINByUserID(ctx context.Context, userID string) (*gor
 }
 
 // InactivateFacility mocks the implementation of inactivating the active status of a particular facility
-func (gm *GormMock) InactivateFacility(ctx context.Context, mflCode *string) (bool, error) {
+func (gm *GormMock) InactivateFacility(ctx context.Context, mflCode *int) (bool, error) {
 	return gm.MockInactivateFacilityFn(ctx, mflCode)
 }
 
 // ReactivateFacility mocks the implementation of re-activating the active status of a particular facility
-func (gm *GormMock) ReactivateFacility(ctx context.Context, mflCode *string) (bool, error) {
+func (gm *GormMock) ReactivateFacility(ctx context.Context, mflCode *int) (bool, error) {
 	return gm.MockReactivateFacilityFn(ctx, mflCode)
 }

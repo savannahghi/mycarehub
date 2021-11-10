@@ -3,7 +3,6 @@ package gorm
 import (
 	"context"
 	"fmt"
-	"strconv"
 
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
@@ -12,7 +11,7 @@ import (
 // Query contains all the db query methods
 type Query interface {
 	RetrieveFacility(ctx context.Context, id *string, isActive bool) (*Facility, error)
-	RetrieveFacilityByMFLCode(ctx context.Context, MFLCode string, isActive bool) (*Facility, error)
+	RetrieveFacilityByMFLCode(ctx context.Context, MFLCode int, isActive bool) (*Facility, error)
 	GetFacilities(ctx context.Context) ([]Facility, error)
 	ListFacilities(ctx context.Context, searchTerm *string, filter []*domain.FiltersParam, pagination *domain.FacilityPage) (*domain.FacilityPage, error)
 	GetUserProfileByPhoneNumber(ctx context.Context, phoneNumber string) (*User, error)
@@ -22,8 +21,7 @@ type Query interface {
 // RetrieveFacility fetches a single facility
 func (db *PGInstance) RetrieveFacility(ctx context.Context, id *string, isActive bool) (*Facility, error) {
 	var facility Facility
-	active := strconv.FormatBool(isActive)
-	err := db.DB.Where(&Facility{FacilityID: id, Active: active}).First(&facility).Error
+	err := db.DB.Where(&Facility{FacilityID: id, Active: isActive}).First(&facility).Error
 	if err != nil {
 		return nil, fmt.Errorf("failed to get facility by ID %v: %v", id, err)
 	}
@@ -31,11 +29,10 @@ func (db *PGInstance) RetrieveFacility(ctx context.Context, id *string, isActive
 }
 
 // RetrieveFacilityByMFLCode fetches a single facility using MFL Code
-func (db *PGInstance) RetrieveFacilityByMFLCode(ctx context.Context, MFLCode string, isActive bool) (*Facility, error) {
+func (db *PGInstance) RetrieveFacilityByMFLCode(ctx context.Context, MFLCode int, isActive bool) (*Facility, error) {
 	var facility Facility
-	active := strconv.FormatBool(isActive)
-	if err := db.DB.Where(&Facility{Code: MFLCode, Active: active}).First(&facility).Error; err != nil {
-		return nil, fmt.Errorf("failed to get facility by MFL Code %v and status %v: %v", MFLCode, active, err)
+	if err := db.DB.Where(&Facility{Code: MFLCode, Active: isActive}).First(&facility).Error; err != nil {
+		return nil, fmt.Errorf("failed to get facility by MFL Code %v and status %v: %v", MFLCode, isActive, err)
 	}
 	return &facility, nil
 }
@@ -99,8 +96,8 @@ func (db *PGInstance) ListFacilities(
 	}
 
 	tx.Where(
-		"name ~* ? OR  mfl_code ~* ? OR county ~* ? OR description ~* ?",
-		*searchTerm, *searchTerm, *searchTerm, *searchTerm,
+		"name ~* ? OR county ~* ? OR description ~* ?",
+		*searchTerm, *searchTerm, *searchTerm,
 	).Where(mappedFilterParams).Find(&facilities).Find(&facilities)
 
 	resultCount = int64(len(facilities))
@@ -108,8 +105,8 @@ func (db *PGInstance) ListFacilities(
 	tx.Scopes(
 		paginate(facilities, &paginatedFacilities.Pagination, resultCount, db.DB),
 	).Where(
-		"name ~* ? OR  mfl_code ~* ? OR county ~* ? OR description ~* ?",
-		*searchTerm, *searchTerm, *searchTerm, *searchTerm,
+		"name ~* ?  OR county ~* ? OR description ~* ?",
+		*searchTerm, *searchTerm, *searchTerm,
 	).Where(mappedFilterParams).Find(&facilities)
 
 	if err := tx.Commit().Error; err != nil {
@@ -118,15 +115,11 @@ func (db *PGInstance) ListFacilities(
 	}
 
 	for _, f := range facilities {
-		active, err := strconv.ParseBool(f.Active)
-		if err != nil {
-			return nil, fmt.Errorf("failed to format %s to bool: %v", f.Active, err)
-		}
 		facility := domain.Facility{
 			ID:          f.FacilityID,
 			Name:        f.Name,
 			Code:        f.Code,
-			Active:      active,
+			Active:      f.Active,
 			County:      f.County,
 			Description: f.Description,
 		}

@@ -7,7 +7,6 @@ import (
 	"github.com/brianvoe/gofakeit"
 	"github.com/google/uuid"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 )
 
@@ -18,12 +17,12 @@ type PostgresMock struct {
 	MockGetFacilitiesFn               func(ctx context.Context) ([]*domain.Facility, error)
 	MockRetrieveFacilityFn            func(ctx context.Context, id *string, isActive bool) (*domain.Facility, error)
 	ListFacilitiesFn                  func(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationsInput *dto.PaginationsInput) (*domain.FacilityPage, error)
-	MockDeleteFacilityFn              func(ctx context.Context, id string) (bool, error)
-	MockRetrieveFacilityByMFLCodeFn   func(ctx context.Context, MFLCode string, isActive bool) (*domain.Facility, error)
+	MockDeleteFacilityFn              func(ctx context.Context, id int) (bool, error)
+	MockRetrieveFacilityByMFLCodeFn   func(ctx context.Context, MFLCode int, isActive bool) (*domain.Facility, error)
 	MockGetUserProfileByPhoneNumberFn func(ctx context.Context, phoneNumber string) (*domain.User, error)
 	MockGetUserPINByUserIDFn          func(ctx context.Context, userID string) (*domain.UserPIN, error)
-	MockInactivateFacilityFn          func(ctx context.Context, mflCode *string) (bool, error)
-	MockReactivateFacilityFn          func(ctx context.Context, mflCode *string) (bool, error)
+	MockInactivateFacilityFn          func(ctx context.Context, mflCode *int) (bool, error)
+	MockReactivateFacilityFn          func(ctx context.Context, mflCode *int) (bool, error)
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -31,8 +30,8 @@ func NewPostgresMock() *PostgresMock {
 	ID := uuid.New().String()
 
 	name := gofakeit.Name()
-	code := "KN001"
-	county := enums.CountyTypeNairobi
+	code := gofakeit.Number(0, 100)
+	county := "Nairobi"
 	description := gofakeit.HipsterSentence(15)
 
 	facilityInput := &domain.Facility{
@@ -82,10 +81,10 @@ func NewPostgresMock() *PostgresMock {
 		ListFacilitiesFn: func(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationsInput *dto.PaginationsInput) (*domain.FacilityPage, error) {
 			return facilitiesPage, nil
 		},
-		MockDeleteFacilityFn: func(ctx context.Context, id string) (bool, error) {
+		MockDeleteFacilityFn: func(ctx context.Context, id int) (bool, error) {
 			return true, nil
 		},
-		MockRetrieveFacilityByMFLCodeFn: func(ctx context.Context, MFLCode string, isActive bool) (*domain.Facility, error) {
+		MockRetrieveFacilityByMFLCodeFn: func(ctx context.Context, MFLCode int, isActive bool) (*domain.Facility, error) {
 			return facilityInput, nil
 		},
 		MockGetUserPINByUserIDFn: func(ctx context.Context, userID string) (*domain.UserPIN, error) {
@@ -99,10 +98,10 @@ func NewPostgresMock() *PostgresMock {
 				ID: &id,
 			}, nil
 		},
-		MockInactivateFacilityFn: func(ctx context.Context, mflCode *string) (bool, error) {
+		MockInactivateFacilityFn: func(ctx context.Context, mflCode *int) (bool, error) {
 			return true, nil
 		},
-		MockReactivateFacilityFn: func(ctx context.Context, mflCode *string) (bool, error) {
+		MockReactivateFacilityFn: func(ctx context.Context, mflCode *int) (bool, error) {
 			return true, nil
 		},
 	}
@@ -134,12 +133,12 @@ func (gm *PostgresMock) GetFacilities(ctx context.Context) ([]*domain.Facility, 
 }
 
 // DeleteFacility mocks the implementation of deleting a facility by ID
-func (gm *PostgresMock) DeleteFacility(ctx context.Context, id string) (bool, error) {
+func (gm *PostgresMock) DeleteFacility(ctx context.Context, id int) (bool, error) {
 	return gm.MockDeleteFacilityFn(ctx, id)
 }
 
 // RetrieveFacilityByMFLCode mocks the implementation of `gorm's` RetrieveFacilityByMFLCode method.
-func (gm *PostgresMock) RetrieveFacilityByMFLCode(ctx context.Context, MFLCode string, isActive bool) (*domain.Facility, error) {
+func (gm *PostgresMock) RetrieveFacilityByMFLCode(ctx context.Context, MFLCode int, isActive bool) (*domain.Facility, error) {
 	return gm.MockRetrieveFacilityByMFLCodeFn(ctx, MFLCode, isActive)
 }
 
@@ -154,11 +153,11 @@ func (gm *PostgresMock) GetUserPINByUserID(ctx context.Context, userID string) (
 }
 
 // InactivateFacility mocks the implementation of inactivating the active status of a particular facility
-func (gm *PostgresMock) InactivateFacility(ctx context.Context, mflCode *string) (bool, error) {
+func (gm *PostgresMock) InactivateFacility(ctx context.Context, mflCode *int) (bool, error) {
 	return gm.MockInactivateFacilityFn(ctx, mflCode)
 }
 
 // ReactivateFacility mocks the implementation of re-activating the active status of a particular facility
-func (gm *PostgresMock) ReactivateFacility(ctx context.Context, mflCode *string) (bool, error) {
+func (gm *PostgresMock) ReactivateFacility(ctx context.Context, mflCode *int) (bool, error) {
 	return gm.MockReactivateFacilityFn(ctx, mflCode)
 }

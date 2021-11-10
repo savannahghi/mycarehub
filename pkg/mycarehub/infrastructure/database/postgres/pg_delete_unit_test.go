@@ -7,7 +7,6 @@ import (
 
 	"github.com/brianvoe/gofakeit"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	gormMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm/mock"
 )
 
@@ -18,8 +17,8 @@ func TestMyCareHubDb_DeleteFacility_Unittest(t *testing.T) {
 	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
 
 	name := gofakeit.Name()
-	code := "KN001"
-	county := enums.CountyTypeNairobi
+	code := gofakeit.Number(0, 100)
+	county := "Nairobi"
 	description := gofakeit.HipsterSentence(15)
 
 	facilityInput := &dto.FacilityInput{
@@ -40,7 +39,7 @@ func TestMyCareHubDb_DeleteFacility_Unittest(t *testing.T) {
 
 	type args struct {
 		ctx context.Context
-		id  string
+		id  int
 	}
 	tests := []struct {
 		name    string
@@ -62,7 +61,7 @@ func TestMyCareHubDb_DeleteFacility_Unittest(t *testing.T) {
 			name: "Sad case",
 			args: args{
 				ctx: ctx,
-				id:  "mflcode",
+				id:  6789,
 			},
 			want:    true,
 			wantErr: false,
@@ -72,7 +71,7 @@ func TestMyCareHubDb_DeleteFacility_Unittest(t *testing.T) {
 			name: "Sad case - empty MFL Code",
 			args: args{
 				ctx: ctx,
-				id:  "",
+				id:  0,
 			},
 			want:    false,
 			wantErr: true,
@@ -84,19 +83,19 @@ func TestMyCareHubDb_DeleteFacility_Unittest(t *testing.T) {
 			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
 
 			if tt.name == "Happy case" {
-				fakeGorm.MockDeleteFacilityFn = func(ctx context.Context, mfl_code string) (bool, error) {
+				fakeGorm.MockDeleteFacilityFn = func(ctx context.Context, mflCode int) (bool, error) {
 					return true, nil
 				}
 			}
 
 			if tt.name == "Sad case" {
-				fakeGorm.MockDeleteFacilityFn = func(ctx context.Context, mfl_code string) (bool, error) {
+				fakeGorm.MockDeleteFacilityFn = func(ctx context.Context, mflCode int) (bool, error) {
 					return false, nil
 				}
 			}
 
 			if tt.name == "Sad case - empty MFL Code" {
-				fakeGorm.MockDeleteFacilityFn = func(ctx context.Context, mfl_code string) (bool, error) {
+				fakeGorm.MockDeleteFacilityFn = func(ctx context.Context, mflCode int) (bool, error) {
 					return false, fmt.Errorf("an error occurred while deleting")
 				}
 			}

@@ -7,7 +7,6 @@ import (
 
 	"github.com/brianvoe/gofakeit"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
 	gormMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm/mock"
@@ -17,8 +16,8 @@ func TestMyCareHubDb_GetOrCreateFacility(t *testing.T) {
 	ctx := context.Background()
 
 	name := gofakeit.Name()
-	code := "KN001"
-	county := enums.CountyTypeNairobi
+	code := gofakeit.Number(0, 100)
+	county := "Nairobi"
 	description := gofakeit.HipsterSentence(15)
 
 	facility := &dto.FacilityInput{

@@ -1,7 +1,5 @@
 package domain
 
-import "github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
-
 // Facility models the details of healthcare facilities that are on the platform.
 //
 // e.g CCC clinics, Pharmacies.
@@ -13,10 +11,10 @@ type Facility struct {
 	Name string `json:"name"`
 
 	// MFL Code for Kenyan facilities, globally unique
-	Code        string           `json:"code"`
-	Active      bool             `json:"active"`
-	County      enums.CountyType `json:"county"` // TODO: Controlled list of counties
-	Description string           `json:"description"`
+	Code        int    `json:"code"`
+	Active      bool   `json:"active"`
+	County      string `json:"county"` // TODO: Controlled list of counties
+	Description string `json:"description"`
 }
 
 //FacilityPage returns a list of paginates facilities

@@ -3,7 +3,6 @@ package postgres
 import (
 	"context"
 	"fmt"
-	"strconv"
 
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
@@ -21,15 +20,11 @@ func (d *MyCareHubDb) GetFacilities(ctx context.Context) ([]*domain.Facility, er
 		return facility, nil
 	}
 	for _, m := range facilities {
-		active, err := strconv.ParseBool(m.Active)
-		if err != nil {
-			return nil, fmt.Errorf("failed to parse facility.Active to boolean")
-		}
 		singleFacility := domain.Facility{
 			ID:          m.FacilityID,
 			Name:        m.Name,
 			Code:        m.Code,
-			Active:      active,
+			Active:      m.Active,
 			County:      m.County,
 			Description: m.Description,
 		}
@@ -54,8 +49,8 @@ func (d *MyCareHubDb) RetrieveFacility(ctx context.Context, id *string, isActive
 }
 
 // RetrieveFacilityByMFLCode gets a facility by ID from the database
-func (d *MyCareHubDb) RetrieveFacilityByMFLCode(ctx context.Context, MFLCode string, isActive bool) (*domain.Facility, error) {
-	if MFLCode == "" {
+func (d *MyCareHubDb) RetrieveFacilityByMFLCode(ctx context.Context, MFLCode int, isActive bool) (*domain.Facility, error) {
+	if MFLCode == 0 {
 		return nil, fmt.Errorf("facility ID should be defined")
 	}
 	facilitySession, err := d.query.RetrieveFacilityByMFLCode(ctx, MFLCode, isActive)

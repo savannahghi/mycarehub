@@ -16,17 +16,17 @@ func (r *mutationResolver) CreateFacility(ctx context.Context, input dto.Facilit
 	return r.interactor.FacilityUsecase.GetOrCreateFacility(ctx, &input)
 }
 
-func (r *mutationResolver) DeleteFacility(ctx context.Context, mflCode string) (bool, error) {
+func (r *mutationResolver) DeleteFacility(ctx context.Context, mflCode int) (bool, error) {
 	r.checkPreconditions()
 	return r.interactor.FacilityUsecase.DeleteFacility(ctx, mflCode)
 }
 
-func (r *mutationResolver) ReactivateFacility(ctx context.Context, mflCode string) (bool, error) {
+func (r *mutationResolver) ReactivateFacility(ctx context.Context, mflCode int) (bool, error) {
 	r.checkPreconditions()
 	return r.interactor.FacilityUsecase.ReactivateFacility(ctx, &mflCode)
 }
 
-func (r *mutationResolver) InactivateFacility(ctx context.Context, mflCode string) (bool, error) {
+func (r *mutationResolver) InactivateFacility(ctx context.Context, mflCode int) (bool, error) {
 	r.checkPreconditions()
 	return r.interactor.FacilityUsecase.InactivateFacility(ctx, &mflCode)
 }
@@ -41,7 +41,7 @@ func (r *queryResolver) RetrieveFacility(ctx context.Context, id string, active 
 	return r.interactor.FacilityUsecase.RetrieveFacility(ctx, &id, active)
 }
 
-func (r *queryResolver) RetrieveFacilityByMFLCode(ctx context.Context, mflCode string, isActive bool) (*domain.Facility, error) {
+func (r *queryResolver) RetrieveFacilityByMFLCode(ctx context.Context, mflCode int, isActive bool) (*domain.Facility, error) {
 	r.checkPreconditions()
 	return r.interactor.FacilityUsecase.RetrieveFacilityByMFLCode(ctx, mflCode, isActive)
 }

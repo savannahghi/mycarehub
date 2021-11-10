@@ -2,10 +2,10 @@ package facility_test
 
 import (
 	"context"
+	"math/rand"
 	"strconv"
 	"testing"
 
-	"github.com/brianvoe/gofakeit"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	externalExtension "github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
@@ -41,10 +41,9 @@ func InitializeTestService(ctx context.Context) *interactor.Interactor {
 func TestUseCaseFacilityImpl_CreateFacility(t *testing.T) {
 
 	ctx := context.Background()
-	name := "test facility"
-	code := ksuid.New().String()
-	code2 := ksuid.New().String()
-	county := enums.CountyTypeNairobi
+	name := ksuid.New().String()
+	code := rand.Intn(1000000)
+	county := "Nairobi"
 	description := "This is just for testing"
 
 	i := InitializeTestService(ctx)
@@ -73,7 +72,6 @@ func TestUseCaseFacilityImpl_CreateFacility(t *testing.T) {
 			},
 			wantErr: false,
 		},
-
 		{
 			name: "happy case - idempotent, should not error when saving again",
 			args: args{
@@ -89,26 +87,12 @@ func TestUseCaseFacilityImpl_CreateFacility(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "invalid - duplicate name",
-			args: args{
-				ctx: ctx,
-				facility: &dto.FacilityInput{
-					Name:        name,
-					Code:        code2,
-					Active:      true,
-					County:      county,
-					Description: description,
-				},
-			},
-			wantErr: true,
-		},
-		{
 			name: "sad case - facility code not defined",
 			args: args{
 				ctx: ctx,
 				facility: &dto.FacilityInput{
 					Name:        name,
-					Code:        "",
+					Code:        0,
 					Active:      true,
 					County:      county,
 					Description: description,
@@ -119,7 +103,6 @@ func TestUseCaseFacilityImpl_CreateFacility(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-
 			got, err := i.FacilityUsecase.GetOrCreateFacility(tt.args.ctx, tt.args.facility)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCaseFacilityImpl.GetOrCreateFacility() error = %v, wantErr %v", err, tt.wantErr)
@@ -137,14 +120,12 @@ func TestUseCaseFacilityImpl_CreateFacility(t *testing.T) {
 			}
 		})
 	}
-	// Teardown
-	pg, err := gorm.NewPGInstance()
+
+	_, err := i.FacilityUsecase.DeleteFacility(ctx, code)
 	if err != nil {
+		t.Errorf("unable to delete facility")
 		return
 	}
-
-	pg.DB.Migrator().DropTable(&gorm.Facility{})
-
 }
 
 func TestUseCaseFacilityImpl_RetrieveFacility_Integration(t *testing.T) {
@@ -152,13 +133,13 @@ func TestUseCaseFacilityImpl_RetrieveFacility_Integration(t *testing.T) {
 
 	i := InitializeTestService(ctx)
 
-	Code := "KN002"
+	Code := rand.Intn(1000000)
 
 	facilityInput := &dto.FacilityInput{
-		Name:        "test Kanairo facility",
+		Name:        ksuid.New().String(),
 		Code:        Code,
 		Active:      true,
-		County:      enums.CountyTypeNairobi,
+		County:      "Nairobi",
 		Description: "This is just for mocking",
 	}
 
@@ -219,13 +200,11 @@ func TestUseCaseFacilityImpl_RetrieveFacility_Integration(t *testing.T) {
 		})
 	}
 
-	// teardown
-	pg, err := gorm.NewPGInstance()
+	_, err = i.FacilityUsecase.DeleteFacility(ctx, facility.Code)
 	if err != nil {
+		t.Errorf("unable to delete facility")
 		return
 	}
-
-	pg.DB.Migrator().DropTable(&gorm.Facility{})
 }
 
 func TestUseCaseFacilityImpl_DeleteFacility_Integrationtest(t *testing.T) {
@@ -235,9 +214,9 @@ func TestUseCaseFacilityImpl_DeleteFacility_Integrationtest(t *testing.T) {
 
 	//Create facility
 	facilityInput := &dto.FacilityInput{
-		Name:        "Kanairo One",
-		Code:        ksuid.New().String(),
-		County:      enums.CountyTypeNairobi,
+		Name:        ksuid.New().String(),
+		Code:        rand.Intn(1000000),
+		County:      "Nairobi",
 		Active:      true,
 		Description: "This is just for integration testing",
 	}
@@ -254,7 +233,7 @@ func TestUseCaseFacilityImpl_DeleteFacility_Integrationtest(t *testing.T) {
 
 	type args struct {
 		ctx context.Context
-		id  string
+		id  int
 	}
 	tests := []struct {
 		name    string
@@ -265,7 +244,7 @@ func TestUseCaseFacilityImpl_DeleteFacility_Integrationtest(t *testing.T) {
 			name: "Happy case",
 			args: args{
 				ctx: ctx,
-				id:  *facility1.ID,
+				id:  facility.Code,
 			},
 			wantErr: false,
 		},
@@ -273,7 +252,7 @@ func TestUseCaseFacilityImpl_DeleteFacility_Integrationtest(t *testing.T) {
 			name: "Sad case - bad id",
 			args: args{
 				ctx: ctx,
-				id:  ksuid.New().String(),
+				id:  8888,
 			},
 			wantErr: false,
 		},
@@ -281,7 +260,7 @@ func TestUseCaseFacilityImpl_DeleteFacility_Integrationtest(t *testing.T) {
 			name: "Sad case - empty id",
 			args: args{
 				ctx: ctx,
-				id:  "",
+				id:  0,
 			},
 			wantErr: true,
 		},
@@ -302,11 +281,12 @@ func TestUseCaseFacilityImpl_RetrieveFacilityByMFLCode_Integration(t *testing.T)
 
 	i := InitializeTestService(ctx)
 
+	code := rand.Intn(1000000)
 	facilityInput := &dto.FacilityInput{
-		Name:        "test facility name 22",
-		Code:        "KN001",
+		Name:        ksuid.New().String(),
+		Code:        code,
 		Active:      true,
-		County:      enums.CountyTypeNairobi,
+		County:      "Nairobi",
 		Description: "This is just for mocking",
 	}
 
@@ -318,11 +298,11 @@ func TestUseCaseFacilityImpl_RetrieveFacilityByMFLCode_Integration(t *testing.T)
 
 	mflCode := facility.Code
 
-	invalidMFLCode := ksuid.New().String()
+	invalidMFLCode := 999999
 
 	type args struct {
 		ctx      context.Context
-		MFLCode  string
+		MFLCode  int
 		isActive bool
 	}
 	tests := []struct {
@@ -368,13 +348,12 @@ func TestUseCaseFacilityImpl_RetrieveFacilityByMFLCode_Integration(t *testing.T)
 			}
 		})
 	}
-	// Teardown
-	pg, err := gorm.NewPGInstance()
+
+	_, err = i.FacilityUsecase.DeleteFacility(ctx, facility.Code)
 	if err != nil {
+		t.Errorf("unable to delete facility")
 		return
 	}
-
-	pg.DB.Migrator().DropTable(&gorm.Facility{})
 }
 
 func TestUseCaseFacilityImpl_ListFacilities(t *testing.T) {
@@ -382,22 +361,23 @@ func TestUseCaseFacilityImpl_ListFacilities(t *testing.T) {
 
 	f := InitializeTestService(ctx)
 
-	code := ksuid.New().String()
-	code2 := ksuid.New().String()
+	code := rand.Intn(1000000)
+	code2 := rand.Intn(1000000)
+	name := ksuid.New().String()
 
 	facilityInput := &dto.FacilityInput{
-		Name:        "Kanairo One",
+		Name:        name,
 		Code:        code,
 		Active:      true,
-		County:      enums.CountyTypeNairobi,
+		County:      "Nairobi",
 		Description: "This is just for mocking",
 	}
 
 	facilityInput2 := &dto.FacilityInput{
-		Name:        "Baringo 2",
+		Name:        ksuid.New().String(),
 		Code:        code2,
 		Active:      true,
-		County:      enums.CountyTypeBaringo,
+		County:      "Baringo",
 		Description: "This is just for mocking",
 	}
 
@@ -421,11 +401,11 @@ func TestUseCaseFacilityImpl_ListFacilities(t *testing.T) {
 	filterInput := []*dto.FiltersInput{
 		{
 			DataType: enums.FilterSortDataTypeName,
-			Value:    "Kanairo One",
+			Value:    name,
 		},
 		{
 			DataType: enums.FilterSortDataTypeMFLCode,
-			Value:    code,
+			Value:    strconv.Itoa(code),
 		},
 		{
 			DataType: enums.FilterSortDataTypeActive,
@@ -444,7 +424,7 @@ func TestUseCaseFacilityImpl_ListFacilities(t *testing.T) {
 		},
 		{
 			DataType: enums.FilterSortDataTypeMFLCode,
-			Value:    code,
+			Value:    strconv.Itoa(code),
 		},
 		{
 			DataType: enums.FilterSortDataTypeActive,
@@ -458,7 +438,7 @@ func TestUseCaseFacilityImpl_ListFacilities(t *testing.T) {
 	filterEmptyMFLCode := []*dto.FiltersInput{
 		{
 			DataType: enums.FilterSortDataTypeName,
-			Value:    "Kanairo One",
+			Value:    name,
 		},
 		{
 			DataType: enums.FilterSortDataTypeMFLCode,
@@ -477,11 +457,11 @@ func TestUseCaseFacilityImpl_ListFacilities(t *testing.T) {
 	filterInvalidBool := []*dto.FiltersInput{
 		{
 			DataType: enums.FilterSortDataTypeName,
-			Value:    "Kanairo One",
+			Value:    name,
 		},
 		{
 			DataType: enums.FilterSortDataTypeMFLCode,
-			Value:    code,
+			Value:    strconv.Itoa(code),
 		},
 		{
 			DataType: enums.FilterSortDataTypeActive,
@@ -496,11 +476,11 @@ func TestUseCaseFacilityImpl_ListFacilities(t *testing.T) {
 	filterInvalidCounty := []*dto.FiltersInput{
 		{
 			DataType: enums.FilterSortDataTypeName,
-			Value:    "Kanairo One",
+			Value:    name,
 		},
 		{
 			DataType: enums.FilterSortDataTypeMFLCode,
-			Value:    code,
+			Value:    strconv.Itoa(code),
 		},
 		{
 			DataType: enums.FilterSortDataTypeActive,
@@ -735,18 +715,16 @@ func TestUseCaseFacilityImpl_ListFacilities(t *testing.T) {
 		})
 	}
 	// Teardown
-	_, err = f.FacilityUsecase.DeleteFacility(ctx, string(facility.Code))
+	_, err = f.FacilityUsecase.DeleteFacility(ctx, facility.Code)
 	if err != nil {
 		t.Errorf("unable to delete facility")
 		return
 	}
-	_, err = f.FacilityUsecase.DeleteFacility(ctx, string(facility2.Code))
+	_, err = f.FacilityUsecase.DeleteFacility(ctx, facility2.Code)
 	if err != nil {
 		t.Errorf("unable to delete facility")
 		return
 	}
-
-	TearDown(t)
 }
 
 func TestUseCaseFacilityImpl_Inactivate_Integration_test(t *testing.T) {
@@ -755,10 +733,10 @@ func TestUseCaseFacilityImpl_Inactivate_Integration_test(t *testing.T) {
 	i := InitializeTestService(ctx)
 
 	facilityInput := &dto.FacilityInput{
-		Name:        "test medical institution",
-		Code:        ksuid.New().String(),
+		Name:        ksuid.New().String(),
+		Code:        rand.Intn(1000000),
 		Active:      true,
-		County:      enums.CountyTypeNairobi,
+		County:      "Nairobi",
 		Description: "This is just for testing",
 	}
 
@@ -771,7 +749,7 @@ func TestUseCaseFacilityImpl_Inactivate_Integration_test(t *testing.T) {
 
 	type args struct {
 		ctx     context.Context
-		mflCode *string
+		mflCode *int
 	}
 	tests := []struct {
 		name    string
@@ -812,8 +790,11 @@ func TestUseCaseFacilityImpl_Inactivate_Integration_test(t *testing.T) {
 
 		})
 	}
-
-	TearDown(t)
+	_, err = i.FacilityUsecase.DeleteFacility(ctx, facility.Code)
+	if err != nil {
+		t.Errorf("unable to delete facility")
+		return
+	}
 }
 
 func TestUseCaseFacilityImpl_Reactivate_Integration_test(t *testing.T) {
@@ -822,10 +803,10 @@ func TestUseCaseFacilityImpl_Reactivate_Integration_test(t *testing.T) {
 	i := InitializeTestService(ctx)
 
 	facilityInput := &dto.FacilityInput{
-		Name:        gofakeit.Name(),
-		Code:        ksuid.New().String(),
+		Name:        ksuid.New().String(),
+		Code:        rand.Intn(1000000),
 		Active:      false,
-		County:      enums.CountyTypeNairobi,
+		County:      "Nairobi",
 		Description: "This is just for testing",
 	}
 
@@ -838,7 +819,7 @@ func TestUseCaseFacilityImpl_Reactivate_Integration_test(t *testing.T) {
 
 	type args struct {
 		ctx     context.Context
-		mflCode *string
+		mflCode *int
 	}
 	tests := []struct {
 		name    string
@@ -876,22 +857,11 @@ func TestUseCaseFacilityImpl_Reactivate_Integration_test(t *testing.T) {
 			if got != tt.want {
 				t.Errorf("PGInstance.ReactivateFacility() = %v, want %v", got, tt.want)
 			}
-
 		})
 	}
-
-	TearDown(t)
-}
-
-func TearDown(t *testing.T) {
-	// Teardown
-	pg, err := gorm.NewPGInstance()
+	_, err = i.FacilityUsecase.DeleteFacility(ctx, facility.Code)
 	if err != nil {
+		t.Errorf("unable to delete facility")
 		return
 	}
-
-	pg.DB.Migrator().DropTable(&gorm.Contact{})
-	pg.DB.Migrator().DropTable(&gorm.PINData{})
-	pg.DB.Migrator().DropTable(&gorm.User{})
-	pg.DB.Migrator().DropTable(&gorm.Facility{})
 }

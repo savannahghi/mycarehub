@@ -1,14 +1,17 @@
-
 extend type Mutation {
-    createFacility(input: FacilityInput!): Facility!
-    deleteFacility(mflCode: String!): Boolean!
-    reactivateFacility(mflCode: String!): Boolean!
-    inactivateFacility(mflCode: String!): Boolean!
+  createFacility(input: FacilityInput!): Facility!
+  deleteFacility(mflCode: Int!): Boolean!
+  reactivateFacility(mflCode: Int!): Boolean!
+  inactivateFacility(mflCode: Int!): Boolean!
 }
 
 extend type Query {
-   fetchFacilities: [Facility]
-   retrieveFacility(id: String!, active: Boolean!): Facility
-   retrieveFacilityByMFLCode(mflCode: String!, isActive: Boolean!): Facility!
-   listFacilities(searchTerm: String, filterInput: [FiltersInput], paginationInput:PaginationsInput!):FacilityPage
+  fetchFacilities: [Facility]
+  retrieveFacility(id: String!, active: Boolean!): Facility
+  retrieveFacilityByMFLCode(mflCode: Int!, isActive: Boolean!): Facility!
+  listFacilities(
+    searchTerm: String
+    filterInput: [FiltersInput]
+    paginationInput: PaginationsInput!
+  ): FacilityPage
 }

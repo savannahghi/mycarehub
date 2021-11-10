@@ -3,6 +3,7 @@ package facility_test
 import (
 	"context"
 	"fmt"
+	"math/rand"
 	"testing"
 
 	"github.com/brianvoe/gofakeit"
@@ -13,14 +14,13 @@ import (
 	pgMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/mock"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/facility"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/facility/mock"
-	"github.com/segmentio/ksuid"
 )
 
 func TestUnit_CreateFacility(t *testing.T) {
 	ctx := context.Background()
 	name := "Kanairo One"
-	code := ksuid.New().String()
-	county := enums.CountyTypeNairobi
+	code := rand.Intn(1000000)
+	county := "Nairobi"
 	description := "This is just for mocking"
 
 	type args struct {
@@ -53,9 +53,9 @@ func TestUnit_CreateFacility(t *testing.T) {
 				ctx: ctx,
 				facility: dto.FacilityInput{
 					Name:        name,
-					Code:        "",
+					Code:        0,
 					Active:      true,
-					County:      enums.CountyTypeNairobi,
+					County:      county,
 					Description: description,
 				},
 			},
@@ -154,11 +154,11 @@ func TestUseCaseFacilityImpl_RetrieveFacility_Unittest(t *testing.T) {
 func TestUseCaseFacilityImpl_RetrieveFacilityByMFLCode_Unittest(t *testing.T) {
 	ctx := context.Background()
 
-	MFLCode := ksuid.New().String()
+	MFLCode := gofakeit.Number(0, 1000)
 
 	type args struct {
 		ctx      context.Context
-		MFLCode  string
+		MFLCode  int
 		isActive bool
 	}
 	tests := []struct {
@@ -175,12 +175,11 @@ func TestUseCaseFacilityImpl_RetrieveFacilityByMFLCode_Unittest(t *testing.T) {
 			},
 			wantErr: false,
 		},
-
 		{
 			name: "Sad case",
 			args: args{
 				ctx:      ctx,
-				MFLCode:  "",
+				MFLCode:  0,
 				isActive: false,
 			},
 			wantErr: true,
@@ -336,13 +335,13 @@ func TestUnit_ListFacilities(t *testing.T) {
 func TestUseCaseFacilityImpl_Inactivate_Unittest(t *testing.T) {
 	ctx := context.Background()
 
-	validMFLCode := ksuid.New().String()
-	veryBadMFLCode := ksuid.New().String() + gofakeit.HipsterSentence(500)
-	emptyMFLCode := ""
+	validMFLCode := gofakeit.Number(0, 1000)
+	veryBadMFLCode := 987654321
+	emptyMFLCode := 0
 
 	type args struct {
 		ctx     context.Context
-		mflCode *string
+		mflCode *int
 	}
 	tests := []struct {
 		name    string
@@ -394,19 +393,19 @@ func TestUseCaseFacilityImpl_Inactivate_Unittest(t *testing.T) {
 			f := facility.NewFacilityUsecase(fakeDB, fakeDB, fakeDB, fakeDB)
 
 			if tt.name == "Sad Case - empty mflCode" {
-				fakeDB.MockInactivateFacilityFn = func(ctx context.Context, mflCode *string) (bool, error) {
+				fakeDB.MockInactivateFacilityFn = func(ctx context.Context, mflCode *int) (bool, error) {
 					return false, fmt.Errorf("an error occurred")
 				}
 			}
 
 			if tt.name == "Sad Case - invalid mflCode" {
-				fakeDB.MockInactivateFacilityFn = func(ctx context.Context, mflCode *string) (bool, error) {
+				fakeDB.MockInactivateFacilityFn = func(ctx context.Context, mflCode *int) (bool, error) {
 					return false, fmt.Errorf("an error occurred")
 				}
 			}
 
 			if tt.name == "Sad Case - very bad mflCode" {
-				fakeDB.MockInactivateFacilityFn = func(ctx context.Context, mflCode *string) (bool, error) {
+				fakeDB.MockInactivateFacilityFn = func(ctx context.Context, mflCode *int) (bool, error) {
 					return false, fmt.Errorf("an error occurred")
 				}
 			}
@@ -428,13 +427,13 @@ func TestUseCaseFacilityImpl_Inactivate_Unittest(t *testing.T) {
 func TestUseCaseFacilityImpl_Reactivate_Unittest(t *testing.T) {
 	ctx := context.Background()
 
-	validMFLCode := ksuid.New().String()
-	veryBadMFLCode := ksuid.New().String() + gofakeit.HipsterSentence(500)
-	emptyMFLCode := ""
+	validMFLCode := gofakeit.Number(0, 1000)
+	veryBadMFLCode := 987654321
+	emptyMFLCode := 0
 
 	type args struct {
 		ctx     context.Context
-		mflCode *string
+		mflCode *int
 	}
 	tests := []struct {
 		name    string
@@ -486,19 +485,19 @@ func TestUseCaseFacilityImpl_Reactivate_Unittest(t *testing.T) {
 			f := facility.NewFacilityUsecase(fakeDB, fakeDB, fakeDB, fakeDB)
 
 			if tt.name == "Sad Case - empty mflCode" {
-				fakeDB.MockReactivateFacilityFn = func(ctx context.Context, mflCode *string) (bool, error) {
+				fakeDB.MockReactivateFacilityFn = func(ctx context.Context, mflCode *int) (bool, error) {
 					return false, fmt.Errorf("an error occurred")
 				}
 			}
 
 			if tt.name == "Sad Case - invalid mflCode" {
-				fakeDB.MockReactivateFacilityFn = func(ctx context.Context, mflCode *string) (bool, error) {
+				fakeDB.MockReactivateFacilityFn = func(ctx context.Context, mflCode *int) (bool, error) {
 					return false, fmt.Errorf("an error occurred")
 				}
 			}
 
 			if tt.name == "Sad Case - very bad mflCode" {
-				fakeDB.MockReactivateFacilityFn = func(ctx context.Context, mflCode *string) (bool, error) {
+				fakeDB.MockReactivateFacilityFn = func(ctx context.Context, mflCode *int) (bool, error) {
 					return false, fmt.Errorf("an error occurred")
 				}
 			}

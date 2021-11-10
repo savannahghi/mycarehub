@@ -1,15 +1,15 @@
 input FacilityInput {
   name: String!
-  code: String!
+  code: Int!
   active: Boolean!
-  county: CountyType!
+  county: String!
   description: String!
 }
 
 input PaginationsInput {
   Limit: Int
-	CurrentPage: Int! 
-  Sort:  SortsInput        
+  CurrentPage: Int!
+  Sort: SortsInput
 }
 
 input FiltersInput {
@@ -18,6 +18,6 @@ input FiltersInput {
 }
 
 input SortsInput {
-	Direction: SortDataType
-	Field:     FilterSortDataType
+  Direction: SortDataType
+  Field: FilterSortDataType
 }

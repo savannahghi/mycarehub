@@ -68,7 +68,9 @@ func NewPGInstance() (*PGInstance, error) {
 		return nil, fmt.Errorf("failed to start database: %v", db)
 	}
 	pg := &PGInstance{DB: db}
-	pg.Migrate()
+	if isLocalDB() {
+		pg.Migrate()
+	}
 	return pg, nil
 }
 
@@ -79,6 +81,7 @@ func isLocalDB() bool {
 	if err != nil {
 		return false
 	}
+
 	return isLocal
 }
 
