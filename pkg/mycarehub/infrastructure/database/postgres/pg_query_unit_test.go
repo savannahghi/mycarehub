@@ -136,6 +136,17 @@ func TestMyCareHubDb_GetFacilities(t *testing.T) {
 	var facilityData []*domain.Facility
 	facilityData = append(facilityData, facility)
 
+	invalidFacility := &domain.Facility{
+		ID:          &id,
+		Name:        name,
+		Active:      true,
+		County:      county,
+		Description: description,
+	}
+
+	var invalidFacilityData []*domain.Facility
+	invalidFacilityData = append(invalidFacilityData, invalidFacility)
+
 	type args struct {
 		ctx context.Context
 	}
@@ -152,6 +163,12 @@ func TestMyCareHubDb_GetFacilities(t *testing.T) {
 			wantErr: false,
 		},
 		{
+			name:    "sad case - invalid payload",
+			args:    args{ctx: ctx},
+			want:    invalidFacilityData,
+			wantErr: true,
+		},
+		{
 			name:    "sad case - facility want data not given",
 			args:    args{ctx: ctx},
 			wantErr: true,
@@ -163,6 +180,11 @@ func TestMyCareHubDb_GetFacilities(t *testing.T) {
 			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
 
 			if tt.name == "sad case - facility want data not given" {
+				fakeGorm.MockGetFacilitiesFn = func(ctx context.Context) ([]gorm.Facility, error) {
+					return nil, fmt.Errorf("failed to get facilities")
+				}
+			}
+			if tt.name == "sad case - invalid payload" {
 				fakeGorm.MockGetFacilitiesFn = func(ctx context.Context) ([]gorm.Facility, error) {
 					return nil, fmt.Errorf("failed to get facilities")
 				}
@@ -746,6 +768,64 @@ func TestOnboardingDb_GetUserPINByUserID(t *testing.T) {
 			}
 			if !tt.wantErr && got == nil {
 				t.Errorf("expected to get a response but got: %v", got)
+				return
+			}
+		})
+	}
+}
+
+func TestMyCareHubDb_GetCurrentTerms(t *testing.T) {
+	ctx := context.Background()
+
+	type args struct {
+		ctx context.Context
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx: ctx,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case",
+			args: args{
+				ctx: ctx,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case - nil context",
+			args: args{
+				ctx: nil,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var fakeGorm = gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			if tt.name == "Sad case" {
+				fakeGorm.MockGetCurrentTermsFn = func(ctx context.Context) (string, error) {
+					return "", fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - nil context" {
+				fakeGorm.MockGetCurrentTermsFn = func(ctx context.Context) (string, error) {
+					return "", fmt.Errorf("an error occurred")
+				}
+			}
+
+			_, err := d.GetCurrentTerms(tt.args.ctx)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.GetCurrentTerms() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 		})

@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/firebasetools"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	extensionMock "github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension/mock"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	pgMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/mock"
@@ -20,13 +20,13 @@ func TestUseCasesUserImpl_Login_Unittest(t *testing.T) {
 
 	phoneNumber := "+2547100000000"
 	PIN := "1234"
-	flavour := feedlib.FlavourConsumer
+	flavour := enums.CONSUMER
 
 	type args struct {
 		ctx         context.Context
 		phoneNumber string
 		pin         string
-		flavour     feedlib.Flavour
+		flavour     enums.Flavour
 	}
 	tests := []struct {
 		name    string
@@ -103,6 +103,16 @@ func TestUseCasesUserImpl_Login_Unittest(t *testing.T) {
 			},
 			wantErr: true,
 		},
+		{
+			name: "Sad case - un-normalized phone",
+			args: args{
+				ctx:         ctx,
+				phoneNumber: "0710000000",
+				pin:         PIN,
+				flavour:     flavour,
+			},
+			wantErr: true,
+		},
 	}
 
 	for _, tt := range tests {
@@ -112,7 +122,7 @@ func TestUseCasesUserImpl_Login_Unittest(t *testing.T) {
 			_ = mock.NewUserUseCaseMock()
 			fakeExtension := extensionMock.NewFakeExtension()
 
-			u := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeExtension)
+			u := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension)
 
 			if tt.name == "Sad case - no phone" {
 				fakeDB.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*domain.User, error) {
@@ -147,6 +157,12 @@ func TestUseCasesUserImpl_Login_Unittest(t *testing.T) {
 			if tt.name == "Sad Case - Fail to authenticate token" {
 				fakeExtension.MockAuthenticateCustomFirebaseTokenFn = func(customAuthToken string) (*firebasetools.FirebaseUserTokens, error) {
 					return nil, fmt.Errorf("failed to authenticate token")
+				}
+			}
+
+			if tt.name == "Sad case - un-normalized phone" {
+				fakeDB.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*domain.User, error) {
+					return nil, fmt.Errorf("failed to get user profile by phone number")
 				}
 			}
 

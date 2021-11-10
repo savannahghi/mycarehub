@@ -1,7 +1,6 @@
 package dto
 
 import (
-	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"gopkg.in/go-playground/validator.v9"
 )
@@ -63,9 +62,9 @@ type SortsInput struct {
 
 // LoginInput represents the Login input data structure
 type LoginInput struct {
-	PhoneNumber *string         `json:"phoneNumber" validate:"required"`
-	PIN         *string         `json:"pin" validate:"required"`
-	Flavour     feedlib.Flavour `json:"flavour" validate:"required"`
+	PhoneNumber *string       `json:"phoneNumber" validate:"required"`
+	PIN         *string       `json:"pin" validate:"required"`
+	Flavour     enums.Flavour `json:"flavour" validate:"required"`
 }
 
 // Validate helps with validation of LoginInput fields

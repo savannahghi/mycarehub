@@ -96,6 +96,7 @@ jobs:
           --set-env-vars "DB_NAME=${{ secrets.STAGING_MYCAREHUB_DB_NAME }}" \
           --set-env-vars "DATABASE_REGION=${{ secrets.PROD_DATABASE_REGION }}" \
           --set-env-vars "DATABASE_INSTANCE=${{ secrets.PROD_DATABASE_INSTANCE }}" \
+          --set-env-vars "DEFAULT_ORG_ID=${{ secrets.DEFAULT_ORG_ID }}" \
           --set-env-vars "ROOT_COLLECTION_SUFFIX=${{ secrets.ROOT_COLLECTION_SUFFIX }}" 
 
   deploy_to_test:
@@ -145,6 +146,7 @@ jobs:
           --set-env-vars "DB_NAME=${{ secrets.TESTING_MYCAREHUB_DB_NAME }}" \
           --set-env-vars "DATABASE_REGION=${{ secrets.PROD_DATABASE_REGION }}" \
           --set-env-vars "DATABASE_INSTANCE=${{ secrets.PROD_DATABASE_INSTANCE }}" \
+          --set-env-vars "DEFAULT_ORG_ID=${{ secrets.DEFAULT_ORG_ID }}" \
           --set-env-vars "ROOT_COLLECTION_SUFFIX=${{ secrets.ROOT_COLLECTION_SUFFIX }}" 
 
   deploy_to_prod:
@@ -207,6 +209,7 @@ jobs:
           --set-env-vars "DB_NAME=${{ secrets.PROD_MYCAREHUB_DB_NAME }}" \
           --set-env-vars "DATABASE_REGION=${{ secrets.PROD_DATABASE_REGION }}" \
           --set-env-vars "DATABASE_INSTANCE=${{ secrets.PROD_DATABASE_INSTANCE }}" \
+          --set-env-vars "DEFAULT_ORG_ID=${{ secrets.DEFAULT_ORG_ID }}" \
           --set-env-vars "ROOT_COLLECTION_SUFFIX=${{ secrets.ROOT_COLLECTION_SUFFIX }}" 
 
   push_schema_test_registry:
