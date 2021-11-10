@@ -6,7 +6,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/lib/pq"
 	"github.com/savannahghi/enumutils"
-	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"gorm.io/gorm"
 )
@@ -88,9 +87,9 @@ type User struct {
 	// calculated each time there is a failed login
 	NextAllowedLogin *time.Time `gorm:"type:time;column:next_allowed_login"`
 
-	TermsAccepted   bool            `gorm:"type:bool;column:terms_accepted;not null"`
-	AcceptedTermsID string          `gorm:"column:accepted_terms_id"` // foreign key to version of terms they accepted
-	Flavour         feedlib.Flavour `gorm:"column:flavour;not null"`
+	TermsAccepted   bool          `gorm:"type:bool;column:terms_accepted;not null"`
+	AcceptedTermsID string        `gorm:"column:accepted_terms_id"` // foreign key to version of terms they accepted
+	Flavour         enums.Flavour `gorm:"column:flavour;not null"`
 }
 
 // BeforeCreate is a hook run before creating a new user
@@ -140,14 +139,14 @@ func (Contact) TableName() string {
 type PINData struct {
 	Base
 
-	PINDataID *string         `gorm:"primaryKey;unique;column:pin_data_id"`
-	UserID    string          `gorm:"column:user_id;not null"`
-	HashedPIN string          `gorm:"column:hashed_pin;not null"`
-	ValidFrom time.Time       `gorm:"column:valid_from;not null"`
-	ValidTo   time.Time       `gorm:"column:valid_to;not null"`
-	IsValid   bool            `gorm:"column:is_valid;not null"`
-	Flavour   feedlib.Flavour `gorm:"column:flavour;not null"`
-	Salt      string          `gorm:"column:salt;not null"`
+	PINDataID *string       `gorm:"primaryKey;unique;column:pin_data_id"`
+	UserID    string        `gorm:"column:user_id;not null"`
+	HashedPIN string        `gorm:"column:hashed_pin;not null"`
+	ValidFrom time.Time     `gorm:"column:valid_from;not null"`
+	ValidTo   time.Time     `gorm:"column:valid_to;not null"`
+	IsValid   bool          `gorm:"column:is_valid;not null"`
+	Flavour   enums.Flavour `gorm:"column:flavour;not null"`
+	Salt      string        `gorm:"column:salt;not null"`
 }
 
 // BeforeCreate is a hook run before creating a new facility
@@ -160,6 +159,28 @@ func (p *PINData) BeforeCreate(tx *gorm.DB) (err error) {
 // TableName customizes how the table name is generated
 func (PINData) TableName() string {
 	return "pindata"
+}
+
+// TermsOfService is the gorms terms of service model
+type TermsOfService struct {
+	TermsID   *string       `gorm:"primaryKey;unique;column:id"`
+	Text      string        `gorm:"column:text;not null"`
+	Flavour   enums.Flavour `gorm:"column:flavour;not null"`
+	ValidFrom *time.Time    `gorm:"column:valid_from;not null"`
+	ValidTo   *time.Time    `gorm:"column:valid_to;not null"`
+	Tag       *string       `gorm:"column:tag;not null"`
+}
+
+// BeforeCreate is a hook run before creating a new facility
+func (t *TermsOfService) BeforeCreate(tx *gorm.DB) (err error) {
+	id := uuid.New().String()
+	t.TermsID = &id
+	return
+}
+
+// TableName customizes how the table name is generated
+func (TermsOfService) TableName() string {
+	return "users_termsofservice"
 }
 
 func allTables() []interface{} {

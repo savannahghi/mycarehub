@@ -13,6 +13,7 @@ import (
 // MyCareHubHandlersInterfaces represents all the REST API logic
 type MyCareHubHandlersInterfaces interface {
 	LoginByPhone() http.HandlerFunc
+	GetCurrentTerms() http.HandlerFunc
 }
 
 // MyCareHubHandlersInterfacesImpl represents the usecase implementation object
@@ -53,6 +54,33 @@ func (h *MyCareHubHandlersInterfacesImpl) LoginByPhone() http.HandlerFunc {
 		}
 
 		resp, _, err := h.interactor.UserUsecase.Login(ctx, *payload.PhoneNumber, *payload.PIN, payload.Flavour)
+		if err != nil {
+			serverutils.WriteJSONResponse(w, err, http.StatusBadRequest)
+			return
+		}
+
+		serverutils.WriteJSONResponse(w, resp, http.StatusOK)
+	}
+}
+
+//GetCurrentTerms returns the most recent terms of service.
+func (h *MyCareHubHandlersInterfacesImpl) GetCurrentTerms() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+
+		payload := &dto.TermsInput{}
+		serverutils.DecodeJSONToTargetStruct(w, r, payload)
+
+		if !payload.Flavour.IsValid() {
+			err := fmt.Errorf("an invalid `flavour` defined")
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusBadRequest)
+			return
+		}
+
+		resp, err := h.interactor.TermsUsecase.GetCurrentTerms(ctx, payload.Flavour)
 		if err != nil {
 			serverutils.WriteJSONResponse(w, err, http.StatusBadRequest)
 			return

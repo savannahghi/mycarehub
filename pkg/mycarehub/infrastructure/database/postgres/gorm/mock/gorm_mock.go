@@ -7,7 +7,6 @@ import (
 
 	"github.com/brianvoe/gofakeit"
 	"github.com/google/uuid"
-	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
@@ -25,6 +24,7 @@ type GormMock struct {
 	MockGetUserPINByUserIDFn          func(ctx context.Context, userID string) (*gorm.PINData, error)
 	MockInactivateFacilityFn          func(ctx context.Context, mflCode *string) (bool, error)
 	MockReactivateFacilityFn          func(ctx context.Context, mflCode *string) (bool, error)
+	MockGetCurrentTermsFn             func(ctx context.Context, flavour enums.Flavour) (string, error)
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -84,7 +84,7 @@ func NewGormMock() *GormMock {
 		ValidFrom: time.Now(),
 		ValidTo:   time.Now(),
 		IsValid:   true,
-		Flavour:   feedlib.FlavourConsumer,
+		Flavour:   enums.CONSUMER,
 	}
 
 	return &GormMock{
@@ -127,6 +127,10 @@ func NewGormMock() *GormMock {
 		},
 		MockReactivateFacilityFn: func(ctx context.Context, mflCode *string) (bool, error) {
 			return true, nil
+		},
+		MockGetCurrentTermsFn: func(ctx context.Context, flavour enums.Flavour) (string, error) {
+			terms := "most curent terms of service"
+			return terms, nil
 		},
 	}
 }
@@ -179,4 +183,9 @@ func (gm *GormMock) InactivateFacility(ctx context.Context, mflCode *string) (bo
 // ReactivateFacility mocks the implementation of re-activating the active status of a particular facility
 func (gm *GormMock) ReactivateFacility(ctx context.Context, mflCode *string) (bool, error) {
 	return gm.MockReactivateFacilityFn(ctx, mflCode)
+}
+
+//GetCurrentTerms mocks the implementation of getting all the current terms of service.
+func (gm *GormMock) GetCurrentTerms(ctx context.Context, flavour enums.Flavour) (string, error) {
+	return gm.MockGetCurrentTermsFn(ctx, flavour)
 }

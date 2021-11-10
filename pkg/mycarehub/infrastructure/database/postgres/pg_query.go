@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 )
 
@@ -125,4 +126,18 @@ func (d *MyCareHubDb) GetUserPINByUserID(ctx context.Context, userID string) (*d
 	}
 
 	return d.mapPINObjectToDomain(pinData), nil
+}
+
+// GetCurrentTerms fetches the current terms service
+func (d *MyCareHubDb) GetCurrentTerms(ctx context.Context, flavour enums.Flavour) (string, error) {
+	if flavour == "" {
+		return "", fmt.Errorf("flavour should be provided")
+	}
+
+	terms, err := d.query.GetCurrentTerms(ctx, flavour)
+	if err != nil {
+		return "", fmt.Errorf("failed to get current terms of service: %v", err)
+	}
+
+	return terms, nil
 }

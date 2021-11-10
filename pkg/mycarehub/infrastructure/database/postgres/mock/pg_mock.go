@@ -24,6 +24,7 @@ type PostgresMock struct {
 	MockGetUserPINByUserIDFn          func(ctx context.Context, userID string) (*domain.UserPIN, error)
 	MockInactivateFacilityFn          func(ctx context.Context, mflCode *string) (bool, error)
 	MockReactivateFacilityFn          func(ctx context.Context, mflCode *string) (bool, error)
+	MockGetCurrentTermsFn             func(ctx context.Context, flavour enums.Flavour) (string, error)
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -105,6 +106,10 @@ func NewPostgresMock() *PostgresMock {
 		MockReactivateFacilityFn: func(ctx context.Context, mflCode *string) (bool, error) {
 			return true, nil
 		},
+		MockGetCurrentTermsFn: func(ctx context.Context, flavour enums.Flavour) (string, error) {
+			terms := "some terms"
+			return terms, nil
+		},
 	}
 }
 
@@ -161,4 +166,9 @@ func (gm *PostgresMock) InactivateFacility(ctx context.Context, mflCode *string)
 // ReactivateFacility mocks the implementation of re-activating the active status of a particular facility
 func (gm *PostgresMock) ReactivateFacility(ctx context.Context, mflCode *string) (bool, error) {
 	return gm.MockReactivateFacilityFn(ctx, mflCode)
+}
+
+//GetCurrentTerms mocks the implementation of getting all the current terms of service.
+func (gm *PostgresMock) GetCurrentTerms(ctx context.Context, flavour enums.Flavour) (string, error) {
+	return gm.MockGetCurrentTermsFn(ctx, flavour)
 }

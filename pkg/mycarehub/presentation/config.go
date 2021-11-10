@@ -22,6 +22,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/presentation/interactor"
 	internalRest "github.com/savannahghi/mycarehub/pkg/mycarehub/presentation/rest"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/facility"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/terms"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/user"
 	"github.com/savannahghi/serverutils"
 	log "github.com/sirupsen/logrus"
@@ -69,12 +70,15 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	facilityUseCase := facility.NewFacilityUsecase(db, db, db, db)
 
 	// Initialize user usecase
-	userUsecase := user.NewUseCasesUserImpl(db, db, db, externalExt)
+	userUsecase := user.NewUseCasesUserImpl(db, db, db, db, externalExt)
+
+	termsUsecase := terms.NewUseCasesTermsOfService(db)
 
 	// Initialize the interactor
 	i := interactor.NewMyCareHubInteractor(
 		facilityUseCase,
 		userUsecase,
+		termsUsecase,
 	)
 
 	internalHandlers := internalRest.NewMyCareHubHandlersInterfaces(*i)
@@ -101,6 +105,11 @@ func Router(ctx context.Context) (*mux.Router, error) {
 		http.MethodOptions,
 		http.MethodPost,
 	).HandlerFunc(internalHandlers.LoginByPhone())
+
+	r.Path("/get_all_terms").Methods(
+		http.MethodOptions,
+		http.MethodPost,
+	).HandlerFunc(internalHandlers.GetCurrentTerms())
 
 	// Graphql route
 	authR := r.Path("/graphql").Subrouter()

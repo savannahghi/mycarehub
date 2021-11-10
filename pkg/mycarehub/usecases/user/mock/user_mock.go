@@ -5,19 +5,19 @@ import (
 
 	"github.com/brianvoe/gofakeit"
 	"github.com/google/uuid"
-	"github.com/savannahghi/feedlib"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 )
 
 // UserUseCaseMock mocks the implementation of usecase methods.
 type UserUseCaseMock struct {
-	MockLoginFn func(ctx context.Context, phoneNumber string, pin string, flavour feedlib.Flavour) (*domain.AuthCredentials, string, error)
+	MockLoginFn func(ctx context.Context, phoneNumber string, pin string, flavour enums.Flavour) (*domain.AuthCredentials, string, error)
 }
 
 // NewUserUseCaseMock creates in itializes create type mocks
 func NewUserUseCaseMock() *UserUseCaseMock {
 	return &UserUseCaseMock{
-		MockLoginFn: func(ctx context.Context, phoneNumber, pin string, flavour feedlib.Flavour) (*domain.AuthCredentials, string, error) {
+		MockLoginFn: func(ctx context.Context, phoneNumber, pin string, flavour enums.Flavour) (*domain.AuthCredentials, string, error) {
 			ID := uuid.New().String()
 			return &domain.AuthCredentials{
 				User: &domain.User{
@@ -33,6 +33,6 @@ func NewUserUseCaseMock() *UserUseCaseMock {
 }
 
 // Login mocks the login functionality
-func (f *UserUseCaseMock) Login(ctx context.Context, phoneNumber string, pin string, flavour feedlib.Flavour) (*domain.AuthCredentials, string, error) {
+func (f *UserUseCaseMock) Login(ctx context.Context, phoneNumber string, pin string, flavour enums.Flavour) (*domain.AuthCredentials, string, error) {
 	return f.MockLoginFn(ctx, phoneNumber, pin, flavour)
 }

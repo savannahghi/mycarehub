@@ -70,3 +70,8 @@ enum SortDataType {
   asc
   desc
 }
+
+enum Flavour {
+  CONSUMER
+  PRO
+}

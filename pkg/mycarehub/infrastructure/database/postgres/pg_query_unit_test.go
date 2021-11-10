@@ -751,3 +751,52 @@ func TestOnboardingDb_GetUserPINByUserID(t *testing.T) {
 		})
 	}
 }
+
+func TestMyCareHubDb_GetCurrentTerms(t *testing.T) {
+	ctx := context.Background()
+
+	type args struct {
+		ctx     context.Context
+		flavour enums.Flavour
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:     ctx,
+				flavour: enums.PRO,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case - empty flavour",
+			args: args{
+				ctx:     ctx,
+				flavour: "",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var fakeGorm = gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			if tt.name == "Sad case - empty flavour" {
+				fakeGorm.MockGetCurrentTermsFn = func(ctx context.Context, flavour enums.Flavour) (string, error) {
+					return "", fmt.Errorf("an error occurred")
+				}
+			}
+
+			_, err := d.GetCurrentTerms(tt.args.ctx, tt.args.flavour)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.GetCurrentTerms() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}

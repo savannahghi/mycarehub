@@ -68,7 +68,7 @@ func NewPGInstance() (*PGInstance, error) {
 		return nil, fmt.Errorf("failed to start database: %v", db)
 	}
 	pg := &PGInstance{DB: db}
-	pg.Migrate()
+	//pg.Migrate()
 	return pg, nil
 }
 

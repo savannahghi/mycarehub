@@ -15,7 +15,6 @@ require (
 	github.com/savannahghi/converterandformatter v0.0.11
 	github.com/savannahghi/enumutils v0.0.3
 	github.com/savannahghi/errorcodeutil v0.0.3
-	github.com/savannahghi/feedlib v0.0.6
 	github.com/savannahghi/firebasetools v0.0.16
 	github.com/savannahghi/interserviceclient v0.0.18
 	github.com/savannahghi/onboarding v0.0.29
@@ -82,6 +81,7 @@ require (
 	github.com/mitchellh/mapstructure v1.4.2 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
+	github.com/savannahghi/feedlib v0.0.6 // indirect
 	github.com/savannahghi/profileutils v0.0.23 // indirect
 	github.com/savannahghi/pubsubtools v0.0.2 // indirect
 	github.com/savannahghi/scalarutils v0.0.4 // indirect
