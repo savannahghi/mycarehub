@@ -7,7 +7,6 @@ import (
 
 	"github.com/brianvoe/gofakeit"
 	"github.com/google/uuid"
-	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
@@ -25,6 +24,8 @@ type GormMock struct {
 	MockGetUserPINByUserIDFn          func(ctx context.Context, userID string) (*gorm.PINData, error)
 	MockInactivateFacilityFn          func(ctx context.Context, mflCode *string) (bool, error)
 	MockReactivateFacilityFn          func(ctx context.Context, mflCode *string) (bool, error)
+	MockSavePinFn                     func(ctx context.Context, pinData *gorm.PINData) (bool, error)
+	MockGetUserProfileByUserIDFn      func(ctx context.Context, userID string) (*gorm.User, error)
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -37,6 +38,7 @@ func NewGormMock() *GormMock {
 	*/
 
 	ID := uuid.New().String()
+	intID := gofakeit.Number(1, 100)
 	name := gofakeit.Name()
 	code := "KN001"
 	county := enums.CountyTypeNairobi
@@ -78,13 +80,13 @@ func NewGormMock() *GormMock {
 	}
 
 	pinData := &gorm.PINData{
-		PINDataID: &ID,
+		PINDataID: &intID,
 		UserID:    gofakeit.UUID(),
 		HashedPIN: uuid.New().String(),
 		ValidFrom: time.Now(),
 		ValidTo:   time.Now(),
 		IsValid:   true,
-		Flavour:   feedlib.FlavourConsumer,
+		// Flavour:   feedlib.FlavourConsumer,
 	}
 
 	return &GormMock{
@@ -127,6 +129,42 @@ func NewGormMock() *GormMock {
 		},
 		MockReactivateFacilityFn: func(ctx context.Context, mflCode *string) (bool, error) {
 			return true, nil
+		},
+		MockSavePinFn: func(ctx context.Context, pinData *gorm.PINData) (bool, error) {
+			return true, nil
+		},
+		MockGetUserProfileByUserIDFn: func(ctx context.Context, userID string) (*gorm.User, error) {
+			id := uuid.New().String()
+			// usercontact := &gorm.Contact{
+			// 	ContactID: &id,
+			// 	Type:      "test",
+			// 	Contact:   "test",
+			// 	Active:    true,
+			// 	OptedIn:   true,
+			// }
+			time := time.Now()
+			return &gorm.User{
+				Base:        gorm.Base{},
+				UserID:      &id,
+				Username:    "test",
+				DisplayName: "test",
+				FirstName:   "test",
+				MiddleName:  "test",
+				LastName:    "test",
+				Flavour:     "test",
+				UserType:    "test",
+				Gender:      "test",
+				Active:      false,
+				// Contacts:            []gorm.Contact{*usercontact},
+				Languages:           []string{"en"},
+				PushTokens:          []string{"push-token"},
+				LastSuccessfulLogin: &time,
+				LastFailedLogin:     &time,
+				FailedLoginCount:    "test",
+				NextAllowedLogin:    &time,
+				TermsAccepted:       false,
+				AcceptedTermsID:     "test",
+			}, nil
 		},
 	}
 }
@@ -179,4 +217,14 @@ func (gm *GormMock) InactivateFacility(ctx context.Context, mflCode *string) (bo
 // ReactivateFacility mocks the implementation of re-activating the active status of a particular facility
 func (gm *GormMock) ReactivateFacility(ctx context.Context, mflCode *string) (bool, error) {
 	return gm.MockReactivateFacilityFn(ctx, mflCode)
+}
+
+//SavePin mocks the implementation of SetUserPIN method
+func (gm *GormMock) SavePin(ctx context.Context, pinData *gorm.PINData) (bool, error) {
+	return gm.MockSavePinFn(ctx, pinData)
+}
+
+// GetUserProfileByUserID gets user profile by user ID
+func (gm *GormMock) GetUserProfileByUserID(ctx context.Context, userID string) (*gorm.User, error) {
+	return gm.MockGetUserProfileByUserIDFn(ctx, userID)
 }

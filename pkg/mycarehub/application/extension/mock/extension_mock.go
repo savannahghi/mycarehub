@@ -13,6 +13,9 @@ type FakeExtensionImpl struct {
 	MockComparePINFn                      func(rawPwd string, salt string, encodedPwd string, options *extension.Options) bool
 	MockCreateFirebaseCustomTokenFn       func(ctx context.Context, uid string) (string, error)
 	MockAuthenticateCustomFirebaseTokenFn func(customAuthToken string) (*firebasetools.FirebaseUserTokens, error)
+	MockEncryptPINFn                      func(rawPwd string, options *extension.Options) (string, string)
+	MockGenerateTempPINFn                 func(ctx context.Context) (string, error)
+	MockSendSMSFn                         func(ctx context.Context, phoneNumbers []string, message string) error
 }
 
 // NewFakeExtension initializes a new instance of the external calls mock
@@ -33,6 +36,15 @@ func NewFakeExtension() *FakeExtensionImpl {
 				ExpiresIn:    "1000",
 			}, nil
 		},
+		MockEncryptPINFn: func(rawPwd string, options *extension.Options) (string, string) {
+			return uuid.New().String(), uuid.New().String()
+		},
+		MockGenerateTempPINFn: func(ctx context.Context) (string, error) {
+			return uuid.New().String(), nil
+		},
+		MockSendSMSFn: func(ctx context.Context, phoneNumbers []string, message string) error {
+			return nil
+		},
 	}
 }
 
@@ -49,4 +61,19 @@ func (f *FakeExtensionImpl) CreateFirebaseCustomToken(ctx context.Context, uid s
 // AuthenticateCustomFirebaseToken mocks the authenticate custom firebase token method
 func (f *FakeExtensionImpl) AuthenticateCustomFirebaseToken(customAuthToken string) (*firebasetools.FirebaseUserTokens, error) {
 	return f.MockAuthenticateCustomFirebaseTokenFn(customAuthToken)
+}
+
+// EncryptPIN mocks the encrypt pin method
+func (f *FakeExtensionImpl) EncryptPIN(rawPwd string, options *extension.Options) (string, string) {
+	return f.MockEncryptPINFn(rawPwd, options)
+}
+
+// GenerateTempPIN mocks the generate temporary pin method
+func (f *FakeExtensionImpl) GenerateTempPIN(ctx context.Context) (string, error) {
+	return f.MockGenerateTempPINFn(ctx)
+}
+
+// SendSMS mocks the send sms method
+func (f *FakeExtensionImpl) SendSMS(ctx context.Context, phoneNumbers []string, message string) error {
+	return f.MockSendSMSFn(ctx, phoneNumbers, message)
 }

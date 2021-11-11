@@ -126,3 +126,13 @@ func (d *MyCareHubDb) GetUserPINByUserID(ctx context.Context, userID string) (*d
 
 	return d.mapPINObjectToDomain(pinData), nil
 }
+
+// GetUserProfileByUserID fetches a user profile facility using the user ID
+func (d *MyCareHubDb) GetUserProfileByUserID(ctx context.Context, userID string) (*domain.User, error) {
+	user, err := d.query.GetUserProfileByUserID(ctx, userID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to retrieve user profile by user ID: %s", err)
+	}
+
+	return d.mapProfileObjectToDomain(user), nil
+}

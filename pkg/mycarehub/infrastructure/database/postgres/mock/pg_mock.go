@@ -6,6 +6,8 @@ import (
 
 	"github.com/brianvoe/gofakeit"
 	"github.com/google/uuid"
+	"github.com/savannahghi/enumutils"
+	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
@@ -24,6 +26,8 @@ type PostgresMock struct {
 	MockGetUserPINByUserIDFn          func(ctx context.Context, userID string) (*domain.UserPIN, error)
 	MockInactivateFacilityFn          func(ctx context.Context, mflCode *string) (bool, error)
 	MockReactivateFacilityFn          func(ctx context.Context, mflCode *string) (bool, error)
+	MockGetUserProfileByUserIDFn      func(ctx context.Context, userID string) (*domain.User, error)
+	MockSavePinFn                     func(ctx context.Context, pinData *domain.UserPIN) (bool, error)
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -105,6 +109,33 @@ func NewPostgresMock() *PostgresMock {
 		MockReactivateFacilityFn: func(ctx context.Context, mflCode *string) (bool, error) {
 			return true, nil
 		},
+		MockGetUserProfileByUserIDFn: func(ctx context.Context, userID string) (*domain.User, error) {
+			id := uuid.New().String()
+			time := time.Now()
+			return &domain.User{
+				ID:          &id,
+				Username:    "test",
+				DisplayName: "test",
+				FirstName:   "test",
+				MiddleName:  "test",
+				LastName:    "test",
+				UserType:    enums.HealthcareWorkerUser,
+				Gender:      enumutils.GenderMale,
+				Active:      false,
+				Languages:   []enumutils.Language{enumutils.LanguageEn},
+				// PushTokens:          []string{"push-token"},
+				LastSuccessfulLogin: &time,
+				LastFailedLogin:     &time,
+				FailedLoginCount:    "test",
+				NextAllowedLogin:    &time,
+				TermsAccepted:       false,
+				AcceptedTermsID:     "test",
+				Flavour:             feedlib.FlavourPro,
+			}, nil
+		},
+		MockSavePinFn: func(ctx context.Context, pinData *domain.UserPIN) (bool, error) {
+			return true, nil
+		},
 	}
 }
 
@@ -161,4 +192,14 @@ func (gm *PostgresMock) InactivateFacility(ctx context.Context, mflCode *string)
 // ReactivateFacility mocks the implementation of re-activating the active status of a particular facility
 func (gm *PostgresMock) ReactivateFacility(ctx context.Context, mflCode *string) (bool, error) {
 	return gm.MockReactivateFacilityFn(ctx, mflCode)
+}
+
+// GetUserProfileByUserID gets user profile by user ID
+func (gm *PostgresMock) GetUserProfileByUserID(ctx context.Context, userID string) (*domain.User, error) {
+	return gm.MockGetUserProfileByUserIDFn(ctx, userID)
+}
+
+//SavePin mocks the implementation of SavePin method
+func (gm *PostgresMock) SavePin(ctx context.Context, pinData *domain.UserPIN) (bool, error) {
+	return gm.MockSavePinFn(ctx, pinData)
 }

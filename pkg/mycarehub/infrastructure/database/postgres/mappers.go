@@ -11,18 +11,18 @@ import (
 // a helper method to create mapped user
 func createMapUser(userObject *gorm.User) *domain.User {
 	contacts := []*domain.Contact{}
-	if len(userObject.Contacts) > 0 {
-		for _, u := range userObject.Contacts {
-			contact := &domain.Contact{
-				ID:      u.ContactID,
-				Type:    u.Type,
-				Contact: u.Contact,
-				Active:  u.Active,
-				OptedIn: u.OptedIn,
-			}
-			contacts = append(contacts, contact)
-		}
-	}
+	// if len(userObject.Contacts) > 0 {
+	// 	for _, u := range userObject.Contacts {
+	// 		contact := &domain.Contact{
+	// 			ID:      u.ContactID,
+	// 			Type:    u.Type,
+	// 			Contact: u.Contact,
+	// 			Active:  u.Active,
+	// 			OptedIn: u.OptedIn,
+	// 		}
+	// 		contacts = append(contacts, contact)
+	// 	}
+	// }
 
 	languages := []enumutils.Language{}
 	for _, l := range userObject.Languages {
@@ -94,8 +94,8 @@ func (d *MyCareHubDb) mapPINObjectToDomain(pinObj *gorm.PINData) *domain.UserPIN
 		HashedPIN: pinObj.HashedPIN,
 		ValidFrom: pinObj.ValidFrom,
 		ValidTo:   pinObj.ValidTo,
-		Flavour:   pinObj.Flavour,
-		IsValid:   pinObj.IsValid,
-		Salt:      pinObj.Salt,
+		// Flavour:   pinObj.Flavour,
+		IsValid: pinObj.IsValid,
+		Salt:    pinObj.Salt,
 	}
 }

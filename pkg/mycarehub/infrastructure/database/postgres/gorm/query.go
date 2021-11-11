@@ -17,6 +17,7 @@ type Query interface {
 	ListFacilities(ctx context.Context, searchTerm *string, filter []*domain.FiltersParam, pagination *domain.FacilityPage) (*domain.FacilityPage, error)
 	GetUserProfileByPhoneNumber(ctx context.Context, phoneNumber string) (*User, error)
 	GetUserPINByUserID(ctx context.Context, userID string) (*PINData, error)
+	GetUserProfileByUserID(ctx context.Context, userID string) (*User, error)
 }
 
 // RetrieveFacility fetches a single facility
@@ -160,4 +161,15 @@ func (db *PGInstance) GetUserPINByUserID(ctx context.Context, userID string) (*P
 		return nil, fmt.Errorf("failed to get pin: %v", err)
 	}
 	return &pin, nil
+}
+
+// GetUserProfileByUserID fetches a user profile facility using the user ID
+func (db *PGInstance) GetUserProfileByUserID(ctx context.Context, userID string) (*User, error) {
+	var user User
+
+	// TODO: this is a hack to get the user profile for the user, we need to fix this
+	if err := db.DB.Where(&User{UserID: &userID}).First(&user).Error; err != nil {
+		return nil, fmt.Errorf("failed to get user by userID %v: %v", userID, err)
+	}
+	return &user, nil
 }
