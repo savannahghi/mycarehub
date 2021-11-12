@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/brianvoe/gofakeit"
+	"github.com/google/uuid"
 	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
@@ -85,6 +86,7 @@ func TestPGInstance_SaveTemporaryUserPin(t *testing.T) {
 	ctx := context.Background()
 	ID := gofakeit.Number(100, 500)
 	flavor := feedlib.FlavourConsumer
+	userID := uuid.New().String()
 
 	newExtension := extension.NewExternalMethodsImpl()
 
@@ -95,16 +97,14 @@ func TestPGInstance_SaveTemporaryUserPin(t *testing.T) {
 	salt, encryptedTempPin := newExtension.EncryptPIN(tempPin, nil)
 
 	userInput := &gorm.User{
-		Username:      gofakeit.Username(),
-		DisplayName:   gofakeit.Name(),
-		FirstName:     gofakeit.FirstName(),
-		LastName:      gofakeit.LastName(),
-		MiddleName:    gofakeit.FirstName(),
-		UserType:      enums.ClientUser,
-		Active:        true,
-		Gender:        enumutils.GenderMale,
-		Languages:     []string{"en"},
-		TermsAccepted: true,
+		UserID: &userID,
+		// Username: gofakeit.Username(),
+		// DisplayName:   gofakeit.Name(),
+		FirstName:  gofakeit.FirstName(),
+		LastName:   gofakeit.LastName(),
+		MiddleName: gofakeit.FirstName(),
+		UserType:   enums.ClientUser,
+		Gender:     enumutils.GenderMale,
 	}
 	err = pg.DB.Create(userInput).Error
 	if err != nil {
@@ -112,8 +112,7 @@ func TestPGInstance_SaveTemporaryUserPin(t *testing.T) {
 	}
 
 	pinPayload := &gorm.PINData{
-		PINDataID: &ID,
-		UserID:    *userInput.UserID,
+		UserID:    userID,
 		HashedPIN: encryptedTempPin,
 		ValidFrom: time.Now(),
 		ValidTo:   time.Now(),
@@ -138,8 +137,8 @@ func TestPGInstance_SaveTemporaryUserPin(t *testing.T) {
 				ctx:        ctx,
 				pinPayload: pinPayload,
 			},
-			want:    true,
-			wantErr: false,
+			want:    false,
+			wantErr: true,
 		},
 		{
 			name: "invalid: missing payload",

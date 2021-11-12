@@ -33,15 +33,15 @@ const (
 	// StagingEnvironment ...
 	StagingEnvironment = "staging"
 	// DBHost ..
-	DBHost = "DB_HOST"
+	DBHost = "POSTGRES_HOST"
 	// DBPort ...
-	DBPort = "DB_PORT"
+	DBPort = "POSTGRES_PORT"
 	// DBUser ...
-	DBUser = "DB_USER"
+	DBUser = "POSTGRES_USER"
 	// DBPASSWORD ...
-	DBPASSWORD = "DB_PASS"
+	DBPASSWORD = "POSTGRES_PASSWORD"
 	// DBName ...
-	DBName = "DB_NAME"
+	DBName = "POSTGRES_DB"
 )
 
 type connectionConfig struct {
@@ -68,9 +68,7 @@ func NewPGInstance() (*PGInstance, error) {
 		return nil, fmt.Errorf("failed to start database: %v", db)
 	}
 	pg := &PGInstance{DB: db}
-	if isLocalDB() {
-		pg.Migrate()
-	}
+
 	return pg, nil
 }
 

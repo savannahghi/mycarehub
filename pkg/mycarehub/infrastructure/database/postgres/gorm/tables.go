@@ -3,13 +3,15 @@ package gorm
 import (
 	"time"
 
+	"github.com/brianvoe/gofakeit"
 	"github.com/google/uuid"
-	"github.com/lib/pq"
 	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
 	"github.com/savannahghi/serverutils"
+	"github.com/segmentio/ksuid"
 	"gorm.io/gorm"
 )
 
@@ -34,11 +36,10 @@ type Facility struct {
 	// unique within this structure
 	Name string `gorm:"column:name;unique;not null"`
 	// MFL Code for Kenyan facilities, globally unique
-	Code        int    `gorm:"unique;column:mfl_code;not null"`
-	Active      bool   `gorm:"column:active;not null"`
-	County      string `gorm:"column:county;not null"` // TODO: Controlled list of counties
-	Description string `gorm:"column:description;not null"`
-	// Django reqired fields
+	Code           int    `gorm:"unique;column:mfl_code;not null"`
+	Active         bool   `gorm:"column:active;not null"`
+	County         string `gorm:"column:county;not null"` // TODO: Controlled list of counties
+	Description    string `gorm:"column:description;not null"`
 	OrganisationID string `gorm:"column:organisation_id"`
 }
 
@@ -57,13 +58,13 @@ func (Facility) TableName() string {
 
 // User represents the table data structure for a user
 type User struct {
-	Base
+	// Base
 
 	UserID *string `gorm:"primaryKey;unique;column:id"` // globally unique ID
 
 	Username string `gorm:"column:username;unique;not null"` // @handle, also globally unique; nickname
 
-	DisplayName string `gorm:"column:display_name"` // user's preferred display name
+	// DisplayName string `gorm:"column:display_name"` // user's preferred display name
 
 	// TODO Consider making the names optional in DB; validation in frontends
 	FirstName  string `gorm:"column:first_name;not null"` // given name
@@ -74,12 +75,12 @@ type User struct {
 
 	Gender enumutils.Gender `gorm:"column:gender;not null"` // TODO enum; genders; keep it simple
 
-	Active bool `gorm:"column:active;not null"`
+	Active bool `gorm:"column:is_active;not null"`
 
 	Contacts []Contact `gorm:"ForeignKey:UserID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;not null"` // TODO: validate, ensure
 
 	// // for the preferred language list, order matters
-	Languages pq.StringArray `gorm:"type:text[];column:languages;not null"` // TODO: turn this into a slice of enums, start small (en, sw)
+	// Languages pq.StringArray `gorm:"type:text[];column:languages;not null"` // TODO: turn this into a slice of enums, start small (en, sw)
 
 	PushTokens []string `gorm:"type:text[];column:push_tokens"`
 
@@ -92,20 +93,45 @@ type User struct {
 
 	// each time there is a failed login, **increment** this
 	// set to zero after successful login
-	FailedLoginCount string `gorm:"column:failed_login_count"`
+	FailedLoginCount int `gorm:"column:failed_login_count"`
 
 	// calculated each time there is a failed login
 	NextAllowedLogin *time.Time `gorm:"type:time;column:next_allowed_login"`
 
-	TermsAccepted   bool            `gorm:"type:bool;column:terms_accepted;not null"`
-	AcceptedTermsID string          `gorm:"column:accepted_terms_id"` // foreign key to version of terms they accepted
-	Flavour         feedlib.Flavour `gorm:"column:flavour;not null"`
+	// TermsAccepted   bool            `gorm:"type:bool;column:terms_accepted;not null"`
+	// AcceptedTermsID int             `gorm:"column:accepted_terms_of_service_id"` // foreign key to version of terms they accepted
+	Flavour feedlib.Flavour `gorm:"column:flavour;not null"`
+
+	// Django required fields
+	OrganisationID   string `gorm:"column:organisation_id"`
+	Password         string `gorm:"column:password"`
+	IsSuperuser      bool   `gorm:"column:is_superuser"`
+	IsStaff          bool   `gorm:"column:is_staff"`
+	Email            string `gorm:"column:email"`
+	DateJoined       string `gorm:"column:date_joined"`
+	Name             string `gorm:"column:name"`
+	IsApproved       bool   `gorm:"column:is_approved"`
+	ApprovalNotified bool   `gorm:"column:approval_notified"`
+	Handle           string `gorm:"column:handle"`
 }
 
 // BeforeCreate is a hook run before creating a new user
 func (u *User) BeforeCreate(tx *gorm.DB) (err error) {
 	id := uuid.New().String()
 	u.UserID = &id
+	u.OrganisationID = OrganizationID
+	salt, _ := extension.NewExternalMethodsImpl().EncryptPIN(ksuid.New().String(), nil)
+	bytePass := []byte(salt)
+	u.Password = string(bytePass[0:127])
+	u.IsSuperuser = false
+	u.IsStaff = false
+	u.Email = gofakeit.Email()
+	u.DateJoined = time.Now().UTC().Format(time.RFC1123Z)
+	u.Name = gofakeit.Name()
+	u.IsApproved = false
+	u.ApprovalNotified = false
+	u.Handle = "@" + u.Username
+
 	return
 }
 
@@ -176,7 +202,7 @@ type TermsOfService struct {
 	OrganisationID string `gorm:"column:organisation_id"`
 }
 
-// BeforeCreate is a hook run before creating a new facility
+// BeforeCreate is a hook run before creating terms of service
 func (t *TermsOfService) BeforeCreate(tx *gorm.DB) (err error) {
 	id := uuid.New().String()
 	t.TermsID = &id
@@ -189,12 +215,31 @@ func (TermsOfService) TableName() string {
 	return "users_termsofservice"
 }
 
-func allTables() []interface{} {
-	tables := []interface{}{
-		&Facility{},
-		&User{},
-		&Contact{},
-		&PINData{},
-	}
-	return tables
+// Organisation maps the organization table. This will be useful when running integration
+// tests since many models have an organization ID as a foreign key.
+type Organisation struct {
+	Base
+
+	OrganisationID   *string `gorm:"primaryKey;unique;column:id"`
+	Active           bool    `gorm:"column:active;not null"`
+	Deleted          bool    `gorm:"column:deleted;not null"`
+	OrgCode          string  `gorm:"column:org_code"`
+	Code             int     `gorm:"column:code"`
+	OrganisationName string  `gorm:"column:organisation_name"`
+	EmailAddress     string  `gorm:"column:email_address"`
+	PhoneNumber      string  `gorm:"column:phone_number"`
+	PostalAddress    string  `gorm:"column:postal_address"`
+	PhysicalAddress  string  `gorm:"column:physical_address"`
+	DefaultCountry   string  `gorm:"column:default_country"`
+}
+
+// BeforeCreate is a hook run before creating a new organisation
+func (t *Organisation) BeforeCreate(tx *gorm.DB) (err error) {
+	t.OrganisationID = &OrganizationID
+	return
+}
+
+// TableName customizes how the table name is generated
+func (Organisation) TableName() string {
+	return "common_organisation"
 }
