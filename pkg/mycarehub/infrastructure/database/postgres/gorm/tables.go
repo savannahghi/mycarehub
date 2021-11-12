@@ -7,15 +7,21 @@ import (
 	"github.com/lib/pq"
 	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/feedlib"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
+	"github.com/savannahghi/serverutils"
 	"gorm.io/gorm"
 )
 
+// OrganizationID assign a default organisation to a type
+var OrganizationID = serverutils.MustGetEnvVar(common.OrganizationID)
+
 // Base model contains defines commin fields across tables
 type Base struct {
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	DeletedAt gorm.DeletedAt `gorm:"index"`
+	CreatedAt      time.Time      `gorm:"column:created"`
+	UpdatedAt      time.Time      `gorm:"column:updated"`
+	DeletedAt      gorm.DeletedAt `gorm:"index;column:deleted_at"`
+	OrganisationID string         `gorm:"column:organisation_id"`
 }
 
 // Facility models the details of healthcare facilities that are on the platform.
@@ -24,26 +30,27 @@ type Base struct {
 type Facility struct {
 	Base
 	//globally unique when set
-	FacilityID *string `gorm:"primaryKey;unique;column:facility_id"`
+	FacilityID *string `gorm:"primaryKey;unique;column:id"`
 	// unique within this structure
 	Name string `gorm:"column:name;unique;not null"`
 	// MFL Code for Kenyan facilities, globally unique
-	Code        string           `gorm:"unique;column:mfl_code;not null"`
-	Active      string           `gorm:"column:active;not null"`
-	County      enums.CountyType `gorm:"column:county;not null"` // TODO: Controlled list of counties
-	Description string           `gorm:"column:description;not null"`
+	Code        int    `gorm:"unique;column:mfl_code;not null"`
+	Active      bool   `gorm:"column:active;not null"`
+	County      string `gorm:"column:county;not null"` // TODO: Controlled list of counties
+	Description string `gorm:"column:description;not null"`
 }
 
 // BeforeCreate is a hook run before creating a new facility
 func (f *Facility) BeforeCreate(tx *gorm.DB) (err error) {
 	id := uuid.New().String()
 	f.FacilityID = &id
+	f.Base.OrganisationID = OrganizationID
 	return
 }
 
 // TableName customizes how the table name is generated
 func (Facility) TableName() string {
-	return "facility"
+	return common.FacilityTableName
 }
 
 // User represents the table data structure for a user

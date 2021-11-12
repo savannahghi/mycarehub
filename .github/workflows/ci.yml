@@ -21,6 +21,12 @@ env:
   #Schema Registry URL
   REGISTRY_URL: ${{ secrets.TEST_SCHEMA_REGISTRY_URL }}
   GCR_NAME: ${{ secrets.GCR_NAME }}
+  DB_USER: ${{ secrets.MYCAREHUB_DB_USER }}
+  DB_PASS: ${{ secrets.MYCAREHUB_DB_PASS }}
+  DB_NAME: ${{ secrets.TESTING_MYCAREHUB_DB_NAME }}
+  DATABASE_REGION: ${{ secrets.PROD_DATABASE_REGION }}
+  DATABASE_INSTANCE: ${{ secrets.PROD_DATABASE_INSTANCE }}
+  DEFAULT_ORG_ID: ${{ secrets.DEFAULT_ORG_ID }}
 
 concurrency:
   group: lint-and-test
@@ -72,16 +78,17 @@ jobs:
           go install github.com/savannahghi/bewellcli@$CLI_VERSION
           go get golang.org/x/oauth2/internal
           go get gorm.io/driver/postgres
+          go get go.opentelemetry.io/contrib/instrumentation/github.com/gorilla/mux/otelmux@v0.21.0
 
       - name: Run lint and test
         env:
           # These are the expected  database envs
+          DB_PORT: 5432
+          IS_LOCAL_DB: True
           DB_HOST: localhost
           DB_USER: test
           DB_PASS: test
-          DB_NAME: test
-          DB_PORT: 5432
-          IS_LOCAL_DB: True
+          DB_NAME: test	
         run: |
           staticcheck ./...
           bewellcli service validate-schema --name mycarehub --version $GITHUB_SHA --url ${{ secrets.SERVICE_GRAPHQL_URL }}

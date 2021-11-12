@@ -120,8 +120,8 @@ func TestMyCareHubDb_GetFacilities(t *testing.T) {
 
 	id := uuid.New().String()
 	name := gofakeit.Name()
-	code := "KN001"
-	county := enums.CountyTypeNairobi
+	code := gofakeit.Number(0, 100)
+	county := "Nairobi"
 	description := gofakeit.HipsterSentence(15)
 
 	facility := &domain.Facility{
@@ -193,8 +193,8 @@ func TestMyCareHubDb_RetrieveFacilityByMFLCode(t *testing.T) {
 	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
 
 	name := gofakeit.Name()
-	code := "KN001"
-	county := enums.CountyTypeNairobi
+	code := gofakeit.Number(0, 100)
+	county := "Nairobi"
 	description := gofakeit.HipsterSentence(15)
 
 	facilityInput := &dto.FacilityInput{
@@ -213,11 +213,11 @@ func TestMyCareHubDb_RetrieveFacilityByMFLCode(t *testing.T) {
 
 	mflCode := facility.Code
 
-	invalidMFLCode := ksuid.New().String()
+	invalidMFLCode := 23456
 
 	type args struct {
 		ctx      context.Context
-		MFLCode  string
+		MFLCode  int
 		isActive bool
 	}
 	tests := []struct {
@@ -249,7 +249,7 @@ func TestMyCareHubDb_RetrieveFacilityByMFLCode(t *testing.T) {
 			name: "Sad case - nil mfl code",
 			args: args{
 				ctx:      ctx,
-				MFLCode:  "",
+				MFLCode:  0,
 				isActive: true,
 			},
 			wantErr: true,
@@ -258,13 +258,13 @@ func TestMyCareHubDb_RetrieveFacilityByMFLCode(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.name == "Sad case" {
-				fakeGorm.MockRetrieveFacilityByMFLCodeFn = func(ctx context.Context, MFLCode string, isActive bool) (*gorm.Facility, error) {
+				fakeGorm.MockRetrieveFacilityByMFLCodeFn = func(ctx context.Context, MFLCode int, isActive bool) (*gorm.Facility, error) {
 					return nil, fmt.Errorf("an error occurred while retrieving facility by MFL code")
 				}
 			}
 
 			if tt.name == "Sad case - nil mfl code" {
-				fakeGorm.MockRetrieveFacilityByMFLCodeFn = func(ctx context.Context, MFLCode string, isActive bool) (*gorm.Facility, error) {
+				fakeGorm.MockRetrieveFacilityByMFLCodeFn = func(ctx context.Context, MFLCode int, isActive bool) (*gorm.Facility, error) {
 					return nil, fmt.Errorf("an error occurred while retrieving facility by MFL code")
 				}
 			}
@@ -293,14 +293,14 @@ func TestOnboardingDb_ListFacilities(t *testing.T) {
 	var fakeGorm = gormMock.NewGormMock()
 	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
 
-	code := ksuid.New().String()
-	code2 := ksuid.New().String()
+	code := gofakeit.Number(0, 100)
+	code2 := gofakeit.Number(200, 300)
 
 	facilityInput := &dto.FacilityInput{
 		Name:        "Kanairo One",
 		Code:        code,
 		Active:      true,
-		County:      enums.CountyTypeNairobi,
+		County:      "Nairobi",
 		Description: "This is just for mocking",
 	}
 
@@ -308,7 +308,7 @@ func TestOnboardingDb_ListFacilities(t *testing.T) {
 		Name:        "Baringo 2",
 		Code:        code2,
 		Active:      true,
-		County:      enums.CountyTypeBaringo,
+		County:      "Baringo",
 		Description: "This is just for mocking",
 	}
 
@@ -326,7 +326,7 @@ func TestOnboardingDb_ListFacilities(t *testing.T) {
 		},
 		{
 			DataType: enums.FilterSortDataTypeMFLCode,
-			Value:    code,
+			Value:    strconv.Itoa(code),
 		},
 		{
 			DataType: enums.FilterSortDataTypeActive,
@@ -345,7 +345,7 @@ func TestOnboardingDb_ListFacilities(t *testing.T) {
 		},
 		{
 			DataType: enums.FilterSortDataTypeMFLCode,
-			Value:    code,
+			Value:    strconv.Itoa(code),
 		},
 		{
 			DataType: enums.FilterSortDataTypeActive,
@@ -382,7 +382,7 @@ func TestOnboardingDb_ListFacilities(t *testing.T) {
 		},
 		{
 			DataType: enums.FilterSortDataTypeMFLCode,
-			Value:    code,
+			Value:    strconv.Itoa(code),
 		},
 		{
 			DataType: enums.FilterSortDataTypeActive,
@@ -401,7 +401,7 @@ func TestOnboardingDb_ListFacilities(t *testing.T) {
 		},
 		{
 			DataType: enums.FilterSortDataTypeMFLCode,
-			Value:    code,
+			Value:    strconv.Itoa(code),
 		},
 		{
 			DataType: enums.FilterSortDataTypeActive,
@@ -622,12 +622,12 @@ func TestOnboardingDb_ListFacilities(t *testing.T) {
 		})
 	}
 	// Teardown
-	_, err = d.DeleteFacility(ctx, string(facility.Code))
+	_, err = d.DeleteFacility(ctx, facility.Code)
 	if err != nil {
 		t.Errorf("unable to delete facility")
 		return
 	}
-	_, err = d.DeleteFacility(ctx, string(facility2.Code))
+	_, err = d.DeleteFacility(ctx, facility2.Code)
 	if err != nil {
 		t.Errorf("unable to delete facility")
 		return

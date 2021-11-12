@@ -67,9 +67,9 @@ type ComplexityRoot struct {
 
 	Mutation struct {
 		CreateFacility     func(childComplexity int, input dto.FacilityInput) int
-		DeleteFacility     func(childComplexity int, mflCode string) int
-		InactivateFacility func(childComplexity int, mflCode string) int
-		ReactivateFacility func(childComplexity int, mflCode string) int
+		DeleteFacility     func(childComplexity int, mflCode int) int
+		InactivateFacility func(childComplexity int, mflCode int) int
+		ReactivateFacility func(childComplexity int, mflCode int) int
 	}
 
 	Pagination struct {
@@ -85,20 +85,20 @@ type ComplexityRoot struct {
 		FetchFacilities           func(childComplexity int) int
 		ListFacilities            func(childComplexity int, searchTerm *string, filterInput []*dto.FiltersInput, paginationInput dto.PaginationsInput) int
 		RetrieveFacility          func(childComplexity int, id string, active bool) int
-		RetrieveFacilityByMFLCode func(childComplexity int, mflCode string, isActive bool) int
+		RetrieveFacilityByMFLCode func(childComplexity int, mflCode int, isActive bool) int
 	}
 }
 
 type MutationResolver interface {
 	CreateFacility(ctx context.Context, input dto.FacilityInput) (*domain.Facility, error)
-	DeleteFacility(ctx context.Context, mflCode string) (bool, error)
-	ReactivateFacility(ctx context.Context, mflCode string) (bool, error)
-	InactivateFacility(ctx context.Context, mflCode string) (bool, error)
+	DeleteFacility(ctx context.Context, mflCode int) (bool, error)
+	ReactivateFacility(ctx context.Context, mflCode int) (bool, error)
+	InactivateFacility(ctx context.Context, mflCode int) (bool, error)
 }
 type QueryResolver interface {
 	FetchFacilities(ctx context.Context) ([]*domain.Facility, error)
 	RetrieveFacility(ctx context.Context, id string, active bool) (*domain.Facility, error)
-	RetrieveFacilityByMFLCode(ctx context.Context, mflCode string, isActive bool) (*domain.Facility, error)
+	RetrieveFacilityByMFLCode(ctx context.Context, mflCode int, isActive bool) (*domain.Facility, error)
 	ListFacilities(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationInput dto.PaginationsInput) (*domain.FacilityPage, error)
 }
 
@@ -216,7 +216,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.DeleteFacility(childComplexity, args["mflCode"].(string)), true
+		return e.complexity.Mutation.DeleteFacility(childComplexity, args["mflCode"].(int)), true
 
 	case "Mutation.inactivateFacility":
 		if e.complexity.Mutation.InactivateFacility == nil {
@@ -228,7 +228,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.InactivateFacility(childComplexity, args["mflCode"].(string)), true
+		return e.complexity.Mutation.InactivateFacility(childComplexity, args["mflCode"].(int)), true
 
 	case "Mutation.reactivateFacility":
 		if e.complexity.Mutation.ReactivateFacility == nil {
@@ -240,7 +240,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.ReactivateFacility(childComplexity, args["mflCode"].(string)), true
+		return e.complexity.Mutation.ReactivateFacility(childComplexity, args["mflCode"].(int)), true
 
 	case "Pagination.Count":
 		if e.complexity.Pagination.Count == nil {
@@ -325,7 +325,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.RetrieveFacilityByMFLCode(childComplexity, args["mflCode"].(string), args["isActive"].(bool)), true
+		return e.complexity.Query.RetrieveFacilityByMFLCode(childComplexity, args["mflCode"].(int), args["isActive"].(bool)), true
 
 	}
 	return 0, false
@@ -463,32 +463,36 @@ enum SortDataType {
   asc
   desc
 }`, BuiltIn: false},
-	{Name: "pkg/mycarehub/presentation/graph/facility.graphql", Input: `
-extend type Mutation {
-    createFacility(input: FacilityInput!): Facility!
-    deleteFacility(mflCode: String!): Boolean!
-    reactivateFacility(mflCode: String!): Boolean!
-    inactivateFacility(mflCode: String!): Boolean!
+	{Name: "pkg/mycarehub/presentation/graph/facility.graphql", Input: `extend type Mutation {
+  createFacility(input: FacilityInput!): Facility!
+  deleteFacility(mflCode: Int!): Boolean!
+  reactivateFacility(mflCode: Int!): Boolean!
+  inactivateFacility(mflCode: Int!): Boolean!
 }
 
 extend type Query {
-   fetchFacilities: [Facility]
-   retrieveFacility(id: String!, active: Boolean!): Facility
-   retrieveFacilityByMFLCode(mflCode: String!, isActive: Boolean!): Facility!
-   listFacilities(searchTerm: String, filterInput: [FiltersInput], paginationInput:PaginationsInput!):FacilityPage
-}`, BuiltIn: false},
+  fetchFacilities: [Facility]
+  retrieveFacility(id: String!, active: Boolean!): Facility
+  retrieveFacilityByMFLCode(mflCode: Int!, isActive: Boolean!): Facility!
+  listFacilities(
+    searchTerm: String
+    filterInput: [FiltersInput]
+    paginationInput: PaginationsInput!
+  ): FacilityPage
+}
+`, BuiltIn: false},
 	{Name: "pkg/mycarehub/presentation/graph/input.graphql", Input: `input FacilityInput {
   name: String!
-  code: String!
+  code: Int!
   active: Boolean!
-  county: CountyType!
+  county: String!
   description: String!
 }
 
 input PaginationsInput {
   Limit: Int
-	CurrentPage: Int! 
-  Sort:  SortsInput        
+  CurrentPage: Int!
+  Sort: SortsInput
 }
 
 input FiltersInput {
@@ -497,15 +501,16 @@ input FiltersInput {
 }
 
 input SortsInput {
-	Direction: SortDataType
-	Field:     FilterSortDataType
-}`, BuiltIn: false},
+  Direction: SortDataType
+  Field: FilterSortDataType
+}
+`, BuiltIn: false},
 	{Name: "pkg/mycarehub/presentation/graph/types.graphql", Input: `type Facility {
   ID: String!
   name: String!
-  code: String!
+  code: Int!
   active: Boolean!
-  county: CountyType!
+  county: String!
   description: String!
 }
 
@@ -564,10 +569,10 @@ func (ec *executionContext) field_Mutation_createFacility_args(ctx context.Conte
 func (ec *executionContext) field_Mutation_deleteFacility_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
+	var arg0 int
 	if tmp, ok := rawArgs["mflCode"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("mflCode"))
-		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		arg0, err = ec.unmarshalNInt2int(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -579,10 +584,10 @@ func (ec *executionContext) field_Mutation_deleteFacility_args(ctx context.Conte
 func (ec *executionContext) field_Mutation_inactivateFacility_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
+	var arg0 int
 	if tmp, ok := rawArgs["mflCode"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("mflCode"))
-		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		arg0, err = ec.unmarshalNInt2int(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -594,10 +599,10 @@ func (ec *executionContext) field_Mutation_inactivateFacility_args(ctx context.C
 func (ec *executionContext) field_Mutation_reactivateFacility_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
+	var arg0 int
 	if tmp, ok := rawArgs["mflCode"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("mflCode"))
-		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		arg0, err = ec.unmarshalNInt2int(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -657,10 +662,10 @@ func (ec *executionContext) field_Query_listFacilities_args(ctx context.Context,
 func (ec *executionContext) field_Query_retrieveFacilityByMFLCode_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
+	var arg0 int
 	if tmp, ok := rawArgs["mflCode"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("mflCode"))
-		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		arg0, err = ec.unmarshalNInt2int(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -840,9 +845,9 @@ func (ec *executionContext) _Facility_code(ctx context.Context, field graphql.Co
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(int)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Facility_active(ctx context.Context, field graphql.CollectedField, obj *domain.Facility) (ret graphql.Marshaler) {
@@ -910,9 +915,9 @@ func (ec *executionContext) _Facility_county(ctx context.Context, field graphql.
 		}
 		return graphql.Null
 	}
-	res := resTmp.(enums.CountyType)
+	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalNCountyType2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐCountyType(ctx, field.Selections, res)
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Facility_description(ctx context.Context, field graphql.CollectedField, obj *domain.Facility) (ret graphql.Marshaler) {
@@ -1183,7 +1188,7 @@ func (ec *executionContext) _Mutation_deleteFacility(ctx context.Context, field 
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().DeleteFacility(rctx, args["mflCode"].(string))
+		return ec.resolvers.Mutation().DeleteFacility(rctx, args["mflCode"].(int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1225,7 +1230,7 @@ func (ec *executionContext) _Mutation_reactivateFacility(ctx context.Context, fi
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().ReactivateFacility(rctx, args["mflCode"].(string))
+		return ec.resolvers.Mutation().ReactivateFacility(rctx, args["mflCode"].(int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1267,7 +1272,7 @@ func (ec *executionContext) _Mutation_inactivateFacility(ctx context.Context, fi
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().InactivateFacility(rctx, args["mflCode"].(string))
+		return ec.resolvers.Mutation().InactivateFacility(rctx, args["mflCode"].(int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1578,7 +1583,7 @@ func (ec *executionContext) _Query_retrieveFacilityByMFLCode(ctx context.Context
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().RetrieveFacilityByMFLCode(rctx, args["mflCode"].(string), args["isActive"].(bool))
+		return ec.resolvers.Query().RetrieveFacilityByMFLCode(rctx, args["mflCode"].(int), args["isActive"].(bool))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2848,7 +2853,7 @@ func (ec *executionContext) unmarshalInputFacilityInput(ctx context.Context, obj
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("code"))
-			it.Code, err = ec.unmarshalNString2string(ctx, v)
+			it.Code, err = ec.unmarshalNInt2int(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -2864,7 +2869,7 @@ func (ec *executionContext) unmarshalInputFacilityInput(ctx context.Context, obj
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("county"))
-			it.County, err = ec.unmarshalNCountyType2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐCountyType(ctx, v)
+			it.County, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -3529,16 +3534,6 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 		}
 	}
 	return res
-}
-
-func (ec *executionContext) unmarshalNCountyType2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐCountyType(ctx context.Context, v interface{}) (enums.CountyType, error) {
-	var res enums.CountyType
-	err := res.UnmarshalGQL(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalNCountyType2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐCountyType(ctx context.Context, sel ast.SelectionSet, v enums.CountyType) graphql.Marshaler {
-	return v
 }
 
 func (ec *executionContext) marshalNFacility2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐFacility(ctx context.Context, sel ast.SelectionSet, v domain.Facility) graphql.Marshaler {

@@ -1,6 +1,5 @@
 scalar Time
 
-
 enum CountryType {
   KENYA
   # other countries

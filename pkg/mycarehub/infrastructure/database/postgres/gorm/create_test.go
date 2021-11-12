@@ -2,29 +2,28 @@ package gorm_test
 
 import (
 	"context"
-	"strconv"
+	"math/rand"
 	"testing"
 
 	"github.com/brianvoe/gofakeit"
-	"github.com/google/uuid"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
+	"github.com/segmentio/ksuid"
 )
 
 func TestPGInstance_GetOrCreateFacility(t *testing.T) {
 	ctx := context.Background()
 
-	ID := uuid.New().String()
-	name := gofakeit.Name()
-	code := uuid.New().String()
-	county := enums.CountyTypeNairobi
+	ID := ksuid.New().String()
+	name := ksuid.New().String()
+	code := rand.Intn(1000000)
+	county := gofakeit.Name()
 	description := gofakeit.HipsterSentence(15)
 
 	facility := &gorm.Facility{
 		FacilityID:  &ID,
 		Name:        name,
 		Code:        code,
-		Active:      strconv.FormatBool(true),
+		Active:      true,
 		County:      county,
 		Description: description,
 	}

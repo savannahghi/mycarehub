@@ -6,7 +6,6 @@ import (
 	"github.com/brianvoe/gofakeit"
 	"github.com/google/uuid"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 )
 
@@ -14,20 +13,20 @@ import (
 type FacilityUsecaseMock struct {
 	MockGetOrCreateFacilityFn       func(ctx context.Context, facility *dto.FacilityInput) (*domain.Facility, error)
 	MockRetrieveFacilityFn          func(ctx context.Context, id *string, isActive bool) (*domain.Facility, error)
-	MockRetrieveFacilityByMFLCodeFn func(ctx context.Context, MFLCode string, isActive bool) (*domain.Facility, error)
+	MockRetrieveFacilityByMFLCodeFn func(ctx context.Context, MFLCode int, isActive bool) (*domain.Facility, error)
 	MockGetFacilitiesFn             func(ctx context.Context) ([]*domain.Facility, error)
 	MockListFacilitiesFn            func(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationsInput *dto.PaginationsInput) (*domain.FacilityPage, error)
-	DeleteFacilityFn                func(ctx context.Context, id string) (bool, error)
+	DeleteFacilityFn                func(ctx context.Context, id int) (bool, error)
 	FetchFacilitiesFn               func(ctx context.Context) ([]*domain.Facility, error)
-	MockInactivateFacilityFn        func(ctx context.Context, mflCode *string) (bool, error)
+	MockInactivateFacilityFn        func(ctx context.Context, mflCode *int) (bool, error)
 }
 
 // NewFacilityUsecaseMock initializes a new instance of `GormMock` then mocking the case of success.
 func NewFacilityUsecaseMock() *FacilityUsecaseMock {
 	ID := uuid.New().String()
 	name := gofakeit.Name()
-	code := "KN001"
-	county := enums.CountyTypeNairobi
+	code := gofakeit.Number(0, 1000)
+	county := "Nairobi"
 	description := gofakeit.HipsterSentence(15)
 
 	facilityInput := &domain.Facility{
@@ -74,7 +73,7 @@ func NewFacilityUsecaseMock() *FacilityUsecaseMock {
 			return facilityInput, nil
 		},
 
-		MockRetrieveFacilityByMFLCodeFn: func(ctx context.Context, MFLCode string, isActive bool) (*domain.Facility, error) {
+		MockRetrieveFacilityByMFLCodeFn: func(ctx context.Context, MFLCode int, isActive bool) (*domain.Facility, error) {
 			return facilityInput, nil
 		},
 
@@ -85,14 +84,14 @@ func NewFacilityUsecaseMock() *FacilityUsecaseMock {
 			return facilitiesPage, nil
 		},
 
-		DeleteFacilityFn: func(ctx context.Context, id string) (bool, error) {
+		DeleteFacilityFn: func(ctx context.Context, id int) (bool, error) {
 			return true, nil
 		},
 
 		FetchFacilitiesFn: func(ctx context.Context) ([]*domain.Facility, error) {
 			return facilitiesList, nil
 		},
-		MockInactivateFacilityFn: func(ctx context.Context, mflCode *string) (bool, error) {
+		MockInactivateFacilityFn: func(ctx context.Context, mflCode *int) (bool, error) {
 			return true, nil
 		},
 	}
@@ -109,7 +108,7 @@ func (f *FacilityUsecaseMock) RetrieveFacility(ctx context.Context, id *string, 
 }
 
 // RetrieveFacilityByMFLCode mocks the implementation of `gorm's` RetrieveFacilityByMFLCode method.
-func (f *FacilityUsecaseMock) RetrieveFacilityByMFLCode(ctx context.Context, MFLCode string, isActive bool) (*domain.Facility, error) {
+func (f *FacilityUsecaseMock) RetrieveFacilityByMFLCode(ctx context.Context, MFLCode int, isActive bool) (*domain.Facility, error) {
 	return f.MockRetrieveFacilityByMFLCodeFn(ctx, MFLCode, isActive)
 }
 
@@ -129,7 +128,7 @@ func (f *FacilityUsecaseMock) ListFacilities(
 }
 
 // DeleteFacility mocks the implementation of deleting a facility by ID
-func (f *FacilityUsecaseMock) DeleteFacility(ctx context.Context, id string) (bool, error) {
+func (f *FacilityUsecaseMock) DeleteFacility(ctx context.Context, id int) (bool, error) {
 	return f.DeleteFacilityFn(ctx, id)
 }
 
@@ -139,6 +138,6 @@ func (f *FacilityUsecaseMock) FetchFacilities(ctx context.Context) ([]*domain.Fa
 }
 
 // InactivateFacility mocks the implementation of inactivating the active status of a particular facility
-func (f *FacilityUsecaseMock) InactivateFacility(ctx context.Context, mflCode *string) (bool, error) {
+func (f *FacilityUsecaseMock) InactivateFacility(ctx context.Context, mflCode *int) (bool, error) {
 	return f.MockInactivateFacilityFn(ctx, mflCode)
 }

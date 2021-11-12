@@ -15,9 +15,9 @@ func TestFacilityInput_Validate(t *testing.T) {
 
 	type fields struct {
 		Name        string
-		Code        string
+		Code        int
 		Active      bool
-		County      enums.CountyType
+		County      string
 		Description string
 	}
 	tests := []struct {
@@ -29,9 +29,9 @@ func TestFacilityInput_Validate(t *testing.T) {
 			name: "valid: all fields with correct value",
 			fields: fields{
 				Name:        "test name",
-				Code:        "22344",
+				Code:        22344,
 				Active:      true,
-				County:      enums.CountyTypeNairobi,
+				County:      "Nairobi",
 				Description: "test description",
 			},
 			wantErr: false,
@@ -41,9 +41,9 @@ func TestFacilityInput_Validate(t *testing.T) {
 			name: "invalid: short name len",
 			fields: fields{
 				Name:        "te",
-				Code:        "22344",
+				Code:        22344,
 				Active:      true,
-				County:      enums.CountyTypeNairobi,
+				County:      "Nairobi",
 				Description: "test description",
 			},
 			wantErr: true,
@@ -52,9 +52,9 @@ func TestFacilityInput_Validate(t *testing.T) {
 			name: "invalid: long name len",
 			fields: fields{
 				Name:        longWord,
-				Code:        "22344",
+				Code:        22344,
 				Active:      true,
-				County:      enums.CountyTypeNairobi,
+				County:      "Nairobi",
 				Description: "test description",
 			},
 			wantErr: true,
@@ -63,9 +63,9 @@ func TestFacilityInput_Validate(t *testing.T) {
 			name: "invalid: short description",
 			fields: fields{
 				Name:        "test name",
-				Code:        "22344",
+				Code:        22344,
 				Active:      true,
-				County:      enums.CountyTypeNairobi,
+				County:      "Nairobi",
 				Description: "te",
 			},
 			wantErr: true,
@@ -74,9 +74,9 @@ func TestFacilityInput_Validate(t *testing.T) {
 			name: "invalid: very long description",
 			fields: fields{
 				Name:        "test name",
-				Code:        "22344",
+				Code:        22344,
 				Active:      true,
-				County:      enums.CountyTypeNairobi,
+				County:      "Nairobi",
 				Description: veryLongWord,
 			},
 			wantErr: true,
@@ -84,9 +84,9 @@ func TestFacilityInput_Validate(t *testing.T) {
 		{
 			name: "invalid: missing name",
 			fields: fields{
-				Code:        "22344",
+				Code:        22344,
 				Active:      true,
-				County:      enums.CountyTypeNairobi,
+				County:      "Nairobi",
 				Description: "test description",
 			},
 			wantErr: true,
@@ -96,7 +96,7 @@ func TestFacilityInput_Validate(t *testing.T) {
 			fields: fields{
 				Name:        "test name",
 				Active:      true,
-				County:      enums.CountyTypeNairobi,
+				County:      "Nairobi",
 				Description: "test description",
 			},
 			wantErr: true,
@@ -105,7 +105,7 @@ func TestFacilityInput_Validate(t *testing.T) {
 			name: "invalid: missing county",
 			fields: fields{
 				Name:        "test name",
-				Code:        "22344",
+				Code:        22344,
 				Active:      true,
 				Description: "test description",
 			},
@@ -115,9 +115,9 @@ func TestFacilityInput_Validate(t *testing.T) {
 			name: "invalid: missing description",
 			fields: fields{
 				Name:   "test name",
-				Code:   "22344",
+				Code:   22344,
 				Active: true,
-				County: enums.CountyTypeNairobi,
+				County: "Nairobi",
 			},
 			wantErr: true,
 		},

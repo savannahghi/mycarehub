@@ -13,9 +13,9 @@ func TestFilterSortDataType_String(t *testing.T) {
 		want string
 	}{
 		{
-			name: "created_at",
+			name: "created",
 			e:    FilterSortDataTypeCreatedAt,
-			want: "created_at",
+			want: "created",
 		},
 	}
 	for _, tt := range tests {
@@ -69,7 +69,7 @@ func TestFilterSortDataType_UnmarshalGQL(t *testing.T) {
 			name: "valid type",
 			e:    &pmtc,
 			args: args{
-				v: "created_at",
+				v: "created",
 			},
 			wantErr: false,
 		},
@@ -112,7 +112,7 @@ func TestFilterSortDataType_MarshalGQL(t *testing.T) {
 			name:  "valid type enums",
 			e:     FilterSortDataTypeCreatedAt,
 			b:     w,
-			wantW: strconv.Quote("created_at"),
+			wantW: strconv.Quote("created"),
 		},
 	}
 	for _, tt := range tests {

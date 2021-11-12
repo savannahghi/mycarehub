@@ -7,7 +7,6 @@ import (
 
 	"github.com/brianvoe/gofakeit"
 	gormMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm/mock"
-	"github.com/segmentio/ksuid"
 )
 
 func TestMyCareHubDb_InactivateFacility(t *testing.T) {
@@ -16,12 +15,12 @@ func TestMyCareHubDb_InactivateFacility(t *testing.T) {
 	var fakeGorm = gormMock.NewGormMock()
 	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
 
-	validMFLCode := ksuid.New().String()
-	veryBadMFLCode := ksuid.New().String() + gofakeit.HipsterSentence(500)
+	validMFLCode := gofakeit.Number(0, 100)
+	veryBadMFLCode := gofakeit.Number(10000, 10000000)
 
 	type args struct {
 		ctx     context.Context
-		mflCode *string
+		mflCode *int
 	}
 	tests := []struct {
 		name    string
@@ -60,12 +59,12 @@ func TestMyCareHubDb_InactivateFacility(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.name == "Sad case - empty mflCode" {
-				fakeGorm.MockInactivateFacilityFn = func(ctx context.Context, mflCode *string) (bool, error) {
+				fakeGorm.MockInactivateFacilityFn = func(ctx context.Context, mflCode *int) (bool, error) {
 					return false, fmt.Errorf("failed to inactivate facility")
 				}
 			}
 			if tt.name == "Sad Case - very bad mflCode" {
-				fakeGorm.MockInactivateFacilityFn = func(ctx context.Context, mflCode *string) (bool, error) {
+				fakeGorm.MockInactivateFacilityFn = func(ctx context.Context, mflCode *int) (bool, error) {
 					return false, fmt.Errorf("failed to inactivate facility")
 				}
 			}
@@ -88,12 +87,12 @@ func TestMyCareHubDb_ReactivateFacility(t *testing.T) {
 	var fakeGorm = gormMock.NewGormMock()
 	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
 
-	validMFLCode := ksuid.New().String()
-	veryBadMFLCode := ksuid.New().String() + gofakeit.HipsterSentence(500)
+	validMFLCode := gofakeit.Number(0, 100)
+	veryBadMFLCode := gofakeit.Number(10000, 10000000)
 
 	type args struct {
 		ctx     context.Context
-		mflCode *string
+		mflCode *int
 	}
 	tests := []struct {
 		name    string
@@ -132,12 +131,12 @@ func TestMyCareHubDb_ReactivateFacility(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.name == "Sad case - empty mflCode" {
-				fakeGorm.MockReactivateFacilityFn = func(ctx context.Context, mflCode *string) (bool, error) {
+				fakeGorm.MockReactivateFacilityFn = func(ctx context.Context, mflCode *int) (bool, error) {
 					return false, fmt.Errorf("failed to inactivate facility")
 				}
 			}
 			if tt.name == "Sad Case - very bad mflCode" {
-				fakeGorm.MockReactivateFacilityFn = func(ctx context.Context, mflCode *string) (bool, error) {
+				fakeGorm.MockReactivateFacilityFn = func(ctx context.Context, mflCode *int) (bool, error) {
 					return false, fmt.Errorf("failed to inactivate facility")
 				}
 			}

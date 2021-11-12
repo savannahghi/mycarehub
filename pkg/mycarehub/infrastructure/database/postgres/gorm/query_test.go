@@ -2,6 +2,7 @@ package gorm_test
 
 import (
 	"context"
+	"math/rand"
 	"strconv"
 	"testing"
 
@@ -16,15 +17,15 @@ import (
 func createTestFacility() *gorm.Facility {
 	ID := uuid.New().String()
 	name := ksuid.New().String()
-	code := uuid.New().String()
-	county := enums.CountyTypeNairobi
+	code := rand.Intn(1000000)
+	county := gofakeit.Name()
 	description := gofakeit.HipsterSentence(15)
 
 	facility := &gorm.Facility{
 		FacilityID:  &ID,
 		Name:        name,
 		Code:        code,
-		Active:      strconv.FormatBool(true),
+		Active:      true,
 		County:      county,
 		Description: description,
 	}
@@ -99,7 +100,7 @@ func TestPGInstance_RetrieveFacilityByMFLCode(t *testing.T) {
 
 	type args struct {
 		ctx      context.Context
-		MFLCode  string
+		MFLCode  int
 		isActive bool
 	}
 	tests := []struct {
@@ -120,7 +121,7 @@ func TestPGInstance_RetrieveFacilityByMFLCode(t *testing.T) {
 			name: "Sad Case - Fail to fetch facility by MFL code",
 			args: args{
 				ctx:      ctx,
-				MFLCode:  "invalid code",
+				MFLCode:  102921083,
 				isActive: true,
 			},
 			wantErr: true,
@@ -146,22 +147,22 @@ func TestPGInstance_ListFacilities(t *testing.T) {
 
 	d := testingDB
 
-	code := ksuid.New().String()
-	code2 := ksuid.New().String()
+	code := rand.Intn(1000000)
+	code2 := rand.Intn(1000000)
 
 	facilityInput := &gorm.Facility{
-		Name:        "Kanairo One",
+		Name:        ksuid.New().String(),
 		Code:        code,
-		Active:      strconv.FormatBool(true),
-		County:      enums.CountyTypeNairobi,
+		Active:      true,
+		County:      "Nairobi",
 		Description: "This is just for mocking",
 	}
 
 	facilityInput2 := &gorm.Facility{
-		Name:        "Baringo 2",
+		Name:        ksuid.New().String(),
 		Code:        code2,
-		Active:      strconv.FormatBool(true),
-		County:      enums.CountyTypeBaringo,
+		Active:      true,
+		County:      "Baringo",
 		Description: "This is just for mocking",
 	}
 
@@ -181,7 +182,7 @@ func TestPGInstance_ListFacilities(t *testing.T) {
 		{
 			Name:     enums.FilterSortDataTypeMFLCode.String(),
 			DataType: enums.FilterSortDataTypeMFLCode,
-			Value:    code,
+			Value:    strconv.Itoa(code),
 		},
 		{
 			Name:     enums.FilterSortDataTypeActive.String(),
@@ -204,7 +205,7 @@ func TestPGInstance_ListFacilities(t *testing.T) {
 		{
 			Name:     enums.FilterSortDataTypeMFLCode.String(),
 			DataType: enums.FilterSortDataTypeMFLCode,
-			Value:    code,
+			Value:    strconv.Itoa(code),
 		},
 		{
 			Name:     enums.FilterSortDataTypeActive.String(),
@@ -249,7 +250,7 @@ func TestPGInstance_ListFacilities(t *testing.T) {
 		{
 			Name:     enums.FilterSortDataTypeMFLCode.String(),
 			DataType: enums.FilterSortDataTypeMFLCode,
-			Value:    code,
+			Value:    strconv.Itoa(code),
 		},
 		{
 			Name:     enums.FilterSortDataTypeActive.String(),
@@ -272,7 +273,7 @@ func TestPGInstance_ListFacilities(t *testing.T) {
 		{
 			Name:     enums.FilterSortDataTypeMFLCode.String(),
 			DataType: enums.FilterSortDataTypeMFLCode,
-			Value:    code,
+			Value:    strconv.Itoa(code),
 		},
 		{
 			Name:     enums.FilterSortDataTypeActive.String(),
@@ -505,12 +506,12 @@ func TestPGInstance_ListFacilities(t *testing.T) {
 		})
 	}
 	// Teardown
-	_, err = d.DeleteFacility(ctx, string(facility.Code))
+	_, err = d.DeleteFacility(ctx, facility.Code)
 	if err != nil {
 		t.Errorf("unable to delete facility")
 		return
 	}
-	_, err = d.DeleteFacility(ctx, string(facility2.Code))
+	_, err = d.DeleteFacility(ctx, facility2.Code)
 	if err != nil {
 		t.Errorf("unable to delete facility")
 		return

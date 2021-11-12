@@ -12,10 +12,10 @@ type FilterSortDataType string
 // Note: the constant values should match the table field name
 const (
 	// FilterSortDataTypeCreatedAt represents created at Filter data type
-	FilterSortDataTypeCreatedAt FilterSortDataType = "created_at"
+	FilterSortDataTypeCreatedAt FilterSortDataType = "created"
 
 	// FilterSortDataTypeUpdatedAt represents  updated at Filter data type
-	FilterSortDataTypeUpdatedAt FilterSortDataType = "updated_at"
+	FilterSortDataTypeUpdatedAt FilterSortDataType = "updated"
 
 	// FilterSortDataTypeName represents a Name Filter data type
 	FilterSortDataTypeName FilterSortDataType = "name"

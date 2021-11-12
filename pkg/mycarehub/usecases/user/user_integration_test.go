@@ -2,7 +2,6 @@ package user_test
 
 import (
 	"context"
-	"testing"
 
 	externalExtension "github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres"
@@ -28,17 +27,4 @@ func InitializeTestService(ctx context.Context) *interactor.Interactor {
 
 	i := interactor.NewMyCareHubInteractor(facilityUseCase, userUsecase)
 	return i
-
-}
-
-func TearDown(t *testing.T) {
-	pg, err := gorm.NewPGInstance()
-	if err != nil {
-		return
-	}
-
-	pg.DB.Migrator().DropTable(&gorm.Contact{})
-	pg.DB.Migrator().DropTable(&gorm.PINData{})
-	pg.DB.Migrator().DropTable(&gorm.User{})
-	pg.DB.Migrator().DropTable(&gorm.Facility{})
 }

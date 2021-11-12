@@ -5,14 +5,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"math/rand"
 	"net/http"
 	"testing"
 	"time"
 
 	"github.com/brianvoe/gofakeit"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
 	"github.com/segmentio/ksuid"
 )
 
@@ -26,8 +25,8 @@ func TestCreateFacility(t *testing.T) {
 		return
 	}
 
-	mflcode := gofakeit.Name()
-	facilityName := gofakeit.Name()
+	mflcode := rand.Intn(1000000)
+	facilityName := ksuid.New().String()
 	county := "Nakuru"
 	description := gofakeit.HipsterSentence(10)
 
@@ -181,25 +180,6 @@ func TestCreateFacility(t *testing.T) {
 			wantStatus: http.StatusUnprocessableEntity,
 			wantErr:    true,
 		},
-		{
-			name: "invalid: invalid value for county",
-			args: args{
-				query: map[string]interface{}{
-					"query": graphqlMutation,
-					"variables": map[string]interface{}{
-						"input": map[string]interface{}{
-							"name":        "Mediheal Hospital (Nakuru) Annex",
-							"code":        mflcode,
-							"active":      true,
-							"county":      "Kanairo",
-							"description": "located at Giddo plaza building town",
-						},
-					},
-				},
-			},
-			wantStatus: http.StatusUnprocessableEntity,
-			wantErr:    true,
-		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -272,15 +252,11 @@ func TestCreateFacility(t *testing.T) {
 				t.Errorf("Bad status response returned")
 				return
 			}
-
 		})
 	}
-	TearDown(t)
-
 }
 
 func TestInactivateFacility(t *testing.T) {
-
 	ctx := context.Background()
 
 	i, err := InitializeTestService(ctx)
@@ -296,7 +272,7 @@ func TestInactivateFacility(t *testing.T) {
 		return
 	}
 
-	mflcode := ksuid.New().String()
+	mflcode := rand.Intn(1000000)
 	facilityName := ksuid.New().String()
 	description := gofakeit.HipsterSentence(10)
 
@@ -304,7 +280,7 @@ func TestInactivateFacility(t *testing.T) {
 		Name:        facilityName,
 		Code:        mflcode,
 		Active:      true,
-		County:      enums.CountyTypeBaringo,
+		County:      "Baringo",
 		Description: description,
 	}
 
@@ -314,7 +290,7 @@ func TestInactivateFacility(t *testing.T) {
 	}
 
 	graphqlMutation := `
-	mutation inactivateFacility($mflCode: String!) {
+	mutation inactivateFacility($mflCode: Int!) {
 		inactivateFacility (mflCode: $mflCode)
 	  }
 	`
@@ -426,16 +402,11 @@ func TestInactivateFacility(t *testing.T) {
 				t.Errorf("Bad status response returned")
 				return
 			}
-
 		})
 	}
-
-	TearDown(t)
 }
 
 func TestReactivateFacility(t *testing.T) {
-	TearDown(t)
-
 	ctx := context.Background()
 
 	i, err := InitializeTestService(ctx)
@@ -451,7 +422,7 @@ func TestReactivateFacility(t *testing.T) {
 		return
 	}
 
-	mflcode := ksuid.New().String()
+	mflcode := rand.Intn(1000000)
 	facilityName := ksuid.New().String()
 	description := gofakeit.HipsterSentence(10)
 
@@ -459,7 +430,7 @@ func TestReactivateFacility(t *testing.T) {
 		Name:        facilityName,
 		Code:        mflcode,
 		Active:      false,
-		County:      enums.CountyTypeBaringo,
+		County:      "Baringo",
 		Description: description,
 	}
 
@@ -469,7 +440,7 @@ func TestReactivateFacility(t *testing.T) {
 	}
 
 	graphqlMutation := `
-	mutation reactivateFacility($mflCode: String!) {
+	mutation reactivateFacility($mflCode: Int!) {
 		reactivateFacility (mflCode: $mflCode)
 	  }
 	`
@@ -584,19 +555,4 @@ func TestReactivateFacility(t *testing.T) {
 
 		})
 	}
-
-	TearDown(t)
-}
-
-func TearDown(t *testing.T) {
-	// Teardown
-	pg, err := gorm.NewPGInstance()
-	if err != nil {
-		return
-	}
-
-	pg.DB.Migrator().DropTable(&gorm.Contact{})
-	pg.DB.Migrator().DropTable(&gorm.PINData{})
-	pg.DB.Migrator().DropTable(&gorm.User{})
-	pg.DB.Migrator().DropTable(&gorm.Facility{})
 }

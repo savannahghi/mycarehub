@@ -2,12 +2,11 @@ package gorm_test
 
 import (
 	"context"
-	"strconv"
+	"math/rand"
 	"testing"
 
 	"github.com/brianvoe/gofakeit"
 	"github.com/google/uuid"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
 	"github.com/segmentio/ksuid"
 )
@@ -15,15 +14,15 @@ import (
 func createInactiveTestFacility() *gorm.Facility {
 	ID := uuid.New().String()
 	name := ksuid.New().String()
-	code := uuid.New().String()
-	county := enums.CountyTypeNairobi
+	code := rand.Intn(1000000)
+	county := "Nairobi"
 	description := gofakeit.HipsterSentence(15)
 
 	facility := &gorm.Facility{
 		FacilityID:  &ID,
 		Name:        name,
 		Code:        code,
-		Active:      strconv.FormatBool(false),
+		Active:      false,
 		County:      county,
 		Description: description,
 	}
@@ -45,7 +44,7 @@ func TestPGInstance_InactivateFacility(t *testing.T) {
 
 	type args struct {
 		ctx     context.Context
-		mflCode *string
+		mflCode *int
 	}
 	tests := []struct {
 		name    string
@@ -100,7 +99,7 @@ func TestPGInstance_ReactivateFacility(t *testing.T) {
 
 	type args struct {
 		ctx     context.Context
-		mflCode *string
+		mflCode *int
 	}
 	tests := []struct {
 		name    string
@@ -139,14 +138,4 @@ func TestPGInstance_ReactivateFacility(t *testing.T) {
 			}
 		})
 	}
-
-	TearDown(t)
-}
-
-func TearDown(t *testing.T) {
-
-	testingDB.DB.Migrator().DropTable(&gorm.Contact{})
-	testingDB.DB.Migrator().DropTable(&gorm.PINData{})
-	testingDB.DB.Migrator().DropTable(&gorm.User{})
-	testingDB.DB.Migrator().DropTable(&gorm.Facility{})
 }

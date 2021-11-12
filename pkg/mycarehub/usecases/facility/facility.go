@@ -37,18 +37,18 @@ type IFacilityUpdate interface {
 // IFacilityDelete contains the method to delete a facility
 type IFacilityDelete interface {
 	// TODO Ensure delete is idempotent
-	DeleteFacility(ctx context.Context, id string) (bool, error)
+	DeleteFacility(ctx context.Context, id int) (bool, error)
 }
 
 // IFacilityInactivate contains the method to activate a facility
 type IFacilityInactivate interface {
 	// TODO Toggle active boolean
-	InactivateFacility(ctx context.Context, mflCode *string) (bool, error)
+	InactivateFacility(ctx context.Context, mflCode *int) (bool, error)
 }
 
 // IFacilityReactivate contains the method to re-activate a facility
 type IFacilityReactivate interface {
-	ReactivateFacility(ctx context.Context, mflCode *string) (bool, error)
+	ReactivateFacility(ctx context.Context, mflCode *int) (bool, error)
 }
 
 // IFacilityList contains the method to list of facilities
@@ -61,7 +61,7 @@ type IFacilityList interface {
 // IFacilityRetrieve contains the method to retrieve a facility
 type IFacilityRetrieve interface {
 	RetrieveFacility(ctx context.Context, id *string, isActive bool) (*domain.Facility, error)
-	RetrieveFacilityByMFLCode(ctx context.Context, MFLCode string, isActive bool) (*domain.Facility, error)
+	RetrieveFacilityByMFLCode(ctx context.Context, MFLCode int, isActive bool) (*domain.Facility, error)
 }
 
 // UseCaseFacilityImpl represents facility implementation object
@@ -100,18 +100,18 @@ func (f *UseCaseFacilityImpl) UpdateFacility(facility *domain.Facility) (*domain
 }
 
 // DeleteFacility deletes a facility from the database usinng the MFL Code
-func (f *UseCaseFacilityImpl) DeleteFacility(ctx context.Context, id string) (bool, error) {
+func (f *UseCaseFacilityImpl) DeleteFacility(ctx context.Context, id int) (bool, error) {
 	return f.Delete.DeleteFacility(ctx, id)
 }
 
 // InactivateFacility inactivates the health facility
 // TODO Toggle active boolean
-func (f *UseCaseFacilityImpl) InactivateFacility(ctx context.Context, mflCode *string) (bool, error) {
+func (f *UseCaseFacilityImpl) InactivateFacility(ctx context.Context, mflCode *int) (bool, error) {
 	return f.Update.InactivateFacility(ctx, mflCode)
 }
 
 // ReactivateFacility activates the inactivated health facility
-func (f *UseCaseFacilityImpl) ReactivateFacility(ctx context.Context, mflCode *string) (bool, error) {
+func (f *UseCaseFacilityImpl) ReactivateFacility(ctx context.Context, mflCode *int) (bool, error) {
 	return f.Update.ReactivateFacility(ctx, mflCode)
 }
 
@@ -139,8 +139,8 @@ func (f *UseCaseFacilityImpl) FetchFacilities(ctx context.Context) ([]*domain.Fa
 }
 
 // RetrieveFacilityByMFLCode find the health facility by MFL Code
-func (f *UseCaseFacilityImpl) RetrieveFacilityByMFLCode(ctx context.Context, MFLCode string, isActive bool) (*domain.Facility, error) {
-	if MFLCode == "" {
+func (f *UseCaseFacilityImpl) RetrieveFacilityByMFLCode(ctx context.Context, MFLCode int, isActive bool) (*domain.Facility, error) {
+	if MFLCode == 0 {
 		return nil, fmt.Errorf("facility MFL code cannot be empty")
 	}
 	return f.Query.RetrieveFacilityByMFLCode(ctx, MFLCode, isActive)

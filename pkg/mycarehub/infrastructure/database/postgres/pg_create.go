@@ -3,7 +3,6 @@ package postgres
 import (
 	"context"
 	"fmt"
-	"strconv"
 
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
@@ -24,7 +23,7 @@ func (d *MyCareHubDb) GetOrCreateFacility(ctx context.Context, facility *dto.Fac
 	facilityObj := &gorm.Facility{
 		Name:        facility.Name,
 		Code:        facility.Code,
-		Active:      strconv.FormatBool(facility.Active),
+		Active:      facility.Active,
 		County:      facility.County,
 		Description: facility.Description,
 	}

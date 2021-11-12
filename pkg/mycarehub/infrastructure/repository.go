@@ -16,14 +16,14 @@ type Create interface {
 
 // Delete represents all the deletion action interfaces
 type Delete interface {
-	DeleteFacility(ctx context.Context, id string) (bool, error)
+	DeleteFacility(ctx context.Context, id int) (bool, error)
 }
 
 // Query contains all query methods
 type Query interface {
 	RetrieveFacility(ctx context.Context, id *string, isActive bool) (*domain.Facility, error)
 	GetFacilities(ctx context.Context) ([]*domain.Facility, error)
-	RetrieveFacilityByMFLCode(ctx context.Context, MFLCode string, isActive bool) (*domain.Facility, error)
+	RetrieveFacilityByMFLCode(ctx context.Context, MFLCode int, isActive bool) (*domain.Facility, error)
 	ListFacilities(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationsInput *dto.PaginationsInput) (*domain.FacilityPage, error)
 	GetUserProfileByPhoneNumber(ctx context.Context, phoneNumber string) (*domain.User, error)
 	GetUserPINByUserID(ctx context.Context, userID string) (*domain.UserPIN, error)
@@ -31,6 +31,6 @@ type Query interface {
 
 // Update represents all the update action interfaces
 type Update interface {
-	InactivateFacility(ctx context.Context, mflCode *string) (bool, error)
-	ReactivateFacility(ctx context.Context, mflCode *string) (bool, error)
+	InactivateFacility(ctx context.Context, mflCode *int) (bool, error)
+	ReactivateFacility(ctx context.Context, mflCode *int) (bool, error)
 }

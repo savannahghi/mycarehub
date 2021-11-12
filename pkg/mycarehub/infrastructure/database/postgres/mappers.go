@@ -1,8 +1,6 @@
 package postgres
 
 import (
-	"strconv"
-
 	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
@@ -60,16 +58,11 @@ func (d *MyCareHubDb) mapFacilityObjectToDomain(facilityObject *gorm.Facility) *
 		return nil
 	}
 
-	active, err := strconv.ParseBool(facilityObject.Active)
-	if err != nil {
-		return nil
-	}
-
 	return &domain.Facility{
 		ID:          facilityObject.FacilityID,
 		Name:        facilityObject.Name,
 		Code:        facilityObject.Code,
-		Active:      active,
+		Active:      facilityObject.Active,
 		County:      facilityObject.County,
 		Description: facilityObject.Description,
 	}
