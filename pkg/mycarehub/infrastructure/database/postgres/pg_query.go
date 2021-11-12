@@ -131,3 +131,17 @@ func (d *MyCareHubDb) GetCurrentTerms(ctx context.Context) (string, error) {
 
 	return terms, nil
 }
+
+// GetUserProfileByUserID fetches and returns a userprofile using their user ID
+func (d *MyCareHubDb) GetUserProfileByUserID(ctx context.Context, userID string) (*domain.User, error) {
+	if userID == "" {
+		return nil, fmt.Errorf("user ID should be provided")
+	}
+
+	user, err := d.query.GetUserProfileByUserID(ctx, userID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get user profile by user ID: %v", err)
+	}
+
+	return d.mapProfileObjectToDomain(user), nil
+}

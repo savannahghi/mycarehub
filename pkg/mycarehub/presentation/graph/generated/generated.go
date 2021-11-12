@@ -12,6 +12,7 @@ import (
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
+	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
@@ -69,6 +70,7 @@ type ComplexityRoot struct {
 		CreateFacility     func(childComplexity int, input dto.FacilityInput) int
 		DeleteFacility     func(childComplexity int, mflCode int) int
 		InactivateFacility func(childComplexity int, mflCode int) int
+		InviteUser         func(childComplexity int, userID string, phoneNumber string, flavour feedlib.Flavour) int
 		ReactivateFacility func(childComplexity int, mflCode int) int
 	}
 
@@ -95,6 +97,7 @@ type MutationResolver interface {
 	DeleteFacility(ctx context.Context, mflCode int) (bool, error)
 	ReactivateFacility(ctx context.Context, mflCode int) (bool, error)
 	InactivateFacility(ctx context.Context, mflCode int) (bool, error)
+	InviteUser(ctx context.Context, userID string, phoneNumber string, flavour feedlib.Flavour) (bool, error)
 }
 type QueryResolver interface {
 	FetchFacilities(ctx context.Context) ([]*domain.Facility, error)
@@ -231,6 +234,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.InactivateFacility(childComplexity, args["mflCode"].(int)), true
+
+	case "Mutation.inviteUser":
+		if e.complexity.Mutation.InviteUser == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_inviteUser_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.InviteUser(childComplexity, args["userID"].(string), args["phoneNumber"].(string), args["flavour"].(feedlib.Flavour)), true
 
 	case "Mutation.reactivateFacility":
 		if e.complexity.Mutation.ReactivateFacility == nil {
@@ -519,6 +534,9 @@ input SortsInput {
   Field: FilterSortDataType
 }
 `, BuiltIn: false},
+	{Name: "pkg/mycarehub/presentation/graph/profile.graphql", Input: `extend type Mutation {
+  inviteUser(userID: String!,phoneNumber: String!, flavour:Flavour! ): Boolean!
+}`, BuiltIn: false},
 	{Name: "pkg/mycarehub/presentation/graph/types.graphql", Input: `type Facility {
   ID: String!
   name: String!
@@ -610,6 +628,39 @@ func (ec *executionContext) field_Mutation_inactivateFacility_args(ctx context.C
 		}
 	}
 	args["mflCode"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_inviteUser_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["userID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userID"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["userID"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["phoneNumber"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("phoneNumber"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["phoneNumber"] = arg1
+	var arg2 feedlib.Flavour
+	if tmp, ok := rawArgs["flavour"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("flavour"))
+		arg2, err = ec.unmarshalNFlavour2githubᚗcomᚋsavannahghiᚋfeedlibᚐFlavour(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["flavour"] = arg2
 	return args, nil
 }
 
@@ -1290,6 +1341,48 @@ func (ec *executionContext) _Mutation_inactivateFacility(ctx context.Context, fi
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Mutation().InactivateFacility(rctx, args["mflCode"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_inviteUser(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_inviteUser_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().InviteUser(rctx, args["userID"].(string), args["phoneNumber"].(string), args["flavour"].(feedlib.Flavour))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3195,6 +3288,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "inviteUser":
+			out.Values[i] = ec._Mutation_inviteUser(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -3657,6 +3755,16 @@ func (ec *executionContext) marshalNFacility2ᚖgithubᚗcomᚋsavannahghiᚋmyc
 func (ec *executionContext) unmarshalNFacilityInput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐFacilityInput(ctx context.Context, v interface{}) (dto.FacilityInput, error) {
 	res, err := ec.unmarshalInputFacilityInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNFlavour2githubᚗcomᚋsavannahghiᚋfeedlibᚐFlavour(ctx context.Context, v interface{}) (feedlib.Flavour, error) {
+	var res feedlib.Flavour
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNFlavour2githubᚗcomᚋsavannahghiᚋfeedlibᚐFlavour(ctx context.Context, sel ast.SelectionSet, v feedlib.Flavour) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) unmarshalNInt2int(ctx context.Context, v interface{}) (int, error) {

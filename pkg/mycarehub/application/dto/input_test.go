@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/brianvoe/gofakeit"
+	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/interserviceclient"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 )
@@ -200,7 +201,7 @@ func TestLoginInput_Validate(t *testing.T) {
 	type fields struct {
 		PhoneNumber *string
 		PIN         *string
-		Flavour     enums.Flavour
+		Flavour     feedlib.Flavour
 	}
 	tests := []struct {
 		name    string
@@ -212,7 +213,7 @@ func TestLoginInput_Validate(t *testing.T) {
 			fields: fields{
 				PhoneNumber: &testPhone,
 				PIN:         &testPIN,
-				Flavour:     enums.CONSUMER,
+				Flavour:     feedlib.FlavourConsumer,
 			},
 			wantErr: false,
 		},
@@ -220,7 +221,7 @@ func TestLoginInput_Validate(t *testing.T) {
 			name: "invalid: missing phone number",
 			fields: fields{
 				PIN:     &testPIN,
-				Flavour: enums.CONSUMER,
+				Flavour: feedlib.FlavourConsumer,
 			},
 			wantErr: true,
 		},
@@ -228,7 +229,7 @@ func TestLoginInput_Validate(t *testing.T) {
 			name: "invalid : missing pin",
 			fields: fields{
 				PhoneNumber: &testPhone,
-				Flavour:     enums.CONSUMER,
+				Flavour:     feedlib.FlavourConsumer,
 			},
 			wantErr: true,
 		},

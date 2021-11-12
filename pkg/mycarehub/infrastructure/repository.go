@@ -12,6 +12,7 @@ import (
 // All the  contracts for create operations are assembled here
 type Create interface {
 	GetOrCreateFacility(ctx context.Context, facility *dto.FacilityInput) (*domain.Facility, error)
+	SaveTemporaryUserPin(ctx context.Context, pinData *domain.UserPIN) (bool, error)
 }
 
 // Delete represents all the deletion action interfaces
@@ -28,6 +29,7 @@ type Query interface {
 	GetUserProfileByPhoneNumber(ctx context.Context, phoneNumber string) (*domain.User, error)
 	GetUserPINByUserID(ctx context.Context, userID string) (*domain.UserPIN, error)
 	GetCurrentTerms(ctx context.Context) (string, error)
+	GetUserProfileByUserID(ctx context.Context, userID string) (*domain.User, error)
 }
 
 // Update represents all the update action interfaces

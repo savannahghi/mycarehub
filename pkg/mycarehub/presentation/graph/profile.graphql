@@ -1,0 +1,3 @@
+extend type Mutation {
+  inviteUser(userID: String!,phoneNumber: String!, flavour:Flavour! ): Boolean!
+}

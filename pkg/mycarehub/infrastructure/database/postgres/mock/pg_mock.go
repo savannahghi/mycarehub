@@ -24,6 +24,8 @@ type PostgresMock struct {
 	MockInactivateFacilityFn          func(ctx context.Context, mflCode *int) (bool, error)
 	MockReactivateFacilityFn          func(ctx context.Context, mflCode *int) (bool, error)
 	MockGetCurrentTermsFn             func(ctx context.Context) (string, error)
+	MockGetUserProfileByUserIDFn      func(ctx context.Context, userID string) (*domain.User, error)
+	MockSaveTemporaryUserPinFn        func(ctx context.Context, pinData *domain.UserPIN) (bool, error)
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -109,6 +111,14 @@ func NewPostgresMock() *PostgresMock {
 			terms := "some terms"
 			return terms, nil
 		},
+		MockGetUserProfileByUserIDFn: func(ctx context.Context, userID string) (*domain.User, error) {
+			return &domain.User{
+				ID: &userID,
+			}, nil
+		},
+		MockSaveTemporaryUserPinFn: func(ctx context.Context, pinData *domain.UserPIN) (bool, error) {
+			return true, nil
+		},
 	}
 }
 
@@ -170,4 +180,14 @@ func (gm *PostgresMock) ReactivateFacility(ctx context.Context, mflCode *int) (b
 //GetCurrentTerms mocks the implementation of getting all the current terms of service.
 func (gm *PostgresMock) GetCurrentTerms(ctx context.Context) (string, error) {
 	return gm.MockGetCurrentTermsFn(ctx)
+}
+
+// GetUserProfileByUserID mocks the implementation of fetching a user profile by userID
+func (gm *PostgresMock) GetUserProfileByUserID(ctx context.Context, userID string) (*domain.User, error) {
+	return gm.MockGetUserProfileByUserIDFn(ctx, userID)
+}
+
+// SaveTemporaryUserPin mocks the implementation of saving a temporary user pin
+func (gm *PostgresMock) SaveTemporaryUserPin(ctx context.Context, pinData *domain.UserPIN) (bool, error) {
+	return gm.MockSaveTemporaryUserPinFn(ctx, pinData)
 }

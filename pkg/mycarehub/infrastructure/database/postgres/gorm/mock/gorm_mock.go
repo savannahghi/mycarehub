@@ -6,9 +6,10 @@ import (
 
 	"github.com/brianvoe/gofakeit"
 	"github.com/google/uuid"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
+	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
+	"github.com/segmentio/ksuid"
 )
 
 // GormMock struct implements mocks of `gorm's`internal methods.
@@ -24,6 +25,8 @@ type GormMock struct {
 	MockInactivateFacilityFn          func(ctx context.Context, mflCode *int) (bool, error)
 	MockReactivateFacilityFn          func(ctx context.Context, mflCode *int) (bool, error)
 	MockGetCurrentTermsFn             func(ctx context.Context) (string, error)
+	MockGetUserProfileByUserIDFn      func(ctx context.Context, UserID string) (*gorm.User, error)
+	MockSaveTemporaryUserPinFn        func(ctx context.Context, pinData *gorm.PINData) (bool, error)
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -35,14 +38,15 @@ func NewGormMock() *GormMock {
 		In this section, you find commonly shared success case structs for mock tests
 	*/
 
-	ID := uuid.New().String()
+	ID := gofakeit.Number(300, 400)
+	UUID := ksuid.New().String()
 	name := gofakeit.Name()
 	code := gofakeit.Number(0, 100)
 	county := "Nairobi"
 	description := gofakeit.HipsterSentence(15)
 
 	facility := &gorm.Facility{
-		FacilityID:  &ID,
+		FacilityID:  &UUID,
 		Name:        name,
 		Code:        code,
 		Active:      true,
@@ -66,7 +70,7 @@ func NewGormMock() *GormMock {
 		},
 		Facilities: []domain.Facility{
 			{
-				ID:          &ID,
+				ID:          &UUID,
 				Name:        name,
 				Code:        code,
 				Active:      true,
@@ -83,7 +87,7 @@ func NewGormMock() *GormMock {
 		ValidFrom: time.Now(),
 		ValidTo:   time.Now(),
 		IsValid:   true,
-		Flavour:   enums.CONSUMER,
+		Flavour:   feedlib.FlavourConsumer,
 	}
 
 	return &GormMock{
@@ -130,6 +134,14 @@ func NewGormMock() *GormMock {
 		MockGetCurrentTermsFn: func(ctx context.Context) (string, error) {
 			terms := "most curent terms of service"
 			return terms, nil
+		},
+		MockGetUserProfileByUserIDFn: func(ctx context.Context, UserID string) (*gorm.User, error) {
+			return &gorm.User{
+				UserID: &UserID,
+			}, nil
+		},
+		MockSaveTemporaryUserPinFn: func(ctx context.Context, pinData *gorm.PINData) (bool, error) {
+			return true, nil
 		},
 	}
 }
@@ -187,4 +199,14 @@ func (gm *GormMock) ReactivateFacility(ctx context.Context, mflCode *int) (bool,
 //GetCurrentTerms mocks the implementation of getting all the current terms of service.
 func (gm *GormMock) GetCurrentTerms(ctx context.Context) (string, error) {
 	return gm.MockGetCurrentTermsFn(ctx)
+}
+
+// GetUserProfileByUserID mocks the implementation of retrieving a user profile by user ID
+func (gm *GormMock) GetUserProfileByUserID(ctx context.Context, UserID string) (*gorm.User, error) {
+	return gm.MockGetUserProfileByUserIDFn(ctx, UserID)
+}
+
+// SaveTemporaryUserPin mocks the implementation of saving a temporary user pin
+func (gm *GormMock) SaveTemporaryUserPin(ctx context.Context, pinData *gorm.PINData) (bool, error) {
+	return gm.MockSaveTemporaryUserPinFn(ctx, pinData)
 }

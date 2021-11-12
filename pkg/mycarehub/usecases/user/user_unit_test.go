@@ -5,14 +5,17 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/google/uuid"
+	"github.com/savannahghi/enumutils"
+	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/firebasetools"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	extensionMock "github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension/mock"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	pgMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/mock"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/user"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/user/mock"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/extension"
+	"github.com/segmentio/ksuid"
 )
 
 func TestUseCasesUserImpl_Login_Unittest(t *testing.T) {
@@ -20,13 +23,13 @@ func TestUseCasesUserImpl_Login_Unittest(t *testing.T) {
 
 	phoneNumber := "+2547100000000"
 	PIN := "1234"
-	flavour := enums.CONSUMER
+	flavour := feedlib.FlavourConsumer
 
 	type args struct {
 		ctx         context.Context
 		phoneNumber string
 		pin         string
-		flavour     enums.Flavour
+		flavour     feedlib.Flavour
 	}
 	tests := []struct {
 		name    string
@@ -170,6 +173,315 @@ func TestUseCasesUserImpl_Login_Unittest(t *testing.T) {
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCasesUserImpl.Login() error = %v, wantErr %v", err, tt.wantErr)
 				return
+			}
+		})
+	}
+}
+
+func TestUnit_InviteUser(t *testing.T) {
+	ctx := context.Background()
+
+	invalidPhone := "invalid"
+	validPhone := "+2547100000000"
+	validPhoneWithNoCountryCode := "07100000000"
+
+	validFlavour := feedlib.FlavourConsumer
+	invalidFlavour := "INVALID_FLAVOUR"
+
+	userID := ksuid.New().String()
+
+	userOutput := &domain.User{
+		ID:          &userID,
+		DisplayName: "Test User",
+		Username:    "testuser",
+		FirstName:   "Test",
+		LastName:    "User",
+		MiddleName:  "",
+		Active:      true,
+		Gender:      enumutils.GenderFemale,
+	}
+
+	type args struct {
+		ctx         context.Context
+		userID      string
+		phoneNumber string
+		flavour     feedlib.Flavour
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "valid: valid phone number",
+			args: args{
+				ctx:         ctx,
+				userID:      userID,
+				phoneNumber: validPhone,
+				flavour:     validFlavour,
+			},
+			wantErr: false,
+			want:    true,
+		},
+		{
+			name: "valid: valid phone number without country code prefix",
+			args: args{
+				ctx:         ctx,
+				userID:      userID,
+				phoneNumber: validPhoneWithNoCountryCode,
+				flavour:     validFlavour,
+			},
+			wantErr: false,
+			want:    true,
+		},
+		{
+			name: "invalid: phone number is invalid",
+			args: args{
+				ctx:         ctx,
+				userID:      userID,
+				phoneNumber: invalidPhone,
+				flavour:     validFlavour,
+			},
+			wantErr: true,
+			want:    false,
+		},
+		{
+			name: "valid: valid flavour",
+			args: args{
+				ctx:         ctx,
+				userID:      userID,
+				phoneNumber: validPhone,
+				flavour:     validFlavour,
+			},
+			wantErr: false,
+			want:    true,
+		},
+		{
+			name: "invalid: invalid flavour",
+			args: args{
+				ctx:         ctx,
+				userID:      userID,
+				phoneNumber: validPhone,
+				flavour:     feedlib.Flavour(invalidFlavour),
+			},
+			wantErr: true,
+			want:    false,
+		},
+
+		{
+			name: "valid: fetched user by user ID",
+			args: args{
+				ctx:         ctx,
+				userID:      userID,
+				phoneNumber: validPhone,
+				flavour:     validFlavour,
+			},
+			wantErr: false,
+			want:    true,
+		},
+		{
+			name: "invalid: failed to get user by user ID",
+			args: args{
+				ctx:         ctx,
+				userID:      "12345",
+				phoneNumber: validPhone,
+				flavour:     feedlib.Flavour(invalidFlavour),
+			},
+			wantErr: true,
+			want:    false,
+		},
+		{
+			name: "valid: generated a temporary PIN successfully",
+			args: args{
+				ctx:         ctx,
+				userID:      userID,
+				phoneNumber: validPhone,
+				flavour:     validFlavour,
+			},
+			wantErr: false,
+			want:    true,
+		},
+		{
+			name: "invalid: failed go generate temporary pin",
+			args: args{
+				ctx:         ctx,
+				userID:      userID,
+				phoneNumber: validPhone,
+				flavour:     validFlavour,
+			},
+			wantErr: true,
+			want:    false,
+		},
+		{
+			name: "valid: saved temporary pin successfully",
+			args: args{
+				ctx:         ctx,
+				userID:      userID,
+				phoneNumber: validPhone,
+				flavour:     validFlavour,
+			},
+			wantErr: false,
+			want:    true,
+		},
+		{
+			name: "invalid: failed to save temporary pin",
+			args: args{
+				ctx:         ctx,
+				userID:      userID,
+				phoneNumber: validPhone,
+				flavour:     validFlavour,
+			},
+			wantErr: true,
+			want:    false,
+		},
+		{
+			name: "valid: get invite link success",
+			args: args{
+				ctx:         ctx,
+				userID:      userID,
+				phoneNumber: validPhone,
+				flavour:     validFlavour,
+			},
+			wantErr: false,
+			want:    true,
+		},
+		{
+			name: "invalid: get invite link error",
+			args: args{
+				ctx:         ctx,
+				userID:      userID,
+				phoneNumber: validPhone,
+				flavour:     feedlib.Flavour(invalidFlavour),
+			},
+			wantErr: true,
+			want:    false,
+		},
+		{
+			name: "valid: send invite message success",
+			args: args{
+				ctx:         ctx,
+				userID:      userID,
+				phoneNumber: validPhone,
+				flavour:     validFlavour,
+			},
+			wantErr: false,
+			want:    true,
+		},
+		{
+			name: "invalid: send in message error",
+			args: args{
+				ctx:         ctx,
+				userID:      userID,
+				phoneNumber: validPhone,
+				flavour:     validFlavour,
+			},
+			wantErr: true,
+			want:    false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			_ = mock.NewUserUseCaseMock()
+			fakeExtension := extensionMock.NewFakeExtension()
+
+			fakeUserMock := mock.NewUserUseCaseMock()
+
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension)
+
+			if tt.name == "valid: valid phone number" {
+				fakeUserMock.MockInviteUserFn = func(ctx context.Context, userID string, phoneNumber string, flavour feedlib.Flavour) (bool, error) {
+					return true, nil
+				}
+			}
+
+			if tt.name == "valid: valid phone number without country code prefix" {
+				fakeUserMock.MockInviteUserFn = func(ctx context.Context, userID string, phoneNumber string, flavour feedlib.Flavour) (bool, error) {
+					return true, nil
+				}
+			}
+
+			if tt.name == "valid: valid flavour" {
+				fakeUserMock.MockInviteUserFn = func(ctx context.Context, userID string, phoneNumber string, flavour feedlib.Flavour) (bool, error) {
+					return false, fmt.Errorf("phone number is invalid")
+				}
+			}
+
+			if tt.name == "valid: valid phone number without country code prefix" {
+				fakeUserMock.MockInviteUserFn = func(ctx context.Context, userID string, phoneNumber string, flavour feedlib.Flavour) (bool, error) {
+					return true, nil
+				}
+			}
+
+			if tt.name == "invalid: invalid flavour" {
+				fakeUserMock.MockInviteUserFn = func(ctx context.Context, userID string, phoneNumber string, flavour feedlib.Flavour) (bool, error) {
+					return false, fmt.Errorf("flavour is invalid")
+				}
+			}
+
+			if tt.name == "valid: fetched user by user ID" {
+				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
+					return userOutput, nil
+				}
+			}
+			if tt.name == "invalid: failed to get user by user ID" {
+				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
+					return nil, fmt.Errorf("failed to get user by user ID")
+				}
+			}
+
+			if tt.name == "valid: generated a temporary PIN successfully" {
+				fakeExtension.MockGenerateTempPINFn = func(ctx context.Context) (string, error) {
+					return uuid.New().String(), nil
+				}
+			}
+
+			if tt.name == "invalid: failed go generate temporary pin" {
+				fakeExtension.MockGenerateTempPINFn = func(ctx context.Context) (string, error) {
+					return "", fmt.Errorf("failed to generate temporary pin")
+				}
+			}
+
+			if tt.name == "valid: saved temporary pin successfully" {
+				fakeDB.MockSaveTemporaryUserPinFn = func(ctx context.Context, pinData *domain.UserPIN) (bool, error) {
+					return true, nil
+				}
+			}
+			if tt.name == "invalid: failed to save temporary pin" {
+				fakeDB.MockSaveTemporaryUserPinFn = func(ctx context.Context, pinData *domain.UserPIN) (bool, error) {
+					return false, fmt.Errorf("failed to get user by user ID")
+				}
+			}
+
+			if tt.name == "valid: get invite link success" {
+				fakeUserMock.MockInviteUserFn = func(ctx context.Context, userID string, phoneNumber string, flavour feedlib.Flavour) (bool, error) {
+					return true, nil
+				}
+			}
+			if tt.name == "invalid: get invite link error" {
+				fakeUserMock.MockInviteUserFn = func(ctx context.Context, userID string, phoneNumber string, flavour feedlib.Flavour) (bool, error) {
+					return false, fmt.Errorf("failed to get invite link")
+				}
+			}
+			if tt.name == "valid: send invite message success" {
+				fakeExtension.MockSendInviteSMSFn = func(ctx context.Context, phoneNumbers []string, message string) error {
+					return nil
+				}
+			}
+			if tt.name == "invalid: send in message error" {
+				fakeExtension.MockSendInviteSMSFn = func(ctx context.Context, phoneNumbers []string, message string) error {
+					return fmt.Errorf("failed to send sms")
+				}
+			}
+
+			got, err := us.InviteUser(tt.args.ctx, tt.args.userID, tt.args.phoneNumber, tt.args.flavour)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCasesUserImpl.InviteUser() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("UseCasesUserImpl.InviteUser() = %v, want %v", got, tt.want)
 			}
 		})
 	}

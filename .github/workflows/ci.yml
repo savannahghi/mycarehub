@@ -27,6 +27,8 @@ env:
   DATABASE_REGION: ${{ secrets.PROD_DATABASE_REGION }}
   DATABASE_INSTANCE: ${{ secrets.PROD_DATABASE_INSTANCE }}
   DEFAULT_ORG_ID: ${{ secrets.DEFAULT_ORG_ID }}
+  PRO_INVITE_LINK: ${{ secrets.PRO_INVITE_LINK }}
+  CONSUMER_INVITE_LINK: ${{ secrets.CONSUMER_INVITE_LINK }}
 
 concurrency:
   group: lint-and-test

@@ -5,6 +5,12 @@ import (
 
 	"github.com/savannahghi/firebasetools"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/extension"
+	"github.com/savannahghi/onboarding/pkg/onboarding/application/utils"
+	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/engagement"
+)
+
+const (
+	engagementService = "engagement"
 )
 
 // ExternalMethodsExtension is an interface that represents methods that are
@@ -13,18 +19,28 @@ type ExternalMethodsExtension interface {
 	CreateFirebaseCustomToken(ctx context.Context, uid string) (string, error)
 	AuthenticateCustomFirebaseToken(customAuthToken string) (*firebasetools.FirebaseUserTokens, error)
 	ComparePIN(rawPwd string, salt string, encodedPwd string, options *extension.Options) bool
+	EncryptPIN(rawPwd string, options *extension.Options) (string, string)
+	GenerateTempPIN(ctx context.Context) (string, error)
+	SendInviteSMS(ctx context.Context, phoneNumbers []string, message string) error
 }
 
 // External type implements external methods
 type External struct {
-	pinExt extension.PINExtension
+	pinExt        extension.PINExtension
+	engagementExt engagement.ServiceEngagement
 }
 
 // NewExternalMethodsImpl creates a new instance of the external methods
 func NewExternalMethodsImpl() ExternalMethodsExtension {
+	var firebaseClient firebasetools.IFirebaseClient
+
 	pinExtension := extension.NewPINExtensionImpl()
+	baseExt := extension.NewBaseExtensionImpl(firebaseClient)
+	engagementISC := utils.NewInterServiceClient(engagementService, baseExt)
+	engagementExtension := engagement.NewServiceEngagementImpl(engagementISC, baseExt)
 	return &External{
-		pinExt: pinExtension,
+		pinExt:        pinExtension,
+		engagementExt: engagementExtension,
 	}
 }
 
@@ -46,4 +62,22 @@ func (e *External) AuthenticateCustomFirebaseToken(customAuthToken string) (*fir
 // Passing `nil` as the last argument resorts to default options.
 func (e *External) ComparePIN(rawPwd string, salt string, encodedPwd string, options *extension.Options) bool {
 	return e.pinExt.ComparePIN(rawPwd, salt, encodedPwd, nil)
+}
+
+// EncryptPIN takes two arguments, a raw pin, and a pointer to an Options struct.
+// In order to use default options, pass `nil` as the second argument.
+// It returns the generated salt and encoded key for the user.
+func (e *External) EncryptPIN(rawPwd string, options *extension.Options) (string, string) {
+	return e.pinExt.EncryptPIN(rawPwd, nil)
+}
+
+// GenerateTempPIN generates a temporary One Time PIN for a user
+// The PIN will have 4 digits formatted as a string
+func (e *External) GenerateTempPIN(ctx context.Context) (string, error) {
+	return e.pinExt.GenerateTempPIN(ctx)
+}
+
+// SendInviteSMS does the actual delivery of messages to the provided phone numbers
+func (e *External) SendInviteSMS(ctx context.Context, phoneNumbers []string, message string) error {
+	return e.engagementExt.SendSMS(ctx, phoneNumbers, message)
 }

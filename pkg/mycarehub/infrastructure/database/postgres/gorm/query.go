@@ -18,6 +18,7 @@ type Query interface {
 	GetUserProfileByPhoneNumber(ctx context.Context, phoneNumber string) (*User, error)
 	GetUserPINByUserID(ctx context.Context, userID string) (*PINData, error)
 	GetCurrentTerms(ctx context.Context) (string, error)
+	GetUserProfileByUserID(ctx context.Context, userID string) (*User, error)
 }
 
 // RetrieveFacility fetches a single facility
@@ -166,4 +167,13 @@ func (db *PGInstance) GetCurrentTerms(ctx context.Context) (string, error) {
 	}
 
 	return termsOfService.Text, nil
+}
+
+// GetUserProfileByUserID fetches a user profile using the user ID
+func (db *PGInstance) GetUserProfileByUserID(ctx context.Context, userID string) (*User, error) {
+	var user User
+	if err := db.DB.Where(&User{UserID: &userID}).First(&user).Error; err != nil {
+		return nil, fmt.Errorf("failed to get user by user ID %v: %v", userID, err)
+	}
+	return &user, nil
 }

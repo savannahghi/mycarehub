@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/savannahghi/enumutils"
+	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 )
 
@@ -48,9 +49,9 @@ type User struct {
 	// calculated each time there is a failed login
 	NextAllowedLogin *time.Time `json:"NextAllowedLogin"`
 
-	TermsAccepted   bool          `json:"termsAccepted"`
-	AcceptedTermsID string        `json:"AcceptedTermsID"` // foreign key to version of terms they accepted
-	Flavour         enums.Flavour `json:"flavour"`
+	TermsAccepted   bool            `json:"termsAccepted"`
+	AcceptedTermsID string          `json:"AcceptedTermsID"` // foreign key to version of terms they accepted
+	Flavour         feedlib.Flavour `json:"flavour"`
 }
 
 // AuthCredentials is the authentication credentials for a given user
@@ -64,13 +65,13 @@ type AuthCredentials struct {
 
 // UserPIN is used to store users' PINs and their entire change history.
 type UserPIN struct {
-	UserID    string        `json:"userID"`
-	HashedPIN string        `json:"column:hashedPin"`
-	ValidFrom time.Time     `json:"column:validFrom"`
-	ValidTo   time.Time     `json:"column:validTo"`
-	Flavour   enums.Flavour `json:"flavour"`
-	IsValid   bool          `json:"isValid"`
-	Salt      string        `json:"salt"`
+	UserID    string          `json:"userID"`
+	HashedPIN string          `json:"column:hashedPin"`
+	ValidFrom time.Time       `json:"column:validFrom"`
+	ValidTo   time.Time       `json:"column:validTo"`
+	Flavour   feedlib.Flavour `json:"flavour"`
+	IsValid   bool            `json:"isValid"`
+	Salt      string          `json:"salt"`
 }
 
 // Contact hold contact information/details for users
