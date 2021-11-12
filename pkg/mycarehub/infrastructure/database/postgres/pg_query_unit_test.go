@@ -783,6 +783,7 @@ func TestMyCareHubDb_GetCurrentTerms(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
+		want    *domain.TermsOfService
 		wantErr bool
 	}{
 		{
@@ -813,13 +814,13 @@ func TestMyCareHubDb_GetCurrentTerms(t *testing.T) {
 			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
 
 			if tt.name == "Sad case" {
-				fakeGorm.MockGetCurrentTermsFn = func(ctx context.Context) (string, error) {
-					return "", fmt.Errorf("an error occurred")
+				fakeGorm.MockGetCurrentTermsFn = func(ctx context.Context) (*gorm.TermsOfService, error) {
+					return nil, fmt.Errorf("an error occurred")
 				}
 			}
 			if tt.name == "Sad case - nil context" {
-				fakeGorm.MockGetCurrentTermsFn = func(ctx context.Context) (string, error) {
-					return "", fmt.Errorf("an error occurred")
+				fakeGorm.MockGetCurrentTermsFn = func(ctx context.Context) (*gorm.TermsOfService, error) {
+					return nil, fmt.Errorf("an error occurred")
 				}
 			}
 

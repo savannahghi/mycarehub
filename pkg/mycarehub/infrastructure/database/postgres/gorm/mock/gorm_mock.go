@@ -24,9 +24,9 @@ type GormMock struct {
 	MockGetUserPINByUserIDFn          func(ctx context.Context, userID string) (*gorm.PINData, error)
 	MockInactivateFacilityFn          func(ctx context.Context, mflCode *int) (bool, error)
 	MockReactivateFacilityFn          func(ctx context.Context, mflCode *int) (bool, error)
-	MockGetCurrentTermsFn             func(ctx context.Context) (string, error)
 	MockGetUserProfileByUserIDFn      func(ctx context.Context, UserID string) (*gorm.User, error)
 	MockSaveTemporaryUserPinFn        func(ctx context.Context, pinData *gorm.PINData) (bool, error)
+	MockGetCurrentTermsFn             func(ctx context.Context) (*gorm.TermsOfService, error)
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -131,8 +131,18 @@ func NewGormMock() *GormMock {
 		MockReactivateFacilityFn: func(ctx context.Context, mflCode *int) (bool, error) {
 			return true, nil
 		},
-		MockGetCurrentTermsFn: func(ctx context.Context) (string, error) {
-			terms := "most curent terms of service"
+		MockGetCurrentTermsFn: func(ctx context.Context) (*gorm.TermsOfService, error) {
+			termsID := ksuid.New().String()
+			validFrom := time.Now()
+			testText := "test"
+
+			validTo := time.Now().AddDate(0, 0, 80)
+			terms := &gorm.TermsOfService{
+				TermsID:   &termsID,
+				Text:      &testText,
+				ValidFrom: &validFrom,
+				ValidTo:   &validTo,
+			}
 			return terms, nil
 		},
 		MockGetUserProfileByUserIDFn: func(ctx context.Context, UserID string) (*gorm.User, error) {
@@ -197,7 +207,7 @@ func (gm *GormMock) ReactivateFacility(ctx context.Context, mflCode *int) (bool,
 }
 
 //GetCurrentTerms mocks the implementation of getting all the current terms of service.
-func (gm *GormMock) GetCurrentTerms(ctx context.Context) (string, error) {
+func (gm *GormMock) GetCurrentTerms(ctx context.Context) (*gorm.TermsOfService, error) {
 	return gm.MockGetCurrentTermsFn(ctx)
 }
 

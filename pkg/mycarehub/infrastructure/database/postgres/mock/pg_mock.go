@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
+	"github.com/segmentio/ksuid"
 )
 
 // PostgresMock struct implements mocks of `postgres's` internal methods.
@@ -23,9 +24,9 @@ type PostgresMock struct {
 	MockGetUserPINByUserIDFn          func(ctx context.Context, userID string) (*domain.UserPIN, error)
 	MockInactivateFacilityFn          func(ctx context.Context, mflCode *int) (bool, error)
 	MockReactivateFacilityFn          func(ctx context.Context, mflCode *int) (bool, error)
-	MockGetCurrentTermsFn             func(ctx context.Context) (string, error)
 	MockGetUserProfileByUserIDFn      func(ctx context.Context, userID string) (*domain.User, error)
 	MockSaveTemporaryUserPinFn        func(ctx context.Context, pinData *domain.UserPIN) (bool, error)
+	MockGetCurrentTermsFn             func(ctx context.Context) (*domain.TermsOfService, error)
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -107,8 +108,13 @@ func NewPostgresMock() *PostgresMock {
 		MockReactivateFacilityFn: func(ctx context.Context, mflCode *int) (bool, error) {
 			return true, nil
 		},
-		MockGetCurrentTermsFn: func(ctx context.Context) (string, error) {
-			terms := "some terms"
+		MockGetCurrentTermsFn: func(ctx context.Context) (*domain.TermsOfService, error) {
+			termsID := ksuid.New().String()
+			testText := "test"
+			terms := &domain.TermsOfService{
+				TermsID: &termsID,
+				Text:    &testText,
+			}
 			return terms, nil
 		},
 		MockGetUserProfileByUserIDFn: func(ctx context.Context, userID string) (*domain.User, error) {
@@ -178,7 +184,7 @@ func (gm *PostgresMock) ReactivateFacility(ctx context.Context, mflCode *int) (b
 }
 
 //GetCurrentTerms mocks the implementation of getting all the current terms of service.
-func (gm *PostgresMock) GetCurrentTerms(ctx context.Context) (string, error) {
+func (gm *PostgresMock) GetCurrentTerms(ctx context.Context) (*domain.TermsOfService, error) {
 	return gm.MockGetCurrentTermsFn(ctx)
 }
 

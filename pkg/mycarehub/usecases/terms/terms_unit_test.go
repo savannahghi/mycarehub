@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	pgMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/mock"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/terms"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/terms/mock"
@@ -58,18 +59,18 @@ func TestTermsOfServiceImpl_GetCurrentTerms_Unittest(t *testing.T) {
 			j := terms.NewUseCasesTermsOfService(fakeDB)
 
 			if tt.name == "Sad case - empty flavour" {
-				fakeDB.MockGetCurrentTermsFn = func(ctx context.Context) (string, error) {
-					return "", fmt.Errorf("an error occurred")
+				fakeDB.MockGetCurrentTermsFn = func(ctx context.Context) (*domain.TermsOfService, error) {
+					return nil, fmt.Errorf("an error occurred")
 				}
 			}
 			if tt.name == "Sad case - bad context" {
-				fakeDB.MockGetCurrentTermsFn = func(ctx context.Context) (string, error) {
-					return "", fmt.Errorf("an error occurred")
+				fakeDB.MockGetCurrentTermsFn = func(ctx context.Context) (*domain.TermsOfService, error) {
+					return nil, fmt.Errorf("an error occurred")
 				}
 			}
 			if tt.name == "Sad case - nil context" {
-				fakeDB.MockGetCurrentTermsFn = func(ctx context.Context) (string, error) {
-					return "", fmt.Errorf("an error occurred")
+				fakeDB.MockGetCurrentTermsFn = func(ctx context.Context) (*domain.TermsOfService, error) {
+					return nil, fmt.Errorf("an error occurred")
 				}
 			}
 
@@ -78,6 +79,7 @@ func TestTermsOfServiceImpl_GetCurrentTerms_Unittest(t *testing.T) {
 				t.Errorf("TermsOfServiceImpl.GetCurrentTerms() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
+
 		})
 	}
 }

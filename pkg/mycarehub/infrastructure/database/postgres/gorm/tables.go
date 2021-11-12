@@ -169,10 +169,9 @@ type TermsOfService struct {
 	Base
 
 	TermsID   *string    `gorm:"primaryKey;unique;column:id"`
-	Text      string     `gorm:"column:text;not null"`
+	Text      *string    `gorm:"column:text;not null"`
 	ValidFrom *time.Time `gorm:"column:valid_from;not null"`
 	ValidTo   *time.Time `gorm:"column:valid_to;not null"`
-	Tag       *string    `gorm:"column:tag;not null"`
 	// Django reqired fields
 	OrganisationID string `gorm:"column:organisation_id"`
 }

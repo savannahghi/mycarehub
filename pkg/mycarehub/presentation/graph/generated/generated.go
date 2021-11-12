@@ -90,6 +90,11 @@ type ComplexityRoot struct {
 		RetrieveFacility          func(childComplexity int, id string, active bool) int
 		RetrieveFacilityByMFLCode func(childComplexity int, mflCode int, isActive bool) int
 	}
+
+	TermsOfService struct {
+		TermsID func(childComplexity int) int
+		Text    func(childComplexity int) int
+	}
 }
 
 type MutationResolver interface {
@@ -104,7 +109,7 @@ type QueryResolver interface {
 	RetrieveFacility(ctx context.Context, id string, active bool) (*domain.Facility, error)
 	RetrieveFacilityByMFLCode(ctx context.Context, mflCode int, isActive bool) (*domain.Facility, error)
 	ListFacilities(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationInput dto.PaginationsInput) (*domain.FacilityPage, error)
-	GetCurrentTerms(ctx context.Context) (string, error)
+	GetCurrentTerms(ctx context.Context) (*domain.TermsOfService, error)
 }
 
 type executableSchema struct {
@@ -351,6 +356,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.RetrieveFacilityByMFLCode(childComplexity, args["mflCode"].(int), args["isActive"].(bool)), true
 
+	case "TermsOfService.TermsID":
+		if e.complexity.TermsOfService.TermsID == nil {
+			break
+		}
+
+		return e.complexity.TermsOfService.TermsID(childComplexity), true
+
+	case "TermsOfService.Text":
+		if e.complexity.TermsOfService.Text == nil {
+			break
+		}
+
+		return e.complexity.TermsOfService.Text(childComplexity), true
+
 	}
 	return 0, false
 }
@@ -565,9 +584,13 @@ type FiltersParam {
   DataType: FilterSortDataType
   Value: String
 }
-`, BuiltIn: false},
+
+type TermsOfService {
+	TermsID: String!
+	Text:    String!
+}`, BuiltIn: false},
 	{Name: "pkg/mycarehub/presentation/graph/user.graphql", Input: `extend type Query {
-    getCurrentTerms: String!
+    getCurrentTerms: TermsOfService!
 }`, BuiltIn: false},
 	{Name: "federation/directives.graphql", Input: `
 scalar _Any
@@ -1779,9 +1802,9 @@ func (ec *executionContext) _Query_getCurrentTerms(ctx context.Context, field gr
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*domain.TermsOfService)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNTermsOfService2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐTermsOfService(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -1853,6 +1876,76 @@ func (ec *executionContext) _Query___schema(ctx context.Context, field graphql.C
 	res := resTmp.(*introspection.Schema)
 	fc.Result = res
 	return ec.marshalO__Schema2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐSchema(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _TermsOfService_TermsID(ctx context.Context, field graphql.CollectedField, obj *domain.TermsOfService) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "TermsOfService",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TermsID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalNString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _TermsOfService_Text(ctx context.Context, field graphql.CollectedField, obj *domain.TermsOfService) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "TermsOfService",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Text, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalNString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) ___Directive_name(ctx context.Context, field graphql.CollectedField, obj *introspection.Directive) (ret graphql.Marshaler) {
@@ -3435,6 +3528,38 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 	return out
 }
 
+var termsOfServiceImplementors = []string{"TermsOfService"}
+
+func (ec *executionContext) _TermsOfService(ctx context.Context, sel ast.SelectionSet, obj *domain.TermsOfService) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, termsOfServiceImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("TermsOfService")
+		case "TermsID":
+			out.Values[i] = ec._TermsOfService_TermsID(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "Text":
+			out.Values[i] = ec._TermsOfService_Text(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var __DirectiveImplementors = []string{"__Directive"}
 
 func (ec *executionContext) ___Directive(ctx context.Context, sel ast.SelectionSet, obj *introspection.Directive) graphql.Marshaler {
@@ -3825,6 +3950,20 @@ func (ec *executionContext) marshalNString2ᚖstring(ctx context.Context, sel as
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) marshalNTermsOfService2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐTermsOfService(ctx context.Context, sel ast.SelectionSet, v domain.TermsOfService) graphql.Marshaler {
+	return ec._TermsOfService(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNTermsOfService2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐTermsOfService(ctx context.Context, sel ast.SelectionSet, v *domain.TermsOfService) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._TermsOfService(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalN_FieldSet2string(ctx context.Context, v interface{}) (string, error) {
