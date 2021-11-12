@@ -7,7 +7,7 @@ import (
 	"context"
 )
 
-func (r *mutationResolver) GetCurrentTerms(ctx context.Context) (string, error) {
+func (r *queryResolver) GetCurrentTerms(ctx context.Context) (string, error) {
 	r.checkPreconditions()
 	return r.interactor.TermsUsecase.GetCurrentTerms(ctx)
 }

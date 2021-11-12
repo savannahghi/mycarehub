@@ -17,10 +17,10 @@ var OrganizationID = serverutils.MustGetEnvVar(common.OrganizationID)
 
 // Base model contains defines commin fields across tables
 type Base struct {
-	CreatedAt      time.Time      `gorm:"column:created"`
-	UpdatedAt      time.Time      `gorm:"column:updated"`
-	DeletedAt      gorm.DeletedAt `gorm:"index;column:deleted_at"`
-	OrganisationID string         `gorm:"column:organisation_id"`
+	CreatedAt      time.Time `gorm:"column:created"`
+	UpdatedAt      time.Time `gorm:"column:updated"`
+	OrganisationID string    `gorm:"column:organisation_id"`
+	//DeletedAt      time.Time `gorm:"column:deleted_at"`
 }
 
 // Facility models the details of healthcare facilities that are on the platform.
