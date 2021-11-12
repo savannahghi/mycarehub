@@ -515,3 +515,87 @@ func TestUseCaseFacilityImpl_Reactivate_Unittest(t *testing.T) {
 		})
 	}
 }
+
+func TestUseCaseFacilityImpl_DeleteFacility(t *testing.T) {
+	ctx := context.Background()
+	type args struct {
+		ctx context.Context
+		id  int
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Successfully delete facility",
+			args: args{
+				ctx: ctx,
+				id:  1234,
+			},
+			want:    true,
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			fakeFacility := mock.NewFacilityUsecaseMock()
+
+			f := facility.NewFacilityUsecase(fakeDB, fakeDB, fakeDB, fakeDB)
+
+			if tt.name == "Happy Case - Successfully delete facility" {
+				fakeFacility.DeleteFacilityFn = func(ctx context.Context, id int) (bool, error) {
+					return true, nil
+				}
+			}
+
+			got, err := f.DeleteFacility(tt.args.ctx, tt.args.id)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCaseFacilityImpl.DeleteFacility() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("UseCaseFacilityImpl.DeleteFacility() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestUseCaseFacilityImpl_FetchFacilities(t *testing.T) {
+	ctx := context.Background()
+	type args struct {
+		ctx context.Context
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Successfully fetch facilities",
+			args: args{
+				ctx: ctx,
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			_ = mock.NewFacilityUsecaseMock()
+			f := facility.NewFacilityUsecase(fakeDB, fakeDB, fakeDB, fakeDB)
+
+			got, err := f.FetchFacilities(tt.args.ctx)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCaseFacilityImpl.DeleteFacility() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected a response but got %v", got)
+				return
+			}
+		})
+	}
+}

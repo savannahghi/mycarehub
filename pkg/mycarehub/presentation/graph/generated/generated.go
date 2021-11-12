@@ -68,6 +68,7 @@ type ComplexityRoot struct {
 	Mutation struct {
 		CreateFacility     func(childComplexity int, input dto.FacilityInput) int
 		DeleteFacility     func(childComplexity int, mflCode int) int
+		GetCurrentTerms    func(childComplexity int) int
 		InactivateFacility func(childComplexity int, mflCode int) int
 		ReactivateFacility func(childComplexity int, mflCode int) int
 	}
@@ -94,6 +95,7 @@ type MutationResolver interface {
 	DeleteFacility(ctx context.Context, mflCode int) (bool, error)
 	ReactivateFacility(ctx context.Context, mflCode int) (bool, error)
 	InactivateFacility(ctx context.Context, mflCode int) (bool, error)
+	GetCurrentTerms(ctx context.Context) (string, error)
 }
 type QueryResolver interface {
 	FetchFacilities(ctx context.Context) ([]*domain.Facility, error)
@@ -217,6 +219,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.DeleteFacility(childComplexity, args["mflCode"].(int)), true
+
+	case "Mutation.getCurrentTerms":
+		if e.complexity.Mutation.GetCurrentTerms == nil {
+			break
+		}
+
+		return e.complexity.Mutation.GetCurrentTerms(childComplexity), true
 
 	case "Mutation.inactivateFacility":
 		if e.complexity.Mutation.InactivateFacility == nil {
@@ -393,7 +402,6 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 var sources = []*ast.Source{
 	{Name: "pkg/mycarehub/presentation/graph/enums.graphql", Input: `scalar Time
 
-
 enum CountryType {
   KENYA
   # other countries
@@ -462,7 +470,13 @@ enum FilterSortDataType {
 enum SortDataType {
   asc
   desc
-}`, BuiltIn: false},
+}
+
+enum Flavour {
+  CONSUMER
+  PRO
+}
+`, BuiltIn: false},
 	{Name: "pkg/mycarehub/presentation/graph/facility.graphql", Input: `extend type Mutation {
   createFacility(input: FacilityInput!): Facility!
   deleteFacility(mflCode: Int!): Boolean!
@@ -534,6 +548,9 @@ type FiltersParam {
   Value: String
 }
 `, BuiltIn: false},
+	{Name: "pkg/mycarehub/presentation/graph/user.graphql", Input: `extend type Mutation {
+    getCurrentTerms: String!
+}`, BuiltIn: false},
 	{Name: "federation/directives.graphql", Input: `
 scalar _Any
 scalar _FieldSet
@@ -1287,6 +1304,41 @@ func (ec *executionContext) _Mutation_inactivateFacility(ctx context.Context, fi
 	res := resTmp.(bool)
 	fc.Result = res
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_getCurrentTerms(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().GetCurrentTerms(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Pagination_Limit(ctx context.Context, field graphql.CollectedField, obj *domain.Pagination) (ret graphql.Marshaler) {
@@ -3140,6 +3192,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			}
 		case "inactivateFacility":
 			out.Values[i] = ec._Mutation_inactivateFacility(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "getCurrentTerms":
+			out.Values[i] = ec._Mutation_getCurrentTerms(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}

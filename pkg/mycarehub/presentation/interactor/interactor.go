@@ -4,6 +4,7 @@ package interactor
 
 import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/facility"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/terms"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/user"
 )
 
@@ -11,15 +12,18 @@ import (
 type Interactor struct {
 	FacilityUsecase facility.UseCasesFacility
 	UserUsecase     user.UseCasesUser
+	TermsUsecase    terms.UseCasesTerms
 }
 
 // NewMyCareHubInteractor returns a new onboarding interactor
 func NewMyCareHubInteractor(
 	facilityUseCase facility.UseCasesFacility,
 	userUseCase user.UseCasesUser,
+	termsUsecase terms.UseCasesTerms,
 ) *Interactor {
 	return &Interactor{
 		facilityUseCase,
 		userUseCase,
+		termsUsecase,
 	}
 }

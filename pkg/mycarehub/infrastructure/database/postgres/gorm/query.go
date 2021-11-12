@@ -3,6 +3,7 @@ package gorm
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
@@ -16,6 +17,7 @@ type Query interface {
 	ListFacilities(ctx context.Context, searchTerm *string, filter []*domain.FiltersParam, pagination *domain.FacilityPage) (*domain.FacilityPage, error)
 	GetUserProfileByPhoneNumber(ctx context.Context, phoneNumber string) (*User, error)
 	GetUserPINByUserID(ctx context.Context, userID string) (*PINData, error)
+	GetCurrentTerms(ctx context.Context) (string, error)
 }
 
 // RetrieveFacility fetches a single facility
@@ -153,4 +155,15 @@ func (db *PGInstance) GetUserPINByUserID(ctx context.Context, userID string) (*P
 		return nil, fmt.Errorf("failed to get pin: %v", err)
 	}
 	return &pin, nil
+}
+
+// GetCurrentTerms fetches the most most recent terms of service
+func (db *PGInstance) GetCurrentTerms(ctx context.Context) (string, error) {
+	var termsOfService TermsOfService
+	validTo := time.Now()
+	if err := db.DB.Model(&TermsOfService{}).Where("valid_to > ?", validTo).Or("valid_to = ?", nil).Order("valid_to desc").First(&termsOfService).Error; err != nil {
+		return "", fmt.Errorf("failed to get the current terms : %v", err)
+	}
+
+	return termsOfService.Text, nil
 }

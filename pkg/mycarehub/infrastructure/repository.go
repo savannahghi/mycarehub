@@ -27,6 +27,7 @@ type Query interface {
 	ListFacilities(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationsInput *dto.PaginationsInput) (*domain.FacilityPage, error)
 	GetUserProfileByPhoneNumber(ctx context.Context, phoneNumber string) (*domain.User, error)
 	GetUserPINByUserID(ctx context.Context, userID string) (*domain.UserPIN, error)
+	GetCurrentTerms(ctx context.Context) (string, error)
 }
 
 // Update represents all the update action interfaces

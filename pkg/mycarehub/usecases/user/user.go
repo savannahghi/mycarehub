@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/savannahghi/converterandformatter"
-	"github.com/savannahghi/feedlib"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
@@ -15,7 +15,7 @@ import (
 
 // ILogin ...
 type ILogin interface {
-	Login(ctx context.Context, phoneNumber string, pin string, flavour feedlib.Flavour) (*domain.AuthCredentials, string, error)
+	Login(ctx context.Context, phoneNumber string, pin string, flavour enums.Flavour) (*domain.AuthCredentials, string, error)
 }
 
 // UseCasesUser group all business logic usecases related to user
@@ -28,6 +28,7 @@ type UseCasesUserImpl struct {
 	Create      infrastructure.Create
 	Query       infrastructure.Query
 	Delete      infrastructure.Delete
+	Update      infrastructure.Update
 	ExternalExt extension.ExternalMethodsExtension
 }
 
@@ -36,18 +37,20 @@ func NewUseCasesUserImpl(
 	create infrastructure.Create,
 	query infrastructure.Query,
 	delete infrastructure.Delete,
+	update infrastructure.Update,
 	externalExt extension.ExternalMethodsExtension,
 ) *UseCasesUserImpl {
 	return &UseCasesUserImpl{
 		Create:      create,
 		Query:       query,
 		Delete:      delete,
+		Update:      update,
 		ExternalExt: externalExt,
 	}
 }
 
 // Login is used to login the user into the application
-func (us *UseCasesUserImpl) Login(ctx context.Context, phoneNumber string, pin string, flavour feedlib.Flavour) (*domain.AuthCredentials, string, error) {
+func (us *UseCasesUserImpl) Login(ctx context.Context, phoneNumber string, pin string, flavour enums.Flavour) (*domain.AuthCredentials, string, error) {
 	phone, err := converterandformatter.NormalizeMSISDN(phoneNumber)
 	if err != nil {
 		return nil, "", exceptions.NormalizeMSISDNError(err)

@@ -37,6 +37,8 @@ func TestMyCareHubDb_DeleteFacility_Unittest(t *testing.T) {
 
 	mflcode := facility.Code
 
+	veryBadMFLCode := 987668878900987654
+
 	type args struct {
 		ctx context.Context
 		id  int
@@ -76,6 +78,15 @@ func TestMyCareHubDb_DeleteFacility_Unittest(t *testing.T) {
 			want:    false,
 			wantErr: true,
 		},
+		{
+			name: "Sad case - very bad MFL Code",
+			args: args{
+				ctx: ctx,
+				id:  veryBadMFLCode,
+			},
+			want:    false,
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -95,6 +106,12 @@ func TestMyCareHubDb_DeleteFacility_Unittest(t *testing.T) {
 			}
 
 			if tt.name == "Sad case - empty MFL Code" {
+				fakeGorm.MockDeleteFacilityFn = func(ctx context.Context, mflCode int) (bool, error) {
+					return false, fmt.Errorf("an error occurred while deleting")
+				}
+			}
+
+			if tt.name == "Sad case - very bad MFL Code" {
 				fakeGorm.MockDeleteFacilityFn = func(ctx context.Context, mflCode int) (bool, error) {
 					return false, fmt.Errorf("an error occurred while deleting")
 				}
