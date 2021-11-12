@@ -68,7 +68,6 @@ type ComplexityRoot struct {
 	Mutation struct {
 		CreateFacility     func(childComplexity int, input dto.FacilityInput) int
 		DeleteFacility     func(childComplexity int, mflCode int) int
-		GetCurrentTerms    func(childComplexity int) int
 		InactivateFacility func(childComplexity int, mflCode int) int
 		ReactivateFacility func(childComplexity int, mflCode int) int
 	}
@@ -84,6 +83,7 @@ type ComplexityRoot struct {
 
 	Query struct {
 		FetchFacilities           func(childComplexity int) int
+		GetCurrentTerms           func(childComplexity int) int
 		ListFacilities            func(childComplexity int, searchTerm *string, filterInput []*dto.FiltersInput, paginationInput dto.PaginationsInput) int
 		RetrieveFacility          func(childComplexity int, id string, active bool) int
 		RetrieveFacilityByMFLCode func(childComplexity int, mflCode int, isActive bool) int
@@ -95,13 +95,13 @@ type MutationResolver interface {
 	DeleteFacility(ctx context.Context, mflCode int) (bool, error)
 	ReactivateFacility(ctx context.Context, mflCode int) (bool, error)
 	InactivateFacility(ctx context.Context, mflCode int) (bool, error)
-	GetCurrentTerms(ctx context.Context) (string, error)
 }
 type QueryResolver interface {
 	FetchFacilities(ctx context.Context) ([]*domain.Facility, error)
 	RetrieveFacility(ctx context.Context, id string, active bool) (*domain.Facility, error)
 	RetrieveFacilityByMFLCode(ctx context.Context, mflCode int, isActive bool) (*domain.Facility, error)
 	ListFacilities(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationInput dto.PaginationsInput) (*domain.FacilityPage, error)
+	GetCurrentTerms(ctx context.Context) (string, error)
 }
 
 type executableSchema struct {
@@ -220,13 +220,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.DeleteFacility(childComplexity, args["mflCode"].(int)), true
 
-	case "Mutation.getCurrentTerms":
-		if e.complexity.Mutation.GetCurrentTerms == nil {
-			break
-		}
-
-		return e.complexity.Mutation.GetCurrentTerms(childComplexity), true
-
 	case "Mutation.inactivateFacility":
 		if e.complexity.Mutation.InactivateFacility == nil {
 			break
@@ -299,6 +292,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.FetchFacilities(childComplexity), true
+
+	case "Query.getCurrentTerms":
+		if e.complexity.Query.GetCurrentTerms == nil {
+			break
+		}
+
+		return e.complexity.Query.GetCurrentTerms(childComplexity), true
 
 	case "Query.listFacilities":
 		if e.complexity.Query.ListFacilities == nil {
@@ -548,7 +548,7 @@ type FiltersParam {
   Value: String
 }
 `, BuiltIn: false},
-	{Name: "pkg/mycarehub/presentation/graph/user.graphql", Input: `extend type Mutation {
+	{Name: "pkg/mycarehub/presentation/graph/user.graphql", Input: `extend type Query {
     getCurrentTerms: String!
 }`, BuiltIn: false},
 	{Name: "federation/directives.graphql", Input: `
@@ -1306,41 +1306,6 @@ func (ec *executionContext) _Mutation_inactivateFacility(ctx context.Context, fi
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Mutation_getCurrentTerms(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().GetCurrentTerms(rctx)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) _Pagination_Limit(ctx context.Context, field graphql.CollectedField, obj *domain.Pagination) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -1689,6 +1654,41 @@ func (ec *executionContext) _Query_listFacilities(ctx context.Context, field gra
 	res := resTmp.(*domain.FacilityPage)
 	fc.Result = res
 	return ec.marshalOFacilityPage2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐFacilityPage(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_getCurrentTerms(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GetCurrentTerms(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -3195,11 +3195,6 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "getCurrentTerms":
-			out.Values[i] = ec._Mutation_getCurrentTerms(ctx, field)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -3311,6 +3306,20 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_listFacilities(ctx, field)
+				return res
+			})
+		case "getCurrentTerms":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_getCurrentTerms(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
 				return res
 			})
 		case "__type":
