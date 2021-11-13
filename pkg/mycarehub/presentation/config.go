@@ -72,7 +72,7 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	// Initialize user usecase
 	userUsecase := user.NewUseCasesUserImpl(db, db, db, db, externalExt)
 
-	termsUsecase := terms.NewUseCasesTermsOfService(db)
+	termsUsecase := terms.NewUseCasesTermsOfService(db, db)
 
 	// Initialize the interactor
 	i := interactor.NewMyCareHubInteractor(

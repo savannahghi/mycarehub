@@ -36,4 +36,5 @@ type Query interface {
 type Update interface {
 	InactivateFacility(ctx context.Context, mflCode *int) (bool, error)
 	ReactivateFacility(ctx context.Context, mflCode *int) (bool, error)
+	AcceptTerms(ctx context.Context, userID *string, termsID *int) (bool, error)
 }

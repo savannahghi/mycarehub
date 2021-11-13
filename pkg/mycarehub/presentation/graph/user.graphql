@@ -1,3 +1,7 @@
 extend type Query {
     getCurrentTerms: TermsOfService!
 }
+
+extend type Mutation{
+    acceptTerms(userID: String!, termsID: Int!): Boolean!
+}

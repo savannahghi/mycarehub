@@ -7,6 +7,7 @@ import (
 
 	"github.com/brianvoe/gofakeit"
 	gormMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm/mock"
+	"github.com/segmentio/ksuid"
 )
 
 func TestMyCareHubDb_InactivateFacility(t *testing.T) {
@@ -148,6 +149,143 @@ func TestMyCareHubDb_ReactivateFacility(t *testing.T) {
 			}
 			if got != tt.want {
 				t.Errorf("MyCareHubDb.InactivateFacility() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestMyCareHubDb_AcceptTerms(t *testing.T) {
+	ctx := context.Background()
+
+	userID := ksuid.New().String()
+	termsID := gofakeit.Number(0, 100000)
+	negativeTermsID := gofakeit.Number(-100000, -1)
+
+	type args struct {
+		ctx     context.Context
+		userID  *string
+		termsID *int
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:     ctx,
+				userID:  &userID,
+				termsID: &termsID,
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Sad case",
+			args: args{
+				ctx:     ctx,
+				userID:  &userID,
+				termsID: &termsID,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case - no termsID",
+			args: args{
+				ctx:     ctx,
+				userID:  &userID,
+				termsID: nil,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case - no userID",
+			args: args{
+				ctx:     ctx,
+				userID:  nil,
+				termsID: &termsID,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case - no userID and termsID",
+			args: args{
+				ctx:     ctx,
+				userID:  nil,
+				termsID: nil,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case - negative termsID",
+			args: args{
+				ctx:     ctx,
+				userID:  nil,
+				termsID: &negativeTermsID,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case - userID and negative termsID",
+			args: args{
+				ctx:     ctx,
+				userID:  &userID,
+				termsID: &negativeTermsID,
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var fakeGorm = gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			if tt.name == "Sad case" {
+				fakeGorm.MockAcceptTermsFn = func(ctx context.Context, userID *string, termsID *int) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - no termsID" {
+				fakeGorm.MockAcceptTermsFn = func(ctx context.Context, userID *string, termsID *int) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - no userID" {
+				fakeGorm.MockAcceptTermsFn = func(ctx context.Context, userID *string, termsID *int) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - no userID and termsID" {
+				fakeGorm.MockAcceptTermsFn = func(ctx context.Context, userID *string, termsID *int) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - negative termsID" {
+				fakeGorm.MockAcceptTermsFn = func(ctx context.Context, userID *string, termsID *int) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - userID and negative termsID" {
+				fakeGorm.MockAcceptTermsFn = func(ctx context.Context, userID *string, termsID *int) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+
+			got, err := d.AcceptTerms(tt.args.ctx, tt.args.userID, tt.args.termsID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.AcceptTerms() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("MyCareHubDb.AcceptTerms() = %v, want %v", got, tt.want)
 			}
 		})
 	}

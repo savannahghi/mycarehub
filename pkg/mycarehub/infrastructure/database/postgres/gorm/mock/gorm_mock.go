@@ -27,6 +27,7 @@ type GormMock struct {
 	MockGetUserProfileByUserIDFn      func(ctx context.Context, UserID string) (*gorm.User, error)
 	MockSaveTemporaryUserPinFn        func(ctx context.Context, pinData *gorm.PINData) (bool, error)
 	MockGetCurrentTermsFn             func(ctx context.Context) (*gorm.TermsOfService, error)
+	MockAcceptTermsFn                 func(ctx context.Context, userID *string, termsID *int) (bool, error)
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -153,6 +154,9 @@ func NewGormMock() *GormMock {
 		MockSaveTemporaryUserPinFn: func(ctx context.Context, pinData *gorm.PINData) (bool, error) {
 			return true, nil
 		},
+		MockAcceptTermsFn: func(ctx context.Context, userID *string, termsID *int) (bool, error) {
+			return true, nil
+		},
 	}
 }
 
@@ -219,4 +223,9 @@ func (gm *GormMock) GetUserProfileByUserID(ctx context.Context, UserID string) (
 // SaveTemporaryUserPin mocks the implementation of saving a temporary user pin
 func (gm *GormMock) SaveTemporaryUserPin(ctx context.Context, pinData *gorm.PINData) (bool, error) {
 	return gm.MockSaveTemporaryUserPinFn(ctx, pinData)
+}
+
+// AcceptTerms mocks the implementation of accept current terms of service
+func (gm *GormMock) AcceptTerms(ctx context.Context, userID *string, termsID *int) (bool, error) {
+	return gm.MockAcceptTermsFn(ctx, userID, termsID)
 }
