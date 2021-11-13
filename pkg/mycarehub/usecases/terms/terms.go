@@ -3,12 +3,13 @@ package terms
 import (
 	"context"
 
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
 )
 
 // IGetCurrentTerms represents the interface to get all the terms of service
 type IGetCurrentTerms interface {
-	GetCurrentTerms(ctx context.Context) (string, error)
+	GetCurrentTerms(ctx context.Context) (*domain.TermsOfService, error)
 }
 
 // UseCasesTerms groups all the logic related to getting the terms of service
@@ -31,7 +32,7 @@ func NewUseCasesTermsOfService(
 }
 
 //GetCurrentTerms get all the current terms of service
-func (t *ServiceTermsImpl) GetCurrentTerms(ctx context.Context) (string, error) {
+func (t *ServiceTermsImpl) GetCurrentTerms(ctx context.Context) (*domain.TermsOfService, error) {
 
 	return t.Query.GetCurrentTerms(ctx)
 }

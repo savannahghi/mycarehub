@@ -26,3 +26,8 @@ type FiltersParam {
   DataType: FilterSortDataType
   Value: String
 }
+
+type TermsOfService {
+	TermsID: String!
+	Text:    String!
+}

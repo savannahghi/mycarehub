@@ -123,13 +123,13 @@ func (d *MyCareHubDb) GetUserPINByUserID(ctx context.Context, userID string) (*d
 }
 
 // GetCurrentTerms fetches the current terms service
-func (d *MyCareHubDb) GetCurrentTerms(ctx context.Context) (string, error) {
+func (d *MyCareHubDb) GetCurrentTerms(ctx context.Context) (*domain.TermsOfService, error) {
 	terms, err := d.query.GetCurrentTerms(ctx)
 	if err != nil {
-		return "", fmt.Errorf("failed to get current terms of service: %v", err)
+		return nil, fmt.Errorf("failed to get current terms of service: %v", err)
 	}
 
-	return terms, nil
+	return d.mapTermsOfServiceObjectToDomain(terms), nil
 }
 
 // GetUserProfileByUserID fetches and returns a userprofile using their user ID

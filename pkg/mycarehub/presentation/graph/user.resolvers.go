@@ -5,9 +5,11 @@ package graph
 
 import (
 	"context"
+
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 )
 
-func (r *queryResolver) GetCurrentTerms(ctx context.Context) (string, error) {
+func (r *queryResolver) GetCurrentTerms(ctx context.Context) (*domain.TermsOfService, error) {
 	r.checkPreconditions()
 	return r.interactor.TermsUsecase.GetCurrentTerms(ctx)
 }

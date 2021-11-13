@@ -17,8 +17,8 @@ type Query interface {
 	ListFacilities(ctx context.Context, searchTerm *string, filter []*domain.FiltersParam, pagination *domain.FacilityPage) (*domain.FacilityPage, error)
 	GetUserProfileByPhoneNumber(ctx context.Context, phoneNumber string) (*User, error)
 	GetUserPINByUserID(ctx context.Context, userID string) (*PINData, error)
-	GetCurrentTerms(ctx context.Context) (string, error)
 	GetUserProfileByUserID(ctx context.Context, userID string) (*User, error)
+	GetCurrentTerms(ctx context.Context) (*TermsOfService, error)
 }
 
 // RetrieveFacility fetches a single facility
@@ -159,14 +159,14 @@ func (db *PGInstance) GetUserPINByUserID(ctx context.Context, userID string) (*P
 }
 
 // GetCurrentTerms fetches the most most recent terms of service
-func (db *PGInstance) GetCurrentTerms(ctx context.Context) (string, error) {
+func (db *PGInstance) GetCurrentTerms(ctx context.Context) (*TermsOfService, error) {
 	var termsOfService TermsOfService
 	validTo := time.Now()
 	if err := db.DB.Model(&TermsOfService{}).Where("valid_to > ?", validTo).Or("valid_to = ?", nil).Order("valid_to desc").First(&termsOfService).Error; err != nil {
-		return "", fmt.Errorf("failed to get the current terms : %v", err)
+		return nil, fmt.Errorf("failed to get the current terms : %v", err)
 	}
 
-	return termsOfService.Text, nil
+	return &termsOfService, nil
 }
 
 // GetUserProfileByUserID fetches a user profile using the user ID
