@@ -6,6 +6,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/lib/pq"
 	"github.com/savannahghi/enumutils"
+	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/serverutils"
@@ -17,9 +18,9 @@ var OrganizationID = serverutils.MustGetEnvVar(common.OrganizationID)
 
 // Base model contains defines commin fields across tables
 type Base struct {
-	CreatedAt      time.Time `gorm:"column:created"`
-	UpdatedAt      time.Time `gorm:"column:updated"`
-	OrganisationID string    `gorm:"column:organisation_id"`
+	CreatedAt time.Time `gorm:"column:created"`
+	UpdatedAt time.Time `gorm:"column:updated"`
+	// OrganisationID string    `gorm:"column:organisation_id"`
 	//DeletedAt      time.Time `gorm:"column:deleted_at"`
 }
 
@@ -37,13 +38,15 @@ type Facility struct {
 	Active      bool   `gorm:"column:active;not null"`
 	County      string `gorm:"column:county;not null"` // TODO: Controlled list of counties
 	Description string `gorm:"column:description;not null"`
+	// Django reqired fields
+	OrganisationID string `gorm:"column:organisation_id"`
 }
 
 // BeforeCreate is a hook run before creating a new facility
 func (f *Facility) BeforeCreate(tx *gorm.DB) (err error) {
 	id := uuid.New().String()
 	f.FacilityID = &id
-	f.Base.OrganisationID = OrganizationID
+	f.OrganisationID = OrganizationID
 	return
 }
 
@@ -56,7 +59,7 @@ func (Facility) TableName() string {
 type User struct {
 	Base
 
-	UserID *string `gorm:"primaryKey;unique;column:user_id"` // globally unique ID
+	UserID *string `gorm:"primaryKey;unique;column:id"` // globally unique ID
 
 	Username string `gorm:"column:username;unique;not null"` // @handle, also globally unique; nickname
 
@@ -94,9 +97,9 @@ type User struct {
 	// calculated each time there is a failed login
 	NextAllowedLogin *time.Time `gorm:"type:time;column:next_allowed_login"`
 
-	TermsAccepted   bool          `gorm:"type:bool;column:terms_accepted;not null"`
-	AcceptedTermsID string        `gorm:"column:accepted_terms_id"` // foreign key to version of terms they accepted
-	Flavour         enums.Flavour `gorm:"column:flavour;not null"`
+	TermsAccepted   bool            `gorm:"type:bool;column:terms_accepted;not null"`
+	AcceptedTermsID string          `gorm:"column:accepted_terms_id"` // foreign key to version of terms they accepted
+	Flavour         feedlib.Flavour `gorm:"column:flavour;not null"`
 }
 
 // BeforeCreate is a hook run before creating a new user
@@ -108,7 +111,7 @@ func (u *User) BeforeCreate(tx *gorm.DB) (err error) {
 
 // TableName customizes how the table name is generated
 func (User) TableName() string {
-	return "user_users"
+	return "users_user"
 }
 
 // Contact hold contact information/details for users
@@ -146,26 +149,19 @@ func (Contact) TableName() string {
 type PINData struct {
 	Base
 
-	PINDataID *string       `gorm:"primaryKey;unique;column:pin_data_id"`
-	UserID    string        `gorm:"column:user_id;not null"`
-	HashedPIN string        `gorm:"column:hashed_pin;not null"`
-	ValidFrom time.Time     `gorm:"column:valid_from;not null"`
-	ValidTo   time.Time     `gorm:"column:valid_to;not null"`
-	IsValid   bool          `gorm:"column:is_valid;not null"`
-	Flavour   enums.Flavour `gorm:"column:flavour;not null"`
-	Salt      string        `gorm:"column:salt;not null"`
-}
-
-// BeforeCreate is a hook run before creating a new facility
-func (p *PINData) BeforeCreate(tx *gorm.DB) (err error) {
-	id := uuid.New().String()
-	p.PINDataID = &id
-	return
+	PINDataID *int            `gorm:"primaryKey;unique;column:id;autoincrement"`
+	UserID    string          `gorm:"column:user_id;not null"`
+	HashedPIN string          `gorm:"column:hashed_pin;not null"`
+	ValidFrom time.Time       `gorm:"column:valid_from;not null"`
+	ValidTo   time.Time       `gorm:"column:valid_to;not null"`
+	IsValid   bool            `gorm:"column:active;not null"`
+	Flavour   feedlib.Flavour `gorm:"column:flavour;not null"`
+	Salt      string          `gorm:"column:hashed_pin;not null"`
 }
 
 // TableName customizes how the table name is generated
 func (PINData) TableName() string {
-	return "pindata"
+	return "users_userpin"
 }
 
 // TermsOfService is the gorms terms of service model
@@ -177,13 +173,15 @@ type TermsOfService struct {
 	ValidFrom *time.Time `gorm:"column:valid_from;not null"`
 	ValidTo   *time.Time `gorm:"column:valid_to;not null"`
 	Tag       *string    `gorm:"column:tag;not null"`
+	// Django reqired fields
+	OrganisationID string `gorm:"column:organisation_id"`
 }
 
 // BeforeCreate is a hook run before creating a new facility
 func (t *TermsOfService) BeforeCreate(tx *gorm.DB) (err error) {
 	id := uuid.New().String()
 	t.TermsID = &id
-	t.Base.OrganisationID = OrganizationID
+	t.OrganisationID = OrganizationID
 	return
 }
 

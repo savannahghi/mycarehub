@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
@@ -34,4 +35,25 @@ func (d *MyCareHubDb) GetOrCreateFacility(ctx context.Context, facility *dto.Fac
 	}
 
 	return d.mapFacilityObjectToDomain(facilitySession), nil
+}
+
+// SaveTemporaryUserPin does the actual saving of the users PIN in the database
+func (d *MyCareHubDb) SaveTemporaryUserPin(ctx context.Context, pinData *domain.UserPIN) (bool, error) {
+	pinObj := &gorm.PINData{
+		Base:      gorm.Base{},
+		UserID:    pinData.UserID,
+		HashedPIN: pinData.HashedPIN,
+		ValidFrom: time.Time{},
+		ValidTo:   time.Time{},
+		IsValid:   pinData.IsValid,
+		Flavour:   pinData.Flavour,
+		Salt:      pinData.Salt,
+	}
+
+	_, err := d.create.SaveTemporaryUserPin(ctx, pinObj)
+	if err != nil {
+		return false, fmt.Errorf("failed to save user pin: %v", err)
+	}
+
+	return true, nil
 }

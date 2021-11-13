@@ -6,7 +6,8 @@ import (
 	"time"
 
 	"github.com/savannahghi/converterandformatter"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
+	"github.com/savannahghi/feedlib"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
@@ -15,7 +16,8 @@ import (
 
 // ILogin ...
 type ILogin interface {
-	Login(ctx context.Context, phoneNumber string, pin string, flavour enums.Flavour) (*domain.AuthCredentials, string, error)
+	Login(ctx context.Context, phoneNumber string, pin string, flavour feedlib.Flavour) (*domain.AuthCredentials, string, error)
+	InviteUser(ctx context.Context, userID string, phoneNumber string, flavour feedlib.Flavour) (bool, error)
 }
 
 // UseCasesUser group all business logic usecases related to user
@@ -50,7 +52,7 @@ func NewUseCasesUserImpl(
 }
 
 // Login is used to login the user into the application
-func (us *UseCasesUserImpl) Login(ctx context.Context, phoneNumber string, pin string, flavour enums.Flavour) (*domain.AuthCredentials, string, error) {
+func (us *UseCasesUserImpl) Login(ctx context.Context, phoneNumber string, pin string, flavour feedlib.Flavour) (*domain.AuthCredentials, string, error) {
 	phone, err := converterandformatter.NormalizeMSISDN(phoneNumber)
 	if err != nil {
 		return nil, "", exceptions.NormalizeMSISDNError(err)
@@ -97,4 +99,57 @@ func (us *UseCasesUserImpl) Login(ctx context.Context, phoneNumber string, pin s
 	}
 
 	return authCredentials, "", nil
+}
+
+// InviteUser is used to invite a user to the application. The invite link that is sent to the
+// user will open the app if installed OR goes to the store if not installed.
+func (us *UseCasesUserImpl) InviteUser(ctx context.Context, userID string, phoneNumber string, flavour feedlib.Flavour) (bool, error) {
+	phone, err := converterandformatter.NormalizeMSISDN(phoneNumber)
+	if err != nil {
+		return false, exceptions.NormalizeMSISDNError(err)
+	}
+
+	if !flavour.IsValid() {
+		return false, exceptions.InvalidFlavourDefinedError()
+	}
+
+	userProfile, err := us.Query.GetUserProfileByUserID(ctx, userID)
+	if err != nil {
+		return false, exceptions.UserNotFoundError(err)
+	}
+
+	tempPin, err := us.ExternalExt.GenerateTempPIN(ctx)
+	if err != nil {
+		return false, fmt.Errorf("failed to generate temporary pin: %v", err)
+	}
+
+	salt, encryptedTempPin := us.ExternalExt.EncryptPIN(tempPin, nil)
+	pinPayload := &domain.UserPIN{
+		UserID:    userID,
+		HashedPIN: encryptedTempPin,
+		Salt:      salt,
+		ValidFrom: time.Now(),
+		ValidTo:   time.Now(),
+		Flavour:   flavour,
+		IsValid:   true,
+	}
+
+	_, err = us.Create.SaveTemporaryUserPin(ctx, pinPayload)
+	if err != nil {
+		return false, exceptions.SaveUserPinError(err)
+	}
+
+	inviteLink, err := helpers.GetInviteLink(flavour)
+	if err != nil {
+		return false, fmt.Errorf("failed to get invite link: %v", err)
+	}
+
+	message := helpers.CreateInviteMessage(userProfile, inviteLink, tempPin)
+
+	err = us.ExternalExt.SendInviteSMS(ctx, []string{*phone}, message)
+	if err != nil {
+		return false, fmt.Errorf("failed to send SMS: %v", err)
+	}
+
+	return true, nil
 }

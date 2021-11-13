@@ -288,8 +288,8 @@ func TestPGInstance_ListFacilities(t *testing.T) {
 	}
 
 	noSortValues := domain.SortParam{
-		// Field:     enums.FilterSortDataTypeCreatedAt,
-		// Direction: enums.SortDataTypeAsc,
+		Field:     enums.FilterSortDataTypeCreatedAt,
+		Direction: enums.SortDataTypeAsc,
 	}
 
 	sortParams := domain.SortParam{
@@ -326,12 +326,12 @@ func TestPGInstance_ListFacilities(t *testing.T) {
 
 	// Setup
 	// create a facility
-	facility, err := d.GetOrCreateFacility(ctx, facilityInput)
+	_, err := d.GetOrCreateFacility(ctx, facilityInput)
 	if err != nil {
 		t.Errorf("failed to create new facility: %v", err)
 	}
 	// Create another Facility
-	facility2, err := d.GetOrCreateFacility(ctx, facilityInput2)
+	_, err = d.GetOrCreateFacility(ctx, facilityInput2)
 	if err != nil {
 		t.Errorf("failed to create new facility: %v", err)
 	}
@@ -506,15 +506,17 @@ func TestPGInstance_ListFacilities(t *testing.T) {
 		})
 	}
 	// Teardown
-	_, err = d.DeleteFacility(ctx, facility.Code)
+	pg, err := gorm.NewPGInstance()
 	if err != nil {
-		t.Errorf("unable to delete facility")
-		return
+		t.Errorf("pgInstance.Teardown() = %v", err)
 	}
-	_, err = d.DeleteFacility(ctx, facility2.Code)
-	if err != nil {
-		t.Errorf("unable to delete facility")
-		return
+
+	if err = pg.DB.Where("mfl_code", code).Unscoped().Delete(&gorm.Facility{}).Error; err != nil {
+		t.Errorf("failed to delete record = %v", err)
+	}
+
+	if err = pg.DB.Where("mfl_code", code2).Unscoped().Delete(&gorm.Facility{}).Error; err != nil {
+		t.Errorf("failed to delete record = %v", err)
 	}
 }
 
