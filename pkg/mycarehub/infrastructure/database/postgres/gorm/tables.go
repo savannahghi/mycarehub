@@ -194,18 +194,11 @@ func (PINData) TableName() string {
 type TermsOfService struct {
 	Base
 
-	TermsID   *int       `gorm:"primaryKey;unique;column:id"`
+	TermsID   *int       `gorm:"primaryKey;unique;column:id;autoincrement"`
 	Text      *string    `gorm:"column:text;not null"`
 	ValidFrom *time.Time `gorm:"column:valid_from;not null"`
 	ValidTo   *time.Time `gorm:"column:valid_to;not null"`
-	// Django reqired fields
-	OrganisationID string `gorm:"column:organisation_id"`
-}
-
-// BeforeCreate is a hook run before creating terms of service
-func (t *TermsOfService) BeforeCreate(tx *gorm.DB) (err error) {
-	t.OrganisationID = OrganizationID
-	return
+	Active    bool       `gorm:"column:active;not null"`
 }
 
 // TableName customizes how the table name is generated

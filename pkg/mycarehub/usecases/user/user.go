@@ -8,21 +8,29 @@ import (
 	"github.com/savannahghi/converterandformatter"
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/exceptions"
+	"github.com/savannahghi/onboarding/pkg/onboarding/application/utils"
 )
 
-// ILogin ...
+// ILogin is an interface that contans login related methods
 type ILogin interface {
 	Login(ctx context.Context, phoneNumber string, pin string, flavour feedlib.Flavour) (*domain.AuthCredentials, string, error)
 	InviteUser(ctx context.Context, userID string, phoneNumber string, flavour feedlib.Flavour) (bool, error)
 }
 
+// ISetUserPIN is an interface that contains all the user use cases for pins
+type ISetUserPIN interface {
+	SetUserPIN(ctx context.Context, input dto.PINInput) (bool, error)
+}
+
 // UseCasesUser group all business logic usecases related to user
 type UseCasesUser interface {
 	ILogin
+	ISetUserPIN
 }
 
 // UseCasesUserImpl represents user implementation object
@@ -149,6 +157,49 @@ func (us *UseCasesUserImpl) InviteUser(ctx context.Context, userID string, phone
 	err = us.ExternalExt.SendInviteSMS(ctx, []string{*phone}, message)
 	if err != nil {
 		return false, fmt.Errorf("failed to send SMS: %v", err)
+	}
+
+	return true, nil
+}
+
+// SetUserPIN is used to set the user's PIN
+func (us *UseCasesUserImpl) SetUserPIN(ctx context.Context, input dto.PINInput) (bool, error) {
+
+	if err := input.Validate(); err != nil {
+		return false, fmt.Errorf("empty value passed in input: %v", err)
+	}
+	userProfile, err := us.Query.GetUserProfileByUserID(ctx, *input.UserID)
+	if err != nil {
+		return false, fmt.Errorf("failed to get a user profile by phonenumber: %v", err)
+	}
+
+	err = utils.ValidatePIN(*input.PIN)
+	if err != nil {
+		return false, fmt.Errorf("invalid PIN provided: %v", err)
+	}
+
+	salt, encryptedPIN := us.ExternalExt.EncryptPIN(*input.PIN, nil)
+
+	isMatch := us.ExternalExt.ComparePIN(*input.ConfirmPIN, salt, encryptedPIN, nil)
+	if !isMatch {
+		return false, fmt.Errorf("the provided PINs do not match")
+	}
+	// TODO: Make this an env variable
+	expiryDate := time.Now().AddDate(0, 0, 7)
+
+	pinDataPayload := &domain.UserPIN{
+		UserID:    *userProfile.ID,
+		HashedPIN: encryptedPIN,
+		ValidFrom: time.Now(),
+		ValidTo:   expiryDate,
+		Flavour:   input.Flavour,
+		IsValid:   true,
+		Salt:      salt,
+	}
+
+	_, err = us.Create.SavePin(ctx, pinDataPayload)
+	if err != nil {
+		return false, err
 	}
 
 	return true, nil

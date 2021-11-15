@@ -3,12 +3,15 @@ package user_test
 import (
 	"context"
 	"fmt"
+	"math"
+	"strconv"
 	"testing"
 
 	"github.com/google/uuid"
 	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/firebasetools"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	extensionMock "github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension/mock"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	pgMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/mock"
@@ -482,6 +485,186 @@ func TestUnit_InviteUser(t *testing.T) {
 			}
 			if got != tt.want {
 				t.Errorf("UseCasesUserImpl.InviteUser() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestUseCasesUserImpl_SetUserPIN(t *testing.T) {
+	ctx := context.Background()
+	UserID := ksuid.New().String()
+	PIN := "1234"
+	longPIN := "12345"
+	shortPIN := "123"
+	tooLongPIN := strconv.Itoa(int(math.Pow(10, 6)))
+	invalidPINString := "invalid"
+	flavour := feedlib.FlavourConsumer
+
+	nonMatchedPin := "0000"
+
+	type args struct {
+		ctx   context.Context
+		input dto.PINInput
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "valid: set user pin successfully",
+			args: args{
+				ctx: ctx,
+				input: dto.PINInput{
+					UserID:     &UserID,
+					PIN:        &PIN,
+					ConfirmPIN: &PIN,
+					Flavour:    flavour,
+				},
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "invalid: user not found",
+			args: args{
+				ctx: ctx,
+				input: dto.PINInput{
+					UserID:     &UserID,
+					PIN:        &PIN,
+					ConfirmPIN: &PIN,
+					Flavour:    flavour,
+				},
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "invalid: pin is not integer explicit",
+			args: args{
+				ctx: ctx,
+				input: dto.PINInput{
+					UserID:     &UserID,
+					PIN:        &invalidPINString,
+					ConfirmPIN: &invalidPINString,
+					Flavour:    flavour,
+				},
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "invalid: pin length long",
+			args: args{
+				ctx: ctx,
+				input: dto.PINInput{
+					UserID:     &UserID,
+					PIN:        &longPIN,
+					ConfirmPIN: &longPIN,
+					Flavour:    flavour,
+				},
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "invalid: pin too long pin",
+			args: args{
+				ctx: ctx,
+				input: dto.PINInput{
+					UserID:     &UserID,
+					PIN:        &tooLongPIN,
+					ConfirmPIN: &tooLongPIN,
+					Flavour:    flavour,
+				},
+			},
+
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "invalid: pin length short",
+			args: args{
+				ctx: ctx,
+				input: dto.PINInput{
+					UserID:     &UserID,
+					PIN:        &shortPIN,
+					ConfirmPIN: &shortPIN,
+					Flavour:    flavour,
+				},
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "invalid: confirm pin mismatch",
+			args: args{
+				ctx: ctx,
+				input: dto.PINInput{
+					UserID:     &UserID,
+					PIN:        &PIN,
+					ConfirmPIN: &nonMatchedPin,
+					Flavour:    flavour,
+				},
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			fakeDB := pgMock.NewPostgresMock()
+			_ = mock.NewUserUseCaseMock()
+			fakeExtension := extensionMock.NewFakeExtension()
+
+			// fakeUserMock := mock.NewUserUseCaseMock()
+
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension)
+
+			if tt.name == "invalid: user not found" {
+				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
+					return nil, fmt.Errorf("failed to get user by user ID")
+				}
+			}
+
+			if tt.name == "invalid: pin is not integer explicit" {
+				fakeDB.MockSavePinFn = func(ctx context.Context, pin *domain.UserPIN) (bool, error) {
+					return false, fmt.Errorf("only number input allowed")
+				}
+			}
+			if tt.name == "invalid: pin length long" {
+				fakeDB.MockSavePinFn = func(ctx context.Context, pin *domain.UserPIN) (bool, error) {
+					return false, fmt.Errorf("pin length id longer than 4")
+				}
+			}
+
+			if tt.name == "invalid: pin too long pin" {
+				fakeDB.MockSavePinFn = func(ctx context.Context, pin *domain.UserPIN) (bool, error) {
+					return false, fmt.Errorf("pin length is too long")
+				}
+			}
+
+			if tt.name == "invalid: pin length short" {
+				fakeDB.MockSavePinFn = func(ctx context.Context, pin *domain.UserPIN) (bool, error) {
+					return false, fmt.Errorf("pin length is too short")
+				}
+			}
+
+			if tt.name == "invalid: confirm pin mismatch" {
+				fakeDB.MockSavePinFn = func(ctx context.Context, pin *domain.UserPIN) (bool, error) {
+					return false, fmt.Errorf("confirm pin does not mach the pin")
+				}
+			}
+
+			got, err := us.SetUserPIN(tt.args.ctx, tt.args.input)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCasesUserImpl.SetUserPIN() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("UseCasesUserImpl.SetUserPIN() = %v, want %v", got, tt.want)
 			}
 		})
 	}

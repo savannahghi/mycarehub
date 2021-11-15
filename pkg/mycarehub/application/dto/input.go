@@ -76,3 +76,20 @@ func (f *LoginInput) Validate() error {
 
 	return err
 }
+
+// PINInput represents the Pin input data structure
+type PINInput struct {
+	UserID     *string         `json:"id" validate:"required"`
+	PIN        *string         `json:"pin" validate:"required"`
+	ConfirmPIN *string         `json:"confirmPin" validate:"required"`
+	Flavour    feedlib.Flavour `json:"flavour" validate:"required"`
+}
+
+// Validate helps with validation of PINInput fields
+func (f *PINInput) Validate() error {
+	v := validator.New()
+
+	err := v.Struct(f)
+
+	return err
+}

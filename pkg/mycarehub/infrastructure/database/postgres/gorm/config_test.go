@@ -12,6 +12,8 @@ import (
 
 var testingDB *gorm.PGInstance
 
+var termsID = 50005
+
 func TestMain(m *testing.M) {
 	log.Println("setting up test database")
 	var err error
@@ -33,6 +35,7 @@ func TestMain(m *testing.M) {
 	log.Println("tearing down test database")
 	orgID := os.Getenv("DEFAULT_ORG_ID")
 	testingDB.DB.Unscoped().Delete(gorm.Organisation{OrganisationID: &orgID})
+	testingDB.DB.Unscoped().Delete(gorm.TermsOfService{TermsID: &termsID})
 }
 
 func createOrganization() {
@@ -55,17 +58,14 @@ func createOrganization() {
 }
 
 func createTermsOfService() {
-	orgID := os.Getenv("DEFAULT_ORG_ID")
-	termsID := 5000
 	validFrom := time.Now()
 	validTo := time.Now().AddDate(0, 0, 50)
 	txt := gofakeit.HipsterSentence(15)
 	terms := &gorm.TermsOfService{
-		TermsID:        &termsID,
-		Text:           &txt,
-		ValidFrom:      &validFrom,
-		ValidTo:        &validTo,
-		OrganisationID: orgID,
+		TermsID:   &termsID,
+		Text:      &txt,
+		ValidFrom: &validFrom,
+		ValidTo:   &validTo,
 	}
 
 	testingDB.DB.Create(terms)
