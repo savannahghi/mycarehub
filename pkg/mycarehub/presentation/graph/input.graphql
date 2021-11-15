@@ -21,3 +21,11 @@ input SortsInput {
   Direction: SortDataType
   Field: FilterSortDataType
 }
+
+
+input PINInput {
+	userID: String!
+	pin: String!
+	confirmPIN: String!
+	flavour: Flavour!
+}

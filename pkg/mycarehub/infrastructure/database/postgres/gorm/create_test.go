@@ -104,6 +104,7 @@ func TestPGInstance_SaveTemporaryUserPin(t *testing.T) {
 		UserType:      enums.ClientUser,
 		Gender:        enumutils.GenderMale,
 		TermsAccepted: true,
+		Flavour:       flavor,
 	}
 	err = pg.DB.Create(userInput).Error
 	if err != nil {
@@ -171,4 +172,139 @@ func TestPGInstance_SaveTemporaryUserPin(t *testing.T) {
 		t.Errorf("failed to delete record = %v", err)
 	}
 
+}
+
+func TestPGInstance_SavePin(t *testing.T) {
+	ctx := context.Background()
+
+	pg, err := gorm.NewPGInstance()
+	if err != nil {
+		t.Errorf("pgInstance.Teardown() = %v", err)
+	}
+
+	longString := gofakeit.Sentence(300)
+
+	newExtension := extension.NewExternalMethodsImpl()
+	salt, encryptedPin := newExtension.EncryptPIN("0000", nil)
+	flavour := feedlib.FlavourConsumer
+	userID := uuid.New().String()
+
+	// Setup test user
+	userInput := &gorm.User{
+		UserID:          &userID,
+		FirstName:       gofakeit.FirstName(),
+		LastName:        gofakeit.LastName(),
+		MiddleName:      gofakeit.FirstName(),
+		UserType:        enums.ClientUser,
+		Gender:          enumutils.GenderMale,
+		Flavour:         flavour,
+		AcceptedTermsID: &termsID,
+		TermsAccepted:   true,
+	}
+
+	err = pg.DB.Create(&userInput).Error
+	if err != nil {
+		t.Errorf("failed to create user: %v", err)
+	}
+
+	pinPayload := &gorm.PINData{
+		UserID:    *userInput.UserID,
+		HashedPIN: encryptedPin,
+		ValidFrom: time.Now(),
+		ValidTo:   time.Now(),
+		IsValid:   true,
+		Flavour:   feedlib.FlavourConsumer,
+		Salt:      salt,
+	}
+
+	type args struct {
+		ctx     context.Context
+		pinData *gorm.PINData
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy Case",
+			args: args{
+				ctx:     ctx,
+				pinData: pinPayload,
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "invalid: missing user id",
+			args: args{
+				ctx: ctx,
+				pinData: &gorm.PINData{
+					HashedPIN: encryptedPin,
+					ValidFrom: time.Now(),
+					ValidTo:   time.Now(),
+					IsValid:   true,
+					Flavour:   feedlib.FlavourConsumer,
+					Salt:      salt,
+				},
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "invalid: user does not exist",
+			args: args{
+				ctx: ctx,
+				pinData: &gorm.PINData{
+					UserID:    ksuid.New().String(),
+					HashedPIN: encryptedPin,
+					ValidFrom: time.Now(),
+					ValidTo:   time.Now(),
+					IsValid:   true,
+					Flavour:   feedlib.FlavourConsumer,
+					Salt:      salt,
+				},
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "invalid: invalid user id",
+			args: args{
+				ctx: ctx,
+				pinData: &gorm.PINData{
+					UserID:    longString,
+					HashedPIN: encryptedPin,
+					ValidFrom: time.Now(),
+					ValidTo:   time.Now(),
+					IsValid:   true,
+					Flavour:   feedlib.FlavourConsumer,
+					Salt:      salt,
+				},
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := testingDB.SavePin(tt.args.ctx, tt.args.pinData)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.SavePin() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("PGInstance.SavePin() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+
+	// Teardown
+	if err := pg.DB.Where("user_id", userInput.UserID).Unscoped().Delete(&gorm.PINData{}).Error; err != nil {
+		t.Errorf("failed to delete record = %v", err)
+	}
+	if err = pg.DB.Where("id", userInput.UserID).Unscoped().Delete(&gorm.User{}).Error; err != nil {
+		t.Errorf("failed to delete record = %v", err)
+	}
 }

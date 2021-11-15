@@ -73,6 +73,7 @@ type ComplexityRoot struct {
 		InactivateFacility func(childComplexity int, mflCode int) int
 		InviteUser         func(childComplexity int, userID string, phoneNumber string, flavour feedlib.Flavour) int
 		ReactivateFacility func(childComplexity int, mflCode int) int
+		SetUserPin         func(childComplexity int, input *dto.PINInput) int
 	}
 
 	Pagination struct {
@@ -104,6 +105,7 @@ type MutationResolver interface {
 	ReactivateFacility(ctx context.Context, mflCode int) (bool, error)
 	InactivateFacility(ctx context.Context, mflCode int) (bool, error)
 	InviteUser(ctx context.Context, userID string, phoneNumber string, flavour feedlib.Flavour) (bool, error)
+	SetUserPin(ctx context.Context, input *dto.PINInput) (bool, error)
 	AcceptTerms(ctx context.Context, userID string, termsID int) (bool, error)
 }
 type QueryResolver interface {
@@ -277,6 +279,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.ReactivateFacility(childComplexity, args["mflCode"].(int)), true
+
+	case "Mutation.setUserPIN":
+		if e.complexity.Mutation.SetUserPin == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_setUserPIN_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.SetUserPin(childComplexity, args["input"].(*dto.PINInput)), true
 
 	case "Pagination.Count":
 		if e.complexity.Pagination.Count == nil {
@@ -566,9 +580,17 @@ input SortsInput {
   Direction: SortDataType
   Field: FilterSortDataType
 }
-`, BuiltIn: false},
+
+
+input PINInput {
+	userID: String!
+	pin: String!
+	confirmPIN: String!
+	flavour: Flavour!
+}`, BuiltIn: false},
 	{Name: "pkg/mycarehub/presentation/graph/profile.graphql", Input: `extend type Mutation {
   inviteUser(userID: String!,phoneNumber: String!, flavour:Flavour! ): Boolean!
+  setUserPIN(input: PINInput): Boolean!
 }`, BuiltIn: false},
 	{Name: "pkg/mycarehub/presentation/graph/types.graphql", Input: `type Facility {
   ID: String!
@@ -741,6 +763,21 @@ func (ec *executionContext) field_Mutation_reactivateFacility_args(ctx context.C
 		}
 	}
 	args["mflCode"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_setUserPIN_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *dto.PINInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalOPINInput2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐPINInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
 	return args, nil
 }
 
@@ -1448,6 +1485,48 @@ func (ec *executionContext) _Mutation_inviteUser(ctx context.Context, field grap
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Mutation().InviteUser(rctx, args["userID"].(string), args["phoneNumber"].(string), args["flavour"].(feedlib.Flavour))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_setUserPIN(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_setUserPIN_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().SetUserPin(rctx, args["input"].(*dto.PINInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3240,6 +3319,53 @@ func (ec *executionContext) unmarshalInputFiltersInput(ctx context.Context, obj 
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputPINInput(ctx context.Context, obj interface{}) (dto.PINInput, error) {
+	var it dto.PINInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	for k, v := range asMap {
+		switch k {
+		case "userID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userID"))
+			it.UserID, err = ec.unmarshalNString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "pin":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("pin"))
+			it.PIN, err = ec.unmarshalNString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "confirmPIN":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("confirmPIN"))
+			it.ConfirmPIN, err = ec.unmarshalNString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "flavour":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("flavour"))
+			it.Flavour, err = ec.unmarshalNFlavour2githubᚗcomᚋsavannahghiᚋfeedlibᚐFlavour(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputPaginationsInput(ctx context.Context, obj interface{}) (dto.PaginationsInput, error) {
 	var it dto.PaginationsInput
 	asMap := map[string]interface{}{}
@@ -3467,6 +3593,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			}
 		case "inviteUser":
 			out.Values[i] = ec._Mutation_inviteUser(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "setUserPIN":
+			out.Values[i] = ec._Mutation_setUserPIN(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -4483,6 +4614,14 @@ func (ec *executionContext) marshalOInt2ᚖint(ctx context.Context, sel ast.Sele
 		return graphql.Null
 	}
 	return graphql.MarshalInt(*v)
+}
+
+func (ec *executionContext) unmarshalOPINInput2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐPINInput(ctx context.Context, v interface{}) (*dto.PINInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputPINInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalOSortDataType2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐSortDataType(ctx context.Context, v interface{}) (enums.SortDataType, error) {

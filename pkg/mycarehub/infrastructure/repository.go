@@ -13,6 +13,7 @@ import (
 type Create interface {
 	GetOrCreateFacility(ctx context.Context, facility *dto.FacilityInput) (*domain.Facility, error)
 	SaveTemporaryUserPin(ctx context.Context, pinData *domain.UserPIN) (bool, error)
+	SavePin(ctx context.Context, pinInput *domain.UserPIN) (bool, error)
 }
 
 // Delete represents all the deletion action interfaces

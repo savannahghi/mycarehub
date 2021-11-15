@@ -9,6 +9,7 @@ import (
 type Create interface {
 	GetOrCreateFacility(ctx context.Context, facility *Facility) (*Facility, error)
 	SaveTemporaryUserPin(ctx context.Context, pinPayload *PINData) (bool, error)
+	SavePin(ctx context.Context, pinData *PINData) (bool, error)
 }
 
 // GetOrCreateFacility is used to get or create a facility
@@ -32,5 +33,16 @@ func (db *PGInstance) SaveTemporaryUserPin(ctx context.Context, pinPayload *PIND
 	if err != nil {
 		return false, fmt.Errorf("failed to save a pin: %v", err)
 	}
+	return true, nil
+}
+
+// SavePin saves the pin to the database
+func (db *PGInstance) SavePin(ctx context.Context, pinData *PINData) (bool, error) {
+	err := db.DB.Create(pinData).Error
+
+	if err != nil {
+		return false, fmt.Errorf("failed to save pin data: %v", err)
+	}
+
 	return true, nil
 }
