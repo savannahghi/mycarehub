@@ -31,7 +31,7 @@ type User struct {
 	Contacts []*Contact `json:"contact"` // TODO: validate, ensure
 
 	// for the preferred language list, order matters
-	Languages []enumutils.Language `json:"languages"`
+	// Languages []enumutils.Language `json:"languages"`
 
 	// PushTokens []string
 
@@ -44,13 +44,13 @@ type User struct {
 
 	// each time there is a failed login, **increment** this
 	// set to zero after successful login
-	FailedLoginCount string `json:"failedLoginCount"`
+	FailedLoginCount int `json:"failedLoginCount"`
 
 	// calculated each time there is a failed login
 	NextAllowedLogin *time.Time `json:"NextAllowedLogin"`
 
 	TermsAccepted   bool            `json:"termsAccepted"`
-	AcceptedTermsID string          `json:"AcceptedTermsID"` // foreign key to version of terms they accepted
+	AcceptedTermsID int             `json:"AcceptedTermsID"` // foreign key to version of terms they accepted
 	Flavour         feedlib.Flavour `json:"flavour"`
 }
 

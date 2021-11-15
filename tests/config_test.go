@@ -61,7 +61,7 @@ func TestMain(m *testing.M) {
 		log.Printf("unable to start test server: %s", serverErr)
 	}
 
-	pg, err := gorm.NewPGInstance()
+	_, err := gorm.NewPGInstance()
 	if err != nil {
 		log.Printf("can't instantiate test repository: %v", err)
 	}
@@ -75,15 +75,22 @@ func TestMain(m *testing.M) {
 	log.Printf("Running tests ...")
 	code := m.Run()
 
-	pg.DB.Migrator().DropTable(&gorm.Facility{})
 	// restore envs
-	os.Setenv(initialEnv, "ENVIRONMENT")
+	os.Setenv("ENVIRONMENT", initialEnv)
 
 	log.Printf("finished running tests")
 
 	// cleanup here
 	defer func() {
-		err := srv.Shutdown(ctx)
+		// remove organization
+		// pg, err := gorm.NewPGInstance()
+		// if err != nil {
+		// 	log.Printf("can't instantiate test repository: %v", err)
+		// }
+		// query := fmt.Sprintf(`DELETE FROM common_organisation WHERE id = %v`, os.Getenv("DEFAULT_ORG_ID"))
+		// pg.DB.Raw(query).Scan(&pg.DB)
+
+		err = srv.Shutdown(ctx)
 		if err != nil {
 			log.Printf("test server shutdown error: %s", err)
 		}
@@ -149,6 +156,9 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 		return nil, fmt.Errorf("can't instantiate test repository: %v", err)
 	}
 
+	// add organization
+	// createOrganization(pg)
+
 	externalExt := externalExtension.NewExternalMethodsImpl()
 
 	db := postgres.NewMyCareHubDb(pg, pg, pg, pg)
@@ -163,3 +173,12 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 	i := interactor.NewMyCareHubInteractor(facilityUseCase, userUsecase, termsUsecase)
 	return i, nil
 }
+
+// func createOrganization(pg *gorm.PGInstance) {
+// 	query := fmt.Sprintf(`INSERT INTO common_organisation
+// 		(id, created, updated, active, deleted, org_code, organisation_name, email_address, phone_number, default_country)
+// 		VALUES
+// 		(%v, %v, %v, %v, %v, %v, %v, %v, %v, %v)
+// 		`, os.Getenv("DEFAULT_ORG_ID"), time.Now(), time.Now(), true, false, "ORG_123", gofakeit.Name(), gofakeit.Email(), gofakeit.Phone(), "KEN")
+// 	pg.DB.Raw(query).Scan(&pg.DB)
+// }

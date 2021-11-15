@@ -40,7 +40,7 @@ func (d *MyCareHubDb) GetOrCreateFacility(ctx context.Context, facility *dto.Fac
 // SaveTemporaryUserPin does the actual saving of the users PIN in the database
 func (d *MyCareHubDb) SaveTemporaryUserPin(ctx context.Context, pinData *domain.UserPIN) (bool, error) {
 	pinObj := &gorm.PINData{
-		Base:      gorm.Base{},
+		// Base:      gorm.Base{},
 		UserID:    pinData.UserID,
 		HashedPIN: pinData.HashedPIN,
 		ValidFrom: time.Time{},

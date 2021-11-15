@@ -31,7 +31,7 @@ func TestPGInstance_DeleteFacility(t *testing.T) {
 
 	facility, err := testingDB.GetOrCreateFacility(ctx, facility)
 	if err != nil {
-		t.Errorf("failed to create test facility")
+		t.Errorf("failed to create test facility: %v", err)
 		return
 	}
 
