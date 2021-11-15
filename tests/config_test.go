@@ -160,7 +160,7 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 
 	userUsecase := user.NewUseCasesUserImpl(db, db, db, db, externalExt)
 
-	termsUsecase := terms.NewUseCasesTermsOfService(db)
+	termsUsecase := terms.NewUseCasesTermsOfService(db, db)
 
 	i := interactor.NewMyCareHubInteractor(facilityUseCase, userUsecase, termsUsecase)
 	return i, nil

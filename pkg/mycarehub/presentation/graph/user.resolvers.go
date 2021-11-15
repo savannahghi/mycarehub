@@ -9,6 +9,11 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 )
 
+func (r *mutationResolver) AcceptTerms(ctx context.Context, userID string, termsID int) (bool, error) {
+	r.checkPreconditions()
+	return r.interactor.TermsUsecase.AcceptTerms(ctx, &userID, &termsID)
+}
+
 func (r *queryResolver) GetCurrentTerms(ctx context.Context) (*domain.TermsOfService, error) {
 	r.checkPreconditions()
 	return r.interactor.TermsUsecase.GetCurrentTerms(ctx)

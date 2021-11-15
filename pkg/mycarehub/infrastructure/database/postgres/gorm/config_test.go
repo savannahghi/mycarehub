@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/brianvoe/gofakeit"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
@@ -20,6 +21,9 @@ func TestMain(m *testing.M) {
 	}
 	// add organization
 	createOrganization()
+
+	//create terms
+	createTermsOfService()
 
 	log.Printf("Running tests ...")
 	os.Exit(m.Run())
@@ -48,4 +52,21 @@ func createOrganization() {
 	}
 
 	testingDB.DB.Create(organisation)
+}
+
+func createTermsOfService() {
+	orgID := os.Getenv("DEFAULT_ORG_ID")
+	termsID := 5000
+	validFrom := time.Now()
+	validTo := time.Now().AddDate(0, 0, 50)
+	txt := gofakeit.HipsterSentence(15)
+	terms := &gorm.TermsOfService{
+		TermsID:        &termsID,
+		Text:           &txt,
+		ValidFrom:      &validFrom,
+		ValidTo:        &validTo,
+		OrganisationID: orgID,
+	}
+
+	testingDB.DB.Create(terms)
 }
