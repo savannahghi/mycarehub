@@ -19,6 +19,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/presentation"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/presentation/interactor"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/facility"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/securityquestions"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/terms"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/user"
 	"github.com/savannahghi/serverutils"
@@ -162,6 +163,8 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 
 	termsUsecase := terms.NewUseCasesTermsOfService(db, db)
 
-	i := interactor.NewMyCareHubInteractor(facilityUseCase, userUsecase, termsUsecase)
+	securityQuestionsUsecase := securityquestions.NewSecurityQuestionsUsecase(db)
+
+	i := interactor.NewMyCareHubInteractor(facilityUseCase, userUsecase, termsUsecase, securityQuestionsUsecase)
 	return i, nil
 }

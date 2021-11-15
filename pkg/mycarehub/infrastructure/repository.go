@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 )
@@ -32,6 +33,7 @@ type Query interface {
 	GetUserPINByUserID(ctx context.Context, userID string) (*domain.UserPIN, error)
 	GetUserProfileByUserID(ctx context.Context, userID string) (*domain.User, error)
 	GetCurrentTerms(ctx context.Context) (*domain.TermsOfService, error)
+	GetSecurityQuestions(ctx context.Context, flavour feedlib.Flavour) ([]*domain.SecurityQuestion, error)
 }
 
 // Update represents all the update action interfaces

@@ -7,7 +7,9 @@ import (
 	"github.com/brianvoe/gofakeit"
 	"github.com/google/uuid"
 	"github.com/savannahghi/enumutils"
+	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 )
 
@@ -33,6 +35,7 @@ type PostgresMock struct {
 	MockUpdateUserLastFailedLoginTimeFn     func(ctx context.Context, userID string) error
 	MockUpdateUserNextAllowedLoginTimeFn    func(ctx context.Context, userID string, nextAllowedLoginTime time.Time) error
 	MockUpdateUserLastSuccessfulLoginTimeFn func(ctx context.Context, userID string) error
+	MockGetSecurityQuestionsFn              func(ctx context.Context, flavour feedlib.Flavour) ([]*domain.SecurityQuestion, error)
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -162,6 +165,16 @@ func NewPostgresMock() *PostgresMock {
 		MockUpdateUserLastSuccessfulLoginTimeFn: func(ctx context.Context, userID string) error {
 			return nil
 		},
+		MockGetSecurityQuestionsFn: func(ctx context.Context, flavour feedlib.Flavour) ([]*domain.SecurityQuestion, error) {
+			securityQuestion := &domain.SecurityQuestion{
+				QuestionStem: "test",
+				Description:  "test",
+				Flavour:      feedlib.FlavourConsumer,
+				Active:       true,
+				ResponseType: enums.NumberResponse,
+			}
+			return []*domain.SecurityQuestion{securityQuestion}, nil
+		},
 	}
 }
 
@@ -263,4 +276,9 @@ func (gm *PostgresMock) UpdateUserNextAllowedLoginTime(ctx context.Context, user
 // UpdateUserLastSuccessfulLoginTime mocks the implementation of updating a user's last successful login time
 func (gm *PostgresMock) UpdateUserLastSuccessfulLoginTime(ctx context.Context, userID string) error {
 	return gm.MockUpdateUserLastSuccessfulLoginTimeFn(ctx, userID)
+}
+
+//GetSecurityQuestions mocks the implementation of getting all the security questions.
+func (gm *PostgresMock) GetSecurityQuestions(ctx context.Context, flavour feedlib.Flavour) ([]*domain.SecurityQuestion, error) {
+	return gm.MockGetSecurityQuestionsFn(ctx, flavour)
 }

@@ -7,6 +7,7 @@ import (
 	"github.com/brianvoe/gofakeit"
 	"github.com/google/uuid"
 	"github.com/savannahghi/feedlib"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
 	"github.com/segmentio/ksuid"
@@ -33,6 +34,7 @@ type GormMock struct {
 	MockUpdateUserLastFailedLoginTimeFn     func(ctx context.Context, userID string) error
 	MockUpdateUserNextAllowedLoginTimeFn    func(ctx context.Context, userID string, nextAllowedLoginTime time.Time) error
 	MockUpdateUserLastSuccessfulLoginTimeFn func(ctx context.Context, userID string) error
+	MockGetSecurityQuestionsFn              func(ctx context.Context, flavour feedlib.Flavour) ([]*gorm.SecurityQuestion, error)
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -177,6 +179,18 @@ func NewGormMock() *GormMock {
 		MockUpdateUserLastSuccessfulLoginTimeFn: func(ctx context.Context, userID string) error {
 			return nil
 		},
+		MockGetSecurityQuestionsFn: func(ctx context.Context, flavour feedlib.Flavour) ([]*gorm.SecurityQuestion, error) {
+			sq := ksuid.New().String()
+			securityQuestion := &gorm.SecurityQuestion{
+				SecurityQuestionID: &sq,
+				QuestionStem:       "test",
+				Description:        "test",
+				Flavour:            feedlib.FlavourConsumer,
+				Active:             true,
+				ResponseType:       enums.NumberResponse,
+			}
+			return []*gorm.SecurityQuestion{securityQuestion}, nil
+		},
 	}
 }
 
@@ -273,4 +287,9 @@ func (gm *GormMock) UpdateUserNextAllowedLoginTime(ctx context.Context, userID s
 // UpdateUserLastSuccessfulLoginTime mocks the implementation of updating a user's last successful login time
 func (gm *GormMock) UpdateUserLastSuccessfulLoginTime(ctx context.Context, userID string) error {
 	return gm.MockUpdateUserLastSuccessfulLoginTimeFn(ctx, userID)
+}
+
+//GetSecurityQuestions mocks the implementation of getting all the security questions.
+func (gm *GormMock) GetSecurityQuestions(ctx context.Context, flavour feedlib.Flavour) ([]*gorm.SecurityQuestion, error) {
+	return gm.MockGetSecurityQuestionsFn(ctx, flavour)
 }

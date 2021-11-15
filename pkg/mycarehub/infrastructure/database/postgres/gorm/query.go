@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 )
@@ -19,6 +20,7 @@ type Query interface {
 	GetUserPINByUserID(ctx context.Context, userID string) (*PINData, error)
 	GetUserProfileByUserID(ctx context.Context, userID string) (*User, error)
 	GetCurrentTerms(ctx context.Context) (*TermsOfService, error)
+	GetSecurityQuestions(ctx context.Context, flavour feedlib.Flavour) ([]*SecurityQuestion, error)
 }
 
 // RetrieveFacility fetches a single facility
@@ -48,6 +50,19 @@ func (db *PGInstance) GetFacilities(ctx context.Context) ([]Facility, error) {
 		return nil, fmt.Errorf("failed to query all facilities %v", err)
 	}
 	return facility, nil
+}
+
+// GetSecurityQuestions fetches all the security questions.
+func (db *PGInstance) GetSecurityQuestions(ctx context.Context, flavour feedlib.Flavour) ([]*SecurityQuestion, error) {
+	if flavour == "" {
+		return nil, fmt.Errorf("flavour cannot be empty")
+	}
+	var securityQuestion []*SecurityQuestion
+	err := db.DB.Where(&SecurityQuestion{Flavour: flavour}).Find(&securityQuestion).Error
+	if err != nil {
+		return nil, fmt.Errorf("failed to query all security questions %v", err)
+	}
+	return securityQuestion, nil
 }
 
 // ListFacilities lists all facilities, the results returned are

@@ -234,3 +234,32 @@ func (t *Organisation) BeforeCreate(tx *gorm.DB) (err error) {
 func (Organisation) TableName() string {
 	return "common_organisation"
 }
+
+// SecurityQuestion is the gorms security question model
+type SecurityQuestion struct {
+	Base
+
+	SecurityQuestionID *string                            `gorm:"column:id"`
+	QuestionStem       string                             `gorm:"column:stem"`
+	Description        string                             `gorm:"column:description"`   // help text
+	ResponseType       enums.SecurityQuestionResponseType `gorm:"column:response_type"` // TODO: Enum
+	Flavour            feedlib.Flavour                    `gorm:"column:flavour"`       // TODO: Enum
+	Active             bool                               `gorm:"column:active"`
+	Sequence           *int                               `gorm:"column:sequence"` // for sorting
+
+	// Django reqired fields
+	OrganisationID string `gorm:"column:organisation_id"`
+}
+
+// BeforeCreate is a hook run before creating security question
+func (s *SecurityQuestion) BeforeCreate(tx *gorm.DB) (err error) {
+	id := uuid.New().String()
+	s.SecurityQuestionID = &id
+	s.OrganisationID = OrganizationID
+	return
+}
+
+// TableName customizes how the table name is generated
+func (SecurityQuestion) TableName() string {
+	return "clients_securityquestion"
+}

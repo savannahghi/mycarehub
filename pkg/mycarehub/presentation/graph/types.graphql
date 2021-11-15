@@ -31,3 +31,11 @@ type TermsOfService {
 	TermsID: Int!
 	Text:    String!
 }
+
+type SecurityQuestion {
+  SecurityQuestionID: String!
+	QuestionStem: String!
+	Description: String
+	Active: Boolean!
+	ResponseType: SecurityQuestionResponseType!
+}
