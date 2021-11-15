@@ -98,7 +98,7 @@ type User struct {
 	// calculated each time there is a failed login
 	NextAllowedLogin *time.Time `gorm:"type:time;column:next_allowed_login"`
 
-	// TermsAccepted   bool            `gorm:"type:bool;column:terms_accepted;not null"`
+	TermsAccepted bool `gorm:"type:bool;column:terms_accepted;not null"`
 	// AcceptedTermsID int             `gorm:"column:accepted_terms_of_service_id"` // foreign key to version of terms they accepted
 	Flavour feedlib.Flavour `gorm:"column:flavour;not null"`
 
@@ -194,7 +194,7 @@ func (PINData) TableName() string {
 type TermsOfService struct {
 	Base
 
-	TermsID   *string    `gorm:"primaryKey;unique;column:id"`
+	TermsID   *int       `gorm:"primaryKey;unique;column:id"`
 	Text      *string    `gorm:"column:text;not null"`
 	ValidFrom *time.Time `gorm:"column:valid_from;not null"`
 	ValidTo   *time.Time `gorm:"column:valid_to;not null"`
@@ -204,8 +204,6 @@ type TermsOfService struct {
 
 // BeforeCreate is a hook run before creating terms of service
 func (t *TermsOfService) BeforeCreate(tx *gorm.DB) (err error) {
-	id := uuid.New().String()
-	t.TermsID = &id
 	t.OrganisationID = OrganizationID
 	return
 }

@@ -97,12 +97,13 @@ func TestPGInstance_SaveTemporaryUserPin(t *testing.T) {
 	salt, encryptedTempPin := newExtension.EncryptPIN(tempPin, nil)
 
 	userInput := &gorm.User{
-		UserID:     &userID,
-		FirstName:  gofakeit.FirstName(),
-		LastName:   gofakeit.LastName(),
-		MiddleName: gofakeit.FirstName(),
-		UserType:   enums.ClientUser,
-		Gender:     enumutils.GenderMale,
+		UserID:        &userID,
+		FirstName:     gofakeit.FirstName(),
+		LastName:      gofakeit.LastName(),
+		MiddleName:    gofakeit.FirstName(),
+		UserType:      enums.ClientUser,
+		Gender:        enumutils.GenderMale,
+		TermsAccepted: true,
 	}
 	err = pg.DB.Create(userInput).Error
 	if err != nil {

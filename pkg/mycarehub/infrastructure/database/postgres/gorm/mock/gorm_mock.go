@@ -132,7 +132,7 @@ func NewGormMock() *GormMock {
 			return true, nil
 		},
 		MockGetCurrentTermsFn: func(ctx context.Context) (*gorm.TermsOfService, error) {
-			termsID := ksuid.New().String()
+			termsID := gofakeit.Number(1, 1000)
 			validFrom := time.Now()
 			testText := "test"
 

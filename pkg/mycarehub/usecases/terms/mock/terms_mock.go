@@ -3,8 +3,8 @@ package mock
 import (
 	"context"
 
+	"github.com/brianvoe/gofakeit"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
-	"github.com/segmentio/ksuid"
 )
 
 // TermsUseCaseMock mocks the implementation of terms usecase methods.
@@ -16,10 +16,10 @@ type TermsUseCaseMock struct {
 func NewTermsUseCaseMock() *TermsUseCaseMock {
 	return &TermsUseCaseMock{
 		MockGetCurrentTermsFn: func(ctx context.Context) (*domain.TermsOfService, error) {
-			termsID := ksuid.New().String()
+			termsID := gofakeit.Number(1, 1000)
 			testText := "test"
 			terms := &domain.TermsOfService{
-				TermsID: &termsID,
+				TermsID: termsID,
 				Text:    &testText,
 			}
 			return terms, nil

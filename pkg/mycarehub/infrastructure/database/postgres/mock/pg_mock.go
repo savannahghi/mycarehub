@@ -8,7 +8,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
-	"github.com/segmentio/ksuid"
 )
 
 // PostgresMock struct implements mocks of `postgres's` internal methods.
@@ -109,10 +108,10 @@ func NewPostgresMock() *PostgresMock {
 			return true, nil
 		},
 		MockGetCurrentTermsFn: func(ctx context.Context) (*domain.TermsOfService, error) {
-			termsID := ksuid.New().String()
+			termsID := gofakeit.Number(1, 1000)
 			testText := "test"
 			terms := &domain.TermsOfService{
-				TermsID: &termsID,
+				TermsID: termsID,
 				Text:    &testText,
 			}
 			return terms, nil
