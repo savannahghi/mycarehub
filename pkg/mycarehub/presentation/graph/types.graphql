@@ -28,6 +28,6 @@ type FiltersParam {
 }
 
 type TermsOfService {
-	TermsID: String!
+	TermsID: Int!
 	Text:    String!
 }

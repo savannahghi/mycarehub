@@ -586,7 +586,7 @@ type FiltersParam {
 }
 
 type TermsOfService {
-	TermsID: String!
+	TermsID: Int!
 	Text:    String!
 }`, BuiltIn: false},
 	{Name: "pkg/mycarehub/presentation/graph/user.graphql", Input: `extend type Query {
@@ -1908,9 +1908,9 @@ func (ec *executionContext) _TermsOfService_TermsID(ctx context.Context, field g
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*string)
+	res := resTmp.(int)
 	fc.Result = res
-	return ec.marshalNString2ᚖstring(ctx, field.Selections, res)
+	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _TermsOfService_Text(ctx context.Context, field graphql.CollectedField, obj *domain.TermsOfService) (ret graphql.Marshaler) {

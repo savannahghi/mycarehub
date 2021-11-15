@@ -11,7 +11,6 @@ require (
 	github.com/gorilla/handlers v1.5.1
 	github.com/gorilla/mux v1.8.0
 	github.com/imroc/req v0.3.2
-	github.com/lib/pq v1.10.4
 	github.com/savannahghi/converterandformatter v0.0.11
 	github.com/savannahghi/enumutils v0.0.3
 	github.com/savannahghi/errorcodeutil v0.0.3
@@ -78,6 +77,7 @@ require (
 	github.com/jinzhu/now v1.1.2 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/leodido/go-urn v1.2.1 // indirect
+	github.com/lib/pq v1.10.4 // indirect
 	github.com/lithammer/shortuuid v3.0.0+incompatible // indirect
 	github.com/mitchellh/mapstructure v1.4.1 // indirect
 	github.com/pkg/errors v0.9.1 // indirect

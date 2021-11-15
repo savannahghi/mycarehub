@@ -89,7 +89,7 @@ func (d *MyCareHubDb) mapTermsOfServiceObjectToDomain(termsObj *gorm.TermsOfServ
 	}
 
 	return &domain.TermsOfService{
-		TermsID: termsObj.TermsID,
+		TermsID: *termsObj.TermsID,
 		Text:    termsObj.Text,
 	}
 }
