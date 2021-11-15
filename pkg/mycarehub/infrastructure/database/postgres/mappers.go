@@ -12,8 +12,8 @@ func createMapUser(userObject *gorm.User) *domain.User {
 		for _, u := range userObject.Contacts {
 			contact := &domain.Contact{
 				ID:      u.ContactID,
-				Type:    u.Type,
-				Contact: u.Contact,
+				Type:    u.ContactType,
+				Contact: u.ContactValue,
 				Active:  u.Active,
 				OptedIn: u.OptedIn,
 			}
@@ -36,6 +36,7 @@ func createMapUser(userObject *gorm.User) *domain.User {
 		FailedLoginCount:    userObject.FailedLoginCount,
 		NextAllowedLogin:    userObject.NextAllowedLogin,
 		Flavour:             userObject.Flavour,
+		TermsAccepted:       userObject.TermsAccepted,
 	}
 	return user
 }

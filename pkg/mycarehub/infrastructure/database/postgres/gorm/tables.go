@@ -144,11 +144,11 @@ func (User) TableName() string {
 type Contact struct {
 	Base
 
-	ContactID *string `gorm:"primaryKey;unique;column:contact_id"`
+	ContactID *string `gorm:"primaryKey;unique;column:id"`
 
-	Type string `gorm:"column:type;not null"` // TODO enum
+	ContactType string `gorm:"column:contact_type;not null"` // TODO enum
 
-	Contact string `gorm:"unique;column:contact;not null"` // TODO Validate: phones are E164, emails are valid
+	ContactValue string `gorm:"unique;column:contact_value;not null"` // TODO Validate: phones are E164, emails are valid
 
 	Active bool `gorm:"column:active;not null"`
 
@@ -156,7 +156,7 @@ type Contact struct {
 	// e.g if it's a shared phone owned by a teenager
 	OptedIn bool `gorm:"column:opted_in;not null"`
 
-	UserID *string `gorm:"column:user_id;not null"` // Foreign key
+	UserID *string `gorm:"column:user_id;not null"`
 }
 
 // BeforeCreate is a hook run before creating a new contact
@@ -168,7 +168,7 @@ func (c *Contact) BeforeCreate(tx *gorm.DB) (err error) {
 
 // TableName customizes how the table name is generated
 func (Contact) TableName() string {
-	return "contact"
+	return "common_contact"
 }
 
 // PINData is the PIN's gorm data model.
@@ -182,7 +182,7 @@ type PINData struct {
 	ValidTo   time.Time       `gorm:"column:valid_to;not null"`
 	IsValid   bool            `gorm:"column:active;not null"`
 	Flavour   feedlib.Flavour `gorm:"column:flavour;not null"`
-	Salt      string          `gorm:"column:hashed_pin;not null"`
+	Salt      string          `gorm:"column:salt;not null"`
 }
 
 // TableName customizes how the table name is generated

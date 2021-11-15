@@ -14,21 +14,25 @@ import (
 
 // GormMock struct implements mocks of `gorm's`internal methods.
 type GormMock struct {
-	MockGetOrCreateFacilityFn         func(ctx context.Context, facility *gorm.Facility) (*gorm.Facility, error)
-	MockRetrieveFacilityFn            func(ctx context.Context, id *string, isActive bool) (*gorm.Facility, error)
-	MockRetrieveFacilityByMFLCodeFn   func(ctx context.Context, MFLCode int, isActive bool) (*gorm.Facility, error)
-	MockGetFacilitiesFn               func(ctx context.Context) ([]gorm.Facility, error)
-	MockDeleteFacilityFn              func(ctx context.Context, mflCode int) (bool, error)
-	MockListFacilitiesFn              func(ctx context.Context, searchTerm *string, filter []*domain.FiltersParam, pagination *domain.FacilityPage) (*domain.FacilityPage, error)
-	MockGetUserProfileByPhoneNumberFn func(ctx context.Context, phoneNumber string) (*gorm.User, error)
-	MockGetUserPINByUserIDFn          func(ctx context.Context, userID string) (*gorm.PINData, error)
-	MockInactivateFacilityFn          func(ctx context.Context, mflCode *int) (bool, error)
-	MockReactivateFacilityFn          func(ctx context.Context, mflCode *int) (bool, error)
-	MockGetUserProfileByUserIDFn      func(ctx context.Context, UserID string) (*gorm.User, error)
-	MockSaveTemporaryUserPinFn        func(ctx context.Context, pinData *gorm.PINData) (bool, error)
-	MockGetCurrentTermsFn             func(ctx context.Context) (*gorm.TermsOfService, error)
-	MockAcceptTermsFn                 func(ctx context.Context, userID *string, termsID *int) (bool, error)
-	MockSavePinFn                     func(ctx context.Context, pinData *gorm.PINData) (bool, error)
+	MockGetOrCreateFacilityFn               func(ctx context.Context, facility *gorm.Facility) (*gorm.Facility, error)
+	MockRetrieveFacilityFn                  func(ctx context.Context, id *string, isActive bool) (*gorm.Facility, error)
+	MockRetrieveFacilityByMFLCodeFn         func(ctx context.Context, MFLCode int, isActive bool) (*gorm.Facility, error)
+	MockGetFacilitiesFn                     func(ctx context.Context) ([]gorm.Facility, error)
+	MockDeleteFacilityFn                    func(ctx context.Context, mflCode int) (bool, error)
+	MockListFacilitiesFn                    func(ctx context.Context, searchTerm *string, filter []*domain.FiltersParam, pagination *domain.FacilityPage) (*domain.FacilityPage, error)
+	MockGetUserProfileByPhoneNumberFn       func(ctx context.Context, phoneNumber string) (*gorm.User, error)
+	MockGetUserPINByUserIDFn                func(ctx context.Context, userID string) (*gorm.PINData, error)
+	MockInactivateFacilityFn                func(ctx context.Context, mflCode *int) (bool, error)
+	MockReactivateFacilityFn                func(ctx context.Context, mflCode *int) (bool, error)
+	MockGetUserProfileByUserIDFn            func(ctx context.Context, UserID string) (*gorm.User, error)
+	MockSaveTemporaryUserPinFn              func(ctx context.Context, pinData *gorm.PINData) (bool, error)
+	MockGetCurrentTermsFn                   func(ctx context.Context) (*gorm.TermsOfService, error)
+	MockAcceptTermsFn                       func(ctx context.Context, userID *string, termsID *int) (bool, error)
+	MockSavePinFn                           func(ctx context.Context, pinData *gorm.PINData) (bool, error)
+	MockUpdateUserFailedLoginCountFn        func(ctx context.Context, userID string, failedLoginAttempts int) error
+	MockUpdateUserLastFailedLoginTimeFn     func(ctx context.Context, userID string) error
+	MockUpdateUserNextAllowedLoginTimeFn    func(ctx context.Context, userID string, nextAllowedLoginTime time.Time) error
+	MockUpdateUserLastSuccessfulLoginTimeFn func(ctx context.Context, userID string) error
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -161,6 +165,18 @@ func NewGormMock() *GormMock {
 		MockSavePinFn: func(ctx context.Context, pinData *gorm.PINData) (bool, error) {
 			return true, nil
 		},
+		MockUpdateUserFailedLoginCountFn: func(ctx context.Context, userID string, failedLoginAttempts int) error {
+			return nil
+		},
+		MockUpdateUserLastFailedLoginTimeFn: func(ctx context.Context, userID string) error {
+			return nil
+		},
+		MockUpdateUserNextAllowedLoginTimeFn: func(ctx context.Context, userID string, nextAllowedLoginTime time.Time) error {
+			return nil
+		},
+		MockUpdateUserLastSuccessfulLoginTimeFn: func(ctx context.Context, userID string) error {
+			return nil
+		},
 	}
 }
 
@@ -237,4 +253,24 @@ func (gm *GormMock) AcceptTerms(ctx context.Context, userID *string, termsID *in
 // SavePin mocks the implementation of saving the pin to the database
 func (gm *GormMock) SavePin(ctx context.Context, pinData *gorm.PINData) (bool, error) {
 	return gm.MockSavePinFn(ctx, pinData)
+}
+
+// UpdateUserFailedLoginCount mocks the implementation of updating a user failed login count
+func (gm *GormMock) UpdateUserFailedLoginCount(ctx context.Context, userID string, failedLoginAttempts int) error {
+	return gm.MockUpdateUserFailedLoginCountFn(ctx, userID, failedLoginAttempts)
+}
+
+// UpdateUserLastFailedLoginTime mocks the implementation of updating a user's last failed login time
+func (gm *GormMock) UpdateUserLastFailedLoginTime(ctx context.Context, userID string) error {
+	return gm.MockUpdateUserLastFailedLoginTimeFn(ctx, userID)
+}
+
+// UpdateUserNextAllowedLoginTime mocks the implementation of updating a user's next allowed login time
+func (gm *GormMock) UpdateUserNextAllowedLoginTime(ctx context.Context, userID string, nextAllowedLoginTime time.Time) error {
+	return gm.MockUpdateUserNextAllowedLoginTimeFn(ctx, userID, nextAllowedLoginTime)
+}
+
+// UpdateUserLastSuccessfulLoginTime mocks the implementation of updating a user's last successful login time
+func (gm *GormMock) UpdateUserLastSuccessfulLoginTime(ctx context.Context, userID string) error {
+	return gm.MockUpdateUserLastSuccessfulLoginTimeFn(ctx, userID)
 }

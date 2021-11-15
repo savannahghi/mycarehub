@@ -3,6 +3,7 @@ package gorm
 import (
 	"context"
 	"fmt"
+	"time"
 )
 
 // Update represents all `update` operations to the database
@@ -10,6 +11,10 @@ type Update interface {
 	InactivateFacility(ctx context.Context, mflCode *int) (bool, error)
 	ReactivateFacility(ctx context.Context, mflCode *int) (bool, error)
 	AcceptTerms(ctx context.Context, userID *string, termsID *int) (bool, error)
+	UpdateUserFailedLoginCount(ctx context.Context, userID string, failedLoginAttempts int) error
+	UpdateUserLastFailedLoginTime(ctx context.Context, userID string) error
+	UpdateUserNextAllowedLoginTime(ctx context.Context, userID string, nextAllowedLoginTime time.Time) error
+	UpdateUserLastSuccessfulLoginTime(ctx context.Context, userID string) error
 }
 
 // ReactivateFacility perfoms the actual re-activation of the facility in the database
@@ -54,4 +59,47 @@ func (db *PGInstance) AcceptTerms(ctx context.Context, userID *string, termsID *
 	}
 
 	return true, nil
+}
+
+// UpdateUserFailedLoginCount updates the user's failed login count field in an event where a user fails to
+// log into the app
+func (db *PGInstance) UpdateUserFailedLoginCount(ctx context.Context, userID string, failedLoginAttempts int) error {
+	err := db.DB.Model(&User{}).Where(&User{UserID: &userID}).Updates(map[string]interface{}{
+		"failed_login_count": failedLoginAttempts,
+	}).Error
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// UpdateUserLastFailedLoginTime updates the user's last failed login time
+func (db *PGInstance) UpdateUserLastFailedLoginTime(ctx context.Context, userID string) error {
+	currentTime := time.Now()
+	err := db.DB.Model(&User{}).Where(&User{UserID: &userID}).Updates(&User{LastFailedLogin: &currentTime}).Error
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// UpdateUserNextAllowedLoginTime updates the user's next allowed login time. This field is used to check whether we can
+// allow a user to log in immediately or wait for some time before retrying the login process.
+func (db *PGInstance) UpdateUserNextAllowedLoginTime(ctx context.Context, userID string, nextAllowedLoginTime time.Time) error {
+	err := db.DB.Model(&User{}).Where(&User{UserID: &userID}).Updates(&User{NextAllowedLogin: &nextAllowedLoginTime}).Error
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// UpdateUserLastSuccessfulLoginTime updates the `lastSuccessfulLogin` field in the event where a user
+// successfully logs into the app
+func (db *PGInstance) UpdateUserLastSuccessfulLoginTime(ctx context.Context, userID string) error {
+	currentTime := time.Now()
+	err := db.DB.Model(&User{}).Where(&User{UserID: &userID}).Updates(&User{LastSuccessfulLogin: &currentTime}).Error
+	if err != nil {
+		return err
+	}
+	return nil
 }
