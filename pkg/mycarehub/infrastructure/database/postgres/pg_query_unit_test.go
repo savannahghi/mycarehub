@@ -980,3 +980,96 @@ func TestMyCareHubDb_GetSecurityQuestions(t *testing.T) {
 		})
 	}
 }
+
+func TestMyCareHubDb_GetContactByUserID(t *testing.T) {
+
+	ctx := context.Background()
+
+	validUserID := ksuid.New().String()
+	emptyUserID := ""
+
+	validContacType := "EMAIL"
+	emptyContactType := ""
+	invalidContactType := "INVALID"
+
+	type args struct {
+		ctx         context.Context
+		userID      *string
+		contactType string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *domain.Contact
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Successfully get contact by user ID and contact type",
+			args: args{
+				ctx:         ctx,
+				userID:      &validUserID,
+				contactType: validContacType,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad Case - Passed in empty User ID",
+			args: args{
+				ctx:         ctx,
+				userID:      &emptyUserID,
+				contactType: validContacType,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - Passed in empty Contact Type",
+			args: args{
+				ctx:         ctx,
+				userID:      &validUserID,
+				contactType: emptyContactType,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - Passed in invalid Contact Type",
+			args: args{
+				ctx:         ctx,
+				userID:      &validUserID,
+				contactType: invalidContactType,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var fakeGorm = gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			if tt.name == "Sad Case - Passed in empty User ID" {
+				fakeGorm.MockGetContactByUserIDFn = func(ctx context.Context, userID *string, contactType string) (*gorm.Contact, error) {
+					return nil, fmt.Errorf("user ID should be provided")
+				}
+			}
+			if tt.name == "Sad Case - Passed in empty Contact Type" {
+				fakeGorm.MockGetContactByUserIDFn = func(ctx context.Context, userID *string, contactType string) (*gorm.Contact, error) {
+					return nil, fmt.Errorf("contact type should be provided")
+				}
+			}
+			if tt.name == "Sad Case - Passed in invalid Contact Type" {
+				fakeGorm.MockGetContactByUserIDFn = func(ctx context.Context, userID *string, contactType string) (*gorm.Contact, error) {
+					return nil, fmt.Errorf("contact type should be valid")
+				}
+			}
+
+			got, err := d.GetContactByUserID(tt.args.ctx, tt.args.userID, tt.args.contactType)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.GetContactByUserID() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected to get a response but got: %v", got)
+				return
+			}
+		})
+	}
+}

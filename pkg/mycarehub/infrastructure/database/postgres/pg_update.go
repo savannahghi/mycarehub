@@ -65,3 +65,9 @@ func (d *MyCareHubDb) UpdateUserLastSuccessfulLoginTime(ctx context.Context, use
 	}
 	return d.update.UpdateUserLastSuccessfulLoginTime(ctx, userID)
 }
+
+// InvalidatePIN invalidates a pin that is linked to the user profile.
+// This is done by toggling the IsValid field to false
+func (d *MyCareHubDb) InvalidatePIN(ctx context.Context, userID string) (bool, error) {
+	return d.update.InvalidatePIN(ctx, userID)
+}

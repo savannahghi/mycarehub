@@ -3,11 +3,13 @@ package gorm_test
 import (
 	"context"
 	"math/rand"
+	"os"
 	"strconv"
 	"testing"
 
 	"github.com/brianvoe/gofakeit"
 	"github.com/google/uuid"
+	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
@@ -637,4 +639,123 @@ func TestPGInstance_GetSecurityQuestions(t *testing.T) {
 	if err = pg.DB.Where("id", securityQuestionInput.SecurityQuestionID).Unscoped().Delete(&gorm.SecurityQuestion{}).Error; err != nil {
 		t.Errorf("failed to delete record = %v", err)
 	}
+}
+
+func TestPGInstance_GetContactByUserID(t *testing.T) {
+	ctx := context.Background()
+
+	flavor := feedlib.FlavourConsumer
+	unknownUser := ksuid.New().String()
+
+	userInput := &gorm.User{
+		Username:        ksuid.New().String(),
+		FirstName:       ksuid.New().String(),
+		LastName:        ksuid.New().String(),
+		MiddleName:      ksuid.New().String(),
+		UserType:        enums.ClientUser,
+		Gender:          enumutils.GenderMale,
+		TermsAccepted:   true,
+		Flavour:         flavor,
+		OrganisationID:  os.Getenv("DEFAULT_ORG_ID"),
+		AcceptedTermsID: &termsID,
+		Active:          true,
+	}
+	err := testingDB.DB.Create(userInput).Error
+	if err != nil {
+		t.Errorf("failed to create user: %v", err)
+	}
+
+	contactInput := &gorm.Contact{
+		ContactType:    "PHONE",
+		ContactValue:   gofakeit.Phone(),
+		Active:         true,
+		OptedIn:        true,
+		UserID:         userInput.UserID,
+		OrganisationID: os.Getenv("DEFAULT_ORG_ID"),
+	}
+	err = testingDB.DB.Create(contactInput).Error
+	if err != nil {
+		t.Errorf("failed to create user contact: %v", err)
+	}
+	contactInput2 := &gorm.Contact{
+		ContactType:    "EMAIL",
+		ContactValue:   gofakeit.Phone(),
+		Active:         true,
+		OptedIn:        true,
+		UserID:         userInput.UserID,
+		OrganisationID: os.Getenv("DEFAULT_ORG_ID"),
+	}
+	err = testingDB.DB.Create(contactInput2).Error
+	if err != nil {
+		t.Errorf("failed to create user contact: %v", err)
+	}
+
+	type args struct {
+		ctx         context.Context
+		userID      *string
+		contactType string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name:    "Happy Case - Get phone contact by userID",
+			args:    args{ctx: ctx, userID: userInput.UserID, contactType: "PHONE"},
+			wantErr: false,
+		},
+
+		{
+			name:    "Happy Case - Get email contact by userID",
+			args:    args{ctx: ctx, userID: userInput.UserID, contactType: "EMAIL"},
+			wantErr: false,
+		},
+
+		{
+			name:    "invalid: missing contact type",
+			args:    args{ctx: ctx, userID: userInput.UserID, contactType: ""},
+			wantErr: true,
+		},
+		{
+			name:    "invalid: invalid contact type",
+			args:    args{ctx: ctx, userID: userInput.UserID, contactType: "invalid"},
+			wantErr: true,
+		},
+		{
+			name:    "invalid: missing user ID",
+			args:    args{ctx: ctx, contactType: "EMAIL"},
+			wantErr: true,
+		},
+		{
+			name:    "invalid: non existing user",
+			args:    args{ctx: ctx, userID: &unknownUser, contactType: "EMAIL"},
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := testingDB.GetContactByUserID(tt.args.ctx, tt.args.userID, tt.args.contactType)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.GetContactByUserID() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected a response but got: %v", got)
+				return
+			}
+		})
+	}
+	// Teardown
+	if err = testingDB.DB.Where("id = ?", contactInput.ContactID).Unscoped().Delete(&gorm.Contact{}).Error; err != nil {
+		t.Errorf("failed to delete record = %v", err)
+	}
+	if err = testingDB.DB.Where("id = ?", contactInput2.ContactID).Unscoped().Delete(&gorm.Contact{}).Error; err != nil {
+		t.Errorf("failed to delete record = %v", err)
+	}
+	if err = testingDB.DB.Where("id = ?", userInput.UserID).Unscoped().Delete(&gorm.User{}).Error; err != nil {
+		t.Errorf("failed to delete record = %v", err)
+	}
+
 }

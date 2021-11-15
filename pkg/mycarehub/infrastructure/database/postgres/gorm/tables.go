@@ -157,12 +157,15 @@ type Contact struct {
 	OptedIn bool `gorm:"column:opted_in;not null"`
 
 	UserID *string `gorm:"column:user_id;not null"`
+	// Django required fields
+	OrganisationID string `gorm:"column:organisation_id"`
 }
 
 // BeforeCreate is a hook run before creating a new contact
 func (c *Contact) BeforeCreate(tx *gorm.DB) (err error) {
 	id := uuid.New().String()
 	c.ContactID = &id
+	c.OrganisationID = OrganizationID
 	return
 }
 

@@ -93,3 +93,18 @@ func (f *PINInput) Validate() error {
 
 	return err
 }
+
+// ResetPinInput payload to set or change PIN information
+type ResetPinInput struct {
+	PhoneNumber string          `json:"phonenumber" validate:"required"`
+	Flavour     feedlib.Flavour `json:"flavour" validate:"required"`
+}
+
+// Validate helps with validation of PINInput fields
+func (f *ResetPinInput) Validate() error {
+	v := validator.New()
+
+	err := v.Struct(f)
+
+	return err
+}

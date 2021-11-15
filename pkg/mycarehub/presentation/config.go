@@ -110,6 +110,11 @@ func Router(ctx context.Context) (*mux.Router, error) {
 		http.MethodPost,
 	).HandlerFunc(internalHandlers.LoginByPhone())
 
+	r.Path("/reset_pin").Methods(
+		http.MethodPost,
+		http.MethodOptions,
+	).HandlerFunc(internalHandlers.ResetPin())
+
 	// Graphql route
 	authR := r.Path("/graphql").Subrouter()
 	authR.Use(firebasetools.AuthenticationMiddleware(firebaseApp))

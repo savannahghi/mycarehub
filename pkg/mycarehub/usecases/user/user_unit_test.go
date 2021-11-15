@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/brianvoe/gofakeit"
 	"github.com/google/uuid"
 	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/feedlib"
@@ -505,6 +506,7 @@ func TestUnit_InviteUser(t *testing.T) {
 					return nil
 				}
 			}
+
 			if tt.name == "invalid: send in message error" {
 				fakeExtension.MockSendInviteSMSFn = func(ctx context.Context, phoneNumbers []string, message string) error {
 					return fmt.Errorf("failed to send sms")
@@ -644,6 +646,20 @@ func TestUseCasesUserImpl_SetUserPIN(t *testing.T) {
 			want:    false,
 			wantErr: true,
 		},
+		{
+			name: "invalid: failed to invalidate current user pin",
+			args: args{
+				ctx: ctx,
+				input: dto.PINInput{
+					UserID:     &UserID,
+					PIN:        &PIN,
+					ConfirmPIN: &nonMatchedPin,
+					Flavour:    flavour,
+				},
+			},
+			want:    false,
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -651,8 +667,6 @@ func TestUseCasesUserImpl_SetUserPIN(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
 			_ = mock.NewUserUseCaseMock()
 			fakeExtension := extensionMock.NewFakeExtension()
-
-			// fakeUserMock := mock.NewUserUseCaseMock()
 
 			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension)
 
@@ -690,6 +704,11 @@ func TestUseCasesUserImpl_SetUserPIN(t *testing.T) {
 					return false, fmt.Errorf("confirm pin does not mach the pin")
 				}
 			}
+			if tt.name == "invalid: failed to invalidate current user pin" {
+				fakeDB.MockInvalidatePINFn = func(ctx context.Context, userID string) (bool, error) {
+					return false, fmt.Errorf("failed to invalidate current user pin")
+				}
+			}
 
 			got, err := us.SetUserPIN(tt.args.ctx, tt.args.input)
 			if (err != nil) != tt.wantErr {
@@ -702,7 +721,6 @@ func TestUseCasesUserImpl_SetUserPIN(t *testing.T) {
 		})
 	}
 }
-
 func TestUseCasesUserImpl_VerifyPIN(t *testing.T) {
 	ctx := context.Background()
 
@@ -856,6 +874,254 @@ func TestUseCasesUserImpl_VerifyPIN(t *testing.T) {
 			}
 			if got != tt.want {
 				t.Errorf("UseCasesUserImpl.VerifyPIN() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestUseCasesUserImpl_ResetPIN(t *testing.T) {
+
+	PhoneNumber := gofakeit.Phone()
+	invalidPhone := "invalid"
+	flavour := feedlib.FlavourConsumer
+	invalidFlavour := feedlib.Flavour("invalid")
+
+	ctx := context.Background()
+
+	type args struct {
+		ctx         context.Context
+		PhoneNumber string
+		flavour     feedlib.Flavour
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "success",
+			args: args{
+				ctx:         ctx,
+				PhoneNumber: PhoneNumber,
+				flavour:     flavour,
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "invalid: invalid flavour",
+			args: args{
+				ctx:         ctx,
+				PhoneNumber: PhoneNumber,
+				flavour:     invalidFlavour,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "invalid: no flavour passed",
+			args: args{
+				ctx:         ctx,
+				PhoneNumber: PhoneNumber,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "invalid: empty user ID passed",
+			args: args{
+				ctx:     ctx,
+				flavour: flavour,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "invalid: failed to get a user by user ID",
+			args: args{
+				ctx:         ctx,
+				PhoneNumber: PhoneNumber,
+				flavour:     flavour,
+			},
+			want:    false,
+			wantErr: true,
+		},
+
+		{
+			name: "invalid: phone invalid",
+			args: args{
+				ctx:         ctx,
+				PhoneNumber: invalidPhone,
+				flavour:     flavour,
+			},
+			want:    false,
+			wantErr: true,
+		},
+
+		{
+			name: "valid: generated a temporary PIN successfully",
+			args: args{
+				ctx:         ctx,
+				PhoneNumber: PhoneNumber,
+				flavour:     flavour,
+			},
+			wantErr: false,
+			want:    true,
+		},
+		{
+			name: "invalid: failed go generate temporary pin",
+			args: args{
+				ctx:         ctx,
+				PhoneNumber: PhoneNumber,
+				flavour:     flavour,
+			},
+			wantErr: true,
+			want:    false,
+		},
+		{
+			name: "invalid: failed to invalidate current user pin",
+			args: args{
+				ctx:         ctx,
+				PhoneNumber: PhoneNumber,
+				flavour:     flavour,
+			},
+			wantErr: true,
+			want:    false,
+		},
+		{
+			name: "valid: saved temporary pin successfully",
+			args: args{
+				ctx:         ctx,
+				PhoneNumber: PhoneNumber,
+				flavour:     flavour,
+			},
+			wantErr: false,
+			want:    true,
+		},
+		{
+			name: "valid: send reset pin message success",
+			args: args{
+				ctx:         ctx,
+				PhoneNumber: PhoneNumber,
+				flavour:     flavour,
+			},
+			wantErr: false,
+			want:    true,
+		},
+		{
+			name: "invalid: send reset pin message error",
+			args: args{
+				ctx:         ctx,
+				PhoneNumber: PhoneNumber,
+				flavour:     flavour,
+			},
+			wantErr: true,
+			want:    false,
+		},
+		{
+			name: "invalid: user not found",
+			args: args{
+				ctx:         ctx,
+				PhoneNumber: PhoneNumber,
+				flavour:     flavour,
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			_ = mock.NewUserUseCaseMock()
+			fakeExtension := extensionMock.NewFakeExtension()
+
+			fakeUserMock := mock.NewUserUseCaseMock()
+
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension)
+
+			if tt.name == "invalid: invalid flavour" {
+				fakeUserMock.MockResetPINFn = func(ctx context.Context, PhoneNumber string, flavour feedlib.Flavour) (bool, error) {
+					return false, fmt.Errorf("invalid flavour")
+				}
+			}
+			if tt.name == "invalid: no flavour passed" {
+				fakeUserMock.MockResetPINFn = func(ctx context.Context, PhoneNumber string, flavour feedlib.Flavour) (bool, error) {
+					return false, fmt.Errorf("no flavour passed")
+				}
+			}
+			if tt.name == "invalid: empty user ID passed" {
+				fakeUserMock.MockResetPINFn = func(ctx context.Context, PhoneNumber string, flavour feedlib.Flavour) (bool, error) {
+					return false, fmt.Errorf("empty user ID passed")
+				}
+			}
+
+			if tt.name == "invalid: id passed is too long" {
+				fakeUserMock.MockResetPINFn = func(ctx context.Context, PhoneNumber string, flavour feedlib.Flavour) (bool, error) {
+					return false, fmt.Errorf("empty user ID passed")
+				}
+			}
+			if tt.name == "invalid: failed to get a user by user ID" {
+				fakeDB.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, PhoneNumber string) (*domain.User, error) {
+					return nil, fmt.Errorf("failed to get a user by user ID")
+				}
+			}
+
+			if tt.name == "invalid: phone invalid" {
+				fakeUserMock.MockResetPINFn = func(ctx context.Context, PhoneNumber string, flavour feedlib.Flavour) (bool, error) {
+					return false, fmt.Errorf("invalid phone format")
+				}
+			}
+
+			if tt.name == "valid: generated a temporary PIN successfully" {
+				fakeExtension.MockGenerateTempPINFn = func(ctx context.Context) (string, error) {
+					return uuid.New().String(), nil
+				}
+			}
+
+			if tt.name == "invalid: failed go generate temporary pin" {
+				fakeExtension.MockGenerateTempPINFn = func(ctx context.Context) (string, error) {
+					return "", fmt.Errorf("failed to generate temporary pin")
+				}
+			}
+
+			if tt.name == "invalid: failed to invalidate current user pin" {
+				fakeDB.MockInvalidatePINFn = func(ctx context.Context, PhoneNumber string) (bool, error) {
+					return false, fmt.Errorf("failed to invalidate current user pin")
+				}
+			}
+
+			if tt.name == "valid: saved temporary pin successfully" {
+				fakeDB.MockSaveTemporaryUserPinFn = func(ctx context.Context, pinData *domain.UserPIN) (bool, error) {
+					return true, nil
+				}
+			}
+
+			if tt.name == "valid: send reset pin message success" {
+				fakeExtension.MockSendInviteSMSFn = func(ctx context.Context, phoneNumbers []string, message string) error {
+					return nil
+				}
+			}
+
+			if tt.name == "invalid: send reset pin message error" {
+				fakeExtension.MockSendInviteSMSFn = func(ctx context.Context, phoneNumbers []string, message string) error {
+					return fmt.Errorf("failed to send sms")
+				}
+			}
+
+			if tt.name == "invalid: user not found" {
+				fakeDB.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, userID string) (*domain.User, error) {
+					return nil, fmt.Errorf("failed to get user by user phone number")
+				}
+			}
+
+			got, err := us.ResetPIN(tt.args.ctx, tt.args.PhoneNumber, tt.args.flavour)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCasesUserImpl.ResetPIN() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("UseCasesUserImpl.ResetPIN() = %v, want %v", got, tt.want)
 			}
 		})
 	}

@@ -36,6 +36,8 @@ type PostgresMock struct {
 	MockUpdateUserNextAllowedLoginTimeFn    func(ctx context.Context, userID string, nextAllowedLoginTime time.Time) error
 	MockUpdateUserLastSuccessfulLoginTimeFn func(ctx context.Context, userID string) error
 	MockGetSecurityQuestionsFn              func(ctx context.Context, flavour feedlib.Flavour) ([]*domain.SecurityQuestion, error)
+	MockInvalidatePINFn                     func(ctx context.Context, userID string) (bool, error)
+	MockGetContactByUserIDFn                func(ctx context.Context, userID *string, contactType string) (*domain.Contact, error)
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -141,7 +143,32 @@ func NewPostgresMock() *PostgresMock {
 		},
 		MockGetUserProfileByUserIDFn: func(ctx context.Context, userID string) (*domain.User, error) {
 			return &domain.User{
-				ID: &userID,
+				ID:            &userID,
+				Username:      gofakeit.Name(),
+				DisplayName:   gofakeit.Name(),
+				FirstName:     gofakeit.Name(),
+				MiddleName:    gofakeit.Name(),
+				LastName:      gofakeit.Name(),
+				Active:        true,
+				TermsAccepted: true,
+				UserType:      enums.ClientUser,
+				Gender:        enumutils.GenderMale,
+				Contacts: []*domain.Contact{
+					{
+						ID:      &userID,
+						Type:    "PHONE",
+						Contact: gofakeit.Phone(),
+						Active:  true,
+						OptedIn: true,
+					},
+					{
+						ID:      &userID,
+						Type:    "EMAIL",
+						Contact: gofakeit.Email(),
+						Active:  true,
+						OptedIn: true,
+					},
+				},
 			}, nil
 		},
 		MockSaveTemporaryUserPinFn: func(ctx context.Context, pinData *domain.UserPIN) (bool, error) {
@@ -174,6 +201,18 @@ func NewPostgresMock() *PostgresMock {
 				ResponseType: enums.NumberResponse,
 			}
 			return []*domain.SecurityQuestion{securityQuestion}, nil
+		},
+		MockInvalidatePINFn: func(ctx context.Context, userID string) (bool, error) {
+			return true, nil
+		},
+		MockGetContactByUserIDFn: func(ctx context.Context, userID *string, contactType string) (*domain.Contact, error) {
+			return &domain.Contact{
+				ID:      userID,
+				Type:    "PHONE",
+				Contact: gofakeit.Phone(),
+				Active:  true,
+				OptedIn: true,
+			}, nil
 		},
 	}
 }
@@ -281,4 +320,14 @@ func (gm *PostgresMock) UpdateUserLastSuccessfulLoginTime(ctx context.Context, u
 //GetSecurityQuestions mocks the implementation of getting all the security questions.
 func (gm *PostgresMock) GetSecurityQuestions(ctx context.Context, flavour feedlib.Flavour) ([]*domain.SecurityQuestion, error) {
 	return gm.MockGetSecurityQuestionsFn(ctx, flavour)
+}
+
+// InvalidatePIN mocks the implementation of invalidating a user pin
+func (gm *PostgresMock) InvalidatePIN(ctx context.Context, userID string) (bool, error) {
+	return gm.MockInvalidatePINFn(ctx, userID)
+}
+
+// GetContactByUserID nmocks the implementation of fetching a contact by userID
+func (gm *PostgresMock) GetContactByUserID(ctx context.Context, userID *string, contactType string) (*domain.Contact, error) {
+	return gm.MockGetContactByUserIDFn(ctx, userID, contactType)
 }

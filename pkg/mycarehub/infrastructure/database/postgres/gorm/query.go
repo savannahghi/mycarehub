@@ -21,6 +21,7 @@ type Query interface {
 	GetUserProfileByUserID(ctx context.Context, userID string) (*User, error)
 	GetCurrentTerms(ctx context.Context) (*TermsOfService, error)
 	GetSecurityQuestions(ctx context.Context, flavour feedlib.Flavour) ([]*SecurityQuestion, error)
+	GetContactByUserID(ctx context.Context, userID *string, contactType string) (*Contact, error)
 }
 
 // RetrieveFacility fetches a single facility
@@ -191,4 +192,24 @@ func (db *PGInstance) GetUserProfileByUserID(ctx context.Context, userID string)
 		return nil, fmt.Errorf("failed to get user by user ID %v: %v", userID, err)
 	}
 	return &user, nil
+}
+
+// GetContactByUserID fetches a user's contact using the user ID
+func (db *PGInstance) GetContactByUserID(ctx context.Context, userID *string, contactType string) (*Contact, error) {
+	var contact Contact
+
+	if userID == nil {
+		return nil, fmt.Errorf("user ID is required")
+	}
+	if contactType == "" {
+		return nil, fmt.Errorf("contact type is required")
+	}
+
+	if contactType != "PHONE" && contactType != "EMAIL" {
+		return nil, fmt.Errorf("contact type must be PHONE or EMAIL")
+	}
+	if err := db.DB.Where(&Contact{UserID: userID, ContactType: contactType}).First(&contact).Error; err != nil {
+		return nil, fmt.Errorf("failed to get contact: %v", err)
+	}
+	return &contact, nil
 }

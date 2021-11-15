@@ -91,3 +91,42 @@ func TestCreateInviteMessage(t *testing.T) {
 		})
 	}
 }
+
+func TestCreateResetPinMessage(t *testing.T) {
+	firstName := "Jon"
+	lastName := "Doe"
+
+	pin := "99033"
+
+	want := fmt.Sprintf("Dear %v %v, your PIN for My Afya Hub has been reset successfully. Your single use pin is %v",
+		firstName, lastName, pin)
+
+	type args struct {
+		user *domain.User
+		pin  string
+	}
+	tests := []struct {
+		name string
+		args args
+		want string
+	}{
+		{
+			name: "default case",
+			args: args{
+				user: &domain.User{
+					FirstName: firstName,
+					LastName:  lastName,
+				},
+				pin: pin,
+			},
+			want: want,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := CreateResetPinMessage(tt.args.user, tt.args.pin); got != tt.want {
+				t.Errorf("CreateResetPinMessage() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

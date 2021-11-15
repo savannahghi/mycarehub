@@ -86,4 +86,6 @@ type Contact struct {
 	// a user may opt not to be contacted via this contact
 	// e.g if it's a shared phone owned by a teenager
 	OptedIn bool
+
+	UserID *string `json:"userID"` // foreign key to user
 }

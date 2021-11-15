@@ -10,11 +10,11 @@ import (
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
 	utilsExt "github.com/savannahghi/mycarehub/pkg/mycarehub/application/utils"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
-	"github.com/savannahghi/onboarding/pkg/onboarding/application/exceptions"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/utils"
 )
 
@@ -34,11 +34,17 @@ type IVerifyPIN interface {
 	VerifyPIN(ctx context.Context, userID string, pin string) (bool, error)
 }
 
+// IResetPIN is an interface that contains reset pin methods
+type IResetPIN interface {
+	ResetPIN(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (bool, error)
+}
+
 // UseCasesUser group all business logic usecases related to user
 type UseCasesUser interface {
 	ILogin
 	ISetUserPIN
 	IVerifyPIN
+	IResetPIN
 }
 
 // UseCasesUserImpl represents user implementation object
@@ -85,7 +91,7 @@ func (us *UseCasesUserImpl) VerifyPIN(ctx context.Context, userID string, pin st
 	currentTime := time.Now()
 	expired := currentTime.After(pinData.ValidTo)
 	if expired {
-		return false, fmt.Errorf("the provided pin has expired")
+		return false, exceptions.PINExpiredErr(err)
 	}
 
 	matched := us.ExternalExt.ComparePIN(pin, pinData.Salt, pinData.HashedPIN, nil)
@@ -241,23 +247,23 @@ func (us *UseCasesUserImpl) InviteUser(ctx context.Context, userID string, phone
 func (us *UseCasesUserImpl) SetUserPIN(ctx context.Context, input dto.PINInput) (bool, error) {
 
 	if err := input.Validate(); err != nil {
-		return false, fmt.Errorf("empty value passed in input: %v", err)
+		return false, exceptions.EmptyInputErr(err)
 	}
 	userProfile, err := us.Query.GetUserProfileByUserID(ctx, *input.UserID)
 	if err != nil {
-		return false, fmt.Errorf("failed to get a user profile by phonenumber: %v", err)
+		return false, exceptions.UserNotFoundError(err)
 	}
 
 	err = utils.ValidatePIN(*input.PIN)
 	if err != nil {
-		return false, fmt.Errorf("invalid PIN provided: %v", err)
+		return false, exceptions.PINErr(err)
 	}
 
 	salt, encryptedPIN := us.ExternalExt.EncryptPIN(*input.PIN, nil)
 
 	isMatch := us.ExternalExt.ComparePIN(*input.ConfirmPIN, salt, encryptedPIN, nil)
 	if !isMatch {
-		return false, fmt.Errorf("the provided PINs do not match")
+		return false, exceptions.PinMismatchError(err)
 	}
 	// TODO: Make this an env variable
 	expiryDate := time.Now().AddDate(0, 0, 7)
@@ -272,9 +278,79 @@ func (us *UseCasesUserImpl) SetUserPIN(ctx context.Context, input dto.PINInput) 
 		Salt:      salt,
 	}
 
+	ok, err := us.Update.InvalidatePIN(ctx, *input.UserID)
+	if err != nil {
+		return false, exceptions.InvalidatePinErr(err)
+	}
+
+	if !ok {
+		return false, exceptions.InvalidatePinErr(err)
+	}
+
 	_, err = us.Create.SavePin(ctx, pinDataPayload)
 	if err != nil {
 		return false, err
+	}
+
+	return true, nil
+}
+
+// ResetPIN resets the user's PIN, when a  user provides a new a valid UserID and flavour
+func (us *UseCasesUserImpl) ResetPIN(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (bool, error) {
+
+	ok := flavour.IsValid()
+	if !ok {
+		return false, exceptions.InvalidFlavourDefinedError()
+	}
+
+	phone, err := converterandformatter.NormalizeMSISDN(phoneNumber)
+	if err != nil {
+		return false, exceptions.NormalizeMSISDNError(err)
+	}
+
+	userProfile, err := us.Query.GetUserProfileByPhoneNumber(ctx, *phone)
+	if err != nil {
+		return false, exceptions.ContactNotFoundErr(err)
+
+	}
+
+	tempPin, err := us.ExternalExt.GenerateTempPIN(ctx)
+	if err != nil {
+		return false, exceptions.GenerateTempPINErr(err)
+	}
+	salt, encryptedPin := us.ExternalExt.EncryptPIN(tempPin, nil)
+
+	expiryDate := time.Now()
+
+	pinPayload := &domain.UserPIN{
+		UserID:    *userProfile.ID,
+		HashedPIN: encryptedPin,
+		Salt:      salt,
+		ValidFrom: time.Now(),
+		ValidTo:   expiryDate,
+		Flavour:   flavour,
+		IsValid:   true,
+	}
+
+	ok, err = us.Update.InvalidatePIN(ctx, *userProfile.ID)
+	if err != nil {
+		return false, exceptions.InvalidatePinErr(err)
+	}
+
+	if !ok {
+		return false, exceptions.InvalidatePinErr(err)
+	}
+
+	_, err = us.Create.SavePin(ctx, pinPayload)
+	if err != nil {
+		return false, exceptions.ResetPinErr(err)
+	}
+
+	message := helpers.CreateResetPinMessage(userProfile, tempPin)
+
+	err = us.ExternalExt.SendInviteSMS(ctx, []string{*phone}, message)
+	if err != nil {
+		return false, fmt.Errorf("failed to send SMS: %v", err)
 	}
 
 	return true, nil

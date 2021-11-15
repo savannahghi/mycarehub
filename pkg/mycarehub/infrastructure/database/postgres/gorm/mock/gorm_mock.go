@@ -35,6 +35,8 @@ type GormMock struct {
 	MockUpdateUserNextAllowedLoginTimeFn    func(ctx context.Context, userID string, nextAllowedLoginTime time.Time) error
 	MockUpdateUserLastSuccessfulLoginTimeFn func(ctx context.Context, userID string) error
 	MockGetSecurityQuestionsFn              func(ctx context.Context, flavour feedlib.Flavour) ([]*gorm.SecurityQuestion, error)
+	MockInvalidatePINFn                     func(ctx context.Context, userID string) (bool, error)
+	MockGetContactByUserIDFn                func(ctx context.Context, userID *string, contactType string) (*gorm.Contact, error)
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -52,6 +54,7 @@ func NewGormMock() *GormMock {
 	code := gofakeit.Number(0, 100)
 	county := "Nairobi"
 	description := gofakeit.HipsterSentence(15)
+	phoneContact := gofakeit.Phone()
 
 	facility := &gorm.Facility{
 		FacilityID:  &UUID,
@@ -191,6 +194,19 @@ func NewGormMock() *GormMock {
 			}
 			return []*gorm.SecurityQuestion{securityQuestion}, nil
 		},
+		MockInvalidatePINFn: func(ctx context.Context, userID string) (bool, error) {
+			return true, nil
+		},
+		MockGetContactByUserIDFn: func(ctx context.Context, userID *string, contactType string) (*gorm.Contact, error) {
+			return &gorm.Contact{
+				ContactID:    &UUID,
+				UserID:       userID,
+				ContactType:  "PHONE",
+				ContactValue: phoneContact,
+				Active:       true,
+				OptedIn:      true,
+			}, nil
+		},
 	}
 }
 
@@ -292,4 +308,14 @@ func (gm *GormMock) UpdateUserLastSuccessfulLoginTime(ctx context.Context, userI
 //GetSecurityQuestions mocks the implementation of getting all the security questions.
 func (gm *GormMock) GetSecurityQuestions(ctx context.Context, flavour feedlib.Flavour) ([]*gorm.SecurityQuestion, error) {
 	return gm.MockGetSecurityQuestionsFn(ctx, flavour)
+}
+
+// InvalidatePIN mocks the implementation of invalidating the pin
+func (gm *GormMock) InvalidatePIN(ctx context.Context, userID string) (bool, error) {
+	return gm.MockInvalidatePINFn(ctx, userID)
+}
+
+// GetContactByUserID mocks the implementation of retrieving a contact by user ID
+func (gm *GormMock) GetContactByUserID(ctx context.Context, userID *string, contactType string) (*gorm.Contact, error) {
+	return gm.MockGetContactByUserIDFn(ctx, userID, contactType)
 }

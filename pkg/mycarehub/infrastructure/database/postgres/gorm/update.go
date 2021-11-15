@@ -15,6 +15,7 @@ type Update interface {
 	UpdateUserLastFailedLoginTime(ctx context.Context, userID string) error
 	UpdateUserNextAllowedLoginTime(ctx context.Context, userID string, nextAllowedLoginTime time.Time) error
 	UpdateUserLastSuccessfulLoginTime(ctx context.Context, userID string) error
+	InvalidatePIN(ctx context.Context, userID string) (bool, error)
 }
 
 // ReactivateFacility perfoms the actual re-activation of the facility in the database
@@ -102,4 +103,17 @@ func (db *PGInstance) UpdateUserLastSuccessfulLoginTime(ctx context.Context, use
 		return err
 	}
 	return nil
+}
+
+// InvalidatePIN toggles the valid field of a pin from true to false
+func (db *PGInstance) InvalidatePIN(ctx context.Context, userID string) (bool, error) {
+	if userID == "" {
+		return false, fmt.Errorf("userID cannot be empty")
+
+	}
+	err := db.DB.Model(&PINData{}).Where(&PINData{UserID: userID, IsValid: true}).Select("active").Updates(PINData{IsValid: false}).Error
+	if err != nil {
+		return false, fmt.Errorf("an error occurred while invalidating the pin: %v", err)
+	}
+	return true, nil
 }

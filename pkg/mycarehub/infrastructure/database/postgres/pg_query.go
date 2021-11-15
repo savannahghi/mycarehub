@@ -175,3 +175,25 @@ func (d *MyCareHubDb) GetSecurityQuestions(ctx context.Context, flavour feedlib.
 
 	return securityQuestion, nil
 }
+
+// GetContactByUserID fetches and returns a contact using their user ID
+func (d *MyCareHubDb) GetContactByUserID(ctx context.Context, userID *string, contactType string) (*domain.Contact, error) {
+	if userID == nil {
+		return nil, fmt.Errorf("user ID should be provided")
+	}
+
+	if contactType == "" {
+		return nil, fmt.Errorf("contact type is required")
+	}
+
+	if contactType != "PHONE" && contactType != "EMAIL" {
+		return nil, fmt.Errorf("contact type must be PHONE or EMAIL")
+	}
+
+	contact, err := d.query.GetContactByUserID(ctx, userID, contactType)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get contact by user ID: %v", err)
+	}
+
+	return d.mapContactObjectToDomain(contact), nil
+}

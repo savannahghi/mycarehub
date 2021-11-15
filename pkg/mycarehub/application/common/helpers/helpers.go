@@ -37,3 +37,10 @@ func CreateInviteMessage(user *domain.User, inviteLink string, pin string) strin
 		user.FirstName, user.LastName, inviteLink, pin)
 	return message
 }
+
+// CreateResetPinMessage creates reset pin message
+func CreateResetPinMessage(user *domain.User, pin string) string {
+	message := fmt.Sprintf("Dear %v %v, your PIN for My Afya Hub has been reset successfully. Your single use pin is %v",
+		user.FirstName, user.LastName, pin)
+	return message
+}

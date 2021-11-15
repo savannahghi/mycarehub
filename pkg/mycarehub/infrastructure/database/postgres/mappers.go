@@ -94,3 +94,18 @@ func (d *MyCareHubDb) mapTermsOfServiceObjectToDomain(termsObj *gorm.TermsOfServ
 		Text:    termsObj.Text,
 	}
 }
+
+// mapContactObjectToDomain maps the db contact data to a domain model.
+func (d *MyCareHubDb) mapContactObjectToDomain(contactObj *gorm.Contact) *domain.Contact {
+	if contactObj == nil {
+		return nil
+	}
+
+	return &domain.Contact{
+		ID:      contactObj.ContactID,
+		Type:    contactObj.ContactType,
+		Contact: contactObj.ContactValue,
+		Active:  contactObj.Active,
+		OptedIn: contactObj.OptedIn,
+	}
+}

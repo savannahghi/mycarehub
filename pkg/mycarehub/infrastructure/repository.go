@@ -34,6 +34,7 @@ type Query interface {
 	GetUserProfileByUserID(ctx context.Context, userID string) (*domain.User, error)
 	GetCurrentTerms(ctx context.Context) (*domain.TermsOfService, error)
 	GetSecurityQuestions(ctx context.Context, flavour feedlib.Flavour) ([]*domain.SecurityQuestion, error)
+	GetContactByUserID(ctx context.Context, userID *string, contactType string) (*domain.Contact, error)
 }
 
 // Update represents all the update action interfaces
@@ -45,4 +46,5 @@ type Update interface {
 	UpdateUserLastFailedLoginTime(ctx context.Context, userID string) error
 	UpdateUserNextAllowedLoginTime(ctx context.Context, userID string, nextAllowedLoginTime time.Time) error
 	UpdateUserLastSuccessfulLoginTime(ctx context.Context, userID string) error
+	InvalidatePIN(ctx context.Context, userID string) (bool, error)
 }

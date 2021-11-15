@@ -6,6 +6,7 @@ import (
 
 	"github.com/savannahghi/errorcodeutil"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/presentation/interactor"
 	"github.com/savannahghi/serverutils"
 )
@@ -13,6 +14,7 @@ import (
 // MyCareHubHandlersInterfaces represents all the REST API logic
 type MyCareHubHandlersInterfaces interface {
 	LoginByPhone() http.HandlerFunc
+	ResetPin() http.HandlerFunc
 }
 
 // MyCareHubHandlersInterfacesImpl represents the usecase implementation object
@@ -62,5 +64,36 @@ func (h *MyCareHubHandlersInterfacesImpl) LoginByPhone() http.HandlerFunc {
 		}
 
 		serverutils.WriteJSONResponse(w, resp, http.StatusOK)
+	}
+}
+
+// ResetPin is used to generate and send new pin to a user (client/staff)
+func (h *MyCareHubHandlersInterfacesImpl) ResetPin() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+
+		resetPinPayload := &dto.ResetPinInput{}
+		serverutils.DecodeJSONToTargetStruct(w, r, resetPinPayload)
+
+		err := resetPinPayload.Validate()
+		if err != nil {
+			serverutils.WriteJSONResponse(
+				w,
+				exceptions.InvalidResetPinPayloadErr(err),
+				http.StatusBadRequest,
+			)
+			return
+		}
+
+		response, err := h.interactor.UserUsecase.ResetPIN(
+			ctx,
+			resetPinPayload.PhoneNumber,
+			resetPinPayload.Flavour,
+		)
+		if err != nil {
+			serverutils.WriteJSONResponse(w, err, http.StatusBadRequest)
+			return
+		}
+		serverutils.WriteJSONResponse(w, response, http.StatusOK)
 	}
 }
