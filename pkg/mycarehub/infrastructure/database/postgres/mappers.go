@@ -21,31 +21,21 @@ func createMapUser(userObject *gorm.User) *domain.User {
 		}
 	}
 
-	// languages := []enumutils.Language{}
-	// for _, l := range userObject.Languages {
-	// 	languages = append(languages, enumutils.Language(l))
-
-	// }
-
 	user := &domain.User{
-		ID:       userObject.UserID,
-		Username: userObject.Username,
-		// DisplayName:         userObject.DisplayName,
-		FirstName:  userObject.FirstName,
-		MiddleName: userObject.MiddleName,
-		LastName:   userObject.LastName,
-		Gender:     userObject.Gender,
-		UserType:   userObject.UserType,
-		Contacts:   contacts,
-		// Languages:           languages,
+		ID:                  userObject.UserID,
+		Username:            userObject.Username,
+		FirstName:           userObject.FirstName,
+		MiddleName:          userObject.MiddleName,
+		LastName:            userObject.LastName,
+		Gender:              userObject.Gender,
+		UserType:            userObject.UserType,
+		Contacts:            contacts,
 		Active:              userObject.Active,
 		LastSuccessfulLogin: userObject.LastSuccessfulLogin,
 		LastFailedLogin:     userObject.LastFailedLogin,
 		FailedLoginCount:    userObject.FailedLoginCount,
 		NextAllowedLogin:    userObject.NextAllowedLogin,
-		// TermsAccepted:       userObject.TermsAccepted,
-		// AcceptedTermsID: userObject.AcceptedTermsID,
-		Flavour: userObject.Flavour,
+		Flavour:             userObject.Flavour,
 	}
 	return user
 }
