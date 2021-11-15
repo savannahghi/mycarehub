@@ -97,9 +97,7 @@ func TestPGInstance_SaveTemporaryUserPin(t *testing.T) {
 	salt, encryptedTempPin := newExtension.EncryptPIN(tempPin, nil)
 
 	userInput := &gorm.User{
-		UserID: &userID,
-		// Username: gofakeit.Username(),
-		// DisplayName:   gofakeit.Name(),
+		UserID:     &userID,
 		FirstName:  gofakeit.FirstName(),
 		LastName:   gofakeit.LastName(),
 		MiddleName: gofakeit.FirstName(),

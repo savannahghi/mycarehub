@@ -82,14 +82,6 @@ func TestMain(m *testing.M) {
 
 	// cleanup here
 	defer func() {
-		// remove organization
-		// pg, err := gorm.NewPGInstance()
-		// if err != nil {
-		// 	log.Printf("can't instantiate test repository: %v", err)
-		// }
-		// query := fmt.Sprintf(`DELETE FROM common_organisation WHERE id = %v`, os.Getenv("DEFAULT_ORG_ID"))
-		// pg.DB.Raw(query).Scan(&pg.DB)
-
 		err = srv.Shutdown(ctx)
 		if err != nil {
 			log.Printf("test server shutdown error: %s", err)
@@ -173,12 +165,3 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 	i := interactor.NewMyCareHubInteractor(facilityUseCase, userUsecase, termsUsecase)
 	return i, nil
 }
-
-// func createOrganization(pg *gorm.PGInstance) {
-// 	query := fmt.Sprintf(`INSERT INTO common_organisation
-// 		(id, created, updated, active, deleted, org_code, organisation_name, email_address, phone_number, default_country)
-// 		VALUES
-// 		(%v, %v, %v, %v, %v, %v, %v, %v, %v, %v)
-// 		`, os.Getenv("DEFAULT_ORG_ID"), time.Now(), time.Now(), true, false, "ORG_123", gofakeit.Name(), gofakeit.Email(), gofakeit.Phone(), "KEN")
-// 	pg.DB.Raw(query).Scan(&pg.DB)
-// }
