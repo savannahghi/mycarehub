@@ -6,6 +6,7 @@ import (
 	"math"
 	"strconv"
 	"testing"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/savannahghi/enumutils"
@@ -119,13 +120,33 @@ func TestUseCasesUserImpl_Login_Unittest(t *testing.T) {
 			},
 			wantErr: true,
 		},
+		{
+			name: "invalid: invalid flavour",
+			args: args{
+				ctx:         ctx,
+				phoneNumber: "0710000000",
+				pin:         PIN,
+				flavour:     feedlib.Flavour("Invalid_flavour"),
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - Fail to update successful login time",
+			args: args{
+				ctx:         ctx,
+				phoneNumber: "0710000000",
+				pin:         PIN,
+				flavour:     flavour,
+			},
+			wantErr: true,
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
 			fakeDB := pgMock.NewPostgresMock()
-			_ = mock.NewUserUseCaseMock()
+			fakeUserMock := mock.NewUserUseCaseMock()
 			fakeExtension := extensionMock.NewFakeExtension()
 
 			u := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension)
@@ -169,6 +190,18 @@ func TestUseCasesUserImpl_Login_Unittest(t *testing.T) {
 			if tt.name == "Sad case - un-normalized phone" {
 				fakeDB.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*domain.User, error) {
 					return nil, fmt.Errorf("failed to get user profile by phone number")
+				}
+			}
+
+			if tt.name == "invalid: invalid flavour" {
+				fakeUserMock.MockLoginFn = func(ctx context.Context, phoneNumber string, pin string, flavour feedlib.Flavour) (*domain.AuthCredentials, int, error) {
+					return nil, 2, fmt.Errorf("invalid flavour defined")
+				}
+			}
+
+			if tt.name == "Sad Case - Fail to update successful login time" {
+				fakeDB.MockUpdateUserLastSuccessfulLoginTimeFn = func(ctx context.Context, userID string) error {
+					return fmt.Errorf("failed to update last successfult login time")
 				}
 			}
 
@@ -665,6 +698,164 @@ func TestUseCasesUserImpl_SetUserPIN(t *testing.T) {
 			}
 			if got != tt.want {
 				t.Errorf("UseCasesUserImpl.SetUserPIN() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestUseCasesUserImpl_VerifyPIN(t *testing.T) {
+	ctx := context.Background()
+
+	type args struct {
+		ctx    context.Context
+		userID string
+		pin    string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Successfully verify pin",
+			args: args{
+				ctx:    ctx,
+				userID: "12345",
+				pin:    "1234",
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Sad Case - Fail to get user pin",
+			args: args{
+				ctx:    ctx,
+				userID: "12345",
+				pin:    "3456",
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - Pin mismatch",
+			args: args{
+				ctx:    ctx,
+				userID: "12345",
+				pin:    "1234",
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - Fail to get user profile by ID",
+			args: args{
+				ctx:    ctx,
+				userID: "12345",
+				pin:    "1234",
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - Fail to update user login count",
+			args: args{
+				ctx:    ctx,
+				userID: "12345",
+				pin:    "1234",
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - Fail to update last failed login time",
+			args: args{
+				ctx:    ctx,
+				userID: "12345",
+				pin:    "1234",
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - Fail to update next allowed login time",
+			args: args{
+				ctx:    ctx,
+				userID: "12345",
+				pin:    "1234",
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			fakeUserMock := mock.NewUserUseCaseMock()
+			fakeExtension := extensionMock.NewFakeExtension()
+			u := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension)
+
+			if tt.name == "Happy Case - Successfully verify pin" {
+				fakeUserMock.MockVerifyPINFn = func(ctx context.Context, userID string, pin string) (bool, error) {
+					return true, nil
+				}
+			}
+
+			if tt.name == "Sad Case - Fail to get user pin" {
+				fakeDB.MockGetUserPINByUserIDFn = func(ctx context.Context, userID string) (*domain.UserPIN, error) {
+					return nil, fmt.Errorf("failed to get a pin")
+				}
+			}
+
+			if tt.name == "Sad Case - Pin mismatch" {
+				fakeExtension.MockComparePINFn = func(rawPwd string, salt string, encodedPwd string, options *extension.Options) bool {
+					return false
+				}
+			}
+
+			if tt.name == "Sad Case - Fail to get user profile by ID" {
+				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
+					return nil, fmt.Errorf("failed to get user profile by user ID")
+				}
+			}
+
+			if tt.name == "Sad Case - Fail to update user login count" {
+				fakeExtension.MockComparePINFn = func(rawPwd string, salt string, encodedPwd string, options *extension.Options) bool {
+					return false
+				}
+
+				fakeDB.MockUpdateUserFailedLoginCountFn = func(ctx context.Context, userID string, failedLoginAttempts int) error {
+					return fmt.Errorf("failed to update user failed login count")
+				}
+			}
+
+			if tt.name == "Sad Case - Fail to update last failed login time" {
+				fakeExtension.MockComparePINFn = func(rawPwd string, salt string, encodedPwd string, options *extension.Options) bool {
+					return false
+				}
+
+				fakeDB.MockUpdateUserLastFailedLoginTimeFn = func(ctx context.Context, userID string) error {
+					return fmt.Errorf("failed to update user failed login count")
+				}
+			}
+
+			if tt.name == "Sad Case - Fail to update next allowed login time" {
+				fakeExtension.MockComparePINFn = func(rawPwd string, salt string, encodedPwd string, options *extension.Options) bool {
+					return false
+				}
+
+				fakeDB.MockUpdateUserNextAllowedLoginTimeFn = func(ctx context.Context, userID string, nextAllowedLoginTime time.Time) error {
+					return fmt.Errorf("failed to update user failed login count")
+				}
+			}
+
+			got, err := u.VerifyPIN(tt.args.ctx, tt.args.userID, tt.args.pin)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCasesUserImpl.VerifyPIN() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("UseCasesUserImpl.VerifyPIN() = %v, want %v", got, tt.want)
 			}
 		})
 	}

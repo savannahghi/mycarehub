@@ -2,6 +2,7 @@ package infrastructure
 
 import (
 	"context"
+	"time"
 
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
@@ -38,4 +39,8 @@ type Update interface {
 	InactivateFacility(ctx context.Context, mflCode *int) (bool, error)
 	ReactivateFacility(ctx context.Context, mflCode *int) (bool, error)
 	AcceptTerms(ctx context.Context, userID *string, termsID *int) (bool, error)
+	UpdateUserFailedLoginCount(ctx context.Context, userID string, failedLoginAttempts int) error
+	UpdateUserLastFailedLoginTime(ctx context.Context, userID string) error
+	UpdateUserNextAllowedLoginTime(ctx context.Context, userID string, nextAllowedLoginTime time.Time) error
+	UpdateUserLastSuccessfulLoginTime(ctx context.Context, userID string) error
 }

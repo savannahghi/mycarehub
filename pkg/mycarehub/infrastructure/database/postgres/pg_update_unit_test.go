@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/brianvoe/gofakeit"
 	gormMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm/mock"
@@ -286,6 +287,252 @@ func TestMyCareHubDb_AcceptTerms(t *testing.T) {
 			}
 			if got != tt.want {
 				t.Errorf("MyCareHubDb.AcceptTerms() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestMyCareHubDb_UpdateUserFailedLoginCount(t *testing.T) {
+	ctx := context.Background()
+
+	type args struct {
+		ctx                 context.Context
+		userID              string
+		failedLoginAttempts int
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Successfully update failed login count",
+			args: args{
+				ctx:                 ctx,
+				userID:              "12345",
+				failedLoginAttempts: 2,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad Case - Fail to update login count",
+			args: args{
+				ctx:                 ctx,
+				userID:              "12345",
+				failedLoginAttempts: 2,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - Missing user ID",
+			args: args{
+				ctx:                 ctx,
+				failedLoginAttempts: 2,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var fakeGorm = gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			if tt.name == "Sad Case - Fail to update login count" {
+				fakeGorm.MockUpdateUserFailedLoginCountFn = func(ctx context.Context, userID string, failedLoginAttempts int) error {
+					return fmt.Errorf("failed to update login count")
+				}
+			}
+
+			if tt.name == "Sad Case - Missing user ID" {
+				fakeGorm.MockUpdateUserLastFailedLoginTimeFn = func(ctx context.Context, userID string) error {
+					return fmt.Errorf("failed to update last failed login time")
+				}
+			}
+
+			if err := d.UpdateUserFailedLoginCount(tt.args.ctx, tt.args.userID, tt.args.failedLoginAttempts); (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.UpdateUserFailedLoginCount() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestMyCareHubDb_UpdateUserLastFailedLoginTime(t *testing.T) {
+	ctx := context.Background()
+
+	type args struct {
+		ctx    context.Context
+		userID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Successfully update last failed login time",
+			args: args{
+				ctx:    ctx,
+				userID: "12345",
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad Case - Fail to update last failed login time",
+			args: args{
+				ctx:    ctx,
+				userID: "12345",
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - Missing user ID",
+			args: args{
+				ctx: ctx,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var fakeGorm = gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			if tt.name == "Sad Case - Fail to update last failed login time" {
+				fakeGorm.MockUpdateUserLastFailedLoginTimeFn = func(ctx context.Context, userID string) error {
+					return fmt.Errorf("failed to update last failed login time")
+				}
+			}
+
+			if tt.name == "Sad Case - Missing user ID" {
+				fakeGorm.MockUpdateUserLastFailedLoginTimeFn = func(ctx context.Context, userID string) error {
+					return fmt.Errorf("failed to update last failed login time")
+				}
+			}
+
+			if err := d.UpdateUserLastFailedLoginTime(tt.args.ctx, tt.args.userID); (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.UpdateUserLastFailedLoginTime() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestMyCareHubDb_UpdateUserNextAllowedLoginTime(t *testing.T) {
+	ctx := context.Background()
+	type args struct {
+		ctx                  context.Context
+		userID               string
+		nextAllowedLoginTime time.Time
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Successfully update next allowed login time",
+			args: args{
+				ctx:                  ctx,
+				userID:               "12345",
+				nextAllowedLoginTime: time.Now(),
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad Case - Fail to update next allowed login time",
+			args: args{
+				ctx:                  ctx,
+				userID:               "12345",
+				nextAllowedLoginTime: time.Now(),
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - Missing user ID",
+			args: args{
+				ctx:                  ctx,
+				nextAllowedLoginTime: time.Now(),
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var fakeGorm = gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			if tt.name == "Sad Case - Fail to update next allowed login time" {
+				fakeGorm.MockUpdateUserNextAllowedLoginTimeFn = func(ctx context.Context, userID string, nextAllowedLoginTime time.Time) error {
+					return fmt.Errorf("failed to update user next allowed login time")
+				}
+			}
+
+			if tt.name == "Sad Case - Missing user ID" {
+				fakeGorm.MockUpdateUserLastFailedLoginTimeFn = func(ctx context.Context, userID string) error {
+					return fmt.Errorf("failed to update last failed login time")
+				}
+			}
+
+			if err := d.UpdateUserNextAllowedLoginTime(tt.args.ctx, tt.args.userID, tt.args.nextAllowedLoginTime); (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.UpdateUserNextAllowedLoginTime() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestMyCareHubDb_UpdateUserLastSuccessfulLoginTime(t *testing.T) {
+	ctx := context.Background()
+	type args struct {
+		ctx    context.Context
+		userID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Successfully update the last successful login time",
+			args: args{
+				ctx:    ctx,
+				userID: "12345",
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad Case - Fail to update",
+			args: args{
+				ctx:    ctx,
+				userID: "123",
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - Missing user ID",
+			args: args{
+				ctx: ctx,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var fakeGorm = gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			if tt.name == "Sad Case - Fail to update" {
+				fakeGorm.MockUpdateUserLastSuccessfulLoginTimeFn = func(ctx context.Context, userID string) error {
+					return fmt.Errorf("failed to update last successful login time")
+				}
+			}
+
+			if tt.name == "Sad Case - Missing user ID" {
+				fakeGorm.MockUpdateUserLastSuccessfulLoginTimeFn = func(ctx context.Context, userID string) error {
+					return fmt.Errorf("missing user ID")
+				}
+			}
+
+			if err := d.UpdateUserLastSuccessfulLoginTime(tt.args.ctx, tt.args.userID); (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.UpdateUserLastSuccessfulLoginTime() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}

@@ -6,10 +6,12 @@ import (
 	"time"
 
 	"github.com/savannahghi/converterandformatter"
+	"github.com/savannahghi/errorcodeutil"
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
+	utilsExt "github.com/savannahghi/mycarehub/pkg/mycarehub/application/utils"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/exceptions"
@@ -18,7 +20,7 @@ import (
 
 // ILogin is an interface that contans login related methods
 type ILogin interface {
-	Login(ctx context.Context, phoneNumber string, pin string, flavour feedlib.Flavour) (*domain.AuthCredentials, string, error)
+	Login(ctx context.Context, phoneNumber string, pin string, flavour feedlib.Flavour) (*domain.AuthCredentials, int, error)
 	InviteUser(ctx context.Context, userID string, phoneNumber string, flavour feedlib.Flavour) (bool, error)
 }
 
@@ -27,10 +29,16 @@ type ISetUserPIN interface {
 	SetUserPIN(ctx context.Context, input dto.PINInput) (bool, error)
 }
 
+// IVerifyPIN is used e.g to check the PIN when accessing sensitive content
+type IVerifyPIN interface {
+	VerifyPIN(ctx context.Context, userID string, pin string) (bool, error)
+}
+
 // UseCasesUser group all business logic usecases related to user
 type UseCasesUser interface {
 	ILogin
 	ISetUserPIN
+	IVerifyPIN
 }
 
 // UseCasesUserImpl represents user implementation object
@@ -59,21 +67,17 @@ func NewUseCasesUserImpl(
 	}
 }
 
-// Login is used to login the user into the application
-func (us *UseCasesUserImpl) Login(ctx context.Context, phoneNumber string, pin string, flavour feedlib.Flavour) (*domain.AuthCredentials, string, error) {
-	phone, err := converterandformatter.NormalizeMSISDN(phoneNumber)
+// VerifyPIN checks whether a pin is valid. If a pin is invalid, it will prompt
+// the user to change their pin
+func (us *UseCasesUserImpl) VerifyPIN(ctx context.Context, userID string, pin string) (bool, error) {
+	pinData, err := us.Query.GetUserPINByUserID(ctx, userID)
 	if err != nil {
-		return nil, "", exceptions.NormalizeMSISDNError(err)
+		return false, exceptions.PinNotFoundError(err)
 	}
 
-	profile, err := us.Query.GetUserProfileByPhoneNumber(ctx, *phone)
+	userProfile, err := us.Query.GetUserProfileByUserID(ctx, userID)
 	if err != nil {
-		return nil, "", exceptions.UserNotFoundError(err)
-	}
-
-	pinData, err := us.Query.GetUserPINByUserID(ctx, *profile.ID)
-	if err != nil {
-		return nil, "", exceptions.PinNotFoundError(err)
+		return false, exceptions.UserNotFoundError(err)
 	}
 
 	// If pin `ValidTo` field is in the past (expired), throw an error. This means the user has to
@@ -81,32 +85,103 @@ func (us *UseCasesUserImpl) Login(ctx context.Context, phoneNumber string, pin s
 	currentTime := time.Now()
 	expired := currentTime.After(pinData.ValidTo)
 	if expired {
-		return nil, "", fmt.Errorf("the provided pin has expired")
+		return false, fmt.Errorf("the provided pin has expired")
 	}
 
 	matched := us.ExternalExt.ComparePIN(pin, pinData.Salt, pinData.HashedPIN, nil)
 	if !matched {
-		return nil, "", exceptions.PinMismatchError(err)
+		failedLoginAttempts := userProfile.FailedLoginCount + 1
+		err := us.Update.UpdateUserFailedLoginCount(ctx, userID, failedLoginAttempts)
+		if err != nil {
+			return false, fmt.Errorf("failed to update user failed login count")
+		}
+
+		err = us.Update.UpdateUserLastFailedLoginTime(ctx, userID)
+		if err != nil {
+			return false, fmt.Errorf("failed to update user last failed login time")
+		}
+
+		nextAllowedLoginTime := utilsExt.NextAllowedLoginTime(failedLoginAttempts)
+		err = us.Update.UpdateUserNextAllowedLoginTime(ctx, userID, nextAllowedLoginTime)
+		if err != nil {
+			return false, fmt.Errorf("failed to update user next allowed login time")
+		}
+
+		return false, exceptions.PinMismatchError(err)
 	}
 
-	customToken, err := us.ExternalExt.CreateFirebaseCustomToken(ctx, *profile.ID)
+	// In the event of a successful login, reset the failed login count to 0
+	if userProfile.FailedLoginCount > 0 {
+		err := us.Update.UpdateUserFailedLoginCount(ctx, userID, 0)
+		if err != nil {
+			return false, fmt.Errorf("failed to update user failed login count")
+		}
+	}
+
+	return true, nil
+}
+
+// Login is used to login the user into the application
+func (us *UseCasesUserImpl) Login(ctx context.Context, phoneNumber string, pin string, flavour feedlib.Flavour) (*domain.AuthCredentials, int, error) {
+	phone, err := converterandformatter.NormalizeMSISDN(phoneNumber)
 	if err != nil {
-		return nil, "", err
+		return nil, int(errorcodeutil.InvalidPhoneNumberFormat), exceptions.NormalizeMSISDNError(err)
+	}
+
+	if !flavour.IsValid() {
+		return nil, int(errorcodeutil.InvalidFlavour), exceptions.InvalidFlavourDefinedError()
+	}
+
+	userProfile, err := us.Query.GetUserProfileByPhoneNumber(ctx, *phone)
+	if err != nil {
+		return nil, int(errorcodeutil.ProfileNotFound), exceptions.UserNotFoundError(err)
+	}
+
+	if !userProfile.TermsAccepted {
+		return nil, int(errorcodeutil.Internal), fmt.Errorf("user has not accepted the terms and conditions")
+	}
+
+	if !userProfile.Active {
+		return nil, int(errorcodeutil.Internal), fmt.Errorf("user is not active")
+	}
+
+	// If the next allowed login time is after the current time, don't log in the user
+	// The user has to retry after some time. We check whether time out (the current time being greater than
+	// the next allowed login time) has happened. If not, the user will have to wait before trying to log in.
+	currentTime := time.Now()
+	timeOutOccured := currentTime.Before(*userProfile.NextAllowedLogin)
+	if timeOutOccured {
+		return nil, int(errorcodeutil.Internal), fmt.Errorf("please try again after a while")
+	}
+
+	_, err = us.VerifyPIN(ctx, *userProfile.ID, pin)
+	if err != nil {
+		return nil, int(errorcodeutil.PINMismatch), err
+	}
+
+	customToken, err := us.ExternalExt.CreateFirebaseCustomToken(ctx, *userProfile.ID)
+	if err != nil {
+		return nil, int(errorcodeutil.Internal), err
 	}
 
 	userTokens, err := us.ExternalExt.AuthenticateCustomFirebaseToken(customToken)
 	if err != nil {
-		return nil, "", err
+		return nil, int(errorcodeutil.Internal), err
+	}
+
+	err = us.Update.UpdateUserLastSuccessfulLoginTime(ctx, *userProfile.ID)
+	if err != nil {
+		return nil, int(errorcodeutil.Internal), fmt.Errorf("failed to update user last successful login time")
 	}
 
 	authCredentials := &domain.AuthCredentials{
-		User:         profile,
+		User:         userProfile,
 		RefreshToken: userTokens.RefreshToken,
 		IDToken:      userTokens.IDToken,
 		ExpiresIn:    userTokens.ExpiresIn,
 	}
 
-	return authCredentials, "", nil
+	return authCredentials, int(errorcodeutil.OK), nil
 }
 
 // InviteUser is used to invite a user to the application. The invite link that is sent to the
