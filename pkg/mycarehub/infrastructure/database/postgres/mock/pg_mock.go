@@ -41,6 +41,7 @@ type PostgresMock struct {
 	MockGetSecurityQuestionByIDFn           func(ctx context.Context, securityQuestionID *string) (*domain.SecurityQuestion, error)
 	MockSaveSecurityQuestionResponseFn      func(ctx context.Context, securityQuestionResponse *dto.SecurityQuestionResponseInput) error
 	MockGetSecurityQuestionResponseByIDFn   func(ctx context.Context, questionID string) (*domain.SecurityQuestionResponse, error)
+	MockCheckIfPhoneNumberExistsFn          func(ctx context.Context, phone string, isOptedIn bool, flavour feedlib.Flavour) (bool, error)
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -207,6 +208,9 @@ func NewPostgresMock() *PostgresMock {
 				Response:   "Yes",
 			}, nil
 		},
+		MockCheckIfPhoneNumberExistsFn: func(ctx context.Context, phone string, isOptedIn bool, flavour feedlib.Flavour) (bool, error) {
+			return true, nil
+		},
 	}
 }
 
@@ -338,4 +342,9 @@ func (gm *PostgresMock) SaveSecurityQuestionResponse(ctx context.Context, securi
 // GetSecurityQuestionResponseByID mocks the get security question implementation
 func (gm *PostgresMock) GetSecurityQuestionResponseByID(ctx context.Context, questionID string) (*domain.SecurityQuestionResponse, error) {
 	return gm.MockGetSecurityQuestionResponseByIDFn(ctx, questionID)
+}
+
+// CheckIfPhoneNumberExists mock the implementation of checking the existence of phone number
+func (gm *PostgresMock) CheckIfPhoneNumberExists(ctx context.Context, phone string, isOptedIn bool, flavour feedlib.Flavour) (bool, error) {
+	return gm.MockCheckIfPhoneNumberExistsFn(ctx, phone, isOptedIn, flavour)
 }

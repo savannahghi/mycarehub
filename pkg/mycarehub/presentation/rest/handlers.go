@@ -14,6 +14,7 @@ import (
 type MyCareHubHandlersInterfaces interface {
 	LoginByPhone() http.HandlerFunc
 	VerifySecurityQuestions() http.HandlerFunc
+	VerifyPhone() http.HandlerFunc
 }
 
 // MyCareHubHandlersInterfacesImpl represents the usecase implementation object
@@ -97,5 +98,33 @@ func (h *MyCareHubHandlersInterfacesImpl) VerifySecurityQuestions() http.Handler
 		}
 
 		serverutils.WriteJSONResponse(w, ok, http.StatusOK)
+	}
+}
+
+// VerifyPhone is an unauthenticated endpoint that does a check on the provided phone and flavour and
+// performs a check to ascertain whether the supplied phone number and flavour are associated with the user.
+func (h *MyCareHubHandlersInterfacesImpl) VerifyPhone() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+
+		payload := &dto.VerifyPhoneInput{}
+		serverutils.DecodeJSONToTargetStruct(w, r, payload)
+
+		if payload.PhoneNumber == "" {
+			err := fmt.Errorf("expected a phone input")
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusBadRequest)
+			return
+		}
+
+		otpResponse, err := h.interactor.OTPUsecase.VerifyPhoneNumber(ctx, payload.PhoneNumber, payload.Flavour)
+		if err != nil {
+			serverutils.WriteJSONResponse(w, serverutils.ErrorMap(err), http.StatusBadRequest)
+			return
+		}
+
+		serverutils.WriteJSONResponse(w, otpResponse, http.StatusOK)
 	}
 }

@@ -84,7 +84,7 @@ func TestPGInstance_SaveTemporaryUserPin(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	ID := gofakeit.Number(100, 500)
+
 	flavor := feedlib.FlavourConsumer
 	userID := uuid.New().String()
 
@@ -105,6 +105,7 @@ func TestPGInstance_SaveTemporaryUserPin(t *testing.T) {
 		Gender:        enumutils.GenderMale,
 		TermsAccepted: true,
 		Flavour:       flavor,
+		Suspended:     false,
 	}
 	err = pg.DB.Create(userInput).Error
 	if err != nil {
@@ -112,7 +113,7 @@ func TestPGInstance_SaveTemporaryUserPin(t *testing.T) {
 	}
 
 	pinPayload := &gorm.PINData{
-		UserID:    userID,
+		UserID:    *userInput.UserID,
 		HashedPIN: encryptedTempPin,
 		ValidFrom: time.Now(),
 		ValidTo:   time.Now(),
@@ -137,8 +138,8 @@ func TestPGInstance_SaveTemporaryUserPin(t *testing.T) {
 				ctx:        ctx,
 				pinPayload: pinPayload,
 			},
-			want:    false,
-			wantErr: true,
+			want:    true,
+			wantErr: false,
 		},
 		{
 			name: "invalid: missing payload",
@@ -164,7 +165,7 @@ func TestPGInstance_SaveTemporaryUserPin(t *testing.T) {
 
 	// Teardown
 
-	if err = pg.DB.Where("id", ID).Unscoped().Delete(&gorm.PINData{}).Error; err != nil {
+	if err = pg.DB.Where("user_id", userInput.UserID).Unscoped().Delete(&gorm.PINData{}).Error; err != nil {
 		t.Errorf("failed to delete record = %v", err)
 	}
 
@@ -200,6 +201,7 @@ func TestPGInstance_SavePin(t *testing.T) {
 		Flavour:         flavour,
 		AcceptedTermsID: &termsID,
 		TermsAccepted:   true,
+		Suspended:       false,
 	}
 
 	err = pg.DB.Create(&userInput).Error
@@ -333,6 +335,7 @@ func TestPGInstance_SaveSecurityQuestionResponse(t *testing.T) {
 		Flavour:         flavour,
 		AcceptedTermsID: &termsID,
 		TermsAccepted:   true,
+		Suspended:       false,
 	}
 
 	err = pg.DB.Create(&userInput).Error

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/google/uuid"
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	extensionMock "github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension/mock"
@@ -262,7 +263,7 @@ func TestUseCaseSecurityQuestionsImpl_VerifySecurityQuestionResponses(t *testing
 						QuestionID: "1234",
 						Flavour:    feedlib.FlavourConsumer,
 						Response:   "",
-						UserID:     "1234",
+						UserID:     uuid.New().String(),
 					},
 				},
 			},
@@ -278,7 +279,7 @@ func TestUseCaseSecurityQuestionsImpl_VerifySecurityQuestionResponses(t *testing
 						QuestionID: "1234",
 						Flavour:    feedlib.FlavourConsumer,
 						Response:   "Nairobi",
-						UserID:     "1234",
+						UserID:     uuid.New().String(),
 					},
 				},
 			},
@@ -294,7 +295,7 @@ func TestUseCaseSecurityQuestionsImpl_VerifySecurityQuestionResponses(t *testing
 						QuestionID: "1234",
 						Flavour:    feedlib.FlavourConsumer,
 						Response:   "Nakuru",
-						UserID:     "1234",
+						UserID:     uuid.New().String(),
 					},
 				},
 			},

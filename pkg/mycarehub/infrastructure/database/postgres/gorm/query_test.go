@@ -8,6 +8,7 @@ import (
 
 	"github.com/brianvoe/gofakeit"
 	"github.com/google/uuid"
+	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
@@ -700,4 +701,111 @@ func TestPGInstance_GetSecurityQuestionByID(t *testing.T) {
 		t.Errorf("failed to delete record = %v", err)
 	}
 
+}
+
+func TestPGInstance_CheckIfPhoneNumberExists(t *testing.T) {
+	ctx := context.Background()
+
+	pg, err := gorm.NewPGInstance()
+	if err != nil {
+		t.Errorf("pgInstance.Teardown() = %v", err)
+	}
+
+	flavour := feedlib.FlavourConsumer
+	userID := uuid.New().String()
+
+	// Setup test user
+	userInput := &gorm.User{
+		UserID:          &userID,
+		Username:        uuid.New().String(),
+		FirstName:       gofakeit.FirstName(),
+		LastName:        gofakeit.LastName(),
+		MiddleName:      gofakeit.FirstName(),
+		UserType:        enums.ClientUser,
+		Gender:          enumutils.GenderMale,
+		Flavour:         flavour,
+		AcceptedTermsID: &termsID,
+		TermsAccepted:   true,
+		OrganisationID:  serverutils.MustGetEnvVar("DEFAULT_ORG_ID"),
+		Suspended:       false,
+	}
+
+	err = pg.DB.Create(&userInput).Error
+	if err != nil {
+		t.Errorf("failed to create user: %v", err)
+	}
+
+	contactID := uuid.New().String()
+	contact := &gorm.Contact{
+		ContactID:      &contactID,
+		ContactType:    "SMS",
+		ContactValue:   "+254710000001",
+		Active:         true,
+		OptedIn:        true,
+		UserID:         userInput.UserID,
+		Flavour:        userInput.Flavour,
+		OrganisationID: serverutils.MustGetEnvVar("DEFAULT_ORG_ID"),
+	}
+
+	err = pg.DB.Create(&contact).Error
+	if err != nil {
+		t.Errorf("failed to create contact: %v", err)
+	}
+
+	type args struct {
+		ctx       context.Context
+		phone     string
+		isOptedIn bool
+		flavour   feedlib.Flavour
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:       ctx,
+				phone:     contact.ContactValue,
+				isOptedIn: true,
+				flavour:   contact.Flavour,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case - invalid flavour",
+			args: args{
+				ctx:       ctx,
+				phone:     contact.ContactValue,
+				isOptedIn: true,
+				flavour:   "contact.Flavour",
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case - ungistered phone",
+			args: args{
+				ctx:       ctx,
+				phone:     "+254711223344",
+				isOptedIn: true,
+				flavour:   contact.Flavour,
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := testingDB.CheckIfPhoneNumberExists(tt.args.ctx, tt.args.phone, tt.args.isOptedIn, tt.args.flavour)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.CheckIfPhoneNumberExists() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+
+	//TearDown
+	if err = pg.DB.Where("id", contact.ContactID).Unscoped().Delete(&gorm.Contact{}).Error; err != nil {
+		t.Errorf("failed to delete record = %v", err)
+	}
 }

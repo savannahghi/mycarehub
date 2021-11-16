@@ -11,5 +11,6 @@ import (
 
 func (r *queryResolver) SendOtp(ctx context.Context, userID string, phoneNumber string, flavour feedlib.Flavour) (string, error) {
 	r.checkPreconditions()
-	return r.interactor.OTP.GenerateAndSendOTP(ctx, userID, phoneNumber, flavour)
+
+	return r.interactor.OTPUsecase.GenerateAndSendOTP(ctx, userID, phoneNumber, flavour)
 }

@@ -127,3 +127,9 @@ func (f *VerifySecurityQuestionInput) Validate() error {
 
 	return err
 }
+
+// VerifyPhoneInput carries the OTP data used to send OTP messages to a particular phone number
+type VerifyPhoneInput struct {
+	PhoneNumber string          `json:"phoneNumber"`
+	Flavour     feedlib.Flavour `json:"flavour"`
+}

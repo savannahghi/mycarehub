@@ -144,7 +144,7 @@ func TestPGInstance_ReactivateFacility(t *testing.T) {
 	}
 }
 
-func TestPGInstance_SetNickName(t *testing.T) {
+func TestPGInstance_SetNickname(t *testing.T) {
 	ctx := context.Background()
 
 	pg, err := gorm.NewPGInstance()
@@ -155,8 +155,8 @@ func TestPGInstance_SetNickName(t *testing.T) {
 	flavor := feedlib.FlavourConsumer
 	userID := uuid.New().String()
 	nickname := uuid.New().String()
-	invalidUserID := ksuid.New().String() + ksuid.New().String()
-	invalidNickname := gofakeit.Paragraph(6, 100, 1000, " ")
+	invalidUserID := ksuid.New().String()
+	invalidNickname := gofakeit.HipsterSentence(50)
 
 	userInput := &gorm.User{
 		UserID:          &userID,
@@ -170,6 +170,7 @@ func TestPGInstance_SetNickName(t *testing.T) {
 		Flavour:         flavor,
 		OrganisationID:  serverutils.MustGetEnvVar("DEFAULT_ORG_ID"),
 		AcceptedTermsID: &termsID,
+		Suspended:       false,
 	}
 	err = pg.DB.Create(userInput).Error
 	if err != nil {

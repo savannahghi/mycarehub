@@ -14,7 +14,6 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
 	gormMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm/mock"
-	"github.com/segmentio/ksuid"
 )
 
 func TestMyCareHubDb_GetOrCreateFacility(t *testing.T) {
@@ -118,7 +117,7 @@ func TestMyCareHubDb_GetOrCreateFacility(t *testing.T) {
 
 func TestMyCareHubDb_SaveTemporaryUserPin(t *testing.T) {
 	ctx := context.Background()
-	ID := ksuid.New().String()
+	ID := uuid.New().String()
 	flavor := feedlib.FlavourConsumer
 
 	newExtension := extension.NewExternalMethodsImpl()
@@ -230,7 +229,7 @@ func TestOnboardingDb_SavePin(t *testing.T) {
 			args: args{
 				ctx: ctx,
 				pinInput: &domain.UserPIN{
-					UserID:    "123456",
+					UserID:    uuid.New().String(),
 					HashedPIN: "12345",
 					ValidFrom: time.Now(),
 					ValidTo:   time.Now(),
@@ -245,7 +244,7 @@ func TestOnboardingDb_SavePin(t *testing.T) {
 			args: args{
 				ctx: ctx,
 				pinInput: &domain.UserPIN{
-					UserID:    "123456",
+					UserID:    uuid.New().String(),
 					HashedPIN: "12345",
 					ValidFrom: time.Now(),
 					ValidTo:   time.Now(),
@@ -295,7 +294,7 @@ func TestMyCareHubDb_SaveOTP(t *testing.T) {
 			args: args{
 				ctx: ctx,
 				otpInput: &domain.OTP{
-					UserID:      "12345",
+					UserID:      uuid.New().String(),
 					Valid:       true,
 					ValidUntil:  time.Now().Add(time.Hour * 1),
 					GeneratedAt: time.Now(),
@@ -311,7 +310,7 @@ func TestMyCareHubDb_SaveOTP(t *testing.T) {
 			args: args{
 				ctx: ctx,
 				otpInput: &domain.OTP{
-					UserID:      "12345",
+					UserID:      uuid.New().String(),
 					Valid:       true,
 					ValidUntil:  time.Now().Add(time.Hour * 1),
 					GeneratedAt: time.Now(),

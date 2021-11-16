@@ -719,8 +719,7 @@ input SecurityQuestionResponseInput {
 }`, BuiltIn: false},
 	{Name: "pkg/mycarehub/presentation/graph/otp.graphql", Input: `extend type Query {
   sendOTP(userID: String!, phoneNumber: String!, flavour: Flavour!): String!
-}
-`, BuiltIn: false},
+}`, BuiltIn: false},
 	{Name: "pkg/mycarehub/presentation/graph/profile.graphql", Input: `extend type Mutation {
   inviteUser(userID: String!,phoneNumber: String!, flavour:Flavour! ): Boolean!
   setUserPIN(input: PINInput): Boolean!

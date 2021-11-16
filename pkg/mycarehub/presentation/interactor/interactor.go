@@ -16,7 +16,7 @@ type Interactor struct {
 	UserUsecase      user.UseCasesUser
 	TermsUsecase     terms.UseCasesTerms
 	SecurityQuestion securityquestions.UseCaseSecurityQuestion
-	OTP              otp.UsecaseOTP
+	OTPUsecase       otp.UsecaseOTP
 }
 
 // NewMyCareHubInteractor returns a new onboarding interactor

@@ -101,6 +101,8 @@ type User struct {
 	TermsAccepted   bool            `gorm:"type:bool;column:terms_accepted;not null"`
 	AcceptedTermsID *int            `gorm:"column:accepted_terms_of_service_id"` // foreign key to version of terms they accepted
 	Flavour         feedlib.Flavour `gorm:"column:flavour;not null"`
+	Suspended       bool            `gorm:"column:is_suspended"`
+	Avatar          string          `gorm:"column:avatar"`
 
 	// Django required fields
 	OrganisationID   string `gorm:"column:organisation_id"`
@@ -157,12 +159,17 @@ type Contact struct {
 	OptedIn bool `gorm:"column:opted_in;not null"`
 
 	UserID *string `gorm:"column:user_id;not null"`
+
+	Flavour feedlib.Flavour `gorm:"column:flavour"`
+
+	OrganisationID string `gorm:"column:organisation_id"`
 }
 
 // BeforeCreate is a hook run before creating a new contact
 func (c *Contact) BeforeCreate(tx *gorm.DB) (err error) {
 	id := uuid.New().String()
 	c.ContactID = &id
+	c.OrganisationID = OrganizationID
 	return
 }
 
