@@ -261,3 +261,65 @@ func TestOnboardingDb_SavePin(t *testing.T) {
 		})
 	}
 }
+
+func TestMyCareHubDb_SaveOTP(t *testing.T) {
+	ctx := context.Background()
+	type args struct {
+		ctx      context.Context
+		otpInput *domain.OTP
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Successfully save otp",
+			args: args{
+				ctx: ctx,
+				otpInput: &domain.OTP{
+					UserID:      "12345",
+					Valid:       true,
+					ValidUntil:  time.Now().Add(time.Hour * 1),
+					GeneratedAt: time.Now(),
+					PhoneNumber: gofakeit.Phone(),
+					Channel:     "SMS",
+					Flavour:     feedlib.FlavourConsumer,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad Case - Fail to save otp",
+			args: args{
+				ctx: ctx,
+				otpInput: &domain.OTP{
+					UserID:      "12345",
+					Valid:       true,
+					ValidUntil:  time.Now().Add(time.Hour * 1),
+					GeneratedAt: time.Now(),
+					PhoneNumber: gofakeit.Phone(),
+					Channel:     "SMS",
+					Flavour:     feedlib.FlavourConsumer,
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var fakeGorm = gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			if tt.name == "Sad Case - Fail to save otp" {
+				fakeGorm.MockSaveOTPFn = func(ctx context.Context, otpInput *gorm.UserOTP) error {
+					return fmt.Errorf("failed to save otp")
+				}
+			}
+
+			if err := d.SaveOTP(tt.args.ctx, tt.args.otpInput); (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.SaveOTP() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}

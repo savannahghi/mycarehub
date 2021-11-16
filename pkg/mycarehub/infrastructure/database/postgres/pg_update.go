@@ -27,7 +27,6 @@ func (d *MyCareHubDb) AcceptTerms(ctx context.Context, userID *string, termsID *
 	if userID == nil || termsID == nil {
 		return false, fmt.Errorf("userID or termsID cannot be nil")
 	}
-
 	return d.update.AcceptTerms(ctx, userID, termsID)
 }
 
@@ -64,4 +63,13 @@ func (d *MyCareHubDb) UpdateUserLastSuccessfulLoginTime(ctx context.Context, use
 		return fmt.Errorf("userID must be defined")
 	}
 	return d.update.UpdateUserLastSuccessfulLoginTime(ctx, userID)
+}
+
+// SetNickName is used to set the user's nickname
+func (d *MyCareHubDb) SetNickName(ctx context.Context, userID *string, nickname *string) (bool, error) {
+	if userID == nil || nickname == nil {
+		return false, fmt.Errorf("userID or nickname cannot be empty ")
+	}
+
+	return d.update.SetNickName(ctx, userID, nickname)
 }

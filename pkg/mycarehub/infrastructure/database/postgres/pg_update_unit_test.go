@@ -537,3 +537,109 @@ func TestMyCareHubDb_UpdateUserLastSuccessfulLoginTime(t *testing.T) {
 		})
 	}
 }
+
+func TestMyCareHubDb_SetNickName(t *testing.T) {
+	ctx := context.Background()
+
+	userID := ksuid.New().String()
+	nickname := gofakeit.BeerName()
+
+	type args struct {
+		ctx      context.Context
+		userID   *string
+		nickname *string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:      ctx,
+				userID:   &userID,
+				nickname: &nickname,
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Sad case",
+			args: args{
+				ctx:      ctx,
+				userID:   &userID,
+				nickname: &nickname,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case - no userID",
+			args: args{
+				ctx:      ctx,
+				userID:   nil,
+				nickname: &nickname,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case - no nickname",
+			args: args{
+				ctx:      ctx,
+				userID:   &userID,
+				nickname: nil,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Both userID and nickname nil",
+			args: args{
+				ctx:      ctx,
+				userID:   nil,
+				nickname: nil,
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var fakeGorm = gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			if tt.name == "Sad case" {
+				fakeGorm.MockSetNickNameFn = func(ctx context.Context, userID, nickname *string) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - no userID" {
+				fakeGorm.MockSetNickNameFn = func(ctx context.Context, userID, nickname *string) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - no nickname" {
+				fakeGorm.MockSetNickNameFn = func(ctx context.Context, userID, nickname *string) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Both userID and nickname nil" {
+				fakeGorm.MockSetNickNameFn = func(ctx context.Context, userID, nickname *string) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+
+			got, err := d.SetNickName(tt.args.ctx, tt.args.userID, tt.args.nickname)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.SetNickName() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("MyCareHubDb.SetNickName() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

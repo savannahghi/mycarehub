@@ -34,6 +34,7 @@ type GormMock struct {
 	MockUpdateUserLastFailedLoginTimeFn     func(ctx context.Context, userID string) error
 	MockUpdateUserNextAllowedLoginTimeFn    func(ctx context.Context, userID string, nextAllowedLoginTime time.Time) error
 	MockUpdateUserLastSuccessfulLoginTimeFn func(ctx context.Context, userID string) error
+	MockSetNickNameFn                       func(ctx context.Context, userID *string, nickname *string) (bool, error)
 	MockGetSecurityQuestionsFn              func(ctx context.Context, flavour feedlib.Flavour) ([]*gorm.SecurityQuestion, error)
 	MockSaveOTPFn                           func(ctx context.Context, otpInput *gorm.UserOTP) error
 }
@@ -195,6 +196,9 @@ func NewGormMock() *GormMock {
 		MockSaveOTPFn: func(ctx context.Context, otpInput *gorm.UserOTP) error {
 			return nil
 		},
+		MockSetNickNameFn: func(ctx context.Context, userID, nickname *string) (bool, error) {
+			return true, nil
+		},
 	}
 }
 
@@ -301,4 +305,9 @@ func (gm *GormMock) GetSecurityQuestions(ctx context.Context, flavour feedlib.Fl
 // SaveOTP mocks the implementation for saving an OTP
 func (gm *GormMock) SaveOTP(ctx context.Context, otpInput *gorm.UserOTP) error {
 	return gm.MockSaveOTPFn(ctx, otpInput)
+}
+
+// SetNickName is used to mock the implementation ofsetting or changing the user's nickname
+func (gm *GormMock) SetNickName(ctx context.Context, userID *string, nickname *string) (bool, error) {
+	return gm.MockSetNickNameFn(ctx, userID, nickname)
 }

@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/brianvoe/gofakeit"
 	"github.com/google/uuid"
 	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/feedlib"
@@ -856,6 +857,114 @@ func TestUseCasesUserImpl_VerifyPIN(t *testing.T) {
 			}
 			if got != tt.want {
 				t.Errorf("UseCasesUserImpl.VerifyPIN() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestUseCasesUserImpl_SetNickName(t *testing.T) {
+	ctx := context.Background()
+
+	userID := ksuid.New().String()
+	nickname := gofakeit.BeerName()
+
+	type args struct {
+		ctx      context.Context
+		userID   *string
+		nickname *string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:      ctx,
+				userID:   &userID,
+				nickname: &nickname,
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Sad case",
+			args: args{
+				ctx:      ctx,
+				userID:   &userID,
+				nickname: &nickname,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case - no userID",
+			args: args{
+				ctx:      ctx,
+				userID:   nil,
+				nickname: &nickname,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case - no nickname",
+			args: args{
+				ctx:      ctx,
+				userID:   &userID,
+				nickname: nil,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Both userID and nickname nil",
+			args: args{
+				ctx:      ctx,
+				userID:   nil,
+				nickname: nil,
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			_ = mock.NewUserUseCaseMock()
+			fakeExtension := extensionMock.NewFakeExtension()
+			u := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension)
+
+			if tt.name == "Sad case" {
+				fakeDB.MockSetNickNameFn = func(ctx context.Context, userID, nickname *string) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - no userID" {
+				fakeDB.MockSetNickNameFn = func(ctx context.Context, userID, nickname *string) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - no nickname" {
+				fakeDB.MockSetNickNameFn = func(ctx context.Context, userID, nickname *string) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Both userID and nickname nil" {
+				fakeDB.MockSetNickNameFn = func(ctx context.Context, userID, nickname *string) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+
+			got, err := u.SetNickName(tt.args.ctx, tt.args.userID, tt.args.nickname)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCasesUserImpl.SetNickName() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("UseCasesUserImpl.SetNickName() = %v, want %v", got, tt.want)
 			}
 		})
 	}

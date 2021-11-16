@@ -6,6 +6,7 @@ import (
 	"github.com/savannahghi/feedlib"
 )
 
+// OTP models the details of the OTP payload
 type OTP struct {
 	UserID      string          `json:"userID"`
 	Valid       bool            `json:"valid"`
