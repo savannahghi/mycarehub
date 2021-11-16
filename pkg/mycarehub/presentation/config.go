@@ -19,8 +19,8 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/presentation/graph"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/presentation/graph/generated"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/presentation/interactor"
 	internalRest "github.com/savannahghi/mycarehub/pkg/mycarehub/presentation/rest"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/facility"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/otp"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/securityquestions"
@@ -65,9 +65,6 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	externalExt := externalExtension.NewExternalMethodsImpl()
 	db := postgres.NewMyCareHubDb(pg, pg, pg, pg)
 
-	// Initialize new instances of the infrastructure services
-	// Initialize new open source interactors
-
 	// Initialize facility usecase
 	facilityUseCase := facility.NewFacilityUsecase(db, db, db, db)
 
@@ -80,16 +77,9 @@ func Router(ctx context.Context) (*mux.Router, error) {
 
 	otpUseCase := otp.NewOTPUseCase(db, db, externalExt)
 
-	// Initialize the interactor
-	i := interactor.NewMyCareHubInteractor(
-		facilityUseCase,
-		userUsecase,
-		termsUsecase,
-		securityQuestionsUsecase,
-		otpUseCase,
-	)
+	useCase := usecases.NewMyCareHubUseCase(userUsecase, termsUsecase, facilityUseCase, securityQuestionsUsecase, otpUseCase)
 
-	internalHandlers := internalRest.NewMyCareHubHandlersInterfaces(*i)
+	internalHandlers := internalRest.NewMyCareHubHandlersInterfaces(*useCase)
 
 	r := mux.NewRouter() // gorilla mux
 	r.Use(otelmux.Middleware(serverutils.MetricsCollectorService("mycarehub")))
@@ -140,7 +130,7 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	authR.Methods(
 		http.MethodPost,
 		http.MethodGet,
-	).HandlerFunc(GQLHandler(ctx, i))
+	).HandlerFunc(GQLHandler(ctx, *useCase))
 
 	return r, nil
 }
@@ -184,9 +174,9 @@ func HealthStatusCheck(w http.ResponseWriter, r *http.Request) {
 
 // GQLHandler sets up a GraphQL resolver
 func GQLHandler(ctx context.Context,
-	service *interactor.Interactor,
+	usecase usecases.MyCareHub,
 ) http.HandlerFunc {
-	resolver, err := graph.NewResolver(ctx, service)
+	resolver, err := graph.NewResolver(ctx, usecase)
 	if err != nil {
 		serverutils.LogStartupError(ctx, err)
 	}

@@ -6,7 +6,7 @@ import (
 
 	"github.com/savannahghi/errorcodeutil"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/presentation/interactor"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases"
 	"github.com/savannahghi/serverutils"
 )
 
@@ -21,12 +21,12 @@ type MyCareHubHandlersInterfaces interface {
 
 // MyCareHubHandlersInterfacesImpl represents the usecase implementation object
 type MyCareHubHandlersInterfacesImpl struct {
-	interactor interactor.Interactor
+	usecase usecases.MyCareHub
 }
 
 // NewMyCareHubHandlersInterfaces initializes a new rest handlers usecase
-func NewMyCareHubHandlersInterfaces(interactor interactor.Interactor) MyCareHubHandlersInterfaces {
-	return &MyCareHubHandlersInterfacesImpl{interactor}
+func NewMyCareHubHandlersInterfaces(usecase usecases.MyCareHub) MyCareHubHandlersInterfaces {
+	return &MyCareHubHandlersInterfacesImpl{usecase}
 }
 
 // LoginByPhone is an unauthenticated endpoint that gets the phonenumber and pin
@@ -56,7 +56,7 @@ func (h *MyCareHubHandlersInterfacesImpl) LoginByPhone() http.HandlerFunc {
 			return
 		}
 
-		resp, responseCode, err := h.interactor.UserUsecase.Login(ctx, *payload.PhoneNumber, *payload.PIN, payload.Flavour)
+		resp, responseCode, err := h.usecase.User.Login(ctx, *payload.PhoneNumber, *payload.PIN, payload.Flavour)
 		if err != nil {
 			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
 				Message: err.Error(),
@@ -90,7 +90,7 @@ func (h *MyCareHubHandlersInterfacesImpl) VerifySecurityQuestions() http.Handler
 			}
 		}
 
-		ok, err := h.interactor.SecurityQuestion.VerifySecurityQuestionResponses(ctx, payloadData)
+		ok, err := h.usecase.SecurityQuestions.VerifySecurityQuestionResponses(ctx, payloadData)
 		if err != nil {
 			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
 				Err:     err,
@@ -121,7 +121,7 @@ func (h *MyCareHubHandlersInterfacesImpl) VerifyPhone() http.HandlerFunc {
 			return
 		}
 
-		otpResponse, err := h.interactor.OTPUsecase.VerifyPhoneNumber(ctx, payload.PhoneNumber, payload.Flavour)
+		otpResponse, err := h.usecase.OTP.VerifyPhoneNumber(ctx, payload.PhoneNumber, payload.Flavour)
 		if err != nil {
 			serverutils.WriteJSONResponse(w, serverutils.ErrorMap(err), http.StatusBadRequest)
 			return
@@ -157,7 +157,7 @@ func (h *MyCareHubHandlersInterfacesImpl) VerifyOTP() http.HandlerFunc {
 			return
 		}
 
-		resp, err := h.interactor.OTPUsecase.VerifyOTP(ctx, payload)
+		resp, err := h.usecase.OTP.VerifyOTP(ctx, payload)
 		if err != nil {
 			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
 				Message: err.Error(),
@@ -195,7 +195,7 @@ func (h *MyCareHubHandlersInterfacesImpl) SendOTP() http.HandlerFunc {
 			return
 		}
 
-		resp, err := h.interactor.OTPUsecase.GenerateAndSendOTP(ctx, payload.PhoneNumber, payload.Flavour)
+		resp, err := h.usecase.OTP.GenerateAndSendOTP(ctx, payload.PhoneNumber, payload.Flavour)
 		if err != nil {
 			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
 				Message: err.Error(),

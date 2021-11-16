@@ -12,11 +12,11 @@ import (
 )
 
 func (r *mutationResolver) RecordSecurityQuestionResponses(ctx context.Context, input []*dto.SecurityQuestionResponseInput) ([]*domain.RecordSecurityQuestionResponse, error) {
-	return r.interactor.SecurityQuestion.RecordSecurityQuestionResponses(ctx, input)
+	r.checkPreconditions()
+	return r.mycarehub.SecurityQuestions.RecordSecurityQuestionResponses(ctx, input)
 }
 
 func (r *queryResolver) GetSecurityQuestions(ctx context.Context, flavour feedlib.Flavour) ([]*domain.SecurityQuestion, error) {
 	r.checkPreconditions()
-
-	return r.interactor.SecurityQuestion.GetSecurityQuestions(ctx, flavour)
+	return r.mycarehub.SecurityQuestions.GetSecurityQuestions(ctx, flavour)
 }

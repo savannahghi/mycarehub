@@ -11,15 +11,15 @@ import (
 
 func (r *mutationResolver) AcceptTerms(ctx context.Context, userID string, termsID int) (bool, error) {
 	r.checkPreconditions()
-	return r.interactor.TermsUsecase.AcceptTerms(ctx, &userID, &termsID)
+	return r.mycarehub.Terms.AcceptTerms(ctx, &userID, &termsID)
 }
 
 func (r *mutationResolver) SetNickName(ctx context.Context, userID string, nickname string) (bool, error) {
 	r.checkPreconditions()
-	return r.interactor.UserUsecase.SetNickName(ctx, &userID, &nickname)
+	return r.mycarehub.User.SetNickName(ctx, &userID, &nickname)
 }
 
 func (r *queryResolver) GetCurrentTerms(ctx context.Context) (*domain.TermsOfService, error) {
 	r.checkPreconditions()
-	return r.interactor.TermsUsecase.GetCurrentTerms(ctx)
+	return r.mycarehub.Terms.GetCurrentTerms(ctx)
 }

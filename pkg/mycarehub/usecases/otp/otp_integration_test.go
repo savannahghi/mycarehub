@@ -9,17 +9,10 @@ import (
 	"github.com/google/uuid"
 	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/feedlib"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/testutils"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
-	externalExtension "github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/presentation/interactor"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/facility"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/otp"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/securityquestions"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/terms"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/user"
 	"github.com/savannahghi/profileutils"
 	"github.com/savannahghi/serverutils"
 	"github.com/segmentio/ksuid"
@@ -27,35 +20,10 @@ import (
 
 var termsID = 50005
 
-func InitializeTestService(ctx context.Context) *interactor.Interactor {
-	pg, err := gorm.NewPGInstance()
-	if err != nil {
-		return nil
-	}
-
-	db := postgres.NewMyCareHubDb(pg, pg, pg, pg)
-	externalExt := externalExtension.NewExternalMethodsImpl()
-
-	// Initialize facility usecase
-	facilityUseCase := facility.NewFacilityUsecase(db, db, db, db)
-
-	// Initialize user usecase
-	userUsecase := user.NewUseCasesUserImpl(db, db, db, db, externalExt)
-
-	termsUsecase := terms.NewUseCasesTermsOfService(db, db)
-
-	securityQuestionsUsecase := securityquestions.NewSecurityQuestionsUsecase(db, db, externalExt)
-
-	otpUseCase := otp.NewOTPUseCase(db, db, externalExt)
-
-	i := interactor.NewMyCareHubInteractor(facilityUseCase, userUsecase, termsUsecase, securityQuestionsUsecase, otpUseCase)
-	return i
-}
-
 func TestUseCaseOTPImpl_VerifyPhoneNumber_Integration(t *testing.T) {
 	ctx := context.Background()
 
-	i := InitializeTestService(ctx)
+	i, _ := testutils.InitializeTestService(ctx)
 
 	pg, err := gorm.NewPGInstance()
 	if err != nil {
@@ -182,7 +150,7 @@ func TestUseCaseOTPImpl_VerifyPhoneNumber_Integration(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := i.OTPUsecase.VerifyPhoneNumber(tt.args.ctx, tt.args.phone, tt.args.flavour)
+			got, err := i.OTP.VerifyPhoneNumber(tt.args.ctx, tt.args.phone, tt.args.flavour)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCaseOTPImpl.VerifyPhoneNumber() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -208,7 +176,7 @@ func TestUseCaseOTPImpl_VerifyPhoneNumber_Integration(t *testing.T) {
 func TestUseCaseOTPImpl_VerifyOTP_integration_test(t *testing.T) {
 	ctx := context.Background()
 
-	i := InitializeTestService(ctx)
+	i, _ := testutils.InitializeTestService(ctx)
 
 	pg, err := gorm.NewPGInstance()
 	if err != nil {
@@ -243,7 +211,7 @@ func TestUseCaseOTPImpl_VerifyOTP_integration_test(t *testing.T) {
 	generatedAt := time.Now()
 	validUntil := time.Now().AddDate(0, 0, 2)
 
-	otp, err := i.OTPUsecase.GenerateOTP(ctx)
+	otp, err := i.OTP.GenerateOTP(ctx)
 	if err != nil {
 		t.Errorf("unable to generate OTP")
 	}
@@ -363,7 +331,7 @@ func TestUseCaseOTPImpl_VerifyOTP_integration_test(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := i.OTPUsecase.VerifyOTP(tt.args.ctx, tt.args.payload)
+			got, err := i.OTP.VerifyOTP(tt.args.ctx, tt.args.payload)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCaseOTPImpl.VerifyOTPInput() error = %v, wantErr %v", err, tt.wantErr)
 				return

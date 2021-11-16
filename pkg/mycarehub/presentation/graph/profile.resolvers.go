@@ -11,9 +11,9 @@ import (
 )
 
 func (r *mutationResolver) InviteUser(ctx context.Context, userID string, phoneNumber string, flavour feedlib.Flavour) (bool, error) {
-	return r.interactor.UserUsecase.InviteUser(ctx, userID, phoneNumber, flavour)
+	return r.mycarehub.User.InviteUser(ctx, userID, phoneNumber, flavour)
 }
 
 func (r *mutationResolver) SetUserPin(ctx context.Context, input *dto.PINInput) (bool, error) {
-	return r.interactor.UserUsecase.SetUserPIN(ctx, *input)
+	return r.mycarehub.User.SetUserPIN(ctx, *input)
 }
