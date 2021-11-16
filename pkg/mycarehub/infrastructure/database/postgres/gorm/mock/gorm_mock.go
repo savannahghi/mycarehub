@@ -35,6 +35,7 @@ type GormMock struct {
 	MockUpdateUserNextAllowedLoginTimeFn    func(ctx context.Context, userID string, nextAllowedLoginTime time.Time) error
 	MockUpdateUserLastSuccessfulLoginTimeFn func(ctx context.Context, userID string) error
 	MockGetSecurityQuestionsFn              func(ctx context.Context, flavour feedlib.Flavour) ([]*gorm.SecurityQuestion, error)
+	MockSaveOTPFn                           func(ctx context.Context, otpInput *gorm.UserOTP) error
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -191,6 +192,9 @@ func NewGormMock() *GormMock {
 			}
 			return []*gorm.SecurityQuestion{securityQuestion}, nil
 		},
+		MockSaveOTPFn: func(ctx context.Context, otpInput *gorm.UserOTP) error {
+			return nil
+		},
 	}
 }
 
@@ -292,4 +296,9 @@ func (gm *GormMock) UpdateUserLastSuccessfulLoginTime(ctx context.Context, userI
 //GetSecurityQuestions mocks the implementation of getting all the security questions.
 func (gm *GormMock) GetSecurityQuestions(ctx context.Context, flavour feedlib.Flavour) ([]*gorm.SecurityQuestion, error) {
 	return gm.MockGetSecurityQuestionsFn(ctx, flavour)
+}
+
+// SaveOTP mocks the implementation for saving an OTP
+func (gm *GormMock) SaveOTP(ctx context.Context, otpInput *gorm.UserOTP) error {
+	return gm.MockSaveOTPFn(ctx, otpInput)
 }

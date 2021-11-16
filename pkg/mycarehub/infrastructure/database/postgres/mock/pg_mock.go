@@ -36,6 +36,7 @@ type PostgresMock struct {
 	MockUpdateUserNextAllowedLoginTimeFn    func(ctx context.Context, userID string, nextAllowedLoginTime time.Time) error
 	MockUpdateUserLastSuccessfulLoginTimeFn func(ctx context.Context, userID string) error
 	MockGetSecurityQuestionsFn              func(ctx context.Context, flavour feedlib.Flavour) ([]*domain.SecurityQuestion, error)
+	MockSaveOTPFn                           func(ctx context.Context, otpInput *domain.OTP) error
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -175,6 +176,9 @@ func NewPostgresMock() *PostgresMock {
 			}
 			return []*domain.SecurityQuestion{securityQuestion}, nil
 		},
+		MockSaveOTPFn: func(ctx context.Context, otpInput *domain.OTP) error {
+			return nil
+		},
 	}
 }
 
@@ -281,4 +285,9 @@ func (gm *PostgresMock) UpdateUserLastSuccessfulLoginTime(ctx context.Context, u
 //GetSecurityQuestions mocks the implementation of getting all the security questions.
 func (gm *PostgresMock) GetSecurityQuestions(ctx context.Context, flavour feedlib.Flavour) ([]*domain.SecurityQuestion, error) {
 	return gm.MockGetSecurityQuestionsFn(ctx, flavour)
+}
+
+// SaveOTP mocks the implementation for saving an OTP
+func (gm *PostgresMock) SaveOTP(ctx context.Context, otpInput *domain.OTP) error {
+	return gm.MockSaveOTPFn(ctx, otpInput)
 }

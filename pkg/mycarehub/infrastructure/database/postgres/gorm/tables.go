@@ -263,3 +263,22 @@ func (s *SecurityQuestion) BeforeCreate(tx *gorm.DB) (err error) {
 func (SecurityQuestion) TableName() string {
 	return "clients_securityquestion"
 }
+
+// UserOTP maps the schema for the table that stores the user's OTP
+type UserOTP struct {
+	Base
+
+	OTPID       int             `gorm:"unique;column:id;autoincrement"`
+	UserID      string          `gorm:"column:user_id"`
+	Valid       bool            `gorm:"column:is_valid"`
+	GeneratedAt time.Time       `gorm:"column:generated_at"`
+	ValidUntil  time.Time       `gorm:"column:valid_until"`
+	Channel     string          `gorm:"column:channel"`
+	Flavour     feedlib.Flavour `gorm:"column:flavour;not null"`
+	PhoneNumber string          `gorm:"column:phonenumber"`
+}
+
+// TableName customizes how the table name is generated
+func (UserOTP) TableName() string {
+	return "users_userotp"
+}
