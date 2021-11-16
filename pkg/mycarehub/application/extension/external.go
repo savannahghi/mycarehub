@@ -3,6 +3,8 @@ package extension
 import (
 	"context"
 
+	engagementInfra "github.com/savannahghi/engagementcore/pkg/engagement/infrastructure"
+	engagementOTP "github.com/savannahghi/engagementcore/pkg/engagement/usecases/otp"
 	"github.com/savannahghi/firebasetools"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/extension"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/utils"
@@ -22,12 +24,15 @@ type ExternalMethodsExtension interface {
 	EncryptPIN(rawPwd string, options *extension.Options) (string, string)
 	GenerateTempPIN(ctx context.Context) (string, error)
 	SendInviteSMS(ctx context.Context, phoneNumbers []string, message string) error
+	GenerateAndSendOTP(ctx context.Context, phoneNumber string) (string, error)
+	GenerateOTP(ctx context.Context) (string, error)
 }
 
 // External type implements external methods
 type External struct {
 	pinExt        extension.PINExtension
 	engagementExt engagement.ServiceEngagement
+	otpExtension  engagementOTP.ImplOTP
 }
 
 // NewExternalMethodsImpl creates a new instance of the external methods
@@ -38,9 +43,11 @@ func NewExternalMethodsImpl() ExternalMethodsExtension {
 	baseExt := extension.NewBaseExtensionImpl(firebaseClient)
 	engagementISC := utils.NewInterServiceClient(engagementService, baseExt)
 	engagementExtension := engagement.NewServiceEngagementImpl(engagementISC, baseExt)
+	otpExt := engagementOTP.NewOTP(engagementInfra.NewInteractor())
 	return &External{
 		pinExt:        pinExtension,
 		engagementExt: engagementExtension,
+		otpExtension:  *otpExt,
 	}
 }
 
@@ -80,4 +87,14 @@ func (e *External) GenerateTempPIN(ctx context.Context) (string, error) {
 // SendInviteSMS does the actual delivery of messages to the provided phone numbers
 func (e *External) SendInviteSMS(ctx context.Context, phoneNumbers []string, message string) error {
 	return e.engagementExt.SendSMS(ctx, phoneNumbers, message)
+}
+
+// GenerateAndSendOTP generates a new OTP and sends it to the provided phone number
+func (e *External) GenerateAndSendOTP(ctx context.Context, phoneNumber string) (string, error) {
+	return e.otpExtension.GenerateAndSendOTP(ctx, phoneNumber, nil)
+}
+
+// GenerateOTP generates an OTP
+func (e *External) GenerateOTP(ctx context.Context) (string, error) {
+	return e.otpExtension.GenerateOTP(ctx)
 }

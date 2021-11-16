@@ -16,6 +16,8 @@ type FakeExtensionImpl struct {
 	MockGenerateTempPINFn                 func(ctx context.Context) (string, error)
 	MockEncryptPINFn                      func(rawPwd string, options *extension.Options) (string, string)
 	MockSendInviteSMSFn                   func(ctx context.Context, phoneNumbers []string, message string) error
+	MockGenerateAndSendOTPFn              func(ctx context.Context, phoneNumber string) (string, error)
+	MockGenerateOTPFn                     func(ctx context.Context) (string, error)
 }
 
 // NewFakeExtension initializes a new instance of the external calls mock
@@ -44,6 +46,12 @@ func NewFakeExtension() *FakeExtensionImpl {
 		},
 		MockSendInviteSMSFn: func(ctx context.Context, phoneNumbers []string, message string) error {
 			return nil
+		},
+		MockGenerateAndSendOTPFn: func(ctx context.Context, phoneNumber string) (string, error) {
+			return "111222", nil
+		},
+		MockGenerateOTPFn: func(ctx context.Context) (string, error) {
+			return "111222", nil
 		},
 	}
 }
@@ -76,4 +84,14 @@ func (f *FakeExtensionImpl) EncryptPIN(rawPwd string, options *extension.Options
 // SendInviteSMS mocks the send sms method
 func (f *FakeExtensionImpl) SendInviteSMS(ctx context.Context, phoneNumbers []string, message string) error {
 	return f.MockSendInviteSMSFn(ctx, phoneNumbers, message)
+}
+
+// GenerateAndSendOTP mocks the generate and send OTP method
+func (f *FakeExtensionImpl) GenerateAndSendOTP(ctx context.Context, phoneNumber string) (string, error) {
+	return f.MockGenerateAndSendOTPFn(ctx, phoneNumber)
+}
+
+// GenerateOTP mocks the GenerateOTP implementation
+func (f *FakeExtensionImpl) GenerateOTP(ctx context.Context) (string, error) {
+	return f.MockGenerateOTPFn(ctx)
 }

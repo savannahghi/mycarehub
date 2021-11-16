@@ -14,6 +14,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/presentation/interactor"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/facility"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/otp"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/securityquestions"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/terms"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/user"
@@ -40,7 +41,9 @@ func InitializeTestService(ctx context.Context) *interactor.Interactor {
 
 	securityQuestionsUsecase := securityquestions.NewSecurityQuestionsUsecase(db)
 
-	i := interactor.NewMyCareHubInteractor(facilityUseCase, userUsecase, termsUsecase, securityQuestionsUsecase)
+	otpUseCase := otp.NewOTPUseCase(db, externalExt)
+
+	i := interactor.NewMyCareHubInteractor(facilityUseCase, userUsecase, termsUsecase, securityQuestionsUsecase, otpUseCase)
 	return i
 }
 

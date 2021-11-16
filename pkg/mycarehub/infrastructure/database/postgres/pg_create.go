@@ -78,3 +78,23 @@ func (d *MyCareHubDb) SavePin(ctx context.Context, pinInput *domain.UserPIN) (bo
 
 	return true, nil
 }
+
+// SaveOTP saves the otp to the database
+func (d *MyCareHubDb) SaveOTP(ctx context.Context, otpInput *domain.OTP) error {
+	otpObject := &gorm.UserOTP{
+		UserID:      otpInput.UserID,
+		Valid:       otpInput.Valid,
+		GeneratedAt: otpInput.GeneratedAt,
+		ValidUntil:  otpInput.ValidUntil,
+		Channel:     otpInput.Channel,
+		PhoneNumber: otpInput.PhoneNumber,
+		Flavour:     otpInput.Flavour,
+	}
+
+	err := d.create.SaveOTP(ctx, otpObject)
+	if err != nil {
+		return fmt.Errorf("failed to save OTP")
+	}
+
+	return nil
+}

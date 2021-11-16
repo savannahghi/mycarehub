@@ -4,6 +4,7 @@ package interactor
 
 import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/facility"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/otp"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/securityquestions"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/terms"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/user"
@@ -15,6 +16,7 @@ type Interactor struct {
 	UserUsecase      user.UseCasesUser
 	TermsUsecase     terms.UseCasesTerms
 	SecurityQuestion securityquestions.UseCaseSecurityQuestion
+	OTP              otp.UsecaseOTP
 }
 
 // NewMyCareHubInteractor returns a new onboarding interactor
@@ -23,11 +25,13 @@ func NewMyCareHubInteractor(
 	userUseCase user.UseCasesUser,
 	termsUsecase terms.UseCasesTerms,
 	securityquestions securityquestions.UseCaseSecurityQuestion,
+	otp otp.UsecaseOTP,
 ) *Interactor {
 	return &Interactor{
 		facilityUseCase,
 		userUseCase,
 		termsUsecase,
 		securityquestions,
+		otp,
 	}
 }

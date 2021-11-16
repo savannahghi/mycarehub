@@ -22,6 +22,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/presentation/interactor"
 	internalRest "github.com/savannahghi/mycarehub/pkg/mycarehub/presentation/rest"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/facility"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/otp"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/securityquestions"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/terms"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/user"
@@ -77,12 +78,15 @@ func Router(ctx context.Context) (*mux.Router, error) {
 
 	securityQuestionsUsecase := securityquestions.NewSecurityQuestionsUsecase(db)
 
+	otpUseCase := otp.NewOTPUseCase(db, externalExt)
+
 	// Initialize the interactor
 	i := interactor.NewMyCareHubInteractor(
 		facilityUseCase,
 		userUsecase,
 		termsUsecase,
 		securityQuestionsUsecase,
+		otpUseCase,
 	)
 
 	internalHandlers := internalRest.NewMyCareHubHandlersInterfaces(*i)

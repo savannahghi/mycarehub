@@ -92,6 +92,7 @@ type ComplexityRoot struct {
 		ListFacilities            func(childComplexity int, searchTerm *string, filterInput []*dto.FiltersInput, paginationInput dto.PaginationsInput) int
 		RetrieveFacility          func(childComplexity int, id string, active bool) int
 		RetrieveFacilityByMFLCode func(childComplexity int, mflCode int, isActive bool) int
+		SendOtp                   func(childComplexity int, userID string, phoneNumber string, flavour feedlib.Flavour) int
 	}
 
 	SecurityQuestion struct {
@@ -122,6 +123,7 @@ type QueryResolver interface {
 	RetrieveFacility(ctx context.Context, id string, active bool) (*domain.Facility, error)
 	RetrieveFacilityByMFLCode(ctx context.Context, mflCode int, isActive bool) (*domain.Facility, error)
 	ListFacilities(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationInput dto.PaginationsInput) (*domain.FacilityPage, error)
+	SendOtp(ctx context.Context, userID string, phoneNumber string, flavour feedlib.Flavour) (string, error)
 	GetSecurityQuestions(ctx context.Context, flavour feedlib.Flavour) ([]*domain.SecurityQuestion, error)
 	GetCurrentTerms(ctx context.Context) (*domain.TermsOfService, error)
 }
@@ -406,6 +408,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.RetrieveFacilityByMFLCode(childComplexity, args["mflCode"].(int), args["isActive"].(bool)), true
 
+	case "Query.sendOTP":
+		if e.complexity.Query.SendOtp == nil {
+			break
+		}
+
+		args, err := ec.field_Query_sendOTP_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.SendOtp(childComplexity, args["userID"].(string), args["phoneNumber"].(string), args["flavour"].(feedlib.Flavour)), true
+
 	case "SecurityQuestion.Active":
 		if e.complexity.SecurityQuestion.Active == nil {
 			break
@@ -650,6 +664,10 @@ input PINInput {
 	confirmPIN: String!
 	flavour: Flavour!
 }`, BuiltIn: false},
+	{Name: "pkg/mycarehub/presentation/graph/otp.graphql", Input: `extend type Query {
+  sendOTP(userID: String!, phoneNumber: String!, flavour: Flavour!): String!
+}
+`, BuiltIn: false},
 	{Name: "pkg/mycarehub/presentation/graph/profile.graphql", Input: `extend type Mutation {
   inviteUser(userID: String!,phoneNumber: String!, flavour:Flavour! ): Boolean!
   setUserPIN(input: PINInput): Boolean!
@@ -962,6 +980,39 @@ func (ec *executionContext) field_Query_retrieveFacility_args(ctx context.Contex
 		}
 	}
 	args["active"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_sendOTP_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["userID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userID"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["userID"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["phoneNumber"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("phoneNumber"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["phoneNumber"] = arg1
+	var arg2 feedlib.Flavour
+	if tmp, ok := rawArgs["flavour"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("flavour"))
+		arg2, err = ec.unmarshalNFlavour2githubᚗcomᚋsavannahghiᚋfeedlibᚐFlavour(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["flavour"] = arg2
 	return args, nil
 }
 
@@ -2021,6 +2072,48 @@ func (ec *executionContext) _Query_listFacilities(ctx context.Context, field gra
 	res := resTmp.(*domain.FacilityPage)
 	fc.Result = res
 	return ec.marshalOFacilityPage2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐFacilityPage(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_sendOTP(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_sendOTP_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().SendOtp(rctx, args["userID"].(string), args["phoneNumber"].(string), args["flavour"].(feedlib.Flavour))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_getSecurityQuestions(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -4019,6 +4112,20 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_listFacilities(ctx, field)
+				return res
+			})
+		case "sendOTP":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_sendOTP(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
 				return res
 			})
 		case "getSecurityQuestions":
