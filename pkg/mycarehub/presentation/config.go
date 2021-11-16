@@ -22,6 +22,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/presentation/interactor"
 	internalRest "github.com/savannahghi/mycarehub/pkg/mycarehub/presentation/rest"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/facility"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/securityquestions"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/terms"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/user"
 	"github.com/savannahghi/serverutils"
@@ -74,11 +75,14 @@ func Router(ctx context.Context) (*mux.Router, error) {
 
 	termsUsecase := terms.NewUseCasesTermsOfService(db, db)
 
+	securityQuestionsUsecase := securityquestions.NewSecurityQuestionsUsecase(db)
+
 	// Initialize the interactor
 	i := interactor.NewMyCareHubInteractor(
 		facilityUseCase,
 		userUsecase,
 		termsUsecase,
+		securityQuestionsUsecase,
 	)
 
 	internalHandlers := internalRest.NewMyCareHubHandlersInterfaces(*i)

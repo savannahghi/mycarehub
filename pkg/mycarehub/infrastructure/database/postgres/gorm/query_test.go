@@ -8,9 +8,11 @@ import (
 
 	"github.com/brianvoe/gofakeit"
 	"github.com/google/uuid"
+	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
+	"github.com/savannahghi/serverutils"
 	"github.com/segmentio/ksuid"
 )
 
@@ -556,5 +558,83 @@ func TestPGInstance_GetFacilities(t *testing.T) {
 				return
 			}
 		})
+	}
+}
+
+func TestPGInstance_GetSecurityQuestions(t *testing.T) {
+	ctx := context.Background()
+
+	pg, err := gorm.NewPGInstance()
+	if err != nil {
+		t.Errorf("pgInstance.Teardown() = %v", err)
+	}
+
+	sequence := 2
+	securityQuestionID := ksuid.New().String()
+
+	securityQuestionInput := &gorm.SecurityQuestion{
+		SecurityQuestionID: &securityQuestionID,
+		QuestionStem:       "test",
+		Description:        "desc description",
+		ResponseType:       enums.DateResponse,
+		Flavour:            feedlib.FlavourConsumer,
+		Active:             true,
+		Sequence:           &sequence,
+		OrganisationID:     serverutils.MustGetEnvVar("DEFAULT_ORG_ID"),
+	}
+	err = pg.DB.Create(securityQuestionInput).Error
+	if err != nil {
+		t.Errorf("failed to security questions: %v", err)
+	}
+
+	type args struct {
+		ctx     context.Context
+		flavour feedlib.Flavour
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    []*domain.SecurityQuestion
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:     ctx,
+				flavour: feedlib.FlavourConsumer,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case",
+			args: args{
+				ctx:     ctx,
+				flavour: "",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := testingDB.GetSecurityQuestions(tt.args.ctx, tt.args.flavour)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.GetSecurityQuestions() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if tt.wantErr && got != nil {
+				t.Errorf("expected facilities to be nil for %v", tt.name)
+				return
+			}
+
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected facilities not to be nil for %v", tt.name)
+				return
+			}
+		})
+	}
+
+	//TearDown
+	if err = pg.DB.Where("id", securityQuestionInput.SecurityQuestionID).Unscoped().Delete(&gorm.SecurityQuestion{}).Error; err != nil {
+		t.Errorf("failed to delete record = %v", err)
 	}
 }

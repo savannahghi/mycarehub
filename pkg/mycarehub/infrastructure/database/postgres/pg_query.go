@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 )
@@ -144,4 +145,33 @@ func (d *MyCareHubDb) GetUserProfileByUserID(ctx context.Context, userID string)
 	}
 
 	return d.mapProfileObjectToDomain(user), nil
+}
+
+// GetSecurityQuestions fetches all the security questions
+func (d *MyCareHubDb) GetSecurityQuestions(ctx context.Context, flavour feedlib.Flavour) ([]*domain.SecurityQuestion, error) {
+	var securityQuestion []*domain.SecurityQuestion
+
+	allSecurityQuestions, err := d.query.GetSecurityQuestions(ctx, flavour)
+	if err != nil {
+		return nil, fmt.Errorf("unable to get security questions: %v", err)
+	}
+
+	if len(allSecurityQuestions) == 0 {
+		return securityQuestion, nil
+	}
+
+	for _, sq := range allSecurityQuestions {
+		singleSecurityQuestion := &domain.SecurityQuestion{
+			SecurityQuestionID: *sq.SecurityQuestionID,
+			QuestionStem:       sq.QuestionStem,
+			Description:        sq.Description,
+			Flavour:            sq.Flavour,
+			Active:             sq.Active,
+			ResponseType:       sq.ResponseType,
+		}
+
+		securityQuestion = append(securityQuestion, singleSecurityQuestion)
+	}
+
+	return securityQuestion, nil
 }

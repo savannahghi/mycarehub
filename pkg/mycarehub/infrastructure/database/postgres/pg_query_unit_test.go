@@ -8,6 +8,7 @@ import (
 
 	"github.com/brianvoe/gofakeit"
 	"github.com/google/uuid"
+	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/interserviceclient"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
@@ -891,6 +892,89 @@ func TestOnboardingDb_GetUserProfileByUserID(t *testing.T) {
 			}
 			if !tt.wantErr && got == nil {
 				t.Errorf("expected to get a response but got: %v", got)
+				return
+			}
+		})
+	}
+}
+
+func TestMyCareHubDb_GetSecurityQuestions(t *testing.T) {
+	ctx := context.Background()
+
+	type args struct {
+		ctx     context.Context
+		flavour feedlib.Flavour
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    []*domain.SecurityQuestion
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:     ctx,
+				flavour: feedlib.FlavourConsumer,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case",
+			args: args{
+				ctx:     ctx,
+				flavour: feedlib.FlavourConsumer,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case - invalid flavor",
+			args: args{
+				ctx:     ctx,
+				flavour: "invalid-flavour",
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case - nil flavor",
+			args: args{
+				ctx: ctx,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var fakeGorm = gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			if tt.name == "Sad case" {
+				fakeGorm.MockGetSecurityQuestionsFn = func(ctx context.Context, flavour feedlib.Flavour) ([]*gorm.SecurityQuestion, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - invalid flavor" {
+				fakeGorm.MockGetSecurityQuestionsFn = func(ctx context.Context, flavour feedlib.Flavour) ([]*gorm.SecurityQuestion, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - nil flavor" {
+				fakeGorm.MockGetSecurityQuestionsFn = func(ctx context.Context, flavour feedlib.Flavour) ([]*gorm.SecurityQuestion, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+			got, err := d.GetSecurityQuestions(tt.args.ctx, tt.args.flavour)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.GetSecurityQuestions() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if tt.wantErr && got != nil {
+				t.Errorf("expected facilities to be nil for %v", tt.name)
+				return
+			}
+
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected facilities not to be nil for %v", tt.name)
 				return
 			}
 		})
