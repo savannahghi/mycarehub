@@ -39,3 +39,8 @@ type SecurityQuestion {
 	Active: Boolean!
 	ResponseType: SecurityQuestionResponseType!
 }
+
+type RecordSecurityQuestionResponse {
+	securityQuestionID: String!
+	isCorrect: Boolean!
+}

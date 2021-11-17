@@ -308,3 +308,90 @@ func TestPGInstance_SavePin(t *testing.T) {
 		t.Errorf("failed to delete record = %v", err)
 	}
 }
+
+func TestPGInstance_SaveSecurityQuestionResponse(t *testing.T) {
+
+	ctx := context.Background()
+
+	userID := uuid.New().String()
+
+	flavour := feedlib.FlavourConsumer
+
+	pg, err := gorm.NewPGInstance()
+	if err != nil {
+		t.Errorf("pgInstance.Teardown() = %v", err)
+	}
+
+	// Setup test user
+	userInput := &gorm.User{
+		UserID:          &userID,
+		FirstName:       gofakeit.FirstName(),
+		LastName:        gofakeit.LastName(),
+		MiddleName:      gofakeit.FirstName(),
+		UserType:        enums.ClientUser,
+		Gender:          enumutils.GenderMale,
+		Flavour:         flavour,
+		AcceptedTermsID: &termsID,
+		TermsAccepted:   true,
+	}
+
+	err = pg.DB.Create(&userInput).Error
+	if err != nil {
+		t.Errorf("failed to create user: %v", err)
+	}
+
+	sequence := 1
+
+	securityQuestionInput := &gorm.SecurityQuestion{
+		QuestionStem: gofakeit.Sentence(3),
+		Description:  gofakeit.Sentence(3),
+		ResponseType: enums.SecurityQuestionResponseTypeNumber,
+		Flavour:      flavour,
+		Sequence:     &sequence,
+	}
+
+	err = pg.DB.Create(securityQuestionInput).Error
+	if err != nil {
+		t.Errorf("Create securityQuestion failed: %v", err)
+	}
+
+	type args struct {
+		ctx                      context.Context
+		securityQuestionResponse *gorm.SecurityQuestionResponse
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "happy case - valid payload",
+			args: args{
+				ctx: ctx,
+				securityQuestionResponse: &gorm.SecurityQuestionResponse{
+					QuestionID: *securityQuestionInput.SecurityQuestionID,
+					UserID:     *userInput.UserID,
+					Response:   "20",
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			if err := testingDB.SaveSecurityQuestionResponse(tt.args.ctx, tt.args.securityQuestionResponse); (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.SaveSecurityQuestionResponse() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+	// Teardown
+	if err := pg.DB.Where("user_id", userInput.UserID).Unscoped().Delete(&gorm.SecurityQuestionResponse{}).Error; err != nil {
+		t.Errorf("failed to delete record = %v", err)
+	}
+	if err = pg.DB.Where("id", userInput.UserID).Unscoped().Delete(&gorm.User{}).Error; err != nil {
+		t.Errorf("failed to delete record = %v", err)
+	}
+	if err := pg.DB.Where("id", securityQuestionInput.SecurityQuestionID).Unscoped().Delete(&gorm.SecurityQuestion{}).Error; err != nil {
+		t.Errorf("failed to delete record = %v", err)
+	}
+}

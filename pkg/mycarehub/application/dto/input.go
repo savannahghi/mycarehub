@@ -93,3 +93,19 @@ func (f *PINInput) Validate() error {
 
 	return err
 }
+
+// SecurityQuestionResponseInput represents the SecurityQuestionResponse input data structure
+type SecurityQuestionResponseInput struct {
+	UserID             string `json:"userID" validate:"required"`
+	SecurityQuestionID string `json:"securityQuestionID" validate:"required"`
+	Response           string `json:"Response" validate:"required"`
+}
+
+// Validate helps with validation of SecurityQuestionResponseInput fields
+func (f *SecurityQuestionResponseInput) Validate() error {
+	v := validator.New()
+
+	err := v.Struct(f)
+
+	return err
+}

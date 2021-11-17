@@ -94,3 +94,19 @@ func (d *MyCareHubDb) mapTermsOfServiceObjectToDomain(termsObj *gorm.TermsOfServ
 		Text:    termsObj.Text,
 	}
 }
+
+// mapSecurityQuestionObjectToDomain maps the db security questions data to a domain model.
+func (d *MyCareHubDb) mapSecurityQuestionObjectToDomain(securityQuestionObj *gorm.SecurityQuestion) *domain.SecurityQuestion {
+	if securityQuestionObj == nil {
+		return nil
+	}
+
+	return &domain.SecurityQuestion{
+		SecurityQuestionID: *securityQuestionObj.SecurityQuestionID,
+		QuestionStem:       securityQuestionObj.QuestionStem,
+		Description:        securityQuestionObj.Description,
+		Flavour:            securityQuestionObj.Flavour,
+		Active:             securityQuestionObj.Active,
+		ResponseType:       securityQuestionObj.ResponseType,
+	}
+}

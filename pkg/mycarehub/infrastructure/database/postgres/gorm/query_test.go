@@ -576,7 +576,7 @@ func TestPGInstance_GetSecurityQuestions(t *testing.T) {
 		SecurityQuestionID: &securityQuestionID,
 		QuestionStem:       "test",
 		Description:        "desc description",
-		ResponseType:       enums.DateResponse,
+		ResponseType:       enums.SecurityQuestionResponseTypeDate,
 		Flavour:            feedlib.FlavourConsumer,
 		Active:             true,
 		Sequence:           &sequence,
@@ -637,4 +637,67 @@ func TestPGInstance_GetSecurityQuestions(t *testing.T) {
 	if err = pg.DB.Where("id", securityQuestionInput.SecurityQuestionID).Unscoped().Delete(&gorm.SecurityQuestion{}).Error; err != nil {
 		t.Errorf("failed to delete record = %v", err)
 	}
+}
+
+func TestPGInstance_GetSecurityQuestionByID(t *testing.T) {
+	ctx := context.Background()
+
+	pg, err := gorm.NewPGInstance()
+	if err != nil {
+		t.Errorf("pgInstance.Teardown() = %v", err)
+	}
+
+	sequence := 2
+	securityQuestionInput := &gorm.SecurityQuestion{
+		QuestionStem:   "test",
+		Description:    "desc description",
+		ResponseType:   enums.SecurityQuestionResponseTypeDate,
+		Flavour:        feedlib.FlavourConsumer,
+		Active:         true,
+		Sequence:       &sequence,
+		OrganisationID: serverutils.MustGetEnvVar("DEFAULT_ORG_ID"),
+	}
+
+	err = pg.DB.Create(securityQuestionInput).Error
+	if err != nil {
+		t.Errorf("failed to security questions: %v", err)
+	}
+
+	type args struct {
+		ctx                context.Context
+		securityQuestionID *string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:                ctx,
+				securityQuestionID: securityQuestionInput.SecurityQuestionID,
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			got, err := testingDB.GetSecurityQuestionByID(tt.args.ctx, tt.args.securityQuestionID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.GetSecurityQuestionByID() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected facilities not to be nil for %v", tt.name)
+				return
+			}
+		})
+	}
+
+	// TearDown
+	if err = pg.DB.Where("id", securityQuestionInput.SecurityQuestionID).Unscoped().Delete(&gorm.SecurityQuestion{}).Error; err != nil {
+		t.Errorf("failed to delete record = %v", err)
+	}
+
 }

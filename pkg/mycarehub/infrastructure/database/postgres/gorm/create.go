@@ -11,6 +11,7 @@ type Create interface {
 	SaveTemporaryUserPin(ctx context.Context, pinPayload *PINData) (bool, error)
 	SavePin(ctx context.Context, pinData *PINData) (bool, error)
 	SaveOTP(ctx context.Context, otpInput *UserOTP) error
+	SaveSecurityQuestionResponse(ctx context.Context, securityQuestionResponse *SecurityQuestionResponse) error
 }
 
 // GetOrCreateFacility is used to get or create a facility
@@ -53,6 +54,15 @@ func (db *PGInstance) SaveOTP(ctx context.Context, otpInput *UserOTP) error {
 	err := db.DB.Create(otpInput).Error
 	if err != nil {
 		return fmt.Errorf("failed to save otp data")
+	}
+	return nil
+}
+
+// SaveSecurityQuestionResponse saves the security question response to the database
+func (db *PGInstance) SaveSecurityQuestionResponse(ctx context.Context, securityQuestionResponse *SecurityQuestionResponse) error {
+	err := db.DB.Create(securityQuestionResponse).Error
+	if err != nil {
+		return fmt.Errorf("failed to save security question response data")
 	}
 	return nil
 }

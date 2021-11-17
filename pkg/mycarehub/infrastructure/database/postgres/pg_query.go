@@ -175,3 +175,13 @@ func (d *MyCareHubDb) GetSecurityQuestions(ctx context.Context, flavour feedlib.
 
 	return securityQuestion, nil
 }
+
+// GetSecurityQuestionByID fetches a security question by ID
+func (d *MyCareHubDb) GetSecurityQuestionByID(ctx context.Context, securityQuestionID *string) (*domain.SecurityQuestion, error) {
+	securityQuestion, err := d.query.GetSecurityQuestionByID(ctx, securityQuestionID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get security question by ID: %v", err)
+	}
+
+	return d.mapSecurityQuestionObjectToDomain(securityQuestion), nil
+}
