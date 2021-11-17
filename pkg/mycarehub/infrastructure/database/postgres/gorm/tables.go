@@ -276,6 +276,7 @@ type UserOTP struct {
 	Channel     string          `gorm:"column:channel"`
 	Flavour     feedlib.Flavour `gorm:"column:flavour;not null"`
 	PhoneNumber string          `gorm:"column:phonenumber"`
+	OTP         string          `gorm:"column:otp"`
 }
 
 // TableName customizes how the table name is generated

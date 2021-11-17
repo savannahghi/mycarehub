@@ -22,6 +22,7 @@ type Query interface {
 	GetCurrentTerms(ctx context.Context) (*TermsOfService, error)
 	GetSecurityQuestions(ctx context.Context, flavour feedlib.Flavour) ([]*SecurityQuestion, error)
 	GetSecurityQuestionByID(ctx context.Context, securityQuestionID *string) (*SecurityQuestion, error)
+	GetSecurityQuestionResponseByID(ctx context.Context, questionID string) (*SecurityQuestionResponse, error)
 }
 
 // RetrieveFacility fetches a single facility
@@ -201,4 +202,13 @@ func (db *PGInstance) GetSecurityQuestionByID(ctx context.Context, securityQuest
 		return nil, fmt.Errorf("failed to get security question by ID %v: %v", securityQuestionID, err)
 	}
 	return &securityQuestion, nil
+}
+
+// GetSecurityQuestionResponseByID returns the security question response
+func (db *PGInstance) GetSecurityQuestionResponseByID(ctx context.Context, questionID string) (*SecurityQuestionResponse, error) {
+	var questionResponse SecurityQuestionResponse
+	if err := db.DB.Where(&SecurityQuestionResponse{QuestionID: questionID}).First(&questionResponse).Error; err != nil {
+		return nil, fmt.Errorf("failed to get the security question response by ID")
+	}
+	return &questionResponse, nil
 }

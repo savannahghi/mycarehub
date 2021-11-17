@@ -13,6 +13,7 @@ import (
 // MyCareHubHandlersInterfaces represents all the REST API logic
 type MyCareHubHandlersInterfaces interface {
 	LoginByPhone() http.HandlerFunc
+	VerifySecurityQuestions() http.HandlerFunc
 }
 
 // MyCareHubHandlersInterfacesImpl represents the usecase implementation object
@@ -62,5 +63,39 @@ func (h *MyCareHubHandlersInterfacesImpl) LoginByPhone() http.HandlerFunc {
 		}
 
 		serverutils.WriteJSONResponse(w, resp, http.StatusOK)
+	}
+}
+
+// VerifySecurityQuestions get the user ID, question ID and the security question response from the payload and
+// looks up the saved responses to determine whether the answers match to what has been stored. All of them must match.
+// This is a security layer that will be used when a user attempts to reset their pin
+func (h *MyCareHubHandlersInterfacesImpl) VerifySecurityQuestions() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+
+		payloadData := &[]dto.VerifySecurityQuestionInput{}
+		serverutils.DecodeJSONToTargetStruct(w, r, payloadData)
+
+		for _, payload := range *payloadData {
+			err := payload.Validate()
+			if err != nil {
+				serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
+					Err:     err,
+					Message: err.Error(),
+				}, http.StatusBadRequest)
+				return
+			}
+		}
+
+		ok, err := h.interactor.SecurityQuestion.VerifySecurityQuestionResponses(ctx, payloadData)
+		if err != nil {
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusBadRequest)
+			return
+		}
+
+		serverutils.WriteJSONResponse(w, ok, http.StatusOK)
 	}
 }

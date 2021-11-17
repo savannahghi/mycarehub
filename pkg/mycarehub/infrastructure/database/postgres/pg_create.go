@@ -89,6 +89,7 @@ func (d *MyCareHubDb) SaveOTP(ctx context.Context, otpInput *domain.OTP) error {
 		Channel:     otpInput.Channel,
 		PhoneNumber: otpInput.PhoneNumber,
 		Flavour:     otpInput.Flavour,
+		OTP:         otpInput.OTP,
 	}
 
 	err := d.create.SaveOTP(ctx, otpObject)

@@ -130,7 +130,10 @@ func (d *MyCareHubDb) GetCurrentTerms(ctx context.Context) (*domain.TermsOfServi
 		return nil, fmt.Errorf("failed to get current terms of service: %v", err)
 	}
 
-	return d.mapTermsOfServiceObjectToDomain(terms), nil
+	return &domain.TermsOfService{
+		TermsID: *terms.TermsID,
+		Text:    terms.Text,
+	}, nil
 }
 
 // GetUserProfileByUserID fetches and returns a userprofile using their user ID
@@ -183,5 +186,32 @@ func (d *MyCareHubDb) GetSecurityQuestionByID(ctx context.Context, securityQuest
 		return nil, fmt.Errorf("failed to get security question by ID: %v", err)
 	}
 
-	return d.mapSecurityQuestionObjectToDomain(securityQuestion), nil
+	return &domain.SecurityQuestion{
+		SecurityQuestionID: *securityQuestion.SecurityQuestionID,
+		QuestionStem:       securityQuestion.QuestionStem,
+		Description:        securityQuestion.Description,
+		Flavour:            securityQuestion.Flavour,
+		Active:             securityQuestion.Active,
+		ResponseType:       securityQuestion.ResponseType,
+	}, nil
+}
+
+// GetSecurityQuestionResponseByID returns the security question response from the database
+func (d *MyCareHubDb) GetSecurityQuestionResponseByID(ctx context.Context, questionID string) (*domain.SecurityQuestionResponse, error) {
+	if questionID == "" {
+		return nil, fmt.Errorf("security question ID must be defined")
+	}
+
+	response, err := d.query.GetSecurityQuestionResponseByID(ctx, questionID)
+	if err != nil {
+		return nil, err
+	}
+
+	return &domain.SecurityQuestionResponse{
+		ResponseID: response.ResponseID,
+		QuestionID: response.QuestionID,
+		UserID:     response.UserID,
+		Active:     response.Active,
+		Response:   response.Response,
+	}, nil
 }

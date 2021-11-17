@@ -109,3 +109,21 @@ func (f *SecurityQuestionResponseInput) Validate() error {
 
 	return err
 }
+
+// VerifySecurityQuestionInput defines the field passed when verifying the set security questions
+type VerifySecurityQuestionInput struct {
+	QuestionID string          `json:"questionID" validate:"required"`
+	Flavour    feedlib.Flavour `json:"flavour" validate:"required"`
+	Response   string          `json:"response" validate:"required"`
+	UserID     string          `json:"userID" validate:"required"`
+}
+
+// Validate checks to validate whether the field inputs for verifying a security question
+// are filled
+func (f *VerifySecurityQuestionInput) Validate() error {
+	v := validator.New()
+
+	err := v.Struct(f)
+
+	return err
+}

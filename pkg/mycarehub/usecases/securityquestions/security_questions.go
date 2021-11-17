@@ -4,13 +4,20 @@ import (
 	"context"
 	"fmt"
 
+	"strings"
+
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
+	"github.com/savannahghi/serverutils"
+
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
 )
+
+// SensitiveContentPassphrase is the secret key used when encrypting and decrypting a security question response
+var SensitiveContentPassphrase = serverutils.MustGetEnvVar("SENSITIVE_CONTENT_SECRET_KEY")
 
 // IGetSecurityQuestions gets the security questions
 type IGetSecurityQuestions interface {
@@ -28,10 +35,19 @@ type IRecordSecurityQuestionResponses interface {
 	RecordSecurityQuestionResponses(ctx context.Context, input []*dto.SecurityQuestionResponseInput) ([]*domain.RecordSecurityQuestionResponse, error)
 }
 
+// IVerifySecurityQuestionResponses verifies the security questions
+type IVerifySecurityQuestionResponses interface {
+	VerifySecurityQuestionResponses(
+		ctx context.Context,
+		responses *[]dto.VerifySecurityQuestionInput,
+	) (bool, error)
+}
+
 // UseCaseSecurityQuestion groups all the security questions method interfaces
 type UseCaseSecurityQuestion interface {
 	IGetSecurityQuestions
 	IRecordSecurityQuestionResponses
+	IVerifySecurityQuestionResponses
 }
 
 // UseCaseSecurityQuestionsImpl represents security question implementation object
@@ -63,7 +79,6 @@ func (s *UseCaseSecurityQuestionsImpl) GetSecurityQuestions(ctx context.Context,
 func (s *UseCaseSecurityQuestionsImpl) RecordSecurityQuestionResponses(ctx context.Context, input []*dto.SecurityQuestionResponseInput) ([]*domain.RecordSecurityQuestionResponse, error) {
 	var recordSecurityQuestionResponses []*domain.RecordSecurityQuestionResponse
 
-	var sensitiveContentPassphrase = "the operating system for health."
 	for _, i := range input {
 		err := i.Validate()
 		if err != nil {
@@ -80,7 +95,7 @@ func (s *UseCaseSecurityQuestionsImpl) RecordSecurityQuestionResponses(ctx conte
 			return nil, fmt.Errorf("response %s is invalid: %v", i.Response, err)
 		}
 
-		encryptedResponse, err := helpers.EncryptSensitiveData(i.Response, sensitiveContentPassphrase)
+		encryptedResponse, err := helpers.EncryptSensitiveData(i.Response, SensitiveContentPassphrase)
 		if err != nil {
 			return nil, fmt.Errorf("failed to encrypt response: %v", err)
 		}
@@ -105,4 +120,27 @@ func (s *UseCaseSecurityQuestionsImpl) RecordSecurityQuestionResponses(ctx conte
 	}
 
 	return recordSecurityQuestionResponses, nil
+}
+
+// VerifySecurityQuestionResponses verifies the security questions against the recorded responses.
+func (s *UseCaseSecurityQuestionsImpl) VerifySecurityQuestionResponses(
+	ctx context.Context,
+	responses *[]dto.VerifySecurityQuestionInput,
+) (bool, error) {
+	for _, securityQuestionResponse := range *responses {
+		questionResponse, err := s.Query.GetSecurityQuestionResponseByID(ctx, securityQuestionResponse.QuestionID)
+		if err != nil {
+			return false, fmt.Errorf("failed to fetch security question response")
+		}
+
+		decryptedResponse, err := helpers.DecryptSensitiveData(questionResponse.Response, SensitiveContentPassphrase)
+		if err != nil {
+			return false, fmt.Errorf("failed to decrypt the response")
+		}
+
+		if !strings.EqualFold(securityQuestionResponse.Response, decryptedResponse) {
+			return false, fmt.Errorf("the security question response does not match")
+		}
+	}
+	return true, nil
 }

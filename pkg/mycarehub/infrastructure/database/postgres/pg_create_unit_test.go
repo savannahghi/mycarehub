@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/brianvoe/gofakeit"
+	"github.com/google/uuid"
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
@@ -69,7 +70,7 @@ func TestMyCareHubDb_GetOrCreateFacility(t *testing.T) {
 			name: "Sad Case - Fail to get ot create facility",
 			args: args{
 				ctx:      ctx,
-				facility: invalidFacility,
+				facility: facility,
 			},
 			wantErr: true,
 		},
@@ -78,7 +79,7 @@ func TestMyCareHubDb_GetOrCreateFacility(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			var fakeGorm = gormMock.NewGormMock()
 			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
-			got, err := d.GetOrCreateFacility(tt.args.ctx, tt.args.facility)
+
 			if tt.name == "sad case - facility code not defined" {
 				fakeGorm.MockGetOrCreateFacilityFn = func(ctx context.Context, facility *gorm.Facility) (*gorm.Facility, error) {
 					return nil, fmt.Errorf("failed to create facility")
@@ -97,6 +98,7 @@ func TestMyCareHubDb_GetOrCreateFacility(t *testing.T) {
 				}
 			}
 
+			got, err := d.GetOrCreateFacility(tt.args.ctx, tt.args.facility)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("MyCareHubDb.GetOrCreateFacility() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -172,6 +174,15 @@ func TestMyCareHubDb_SaveTemporaryUserPin(t *testing.T) {
 			wantErr: false,
 			want:    true,
 		},
+		{
+			name: "Sad Case - Fail to save temporary pin",
+			args: args{
+				ctx:     ctx,
+				pinData: pinPayload,
+			},
+			wantErr: true,
+			want:    false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -181,6 +192,12 @@ func TestMyCareHubDb_SaveTemporaryUserPin(t *testing.T) {
 			if tt.name == "invalid: missing userID" {
 				fakeGorm.MockSaveTemporaryUserPinFn = func(ctx context.Context, pinData *gorm.PINData) (bool, error) {
 					return false, fmt.Errorf("user id must be provided")
+				}
+			}
+
+			if tt.name == "Sad Case - Fail to save temporary pin" {
+				fakeGorm.MockSaveTemporaryUserPinFn = func(ctx context.Context, pinData *gorm.PINData) (bool, error) {
+					return false, fmt.Errorf("fail to save temporary pin")
 				}
 			}
 
@@ -319,6 +336,59 @@ func TestMyCareHubDb_SaveOTP(t *testing.T) {
 
 			if err := d.SaveOTP(tt.args.ctx, tt.args.otpInput); (err != nil) != tt.wantErr {
 				t.Errorf("MyCareHubDb.SaveOTP() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestMyCareHubDb_SaveSecurityQuestionResponse(t *testing.T) {
+	ctx := context.Background()
+	type args struct {
+		ctx                      context.Context
+		securityQuestionResponse *dto.SecurityQuestionResponseInput
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Successfully save question response",
+			args: args{
+				ctx: ctx,
+				securityQuestionResponse: &dto.SecurityQuestionResponseInput{
+					UserID:             uuid.New().String(),
+					SecurityQuestionID: uuid.New().String(),
+					Response:           "A valid response",
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad Case - Fail to save question response",
+			args: args{
+				ctx: ctx,
+				securityQuestionResponse: &dto.SecurityQuestionResponseInput{
+					UserID:             uuid.New().String(),
+					SecurityQuestionID: uuid.New().String(),
+					Response:           "A valid response",
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var fakeGorm = gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			if tt.name == "Sad Case - Fail to save question response" {
+				fakeGorm.MockSaveSecurityQuestionResponseFn = func(ctx context.Context, securityQuestionResponse *gorm.SecurityQuestionResponse) error {
+					return fmt.Errorf("failed to save security question response")
+				}
+			}
+			if err := d.SaveSecurityQuestionResponse(tt.args.ctx, tt.args.securityQuestionResponse); (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.SaveSecurityQuestionResponse() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
