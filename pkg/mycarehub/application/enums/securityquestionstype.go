@@ -10,25 +10,27 @@ import (
 type SecurityQuestionResponseType string
 
 const (
-	//StringResponse is the string type security question response
-	StringResponse SecurityQuestionResponseType = "STRING"
-	//NumberResponse is the number type security question response
-	NumberResponse SecurityQuestionResponseType = "NUMBER"
-	//DateResponse is the date type security question response
-	DateResponse SecurityQuestionResponseType = "DATE"
+	//SecurityQuestionResponseTypeString is the string type security question response
+	SecurityQuestionResponseTypeString SecurityQuestionResponseType = "STRING"
+	//SecurityQuestionResponseTypeNumber is the number type security question response
+	SecurityQuestionResponseTypeNumber SecurityQuestionResponseType = "NUMBER"
+	//SecurityQuestionResponseTypeDate is the date type security question response
+	SecurityQuestionResponseTypeDate SecurityQuestionResponseType = "DATE"
 )
 
 // AllSecurityQuestionResponseType is a set of a  valid and known security question types.
 var AllSecurityQuestionResponseType = []SecurityQuestionResponseType{
-	StringResponse,
-	NumberResponse,
-	DateResponse,
+	SecurityQuestionResponseTypeString,
+	SecurityQuestionResponseTypeNumber,
+	SecurityQuestionResponseTypeDate,
 }
 
 // IsValid returns true if a sort is valid
 func (m SecurityQuestionResponseType) IsValid() bool {
 	switch m {
-	case StringResponse, NumberResponse, DateResponse:
+	case SecurityQuestionResponseTypeString,
+		SecurityQuestionResponseTypeNumber,
+		SecurityQuestionResponseTypeDate:
 		return true
 	}
 	return false

@@ -38,6 +38,8 @@ type PostgresMock struct {
 	MockUpdateUserLastSuccessfulLoginTimeFn func(ctx context.Context, userID string) error
 	MockGetSecurityQuestionsFn              func(ctx context.Context, flavour feedlib.Flavour) ([]*domain.SecurityQuestion, error)
 	MockSaveOTPFn                           func(ctx context.Context, otpInput *domain.OTP) error
+	MockGetSecurityQuestionByIDFn           func(ctx context.Context, securityQuestionID *string) (*domain.SecurityQuestion, error)
+	MockSaveSecurityQuestionResponseFn      func(ctx context.Context, securityQuestionResponse *dto.SecurityQuestionResponseInput) error
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -177,11 +179,23 @@ func NewPostgresMock() *PostgresMock {
 				Description:  "test",
 				Flavour:      feedlib.FlavourConsumer,
 				Active:       true,
-				ResponseType: enums.NumberResponse,
+				ResponseType: enums.SecurityQuestionResponseTypeNumber,
 			}
 			return []*domain.SecurityQuestion{securityQuestion}, nil
 		},
 		MockSaveOTPFn: func(ctx context.Context, otpInput *domain.OTP) error {
+			return nil
+		},
+		MockGetSecurityQuestionByIDFn: func(ctx context.Context, securityQuestionID *string) (*domain.SecurityQuestion, error) {
+			return &domain.SecurityQuestion{
+				QuestionStem: "test",
+				Description:  "test",
+				Flavour:      feedlib.FlavourConsumer,
+				Active:       true,
+				ResponseType: enums.SecurityQuestionResponseTypeNumber,
+			}, nil
+		},
+		MockSaveSecurityQuestionResponseFn: func(ctx context.Context, securityQuestionResponse *dto.SecurityQuestionResponseInput) error {
 			return nil
 		},
 	}
@@ -300,4 +314,14 @@ func (gm *PostgresMock) SaveOTP(ctx context.Context, otpInput *domain.OTP) error
 // SetNickName is used to mock the implementation ofsetting or changing the user's nickname
 func (gm *PostgresMock) SetNickName(ctx context.Context, userID *string, nickname *string) (bool, error) {
 	return gm.MockSetNickNameFn(ctx, userID, nickname)
+}
+
+// GetSecurityQuestionByID mocks the implementation of getting a security question by ID
+func (gm *PostgresMock) GetSecurityQuestionByID(ctx context.Context, securityQuestionID *string) (*domain.SecurityQuestion, error) {
+	return gm.MockGetSecurityQuestionByIDFn(ctx, securityQuestionID)
+}
+
+// SaveSecurityQuestionResponse saves the response of a security question
+func (gm *PostgresMock) SaveSecurityQuestionResponse(ctx context.Context, securityQuestionResponse *dto.SecurityQuestionResponseInput) error {
+	return gm.MockSaveSecurityQuestionResponseFn(ctx, securityQuestionResponse)
 }

@@ -17,6 +17,7 @@ type Create interface {
 	SaveTemporaryUserPin(ctx context.Context, pinData *domain.UserPIN) (bool, error)
 	SavePin(ctx context.Context, pinInput *domain.UserPIN) (bool, error)
 	SaveOTP(ctx context.Context, otpInput *domain.OTP) error
+	SaveSecurityQuestionResponse(ctx context.Context, securityQuestionResponse *dto.SecurityQuestionResponseInput) error
 }
 
 // Delete represents all the deletion action interfaces
@@ -35,6 +36,7 @@ type Query interface {
 	GetUserProfileByUserID(ctx context.Context, userID string) (*domain.User, error)
 	GetCurrentTerms(ctx context.Context) (*domain.TermsOfService, error)
 	GetSecurityQuestions(ctx context.Context, flavour feedlib.Flavour) ([]*domain.SecurityQuestion, error)
+	GetSecurityQuestionByID(ctx context.Context, securityQuestionID *string) (*domain.SecurityQuestion, error)
 }
 
 // Update represents all the update action interfaces

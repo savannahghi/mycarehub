@@ -7,8 +7,13 @@ import (
 	"context"
 
 	"github.com/savannahghi/feedlib"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 )
+
+func (r *mutationResolver) RecordSecurityQuestionResponses(ctx context.Context, input []*dto.SecurityQuestionResponseInput) ([]*domain.RecordSecurityQuestionResponse, error) {
+	return r.interactor.SecurityQuestion.RecordSecurityQuestionResponses(ctx, input)
+}
 
 func (r *queryResolver) GetSecurityQuestions(ctx context.Context, flavour feedlib.Flavour) ([]*domain.SecurityQuestion, error) {
 	r.checkPreconditions()

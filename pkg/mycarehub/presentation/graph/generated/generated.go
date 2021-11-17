@@ -67,14 +67,15 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		AcceptTerms        func(childComplexity int, userID string, termsID int) int
-		CreateFacility     func(childComplexity int, input dto.FacilityInput) int
-		DeleteFacility     func(childComplexity int, mflCode int) int
-		InactivateFacility func(childComplexity int, mflCode int) int
-		InviteUser         func(childComplexity int, userID string, phoneNumber string, flavour feedlib.Flavour) int
-		ReactivateFacility func(childComplexity int, mflCode int) int
-		SetNickName        func(childComplexity int, userID string, nickname string) int
-		SetUserPin         func(childComplexity int, input *dto.PINInput) int
+		AcceptTerms                     func(childComplexity int, userID string, termsID int) int
+		CreateFacility                  func(childComplexity int, input dto.FacilityInput) int
+		DeleteFacility                  func(childComplexity int, mflCode int) int
+		InactivateFacility              func(childComplexity int, mflCode int) int
+		InviteUser                      func(childComplexity int, userID string, phoneNumber string, flavour feedlib.Flavour) int
+		ReactivateFacility              func(childComplexity int, mflCode int) int
+		RecordSecurityQuestionResponses func(childComplexity int, input []*dto.SecurityQuestionResponseInput) int
+		SetNickName                     func(childComplexity int, userID string, nickname string) int
+		SetUserPin                      func(childComplexity int, input *dto.PINInput) int
 	}
 
 	Pagination struct {
@@ -94,6 +95,11 @@ type ComplexityRoot struct {
 		RetrieveFacility          func(childComplexity int, id string, active bool) int
 		RetrieveFacilityByMFLCode func(childComplexity int, mflCode int, isActive bool) int
 		SendOtp                   func(childComplexity int, userID string, phoneNumber string, flavour feedlib.Flavour) int
+	}
+
+	RecordSecurityQuestionResponse struct {
+		IsCorrect          func(childComplexity int) int
+		SecurityQuestionID func(childComplexity int) int
 	}
 
 	SecurityQuestion struct {
@@ -117,6 +123,7 @@ type MutationResolver interface {
 	InactivateFacility(ctx context.Context, mflCode int) (bool, error)
 	InviteUser(ctx context.Context, userID string, phoneNumber string, flavour feedlib.Flavour) (bool, error)
 	SetUserPin(ctx context.Context, input *dto.PINInput) (bool, error)
+	RecordSecurityQuestionResponses(ctx context.Context, input []*dto.SecurityQuestionResponseInput) ([]*domain.RecordSecurityQuestionResponse, error)
 	AcceptTerms(ctx context.Context, userID string, termsID int) (bool, error)
 	SetNickName(ctx context.Context, userID string, nickname string) (bool, error)
 }
@@ -294,6 +301,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.ReactivateFacility(childComplexity, args["mflCode"].(int)), true
 
+	case "Mutation.recordSecurityQuestionResponses":
+		if e.complexity.Mutation.RecordSecurityQuestionResponses == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_recordSecurityQuestionResponses_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.RecordSecurityQuestionResponses(childComplexity, args["input"].([]*dto.SecurityQuestionResponseInput)), true
+
 	case "Mutation.setNickName":
 		if e.complexity.Mutation.SetNickName == nil {
 			break
@@ -433,6 +452,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.SendOtp(childComplexity, args["userID"].(string), args["phoneNumber"].(string), args["flavour"].(feedlib.Flavour)), true
+
+	case "RecordSecurityQuestionResponse.isCorrect":
+		if e.complexity.RecordSecurityQuestionResponse.IsCorrect == nil {
+			break
+		}
+
+		return e.complexity.RecordSecurityQuestionResponse.IsCorrect(childComplexity), true
+
+	case "RecordSecurityQuestionResponse.securityQuestionID":
+		if e.complexity.RecordSecurityQuestionResponse.SecurityQuestionID == nil {
+			break
+		}
+
+		return e.complexity.RecordSecurityQuestionResponse.SecurityQuestionID(childComplexity), true
 
 	case "SecurityQuestion.Active":
 		if e.complexity.SecurityQuestion.Active == nil {
@@ -677,6 +710,12 @@ input PINInput {
 	pin: String!
 	confirmPIN: String!
 	flavour: Flavour!
+}
+
+input SecurityQuestionResponseInput {
+	userID: String!
+	securityQuestionID: String!
+	response: String!
 }`, BuiltIn: false},
 	{Name: "pkg/mycarehub/presentation/graph/otp.graphql", Input: `extend type Query {
   sendOTP(userID: String!, phoneNumber: String!, flavour: Flavour!): String!
@@ -688,6 +727,11 @@ input PINInput {
 }`, BuiltIn: false},
 	{Name: "pkg/mycarehub/presentation/graph/securityquestion.graphql", Input: `extend type Query{
     getSecurityQuestions(flavour: Flavour!): [SecurityQuestion!]!
+   
+}
+
+extend type Mutation{
+    recordSecurityQuestionResponses(input: [SecurityQuestionResponseInput!]!): [RecordSecurityQuestionResponse!]!
 }`, BuiltIn: false},
 	{Name: "pkg/mycarehub/presentation/graph/types.graphql", Input: `type Facility {
   ID: String!
@@ -729,6 +773,11 @@ type SecurityQuestion {
 	Description: String
 	Active: Boolean!
 	ResponseType: SecurityQuestionResponseType!
+}
+
+type RecordSecurityQuestionResponse {
+	securityQuestionID: String!
+	isCorrect: Boolean!
 }`, BuiltIn: false},
 	{Name: "pkg/mycarehub/presentation/graph/user.graphql", Input: `extend type Query {
     getCurrentTerms: TermsOfService!
@@ -869,6 +918,21 @@ func (ec *executionContext) field_Mutation_reactivateFacility_args(ctx context.C
 		}
 	}
 	args["mflCode"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_recordSecurityQuestionResponses_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 []*dto.SecurityQuestionResponseInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNSecurityQuestionResponseInput2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐSecurityQuestionResponseInputᚄ(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
 	return args, nil
 }
 
@@ -1721,6 +1785,48 @@ func (ec *executionContext) _Mutation_setUserPIN(ctx context.Context, field grap
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Mutation_recordSecurityQuestionResponses(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_recordSecurityQuestionResponses_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().RecordSecurityQuestionResponses(rctx, args["input"].([]*dto.SecurityQuestionResponseInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*domain.RecordSecurityQuestionResponse)
+	fc.Result = res
+	return ec.marshalNRecordSecurityQuestionResponse2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐRecordSecurityQuestionResponseᚄ(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Mutation_acceptTerms(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -2343,6 +2449,76 @@ func (ec *executionContext) _Query___schema(ctx context.Context, field graphql.C
 	res := resTmp.(*introspection.Schema)
 	fc.Result = res
 	return ec.marshalO__Schema2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐSchema(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _RecordSecurityQuestionResponse_securityQuestionID(ctx context.Context, field graphql.CollectedField, obj *domain.RecordSecurityQuestionResponse) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "RecordSecurityQuestionResponse",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SecurityQuestionID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _RecordSecurityQuestionResponse_isCorrect(ctx context.Context, field graphql.CollectedField, obj *domain.RecordSecurityQuestionResponse) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "RecordSecurityQuestionResponse",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.IsCorrect, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _SecurityQuestion_SecurityQuestionID(ctx context.Context, field graphql.CollectedField, obj *domain.SecurityQuestion) (ret graphql.Marshaler) {
@@ -3881,6 +4057,45 @@ func (ec *executionContext) unmarshalInputPaginationsInput(ctx context.Context, 
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputSecurityQuestionResponseInput(ctx context.Context, obj interface{}) (dto.SecurityQuestionResponseInput, error) {
+	var it dto.SecurityQuestionResponseInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	for k, v := range asMap {
+		switch k {
+		case "userID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userID"))
+			it.UserID, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "securityQuestionID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("securityQuestionID"))
+			it.SecurityQuestionID, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "response":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("response"))
+			it.Response, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputSortsInput(ctx context.Context, obj interface{}) (dto.SortsInput, error) {
 	var it dto.SortsInput
 	asMap := map[string]interface{}{}
@@ -4077,6 +4292,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "recordSecurityQuestionResponses":
+			out.Values[i] = ec._Mutation_recordSecurityQuestionResponses(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "acceptTerms":
 			out.Values[i] = ec._Mutation_acceptTerms(ctx, field)
 			if out.Values[i] == graphql.Null {
@@ -4246,6 +4466,38 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Values[i] = ec._Query___type(ctx, field)
 		case "__schema":
 			out.Values[i] = ec._Query___schema(ctx, field)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var recordSecurityQuestionResponseImplementors = []string{"RecordSecurityQuestionResponse"}
+
+func (ec *executionContext) _RecordSecurityQuestionResponse(ctx context.Context, sel ast.SelectionSet, obj *domain.RecordSecurityQuestionResponse) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, recordSecurityQuestionResponseImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("RecordSecurityQuestionResponse")
+		case "securityQuestionID":
+			out.Values[i] = ec._RecordSecurityQuestionResponse_securityQuestionID(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "isCorrect":
+			out.Values[i] = ec._RecordSecurityQuestionResponse_isCorrect(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -4689,6 +4941,60 @@ func (ec *executionContext) unmarshalNPaginationsInput2githubᚗcomᚋsavannahgh
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) marshalNRecordSecurityQuestionResponse2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐRecordSecurityQuestionResponseᚄ(ctx context.Context, sel ast.SelectionSet, v []*domain.RecordSecurityQuestionResponse) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNRecordSecurityQuestionResponse2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐRecordSecurityQuestionResponse(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNRecordSecurityQuestionResponse2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐRecordSecurityQuestionResponse(ctx context.Context, sel ast.SelectionSet, v *domain.RecordSecurityQuestionResponse) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._RecordSecurityQuestionResponse(ctx, sel, v)
+}
+
 func (ec *executionContext) marshalNSecurityQuestion2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐSecurityQuestionᚄ(ctx context.Context, sel ast.SelectionSet, v []*domain.SecurityQuestion) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
@@ -4741,6 +5047,32 @@ func (ec *executionContext) marshalNSecurityQuestion2ᚖgithubᚗcomᚋsavannahg
 		return graphql.Null
 	}
 	return ec._SecurityQuestion(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNSecurityQuestionResponseInput2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐSecurityQuestionResponseInputᚄ(ctx context.Context, v interface{}) ([]*dto.SecurityQuestionResponseInput, error) {
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]*dto.SecurityQuestionResponseInput, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNSecurityQuestionResponseInput2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐSecurityQuestionResponseInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalNSecurityQuestionResponseInput2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐSecurityQuestionResponseInput(ctx context.Context, v interface{}) (*dto.SecurityQuestionResponseInput, error) {
+	res, err := ec.unmarshalInputSecurityQuestionResponseInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalNSecurityQuestionResponseType2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐSecurityQuestionResponseType(ctx context.Context, v interface{}) (enums.SecurityQuestionResponseType, error) {

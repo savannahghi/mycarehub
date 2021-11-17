@@ -21,6 +21,7 @@ type Query interface {
 	GetUserProfileByUserID(ctx context.Context, userID string) (*User, error)
 	GetCurrentTerms(ctx context.Context) (*TermsOfService, error)
 	GetSecurityQuestions(ctx context.Context, flavour feedlib.Flavour) ([]*SecurityQuestion, error)
+	GetSecurityQuestionByID(ctx context.Context, securityQuestionID *string) (*SecurityQuestion, error)
 }
 
 // RetrieveFacility fetches a single facility
@@ -191,4 +192,13 @@ func (db *PGInstance) GetUserProfileByUserID(ctx context.Context, userID string)
 		return nil, fmt.Errorf("failed to get user by user ID %v: %v", userID, err)
 	}
 	return &user, nil
+}
+
+// GetSecurityQuestionByID fetches a security question using the security question ID
+func (db *PGInstance) GetSecurityQuestionByID(ctx context.Context, securityQuestionID *string) (*SecurityQuestion, error) {
+	var securityQuestion SecurityQuestion
+	if err := db.DB.Where(&SecurityQuestion{SecurityQuestionID: securityQuestionID}).First(&securityQuestion).Error; err != nil {
+		return nil, fmt.Errorf("failed to get security question by ID %v: %v", securityQuestionID, err)
+	}
+	return &securityQuestion, nil
 }

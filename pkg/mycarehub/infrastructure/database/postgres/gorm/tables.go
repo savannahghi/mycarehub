@@ -282,3 +282,32 @@ type UserOTP struct {
 func (UserOTP) TableName() string {
 	return "users_userotp"
 }
+
+// SecurityQuestionResponse maps the schema for the table that stores the security question
+// reponses
+type SecurityQuestionResponse struct {
+	Base
+
+	ResponseID     string    `gorm:"column:id"`
+	QuestionID     string    `gorm:"column:question_id"`
+	UserID         string    `gorm:"column:user_id"`
+	Active         bool      `gorm:"column:active"`
+	Response       string    `gorm:"column:response"`
+	OrganisationID string    `gorm:"column:organisation_id"`
+	Timestamp      time.Time `gorm:"column:timestamp"`
+}
+
+// BeforeCreate function is called before creating a security question response
+// It generates the organisation id and response ID
+func (s *SecurityQuestionResponse) BeforeCreate(tx *gorm.DB) (err error) {
+	id := uuid.New().String()
+	s.ResponseID = id
+	s.OrganisationID = OrganizationID
+	s.Timestamp = time.Now()
+	return
+}
+
+// TableName customizes how the table name is generated
+func (SecurityQuestionResponse) TableName() string {
+	return "clients_securityquestionresponse"
+}

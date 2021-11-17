@@ -37,6 +37,8 @@ type GormMock struct {
 	MockSetNickNameFn                       func(ctx context.Context, userID *string, nickname *string) (bool, error)
 	MockGetSecurityQuestionsFn              func(ctx context.Context, flavour feedlib.Flavour) ([]*gorm.SecurityQuestion, error)
 	MockSaveOTPFn                           func(ctx context.Context, otpInput *gorm.UserOTP) error
+	MockGetSecurityQuestionByIDFn           func(ctx context.Context, securityQuestionID *string) (*gorm.SecurityQuestion, error)
+	MockSaveSecurityQuestionResponseFn      func(ctx context.Context, securityQuestionResponse *gorm.SecurityQuestionResponse) error
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -189,7 +191,7 @@ func NewGormMock() *GormMock {
 				Description:        "test",
 				Flavour:            feedlib.FlavourConsumer,
 				Active:             true,
-				ResponseType:       enums.NumberResponse,
+				ResponseType:       enums.SecurityQuestionResponseTypeNumber,
 			}
 			return []*gorm.SecurityQuestion{securityQuestion}, nil
 		},
@@ -198,6 +200,19 @@ func NewGormMock() *GormMock {
 		},
 		MockSetNickNameFn: func(ctx context.Context, userID, nickname *string) (bool, error) {
 			return true, nil
+		},
+		MockGetSecurityQuestionByIDFn: func(ctx context.Context, securityQuestionID *string) (*gorm.SecurityQuestion, error) {
+			return &gorm.SecurityQuestion{
+				SecurityQuestionID: &UUID,
+				QuestionStem:       "test",
+				Description:        "test",
+				Flavour:            feedlib.FlavourConsumer,
+				Active:             true,
+				ResponseType:       enums.SecurityQuestionResponseTypeNumber,
+			}, nil
+		},
+		MockSaveSecurityQuestionResponseFn: func(ctx context.Context, securityQuestionResponse *gorm.SecurityQuestionResponse) error {
+			return nil
 		},
 	}
 }
@@ -310,4 +325,14 @@ func (gm *GormMock) SaveOTP(ctx context.Context, otpInput *gorm.UserOTP) error {
 // SetNickName is used to mock the implementation ofsetting or changing the user's nickname
 func (gm *GormMock) SetNickName(ctx context.Context, userID *string, nickname *string) (bool, error) {
 	return gm.MockSetNickNameFn(ctx, userID, nickname)
+}
+
+// GetSecurityQuestionByID mocks the implementation of getting a security question by ID
+func (gm *GormMock) GetSecurityQuestionByID(ctx context.Context, securityQuestionID *string) (*gorm.SecurityQuestion, error) {
+	return gm.MockGetSecurityQuestionByIDFn(ctx, securityQuestionID)
+}
+
+// SaveSecurityQuestionResponse mocks the implementation of saving a security question response
+func (gm *GormMock) SaveSecurityQuestionResponse(ctx context.Context, securityQuestionResponse *gorm.SecurityQuestionResponse) error {
+	return gm.MockSaveSecurityQuestionResponseFn(ctx, securityQuestionResponse)
 }

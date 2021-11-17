@@ -164,7 +164,7 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 
 	termsUsecase := terms.NewUseCasesTermsOfService(db, db)
 
-	securityQuestionsUsecase := securityquestions.NewSecurityQuestionsUsecase(db)
+	securityQuestionsUsecase := securityquestions.NewSecurityQuestionsUsecase(db, db, externalExt)
 
 	otpUseCase := otp.NewOTPUseCase(db, externalExt)
 

@@ -14,7 +14,7 @@ func TestSecurityQuestionResponseType_String(t *testing.T) {
 	}{
 		{
 			name: "NUMBER",
-			e:    NumberResponse,
+			e:    SecurityQuestionResponseTypeNumber,
 			want: "NUMBER",
 		},
 	}
@@ -35,7 +35,7 @@ func TestSecurityQuestionResponseType_IsValid(t *testing.T) {
 	}{
 		{
 			name: "valid type",
-			e:    NumberResponse,
+			e:    SecurityQuestionResponseTypeNumber,
 			want: true,
 		},
 		{
@@ -54,7 +54,7 @@ func TestSecurityQuestionResponseType_IsValid(t *testing.T) {
 }
 
 func TestSecurityQuestionResponseType_UnmarshalGQL(t *testing.T) {
-	value := DateResponse
+	value := SecurityQuestionResponseTypeDate
 	invalid := SecurityQuestionResponseType("invalid")
 	type args struct {
 		v interface{}
@@ -110,7 +110,7 @@ func TestSecurityQuestionResponseType_MarshalGQL(t *testing.T) {
 	}{
 		{
 			name:  "valid type enums",
-			e:     StringResponse,
+			e:     SecurityQuestionResponseTypeString,
 			b:     w,
 			wantW: strconv.Quote("STRING"),
 		},

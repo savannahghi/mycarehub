@@ -98,3 +98,20 @@ func (d *MyCareHubDb) SaveOTP(ctx context.Context, otpInput *domain.OTP) error {
 
 	return nil
 }
+
+// SaveSecurityQuestionResponse saves the security question response to the database
+func (d *MyCareHubDb) SaveSecurityQuestionResponse(ctx context.Context, securityQuestionResponse *dto.SecurityQuestionResponseInput) error {
+	securityQuestionResponseObj := &gorm.SecurityQuestionResponse{
+		UserID:     securityQuestionResponse.UserID,
+		QuestionID: securityQuestionResponse.SecurityQuestionID,
+		Active:     true,
+		Response:   securityQuestionResponse.Response,
+	}
+
+	err := d.create.SaveSecurityQuestionResponse(ctx, securityQuestionResponseObj)
+	if err != nil {
+		return fmt.Errorf("failed to save security question response data")
+	}
+
+	return nil
+}
