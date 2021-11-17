@@ -15,7 +15,6 @@ type UseCasesFacility interface {
 	IFacilityList
 	IFacilityRetrieve
 	IFacilityCreate
-	IFacilityUpdate
 	IFacilityDelete
 	IFacilityInactivate
 	IFacilityReactivate
@@ -26,12 +25,6 @@ type IFacilityCreate interface {
 	// TODO Ensure blank ID when creating
 	// TODO Since `id` is optional, ensure pre-condition check
 	GetOrCreateFacility(ctx context.Context, facility *dto.FacilityInput) (*domain.Facility, error)
-}
-
-// IFacilityUpdate contains the method to update facility details
-type IFacilityUpdate interface {
-	// TODO Pre-condition: ensure `id` is set and valid
-	//Update(facility *domain.Facility) (*domain.Facility, error)
 }
 
 // IFacilityDelete contains the method to delete a facility
@@ -92,11 +85,6 @@ func (f *UseCaseFacilityImpl) GetOrCreateFacility(ctx context.Context, facility 
 		return nil, fmt.Errorf("failed to retrieve facility")
 	}
 	return fetchedFacility, nil
-}
-
-// UpdateFacility creates a new facility
-func (f *UseCaseFacilityImpl) UpdateFacility(facility *domain.Facility) (*domain.Facility, error) {
-	return nil, nil
 }
 
 // DeleteFacility deletes a facility from the database usinng the MFL Code

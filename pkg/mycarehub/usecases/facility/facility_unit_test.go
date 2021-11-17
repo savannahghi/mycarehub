@@ -61,6 +61,20 @@ func TestUnit_CreateFacility(t *testing.T) {
 			},
 			wantErr: true,
 		},
+		{
+			name: "Happy case - Create facility",
+			args: args{
+				ctx: ctx,
+				facility: dto.FacilityInput{
+					Name:        name,
+					Code:        code,
+					Active:      true,
+					County:      county,
+					Description: description,
+				},
+			},
+			wantErr: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -69,6 +83,12 @@ func TestUnit_CreateFacility(t *testing.T) {
 			fakeFacility := mock.NewFacilityUsecaseMock()
 
 			f := facility.NewFacilityUsecase(fakeDB, fakeDB, fakeDB, fakeDB)
+
+			if tt.name == "Happy case - Create facility" {
+				fakeDB.MockRetrieveFacilityByMFLCodeFn = func(ctx context.Context, MFLCode int, isActive bool) (*domain.Facility, error) {
+					return nil, fmt.Errorf("failed query and retrieve facility by MFLCode")
+				}
+			}
 
 			if tt.name == "sad case - facility code empty" {
 				fakeFacility.MockGetOrCreateFacilityFn = func(ctx context.Context, facility *dto.FacilityInput) (*domain.Facility, error) {

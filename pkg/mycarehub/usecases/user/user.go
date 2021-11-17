@@ -34,11 +34,17 @@ type IVerifyPIN interface {
 	VerifyPIN(ctx context.Context, userID string, pin string) (bool, error)
 }
 
+// ISetNickName is used change and or set user nickname
+type ISetNickName interface {
+	SetNickName(ctx context.Context, userID *string, nickname *string) (bool, error)
+}
+
 // UseCasesUser group all business logic usecases related to user
 type UseCasesUser interface {
 	ILogin
 	ISetUserPIN
 	IVerifyPIN
+	ISetNickName
 }
 
 // UseCasesUserImpl represents user implementation object
@@ -278,4 +284,9 @@ func (us *UseCasesUserImpl) SetUserPIN(ctx context.Context, input dto.PINInput) 
 	}
 
 	return true, nil
+}
+
+// SetNickName is used to set the user's nickname
+func (us *UseCasesUserImpl) SetNickName(ctx context.Context, userID *string, nickname *string) (bool, error) {
+	return us.Update.SetNickName(ctx, userID, nickname)
 }

@@ -15,6 +15,7 @@ type Update interface {
 	UpdateUserLastFailedLoginTime(ctx context.Context, userID string) error
 	UpdateUserNextAllowedLoginTime(ctx context.Context, userID string, nextAllowedLoginTime time.Time) error
 	UpdateUserLastSuccessfulLoginTime(ctx context.Context, userID string) error
+	SetNickName(ctx context.Context, userID *string, nickname *string) (bool, error)
 }
 
 // ReactivateFacility perfoms the actual re-activation of the facility in the database
@@ -102,4 +103,17 @@ func (db *PGInstance) UpdateUserLastSuccessfulLoginTime(ctx context.Context, use
 		return err
 	}
 	return nil
+}
+
+// SetNickName is used to set the user's nickname in the database
+func (db *PGInstance) SetNickName(ctx context.Context, userID *string, nickname *string) (bool, error) {
+	if userID == nil || nickname == nil {
+		return false, fmt.Errorf("userID or nickname cannot be nil")
+	}
+	err := db.DB.Model(&User{}).Where(&User{UserID: userID}).Updates(&User{Username: *nickname}).Error
+	if err != nil {
+		return false, fmt.Errorf("failed to set nickname")
+	}
+
+	return true, nil
 }
