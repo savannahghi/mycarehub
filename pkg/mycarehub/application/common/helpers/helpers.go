@@ -60,12 +60,12 @@ func EncryptSensitiveData(text, MySecret string) (string, error) {
 	return encode(cipherText), nil
 }
 
-func decode(s string) []byte {
+func decode(s string) ([]byte, error) {
 	data, err := base64.StdEncoding.DecodeString(s)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
-	return data
+	return data, nil
 }
 
 // DecryptSensitiveData decrypts sensitive data for a user
@@ -74,7 +74,7 @@ func DecryptSensitiveData(text, MySecret string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	cipherText := decode(text)
+	cipherText, _ := decode(text)
 	cfb := cipher.NewCFBDecrypter(block, bytes)
 	plainText := make([]byte, len(cipherText))
 	cfb.XORKeyStream(plainText, cipherText)

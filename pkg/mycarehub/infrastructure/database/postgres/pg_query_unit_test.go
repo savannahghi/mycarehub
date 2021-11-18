@@ -866,6 +866,14 @@ func TestOnboardingDb_GetUserProfileByUserID(t *testing.T) {
 			},
 			wantErr: true,
 		},
+		{
+			name: "Sad Case - Fail to get user profile by user ID",
+			args: args{
+				ctx:    ctx,
+				userID: validUserID,
+			},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -882,6 +890,12 @@ func TestOnboardingDb_GetUserProfileByUserID(t *testing.T) {
 			if tt.name == "Sad Case - Passed in empty User ID" {
 				fakeGorm.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*gorm.User, error) {
 					return nil, fmt.Errorf("user ID should be provided")
+				}
+			}
+
+			if tt.name == "Sad Case - Fail to get user profile by user ID" {
+				fakeGorm.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*gorm.User, error) {
+					return nil, fmt.Errorf("failed to get user profile by user ID")
 				}
 			}
 
@@ -975,6 +989,121 @@ func TestMyCareHubDb_GetSecurityQuestions(t *testing.T) {
 
 			if !tt.wantErr && got == nil {
 				t.Errorf("expected facilities not to be nil for %v", tt.name)
+				return
+			}
+		})
+	}
+}
+
+func TestMyCareHubDb_GetSecurityQuestionResponseByID(t *testing.T) {
+	ctx := context.Background()
+	type args struct {
+		ctx        context.Context
+		questionID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name:    "Happy Case - Successfully get security question response",
+			args:    args{ctx: ctx, questionID: "12345"},
+			wantErr: false,
+		},
+		{
+			name: "Sad Case - Missing question ID",
+			args: args{
+				ctx: ctx,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - Fail to get security question response",
+			args: args{
+				ctx:        ctx,
+				questionID: "12345",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var fakeGorm = gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			if tt.name == "Sad Case - Missing question ID" {
+				fakeGorm.MockGetSecurityQuestionResponseByIDFn = func(ctx context.Context, questionID string) (*gorm.SecurityQuestionResponse, error) {
+					return nil, fmt.Errorf("failed to get security question response")
+				}
+			}
+
+			if tt.name == "Sad Case - Fail to get security question response" {
+				fakeGorm.MockGetSecurityQuestionResponseByIDFn = func(ctx context.Context, questionID string) (*gorm.SecurityQuestionResponse, error) {
+					return nil, fmt.Errorf("failed to get security question response")
+				}
+			}
+
+			got, err := d.GetSecurityQuestionResponseByID(tt.args.ctx, tt.args.questionID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.GetSecurityQuestionResponseByID() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected to get a response but got: %v", got)
+				return
+			}
+		})
+	}
+}
+
+func TestMyCareHubDb_GetSecurityQuestionByID(t *testing.T) {
+	ctx := context.Background()
+	ID := uuid.New().String()
+	type args struct {
+		ctx                context.Context
+		securityQuestionID *string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Successfully get security questions",
+			args: args{
+				ctx:                ctx,
+				securityQuestionID: &ID,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case - Fail to get security question",
+			args: args{
+				ctx:                ctx,
+				securityQuestionID: &ID,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var fakeGorm = gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			if tt.name == "Sad case - Fail to get security question" {
+				fakeGorm.MockGetSecurityQuestionByIDFn = func(ctx context.Context, securityQuestionID *string) (*gorm.SecurityQuestion, error) {
+					return nil, fmt.Errorf("failed to get security question")
+				}
+			}
+
+			got, err := d.GetSecurityQuestionByID(tt.args.ctx, tt.args.securityQuestionID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.GetSecurityQuestionByID() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected to get a response but got: %v", got)
 				return
 			}
 		})

@@ -82,31 +82,3 @@ func (d *MyCareHubDb) mapPINObjectToDomain(pinObj *gorm.PINData) *domain.UserPIN
 		Salt:      pinObj.Salt,
 	}
 }
-
-// mapTermsOfServiceObjectToDomain maps the terms of service data to a domain model.
-func (d *MyCareHubDb) mapTermsOfServiceObjectToDomain(termsObj *gorm.TermsOfService) *domain.TermsOfService {
-	if termsObj == nil {
-		return nil
-	}
-
-	return &domain.TermsOfService{
-		TermsID: *termsObj.TermsID,
-		Text:    termsObj.Text,
-	}
-}
-
-// mapSecurityQuestionObjectToDomain maps the db security questions data to a domain model.
-func (d *MyCareHubDb) mapSecurityQuestionObjectToDomain(securityQuestionObj *gorm.SecurityQuestion) *domain.SecurityQuestion {
-	if securityQuestionObj == nil {
-		return nil
-	}
-
-	return &domain.SecurityQuestion{
-		SecurityQuestionID: *securityQuestionObj.SecurityQuestionID,
-		QuestionStem:       securityQuestionObj.QuestionStem,
-		Description:        securityQuestionObj.Description,
-		Flavour:            securityQuestionObj.Flavour,
-		Active:             securityQuestionObj.Active,
-		ResponseType:       securityQuestionObj.ResponseType,
-	}
-}

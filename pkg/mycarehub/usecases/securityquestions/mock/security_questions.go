@@ -11,9 +11,13 @@ import (
 
 // SecurityQuestionsUseCaseMock mocks the implementation of security question usecase methods.
 type SecurityQuestionsUseCaseMock struct {
-	MockGetSecurityQuestionsFn         func(ctx context.Context, flavour feedlib.Flavour) ([]*domain.SecurityQuestion, error)
-	MockGetSecurityQuestionByIDFn      func(ctx context.Context, id string, flavour feedlib.Flavour) (*domain.SecurityQuestion, error)
-	MockSaveSecurityQuestionResponseFn func(ctx context.Context, securityQuestionResponse *dto.SecurityQuestionResponseInput) error
+	MockGetSecurityQuestionsFn            func(ctx context.Context, flavour feedlib.Flavour) ([]*domain.SecurityQuestion, error)
+	MockGetSecurityQuestionByIDFn         func(ctx context.Context, id string, flavour feedlib.Flavour) (*domain.SecurityQuestion, error)
+	MockSaveSecurityQuestionResponseFn    func(ctx context.Context, securityQuestionResponse *dto.SecurityQuestionResponseInput) error
+	MockVerifySecurityQuestionResponsesFn func(
+		ctx context.Context,
+		responses *[]dto.VerifySecurityQuestionInput,
+	) (bool, error)
 }
 
 // NewSecurityQuestionsUseCaseMock creates and itializes security question mocks
@@ -42,6 +46,12 @@ func NewSecurityQuestionsUseCaseMock() *SecurityQuestionsUseCaseMock {
 		MockSaveSecurityQuestionResponseFn: func(ctx context.Context, securityQuestionResponse *dto.SecurityQuestionResponseInput) error {
 			return nil
 		},
+		MockVerifySecurityQuestionResponsesFn: func(
+			ctx context.Context,
+			responses *[]dto.VerifySecurityQuestionInput,
+		) (bool, error) {
+			return true, nil
+		},
 	}
 }
 
@@ -58,4 +68,12 @@ func (sq *SecurityQuestionsUseCaseMock) GetSecurityQuestionByID(ctx context.Cont
 // SaveSecurityQuestionResponse saves the security question response.
 func (sq *SecurityQuestionsUseCaseMock) SaveSecurityQuestionResponse(ctx context.Context, securityQuestionResponse *dto.SecurityQuestionResponseInput) error {
 	return sq.MockSaveSecurityQuestionResponseFn(ctx, securityQuestionResponse)
+}
+
+// VerifySecurityQuestionResponses mocks the verify security question responses
+func (sq *SecurityQuestionsUseCaseMock) VerifySecurityQuestionResponses(
+	ctx context.Context,
+	responses *[]dto.VerifySecurityQuestionInput,
+) (bool, error) {
+	return sq.MockVerifySecurityQuestionResponsesFn(ctx, responses)
 }

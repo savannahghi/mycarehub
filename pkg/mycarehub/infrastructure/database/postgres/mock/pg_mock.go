@@ -40,6 +40,7 @@ type PostgresMock struct {
 	MockSaveOTPFn                           func(ctx context.Context, otpInput *domain.OTP) error
 	MockGetSecurityQuestionByIDFn           func(ctx context.Context, securityQuestionID *string) (*domain.SecurityQuestion, error)
 	MockSaveSecurityQuestionResponseFn      func(ctx context.Context, securityQuestionResponse *dto.SecurityQuestionResponseInput) error
+	MockGetSecurityQuestionResponseByIDFn   func(ctx context.Context, questionID string) (*domain.SecurityQuestionResponse, error)
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -198,6 +199,14 @@ func NewPostgresMock() *PostgresMock {
 		MockSaveSecurityQuestionResponseFn: func(ctx context.Context, securityQuestionResponse *dto.SecurityQuestionResponseInput) error {
 			return nil
 		},
+		MockGetSecurityQuestionResponseByIDFn: func(ctx context.Context, questionID string) (*domain.SecurityQuestionResponse, error) {
+			return &domain.SecurityQuestionResponse{
+				ResponseID: "1234",
+				QuestionID: "1234",
+				Active:     true,
+				Response:   "Yes",
+			}, nil
+		},
 	}
 }
 
@@ -324,4 +333,9 @@ func (gm *PostgresMock) GetSecurityQuestionByID(ctx context.Context, securityQue
 // SaveSecurityQuestionResponse saves the response of a security question
 func (gm *PostgresMock) SaveSecurityQuestionResponse(ctx context.Context, securityQuestionResponse *dto.SecurityQuestionResponseInput) error {
 	return gm.MockSaveSecurityQuestionResponseFn(ctx, securityQuestionResponse)
+}
+
+// GetSecurityQuestionResponseByID mocks the get security question implementation
+func (gm *PostgresMock) GetSecurityQuestionResponseByID(ctx context.Context, questionID string) (*domain.SecurityQuestionResponse, error) {
+	return gm.MockGetSecurityQuestionResponseByIDFn(ctx, questionID)
 }

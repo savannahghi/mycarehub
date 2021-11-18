@@ -46,11 +46,11 @@ type RecordSecurityQuestionResponse struct {
 	IsCorrect          bool
 }
 
-// SecurityQuestionResponse models the security questions for the users
+// SecurityQuestionResponse models the data that is expected from the security question response table
 type SecurityQuestionResponse struct {
-	ResponseID string
-	QuestionID string
-	UserID     string
-	Active     bool
-	Response   string
+	ResponseID string `json:"id"`
+	QuestionID string `json:"questionID"`
+	UserID     string `json:"userID"`
+	Active     bool   `json:"active"`
+	Response   string `json:"response"`
 }

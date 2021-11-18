@@ -39,6 +39,7 @@ type GormMock struct {
 	MockSaveOTPFn                           func(ctx context.Context, otpInput *gorm.UserOTP) error
 	MockGetSecurityQuestionByIDFn           func(ctx context.Context, securityQuestionID *string) (*gorm.SecurityQuestion, error)
 	MockSaveSecurityQuestionResponseFn      func(ctx context.Context, securityQuestionResponse *gorm.SecurityQuestionResponse) error
+	MockGetSecurityQuestionResponseByIDFn   func(ctx context.Context, questionID string) (*gorm.SecurityQuestionResponse, error)
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -214,6 +215,14 @@ func NewGormMock() *GormMock {
 		MockSaveSecurityQuestionResponseFn: func(ctx context.Context, securityQuestionResponse *gorm.SecurityQuestionResponse) error {
 			return nil
 		},
+		MockGetSecurityQuestionResponseByIDFn: func(ctx context.Context, questionID string) (*gorm.SecurityQuestionResponse, error) {
+			return &gorm.SecurityQuestionResponse{
+				ResponseID: "1234",
+				QuestionID: "1234",
+				Active:     true,
+				Response:   "Yes",
+			}, nil
+		},
 	}
 }
 
@@ -335,4 +344,9 @@ func (gm *GormMock) GetSecurityQuestionByID(ctx context.Context, securityQuestio
 // SaveSecurityQuestionResponse mocks the implementation of saving a security question response
 func (gm *GormMock) SaveSecurityQuestionResponse(ctx context.Context, securityQuestionResponse *gorm.SecurityQuestionResponse) error {
 	return gm.MockSaveSecurityQuestionResponseFn(ctx, securityQuestionResponse)
+}
+
+// GetSecurityQuestionResponseByID mocks the get security question implementation
+func (gm *GormMock) GetSecurityQuestionResponseByID(ctx context.Context, questionID string) (*gorm.SecurityQuestionResponse, error) {
+	return gm.MockGetSecurityQuestionResponseByIDFn(ctx, questionID)
 }

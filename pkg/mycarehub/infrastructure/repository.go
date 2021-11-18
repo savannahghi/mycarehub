@@ -37,6 +37,7 @@ type Query interface {
 	GetCurrentTerms(ctx context.Context) (*domain.TermsOfService, error)
 	GetSecurityQuestions(ctx context.Context, flavour feedlib.Flavour) ([]*domain.SecurityQuestion, error)
 	GetSecurityQuestionByID(ctx context.Context, securityQuestionID *string) (*domain.SecurityQuestion, error)
+	GetSecurityQuestionResponseByID(ctx context.Context, questionID string) (*domain.SecurityQuestionResponse, error)
 }
 
 // Update represents all the update action interfaces

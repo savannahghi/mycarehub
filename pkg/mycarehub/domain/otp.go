@@ -15,4 +15,5 @@ type OTP struct {
 	Channel     string          `json:"channel"`
 	Flavour     feedlib.Flavour `json:"flavour"`
 	PhoneNumber string          `json:"phoneNumber"`
+	OTP         string          `json:"otp"`
 }

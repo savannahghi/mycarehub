@@ -7,7 +7,7 @@ import (
 
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
-	externalExtension "github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
+	extensionMock "github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension/mock"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	pgMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/mock"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/securityquestions"
@@ -65,8 +65,8 @@ func TestUseCaseSecurityQuestionsImpl_GetSecurityQuestions(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
 			_ = mock.NewSecurityQuestionsUseCaseMock()
 
-			externalExt := externalExtension.NewExternalMethodsImpl()
-			s := securityquestions.NewSecurityQuestionsUsecase(fakeDB, fakeDB, externalExt)
+			fakeExtension := extensionMock.NewFakeExtension()
+			s := securityquestions.NewSecurityQuestionsUsecase(fakeDB, fakeDB, fakeExtension)
 
 			if tt.name == "Sad case" {
 				fakeDB.MockGetSecurityQuestionsFn = func(ctx context.Context, flavour feedlib.Flavour) ([]*domain.SecurityQuestion, error) {
@@ -213,8 +213,8 @@ func TestUseCaseSecurityQuestionsImpl_RecordSecurityQuestionResponses(t *testing
 			fakeDB := pgMock.NewPostgresMock()
 			_ = mock.NewSecurityQuestionsUseCaseMock()
 
-			externalExt := externalExtension.NewExternalMethodsImpl()
-			s := securityquestions.NewSecurityQuestionsUsecase(fakeDB, fakeDB, externalExt)
+			fakeExtension := extensionMock.NewFakeExtension()
+			s := securityquestions.NewSecurityQuestionsUsecase(fakeDB, fakeDB, fakeExtension)
 
 			if tt.name == "Sad case: failed to get security question by id" {
 				fakeDB.MockGetSecurityQuestionByIDFn = func(ctx context.Context, securityQuestionID *string) (*domain.SecurityQuestion, error) {
@@ -236,6 +236,102 @@ func TestUseCaseSecurityQuestionsImpl_RecordSecurityQuestionResponses(t *testing
 			if !tt.wantErr && got == nil {
 				t.Errorf("expected facilities not to be nil for %v", tt.name)
 				return
+			}
+		})
+	}
+}
+
+func TestUseCaseSecurityQuestionsImpl_VerifySecurityQuestionResponses(t *testing.T) {
+	ctx := context.Background()
+	type args struct {
+		ctx       context.Context
+		responses *[]dto.VerifySecurityQuestionInput
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Successfully verify security question response",
+			args: args{
+				ctx: ctx,
+				responses: &[]dto.VerifySecurityQuestionInput{
+					{
+						QuestionID: "1234",
+						Flavour:    feedlib.FlavourConsumer,
+						Response:   "",
+						UserID:     "1234",
+					},
+				},
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Sad Case - Fail to get security question by ID",
+			args: args{
+				ctx: ctx,
+				responses: &[]dto.VerifySecurityQuestionInput{
+					{
+						QuestionID: "1234",
+						Flavour:    feedlib.FlavourConsumer,
+						Response:   "Nairobi",
+						UserID:     "1234",
+					},
+				},
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - response mismatch",
+			args: args{
+				ctx: ctx,
+				responses: &[]dto.VerifySecurityQuestionInput{
+					{
+						QuestionID: "1234",
+						Flavour:    feedlib.FlavourConsumer,
+						Response:   "Nakuru",
+						UserID:     "1234",
+					},
+				},
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			fakeSecurity := mock.NewSecurityQuestionsUseCaseMock()
+
+			fakeExtension := extensionMock.NewFakeExtension()
+			s := securityquestions.NewSecurityQuestionsUsecase(fakeDB, fakeDB, fakeExtension)
+
+			if tt.name == "Sad Case - Fail to get security question by ID" {
+				fakeDB.MockGetSecurityQuestionResponseByIDFn = func(ctx context.Context, questionID string) (*domain.SecurityQuestionResponse, error) {
+					return nil, fmt.Errorf("failed to get security question response")
+				}
+			}
+
+			if tt.name == "Sad Case - response mismatch" {
+				fakeSecurity.MockVerifySecurityQuestionResponsesFn = func(
+					ctx context.Context,
+					responses *[]dto.VerifySecurityQuestionInput,
+				) (bool, error) {
+					return false, fmt.Errorf("the response does not match")
+				}
+			}
+
+			got, err := s.VerifySecurityQuestionResponses(tt.args.ctx, tt.args.responses)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCaseSecurityQuestionsImpl.VerifySecurityQuestionResponses() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("UseCaseSecurityQuestionsImpl.VerifySecurityQuestionResponses() = %v, want %v", got, tt.want)
 			}
 		})
 	}
