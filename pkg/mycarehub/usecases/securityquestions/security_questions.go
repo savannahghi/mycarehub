@@ -9,6 +9,7 @@ import (
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
 	"github.com/savannahghi/serverutils"
 
@@ -82,22 +83,22 @@ func (s *UseCaseSecurityQuestionsImpl) RecordSecurityQuestionResponses(ctx conte
 	for _, i := range input {
 		err := i.Validate()
 		if err != nil {
-			return nil, fmt.Errorf("security question response validation failed: %s", err.Error())
+			return nil, exceptions.InputValidationErr(fmt.Errorf("security question response validation failed: %s", err))
 		}
 
 		securityQuestion, err := s.Query.GetSecurityQuestionByID(ctx, &i.SecurityQuestionID)
 		if err != nil {
-			return nil, fmt.Errorf("security question id %s does not exist", i.SecurityQuestionID)
+			return nil, exceptions.ItemNotFoundErr(fmt.Errorf("security question id %s does not exist", i.SecurityQuestionID))
 		}
 
 		err = securityQuestion.Validate(i.Response)
 		if err != nil {
-			return nil, fmt.Errorf("response %s is invalid: %v", i.Response, err)
+			return nil, exceptions.InputValidationErr(fmt.Errorf("security question response %s is invalid: %v", i.Response, err))
 		}
 
 		encryptedResponse, err := helpers.EncryptSensitiveData(i.Response, SensitiveContentPassphrase)
 		if err != nil {
-			return nil, fmt.Errorf("failed to encrypt response: %v", err)
+			return nil, exceptions.EncryptionErr(fmt.Errorf("failed to encrypt sensitive data response: %v", err))
 		}
 
 		securityQuestionResponsePayload := &dto.SecurityQuestionResponseInput{
@@ -108,7 +109,7 @@ func (s *UseCaseSecurityQuestionsImpl) RecordSecurityQuestionResponses(ctx conte
 		// save the response
 		err = s.Create.SaveSecurityQuestionResponse(ctx, securityQuestionResponsePayload)
 		if err != nil {
-			return nil, fmt.Errorf("failed to save security question response data")
+			return nil, exceptions.FailedToSaveItemErr(fmt.Errorf("failed to save security question response data %v", err))
 		}
 
 		recordSecurityQuestionResponses = append(recordSecurityQuestionResponses,
