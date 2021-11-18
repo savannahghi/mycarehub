@@ -85,6 +85,14 @@ type PINInput struct {
 	Flavour    feedlib.Flavour `json:"flavour" validate:"required"`
 }
 
+// VerifyOTPInput represents the verify OTP input data structure
+type VerifyOTPInput struct {
+	UserID      string          `json:"user_id" validate:"required"`
+	PhoneNumber string          `json:"phoneNumber" validate:"required"`
+	OTP         string          `json:"otp" validate:"required"`
+	Flavour     feedlib.Flavour `json:"flavour" validate:"required"`
+}
+
 // Validate helps with validation of PINInput fields
 func (f *PINInput) Validate() error {
 	v := validator.New()

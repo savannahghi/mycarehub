@@ -995,6 +995,59 @@ func TestMyCareHubDb_GetSecurityQuestions(t *testing.T) {
 	}
 }
 
+func TestMyCareHubDb_GetSecurityQuestionByID(t *testing.T) {
+	ctx := context.Background()
+	ID := uuid.New().String()
+	type args struct {
+		ctx                context.Context
+		securityQuestionID *string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Successfully get security questions",
+			args: args{
+				ctx:                ctx,
+				securityQuestionID: &ID,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case - Fail to get security question",
+			args: args{
+				ctx:                ctx,
+				securityQuestionID: &ID,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var fakeGorm = gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			if tt.name == "Sad case - Fail to get security question" {
+				fakeGorm.MockGetSecurityQuestionByIDFn = func(ctx context.Context, securityQuestionID *string) (*gorm.SecurityQuestion, error) {
+					return nil, fmt.Errorf("failed to get security question")
+				}
+			}
+
+			got, err := d.GetSecurityQuestionByID(tt.args.ctx, tt.args.securityQuestionID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.GetSecurityQuestionByID() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected to get a response but got: %v", got)
+				return
+			}
+		})
+	}
+}
+
 func TestMyCareHubDb_GetSecurityQuestionResponseByID(t *testing.T) {
 	ctx := context.Background()
 	type args struct {
@@ -1057,32 +1110,125 @@ func TestMyCareHubDb_GetSecurityQuestionResponseByID(t *testing.T) {
 	}
 }
 
-func TestMyCareHubDb_GetSecurityQuestionByID(t *testing.T) {
+func TestMyCareHubDb_VerifyOTP(t *testing.T) {
 	ctx := context.Background()
-	ID := uuid.New().String()
+
+	flavour := feedlib.FlavourConsumer
+
+	validOTPPayload := &dto.VerifyOTPInput{
+		UserID:      uuid.New().String(),
+		PhoneNumber: uuid.New().String(),
+		OTP:         uuid.New().String(),
+		Flavour:     flavour,
+	}
+	invalidOTPPayload1 := &dto.VerifyOTPInput{
+		UserID:      "",
+		PhoneNumber: uuid.New().String(),
+		OTP:         uuid.New().String(),
+		Flavour:     flavour,
+	}
+	invalidOTPPayload2 := &dto.VerifyOTPInput{
+		UserID:      uuid.New().String(),
+		PhoneNumber: "",
+		OTP:         uuid.New().String(),
+		Flavour:     flavour,
+	}
+	invalidOTPPayload3 := &dto.VerifyOTPInput{
+		UserID:      uuid.New().String(),
+		PhoneNumber: uuid.New().String(),
+		OTP:         "",
+		Flavour:     flavour,
+	}
+	invalidOTPPayload4 := &dto.VerifyOTPInput{
+		UserID:      uuid.New().String(),
+		PhoneNumber: uuid.New().String(),
+		OTP:         uuid.New().String(),
+		Flavour:     "flavour",
+	}
+	invalidOTPPayload5 := &dto.VerifyOTPInput{
+		UserID:      " uuid.New().String()",
+		PhoneNumber: "otpInput.PhoneNumber",
+		OTP:         "otpInput.OTP",
+		Flavour:     "flavour",
+	}
+	invalidOTPPayload6 := &dto.VerifyOTPInput{
+		UserID:      gofakeit.HipsterParagraph(1, 10, 100, ""),
+		PhoneNumber: gofakeit.HipsterParagraph(1, 10, 100, ""),
+		OTP:         gofakeit.HipsterParagraph(1, 10, 100, ""),
+		Flavour:     "gofakeit.HipsterParagraph(300, 10, 100)",
+	}
+
 	type args struct {
-		ctx                context.Context
-		securityQuestionID *string
+		ctx     context.Context
+		payload *dto.VerifyOTPInput
 	}
 	tests := []struct {
 		name    string
 		args    args
+		want    bool
 		wantErr bool
 	}{
 		{
-			name: "Happy Case - Successfully get security questions",
+			name: "Happy case",
 			args: args{
-				ctx:                ctx,
-				securityQuestionID: &ID,
+				ctx:     ctx,
+				payload: validOTPPayload,
 			},
+			want:    true,
 			wantErr: false,
 		},
 		{
-			name: "Sad case - Fail to get security question",
+			name: "Sad case - no user ID",
 			args: args{
-				ctx:                ctx,
-				securityQuestionID: &ID,
+				ctx:     ctx,
+				payload: invalidOTPPayload1,
 			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case - no phone",
+			args: args{
+				ctx:     ctx,
+				payload: invalidOTPPayload2,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case - no otp",
+			args: args{
+				ctx:     ctx,
+				payload: invalidOTPPayload3,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case - bad flavour",
+			args: args{
+				ctx:     ctx,
+				payload: invalidOTPPayload4,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case - bad inputs",
+			args: args{
+				ctx:     ctx,
+				payload: invalidOTPPayload5,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case - extreme bad inputs",
+			args: args{
+				ctx:     ctx,
+				payload: invalidOTPPayload6,
+			},
+			want:    false,
 			wantErr: true,
 		},
 	}
@@ -1091,20 +1237,44 @@ func TestMyCareHubDb_GetSecurityQuestionByID(t *testing.T) {
 			var fakeGorm = gormMock.NewGormMock()
 			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
 
-			if tt.name == "Sad case - Fail to get security question" {
-				fakeGorm.MockGetSecurityQuestionByIDFn = func(ctx context.Context, securityQuestionID *string) (*gorm.SecurityQuestion, error) {
-					return nil, fmt.Errorf("failed to get security question")
+			if tt.name == "Sad case - no user ID" {
+				fakeGorm.MockVerifyOTPFn = func(ctx context.Context, payload *dto.VerifyOTPInput) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - no phone" {
+				fakeGorm.MockVerifyOTPFn = func(ctx context.Context, payload *dto.VerifyOTPInput) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - no otp" {
+				fakeGorm.MockVerifyOTPFn = func(ctx context.Context, payload *dto.VerifyOTPInput) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - bad flavour" {
+				fakeGorm.MockVerifyOTPFn = func(ctx context.Context, payload *dto.VerifyOTPInput) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - bad inputs" {
+				fakeGorm.MockVerifyOTPFn = func(ctx context.Context, payload *dto.VerifyOTPInput) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - extreme bad inputs" {
+				fakeGorm.MockVerifyOTPFn = func(ctx context.Context, payload *dto.VerifyOTPInput) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
 				}
 			}
 
-			got, err := d.GetSecurityQuestionByID(tt.args.ctx, tt.args.securityQuestionID)
+			got, err := d.VerifyOTP(tt.args.ctx, tt.args.payload)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("MyCareHubDb.GetSecurityQuestionByID() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("MyCareHubDb.VerifyOTP() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if !tt.wantErr && got == nil {
-				t.Errorf("expected to get a response but got: %v", got)
-				return
+			if got != tt.want {
+				t.Errorf("MyCareHubDb.VerifyOTP() = %v, want %v", got, tt.want)
 			}
 		})
 	}

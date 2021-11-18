@@ -7,8 +7,10 @@ import (
 	"time"
 
 	"github.com/savannahghi/feedlib"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
+	"github.com/savannahghi/onboarding/pkg/onboarding/application/exceptions"
 )
 
 // Query contains all the db query methods
@@ -25,6 +27,7 @@ type Query interface {
 	GetSecurityQuestionByID(ctx context.Context, securityQuestionID *string) (*SecurityQuestion, error)
 	GetSecurityQuestionResponseByID(ctx context.Context, questionID string) (*SecurityQuestionResponse, error)
 	CheckIfPhoneNumberExists(ctx context.Context, phone string, isOptedIn bool, flavour feedlib.Flavour) (bool, error)
+	VerifyOTP(ctx context.Context, payload *dto.VerifyOTPInput) (bool, error)
 }
 
 // RetrieveFacility fetches a single facility
@@ -229,4 +232,25 @@ func (db *PGInstance) GetSecurityQuestionResponseByID(ctx context.Context, quest
 		return nil, fmt.Errorf("failed to get the security question response by ID")
 	}
 	return &questionResponse, nil
+}
+
+//VerifyOTP checks from the database the validity of the provided OTP
+func (db *PGInstance) VerifyOTP(ctx context.Context, payload *dto.VerifyOTPInput) (bool, error) {
+	var userOTP UserOTP
+	if payload.UserID == "" || payload.PhoneNumber == "" || payload.OTP == "" {
+		return false, fmt.Errorf("user ID or phone number or OTP cannot be empty")
+	}
+	if !payload.Flavour.IsValid() {
+		return false, exceptions.InvalidFlavourDefinedError()
+	}
+
+	err := db.DB.Model(&UserOTP{}).Where(&UserOTP{UserID: payload.UserID, PhoneNumber: payload.PhoneNumber, OTP: payload.OTP, Flavour: payload.Flavour}).First(&userOTP).Error
+	if err != nil {
+		if strings.Contains(err.Error(), "record not found") {
+			return false, nil
+		}
+		return false, fmt.Errorf("failed to verify otp with %v: %v: %v", payload.UserID, payload.OTP, payload.Flavour)
+	}
+
+	return true, nil
 }

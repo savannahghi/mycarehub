@@ -101,8 +101,8 @@ type User struct {
 	TermsAccepted   bool            `gorm:"type:bool;column:terms_accepted;not null"`
 	AcceptedTermsID *int            `gorm:"column:accepted_terms_of_service_id"` // foreign key to version of terms they accepted
 	Flavour         feedlib.Flavour `gorm:"column:flavour;not null"`
-	Suspended       bool            `gorm:"column:is_suspended"`
 	Avatar          string          `gorm:"column:avatar"`
+	IsSuspended     bool            `gorm:"column:is_suspended;not null"`
 
 	// Django required fields
 	OrganisationID   string `gorm:"column:organisation_id"`
@@ -281,7 +281,7 @@ type UserOTP struct {
 	GeneratedAt time.Time       `gorm:"column:generated_at"`
 	ValidUntil  time.Time       `gorm:"column:valid_until"`
 	Channel     string          `gorm:"column:channel"`
-	Flavour     feedlib.Flavour `gorm:"column:flavour;not null"`
+	Flavour     feedlib.Flavour `gorm:"column:flavour"`
 	PhoneNumber string          `gorm:"column:phonenumber"`
 	OTP         string          `gorm:"column:otp"`
 }

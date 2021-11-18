@@ -7,6 +7,7 @@ import (
 
 	"github.com/savannahghi/converterandformatter"
 	"github.com/savannahghi/feedlib"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
@@ -46,7 +47,13 @@ type ISendOTP interface {
 type UsecaseOTP interface {
 	IGenerateOTP
 	ISendOTP
+	IVerifyOTP
 	IverifyPhone
+}
+
+// IVerifyOTP specifies the method responsible for verifying the OTP
+type IVerifyOTP interface {
+	VerifyOTP(ctx context.Context, payload *dto.VerifyOTPInput) (bool, error)
 }
 
 // UseCaseOTPImpl is the OTP service implementation
@@ -101,6 +108,11 @@ func (o *UseCaseOTPImpl) GenerateAndSendOTP(
 	}
 
 	return otp, nil
+}
+
+// VerifyOTP verifies whether the supplied OTP is valid
+func (o *UseCaseOTPImpl) VerifyOTP(ctx context.Context, payload *dto.VerifyOTPInput) (bool, error) {
+	return o.Query.VerifyOTP(ctx, payload)
 }
 
 // GenerateOTP calls the engagement library to generate a random OTP
