@@ -2,7 +2,9 @@ package terms
 
 import (
 	"context"
+	"fmt"
 
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
 )
@@ -43,10 +45,19 @@ func NewUseCasesTermsOfService(
 //GetCurrentTerms get all the current terms of service
 func (t *ServiceTermsImpl) GetCurrentTerms(ctx context.Context) (*domain.TermsOfService, error) {
 
-	return t.Query.GetCurrentTerms(ctx)
+	termsOfService, err := t.Query.GetCurrentTerms(ctx)
+	if err != nil {
+		return nil, exceptions.ItemNotFoundErr(fmt.Errorf("failed to get current terms of service: %v", err))
+	}
+
+	return termsOfService, nil
 }
 
 // AcceptTerms can be used to accept or review terms of service
 func (t *ServiceTermsImpl) AcceptTerms(ctx context.Context, userID *string, termsID *int) (bool, error) {
-	return t.Update.AcceptTerms(ctx, userID, termsID)
+	ok, err := t.Update.AcceptTerms(ctx, userID, termsID)
+	if err != nil {
+		return false, exceptions.FailedToUpdateItemErr(fmt.Errorf("failed to accept terms: %v", err))
+	}
+	return ok, err
 }
