@@ -221,7 +221,6 @@ type Organisation struct {
 
 	OrganisationID   *string `gorm:"primaryKey;unique;column:id"`
 	Active           bool    `gorm:"column:active;not null"`
-	Deleted          bool    `gorm:"column:deleted;not null"`
 	OrgCode          string  `gorm:"column:org_code"`
 	Code             int     `gorm:"column:code"`
 	OrganisationName string  `gorm:"column:organisation_name"`

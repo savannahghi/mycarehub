@@ -153,3 +153,24 @@ type VerifyPhoneInput struct {
 	PhoneNumber string          `json:"phoneNumber"`
 	Flavour     feedlib.Flavour `json:"flavour"`
 }
+
+// GetSecurityQuestionsInput defines the field passed when getting the security questions
+type GetSecurityQuestionsInput struct {
+	Flavour feedlib.Flavour `json:"flavour" validate:"required"`
+}
+
+// GetUserRespondedSecurityQuestionsInput defines the field passed when getting the security questions
+type GetUserRespondedSecurityQuestionsInput struct {
+	PhoneNumber string `json:"phonenumber" validate:"required"`
+	// IsOptedIn   bool            `json:"isOptedIn" validate:"required"`
+	Flavour feedlib.Flavour `json:"flavour" validate:"required"`
+}
+
+// Validate helps with validation of GetUserRespondedSecurityQuestionsInput fields
+func (f *GetUserRespondedSecurityQuestionsInput) Validate() error {
+	v := validator.New()
+
+	err := v.Struct(f)
+
+	return err
+}

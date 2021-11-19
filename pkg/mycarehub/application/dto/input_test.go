@@ -7,6 +7,7 @@ import (
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/interserviceclient"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
+	"github.com/segmentio/ksuid"
 )
 
 func TestFacilityInput_Validate(t *testing.T) {
@@ -297,6 +298,214 @@ func TestFiltersInput_Validate(t *testing.T) {
 			}
 			if err := f.Validate(); (err != nil) != tt.wantErr {
 				t.Errorf("FiltersInput.Validate() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestPINInput_Validate(t *testing.T) {
+	ID := ksuid.New().String()
+	testPIN := "0000"
+	type fields struct {
+		UserID     *string
+		PIN        *string
+		ConfirmPIN *string
+		Flavour    feedlib.Flavour
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		wantErr bool
+	}{
+		{
+			name: "valid: all params passed",
+			fields: fields{
+				UserID:     &ID,
+				PIN:        &testPIN,
+				ConfirmPIN: &testPIN,
+				Flavour:    feedlib.FlavourConsumer,
+			},
+			wantErr: false,
+		},
+		{
+			name: "invalid: missing user id",
+			fields: fields{
+				PIN:        &testPIN,
+				ConfirmPIN: &testPIN,
+				Flavour:    feedlib.FlavourConsumer,
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid : missing pin",
+			fields: fields{
+				UserID:     &ID,
+				ConfirmPIN: &testPIN,
+				Flavour:    feedlib.FlavourConsumer,
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid: missing confirm pin",
+			fields: fields{
+				UserID:  &ID,
+				PIN:     &testPIN,
+				Flavour: feedlib.FlavourConsumer,
+			},
+			wantErr: true,
+		},
+
+		{
+			name: "invalid: missing flavour",
+			fields: fields{
+				UserID:     &ID,
+				PIN:        &testPIN,
+				ConfirmPIN: &testPIN,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			f := &PINInput{
+				UserID:     tt.fields.UserID,
+				PIN:        tt.fields.PIN,
+				ConfirmPIN: tt.fields.ConfirmPIN,
+				Flavour:    tt.fields.Flavour,
+			}
+			if err := f.Validate(); (err != nil) != tt.wantErr {
+				t.Errorf("PINInput.Validate() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestSecurityQuestionResponseInput_Validate(t *testing.T) {
+	type fields struct {
+		UserID             string
+		SecurityQuestionID string
+		Response           string
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		wantErr bool
+	}{
+		{
+			name: "valid: all params passed",
+			fields: fields{
+				UserID:             "123",
+				SecurityQuestionID: "123",
+				Response:           "123",
+			},
+		},
+		{
+			name: "invalid: missing user id",
+			fields: fields{
+				SecurityQuestionID: "123",
+				Response:           "123",
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid: missing security question id",
+			fields: fields{
+				UserID:   "123",
+				Response: "123",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			f := &SecurityQuestionResponseInput{
+				UserID:             tt.fields.UserID,
+				SecurityQuestionID: tt.fields.SecurityQuestionID,
+				Response:           tt.fields.Response,
+			}
+			if err := f.Validate(); (err != nil) != tt.wantErr {
+				t.Errorf("SecurityQuestionResponseInput.Validate() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestVerifySecurityQuestionInput_Validate(t *testing.T) {
+	type fields struct {
+		QuestionID string
+		Flavour    feedlib.Flavour
+		Response   string
+		UserID     string
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		wantErr bool
+	}{
+		{
+			name: "valid: all params passed",
+			fields: fields{
+				QuestionID: "123",
+				Flavour:    feedlib.FlavourConsumer,
+				Response:   "123",
+				UserID:     "123",
+			},
+			wantErr: false,
+		},
+		{
+			name:    "invalid: missing params",
+			fields:  fields{},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			f := &VerifySecurityQuestionInput{
+				QuestionID: tt.fields.QuestionID,
+				Flavour:    tt.fields.Flavour,
+				Response:   tt.fields.Response,
+				UserID:     tt.fields.UserID,
+			}
+			if err := f.Validate(); (err != nil) != tt.wantErr {
+				t.Errorf("VerifySecurityQuestionInput.Validate() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestGetUserRespondedSecurityQuestionsInput_Validate(t *testing.T) {
+	type fields struct {
+		PhoneNumber string
+		Flavour     feedlib.Flavour
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		wantErr bool
+	}{
+		{
+			name: "valid: all params passed",
+			fields: fields{
+				PhoneNumber: gofakeit.Phone(),
+				Flavour:     feedlib.FlavourConsumer,
+			},
+		},
+		{
+			name: "invalid: missing params",
+			fields: fields{
+				Flavour: feedlib.FlavourConsumer,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			f := &GetUserRespondedSecurityQuestionsInput{
+				PhoneNumber: tt.fields.PhoneNumber,
+				Flavour:     tt.fields.Flavour,
+			}
+			if err := f.Validate(); (err != nil) != tt.wantErr {
+				t.Errorf("GetUserRespondedSecurityQuestionsInput.Validate() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}

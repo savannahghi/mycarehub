@@ -284,3 +284,74 @@ func (d *MyCareHubDb) CheckUserHasPin(ctx context.Context, userID string, flavou
 
 	return exists, nil
 }
+
+// GetOTP fetches the OTP for the specified user.
+func (d *MyCareHubDb) GetOTP(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*domain.OTP, error) {
+	if phoneNumber == "" {
+		return nil, fmt.Errorf("phone number should be provided")
+	}
+	if !flavour.IsValid() {
+		return nil, exceptions.InvalidFlavourDefinedError()
+	}
+
+	otp, err := d.query.GetOTP(ctx, phoneNumber, flavour)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get OTP: %v", err)
+	}
+
+	return d.mapOTPObjectToDomain(otp), nil
+}
+
+// GetUserSecurityQuestionsResponses fetches all the security questions that the user has responded to
+func (d *MyCareHubDb) GetUserSecurityQuestionsResponses(ctx context.Context, userID string) ([]*domain.SecurityQuestionResponse, error) {
+	if userID == "" {
+		return nil, fmt.Errorf("user ID should be provided")
+	}
+
+	securityQuestionResponses, err := d.query.GetUserSecurityQuestionsResponses(ctx, userID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get security questions: %v", err)
+	}
+
+	if len(securityQuestionResponses) == 0 {
+		return nil, nil
+	}
+
+	var securityQuestionResponse []*domain.SecurityQuestionResponse
+
+	for _, sqr := range securityQuestionResponses {
+		singleSecurityQuestionResponse := &domain.SecurityQuestionResponse{
+			ResponseID: sqr.ResponseID,
+			QuestionID: sqr.QuestionID,
+			UserID:     sqr.UserID,
+			Active:     sqr.Active,
+			Response:   sqr.Response,
+		}
+
+		securityQuestionResponse = append(securityQuestionResponse, singleSecurityQuestionResponse)
+	}
+
+	return securityQuestionResponse, nil
+}
+
+// GetContactByUserID fetches and returns a contact using their user ID
+func (d *MyCareHubDb) GetContactByUserID(ctx context.Context, userID *string, contactType string) (*domain.Contact, error) {
+	if userID == nil {
+		return nil, fmt.Errorf("user ID should be provided")
+	}
+
+	if contactType == "" {
+		return nil, fmt.Errorf("contact type is required")
+	}
+
+	if contactType != "PHONE" && contactType != "EMAIL" {
+		return nil, fmt.Errorf("contact type must be PHONE or EMAIL")
+	}
+
+	contact, err := d.query.GetContactByUserID(ctx, userID, contactType)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get contact by user ID: %v", err)
+	}
+
+	return d.mapContactObjectToDomain(contact), nil
+}

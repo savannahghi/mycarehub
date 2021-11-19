@@ -150,7 +150,7 @@ func (us *UseCasesUserImpl) Login(ctx context.Context, phoneNumber string, pin s
 	}
 
 	if !flavour.IsValid() {
-		return nil, int(exceptions.InvalidFlavour), exceptions.InvalidFlavourDefinedError()
+		return nil, int(exceptions.InvalidFlavour), exceptions.InvalidFlavourDefinedErr(fmt.Errorf("flavour is not valid"))
 	}
 
 	userProfile, err := us.Query.GetUserProfileByPhoneNumber(ctx, *phone)
@@ -220,7 +220,7 @@ func (us *UseCasesUserImpl) InviteUser(ctx context.Context, userID string, phone
 	}
 
 	if !flavour.IsValid() {
-		return false, exceptions.InvalidFlavourDefinedError()
+		return false, exceptions.InvalidFlavourDefinedErr(fmt.Errorf("flavour is not valid"))
 	}
 
 	userProfile, err := us.Query.GetUserProfileByUserID(ctx, userID)
@@ -324,7 +324,7 @@ func (us *UseCasesUserImpl) RequestPINReset(ctx context.Context, phoneNumber str
 	}
 
 	if !flavour.IsValid() {
-		return "", exceptions.InvalidFlavourDefinedError()
+		return "", exceptions.InvalidFlavourDefinedErr(fmt.Errorf("flavour is not valid"))
 	}
 
 	userProfile, err := us.Query.GetUserProfileByPhoneNumber(ctx, *phone)

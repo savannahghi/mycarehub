@@ -2,6 +2,8 @@ package terms_test
 
 import (
 	"context"
+	"log"
+	"os"
 	"testing"
 	"time"
 
@@ -13,9 +15,69 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
-	"github.com/savannahghi/serverutils"
 	"github.com/segmentio/ksuid"
 )
+
+var (
+	termsID   = 50005
+	orgID     = uuid.New().String()
+	testingDB *gorm.PGInstance
+)
+
+func TestMain(m *testing.M) {
+	log.Println("setting up test database")
+	var err error
+	testingDB, err = gorm.NewPGInstance()
+	if err != nil {
+		os.Exit(1)
+	}
+	// add organization
+	createOrganization()
+
+	//create terms
+	createTermsOfService()
+
+	log.Printf("Running tests ...")
+	os.Exit(m.Run())
+
+	// teardown
+	// remove organization
+	log.Println("tearing down test database")
+
+	testingDB.DB.Unscoped().Delete(gorm.Organisation{OrganisationID: &orgID})
+	testingDB.DB.Unscoped().Delete(gorm.TermsOfService{TermsID: &termsID})
+}
+
+func createOrganization() {
+	organisation := &gorm.Organisation{
+		OrganisationID:   &orgID,
+		Active:           true,
+		OrgCode:          gofakeit.Name(),
+		Code:             gofakeit.Number(100, 344),
+		OrganisationName: gofakeit.Name(),
+		EmailAddress:     gofakeit.Email(),
+		PhoneNumber:      gofakeit.Phone(),
+		PostalAddress:    gofakeit.Address().Address,
+		PhysicalAddress:  gofakeit.Address().City,
+		DefaultCountry:   "KEN",
+	}
+
+	testingDB.DB.Create(organisation)
+}
+
+func createTermsOfService() {
+	validFrom := time.Now()
+	validTo := time.Now().AddDate(0, 0, 50)
+	txt := gofakeit.HipsterSentence(15)
+	terms := &gorm.TermsOfService{
+		TermsID:   &termsID,
+		Text:      &txt,
+		ValidFrom: &validFrom,
+		ValidTo:   &validTo,
+	}
+
+	testingDB.DB.Create(terms)
+}
 
 func TestServiceTermsImpl_GetCurrentTerms_Integration(t *testing.T) {
 	ctx := context.Background()
@@ -67,7 +129,7 @@ func TestServiceTermsImpl_GetCurrentTerms_Integration(t *testing.T) {
 		Flavour:             flavour,
 		Avatar:              "",
 		IsSuspended:         true,
-		OrganisationID:      serverutils.MustGetEnvVar("DEFAULT_ORG_ID"),
+		OrganisationID:      orgID,
 		Password:            "",
 		IsSuperuser:         false,
 		IsStaff:             false,
@@ -176,7 +238,7 @@ func TestServiceTermsImpl_AcceptTerms_Integration_test(t *testing.T) {
 		Flavour:             flavour,
 		Avatar:              "",
 		IsSuspended:         false,
-		OrganisationID:      serverutils.MustGetEnvVar("DEFAULT_ORG_ID"),
+		OrganisationID:      orgID,
 		Password:            "",
 		IsSuperuser:         false,
 		IsStaff:             false,

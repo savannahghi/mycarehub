@@ -18,6 +18,7 @@ type SecurityQuestionsUseCaseMock struct {
 		ctx context.Context,
 		responses *[]dto.VerifySecurityQuestionInput,
 	) (bool, error)
+	MockGetUserRespondedSecurityQuestionsFn func(ctx context.Context, userID string, flavour feedlib.Flavour) ([]*domain.SecurityQuestion, error)
 }
 
 // NewSecurityQuestionsUseCaseMock creates and itializes security question mocks
@@ -52,6 +53,31 @@ func NewSecurityQuestionsUseCaseMock() *SecurityQuestionsUseCaseMock {
 		) (bool, error) {
 			return true, nil
 		},
+		MockGetUserRespondedSecurityQuestionsFn: func(ctx context.Context, userID string, flavour feedlib.Flavour) ([]*domain.SecurityQuestion, error) {
+			return []*domain.SecurityQuestion{
+				{
+					QuestionStem: "test",
+					Description:  "test",
+					Flavour:      feedlib.FlavourConsumer,
+					Active:       true,
+					ResponseType: enums.SecurityQuestionResponseTypeNumber,
+				},
+				{
+					QuestionStem: "test",
+					Description:  "test",
+					Flavour:      feedlib.FlavourConsumer,
+					Active:       true,
+					ResponseType: enums.SecurityQuestionResponseTypeNumber,
+				},
+				{
+					QuestionStem: "test",
+					Description:  "test",
+					Flavour:      feedlib.FlavourConsumer,
+					Active:       true,
+					ResponseType: enums.SecurityQuestionResponseTypeNumber,
+				},
+			}, nil
+		},
 	}
 }
 
@@ -76,4 +102,9 @@ func (sq *SecurityQuestionsUseCaseMock) VerifySecurityQuestionResponses(
 	responses *[]dto.VerifySecurityQuestionInput,
 ) (bool, error) {
 	return sq.MockVerifySecurityQuestionResponsesFn(ctx, responses)
+}
+
+// GetUserRespondedSecurityQuestions mocks the implementation of getting all the security questions.
+func (sq *SecurityQuestionsUseCaseMock) GetUserRespondedSecurityQuestions(ctx context.Context, userID string, flavour feedlib.Flavour) ([]*domain.SecurityQuestion, error) {
+	return sq.MockGetUserRespondedSecurityQuestionsFn(ctx, userID, flavour)
 }

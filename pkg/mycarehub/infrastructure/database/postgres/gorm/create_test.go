@@ -13,7 +13,6 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
-	"github.com/savannahghi/serverutils"
 	"github.com/segmentio/ksuid"
 )
 
@@ -117,7 +116,7 @@ func TestPGInstance_SaveTemporaryUserPin(t *testing.T) {
 		Flavour:             flavour,
 		Avatar:              "",
 		IsSuspended:         true,
-		OrganisationID:      serverutils.MustGetEnvVar("DEFAULT_ORG_ID"),
+		OrganisationID:      orgID,
 		Password:            "",
 		IsSuperuser:         true,
 		IsStaff:             true,
@@ -231,7 +230,7 @@ func TestPGInstance_SavePin(t *testing.T) {
 		Flavour:             flavour,
 		Avatar:              "",
 		IsSuspended:         true,
-		OrganisationID:      serverutils.MustGetEnvVar("DEFAULT_ORG_ID"),
+		OrganisationID:      orgID,
 		Password:            "",
 		IsSuperuser:         false,
 		IsStaff:             false,
@@ -382,7 +381,7 @@ func TestPGInstance_SaveSecurityQuestionResponse(t *testing.T) {
 		Flavour:             flavour,
 		Avatar:              "",
 		IsSuspended:         true,
-		OrganisationID:      serverutils.MustGetEnvVar("DEFAULT_ORG_ID"),
+		OrganisationID:      orgID,
 		Password:            "",
 		IsSuperuser:         false,
 		IsStaff:             false,
@@ -487,7 +486,7 @@ func TestPGInstance_SaveOTP(t *testing.T) {
 		Flavour:             flavour,
 		Avatar:              "",
 		IsSuspended:         true,
-		OrganisationID:      serverutils.MustGetEnvVar("DEFAULT_ORG_ID"),
+		OrganisationID:      orgID,
 		Password:            "",
 		IsSuperuser:         false,
 		IsStaff:             false,

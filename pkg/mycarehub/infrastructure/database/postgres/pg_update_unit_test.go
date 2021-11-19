@@ -7,6 +7,9 @@ import (
 	"time"
 
 	"github.com/brianvoe/gofakeit"
+	"github.com/google/uuid"
+	"github.com/savannahghi/feedlib"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	gormMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm/mock"
 	"github.com/segmentio/ksuid"
 )
@@ -639,6 +642,172 @@ func TestMyCareHubDb_SetNickName(t *testing.T) {
 			}
 			if got != tt.want {
 				t.Errorf("MyCareHubDb.SetNickName() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestMyCareHubDb_GetOTP(t *testing.T) {
+	ctx := context.Background()
+	type args struct {
+		ctx         context.Context
+		phoneNumber string
+		flavour     feedlib.Flavour
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:         ctx,
+				phoneNumber: gofakeit.Phone(),
+				flavour:     feedlib.FlavourConsumer,
+			},
+		},
+		{
+			name: "invalid:  no phone number",
+			args: args{
+				ctx:     ctx,
+				flavour: feedlib.FlavourConsumer,
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid: no flavour",
+			args: args{
+				ctx:         ctx,
+				phoneNumber: gofakeit.Phone(),
+			},
+			wantErr: true,
+		},
+		{
+			name: "Invalid: invalid flavor",
+			args: args{
+				ctx:         ctx,
+				phoneNumber: gofakeit.Phone(),
+				flavour:     "invalid-flavour",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var fakeGorm = gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			got, err := d.GetOTP(tt.args.ctx, tt.args.phoneNumber, tt.args.flavour)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.GetOTP() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected a response but got %v", got)
+				return
+			}
+		})
+	}
+}
+
+func TestMyCareHubDb_GetUserSecurityQuestionsResponses(t *testing.T) {
+	ctx := context.Background()
+	type args struct {
+		ctx    context.Context
+		userID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    []*domain.SecurityQuestionResponse
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:    ctx,
+				userID: gofakeit.UUID(),
+			},
+		},
+		{
+			name: "invalid: no userID",
+			args: args{
+				ctx: ctx,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			var fakeGorm = gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			got, err := d.GetUserSecurityQuestionsResponses(tt.args.ctx, tt.args.userID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.GetUserSecurityQuestionsResponses() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected a response but got %v", got)
+				return
+			}
+		})
+	}
+}
+
+func TestMyCareHubDb_GetContactByUserID(t *testing.T) {
+	ctx := context.Background()
+	ID := uuid.New().String()
+	type args struct {
+		ctx         context.Context
+		userID      *string
+		contactType string
+	}
+	tests := []struct {
+		name string
+		args args
+
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:         ctx,
+				userID:      &ID,
+				contactType: "EMAIL",
+			},
+		},
+		{
+			name: "invalid: no userID",
+			args: args{
+				ctx:         ctx,
+				contactType: "EMAIL",
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid: no contactType",
+			args: args{
+				ctx: ctx,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var fakeGorm = gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			got, err := d.GetContactByUserID(tt.args.ctx, tt.args.userID, tt.args.contactType)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.GetContactByUserID() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected a response but got %v", got)
+				return
 			}
 		})
 	}

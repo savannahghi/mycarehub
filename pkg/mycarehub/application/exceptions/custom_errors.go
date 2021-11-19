@@ -43,9 +43,9 @@ func PinMismatchError(err error) error {
 	}
 }
 
-// InvalidFlavourDefinedError is the error message displayed when
+// InvalidFlavourDefinedErr is the error message displayed when
 // an invalid flavour is provided as input.
-func InvalidFlavourDefinedError() error {
+func InvalidFlavourDefinedErr(err error) error {
 	return &CustomError{
 		Err:     fmt.Errorf("invalid flavour defined"),
 		Message: InvalidFlavourDefinedErrMsg,
