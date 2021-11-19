@@ -621,3 +621,90 @@ func TestMyCareHubDb_VerifyOTP_Unittest(t *testing.T) {
 		})
 	}
 }
+
+func TestUseCaseOTPImpl_GenerateRetryOTP(t *testing.T) {
+	ctx := context.Background()
+
+	validPayload := &dto.SendRetryOTPPayload{
+		Phone:   "+254710000100",
+		Flavour: feedlib.FlavourConsumer,
+	}
+
+	invalidPayload := &dto.SendRetryOTPPayload{
+		Phone:   "",
+		Flavour: feedlib.FlavourConsumer,
+	}
+
+	type args struct {
+		ctx     context.Context
+		payload *dto.SendRetryOTPPayload
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:     ctx,
+				payload: validPayload,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case - failed to generate and retry to send otp",
+			args: args{
+				ctx:     ctx,
+				payload: validPayload,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case - unable to check if user exists",
+			args: args{
+				ctx:     ctx,
+				payload: invalidPayload,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case - unable to get user profile",
+			args: args{
+				ctx:     ctx,
+				payload: invalidPayload,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_ = mock.NewOTPUseCaseMock()
+			fakeDB := pgMock.NewPostgresMock()
+			fakeExtension := extensionMock.NewFakeExtension()
+			otp := otp.NewOTPUseCase(fakeDB, fakeDB, fakeExtension)
+
+			if tt.name == "Sad case - failed to generate and retry to send otp" {
+				fakeExtension.MockGenerateRetryOTPFn = func(ctx context.Context, payload *dto.SendRetryOTPPayload) (string, error) {
+					return "", fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - unable to check if user exists" {
+				fakeDB.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*domain.User, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - unable to get user profile" {
+				fakeDB.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*domain.User, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+
+			_, err := otp.GenerateRetryOTP(tt.args.ctx, tt.args.payload)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCaseOTPImpl.GenerateRetryOTP() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}

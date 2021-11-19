@@ -18,6 +18,7 @@ type MyCareHubHandlersInterfaces interface {
 	VerifyPhone() http.HandlerFunc
 	SendOTP() http.HandlerFunc
 	RequestPINReset() http.HandlerFunc
+	SendRetryOTP() http.HandlerFunc
 }
 
 // MyCareHubHandlersInterfacesImpl represents the usecase implementation object
@@ -242,5 +243,35 @@ func (h *MyCareHubHandlersInterfacesImpl) RequestPINReset() http.HandlerFunc {
 			return
 		}
 		serverutils.WriteJSONResponse(w, resp, http.StatusOK)
+	}
+}
+
+// SendRetryOTP is an unauthenticated request that takes in a phone number
+// generates an OTP and sends the OTP to the phone number
+func (h *MyCareHubHandlersInterfacesImpl) SendRetryOTP() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+
+		retryPayload := &dto.SendRetryOTPPayload{}
+		serverutils.DecodeJSONToTargetStruct(w, r, retryPayload)
+
+		if retryPayload.Phone == "" || !retryPayload.Flavour.IsValid() {
+			err := fmt.Errorf(
+				"expected `phoneNumber`, `flavour` to be defined",
+			)
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusBadRequest)
+			return
+		}
+
+		response, err := h.usecase.OTP.GenerateRetryOTP(ctx, retryPayload)
+		if err != nil {
+			serverutils.WriteJSONResponse(w, serverutils.ErrorMap(err), http.StatusBadRequest)
+			return
+		}
+
+		serverutils.WriteJSONResponse(w, response, http.StatusOK)
 	}
 }

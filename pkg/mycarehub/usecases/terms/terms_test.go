@@ -46,7 +46,7 @@ func TestServiceTermsImpl_GetCurrentTerms_Integration(t *testing.T) {
 
 	flavour := feedlib.FlavourConsumer
 	currentTime := time.Now()
-	pastTime := time.Now().AddDate(0, 0, -1)
+	nextTime := time.Now().AddDate(0, 0, 2)
 
 	// Setup test user
 	userInput := &gorm.User{
@@ -61,9 +61,9 @@ func TestServiceTermsImpl_GetCurrentTerms_Integration(t *testing.T) {
 		LastSuccessfulLogin: &currentTime,
 		LastFailedLogin:     &currentTime,
 		FailedLoginCount:    0,
-		NextAllowedLogin:    &pastTime,
+		NextAllowedLogin:    &nextTime,
 		TermsAccepted:       true,
-		AcceptedTermsID:     &termsID,
+		AcceptedTermsID:     termsInput.TermsID,
 		Flavour:             flavour,
 		Avatar:              "",
 		IsSuspended:         true,
@@ -155,7 +155,7 @@ func TestServiceTermsImpl_AcceptTerms_Integration_test(t *testing.T) {
 
 	flavour := feedlib.FlavourConsumer
 	currentTime := time.Now()
-	pastTime := time.Now().AddDate(0, 0, -1)
+	nextTime := time.Now().AddDate(0, 0, 2)
 
 	// Setup test user
 	userInput := &gorm.User{
@@ -170,12 +170,12 @@ func TestServiceTermsImpl_AcceptTerms_Integration_test(t *testing.T) {
 		LastSuccessfulLogin: &currentTime,
 		LastFailedLogin:     &currentTime,
 		FailedLoginCount:    0,
-		NextAllowedLogin:    &pastTime,
+		NextAllowedLogin:    &nextTime,
 		TermsAccepted:       true,
-		AcceptedTermsID:     &termsID,
+		AcceptedTermsID:     termsInput.TermsID,
 		Flavour:             flavour,
 		Avatar:              "",
-		IsSuspended:         true,
+		IsSuspended:         false,
 		OrganisationID:      serverutils.MustGetEnvVar("DEFAULT_ORG_ID"),
 		Password:            "",
 		IsSuperuser:         false,

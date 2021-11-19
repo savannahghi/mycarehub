@@ -8,10 +8,12 @@ import (
 	"github.com/savannahghi/converterandformatter"
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
-	"github.com/savannahghi/onboarding/pkg/onboarding/application/exceptions"
+
+	// "github.com/savannahghi/onboarding/pkg/onboarding/application/exceptions"
 	"github.com/savannahghi/profileutils"
 )
 
@@ -43,6 +45,11 @@ type ISendOTP interface {
 		ctx context.Context,
 		phoneNumber string,
 		flavour feedlib.Flavour,
+	) (string, error)
+
+	GenerateRetryOTP(
+		ctx context.Context,
+		payload *dto.SendRetryOTPPayload,
 	) (string, error)
 }
 
@@ -189,4 +196,45 @@ func (o *UseCaseOTPImpl) VerifyPhoneNumber(ctx context.Context, phone string, fl
 	return &profileutils.OtpResponse{
 		OTP: otp,
 	}, nil
+}
+
+// GenerateRetryOTP generates fallback OTPs when Africa is talking sms fails
+func (o *UseCaseOTPImpl) GenerateRetryOTP(ctx context.Context, payload *dto.SendRetryOTPPayload) (string, error) {
+	phoneNumber, err := converterandformatter.NormalizeMSISDN(payload.Phone)
+	if err != nil {
+		return "", err
+	}
+
+	validPayload := &dto.SendRetryOTPPayload{
+		Phone:   *phoneNumber,
+		Flavour: payload.Flavour,
+	}
+
+	retryResponseOTP, err := o.ExternalExt.GenerateRetryOTP(ctx, validPayload)
+	if err != nil {
+		return "", err
+	}
+
+	userProfile, err := o.Query.GetUserProfileByPhoneNumber(ctx, *phoneNumber)
+	if err != nil {
+		return "", exceptions.UserNotFoundError(err)
+	}
+
+	otpResponsePayload := &domain.OTP{
+		UserID:      *userProfile.ID,
+		Valid:       true,
+		GeneratedAt: time.Now(),
+		ValidUntil:  time.Now().Add(time.Hour * 1),
+		Channel:     "SMS",
+		Flavour:     payload.Flavour,
+		PhoneNumber: *phoneNumber,
+		OTP:         retryResponseOTP,
+	}
+
+	err = o.Create.SaveOTP(ctx, otpResponsePayload)
+	if err != nil {
+		return "", fmt.Errorf("failed to save otp: %v", err)
+	}
+
+	return retryResponseOTP, nil
 }

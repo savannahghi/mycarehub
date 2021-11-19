@@ -1,9 +1,10 @@
-package extension
+package extension_test
 
 import (
 	"context"
 	"testing"
 
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
 	"github.com/segmentio/ksuid"
 )
 
@@ -30,7 +31,7 @@ func TestExternal_CreateFirebaseCustomToken(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := NewExternalMethodsImpl()
+			s := extension.NewExternalMethodsImpl()
 			got, err := s.CreateFirebaseCustomToken(tt.args.ctx, tt.args.uid)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("External.CreateFirebaseCustomToken() error = %v, wantErr %v", err, tt.wantErr)

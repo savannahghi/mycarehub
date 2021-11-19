@@ -98,6 +98,13 @@ type SendOTPInput struct {
 	Flavour     feedlib.Flavour `json:"flavour" validate:"required"`
 }
 
+// SendRetryOTPPayload is used to define the inputs passed when calling the endpoint
+// that resends an otp
+type SendRetryOTPPayload struct {
+	Phone   string          `json:"phoneNumber" validate:"required"`
+	Flavour feedlib.Flavour `json:"flavour" validate:"required"`
+}
+
 // Validate helps with validation of PINInput fields
 func (f *PINInput) Validate() error {
 	v := validator.New()

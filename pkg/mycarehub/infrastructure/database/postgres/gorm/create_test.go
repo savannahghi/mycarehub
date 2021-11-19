@@ -95,23 +95,23 @@ func TestPGInstance_SaveTemporaryUserPin(t *testing.T) {
 	}
 	salt, encryptedTempPin := newExtension.EncryptPIN(tempPin, nil)
 
+	nextTime := time.Now().AddDate(0, 0, 2)
 	flavour := feedlib.FlavourConsumer
-	pastTime := time.Now().AddDate(0, 0, -1)
 
-	// Setup test user
 	userInput := &gorm.User{
-		Username:            uuid.New().String(),
+		Username:            gofakeit.BeerName(),
 		FirstName:           gofakeit.FirstName(),
 		MiddleName:          gofakeit.FirstName(),
 		LastName:            gofakeit.LastName(),
 		UserType:            enums.ClientUser,
 		Gender:              enumutils.GenderMale,
-		Active:              false,
+		Active:              true,
+		Contacts:            gorm.Contact{},
 		PushTokens:          []string{},
 		LastSuccessfulLogin: &currentTime,
 		LastFailedLogin:     &currentTime,
 		FailedLoginCount:    0,
-		NextAllowedLogin:    &pastTime,
+		NextAllowedLogin:    &nextTime,
 		TermsAccepted:       true,
 		AcceptedTermsID:     &termsID,
 		Flavour:             flavour,
@@ -119,13 +119,13 @@ func TestPGInstance_SaveTemporaryUserPin(t *testing.T) {
 		IsSuspended:         true,
 		OrganisationID:      serverutils.MustGetEnvVar("DEFAULT_ORG_ID"),
 		Password:            "",
-		IsSuperuser:         false,
-		IsStaff:             false,
+		IsSuperuser:         true,
+		IsStaff:             true,
 		Email:               "",
 		DateJoined:          "",
 		Name:                "",
-		IsApproved:          false,
-		ApprovalNotified:    false,
+		IsApproved:          true,
+		ApprovalNotified:    true,
 		Handle:              "",
 	}
 
@@ -210,12 +210,11 @@ func TestPGInstance_SavePin(t *testing.T) {
 	newExtension := extension.NewExternalMethodsImpl()
 	salt, encryptedPin := newExtension.EncryptPIN("0000", nil)
 	flavour := feedlib.FlavourConsumer
-
-	pastTime := time.Now().AddDate(0, 0, -1)
+	nextTime := time.Now().AddDate(0, 0, 2)
 
 	// Setup test user
 	userInput := &gorm.User{
-		Username:            uuid.New().String(),
+		Username:            gofakeit.BeerName(),
 		FirstName:           gofakeit.FirstName(),
 		MiddleName:          gofakeit.FirstName(),
 		LastName:            gofakeit.LastName(),
@@ -226,7 +225,7 @@ func TestPGInstance_SavePin(t *testing.T) {
 		LastSuccessfulLogin: &currentTime,
 		LastFailedLogin:     &currentTime,
 		FailedLoginCount:    0,
-		NextAllowedLogin:    &pastTime,
+		NextAllowedLogin:    &nextTime,
 		TermsAccepted:       true,
 		AcceptedTermsID:     &termsID,
 		Flavour:             flavour,
@@ -362,7 +361,7 @@ func TestPGInstance_SaveSecurityQuestionResponse(t *testing.T) {
 		t.Errorf("pgInstance.Teardown() = %v", err)
 	}
 	currentTime := time.Now()
-	pastTime := time.Now().AddDate(0, 0, -1)
+	nextTime := time.Now().AddDate(0, 0, 2)
 
 	// Setup test user
 	userInput := &gorm.User{
@@ -377,7 +376,7 @@ func TestPGInstance_SaveSecurityQuestionResponse(t *testing.T) {
 		LastSuccessfulLogin: &currentTime,
 		LastFailedLogin:     &currentTime,
 		FailedLoginCount:    0,
-		NextAllowedLogin:    &pastTime,
+		NextAllowedLogin:    &nextTime,
 		TermsAccepted:       true,
 		AcceptedTermsID:     &termsID,
 		Flavour:             flavour,
@@ -466,7 +465,7 @@ func TestPGInstance_SaveOTP(t *testing.T) {
 
 	flavour := feedlib.FlavourConsumer
 	currentTime := time.Now()
-	pastTime := time.Now().AddDate(0, 0, -1)
+	nextTime := time.Now().AddDate(0, 0, 2)
 
 	// Setup test user
 	userInput := &gorm.User{
@@ -481,7 +480,7 @@ func TestPGInstance_SaveOTP(t *testing.T) {
 		LastSuccessfulLogin: &currentTime,
 		LastFailedLogin:     &currentTime,
 		FailedLoginCount:    0,
-		NextAllowedLogin:    &pastTime,
+		NextAllowedLogin:    &nextTime,
 		TermsAccepted:       true,
 		AcceptedTermsID:     &termsID,
 		Flavour:             flavour,

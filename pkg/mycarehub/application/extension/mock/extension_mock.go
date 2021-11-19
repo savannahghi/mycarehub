@@ -5,6 +5,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/savannahghi/firebasetools"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/extension"
 )
 
@@ -18,6 +19,7 @@ type FakeExtensionImpl struct {
 	MockSendSMSFn                         func(ctx context.Context, phoneNumbers []string, message string) error
 	MockGenerateAndSendOTPFn              func(ctx context.Context, phoneNumber string) (string, error)
 	MockGenerateOTPFn                     func(ctx context.Context) (string, error)
+	MockGenerateRetryOTPFn                func(ctx context.Context, payload *dto.SendRetryOTPPayload) (string, error)
 }
 
 // NewFakeExtension initializes a new instance of the external calls mock
@@ -52,6 +54,9 @@ func NewFakeExtension() *FakeExtensionImpl {
 		},
 		MockGenerateOTPFn: func(ctx context.Context) (string, error) {
 			return "111222", nil
+		},
+		MockGenerateRetryOTPFn: func(ctx context.Context, payload *dto.SendRetryOTPPayload) (string, error) {
+			return "test-OTP", nil
 		},
 	}
 }
@@ -94,4 +99,9 @@ func (f *FakeExtensionImpl) GenerateAndSendOTP(ctx context.Context, phoneNumber 
 // GenerateOTP mocks the GenerateOTP implementation
 func (f *FakeExtensionImpl) GenerateOTP(ctx context.Context) (string, error) {
 	return f.MockGenerateOTPFn(ctx)
+}
+
+// GenerateRetryOTP mock the implementation of generating a retry OTP
+func (f *FakeExtensionImpl) GenerateRetryOTP(ctx context.Context, payload *dto.SendRetryOTPPayload) (string, error) {
+	return f.MockGenerateRetryOTPFn(ctx, payload)
 }

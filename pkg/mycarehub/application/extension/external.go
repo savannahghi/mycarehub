@@ -5,7 +5,9 @@ import (
 
 	engagementInfra "github.com/savannahghi/engagementcore/pkg/engagement/infrastructure"
 	engagementOTP "github.com/savannahghi/engagementcore/pkg/engagement/usecases/otp"
+	engagementTwilio "github.com/savannahghi/engagementcore/pkg/engagement/usecases/twilio"
 	"github.com/savannahghi/firebasetools"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/extension"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/utils"
 	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/engagement"
@@ -26,13 +28,15 @@ type ExternalMethodsExtension interface {
 	SendSMS(ctx context.Context, phoneNumbers []string, message string) error
 	GenerateAndSendOTP(ctx context.Context, phoneNumber string) (string, error)
 	GenerateOTP(ctx context.Context) (string, error)
+	GenerateRetryOTP(ctx context.Context, payload *dto.SendRetryOTPPayload) (string, error)
 }
 
 // External type implements external methods
 type External struct {
-	pinExt        extension.PINExtension
-	engagementExt engagement.ServiceEngagement
-	otpExtension  engagementOTP.ImplOTP
+	pinExt          extension.PINExtension
+	engagementExt   engagement.ServiceEngagement
+	otpExtension    engagementOTP.ImplOTP
+	twilioExtension engagementTwilio.ImplTwilio
 }
 
 // NewExternalMethodsImpl creates a new instance of the external methods
@@ -44,10 +48,12 @@ func NewExternalMethodsImpl() ExternalMethodsExtension {
 	engagementISC := utils.NewInterServiceClient(engagementService, baseExt)
 	engagementExtension := engagement.NewServiceEngagementImpl(engagementISC, baseExt)
 	otpExt := engagementOTP.NewOTP(engagementInfra.NewInteractor())
+	twilioExt := engagementTwilio.NewImplTwilio(engagementInfra.NewInteractor())
 	return &External{
-		pinExt:        pinExtension,
-		engagementExt: engagementExtension,
-		otpExtension:  *otpExt,
+		pinExt:          pinExtension,
+		engagementExt:   engagementExtension,
+		otpExtension:    *otpExt,
+		twilioExtension: *twilioExt,
 	}
 }
 
@@ -97,4 +103,9 @@ func (e *External) GenerateAndSendOTP(ctx context.Context, phoneNumber string) (
 // GenerateOTP generates an OTP
 func (e *External) GenerateOTP(ctx context.Context) (string, error) {
 	return e.otpExtension.GenerateOTP(ctx)
+}
+
+// GenerateRetryOTP generates fallback OTPs when Africa is talking sms fails
+func (e *External) GenerateRetryOTP(ctx context.Context, payload *dto.SendRetryOTPPayload) (string, error) {
+	return e.otpExtension.GenerateRetryOTP(ctx, &payload.Phone, 2, nil)
 }
