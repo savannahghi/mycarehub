@@ -12,14 +12,13 @@ import (
 //
 // Client and Staff cannot exist without being a user
 type User struct {
-	ID *string `json:"id"` // globally unique ID
+	ID *string `json:"userID"`
 
-	Username string `json:"username"` // @handle, also globally unique; nickname
+	Username string `json:"userName"`
 
-	DisplayName string `json:"displayName"` // user's preferred display name
+	DisplayName string `json:"displayName"`
 
-	// TODO Consider making the names optional in DB; validation in frontends
-	FirstName  string `json:"firstName"` // given name
+	FirstName  string `json:"firstName"`
 	MiddleName string `json:"middleName"`
 	LastName   string `json:"lastName"`
 
@@ -28,7 +27,7 @@ type User struct {
 	Gender enumutils.Gender `json:"gender"`
 	Active bool
 
-	Contacts []*Contact `json:"contact"` // TODO: validate, ensure
+	Contacts []*Contact `json:"contacts"`
 
 	// for the preferred language list, order matters
 	// Languages []enumutils.Language `json:"languages"`
@@ -56,10 +55,36 @@ type User struct {
 	Avatar          string          `json:"avatar"`
 }
 
+// ClientProfile holds the details of end users who are not using the system in
+// a professional capacity e.g consumers, patients etc.
+// It is a linkage model e.g to tie together all of a person's identifiers
+// and their health record ID
+type ClientProfile struct {
+	ID         *string `json:"id"`
+	User       *User   `json:"user"`
+	Active     bool    `json:"Active"`
+	ClientType string  `json:"ClientType"`
+	UserID     string  `json:"userID"`
+
+	TreatmentEnrollmentDate *time.Time `json:"treatmentEnrollmentDate"`
+
+	FHIRPatientID string `json:"fhirPatientID"`
+
+	HealthRecordID *string `json:"healthRecordID"`
+
+	TreatmentBuddy string `json:"treatmentBuddy"`
+
+	ClientCounselled bool `json:"counselled"`
+
+	OrganisationID string `json:"organisationID"`
+
+	FacilityID string `json:"facilityID"`
+
+	CHVUserID string `json:"CHVUserID"`
+}
+
 // AuthCredentials is the authentication credentials for a given user
 type AuthCredentials struct {
-	User *User `json:"user"`
-
 	RefreshToken string `json:"refreshToken"`
 	IDToken      string `json:"idToken"`
 	ExpiresIn    string `json:"expiresIn"`
@@ -88,4 +113,12 @@ type Contact struct {
 	// a user may opt not to be contacted via this contact
 	// e.g if it's a shared phone owned by a teenager
 	OptedIn bool
+}
+
+// LoginResponse models the response that will be returned after a user logs in
+type LoginResponse struct {
+	Client          *ClientProfile  `json:"clientProfile"`
+	AuthCredentials AuthCredentials `json:"credentials"`
+	Code            int             `json:"code"`
+	Message         string          `json:"message"`
 }

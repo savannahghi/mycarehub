@@ -319,3 +319,50 @@ func (s *SecurityQuestionResponse) BeforeCreate(tx *gorm.DB) (err error) {
 func (SecurityQuestionResponse) TableName() string {
 	return "clients_securityquestionresponse"
 }
+
+// Client holds the details of end users who are not using the system in
+// a professional capacity e.g consumers, patients etc.
+// It is a linkage model e.g to tie together all of a person's identifiers
+// and their health record ID
+type Client struct {
+	Base
+
+	ID *string `gorm:"primaryKey;unique;column:id"`
+
+	Active bool `gorm:"column:active"`
+
+	ClientType string `gorm:"column:client_type"`
+
+	UserProfile User `gorm:"ForeignKey:UserID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;not null"`
+
+	TreatmentEnrollmentDate *time.Time `gorm:"column:enrollment_date"`
+
+	FHIRPatientID string `gorm:"column:fhir_patient_id"`
+
+	HealthRecordID *string `gorm:"column:emr_health_record_id"`
+
+	TreatmentBuddy string `gorm:"column:treatment_buddy"` // TODO: optional, free text OR FK to user?
+
+	ClientCounselled bool `gorm:"column:counselled"`
+
+	OrganisationID string `gorm:"column:organisation_id"`
+
+	FacilityID string `gorm:"column:current_facility_id"`
+
+	CHVUserID string `gorm:"column:chv_id"`
+
+	UserID *string `gorm:"column:user_id;not null"`
+}
+
+// BeforeCreate is a hook run before creating a client profile
+func (c *Client) BeforeCreate(tx *gorm.DB) (err error) {
+	id := uuid.New().String()
+	c.ID = &id
+	c.OrganisationID = OrganizationID
+	return
+}
+
+// TableName references the table that we map data from
+func (Client) TableName() string {
+	return "clients_client"
+}

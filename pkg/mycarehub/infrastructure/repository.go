@@ -40,6 +40,7 @@ type Query interface {
 	GetSecurityQuestionResponseByID(ctx context.Context, questionID string) (*domain.SecurityQuestionResponse, error)
 	CheckIfPhoneNumberExists(ctx context.Context, phone string, optedIn bool, flavour feedlib.Flavour) (bool, error)
 	VerifyOTP(ctx context.Context, payload *dto.VerifyOTPInput) (bool, error)
+	GetClientProfileByUserID(ctx context.Context, userID string) (*domain.ClientProfile, error)
 }
 
 // Update represents all the update action interfaces

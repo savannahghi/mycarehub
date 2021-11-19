@@ -1618,3 +1618,68 @@ func TestMyCareHubDb_CheckIfPhoneNumberExists(t *testing.T) {
 		})
 	}
 }
+
+func TestMyCareHubDb_GetClientProfileByUserID(t *testing.T) {
+	ctx := context.Background()
+	type args struct {
+		ctx    context.Context
+		userID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Successfully get client profile by user ID",
+			args: args{
+				ctx:    ctx,
+				userID: "1234",
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad Case - Fail to get client profile",
+			args: args{
+				ctx:    ctx,
+				userID: "1234",
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - Missing user ID",
+			args: args{
+				ctx: ctx,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var fakeGorm = gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			if tt.name == "Sad Case - Fail to get client profile" {
+				fakeGorm.MockGetClientProfileByUserIDFn = func(ctx context.Context, userID string) (*gorm.Client, error) {
+					return nil, fmt.Errorf("failed to get client profile by user ID")
+				}
+			}
+
+			if tt.name == "Sad Case - Missing user ID" {
+				fakeGorm.MockGetClientProfileByUserIDFn = func(ctx context.Context, userID string) (*gorm.Client, error) {
+					return nil, fmt.Errorf("failed to get client profile by user ID")
+				}
+			}
+
+			got, err := d.GetClientProfileByUserID(tt.args.ctx, tt.args.userID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.GetClientProfileByUserID() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected to get a response but got: %v", got)
+				return
+			}
+		})
+	}
+}

@@ -43,6 +43,7 @@ type PostgresMock struct {
 	MockGetSecurityQuestionResponseByIDFn   func(ctx context.Context, questionID string) (*domain.SecurityQuestionResponse, error)
 	MockCheckIfPhoneNumberExistsFn          func(ctx context.Context, phone string, isOptedIn bool, flavour feedlib.Flavour) (bool, error)
 	MockVerifyOTPFn                         func(ctx context.Context, payload *dto.VerifyOTPInput) (bool, error)
+	MockGetClientProfileByUserIDFn          func(ctx context.Context, userID string) (*domain.ClientProfile, error)
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -102,6 +103,10 @@ func NewPostgresMock() *PostgresMock {
 		NextAllowedLogin:    &currentTime,
 		LastFailedLogin:     &currentTime,
 		FailedLoginCount:    3,
+	}
+
+	client := &domain.ClientProfile{
+		ID: &ID,
 	}
 
 	return &PostgresMock{
@@ -214,6 +219,9 @@ func NewPostgresMock() *PostgresMock {
 		},
 		MockVerifyOTPFn: func(ctx context.Context, payload *dto.VerifyOTPInput) (bool, error) {
 			return true, nil
+		},
+		MockGetClientProfileByUserIDFn: func(ctx context.Context, userID string) (*domain.ClientProfile, error) {
+			return client, nil
 		},
 	}
 }
@@ -356,4 +364,9 @@ func (gm *PostgresMock) CheckIfPhoneNumberExists(ctx context.Context, phone stri
 // VerifyOTP mocks the implementation of verify otp
 func (gm *PostgresMock) VerifyOTP(ctx context.Context, payload *dto.VerifyOTPInput) (bool, error) {
 	return gm.MockVerifyOTPFn(ctx, payload)
+}
+
+// GetClientProfileByUserID mocks the method for fetching a client profile using the user ID
+func (gm *PostgresMock) GetClientProfileByUserID(ctx context.Context, userID string) (*domain.ClientProfile, error) {
+	return gm.MockGetClientProfileByUserIDFn(ctx, userID)
 }

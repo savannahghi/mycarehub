@@ -11,6 +11,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/exceptions"
+	"gorm.io/gorm/clause"
 )
 
 // Query contains all the db query methods
@@ -28,6 +29,7 @@ type Query interface {
 	GetSecurityQuestionResponseByID(ctx context.Context, questionID string) (*SecurityQuestionResponse, error)
 	CheckIfPhoneNumberExists(ctx context.Context, phone string, isOptedIn bool, flavour feedlib.Flavour) (bool, error)
 	VerifyOTP(ctx context.Context, payload *dto.VerifyOTPInput) (bool, error)
+	GetClientProfileByUserID(ctx context.Context, userID string) (*Client, error)
 }
 
 // RetrieveFacility fetches a single facility
@@ -181,7 +183,7 @@ func (db *PGInstance) ListFacilities(
 // GetUserProfileByPhoneNumber retrieves a user profile using their phonenumber
 func (db *PGInstance) GetUserProfileByPhoneNumber(ctx context.Context, phoneNumber string) (*User, error) {
 	var user User
-	if err := db.DB.Joins("JOIN common_contact on users_user.id = common_contact.user_id").Where("common_contact.contact_value = ?", phoneNumber).First(&user).Error; err != nil {
+	if err := db.DB.Joins("JOIN common_contact on users_user.id = common_contact.user_id").Where("common_contact.contact_value = ?", phoneNumber).Preload(clause.Associations).First(&user).Error; err != nil {
 		return nil, fmt.Errorf("failed to get user by phonenumber %v: %v", phoneNumber, err)
 	}
 	return &user, nil
@@ -253,4 +255,13 @@ func (db *PGInstance) VerifyOTP(ctx context.Context, payload *dto.VerifyOTPInput
 	}
 
 	return true, nil
+}
+
+// GetClientProfileByUserID returns the client profile based on the user ID provided
+func (db *PGInstance) GetClientProfileByUserID(ctx context.Context, userID string) (*Client, error) {
+	var client Client
+	if err := db.DB.Where(&Client{UserID: &userID}).Preload(clause.Associations).First(&client).Error; err != nil {
+		return nil, fmt.Errorf("failed to get client by user ID %v: %v", userID, err)
+	}
+	return &client, nil
 }

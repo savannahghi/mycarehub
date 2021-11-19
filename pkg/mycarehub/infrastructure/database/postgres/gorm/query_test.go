@@ -989,5 +989,103 @@ func TestPGInstance_VerifyOTP(t *testing.T) {
 	if err = pg.DB.Where("id", userInput.UserID).Unscoped().Delete(&gorm.User{}).Error; err != nil {
 		t.Errorf("failed to delete record = %v", err)
 	}
+}
 
+func TestPGInstance_GetClientProfileByUserID(t *testing.T) {
+	ctx := context.Background()
+
+	pg, err := gorm.NewPGInstance()
+	if err != nil {
+		t.Errorf("failed to initialize new PG instance: %v", err)
+		return
+	}
+
+	testFacility := createTestFacility()
+
+	facility, err := testingDB.GetOrCreateFacility(ctx, testFacility)
+	if err != nil {
+		t.Errorf("failed to create test facility")
+		return
+	}
+
+	UserID := uuid.New().String()
+
+	userInput := &gorm.User{
+		UserID:          &UserID,
+		Username:        uuid.New().String(),
+		FirstName:       gofakeit.FirstName(),
+		LastName:        gofakeit.LastName(),
+		MiddleName:      gofakeit.FirstName(),
+		UserType:        enums.ClientUser,
+		Gender:          enumutils.GenderMale,
+		Flavour:         feedlib.FlavourConsumer,
+		AcceptedTermsID: &termsID,
+		TermsAccepted:   true,
+		OrganisationID:  serverutils.MustGetEnvVar("DEFAULT_ORG_ID"),
+		IsSuspended:     false,
+	}
+
+	err = pg.DB.Create(&userInput).Error
+	if err != nil {
+		t.Errorf("failed to create user: %v", err)
+		return
+	}
+
+	invalidID := uuid.New().String()
+	time := time.Now()
+	client := &gorm.Client{
+		UserID:                  userInput.UserID,
+		Active:                  true,
+		ClientType:              "OVC",
+		TreatmentEnrollmentDate: &time,
+		FHIRPatientID:           uuid.New().String(),
+		FacilityID:              *facility.FacilityID,
+		OrganisationID:          serverutils.MustGetEnvVar("DEFAULT_ORG_ID"),
+		CHVUserID:               *userInput.UserID,
+	}
+
+	err = pg.DB.Create(client).Error
+	if err != nil {
+		t.Errorf("failed to create client: %v", err)
+	}
+
+	type args struct {
+		ctx    context.Context
+		userID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Successfully get client profile",
+			args: args{
+				ctx:    ctx,
+				userID: *userInput.UserID,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad Case - Fail to get client profile",
+			args: args{
+				ctx:    ctx,
+				userID: invalidID,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := testingDB.GetClientProfileByUserID(tt.args.ctx, tt.args.userID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.GetClientProfileByUserID() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected a response but got %v", got)
+				return
+			}
+		})
+	}
 }
