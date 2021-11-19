@@ -22,6 +22,7 @@ require (
 	github.com/savannahghi/serverutils v0.0.6
 	github.com/segmentio/ksuid v1.0.4
 	github.com/sirupsen/logrus v1.8.1
+	github.com/stretchr/testify v1.7.0
 	github.com/tj/assert v0.0.3
 	github.com/vektah/gqlparser/v2 v2.2.0
 	go.opencensus.io v0.23.0
@@ -94,7 +95,6 @@ require (
 	github.com/savannahghi/pubsubtools v0.0.2 // indirect
 	github.com/savannahghi/scalarutils v0.0.4 // indirect
 	github.com/shopspring/decimal v1.2.0 // indirect
-	github.com/stretchr/testify v1.7.0 // indirect
 	github.com/ttacon/builder v0.0.0-20170518171403-c099f663e1c2 // indirect
 	github.com/ttacon/libphonenumber v1.2.1 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect

@@ -16,6 +16,7 @@ type MyCareHubHandlersInterfaces interface {
 	LoginByPhone() http.HandlerFunc
 	VerifySecurityQuestions() http.HandlerFunc
 	VerifyPhone() http.HandlerFunc
+	SendOTP() http.HandlerFunc
 }
 
 // MyCareHubHandlersInterfacesImpl represents the usecase implementation object
@@ -157,6 +158,44 @@ func (h *MyCareHubHandlersInterfacesImpl) VerifyOTP() http.HandlerFunc {
 		}
 
 		resp, err := h.interactor.OTPUsecase.VerifyOTP(ctx, payload)
+		if err != nil {
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
+				Message: err.Error(),
+			}, http.StatusBadRequest)
+			return
+		}
+
+		serverutils.WriteJSONResponse(w, resp, http.StatusOK)
+	}
+}
+
+// SendOTP is an unauthenticated endpoint that gets the phonenumber and flavour
+// from a user and sends an OTP
+func (h *MyCareHubHandlersInterfacesImpl) SendOTP() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+
+		payload := &dto.SendOTPInput{}
+		serverutils.DecodeJSONToTargetStruct(w, r, payload)
+		if payload.PhoneNumber == "" {
+			err := fmt.Errorf("expected `phone number` to be defined")
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusBadRequest)
+			return
+		}
+
+		if !payload.Flavour.IsValid() {
+			err := fmt.Errorf("an invalid `flavour` defined")
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusBadRequest)
+			return
+		}
+
+		resp, err := h.interactor.OTPUsecase.GenerateAndSendOTP(ctx, payload.PhoneNumber, payload.Flavour)
 		if err != nil {
 			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
 				Message: err.Error(),

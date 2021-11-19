@@ -9,8 +9,8 @@ import (
 	"github.com/savannahghi/feedlib"
 )
 
-func (r *queryResolver) SendOtp(ctx context.Context, userID string, phoneNumber string, flavour feedlib.Flavour) (string, error) {
+func (r *queryResolver) SendOtp(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (string, error) {
 	r.checkPreconditions()
 
-	return r.interactor.OTPUsecase.GenerateAndSendOTP(ctx, userID, phoneNumber, flavour)
+	return r.interactor.OTPUsecase.GenerateAndSendOTP(ctx, phoneNumber, flavour)
 }

@@ -37,7 +37,6 @@ type ISendOTP interface {
 
 	GenerateAndSendOTP(
 		ctx context.Context,
-		userID string,
 		phoneNumber string,
 		flavour feedlib.Flavour,
 	) (string, error)
@@ -79,12 +78,16 @@ func NewOTPUseCase(
 // GenerateAndSendOTP generates and send an otp to the intended user
 func (o *UseCaseOTPImpl) GenerateAndSendOTP(
 	ctx context.Context,
-	userID string,
 	phoneNumber string,
 	flavour feedlib.Flavour,
 ) (string, error) {
 	if !flavour.IsValid() {
 		return "", exceptions.InvalidFlavourDefinedError()
+	}
+
+	userProfile, err := o.Query.GetUserProfileByPhoneNumber(ctx, phoneNumber)
+	if err != nil {
+		return "", exceptions.UserNotFoundError(err)
 	}
 
 	otp, err := o.ExternalExt.GenerateAndSendOTP(ctx, phoneNumber)
@@ -93,7 +96,7 @@ func (o *UseCaseOTPImpl) GenerateAndSendOTP(
 	}
 
 	otpDataPayload := &domain.OTP{
-		UserID:      userID,
+		UserID:      *userProfile.ID,
 		Valid:       true,
 		GeneratedAt: time.Now(),
 		ValidUntil:  time.Now().Add(time.Minute * 10),
