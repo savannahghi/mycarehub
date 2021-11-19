@@ -43,6 +43,7 @@ type GormMock struct {
 	MockGetSecurityQuestionResponseByIDFn   func(ctx context.Context, questionID string) (*gorm.SecurityQuestionResponse, error)
 	MockCheckIfPhoneNumberExistsFn          func(ctx context.Context, phone string, isOptedIn bool, flavour feedlib.Flavour) (bool, error)
 	MockVerifyOTPFn                         func(ctx context.Context, payload *dto.VerifyOTPInput) (bool, error)
+	MockGetClientProfileByUserIDFn          func(ctx context.Context, userID string) (*gorm.Client, error)
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -94,6 +95,10 @@ func NewGormMock() *GormMock {
 				Description: description,
 			},
 		},
+	}
+
+	client := &gorm.Client{
+		ID: &UUID,
 	}
 
 	pinData := &gorm.PINData{
@@ -232,6 +237,9 @@ func NewGormMock() *GormMock {
 		MockVerifyOTPFn: func(ctx context.Context, payload *dto.VerifyOTPInput) (bool, error) {
 			return true, nil
 		},
+		MockGetClientProfileByUserIDFn: func(ctx context.Context, userID string) (*gorm.Client, error) {
+			return client, nil
+		},
 	}
 }
 
@@ -368,4 +376,9 @@ func (gm *GormMock) CheckIfPhoneNumberExists(ctx context.Context, phone string, 
 // VerifyOTP mocks the implementation of verify otp
 func (gm *GormMock) VerifyOTP(ctx context.Context, payload *dto.VerifyOTPInput) (bool, error) {
 	return gm.MockVerifyOTPFn(ctx, payload)
+}
+
+// GetClientProfileByUserID mocks the method for fetching a client profile using the user ID
+func (gm *GormMock) GetClientProfileByUserID(ctx context.Context, userID string) (*gorm.Client, error) {
+	return gm.MockGetClientProfileByUserIDFn(ctx, userID)
 }

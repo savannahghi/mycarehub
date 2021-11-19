@@ -241,3 +241,32 @@ func (d *MyCareHubDb) VerifyOTP(ctx context.Context, payload *dto.VerifyOTPInput
 
 	return d.query.VerifyOTP(ctx, payload)
 }
+
+// GetClientProfileByUserID fetched a client profile using the supplied user ID. This will be used to return the client
+// details as part of the login response
+func (d *MyCareHubDb) GetClientProfileByUserID(ctx context.Context, userID string) (*domain.ClientProfile, error) {
+	if userID == "" {
+		return nil, fmt.Errorf("user ID must be defined")
+	}
+
+	response, err := d.query.GetClientProfileByUserID(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	user := createMapUser(&response.UserProfile)
+	return &domain.ClientProfile{
+		ID:                      response.ID,
+		User:                    user,
+		Active:                  response.Active,
+		ClientType:              response.ClientType,
+		TreatmentEnrollmentDate: response.TreatmentEnrollmentDate,
+		FHIRPatientID:           response.FHIRPatientID,
+		HealthRecordID:          response.HealthRecordID,
+		TreatmentBuddy:          response.TreatmentBuddy,
+		ClientCounselled:        response.ClientCounselled,
+		OrganisationID:          response.OrganisationID,
+		FacilityID:              response.FacilityID,
+		CHVUserID:               response.CHVUserID,
+	}, nil
+}

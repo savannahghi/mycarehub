@@ -20,7 +20,7 @@ import (
 
 // ILogin is an interface that contans login related methods
 type ILogin interface {
-	Login(ctx context.Context, phoneNumber string, pin string, flavour feedlib.Flavour) (*domain.AuthCredentials, int, error)
+	Login(ctx context.Context, phoneNumber string, pin string, flavour feedlib.Flavour) (*domain.LoginResponse, int, error)
 	InviteUser(ctx context.Context, userID string, phoneNumber string, flavour feedlib.Flavour) (bool, error)
 }
 
@@ -128,7 +128,7 @@ func (us *UseCasesUserImpl) VerifyPIN(ctx context.Context, userID string, pin st
 }
 
 // Login is used to login the user into the application
-func (us *UseCasesUserImpl) Login(ctx context.Context, phoneNumber string, pin string, flavour feedlib.Flavour) (*domain.AuthCredentials, int, error) {
+func (us *UseCasesUserImpl) Login(ctx context.Context, phoneNumber string, pin string, flavour feedlib.Flavour) (*domain.LoginResponse, int, error) {
 	phone, err := converterandformatter.NormalizeMSISDN(phoneNumber)
 	if err != nil {
 		return nil, int(errorcodeutil.InvalidPhoneNumberFormat), exceptions.NormalizeMSISDNError(err)
@@ -180,14 +180,24 @@ func (us *UseCasesUserImpl) Login(ctx context.Context, phoneNumber string, pin s
 		return nil, int(errorcodeutil.Internal), fmt.Errorf("failed to update user last successful login time")
 	}
 
-	authCredentials := &domain.AuthCredentials{
-		User:         userProfile,
-		RefreshToken: userTokens.RefreshToken,
-		IDToken:      userTokens.IDToken,
-		ExpiresIn:    userTokens.ExpiresIn,
+	clientProfile, err := us.Query.GetClientProfileByUserID(ctx, *userProfile.ID)
+	if err != nil {
+		return nil, int(errorcodeutil.Internal), fmt.Errorf("failed to return the client profile")
 	}
 
-	return authCredentials, int(errorcodeutil.OK), nil
+	clientProfile.User = userProfile
+	loginResponse := &domain.LoginResponse{
+		Client: clientProfile,
+		AuthCredentials: domain.AuthCredentials{
+			RefreshToken: userTokens.RefreshToken,
+			IDToken:      userTokens.IDToken,
+			ExpiresIn:    userTokens.ExpiresIn,
+		},
+		Code:    int(errorcodeutil.OK),
+		Message: "Success",
+	}
+
+	return loginResponse, int(errorcodeutil.OK), nil
 }
 
 // InviteUser is used to invite a user to the application. The invite link that is sent to the
