@@ -138,7 +138,7 @@ func (h *MyCareHubHandlersInterfacesImpl) VerifyOTP() http.HandlerFunc {
 
 		payload := &dto.VerifyOTPInput{}
 		serverutils.DecodeJSONToTargetStruct(w, r, payload)
-		if payload.UserID == "" || payload.OTP == "" || payload.PhoneNumber == "" {
+		if payload.OTP == "" || payload.PhoneNumber == "" {
 			err := fmt.Errorf("expected `userID`, `otp` and phone to be defined")
 			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
 				Err:     err,

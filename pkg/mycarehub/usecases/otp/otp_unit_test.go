@@ -397,43 +397,31 @@ func TestMyCareHubDb_VerifyOTP_Unittest(t *testing.T) {
 	flavour := feedlib.FlavourConsumer
 
 	validOTPPayload := &dto.VerifyOTPInput{
-		UserID:      uuid.New().String(),
-		PhoneNumber: uuid.New().String(),
-		OTP:         uuid.New().String(),
-		Flavour:     flavour,
-	}
-	invalidOTPPayload1 := &dto.VerifyOTPInput{
-		UserID:      "",
 		PhoneNumber: uuid.New().String(),
 		OTP:         uuid.New().String(),
 		Flavour:     flavour,
 	}
 	invalidOTPPayload2 := &dto.VerifyOTPInput{
-		UserID:      uuid.New().String(),
 		PhoneNumber: "",
 		OTP:         uuid.New().String(),
 		Flavour:     flavour,
 	}
 	invalidOTPPayload3 := &dto.VerifyOTPInput{
-		UserID:      uuid.New().String(),
 		PhoneNumber: uuid.New().String(),
 		OTP:         "",
 		Flavour:     flavour,
 	}
 	invalidOTPPayload4 := &dto.VerifyOTPInput{
-		UserID:      uuid.New().String(),
 		PhoneNumber: uuid.New().String(),
 		OTP:         uuid.New().String(),
 		Flavour:     "flavour",
 	}
 	invalidOTPPayload5 := &dto.VerifyOTPInput{
-		UserID:      " uuid.New().String()",
 		PhoneNumber: "otpInput.PhoneNumber",
 		OTP:         "otpInput.OTP",
 		Flavour:     "flavour",
 	}
 	invalidOTPPayload6 := &dto.VerifyOTPInput{
-		UserID:      gofakeit.HipsterParagraph(1, 10, 100, ""),
 		PhoneNumber: gofakeit.HipsterParagraph(1, 10, 100, ""),
 		OTP:         gofakeit.HipsterParagraph(1, 10, 100, ""),
 		Flavour:     "gofakeit.HipsterParagraph(300, 10, 100)",
@@ -457,15 +445,6 @@ func TestMyCareHubDb_VerifyOTP_Unittest(t *testing.T) {
 			},
 			want:    true,
 			wantErr: false,
-		},
-		{
-			name: "Sad case - no user ID",
-			args: args{
-				ctx:     ctx,
-				payload: invalidOTPPayload1,
-			},
-			want:    false,
-			wantErr: true,
 		},
 		{
 			name: "Sad case - no phone",

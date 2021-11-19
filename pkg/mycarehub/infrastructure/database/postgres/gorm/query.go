@@ -237,19 +237,19 @@ func (db *PGInstance) GetSecurityQuestionResponseByID(ctx context.Context, quest
 //VerifyOTP checks from the database the validity of the provided OTP
 func (db *PGInstance) VerifyOTP(ctx context.Context, payload *dto.VerifyOTPInput) (bool, error) {
 	var userOTP UserOTP
-	if payload.UserID == "" || payload.PhoneNumber == "" || payload.OTP == "" {
+	if payload.PhoneNumber == "" || payload.OTP == "" {
 		return false, fmt.Errorf("user ID or phone number or OTP cannot be empty")
 	}
 	if !payload.Flavour.IsValid() {
 		return false, exceptions.InvalidFlavourDefinedError()
 	}
 
-	err := db.DB.Model(&UserOTP{}).Where(&UserOTP{UserID: payload.UserID, PhoneNumber: payload.PhoneNumber, OTP: payload.OTP, Flavour: payload.Flavour}).First(&userOTP).Error
+	err := db.DB.Model(&UserOTP{}).Where(&UserOTP{PhoneNumber: payload.PhoneNumber, OTP: payload.OTP, Flavour: payload.Flavour}).First(&userOTP).Error
 	if err != nil {
 		if strings.Contains(err.Error(), "record not found") {
 			return false, nil
 		}
-		return false, fmt.Errorf("failed to verify otp with %v: %v: %v", payload.UserID, payload.OTP, payload.Flavour)
+		return false, fmt.Errorf("failed to verify otp with %v: %v", payload.OTP, payload.Flavour)
 	}
 
 	return true, nil

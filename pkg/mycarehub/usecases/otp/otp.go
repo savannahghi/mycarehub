@@ -151,7 +151,7 @@ func (o *UseCaseOTPImpl) VerifyPhoneNumber(ctx context.Context, phone string, fl
 		GeneratedAt: time.Now(),
 		ValidUntil:  time.Now().Add(time.Minute * 10),
 		Channel:     "SMS",
-		Flavour:     userProfile.Flavour,
+		Flavour:     flavour,
 		PhoneNumber: phone,
 		OTP:         otp,
 	}
