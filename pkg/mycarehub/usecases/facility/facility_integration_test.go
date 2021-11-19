@@ -6,56 +6,22 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/testutils"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
-	externalExtension "github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/presentation/interactor"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/facility"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/otp"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/securityquestions"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/terms"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/user"
 	"github.com/segmentio/ksuid"
 	"github.com/tj/assert"
 )
 
-func InitializeTestService(ctx context.Context) *interactor.Interactor {
-	pg, err := gorm.NewPGInstance()
-	if err != nil {
-		return nil
-	}
-
-	db := postgres.NewMyCareHubDb(pg, pg, pg, pg)
-	externalExt := externalExtension.NewExternalMethodsImpl()
-
-	// Initialize facility usecase
-	facilityUseCase := facility.NewFacilityUsecase(db, db, db, db)
-
-	// Initialize user usecase
-	userUsecase := user.NewUseCasesUserImpl(db, db, db, db, externalExt)
-
-	termsUsecase := terms.NewUseCasesTermsOfService(db, db)
-
-	securityQuestionsUsecase := securityquestions.NewSecurityQuestionsUsecase(db, db, externalExt)
-
-	otpUseCase := otp.NewOTPUseCase(db, db, externalExt)
-
-	i := interactor.NewMyCareHubInteractor(facilityUseCase, userUsecase, termsUsecase, securityQuestionsUsecase, otpUseCase)
-	return i
-}
-
 func TestUseCaseFacilityImpl_CreateFacility(t *testing.T) {
-
 	ctx := context.Background()
 	name := ksuid.New().String()
 	code := rand.Intn(1000000)
 	county := "Nairobi"
 	description := "This is just for testing"
 
-	i := InitializeTestService(ctx)
+	i, _ := testutils.InitializeTestService(ctx)
 
 	type args struct {
 		ctx      context.Context
@@ -112,7 +78,7 @@ func TestUseCaseFacilityImpl_CreateFacility(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := i.FacilityUsecase.GetOrCreateFacility(tt.args.ctx, tt.args.facility)
+			got, err := i.Facility.GetOrCreateFacility(tt.args.ctx, tt.args.facility)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCaseFacilityImpl.GetOrCreateFacility() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -130,7 +96,7 @@ func TestUseCaseFacilityImpl_CreateFacility(t *testing.T) {
 		})
 	}
 
-	_, err := i.FacilityUsecase.DeleteFacility(ctx, code)
+	_, err := i.Facility.DeleteFacility(ctx, code)
 	if err != nil {
 		t.Errorf("unable to delete facility")
 		return
@@ -140,8 +106,7 @@ func TestUseCaseFacilityImpl_CreateFacility(t *testing.T) {
 func TestUseCaseFacilityImpl_RetrieveFacility_Integration(t *testing.T) {
 	ctx := context.Background()
 
-	i := InitializeTestService(ctx)
-
+	i, _ := testutils.InitializeTestService(ctx)
 	Code := rand.Intn(1000000)
 
 	facilityInput := &dto.FacilityInput{
@@ -153,7 +118,7 @@ func TestUseCaseFacilityImpl_RetrieveFacility_Integration(t *testing.T) {
 	}
 
 	// Setup, create a facility
-	facility, err := i.FacilityUsecase.GetOrCreateFacility(ctx, facilityInput)
+	facility, err := i.Facility.GetOrCreateFacility(ctx, facilityInput)
 	if err != nil {
 		t.Errorf("failed to create new facility: %v", err)
 	}
@@ -192,7 +157,7 @@ func TestUseCaseFacilityImpl_RetrieveFacility_Integration(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := i.FacilityUsecase.RetrieveFacility(tt.args.ctx, tt.args.id, tt.args.isActive)
+			got, err := i.Facility.RetrieveFacility(tt.args.ctx, tt.args.id, tt.args.isActive)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCaseFacilityImpl.RetrieveFacility() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -209,7 +174,7 @@ func TestUseCaseFacilityImpl_RetrieveFacility_Integration(t *testing.T) {
 		})
 	}
 
-	_, err = i.FacilityUsecase.DeleteFacility(ctx, facility.Code)
+	_, err = i.Facility.DeleteFacility(ctx, facility.Code)
 	if err != nil {
 		t.Errorf("unable to delete facility")
 		return
@@ -219,8 +184,7 @@ func TestUseCaseFacilityImpl_RetrieveFacility_Integration(t *testing.T) {
 func TestUseCaseFacilityImpl_DeleteFacility_Integrationtest(t *testing.T) {
 	ctx := context.Background()
 
-	i := InitializeTestService(ctx)
-
+	i, _ := testutils.InitializeTestService(ctx)
 	//Create facility
 	facilityInput := &dto.FacilityInput{
 		Name:        ksuid.New().String(),
@@ -231,12 +195,12 @@ func TestUseCaseFacilityImpl_DeleteFacility_Integrationtest(t *testing.T) {
 	}
 
 	// create a facility
-	facility, err := i.FacilityUsecase.GetOrCreateFacility(ctx, facilityInput)
+	facility, err := i.Facility.GetOrCreateFacility(ctx, facilityInput)
 	assert.Nil(t, err)
 	assert.NotNil(t, facility)
 
 	// retrieve the facility
-	facility1, err := i.FacilityUsecase.RetrieveFacility(ctx, facility.ID, true)
+	facility1, err := i.Facility.RetrieveFacility(ctx, facility.ID, true)
 	assert.Nil(t, err)
 	assert.NotNil(t, facility1)
 
@@ -276,7 +240,7 @@ func TestUseCaseFacilityImpl_DeleteFacility_Integrationtest(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := i.FacilityUsecase.DeleteFacility(tt.args.ctx, tt.args.id)
+			_, err := i.Facility.DeleteFacility(tt.args.ctx, tt.args.id)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCaseFacilityImpl.DeleteFacility() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -288,8 +252,7 @@ func TestUseCaseFacilityImpl_DeleteFacility_Integrationtest(t *testing.T) {
 func TestUseCaseFacilityImpl_RetrieveFacilityByMFLCode_Integration(t *testing.T) {
 	ctx := context.Background()
 
-	i := InitializeTestService(ctx)
-
+	i, _ := testutils.InitializeTestService(ctx)
 	code := rand.Intn(1000000)
 	facilityInput := &dto.FacilityInput{
 		Name:        ksuid.New().String(),
@@ -300,7 +263,7 @@ func TestUseCaseFacilityImpl_RetrieveFacilityByMFLCode_Integration(t *testing.T)
 	}
 
 	// Setup, create a facility
-	facility, err := i.FacilityUsecase.GetOrCreateFacility(ctx, facilityInput)
+	facility, err := i.Facility.GetOrCreateFacility(ctx, facilityInput)
 	if err != nil {
 		t.Errorf("failed to create new facility: %v", err)
 	}
@@ -341,7 +304,7 @@ func TestUseCaseFacilityImpl_RetrieveFacilityByMFLCode_Integration(t *testing.T)
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := i.FacilityUsecase.RetrieveFacilityByMFLCode(tt.args.ctx, tt.args.MFLCode, tt.args.isActive)
+			got, err := i.Facility.RetrieveFacilityByMFLCode(tt.args.ctx, tt.args.MFLCode, tt.args.isActive)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCaseFacilityImpl.RetrieveFacilityByMFLCode() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -358,7 +321,7 @@ func TestUseCaseFacilityImpl_RetrieveFacilityByMFLCode_Integration(t *testing.T)
 		})
 	}
 
-	_, err = i.FacilityUsecase.DeleteFacility(ctx, facility.Code)
+	_, err = i.Facility.DeleteFacility(ctx, facility.Code)
 	if err != nil {
 		t.Errorf("unable to delete facility")
 		return
@@ -368,8 +331,7 @@ func TestUseCaseFacilityImpl_RetrieveFacilityByMFLCode_Integration(t *testing.T)
 func TestUseCaseFacilityImpl_ListFacilities(t *testing.T) {
 	ctx := context.Background()
 
-	f := InitializeTestService(ctx)
-
+	f, _ := testutils.InitializeTestService(ctx)
 	code := rand.Intn(1000000)
 	code2 := rand.Intn(1000000)
 	name := ksuid.New().String()
@@ -522,12 +484,12 @@ func TestUseCaseFacilityImpl_ListFacilities(t *testing.T) {
 
 	// Setup
 	// create a facility
-	facility, err := f.FacilityUsecase.GetOrCreateFacility(ctx, facilityInput)
+	facility, err := f.Facility.GetOrCreateFacility(ctx, facilityInput)
 	if err != nil {
 		t.Errorf("failed to create new facility: %v", err)
 	}
 	// Create another Facility
-	facility2, err := f.FacilityUsecase.GetOrCreateFacility(ctx, facilityInput2)
+	facility2, err := f.Facility.GetOrCreateFacility(ctx, facilityInput2)
 	if err != nil {
 		t.Errorf("failed to create new facility: %v", err)
 	}
@@ -696,7 +658,7 @@ func TestUseCaseFacilityImpl_ListFacilities(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			got, err := f.FacilityUsecase.ListFacilities(tt.args.ctx, tt.args.searchTerm, tt.args.filterInput, tt.args.paginationsInput)
+			got, err := f.Facility.ListFacilities(tt.args.ctx, tt.args.searchTerm, tt.args.filterInput, tt.args.paginationsInput)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCaseFacilityImpl.ListFacilities() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -724,12 +686,12 @@ func TestUseCaseFacilityImpl_ListFacilities(t *testing.T) {
 		})
 	}
 	// Teardown
-	_, err = f.FacilityUsecase.DeleteFacility(ctx, facility.Code)
+	_, err = f.Facility.DeleteFacility(ctx, facility.Code)
 	if err != nil {
 		t.Errorf("unable to delete facility")
 		return
 	}
-	_, err = f.FacilityUsecase.DeleteFacility(ctx, facility2.Code)
+	_, err = f.Facility.DeleteFacility(ctx, facility2.Code)
 	if err != nil {
 		t.Errorf("unable to delete facility")
 		return
@@ -739,8 +701,7 @@ func TestUseCaseFacilityImpl_ListFacilities(t *testing.T) {
 func TestUseCaseFacilityImpl_Inactivate_Integration_test(t *testing.T) {
 	ctx := context.Background()
 
-	i := InitializeTestService(ctx)
-
+	i, _ := testutils.InitializeTestService(ctx)
 	facilityInput := &dto.FacilityInput{
 		Name:        ksuid.New().String(),
 		Code:        rand.Intn(1000000),
@@ -750,7 +711,7 @@ func TestUseCaseFacilityImpl_Inactivate_Integration_test(t *testing.T) {
 	}
 
 	// Setup, create a facility
-	facility, err := i.FacilityUsecase.GetOrCreateFacility(ctx, facilityInput)
+	facility, err := i.Facility.GetOrCreateFacility(ctx, facilityInput)
 	if err != nil {
 		t.Errorf("failed to create new facility: %v", err)
 		return
@@ -787,7 +748,7 @@ func TestUseCaseFacilityImpl_Inactivate_Integration_test(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			got, err := i.FacilityUsecase.InactivateFacility(tt.args.ctx, tt.args.mflCode)
+			got, err := i.Facility.InactivateFacility(tt.args.ctx, tt.args.mflCode)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCaseFacilityImpl.Inactivate() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -799,7 +760,7 @@ func TestUseCaseFacilityImpl_Inactivate_Integration_test(t *testing.T) {
 
 		})
 	}
-	_, err = i.FacilityUsecase.DeleteFacility(ctx, facility.Code)
+	_, err = i.Facility.DeleteFacility(ctx, facility.Code)
 	if err != nil {
 		t.Errorf("unable to delete facility")
 		return
@@ -809,8 +770,7 @@ func TestUseCaseFacilityImpl_Inactivate_Integration_test(t *testing.T) {
 func TestUseCaseFacilityImpl_Reactivate_Integration_test(t *testing.T) {
 	ctx := context.Background()
 
-	i := InitializeTestService(ctx)
-
+	i, _ := testutils.InitializeTestService(ctx)
 	facilityInput := &dto.FacilityInput{
 		Name:        ksuid.New().String(),
 		Code:        rand.Intn(1000000),
@@ -820,7 +780,7 @@ func TestUseCaseFacilityImpl_Reactivate_Integration_test(t *testing.T) {
 	}
 
 	// Setup, create a facility
-	facility, err := i.FacilityUsecase.GetOrCreateFacility(ctx, facilityInput)
+	facility, err := i.Facility.GetOrCreateFacility(ctx, facilityInput)
 	if err != nil {
 		t.Errorf("failed to create new facility: %v", err)
 		return
@@ -857,7 +817,7 @@ func TestUseCaseFacilityImpl_Reactivate_Integration_test(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			got, err := i.FacilityUsecase.ReactivateFacility(tt.args.ctx, tt.args.mflCode)
+			got, err := i.Facility.ReactivateFacility(tt.args.ctx, tt.args.mflCode)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCaseFacilityImpl.ReactivateFacility() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -868,7 +828,7 @@ func TestUseCaseFacilityImpl_Reactivate_Integration_test(t *testing.T) {
 			}
 		})
 	}
-	_, err = i.FacilityUsecase.DeleteFacility(ctx, facility.Code)
+	_, err = i.Facility.DeleteFacility(ctx, facility.Code)
 	if err != nil {
 		t.Errorf("unable to delete facility")
 		return

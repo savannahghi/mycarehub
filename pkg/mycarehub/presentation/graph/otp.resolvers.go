@@ -11,6 +11,5 @@ import (
 
 func (r *queryResolver) SendOtp(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (string, error) {
 	r.checkPreconditions()
-
-	return r.interactor.OTPUsecase.GenerateAndSendOTP(ctx, phoneNumber, flavour)
+	return r.mycarehub.OTP.GenerateAndSendOTP(ctx, phoneNumber, flavour)
 }

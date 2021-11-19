@@ -13,16 +13,9 @@ import (
 
 	"github.com/imroc/req"
 	"github.com/savannahghi/firebasetools"
-	externalExtension "github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/testutils"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/presentation"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/presentation/interactor"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/facility"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/otp"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/securityquestions"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/terms"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/user"
 	"github.com/savannahghi/serverutils"
 )
 
@@ -68,7 +61,7 @@ func TestMain(m *testing.M) {
 		log.Printf("can't instantiate test repository: %v", err)
 	}
 
-	_, err = InitializeTestService(ctx)
+	_, err = testutils.InitializeTestService(ctx)
 	if err != nil {
 		log.Printf("Error initializing test service: %v", err)
 	}
@@ -136,38 +129,4 @@ func GetBearerTokenHeader(ctx context.Context) (string, error) {
 	}
 
 	return fmt.Sprintf("Bearer %s", idTokens.IDToken), nil
-}
-
-func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) {
-	fc := &firebasetools.FirebaseClient{}
-	_, err := fc.InitFirebase()
-	if err != nil {
-		return nil, err
-	}
-
-	pg, err := gorm.NewPGInstance()
-	if err != nil {
-		return nil, fmt.Errorf("can't instantiate test repository: %v", err)
-	}
-
-	// add organization
-	// createOrganization(pg)
-
-	externalExt := externalExtension.NewExternalMethodsImpl()
-
-	db := postgres.NewMyCareHubDb(pg, pg, pg, pg)
-
-	// Initialize facility usecase
-	facilityUseCase := facility.NewFacilityUsecase(db, db, db, db)
-
-	userUsecase := user.NewUseCasesUserImpl(db, db, db, db, externalExt)
-
-	termsUsecase := terms.NewUseCasesTermsOfService(db, db)
-
-	securityQuestionsUsecase := securityquestions.NewSecurityQuestionsUsecase(db, db, externalExt)
-
-	otpUseCase := otp.NewOTPUseCase(db, db, externalExt)
-
-	i := interactor.NewMyCareHubInteractor(facilityUseCase, userUsecase, termsUsecase, securityQuestionsUsecase, otpUseCase)
-	return i, nil
 }

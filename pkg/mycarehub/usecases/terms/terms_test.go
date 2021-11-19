@@ -9,50 +9,18 @@ import (
 	"github.com/google/uuid"
 	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/feedlib"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/testutils"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
-	externalExtension "github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/presentation/interactor"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/facility"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/otp"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/securityquestions"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/terms"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/user"
 	"github.com/savannahghi/serverutils"
 	"github.com/segmentio/ksuid"
 )
 
-func InitializeTestService(ctx context.Context) *interactor.Interactor {
-	pg, err := gorm.NewPGInstance()
-	if err != nil {
-		return nil
-	}
-
-	db := postgres.NewMyCareHubDb(pg, pg, pg, pg)
-	externalExt := externalExtension.NewExternalMethodsImpl()
-
-	// Initialize facility usecase
-	facilityUseCase := facility.NewFacilityUsecase(db, db, db, db)
-
-	// Initialize user usecase
-	userUsecase := user.NewUseCasesUserImpl(db, db, db, db, externalExt)
-
-	termsUsecase := terms.NewUseCasesTermsOfService(db, db)
-
-	securityQuestionsUsecase := securityquestions.NewSecurityQuestionsUsecase(db, db, externalExt)
-
-	otpUseCase := otp.NewOTPUseCase(db, db, externalExt)
-
-	i := interactor.NewMyCareHubInteractor(facilityUseCase, userUsecase, termsUsecase, securityQuestionsUsecase, otpUseCase)
-	return i
-}
-
 func TestServiceTermsImpl_GetCurrentTerms_Integration(t *testing.T) {
 	ctx := context.Background()
 
-	i := InitializeTestService(ctx)
+	i, _ := testutils.InitializeTestService(ctx)
 
 	pg, err := gorm.NewPGInstance()
 	if err != nil {
@@ -119,7 +87,7 @@ func TestServiceTermsImpl_GetCurrentTerms_Integration(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := i.TermsUsecase.GetCurrentTerms(tt.args.ctx)
+			got, err := i.Terms.GetCurrentTerms(tt.args.ctx)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ServiceTermsImpl.GetCurrentTerms() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -148,8 +116,7 @@ func TestServiceTermsImpl_GetCurrentTerms_Integration(t *testing.T) {
 func TestServiceTermsImpl_AcceptTerms_Integration_test(t *testing.T) {
 	ctx := context.Background()
 
-	i := InitializeTestService(ctx)
-
+	i, _ := testutils.InitializeTestService(ctx)
 	pg, err := gorm.NewPGInstance()
 	if err != nil {
 		t.Errorf("pgInstance.Teardown() = %v", err)
@@ -263,7 +230,7 @@ func TestServiceTermsImpl_AcceptTerms_Integration_test(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := i.TermsUsecase.AcceptTerms(tt.args.ctx, tt.args.userID, tt.args.termsID)
+			got, err := i.Terms.AcceptTerms(tt.args.ctx, tt.args.userID, tt.args.termsID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ServiceTermsImpl.AcceptTerms() error = %v, wantErr %v", err, tt.wantErr)
 				return

@@ -5,7 +5,7 @@ import (
 	"log"
 
 	"github.com/savannahghi/firebasetools"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/presentation/interactor"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases"
 
 	"firebase.google.com/go/auth"
 )
@@ -18,24 +18,23 @@ import (
 
 // Resolver sets up a GraphQL resolver with all necessary dependencies
 type Resolver struct {
-	interactor *interactor.Interactor
+	mycarehub *usecases.MyCareHub
 }
 
 // NewResolver sets up the dependencies needed for query and mutation resolvers to work
 func NewResolver(
 	ctx context.Context,
-	interactor *interactor.Interactor,
+	mycarehub usecases.MyCareHub,
 ) (*Resolver, error) {
 	return &Resolver{
-		interactor: interactor,
+		mycarehub: &mycarehub,
 	}, nil
 }
 
 func (r Resolver) checkPreconditions() {
-	if r.interactor == nil {
+	if r.mycarehub == nil {
 		log.Panicf("expected onboarding usecases to be defined resolver")
 	}
-
 }
 
 // CheckUserTokenInContext ensures that the context has a valid Firebase auth token

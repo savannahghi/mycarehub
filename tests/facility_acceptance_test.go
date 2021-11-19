@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/brianvoe/gofakeit"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/testutils"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/segmentio/ksuid"
 )
@@ -259,7 +260,7 @@ func TestCreateFacility(t *testing.T) {
 func TestInactivateFacility(t *testing.T) {
 	ctx := context.Background()
 
-	i, err := InitializeTestService(ctx)
+	i, err := testutils.InitializeTestService(ctx)
 	if err != nil {
 		t.Errorf("an error occurred: %v", err)
 	}
@@ -284,7 +285,7 @@ func TestInactivateFacility(t *testing.T) {
 		Description: description,
 	}
 
-	facility, err := i.FacilityUsecase.GetOrCreateFacility(ctx, facilityInput)
+	facility, err := i.Facility.GetOrCreateFacility(ctx, facilityInput)
 	if err != nil {
 		t.Errorf("an error occurred: %v", err)
 	}
@@ -409,7 +410,7 @@ func TestInactivateFacility(t *testing.T) {
 func TestReactivateFacility(t *testing.T) {
 	ctx := context.Background()
 
-	i, err := InitializeTestService(ctx)
+	i, err := testutils.InitializeTestService(ctx)
 	if err != nil {
 		t.Errorf("an error occurred: %v", err)
 	}
@@ -434,7 +435,7 @@ func TestReactivateFacility(t *testing.T) {
 		Description: description,
 	}
 
-	facility, err := i.FacilityUsecase.GetOrCreateFacility(ctx, facilityInput)
+	facility, err := i.Facility.GetOrCreateFacility(ctx, facilityInput)
 	if err != nil {
 		t.Errorf("an error occurred: %v", err)
 	}
