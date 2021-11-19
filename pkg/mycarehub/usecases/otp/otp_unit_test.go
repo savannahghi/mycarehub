@@ -23,7 +23,6 @@ func TestUseCaseOTPImpl_GenerateAndSendOTP(t *testing.T) {
 	ctx := context.Background()
 	type args struct {
 		ctx         context.Context
-		userID      string
 		phoneNumber string
 		flavour     feedlib.Flavour
 	}
@@ -37,7 +36,6 @@ func TestUseCaseOTPImpl_GenerateAndSendOTP(t *testing.T) {
 			name: "Happy Case - Successfully generate and send otp",
 			args: args{
 				ctx:         ctx,
-				userID:      "1234",
 				phoneNumber: interserviceclient.TestUserPhoneNumber,
 				flavour:     feedlib.FlavourConsumer,
 			},
@@ -48,7 +46,15 @@ func TestUseCaseOTPImpl_GenerateAndSendOTP(t *testing.T) {
 			name: "Sad Case - Fail to generate and send otp",
 			args: args{
 				ctx:         ctx,
-				userID:      "1234",
+				phoneNumber: interserviceclient.TestUserPhoneNumber,
+				flavour:     feedlib.FlavourConsumer,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - Fail to get user profile by phone number",
+			args: args{
+				ctx:         ctx,
 				phoneNumber: interserviceclient.TestUserPhoneNumber,
 				flavour:     feedlib.FlavourConsumer,
 			},
@@ -80,20 +86,15 @@ func TestUseCaseOTPImpl_GenerateAndSendOTP(t *testing.T) {
 			fakeExtension := extensionMock.NewFakeExtension()
 			otp := otp.NewOTPUseCase(fakeDB, fakeDB, fakeExtension)
 
-			if tt.name == "Happy Case - Successfully generate and send otp" {
-				fakeOTP.MockGenerateAndSendOTPFn = func(
-					ctx context.Context,
-					userID string,
-					phoneNumber string,
-					flavour feedlib.Flavour,
-				) (string, error) {
-					return "111222", nil
-				}
-			}
-
 			if tt.name == "Sad Case - Fail to generate and send otp" {
 				fakeExtension.MockGenerateAndSendOTPFn = func(ctx context.Context, phoneNumber string) (string, error) {
 					return "", fmt.Errorf("failed to generate and send otp")
+				}
+			}
+
+			if tt.name == "Sad Case - Fail to get user profile by phone number" {
+				fakeDB.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*domain.User, error) {
+					return nil, fmt.Errorf("failed to get user profile")
 				}
 			}
 
@@ -114,7 +115,7 @@ func TestUseCaseOTPImpl_GenerateAndSendOTP(t *testing.T) {
 				}
 			}
 
-			got, err := otp.GenerateAndSendOTP(tt.args.ctx, tt.args.userID, tt.args.phoneNumber, tt.args.flavour)
+			got, err := otp.GenerateAndSendOTP(tt.args.ctx, tt.args.phoneNumber, tt.args.flavour)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCaseOTPImpl.GenerateAndSendOTP() error = %v, wantErr %v", err, tt.wantErr)
 				return

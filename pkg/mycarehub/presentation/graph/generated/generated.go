@@ -94,7 +94,7 @@ type ComplexityRoot struct {
 		ListFacilities            func(childComplexity int, searchTerm *string, filterInput []*dto.FiltersInput, paginationInput dto.PaginationsInput) int
 		RetrieveFacility          func(childComplexity int, id string, active bool) int
 		RetrieveFacilityByMFLCode func(childComplexity int, mflCode int, isActive bool) int
-		SendOtp                   func(childComplexity int, userID string, phoneNumber string, flavour feedlib.Flavour) int
+		SendOtp                   func(childComplexity int, phoneNumber string, flavour feedlib.Flavour) int
 	}
 
 	RecordSecurityQuestionResponse struct {
@@ -132,7 +132,7 @@ type QueryResolver interface {
 	RetrieveFacility(ctx context.Context, id string, active bool) (*domain.Facility, error)
 	RetrieveFacilityByMFLCode(ctx context.Context, mflCode int, isActive bool) (*domain.Facility, error)
 	ListFacilities(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationInput dto.PaginationsInput) (*domain.FacilityPage, error)
-	SendOtp(ctx context.Context, userID string, phoneNumber string, flavour feedlib.Flavour) (string, error)
+	SendOtp(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (string, error)
 	GetSecurityQuestions(ctx context.Context, flavour feedlib.Flavour) ([]*domain.SecurityQuestion, error)
 	GetCurrentTerms(ctx context.Context) (*domain.TermsOfService, error)
 }
@@ -451,7 +451,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.SendOtp(childComplexity, args["userID"].(string), args["phoneNumber"].(string), args["flavour"].(feedlib.Flavour)), true
+		return e.complexity.Query.SendOtp(childComplexity, args["phoneNumber"].(string), args["flavour"].(feedlib.Flavour)), true
 
 	case "RecordSecurityQuestionResponse.isCorrect":
 		if e.complexity.RecordSecurityQuestionResponse.IsCorrect == nil {
@@ -718,7 +718,7 @@ input SecurityQuestionResponseInput {
 	response: String!
 }`, BuiltIn: false},
 	{Name: "pkg/mycarehub/presentation/graph/otp.graphql", Input: `extend type Query {
-  sendOTP(userID: String!, phoneNumber: String!, flavour: Flavour!): String!
+  sendOTP(phoneNumber: String!, flavour: Flavour!): String!
 }`, BuiltIn: false},
 	{Name: "pkg/mycarehub/presentation/graph/profile.graphql", Input: `extend type Mutation {
   inviteUser(userID: String!,phoneNumber: String!, flavour:Flavour! ): Boolean!
@@ -1089,32 +1089,23 @@ func (ec *executionContext) field_Query_sendOTP_args(ctx context.Context, rawArg
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
-	if tmp, ok := rawArgs["userID"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userID"))
+	if tmp, ok := rawArgs["phoneNumber"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("phoneNumber"))
 		arg0, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["userID"] = arg0
-	var arg1 string
-	if tmp, ok := rawArgs["phoneNumber"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("phoneNumber"))
-		arg1, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["phoneNumber"] = arg1
-	var arg2 feedlib.Flavour
+	args["phoneNumber"] = arg0
+	var arg1 feedlib.Flavour
 	if tmp, ok := rawArgs["flavour"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("flavour"))
-		arg2, err = ec.unmarshalNFlavour2githubᚗcomᚋsavannahghiᚋfeedlibᚐFlavour(ctx, tmp)
+		arg1, err = ec.unmarshalNFlavour2githubᚗcomᚋsavannahghiᚋfeedlibᚐFlavour(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["flavour"] = arg2
+	args["flavour"] = arg1
 	return args, nil
 }
 
@@ -2285,7 +2276,7 @@ func (ec *executionContext) _Query_sendOTP(ctx context.Context, field graphql.Co
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().SendOtp(rctx, args["userID"].(string), args["phoneNumber"].(string), args["flavour"].(feedlib.Flavour))
+		return ec.resolvers.Query().SendOtp(rctx, args["phoneNumber"].(string), args["flavour"].(feedlib.Flavour))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
