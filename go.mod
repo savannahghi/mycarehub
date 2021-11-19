@@ -18,6 +18,7 @@ require (
 	github.com/savannahghi/firebasetools v0.0.16
 	github.com/savannahghi/interserviceclient v0.0.18
 	github.com/savannahghi/onboarding v0.0.29
+	github.com/savannahghi/profileutils v0.0.23
 	github.com/savannahghi/serverutils v0.0.6
 	github.com/segmentio/ksuid v1.0.4
 	github.com/sirupsen/logrus v1.8.1
@@ -90,7 +91,6 @@ require (
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/pquerna/otp v1.3.0 // indirect
 	github.com/rs/xid v1.3.0 // indirect
-	github.com/savannahghi/profileutils v0.0.23 // indirect
 	github.com/savannahghi/pubsubtools v0.0.2 // indirect
 	github.com/savannahghi/scalarutils v0.0.4 // indirect
 	github.com/shopspring/decimal v1.2.0 // indirect

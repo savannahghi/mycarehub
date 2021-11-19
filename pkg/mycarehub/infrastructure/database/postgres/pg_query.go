@@ -215,3 +215,16 @@ func (d *MyCareHubDb) GetSecurityQuestionResponseByID(ctx context.Context, quest
 		Response:   response.Response,
 	}, nil
 }
+
+// CheckIfPhoneNumberExists checks if phone exists in the database
+func (d *MyCareHubDb) CheckIfPhoneNumberExists(ctx context.Context, phone string, isOptedIn bool, flavour feedlib.Flavour) (bool, error) {
+	if phone == "" {
+		return false, fmt.Errorf("phone should be defined")
+	}
+	exists, err := d.query.CheckIfPhoneNumberExists(ctx, phone, isOptedIn, flavour)
+	if err != nil {
+		return false, fmt.Errorf("failed check whether phone exists: %s", err)
+	}
+
+	return exists, nil
+}

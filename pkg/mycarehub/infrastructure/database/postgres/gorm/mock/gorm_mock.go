@@ -40,6 +40,7 @@ type GormMock struct {
 	MockGetSecurityQuestionByIDFn           func(ctx context.Context, securityQuestionID *string) (*gorm.SecurityQuestion, error)
 	MockSaveSecurityQuestionResponseFn      func(ctx context.Context, securityQuestionResponse *gorm.SecurityQuestionResponse) error
 	MockGetSecurityQuestionResponseByIDFn   func(ctx context.Context, questionID string) (*gorm.SecurityQuestionResponse, error)
+	MockCheckIfPhoneNumberExistsFn          func(ctx context.Context, phone string, isOptedIn bool, flavour feedlib.Flavour) (bool, error)
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -223,6 +224,9 @@ func NewGormMock() *GormMock {
 				Response:   "Yes",
 			}, nil
 		},
+		MockCheckIfPhoneNumberExistsFn: func(ctx context.Context, phone string, isOptedIn bool, flavour feedlib.Flavour) (bool, error) {
+			return true, nil
+		},
 	}
 }
 
@@ -349,4 +353,9 @@ func (gm *GormMock) SaveSecurityQuestionResponse(ctx context.Context, securityQu
 // GetSecurityQuestionResponseByID mocks the get security question implementation
 func (gm *GormMock) GetSecurityQuestionResponseByID(ctx context.Context, questionID string) (*gorm.SecurityQuestionResponse, error) {
 	return gm.MockGetSecurityQuestionResponseByIDFn(ctx, questionID)
+}
+
+// CheckIfPhoneNumberExists mock the implementation of checking the existence of phone number
+func (gm *GormMock) CheckIfPhoneNumberExists(ctx context.Context, phone string, isOptedIn bool, flavour feedlib.Flavour) (bool, error) {
+	return gm.MockCheckIfPhoneNumberExistsFn(ctx, phone, isOptedIn, flavour)
 }

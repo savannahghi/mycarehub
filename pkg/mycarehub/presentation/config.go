@@ -78,7 +78,7 @@ func Router(ctx context.Context) (*mux.Router, error) {
 
 	securityQuestionsUsecase := securityquestions.NewSecurityQuestionsUsecase(db, db, externalExt)
 
-	otpUseCase := otp.NewOTPUseCase(db, externalExt)
+	otpUseCase := otp.NewOTPUseCase(db, db, externalExt)
 
 	// Initialize the interactor
 	i := interactor.NewMyCareHubInteractor(
@@ -118,6 +118,11 @@ func Router(ctx context.Context) (*mux.Router, error) {
 		http.MethodPost,
 		http.MethodOptions,
 	).HandlerFunc(internalHandlers.VerifySecurityQuestions())
+
+	r.Path("/verify_phone").Methods(
+		http.MethodOptions,
+		http.MethodPost,
+	).HandlerFunc(internalHandlers.VerifyPhone())
 
 	// Graphql route
 	authR := r.Path("/graphql").Subrouter()

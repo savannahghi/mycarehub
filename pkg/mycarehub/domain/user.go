@@ -52,6 +52,8 @@ type User struct {
 	TermsAccepted   bool            `json:"termsAccepted"`
 	AcceptedTermsID int             `json:"AcceptedTermsID"` // foreign key to version of terms they accepted
 	Flavour         feedlib.Flavour `json:"flavour"`
+	Suspended       bool            `json:"suspended"`
+	Avatar          string          `json:"avatar"`
 }
 
 // AuthCredentials is the authentication credentials for a given user

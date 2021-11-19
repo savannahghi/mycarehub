@@ -41,7 +41,7 @@ func InitializeTestService(ctx context.Context) *interactor.Interactor {
 
 	securityQuestionsUsecase := securityquestions.NewSecurityQuestionsUsecase(db, db, externalExt)
 
-	otpUseCase := otp.NewOTPUseCase(db, externalExt)
+	otpUseCase := otp.NewOTPUseCase(db, db, externalExt)
 
 	i := interactor.NewMyCareHubInteractor(facilityUseCase, userUsecase, termsUsecase, securityQuestionsUsecase, otpUseCase)
 	return i

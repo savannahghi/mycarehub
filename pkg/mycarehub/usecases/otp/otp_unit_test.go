@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/brianvoe/gofakeit"
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/interserviceclient"
 	extensionMock "github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension/mock"
@@ -12,6 +13,8 @@ import (
 	pgMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/mock"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/otp"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/otp/mock"
+	"github.com/savannahghi/profileutils"
+	"github.com/segmentio/ksuid"
 )
 
 func TestUseCaseOTPImpl_GenerateAndSendOTP(t *testing.T) {
@@ -73,7 +76,7 @@ func TestUseCaseOTPImpl_GenerateAndSendOTP(t *testing.T) {
 			fakeOTP := mock.NewOTPUseCaseMock()
 			fakeDB := pgMock.NewPostgresMock()
 			fakeExtension := extensionMock.NewFakeExtension()
-			otp := otp.NewOTPUseCase(fakeDB, fakeExtension)
+			otp := otp.NewOTPUseCase(fakeDB, fakeDB, fakeExtension)
 
 			if tt.name == "Happy Case - Successfully generate and send otp" {
 				fakeOTP.MockGenerateAndSendOTPFn = func(
@@ -150,7 +153,7 @@ func TestUseCaseOTPImpl_GenerateOTP(t *testing.T) {
 			fakeOTP := mock.NewOTPUseCaseMock()
 			fakeDB := pgMock.NewPostgresMock()
 			fakeExtension := extensionMock.NewFakeExtension()
-			otp := otp.NewOTPUseCase(fakeDB, fakeExtension)
+			otp := otp.NewOTPUseCase(fakeDB, fakeDB, fakeExtension)
 
 			if tt.name == "Sad Case - Fail to generate otp" {
 				fakeOTP.MockGenerateAndSendOTPFn = func(
@@ -170,6 +173,218 @@ func TestUseCaseOTPImpl_GenerateOTP(t *testing.T) {
 			}
 			if got != tt.want {
 				t.Errorf("UseCaseOTPImpl.GenerateOTP() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestUseCaseOTPImpl_VerifyPhoneNumber(t *testing.T) {
+	ctx := context.Background()
+
+	phone := interserviceclient.TestUserPhoneNumber
+	badPhone := ksuid.New().String()
+	veryBadPhone := gofakeit.HipsterSentence(200)
+
+	type args struct {
+		ctx     context.Context
+		phone   string
+		flavour feedlib.Flavour
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *profileutils.OtpResponse
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:     ctx,
+				phone:   phone,
+				flavour: feedlib.FlavourPro,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case",
+			args: args{
+				ctx:     ctx,
+				phone:   phone,
+				flavour: feedlib.FlavourPro,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case - bad flavour",
+			args: args{
+				ctx:     ctx,
+				phone:   phone,
+				flavour: "feedlib.FlavourPro",
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case - bad phone",
+			args: args{
+				ctx:     ctx,
+				phone:   badPhone,
+				flavour: "feedlib.FlavourPro",
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case - very bad phone",
+			args: args{
+				ctx:     ctx,
+				phone:   veryBadPhone,
+				flavour: feedlib.FlavourPro,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case - very bad phone and invalid flavour",
+			args: args{
+				ctx:     ctx,
+				phone:   veryBadPhone,
+				flavour: "feedlib.FlavourPro",
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case - unable to send otp",
+			args: args{
+				ctx:     ctx,
+				phone:   phone,
+				flavour: feedlib.FlavourPro,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case - unable to send otp with invalid phone number",
+			args: args{
+				ctx:     ctx,
+				phone:   badPhone,
+				flavour: feedlib.FlavourPro,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case - unable to send otp with very bad phone number",
+			args: args{
+				ctx:     ctx,
+				phone:   veryBadPhone,
+				flavour: feedlib.FlavourPro,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case - unable to get profile by phone",
+			args: args{
+				ctx:     ctx,
+				phone:   phone,
+				flavour: feedlib.FlavourPro,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case - unable to get profile by invalid phone number",
+			args: args{
+				ctx:     ctx,
+				phone:   badPhone,
+				flavour: feedlib.FlavourPro,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case - unable to get profile with very bad phone number",
+			args: args{
+				ctx:     ctx,
+				phone:   veryBadPhone,
+				flavour: feedlib.FlavourPro,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case - unable to get profile with very bad phone number and invalid flavor",
+			args: args{
+				ctx:     ctx,
+				phone:   veryBadPhone,
+				flavour: "feedlib.FlavourPro",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_ = mock.NewOTPUseCaseMock()
+			fakeDB := pgMock.NewPostgresMock()
+			fakeExtension := extensionMock.NewFakeExtension()
+			otp := otp.NewOTPUseCase(fakeDB, fakeDB, fakeExtension)
+
+			if tt.name == "Sad case" {
+				fakeDB.MockCheckIfPhoneNumberExistsFn = func(ctx context.Context, phone string, isOptedIn bool, flavour feedlib.Flavour) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - bad flavour" {
+				fakeDB.MockCheckIfPhoneNumberExistsFn = func(ctx context.Context, phone string, isOptedIn bool, flavour feedlib.Flavour) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - bad phone" {
+				fakeDB.MockCheckIfPhoneNumberExistsFn = func(ctx context.Context, phone string, isOptedIn bool, flavour feedlib.Flavour) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - very bad phone" {
+				fakeDB.MockCheckIfPhoneNumberExistsFn = func(ctx context.Context, phone string, isOptedIn bool, flavour feedlib.Flavour) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - very bad phone and invalid flavour" {
+				fakeDB.MockCheckIfPhoneNumberExistsFn = func(ctx context.Context, phone string, isOptedIn bool, flavour feedlib.Flavour) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - unable to get profile by phone" {
+				fakeDB.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*domain.User, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - unable to get profile by invalid phone number" {
+				fakeDB.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*domain.User, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - unable to get profile with very bad phone number" {
+				fakeDB.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*domain.User, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - unable to get profile with very bad phone number and invalid flavor" {
+				fakeDB.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*domain.User, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - unable to send otp" {
+				fakeExtension.MockGenerateAndSendOTPFn = func(ctx context.Context, phoneNumber string) (string, error) {
+					return "", fmt.Errorf("failed to generate and send otp")
+				}
+			}
+			if tt.name == "Sad case - unable to send otp with invalid phone number" {
+				fakeExtension.MockGenerateAndSendOTPFn = func(ctx context.Context, phoneNumber string) (string, error) {
+					return "", fmt.Errorf("failed to generate and send otp")
+				}
+			}
+			if tt.name == "Sad case - unable to send otp with very bad phone number" {
+				fakeExtension.MockGenerateAndSendOTPFn = func(ctx context.Context, phoneNumber string) (string, error) {
+					return "", fmt.Errorf("failed to generate and send otp")
+				}
+			}
+			_, err := otp.VerifyPhoneNumber(tt.args.ctx, tt.args.phone, tt.args.flavour)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCaseOTPImpl.VerifyPhoneNumber() error = %v, wantErr %v", err, tt.wantErr)
+				return
 			}
 		})
 	}

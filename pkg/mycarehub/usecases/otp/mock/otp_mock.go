@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/savannahghi/feedlib"
+	"github.com/savannahghi/profileutils"
 )
 
 // OTPUseCaseMock mocks the implementation of OTP usecase
@@ -14,6 +15,7 @@ type OTPUseCaseMock struct {
 		phoneNumber string,
 		flavour feedlib.Flavour,
 	) (string, error)
+	MockVerifyPhoneNumberFn func(ctx context.Context, phone *string, flavour feedlib.Flavour) (*profileutils.OtpResponse, error)
 }
 
 // NewOTPUseCaseMock initializes a new instance mock of the OTP usecase
@@ -27,6 +29,11 @@ func NewOTPUseCaseMock() *OTPUseCaseMock {
 		) (string, error) {
 			return "111222", nil
 		},
+		MockVerifyPhoneNumberFn: func(ctx context.Context, phone *string, flavour feedlib.Flavour) (*profileutils.OtpResponse, error) {
+			return &profileutils.OtpResponse{
+				OTP: "1234",
+			}, nil
+		},
 	}
 }
 
@@ -38,4 +45,9 @@ func (o *OTPUseCaseMock) GenerateAndSendOTP(
 	flavour feedlib.Flavour,
 ) (string, error) {
 	return o.MockGenerateAndSendOTPFn(ctx, userID, phoneNumber, flavour)
+}
+
+// VerifyPhoneNumber mock the implementtation of phone verification
+func (o *OTPUseCaseMock) VerifyPhoneNumber(ctx context.Context, phone *string, flavour feedlib.Flavour) (*profileutils.OtpResponse, error) {
+	return o.MockVerifyPhoneNumberFn(ctx, phone, flavour)
 }

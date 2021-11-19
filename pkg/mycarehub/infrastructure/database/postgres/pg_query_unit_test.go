@@ -1109,3 +1109,349 @@ func TestMyCareHubDb_GetSecurityQuestionByID(t *testing.T) {
 		})
 	}
 }
+
+func TestMyCareHubDb_CheckIfPhoneNumberExists(t *testing.T) {
+	ctx := context.Background()
+
+	phone := ksuid.New().String()
+	veryBadPhone := gofakeit.HipsterSentence(200)
+
+	type args struct {
+		ctx       context.Context
+		phone     string
+		isOptedIn bool
+		flavour   feedlib.Flavour
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:       ctx,
+				phone:     phone,
+				isOptedIn: true,
+				flavour:   feedlib.FlavourConsumer,
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Sad case",
+			args: args{
+				ctx:       ctx,
+				phone:     phone,
+				isOptedIn: false,
+				flavour:   feedlib.FlavourPro,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case - no phone",
+			args: args{
+				ctx:       ctx,
+				phone:     "",
+				isOptedIn: false,
+				flavour:   feedlib.FlavourConsumer,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case - no phone no flavour",
+			args: args{
+				ctx:       ctx,
+				phone:     "",
+				isOptedIn: false,
+				flavour:   "",
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case - no phone and invalid flavour",
+			args: args{
+				ctx:       ctx,
+				phone:     "",
+				isOptedIn: false,
+				flavour:   "invalid-flavour",
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case - no isOptedIn",
+			args: args{
+				ctx:     ctx,
+				phone:   phone,
+				flavour: feedlib.FlavourConsumer,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case - no isOptedIn and bad flavour",
+			args: args{
+				ctx:     ctx,
+				phone:   phone,
+				flavour: "feedlib.FlavourConsumer",
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case - no isOptedIn and empty flavour",
+			args: args{
+				ctx:     ctx,
+				phone:   phone,
+				flavour: "",
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case - no isOptedIn and empty flavour and phone",
+			args: args{
+				ctx:     ctx,
+				phone:   "",
+				flavour: "",
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case - very bad phone",
+			args: args{
+				ctx:     ctx,
+				phone:   veryBadPhone,
+				flavour: feedlib.FlavourConsumer,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case - very bad phone and invalid flavour",
+			args: args{
+				ctx:     ctx,
+				phone:   veryBadPhone,
+				flavour: "feedlib.FlavourConsumer",
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case - very bad phone and empty flavour",
+			args: args{
+				ctx:     ctx,
+				phone:   veryBadPhone,
+				flavour: "",
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case - very bad phone and isOptedIn",
+			args: args{
+				ctx:       ctx,
+				phone:     veryBadPhone,
+				isOptedIn: true,
+				flavour:   feedlib.FlavourConsumer,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case - very bad phone, isOptedIn and invalid flavour",
+			args: args{
+				ctx:       ctx,
+				phone:     veryBadPhone,
+				isOptedIn: true,
+				flavour:   "feedlib.FlavourConsumer",
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case - very bad phone, isOptedIn and empty flavour",
+			args: args{
+				ctx:       ctx,
+				phone:     veryBadPhone,
+				isOptedIn: true,
+				flavour:   "",
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case - very bad phone and isOptedOut",
+			args: args{
+				ctx:       ctx,
+				phone:     veryBadPhone,
+				isOptedIn: false,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case - very bad phone and isOptedOut and good flavour",
+			args: args{
+				ctx:       ctx,
+				phone:     veryBadPhone,
+				isOptedIn: false,
+				flavour:   feedlib.FlavourConsumer,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case - very bad phone and isOptedOut and bad flavour",
+			args: args{
+				ctx:       ctx,
+				phone:     veryBadPhone,
+				isOptedIn: false,
+				flavour:   "feedlib.FlavourConsumer",
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case - very bad phone and isOptedOut and empty flavour",
+			args: args{
+				ctx:       ctx,
+				phone:     veryBadPhone,
+				isOptedIn: false,
+				flavour:   "",
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case - very bad phone and isOptedOut and very bad flavour",
+			args: args{
+				ctx:       ctx,
+				phone:     veryBadPhone,
+				isOptedIn: false,
+				flavour:   feedlib.Flavour(gofakeit.HipsterParagraph(2, 40, 400, " ")),
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var fakeGorm = gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			if tt.name == "Sad case" {
+				fakeGorm.MockCheckIfPhoneNumberExistsFn = func(ctx context.Context, phone string, isOptedIn bool, flavour feedlib.Flavour) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+
+			if tt.name == "Sad case - no phone" {
+				fakeGorm.MockCheckIfPhoneNumberExistsFn = func(ctx context.Context, phone string, isOptedIn bool, flavour feedlib.Flavour) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - no phone no flavour" {
+				fakeGorm.MockCheckIfPhoneNumberExistsFn = func(ctx context.Context, phone string, isOptedIn bool, flavour feedlib.Flavour) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - no phone and invalid flavour" {
+				fakeGorm.MockCheckIfPhoneNumberExistsFn = func(ctx context.Context, phone string, isOptedIn bool, flavour feedlib.Flavour) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - no isOptedIn" {
+				fakeGorm.MockCheckIfPhoneNumberExistsFn = func(ctx context.Context, phone string, isOptedIn bool, flavour feedlib.Flavour) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - no isOptedIn and bad flavour" {
+				fakeGorm.MockCheckIfPhoneNumberExistsFn = func(ctx context.Context, phone string, isOptedIn bool, flavour feedlib.Flavour) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - no isOptedIn and empty flavour" {
+				fakeGorm.MockCheckIfPhoneNumberExistsFn = func(ctx context.Context, phone string, isOptedIn bool, flavour feedlib.Flavour) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+
+			if tt.name == "Sad case - very bad phone" {
+				fakeGorm.MockCheckIfPhoneNumberExistsFn = func(ctx context.Context, phone string, isOptedIn bool, flavour feedlib.Flavour) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - very bad phone and invalid flavour" {
+				fakeGorm.MockCheckIfPhoneNumberExistsFn = func(ctx context.Context, phone string, isOptedIn bool, flavour feedlib.Flavour) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - very bad phone and empty flavour" {
+				fakeGorm.MockCheckIfPhoneNumberExistsFn = func(ctx context.Context, phone string, isOptedIn bool, flavour feedlib.Flavour) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - very bad phone and isOptedIn" {
+				fakeGorm.MockCheckIfPhoneNumberExistsFn = func(ctx context.Context, phone string, isOptedIn bool, flavour feedlib.Flavour) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - very bad phone, isOptedIn and invalid flavour" {
+				fakeGorm.MockCheckIfPhoneNumberExistsFn = func(ctx context.Context, phone string, isOptedIn bool, flavour feedlib.Flavour) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - very bad phone, isOptedIn and empty flavour" {
+				fakeGorm.MockCheckIfPhoneNumberExistsFn = func(ctx context.Context, phone string, isOptedIn bool, flavour feedlib.Flavour) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - very bad phone and isOptedOut" {
+				fakeGorm.MockCheckIfPhoneNumberExistsFn = func(ctx context.Context, phone string, isOptedIn bool, flavour feedlib.Flavour) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - very bad phone and isOptedOut and good flavour" {
+				fakeGorm.MockCheckIfPhoneNumberExistsFn = func(ctx context.Context, phone string, isOptedIn bool, flavour feedlib.Flavour) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - very bad phone and isOptedOut and bad flavour" {
+				fakeGorm.MockCheckIfPhoneNumberExistsFn = func(ctx context.Context, phone string, isOptedIn bool, flavour feedlib.Flavour) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - very bad phone and isOptedOut and empty flavour" {
+				fakeGorm.MockCheckIfPhoneNumberExistsFn = func(ctx context.Context, phone string, isOptedIn bool, flavour feedlib.Flavour) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - very bad phone and isOptedOut and very bad flavour" {
+				fakeGorm.MockCheckIfPhoneNumberExistsFn = func(ctx context.Context, phone string, isOptedIn bool, flavour feedlib.Flavour) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - no isOptedIn and empty flavour and phone" {
+				fakeGorm.MockCheckIfPhoneNumberExistsFn = func(ctx context.Context, phone string, isOptedIn bool, flavour feedlib.Flavour) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+
+			got, err := d.CheckIfPhoneNumberExists(tt.args.ctx, tt.args.phone, tt.args.isOptedIn, tt.args.flavour)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.CheckIfPhoneExists() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("MyCareHubDb.CheckIfPhoneExists() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

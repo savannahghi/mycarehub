@@ -3,6 +3,7 @@ package gorm
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/savannahghi/feedlib"
@@ -23,6 +24,7 @@ type Query interface {
 	GetSecurityQuestions(ctx context.Context, flavour feedlib.Flavour) ([]*SecurityQuestion, error)
 	GetSecurityQuestionByID(ctx context.Context, securityQuestionID *string) (*SecurityQuestion, error)
 	GetSecurityQuestionResponseByID(ctx context.Context, questionID string) (*SecurityQuestionResponse, error)
+	CheckIfPhoneNumberExists(ctx context.Context, phone string, isOptedIn bool, flavour feedlib.Flavour) (bool, error)
 }
 
 // RetrieveFacility fetches a single facility
@@ -33,6 +35,22 @@ func (db *PGInstance) RetrieveFacility(ctx context.Context, id *string, isActive
 		return nil, fmt.Errorf("failed to get facility by ID %v: %v", id, err)
 	}
 	return &facility, nil
+}
+
+// CheckIfPhoneNumberExists checks if phone exists in the database.
+func (db *PGInstance) CheckIfPhoneNumberExists(ctx context.Context, phone string, isOptedIn bool, flavour feedlib.Flavour) (bool, error) {
+	var contact Contact
+	if phone == "" || !flavour.IsValid() {
+		return false, fmt.Errorf("invalid flavour: %v", flavour)
+	}
+	err := db.DB.Model(&Contact{}).Where(&Contact{ContactValue: phone, OptedIn: isOptedIn, Flavour: flavour}).First(&contact).Error
+	if err != nil {
+		if strings.Contains(err.Error(), "record not found") {
+			return false, nil
+		}
+		return false, fmt.Errorf("failed to check if contact exists %v: %v", phone, err)
+	}
+	return true, nil
 }
 
 // RetrieveFacilityByMFLCode fetches a single facility using MFL Code
