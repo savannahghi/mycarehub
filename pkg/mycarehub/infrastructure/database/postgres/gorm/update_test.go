@@ -170,7 +170,7 @@ func TestPGInstance_SetNickname(t *testing.T) {
 		Flavour:         flavor,
 		OrganisationID:  serverutils.MustGetEnvVar("DEFAULT_ORG_ID"),
 		AcceptedTermsID: &termsID,
-		Suspended:       false,
+		IsSuspended:     false,
 	}
 	err = pg.DB.Create(userInput).Error
 	if err != nil {

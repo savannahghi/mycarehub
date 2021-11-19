@@ -105,7 +105,7 @@ func TestPGInstance_SaveTemporaryUserPin(t *testing.T) {
 		Gender:        enumutils.GenderMale,
 		TermsAccepted: true,
 		Flavour:       flavor,
-		Suspended:     false,
+		IsSuspended:   false,
 	}
 	err = pg.DB.Create(userInput).Error
 	if err != nil {
@@ -201,7 +201,7 @@ func TestPGInstance_SavePin(t *testing.T) {
 		Flavour:         flavour,
 		AcceptedTermsID: &termsID,
 		TermsAccepted:   true,
-		Suspended:       false,
+		IsSuspended:     false,
 	}
 
 	err = pg.DB.Create(&userInput).Error
@@ -335,7 +335,7 @@ func TestPGInstance_SaveSecurityQuestionResponse(t *testing.T) {
 		Flavour:         flavour,
 		AcceptedTermsID: &termsID,
 		TermsAccepted:   true,
-		Suspended:       false,
+		IsSuspended:     false,
 	}
 
 	err = pg.DB.Create(&userInput).Error

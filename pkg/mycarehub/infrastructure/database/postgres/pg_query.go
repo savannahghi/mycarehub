@@ -7,6 +7,7 @@ import (
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
+	"github.com/savannahghi/onboarding/pkg/onboarding/application/exceptions"
 )
 
 //GetFacilities returns a slice of healthcare facilities in the platform.
@@ -227,4 +228,16 @@ func (d *MyCareHubDb) CheckIfPhoneNumberExists(ctx context.Context, phone string
 	}
 
 	return exists, nil
+}
+
+//VerifyOTP performs the checking of OTP's existence for the specified user.
+func (d *MyCareHubDb) VerifyOTP(ctx context.Context, payload *dto.VerifyOTPInput) (bool, error) {
+	if payload.UserID == "" || payload.PhoneNumber == "" || payload.OTP == "" {
+		return false, fmt.Errorf("user ID or phone number or OTP cannot be empty")
+	}
+	if !payload.Flavour.IsValid() {
+		return false, exceptions.InvalidFlavourDefinedError()
+	}
+
+	return d.query.VerifyOTP(ctx, payload)
 }

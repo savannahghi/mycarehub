@@ -6,8 +6,10 @@ import (
 	"testing"
 
 	"github.com/brianvoe/gofakeit"
+	"github.com/google/uuid"
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/interserviceclient"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	extensionMock "github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension/mock"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	pgMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/mock"
@@ -177,7 +179,6 @@ func TestUseCaseOTPImpl_GenerateOTP(t *testing.T) {
 		})
 	}
 }
-
 func TestUseCaseOTPImpl_VerifyPhoneNumber(t *testing.T) {
 	ctx := context.Background()
 
@@ -385,6 +386,178 @@ func TestUseCaseOTPImpl_VerifyPhoneNumber(t *testing.T) {
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCaseOTPImpl.VerifyPhoneNumber() error = %v, wantErr %v", err, tt.wantErr)
 				return
+			}
+		})
+	}
+}
+
+func TestMyCareHubDb_VerifyOTP_Unittest(t *testing.T) {
+	ctx := context.Background()
+
+	flavour := feedlib.FlavourConsumer
+
+	validOTPPayload := &dto.VerifyOTPInput{
+		UserID:      uuid.New().String(),
+		PhoneNumber: uuid.New().String(),
+		OTP:         uuid.New().String(),
+		Flavour:     flavour,
+	}
+	invalidOTPPayload1 := &dto.VerifyOTPInput{
+		UserID:      "",
+		PhoneNumber: uuid.New().String(),
+		OTP:         uuid.New().String(),
+		Flavour:     flavour,
+	}
+	invalidOTPPayload2 := &dto.VerifyOTPInput{
+		UserID:      uuid.New().String(),
+		PhoneNumber: "",
+		OTP:         uuid.New().String(),
+		Flavour:     flavour,
+	}
+	invalidOTPPayload3 := &dto.VerifyOTPInput{
+		UserID:      uuid.New().String(),
+		PhoneNumber: uuid.New().String(),
+		OTP:         "",
+		Flavour:     flavour,
+	}
+	invalidOTPPayload4 := &dto.VerifyOTPInput{
+		UserID:      uuid.New().String(),
+		PhoneNumber: uuid.New().String(),
+		OTP:         uuid.New().String(),
+		Flavour:     "flavour",
+	}
+	invalidOTPPayload5 := &dto.VerifyOTPInput{
+		UserID:      " uuid.New().String()",
+		PhoneNumber: "otpInput.PhoneNumber",
+		OTP:         "otpInput.OTP",
+		Flavour:     "flavour",
+	}
+	invalidOTPPayload6 := &dto.VerifyOTPInput{
+		UserID:      gofakeit.HipsterParagraph(1, 10, 100, ""),
+		PhoneNumber: gofakeit.HipsterParagraph(1, 10, 100, ""),
+		OTP:         gofakeit.HipsterParagraph(1, 10, 100, ""),
+		Flavour:     "gofakeit.HipsterParagraph(300, 10, 100)",
+	}
+
+	type args struct {
+		ctx     context.Context
+		payload *dto.VerifyOTPInput
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:     ctx,
+				payload: validOTPPayload,
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Sad case - no user ID",
+			args: args{
+				ctx:     ctx,
+				payload: invalidOTPPayload1,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case - no phone",
+			args: args{
+				ctx:     ctx,
+				payload: invalidOTPPayload2,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case - no otp",
+			args: args{
+				ctx:     ctx,
+				payload: invalidOTPPayload3,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case - bad flavour",
+			args: args{
+				ctx:     ctx,
+				payload: invalidOTPPayload4,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case - bad inputs",
+			args: args{
+				ctx:     ctx,
+				payload: invalidOTPPayload5,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case - extreme bad inputs",
+			args: args{
+				ctx:     ctx,
+				payload: invalidOTPPayload6,
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_ = mock.NewOTPUseCaseMock()
+			fakeDB := pgMock.NewPostgresMock()
+			fakeExtension := extensionMock.NewFakeExtension()
+			otp := otp.NewOTPUseCase(fakeDB, fakeDB, fakeExtension)
+
+			if tt.name == "Sad case - no user ID" {
+				fakeDB.MockVerifyOTPFn = func(ctx context.Context, payload *dto.VerifyOTPInput) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - no phone" {
+				fakeDB.MockVerifyOTPFn = func(ctx context.Context, payload *dto.VerifyOTPInput) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - no otp" {
+				fakeDB.MockVerifyOTPFn = func(ctx context.Context, payload *dto.VerifyOTPInput) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - bad flavour" {
+				fakeDB.MockVerifyOTPFn = func(ctx context.Context, payload *dto.VerifyOTPInput) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - bad inputs" {
+				fakeDB.MockVerifyOTPFn = func(ctx context.Context, payload *dto.VerifyOTPInput) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - extreme bad inputs" {
+				fakeDB.MockVerifyOTPFn = func(ctx context.Context, payload *dto.VerifyOTPInput) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+
+			got, err := otp.VerifyOTP(tt.args.ctx, tt.args.payload)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.VerifyOTP() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("MyCareHubDb.VerifyOTP() = %v, want %v", got, tt.want)
 			}
 		})
 	}
