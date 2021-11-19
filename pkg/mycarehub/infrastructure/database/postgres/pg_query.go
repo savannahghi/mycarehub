@@ -232,7 +232,7 @@ func (d *MyCareHubDb) CheckIfPhoneNumberExists(ctx context.Context, phone string
 
 //VerifyOTP performs the checking of OTP's existence for the specified user.
 func (d *MyCareHubDb) VerifyOTP(ctx context.Context, payload *dto.VerifyOTPInput) (bool, error) {
-	if payload.UserID == "" || payload.PhoneNumber == "" || payload.OTP == "" {
+	if payload.PhoneNumber == "" || payload.OTP == "" {
 		return false, fmt.Errorf("user ID or phone number or OTP cannot be empty")
 	}
 	if !payload.Flavour.IsValid() {

@@ -87,7 +87,6 @@ type PINInput struct {
 
 // VerifyOTPInput represents the verify OTP input data structure
 type VerifyOTPInput struct {
-	UserID      string          `json:"user_id" validate:"required"`
 	PhoneNumber string          `json:"phoneNumber" validate:"required"`
 	OTP         string          `json:"otp" validate:"required"`
 	Flavour     feedlib.Flavour `json:"flavour" validate:"required"`

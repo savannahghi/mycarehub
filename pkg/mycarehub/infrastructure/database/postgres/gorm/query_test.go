@@ -874,43 +874,31 @@ func TestPGInstance_VerifyOTP(t *testing.T) {
 	}
 
 	validOTPPayload := &dto.VerifyOTPInput{
-		UserID:      *userInput.UserID,
-		PhoneNumber: otpInput.PhoneNumber,
-		OTP:         otpInput.OTP,
-		Flavour:     flavour,
-	}
-	invalidOTPPayload1 := &dto.VerifyOTPInput{
-		UserID:      "*userInput.UserID",
 		PhoneNumber: otpInput.PhoneNumber,
 		OTP:         otpInput.OTP,
 		Flavour:     flavour,
 	}
 	invalidOTPPayload2 := &dto.VerifyOTPInput{
-		UserID:      *userInput.UserID,
 		PhoneNumber: "",
 		OTP:         otpInput.OTP,
 		Flavour:     flavour,
 	}
 	invalidOTPPayload3 := &dto.VerifyOTPInput{
-		UserID:      *userInput.UserID,
 		PhoneNumber: otpInput.PhoneNumber,
 		OTP:         "",
 		Flavour:     flavour,
 	}
 	invalidOTPPayload4 := &dto.VerifyOTPInput{
-		UserID:      *userInput.UserID,
 		PhoneNumber: otpInput.PhoneNumber,
 		OTP:         otpInput.OTP,
 		Flavour:     "flavour",
 	}
 	invalidOTPPayload5 := &dto.VerifyOTPInput{
-		UserID:      "*userInput.UserID",
 		PhoneNumber: "otpInput.PhoneNumber",
 		OTP:         "otpInput.OTP",
 		Flavour:     "flavour",
 	}
 	invalidOTPPayload6 := &dto.VerifyOTPInput{
-		UserID:      gofakeit.HipsterParagraph(1, 10, 100, ""),
 		PhoneNumber: gofakeit.HipsterParagraph(1, 10, 100, ""),
 		OTP:         gofakeit.HipsterParagraph(1, 10, 100, ""),
 		Flavour:     "gofakeit.HipsterParagraph(300, 10, 100)",
@@ -934,15 +922,6 @@ func TestPGInstance_VerifyOTP(t *testing.T) {
 			},
 			want:    true,
 			wantErr: false,
-		},
-		{
-			name: "Sad case - no user ID",
-			args: args{
-				ctx:     ctx,
-				payload: invalidOTPPayload1,
-			},
-			want:    false,
-			wantErr: true,
 		},
 		{
 			name: "Sad case - no phone",
