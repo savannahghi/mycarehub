@@ -502,14 +502,14 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.SecurityQuestion.SecurityQuestionID(childComplexity), true
 
-	case "TermsOfService.TermsID":
+	case "TermsOfService.termsID":
 		if e.complexity.TermsOfService.TermsID == nil {
 			break
 		}
 
 		return e.complexity.TermsOfService.TermsID(childComplexity), true
 
-	case "TermsOfService.Text":
+	case "TermsOfService.text":
 		if e.complexity.TermsOfService.Text == nil {
 			break
 		}
@@ -762,30 +762,32 @@ type FiltersParam {
 }
 
 type TermsOfService {
-	TermsID: Int!
-	Text:    String!
+  termsID: Int!
+  text: String!
 }
 
 type SecurityQuestion {
   SecurityQuestionID: String!
-	QuestionStem: String!
-	Description: String
-	Active: Boolean!
-	ResponseType: SecurityQuestionResponseType!
+  QuestionStem: String!
+  Description: String
+  Active: Boolean!
+  ResponseType: SecurityQuestionResponseType!
 }
 
 type RecordSecurityQuestionResponse {
-	securityQuestionID: String!
-	isCorrect: Boolean!
-}`, BuiltIn: false},
+  securityQuestionID: String!
+  isCorrect: Boolean!
+}
+`, BuiltIn: false},
 	{Name: "pkg/mycarehub/presentation/graph/user.graphql", Input: `extend type Query {
-    getCurrentTerms: TermsOfService!
+  getCurrentTerms: TermsOfService!
 }
 
-extend type Mutation{
-    acceptTerms(userID: String!, termsID: Int!): Boolean!
-    setNickName(userID: String!, nickname: String!): Boolean!
-}`, BuiltIn: false},
+extend type Mutation {
+  acceptTerms(userID: String!, termsID: Int!): Boolean!
+  setNickName(userID: String!, nickname: String!): Boolean!
+}
+`, BuiltIn: false},
 	{Name: "federation/directives.graphql", Input: `
 scalar _Any
 scalar _FieldSet
@@ -2683,7 +2685,7 @@ func (ec *executionContext) _SecurityQuestion_ResponseType(ctx context.Context, 
 	return ec.marshalNSecurityQuestionResponseType2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐSecurityQuestionResponseType(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _TermsOfService_TermsID(ctx context.Context, field graphql.CollectedField, obj *domain.TermsOfService) (ret graphql.Marshaler) {
+func (ec *executionContext) _TermsOfService_termsID(ctx context.Context, field graphql.CollectedField, obj *domain.TermsOfService) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -2718,7 +2720,7 @@ func (ec *executionContext) _TermsOfService_TermsID(ctx context.Context, field g
 	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _TermsOfService_Text(ctx context.Context, field graphql.CollectedField, obj *domain.TermsOfService) (ret graphql.Marshaler) {
+func (ec *executionContext) _TermsOfService_text(ctx context.Context, field graphql.CollectedField, obj *domain.TermsOfService) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -4554,13 +4556,13 @@ func (ec *executionContext) _TermsOfService(ctx context.Context, sel ast.Selecti
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("TermsOfService")
-		case "TermsID":
-			out.Values[i] = ec._TermsOfService_TermsID(ctx, field, obj)
+		case "termsID":
+			out.Values[i] = ec._TermsOfService_termsID(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "Text":
-			out.Values[i] = ec._TermsOfService_Text(ctx, field, obj)
+		case "text":
+			out.Values[i] = ec._TermsOfService_text(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}

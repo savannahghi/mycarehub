@@ -4,6 +4,7 @@ import (
 	"context"
 	"math/rand"
 	"testing"
+	"time"
 
 	"github.com/brianvoe/gofakeit"
 	"github.com/google/uuid"
@@ -152,26 +153,45 @@ func TestPGInstance_SetNickname(t *testing.T) {
 		t.Errorf("pgInstance.Teardown() = %v", err)
 	}
 
-	flavor := feedlib.FlavourConsumer
 	userID := uuid.New().String()
 	nickname := uuid.New().String()
 	invalidUserID := ksuid.New().String()
 	invalidNickname := gofakeit.HipsterSentence(50)
+	currentTime := time.Now()
+	flavour := feedlib.FlavourConsumer
+	pastTime := time.Now().AddDate(0, 0, -1)
 
+	// Setup test user
 	userInput := &gorm.User{
-		UserID:          &userID,
-		Username:        gofakeit.BeerHop(),
-		FirstName:       gofakeit.FirstName(),
-		LastName:        gofakeit.LastName(),
-		MiddleName:      gofakeit.FirstName(),
-		UserType:        enums.ClientUser,
-		Gender:          enumutils.GenderMale,
-		TermsAccepted:   true,
-		Flavour:         flavor,
-		OrganisationID:  serverutils.MustGetEnvVar("DEFAULT_ORG_ID"),
-		AcceptedTermsID: &termsID,
-		IsSuspended:     false,
+		Username:            uuid.New().String(),
+		FirstName:           gofakeit.FirstName(),
+		MiddleName:          gofakeit.FirstName(),
+		LastName:            gofakeit.LastName(),
+		UserType:            enums.ClientUser,
+		Gender:              enumutils.GenderMale,
+		Active:              false,
+		PushTokens:          []string{},
+		LastSuccessfulLogin: &currentTime,
+		LastFailedLogin:     &currentTime,
+		FailedLoginCount:    0,
+		NextAllowedLogin:    &pastTime,
+		TermsAccepted:       true,
+		AcceptedTermsID:     &termsID,
+		Flavour:             flavour,
+		Avatar:              "",
+		IsSuspended:         true,
+		OrganisationID:      serverutils.MustGetEnvVar("DEFAULT_ORG_ID"),
+		Password:            "",
+		IsSuperuser:         false,
+		IsStaff:             false,
+		Email:               "",
+		DateJoined:          "",
+		Name:                "",
+		IsApproved:          false,
+		ApprovalNotified:    false,
+		Handle:              "",
 	}
+
 	err = pg.DB.Create(userInput).Error
 	if err != nil {
 		t.Errorf("failed to create user: %v", err)

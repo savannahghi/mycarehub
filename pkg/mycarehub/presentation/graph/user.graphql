@@ -1,8 +1,8 @@
 extend type Query {
-    getCurrentTerms: TermsOfService!
+  getCurrentTerms: TermsOfService!
 }
 
-extend type Mutation{
-    acceptTerms(userID: String!, termsID: Int!): Boolean!
-    setNickName(userID: String!, nickname: String!): Boolean!
+extend type Mutation {
+  acceptTerms(userID: String!, termsID: Int!): Boolean!
+  setNickName(userID: String!, nickname: String!): Boolean!
 }

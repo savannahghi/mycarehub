@@ -106,4 +106,7 @@ const (
 	// ExistingPINErrMsg is the error message displayed when a
 	// pin record fails to be retrieved from database
 	ExistingPINErrMsg = "user does not have an existing PIN"
+
+	// ClientProfileNotFoundErrorMsg is displayed when a profile is not found
+	ClientProfileNotFoundErrorMsg = "client profile not found"
 )

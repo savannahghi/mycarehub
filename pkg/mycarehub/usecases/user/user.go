@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/savannahghi/converterandformatter"
-	"github.com/savannahghi/errorcodeutil"
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
@@ -141,24 +140,24 @@ func (us *UseCasesUserImpl) VerifyPIN(ctx context.Context, userID string, pin st
 func (us *UseCasesUserImpl) Login(ctx context.Context, phoneNumber string, pin string, flavour feedlib.Flavour) (*domain.LoginResponse, int, error) {
 	phone, err := converterandformatter.NormalizeMSISDN(phoneNumber)
 	if err != nil {
-		return nil, int(errorcodeutil.InvalidPhoneNumberFormat), exceptions.NormalizeMSISDNError(err)
+		return nil, int(exceptions.InvalidPhoneNumberFormat), exceptions.NormalizeMSISDNError(err)
 	}
 
 	if !flavour.IsValid() {
-		return nil, int(errorcodeutil.InvalidFlavour), exceptions.InvalidFlavourDefinedError()
+		return nil, int(exceptions.InvalidFlavour), exceptions.InvalidFlavourDefinedError()
 	}
 
 	userProfile, err := us.Query.GetUserProfileByPhoneNumber(ctx, *phone)
 	if err != nil {
-		return nil, int(errorcodeutil.ProfileNotFound), exceptions.UserNotFoundError(err)
+		return nil, int(exceptions.ProfileNotFound), exceptions.ProfileNotFoundErr(err)
 	}
 
 	if !userProfile.TermsAccepted {
-		return nil, int(errorcodeutil.Internal), fmt.Errorf("user has not accepted the terms and conditions")
+		return nil, int(exceptions.Internal), fmt.Errorf("user has not accepted the terms and conditions")
 	}
 
 	if !userProfile.Active {
-		return nil, int(errorcodeutil.Internal), fmt.Errorf("user is not active")
+		return nil, int(exceptions.Internal), fmt.Errorf("user is not active")
 	}
 
 	// If the next allowed login time is after the current time, don't log in the user
@@ -167,32 +166,32 @@ func (us *UseCasesUserImpl) Login(ctx context.Context, phoneNumber string, pin s
 	currentTime := time.Now()
 	timeOutOccured := currentTime.Before(*userProfile.NextAllowedLogin)
 	if timeOutOccured {
-		return nil, int(errorcodeutil.Internal), fmt.Errorf("please try again after a while")
+		return nil, int(exceptions.Internal), fmt.Errorf("please try again after a while")
 	}
 
 	_, err = us.VerifyPIN(ctx, *userProfile.ID, pin)
 	if err != nil {
-		return nil, int(errorcodeutil.PINMismatch), err
+		return nil, int(exceptions.PINMismatch), exceptions.PinMismatchError(err)
 	}
 
 	customToken, err := us.ExternalExt.CreateFirebaseCustomToken(ctx, *userProfile.ID)
 	if err != nil {
-		return nil, int(errorcodeutil.Internal), err
+		return nil, int(exceptions.Internal), err
 	}
 
 	userTokens, err := us.ExternalExt.AuthenticateCustomFirebaseToken(customToken)
 	if err != nil {
-		return nil, int(errorcodeutil.Internal), err
+		return nil, int(exceptions.Internal), err
 	}
 
 	err = us.Update.UpdateUserLastSuccessfulLoginTime(ctx, *userProfile.ID)
 	if err != nil {
-		return nil, int(errorcodeutil.Internal), fmt.Errorf("failed to update user last successful login time")
+		return nil, int(exceptions.Internal), fmt.Errorf("failed to update user last successful login time")
 	}
 
 	clientProfile, err := us.Query.GetClientProfileByUserID(ctx, *userProfile.ID)
 	if err != nil {
-		return nil, int(errorcodeutil.Internal), fmt.Errorf("failed to return the client profile")
+		return nil, int(exceptions.ProfileNotFound), exceptions.ClientProfileNotFoundErr(err)
 	}
 
 	clientProfile.User = userProfile
@@ -203,11 +202,11 @@ func (us *UseCasesUserImpl) Login(ctx context.Context, phoneNumber string, pin s
 			IDToken:      userTokens.IDToken,
 			ExpiresIn:    userTokens.ExpiresIn,
 		},
-		Code:    int(errorcodeutil.OK),
+		Code:    int(exceptions.OK),
 		Message: "Success",
 	}
 
-	return loginResponse, int(errorcodeutil.OK), nil
+	return loginResponse, int(exceptions.OK), nil
 }
 
 // InviteUser is used to invite a user to the application. The invite link that is sent to the
@@ -255,7 +254,7 @@ func (us *UseCasesUserImpl) InviteUser(ctx context.Context, userID string, phone
 
 	message := helpers.CreateInviteMessage(userProfile, inviteLink, tempPin)
 
-	err = us.ExternalExt.SendInviteSMS(ctx, []string{*phone}, message)
+	err = us.ExternalExt.SendSMS(ctx, []string{*phone}, message)
 	if err != nil {
 		return false, exceptions.SendSMSErr(fmt.Errorf("failed to send invite SMS: %v", err))
 	}

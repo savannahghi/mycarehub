@@ -23,7 +23,7 @@ type ExternalMethodsExtension interface {
 	ComparePIN(rawPwd string, salt string, encodedPwd string, options *extension.Options) bool
 	EncryptPIN(rawPwd string, options *extension.Options) (string, string)
 	GenerateTempPIN(ctx context.Context) (string, error)
-	SendInviteSMS(ctx context.Context, phoneNumbers []string, message string) error
+	SendSMS(ctx context.Context, phoneNumbers []string, message string) error
 	GenerateAndSendOTP(ctx context.Context, phoneNumber string) (string, error)
 	GenerateOTP(ctx context.Context) (string, error)
 }
@@ -84,8 +84,8 @@ func (e *External) GenerateTempPIN(ctx context.Context) (string, error) {
 	return e.pinExt.GenerateTempPIN(ctx)
 }
 
-// SendInviteSMS does the actual delivery of messages to the provided phone numbers
-func (e *External) SendInviteSMS(ctx context.Context, phoneNumbers []string, message string) error {
+// SendSMS does the actual delivery of messages to the provided phone numbers
+func (e *External) SendSMS(ctx context.Context, phoneNumbers []string, message string) error {
 	return e.engagementExt.SendSMS(ctx, phoneNumbers, message)
 }
 
