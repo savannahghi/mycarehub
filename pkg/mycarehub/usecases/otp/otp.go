@@ -103,6 +103,7 @@ func (o *UseCaseOTPImpl) GenerateAndSendOTP(
 		Channel:     "SMS",
 		Flavour:     flavour,
 		PhoneNumber: phoneNumber,
+		OTP:         otp,
 	}
 
 	err = o.Create.SaveOTP(ctx, otpDataPayload)

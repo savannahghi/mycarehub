@@ -15,6 +15,7 @@ import (
 	utilsExt "github.com/savannahghi/mycarehub/pkg/mycarehub/application/utils"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/otp"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/utils"
 )
 
@@ -39,12 +40,18 @@ type ISetNickName interface {
 	SetNickName(ctx context.Context, userID *string, nickname *string) (bool, error)
 }
 
+// IRequestPinReset defines a method signature that is used to request a pin reset
+type IRequestPinReset interface {
+	RequestPINReset(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (string, error)
+}
+
 // UseCasesUser group all business logic usecases related to user
 type UseCasesUser interface {
 	ILogin
 	ISetUserPIN
 	IVerifyPIN
 	ISetNickName
+	IRequestPinReset
 }
 
 // UseCasesUserImpl represents user implementation object
@@ -54,6 +61,7 @@ type UseCasesUserImpl struct {
 	Delete      infrastructure.Delete
 	Update      infrastructure.Update
 	ExternalExt extension.ExternalMethodsExtension
+	OTP         otp.UsecaseOTP
 }
 
 // NewUseCasesUserImpl returns a new user service
@@ -63,6 +71,7 @@ func NewUseCasesUserImpl(
 	delete infrastructure.Delete,
 	update infrastructure.Update,
 	externalExt extension.ExternalMethodsExtension,
+	otp otp.UsecaseOTP,
 ) *UseCasesUserImpl {
 	return &UseCasesUserImpl{
 		Create:      create,
@@ -70,6 +79,7 @@ func NewUseCasesUserImpl(
 		Delete:      delete,
 		Update:      update,
 		ExternalExt: externalExt,
+		OTP:         otp,
 	}
 }
 
@@ -303,4 +313,49 @@ func (us *UseCasesUserImpl) SetNickName(ctx context.Context, userID *string, nic
 		return false, exceptions.FailedToUpdateItemErr(fmt.Errorf("failed to set user nickname %v", err))
 	}
 	return ok, err
+}
+
+// RequestPINReset sends an OTP to the phone number that is provided. It begins the workflow of resetting a pin
+func (us *UseCasesUserImpl) RequestPINReset(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (string, error) {
+	phone, err := converterandformatter.NormalizeMSISDN(phoneNumber)
+	if err != nil {
+		return "", exceptions.NormalizeMSISDNError(err)
+	}
+
+	if !flavour.IsValid() {
+		return "", exceptions.InvalidFlavourDefinedError()
+	}
+
+	userProfile, err := us.Query.GetUserProfileByPhoneNumber(ctx, *phone)
+	if err != nil {
+		return "", exceptions.UserNotFoundError(err)
+	}
+
+	exists, err := us.Query.CheckUserHasPin(ctx, *userProfile.ID, flavour)
+	if !exists {
+		return "", exceptions.ExistingPINError(err)
+	}
+
+	code, err := us.OTP.GenerateAndSendOTP(ctx, *phone, flavour)
+	if err != nil {
+		return "", fmt.Errorf("failed to generate and send OTP")
+	}
+
+	otpDataPayload := &domain.OTP{
+		UserID:      *userProfile.ID,
+		Valid:       true,
+		GeneratedAt: time.Now(),
+		ValidUntil:  time.Now().Add(time.Hour * 1),
+		Channel:     "SMS",
+		Flavour:     flavour,
+		PhoneNumber: phoneNumber,
+		OTP:         code,
+	}
+
+	err = us.Create.SaveOTP(ctx, otpDataPayload)
+	if err != nil {
+		return "", fmt.Errorf("failed to save otp")
+	}
+
+	return code, nil
 }

@@ -102,4 +102,8 @@ const (
 
 	// ValidatePINDigitsErrorMsg is the error message displayed when a pin is invalid
 	ValidatePINDigitsErrorMsg = "invalid pin digits"
+
+	// ExistingPINErrMsg is the error message displayed when a
+	// pin record fails to be retrieved from database
+	ExistingPINErrMsg = "user does not have an existing PIN"
 )

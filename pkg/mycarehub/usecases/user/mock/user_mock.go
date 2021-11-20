@@ -13,11 +13,12 @@ import (
 
 // UserUseCaseMock mocks the implementation of usecase methods.
 type UserUseCaseMock struct {
-	MockLoginFn       func(ctx context.Context, phoneNumber string, pin string, flavour feedlib.Flavour) (*domain.LoginResponse, int, error)
-	MockInviteUserFn  func(ctx context.Context, userID string, phoneNumber string, flavour feedlib.Flavour) (bool, error)
-	MockSavePinFn     func(ctx context.Context, input dto.PINInput) (bool, error)
-	MockVerifyPINFn   func(ctx context.Context, userID string, pin string) (bool, error)
-	MockSetNickNameFn func(ctx context.Context, userID *string, nickname *string) (bool, error)
+	MockLoginFn           func(ctx context.Context, phoneNumber string, pin string, flavour feedlib.Flavour) (*domain.LoginResponse, int, error)
+	MockInviteUserFn      func(ctx context.Context, userID string, phoneNumber string, flavour feedlib.Flavour) (bool, error)
+	MockSavePinFn         func(ctx context.Context, input dto.PINInput) (bool, error)
+	MockVerifyPINFn       func(ctx context.Context, userID string, pin string) (bool, error)
+	MockSetNickNameFn     func(ctx context.Context, userID *string, nickname *string) (bool, error)
+	MockRequestPINResetFn func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (string, error)
 }
 
 // NewUserUseCaseMock creates in itializes create type mocks
@@ -60,6 +61,9 @@ func NewUserUseCaseMock() *UserUseCaseMock {
 		MockSetNickNameFn: func(ctx context.Context, userID, nickname *string) (bool, error) {
 			return true, nil
 		},
+		MockRequestPINResetFn: func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (string, error) {
+			return "111222", nil
+		},
 	}
 }
 
@@ -86,4 +90,9 @@ func (f *UserUseCaseMock) VerifyPIN(ctx context.Context, userID string, pin stri
 // SetNickName is used to mock the implementation ofsetting or changing the user's nickname
 func (f *UserUseCaseMock) SetNickName(ctx context.Context, userID *string, nickname *string) (bool, error) {
 	return f.MockSetNickNameFn(ctx, userID, nickname)
+}
+
+// RequestPINReset mocks the implementation of requesting pin reset
+func (f *UserUseCaseMock) RequestPINReset(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (string, error) {
+	return f.MockRequestPINResetFn(ctx, phoneNumber, flavour)
 }

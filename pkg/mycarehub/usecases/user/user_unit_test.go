@@ -13,10 +13,12 @@ import (
 	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/firebasetools"
+	"github.com/savannahghi/interserviceclient"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	extensionMock "github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension/mock"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	pgMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/mock"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/otp"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/user"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/user/mock"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/extension"
@@ -159,8 +161,9 @@ func TestUseCasesUserImpl_Login_Unittest(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
 			fakeUserMock := mock.NewUserUseCaseMock()
 			fakeExtension := extensionMock.NewFakeExtension()
+			otp := otp.NewOTPUseCase(fakeDB, fakeDB, fakeExtension)
 
-			u := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension)
+			u := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, otp)
 
 			if tt.name == "Sad case - no phone" {
 				fakeDB.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*domain.User, error) {
@@ -440,8 +443,8 @@ func TestUnit_InviteUser(t *testing.T) {
 			fakeExtension := extensionMock.NewFakeExtension()
 
 			fakeUserMock := mock.NewUserUseCaseMock()
-
-			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension)
+			otp := otp.NewOTPUseCase(fakeDB, fakeDB, fakeExtension)
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, otp)
 
 			if tt.name == "valid: valid phone number" {
 				fakeUserMock.MockInviteUserFn = func(ctx context.Context, userID string, phoneNumber string, flavour feedlib.Flavour) (bool, error) {
@@ -669,9 +672,8 @@ func TestUseCasesUserImpl_SetUserPIN(t *testing.T) {
 			_ = mock.NewUserUseCaseMock()
 			fakeExtension := extensionMock.NewFakeExtension()
 
-			// fakeUserMock := mock.NewUserUseCaseMock()
-
-			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension)
+			otp := otp.NewOTPUseCase(fakeDB, fakeDB, fakeExtension)
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, otp)
 
 			if tt.name == "invalid: user not found" {
 				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
@@ -810,7 +812,8 @@ func TestUseCasesUserImpl_VerifyPIN(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
 			fakeUserMock := mock.NewUserUseCaseMock()
 			fakeExtension := extensionMock.NewFakeExtension()
-			u := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension)
+			otp := otp.NewOTPUseCase(fakeDB, fakeDB, fakeExtension)
+			u := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, otp)
 
 			if tt.name == "Happy Case - Successfully verify pin" {
 				fakeUserMock.MockVerifyPINFn = func(ctx context.Context, userID string, pin string) (bool, error) {
@@ -951,7 +954,8 @@ func TestUseCasesUserImpl_SetNickName(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
 			_ = mock.NewUserUseCaseMock()
 			fakeExtension := extensionMock.NewFakeExtension()
-			u := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension)
+			otp := otp.NewOTPUseCase(fakeDB, fakeDB, fakeExtension)
+			u := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, otp)
 
 			if tt.name == "Sad case" {
 				fakeDB.MockSetNickNameFn = func(ctx context.Context, userID, nickname *string) (bool, error) {
@@ -981,6 +985,125 @@ func TestUseCasesUserImpl_SetNickName(t *testing.T) {
 			}
 			if got != tt.want {
 				t.Errorf("UseCasesUserImpl.SetNickName() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestUseCasesUserImpl_RequestPINReset(t *testing.T) {
+	ctx := context.Background()
+	type args struct {
+		ctx         context.Context
+		phoneNumber string
+		flavour     feedlib.Flavour
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    string
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Successfully request pin reset",
+			args: args{
+				ctx:         ctx,
+				phoneNumber: interserviceclient.TestUserPhoneNumber,
+				flavour:     feedlib.FlavourConsumer,
+			},
+			want:    "111222",
+			wantErr: false,
+		},
+		{
+			name: "Sad Case - Invalid phonenumber",
+			args: args{
+				ctx:         ctx,
+				phoneNumber: "0732313",
+				flavour:     feedlib.FlavourConsumer,
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid: invalid flavour",
+			args: args{
+				ctx:         ctx,
+				phoneNumber: "0710000000",
+				flavour:     feedlib.Flavour("Invalid_flavour"),
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - Fail to get user profile by phonenumber",
+			args: args{
+				ctx:         ctx,
+				phoneNumber: interserviceclient.TestUserPhoneNumber,
+				flavour:     feedlib.FlavourConsumer,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - Fail to check if user has pin",
+			args: args{
+				ctx:         ctx,
+				phoneNumber: interserviceclient.TestUserPhoneNumber,
+				flavour:     feedlib.FlavourConsumer,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - Fail to save otp",
+			args: args{
+				ctx:         ctx,
+				phoneNumber: interserviceclient.TestUserPhoneNumber,
+				flavour:     feedlib.FlavourConsumer,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			fakeUser := mock.NewUserUseCaseMock()
+			fakeExtension := extensionMock.NewFakeExtension()
+			otp := otp.NewOTPUseCase(fakeDB, fakeDB, fakeExtension)
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, otp)
+
+			if tt.name == "Sad Case - Invalid phonenumber" {
+				fakeUser.MockRequestPINResetFn = func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (string, error) {
+					return "", fmt.Errorf("invalid phonenumber")
+				}
+			}
+
+			if tt.name == "invalid: invalid flavour" {
+				fakeUser.MockRequestPINResetFn = func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (string, error) {
+					return "", fmt.Errorf("invalid flavour defined")
+				}
+			}
+
+			if tt.name == "Sad Case - Fail to get user profile by phonenumber" {
+				fakeDB.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*domain.User, error) {
+					return nil, fmt.Errorf("failed to get user profile by phone number")
+				}
+			}
+
+			if tt.name == "Sad Case - Fail to check if user has pin" {
+				fakeDB.MockCheckUserHasPinFn = func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
+					return false, fmt.Errorf("failed to check if user has pin")
+				}
+			}
+
+			if tt.name == "Sad Case - Fail to save otp" {
+				fakeDB.MockSaveOTPFn = func(ctx context.Context, otpInput *domain.OTP) error {
+					return fmt.Errorf("failed to save otp")
+				}
+			}
+
+			got, err := us.RequestPINReset(tt.args.ctx, tt.args.phoneNumber, tt.args.flavour)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCasesUserImpl.RequestPINReset() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("UseCasesUserImpl.RequestPINReset() = %v, want %v", got, tt.want)
 			}
 		})
 	}
