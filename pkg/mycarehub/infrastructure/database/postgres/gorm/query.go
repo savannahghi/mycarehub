@@ -246,7 +246,7 @@ func (db *PGInstance) VerifyOTP(ctx context.Context, payload *dto.VerifyOTPInput
 		return false, exceptions.InvalidFlavourDefinedError()
 	}
 
-	err := db.DB.Model(&UserOTP{}).Where(&UserOTP{PhoneNumber: payload.PhoneNumber, OTP: payload.OTP, Flavour: payload.Flavour}).First(&userOTP).Error
+	err := db.DB.Model(&UserOTP{}).Where(&UserOTP{PhoneNumber: payload.PhoneNumber, Valid: true, OTP: payload.OTP, Flavour: payload.Flavour}).First(&userOTP).Error
 	if err != nil {
 		if strings.Contains(err.Error(), "record not found") {
 			return false, nil

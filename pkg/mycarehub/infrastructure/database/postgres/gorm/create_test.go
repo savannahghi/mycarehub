@@ -13,6 +13,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
+	"github.com/savannahghi/serverutils"
 	"github.com/segmentio/ksuid"
 )
 
@@ -395,6 +396,173 @@ func TestPGInstance_SaveSecurityQuestionResponse(t *testing.T) {
 		t.Errorf("failed to delete record = %v", err)
 	}
 	if err := pg.DB.Where("id", securityQuestionInput.SecurityQuestionID).Unscoped().Delete(&gorm.SecurityQuestion{}).Error; err != nil {
+		t.Errorf("failed to delete record = %v", err)
+	}
+}
+
+func TestPGInstance_SaveOTP(t *testing.T) {
+	ctx := context.Background()
+
+	pg, err := gorm.NewPGInstance()
+	if err != nil {
+		t.Errorf("pgInstance.Teardown() = %v", err)
+	}
+
+	flavour := feedlib.FlavourConsumer
+
+	// Setup test user
+	userInput := &gorm.User{
+		Username:        uuid.New().String(),
+		FirstName:       gofakeit.FirstName(),
+		LastName:        gofakeit.LastName(),
+		MiddleName:      gofakeit.FirstName(),
+		UserType:        enums.ClientUser,
+		Gender:          enumutils.GenderMale,
+		Flavour:         flavour,
+		AcceptedTermsID: &termsID,
+		TermsAccepted:   true,
+		IsSuspended:     true,
+		OrganisationID:  serverutils.MustGetEnvVar("DEFAULT_ORG_ID"),
+	}
+
+	err = pg.DB.Create(&userInput).Error
+	if err != nil {
+		t.Errorf("failed to create user: %v", err)
+	}
+
+	generatedAt := time.Now()
+	validUntil := time.Now().AddDate(0, 0, 2)
+
+	ext := extension.NewExternalMethodsImpl()
+
+	otp, err := ext.GenerateOTP(ctx)
+	if err != nil {
+		t.Errorf("unable to generate OTP")
+	}
+
+	otpInput := &gorm.UserOTP{
+		UserID:      *userInput.UserID,
+		Valid:       true,
+		GeneratedAt: generatedAt,
+		ValidUntil:  validUntil,
+		Channel:     "SMS",
+		Flavour:     userInput.Flavour,
+		PhoneNumber: "+254710000111",
+		OTP:         otp,
+	}
+
+	err = pg.DB.Create(&otpInput).Error
+	if err != nil {
+		t.Errorf("failed to create otp: %v", err)
+	}
+
+	newOTP, err := ext.GenerateOTP(ctx)
+	if err != nil {
+		t.Errorf("unable to generate OTP")
+	}
+
+	gormOTPInput := &gorm.UserOTP{
+		UserID:      *userInput.UserID,
+		Valid:       otpInput.Valid,
+		GeneratedAt: otpInput.GeneratedAt,
+		ValidUntil:  otpInput.ValidUntil,
+		Channel:     otpInput.Channel,
+		Flavour:     otpInput.Flavour,
+		PhoneNumber: otpInput.PhoneNumber,
+		OTP:         newOTP,
+	}
+
+	invalidgormOTPInput1 := &gorm.UserOTP{
+		UserID:      *userInput.UserID,
+		Valid:       otpInput.Valid,
+		GeneratedAt: otpInput.GeneratedAt,
+		ValidUntil:  otpInput.ValidUntil,
+		Channel:     otpInput.Channel,
+		Flavour:     otpInput.Flavour,
+		PhoneNumber: "",
+		OTP:         newOTP,
+	}
+
+	invalidgormOTPInput2 := &gorm.UserOTP{
+		UserID:      *userInput.UserID,
+		Valid:       otpInput.Valid,
+		GeneratedAt: otpInput.GeneratedAt,
+		ValidUntil:  otpInput.ValidUntil,
+		Channel:     otpInput.Channel,
+		Flavour:     feedlib.Flavour("Invalid-flavour"),
+		PhoneNumber: otpInput.PhoneNumber,
+		OTP:         newOTP,
+	}
+
+	invalidgormOTPInput3 := &gorm.UserOTP{
+		UserID:      *userInput.UserID,
+		Valid:       otpInput.Valid,
+		GeneratedAt: otpInput.GeneratedAt,
+		ValidUntil:  otpInput.ValidUntil,
+		Channel:     otpInput.Channel,
+		Flavour:     "invalid",
+		PhoneNumber: "",
+		OTP:         newOTP,
+	}
+
+	type args struct {
+		ctx      context.Context
+		otpInput *gorm.UserOTP
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:      ctx,
+				otpInput: gormOTPInput,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case",
+			args: args{
+				ctx:      ctx,
+				otpInput: invalidgormOTPInput1,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case - invalid flavour",
+			args: args{
+				ctx:      ctx,
+				otpInput: invalidgormOTPInput2,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case - invalid flavour and phone",
+			args: args{
+				ctx:      ctx,
+				otpInput: invalidgormOTPInput3,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := testingDB.SaveOTP(tt.args.ctx, tt.args.otpInput); (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.SaveOTP() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+
+	// Teardown
+	if err = pg.DB.Where("id", otpInput.OTPID).Unscoped().Delete(&gorm.UserOTP{}).Error; err != nil {
+		t.Errorf("failed to delete record = %v", err)
+	}
+	if err = pg.DB.Where("id", gormOTPInput.OTPID).Unscoped().Delete(&gorm.UserOTP{}).Error; err != nil {
+		t.Errorf("failed to delete record = %v", err)
+	}
+	if err = pg.DB.Where("id", userInput.UserID).Unscoped().Delete(&gorm.User{}).Error; err != nil {
 		t.Errorf("failed to delete record = %v", err)
 	}
 }

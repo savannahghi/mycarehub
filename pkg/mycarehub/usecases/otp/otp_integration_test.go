@@ -347,3 +347,104 @@ func TestUseCaseOTPImpl_VerifyOTP_integration_test(t *testing.T) {
 		t.Errorf("failed to delete record = %v", err)
 	}
 }
+
+func TestUseCaseOTPImpl_GenerateAndSendOTP_Integration_test(t *testing.T) {
+	ctx := context.Background()
+
+	i, _ := testutils.InitializeTestService(ctx)
+
+	pg, err := gorm.NewPGInstance()
+	if err != nil {
+		t.Errorf("pgInstance.Teardown() = %v", err)
+	}
+
+	flavour := feedlib.FlavourConsumer
+
+	// Setup test user
+	userInput := &gorm.User{
+		Username:        uuid.New().String(),
+		FirstName:       gofakeit.FirstName(),
+		LastName:        gofakeit.LastName(),
+		MiddleName:      gofakeit.FirstName(),
+		UserType:        enums.ClientUser,
+		Gender:          enumutils.GenderMale,
+		Flavour:         flavour,
+		AcceptedTermsID: &termsID,
+		TermsAccepted:   true,
+		IsSuspended:     true,
+		OrganisationID:  serverutils.MustGetEnvVar("DEFAULT_ORG_ID"),
+	}
+
+	err = pg.DB.Create(&userInput).Error
+	if err != nil {
+		t.Errorf("failed to create user: %v", err)
+	}
+
+	contact := &gorm.Contact{
+		ContactType:    "SMS",
+		ContactValue:   "+254711111111",
+		Active:         true,
+		OptedIn:        true,
+		UserID:         userInput.UserID,
+		Flavour:        userInput.Flavour,
+		OrganisationID: serverutils.MustGetEnvVar("DEFAULT_ORG_ID"),
+	}
+
+	err = pg.DB.Create(&contact).Error
+	if err != nil {
+		t.Errorf("failed to create user: %v", err)
+	}
+
+	type args struct {
+		ctx         context.Context
+		phoneNumber string
+		flavour     feedlib.Flavour
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:         ctx,
+				phoneNumber: contact.ContactValue,
+				flavour:     userInput.Flavour,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case",
+			args: args{
+				ctx:         ctx,
+				phoneNumber: "",
+				flavour:     userInput.Flavour,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case",
+			args: args{
+				ctx:         ctx,
+				phoneNumber: "",
+				flavour:     feedlib.Flavour("invalid-flavour"),
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := i.OTP.GenerateAndSendOTP(tt.args.ctx, tt.args.phoneNumber, tt.args.flavour)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCaseOTPImpl.GenerateAndSendOTP() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+
+	//TearDown
+	if err = pg.DB.Where("id", contact.ContactID).Unscoped().Delete(&gorm.Contact{}).Error; err != nil {
+		t.Errorf("failed to delete record = %v", err)
+	}
+}

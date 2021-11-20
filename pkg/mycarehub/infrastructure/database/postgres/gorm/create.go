@@ -51,7 +51,19 @@ func (db *PGInstance) SavePin(ctx context.Context, pinData *PINData) (bool, erro
 
 // SaveOTP saves the generated otp to the database
 func (db *PGInstance) SaveOTP(ctx context.Context, otpInput *UserOTP) error {
-	err := db.DB.Create(otpInput).Error
+	//Invalidate other OTPs before saving the new OTP by setting valid to false
+	if otpInput.PhoneNumber == "" || !otpInput.Flavour.IsValid() {
+		return fmt.Errorf("phone number cannot be empty")
+	}
+
+	err := db.DB.Model(&UserOTP{}).Where(&UserOTP{PhoneNumber: otpInput.PhoneNumber, Flavour: otpInput.Flavour}).
+		Updates(map[string]interface{}{"is_valid": false}).Error
+	if err != nil {
+		return fmt.Errorf("failed to update OTP data: %v", err)
+	}
+
+	//Save the OTP by setting valid to true
+	err = db.DB.Create(otpInput).Error
 	if err != nil {
 		return fmt.Errorf("failed to save otp data")
 	}
