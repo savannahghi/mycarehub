@@ -237,7 +237,7 @@ func (db *PGInstance) GetSecurityQuestionResponseByID(ctx context.Context, quest
 	return &questionResponse, nil
 }
 
-//VerifyOTP checks from the database the validity of the provided OTP
+//VerifyOTP checks from the database for the validity of the provided OTP
 func (db *PGInstance) VerifyOTP(ctx context.Context, payload *dto.VerifyOTPInput) (bool, error) {
 	var userOTP UserOTP
 	if payload.PhoneNumber == "" || payload.OTP == "" {

@@ -15,6 +15,10 @@ import (
 	"github.com/savannahghi/profileutils"
 )
 
+const (
+	otpMessage = "%s is your MyCareHub verification code"
+)
+
 // IGenerateOTP specifies the method signature for generating an OTP
 type IGenerateOTP interface {
 	// TODO: ensure generated OTP is valid e.g valid until > generated at
@@ -81,18 +85,29 @@ func (o *UseCaseOTPImpl) GenerateAndSendOTP(
 	phoneNumber string,
 	flavour feedlib.Flavour,
 ) (string, error) {
+	phone, err := converterandformatter.NormalizeMSISDN(phoneNumber)
+	if err != nil {
+		return "", exceptions.NormalizeMSISDNError(err)
+	}
+
 	if !flavour.IsValid() {
 		return "", exceptions.InvalidFlavourDefinedError()
 	}
 
-	userProfile, err := o.Query.GetUserProfileByPhoneNumber(ctx, phoneNumber)
+	userProfile, err := o.Query.GetUserProfileByPhoneNumber(ctx, *phone)
 	if err != nil {
 		return "", exceptions.UserNotFoundError(err)
 	}
 
-	otp, err := o.ExternalExt.GenerateAndSendOTP(ctx, phoneNumber)
+	otp, err := o.GenerateOTP(ctx)
 	if err != nil {
-		return "", fmt.Errorf("failed to generate and send OTP")
+		return "", fmt.Errorf("failed to generate an OTP")
+	}
+
+	message := fmt.Sprintf(otpMessage, otp)
+	err = o.ExternalExt.SendSMS(ctx, []string{*phone}, message)
+	if err != nil {
+		return "", fmt.Errorf("failed to send SMS: %v", err)
 	}
 
 	otpDataPayload := &domain.OTP{
@@ -144,9 +159,15 @@ func (o *UseCaseOTPImpl) VerifyPhoneNumber(ctx context.Context, phone string, fl
 		return nil, exceptions.UserNotFoundError(err)
 	}
 
-	otp, err := o.ExternalExt.GenerateAndSendOTP(ctx, *phoneNumber)
+	otp, err := o.GenerateOTP(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("failed to generate and send OTP")
+		return nil, fmt.Errorf("failed to generate an OTP")
+	}
+
+	message := fmt.Sprintf(otpMessage, otp)
+	err = o.ExternalExt.SendSMS(ctx, []string{*phoneNumber}, message)
+	if err != nil {
+		return nil, fmt.Errorf("failed to send SMS: %v", err)
 	}
 
 	otpDataPayload := &domain.OTP{
@@ -165,7 +186,6 @@ func (o *UseCaseOTPImpl) VerifyPhoneNumber(ctx context.Context, phone string, fl
 		return nil, fmt.Errorf("failed to save otp: %v", err)
 	}
 
-	//Return the OTP response
 	return &profileutils.OtpResponse{
 		OTP: otp,
 	}, nil

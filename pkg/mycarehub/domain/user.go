@@ -27,7 +27,7 @@ type User struct {
 	Gender enumutils.Gender `json:"gender"`
 	Active bool
 
-	Contacts []*Contact `json:"contacts"`
+	Contacts *Contact `json:"primaryContact"`
 
 	// for the preferred language list, order matters
 	// Languages []enumutils.Language `json:"languages"`
@@ -103,16 +103,16 @@ type UserPIN struct {
 
 // Contact hold contact information/details for users
 type Contact struct {
-	ID *string
+	ID *string `json:"id"`
 
-	Type    string //TODO: Make this an enum
-	Contact string // TODO Validate: phones are E164, emails are valid
+	ContactType  string `json:"contactType"`
+	ContactValue string `json:"contactValue"`
 
-	Active bool
+	Active bool `json:"active"`
 
 	// a user may opt not to be contacted via this contact
 	// e.g if it's a shared phone owned by a teenager
-	OptedIn bool
+	OptedIn bool `json:"optedIn"`
 }
 
 // LoginResponse models the response that will be returned after a user logs in

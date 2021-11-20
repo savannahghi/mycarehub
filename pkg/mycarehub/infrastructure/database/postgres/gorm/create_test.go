@@ -85,9 +85,7 @@ func TestPGInstance_SaveTemporaryUserPin(t *testing.T) {
 	}
 
 	ctx := context.Background()
-
-	flavor := feedlib.FlavourConsumer
-	userID := uuid.New().String()
+	currentTime := time.Now()
 
 	newExtension := extension.NewExternalMethodsImpl()
 
@@ -97,17 +95,40 @@ func TestPGInstance_SaveTemporaryUserPin(t *testing.T) {
 	}
 	salt, encryptedTempPin := newExtension.EncryptPIN(tempPin, nil)
 
+	flavour := feedlib.FlavourConsumer
+	pastTime := time.Now().AddDate(0, 0, -1)
+
+	// Setup test user
 	userInput := &gorm.User{
-		UserID:        &userID,
-		FirstName:     gofakeit.FirstName(),
-		LastName:      gofakeit.LastName(),
-		MiddleName:    gofakeit.FirstName(),
-		UserType:      enums.ClientUser,
-		Gender:        enumutils.GenderMale,
-		TermsAccepted: true,
-		Flavour:       flavor,
-		IsSuspended:   false,
+		Username:            uuid.New().String(),
+		FirstName:           gofakeit.FirstName(),
+		MiddleName:          gofakeit.FirstName(),
+		LastName:            gofakeit.LastName(),
+		UserType:            enums.ClientUser,
+		Gender:              enumutils.GenderMale,
+		Active:              false,
+		PushTokens:          []string{},
+		LastSuccessfulLogin: &currentTime,
+		LastFailedLogin:     &currentTime,
+		FailedLoginCount:    0,
+		NextAllowedLogin:    &pastTime,
+		TermsAccepted:       true,
+		AcceptedTermsID:     &termsID,
+		Flavour:             flavour,
+		Avatar:              "",
+		IsSuspended:         true,
+		OrganisationID:      serverutils.MustGetEnvVar("DEFAULT_ORG_ID"),
+		Password:            "",
+		IsSuperuser:         false,
+		IsStaff:             false,
+		Email:               "",
+		DateJoined:          "",
+		Name:                "",
+		IsApproved:          false,
+		ApprovalNotified:    false,
+		Handle:              "",
 	}
+
 	err = pg.DB.Create(userInput).Error
 	if err != nil {
 		t.Errorf("failed to create user: %v", err)
@@ -119,7 +140,7 @@ func TestPGInstance_SaveTemporaryUserPin(t *testing.T) {
 		ValidFrom: time.Now(),
 		ValidTo:   time.Now(),
 		IsValid:   true,
-		Flavour:   flavor,
+		Flavour:   flavour,
 		Salt:      salt,
 	}
 
@@ -185,24 +206,42 @@ func TestPGInstance_SavePin(t *testing.T) {
 	}
 
 	longString := gofakeit.Sentence(300)
-
+	currentTime := time.Now()
 	newExtension := extension.NewExternalMethodsImpl()
 	salt, encryptedPin := newExtension.EncryptPIN("0000", nil)
 	flavour := feedlib.FlavourConsumer
-	userID := uuid.New().String()
+
+	pastTime := time.Now().AddDate(0, 0, -1)
 
 	// Setup test user
 	userInput := &gorm.User{
-		UserID:          &userID,
-		FirstName:       gofakeit.FirstName(),
-		LastName:        gofakeit.LastName(),
-		MiddleName:      gofakeit.FirstName(),
-		UserType:        enums.ClientUser,
-		Gender:          enumutils.GenderMale,
-		Flavour:         flavour,
-		AcceptedTermsID: &termsID,
-		TermsAccepted:   true,
-		IsSuspended:     false,
+		Username:            uuid.New().String(),
+		FirstName:           gofakeit.FirstName(),
+		MiddleName:          gofakeit.FirstName(),
+		LastName:            gofakeit.LastName(),
+		UserType:            enums.ClientUser,
+		Gender:              enumutils.GenderMale,
+		Active:              false,
+		PushTokens:          []string{},
+		LastSuccessfulLogin: &currentTime,
+		LastFailedLogin:     &currentTime,
+		FailedLoginCount:    0,
+		NextAllowedLogin:    &pastTime,
+		TermsAccepted:       true,
+		AcceptedTermsID:     &termsID,
+		Flavour:             flavour,
+		Avatar:              "",
+		IsSuspended:         true,
+		OrganisationID:      serverutils.MustGetEnvVar("DEFAULT_ORG_ID"),
+		Password:            "",
+		IsSuperuser:         false,
+		IsStaff:             false,
+		Email:               "",
+		DateJoined:          "",
+		Name:                "",
+		IsApproved:          false,
+		ApprovalNotified:    false,
+		Handle:              "",
 	}
 
 	err = pg.DB.Create(&userInput).Error
@@ -316,27 +355,44 @@ func TestPGInstance_SaveSecurityQuestionResponse(t *testing.T) {
 
 	ctx := context.Background()
 
-	userID := uuid.New().String()
-
 	flavour := feedlib.FlavourConsumer
 
 	pg, err := gorm.NewPGInstance()
 	if err != nil {
 		t.Errorf("pgInstance.Teardown() = %v", err)
 	}
+	currentTime := time.Now()
+	pastTime := time.Now().AddDate(0, 0, -1)
 
 	// Setup test user
 	userInput := &gorm.User{
-		UserID:          &userID,
-		FirstName:       gofakeit.FirstName(),
-		LastName:        gofakeit.LastName(),
-		MiddleName:      gofakeit.FirstName(),
-		UserType:        enums.ClientUser,
-		Gender:          enumutils.GenderMale,
-		Flavour:         flavour,
-		AcceptedTermsID: &termsID,
-		TermsAccepted:   true,
-		IsSuspended:     false,
+		Username:            uuid.New().String(),
+		FirstName:           gofakeit.FirstName(),
+		MiddleName:          gofakeit.FirstName(),
+		LastName:            gofakeit.LastName(),
+		UserType:            enums.ClientUser,
+		Gender:              enumutils.GenderMale,
+		Active:              false,
+		PushTokens:          []string{},
+		LastSuccessfulLogin: &currentTime,
+		LastFailedLogin:     &currentTime,
+		FailedLoginCount:    0,
+		NextAllowedLogin:    &pastTime,
+		TermsAccepted:       true,
+		AcceptedTermsID:     &termsID,
+		Flavour:             flavour,
+		Avatar:              "",
+		IsSuspended:         true,
+		OrganisationID:      serverutils.MustGetEnvVar("DEFAULT_ORG_ID"),
+		Password:            "",
+		IsSuperuser:         false,
+		IsStaff:             false,
+		Email:               "",
+		DateJoined:          "",
+		Name:                "",
+		IsApproved:          false,
+		ApprovalNotified:    false,
+		Handle:              "",
 	}
 
 	err = pg.DB.Create(&userInput).Error
@@ -409,22 +465,39 @@ func TestPGInstance_SaveOTP(t *testing.T) {
 	}
 
 	flavour := feedlib.FlavourConsumer
+	currentTime := time.Now()
+	pastTime := time.Now().AddDate(0, 0, -1)
 
 	// Setup test user
 	userInput := &gorm.User{
-		Username:        uuid.New().String(),
-		FirstName:       gofakeit.FirstName(),
-		LastName:        gofakeit.LastName(),
-		MiddleName:      gofakeit.FirstName(),
-		UserType:        enums.ClientUser,
-		Gender:          enumutils.GenderMale,
-		Flavour:         flavour,
-		AcceptedTermsID: &termsID,
-		TermsAccepted:   true,
-		IsSuspended:     true,
-		OrganisationID:  serverutils.MustGetEnvVar("DEFAULT_ORG_ID"),
+		Username:            uuid.New().String(),
+		FirstName:           gofakeit.FirstName(),
+		MiddleName:          gofakeit.FirstName(),
+		LastName:            gofakeit.LastName(),
+		UserType:            enums.ClientUser,
+		Gender:              enumutils.GenderMale,
+		Active:              false,
+		PushTokens:          []string{},
+		LastSuccessfulLogin: &currentTime,
+		LastFailedLogin:     &currentTime,
+		FailedLoginCount:    0,
+		NextAllowedLogin:    &pastTime,
+		TermsAccepted:       true,
+		AcceptedTermsID:     &termsID,
+		Flavour:             flavour,
+		Avatar:              "",
+		IsSuspended:         true,
+		OrganisationID:      serverutils.MustGetEnvVar("DEFAULT_ORG_ID"),
+		Password:            "",
+		IsSuperuser:         false,
+		IsStaff:             false,
+		Email:               "",
+		DateJoined:          "",
+		Name:                "",
+		IsApproved:          false,
+		ApprovalNotified:    false,
+		Handle:              "",
 	}
-
 	err = pg.DB.Create(&userInput).Error
 	if err != nil {
 		t.Errorf("failed to create user: %v", err)

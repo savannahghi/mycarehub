@@ -521,12 +521,12 @@ func TestUnit_InviteUser(t *testing.T) {
 				}
 			}
 			if tt.name == "valid: send invite message success" {
-				fakeExtension.MockSendInviteSMSFn = func(ctx context.Context, phoneNumbers []string, message string) error {
+				fakeExtension.MockSendSMSFn = func(ctx context.Context, phoneNumbers []string, message string) error {
 					return nil
 				}
 			}
 			if tt.name == "invalid: send in message error" {
-				fakeExtension.MockSendInviteSMSFn = func(ctx context.Context, phoneNumbers []string, message string) error {
+				fakeExtension.MockSendSMSFn = func(ctx context.Context, phoneNumbers []string, message string) error {
 					return fmt.Errorf("failed to send sms")
 				}
 			}

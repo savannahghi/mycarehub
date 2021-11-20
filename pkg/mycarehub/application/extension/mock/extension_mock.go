@@ -15,7 +15,7 @@ type FakeExtensionImpl struct {
 	MockAuthenticateCustomFirebaseTokenFn func(customAuthToken string) (*firebasetools.FirebaseUserTokens, error)
 	MockGenerateTempPINFn                 func(ctx context.Context) (string, error)
 	MockEncryptPINFn                      func(rawPwd string, options *extension.Options) (string, string)
-	MockSendInviteSMSFn                   func(ctx context.Context, phoneNumbers []string, message string) error
+	MockSendSMSFn                         func(ctx context.Context, phoneNumbers []string, message string) error
 	MockGenerateAndSendOTPFn              func(ctx context.Context, phoneNumber string) (string, error)
 	MockGenerateOTPFn                     func(ctx context.Context) (string, error)
 }
@@ -44,7 +44,7 @@ func NewFakeExtension() *FakeExtensionImpl {
 		MockEncryptPINFn: func(rawPwd string, options *extension.Options) (string, string) {
 			return uuid.New().String(), uuid.New().String()
 		},
-		MockSendInviteSMSFn: func(ctx context.Context, phoneNumbers []string, message string) error {
+		MockSendSMSFn: func(ctx context.Context, phoneNumbers []string, message string) error {
 			return nil
 		},
 		MockGenerateAndSendOTPFn: func(ctx context.Context, phoneNumber string) (string, error) {
@@ -81,9 +81,9 @@ func (f *FakeExtensionImpl) EncryptPIN(rawPwd string, options *extension.Options
 	return f.MockEncryptPINFn(rawPwd, options)
 }
 
-// SendInviteSMS mocks the send sms method
-func (f *FakeExtensionImpl) SendInviteSMS(ctx context.Context, phoneNumbers []string, message string) error {
-	return f.MockSendInviteSMSFn(ctx, phoneNumbers, message)
+// SendSMS mocks the send sms method
+func (f *FakeExtensionImpl) SendSMS(ctx context.Context, phoneNumbers []string, message string) error {
+	return f.MockSendSMSFn(ctx, phoneNumbers, message)
 }
 
 // GenerateAndSendOTP mocks the generate and send OTP method

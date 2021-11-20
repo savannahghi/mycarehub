@@ -7,18 +7,12 @@ import (
 
 // a helper method to create mapped user
 func createMapUser(userObject *gorm.User) *domain.User {
-	contacts := []*domain.Contact{}
-	if len(userObject.Contacts) > 0 {
-		for _, u := range userObject.Contacts {
-			contact := &domain.Contact{
-				ID:      u.ContactID,
-				Type:    u.ContactType,
-				Contact: u.ContactValue,
-				Active:  u.Active,
-				OptedIn: u.OptedIn,
-			}
-			contacts = append(contacts, contact)
-		}
+	contact := &domain.Contact{
+		ID:           userObject.Contacts.ContactID,
+		ContactType:  userObject.Contacts.ContactType,
+		ContactValue: userObject.Contacts.ContactValue,
+		Active:       userObject.Contacts.Active,
+		OptedIn:      userObject.Contacts.OptedIn,
 	}
 
 	user := &domain.User{
@@ -29,7 +23,7 @@ func createMapUser(userObject *gorm.User) *domain.User {
 		LastName:            userObject.LastName,
 		Gender:              userObject.Gender,
 		UserType:            userObject.UserType,
-		Contacts:            contacts,
+		Contacts:            contact,
 		Active:              userObject.Active,
 		LastSuccessfulLogin: userObject.LastSuccessfulLogin,
 		LastFailedLogin:     userObject.LastFailedLogin,
