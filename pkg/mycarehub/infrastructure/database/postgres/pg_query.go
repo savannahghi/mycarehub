@@ -270,3 +270,17 @@ func (d *MyCareHubDb) GetClientProfileByUserID(ctx context.Context, userID strin
 		CHVUserID:               response.CHVUserID,
 	}, nil
 }
+
+// CheckUserHasPin performs a look up on the pins table to check whether a user has a pin
+func (d *MyCareHubDb) CheckUserHasPin(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
+	if userID == "" {
+		return false, fmt.Errorf("user ID must be defined")
+	}
+
+	exists, err := d.query.CheckUserHasPin(ctx, userID, flavour)
+	if err != nil {
+		return false, err
+	}
+
+	return exists, nil
+}

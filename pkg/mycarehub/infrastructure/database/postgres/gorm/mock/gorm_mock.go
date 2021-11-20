@@ -44,6 +44,7 @@ type GormMock struct {
 	MockCheckIfPhoneNumberExistsFn          func(ctx context.Context, phone string, isOptedIn bool, flavour feedlib.Flavour) (bool, error)
 	MockVerifyOTPFn                         func(ctx context.Context, payload *dto.VerifyOTPInput) (bool, error)
 	MockGetClientProfileByUserIDFn          func(ctx context.Context, userID string) (*gorm.Client, error)
+	MockCheckUserHasPinFn                   func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -240,6 +241,9 @@ func NewGormMock() *GormMock {
 		MockGetClientProfileByUserIDFn: func(ctx context.Context, userID string) (*gorm.Client, error) {
 			return client, nil
 		},
+		MockCheckUserHasPinFn: func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
+			return true, nil
+		},
 	}
 }
 
@@ -381,4 +385,9 @@ func (gm *GormMock) VerifyOTP(ctx context.Context, payload *dto.VerifyOTPInput) 
 // GetClientProfileByUserID mocks the method for fetching a client profile using the user ID
 func (gm *GormMock) GetClientProfileByUserID(ctx context.Context, userID string) (*gorm.Client, error) {
 	return gm.MockGetClientProfileByUserIDFn(ctx, userID)
+}
+
+// CheckUserHasPin mocks the method for checking if a user has a pin
+func (gm *GormMock) CheckUserHasPin(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
+	return gm.MockCheckUserHasPinFn(ctx, userID, flavour)
 }

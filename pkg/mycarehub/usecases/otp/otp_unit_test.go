@@ -101,7 +101,6 @@ func TestUseCaseOTPImpl_GenerateAndSendOTP(t *testing.T) {
 			if tt.name == "invalid: invalid flavour" {
 				fakeOTP.MockGenerateAndSendOTPFn = func(
 					ctx context.Context,
-					userID string,
 					phoneNumber string,
 					flavour feedlib.Flavour,
 				) (string, error) {
@@ -161,7 +160,6 @@ func TestUseCaseOTPImpl_GenerateOTP(t *testing.T) {
 			if tt.name == "Sad Case - Fail to generate otp" {
 				fakeOTP.MockGenerateAndSendOTPFn = func(
 					ctx context.Context,
-					userID string,
 					phoneNumber string,
 					flavour feedlib.Flavour,
 				) (string, error) {

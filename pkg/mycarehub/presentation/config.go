@@ -68,14 +68,14 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	// Initialize facility usecase
 	facilityUseCase := facility.NewFacilityUsecase(db, db, db, db)
 
+	otpUseCase := otp.NewOTPUseCase(db, db, externalExt)
+
 	// Initialize user usecase
-	userUsecase := user.NewUseCasesUserImpl(db, db, db, db, externalExt)
+	userUsecase := user.NewUseCasesUserImpl(db, db, db, db, externalExt, otpUseCase)
 
 	termsUsecase := terms.NewUseCasesTermsOfService(db, db)
 
 	securityQuestionsUsecase := securityquestions.NewSecurityQuestionsUsecase(db, db, externalExt)
-
-	otpUseCase := otp.NewOTPUseCase(db, db, externalExt)
 
 	useCase := usecases.NewMyCareHubUseCase(userUsecase, termsUsecase, facilityUseCase, securityQuestionsUsecase, otpUseCase)
 
@@ -123,6 +123,12 @@ func Router(ctx context.Context) (*mux.Router, error) {
 		http.MethodOptions,
 		http.MethodPost,
 	).HandlerFunc(internalHandlers.SendOTP())
+
+	// PIN routes
+	r.Path("/request_pin_reset").Methods(
+		http.MethodPost,
+		http.MethodOptions,
+	).HandlerFunc(internalHandlers.RequestPINReset())
 
 	// Graphql route
 	authR := r.Path("/graphql").Subrouter()

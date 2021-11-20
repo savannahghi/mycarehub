@@ -30,6 +30,7 @@ type Query interface {
 	CheckIfPhoneNumberExists(ctx context.Context, phone string, isOptedIn bool, flavour feedlib.Flavour) (bool, error)
 	VerifyOTP(ctx context.Context, payload *dto.VerifyOTPInput) (bool, error)
 	GetClientProfileByUserID(ctx context.Context, userID string) (*Client, error)
+	CheckUserHasPin(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
 }
 
 // RetrieveFacility fetches a single facility
@@ -264,4 +265,13 @@ func (db *PGInstance) GetClientProfileByUserID(ctx context.Context, userID strin
 		return nil, fmt.Errorf("failed to get client by user ID %v: %v", userID, err)
 	}
 	return &client, nil
+}
+
+// CheckUserHasPin performs a look up on the pins table to check whether a user has a pin
+func (db *PGInstance) CheckUserHasPin(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
+	var pin PINData
+	if err := db.DB.Where(&PINData{UserID: userID, Flavour: flavour}).Find(&pin).Error; err != nil {
+		return false, err
+	}
+	return true, nil
 }

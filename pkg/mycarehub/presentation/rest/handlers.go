@@ -17,6 +17,7 @@ type MyCareHubHandlersInterfaces interface {
 	VerifySecurityQuestions() http.HandlerFunc
 	VerifyPhone() http.HandlerFunc
 	SendOTP() http.HandlerFunc
+	RequestPINReset() http.HandlerFunc
 }
 
 // MyCareHubHandlersInterfacesImpl represents the usecase implementation object
@@ -131,8 +132,8 @@ func (h *MyCareHubHandlersInterfacesImpl) VerifyPhone() http.HandlerFunc {
 	}
 }
 
-// VerifyOTP is an unauthenticated endpoint that gets the user id, phonenumber and flavour
-// from a user, checks whether the provide otp matches. If they match, return true, otherwise false.
+// VerifyOTP is an unauthenticated endpoint that gets the phonenumber and flavour
+// from a user, checks whether the provided otp matches. If they match, return true, otherwise false.
 func (h *MyCareHubHandlersInterfacesImpl) VerifyOTP() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
@@ -203,6 +204,43 @@ func (h *MyCareHubHandlersInterfacesImpl) SendOTP() http.HandlerFunc {
 			return
 		}
 
+		serverutils.WriteJSONResponse(w, resp, http.StatusOK)
+	}
+}
+
+// RequestPINReset exposes an endpoint that takes in a user phonenumber and the flavour. It then sends
+// an OTP to the phone number that requests a PIN reset
+func (h *MyCareHubHandlersInterfacesImpl) RequestPINReset() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+
+		payload := &dto.SendOTPInput{}
+		serverutils.DecodeJSONToTargetStruct(w, r, payload)
+		if payload.PhoneNumber == "" {
+			err := fmt.Errorf("expected `phone number` to be defined")
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusBadRequest)
+			return
+		}
+
+		if !payload.Flavour.IsValid() {
+			err := fmt.Errorf("an invalid `flavour` defined")
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusBadRequest)
+			return
+		}
+
+		resp, err := h.usecase.User.RequestPINReset(ctx, payload.PhoneNumber, payload.Flavour)
+		if err != nil {
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
+				Message: err.Error(),
+			}, http.StatusBadRequest)
+			return
+		}
 		serverutils.WriteJSONResponse(w, resp, http.StatusOK)
 	}
 }

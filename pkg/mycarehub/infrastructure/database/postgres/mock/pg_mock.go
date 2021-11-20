@@ -44,6 +44,7 @@ type PostgresMock struct {
 	MockCheckIfPhoneNumberExistsFn          func(ctx context.Context, phone string, isOptedIn bool, flavour feedlib.Flavour) (bool, error)
 	MockVerifyOTPFn                         func(ctx context.Context, payload *dto.VerifyOTPInput) (bool, error)
 	MockGetClientProfileByUserIDFn          func(ctx context.Context, userID string) (*domain.ClientProfile, error)
+	MockCheckUserHasPinFn                   func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -223,6 +224,9 @@ func NewPostgresMock() *PostgresMock {
 		MockGetClientProfileByUserIDFn: func(ctx context.Context, userID string) (*domain.ClientProfile, error) {
 			return client, nil
 		},
+		MockCheckUserHasPinFn: func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
+			return true, nil
+		},
 	}
 }
 
@@ -369,4 +373,9 @@ func (gm *PostgresMock) VerifyOTP(ctx context.Context, payload *dto.VerifyOTPInp
 // GetClientProfileByUserID mocks the method for fetching a client profile using the user ID
 func (gm *PostgresMock) GetClientProfileByUserID(ctx context.Context, userID string) (*domain.ClientProfile, error) {
 	return gm.MockGetClientProfileByUserIDFn(ctx, userID)
+}
+
+// CheckUserHasPin mocks the method for checking if a user has a pin
+func (gm *PostgresMock) CheckUserHasPin(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
+	return gm.MockCheckUserHasPinFn(ctx, userID, flavour)
 }

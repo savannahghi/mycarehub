@@ -11,7 +11,6 @@ import (
 type OTPUseCaseMock struct {
 	MockGenerateAndSendOTPFn func(
 		ctx context.Context,
-		userID string,
 		phoneNumber string,
 		flavour feedlib.Flavour,
 	) (string, error)
@@ -23,7 +22,6 @@ func NewOTPUseCaseMock() *OTPUseCaseMock {
 	return &OTPUseCaseMock{
 		MockGenerateAndSendOTPFn: func(
 			ctx context.Context,
-			userID string,
 			phoneNumber string,
 			flavour feedlib.Flavour,
 		) (string, error) {
@@ -40,11 +38,10 @@ func NewOTPUseCaseMock() *OTPUseCaseMock {
 // GenerateAndSendOTP mocks the generate and send OTP method
 func (o *OTPUseCaseMock) GenerateAndSendOTP(
 	ctx context.Context,
-	userID string,
 	phoneNumber string,
 	flavour feedlib.Flavour,
 ) (string, error) {
-	return o.MockGenerateAndSendOTPFn(ctx, userID, phoneNumber, flavour)
+	return o.MockGenerateAndSendOTPFn(ctx, phoneNumber, flavour)
 }
 
 // VerifyPhoneNumber mock the implementtation of phone verification

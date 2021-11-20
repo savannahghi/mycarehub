@@ -2,6 +2,8 @@ package exceptions
 
 import (
 	"fmt"
+
+	"github.com/savannahghi/errorcodeutil"
 )
 
 // NormalizeMSISDNError returns an error when normalizing the msisdn fails
@@ -301,4 +303,15 @@ func ValidatePINDigitsErr(err error) error {
 		Message: ValidatePINDigitsErrorMsg,
 		Code:    int(ValidatePINDigitsError),
 	}
+}
+
+// ExistingPINError is the error message displayed when a
+// pin record fails to be retrieved from dataerrorcodeutil
+func ExistingPINError(err error) error {
+	return &CustomError{
+		Err:     err,
+		Message: ExistingPINErrMsg,
+		Code:    int(errorcodeutil.PINNotFound),
+	}
+
 }
