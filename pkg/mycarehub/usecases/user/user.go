@@ -152,10 +152,6 @@ func (us *UseCasesUserImpl) Login(ctx context.Context, phoneNumber string, pin s
 		return nil, int(exceptions.ProfileNotFound), exceptions.ProfileNotFoundErr(err)
 	}
 
-	if !userProfile.TermsAccepted {
-		return nil, int(exceptions.Internal), fmt.Errorf("user has not accepted the terms and conditions")
-	}
-
 	if !userProfile.Active {
 		return nil, int(exceptions.Internal), fmt.Errorf("user is not active")
 	}
