@@ -45,6 +45,7 @@ type PostgresMock struct {
 	MockVerifyOTPFn                         func(ctx context.Context, payload *dto.VerifyOTPInput) (bool, error)
 	MockGetClientProfileByUserIDFn          func(ctx context.Context, userID string) (*domain.ClientProfile, error)
 	MockCheckUserHasPinFn                   func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
+	MockGenerateRetryOTPFn                  func(ctx context.Context, payload *dto.SendRetryOTPPayload) (string, error)
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -227,6 +228,9 @@ func NewPostgresMock() *PostgresMock {
 		MockCheckUserHasPinFn: func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
 			return true, nil
 		},
+		MockGenerateRetryOTPFn: func(ctx context.Context, payload *dto.SendRetryOTPPayload) (string, error) {
+			return "test-OTP", nil
+		},
 	}
 }
 
@@ -378,4 +382,9 @@ func (gm *PostgresMock) GetClientProfileByUserID(ctx context.Context, userID str
 // CheckUserHasPin mocks the method for checking if a user has a pin
 func (gm *PostgresMock) CheckUserHasPin(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
 	return gm.MockCheckUserHasPinFn(ctx, userID, flavour)
+}
+
+// GenerateRetryOTP mock the implementtation of generating a retry OTP
+func (gm *PostgresMock) GenerateRetryOTP(ctx context.Context, payload *dto.SendRetryOTPPayload) (string, error) {
+	return gm.MockGenerateRetryOTPFn(ctx, payload)
 }

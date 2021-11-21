@@ -163,7 +163,7 @@ func TestPGInstance_SetNickname(t *testing.T) {
 
 	// Setup test user
 	userInput := &gorm.User{
-		Username:            uuid.New().String(),
+		Username:            gofakeit.BeerHop(),
 		FirstName:           gofakeit.FirstName(),
 		MiddleName:          gofakeit.FirstName(),
 		LastName:            gofakeit.LastName(),
@@ -182,13 +182,13 @@ func TestPGInstance_SetNickname(t *testing.T) {
 		IsSuspended:         true,
 		OrganisationID:      serverutils.MustGetEnvVar("DEFAULT_ORG_ID"),
 		Password:            "",
-		IsSuperuser:         false,
-		IsStaff:             false,
+		IsSuperuser:         true,
+		IsStaff:             true,
 		Email:               "",
 		DateJoined:          "",
-		Name:                "",
-		IsApproved:          false,
-		ApprovalNotified:    false,
+		Name:                nickname,
+		IsApproved:          true,
+		ApprovalNotified:    true,
 		Handle:              "",
 	}
 

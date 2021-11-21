@@ -129,6 +129,10 @@ func Router(ctx context.Context) (*mux.Router, error) {
 		http.MethodPost,
 		http.MethodOptions,
 	).HandlerFunc(internalHandlers.RequestPINReset())
+	r.Path("/send_retry_otp").Methods(
+		http.MethodOptions,
+		http.MethodPost,
+	).HandlerFunc(internalHandlers.SendRetryOTP())
 
 	// Graphql route
 	authR := r.Path("/graphql").Subrouter()

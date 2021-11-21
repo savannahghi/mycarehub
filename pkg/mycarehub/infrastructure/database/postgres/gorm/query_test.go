@@ -715,11 +715,13 @@ func TestPGInstance_CheckIfPhoneNumberExists(t *testing.T) {
 	}
 
 	flavour := feedlib.FlavourConsumer
+	userID := uuid.New().String()
 	currentTime := time.Now()
-	pastTime := time.Now().AddDate(0, 0, -1)
+	nextTime := time.Now().AddDate(0, 0, 2)
 
 	// Setup test user
 	userInput := &gorm.User{
+		UserID:              &userID,
 		Username:            uuid.New().String(),
 		FirstName:           gofakeit.FirstName(),
 		MiddleName:          gofakeit.FirstName(),
@@ -731,12 +733,12 @@ func TestPGInstance_CheckIfPhoneNumberExists(t *testing.T) {
 		LastSuccessfulLogin: &currentTime,
 		LastFailedLogin:     &currentTime,
 		FailedLoginCount:    0,
-		NextAllowedLogin:    &pastTime,
+		NextAllowedLogin:    &nextTime,
 		TermsAccepted:       true,
 		AcceptedTermsID:     &termsID,
 		Flavour:             flavour,
 		Avatar:              "",
-		IsSuspended:         true,
+		IsSuspended:         false,
 		OrganisationID:      serverutils.MustGetEnvVar("DEFAULT_ORG_ID"),
 		Password:            "",
 		IsSuperuser:         false,
@@ -838,11 +840,13 @@ func TestPGInstance_VerifyOTP(t *testing.T) {
 	}
 
 	flavour := feedlib.FlavourConsumer
+	userID := uuid.New().String()
 	currentTime := time.Now()
-	pastTime := time.Now().AddDate(0, 0, -1)
+	nextTime := time.Now().AddDate(0, 0, 2)
 
 	// Setup test user
 	userInput := &gorm.User{
+		UserID:              &userID,
 		Username:            uuid.New().String(),
 		FirstName:           gofakeit.FirstName(),
 		MiddleName:          gofakeit.FirstName(),
@@ -854,7 +858,7 @@ func TestPGInstance_VerifyOTP(t *testing.T) {
 		LastSuccessfulLogin: &currentTime,
 		LastFailedLogin:     &currentTime,
 		FailedLoginCount:    0,
-		NextAllowedLogin:    &pastTime,
+		NextAllowedLogin:    &nextTime,
 		TermsAccepted:       true,
 		AcceptedTermsID:     &termsID,
 		Flavour:             flavour,
@@ -1040,8 +1044,7 @@ func TestPGInstance_GetClientProfileByUserID(t *testing.T) {
 	}
 
 	currentTime := time.Now()
-	flavour := feedlib.FlavourConsumer
-	pastTime := time.Now().AddDate(0, 0, -1)
+	nextTime := time.Now().AddDate(0, 0, 2)
 
 	// Setup test user
 	userInput := &gorm.User{
@@ -1056,12 +1059,12 @@ func TestPGInstance_GetClientProfileByUserID(t *testing.T) {
 		LastSuccessfulLogin: &currentTime,
 		LastFailedLogin:     &currentTime,
 		FailedLoginCount:    0,
-		NextAllowedLogin:    &pastTime,
+		NextAllowedLogin:    &nextTime,
 		TermsAccepted:       true,
 		AcceptedTermsID:     &termsID,
-		Flavour:             flavour,
+		Flavour:             feedlib.FlavourConsumer,
 		Avatar:              "",
-		IsSuspended:         true,
+		IsSuspended:         false,
 		OrganisationID:      serverutils.MustGetEnvVar("DEFAULT_ORG_ID"),
 		Password:            "",
 		IsSuperuser:         false,

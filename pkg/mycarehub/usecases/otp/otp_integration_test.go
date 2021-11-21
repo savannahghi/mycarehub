@@ -34,8 +34,7 @@ func TestUseCaseOTPImpl_VerifyPhoneNumber_Integration(t *testing.T) {
 	inexistentNo := "+254700000520"
 	invalidPhone := ksuid.New().String()
 	currentTime := time.Now()
-
-	pastTime := time.Now().AddDate(0, 0, -1)
+	nextTime := time.Now().AddDate(0, 0, 2)
 
 	// Setup test user
 	userInput := &gorm.User{
@@ -50,7 +49,7 @@ func TestUseCaseOTPImpl_VerifyPhoneNumber_Integration(t *testing.T) {
 		LastSuccessfulLogin: &currentTime,
 		LastFailedLogin:     &currentTime,
 		FailedLoginCount:    0,
-		NextAllowedLogin:    &pastTime,
+		NextAllowedLogin:    &nextTime,
 		TermsAccepted:       true,
 		AcceptedTermsID:     &termsID,
 		Flavour:             flavour,
@@ -201,11 +200,13 @@ func TestUseCaseOTPImpl_VerifyOTP_integration_test(t *testing.T) {
 	}
 
 	flavour := feedlib.FlavourConsumer
+	userID := uuid.New().String()
 	currentTime := time.Now()
-	pastTime := time.Now().AddDate(0, 0, -1)
+	nextTime := time.Now().AddDate(0, 0, 2)
 
 	// Setup test user
 	userInput := &gorm.User{
+		UserID:              &userID,
 		Username:            uuid.New().String(),
 		FirstName:           gofakeit.FirstName(),
 		MiddleName:          gofakeit.FirstName(),
@@ -217,7 +218,7 @@ func TestUseCaseOTPImpl_VerifyOTP_integration_test(t *testing.T) {
 		LastSuccessfulLogin: &currentTime,
 		LastFailedLogin:     &currentTime,
 		FailedLoginCount:    0,
-		NextAllowedLogin:    &pastTime,
+		NextAllowedLogin:    &nextTime,
 		TermsAccepted:       true,
 		AcceptedTermsID:     &termsID,
 		Flavour:             flavour,
@@ -393,7 +394,7 @@ func TestUseCaseOTPImpl_GenerateAndSendOTP_Integration_test(t *testing.T) {
 
 	flavour := feedlib.FlavourConsumer
 	currentTime := time.Now()
-	pastTime := time.Now().AddDate(0, 0, -1)
+	nextTime := time.Now().AddDate(0, 0, 2)
 
 	// Setup test user
 	userInput := &gorm.User{
@@ -408,7 +409,7 @@ func TestUseCaseOTPImpl_GenerateAndSendOTP_Integration_test(t *testing.T) {
 		LastSuccessfulLogin: &currentTime,
 		LastFailedLogin:     &currentTime,
 		FailedLoginCount:    0,
-		NextAllowedLogin:    &pastTime,
+		NextAllowedLogin:    &nextTime,
 		TermsAccepted:       true,
 		AcceptedTermsID:     &termsID,
 		Flavour:             flavour,
