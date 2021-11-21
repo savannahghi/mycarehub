@@ -98,11 +98,12 @@ type User struct {
 	// calculated each time there is a failed login
 	NextAllowedLogin *time.Time `gorm:"type:time;column:next_allowed_login"`
 
-	TermsAccepted   bool            `gorm:"type:bool;column:terms_accepted;not null"`
-	AcceptedTermsID *int            `gorm:"column:accepted_terms_of_service_id"` // foreign key to version of terms they accepted
-	Flavour         feedlib.Flavour `gorm:"column:flavour;not null"`
-	Avatar          string          `gorm:"column:avatar"`
-	IsSuspended     bool            `gorm:"column:is_suspended;not null"`
+	TermsAccepted     bool            `gorm:"type:bool;column:terms_accepted;not null"`
+	AcceptedTermsID   *int            `gorm:"column:accepted_terms_of_service_id"` // foreign key to version of terms they accepted
+	Flavour           feedlib.Flavour `gorm:"column:flavour;not null"`
+	Avatar            string          `gorm:"column:avatar"`
+	IsSuspended       bool            `gorm:"column:is_suspended;not null"`
+	PinChangeRequired bool            `gorm:"column:pin_change_required"`
 
 	// Django required fields
 	OrganisationID   string `gorm:"column:organisation_id"`

@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"time"
+
+	"github.com/savannahghi/feedlib"
 )
 
 // Update represents all `update` operations to the database
@@ -16,6 +18,7 @@ type Update interface {
 	UpdateUserNextAllowedLoginTime(ctx context.Context, userID string, nextAllowedLoginTime time.Time) error
 	UpdateUserLastSuccessfulLoginTime(ctx context.Context, userID string) error
 	SetNickName(ctx context.Context, userID *string, nickname *string) (bool, error)
+	UpdateUserPinChangeRequiredStatus(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
 }
 
 // ReactivateFacility perfoms the actual re-activation of the facility in the database
@@ -115,5 +118,17 @@ func (db *PGInstance) SetNickName(ctx context.Context, userID *string, nickname 
 		return false, fmt.Errorf("failed to set nickname")
 	}
 
+	return true, nil
+}
+
+// UpdateUserPinChangeRequiredStatus updates the user's pin change required from true to false. It'll be used to
+// determine the onboarding journey for a user.
+func (db *PGInstance) UpdateUserPinChangeRequiredStatus(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
+	err := db.DB.Model(&User{}).Where(&User{UserID: &userID, Flavour: flavour}).Updates(map[string]interface{}{
+		"pin_change_required": false,
+	}).Error
+	if err != nil {
+		return false, err
+	}
 	return true, nil
 }

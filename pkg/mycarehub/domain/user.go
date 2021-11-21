@@ -48,6 +48,8 @@ type User struct {
 	// calculated each time there is a failed login
 	NextAllowedLogin *time.Time `json:"NextAllowedLogin"`
 
+	PinChangeRequired bool `json:"pinChangeRequired"`
+
 	TermsAccepted   bool            `json:"termsAccepted"`
 	AcceptedTermsID int             `json:"AcceptedTermsID"` // foreign key to version of terms they accepted
 	Flavour         feedlib.Flavour `json:"flavour"`

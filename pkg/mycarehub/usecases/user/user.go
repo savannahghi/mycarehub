@@ -44,6 +44,11 @@ type IRequestPinReset interface {
 	RequestPINReset(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (string, error)
 }
 
+// ICompleteOnboardingTour defines a method that is used to complete the onboarding tour
+type ICompleteOnboardingTour interface {
+	CompleteOnboardingTour(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
+}
+
 // UseCasesUser group all business logic usecases related to user
 type UseCasesUser interface {
 	ILogin
@@ -51,6 +56,7 @@ type UseCasesUser interface {
 	IVerifyPIN
 	ISetNickName
 	IRequestPinReset
+	ICompleteOnboardingTour
 }
 
 // UseCasesUserImpl represents user implementation object
@@ -353,4 +359,12 @@ func (us *UseCasesUserImpl) RequestPINReset(ctx context.Context, phoneNumber str
 	}
 
 	return code, nil
+}
+
+// CompleteOnboardingTour is used to complete the onboarding tour for first time users. When a new user is
+// set up, their field `pinChangeRequired` is set to true, this will inform the front end to redirect the new user
+// through the process of setting a new pin, accepting terms and setting security questions. After all this is done,
+// the field will be set to false. It will enable the user to be directed to the login page when they log in again.
+func (us *UseCasesUserImpl) CompleteOnboardingTour(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
+	return us.Update.UpdateUserPinChangeRequiredStatus(ctx, userID, flavour)
 }
