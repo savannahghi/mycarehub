@@ -45,6 +45,7 @@ type GormMock struct {
 	MockVerifyOTPFn                         func(ctx context.Context, payload *dto.VerifyOTPInput) (bool, error)
 	MockGetClientProfileByUserIDFn          func(ctx context.Context, userID string) (*gorm.Client, error)
 	MockCheckUserHasPinFn                   func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
+	MockUpdateUserPinChangeRequiredStatusFn func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -244,6 +245,9 @@ func NewGormMock() *GormMock {
 		MockCheckUserHasPinFn: func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
 			return true, nil
 		},
+		MockUpdateUserPinChangeRequiredStatusFn: func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
+			return true, nil
+		},
 	}
 }
 
@@ -390,4 +394,9 @@ func (gm *GormMock) GetClientProfileByUserID(ctx context.Context, userID string)
 // CheckUserHasPin mocks the method for checking if a user has a pin
 func (gm *GormMock) CheckUserHasPin(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
 	return gm.MockCheckUserHasPinFn(ctx, userID, flavour)
+}
+
+// UpdateUserPinChangeRequiredStatus mocks the implementation for updating a user's pin change required state
+func (gm *GormMock) UpdateUserPinChangeRequiredStatus(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
+	return gm.MockUpdateUserPinChangeRequiredStatusFn(ctx, userID, flavour)
 }

@@ -46,6 +46,7 @@ type PostgresMock struct {
 	MockGetClientProfileByUserIDFn          func(ctx context.Context, userID string) (*domain.ClientProfile, error)
 	MockCheckUserHasPinFn                   func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
 	MockGenerateRetryOTPFn                  func(ctx context.Context, payload *dto.SendRetryOTPPayload) (string, error)
+	MockUpdateUserPinChangeRequiredStatusFn func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -231,6 +232,9 @@ func NewPostgresMock() *PostgresMock {
 		MockGenerateRetryOTPFn: func(ctx context.Context, payload *dto.SendRetryOTPPayload) (string, error) {
 			return "test-OTP", nil
 		},
+		MockUpdateUserPinChangeRequiredStatusFn: func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
+			return true, nil
+		},
 	}
 }
 
@@ -387,4 +391,9 @@ func (gm *PostgresMock) CheckUserHasPin(ctx context.Context, userID string, flav
 // GenerateRetryOTP mock the implementtation of generating a retry OTP
 func (gm *PostgresMock) GenerateRetryOTP(ctx context.Context, payload *dto.SendRetryOTPPayload) (string, error) {
 	return gm.MockGenerateRetryOTPFn(ctx, payload)
+}
+
+// UpdateUserPinChangeRequiredStatus mocks the implementation for updating a user's pin change required state
+func (gm *PostgresMock) UpdateUserPinChangeRequiredStatus(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
+	return gm.MockUpdateUserPinChangeRequiredStatusFn(ctx, userID, flavour)
 }

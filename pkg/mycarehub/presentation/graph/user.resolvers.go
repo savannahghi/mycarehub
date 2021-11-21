@@ -6,6 +6,7 @@ package graph
 import (
 	"context"
 
+	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 )
 
@@ -17,6 +18,11 @@ func (r *mutationResolver) AcceptTerms(ctx context.Context, userID string, terms
 func (r *mutationResolver) SetNickName(ctx context.Context, userID string, nickname string) (bool, error) {
 	r.checkPreconditions()
 	return r.mycarehub.User.SetNickName(ctx, &userID, &nickname)
+}
+
+func (r *mutationResolver) CompleteOnboardingTour(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
+	r.checkPreconditions()
+	return r.mycarehub.User.CompleteOnboardingTour(ctx, userID, flavour)
 }
 
 func (r *queryResolver) GetCurrentTerms(ctx context.Context) (*domain.TermsOfService, error) {

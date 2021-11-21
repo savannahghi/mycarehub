@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"time"
+
+	"github.com/savannahghi/feedlib"
 )
 
 // ReactivateFacility changes the status of an active facility from false to true
@@ -72,4 +74,13 @@ func (d *MyCareHubDb) SetNickName(ctx context.Context, userID *string, nickname 
 	}
 
 	return d.update.SetNickName(ctx, userID, nickname)
+}
+
+// UpdateUserPinChangeRequiredStatus updates the user's pin change required from true to false. It'll be used to
+// determine the onboarding journey for a user.
+func (d *MyCareHubDb) UpdateUserPinChangeRequiredStatus(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
+	if userID == "" {
+		return false, fmt.Errorf("userID must be defined")
+	}
+	return d.update.UpdateUserPinChangeRequiredStatus(ctx, userID, flavour)
 }

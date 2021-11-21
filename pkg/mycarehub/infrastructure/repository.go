@@ -54,4 +54,5 @@ type Update interface {
 	UpdateUserNextAllowedLoginTime(ctx context.Context, userID string, nextAllowedLoginTime time.Time) error
 	UpdateUserLastSuccessfulLoginTime(ctx context.Context, userID string) error
 	SetNickName(ctx context.Context, userID *string, nickname *string) (bool, error)
+	UpdateUserPinChangeRequiredStatus(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
 }

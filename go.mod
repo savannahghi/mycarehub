@@ -33,18 +33,6 @@ require (
 )
 
 require (
-	cloud.google.com/go/errorreporting v0.1.0 // indirect
-	cloud.google.com/go/kms v1.1.0 // indirect
-	cloud.google.com/go/monitoring v1.1.0 // indirect
-	cloud.google.com/go/profiler v0.1.1 // indirect
-	cloud.google.com/go/trace v1.0.0 // indirect
-	github.com/go-playground/universal-translator v0.18.0 // indirect
-	github.com/leodido/go-urn v1.2.1 // indirect
-	github.com/lib/pq v1.10.4 // indirect
-	github.com/savannahghi/engagementcore v0.0.34
-)
-
-require (
 	cloud.google.com/go v0.97.0 // indirect
 	cloud.google.com/go/firestore v1.5.0 // indirect
 	cloud.google.com/go/logging v1.4.2 // indirect
@@ -144,4 +132,16 @@ require (
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
 	moul.io/http2curl v1.0.0 // indirect
+)
+
+require (
+	cloud.google.com/go/errorreporting v0.1.0 // indirect
+	cloud.google.com/go/kms v1.1.0 // indirect
+	cloud.google.com/go/monitoring v1.1.0 // indirect
+	cloud.google.com/go/profiler v0.1.1 // indirect
+	cloud.google.com/go/trace v1.0.0 // indirect
+	github.com/go-playground/universal-translator v0.18.0 // indirect
+	github.com/leodido/go-urn v1.2.1 // indirect
+	github.com/lib/pq v1.10.4 // indirect
+	github.com/savannahghi/engagementcore v0.0.34
 )

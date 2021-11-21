@@ -31,6 +31,7 @@ func createMapUser(userObject *gorm.User) *domain.User {
 		NextAllowedLogin:    userObject.NextAllowedLogin,
 		Flavour:             userObject.Flavour,
 		TermsAccepted:       userObject.TermsAccepted,
+		PinChangeRequired:   userObject.PinChangeRequired,
 	}
 	return user
 }

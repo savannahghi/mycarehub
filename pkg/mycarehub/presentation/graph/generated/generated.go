@@ -68,6 +68,7 @@ type ComplexityRoot struct {
 
 	Mutation struct {
 		AcceptTerms                     func(childComplexity int, userID string, termsID int) int
+		CompleteOnboardingTour          func(childComplexity int, userID string, flavour feedlib.Flavour) int
 		CreateFacility                  func(childComplexity int, input dto.FacilityInput) int
 		DeleteFacility                  func(childComplexity int, mflCode int) int
 		InactivateFacility              func(childComplexity int, mflCode int) int
@@ -126,6 +127,7 @@ type MutationResolver interface {
 	RecordSecurityQuestionResponses(ctx context.Context, input []*dto.SecurityQuestionResponseInput) ([]*domain.RecordSecurityQuestionResponse, error)
 	AcceptTerms(ctx context.Context, userID string, termsID int) (bool, error)
 	SetNickName(ctx context.Context, userID string, nickname string) (bool, error)
+	CompleteOnboardingTour(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
 }
 type QueryResolver interface {
 	FetchFacilities(ctx context.Context) ([]*domain.Facility, error)
@@ -240,6 +242,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.AcceptTerms(childComplexity, args["userID"].(string), args["termsID"].(int)), true
+
+	case "Mutation.completeOnboardingTour":
+		if e.complexity.Mutation.CompleteOnboardingTour == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_completeOnboardingTour_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CompleteOnboardingTour(childComplexity, args["userID"].(string), args["flavour"].(feedlib.Flavour)), true
 
 	case "Mutation.createFacility":
 		if e.complexity.Mutation.CreateFacility == nil {
@@ -786,6 +800,7 @@ type RecordSecurityQuestionResponse {
 extend type Mutation {
   acceptTerms(userID: String!, termsID: Int!): Boolean!
   setNickName(userID: String!, nickname: String!): Boolean!
+  completeOnboardingTour(userID: String!, flavour: Flavour!): Boolean!
 }
 `, BuiltIn: false},
 	{Name: "federation/directives.graphql", Input: `
@@ -826,6 +841,30 @@ func (ec *executionContext) field_Mutation_acceptTerms_args(ctx context.Context,
 		}
 	}
 	args["termsID"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_completeOnboardingTour_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["userID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userID"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["userID"] = arg0
+	var arg1 feedlib.Flavour
+	if tmp, ok := rawArgs["flavour"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("flavour"))
+		arg1, err = ec.unmarshalNFlavour2githubᚗcomᚋsavannahghiᚋfeedlibᚐFlavour(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["flavour"] = arg1
 	return args, nil
 }
 
@@ -1887,6 +1926,48 @@ func (ec *executionContext) _Mutation_setNickName(ctx context.Context, field gra
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Mutation().SetNickName(rctx, args["userID"].(string), args["nickname"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_completeOnboardingTour(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_completeOnboardingTour_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CompleteOnboardingTour(rctx, args["userID"].(string), args["flavour"].(feedlib.Flavour))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4296,6 +4377,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			}
 		case "setNickName":
 			out.Values[i] = ec._Mutation_setNickName(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "completeOnboardingTour":
+			out.Values[i] = ec._Mutation_completeOnboardingTour(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
