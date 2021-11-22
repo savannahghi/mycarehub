@@ -16,7 +16,7 @@ type UserUseCaseMock struct {
 	MockLoginFn           func(ctx context.Context, phoneNumber string, pin string, flavour feedlib.Flavour) (*domain.LoginResponse, int, error)
 	MockInviteUserFn      func(ctx context.Context, userID string, phoneNumber string, flavour feedlib.Flavour) (bool, error)
 	MockSavePinFn         func(ctx context.Context, input dto.PINInput) (bool, error)
-	MockVerifyPINFn       func(ctx context.Context, userID string, pin string) (bool, error)
+	MockVerifyPINFn       func(ctx context.Context, userID string, pin string) (bool, int, error)
 	MockSetNickNameFn     func(ctx context.Context, userID *string, nickname *string) (bool, error)
 	MockRequestPINResetFn func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (string, error)
 }
@@ -55,8 +55,8 @@ func NewUserUseCaseMock() *UserUseCaseMock {
 		MockSavePinFn: func(ctx context.Context, input dto.PINInput) (bool, error) {
 			return true, nil
 		},
-		MockVerifyPINFn: func(ctx context.Context, userID string, pin string) (bool, error) {
-			return true, nil
+		MockVerifyPINFn: func(ctx context.Context, userID string, pin string) (bool, int, error) {
+			return true, 0, nil
 		},
 		MockSetNickNameFn: func(ctx context.Context, userID, nickname *string) (bool, error) {
 			return true, nil
@@ -83,7 +83,7 @@ func (f *UserUseCaseMock) SavePin(ctx context.Context, input dto.PINInput) (bool
 }
 
 // VerifyPIN mocks the verify pin functionality
-func (f *UserUseCaseMock) VerifyPIN(ctx context.Context, userID string, pin string) (bool, error) {
+func (f *UserUseCaseMock) VerifyPIN(ctx context.Context, userID string, pin string) (bool, int, error) {
 	return f.MockVerifyPINFn(ctx, userID, pin)
 }
 

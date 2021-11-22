@@ -6,7 +6,9 @@ import (
 	"time"
 
 	"github.com/savannahghi/converterandformatter"
+	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/feedlib"
+	"github.com/savannahghi/interserviceclient"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
@@ -40,6 +42,12 @@ type ISendOTP interface {
 	// send on the primary channel
 	// metrics
 	// the middle parameter is an error code e.g if rate limited
+	SendOTP(
+		ctx context.Context,
+		phoneNumber string,
+		code string,
+		message string,
+	) (string, error)
 
 	GenerateAndSendOTP(
 		ctx context.Context,
@@ -112,9 +120,9 @@ func (o *UseCaseOTPImpl) GenerateAndSendOTP(
 	}
 
 	message := fmt.Sprintf(otpMessage, otp)
-	err = o.ExternalExt.SendSMS(ctx, []string{*phone}, message)
+	otp, err = o.SendOTP(ctx, *phone, otp, message)
 	if err != nil {
-		return "", fmt.Errorf("failed to send SMS: %v", err)
+		return "", err
 	}
 
 	otpDataPayload := &domain.OTP{
@@ -172,9 +180,9 @@ func (o *UseCaseOTPImpl) VerifyPhoneNumber(ctx context.Context, phone string, fl
 	}
 
 	message := fmt.Sprintf(otpMessage, otp)
-	err = o.ExternalExt.SendSMS(ctx, []string{*phoneNumber}, message)
+	otp, err = o.SendOTP(ctx, phone, otp, message)
 	if err != nil {
-		return nil, fmt.Errorf("failed to send SMS: %v", err)
+		return nil, err
 	}
 
 	otpDataPayload := &domain.OTP{
@@ -237,4 +245,28 @@ func (o *UseCaseOTPImpl) GenerateRetryOTP(ctx context.Context, payload *dto.Send
 	}
 
 	return retryResponseOTP, nil
+}
+
+// SendOTP sends an OTP message to the specified phonenumber. It checks to see whether the provided
+// phone number is Kenyan and if true, it uses AIT else for foreign numbers, it uses twilio to send
+// the otp
+func (o *UseCaseOTPImpl) SendOTP(
+	ctx context.Context,
+	phoneNumber string,
+	code string,
+	message string,
+) (string, error) {
+	if interserviceclient.IsKenyanNumber(phoneNumber) {
+		_, err := o.ExternalExt.SendSMS(ctx, phoneNumber, message, enumutils.SenderIDBewell)
+		if err != nil {
+			return "", fmt.Errorf("failed to send OTP verification code to recipient")
+		}
+	} else {
+		// Make the request to twilio
+		err := o.ExternalExt.SendSMSViaTwilio(ctx, phoneNumber, message)
+		if err != nil {
+			return "", fmt.Errorf("sms not sent via twilio: %v", err)
+		}
+	}
+	return code, nil
 }

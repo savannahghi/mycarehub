@@ -7,6 +7,8 @@ import (
 
 	"github.com/brianvoe/gofakeit"
 	"github.com/google/uuid"
+	openSourceDto "github.com/savannahghi/engagementcore/pkg/engagement/application/common/dto"
+	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/interserviceclient"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
@@ -143,8 +145,8 @@ func TestUseCaseOTPImpl_GenerateAndSendOTP(t *testing.T) {
 			}
 
 			if tt.name == "Sad Case - Fail to send SMS" {
-				fakeExtension.MockSendSMSFn = func(ctx context.Context, phoneNumbers []string, message string) error {
-					return fmt.Errorf("failed to send SMS")
+				fakeExtension.MockSendSMSFn = func(ctx context.Context, phoneNumbers string, message string, from enumutils.SenderID) (*openSourceDto.SendMessageResponse, error) {
+					return nil, fmt.Errorf("failed to send SMS")
 				}
 			}
 
@@ -395,8 +397,8 @@ func TestUseCaseOTPImpl_VerifyPhoneNumber(t *testing.T) {
 			}
 
 			if tt.name == "Sad Case - fail to send SMS" {
-				fakeExtension.MockSendSMSFn = func(ctx context.Context, phoneNumbers []string, message string) error {
-					return fmt.Errorf("failed to send SMS")
+				fakeExtension.MockSendSMSFn = func(ctx context.Context, phoneNumbers string, message string, from enumutils.SenderID) (*openSourceDto.SendMessageResponse, error) {
+					return nil, fmt.Errorf("failed to send SMS")
 				}
 			}
 
@@ -672,7 +674,15 @@ func TestUseCaseOTPImpl_GenerateRetryOTP(t *testing.T) {
 			name: "Sad case - unable to get user profile",
 			args: args{
 				ctx:     ctx,
-				payload: invalidPayload,
+				payload: validPayload,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - Fail to save otp",
+			args: args{
+				ctx:     ctx,
+				payload: validPayload,
 			},
 			wantErr: true,
 		},
@@ -700,10 +710,104 @@ func TestUseCaseOTPImpl_GenerateRetryOTP(t *testing.T) {
 				}
 			}
 
+			if tt.name == "Sad Case - Fail to save otp" {
+				fakeDB.MockSaveOTPFn = func(ctx context.Context, otpInput *domain.OTP) error {
+					return fmt.Errorf("failed to save otp")
+				}
+			}
+
 			_, err := otp.GenerateRetryOTP(tt.args.ctx, tt.args.payload)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCaseOTPImpl.GenerateRetryOTP() error = %v, wantErr %v", err, tt.wantErr)
 				return
+			}
+		})
+	}
+}
+
+func TestUseCaseOTPImpl_SendOTP(t *testing.T) {
+	ctx := context.Background()
+	type args struct {
+		ctx         context.Context
+		phoneNumber string
+		code        string
+		message     string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    string
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Successfully send an otp to kenyan number",
+			args: args{
+				ctx:         ctx,
+				phoneNumber: interserviceclient.TestUserPhoneNumber,
+				code:        "111222",
+				message:     gofakeit.HipsterSentence(5),
+			},
+			want:    "111222",
+			wantErr: false,
+		},
+		{
+			name: "Sad Case - Fail to send an otp to kenyan number",
+			args: args{
+				ctx:         ctx,
+				phoneNumber: interserviceclient.TestUserPhoneNumber,
+				code:        "111222",
+				message:     gofakeit.HipsterSentence(5),
+			},
+			wantErr: true,
+		},
+		{
+			name: "Happy Case - Successfully send an otp to foreign number",
+			args: args{
+				ctx:         ctx,
+				phoneNumber: "+14049370053",
+				code:        "111222",
+				message:     gofakeit.HipsterSentence(5),
+			},
+			want:    "111222",
+			wantErr: false,
+		},
+		{
+			name: "Sad Case - Fail to send an otp to foreign number",
+			args: args{
+				ctx:         ctx,
+				phoneNumber: "+14049370053",
+				code:        "111222",
+				message:     gofakeit.HipsterSentence(5),
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_ = mock.NewOTPUseCaseMock()
+			fakeDB := pgMock.NewPostgresMock()
+			fakeExtension := extensionMock.NewFakeExtension()
+			otp := otp.NewOTPUseCase(fakeDB, fakeDB, fakeExtension)
+
+			if tt.name == "Sad Case - Fail to send an otp to kenyan number" {
+				fakeExtension.MockSendSMSFn = func(ctx context.Context, phoneNumbers string, message string, from enumutils.SenderID) (*openSourceDto.SendMessageResponse, error) {
+					return nil, fmt.Errorf("failed to send sms")
+				}
+			}
+
+			if tt.name == "Sad Case - Fail to send an otp to foreign number" {
+				fakeExtension.MockSendSMSViaTwilioFn = func(ctx context.Context, phonenumber, message string) error {
+					return fmt.Errorf("failed to send sms")
+				}
+			}
+
+			got, err := otp.SendOTP(tt.args.ctx, tt.args.phoneNumber, tt.args.code, tt.args.message)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCaseOTPImpl.SendOTP() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("UseCaseOTPImpl.SendOTP() = %v, want %v", got, tt.want)
 			}
 		})
 	}

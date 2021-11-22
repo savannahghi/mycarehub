@@ -4,7 +4,10 @@ import (
 	"context"
 
 	"github.com/google/uuid"
+	openSourceDto "github.com/savannahghi/engagementcore/pkg/engagement/application/common/dto"
+	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/firebasetools"
+	"github.com/savannahghi/interserviceclient"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/extension"
 )
@@ -16,10 +19,12 @@ type FakeExtensionImpl struct {
 	MockAuthenticateCustomFirebaseTokenFn func(customAuthToken string) (*firebasetools.FirebaseUserTokens, error)
 	MockGenerateTempPINFn                 func(ctx context.Context) (string, error)
 	MockEncryptPINFn                      func(rawPwd string, options *extension.Options) (string, string)
-	MockSendSMSFn                         func(ctx context.Context, phoneNumbers []string, message string) error
+	MockSendSMSFn                         func(ctx context.Context, phoneNumbers string, message string, from enumutils.SenderID) (*openSourceDto.SendMessageResponse, error)
 	MockGenerateAndSendOTPFn              func(ctx context.Context, phoneNumber string) (string, error)
 	MockGenerateOTPFn                     func(ctx context.Context) (string, error)
 	MockGenerateRetryOTPFn                func(ctx context.Context, payload *dto.SendRetryOTPPayload) (string, error)
+	MockSendSMSViaTwilioFn                func(ctx context.Context, phonenumber, message string) error
+	MockSendInviteSMSFn                   func(ctx context.Context, phoneNumber, message string) error
 }
 
 // NewFakeExtension initializes a new instance of the external calls mock
@@ -46,8 +51,16 @@ func NewFakeExtension() *FakeExtensionImpl {
 		MockEncryptPINFn: func(rawPwd string, options *extension.Options) (string, string) {
 			return uuid.New().String(), uuid.New().String()
 		},
-		MockSendSMSFn: func(ctx context.Context, phoneNumbers []string, message string) error {
-			return nil
+		MockSendSMSFn: func(ctx context.Context, phoneNumbers string, message string, from enumutils.SenderID) (*openSourceDto.SendMessageResponse, error) {
+			return &openSourceDto.SendMessageResponse{
+				SMSMessageData: &openSourceDto.SMS{
+					Recipients: []openSourceDto.Recipient{
+						{
+							Number: interserviceclient.TestUserPhoneNumber,
+						},
+					},
+				},
+			}, nil
 		},
 		MockGenerateAndSendOTPFn: func(ctx context.Context, phoneNumber string) (string, error) {
 			return "111222", nil
@@ -57,6 +70,12 @@ func NewFakeExtension() *FakeExtensionImpl {
 		},
 		MockGenerateRetryOTPFn: func(ctx context.Context, payload *dto.SendRetryOTPPayload) (string, error) {
 			return "test-OTP", nil
+		},
+		MockSendSMSViaTwilioFn: func(ctx context.Context, phonenumber, message string) error {
+			return nil
+		},
+		MockSendInviteSMSFn: func(ctx context.Context, phoneNumber, message string) error {
+			return nil
 		},
 	}
 }
@@ -87,8 +106,8 @@ func (f *FakeExtensionImpl) EncryptPIN(rawPwd string, options *extension.Options
 }
 
 // SendSMS mocks the send sms method
-func (f *FakeExtensionImpl) SendSMS(ctx context.Context, phoneNumbers []string, message string) error {
-	return f.MockSendSMSFn(ctx, phoneNumbers, message)
+func (f *FakeExtensionImpl) SendSMS(ctx context.Context, phoneNumbers string, message string, from enumutils.SenderID) (*openSourceDto.SendMessageResponse, error) {
+	return f.MockSendSMSFn(ctx, phoneNumbers, message, from)
 }
 
 // GenerateAndSendOTP mocks the generate and send OTP method
@@ -104,4 +123,14 @@ func (f *FakeExtensionImpl) GenerateOTP(ctx context.Context) (string, error) {
 // GenerateRetryOTP mock the implementation of generating a retry OTP
 func (f *FakeExtensionImpl) GenerateRetryOTP(ctx context.Context, payload *dto.SendRetryOTPPayload) (string, error) {
 	return f.MockGenerateRetryOTPFn(ctx, payload)
+}
+
+// SendSMSViaTwilio mocks the implementation of sending a SMS via twilio
+func (f *FakeExtensionImpl) SendSMSViaTwilio(ctx context.Context, phonenumber, message string) error {
+	return f.MockSendSMSViaTwilioFn(ctx, phonenumber, message)
+}
+
+// SendInviteSMS mocks the implementation of sending an invite sms
+func (f *FakeExtensionImpl) SendInviteSMS(ctx context.Context, phoneNumber, message string) error {
+	return f.MockSendInviteSMSFn(ctx, phoneNumber, message)
 }

@@ -18,6 +18,7 @@ type OTPUseCaseMock struct {
 	MockVerifyPhoneNumberFn func(ctx context.Context, phone *string, flavour feedlib.Flavour) (*profileutils.OtpResponse, error)
 	MockGenerateOTPFn       func(ctx context.Context) (string, error)
 	MockGenerateRetryOTPFn  func(ctx context.Context, payload *dto.SendRetryOTPPayload) (string, error)
+	MockSendOTPFn           func(ctx context.Context, phoneNumber string, code string, message string) (string, error)
 }
 
 // NewOTPUseCaseMock initializes a new instance mock of the OTP usecase
@@ -40,6 +41,9 @@ func NewOTPUseCaseMock() *OTPUseCaseMock {
 		},
 		MockGenerateRetryOTPFn: func(ctx context.Context, payload *dto.SendRetryOTPPayload) (string, error) {
 			return "test-OTP", nil
+		},
+		MockSendOTPFn: func(ctx context.Context, phoneNumber string, code string, message string) (string, error) {
+			return "111222", nil
 		},
 	}
 }
@@ -66,4 +70,9 @@ func (o *OTPUseCaseMock) GenerateOTP(ctx context.Context) (string, error) {
 // GenerateRetryOTP mock the implementtation of generating a retry OTP
 func (o *OTPUseCaseMock) GenerateRetryOTP(ctx context.Context, payload *dto.SendRetryOTPPayload) (string, error) {
 	return o.MockGenerateRetryOTPFn(ctx, payload)
+}
+
+// SendOTP mocks the implementation of sending an OTP
+func (o *OTPUseCaseMock) SendOTP(ctx context.Context, phoneNumber string, code string, message string) (string, error) {
+	return o.MockSendOTPFn(ctx, phoneNumber, code, message)
 }
