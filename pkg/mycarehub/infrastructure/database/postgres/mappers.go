@@ -77,3 +77,34 @@ func (d *MyCareHubDb) mapPINObjectToDomain(pinObj *gorm.PINData) *domain.UserPIN
 		Salt:      pinObj.Salt,
 	}
 }
+
+// mapOTPObjectToDomain maps the db otp data to a domain model.
+func (d *MyCareHubDb) mapOTPObjectToDomain(otpObj *gorm.UserOTP) *domain.OTP {
+	if otpObj == nil {
+		return nil
+	}
+
+	return &domain.OTP{
+		UserID:      otpObj.UserID,
+		OTP:         otpObj.OTP,
+		GeneratedAt: otpObj.GeneratedAt,
+		ValidUntil:  otpObj.ValidUntil,
+		Flavour:     otpObj.Flavour,
+		Valid:       otpObj.Valid,
+	}
+}
+
+// mapContactObjectToDomain maps the db contact data to a domain model.
+func (d *MyCareHubDb) mapContactObjectToDomain(contactObj *gorm.Contact) *domain.Contact {
+	if contactObj == nil {
+		return nil
+	}
+
+	return &domain.Contact{
+		ID:           contactObj.ContactID,
+		ContactType:  contactObj.ContactType,
+		ContactValue: contactObj.ContactValue,
+		Active:       contactObj.Active,
+		OptedIn:      contactObj.OptedIn,
+	}
+}

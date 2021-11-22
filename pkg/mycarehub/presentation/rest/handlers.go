@@ -19,6 +19,7 @@ type MyCareHubHandlersInterfaces interface {
 	SendOTP() http.HandlerFunc
 	RequestPINReset() http.HandlerFunc
 	SendRetryOTP() http.HandlerFunc
+	GetUserRespondedSecurityQuestions() http.HandlerFunc
 }
 
 // MyCareHubHandlersInterfacesImpl represents the usecase implementation object
@@ -273,5 +274,34 @@ func (h *MyCareHubHandlersInterfacesImpl) SendRetryOTP() http.HandlerFunc {
 		}
 
 		serverutils.WriteJSONResponse(w, response, http.StatusOK)
+	}
+}
+
+// GetUserRespondedSecurityQuestions is an unauthenticated endpoint that gets the user id and returns the security questions
+// associated with the user.
+func (h *MyCareHubHandlersInterfacesImpl) GetUserRespondedSecurityQuestions() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+
+		payload := &dto.GetUserRespondedSecurityQuestionsInput{}
+		serverutils.DecodeJSONToTargetStruct(w, r, payload)
+		err := payload.Validate()
+		if err != nil {
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusBadRequest)
+			return
+		}
+
+		resp, err := h.usecase.SecurityQuestions.GetUserRespondedSecurityQuestions(ctx, *payload)
+		if err != nil {
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
+				Message: err.Error(),
+			}, http.StatusBadRequest)
+			return
+		}
+
+		serverutils.WriteJSONResponse(w, resp, http.StatusOK)
 	}
 }

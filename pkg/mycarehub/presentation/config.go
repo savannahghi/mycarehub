@@ -134,6 +134,11 @@ func Router(ctx context.Context) (*mux.Router, error) {
 		http.MethodPost,
 	).HandlerFunc(internalHandlers.SendRetryOTP())
 
+	r.Path("/get_user_responded_security_questions").Methods(
+		http.MethodOptions,
+		http.MethodPost,
+	).HandlerFunc(internalHandlers.GetUserRespondedSecurityQuestions())
+
 	// Graphql route
 	authR := r.Path("/graphql").Subrouter()
 	authR.Use(firebasetools.AuthenticationMiddleware(firebaseApp))

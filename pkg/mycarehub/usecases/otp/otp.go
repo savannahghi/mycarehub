@@ -106,7 +106,7 @@ func (o *UseCaseOTPImpl) GenerateAndSendOTP(
 	}
 
 	if !flavour.IsValid() {
-		return "", exceptions.InvalidFlavourDefinedError()
+		return "", exceptions.InvalidFlavourDefinedErr(fmt.Errorf("flavour is not valid"))
 	}
 
 	userProfile, err := o.Query.GetUserProfileByPhoneNumber(ctx, *phone)

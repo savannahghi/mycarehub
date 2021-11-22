@@ -12,7 +12,6 @@ import (
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
-	"github.com/savannahghi/serverutils"
 	"github.com/segmentio/ksuid"
 )
 
@@ -180,7 +179,7 @@ func TestPGInstance_SetNickname(t *testing.T) {
 		Flavour:             flavour,
 		Avatar:              "",
 		IsSuspended:         true,
-		OrganisationID:      serverutils.MustGetEnvVar("DEFAULT_ORG_ID"),
+		OrganisationID:      orgID,
 		Password:            "",
 		IsSuperuser:         true,
 		IsStaff:             true,

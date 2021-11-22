@@ -47,6 +47,10 @@ type PostgresMock struct {
 	MockCheckUserHasPinFn                   func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
 	MockGenerateRetryOTPFn                  func(ctx context.Context, payload *dto.SendRetryOTPPayload) (string, error)
 	MockUpdateUserPinChangeRequiredStatusFn func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
+	MockGetOTPFn                            func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*domain.OTP, error)
+	MockGetUserSecurityQuestionsResponsesFn func(ctx context.Context, userID string) ([]*domain.SecurityQuestionResponse, error)
+	MockInvalidatePINFn                     func(ctx context.Context, userID string) (bool, error)
+	MockGetContactByUserIDFn                func(ctx context.Context, userID *string, contactType string) (*domain.Contact, error)
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -156,8 +160,23 @@ func NewPostgresMock() *PostgresMock {
 		},
 		MockGetUserProfileByUserIDFn: func(ctx context.Context, userID string) (*domain.User, error) {
 			return &domain.User{
-				ID:               &userID,
-				FailedLoginCount: 1,
+				ID:            &userID,
+				Username:      gofakeit.Name(),
+				DisplayName:   gofakeit.Name(),
+				FirstName:     gofakeit.Name(),
+				MiddleName:    gofakeit.Name(),
+				LastName:      gofakeit.Name(),
+				Active:        true,
+				TermsAccepted: true,
+				UserType:      enums.ClientUser,
+				Gender:        enumutils.GenderMale,
+				Contacts: &domain.Contact{
+					ID:           &userID,
+					ContactType:  "PHONE",
+					ContactValue: gofakeit.Phone(),
+					Active:       true,
+					OptedIn:      true,
+				},
 			}, nil
 		},
 		MockSetNickNameFn: func(ctx context.Context, userID, nickname *string) (bool, error) {
@@ -234,6 +253,45 @@ func NewPostgresMock() *PostgresMock {
 		},
 		MockUpdateUserPinChangeRequiredStatusFn: func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
 			return true, nil
+		},
+		MockGetOTPFn: func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*domain.OTP, error) {
+			return &domain.OTP{
+				OTP: "1234",
+			}, nil
+		},
+		MockGetUserSecurityQuestionsResponsesFn: func(ctx context.Context, userID string) ([]*domain.SecurityQuestionResponse, error) {
+			return []*domain.SecurityQuestionResponse{
+				{
+					ResponseID: "1234",
+					QuestionID: "1234",
+					Active:     true,
+					Response:   "Yes",
+				},
+				{
+					ResponseID: "1234",
+					QuestionID: "1234",
+					Active:     true,
+					Response:   "Yes",
+				},
+				{
+					ResponseID: "1234",
+					QuestionID: "1234",
+					Active:     true,
+					Response:   "Yes",
+				},
+			}, nil
+		},
+		MockInvalidatePINFn: func(ctx context.Context, userID string) (bool, error) {
+			return true, nil
+		},
+		MockGetContactByUserIDFn: func(ctx context.Context, userID *string, contactType string) (*domain.Contact, error) {
+			return &domain.Contact{
+				ID:           userID,
+				ContactType:  "PHONE",
+				ContactValue: gofakeit.Phone(),
+				Active:       true,
+				OptedIn:      true,
+			}, nil
 		},
 	}
 }
@@ -396,4 +454,24 @@ func (gm *PostgresMock) GenerateRetryOTP(ctx context.Context, payload *dto.SendR
 // UpdateUserPinChangeRequiredStatus mocks the implementation for updating a user's pin change required state
 func (gm *PostgresMock) UpdateUserPinChangeRequiredStatus(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
 	return gm.MockUpdateUserPinChangeRequiredStatusFn(ctx, userID, flavour)
+}
+
+// GetOTP mocks the implementation of fetching an OTP
+func (gm *PostgresMock) GetOTP(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*domain.OTP, error) {
+	return gm.MockGetOTPFn(ctx, phoneNumber, flavour)
+}
+
+// GetUserSecurityQuestionsResponses mocks the implementation of getting the user's responded security questions
+func (gm *PostgresMock) GetUserSecurityQuestionsResponses(ctx context.Context, userID string) ([]*domain.SecurityQuestionResponse, error) {
+	return gm.MockGetUserSecurityQuestionsResponsesFn(ctx, userID)
+}
+
+// InvalidatePIN mocks the implementation of invalidating a user pin
+func (gm *PostgresMock) InvalidatePIN(ctx context.Context, userID string) (bool, error) {
+	return gm.MockInvalidatePINFn(ctx, userID)
+}
+
+// GetContactByUserID nmocks the implementation of fetching a contact by userID
+func (gm *PostgresMock) GetContactByUserID(ctx context.Context, userID *string, contactType string) (*domain.Contact, error) {
+	return gm.MockGetContactByUserIDFn(ctx, userID, contactType)
 }

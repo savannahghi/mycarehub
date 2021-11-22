@@ -3,9 +3,12 @@ package securityquestions
 import (
 	"context"
 	"fmt"
+	"math/rand"
+	"time"
 
 	"strings"
 
+	"github.com/savannahghi/converterandformatter"
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
@@ -23,6 +26,11 @@ var SensitiveContentPassphrase = serverutils.MustGetEnvVar("SENSITIVE_CONTENT_SE
 // IGetSecurityQuestions gets the security questions
 type IGetSecurityQuestions interface {
 	GetSecurityQuestions(ctx context.Context, flavour feedlib.Flavour) ([]*domain.SecurityQuestion, error)
+}
+
+// IGetUserRespondedSecurityQuestions gets the security questions that a user had set earlier during onboarding
+type IGetUserRespondedSecurityQuestions interface {
+	GetUserRespondedSecurityQuestions(ctx context.Context, input dto.GetUserRespondedSecurityQuestionsInput) ([]*domain.SecurityQuestion, error)
 }
 
 // IRecordSecurityQuestionResponses contains method to  record security question responses
@@ -49,6 +57,7 @@ type UseCaseSecurityQuestion interface {
 	IGetSecurityQuestions
 	IRecordSecurityQuestionResponses
 	IVerifySecurityQuestionResponses
+	IGetUserRespondedSecurityQuestions
 }
 
 // UseCaseSecurityQuestionsImpl represents security question implementation object
@@ -76,7 +85,7 @@ func (s *UseCaseSecurityQuestionsImpl) GetSecurityQuestions(ctx context.Context,
 	return s.Query.GetSecurityQuestions(ctx, flavour)
 }
 
-// RecordSecurityQuestionResponses records the security question responses
+// RecordSecurityQuestionResponses records the security question responses during user onboarding
 func (s *UseCaseSecurityQuestionsImpl) RecordSecurityQuestionResponses(ctx context.Context, input []*dto.SecurityQuestionResponseInput) ([]*domain.RecordSecurityQuestionResponse, error) {
 	var recordSecurityQuestionResponses []*domain.RecordSecurityQuestionResponse
 
@@ -144,4 +153,72 @@ func (s *UseCaseSecurityQuestionsImpl) VerifySecurityQuestionResponses(
 		}
 	}
 	return true, nil
+}
+
+// GetUserRespondedSecurityQuestions gets the security questions that the user had responded to during onboarding
+// 3 random question will be drawn when the user is resetting their pin
+func (s *UseCaseSecurityQuestionsImpl) GetUserRespondedSecurityQuestions(ctx context.Context, input dto.GetUserRespondedSecurityQuestionsInput) ([]*domain.SecurityQuestion, error) {
+	// ensure the phone/flavour is verified
+	if err := input.Validate(); err != nil {
+		return nil, exceptions.EmptyInputErr(fmt.Errorf("empty value passed in input: %v", err))
+	}
+
+	phone, err := converterandformatter.NormalizeMSISDN(input.PhoneNumber)
+	if err != nil {
+		return nil, exceptions.NormalizeMSISDNError(err)
+	}
+
+	if !input.Flavour.IsValid() {
+		return nil, exceptions.InvalidFlavourDefinedErr(fmt.Errorf("flavour is not valid"))
+	}
+
+	userProfile, err := s.Query.GetUserProfileByPhoneNumber(ctx, *phone)
+	if err != nil {
+		return nil, exceptions.UserNotFoundError(fmt.Errorf("failed to get a user profile by phonenumber: %v", err))
+	}
+
+	otp, errr := s.Query.GetOTP(ctx, *phone, input.Flavour)
+	if errr != nil {
+		return nil, exceptions.UserNotFoundError(fmt.Errorf("otp verification failed: %v", err))
+	}
+
+	// ensure the otp for the phone is valid
+	_, err = s.Query.VerifyOTP(ctx, &dto.VerifyOTPInput{
+		// UserID:      *userProfile.ID,
+		PhoneNumber: *phone,
+		OTP:         otp.OTP,
+		Flavour:     input.Flavour,
+	})
+	if err != nil {
+		return nil, exceptions.ItemNotFoundErr(fmt.Errorf("failed to verify otp: %v", err))
+	}
+
+	// ensure the questions are associated with the user who set the responses
+	securityQuestionResponses, err := s.Query.GetUserSecurityQuestionsResponses(ctx, *userProfile.ID)
+	if err != nil {
+		return nil, exceptions.ItemNotFoundErr(fmt.Errorf("failed to get security questions: %v", err))
+	}
+
+	if len(securityQuestionResponses) < 3 {
+		return nil, fmt.Errorf("failed to get security questions, user must have answered at least 3")
+	}
+
+	rand.Seed(time.Now().UnixNano())
+	rand.Shuffle(len(securityQuestionResponses), func(i, j int) {
+		securityQuestionResponses[i], securityQuestionResponses[j] = securityQuestionResponses[j], securityQuestionResponses[i]
+	})
+
+	randomThreeSecurityQuestionresponses := securityQuestionResponses[:3]
+	securityQuestions := []*domain.SecurityQuestion{}
+
+	// return random 3 security questions
+	for _, i := range randomThreeSecurityQuestionresponses {
+		securityQuestion, err := s.Query.GetSecurityQuestionByID(ctx, &i.QuestionID)
+		if err != nil {
+			return nil, exceptions.ItemNotFoundErr(fmt.Errorf("failed to get security question: %v", err))
+		}
+		securityQuestions = append(securityQuestions, securityQuestion)
+	}
+
+	return securityQuestions, nil
 }

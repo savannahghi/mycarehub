@@ -16,7 +16,6 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
-	"github.com/savannahghi/serverutils"
 	"github.com/segmentio/ksuid"
 )
 
@@ -584,7 +583,7 @@ func TestPGInstance_GetSecurityQuestions(t *testing.T) {
 		Flavour:            feedlib.FlavourConsumer,
 		Active:             true,
 		Sequence:           &sequence,
-		OrganisationID:     serverutils.MustGetEnvVar("DEFAULT_ORG_ID"),
+		OrganisationID:     orgID,
 	}
 	err = pg.DB.Create(securityQuestionInput).Error
 	if err != nil {
@@ -659,7 +658,7 @@ func TestPGInstance_GetSecurityQuestionByID(t *testing.T) {
 		Flavour:        feedlib.FlavourConsumer,
 		Active:         true,
 		Sequence:       &sequence,
-		OrganisationID: serverutils.MustGetEnvVar("DEFAULT_ORG_ID"),
+		OrganisationID: orgID,
 	}
 
 	err = pg.DB.Create(securityQuestionInput).Error
@@ -739,7 +738,7 @@ func TestPGInstance_CheckIfPhoneNumberExists(t *testing.T) {
 		Flavour:             flavour,
 		Avatar:              "",
 		IsSuspended:         false,
-		OrganisationID:      serverutils.MustGetEnvVar("DEFAULT_ORG_ID"),
+		OrganisationID:      orgID,
 		Password:            "",
 		IsSuperuser:         false,
 		IsStaff:             false,
@@ -765,7 +764,7 @@ func TestPGInstance_CheckIfPhoneNumberExists(t *testing.T) {
 		OptedIn:        true,
 		UserID:         userInput.UserID,
 		Flavour:        userInput.Flavour,
-		OrganisationID: serverutils.MustGetEnvVar("DEFAULT_ORG_ID"),
+		OrganisationID: orgID,
 	}
 
 	err = pg.DB.Create(&contact).Error
@@ -864,7 +863,7 @@ func TestPGInstance_VerifyOTP(t *testing.T) {
 		Flavour:             flavour,
 		Avatar:              "",
 		IsSuspended:         true,
-		OrganisationID:      serverutils.MustGetEnvVar("DEFAULT_ORG_ID"),
+		OrganisationID:      orgID,
 		Password:            "",
 		IsSuperuser:         false,
 		IsStaff:             false,
@@ -1065,7 +1064,7 @@ func TestPGInstance_GetClientProfileByUserID(t *testing.T) {
 		Flavour:             feedlib.FlavourConsumer,
 		Avatar:              "",
 		IsSuspended:         false,
-		OrganisationID:      serverutils.MustGetEnvVar("DEFAULT_ORG_ID"),
+		OrganisationID:      orgID,
 		Password:            "",
 		IsSuperuser:         false,
 		IsStaff:             false,
@@ -1092,7 +1091,7 @@ func TestPGInstance_GetClientProfileByUserID(t *testing.T) {
 		TreatmentEnrollmentDate: &time,
 		FHIRPatientID:           uuid.New().String(),
 		FacilityID:              *facility.FacilityID,
-		OrganisationID:          serverutils.MustGetEnvVar("DEFAULT_ORG_ID"),
+		OrganisationID:          orgID,
 		CHVUserID:               *userInput.UserID,
 	}
 
@@ -1140,4 +1139,341 @@ func TestPGInstance_GetClientProfileByUserID(t *testing.T) {
 			}
 		})
 	}
+	// TearDown
+	if err = pg.DB.Where("user_id", userInput.UserID).Unscoped().Delete(&gorm.Client{}).Error; err != nil {
+		t.Errorf("failed to delete record = %v", err)
+	}
+	if err = pg.DB.Where("id", userInput.UserID).Unscoped().Delete(&gorm.User{}).Error; err != nil {
+		t.Errorf("failed to delete record = %v", err)
+	}
+}
+
+func TestPGInstance_GetOTP(t *testing.T) {
+	ctx := context.Background()
+
+	pg, err := gorm.NewPGInstance()
+	if err != nil {
+		t.Errorf("failed to initialize new PG instance: %v", err)
+		return
+	}
+
+	phoneNumber := gofakeit.Phone()
+
+	// Setup test user
+	userInput := &gorm.User{
+		Username:         uuid.New().String(),
+		FirstName:        gofakeit.FirstName(),
+		LastName:         gofakeit.LastName(),
+		MiddleName:       gofakeit.FirstName(),
+		UserType:         enums.ClientUser,
+		Gender:           enumutils.GenderMale,
+		Flavour:          feedlib.FlavourConsumer,
+		AcceptedTermsID:  &termsID,
+		TermsAccepted:    true,
+		IsSuspended:      true,
+		OrganisationID:   orgID,
+		NextAllowedLogin: &pastTime,
+	}
+
+	err = pg.DB.Create(&userInput).Error
+	if err != nil {
+		t.Errorf("failed to create user: %v", err)
+	}
+
+	otpID := gofakeit.Number(1, 10000)
+	generatedAt := time.Now()
+	validUntil := time.Now().AddDate(0, 0, 2)
+
+	ext := extension.NewExternalMethodsImpl()
+
+	otp, err := ext.GenerateOTP(ctx)
+	if err != nil {
+		t.Errorf("unable to generate OTP")
+	}
+
+	otpInput := &gorm.UserOTP{
+		OTPID:       otpID,
+		UserID:      *userInput.UserID,
+		Valid:       true,
+		GeneratedAt: generatedAt,
+		ValidUntil:  validUntil,
+		Channel:     "SMS",
+		Flavour:     userInput.Flavour,
+		PhoneNumber: phoneNumber,
+		OTP:         otp,
+	}
+
+	err = pg.DB.Create(&otpInput).Error
+	if err != nil {
+		t.Errorf("failed to create otp: %v", err)
+	}
+
+	type args struct {
+		ctx         context.Context
+		phoneNumber string
+		flavour     feedlib.Flavour
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Successfully get OTP",
+			args: args{
+				ctx:         ctx,
+				phoneNumber: phoneNumber,
+				flavour:     feedlib.FlavourConsumer,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad Case - Fail to get OTP, nonexisting phone",
+			args: args{
+				ctx:         ctx,
+				phoneNumber: gofakeit.Phone(),
+				flavour:     feedlib.FlavourConsumer,
+			},
+
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			got, err := testingDB.GetOTP(tt.args.ctx, tt.args.phoneNumber, tt.args.flavour)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.GetOTP() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected a response but got %v", got)
+				return
+			}
+		})
+	}
+
+	//TearDown
+	if err = pg.DB.Where("id", otpInput.OTPID).Unscoped().Delete(&gorm.UserOTP{}).Error; err != nil {
+		t.Errorf("failed to delete record = %v", err)
+	}
+	if err = pg.DB.Where("id", userInput.UserID).Unscoped().Delete(&gorm.User{}).Error; err != nil {
+		t.Errorf("failed to delete record = %v", err)
+	}
+}
+
+func TestPGInstance_GetUserSecurityQuestionsResponses(t *testing.T) {
+	ctx := context.Background()
+
+	pg, err := gorm.NewPGInstance()
+	if err != nil {
+		t.Errorf("failed to initialize new PG instance: %v", err)
+		return
+	}
+
+	// Setup test user
+	userInput := &gorm.User{
+		Username:         uuid.New().String(),
+		FirstName:        gofakeit.FirstName(),
+		LastName:         gofakeit.LastName(),
+		MiddleName:       gofakeit.FirstName(),
+		UserType:         enums.ClientUser,
+		Gender:           enumutils.GenderMale,
+		Flavour:          feedlib.FlavourConsumer,
+		AcceptedTermsID:  &termsID,
+		TermsAccepted:    true,
+		IsSuspended:      true,
+		OrganisationID:   orgID,
+		NextAllowedLogin: &pastTime,
+	}
+
+	err = pg.DB.Create(&userInput).Error
+	if err != nil {
+		t.Errorf("failed to create user: %v", err)
+	}
+
+	sequence := 1
+
+	securityQuestionInput := &gorm.SecurityQuestion{
+		QuestionStem:   gofakeit.Sentence(3),
+		Description:    gofakeit.Sentence(3),
+		ResponseType:   enums.SecurityQuestionResponseTypeNumber,
+		Flavour:        feedlib.FlavourConsumer,
+		Sequence:       &sequence,
+		OrganisationID: orgID,
+		Active:         true,
+	}
+
+	err = pg.DB.Create(securityQuestionInput).Error
+	if err != nil {
+		t.Errorf("Create securityQuestion failed: %v", err)
+	}
+
+	securityQuestionResponseInput := &gorm.SecurityQuestionResponse{
+		UserID:         *userInput.UserID,
+		QuestionID:     *securityQuestionInput.SecurityQuestionID,
+		Response:       "23",
+		Timestamp:      time.Now(),
+		OrganisationID: orgID,
+	}
+
+	err = pg.DB.Create(securityQuestionResponseInput).Error
+	if err != nil {
+		t.Errorf("Create securityQuestionResponse failed: %v", err)
+	}
+
+	type args struct {
+		ctx    context.Context
+		userID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Successfully get security questions",
+
+			args: args{
+				ctx:    ctx,
+				userID: *userInput.UserID,
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			got, err := testingDB.GetUserSecurityQuestionsResponses(tt.args.ctx, tt.args.userID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.GetUserSecurityQuestionsResponses() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected a response but got %v", got)
+				return
+			}
+		})
+	}
+	// TearDown
+	if err = pg.DB.Where("id", securityQuestionResponseInput.ResponseID).Unscoped().Delete(&gorm.SecurityQuestionResponse{}).Error; err != nil {
+		t.Errorf("failed to delete record = %v", err)
+	}
+	if err = pg.DB.Where("id", userInput.UserID).Unscoped().Delete(&gorm.User{}).Error; err != nil {
+		t.Errorf("failed to delete record = %v", err)
+	}
+	if err := pg.DB.Where("id", securityQuestionInput.SecurityQuestionID).Unscoped().Delete(&gorm.SecurityQuestion{}).Error; err != nil {
+		t.Errorf("failed to delete record = %v", err)
+	}
+}
+
+func TestPGInstance_GetContactByUserID(t *testing.T) {
+	ctx := context.Background()
+
+	ID := uuid.New().String()
+
+	pg, err := gorm.NewPGInstance()
+	if err != nil {
+		t.Errorf("failed to initialize new PG instance: %v", err)
+		return
+	}
+
+	// Setup test user
+	userInput := &gorm.User{
+		Username:         uuid.New().String(),
+		FirstName:        gofakeit.FirstName(),
+		LastName:         gofakeit.LastName(),
+		MiddleName:       gofakeit.FirstName(),
+		UserType:         enums.ClientUser,
+		Gender:           enumutils.GenderMale,
+		Flavour:          feedlib.FlavourConsumer,
+		AcceptedTermsID:  &termsID,
+		TermsAccepted:    true,
+		IsSuspended:      true,
+		OrganisationID:   orgID,
+		NextAllowedLogin: &pastTime,
+	}
+
+	err = pg.DB.Create(&userInput).Error
+	if err != nil {
+		t.Errorf("failed to create user: %v", err)
+	}
+
+	phoneNumber := gofakeit.Phone()
+
+	contactInput := &gorm.Contact{
+		UserID:         userInput.UserID,
+		ContactType:    "PHONE",
+		ContactValue:   phoneNumber,
+		Active:         true,
+		OptedIn:        true,
+		Flavour:        feedlib.FlavourConsumer,
+		OrganisationID: orgID,
+	}
+
+	err = pg.DB.Create(&contactInput).Error
+	if err != nil {
+		t.Errorf("failed to create contact: %v", err)
+	}
+
+	type args struct {
+		ctx         context.Context
+		userID      *string
+		contactType string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Successfully get PHONE contact",
+			args: args{
+				ctx:         ctx,
+				userID:      userInput.UserID,
+				contactType: "PHONE",
+			},
+		},
+		{
+			name: "invalid: contact type invalid",
+			args: args{
+				ctx:         ctx,
+				userID:      userInput.UserID,
+				contactType: "Invalid",
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid: user ID invalid",
+			args: args{
+				ctx:         ctx,
+				userID:      &ID,
+				contactType: "EMAIL",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			got, err := testingDB.GetContactByUserID(tt.args.ctx, tt.args.userID, tt.args.contactType)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.GetContactByUserID() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected a response but got %v", got)
+				return
+			}
+		})
+	}
+
+	// TearDown
+	if err = pg.DB.Where("id", contactInput.ContactID).Unscoped().Delete(&gorm.Contact{}).Error; err != nil {
+		t.Errorf("failed to delete record = %v", err)
+	}
+	if err = pg.DB.Where("id", userInput.UserID).Unscoped().Delete(&gorm.User{}).Error; err != nil {
+		t.Errorf("failed to delete record = %v", err)
+	}
+
 }

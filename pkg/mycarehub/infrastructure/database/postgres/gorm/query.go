@@ -31,6 +31,9 @@ type Query interface {
 	VerifyOTP(ctx context.Context, payload *dto.VerifyOTPInput) (bool, error)
 	GetClientProfileByUserID(ctx context.Context, userID string) (*Client, error)
 	CheckUserHasPin(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
+	GetOTP(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*UserOTP, error)
+	GetUserSecurityQuestionsResponses(ctx context.Context, userID string) ([]*SecurityQuestionResponse, error)
+	GetContactByUserID(ctx context.Context, userID *string, contactType string) (*Contact, error)
 }
 
 // RetrieveFacility fetches a single facility
@@ -274,4 +277,42 @@ func (db *PGInstance) CheckUserHasPin(ctx context.Context, userID string, flavou
 		return false, err
 	}
 	return true, nil
+}
+
+// GetOTP fetches an OTP from the database
+func (db *PGInstance) GetOTP(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*UserOTP, error) {
+	var userOTP UserOTP
+	if err := db.DB.Where(&UserOTP{PhoneNumber: phoneNumber, Flavour: flavour}).First(&userOTP).Error; err != nil {
+		return nil, fmt.Errorf("failed to get otp: %v", err)
+	}
+	return &userOTP, nil
+}
+
+// GetUserSecurityQuestionsResponses fetches the security question responses that the user has responded to
+func (db *PGInstance) GetUserSecurityQuestionsResponses(ctx context.Context, userID string) ([]*SecurityQuestionResponse, error) {
+	var securityQuestions []*SecurityQuestionResponse
+	if err := db.DB.Where(&SecurityQuestionResponse{UserID: userID, Active: true}).Find(&securityQuestions).Error; err != nil {
+		return nil, fmt.Errorf("failed to get security questions: %v", err)
+	}
+	return securityQuestions, nil
+}
+
+// GetContactByUserID fetches a user's contact using the user ID
+func (db *PGInstance) GetContactByUserID(ctx context.Context, userID *string, contactType string) (*Contact, error) {
+	var contact Contact
+
+	if userID == nil {
+		return nil, fmt.Errorf("user ID is required")
+	}
+	if contactType == "" {
+		return nil, fmt.Errorf("contact type is required")
+	}
+
+	if contactType != "PHONE" && contactType != "EMAIL" {
+		return nil, fmt.Errorf("contact type must be PHONE or EMAIL")
+	}
+	if err := db.DB.Where(&Contact{UserID: userID, ContactType: contactType}).First(&contact).Error; err != nil {
+		return nil, fmt.Errorf("failed to get contact: %v", err)
+	}
+	return &contact, nil
 }
