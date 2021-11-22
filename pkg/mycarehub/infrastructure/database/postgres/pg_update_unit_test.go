@@ -812,3 +812,75 @@ func TestMyCareHubDb_GetContactByUserID(t *testing.T) {
 		})
 	}
 }
+
+func TestMyCareHubDb_UpdateUserPinChangeRequiredStatus(t *testing.T) {
+	ctx := context.Background()
+	type args struct {
+		ctx     context.Context
+		userID  string
+		flavour feedlib.Flavour
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Successfully change status",
+			args: args{
+				ctx:     ctx,
+				userID:  uuid.New().String(),
+				flavour: feedlib.FlavourConsumer,
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Sad Case - Fail to update",
+			args: args{
+				ctx:     ctx,
+				userID:  uuid.New().String(),
+				flavour: feedlib.FlavourConsumer,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - Missing user id",
+			args: args{
+				ctx:     ctx,
+				flavour: feedlib.FlavourConsumer,
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var fakeGorm = gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			if tt.name == "Sad Case - Fail to update" {
+				fakeGorm.MockUpdateUserPinChangeRequiredStatusFn = func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
+					return false, fmt.Errorf("failed to update status")
+				}
+			}
+
+			if tt.name == "Sad Case - Missing user id" {
+				fakeGorm.MockUpdateUserPinChangeRequiredStatusFn = func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
+					return false, fmt.Errorf("failed to update status")
+				}
+			}
+
+			got, err := d.UpdateUserPinChangeRequiredStatus(tt.args.ctx, tt.args.userID, tt.args.flavour)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.UpdateUserPinChangeRequiredStatus() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("MyCareHubDb.UpdateUserPinChangeRequiredStatus() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

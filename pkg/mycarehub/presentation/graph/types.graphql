@@ -44,3 +44,74 @@ type RecordSecurityQuestionResponse {
   securityQuestionID: String!
   isCorrect: Boolean!
 }
+
+type Content {
+  items: [ContentItem!]!
+}
+
+type ContentItem {
+  ID: Int!
+  title: String!
+  date: String!
+  meta: ContentMeta!
+  intro: String!
+  authorName: String!
+  itemType: String!
+  timeEstimateSeconds: Int
+  body: String!
+  heroImage: HeroImage
+  heroImageRendition: HeroImageRendition
+  likeCount: Int!
+  bookmarkCount: Int!
+  viewCount: Int!
+  tagNames: [String!]!
+  shareCount: Int!
+  documents: [Documents]
+  author: Author!
+  categoryDetails: [CategoryDetails]
+}
+
+type HeroImage {
+  ID: Int!
+  title: String!
+}
+
+type HeroImageRendition {
+  url: String!
+  width: Int!
+  height: Int!
+  alt: String!
+}
+
+type ContentMeta {
+  contentType: String!
+  contentDetailURL: String!
+  contentHTMLURL: String!
+  slug: String!
+  showInMenus: Boolean
+  seoTitle: String
+  searchDescription: String
+  firstPublishedAt: String!
+  locale: String
+}
+
+type CategoryDetails {
+  ID: Int!
+  categoryName: String!
+  categoryIcon: String!
+}
+
+type Author {
+  ID: String!
+  authorName: String!
+}
+
+type Documents {
+  ID: Int!
+  Document: DocumentData!
+}
+
+type DocumentData {
+  ID: Int!
+  title: String!
+}

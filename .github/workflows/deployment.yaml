@@ -128,6 +128,7 @@ jobs:
           --set-env-vars "TESTING_TWILIO_ACCOUNT_AUTH_TOKEN=${{ secrets.TESTING_TWILIO_ACCOUNT_AUTH_TOKEN }}" \
           --set-env-vars "TESTING_TWILIO_ACCOUNT_SID=${{ secrets.TESTING_TWILIO_ACCOUNT_SID }}" \
           --set-env-vars "TEST_TWILIO_SMS_NUMBER=${{ secrets.TEST_TWILIO_SMS_NUMBER }}" \
+          --set-env-vars "DJANGO_AUTHORIZATION_TOKEN=${{ secrets.DJANGO_AUTHORIZATION_TOKEN }}" \
           --set-env-vars "ROOT_COLLECTION_SUFFIX=${{ secrets.ROOT_COLLECTION_SUFFIX }}" 
 
   deploy_to_test:
@@ -209,6 +210,7 @@ jobs:
           --set-env-vars "TESTING_TWILIO_ACCOUNT_AUTH_TOKEN=${{ secrets.TESTING_TWILIO_ACCOUNT_AUTH_TOKEN }}" \
           --set-env-vars "TESTING_TWILIO_ACCOUNT_SID=${{ secrets.TESTING_TWILIO_ACCOUNT_SID }}" \
           --set-env-vars "TEST_TWILIO_SMS_NUMBER=${{ secrets.TEST_TWILIO_SMS_NUMBER }}" \
+          --set-env-vars "DJANGO_AUTHORIZATION_TOKEN=${{ secrets.DJANGO_AUTHORIZATION_TOKEN }}" \
           --set-env-vars "ROOT_COLLECTION_SUFFIX=${{ secrets.ROOT_COLLECTION_SUFFIX }}" 
 
   deploy_to_prod:
@@ -303,6 +305,7 @@ jobs:
           --set-env-vars "TESTING_TWILIO_ACCOUNT_SID=${{ secrets.TESTING_TWILIO_ACCOUNT_SID }}" \
           --set-env-vars "TEST_TWILIO_SMS_NUMBER=${{ secrets.TEST_TWILIO_SMS_NUMBER }}" \
           --set-env-vars "SENSITIVE_CONTENT_SECRET_KEY=${{ secrets.SENSITIVE_CONTENT_SECRET_KEY }}" \
+          --set-env-vars "DJANGO_AUTHORIZATION_TOKEN=${{ secrets.DJANGO_AUTHORIZATION_TOKEN }}" \
           --set-env-vars "ROOT_COLLECTION_SUFFIX=${{ secrets.ROOT_COLLECTION_SUFFIX }}" 
 
   push_schema_test_registry:
