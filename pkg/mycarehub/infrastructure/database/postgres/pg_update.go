@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/savannahghi/feedlib"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 )
 
 // ReactivateFacility changes the status of an active facility from false to true
@@ -100,4 +101,12 @@ func (d *MyCareHubDb) UpdateIsCorrectSecurityQuestionResponse(ctx context.Contex
 		return false, fmt.Errorf("userID cannot be empty")
 	}
 	return d.update.UpdateIsCorrectSecurityQuestionResponse(ctx, userID, isCorrectSecurityQuestionResponse)
+}
+
+// ShareContent updates content share count
+func (d *MyCareHubDb) ShareContent(ctx context.Context, input dto.ShareContentInput) (bool, error) {
+	if input.Validate() != nil {
+		return false, fmt.Errorf("input cannot be empty")
+	}
+	return d.update.ShareContent(ctx, input)
 }

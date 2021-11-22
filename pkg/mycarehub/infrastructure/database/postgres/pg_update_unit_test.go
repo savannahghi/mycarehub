@@ -9,6 +9,7 @@ import (
 	"github.com/brianvoe/gofakeit"
 	"github.com/google/uuid"
 	"github.com/savannahghi/feedlib"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	gormMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm/mock"
 	"github.com/segmentio/ksuid"
@@ -982,6 +983,85 @@ func TestMyCareHubDb_UpdateIsCorrectSecurityQuestionResponse(t *testing.T) {
 			}
 			if got != tt.want {
 				t.Errorf("MyCareHubDb.UpdateIsCorrectSecurityQuestionResponse() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestMyCareHubDb_ShareContent(t *testing.T) {
+	ctx := context.Background()
+	type args struct {
+		ctx   context.Context
+		input dto.ShareContentInput
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "happy case",
+			args: args{
+				ctx: ctx,
+				input: dto.ShareContentInput{
+					UserID:    uuid.New().String(),
+					ContentID: 1,
+					Channel:   "SMS",
+				},
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "invalid: no user id provided",
+			args: args{
+				ctx: ctx,
+				input: dto.ShareContentInput{
+					ContentID: 1,
+					Channel:   "SMS",
+				},
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "invalid: no content id provided",
+			args: args{
+				ctx: ctx,
+				input: dto.ShareContentInput{
+					UserID:  uuid.New().String(),
+					Channel: "SMS",
+				},
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "invalid: no channel provided",
+			args: args{
+				ctx: ctx,
+				input: dto.ShareContentInput{
+					UserID:    uuid.New().String(),
+					ContentID: 1,
+				},
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var fakeGorm = gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			got, err := d.ShareContent(tt.args.ctx, tt.args.input)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.ShareContent() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("MyCareHubDb.ShareContent() = %v, want %v", got, tt.want)
 			}
 		})
 	}

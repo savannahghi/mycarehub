@@ -53,6 +53,7 @@ type PostgresMock struct {
 	MockGetContactByUserIDFn                      func(ctx context.Context, userID *string, contactType string) (*domain.Contact, error)
 	MockUpdateIsCorrectSecurityQuestionResponseFn func(ctx context.Context, userID string, isCorrectSecurityQuestionResponse bool) (bool, error)
 	MockListContentCategoriesFn                   func(ctx context.Context) ([]*domain.ContentItemCategory, error)
+	MockShareContentFn                            func(ctx context.Context, input dto.ShareContentInput) (bool, error)
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -308,6 +309,9 @@ func NewPostgresMock() *PostgresMock {
 		MockListContentCategoriesFn: func(ctx context.Context) ([]*domain.ContentItemCategory, error) {
 			return []*domain.ContentItemCategory{contentItemCategory}, nil
 		},
+		MockShareContentFn: func(ctx context.Context, input dto.ShareContentInput) (bool, error) {
+			return true, nil
+		},
 	}
 }
 
@@ -486,7 +490,7 @@ func (gm *PostgresMock) InvalidatePIN(ctx context.Context, userID string) (bool,
 	return gm.MockInvalidatePINFn(ctx, userID)
 }
 
-// GetContactByUserID nmocks the implementation of fetching a contact by userID
+// GetContactByUserID mocks the implementation of fetching a contact by userID
 func (gm *PostgresMock) GetContactByUserID(ctx context.Context, userID *string, contactType string) (*domain.Contact, error) {
 	return gm.MockGetContactByUserIDFn(ctx, userID, contactType)
 }
@@ -499,4 +503,9 @@ func (gm *PostgresMock) UpdateIsCorrectSecurityQuestionResponse(ctx context.Cont
 //ListContentCategories mocks the implementation listing content categories
 func (gm *PostgresMock) ListContentCategories(ctx context.Context) ([]*domain.ContentItemCategory, error) {
 	return gm.MockListContentCategoriesFn(ctx)
+}
+
+// ShareContent mock the implementation share content
+func (gm *PostgresMock) ShareContent(ctx context.Context, input dto.ShareContentInput) (bool, error) {
+	return gm.MockShareContentFn(ctx, input)
 }

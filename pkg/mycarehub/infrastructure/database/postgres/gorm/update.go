@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/savannahghi/feedlib"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 )
 
 // Update represents all `update` operations to the database
@@ -21,6 +22,7 @@ type Update interface {
 	UpdateUserPinChangeRequiredStatus(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
 	InvalidatePIN(ctx context.Context, userID string) (bool, error)
 	UpdateIsCorrectSecurityQuestionResponse(ctx context.Context, userID string, isCorrectSecurityQuestionResponse bool) (bool, error)
+	ShareContent(ctx context.Context, input dto.ShareContentInput) (bool, error)
 }
 
 // ReactivateFacility perfoms the actual re-activation of the facility in the database
@@ -163,5 +165,59 @@ func (db *PGInstance) UpdateIsCorrectSecurityQuestionResponse(ctx context.Contex
 	if err != nil {
 		return false, fmt.Errorf("an error occurred while updating the is correct security question response: %v", err)
 	}
+	return true, nil
+}
+
+// ShareContent  updates the user shared content count
+func (db *PGInstance) ShareContent(ctx context.Context, input dto.ShareContentInput) (bool, error) {
+	if input.ContentID == 0 || input.UserID == "" {
+		return false, fmt.Errorf("contentID or userID cannot be nil")
+	}
+
+	var (
+		contentItem  ContentItem
+		contentShare *ContentShare
+	)
+
+	contentShare = &ContentShare{
+		Active:    true,
+		ContentID: input.ContentID,
+		UserID:    input.UserID,
+	}
+
+	tx := db.DB.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+	if err := tx.Error; err != nil {
+		return false, fmt.Errorf("failied initialize database transaction %v", err)
+	}
+
+	if err := tx.Model(&ContentItem{}).Where(&ContentItem{PagePtrID: contentShare.ContentID}).First(&contentItem).Error; err != nil {
+		return false, fmt.Errorf("failed to get content item: %v", err)
+	}
+
+	updatedShareCount := contentItem.ShareCount + 1
+
+	err := tx.Model(&ContentItem{}).Where(&ContentItem{PagePtrID: contentShare.ContentID}).Updates(map[string]interface{}{
+		"share_count": updatedShareCount,
+	}).Error
+	if err != nil {
+		return false, fmt.Errorf("failed to update content share count: %v", err)
+	}
+
+	err = tx.Where(contentShare).FirstOrCreate(contentShare).Error
+	if err != nil {
+		tx.Rollback()
+		return false, fmt.Errorf("failed to save or get share content: %v", err)
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		tx.Rollback()
+		return false, fmt.Errorf("transaction commit to share count failed: %v", err)
+	}
+
 	return true, nil
 }

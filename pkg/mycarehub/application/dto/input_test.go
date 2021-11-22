@@ -558,3 +558,45 @@ func TestUserResetPinInput_Validate(t *testing.T) {
 		})
 	}
 }
+
+func TestShareContentInput_Validate(t *testing.T) {
+	type fields struct {
+		UserID    string
+		ContentID int
+		Channel   string
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		wantErr bool
+	}{
+		{
+			name: "valid: all params passed",
+			fields: fields{
+				UserID:    "123",
+				ContentID: 123,
+				Channel:   "123",
+			},
+		},
+		{
+			name: "invalid: missing params",
+			fields: fields{
+				UserID:    "123",
+				ContentID: 123,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			f := &ShareContentInput{
+				UserID:    tt.fields.UserID,
+				ContentID: tt.fields.ContentID,
+				Channel:   tt.fields.Channel,
+			}
+			if err := f.Validate(); (err != nil) != tt.wantErr {
+				t.Errorf("ShareContentInput.Validate() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}

@@ -54,6 +54,7 @@ type GormMock struct {
 	MockGetContactByUserIDFn                      func(ctx context.Context, userID *string, contactType string) (*gorm.Contact, error)
 	MockUpdateIsCorrectSecurityQuestionResponseFn func(ctx context.Context, userID string, isCorrectSecurityQuestionResponse bool) (bool, error)
 	MockListContentCategoriesFn                   func(ctx context.Context) ([]*gorm.ContentItemCategory, error)
+	MockShareContentFn                            func(ctx context.Context, input dto.ShareContentInput) (bool, error)
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -301,6 +302,9 @@ func NewGormMock() *GormMock {
 		MockListContentCategoriesFn: func(ctx context.Context) ([]*gorm.ContentItemCategory, error) {
 			return []*gorm.ContentItemCategory{contentItemCategory}, nil
 		},
+		MockShareContentFn: func(ctx context.Context, input dto.ShareContentInput) (bool, error) {
+			return true, nil
+		},
 	}
 }
 
@@ -482,4 +486,9 @@ func (gm *GormMock) UpdateIsCorrectSecurityQuestionResponse(ctx context.Context,
 //ListContentCategories mocks the implementation listing content categories
 func (gm *GormMock) ListContentCategories(ctx context.Context) ([]*gorm.ContentItemCategory, error) {
 	return gm.MockListContentCategoriesFn(ctx)
+}
+
+// ShareContent mocks the implementation of sharing the content
+func (gm *GormMock) ShareContent(ctx context.Context, input dto.ShareContentInput) (bool, error) {
+	return gm.MockShareContentFn(ctx, input)
 }

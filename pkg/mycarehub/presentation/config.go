@@ -78,9 +78,9 @@ func Router(ctx context.Context) (*mux.Router, error) {
 
 	securityQuestionsUsecase := securityquestions.NewSecurityQuestionsUsecase(db, db, db, externalExt)
 
-	contentUsecase := content.NewUsecaseContent(db)
+	contentUseCase := content.NewUseCasesContentImplementation(db, db)
 
-	useCase := usecases.NewMyCareHubUseCase(userUsecase, termsUsecase, facilityUseCase, securityQuestionsUsecase, otpUseCase, contentUsecase)
+	useCase := usecases.NewMyCareHubUseCase(userUsecase, termsUsecase, facilityUseCase, securityQuestionsUsecase, otpUseCase, contentUseCase)
 
 	internalHandlers := internalRest.NewMyCareHubHandlersInterfaces(*useCase)
 

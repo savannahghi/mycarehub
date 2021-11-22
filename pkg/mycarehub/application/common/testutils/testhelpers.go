@@ -47,10 +47,9 @@ func InitializeTestService(ctx context.Context) (*usecases.MyCareHub, error) {
 
 	termsUsecase := terms.NewUseCasesTermsOfService(db, db)
 
-	contentUsecase := content.NewUsecaseContent(db)
-
 	securityQuestionsUsecase := securityquestions.NewSecurityQuestionsUsecase(db, db, db, externalExt)
+	contentUseCase := content.NewUseCasesContentImplementation(db, db)
 
-	i := usecases.NewMyCareHubUseCase(userUsecase, termsUsecase, facilityUseCase, securityQuestionsUsecase, otpUseCase, contentUsecase)
+	i := usecases.NewMyCareHubUseCase(userUsecase, termsUsecase, facilityUseCase, securityQuestionsUsecase, otpUseCase, contentUseCase)
 	return i, nil
 }

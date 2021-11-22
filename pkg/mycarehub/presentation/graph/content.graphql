@@ -2,3 +2,7 @@ extend type Query {
   getContent(categoryID: Int, Limit: String!): Content!
   listContentCategories: [ContentItemCategory!]!
 }
+
+extend type Mutation {
+  shareContent(input: ShareContentInput!): Boolean!
+}

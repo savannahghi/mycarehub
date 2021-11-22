@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"strconv"
 
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/utils"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
@@ -18,6 +19,13 @@ import (
 var (
 	contentAPIEndpoint = serverutils.MustGetEnvVar("CONTENT_API_URL")
 )
+
+// UseCasesContent holds the interfaces that are implemented within the content service
+type UseCasesContent interface {
+	IGetContent
+	IContentCategoryList
+	IShareContent
+}
 
 // IGetContent is used to fetch content from the CMS
 type IGetContent interface {
@@ -29,27 +37,34 @@ type IContentCategoryList interface {
 	ListContentCategories(ctx context.Context) ([]*domain.ContentItemCategory, error)
 }
 
-// UseCasesContent holds the interfaces that are implemented within the content service
-type UseCasesContent interface {
-	IGetContent
-	IContentCategoryList
+// IShareContent is the interface for the ShareContent
+type IShareContent interface {
+	// TODO: update share count (increment)
+	// TODO: add / check entry in ContentShares table
+	// TODO: metrics
+	ShareContent(ctx context.Context, input dto.ShareContentInput) (bool, error)
 }
 
-// UsecaseContentImpl represents content implementation object
-type UsecaseContentImpl struct {
-	Query infrastructure.Query
+// UseCasesContentImpl represents content implementation
+type UseCasesContentImpl struct {
+	Update infrastructure.Update
+	Query  infrastructure.Query
 }
 
-// NewUsecaseContent returns a new content service
-func NewUsecaseContent(query infrastructure.Query) *UsecaseContentImpl {
-	return &UsecaseContentImpl{
-		Query: query,
+// NewUseCasesContentImplementation initializes a new contents service
+func NewUseCasesContentImplementation(
+	update infrastructure.Update,
+	query infrastructure.Query,
+) *UseCasesContentImpl {
+	return &UseCasesContentImpl{
+		Update: update,
+		Query:  query,
 	}
 }
 
 // GetContent fetches content from wagtail CMS. The category ID is optional and it is used to return content based
 // on the category it belongs to. The limit field describes how many items will be rendered on the front end side.
-func (u UsecaseContentImpl) GetContent(ctx context.Context, categoryID *int, limit string) (*domain.Content, error) {
+func (u UseCasesContentImpl) GetContent(ctx context.Context, categoryID *int, limit string) (*domain.Content, error) {
 	params := url.Values{}
 	params.Add("type", "content.ContentItem")
 	params.Add("limit", limit)
@@ -80,6 +95,11 @@ func (u UsecaseContentImpl) GetContent(ctx context.Context, categoryID *int, lim
 }
 
 // ListContentCategories gets the list of all content categories
-func (u *UsecaseContentImpl) ListContentCategories(ctx context.Context) ([]*domain.ContentItemCategory, error) {
+func (u *UseCasesContentImpl) ListContentCategories(ctx context.Context) ([]*domain.ContentItemCategory, error) {
 	return u.Query.ListContentCategories(ctx)
+}
+
+// ShareContent enables a user to share a content
+func (u *UseCasesContentImpl) ShareContent(ctx context.Context, input dto.ShareContentInput) (bool, error) {
+	return u.Update.ShareContent(ctx, input)
 }
