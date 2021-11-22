@@ -77,4 +77,6 @@ func TestCustomErrors(t *testing.T) {
 	assert.NotNil(t, err)
 	err = exceptions.ValidatePINDigitsErr(fmt.Errorf("error"))
 	assert.NotNil(t, err)
+	err = exceptions.InternalErr(fmt.Errorf("error"))
+	assert.NotNil(t, err)
 }

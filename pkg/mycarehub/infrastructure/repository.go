@@ -58,4 +58,6 @@ type Update interface {
 	UpdateUserLastSuccessfulLoginTime(ctx context.Context, userID string) error
 	SetNickName(ctx context.Context, userID *string, nickname *string) (bool, error)
 	UpdateUserPinChangeRequiredStatus(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
+	InvalidatePIN(ctx context.Context, userID string) (bool, error)
+	UpdateIsCorrectSecurityQuestionResponse(ctx context.Context, userID string, isCorrectSecurityQuestionResponse bool) (bool, error)
 }

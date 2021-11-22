@@ -76,7 +76,7 @@ func Router(ctx context.Context) (*mux.Router, error) {
 
 	termsUsecase := terms.NewUseCasesTermsOfService(db, db)
 
-	securityQuestionsUsecase := securityquestions.NewSecurityQuestionsUsecase(db, db, externalExt)
+	securityQuestionsUsecase := securityquestions.NewSecurityQuestionsUsecase(db, db, db, externalExt)
 
 	contentUseCase := content.NewUseCasesContentImplementation()
 
@@ -132,6 +132,12 @@ func Router(ctx context.Context) (*mux.Router, error) {
 		http.MethodPost,
 		http.MethodOptions,
 	).HandlerFunc(internalHandlers.RequestPINReset())
+
+	r.Path("/reset_pin").Methods(
+		http.MethodPost,
+		http.MethodOptions,
+	).HandlerFunc(internalHandlers.ResetPIN())
+
 	r.Path("/send_retry_otp").Methods(
 		http.MethodOptions,
 		http.MethodPost,

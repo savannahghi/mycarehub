@@ -884,3 +884,105 @@ func TestMyCareHubDb_UpdateUserPinChangeRequiredStatus(t *testing.T) {
 		})
 	}
 }
+
+func TestMyCareHubDb_InvalidatePIN(t *testing.T) {
+
+	ctx := context.Background()
+	userID := uuid.New().String()
+	type args struct {
+		ctx    context.Context
+		userID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:    ctx,
+				userID: userID,
+			},
+			want:    true,
+			wantErr: false,
+		},
+
+		{
+			name: "invalid: no user id provided",
+			args: args{
+				ctx: ctx,
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var fakeGorm = gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			got, err := d.InvalidatePIN(tt.args.ctx, tt.args.userID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.InvalidatePIN() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("MyCareHubDb.InvalidatePIN() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestMyCareHubDb_UpdateIsCorrectSecurityQuestionResponse(t *testing.T) {
+
+	ctx := context.Background()
+	userID := uuid.New().String()
+
+	type args struct {
+		ctx                               context.Context
+		userID                            string
+		isCorrectSecurityQuestionResponse bool
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:                               ctx,
+				userID:                            userID,
+				isCorrectSecurityQuestionResponse: true,
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "invalid: no user id provided",
+			args: args{
+				ctx: ctx,
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var fakeGorm = gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			got, err := d.UpdateIsCorrectSecurityQuestionResponse(tt.args.ctx, tt.args.userID, tt.args.isCorrectSecurityQuestionResponse)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.UpdateIsCorrectSecurityQuestionResponse() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("MyCareHubDb.UpdateIsCorrectSecurityQuestionResponse() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

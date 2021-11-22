@@ -68,7 +68,7 @@ func TestUseCaseSecurityQuestionsImpl_GetSecurityQuestions(t *testing.T) {
 			_ = mock.NewSecurityQuestionsUseCaseMock()
 
 			fakeExtension := extensionMock.NewFakeExtension()
-			s := securityquestions.NewSecurityQuestionsUsecase(fakeDB, fakeDB, fakeExtension)
+			s := securityquestions.NewSecurityQuestionsUsecase(fakeDB, fakeDB, fakeDB, fakeExtension)
 
 			if tt.name == "Sad case" {
 				fakeDB.MockGetSecurityQuestionsFn = func(ctx context.Context, flavour feedlib.Flavour) ([]*domain.SecurityQuestion, error) {
@@ -216,7 +216,7 @@ func TestUseCaseSecurityQuestionsImpl_RecordSecurityQuestionResponses(t *testing
 			_ = mock.NewSecurityQuestionsUseCaseMock()
 
 			fakeExtension := extensionMock.NewFakeExtension()
-			s := securityquestions.NewSecurityQuestionsUsecase(fakeDB, fakeDB, fakeExtension)
+			s := securityquestions.NewSecurityQuestionsUsecase(fakeDB, fakeDB, fakeDB, fakeExtension)
 
 			if tt.name == "Sad case: failed to get security question by id" {
 				fakeDB.MockGetSecurityQuestionByIDFn = func(ctx context.Context, securityQuestionID *string) (*domain.SecurityQuestion, error) {
@@ -310,7 +310,7 @@ func TestUseCaseSecurityQuestionsImpl_VerifySecurityQuestionResponses(t *testing
 			fakeSecurity := mock.NewSecurityQuestionsUseCaseMock()
 
 			fakeExtension := extensionMock.NewFakeExtension()
-			s := securityquestions.NewSecurityQuestionsUsecase(fakeDB, fakeDB, fakeExtension)
+			s := securityquestions.NewSecurityQuestionsUsecase(fakeDB, fakeDB, fakeDB, fakeExtension)
 
 			if tt.name == "Sad Case - Fail to get security question by ID" {
 				fakeDB.MockGetSecurityQuestionResponseByIDFn = func(ctx context.Context, questionID string) (*domain.SecurityQuestionResponse, error) {
@@ -358,6 +358,7 @@ func TestUseCaseSecurityQuestionsImpl_GetUserRespondedSecurityQuestions(t *testi
 				input: dto.GetUserRespondedSecurityQuestionsInput{
 					PhoneNumber: gofakeit.Phone(),
 					Flavour:     feedlib.FlavourConsumer,
+					OTP:         "123456",
 				},
 			},
 		},
@@ -481,7 +482,7 @@ func TestUseCaseSecurityQuestionsImpl_GetUserRespondedSecurityQuestions(t *testi
 			fakeDB := pgMock.NewPostgresMock()
 
 			fakeExtension := extensionMock.NewFakeExtension()
-			s := securityquestions.NewSecurityQuestionsUsecase(fakeDB, fakeDB, fakeExtension)
+			s := securityquestions.NewSecurityQuestionsUsecase(fakeDB, fakeDB, fakeDB, fakeExtension)
 
 			if tt.name == "Invalid: failed to get user profile by phone number" {
 				fakeDB.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*domain.User, error) {
@@ -510,7 +511,15 @@ func TestUseCaseSecurityQuestionsImpl_GetUserRespondedSecurityQuestions(t *testi
 
 			if tt.name == "Invalid: security question responses is less than 3" {
 				fakeDB.MockGetUserSecurityQuestionsResponsesFn = func(ctx context.Context, userID string) ([]*domain.SecurityQuestionResponse, error) {
-					return []*domain.SecurityQuestionResponse{}, nil
+					return []*domain.SecurityQuestionResponse{
+						{
+							ResponseID: "1234",
+							QuestionID: "1234",
+							Active:     true,
+							Response:   "Yes",
+							IsCorrect:  true,
+						},
+					}, nil
 				}
 			}
 

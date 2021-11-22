@@ -324,3 +324,12 @@ func ExistingPINError(err error) error {
 	}
 
 }
+
+// InternalErr returns an error message when the server fails
+func InternalErr(err error) error {
+	return &CustomError{
+		Err:     err,
+		Message: InternalErrorMsg,
+		Code:    int(Internal),
+	}
+}

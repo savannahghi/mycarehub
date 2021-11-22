@@ -326,6 +326,7 @@ func (d *MyCareHubDb) GetUserSecurityQuestionsResponses(ctx context.Context, use
 			UserID:     sqr.UserID,
 			Active:     sqr.Active,
 			Response:   sqr.Response,
+			IsCorrect:  sqr.IsCorrect,
 		}
 
 		securityQuestionResponse = append(securityQuestionResponse, singleSecurityQuestionResponse)

@@ -19,6 +19,8 @@ type Update interface {
 	UpdateUserLastSuccessfulLoginTime(ctx context.Context, userID string) error
 	SetNickName(ctx context.Context, userID *string, nickname *string) (bool, error)
 	UpdateUserPinChangeRequiredStatus(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
+	InvalidatePIN(ctx context.Context, userID string) (bool, error)
+	UpdateIsCorrectSecurityQuestionResponse(ctx context.Context, userID string, isCorrectSecurityQuestionResponse bool) (bool, error)
 }
 
 // ReactivateFacility perfoms the actual re-activation of the facility in the database
@@ -129,6 +131,34 @@ func (db *PGInstance) UpdateUserPinChangeRequiredStatus(ctx context.Context, use
 	}).Error
 	if err != nil {
 		return false, err
+	}
+	return true, nil
+}
+
+// InvalidatePIN toggles the valid field of a pin from true to false
+func (db *PGInstance) InvalidatePIN(ctx context.Context, userID string) (bool, error) {
+	if userID == "" {
+		return false, fmt.Errorf("userID cannot be empty")
+
+	}
+	err := db.DB.Model(&PINData{}).Where(&PINData{UserID: userID, IsValid: true}).Select("active").Updates(PINData{IsValid: false}).Error
+	if err != nil {
+		return false, fmt.Errorf("an error occurred while invalidating the pin: %v", err)
+	}
+	return true, nil
+}
+
+// UpdateIsCorrectSecurityQuestionResponse updates the is_correct_security_question_response field in the database
+func (db *PGInstance) UpdateIsCorrectSecurityQuestionResponse(ctx context.Context, userID string, isCorrectSecurityQuestionResponse bool) (bool, error) {
+	if userID == "" {
+		return false, fmt.Errorf("userID cannot be empty")
+
+	}
+	err := db.DB.Model(&SecurityQuestionResponse{}).Where(&SecurityQuestionResponse{UserID: userID}).Updates(map[string]interface{}{
+		"is_correct": isCorrectSecurityQuestionResponse,
+	}).Error
+	if err != nil {
+		return false, fmt.Errorf("an error occurred while updating the is correct security question response: %v", err)
 	}
 	return true, nil
 }

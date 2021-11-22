@@ -290,11 +290,11 @@ func (db *PGInstance) GetOTP(ctx context.Context, phoneNumber string, flavour fe
 
 // GetUserSecurityQuestionsResponses fetches the security question responses that the user has responded to
 func (db *PGInstance) GetUserSecurityQuestionsResponses(ctx context.Context, userID string) ([]*SecurityQuestionResponse, error) {
-	var securityQuestions []*SecurityQuestionResponse
-	if err := db.DB.Where(&SecurityQuestionResponse{UserID: userID, Active: true}).Find(&securityQuestions).Error; err != nil {
+	var securityQuestionResponses []*SecurityQuestionResponse
+	if err := db.DB.Where(&SecurityQuestionResponse{UserID: userID, Active: true}).Find(&securityQuestionResponses).Error; err != nil {
 		return nil, fmt.Errorf("failed to get security questions: %v", err)
 	}
-	return securityQuestions, nil
+	return securityQuestionResponses, nil
 }
 
 // GetContactByUserID fetches a user's contact using the user ID

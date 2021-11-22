@@ -20,6 +20,7 @@ type MyCareHubHandlersInterfaces interface {
 	RequestPINReset() http.HandlerFunc
 	SendRetryOTP() http.HandlerFunc
 	GetUserRespondedSecurityQuestions() http.HandlerFunc
+	ResetPIN() http.HandlerFunc
 }
 
 // MyCareHubHandlersInterfacesImpl represents the usecase implementation object
@@ -295,6 +296,34 @@ func (h *MyCareHubHandlersInterfacesImpl) GetUserRespondedSecurityQuestions() ht
 		}
 
 		resp, err := h.usecase.SecurityQuestions.GetUserRespondedSecurityQuestions(ctx, *payload)
+		if err != nil {
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
+				Message: err.Error(),
+			}, http.StatusBadRequest)
+			return
+		}
+
+		serverutils.WriteJSONResponse(w, resp, http.StatusOK)
+	}
+}
+
+// ResetPIN is an unauthenticated endpoint that resets the user's PIN
+func (h *MyCareHubHandlersInterfacesImpl) ResetPIN() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+
+		payload := &dto.UserResetPinInput{}
+		serverutils.DecodeJSONToTargetStruct(w, r, payload)
+		err := payload.Validate()
+		if err != nil {
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusBadRequest)
+			return
+		}
+
+		resp, err := h.usecase.User.ResetPIN(ctx, *payload)
 		if err != nil {
 			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
 				Message: err.Error(),
