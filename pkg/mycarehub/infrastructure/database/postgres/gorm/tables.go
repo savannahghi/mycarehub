@@ -304,6 +304,7 @@ type SecurityQuestionResponse struct {
 	Response       string    `gorm:"column:response"`
 	OrganisationID string    `gorm:"column:organisation_id"`
 	Timestamp      time.Time `gorm:"column:timestamp"`
+	IsCorrect      bool      `gorm:"column:is_correct"`
 }
 
 // BeforeCreate function is called before creating a security question response
@@ -313,6 +314,11 @@ func (s *SecurityQuestionResponse) BeforeCreate(tx *gorm.DB) (err error) {
 	s.ResponseID = id
 	s.OrganisationID = OrganizationID
 	s.Timestamp = time.Now()
+	// is_correct default to true since the user setting the security question responses will initially set
+	// them correctly
+	// this field will help during verification of security question responses whe a user is resetting the
+	// pin. it will change to false if they answer any of the security questions wrong
+	s.IsCorrect = true
 	return
 }
 

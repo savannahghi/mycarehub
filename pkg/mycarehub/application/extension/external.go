@@ -2,19 +2,18 @@ package extension
 
 import (
 	"context"
+	"fmt"
 
+	openSourceDto "github.com/savannahghi/engagementcore/pkg/engagement/application/common/dto"
 	engagementInfra "github.com/savannahghi/engagementcore/pkg/engagement/infrastructure"
 	engagementOTP "github.com/savannahghi/engagementcore/pkg/engagement/usecases/otp"
+	engagementSMS "github.com/savannahghi/engagementcore/pkg/engagement/usecases/sms"
 	engagementTwilio "github.com/savannahghi/engagementcore/pkg/engagement/usecases/twilio"
+	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/firebasetools"
+	"github.com/savannahghi/interserviceclient"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/extension"
-	"github.com/savannahghi/onboarding/pkg/onboarding/application/utils"
-	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/engagement"
-)
-
-const (
-	engagementService = "engagement"
 )
 
 // ExternalMethodsExtension is an interface that represents methods that are
@@ -25,35 +24,33 @@ type ExternalMethodsExtension interface {
 	ComparePIN(rawPwd string, salt string, encodedPwd string, options *extension.Options) bool
 	EncryptPIN(rawPwd string, options *extension.Options) (string, string)
 	GenerateTempPIN(ctx context.Context) (string, error)
-	SendSMS(ctx context.Context, phoneNumbers []string, message string) error
+	SendSMS(ctx context.Context, phoneNumbers string, message string, from enumutils.SenderID) (*openSourceDto.SendMessageResponse, error)
 	GenerateAndSendOTP(ctx context.Context, phoneNumber string) (string, error)
 	GenerateOTP(ctx context.Context) (string, error)
 	GenerateRetryOTP(ctx context.Context, payload *dto.SendRetryOTPPayload) (string, error)
+	SendSMSViaTwilio(ctx context.Context, phonenumber, message string) error
+	SendInviteSMS(ctx context.Context, phoneNumber, message string) error
 }
 
 // External type implements external methods
 type External struct {
 	pinExt          extension.PINExtension
-	engagementExt   engagement.ServiceEngagement
 	otpExtension    engagementOTP.ImplOTP
 	twilioExtension engagementTwilio.ImplTwilio
+	smsExtension    engagementSMS.UsecaseSMS
 }
 
 // NewExternalMethodsImpl creates a new instance of the external methods
 func NewExternalMethodsImpl() ExternalMethodsExtension {
-	var firebaseClient firebasetools.IFirebaseClient
-
 	pinExtension := extension.NewPINExtensionImpl()
-	baseExt := extension.NewBaseExtensionImpl(firebaseClient)
-	engagementISC := utils.NewInterServiceClient(engagementService, baseExt)
-	engagementExtension := engagement.NewServiceEngagementImpl(engagementISC, baseExt)
 	otpExt := engagementOTP.NewOTP(engagementInfra.NewInteractor())
 	twilioExt := engagementTwilio.NewImplTwilio(engagementInfra.NewInteractor())
+	smsExt := engagementSMS.NewSMS(engagementInfra.NewInteractor())
 	return &External{
 		pinExt:          pinExtension,
-		engagementExt:   engagementExtension,
 		otpExtension:    *otpExt,
 		twilioExtension: *twilioExt,
+		smsExtension:    smsExt,
 	}
 }
 
@@ -91,8 +88,8 @@ func (e *External) GenerateTempPIN(ctx context.Context) (string, error) {
 }
 
 // SendSMS does the actual delivery of messages to the provided phone numbers
-func (e *External) SendSMS(ctx context.Context, phoneNumbers []string, message string) error {
-	return e.engagementExt.SendSMS(ctx, phoneNumbers, message)
+func (e *External) SendSMS(ctx context.Context, phoneNumbers string, message string, from enumutils.SenderID) (*openSourceDto.SendMessageResponse, error) {
+	return e.smsExtension.Send(ctx, message, phoneNumbers, from)
 }
 
 // GenerateAndSendOTP generates a new OTP and sends it to the provided phone number
@@ -108,4 +105,26 @@ func (e *External) GenerateOTP(ctx context.Context) (string, error) {
 // GenerateRetryOTP generates fallback OTPs when Africa is talking sms fails
 func (e *External) GenerateRetryOTP(ctx context.Context, payload *dto.SendRetryOTPPayload) (string, error) {
 	return e.otpExtension.GenerateRetryOTP(ctx, &payload.Phone, 2, nil)
+}
+
+// SendSMSViaTwilio makes a request to Twilio to send an SMS to a non-kenyan number
+func (e *External) SendSMSViaTwilio(ctx context.Context, phonenumber, message string) error {
+	return e.twilioExtension.SendSMS(ctx, phonenumber, message)
+}
+
+// SendInviteSMS is used to send an Invite SMS to a client
+func (e *External) SendInviteSMS(ctx context.Context, phoneNumber, message string) error {
+	if interserviceclient.IsKenyanNumber(phoneNumber) {
+		_, err := e.SendSMS(ctx, phoneNumber, message, enumutils.SenderIDBewell)
+		if err != nil {
+			return fmt.Errorf("failed to send invite sms to recipient")
+		}
+	} else {
+		// Make the request to twilio
+		err := e.SendSMSViaTwilio(ctx, phoneNumber, message)
+		if err != nil {
+			return fmt.Errorf("sms not sent via twilio: %v", err)
+		}
+	}
+	return nil
 }

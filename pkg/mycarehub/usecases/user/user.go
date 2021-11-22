@@ -31,7 +31,7 @@ type ISetUserPIN interface {
 
 // IVerifyPIN is used e.g to check the PIN when accessing sensitive content
 type IVerifyPIN interface {
-	VerifyPIN(ctx context.Context, userID string, pin string) (bool, error)
+	VerifyPIN(ctx context.Context, userID string, pin string) (bool, int, error)
 }
 
 // ISetNickName is used change and or set user nickname
@@ -90,15 +90,15 @@ func NewUseCasesUserImpl(
 
 // VerifyPIN checks whether a pin is valid. If a pin is invalid, it will prompt
 // the user to change their pin
-func (us *UseCasesUserImpl) VerifyPIN(ctx context.Context, userID string, pin string) (bool, error) {
+func (us *UseCasesUserImpl) VerifyPIN(ctx context.Context, userID string, pin string) (bool, int, error) {
 	pinData, err := us.Query.GetUserPINByUserID(ctx, userID)
 	if err != nil {
-		return false, exceptions.PinNotFoundError(err)
+		return false, int(exceptions.PINNotFound), exceptions.PinNotFoundError(err)
 	}
 
 	userProfile, err := us.Query.GetUserProfileByUserID(ctx, userID)
 	if err != nil {
-		return false, exceptions.UserNotFoundError(err)
+		return false, int(exceptions.UserNotFound), exceptions.UserNotFoundError(err)
 	}
 
 	// If pin `ValidTo` field is in the past (expired), throw an error. This means the user has to
@@ -106,7 +106,7 @@ func (us *UseCasesUserImpl) VerifyPIN(ctx context.Context, userID string, pin st
 	currentTime := time.Now()
 	expired := currentTime.After(pinData.ValidTo)
 	if expired {
-		return false, exceptions.ExpiredPinErr(fmt.Errorf("the provided pin has expired"))
+		return false, int(exceptions.ExpiredPinError), exceptions.ExpiredPinErr(fmt.Errorf("the provided pin has expired"))
 	}
 
 	matched := us.ExternalExt.ComparePIN(pin, pinData.Salt, pinData.HashedPIN, nil)
@@ -114,32 +114,32 @@ func (us *UseCasesUserImpl) VerifyPIN(ctx context.Context, userID string, pin st
 		failedLoginAttempts := userProfile.FailedLoginCount + 1
 		err := us.Update.UpdateUserFailedLoginCount(ctx, userID, failedLoginAttempts)
 		if err != nil {
-			return false, exceptions.LoginCountUpdateErr(fmt.Errorf("failed to update user failed login count"))
+			return false, int(exceptions.LoginCountUpdateError), exceptions.LoginCountUpdateErr(fmt.Errorf("failed to update user failed login count"))
 		}
 
 		err = us.Update.UpdateUserLastFailedLoginTime(ctx, userID)
 		if err != nil {
-			return false, exceptions.LoginTimeUpdateErr(fmt.Errorf("failed to update user last failed login time"))
+			return false, int(exceptions.LoginTimeUpdateError), exceptions.LoginTimeUpdateErr(fmt.Errorf("failed to update user last failed login time"))
 		}
 
 		nextAllowedLoginTime := utilsExt.NextAllowedLoginTime(failedLoginAttempts)
 		err = us.Update.UpdateUserNextAllowedLoginTime(ctx, userID, nextAllowedLoginTime)
 		if err != nil {
-			return false, exceptions.NexAllowedLOginTimeErr(fmt.Errorf("failed to update user next allowed login time"))
+			return false, int(exceptions.NexAllowedLOginTimeError), exceptions.NexAllowedLOginTimeErr(fmt.Errorf("failed to update user next allowed login time"))
 		}
 
-		return false, exceptions.PinMismatchError(err)
+		return false, int(exceptions.PINMismatch), exceptions.PinMismatchError(err)
 	}
 
 	// In the event of a successful login, reset the failed login count to 0
 	if userProfile.FailedLoginCount > 0 {
 		err := us.Update.UpdateUserFailedLoginCount(ctx, userID, 0)
 		if err != nil {
-			return false, exceptions.LoginCountUpdateErr(fmt.Errorf("failed to update user failed login count"))
+			return false, int(exceptions.LoginCountUpdateError), exceptions.LoginCountUpdateErr(fmt.Errorf("failed to update user failed login count"))
 		}
 	}
 
-	return true, nil
+	return true, int(exceptions.OK), nil
 }
 
 // Login is used to login the user into the application
@@ -171,7 +171,7 @@ func (us *UseCasesUserImpl) Login(ctx context.Context, phoneNumber string, pin s
 		return nil, int(exceptions.Internal), fmt.Errorf("please try again after a while")
 	}
 
-	_, err = us.VerifyPIN(ctx, *userProfile.ID, pin)
+	_, _, err = us.VerifyPIN(ctx, *userProfile.ID, pin)
 	if err != nil {
 		return nil, int(exceptions.PINMismatch), exceptions.PinMismatchError(err)
 	}
@@ -256,7 +256,7 @@ func (us *UseCasesUserImpl) InviteUser(ctx context.Context, userID string, phone
 
 	message := helpers.CreateInviteMessage(userProfile, inviteLink, tempPin)
 
-	err = us.ExternalExt.SendSMS(ctx, []string{*phone}, message)
+	err = us.ExternalExt.SendInviteSMS(ctx, *phone, message)
 	if err != nil {
 		return false, exceptions.SendSMSErr(fmt.Errorf("failed to send invite SMS: %v", err))
 	}

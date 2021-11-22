@@ -10,6 +10,7 @@ import (
 
 	"github.com/brianvoe/gofakeit"
 	"github.com/google/uuid"
+	openSourceDto "github.com/savannahghi/engagementcore/pkg/engagement/application/common/dto"
 	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/firebasetools"
@@ -324,7 +325,6 @@ func TestUnit_InviteUser(t *testing.T) {
 			wantErr: true,
 			want:    false,
 		},
-
 		{
 			name: "valid: fetched user by user ID",
 			args: args{
@@ -342,7 +342,7 @@ func TestUnit_InviteUser(t *testing.T) {
 				ctx:         ctx,
 				userID:      "12345",
 				phoneNumber: validPhone,
-				flavour:     feedlib.Flavour(invalidFlavour),
+				flavour:     validFlavour,
 			},
 			wantErr: true,
 			want:    false,
@@ -521,13 +521,21 @@ func TestUnit_InviteUser(t *testing.T) {
 				}
 			}
 			if tt.name == "valid: send invite message success" {
-				fakeExtension.MockSendSMSFn = func(ctx context.Context, phoneNumbers []string, message string) error {
-					return nil
+				fakeExtension.MockSendSMSFn = func(ctx context.Context, phoneNumbers string, message string, from enumutils.SenderID) (*openSourceDto.SendMessageResponse, error) {
+					return &openSourceDto.SendMessageResponse{
+						SMSMessageData: &openSourceDto.SMS{
+							Recipients: []openSourceDto.Recipient{
+								{
+									Number: interserviceclient.TestUserPhoneNumber,
+								},
+							},
+						},
+					}, nil
 				}
 			}
 			if tt.name == "invalid: send in message error" {
-				fakeExtension.MockSendSMSFn = func(ctx context.Context, phoneNumbers []string, message string) error {
-					return fmt.Errorf("failed to send sms")
+				fakeExtension.MockSendInviteSMSFn = func(ctx context.Context, phoneNumber, message string) error {
+					return fmt.Errorf("failed to send SMS")
 				}
 			}
 
@@ -816,8 +824,8 @@ func TestUseCasesUserImpl_VerifyPIN(t *testing.T) {
 			u := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, otp)
 
 			if tt.name == "Happy Case - Successfully verify pin" {
-				fakeUserMock.MockVerifyPINFn = func(ctx context.Context, userID string, pin string) (bool, error) {
-					return true, nil
+				fakeUserMock.MockVerifyPINFn = func(ctx context.Context, userID string, pin string) (bool, int, error) {
+					return true, 0, nil
 				}
 			}
 
@@ -869,7 +877,7 @@ func TestUseCasesUserImpl_VerifyPIN(t *testing.T) {
 				}
 			}
 
-			got, err := u.VerifyPIN(tt.args.ctx, tt.args.userID, tt.args.pin)
+			got, _, err := u.VerifyPIN(tt.args.ctx, tt.args.userID, tt.args.pin)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCasesUserImpl.VerifyPIN() error = %v, wantErr %v", err, tt.wantErr)
 				return

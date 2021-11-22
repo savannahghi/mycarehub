@@ -433,6 +433,7 @@ func TestPGInstance_SaveSecurityQuestionResponse(t *testing.T) {
 					Response:   "20",
 				},
 			},
+			wantErr: false,
 		},
 	}
 	for _, tt := range tests {
