@@ -1683,3 +1683,59 @@ func TestMyCareHubDb_GetClientProfileByUserID(t *testing.T) {
 		})
 	}
 }
+
+func TestMyCareHubDb_ListContentCategories(t *testing.T) {
+	ctx := context.Background()
+
+	type args struct {
+		ctx context.Context
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    []*domain.ContentItemCategory
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx: ctx,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case",
+			args: args{
+				ctx: ctx,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var fakeGorm = gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			if tt.name == "Sad case" {
+				fakeGorm.MockListContentCategoriesFn = func(ctx context.Context) ([]*gorm.ContentItemCategory, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+
+			got, err := d.ListContentCategories(tt.args.ctx)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.ListContentCategories() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if tt.wantErr && got != nil {
+				t.Errorf("expected content to be nil for %v", tt.name)
+				return
+			}
+
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected content not to be nil for %v", tt.name)
+				return
+			}
+		})
+	}
+}

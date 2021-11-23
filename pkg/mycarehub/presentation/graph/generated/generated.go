@@ -83,6 +83,12 @@ type ComplexityRoot struct {
 		ViewCount           func(childComplexity int) int
 	}
 
+	ContentItemCategory struct {
+		ID      func(childComplexity int) int
+		IconURL func(childComplexity int) int
+		Name    func(childComplexity int) int
+	}
+
 	ContentMeta struct {
 		ContentDetailURL  func(childComplexity int) int
 		ContentHTMLURL    func(childComplexity int) int
@@ -164,6 +170,7 @@ type ComplexityRoot struct {
 		GetContent                func(childComplexity int, categoryID *int, limit string) int
 		GetCurrentTerms           func(childComplexity int) int
 		GetSecurityQuestions      func(childComplexity int, flavour feedlib.Flavour) int
+		ListContentCategories     func(childComplexity int) int
 		ListFacilities            func(childComplexity int, searchTerm *string, filterInput []*dto.FiltersInput, paginationInput dto.PaginationsInput) int
 		RetrieveFacility          func(childComplexity int, id string, active bool) int
 		RetrieveFacilityByMFLCode func(childComplexity int, mflCode int, isActive bool) int
@@ -203,6 +210,7 @@ type MutationResolver interface {
 }
 type QueryResolver interface {
 	GetContent(ctx context.Context, categoryID *int, limit string) (*domain.Content, error)
+	ListContentCategories(ctx context.Context) ([]*domain.ContentItemCategory, error)
 	FetchFacilities(ctx context.Context) ([]*domain.Facility, error)
 	RetrieveFacility(ctx context.Context, id string, active bool) (*domain.Facility, error)
 	RetrieveFacilityByMFLCode(ctx context.Context, mflCode int, isActive bool) (*domain.Facility, error)
@@ -401,6 +409,27 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ContentItem.ViewCount(childComplexity), true
+
+	case "ContentItemCategory.id":
+		if e.complexity.ContentItemCategory.ID == nil {
+			break
+		}
+
+		return e.complexity.ContentItemCategory.ID(childComplexity), true
+
+	case "ContentItemCategory.iconUrl":
+		if e.complexity.ContentItemCategory.IconURL == nil {
+			break
+		}
+
+		return e.complexity.ContentItemCategory.IconURL(childComplexity), true
+
+	case "ContentItemCategory.name":
+		if e.complexity.ContentItemCategory.Name == nil {
+			break
+		}
+
+		return e.complexity.ContentItemCategory.Name(childComplexity), true
 
 	case "ContentMeta.contentDetailURL":
 		if e.complexity.ContentMeta.ContentDetailURL == nil {
@@ -812,6 +841,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.GetSecurityQuestions(childComplexity, args["flavour"].(feedlib.Flavour)), true
 
+	case "Query.listContentCategories":
+		if e.complexity.Query.ListContentCategories == nil {
+			break
+		}
+
+		return e.complexity.Query.ListContentCategories(childComplexity), true
+
 	case "Query.listFacilities":
 		if e.complexity.Query.ListFacilities == nil {
 			break
@@ -989,6 +1025,7 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 var sources = []*ast.Source{
 	{Name: "pkg/mycarehub/presentation/graph/content.graphql", Input: `extend type Query {
   getContent(categoryID: Int, Limit: String!): Content!
+  listContentCategories: [ContentItemCategory!]!
 }
 `, BuiltIn: false},
 	{Name: "pkg/mycarehub/presentation/graph/enums.graphql", Input: `scalar Time
@@ -1135,14 +1172,16 @@ input SecurityQuestionResponseInput {
   inviteUser(userID: String!,phoneNumber: String!, flavour:Flavour! ): Boolean!
   setUserPIN(input: PINInput): Boolean!
 }`, BuiltIn: false},
-	{Name: "pkg/mycarehub/presentation/graph/securityquestion.graphql", Input: `extend type Query{
-    getSecurityQuestions(flavour: Flavour!): [SecurityQuestion!]!
-   
+	{Name: "pkg/mycarehub/presentation/graph/securityquestion.graphql", Input: `extend type Query {
+  getSecurityQuestions(flavour: Flavour!): [SecurityQuestion!]!
 }
 
-extend type Mutation{
-    recordSecurityQuestionResponses(input: [SecurityQuestionResponseInput!]!): [RecordSecurityQuestionResponse!]!
-}`, BuiltIn: false},
+extend type Mutation {
+  recordSecurityQuestionResponses(
+    input: [SecurityQuestionResponseInput!]!
+  ): [RecordSecurityQuestionResponse!]!
+}
+`, BuiltIn: false},
 	{Name: "pkg/mycarehub/presentation/graph/types.graphql", Input: `type Facility {
   ID: String!
   name: String!
@@ -1259,6 +1298,12 @@ type Documents {
 type DocumentData {
   ID: Int!
   title: String!
+}
+
+type ContentItemCategory {
+	id:      Int!
+	name:   String!
+	iconUrl: String!
 }
 `, BuiltIn: false},
 	{Name: "pkg/mycarehub/presentation/graph/user.graphql", Input: `extend type Query {
@@ -2538,6 +2583,111 @@ func (ec *executionContext) _ContentItem_categoryDetails(ctx context.Context, fi
 	res := resTmp.([]domain.CategoryDetails)
 	fc.Result = res
 	return ec.marshalOCategoryDetails2ᚕgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐCategoryDetails(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ContentItemCategory_id(ctx context.Context, field graphql.CollectedField, obj *domain.ContentItemCategory) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ContentItemCategory",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ContentItemCategory_name(ctx context.Context, field graphql.CollectedField, obj *domain.ContentItemCategory) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ContentItemCategory",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ContentItemCategory_iconUrl(ctx context.Context, field graphql.CollectedField, obj *domain.ContentItemCategory) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ContentItemCategory",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.IconURL, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ContentMeta_contentType(ctx context.Context, field graphql.CollectedField, obj *domain.ContentMeta) (ret graphql.Marshaler) {
@@ -4227,6 +4377,41 @@ func (ec *executionContext) _Query_getContent(ctx context.Context, field graphql
 	res := resTmp.(*domain.Content)
 	fc.Result = res
 	return ec.marshalNContent2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐContent(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_listContentCategories(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().ListContentCategories(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*domain.ContentItemCategory)
+	fc.Result = res
+	return ec.marshalNContentItemCategory2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐContentItemCategoryᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_fetchFacilities(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -6453,6 +6638,43 @@ func (ec *executionContext) _ContentItem(ctx context.Context, sel ast.SelectionS
 	return out
 }
 
+var contentItemCategoryImplementors = []string{"ContentItemCategory"}
+
+func (ec *executionContext) _ContentItemCategory(ctx context.Context, sel ast.SelectionSet, obj *domain.ContentItemCategory) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, contentItemCategoryImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ContentItemCategory")
+		case "id":
+			out.Values[i] = ec._ContentItemCategory_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "name":
+			out.Values[i] = ec._ContentItemCategory_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "iconUrl":
+			out.Values[i] = ec._ContentItemCategory_iconUrl(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var contentMetaImplementors = []string{"ContentMeta"}
 
 func (ec *executionContext) _ContentMeta(ctx context.Context, sel ast.SelectionSet, obj *domain.ContentMeta) graphql.Marshaler {
@@ -6898,6 +7120,20 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_getContent(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "listContentCategories":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_listContentCategories(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -7444,6 +7680,60 @@ func (ec *executionContext) marshalNContentItem2ᚕgithubᚗcomᚋsavannahghiᚋ
 	}
 
 	return ret
+}
+
+func (ec *executionContext) marshalNContentItemCategory2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐContentItemCategoryᚄ(ctx context.Context, sel ast.SelectionSet, v []*domain.ContentItemCategory) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNContentItemCategory2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐContentItemCategory(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNContentItemCategory2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐContentItemCategory(ctx context.Context, sel ast.SelectionSet, v *domain.ContentItemCategory) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._ContentItemCategory(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNContentMeta2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐContentMeta(ctx context.Context, sel ast.SelectionSet, v domain.ContentMeta) graphql.Marshaler {

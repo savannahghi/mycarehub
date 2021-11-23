@@ -37,7 +37,7 @@ require (
 	cloud.google.com/go/firestore v1.5.0 // indirect
 	cloud.google.com/go/logging v1.4.2 // indirect
 	cloud.google.com/go/pubsub v1.12.2 // indirect
-	cloud.google.com/go/storage v1.16.0 // indirect
+	cloud.google.com/go/storage v1.18.2 // indirect
 	contrib.go.opencensus.io/exporter/stackdriver v0.13.8 // indirect
 	github.com/agnivade/levenshtein v1.1.1 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d // indirect

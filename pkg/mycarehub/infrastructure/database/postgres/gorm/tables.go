@@ -375,3 +375,26 @@ func (c *Client) BeforeCreate(tx *gorm.DB) (err error) {
 func (Client) TableName() string {
 	return "clients_client"
 }
+
+// ContentItemCategory maps the schema for the table that stores the content item category
+type ContentItemCategory struct {
+	ID   int          `gorm:"unique;column:id;autoincrement"`
+	Name string       `gorm:"column:name"`
+	Icon WagtailImage `gorm:"ForeignKey:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;not null"`
+}
+
+// TableName customizes how the table name is generated
+func (ContentItemCategory) TableName() string {
+	return "content_contentitemcategory"
+}
+
+// WagtailImage maps the schema for the table that stores the wagtail images
+type WagtailImage struct {
+	ID   int    `gorm:"primaryKey;column:id;"`
+	File string `gorm:"column:file"`
+}
+
+// TableName customizes how the table name is generated
+func (WagtailImage) TableName() string {
+	return "wagtailimages_image"
+}

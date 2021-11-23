@@ -17,6 +17,9 @@ const (
 
 	// ConsumerInviteLink will store the consumer invite link at the settings
 	ConsumerInviteLink = "CONSUMER_INVITE_LINK"
+
+	// GoogleCloudStorageURL is base bucket link for the content images
+	GoogleCloudStorageURL = "GOOGLE_CLOUD_STORAGE_URL"
 )
 
 var bytes = []byte{35, 46, 57, 24, 85, 35, 24, 74, 87, 35, 88, 98, 66, 32, 14, 05}
