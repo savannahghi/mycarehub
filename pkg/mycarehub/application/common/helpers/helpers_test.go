@@ -60,8 +60,8 @@ func TestCreateInviteMessage(t *testing.T) {
 	inviteLink := "https://example.com"
 	pin := "99033"
 
-	want := fmt.Sprintf("Dear %v %v, you have been invited to My Afya Hub. Download the app on %v. Your single use pin is %v",
-		firstName, lastName, inviteLink, pin)
+	want := fmt.Sprintf("You have been invited to My Afya Hub. Download the app on %v. Your single use pin is %v",
+		inviteLink, pin)
 	type args struct {
 		user       *domain.User
 		inviteLink string

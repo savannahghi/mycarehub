@@ -1,6 +1,7 @@
 package usecases
 
 import (
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/content"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/facility"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/otp"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/securityquestions"
@@ -15,6 +16,7 @@ type MyCareHub struct {
 	Facility          facility.UseCasesFacility
 	SecurityQuestions securityquestions.UseCaseSecurityQuestion
 	OTP               otp.UsecaseOTP
+	Content           content.UseCasesContent
 }
 
 // NewMyCareHubUseCase initializes a new my care hub instance
@@ -24,6 +26,7 @@ func NewMyCareHubUseCase(
 	facility facility.UseCasesFacility,
 	securityQuestions securityquestions.UseCaseSecurityQuestion,
 	OTP otp.UsecaseOTP,
+	content content.UseCasesContent,
 ) *MyCareHub {
 	return &MyCareHub{
 		User:              user,
@@ -31,5 +34,6 @@ func NewMyCareHubUseCase(
 		Facility:          facility,
 		SecurityQuestions: securityQuestions,
 		OTP:               OTP,
+		Content:           content,
 	}
 }
