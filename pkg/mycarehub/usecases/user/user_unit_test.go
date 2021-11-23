@@ -2,6 +2,7 @@ package user_test
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"math"
 	"strconv"
@@ -1112,6 +1113,306 @@ func TestUseCasesUserImpl_RequestPINReset(t *testing.T) {
 			}
 			if got != tt.want {
 				t.Errorf("UseCasesUserImpl.RequestPINReset() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestUseCasesUserImpl_ResetPIN(t *testing.T) {
+
+	type args struct {
+		ctx   context.Context
+		input dto.UserResetPinInput
+	}
+	tests := []struct {
+		name string
+
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Successfully reset pin",
+			args: args{
+				ctx: context.Background(),
+				input: dto.UserResetPinInput{
+					PhoneNumber: interserviceclient.TestUserPhoneNumber,
+					Flavour:     feedlib.FlavourConsumer,
+					OTP:         "111222",
+					PIN:         "1234",
+				},
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "invalid: invalid phone number",
+			args: args{
+				ctx: context.Background(),
+				input: dto.UserResetPinInput{
+					PhoneNumber: "str",
+					Flavour:     feedlib.FlavourConsumer,
+					OTP:         "111222",
+					PIN:         "1234",
+				},
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "invalid: invalid phone flavor",
+			args: args{
+				ctx: context.Background(),
+				input: dto.UserResetPinInput{
+					PhoneNumber: gofakeit.Phone(),
+					Flavour:     "invalid",
+					OTP:         "111222",
+					PIN:         "1234",
+				},
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "invalid: string pin",
+			args: args{
+				ctx: context.Background(),
+				input: dto.UserResetPinInput{
+					PhoneNumber: gofakeit.Phone(),
+					Flavour:     feedlib.FlavourConsumer,
+					OTP:         "111222",
+					PIN:         "abcd",
+				},
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "invalid: invalid pin length",
+			args: args{
+				ctx: context.Background(),
+				input: dto.UserResetPinInput{
+					PhoneNumber: gofakeit.Phone(),
+					Flavour:     feedlib.FlavourConsumer,
+					OTP:         "111222",
+					PIN:         "12345",
+				},
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "invalid: failed to get user profile by phone",
+			args: args{
+				ctx: context.Background(),
+				input: dto.UserResetPinInput{
+					PhoneNumber: gofakeit.Phone(),
+					Flavour:     feedlib.FlavourConsumer,
+					OTP:         "111222",
+					PIN:         "1234",
+				},
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "invalid: failed to verify OTP",
+			args: args{
+				ctx: context.Background(),
+				input: dto.UserResetPinInput{
+					PhoneNumber: gofakeit.Phone(),
+					Flavour:     feedlib.FlavourConsumer,
+					OTP:         "111222",
+					PIN:         "1234",
+				},
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "invalid: failed to get security question responses",
+			args: args{
+				ctx: context.Background(),
+				input: dto.UserResetPinInput{
+					PhoneNumber: gofakeit.Phone(),
+					Flavour:     feedlib.FlavourConsumer,
+					OTP:         "111222",
+					PIN:         "1234",
+				},
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "invalid: security question responses are incorrect",
+			args: args{
+				ctx: context.Background(),
+				input: dto.UserResetPinInput{
+					PhoneNumber: gofakeit.Phone(),
+					Flavour:     feedlib.FlavourConsumer,
+					OTP:         "111222",
+					PIN:         "1234",
+				},
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "invalid: failed to invalidate pin",
+			args: args{
+				ctx: context.Background(),
+				input: dto.UserResetPinInput{
+					PhoneNumber: gofakeit.Phone(),
+					Flavour:     feedlib.FlavourConsumer,
+					OTP:         "111222",
+					PIN:         "1234",
+				},
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "invalid: failed to save pin",
+			args: args{
+				ctx: context.Background(),
+				input: dto.UserResetPinInput{
+					PhoneNumber: gofakeit.Phone(),
+					Flavour:     feedlib.FlavourConsumer,
+					OTP:         "111222",
+					PIN:         "1234",
+				},
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			// fakeUser := mock.NewUserUseCaseMock()
+			fakeExtension := extensionMock.NewFakeExtension()
+			otp := otp.NewOTPUseCase(fakeDB, fakeDB, fakeExtension)
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, otp)
+
+			if tt.name == "Happy Case - Successfully reset pin" {
+				fakeDB.MockGetUserSecurityQuestionsResponsesFn = func(ctx context.Context, userID string) ([]*domain.SecurityQuestionResponse, error) {
+					return []*domain.SecurityQuestionResponse{
+						{
+							ResponseID: "1234",
+							QuestionID: "1234",
+							Active:     true,
+							Response:   "Yes",
+							IsCorrect:  true,
+						},
+					}, nil
+				}
+			}
+			if tt.name == "invalid: failed to get user profile by phone" {
+				fakeDB.MockGetUserSecurityQuestionsResponsesFn = func(ctx context.Context, userID string) ([]*domain.SecurityQuestionResponse, error) {
+					return []*domain.SecurityQuestionResponse{
+						{
+							ResponseID: "1234",
+							QuestionID: "1234",
+							Active:     true,
+							Response:   "Yes",
+							IsCorrect:  true,
+						},
+					}, nil
+				}
+				fakeDB.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*domain.User, error) {
+					return nil, errors.New("failed to get user profile by phone")
+				}
+			}
+
+			if tt.name == "invalid: failed to verify OTP" {
+				fakeDB.MockGetUserSecurityQuestionsResponsesFn = func(ctx context.Context, userID string) ([]*domain.SecurityQuestionResponse, error) {
+					return []*domain.SecurityQuestionResponse{
+						{
+							ResponseID: "1234",
+							QuestionID: "1234",
+							Active:     true,
+							Response:   "Yes",
+							IsCorrect:  true,
+						},
+					}, nil
+				}
+				fakeDB.MockVerifyOTPFn = func(ctx context.Context, payload *dto.VerifyOTPInput) (bool, error) {
+					return false, nil
+				}
+			}
+
+			if tt.name == "invalid: failed to get security question responses" {
+				fakeDB.MockGetUserSecurityQuestionsResponsesFn = func(ctx context.Context, userID string) ([]*domain.SecurityQuestionResponse, error) {
+					return []*domain.SecurityQuestionResponse{
+						{
+							ResponseID: "1234",
+							QuestionID: "1234",
+							Active:     true,
+							Response:   "Yes",
+							IsCorrect:  true,
+						},
+					}, nil
+				}
+				fakeDB.MockGetUserSecurityQuestionsResponsesFn = func(ctx context.Context, userID string) ([]*domain.SecurityQuestionResponse, error) {
+					return nil, errors.New("failed to get user security question responses")
+				}
+			}
+
+			if tt.name == "invalid: security question responses are incorrect" {
+				fakeDB.MockGetUserSecurityQuestionsResponsesFn = func(ctx context.Context, userID string) ([]*domain.SecurityQuestionResponse, error) {
+					return []*domain.SecurityQuestionResponse{
+						{
+							ResponseID: "1234",
+							QuestionID: "1234",
+							Active:     true,
+							Response:   "Yes",
+							IsCorrect:  false,
+						},
+					}, nil
+				}
+			}
+
+			if tt.name == "invalid: failed to invalidate pin" {
+				fakeDB.MockGetUserSecurityQuestionsResponsesFn = func(ctx context.Context, userID string) ([]*domain.SecurityQuestionResponse, error) {
+					return []*domain.SecurityQuestionResponse{
+						{
+							ResponseID: "1234",
+							QuestionID: "1234",
+							Active:     true,
+							Response:   "Yes",
+							IsCorrect:  true,
+						},
+					}, nil
+				}
+				fakeDB.MockInvalidatePINFn = func(ctx context.Context, userID string) (bool, error) {
+					return false, errors.New("failed to invalidate pin")
+				}
+			}
+
+			if tt.name == "invalid: failed to save pin" {
+				fakeDB.MockGetUserSecurityQuestionsResponsesFn = func(ctx context.Context, userID string) ([]*domain.SecurityQuestionResponse, error) {
+					return []*domain.SecurityQuestionResponse{
+						{
+							ResponseID: "1234",
+							QuestionID: "1234",
+							Active:     true,
+							Response:   "Yes",
+							IsCorrect:  true,
+						},
+					}, nil
+				}
+				fakeDB.MockSavePinFn = func(ctx context.Context, pin *domain.UserPIN) (bool, error) {
+					return false, errors.New("failed to save pin")
+				}
+			}
+
+			got, err := us.ResetPIN(tt.args.ctx, tt.args.input)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCasesUserImpl.ResetPIN() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("UseCasesUserImpl.ResetPIN() = %v, want %v", got, tt.want)
 			}
 		})
 	}

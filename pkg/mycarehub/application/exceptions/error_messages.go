@@ -109,4 +109,7 @@ const (
 
 	// ClientProfileNotFoundErrorMsg is displayed when a profile is not found
 	ClientProfileNotFoundErrorMsg = "client profile not found"
+
+	// InternalErrorMsg is the error message displayed when an internal server error occurs
+	InternalErrorMsg = "internal error"
 )

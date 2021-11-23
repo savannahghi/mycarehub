@@ -64,6 +64,7 @@ type UseCaseSecurityQuestion interface {
 type UseCaseSecurityQuestionsImpl struct {
 	Query       infrastructure.Query
 	Create      infrastructure.Create
+	Update      infrastructure.Update
 	ExternalExt extension.ExternalMethodsExtension
 }
 
@@ -71,11 +72,13 @@ type UseCaseSecurityQuestionsImpl struct {
 func NewSecurityQuestionsUsecase(
 	query infrastructure.Query,
 	create infrastructure.Create,
+	update infrastructure.Update,
 	externalExt extension.ExternalMethodsExtension,
 ) *UseCaseSecurityQuestionsImpl {
 	return &UseCaseSecurityQuestionsImpl{
 		Query:       query,
 		Create:      create,
+		Update:      update,
 		ExternalExt: externalExt,
 	}
 }
@@ -149,9 +152,18 @@ func (s *UseCaseSecurityQuestionsImpl) VerifySecurityQuestionResponses(
 		}
 
 		if !strings.EqualFold(securityQuestionResponse.Response, decryptedResponse) {
+			ok, err := s.Update.UpdateIsCorrectSecurityQuestionResponse(ctx, securityQuestionResponse.UserID, false)
+			if err != nil {
+				return false, fmt.Errorf("failed to update security question response: %v", err)
+			}
+			if !ok {
+				return false, fmt.Errorf("failed to update security question response")
+			}
+
 			return false, fmt.Errorf("the security question response does not match")
 		}
 	}
+
 	return true, nil
 }
 
@@ -177,20 +189,19 @@ func (s *UseCaseSecurityQuestionsImpl) GetUserRespondedSecurityQuestions(ctx con
 		return nil, exceptions.UserNotFoundError(fmt.Errorf("failed to get a user profile by phonenumber: %v", err))
 	}
 
-	otp, errr := s.Query.GetOTP(ctx, *phone, input.Flavour)
-	if errr != nil {
-		return nil, exceptions.UserNotFoundError(fmt.Errorf("otp verification failed: %v", err))
-	}
-
 	// ensure the otp for the phone is valid
-	_, err = s.Query.VerifyOTP(ctx, &dto.VerifyOTPInput{
+	ok, err := s.Query.VerifyOTP(ctx, &dto.VerifyOTPInput{
 		// UserID:      *userProfile.ID,
 		PhoneNumber: *phone,
-		OTP:         otp.OTP,
+		OTP:         input.OTP,
 		Flavour:     input.Flavour,
 	})
 	if err != nil {
 		return nil, exceptions.ItemNotFoundErr(fmt.Errorf("failed to verify otp: %v", err))
+	}
+
+	if !ok {
+		return nil, exceptions.InternalErr(fmt.Errorf("failed to verify otp: %v", err))
 	}
 
 	// ensure the questions are associated with the user who set the responses

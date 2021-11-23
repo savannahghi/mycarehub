@@ -292,7 +292,7 @@ func (UserOTP) TableName() string {
 }
 
 // SecurityQuestionResponse maps the schema for the table that stores the security question
-// reponses
+// responses
 type SecurityQuestionResponse struct {
 	Base
 

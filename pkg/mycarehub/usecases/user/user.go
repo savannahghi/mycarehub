@@ -3,6 +3,7 @@ package user
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/savannahghi/converterandformatter"
@@ -49,6 +50,11 @@ type ICompleteOnboardingTour interface {
 	CompleteOnboardingTour(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
 }
 
+// IResetPIN is an interface that contains all the user use cases for pin resets
+type IResetPIN interface {
+	ResetPIN(ctx context.Context, input dto.UserResetPinInput) (bool, error)
+}
+
 // UseCasesUser group all business logic usecases related to user
 type UseCasesUser interface {
 	ILogin
@@ -57,6 +63,7 @@ type UseCasesUser interface {
 	ISetNickName
 	IRequestPinReset
 	ICompleteOnboardingTour
+	IResetPIN
 }
 
 // UseCasesUserImpl represents user implementation object
@@ -367,4 +374,98 @@ func (us *UseCasesUserImpl) RequestPINReset(ctx context.Context, phoneNumber str
 // the field will be set to false. It will enable the user to be directed to the login page when they log in again.
 func (us *UseCasesUserImpl) CompleteOnboardingTour(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
 	return us.Update.UpdateUserPinChangeRequiredStatus(ctx, userID, flavour)
+}
+
+// ResetPIN resets the user's PIN when they start the reset pin process. this is a user driven request
+// ensure phone/flavor is verified
+// ensure the OTP for the phone is valid
+// ensure the security questions were answered correctly
+// ensure to invlidate the old PIN
+// save new pin to db and ensure it is not duplicate for the same user
+// return true if the pin was reset successfully
+func (us *UseCasesUserImpl) ResetPIN(ctx context.Context, input dto.UserResetPinInput) (bool, error) {
+
+	if err := input.Validate(); err != nil {
+		return false, exceptions.InputValidationErr(fmt.Errorf("failed to validate PIN reset Input: %v", err))
+	}
+
+	ok := input.Flavour.IsValid()
+	if !ok {
+		return false, exceptions.InvalidFlavourDefinedErr(fmt.Errorf("flavour is not valid"))
+	}
+
+	phone, err := converterandformatter.NormalizeMSISDN(input.PhoneNumber)
+	if err != nil {
+		return false, exceptions.NormalizeMSISDNError(err)
+	}
+
+	_, err = strconv.ParseInt(input.PIN, 10, 64)
+	if err != nil {
+		return false, exceptions.PINErr(fmt.Errorf("PIN should be a number: %v", err))
+	}
+
+	if len([]byte(input.PIN)) != 4 {
+		return false, exceptions.PINErr(fmt.Errorf("PIN length be 4 digits: %v", err))
+	}
+
+	userProfile, err := us.Query.GetUserProfileByPhoneNumber(ctx, *phone)
+	if err != nil {
+		return false, exceptions.ContactNotFoundErr(err)
+
+	}
+
+	ok, err = us.Query.VerifyOTP(ctx, &dto.VerifyOTPInput{
+		PhoneNumber: *phone,
+		OTP:         input.OTP,
+		Flavour:     input.Flavour,
+	})
+	if err != nil {
+		return false, exceptions.UserNotFoundError(fmt.Errorf("failed to verify otp: %v", err))
+	}
+	if !ok {
+		return false, exceptions.InternalErr(fmt.Errorf("failed to verify otp: %v", err))
+	}
+
+	userResponse, err := us.Query.GetUserSecurityQuestionsResponses(ctx, *userProfile.ID)
+	if err != nil {
+		return false, exceptions.InternalErr(fmt.Errorf("failed to get user security question responses: %v", err))
+	}
+
+	for _, response := range userResponse {
+		if !response.IsCorrect {
+			return false, fmt.Errorf("user security question response is not correct")
+		}
+	}
+
+	salt, encryptedPin := us.ExternalExt.EncryptPIN(input.PIN, nil)
+
+	expiryDate := time.Now()
+
+	pinPayload := &domain.UserPIN{
+		UserID:    *userProfile.ID,
+		HashedPIN: encryptedPin,
+		Salt:      salt,
+		ValidFrom: time.Now(),
+		ValidTo:   expiryDate,
+		Flavour:   input.Flavour,
+		IsValid:   true,
+	}
+
+	ok, err = us.Update.InvalidatePIN(ctx, *userProfile.ID)
+	if err != nil {
+		return false, exceptions.InvalidatePinErr(err)
+	}
+	if !ok {
+		return false, exceptions.InvalidatePinErr(err)
+	}
+
+	ok, err = us.Create.SavePin(ctx, pinPayload)
+	if err != nil {
+		return false, exceptions.ResetPinErr(err)
+	}
+	if !ok {
+		return false, exceptions.ResetPinErr(err)
+	}
+
+	return true, nil
 }

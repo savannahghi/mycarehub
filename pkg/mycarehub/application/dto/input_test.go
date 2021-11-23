@@ -477,6 +477,7 @@ func TestGetUserRespondedSecurityQuestionsInput_Validate(t *testing.T) {
 	type fields struct {
 		PhoneNumber string
 		Flavour     feedlib.Flavour
+		OTP         string
 	}
 	tests := []struct {
 		name    string
@@ -488,7 +489,9 @@ func TestGetUserRespondedSecurityQuestionsInput_Validate(t *testing.T) {
 			fields: fields{
 				PhoneNumber: gofakeit.Phone(),
 				Flavour:     feedlib.FlavourConsumer,
+				OTP:         "1234",
 			},
+			wantErr: false,
 		},
 		{
 			name: "invalid: missing params",
@@ -503,9 +506,54 @@ func TestGetUserRespondedSecurityQuestionsInput_Validate(t *testing.T) {
 			f := &GetUserRespondedSecurityQuestionsInput{
 				PhoneNumber: tt.fields.PhoneNumber,
 				Flavour:     tt.fields.Flavour,
+				OTP:         tt.fields.OTP,
 			}
 			if err := f.Validate(); (err != nil) != tt.wantErr {
 				t.Errorf("GetUserRespondedSecurityQuestionsInput.Validate() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestUserResetPinInput_Validate(t *testing.T) {
+	type fields struct {
+		PhoneNumber string
+		Flavour     feedlib.Flavour
+		PIN         string
+		OTP         string
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		wantErr bool
+	}{
+		{
+			name: "valid: all params passed",
+			fields: fields{
+				PhoneNumber: gofakeit.Phone(),
+				Flavour:     feedlib.FlavourConsumer,
+				PIN:         "1234",
+				OTP:         "1234",
+			},
+		},
+		{
+			name: "invalid: missing params",
+			fields: fields{
+				Flavour: feedlib.FlavourConsumer,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			f := &UserResetPinInput{
+				PhoneNumber: tt.fields.PhoneNumber,
+				Flavour:     tt.fields.Flavour,
+				PIN:         tt.fields.PIN,
+				OTP:         tt.fields.OTP,
+			}
+			if err := f.Validate(); (err != nil) != tt.wantErr {
+				t.Errorf("UserResetPinInput.Validate() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}

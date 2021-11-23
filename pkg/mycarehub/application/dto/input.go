@@ -161,13 +161,30 @@ type GetSecurityQuestionsInput struct {
 
 // GetUserRespondedSecurityQuestionsInput defines the field passed when getting the security questions
 type GetUserRespondedSecurityQuestionsInput struct {
-	PhoneNumber string `json:"phonenumber" validate:"required"`
-	// IsOptedIn   bool            `json:"isOptedIn" validate:"required"`
-	Flavour feedlib.Flavour `json:"flavour" validate:"required"`
+	PhoneNumber string          `json:"phonenumber" validate:"required"`
+	Flavour     feedlib.Flavour `json:"flavour" validate:"required"`
+	OTP         string          `json:"otp" validate:"required"`
 }
 
 // Validate helps with validation of GetUserRespondedSecurityQuestionsInput fields
 func (f *GetUserRespondedSecurityQuestionsInput) Validate() error {
+	v := validator.New()
+
+	err := v.Struct(f)
+
+	return err
+}
+
+// UserResetPinInput contains the fields requires when a user is resetting a pin
+type UserResetPinInput struct {
+	PhoneNumber string          `json:"phoneNumber" validate:"required"`
+	Flavour     feedlib.Flavour `json:"flavour" validate:"required"`
+	PIN         string          `json:"pin" validate:"required"`
+	OTP         string          `json:"otp" validate:"required"`
+}
+
+// Validate checks to validate whether the field inputs for verifying user pin
+func (f *UserResetPinInput) Validate() error {
 	v := validator.New()
 
 	err := v.Struct(f)

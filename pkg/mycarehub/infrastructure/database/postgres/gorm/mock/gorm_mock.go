@@ -50,8 +50,9 @@ type GormMock struct {
 	MockGetOTPFn                            func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*gorm.UserOTP, error)
 	MockGetUserSecurityQuestionsResponsesFn func(ctx context.Context, userID string) ([]*gorm.SecurityQuestionResponse, error)
 
-	MockInvalidatePINFn      func(ctx context.Context, userID string) (bool, error)
-	MockGetContactByUserIDFn func(ctx context.Context, userID *string, contactType string) (*gorm.Contact, error)
+	MockInvalidatePINFn                           func(ctx context.Context, userID string) (bool, error)
+	MockGetContactByUserIDFn                      func(ctx context.Context, userID *string, contactType string) (*gorm.Contact, error)
+	MockUpdateIsCorrectSecurityQuestionResponseFn func(ctx context.Context, userID string, isCorrectSecurityQuestionResponse bool) (bool, error)
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -267,6 +268,7 @@ func NewGormMock() *GormMock {
 					QuestionID: "1234",
 					Active:     true,
 					Response:   "Yes",
+					IsCorrect:  true,
 				},
 			}, nil
 		},
@@ -282,6 +284,9 @@ func NewGormMock() *GormMock {
 				Active:       true,
 				OptedIn:      true,
 			}, nil
+		},
+		MockUpdateIsCorrectSecurityQuestionResponseFn: func(ctx context.Context, userID string, isCorrectSecurityQuestionResponse bool) (bool, error) {
+			return true, nil
 		},
 	}
 }
@@ -454,4 +459,9 @@ func (gm *GormMock) InvalidatePIN(ctx context.Context, userID string) (bool, err
 // GetContactByUserID mocks the implementation of retrieving a contact by user ID
 func (gm *GormMock) GetContactByUserID(ctx context.Context, userID *string, contactType string) (*gorm.Contact, error) {
 	return gm.MockGetContactByUserIDFn(ctx, userID, contactType)
+}
+
+// UpdateIsCorrectSecurityQuestionResponse updates the is_correct security question response
+func (gm *GormMock) UpdateIsCorrectSecurityQuestionResponse(ctx context.Context, userID string, isCorrectSecurityQuestionResponse bool) (bool, error) {
+	return gm.MockUpdateIsCorrectSecurityQuestionResponseFn(ctx, userID, isCorrectSecurityQuestionResponse)
 }

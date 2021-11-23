@@ -53,4 +53,5 @@ type SecurityQuestionResponse struct {
 	UserID     string `json:"userID"`
 	Active     bool   `json:"active"`
 	Response   string `json:"response"`
+	IsCorrect  bool   `json:"isCorrect"`
 }
