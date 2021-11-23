@@ -306,6 +306,11 @@ func (us *UseCasesUserImpl) SetUserPIN(ctx context.Context, input dto.PINInput) 
 		Salt:      salt,
 	}
 
+	_, err = us.Update.InvalidatePIN(ctx, *input.UserID)
+	if err != nil {
+		return false, exceptions.InvalidatePinErr(err)
+	}
+
 	_, err = us.Create.SavePin(ctx, pinDataPayload)
 	if err != nil {
 		return false, exceptions.SaveUserPinError(fmt.Errorf("failed to save user pin: %v", err))

@@ -1,8 +1,9 @@
-extend type Query{
-    getSecurityQuestions(flavour: Flavour!): [SecurityQuestion!]!
-   
+extend type Query {
+  getSecurityQuestions(flavour: Flavour!): [SecurityQuestion!]!
 }
 
-extend type Mutation{
-    recordSecurityQuestionResponses(input: [SecurityQuestionResponseInput!]!): [RecordSecurityQuestionResponse!]!
+extend type Mutation {
+  recordSecurityQuestionResponses(
+    input: [SecurityQuestionResponseInput!]!
+  ): [RecordSecurityQuestionResponse!]!
 }
