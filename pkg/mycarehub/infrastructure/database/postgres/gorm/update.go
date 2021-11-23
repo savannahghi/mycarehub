@@ -127,7 +127,10 @@ func (db *PGInstance) SetNickName(ctx context.Context, userID *string, nickname 
 // determine the onboarding journey for a user.
 func (db *PGInstance) UpdateUserPinChangeRequiredStatus(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
 	err := db.DB.Model(&User{}).Where(&User{UserID: &userID, Flavour: flavour}).Updates(map[string]interface{}{
-		"pin_change_required": false,
+		"pin_change_required":        false,
+		"has_set_pin":                true,
+		"has_set_security_questions": true,
+		"is_phone_verified":          true,
 	}).Error
 	if err != nil {
 		return false, err

@@ -50,6 +50,10 @@ type User struct {
 
 	PinChangeRequired bool `json:"pinChangeRequired"`
 
+	HasSetPin              bool `json:"hasSetPin"`
+	HasSetSecurityQuestion bool `json:"hasSetSecurityQuestions"`
+	IsPhoneVerified        bool `json:"isPhoneVerified"`
+
 	TermsAccepted   bool            `json:"termsAccepted"`
 	AcceptedTermsID int             `json:"AcceptedTermsID"` // foreign key to version of terms they accepted
 	Flavour         feedlib.Flavour `json:"flavour"`
