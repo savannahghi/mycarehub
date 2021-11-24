@@ -225,7 +225,7 @@ func TestUseCaseSecurityQuestionsImpl_RecordSecurityQuestionResponses(t *testing
 			}
 
 			if tt.name == "Sad case: failed save security question response" {
-				fakeDB.MockSaveSecurityQuestionResponseFn = func(ctx context.Context, securityQuestionResponse *dto.SecurityQuestionResponseInput) error {
+				fakeDB.MockSaveSecurityQuestionResponseFn = func(ctx context.Context, securityQuestionResponse []*dto.SecurityQuestionResponseInput) error {
 					return fmt.Errorf("failed to save security question response")
 				}
 			}

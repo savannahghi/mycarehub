@@ -92,6 +92,7 @@ func (s *UseCaseSecurityQuestionsImpl) GetSecurityQuestions(ctx context.Context,
 // RecordSecurityQuestionResponses records the security question responses during user onboarding
 func (s *UseCaseSecurityQuestionsImpl) RecordSecurityQuestionResponses(ctx context.Context, input []*dto.SecurityQuestionResponseInput) ([]*domain.RecordSecurityQuestionResponse, error) {
 	var recordSecurityQuestionResponses []*domain.RecordSecurityQuestionResponse
+	var securityQuestionResponseInput []*dto.SecurityQuestionResponseInput
 
 	for _, i := range input {
 		err := i.Validate()
@@ -119,11 +120,8 @@ func (s *UseCaseSecurityQuestionsImpl) RecordSecurityQuestionResponses(ctx conte
 			SecurityQuestionID: i.SecurityQuestionID,
 			Response:           encryptedResponse,
 		}
-		// save the response
-		err = s.Create.SaveSecurityQuestionResponse(ctx, securityQuestionResponsePayload)
-		if err != nil {
-			return nil, exceptions.FailedToSaveItemErr(fmt.Errorf("failed to save security question response data %v", err))
-		}
+
+		securityQuestionResponseInput = append(securityQuestionResponseInput, securityQuestionResponsePayload)
 
 		recordSecurityQuestionResponses = append(recordSecurityQuestionResponses,
 			&domain.RecordSecurityQuestionResponse{
@@ -132,6 +130,12 @@ func (s *UseCaseSecurityQuestionsImpl) RecordSecurityQuestionResponses(ctx conte
 			})
 		logrus.Print("THE recordSecurityQuestionResponses IS: ", recordSecurityQuestionResponses)
 
+	}
+
+	// save the response
+	err := s.Create.SaveSecurityQuestionResponse(ctx, securityQuestionResponseInput)
+	if err != nil {
+		return nil, exceptions.FailedToSaveItemErr(fmt.Errorf("failed to save security question response data %v", err))
 	}
 
 	return recordSecurityQuestionResponses, nil

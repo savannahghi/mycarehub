@@ -21,7 +21,7 @@ type SecurityQuestion struct {
 
 // Validate validates the security question response type
 func (s *SecurityQuestion) Validate(response string) error {
-	if s.ResponseType == enums.SecurityQuestionResponseTypeString {
+	if s.ResponseType == enums.SecurityQuestionResponseTypeText {
 		return nil
 	}
 	if s.ResponseType == enums.SecurityQuestionResponseTypeNumber {
@@ -35,6 +35,12 @@ func (s *SecurityQuestion) Validate(response string) error {
 		_, err := time.Parse("02-01-2006", response)
 		if err != nil {
 			return fmt.Errorf("response type date %v is invalid: %v", response, err)
+		}
+	}
+	if s.ResponseType == enums.SecurityQuestionResponseTypeBoolean {
+		_, err := strconv.ParseBool(response)
+		if err != nil {
+			return fmt.Errorf("response type boolean %v is invalid: %v", response, err)
 		}
 	}
 	return nil

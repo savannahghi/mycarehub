@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-func TestSecurityQuestionResponseType_String(t *testing.T) {
+func TestSecurityQuestionResponseType_Number(t *testing.T) {
 	tests := []struct {
 		name string
 		e    SecurityQuestionResponseType
@@ -110,9 +110,9 @@ func TestSecurityQuestionResponseType_MarshalGQL(t *testing.T) {
 	}{
 		{
 			name:  "valid type enums",
-			e:     SecurityQuestionResponseTypeString,
+			e:     SecurityQuestionResponseTypeText,
 			b:     w,
-			wantW: strconv.Quote("STRING"),
+			wantW: strconv.Quote("TEXT"),
 		},
 	}
 	for _, tt := range tests {

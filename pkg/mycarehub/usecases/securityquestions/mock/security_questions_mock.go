@@ -13,7 +13,7 @@ import (
 type SecurityQuestionsUseCaseMock struct {
 	MockGetSecurityQuestionsFn            func(ctx context.Context, flavour feedlib.Flavour) ([]*domain.SecurityQuestion, error)
 	MockGetSecurityQuestionByIDFn         func(ctx context.Context, id string, flavour feedlib.Flavour) (*domain.SecurityQuestion, error)
-	MockSaveSecurityQuestionResponseFn    func(ctx context.Context, securityQuestionResponse *dto.SecurityQuestionResponseInput) error
+	MockSaveSecurityQuestionResponseFn    func(ctx context.Context, securityQuestionResponse []*dto.SecurityQuestionResponseInput) error
 	MockVerifySecurityQuestionResponsesFn func(
 		ctx context.Context,
 		responses *[]dto.VerifySecurityQuestionInput,
@@ -44,7 +44,7 @@ func NewSecurityQuestionsUseCaseMock() *SecurityQuestionsUseCaseMock {
 			}
 			return securityQuestion, nil
 		},
-		MockSaveSecurityQuestionResponseFn: func(ctx context.Context, securityQuestionResponse *dto.SecurityQuestionResponseInput) error {
+		MockSaveSecurityQuestionResponseFn: func(ctx context.Context, securityQuestionResponse []*dto.SecurityQuestionResponseInput) error {
 			return nil
 		},
 		MockVerifySecurityQuestionResponsesFn: func(
@@ -92,7 +92,7 @@ func (sq *SecurityQuestionsUseCaseMock) GetSecurityQuestionByID(ctx context.Cont
 }
 
 // SaveSecurityQuestionResponse saves the security question response.
-func (sq *SecurityQuestionsUseCaseMock) SaveSecurityQuestionResponse(ctx context.Context, securityQuestionResponse *dto.SecurityQuestionResponseInput) error {
+func (sq *SecurityQuestionsUseCaseMock) SaveSecurityQuestionResponse(ctx context.Context, securityQuestionResponse []*dto.SecurityQuestionResponseInput) error {
 	return sq.MockSaveSecurityQuestionResponseFn(ctx, securityQuestionResponse)
 }
 

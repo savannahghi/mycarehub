@@ -1409,9 +1409,10 @@ enum Flavour {
 }
 
 enum SecurityQuestionResponseType{
-  STRING
+  TEXT
 	NUMBER
 	DATE
+  BOOLEAN
 }`, BuiltIn: false},
 	{Name: "pkg/mycarehub/presentation/graph/facility.graphql", Input: `extend type Mutation {
   createFacility(input: FacilityInput!): Facility!

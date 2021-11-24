@@ -99,12 +99,16 @@ func (d *MyCareHubDb) SaveOTP(ctx context.Context, otpInput *domain.OTP) error {
 }
 
 // SaveSecurityQuestionResponse saves the security question response to the database
-func (d *MyCareHubDb) SaveSecurityQuestionResponse(ctx context.Context, securityQuestionResponse *dto.SecurityQuestionResponseInput) error {
-	securityQuestionResponseObj := &gorm.SecurityQuestionResponse{
-		UserID:     securityQuestionResponse.UserID,
-		QuestionID: securityQuestionResponse.SecurityQuestionID,
-		Active:     true,
-		Response:   securityQuestionResponse.Response,
+func (d *MyCareHubDb) SaveSecurityQuestionResponse(ctx context.Context, securityQuestionResponse []*dto.SecurityQuestionResponseInput) error {
+	var securityQuestionResponseObj []*gorm.SecurityQuestionResponse
+	for _, sqr := range securityQuestionResponse {
+		response := &gorm.SecurityQuestionResponse{
+			UserID:     sqr.UserID,
+			QuestionID: sqr.SecurityQuestionID,
+			Active:     true,
+			Response:   sqr.Response,
+		}
+		securityQuestionResponseObj = append(securityQuestionResponseObj, response)
 	}
 
 	err := d.create.SaveSecurityQuestionResponse(ctx, securityQuestionResponseObj)
