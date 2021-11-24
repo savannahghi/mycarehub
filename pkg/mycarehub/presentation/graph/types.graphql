@@ -47,6 +47,11 @@ type RecordSecurityQuestionResponse {
 
 type Content {
   items: [ContentItem!]!
+  meta: Meta!
+}
+
+type Meta {
+  totalCount: Int!
 }
 
 type ContentItem {
@@ -66,9 +71,11 @@ type ContentItem {
   viewCount: Int!
   tagNames: [String!]!
   shareCount: Int!
-  documents: [Documents]
+  documents: [Document]
   author: Author!
-  categoryDetails: [CategoryDetails]
+  categoryDetails: [CategoryDetail]
+  featuredMedia: [FeaturedMedia]
+  galleryImages: [GalleryImage]
 }
 
 type HeroImage {
@@ -95,7 +102,7 @@ type ContentMeta {
   locale: String
 }
 
-type CategoryDetails {
+type CategoryDetail {
   ID: Int!
   categoryName: String!
   categoryIcon: String!
@@ -103,12 +110,18 @@ type CategoryDetails {
 
 type Author {
   ID: String!
-  authorName: String!
 }
 
-type Documents {
+type Document {
   ID: Int!
   Document: DocumentData!
+  meta: DocumentMeta!
+}
+
+type DocumentMeta {
+  type: String!
+  documentDetailUrl: String!
+  documentDownloadUrl: String!
 }
 
 type DocumentData {
@@ -117,7 +130,35 @@ type DocumentData {
 }
 
 type ContentItemCategory {
-	id:      Int!
-	name:   String!
-	iconUrl: String!
+  id: Int!
+  name: String!
+  iconUrl: String!
+}
+
+type FeaturedMedia {
+  ID: Int!
+  url: String!
+  title: String!
+  type: String!
+  # duration: Float
+  width: Int
+  height: Int
+  thumbnail: String
+}
+
+type GalleryImage {
+  ID: Int!
+  image: ImageDetail!
+}
+
+type ImageDetail {
+  ID: Int!
+  title: String!
+  meta: ImageMeta!
+}
+
+type ImageMeta {
+  type: String!
+  imageDetailUrl: String!
+  imageDownloadUrl: String!
 }

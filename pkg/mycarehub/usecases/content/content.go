@@ -7,15 +7,16 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"strconv"
 
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/utils"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
-	"github.com/sirupsen/logrus"
+	"github.com/savannahghi/serverutils"
 )
 
-const (
-	contentAPIEndpoint = "https://mycarehub-test.savannahghi.org/contentapi/pages/?"
+var (
+	contentAPIEndpoint = serverutils.MustGetEnvVar("CONTENT_API_URL")
 )
 
 // IGetContent is used to fetch content from the CMS
@@ -52,13 +53,15 @@ func (u UsecaseContentImpl) GetContent(ctx context.Context, categoryID *int, lim
 	params := url.Values{}
 	params.Add("type", "content.ContentItem")
 	params.Add("limit", limit)
-	params.Add("fields", "*")
 	params.Add("order", "-first_published_at")
+	params.Add("fields", "'*")
+	if categoryID != nil {
+		params.Add("category", strconv.Itoa(*categoryID))
+	}
 
-	getContentEndpoint := fmt.Sprintf(contentAPIEndpoint + params.Encode())
-	logrus.Printf("the url is %v", getContentEndpoint)
+	getContentEndpoint := fmt.Sprintf(contentAPIEndpoint + "/?" + params.Encode())
 	var contentItems *domain.Content
-	resp, err := utils.MakeRequest(ctx, http.MethodGet, "https://mycarehub-test.savannahghi.org/contentapi/pages/?fields=*&limit=10&order=-first_published_at&type=content.ContentItem", nil)
+	resp, err := utils.MakeRequest(ctx, http.MethodGet, getContentEndpoint, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to make request")
 	}
