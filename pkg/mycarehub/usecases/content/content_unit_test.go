@@ -70,6 +70,109 @@ func TestUsecaseContentImpl_ListContentCategories(t *testing.T) {
 		})
 	}
 }
+func TestUseCasesContentImpl_LikeContent(t *testing.T) {
+	ctx := context.Background()
+
+	type args struct {
+		ctx       context.Context
+		userID    string
+		contentID int
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:       ctx,
+				userID:    uuid.New().String(),
+				contentID: 1,
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Sad case",
+			args: args{
+				ctx:       ctx,
+				userID:    uuid.New().String(),
+				contentID: 1,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case - no userID",
+			args: args{
+				ctx:       ctx,
+				userID:    "",
+				contentID: 1,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case - no contentID",
+			args: args{
+				ctx:       ctx,
+				userID:    uuid.New().String(),
+				contentID: 0,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case - no userID and contentID",
+			args: args{
+				ctx:       ctx,
+				userID:    "",
+				contentID: 0,
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_ = mock.NewContentUsecaseMock()
+			fakeDB := pgMock.NewPostgresMock()
+			c := content.NewUseCasesContentImplementation(fakeDB, fakeDB)
+
+			if tt.name == "Sad case" {
+				fakeDB.MockLikeContentFn = func(ctx context.Context, userID string, contentID int) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - no userID" {
+				fakeDB.MockLikeContentFn = func(ctx context.Context, userID string, contentID int) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - no contentID" {
+				fakeDB.MockLikeContentFn = func(ctx context.Context, userID string, contentID int) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - no userID and contentID" {
+				fakeDB.MockLikeContentFn = func(ctx context.Context, userID string, contentID int) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+
+			got, err := c.LikeContent(tt.args.ctx, tt.args.userID, tt.args.contentID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCasesContentImpl.LikeContent() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("UseCasesContentImpl.LikeContent() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
 
 func TestUseCaseContentImpl_ShareContent(t *testing.T) {
 
@@ -117,45 +220,9 @@ func TestUseCaseContentImpl_ShareContent(t *testing.T) {
 	}
 }
 
-func TestUseCasesContentImpl_BookmarkContent(t *testing.T) {
-	type args struct {
-		ctx       context.Context
-		userID    string
-		contentID int
-	}
-	tests := []struct {
-		name    string
-		args    args
-		want    bool
-		wantErr bool
-	}{
-		{
-			name: "Happy case",
-			args: args{
-				userID:    uuid.New().String(),
-				contentID: gofakeit.Number(1, 44),
-			},
-			want:    true,
-			wantErr: false,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			fakeDB := pgMock.NewPostgresMock()
-			c := content.NewUseCasesContentImplementation(fakeDB, fakeDB)
-			got, err := c.BookmarkContent(tt.args.ctx, tt.args.userID, tt.args.contentID)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("UseCasesContentImpl.BookmarkContent() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if got != tt.want {
-				t.Errorf("UseCasesContentImpl.BookmarkContent() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
+func TestUseCasesContentImpl_UnlikeContent(t *testing.T) {
+	ctx := context.Background()
 
-func TestUseCasesContentImpl_UnBookmarkContent(t *testing.T) {
 	type args struct {
 		ctx       context.Context
 		userID    string
@@ -170,24 +237,88 @@ func TestUseCasesContentImpl_UnBookmarkContent(t *testing.T) {
 		{
 			name: "Happy case",
 			args: args{
+				ctx:       ctx,
 				userID:    uuid.New().String(),
-				contentID: gofakeit.Number(1, 44),
+				contentID: 1,
 			},
 			want:    true,
 			wantErr: false,
 		},
+		{
+			name: "Sad case",
+			args: args{
+				ctx:       ctx,
+				userID:    uuid.New().String(),
+				contentID: 1,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case - no userID",
+			args: args{
+				ctx:       ctx,
+				userID:    "",
+				contentID: 1,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case - no contentID",
+			args: args{
+				ctx:       ctx,
+				userID:    uuid.New().String(),
+				contentID: 0,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case - no userID and contentID",
+			args: args{
+				ctx:       ctx,
+				userID:    "",
+				contentID: 0,
+			},
+			want:    false,
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			_ = mock.NewContentUsecaseMock()
 			fakeDB := pgMock.NewPostgresMock()
 			c := content.NewUseCasesContentImplementation(fakeDB, fakeDB)
-			got, err := c.UnBookmarkContent(tt.args.ctx, tt.args.userID, tt.args.contentID)
+
+			if tt.name == "Sad case" {
+				fakeDB.MockUnlikeContentFn = func(ctx context.Context, userID string, contentID int) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - no userID" {
+				fakeDB.MockUnlikeContentFn = func(ctx context.Context, userID string, contentID int) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - no contentID" {
+				fakeDB.MockUnlikeContentFn = func(ctx context.Context, userID string, contentID int) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - no userID and contentID" {
+				fakeDB.MockUnlikeContentFn = func(ctx context.Context, userID string, contentID int) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+
+			got, err := c.UnlikeContent(tt.args.ctx, tt.args.userID, tt.args.contentID)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("UseCasesContentImpl.UnBookmarkContent() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("UseCasesContentImpl.UnlikeContent() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if got != tt.want {
-				t.Errorf("UseCasesContentImpl.UnBookmarkContent() = %v, want %v", got, tt.want)
+				t.Errorf("UseCasesContentImpl.UnlikeContent() = %v, want %v", got, tt.want)
 			}
 		})
 	}

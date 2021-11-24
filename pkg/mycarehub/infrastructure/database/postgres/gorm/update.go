@@ -3,6 +3,7 @@ package gorm
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/savannahghi/feedlib"
@@ -25,6 +26,117 @@ type Update interface {
 	ShareContent(ctx context.Context, input dto.ShareContentInput) (bool, error)
 	BookmarkContent(ctx context.Context, userID string, contentID int) (bool, error)
 	UnBookmarkContent(ctx context.Context, userID string, contentID int) (bool, error)
+	LikeContent(context context.Context, userID string, contentID int) (bool, error)
+	UnlikeContent(context context.Context, userID string, contentID int) (bool, error)
+}
+
+// LikeContent perfoms the actual database operation to update content like. The operation
+// is carried out in a transaction.
+func (db *PGInstance) LikeContent(context context.Context, userID string, contentID int) (bool, error) {
+	if userID == "" || contentID == 0 {
+		return false, fmt.Errorf("userID or contentID cannot be empty")
+	}
+
+	contentLike := &ContentLike{
+		UserID:    userID,
+		ContentID: contentID,
+	}
+
+	tx := db.DB.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+	if err := tx.Error; err != nil {
+		return false, fmt.Errorf("failed to initialize like transaction")
+	}
+
+	var contentItem ContentItem
+	if err := tx.Model(&ContentItem{}).Where(&ContentItem{PagePtrID: contentID}).First(&contentItem).Error; err != nil {
+		return false, fmt.Errorf("unable to get content item: %v", err)
+	}
+
+	var likeCount = contentItem.LikeCount
+	err := tx.Model(&ContentLike{}).Create(&ContentLike{ContentID: contentID, UserID: userID, Active: true}).Error
+	if err != nil {
+		if strings.Contains(err.Error(), "duplicate key value violates unique constraint") {
+			return true, nil
+		}
+		return false, fmt.Errorf("unable to update content likes: %v", err)
+	}
+
+	err = tx.Model(&ContentItem{}).Where(&ContentItem{PagePtrID: contentID}).
+		Updates(map[string]interface{}{
+			"like_count": likeCount + 1,
+		}).Error
+	if err != nil {
+		return false, fmt.Errorf("unable to update like count in content item table: %v", err)
+	}
+
+	err = tx.Where(contentLike).FirstOrCreate(contentLike).Error
+	if err != nil {
+		tx.Rollback()
+		return false, fmt.Errorf("failed to save or get like content: %v", err)
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		tx.Rollback()
+		return false, fmt.Errorf("transaction commit to like count failed: %v", err)
+	}
+
+	return true, nil
+}
+
+// UnlikeContent perfoms the actual database operation to update content unlike. The operation
+// is carried out in a transaction.
+func (db *PGInstance) UnlikeContent(context context.Context, userID string, contentID int) (bool, error) {
+	if userID == "" || contentID == 0 {
+		return false, fmt.Errorf("userID or contentID cannot be empty")
+	}
+
+	tx := db.DB.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+	if err := tx.Error; err != nil {
+		return false, fmt.Errorf("failed to initialize like transaction")
+	}
+
+	var contentLike ContentLike
+	if err := tx.Model(&ContentLike{}).Where(&ContentLike{UserID: userID, ContentID: contentID}).First(&contentLike).Error; err != nil {
+		if strings.Contains(err.Error(), "record not found") {
+			return true, nil
+		}
+		return false, fmt.Errorf("unable to get content like for the specifies user: %v", err)
+	}
+
+	var contentItem ContentItem
+	if err := tx.Model(&ContentItem{}).Where(&ContentItem{PagePtrID: contentID}).First(&contentItem).Error; err != nil {
+		return false, fmt.Errorf("unable to get content item: %v", err)
+	}
+
+	err := tx.Where("user_id = ?", userID, "content_item_id = ?", contentID).Delete(&ContentLike{}).Error
+	if err != nil {
+		return false, fmt.Errorf("unable to delete content likes: %v", err)
+	}
+
+	err = tx.Model(&ContentItem{}).Where(&ContentItem{PagePtrID: contentID}).
+		Updates(map[string]interface{}{
+			"like_count": contentItem.LikeCount - 1,
+		}).Error
+	if err != nil {
+		return false, fmt.Errorf("unable to update like count in content item table: %v", err)
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		tx.Rollback()
+		return false, fmt.Errorf("transaction commit to like count failed: %v", err)
+	}
+
+	return true, nil
 }
 
 // ReactivateFacility perfoms the actual re-activation of the facility in the database

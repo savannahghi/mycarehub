@@ -8,5 +8,7 @@ extend type Mutation {
   shareContent(input: ShareContentInput!): Boolean!
   bookmarkContent(userID: String!, contentItemID: Int!): Boolean!
   UnBookmarkContent(userID: String!, contentItemID: Int!): Boolean!
+  likeContent(userID: String!, contentID: Int!): Boolean!
+  unlikeContent(userID: String!, contentID: Int!): Boolean!
 }
 
