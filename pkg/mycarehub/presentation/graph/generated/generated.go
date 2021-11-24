@@ -47,11 +47,10 @@ type DirectiveRoot struct {
 
 type ComplexityRoot struct {
 	Author struct {
-		AuthorName func(childComplexity int) int
-		ID         func(childComplexity int) int
+		ID func(childComplexity int) int
 	}
 
-	CategoryDetails struct {
+	CategoryDetail struct {
 		CategoryIcon func(childComplexity int) int
 		CategoryName func(childComplexity int) int
 		ID           func(childComplexity int) int
@@ -59,6 +58,7 @@ type ComplexityRoot struct {
 
 	Content struct {
 		Items func(childComplexity int) int
+		Meta  func(childComplexity int) int
 	}
 
 	ContentItem struct {
@@ -69,6 +69,8 @@ type ComplexityRoot struct {
 		CategoryDetails     func(childComplexity int) int
 		Date                func(childComplexity int) int
 		Documents           func(childComplexity int) int
+		FeaturedMedia       func(childComplexity int) int
+		GalleryImages       func(childComplexity int) int
 		HeroImage           func(childComplexity int) int
 		HeroImageRendition  func(childComplexity int) int
 		ID                  func(childComplexity int) int
@@ -101,14 +103,21 @@ type ComplexityRoot struct {
 		Slug              func(childComplexity int) int
 	}
 
+	Document struct {
+		Document func(childComplexity int) int
+		ID       func(childComplexity int) int
+		Meta     func(childComplexity int) int
+	}
+
 	DocumentData struct {
 		ID    func(childComplexity int) int
 		Title func(childComplexity int) int
 	}
 
-	Documents struct {
-		Document func(childComplexity int) int
-		ID       func(childComplexity int) int
+	DocumentMeta struct {
+		DocumentDetailURL   func(childComplexity int) int
+		DocumentDownloadURL func(childComplexity int) int
+		Type                func(childComplexity int) int
 	}
 
 	Facility struct {
@@ -125,10 +134,25 @@ type ComplexityRoot struct {
 		Pagination func(childComplexity int) int
 	}
 
+	FeaturedMedia struct {
+		Height    func(childComplexity int) int
+		ID        func(childComplexity int) int
+		Thumbnail func(childComplexity int) int
+		Title     func(childComplexity int) int
+		Type      func(childComplexity int) int
+		URL       func(childComplexity int) int
+		Width     func(childComplexity int) int
+	}
+
 	FiltersParam struct {
 		DataType func(childComplexity int) int
 		Name     func(childComplexity int) int
 		Value    func(childComplexity int) int
+	}
+
+	GalleryImage struct {
+		ID    func(childComplexity int) int
+		Image func(childComplexity int) int
 	}
 
 	HeroImage struct {
@@ -141,6 +165,22 @@ type ComplexityRoot struct {
 		Height func(childComplexity int) int
 		URL    func(childComplexity int) int
 		Width  func(childComplexity int) int
+	}
+
+	ImageDetail struct {
+		ID    func(childComplexity int) int
+		Meta  func(childComplexity int) int
+		Title func(childComplexity int) int
+	}
+
+	ImageMeta struct {
+		ImageDetailURL   func(childComplexity int) int
+		ImageDownloadURL func(childComplexity int) int
+		Type             func(childComplexity int) int
+	}
+
+	Meta struct {
+		TotalCount func(childComplexity int) int
 	}
 
 	Mutation struct {
@@ -235,13 +275,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 	_ = ec
 	switch typeName + "." + field {
 
-	case "Author.authorName":
-		if e.complexity.Author.AuthorName == nil {
-			break
-		}
-
-		return e.complexity.Author.AuthorName(childComplexity), true
-
 	case "Author.ID":
 		if e.complexity.Author.ID == nil {
 			break
@@ -249,26 +282,26 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Author.ID(childComplexity), true
 
-	case "CategoryDetails.categoryIcon":
-		if e.complexity.CategoryDetails.CategoryIcon == nil {
+	case "CategoryDetail.categoryIcon":
+		if e.complexity.CategoryDetail.CategoryIcon == nil {
 			break
 		}
 
-		return e.complexity.CategoryDetails.CategoryIcon(childComplexity), true
+		return e.complexity.CategoryDetail.CategoryIcon(childComplexity), true
 
-	case "CategoryDetails.categoryName":
-		if e.complexity.CategoryDetails.CategoryName == nil {
+	case "CategoryDetail.categoryName":
+		if e.complexity.CategoryDetail.CategoryName == nil {
 			break
 		}
 
-		return e.complexity.CategoryDetails.CategoryName(childComplexity), true
+		return e.complexity.CategoryDetail.CategoryName(childComplexity), true
 
-	case "CategoryDetails.ID":
-		if e.complexity.CategoryDetails.ID == nil {
+	case "CategoryDetail.ID":
+		if e.complexity.CategoryDetail.ID == nil {
 			break
 		}
 
-		return e.complexity.CategoryDetails.ID(childComplexity), true
+		return e.complexity.CategoryDetail.ID(childComplexity), true
 
 	case "Content.items":
 		if e.complexity.Content.Items == nil {
@@ -276,6 +309,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Content.Items(childComplexity), true
+
+	case "Content.meta":
+		if e.complexity.Content.Meta == nil {
+			break
+		}
+
+		return e.complexity.Content.Meta(childComplexity), true
 
 	case "ContentItem.author":
 		if e.complexity.ContentItem.Author == nil {
@@ -325,6 +365,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ContentItem.Documents(childComplexity), true
+
+	case "ContentItem.featuredMedia":
+		if e.complexity.ContentItem.FeaturedMedia == nil {
+			break
+		}
+
+		return e.complexity.ContentItem.FeaturedMedia(childComplexity), true
+
+	case "ContentItem.galleryImages":
+		if e.complexity.ContentItem.GalleryImages == nil {
+			break
+		}
+
+		return e.complexity.ContentItem.GalleryImages(childComplexity), true
 
 	case "ContentItem.heroImage":
 		if e.complexity.ContentItem.HeroImage == nil {
@@ -494,6 +548,27 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ContentMeta.Slug(childComplexity), true
 
+	case "Document.Document":
+		if e.complexity.Document.Document == nil {
+			break
+		}
+
+		return e.complexity.Document.Document(childComplexity), true
+
+	case "Document.ID":
+		if e.complexity.Document.ID == nil {
+			break
+		}
+
+		return e.complexity.Document.ID(childComplexity), true
+
+	case "Document.meta":
+		if e.complexity.Document.Meta == nil {
+			break
+		}
+
+		return e.complexity.Document.Meta(childComplexity), true
+
 	case "DocumentData.ID":
 		if e.complexity.DocumentData.ID == nil {
 			break
@@ -508,19 +583,26 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.DocumentData.Title(childComplexity), true
 
-	case "Documents.Document":
-		if e.complexity.Documents.Document == nil {
+	case "DocumentMeta.documentDetailUrl":
+		if e.complexity.DocumentMeta.DocumentDetailURL == nil {
 			break
 		}
 
-		return e.complexity.Documents.Document(childComplexity), true
+		return e.complexity.DocumentMeta.DocumentDetailURL(childComplexity), true
 
-	case "Documents.ID":
-		if e.complexity.Documents.ID == nil {
+	case "DocumentMeta.documentDownloadUrl":
+		if e.complexity.DocumentMeta.DocumentDownloadURL == nil {
 			break
 		}
 
-		return e.complexity.Documents.ID(childComplexity), true
+		return e.complexity.DocumentMeta.DocumentDownloadURL(childComplexity), true
+
+	case "DocumentMeta.type":
+		if e.complexity.DocumentMeta.Type == nil {
+			break
+		}
+
+		return e.complexity.DocumentMeta.Type(childComplexity), true
 
 	case "Facility.active":
 		if e.complexity.Facility.Active == nil {
@@ -578,6 +660,55 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.FacilityPage.Pagination(childComplexity), true
 
+	case "FeaturedMedia.height":
+		if e.complexity.FeaturedMedia.Height == nil {
+			break
+		}
+
+		return e.complexity.FeaturedMedia.Height(childComplexity), true
+
+	case "FeaturedMedia.ID":
+		if e.complexity.FeaturedMedia.ID == nil {
+			break
+		}
+
+		return e.complexity.FeaturedMedia.ID(childComplexity), true
+
+	case "FeaturedMedia.thumbnail":
+		if e.complexity.FeaturedMedia.Thumbnail == nil {
+			break
+		}
+
+		return e.complexity.FeaturedMedia.Thumbnail(childComplexity), true
+
+	case "FeaturedMedia.title":
+		if e.complexity.FeaturedMedia.Title == nil {
+			break
+		}
+
+		return e.complexity.FeaturedMedia.Title(childComplexity), true
+
+	case "FeaturedMedia.type":
+		if e.complexity.FeaturedMedia.Type == nil {
+			break
+		}
+
+		return e.complexity.FeaturedMedia.Type(childComplexity), true
+
+	case "FeaturedMedia.url":
+		if e.complexity.FeaturedMedia.URL == nil {
+			break
+		}
+
+		return e.complexity.FeaturedMedia.URL(childComplexity), true
+
+	case "FeaturedMedia.width":
+		if e.complexity.FeaturedMedia.Width == nil {
+			break
+		}
+
+		return e.complexity.FeaturedMedia.Width(childComplexity), true
+
 	case "FiltersParam.DataType":
 		if e.complexity.FiltersParam.DataType == nil {
 			break
@@ -598,6 +729,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.FiltersParam.Value(childComplexity), true
+
+	case "GalleryImage.ID":
+		if e.complexity.GalleryImage.ID == nil {
+			break
+		}
+
+		return e.complexity.GalleryImage.ID(childComplexity), true
+
+	case "GalleryImage.image":
+		if e.complexity.GalleryImage.Image == nil {
+			break
+		}
+
+		return e.complexity.GalleryImage.Image(childComplexity), true
 
 	case "HeroImage.ID":
 		if e.complexity.HeroImage.ID == nil {
@@ -640,6 +785,55 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.HeroImageRendition.Width(childComplexity), true
+
+	case "ImageDetail.ID":
+		if e.complexity.ImageDetail.ID == nil {
+			break
+		}
+
+		return e.complexity.ImageDetail.ID(childComplexity), true
+
+	case "ImageDetail.meta":
+		if e.complexity.ImageDetail.Meta == nil {
+			break
+		}
+
+		return e.complexity.ImageDetail.Meta(childComplexity), true
+
+	case "ImageDetail.title":
+		if e.complexity.ImageDetail.Title == nil {
+			break
+		}
+
+		return e.complexity.ImageDetail.Title(childComplexity), true
+
+	case "ImageMeta.imageDetailUrl":
+		if e.complexity.ImageMeta.ImageDetailURL == nil {
+			break
+		}
+
+		return e.complexity.ImageMeta.ImageDetailURL(childComplexity), true
+
+	case "ImageMeta.imageDownloadUrl":
+		if e.complexity.ImageMeta.ImageDownloadURL == nil {
+			break
+		}
+
+		return e.complexity.ImageMeta.ImageDownloadURL(childComplexity), true
+
+	case "ImageMeta.type":
+		if e.complexity.ImageMeta.Type == nil {
+			break
+		}
+
+		return e.complexity.ImageMeta.Type(childComplexity), true
+
+	case "Meta.totalCount":
+		if e.complexity.Meta.TotalCount == nil {
+			break
+		}
+
+		return e.complexity.Meta.TotalCount(childComplexity), true
 
 	case "Mutation.acceptTerms":
 		if e.complexity.Mutation.AcceptTerms == nil {
@@ -1231,6 +1425,11 @@ type RecordSecurityQuestionResponse {
 
 type Content {
   items: [ContentItem!]!
+  meta: Meta!
+}
+
+type Meta {
+  totalCount: Int!
 }
 
 type ContentItem {
@@ -1250,9 +1449,11 @@ type ContentItem {
   viewCount: Int!
   tagNames: [String!]!
   shareCount: Int!
-  documents: [Documents]
+  documents: [Document]
   author: Author!
-  categoryDetails: [CategoryDetails]
+  categoryDetails: [CategoryDetail]
+  featuredMedia: [FeaturedMedia]
+  galleryImages: [GalleryImage]
 }
 
 type HeroImage {
@@ -1279,7 +1480,7 @@ type ContentMeta {
   locale: String
 }
 
-type CategoryDetails {
+type CategoryDetail {
   ID: Int!
   categoryName: String!
   categoryIcon: String!
@@ -1287,12 +1488,18 @@ type CategoryDetails {
 
 type Author {
   ID: String!
-  authorName: String!
 }
 
-type Documents {
+type Document {
   ID: Int!
   Document: DocumentData!
+  meta: DocumentMeta!
+}
+
+type DocumentMeta {
+  type: String!
+  documentDetailUrl: String!
+  documentDownloadUrl: String!
 }
 
 type DocumentData {
@@ -1301,9 +1508,37 @@ type DocumentData {
 }
 
 type ContentItemCategory {
-	id:      Int!
-	name:   String!
-	iconUrl: String!
+  id: Int!
+  name: String!
+  iconUrl: String!
+}
+
+type FeaturedMedia {
+  ID: Int!
+  url: String!
+  title: String!
+  type: String!
+  # duration: Float
+  width: Int
+  height: Int
+  thumbnail: String
+}
+
+type GalleryImage {
+  ID: Int!
+  image: ImageDetail!
+}
+
+type ImageDetail {
+  ID: Int!
+  title: String!
+  meta: ImageMeta!
+}
+
+type ImageMeta {
+  type: String!
+  imageDetailUrl: String!
+  imageDownloadUrl: String!
 }
 `, BuiltIn: false},
 	{Name: "pkg/mycarehub/presentation/graph/user.graphql", Input: `extend type Query {
@@ -1760,7 +1995,7 @@ func (ec *executionContext) _Author_ID(ctx context.Context, field graphql.Collec
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Author_authorName(ctx context.Context, field graphql.CollectedField, obj *domain.Author) (ret graphql.Marshaler) {
+func (ec *executionContext) _CategoryDetail_ID(ctx context.Context, field graphql.CollectedField, obj *domain.CategoryDetail) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -1768,42 +2003,7 @@ func (ec *executionContext) _Author_authorName(ctx context.Context, field graphq
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:     "Author",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.AuthorName, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _CategoryDetails_ID(ctx context.Context, field graphql.CollectedField, obj *domain.CategoryDetails) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "CategoryDetails",
+		Object:     "CategoryDetail",
 		Field:      field,
 		Args:       nil,
 		IsMethod:   false,
@@ -1830,7 +2030,7 @@ func (ec *executionContext) _CategoryDetails_ID(ctx context.Context, field graph
 	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _CategoryDetails_categoryName(ctx context.Context, field graphql.CollectedField, obj *domain.CategoryDetails) (ret graphql.Marshaler) {
+func (ec *executionContext) _CategoryDetail_categoryName(ctx context.Context, field graphql.CollectedField, obj *domain.CategoryDetail) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -1838,7 +2038,7 @@ func (ec *executionContext) _CategoryDetails_categoryName(ctx context.Context, f
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:     "CategoryDetails",
+		Object:     "CategoryDetail",
 		Field:      field,
 		Args:       nil,
 		IsMethod:   false,
@@ -1865,7 +2065,7 @@ func (ec *executionContext) _CategoryDetails_categoryName(ctx context.Context, f
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _CategoryDetails_categoryIcon(ctx context.Context, field graphql.CollectedField, obj *domain.CategoryDetails) (ret graphql.Marshaler) {
+func (ec *executionContext) _CategoryDetail_categoryIcon(ctx context.Context, field graphql.CollectedField, obj *domain.CategoryDetail) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -1873,7 +2073,7 @@ func (ec *executionContext) _CategoryDetails_categoryIcon(ctx context.Context, f
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:     "CategoryDetails",
+		Object:     "CategoryDetail",
 		Field:      field,
 		Args:       nil,
 		IsMethod:   false,
@@ -1933,6 +2133,41 @@ func (ec *executionContext) _Content_items(ctx context.Context, field graphql.Co
 	res := resTmp.([]domain.ContentItem)
 	fc.Result = res
 	return ec.marshalNContentItem2ᚕgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐContentItemᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Content_meta(ctx context.Context, field graphql.CollectedField, obj *domain.Content) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Content",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Meta, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(domain.Meta)
+	fc.Result = res
+	return ec.marshalNMeta2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐMeta(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ContentItem_ID(ctx context.Context, field graphql.CollectedField, obj *domain.ContentItem) (ret graphql.Marshaler) {
@@ -2513,9 +2748,9 @@ func (ec *executionContext) _ContentItem_documents(ctx context.Context, field gr
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.([]domain.Documents)
+	res := resTmp.([]domain.Document)
 	fc.Result = res
-	return ec.marshalODocuments2ᚕgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐDocuments(ctx, field.Selections, res)
+	return ec.marshalODocument2ᚕgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐDocument(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ContentItem_author(ctx context.Context, field graphql.CollectedField, obj *domain.ContentItem) (ret graphql.Marshaler) {
@@ -2580,9 +2815,73 @@ func (ec *executionContext) _ContentItem_categoryDetails(ctx context.Context, fi
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.([]domain.CategoryDetails)
+	res := resTmp.([]domain.CategoryDetail)
 	fc.Result = res
-	return ec.marshalOCategoryDetails2ᚕgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐCategoryDetails(ctx, field.Selections, res)
+	return ec.marshalOCategoryDetail2ᚕgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐCategoryDetail(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ContentItem_featuredMedia(ctx context.Context, field graphql.CollectedField, obj *domain.ContentItem) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ContentItem",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.FeaturedMedia, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]domain.FeaturedMedia)
+	fc.Result = res
+	return ec.marshalOFeaturedMedia2ᚕgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐFeaturedMedia(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ContentItem_galleryImages(ctx context.Context, field graphql.CollectedField, obj *domain.ContentItem) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ContentItem",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.GalleryImages, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]domain.GalleryImage)
+	fc.Result = res
+	return ec.marshalOGalleryImage2ᚕgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐGalleryImage(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ContentItemCategory_id(ctx context.Context, field graphql.CollectedField, obj *domain.ContentItemCategory) (ret graphql.Marshaler) {
@@ -2993,6 +3292,111 @@ func (ec *executionContext) _ContentMeta_locale(ctx context.Context, field graph
 	return ec.marshalOString2string(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Document_ID(ctx context.Context, field graphql.CollectedField, obj *domain.Document) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Document",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Document_Document(ctx context.Context, field graphql.CollectedField, obj *domain.Document) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Document",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Document, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(domain.DocumentData)
+	fc.Result = res
+	return ec.marshalNDocumentData2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐDocumentData(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Document_meta(ctx context.Context, field graphql.CollectedField, obj *domain.Document) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Document",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Meta, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(domain.DocumentMeta)
+	fc.Result = res
+	return ec.marshalNDocumentMeta2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐDocumentMeta(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _DocumentData_ID(ctx context.Context, field graphql.CollectedField, obj *domain.DocumentData) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -3063,7 +3467,7 @@ func (ec *executionContext) _DocumentData_title(ctx context.Context, field graph
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Documents_ID(ctx context.Context, field graphql.CollectedField, obj *domain.Documents) (ret graphql.Marshaler) {
+func (ec *executionContext) _DocumentMeta_type(ctx context.Context, field graphql.CollectedField, obj *domain.DocumentMeta) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -3071,7 +3475,7 @@ func (ec *executionContext) _Documents_ID(ctx context.Context, field graphql.Col
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:     "Documents",
+		Object:     "DocumentMeta",
 		Field:      field,
 		Args:       nil,
 		IsMethod:   false,
@@ -3081,7 +3485,7 @@ func (ec *executionContext) _Documents_ID(ctx context.Context, field graphql.Col
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.ID, nil
+		return obj.Type, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3093,12 +3497,12 @@ func (ec *executionContext) _Documents_ID(ctx context.Context, field graphql.Col
 		}
 		return graphql.Null
 	}
-	res := resTmp.(int)
+	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Documents_Document(ctx context.Context, field graphql.CollectedField, obj *domain.Documents) (ret graphql.Marshaler) {
+func (ec *executionContext) _DocumentMeta_documentDetailUrl(ctx context.Context, field graphql.CollectedField, obj *domain.DocumentMeta) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -3106,7 +3510,7 @@ func (ec *executionContext) _Documents_Document(ctx context.Context, field graph
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:     "Documents",
+		Object:     "DocumentMeta",
 		Field:      field,
 		Args:       nil,
 		IsMethod:   false,
@@ -3116,7 +3520,7 @@ func (ec *executionContext) _Documents_Document(ctx context.Context, field graph
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Document, nil
+		return obj.DocumentDetailURL, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3128,9 +3532,44 @@ func (ec *executionContext) _Documents_Document(ctx context.Context, field graph
 		}
 		return graphql.Null
 	}
-	res := resTmp.(domain.DocumentData)
+	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalNDocumentData2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐDocumentData(ctx, field.Selections, res)
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _DocumentMeta_documentDownloadUrl(ctx context.Context, field graphql.CollectedField, obj *domain.DocumentMeta) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "DocumentMeta",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.DocumentDownloadURL, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Facility_ID(ctx context.Context, field graphql.CollectedField, obj *domain.Facility) (ret graphql.Marshaler) {
@@ -3413,6 +3852,242 @@ func (ec *executionContext) _FacilityPage_Facilities(ctx context.Context, field 
 	return ec.marshalNFacility2ᚕgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐFacility(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _FeaturedMedia_ID(ctx context.Context, field graphql.CollectedField, obj *domain.FeaturedMedia) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "FeaturedMedia",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _FeaturedMedia_url(ctx context.Context, field graphql.CollectedField, obj *domain.FeaturedMedia) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "FeaturedMedia",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.URL, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _FeaturedMedia_title(ctx context.Context, field graphql.CollectedField, obj *domain.FeaturedMedia) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "FeaturedMedia",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Title, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _FeaturedMedia_type(ctx context.Context, field graphql.CollectedField, obj *domain.FeaturedMedia) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "FeaturedMedia",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Type, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _FeaturedMedia_width(ctx context.Context, field graphql.CollectedField, obj *domain.FeaturedMedia) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "FeaturedMedia",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Width, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalOInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _FeaturedMedia_height(ctx context.Context, field graphql.CollectedField, obj *domain.FeaturedMedia) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "FeaturedMedia",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Height, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalOInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _FeaturedMedia_thumbnail(ctx context.Context, field graphql.CollectedField, obj *domain.FeaturedMedia) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "FeaturedMedia",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Thumbnail, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _FiltersParam_Name(ctx context.Context, field graphql.CollectedField, obj *domain.FiltersParam) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -3507,6 +4182,76 @@ func (ec *executionContext) _FiltersParam_Value(ctx context.Context, field graph
 	res := resTmp.(string)
 	fc.Result = res
 	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _GalleryImage_ID(ctx context.Context, field graphql.CollectedField, obj *domain.GalleryImage) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "GalleryImage",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _GalleryImage_image(ctx context.Context, field graphql.CollectedField, obj *domain.GalleryImage) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "GalleryImage",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Image, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(domain.ImageDetail)
+	fc.Result = res
+	return ec.marshalNImageDetail2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐImageDetail(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _HeroImage_ID(ctx context.Context, field graphql.CollectedField, obj *domain.HeroImage) (ret graphql.Marshaler) {
@@ -3717,6 +4462,251 @@ func (ec *executionContext) _HeroImageRendition_alt(ctx context.Context, field g
 	res := resTmp.(string)
 	fc.Result = res
 	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ImageDetail_ID(ctx context.Context, field graphql.CollectedField, obj *domain.ImageDetail) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ImageDetail",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ImageDetail_title(ctx context.Context, field graphql.CollectedField, obj *domain.ImageDetail) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ImageDetail",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Title, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ImageDetail_meta(ctx context.Context, field graphql.CollectedField, obj *domain.ImageDetail) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ImageDetail",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Meta, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(domain.ImageMeta)
+	fc.Result = res
+	return ec.marshalNImageMeta2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐImageMeta(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ImageMeta_type(ctx context.Context, field graphql.CollectedField, obj *domain.ImageMeta) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ImageMeta",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Type, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ImageMeta_imageDetailUrl(ctx context.Context, field graphql.CollectedField, obj *domain.ImageMeta) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ImageMeta",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ImageDetailURL, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ImageMeta_imageDownloadUrl(ctx context.Context, field graphql.CollectedField, obj *domain.ImageMeta) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ImageMeta",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ImageDownloadURL, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Meta_totalCount(ctx context.Context, field graphql.CollectedField, obj *domain.Meta) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Meta",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TotalCount, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_createFacility(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -6456,11 +7446,6 @@ func (ec *executionContext) _Author(ctx context.Context, sel ast.SelectionSet, o
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "authorName":
-			out.Values[i] = ec._Author_authorName(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -6472,29 +7457,29 @@ func (ec *executionContext) _Author(ctx context.Context, sel ast.SelectionSet, o
 	return out
 }
 
-var categoryDetailsImplementors = []string{"CategoryDetails"}
+var categoryDetailImplementors = []string{"CategoryDetail"}
 
-func (ec *executionContext) _CategoryDetails(ctx context.Context, sel ast.SelectionSet, obj *domain.CategoryDetails) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, categoryDetailsImplementors)
+func (ec *executionContext) _CategoryDetail(ctx context.Context, sel ast.SelectionSet, obj *domain.CategoryDetail) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, categoryDetailImplementors)
 
 	out := graphql.NewFieldSet(fields)
 	var invalids uint32
 	for i, field := range fields {
 		switch field.Name {
 		case "__typename":
-			out.Values[i] = graphql.MarshalString("CategoryDetails")
+			out.Values[i] = graphql.MarshalString("CategoryDetail")
 		case "ID":
-			out.Values[i] = ec._CategoryDetails_ID(ctx, field, obj)
+			out.Values[i] = ec._CategoryDetail_ID(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
 		case "categoryName":
-			out.Values[i] = ec._CategoryDetails_categoryName(ctx, field, obj)
+			out.Values[i] = ec._CategoryDetail_categoryName(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
 		case "categoryIcon":
-			out.Values[i] = ec._CategoryDetails_categoryIcon(ctx, field, obj)
+			out.Values[i] = ec._CategoryDetail_categoryIcon(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -6522,6 +7507,11 @@ func (ec *executionContext) _Content(ctx context.Context, sel ast.SelectionSet, 
 			out.Values[i] = graphql.MarshalString("Content")
 		case "items":
 			out.Values[i] = ec._Content_items(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "meta":
+			out.Values[i] = ec._Content_meta(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -6627,6 +7617,10 @@ func (ec *executionContext) _ContentItem(ctx context.Context, sel ast.SelectionS
 			}
 		case "categoryDetails":
 			out.Values[i] = ec._ContentItem_categoryDetails(ctx, field, obj)
+		case "featuredMedia":
+			out.Values[i] = ec._ContentItem_featuredMedia(ctx, field, obj)
+		case "galleryImages":
+			out.Values[i] = ec._ContentItem_galleryImages(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -6730,6 +7724,43 @@ func (ec *executionContext) _ContentMeta(ctx context.Context, sel ast.SelectionS
 	return out
 }
 
+var documentImplementors = []string{"Document"}
+
+func (ec *executionContext) _Document(ctx context.Context, sel ast.SelectionSet, obj *domain.Document) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, documentImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Document")
+		case "ID":
+			out.Values[i] = ec._Document_ID(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "Document":
+			out.Values[i] = ec._Document_Document(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "meta":
+			out.Values[i] = ec._Document_meta(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var documentDataImplementors = []string{"DocumentData"}
 
 func (ec *executionContext) _DocumentData(ctx context.Context, sel ast.SelectionSet, obj *domain.DocumentData) graphql.Marshaler {
@@ -6762,24 +7793,29 @@ func (ec *executionContext) _DocumentData(ctx context.Context, sel ast.Selection
 	return out
 }
 
-var documentsImplementors = []string{"Documents"}
+var documentMetaImplementors = []string{"DocumentMeta"}
 
-func (ec *executionContext) _Documents(ctx context.Context, sel ast.SelectionSet, obj *domain.Documents) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, documentsImplementors)
+func (ec *executionContext) _DocumentMeta(ctx context.Context, sel ast.SelectionSet, obj *domain.DocumentMeta) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, documentMetaImplementors)
 
 	out := graphql.NewFieldSet(fields)
 	var invalids uint32
 	for i, field := range fields {
 		switch field.Name {
 		case "__typename":
-			out.Values[i] = graphql.MarshalString("Documents")
-		case "ID":
-			out.Values[i] = ec._Documents_ID(ctx, field, obj)
+			out.Values[i] = graphql.MarshalString("DocumentMeta")
+		case "type":
+			out.Values[i] = ec._DocumentMeta_type(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "Document":
-			out.Values[i] = ec._Documents_Document(ctx, field, obj)
+		case "documentDetailUrl":
+			out.Values[i] = ec._DocumentMeta_documentDetailUrl(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "documentDownloadUrl":
+			out.Values[i] = ec._DocumentMeta_documentDownloadUrl(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -6878,6 +7914,54 @@ func (ec *executionContext) _FacilityPage(ctx context.Context, sel ast.Selection
 	return out
 }
 
+var featuredMediaImplementors = []string{"FeaturedMedia"}
+
+func (ec *executionContext) _FeaturedMedia(ctx context.Context, sel ast.SelectionSet, obj *domain.FeaturedMedia) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, featuredMediaImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("FeaturedMedia")
+		case "ID":
+			out.Values[i] = ec._FeaturedMedia_ID(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "url":
+			out.Values[i] = ec._FeaturedMedia_url(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "title":
+			out.Values[i] = ec._FeaturedMedia_title(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "type":
+			out.Values[i] = ec._FeaturedMedia_type(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "width":
+			out.Values[i] = ec._FeaturedMedia_width(ctx, field, obj)
+		case "height":
+			out.Values[i] = ec._FeaturedMedia_height(ctx, field, obj)
+		case "thumbnail":
+			out.Values[i] = ec._FeaturedMedia_thumbnail(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var filtersParamImplementors = []string{"FiltersParam"}
 
 func (ec *executionContext) _FiltersParam(ctx context.Context, sel ast.SelectionSet, obj *domain.FiltersParam) graphql.Marshaler {
@@ -6895,6 +7979,38 @@ func (ec *executionContext) _FiltersParam(ctx context.Context, sel ast.Selection
 			out.Values[i] = ec._FiltersParam_DataType(ctx, field, obj)
 		case "Value":
 			out.Values[i] = ec._FiltersParam_Value(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var galleryImageImplementors = []string{"GalleryImage"}
+
+func (ec *executionContext) _GalleryImage(ctx context.Context, sel ast.SelectionSet, obj *domain.GalleryImage) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, galleryImageImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("GalleryImage")
+		case "ID":
+			out.Values[i] = ec._GalleryImage_ID(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "image":
+			out.Values[i] = ec._GalleryImage_image(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -6966,6 +8082,107 @@ func (ec *executionContext) _HeroImageRendition(ctx context.Context, sel ast.Sel
 			}
 		case "alt":
 			out.Values[i] = ec._HeroImageRendition_alt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var imageDetailImplementors = []string{"ImageDetail"}
+
+func (ec *executionContext) _ImageDetail(ctx context.Context, sel ast.SelectionSet, obj *domain.ImageDetail) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, imageDetailImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ImageDetail")
+		case "ID":
+			out.Values[i] = ec._ImageDetail_ID(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "title":
+			out.Values[i] = ec._ImageDetail_title(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "meta":
+			out.Values[i] = ec._ImageDetail_meta(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var imageMetaImplementors = []string{"ImageMeta"}
+
+func (ec *executionContext) _ImageMeta(ctx context.Context, sel ast.SelectionSet, obj *domain.ImageMeta) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, imageMetaImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ImageMeta")
+		case "type":
+			out.Values[i] = ec._ImageMeta_type(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "imageDetailUrl":
+			out.Values[i] = ec._ImageMeta_imageDetailUrl(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "imageDownloadUrl":
+			out.Values[i] = ec._ImageMeta_imageDownloadUrl(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var metaImplementors = []string{"Meta"}
+
+func (ec *executionContext) _Meta(ctx context.Context, sel ast.SelectionSet, obj *domain.Meta) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, metaImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Meta")
+		case "totalCount":
+			out.Values[i] = ec._Meta_totalCount(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -7744,6 +8961,10 @@ func (ec *executionContext) marshalNDocumentData2githubᚗcomᚋsavannahghiᚋmy
 	return ec._DocumentData(ctx, sel, &v)
 }
 
+func (ec *executionContext) marshalNDocumentMeta2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐDocumentMeta(ctx context.Context, sel ast.SelectionSet, v domain.DocumentMeta) graphql.Marshaler {
+	return ec._DocumentMeta(ctx, sel, &v)
+}
+
 func (ec *executionContext) marshalNFacility2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐFacility(ctx context.Context, sel ast.SelectionSet, v domain.Facility) graphql.Marshaler {
 	return ec._Facility(ctx, sel, &v)
 }
@@ -7811,6 +9032,14 @@ func (ec *executionContext) marshalNFlavour2githubᚗcomᚋsavannahghiᚋfeedlib
 	return v
 }
 
+func (ec *executionContext) marshalNImageDetail2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐImageDetail(ctx context.Context, sel ast.SelectionSet, v domain.ImageDetail) graphql.Marshaler {
+	return ec._ImageDetail(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNImageMeta2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐImageMeta(ctx context.Context, sel ast.SelectionSet, v domain.ImageMeta) graphql.Marshaler {
+	return ec._ImageMeta(ctx, sel, &v)
+}
+
 func (ec *executionContext) unmarshalNInt2int(ctx context.Context, v interface{}) (int, error) {
 	res, err := graphql.UnmarshalInt(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -7824,6 +9053,10 @@ func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.Selecti
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) marshalNMeta2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐMeta(ctx context.Context, sel ast.SelectionSet, v domain.Meta) graphql.Marshaler {
+	return ec._Meta(ctx, sel, &v)
 }
 
 func (ec *executionContext) marshalNPagination2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐPagination(ctx context.Context, sel ast.SelectionSet, v domain.Pagination) graphql.Marshaler {
@@ -8361,11 +9594,11 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 	return graphql.MarshalBoolean(*v)
 }
 
-func (ec *executionContext) marshalOCategoryDetails2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐCategoryDetails(ctx context.Context, sel ast.SelectionSet, v domain.CategoryDetails) graphql.Marshaler {
-	return ec._CategoryDetails(ctx, sel, &v)
+func (ec *executionContext) marshalOCategoryDetail2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐCategoryDetail(ctx context.Context, sel ast.SelectionSet, v domain.CategoryDetail) graphql.Marshaler {
+	return ec._CategoryDetail(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalOCategoryDetails2ᚕgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐCategoryDetails(ctx context.Context, sel ast.SelectionSet, v []domain.CategoryDetails) graphql.Marshaler {
+func (ec *executionContext) marshalOCategoryDetail2ᚕgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐCategoryDetail(ctx context.Context, sel ast.SelectionSet, v []domain.CategoryDetail) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -8392,7 +9625,7 @@ func (ec *executionContext) marshalOCategoryDetails2ᚕgithubᚗcomᚋsavannahgh
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalOCategoryDetails2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐCategoryDetails(ctx, sel, v[i])
+			ret[i] = ec.marshalOCategoryDetail2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐCategoryDetail(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -8406,11 +9639,11 @@ func (ec *executionContext) marshalOCategoryDetails2ᚕgithubᚗcomᚋsavannahgh
 	return ret
 }
 
-func (ec *executionContext) marshalODocuments2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐDocuments(ctx context.Context, sel ast.SelectionSet, v domain.Documents) graphql.Marshaler {
-	return ec._Documents(ctx, sel, &v)
+func (ec *executionContext) marshalODocument2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐDocument(ctx context.Context, sel ast.SelectionSet, v domain.Document) graphql.Marshaler {
+	return ec._Document(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalODocuments2ᚕgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐDocuments(ctx context.Context, sel ast.SelectionSet, v []domain.Documents) graphql.Marshaler {
+func (ec *executionContext) marshalODocument2ᚕgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐDocument(ctx context.Context, sel ast.SelectionSet, v []domain.Document) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -8437,7 +9670,7 @@ func (ec *executionContext) marshalODocuments2ᚕgithubᚗcomᚋsavannahghiᚋmy
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalODocuments2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐDocuments(ctx, sel, v[i])
+			ret[i] = ec.marshalODocument2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐDocument(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -8510,6 +9743,51 @@ func (ec *executionContext) marshalOFacilityPage2ᚖgithubᚗcomᚋsavannahghi�
 	return ec._FacilityPage(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalOFeaturedMedia2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐFeaturedMedia(ctx context.Context, sel ast.SelectionSet, v domain.FeaturedMedia) graphql.Marshaler {
+	return ec._FeaturedMedia(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalOFeaturedMedia2ᚕgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐFeaturedMedia(ctx context.Context, sel ast.SelectionSet, v []domain.FeaturedMedia) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOFeaturedMedia2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐFeaturedMedia(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	return ret
+}
+
 func (ec *executionContext) unmarshalOFilterSortDataType2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐFilterSortDataType(ctx context.Context, v interface{}) (enums.FilterSortDataType, error) {
 	var res enums.FilterSortDataType
 	err := res.UnmarshalGQL(v)
@@ -8550,6 +9828,51 @@ func (ec *executionContext) unmarshalOFiltersInput2ᚖgithubᚗcomᚋsavannahghi
 	}
 	res, err := ec.unmarshalInputFiltersInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOGalleryImage2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐGalleryImage(ctx context.Context, sel ast.SelectionSet, v domain.GalleryImage) graphql.Marshaler {
+	return ec._GalleryImage(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalOGalleryImage2ᚕgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐGalleryImage(ctx context.Context, sel ast.SelectionSet, v []domain.GalleryImage) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOGalleryImage2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐGalleryImage(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	return ret
 }
 
 func (ec *executionContext) marshalOHeroImage2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐHeroImage(ctx context.Context, sel ast.SelectionSet, v domain.HeroImage) graphql.Marshaler {
