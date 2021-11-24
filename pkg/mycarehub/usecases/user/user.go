@@ -178,9 +178,9 @@ func (us *UseCasesUserImpl) Login(ctx context.Context, phoneNumber string, pin s
 		return nil, int(exceptions.Internal), fmt.Errorf("please try again after a while")
 	}
 
-	_, _, err = us.VerifyPIN(ctx, *userProfile.ID, pin)
+	_, statusCode, err := us.VerifyPIN(ctx, *userProfile.ID, pin)
 	if err != nil {
-		return nil, int(exceptions.PINMismatch), exceptions.PinMismatchError(err)
+		return nil, statusCode, err
 	}
 
 	customToken, err := us.ExternalExt.CreateFirebaseCustomToken(ctx, *userProfile.ID)
@@ -246,7 +246,7 @@ func (us *UseCasesUserImpl) InviteUser(ctx context.Context, userID string, phone
 		HashedPIN: encryptedTempPin,
 		Salt:      salt,
 		ValidFrom: time.Now(),
-		ValidTo:   time.Now(),
+		ValidTo:   time.Now().Add(time.Hour * 1),
 		Flavour:   flavour,
 		IsValid:   true,
 	}
