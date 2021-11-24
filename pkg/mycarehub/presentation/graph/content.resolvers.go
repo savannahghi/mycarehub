@@ -6,9 +6,14 @@ package graph
 import (
 	"context"
 
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/presentation/graph/generated"
 )
+
+func (r *mutationResolver) ShareContent(ctx context.Context, input dto.ShareContentInput) (bool, error) {
+	return r.mycarehub.Content.ShareContent(ctx, input)
+}
 
 func (r *queryResolver) GetContent(ctx context.Context, categoryID *int, limit string) (*domain.Content, error) {
 	r.checkPreconditions()
@@ -21,7 +26,11 @@ func (r *queryResolver) ListContentCategories(ctx context.Context) ([]*domain.Co
 	return r.mycarehub.Content.ListContentCategories(ctx)
 }
 
+// Mutation returns generated.MutationResolver implementation.
+func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
+
 // Query returns generated.QueryResolver implementation.
 func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
 
+type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }

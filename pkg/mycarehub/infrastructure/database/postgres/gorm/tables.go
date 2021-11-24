@@ -398,3 +398,96 @@ type WagtailImage struct {
 func (WagtailImage) TableName() string {
 	return "wagtailimages_image"
 }
+
+// ContentAuthor is the gorms content author model
+type ContentAuthor struct {
+	Base
+	ContentAuthorID *string `gorm:"column:id"`
+	Active          bool    `gorm:"column:active"`
+	Name            string  `gorm:"column:name"`
+	OrganisationID  string  `gorm:"column:organisation_id"`
+}
+
+// BeforeCreate is a hook run before creating an author
+func (c *ContentAuthor) BeforeCreate(tx *gorm.DB) (err error) {
+	id := uuid.New().String()
+	c.ContentAuthorID = &id
+	c.OrganisationID = OrganizationID
+	return
+}
+
+// TableName references the table that we map data from
+func (ContentAuthor) TableName() string {
+	return "content_author"
+}
+
+// ContentItem is the gorms content item model
+type ContentItem struct {
+	PagePtrID           int       `gorm:"column:page_ptr_id"`
+	Date                time.Time `gorm:"column:date"`
+	Intro               string    `gorm:"column:intro"`
+	ItemType            string    `gorm:"column:item_type"`
+	TimeEstimateSeconds int       `gorm:"column:time_estimate_seconds"`
+	Body                string    `gorm:"column:body"`
+	LikeCount           int       `gorm:"column:like_count"`
+	BookmarkCount       int       `gorm:"column:bookmark_count"`
+	ShareCount          int       `gorm:"column:share_count"`
+	ViewCount           int       `gorm:"column:view_count"`
+	AuthorID            string    `gorm:"column:author_id"`
+	HeroImageID         *string   `gorm:"column:hero_image_id"`
+}
+
+// TableName references the table that we map data from
+func (ContentItem) TableName() string {
+	return "content_contentitem"
+}
+
+// ContentShare is the gorms content contentshare model
+type ContentShare struct {
+	Base
+	ContentShareID *string `gorm:"column:id"`
+	Active         bool    `gorm:"column:active"`
+	ContentID      int     `gorm:"column:content_item_id"`
+	UserID         string  `gorm:"column:user_id"`
+	OrganisationID string  `gorm:"column:organisation_id"`
+}
+
+// BeforeCreate is a hook run before creating count share
+func (c *ContentShare) BeforeCreate(tx *gorm.DB) (err error) {
+	id := uuid.New().String()
+	c.ContentShareID = &id
+	c.OrganisationID = OrganizationID
+	return
+}
+
+// TableName references the table that we map data from
+func (ContentShare) TableName() string {
+	return "public.content_contentshare"
+}
+
+// WagtailCorePage models the details of core wagtail fields
+type WagtailCorePage struct {
+	WagtailCorePageID     int    `gorm:"unique;column:id;autoincrement"`
+	Path                  string `gorm:"column:path"`
+	Depth                 int    `gorm:"column:depth"`
+	Numchild              int    `gorm:"column:numchild"`
+	Title                 string `gorm:"column:title"`
+	Slug                  string `gorm:"column:slug"`
+	Live                  bool   `gorm:"column:live"`
+	HasUnpublishedChanges bool   `gorm:"column:has_unpublished_changes"`
+	URLPath               string `gorm:"column:url_path"`
+	SEOTitle              string `gorm:"column:seo_title"`
+	ShowInMenus           bool   `gorm:"column:show_in_menus"`
+	SearchDescription     string `gorm:"column:search_description"`
+	Expired               bool   `gorm:"column:expired"`
+	ContentTypeID         int    `gorm:"column:content_type_id"` // default to 1 => wagtailcore page
+	Locked                bool   `gorm:"column:locked"`
+	DraftTitle            string `gorm:"column:draft_title"`
+	TranslationKey        string `gorm:"column:translation_key"`
+	LocaleID              int    `gorm:"column:locale_id"` // default to 1 => en
+}
+
+// TableName references the table that we map data from
+func (WagtailCorePage) TableName() string {
+	return "wagtailcore_page"
+}

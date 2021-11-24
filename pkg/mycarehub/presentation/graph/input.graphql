@@ -35,3 +35,9 @@ input SecurityQuestionResponseInput {
 	securityQuestionID: String!
 	response: String!
 }
+
+input ShareContentInput {
+	UserID:    String!
+	ContentID: Int! 
+	Channel:   String! 
+}

@@ -191,3 +191,19 @@ func (f *UserResetPinInput) Validate() error {
 
 	return err
 }
+
+// ShareContentInput defines the field passed when sharing content
+type ShareContentInput struct {
+	UserID    string `json:"userID" validate:"required"`
+	ContentID int    `json:"contentID" validate:"required"`
+	Channel   string `json:"phobeNumber" validate:"required"`
+}
+
+// Validate helps with validation of ShareContentInput fields
+func (f *ShareContentInput) Validate() error {
+	v := validator.New()
+
+	err := v.Struct(f)
+
+	return err
+}

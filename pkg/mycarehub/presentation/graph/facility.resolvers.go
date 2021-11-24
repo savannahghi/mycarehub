@@ -8,7 +8,6 @@ import (
 
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/presentation/graph/generated"
 )
 
 func (r *mutationResolver) CreateFacility(ctx context.Context, input dto.FacilityInput) (*domain.Facility, error) {
@@ -49,8 +48,3 @@ func (r *queryResolver) RetrieveFacilityByMFLCode(ctx context.Context, mflCode i
 func (r *queryResolver) ListFacilities(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationInput dto.PaginationsInput) (*domain.FacilityPage, error) {
 	return r.mycarehub.Facility.ListFacilities(ctx, searchTerm, filterInput, &paginationInput)
 }
-
-// Mutation returns generated.MutationResolver implementation.
-func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
-
-type mutationResolver struct{ *Resolver }

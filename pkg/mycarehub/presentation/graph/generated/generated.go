@@ -194,6 +194,7 @@ type ComplexityRoot struct {
 		RecordSecurityQuestionResponses func(childComplexity int, input []*dto.SecurityQuestionResponseInput) int
 		SetNickName                     func(childComplexity int, userID string, nickname string) int
 		SetUserPin                      func(childComplexity int, input *dto.PINInput) int
+		ShareContent                    func(childComplexity int, input dto.ShareContentInput) int
 	}
 
 	Pagination struct {
@@ -237,6 +238,7 @@ type ComplexityRoot struct {
 }
 
 type MutationResolver interface {
+	ShareContent(ctx context.Context, input dto.ShareContentInput) (bool, error)
 	CreateFacility(ctx context.Context, input dto.FacilityInput) (*domain.Facility, error)
 	DeleteFacility(ctx context.Context, mflCode int) (bool, error)
 	ReactivateFacility(ctx context.Context, mflCode int) (bool, error)
@@ -955,6 +957,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.SetUserPin(childComplexity, args["input"].(*dto.PINInput)), true
 
+	case "Mutation.shareContent":
+		if e.complexity.Mutation.ShareContent == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_shareContent_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.ShareContent(childComplexity, args["input"].(dto.ShareContentInput)), true
+
 	case "Pagination.Count":
 		if e.complexity.Pagination.Count == nil {
 			break
@@ -1221,6 +1235,10 @@ var sources = []*ast.Source{
   getContent(categoryID: Int, Limit: String!): Content!
   listContentCategories: [ContentItemCategory!]!
 }
+
+extend type Mutation {
+  shareContent(input: ShareContentInput!): Boolean!
+}
 `, BuiltIn: false},
 	{Name: "pkg/mycarehub/presentation/graph/enums.graphql", Input: `scalar Time
 
@@ -1358,6 +1376,12 @@ input SecurityQuestionResponseInput {
 	userID: String!
 	securityQuestionID: String!
 	response: String!
+}
+
+input ShareContentInput {
+	UserID:    String!
+	ContentID: Int! 
+	Channel:   String! 
 }`, BuiltIn: false},
 	{Name: "pkg/mycarehub/presentation/graph/otp.graphql", Input: `extend type Query {
   sendOTP(phoneNumber: String!, flavour: Flavour!): String!
@@ -1755,6 +1779,21 @@ func (ec *executionContext) field_Mutation_setUserPIN_args(ctx context.Context, 
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 		arg0, err = ec.unmarshalOPINInput2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐPINInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_shareContent_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 dto.ShareContentInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNShareContentInput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐShareContentInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -4709,6 +4748,48 @@ func (ec *executionContext) _Meta_totalCount(ctx context.Context, field graphql.
 	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Mutation_shareContent(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_shareContent_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().ShareContent(rctx, args["input"].(dto.ShareContentInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Mutation_createFacility(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -7391,6 +7472,45 @@ func (ec *executionContext) unmarshalInputSecurityQuestionResponseInput(ctx cont
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputShareContentInput(ctx context.Context, obj interface{}) (dto.ShareContentInput, error) {
+	var it dto.ShareContentInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	for k, v := range asMap {
+		switch k {
+		case "UserID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("UserID"))
+			it.UserID, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "ContentID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("ContentID"))
+			it.ContentID, err = ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "Channel":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Channel"))
+			it.Channel, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputSortsInput(ctx context.Context, obj interface{}) (dto.SortsInput, error) {
 	var it dto.SortsInput
 	asMap := map[string]interface{}{}
@@ -8212,6 +8332,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Mutation")
+		case "shareContent":
+			out.Values[i] = ec._Mutation_shareContent(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "createFacility":
 			out.Values[i] = ec._Mutation_createFacility(ctx, field)
 			if out.Values[i] == graphql.Null {
@@ -9210,6 +9335,11 @@ func (ec *executionContext) unmarshalNSecurityQuestionResponseType2githubᚗcom�
 
 func (ec *executionContext) marshalNSecurityQuestionResponseType2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐSecurityQuestionResponseType(ctx context.Context, sel ast.SelectionSet, v enums.SecurityQuestionResponseType) graphql.Marshaler {
 	return v
+}
+
+func (ec *executionContext) unmarshalNShareContentInput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐShareContentInput(ctx context.Context, v interface{}) (dto.ShareContentInput, error) {
+	res, err := ec.unmarshalInputShareContentInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalNString2string(ctx context.Context, v interface{}) (string, error) {
