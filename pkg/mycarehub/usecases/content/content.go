@@ -20,13 +20,6 @@ var (
 	contentAPIEndpoint = serverutils.MustGetEnvVar("CONTENT_API_URL")
 )
 
-// UseCasesContent holds the interfaces that are implemented within the content service
-type UseCasesContent interface {
-	IGetContent
-	IContentCategoryList
-	IShareContent
-}
-
 // IGetContent is used to fetch content from the CMS
 type IGetContent interface {
 	GetContent(ctx context.Context, categoryID *int, limit string) (*domain.Content, error)
@@ -43,6 +36,33 @@ type IShareContent interface {
 	// TODO: add / check entry in ContentShares table
 	// TODO: metrics
 	ShareContent(ctx context.Context, input dto.ShareContentInput) (bool, error)
+}
+
+// IBookmarkContent is used to bookmark content
+type IBookmarkContent interface {
+	// TODO: update bookmark count (increment)
+	// TODO: idempotence, with user ID i.e a user can only bookmark once
+	// TODO: add / check entry in ContentBookmarks table
+	// TODO: metrics
+	BookmarkContent(ctx context.Context, userID string, contentID int) (bool, error)
+}
+
+// IUnBookmarkContent is used to unbookmark content
+type IUnBookmarkContent interface {
+	// TODO: update bookmark count (decrement)
+	// TODO: idempotence, with user ID i.e a user can only remove something they bookmarked
+	// TODO: remove entry from ContentBookmarks table if it exists...be forgiving (idempotence)
+	// TODO: metrics
+	UnBookmarkContent(ctx context.Context, userID string, contentID int) (bool, error)
+}
+
+// UseCasesContent holds the interfaces that are implemented within the content service
+type UseCasesContent interface {
+	IGetContent
+	IContentCategoryList
+	IShareContent
+	IBookmarkContent
+	IUnBookmarkContent
 }
 
 // UseCasesContentImpl represents content implementation
@@ -102,4 +122,14 @@ func (u *UseCasesContentImpl) ListContentCategories(ctx context.Context) ([]*dom
 // ShareContent enables a user to share a content
 func (u *UseCasesContentImpl) ShareContent(ctx context.Context, input dto.ShareContentInput) (bool, error) {
 	return u.Update.ShareContent(ctx, input)
+}
+
+// BookmarkContent increments the bookmark count for a content item
+func (u UseCasesContentImpl) BookmarkContent(ctx context.Context, userID string, contentID int) (bool, error) {
+	return u.Update.BookmarkContent(ctx, userID, contentID)
+}
+
+// UnBookmarkContent decrements the bookmark count for a content item
+func (u UseCasesContentImpl) UnBookmarkContent(ctx context.Context, userID string, contentID int) (bool, error) {
+	return u.Update.UnBookmarkContent(ctx, userID, contentID)
 }

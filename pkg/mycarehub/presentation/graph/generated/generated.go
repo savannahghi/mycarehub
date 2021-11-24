@@ -185,6 +185,7 @@ type ComplexityRoot struct {
 
 	Mutation struct {
 		AcceptTerms                     func(childComplexity int, userID string, termsID int) int
+		BookmarkContent                 func(childComplexity int, userID string, contentItemID int) int
 		CompleteOnboardingTour          func(childComplexity int, userID string, flavour feedlib.Flavour) int
 		CreateFacility                  func(childComplexity int, input dto.FacilityInput) int
 		DeleteFacility                  func(childComplexity int, mflCode int) int
@@ -195,6 +196,7 @@ type ComplexityRoot struct {
 		SetNickName                     func(childComplexity int, userID string, nickname string) int
 		SetUserPin                      func(childComplexity int, input *dto.PINInput) int
 		ShareContent                    func(childComplexity int, input dto.ShareContentInput) int
+		UnBookmarkContent               func(childComplexity int, userID string, contentItemID int) int
 	}
 
 	Pagination struct {
@@ -239,6 +241,8 @@ type ComplexityRoot struct {
 
 type MutationResolver interface {
 	ShareContent(ctx context.Context, input dto.ShareContentInput) (bool, error)
+	BookmarkContent(ctx context.Context, userID string, contentItemID int) (bool, error)
+	UnBookmarkContent(ctx context.Context, userID string, contentItemID int) (bool, error)
 	CreateFacility(ctx context.Context, input dto.FacilityInput) (*domain.Facility, error)
 	DeleteFacility(ctx context.Context, mflCode int) (bool, error)
 	ReactivateFacility(ctx context.Context, mflCode int) (bool, error)
@@ -849,6 +853,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.AcceptTerms(childComplexity, args["userID"].(string), args["termsID"].(int)), true
 
+	case "Mutation.bookmarkContent":
+		if e.complexity.Mutation.BookmarkContent == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_bookmarkContent_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.BookmarkContent(childComplexity, args["userID"].(string), args["contentItemID"].(int)), true
+
 	case "Mutation.completeOnboardingTour":
 		if e.complexity.Mutation.CompleteOnboardingTour == nil {
 			break
@@ -968,6 +984,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.ShareContent(childComplexity, args["input"].(dto.ShareContentInput)), true
+
+	case "Mutation.UnBookmarkContent":
+		if e.complexity.Mutation.UnBookmarkContent == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_UnBookmarkContent_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UnBookmarkContent(childComplexity, args["userID"].(string), args["contentItemID"].(int)), true
 
 	case "Pagination.Count":
 		if e.complexity.Pagination.Count == nil {
@@ -1238,7 +1266,10 @@ var sources = []*ast.Source{
 
 extend type Mutation {
   shareContent(input: ShareContentInput!): Boolean!
+  bookmarkContent(userID: String!, contentItemID: Int!): Boolean!
+  UnBookmarkContent(userID: String!, contentItemID: Int!): Boolean!
 }
+
 `, BuiltIn: false},
 	{Name: "pkg/mycarehub/presentation/graph/enums.graphql", Input: `scalar Time
 
@@ -1592,6 +1623,30 @@ var parsedSchema = gqlparser.MustLoadSchema(sources...)
 
 // region    ***************************** args.gotpl *****************************
 
+func (ec *executionContext) field_Mutation_UnBookmarkContent_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["userID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userID"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["userID"] = arg0
+	var arg1 int
+	if tmp, ok := rawArgs["contentItemID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("contentItemID"))
+		arg1, err = ec.unmarshalNInt2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["contentItemID"] = arg1
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_acceptTerms_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -1613,6 +1668,30 @@ func (ec *executionContext) field_Mutation_acceptTerms_args(ctx context.Context,
 		}
 	}
 	args["termsID"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_bookmarkContent_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["userID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userID"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["userID"] = arg0
+	var arg1 int
+	if tmp, ok := rawArgs["contentItemID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("contentItemID"))
+		arg1, err = ec.unmarshalNInt2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["contentItemID"] = arg1
 	return args, nil
 }
 
@@ -4774,6 +4853,90 @@ func (ec *executionContext) _Mutation_shareContent(ctx context.Context, field gr
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Mutation().ShareContent(rctx, args["input"].(dto.ShareContentInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_bookmarkContent(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_bookmarkContent_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().BookmarkContent(rctx, args["userID"].(string), args["contentItemID"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_UnBookmarkContent(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_UnBookmarkContent_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UnBookmarkContent(rctx, args["userID"].(string), args["contentItemID"].(int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -8334,6 +8497,16 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = graphql.MarshalString("Mutation")
 		case "shareContent":
 			out.Values[i] = ec._Mutation_shareContent(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "bookmarkContent":
+			out.Values[i] = ec._Mutation_bookmarkContent(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "UnBookmarkContent":
+			out.Values[i] = ec._Mutation_UnBookmarkContent(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}

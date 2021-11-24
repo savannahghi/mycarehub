@@ -465,6 +465,29 @@ func (ContentShare) TableName() string {
 	return "public.content_contentshare"
 }
 
+// ContentBookmark is the gorms ContentBookmark model
+type ContentBookmark struct {
+	Base
+	ContentBookmarkID *string `gorm:"column:id"`
+	Active            bool    `gorm:"column:active"`
+	ContentID         int     `gorm:"column:content_item_id"`
+	UserID            string  `gorm:"column:user_id"`
+	OrganisationID    string  `gorm:"column:organisation_id"`
+}
+
+// BeforeCreate is a hook run before creating content bookmark
+func (c *ContentBookmark) BeforeCreate(tx *gorm.DB) (err error) {
+	id := uuid.New().String()
+	c.ContentBookmarkID = &id
+	c.OrganisationID = OrganizationID
+	return
+}
+
+// TableName references the table that we map data from
+func (ContentBookmark) TableName() string {
+	return "public.content_contentbookmark"
+}
+
 // WagtailCorePage models the details of core wagtail fields
 type WagtailCorePage struct {
 	WagtailCorePageID     int    `gorm:"unique;column:id;autoincrement"`

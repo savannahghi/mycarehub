@@ -1739,3 +1739,276 @@ func TestMyCareHubDb_ListContentCategories(t *testing.T) {
 		})
 	}
 }
+
+func TestMyCareHubDb_CheckUserHasPin(t *testing.T) {
+	ctx := context.Background()
+
+	type args struct {
+		ctx     context.Context
+		userID  string
+		flavour feedlib.Flavour
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "happy case",
+			args: args{
+				ctx:     ctx,
+				userID:  uuid.New().String(),
+				flavour: feedlib.FlavourConsumer,
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "invalid: missing user ID",
+			args: args{
+				ctx:     ctx,
+				flavour: feedlib.FlavourConsumer,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "invalid: could not check user has pin",
+			args: args{
+				ctx:     ctx,
+				userID:  uuid.New().String(),
+				flavour: feedlib.FlavourConsumer,
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var fakeGorm = gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+			if tt.name == "invalid: could not check user has pin" {
+				fakeGorm.MockCheckUserHasPinFn = func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+
+			got, err := d.CheckUserHasPin(tt.args.ctx, tt.args.userID, tt.args.flavour)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.CheckUserHasPin() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("MyCareHubDb.CheckUserHasPin() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestMyCareHubDb_GetOTP(t *testing.T) {
+	ctx := context.Background()
+	type args struct {
+		ctx         context.Context
+		phoneNumber string
+		flavour     feedlib.Flavour
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:         ctx,
+				phoneNumber: gofakeit.Phone(),
+				flavour:     feedlib.FlavourConsumer,
+			},
+		},
+		{
+			name: "invalid:  no phone number",
+			args: args{
+				ctx:     ctx,
+				flavour: feedlib.FlavourConsumer,
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid: no flavour",
+			args: args{
+				ctx:         ctx,
+				phoneNumber: gofakeit.Phone(),
+			},
+			wantErr: true,
+		},
+		{
+			name: "Invalid: invalid flavor",
+			args: args{
+				ctx:         ctx,
+				phoneNumber: gofakeit.Phone(),
+				flavour:     "invalid-flavour",
+			},
+			wantErr: true,
+		},
+		{
+			name: "Invalid: failed to get otp",
+			args: args{
+				ctx:         ctx,
+				phoneNumber: gofakeit.Phone(),
+				flavour:     feedlib.FlavourConsumer,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var fakeGorm = gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+			if tt.name == "Invalid: failed to get otp" {
+				fakeGorm.MockGetOTPFn = func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*gorm.UserOTP, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+
+			got, err := d.GetOTP(tt.args.ctx, tt.args.phoneNumber, tt.args.flavour)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.GetOTP() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected a response but got %v", got)
+				return
+			}
+		})
+	}
+}
+
+func TestMyCareHubDb_GetUserSecurityQuestionsResponses(t *testing.T) {
+	ctx := context.Background()
+	type args struct {
+		ctx    context.Context
+		userID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    []*domain.SecurityQuestionResponse
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:    ctx,
+				userID: gofakeit.UUID(),
+			},
+		},
+		{
+			name: "Happy case - no resposes",
+			args: args{
+				ctx:    ctx,
+				userID: gofakeit.UUID(),
+			},
+		},
+		{
+			name: "invalid: could not find security questions",
+			args: args{
+				ctx:    ctx,
+				userID: gofakeit.UUID(),
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid: no userID",
+			args: args{
+				ctx: ctx,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			var fakeGorm = gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			if tt.name == "Happy case - no resposes" {
+				fakeGorm.MockGetUserSecurityQuestionsResponsesFn = func(ctx context.Context, userID string) ([]*gorm.SecurityQuestionResponse, error) {
+					return []*gorm.SecurityQuestionResponse{}, nil
+				}
+			}
+
+			if tt.name == "invalid: could not find security questions" {
+				fakeGorm.MockGetUserSecurityQuestionsResponsesFn = func(ctx context.Context, userID string) ([]*gorm.SecurityQuestionResponse, error) {
+					return nil, fmt.Errorf("failed to get user security questions")
+				}
+			}
+
+			got, err := d.GetUserSecurityQuestionsResponses(tt.args.ctx, tt.args.userID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.GetUserSecurityQuestionsResponses() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected a response but got %v", got)
+				return
+			}
+		})
+	}
+}
+
+func TestMyCareHubDb_GetContactByUserID(t *testing.T) {
+	ctx := context.Background()
+	ID := uuid.New().String()
+	type args struct {
+		ctx         context.Context
+		userID      *string
+		contactType string
+	}
+	tests := []struct {
+		name string
+		args args
+
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:         ctx,
+				userID:      &ID,
+				contactType: "EMAIL",
+			},
+		},
+		{
+			name: "invalid: no userID",
+			args: args{
+				ctx:         ctx,
+				contactType: "EMAIL",
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid: no contactType",
+			args: args{
+				ctx: ctx,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var fakeGorm = gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			got, err := d.GetContactByUserID(tt.args.ctx, tt.args.userID, tt.args.contactType)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.GetContactByUserID() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected a response but got %v", got)
+				return
+			}
+		})
+	}
+}

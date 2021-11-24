@@ -303,6 +303,22 @@ func TestUseCaseSecurityQuestionsImpl_VerifySecurityQuestionResponses(t *testing
 			want:    false,
 			wantErr: true,
 		},
+		{
+			name: "invalid: failed to verify security question response",
+			args: args{
+				ctx: ctx,
+				responses: &[]dto.VerifySecurityQuestionInput{
+					{
+						QuestionID: "1234",
+						Flavour:    feedlib.FlavourConsumer,
+						Response:   "Nakuru",
+						UserID:     uuid.New().String(),
+					},
+				},
+			},
+			want:    false,
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -324,6 +340,11 @@ func TestUseCaseSecurityQuestionsImpl_VerifySecurityQuestionResponses(t *testing
 					responses *[]dto.VerifySecurityQuestionInput,
 				) (bool, error) {
 					return false, fmt.Errorf("the response does not match")
+				}
+			}
+			if tt.name == "invalid: failed to verify security question response" {
+				fakeDB.MockUpdateIsCorrectSecurityQuestionResponseFn = func(ctx context.Context, userID string, isCorrectSecurityQuestionResponse bool) (bool, error) {
+					return false, fmt.Errorf("the failed to verify security question response does not match")
 				}
 			}
 
@@ -369,6 +390,7 @@ func TestUseCaseSecurityQuestionsImpl_GetUserRespondedSecurityQuestions(t *testi
 				ctx: ctx,
 				input: dto.GetUserRespondedSecurityQuestionsInput{
 					Flavour: feedlib.FlavourConsumer,
+					OTP:     "123456",
 				},
 			},
 			wantErr: true,
@@ -380,6 +402,7 @@ func TestUseCaseSecurityQuestionsImpl_GetUserRespondedSecurityQuestions(t *testi
 				ctx: ctx,
 				input: dto.GetUserRespondedSecurityQuestionsInput{
 					PhoneNumber: gofakeit.Phone(),
+					OTP:         "123456",
 				},
 			},
 			wantErr: true,
@@ -391,6 +414,7 @@ func TestUseCaseSecurityQuestionsImpl_GetUserRespondedSecurityQuestions(t *testi
 				input: dto.GetUserRespondedSecurityQuestionsInput{
 					PhoneNumber: "invalid",
 					Flavour:     feedlib.FlavourConsumer,
+					OTP:         "123456",
 				},
 			},
 			wantErr: true,
@@ -403,6 +427,7 @@ func TestUseCaseSecurityQuestionsImpl_GetUserRespondedSecurityQuestions(t *testi
 				input: dto.GetUserRespondedSecurityQuestionsInput{
 					PhoneNumber: gofakeit.Phone(),
 					Flavour:     "invalid",
+					OTP:         "123456",
 				},
 			},
 			wantErr: true,
@@ -415,17 +440,7 @@ func TestUseCaseSecurityQuestionsImpl_GetUserRespondedSecurityQuestions(t *testi
 				input: dto.GetUserRespondedSecurityQuestionsInput{
 					PhoneNumber: gofakeit.Phone(),
 					Flavour:     feedlib.FlavourConsumer,
-				},
-			},
-			wantErr: true,
-		},
-		{
-			name: "Invalid: failed to get OTP",
-			args: args{
-				ctx: ctx,
-				input: dto.GetUserRespondedSecurityQuestionsInput{
-					PhoneNumber: gofakeit.Phone(),
-					Flavour:     feedlib.FlavourConsumer,
+					OTP:         "123456",
 				},
 			},
 			wantErr: true,
@@ -437,6 +452,7 @@ func TestUseCaseSecurityQuestionsImpl_GetUserRespondedSecurityQuestions(t *testi
 				input: dto.GetUserRespondedSecurityQuestionsInput{
 					PhoneNumber: gofakeit.Phone(),
 					Flavour:     feedlib.FlavourConsumer,
+					OTP:         "123456",
 				},
 			},
 			wantErr: true,
@@ -448,6 +464,7 @@ func TestUseCaseSecurityQuestionsImpl_GetUserRespondedSecurityQuestions(t *testi
 				input: dto.GetUserRespondedSecurityQuestionsInput{
 					PhoneNumber: gofakeit.Phone(),
 					Flavour:     feedlib.FlavourConsumer,
+					OTP:         "123456",
 				},
 			},
 			wantErr: true,
@@ -460,6 +477,7 @@ func TestUseCaseSecurityQuestionsImpl_GetUserRespondedSecurityQuestions(t *testi
 				input: dto.GetUserRespondedSecurityQuestionsInput{
 					PhoneNumber: gofakeit.Phone(),
 					Flavour:     feedlib.FlavourConsumer,
+					OTP:         "123456",
 				},
 			},
 			wantErr: true,
@@ -472,6 +490,7 @@ func TestUseCaseSecurityQuestionsImpl_GetUserRespondedSecurityQuestions(t *testi
 				input: dto.GetUserRespondedSecurityQuestionsInput{
 					PhoneNumber: gofakeit.Phone(),
 					Flavour:     feedlib.FlavourConsumer,
+					OTP:         "123456",
 				},
 			},
 			wantErr: true,
@@ -484,15 +503,17 @@ func TestUseCaseSecurityQuestionsImpl_GetUserRespondedSecurityQuestions(t *testi
 			fakeExtension := extensionMock.NewFakeExtension()
 			s := securityquestions.NewSecurityQuestionsUsecase(fakeDB, fakeDB, fakeDB, fakeExtension)
 
-			if tt.name == "Invalid: failed to get user profile by phone number" {
-				fakeDB.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*domain.User, error) {
-					return nil, fmt.Errorf("failed to get user profile")
+			fakeSecurityQuestions := mock.NewSecurityQuestionsUseCaseMock()
+
+			if tt.name == "Invalid: missing phone number" {
+				fakeSecurityQuestions.MockGetUserRespondedSecurityQuestionsFn = func(ctx context.Context, userID string, flavour feedlib.Flavour) ([]*domain.SecurityQuestion, error) {
+					return nil, fmt.Errorf("missing phone number")
 				}
 			}
 
-			if tt.name == "Invalid: failed to get OTP" {
-				fakeDB.MockGetOTPFn = func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*domain.OTP, error) {
-					return nil, fmt.Errorf("failed to get OTP")
+			if tt.name == "Invalid: failed to get user profile by phone number" {
+				fakeDB.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*domain.User, error) {
+					return nil, fmt.Errorf("failed to get user profile")
 				}
 			}
 

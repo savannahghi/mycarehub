@@ -15,6 +15,14 @@ func (r *mutationResolver) ShareContent(ctx context.Context, input dto.ShareCont
 	return r.mycarehub.Content.ShareContent(ctx, input)
 }
 
+func (r *mutationResolver) BookmarkContent(ctx context.Context, userID string, contentItemID int) (bool, error) {
+	return r.mycarehub.Content.BookmarkContent(ctx, userID, contentItemID)
+}
+
+func (r *mutationResolver) UnBookmarkContent(ctx context.Context, userID string, contentItemID int) (bool, error) {
+	return r.mycarehub.Content.UnBookmarkContent(ctx, userID, contentItemID)
+}
+
 func (r *queryResolver) GetContent(ctx context.Context, categoryID *int, limit string) (*domain.Content, error) {
 	r.checkPreconditions()
 	return r.mycarehub.Content.GetContent(ctx, categoryID, limit)
