@@ -15,6 +15,12 @@ func (r *queryResolver) GetContent(ctx context.Context, categoryID *int, limit s
 	return r.mycarehub.Content.GetContent(ctx, categoryID, limit)
 }
 
+func (r *queryResolver) ListContentCategories(ctx context.Context) ([]*domain.ContentItemCategory, error) {
+	r.checkPreconditions()
+
+	return r.mycarehub.Content.ListContentCategories(ctx)
+}
+
 // Query returns generated.QueryResolver implementation.
 func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
 

@@ -129,7 +129,8 @@ jobs:
           --set-env-vars "TESTING_TWILIO_ACCOUNT_SID=${{ secrets.TESTING_TWILIO_ACCOUNT_SID }}" \
           --set-env-vars "TEST_TWILIO_SMS_NUMBER=${{ secrets.TEST_TWILIO_SMS_NUMBER }}" \
           --set-env-vars "DJANGO_AUTHORIZATION_TOKEN=${{ secrets.DJANGO_AUTHORIZATION_TOKEN }}" \
-          --set-env-vars "ROOT_COLLECTION_SUFFIX=${{ secrets.ROOT_COLLECTION_SUFFIX }}" 
+          --set-env-vars "ROOT_COLLECTION_SUFFIX=${{ secrets.ROOT_COLLECTION_SUFFIX }}" \
+          --set-env-vars "GOOGLE_CLOUD_STORAGE_URL=${{ secrets.GOOGLE_CLOUD_STORAGE_URL }}" 
 
   deploy_to_test:
     name: Deploy Test Server to Google Cloud Run
@@ -211,7 +212,8 @@ jobs:
           --set-env-vars "TESTING_TWILIO_ACCOUNT_SID=${{ secrets.TESTING_TWILIO_ACCOUNT_SID }}" \
           --set-env-vars "TEST_TWILIO_SMS_NUMBER=${{ secrets.TEST_TWILIO_SMS_NUMBER }}" \
           --set-env-vars "DJANGO_AUTHORIZATION_TOKEN=${{ secrets.DJANGO_AUTHORIZATION_TOKEN }}" \
-          --set-env-vars "ROOT_COLLECTION_SUFFIX=${{ secrets.ROOT_COLLECTION_SUFFIX }}" 
+          --set-env-vars "ROOT_COLLECTION_SUFFIX=${{ secrets.ROOT_COLLECTION_SUFFIX }}" \
+          --set-env-vars "GOOGLE_CLOUD_STORAGE_URL=${{ secrets.GOOGLE_CLOUD_STORAGE_URL }}"
 
   deploy_to_prod:
     name: Deploy Prod Server to Google Cloud Run
@@ -306,7 +308,8 @@ jobs:
           --set-env-vars "TEST_TWILIO_SMS_NUMBER=${{ secrets.TEST_TWILIO_SMS_NUMBER }}" \
           --set-env-vars "SENSITIVE_CONTENT_SECRET_KEY=${{ secrets.SENSITIVE_CONTENT_SECRET_KEY }}" \
           --set-env-vars "DJANGO_AUTHORIZATION_TOKEN=${{ secrets.DJANGO_AUTHORIZATION_TOKEN }}" \
-          --set-env-vars "ROOT_COLLECTION_SUFFIX=${{ secrets.ROOT_COLLECTION_SUFFIX }}" 
+          --set-env-vars "ROOT_COLLECTION_SUFFIX=${{ secrets.ROOT_COLLECTION_SUFFIX }}" \
+          --set-env-vars "GOOGLE_CLOUD_STORAGE_URL=${{ secrets.GOOGLE_CLOUD_STORAGE_URL }}" 
 
   push_schema_test_registry:
     name: Publish schema to schema registry

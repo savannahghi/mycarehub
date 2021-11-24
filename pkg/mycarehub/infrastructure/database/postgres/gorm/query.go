@@ -34,6 +34,19 @@ type Query interface {
 	GetOTP(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*UserOTP, error)
 	GetUserSecurityQuestionsResponses(ctx context.Context, userID string) ([]*SecurityQuestionResponse, error)
 	GetContactByUserID(ctx context.Context, userID *string, contactType string) (*Contact, error)
+	ListContentCategories(ctx context.Context) ([]*ContentItemCategory, error)
+}
+
+//ListContentCategories perfoms the actual database query to get the list of content categories
+func (db *PGInstance) ListContentCategories(ctx context.Context) ([]*ContentItemCategory, error) {
+	var contentCategory []*ContentItemCategory
+
+	err := db.DB.Joins("JOIN wagtailimages_image ON content_contentitemcategory.icon_id = wagtailimages_image.id").
+		Order("content_contentitemcategory.id asc").Preload(clause.Associations).Find(&contentCategory).Error
+	if err != nil {
+		return nil, fmt.Errorf("unable to query the database")
+	}
+	return contentCategory, nil
 }
 
 // RetrieveFacility fetches a single facility

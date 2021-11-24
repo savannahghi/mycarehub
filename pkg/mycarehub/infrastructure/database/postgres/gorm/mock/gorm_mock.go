@@ -53,6 +53,7 @@ type GormMock struct {
 	MockInvalidatePINFn                           func(ctx context.Context, userID string) (bool, error)
 	MockGetContactByUserIDFn                      func(ctx context.Context, userID *string, contactType string) (*gorm.Contact, error)
 	MockUpdateIsCorrectSecurityQuestionResponseFn func(ctx context.Context, userID string, isCorrectSecurityQuestionResponse bool) (bool, error)
+	MockListContentCategoriesFn                   func(ctx context.Context) ([]*gorm.ContentItemCategory, error)
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -119,6 +120,15 @@ func NewGormMock() *GormMock {
 		ValidTo:   time.Now(),
 		IsValid:   true,
 		Flavour:   feedlib.FlavourConsumer,
+	}
+
+	contentItemCategory := &gorm.ContentItemCategory{
+		ID:   ID,
+		Name: name,
+		Icon: gorm.WagtailImage{
+			ID:   ID,
+			File: "url",
+		},
 	}
 
 	return &GormMock{
@@ -287,6 +297,9 @@ func NewGormMock() *GormMock {
 		},
 		MockUpdateIsCorrectSecurityQuestionResponseFn: func(ctx context.Context, userID string, isCorrectSecurityQuestionResponse bool) (bool, error) {
 			return true, nil
+		},
+		MockListContentCategoriesFn: func(ctx context.Context) ([]*gorm.ContentItemCategory, error) {
+			return []*gorm.ContentItemCategory{contentItemCategory}, nil
 		},
 	}
 }
@@ -464,4 +477,9 @@ func (gm *GormMock) GetContactByUserID(ctx context.Context, userID *string, cont
 // UpdateIsCorrectSecurityQuestionResponse updates the is_correct security question response
 func (gm *GormMock) UpdateIsCorrectSecurityQuestionResponse(ctx context.Context, userID string, isCorrectSecurityQuestionResponse bool) (bool, error) {
 	return gm.MockUpdateIsCorrectSecurityQuestionResponseFn(ctx, userID, isCorrectSecurityQuestionResponse)
+}
+
+//ListContentCategories mocks the implementation listing content categories
+func (gm *GormMock) ListContentCategories(ctx context.Context) ([]*gorm.ContentItemCategory, error) {
+	return gm.MockListContentCategoriesFn(ctx)
 }

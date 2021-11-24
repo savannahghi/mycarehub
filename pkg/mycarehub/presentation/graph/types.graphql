@@ -115,3 +115,9 @@ type DocumentData {
   ID: Int!
   title: String!
 }
+
+type ContentItemCategory {
+	id:      Int!
+	name:   String!
+	iconUrl: String!
+}

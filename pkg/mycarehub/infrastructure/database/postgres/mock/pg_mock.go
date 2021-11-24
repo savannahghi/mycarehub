@@ -52,6 +52,7 @@ type PostgresMock struct {
 	MockInvalidatePINFn                           func(ctx context.Context, userID string) (bool, error)
 	MockGetContactByUserIDFn                      func(ctx context.Context, userID *string, contactType string) (*domain.Contact, error)
 	MockUpdateIsCorrectSecurityQuestionResponseFn func(ctx context.Context, userID string, isCorrectSecurityQuestionResponse bool) (bool, error)
+	MockListContentCategoriesFn                   func(ctx context.Context) ([]*domain.ContentItemCategory, error)
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -115,6 +116,13 @@ func NewPostgresMock() *PostgresMock {
 
 	client := &domain.ClientProfile{
 		ID: &ID,
+	}
+
+	contentItemCategoryID := 1
+	contentItemCategory := &domain.ContentItemCategory{
+		ID:      contentItemCategoryID,
+		Name:    name,
+		IconURL: "test",
 	}
 
 	return &PostgresMock{
@@ -296,6 +304,9 @@ func NewPostgresMock() *PostgresMock {
 		},
 		MockUpdateIsCorrectSecurityQuestionResponseFn: func(ctx context.Context, userID string, isCorrect bool) (bool, error) {
 			return true, nil
+		},
+		MockListContentCategoriesFn: func(ctx context.Context) ([]*domain.ContentItemCategory, error) {
+			return []*domain.ContentItemCategory{contentItemCategory}, nil
 		},
 	}
 }
@@ -483,4 +494,9 @@ func (gm *PostgresMock) GetContactByUserID(ctx context.Context, userID *string, 
 // UpdateIsCorrectSecurityQuestionResponse updates the IsCorrectSecurityQuestion response
 func (gm *PostgresMock) UpdateIsCorrectSecurityQuestionResponse(ctx context.Context, userID string, isCorrectSecurityQuestionResponse bool) (bool, error) {
 	return gm.MockUpdateIsCorrectSecurityQuestionResponseFn(ctx, userID, isCorrectSecurityQuestionResponse)
+}
+
+//ListContentCategories mocks the implementation listing content categories
+func (gm *PostgresMock) ListContentCategories(ctx context.Context) ([]*domain.ContentItemCategory, error) {
+	return gm.MockListContentCategoriesFn(ctx)
 }

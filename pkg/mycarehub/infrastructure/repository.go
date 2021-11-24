@@ -45,6 +45,7 @@ type Query interface {
 	GetOTP(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*domain.OTP, error)
 	GetUserSecurityQuestionsResponses(ctx context.Context, userID string) ([]*domain.SecurityQuestionResponse, error)
 	GetContactByUserID(ctx context.Context, userID *string, contactType string) (*domain.Contact, error)
+	ListContentCategories(ctx context.Context) ([]*domain.ContentItemCategory, error)
 }
 
 // Update represents all the update action interfaces

@@ -5,9 +5,11 @@ import (
 	"fmt"
 
 	"github.com/savannahghi/feedlib"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/exceptions"
+	"github.com/savannahghi/serverutils"
 )
 
 //GetFacilities returns a slice of healthcare facilities in the platform.
@@ -355,4 +357,32 @@ func (d *MyCareHubDb) GetContactByUserID(ctx context.Context, userID *string, co
 	}
 
 	return d.mapContactObjectToDomain(contact), nil
+}
+
+//ListContentCategories retrieves the list of all content categories
+func (d *MyCareHubDb) ListContentCategories(ctx context.Context) ([]*domain.ContentItemCategory, error) {
+	var contentItemCategory []*domain.ContentItemCategory
+
+	allContentCategories, err := d.query.ListContentCategories(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(allContentCategories) == 0 {
+		return contentItemCategory, nil
+	}
+
+	for _, contentCategories := range allContentCategories {
+		iconURL := fmt.Sprintf(serverutils.MustGetEnvVar(helpers.GoogleCloudStorageURL) + contentCategories.Icon.File)
+
+		contentCategoryItem := &domain.ContentItemCategory{
+			ID:      contentCategories.ID,
+			Name:    contentCategories.Name,
+			IconURL: iconURL,
+		}
+
+		contentItemCategory = append(contentItemCategory, contentCategoryItem)
+	}
+
+	return contentItemCategory, nil
 }
