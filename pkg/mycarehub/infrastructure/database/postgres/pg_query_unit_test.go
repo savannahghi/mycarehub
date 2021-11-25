@@ -2012,3 +2012,56 @@ func TestMyCareHubDb_GetContactByUserID(t *testing.T) {
 		})
 	}
 }
+
+func TestMyCareHubDb_GetUserBookmarkedContent(t *testing.T) {
+	ctx := context.Background()
+
+	type args struct {
+		ctx    context.Context
+		userID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Successfully get user bookmarked content",
+			args: args{
+				ctx:    ctx,
+				userID: uuid.New().String(),
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad Case - Fail to get content",
+			args: args{
+				ctx:    ctx,
+				userID: uuid.New().String(),
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var fakeGorm = gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			if tt.name == "Sad Case - Fail to get content" {
+				fakeGorm.MockGetUserBookmarkedContentFn = func(ctx context.Context, userID string) ([]*gorm.ContentItem, error) {
+					return nil, fmt.Errorf("failed to get bookmarked content")
+				}
+			}
+
+			got, err := d.GetUserBookmarkedContent(tt.args.ctx, tt.args.userID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.GetUserBookmarkedContent() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected a response but got %v", got)
+				return
+			}
+		})
+	}
+}

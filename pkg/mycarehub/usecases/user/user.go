@@ -251,6 +251,11 @@ func (us *UseCasesUserImpl) InviteUser(ctx context.Context, userID string, phone
 		IsValid:   true,
 	}
 
+	_, err = us.Update.InvalidatePIN(ctx, userID)
+	if err != nil {
+		return false, exceptions.InvalidatePinErr(err)
+	}
+
 	_, err = us.Create.SaveTemporaryUserPin(ctx, pinPayload)
 	if err != nil {
 		return false, exceptions.SaveUserPinError(err)

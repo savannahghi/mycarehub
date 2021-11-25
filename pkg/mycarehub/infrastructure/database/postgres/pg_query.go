@@ -123,7 +123,15 @@ func (d *MyCareHubDb) GetUserPINByUserID(ctx context.Context, userID string) (*d
 		return nil, fmt.Errorf("failed query and retrieve user PIN data: %s", err)
 	}
 
-	return d.mapPINObjectToDomain(pinData), nil
+	return &domain.UserPIN{
+		UserID:    pinData.UserID,
+		HashedPIN: pinData.HashedPIN,
+		ValidFrom: pinData.ValidFrom,
+		ValidTo:   pinData.ValidTo,
+		Flavour:   pinData.Flavour,
+		IsValid:   pinData.IsValid,
+		Salt:      pinData.Salt,
+	}, nil
 }
 
 // GetCurrentTerms fetches the current terms service
@@ -301,7 +309,14 @@ func (d *MyCareHubDb) GetOTP(ctx context.Context, phoneNumber string, flavour fe
 		return nil, fmt.Errorf("failed to get OTP: %v", err)
 	}
 
-	return d.mapOTPObjectToDomain(otp), nil
+	return &domain.OTP{
+		UserID:      otp.UserID,
+		OTP:         otp.OTP,
+		GeneratedAt: otp.GeneratedAt,
+		ValidUntil:  otp.ValidUntil,
+		Flavour:     otp.Flavour,
+		Valid:       otp.Valid,
+	}, nil
 }
 
 // GetUserSecurityQuestionsResponses fetches all the security questions that the user has responded to
@@ -356,7 +371,13 @@ func (d *MyCareHubDb) GetContactByUserID(ctx context.Context, userID *string, co
 		return nil, fmt.Errorf("failed to get contact by user ID: %v", err)
 	}
 
-	return d.mapContactObjectToDomain(contact), nil
+	return &domain.Contact{
+		ID:           contact.ContactID,
+		ContactType:  contact.ContactType,
+		ContactValue: contact.ContactValue,
+		Active:       contact.Active,
+		OptedIn:      contact.OptedIn,
+	}, nil
 }
 
 //ListContentCategories retrieves the list of all content categories
@@ -385,4 +406,30 @@ func (d *MyCareHubDb) ListContentCategories(ctx context.Context) ([]*domain.Cont
 	}
 
 	return contentItemCategory, nil
+}
+
+// GetUserBookmarkedContent is used to retrieve a user's bookmarked/pinned content
+func (d *MyCareHubDb) GetUserBookmarkedContent(ctx context.Context, userID string) ([]*domain.ContentItem, error) {
+	var domainContent []*domain.ContentItem
+	bookmarkedContent, err := d.query.GetUserBookmarkedContent(ctx, userID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch user's bookmarked content: %v", err)
+	}
+
+	for _, content := range bookmarkedContent {
+		contentItem := &domain.ContentItem{
+			ID:                  content.PagePtrID,
+			LikeCount:           content.LikeCount,
+			BookmarkCount:       content.BookmarkCount,
+			Body:                content.Body,
+			ShareCount:          content.ShareCount,
+			ViewCount:           content.ViewCount,
+			Intro:               content.Intro,
+			ItemType:            content.ItemType,
+			TimeEstimateSeconds: content.TimeEstimateSeconds,
+		}
+		domainContent = append(domainContent, contentItem)
+	}
+
+	return domainContent, nil
 }

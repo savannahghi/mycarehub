@@ -30,8 +30,12 @@ func (r *queryResolver) GetContent(ctx context.Context, categoryID *int, limit s
 
 func (r *queryResolver) ListContentCategories(ctx context.Context) ([]*domain.ContentItemCategory, error) {
 	r.checkPreconditions()
-
 	return r.mycarehub.Content.ListContentCategories(ctx)
+}
+
+func (r *queryResolver) GetUserBookmarkedContent(ctx context.Context, userID string) (*domain.Content, error) {
+	r.checkPreconditions()
+	return r.mycarehub.Content.GetUserBookmarkedContent(ctx, userID)
 }
 
 // Mutation returns generated.MutationResolver implementation.

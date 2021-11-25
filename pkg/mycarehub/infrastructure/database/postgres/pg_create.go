@@ -3,7 +3,6 @@ package postgres
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
@@ -42,8 +41,8 @@ func (d *MyCareHubDb) SaveTemporaryUserPin(ctx context.Context, pinData *domain.
 	pinObj := &gorm.PINData{
 		UserID:    pinData.UserID,
 		HashedPIN: pinData.HashedPIN,
-		ValidFrom: time.Time{},
-		ValidTo:   time.Time{},
+		ValidFrom: pinData.ValidFrom,
+		ValidTo:   pinData.ValidTo,
 		IsValid:   pinData.IsValid,
 		Flavour:   pinData.Flavour,
 		Salt:      pinData.Salt,
