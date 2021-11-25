@@ -23,6 +23,8 @@ type Update interface {
 	InvalidatePIN(ctx context.Context, userID string) (bool, error)
 	UpdateIsCorrectSecurityQuestionResponse(ctx context.Context, userID string, isCorrectSecurityQuestionResponse bool) (bool, error)
 	ShareContent(ctx context.Context, input dto.ShareContentInput) (bool, error)
+	BookmarkContent(ctx context.Context, userID string, contentID int) (bool, error)
+	UnBookmarkContent(ctx context.Context, userID string, contentID int) (bool, error)
 }
 
 // ReactivateFacility perfoms the actual re-activation of the facility in the database
@@ -196,6 +198,7 @@ func (db *PGInstance) ShareContent(ctx context.Context, input dto.ShareContentIn
 	}
 
 	if err := tx.Model(&ContentItem{}).Where(&ContentItem{PagePtrID: contentShare.ContentID}).First(&contentItem).Error; err != nil {
+		tx.Rollback()
 		return false, fmt.Errorf("failed to get content item: %v", err)
 	}
 
@@ -205,6 +208,7 @@ func (db *PGInstance) ShareContent(ctx context.Context, input dto.ShareContentIn
 		"share_count": updatedShareCount,
 	}).Error
 	if err != nil {
+		tx.Rollback()
 		return false, fmt.Errorf("failed to update content share count: %v", err)
 	}
 
@@ -219,5 +223,119 @@ func (db *PGInstance) ShareContent(ctx context.Context, input dto.ShareContentIn
 		return false, fmt.Errorf("transaction commit to share count failed: %v", err)
 	}
 
+	return true, nil
+}
+
+//BookmarkContent enable a user to set a bookmark on a content
+func (db *PGInstance) BookmarkContent(ctx context.Context, userID string, contentID int) (bool, error) {
+	if contentID == 0 || userID == "" {
+		return false, fmt.Errorf("contentID or userID cannot be nil")
+	}
+	var (
+		contentItem     ContentItem
+		contentBookmark *ContentBookmark
+	)
+
+	contentBookmark = &ContentBookmark{
+		UserID:    userID,
+		ContentID: contentID,
+	}
+
+	tx := db.DB.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+	if err := tx.Error; err != nil {
+		return false, fmt.Errorf("failied initialize database transaction %v", err)
+	}
+
+	if err := tx.Model(&ContentItem{}).Where(&ContentItem{PagePtrID: contentID}).First(&contentItem).Error; err != nil {
+		tx.Rollback()
+		return false, fmt.Errorf("failed to get content item: %v", err)
+	}
+
+	var updatedBookmarkCount = contentItem.BookmarkCount
+	if err := tx.Model(&ContentBookmark{}).Where(&ContentBookmark{UserID: userID, ContentID: contentID}).First(&contentBookmark).Error; err != nil {
+		updatedBookmarkCount++
+	}
+
+	err := tx.Model(&ContentItem{}).Where(&ContentItem{PagePtrID: contentID}).Updates(map[string]interface{}{
+		"bookmark_count": updatedBookmarkCount,
+	}).Error
+	if err != nil {
+		tx.Rollback()
+		return false, fmt.Errorf("failed to update content share count: %v", err)
+	}
+
+	err = tx.Where(contentBookmark).FirstOrCreate(contentBookmark).Error
+	if err != nil {
+		tx.Rollback()
+		return false, fmt.Errorf("failed to save or get share content: %v", err)
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		tx.Rollback()
+		return false, fmt.Errorf("transaction commit to share count failed: %v", err)
+	}
+
+	return true, nil
+}
+
+// UnBookmarkContent removes a bookmark from a content
+func (db *PGInstance) UnBookmarkContent(ctx context.Context, userID string, contentID int) (bool, error) {
+	if contentID == 0 || userID == "" {
+		return false, fmt.Errorf("contentID or userID cannot be nil")
+	}
+	var (
+		contentItem     ContentItem
+		contentBookmark *ContentBookmark
+	)
+
+	contentBookmark = &ContentBookmark{
+		UserID:    userID,
+		ContentID: contentID,
+	}
+
+	tx := db.DB.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+	if err := tx.Error; err != nil {
+		return false, fmt.Errorf("failied initialize database transaction %v", err)
+	}
+
+	if err := tx.Model(&ContentItem{}).Where(&ContentItem{PagePtrID: contentID}).First(&contentItem).Error; err != nil {
+		tx.Rollback()
+		return false, fmt.Errorf("failed to get content item: %v", err)
+	}
+
+	var updatedBookmarkCount = contentItem.BookmarkCount
+
+	if err := tx.Model(&ContentBookmark{}).Where(&ContentBookmark{UserID: userID, ContentID: contentID}).First(&contentBookmark).Error; err == nil {
+		updatedBookmarkCount--
+
+		err := tx.Model(&ContentItem{}).Where(&ContentItem{PagePtrID: contentID}).Updates(map[string]interface{}{
+			"bookmark_count": updatedBookmarkCount,
+		}).Error
+		if err != nil {
+			tx.Rollback()
+			return false, fmt.Errorf("failed to update content share count: %v", err)
+		}
+
+		err = tx.Delete(contentBookmark).Error
+		if err != nil {
+			tx.Rollback()
+			return false, fmt.Errorf("failed to delete content bookmark: %v", err)
+		}
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		tx.Rollback()
+		return false, fmt.Errorf("transaction commit to share count failed: %v", err)
+	}
 	return true, nil
 }

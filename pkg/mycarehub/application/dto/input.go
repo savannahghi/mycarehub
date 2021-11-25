@@ -196,7 +196,7 @@ func (f *UserResetPinInput) Validate() error {
 type ShareContentInput struct {
 	UserID    string `json:"userID" validate:"required"`
 	ContentID int    `json:"contentID" validate:"required"`
-	Channel   string `json:"phobeNumber" validate:"required"`
+	Channel   string `json:"channel" validate:"required"`
 }
 
 // Validate helps with validation of ShareContentInput fields

@@ -55,6 +55,8 @@ type GormMock struct {
 	MockUpdateIsCorrectSecurityQuestionResponseFn func(ctx context.Context, userID string, isCorrectSecurityQuestionResponse bool) (bool, error)
 	MockListContentCategoriesFn                   func(ctx context.Context) ([]*gorm.ContentItemCategory, error)
 	MockShareContentFn                            func(ctx context.Context, input dto.ShareContentInput) (bool, error)
+	MockBookmarkContentFn                         func(ctx context.Context, userID string, contentID int) (bool, error)
+	MockUnBookmarkContentFn                       func(ctx context.Context, userID string, contentID int) (bool, error)
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -305,6 +307,12 @@ func NewGormMock() *GormMock {
 		MockShareContentFn: func(ctx context.Context, input dto.ShareContentInput) (bool, error) {
 			return true, nil
 		},
+		MockBookmarkContentFn: func(ctx context.Context, userID string, contentID int) (bool, error) {
+			return true, nil
+		},
+		MockUnBookmarkContentFn: func(ctx context.Context, userID string, contentID int) (bool, error) {
+			return true, nil
+		},
 	}
 }
 
@@ -491,4 +499,14 @@ func (gm *GormMock) ListContentCategories(ctx context.Context) ([]*gorm.ContentI
 // ShareContent mocks the implementation of sharing the content
 func (gm *GormMock) ShareContent(ctx context.Context, input dto.ShareContentInput) (bool, error) {
 	return gm.MockShareContentFn(ctx, input)
+}
+
+// BookmarkContent bookmarks a content
+func (gm *GormMock) BookmarkContent(ctx context.Context, userID string, contentID int) (bool, error) {
+	return gm.MockBookmarkContentFn(ctx, userID, contentID)
+}
+
+// UnBookmarkContent unbookmarks a content
+func (gm *GormMock) UnBookmarkContent(ctx context.Context, userID string, contentID int) (bool, error) {
+	return gm.MockUnBookmarkContentFn(ctx, userID, contentID)
 }

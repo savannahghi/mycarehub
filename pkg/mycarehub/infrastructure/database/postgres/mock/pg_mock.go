@@ -54,6 +54,8 @@ type PostgresMock struct {
 	MockUpdateIsCorrectSecurityQuestionResponseFn func(ctx context.Context, userID string, isCorrectSecurityQuestionResponse bool) (bool, error)
 	MockListContentCategoriesFn                   func(ctx context.Context) ([]*domain.ContentItemCategory, error)
 	MockShareContentFn                            func(ctx context.Context, input dto.ShareContentInput) (bool, error)
+	MockBookmarkContentFn                         func(ctx context.Context, userID string, contentID int) (bool, error)
+	MockUnBookmarkContentFn                       func(ctx context.Context, userID string, contentID int) (bool, error)
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -312,6 +314,12 @@ func NewPostgresMock() *PostgresMock {
 		MockShareContentFn: func(ctx context.Context, input dto.ShareContentInput) (bool, error) {
 			return true, nil
 		},
+		MockBookmarkContentFn: func(ctx context.Context, userID string, contentID int) (bool, error) {
+			return true, nil
+		},
+		MockUnBookmarkContentFn: func(ctx context.Context, userID string, contentID int) (bool, error) {
+			return true, nil
+		},
 	}
 }
 
@@ -508,4 +516,14 @@ func (gm *PostgresMock) ListContentCategories(ctx context.Context) ([]*domain.Co
 // ShareContent mock the implementation share content
 func (gm *PostgresMock) ShareContent(ctx context.Context, input dto.ShareContentInput) (bool, error) {
 	return gm.MockShareContentFn(ctx, input)
+}
+
+// BookmarkContent bookmarks a content
+func (gm *PostgresMock) BookmarkContent(ctx context.Context, userID string, contentID int) (bool, error) {
+	return gm.MockBookmarkContentFn(ctx, userID, contentID)
+}
+
+// UnBookmarkContent unbookmarks a content
+func (gm *PostgresMock) UnBookmarkContent(ctx context.Context, userID string, contentID int) (bool, error) {
+	return gm.MockUnBookmarkContentFn(ctx, userID, contentID)
 }

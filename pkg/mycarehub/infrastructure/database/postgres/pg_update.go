@@ -110,3 +110,19 @@ func (d *MyCareHubDb) ShareContent(ctx context.Context, input dto.ShareContentIn
 	}
 	return d.update.ShareContent(ctx, input)
 }
+
+//BookmarkContent updates the user's bookmark status for a content
+func (d *MyCareHubDb) BookmarkContent(ctx context.Context, userID string, contentID int) (bool, error) {
+	if contentID == 0 || userID == "" {
+		return false, fmt.Errorf("contentID or userID cannot be nil")
+	}
+	return d.update.BookmarkContent(ctx, userID, contentID)
+}
+
+// UnBookmarkContent removes the bookmark for a given user
+func (d *MyCareHubDb) UnBookmarkContent(ctx context.Context, userID string, contentID int) (bool, error) {
+	if contentID == 0 || userID == "" {
+		return false, fmt.Errorf("contentID or userID cannot be nil")
+	}
+	return d.update.UnBookmarkContent(ctx, userID, contentID)
+}

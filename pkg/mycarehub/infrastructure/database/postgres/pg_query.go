@@ -316,7 +316,7 @@ func (d *MyCareHubDb) GetUserSecurityQuestionsResponses(ctx context.Context, use
 	}
 
 	if len(securityQuestionResponses) == 0 {
-		return nil, nil
+		return []*domain.SecurityQuestionResponse{}, nil
 	}
 
 	var securityQuestionResponse []*domain.SecurityQuestionResponse

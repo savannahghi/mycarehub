@@ -62,4 +62,6 @@ type Update interface {
 	InvalidatePIN(ctx context.Context, userID string) (bool, error)
 	UpdateIsCorrectSecurityQuestionResponse(ctx context.Context, userID string, isCorrectSecurityQuestionResponse bool) (bool, error)
 	ShareContent(ctx context.Context, input dto.ShareContentInput) (bool, error)
+	BookmarkContent(ctx context.Context, userID string, contentID int) (bool, error)
+	UnBookmarkContent(ctx context.Context, userID string, contentID int) (bool, error)
 }
