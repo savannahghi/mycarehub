@@ -10,6 +10,7 @@ import (
 
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/serverutils"
 )
@@ -97,4 +98,13 @@ func GetPinExpiryDate() (*time.Time, error) {
 	expiryDate := time.Now().AddDate(0, 0, pinExpiryInt)
 
 	return &expiryDate, nil
+}
+// RestAPIResponseHelper returns custom standardised response for frontend response consistency
+func RestAPIResponseHelper(key string, value interface{}) *dto.RestEndpointResponses {
+	response := &dto.RestEndpointResponses{
+		Data: map[string]interface{}{
+			key: value,
+		},
+	}
+	return response
 }

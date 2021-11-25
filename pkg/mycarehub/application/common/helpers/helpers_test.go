@@ -7,7 +7,9 @@ import (
 
 	"github.com/brianvoe/gofakeit"
 	"github.com/savannahghi/feedlib"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestGetInviteLink(t *testing.T) {
@@ -212,6 +214,32 @@ func TestGetPinExpiryDate(t *testing.T) {
 				t.Errorf("GetPinExpiryDate() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
+		})
+	}
+}
+
+func TestRestAPIResponseHelper(t *testing.T) {
+	type args struct {
+		key   string
+		value interface{}
+	}
+	tests := []struct {
+		name string
+		args args
+		want *dto.RestEndpointResponses
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				key:   "test",
+				value: "value",
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := RestAPIResponseHelper(tt.args.key, tt.args.value)
+			assert.NotNil(t, got)
 		})
 	}
 }

@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/savannahghi/errorcodeutil"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases"
 	"github.com/savannahghi/serverutils"
@@ -70,7 +71,8 @@ func (h *MyCareHubHandlersInterfacesImpl) LoginByPhone() http.HandlerFunc {
 			return
 		}
 
-		serverutils.WriteJSONResponse(w, resp, http.StatusOK)
+		response := helpers.RestAPIResponseHelper("loginByPhone", resp)
+		serverutils.WriteJSONResponse(w, response, http.StatusOK)
 	}
 }
 
@@ -104,7 +106,9 @@ func (h *MyCareHubHandlersInterfacesImpl) VerifySecurityQuestions() http.Handler
 			return
 		}
 
-		serverutils.WriteJSONResponse(w, ok, http.StatusOK)
+		response := helpers.RestAPIResponseHelper("verifySecurityQuestionResponses", ok)
+
+		serverutils.WriteJSONResponse(w, response, http.StatusOK)
 	}
 }
 
@@ -132,7 +136,8 @@ func (h *MyCareHubHandlersInterfacesImpl) VerifyPhone() http.HandlerFunc {
 			return
 		}
 
-		serverutils.WriteJSONResponse(w, otpResponse, http.StatusOK)
+		response := helpers.RestAPIResponseHelper("verifyPhone", otpResponse.OTP)
+		serverutils.WriteJSONResponse(w, response, http.StatusOK)
 	}
 }
 
@@ -170,7 +175,8 @@ func (h *MyCareHubHandlersInterfacesImpl) VerifyOTP() http.HandlerFunc {
 			return
 		}
 
-		serverutils.WriteJSONResponse(w, resp, http.StatusOK)
+		response := helpers.RestAPIResponseHelper("verifyOTP", resp)
+		serverutils.WriteJSONResponse(w, response, http.StatusOK)
 	}
 }
 
@@ -208,7 +214,8 @@ func (h *MyCareHubHandlersInterfacesImpl) SendOTP() http.HandlerFunc {
 			return
 		}
 
-		serverutils.WriteJSONResponse(w, resp, http.StatusOK)
+		response := helpers.RestAPIResponseHelper("sendOTP", resp)
+		serverutils.WriteJSONResponse(w, response, http.StatusOK)
 	}
 }
 
@@ -245,7 +252,9 @@ func (h *MyCareHubHandlersInterfacesImpl) RequestPINReset() http.HandlerFunc {
 			}, http.StatusBadRequest)
 			return
 		}
-		serverutils.WriteJSONResponse(w, resp, http.StatusOK)
+
+		response := helpers.RestAPIResponseHelper("requestPINReset", resp)
+		serverutils.WriteJSONResponse(w, response, http.StatusOK)
 	}
 }
 
@@ -257,7 +266,6 @@ func (h *MyCareHubHandlersInterfacesImpl) SendRetryOTP() http.HandlerFunc {
 
 		retryPayload := &dto.SendRetryOTPPayload{}
 		serverutils.DecodeJSONToTargetStruct(w, r, retryPayload)
-
 		if retryPayload.Phone == "" || !retryPayload.Flavour.IsValid() {
 			err := fmt.Errorf(
 				"expected `phoneNumber`, `flavour` to be defined",
@@ -269,12 +277,13 @@ func (h *MyCareHubHandlersInterfacesImpl) SendRetryOTP() http.HandlerFunc {
 			return
 		}
 
-		response, err := h.usecase.OTP.GenerateRetryOTP(ctx, retryPayload)
+		resp, err := h.usecase.OTP.GenerateRetryOTP(ctx, retryPayload)
 		if err != nil {
 			serverutils.WriteJSONResponse(w, serverutils.ErrorMap(err), http.StatusBadRequest)
 			return
 		}
 
+		response := helpers.RestAPIResponseHelper("sendRetryOTP", resp)
 		serverutils.WriteJSONResponse(w, response, http.StatusOK)
 	}
 }
@@ -332,7 +341,8 @@ func (h *MyCareHubHandlersInterfacesImpl) ResetPIN() http.HandlerFunc {
 			return
 		}
 
-		serverutils.WriteJSONResponse(w, resp, http.StatusOK)
+		response := helpers.RestAPIResponseHelper("resetPIN", resp)
+		serverutils.WriteJSONResponse(w, response, http.StatusOK)
 	}
 }
 
