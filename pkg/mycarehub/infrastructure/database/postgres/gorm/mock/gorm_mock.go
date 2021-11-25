@@ -57,6 +57,7 @@ type GormMock struct {
 	MockShareContentFn                            func(ctx context.Context, input dto.ShareContentInput) (bool, error)
 	MockBookmarkContentFn                         func(ctx context.Context, userID string, contentID int) (bool, error)
 	MockUnBookmarkContentFn                       func(ctx context.Context, userID string, contentID int) (bool, error)
+	MockGetUserBookmarkedContentFn                func(ctx context.Context, userID string) ([]*gorm.ContentItem, error)
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -306,6 +307,12 @@ func NewGormMock() *GormMock {
 		},
 		MockShareContentFn: func(ctx context.Context, input dto.ShareContentInput) (bool, error) {
 			return true, nil
+		}, MockGetUserBookmarkedContentFn: func(ctx context.Context, userID string) ([]*gorm.ContentItem, error) {
+			return []*gorm.ContentItem{
+				{
+					PagePtrID: int(uuid.New()[9]),
+				},
+			}, nil
 		},
 		MockBookmarkContentFn: func(ctx context.Context, userID string, contentID int) (bool, error) {
 			return true, nil
@@ -509,4 +516,9 @@ func (gm *GormMock) BookmarkContent(ctx context.Context, userID string, contentI
 // UnBookmarkContent unbookmarks a content
 func (gm *GormMock) UnBookmarkContent(ctx context.Context, userID string, contentID int) (bool, error) {
 	return gm.MockUnBookmarkContentFn(ctx, userID, contentID)
+}
+
+// GetUserBookmarkedContent mocks the implementation of retrieving a user bookmarked content
+func (gm *GormMock) GetUserBookmarkedContent(ctx context.Context, userID string) ([]*gorm.ContentItem, error) {
+	return gm.MockGetUserBookmarkedContentFn(ctx, userID)
 }

@@ -46,6 +46,7 @@ type Query interface {
 	GetUserSecurityQuestionsResponses(ctx context.Context, userID string) ([]*domain.SecurityQuestionResponse, error)
 	GetContactByUserID(ctx context.Context, userID *string, contactType string) (*domain.Contact, error)
 	ListContentCategories(ctx context.Context) ([]*domain.ContentItemCategory, error)
+	GetUserBookmarkedContent(ctx context.Context, userID string) ([]*domain.ContentItem, error)
 }
 
 // Update represents all the update action interfaces

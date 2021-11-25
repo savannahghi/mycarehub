@@ -1,6 +1,7 @@
 extend type Query {
   getContent(categoryID: Int, Limit: String!): Content!
   listContentCategories: [ContentItemCategory!]!
+  getUserBookmarkedContent(userID: String!): Content!
 }
 
 extend type Mutation {

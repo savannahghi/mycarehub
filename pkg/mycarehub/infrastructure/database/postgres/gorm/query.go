@@ -35,6 +35,7 @@ type Query interface {
 	GetUserSecurityQuestionsResponses(ctx context.Context, userID string) ([]*SecurityQuestionResponse, error)
 	GetContactByUserID(ctx context.Context, userID *string, contactType string) (*Contact, error)
 	ListContentCategories(ctx context.Context) ([]*ContentItemCategory, error)
+	GetUserBookmarkedContent(ctx context.Context, userID string) ([]*ContentItem, error)
 }
 
 //ListContentCategories perfoms the actual database query to get the list of content categories
@@ -328,4 +329,15 @@ func (db *PGInstance) GetContactByUserID(ctx context.Context, userID *string, co
 		return nil, fmt.Errorf("failed to get contact: %v", err)
 	}
 	return &contact, nil
+}
+
+// GetUserBookmarkedContent retrieves a user's pinned content from the database
+func (db *PGInstance) GetUserBookmarkedContent(ctx context.Context, userID string) ([]*ContentItem, error) {
+	var contentItem []*ContentItem
+	err := db.DB.Joins("JOIN content_contentbookmark ON content_contentitem.page_ptr_id = content_contentbookmark.content_item_id").
+		Where("content_contentbookmark.user_id = ?", userID).Preload(clause.Associations).Find(&contentItem).Error
+	if err != nil {
+		return nil, err
+	}
+	return contentItem, nil
 }

@@ -23,6 +23,12 @@ var (
 // IGetContent is used to fetch content from the CMS
 type IGetContent interface {
 	GetContent(ctx context.Context, categoryID *int, limit string) (*domain.Content, error)
+	GetContentByContentItemID(ctx context.Context, contentID int) (*domain.Content, error)
+}
+
+// IGetBookmarkedContent holds the method signature used to return a user's bookmarked content
+type IGetBookmarkedContent interface {
+	GetUserBookmarkedContent(ctx context.Context, userID string) (*domain.Content, error)
 }
 
 // IContentCategoryList groups allthe content category listing methods
@@ -60,6 +66,7 @@ type IUnBookmarkContent interface {
 type UseCasesContent interface {
 	IGetContent
 	IContentCategoryList
+	IGetBookmarkedContent
 	IShareContent
 	IBookmarkContent
 	IUnBookmarkContent
@@ -132,4 +139,59 @@ func (u UseCasesContentImpl) BookmarkContent(ctx context.Context, userID string,
 // UnBookmarkContent decrements the bookmark count for a content item
 func (u UseCasesContentImpl) UnBookmarkContent(ctx context.Context, userID string, contentID int) (bool, error) {
 	return u.Update.UnBookmarkContent(ctx, userID, contentID)
+}
+
+// GetUserBookmarkedContent gets the user's pinned/bookmarked content and displays it on their profile
+func (u *UseCasesContentImpl) GetUserBookmarkedContent(ctx context.Context, userID string) (*domain.Content, error) {
+	if userID == "" {
+		return nil, fmt.Errorf("user ID must be defined")
+	}
+
+	content, err := u.Query.GetUserBookmarkedContent(ctx, userID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get bookmarked content")
+	}
+
+	var bookmarkedContent *domain.Content
+	var items []domain.ContentItem
+	for _, contentItem := range content {
+		bookmarkedContent, err = u.GetContentByContentItemID(ctx, contentItem.ID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to fetch bookmarked content")
+		}
+		items = append(items, bookmarkedContent.Items...)
+	}
+	bookmarkedContent.Items = items
+
+	return bookmarkedContent, nil
+}
+
+// GetContentByContentItemID fetches a specific content using the specific content item ID. This will be important
+// when fetching content that a user bookmarked. The data returned directly from the database does not contain all the
+// information regarding a content item hence why this method has been chosen.
+func (u *UseCasesContentImpl) GetContentByContentItemID(ctx context.Context, contentID int) (*domain.Content, error) {
+	params := url.Values{}
+	params.Add("type", "content.ContentItem")
+	params.Add("id", strconv.Itoa(contentID))
+	params.Add("order", "-first_published_at")
+	params.Add("fields", "'*")
+
+	getContentEndpoint := fmt.Sprintf(contentAPIEndpoint + "/?" + params.Encode())
+	var contentItems *domain.Content
+	resp, err := utils.MakeRequest(ctx, http.MethodGet, getContentEndpoint, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to make request")
+	}
+
+	dataResponse, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read request body: %v", err)
+	}
+
+	err = json.Unmarshal(dataResponse, &contentItems)
+	if err != nil {
+		return nil, fmt.Errorf("failed to unmarshal response: %v", err)
+	}
+
+	return contentItems, nil
 }
