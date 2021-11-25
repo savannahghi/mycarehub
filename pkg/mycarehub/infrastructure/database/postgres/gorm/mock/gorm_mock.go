@@ -60,6 +60,7 @@ type GormMock struct {
 	MockGetUserBookmarkedContentFn                func(ctx context.Context, userID string) ([]*gorm.ContentItem, error)
 	MockLikeContentFn                             func(ctx context.Context, userID string, contentID int) (bool, error)
 	MockUnlikeContentFn                           func(ctx context.Context, userID string, contentID int) (bool, error)
+	MockViewContentFn                             func(ctx context.Context, userID string, contentID int) (bool, error)
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -339,6 +340,9 @@ func NewGormMock() *GormMock {
 		MockUnlikeContentFn: func(ctx context.Context, userID string, contentID int) (bool, error) {
 			return true, nil
 		},
+		MockViewContentFn: func(ctx context.Context, userID string, contentID int) (bool, error) {
+			return true, nil
+		},
 	}
 }
 
@@ -541,6 +545,7 @@ func (gm *GormMock) UnBookmarkContent(ctx context.Context, userID string, conten
 func (gm *GormMock) GetUserBookmarkedContent(ctx context.Context, userID string) ([]*gorm.ContentItem, error) {
 	return gm.MockGetUserBookmarkedContentFn(ctx, userID)
 }
+
 //LikeContent mocks the implementation liking a feed content
 func (gm *GormMock) LikeContent(ctx context.Context, userID string, contentID int) (bool, error) {
 	return gm.MockLikeContentFn(ctx, userID, contentID)
@@ -549,4 +554,9 @@ func (gm *GormMock) LikeContent(ctx context.Context, userID string, contentID in
 //UnlikeContent mocks the implementation liking a feed content
 func (gm *GormMock) UnlikeContent(ctx context.Context, userID string, contentID int) (bool, error) {
 	return gm.MockUnlikeContentFn(ctx, userID, contentID)
+}
+
+// ViewContent gets a content and updates the view count
+func (gm *GormMock) ViewContent(ctx context.Context, userID string, contentID int) (bool, error) {
+	return gm.MockViewContentFn(ctx, userID, contentID)
 }

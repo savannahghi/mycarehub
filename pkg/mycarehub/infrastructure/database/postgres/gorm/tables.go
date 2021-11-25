@@ -527,6 +527,29 @@ func (ContentLike) TableName() string {
 	return "content_contentlike"
 }
 
+// ContentView is the gorms content contentview model
+type ContentView struct {
+	Base
+	ContentViewID  *string `gorm:"column:id"`
+	Active         bool    `gorm:"column:active"`
+	ContentID      int     `gorm:"column:content_item_id"`
+	UserID         string  `gorm:"column:user_id"`
+	OrganisationID string  `gorm:"column:organisation_id"`
+}
+
+// BeforeCreate is a hook run before creating view count
+func (c *ContentView) BeforeCreate(tx *gorm.DB) (err error) {
+	id := uuid.New().String()
+	c.ContentViewID = &id
+	c.OrganisationID = OrganizationID
+	return
+}
+
+// TableName references the table that we map data from
+func (ContentView) TableName() string {
+	return "content_contentview"
+}
+
 // WagtailImages models the details of core wagtail image table
 type WagtailImages struct {
 	ID               int       `gorm:"primaryKey;column:id;autoincrement"`

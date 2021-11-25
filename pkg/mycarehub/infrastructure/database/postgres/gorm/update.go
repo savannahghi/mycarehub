@@ -28,6 +28,7 @@ type Update interface {
 	UnBookmarkContent(ctx context.Context, userID string, contentID int) (bool, error)
 	LikeContent(context context.Context, userID string, contentID int) (bool, error)
 	UnlikeContent(context context.Context, userID string, contentID int) (bool, error)
+	ViewContent(ctx context.Context, userID string, contentID int) (bool, error)
 }
 
 // LikeContent perfoms the actual database operation to update content like. The operation
@@ -449,5 +450,55 @@ func (db *PGInstance) UnBookmarkContent(ctx context.Context, userID string, cont
 		tx.Rollback()
 		return false, fmt.Errorf("transaction commit to share count failed: %v", err)
 	}
+	return true, nil
+}
+
+// ViewContent gets a specific content and updates the count each time it is viewed
+func (db *PGInstance) ViewContent(ctx context.Context, userID string, contentID int) (bool, error) {
+	var (
+		contentItem ContentItem
+		contentView *ContentView
+	)
+
+	contentView = &ContentView{
+		Active:    true,
+		ContentID: contentID,
+		UserID:    userID,
+	}
+
+	tx := db.DB.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+	if err := tx.Error; err != nil {
+		return false, fmt.Errorf("failied initialize database transaction %v", err)
+	}
+
+	if err := tx.Model(&ContentItem{}).Where(&ContentItem{PagePtrID: contentView.ContentID}).First(&contentItem).Error; err != nil {
+		return false, fmt.Errorf("failed to get content item: %v", err)
+	}
+
+	updatedViewCount := contentItem.ViewCount + 1
+
+	err := tx.Model(&ContentItem{}).Where(&ContentItem{PagePtrID: contentView.ContentID}).Updates(map[string]interface{}{
+		"view_count": updatedViewCount,
+	}).Error
+	if err != nil {
+		return false, fmt.Errorf("failed to update content view count: %v", err)
+	}
+
+	err = tx.Where(contentView).FirstOrCreate(contentView).Error
+	if err != nil {
+		tx.Rollback()
+		return false, fmt.Errorf("failed to save view content count: %v", err)
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		tx.Rollback()
+		return false, fmt.Errorf("transaction commit to view count/content failed: %v", err)
+	}
+
 	return true, nil
 }

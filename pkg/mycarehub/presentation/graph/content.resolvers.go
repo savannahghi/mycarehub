@@ -35,6 +35,10 @@ func (r *mutationResolver) UnlikeContent(ctx context.Context, userID string, con
 	return r.mycarehub.Content.UnlikeContent(ctx, userID, contentID)
 }
 
+func (r *mutationResolver) ViewContent(ctx context.Context, userID string, contentID int) (bool, error) {
+	return r.mycarehub.Content.ViewContent(ctx, userID, contentID)
+}
+
 func (r *queryResolver) GetContent(ctx context.Context, categoryID *int, limit string) (*domain.Content, error) {
 	r.checkPreconditions()
 	return r.mycarehub.Content.GetContent(ctx, categoryID, limit)

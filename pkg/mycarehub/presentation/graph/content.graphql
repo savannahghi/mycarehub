@@ -10,5 +10,6 @@ extend type Mutation {
   UnBookmarkContent(userID: String!, contentItemID: Int!): Boolean!
   likeContent(userID: String!, contentID: Int!): Boolean!
   unlikeContent(userID: String!, contentID: Int!): Boolean!
+  viewContent(userID: String! contentID:  Int!): Boolean! 
 }
 

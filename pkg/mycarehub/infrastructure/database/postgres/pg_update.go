@@ -144,3 +144,8 @@ func (d *MyCareHubDb) UnlikeContent(ctx context.Context, userID string, contentI
 
 	return d.update.UnlikeContent(ctx, userID, contentID)
 }
+
+// ViewContent gets a content item and updates the view count
+func (d *MyCareHubDb) ViewContent(ctx context.Context, userID string, contentID int) (bool, error) {
+	return d.update.ViewContent(ctx, userID, contentID)
+}
