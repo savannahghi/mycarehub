@@ -90,6 +90,14 @@ type UseCasesContent interface {
 	IUnBookmarkContent
 	ILikeContent
 	IUnlikeContent
+	IViewContent
+}
+
+// IViewContent gets a content ite and updates the view count
+type IViewContent interface {
+	// TODO Update view metrics each time a user views a piece
+	// TODO Increment view count, idempotent
+	ViewContent(ctx context.Context, userID string, contentID int) (bool, error)
 }
 
 // UseCasesContentImpl represents content implementation
@@ -225,4 +233,12 @@ func (u *UseCasesContentImpl) GetContentByContentItemID(ctx context.Context, con
 	}
 
 	return contentItems, nil
+}
+
+// ViewContent gets a content item and updates the view count
+func (u *UseCasesContentImpl) ViewContent(ctx context.Context, userID string, contentID int) (bool, error) {
+	if userID == "" || contentID == 0 {
+		return false, fmt.Errorf("userID and contentID cannot be empty")
+	}
+	return u.Update.ViewContent(ctx, userID, contentID)
 }

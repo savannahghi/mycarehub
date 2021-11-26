@@ -60,6 +60,7 @@ type PostgresMock struct {
 	MockLikeContentFn                             func(ctx context.Context, userID string, contentID int) (bool, error)
 	MockUnlikeContentFn                           func(ctx context.Context, userID string, contentID int) (bool, error)
 	MockFetchFacilitiesFn                         func(ctx context.Context) ([]*domain.Facility, error)
+	MockViewContentFn                             func(ctx context.Context, userID string, contentID int) (bool, error)
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -340,6 +341,9 @@ func NewPostgresMock() *PostgresMock {
 		MockFetchFacilitiesFn: func(ctx context.Context) ([]*domain.Facility, error) {
 			return []*domain.Facility{facilityInput}, nil
 		},
+		MockViewContentFn: func(ctx context.Context, userID string, contentID int) (bool, error) {
+			return true, nil
+		},
 	}
 }
 
@@ -566,4 +570,9 @@ func (gm *PostgresMock) UnlikeContent(ctx context.Context, userID string, conten
 //FetchFacilities mocks the implementation of fetching facility
 func (gm *PostgresMock) FetchFacilities(ctx context.Context) ([]*domain.Facility, error) {
 	return gm.MockFetchFacilitiesFn(ctx)
+}
+
+// ViewContent gets a content and updates the view count
+func (gm *PostgresMock) ViewContent(ctx context.Context, userID string, contentID int) (bool, error) {
+	return gm.MockViewContentFn(ctx, userID, contentID)
 }
