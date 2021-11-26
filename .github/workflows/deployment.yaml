@@ -131,7 +131,8 @@ jobs:
           --set-env-vars "DJANGO_AUTHORIZATION_TOKEN=${{ secrets.DJANGO_AUTHORIZATION_TOKEN }}" \
           --set-env-vars "CONTENT_API_URL=${{ secrets.CONTENT_API_URL }}" \
           --set-env-vars "ROOT_COLLECTION_SUFFIX=${{ secrets.ROOT_COLLECTION_SUFFIX }}" \
-          --set-env-vars "GOOGLE_CLOUD_STORAGE_URL=${{ secrets.GOOGLE_CLOUD_STORAGE_URL }}" 
+          --set-env-vars "GOOGLE_CLOUD_STORAGE_URL=${{ secrets.GOOGLE_CLOUD_STORAGE_URL }}" \
+          --set-env-vars "SAVANNAH_ADMIN_EMAIL=${{ secrets.SAVANNAH_ADMIN_EMAIL }}"
 
   deploy_to_test:
     name: Deploy Test Server to Google Cloud Run
@@ -215,7 +216,8 @@ jobs:
           --set-env-vars "DJANGO_AUTHORIZATION_TOKEN=${{ secrets.DJANGO_AUTHORIZATION_TOKEN }}" \
           --set-env-vars "CONTENT_API_URL=${{ secrets.CONTENT_API_URL }}" \
           --set-env-vars "ROOT_COLLECTION_SUFFIX=${{ secrets.ROOT_COLLECTION_SUFFIX }}" \
-          --set-env-vars "GOOGLE_CLOUD_STORAGE_URL=${{ secrets.GOOGLE_CLOUD_STORAGE_URL }}"
+          --set-env-vars "GOOGLE_CLOUD_STORAGE_URL=${{ secrets.GOOGLE_CLOUD_STORAGE_URL }}" \
+          --set-env-vars "SAVANNAH_ADMIN_EMAIL=${{ secrets.SAVANNAH_ADMIN_EMAIL }}" 
 
   deploy_to_prod:
     name: Deploy Prod Server to Google Cloud Run
@@ -312,7 +314,8 @@ jobs:
           --set-env-vars "DJANGO_AUTHORIZATION_TOKEN=${{ secrets.DJANGO_AUTHORIZATION_TOKEN }}" \
           --set-env-vars "CONTENT_API_URL=${{ secrets.CONTENT_API_URL }}" \
           --set-env-vars "ROOT_COLLECTION_SUFFIX=${{ secrets.ROOT_COLLECTION_SUFFIX }}" \
-          --set-env-vars "GOOGLE_CLOUD_STORAGE_URL=${{ secrets.GOOGLE_CLOUD_STORAGE_URL }}" 
+          --set-env-vars "GOOGLE_CLOUD_STORAGE_URL=${{ secrets.GOOGLE_CLOUD_STORAGE_URL }}" \
+          --set-env-vars "SAVANNAH_ADMIN_EMAIL=${{ secrets.SAVANNAH_ADMIN_EMAIL }}" 
 
   push_schema_test_registry:
     name: Publish schema to schema registry

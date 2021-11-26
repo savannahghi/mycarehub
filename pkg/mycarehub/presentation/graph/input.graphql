@@ -41,3 +41,9 @@ input ShareContentInput {
 	ContentID: Int! 
 	Channel:   String! 
 }
+
+input FeedbackResponseInput {
+	userID: String!
+	message: String! 
+	requiresFollowUp: Boolean! 
+}

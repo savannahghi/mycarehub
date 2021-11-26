@@ -213,3 +213,17 @@ func (f *ShareContentInput) Validate() error {
 type RefreshTokenPayload struct {
 	UserID *string `json:"userID"`
 }
+
+// FeedbackResponseInput defines the field passed when sending feedback
+type FeedbackResponseInput struct {
+	UserID           string
+	Message          string
+	RequiresFollowUp bool
+}
+
+// FeedbackEmail defines the field to be parsed when sending feedback emails
+type FeedbackEmail struct {
+	User             string
+	Message          string
+	RequiresFollowUp string
+}

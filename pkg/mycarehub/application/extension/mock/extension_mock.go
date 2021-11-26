@@ -25,6 +25,7 @@ type FakeExtensionImpl struct {
 	MockGenerateRetryOTPFn                func(ctx context.Context, payload *dto.SendRetryOTPPayload) (string, error)
 	MockSendSMSViaTwilioFn                func(ctx context.Context, phonenumber, message string) error
 	MockSendInviteSMSFn                   func(ctx context.Context, phoneNumber, message string) error
+	MockSendFeedbackFn                    func(ctx context.Context, subject, feedbackMessage string) (bool, error)
 }
 
 // NewFakeExtension initializes a new instance of the external calls mock
@@ -76,6 +77,9 @@ func NewFakeExtension() *FakeExtensionImpl {
 		},
 		MockSendInviteSMSFn: func(ctx context.Context, phoneNumber, message string) error {
 			return nil
+		},
+		MockSendFeedbackFn: func(ctx context.Context, subject, feedbackMessage string) (bool, error) {
+			return true, nil
 		},
 	}
 }
@@ -133,4 +137,9 @@ func (f *FakeExtensionImpl) SendSMSViaTwilio(ctx context.Context, phonenumber, m
 // SendInviteSMS mocks the implementation of sending an invite sms
 func (f *FakeExtensionImpl) SendInviteSMS(ctx context.Context, phoneNumber, message string) error {
 	return f.MockSendInviteSMSFn(ctx, phoneNumber, message)
+}
+
+//SendFeedback mocks the implementation sending feedback
+func (f *FakeExtensionImpl) SendFeedback(ctx context.Context, subject, feedbackMessage string) (bool, error) {
+	return f.MockSendFeedbackFn(ctx, subject, feedbackMessage)
 }

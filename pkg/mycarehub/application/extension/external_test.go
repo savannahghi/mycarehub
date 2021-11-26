@@ -1,10 +1,9 @@
-package extension_test
+package extension
 
 import (
 	"context"
 	"testing"
 
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
 	"github.com/segmentio/ksuid"
 )
 
@@ -31,7 +30,7 @@ func TestExternal_CreateFirebaseCustomToken(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := extension.NewExternalMethodsImpl()
+			s := NewExternalMethodsImpl()
 			got, err := s.CreateFirebaseCustomToken(tt.args.ctx, tt.args.uid)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("External.CreateFirebaseCustomToken() error = %v, wantErr %v", err, tt.wantErr)
@@ -40,6 +39,46 @@ func TestExternal_CreateFirebaseCustomToken(t *testing.T) {
 			if !tt.wantErr && got == "" {
 				t.Errorf("expected to get a response but got: %v", got)
 				return
+			}
+		})
+	}
+}
+
+func TestExternal_SendFeedback(t *testing.T) {
+	ctx := context.Background()
+
+	type args struct {
+		ctx             context.Context
+		subject         string
+		feedbackMessage string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:             ctx,
+				subject:         "test",
+				feedbackMessage: "test",
+			},
+			want:    true,
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := NewExternalMethodsImpl()
+			got, err := s.SendFeedback(tt.args.ctx, tt.args.subject, tt.args.feedbackMessage)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("External.SendFeedback() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("External.SendFeedback() = %v, want %v", got, tt.want)
 			}
 		})
 	}
