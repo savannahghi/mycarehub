@@ -1417,3 +1417,71 @@ func TestUseCasesUserImpl_ResetPIN(t *testing.T) {
 		})
 	}
 }
+
+func TestUseCasesUserImpl_RefreshToken(t *testing.T) {
+	ctx := context.Background()
+	type args struct {
+		ctx   context.Context
+		token string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Successfully refresh a token",
+			args: args{
+				ctx:   ctx,
+				token: uuid.New().String(),
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad Case - Fail to create firebase custom token",
+			args: args{
+				ctx:   ctx,
+				token: uuid.New().String(),
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - Fail to authenticate firebase custom token",
+			args: args{
+				ctx:   ctx,
+				token: uuid.New().String(),
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			fakeExtension := extensionMock.NewFakeExtension()
+			otp := otp.NewOTPUseCase(fakeDB, fakeDB, fakeExtension)
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, otp)
+
+			if tt.name == "Sad Case - Fail to create firebase custom token" {
+				fakeExtension.MockCreateFirebaseCustomTokenFn = func(ctx context.Context, uid string) (string, error) {
+					return "", fmt.Errorf("failed to create firebase custom token")
+				}
+			}
+
+			if tt.name == "Sad Case - Fail to authenticate firebase custom token" {
+				fakeExtension.MockAuthenticateCustomFirebaseTokenFn = func(customAuthToken string) (*firebasetools.FirebaseUserTokens, error) {
+					return nil, fmt.Errorf("failed to authenticate custom token")
+				}
+			}
+
+			got, err := us.RefreshToken(tt.args.ctx, tt.args.token)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCasesUserImpl.RefreshToken() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected a response but got %v", got)
+				return
+			}
+		})
+	}
+}

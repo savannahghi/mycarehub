@@ -207,3 +207,9 @@ func (f *ShareContentInput) Validate() error {
 
 	return err
 }
+
+// RefreshTokenPayload is used when calling the REST API to
+// exchange a Refresh Token for new ID Token
+type RefreshTokenPayload struct {
+	UserID *string `json:"userID"`
+}
