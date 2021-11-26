@@ -61,6 +61,8 @@ type GormMock struct {
 	MockLikeContentFn                             func(ctx context.Context, userID string, contentID int) (bool, error)
 	MockUnlikeContentFn                           func(ctx context.Context, userID string, contentID int) (bool, error)
 	MockViewContentFn                             func(ctx context.Context, userID string, contentID int) (bool, error)
+	MockCreateHealthDiaryEntryFn                  func(ctx context.Context, healthDiaryInput *gorm.ClientHealthDiaryEntry) error
+	MockCreateServiceRequestFn                    func(ctx context.Context, healthDiaryInput *gorm.ClientHealthDiaryEntry, serviceRequestInput *gorm.ClientServiceRequest) error
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -343,6 +345,12 @@ func NewGormMock() *GormMock {
 		MockViewContentFn: func(ctx context.Context, userID string, contentID int) (bool, error) {
 			return true, nil
 		},
+		MockCreateHealthDiaryEntryFn: func(ctx context.Context, healthDiaryInput *gorm.ClientHealthDiaryEntry) error {
+			return nil
+		},
+		MockCreateServiceRequestFn: func(ctx context.Context, healthDiaryInput *gorm.ClientHealthDiaryEntry, serviceRequestInput *gorm.ClientServiceRequest) error {
+			return nil
+		},
 	}
 }
 
@@ -559,4 +567,14 @@ func (gm *GormMock) UnlikeContent(ctx context.Context, userID string, contentID 
 // ViewContent gets a content and updates the view count
 func (gm *GormMock) ViewContent(ctx context.Context, userID string, contentID int) (bool, error) {
 	return gm.MockViewContentFn(ctx, userID, contentID)
+}
+
+// CreateHealthDiaryEntry mocks the method for creating a health diary entry
+func (gm *GormMock) CreateHealthDiaryEntry(ctx context.Context, healthDiaryInput *gorm.ClientHealthDiaryEntry) error {
+	return gm.MockCreateHealthDiaryEntryFn(ctx, healthDiaryInput)
+}
+
+// CreateServiceRequest mocks creating a service request method
+func (gm *GormMock) CreateServiceRequest(ctx context.Context, healthDiaryInput *gorm.ClientHealthDiaryEntry, serviceRequestInput *gorm.ClientServiceRequest) error {
+	return gm.MockCreateServiceRequestFn(ctx, healthDiaryInput, serviceRequestInput)
 }

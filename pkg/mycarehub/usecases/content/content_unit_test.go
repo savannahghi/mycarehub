@@ -468,3 +468,129 @@ func TestUseCasesContentImpl_GetContentByContentItemID(t *testing.T) {
 		})
 	}
 }
+
+func TestUseCasesContentImpl_ViewContent(t *testing.T) {
+	ctx := context.Background()
+	type args struct {
+		ctx       context.Context
+		userID    string
+		contentID int
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy case - Successfully update view count",
+			args: args{
+				ctx:       ctx,
+				userID:    uuid.New().String(),
+				contentID: 12,
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Sad Case - Fail to update view count",
+			args: args{
+				ctx:       ctx,
+				userID:    uuid.New().String(),
+				contentID: 12,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name:    "Sad Case - Missing user ID",
+			args:    args{},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			c := content.NewUseCasesContentImplementation(fakeDB, fakeDB)
+
+			if tt.name == "Sad Case - Fail to update view count" {
+				fakeDB.MockViewContentFn = func(ctx context.Context, userID string, contentID int) (bool, error) {
+					return false, fmt.Errorf("failed to update view count")
+				}
+			}
+
+			if tt.name == "Sad Case - Missing user ID" {
+				fakeDB.MockViewContentFn = func(ctx context.Context, userID string, contentID int) (bool, error) {
+					return false, fmt.Errorf("failed to update view count")
+				}
+			}
+
+			got, err := c.ViewContent(tt.args.ctx, tt.args.userID, tt.args.contentID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCasesContentImpl.ViewContent() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("UseCasesContentImpl.ViewContent() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestUseCasesContentImpl_BookmarkContent(t *testing.T) {
+	ctx := context.Background()
+	type args struct {
+		ctx       context.Context
+		userID    string
+		contentID int
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Successfully bookmark content",
+			args: args{
+				ctx:       ctx,
+				userID:    uuid.New().String(),
+				contentID: 12,
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Sad Case - Fail to bookmark content",
+			args: args{
+				ctx:       ctx,
+				userID:    uuid.New().String(),
+				contentID: 12,
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			c := content.NewUseCasesContentImplementation(fakeDB, fakeDB)
+
+			if tt.name == "Sad Case - Fail to bookmark content" {
+				fakeDB.MockBookmarkContentFn = func(ctx context.Context, userID string, contentID int) (bool, error) {
+					return false, fmt.Errorf("failed to bookmark content")
+				}
+			}
+
+			got, err := c.BookmarkContent(tt.args.ctx, tt.args.userID, tt.args.contentID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCasesContentImpl.BookmarkContent() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("UseCasesContentImpl.BookmarkContent() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

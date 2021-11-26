@@ -61,6 +61,8 @@ type PostgresMock struct {
 	MockUnlikeContentFn                           func(ctx context.Context, userID string, contentID int) (bool, error)
 	MockFetchFacilitiesFn                         func(ctx context.Context) ([]*domain.Facility, error)
 	MockViewContentFn                             func(ctx context.Context, userID string, contentID int) (bool, error)
+	MockCreateHealthDiaryEntryFn                  func(ctx context.Context, healthDiaryInput *domain.ClientHealthDiaryEntry) error
+	MockCreateServiceRequestFn                    func(ctx context.Context, healthDiaryInput *domain.ClientHealthDiaryEntry, serviceRequestInput *domain.ClientServiceRequest) error
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -344,6 +346,12 @@ func NewPostgresMock() *PostgresMock {
 		MockViewContentFn: func(ctx context.Context, userID string, contentID int) (bool, error) {
 			return true, nil
 		},
+		MockCreateHealthDiaryEntryFn: func(ctx context.Context, healthDiaryInput *domain.ClientHealthDiaryEntry) error {
+			return nil
+		},
+		MockCreateServiceRequestFn: func(ctx context.Context, healthDiaryInput *domain.ClientHealthDiaryEntry, serviceRequestInput *domain.ClientServiceRequest) error {
+			return nil
+		},
 	}
 }
 
@@ -575,4 +583,14 @@ func (gm *PostgresMock) FetchFacilities(ctx context.Context) ([]*domain.Facility
 // ViewContent gets a content and updates the view count
 func (gm *PostgresMock) ViewContent(ctx context.Context, userID string, contentID int) (bool, error) {
 	return gm.MockViewContentFn(ctx, userID, contentID)
+}
+
+// CreateHealthDiaryEntry mocks the method for creating a health diary entry
+func (gm *PostgresMock) CreateHealthDiaryEntry(ctx context.Context, healthDiaryInput *domain.ClientHealthDiaryEntry) error {
+	return gm.MockCreateHealthDiaryEntryFn(ctx, healthDiaryInput)
+}
+
+// CreateServiceRequest mocks creating a service request method
+func (gm *PostgresMock) CreateServiceRequest(ctx context.Context, healthDiaryInput *domain.ClientHealthDiaryEntry, serviceRequestInput *domain.ClientServiceRequest) error {
+	return gm.MockCreateServiceRequestFn(ctx, healthDiaryInput, serviceRequestInput)
 }
