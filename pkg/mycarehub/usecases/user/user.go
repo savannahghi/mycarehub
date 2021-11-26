@@ -25,6 +25,11 @@ type ILogin interface {
 	InviteUser(ctx context.Context, userID string, phoneNumber string, flavour feedlib.Flavour) (bool, error)
 }
 
+// IRefreshToken contains the method refreshing a token
+type IRefreshToken interface {
+	RefreshToken(ctx context.Context, userID string) (*domain.AuthCredentials, error)
+}
+
 // ISetUserPIN is an interface that contains all the user use cases for pins
 type ISetUserPIN interface {
 	SetUserPIN(ctx context.Context, input dto.PINInput) (bool, error)
@@ -64,6 +69,7 @@ type UseCasesUser interface {
 	IRequestPinReset
 	ICompleteOnboardingTour
 	IResetPIN
+	IRefreshToken
 }
 
 // UseCasesUserImpl represents user implementation object
@@ -478,4 +484,24 @@ func (us *UseCasesUserImpl) ResetPIN(ctx context.Context, input dto.UserResetPin
 	}
 
 	return true, nil
+}
+
+// RefreshToken takes a user ID and creates a custom Firebase refresh token. It then tries to fetch
+// an ID token and returns auth credentials if successful
+func (us *UseCasesUserImpl) RefreshToken(ctx context.Context, userID string) (*domain.AuthCredentials, error) {
+	customToken, err := us.ExternalExt.CreateFirebaseCustomToken(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	tokenResponse, err := us.ExternalExt.AuthenticateCustomFirebaseToken(customToken)
+	if err != nil {
+		return nil, err
+	}
+
+	return &domain.AuthCredentials{
+		RefreshToken: tokenResponse.RefreshToken,
+		IDToken:      tokenResponse.IDToken,
+		ExpiresIn:    tokenResponse.ExpiresIn,
+	}, nil
 }

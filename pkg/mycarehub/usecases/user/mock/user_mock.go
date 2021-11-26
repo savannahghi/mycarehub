@@ -20,6 +20,7 @@ type UserUseCaseMock struct {
 	MockSetNickNameFn     func(ctx context.Context, userID *string, nickname *string) (bool, error)
 	MockRequestPINResetFn func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (string, error)
 	MockResetPINFn        func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
+	MockRefreshTokenFn    func(ctx context.Context, userID string) (*domain.AuthCredentials, error)
 }
 
 // NewUserUseCaseMock creates in itializes create type mocks
@@ -68,6 +69,13 @@ func NewUserUseCaseMock() *UserUseCaseMock {
 		MockResetPINFn: func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
 			return true, nil
 		},
+		MockRefreshTokenFn: func(ctx context.Context, userID string) (*domain.AuthCredentials, error) {
+			return &domain.AuthCredentials{
+				RefreshToken: uuid.New().String(),
+				ExpiresIn:    "3600",
+				IDToken:      uuid.New().String(),
+			}, nil
+		},
 	}
 }
 
@@ -104,4 +112,9 @@ func (f *UserUseCaseMock) RequestPINReset(ctx context.Context, phoneNumber strin
 // ResetPIN mocks the reset pin functionality
 func (f *UserUseCaseMock) ResetPIN(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
 	return f.MockResetPINFn(ctx, userID, flavour)
+}
+
+// RefreshToken mocks the implementation for refreshing a token
+func (f *UserUseCaseMock) RefreshToken(ctx context.Context, userID string) (*domain.AuthCredentials, error) {
+	return f.MockRefreshTokenFn(ctx, userID)
 }

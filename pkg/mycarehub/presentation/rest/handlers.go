@@ -21,6 +21,7 @@ type MyCareHubHandlersInterfaces interface {
 	SendRetryOTP() http.HandlerFunc
 	GetUserRespondedSecurityQuestions() http.HandlerFunc
 	ResetPIN() http.HandlerFunc
+	RefreshToken() http.HandlerFunc
 }
 
 // MyCareHubHandlersInterfacesImpl represents the usecase implementation object
@@ -332,5 +333,34 @@ func (h *MyCareHubHandlersInterfacesImpl) ResetPIN() http.HandlerFunc {
 		}
 
 		serverutils.WriteJSONResponse(w, resp, http.StatusOK)
+	}
+}
+
+// RefreshToken is an unauthenticated endpoint that
+// takes a user ID and creates a custom Firebase refresh token. It then tries to fetch
+// an ID token and returns auth credentials if successful
+// Otherwise, an error is returned
+func (h *MyCareHubHandlersInterfacesImpl) RefreshToken() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+		payload := &dto.RefreshTokenPayload{}
+		serverutils.DecodeJSONToTargetStruct(w, r, payload)
+
+		if payload.UserID == nil {
+			err := fmt.Errorf("expected `userID` to be defined")
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusBadRequest)
+			return
+		}
+
+		response, err := h.usecase.User.RefreshToken(ctx, *payload.UserID)
+		if err != nil {
+			serverutils.WriteJSONResponse(w, serverutils.ErrorMap(err), http.StatusBadRequest)
+			return
+		}
+
+		serverutils.WriteJSONResponse(w, response, http.StatusOK)
 	}
 }
