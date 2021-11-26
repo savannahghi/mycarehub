@@ -415,7 +415,7 @@ func TestPGInstance_SaveSecurityQuestionResponse(t *testing.T) {
 
 	type args struct {
 		ctx                      context.Context
-		securityQuestionResponse *gorm.SecurityQuestionResponse
+		securityQuestionResponse []*gorm.SecurityQuestionResponse
 	}
 	tests := []struct {
 		name    string
@@ -426,10 +426,12 @@ func TestPGInstance_SaveSecurityQuestionResponse(t *testing.T) {
 			name: "happy case - valid payload",
 			args: args{
 				ctx: ctx,
-				securityQuestionResponse: &gorm.SecurityQuestionResponse{
-					QuestionID: *securityQuestionInput.SecurityQuestionID,
-					UserID:     *userInput.UserID,
-					Response:   "20",
+				securityQuestionResponse: []*gorm.SecurityQuestionResponse{
+					{
+						QuestionID: *securityQuestionInput.SecurityQuestionID,
+						UserID:     *userInput.UserID,
+						Response:   "20",
+					},
 				},
 			},
 			wantErr: false,

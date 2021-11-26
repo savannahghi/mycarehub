@@ -39,7 +39,7 @@ type GormMock struct {
 	MockGetSecurityQuestionsFn              func(ctx context.Context, flavour feedlib.Flavour) ([]*gorm.SecurityQuestion, error)
 	MockSaveOTPFn                           func(ctx context.Context, otpInput *gorm.UserOTP) error
 	MockGetSecurityQuestionByIDFn           func(ctx context.Context, securityQuestionID *string) (*gorm.SecurityQuestion, error)
-	MockSaveSecurityQuestionResponseFn      func(ctx context.Context, securityQuestionResponse *gorm.SecurityQuestionResponse) error
+	MockSaveSecurityQuestionResponseFn      func(ctx context.Context, securityQuestionResponse []*gorm.SecurityQuestionResponse) error
 	MockGetSecurityQuestionResponseByIDFn   func(ctx context.Context, questionID string) (*gorm.SecurityQuestionResponse, error)
 	MockCheckIfPhoneNumberExistsFn          func(ctx context.Context, phone string, isOptedIn bool, flavour feedlib.Flavour) (bool, error)
 	MockVerifyOTPFn                         func(ctx context.Context, payload *dto.VerifyOTPInput) (bool, error)
@@ -258,7 +258,7 @@ func NewGormMock() *GormMock {
 				ResponseType:       enums.SecurityQuestionResponseTypeNumber,
 			}, nil
 		},
-		MockSaveSecurityQuestionResponseFn: func(ctx context.Context, securityQuestionResponse *gorm.SecurityQuestionResponse) error {
+		MockSaveSecurityQuestionResponseFn: func(ctx context.Context, securityQuestionResponse []*gorm.SecurityQuestionResponse) error {
 			return nil
 		},
 		MockGetSecurityQuestionResponseByIDFn: func(ctx context.Context, questionID string) (*gorm.SecurityQuestionResponse, error) {
@@ -462,7 +462,7 @@ func (gm *GormMock) GetSecurityQuestionByID(ctx context.Context, securityQuestio
 }
 
 // SaveSecurityQuestionResponse mocks the implementation of saving a security question response
-func (gm *GormMock) SaveSecurityQuestionResponse(ctx context.Context, securityQuestionResponse *gorm.SecurityQuestionResponse) error {
+func (gm *GormMock) SaveSecurityQuestionResponse(ctx context.Context, securityQuestionResponse []*gorm.SecurityQuestionResponse) error {
 	return gm.MockSaveSecurityQuestionResponseFn(ctx, securityQuestionResponse)
 }
 

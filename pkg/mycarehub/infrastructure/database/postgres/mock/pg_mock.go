@@ -39,7 +39,7 @@ type PostgresMock struct {
 	MockGetSecurityQuestionsFn                    func(ctx context.Context, flavour feedlib.Flavour) ([]*domain.SecurityQuestion, error)
 	MockSaveOTPFn                                 func(ctx context.Context, otpInput *domain.OTP) error
 	MockGetSecurityQuestionByIDFn                 func(ctx context.Context, securityQuestionID *string) (*domain.SecurityQuestion, error)
-	MockSaveSecurityQuestionResponseFn            func(ctx context.Context, securityQuestionResponse *dto.SecurityQuestionResponseInput) error
+	MockSaveSecurityQuestionResponseFn            func(ctx context.Context, securityQuestionResponse []*dto.SecurityQuestionResponseInput) error
 	MockGetSecurityQuestionResponseByIDFn         func(ctx context.Context, questionID string) (*domain.SecurityQuestionResponse, error)
 	MockCheckIfPhoneNumberExistsFn                func(ctx context.Context, phone string, isOptedIn bool, flavour feedlib.Flavour) (bool, error)
 	MockVerifyOTPFn                               func(ctx context.Context, payload *dto.VerifyOTPInput) (bool, error)
@@ -242,7 +242,7 @@ func NewPostgresMock() *PostgresMock {
 				ResponseType: enums.SecurityQuestionResponseTypeNumber,
 			}, nil
 		},
-		MockSaveSecurityQuestionResponseFn: func(ctx context.Context, securityQuestionResponse *dto.SecurityQuestionResponseInput) error {
+		MockSaveSecurityQuestionResponseFn: func(ctx context.Context, securityQuestionResponse []*dto.SecurityQuestionResponseInput) error {
 			return nil
 		},
 		MockGetSecurityQuestionResponseByIDFn: func(ctx context.Context, questionID string) (*domain.SecurityQuestionResponse, error) {
@@ -468,7 +468,7 @@ func (gm *PostgresMock) GetSecurityQuestionByID(ctx context.Context, securityQue
 }
 
 // SaveSecurityQuestionResponse saves the response of a security question
-func (gm *PostgresMock) SaveSecurityQuestionResponse(ctx context.Context, securityQuestionResponse *dto.SecurityQuestionResponseInput) error {
+func (gm *PostgresMock) SaveSecurityQuestionResponse(ctx context.Context, securityQuestionResponse []*dto.SecurityQuestionResponseInput) error {
 	return gm.MockSaveSecurityQuestionResponseFn(ctx, securityQuestionResponse)
 }
 

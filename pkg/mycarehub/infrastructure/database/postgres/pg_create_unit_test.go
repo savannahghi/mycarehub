@@ -344,7 +344,7 @@ func TestMyCareHubDb_SaveSecurityQuestionResponse(t *testing.T) {
 	ctx := context.Background()
 	type args struct {
 		ctx                      context.Context
-		securityQuestionResponse *dto.SecurityQuestionResponseInput
+		securityQuestionResponse []*dto.SecurityQuestionResponseInput
 	}
 	tests := []struct {
 		name    string
@@ -355,10 +355,12 @@ func TestMyCareHubDb_SaveSecurityQuestionResponse(t *testing.T) {
 			name: "Happy Case - Successfully save question response",
 			args: args{
 				ctx: ctx,
-				securityQuestionResponse: &dto.SecurityQuestionResponseInput{
-					UserID:             uuid.New().String(),
-					SecurityQuestionID: uuid.New().String(),
-					Response:           "A valid response",
+				securityQuestionResponse: []*dto.SecurityQuestionResponseInput{
+					{
+						UserID:             uuid.New().String(),
+						SecurityQuestionID: uuid.New().String(),
+						Response:           "A valid response",
+					},
 				},
 			},
 			wantErr: false,
@@ -367,10 +369,12 @@ func TestMyCareHubDb_SaveSecurityQuestionResponse(t *testing.T) {
 			name: "Sad Case - Fail to save question response",
 			args: args{
 				ctx: ctx,
-				securityQuestionResponse: &dto.SecurityQuestionResponseInput{
-					UserID:             uuid.New().String(),
-					SecurityQuestionID: uuid.New().String(),
-					Response:           "A valid response",
+				securityQuestionResponse: []*dto.SecurityQuestionResponseInput{
+					{
+						UserID:             uuid.New().String(),
+						SecurityQuestionID: uuid.New().String(),
+						Response:           "A valid response",
+					},
 				},
 			},
 			wantErr: true,
@@ -382,7 +386,7 @@ func TestMyCareHubDb_SaveSecurityQuestionResponse(t *testing.T) {
 			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
 
 			if tt.name == "Sad Case - Fail to save question response" {
-				fakeGorm.MockSaveSecurityQuestionResponseFn = func(ctx context.Context, securityQuestionResponse *gorm.SecurityQuestionResponse) error {
+				fakeGorm.MockSaveSecurityQuestionResponseFn = func(ctx context.Context, securityQuestionResponse []*gorm.SecurityQuestionResponse) error {
 					return fmt.Errorf("failed to save security question response")
 				}
 			}

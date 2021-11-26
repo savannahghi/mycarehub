@@ -33,7 +33,7 @@ func TestSecurityQuestion_Validate(t *testing.T) {
 				Description:        "Mother's maiden name",
 				Flavour:            feedlib.FlavourConsumer,
 				Active:             true,
-				ResponseType:       enums.SecurityQuestionResponseTypeString,
+				ResponseType:       enums.SecurityQuestionResponseTypeText,
 			},
 
 			args: args{
@@ -56,6 +56,38 @@ func TestSecurityQuestion_Validate(t *testing.T) {
 				response: "24",
 			},
 			wantErr: false,
+		},
+		{
+			name: "valid: security question response type boolean",
+			fields: fields{
+				SecurityQuestionID: "123",
+				QuestionStem:       "Do you have children?",
+				Description:        "general",
+				Flavour:            feedlib.FlavourConsumer,
+				Active:             true,
+				ResponseType:       enums.SecurityQuestionResponseTypeBoolean,
+			},
+
+			args: args{
+				response: "true",
+			},
+			wantErr: false,
+		},
+		{
+			name: "invalid: security question response type boolean is invalid",
+			fields: fields{
+				SecurityQuestionID: "123",
+				QuestionStem:       "Do you have children?",
+				Description:        "general",
+				Flavour:            feedlib.FlavourConsumer,
+				Active:             true,
+				ResponseType:       enums.SecurityQuestionResponseTypeBoolean,
+			},
+
+			args: args{
+				response: "nah",
+			},
+			wantErr: true,
 		},
 		{
 			name: "invalid: security question response type number",

@@ -17,7 +17,7 @@ type Create interface {
 	SaveTemporaryUserPin(ctx context.Context, pinData *domain.UserPIN) (bool, error)
 	SavePin(ctx context.Context, pinInput *domain.UserPIN) (bool, error)
 	SaveOTP(ctx context.Context, otpInput *domain.OTP) error
-	SaveSecurityQuestionResponse(ctx context.Context, securityQuestionResponse *dto.SecurityQuestionResponseInput) error
+	SaveSecurityQuestionResponse(ctx context.Context, securityQuestionResponse []*dto.SecurityQuestionResponseInput) error
 }
 
 // Delete represents all the deletion action interfaces

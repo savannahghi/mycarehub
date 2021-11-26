@@ -11,7 +11,7 @@ type Create interface {
 	SaveTemporaryUserPin(ctx context.Context, pinPayload *PINData) (bool, error)
 	SavePin(ctx context.Context, pinData *PINData) (bool, error)
 	SaveOTP(ctx context.Context, otpInput *UserOTP) error
-	SaveSecurityQuestionResponse(ctx context.Context, securityQuestionResponse *SecurityQuestionResponse) error
+	SaveSecurityQuestionResponse(ctx context.Context, securityQuestionResponse []*SecurityQuestionResponse) error
 }
 
 // GetOrCreateFacility is used to get or create a facility
@@ -70,11 +70,41 @@ func (db *PGInstance) SaveOTP(ctx context.Context, otpInput *UserOTP) error {
 	return nil
 }
 
-// SaveSecurityQuestionResponse saves the security question response to the database
-func (db *PGInstance) SaveSecurityQuestionResponse(ctx context.Context, securityQuestionResponse *SecurityQuestionResponse) error {
-	err := db.DB.Create(securityQuestionResponse).Error
-	if err != nil {
-		return fmt.Errorf("failed to save security question response data")
+// SaveSecurityQuestionResponse saves the security question response to the database if it does not exist,
+// otherwise it updates the existing one
+func (db *PGInstance) SaveSecurityQuestionResponse(ctx context.Context, securityQuestionResponse []*SecurityQuestionResponse) error {
+	tx := db.DB.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+	if err := tx.Error; err != nil {
+		return fmt.Errorf("failed initialize database transaction %v", err)
 	}
+	for _, questionResponse := range securityQuestionResponse {
+		SaveSecurityQuestionResponseUpdatePayload := &SecurityQuestionResponse{
+			Response: questionResponse.Response,
+		}
+		err := tx.Model(&SecurityQuestionResponse{}).Where(&SecurityQuestionResponse{UserID: questionResponse.UserID, QuestionID: questionResponse.QuestionID}).First(&questionResponse).Error
+		if err == nil {
+			err := tx.Model(&SecurityQuestionResponse{}).Where(&SecurityQuestionResponse{UserID: questionResponse.UserID, QuestionID: questionResponse.QuestionID}).Updates(&SaveSecurityQuestionResponseUpdatePayload).Error
+			if err != nil {
+				tx.Rollback()
+				return fmt.Errorf("failed to update security question response data: %v", err)
+			}
+		} else {
+			err = tx.Create(&questionResponse).Error
+			if err != nil {
+				tx.Rollback()
+				return fmt.Errorf("failed to create security question response data: %v", err)
+			}
+		}
+	}
+	if err := tx.Commit().Error; err != nil {
+		tx.Rollback()
+		return fmt.Errorf("transaction commit to create/update security question responses failed: %v", err)
+	}
+
 	return nil
 }
