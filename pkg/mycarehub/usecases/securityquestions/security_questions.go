@@ -15,6 +15,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
 	"github.com/savannahghi/serverutils"
+	"github.com/sirupsen/logrus"
 
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
@@ -129,6 +130,7 @@ func (s *UseCaseSecurityQuestionsImpl) RecordSecurityQuestionResponses(ctx conte
 				SecurityQuestionID: i.SecurityQuestionID,
 				IsCorrect:          true,
 			})
+		logrus.Print("THE recordSecurityQuestionResponses IS: ", recordSecurityQuestionResponses)
 
 	}
 

@@ -750,6 +750,14 @@ func TestOnboardingDb_GetUserPINByUserID(t *testing.T) {
 			},
 			wantErr: true,
 		},
+		{
+			name: "Sad Case - empty user id",
+			args: args{
+				ctx:    ctx,
+				userID: "",
+			},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -757,6 +765,11 @@ func TestOnboardingDb_GetUserPINByUserID(t *testing.T) {
 			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
 
 			if tt.name == "Sad Case - Fail to get user pin" {
+				fakeGorm.MockGetUserPINByUserIDFn = func(ctx context.Context, userID string) (*gorm.PINData, error) {
+					return nil, fmt.Errorf("failed to get user pin")
+				}
+			}
+			if tt.name == "Sad Case - empty user id" {
 				fakeGorm.MockGetUserPINByUserIDFn = func(ctx context.Context, userID string) (*gorm.PINData, error) {
 					return nil, fmt.Errorf("failed to get user pin")
 				}

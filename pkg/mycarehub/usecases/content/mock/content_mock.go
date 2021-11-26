@@ -16,6 +16,8 @@ type ContentUsecaseMock struct {
 	MockGetContentFn                func(ctx context.Context, categoryID *int, limit string) (*domain.Content, error)
 	MockGetUserBookmarkedContentFn  func(ctx context.Context, userID string) (*domain.Content, error)
 	MockGetContentByContentItemIDFn func(ctx context.Context, contentID int) (*domain.Content, error)
+	MockLikeContentFn               func(ctx context.Context, userID string, contentID string) (bool, error)
+	MockUnlikeContentFn             func(ctx context.Context, userID string, contentID int) (bool, error)
 }
 
 // NewContentUsecaseMock instantiates all the content usecase mock methods
@@ -57,6 +59,12 @@ func NewContentUsecaseMock() *ContentUsecaseMock {
 		MockGetContentByContentItemIDFn: func(ctx context.Context, contentID int) (*domain.Content, error) {
 			return content, nil
 		},
+		MockLikeContentFn: func(ctx context.Context, userID, contentID string) (bool, error) {
+			return true, nil
+		},
+		MockUnlikeContentFn: func(ctx context.Context, userID string, contentID int) (bool, error) {
+			return true, nil
+		},
 	}
 }
 
@@ -83,4 +91,14 @@ func (cm *ContentUsecaseMock) GetUserBookmarkedContent(ctx context.Context, user
 // GetContentByContentItemID mocks fetching content using it's item ID
 func (cm *ContentUsecaseMock) GetContentByContentItemID(ctx context.Context, contentID int) (*domain.Content, error) {
 	return cm.MockGetContentByContentItemIDFn(ctx, contentID)
+}
+
+//LikeContent mocks the implementation liking a feed content
+func (cm *ContentUsecaseMock) LikeContent(ctx context.Context, userID string, contentID string) (bool, error) {
+	return cm.MockLikeContentFn(ctx, userID, contentID)
+}
+
+//UnlikeContent mocks the implementation liking a feed content
+func (cm *ContentUsecaseMock) UnlikeContent(ctx context.Context, userID string, contentID int) (bool, error) {
+	return cm.MockUnlikeContentFn(ctx, userID, contentID)
 }

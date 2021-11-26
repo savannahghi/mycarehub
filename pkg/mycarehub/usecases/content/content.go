@@ -31,7 +31,7 @@ type IGetBookmarkedContent interface {
 	GetUserBookmarkedContent(ctx context.Context, userID string) (*domain.Content, error)
 }
 
-// IContentCategoryList groups allthe content category listing methods
+// IContentCategoryList groups all the content category listing methods
 type IContentCategoryList interface {
 	ListContentCategories(ctx context.Context) ([]*domain.ContentItemCategory, error)
 }
@@ -62,6 +62,24 @@ type IUnBookmarkContent interface {
 	UnBookmarkContent(ctx context.Context, userID string, contentID int) (bool, error)
 }
 
+// ILikeContent groups the like feature methods
+type ILikeContent interface {
+	// TODO: update like count (increment)
+	// TODO: idempotence, with user ID i.e a user can only like once
+	// TODO: add / check entry in ContentLikes table
+	// TODO: metrics
+	LikeContent(ctx context.Context, userID string, contentID int) (bool, error)
+}
+
+// IUnlikeContent groups the unllike feature methods
+type IUnlikeContent interface {
+	// TODO: update like count (decrement)
+	// TODO: idempotence, with user ID i.e a user can only unlike something they liked
+	// TODO: remove entry from ContentLikes table if it exists...be forgiving (idempotence)
+	// TODO: metrics
+	UnlikeContent(ctx context.Context, userID string, contentID int) (bool, error)
+}
+
 // UseCasesContent holds the interfaces that are implemented within the content service
 type UseCasesContent interface {
 	IGetContent
@@ -70,6 +88,8 @@ type UseCasesContent interface {
 	IShareContent
 	IBookmarkContent
 	IUnBookmarkContent
+	ILikeContent
+	IUnlikeContent
 }
 
 // UseCasesContentImpl represents content implementation
@@ -87,6 +107,17 @@ func NewUseCasesContentImplementation(
 		Update: update,
 		Query:  query,
 	}
+
+}
+
+// LikeContent implements the content liking api
+func (u UseCasesContentImpl) LikeContent(ctx context.Context, userID string, contentID int) (bool, error) {
+	return u.Update.LikeContent(ctx, userID, contentID)
+}
+
+// UnlikeContent implements the content liking api
+func (u UseCasesContentImpl) UnlikeContent(ctx context.Context, userID string, contentID int) (bool, error) {
+	return u.Update.UnlikeContent(ctx, userID, contentID)
 }
 
 // GetContent fetches content from wagtail CMS. The category ID is optional and it is used to return content based

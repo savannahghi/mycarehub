@@ -557,6 +557,15 @@ func TestUseCaseFacilityImpl_DeleteFacility(t *testing.T) {
 			want:    true,
 			wantErr: false,
 		},
+		{
+			name: "Sad Case - unable delete facility",
+			args: args{
+				ctx: ctx,
+				id:  0,
+			},
+			want:    true,
+			wantErr: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -568,6 +577,12 @@ func TestUseCaseFacilityImpl_DeleteFacility(t *testing.T) {
 			if tt.name == "Happy Case - Successfully delete facility" {
 				fakeFacility.DeleteFacilityFn = func(ctx context.Context, id int) (bool, error) {
 					return true, nil
+				}
+			}
+
+			if tt.name == "Sad Case - unable delete facility" {
+				fakeFacility.DeleteFacilityFn = func(ctx context.Context, id int) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
 				}
 			}
 
@@ -614,6 +629,44 @@ func TestUseCaseFacilityImpl_FetchFacilities(t *testing.T) {
 			}
 			if !tt.wantErr && got == nil {
 				t.Errorf("expected a response but got %v", got)
+				return
+			}
+		})
+	}
+}
+
+func TestUseCaseFacilityImpl_FetchFacilities_Unittes(t *testing.T) {
+	ctx := context.Background()
+	type args struct {
+		ctx context.Context
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Successfully fetch facilities",
+			args: args{
+				ctx: ctx,
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			_ = mock.NewFacilityUsecaseMock()
+			f := facility.NewFacilityUsecase(fakeDB, fakeDB, fakeDB, fakeDB)
+
+			if tt.name == "Sad case" {
+				fakeDB.MockFetchFacilitiesFn = func(ctx context.Context) ([]*domain.Facility, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+			_, err := f.FetchFacilities(tt.args.ctx)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCaseFacilityImpl.FetchFacilities() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 		})

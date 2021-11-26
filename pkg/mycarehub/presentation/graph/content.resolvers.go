@@ -23,6 +23,18 @@ func (r *mutationResolver) UnBookmarkContent(ctx context.Context, userID string,
 	return r.mycarehub.Content.UnBookmarkContent(ctx, userID, contentItemID)
 }
 
+func (r *mutationResolver) LikeContent(ctx context.Context, userID string, contentID int) (bool, error) {
+	r.checkPreconditions()
+
+	return r.mycarehub.Content.LikeContent(ctx, userID, contentID)
+}
+
+func (r *mutationResolver) UnlikeContent(ctx context.Context, userID string, contentID int) (bool, error) {
+	r.checkPreconditions()
+
+	return r.mycarehub.Content.UnlikeContent(ctx, userID, contentID)
+}
+
 func (r *queryResolver) GetContent(ctx context.Context, categoryID *int, limit string) (*domain.Content, error) {
 	r.checkPreconditions()
 	return r.mycarehub.Content.GetContent(ctx, categoryID, limit)

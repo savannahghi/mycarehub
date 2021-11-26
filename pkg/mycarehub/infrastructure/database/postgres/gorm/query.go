@@ -52,6 +52,9 @@ func (db *PGInstance) ListContentCategories(ctx context.Context) ([]*ContentItem
 
 // RetrieveFacility fetches a single facility
 func (db *PGInstance) RetrieveFacility(ctx context.Context, id *string, isActive bool) (*Facility, error) {
+	if id == nil {
+		return nil, fmt.Errorf("facility id cannot be nil")
+	}
 	var facility Facility
 	err := db.DB.Where(&Facility{FacilityID: id, Active: isActive}).First(&facility).Error
 	if err != nil {
@@ -78,6 +81,9 @@ func (db *PGInstance) CheckIfPhoneNumberExists(ctx context.Context, phone string
 
 // RetrieveFacilityByMFLCode fetches a single facility using MFL Code
 func (db *PGInstance) RetrieveFacilityByMFLCode(ctx context.Context, MFLCode int, isActive bool) (*Facility, error) {
+	if MFLCode == 0 {
+		return nil, fmt.Errorf("facility mfl code cannot be nil")
+	}
 	var facility Facility
 	if err := db.DB.Where(&Facility{Code: MFLCode, Active: isActive}).First(&facility).Error; err != nil {
 		return nil, fmt.Errorf("failed to get facility by MFL Code %v and status %v: %v", MFLCode, isActive, err)
@@ -229,6 +235,9 @@ func (db *PGInstance) GetCurrentTerms(ctx context.Context) (*TermsOfService, err
 
 // GetUserProfileByUserID fetches a user profile using the user ID
 func (db *PGInstance) GetUserProfileByUserID(ctx context.Context, userID string) (*User, error) {
+	if userID == "" {
+		return nil, fmt.Errorf("userID cannot be empty")
+	}
 	var user User
 	if err := db.DB.Where(&User{UserID: &userID}).First(&user).Error; err != nil {
 		return nil, fmt.Errorf("failed to get user by user ID %v: %v", userID, err)

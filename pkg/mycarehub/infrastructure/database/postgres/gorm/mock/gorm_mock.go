@@ -58,6 +58,8 @@ type GormMock struct {
 	MockBookmarkContentFn                         func(ctx context.Context, userID string, contentID int) (bool, error)
 	MockUnBookmarkContentFn                       func(ctx context.Context, userID string, contentID int) (bool, error)
 	MockGetUserBookmarkedContentFn                func(ctx context.Context, userID string) ([]*gorm.ContentItem, error)
+	MockLikeContentFn                             func(ctx context.Context, userID string, contentID int) (bool, error)
+	MockUnlikeContentFn                           func(ctx context.Context, userID string, contentID int) (bool, error)
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -129,9 +131,20 @@ func NewGormMock() *GormMock {
 	contentItemCategory := &gorm.ContentItemCategory{
 		ID:   ID,
 		Name: name,
-		Icon: gorm.WagtailImage{
-			ID:   ID,
-			File: "url",
+		Icon: gorm.WagtailImages{
+			ID:               ID,
+			Title:            "test",
+			File:             "url",
+			Width:            10,
+			Height:           10,
+			FocalPointX:      10,
+			FocalPointY:      10,
+			FocalPointWidth:  10,
+			FocalPointHeight: 10,
+			UploadedByUserID: "UUID",
+			FileSize:         10,
+			CollectionID:     ID,
+			FileHash:         "hash",
 		},
 	}
 
@@ -318,6 +331,12 @@ func NewGormMock() *GormMock {
 			return true, nil
 		},
 		MockUnBookmarkContentFn: func(ctx context.Context, userID string, contentID int) (bool, error) {
+			return true, nil
+		},
+		MockLikeContentFn: func(ctx context.Context, userID string, contentID int) (bool, error) {
+			return true, nil
+		},
+		MockUnlikeContentFn: func(ctx context.Context, userID string, contentID int) (bool, error) {
 			return true, nil
 		},
 	}
@@ -521,4 +540,13 @@ func (gm *GormMock) UnBookmarkContent(ctx context.Context, userID string, conten
 // GetUserBookmarkedContent mocks the implementation of retrieving a user bookmarked content
 func (gm *GormMock) GetUserBookmarkedContent(ctx context.Context, userID string) ([]*gorm.ContentItem, error) {
 	return gm.MockGetUserBookmarkedContentFn(ctx, userID)
+}
+//LikeContent mocks the implementation liking a feed content
+func (gm *GormMock) LikeContent(ctx context.Context, userID string, contentID int) (bool, error) {
+	return gm.MockLikeContentFn(ctx, userID, contentID)
+}
+
+//UnlikeContent mocks the implementation liking a feed content
+func (gm *GormMock) UnlikeContent(ctx context.Context, userID string, contentID int) (bool, error) {
+	return gm.MockUnlikeContentFn(ctx, userID, contentID)
 }

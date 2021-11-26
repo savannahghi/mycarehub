@@ -126,3 +126,21 @@ func (d *MyCareHubDb) UnBookmarkContent(ctx context.Context, userID string, cont
 	}
 	return d.update.UnBookmarkContent(ctx, userID, contentID)
 }
+
+// LikeContent updates the number of likes for a particular content
+func (d *MyCareHubDb) LikeContent(ctx context.Context, userID string, contentID int) (bool, error) {
+	if userID == "" || contentID == 0 {
+		return false, fmt.Errorf("userID or contentID cannot be empty")
+	}
+
+	return d.update.LikeContent(ctx, userID, contentID)
+}
+
+// UnlikeContent updates the number of likes for a particular content
+func (d *MyCareHubDb) UnlikeContent(ctx context.Context, userID string, contentID int) (bool, error) {
+	if userID == "" || contentID == 0 {
+		return false, fmt.Errorf("userID or contentID cannot be empty")
+	}
+
+	return d.update.UnlikeContent(ctx, userID, contentID)
+}

@@ -78,6 +78,15 @@ func TestPGInstance_RetrieveFacility(t *testing.T) {
 			},
 			wantErr: true,
 		},
+		{
+			name: "Sad Case - nil facility",
+			args: args{
+				ctx:      ctx,
+				id:       nil,
+				isActive: false,
+			},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -1476,4 +1485,128 @@ func TestPGInstance_GetContactByUserID(t *testing.T) {
 		t.Errorf("failed to delete record = %v", err)
 	}
 
+}
+
+func TestPGInstance_GetUserProfileByUserID(t *testing.T) {
+	ctx := context.Background()
+
+	pg, err := gorm.NewPGInstance()
+	if err != nil {
+		t.Errorf("pgInstance.Teardown() = %v", err)
+	}
+
+	flavour := feedlib.FlavourConsumer
+	userID := uuid.New().String()
+	currentTime := time.Now()
+	nextTime := time.Now().AddDate(0, 0, 2)
+
+	// Setup test user
+	userInput := &gorm.User{
+		UserID:              &userID,
+		Username:            uuid.New().String(),
+		FirstName:           gofakeit.FirstName(),
+		MiddleName:          gofakeit.FirstName(),
+		LastName:            gofakeit.LastName(),
+		UserType:            enums.ClientUser,
+		Gender:              enumutils.GenderMale,
+		Active:              false,
+		PushTokens:          []string{},
+		LastSuccessfulLogin: &currentTime,
+		LastFailedLogin:     &currentTime,
+		FailedLoginCount:    0,
+		NextAllowedLogin:    &nextTime,
+		TermsAccepted:       true,
+		AcceptedTermsID:     &termsID,
+		Flavour:             flavour,
+		Avatar:              "",
+		IsSuspended:         false,
+		OrganisationID:      orgID,
+		Password:            "",
+		IsSuperuser:         false,
+		IsStaff:             false,
+		Email:               "",
+		DateJoined:          "",
+		Name:                "",
+		IsApproved:          false,
+		ApprovalNotified:    false,
+		Handle:              "",
+	}
+
+	err = pg.DB.Create(&userInput).Error
+	if err != nil {
+		t.Errorf("failed to create user: %v", err)
+	}
+
+	contactID := uuid.New().String()
+	contact := &gorm.Contact{
+		ContactID:      &contactID,
+		ContactType:    "SMS",
+		ContactValue:   "+254710000001",
+		Active:         true,
+		OptedIn:        true,
+		UserID:         userInput.UserID,
+		Flavour:        userInput.Flavour,
+		OrganisationID: orgID,
+	}
+
+	err = pg.DB.Create(&contact).Error
+	if err != nil {
+		t.Errorf("failed to create contact: %v", err)
+	}
+
+	type args struct {
+		ctx    context.Context
+		userID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:    ctx,
+				userID: *userInput.UserID,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case",
+			args: args{
+				ctx:    ctx,
+				userID: uuid.New().String(),
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case - empty user ID",
+			args: args{
+				ctx:    ctx,
+				userID: "",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := testingDB.GetUserProfileByUserID(tt.args.ctx, tt.args.userID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.GetUserProfileByUserID() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected a response but got %v", got)
+				return
+			}
+		})
+	}
+
+	// TearDown
+	if err = pg.DB.Where("id", contact.ContactID).Unscoped().Delete(&gorm.Contact{}).Error; err != nil {
+		t.Errorf("failed to delete record = %v", err)
+	}
+	if err = pg.DB.Where("id", userInput.UserID).Unscoped().Delete(&gorm.User{}).Error; err != nil {
+		t.Errorf("failed to delete record = %v", err)
+	}
 }

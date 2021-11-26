@@ -899,3 +899,209 @@ func TestMyCareHubDb_ShareContent(t *testing.T) {
 		})
 	}
 }
+
+func TestMyCareHubDb_LikeContent(t *testing.T) {
+	ctx := context.Background()
+
+	type args struct {
+		ctx       context.Context
+		userID    string
+		contentID int
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:       ctx,
+				userID:    uuid.New().String(),
+				contentID: 1,
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Sad case",
+			args: args{
+				ctx:       ctx,
+				userID:    uuid.New().String(),
+				contentID: 1,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case - no userID",
+			args: args{
+				ctx:       ctx,
+				userID:    "",
+				contentID: 1,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case - no contentID",
+			args: args{
+				ctx:       ctx,
+				userID:    uuid.New().String(),
+				contentID: 0,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case - no userID and contentID",
+			args: args{
+				ctx:       ctx,
+				userID:    "",
+				contentID: 0,
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var fakeGorm = gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			if tt.name == "Sad case" {
+				fakeGorm.MockLikeContentFn = func(ctx context.Context, userID string, contentID int) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - no userID" {
+				fakeGorm.MockLikeContentFn = func(ctx context.Context, userID string, contentID int) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - no contentID" {
+				fakeGorm.MockLikeContentFn = func(ctx context.Context, userID string, contentID int) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - no userID and contentID" {
+				fakeGorm.MockLikeContentFn = func(ctx context.Context, userID string, contentID int) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+
+			got, err := d.LikeContent(tt.args.ctx, tt.args.userID, tt.args.contentID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.LikeContent() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("MyCareHubDb.LikeContent() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestMyCareHubDb_UnlikeContent(t *testing.T) {
+	ctx := context.Background()
+
+	type args struct {
+		ctx       context.Context
+		userID    string
+		contentID int
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:       ctx,
+				userID:    uuid.New().String(),
+				contentID: 1,
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Sad case",
+			args: args{
+				ctx:       ctx,
+				userID:    uuid.New().String(),
+				contentID: 1,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case - no userID",
+			args: args{
+				ctx:       ctx,
+				userID:    "",
+				contentID: 1,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case - no contentID",
+			args: args{
+				ctx:       ctx,
+				userID:    uuid.New().String(),
+				contentID: 0,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case - no userID and contentID",
+			args: args{
+				ctx:       ctx,
+				userID:    "",
+				contentID: 0,
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var fakeGorm = gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			if tt.name == "Sad case" {
+				fakeGorm.MockUnlikeContentFn = func(ctx context.Context, userID string, contentID int) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - no userID" {
+				fakeGorm.MockUnlikeContentFn = func(ctx context.Context, userID string, contentID int) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - no contentID" {
+				fakeGorm.MockUnlikeContentFn = func(ctx context.Context, userID string, contentID int) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - no userID and contentID" {
+				fakeGorm.MockUnlikeContentFn = func(ctx context.Context, userID string, contentID int) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+
+			got, err := d.UnlikeContent(tt.args.ctx, tt.args.userID, tt.args.contentID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.UnlikeContent() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("MyCareHubDb.UnlikeContent() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

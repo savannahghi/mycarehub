@@ -57,6 +57,9 @@ type PostgresMock struct {
 	MockBookmarkContentFn                         func(ctx context.Context, userID string, contentID int) (bool, error)
 	MockUnBookmarkContentFn                       func(ctx context.Context, userID string, contentID int) (bool, error)
 	MockGetUserBookmarkedContentFn                func(ctx context.Context, userID string) ([]*domain.ContentItem, error)
+	MockLikeContentFn                             func(ctx context.Context, userID string, contentID int) (bool, error)
+	MockUnlikeContentFn                           func(ctx context.Context, userID string, contentID int) (bool, error)
+	MockFetchFacilitiesFn                         func(ctx context.Context) ([]*domain.Facility, error)
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -328,6 +331,15 @@ func NewPostgresMock() *PostgresMock {
 				},
 			}, nil
 		},
+		MockLikeContentFn: func(ctx context.Context, userID string, contentID int) (bool, error) {
+			return true, nil
+		},
+		MockUnlikeContentFn: func(ctx context.Context, userID string, contentID int) (bool, error) {
+			return true, nil
+		},
+		MockFetchFacilitiesFn: func(ctx context.Context) ([]*domain.Facility, error) {
+			return []*domain.Facility{facilityInput}, nil
+		},
 	}
 }
 
@@ -539,4 +551,19 @@ func (gm *PostgresMock) UnBookmarkContent(ctx context.Context, userID string, co
 // GetUserBookmarkedContent mocks the implementation of retrieving a user bookmarked content
 func (gm *PostgresMock) GetUserBookmarkedContent(ctx context.Context, userID string) ([]*domain.ContentItem, error) {
 	return gm.MockGetUserBookmarkedContentFn(ctx, userID)
+}
+
+//LikeContent mocks the implementation liking a feed content
+func (gm *PostgresMock) LikeContent(ctx context.Context, userID string, contentID int) (bool, error) {
+	return gm.MockLikeContentFn(ctx, userID, contentID)
+}
+
+//UnlikeContent mocks the implementation liking a feed content
+func (gm *PostgresMock) UnlikeContent(ctx context.Context, userID string, contentID int) (bool, error) {
+	return gm.MockUnlikeContentFn(ctx, userID, contentID)
+}
+
+//FetchFacilities mocks the implementation of fetching facility
+func (gm *PostgresMock) FetchFacilities(ctx context.Context) ([]*domain.Facility, error) {
+	return gm.MockFetchFacilitiesFn(ctx)
 }

@@ -378,25 +378,14 @@ func (Client) TableName() string {
 
 // ContentItemCategory maps the schema for the table that stores the content item category
 type ContentItemCategory struct {
-	ID   int          `gorm:"unique;column:id;autoincrement"`
-	Name string       `gorm:"column:name"`
-	Icon WagtailImage `gorm:"ForeignKey:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;not null"`
+	ID   int           `gorm:"unique;column:id;autoincrement"`
+	Name string        `gorm:"column:name"`
+	Icon WagtailImages `gorm:"ForeignKey:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;not null"`
 }
 
 // TableName customizes how the table name is generated
 func (ContentItemCategory) TableName() string {
 	return "content_contentitemcategory"
-}
-
-// WagtailImage maps the schema for the table that stores the wagtail images
-type WagtailImage struct {
-	ID   int    `gorm:"primaryKey;column:id;"`
-	File string `gorm:"column:file"`
-}
-
-// TableName customizes how the table name is generated
-func (WagtailImage) TableName() string {
-	return "wagtailimages_image"
 }
 
 // ContentAuthor is the gorms content author model
@@ -462,7 +451,7 @@ func (c *ContentShare) BeforeCreate(tx *gorm.DB) (err error) {
 
 // TableName references the table that we map data from
 func (ContentShare) TableName() string {
-	return "public.content_contentshare"
+	return "content_contentshare"
 }
 
 // ContentBookmark is the gorms ContentBookmark model
@@ -513,4 +502,50 @@ type WagtailCorePage struct {
 // TableName references the table that we map data from
 func (WagtailCorePage) TableName() string {
 	return "wagtailcore_page"
+}
+
+// ContentLike maps the schema to the table that stores content likes.
+type ContentLike struct {
+	Base
+	ContentLikeID  string `gorm:"column:id"`
+	Active         bool   `gorm:"column:active"`
+	ContentID      int    `gorm:"column:content_item_id"`
+	UserID         string `gorm:"column:user_id"`
+	OrganisationID string `gorm:"column:organisation_id"`
+}
+
+// BeforeCreate is a hook run before creating a client profile
+func (c *ContentLike) BeforeCreate(tx *gorm.DB) (err error) {
+	id := uuid.New().String()
+	c.ContentLikeID = id
+	c.OrganisationID = OrganizationID
+	return
+}
+
+// TableName customizes how the table name is generated
+func (ContentLike) TableName() string {
+	return "content_contentlike"
+}
+
+// WagtailImages models the details of core wagtail image table
+type WagtailImages struct {
+	ID               int       `gorm:"primaryKey;column:id;autoincrement"`
+	Title            string    `gorm:"column:title"`
+	File             string    `gorm:"column:file"`
+	Width            int       `gorm:"column:width"`
+	Height           int       `gorm:"column:height"`
+	CreatedAt        time.Time `gorm:"column:created_at"`
+	FocalPointX      int       `gorm:"column:focal_point_x"`
+	FocalPointY      int       `gorm:"column:focal_point_y"`
+	FocalPointWidth  int       `gorm:"column:focal_point_width"`
+	FocalPointHeight int       `gorm:"column:focal_point_height"`
+	UploadedByUserID string    `gorm:"column:uploaded_by_user_id"`
+	FileSize         int       `gorm:"column:file_size"`
+	CollectionID     int       `gorm:"column:collection_id"`
+	FileHash         string    `gorm:"column:file_hash"`
+}
+
+// TableName references the table that we map data from
+func (WagtailImages) TableName() string {
+	return "wagtailimages_image"
 }
