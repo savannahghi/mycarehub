@@ -1611,6 +1611,76 @@ func TestPGInstance_GetUserProfileByUserID(t *testing.T) {
 	}
 }
 
+func TestPGInstance_GetClientHealthDiaryQuote(t *testing.T) {
+	ctx := context.Background()
+
+	pg, err := gorm.NewPGInstance()
+	if err != nil {
+		t.Errorf("pgInstance.Teardown() = %v", err)
+	}
+	quoteInput := &gorm.ClientHealthDiaryQuote{
+		Author:         gofakeit.FirstName() + " " + gofakeit.LastName(),
+		Quote:          gofakeit.Sentence(10),
+		Active:         true,
+		OrganisationID: orgID,
+	}
+
+	err = pg.DB.Create(&quoteInput).Error
+	if err != nil {
+		t.Errorf("failed to create quote: %v", err)
+	}
+
+	quoteInput2 := &gorm.ClientHealthDiaryQuote{
+		Author:         gofakeit.FirstName() + " " + gofakeit.LastName(),
+		Quote:          gofakeit.Sentence(10),
+		Active:         true,
+		OrganisationID: orgID,
+	}
+
+	err = pg.DB.Create(&quoteInput2).Error
+	if err != nil {
+		t.Errorf("failed to create quote: %v", err)
+	}
+
+	type args struct {
+		ctx context.Context
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx: ctx,
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			got, err := testingDB.GetClientHealthDiaryQuote(tt.args.ctx)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.GetClientHealthDiaryQuote() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected a response but got %v", got)
+				return
+			}
+		})
+	}
+	// tear down
+	if err = pg.DB.Where("id", quoteInput.ClientHealthDiaryQuoteID).Unscoped().Delete(&gorm.ClientHealthDiaryQuote{}).Error; err != nil {
+		t.Errorf("failed to delete record = %v", err)
+	}
+	if err = pg.DB.Where("id", quoteInput2.ClientHealthDiaryQuoteID).Unscoped().Delete(&gorm.ClientHealthDiaryQuote{}).Error; err != nil {
+		t.Errorf("failed to delete record = %v", err)
+	}
+}
+
 func TestPGInstance_CanRecordHeathDiary(t *testing.T) {
 	ctx := context.Background()
 

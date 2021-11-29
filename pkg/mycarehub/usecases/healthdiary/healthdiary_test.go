@@ -3,6 +3,7 @@ package healthdiary_test
 import (
 	"context"
 	"fmt"
+	"reflect"
 	"testing"
 
 	"github.com/brianvoe/gofakeit"
@@ -104,6 +105,59 @@ func TestUseCasesHealthDiaryImpl_CreateHealthDiaryEntry(t *testing.T) {
 			}
 			if got != tt.want {
 				t.Errorf("UseCasesHealthDiaryImpl.CreateHealthDiaryEntry() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestUseCasesHealthDiaryImpl_GetClientHealthDiaryQuote(t *testing.T) {
+	ctx := context.Background()
+	type args struct {
+		ctx context.Context
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *domain.ClientHealthDiaryQuote
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - successfully get client health diary quote",
+			args: args{
+				ctx: ctx,
+			},
+			want: &domain.ClientHealthDiaryQuote{
+				Quote:  "test",
+				Author: "test",
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad Case - Fail to get quote",
+			args: args{
+				ctx: ctx,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			_ = mock.NewHealthDiaryUseCaseMock()
+			h := healthdiary.NewUseCaseHealthDiaryImpl(fakeDB, fakeDB)
+
+			if tt.name == "Sad Case - Fail to get quote" {
+				fakeDB.MockGetClientHealthDiaryQuoteFn = func(ctx context.Context) (*domain.ClientHealthDiaryQuote, error) {
+					return nil, fmt.Errorf("failed to get quote")
+				}
+			}
+			got, err := h.GetClientHealthDiaryQuote(tt.args.ctx)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCasesHealthDiaryImpl.GetClientHealthDiaryQuote() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("UseCasesHealthDiaryImpl.GetClientHealthDiaryQuote() = %v, want %v", got, tt.want)
 			}
 		})
 	}

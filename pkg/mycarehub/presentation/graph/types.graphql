@@ -162,3 +162,8 @@ type ImageMeta {
   imageDetailUrl: String!
   imageDownloadUrl: String!
 }
+
+type ClientHealthDiaryQuote {
+  author: String!
+  quote: String!
+}

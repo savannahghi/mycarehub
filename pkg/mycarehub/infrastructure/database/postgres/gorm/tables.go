@@ -630,3 +630,26 @@ func (c *ClientServiceRequest) BeforeCreate(tx *gorm.DB) (err error) {
 func (ClientServiceRequest) TableName() string {
 	return "clients_servicerequest"
 }
+
+// ClientHealthDiaryQuote is the gorms client health diary quotes model
+type ClientHealthDiaryQuote struct {
+	Base
+	ClientHealthDiaryQuoteID *string `gorm:"column:id"`
+	Active                   bool    `gorm:"column:active"`
+	Quote                    string  `gorm:"column:quote"`
+	Author                   string  `gorm:"column:by"`
+	OrganisationID           string  `gorm:"column:organisation_id"`
+}
+
+// BeforeCreate is a hook run before creating view count
+func (c *ClientHealthDiaryQuote) BeforeCreate(tx *gorm.DB) (err error) {
+	id := uuid.New().String()
+	c.ClientHealthDiaryQuoteID = &id
+	c.OrganisationID = OrganizationID
+	return
+}
+
+// TableName references the table that we map data from
+func (ClientHealthDiaryQuote) TableName() string {
+	return "clients_healthdiaryquote"
+}

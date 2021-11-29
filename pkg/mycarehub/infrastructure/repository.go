@@ -50,6 +50,7 @@ type Query interface {
 	ListContentCategories(ctx context.Context) ([]*domain.ContentItemCategory, error)
 	GetUserBookmarkedContent(ctx context.Context, userID string) ([]*domain.ContentItem, error)
 	CanRecordHeathDiary(ctx context.Context, clientID string) (bool, error)
+	GetClientHealthDiaryQuote(ctx context.Context) (*domain.ClientHealthDiaryQuote, error)
 }
 
 // Update represents all the update action interfaces

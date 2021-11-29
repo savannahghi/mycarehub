@@ -37,6 +37,7 @@ type Query interface {
 	ListContentCategories(ctx context.Context) ([]*ContentItemCategory, error)
 	GetUserBookmarkedContent(ctx context.Context, userID string) ([]*ContentItem, error)
 	CanRecordHeathDiary(ctx context.Context, clientID string) (bool, error)
+	GetClientHealthDiaryQuote(ctx context.Context) (*ClientHealthDiaryQuote, error)
 }
 
 //ListContentCategories perfoms the actual database query to get the list of content categories
@@ -368,4 +369,15 @@ func (db *PGInstance) CanRecordHeathDiary(ctx context.Context, clientID string) 
 	}
 
 	return true, nil
+}
+
+// GetClientHealthDiaryQuote fetches a client's health diary quote.
+// it should be a random quote from the health diary
+func (db *PGInstance) GetClientHealthDiaryQuote(ctx context.Context) (*ClientHealthDiaryQuote, error) {
+	var healthDiaryQuote ClientHealthDiaryQuote
+	err := db.DB.Where("active = true").Order("RANDOM()").First(&healthDiaryQuote).Error
+	if err != nil {
+		return nil, err
+	}
+	return &healthDiaryQuote, nil
 }

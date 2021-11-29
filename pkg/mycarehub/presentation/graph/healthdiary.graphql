@@ -7,5 +7,6 @@ extend type Mutation {
   ): Boolean!
 }
 extend type Query {
-   canRecordMood(clientID: String!): Boolean!
+  canRecordMood(clientID: String!): Boolean!
+  getHealthDiaryQuote: ClientHealthDiaryQuote!
 }
