@@ -1105,3 +1105,59 @@ func TestMyCareHubDb_UnlikeContent(t *testing.T) {
 		})
 	}
 }
+
+func TestMyCareHubDb_ViewContent(t *testing.T) {
+	ctx := context.Background()
+	type args struct {
+		ctx       context.Context
+		userID    string
+		contentID int
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Successfully update view content count",
+			args: args{
+				ctx:       ctx,
+				userID:    uuid.New().String(),
+				contentID: int(uuid.New()[4]),
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Sad Case - Fail to update view count",
+			args: args{
+				ctx:       ctx,
+				userID:    uuid.New().String(),
+				contentID: int(uuid.New()[4]),
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var fakeGorm = gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			if tt.name == "Sad Case - Fail to update view count" {
+				fakeGorm.MockViewContentFn = func(ctx context.Context, userID string, contentID int) (bool, error) {
+					return false, fmt.Errorf("failed to update view count")
+				}
+			}
+			got, err := d.ViewContent(tt.args.ctx, tt.args.userID, tt.args.contentID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.ViewContent() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("MyCareHubDb.ViewContent() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

@@ -188,6 +188,7 @@ type ComplexityRoot struct {
 		BookmarkContent                 func(childComplexity int, userID string, contentItemID int) int
 		CompleteOnboardingTour          func(childComplexity int, userID string, flavour feedlib.Flavour) int
 		CreateFacility                  func(childComplexity int, input dto.FacilityInput) int
+		CreateHealthDiaryEntry          func(childComplexity int, clientID string, note *string, mood string, reportToStaff bool) int
 		DeleteFacility                  func(childComplexity int, mflCode int) int
 		InactivateFacility              func(childComplexity int, mflCode int) int
 		InviteUser                      func(childComplexity int, userID string, phoneNumber string, flavour feedlib.Flavour) int
@@ -256,6 +257,7 @@ type MutationResolver interface {
 	ReactivateFacility(ctx context.Context, mflCode int) (bool, error)
 	InactivateFacility(ctx context.Context, mflCode int) (bool, error)
 	SendFeedback(ctx context.Context, input dto.FeedbackResponseInput) (bool, error)
+	CreateHealthDiaryEntry(ctx context.Context, clientID string, note *string, mood string, reportToStaff bool) (bool, error)
 	InviteUser(ctx context.Context, userID string, phoneNumber string, flavour feedlib.Flavour) (bool, error)
 	SetUserPin(ctx context.Context, input *dto.PINInput) (bool, error)
 	RecordSecurityQuestionResponses(ctx context.Context, input []*dto.SecurityQuestionResponseInput) ([]*domain.RecordSecurityQuestionResponse, error)
@@ -899,6 +901,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.CreateFacility(childComplexity, args["input"].(dto.FacilityInput)), true
 
+	case "Mutation.createHealthDiaryEntry":
+		if e.complexity.Mutation.CreateHealthDiaryEntry == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createHealthDiaryEntry_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateHealthDiaryEntry(childComplexity, args["clientID"].(string), args["note"].(*string), args["mood"].(string), args["reportToStaff"].(bool)), true
+
 	case "Mutation.deleteFacility":
 		if e.complexity.Mutation.DeleteFacility == nil {
 			break
@@ -1449,6 +1463,15 @@ extend type Query {
 	{Name: "pkg/mycarehub/presentation/graph/feedback.graphql", Input: `extend type Mutation{
     sendFeedback(input: FeedbackResponseInput!): Boolean!
 }`, BuiltIn: false},
+	{Name: "pkg/mycarehub/presentation/graph/healthdiary.graphql", Input: `extend type Mutation {
+  createHealthDiaryEntry(
+    clientID: String!
+    note: String
+    mood: String!
+    reportToStaff: Boolean!
+  ): Boolean!
+}
+`, BuiltIn: false},
 	{Name: "pkg/mycarehub/presentation/graph/input.graphql", Input: `input FacilityInput {
   name: String!
   code: Int!
@@ -1815,6 +1838,48 @@ func (ec *executionContext) field_Mutation_createFacility_args(ctx context.Conte
 		}
 	}
 	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_createHealthDiaryEntry_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["clientID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clientID"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["clientID"] = arg0
+	var arg1 *string
+	if tmp, ok := rawArgs["note"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("note"))
+		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["note"] = arg1
+	var arg2 string
+	if tmp, ok := rawArgs["mood"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("mood"))
+		arg2, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["mood"] = arg2
+	var arg3 bool
+	if tmp, ok := rawArgs["reportToStaff"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("reportToStaff"))
+		arg3, err = ec.unmarshalNBoolean2bool(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["reportToStaff"] = arg3
 	return args, nil
 }
 
@@ -5475,6 +5540,48 @@ func (ec *executionContext) _Mutation_sendFeedback(ctx context.Context, field gr
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Mutation_createHealthDiaryEntry(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_createHealthDiaryEntry_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CreateHealthDiaryEntry(rctx, args["clientID"].(string), args["note"].(*string), args["mood"].(string), args["reportToStaff"].(bool))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Mutation_inviteUser(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -8982,6 +9089,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			}
 		case "sendFeedback":
 			out.Values[i] = ec._Mutation_sendFeedback(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "createHealthDiaryEntry":
+			out.Values[i] = ec._Mutation_createHealthDiaryEntry(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}

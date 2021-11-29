@@ -118,3 +118,59 @@ func (d *MyCareHubDb) SaveSecurityQuestionResponse(ctx context.Context, security
 
 	return nil
 }
+
+// CreateHealthDiaryEntry is used to add a health diary record to the database.
+func (d *MyCareHubDb) CreateHealthDiaryEntry(ctx context.Context, healthDiaryInput *domain.ClientHealthDiaryEntry) error {
+	healthDiaryResponse := &gorm.ClientHealthDiaryEntry{
+		Active:                healthDiaryInput.Active,
+		Mood:                  healthDiaryInput.Mood,
+		Note:                  healthDiaryInput.Note,
+		EntryType:             healthDiaryInput.EntryType,
+		ShareWithHealthWorker: healthDiaryInput.ShareWithHealthWorker,
+		SharedAt:              *healthDiaryInput.SharedAt,
+		ClientID:              healthDiaryInput.ClientID,
+	}
+
+	err := d.create.CreateHealthDiaryEntry(ctx, healthDiaryResponse)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// CreateServiceRequest first creates and adds a health diary entry into the database. It then proceeds to create
+// a service request which will be handled by a staff user. This happens in a transaction because we do not want to
+// create a health diary entry without a subsequent service request when the client's mood is "VERY_BAD"
+func (d *MyCareHubDb) CreateServiceRequest(
+	ctx context.Context,
+	healthDiaryInput *domain.ClientHealthDiaryEntry,
+	serviceRequestInput *domain.ClientServiceRequest,
+) error {
+	serviceRequest := &gorm.ClientServiceRequest{
+		Active:       serviceRequestInput.Active,
+		RequestType:  serviceRequestInput.RequestType,
+		Request:      serviceRequestInput.Request,
+		Status:       serviceRequestInput.Status,
+		InProgressAt: serviceRequestInput.InProgressAt,
+		ResolvedAt:   serviceRequestInput.ResolvedAt,
+		ClientID:     serviceRequestInput.ClientID,
+	}
+
+	healthDiaryResponse := &gorm.ClientHealthDiaryEntry{
+		Active:                healthDiaryInput.Active,
+		Mood:                  healthDiaryInput.Mood,
+		Note:                  healthDiaryInput.Note,
+		EntryType:             healthDiaryInput.EntryType,
+		ShareWithHealthWorker: healthDiaryInput.ShareWithHealthWorker,
+		SharedAt:              *healthDiaryInput.SharedAt,
+		ClientID:              healthDiaryInput.ClientID,
+	}
+
+	err := d.create.CreateServiceRequest(ctx, healthDiaryResponse, serviceRequest)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

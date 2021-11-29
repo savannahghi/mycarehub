@@ -1,0 +1,8 @@
+extend type Mutation {
+  createHealthDiaryEntry(
+    clientID: String!
+    note: String
+    mood: String!
+    reportToStaff: Boolean!
+  ): Boolean!
+}

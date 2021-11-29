@@ -10,6 +10,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
@@ -392,6 +393,124 @@ func TestMyCareHubDb_SaveSecurityQuestionResponse(t *testing.T) {
 			}
 			if err := d.SaveSecurityQuestionResponse(tt.args.ctx, tt.args.securityQuestionResponse); (err != nil) != tt.wantErr {
 				t.Errorf("MyCareHubDb.SaveSecurityQuestionResponse() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestMyCareHubDb_CreateHealthDiaryEntry(t *testing.T) {
+	ctx := context.Background()
+	currentTime := time.Now()
+	type args struct {
+		ctx              context.Context
+		healthDiaryInput *domain.ClientHealthDiaryEntry
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Successfully create a health diary entry",
+			args: args{
+				ctx: ctx,
+				healthDiaryInput: &domain.ClientHealthDiaryEntry{
+					Active:   true,
+					Mood:     enums.MoodHappy.String(),
+					SharedAt: &currentTime,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad Case - Fail to create health diary entry",
+			args: args{
+				ctx: ctx,
+				healthDiaryInput: &domain.ClientHealthDiaryEntry{
+					Active:   true,
+					Mood:     enums.MoodHappy.String(),
+					SharedAt: &currentTime,
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var fakeGorm = gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			if tt.name == "Sad Case - Fail to create health diary entry" {
+				fakeGorm.MockCreateHealthDiaryEntryFn = func(ctx context.Context, healthDiaryInput *gorm.ClientHealthDiaryEntry) error {
+					return fmt.Errorf("failed to create health diary entry")
+				}
+			}
+
+			if err := d.CreateHealthDiaryEntry(tt.args.ctx, tt.args.healthDiaryInput); (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.CreateHealthDiaryEntry() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestMyCareHubDb_CreateServiceRequest(t *testing.T) {
+	ctx := context.Background()
+	currentTime := time.Now()
+
+	type args struct {
+		ctx                 context.Context
+		healthDiaryInput    *domain.ClientHealthDiaryEntry
+		serviceRequestInput *domain.ClientServiceRequest
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Create a service request",
+			args: args{
+				ctx: ctx,
+				healthDiaryInput: &domain.ClientHealthDiaryEntry{
+					Active:   true,
+					Mood:     enums.MoodHappy.String(),
+					SharedAt: &currentTime,
+				},
+				serviceRequestInput: &domain.ClientServiceRequest{
+					Active: true,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad Case - Fail to create a service request",
+			args: args{
+				ctx: ctx,
+				healthDiaryInput: &domain.ClientHealthDiaryEntry{
+					Active:   true,
+					Mood:     enums.MoodHappy.String(),
+					SharedAt: &currentTime,
+				},
+				serviceRequestInput: &domain.ClientServiceRequest{
+					Active: true,
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var fakeGorm = gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			if tt.name == "Sad Case - Fail to create a service request" {
+				fakeGorm.MockCreateServiceRequestFn = func(ctx context.Context, healthDiaryInput *gorm.ClientHealthDiaryEntry, serviceRequestInput *gorm.ClientServiceRequest) error {
+					return fmt.Errorf("failed to create a service request")
+				}
+			}
+
+			if err := d.CreateServiceRequest(tt.args.ctx, tt.args.healthDiaryInput, tt.args.serviceRequestInput); (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.CreateServiceRequest() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}

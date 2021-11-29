@@ -572,3 +572,61 @@ type WagtailImages struct {
 func (WagtailImages) TableName() string {
 	return "wagtailimages_image"
 }
+
+// ClientHealthDiaryEntry models a client's health diary entry
+type ClientHealthDiaryEntry struct {
+	Base
+	ClientHealthDiaryEntryID *string   `gorm:"column:id"`
+	Active                   bool      `gorm:"column:active"`
+	Mood                     string    `gorm:"column:mood"`
+	Note                     string    `gorm:"column:note"`
+	EntryType                string    `gorm:"column:entry_type"`
+	ShareWithHealthWorker    bool      `gorm:"column:share_with_health_worker"`
+	SharedAt                 time.Time `gorm:"column:shared_at"`
+	ClientID                 string    `gorm:"column:client_id"`
+	OrganisationID           string    `gorm:"column:organisation_id"`
+}
+
+// BeforeCreate is a hook run before creating a client Health Diary Entry
+func (c *ClientHealthDiaryEntry) BeforeCreate(tx *gorm.DB) (err error) {
+	id := uuid.New().String()
+	c.ClientHealthDiaryEntryID = &id
+	c.OrganisationID = OrganizationID
+	return
+}
+
+// TableName references the table that we map data from
+func (ClientHealthDiaryEntry) TableName() string {
+	return "clients_healthdiaryentry"
+}
+
+// ClientServiceRequest maps the client service request table. It is used to
+// store the tasks for the healthcare staff on the platform
+type ClientServiceRequest struct {
+	Base
+
+	ID           *string   `gorm:"column:id"`
+	Active       bool      `gorm:"column:active"`
+	RequestType  string    `gorm:"column:request_type"`
+	Request      string    `gorm:"column:request"`
+	Status       string    `gorm:"column:status"`
+	InProgressAt time.Time `gorm:"column:in_progress_at"`
+	ResolvedAt   time.Time `gorm:"column:resolved_at"`
+	ClientID     string    `gorm:"column:client_id"`
+	// InProgressByID string    `gorm:"column:in_progress_by_id"`
+	OrganisationID string `gorm:"column:organisation_id"`
+	// ResolvedByID   string    `gorm:"column:resolved_by_id"`
+}
+
+// BeforeCreate is a hook called before creating a service request.
+func (c *ClientServiceRequest) BeforeCreate(tx *gorm.DB) (err error) {
+	id := uuid.New().String()
+	c.ID = &id
+	c.OrganisationID = OrganizationID
+	return
+}
+
+// TableName references the table that we map data from
+func (ClientServiceRequest) TableName() string {
+	return "clients_servicerequest"
+}
