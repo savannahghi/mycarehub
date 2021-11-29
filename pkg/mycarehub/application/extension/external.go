@@ -6,6 +6,7 @@ import (
 
 	openSourceDto "github.com/savannahghi/engagementcore/pkg/engagement/application/common/dto"
 	engagementInfra "github.com/savannahghi/engagementcore/pkg/engagement/infrastructure"
+	engagementEmail "github.com/savannahghi/engagementcore/pkg/engagement/usecases/mail"
 	engagementOTP "github.com/savannahghi/engagementcore/pkg/engagement/usecases/otp"
 	engagementSMS "github.com/savannahghi/engagementcore/pkg/engagement/usecases/sms"
 	engagementTwilio "github.com/savannahghi/engagementcore/pkg/engagement/usecases/twilio"
@@ -14,6 +15,7 @@ import (
 	"github.com/savannahghi/interserviceclient"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/extension"
+	"github.com/savannahghi/serverutils"
 )
 
 // ExternalMethodsExtension is an interface that represents methods that are
@@ -30,6 +32,7 @@ type ExternalMethodsExtension interface {
 	GenerateRetryOTP(ctx context.Context, payload *dto.SendRetryOTPPayload) (string, error)
 	SendSMSViaTwilio(ctx context.Context, phonenumber, message string) error
 	SendInviteSMS(ctx context.Context, phoneNumber, message string) error
+	SendFeedback(ctx context.Context, subject, feedbackMessage string) (bool, error)
 }
 
 // External type implements external methods
@@ -38,6 +41,7 @@ type External struct {
 	otpExtension    engagementOTP.ImplOTP
 	twilioExtension engagementTwilio.ImplTwilio
 	smsExtension    engagementSMS.UsecaseSMS
+	emailExtension  engagementEmail.UsecaseMail
 }
 
 // NewExternalMethodsImpl creates a new instance of the external methods
@@ -46,11 +50,13 @@ func NewExternalMethodsImpl() ExternalMethodsExtension {
 	otpExt := engagementOTP.NewOTP(engagementInfra.NewInteractor())
 	twilioExt := engagementTwilio.NewImplTwilio(engagementInfra.NewInteractor())
 	smsExt := engagementSMS.NewSMS(engagementInfra.NewInteractor())
+	emailExt := engagementEmail.NewMail(engagementInfra.NewInteractor())
 	return &External{
 		pinExt:          pinExtension,
 		otpExtension:    *otpExt,
 		twilioExtension: *twilioExt,
 		smsExtension:    smsExt,
+		emailExtension:  emailExt,
 	}
 }
 
@@ -127,4 +133,14 @@ func (e *External) SendInviteSMS(ctx context.Context, phoneNumber, message strin
 		}
 	}
 	return nil
+}
+
+// SendFeedback sends the clients feed email
+func (e *External) SendFeedback(ctx context.Context, subject, feedbackMessage string) (bool, error) {
+	_, err := e.emailExtension.SimpleEmail(ctx, subject, feedbackMessage, nil, serverutils.MustGetEnvVar("SAVANNAH_ADMIN_EMAIL"))
+	if err != nil {
+		return false, fmt.Errorf("an erro occurred while sending the feedback: %v", err)
+	}
+
+	return true, nil
 }

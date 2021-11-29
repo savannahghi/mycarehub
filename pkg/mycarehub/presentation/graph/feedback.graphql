@@ -1,0 +1,3 @@
+extend type Mutation{
+    sendFeedback(input: FeedbackResponseInput!): Boolean!
+}
