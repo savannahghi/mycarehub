@@ -63,6 +63,7 @@ type PostgresMock struct {
 	MockViewContentFn                             func(ctx context.Context, userID string, contentID int) (bool, error)
 	MockCreateHealthDiaryEntryFn                  func(ctx context.Context, healthDiaryInput *domain.ClientHealthDiaryEntry) error
 	MockCreateServiceRequestFn                    func(ctx context.Context, healthDiaryInput *domain.ClientHealthDiaryEntry, serviceRequestInput *domain.ClientServiceRequest) error
+	MockCanRecordHeathDiaryFn                     func(ctx context.Context, userID string) (bool, error)
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -352,6 +353,9 @@ func NewPostgresMock() *PostgresMock {
 		MockCreateServiceRequestFn: func(ctx context.Context, healthDiaryInput *domain.ClientHealthDiaryEntry, serviceRequestInput *domain.ClientServiceRequest) error {
 			return nil
 		},
+		MockCanRecordHeathDiaryFn: func(ctx context.Context, userID string) (bool, error) {
+			return true, nil
+		},
 	}
 }
 
@@ -593,4 +597,9 @@ func (gm *PostgresMock) CreateHealthDiaryEntry(ctx context.Context, healthDiaryI
 // CreateServiceRequest mocks creating a service request method
 func (gm *PostgresMock) CreateServiceRequest(ctx context.Context, healthDiaryInput *domain.ClientHealthDiaryEntry, serviceRequestInput *domain.ClientServiceRequest) error {
 	return gm.MockCreateServiceRequestFn(ctx, healthDiaryInput, serviceRequestInput)
+}
+
+// CanRecordHeathDiary mocks the implementation of checking if a user can record a health diary
+func (gm *PostgresMock) CanRecordHeathDiary(ctx context.Context, userID string) (bool, error) {
+	return gm.MockCanRecordHeathDiaryFn(ctx, userID)
 }

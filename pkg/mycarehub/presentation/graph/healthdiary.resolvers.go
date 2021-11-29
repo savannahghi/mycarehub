@@ -11,3 +11,7 @@ func (r *mutationResolver) CreateHealthDiaryEntry(ctx context.Context, clientID 
 	r.checkPreconditions()
 	return r.mycarehub.HealthDiary.CreateHealthDiaryEntry(ctx, clientID, note, mood, reportToStaff)
 }
+
+func (r *queryResolver) CanRecordMood(ctx context.Context, clientID string) (bool, error) {
+	return r.mycarehub.HealthDiary.CanRecordHeathDiary(ctx, clientID)
+}

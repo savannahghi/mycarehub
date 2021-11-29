@@ -1610,3 +1610,185 @@ func TestPGInstance_GetUserProfileByUserID(t *testing.T) {
 		t.Errorf("failed to delete record = %v", err)
 	}
 }
+
+func TestPGInstance_CanRecordHeathDiary(t *testing.T) {
+	ctx := context.Background()
+
+	pg, err := gorm.NewPGInstance()
+	if err != nil {
+		t.Errorf("pgInstance.Teardown() = %v", err)
+	}
+
+	flavour := feedlib.FlavourConsumer
+	userID := uuid.New().String()
+	currentTime := time.Now()
+	nextTime := time.Now().AddDate(0, 0, 2)
+	newDate := time.Now().AddDate(0, 0, -41)
+
+	// Setup test user
+	userInput := &gorm.User{
+		UserID:              &userID,
+		Username:            uuid.New().String(),
+		FirstName:           gofakeit.FirstName(),
+		MiddleName:          gofakeit.FirstName(),
+		LastName:            gofakeit.LastName(),
+		UserType:            enums.ClientUser,
+		Gender:              enumutils.GenderMale,
+		Active:              false,
+		PushTokens:          []string{},
+		LastSuccessfulLogin: &currentTime,
+		LastFailedLogin:     &currentTime,
+		FailedLoginCount:    0,
+		NextAllowedLogin:    &nextTime,
+		TermsAccepted:       true,
+		AcceptedTermsID:     &termsID,
+		Flavour:             flavour,
+		Avatar:              "",
+		IsSuspended:         false,
+		OrganisationID:      orgID,
+		Password:            "",
+		IsSuperuser:         false,
+		IsStaff:             false,
+		Email:               "",
+		DateJoined:          "",
+		Name:                "",
+		IsApproved:          false,
+		ApprovalNotified:    false,
+		Handle:              "",
+	}
+
+	err = pg.DB.Create(&userInput).Error
+	if err != nil {
+		t.Errorf("failed to create user: %v", err)
+	}
+
+	testFacility := createTestFacility()
+	facilityInput, err := testingDB.GetOrCreateFacility(ctx, testFacility)
+	if err != nil {
+		t.Errorf("failed to create test facility")
+		return
+	}
+
+	clientInput := &gorm.Client{
+		UserID:                  userInput.UserID,
+		Active:                  true,
+		ClientType:              "OVC",
+		TreatmentEnrollmentDate: &newDate,
+		FHIRPatientID:           uuid.New().String(),
+		FacilityID:              *facilityInput.FacilityID,
+		OrganisationID:          orgID,
+		CHVUserID:               *userInput.UserID,
+	}
+
+	err = pg.DB.Create(&clientInput).Error
+	if err != nil {
+		t.Errorf("failed to create user: %v", err)
+	}
+
+	canShowHealthDiaryInput := gorm.ClientHealthDiaryEntry{
+		Base: gorm.Base{
+			CreatedAt: time.Now().Add(time.Hour * -25),
+			UpdatedAt: time.Now().Add(time.Hour * -25),
+		},
+		Active:                false,
+		Mood:                  "HAPPY",
+		Note:                  "test note",
+		EntryType:             "HOME_PAGE_HEALTH_DIARY_ENTRY",
+		ShareWithHealthWorker: false,
+		SharedAt:              time.Now().Add(time.Hour * -25),
+		ClientID:              *clientInput.ID,
+		OrganisationID:        orgID,
+	}
+	err = pg.DB.Create(&canShowHealthDiaryInput).Error
+	if err != nil {
+		t.Errorf("failed to create user: %v", err)
+	}
+
+	cannotShowHealthDiaryInput := &gorm.ClientHealthDiaryEntry{
+		Base: gorm.Base{
+			CreatedAt: time.Now().Add(time.Hour * -20),
+			UpdatedAt: time.Now().Add(time.Hour * -20),
+		},
+		Active:                false,
+		Mood:                  "HAPPY",
+		Note:                  "test note",
+		EntryType:             "HOME_PAGE_HEALTH_DIARY_ENTRY",
+		ShareWithHealthWorker: false,
+		SharedAt:              time.Now().Add(time.Hour * -20),
+		ClientID:              *clientInput.ID,
+		OrganisationID:        orgID,
+	}
+
+	type args struct {
+		ctx      context.Context
+		clientID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy case, can record after 24 hours",
+			args: args{
+				ctx:      ctx,
+				clientID: *clientInput.ID,
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Happy case, cant record new entry before 24 hours",
+			args: args{
+				ctx:      ctx,
+				clientID: *clientInput.ID,
+			},
+			want:    false,
+			wantErr: false,
+		},
+		{
+			name: "Invalid: id not type UUID",
+			args: args{
+				ctx:      ctx,
+				clientID: "invalid",
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "Happy case, cant record new entry before 24 hours" {
+				if err = pg.DB.Where("client_id", canShowHealthDiaryInput.ClientID).Unscoped().Delete(&gorm.ClientHealthDiaryEntry{}).Error; err != nil {
+					t.Errorf("failed to delete record = %v", err)
+				}
+				err = pg.DB.Create(&cannotShowHealthDiaryInput).Error
+				if err != nil {
+					t.Errorf("failed to create user: %v", err)
+				}
+			}
+			got, err := testingDB.CanRecordHeathDiary(tt.args.ctx, tt.args.clientID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.CanRecordHeathDiary() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("PGInstance.CanRecordHeathDiary() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+	// TearDown
+	if err = pg.DB.Where("client_id", cannotShowHealthDiaryInput.ClientID).Unscoped().Delete(&gorm.ClientHealthDiaryEntry{}).Error; err != nil {
+		t.Errorf("failed to delete record = %v", err)
+	}
+	if err = pg.DB.Where("id", clientInput.ID).Unscoped().Delete(&gorm.Client{}).Error; err != nil {
+		t.Errorf("failed to delete record = %v", err)
+	}
+	if err = pg.DB.Where("id", facilityInput.FacilityID).Unscoped().Delete(&gorm.Facility{}).Error; err != nil {
+		t.Errorf("failed to delete record = %v", err)
+	}
+	if err = pg.DB.Where("id", userInput.UserID).Unscoped().Delete(&gorm.User{}).Error; err != nil {
+		t.Errorf("failed to delete record = %v", err)
+	}
+}

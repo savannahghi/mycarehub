@@ -96,7 +96,7 @@ func TestUseCasesHealthDiaryImpl_CreateHealthDiaryEntry(t *testing.T) {
 				}
 			}
 
-			h := healthdiary.NewUseCaseHealthDiaryImpl(fakeDB)
+			h := healthdiary.NewUseCaseHealthDiaryImpl(fakeDB, fakeDB)
 			got, err := h.CreateHealthDiaryEntry(tt.args.ctx, tt.args.clientID, tt.args.note, tt.args.mood, tt.args.reportToStaff)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCasesHealthDiaryImpl.CreateHealthDiaryEntry() error = %v, wantErr %v", err, tt.wantErr)
@@ -104,6 +104,52 @@ func TestUseCasesHealthDiaryImpl_CreateHealthDiaryEntry(t *testing.T) {
 			}
 			if got != tt.want {
 				t.Errorf("UseCasesHealthDiaryImpl.CreateHealthDiaryEntry() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestUsecaseHealthDiaryImpl_CanRecordHeathDiary(t *testing.T) {
+	type args struct {
+		ctx      context.Context
+		clientID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "happy case: can create health diary",
+			args: args{
+				ctx:      context.Background(),
+				clientID: uuid.New().String(),
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "invalid: missing user ID",
+			args: args{
+				ctx: context.Background(),
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			healthdiary := healthdiary.NewUseCaseHealthDiaryImpl(fakeDB, fakeDB)
+
+			got, err := healthdiary.CanRecordHeathDiary(tt.args.ctx, tt.args.clientID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UsecaseHealthDiaryImpl.CanRecordHeathDiary() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("UsecaseHealthDiaryImpl.CanRecordHeathDiary() = %v, want %v", got, tt.want)
 			}
 		})
 	}

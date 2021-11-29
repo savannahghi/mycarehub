@@ -436,3 +436,13 @@ func (d *MyCareHubDb) GetUserBookmarkedContent(ctx context.Context, userID strin
 
 	return domainContent, nil
 }
+
+// CanRecordHeathDiary is used to check if the user can record their health diary
+func (d *MyCareHubDb) CanRecordHeathDiary(ctx context.Context, userID string) (bool, error) {
+	canRecord, err := d.query.CanRecordHeathDiary(ctx, userID)
+	if err != nil {
+		return false, err
+	}
+
+	return canRecord, nil
+}

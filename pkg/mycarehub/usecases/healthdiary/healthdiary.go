@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
 )
@@ -24,22 +25,31 @@ type CreateHealthDiaryEntry interface {
 	CreateHealthDiaryEntry(ctx context.Context, clientID string, note *string, mood string, reportToStaff bool) (bool, error)
 }
 
+// ICanRecordHealthDiary contains methods that check whether a client can record a health diary entry
+type ICanRecordHealthDiary interface {
+	CanRecordHeathDiary(ctx context.Context, clientID string) (bool, error)
+}
+
 // UseCasesHealthDiary holds all the interfaces that represents the business logic to implement the health diary
 type UseCasesHealthDiary interface {
 	CreateHealthDiaryEntry
+	ICanRecordHealthDiary
 }
 
 // UseCasesHealthDiaryImpl embeds the healthdiary logic defined on the domain
 type UseCasesHealthDiaryImpl struct {
 	Create infrastructure.Create
+	Query  infrastructure.Query
 }
 
 // NewUseCaseHealthDiaryImpl creates a new instance of health diary
 func NewUseCaseHealthDiaryImpl(
 	create infrastructure.Create,
+	query infrastructure.Query,
 ) *UseCasesHealthDiaryImpl {
 	return &UseCasesHealthDiaryImpl{
 		Create: create,
+		Query:  query,
 	}
 }
 
@@ -95,4 +105,12 @@ func (h UseCasesHealthDiaryImpl) CreateHealthDiaryEntry(
 		}
 	}
 	return true, nil
+}
+
+// CanRecordHeathDiary implements check for eligibility of a health diary to be shown to a user
+func (h UseCasesHealthDiaryImpl) CanRecordHeathDiary(ctx context.Context, clientID string) (bool, error) {
+	if clientID == "" {
+		return false, exceptions.EmptyInputErr(fmt.Errorf("empty client ID value passed in input"))
+	}
+	return h.Query.CanRecordHeathDiary(ctx, clientID)
 }
