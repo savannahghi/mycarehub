@@ -36,6 +36,7 @@ func (d *MyCareHubDb) GetFacilities(ctx context.Context) ([]*domain.Facility, er
 			ID:          m.FacilityID,
 			Name:        m.Name,
 			Code:        m.Code,
+			Phone:       m.Phone,
 			Active:      m.Active,
 			County:      m.County,
 			Description: m.Description,

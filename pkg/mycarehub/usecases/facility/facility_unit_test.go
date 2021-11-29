@@ -635,7 +635,7 @@ func TestUseCaseFacilityImpl_FetchFacilities(t *testing.T) {
 	}
 }
 
-func TestUseCaseFacilityImpl_FetchFacilities_Unittes(t *testing.T) {
+func TestUseCaseFacilityImpl_FetchFacilities_Unittest(t *testing.T) {
 	ctx := context.Background()
 	type args struct {
 		ctx context.Context

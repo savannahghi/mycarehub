@@ -10,6 +10,7 @@ import (
 type FacilityInput struct {
 	Name        string `json:"name" validate:"required,min=3,max=100"`
 	Code        int    `json:"code" validate:"required"`
+	Phone       string `json:"phone" validate:"required"`
 	Active      bool   `json:"active"`
 	County      string `json:"county" validate:"required"`
 	Description string `json:"description" validate:"required,min=3,max=256"`

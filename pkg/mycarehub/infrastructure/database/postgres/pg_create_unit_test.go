@@ -9,6 +9,7 @@ import (
 	"github.com/brianvoe/gofakeit"
 	"github.com/google/uuid"
 	"github.com/savannahghi/feedlib"
+	"github.com/savannahghi/interserviceclient"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
@@ -22,12 +23,14 @@ func TestMyCareHubDb_GetOrCreateFacility(t *testing.T) {
 
 	name := gofakeit.Name()
 	code := gofakeit.Number(300, 400)
+	phone := interserviceclient.TestUserPhoneNumber
 	county := "Nairobi"
 	description := gofakeit.HipsterSentence(15)
 
 	facility := &dto.FacilityInput{
 		Name:        name,
 		Code:        code,
+		Phone:       phone,
 		Active:      true,
 		County:      county,
 		Description: description,

@@ -17,6 +17,7 @@ func TestFacilityInput_Validate(t *testing.T) {
 	type fields struct {
 		Name        string
 		Code        int
+		Phone       string
 		Active      bool
 		County      string
 		Description string
@@ -31,6 +32,7 @@ func TestFacilityInput_Validate(t *testing.T) {
 			fields: fields{
 				Name:        "test name",
 				Code:        22344,
+				Phone:       interserviceclient.TestUserPhoneNumber,
 				Active:      true,
 				County:      "Nairobi",
 				Description: "test description",
@@ -43,6 +45,7 @@ func TestFacilityInput_Validate(t *testing.T) {
 			fields: fields{
 				Name:        "te",
 				Code:        22344,
+				Phone:       interserviceclient.TestUserPhoneNumber,
 				Active:      true,
 				County:      "Nairobi",
 				Description: "test description",
@@ -54,6 +57,7 @@ func TestFacilityInput_Validate(t *testing.T) {
 			fields: fields{
 				Name:        longWord,
 				Code:        22344,
+				Phone:       interserviceclient.TestUserPhoneNumber,
 				Active:      true,
 				County:      "Nairobi",
 				Description: "test description",
@@ -65,6 +69,7 @@ func TestFacilityInput_Validate(t *testing.T) {
 			fields: fields{
 				Name:        "test name",
 				Code:        22344,
+				Phone:       interserviceclient.TestUserPhoneNumber,
 				Active:      true,
 				County:      "Nairobi",
 				Description: "te",
@@ -76,6 +81,7 @@ func TestFacilityInput_Validate(t *testing.T) {
 			fields: fields{
 				Name:        "test name",
 				Code:        22344,
+				Phone:       interserviceclient.TestUserPhoneNumber,
 				Active:      true,
 				County:      "Nairobi",
 				Description: veryLongWord,
@@ -86,6 +92,7 @@ func TestFacilityInput_Validate(t *testing.T) {
 			name: "invalid: missing name",
 			fields: fields{
 				Code:        22344,
+				Phone:       interserviceclient.TestUserPhoneNumber,
 				Active:      true,
 				County:      "Nairobi",
 				Description: "test description",
@@ -97,6 +104,7 @@ func TestFacilityInput_Validate(t *testing.T) {
 			fields: fields{
 				Name:        "test name",
 				Active:      true,
+				Phone:       interserviceclient.TestUserPhoneNumber,
 				County:      "Nairobi",
 				Description: "test description",
 			},
@@ -107,6 +115,7 @@ func TestFacilityInput_Validate(t *testing.T) {
 			fields: fields{
 				Name:        "test name",
 				Code:        22344,
+				Phone:       interserviceclient.TestUserPhoneNumber,
 				Active:      true,
 				Description: "test description",
 			},
@@ -114,6 +123,17 @@ func TestFacilityInput_Validate(t *testing.T) {
 		},
 		{
 			name: "invalid: missing description",
+			fields: fields{
+				Name:   "test name",
+				Code:   22344,
+				Phone:  interserviceclient.TestUserPhoneNumber,
+				Active: true,
+				County: "Nairobi",
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid: missing phone",
 			fields: fields{
 				Name:   "test name",
 				Code:   22344,
@@ -128,6 +148,7 @@ func TestFacilityInput_Validate(t *testing.T) {
 			f := &FacilityInput{
 				Name:        tt.fields.Name,
 				Code:        tt.fields.Code,
+				Phone:       tt.fields.Phone,
 				Active:      tt.fields.Active,
 				County:      tt.fields.County,
 				Description: tt.fields.Description,

@@ -25,6 +25,7 @@ func (d *MyCareHubDb) GetOrCreateFacility(ctx context.Context, facility *dto.Fac
 		Code:        facility.Code,
 		Active:      facility.Active,
 		County:      facility.County,
+		Phone:       facility.Phone,
 		Description: facility.Description,
 	}
 

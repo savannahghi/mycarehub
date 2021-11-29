@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/savannahghi/interserviceclient"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/testutils"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
@@ -18,6 +19,7 @@ func TestUseCaseFacilityImpl_CreateFacility(t *testing.T) {
 	ctx := context.Background()
 	name := ksuid.New().String()
 	code := rand.Intn(1000000)
+	phone := "+254711223344"
 	county := "Nairobi"
 	description := "This is just for testing"
 
@@ -40,6 +42,7 @@ func TestUseCaseFacilityImpl_CreateFacility(t *testing.T) {
 				facility: &dto.FacilityInput{
 					Name:        name,
 					Code:        code,
+					Phone:       phone,
 					Active:      true,
 					County:      county,
 					Description: description,
@@ -54,6 +57,7 @@ func TestUseCaseFacilityImpl_CreateFacility(t *testing.T) {
 				facility: &dto.FacilityInput{
 					Name:        name,
 					Code:        code,
+					Phone:       phone,
 					Active:      true,
 					County:      county,
 					Description: description,
@@ -68,6 +72,7 @@ func TestUseCaseFacilityImpl_CreateFacility(t *testing.T) {
 				facility: &dto.FacilityInput{
 					Name:        name,
 					Code:        0,
+					Phone:       phone,
 					Active:      true,
 					County:      county,
 					Description: description,
@@ -112,6 +117,7 @@ func TestUseCaseFacilityImpl_RetrieveFacility_Integration(t *testing.T) {
 	facilityInput := &dto.FacilityInput{
 		Name:        ksuid.New().String(),
 		Code:        Code,
+		Phone:       interserviceclient.TestUserPhoneNumber,
 		Active:      true,
 		County:      "Nairobi",
 		Description: "This is just for mocking",
@@ -189,8 +195,9 @@ func TestUseCaseFacilityImpl_DeleteFacility_Integrationtest(t *testing.T) {
 	facilityInput := &dto.FacilityInput{
 		Name:        ksuid.New().String(),
 		Code:        rand.Intn(1000000),
-		County:      "Nairobi",
+		Phone:       interserviceclient.TestUserPhoneNumber,
 		Active:      true,
+		County:      "Nairobi",
 		Description: "This is just for integration testing",
 	}
 
@@ -257,6 +264,7 @@ func TestUseCaseFacilityImpl_RetrieveFacilityByMFLCode_Integration(t *testing.T)
 	facilityInput := &dto.FacilityInput{
 		Name:        ksuid.New().String(),
 		Code:        code,
+		Phone:       "+254711223344",
 		Active:      true,
 		County:      "Nairobi",
 		Description: "This is just for mocking",
@@ -339,6 +347,7 @@ func TestUseCaseFacilityImpl_ListFacilities(t *testing.T) {
 	facilityInput := &dto.FacilityInput{
 		Name:        name,
 		Code:        code,
+		Phone:       "+254711223344",
 		Active:      true,
 		County:      "Nairobi",
 		Description: "This is just for mocking",
@@ -347,6 +356,7 @@ func TestUseCaseFacilityImpl_ListFacilities(t *testing.T) {
 	facilityInput2 := &dto.FacilityInput{
 		Name:        ksuid.New().String(),
 		Code:        code2,
+		Phone:       "+254711223355",
 		Active:      true,
 		County:      "Baringo",
 		Description: "This is just for mocking",
@@ -705,6 +715,7 @@ func TestUseCaseFacilityImpl_Inactivate_Integration_test(t *testing.T) {
 	facilityInput := &dto.FacilityInput{
 		Name:        ksuid.New().String(),
 		Code:        rand.Intn(1000000),
+		Phone:       "+254711223344",
 		Active:      true,
 		County:      "Nairobi",
 		Description: "This is just for testing",
@@ -774,6 +785,7 @@ func TestUseCaseFacilityImpl_Reactivate_Integration_test(t *testing.T) {
 	facilityInput := &dto.FacilityInput{
 		Name:        ksuid.New().String(),
 		Code:        rand.Intn(1000000),
+		Phone:       "+254711223344",
 		Active:      false,
 		County:      "Nairobi",
 		Description: "This is just for testing",

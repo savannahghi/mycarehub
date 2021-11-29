@@ -2,6 +2,7 @@ type Facility {
   ID: String!
   name: String!
   code: Int!
+  phone: String!
   active: Boolean!
   county: String!
   description: String!

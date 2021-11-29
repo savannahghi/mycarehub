@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/brianvoe/gofakeit"
+	"github.com/savannahghi/interserviceclient"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	gormMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm/mock"
 )
@@ -18,12 +19,14 @@ func TestMyCareHubDb_DeleteFacility_Unittest(t *testing.T) {
 
 	name := gofakeit.Name()
 	code := gofakeit.Number(0, 100)
+	phone := interserviceclient.TestUserPhoneNumber
 	county := "Nairobi"
 	description := gofakeit.HipsterSentence(15)
 
 	facilityInput := &dto.FacilityInput{
 		Name:        name,
 		Code:        code,
+		Phone:       phone,
 		Active:      true,
 		County:      county,
 		Description: description,
