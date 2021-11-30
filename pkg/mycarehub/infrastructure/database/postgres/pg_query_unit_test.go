@@ -2079,6 +2079,53 @@ func TestMyCareHubDb_GetUserBookmarkedContent(t *testing.T) {
 	}
 }
 
+func TestMyCareHubDb_GetClientHealthDiaryQuote(t *testing.T) {
+	ctx := context.Background()
+	type args struct {
+		ctx context.Context
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Successfully get client health diary quote",
+			args: args{
+				ctx: ctx,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad Case - Fail to get client health diary quote",
+			args: args{
+				ctx: ctx,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var fakeGorm = gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+			if tt.name == "Sad Case - Fail to get client health diary quote" {
+				fakeGorm.MockGetClientHealthDiaryQuoteFn = func(ctx context.Context) (*gorm.ClientHealthDiaryQuote, error) {
+					return nil, fmt.Errorf("failed to get client health diary quote")
+				}
+			}
+			got, err := d.GetClientHealthDiaryQuote(tt.args.ctx)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.GetClientHealthDiaryQuote() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected a response but got %v", got)
+				return
+			}
+		})
+	}
+}
+
 func TestMyCareHubDb_CanRecordHeathDiary(t *testing.T) {
 	ctx := context.Background()
 	type args struct {

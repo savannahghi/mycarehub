@@ -20,8 +20,8 @@ import (
 // a health diary was filled within the past 24 hours, the client is shown an inspirational post on the frontend
 // and if it hasn't been filled, we show them the health diary.
 
-// CreateHealthDiaryEntry is an interface that holds the method signature for creating a health diary entry
-type CreateHealthDiaryEntry interface {
+// ICreateHealthDiaryEntry is an interface that holds the method signature for creating a health diary entry
+type ICreateHealthDiaryEntry interface {
 	CreateHealthDiaryEntry(ctx context.Context, clientID string, note *string, mood string, reportToStaff bool) (bool, error)
 }
 
@@ -30,10 +30,17 @@ type ICanRecordHealthDiary interface {
 	CanRecordHeathDiary(ctx context.Context, clientID string) (bool, error)
 }
 
+// IGetRandomQuote defines a method signature that returns a single quote to the frontend. This will be used in place
+// of the healthdiary (after it has been filled)
+type IGetRandomQuote interface {
+	GetClientHealthDiaryQuote(ctx context.Context) (*domain.ClientHealthDiaryQuote, error)
+}
+
 // UseCasesHealthDiary holds all the interfaces that represents the business logic to implement the health diary
 type UseCasesHealthDiary interface {
-	CreateHealthDiaryEntry
 	ICanRecordHealthDiary
+	ICreateHealthDiaryEntry
+	IGetRandomQuote
 }
 
 // UseCasesHealthDiaryImpl embeds the healthdiary logic defined on the domain
@@ -113,4 +120,10 @@ func (h UseCasesHealthDiaryImpl) CanRecordHeathDiary(ctx context.Context, client
 		return false, exceptions.EmptyInputErr(fmt.Errorf("empty client ID value passed in input"))
 	}
 	return h.Query.CanRecordHeathDiary(ctx, clientID)
+}
+
+// GetClientHealthDiaryQuote gets a quote from the database to display on the UI. This happens after a client has already
+// filled in their health diary.
+func (h UseCasesHealthDiaryImpl) GetClientHealthDiaryQuote(ctx context.Context) (*domain.ClientHealthDiaryQuote, error) {
+	return h.Query.GetClientHealthDiaryQuote(ctx)
 }

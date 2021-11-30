@@ -446,3 +446,15 @@ func (d *MyCareHubDb) CanRecordHeathDiary(ctx context.Context, userID string) (b
 
 	return canRecord, nil
 }
+
+// GetClientHealthDiaryQuote fetches the health diary quote for the specified user
+func (d *MyCareHubDb) GetClientHealthDiaryQuote(ctx context.Context) (*domain.ClientHealthDiaryQuote, error) {
+	clientHealthDiaryQuote, err := d.query.GetClientHealthDiaryQuote(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch client health diary quote: %v", err)
+	}
+	return &domain.ClientHealthDiaryQuote{
+		Author: clientHealthDiaryQuote.Author,
+		Quote:  clientHealthDiaryQuote.Quote,
+	}, nil
+}
