@@ -63,6 +63,7 @@ type GormMock struct {
 	MockViewContentFn                             func(ctx context.Context, userID string, contentID int) (bool, error)
 	MockCreateHealthDiaryEntryFn                  func(ctx context.Context, healthDiaryInput *gorm.ClientHealthDiaryEntry) error
 	MockCreateServiceRequestFn                    func(ctx context.Context, healthDiaryInput *gorm.ClientHealthDiaryEntry, serviceRequestInput *gorm.ClientServiceRequest) error
+	MockCanRecordHeathDiaryFn                     func(ctx context.Context, clientID string) (bool, error)
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -351,6 +352,9 @@ func NewGormMock() *GormMock {
 		MockCreateServiceRequestFn: func(ctx context.Context, healthDiaryInput *gorm.ClientHealthDiaryEntry, serviceRequestInput *gorm.ClientServiceRequest) error {
 			return nil
 		},
+		MockCanRecordHeathDiaryFn: func(ctx context.Context, clientID string) (bool, error) {
+			return true, nil
+		},
 	}
 }
 
@@ -577,4 +581,9 @@ func (gm *GormMock) CreateHealthDiaryEntry(ctx context.Context, healthDiaryInput
 // CreateServiceRequest mocks creating a service request method
 func (gm *GormMock) CreateServiceRequest(ctx context.Context, healthDiaryInput *gorm.ClientHealthDiaryEntry, serviceRequestInput *gorm.ClientServiceRequest) error {
 	return gm.MockCreateServiceRequestFn(ctx, healthDiaryInput, serviceRequestInput)
+}
+
+// CanRecordHeathDiary mocks the implementation of checking if a user can record a health diary
+func (gm *GormMock) CanRecordHeathDiary(ctx context.Context, userID string) (bool, error) {
+	return gm.MockCanRecordHeathDiaryFn(ctx, userID)
 }

@@ -49,6 +49,7 @@ type Query interface {
 	GetContactByUserID(ctx context.Context, userID *string, contactType string) (*domain.Contact, error)
 	ListContentCategories(ctx context.Context) ([]*domain.ContentItemCategory, error)
 	GetUserBookmarkedContent(ctx context.Context, userID string) ([]*domain.ContentItem, error)
+	CanRecordHeathDiary(ctx context.Context, clientID string) (bool, error)
 }
 
 // Update represents all the update action interfaces

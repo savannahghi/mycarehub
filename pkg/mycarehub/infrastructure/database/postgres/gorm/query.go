@@ -36,6 +36,7 @@ type Query interface {
 	GetContactByUserID(ctx context.Context, userID *string, contactType string) (*Contact, error)
 	ListContentCategories(ctx context.Context) ([]*ContentItemCategory, error)
 	GetUserBookmarkedContent(ctx context.Context, userID string) ([]*ContentItem, error)
+	CanRecordHeathDiary(ctx context.Context, clientID string) (bool, error)
 }
 
 //ListContentCategories perfoms the actual database query to get the list of content categories
@@ -349,4 +350,22 @@ func (db *PGInstance) GetUserBookmarkedContent(ctx context.Context, userID strin
 		return nil, err
 	}
 	return contentItem, nil
+}
+
+// CanRecordHeathDiary checks whether a user can record a health diary
+// if the last record is less than 24 hours ago, the user cannot record a new entry
+// if the last record is more than 24 hours ago, the user can record a new entry
+func (db *PGInstance) CanRecordHeathDiary(ctx context.Context, clientID string) (bool, error) {
+	var clientHealthDiaryEntry []*ClientHealthDiaryEntry
+	err := db.DB.Where("client_id = ?", clientID).Order("created desc").Find(&clientHealthDiaryEntry).Error
+	if err != nil {
+		return false, fmt.Errorf("failed to get client health diary: %v", err)
+	}
+	if len(clientHealthDiaryEntry) > 0 {
+		if time.Since(clientHealthDiaryEntry[0].CreatedAt) < time.Hour*24 {
+			return false, nil
+		}
+	}
+
+	return true, nil
 }

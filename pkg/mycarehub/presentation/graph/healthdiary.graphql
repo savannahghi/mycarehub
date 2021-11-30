@@ -6,3 +6,6 @@ extend type Mutation {
     reportToStaff: Boolean!
   ): Boolean!
 }
+extend type Query {
+   canRecordMood(clientID: String!): Boolean!
+}
