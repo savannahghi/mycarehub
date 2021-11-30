@@ -5,13 +5,13 @@ import "time"
 // ClientHealthDiaryEntry models the health diary entry. It is used to capture the
 // client's moods on a day-by-day basis
 type ClientHealthDiaryEntry struct {
-	Active                bool       `json:"active"`
-	Mood                  string     `json:"mood"`
-	Note                  string     `json:"note"`
-	EntryType             string     `json:"entryType"`
-	ShareWithHealthWorker bool       `json:"shareWithHealthWorker"`
-	SharedAt              *time.Time `json:"sharedAt"`
-	ClientID              string     `json:"clientID"`
+	Active                bool      `json:"active"`
+	Mood                  string    `json:"mood"`
+	Note                  string    `json:"note"`
+	EntryType             string    `json:"entryType"`
+	ShareWithHealthWorker bool      `json:"shareWithHealthWorker"`
+	SharedAt              time.Time `json:"sharedAt"`
+	ClientID              string    `json:"clientID"`
 }
 
 // ClientServiceRequest models a service request created for the healthcare worker.
