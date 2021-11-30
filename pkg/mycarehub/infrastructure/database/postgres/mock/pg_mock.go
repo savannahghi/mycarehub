@@ -66,6 +66,7 @@ type PostgresMock struct {
 	MockCreateServiceRequestFn                    func(ctx context.Context, healthDiaryInput *domain.ClientHealthDiaryEntry, serviceRequestInput *domain.ClientServiceRequest) error
 	MockCanRecordHeathDiaryFn                     func(ctx context.Context, userID string) (bool, error)
 	MockGetClientHealthDiaryQuoteFn               func(ctx context.Context) (*domain.ClientHealthDiaryQuote, error)
+	MockCheckIfUserBookmarkedContentFn            func(ctx context.Context, userID string, contentID int) (bool, error)
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -367,6 +368,9 @@ func NewPostgresMock() *PostgresMock {
 				Author: "test",
 			}, nil
 		},
+		MockCheckIfUserBookmarkedContentFn: func(ctx context.Context, userID string, contentID int) (bool, error) {
+			return true, nil
+		},
 	}
 }
 
@@ -623,4 +627,9 @@ func (gm *PostgresMock) CanRecordHeathDiary(ctx context.Context, userID string) 
 // GetClientHealthDiaryQuote mocks the implementation of fetching client health diary quote
 func (gm *PostgresMock) GetClientHealthDiaryQuote(ctx context.Context) (*domain.ClientHealthDiaryQuote, error) {
 	return gm.MockGetClientHealthDiaryQuoteFn(ctx)
+}
+
+// CheckIfUserBookmarkedContent mocks the implementation of checking if a user has bookmarked a content
+func (gm *PostgresMock) CheckIfUserBookmarkedContent(ctx context.Context, userID string, contentID int) (bool, error) {
+	return gm.MockCheckIfUserBookmarkedContentFn(ctx, userID, contentID)
 }

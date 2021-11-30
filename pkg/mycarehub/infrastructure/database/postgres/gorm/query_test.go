@@ -2056,3 +2056,187 @@ func TestPGInstance_CanRecordHeathDiary(t *testing.T) {
 		t.Errorf("failed to delete record = %v", err)
 	}
 }
+
+func TestPGInstance_CheckIfUserBookmarkedContent(t *testing.T) {
+	ctx := context.Background()
+
+	nickname := uuid.New().String()
+	currentTime := time.Now()
+	flavour := feedlib.FlavourConsumer
+	pastTime := time.Now().AddDate(0, 0, -1)
+
+	pg, err := gorm.NewPGInstance()
+	if err != nil {
+		t.Errorf("pgInstance.Teardown() = %v", err)
+	}
+
+	// Setup test user
+	userInput := &gorm.User{
+		Username:            uuid.New().String(),
+		FirstName:           gofakeit.FirstName(),
+		MiddleName:          gofakeit.FirstName(),
+		LastName:            gofakeit.LastName(),
+		UserType:            enums.ClientUser,
+		Gender:              enumutils.GenderMale,
+		Active:              false,
+		PushTokens:          []string{},
+		LastSuccessfulLogin: &currentTime,
+		LastFailedLogin:     &currentTime,
+		FailedLoginCount:    0,
+		NextAllowedLogin:    &pastTime,
+		TermsAccepted:       true,
+		AcceptedTermsID:     &termsID,
+		Flavour:             flavour,
+		Avatar:              "",
+		IsSuspended:         true,
+		OrganisationID:      orgID,
+		Password:            "",
+		IsSuperuser:         true,
+		IsStaff:             true,
+		Email:               "",
+		DateJoined:          "",
+		Name:                nickname,
+		IsApproved:          true,
+		ApprovalNotified:    true,
+		Handle:              "",
+	}
+
+	err = pg.DB.Create(userInput).Error
+	if err != nil {
+		t.Errorf("failed to create user: %v", err)
+	}
+
+	contentAuthorInput := &gorm.ContentAuthor{
+		Active:         true,
+		Name:           gofakeit.Name(),
+		OrganisationID: orgID,
+	}
+
+	err = pg.DB.Create(contentAuthorInput).Error
+	if err != nil {
+		t.Errorf("failed to create content author: %v", err)
+	}
+
+	wagtailCorePageInput := &gorm.WagtailCorePage{
+		// WagtailCorePageID:     gofakeit.Number(1, 10000),
+		Path:                  uuid.New().String() + "/wag/home/123",
+		Depth:                 0,
+		Numchild:              0,
+		Title:                 "test title",
+		Slug:                  "test-title",
+		Live:                  true,
+		HasUnpublishedChanges: false,
+		URLPath:               "https://wag.example.com",
+		SEOTitle:              "test title",
+		ShowInMenus:           false,
+		SearchDescription:     "description",
+		Expired:               false,
+		ContentTypeID:         1,
+		Locked:                false,
+		DraftTitle:            "default title",
+		TranslationKey:        uuid.New().String(),
+		LocaleID:              1,
+	}
+
+	err = pg.DB.Create(wagtailCorePageInput).Error
+	if err != nil {
+		t.Errorf("failed to create wagtail content page: %v", err)
+	}
+
+	contentItemInput := &gorm.ContentItem{
+		PagePtrID:           wagtailCorePageInput.WagtailCorePageID,
+		Date:                time.Now(),
+		Intro:               gofakeit.Name(),
+		ItemType:            "text",
+		TimeEstimateSeconds: 3000,
+		Body:                `gofakeit.HipsterParagraph(30, 10, 20, ",")`,
+		LikeCount:           10,
+		BookmarkCount:       40,
+		ShareCount:          0,
+		ViewCount:           10,
+		AuthorID:            *contentAuthorInput.ContentAuthorID,
+	}
+
+	err = pg.DB.Create(contentItemInput).Error
+	if err != nil {
+		t.Errorf("failed to create content: %v", err)
+	}
+
+	bookmarkInput := &gorm.ContentBookmark{
+		// ContentBookmarkID: &contentID,
+		Active:         true,
+		ContentID:      contentItemInput.PagePtrID,
+		UserID:         *userInput.UserID,
+		OrganisationID: orgID,
+	}
+	err = pg.DB.Create(bookmarkInput).Error
+	if err != nil {
+		t.Errorf("failed to create user: %v", err)
+	}
+
+	type args struct {
+		ctx       context.Context
+		userID    string
+		contentID int
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+
+		{
+			name: "happy case: get user bookmarked content by user id and content id",
+			args: args{
+				ctx:       ctx,
+				userID:    *userInput.UserID,
+				contentID: bookmarkInput.ContentID,
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "happy case: get user bookmarked content by user id and content id, content not bookmarked",
+			args: args{
+				ctx:       ctx,
+				userID:    *userInput.UserID,
+				contentID: contentItemInput.PagePtrID,
+			},
+
+			want:    false,
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "happy case: get user bookmarked content by user id and content id, content not bookmarked" {
+				err = pg.DB.Delete(bookmarkInput).Error
+				if err != nil {
+					t.Errorf("failed to delete record = %v", err)
+				}
+			}
+			got, err := testingDB.CheckIfUserBookmarkedContent(tt.args.ctx, tt.args.userID, tt.args.contentID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.CheckIfUserBookmarkedContent() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("PGInstance.CheckIfUserBookmarkedContent() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+	//TearDown
+	if err = pg.DB.Where("page_ptr_id", contentItemInput.PagePtrID).Unscoped().Delete(&gorm.ContentItem{}).Error; err != nil {
+		t.Errorf("failed to delete record = %v", err)
+	}
+	if err = pg.DB.Where("id", contentAuthorInput.ContentAuthorID).Unscoped().Delete(&gorm.ContentAuthor{}).Error; err != nil {
+		t.Errorf("failed to delete record = %v", err)
+	}
+	if err = pg.DB.Where("id", wagtailCorePageInput.WagtailCorePageID).Unscoped().Delete(&gorm.WagtailCorePage{}).Error; err != nil {
+		t.Errorf("failed to delete record = %v", err)
+	}
+	if err = pg.DB.Where("id", userInput.UserID).Unscoped().Delete(&gorm.User{}).Error; err != nil {
+		t.Errorf("failed to delete record = %v", err)
+	}
+}

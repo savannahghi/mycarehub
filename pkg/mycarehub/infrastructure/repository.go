@@ -52,6 +52,7 @@ type Query interface {
 	GetUserBookmarkedContent(ctx context.Context, userID string) ([]*domain.ContentItem, error)
 	CanRecordHeathDiary(ctx context.Context, clientID string) (bool, error)
 	GetClientHealthDiaryQuote(ctx context.Context) (*domain.ClientHealthDiaryQuote, error)
+	CheckIfUserBookmarkedContent(ctx context.Context, userID string, contentID int) (bool, error)
 }
 
 // Update represents all the update action interfaces

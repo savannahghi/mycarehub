@@ -39,6 +39,7 @@ type Query interface {
 	GetUserBookmarkedContent(ctx context.Context, userID string) ([]*ContentItem, error)
 	CanRecordHeathDiary(ctx context.Context, clientID string) (bool, error)
 	GetClientHealthDiaryQuote(ctx context.Context) (*ClientHealthDiaryQuote, error)
+	CheckIfUserBookmarkedContent(ctx context.Context, userID string, contentID int) (bool, error)
 }
 
 // CheckWhetherUserHasLikedContent performs a operation to check whether user has liked the content
@@ -52,6 +53,7 @@ func (db *PGInstance) CheckWhetherUserHasLikedContent(ctx context.Context, userI
 	}
 
 	return true, nil
+
 }
 
 //ListContentCategories perfoms the actual database query to get the list of content categories
@@ -394,4 +396,17 @@ func (db *PGInstance) GetClientHealthDiaryQuote(ctx context.Context) (*ClientHea
 		return nil, err
 	}
 	return &healthDiaryQuote, nil
+}
+
+// CheckIfUserBookmarkedContent fetches a user's pinned content from the database
+func (db *PGInstance) CheckIfUserBookmarkedContent(ctx context.Context, userID string, contentID int) (bool, error) {
+	var contentBookmark ContentBookmark
+	err := db.DB.Where(&ContentBookmark{ContentID: contentID, UserID: userID}).First(&contentBookmark).Error
+	if err != nil {
+		if strings.Contains(err.Error(), "record not found") {
+			return false, nil
+		}
+		return false, fmt.Errorf("failed to get content bookmark: %v", err)
+	}
+	return true, nil
 }

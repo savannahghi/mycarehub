@@ -66,6 +66,7 @@ type GormMock struct {
 	MockCreateServiceRequestFn                    func(ctx context.Context, healthDiaryInput *gorm.ClientHealthDiaryEntry, serviceRequestInput *gorm.ClientServiceRequest) error
 	MockCanRecordHeathDiaryFn                     func(ctx context.Context, clientID string) (bool, error)
 	MockGetClientHealthDiaryQuoteFn               func(ctx context.Context) (*gorm.ClientHealthDiaryQuote, error)
+	MockCheckIfUserBookmarkedContentFn            func(ctx context.Context, userID string, contentID int) (bool, error)
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -366,6 +367,9 @@ func NewGormMock() *GormMock {
 		MockCheckWhetherUserHasLikedContentFn: func(ctx context.Context, userID string, contentID int) (bool, error) {
 			return true, nil
 		},
+		MockCheckIfUserBookmarkedContentFn: func(ctx context.Context, userID string, contentID int) (bool, error) {
+			return true, nil
+		},
 	}
 }
 
@@ -608,4 +612,9 @@ func (gm *GormMock) CanRecordHeathDiary(ctx context.Context, userID string) (boo
 // GetClientHealthDiaryQuote mocks the implementation of getting a client's health diary quote
 func (gm *GormMock) GetClientHealthDiaryQuote(ctx context.Context) (*gorm.ClientHealthDiaryQuote, error) {
 	return gm.MockGetClientHealthDiaryQuoteFn(ctx)
+}
+
+// CheckIfUserBookmarkedContent mocks the implementation of checking if a user bookmarked a content
+func (gm *GormMock) CheckIfUserBookmarkedContent(ctx context.Context, userID string, contentID int) (bool, error) {
+	return gm.MockCheckIfUserBookmarkedContentFn(ctx, userID, contentID)
 }

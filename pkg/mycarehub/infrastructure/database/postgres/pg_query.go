@@ -466,3 +466,12 @@ func (d *MyCareHubDb) GetClientHealthDiaryQuote(ctx context.Context) (*domain.Cl
 		Quote:  clientHealthDiaryQuote.Quote,
 	}, nil
 }
+
+// CheckIfUserBookmarkedContent is used to check if the user has bookmarked the content
+func (d *MyCareHubDb) CheckIfUserBookmarkedContent(ctx context.Context, userID string, contentID int) (bool, error) {
+	bookmarked, err := d.query.CheckIfUserBookmarkedContent(ctx, userID, contentID)
+	if err != nil {
+		return false, fmt.Errorf("failed to check if user bookmarked content: %v", err)
+	}
+	return bookmarked, nil
+}

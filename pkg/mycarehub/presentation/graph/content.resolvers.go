@@ -59,6 +59,10 @@ func (r *queryResolver) CheckIfUserHasLikedContent(ctx context.Context, userID s
 	return r.mycarehub.Content.CheckWhetherUserHasLikedContent(ctx, userID, contentID)
 }
 
+func (r *queryResolver) CheckIfUserBookmarkedContent(ctx context.Context, userID string, contentID int) (bool, error) {
+	return r.mycarehub.Content.CheckIfUserBookmarkedContent(ctx, userID, contentID)
+}
+
 // Mutation returns generated.MutationResolver implementation.
 func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
 

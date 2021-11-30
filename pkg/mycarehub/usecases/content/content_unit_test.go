@@ -697,3 +697,92 @@ func TestUseCasesContentImpl_CheckWhetherUserHasLikedContent(t *testing.T) {
 		})
 	}
 }
+
+func TestUseCasesContentImpl_CheckIfUserBookmarkedContent(t *testing.T) {
+	ctx := context.Background()
+	type args struct {
+		ctx       context.Context
+		userID    string
+		contentID int
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Successfully check if user bookmarked content",
+			args: args{
+				ctx:       ctx,
+				userID:    uuid.New().String(),
+				contentID: 12,
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Happy Case - Successfully check if user bookmarked content, but user has not bookmarked content",
+			args: args{
+				ctx:       ctx,
+				userID:    uuid.New().String(),
+				contentID: 12,
+			},
+			want:    false,
+			wantErr: false,
+		},
+		{
+			name: "Sad Case - Fail to check if user bookmarked content",
+			args: args{
+				ctx:       ctx,
+				userID:    uuid.New().String(),
+				contentID: 12,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - Missing user ID",
+			args: args{
+				ctx:       ctx,
+				contentID: 12,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - Missing content ID",
+			args: args{
+				ctx:    ctx,
+				userID: uuid.New().String(),
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+
+			if tt.name == "Happy Case - Successfully check if user bookmarked content, but user has not bookmarked content" {
+				fakeDB.MockCheckIfUserBookmarkedContentFn = func(ctx context.Context, userID string, contentID int) (bool, error) {
+					return false, nil
+				}
+			}
+			if tt.name == "Sad Case - Fail to check if user bookmarked content" {
+				fakeDB.MockCheckIfUserBookmarkedContentFn = func(ctx context.Context, userID string, contentID int) (bool, error) {
+					return false, fmt.Errorf("failed to check if user bookmarked content")
+				}
+			}
+			c := content.NewUseCasesContentImplementation(fakeDB, fakeDB)
+			got, err := c.CheckIfUserBookmarkedContent(tt.args.ctx, tt.args.userID, tt.args.contentID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCasesContentImpl.CheckIfUserBookmarkedContent() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("UseCasesContentImpl.CheckIfUserBookmarkedContent() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
