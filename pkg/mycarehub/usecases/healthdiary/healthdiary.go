@@ -79,7 +79,7 @@ func (h UseCasesHealthDiaryImpl) CreateHealthDiaryEntry(
 			EntryType:             "HOME_PAGE_HEALTH_DIARY_ENTRY", //TODO: Make this an enum
 			ShareWithHealthWorker: reportToStaff,
 			ClientID:              clientID,
-			SharedAt:              &currentTime,
+			SharedAt:              currentTime,
 		}
 
 		serviceRequest := &domain.ClientServiceRequest{
@@ -104,7 +104,6 @@ func (h UseCasesHealthDiaryImpl) CreateHealthDiaryEntry(
 			EntryType:             "HOME_PAGE_HEALTH_DIARY_ENTRY", //TODO: Make this an enum
 			ShareWithHealthWorker: false,
 			ClientID:              clientID,
-			SharedAt:              nil,
 		}
 		err := h.Create.CreateHealthDiaryEntry(ctx, healthDiaryEntry)
 		if err != nil {

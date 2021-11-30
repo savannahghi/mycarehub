@@ -127,7 +127,7 @@ func (d *MyCareHubDb) CreateHealthDiaryEntry(ctx context.Context, healthDiaryInp
 		Note:                  healthDiaryInput.Note,
 		EntryType:             healthDiaryInput.EntryType,
 		ShareWithHealthWorker: healthDiaryInput.ShareWithHealthWorker,
-		SharedAt:              *healthDiaryInput.SharedAt,
+		SharedAt:              healthDiaryInput.SharedAt,
 		ClientID:              healthDiaryInput.ClientID,
 	}
 
@@ -163,7 +163,7 @@ func (d *MyCareHubDb) CreateServiceRequest(
 		Note:                  healthDiaryInput.Note,
 		EntryType:             healthDiaryInput.EntryType,
 		ShareWithHealthWorker: healthDiaryInput.ShareWithHealthWorker,
-		SharedAt:              *healthDiaryInput.SharedAt,
+		SharedAt:              healthDiaryInput.SharedAt,
 		ClientID:              healthDiaryInput.ClientID,
 	}
 

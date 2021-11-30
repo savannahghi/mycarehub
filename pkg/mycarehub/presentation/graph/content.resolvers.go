@@ -54,7 +54,7 @@ func (r *queryResolver) GetUserBookmarkedContent(ctx context.Context, userID str
 	return r.mycarehub.Content.GetUserBookmarkedContent(ctx, userID)
 }
 
-func (r *queryResolver) CheckIfUserHasLikedParticularContent(ctx context.Context, userID string, contentID int) (bool, error) {
+func (r *queryResolver) CheckIfUserHasLikedContent(ctx context.Context, userID string, contentID int) (bool, error) {
 	r.checkPreconditions()
 	return r.mycarehub.Content.CheckWhetherUserHasLikedContent(ctx, userID, contentID)
 }
