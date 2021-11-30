@@ -2026,6 +2026,109 @@ func TestMyCareHubDb_GetContactByUserID(t *testing.T) {
 	}
 }
 
+func TestMyCareHubDb_CheckWhetherUserHasLikedContent(t *testing.T) {
+	ctx := context.Background()
+
+	type args struct {
+		ctx       context.Context
+		userID    string
+		contentID int
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:       ctx,
+				userID:    uuid.New().String(),
+				contentID: gofakeit.Number(1, 1001),
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Sad case",
+			args: args{
+				ctx:       ctx,
+				userID:    uuid.New().String(),
+				contentID: gofakeit.Number(1, 1001),
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case - empty userID",
+			args: args{
+				ctx:       ctx,
+				userID:    "",
+				contentID: gofakeit.Number(1, 1001),
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case - empty contentID",
+			args: args{
+				ctx:       ctx,
+				userID:    uuid.New().String(),
+				contentID: 0,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case - invalid contentID",
+			args: args{
+				ctx:       ctx,
+				userID:    uuid.New().String(),
+				contentID: -5,
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var fakeGorm = gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			if tt.name == "Sad case" {
+				fakeGorm.MockCheckWhetherUserHasLikedContentFn = func(ctx context.Context, userID string, contentID int) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - empty userID" {
+				fakeGorm.MockCheckWhetherUserHasLikedContentFn = func(ctx context.Context, userID string, contentID int) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - empty contentID" {
+				fakeGorm.MockCheckWhetherUserHasLikedContentFn = func(ctx context.Context, userID string, contentID int) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - invalid contentID" {
+				fakeGorm.MockCheckWhetherUserHasLikedContentFn = func(ctx context.Context, userID string, contentID int) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+
+			got, err := d.CheckWhetherUserHasLikedContent(tt.args.ctx, tt.args.userID, tt.args.contentID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.CheckWhetherUserHasLikedContent() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("MyCareHubDb.CheckWhetherUserHasLikedContent() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
 func TestMyCareHubDb_GetUserBookmarkedContent(t *testing.T) {
 	ctx := context.Background()
 

@@ -12,6 +12,14 @@ import (
 	"github.com/savannahghi/serverutils"
 )
 
+// CheckWhetherUserHasLikedContent performs a operation to check whether user has liked the content
+func (d *MyCareHubDb) CheckWhetherUserHasLikedContent(ctx context.Context, userID string, contentID int) (bool, error) {
+	if userID == "" || contentID < 1 {
+		return false, fmt.Errorf("invalid userID or contentID")
+	}
+	return d.query.CheckWhetherUserHasLikedContent(ctx, userID, contentID)
+}
+
 //GetFacilities returns a slice of healthcare facilities in the platform.
 func (d *MyCareHubDb) GetFacilities(ctx context.Context) ([]*domain.Facility, error) {
 	var facility []*domain.Facility

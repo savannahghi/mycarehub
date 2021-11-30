@@ -24,6 +24,7 @@ type Query interface {
 	GetUserPINByUserID(ctx context.Context, userID string) (*PINData, error)
 	GetUserProfileByUserID(ctx context.Context, userID string) (*User, error)
 	GetCurrentTerms(ctx context.Context) (*TermsOfService, error)
+	CheckWhetherUserHasLikedContent(ctx context.Context, userID string, contentID int) (bool, error)
 	GetSecurityQuestions(ctx context.Context, flavour feedlib.Flavour) ([]*SecurityQuestion, error)
 	GetSecurityQuestionByID(ctx context.Context, securityQuestionID *string) (*SecurityQuestion, error)
 	GetSecurityQuestionResponseByID(ctx context.Context, questionID string) (*SecurityQuestionResponse, error)
@@ -38,6 +39,19 @@ type Query interface {
 	GetUserBookmarkedContent(ctx context.Context, userID string) ([]*ContentItem, error)
 	CanRecordHeathDiary(ctx context.Context, clientID string) (bool, error)
 	GetClientHealthDiaryQuote(ctx context.Context) (*ClientHealthDiaryQuote, error)
+}
+
+// CheckWhetherUserHasLikedContent performs a operation to check whether user has liked the content
+func (db *PGInstance) CheckWhetherUserHasLikedContent(ctx context.Context, userID string, contentID int) (bool, error) {
+	var contentItemLike ContentLike
+	if err := db.DB.Where(&ContentLike{UserID: userID, ContentID: contentID}).First(&contentItemLike).Error; err != nil {
+		if strings.Contains(err.Error(), "record not found") {
+			return false, nil
+		}
+		return false, fmt.Errorf("an error occurred: %v", err)
+	}
+
+	return true, nil
 }
 
 //ListContentCategories perfoms the actual database query to get the list of content categories

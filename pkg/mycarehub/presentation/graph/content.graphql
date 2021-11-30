@@ -2,6 +2,7 @@ extend type Query {
   getContent(categoryID: Int, Limit: String!): Content!
   listContentCategories: [ContentItemCategory!]!
   getUserBookmarkedContent(userID: String!): Content!
+  checkIfUserHasLikedParticularContent(userID: String!, contentID: Int!): Boolean!
 }
 
 extend type Mutation {

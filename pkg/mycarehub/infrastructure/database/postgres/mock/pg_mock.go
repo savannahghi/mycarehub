@@ -58,6 +58,7 @@ type PostgresMock struct {
 	MockUnBookmarkContentFn                       func(ctx context.Context, userID string, contentID int) (bool, error)
 	MockGetUserBookmarkedContentFn                func(ctx context.Context, userID string) ([]*domain.ContentItem, error)
 	MockLikeContentFn                             func(ctx context.Context, userID string, contentID int) (bool, error)
+	MockCheckWhetherUserHasLikedContentFn         func(ctx context.Context, userID string, contentID int) (bool, error)
 	MockUnlikeContentFn                           func(ctx context.Context, userID string, contentID int) (bool, error)
 	MockFetchFacilitiesFn                         func(ctx context.Context) ([]*domain.Facility, error)
 	MockViewContentFn                             func(ctx context.Context, userID string, contentID int) (bool, error)
@@ -348,6 +349,9 @@ func NewPostgresMock() *PostgresMock {
 		MockViewContentFn: func(ctx context.Context, userID string, contentID int) (bool, error) {
 			return true, nil
 		},
+		MockCheckWhetherUserHasLikedContentFn: func(ctx context.Context, userID string, contentID int) (bool, error) {
+			return true, nil
+		},
 		MockCreateHealthDiaryEntryFn: func(ctx context.Context, healthDiaryInput *domain.ClientHealthDiaryEntry) error {
 			return nil
 		},
@@ -374,6 +378,11 @@ func (gm *PostgresMock) GetOrCreateFacility(ctx context.Context, facility *dto.F
 // RetrieveFacility mocks the implementation of `gorm's` RetrieveFacility method.
 func (gm *PostgresMock) RetrieveFacility(ctx context.Context, id *string, isActive bool) (*domain.Facility, error) {
 	return gm.MockRetrieveFacilityFn(ctx, id, isActive)
+}
+
+// CheckWhetherUserHasLikedContent mocks the implementation of `gorm's` CheckWhetherUserHasLikedContent method.
+func (gm *PostgresMock) CheckWhetherUserHasLikedContent(ctx context.Context, userID string, contentID int) (bool, error) {
+	return gm.MockCheckWhetherUserHasLikedContentFn(ctx, userID, contentID)
 }
 
 // ListFacilities mocks the implementation of  ListFacilities method.
