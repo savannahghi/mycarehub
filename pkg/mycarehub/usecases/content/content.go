@@ -31,6 +31,11 @@ type IGetBookmarkedContent interface {
 	GetUserBookmarkedContent(ctx context.Context, userID string) (*domain.Content, error)
 }
 
+// ICheckIfUserBookmarkedContent is used to check if a user has bookmarked a content item
+type ICheckIfUserBookmarkedContent interface {
+	CheckIfUserBookmarkedContent(ctx context.Context, userID string, contentID int) (bool, error)
+}
+
 // IContentCategoryList groups all the content category listing methods
 type IContentCategoryList interface {
 	ListContentCategories(ctx context.Context) ([]*domain.ContentItemCategory, error)
@@ -92,6 +97,7 @@ type UseCasesContent interface {
 	ILikeContent
 	IUnlikeContent
 	IViewContent
+	ICheckIfUserBookmarkedContent
 }
 
 // IViewContent gets a content ite and updates the view count
@@ -247,4 +253,12 @@ func (u *UseCasesContentImpl) ViewContent(ctx context.Context, userID string, co
 		return false, fmt.Errorf("userID and contentID cannot be empty")
 	}
 	return u.Update.ViewContent(ctx, userID, contentID)
+}
+
+// CheckIfUserBookmarkedContent checks if a user has bookmarked a specific content item
+func (u *UseCasesContentImpl) CheckIfUserBookmarkedContent(ctx context.Context, userID string, contentID int) (bool, error) {
+	if userID == "" || contentID == 0 {
+		return false, fmt.Errorf("userID and contentID cannot be empty")
+	}
+	return u.Query.CheckIfUserBookmarkedContent(ctx, userID, contentID)
 }

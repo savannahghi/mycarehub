@@ -2266,3 +2266,43 @@ func TestMyCareHubDb_CanRecordHeathDiary(t *testing.T) {
 		})
 	}
 }
+
+func TestMyCareHubDb_CheckIfUserBookmarkedContent(t *testing.T) {
+	type args struct {
+		ctx       context.Context
+		userID    string
+		contentID int
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:       context.Background(),
+				userID:    uuid.New().String(),
+				contentID: 1,
+			},
+			wantErr: false,
+			want:    true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			var fakeGorm = gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+			got, err := d.CheckIfUserBookmarkedContent(tt.args.ctx, tt.args.userID, tt.args.contentID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.CheckIfUserBookmarkedContent() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("MyCareHubDb.CheckIfUserBookmarkedContent() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

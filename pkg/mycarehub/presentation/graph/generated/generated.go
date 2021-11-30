@@ -219,19 +219,20 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		CanRecordMood              func(childComplexity int, clientID string) int
-		CheckIfUserHasLikedContent func(childComplexity int, userID string, contentID int) int
-		FetchFacilities            func(childComplexity int) int
-		GetContent                 func(childComplexity int, categoryID *int, limit string) int
-		GetCurrentTerms            func(childComplexity int) int
-		GetHealthDiaryQuote        func(childComplexity int) int
-		GetSecurityQuestions       func(childComplexity int, flavour feedlib.Flavour) int
-		GetUserBookmarkedContent   func(childComplexity int, userID string) int
-		ListContentCategories      func(childComplexity int) int
-		ListFacilities             func(childComplexity int, searchTerm *string, filterInput []*dto.FiltersInput, paginationInput dto.PaginationsInput) int
-		RetrieveFacility           func(childComplexity int, id string, active bool) int
-		RetrieveFacilityByMFLCode  func(childComplexity int, mflCode int, isActive bool) int
-		SendOtp                    func(childComplexity int, phoneNumber string, flavour feedlib.Flavour) int
+		CanRecordMood                func(childComplexity int, clientID string) int
+		CheckIfUserBookmarkedContent func(childComplexity int, userID string, contentID int) int
+		CheckIfUserHasLikedContent   func(childComplexity int, userID string, contentID int) int
+		FetchFacilities              func(childComplexity int) int
+		GetContent                   func(childComplexity int, categoryID *int, limit string) int
+		GetCurrentTerms              func(childComplexity int) int
+		GetHealthDiaryQuote          func(childComplexity int) int
+		GetSecurityQuestions         func(childComplexity int, flavour feedlib.Flavour) int
+		GetUserBookmarkedContent     func(childComplexity int, userID string) int
+		ListContentCategories        func(childComplexity int) int
+		ListFacilities               func(childComplexity int, searchTerm *string, filterInput []*dto.FiltersInput, paginationInput dto.PaginationsInput) int
+		RetrieveFacility             func(childComplexity int, id string, active bool) int
+		RetrieveFacilityByMFLCode    func(childComplexity int, mflCode int, isActive bool) int
+		SendOtp                      func(childComplexity int, phoneNumber string, flavour feedlib.Flavour) int
 	}
 
 	RecordSecurityQuestionResponse struct {
@@ -278,6 +279,7 @@ type QueryResolver interface {
 	ListContentCategories(ctx context.Context) ([]*domain.ContentItemCategory, error)
 	GetUserBookmarkedContent(ctx context.Context, userID string) (*domain.Content, error)
 	CheckIfUserHasLikedContent(ctx context.Context, userID string, contentID int) (bool, error)
+	CheckIfUserBookmarkedContent(ctx context.Context, userID string, contentID int) (bool, error)
 	FetchFacilities(ctx context.Context) ([]*domain.Facility, error)
 	RetrieveFacility(ctx context.Context, id string, active bool) (*domain.Facility, error)
 	RetrieveFacilityByMFLCode(ctx context.Context, mflCode int, isActive bool) (*domain.Facility, error)
@@ -1148,6 +1150,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.CanRecordMood(childComplexity, args["clientID"].(string)), true
 
+	case "Query.checkIfUserBookmarkedContent":
+		if e.complexity.Query.CheckIfUserBookmarkedContent == nil {
+			break
+		}
+
+		args, err := ec.field_Query_checkIfUserBookmarkedContent_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.CheckIfUserBookmarkedContent(childComplexity, args["userID"].(string), args["contentID"].(int)), true
+
 	case "Query.checkIfUserHasLikedContent":
 		if e.complexity.Query.CheckIfUserHasLikedContent == nil {
 			break
@@ -1404,6 +1418,7 @@ var sources = []*ast.Source{
   listContentCategories: [ContentItemCategory!]!
   getUserBookmarkedContent(userID: String!): Content!
   checkIfUserHasLikedContent(userID: String!, contentID: Int!): Boolean!
+  checkIfUserBookmarkedContent(userID: String!, contentID: Int!): Boolean!
 }
 
 extend type Mutation {
@@ -2209,6 +2224,30 @@ func (ec *executionContext) field_Query_canRecordMood_args(ctx context.Context, 
 		}
 	}
 	args["clientID"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_checkIfUserBookmarkedContent_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["userID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userID"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["userID"] = arg0
+	var arg1 int
+	if tmp, ok := rawArgs["contentID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("contentID"))
+		arg1, err = ec.unmarshalNInt2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["contentID"] = arg1
 	return args, nil
 }
 
@@ -6367,6 +6406,48 @@ func (ec *executionContext) _Query_checkIfUserHasLikedContent(ctx context.Contex
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Query_checkIfUserBookmarkedContent(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_checkIfUserBookmarkedContent_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().CheckIfUserBookmarkedContent(rctx, args["userID"].(string), args["contentID"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Query_fetchFacilities(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -9569,6 +9650,20 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_checkIfUserHasLikedContent(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "checkIfUserBookmarkedContent":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_checkIfUserBookmarkedContent(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
