@@ -7,10 +7,7 @@ import (
 	"time"
 
 	"github.com/brianvoe/gofakeit"
-	"github.com/google/uuid"
-	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/feedlib"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
 	"github.com/segmentio/ksuid"
@@ -19,14 +16,12 @@ import (
 func TestPGInstance_GetOrCreateFacility(t *testing.T) {
 	ctx := context.Background()
 
-	ID := ksuid.New().String()
 	name := ksuid.New().String()
 	code := rand.Intn(1000000)
 	county := gofakeit.Name()
 	description := gofakeit.HipsterSentence(15)
 
 	facility := &gorm.Facility{
-		FacilityID:  &ID,
 		Name:        name,
 		Code:        code,
 		Active:      true,
@@ -74,68 +69,29 @@ func TestPGInstance_GetOrCreateFacility(t *testing.T) {
 			}
 		})
 	}
+	// teardown
+	pg, err := gorm.NewPGInstance()
+	if err != nil {
+		t.Errorf("pgInstance.Teardown() = %v", err)
+	}
+	if err = pg.DB.Where("id", facility.FacilityID).Unscoped().Delete(&gorm.Facility{}).Error; err != nil {
+		t.Errorf("failed to delete record = %v", err)
+	}
 }
 
 func TestPGInstance_SaveTemporaryUserPin(t *testing.T) {
-
 	pg, err := gorm.NewPGInstance()
 	if err != nil {
 		t.Errorf("pgInstance.Teardown() = %v", err)
 	}
 
 	ctx := context.Background()
-	currentTime := time.Now()
 
-	newExtension := extension.NewExternalMethodsImpl()
-
-	tempPin, err := newExtension.GenerateTempPIN(ctx)
-	if err != nil {
-		t.Errorf("failed to generate temporary pin: %v", err)
-	}
-	salt, encryptedTempPin := newExtension.EncryptPIN(tempPin, nil)
-
-	nextTime := time.Now().AddDate(0, 0, 2)
 	flavour := feedlib.FlavourConsumer
 
-	userInput := &gorm.User{
-		Username:            gofakeit.BeerName(),
-		FirstName:           gofakeit.FirstName(),
-		MiddleName:          gofakeit.FirstName(),
-		LastName:            gofakeit.LastName(),
-		UserType:            enums.ClientUser,
-		Gender:              enumutils.GenderMale,
-		Active:              true,
-		Contacts:            gorm.Contact{},
-		PushTokens:          []string{},
-		LastSuccessfulLogin: &currentTime,
-		LastFailedLogin:     &currentTime,
-		FailedLoginCount:    0,
-		NextAllowedLogin:    &nextTime,
-		TermsAccepted:       true,
-		AcceptedTermsID:     &termsID,
-		Flavour:             flavour,
-		Avatar:              "",
-		IsSuspended:         true,
-		OrganisationID:      orgID,
-		Password:            "",
-		IsSuperuser:         true,
-		IsStaff:             true,
-		Email:               "",
-		DateJoined:          "",
-		Name:                "",
-		IsApproved:          true,
-		ApprovalNotified:    true,
-		Handle:              "",
-	}
-
-	err = pg.DB.Create(userInput).Error
-	if err != nil {
-		t.Errorf("failed to create user: %v", err)
-	}
-
 	pinPayload := &gorm.PINData{
-		UserID:    *userInput.UserID,
-		HashedPIN: encryptedTempPin,
+		UserID:    userIDToSavePin,
+		HashedPIN: encryptedPin,
 		ValidFrom: time.Now(),
 		ValidTo:   time.Now(),
 		IsValid:   true,
@@ -185,12 +141,7 @@ func TestPGInstance_SaveTemporaryUserPin(t *testing.T) {
 	}
 
 	// Teardown
-
-	if err = pg.DB.Where("user_id", userInput.UserID).Unscoped().Delete(&gorm.PINData{}).Error; err != nil {
-		t.Errorf("failed to delete record = %v", err)
-	}
-
-	if err = pg.DB.Where("id", userInput.UserID).Unscoped().Delete(&gorm.User{}).Error; err != nil {
+	if err = pg.DB.Where("user_id", userIDToSavePin).Unscoped().Delete(&gorm.PINData{}).Error; err != nil {
 		t.Errorf("failed to delete record = %v", err)
 	}
 
@@ -205,50 +156,9 @@ func TestPGInstance_SavePin(t *testing.T) {
 	}
 
 	longString := gofakeit.Sentence(300)
-	currentTime := time.Now()
-	newExtension := extension.NewExternalMethodsImpl()
-	salt, encryptedPin := newExtension.EncryptPIN("0000", nil)
-	flavour := feedlib.FlavourConsumer
-	nextTime := time.Now().AddDate(0, 0, 2)
-
-	// Setup test user
-	userInput := &gorm.User{
-		Username:            gofakeit.BeerName(),
-		FirstName:           gofakeit.FirstName(),
-		MiddleName:          gofakeit.FirstName(),
-		LastName:            gofakeit.LastName(),
-		UserType:            enums.ClientUser,
-		Gender:              enumutils.GenderMale,
-		Active:              false,
-		PushTokens:          []string{},
-		LastSuccessfulLogin: &currentTime,
-		LastFailedLogin:     &currentTime,
-		FailedLoginCount:    0,
-		NextAllowedLogin:    &nextTime,
-		TermsAccepted:       true,
-		AcceptedTermsID:     &termsID,
-		Flavour:             flavour,
-		Avatar:              "",
-		IsSuspended:         true,
-		OrganisationID:      orgID,
-		Password:            "",
-		IsSuperuser:         false,
-		IsStaff:             false,
-		Email:               "",
-		DateJoined:          "",
-		Name:                "",
-		IsApproved:          false,
-		ApprovalNotified:    false,
-		Handle:              "",
-	}
-
-	err = pg.DB.Create(&userInput).Error
-	if err != nil {
-		t.Errorf("failed to create user: %v", err)
-	}
 
 	pinPayload := &gorm.PINData{
-		UserID:    *userInput.UserID,
+		UserID:    userIDToSavePin,
 		HashedPIN: encryptedPin,
 		ValidFrom: time.Now(),
 		ValidTo:   time.Now(),
@@ -341,10 +251,7 @@ func TestPGInstance_SavePin(t *testing.T) {
 	}
 
 	// Teardown
-	if err := pg.DB.Where("user_id", userInput.UserID).Unscoped().Delete(&gorm.PINData{}).Error; err != nil {
-		t.Errorf("failed to delete record = %v", err)
-	}
-	if err = pg.DB.Where("id", userInput.UserID).Unscoped().Delete(&gorm.User{}).Error; err != nil {
+	if err := pg.DB.Where("user_id", userIDToSavePin).Unscoped().Delete(&gorm.PINData{}).Error; err != nil {
 		t.Errorf("failed to delete record = %v", err)
 	}
 }
@@ -353,64 +260,9 @@ func TestPGInstance_SaveSecurityQuestionResponse(t *testing.T) {
 
 	ctx := context.Background()
 
-	flavour := feedlib.FlavourConsumer
-
 	pg, err := gorm.NewPGInstance()
 	if err != nil {
 		t.Errorf("pgInstance.Teardown() = %v", err)
-	}
-	currentTime := time.Now()
-	nextTime := time.Now().AddDate(0, 0, 2)
-
-	// Setup test user
-	userInput := &gorm.User{
-		Username:            uuid.New().String(),
-		FirstName:           gofakeit.FirstName(),
-		MiddleName:          gofakeit.FirstName(),
-		LastName:            gofakeit.LastName(),
-		UserType:            enums.ClientUser,
-		Gender:              enumutils.GenderMale,
-		Active:              false,
-		PushTokens:          []string{},
-		LastSuccessfulLogin: &currentTime,
-		LastFailedLogin:     &currentTime,
-		FailedLoginCount:    0,
-		NextAllowedLogin:    &nextTime,
-		TermsAccepted:       true,
-		AcceptedTermsID:     &termsID,
-		Flavour:             flavour,
-		Avatar:              "",
-		IsSuspended:         true,
-		OrganisationID:      orgID,
-		Password:            "",
-		IsSuperuser:         false,
-		IsStaff:             false,
-		Email:               "",
-		DateJoined:          "",
-		Name:                "",
-		IsApproved:          false,
-		ApprovalNotified:    false,
-		Handle:              "",
-	}
-
-	err = pg.DB.Create(&userInput).Error
-	if err != nil {
-		t.Errorf("failed to create user: %v", err)
-	}
-
-	sequence := 1
-
-	securityQuestionInput := &gorm.SecurityQuestion{
-		QuestionStem: gofakeit.Sentence(3),
-		Description:  gofakeit.Sentence(3),
-		ResponseType: enums.SecurityQuestionResponseTypeNumber,
-		Flavour:      flavour,
-		Sequence:     &sequence,
-	}
-
-	err = pg.DB.Create(securityQuestionInput).Error
-	if err != nil {
-		t.Errorf("Create securityQuestion failed: %v", err)
 	}
 
 	type args struct {
@@ -428,9 +280,9 @@ func TestPGInstance_SaveSecurityQuestionResponse(t *testing.T) {
 				ctx: ctx,
 				securityQuestionResponse: []*gorm.SecurityQuestionResponse{
 					{
-						QuestionID: *securityQuestionInput.SecurityQuestionID,
-						UserID:     *userInput.UserID,
-						Response:   "20",
+						QuestionID: securityQuestionID,
+						UserID:     userID,
+						Response:   "1917",
 					},
 				},
 			},
@@ -446,13 +298,7 @@ func TestPGInstance_SaveSecurityQuestionResponse(t *testing.T) {
 		})
 	}
 	// Teardown
-	if err := pg.DB.Where("user_id", userInput.UserID).Unscoped().Delete(&gorm.SecurityQuestionResponse{}).Error; err != nil {
-		t.Errorf("failed to delete record = %v", err)
-	}
-	if err = pg.DB.Where("id", userInput.UserID).Unscoped().Delete(&gorm.User{}).Error; err != nil {
-		t.Errorf("failed to delete record = %v", err)
-	}
-	if err := pg.DB.Where("id", securityQuestionInput.SecurityQuestionID).Unscoped().Delete(&gorm.SecurityQuestion{}).Error; err != nil {
+	if err := pg.DB.Where("user_id", userID).Unscoped().Delete(&gorm.SecurityQuestionResponse{}).Error; err != nil {
 		t.Errorf("failed to delete record = %v", err)
 	}
 }
@@ -463,45 +309,6 @@ func TestPGInstance_SaveOTP(t *testing.T) {
 	pg, err := gorm.NewPGInstance()
 	if err != nil {
 		t.Errorf("pgInstance.Teardown() = %v", err)
-	}
-
-	flavour := feedlib.FlavourConsumer
-	currentTime := time.Now()
-	nextTime := time.Now().AddDate(0, 0, 2)
-
-	// Setup test user
-	userInput := &gorm.User{
-		Username:            uuid.New().String(),
-		FirstName:           gofakeit.FirstName(),
-		MiddleName:          gofakeit.FirstName(),
-		LastName:            gofakeit.LastName(),
-		UserType:            enums.ClientUser,
-		Gender:              enumutils.GenderMale,
-		Active:              false,
-		PushTokens:          []string{},
-		LastSuccessfulLogin: &currentTime,
-		LastFailedLogin:     &currentTime,
-		FailedLoginCount:    0,
-		NextAllowedLogin:    &nextTime,
-		TermsAccepted:       true,
-		AcceptedTermsID:     &termsID,
-		Flavour:             flavour,
-		Avatar:              "",
-		IsSuspended:         true,
-		OrganisationID:      orgID,
-		Password:            "",
-		IsSuperuser:         false,
-		IsStaff:             false,
-		Email:               "",
-		DateJoined:          "",
-		Name:                "",
-		IsApproved:          false,
-		ApprovalNotified:    false,
-		Handle:              "",
-	}
-	err = pg.DB.Create(&userInput).Error
-	if err != nil {
-		t.Errorf("failed to create user: %v", err)
 	}
 
 	generatedAt := time.Now()
@@ -515,12 +322,12 @@ func TestPGInstance_SaveOTP(t *testing.T) {
 	}
 
 	otpInput := &gorm.UserOTP{
-		UserID:      *userInput.UserID,
+		UserID:      userID,
 		Valid:       true,
 		GeneratedAt: generatedAt,
 		ValidUntil:  validUntil,
 		Channel:     "SMS",
-		Flavour:     userInput.Flavour,
+		Flavour:     feedlib.FlavourConsumer,
 		PhoneNumber: "+254710000111",
 		OTP:         otp,
 	}
@@ -536,7 +343,7 @@ func TestPGInstance_SaveOTP(t *testing.T) {
 	}
 
 	gormOTPInput := &gorm.UserOTP{
-		UserID:      *userInput.UserID,
+		UserID:      userID,
 		Valid:       otpInput.Valid,
 		GeneratedAt: otpInput.GeneratedAt,
 		ValidUntil:  otpInput.ValidUntil,
@@ -547,7 +354,7 @@ func TestPGInstance_SaveOTP(t *testing.T) {
 	}
 
 	invalidgormOTPInput1 := &gorm.UserOTP{
-		UserID:      *userInput.UserID,
+		UserID:      userID,
 		Valid:       otpInput.Valid,
 		GeneratedAt: otpInput.GeneratedAt,
 		ValidUntil:  otpInput.ValidUntil,
@@ -558,7 +365,7 @@ func TestPGInstance_SaveOTP(t *testing.T) {
 	}
 
 	invalidgormOTPInput2 := &gorm.UserOTP{
-		UserID:      *userInput.UserID,
+		UserID:      userID,
 		Valid:       otpInput.Valid,
 		GeneratedAt: otpInput.GeneratedAt,
 		ValidUntil:  otpInput.ValidUntil,
@@ -569,7 +376,7 @@ func TestPGInstance_SaveOTP(t *testing.T) {
 	}
 
 	invalidgormOTPInput3 := &gorm.UserOTP{
-		UserID:      *userInput.UserID,
+		UserID:      userID,
 		Valid:       otpInput.Valid,
 		GeneratedAt: otpInput.GeneratedAt,
 		ValidUntil:  otpInput.ValidUntil,
@@ -636,7 +443,58 @@ func TestPGInstance_SaveOTP(t *testing.T) {
 	if err = pg.DB.Where("id", gormOTPInput.OTPID).Unscoped().Delete(&gorm.UserOTP{}).Error; err != nil {
 		t.Errorf("failed to delete record = %v", err)
 	}
-	if err = pg.DB.Where("id", userInput.UserID).Unscoped().Delete(&gorm.User{}).Error; err != nil {
-		t.Errorf("failed to delete record = %v", err)
+}
+
+func TestPGInstance_CreateServiceRequest(t *testing.T) {
+	ctx := context.Background()
+
+	healthDiaryInput := &gorm.ClientHealthDiaryEntry{
+		Active:                true,
+		Mood:                  gofakeit.Name(),
+		Note:                  gofakeit.Sentence(5),
+		EntryType:             "HealthDiary",
+		ShareWithHealthWorker: false,
+		SharedAt:              time.Now(),
+		ClientID:              clientID,
+		OrganisationID:        orgID,
+	}
+
+	serviceRequestInput := &gorm.ClientServiceRequest{
+		Active:         false,
+		RequestType:    "HealthDiary",
+		Request:        gofakeit.Sentence(5),
+		Status:         "PENDING",
+		InProgressAt:   time.Now(),
+		ResolvedAt:     time.Now(),
+		ClientID:       clientID,
+		OrganisationID: orgID,
+	}
+	type args struct {
+		ctx                 context.Context
+		healthDiaryInput    *gorm.ClientHealthDiaryEntry
+		serviceRequestInput *gorm.ClientServiceRequest
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:                 ctx,
+				healthDiaryInput:    healthDiaryInput,
+				serviceRequestInput: serviceRequestInput,
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			if err := testingDB.CreateServiceRequest(tt.args.ctx, tt.args.healthDiaryInput, tt.args.serviceRequestInput); (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.CreateServiceRequest() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
 	}
 }

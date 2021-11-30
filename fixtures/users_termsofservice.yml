@@ -1,0 +1,9 @@
+# users_termsofservice.yml
+- id: 50005
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  text: test facility
+  valid_from: RAW=NOW()
+  valid_to: RAW=NOW()
+  active: true
+  

@@ -1,0 +1,44 @@
+# clients_securityquestionresponse.yml
+- id: 6da66afc-58d4-11ec-bf63-0242ac130002
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  question_id: {{.security_question_id}}
+  user_id: {{.test_user_id}}
+  active: true
+  response: "1917" # input type number
+  organisation_id: {{.test_organisation_id}}
+  timestamp: RAW=NOW()
+  is_correct: true
+
+- id: 312d63a4-58d5-11ec-bf63-0242ac130002
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  question_id: {{.security_question_id2}}
+  user_id: {{.test_user_id}}
+  active: true
+  response: 23-02-1917 # the date format is DD-MM-YYYY
+  organisation_id: {{.test_organisation_id}}
+  timestamp: RAW=NOW()
+  is_correct: true
+
+- id: f4cf3ffa-8d4e-45fa-ad19-c5cac7701e61
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  question_id: {{.security_question_id3}}
+  user_id: {{.test_user_id}}
+  active: true
+  response: "true"
+  organisation_id: {{.test_organisation_id}}
+  timestamp: RAW=NOW()
+  is_correct: true
+
+- id: 7225e76b-7780-46a9-a217-8e858789a869 
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  question_id: {{.security_question_id4}}
+  user_id: {{.test_user_id}}
+  active: true
+  response: Rango
+  organisation_id: {{.test_organisation_id}}
+  timestamp: RAW=NOW()
+  is_correct: true

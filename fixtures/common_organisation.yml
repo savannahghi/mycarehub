@@ -1,0 +1,16 @@
+# common_organisation.yml
+- id: 4181df12-ca96-4f28-b78b-8e8ad88b25df
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  active: true
+  org_code: testCode
+  code: 123
+  organisation_name: test org
+  email_address: test@email.com
+  phone_number: "+254123456789"
+  postal_address: 123 test
+  physical_address: test address
+  default_country: KEN
+  
+
+
