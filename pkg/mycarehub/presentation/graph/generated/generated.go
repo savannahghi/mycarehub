@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"sync"
 	"sync/atomic"
+	"time"
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
@@ -54,6 +55,17 @@ type ComplexityRoot struct {
 		CategoryIcon func(childComplexity int) int
 		CategoryName func(childComplexity int) int
 		ID           func(childComplexity int) int
+	}
+
+	ClientHealthDiaryEntry struct {
+		Active                func(childComplexity int) int
+		ClientID              func(childComplexity int) int
+		CreatedAt             func(childComplexity int) int
+		EntryType             func(childComplexity int) int
+		Mood                  func(childComplexity int) int
+		Note                  func(childComplexity int) int
+		ShareWithHealthWorker func(childComplexity int) int
+		SharedAt              func(childComplexity int) int
 	}
 
 	ClientHealthDiaryQuote struct {
@@ -223,6 +235,7 @@ type ComplexityRoot struct {
 		CheckIfUserBookmarkedContent func(childComplexity int, userID string, contentID int) int
 		CheckIfUserHasLikedContent   func(childComplexity int, userID string, contentID int) int
 		FetchFacilities              func(childComplexity int) int
+		GetClientHealthDiaryEntries  func(childComplexity int, clientID string) int
 		GetContent                   func(childComplexity int, categoryID *int, limit string) int
 		GetCurrentTerms              func(childComplexity int) int
 		GetHealthDiaryQuote          func(childComplexity int) int
@@ -286,6 +299,7 @@ type QueryResolver interface {
 	ListFacilities(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationInput dto.PaginationsInput) (*domain.FacilityPage, error)
 	CanRecordMood(ctx context.Context, clientID string) (bool, error)
 	GetHealthDiaryQuote(ctx context.Context) (*domain.ClientHealthDiaryQuote, error)
+	GetClientHealthDiaryEntries(ctx context.Context, clientID string) ([]*domain.ClientHealthDiaryEntry, error)
 	SendOtp(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (string, error)
 	GetSecurityQuestions(ctx context.Context, flavour feedlib.Flavour) ([]*domain.SecurityQuestion, error)
 	GetCurrentTerms(ctx context.Context) (*domain.TermsOfService, error)
@@ -333,6 +347,62 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.CategoryDetail.ID(childComplexity), true
+
+	case "ClientHealthDiaryEntry.active":
+		if e.complexity.ClientHealthDiaryEntry.Active == nil {
+			break
+		}
+
+		return e.complexity.ClientHealthDiaryEntry.Active(childComplexity), true
+
+	case "ClientHealthDiaryEntry.clientID":
+		if e.complexity.ClientHealthDiaryEntry.ClientID == nil {
+			break
+		}
+
+		return e.complexity.ClientHealthDiaryEntry.ClientID(childComplexity), true
+
+	case "ClientHealthDiaryEntry.createdAt":
+		if e.complexity.ClientHealthDiaryEntry.CreatedAt == nil {
+			break
+		}
+
+		return e.complexity.ClientHealthDiaryEntry.CreatedAt(childComplexity), true
+
+	case "ClientHealthDiaryEntry.entryType":
+		if e.complexity.ClientHealthDiaryEntry.EntryType == nil {
+			break
+		}
+
+		return e.complexity.ClientHealthDiaryEntry.EntryType(childComplexity), true
+
+	case "ClientHealthDiaryEntry.mood":
+		if e.complexity.ClientHealthDiaryEntry.Mood == nil {
+			break
+		}
+
+		return e.complexity.ClientHealthDiaryEntry.Mood(childComplexity), true
+
+	case "ClientHealthDiaryEntry.note":
+		if e.complexity.ClientHealthDiaryEntry.Note == nil {
+			break
+		}
+
+		return e.complexity.ClientHealthDiaryEntry.Note(childComplexity), true
+
+	case "ClientHealthDiaryEntry.shareWithHealthWorker":
+		if e.complexity.ClientHealthDiaryEntry.ShareWithHealthWorker == nil {
+			break
+		}
+
+		return e.complexity.ClientHealthDiaryEntry.ShareWithHealthWorker(childComplexity), true
+
+	case "ClientHealthDiaryEntry.sharedAt":
+		if e.complexity.ClientHealthDiaryEntry.SharedAt == nil {
+			break
+		}
+
+		return e.complexity.ClientHealthDiaryEntry.SharedAt(childComplexity), true
 
 	case "ClientHealthDiaryQuote.author":
 		if e.complexity.ClientHealthDiaryQuote.Author == nil {
@@ -1181,6 +1251,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.FetchFacilities(childComplexity), true
 
+	case "Query.getClientHealthDiaryEntries":
+		if e.complexity.Query.GetClientHealthDiaryEntries == nil {
+			break
+		}
+
+		args, err := ec.field_Query_getClientHealthDiaryEntries_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetClientHealthDiaryEntries(childComplexity, args["clientID"].(string)), true
+
 	case "Query.getContent":
 		if e.complexity.Query.GetContent == nil {
 			break
@@ -1545,6 +1627,7 @@ extend type Query {
 extend type Query {
   canRecordMood(clientID: String!): Boolean!
   getHealthDiaryQuote: ClientHealthDiaryQuote!
+  getClientHealthDiaryEntries(clientID: String!): [ClientHealthDiaryEntry!]!
 }
 `, BuiltIn: false},
 	{Name: "pkg/mycarehub/presentation/graph/input.graphql", Input: `input FacilityInput {
@@ -1781,6 +1864,17 @@ type ImageMeta {
 type ClientHealthDiaryQuote {
   author: String!
   quote: String!
+}
+
+type ClientHealthDiaryEntry {
+  active: Boolean!
+  mood: String!
+  note: String!
+  entryType: String!
+  shareWithHealthWorker: Boolean
+  sharedAt: Time
+  clientID: String!
+  createdAt: Time
 }
 `, BuiltIn: false},
 	{Name: "pkg/mycarehub/presentation/graph/user.graphql", Input: `extend type Query {
@@ -2275,6 +2369,21 @@ func (ec *executionContext) field_Query_checkIfUserHasLikedContent_args(ctx cont
 	return args, nil
 }
 
+func (ec *executionContext) field_Query_getClientHealthDiaryEntries_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["clientID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clientID"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["clientID"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Query_getContent_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -2610,6 +2719,277 @@ func (ec *executionContext) _CategoryDetail_categoryIcon(ctx context.Context, fi
 	res := resTmp.(string)
 	fc.Result = res
 	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ClientHealthDiaryEntry_active(ctx context.Context, field graphql.CollectedField, obj *domain.ClientHealthDiaryEntry) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ClientHealthDiaryEntry",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Active, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ClientHealthDiaryEntry_mood(ctx context.Context, field graphql.CollectedField, obj *domain.ClientHealthDiaryEntry) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ClientHealthDiaryEntry",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Mood, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ClientHealthDiaryEntry_note(ctx context.Context, field graphql.CollectedField, obj *domain.ClientHealthDiaryEntry) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ClientHealthDiaryEntry",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Note, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ClientHealthDiaryEntry_entryType(ctx context.Context, field graphql.CollectedField, obj *domain.ClientHealthDiaryEntry) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ClientHealthDiaryEntry",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.EntryType, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ClientHealthDiaryEntry_shareWithHealthWorker(ctx context.Context, field graphql.CollectedField, obj *domain.ClientHealthDiaryEntry) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ClientHealthDiaryEntry",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ShareWithHealthWorker, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ClientHealthDiaryEntry_sharedAt(ctx context.Context, field graphql.CollectedField, obj *domain.ClientHealthDiaryEntry) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ClientHealthDiaryEntry",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SharedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalOTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ClientHealthDiaryEntry_clientID(ctx context.Context, field graphql.CollectedField, obj *domain.ClientHealthDiaryEntry) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ClientHealthDiaryEntry",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ClientID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ClientHealthDiaryEntry_createdAt(ctx context.Context, field graphql.CollectedField, obj *domain.ClientHealthDiaryEntry) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ClientHealthDiaryEntry",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CreatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalOTime2timeᚐTime(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ClientHealthDiaryQuote_author(ctx context.Context, field graphql.CollectedField, obj *domain.ClientHealthDiaryQuote) (ret graphql.Marshaler) {
@@ -6677,6 +7057,48 @@ func (ec *executionContext) _Query_getHealthDiaryQuote(ctx context.Context, fiel
 	return ec.marshalNClientHealthDiaryQuote2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐClientHealthDiaryQuote(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Query_getClientHealthDiaryEntries(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_getClientHealthDiaryEntries_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GetClientHealthDiaryEntries(rctx, args["clientID"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*domain.ClientHealthDiaryEntry)
+	fc.Result = res
+	return ec.marshalNClientHealthDiaryEntry2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐClientHealthDiaryEntryᚄ(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Query_sendOTP(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -8693,6 +9115,59 @@ func (ec *executionContext) _CategoryDetail(ctx context.Context, sel ast.Selecti
 	return out
 }
 
+var clientHealthDiaryEntryImplementors = []string{"ClientHealthDiaryEntry"}
+
+func (ec *executionContext) _ClientHealthDiaryEntry(ctx context.Context, sel ast.SelectionSet, obj *domain.ClientHealthDiaryEntry) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, clientHealthDiaryEntryImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ClientHealthDiaryEntry")
+		case "active":
+			out.Values[i] = ec._ClientHealthDiaryEntry_active(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "mood":
+			out.Values[i] = ec._ClientHealthDiaryEntry_mood(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "note":
+			out.Values[i] = ec._ClientHealthDiaryEntry_note(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "entryType":
+			out.Values[i] = ec._ClientHealthDiaryEntry_entryType(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "shareWithHealthWorker":
+			out.Values[i] = ec._ClientHealthDiaryEntry_shareWithHealthWorker(ctx, field, obj)
+		case "sharedAt":
+			out.Values[i] = ec._ClientHealthDiaryEntry_sharedAt(ctx, field, obj)
+		case "clientID":
+			out.Values[i] = ec._ClientHealthDiaryEntry_clientID(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "createdAt":
+			out.Values[i] = ec._ClientHealthDiaryEntry_createdAt(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var clientHealthDiaryQuoteImplementors = []string{"ClientHealthDiaryQuote"}
 
 func (ec *executionContext) _ClientHealthDiaryQuote(ctx context.Context, sel ast.SelectionSet, obj *domain.ClientHealthDiaryQuote) graphql.Marshaler {
@@ -9744,6 +10219,20 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				}
 				return res
 			})
+		case "getClientHealthDiaryEntries":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_getClientHealthDiaryEntries(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "sendOTP":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -10176,6 +10665,60 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) marshalNClientHealthDiaryEntry2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐClientHealthDiaryEntryᚄ(ctx context.Context, sel ast.SelectionSet, v []*domain.ClientHealthDiaryEntry) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNClientHealthDiaryEntry2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐClientHealthDiaryEntry(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNClientHealthDiaryEntry2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐClientHealthDiaryEntry(ctx context.Context, sel ast.SelectionSet, v *domain.ClientHealthDiaryEntry) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._ClientHealthDiaryEntry(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNClientHealthDiaryQuote2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐClientHealthDiaryQuote(ctx context.Context, sel ast.SelectionSet, v domain.ClientHealthDiaryQuote) graphql.Marshaler {
@@ -11326,6 +11869,15 @@ func (ec *executionContext) marshalOString2ᚖstring(ctx context.Context, sel as
 		return graphql.Null
 	}
 	return graphql.MarshalString(*v)
+}
+
+func (ec *executionContext) unmarshalOTime2timeᚐTime(ctx context.Context, v interface{}) (time.Time, error) {
+	res, err := graphql.UnmarshalTime(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOTime2timeᚐTime(ctx context.Context, sel ast.SelectionSet, v time.Time) graphql.Marshaler {
+	return graphql.MarshalTime(v)
 }
 
 func (ec *executionContext) marshalO__EnumValue2ᚕgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐEnumValueᚄ(ctx context.Context, sel ast.SelectionSet, v []introspection.EnumValue) graphql.Marshaler {

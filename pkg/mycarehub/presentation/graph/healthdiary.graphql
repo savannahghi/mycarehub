@@ -9,4 +9,5 @@ extend type Mutation {
 extend type Query {
   canRecordMood(clientID: String!): Boolean!
   getHealthDiaryQuote: ClientHealthDiaryQuote!
+  getClientHealthDiaryEntries(clientID: String!): [ClientHealthDiaryEntry!]!
 }

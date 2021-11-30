@@ -12,6 +12,7 @@ type ClientHealthDiaryEntry struct {
 	ShareWithHealthWorker bool      `json:"shareWithHealthWorker"`
 	SharedAt              time.Time `json:"sharedAt"`
 	ClientID              string    `json:"clientID"`
+	CreatedAt             time.Time `json:"createdAt"`
 }
 
 // ClientServiceRequest models a service request created for the healthcare worker.

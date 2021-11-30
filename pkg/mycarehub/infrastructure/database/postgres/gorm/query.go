@@ -40,6 +40,7 @@ type Query interface {
 	CanRecordHeathDiary(ctx context.Context, clientID string) (bool, error)
 	GetClientHealthDiaryQuote(ctx context.Context) (*ClientHealthDiaryQuote, error)
 	CheckIfUserBookmarkedContent(ctx context.Context, userID string, contentID int) (bool, error)
+	GetClientHealthDiaryEntries(ctx context.Context, clientID string) ([]*ClientHealthDiaryEntry, error)
 }
 
 // CheckWhetherUserHasLikedContent performs a operation to check whether user has liked the content
@@ -409,4 +410,15 @@ func (db *PGInstance) CheckIfUserBookmarkedContent(ctx context.Context, userID s
 		return false, fmt.Errorf("failed to get content bookmark: %v", err)
 	}
 	return true, nil
+}
+
+// GetClientHealthDiaryEntries gets all health diary entries that belong to a specific client
+func (db *PGInstance) GetClientHealthDiaryEntries(ctx context.Context, clientID string) ([]*ClientHealthDiaryEntry, error) {
+	var healthDiaryEntry []*ClientHealthDiaryEntry
+	err := db.DB.Where(&ClientHealthDiaryEntry{ClientID: clientID, Active: true}).
+		Order(clause.OrderByColumn{Column: clause.Column{Name: "created"}, Desc: true}).Find(&healthDiaryEntry).Error
+	if err != nil {
+		return nil, fmt.Errorf("failed to get all client health diary entries: %v", err)
+	}
+	return healthDiaryEntry, nil
 }

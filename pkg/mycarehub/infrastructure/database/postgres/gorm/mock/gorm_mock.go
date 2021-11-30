@@ -67,6 +67,7 @@ type GormMock struct {
 	MockCanRecordHeathDiaryFn                     func(ctx context.Context, clientID string) (bool, error)
 	MockGetClientHealthDiaryQuoteFn               func(ctx context.Context) (*gorm.ClientHealthDiaryQuote, error)
 	MockCheckIfUserBookmarkedContentFn            func(ctx context.Context, userID string, contentID int) (bool, error)
+	MockGetClientHealthDiaryEntriesFn             func(ctx context.Context, clientID string) ([]*gorm.ClientHealthDiaryEntry, error)
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -370,6 +371,13 @@ func NewGormMock() *GormMock {
 		MockCheckIfUserBookmarkedContentFn: func(ctx context.Context, userID string, contentID int) (bool, error) {
 			return true, nil
 		},
+		MockGetClientHealthDiaryEntriesFn: func(ctx context.Context, clientID string) ([]*gorm.ClientHealthDiaryEntry, error) {
+			return []*gorm.ClientHealthDiaryEntry{
+				{
+					Active: true,
+				},
+			}, nil
+		},
 	}
 }
 
@@ -617,4 +625,9 @@ func (gm *GormMock) GetClientHealthDiaryQuote(ctx context.Context) (*gorm.Client
 // CheckIfUserBookmarkedContent mocks the implementation of checking if a user bookmarked a content
 func (gm *GormMock) CheckIfUserBookmarkedContent(ctx context.Context, userID string, contentID int) (bool, error) {
 	return gm.MockCheckIfUserBookmarkedContentFn(ctx, userID, contentID)
+}
+
+// GetClientHealthDiaryEntries mocks the implementation of getting all health diary entries that belong to a specific user
+func (gm *GormMock) GetClientHealthDiaryEntries(ctx context.Context, clientID string) ([]*gorm.ClientHealthDiaryEntry, error) {
+	return gm.MockGetClientHealthDiaryEntriesFn(ctx, clientID)
 }
