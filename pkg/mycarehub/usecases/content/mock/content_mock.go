@@ -11,13 +11,14 @@ import (
 
 // ContentUsecaseMock contains the mock of contentusecase methods
 type ContentUsecaseMock struct {
-	MockListContentCategoriesFn     func(ctx context.Context) ([]*domain.ContentItemCategory, error)
-	MockShareContentFn              func(ctx context.Context, input dto.ShareContentInput) (bool, error)
-	MockGetContentFn                func(ctx context.Context, categoryID *int, limit string) (*domain.Content, error)
-	MockGetUserBookmarkedContentFn  func(ctx context.Context, userID string) (*domain.Content, error)
-	MockGetContentByContentItemIDFn func(ctx context.Context, contentID int) (*domain.Content, error)
-	MockLikeContentFn               func(ctx context.Context, userID string, contentID string) (bool, error)
-	MockUnlikeContentFn             func(ctx context.Context, userID string, contentID int) (bool, error)
+	MockListContentCategoriesFn           func(ctx context.Context) ([]*domain.ContentItemCategory, error)
+	MockShareContentFn                    func(ctx context.Context, input dto.ShareContentInput) (bool, error)
+	MockGetContentFn                      func(ctx context.Context, categoryID *int, limit string) (*domain.Content, error)
+	MockGetUserBookmarkedContentFn        func(ctx context.Context, userID string) (*domain.Content, error)
+	MockGetContentByContentItemIDFn       func(ctx context.Context, contentID int) (*domain.Content, error)
+	MockLikeContentFn                     func(ctx context.Context, userID string, contentID string) (bool, error)
+	MockCheckWhetherUserHasLikedContentFn func(ctx context.Context, userID string, contentID int) (bool, error)
+	MockUnlikeContentFn                   func(ctx context.Context, userID string, contentID int) (bool, error)
 }
 
 // NewContentUsecaseMock instantiates all the content usecase mock methods
@@ -62,6 +63,9 @@ func NewContentUsecaseMock() *ContentUsecaseMock {
 		MockLikeContentFn: func(ctx context.Context, userID, contentID string) (bool, error) {
 			return true, nil
 		},
+		MockCheckWhetherUserHasLikedContentFn: func(ctx context.Context, userID string, contentID int) (bool, error) {
+			return true, nil
+		},
 		MockUnlikeContentFn: func(ctx context.Context, userID string, contentID int) (bool, error) {
 			return true, nil
 		},
@@ -96,6 +100,12 @@ func (cm *ContentUsecaseMock) GetContentByContentItemID(ctx context.Context, con
 //LikeContent mocks the implementation liking a feed content
 func (cm *ContentUsecaseMock) LikeContent(ctx context.Context, userID string, contentID string) (bool, error) {
 	return cm.MockLikeContentFn(ctx, userID, contentID)
+}
+
+// CheckWhetherUserHasLikedContent mocks the implementation of `gorm's` CheckWhetherUserHasLikedContent method.
+func (cm *ContentUsecaseMock) CheckWhetherUserHasLikedContent(ctx context.Context, userID string, contentID int) (bool, error) {
+
+	return cm.MockCheckWhetherUserHasLikedContentFn(ctx, userID, contentID)
 }
 
 //UnlikeContent mocks the implementation liking a feed content

@@ -57,6 +57,7 @@ type GormMock struct {
 	MockShareContentFn                            func(ctx context.Context, input dto.ShareContentInput) (bool, error)
 	MockBookmarkContentFn                         func(ctx context.Context, userID string, contentID int) (bool, error)
 	MockUnBookmarkContentFn                       func(ctx context.Context, userID string, contentID int) (bool, error)
+	MockCheckWhetherUserHasLikedContentFn         func(ctx context.Context, userID string, contentID int) (bool, error)
 	MockGetUserBookmarkedContentFn                func(ctx context.Context, userID string) ([]*gorm.ContentItem, error)
 	MockLikeContentFn                             func(ctx context.Context, userID string, contentID int) (bool, error)
 	MockUnlikeContentFn                           func(ctx context.Context, userID string, contentID int) (bool, error)
@@ -361,7 +362,9 @@ func NewGormMock() *GormMock {
 				Quote:  "test",
 				Author: "test",
 			}, nil
-
+		},
+		MockCheckWhetherUserHasLikedContentFn: func(ctx context.Context, userID string, contentID int) (bool, error) {
+			return true, nil
 		},
 	}
 }
@@ -374,6 +377,12 @@ func (gm *GormMock) GetOrCreateFacility(ctx context.Context, facility *gorm.Faci
 // RetrieveFacility mocks the implementation of `gorm's` RetrieveFacility method.
 func (gm *GormMock) RetrieveFacility(ctx context.Context, id *string, isActive bool) (*gorm.Facility, error) {
 	return gm.MockRetrieveFacilityFn(ctx, id, isActive)
+}
+
+// CheckWhetherUserHasLikedContent mocks the implementation of `gorm's` CheckWhetherUserHasLikedContent method.
+func (gm *GormMock) CheckWhetherUserHasLikedContent(ctx context.Context, userID string, contentID int) (bool, error) {
+
+	return gm.MockCheckWhetherUserHasLikedContentFn(ctx, userID, contentID)
 }
 
 // RetrieveFacilityByMFLCode mocks the implementation of `gorm's` RetrieveFacility method.

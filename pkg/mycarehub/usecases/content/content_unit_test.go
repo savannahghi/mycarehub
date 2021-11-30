@@ -594,3 +594,106 @@ func TestUseCasesContentImpl_BookmarkContent(t *testing.T) {
 		})
 	}
 }
+
+func TestUseCasesContentImpl_CheckWhetherUserHasLikedContent(t *testing.T) {
+	ctx := context.Background()
+
+	type args struct {
+		ctx       context.Context
+		userID    string
+		contentID int
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:       ctx,
+				userID:    uuid.New().String(),
+				contentID: gofakeit.Number(1, 1001),
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Sad case",
+			args: args{
+				ctx:       ctx,
+				userID:    uuid.New().String(),
+				contentID: gofakeit.Number(1, 1001),
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case - empty userID",
+			args: args{
+				ctx:       ctx,
+				userID:    "",
+				contentID: gofakeit.Number(1, 1001),
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case - empty contentID",
+			args: args{
+				ctx:       ctx,
+				userID:    uuid.New().String(),
+				contentID: 0,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case - invalid contentID",
+			args: args{
+				ctx:       ctx,
+				userID:    uuid.New().String(),
+				contentID: -5,
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			c := content.NewUseCasesContentImplementation(fakeDB, fakeDB)
+
+			if tt.name == "Sad case" {
+				fakeDB.MockCheckWhetherUserHasLikedContentFn = func(ctx context.Context, userID string, contentID int) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - empty userID" {
+				fakeDB.MockCheckWhetherUserHasLikedContentFn = func(ctx context.Context, userID string, contentID int) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - empty contentID" {
+				fakeDB.MockCheckWhetherUserHasLikedContentFn = func(ctx context.Context, userID string, contentID int) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - invalid contentID" {
+				fakeDB.MockCheckWhetherUserHasLikedContentFn = func(ctx context.Context, userID string, contentID int) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+
+			got, err := c.CheckWhetherUserHasLikedContent(tt.args.ctx, tt.args.userID, tt.args.contentID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCasesContentImpl.CheckWhetherUserHasLikedContent() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("UseCasesContentImpl.CheckWhetherUserHasLikedContent() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

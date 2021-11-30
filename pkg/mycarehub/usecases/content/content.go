@@ -69,6 +69,7 @@ type ILikeContent interface {
 	// TODO: add / check entry in ContentLikes table
 	// TODO: metrics
 	LikeContent(ctx context.Context, userID string, contentID int) (bool, error)
+	CheckWhetherUserHasLikedContent(ctx context.Context, userID string, contentID int) (bool, error)
 }
 
 // IUnlikeContent groups the unllike feature methods
@@ -121,6 +122,11 @@ func NewUseCasesContentImplementation(
 // LikeContent implements the content liking api
 func (u UseCasesContentImpl) LikeContent(ctx context.Context, userID string, contentID int) (bool, error) {
 	return u.Update.LikeContent(ctx, userID, contentID)
+}
+
+// CheckWhetherUserHasLikedContent implements action of checking whether a user has liked a particular content
+func (u UseCasesContentImpl) CheckWhetherUserHasLikedContent(ctx context.Context, userID string, contentID int) (bool, error) {
+	return u.Query.CheckWhetherUserHasLikedContent(ctx, userID, contentID)
 }
 
 // UnlikeContent implements the content liking api
