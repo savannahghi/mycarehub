@@ -436,6 +436,17 @@ func TestUnit_InviteUser(t *testing.T) {
 			wantErr: true,
 			want:    false,
 		},
+		{
+			name: "Sad Case - Fail to invalidate pin",
+			args: args{
+				ctx:         ctx,
+				userID:      userID,
+				phoneNumber: validPhone,
+				flavour:     validFlavour,
+			},
+			wantErr: true,
+			want:    false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -474,6 +485,12 @@ func TestUnit_InviteUser(t *testing.T) {
 			if tt.name == "invalid: invalid flavour" {
 				fakeUserMock.MockInviteUserFn = func(ctx context.Context, userID string, phoneNumber string, flavour feedlib.Flavour) (bool, error) {
 					return false, fmt.Errorf("flavour is invalid")
+				}
+			}
+
+			if tt.name == "Sad Case - Fail to invalidate pin" {
+				fakeDB.MockInvalidatePINFn = func(ctx context.Context, userID string) (bool, error) {
+					return false, fmt.Errorf("failed to invalidate pin")
 				}
 			}
 
@@ -560,6 +577,7 @@ func TestUseCasesUserImpl_SetUserPIN(t *testing.T) {
 	shortPIN := "123"
 	tooLongPIN := strconv.Itoa(int(math.Pow(10, 6)))
 	invalidPINString := "invalid"
+	invalidInput := ""
 	flavour := feedlib.FlavourConsumer
 
 	nonMatchedPin := "0000"
@@ -673,6 +691,48 @@ func TestUseCasesUserImpl_SetUserPIN(t *testing.T) {
 			want:    false,
 			wantErr: true,
 		},
+		{
+			name: "Sad Case - Empty input",
+			args: args{
+				ctx: ctx,
+				input: dto.PINInput{
+					UserID:     &invalidInput,
+					PIN:        &invalidInput,
+					ConfirmPIN: &invalidInput,
+					Flavour:    flavour,
+				},
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - Fail to invalidate pin",
+			args: args{
+				ctx: ctx,
+				input: dto.PINInput{
+					UserID:     &UserID,
+					PIN:        &PIN,
+					ConfirmPIN: &PIN,
+					Flavour:    flavour,
+				},
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - Fail to save pin",
+			args: args{
+				ctx: ctx,
+				input: dto.PINInput{
+					UserID:     &UserID,
+					PIN:        &PIN,
+					ConfirmPIN: &PIN,
+					Flavour:    flavour,
+				},
+			},
+			want:    false,
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -714,8 +774,26 @@ func TestUseCasesUserImpl_SetUserPIN(t *testing.T) {
 			}
 
 			if tt.name == "invalid: confirm pin mismatch" {
+				fakeExtension.MockComparePINFn = func(rawPwd string, salt string, encodedPwd string, options *extension.Options) bool {
+					return false
+				}
+			}
+
+			if tt.name == "Sad Case - Empty input" {
 				fakeDB.MockSavePinFn = func(ctx context.Context, pin *domain.UserPIN) (bool, error) {
-					return false, fmt.Errorf("confirm pin does not mach the pin")
+					return false, fmt.Errorf("empty input")
+				}
+			}
+
+			if tt.name == "Sad Case - Fail to save pin" {
+				fakeDB.MockSavePinFn = func(ctx context.Context, pin *domain.UserPIN) (bool, error) {
+					return false, fmt.Errorf("empty input")
+				}
+			}
+
+			if tt.name == "Sad Case - Fail to invalidate pin" {
+				fakeDB.MockInvalidatePINFn = func(ctx context.Context, userID string) (bool, error) {
+					return false, fmt.Errorf("failed to invalidate pin")
 				}
 			}
 

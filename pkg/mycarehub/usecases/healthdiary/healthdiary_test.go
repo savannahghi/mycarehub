@@ -208,3 +208,56 @@ func TestUsecaseHealthDiaryImpl_CanRecordHeathDiary(t *testing.T) {
 		})
 	}
 }
+
+func TestUseCasesHealthDiaryImpl_GetClientHealthDiaryEntries(t *testing.T) {
+	ctx := context.Background()
+	type args struct {
+		ctx      context.Context
+		clientID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Successfully get all entries",
+			args: args{
+				ctx:      ctx,
+				clientID: uuid.New().String(),
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad Case - Missing user ID",
+			args: args{
+				ctx: ctx,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			fakeHealthDiary := mock.NewHealthDiaryUseCaseMock()
+			healthdiary := healthdiary.NewUseCaseHealthDiaryImpl(fakeDB, fakeDB)
+
+			if tt.name == "Sad Case - Missing user ID" {
+				fakeHealthDiary.MockGetClientHealthDiaryEntriesFn = func(ctx context.Context, clientID string) ([]*domain.ClientHealthDiaryEntry, error) {
+					return nil, fmt.Errorf("failed to get client health diary entries")
+				}
+			}
+
+			got, err := healthdiary.GetClientHealthDiaryEntries(tt.args.ctx, tt.args.clientID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCasesHealthDiaryImpl.GetClientHealthDiaryEntries() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected a response but got: %v", got)
+				return
+			}
+		})
+	}
+}

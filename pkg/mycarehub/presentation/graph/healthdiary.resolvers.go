@@ -22,3 +22,8 @@ func (r *queryResolver) GetHealthDiaryQuote(ctx context.Context) (*domain.Client
 	r.checkPreconditions()
 	return r.mycarehub.HealthDiary.GetClientHealthDiaryQuote(ctx)
 }
+
+func (r *queryResolver) GetClientHealthDiaryEntries(ctx context.Context, clientID string) ([]*domain.ClientHealthDiaryEntry, error) {
+	r.checkPreconditions()
+	return r.mycarehub.HealthDiary.GetClientHealthDiaryEntries(ctx, clientID)
+}

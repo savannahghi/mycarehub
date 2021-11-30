@@ -475,3 +475,28 @@ func (d *MyCareHubDb) CheckIfUserBookmarkedContent(ctx context.Context, userID s
 	}
 	return bookmarked, nil
 }
+
+// GetClientHealthDiaryEntries queries the database to return a clients all health diary records
+func (d *MyCareHubDb) GetClientHealthDiaryEntries(ctx context.Context, clientID string) ([]*domain.ClientHealthDiaryEntry, error) {
+	var healthDiaryEntries []*domain.ClientHealthDiaryEntry
+	clientHealthDiaryEntry, err := d.query.GetClientHealthDiaryEntries(ctx, clientID)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, healthdiary := range clientHealthDiaryEntry {
+		healthDiaryEntry := &domain.ClientHealthDiaryEntry{
+			Active:                healthdiary.Active,
+			Mood:                  healthdiary.Mood,
+			Note:                  healthdiary.Note,
+			EntryType:             healthdiary.EntryType,
+			ShareWithHealthWorker: healthdiary.ShareWithHealthWorker,
+			SharedAt:              healthdiary.SharedAt,
+			ClientID:              healthdiary.ClientID,
+			CreatedAt:             healthdiary.CreatedAt,
+		}
+		healthDiaryEntries = append(healthDiaryEntries, healthDiaryEntry)
+	}
+
+	return healthDiaryEntries, nil
+}

@@ -167,3 +167,14 @@ type ClientHealthDiaryQuote {
   author: String!
   quote: String!
 }
+
+type ClientHealthDiaryEntry {
+  active: Boolean!
+  mood: String!
+  note: String!
+  entryType: String!
+  shareWithHealthWorker: Boolean
+  sharedAt: Time
+  clientID: String!
+  createdAt: Time
+}

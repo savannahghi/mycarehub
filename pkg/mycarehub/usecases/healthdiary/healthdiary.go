@@ -36,11 +36,17 @@ type IGetRandomQuote interface {
 	GetClientHealthDiaryQuote(ctx context.Context) (*domain.ClientHealthDiaryQuote, error)
 }
 
+// IGetClientHealthDiaryEntry defines a method signature that is used to fetch a client's health diary records
+type IGetClientHealthDiaryEntry interface {
+	GetClientHealthDiaryEntries(ctx context.Context, clientID string) ([]*domain.ClientHealthDiaryEntry, error)
+}
+
 // UseCasesHealthDiary holds all the interfaces that represents the business logic to implement the health diary
 type UseCasesHealthDiary interface {
 	ICanRecordHealthDiary
 	ICreateHealthDiaryEntry
 	IGetRandomQuote
+	IGetClientHealthDiaryEntry
 }
 
 // UseCasesHealthDiaryImpl embeds the healthdiary logic defined on the domain
@@ -125,4 +131,12 @@ func (h UseCasesHealthDiaryImpl) CanRecordHeathDiary(ctx context.Context, client
 // filled in their health diary.
 func (h UseCasesHealthDiaryImpl) GetClientHealthDiaryQuote(ctx context.Context) (*domain.ClientHealthDiaryQuote, error) {
 	return h.Query.GetClientHealthDiaryQuote(ctx)
+}
+
+// GetClientHealthDiaryEntries retrieves all health diary entries that belong to a specific user/client
+func (h UseCasesHealthDiaryImpl) GetClientHealthDiaryEntries(ctx context.Context, clientID string) ([]*domain.ClientHealthDiaryEntry, error) {
+	if clientID == "" {
+		return nil, exceptions.EmptyInputErr(fmt.Errorf("missing client ID"))
+	}
+	return h.Query.GetClientHealthDiaryEntries(ctx, clientID)
 }
