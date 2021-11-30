@@ -66,6 +66,19 @@ type IResetPIN interface {
 	ResetPIN(ctx context.Context, input dto.UserResetPinInput) (bool, error)
 }
 
+// IUserForget models the behavior needed to comply with privacy laws e.g GDPR
+// and "forget me"
+type IUserForget interface {
+
+	// Forget inactivates the user record AND hashes all identifiable information
+	// After this: the user should not be available on user lists or able to log in
+	// After this: it should not be possible to re-identify the user
+	// This is irreversible and the UX should ensure confirmation
+	// Validate: A user can only forget themselves
+	// Validate: PIN is correct
+	ForgetMe(ctx context.Context, userID string, pin string, flavour feedlib.Flavour) (bool, error)
+}
+
 // UseCasesUser group all business logic usecases related to user
 type UseCasesUser interface {
 	ILogin
@@ -77,6 +90,7 @@ type UseCasesUser interface {
 	IResetPIN
 	IRefreshToken
 	IVerifyPIN
+	IUserForget
 }
 
 // UseCasesUserImpl represents user implementation object
@@ -106,6 +120,25 @@ func NewUseCasesUserImpl(
 		ExternalExt: externalExt,
 		OTP:         otp,
 	}
+}
+
+// ForgetMe inactivates the user record and hashes all identifiable information
+func (us *UseCasesUserImpl) ForgetMe(ctx context.Context, userID string, pin string, flavour feedlib.Flavour) (bool, error) {
+	if userID == "" || pin == "" {
+		return false, fmt.Errorf("user ID or PIN cannot be empty")
+	}
+
+	pinData, err := us.Query.GetUserPINByUserID(ctx, userID)
+	if err != nil {
+		return false, exceptions.PinNotFoundError(err)
+	}
+
+	matched := us.ExternalExt.ComparePIN(pin, pinData.Salt, pinData.HashedPIN, nil)
+	if !matched {
+		return false, exceptions.PinMismatchError(err)
+	}
+
+	return us.Update.ForgetMe(ctx, userID, flavour)
 }
 
 // VerifyLoginPIN checks whether a pin is valid. If a pin is invalid, it will prompt

@@ -8,6 +8,7 @@ import (
 
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/utils"
 )
 
 // Update represents all `update` operations to the database
@@ -22,6 +23,7 @@ type Update interface {
 	SetNickName(ctx context.Context, userID *string, nickname *string) (bool, error)
 	UpdateUserPinChangeRequiredStatus(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
 	InvalidatePIN(ctx context.Context, userID string) (bool, error)
+	ForgetMe(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
 	UpdateIsCorrectSecurityQuestionResponse(ctx context.Context, userID string, isCorrectSecurityQuestionResponse bool) (bool, error)
 	ShareContent(ctx context.Context, input dto.ShareContentInput) (bool, error)
 	BookmarkContent(ctx context.Context, userID string, contentID int) (bool, error)
@@ -135,6 +137,168 @@ func (db *PGInstance) UnlikeContent(context context.Context, userID string, cont
 	if err := tx.Commit().Error; err != nil {
 		tx.Rollback()
 		return false, fmt.Errorf("transaction commit to like count failed: %v", err)
+	}
+
+	return true, nil
+}
+
+// ForgetMe inactivates the user record and hashes all identifiable information. This operation happens in a transaction.
+func (db *PGInstance) ForgetMe(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
+	tx := db.DB.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+	if err := tx.Error; err != nil {
+		return false, fmt.Errorf("failed to initialize transaction")
+	}
+
+	//Hash any identifiable data in clients
+	clientProfile, err := db.GetClientProfileByUserID(ctx, userID)
+	if err != nil {
+		if strings.Contains(err.Error(), "not found") {
+			return true, nil
+		}
+		return false, fmt.Errorf("failed to get client: %v", err)
+	}
+
+	hashedClientFHIRPatientID, err := utils.HashData(clientProfile.FHIRPatientID)
+	if err != nil {
+		return false, fmt.Errorf("an error occurred: %v", err)
+	}
+	hashedHealthRecordID, err := utils.HashData(clientProfile.HealthRecordID)
+	if err != nil {
+		return false, fmt.Errorf("an error occurred: %v", err)
+	}
+	hashedTreatmentBuddy, err := utils.HashData(clientProfile.TreatmentBuddy)
+	if err != nil {
+		return false, fmt.Errorf("an error occurred: %v", err)
+	}
+
+	if err := tx.Model(&Client{}).Where(&Client{UserID: &userID}).Updates(map[string]interface{}{
+		"fhir_patient_id":      hashedClientFHIRPatientID,
+		"emr_health_record_id": hashedHealthRecordID,
+		"treatment_buddy":      hashedTreatmentBuddy,
+	}).Error; err != nil {
+		return false, fmt.Errorf("an error occurred: %v", err)
+	}
+
+	if err = tx.Where("client_id", clientProfile.ID).Delete(&ClientContact{}).Error; err != nil {
+		return false, fmt.Errorf("an error occurred while deleting: %v", err)
+	}
+
+	if err = tx.Where("client_id", clientProfile.ID).Delete(&ClientIdentifiers{}).Error; err != nil {
+		return false, fmt.Errorf("an error occurred while deleting: %v", err)
+	}
+
+	err = tx.Where("user_id", userID).Delete(&Client{}).Error
+	if err != nil {
+		return false, fmt.Errorf("an error occurred while deleting: %v", err)
+	}
+
+	//Hash any identifiable data in contacts
+	var contact Contact
+	if err := tx.Model(&Contact{}).Where(&Contact{UserID: &userID, Flavour: flavour}).First(&contact).Error; err != nil {
+		if strings.Contains(err.Error(), "not found") {
+			return true, nil
+		}
+		return false, fmt.Errorf("failed to get contact: %v", err)
+	}
+	hashedContactValue, err := utils.HashData(contact.ContactValue)
+	if err != nil {
+		return false, fmt.Errorf("an error occurred while hashing data: %v", err)
+	}
+	hashedContactType, err := utils.HashData(contact.ContactType)
+	if err != nil {
+		return false, fmt.Errorf("an error occurred while hashing data: %v", err)
+	}
+	if err := tx.Model(&Contact{}).Where(&Contact{UserID: &userID}).Updates(map[string]interface{}{
+		"contact_value": hashedContactValue,
+		"contact_type":  hashedContactType,
+	}).Error; err != nil {
+		return false, fmt.Errorf("an error occurred: %v", err)
+	}
+	if err := tx.Where("user_id", userID).Delete(&Contact{}).Error; err != nil {
+		return false, fmt.Errorf("an error occurred while deleting contact: %v", err)
+	}
+
+	//Hash any identifiable data in users table
+	userProfile, err := db.GetUserProfileByUserID(ctx, userID)
+	if err != nil {
+		if strings.Contains(err.Error(), "not found") {
+			return true, nil
+		}
+		return false, fmt.Errorf("failed to get contact: %v", err)
+	}
+	hashedUsername, err := utils.HashData(userProfile.Username)
+	if err != nil {
+		return false, fmt.Errorf("an error occurred while hashing data: %v", err)
+	}
+	hashedFirstname, err := utils.HashData(userProfile.FirstName)
+	if err != nil {
+		return false, fmt.Errorf("an error occurred while hashing data: %v", err)
+	}
+	hashedLastname, err := utils.HashData(userProfile.LastName)
+	if err != nil {
+		return false, fmt.Errorf("an error occurred while hashing data: %v", err)
+	}
+	hashedMiddlename, err := utils.HashData(userProfile.MiddleName)
+	if err != nil {
+		return false, fmt.Errorf("an error occurred while hashing data: %v", err)
+	}
+	hashedGender, err := utils.HashData(userProfile.Gender.String())
+	if err != nil {
+		return false, fmt.Errorf("an error occurred while hashing data: %v", err)
+	}
+	hashedName, err := utils.HashData(userProfile.Name)
+	if err != nil {
+		return false, fmt.Errorf("an error occurred while hashing data: %v", err)
+	}
+	hashedEmail, err := utils.HashData(userProfile.Email)
+	if err != nil {
+		return false, fmt.Errorf("an error occurred while hashing data: %v", err)
+	}
+	hashedHandle, err := utils.HashData(userProfile.Handle)
+	if err != nil {
+		return false, fmt.Errorf("an error occurred while hashing data: %v", err)
+	}
+	if err := tx.Model(&User{}).Where(&User{UserID: &userID, Flavour: flavour}).Updates(map[string]interface{}{
+		"username":    hashedUsername,
+		"first_name":  hashedFirstname,
+		"middle_name": hashedMiddlename,
+		"last_name":   hashedLastname,
+		"gender":      hashedGender,
+		"email":       hashedEmail,
+		"name":        hashedName,
+		"handle":      hashedHandle,
+	}).Error; err != nil {
+		return false, fmt.Errorf("an error occurred: %v", err)
+	}
+
+	if err := tx.Where("user_id", userID).Delete(&AuthToken{}).Error; err != nil {
+		return false, fmt.Errorf("an error occurred while deleting user from user permissions: %v", err)
+	}
+
+	if err := tx.Where("user_id", userID).Delete(&PINData{}).Error; err != nil {
+		return false, fmt.Errorf("an error occurred while deleting user from pin data: %v", err)
+	}
+
+	if err := tx.Where("user_id", userID).Delete(&UserPermissions{}).Error; err != nil {
+		return false, fmt.Errorf("an error occurred while deleting user from user permissions: %v", err)
+	}
+
+	if err := tx.Where("user_id", userID).Delete(&UserGroup{}).Error; err != nil {
+		return false, fmt.Errorf("an error occurred while deleting user from user groups: %v", err)
+	}
+
+	if err := tx.Where("id", userID).Delete(&User{}).Error; err != nil {
+		return false, fmt.Errorf("an error occurred while deleting: %v", err)
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		tx.Rollback()
+		return false, fmt.Errorf("transaction commit failed: %v", err)
 	}
 
 	return true, nil

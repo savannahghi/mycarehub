@@ -218,6 +218,7 @@ type ComplexityRoot struct {
 		CreateFacility                  func(childComplexity int, input dto.FacilityInput) int
 		CreateHealthDiaryEntry          func(childComplexity int, clientID string, note *string, mood string, reportToStaff bool) int
 		DeleteFacility                  func(childComplexity int, mflCode int) int
+		ForgetMe                        func(childComplexity int, userID string, pin string, flavour feedlib.Flavour) int
 		InactivateFacility              func(childComplexity int, mflCode int) int
 		InviteUser                      func(childComplexity int, userID string, phoneNumber string, flavour feedlib.Flavour) int
 		LikeContent                     func(childComplexity int, userID string, contentID int) int
@@ -299,6 +300,7 @@ type MutationResolver interface {
 	AcceptTerms(ctx context.Context, userID string, termsID int) (bool, error)
 	SetNickName(ctx context.Context, userID string, nickname string) (bool, error)
 	CompleteOnboardingTour(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
+	ForgetMe(ctx context.Context, userID string, pin string, flavour feedlib.Flavour) (bool, error)
 }
 type QueryResolver interface {
 	GetContent(ctx context.Context, categoryID *int, limit string) (*domain.Content, error)
@@ -1092,6 +1094,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.DeleteFacility(childComplexity, args["mflCode"].(int)), true
+
+	case "Mutation.forgetMe":
+		if e.complexity.Mutation.ForgetMe == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_forgetMe_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.ForgetMe(childComplexity, args["userID"].(string), args["pin"].(string), args["flavour"].(feedlib.Flavour)), true
 
 	case "Mutation.inactivateFacility":
 		if e.complexity.Mutation.InactivateFacility == nil {
@@ -1996,6 +2010,7 @@ extend type Mutation {
   acceptTerms(userID: String!, termsID: Int!): Boolean!
   setNickName(userID: String!, nickname: String!): Boolean!
   completeOnboardingTour(userID: String!, flavour: Flavour!): Boolean!
+  forgetMe(userID: String!, pin: String!, flavour: Flavour!): Boolean!
 }
 `, BuiltIn: false},
 	{Name: "federation/directives.graphql", Input: `
@@ -2180,6 +2195,39 @@ func (ec *executionContext) field_Mutation_deleteFacility_args(ctx context.Conte
 		}
 	}
 	args["mflCode"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_forgetMe_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["userID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userID"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["userID"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["pin"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("pin"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["pin"] = arg1
+	var arg2 feedlib.Flavour
+	if tmp, ok := rawArgs["flavour"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("flavour"))
+		arg2, err = ec.unmarshalNFlavour2githubᚗcomᚋsavannahghiᚋfeedlibᚐFlavour(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["flavour"] = arg2
 	return args, nil
 }
 
@@ -6872,6 +6920,48 @@ func (ec *executionContext) _Mutation_completeOnboardingTour(ctx context.Context
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Mutation_forgetMe(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_forgetMe_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().ForgetMe(rctx, args["userID"].(string), args["pin"].(string), args["flavour"].(feedlib.Flavour))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Pagination_Limit(ctx context.Context, field graphql.CollectedField, obj *domain.Pagination) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -10601,6 +10691,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			}
 		case "completeOnboardingTour":
 			out.Values[i] = ec._Mutation_completeOnboardingTour(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "forgetMe":
+			out.Values[i] = ec._Mutation_forgetMe(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}

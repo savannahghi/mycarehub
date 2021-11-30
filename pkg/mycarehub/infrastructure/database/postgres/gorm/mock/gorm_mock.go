@@ -63,6 +63,7 @@ type GormMock struct {
 	MockViewContentFn                             func(ctx context.Context, userID string, contentID int) (bool, error)
 	MockCreateHealthDiaryEntryFn                  func(ctx context.Context, healthDiaryInput *gorm.ClientHealthDiaryEntry) error
 	MockCreateServiceRequestFn                    func(ctx context.Context, healthDiaryInput *gorm.ClientHealthDiaryEntry, serviceRequestInput *gorm.ClientServiceRequest) error
+	MockForgetMeFn                                func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
 	MockCanRecordHeathDiaryFn                     func(ctx context.Context, clientID string) (bool, error)
 	MockGetClientHealthDiaryQuoteFn               func(ctx context.Context) (*gorm.ClientHealthDiaryQuote, error)
 	MockCheckIfUserBookmarkedContentFn            func(ctx context.Context, userID string, contentID int) (bool, error)
@@ -336,6 +337,9 @@ func NewGormMock() *GormMock {
 				},
 			}, nil
 		},
+		MockForgetMeFn: func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
+			return true, nil
+		},
 		MockBookmarkContentFn: func(ctx context.Context, userID string, contentID int) (bool, error) {
 			return true, nil
 		},
@@ -444,6 +448,11 @@ func (gm *GormMock) GetUserPINByUserID(ctx context.Context, userID string) (*gor
 // InactivateFacility mocks the implementation of inactivating the active status of a particular facility
 func (gm *GormMock) InactivateFacility(ctx context.Context, mflCode *int) (bool, error) {
 	return gm.MockInactivateFacilityFn(ctx, mflCode)
+}
+
+// ForgetMe mocks the implementation of forgetting a user
+func (gm *GormMock) ForgetMe(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
+	return gm.MockForgetMeFn(ctx, userID, flavour)
 }
 
 // ReactivateFacility mocks the implementation of re-activating the active status of a particular facility

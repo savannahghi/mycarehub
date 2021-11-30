@@ -25,6 +25,12 @@ func (r *mutationResolver) CompleteOnboardingTour(ctx context.Context, userID st
 	return r.mycarehub.User.CompleteOnboardingTour(ctx, userID, flavour)
 }
 
+func (r *mutationResolver) ForgetMe(ctx context.Context, userID string, pin string, flavour feedlib.Flavour) (bool, error) {
+	r.checkPreconditions()
+
+	return r.mycarehub.User.ForgetMe(ctx, userID, pin, flavour)
+}
+
 func (r *queryResolver) GetCurrentTerms(ctx context.Context) (*domain.TermsOfService, error) {
 	r.checkPreconditions()
 	return r.mycarehub.Terms.GetCurrentTerms(ctx)

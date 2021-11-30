@@ -1496,6 +1496,144 @@ func TestUseCasesUserImpl_ResetPIN(t *testing.T) {
 	}
 }
 
+func TestUseCasesUserImpl_ForgetMe(t *testing.T) {
+	ctx := context.Background()
+
+	type args struct {
+		ctx     context.Context
+		userID  string
+		pin     string
+		flavour feedlib.Flavour
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:     ctx,
+				userID:  uuid.New().String(),
+				pin:     "1234",
+				flavour: feedlib.FlavourConsumer,
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Sad case",
+			args: args{
+				ctx:     ctx,
+				userID:  uuid.New().String(),
+				pin:     "",
+				flavour: feedlib.FlavourConsumer,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case - no userID",
+			args: args{
+				ctx:     ctx,
+				flavour: feedlib.FlavourConsumer,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case - unable to get PIN by userID",
+			args: args{
+				ctx:     ctx,
+				userID:  uuid.New().String(),
+				pin:     "1234",
+				flavour: feedlib.FlavourConsumer,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case - unable to compare PIN",
+			args: args{
+				ctx:     ctx,
+				userID:  uuid.New().String(),
+				pin:     "123",
+				flavour: feedlib.FlavourConsumer,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case - Bad flavour",
+			args: args{
+				ctx:     ctx,
+				userID:  uuid.New().String(),
+				flavour: "bad-flavour",
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case - no userID, pin or flavour",
+			args: args{
+				ctx: ctx,
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			fakeExtension := extensionMock.NewFakeExtension()
+			fakeUser := mock.NewUserUseCaseMock()
+			otp := otp.NewOTPUseCase(fakeDB, fakeDB, fakeExtension)
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, otp)
+
+			if tt.name == "Sad case" {
+				fakeUser.MockForgetMeFn = func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - unable to get PIN by userID" {
+				fakeDB.MockGetUserPINByUserIDFn = func(ctx context.Context, userID string) (*domain.UserPIN, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - unable to compare PIN" {
+				fakeExtension.MockComparePINFn = func(rawPwd, salt, encodedPwd string, options *extension.Options) bool {
+					return false
+				}
+			}
+			if tt.name == "Sad case - no userID" {
+				fakeUser.MockForgetMeFn = func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - Bad flavour" {
+				fakeUser.MockForgetMeFn = func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - no userID, pin or flavour" {
+				fakeUser.MockForgetMeFn = func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+
+			got, err := us.ForgetMe(tt.args.ctx, tt.args.userID, tt.args.pin, tt.args.flavour)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCasesUserImpl.ForgetMe() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("UseCasesUserImpl.ForgetMe() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
 func TestUseCasesUserImpl_RefreshToken(t *testing.T) {
 	ctx := context.Background()
 	type args struct {

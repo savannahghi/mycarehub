@@ -349,7 +349,7 @@ type Client struct {
 
 	FHIRPatientID string `gorm:"column:fhir_patient_id"`
 
-	HealthRecordID *string `gorm:"column:emr_health_record_id"`
+	HealthRecordID string `gorm:"column:emr_health_record_id"`
 
 	TreatmentBuddy string `gorm:"column:treatment_buddy"` // TODO: optional, free text OR FK to user?
 
@@ -375,6 +375,71 @@ func (c *Client) BeforeCreate(tx *gorm.DB) (err error) {
 // TableName references the table that we map data from
 func (Client) TableName() string {
 	return "clients_client"
+}
+
+// ClientContact represents client contact join table
+type ClientContact struct {
+	ClientID  *string `json:"client_id"`
+	ContactID *string `json:"contact_id"`
+}
+
+// TableName references the table that we map data from
+func (ClientContact) TableName() string {
+	return "clients_client_contacts"
+}
+
+// ClientIdentifiers represents client identifiers table
+type ClientIdentifiers struct {
+	ClientID     *string `json:"client_id"`
+	IdentifierID *string `json:"identifier_id"`
+}
+
+// TableName references the table that we map data from
+func (ClientIdentifiers) TableName() string {
+	return "clients_client_identifiers"
+}
+
+// UserGroup represents the user groups table
+type UserGroup struct {
+	UserID  *string `json:"user_id"`
+	GroupID *string `json:"group_id"`
+}
+
+// TableName references the table that we map data from
+func (UserGroup) TableName() string {
+	return "users_user_groups"
+}
+
+// UserPermissions represents the users permissions
+type UserPermissions struct {
+	UserID       *string `json:"user_id"`
+	PermissionID *string `json:"permission_id"`
+}
+
+// TableName references the table that we map data from
+func (UserPermissions) TableName() string {
+	return "users_user_user_permissions"
+}
+
+// AuthToken represents the django auth token table
+type AuthToken struct {
+	UserID       *string `json:"user_id"`
+	PermissionID *string `json:"permission_id"`
+}
+
+// TableName references the table that we map data from
+func (AuthToken) TableName() string {
+	return "authtoken_token"
+}
+
+// AccountEmailAddresses represents the django email addresses account
+type AccountEmailAddresses struct {
+	UserID *string `json:"user_id"`
+}
+
+// TableName references the table that we map data from
+func (AccountEmailAddresses) TableName() string {
+	return "authtoken_token"
 }
 
 // ContentItemCategory maps the schema for the table that stores the content item category

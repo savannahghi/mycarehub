@@ -284,7 +284,7 @@ func (d *MyCareHubDb) GetClientProfileByUserID(ctx context.Context, userID strin
 		ClientType:              response.ClientType,
 		TreatmentEnrollmentDate: response.TreatmentEnrollmentDate,
 		FHIRPatientID:           response.FHIRPatientID,
-		HealthRecordID:          response.HealthRecordID,
+		HealthRecordID:          &response.HealthRecordID,
 		TreatmentBuddy:          response.TreatmentBuddy,
 		ClientCounselled:        response.ClientCounselled,
 		OrganisationID:          response.OrganisationID,

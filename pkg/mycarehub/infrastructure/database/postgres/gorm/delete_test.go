@@ -16,7 +16,7 @@ func TestPGInstance_DeleteFacility(t *testing.T) {
 
 	ID := uuid.New().String()
 	name := ksuid.New().String()
-	code := rand.Intn(1000000)
+	code := rand.Intn(10102000)
 	county := gofakeit.Name()
 	description := gofakeit.HipsterSentence(15)
 
@@ -24,6 +24,7 @@ func TestPGInstance_DeleteFacility(t *testing.T) {
 		FacilityID:  &ID,
 		Name:        name,
 		Code:        code,
+		Phone:       "+254711223344",
 		Active:      true,
 		County:      county,
 		Description: description,
@@ -61,6 +62,15 @@ func TestPGInstance_DeleteFacility(t *testing.T) {
 			},
 			want:    false,
 			wantErr: true,
+		},
+		{
+			name: "Sad Case - negative mfl code",
+			args: args{
+				ctx:     ctx,
+				mflcode: -1,
+			},
+			want:    true,
+			wantErr: false,
 		},
 	}
 	for _, tt := range tests {

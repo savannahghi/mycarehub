@@ -571,6 +571,32 @@ func TestUseCasesContentImpl_BookmarkContent(t *testing.T) {
 			want:    false,
 			wantErr: true,
 		},
+		{
+			name: "Sad case - no userID",
+			args: args{
+				ctx:       ctx,
+				contentID: 1,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case - no contentID",
+			args: args{
+				ctx:    ctx,
+				userID: uuid.New().String(),
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case - no userID and contentID",
+			args: args{
+				ctx: ctx,
+			},
+			want:    false,
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -582,6 +608,21 @@ func TestUseCasesContentImpl_BookmarkContent(t *testing.T) {
 					return false, fmt.Errorf("failed to bookmark content")
 				}
 			}
+			if tt.name == "Sad case - no userID" {
+				fakeDB.MockBookmarkContentFn = func(ctx context.Context, userID string, contentID int) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - no contentID" {
+				fakeDB.MockBookmarkContentFn = func(ctx context.Context, userID string, contentID int) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - no userID and contentID" {
+				fakeDB.MockBookmarkContentFn = func(ctx context.Context, userID string, contentID int) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
 
 			got, err := c.BookmarkContent(tt.args.ctx, tt.args.userID, tt.args.contentID)
 			if (err != nil) != tt.wantErr {
@@ -590,6 +631,105 @@ func TestUseCasesContentImpl_BookmarkContent(t *testing.T) {
 			}
 			if got != tt.want {
 				t.Errorf("UseCasesContentImpl.BookmarkContent() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestUseCasesContentImpl_UnBookmarkContent(t *testing.T) {
+	ctx := context.Background()
+
+	type args struct {
+		ctx       context.Context
+		userID    string
+		contentID int
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:       ctx,
+				userID:    uuid.New().String(),
+				contentID: 1,
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Sad case",
+			args: args{
+				ctx:       ctx,
+				userID:    uuid.New().String(),
+				contentID: 1,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case - no userID",
+			args: args{
+				ctx:       ctx,
+				contentID: 1,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case - no contentID",
+			args: args{
+				ctx:    ctx,
+				userID: uuid.New().String(),
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case - no userID and contentID",
+			args: args{
+				ctx: ctx,
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			c := content.NewUseCasesContentImplementation(fakeDB, fakeDB)
+
+			if tt.name == "Sad case" {
+				fakeDB.MockUnBookmarkContentFn = func(ctx context.Context, userID string, contentID int) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - no userID" {
+				fakeDB.MockUnBookmarkContentFn = func(ctx context.Context, userID string, contentID int) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - no contentID" {
+				fakeDB.MockUnBookmarkContentFn = func(ctx context.Context, userID string, contentID int) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - no userID and contentID" {
+				fakeDB.MockUnBookmarkContentFn = func(ctx context.Context, userID string, contentID int) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+
+			got, err := c.UnBookmarkContent(tt.args.ctx, tt.args.userID, tt.args.contentID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCasesContentImpl.UnBookmarkContent() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("UseCasesContentImpl.UnBookmarkContent() = %v, want %v", got, tt.want)
 			}
 		})
 	}

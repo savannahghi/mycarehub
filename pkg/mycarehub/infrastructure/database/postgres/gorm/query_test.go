@@ -24,7 +24,7 @@ import (
 func createTestFacility() *gorm.Facility {
 	ID := uuid.New().String()
 	name := ksuid.New().String()
-	code := rand.Intn(1000000)
+	code := rand.Intn(1001100010)
 	county := gofakeit.Name()
 	phone := interserviceclient.TestUserPhoneNumber
 	description := gofakeit.HipsterSentence(15)

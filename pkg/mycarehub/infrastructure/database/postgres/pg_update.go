@@ -149,3 +149,8 @@ func (d *MyCareHubDb) UnlikeContent(ctx context.Context, userID string, contentI
 func (d *MyCareHubDb) ViewContent(ctx context.Context, userID string, contentID int) (bool, error) {
 	return d.update.ViewContent(ctx, userID, contentID)
 }
+
+// ForgetMe inactivates the user record and hashes all identifiable information
+func (d *MyCareHubDb) ForgetMe(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
+	return d.update.ForgetMe(ctx, userID, flavour)
+}

@@ -59,3 +59,33 @@ func TestNextAllowedLoginTime(t *testing.T) {
 		})
 	}
 }
+
+func TestHashData(t *testing.T) {
+	type args struct {
+		input string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    string
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				input: "test-string",
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := HashData(tt.args.input)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("HashData() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			assert.NotNil(t, got)
+		})
+	}
+}

@@ -63,6 +63,7 @@ type PostgresMock struct {
 	MockUnlikeContentFn                           func(ctx context.Context, userID string, contentID int) (bool, error)
 	MockFetchFacilitiesFn                         func(ctx context.Context) ([]*domain.Facility, error)
 	MockViewContentFn                             func(ctx context.Context, userID string, contentID int) (bool, error)
+	MockForgetMeFn                                func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
 	MockCreateHealthDiaryEntryFn                  func(ctx context.Context, healthDiaryInput *domain.ClientHealthDiaryEntry) error
 	MockCreateServiceRequestFn                    func(ctx context.Context, healthDiaryInput *domain.ClientHealthDiaryEntry, serviceRequestInput *domain.ClientServiceRequest) error
 	MockCanRecordHeathDiaryFn                     func(ctx context.Context, userID string) (bool, error)
@@ -364,6 +365,9 @@ func NewPostgresMock() *PostgresMock {
 		MockCreateServiceRequestFn: func(ctx context.Context, healthDiaryInput *domain.ClientHealthDiaryEntry, serviceRequestInput *domain.ClientServiceRequest) error {
 			return nil
 		},
+		MockForgetMeFn: func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
+			return true, nil
+		},
 		MockCanRecordHeathDiaryFn: func(ctx context.Context, userID string) (bool, error) {
 			return true, nil
 		},
@@ -435,6 +439,11 @@ func (gm *PostgresMock) DeleteFacility(ctx context.Context, id int) (bool, error
 // RetrieveFacilityByMFLCode mocks the implementation of `gorm's` RetrieveFacilityByMFLCode method.
 func (gm *PostgresMock) RetrieveFacilityByMFLCode(ctx context.Context, MFLCode int, isActive bool) (*domain.Facility, error) {
 	return gm.MockRetrieveFacilityByMFLCodeFn(ctx, MFLCode, isActive)
+}
+
+// ForgetMe mocks the implementation of forgetting a user
+func (gm *PostgresMock) ForgetMe(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
+	return gm.MockForgetMeFn(ctx, userID, flavour)
 }
 
 // GetUserProfileByPhoneNumber mocks the implementation of fetching a user profile by phonenumber

@@ -3,7 +3,10 @@ package utils
 import (
 	"bytes"
 	"context"
+	"crypto/sha256"
+	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"math"
 	"net/http"
 	"time"
@@ -75,4 +78,27 @@ func MakeRequest(ctx context.Context, method string, path string, body interface
 	req.Header.Set("Content-Type", "application/json")
 
 	return client.Do(req)
+}
+
+// HashData performs a oneway hashing of a string and returns the hashed data
+func HashData(input string) (string, error) {
+	var maxLength = 16
+
+	h := sha256.New()
+
+	_, err := h.Write([]byte(input))
+	if err != nil {
+		return "", fmt.Errorf("an error occurred: %v", err)
+	}
+
+	bs := h.Sum(nil)
+
+	hashedString := base64.StdEncoding.EncodeToString(bs)
+
+	var str string
+	if len(hashedString) > maxLength {
+		str = hashedString[:maxLength]
+	}
+
+	return str, nil
 }

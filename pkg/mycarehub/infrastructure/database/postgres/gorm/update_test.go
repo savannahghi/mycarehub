@@ -1967,3 +1967,168 @@ func TestPGInstance_ViewContent(t *testing.T) {
 		t.Errorf("failed to delete record = %v", err)
 	}
 }
+
+func TestPGInstance_ForgetMe(t *testing.T) {
+	ctx := context.Background()
+
+	pg, err := gorm.NewPGInstance()
+	if err != nil {
+		t.Errorf("failed to initialize new PG instance: %v", err)
+		return
+	}
+
+	testFacility := createTestFacility()
+	facility, err := testingDB.GetOrCreateFacility(ctx, testFacility)
+	if err != nil {
+		t.Errorf("failed to create test facility")
+		return
+	}
+
+	currentTime := time.Now()
+	nextTime := time.Now().AddDate(0, 0, 2)
+
+	// Setup test user
+	userInput := &gorm.User{
+		Username:            uuid.New().String(),
+		FirstName:           gofakeit.FirstName(),
+		MiddleName:          gofakeit.FirstName(),
+		LastName:            gofakeit.LastName(),
+		UserType:            enums.ClientUser,
+		Gender:              enumutils.GenderMale,
+		Active:              false,
+		PushTokens:          []string{},
+		LastSuccessfulLogin: &currentTime,
+		LastFailedLogin:     &currentTime,
+		FailedLoginCount:    0,
+		NextAllowedLogin:    &nextTime,
+		TermsAccepted:       true,
+		AcceptedTermsID:     &termsID,
+		Flavour:             feedlib.FlavourConsumer,
+		Avatar:              "",
+		IsSuspended:         false,
+		OrganisationID:      orgID,
+		Password:            "",
+		IsSuperuser:         false,
+		IsStaff:             false,
+		Email:               gofakeit.Email(),
+		DateJoined:          "",
+		Name:                gofakeit.BeerAlcohol(),
+		IsApproved:          false,
+		ApprovalNotified:    false,
+		Handle:              gofakeit.BeerName(),
+	}
+
+	err = pg.DB.Create(&userInput).Error
+	if err != nil {
+		t.Errorf("failed to create user: %v", err)
+		return
+	}
+
+	time := time.Now()
+	client := &gorm.Client{
+		Active:                  true,
+		ClientType:              "OVC",
+		UserProfile:             gorm.User{},
+		TreatmentEnrollmentDate: &time,
+		FHIRPatientID:           uuid.New().String(),
+		HealthRecordID:          uuid.New().String(),
+		TreatmentBuddy:          gofakeit.BeerName(),
+		ClientCounselled:        true,
+		OrganisationID:          orgID,
+		FacilityID:              *facility.FacilityID,
+		CHVUserID:               *userInput.UserID,
+		UserID:                  userInput.UserID,
+	}
+
+	err = pg.DB.Create(client).Error
+	if err != nil {
+		t.Errorf("failed to create client: %v", err)
+	}
+
+	contact := &gorm.Contact{
+		ContactType:    "PHONE",
+		ContactValue:   gofakeit.PhoneFormatted(),
+		Active:         true,
+		OptedIn:        true,
+		UserID:         userInput.UserID,
+		Flavour:        userInput.Flavour,
+		OrganisationID: orgID,
+	}
+
+	err = pg.DB.Create(contact).Error
+	if err != nil {
+		t.Errorf("failed to create contact: %v", err)
+	}
+
+	invalidUserID := uuid.New().String()
+
+	type args struct {
+		ctx     context.Context
+		userID  string
+		flavour feedlib.Flavour
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:     ctx,
+				userID:  *userInput.UserID,
+				flavour: userInput.Flavour,
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Sad case",
+			args: args{
+				ctx:     ctx,
+				userID:  invalidUserID,
+				flavour: userInput.Flavour,
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Sad case - bad flavour",
+			args: args{
+				ctx:     ctx,
+				userID:  invalidUserID,
+				flavour: "bad-flavour",
+			},
+			want:    true,
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := testingDB.ForgetMe(tt.args.ctx, tt.args.userID, tt.args.flavour)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.ForgetMe() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("expected %v, but got: %v", tt.want, got)
+				return
+			}
+		})
+	}
+
+	//TearDown
+	if err = pg.DB.Where("mfl_code", facility.Code).Unscoped().Delete(&gorm.Facility{}).Error; err != nil {
+		t.Errorf("failed to delete record = %v", err)
+	}
+	if err = pg.DB.Where("user_id", userInput.UserID).Unscoped().Delete(&gorm.Contact{}).Error; err != nil {
+		t.Errorf("failed to delete record = %v", err)
+	}
+	if err = pg.DB.Where("user_id", userInput.UserID).Unscoped().Delete(&gorm.Client{}).Error; err != nil {
+		t.Errorf("failed to delete record = %v", err)
+	}
+	if err = pg.DB.Where("id", userInput.UserID).Unscoped().Delete(&gorm.User{}).Error; err != nil {
+		t.Errorf("failed to delete record = %v", err)
+	}
+}
