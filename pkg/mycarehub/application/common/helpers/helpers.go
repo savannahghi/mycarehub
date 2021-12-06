@@ -5,8 +5,11 @@ import (
 	"crypto/cipher"
 	"encoding/base64"
 	"fmt"
+	"strconv"
+	"time"
 
 	"github.com/savannahghi/feedlib"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/serverutils"
 )
@@ -82,4 +85,16 @@ func DecryptSensitiveData(text, MySecret string) (string, error) {
 	plainText := make([]byte, len(cipherText))
 	cfb.XORKeyStream(plainText, cipherText)
 	return string(plainText), nil
+}
+
+// GetPinExpiryDate returns the expiry date for the given pin
+func GetPinExpiryDate() (*time.Time, error) {
+	pinExpiryDays := serverutils.MustGetEnvVar("PIN_EXPIRY_DAYS")
+	pinExpiryInt, err := strconv.Atoi(pinExpiryDays)
+	if err != nil {
+		return nil, exceptions.InternalErr(fmt.Errorf("failed to convert PIN expiry days to int: %v", err))
+	}
+	expiryDate := time.Now().AddDate(0, 0, pinExpiryInt)
+
+	return &expiryDate, nil
 }

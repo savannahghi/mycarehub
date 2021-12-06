@@ -29,3 +29,7 @@ func (r *queryResolver) GetCurrentTerms(ctx context.Context) (*domain.TermsOfSer
 	r.checkPreconditions()
 	return r.mycarehub.Terms.GetCurrentTerms(ctx)
 }
+
+func (r *queryResolver) VerifyPin(ctx context.Context, userID string, flavour feedlib.Flavour, pin string) (bool, error) {
+	return r.mycarehub.User.VerifyPIN(ctx, userID, flavour, pin)
+}
