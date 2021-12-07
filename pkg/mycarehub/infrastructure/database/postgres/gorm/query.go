@@ -41,6 +41,7 @@ type Query interface {
 	GetClientHealthDiaryQuote(ctx context.Context) (*ClientHealthDiaryQuote, error)
 	CheckIfUserBookmarkedContent(ctx context.Context, userID string, contentID int) (bool, error)
 	GetClientHealthDiaryEntries(ctx context.Context, clientID string) ([]*ClientHealthDiaryEntry, error)
+	GetFAQContent(ctx context.Context, flavour feedlib.Flavour, limit *int) ([]*FAQ, error)
 }
 
 // CheckWhetherUserHasLikedContent performs a operation to check whether user has liked the content
@@ -421,4 +422,16 @@ func (db *PGInstance) GetClientHealthDiaryEntries(ctx context.Context, clientID 
 		return nil, fmt.Errorf("failed to get all client health diary entries: %v", err)
 	}
 	return healthDiaryEntry, nil
+}
+
+// GetFAQContent fetches the FAQ content from the database
+// when the limit is not provided, it defaults to 10
+func (db *PGInstance) GetFAQContent(ctx context.Context, flavour feedlib.Flavour, limit *int) ([]*FAQ, error) {
+	var faq []*FAQ
+	err := db.DB.Where(&FAQ{Flavour: flavour, Active: true}).
+		Order(clause.OrderByColumn{Column: clause.Column{Name: "created"}, Desc: true}).Limit(*limit).Find(&faq).Error
+	if err != nil {
+		return nil, fmt.Errorf("failed to get FAQ content: %v", err)
+	}
+	return faq, nil
 }

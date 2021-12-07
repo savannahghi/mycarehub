@@ -2363,3 +2363,59 @@ func TestMyCareHubDb_GetClientHealthDiaryEntries(t *testing.T) {
 		})
 	}
 }
+
+func TestMyCareHubDb_GetFAQContent(t *testing.T) {
+	ctx := context.Background()
+	limit := 10
+	type args struct {
+		ctx     context.Context
+		limit   *int
+		flavour feedlib.Flavour
+	}
+	tests := []struct {
+		name string
+
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Successfully get FAQ content",
+			args: args{
+				ctx:     ctx,
+				limit:   &limit,
+				flavour: feedlib.FlavourConsumer,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad Case - Fail to get FAQ content",
+			args: args{
+				ctx:     ctx,
+				limit:   &limit,
+				flavour: feedlib.FlavourConsumer,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var fakeGorm = gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+			if tt.name == "Sad Case - Fail to get FAQ content" {
+				fakeGorm.MockGetFAQContentFn = func(ctx context.Context, flavour feedlib.Flavour, limit *int) ([]*gorm.FAQ, error) {
+					return nil, fmt.Errorf("failed to get FAQ content")
+				}
+			}
+
+			got, err := d.GetFAQContent(tt.args.ctx, tt.args.flavour, tt.args.limit)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.GetFAQContent() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected a response but got: %v", got)
+				return
+			}
+		})
+	}
+}

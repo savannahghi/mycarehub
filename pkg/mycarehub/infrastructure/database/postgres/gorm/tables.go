@@ -654,3 +654,28 @@ func (c *ClientHealthDiaryQuote) BeforeCreate(tx *gorm.DB) (err error) {
 func (ClientHealthDiaryQuote) TableName() string {
 	return "clients_healthdiaryquote"
 }
+
+// FAQ is the gorms faq model
+type FAQ struct {
+	Base
+	FAQID          *string         `gorm:"column:id"`
+	Active         bool            `gorm:"column:active"`
+	Title          string          `gorm:"column:title"`
+	Description    string          `gorm:"column:description"`
+	Body           string          `gorm:"column:body"`
+	Flavour        feedlib.Flavour `gorm:"column:flavour"`
+	OrganisationID string          `gorm:"column:organisation_id"`
+}
+
+// BeforeCreate is a hook run before creating faq content
+func (c *FAQ) BeforeCreate(tx *gorm.DB) (err error) {
+	id := uuid.New().String()
+	c.FAQID = &id
+	c.OrganisationID = OrganizationID
+	return
+}
+
+// TableName references the table that we map data from
+func (FAQ) TableName() string {
+	return "common_faq"
+}

@@ -179,3 +179,13 @@ type ClientHealthDiaryEntry {
   clientID: String!
   createdAt: Time
 }
+
+
+type FAQ {
+	ID:          String!
+	Active:      Boolean!            
+	Title:       String!     
+	Description: String!          
+	Body:        String!          
+	Flavour:     Flavour! 
+}

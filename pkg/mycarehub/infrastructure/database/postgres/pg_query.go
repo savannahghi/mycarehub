@@ -501,3 +501,27 @@ func (d *MyCareHubDb) GetClientHealthDiaryEntries(ctx context.Context, clientID 
 
 	return healthDiaryEntries, nil
 }
+
+// GetFAQContent retrieves the FAQ content for the specified flavour
+// an optional limit can be passed to the function to limit the number of FAQs returned
+func (d *MyCareHubDb) GetFAQContent(ctx context.Context, flavour feedlib.Flavour, limit *int) ([]*domain.FAQ, error) {
+	var faq []*domain.FAQ
+	faqs, err := d.query.GetFAQContent(ctx, flavour, limit)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, faqItem := range faqs {
+		faqItem := &domain.FAQ{
+			ID:          faqItem.FAQID,
+			Active:      faqItem.Active,
+			Title:       faqItem.Title,
+			Description: faqItem.Description,
+			Body:        faqItem.Body,
+			Flavour:     faqItem.Flavour,
+		}
+		faq = append(faq, faqItem)
+	}
+
+	return faq, nil
+}

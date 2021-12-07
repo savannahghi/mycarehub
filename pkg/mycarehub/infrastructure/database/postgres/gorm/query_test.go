@@ -2245,3 +2245,63 @@ func TestPGInstance_CheckIfUserBookmarkedContent(t *testing.T) {
 		t.Errorf("failed to delete record = %v", err)
 	}
 }
+
+func TestPGInstance_GetFAQContent(t *testing.T) {
+	ctx := context.Background()
+	limit := 10
+	pg, err := gorm.NewPGInstance()
+	if err != nil {
+		t.Errorf("pgInstance.Teardown() = %v", err)
+	}
+	// create FAQ
+	faqInput := &gorm.FAQ{
+		Active:         true,
+		Title:          gofakeit.Name(),
+		Description:    gofakeit.Name(),
+		Body:           gofakeit.Name(),
+		OrganisationID: orgID,
+	}
+
+	err = pg.DB.Create(faqInput).Error
+	if err != nil {
+		t.Errorf("failed to create faq: %v", err)
+	}
+
+	type args struct {
+		ctx     context.Context
+		limit   *int
+		flavour feedlib.Flavour
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "happy case: get faq content",
+			args: args{
+				ctx:     ctx,
+				limit:   &limit,
+				flavour: feedlib.FlavourConsumer,
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := testingDB.GetFAQContent(tt.args.ctx, tt.args.flavour, tt.args.limit)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.GetFAQContent() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected a response but got %v", got)
+				return
+			}
+		})
+	}
+	// TearDown
+	if err = pg.DB.Where("id", faqInput.FAQID).Unscoped().Delete(&gorm.FAQ{}).Error; err != nil {
+		t.Errorf("failed to delete record = %v", err)
+	}
+}

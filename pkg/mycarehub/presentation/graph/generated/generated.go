@@ -137,6 +137,15 @@ type ComplexityRoot struct {
 		Type                func(childComplexity int) int
 	}
 
+	Faq struct {
+		Active      func(childComplexity int) int
+		Body        func(childComplexity int) int
+		Description func(childComplexity int) int
+		Flavour     func(childComplexity int) int
+		ID          func(childComplexity int) int
+		Title       func(childComplexity int) int
+	}
+
 	Facility struct {
 		Active      func(childComplexity int) int
 		Code        func(childComplexity int) int
@@ -239,6 +248,7 @@ type ComplexityRoot struct {
 		GetClientHealthDiaryEntries  func(childComplexity int, clientID string) int
 		GetContent                   func(childComplexity int, categoryID *int, limit string) int
 		GetCurrentTerms              func(childComplexity int) int
+		GetFAQContent                func(childComplexity int, flavour feedlib.Flavour, limit *int) int
 		GetHealthDiaryQuote          func(childComplexity int) int
 		GetSecurityQuestions         func(childComplexity int, flavour feedlib.Flavour) int
 		GetUserBookmarkedContent     func(childComplexity int, userID string) int
@@ -299,6 +309,7 @@ type QueryResolver interface {
 	RetrieveFacility(ctx context.Context, id string, active bool) (*domain.Facility, error)
 	RetrieveFacilityByMFLCode(ctx context.Context, mflCode int, isActive bool) (*domain.Facility, error)
 	ListFacilities(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationInput dto.PaginationsInput) (*domain.FacilityPage, error)
+	GetFAQContent(ctx context.Context, flavour feedlib.Flavour, limit *int) ([]*domain.FAQ, error)
 	CanRecordMood(ctx context.Context, clientID string) (bool, error)
 	GetHealthDiaryQuote(ctx context.Context) (*domain.ClientHealthDiaryQuote, error)
 	GetClientHealthDiaryEntries(ctx context.Context, clientID string) ([]*domain.ClientHealthDiaryEntry, error)
@@ -721,6 +732,48 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.DocumentMeta.Type(childComplexity), true
+
+	case "FAQ.Active":
+		if e.complexity.Faq.Active == nil {
+			break
+		}
+
+		return e.complexity.Faq.Active(childComplexity), true
+
+	case "FAQ.Body":
+		if e.complexity.Faq.Body == nil {
+			break
+		}
+
+		return e.complexity.Faq.Body(childComplexity), true
+
+	case "FAQ.Description":
+		if e.complexity.Faq.Description == nil {
+			break
+		}
+
+		return e.complexity.Faq.Description(childComplexity), true
+
+	case "FAQ.Flavour":
+		if e.complexity.Faq.Flavour == nil {
+			break
+		}
+
+		return e.complexity.Faq.Flavour(childComplexity), true
+
+	case "FAQ.ID":
+		if e.complexity.Faq.ID == nil {
+			break
+		}
+
+		return e.complexity.Faq.ID(childComplexity), true
+
+	case "FAQ.Title":
+		if e.complexity.Faq.Title == nil {
+			break
+		}
+
+		return e.complexity.Faq.Title(childComplexity), true
 
 	case "Facility.active":
 		if e.complexity.Facility.Active == nil {
@@ -1292,6 +1345,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.GetCurrentTerms(childComplexity), true
 
+	case "Query.getFAQContent":
+		if e.complexity.Query.GetFAQContent == nil {
+			break
+		}
+
+		args, err := ec.field_Query_getFAQContent_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetFAQContent(childComplexity, args["flavour"].(feedlib.Flavour), args["limit"].(*int)), true
+
 	case "Query.getHealthDiaryQuote":
 		if e.complexity.Query.GetHealthDiaryQuote == nil {
 			break
@@ -1635,6 +1700,9 @@ extend type Query {
   ): FacilityPage
 }
 `, BuiltIn: false},
+	{Name: "pkg/mycarehub/presentation/graph/faq.graphql", Input: `extend type Query {
+    getFAQContent(flavour: Flavour! limit: Int): [FAQ!]!
+}`, BuiltIn: false},
 	{Name: "pkg/mycarehub/presentation/graph/feedback.graphql", Input: `extend type Mutation{
     sendFeedback(input: FeedbackResponseInput!): Boolean!
 }`, BuiltIn: false},
@@ -1899,6 +1967,16 @@ type ClientHealthDiaryEntry {
   sharedAt: Time
   clientID: String!
   createdAt: Time
+}
+
+
+type FAQ {
+	ID:          String!
+	Active:      Boolean!            
+	Title:       String!     
+	Description: String!          
+	Body:        String!          
+	Flavour:     Flavour! 
 }
 `, BuiltIn: false},
 	{Name: "pkg/mycarehub/presentation/graph/user.graphql", Input: `extend type Query {
@@ -2430,6 +2508,30 @@ func (ec *executionContext) field_Query_getContent_args(ctx context.Context, raw
 		}
 	}
 	args["Limit"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_getFAQContent_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 feedlib.Flavour
+	if tmp, ok := rawArgs["flavour"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("flavour"))
+		arg0, err = ec.unmarshalNFlavour2githubᚗcomᚋsavannahghiᚋfeedlibᚐFlavour(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["flavour"] = arg0
+	var arg1 *int
+	if tmp, ok := rawArgs["limit"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit"))
+		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["limit"] = arg1
 	return args, nil
 }
 
@@ -4590,6 +4692,216 @@ func (ec *executionContext) _DocumentMeta_documentDownloadUrl(ctx context.Contex
 	res := resTmp.(string)
 	fc.Result = res
 	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _FAQ_ID(ctx context.Context, field graphql.CollectedField, obj *domain.FAQ) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "FAQ",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalNString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _FAQ_Active(ctx context.Context, field graphql.CollectedField, obj *domain.FAQ) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "FAQ",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Active, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _FAQ_Title(ctx context.Context, field graphql.CollectedField, obj *domain.FAQ) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "FAQ",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Title, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _FAQ_Description(ctx context.Context, field graphql.CollectedField, obj *domain.FAQ) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "FAQ",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Description, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _FAQ_Body(ctx context.Context, field graphql.CollectedField, obj *domain.FAQ) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "FAQ",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Body, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _FAQ_Flavour(ctx context.Context, field graphql.CollectedField, obj *domain.FAQ) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "FAQ",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Flavour, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(feedlib.Flavour)
+	fc.Result = res
+	return ec.marshalNFlavour2githubᚗcomᚋsavannahghiᚋfeedlibᚐFlavour(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Facility_ID(ctx context.Context, field graphql.CollectedField, obj *domain.Facility) (ret graphql.Marshaler) {
@@ -7071,6 +7383,48 @@ func (ec *executionContext) _Query_listFacilities(ctx context.Context, field gra
 	res := resTmp.(*domain.FacilityPage)
 	fc.Result = res
 	return ec.marshalOFacilityPage2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐFacilityPage(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_getFAQContent(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_getFAQContent_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GetFAQContent(rctx, args["flavour"].(feedlib.Flavour), args["limit"].(*int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*domain.FAQ)
+	fc.Result = res
+	return ec.marshalNFAQ2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐFAQᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_canRecordMood(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -9679,6 +10033,58 @@ func (ec *executionContext) _DocumentMeta(ctx context.Context, sel ast.Selection
 	return out
 }
 
+var fAQImplementors = []string{"FAQ"}
+
+func (ec *executionContext) _FAQ(ctx context.Context, sel ast.SelectionSet, obj *domain.FAQ) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, fAQImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("FAQ")
+		case "ID":
+			out.Values[i] = ec._FAQ_ID(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "Active":
+			out.Values[i] = ec._FAQ_Active(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "Title":
+			out.Values[i] = ec._FAQ_Title(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "Description":
+			out.Values[i] = ec._FAQ_Description(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "Body":
+			out.Values[i] = ec._FAQ_Body(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "Flavour":
+			out.Values[i] = ec._FAQ_Flavour(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var facilityImplementors = []string{"Facility"}
 
 func (ec *executionContext) _Facility(ctx context.Context, sel ast.SelectionSet, obj *domain.Facility) graphql.Marshaler {
@@ -10337,6 +10743,20 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_listFacilities(ctx, field)
+				return res
+			})
+		case "getFAQContent":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_getFAQContent(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
 				return res
 			})
 		case "canRecordMood":
@@ -11023,6 +11443,60 @@ func (ec *executionContext) marshalNDocumentData2githubᚗcomᚋsavannahghiᚋmy
 
 func (ec *executionContext) marshalNDocumentMeta2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐDocumentMeta(ctx context.Context, sel ast.SelectionSet, v domain.DocumentMeta) graphql.Marshaler {
 	return ec._DocumentMeta(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNFAQ2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐFAQᚄ(ctx context.Context, sel ast.SelectionSet, v []*domain.FAQ) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNFAQ2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐFAQ(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNFAQ2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐFAQ(ctx context.Context, sel ast.SelectionSet, v *domain.FAQ) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._FAQ(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNFacility2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐFacility(ctx context.Context, sel ast.SelectionSet, v domain.Facility) graphql.Marshaler {
