@@ -3,6 +3,7 @@ package helpers
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/brianvoe/gofakeit"
 	"github.com/savannahghi/feedlib"
@@ -187,6 +188,28 @@ func TestDecryptSensitiveData(t *testing.T) {
 			}
 			if !tt.wantErr && got == "" {
 				t.Errorf("expected to get a response but got: %v", got)
+				return
+			}
+		})
+	}
+}
+
+func TestGetPinExpiryDate(t *testing.T) {
+	tests := []struct {
+		name    string
+		want    *time.Time
+		wantErr bool
+	}{
+		{
+			name:    "default case",
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := GetPinExpiryDate()
+			if (err != nil) != tt.wantErr {
+				t.Errorf("GetPinExpiryDate() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 		})

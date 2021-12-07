@@ -66,6 +66,8 @@ env:
   SENSITIVE_CONTENT_SECRET_KEY: ${{ secrets.SENSITIVE_CONTENT_SECRET_KEY }}
   CONTENT_API_URL: ${{ secrets.CONTENT_API_URL }}
   DJANGO_AUTHORIZATION_TOKEN: ${{ secrets.DJANGO_AUTHORIZATION_TOKEN }}
+  PIN_EXPIRY_DAYS: ${{ secrets.PIN_EXPIRY_DAYS }}
+  INVITE_PIN_EXPIRY_DAYS: ${{ secrets.INVITE_PIN_EXPIRY_DAYS }}
 
 concurrency:
   group: lint-and-test
@@ -100,11 +102,10 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup Google Application Credentials
-        uses: google-github-actions/setup-gcloud@master
+        uses: google-github-actions/auth@v0.4.1
         with:
           project_id: ${{ secrets.GOOGLE_CLOUD_PROJECT }}
-          service_account_key: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}
-          export_default_credentials: true
+          credentials_json: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}
         
       - name: Access cloned repository contents
         run: |

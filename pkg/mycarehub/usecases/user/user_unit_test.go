@@ -809,7 +809,7 @@ func TestUseCasesUserImpl_SetUserPIN(t *testing.T) {
 	}
 }
 
-func TestUseCasesUserImpl_VerifyPIN(t *testing.T) {
+func TestUseCasesUserImpl_VerifyLoginPIN(t *testing.T) {
 	ctx := context.Background()
 
 	type args struct {
@@ -903,7 +903,7 @@ func TestUseCasesUserImpl_VerifyPIN(t *testing.T) {
 			u := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, otp)
 
 			if tt.name == "Happy Case - Successfully verify pin" {
-				fakeUserMock.MockVerifyPINFn = func(ctx context.Context, userID string, pin string) (bool, int, error) {
+				fakeUserMock.MockVerifyLoginPINFn = func(ctx context.Context, userID string, pin string) (bool, int, error) {
 					return true, 0, nil
 				}
 			}
@@ -956,13 +956,13 @@ func TestUseCasesUserImpl_VerifyPIN(t *testing.T) {
 				}
 			}
 
-			got, _, err := u.VerifyPIN(tt.args.ctx, tt.args.userID, tt.args.pin)
+			got, _, err := u.VerifyLoginPIN(tt.args.ctx, tt.args.userID, tt.args.pin)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("UseCasesUserImpl.VerifyPIN() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("UseCasesUserImpl.VerifyLoginPIN() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if got != tt.want {
-				t.Errorf("UseCasesUserImpl.VerifyPIN() = %v, want %v", got, tt.want)
+				t.Errorf("UseCasesUserImpl.VerifyLoginPIN() = %v, want %v", got, tt.want)
 			}
 		})
 	}
@@ -1559,6 +1559,154 @@ func TestUseCasesUserImpl_RefreshToken(t *testing.T) {
 			if !tt.wantErr && got == nil {
 				t.Errorf("expected a response but got %v", got)
 				return
+			}
+		})
+	}
+}
+
+func TestUseCasesUserImpl_VerifyPIN(t *testing.T) {
+	ctx := context.Background()
+	type args struct {
+		ctx     context.Context
+		userID  string
+		flavour feedlib.Flavour
+		pin     string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Successfully verify pin",
+			args: args{
+				ctx:     ctx,
+				userID:  uuid.New().String(),
+				flavour: feedlib.FlavourConsumer,
+				pin:     "1234",
+			},
+			wantErr: false,
+			want:    true,
+		},
+		{
+			name: "invalid: missing user id",
+			args: args{
+				ctx:     ctx,
+				flavour: feedlib.FlavourConsumer,
+				pin:     "1234",
+			},
+			wantErr: true,
+			want:    false,
+		},
+		{
+			name: "invalid: missing pin",
+			args: args{
+				ctx:     ctx,
+				userID:  uuid.New().String(),
+				flavour: feedlib.FlavourConsumer,
+			},
+			wantErr: true,
+			want:    false,
+		},
+		{
+			name: "invalid: missing flavour",
+			args: args{
+				ctx:    ctx,
+				userID: uuid.New().String(),
+				pin:    "1234",
+			},
+			wantErr: true,
+			want:    false,
+		},
+		{
+			name: "invalid: invalid flavour",
+			args: args{
+				ctx:     ctx,
+				userID:  uuid.New().String(),
+				flavour: feedlib.Flavour("invalid flavour"),
+				pin:     "1234",
+			},
+			wantErr: true,
+			want:    false,
+		},
+		{
+			name: "invalid: failed to get user pin by user id",
+			args: args{
+				ctx:     ctx,
+				userID:  uuid.New().String(),
+				flavour: feedlib.FlavourConsumer,
+				pin:     "1234",
+			},
+			wantErr: true,
+			want:    false,
+		},
+		{
+			name: "invalid: pin mismatch",
+			args: args{
+				ctx:     ctx,
+				userID:  uuid.New().String(),
+				flavour: feedlib.FlavourConsumer,
+				pin:     "1234",
+			},
+			wantErr: true,
+			want:    false,
+		},
+		{
+			name: "invalid: failed to compare pin",
+			args: args{
+				ctx:     ctx,
+				userID:  uuid.New().String(),
+				flavour: feedlib.FlavourConsumer,
+				pin:     "1234",
+			},
+			wantErr: true,
+			want:    false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			fakeExtension := extensionMock.NewFakeExtension()
+			otp := otp.NewOTPUseCase(fakeDB, fakeDB, fakeExtension)
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, otp)
+
+			if tt.name == "invalid: failed to get user pin by user id" {
+				fakeDB.MockGetUserPINByUserIDFn = func(ctx context.Context, userID string) (*domain.UserPIN, error) {
+					return nil, fmt.Errorf("failed to get user pin by user id")
+				}
+			}
+
+			if tt.name == "invalid: pin mismatch" {
+				fakeDB.MockGetUserPINByUserIDFn = func(ctx context.Context, userID string) (*domain.UserPIN, error) {
+					return &domain.UserPIN{
+						UserID:    userID,
+						HashedPIN: gofakeit.UUID(),
+						ValidFrom: time.Now().AddDate(0, 0, -1),
+						ValidTo:   time.Now().AddDate(0, 0, 10),
+						Flavour:   feedlib.FlavourConsumer,
+						IsValid:   true,
+						Salt:      gofakeit.UUID(),
+					}, nil
+				}
+				fakeExtension.MockComparePINFn = func(rawPwd string, salt string, encodedPwd string, options *extension.Options) bool {
+					return false
+				}
+			}
+
+			if tt.name == "invalid: failed to compare pin" {
+				fakeExtension.MockComparePINFn = func(rawPwd string, salt string, encodedPwd string, options *extension.Options) bool {
+					return false
+				}
+			}
+
+			got, err := us.VerifyPIN(tt.args.ctx, tt.args.userID, tt.args.flavour, tt.args.pin)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCasesUserImpl.VerifyPIN() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("UseCasesUserImpl.VerifyPIN() = %v, want %v", got, tt.want)
 			}
 		})
 	}

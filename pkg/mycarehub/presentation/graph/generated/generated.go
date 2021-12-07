@@ -246,6 +246,7 @@ type ComplexityRoot struct {
 		RetrieveFacility             func(childComplexity int, id string, active bool) int
 		RetrieveFacilityByMFLCode    func(childComplexity int, mflCode int, isActive bool) int
 		SendOtp                      func(childComplexity int, phoneNumber string, flavour feedlib.Flavour) int
+		VerifyPin                    func(childComplexity int, userID string, flavour feedlib.Flavour, pin string) int
 	}
 
 	RecordSecurityQuestionResponse struct {
@@ -303,6 +304,7 @@ type QueryResolver interface {
 	SendOtp(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (string, error)
 	GetSecurityQuestions(ctx context.Context, flavour feedlib.Flavour) ([]*domain.SecurityQuestion, error)
 	GetCurrentTerms(ctx context.Context) (*domain.TermsOfService, error)
+	VerifyPin(ctx context.Context, userID string, flavour feedlib.Flavour, pin string) (bool, error)
 }
 
 type executableSchema struct {
@@ -1368,6 +1370,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.SendOtp(childComplexity, args["phoneNumber"].(string), args["flavour"].(feedlib.Flavour)), true
 
+	case "Query.verifyPIN":
+		if e.complexity.Query.VerifyPin == nil {
+			break
+		}
+
+		args, err := ec.field_Query_verifyPIN_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.VerifyPin(childComplexity, args["userID"].(string), args["flavour"].(feedlib.Flavour), args["pin"].(string)), true
+
 	case "RecordSecurityQuestionResponse.isCorrect":
 		if e.complexity.RecordSecurityQuestionResponse.IsCorrect == nil {
 			break
@@ -1879,6 +1893,7 @@ type ClientHealthDiaryEntry {
 `, BuiltIn: false},
 	{Name: "pkg/mycarehub/presentation/graph/user.graphql", Input: `extend type Query {
   getCurrentTerms: TermsOfService!
+  verifyPIN(userID: String!, flavour: Flavour!, pin:  String!): Boolean!
 }
 
 extend type Mutation {
@@ -2540,6 +2555,39 @@ func (ec *executionContext) field_Query_sendOTP_args(ctx context.Context, rawArg
 		}
 	}
 	args["flavour"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_verifyPIN_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["userID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userID"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["userID"] = arg0
+	var arg1 feedlib.Flavour
+	if tmp, ok := rawArgs["flavour"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("flavour"))
+		arg1, err = ec.unmarshalNFlavour2githubᚗcomᚋsavannahghiᚋfeedlibᚐFlavour(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["flavour"] = arg1
+	var arg2 string
+	if tmp, ok := rawArgs["pin"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("pin"))
+		arg2, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["pin"] = arg2
 	return args, nil
 }
 
@@ -7218,6 +7266,48 @@ func (ec *executionContext) _Query_getCurrentTerms(ctx context.Context, field gr
 	return ec.marshalNTermsOfService2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐTermsOfService(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Query_verifyPIN(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_verifyPIN_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().VerifyPin(rctx, args["userID"].(string), args["flavour"].(feedlib.Flavour), args["pin"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -10270,6 +10360,20 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_getCurrentTerms(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "verifyPIN":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_verifyPIN(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}

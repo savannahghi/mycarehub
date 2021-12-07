@@ -17,6 +17,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/otp"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/utils"
+	"github.com/savannahghi/serverutils"
 )
 
 // ILogin is an interface that contans login related methods
@@ -35,9 +36,14 @@ type ISetUserPIN interface {
 	SetUserPIN(ctx context.Context, input dto.PINInput) (bool, error)
 }
 
+// IVerifyLoginPIN is used to verify the user's pin when logging in
+type IVerifyLoginPIN interface {
+	VerifyLoginPIN(ctx context.Context, userID string, pin string) (bool, int, error)
+}
+
 // IVerifyPIN is used e.g to check the PIN when accessing sensitive content
 type IVerifyPIN interface {
-	VerifyPIN(ctx context.Context, userID string, pin string) (bool, int, error)
+	VerifyPIN(ctx context.Context, userID string, flavour feedlib.Flavour, pin string) (bool, error)
 }
 
 // ISetNickName is used change and or set user nickname
@@ -64,12 +70,13 @@ type IResetPIN interface {
 type UseCasesUser interface {
 	ILogin
 	ISetUserPIN
-	IVerifyPIN
+	IVerifyLoginPIN
 	ISetNickName
 	IRequestPinReset
 	ICompleteOnboardingTour
 	IResetPIN
 	IRefreshToken
+	IVerifyPIN
 }
 
 // UseCasesUserImpl represents user implementation object
@@ -101,9 +108,9 @@ func NewUseCasesUserImpl(
 	}
 }
 
-// VerifyPIN checks whether a pin is valid. If a pin is invalid, it will prompt
+// VerifyLoginPIN checks whether a pin is valid. If a pin is invalid, it will prompt
 // the user to change their pin
-func (us *UseCasesUserImpl) VerifyPIN(ctx context.Context, userID string, pin string) (bool, int, error) {
+func (us *UseCasesUserImpl) VerifyLoginPIN(ctx context.Context, userID string, pin string) (bool, int, error) {
 	pinData, err := us.Query.GetUserPINByUserID(ctx, userID)
 	if err != nil {
 		return false, int(exceptions.PINNotFound), exceptions.PinNotFoundError(err)
@@ -184,7 +191,7 @@ func (us *UseCasesUserImpl) Login(ctx context.Context, phoneNumber string, pin s
 		return nil, int(exceptions.Internal), fmt.Errorf("please try again after a while")
 	}
 
-	_, statusCode, err := us.VerifyPIN(ctx, *userProfile.ID, pin)
+	_, statusCode, err := us.VerifyLoginPIN(ctx, *userProfile.ID, pin)
 	if err != nil {
 		return nil, statusCode, err
 	}
@@ -246,13 +253,22 @@ func (us *UseCasesUserImpl) InviteUser(ctx context.Context, userID string, phone
 		return false, exceptions.GeneratePinErr(fmt.Errorf("failed to generate temporary pin: %v", err))
 	}
 
+	pinExpiryDays := serverutils.MustGetEnvVar("INVITE_PIN_EXPIRY_DAYS")
+
+	pinExpiryDaysInt, err := strconv.Atoi(pinExpiryDays)
+	if err != nil {
+		return false, exceptions.InternalErr(fmt.Errorf("failed to convert invite pin expiry days to int"))
+	}
+
+	pinExpiryDate := time.Now().AddDate(0, 0, pinExpiryDaysInt)
+
 	salt, encryptedTempPin := us.ExternalExt.EncryptPIN(tempPin, nil)
 	pinPayload := &domain.UserPIN{
 		UserID:    userID,
 		HashedPIN: encryptedTempPin,
 		Salt:      salt,
 		ValidFrom: time.Now(),
-		ValidTo:   time.Now().Add(time.Hour * 1),
+		ValidTo:   pinExpiryDate,
 		Flavour:   flavour,
 		IsValid:   true,
 	}
@@ -304,14 +320,17 @@ func (us *UseCasesUserImpl) SetUserPIN(ctx context.Context, input dto.PINInput) 
 	if !isMatch {
 		return false, exceptions.PinMismatchError(fmt.Errorf("the provided PINs do not match"))
 	}
-	// TODO: Make this an env variable
-	expiryDate := time.Now().AddDate(0, 0, 7)
+
+	expiryDate, err := helpers.GetPinExpiryDate()
+	if err != nil {
+		return false, exceptions.InternalErr(err)
+	}
 
 	pinDataPayload := &domain.UserPIN{
 		UserID:    *userProfile.ID,
 		HashedPIN: encryptedPIN,
 		ValidFrom: time.Now(),
-		ValidTo:   expiryDate,
+		ValidTo:   *expiryDate,
 		Flavour:   input.Flavour,
 		IsValid:   true,
 		Salt:      salt,
@@ -454,15 +473,17 @@ func (us *UseCasesUserImpl) ResetPIN(ctx context.Context, input dto.UserResetPin
 	}
 
 	salt, encryptedPin := us.ExternalExt.EncryptPIN(input.PIN, nil)
-
-	expiryDate := time.Now()
+	expiryDate, err := helpers.GetPinExpiryDate()
+	if err != nil {
+		return false, exceptions.InternalErr(fmt.Errorf("failed to get pin expiry date: %v", err))
+	}
 
 	pinPayload := &domain.UserPIN{
 		UserID:    *userProfile.ID,
 		HashedPIN: encryptedPin,
 		Salt:      salt,
 		ValidFrom: time.Now(),
-		ValidTo:   expiryDate,
+		ValidTo:   *expiryDate,
 		Flavour:   input.Flavour,
 		IsValid:   true,
 	}
@@ -504,4 +525,29 @@ func (us *UseCasesUserImpl) RefreshToken(ctx context.Context, userID string) (*d
 		IDToken:      tokenResponse.IDToken,
 		ExpiresIn:    tokenResponse.ExpiresIn,
 	}, nil
+}
+
+// VerifyPIN is used to verify the user's PIN when they are acessing e.g. sensitive information
+// such as their health diary
+func (us *UseCasesUserImpl) VerifyPIN(ctx context.Context, userID string, flavour feedlib.Flavour, pin string) (bool, error) {
+	if userID == "" {
+		return false, exceptions.UserNotFoundError(fmt.Errorf("user id is empty"))
+	}
+	if !flavour.IsValid() {
+		return false, exceptions.InvalidFlavourDefinedErr(fmt.Errorf("flavour is not valid"))
+	}
+	if pin == "" {
+		return false, exceptions.PINErr(fmt.Errorf("pin is empty"))
+	}
+	pinData, err := us.Query.GetUserPINByUserID(ctx, userID)
+	if err != nil {
+		return false, exceptions.PinNotFoundError(err)
+	}
+
+	// If pin data does not match, this means the user cant access the data
+	matched := us.ExternalExt.ComparePIN(pin, pinData.Salt, pinData.HashedPIN, nil)
+	if !matched {
+		return false, exceptions.PinMismatchError(err)
+	}
+	return true, nil
 }
