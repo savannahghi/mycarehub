@@ -29,6 +29,7 @@ func TestCreateFacility(t *testing.T) {
 	mflcode := rand.Intn(1000000)
 	facilityName := ksuid.New().String()
 	county := "Nakuru"
+	phone := "+254711223344"
 	description := gofakeit.HipsterSentence(10)
 
 	graphqlMutation := `
@@ -36,6 +37,7 @@ func TestCreateFacility(t *testing.T) {
 		createFacility (input: $input) {
 		  name
 		  code
+		  phone
 		  active
 		  county
 		  description
@@ -62,6 +64,7 @@ func TestCreateFacility(t *testing.T) {
 						"input": map[string]interface{}{
 							"name":        facilityName,
 							"code":        mflcode,
+							"phone":       phone,
 							"active":      true,
 							"county":      county,
 							"description": description,
@@ -280,6 +283,7 @@ func TestInactivateFacility(t *testing.T) {
 	facilityInput := &dto.FacilityInput{
 		Name:        facilityName,
 		Code:        mflcode,
+		Phone:       "+254711223344",
 		Active:      true,
 		County:      "Baringo",
 		Description: description,
@@ -430,6 +434,7 @@ func TestReactivateFacility(t *testing.T) {
 	facilityInput := &dto.FacilityInput{
 		Name:        facilityName,
 		Code:        mflcode,
+		Phone:       "+254711223344",
 		Active:      false,
 		County:      "Baringo",
 		Description: description,

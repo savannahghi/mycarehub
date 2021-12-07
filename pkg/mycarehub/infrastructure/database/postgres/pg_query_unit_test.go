@@ -217,12 +217,14 @@ func TestMyCareHubDb_RetrieveFacilityByMFLCode(t *testing.T) {
 
 	name := gofakeit.Name()
 	code := gofakeit.Number(0, 100)
+	phone := "+254711223344"
 	county := "Nairobi"
 	description := gofakeit.HipsterSentence(15)
 
 	facilityInput := &dto.FacilityInput{
 		Name:        name,
 		Code:        code,
+		Phone:       phone,
 		Active:      true,
 		County:      county,
 		Description: description,
@@ -322,6 +324,7 @@ func TestOnboardingDb_ListFacilities(t *testing.T) {
 	facilityInput := &dto.FacilityInput{
 		Name:        "Kanairo One",
 		Code:        code,
+		Phone:       "+254711223344",
 		Active:      true,
 		County:      "Nairobi",
 		Description: "This is just for mocking",
@@ -330,6 +333,7 @@ func TestOnboardingDb_ListFacilities(t *testing.T) {
 	facilityInput2 := &dto.FacilityInput{
 		Name:        "Baringo 2",
 		Code:        code2,
+		Phone:       "+254711223355",
 		Active:      true,
 		County:      "Baringo",
 		Description: "This is just for mocking",

@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/feedlib"
+	"github.com/savannahghi/interserviceclient"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
@@ -77,6 +78,7 @@ func NewPostgresMock() *PostgresMock {
 	name := gofakeit.Name()
 	code := gofakeit.Number(0, 100)
 	county := "Nairobi"
+	phone := interserviceclient.TestUserPhoneNumber
 	description := gofakeit.HipsterSentence(15)
 	currentTime := time.Now()
 
@@ -84,6 +86,7 @@ func NewPostgresMock() *PostgresMock {
 		ID:          &ID,
 		Name:        name,
 		Code:        code,
+		Phone:       phone,
 		Active:      true,
 		County:      county,
 		Description: description,

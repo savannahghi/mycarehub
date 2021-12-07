@@ -144,6 +144,7 @@ type ComplexityRoot struct {
 		Description func(childComplexity int) int
 		ID          func(childComplexity int) int
 		Name        func(childComplexity int) int
+		Phone       func(childComplexity int) int
 	}
 
 	FacilityPage struct {
@@ -762,6 +763,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Facility.Name(childComplexity), true
+
+	case "Facility.phone":
+		if e.complexity.Facility.Phone == nil {
+			break
+		}
+
+		return e.complexity.Facility.Phone(childComplexity), true
 
 	case "FacilityPage.Facilities":
 		if e.complexity.FacilityPage.Facilities == nil {
@@ -1647,6 +1655,7 @@ extend type Query {
 	{Name: "pkg/mycarehub/presentation/graph/input.graphql", Input: `input FacilityInput {
   name: String!
   code: Int!
+  phone: String!
   active: Boolean!
   county: String!
   description: String!
@@ -1714,6 +1723,7 @@ extend type Mutation {
   ID: String!
   name: String!
   code: Int!
+  phone: String!
   active: Boolean!
   county: String!
   description: String!
@@ -4685,6 +4695,41 @@ func (ec *executionContext) _Facility_code(ctx context.Context, field graphql.Co
 	res := resTmp.(int)
 	fc.Result = res
 	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Facility_phone(ctx context.Context, field graphql.CollectedField, obj *domain.Facility) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Facility",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Phone, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Facility_active(ctx context.Context, field graphql.CollectedField, obj *domain.Facility) (ret graphql.Marshaler) {
@@ -8838,6 +8883,14 @@ func (ec *executionContext) unmarshalInputFacilityInput(ctx context.Context, obj
 			if err != nil {
 				return it, err
 			}
+		case "phone":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("phone"))
+			it.Phone, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		case "active":
 			var err error
 
@@ -9649,6 +9702,11 @@ func (ec *executionContext) _Facility(ctx context.Context, sel ast.SelectionSet,
 			}
 		case "code":
 			out.Values[i] = ec._Facility_code(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "phone":
+			out.Values[i] = ec._Facility_phone(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}

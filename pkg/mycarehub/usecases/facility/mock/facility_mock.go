@@ -5,6 +5,7 @@ import (
 
 	"github.com/brianvoe/gofakeit"
 	"github.com/google/uuid"
+	"github.com/savannahghi/interserviceclient"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 )
@@ -27,12 +28,14 @@ func NewFacilityUsecaseMock() *FacilityUsecaseMock {
 	name := gofakeit.Name()
 	code := gofakeit.Number(0, 1000)
 	county := "Nairobi"
+	phone := interserviceclient.TestUserPhoneNumber
 	description := gofakeit.HipsterSentence(15)
 
 	facilityInput := &domain.Facility{
 		ID:          &ID,
 		Name:        name,
 		Code:        code,
+		Phone:       phone,
 		Active:      true,
 		County:      county,
 		Description: description,
@@ -57,6 +60,7 @@ func NewFacilityUsecaseMock() *FacilityUsecaseMock {
 				ID:          &ID,
 				Name:        name,
 				Code:        code,
+				Phone:       phone,
 				Active:      true,
 				County:      county,
 				Description: description,

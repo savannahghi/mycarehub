@@ -11,6 +11,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/feedlib"
+	"github.com/savannahghi/interserviceclient"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
@@ -25,6 +26,7 @@ func createTestFacility() *gorm.Facility {
 	name := ksuid.New().String()
 	code := rand.Intn(1000000)
 	county := gofakeit.Name()
+	phone := interserviceclient.TestUserPhoneNumber
 	description := gofakeit.HipsterSentence(15)
 
 	facility := &gorm.Facility{
@@ -33,6 +35,7 @@ func createTestFacility() *gorm.Facility {
 		Code:        code,
 		Active:      true,
 		County:      county,
+		Phone:       phone,
 		Description: description,
 	}
 
@@ -168,6 +171,7 @@ func TestPGInstance_ListFacilities(t *testing.T) {
 	facilityInput := &gorm.Facility{
 		Name:        ksuid.New().String(),
 		Code:        code,
+		Phone:       "+254711223344",
 		Active:      true,
 		County:      "Nairobi",
 		Description: "This is just for mocking",
@@ -176,6 +180,7 @@ func TestPGInstance_ListFacilities(t *testing.T) {
 	facilityInput2 := &gorm.Facility{
 		Name:        ksuid.New().String(),
 		Code:        code2,
+		Phone:       "+254711223355",
 		Active:      true,
 		County:      "Baringo",
 		Description: "This is just for mocking",

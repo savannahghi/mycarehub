@@ -39,6 +39,7 @@ type Facility struct {
 	Code           int    `gorm:"unique;column:mfl_code;not null"`
 	Active         bool   `gorm:"column:active;not null"`
 	County         string `gorm:"column:county;not null"` // TODO: Controlled list of counties
+	Phone          string `gorm:"column:phone"`
 	Description    string `gorm:"column:description;not null"`
 	OrganisationID string `gorm:"column:organisation_id"`
 }
