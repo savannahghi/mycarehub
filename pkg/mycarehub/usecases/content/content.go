@@ -10,6 +10,7 @@ import (
 	"strconv"
 
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/utils"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
@@ -195,23 +196,33 @@ func (u UseCasesContentImpl) UnBookmarkContent(ctx context.Context, userID strin
 // GetUserBookmarkedContent gets the user's pinned/bookmarked content and displays it on their profile
 func (u *UseCasesContentImpl) GetUserBookmarkedContent(ctx context.Context, userID string) (*domain.Content, error) {
 	if userID == "" {
-		return nil, fmt.Errorf("user ID must be defined")
+		return nil, exceptions.EmptyInputErr(fmt.Errorf("user ID must be defined"))
 	}
 
-	content, err := u.Query.GetUserBookmarkedContent(ctx, userID)
+	user, err := u.Query.GetUserProfileByUserID(ctx, userID)
+	if err != nil {
+		return nil, exceptions.ProfileNotFoundErr(err)
+	}
+
+	content, err := u.Query.GetUserBookmarkedContent(ctx, *user.ID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get bookmarked content")
 	}
 
-	var bookmarkedContent *domain.Content
-	var items []domain.ContentItem
-	for _, contentItem := range content {
+	bookmarkedContent := &domain.Content{}
+
+	items := make([]domain.ContentItem, len(content))
+
+	for i, contentItem := range content {
+
 		bookmarkedContent, err = u.GetContentByContentItemID(ctx, contentItem.ID)
 		if err != nil {
 			return nil, fmt.Errorf("failed to fetch bookmarked content")
 		}
-		items = append(items, bookmarkedContent.Items...)
+		items[i] = *contentItem
 	}
+
+	bookmarkedContent.Meta.TotalCount = len(items)
 	bookmarkedContent.Items = items
 
 	return bookmarkedContent, nil

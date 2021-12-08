@@ -344,6 +344,14 @@ func TestUseCasesContentImpl_GetUserBookmarkedContent(t *testing.T) {
 			wantErr: false,
 		},
 		{
+			name: "Happy Case - Successfully get user bookmarked content, no content",
+			args: args{
+				ctx:    ctx,
+				userID: uuid.New().String(),
+			},
+			wantErr: false,
+		},
+		{
 			name: "Sad Case - Missing user ID",
 			args: args{
 				ctx: ctx,
@@ -352,6 +360,14 @@ func TestUseCasesContentImpl_GetUserBookmarkedContent(t *testing.T) {
 		},
 		{
 			name: "Sad Case - Fail to get content",
+			args: args{
+				ctx:    ctx,
+				userID: uuid.New().String(),
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - user not found",
 			args: args{
 				ctx:    ctx,
 				userID: uuid.New().String(),
@@ -376,7 +392,17 @@ func TestUseCasesContentImpl_GetUserBookmarkedContent(t *testing.T) {
 					return nil, fmt.Errorf("failed to get bookmarked content")
 				}
 			}
+			if tt.name == "Happy Case - Successfully get user bookmarked content, no content" {
+				fakeDB.MockGetUserBookmarkedContentFn = func(ctx context.Context, userID string) ([]*domain.ContentItem, error) {
+					return []*domain.ContentItem{}, nil
+				}
+			}
 
+			if tt.name == "Sad Case - user not found" {
+				fakeDB.MockGetUserBookmarkedContentFn = func(ctx context.Context, userID string) ([]*domain.ContentItem, error) {
+					return nil, fmt.Errorf("user not found")
+				}
+			}
 			got, err := c.GetUserBookmarkedContent(tt.args.ctx, tt.args.userID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCasesContentImpl.GetUserBookmarkedContent() error = %v, wantErr %v", err, tt.wantErr)
