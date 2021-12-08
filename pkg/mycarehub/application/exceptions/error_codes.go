@@ -303,4 +303,9 @@ const (
 	// The pin is invalid'
 	// Its error code is 59
 	ValidatePINDigitsError
+
+	// GetFAQContentError means that the system is unable to get the FAQ content'
+	// The FAQ content retrieval has failed'
+	// Its error code is 60
+	GetFAQContentError
 )

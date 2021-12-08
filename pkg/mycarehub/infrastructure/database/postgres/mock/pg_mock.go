@@ -69,6 +69,7 @@ type PostgresMock struct {
 	MockGetClientHealthDiaryQuoteFn               func(ctx context.Context) (*domain.ClientHealthDiaryQuote, error)
 	MockCheckIfUserBookmarkedContentFn            func(ctx context.Context, userID string, contentID int) (bool, error)
 	MockGetClientHealthDiaryEntriesFn             func(ctx context.Context, clientID string) ([]*domain.ClientHealthDiaryEntry, error)
+	MockGetFAQContentFn                           func(ctx context.Context, flavour feedlib.Flavour, limit *int) ([]*domain.FAQ, error)
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -382,6 +383,17 @@ func NewPostgresMock() *PostgresMock {
 				},
 			}, nil
 		},
+		MockGetFAQContentFn: func(ctx context.Context, flavour feedlib.Flavour, limit *int) ([]*domain.FAQ, error) {
+			return []*domain.FAQ{
+				{
+					ID:          &ID,
+					Active:      true,
+					Title:       gofakeit.Name(),
+					Description: gofakeit.Name(),
+					Body:        gofakeit.Name(),
+				},
+			}, nil
+		},
 	}
 }
 
@@ -648,4 +660,9 @@ func (gm *PostgresMock) CheckIfUserBookmarkedContent(ctx context.Context, userID
 // GetClientHealthDiaryEntries mocks the implementation of getting all health diary entries that belong to a specific user
 func (gm *PostgresMock) GetClientHealthDiaryEntries(ctx context.Context, clientID string) ([]*domain.ClientHealthDiaryEntry, error) {
 	return gm.MockGetClientHealthDiaryEntriesFn(ctx, clientID)
+}
+
+// GetFAQContent mocks the implementation of getting FAQ content
+func (gm *PostgresMock) GetFAQContent(ctx context.Context, flavour feedlib.Flavour, limit *int) ([]*domain.FAQ, error) {
+	return gm.MockGetFAQContentFn(ctx, flavour, limit)
 }
