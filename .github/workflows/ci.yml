@@ -102,7 +102,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup Google Application Credentials
-        uses: google-github-actions/auth@v0.4.1
+        uses: google-github-actions/auth@v0.4.2
         with:
           project_id: ${{ secrets.GOOGLE_CLOUD_PROJECT }}
           credentials_json: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}
