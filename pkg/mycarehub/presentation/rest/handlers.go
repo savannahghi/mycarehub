@@ -62,7 +62,7 @@ func (h *MyCareHubHandlersInterfacesImpl) LoginByPhone() http.HandlerFunc {
 			return
 		}
 
-		resp, responseCode, err := h.usecase.User.Login(ctx, *payload.PhoneNumber, *payload.PIN, payload.Flavour)
+		response, responseCode, err := h.usecase.User.Login(ctx, *payload.PhoneNumber, *payload.PIN, payload.Flavour)
 		if err != nil {
 			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
 				Message: err.Error(),
@@ -71,7 +71,6 @@ func (h *MyCareHubHandlersInterfacesImpl) LoginByPhone() http.HandlerFunc {
 			return
 		}
 
-		response := helpers.RestAPIResponseHelper("loginByPhone", resp)
 		serverutils.WriteJSONResponse(w, response, http.StatusOK)
 	}
 }
@@ -107,7 +106,6 @@ func (h *MyCareHubHandlersInterfacesImpl) VerifySecurityQuestions() http.Handler
 		}
 
 		response := helpers.RestAPIResponseHelper("verifySecurityQuestionResponses", ok)
-
 		serverutils.WriteJSONResponse(w, response, http.StatusOK)
 	}
 }
@@ -136,8 +134,7 @@ func (h *MyCareHubHandlersInterfacesImpl) VerifyPhone() http.HandlerFunc {
 			return
 		}
 
-		response := helpers.RestAPIResponseHelper("verifyPhone", otpResponse.OTP)
-		serverutils.WriteJSONResponse(w, response, http.StatusOK)
+		serverutils.WriteJSONResponse(w, otpResponse, http.StatusOK)
 	}
 }
 
