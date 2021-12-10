@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -56,6 +57,54 @@ func TestNextAllowedLoginTime(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			got := NextAllowedLoginTime(tt.args.trials)
 			assert.NotNil(t, got)
+		})
+	}
+}
+
+func TestMakeRequest(t *testing.T) {
+	type args struct {
+		ctx    context.Context
+		method string
+		path   string
+		body   interface{}
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case GET",
+			args: args{
+				ctx:    context.Background(),
+				method: "GET",
+				path:   "https://google.com/",
+				body:   nil,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Happy case POST",
+			args: args{
+				ctx:    context.Background(),
+				method: "POST",
+				path:   "https://google.com/",
+				body:   nil,
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := MakeRequest(tt.args.ctx, tt.args.method, tt.args.path, tt.args.body)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MakeRequest() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected facility not to be nil for %v", tt.name)
+				return
+			}
 		})
 	}
 }

@@ -1,0 +1,11 @@
+# common_contact.yml
+- id: bdc22436-e314-43f2-bb39-ba1ab332f9b0
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  contact_type: PHONE
+  contact_value: {{.test_phone}}
+  active: true
+  opted_in: true
+  user_id: {{.test_user_id}}
+  flavour: {{.test_flavour}}
+  organisation_id: {{.test_organisation_id}}

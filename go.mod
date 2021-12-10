@@ -53,6 +53,7 @@ require (
 	github.com/felixge/httpsnoop v1.0.2 // indirect
 	github.com/getsentry/sentry-go v0.11.0 // indirect
 	github.com/go-playground/locales v0.14.0 // indirect
+	github.com/go-testfixtures/testfixtures/v3 v3.6.1 // indirect
 	github.com/gobuffalo/here v0.6.2 // indirect
 	github.com/gofrs/uuid v4.0.0+incompatible // indirect
 	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect

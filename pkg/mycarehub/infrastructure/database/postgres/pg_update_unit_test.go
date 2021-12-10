@@ -11,6 +11,7 @@ import (
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	gormMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm/mock"
+	pgMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/mock"
 	"github.com/segmentio/ksuid"
 )
 
@@ -689,6 +690,14 @@ func TestMyCareHubDb_UpdateUserPinChangeRequiredStatus(t *testing.T) {
 			want:    false,
 			wantErr: true,
 		},
+		{
+			name: "Sad Case - No user id and flavour",
+			args: args{
+				ctx: ctx,
+			},
+			want:    false,
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -702,6 +711,11 @@ func TestMyCareHubDb_UpdateUserPinChangeRequiredStatus(t *testing.T) {
 			}
 
 			if tt.name == "Sad Case - Missing user id" {
+				fakeGorm.MockUpdateUserPinChangeRequiredStatusFn = func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
+					return false, fmt.Errorf("failed to update status")
+				}
+			}
+			if tt.name == "Sad Case - No user id and flavour" {
 				fakeGorm.MockUpdateUserPinChangeRequiredStatusFn = func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
 					return false, fmt.Errorf("failed to update status")
 				}
@@ -878,6 +892,14 @@ func TestMyCareHubDb_ShareContent(t *testing.T) {
 					UserID:    uuid.New().String(),
 					ContentID: 1,
 				},
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "invalid: no input provided",
+			args: args{
+				ctx: ctx,
 			},
 			want:    false,
 			wantErr: true,
@@ -1139,6 +1161,14 @@ func TestMyCareHubDb_ViewContent(t *testing.T) {
 			want:    false,
 			wantErr: true,
 		},
+		{
+			name: "Sad Case - no user ID and content ID",
+			args: args{
+				ctx: ctx,
+			},
+			want:    false,
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -1150,6 +1180,12 @@ func TestMyCareHubDb_ViewContent(t *testing.T) {
 					return false, fmt.Errorf("failed to update view count")
 				}
 			}
+			if tt.name == "Sad Case - no user ID and content ID" {
+				fakeGorm.MockViewContentFn = func(ctx context.Context, userID string, contentID int) (bool, error) {
+					return false, fmt.Errorf("failed to update view count")
+				}
+			}
+
 			got, err := d.ViewContent(tt.args.ctx, tt.args.userID, tt.args.contentID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("MyCareHubDb.ViewContent() error = %v, wantErr %v", err, tt.wantErr)
@@ -1157,6 +1193,205 @@ func TestMyCareHubDb_ViewContent(t *testing.T) {
 			}
 			if got != tt.want {
 				t.Errorf("MyCareHubDb.ViewContent() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestMyCareHubDb_BookmarkContent(t *testing.T) {
+	ctx := context.Background()
+
+	type args struct {
+		ctx       context.Context
+		userID    string
+		contentID int
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:       ctx,
+				userID:    uuid.New().String(),
+				contentID: 1,
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Sad case",
+			args: args{
+				ctx:       ctx,
+				userID:    uuid.New().String(),
+				contentID: 1,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case - no userID",
+			args: args{
+				ctx:       ctx,
+				contentID: 1,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case - no contentID",
+			args: args{
+				ctx:    ctx,
+				userID: uuid.New().String(),
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case - no userID and contentID",
+			args: args{
+				ctx: ctx,
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var fakeGorm = gormMock.NewGormMock()
+			_ = pgMock.NewPostgresMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			if tt.name == "Sad case" {
+				fakeGorm.MockBookmarkContentFn = func(ctx context.Context, userID string, contentID int) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - no userID" {
+				fakeGorm.MockBookmarkContentFn = func(ctx context.Context, userID string, contentID int) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - no contentID" {
+				fakeGorm.MockBookmarkContentFn = func(ctx context.Context, userID string, contentID int) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - no userID and contentID" {
+				fakeGorm.MockBookmarkContentFn = func(ctx context.Context, userID string, contentID int) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+
+			got, err := d.BookmarkContent(tt.args.ctx, tt.args.userID, tt.args.contentID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.BookmarkContent() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("MyCareHubDb.BookmarkContent() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestMyCareHubDb_UnBookmarkContent(t *testing.T) {
+	ctx := context.Background()
+
+	type args struct {
+		ctx       context.Context
+		userID    string
+		contentID int
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:       ctx,
+				userID:    uuid.New().String(),
+				contentID: 1,
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Sad case",
+			args: args{
+				ctx:       ctx,
+				userID:    uuid.New().String(),
+				contentID: 1,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case - no userID",
+			args: args{
+				ctx:       ctx,
+				contentID: 1,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case - no contentID",
+			args: args{
+				ctx:    ctx,
+				userID: uuid.New().String(),
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case - no userID and contentID",
+			args: args{
+				ctx: ctx,
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var fakeGorm = gormMock.NewGormMock()
+			_ = pgMock.NewPostgresMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			if tt.name == "Sad case" {
+				fakeGorm.MockUnBookmarkContentFn = func(ctx context.Context, userID string, contentID int) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - no userID" {
+				fakeGorm.MockUnBookmarkContentFn = func(ctx context.Context, userID string, contentID int) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - no contentID" {
+				fakeGorm.MockUnBookmarkContentFn = func(ctx context.Context, userID string, contentID int) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - no userID and contentID" {
+				fakeGorm.MockUnBookmarkContentFn = func(ctx context.Context, userID string, contentID int) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+			got, err := d.UnBookmarkContent(tt.args.ctx, tt.args.userID, tt.args.contentID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.UnBookmarkContent() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("MyCareHubDb.UnBookmarkContent() = %v, want %v", got, tt.want)
 			}
 		})
 	}

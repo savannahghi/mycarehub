@@ -2,52 +2,19 @@ package gorm_test
 
 import (
 	"context"
-	"math/rand"
 	"testing"
 	"time"
 
 	"github.com/brianvoe/gofakeit"
 	"github.com/google/uuid"
-	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
-	"github.com/savannahghi/serverutils"
 	"github.com/segmentio/ksuid"
 )
-
-func createInactiveTestFacility() *gorm.Facility {
-	ID := uuid.New().String()
-	name := ksuid.New().String()
-	code := rand.Intn(1000000)
-	county := "Nairobi"
-	description := gofakeit.HipsterSentence(15)
-
-	facility := &gorm.Facility{
-		FacilityID:  &ID,
-		Name:        name,
-		Code:        code,
-		Active:      false,
-		County:      county,
-		Description: description,
-	}
-
-	return facility
-}
 
 func TestPGInstance_InactivateFacility(t *testing.T) {
 
 	ctx := context.Background()
-
-	testFacility := createTestFacility()
-
-	facility, err := testingDB.GetOrCreateFacility(ctx, testFacility)
-	if err != nil {
-		t.Errorf("failed to create test facility")
-		return
-	}
 
 	type args struct {
 		ctx     context.Context
@@ -63,7 +30,7 @@ func TestPGInstance_InactivateFacility(t *testing.T) {
 			name: "Happy Case",
 			args: args{
 				ctx:     ctx,
-				mflCode: &facility.Code,
+				mflCode: &mflCodeToInactivate,
 			},
 			want:    true,
 			wantErr: false,
@@ -96,14 +63,6 @@ func TestPGInstance_ReactivateFacility(t *testing.T) {
 
 	ctx := context.Background()
 
-	testFacility := createInactiveTestFacility()
-
-	facility, err := testingDB.GetOrCreateFacility(ctx, testFacility)
-	if err != nil {
-		t.Errorf("failed to create test facility: %v", err)
-		return
-	}
-
 	type args struct {
 		ctx     context.Context
 		mflCode *int
@@ -118,7 +77,7 @@ func TestPGInstance_ReactivateFacility(t *testing.T) {
 			name: "Happy Case",
 			args: args{
 				ctx:     ctx,
-				mflCode: &facility.Code,
+				mflCode: &inactiveMflCode,
 			},
 			want:    true,
 			wantErr: false,
@@ -150,58 +109,8 @@ func TestPGInstance_ReactivateFacility(t *testing.T) {
 func TestPGInstance_SetNickname(t *testing.T) {
 	ctx := context.Background()
 
-	pg, err := gorm.NewPGInstance()
-	if err != nil {
-		t.Errorf("pgInstance.Teardown() = %v", err)
-	}
-
-	nickname := uuid.New().String()
 	invalidUserID := ksuid.New().String()
 	invalidNickname := gofakeit.HipsterSentence(50)
-	currentTime := time.Now()
-	flavour := feedlib.FlavourConsumer
-	pastTime := time.Now().AddDate(0, 0, -1)
-
-	// Setup test user
-	userInput := &gorm.User{
-		Username:            gofakeit.BeerHop(),
-		FirstName:           gofakeit.FirstName(),
-		MiddleName:          gofakeit.FirstName(),
-		LastName:            gofakeit.LastName(),
-		UserType:            enums.ClientUser,
-		Gender:              enumutils.GenderMale,
-		Active:              false,
-		PushTokens:          []string{},
-		LastSuccessfulLogin: &currentTime,
-		LastFailedLogin:     &currentTime,
-		FailedLoginCount:    0,
-		NextAllowedLogin:    &pastTime,
-		TermsAccepted:       true,
-		AcceptedTermsID:     &termsID,
-		Flavour:             flavour,
-		Avatar:              "",
-		IsSuspended:         true,
-		OrganisationID:      orgID,
-		Password:            "",
-		IsSuperuser:         true,
-		IsStaff:             true,
-		Email:               "",
-		DateJoined:          "",
-		Name:                nickname,
-		IsApproved:          true,
-		ApprovalNotified:    true,
-		Handle:              "",
-	}
-
-	err = pg.DB.Create(userInput).Error
-	if err != nil {
-		t.Errorf("failed to create user: %v", err)
-	}
-
-	user, err := testingDB.GetUserProfileByUserID(ctx, *userInput.UserID)
-	if err != nil {
-		t.Errorf("failed to get user profile with the provided user ID: %v", err)
-	}
 
 	type args struct {
 		ctx      context.Context
@@ -218,8 +127,8 @@ func TestPGInstance_SetNickname(t *testing.T) {
 			name: "Happy case",
 			args: args{
 				ctx:      ctx,
-				userID:   user.UserID,
-				nickname: &nickname,
+				userID:   &userID,
+				nickname: &userNickname,
 			},
 			want:    true,
 			wantErr: false,
@@ -229,7 +138,7 @@ func TestPGInstance_SetNickname(t *testing.T) {
 			args: args{
 				ctx:      ctx,
 				userID:   &invalidUserID,
-				nickname: &nickname,
+				nickname: &userNickname,
 			},
 			want:    false,
 			wantErr: true,
@@ -239,7 +148,7 @@ func TestPGInstance_SetNickname(t *testing.T) {
 			args: args{
 				ctx:      ctx,
 				userID:   nil,
-				nickname: &nickname,
+				nickname: &userNickname,
 			},
 			want:    false,
 			wantErr: true,
@@ -248,7 +157,7 @@ func TestPGInstance_SetNickname(t *testing.T) {
 			name: "Sad case - no nickname",
 			args: args{
 				ctx:      ctx,
-				userID:   userInput.UserID,
+				userID:   &userID,
 				nickname: &invalidNickname,
 			},
 			want:    false,
@@ -268,78 +177,10 @@ func TestPGInstance_SetNickname(t *testing.T) {
 		})
 	}
 
-	//TearDown
-	if err = pg.DB.Where("id", userInput.UserID).Unscoped().Delete(&gorm.User{}).Error; err != nil {
-		t.Errorf("failed to delete record = %v", err)
-	}
 }
 
 func TestPGInstance_InvalidatePIN(t *testing.T) {
 	ctx := context.Background()
-
-	pg, err := gorm.NewPGInstance()
-	if err != nil {
-		t.Errorf("pgInstance.Teardown() = %v", err)
-	}
-
-	nickname := uuid.New().String()
-	currentTime := time.Now()
-	futureTime := time.Now().AddDate(0, 0, 1)
-	flavour := feedlib.FlavourConsumer
-	pastTime := time.Now().AddDate(0, 0, -1)
-	newExtension := extension.NewExternalMethodsImpl()
-	salt, encryptedPin := newExtension.EncryptPIN("0000", nil)
-
-	// Setup test user
-	userInput := &gorm.User{
-		Username:            gofakeit.BeerHop(),
-		FirstName:           gofakeit.FirstName(),
-		MiddleName:          gofakeit.FirstName(),
-		LastName:            gofakeit.LastName(),
-		UserType:            enums.ClientUser,
-		Gender:              enumutils.GenderMale,
-		Active:              false,
-		PushTokens:          []string{},
-		LastSuccessfulLogin: &currentTime,
-		LastFailedLogin:     &currentTime,
-		FailedLoginCount:    0,
-		NextAllowedLogin:    &pastTime,
-		TermsAccepted:       true,
-		AcceptedTermsID:     &termsID,
-		Flavour:             flavour,
-		Avatar:              "",
-		IsSuspended:         true,
-		OrganisationID:      orgID,
-		Password:            "",
-		IsSuperuser:         true,
-		IsStaff:             true,
-		Email:               "",
-		DateJoined:          "",
-		Name:                nickname,
-		IsApproved:          true,
-		ApprovalNotified:    true,
-		Handle:              "",
-	}
-
-	err = pg.DB.Create(userInput).Error
-	if err != nil {
-		t.Errorf("failed to create user: %v", err)
-	}
-
-	pinInput := &gorm.PINData{
-		UserID:    *userInput.UserID,
-		HashedPIN: encryptedPin,
-		ValidFrom: time.Now(),
-		ValidTo:   futureTime,
-		IsValid:   true,
-		Flavour:   feedlib.FlavourConsumer,
-		Salt:      salt,
-	}
-
-	err = pg.DB.Create(pinInput).Error
-	if err != nil {
-		t.Errorf("failed to create pin: %v", err)
-	}
 
 	type args struct {
 		ctx    context.Context
@@ -355,7 +196,7 @@ func TestPGInstance_InvalidatePIN(t *testing.T) {
 			name: "Happy case",
 			args: args{
 				ctx:    ctx,
-				userID: *userInput.UserID,
+				userID: userIDToInvalidate,
 			},
 			want:    true,
 			wantErr: false,
@@ -382,74 +223,10 @@ func TestPGInstance_InvalidatePIN(t *testing.T) {
 			}
 		})
 	}
-	// TearDown
-	if err := pg.DB.Where("user_id", userInput.UserID).Unscoped().Delete(&gorm.PINData{}).Error; err != nil {
-		t.Errorf("failed to delete record = %v", err)
-	}
-	if err = pg.DB.Where("id", userInput.UserID).Unscoped().Delete(&gorm.User{}).Error; err != nil {
-		t.Errorf("failed to delete record = %v", err)
-	}
 }
 
 func TestPGInstance_UpdateIsCorrectSecurityQuestionResponse(t *testing.T) {
 	ctx := context.Background()
-
-	pg, err := gorm.NewPGInstance()
-	if err != nil {
-		t.Errorf("failed to initialize new PG instance: %v", err)
-		return
-	}
-
-	// Setup test user
-	userInput := &gorm.User{
-		Username:         uuid.New().String(),
-		FirstName:        gofakeit.FirstName(),
-		LastName:         gofakeit.LastName(),
-		MiddleName:       gofakeit.FirstName(),
-		UserType:         enums.ClientUser,
-		Gender:           enumutils.GenderMale,
-		Flavour:          feedlib.FlavourConsumer,
-		AcceptedTermsID:  &termsID,
-		TermsAccepted:    true,
-		IsSuspended:      true,
-		OrganisationID:   orgID,
-		NextAllowedLogin: &pastTime,
-	}
-
-	err = pg.DB.Create(&userInput).Error
-	if err != nil {
-		t.Errorf("failed to create user: %v", err)
-	}
-
-	sequence := 1
-
-	securityQuestionInput := &gorm.SecurityQuestion{
-		QuestionStem:   gofakeit.Sentence(3),
-		Description:    gofakeit.Sentence(3),
-		ResponseType:   enums.SecurityQuestionResponseTypeNumber,
-		Flavour:        feedlib.FlavourConsumer,
-		Sequence:       &sequence,
-		OrganisationID: orgID,
-		Active:         true,
-	}
-
-	err = pg.DB.Create(securityQuestionInput).Error
-	if err != nil {
-		t.Errorf("Create securityQuestion failed: %v", err)
-	}
-
-	securityQuestionResponseInput := &gorm.SecurityQuestionResponse{
-		UserID:         *userInput.UserID,
-		QuestionID:     *securityQuestionInput.SecurityQuestionID,
-		Response:       "23",
-		Timestamp:      time.Now(),
-		OrganisationID: orgID,
-	}
-
-	err = pg.DB.Create(securityQuestionResponseInput).Error
-	if err != nil {
-		t.Errorf("Create securityQuestionResponse failed: %v", err)
-	}
 
 	type args struct {
 		ctx                               context.Context
@@ -466,7 +243,7 @@ func TestPGInstance_UpdateIsCorrectSecurityQuestionResponse(t *testing.T) {
 			name: "Happy case",
 			args: args{
 				ctx:                               ctx,
-				userID:                            *userInput.UserID,
+				userID:                            userID,
 				isCorrectSecurityQuestionResponse: true,
 			},
 			want:    true,
@@ -496,47 +273,10 @@ func TestPGInstance_UpdateIsCorrectSecurityQuestionResponse(t *testing.T) {
 			}
 		})
 	}
-	// TearDown
-	if err = pg.DB.Where("id", securityQuestionResponseInput.ResponseID).Unscoped().Delete(&gorm.SecurityQuestionResponse{}).Error; err != nil {
-		t.Errorf("failed to delete record = %v", err)
-	}
-	if err = pg.DB.Where("id", userInput.UserID).Unscoped().Delete(&gorm.User{}).Error; err != nil {
-		t.Errorf("failed to delete record = %v", err)
-	}
-	if err := pg.DB.Where("id", securityQuestionInput.SecurityQuestionID).Unscoped().Delete(&gorm.SecurityQuestion{}).Error; err != nil {
-		t.Errorf("failed to delete record = %v", err)
-	}
 }
 
 func TestPGInstance_AcceptTerms(t *testing.T) {
 	ctx := context.Background()
-
-	pg, err := gorm.NewPGInstance()
-	if err != nil {
-		t.Errorf("failed to initialize new PG instance: %v", err)
-		return
-	}
-
-	// Setup test user
-	userInput := &gorm.User{
-		Username:         uuid.New().String(),
-		FirstName:        gofakeit.FirstName(),
-		LastName:         gofakeit.LastName(),
-		MiddleName:       gofakeit.FirstName(),
-		UserType:         enums.ClientUser,
-		Gender:           enumutils.GenderMale,
-		Flavour:          feedlib.FlavourConsumer,
-		AcceptedTermsID:  &termsID,
-		TermsAccepted:    true,
-		IsSuspended:      true,
-		OrganisationID:   orgID,
-		NextAllowedLogin: &pastTime,
-	}
-
-	err = pg.DB.Create(&userInput).Error
-	if err != nil {
-		t.Errorf("failed to create user: %v", err)
-	}
 
 	type args struct {
 		ctx     context.Context
@@ -553,7 +293,7 @@ func TestPGInstance_AcceptTerms(t *testing.T) {
 			name: "Happy case",
 			args: args{
 				ctx:     ctx,
-				userID:  userInput.UserID,
+				userID:  &userIDToAcceptTerms,
 				termsID: &termsID,
 			},
 			want:    true,
@@ -579,44 +319,11 @@ func TestPGInstance_AcceptTerms(t *testing.T) {
 				t.Errorf("PGInstance.AcceptTerms() = %v, want %v", got, tt.want)
 			}
 		})
-		if err = pg.DB.Where("id", userInput.UserID).Unscoped().Delete(&gorm.User{}).Error; err != nil {
-			t.Errorf("failed to delete record = %v", err)
-		}
-	}
-	// Teardown
-	if err = pg.DB.Where("id", userInput.UserID).Unscoped().Delete(&gorm.User{}).Error; err != nil {
-		t.Errorf("failed to delete record = %v", err)
 	}
 }
 
 func TestPGInstance_UpdateUserFailedLoginCount(t *testing.T) {
 	ctx := context.Background()
-
-	pg, err := gorm.NewPGInstance()
-	if err != nil {
-		t.Errorf("failed to initialize new PG instance: %v", err)
-		return
-	}
-	// Setup test user
-	userInput := &gorm.User{
-		Username:         uuid.New().String(),
-		FirstName:        gofakeit.FirstName(),
-		LastName:         gofakeit.LastName(),
-		MiddleName:       gofakeit.FirstName(),
-		UserType:         enums.ClientUser,
-		Gender:           enumutils.GenderMale,
-		Flavour:          feedlib.FlavourConsumer,
-		AcceptedTermsID:  &termsID,
-		TermsAccepted:    true,
-		IsSuspended:      true,
-		OrganisationID:   orgID,
-		NextAllowedLogin: &pastTime,
-	}
-
-	err = pg.DB.Create(&userInput).Error
-	if err != nil {
-		t.Errorf("failed to create user: %v", err)
-	}
 
 	type args struct {
 		ctx                 context.Context
@@ -632,7 +339,7 @@ func TestPGInstance_UpdateUserFailedLoginCount(t *testing.T) {
 			name: "default case",
 			args: args{
 				ctx:                 ctx,
-				userID:              *userInput.UserID,
+				userID:              userIDToIncreaseFailedLoginCount,
 				failedLoginAttempts: 1,
 			},
 		},
@@ -645,40 +352,10 @@ func TestPGInstance_UpdateUserFailedLoginCount(t *testing.T) {
 			}
 		})
 	}
-	// Teardown
-	if err = pg.DB.Where("id", userInput.UserID).Unscoped().Delete(&gorm.User{}).Error; err != nil {
-		t.Errorf("failed to delete record = %v", err)
-	}
 }
 
 func TestPGInstance_UpdateUserLastFailedLoginTime(t *testing.T) {
 	ctx := context.Background()
-
-	pg, err := gorm.NewPGInstance()
-	if err != nil {
-		t.Errorf("failed to initialize new PG instance: %v", err)
-		return
-	}
-	// Setup test user
-	userInput := &gorm.User{
-		Username:         uuid.New().String(),
-		FirstName:        gofakeit.FirstName(),
-		LastName:         gofakeit.LastName(),
-		MiddleName:       gofakeit.FirstName(),
-		UserType:         enums.ClientUser,
-		Gender:           enumutils.GenderMale,
-		Flavour:          feedlib.FlavourConsumer,
-		AcceptedTermsID:  &termsID,
-		TermsAccepted:    true,
-		IsSuspended:      true,
-		OrganisationID:   orgID,
-		NextAllowedLogin: &pastTime,
-	}
-
-	err = pg.DB.Create(&userInput).Error
-	if err != nil {
-		t.Errorf("failed to create user: %v", err)
-	}
 
 	type args struct {
 		ctx    context.Context
@@ -693,7 +370,7 @@ func TestPGInstance_UpdateUserLastFailedLoginTime(t *testing.T) {
 			name: "default case",
 			args: args{
 				ctx:    ctx,
-				userID: *userInput.UserID,
+				userID: userIDtoUpdateLastFailedLoginTime,
 			},
 		},
 	}
@@ -704,40 +381,10 @@ func TestPGInstance_UpdateUserLastFailedLoginTime(t *testing.T) {
 			}
 		})
 	}
-	// Teardown
-	if err = pg.DB.Where("id", userInput.UserID).Unscoped().Delete(&gorm.User{}).Error; err != nil {
-		t.Errorf("failed to delete record = %v", err)
-	}
 }
 
 func TestPGInstance_UpdateUserNextAllowedLoginTime(t *testing.T) {
 	ctx := context.Background()
-
-	pg, err := gorm.NewPGInstance()
-	if err != nil {
-		t.Errorf("failed to initialize new PG instance: %v", err)
-		return
-	}
-	// Setup test user
-	userInput := &gorm.User{
-		Username:         uuid.New().String(),
-		FirstName:        gofakeit.FirstName(),
-		LastName:         gofakeit.LastName(),
-		MiddleName:       gofakeit.FirstName(),
-		UserType:         enums.ClientUser,
-		Gender:           enumutils.GenderMale,
-		Flavour:          feedlib.FlavourConsumer,
-		AcceptedTermsID:  &termsID,
-		TermsAccepted:    true,
-		IsSuspended:      true,
-		OrganisationID:   orgID,
-		NextAllowedLogin: &pastTime,
-	}
-
-	err = pg.DB.Create(&userInput).Error
-	if err != nil {
-		t.Errorf("failed to create user: %v", err)
-	}
 
 	type args struct {
 		ctx                  context.Context
@@ -754,7 +401,7 @@ func TestPGInstance_UpdateUserNextAllowedLoginTime(t *testing.T) {
 			name: "default case",
 			args: args{
 				ctx:                  ctx,
-				userID:               *userInput.UserID,
+				userID:               userIDToUpdateNextAllowedLoginTime,
 				nextAllowedLoginTime: time.Now().Add(3),
 			},
 		},
@@ -766,114 +413,9 @@ func TestPGInstance_UpdateUserNextAllowedLoginTime(t *testing.T) {
 			}
 		})
 	}
-	// Teardown
-	if err = pg.DB.Where("id", userInput.UserID).Unscoped().Delete(&gorm.User{}).Error; err != nil {
-		t.Errorf("failed to delete record = %v", err)
-	}
 }
 func TestPGInstance_ShareContent(t *testing.T) {
 	ctx := context.Background()
-	nickname := uuid.New().String()
-	currentTime := time.Now()
-	flavour := feedlib.FlavourConsumer
-	pastTime := time.Now().AddDate(0, 0, -1)
-
-	pg, err := gorm.NewPGInstance()
-	if err != nil {
-		t.Errorf("pgInstance.Teardown() = %v", err)
-	}
-
-	// Setup test user
-	userInput := &gorm.User{
-		Username:            gofakeit.BeerHop(),
-		FirstName:           gofakeit.FirstName(),
-		MiddleName:          gofakeit.FirstName(),
-		LastName:            gofakeit.LastName(),
-		UserType:            enums.ClientUser,
-		Gender:              enumutils.GenderMale,
-		Active:              false,
-		PushTokens:          []string{},
-		LastSuccessfulLogin: &currentTime,
-		LastFailedLogin:     &currentTime,
-		FailedLoginCount:    0,
-		NextAllowedLogin:    &pastTime,
-		TermsAccepted:       true,
-		AcceptedTermsID:     &termsID,
-		Flavour:             flavour,
-		Avatar:              "",
-		IsSuspended:         true,
-		OrganisationID:      orgID,
-		Password:            "",
-		IsSuperuser:         true,
-		IsStaff:             true,
-		Email:               "",
-		DateJoined:          "",
-		Name:                nickname,
-		IsApproved:          true,
-		ApprovalNotified:    true,
-		Handle:              "",
-	}
-
-	err = pg.DB.Create(userInput).Error
-	if err != nil {
-		t.Errorf("failed to create user: %v", err)
-	}
-
-	wagtailCorePageInput := &gorm.WagtailCorePage{
-		// WagtailCorePageID:     gofakeit.Number(200, 500),
-		Path:                  "/home/123",
-		Depth:                 0,
-		Numchild:              0,
-		Title:                 "test title",
-		Slug:                  "test-title",
-		Live:                  true,
-		HasUnpublishedChanges: false,
-		URLPath:               "https://example.com",
-		SEOTitle:              "test title",
-		ShowInMenus:           false,
-		SearchDescription:     "description",
-		Expired:               false,
-		ContentTypeID:         1, // default to 1 => wagtailcore page
-		Locked:                false,
-		DraftTitle:            "default title",
-		TranslationKey:        uuid.New().String(),
-		LocaleID:              1, // default to 1 => en
-	}
-
-	err = pg.DB.Create(wagtailCorePageInput).Error
-	if err != nil {
-		t.Errorf("failed to create wagtail content page: %v", err)
-	}
-
-	contentAuthorInput := &gorm.ContentAuthor{
-		Active:         true,
-		Name:           gofakeit.Name(),
-		OrganisationID: orgID,
-	}
-
-	err = pg.DB.Create(contentAuthorInput).Error
-	if err != nil {
-		t.Errorf("failed to create content author: %v", err)
-	}
-
-	contentItemInput := &gorm.ContentItem{
-		PagePtrID:           wagtailCorePageInput.WagtailCorePageID,
-		Date:                time.Now(),
-		Intro:               gofakeit.Name(),
-		ItemType:            "text",
-		TimeEstimateSeconds: 3000,
-		Body:                `gofakeit.HipsterParagraph(30, 10, 20, ",")`,
-		LikeCount:           10,
-		BookmarkCount:       40,
-		ShareCount:          0,
-		ViewCount:           100,
-		AuthorID:            *contentAuthorInput.ContentAuthorID,
-	}
-
-	err = pg.DB.Create(contentItemInput).Error
-	if err != nil {
-		t.Errorf("failed to create content: %v", err)
-	}
 
 	type args struct {
 		ctx   context.Context
@@ -890,8 +432,8 @@ func TestPGInstance_ShareContent(t *testing.T) {
 			args: args{
 				ctx: ctx,
 				input: dto.ShareContentInput{
-					UserID:    *userInput.UserID,
-					ContentID: contentItemInput.PagePtrID,
+					UserID:    userID,
+					ContentID: contentID,
 				},
 			},
 			want:    true,
@@ -919,127 +461,11 @@ func TestPGInstance_ShareContent(t *testing.T) {
 			}
 		})
 	}
-	//TearDown
-	if err = pg.DB.Where("content_item_id", contentItemInput.PagePtrID).Unscoped().Delete(&gorm.ContentShare{}).Error; err != nil {
-		t.Errorf("failed to delete record = %v", err)
-	}
-	if err = pg.DB.Where("page_ptr_id", contentItemInput.PagePtrID).Unscoped().Delete(&gorm.ContentItem{}).Error; err != nil {
-		t.Errorf("failed to delete record = %v", err)
-	}
-	if err = pg.DB.Where("id", contentAuthorInput.ContentAuthorID).Unscoped().Delete(&gorm.ContentAuthor{}).Error; err != nil {
-		t.Errorf("failed to delete record = %v", err)
-	}
-	if err = pg.DB.Where("id", wagtailCorePageInput.WagtailCorePageID).Unscoped().Delete(&gorm.WagtailCorePage{}).Error; err != nil {
-		t.Errorf("failed to delete record = %v", err)
-	}
-	if err = pg.DB.Where("id", userInput.UserID).Unscoped().Delete(&gorm.User{}).Error; err != nil {
-		t.Errorf("failed to delete record = %v", err)
-	}
+
 }
 
 func TestPGInstance_BookmarkContent(t *testing.T) {
 	ctx := context.Background()
-	nickname := uuid.New().String()
-	currentTime := time.Now()
-	flavour := feedlib.FlavourConsumer
-	pastTime := time.Now().AddDate(0, 0, -1)
-
-	pg, err := gorm.NewPGInstance()
-	if err != nil {
-		t.Errorf("pgInstance.Teardown() = %v", err)
-	}
-
-	// Setup test user
-	userInput := &gorm.User{
-		Username:            gofakeit.BeerHop(),
-		FirstName:           gofakeit.FirstName(),
-		MiddleName:          gofakeit.FirstName(),
-		LastName:            gofakeit.LastName(),
-		UserType:            enums.ClientUser,
-		Gender:              enumutils.GenderMale,
-		Active:              false,
-		PushTokens:          []string{},
-		LastSuccessfulLogin: &currentTime,
-		LastFailedLogin:     &currentTime,
-		FailedLoginCount:    0,
-		NextAllowedLogin:    &pastTime,
-		TermsAccepted:       true,
-		AcceptedTermsID:     &termsID,
-		Flavour:             flavour,
-		Avatar:              "",
-		IsSuspended:         true,
-		OrganisationID:      orgID,
-		Password:            "",
-		IsSuperuser:         true,
-		IsStaff:             true,
-		Email:               "",
-		DateJoined:          "",
-		Name:                nickname,
-		IsApproved:          true,
-		ApprovalNotified:    true,
-		Handle:              "",
-	}
-
-	err = pg.DB.Create(userInput).Error
-	if err != nil {
-		t.Errorf("failed to create user: %v", err)
-	}
-
-	wagtailCorePageInput := &gorm.WagtailCorePage{
-		// WagtailCorePageID:     gofakeit.Number(200, 500),
-		Path:                  "/home/123",
-		Depth:                 0,
-		Numchild:              0,
-		Title:                 "test title",
-		Slug:                  "test-title",
-		Live:                  true,
-		HasUnpublishedChanges: false,
-		URLPath:               "https://example.com",
-		SEOTitle:              "test title",
-		ShowInMenus:           false,
-		SearchDescription:     "description",
-		Expired:               false,
-		ContentTypeID:         1, // default to 1 => wagtailcore page
-		Locked:                false,
-		DraftTitle:            "default title",
-		TranslationKey:        uuid.New().String(),
-		LocaleID:              1, // default to 1 => en
-	}
-
-	err = pg.DB.Create(wagtailCorePageInput).Error
-	if err != nil {
-		t.Errorf("failed to create wagtail content page: %v", err)
-	}
-
-	contentAuthorInput := &gorm.ContentAuthor{
-		Active:         true,
-		Name:           gofakeit.Name(),
-		OrganisationID: orgID,
-	}
-
-	err = pg.DB.Create(contentAuthorInput).Error
-	if err != nil {
-		t.Errorf("failed to create content author: %v", err)
-	}
-
-	contentItemInput := &gorm.ContentItem{
-		PagePtrID:           wagtailCorePageInput.WagtailCorePageID,
-		Date:                time.Now(),
-		Intro:               gofakeit.Name(),
-		ItemType:            "text",
-		TimeEstimateSeconds: 3000,
-		Body:                `gofakeit.HipsterParagraph(30, 10, 20, ",")`,
-		LikeCount:           10,
-		BookmarkCount:       40,
-		ShareCount:          0,
-		ViewCount:           100,
-		AuthorID:            *contentAuthorInput.ContentAuthorID,
-	}
-
-	err = pg.DB.Create(contentItemInput).Error
-	if err != nil {
-		t.Errorf("failed to create content: %v", err)
-	}
 
 	type args struct {
 		ctx       context.Context
@@ -1056,8 +482,8 @@ func TestPGInstance_BookmarkContent(t *testing.T) {
 			name: "default case",
 			args: args{
 				ctx:       ctx,
-				userID:    *userInput.UserID,
-				contentID: contentItemInput.PagePtrID,
+				userID:    userID,
+				contentID: contentID,
 			},
 			wantErr: false,
 			want:    true,
@@ -1067,8 +493,8 @@ func TestPGInstance_BookmarkContent(t *testing.T) {
 			name: "bookmark already exists",
 			args: args{
 				ctx:       ctx,
-				userID:    *userInput.UserID,
-				contentID: contentItemInput.PagePtrID,
+				userID:    userID,
+				contentID: contentID,
 			},
 			wantErr: false,
 			want:    true,
@@ -1095,127 +521,14 @@ func TestPGInstance_BookmarkContent(t *testing.T) {
 			}
 		})
 	}
-
-	//TearDown
-	if err = pg.DB.Where("content_item_id", contentItemInput.PagePtrID).Unscoped().Delete(&gorm.ContentBookmark{}).Error; err != nil {
-		t.Errorf("failed to delete record = %v", err)
-	}
-	if err = pg.DB.Where("page_ptr_id", contentItemInput.PagePtrID).Unscoped().Delete(&gorm.ContentItem{}).Error; err != nil {
-		t.Errorf("failed to delete record = %v", err)
-	}
-	if err = pg.DB.Where("id", contentAuthorInput.ContentAuthorID).Unscoped().Delete(&gorm.ContentAuthor{}).Error; err != nil {
-		t.Errorf("failed to delete record = %v", err)
-	}
-	if err = pg.DB.Where("id", wagtailCorePageInput.WagtailCorePageID).Unscoped().Delete(&gorm.WagtailCorePage{}).Error; err != nil {
-		t.Errorf("failed to delete record = %v", err)
-	}
-	if err = pg.DB.Where("id", userInput.UserID).Unscoped().Delete(&gorm.User{}).Error; err != nil {
-		t.Errorf("failed to delete record = %v", err)
-	}
 }
 
 func TestPGInstance_UnBookmarkContent(t *testing.T) {
 	ctx := context.Background()
-	nickname := uuid.New().String()
-	currentTime := time.Now()
-	flavour := feedlib.FlavourConsumer
-	pastTime := time.Now().AddDate(0, 0, -1)
 
-	pg, err := gorm.NewPGInstance()
-	if err != nil {
-		t.Errorf("pgInstance.Teardown() = %v", err)
-	}
-
-	// Setup test user
-	userInput := &gorm.User{
-		Username:            gofakeit.BeerHop(),
-		FirstName:           gofakeit.FirstName(),
-		MiddleName:          gofakeit.FirstName(),
-		LastName:            gofakeit.LastName(),
-		UserType:            enums.ClientUser,
-		Gender:              enumutils.GenderMale,
-		Active:              false,
-		PushTokens:          []string{},
-		LastSuccessfulLogin: &currentTime,
-		LastFailedLogin:     &currentTime,
-		FailedLoginCount:    0,
-		NextAllowedLogin:    &pastTime,
-		TermsAccepted:       true,
-		AcceptedTermsID:     &termsID,
-		Flavour:             flavour,
-		Avatar:              "",
-		IsSuspended:         true,
-		OrganisationID:      orgID,
-		Password:            "",
-		IsSuperuser:         true,
-		IsStaff:             true,
-		Email:               "",
-		DateJoined:          "",
-		Name:                nickname,
-		IsApproved:          true,
-		ApprovalNotified:    true,
-		Handle:              "",
-	}
-
-	err = pg.DB.Create(userInput).Error
+	_, err := testingDB.BookmarkContent(ctx, userID, contentID2)
 	if err != nil {
 		t.Errorf("failed to create user: %v", err)
-	}
-
-	wagtailCorePageInput := &gorm.WagtailCorePage{
-		// WagtailCorePageID:     gofakeit.Number(200, 500),
-		Path:                  "/home/123",
-		Depth:                 0,
-		Numchild:              0,
-		Title:                 "test title",
-		Slug:                  "test-title",
-		Live:                  true,
-		HasUnpublishedChanges: false,
-		URLPath:               "https://example.com",
-		SEOTitle:              "test title",
-		ShowInMenus:           false,
-		SearchDescription:     "description",
-		Expired:               false,
-		ContentTypeID:         1, // default to 1 => wagtailcore page
-		Locked:                false,
-		DraftTitle:            "default title",
-		TranslationKey:        uuid.New().String(),
-		LocaleID:              1, // default to 1 => en
-	}
-
-	err = pg.DB.Create(wagtailCorePageInput).Error
-	if err != nil {
-		t.Errorf("failed to create wagtail content page: %v", err)
-	}
-
-	contentAuthorInput := &gorm.ContentAuthor{
-		Active:         true,
-		Name:           gofakeit.Name(),
-		OrganisationID: orgID,
-	}
-
-	err = pg.DB.Create(contentAuthorInput).Error
-	if err != nil {
-		t.Errorf("failed to create content author: %v", err)
-	}
-
-	contentItemInput := &gorm.ContentItem{
-		PagePtrID:           wagtailCorePageInput.WagtailCorePageID,
-		Date:                time.Now(),
-		Intro:               gofakeit.Name(),
-		ItemType:            "text",
-		TimeEstimateSeconds: 3000,
-		Body:                `gofakeit.HipsterParagraph(30, 10, 20, ",")`,
-		LikeCount:           10,
-		BookmarkCount:       40,
-		ShareCount:          0,
-		ViewCount:           100,
-		AuthorID:            *contentAuthorInput.ContentAuthorID,
-	}
-
-	err = pg.DB.Create(contentItemInput).Error
-	if err != nil {
-		t.Errorf("failed to create content: %v", err)
 	}
 
 	type args struct {
@@ -1233,25 +546,25 @@ func TestPGInstance_UnBookmarkContent(t *testing.T) {
 			name: "default case",
 			args: args{
 				ctx:       ctx,
-				userID:    *userInput.UserID,
-				contentID: contentItemInput.PagePtrID,
+				userID:    userID,
+				contentID: contentID2,
 			},
 			wantErr: false,
 			want:    true,
 		},
 		{
-			// Ensures there is idepotency
+			// Ensures there is idempotency
 			name: "bookmark already exists",
 			args: args{
 				ctx:       ctx,
-				userID:    *userInput.UserID,
-				contentID: contentItemInput.PagePtrID,
+				userID:    userID,
+				contentID: contentID2,
 			},
 			wantErr: false,
 			want:    true,
 		},
 		{
-			name: "invald: missing parama",
+			name: "invald: missing params",
 			args: args{
 				ctx: ctx,
 			},
@@ -1272,86 +585,12 @@ func TestPGInstance_UnBookmarkContent(t *testing.T) {
 			}
 		})
 	}
-	//TearDown
-	if err = pg.DB.Where("page_ptr_id", contentItemInput.PagePtrID).Unscoped().Delete(&gorm.ContentItem{}).Error; err != nil {
-		t.Errorf("failed to delete record = %v", err)
-	}
-	if err = pg.DB.Where("id", contentAuthorInput.ContentAuthorID).Unscoped().Delete(&gorm.ContentAuthor{}).Error; err != nil {
-		t.Errorf("failed to delete record = %v", err)
-	}
-	if err = pg.DB.Where("id", wagtailCorePageInput.WagtailCorePageID).Unscoped().Delete(&gorm.WagtailCorePage{}).Error; err != nil {
-		t.Errorf("failed to delete record = %v", err)
-	}
-	if err = pg.DB.Where("id", userInput.UserID).Unscoped().Delete(&gorm.User{}).Error; err != nil {
-		t.Errorf("failed to delete record = %v", err)
-	}
+
 }
 
 func TestPGInstance_UpdateUserPinChangeRequiredStatus(t *testing.T) {
 	ctx := context.Background()
-	nickname := uuid.New().String()
-	currentTime := time.Now()
 	flavour := feedlib.FlavourConsumer
-	pastTime := time.Now().AddDate(0, 0, -1)
-	futureTime := time.Now().AddDate(0, 0, 2)
-	newExtension := extension.NewExternalMethodsImpl()
-	salt, encryptedPin := newExtension.EncryptPIN("0000", nil)
-
-	pg, err := gorm.NewPGInstance()
-	if err != nil {
-		t.Errorf("pgInstance.Teardown() = %v", err)
-	}
-
-	// Setup test user
-	userInput := &gorm.User{
-		Username:            gofakeit.BeerHop(),
-		FirstName:           gofakeit.FirstName(),
-		MiddleName:          gofakeit.FirstName(),
-		LastName:            gofakeit.LastName(),
-		UserType:            enums.ClientUser,
-		Gender:              enumutils.GenderMale,
-		Active:              false,
-		PushTokens:          []string{},
-		LastSuccessfulLogin: &currentTime,
-		LastFailedLogin:     &currentTime,
-		FailedLoginCount:    0,
-		NextAllowedLogin:    &pastTime,
-		TermsAccepted:       true,
-		AcceptedTermsID:     &termsID,
-		Flavour:             flavour,
-		Avatar:              "",
-		IsSuspended:         true,
-		OrganisationID:      orgID,
-		Password:            "",
-		IsSuperuser:         true,
-		IsStaff:             true,
-		Email:               "",
-		DateJoined:          "",
-		Name:                nickname,
-		IsApproved:          true,
-		ApprovalNotified:    true,
-		Handle:              "",
-	}
-
-	err = pg.DB.Create(userInput).Error
-	if err != nil {
-		t.Errorf("failed to create user: %v", err)
-	}
-
-	pinInput := &gorm.PINData{
-		UserID:    *userInput.UserID,
-		HashedPIN: encryptedPin,
-		ValidFrom: time.Now(),
-		ValidTo:   futureTime,
-		IsValid:   true,
-		Flavour:   feedlib.FlavourConsumer,
-		Salt:      salt,
-	}
-
-	err = pg.DB.Create(pinInput).Error
-	if err != nil {
-		t.Errorf("failed to create pin: %v", err)
-	}
 
 	type args struct {
 		ctx     context.Context
@@ -1369,7 +608,7 @@ func TestPGInstance_UpdateUserPinChangeRequiredStatus(t *testing.T) {
 			name: "happy case",
 			args: args{
 				ctx:     ctx,
-				userID:  *userInput.UserID,
+				userID:  userIDUpdatePinRequireChangeStatus,
 				flavour: flavour,
 			},
 			want:    true,
@@ -1389,133 +628,10 @@ func TestPGInstance_UpdateUserPinChangeRequiredStatus(t *testing.T) {
 			}
 		})
 	}
-	// Teardown
-	if err := pg.DB.Where("user_id", userInput.UserID).Unscoped().Delete(&gorm.PINData{}).Error; err != nil {
-		t.Errorf("failed to delete record = %v", err)
-	}
-	if err = pg.DB.Where("id", userInput.UserID).Unscoped().Delete(&gorm.User{}).Error; err != nil {
-		t.Errorf("failed to delete record = %v", err)
-	}
 }
 
 func TestPGInstance_LikeContent(t *testing.T) {
 	ctx := context.Background()
-
-	nickname := uuid.New().String()
-	currentTime := time.Now()
-	flavour := feedlib.FlavourConsumer
-	pastTime := time.Now().AddDate(0, 0, -1)
-
-	pg, err := gorm.NewPGInstance()
-	if err != nil {
-		t.Errorf("pgInstance.Teardown() = %v", err)
-	}
-
-	// Setup test user
-	userInput := &gorm.User{
-		Username:            gofakeit.BeerHop(),
-		FirstName:           gofakeit.FirstName(),
-		MiddleName:          gofakeit.FirstName(),
-		LastName:            gofakeit.LastName(),
-		UserType:            enums.ClientUser,
-		Gender:              enumutils.GenderMale,
-		Active:              false,
-		PushTokens:          []string{},
-		LastSuccessfulLogin: &currentTime,
-		LastFailedLogin:     &currentTime,
-		FailedLoginCount:    0,
-		NextAllowedLogin:    &pastTime,
-		TermsAccepted:       true,
-		AcceptedTermsID:     &termsID,
-		Flavour:             flavour,
-		Avatar:              "",
-		IsSuspended:         true,
-		OrganisationID:      orgID,
-		Password:            "",
-		IsSuperuser:         true,
-		IsStaff:             true,
-		Email:               "",
-		DateJoined:          "",
-		Name:                nickname,
-		IsApproved:          true,
-		ApprovalNotified:    true,
-		Handle:              "",
-	}
-
-	err = pg.DB.Create(userInput).Error
-	if err != nil {
-		t.Errorf("failed to create user: %v", err)
-	}
-
-	contentAuthorInput := &gorm.ContentAuthor{
-		Active:         true,
-		Name:           gofakeit.Name(),
-		OrganisationID: orgID,
-	}
-
-	err = pg.DB.Create(contentAuthorInput).Error
-	if err != nil {
-		t.Errorf("failed to create content author: %v", err)
-	}
-
-	wagtailCorePageInput := &gorm.WagtailCorePage{
-		Path:                  "/home/123",
-		Depth:                 0,
-		Numchild:              0,
-		Title:                 "test title",
-		Slug:                  "test-title",
-		Live:                  true,
-		HasUnpublishedChanges: false,
-		URLPath:               "https://example.com",
-		SEOTitle:              "test title",
-		ShowInMenus:           false,
-		SearchDescription:     "description",
-		Expired:               false,
-		ContentTypeID:         1,
-		Locked:                false,
-		DraftTitle:            "default title",
-		TranslationKey:        uuid.New().String(),
-		LocaleID:              1,
-	}
-
-	err = pg.DB.Create(wagtailCorePageInput).Error
-	if err != nil {
-		t.Errorf("failed to create wagtail content page: %v", err)
-	}
-
-	contentItemInput := &gorm.ContentItem{
-		PagePtrID:           wagtailCorePageInput.WagtailCorePageID,
-		Date:                time.Now(),
-		Intro:               gofakeit.Name(),
-		ItemType:            "text",
-		TimeEstimateSeconds: 3000,
-		Body:                `gofakeit.HipsterParagraph(30, 10, 20, ",")`,
-		LikeCount:           10,
-		BookmarkCount:       40,
-		ShareCount:          0,
-		ViewCount:           10,
-		AuthorID:            *contentAuthorInput.ContentAuthorID,
-	}
-
-	err = pg.DB.Create(contentItemInput).Error
-	if err != nil {
-		t.Errorf("failed to create content: %v", err)
-	}
-
-	contentID := uuid.New().String()
-
-	contentLike := &gorm.ContentLike{
-		Base:           gorm.Base{},
-		ContentLikeID:  contentID,
-		Active:         true,
-		ContentID:      contentItemInput.PagePtrID,
-		UserID:         *userInput.UserID,
-		OrganisationID: serverutils.MustGetEnvVar("DEFAULT_ORG_ID"),
-	}
-	err = pg.DB.Create(contentLike).Error
-	if err != nil {
-		t.Errorf("failed to create user: %v", err)
-	}
 
 	type args struct {
 		context   context.Context
@@ -1532,8 +648,8 @@ func TestPGInstance_LikeContent(t *testing.T) {
 			name: "Happy case",
 			args: args{
 				context:   ctx,
-				userID:    *userInput.UserID,
-				contentID: contentLike.ContentID,
+				userID:    userID,
+				contentID: contentID,
 			},
 			want:    true,
 			wantErr: false,
@@ -1543,7 +659,7 @@ func TestPGInstance_LikeContent(t *testing.T) {
 			args: args{
 				context:   ctx,
 				userID:    "",
-				contentID: contentLike.ContentID,
+				contentID: contentID,
 			},
 			want:    false,
 			wantErr: true,
@@ -1552,7 +668,7 @@ func TestPGInstance_LikeContent(t *testing.T) {
 			name: "Sad case - no contentID",
 			args: args{
 				context:   ctx,
-				userID:    *userInput.UserID,
+				userID:    userID,
 				contentID: 0,
 			},
 			want:    false,
@@ -1582,140 +698,12 @@ func TestPGInstance_LikeContent(t *testing.T) {
 			}
 		})
 	}
-
-	//TearDown
-	if err = pg.DB.Where("content_item_id", contentItemInput.PagePtrID).Unscoped().Delete(&gorm.ContentLike{}).Error; err != nil {
-		t.Errorf("failed to delete record = %v", err)
-	}
-	if err = pg.DB.Where("page_ptr_id", contentItemInput.PagePtrID).Unscoped().Delete(&gorm.ContentItem{}).Error; err != nil {
-		t.Errorf("failed to delete record = %v", err)
-	}
-	if err = pg.DB.Where("id", contentAuthorInput.ContentAuthorID).Unscoped().Delete(&gorm.ContentAuthor{}).Error; err != nil {
-		t.Errorf("failed to delete record = %v", err)
-	}
-	if err = pg.DB.Where("id", wagtailCorePageInput.WagtailCorePageID).Unscoped().Delete(&gorm.WagtailCorePage{}).Error; err != nil {
-		t.Errorf("failed to delete record = %v", err)
-	}
-	if err = pg.DB.Where("id", userInput.UserID).Unscoped().Delete(&gorm.User{}).Error; err != nil {
-		t.Errorf("failed to delete record = %v", err)
-	}
 }
 
 func TestPGInstance_UnlikeContent(t *testing.T) {
 	ctx := context.Background()
 
-	nickname := uuid.New().String()
-	currentTime := time.Now()
-	flavour := feedlib.FlavourConsumer
-	pastTime := time.Now().AddDate(0, 0, -1)
-
-	pg, err := gorm.NewPGInstance()
-	if err != nil {
-		t.Errorf("pgInstance.Teardown() = %v", err)
-	}
-
-	// Setup test user
-	userInput := &gorm.User{
-		Username:            gofakeit.BeerHop(),
-		FirstName:           gofakeit.FirstName(),
-		MiddleName:          gofakeit.FirstName(),
-		LastName:            gofakeit.LastName(),
-		UserType:            enums.ClientUser,
-		Gender:              enumutils.GenderMale,
-		Active:              false,
-		PushTokens:          []string{},
-		LastSuccessfulLogin: &currentTime,
-		LastFailedLogin:     &currentTime,
-		FailedLoginCount:    0,
-		NextAllowedLogin:    &pastTime,
-		TermsAccepted:       true,
-		AcceptedTermsID:     &termsID,
-		Flavour:             flavour,
-		Avatar:              "",
-		IsSuspended:         true,
-		OrganisationID:      orgID,
-		Password:            "",
-		IsSuperuser:         true,
-		IsStaff:             true,
-		Email:               "",
-		DateJoined:          "",
-		Name:                nickname,
-		IsApproved:          true,
-		ApprovalNotified:    true,
-		Handle:              "",
-	}
-
-	err = pg.DB.Create(userInput).Error
-	if err != nil {
-		t.Errorf("failed to create user: %v", err)
-	}
-
-	contentAuthorInput := &gorm.ContentAuthor{
-		Active:         true,
-		Name:           gofakeit.Name(),
-		OrganisationID: orgID,
-	}
-
-	err = pg.DB.Create(contentAuthorInput).Error
-	if err != nil {
-		t.Errorf("failed to create content author: %v", err)
-	}
-
-	wagtailCorePageInput := &gorm.WagtailCorePage{
-		Path:                  "/home/123",
-		Depth:                 0,
-		Numchild:              0,
-		Title:                 "test title",
-		Slug:                  "test-title",
-		Live:                  true,
-		HasUnpublishedChanges: false,
-		URLPath:               "https://example.com",
-		SEOTitle:              "test title",
-		ShowInMenus:           false,
-		SearchDescription:     "description",
-		Expired:               false,
-		ContentTypeID:         1,
-		Locked:                false,
-		DraftTitle:            "default title",
-		TranslationKey:        uuid.New().String(),
-		LocaleID:              1,
-	}
-
-	err = pg.DB.Create(wagtailCorePageInput).Error
-	if err != nil {
-		t.Errorf("failed to create wagtail content page: %v", err)
-	}
-
-	contentItemInput := &gorm.ContentItem{
-		PagePtrID:           wagtailCorePageInput.WagtailCorePageID,
-		Date:                time.Now(),
-		Intro:               gofakeit.Name(),
-		ItemType:            "text",
-		TimeEstimateSeconds: 3000,
-		Body:                `gofakeit.HipsterParagraph(30, 10, 20, ",")`,
-		LikeCount:           10,
-		BookmarkCount:       40,
-		ShareCount:          0,
-		ViewCount:           10,
-		AuthorID:            *contentAuthorInput.ContentAuthorID,
-	}
-
-	err = pg.DB.Create(contentItemInput).Error
-	if err != nil {
-		t.Errorf("failed to create content: %v", err)
-	}
-
-	contentID := uuid.New().String()
-
-	contentLike := &gorm.ContentLike{
-		Base:           gorm.Base{},
-		ContentLikeID:  contentID,
-		Active:         true,
-		ContentID:      contentItemInput.PagePtrID,
-		UserID:         *userInput.UserID,
-		OrganisationID: serverutils.MustGetEnvVar("DEFAULT_ORG_ID"),
-	}
-	err = pg.DB.Create(contentLike).Error
+	_, err := testingDB.LikeContent(ctx, userID, contentID2)
 	if err != nil {
 		t.Errorf("failed to create user: %v", err)
 	}
@@ -1735,8 +723,8 @@ func TestPGInstance_UnlikeContent(t *testing.T) {
 			name: "Happy case",
 			args: args{
 				context:   ctx,
-				userID:    *userInput.UserID,
-				contentID: contentLike.ContentID,
+				userID:    userID,
+				contentID: contentID2,
 			},
 			want:    true,
 			wantErr: false,
@@ -1746,7 +734,7 @@ func TestPGInstance_UnlikeContent(t *testing.T) {
 			args: args{
 				context:   ctx,
 				userID:    "",
-				contentID: contentLike.ContentID,
+				contentID: contentID2,
 			},
 			want:    false,
 			wantErr: true,
@@ -1755,7 +743,7 @@ func TestPGInstance_UnlikeContent(t *testing.T) {
 			name: "Sad case - no contentID",
 			args: args{
 				context:   ctx,
-				userID:    *userInput.UserID,
+				userID:    userID,
 				contentID: 0,
 			},
 			want:    false,
@@ -1785,128 +773,9 @@ func TestPGInstance_UnlikeContent(t *testing.T) {
 			}
 		})
 	}
-
-	//TearDown
-	if err = pg.DB.Where("content_item_id", contentItemInput.PagePtrID).Unscoped().Delete(&gorm.ContentLike{}).Error; err != nil {
-		t.Errorf("failed to delete record = %v", err)
-	}
-	if err = pg.DB.Where("page_ptr_id", contentItemInput.PagePtrID).Unscoped().Delete(&gorm.ContentItem{}).Error; err != nil {
-		t.Errorf("failed to delete record = %v", err)
-	}
-	if err = pg.DB.Where("id", contentAuthorInput.ContentAuthorID).Unscoped().Delete(&gorm.ContentAuthor{}).Error; err != nil {
-		t.Errorf("failed to delete record = %v", err)
-	}
-	if err = pg.DB.Where("id", wagtailCorePageInput.WagtailCorePageID).Unscoped().Delete(&gorm.WagtailCorePage{}).Error; err != nil {
-		t.Errorf("failed to delete record = %v", err)
-	}
-	if err = pg.DB.Where("id", userInput.UserID).Unscoped().Delete(&gorm.User{}).Error; err != nil {
-		t.Errorf("failed to delete record = %v", err)
-	}
 }
-
 func TestPGInstance_ViewContent(t *testing.T) {
 	ctx := context.Background()
-	nickname := uuid.New().String()
-	currentTime := time.Now()
-	flavour := feedlib.FlavourConsumer
-	pastTime := time.Now().AddDate(0, 0, -1)
-
-	pg, err := gorm.NewPGInstance()
-	if err != nil {
-		t.Errorf("pgInstance.Teardown() = %v", err)
-	}
-
-	// Setup test user
-	userInput := &gorm.User{
-		Username:            gofakeit.BeerHop(),
-		FirstName:           gofakeit.FirstName(),
-		MiddleName:          gofakeit.FirstName(),
-		LastName:            gofakeit.LastName(),
-		UserType:            enums.ClientUser,
-		Gender:              enumutils.GenderMale,
-		Active:              false,
-		PushTokens:          []string{},
-		LastSuccessfulLogin: &currentTime,
-		LastFailedLogin:     &currentTime,
-		FailedLoginCount:    0,
-		NextAllowedLogin:    &pastTime,
-		TermsAccepted:       true,
-		AcceptedTermsID:     &termsID,
-		Flavour:             flavour,
-		Avatar:              "",
-		IsSuspended:         true,
-		OrganisationID:      orgID,
-		Password:            "",
-		IsSuperuser:         true,
-		IsStaff:             true,
-		Email:               "",
-		DateJoined:          "",
-		Name:                nickname,
-		IsApproved:          true,
-		ApprovalNotified:    true,
-		Handle:              "",
-	}
-
-	err = pg.DB.Create(userInput).Error
-	if err != nil {
-		t.Errorf("failed to create user: %v", err)
-	}
-
-	wagtailCorePageInput := &gorm.WagtailCorePage{
-		// WagtailCorePageID:     gofakeit.Number(200, 500),
-		Path:                  "/home/123",
-		Depth:                 0,
-		Numchild:              0,
-		Title:                 "test title",
-		Slug:                  "test-title",
-		Live:                  true,
-		HasUnpublishedChanges: false,
-		URLPath:               "https://example.com",
-		SEOTitle:              "test title",
-		ShowInMenus:           false,
-		SearchDescription:     "description",
-		Expired:               false,
-		ContentTypeID:         1, // default to 1 => wagtailcore page
-		Locked:                false,
-		DraftTitle:            "default title",
-		TranslationKey:        uuid.New().String(),
-		LocaleID:              1, // default to 1 => en
-	}
-
-	err = pg.DB.Create(wagtailCorePageInput).Error
-	if err != nil {
-		t.Errorf("failed to create wagtail content page: %v", err)
-	}
-
-	contentAuthorInput := &gorm.ContentAuthor{
-		Active:         true,
-		Name:           gofakeit.Name(),
-		OrganisationID: orgID,
-	}
-
-	err = pg.DB.Create(contentAuthorInput).Error
-	if err != nil {
-		t.Errorf("failed to create content author: %v", err)
-	}
-
-	contentItemInput := &gorm.ContentItem{
-		PagePtrID:           wagtailCorePageInput.WagtailCorePageID,
-		Date:                time.Now(),
-		Intro:               gofakeit.Name(),
-		ItemType:            "text",
-		TimeEstimateSeconds: 3000,
-		Body:                `gofakeit.HipsterParagraph(30, 10, 20, ",")`,
-		LikeCount:           10,
-		BookmarkCount:       40,
-		ShareCount:          0,
-		ViewCount:           100,
-		AuthorID:            *contentAuthorInput.ContentAuthorID,
-	}
-
-	err = pg.DB.Create(contentItemInput).Error
-	if err != nil {
-		t.Errorf("failed to create content: %v", err)
-	}
 
 	type args struct {
 		ctx       context.Context
@@ -1923,8 +792,8 @@ func TestPGInstance_ViewContent(t *testing.T) {
 			name: "happy case",
 			args: args{
 				ctx:       ctx,
-				UserID:    *userInput.UserID,
-				ContentID: contentItemInput.PagePtrID,
+				UserID:    userID,
+				ContentID: contentID,
 			},
 			want:    true,
 			wantErr: false,
@@ -1949,21 +818,5 @@ func TestPGInstance_ViewContent(t *testing.T) {
 				return
 			}
 		})
-	}
-	//TearDown
-	if err = pg.DB.Where("content_item_id", contentItemInput.PagePtrID).Unscoped().Delete(&gorm.ContentView{}).Error; err != nil {
-		t.Errorf("failed to delete record = %v", err)
-	}
-	if err = pg.DB.Where("page_ptr_id", contentItemInput.PagePtrID).Unscoped().Delete(&gorm.ContentItem{}).Error; err != nil {
-		t.Errorf("failed to delete record = %v", err)
-	}
-	if err = pg.DB.Where("id", contentAuthorInput.ContentAuthorID).Unscoped().Delete(&gorm.ContentAuthor{}).Error; err != nil {
-		t.Errorf("failed to delete record = %v", err)
-	}
-	if err = pg.DB.Where("id", wagtailCorePageInput.WagtailCorePageID).Unscoped().Delete(&gorm.WagtailCorePage{}).Error; err != nil {
-		t.Errorf("failed to delete record = %v", err)
-	}
-	if err = pg.DB.Where("id", userInput.UserID).Unscoped().Delete(&gorm.User{}).Error; err != nil {
-		t.Errorf("failed to delete record = %v", err)
 	}
 }
