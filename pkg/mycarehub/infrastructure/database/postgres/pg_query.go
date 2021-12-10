@@ -428,6 +428,10 @@ func (d *MyCareHubDb) GetUserBookmarkedContent(ctx context.Context, userID strin
 		return nil, fmt.Errorf("failed to fetch user's bookmarked content: %v", err)
 	}
 
+	if len(bookmarkedContent) == 0 {
+		return []*domain.ContentItem{}, nil
+	}
+
 	for _, content := range bookmarkedContent {
 		contentItem := &domain.ContentItem{
 			ID:                  content.PagePtrID,

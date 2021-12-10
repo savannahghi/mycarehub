@@ -1593,7 +1593,7 @@ var sources = []*ast.Source{
 	{Name: "pkg/mycarehub/presentation/graph/content.graphql", Input: `extend type Query {
   getContent(categoryID: Int, Limit: String!): Content!
   listContentCategories: [ContentItemCategory!]!
-  getUserBookmarkedContent(userID: String!): Content!
+  getUserBookmarkedContent(userID: String!): Content
   checkIfUserHasLikedContent(userID: String!, contentID: Int!): Boolean!
   checkIfUserBookmarkedContent(userID: String!, contentID: Int!): Boolean!
 }
@@ -7179,14 +7179,11 @@ func (ec *executionContext) _Query_getUserBookmarkedContent(ctx context.Context,
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.(*domain.Content)
 	fc.Result = res
-	return ec.marshalNContent2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐContent(ctx, field.Selections, res)
+	return ec.marshalOContent2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐContent(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_checkIfUserHasLikedContent(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -10707,9 +10704,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_getUserBookmarkedContent(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			})
 		case "checkIfUserHasLikedContent":
@@ -12223,6 +12217,13 @@ func (ec *executionContext) marshalOCategoryDetail2ᚕgithubᚗcomᚋsavannahghi
 	wg.Wait()
 
 	return ret
+}
+
+func (ec *executionContext) marshalOContent2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐContent(ctx context.Context, sel ast.SelectionSet, v *domain.Content) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._Content(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalODocument2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐDocument(ctx context.Context, sel ast.SelectionSet, v domain.Document) graphql.Marshaler {
