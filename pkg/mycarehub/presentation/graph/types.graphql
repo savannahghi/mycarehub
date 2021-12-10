@@ -141,7 +141,7 @@ type FeaturedMedia {
   url: String!
   title: String!
   type: String!
-  # duration: Float
+  duration: Float
   width: Int
   height: Int
   thumbnail: String

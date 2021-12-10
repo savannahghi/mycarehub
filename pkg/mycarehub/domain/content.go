@@ -60,14 +60,14 @@ type ImageMeta struct {
 
 // FeaturedMedia ...
 type FeaturedMedia struct {
-	ID        int    `json:"id"`
-	URL       string `json:"url"`
-	Title     string `json:"title"`
-	Type      string `json:"type"`
-	Width     int    `json:"width"`
-	Height    int    `json:"height"`
-	Thumbnail string `json:"thumbnail"`
-	// Duration  float64 `json:"duration"`
+	ID        int     `json:"id"`
+	URL       string  `json:"url"`
+	Title     string  `json:"title"`
+	Type      string  `json:"type"`
+	Width     int     `json:"width"`
+	Height    int     `json:"height"`
+	Thumbnail string  `json:"thumbnail"`
+	Duration  float64 `json:"duration"`
 }
 
 // HeroImage contains details about the hero image i.e The title

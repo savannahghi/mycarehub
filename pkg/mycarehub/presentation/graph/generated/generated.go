@@ -162,6 +162,7 @@ type ComplexityRoot struct {
 	}
 
 	FeaturedMedia struct {
+		Duration  func(childComplexity int) int
 		Height    func(childComplexity int) int
 		ID        func(childComplexity int) int
 		Thumbnail func(childComplexity int) int
@@ -837,6 +838,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.FacilityPage.Pagination(childComplexity), true
+
+	case "FeaturedMedia.duration":
+		if e.complexity.FeaturedMedia.Duration == nil {
+			break
+		}
+
+		return e.complexity.FeaturedMedia.Duration(childComplexity), true
 
 	case "FeaturedMedia.height":
 		if e.complexity.FeaturedMedia.Height == nil {
@@ -1930,7 +1938,7 @@ type FeaturedMedia {
   url: String!
   title: String!
   type: String!
-  # duration: Float
+  duration: Float
   width: Int
   height: Int
   thumbnail: String
@@ -5357,6 +5365,38 @@ func (ec *executionContext) _FeaturedMedia_type(ctx context.Context, field graph
 	res := resTmp.(string)
 	fc.Result = res
 	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _FeaturedMedia_duration(ctx context.Context, field graphql.CollectedField, obj *domain.FeaturedMedia) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "FeaturedMedia",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Duration, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(float64)
+	fc.Result = res
+	return ec.marshalOFloat2float64(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _FeaturedMedia_width(ctx context.Context, field graphql.CollectedField, obj *domain.FeaturedMedia) (ret graphql.Marshaler) {
@@ -10205,6 +10245,8 @@ func (ec *executionContext) _FeaturedMedia(ctx context.Context, sel ast.Selectio
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "duration":
+			out.Values[i] = ec._FeaturedMedia_duration(ctx, field, obj)
 		case "width":
 			out.Values[i] = ec._FeaturedMedia_width(ctx, field, obj)
 		case "height":
@@ -12372,6 +12414,15 @@ func (ec *executionContext) unmarshalOFiltersInput2ᚖgithubᚗcomᚋsavannahghi
 	}
 	res, err := ec.unmarshalInputFiltersInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOFloat2float64(ctx context.Context, v interface{}) (float64, error) {
+	res, err := graphql.UnmarshalFloat(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOFloat2float64(ctx context.Context, sel ast.SelectionSet, v float64) graphql.Marshaler {
+	return graphql.MarshalFloat(v)
 }
 
 func (ec *executionContext) marshalOGalleryImage2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐGalleryImage(ctx context.Context, sel ast.SelectionSet, v domain.GalleryImage) graphql.Marshaler {
