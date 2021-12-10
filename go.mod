@@ -7,6 +7,7 @@ require (
 	github.com/99designs/gqlgen v0.14.0
 	github.com/GoogleCloudPlatform/cloudsql-proxy v1.27.0
 	github.com/brianvoe/gofakeit v3.18.0+incompatible
+	github.com/go-testfixtures/testfixtures/v3 v3.6.1
 	github.com/google/uuid v1.3.0
 	github.com/gorilla/handlers v1.5.1
 	github.com/gorilla/mux v1.8.0
@@ -53,7 +54,6 @@ require (
 	github.com/felixge/httpsnoop v1.0.2 // indirect
 	github.com/getsentry/sentry-go v0.11.0 // indirect
 	github.com/go-playground/locales v0.14.0 // indirect
-	github.com/go-testfixtures/testfixtures/v3 v3.6.1 // indirect
 	github.com/gobuffalo/here v0.6.2 // indirect
 	github.com/gofrs/uuid v4.0.0+incompatible // indirect
 	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
