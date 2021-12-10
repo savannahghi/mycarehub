@@ -136,7 +136,7 @@ jobs:
           --set-env-vars "PIN_EXPIRY_DAYS=${{ secrets.PIN_EXPIRY_DAYS }}" \
           --set-env-vars "SAVANNAH_ADMIN_EMAIL=${{ secrets.SAVANNAH_ADMIN_EMAIL }}"
 
-          gcloud run services update-traffic --region europe-west1 --to-latest
+          gcloud run services update-traffic ${{ secrets.SERVICE_NAME }} --region europe-west1 --to-latest
 
   deploy_to_test:
     name: Deploy Test Server to Google Cloud Run
@@ -225,7 +225,7 @@ jobs:
           --set-env-vars "PIN_EXPIRY_DAYS=${{ secrets.PIN_EXPIRY_DAYS }}" \
           --set-env-vars "SAVANNAH_ADMIN_EMAIL=${{ secrets.SAVANNAH_ADMIN_EMAIL }}" 
 
-          gcloud run services update-traffic --region europe-west1 --to-latest
+          gcloud run services update-traffic ${{ secrets.SERVICE_NAME }} --region europe-west1 --to-latest
 
   deploy_to_prod:
     name: Deploy Prod Server to Google Cloud Run
@@ -327,7 +327,7 @@ jobs:
           --set-env-vars "GOOGLE_CLOUD_STORAGE_URL=${{ secrets.GOOGLE_CLOUD_STORAGE_URL }}" \
           --set-env-vars "SAVANNAH_ADMIN_EMAIL=${{ secrets.SAVANNAH_ADMIN_EMAIL }}" 
 
-          gcloud run services update-traffic --region europe-west1 --to-latest
+          gcloud run services update-traffic ${{ secrets.SERVICE_NAME }} --region europe-west1 --to-latest
 
   push_schema_test_registry:
     name: Publish schema to schema registry
