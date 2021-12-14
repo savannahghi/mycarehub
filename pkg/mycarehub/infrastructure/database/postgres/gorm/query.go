@@ -38,6 +38,7 @@ type Query interface {
 	ListContentCategories(ctx context.Context) ([]*ContentItemCategory, error)
 	GetUserBookmarkedContent(ctx context.Context, userID string) ([]*ContentItem, error)
 	CanRecordHeathDiary(ctx context.Context, clientID string) (bool, error)
+	GetContentItemCategoryID(ctx context.Context) ([]int, error)
 	GetClientHealthDiaryQuote(ctx context.Context) (*ClientHealthDiaryQuote, error)
 	CheckIfUserBookmarkedContent(ctx context.Context, userID string, contentID int) (bool, error)
 	GetClientHealthDiaryEntries(ctx context.Context, clientID string) ([]*ClientHealthDiaryEntry, error)
@@ -387,6 +388,29 @@ func (db *PGInstance) CanRecordHeathDiary(ctx context.Context, clientID string) 
 	}
 
 	return true, nil
+}
+
+//GetContentItemCategoryID gets all the categoryIDs of specified content item from the database
+func (db *PGInstance) GetContentItemCategoryID(ctx context.Context) ([]int, error) {
+	var allContent []*ContentContentItemCategories
+	var contentItemIDs []int
+	err := db.DB.Raw("select distinct contentitemcategory_id from content_contentitem_categories;").Find(&allContent).Error
+	if err != nil {
+		return nil, fmt.Errorf("an error occurred: %v", err)
+	}
+
+	var welcomeCategory ContentItemCategory
+	err = db.DB.Where(&ContentItemCategory{Name: "welcome"}).First(&welcomeCategory).Error
+	if err != nil {
+		return nil, fmt.Errorf("an error occurred: %v", err)
+	}
+
+	for _, v := range allContent {
+		if v.ContentItemCategoryID != welcomeCategory.ID {
+			contentItemIDs = append(contentItemIDs, v.ContentItemCategoryID)
+		}
+	}
+	return contentItemIDs, nil
 }
 
 // GetClientHealthDiaryQuote fetches a client's health diary quote.

@@ -529,3 +529,8 @@ func (d *MyCareHubDb) GetFAQContent(ctx context.Context, flavour feedlib.Flavour
 
 	return faq, nil
 }
+
+//GetContentItemCategoryID gets all the categoryIDs of specified content item
+func (d *MyCareHubDb) GetContentItemCategoryID(ctx context.Context) ([]int, error) {
+	return d.query.GetContentItemCategoryID(ctx)
+}

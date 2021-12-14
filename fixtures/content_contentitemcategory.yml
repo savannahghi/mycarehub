@@ -1,0 +1,12 @@
+# content_contentitemcategory
+- id: 1
+  name: welcome
+
+- id: 2
+  name: fitness
+
+- id: 3
+  name: diet
+
+- id: 4
+  name: health

@@ -2419,3 +2419,53 @@ func TestMyCareHubDb_GetFAQContent(t *testing.T) {
 		})
 	}
 }
+
+func TestMyCareHubDb_GetContentItemCategoryID(t *testing.T) {
+	ctx := context.Background()
+
+	type args struct {
+		ctx context.Context
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    []int
+		wantErr bool
+	}{
+		{
+			name: "Default case",
+			args: args{
+				ctx: ctx,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case",
+			args: args{
+				ctx: ctx,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var fakeGorm = gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			if tt.name == "Sad case" {
+				fakeGorm.MockGetContentItemCategoryIDFn = func(ctx context.Context) ([]int, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+			got, err := d.GetContentItemCategoryID(tt.args.ctx)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.GetContentItemCategoryID() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected a response but got %v", got)
+				return
+			}
+		})
+	}
+}

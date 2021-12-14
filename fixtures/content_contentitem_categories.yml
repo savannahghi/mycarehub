@@ -1,0 +1,12 @@
+# content_contentitem_categories
+- contentitem_id: {{.contentitem_id1}}
+  contentitemcategory_id: {{.contentitemcategoryid1}}
+
+- contentitem_id: {{.contentitem_id2}}
+  contentitemcategory_id: {{.contentitemcategoryid2}}
+
+- contentitem_id: {{.contentitem_id3}}
+  contentitemcategory_id: {{.contentitemcategoryid3}}
+
+- contentitem_id: {{.contentitem_id4}}
+  contentitemcategory_id: {{.contentitemcategoryid4}}

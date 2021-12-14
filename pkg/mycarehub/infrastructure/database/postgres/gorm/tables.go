@@ -679,3 +679,14 @@ func (c *FAQ) BeforeCreate(tx *gorm.DB) (err error) {
 func (FAQ) TableName() string {
 	return "common_faq"
 }
+
+// ContentContentItemCategories represents the content item category models
+type ContentContentItemCategories struct {
+	ContentItemID         *int `gorm:"column:contentitem_id"`
+	ContentItemCategoryID int  `gorm:"column:contentitemcategory_id"`
+}
+
+// TableName references the table that we map data from
+func (ContentContentItemCategories) TableName() string {
+	return "content_contentitem_categories"
+}

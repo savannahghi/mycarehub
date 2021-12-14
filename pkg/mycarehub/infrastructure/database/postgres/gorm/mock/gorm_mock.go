@@ -68,6 +68,7 @@ type GormMock struct {
 	MockCheckIfUserBookmarkedContentFn            func(ctx context.Context, userID string, contentID int) (bool, error)
 	MockGetClientHealthDiaryEntriesFn             func(ctx context.Context, clientID string) ([]*gorm.ClientHealthDiaryEntry, error)
 	MockGetFAQContentFn                           func(ctx context.Context, flavour feedlib.Flavour, limit *int) ([]*gorm.FAQ, error)
+	MockGetContentItemCategoryIDFn                func(ctx context.Context) ([]int, error)
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -372,6 +373,9 @@ func NewGormMock() *GormMock {
 		MockCheckIfUserBookmarkedContentFn: func(ctx context.Context, userID string, contentID int) (bool, error) {
 			return true, nil
 		},
+		MockGetContentItemCategoryIDFn: func(ctx context.Context) ([]int, error) {
+			return []int{1, 2, 3}, nil
+		},
 		MockGetClientHealthDiaryEntriesFn: func(ctx context.Context, clientID string) ([]*gorm.ClientHealthDiaryEntry, error) {
 			return []*gorm.ClientHealthDiaryEntry{
 				{
@@ -649,4 +653,9 @@ func (gm *GormMock) GetClientHealthDiaryEntries(ctx context.Context, clientID st
 // GetFAQContent mocks the implementation of getting FAQ content
 func (gm *GormMock) GetFAQContent(ctx context.Context, flavour feedlib.Flavour, limit *int) ([]*gorm.FAQ, error) {
 	return gm.MockGetFAQContentFn(ctx, flavour, limit)
+}
+
+// GetContentItemCategoryID mocks the implementation of getting Item category by ID
+func (gm *GormMock) GetContentItemCategoryID(ctx context.Context) ([]int, error) {
+	return gm.MockGetContentItemCategoryIDFn(ctx)
 }

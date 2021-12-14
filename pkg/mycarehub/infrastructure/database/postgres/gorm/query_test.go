@@ -1612,3 +1612,37 @@ func TestPGInstance_GetFAQContent(t *testing.T) {
 		t.Errorf("failed to delete record = %v", err)
 	}
 }
+
+func TestPGInstance_GetContentItemCategoryID(t *testing.T) {
+	ctx := context.Background()
+
+	type args struct {
+		ctx context.Context
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    []int
+		wantErr bool
+	}{
+		{
+			name: "Default case",
+			args: args{
+				ctx: ctx,
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := testingDB.GetContentItemCategoryID(tt.args.ctx)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.GetContentItemCategoryID() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("PGInstance.GetContentItemCategoryID() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

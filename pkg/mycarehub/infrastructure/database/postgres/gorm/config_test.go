@@ -76,6 +76,18 @@ var (
 
 	// contact variables
 	// contactID = "bdc22436-e314-43f2-bb39-ba1ab332f9b0"
+
+	//ContentItem IDs
+	contentitem_id1 = 1
+	contentitem_id2 = 2
+	contentitem_id3 = 3
+	contentitem_id4 = 4
+
+	// Content Item categories
+	contentitemcategoryid1 = 1
+	contentitemcategoryid2 = 2
+	contentitemcategoryid3 = 3
+	contentitemcategoryid4 = 4
 )
 
 func TestMain(m *testing.M) {
@@ -136,6 +148,16 @@ func TestMain(m *testing.M) {
 			"security_question_response_id2": securityQuestionResponseID2,
 			"security_question_response_id3": securityQuestionResponseID3,
 			"security_question_response_id4": securityQuestionResponseID4,
+
+			"contentitem_id1": contentitem_id1,
+			"contentitem_id2": contentitem_id2,
+			"contentitem_id3": contentitem_id3,
+			"contentitem_id4": contentitem_id4,
+
+			"contentitemcategoryid1": contentitemcategoryid1,
+			"contentitemcategoryid2": contentitemcategoryid2,
+			"contentitemcategoryid3": contentitemcategoryid3,
+			"contentitemcategoryid4": contentitemcategoryid4,
 		}),
 		// this is the directory containing the YAML files.
 		// The file name should be the same as the table name
@@ -146,7 +168,9 @@ func TestMain(m *testing.M) {
 			"../../../../../../fixtures/clients_securityquestion.yml",
 			"../../../../../../fixtures/content_author.yml",
 			"../../../../../../fixtures/wagtailcore_page.yml",
+			"../../../../../../fixtures/content_contentitemcategory.yml",
 			"../../../../../../fixtures/content_contentitem.yml",
+			"../../../../../../fixtures/content_contentitem_categories.yml",
 			"../../../../../../fixtures/users_user.yml",
 			"../../../../../../fixtures/clients_securityquestionresponse.yml",
 			"../../../../../../fixtures/common_contact.yml",

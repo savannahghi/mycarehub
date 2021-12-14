@@ -69,6 +69,7 @@ type PostgresMock struct {
 	MockGetClientHealthDiaryQuoteFn               func(ctx context.Context) (*domain.ClientHealthDiaryQuote, error)
 	MockCheckIfUserBookmarkedContentFn            func(ctx context.Context, userID string, contentID int) (bool, error)
 	MockGetClientHealthDiaryEntriesFn             func(ctx context.Context, clientID string) ([]*domain.ClientHealthDiaryEntry, error)
+	MockGetContentItemCategoryIDFn                func(ctx context.Context) ([]int, error)
 	MockGetFAQContentFn                           func(ctx context.Context, flavour feedlib.Flavour, limit *int) ([]*domain.FAQ, error)
 }
 
@@ -357,6 +358,9 @@ func NewPostgresMock() *PostgresMock {
 		},
 		MockCheckWhetherUserHasLikedContentFn: func(ctx context.Context, userID string, contentID int) (bool, error) {
 			return true, nil
+		},
+		MockGetContentItemCategoryIDFn: func(ctx context.Context) ([]int, error) {
+			return []int{1, 2, 3}, nil
 		},
 		MockCreateHealthDiaryEntryFn: func(ctx context.Context, healthDiaryInput *domain.ClientHealthDiaryEntry) error {
 			return nil
@@ -665,4 +669,9 @@ func (gm *PostgresMock) GetClientHealthDiaryEntries(ctx context.Context, clientI
 // GetFAQContent mocks the implementation of getting FAQ content
 func (gm *PostgresMock) GetFAQContent(ctx context.Context, flavour feedlib.Flavour, limit *int) ([]*domain.FAQ, error) {
 	return gm.MockGetFAQContentFn(ctx, flavour, limit)
+}
+
+// GetContentItemCategoryID mocks the implementation of getting Item category by ID
+func (gm *PostgresMock) GetContentItemCategoryID(ctx context.Context) ([]int, error) {
+	return gm.MockGetContentItemCategoryIDFn(ctx)
 }

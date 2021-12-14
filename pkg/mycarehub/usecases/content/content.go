@@ -152,6 +152,15 @@ func (u UseCasesContentImpl) GetContent(ctx context.Context, categoryID *int, li
 	if categoryID != nil {
 		params.Add("category", strconv.Itoa(*categoryID))
 	}
+	categoryIDs, err := u.Query.GetContentItemCategoryID(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get category IDs: %v", err)
+	}
+	if categoryID == nil {
+		for _, v := range categoryIDs {
+			params.Add("category", fmt.Sprintf("%v", v))
+		}
+	}
 
 	getContentEndpoint := fmt.Sprintf(contentAPIEndpoint + "/?" + params.Encode())
 	var contentItems *domain.Content
