@@ -35,7 +35,7 @@ type Query interface {
 	GetOTP(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*UserOTP, error)
 	GetUserSecurityQuestionsResponses(ctx context.Context, userID string) ([]*SecurityQuestionResponse, error)
 	GetContactByUserID(ctx context.Context, userID *string, contactType string) (*Contact, error)
-	ListContentCategories(ctx context.Context) ([]*ContentItemCategory, error)
+	ListContentCategories(ctx context.Context) ([]*domain.ContentItemCategory, error)
 	GetUserBookmarkedContent(ctx context.Context, userID string) ([]*ContentItem, error)
 	CanRecordHeathDiary(ctx context.Context, clientID string) (bool, error)
 	GetClientHealthDiaryQuote(ctx context.Context) (*ClientHealthDiaryQuote, error)
@@ -58,17 +58,33 @@ func (db *PGInstance) CheckWhetherUserHasLikedContent(ctx context.Context, userI
 
 }
 
-//ListContentCategories perfoms the actual database query to get the list of content categories
-func (db *PGInstance) ListContentCategories(ctx context.Context) ([]*ContentItemCategory, error) {
-	var contentCategory []*ContentItemCategory
+//ListContentCategories performs the actual database query to get the list of content categories
+func (db *PGInstance) ListContentCategories(ctx context.Context) ([]*domain.ContentItemCategory, error) {
+	var contentItemCategories []*ContentItemCategory
 
-	err := db.DB.Joins("JOIN wagtailimages_image ON content_contentitemcategory.icon_id = wagtailimages_image.id").
-		Order("content_contentitemcategory.id asc").Preload(clause.Associations).Find(&contentCategory).Error
+	err := db.DB.Find(&contentItemCategories).Error
 	if err != nil {
-		return nil, fmt.Errorf("unable to query the database")
+		return nil, fmt.Errorf("failed to query all content categories %v", err)
 	}
-	return contentCategory, nil
+
+	var domainContentItemCategory []*domain.ContentItemCategory
+	for _, contentCategory := range contentItemCategories {
+		var wagtailImage *WagtailImages
+		err := db.DB.Model(&WagtailImages{}).Where(&WagtailImages{ID: contentCategory.IconID}).Find(&wagtailImage).Error
+		if err != nil {
+			return nil, fmt.Errorf("failed to fetch wagtail images %v", err)
+		}
+		contentItemCategory := &domain.ContentItemCategory{
+			ID:      contentCategory.ID,
+			Name:    contentCategory.Name,
+			IconURL: wagtailImage.File,
+		}
+		domainContentItemCategory = append(domainContentItemCategory, contentItemCategory)
+	}
+
+	return domainContentItemCategory, nil
 }
+
 
 // RetrieveFacility fetches a single facility
 func (db *PGInstance) RetrieveFacility(ctx context.Context, id *string, isActive bool) (*Facility, error) {

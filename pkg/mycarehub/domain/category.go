@@ -4,7 +4,7 @@ package domain
 type ContentItemCategory struct {
 	ID      int    `json:"id"`
 	Name    string `json:"name"`
-	IconURL string `json:"icon_id"`
+	IconURL string `json:"icon_url"`
 }
 
 // WagtailImage maps the schema for the table that stores the wagtail images
