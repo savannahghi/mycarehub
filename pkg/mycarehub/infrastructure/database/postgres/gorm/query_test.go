@@ -1333,13 +1333,9 @@ func TestPGInstance_ListContentCategories(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := testingDB.ListContentCategories(tt.args.ctx)
+			_, err := testingDB.ListContentCategories(tt.args.ctx)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("PGInstance.ListContentCategories() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !tt.wantErr && got == nil {
-				t.Errorf("expected a response but got %v", got)
 				return
 			}
 		})

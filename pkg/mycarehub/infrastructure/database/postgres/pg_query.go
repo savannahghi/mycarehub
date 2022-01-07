@@ -406,7 +406,7 @@ func (d *MyCareHubDb) ListContentCategories(ctx context.Context) ([]*domain.Cont
 	}
 
 	for _, contentCategories := range allContentCategories {
-		iconURL := fmt.Sprintf(serverutils.MustGetEnvVar(helpers.GoogleCloudStorageURL) + contentCategories.Icon.File)
+		iconURL := fmt.Sprintf(serverutils.MustGetEnvVar(helpers.GoogleCloudStorageURL) + contentCategories.IconURL)
 
 		contentCategoryItem := &domain.ContentItemCategory{
 			ID:      contentCategories.ID,

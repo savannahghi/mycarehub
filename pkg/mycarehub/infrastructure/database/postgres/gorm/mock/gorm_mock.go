@@ -52,7 +52,7 @@ type GormMock struct {
 	MockInvalidatePINFn                           func(ctx context.Context, userID string) (bool, error)
 	MockGetContactByUserIDFn                      func(ctx context.Context, userID *string, contactType string) (*gorm.Contact, error)
 	MockUpdateIsCorrectSecurityQuestionResponseFn func(ctx context.Context, userID string, isCorrectSecurityQuestionResponse bool) (bool, error)
-	MockListContentCategoriesFn                   func(ctx context.Context) ([]*gorm.ContentItemCategory, error)
+	MockListContentCategoriesFn                   func(ctx context.Context) ([]*domain.ContentItemCategory, error)
 	MockShareContentFn                            func(ctx context.Context, input dto.ShareContentInput) (bool, error)
 	MockBookmarkContentFn                         func(ctx context.Context, userID string, contentID int) (bool, error)
 	MockUnBookmarkContentFn                       func(ctx context.Context, userID string, contentID int) (bool, error)
@@ -137,24 +137,10 @@ func NewGormMock() *GormMock {
 		Flavour:   feedlib.FlavourConsumer,
 	}
 
-	contentItemCategory := &gorm.ContentItemCategory{
-		ID:   ID,
-		Name: name,
-		Icon: gorm.WagtailImages{
-			ID:               ID,
-			Title:            "test",
-			File:             "url",
-			Width:            10,
-			Height:           10,
-			FocalPointX:      10,
-			FocalPointY:      10,
-			FocalPointWidth:  10,
-			FocalPointHeight: 10,
-			UploadedByUserID: "UUID",
-			FileSize:         10,
-			CollectionID:     ID,
-			FileHash:         "hash",
-		},
+	contentItemCategory := &domain.ContentItemCategory{
+		ID:      ID,
+		Name:    name,
+		IconURL: "https://test-icon-url/test.png",
 	}
 
 	return &GormMock{
@@ -324,8 +310,8 @@ func NewGormMock() *GormMock {
 		MockUpdateIsCorrectSecurityQuestionResponseFn: func(ctx context.Context, userID string, isCorrectSecurityQuestionResponse bool) (bool, error) {
 			return true, nil
 		},
-		MockListContentCategoriesFn: func(ctx context.Context) ([]*gorm.ContentItemCategory, error) {
-			return []*gorm.ContentItemCategory{contentItemCategory}, nil
+		MockListContentCategoriesFn: func(ctx context.Context) ([]*domain.ContentItemCategory, error) {
+			return []*domain.ContentItemCategory{contentItemCategory}, nil
 		},
 		MockShareContentFn: func(ctx context.Context, input dto.ShareContentInput) (bool, error) {
 			return true, nil
@@ -577,7 +563,7 @@ func (gm *GormMock) UpdateIsCorrectSecurityQuestionResponse(ctx context.Context,
 }
 
 //ListContentCategories mocks the implementation listing content categories
-func (gm *GormMock) ListContentCategories(ctx context.Context) ([]*gorm.ContentItemCategory, error) {
+func (gm *GormMock) ListContentCategories(ctx context.Context) ([]*domain.ContentItemCategory, error) {
 	return gm.MockListContentCategoriesFn(ctx)
 }
 

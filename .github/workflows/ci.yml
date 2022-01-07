@@ -109,7 +109,7 @@ jobs:
         
       - name: Access cloned repository contents
         run: |
-          sudo apt-get update
+          sudo apt-get update && sudo apt-get upgrade
           sudo apt-get install postgis gdal-bin libgdal-dev
           pip install -r requirements/local.txt && pip install -r requirements/production.txt
           npm ci

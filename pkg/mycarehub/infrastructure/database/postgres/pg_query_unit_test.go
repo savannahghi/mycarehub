@@ -1734,7 +1734,7 @@ func TestMyCareHubDb_ListContentCategories(t *testing.T) {
 			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
 
 			if tt.name == "Sad case" {
-				fakeGorm.MockListContentCategoriesFn = func(ctx context.Context) ([]*gorm.ContentItemCategory, error) {
+				fakeGorm.MockListContentCategoriesFn = func(ctx context.Context) ([]*domain.ContentItemCategory, error) {
 					return nil, fmt.Errorf("an error occurred")
 				}
 			}
