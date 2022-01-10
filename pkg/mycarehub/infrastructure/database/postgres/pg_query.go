@@ -443,6 +443,7 @@ func (d *MyCareHubDb) GetUserBookmarkedContent(ctx context.Context, userID strin
 			Intro:               content.Intro,
 			ItemType:            content.ItemType,
 			TimeEstimateSeconds: content.TimeEstimateSeconds,
+			Date:                content.Date.Format("2006-01-02"),
 		}
 		domainContent = append(domainContent, contentItem)
 	}
