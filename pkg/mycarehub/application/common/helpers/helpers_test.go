@@ -243,3 +243,25 @@ func TestRestAPIResponseHelper(t *testing.T) {
 		})
 	}
 }
+
+func TestCaptureSentryError(t *testing.T) {
+	type args struct {
+		err error
+	}
+	tests := []struct {
+		name string
+		args args
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				err: fmt.Errorf("an error occurred"),
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ReportErrorToSentry(tt.args.err)
+		})
+	}
+}

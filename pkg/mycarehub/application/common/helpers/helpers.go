@@ -8,11 +8,13 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/getsentry/sentry-go"
 	"github.com/savannahghi/feedlib"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/serverutils"
+	"github.com/sirupsen/logrus"
 )
 
 const (
@@ -99,6 +101,7 @@ func GetPinExpiryDate() (*time.Time, error) {
 
 	return &expiryDate, nil
 }
+
 // RestAPIResponseHelper returns custom standardised response for frontend response consistency
 func RestAPIResponseHelper(key string, value interface{}) *dto.RestEndpointResponses {
 	response := &dto.RestEndpointResponses{
@@ -107,4 +110,11 @@ func RestAPIResponseHelper(key string, value interface{}) *dto.RestEndpointRespo
 		},
 	}
 	return response
+}
+
+// ReportErrorToSentry captures the exception thrown and registers an issue in sentry
+func ReportErrorToSentry(err error) {
+	logrus.Print("116: IN SENTRY FUNCTION >>>>>")
+	defer sentry.Flush(2 * time.Millisecond)
+	sentry.CaptureException(err)
 }

@@ -7,6 +7,7 @@ import (
 
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 )
 
 // Service requests are tasks for the healthcare staff on the platform. Some examples are:
@@ -61,6 +62,7 @@ func (u *UseCasesServiceRequestImpl) CreateServiceRequest(
 	}
 	err := u.Create.CreateServiceRequest(ctx, serviceRequest)
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return false, fmt.Errorf("failed to create service request: %v", err)
 	}
 	return true, nil

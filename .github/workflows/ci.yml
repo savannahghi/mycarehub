@@ -115,8 +115,10 @@ jobs:
           npm ci
           npm install -g mjml
 
-          python manage.py migrate
-          python manage.py createcachetable
+      - name: Run Migrations  
+      - run: python manage.py migrate
+      - name: Create cache table
+      - run: python manage.py createcachetable
 
       - uses: actions/checkout@v2
       - uses: google-github-actions/setup-gcloud@master

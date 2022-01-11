@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"strconv"
 
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/utils"
@@ -157,16 +158,19 @@ func (u UseCasesContentImpl) GetContent(ctx context.Context, categoryID *int, li
 	var contentItems *domain.Content
 	resp, err := utils.MakeRequest(ctx, http.MethodGet, getContentEndpoint, nil)
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed to make request")
 	}
 
 	dataResponse, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed to read request body: %v", err)
 	}
 
 	err = json.Unmarshal(dataResponse, &contentItems)
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed to unmarshal response: %v", err)
 	}
 
@@ -201,11 +205,13 @@ func (u *UseCasesContentImpl) GetUserBookmarkedContent(ctx context.Context, user
 
 	user, err := u.Query.GetUserProfileByUserID(ctx, userID)
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return nil, exceptions.ProfileNotFoundErr(err)
 	}
 
 	content, err := u.Query.GetUserBookmarkedContent(ctx, *user.ID)
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed to get bookmarked content")
 	}
 
@@ -214,6 +220,7 @@ func (u *UseCasesContentImpl) GetUserBookmarkedContent(ctx context.Context, user
 	for _, contentItem := range content {
 		bookmarkedContent, err := u.GetContentByContentItemID(ctx, contentItem.ID)
 		if err != nil {
+			helpers.ReportErrorToSentry(err)
 			return nil, fmt.Errorf("failed to fetch bookmarked content")
 		}
 		userBookmarkedContent.Items = append(userBookmarkedContent.Items, bookmarkedContent.Items...)
@@ -237,16 +244,19 @@ func (u *UseCasesContentImpl) GetContentByContentItemID(ctx context.Context, con
 	var contentItems *domain.Content
 	resp, err := utils.MakeRequest(ctx, http.MethodGet, getContentEndpoint, nil)
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed to make request")
 	}
 
 	dataResponse, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed to read request body: %v", err)
 	}
 
 	err = json.Unmarshal(dataResponse, &contentItems)
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed to unmarshal response: %v", err)
 	}
 
