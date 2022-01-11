@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/brianvoe/gofakeit"
+	"github.com/google/uuid"
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
@@ -24,6 +25,14 @@ func TestPGInstance_GetOrCreateFacility(t *testing.T) {
 	facility := &gorm.Facility{
 		Name:        name,
 		Code:        code,
+		Active:      true,
+		County:      county,
+		Description: description,
+	}
+
+	invalidFacility := &gorm.Facility{
+		Name:        name,
+		Code:        -458789,
 		Active:      true,
 		County:      county,
 		Description: description,
@@ -52,6 +61,14 @@ func TestPGInstance_GetOrCreateFacility(t *testing.T) {
 			args: args{
 				ctx:      ctx,
 				facility: nil,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - Fail to create an invalid facility",
+			args: args{
+				ctx:      ctx,
+				facility: invalidFacility,
 			},
 			wantErr: true,
 		},
@@ -99,6 +116,15 @@ func TestPGInstance_SaveTemporaryUserPin(t *testing.T) {
 		Salt:      salt,
 	}
 
+	invalidPinPayload := &gorm.PINData{
+		HashedPIN: encryptedPin,
+		ValidFrom: time.Now(),
+		ValidTo:   time.Now(),
+		IsValid:   true,
+		Flavour:   flavour,
+		Salt:      salt,
+	}
+
 	type args struct {
 		ctx        context.Context
 		pinPayload *gorm.PINData
@@ -122,6 +148,15 @@ func TestPGInstance_SaveTemporaryUserPin(t *testing.T) {
 			name: "invalid: missing payload",
 			args: args{
 				ctx: ctx,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "invalid: no userID",
+			args: args{
+				ctx:        ctx,
+				pinPayload: invalidPinPayload,
 			},
 			want:    false,
 			wantErr: true,
@@ -481,6 +516,73 @@ func TestPGInstance_CreateServiceRequest(t *testing.T) {
 
 			if err := testingDB.CreateServiceRequest(tt.args.ctx, tt.args.serviceRequestInput); (err != nil) != tt.wantErr {
 				t.Errorf("PGInstance.CreateServiceRequest() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestPGInstance_CreateHealthDiaryEntry(t *testing.T) {
+	ctx := context.Background()
+
+	clientHealthDiaryEntryID := uuid.New().String()
+
+	type args struct {
+		ctx              context.Context
+		healthDiaryInput *gorm.ClientHealthDiaryEntry
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx: ctx,
+				healthDiaryInput: &gorm.ClientHealthDiaryEntry{
+					ClientHealthDiaryEntryID: &clientHealthDiaryEntryID,
+					Active:                   true,
+					Mood:                     "Very Cool",
+					Note:                     "I'm happy",
+					EntryType:                "Test",
+					ShareWithHealthWorker:    true,
+					SharedAt:                 time.Now(),
+					ClientID:                 clientID,
+					OrganisationID:           uuid.New().String(),
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case - no client ID",
+			args: args{
+				ctx: ctx,
+				healthDiaryInput: &gorm.ClientHealthDiaryEntry{
+					ClientHealthDiaryEntryID: &clientHealthDiaryEntryID,
+					Active:                   true,
+					Mood:                     "Very Cool",
+					Note:                     "I'm happy",
+					EntryType:                "Test",
+					ShareWithHealthWorker:    true,
+					SharedAt:                 time.Now(),
+					OrganisationID:           uuid.New().String(),
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case - no health diary input",
+			args: args{
+				ctx:              ctx,
+				healthDiaryInput: nil,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := testingDB.CreateHealthDiaryEntry(tt.args.ctx, tt.args.healthDiaryInput); (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.CreateHealthDiaryEntry() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}

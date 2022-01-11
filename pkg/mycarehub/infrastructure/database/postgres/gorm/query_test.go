@@ -936,6 +936,15 @@ func TestPGInstance_GetContactByUserID(t *testing.T) {
 			},
 			wantErr: true,
 		},
+		{
+			name: "invalid: empty user ID and contact type",
+			args: args{
+				ctx:         ctx,
+				userID:      nil,
+				contactType: "",
+			},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -1605,6 +1614,68 @@ func TestPGInstance_GetFAQContent(t *testing.T) {
 	}
 	// TearDown
 	if err = pg.DB.Where("id", faqInput.FAQID).Unscoped().Delete(&gorm.FAQ{}).Error; err != nil {
+		t.Errorf("failed to delete record = %v", err)
+	}
+}
+
+func TestPGInstance_GetCurrentTerms(t *testing.T) {
+	ctx := context.Background()
+
+	pg, err := gorm.NewPGInstance()
+	if err != nil {
+		t.Errorf("failed to initialize new PG instance: %v", err)
+		return
+	}
+
+	termsID := gofakeit.Number(50, 9999999)
+	now := time.Now()
+	future := time.Now().AddDate(0, 0, 2)
+	termsOfServiceInput := &gorm.TermsOfService{
+		TermsID:   &termsID,
+		Text:      &termsText,
+		ValidFrom: &now,
+		ValidTo:   &future,
+		Active:    true,
+	}
+
+	err = pg.DB.Create(termsOfServiceInput).Error
+	if err != nil {
+		t.Errorf("Create terms of service failed: %v", err)
+	}
+
+	type args struct {
+		ctx context.Context
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *gorm.TermsOfService
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx: ctx,
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := testingDB.GetCurrentTerms(tt.args.ctx)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.GetCurrentTerms() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected a response but got %v", got)
+				return
+			}
+		})
+	}
+
+	// TearDown
+	if err = pg.DB.Where("id", termsOfServiceInput.TermsID).Unscoped().Delete(&gorm.TermsOfService{}).Error; err != nil {
 		t.Errorf("failed to delete record = %v", err)
 	}
 }

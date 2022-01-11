@@ -80,7 +80,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     services:
       postgres:
-        image: postgis/postgis:14-3.1
+        image: postgres:latest
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
@@ -111,6 +111,7 @@ jobs:
         run: |
           sudo apt-get update && sudo apt-get upgrade
           sudo apt-get install postgis gdal-bin libgdal-dev
+          sudo apt-get install --yes postgresql-client
           pip install -r requirements/local.txt && pip install -r requirements/production.txt
           npm ci
           npm install -g mjml

@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/savannahghi/feedlib"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
@@ -51,11 +52,11 @@ func (db *PGInstance) CheckWhetherUserHasLikedContent(ctx context.Context, userI
 		if strings.Contains(err.Error(), "record not found") {
 			return false, nil
 		}
+		helpers.ReportErrorToSentry(err)
 		return false, fmt.Errorf("an error occurred: %v", err)
 	}
 
 	return true, nil
-
 }
 
 //ListContentCategories performs the actual database query to get the list of content categories
@@ -64,6 +65,7 @@ func (db *PGInstance) ListContentCategories(ctx context.Context) ([]*domain.Cont
 
 	err := db.DB.Find(&contentItemCategories).Error
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed to query all content categories %v", err)
 	}
 
@@ -72,6 +74,7 @@ func (db *PGInstance) ListContentCategories(ctx context.Context) ([]*domain.Cont
 		var wagtailImage *WagtailImages
 		err := db.DB.Model(&WagtailImages{}).Where(&WagtailImages{ID: contentCategory.IconID}).Find(&wagtailImage).Error
 		if err != nil {
+			helpers.ReportErrorToSentry(err)
 			return nil, fmt.Errorf("failed to fetch wagtail images %v", err)
 		}
 		contentItemCategory := &domain.ContentItemCategory{
@@ -85,7 +88,6 @@ func (db *PGInstance) ListContentCategories(ctx context.Context) ([]*domain.Cont
 	return domainContentItemCategory, nil
 }
 
-
 // RetrieveFacility fetches a single facility
 func (db *PGInstance) RetrieveFacility(ctx context.Context, id *string, isActive bool) (*Facility, error) {
 	if id == nil {
@@ -94,6 +96,7 @@ func (db *PGInstance) RetrieveFacility(ctx context.Context, id *string, isActive
 	var facility Facility
 	err := db.DB.Where(&Facility{FacilityID: id, Active: isActive}).First(&facility).Error
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed to get facility by ID %v: %v", id, err)
 	}
 	return &facility, nil
@@ -110,6 +113,7 @@ func (db *PGInstance) CheckIfPhoneNumberExists(ctx context.Context, phone string
 		if strings.Contains(err.Error(), "record not found") {
 			return false, nil
 		}
+		helpers.ReportErrorToSentry(err)
 		return false, fmt.Errorf("failed to check if contact exists %v: %v", phone, err)
 	}
 	return true, nil
@@ -122,6 +126,7 @@ func (db *PGInstance) RetrieveFacilityByMFLCode(ctx context.Context, MFLCode int
 	}
 	var facility Facility
 	if err := db.DB.Where(&Facility{Code: MFLCode, Active: isActive}).First(&facility).Error; err != nil {
+		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed to get facility by MFL Code %v and status %v: %v", MFLCode, isActive, err)
 	}
 	return &facility, nil
@@ -132,6 +137,7 @@ func (db *PGInstance) GetFacilities(ctx context.Context) ([]Facility, error) {
 	var facility []Facility
 	err := db.DB.Find(&facility).Error
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed to query all facilities %v", err)
 	}
 	return facility, nil
@@ -145,6 +151,7 @@ func (db *PGInstance) GetSecurityQuestions(ctx context.Context, flavour feedlib.
 	var securityQuestion []*SecurityQuestion
 	err := db.DB.Where(&SecurityQuestion{Flavour: flavour}).Find(&securityQuestion).Error
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed to query all security questions %v", err)
 	}
 	return securityQuestion, nil
@@ -164,10 +171,12 @@ func (db *PGInstance) ListFacilities(
 	for _, f := range filter {
 		err := f.Validate()
 		if err != nil {
+			helpers.ReportErrorToSentry(err)
 			return nil, fmt.Errorf("failed to validate filter %v: %v", f.Value, err)
 		}
 		err = enums.ValidateFilterSortCategories(enums.FilterSortCategoryTypeFacility, f.DataType)
 		if err != nil {
+			helpers.ReportErrorToSentry(err)
 			return nil, fmt.Errorf("filter param %v is not available in facilities: %v", f.Value, err)
 		}
 	}
@@ -244,6 +253,7 @@ func (db *PGInstance) ListFacilities(
 func (db *PGInstance) GetUserProfileByPhoneNumber(ctx context.Context, phoneNumber string) (*User, error) {
 	var user User
 	if err := db.DB.Joins("JOIN common_contact on users_user.id = common_contact.user_id").Where("common_contact.contact_value = ?", phoneNumber).Preload(clause.Associations).First(&user).Error; err != nil {
+		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed to get user by phonenumber %v: %v", phoneNumber, err)
 	}
 	return &user, nil
@@ -253,6 +263,7 @@ func (db *PGInstance) GetUserProfileByPhoneNumber(ctx context.Context, phoneNumb
 func (db *PGInstance) GetUserPINByUserID(ctx context.Context, userID string) (*PINData, error) {
 	var pin PINData
 	if err := db.DB.Where(&PINData{UserID: userID, IsValid: true}).First(&pin).Error; err != nil {
+		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed to get pin: %v", err)
 	}
 	return &pin, nil
@@ -263,6 +274,7 @@ func (db *PGInstance) GetCurrentTerms(ctx context.Context) (*TermsOfService, err
 	var termsOfService TermsOfService
 	validTo := time.Now()
 	if err := db.DB.Model(&TermsOfService{}).Where("valid_to > ?", validTo).Or("valid_to = ?", nil).Order("valid_to desc").First(&termsOfService).Error; err != nil {
+		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed to get the current terms : %v", err)
 	}
 
@@ -276,6 +288,7 @@ func (db *PGInstance) GetUserProfileByUserID(ctx context.Context, userID string)
 	}
 	var user User
 	if err := db.DB.Where(&User{UserID: &userID}).First(&user).Error; err != nil {
+		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed to get user by user ID %v: %v", userID, err)
 	}
 	return &user, nil
@@ -285,6 +298,7 @@ func (db *PGInstance) GetUserProfileByUserID(ctx context.Context, userID string)
 func (db *PGInstance) GetSecurityQuestionByID(ctx context.Context, securityQuestionID *string) (*SecurityQuestion, error) {
 	var securityQuestion SecurityQuestion
 	if err := db.DB.Where(&SecurityQuestion{SecurityQuestionID: securityQuestionID}).First(&securityQuestion).Error; err != nil {
+		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed to get security question by ID %v: %v", securityQuestionID, err)
 	}
 	return &securityQuestion, nil
@@ -294,6 +308,7 @@ func (db *PGInstance) GetSecurityQuestionByID(ctx context.Context, securityQuest
 func (db *PGInstance) GetSecurityQuestionResponseByID(ctx context.Context, questionID string) (*SecurityQuestionResponse, error) {
 	var questionResponse SecurityQuestionResponse
 	if err := db.DB.Where(&SecurityQuestionResponse{QuestionID: questionID}).First(&questionResponse).Error; err != nil {
+		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed to get the security question response by ID")
 	}
 	return &questionResponse, nil
@@ -314,6 +329,7 @@ func (db *PGInstance) VerifyOTP(ctx context.Context, payload *dto.VerifyOTPInput
 		if strings.Contains(err.Error(), "record not found") {
 			return false, nil
 		}
+		helpers.ReportErrorToSentry(err)
 		return false, fmt.Errorf("failed to verify otp with %v: %v", payload.OTP, payload.Flavour)
 	}
 
@@ -324,6 +340,7 @@ func (db *PGInstance) VerifyOTP(ctx context.Context, payload *dto.VerifyOTPInput
 func (db *PGInstance) GetClientProfileByUserID(ctx context.Context, userID string) (*Client, error) {
 	var client Client
 	if err := db.DB.Where(&Client{UserID: &userID}).Preload(clause.Associations).First(&client).Error; err != nil {
+		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed to get client by user ID %v: %v", userID, err)
 	}
 	return &client, nil
@@ -333,6 +350,7 @@ func (db *PGInstance) GetClientProfileByUserID(ctx context.Context, userID strin
 func (db *PGInstance) CheckUserHasPin(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
 	var pin PINData
 	if err := db.DB.Where(&PINData{UserID: userID, Flavour: flavour}).Find(&pin).Error; err != nil {
+		helpers.ReportErrorToSentry(err)
 		return false, err
 	}
 	return true, nil
@@ -342,6 +360,7 @@ func (db *PGInstance) CheckUserHasPin(ctx context.Context, userID string, flavou
 func (db *PGInstance) GetOTP(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*UserOTP, error) {
 	var userOTP UserOTP
 	if err := db.DB.Where(&UserOTP{PhoneNumber: phoneNumber, Flavour: flavour}).First(&userOTP).Error; err != nil {
+		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed to get otp: %v", err)
 	}
 	return &userOTP, nil
@@ -351,6 +370,7 @@ func (db *PGInstance) GetOTP(ctx context.Context, phoneNumber string, flavour fe
 func (db *PGInstance) GetUserSecurityQuestionsResponses(ctx context.Context, userID string) ([]*SecurityQuestionResponse, error) {
 	var securityQuestionResponses []*SecurityQuestionResponse
 	if err := db.DB.Where(&SecurityQuestionResponse{UserID: userID, Active: true}).Find(&securityQuestionResponses).Error; err != nil {
+		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed to get security questions: %v", err)
 	}
 	return securityQuestionResponses, nil
@@ -371,6 +391,7 @@ func (db *PGInstance) GetContactByUserID(ctx context.Context, userID *string, co
 		return nil, fmt.Errorf("contact type must be PHONE or EMAIL")
 	}
 	if err := db.DB.Where(&Contact{UserID: userID, ContactType: contactType}).First(&contact).Error; err != nil {
+		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed to get contact: %v", err)
 	}
 	return &contact, nil
@@ -382,6 +403,7 @@ func (db *PGInstance) GetUserBookmarkedContent(ctx context.Context, userID strin
 	err := db.DB.Joins("JOIN content_contentbookmark ON content_contentitem.page_ptr_id = content_contentbookmark.content_item_id").
 		Where("content_contentbookmark.user_id = ?", userID).Preload(clause.Associations).Find(&contentItem).Error
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return nil, err
 	}
 	return contentItem, nil
@@ -394,6 +416,7 @@ func (db *PGInstance) CanRecordHeathDiary(ctx context.Context, clientID string) 
 	var clientHealthDiaryEntry []*ClientHealthDiaryEntry
 	err := db.DB.Where("client_id = ?", clientID).Order("created desc").Find(&clientHealthDiaryEntry).Error
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return false, fmt.Errorf("failed to get client health diary: %v", err)
 	}
 	if len(clientHealthDiaryEntry) > 0 {
@@ -411,6 +434,7 @@ func (db *PGInstance) GetClientHealthDiaryQuote(ctx context.Context) (*ClientHea
 	var healthDiaryQuote ClientHealthDiaryQuote
 	err := db.DB.Where("active = true").Order("RANDOM()").First(&healthDiaryQuote).Error
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return nil, err
 	}
 	return &healthDiaryQuote, nil
@@ -424,6 +448,7 @@ func (db *PGInstance) CheckIfUserBookmarkedContent(ctx context.Context, userID s
 		if strings.Contains(err.Error(), "record not found") {
 			return false, nil
 		}
+		helpers.ReportErrorToSentry(err)
 		return false, fmt.Errorf("failed to get content bookmark: %v", err)
 	}
 	return true, nil
@@ -435,6 +460,7 @@ func (db *PGInstance) GetClientHealthDiaryEntries(ctx context.Context, clientID 
 	err := db.DB.Where(&ClientHealthDiaryEntry{ClientID: clientID, Active: true}).
 		Order(clause.OrderByColumn{Column: clause.Column{Name: "created"}, Desc: true}).Find(&healthDiaryEntry).Error
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed to get all client health diary entries: %v", err)
 	}
 	return healthDiaryEntry, nil
@@ -447,6 +473,7 @@ func (db *PGInstance) GetFAQContent(ctx context.Context, flavour feedlib.Flavour
 	err := db.DB.Where(&FAQ{Flavour: flavour, Active: true}).
 		Order(clause.OrderByColumn{Column: clause.Column{Name: "created"}, Desc: true}).Limit(*limit).Find(&faq).Error
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed to get FAQ content: %v", err)
 	}
 	return faq, nil
