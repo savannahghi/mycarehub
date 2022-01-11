@@ -78,6 +78,15 @@ func TestUsecaseFeedbackImpl_SendFeedback(t *testing.T) {
 			want:    false,
 			wantErr: true,
 		},
+		{
+			name: "Sad case - unable to send message",
+			args: args{
+				ctx:     ctx,
+				payload: noMessageFeedback,
+			},
+			want:    false,
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -99,6 +108,11 @@ func TestUsecaseFeedbackImpl_SendFeedback(t *testing.T) {
 			}
 			if tt.name == "Sad case - no message" {
 				fakeFeedback.MockSendFeedbackFn = func(ctx context.Context, payload *dto.FeedbackResponseInput) (bool, error) {
+					return false, fmt.Errorf("an error occurred while sending feedback")
+				}
+			}
+			if tt.name == "Sad case - unable to send message" {
+				fakeExtension.MockSendFeedbackFn = func(ctx context.Context, subject, feedbackMessage string) (bool, error) {
 					return false, fmt.Errorf("an error occurred while sending feedback")
 				}
 			}

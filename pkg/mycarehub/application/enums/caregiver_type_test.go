@@ -6,109 +6,109 @@ import (
 	"testing"
 )
 
-func TestMood_IsValid(t *testing.T) {
+func TestCaregiverType_IsValid(t *testing.T) {
 	tests := []struct {
 		name string
-		m    Mood
+		m    CaregiverType
 		want bool
 	}{
 		{
-			name: "Happy Case - Valid type",
-			m:    MoodHappy,
+			name: "valid type",
+			m:    CaregiverTypeFather,
 			want: true,
 		},
 		{
-			name: "Sad Case - Invalid type",
-			m:    Mood("Not so happy"),
+			name: "invalid type",
+			m:    CaregiverType("invalid"),
 			want: false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := tt.m.IsValid(); got != tt.want {
-				t.Errorf("Mood.IsValid() = %v, want %v", got, tt.want)
+				t.Errorf("CaregiverType.IsValid() = %v, want %v", got, tt.want)
 			}
 		})
 	}
 }
 
-func TestMood_String(t *testing.T) {
+func TestCaregiverType_String(t *testing.T) {
 	tests := []struct {
 		name string
-		m    Mood
+		m    CaregiverType
 		want string
 	}{
 		{
-			name: "Happy Case",
-			m:    MoodHappy,
-			want: MoodHappy.String(),
+			name: "SIBLING",
+			m:    CaregiverTypeSibling,
+			want: "SIBLING",
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := tt.m.String(); got != tt.want {
-				t.Errorf("Mood.String() = %v, want %v", got, tt.want)
+				t.Errorf("CaregiverType.String() = %v, want %v", got, tt.want)
 			}
 		})
 	}
 }
 
-func TestMood_UnmarshalGQL(t *testing.T) {
-	validValue := MoodNeutral
-	invalidType := Mood("INVALID")
+func TestCaregiverType_UnmarshalGQL(t *testing.T) {
+	value := CaregiverTypeSibling
+	invalid := CaregiverType("invalid")
 	type args struct {
 		v interface{}
 	}
 	tests := []struct {
 		name    string
-		m       *Mood
+		m       *CaregiverType
 		args    args
 		wantErr bool
 	}{
 		{
-			name: "Happy Case - Valid type",
+			name: "valid type",
+			m:    &value,
 			args: args{
-				v: MoodNeutral.String(),
+				v: "SIBLING",
 			},
-			m:       &validValue,
 			wantErr: false,
 		},
 		{
-			name: "Sad Case - Invalid type",
+			name: "invalid type",
+			m:    &invalid,
 			args: args{
-				v: "invalid type",
+				v: "this is not a valid type",
 			},
-			m:       &invalidType,
 			wantErr: true,
 		},
 		{
-			name: "Sad Case - Invalid type(int)",
+			name: "non string type",
+			m:    &invalid,
 			args: args{
-				v: 45,
+				v: 1,
 			},
-			m:       &validValue,
 			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if err := tt.m.UnmarshalGQL(tt.args.v); (err != nil) != tt.wantErr {
-				t.Errorf("Mood.UnmarshalGQL() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("CaregiverType.UnmarshalGQL() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
 }
 
-func TestMood_MarshalGQL(t *testing.T) {
+func TestCaregiverType_MarshalGQL(t *testing.T) {
 	tests := []struct {
 		name  string
-		m     Mood
+		m     CaregiverType
 		wantW string
 	}{
 		{
 			name:  "valid type enums",
-			m:     MoodVerySad,
-			wantW: strconv.Quote("VERY_SAD"),
+			m:     CaregiverTypeSibling,
+			wantW: strconv.Quote("SIBLING"),
 		},
 	}
 	for _, tt := range tests {
@@ -116,7 +116,7 @@ func TestMood_MarshalGQL(t *testing.T) {
 			w := &bytes.Buffer{}
 			tt.m.MarshalGQL(w)
 			if gotW := w.String(); gotW != tt.wantW {
-				t.Errorf("Mood.MarshalGQL() = %v, want %v", gotW, tt.wantW)
+				t.Errorf("CaregiverType.MarshalGQL() = %v, want %v", gotW, tt.wantW)
 			}
 		})
 	}

@@ -1364,11 +1364,24 @@ func TestUseCasesUserImpl_ResetPIN(t *testing.T) {
 			want:    false,
 			wantErr: true,
 		},
+		{
+			name: "invalid: invalid reset pin input",
+			args: args{
+				ctx: context.Background(),
+				input: dto.UserResetPinInput{
+					PhoneNumber: gofakeit.Phone(),
+					Flavour:     feedlib.FlavourConsumer,
+					OTP:         "111222",
+				},
+			},
+			want:    false,
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
-			// fakeUser := mock.NewUserUseCaseMock()
+			fakeUser := mock.NewUserUseCaseMock()
 			fakeExtension := extensionMock.NewFakeExtension()
 			otp := otp.NewOTPUseCase(fakeDB, fakeDB, fakeExtension)
 			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, otp)
@@ -1482,6 +1495,12 @@ func TestUseCasesUserImpl_ResetPIN(t *testing.T) {
 				}
 				fakeDB.MockSavePinFn = func(ctx context.Context, pin *domain.UserPIN) (bool, error) {
 					return false, errors.New("failed to save pin")
+				}
+			}
+
+			if tt.name == "invalid: invalid reset pin input" {
+				fakeUser.MockResetPINFn = func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
 				}
 			}
 
@@ -1905,6 +1924,20 @@ func TestUseCasesUserImpl_CreateOrUpdateClientCaregiver(t *testing.T) {
 			want:    false,
 			wantErr: true,
 		},
+		{
+			name: "invalid: invalid caregiver type",
+			args: args{
+				ctx: context.Background(),
+				caregiverInput: &dto.CaregiverInput{
+					FirstName:     gofakeit.FirstName(),
+					LastName:      gofakeit.LastName(),
+					PhoneNumber:   gofakeit.Phone(),
+					CaregiverType: "enums.CaregiverTypeFather",
+				},
+			},
+			want:    false,
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -1947,6 +1980,80 @@ func TestUseCasesUserImpl_CreateOrUpdateClientCaregiver(t *testing.T) {
 			}
 			if got != tt.want {
 				t.Errorf("UseCasesUserImpl.CreateOrUpdateClientCaregiver() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestUseCasesUserImpl_CompleteOnboardingTour(t *testing.T) {
+	ctx := context.Background()
+
+	type args struct {
+		ctx     context.Context
+		userID  string
+		flavour feedlib.Flavour
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:     ctx,
+				userID:  uuid.New().String(),
+				flavour: feedlib.FlavourConsumer,
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Sad case - no userID",
+			args: args{
+				ctx:     ctx,
+				flavour: feedlib.FlavourConsumer,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case - no userID and flavour",
+			args: args{
+				ctx: ctx,
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			fakeExtension := extensionMock.NewFakeExtension()
+			otp := otp.NewOTPUseCase(fakeDB, fakeDB, fakeExtension)
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, otp)
+
+			if tt.name == "Sad case - no userID" {
+				fakeDB.MockUpdateUserPinChangeRequiredStatusFn = func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+
+			if tt.name == "Sad case - no userID and flavour" {
+				fakeDB.MockUpdateUserPinChangeRequiredStatusFn = func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+
+			}
+
+			got, err := us.CompleteOnboardingTour(tt.args.ctx, tt.args.userID, tt.args.flavour)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCasesUserImpl.CompleteOnboardingTour() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("UseCasesUserImpl.CompleteOnboardingTour() = %v, want %v", got, tt.want)
 			}
 		})
 	}

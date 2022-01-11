@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
@@ -17,6 +18,7 @@ import (
 // TODO: Make the create method idempotent
 func (d *MyCareHubDb) GetOrCreateFacility(ctx context.Context, facility *dto.FacilityInput) (*domain.Facility, error) {
 	if err := facility.Validate(); err != nil {
+		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("facility input validation failed: %s", err)
 	}
 
@@ -31,6 +33,7 @@ func (d *MyCareHubDb) GetOrCreateFacility(ctx context.Context, facility *dto.Fac
 
 	facilitySession, err := d.create.GetOrCreateFacility(ctx, facilityObj)
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed to create facility: %v", err)
 	}
 
@@ -51,6 +54,7 @@ func (d *MyCareHubDb) SaveTemporaryUserPin(ctx context.Context, pinData *domain.
 
 	_, err := d.create.SaveTemporaryUserPin(ctx, pinObj)
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return false, fmt.Errorf("failed to save user pin: %v", err)
 	}
 
@@ -72,6 +76,7 @@ func (d *MyCareHubDb) SavePin(ctx context.Context, pinInput *domain.UserPIN) (bo
 
 	_, err := d.create.SavePin(ctx, pinObj)
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return false, fmt.Errorf("failed to save user pin: %v", err)
 	}
 
@@ -93,6 +98,7 @@ func (d *MyCareHubDb) SaveOTP(ctx context.Context, otpInput *domain.OTP) error {
 
 	err := d.create.SaveOTP(ctx, otpObject)
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return fmt.Errorf("failed to save OTP")
 	}
 
@@ -114,6 +120,7 @@ func (d *MyCareHubDb) SaveSecurityQuestionResponse(ctx context.Context, security
 
 	err := d.create.SaveSecurityQuestionResponse(ctx, securityQuestionResponseObj)
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return fmt.Errorf("failed to save security question response data")
 	}
 
@@ -134,6 +141,7 @@ func (d *MyCareHubDb) CreateHealthDiaryEntry(ctx context.Context, healthDiaryInp
 
 	err := d.create.CreateHealthDiaryEntry(ctx, healthDiaryResponse)
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return err
 	}
 
@@ -159,6 +167,7 @@ func (d *MyCareHubDb) CreateServiceRequest(
 
 	err := d.create.CreateServiceRequest(ctx, serviceRequest)
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return err
 	}
 

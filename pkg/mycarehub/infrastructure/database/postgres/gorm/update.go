@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/savannahghi/feedlib"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 )
 
@@ -56,6 +57,7 @@ func (db *PGInstance) LikeContent(context context.Context, userID string, conten
 
 	var contentItem ContentItem
 	if err := tx.Model(&ContentItem{}).Where(&ContentItem{PagePtrID: contentID}).First(&contentItem).Error; err != nil {
+		helpers.ReportErrorToSentry(err)
 		return false, fmt.Errorf("unable to get content item: %v", err)
 	}
 
@@ -65,6 +67,7 @@ func (db *PGInstance) LikeContent(context context.Context, userID string, conten
 		if strings.Contains(err.Error(), "duplicate key value violates unique constraint") {
 			return true, nil
 		}
+		helpers.ReportErrorToSentry(err)
 		return false, fmt.Errorf("unable to update content likes: %v", err)
 	}
 
@@ -73,11 +76,13 @@ func (db *PGInstance) LikeContent(context context.Context, userID string, conten
 			"like_count": likeCount + 1,
 		}).Error
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return false, fmt.Errorf("unable to update like count in content item table: %v", err)
 	}
 
 	err = tx.Where(contentLike).FirstOrCreate(contentLike).Error
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		tx.Rollback()
 		return false, fmt.Errorf("failed to save or get like content: %v", err)
 	}
@@ -112,16 +117,19 @@ func (db *PGInstance) UnlikeContent(context context.Context, userID string, cont
 		if strings.Contains(err.Error(), "record not found") {
 			return true, nil
 		}
+		helpers.ReportErrorToSentry(err)
 		return false, fmt.Errorf("unable to get content like for the specifies user: %v", err)
 	}
 
 	var contentItem ContentItem
 	if err := tx.Model(&ContentItem{}).Where(&ContentItem{PagePtrID: contentID}).First(&contentItem).Error; err != nil {
+		helpers.ReportErrorToSentry(err)
 		return false, fmt.Errorf("unable to get content item: %v", err)
 	}
 
 	err := tx.Where("user_id = ?", userID, "content_item_id = ?", contentID).Delete(&ContentLike{}).Error
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return false, fmt.Errorf("unable to delete content likes: %v", err)
 	}
 
@@ -130,6 +138,7 @@ func (db *PGInstance) UnlikeContent(context context.Context, userID string, cont
 			"like_count": contentItem.LikeCount - 1,
 		}).Error
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return false, fmt.Errorf("unable to update like count in content item table: %v", err)
 	}
 
@@ -150,6 +159,7 @@ func (db *PGInstance) ReactivateFacility(ctx context.Context, mflCode *int) (boo
 	err := db.DB.Model(&Facility{}).Where(&Facility{Code: *mflCode, Active: false}).
 		Updates(&Facility{Active: true}).Error
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return false, err
 	}
 
@@ -165,6 +175,7 @@ func (db *PGInstance) InactivateFacility(ctx context.Context, mflCode *int) (boo
 	err := db.DB.Model(&Facility{}).Where(&Facility{Code: *mflCode, Active: true}).
 		Updates(&Facility{Active: false}).Error
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return false, err
 	}
 
@@ -179,6 +190,7 @@ func (db *PGInstance) AcceptTerms(ctx context.Context, userID *string, termsID *
 
 	if err := db.DB.Model(&User{}).Where(&User{UserID: userID}).
 		Updates(&User{TermsAccepted: true, AcceptedTermsID: termsID}).Error; err != nil {
+		helpers.ReportErrorToSentry(err)
 		return false, fmt.Errorf("an error occurred while updating the user: %v", err)
 	}
 
@@ -192,6 +204,7 @@ func (db *PGInstance) UpdateUserFailedLoginCount(ctx context.Context, userID str
 		"failed_login_count": failedLoginAttempts,
 	}).Error
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return err
 	}
 	return nil
@@ -202,6 +215,7 @@ func (db *PGInstance) UpdateUserLastFailedLoginTime(ctx context.Context, userID 
 	currentTime := time.Now()
 	err := db.DB.Model(&User{}).Where(&User{UserID: &userID}).Updates(&User{LastFailedLogin: &currentTime}).Error
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return err
 	}
 	return nil
@@ -212,6 +226,7 @@ func (db *PGInstance) UpdateUserLastFailedLoginTime(ctx context.Context, userID 
 func (db *PGInstance) UpdateUserNextAllowedLoginTime(ctx context.Context, userID string, nextAllowedLoginTime time.Time) error {
 	err := db.DB.Model(&User{}).Where(&User{UserID: &userID}).Updates(&User{NextAllowedLogin: &nextAllowedLoginTime}).Error
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return err
 	}
 	return nil
@@ -223,6 +238,7 @@ func (db *PGInstance) UpdateUserLastSuccessfulLoginTime(ctx context.Context, use
 	currentTime := time.Now()
 	err := db.DB.Model(&User{}).Where(&User{UserID: &userID}).Updates(&User{LastSuccessfulLogin: &currentTime}).Error
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return err
 	}
 	return nil
@@ -235,6 +251,7 @@ func (db *PGInstance) SetNickName(ctx context.Context, userID *string, nickname 
 	}
 	err := db.DB.Model(&User{}).Where(&User{UserID: userID}).Updates(&User{Username: *nickname}).Error
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return false, fmt.Errorf("failed to set nickname")
 	}
 
@@ -244,6 +261,9 @@ func (db *PGInstance) SetNickName(ctx context.Context, userID *string, nickname 
 // UpdateUserPinChangeRequiredStatus updates the user's pin change required from true to false. It'll be used to
 // determine the onboarding journey for a user.
 func (db *PGInstance) UpdateUserPinChangeRequiredStatus(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
+	if !flavour.IsValid() {
+		return false, fmt.Errorf("invalid flavour provided")
+	}
 	err := db.DB.Model(&User{}).Where(&User{UserID: &userID, Flavour: flavour}).Updates(map[string]interface{}{
 		"pin_change_required":        false,
 		"has_set_pin":                true,
@@ -251,6 +271,7 @@ func (db *PGInstance) UpdateUserPinChangeRequiredStatus(ctx context.Context, use
 		"is_phone_verified":          true,
 	}).Error
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return false, err
 	}
 	return true, nil
@@ -264,6 +285,7 @@ func (db *PGInstance) InvalidatePIN(ctx context.Context, userID string) (bool, e
 	}
 	err := db.DB.Model(&PINData{}).Where(&PINData{UserID: userID, IsValid: true}).Select("active").Updates(PINData{IsValid: false}).Error
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return false, fmt.Errorf("an error occurred while invalidating the pin: %v", err)
 	}
 	return true, nil
@@ -279,6 +301,7 @@ func (db *PGInstance) UpdateIsCorrectSecurityQuestionResponse(ctx context.Contex
 		"is_correct": isCorrectSecurityQuestionResponse,
 	}).Error
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return false, fmt.Errorf("an error occurred while updating the is correct security question response: %v", err)
 	}
 	return true, nil
@@ -312,6 +335,7 @@ func (db *PGInstance) ShareContent(ctx context.Context, input dto.ShareContentIn
 	}
 
 	if err := tx.Model(&ContentItem{}).Where(&ContentItem{PagePtrID: contentShare.ContentID}).First(&contentItem).Error; err != nil {
+		helpers.ReportErrorToSentry(err)
 		tx.Rollback()
 		return false, fmt.Errorf("failed to get content item: %v", err)
 	}
@@ -322,12 +346,14 @@ func (db *PGInstance) ShareContent(ctx context.Context, input dto.ShareContentIn
 		"share_count": updatedShareCount,
 	}).Error
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		tx.Rollback()
 		return false, fmt.Errorf("failed to update content share count: %v", err)
 	}
 
 	err = tx.Where(contentShare).FirstOrCreate(contentShare).Error
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		tx.Rollback()
 		return false, fmt.Errorf("failed to save or get share content: %v", err)
 	}
@@ -366,12 +392,14 @@ func (db *PGInstance) BookmarkContent(ctx context.Context, userID string, conten
 	}
 
 	if err := tx.Model(&ContentItem{}).Where(&ContentItem{PagePtrID: contentID}).First(&contentItem).Error; err != nil {
+		helpers.ReportErrorToSentry(err)
 		tx.Rollback()
 		return false, fmt.Errorf("failed to get content item: %v", err)
 	}
 
 	var updatedBookmarkCount = contentItem.BookmarkCount
 	if err := tx.Model(&ContentBookmark{}).Where(&ContentBookmark{UserID: userID, ContentID: contentID}).First(&contentBookmark).Error; err != nil {
+		helpers.ReportErrorToSentry(err)
 		updatedBookmarkCount++
 	}
 
@@ -379,12 +407,14 @@ func (db *PGInstance) BookmarkContent(ctx context.Context, userID string, conten
 		"bookmark_count": updatedBookmarkCount,
 	}).Error
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		tx.Rollback()
 		return false, fmt.Errorf("failed to update content share count: %v", err)
 	}
 
 	err = tx.Where(contentBookmark).FirstOrCreate(contentBookmark).Error
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		tx.Rollback()
 		return false, fmt.Errorf("failed to save or get share content: %v", err)
 	}
@@ -423,6 +453,7 @@ func (db *PGInstance) UnBookmarkContent(ctx context.Context, userID string, cont
 	}
 
 	if err := tx.Model(&ContentItem{}).Where(&ContentItem{PagePtrID: contentID}).First(&contentItem).Error; err != nil {
+		helpers.ReportErrorToSentry(err)
 		tx.Rollback()
 		return false, fmt.Errorf("failed to get content item: %v", err)
 	}
@@ -436,12 +467,14 @@ func (db *PGInstance) UnBookmarkContent(ctx context.Context, userID string, cont
 			"bookmark_count": updatedBookmarkCount,
 		}).Error
 		if err != nil {
+			helpers.ReportErrorToSentry(err)
 			tx.Rollback()
 			return false, fmt.Errorf("failed to update content share count: %v", err)
 		}
 
 		err = tx.Delete(contentBookmark).Error
 		if err != nil {
+			helpers.ReportErrorToSentry(err)
 			tx.Rollback()
 			return false, fmt.Errorf("failed to delete content bookmark: %v", err)
 		}
@@ -478,6 +511,7 @@ func (db *PGInstance) ViewContent(ctx context.Context, userID string, contentID 
 	}
 
 	if err := tx.Model(&ContentItem{}).Where(&ContentItem{PagePtrID: contentView.ContentID}).First(&contentItem).Error; err != nil {
+		helpers.ReportErrorToSentry(err)
 		return false, fmt.Errorf("failed to get content item: %v", err)
 	}
 
@@ -487,11 +521,13 @@ func (db *PGInstance) ViewContent(ctx context.Context, userID string, contentID 
 		"view_count": updatedViewCount,
 	}).Error
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return false, fmt.Errorf("failed to update content view count: %v", err)
 	}
 
 	err = tx.Where(contentView).FirstOrCreate(contentView).Error
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		tx.Rollback()
 		return false, fmt.Errorf("failed to save view content count: %v", err)
 	}

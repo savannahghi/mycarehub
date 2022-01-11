@@ -61,7 +61,6 @@ func TestPGInstance_InactivateFacility(t *testing.T) {
 }
 
 func TestPGInstance_ReactivateFacility(t *testing.T) {
-
 	ctx := context.Background()
 
 	type args struct {
@@ -260,6 +259,16 @@ func TestPGInstance_UpdateIsCorrectSecurityQuestionResponse(t *testing.T) {
 			want:    true,
 			wantErr: false,
 		},
+		{
+			name: "invalid: empty user id",
+			args: args{
+				ctx:                               ctx,
+				userID:                            "",
+				isCorrectSecurityQuestionResponse: true,
+			},
+			want:    false,
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -308,6 +317,26 @@ func TestPGInstance_AcceptTerms(t *testing.T) {
 			want:    false,
 			wantErr: true,
 		},
+		{
+			name: "sad case: no userID",
+			args: args{
+				ctx:     ctx,
+				userID:  nil,
+				termsID: &termsID,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "sad case: no terms",
+			args: args{
+				ctx:     ctx,
+				userID:  &userIDToAcceptTerms,
+				termsID: nil,
+			},
+			want:    false,
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -343,6 +372,16 @@ func TestPGInstance_UpdateUserFailedLoginCount(t *testing.T) {
 				userID:              userIDToIncreaseFailedLoginCount,
 				failedLoginAttempts: 1,
 			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case",
+			args: args{
+				ctx:                 ctx,
+				userID:              "",
+				failedLoginAttempts: 1,
+			},
+			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
@@ -399,12 +438,29 @@ func TestPGInstance_UpdateUserNextAllowedLoginTime(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "default case",
+			name: "Happy case",
 			args: args{
 				ctx:                  ctx,
 				userID:               userIDToUpdateNextAllowedLoginTime,
 				nextAllowedLoginTime: time.Now().Add(3),
 			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case - no userID",
+			args: args{
+				ctx:                  ctx,
+				userID:               "",
+				nextAllowedLoginTime: time.Now().Add(3),
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case",
+			args: args{
+				ctx: ctx,
+			},
+			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
@@ -614,6 +670,26 @@ func TestPGInstance_UpdateUserPinChangeRequiredStatus(t *testing.T) {
 			},
 			want:    true,
 			wantErr: false,
+		},
+		{
+			name: "Sad case - Empty userID and flavour",
+			args: args{
+				ctx:     ctx,
+				userID:  "",
+				flavour: "invalid-flavour",
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case - Invalid flavour",
+			args: args{
+				ctx:     ctx,
+				userID:  userIDUpdatePinRequireChangeStatus,
+				flavour: "invalid-flavour",
+			},
+			want:    false,
+			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
@@ -857,6 +933,44 @@ func TestPGInstance_UpdateClientCaregiver(t *testing.T) {
 			if (err != nil) != tt.wantErr {
 				t.Errorf("PGInstance.UpdateClientCaregiver() error = %v, wantErr %v", err, tt.wantErr)
 				return
+			}
+		})
+	}
+}
+
+func TestPGInstance_UpdateUserLastSuccessfulLoginTime(t *testing.T) {
+	ctx := context.Background()
+
+	type args struct {
+		ctx    context.Context
+		userID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:    ctx,
+				userID: userIDToUpdateUserLastSuccessfulLoginTime,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case",
+			args: args{
+				ctx:    ctx,
+				userID: "",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := testingDB.UpdateUserLastSuccessfulLoginTime(tt.args.ctx, tt.args.userID); (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.UpdateUserLastSuccessfulLoginTime() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}

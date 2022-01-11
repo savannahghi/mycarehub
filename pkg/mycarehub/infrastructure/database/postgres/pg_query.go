@@ -25,6 +25,7 @@ func (d *MyCareHubDb) GetFacilities(ctx context.Context) ([]*domain.Facility, er
 	var facility []*domain.Facility
 	facilities, err := d.query.GetFacilities(ctx)
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed to get facilities: %v", err)
 	}
 
@@ -55,6 +56,7 @@ func (d *MyCareHubDb) RetrieveFacility(ctx context.Context, id *string, isActive
 	}
 	facilitySession, err := d.query.RetrieveFacility(ctx, id, isActive)
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed query and retrieve one facility: %s", err)
 	}
 
@@ -68,6 +70,7 @@ func (d *MyCareHubDb) RetrieveFacilityByMFLCode(ctx context.Context, MFLCode int
 	}
 	facilitySession, err := d.query.RetrieveFacilityByMFLCode(ctx, MFLCode, isActive)
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed query and retrieve facility by MFLCode: %s", err)
 	}
 
@@ -80,6 +83,7 @@ func (d *MyCareHubDb) ListFacilities(
 	ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationsInput *dto.PaginationsInput) (*domain.FacilityPage, error) {
 	// if user did not provide current page, throw an error
 	if err := paginationsInput.Validate(); err != nil {
+		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("pagination input validation failed: %v", err)
 	}
 
@@ -106,6 +110,7 @@ func (d *MyCareHubDb) ListFacilities(
 
 	facilities, err := d.query.ListFacilities(ctx, searchTerm, filtersOutput, &paginationOutput)
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed to get facilities: %v", err)
 	}
 	return facilities, nil
@@ -119,6 +124,7 @@ func (d *MyCareHubDb) GetUserProfileByPhoneNumber(ctx context.Context, phoneNumb
 
 	user, err := d.query.GetUserProfileByPhoneNumber(ctx, phoneNumber)
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed to get user profile by phonenumber: %v", err)
 	}
 
@@ -132,6 +138,7 @@ func (d *MyCareHubDb) GetUserPINByUserID(ctx context.Context, userID string) (*d
 	}
 	pinData, err := d.query.GetUserPINByUserID(ctx, userID)
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed query and retrieve user PIN data: %s", err)
 	}
 
@@ -150,6 +157,7 @@ func (d *MyCareHubDb) GetUserPINByUserID(ctx context.Context, userID string) (*d
 func (d *MyCareHubDb) GetCurrentTerms(ctx context.Context) (*domain.TermsOfService, error) {
 	terms, err := d.query.GetCurrentTerms(ctx)
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed to get current terms of service: %v", err)
 	}
 
@@ -167,6 +175,7 @@ func (d *MyCareHubDb) GetUserProfileByUserID(ctx context.Context, userID string)
 
 	user, err := d.query.GetUserProfileByUserID(ctx, userID)
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed to get user profile by user ID: %v", err)
 	}
 
@@ -179,6 +188,7 @@ func (d *MyCareHubDb) GetSecurityQuestions(ctx context.Context, flavour feedlib.
 
 	allSecurityQuestions, err := d.query.GetSecurityQuestions(ctx, flavour)
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("unable to get security questions: %v", err)
 	}
 
@@ -206,6 +216,7 @@ func (d *MyCareHubDb) GetSecurityQuestions(ctx context.Context, flavour feedlib.
 func (d *MyCareHubDb) GetSecurityQuestionByID(ctx context.Context, securityQuestionID *string) (*domain.SecurityQuestion, error) {
 	securityQuestion, err := d.query.GetSecurityQuestionByID(ctx, securityQuestionID)
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed to get security question by ID: %v", err)
 	}
 
@@ -227,6 +238,7 @@ func (d *MyCareHubDb) GetSecurityQuestionResponseByID(ctx context.Context, quest
 
 	response, err := d.query.GetSecurityQuestionResponseByID(ctx, questionID)
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return nil, err
 	}
 
@@ -246,6 +258,7 @@ func (d *MyCareHubDb) CheckIfPhoneNumberExists(ctx context.Context, phone string
 	}
 	exists, err := d.query.CheckIfPhoneNumberExists(ctx, phone, isOptedIn, flavour)
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return false, fmt.Errorf("failed check whether phone exists: %s", err)
 	}
 
@@ -273,6 +286,7 @@ func (d *MyCareHubDb) GetClientProfileByUserID(ctx context.Context, userID strin
 
 	response, err := d.query.GetClientProfileByUserID(ctx, userID)
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return nil, err
 	}
 
@@ -301,6 +315,7 @@ func (d *MyCareHubDb) CheckUserHasPin(ctx context.Context, userID string, flavou
 
 	exists, err := d.query.CheckUserHasPin(ctx, userID, flavour)
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return false, err
 	}
 
@@ -318,6 +333,7 @@ func (d *MyCareHubDb) GetOTP(ctx context.Context, phoneNumber string, flavour fe
 
 	otp, err := d.query.GetOTP(ctx, phoneNumber, flavour)
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed to get OTP: %v", err)
 	}
 
@@ -339,6 +355,7 @@ func (d *MyCareHubDb) GetUserSecurityQuestionsResponses(ctx context.Context, use
 
 	securityQuestionResponses, err := d.query.GetUserSecurityQuestionsResponses(ctx, userID)
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed to get security questions: %v", err)
 	}
 
@@ -398,6 +415,7 @@ func (d *MyCareHubDb) ListContentCategories(ctx context.Context) ([]*domain.Cont
 
 	allContentCategories, err := d.query.ListContentCategories(ctx)
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return nil, err
 	}
 
@@ -425,6 +443,7 @@ func (d *MyCareHubDb) GetUserBookmarkedContent(ctx context.Context, userID strin
 	var domainContent []*domain.ContentItem
 	bookmarkedContent, err := d.query.GetUserBookmarkedContent(ctx, userID)
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed to fetch user's bookmarked content: %v", err)
 	}
 
@@ -455,6 +474,7 @@ func (d *MyCareHubDb) GetUserBookmarkedContent(ctx context.Context, userID strin
 func (d *MyCareHubDb) CanRecordHeathDiary(ctx context.Context, userID string) (bool, error) {
 	canRecord, err := d.query.CanRecordHeathDiary(ctx, userID)
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return false, err
 	}
 
@@ -465,6 +485,7 @@ func (d *MyCareHubDb) CanRecordHeathDiary(ctx context.Context, userID string) (b
 func (d *MyCareHubDb) GetClientHealthDiaryQuote(ctx context.Context) (*domain.ClientHealthDiaryQuote, error) {
 	clientHealthDiaryQuote, err := d.query.GetClientHealthDiaryQuote(ctx)
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed to fetch client health diary quote: %v", err)
 	}
 	return &domain.ClientHealthDiaryQuote{
@@ -477,6 +498,7 @@ func (d *MyCareHubDb) GetClientHealthDiaryQuote(ctx context.Context) (*domain.Cl
 func (d *MyCareHubDb) CheckIfUserBookmarkedContent(ctx context.Context, userID string, contentID int) (bool, error) {
 	bookmarked, err := d.query.CheckIfUserBookmarkedContent(ctx, userID, contentID)
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return false, fmt.Errorf("failed to check if user bookmarked content: %v", err)
 	}
 	return bookmarked, nil
@@ -487,6 +509,7 @@ func (d *MyCareHubDb) GetClientHealthDiaryEntries(ctx context.Context, clientID 
 	var healthDiaryEntries []*domain.ClientHealthDiaryEntry
 	clientHealthDiaryEntry, err := d.query.GetClientHealthDiaryEntries(ctx, clientID)
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return nil, err
 	}
 
@@ -513,6 +536,7 @@ func (d *MyCareHubDb) GetFAQContent(ctx context.Context, flavour feedlib.Flavour
 	var faq []*domain.FAQ
 	faqs, err := d.query.GetFAQContent(ctx, flavour, limit)
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return nil, err
 	}
 
