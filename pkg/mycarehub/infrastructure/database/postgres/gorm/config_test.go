@@ -76,6 +76,9 @@ var (
 
 	// contact variables
 	// contactID = "bdc22436-e314-43f2-bb39-ba1ab332f9b0"
+
+	//Terms
+	termsText = "Test terms"
 )
 
 func TestMain(m *testing.M) {
@@ -123,6 +126,7 @@ func TestMain(m *testing.M) {
 			"test_chv_id2":               testChvID2,
 			"test_password":              gofakeit.Password(false, false, true, true, false, 10),
 			"test_terms_id":              termsID,
+			"test_terms_text":            termsText,
 			"content_id":                 contentID,
 			"content_id2":                contentID2,
 			"author_id":                  authorID,

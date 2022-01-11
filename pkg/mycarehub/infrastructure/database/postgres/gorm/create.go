@@ -3,6 +3,8 @@ package gorm
 import (
 	"context"
 	"fmt"
+
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 )
 
 // Create contains all the methods used to perform a create operation in DB
@@ -23,6 +25,7 @@ func (db *PGInstance) GetOrCreateFacility(ctx context.Context, facility *Facilit
 	}
 	err := db.DB.Create(facility).Error
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed to create a facility: %v", err)
 	}
 	return facility, nil
@@ -35,6 +38,7 @@ func (db *PGInstance) SaveTemporaryUserPin(ctx context.Context, pinPayload *PIND
 	}
 	err := db.DB.Create(pinPayload).Error
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return false, fmt.Errorf("failed to save a pin: %v", err)
 	}
 	return true, nil
@@ -43,8 +47,8 @@ func (db *PGInstance) SaveTemporaryUserPin(ctx context.Context, pinPayload *PIND
 // SavePin saves the pin to the database
 func (db *PGInstance) SavePin(ctx context.Context, pinData *PINData) (bool, error) {
 	err := db.DB.Create(pinData).Error
-
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return false, fmt.Errorf("failed to save pin data: %v", err)
 	}
 
@@ -61,12 +65,14 @@ func (db *PGInstance) SaveOTP(ctx context.Context, otpInput *UserOTP) error {
 	err := db.DB.Model(&UserOTP{}).Where(&UserOTP{PhoneNumber: otpInput.PhoneNumber, Flavour: otpInput.Flavour}).
 		Updates(map[string]interface{}{"is_valid": false}).Error
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return fmt.Errorf("failed to update OTP data: %v", err)
 	}
 
 	//Save the OTP by setting valid to true
 	err = db.DB.Create(otpInput).Error
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return fmt.Errorf("failed to save otp data")
 	}
 	return nil
@@ -90,14 +96,17 @@ func (db *PGInstance) SaveSecurityQuestionResponse(ctx context.Context, security
 		}
 		err := tx.Model(&SecurityQuestionResponse{}).Where(&SecurityQuestionResponse{UserID: questionResponse.UserID, QuestionID: questionResponse.QuestionID}).First(&questionResponse).Error
 		if err == nil {
+			helpers.ReportErrorToSentry(err)
 			err := tx.Model(&SecurityQuestionResponse{}).Where(&SecurityQuestionResponse{UserID: questionResponse.UserID, QuestionID: questionResponse.QuestionID}).Updates(&SaveSecurityQuestionResponseUpdatePayload).Error
 			if err != nil {
+				helpers.ReportErrorToSentry(err)
 				tx.Rollback()
 				return fmt.Errorf("failed to update security question response data: %v", err)
 			}
 		} else {
 			err = tx.Create(&questionResponse).Error
 			if err != nil {
+				helpers.ReportErrorToSentry(err)
 				tx.Rollback()
 				return fmt.Errorf("failed to create security question response data: %v", err)
 			}
@@ -118,6 +127,7 @@ func (db *PGInstance) CreateHealthDiaryEntry(ctx context.Context, healthDiaryInp
 
 	err := tx.Create(healthDiaryInput).Error
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		tx.Rollback()
 		return err
 	}
@@ -141,6 +151,7 @@ func (db *PGInstance) CreateServiceRequest(
 
 	err := tx.Create(serviceRequestInput).Error
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		tx.Rollback()
 		return err
 	}

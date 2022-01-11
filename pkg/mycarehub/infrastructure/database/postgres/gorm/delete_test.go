@@ -62,6 +62,15 @@ func TestPGInstance_DeleteFacility(t *testing.T) {
 			want:    false,
 			wantErr: true,
 		},
+		{
+			name: "Sad Case - Invalid facility",
+			args: args{
+				ctx:     ctx,
+				mflcode: 789555,
+			},
+			want:    false,
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
