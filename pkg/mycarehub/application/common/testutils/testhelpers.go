@@ -16,6 +16,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/healthdiary"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/otp"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/securityquestions"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/servicerequest"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/terms"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/user"
 )
@@ -56,11 +57,12 @@ func InitializeTestService(ctx context.Context) (*usecases.MyCareHub, error) {
 
 	healthDiaryUseCase := healthdiary.NewUseCaseHealthDiaryImpl(db, db)
 	faq := faq.NewUsecaseFAQ(db)
+	serviceRequestUseCase := servicerequest.NewUseCaseServiceRequestImpl(db)
 
 	i := usecases.NewMyCareHubUseCase(
 		userUsecase, termsUsecase, facilityUseCase,
 		securityQuestionsUsecase, otpUseCase, contentUseCase, feedbackUsecase, healthDiaryUseCase,
-		faq,
+		faq, serviceRequestUseCase,
 	)
 	return i, nil
 }

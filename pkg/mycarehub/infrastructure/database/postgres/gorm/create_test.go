@@ -448,17 +448,6 @@ func TestPGInstance_SaveOTP(t *testing.T) {
 func TestPGInstance_CreateServiceRequest(t *testing.T) {
 	ctx := context.Background()
 
-	healthDiaryInput := &gorm.ClientHealthDiaryEntry{
-		Active:                true,
-		Mood:                  gofakeit.Name(),
-		Note:                  gofakeit.Sentence(5),
-		EntryType:             "HealthDiary",
-		ShareWithHealthWorker: false,
-		SharedAt:              time.Now(),
-		ClientID:              clientID,
-		OrganisationID:        orgID,
-	}
-
 	serviceRequestInput := &gorm.ClientServiceRequest{
 		Active:         false,
 		RequestType:    "HealthDiary",
@@ -471,7 +460,6 @@ func TestPGInstance_CreateServiceRequest(t *testing.T) {
 	}
 	type args struct {
 		ctx                 context.Context
-		healthDiaryInput    *gorm.ClientHealthDiaryEntry
 		serviceRequestInput *gorm.ClientServiceRequest
 	}
 	tests := []struct {
@@ -483,7 +471,6 @@ func TestPGInstance_CreateServiceRequest(t *testing.T) {
 			name: "Happy case",
 			args: args{
 				ctx:                 ctx,
-				healthDiaryInput:    healthDiaryInput,
 				serviceRequestInput: serviceRequestInput,
 			},
 			wantErr: false,
@@ -492,7 +479,7 @@ func TestPGInstance_CreateServiceRequest(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			if err := testingDB.CreateServiceRequest(tt.args.ctx, tt.args.healthDiaryInput, tt.args.serviceRequestInput); (err != nil) != tt.wantErr {
+			if err := testingDB.CreateServiceRequest(tt.args.ctx, tt.args.serviceRequestInput); (err != nil) != tt.wantErr {
 				t.Errorf("PGInstance.CreateServiceRequest() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})

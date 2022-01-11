@@ -88,6 +88,11 @@ func (h UseCasesHealthDiaryImpl) CreateHealthDiaryEntry(
 			SharedAt:              currentTime,
 		}
 
+		err := h.Create.CreateHealthDiaryEntry(ctx, healthDiaryEntry)
+		if err != nil {
+			return false, fmt.Errorf("failed to save health diary entry")
+		}
+
 		serviceRequest := &domain.ClientServiceRequest{
 			Active:       true,
 			RequestType:  "HEALTH_DIARY_ENTRY", //TODO make this an enum
@@ -97,7 +102,7 @@ func (h UseCasesHealthDiaryImpl) CreateHealthDiaryEntry(
 			ClientID:     clientID,
 		}
 
-		err := h.Create.CreateServiceRequest(ctx, healthDiaryEntry, serviceRequest)
+		err = h.Create.CreateServiceRequest(ctx, serviceRequest)
 		if err != nil {
 			return false, fmt.Errorf("failed to create service request: %v", err)
 		}
@@ -110,6 +115,7 @@ func (h UseCasesHealthDiaryImpl) CreateHealthDiaryEntry(
 			EntryType:             "HOME_PAGE_HEALTH_DIARY_ENTRY", //TODO: Make this an enum
 			ShareWithHealthWorker: false,
 			ClientID:              clientID,
+			SharedAt:              time.Now(),
 		}
 		err := h.Create.CreateHealthDiaryEntry(ctx, healthDiaryEntry)
 		if err != nil {

@@ -13,7 +13,7 @@ type Create interface {
 	SaveOTP(ctx context.Context, otpInput *UserOTP) error
 	SaveSecurityQuestionResponse(ctx context.Context, securityQuestionResponse []*SecurityQuestionResponse) error
 	CreateHealthDiaryEntry(ctx context.Context, healthDiaryInput *ClientHealthDiaryEntry) error
-	CreateServiceRequest(ctx context.Context, healthDiaryInput *ClientHealthDiaryEntry, serviceRequestInput *ClientServiceRequest) error
+	CreateServiceRequest(ctx context.Context, serviceRequestInput *ClientServiceRequest) error
 }
 
 // GetOrCreateFacility is used to get or create a facility
@@ -114,9 +114,17 @@ func (db *PGInstance) SaveSecurityQuestionResponse(ctx context.Context, security
 // CreateHealthDiaryEntry records the health diary entries from a client. This is necessary for engagement with clients
 // on a day-by-day basis
 func (db *PGInstance) CreateHealthDiaryEntry(ctx context.Context, healthDiaryInput *ClientHealthDiaryEntry) error {
-	err := db.DB.Create(healthDiaryInput).Error
+	tx := db.DB.Begin()
+
+	err := tx.Create(healthDiaryInput).Error
 	if err != nil {
+		tx.Rollback()
 		return err
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		tx.Rollback()
+		return fmt.Errorf("failed to commit transaction: %v", err)
 	}
 	return nil
 }
@@ -127,18 +135,11 @@ func (db *PGInstance) CreateHealthDiaryEntry(ctx context.Context, healthDiaryInp
 // but a service request is not successfully created.
 func (db *PGInstance) CreateServiceRequest(
 	ctx context.Context,
-	healthDiaryInput *ClientHealthDiaryEntry,
 	serviceRequestInput *ClientServiceRequest,
 ) error {
 	tx := db.DB.Begin()
 
 	err := tx.Create(serviceRequestInput).Error
-	if err != nil {
-		tx.Rollback()
-		return err
-	}
-
-	err = tx.Create(healthDiaryInput).Error
 	if err != nil {
 		tx.Rollback()
 		return err

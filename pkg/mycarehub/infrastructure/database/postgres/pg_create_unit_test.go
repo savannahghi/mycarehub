@@ -458,11 +458,9 @@ func TestMyCareHubDb_CreateHealthDiaryEntry(t *testing.T) {
 
 func TestMyCareHubDb_CreateServiceRequest(t *testing.T) {
 	ctx := context.Background()
-	currentTime := time.Now()
 
 	type args struct {
 		ctx                 context.Context
-		healthDiaryInput    *domain.ClientHealthDiaryEntry
 		serviceRequestInput *domain.ClientServiceRequest
 	}
 	tests := []struct {
@@ -474,11 +472,6 @@ func TestMyCareHubDb_CreateServiceRequest(t *testing.T) {
 			name: "Happy Case - Create a service request",
 			args: args{
 				ctx: ctx,
-				healthDiaryInput: &domain.ClientHealthDiaryEntry{
-					Active:   true,
-					Mood:     enums.MoodHappy.String(),
-					SharedAt: currentTime,
-				},
 				serviceRequestInput: &domain.ClientServiceRequest{
 					Active: true,
 				},
@@ -489,11 +482,6 @@ func TestMyCareHubDb_CreateServiceRequest(t *testing.T) {
 			name: "Sad Case - Fail to create a service request",
 			args: args{
 				ctx: ctx,
-				healthDiaryInput: &domain.ClientHealthDiaryEntry{
-					Active:   true,
-					Mood:     enums.MoodHappy.String(),
-					SharedAt: currentTime,
-				},
 				serviceRequestInput: &domain.ClientServiceRequest{
 					Active: true,
 				},
@@ -507,12 +495,12 @@ func TestMyCareHubDb_CreateServiceRequest(t *testing.T) {
 			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
 
 			if tt.name == "Sad Case - Fail to create a service request" {
-				fakeGorm.MockCreateServiceRequestFn = func(ctx context.Context, healthDiaryInput *gorm.ClientHealthDiaryEntry, serviceRequestInput *gorm.ClientServiceRequest) error {
+				fakeGorm.MockCreateServiceRequestFn = func(ctx context.Context, serviceRequestInput *gorm.ClientServiceRequest) error {
 					return fmt.Errorf("failed to create a service request")
 				}
 			}
 
-			if err := d.CreateServiceRequest(tt.args.ctx, tt.args.healthDiaryInput, tt.args.serviceRequestInput); (err != nil) != tt.wantErr {
+			if err := d.CreateServiceRequest(tt.args.ctx, tt.args.serviceRequestInput); (err != nil) != tt.wantErr {
 				t.Errorf("MyCareHubDb.CreateServiceRequest() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
