@@ -20,6 +20,7 @@ type Create interface {
 	SaveSecurityQuestionResponse(ctx context.Context, securityQuestionResponse []*dto.SecurityQuestionResponseInput) error
 	CreateHealthDiaryEntry(ctx context.Context, healthDiaryInput *domain.ClientHealthDiaryEntry) error
 	CreateServiceRequest(ctx context.Context, serviceRequestInput *domain.ClientServiceRequest) error
+	CreateClientCaregiver(ctx context.Context, caregiverInput *dto.CaregiverInput) error
 }
 
 // Delete represents all the deletion action interfaces
@@ -55,6 +56,8 @@ type Query interface {
 	CheckIfUserBookmarkedContent(ctx context.Context, userID string, contentID int) (bool, error)
 	GetClientHealthDiaryEntries(ctx context.Context, clientID string) ([]*domain.ClientHealthDiaryEntry, error)
 	GetFAQContent(ctx context.Context, flavour feedlib.Flavour, limit *int) ([]*domain.FAQ, error)
+	GetClientCaregiver(ctx context.Context, caregiverID string) (*domain.Caregiver, error)
+	GetClientByClientID(ctx context.Context, clientID string) (*domain.ClientProfile, error)
 }
 
 // Update represents all the update action interfaces
@@ -76,4 +79,5 @@ type Update interface {
 	LikeContent(ctx context.Context, userID string, contentID int) (bool, error)
 	UnlikeContent(ctx context.Context, userID string, contentID int) (bool, error)
 	ViewContent(ctx context.Context, userID string, contentID int) (bool, error)
+	UpdateClientCaregiver(ctx context.Context, caregiverInput *dto.CaregiverInput) error
 }

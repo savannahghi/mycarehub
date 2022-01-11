@@ -68,6 +68,10 @@ type GormMock struct {
 	MockCheckIfUserBookmarkedContentFn            func(ctx context.Context, userID string, contentID int) (bool, error)
 	MockGetClientHealthDiaryEntriesFn             func(ctx context.Context, clientID string) ([]*gorm.ClientHealthDiaryEntry, error)
 	MockGetFAQContentFn                           func(ctx context.Context, flavour feedlib.Flavour, limit *int) ([]*gorm.FAQ, error)
+	MockCreateClientCaregiverFn                   func(ctx context.Context, clientID string, clientCaregiver *gorm.Caregiver) error
+	MockGetClientCaregiverFn                      func(ctx context.Context, caregiverID string) (*gorm.Caregiver, error)
+	MockUpdateClientCaregiverFn                   func(ctx context.Context, caregiverInput *dto.CaregiverInput) error
+	MockGetClientByClientIDFn                     func(ctx context.Context, clientID string) (*gorm.Client, error)
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -378,6 +382,27 @@ func NewGormMock() *GormMock {
 			}, nil
 
 		},
+		MockCreateClientCaregiverFn: func(ctx context.Context, clientID string, clientCaregiver *gorm.Caregiver) error {
+			return nil
+		},
+		MockGetClientCaregiverFn: func(ctx context.Context, caregiverID string) (*gorm.Caregiver, error) {
+			ID := uuid.New().String()
+			return &gorm.Caregiver{
+				CaregiverID:   &ID,
+				FirstName:     "test",
+				LastName:      "test",
+				PhoneNumber:   gofakeit.Phone(),
+				CaregiverType: enums.CaregiverTypeFather,
+				Active:        true,
+			}, nil
+
+		},
+		MockUpdateClientCaregiverFn: func(ctx context.Context, caregiverInput *dto.CaregiverInput) error {
+			return nil
+		},
+		MockGetClientByClientIDFn: func(ctx context.Context, clientID string) (*gorm.Client, error) {
+			return client, nil
+		},
 	}
 }
 
@@ -635,4 +660,24 @@ func (gm *GormMock) GetClientHealthDiaryEntries(ctx context.Context, clientID st
 // GetFAQContent mocks the implementation of getting FAQ content
 func (gm *GormMock) GetFAQContent(ctx context.Context, flavour feedlib.Flavour, limit *int) ([]*gorm.FAQ, error) {
 	return gm.MockGetFAQContentFn(ctx, flavour, limit)
+}
+
+// CreateClientCaregiver mocks the implementation of creating a caregiver
+func (gm *GormMock) CreateClientCaregiver(ctx context.Context, clientID string, caregiver *gorm.Caregiver) error {
+	return gm.MockCreateClientCaregiverFn(ctx, clientID, caregiver)
+}
+
+// GetClientCaregiver mocks the implementation of getting a caregiver
+func (gm *GormMock) GetClientCaregiver(ctx context.Context, caregiverID string) (*gorm.Caregiver, error) {
+	return gm.MockGetClientCaregiverFn(ctx, caregiverID)
+}
+
+// UpdateClientCaregiver mocks the implementation of updating a caregiver
+func (gm *GormMock) UpdateClientCaregiver(ctx context.Context, caregiverInput *dto.CaregiverInput) error {
+	return gm.MockUpdateClientCaregiverFn(ctx, caregiverInput)
+}
+
+// GetClientByClientID mocks the implementation of getting a client by client ID
+func (gm *GormMock) GetClientByClientID(ctx context.Context, clientID string) (*gorm.Client, error) {
+	return gm.MockGetClientByClientIDFn(ctx, clientID)
 }

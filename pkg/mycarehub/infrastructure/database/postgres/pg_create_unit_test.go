@@ -506,3 +506,58 @@ func TestMyCareHubDb_CreateServiceRequest(t *testing.T) {
 		})
 	}
 }
+
+func TestMyCareHubDb_CreateClientCaregiver(t *testing.T) {
+	type args struct {
+		ctx            context.Context
+		caregiverInput *dto.CaregiverInput
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Create a client caregiver",
+			args: args{
+				ctx: context.Background(),
+				caregiverInput: &dto.CaregiverInput{
+					FirstName:     "John",
+					LastName:      "Doe",
+					PhoneNumber:   "+1234567890",
+					CaregiverType: enums.CaregiverTypeFather,
+				},
+			},
+			wantErr: false,
+		},
+
+		{
+			name: "Sad Case - Fail to create a client caregiver",
+			args: args{
+				ctx: context.Background(),
+				caregiverInput: &dto.CaregiverInput{
+					FirstName:     "John",
+					LastName:      "Doe",
+					PhoneNumber:   "+1234567890",
+					CaregiverType: enums.CaregiverTypeFather,
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var fakeGorm = gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			if tt.name == "Sad Case - Fail to create a client caregiver" {
+				fakeGorm.MockCreateClientCaregiverFn = func(ctx context.Context, clientID string, clientCaregiver *gorm.Caregiver) error {
+					return fmt.Errorf("failed to create a client caregiver")
+				}
+			}
+			if err := d.CreateClientCaregiver(tt.args.ctx, tt.args.caregiverInput); (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.CreateClientCaregiver() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}

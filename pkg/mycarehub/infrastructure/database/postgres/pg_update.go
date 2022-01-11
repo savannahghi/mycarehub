@@ -149,3 +149,8 @@ func (d *MyCareHubDb) UnlikeContent(ctx context.Context, userID string, contentI
 func (d *MyCareHubDb) ViewContent(ctx context.Context, userID string, contentID int) (bool, error) {
 	return d.update.ViewContent(ctx, userID, contentID)
 }
+
+// UpdateClientCaregiver updates the caregiver for a client
+func (d *MyCareHubDb) UpdateClientCaregiver(ctx context.Context, caregiverInput *dto.CaregiverInput) error {
+	return d.update.UpdateClientCaregiver(ctx, caregiverInput)
+}

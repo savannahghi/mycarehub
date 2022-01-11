@@ -308,4 +308,14 @@ const (
 	// The FAQ content retrieval has failed'
 	// Its error code is 60
 	GetFAQContentError
+
+	// UpdateClientCaregiverError means that the system is unable to update the client caregiver'
+	// The update has failed'
+	// Its error code is 61
+	UpdateClientCaregiverError
+
+	// CreateClientCaregiverError means that the system is unable to create the client caregiver'
+	// The creation has failed'
+	// Its error code is 62
+	CreateClientCaregiverError
 )

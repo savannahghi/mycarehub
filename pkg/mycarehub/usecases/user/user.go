@@ -66,6 +66,16 @@ type IResetPIN interface {
 	ResetPIN(ctx context.Context, input dto.UserResetPinInput) (bool, error)
 }
 
+// ICreateClientCaregiver is an interface that contains all the create client caregiver use cases
+type ICreateClientCaregiver interface {
+	CreateOrUpdateClientCaregiver(ctx context.Context, clientCaregiver *dto.CaregiverInput) (bool, error)
+}
+
+// IGetClientCaregiver is an interface that contains all the query client caregiver use cases
+type IGetClientCaregiver interface {
+	GetClientCaregiver(ctx context.Context, clientID string) (*domain.Caregiver, error)
+}
+
 // UseCasesUser group all business logic usecases related to user
 type UseCasesUser interface {
 	ILogin
@@ -77,6 +87,8 @@ type UseCasesUser interface {
 	IResetPIN
 	IRefreshToken
 	IVerifyPIN
+	ICreateClientCaregiver
+	IGetClientCaregiver
 }
 
 // UseCasesUserImpl represents user implementation object
@@ -550,4 +562,67 @@ func (us *UseCasesUserImpl) VerifyPIN(ctx context.Context, userID string, flavou
 		return false, exceptions.PinMismatchError(err)
 	}
 	return true, nil
+}
+
+// CreateOrUpdateClientCaregiver creates a client caregiver
+func (us *UseCasesUserImpl) CreateOrUpdateClientCaregiver(ctx context.Context, caregiverInput *dto.CaregiverInput) (bool, error) {
+	if err := caregiverInput.Validate(); err != nil {
+		return false, exceptions.InputValidationErr(fmt.Errorf("failed to validate client caregiver input: %v", err))
+	}
+	var phone = &caregiverInput.PhoneNumber
+	var err error
+
+	if caregiverInput.PhoneNumber != "" {
+		phone, err = converterandformatter.NormalizeMSISDN(caregiverInput.PhoneNumber)
+		if err != nil {
+			return false, exceptions.NormalizeMSISDNError(err)
+		}
+	}
+
+	if !caregiverInput.CaregiverType.IsValid() {
+		return false, exceptions.InputValidationErr(fmt.Errorf("caregiver type is not valid"))
+	}
+
+	caregiverInput.PhoneNumber = *phone
+
+	client, err := us.Query.GetClientByClientID(ctx, caregiverInput.ClientID)
+	if err != nil {
+		return false, exceptions.ClientProfileNotFoundErr(err)
+	}
+
+	if client.CaregiverID != nil {
+		err := us.Update.UpdateClientCaregiver(ctx, caregiverInput)
+		if err != nil {
+			return false, exceptions.UpdateClientCaregiverErr(err)
+		}
+	} else {
+
+		err = us.Create.CreateClientCaregiver(ctx, caregiverInput)
+		if err != nil {
+			return false, exceptions.CreateClientCaregiverErr(err)
+		}
+	}
+	return true, nil
+}
+
+// GetClientCaregiver returns a client's caregiver
+func (us *UseCasesUserImpl) GetClientCaregiver(ctx context.Context, clientID string) (*domain.Caregiver, error) {
+	if clientID == "" {
+		return nil, exceptions.EmptyInputErr(fmt.Errorf("client id is empty"))
+	}
+
+	client, err := us.Query.GetClientByClientID(ctx, clientID)
+	if err != nil {
+		return nil, exceptions.ClientProfileNotFoundErr(err)
+	}
+
+	if client.CaregiverID == nil {
+		return &domain.Caregiver{}, nil
+	}
+
+	caregiver, err := us.Query.GetClientCaregiver(ctx, *client.CaregiverID)
+	if err != nil {
+		return nil, err
+	}
+	return caregiver, nil
 }

@@ -32,6 +32,7 @@ var (
 	// user variables
 	userID                             = "6ecbbc80-24c8-421a-9f1a-e14e12678ee0"
 	userID2                            = "6ecbbc80-24c8-421a-9f1a-e14e12678ef0"
+	userIDtoAddCaregiver               = "8ecbbc80-24c8-421a-9f1a-e14e12678ef1"
 	userIDToInvalidate                 = "5ecbbc80-24c8-421a-9f1a-e14e12678ee0"
 	userIDToAcceptTerms                = "4ecbbc80-24c8-421a-9f1a-e14e12678ee0"
 	userIDToIncreaseFailedLoginCount   = "7ecbbc80-24c8-421a-9f1a-e14e12678ee0"
@@ -50,6 +51,7 @@ var (
 	userNickname                       = "test user"
 	clientID                           = "26b20a42-cbb8-4553-aedb-c539602d04fc"
 	clientID2                          = "00a6a0cd-42ac-417b-97d9-e939a1232de1"
+	ClientToAddCaregiver               = "00a6a0cd-42ac-417b-97d9-e939a1232de2"
 	// Facility variables
 	facilityID          = "4181df12-ca96-4f28-b78b-8e8ad88b25df"
 	mflCode             = 324459
@@ -73,6 +75,9 @@ var (
 	contentID2 = 20000
 	authorID   = "4181df12-ca96-4f28-b78b-8e8ad88b25df"
 	authorID2  = "4181df12-ca96-4f28-b78b-8e8ad88b25de"
+
+	// Caregiver
+	testCaregiverID = "26b20a42-cbb8-4553-aedb-c539602d04fc"
 
 	// contact variables
 	// contactID = "bdc22436-e314-43f2-bb39-ba1ab332f9b0"
@@ -136,6 +141,8 @@ func TestMain(m *testing.M) {
 			"security_question_response_id2": securityQuestionResponseID2,
 			"security_question_response_id3": securityQuestionResponseID3,
 			"security_question_response_id4": securityQuestionResponseID4,
+			"user_id_to_add_caregiver":       userIDtoAddCaregiver,
+			"test_caregiver_id":              testCaregiverID,
 		}),
 		// this is the directory containing the YAML files.
 		// The file name should be the same as the table name
@@ -153,6 +160,7 @@ func TestMain(m *testing.M) {
 			"../../../../../../fixtures/users_userotp.yml",
 			"../../../../../../fixtures/common_facility.yml",
 			"../../../../../../fixtures/users_userpin.yml",
+			"../../../../../../fixtures/clients_caregiver.yml",
 			"../../../../../../fixtures/clients_client.yml",
 		),
 		// uncomment when running tests locally, if your db is not a test db

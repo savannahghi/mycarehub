@@ -2419,3 +2419,95 @@ func TestMyCareHubDb_GetFAQContent(t *testing.T) {
 		})
 	}
 }
+
+func TestMyCareHubDb_GetClientCaregiver(t *testing.T) {
+	type args struct {
+		ctx      context.Context
+		clientID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *domain.Caregiver
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Successfully get client caregiver",
+			args: args{
+				ctx:      context.Background(),
+				clientID: uuid.New().String(),
+			},
+
+			want: &domain.Caregiver{
+				ID:            uuid.New().String(),
+				FirstName:     "John",
+				LastName:      "Doe",
+				PhoneNumber:   "+1234567890",
+				CaregiverType: enums.CaregiverTypeFather,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad Case - Fail to get client caregiver",
+			args: args{
+				ctx:      context.Background(),
+				clientID: uuid.New().String(),
+			},
+			want:    nil,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var fakeGorm = gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			if tt.name == "Sad Case - Fail to get client caregiver" {
+				fakeGorm.MockGetClientCaregiverFn = func(ctx context.Context, clientID string) (*gorm.Caregiver, error) {
+					return nil, fmt.Errorf("failed to get client caregiver")
+				}
+			}
+
+			got, err := d.GetClientCaregiver(tt.args.ctx, tt.args.clientID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.GetClientCaregiver() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected a response but got: %v", got)
+				return
+			}
+		})
+	}
+}
+
+func TestMyCareHubDb_GetClientByClientID(t *testing.T) {
+	type args struct {
+		ctx      context.Context
+		clientID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *domain.ClientProfile
+		wantErr bool
+	}{
+		// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var fakeGorm = gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			got, err := d.GetClientByClientID(tt.args.ctx, tt.args.clientID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.GetClientByClientID() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected a response but got: %v", got)
+				return
+			}
+		})
+	}
+}

@@ -326,3 +326,38 @@
   is_active: true
   approval_notified: false
   handle: "@user7"
+
+  # test user to add caregiver
+- id: 8ecbbc80-24c8-421a-9f1a-e14e12678ef1
+  username: test user8
+  name: test user8
+  first_name: first name8
+  middle_name: middle name8
+  last_name: last name8
+  user_type: client
+  gender: male
+  last_successful_login: RAW=NOW()
+  last_failed_login: null
+  failed_login_count: 0
+  next_allowed_login: RAW=NOW()
+  accepted_terms_of_service_id: {{.test_terms_id}}
+  terms_accepted: true
+  flavour: CONSUMER
+  avatar: null
+  is_suspended: false
+  pin_change_required: false
+  has_set_pin: true
+  has_set_security_questions: true
+  is_phone_verified: true
+  organisation_id: {{.test_organisation_id}}
+  password: {{.test_password}}
+  is_superuser: false
+  is_staff: false
+  email: test@example8.co
+  date_joined: RAW=NOW()
+  is_approved: true
+  is_active: true
+  approval_notified: false
+  handle: "@us8"
+
+  

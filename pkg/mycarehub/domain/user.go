@@ -86,7 +86,8 @@ type ClientProfile struct {
 
 	FacilityID string `json:"facilityID"`
 
-	CHVUserID string `json:"CHVUserID"`
+	CHVUserID   string  `json:"CHVUserID"`
+	CaregiverID *string `json:"CaregiverID"`
 }
 
 // AuthCredentials is the authentication credentials for a given user

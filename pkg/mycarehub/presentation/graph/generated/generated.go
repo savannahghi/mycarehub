@@ -51,6 +51,13 @@ type ComplexityRoot struct {
 		ID func(childComplexity int) int
 	}
 
+	Caregiver struct {
+		CaregiverType func(childComplexity int) int
+		FirstName     func(childComplexity int) int
+		LastName      func(childComplexity int) int
+		PhoneNumber   func(childComplexity int) int
+	}
+
 	CategoryDetail struct {
 		CategoryIcon func(childComplexity int) int
 		CategoryName func(childComplexity int) int
@@ -218,6 +225,7 @@ type ComplexityRoot struct {
 		CompleteOnboardingTour          func(childComplexity int, userID string, flavour feedlib.Flavour) int
 		CreateFacility                  func(childComplexity int, input dto.FacilityInput) int
 		CreateHealthDiaryEntry          func(childComplexity int, clientID string, note *string, mood string, reportToStaff bool) int
+		CreateOrUpdateClientCaregiver   func(childComplexity int, caregiverInput *dto.CaregiverInput) int
 		CreateServiceRequest            func(childComplexity int, clientID string, requestType string, request *string) int
 		DeleteFacility                  func(childComplexity int, mflCode int) int
 		InactivateFacility              func(childComplexity int, mflCode int) int
@@ -248,6 +256,7 @@ type ComplexityRoot struct {
 		CheckIfUserBookmarkedContent func(childComplexity int, userID string, contentID int) int
 		CheckIfUserHasLikedContent   func(childComplexity int, userID string, contentID int) int
 		FetchFacilities              func(childComplexity int) int
+		GetClientCaregiver           func(childComplexity int, clientID string) int
 		GetClientHealthDiaryEntries  func(childComplexity int, clientID string) int
 		GetContent                   func(childComplexity int, categoryID *int, limit string) int
 		GetCurrentTerms              func(childComplexity int) int
@@ -302,6 +311,7 @@ type MutationResolver interface {
 	AcceptTerms(ctx context.Context, userID string, termsID int) (bool, error)
 	SetNickName(ctx context.Context, userID string, nickname string) (bool, error)
 	CompleteOnboardingTour(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
+	CreateOrUpdateClientCaregiver(ctx context.Context, caregiverInput *dto.CaregiverInput) (bool, error)
 }
 type QueryResolver interface {
 	GetContent(ctx context.Context, categoryID *int, limit string) (*domain.Content, error)
@@ -321,6 +331,7 @@ type QueryResolver interface {
 	GetSecurityQuestions(ctx context.Context, flavour feedlib.Flavour) ([]*domain.SecurityQuestion, error)
 	GetCurrentTerms(ctx context.Context) (*domain.TermsOfService, error)
 	VerifyPin(ctx context.Context, userID string, flavour feedlib.Flavour, pin string) (bool, error)
+	GetClientCaregiver(ctx context.Context, clientID string) (*domain.Caregiver, error)
 }
 
 type executableSchema struct {
@@ -344,6 +355,34 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Author.ID(childComplexity), true
+
+	case "Caregiver.caregiverType":
+		if e.complexity.Caregiver.CaregiverType == nil {
+			break
+		}
+
+		return e.complexity.Caregiver.CaregiverType(childComplexity), true
+
+	case "Caregiver.firstName":
+		if e.complexity.Caregiver.FirstName == nil {
+			break
+		}
+
+		return e.complexity.Caregiver.FirstName(childComplexity), true
+
+	case "Caregiver.lastName":
+		if e.complexity.Caregiver.LastName == nil {
+			break
+		}
+
+		return e.complexity.Caregiver.LastName(childComplexity), true
+
+	case "Caregiver.phoneNumber":
+		if e.complexity.Caregiver.PhoneNumber == nil {
+			break
+		}
+
+		return e.complexity.Caregiver.PhoneNumber(childComplexity), true
 
 	case "CategoryDetail.categoryIcon":
 		if e.complexity.CategoryDetail.CategoryIcon == nil {
@@ -1091,6 +1130,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.CreateHealthDiaryEntry(childComplexity, args["clientID"].(string), args["note"].(*string), args["mood"].(string), args["reportToStaff"].(bool)), true
 
+	case "Mutation.createOrUpdateClientCaregiver":
+		if e.complexity.Mutation.CreateOrUpdateClientCaregiver == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createOrUpdateClientCaregiver_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateOrUpdateClientCaregiver(childComplexity, args["caregiverInput"].(*dto.CaregiverInput)), true
+
 	case "Mutation.createServiceRequest":
 		if e.complexity.Mutation.CreateServiceRequest == nil {
 			break
@@ -1343,6 +1394,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.FetchFacilities(childComplexity), true
+
+	case "Query.getClientCaregiver":
+		if e.complexity.Query.GetClientCaregiver == nil {
+			break
+		}
+
+		args, err := ec.field_Query_getClientCaregiver_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetClientCaregiver(childComplexity, args["clientID"].(string)), true
 
 	case "Query.getClientHealthDiaryEntries":
 		if e.complexity.Query.GetClientHealthDiaryEntries == nil {
@@ -1711,6 +1774,13 @@ enum SecurityQuestionResponseType{
 	NUMBER
 	DATE
   BOOLEAN
+}
+
+enum CaregiverType {
+  FATHER,
+  MOTHER,
+  SIBLING,
+  HEALTHCARE_PROFESSIONAL,
 }`, BuiltIn: false},
 	{Name: "pkg/mycarehub/presentation/graph/facility.graphql", Input: `extend type Mutation {
   createFacility(input: FacilityInput!): Facility!
@@ -1799,6 +1869,14 @@ input FeedbackResponseInput {
 	userID: String!
 	message: String! 
 	requiresFollowUp: Boolean! 
+}
+
+input CaregiverInput{
+  clientID: String!
+  firstName: String!
+  lastName: String!
+  phoneNumber: String!
+  caregiverType: CaregiverType!
 }`, BuiltIn: false},
 	{Name: "pkg/mycarehub/presentation/graph/otp.graphql", Input: `extend type Query {
   sendOTP(phoneNumber: String!, flavour: Flavour!): String!
@@ -2016,16 +2094,24 @@ type FAQ {
   Body: String!
   Flavour: Flavour!
 }
-`, BuiltIn: false},
+
+type Caregiver{
+  firstName: String!
+  lastName: String!
+  phoneNumber: String!
+  caregiverType: CaregiverType!
+}`, BuiltIn: false},
 	{Name: "pkg/mycarehub/presentation/graph/user.graphql", Input: `extend type Query {
   getCurrentTerms: TermsOfService!
   verifyPIN(userID: String!, flavour: Flavour!, pin:  String!): Boolean!
+  getClientCaregiver(clientID: String!) :Caregiver!
 }
 
 extend type Mutation {
   acceptTerms(userID: String!, termsID: Int!): Boolean!
   setNickName(userID: String!, nickname: String!): Boolean!
   completeOnboardingTour(userID: String!, flavour: Flavour!): Boolean!
+  createOrUpdateClientCaregiver(caregiverInput: CaregiverInput): Boolean!
 }
 `, BuiltIn: false},
 	{Name: "federation/directives.graphql", Input: `
@@ -2195,6 +2281,21 @@ func (ec *executionContext) field_Mutation_createHealthDiaryEntry_args(ctx conte
 		}
 	}
 	args["reportToStaff"] = arg3
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_createOrUpdateClientCaregiver_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *dto.CaregiverInput
+	if tmp, ok := rawArgs["caregiverInput"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("caregiverInput"))
+		arg0, err = ec.unmarshalOCaregiverInput2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐCaregiverInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["caregiverInput"] = arg0
 	return args, nil
 }
 
@@ -2543,6 +2644,21 @@ func (ec *executionContext) field_Query_checkIfUserHasLikedContent_args(ctx cont
 	return args, nil
 }
 
+func (ec *executionContext) field_Query_getClientCaregiver_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["clientID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clientID"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["clientID"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Query_getClientHealthDiaryEntries_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -2845,6 +2961,146 @@ func (ec *executionContext) _Author_ID(ctx context.Context, field graphql.Collec
 	res := resTmp.(string)
 	fc.Result = res
 	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Caregiver_firstName(ctx context.Context, field graphql.CollectedField, obj *domain.Caregiver) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Caregiver",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.FirstName, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Caregiver_lastName(ctx context.Context, field graphql.CollectedField, obj *domain.Caregiver) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Caregiver",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.LastName, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Caregiver_phoneNumber(ctx context.Context, field graphql.CollectedField, obj *domain.Caregiver) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Caregiver",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PhoneNumber, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Caregiver_caregiverType(ctx context.Context, field graphql.CollectedField, obj *domain.Caregiver) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Caregiver",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CaregiverType, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(enums.CaregiverType)
+	fc.Result = res
+	return ec.marshalNCaregiverType2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐCaregiverType(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _CategoryDetail_ID(ctx context.Context, field graphql.CollectedField, obj *domain.CategoryDetail) (ret graphql.Marshaler) {
@@ -7012,6 +7268,48 @@ func (ec *executionContext) _Mutation_completeOnboardingTour(ctx context.Context
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Mutation_createOrUpdateClientCaregiver(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_createOrUpdateClientCaregiver_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CreateOrUpdateClientCaregiver(rctx, args["caregiverInput"].(*dto.CaregiverInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Pagination_Limit(ctx context.Context, field graphql.CollectedField, obj *domain.Pagination) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -7882,6 +8180,48 @@ func (ec *executionContext) _Query_verifyPIN(ctx context.Context, field graphql.
 	res := resTmp.(bool)
 	fc.Result = res
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_getClientCaregiver(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_getClientCaregiver_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GetClientCaregiver(rctx, args["clientID"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*domain.Caregiver)
+	fc.Result = res
+	return ec.marshalNCaregiver2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐCaregiver(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -9389,6 +9729,61 @@ func (ec *executionContext) ___Type_ofType(ctx context.Context, field graphql.Co
 
 // region    **************************** input.gotpl *****************************
 
+func (ec *executionContext) unmarshalInputCaregiverInput(ctx context.Context, obj interface{}) (dto.CaregiverInput, error) {
+	var it dto.CaregiverInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	for k, v := range asMap {
+		switch k {
+		case "clientID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clientID"))
+			it.ClientID, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "firstName":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("firstName"))
+			it.FirstName, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "lastName":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lastName"))
+			it.LastName, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "phoneNumber":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("phoneNumber"))
+			it.PhoneNumber, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "caregiverType":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("caregiverType"))
+			it.CaregiverType, err = ec.unmarshalNCaregiverType2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐCaregiverType(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputFacilityInput(ctx context.Context, obj interface{}) (dto.FacilityInput, error) {
 	var it dto.FacilityInput
 	asMap := map[string]interface{}{}
@@ -9738,6 +10133,48 @@ func (ec *executionContext) _Author(ctx context.Context, sel ast.SelectionSet, o
 			out.Values[i] = graphql.MarshalString("Author")
 		case "ID":
 			out.Values[i] = ec._Author_ID(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var caregiverImplementors = []string{"Caregiver"}
+
+func (ec *executionContext) _Caregiver(ctx context.Context, sel ast.SelectionSet, obj *domain.Caregiver) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, caregiverImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Caregiver")
+		case "firstName":
+			out.Values[i] = ec._Caregiver_firstName(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "lastName":
+			out.Values[i] = ec._Caregiver_lastName(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "phoneNumber":
+			out.Values[i] = ec._Caregiver_phoneNumber(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "caregiverType":
+			out.Values[i] = ec._Caregiver_caregiverType(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -10751,6 +11188,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "createOrUpdateClientCaregiver":
+			out.Values[i] = ec._Mutation_createOrUpdateClientCaregiver(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -11038,6 +11480,20 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_verifyPIN(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "getClientCaregiver":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_getClientCaregiver(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -11433,6 +11889,30 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) marshalNCaregiver2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐCaregiver(ctx context.Context, sel ast.SelectionSet, v domain.Caregiver) graphql.Marshaler {
+	return ec._Caregiver(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNCaregiver2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐCaregiver(ctx context.Context, sel ast.SelectionSet, v *domain.Caregiver) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._Caregiver(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNCaregiverType2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐCaregiverType(ctx context.Context, v interface{}) (enums.CaregiverType, error) {
+	var res enums.CaregiverType
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNCaregiverType2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐCaregiverType(ctx context.Context, sel ast.SelectionSet, v enums.CaregiverType) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) marshalNClientHealthDiaryEntry2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐClientHealthDiaryEntryᚄ(ctx context.Context, sel ast.SelectionSet, v []*domain.ClientHealthDiaryEntry) graphql.Marshaler {
@@ -12322,6 +12802,14 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 		return graphql.Null
 	}
 	return graphql.MarshalBoolean(*v)
+}
+
+func (ec *executionContext) unmarshalOCaregiverInput2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐCaregiverInput(ctx context.Context, v interface{}) (*dto.CaregiverInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputCaregiverInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalOCategoryDetail2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐCategoryDetail(ctx context.Context, sel ast.SelectionSet, v domain.CategoryDetail) graphql.Marshaler {

@@ -48,3 +48,11 @@ input FeedbackResponseInput {
 	message: String! 
 	requiresFollowUp: Boolean! 
 }
+
+input CaregiverInput{
+  clientID: String!
+  firstName: String!
+  lastName: String!
+  phoneNumber: String!
+  caregiverType: CaregiverType!
+}

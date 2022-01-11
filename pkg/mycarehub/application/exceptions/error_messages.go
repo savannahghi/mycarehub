@@ -115,4 +115,10 @@ const (
 
 	// GetFAQContentErrorMsg is the error message displayed when a faq content is not found
 	GetFAQContentErrorMsg = "faq content not found"
+
+	// UpdateClientCaregiverErrorMsg is the error message displayed when a caregiver is not updated
+	UpdateClientCaregiverErrorMsg = "unable to update caregiver"
+
+	// CreateClientCaregiverErrorMsg is the error message displayed when a caregiver is not created
+	CreateClientCaregiverErrorMsg = "unable to create caregiver"
 )

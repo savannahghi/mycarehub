@@ -42,6 +42,8 @@ type Query interface {
 	CheckIfUserBookmarkedContent(ctx context.Context, userID string, contentID int) (bool, error)
 	GetClientHealthDiaryEntries(ctx context.Context, clientID string) ([]*ClientHealthDiaryEntry, error)
 	GetFAQContent(ctx context.Context, flavour feedlib.Flavour, limit *int) ([]*FAQ, error)
+	GetClientCaregiver(ctx context.Context, caregiverID string) (*Caregiver, error)
+	GetClientByClientID(ctx context.Context, clientID string) (*Client, error)
 }
 
 // CheckWhetherUserHasLikedContent performs a operation to check whether user has liked the content
@@ -84,7 +86,6 @@ func (db *PGInstance) ListContentCategories(ctx context.Context) ([]*domain.Cont
 
 	return domainContentItemCategory, nil
 }
-
 
 // RetrieveFacility fetches a single facility
 func (db *PGInstance) RetrieveFacility(ctx context.Context, id *string, isActive bool) (*Facility, error) {
@@ -450,4 +451,28 @@ func (db *PGInstance) GetFAQContent(ctx context.Context, flavour feedlib.Flavour
 		return nil, fmt.Errorf("failed to get FAQ content: %v", err)
 	}
 	return faq, nil
+
+}
+
+// GetClientCaregiver fetches a client's caregiver from the database
+func (db *PGInstance) GetClientCaregiver(ctx context.Context, caregiverID string) (*Caregiver, error) {
+	var (
+		caregiver Caregiver
+	)
+
+	err := db.DB.Where(&Caregiver{CaregiverID: &caregiverID}).First(&caregiver).Error
+	if err != nil {
+		return nil, fmt.Errorf("failed to get caregiver: %v", err)
+	}
+	return &caregiver, nil
+}
+
+// GetClientByClientID fetches a client from the database
+func (db *PGInstance) GetClientByClientID(ctx context.Context, clientID string) (*Client, error) {
+	var client Client
+	err := db.DB.Where(&Client{ID: &clientID}).First(&client).Error
+	if err != nil {
+		return nil, fmt.Errorf("failed to get client: %v", err)
+	}
+	return &client, nil
 }
