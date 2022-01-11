@@ -19,7 +19,7 @@ type Create interface {
 	SaveOTP(ctx context.Context, otpInput *domain.OTP) error
 	SaveSecurityQuestionResponse(ctx context.Context, securityQuestionResponse []*dto.SecurityQuestionResponseInput) error
 	CreateHealthDiaryEntry(ctx context.Context, healthDiaryInput *domain.ClientHealthDiaryEntry) error
-	CreateServiceRequest(ctx context.Context, healthDiaryInput *domain.ClientHealthDiaryEntry, serviceRequestInput *domain.ClientServiceRequest) error
+	CreateServiceRequest(ctx context.Context, serviceRequestInput *domain.ClientServiceRequest) error
 }
 
 // Delete represents all the deletion action interfaces

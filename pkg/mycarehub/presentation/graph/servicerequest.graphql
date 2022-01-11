@@ -1,0 +1,7 @@
+extend type Mutation {
+  createServiceRequest(
+    clientID: String!
+    requestType: String!
+    request: String
+  ): Boolean!
+}

@@ -64,7 +64,7 @@ type PostgresMock struct {
 	MockFetchFacilitiesFn                         func(ctx context.Context) ([]*domain.Facility, error)
 	MockViewContentFn                             func(ctx context.Context, userID string, contentID int) (bool, error)
 	MockCreateHealthDiaryEntryFn                  func(ctx context.Context, healthDiaryInput *domain.ClientHealthDiaryEntry) error
-	MockCreateServiceRequestFn                    func(ctx context.Context, healthDiaryInput *domain.ClientHealthDiaryEntry, serviceRequestInput *domain.ClientServiceRequest) error
+	MockCreateServiceRequestFn                    func(ctx context.Context, serviceRequestInput *domain.ClientServiceRequest) error
 	MockCanRecordHeathDiaryFn                     func(ctx context.Context, userID string) (bool, error)
 	MockGetClientHealthDiaryQuoteFn               func(ctx context.Context) (*domain.ClientHealthDiaryQuote, error)
 	MockCheckIfUserBookmarkedContentFn            func(ctx context.Context, userID string, contentID int) (bool, error)
@@ -361,7 +361,7 @@ func NewPostgresMock() *PostgresMock {
 		MockCreateHealthDiaryEntryFn: func(ctx context.Context, healthDiaryInput *domain.ClientHealthDiaryEntry) error {
 			return nil
 		},
-		MockCreateServiceRequestFn: func(ctx context.Context, healthDiaryInput *domain.ClientHealthDiaryEntry, serviceRequestInput *domain.ClientServiceRequest) error {
+		MockCreateServiceRequestFn: func(ctx context.Context, serviceRequestInput *domain.ClientServiceRequest) error {
 			return nil
 		},
 		MockCanRecordHeathDiaryFn: func(ctx context.Context, userID string) (bool, error) {
@@ -638,8 +638,8 @@ func (gm *PostgresMock) CreateHealthDiaryEntry(ctx context.Context, healthDiaryI
 }
 
 // CreateServiceRequest mocks creating a service request method
-func (gm *PostgresMock) CreateServiceRequest(ctx context.Context, healthDiaryInput *domain.ClientHealthDiaryEntry, serviceRequestInput *domain.ClientServiceRequest) error {
-	return gm.MockCreateServiceRequestFn(ctx, healthDiaryInput, serviceRequestInput)
+func (gm *PostgresMock) CreateServiceRequest(ctx context.Context, serviceRequestInput *domain.ClientServiceRequest) error {
+	return gm.MockCreateServiceRequestFn(ctx, serviceRequestInput)
 }
 
 // CanRecordHeathDiary mocks the implementation of checking if a user can record a health diary

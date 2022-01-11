@@ -56,6 +56,18 @@ func TestUseCasesHealthDiaryImpl_CreateHealthDiaryEntry(t *testing.T) {
 			wantErr: true,
 		},
 		{
+			name: "Sad Case - Fail to create healthdiary entry for very sad mood",
+			args: args{
+				ctx:           ctx,
+				clientID:      uuid.New().String(),
+				note:          &note,
+				mood:          string(enums.MoodVerySad),
+				reportToStaff: false,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
 			name: "Happy Case - Successfully create service request",
 			args: args{
 				ctx:           ctx,
@@ -91,8 +103,14 @@ func TestUseCasesHealthDiaryImpl_CreateHealthDiaryEntry(t *testing.T) {
 				}
 			}
 
+			if tt.name == "Sad Case - Fail to create healthdiary entry for very sad mood" {
+				fakeDB.MockCreateHealthDiaryEntryFn = func(ctx context.Context, healthDiaryInput *domain.ClientHealthDiaryEntry) error {
+					return fmt.Errorf("failed to create health diary entry")
+				}
+			}
+
 			if tt.name == "Sad Case - Fail to create service request for very sad mood" {
-				fakeDB.MockCreateServiceRequestFn = func(ctx context.Context, healthDiaryInput *domain.ClientHealthDiaryEntry, serviceRequestInput *domain.ClientServiceRequest) error {
+				fakeDB.MockCreateServiceRequestFn = func(ctx context.Context, serviceRequestInput *domain.ClientServiceRequest) error {
 					return fmt.Errorf("failed to create service request")
 				}
 			}

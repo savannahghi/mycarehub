@@ -8,6 +8,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/healthdiary"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/otp"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/securityquestions"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/servicerequest"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/terms"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/user"
 )
@@ -23,6 +24,7 @@ type MyCareHub struct {
 	Feedback          feedback.UsecaseFeedback
 	HealthDiary       healthdiary.UseCasesHealthDiary
 	FAQ               faq.UsecaseFAQ
+	ServiceRequest    servicerequest.UseCaseServiceRequest
 }
 
 // NewMyCareHubUseCase initializes a new my care hub instance
@@ -36,6 +38,7 @@ func NewMyCareHubUseCase(
 	feedback feedback.UsecaseFeedback,
 	healthDiary healthdiary.UseCasesHealthDiary,
 	faq faq.UsecaseFAQ,
+	servicerequest servicerequest.UseCaseServiceRequest,
 ) *MyCareHub {
 	return &MyCareHub{
 		User:              user,
@@ -47,5 +50,6 @@ func NewMyCareHubUseCase(
 		Feedback:          feedback,
 		HealthDiary:       healthDiary,
 		FAQ:               faq,
+		ServiceRequest:    servicerequest,
 	}
 }
