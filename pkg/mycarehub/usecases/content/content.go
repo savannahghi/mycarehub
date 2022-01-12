@@ -209,23 +209,18 @@ func (u *UseCasesContentImpl) GetUserBookmarkedContent(ctx context.Context, user
 		return nil, fmt.Errorf("failed to get bookmarked content")
 	}
 
-	bookmarkedContent := &domain.Content{}
+	userBookmarkedContent := &domain.Content{}
 
-	items := make([]domain.ContentItem, len(content))
-
-	for i, contentItem := range content {
-
-		bookmarkedContent, err = u.GetContentByContentItemID(ctx, contentItem.ID)
+	for _, contentItem := range content {
+		bookmarkedContent, err := u.GetContentByContentItemID(ctx, contentItem.ID)
 		if err != nil {
 			return nil, fmt.Errorf("failed to fetch bookmarked content")
 		}
-		items[i] = *contentItem
+		userBookmarkedContent.Items = append(userBookmarkedContent.Items, bookmarkedContent.Items...)
 	}
+	userBookmarkedContent.Meta.TotalCount = len(userBookmarkedContent.Items)
 
-	bookmarkedContent.Meta.TotalCount = len(items)
-	bookmarkedContent.Items = items
-
-	return bookmarkedContent, nil
+	return userBookmarkedContent, nil
 }
 
 // GetContentByContentItemID fetches a specific content using the specific content item ID. This will be important
