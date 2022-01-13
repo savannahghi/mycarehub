@@ -128,6 +128,7 @@ type DocumentMeta {
 type DocumentData {
   ID: Int!
   title: String!
+  meta: DocumentMeta!
 }
 
 type ContentItemCategory {
@@ -180,12 +181,11 @@ type ClientHealthDiaryEntry {
   createdAt: Time
 }
 
-
 type FAQ {
-	ID:          String!
-	Active:      Boolean!            
-	Title:       String!     
-	Description: String!          
-	Body:        String!          
-	Flavour:     Flavour! 
+  ID: String!
+  Active: Boolean!
+  Title: String!
+  Description: String!
+  Body: String!
+  Flavour: Flavour!
 }
