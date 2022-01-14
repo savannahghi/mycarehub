@@ -14,10 +14,9 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
-	"github.com/savannahghi/serverutils"
-
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
+	"github.com/savannahghi/serverutils"
 )
 
 // SensitiveContentPassphrase is the secret key used when encrypting and decrypting a security question response
@@ -151,11 +150,16 @@ func (s *UseCaseSecurityQuestionsImpl) VerifySecurityQuestionResponses(
 
 		decryptedResponse, err := helpers.DecryptSensitiveData(questionResponse.Response, SensitiveContentPassphrase)
 		if err != nil {
-			return false, fmt.Errorf("failed to decrypt the response")
+			return false, fmt.Errorf("failed to decrypt the response: %v", err)
 		}
 
 		if !strings.EqualFold(securityQuestionResponse.Response, decryptedResponse) {
-			ok, err := s.Update.UpdateIsCorrectSecurityQuestionResponse(ctx, securityQuestionResponse.UserID, false)
+			userProfile, err := s.Query.GetUserProfileByPhoneNumber(ctx, securityQuestionResponse.PhoneNumber)
+			if err != nil {
+				return false, fmt.Errorf("failed to get user profile by phone number: %v", err)
+			}
+
+			ok, err := s.Update.UpdateIsCorrectSecurityQuestionResponse(ctx, *userProfile.ID, false)
 			if err != nil {
 				return false, fmt.Errorf("failed to update security question response: %v", err)
 			}

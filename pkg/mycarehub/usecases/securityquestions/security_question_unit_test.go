@@ -6,8 +6,8 @@ import (
 	"testing"
 
 	"github.com/brianvoe/gofakeit"
-	"github.com/google/uuid"
 	"github.com/savannahghi/feedlib"
+	"github.com/savannahghi/interserviceclient"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	extensionMock "github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension/mock"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
@@ -261,10 +261,10 @@ func TestUseCaseSecurityQuestionsImpl_VerifySecurityQuestionResponses(t *testing
 				ctx: ctx,
 				responses: &[]dto.VerifySecurityQuestionInput{
 					{
-						QuestionID: "1234",
-						Flavour:    feedlib.FlavourConsumer,
-						Response:   "",
-						UserID:     uuid.New().String(),
+						QuestionID:  "1234",
+						Flavour:     feedlib.FlavourConsumer,
+						Response:    "",
+						PhoneNumber: interserviceclient.TestUserPhoneNumber,
 					},
 				},
 			},
@@ -277,10 +277,10 @@ func TestUseCaseSecurityQuestionsImpl_VerifySecurityQuestionResponses(t *testing
 				ctx: ctx,
 				responses: &[]dto.VerifySecurityQuestionInput{
 					{
-						QuestionID: "1234",
-						Flavour:    feedlib.FlavourConsumer,
-						Response:   "Nairobi",
-						UserID:     uuid.New().String(),
+						QuestionID:  "1234",
+						Flavour:     feedlib.FlavourConsumer,
+						Response:    "Nairobi",
+						PhoneNumber: interserviceclient.TestUserPhoneNumber,
 					},
 				},
 			},
@@ -293,10 +293,42 @@ func TestUseCaseSecurityQuestionsImpl_VerifySecurityQuestionResponses(t *testing
 				ctx: ctx,
 				responses: &[]dto.VerifySecurityQuestionInput{
 					{
-						QuestionID: "1234",
-						Flavour:    feedlib.FlavourConsumer,
-						Response:   "Nakuru",
-						UserID:     uuid.New().String(),
+						QuestionID:  "1234",
+						Flavour:     feedlib.FlavourConsumer,
+						Response:    "Nakuru",
+						PhoneNumber: interserviceclient.TestUserPhoneNumber,
+					},
+				},
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - fail to get user profile by phone number",
+			args: args{
+				ctx: ctx,
+				responses: &[]dto.VerifySecurityQuestionInput{
+					{
+						QuestionID:  "1234",
+						Flavour:     feedlib.FlavourConsumer,
+						Response:    "Nakuru",
+						PhoneNumber: interserviceclient.TestUserPhoneNumber,
+					},
+				},
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - fail if phone number is empty",
+			args: args{
+				ctx: ctx,
+				responses: &[]dto.VerifySecurityQuestionInput{
+					{
+						QuestionID:  "1234",
+						Flavour:     feedlib.FlavourConsumer,
+						Response:    "Nakuru",
+						PhoneNumber: interserviceclient.TestUserPhoneNumber,
 					},
 				},
 			},
@@ -309,10 +341,10 @@ func TestUseCaseSecurityQuestionsImpl_VerifySecurityQuestionResponses(t *testing
 				ctx: ctx,
 				responses: &[]dto.VerifySecurityQuestionInput{
 					{
-						QuestionID: "1234",
-						Flavour:    feedlib.FlavourConsumer,
-						Response:   "Nakuru",
-						UserID:     uuid.New().String(),
+						QuestionID:  "1234",
+						Flavour:     feedlib.FlavourConsumer,
+						Response:    "Nakuru",
+						PhoneNumber: interserviceclient.TestUserPhoneNumber,
 					},
 				},
 			},
@@ -345,6 +377,18 @@ func TestUseCaseSecurityQuestionsImpl_VerifySecurityQuestionResponses(t *testing
 			if tt.name == "invalid: failed to verify security question response" {
 				fakeDB.MockUpdateIsCorrectSecurityQuestionResponseFn = func(ctx context.Context, userID string, isCorrectSecurityQuestionResponse bool) (bool, error) {
 					return false, fmt.Errorf("the failed to verify security question response does not match")
+				}
+			}
+
+			if tt.name == "Sad Case - fail to get user profile by phone number" {
+				fakeDB.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*domain.User, error) {
+					return nil, fmt.Errorf("failed to get user profile by phone")
+				}
+			}
+
+			if tt.name == "Sad Case - fail if phone number is empty" {
+				fakeDB.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*domain.User, error) {
+					return nil, fmt.Errorf("failed to get user profile by phone")
 				}
 			}
 
