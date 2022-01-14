@@ -111,11 +111,16 @@ jobs:
         run: |
           sudo apt-get update && sudo apt-get upgrade
           sudo apt-get install postgis gdal-bin libgdal-dev
-          sudo apt-get install --yes postgresql-client
+          cd /etc/postgresql/14/main/
+        #  cat /etc/postgresql/14/main/postgresql.conf
+          sudo echo "listen_addresses = '*'" >> postgresql.conf
+          sudo echo "host  all  all 0.0.0.0/0 md5" >> pg_hba.conf
+          sudo /etc/init.d/postgresql restart
           pip install -r requirements/local.txt && pip install -r requirements/production.txt
           npm ci
           npm install -g mjml
-
+      - name: Run migrations
+        run: |
           python manage.py migrate
           python manage.py createcachetable
 
