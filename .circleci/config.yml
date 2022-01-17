@@ -1,0 +1,185 @@
+# version: 2
+# jobs: # basic units of work in a run
+#   build: # runs not using Workflows must have a `build` job as entry point    
+#     docker: # run the steps with Docker
+#       # CircleCI Go images available at: https://hub.docker.com/r/circleci/golang/
+#       - image: circleci/golang:1.16
+#         auth:
+#           username: mydockerhub-user
+#           password: $DOCKERHUB_PASSWORD  # context / project UI env-var reference
+
+#       # CircleCI Python images available at: https://hub.docker.com/r/circleci/python/
+#       - image: circleci/python:3.6.4
+#         auth:
+#           username: mydockerhub-user
+#           password: $DOCKERHUB_PASSWORD  # context / project UI env-var reference
+#         environment: # environment variables for primary container
+#           PIPENV_VENV_IN_PROJECT: true
+#           DATABASE_URL: postgresql://root@localhost/circle_test?sslmode=disable
+
+#     parallelism: 2
+
+#     environment: # environment variables for the build itself
+#       TEST_RESULTS: /tmp/test-results # path to where test results will be saved
+
+#     steps: # steps that comprise the `build` job
+#       - checkout # check out source code to working directory
+#       - run: mkdir -p $TEST_RESULTS # create the test results directory
+
+#       - restore_cache: # restores saved cache if no changes are detected since last run
+#           keys:
+#             - go-mod-v4-{{ checksum "go.sum" }}
+
+#       #  Wait for Postgres to be ready before proceeding
+#       # - run:
+#       #     name: Waiting for Postgres to be ready
+#       #     command: dockerize -wait tcp://localhost:5432 -timeout 1m
+
+#       - run:
+#           name: Install ubuntu build requirements
+#           command: |
+#             sudo apt update && sudo apt upgrade -y
+#             sudo apt install build-essential libssl-dev zlib1g-dev libncurses5-dev libncursesw5-dev libreadline-dev libsqlite3-dev libgdbm-dev libdb5.3-dev libbz2-dev libexpat1-dev liblzma-dev tk-dev libffi-dev
+
+#       - run:
+#           name: Install pip and npm
+#           command: |
+#             sudo apt-get -qq update
+#             sudo apt-get install -qqy python3-pip
+#             sudo apt-get install npm
+#             sudo npm install -g mjml
+#           cache:
+#             directories:
+#               - "$HOME/.npm"
+
+#       - run:
+#           name: Setup PostgreSQL
+#           command: |
+#             sudo apt install postgresql postgresql-contrib -y
+#             psql --version
+
+#       - run:
+#           name: Access cloned repository contents
+#           command: |
+#             sudo apt-get update && sudo apt-get upgrade
+#             sudo apt-get install postgis gdal-bin libgdal-dev
+#             sudo pip install pipenv
+#             pipenv install
+#             git clone -b main https://github.com/savannahghi/mycarehub-backend.git
+#             cd mycarehub-backend/
+#             virtualenv venv
+#             . venv/bin/activate
+#             pip install -r requirements.txt
+
+#             pipenv run python3 manage.py makemigrations
+#             pipenv run python3 manage.py migrate
+#       # - run:
+#       #     name: Run unit tests
+#       #     environment: # environment variables for the database url and path to migration files
+#       #       CONTACTS_DB_URL: "postgres://circleci-demo-go@localhost:5432/circle_test?sslmode=disable"
+#       #       CONTACTS_DB_MIGRATIONS: /home/circleci/project/db/migrations
+
+#       #     # store the results of our tests in the $TEST_RESULTS directory
+#       #     command: |
+#       #       PACKAGE_NAMES=$(go list ./... | circleci tests split --split-by=timings --timings-type=classname)
+#       #       gotestsum --junitfile ${TEST_RESULTS}/gotestsum-report.xml -- $PACKAGE_NAMES
+
+#       # - run: make # pull and build dependencies for the project
+
+# workflows:
+#   version: 2
+#   build-workflow:
+#     jobs:
+#       - build
+
+
+
+
+
+
+
+
+
+
+
+
+version: 2 
+jobs: # A basic unit of work in a run
+  build_and_test: # runs not using Workflows must have a `build` job as entry point
+    # directory where steps are run
+    working_directory: ~/mycarehub
+
+    docker: # run the steps with Docker
+      # CircleCI Python images available at: https://hub.docker.com/r/circleci/python/
+      - image: circleci/python:3.6.4
+        auth:
+          username: mydockerhub-user
+          password: $DOCKERHUB_PASSWORD  # context / project UI env-var reference
+        environment: # environment variables for primary container
+          PIPENV_VENV_IN_PROJECT: true
+          DATABASE_URL: postgresql://root@localhost/circle_test?sslmode=disable
+
+      # CircleCI PostgreSQL images available at: https://hub.docker.com/r/circleci/postgres/
+      - image: circleci/postgres:9.6.2
+        auth:
+          username: mydockerhub-user
+          password: $DOCKERHUB_PASSWORD  # context / project UI env-var reference
+        environment: # environment variables for the Postgres container.
+          POSTGRES_USER: root
+          POSTGRES_DB: circle_test
+
+      - image: circleci/golang:1.16
+        auth:
+          username: mydockerhub-user
+          password: $DOCKERHUB_PASSWORD  # context / project UI env-var reference
+
+    steps: # steps that comprise the `build` job
+      - checkout # check out source code to working directory
+      - run: sudo chown -R circleci:circleci /usr/local/bin
+      - run: sudo chown -R circleci:circleci /usr/local/lib/python3.6/site-packages
+      - run:
+          command: |
+            sudo pip install pipenv
+            pipenv install
+
+      - restore_cache: # restores saved cache if no changes are detected since last run
+          keys:
+            - go-mod-v4-{{ checksum "go.sum" }}
+
+      - run:
+          name: Install pip and npm
+          command: |
+            sudo apt-get -qq update
+            sudo apt-get install -qqy python3-pip
+            sudo apt-get install npm
+            sudo npm install -g mjml
+          cache:
+            directories:
+              - "$HOME/.npm"
+
+      - run:
+          name: Access cloned repository contents
+          command: |
+            sudo apt-get update && sudo apt-get upgrade
+            sudo apt-get install postgis gdal-bin libgdal-dev
+            sudo pip install pipenv
+            pipenv install
+            git clone -b main https://github.com/savannahghi/mycarehub-backend.git
+            cd mycarehub-backend/
+            virtualenv venv
+            . venv/bin/activate
+            pip install -r requirements.txt
+
+            pipenv run python3 manage.py makemigrations
+            pipenv run python3 manage.py migrate
+      - store_test_results: # Upload test results for display in Test Summary: https://circleci.com/docs/2.0/collect-test-data/
+          path: test-results
+      - store_artifacts: # Upload test summary for display in Artifacts: https://circleci.com/docs/2.0/artifacts/
+          path: test-results
+          destination: tr1
+          
+workflows:
+  version: 2
+  build_and_test:
+    jobs:
+      - build_and_test

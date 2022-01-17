@@ -16,3 +16,4 @@ coverage_report.txt
 install-misspell.sh
 .vscode/
 venv
+.github
