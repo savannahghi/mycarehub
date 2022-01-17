@@ -111,8 +111,9 @@ type DocumentMeta struct {
 
 // DocumentData holds the information regarding a document
 type DocumentData struct {
-	ID    int    `json:"id"`
-	Title string `json:"title"`
+	ID    int          `json:"id"`
+	Title string       `json:"title"`
+	Meta  DocumentMeta `json:"meta"`
 }
 
 // ContentMeta represents a list of properties that are associated with the content model

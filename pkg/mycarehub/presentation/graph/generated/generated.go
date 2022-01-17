@@ -128,6 +128,7 @@ type ComplexityRoot struct {
 
 	DocumentData struct {
 		ID    func(childComplexity int) int
+		Meta  func(childComplexity int) int
 		Title func(childComplexity int) int
 	}
 
@@ -707,6 +708,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.DocumentData.ID(childComplexity), true
+
+	case "DocumentData.meta":
+		if e.complexity.DocumentData.Meta == nil {
+			break
+		}
+
+		return e.complexity.DocumentData.Meta(childComplexity), true
 
 	case "DocumentData.title":
 		if e.complexity.DocumentData.Title == nil {
@@ -1947,6 +1955,7 @@ type DocumentMeta {
 type DocumentData {
   ID: Int!
   title: String!
+  meta: DocumentMeta!
 }
 
 type ContentItemCategory {
@@ -1999,14 +2008,13 @@ type ClientHealthDiaryEntry {
   createdAt: Time
 }
 
-
 type FAQ {
-	ID:          String!
-	Active:      Boolean!            
-	Title:       String!     
-	Description: String!          
-	Body:        String!          
-	Flavour:     Flavour! 
+  ID: String!
+  Active: Boolean!
+  Title: String!
+  Description: String!
+  Body: String!
+  Flavour: Flavour!
 }
 `, BuiltIn: false},
 	{Name: "pkg/mycarehub/presentation/graph/user.graphql", Input: `extend type Query {
@@ -4650,6 +4658,41 @@ func (ec *executionContext) _DocumentData_title(ctx context.Context, field graph
 	res := resTmp.(string)
 	fc.Result = res
 	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _DocumentData_meta(ctx context.Context, field graphql.CollectedField, obj *domain.DocumentData) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "DocumentData",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Meta, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(domain.DocumentMeta)
+	fc.Result = res
+	return ec.marshalNDocumentMeta2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐDocumentMeta(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _DocumentMeta_type(ctx context.Context, field graphql.CollectedField, obj *domain.DocumentMeta) (ret graphql.Marshaler) {
@@ -10116,6 +10159,11 @@ func (ec *executionContext) _DocumentData(ctx context.Context, sel ast.Selection
 			}
 		case "title":
 			out.Values[i] = ec._DocumentData_title(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "meta":
+			out.Values[i] = ec._DocumentData_meta(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
