@@ -310,7 +310,8 @@ func (h *MyCareHubHandlersInterfacesImpl) GetUserRespondedSecurityQuestions() ht
 			return
 		}
 
-		serverutils.WriteJSONResponse(w, resp, http.StatusOK)
+		response := helpers.RestAPIResponseHelper("getUserRespondedSecurityQuestions", resp)
+		serverutils.WriteJSONResponse(w, response, http.StatusOK)
 	}
 }
 
