@@ -164,3 +164,20 @@ func (d *MyCareHubDb) CreateServiceRequest(
 
 	return nil
 }
+
+// CreateClientCaregiver creates a client's caregiver
+func (d *MyCareHubDb) CreateClientCaregiver(ctx context.Context, caregiverInput *dto.CaregiverInput) error {
+	caregiver := &gorm.Caregiver{
+		FirstName:     caregiverInput.FirstName,
+		LastName:      caregiverInput.LastName,
+		PhoneNumber:   caregiverInput.PhoneNumber,
+		CaregiverType: caregiverInput.CaregiverType,
+	}
+
+	err := d.create.CreateClientCaregiver(ctx, caregiverInput.ClientID, caregiver)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

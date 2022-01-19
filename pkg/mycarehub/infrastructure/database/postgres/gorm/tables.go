@@ -361,7 +361,8 @@ type Client struct {
 
 	CHVUserID string `gorm:"column:chv_id"`
 
-	UserID *string `gorm:"column:user_id;not null"`
+	UserID      *string `gorm:"column:user_id;not null"`
+	CaregiverID *string `gorm:"column:caregiver_id"`
 }
 
 // BeforeCreate is a hook run before creating a client profile
@@ -689,4 +690,29 @@ type ContentContentItemCategories struct {
 // TableName references the table that we map data from
 func (ContentContentItemCategories) TableName() string {
 	return "content_contentitem_categories"
+}
+
+// Caregiver is the gorms caregiver model
+type Caregiver struct {
+	Base
+	CaregiverID    *string             `gorm:"column:id"`
+	FirstName      string              `gorm:"column:first_name"`
+	LastName       string              `gorm:"column:last_name"`
+	PhoneNumber    string              `gorm:"column:phone_number"`
+	CaregiverType  enums.CaregiverType `gorm:"column:caregiver_type"`
+	OrganisationID string              `gorm:"column:organisation_id"`
+	Active         bool                `gorm:"column:active"`
+}
+
+// BeforeCreate is a hook run before creating Caregiver content
+func (c *Caregiver) BeforeCreate(tx *gorm.DB) (err error) {
+	id := uuid.New().String()
+	c.CaregiverID = &id
+	c.OrganisationID = OrganizationID
+	return
+}
+
+// TableName references the table that we map data from
+func (Caregiver) TableName() string {
+	return "clients_caregiver"
 }

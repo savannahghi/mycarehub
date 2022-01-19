@@ -81,3 +81,10 @@ enum SecurityQuestionResponseType{
 	DATE
   BOOLEAN
 }
+
+enum CaregiverType {
+  FATHER,
+  MOTHER,
+  SIBLING,
+  HEALTHCARE_PROFESSIONAL,
+}

@@ -88,4 +88,8 @@ func TestCustomErrors(t *testing.T) {
 	err = exceptions.GetFAQContentErr(fmt.Errorf("error"))
 	assert.NotNil(t, err)
 
+	err = exceptions.UpdateClientCaregiverErr(fmt.Errorf("error"))
+	assert.NotNil(t, err)
+	err = exceptions.CreateClientCaregiverErr(fmt.Errorf("error"))
+	assert.NotNil(t, err)
 }

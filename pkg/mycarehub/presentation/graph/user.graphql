@@ -1,10 +1,12 @@
 extend type Query {
   getCurrentTerms: TermsOfService!
   verifyPIN(userID: String!, flavour: Flavour!, pin:  String!): Boolean!
+  getClientCaregiver(clientID: String!) :Caregiver!
 }
 
 extend type Mutation {
   acceptTerms(userID: String!, termsID: Int!): Boolean!
   setNickName(userID: String!, nickname: String!): Boolean!
   completeOnboardingTour(userID: String!, flavour: Flavour!): Boolean!
+  createOrUpdateClientCaregiver(caregiverInput: CaregiverInput): Boolean!
 }

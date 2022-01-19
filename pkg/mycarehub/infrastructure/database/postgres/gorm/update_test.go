@@ -9,6 +9,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/segmentio/ksuid"
 )
 
@@ -815,6 +816,46 @@ func TestPGInstance_ViewContent(t *testing.T) {
 			}
 			if tt.want != got {
 				t.Errorf("expected %v, but got: %v", tt.want, got)
+				return
+			}
+		})
+	}
+}
+
+func TestPGInstance_UpdateClientCaregiver(t *testing.T) {
+	ctx := context.Background()
+
+	caregiverInput := dto.CaregiverInput{
+		ClientID:      clientID,
+		FirstName:     "Updated",
+		LastName:      "Updated",
+		PhoneNumber:   "+1234567890",
+		CaregiverType: enums.CaregiverTypeMother,
+	}
+
+	type args struct {
+		ctx            context.Context
+		caregiverInput *dto.CaregiverInput
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "happy case",
+			args: args{
+				ctx:            ctx,
+				caregiverInput: &caregiverInput,
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := testingDB.UpdateClientCaregiver(tt.args.ctx, tt.args.caregiverInput)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.UpdateClientCaregiver() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 		})

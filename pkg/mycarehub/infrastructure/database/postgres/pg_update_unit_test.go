@@ -10,6 +10,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	gormMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm/mock"
 	pgMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/mock"
 	"github.com/segmentio/ksuid"
@@ -1392,6 +1393,45 @@ func TestMyCareHubDb_UnBookmarkContent(t *testing.T) {
 			}
 			if got != tt.want {
 				t.Errorf("MyCareHubDb.UnBookmarkContent() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestMyCareHubDb_UpdateClientCaregiver(t *testing.T) {
+	type args struct {
+		ctx            context.Context
+		caregiverInput *dto.CaregiverInput
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx: context.Background(),
+				caregiverInput: &dto.CaregiverInput{
+					ClientID:      uuid.New().String(),
+					FirstName:     "John",
+					LastName:      "Doe",
+					PhoneNumber:   "+1234567890",
+					CaregiverType: enums.CaregiverTypeSibling,
+				},
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var fakeGorm = gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+			err := d.UpdateClientCaregiver(tt.args.ctx, tt.args.caregiverInput)
+
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.UpdateClientCaregiver() error = %v, wantErr %v", err, tt.wantErr)
+				return
 			}
 		})
 	}

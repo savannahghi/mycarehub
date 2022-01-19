@@ -342,3 +342,21 @@ func GetFAQContentErr(err error) error {
 		Code:    int(GetFAQContentError),
 	}
 }
+
+// UpdateClientCaregiverErr returns an error message when client caregiver update fails
+func UpdateClientCaregiverErr(err error) error {
+	return &CustomError{
+		Err:     err,
+		Message: UpdateClientCaregiverErrorMsg,
+		Code:    int(UpdateClientCaregiverError),
+	}
+}
+
+// CreateClientCaregiverErr returns an error message when the client caregiver creation fails
+func CreateClientCaregiverErr(err error) error {
+	return &CustomError{
+		Err:     err,
+		Message: CreateClientCaregiverErrorMsg,
+		Code:    int(CreateClientCaregiverError),
+	}
+}

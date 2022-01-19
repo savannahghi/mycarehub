@@ -189,3 +189,10 @@ type FAQ {
   Body: String!
   Flavour: Flavour!
 }
+
+type Caregiver{
+  firstName: String!
+  lastName: String!
+  phoneNumber: String!
+  caregiverType: CaregiverType!
+}

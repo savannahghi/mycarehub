@@ -8,24 +8,36 @@ import (
 	"github.com/google/uuid"
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 )
 
 // UserUseCaseMock mocks the implementation of usecase methods.
 type UserUseCaseMock struct {
-	MockLoginFn           func(ctx context.Context, phoneNumber string, pin string, flavour feedlib.Flavour) (*domain.LoginResponse, int, error)
-	MockInviteUserFn      func(ctx context.Context, userID string, phoneNumber string, flavour feedlib.Flavour) (bool, error)
-	MockSavePinFn         func(ctx context.Context, input dto.PINInput) (bool, error)
-	MockVerifyLoginPINFn  func(ctx context.Context, userID string, pin string) (bool, int, error)
-	MockSetNickNameFn     func(ctx context.Context, userID *string, nickname *string) (bool, error)
-	MockRequestPINResetFn func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (string, error)
-	MockResetPINFn        func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
-	MockRefreshTokenFn    func(ctx context.Context, userID string) (*domain.AuthCredentials, error)
-	MockVerifyPINFn       func(ctx context.Context, userID string, flavour feedlib.Flavour, pin string) (bool, error)
+	MockLoginFn                         func(ctx context.Context, phoneNumber string, pin string, flavour feedlib.Flavour) (*domain.LoginResponse, int, error)
+	MockInviteUserFn                    func(ctx context.Context, userID string, phoneNumber string, flavour feedlib.Flavour) (bool, error)
+	MockSavePinFn                       func(ctx context.Context, input dto.PINInput) (bool, error)
+	MockVerifyLoginPINFn                func(ctx context.Context, userID string, pin string) (bool, int, error)
+	MockSetNickNameFn                   func(ctx context.Context, userID *string, nickname *string) (bool, error)
+	MockRequestPINResetFn               func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (string, error)
+	MockResetPINFn                      func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
+	MockRefreshTokenFn                  func(ctx context.Context, userID string) (*domain.AuthCredentials, error)
+	MockVerifyPINFn                     func(ctx context.Context, userID string, flavour feedlib.Flavour, pin string) (bool, error)
+	MockGetClientCaregiverFn            func(ctx context.Context, clientID string) (*domain.Caregiver, error)
+	MockCreateOrUpdateClientCaregiverFn func(ctx context.Context, caregiverInput *dto.CaregiverInput) (bool, error)
 }
 
 // NewUserUseCaseMock creates in itializes create type mocks
 func NewUserUseCaseMock() *UserUseCaseMock {
+	var UUID = uuid.New().String()
+	caregiver := &domain.Caregiver{
+		ID:            UUID,
+		FirstName:     gofakeit.FirstName(),
+		LastName:      gofakeit.LastName(),
+		PhoneNumber:   gofakeit.Phone(),
+		CaregiverType: enums.CaregiverTypeFather,
+	}
+
 	return &UserUseCaseMock{
 
 		MockLoginFn: func(ctx context.Context, phoneNumber, pin string, flavour feedlib.Flavour) (*domain.LoginResponse, int, error) {
@@ -80,6 +92,12 @@ func NewUserUseCaseMock() *UserUseCaseMock {
 		MockVerifyPINFn: func(ctx context.Context, userID string, flavour feedlib.Flavour, pin string) (bool, error) {
 			return true, nil
 		},
+		MockGetClientCaregiverFn: func(ctx context.Context, clientID string) (*domain.Caregiver, error) {
+			return caregiver, nil
+		},
+		MockCreateOrUpdateClientCaregiverFn: func(ctx context.Context, caregiverInput *dto.CaregiverInput) (bool, error) {
+			return true, nil
+		},
 	}
 }
 
@@ -126,4 +144,14 @@ func (f *UserUseCaseMock) RefreshToken(ctx context.Context, userID string) (*dom
 // VerifyPIN mocks the implementation for verifying a pin
 func (f *UserUseCaseMock) VerifyPIN(ctx context.Context, userID string, flavour feedlib.Flavour, pin string) (bool, error) {
 	return f.MockVerifyPINFn(ctx, userID, flavour, pin)
+}
+
+// GetClientCaregiver mocks the implementation for getting the caregiver of a client
+func (f *UserUseCaseMock) GetClientCaregiver(ctx context.Context, clientID string) (*domain.Caregiver, error) {
+	return f.MockGetClientCaregiverFn(ctx, clientID)
+}
+
+// CreateOrUpdateClientCaregiver mocks the implementation for creating or updating the caregiver of a client
+func (f *UserUseCaseMock) CreateOrUpdateClientCaregiver(ctx context.Context, caregiverInput *dto.CaregiverInput) (bool, error) {
+	return f.MockCreateOrUpdateClientCaregiverFn(ctx, caregiverInput)
 }

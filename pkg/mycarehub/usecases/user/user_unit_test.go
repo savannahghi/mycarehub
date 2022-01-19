@@ -17,6 +17,7 @@ import (
 	"github.com/savannahghi/firebasetools"
 	"github.com/savannahghi/interserviceclient"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	extensionMock "github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension/mock"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	pgMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/mock"
@@ -1707,6 +1708,245 @@ func TestUseCasesUserImpl_VerifyPIN(t *testing.T) {
 			}
 			if got != tt.want {
 				t.Errorf("UseCasesUserImpl.VerifyPIN() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestUseCasesUserImpl_GetClientCaregiver(t *testing.T) {
+	ctx := context.Background()
+	type args struct {
+		ctx      context.Context
+		clientID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *domain.Caregiver
+		wantErr bool
+	}{
+		{
+			name: "valid",
+			args: args{
+				ctx:      ctx,
+				clientID: uuid.New().String(),
+			},
+			wantErr: false,
+		},
+		{
+			name: "valid: no caregiver assigned",
+			args: args{
+				ctx:      ctx,
+				clientID: uuid.New().String(),
+			},
+			wantErr: false,
+		},
+		{
+			name: "invalid: missing client id",
+			args: args{
+				ctx: ctx,
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid: failed to get client by id",
+			args: args{
+				ctx:      context.Background(),
+				clientID: uuid.New().String(),
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			fakeExtension := extensionMock.NewFakeExtension()
+			otp := otp.NewOTPUseCase(fakeDB, fakeDB, fakeExtension)
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, otp)
+
+			if tt.name == "valid: no caregiver assigned" {
+				fakeDB.MockGetClientCaregiverFn = func(ctx context.Context, clientID string) (*domain.Caregiver, error) {
+					return &domain.Caregiver{}, nil
+				}
+			}
+			if tt.name == "invalid: failed to get client caregiver" {
+				fakeDB.MockGetClientCaregiverFn = func(ctx context.Context, clientID string) (*domain.Caregiver, error) {
+					return nil, fmt.Errorf("failed to get client caregiver")
+				}
+			}
+
+			if tt.name == "invalid: failed to get client by id" {
+				fakeDB.MockGetClientByClientIDFn = func(ctx context.Context, clientID string) (*domain.ClientProfile, error) {
+					return nil, fmt.Errorf("failed to get client by id")
+				}
+			}
+			_, err := us.GetClientCaregiver(tt.args.ctx, tt.args.clientID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCasesUserImpl.GetClientCaregiver() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}
+
+func TestUseCasesUserImpl_CreateOrUpdateClientCaregiver(t *testing.T) {
+	type args struct {
+		ctx            context.Context
+		caregiverInput *dto.CaregiverInput
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "valid: update if client id was provided",
+			args: args{
+				ctx: context.Background(),
+				caregiverInput: &dto.CaregiverInput{
+					ClientID:      uuid.New().String(),
+					FirstName:     gofakeit.FirstName(),
+					LastName:      gofakeit.LastName(),
+					PhoneNumber:   gofakeit.Phone(),
+					CaregiverType: enums.CaregiverTypeFather,
+				},
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "valid: create if no client id was provided",
+			args: args{
+				ctx: context.Background(),
+				caregiverInput: &dto.CaregiverInput{
+					FirstName:     gofakeit.FirstName(),
+					LastName:      gofakeit.LastName(),
+					PhoneNumber:   gofakeit.Phone(),
+					CaregiverType: enums.CaregiverTypeFather,
+				},
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "invalid: invalid phone number",
+			args: args{
+				ctx: context.Background(),
+				caregiverInput: &dto.CaregiverInput{
+					ClientID:      uuid.New().String(),
+					FirstName:     gofakeit.FirstName(),
+					LastName:      gofakeit.LastName(),
+					PhoneNumber:   gofakeit.BeerAlcohol(),
+					CaregiverType: enums.CaregiverTypeFather,
+				},
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "invalid: invalid phone caregiver type",
+			args: args{
+				ctx: context.Background(),
+				caregiverInput: &dto.CaregiverInput{
+					ClientID:      uuid.New().String(),
+					FirstName:     gofakeit.FirstName(),
+					LastName:      gofakeit.LastName(),
+					PhoneNumber:   gofakeit.Phone(),
+					CaregiverType: "invalid",
+				},
+			},
+			want:    false,
+			wantErr: true,
+		},
+
+		{
+			name: "invalid: failed to get client by id",
+			args: args{
+				ctx: context.Background(),
+				caregiverInput: &dto.CaregiverInput{
+					ClientID:      uuid.New().String(),
+					FirstName:     gofakeit.FirstName(),
+					LastName:      gofakeit.LastName(),
+					PhoneNumber:   gofakeit.Phone(),
+					CaregiverType: enums.CaregiverTypeFather,
+				},
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "invalid: failed to update caregiver",
+			args: args{
+				ctx: context.Background(),
+				caregiverInput: &dto.CaregiverInput{
+					ClientID:      uuid.New().String(),
+					FirstName:     gofakeit.FirstName(),
+					LastName:      gofakeit.LastName(),
+					PhoneNumber:   gofakeit.Phone(),
+					CaregiverType: enums.CaregiverTypeFather,
+				},
+			},
+			want:    false,
+			wantErr: true,
+		},
+
+		{
+			name: "invalid: failed to create caregiver",
+			args: args{
+				ctx: context.Background(),
+				caregiverInput: &dto.CaregiverInput{
+					FirstName:     gofakeit.FirstName(),
+					LastName:      gofakeit.LastName(),
+					PhoneNumber:   gofakeit.Phone(),
+					CaregiverType: enums.CaregiverTypeFather,
+				},
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			fakeExtension := extensionMock.NewFakeExtension()
+			otp := otp.NewOTPUseCase(fakeDB, fakeDB, fakeExtension)
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, otp)
+
+			if tt.name == "invalid: failed to get client by id" {
+				fakeDB.MockGetClientByClientIDFn = func(ctx context.Context, clientID string) (*domain.ClientProfile, error) {
+					return nil, fmt.Errorf("failed to get client by id")
+				}
+			}
+
+			if tt.name == "invalid: failed to update caregiver" {
+				ID := uuid.New().String()
+				client := &domain.ClientProfile{
+					ID:          &ID,
+					CaregiverID: &ID,
+				}
+				fakeDB.MockGetClientByClientIDFn = func(ctx context.Context, clientID string) (*domain.ClientProfile, error) {
+					return client, nil
+				}
+
+				fakeDB.MockUpdateClientCaregiverFn = func(ctx context.Context, caregiver *dto.CaregiverInput) error {
+					return fmt.Errorf("failed to update caregiver")
+				}
+			}
+
+			if tt.name == "invalid: failed to create caregiver" {
+				fakeDB.MockCreateClientCaregiverFn = func(ctx context.Context, caregiverInput *dto.CaregiverInput) error {
+					return fmt.Errorf("failed to create caregiver")
+				}
+			}
+
+			got, err := us.CreateOrUpdateClientCaregiver(tt.args.ctx, tt.args.caregiverInput)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCasesUserImpl.CreateOrUpdateClientCaregiver() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("UseCasesUserImpl.CreateOrUpdateClientCaregiver() = %v, want %v", got, tt.want)
 			}
 		})
 	}

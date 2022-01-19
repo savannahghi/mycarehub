@@ -8,6 +8,7 @@ import (
 
 	"github.com/brianvoe/gofakeit"
 	"github.com/savannahghi/feedlib"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
 	"github.com/segmentio/ksuid"
@@ -52,6 +53,20 @@ func TestPGInstance_GetOrCreateFacility(t *testing.T) {
 			args: args{
 				ctx:      ctx,
 				facility: nil,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - Fail to get or create facility",
+			args: args{
+				ctx: ctx,
+				facility: &gorm.Facility{
+					Name:        name,
+					Code:        code,
+					Active:      true,
+					County:      gofakeit.HipsterSentence(50),
+					Description: description,
+				},
 			},
 			wantErr: true,
 		},
@@ -122,6 +137,24 @@ func TestPGInstance_SaveTemporaryUserPin(t *testing.T) {
 			name: "invalid: missing payload",
 			args: args{
 				ctx: ctx,
+			},
+			want:    false,
+			wantErr: true,
+		},
+
+		{
+			name: "invalid: invalid payload",
+			args: args{
+				ctx: ctx,
+				pinPayload: &gorm.PINData{
+					UserID:    userIDToSavePin,
+					HashedPIN: encryptedPin,
+					ValidFrom: time.Now(),
+					ValidTo:   time.Now(),
+					IsValid:   true,
+					Flavour:   feedlib.Flavour(gofakeit.HipsterSentence(30)),
+					Salt:      salt,
+				},
 			},
 			want:    false,
 			wantErr: true,
@@ -427,6 +460,40 @@ func TestPGInstance_SaveOTP(t *testing.T) {
 			},
 			wantErr: true,
 		},
+		{
+			name: "invalid: invalid input",
+			args: args{
+				ctx: ctx,
+				otpInput: &gorm.UserOTP{
+					UserID:      userID,
+					Valid:       otpInput.Valid,
+					GeneratedAt: otpInput.GeneratedAt,
+					ValidUntil:  otpInput.ValidUntil,
+					Channel:     otpInput.Channel,
+					Flavour:     feedlib.Flavour(gofakeit.HipsterSentence(30)),
+					PhoneNumber: otpInput.PhoneNumber,
+					OTP:         newOTP,
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid: invalid input",
+			args: args{
+				ctx: ctx,
+				otpInput: &gorm.UserOTP{
+					UserID:      userID,
+					Valid:       otpInput.Valid,
+					GeneratedAt: otpInput.GeneratedAt,
+					ValidUntil:  otpInput.ValidUntil,
+					Channel:     otpInput.Channel,
+					Flavour:     otpInput.Flavour,
+					PhoneNumber: otpInput.PhoneNumber,
+					OTP:         "12345678910",
+				},
+			},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -481,6 +548,114 @@ func TestPGInstance_CreateServiceRequest(t *testing.T) {
 
 			if err := testingDB.CreateServiceRequest(tt.args.ctx, tt.args.serviceRequestInput); (err != nil) != tt.wantErr {
 				t.Errorf("PGInstance.CreateServiceRequest() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestPGInstance_CreateClientCaregiver(t *testing.T) {
+	ctx := context.Background()
+	type args struct {
+		ctx             context.Context
+		clientID        string
+		clientCaregiver *gorm.Caregiver
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:      ctx,
+				clientID: ClientToAddCaregiver,
+				clientCaregiver: &gorm.Caregiver{
+					FirstName:     gofakeit.Name(),
+					LastName:      gofakeit.Name(),
+					PhoneNumber:   testPhone,
+					CaregiverType: enums.CaregiverTypeFather,
+					Active:        true,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "invalid: invalid input",
+			args: args{
+				ctx:      ctx,
+				clientID: ClientToAddCaregiver,
+				clientCaregiver: &gorm.Caregiver{
+					FirstName:     gofakeit.Name(),
+					LastName:      gofakeit.Name(),
+					PhoneNumber:   gofakeit.Phone(),
+					CaregiverType: enums.CaregiverType(gofakeit.HipsterSentence(20)),
+					Active:        true,
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := testingDB.CreateClientCaregiver(tt.args.ctx, tt.args.clientID, tt.args.clientCaregiver); (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.CreateClientCaregiver() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestPGInstance_CreateHealthDiaryEntry(t *testing.T) {
+	ctx := context.Background()
+	type args struct {
+		ctx              context.Context
+		healthDiaryInput *gorm.ClientHealthDiaryEntry
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx: ctx,
+				healthDiaryInput: &gorm.ClientHealthDiaryEntry{
+					Active:                true,
+					Mood:                  "test",
+					Note:                  "test",
+					EntryType:             "HOME_PAGE_HEALTH_DIARY_ENTRY",
+					ShareWithHealthWorker: false,
+					SharedAt:              time.Now(),
+					ClientID:              clientID,
+					OrganisationID:        orgID,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "invalid: invalid input",
+			args: args{
+				ctx: ctx,
+				healthDiaryInput: &gorm.ClientHealthDiaryEntry{
+					Active:                true,
+					Mood:                  gofakeit.HipsterSentence(20),
+					Note:                  "test",
+					EntryType:             "HOME_PAGE_HEALTH_DIARY_ENTRY",
+					ShareWithHealthWorker: false,
+					SharedAt:              time.Now(),
+					ClientID:              clientID,
+					OrganisationID:        orgID,
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			if err := testingDB.CreateHealthDiaryEntry(tt.args.ctx, tt.args.healthDiaryInput); (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.CreateHealthDiaryEntry() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}

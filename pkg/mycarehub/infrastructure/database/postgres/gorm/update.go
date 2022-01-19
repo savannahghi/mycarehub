@@ -29,6 +29,7 @@ type Update interface {
 	LikeContent(context context.Context, userID string, contentID int) (bool, error)
 	UnlikeContent(context context.Context, userID string, contentID int) (bool, error)
 	ViewContent(ctx context.Context, userID string, contentID int) (bool, error)
+	UpdateClientCaregiver(ctx context.Context, caregiverInput *dto.CaregiverInput) error
 }
 
 // LikeContent perfoms the actual database operation to update content like. The operation
@@ -501,4 +502,44 @@ func (db *PGInstance) ViewContent(ctx context.Context, userID string, contentID 
 	}
 
 	return true, nil
+}
+
+// UpdateClientCaregiver updates the caregiver for a client
+func (db *PGInstance) UpdateClientCaregiver(ctx context.Context, caregiverInput *dto.CaregiverInput) error {
+	var (
+		client Client
+	)
+
+	tx := db.DB.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+	if err := tx.Error; err != nil {
+		return fmt.Errorf("failied initialize database transaction %v", err)
+	}
+
+	if err := tx.Model(&Client{}).Where(&Client{ID: &caregiverInput.ClientID}).First(&client).Error; err != nil {
+		tx.Rollback()
+		return fmt.Errorf("failed to get client: %v", err)
+	}
+
+	err := tx.Model(&Caregiver{}).Where(&Caregiver{CaregiverID: client.CaregiverID}).Updates(map[string]interface{}{
+		"first_name":     caregiverInput.FirstName,
+		"last_name":      caregiverInput.LastName,
+		"phone_number":   caregiverInput.PhoneNumber,
+		"caregiver_type": caregiverInput.CaregiverType,
+	}).Error
+	if err != nil {
+		tx.Rollback()
+		return fmt.Errorf("failed to update caregiver: %v", err)
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		tx.Rollback()
+		return fmt.Errorf("transaction commit to update client caregiver failed: %v", err)
+	}
+
+	return nil
 }

@@ -70,6 +70,10 @@ type PostgresMock struct {
 	MockCheckIfUserBookmarkedContentFn            func(ctx context.Context, userID string, contentID int) (bool, error)
 	MockGetClientHealthDiaryEntriesFn             func(ctx context.Context, clientID string) ([]*domain.ClientHealthDiaryEntry, error)
 	MockGetFAQContentFn                           func(ctx context.Context, flavour feedlib.Flavour, limit *int) ([]*domain.FAQ, error)
+	MockCreateClientCaregiverFn                   func(ctx context.Context, caregiverInput *dto.CaregiverInput) error
+	MockGetClientCaregiverFn                      func(ctx context.Context, caregiverID string) (*domain.Caregiver, error)
+	MockUpdateClientCaregiverFn                   func(ctx context.Context, caregiverInput *dto.CaregiverInput) error
+	MockGetClientByClientIDFn                     func(ctx context.Context, clientID string) (*domain.ClientProfile, error)
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -394,6 +398,29 @@ func NewPostgresMock() *PostgresMock {
 				},
 			}, nil
 		},
+
+		MockCreateClientCaregiverFn: func(ctx context.Context, caregiverInput *dto.CaregiverInput) error {
+			return nil
+		},
+		MockGetClientCaregiverFn: func(ctx context.Context, caregiverID string) (*domain.Caregiver, error) {
+			return &domain.Caregiver{
+				ID:            "26b20a42-cbb8-4553-aedb-c539602d04fc",
+				FirstName:     "test",
+				LastName:      "test",
+				PhoneNumber:   "+61412345678",
+				CaregiverType: enums.CaregiverTypeFather,
+			}, nil
+		},
+		MockUpdateClientCaregiverFn: func(ctx context.Context, caregiverInput *dto.CaregiverInput) error {
+			return nil
+		},
+		MockGetClientByClientIDFn: func(ctx context.Context, clientID string) (*domain.ClientProfile, error) {
+			client := &domain.ClientProfile{
+				ID:   &ID,
+				User: userProfile,
+			}
+			return client, nil
+		},
 	}
 }
 
@@ -665,4 +692,24 @@ func (gm *PostgresMock) GetClientHealthDiaryEntries(ctx context.Context, clientI
 // GetFAQContent mocks the implementation of getting FAQ content
 func (gm *PostgresMock) GetFAQContent(ctx context.Context, flavour feedlib.Flavour, limit *int) ([]*domain.FAQ, error) {
 	return gm.MockGetFAQContentFn(ctx, flavour, limit)
+}
+
+// CreateClientCaregiver mocks the implementation of creating a caregiver
+func (gm *PostgresMock) CreateClientCaregiver(ctx context.Context, caregiverInput *dto.CaregiverInput) error {
+	return gm.MockCreateClientCaregiverFn(ctx, caregiverInput)
+}
+
+// GetClientCaregiver mocks the implementation of getting all caregivers for a client
+func (gm *PostgresMock) GetClientCaregiver(ctx context.Context, caregiverID string) (*domain.Caregiver, error) {
+	return gm.MockGetClientCaregiverFn(ctx, caregiverID)
+}
+
+// UpdateClientCaregiver mocks the implementation of updating a caregiver
+func (gm *PostgresMock) UpdateClientCaregiver(ctx context.Context, caregiverInput *dto.CaregiverInput) error {
+	return gm.MockUpdateClientCaregiverFn(ctx, caregiverInput)
+}
+
+// GetClientByClientID mocks the implementation of getting a client by client id
+func (gm *PostgresMock) GetClientByClientID(ctx context.Context, clientID string) (*domain.ClientProfile, error) {
+	return gm.MockGetClientByClientIDFn(ctx, clientID)
 }

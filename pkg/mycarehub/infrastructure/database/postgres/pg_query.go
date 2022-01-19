@@ -530,3 +530,43 @@ func (d *MyCareHubDb) GetFAQContent(ctx context.Context, flavour feedlib.Flavour
 
 	return faq, nil
 }
+
+// GetClientCaregiver retrieves the caregiver for the specified client
+func (d *MyCareHubDb) GetClientCaregiver(ctx context.Context, caregiverID string) (*domain.Caregiver, error) {
+	caregiver, err := d.query.GetClientCaregiver(ctx, caregiverID)
+	if err != nil {
+		return nil, err
+	}
+
+	return &domain.Caregiver{
+		ID:            *caregiver.CaregiverID,
+		FirstName:     caregiver.FirstName,
+		LastName:      caregiver.LastName,
+		PhoneNumber:   caregiver.PhoneNumber,
+		CaregiverType: caregiver.CaregiverType,
+	}, nil
+}
+
+// GetClientByClientID retrieves the client for the specified clientID
+func (d *MyCareHubDb) GetClientByClientID(ctx context.Context, clientID string) (*domain.ClientProfile, error) {
+	response, err := d.query.GetClientByClientID(ctx, clientID)
+	if err != nil {
+		return nil, err
+	}
+	user := createMapUser(&response.UserProfile)
+	return &domain.ClientProfile{
+		ID:                      response.ID,
+		User:                    user,
+		Active:                  response.Active,
+		ClientType:              response.ClientType,
+		TreatmentEnrollmentDate: response.TreatmentEnrollmentDate,
+		FHIRPatientID:           response.FHIRPatientID,
+		HealthRecordID:          response.HealthRecordID,
+		TreatmentBuddy:          response.TreatmentBuddy,
+		ClientCounselled:        response.ClientCounselled,
+		OrganisationID:          response.OrganisationID,
+		FacilityID:              response.FacilityID,
+		CHVUserID:               response.CHVUserID,
+		CaregiverID:             response.CaregiverID,
+	}, nil
+}

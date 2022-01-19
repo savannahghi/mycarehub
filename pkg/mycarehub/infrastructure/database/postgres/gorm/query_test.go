@@ -2,6 +2,7 @@ package gorm_test
 
 import (
 	"context"
+	"reflect"
 	"strconv"
 	"testing"
 	"time"
@@ -1606,5 +1607,84 @@ func TestPGInstance_GetFAQContent(t *testing.T) {
 	// TearDown
 	if err = pg.DB.Where("id", faqInput.FAQID).Unscoped().Delete(&gorm.FAQ{}).Error; err != nil {
 		t.Errorf("failed to delete record = %v", err)
+	}
+}
+
+func TestPGInstance_GetClientCaregiver(t *testing.T) {
+	type args struct {
+		ctx         context.Context
+		caregiverID string
+	}
+
+	caregiver := &gorm.Caregiver{}
+
+	err := testingDB.DB.Where("id = ?", testCaregiverID).First(&caregiver).Error
+	if err != nil {
+		t.Errorf("failed to get caregiver: %v", err)
+	}
+
+	tests := []struct {
+		name    string
+		args    args
+		want    *gorm.Caregiver
+		wantErr bool
+	}{
+		{
+			name: "happy case: get client caregiver",
+			args: args{
+				ctx:         context.Background(),
+				caregiverID: testCaregiverID,
+			},
+
+			want:    caregiver,
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := testingDB.GetClientCaregiver(tt.args.ctx, tt.args.caregiverID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.GetClientCaregiver() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("PGInstance.GetClientCaregiver() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestPGInstance_GetClientByClientID(t *testing.T) {
+	type args struct {
+		ctx      context.Context
+		clientID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *gorm.Client
+		wantErr bool
+	}{
+		{
+			name: "happy case: get client by client id",
+			args: args{
+				ctx:      context.Background(),
+				clientID: clientID,
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := testingDB.GetClientByClientID(tt.args.ctx, tt.args.clientID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.GetClientByClientID() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected a response but got %v", got)
+				return
+			}
+		})
 	}
 }

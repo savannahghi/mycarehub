@@ -14,6 +14,7 @@ type Create interface {
 	SaveSecurityQuestionResponse(ctx context.Context, securityQuestionResponse []*SecurityQuestionResponse) error
 	CreateHealthDiaryEntry(ctx context.Context, healthDiaryInput *ClientHealthDiaryEntry) error
 	CreateServiceRequest(ctx context.Context, serviceRequestInput *ClientServiceRequest) error
+	CreateClientCaregiver(ctx context.Context, clientID string, clientCaregiver *Caregiver) error
 }
 
 // GetOrCreateFacility is used to get or create a facility
@@ -151,4 +152,37 @@ func (db *PGInstance) CreateServiceRequest(
 	}
 
 	return nil
+}
+
+// CreateClientCaregiver is used to create a caregiver
+func (db *PGInstance) CreateClientCaregiver(ctx context.Context, clientID string, clientCaregiver *Caregiver) error {
+	tx := db.DB.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+	if err := tx.Error; err != nil {
+		return fmt.Errorf("failed initialize database transaction %v", err)
+	}
+
+	err := tx.Create(clientCaregiver).Error
+	if err != nil {
+		tx.Rollback()
+		return fmt.Errorf("failed to create caregiver: %v", err)
+	}
+
+	err = tx.Model(&Client{}).Where(&Client{ID: &clientID}).Updates(map[string]interface{}{"caregiver_id": clientCaregiver.CaregiverID}).Error
+	if err != nil {
+		tx.Rollback()
+		return fmt.Errorf("failed to update client with caregiver id: %v", err)
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		tx.Rollback()
+		return fmt.Errorf("transaction commit to create caregiver failed: %v", err)
+	}
+
+	return nil
+
 }

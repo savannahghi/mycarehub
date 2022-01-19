@@ -228,3 +228,19 @@ type FeedbackEmail struct {
 	Message          string
 	RequiresFollowUp string
 }
+
+// CaregiverInput defines the field passed when creating a caregiver
+type CaregiverInput struct {
+	ClientID      string              `json:"clientID"`
+	FirstName     string              `json:"firstName"`
+	LastName      string              `json:"lastName"`
+	PhoneNumber   string              `json:"phoneNumber"`
+	CaregiverType enums.CaregiverType `json:"caregiverType"`
+}
+
+// Validate helps with validation of CaregiverInput fields
+func (f *CaregiverInput) Validate() error {
+	v := validator.New()
+	err := v.Struct(f)
+	return err
+}
