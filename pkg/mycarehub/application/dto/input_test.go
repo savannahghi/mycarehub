@@ -453,10 +453,10 @@ func TestSecurityQuestionResponseInput_Validate(t *testing.T) {
 
 func TestVerifySecurityQuestionInput_Validate(t *testing.T) {
 	type fields struct {
-		QuestionID string
-		Flavour    feedlib.Flavour
-		Response   string
-		UserID     string
+		QuestionID  string
+		Flavour     feedlib.Flavour
+		Response    string
+		PhoneNumber string
 	}
 	tests := []struct {
 		name    string
@@ -466,10 +466,10 @@ func TestVerifySecurityQuestionInput_Validate(t *testing.T) {
 		{
 			name: "valid: all params passed",
 			fields: fields{
-				QuestionID: "123",
-				Flavour:    feedlib.FlavourConsumer,
-				Response:   "123",
-				UserID:     "123",
+				QuestionID:  "123",
+				Flavour:     feedlib.FlavourConsumer,
+				Response:    "123",
+				PhoneNumber: interserviceclient.TestUserPhoneNumber,
 			},
 			wantErr: false,
 		},
@@ -482,10 +482,10 @@ func TestVerifySecurityQuestionInput_Validate(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			f := &VerifySecurityQuestionInput{
-				QuestionID: tt.fields.QuestionID,
-				Flavour:    tt.fields.Flavour,
-				Response:   tt.fields.Response,
-				UserID:     tt.fields.UserID,
+				QuestionID:  tt.fields.QuestionID,
+				Flavour:     tt.fields.Flavour,
+				Response:    tt.fields.Response,
+				PhoneNumber: tt.fields.PhoneNumber,
 			}
 			if err := f.Validate(); (err != nil) != tt.wantErr {
 				t.Errorf("VerifySecurityQuestionInput.Validate() error = %v, wantErr %v", err, tt.wantErr)
@@ -621,4 +621,3 @@ func TestShareContentInput_Validate(t *testing.T) {
 		})
 	}
 }
-
