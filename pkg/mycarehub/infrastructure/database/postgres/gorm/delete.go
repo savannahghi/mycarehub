@@ -3,6 +3,8 @@ package gorm
 import (
 	"context"
 	"fmt"
+
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 )
 
 // Delete represents all `delete` ops to the database
@@ -16,8 +18,10 @@ func (db *PGInstance) DeleteFacility(ctx context.Context, mflcode int) (bool, er
 	if mflcode == 0 {
 		return false, fmt.Errorf("MFL code cannot be empty")
 	}
-	err := db.DB.Where("mfl_code", mflcode).Delete(&Facility{}).Error
+
+	err := db.DB.Where("mfl_code", mflcode).First(&Facility{}).Delete(&Facility{}).Error
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return false, fmt.Errorf("an error occurred while deleting: %v", err)
 	}
 

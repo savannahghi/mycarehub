@@ -30,28 +30,29 @@ var (
 	futureTime  = time.Now().Add(time.Hour * 24 * 365 * 10)
 	testOTP     = "1234"
 	// user variables
-	userID                             = "6ecbbc80-24c8-421a-9f1a-e14e12678ee0"
-	userID2                            = "6ecbbc80-24c8-421a-9f1a-e14e12678ef0"
-	userIDtoAddCaregiver               = "8ecbbc80-24c8-421a-9f1a-e14e12678ef1"
-	userIDToInvalidate                 = "5ecbbc80-24c8-421a-9f1a-e14e12678ee0"
-	userIDToAcceptTerms                = "4ecbbc80-24c8-421a-9f1a-e14e12678ee0"
-	userIDToIncreaseFailedLoginCount   = "7ecbbc80-24c8-421a-9f1a-e14e12678ee0"
-	userIDtoUpdateLastFailedLoginTime  = "8ecbbc80-24c8-421a-9f1a-e14e12678ee0"
-	userIDToUpdateNextAllowedLoginTime = "9ecbbc80-24c8-421a-9f1a-e14e12678ee0"
-	userIDUpdatePinRequireChangeStatus = "5ecbbc80-24b8-421a-9f1a-e14e12678ee0"
-	userIDToSavePin                    = "8ecbbc80-24c8-421a-9f1a-e14e12678ef0"
-	treatmentBuddyID                   = "5ecbbc80-24c8-421a-9f1a-e14e12678ee1"
-	treatmentBuddyID2                  = "5ecbbc80-24c8-421a-9f1a-e14e12678ef1"
-	fhirPatientID                      = "5ecbbc80-24c8-421a-9f1a-e14e12678ee2"
-	fhirPatientID2                     = "f933fd4b-1e3c-4ecd-9d7a-82b2790c0543"
-	testEmrHealthRecordID              = "5ecbbc80-24c8-421a-9f1a-e14e12678ee3"
-	testEmrHealthRecordID2             = "5ecbbc80-24c8-421a-9f1a-e14e12678ef3"
-	testChvID                          = "5ecbbc80-24c8-421a-9f1a-e14e12678ee4"
-	testChvID2                         = "5ecbbc80-24c8-421a-9f1a-e14e12678ef4"
-	userNickname                       = "test user"
-	clientID                           = "26b20a42-cbb8-4553-aedb-c539602d04fc"
-	clientID2                          = "00a6a0cd-42ac-417b-97d9-e939a1232de1"
-	ClientToAddCaregiver               = "00a6a0cd-42ac-417b-97d9-e939a1232de2"
+	userID                                    = "6ecbbc80-24c8-421a-9f1a-e14e12678ee0"
+	userID2                                   = "6ecbbc80-24c8-421a-9f1a-e14e12678ef0"
+	userIDtoAddCaregiver                      = "8ecbbc80-24c8-421a-9f1a-e14e12678ef1"
+	userIDToInvalidate                        = "5ecbbc80-24c8-421a-9f1a-e14e12678ee0"
+	userIDToAcceptTerms                       = "4ecbbc80-24c8-421a-9f1a-e14e12678ee0"
+	userIDToIncreaseFailedLoginCount          = "7ecbbc80-24c8-421a-9f1a-e14e12678ee0"
+	userIDtoUpdateLastFailedLoginTime         = "8ecbbc80-24c8-421a-9f1a-e14e12678ee0"
+	userIDToUpdateUserLastSuccessfulLoginTime = "9ecbbc81-24c8-421a-9f1a-e14e12678ee1"
+	userIDToUpdateNextAllowedLoginTime        = "9ecbbc80-24c8-421a-9f1a-e14e12678ee0"
+	userIDUpdatePinRequireChangeStatus        = "5ecbbc80-24b8-421a-9f1a-e14e12678ee0"
+	userIDToSavePin                           = "8ecbbc80-24c8-421a-9f1a-e14e12678ef0"
+	treatmentBuddyID                          = "5ecbbc80-24c8-421a-9f1a-e14e12678ee1"
+	treatmentBuddyID2                         = "5ecbbc80-24c8-421a-9f1a-e14e12678ef1"
+	fhirPatientID                             = "5ecbbc80-24c8-421a-9f1a-e14e12678ee2"
+	fhirPatientID2                            = "f933fd4b-1e3c-4ecd-9d7a-82b2790c0543"
+	testEmrHealthRecordID                     = "5ecbbc80-24c8-421a-9f1a-e14e12678ee3"
+	testEmrHealthRecordID2                    = "5ecbbc80-24c8-421a-9f1a-e14e12678ef3"
+	testChvID                                 = "5ecbbc80-24c8-421a-9f1a-e14e12678ee4"
+	testChvID2                                = "5ecbbc80-24c8-421a-9f1a-e14e12678ef4"
+	userNickname                              = "test user"
+	clientID                                  = "26b20a42-cbb8-4553-aedb-c539602d04fc"
+	clientID2                                 = "00a6a0cd-42ac-417b-97d9-e939a1232de1"
+	ClientToAddCaregiver                      = "00a6a0cd-42ac-417b-97d9-e939a1232de2"
 	// Facility variables
 	facilityID          = "4181df12-ca96-4f28-b78b-8e8ad88b25df"
 	mflCode             = 324459
@@ -81,6 +82,9 @@ var (
 
 	// contact variables
 	// contactID = "bdc22436-e314-43f2-bb39-ba1ab332f9b0"
+
+	//Terms
+	termsText = "Test terms"
 )
 
 func TestMain(m *testing.M) {
@@ -128,6 +132,7 @@ func TestMain(m *testing.M) {
 			"test_chv_id2":               testChvID2,
 			"test_password":              gofakeit.Password(false, false, true, true, false, 10),
 			"test_terms_id":              termsID,
+			"test_terms_text":            termsText,
 			"content_id":                 contentID,
 			"content_id2":                contentID2,
 			"author_id":                  authorID,

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
@@ -47,6 +48,7 @@ func (t *ServiceTermsImpl) GetCurrentTerms(ctx context.Context) (*domain.TermsOf
 
 	termsOfService, err := t.Query.GetCurrentTerms(ctx)
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return nil, exceptions.ItemNotFoundErr(fmt.Errorf("failed to get current terms of service: %v", err))
 	}
 
@@ -57,6 +59,7 @@ func (t *ServiceTermsImpl) GetCurrentTerms(ctx context.Context) (*domain.TermsOf
 func (t *ServiceTermsImpl) AcceptTerms(ctx context.Context, userID *string, termsID *int) (bool, error) {
 	ok, err := t.Update.AcceptTerms(ctx, userID, termsID)
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return false, exceptions.FailedToUpdateItemErr(fmt.Errorf("failed to accept terms: %v", err))
 	}
 	return ok, err

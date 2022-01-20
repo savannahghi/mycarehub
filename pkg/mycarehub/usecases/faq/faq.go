@@ -8,6 +8,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 )
 
 // IGetFAQContent gets the faq content
@@ -48,6 +49,7 @@ func (u *UsecaseFAQImpl) GetFAQContent(ctx context.Context, flavour feedlib.Flav
 
 	faqs, err := u.Query.GetFAQContent(ctx, flavour, limit)
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return nil, exceptions.GetFAQContentErr(fmt.Errorf("error getting faq content: %w", err))
 	}
 	return faqs, nil

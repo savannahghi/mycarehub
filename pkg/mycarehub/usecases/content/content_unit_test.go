@@ -7,6 +7,7 @@ import (
 
 	"github.com/brianvoe/gofakeit"
 	"github.com/google/uuid"
+	helpers_mock "github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers/mock"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	pgMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/mock"
@@ -201,12 +202,30 @@ func TestUseCaseContentImpl_ShareContent(t *testing.T) {
 			want:    true,
 			wantErr: false,
 		},
+		{
+			name: "Sad Case - no userID",
+			args: args{
+				ctx: ctx,
+				input: dto.ShareContentInput{
+					ContentID: gofakeit.Number(1, 100),
+					Channel:   "SMS",
+				},
+			},
+			want:    false,
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
 			fakeDB := pgMock.NewPostgresMock()
 			c := content.NewUseCasesContentImplementation(fakeDB, fakeDB)
+
+			if tt.name == "Sad Case - no userID" {
+				fakeDB.MockShareContentFn = func(ctx context.Context, input dto.ShareContentInput) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
 
 			got, err := c.Update.ShareContent(tt.args.ctx, tt.args.input)
 			if (err != nil) != tt.wantErr {
@@ -380,9 +399,11 @@ func TestUseCasesContentImpl_GetUserBookmarkedContent(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
 			fakeContent := mock.NewContentUsecaseMock()
 			c := content.NewUseCasesContentImplementation(fakeDB, fakeDB)
+			fakeHelpers := helpers_mock.NewHelper()
 
 			if tt.name == "Sad Case - Missing user ID" {
 				fakeContent.MockGetUserBookmarkedContentFn = func(ctx context.Context, userID string) (*domain.Content, error) {
+					fakeHelpers.MockFakeReportErrorToSentryFn = func(err error) {}
 					return nil, fmt.Errorf("user ID is required")
 				}
 			}

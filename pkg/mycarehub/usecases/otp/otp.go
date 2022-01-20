@@ -9,13 +9,13 @@ import (
 	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/interserviceclient"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
 
-	// "github.com/savannahghi/onboarding/pkg/onboarding/application/exceptions"
 	"github.com/savannahghi/profileutils"
 )
 
@@ -102,6 +102,7 @@ func (o *UseCaseOTPImpl) GenerateAndSendOTP(
 ) (string, error) {
 	phone, err := converterandformatter.NormalizeMSISDN(phoneNumber)
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return "", exceptions.NormalizeMSISDNError(err)
 	}
 
@@ -111,17 +112,20 @@ func (o *UseCaseOTPImpl) GenerateAndSendOTP(
 
 	userProfile, err := o.Query.GetUserProfileByPhoneNumber(ctx, *phone)
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return "", exceptions.UserNotFoundError(err)
 	}
 
 	otp, err := o.GenerateOTP(ctx)
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return "", fmt.Errorf("failed to generate an OTP")
 	}
 
 	message := fmt.Sprintf(otpMessage, otp)
 	otp, err = o.SendOTP(ctx, *phone, otp, message)
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return "", err
 	}
 
@@ -138,6 +142,7 @@ func (o *UseCaseOTPImpl) GenerateAndSendOTP(
 
 	err = o.Create.SaveOTP(ctx, otpDataPayload)
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return "", fmt.Errorf("failed to save otp")
 	}
 
@@ -158,11 +163,13 @@ func (o *UseCaseOTPImpl) GenerateOTP(ctx context.Context) (string, error) {
 func (o *UseCaseOTPImpl) VerifyPhoneNumber(ctx context.Context, phone string, flavour feedlib.Flavour) (*profileutils.OtpResponse, error) {
 	phoneNumber, err := converterandformatter.NormalizeMSISDN(phone)
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return nil, exceptions.NormalizeMSISDNError(err)
 	}
 
 	exists, err := o.Query.CheckIfPhoneNumberExists(ctx, *phoneNumber, true, flavour)
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed to check if phone exists: %v", err)
 	}
 	if !exists {
@@ -171,17 +178,20 @@ func (o *UseCaseOTPImpl) VerifyPhoneNumber(ctx context.Context, phone string, fl
 
 	userProfile, err := o.Query.GetUserProfileByPhoneNumber(ctx, *phoneNumber)
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return nil, exceptions.UserNotFoundError(err)
 	}
 
 	otp, err := o.GenerateOTP(ctx)
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed to generate an OTP")
 	}
 
 	message := fmt.Sprintf(otpMessage, otp)
 	otp, err = o.SendOTP(ctx, phone, otp, message)
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return nil, err
 	}
 
@@ -198,6 +208,7 @@ func (o *UseCaseOTPImpl) VerifyPhoneNumber(ctx context.Context, phone string, fl
 
 	err = o.Create.SaveOTP(ctx, otpDataPayload)
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed to save otp: %v", err)
 	}
 
@@ -210,6 +221,7 @@ func (o *UseCaseOTPImpl) VerifyPhoneNumber(ctx context.Context, phone string, fl
 func (o *UseCaseOTPImpl) GenerateRetryOTP(ctx context.Context, payload *dto.SendRetryOTPPayload) (string, error) {
 	phoneNumber, err := converterandformatter.NormalizeMSISDN(payload.Phone)
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return "", err
 	}
 
@@ -220,11 +232,13 @@ func (o *UseCaseOTPImpl) GenerateRetryOTP(ctx context.Context, payload *dto.Send
 
 	retryResponseOTP, err := o.ExternalExt.GenerateRetryOTP(ctx, validPayload)
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return "", err
 	}
 
 	userProfile, err := o.Query.GetUserProfileByPhoneNumber(ctx, *phoneNumber)
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return "", exceptions.UserNotFoundError(err)
 	}
 
@@ -241,6 +255,7 @@ func (o *UseCaseOTPImpl) GenerateRetryOTP(ctx context.Context, payload *dto.Send
 
 	err = o.Create.SaveOTP(ctx, otpResponsePayload)
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return "", fmt.Errorf("failed to save otp: %v", err)
 	}
 
@@ -259,12 +274,14 @@ func (o *UseCaseOTPImpl) SendOTP(
 	if interserviceclient.IsKenyanNumber(phoneNumber) {
 		_, err := o.ExternalExt.SendSMS(ctx, phoneNumber, message, enumutils.SenderIDBewell)
 		if err != nil {
+			helpers.ReportErrorToSentry(err)
 			return "", fmt.Errorf("failed to send OTP verification code to recipient")
 		}
 	} else {
 		// Make the request to twilio
 		err := o.ExternalExt.SendSMSViaTwilio(ctx, phoneNumber, message)
 		if err != nil {
+			helpers.ReportErrorToSentry(err)
 			return "", fmt.Errorf("sms not sent via twilio: %v", err)
 		}
 	}

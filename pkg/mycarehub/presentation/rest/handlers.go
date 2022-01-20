@@ -46,6 +46,7 @@ func (h *MyCareHubHandlersInterfacesImpl) LoginByPhone() http.HandlerFunc {
 		serverutils.DecodeJSONToTargetStruct(w, r, payload)
 		if payload.PhoneNumber == nil || payload.PIN == nil {
 			err := fmt.Errorf("expected `phoneNumber`, `pin` to be defined")
+			helpers.ReportErrorToSentry(err)
 			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
 				Err:     err,
 				Message: err.Error(),
@@ -55,6 +56,7 @@ func (h *MyCareHubHandlersInterfacesImpl) LoginByPhone() http.HandlerFunc {
 
 		if !payload.Flavour.IsValid() {
 			err := fmt.Errorf("an invalid `flavour` defined")
+			helpers.ReportErrorToSentry(err)
 			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
 				Err:     err,
 				Message: err.Error(),
@@ -64,6 +66,7 @@ func (h *MyCareHubHandlersInterfacesImpl) LoginByPhone() http.HandlerFunc {
 
 		response, responseCode, err := h.usecase.User.Login(ctx, *payload.PhoneNumber, *payload.PIN, payload.Flavour)
 		if err != nil {
+			helpers.ReportErrorToSentry(err)
 			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
 				Message: err.Error(),
 				Code:    responseCode,
@@ -88,6 +91,7 @@ func (h *MyCareHubHandlersInterfacesImpl) VerifySecurityQuestions() http.Handler
 		for _, payload := range *payloadData {
 			err := payload.Validate()
 			if err != nil {
+				helpers.ReportErrorToSentry(err)
 				serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
 					Err:     err,
 					Message: err.Error(),
@@ -98,6 +102,7 @@ func (h *MyCareHubHandlersInterfacesImpl) VerifySecurityQuestions() http.Handler
 
 		ok, err := h.usecase.SecurityQuestions.VerifySecurityQuestionResponses(ctx, payloadData)
 		if err != nil {
+			helpers.ReportErrorToSentry(err)
 			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
 				Err:     err,
 				Message: err.Error(),
@@ -121,6 +126,7 @@ func (h *MyCareHubHandlersInterfacesImpl) VerifyPhone() http.HandlerFunc {
 
 		if payload.PhoneNumber == "" {
 			err := fmt.Errorf("expected a phone input")
+			helpers.ReportErrorToSentry(err)
 			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
 				Err:     err,
 				Message: err.Error(),
@@ -130,6 +136,7 @@ func (h *MyCareHubHandlersInterfacesImpl) VerifyPhone() http.HandlerFunc {
 
 		otpResponse, err := h.usecase.OTP.VerifyPhoneNumber(ctx, payload.PhoneNumber, payload.Flavour)
 		if err != nil {
+			helpers.ReportErrorToSentry(err)
 			serverutils.WriteJSONResponse(w, serverutils.ErrorMap(err), http.StatusBadRequest)
 			return
 		}
@@ -148,6 +155,7 @@ func (h *MyCareHubHandlersInterfacesImpl) VerifyOTP() http.HandlerFunc {
 		serverutils.DecodeJSONToTargetStruct(w, r, payload)
 		if payload.OTP == "" || payload.PhoneNumber == "" {
 			err := fmt.Errorf("expected `userID`, `otp` and phone to be defined")
+			helpers.ReportErrorToSentry(err)
 			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
 				Err:     err,
 				Message: err.Error(),
@@ -157,6 +165,7 @@ func (h *MyCareHubHandlersInterfacesImpl) VerifyOTP() http.HandlerFunc {
 
 		if !payload.Flavour.IsValid() {
 			err := fmt.Errorf("an invalid `flavour` defined")
+			helpers.ReportErrorToSentry(err)
 			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
 				Err:     err,
 				Message: err.Error(),
@@ -166,6 +175,7 @@ func (h *MyCareHubHandlersInterfacesImpl) VerifyOTP() http.HandlerFunc {
 
 		resp, err := h.usecase.OTP.VerifyOTP(ctx, payload)
 		if err != nil {
+			helpers.ReportErrorToSentry(err)
 			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
 				Message: err.Error(),
 			}, http.StatusBadRequest)
@@ -187,6 +197,7 @@ func (h *MyCareHubHandlersInterfacesImpl) SendOTP() http.HandlerFunc {
 		serverutils.DecodeJSONToTargetStruct(w, r, payload)
 		if payload.PhoneNumber == "" {
 			err := fmt.Errorf("expected `phone number` to be defined")
+			helpers.ReportErrorToSentry(err)
 			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
 				Err:     err,
 				Message: err.Error(),
@@ -196,6 +207,7 @@ func (h *MyCareHubHandlersInterfacesImpl) SendOTP() http.HandlerFunc {
 
 		if !payload.Flavour.IsValid() {
 			err := fmt.Errorf("an invalid `flavour` defined")
+			helpers.ReportErrorToSentry(err)
 			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
 				Err:     err,
 				Message: err.Error(),
@@ -205,6 +217,7 @@ func (h *MyCareHubHandlersInterfacesImpl) SendOTP() http.HandlerFunc {
 
 		resp, err := h.usecase.OTP.GenerateAndSendOTP(ctx, payload.PhoneNumber, payload.Flavour)
 		if err != nil {
+			helpers.ReportErrorToSentry(err)
 			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
 				Message: err.Error(),
 			}, http.StatusBadRequest)
@@ -226,6 +239,7 @@ func (h *MyCareHubHandlersInterfacesImpl) RequestPINReset() http.HandlerFunc {
 		serverutils.DecodeJSONToTargetStruct(w, r, payload)
 		if payload.PhoneNumber == "" {
 			err := fmt.Errorf("expected `phone number` to be defined")
+			helpers.ReportErrorToSentry(err)
 			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
 				Err:     err,
 				Message: err.Error(),
@@ -235,6 +249,7 @@ func (h *MyCareHubHandlersInterfacesImpl) RequestPINReset() http.HandlerFunc {
 
 		if !payload.Flavour.IsValid() {
 			err := fmt.Errorf("an invalid `flavour` defined")
+			helpers.ReportErrorToSentry(err)
 			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
 				Err:     err,
 				Message: err.Error(),
@@ -244,6 +259,7 @@ func (h *MyCareHubHandlersInterfacesImpl) RequestPINReset() http.HandlerFunc {
 
 		resp, err := h.usecase.User.RequestPINReset(ctx, payload.PhoneNumber, payload.Flavour)
 		if err != nil {
+			helpers.ReportErrorToSentry(err)
 			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
 				Message: err.Error(),
 			}, http.StatusBadRequest)
@@ -267,6 +283,7 @@ func (h *MyCareHubHandlersInterfacesImpl) SendRetryOTP() http.HandlerFunc {
 			err := fmt.Errorf(
 				"expected `phoneNumber`, `flavour` to be defined",
 			)
+			helpers.ReportErrorToSentry(err)
 			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
 				Err:     err,
 				Message: err.Error(),
@@ -276,6 +293,7 @@ func (h *MyCareHubHandlersInterfacesImpl) SendRetryOTP() http.HandlerFunc {
 
 		resp, err := h.usecase.OTP.GenerateRetryOTP(ctx, retryPayload)
 		if err != nil {
+			helpers.ReportErrorToSentry(err)
 			serverutils.WriteJSONResponse(w, serverutils.ErrorMap(err), http.StatusBadRequest)
 			return
 		}
@@ -295,6 +313,7 @@ func (h *MyCareHubHandlersInterfacesImpl) GetUserRespondedSecurityQuestions() ht
 		serverutils.DecodeJSONToTargetStruct(w, r, payload)
 		err := payload.Validate()
 		if err != nil {
+			helpers.ReportErrorToSentry(err)
 			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
 				Err:     err,
 				Message: err.Error(),
@@ -304,6 +323,7 @@ func (h *MyCareHubHandlersInterfacesImpl) GetUserRespondedSecurityQuestions() ht
 
 		resp, err := h.usecase.SecurityQuestions.GetUserRespondedSecurityQuestions(ctx, *payload)
 		if err != nil {
+			helpers.ReportErrorToSentry(err)
 			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
 				Message: err.Error(),
 			}, http.StatusBadRequest)
@@ -324,6 +344,7 @@ func (h *MyCareHubHandlersInterfacesImpl) ResetPIN() http.HandlerFunc {
 		serverutils.DecodeJSONToTargetStruct(w, r, payload)
 		err := payload.Validate()
 		if err != nil {
+			helpers.ReportErrorToSentry(err)
 			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
 				Err:     err,
 				Message: err.Error(),
@@ -333,6 +354,7 @@ func (h *MyCareHubHandlersInterfacesImpl) ResetPIN() http.HandlerFunc {
 
 		resp, err := h.usecase.User.ResetPIN(ctx, *payload)
 		if err != nil {
+			helpers.ReportErrorToSentry(err)
 			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
 				Message: err.Error(),
 			}, http.StatusBadRequest)
@@ -356,6 +378,7 @@ func (h *MyCareHubHandlersInterfacesImpl) RefreshToken() http.HandlerFunc {
 
 		if payload.UserID == nil {
 			err := fmt.Errorf("expected `userID` to be defined")
+			helpers.ReportErrorToSentry(err)
 			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
 				Err:     err,
 				Message: err.Error(),
@@ -365,6 +388,7 @@ func (h *MyCareHubHandlersInterfacesImpl) RefreshToken() http.HandlerFunc {
 
 		response, err := h.usecase.User.RefreshToken(ctx, *payload.UserID)
 		if err != nil {
+			helpers.ReportErrorToSentry(err)
 			serverutils.WriteJSONResponse(w, serverutils.ErrorMap(err), http.StatusBadRequest)
 			return
 		}

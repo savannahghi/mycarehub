@@ -9,6 +9,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 )
 
 // The healthdiary is used for engagement with clients on a day-by-day basis.
@@ -90,6 +91,7 @@ func (h UseCasesHealthDiaryImpl) CreateHealthDiaryEntry(
 
 		err := h.Create.CreateHealthDiaryEntry(ctx, healthDiaryEntry)
 		if err != nil {
+			helpers.ReportErrorToSentry(err)
 			return false, fmt.Errorf("failed to save health diary entry")
 		}
 
@@ -104,6 +106,7 @@ func (h UseCasesHealthDiaryImpl) CreateHealthDiaryEntry(
 
 		err = h.Create.CreateServiceRequest(ctx, serviceRequest)
 		if err != nil {
+			helpers.ReportErrorToSentry(err)
 			return false, fmt.Errorf("failed to create service request: %v", err)
 		}
 
@@ -119,6 +122,7 @@ func (h UseCasesHealthDiaryImpl) CreateHealthDiaryEntry(
 		}
 		err := h.Create.CreateHealthDiaryEntry(ctx, healthDiaryEntry)
 		if err != nil {
+			helpers.ReportErrorToSentry(err)
 			return false, fmt.Errorf("failed to save health diary entry")
 		}
 	}

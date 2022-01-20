@@ -2007,7 +2007,25 @@ func TestMyCareHubDb_GetContactByUserID(t *testing.T) {
 		{
 			name: "invalid: no contactType",
 			args: args{
-				ctx: ctx,
+				ctx:         ctx,
+				contactType: "",
+			},
+			wantErr: true,
+		},
+		{
+			name: "Valid userID and invalid contactType",
+			args: args{
+				ctx:         ctx,
+				userID:      &ID,
+				contactType: "WHATSAPP",
+			},
+			wantErr: true,
+		},
+		{
+			name: "Invalid contactType",
+			args: args{
+				ctx:         ctx,
+				contactType: "WHATSAPP",
 			},
 			wantErr: true,
 		},
@@ -2293,12 +2311,26 @@ func TestMyCareHubDb_CheckIfUserBookmarkedContent(t *testing.T) {
 			wantErr: false,
 			want:    true,
 		},
+		{
+			name: "Sad case",
+			args: args{
+				ctx: context.Background(),
+			},
+			wantErr: true,
+			want:    false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
 			var fakeGorm = gormMock.NewGormMock()
 			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			if tt.name == "Sad case" {
+				fakeGorm.MockCheckIfUserBookmarkedContentFn = func(ctx context.Context, userID string, contentID int) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
 			got, err := d.CheckIfUserBookmarkedContent(tt.args.ctx, tt.args.userID, tt.args.contentID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("MyCareHubDb.CheckIfUserBookmarkedContent() error = %v, wantErr %v", err, tt.wantErr)

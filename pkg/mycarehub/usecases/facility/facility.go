@@ -8,6 +8,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 )
 
 // UseCasesFacility ...
@@ -82,6 +83,7 @@ func (f *UseCaseFacilityImpl) GetOrCreateFacility(ctx context.Context, facility 
 		if strings.Contains(err.Error(), "failed query and retrieve facility by MFLCode") {
 			return f.Create.GetOrCreateFacility(ctx, facility)
 		}
+		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed to retrieve facility")
 	}
 	return fetchedFacility, nil

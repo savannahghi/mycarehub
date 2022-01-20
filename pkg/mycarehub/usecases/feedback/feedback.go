@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"html/template"
 
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/utils"
@@ -46,6 +47,7 @@ func (f *UsecaseFeedbackImpl) SendFeedback(ctx context.Context, payload *dto.Fee
 	}
 	userProfile, err := f.Query.GetUserProfileByUserID(ctx, payload.UserID)
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return false, fmt.Errorf("unable to get user profile: %v", err)
 	}
 
@@ -66,6 +68,7 @@ func (f *UsecaseFeedbackImpl) SendFeedback(ctx context.Context, payload *dto.Fee
 
 	feedbackSent, err := f.ExternalExt.SendFeedback(ctx, feedbackSubject, writer.String())
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return false, fmt.Errorf("unable to send feedback: %v", err)
 	}
 	return feedbackSent, nil
