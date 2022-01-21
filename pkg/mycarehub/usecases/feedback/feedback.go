@@ -40,7 +40,7 @@ func NewUsecaseFeedback(
 	}
 }
 
-// SendFeedback sends the users feedback tothe admin
+// SendFeedback sends the users feedback to the admin
 func (f *UsecaseFeedbackImpl) SendFeedback(ctx context.Context, payload *dto.FeedbackResponseInput) (bool, error) {
 	if payload.Message == "" {
 		return false, fmt.Errorf("message cannot be empty")
