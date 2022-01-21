@@ -78,35 +78,12 @@ jobs:
         go-version: [1.17.x]
         os: [ubuntu-latest]
     runs-on: ${{ matrix.os }}
-    services:
-      postgres:
-        image: postgres:12
-        env:
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: postgres
-          POSTGRES_USER: postgres
-          POSTGRES_HOST_AUTH_METHOD: trust
-        # Set health checks to wait until postgres has started
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          # Maps tcp port 5432 on service container to the host
-          - 5432:5432
         
     steps:
       - name: Set up Python 3.10
         uses: actions/setup-python@v2
         with:
           python-version: 3.10.0
-
-      - name: Install latest mycarehub django project
-        uses: actions/checkout@main
-        with:
-          repository: savannahghi/mycarehub-backend
-          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup Google Application Credentials
         uses: google-github-actions/auth@v0.4.3
@@ -128,21 +105,15 @@ jobs:
       
       - name: Install Requirements
         run: |
-          sudo apt-get install gdal-bin libgdal-dev libtbb2 libtbb-dev
-          sudo apt install python3-testresources
-          pip install -r requirements/local.txt && pip install -r requirements/production.txt
-          npm ci
           npm install -g mjml
+         
+      - name: Install latest mycarehub django project
+        run: pip install mycarehub_django
 
       - name: Setup and enable postgres service
         run: |
-          sudo systemctl enable postgresql.service
-          sudo systemctl start postgresql.service
           sudo pg_ctlcluster 12 main start
-          echo ${POSTGRES_HOST}:${POSTGRES_PORT}:${POSTGRES_DB}:${POSTGRES_USER}:${POSTGRES_PASSWORD}  > ~/.pgpass
-          sudo chmod 600 ~/.pgpass
-          PGPASSFILE='~/.pgpass'
-          sudo -u ${POSTGRES_USER} psql -p ${POSTGRES_PORT} -c "ALTER USER ${POSTGRES_USER} WITH PASSWORD '${POSTGRES_PASSWORD}';"
+          sudo -u ${POSTGRES_USER} psql -p ${POSTGRES_PORT} -c "ALTER USER ${POSTGRES_USER} WITH PASSWORD '${POSTGRES_PASSWORD}';" 
 
       - name: Check if postgres instance has started running before running migrations
         run: |
@@ -163,8 +134,8 @@ jobs:
 
       - name: run migrations
         run: |
-          python manage.py migrate
-          python manage.py createcachetable
+          manage.py migrate
+          manage.py createcachetable
 
       - uses: actions/checkout@v2
       - uses: google-github-actions/setup-gcloud@master
