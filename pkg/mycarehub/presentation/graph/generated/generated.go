@@ -1801,7 +1801,7 @@ extend type Query {
 }
 `, BuiltIn: false},
 	{Name: "pkg/mycarehub/presentation/graph/faq.graphql", Input: `extend type Query {
-    getFAQContent(flavour: Flavour! limit: Int): [FAQ!]!
+    getFAQContent(flavour: Flavour!, limit: Int): [FAQ!]!
 }`, BuiltIn: false},
 	{Name: "pkg/mycarehub/presentation/graph/feedback.graphql", Input: `extend type Mutation{
     sendFeedback(input: FeedbackResponseInput!): Boolean!
