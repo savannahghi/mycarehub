@@ -85,10 +85,10 @@ func (h *MyCareHubHandlersInterfacesImpl) VerifySecurityQuestions() http.Handler
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 
-		payloadData := &[]dto.VerifySecurityQuestionInput{}
+		payloadData := &dto.VerifySecurityQuestionsPayload{}
 		serverutils.DecodeJSONToTargetStruct(w, r, payloadData)
 
-		for _, payload := range *payloadData {
+		for _, payload := range payloadData.SecurityQuestionsInput {
 			err := payload.Validate()
 			if err != nil {
 				helpers.ReportErrorToSentry(err)
@@ -100,7 +100,7 @@ func (h *MyCareHubHandlersInterfacesImpl) VerifySecurityQuestions() http.Handler
 			}
 		}
 
-		ok, err := h.usecase.SecurityQuestions.VerifySecurityQuestionResponses(ctx, payloadData)
+		ok, err := h.usecase.SecurityQuestions.VerifySecurityQuestionResponses(ctx, *payloadData)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
 			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{

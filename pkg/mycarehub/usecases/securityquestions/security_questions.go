@@ -47,7 +47,7 @@ type IRecordSecurityQuestionResponses interface {
 type IVerifySecurityQuestionResponses interface {
 	VerifySecurityQuestionResponses(
 		ctx context.Context,
-		responses *[]dto.VerifySecurityQuestionInput,
+		responses dto.VerifySecurityQuestionsPayload,
 	) (bool, error)
 }
 
@@ -145,9 +145,9 @@ func (s *UseCaseSecurityQuestionsImpl) RecordSecurityQuestionResponses(ctx conte
 // VerifySecurityQuestionResponses verifies the security questions against the recorded responses.
 func (s *UseCaseSecurityQuestionsImpl) VerifySecurityQuestionResponses(
 	ctx context.Context,
-	responses *[]dto.VerifySecurityQuestionInput,
+	responses dto.VerifySecurityQuestionsPayload,
 ) (bool, error) {
-	for _, securityQuestionResponse := range *responses {
+	for _, securityQuestionResponse := range responses.SecurityQuestionsInput {
 		questionResponse, err := s.Query.GetSecurityQuestionResponseByID(ctx, securityQuestionResponse.QuestionID)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
