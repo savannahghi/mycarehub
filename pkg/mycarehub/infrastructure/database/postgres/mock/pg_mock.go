@@ -45,6 +45,7 @@ type PostgresMock struct {
 	MockCheckIfPhoneNumberExistsFn                func(ctx context.Context, phone string, isOptedIn bool, flavour feedlib.Flavour) (bool, error)
 	MockVerifyOTPFn                               func(ctx context.Context, payload *dto.VerifyOTPInput) (bool, error)
 	MockGetClientProfileByUserIDFn                func(ctx context.Context, userID string) (*domain.ClientProfile, error)
+	MockGetStaffProfileByUserIDFn                 func(ctx context.Context, userID string) (*domain.StaffProfile, error)
 	MockCheckUserHasPinFn                         func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
 	MockGenerateRetryOTPFn                        func(ctx context.Context, payload *dto.SendRetryOTPPayload) (string, error)
 	MockUpdateUserPinChangeRequiredStatusFn       func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
@@ -139,6 +140,15 @@ func NewPostgresMock() *PostgresMock {
 
 	client := &domain.ClientProfile{
 		ID: &ID,
+	}
+	staff := &domain.StaffProfile{
+		ID:                &ID,
+		User:              userProfile,
+		UserID:            uuid.New().String(),
+		Active:            false,
+		StaffNumber:       gofakeit.BeerAlcohol(),
+		Facilities:        []domain.Facility{*facilityInput},
+		DefaultFacilityID: gofakeit.BeerAlcohol(),
 	}
 
 	contentItemCategoryID := 1
@@ -276,6 +286,9 @@ func NewPostgresMock() *PostgresMock {
 		},
 		MockGetClientProfileByUserIDFn: func(ctx context.Context, userID string) (*domain.ClientProfile, error) {
 			return client, nil
+		},
+		MockGetStaffProfileByUserIDFn: func(ctx context.Context, userID string) (*domain.StaffProfile, error) {
+			return staff, nil
 		},
 		MockCheckUserHasPinFn: func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
 			return true, nil
@@ -572,6 +585,11 @@ func (gm *PostgresMock) VerifyOTP(ctx context.Context, payload *dto.VerifyOTPInp
 // GetClientProfileByUserID mocks the method for fetching a client profile using the user ID
 func (gm *PostgresMock) GetClientProfileByUserID(ctx context.Context, userID string) (*domain.ClientProfile, error) {
 	return gm.MockGetClientProfileByUserIDFn(ctx, userID)
+}
+
+// GetStaffProfileByUserID mocks the method for fetching a staff profile using the user ID
+func (gm *PostgresMock) GetStaffProfileByUserID(ctx context.Context, userID string) (*domain.StaffProfile, error) {
+	return gm.MockGetStaffProfileByUserIDFn(ctx, userID)
 }
 
 // CheckUserHasPin mocks the method for checking if a user has a pin

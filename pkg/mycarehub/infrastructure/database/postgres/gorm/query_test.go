@@ -799,6 +799,59 @@ func TestPGInstance_GetClientProfileByUserID(t *testing.T) {
 	}
 }
 
+func TestPGInstance_GetStaffProfileByUserID(t *testing.T) {
+	ctx := context.Background()
+
+	invalidID := uuid.New().String()
+
+	type args struct {
+		ctx    context.Context
+		userID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Successfully get staff profile",
+			args: args{
+				ctx:    ctx,
+				userID: userIDtoAssignStaff,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad Case - Fail to get staff profile",
+			args: args{
+				ctx:    ctx,
+				userID: invalidID,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			got, err := testingDB.GetStaffProfileByUserID(tt.args.ctx, tt.args.userID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.GetStaffProfileByUserID() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			if tt.wantErr && got != nil {
+				t.Errorf("expected a staff profile to be nil for %v", tt.name)
+				return
+			}
+
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected a staff profile not to be nil for %v", tt.name)
+				return
+			}
+		})
+	}
+}
+
 func TestPGInstance_GetOTP(t *testing.T) {
 	ctx := context.Background()
 

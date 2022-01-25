@@ -156,6 +156,16 @@ func TestUseCasesUserImpl_Login_Unittest(t *testing.T) {
 			},
 			wantErr: true,
 		},
+		{
+			name: "Sad Case - Fail to get staff profile by user ID",
+			args: args{
+				ctx:         ctx,
+				phoneNumber: interserviceclient.TestUserPhoneNumber,
+				pin:         PIN,
+				flavour:     feedlib.FlavourPro,
+			},
+			wantErr: true,
+		},
 	}
 
 	for _, tt := range tests {
@@ -225,6 +235,12 @@ func TestUseCasesUserImpl_Login_Unittest(t *testing.T) {
 			if tt.name == "Sad Case - Fail to get client profile by user ID" {
 				fakeDB.MockGetClientProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.ClientProfile, error) {
 					return nil, fmt.Errorf("failed to get client profile")
+				}
+			}
+
+			if tt.name == "Sad Case - Fail to get staff profile by user ID" {
+				fakeDB.MockGetStaffProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.StaffProfile, error) {
+					return nil, fmt.Errorf("failed to get staff profile")
 				}
 			}
 

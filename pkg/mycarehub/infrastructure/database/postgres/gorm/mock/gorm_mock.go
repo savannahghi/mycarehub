@@ -6,6 +6,7 @@ import (
 
 	"github.com/brianvoe/gofakeit"
 	"github.com/google/uuid"
+	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
@@ -45,6 +46,7 @@ type GormMock struct {
 	MockVerifyOTPFn                               func(ctx context.Context, payload *dto.VerifyOTPInput) (bool, error)
 	MockGetSntProfileByUserIDFn                   func(ctx context.Context, userID string) (*gorm.Client, error)
 	MockGetClientProfileByUserIDFn                func(ctx context.Context, userID string) (*gorm.Client, error)
+	MockGetStaffProfileByUserIDFn                 func(ctx context.Context, userID string) (*gorm.StaffProfile, error)
 	MockCheckUserHasPinFn                         func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
 	MockUpdateUserPinChangeRequiredStatusFn       func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
 	MockGetOTPFn                                  func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*gorm.UserOTP, error)
@@ -129,6 +131,56 @@ func NewGormMock() *GormMock {
 
 	client := &gorm.Client{
 		ID: &UUID,
+	}
+
+	acceptedTermsID := gofakeit.Number(1, 10)
+	currentTime := time.Now()
+
+	userProfile := &gorm.User{
+		UserID:                 &UUID,
+		Username:               gofakeit.Name(),
+		FirstName:              gofakeit.Name(),
+		MiddleName:             name,
+		LastName:               gofakeit.Name(),
+		UserType:               enums.HealthcareWorkerUser,
+		Gender:                 enumutils.GenderMale,
+		Active:                 true,
+		Contacts:               gorm.Contact{},
+		PushTokens:             []string{},
+		LastSuccessfulLogin:    &currentTime,
+		LastFailedLogin:        &currentTime,
+		FailedLoginCount:       3,
+		NextAllowedLogin:       &currentTime,
+		TermsAccepted:          true,
+		AcceptedTermsID:        &acceptedTermsID,
+		Flavour:                feedlib.FlavourPro,
+		Avatar:                 "test",
+		IsSuspended:            true,
+		PinChangeRequired:      true,
+		HasSetPin:              true,
+		HasSetSecurityQuestion: true,
+		IsPhoneVerified:        true,
+		OrganisationID:         uuid.New().String(),
+		Password:               "test",
+		IsSuperuser:            true,
+		IsStaff:                true,
+		Email:                  gofakeit.Email(),
+		DateJoined:             gofakeit.BeerIbu(),
+		Name:                   name,
+		IsApproved:             true,
+		ApprovalNotified:       true,
+		Handle:                 "@test",
+	}
+
+	staff := &gorm.StaffProfile{
+		ID:                &UUID,
+		UserProfile:       *userProfile,
+		UserID:            uuid.New().String(),
+		Active:            true,
+		StaffNumber:       gofakeit.BeerAlcohol(),
+		Facilities:        []gorm.Facility{*facility},
+		DefaultFacilityID: gofakeit.BeerAlcohol(),
+		OrganisationID:    gofakeit.BeerAlcohol(),
 	}
 
 	pinData := &gorm.PINData{
@@ -275,6 +327,9 @@ func NewGormMock() *GormMock {
 		},
 		MockGetClientProfileByUserIDFn: func(ctx context.Context, userID string) (*gorm.Client, error) {
 			return client, nil
+		},
+		MockGetStaffProfileByUserIDFn: func(ctx context.Context, userID string) (*gorm.StaffProfile, error) {
+			return staff, nil
 		},
 		MockCheckUserHasPinFn: func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
 			return true, nil
@@ -550,6 +605,11 @@ func (gm *GormMock) VerifyOTP(ctx context.Context, payload *dto.VerifyOTPInput) 
 // GetClientProfileByUserID mocks the method for fetching a client profile using the user ID
 func (gm *GormMock) GetClientProfileByUserID(ctx context.Context, userID string) (*gorm.Client, error) {
 	return gm.MockGetClientProfileByUserIDFn(ctx, userID)
+}
+
+// GetStaffProfileByUserID mocks the method for fetching a staff profile using the user ID
+func (gm *GormMock) GetStaffProfileByUserID(ctx context.Context, userID string) (*gorm.StaffProfile, error) {
+	return gm.MockGetStaffProfileByUserIDFn(ctx, userID)
 }
 
 // CheckUserHasPin mocks the method for checking if a user has a pin

@@ -8,6 +8,7 @@ import (
 
 	"github.com/savannahghi/converterandformatter"
 	"github.com/savannahghi/feedlib"
+	"github.com/savannahghi/firebasetools"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions"
@@ -235,25 +236,57 @@ func (us *UseCasesUserImpl) Login(ctx context.Context, phoneNumber string, pin s
 		return nil, int(exceptions.Internal), fmt.Errorf("failed to update user last successful login time")
 	}
 
-	clientProfile, err := us.Query.GetClientProfileByUserID(ctx, *userProfile.ID)
-	if err != nil {
-		helpers.ReportErrorToSentry(err)
-		return nil, int(exceptions.ProfileNotFound), exceptions.ClientProfileNotFoundErr(err)
-	}
+	return us.ReturnLoginResponse(ctx, flavour, userProfile, userTokens)
+}
 
-	clientProfile.User = userProfile
-	loginResponse := &domain.LoginResponse{
-		Client: clientProfile,
-		AuthCredentials: domain.AuthCredentials{
-			RefreshToken: userTokens.RefreshToken,
-			IDToken:      userTokens.IDToken,
-			ExpiresIn:    userTokens.ExpiresIn,
-		},
-		Code:    int(exceptions.OK),
-		Message: "Success",
-	}
+// ReturnLoginResponse returns either a client's or staff's response depending on the specified flavour
+func (us *UseCasesUserImpl) ReturnLoginResponse(ctx context.Context, flavour feedlib.Flavour, userProfile *domain.User, userTokens *firebasetools.FirebaseUserTokens) (*domain.LoginResponse, int, error) {
+	switch flavour {
+	case feedlib.FlavourConsumer:
+		clientProfile, err := us.Query.GetClientProfileByUserID(ctx, *userProfile.ID)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return nil, int(exceptions.ProfileNotFound), exceptions.ClientProfileNotFoundErr(err)
+		}
 
-	return loginResponse, int(exceptions.OK), nil
+		clientProfile.User = userProfile
+		loginResponse := &domain.LoginResponse{
+			Client: clientProfile,
+			AuthCredentials: domain.AuthCredentials{
+				RefreshToken: userTokens.RefreshToken,
+				IDToken:      userTokens.IDToken,
+				ExpiresIn:    userTokens.ExpiresIn,
+			},
+			Code:    int(exceptions.OK),
+			Message: "Success",
+		}
+
+		return loginResponse, int(exceptions.OK), nil
+
+	case feedlib.FlavourPro:
+		staffProfile, err := us.Query.GetStaffProfileByUserID(ctx, *userProfile.ID)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return nil, int(exceptions.ProfileNotFound), exceptions.StaffProfileNotFoundErr(err)
+		}
+
+		staffProfile.User = userProfile
+		loginResponse := &domain.LoginResponse{
+			Staff: staffProfile,
+			AuthCredentials: domain.AuthCredentials{
+				RefreshToken: userTokens.RefreshToken,
+				IDToken:      userTokens.IDToken,
+				ExpiresIn:    userTokens.ExpiresIn,
+			},
+			Code:    int(exceptions.OK),
+			Message: "Success",
+		}
+
+		return loginResponse, int(exceptions.OK), nil
+
+	default:
+		return nil, 0, fmt.Errorf("an error occurred while logging in user with phone number")
+	}
 }
 
 // InviteUser is used to invite a user to the application. The invite link that is sent to the

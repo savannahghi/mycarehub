@@ -90,6 +90,25 @@ type ClientProfile struct {
 	CaregiverID *string `json:"CaregiverID"`
 }
 
+// StaffProfile represents the staff profile model
+type StaffProfile struct {
+	ID *string `json:"id"`
+
+	User *User `json:"user"`
+
+	UserID string `json:"user_id"` // foreign key to user
+
+	Active bool `json:"active"`
+
+	StaffNumber string `json:"staff_number"`
+
+	Facilities []Facility `json:"facilities"` // TODO: needs at least one
+
+	// A UI switcher optionally toggles the default
+	// TODO: the list of facilities to switch between is strictly those that the user is assigned to
+	DefaultFacilityID string `json:"default_facility"` // TODO: required, FK to facility
+}
+
 // AuthCredentials is the authentication credentials for a given user
 type AuthCredentials struct {
 	RefreshToken string `json:"refreshToken"`
@@ -125,6 +144,7 @@ type Contact struct {
 // LoginResponse models the response that will be returned after a user logs in
 type LoginResponse struct {
 	Client          *ClientProfile  `json:"clientProfile"`
+	Staff           *StaffProfile   `json:"staff"`
 	AuthCredentials AuthCredentials `json:"credentials"`
 	Code            int             `json:"code"`
 	Message         string          `json:"message"`
