@@ -245,9 +245,17 @@ func TestUseCaseSecurityQuestionsImpl_RecordSecurityQuestionResponses(t *testing
 
 func TestUseCaseSecurityQuestionsImpl_VerifySecurityQuestionResponses(t *testing.T) {
 	ctx := context.Background()
+
+	input := &dto.VerifySecurityQuestionInput{
+		QuestionID:  gofakeit.BeerName(),
+		Flavour:     feedlib.FlavourPro,
+		Response:    gofakeit.BeerName(),
+		PhoneNumber: interserviceclient.TestUserPhoneNumber,
+	}
+
 	type args struct {
 		ctx       context.Context
-		responses *[]dto.VerifySecurityQuestionInput
+		responses dto.VerifySecurityQuestionsPayload
 	}
 	tests := []struct {
 		name    string
@@ -259,12 +267,9 @@ func TestUseCaseSecurityQuestionsImpl_VerifySecurityQuestionResponses(t *testing
 			name: "Happy Case - Successfully verify security question response",
 			args: args{
 				ctx: ctx,
-				responses: &[]dto.VerifySecurityQuestionInput{
-					{
-						QuestionID:  "1234",
-						Flavour:     feedlib.FlavourConsumer,
-						Response:    "",
-						PhoneNumber: interserviceclient.TestUserPhoneNumber,
+				responses: dto.VerifySecurityQuestionsPayload{
+					SecurityQuestionsInput: []*dto.VerifySecurityQuestionInput{
+						input,
 					},
 				},
 			},
@@ -275,12 +280,9 @@ func TestUseCaseSecurityQuestionsImpl_VerifySecurityQuestionResponses(t *testing
 			name: "Sad Case - Fail to get security question by ID",
 			args: args{
 				ctx: ctx,
-				responses: &[]dto.VerifySecurityQuestionInput{
-					{
-						QuestionID:  "1234",
-						Flavour:     feedlib.FlavourConsumer,
-						Response:    "Nairobi",
-						PhoneNumber: interserviceclient.TestUserPhoneNumber,
+				responses: dto.VerifySecurityQuestionsPayload{
+					SecurityQuestionsInput: []*dto.VerifySecurityQuestionInput{
+						input,
 					},
 				},
 			},
@@ -291,12 +293,9 @@ func TestUseCaseSecurityQuestionsImpl_VerifySecurityQuestionResponses(t *testing
 			name: "Sad Case - response mismatch",
 			args: args{
 				ctx: ctx,
-				responses: &[]dto.VerifySecurityQuestionInput{
-					{
-						QuestionID:  "1234",
-						Flavour:     feedlib.FlavourConsumer,
-						Response:    "Nakuru",
-						PhoneNumber: interserviceclient.TestUserPhoneNumber,
+				responses: dto.VerifySecurityQuestionsPayload{
+					SecurityQuestionsInput: []*dto.VerifySecurityQuestionInput{
+						input,
 					},
 				},
 			},
@@ -307,12 +306,9 @@ func TestUseCaseSecurityQuestionsImpl_VerifySecurityQuestionResponses(t *testing
 			name: "Sad Case - fail to get user profile by phone number",
 			args: args{
 				ctx: ctx,
-				responses: &[]dto.VerifySecurityQuestionInput{
-					{
-						QuestionID:  "1234",
-						Flavour:     feedlib.FlavourConsumer,
-						Response:    "Nakuru",
-						PhoneNumber: interserviceclient.TestUserPhoneNumber,
+				responses: dto.VerifySecurityQuestionsPayload{
+					SecurityQuestionsInput: []*dto.VerifySecurityQuestionInput{
+						input,
 					},
 				},
 			},
@@ -323,12 +319,9 @@ func TestUseCaseSecurityQuestionsImpl_VerifySecurityQuestionResponses(t *testing
 			name: "Sad Case - fail if phone number is empty",
 			args: args{
 				ctx: ctx,
-				responses: &[]dto.VerifySecurityQuestionInput{
-					{
-						QuestionID:  "1234",
-						Flavour:     feedlib.FlavourConsumer,
-						Response:    "Nakuru",
-						PhoneNumber: interserviceclient.TestUserPhoneNumber,
+				responses: dto.VerifySecurityQuestionsPayload{
+					SecurityQuestionsInput: []*dto.VerifySecurityQuestionInput{
+						input,
 					},
 				},
 			},
@@ -339,12 +332,9 @@ func TestUseCaseSecurityQuestionsImpl_VerifySecurityQuestionResponses(t *testing
 			name: "invalid: failed to verify security question response",
 			args: args{
 				ctx: ctx,
-				responses: &[]dto.VerifySecurityQuestionInput{
-					{
-						QuestionID:  "1234",
-						Flavour:     feedlib.FlavourConsumer,
-						Response:    "Nakuru",
-						PhoneNumber: interserviceclient.TestUserPhoneNumber,
+				responses: dto.VerifySecurityQuestionsPayload{
+					SecurityQuestionsInput: []*dto.VerifySecurityQuestionInput{
+						input,
 					},
 				},
 			},
