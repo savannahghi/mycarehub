@@ -81,6 +81,8 @@ func TestCustomErrors(t *testing.T) {
 	assert.NotNil(t, err)
 	err = exceptions.ClientProfileNotFoundErr(fmt.Errorf("error"))
 	assert.NotNil(t, err)
+	err = exceptions.StaffProfileNotFoundErr(fmt.Errorf("error"))
+	assert.NotNil(t, err)
 	err = exceptions.GetInviteLinkErr(fmt.Errorf("error"))
 	assert.NotNil(t, err)
 	err = exceptions.ExistingPINError(fmt.Errorf("error"))

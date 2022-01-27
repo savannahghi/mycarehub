@@ -44,6 +44,7 @@ type Query interface {
 	CheckIfPhoneNumberExists(ctx context.Context, phone string, optedIn bool, flavour feedlib.Flavour) (bool, error)
 	VerifyOTP(ctx context.Context, payload *dto.VerifyOTPInput) (bool, error)
 	GetClientProfileByUserID(ctx context.Context, userID string) (*domain.ClientProfile, error)
+	GetStaffProfileByUserID(ctx context.Context, userID string) (*domain.StaffProfile, error)
 	CheckWhetherUserHasLikedContent(ctx context.Context, userID string, contentID int) (bool, error)
 	CheckUserHasPin(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
 	GetOTP(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*domain.OTP, error)

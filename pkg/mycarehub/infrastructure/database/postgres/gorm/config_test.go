@@ -11,6 +11,7 @@ import (
 
 	"github.com/brianvoe/gofakeit"
 	"github.com/go-testfixtures/testfixtures/v3"
+	"github.com/google/uuid"
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
@@ -33,6 +34,7 @@ var (
 	userID                                    = "6ecbbc80-24c8-421a-9f1a-e14e12678ee0"
 	userID2                                   = "6ecbbc80-24c8-421a-9f1a-e14e12678ef0"
 	userIDtoAddCaregiver                      = "8ecbbc80-24c8-421a-9f1a-e14e12678ef1"
+	userIDtoAssignStaff                       = "6ecccc80-24c8-421a-9f1a-e14e13678ef0"
 	userIDToInvalidate                        = "5ecbbc80-24c8-421a-9f1a-e14e12678ee0"
 	userIDToAcceptTerms                       = "4ecbbc80-24c8-421a-9f1a-e14e12678ee0"
 	userIDToIncreaseFailedLoginCount          = "7ecbbc80-24c8-421a-9f1a-e14e12678ee0"
@@ -85,6 +87,10 @@ var (
 
 	//Terms
 	termsText = "Test terms"
+
+	// Staff
+	staffNumber = uuid.New().String()
+	staffID     = "8ecbbc80-24c8-421a-9f1a-e14e12678ef1"
 )
 
 func TestMain(m *testing.M) {
@@ -117,6 +123,7 @@ func TestMain(m *testing.M) {
 			"test_phone":                 "\"" + testPhone + "\"",
 			"test_user_id":               userID,
 			"test_user_id2":              userID2,
+			"staff_user_id":              userIDtoAssignStaff,
 			"test_flavour":               testFlavour,
 			"test_organisation_id":       orgID,
 			"future_time":                futureTime.String(),
@@ -148,6 +155,9 @@ func TestMain(m *testing.M) {
 			"security_question_response_id4": securityQuestionResponseID4,
 			"user_id_to_add_caregiver":       userIDtoAddCaregiver,
 			"test_caregiver_id":              testCaregiverID,
+			"staff_number":                   staffNumber,
+			"staff_default_facility":         facilityID,
+			"staff_id":                       staffID,
 		}),
 		// this is the directory containing the YAML files.
 		// The file name should be the same as the table name
@@ -167,6 +177,8 @@ func TestMain(m *testing.M) {
 			"../../../../../../fixtures/users_userpin.yml",
 			"../../../../../../fixtures/clients_caregiver.yml",
 			"../../../../../../fixtures/clients_client.yml",
+			"../../../../../../fixtures/staff_staff.yml",
+			"../../../../../../fixtures/staff_staff_facilities.yml",
 		),
 		// uncomment when running tests locally, if your db is not a test db
 		// Ensure the testing db in the ci is named `test`

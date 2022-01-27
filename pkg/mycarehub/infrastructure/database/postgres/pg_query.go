@@ -307,6 +307,44 @@ func (d *MyCareHubDb) GetClientProfileByUserID(ctx context.Context, userID strin
 	}, nil
 }
 
+//GetStaffProfileByUserID fetches the staff's profile using the user's ID and returns the staff's profile in the login response.
+func (d *MyCareHubDb) GetStaffProfileByUserID(ctx context.Context, userID string) (*domain.StaffProfile, error) {
+	if userID == "" {
+		return nil, fmt.Errorf("staff's user ID must be defined")
+	}
+
+	staff, err := d.query.GetStaffProfileByUserID(ctx, userID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, fmt.Errorf("unable to get staff profile: %v", err)
+	}
+
+	var facility []domain.Facility
+	for _, f := range staff.Facilities {
+		domainFacility := &domain.Facility{
+			ID:          f.FacilityID,
+			Name:        f.Name,
+			Code:        f.Code,
+			Phone:       f.Phone,
+			Active:      f.Active,
+			County:      f.County,
+			Description: f.Description,
+		}
+		facility = append(facility, *domainFacility)
+	}
+
+	user := createMapUser(&staff.UserProfile)
+	return &domain.StaffProfile{
+		ID:                staff.ID,
+		User:              user,
+		UserID:            staff.UserID,
+		Active:            staff.Active,
+		StaffNumber:       staff.StaffNumber,
+		Facilities:        facility,
+		DefaultFacilityID: staff.DefaultFacilityID,
+	}, nil
+}
+
 // CheckUserHasPin performs a look up on the pins table to check whether a user has a pin
 func (d *MyCareHubDb) CheckUserHasPin(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
 	if userID == "" {

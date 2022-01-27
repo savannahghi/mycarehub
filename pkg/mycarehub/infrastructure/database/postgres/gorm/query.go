@@ -32,6 +32,7 @@ type Query interface {
 	CheckIfPhoneNumberExists(ctx context.Context, phone string, isOptedIn bool, flavour feedlib.Flavour) (bool, error)
 	VerifyOTP(ctx context.Context, payload *dto.VerifyOTPInput) (bool, error)
 	GetClientProfileByUserID(ctx context.Context, userID string) (*Client, error)
+	GetStaffProfileByUserID(ctx context.Context, userID string) (*StaffProfile, error)
 	CheckUserHasPin(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
 	GetOTP(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*UserOTP, error)
 	GetUserSecurityQuestionsResponses(ctx context.Context, userID string) ([]*SecurityQuestionResponse, error)
@@ -346,6 +347,18 @@ func (db *PGInstance) GetClientProfileByUserID(ctx context.Context, userID strin
 		return nil, fmt.Errorf("failed to get client by user ID %v: %v", userID, err)
 	}
 	return &client, nil
+}
+
+// GetStaffProfileByUserID returns the staff profile
+func (db *PGInstance) GetStaffProfileByUserID(ctx context.Context, userID string) (*StaffProfile, error) {
+	var staff StaffProfile
+
+	if err := db.DB.Where(&StaffProfile{UserID: userID}).Preload(clause.Associations).First(&staff).Error; err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, fmt.Errorf("unable to get staff by the provided user id %v", userID)
+	}
+
+	return &staff, nil
 }
 
 // CheckUserHasPin performs a look up on the pins table to check whether a user has a pin

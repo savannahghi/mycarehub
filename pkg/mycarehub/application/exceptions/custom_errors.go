@@ -98,6 +98,15 @@ func ClientProfileNotFoundErr(err error) error {
 	}
 }
 
+// StaffProfileNotFoundErr returns an error message when the client profile is not found
+func StaffProfileNotFoundErr(err error) error {
+	return &CustomError{
+		Err:     err,
+		Message: ProfileNotFoundErrorMsg,
+		Code:    int(ProfileNotFound),
+	}
+}
+
 // InvalidatePinErr returns an error message when the reset pin is invalid
 func InvalidatePinErr(err error) error {
 	return &CustomError{

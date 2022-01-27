@@ -378,6 +378,42 @@ func (Client) TableName() string {
 	return "clients_client"
 }
 
+// StaffProfile represents the staff profile model
+type StaffProfile struct {
+	Base
+
+	ID *string `gorm:"column:id"`
+
+	UserProfile User `gorm:"ForeignKey:UserID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;not null"`
+
+	UserID string `gorm:"column:user_id"` // foreign key to user
+
+	Active bool `gorm:"column:active"`
+
+	StaffNumber string `gorm:"column:staff_number"`
+
+	Facilities []Facility `gorm:"ForeignKey:FacilityID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;not null"` // TODO: needs at least one
+
+	// A UI switcher optionally toggles the default
+	// TODO: the list of facilities to switch between is strictly those that the user is assigned to
+	DefaultFacilityID string `gorm:"column:default_facility_id"` // TODO: required, FK to facility
+
+	OrganisationID string `gorm:"column:organisation_id"`
+}
+
+// BeforeCreate is a hook run before creating a staff profile
+func (s *StaffProfile) BeforeCreate(tx *gorm.DB) (err error) {
+	id := uuid.New().String()
+	s.ID = &id
+	s.OrganisationID = OrganizationID
+	return
+}
+
+// TableName references the table that we map data from
+func (StaffProfile) TableName() string {
+	return "staff_staff"
+}
+
 // ContentItemCategory maps the schema for the table that stores the content item category
 type ContentItemCategory struct {
 	ID     int    `gorm:"unique;column:id;autoincrement"`
