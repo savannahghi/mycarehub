@@ -29,7 +29,7 @@ type PostgresMock struct {
 	MockReactivateFacilityFn                      func(ctx context.Context, mflCode *int) (bool, error)
 	MockGetUserProfileByUserIDFn                  func(ctx context.Context, userID string) (*domain.User, error)
 	MockSaveTemporaryUserPinFn                    func(ctx context.Context, pinData *domain.UserPIN) (bool, error)
-	MockGetCurrentTermsFn                         func(ctx context.Context) (*domain.TermsOfService, error)
+	MockGetCurrentTermsFn                         func(ctx context.Context, flavour feedlib.Flavour) (*domain.TermsOfService, error)
 	MockAcceptTermsFn                             func(ctx context.Context, userID *string, termsID *int) (bool, error)
 	MockSavePinFn                                 func(ctx context.Context, pin *domain.UserPIN) (bool, error)
 	MockUpdateUserFailedLoginCountFn              func(ctx context.Context, userID string, failedLoginAttempts int) error
@@ -191,12 +191,13 @@ func NewPostgresMock() *PostgresMock {
 		MockReactivateFacilityFn: func(ctx context.Context, mflCode *int) (bool, error) {
 			return true, nil
 		},
-		MockGetCurrentTermsFn: func(ctx context.Context) (*domain.TermsOfService, error) {
+		MockGetCurrentTermsFn: func(ctx context.Context, flavour feedlib.Flavour) (*domain.TermsOfService, error) {
 			termsID := gofakeit.Number(1, 1000)
 			testText := "test"
 			terms := &domain.TermsOfService{
 				TermsID: termsID,
 				Text:    &testText,
+				Flavour: feedlib.FlavourPro,
 			}
 			return terms, nil
 		},
@@ -498,8 +499,8 @@ func (gm *PostgresMock) ReactivateFacility(ctx context.Context, mflCode *int) (b
 }
 
 //GetCurrentTerms mocks the implementation of getting all the current terms of service.
-func (gm *PostgresMock) GetCurrentTerms(ctx context.Context) (*domain.TermsOfService, error) {
-	return gm.MockGetCurrentTermsFn(ctx)
+func (gm *PostgresMock) GetCurrentTerms(ctx context.Context, flavour feedlib.Flavour) (*domain.TermsOfService, error) {
+	return gm.MockGetCurrentTermsFn(ctx, flavour)
 }
 
 // GetUserProfileByUserID mocks the implementation of fetching a user profile by userID

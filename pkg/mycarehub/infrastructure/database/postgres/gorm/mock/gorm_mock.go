@@ -29,7 +29,7 @@ type GormMock struct {
 	MockReactivateFacilityFn                      func(ctx context.Context, mflCode *int) (bool, error)
 	MockGetUserProfileByUserIDFn                  func(ctx context.Context, UserID string) (*gorm.User, error)
 	MockSaveTemporaryUserPinFn                    func(ctx context.Context, pinData *gorm.PINData) (bool, error)
-	MockGetCurrentTermsFn                         func(ctx context.Context) (*gorm.TermsOfService, error)
+	MockGetCurrentTermsFn                         func(ctx context.Context, flavour feedlib.Flavour) (*gorm.TermsOfService, error)
 	MockAcceptTermsFn                             func(ctx context.Context, userID *string, termsID *int) (bool, error)
 	MockSavePinFn                                 func(ctx context.Context, pinData *gorm.PINData) (bool, error)
 	MockUpdateUserFailedLoginCountFn              func(ctx context.Context, userID string, failedLoginAttempts int) error
@@ -240,17 +240,20 @@ func NewGormMock() *GormMock {
 		MockReactivateFacilityFn: func(ctx context.Context, mflCode *int) (bool, error) {
 			return true, nil
 		},
-		MockGetCurrentTermsFn: func(ctx context.Context) (*gorm.TermsOfService, error) {
+		MockGetCurrentTermsFn: func(ctx context.Context, flavour feedlib.Flavour) (*gorm.TermsOfService, error) {
 			termsID := gofakeit.Number(1, 1000)
 			validFrom := time.Now()
 			testText := "test"
 
 			validTo := time.Now().AddDate(0, 0, 80)
 			terms := &gorm.TermsOfService{
+				Base:      gorm.Base{},
 				TermsID:   &termsID,
 				Text:      &testText,
+				Flavour:   feedlib.FlavourPro,
 				ValidFrom: &validFrom,
 				ValidTo:   &validTo,
+				Active:    false,
 			}
 			return terms, nil
 		},
@@ -518,8 +521,8 @@ func (gm *GormMock) ReactivateFacility(ctx context.Context, mflCode *int) (bool,
 }
 
 //GetCurrentTerms mocks the implementation of getting all the current terms of service.
-func (gm *GormMock) GetCurrentTerms(ctx context.Context) (*gorm.TermsOfService, error) {
-	return gm.MockGetCurrentTermsFn(ctx)
+func (gm *GormMock) GetCurrentTerms(ctx context.Context, flavour feedlib.Flavour) (*gorm.TermsOfService, error) {
+	return gm.MockGetCurrentTermsFn(ctx, flavour)
 }
 
 // GetUserProfileByUserID mocks the implementation of retrieving a user profile by user ID

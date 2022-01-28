@@ -796,7 +796,8 @@ func TestMyCareHubDb_GetCurrentTerms(t *testing.T) {
 	ctx := context.Background()
 
 	type args struct {
-		ctx context.Context
+		ctx     context.Context
+		flavour feedlib.Flavour
 	}
 	tests := []struct {
 		name    string
@@ -807,21 +808,24 @@ func TestMyCareHubDb_GetCurrentTerms(t *testing.T) {
 		{
 			name: "Happy case",
 			args: args{
-				ctx: ctx,
+				ctx:     ctx,
+				flavour: feedlib.FlavourPro,
 			},
 			wantErr: false,
 		},
 		{
 			name: "Sad case",
 			args: args{
-				ctx: ctx,
+				ctx:     ctx,
+				flavour: "invalid-flavour",
 			},
 			wantErr: true,
 		},
 		{
 			name: "Sad case - nil context",
 			args: args{
-				ctx: nil,
+				ctx:     nil,
+				flavour: feedlib.FlavourPro,
 			},
 			wantErr: true,
 		},
@@ -832,17 +836,17 @@ func TestMyCareHubDb_GetCurrentTerms(t *testing.T) {
 			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
 
 			if tt.name == "Sad case" {
-				fakeGorm.MockGetCurrentTermsFn = func(ctx context.Context) (*gorm.TermsOfService, error) {
+				fakeGorm.MockGetCurrentTermsFn = func(ctx context.Context, flavour feedlib.Flavour) (*gorm.TermsOfService, error) {
 					return nil, fmt.Errorf("an error occurred")
 				}
 			}
 			if tt.name == "Sad case - nil context" {
-				fakeGorm.MockGetCurrentTermsFn = func(ctx context.Context) (*gorm.TermsOfService, error) {
+				fakeGorm.MockGetCurrentTermsFn = func(ctx context.Context, flavour feedlib.Flavour) (*gorm.TermsOfService, error) {
 					return nil, fmt.Errorf("an error occurred")
 				}
 			}
 
-			_, err := d.GetCurrentTerms(tt.args.ctx)
+			_, err := d.GetCurrentTerms(tt.args.ctx, tt.args.flavour)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("MyCareHubDb.GetCurrentTerms() error = %v, wantErr %v", err, tt.wantErr)
 				return

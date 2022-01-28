@@ -259,7 +259,7 @@ type ComplexityRoot struct {
 		GetClientCaregiver           func(childComplexity int, clientID string) int
 		GetClientHealthDiaryEntries  func(childComplexity int, clientID string) int
 		GetContent                   func(childComplexity int, categoryID *int, limit string) int
-		GetCurrentTerms              func(childComplexity int) int
+		GetCurrentTerms              func(childComplexity int, flavour feedlib.Flavour) int
 		GetFAQContent                func(childComplexity int, flavour feedlib.Flavour, limit *int) int
 		GetHealthDiaryQuote          func(childComplexity int) int
 		GetSecurityQuestions         func(childComplexity int, flavour feedlib.Flavour) int
@@ -329,7 +329,7 @@ type QueryResolver interface {
 	GetClientHealthDiaryEntries(ctx context.Context, clientID string) ([]*domain.ClientHealthDiaryEntry, error)
 	SendOtp(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (string, error)
 	GetSecurityQuestions(ctx context.Context, flavour feedlib.Flavour) ([]*domain.SecurityQuestion, error)
-	GetCurrentTerms(ctx context.Context) (*domain.TermsOfService, error)
+	GetCurrentTerms(ctx context.Context, flavour feedlib.Flavour) (*domain.TermsOfService, error)
 	VerifyPin(ctx context.Context, userID string, flavour feedlib.Flavour, pin string) (bool, error)
 	GetClientCaregiver(ctx context.Context, clientID string) (*domain.Caregiver, error)
 }
@@ -1436,7 +1436,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			break
 		}
 
-		return e.complexity.Query.GetCurrentTerms(childComplexity), true
+		args, err := ec.field_Query_getCurrentTerms_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetCurrentTerms(childComplexity, args["flavour"].(feedlib.Flavour)), true
 
 	case "Query.getFAQContent":
 		if e.complexity.Query.GetFAQContent == nil {
@@ -2102,7 +2107,7 @@ type Caregiver{
   caregiverType: CaregiverType!
 }`, BuiltIn: false},
 	{Name: "pkg/mycarehub/presentation/graph/user.graphql", Input: `extend type Query {
-  getCurrentTerms: TermsOfService!
+  getCurrentTerms(flavour: Flavour!): TermsOfService!
   verifyPIN(userID: String!, flavour: Flavour!, pin:  String!): Boolean!
   getClientCaregiver(clientID: String!) :Caregiver!
 }
@@ -2695,6 +2700,21 @@ func (ec *executionContext) field_Query_getContent_args(ctx context.Context, raw
 		}
 	}
 	args["Limit"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_getCurrentTerms_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 feedlib.Flavour
+	if tmp, ok := rawArgs["flavour"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("flavour"))
+		arg0, err = ec.unmarshalNFlavour2githubᚗcomᚋsavannahghiᚋfeedlibᚐFlavour(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["flavour"] = arg0
 	return args, nil
 }
 
@@ -8121,9 +8141,16 @@ func (ec *executionContext) _Query_getCurrentTerms(ctx context.Context, field gr
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_getCurrentTerms_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().GetCurrentTerms(rctx)
+		return ec.resolvers.Query().GetCurrentTerms(rctx, args["flavour"].(feedlib.Flavour))
 	})
 	if err != nil {
 		ec.Error(ctx, err)

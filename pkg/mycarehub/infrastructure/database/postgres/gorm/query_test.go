@@ -1786,6 +1786,7 @@ func TestPGInstance_GetCurrentTerms(t *testing.T) {
 	termsOfServiceInput := &gorm.TermsOfService{
 		TermsID:   &termsID,
 		Text:      &termsText,
+		Flavour:   feedlib.FlavourPro,
 		ValidFrom: &now,
 		ValidTo:   &future,
 		Active:    true,
@@ -1797,7 +1798,8 @@ func TestPGInstance_GetCurrentTerms(t *testing.T) {
 	}
 
 	type args struct {
-		ctx context.Context
+		ctx     context.Context
+		flavour feedlib.Flavour
 	}
 	tests := []struct {
 		name    string
@@ -1808,14 +1810,23 @@ func TestPGInstance_GetCurrentTerms(t *testing.T) {
 		{
 			name: "Happy case",
 			args: args{
-				ctx: ctx,
+				ctx:     ctx,
+				flavour: feedlib.FlavourPro,
 			},
 			wantErr: false,
+		},
+		{
+			name: "Sad case",
+			args: args{
+				ctx:     ctx,
+				flavour: "invalid-flavour",
+			},
+			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := testingDB.GetCurrentTerms(tt.args.ctx)
+			got, err := testingDB.GetCurrentTerms(tt.args.ctx, tt.args.flavour)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("PGInstance.GetCurrentTerms() error = %v, wantErr %v", err, tt.wantErr)
 				return

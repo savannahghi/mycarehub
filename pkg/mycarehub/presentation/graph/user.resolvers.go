@@ -30,9 +30,9 @@ func (r *mutationResolver) CreateOrUpdateClientCaregiver(ctx context.Context, ca
 	return r.mycarehub.User.CreateOrUpdateClientCaregiver(ctx, caregiverInput)
 }
 
-func (r *queryResolver) GetCurrentTerms(ctx context.Context) (*domain.TermsOfService, error) {
+func (r *queryResolver) GetCurrentTerms(ctx context.Context, flavour feedlib.Flavour) (*domain.TermsOfService, error) {
 	r.checkPreconditions()
-	return r.mycarehub.Terms.GetCurrentTerms(ctx)
+	return r.mycarehub.Terms.GetCurrentTerms(ctx, flavour)
 }
 
 func (r *queryResolver) VerifyPin(ctx context.Context, userID string, flavour feedlib.Flavour, pin string) (bool, error) {
