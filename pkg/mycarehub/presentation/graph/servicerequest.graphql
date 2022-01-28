@@ -5,3 +5,7 @@ extend type Mutation {
     request: String
   ): Boolean!
 }
+
+extend type Query {
+   getServiceRequests(requestType: String, requestStatus: String): [ServiceRequest]
+}

@@ -196,3 +196,15 @@ type Caregiver{
   phoneNumber: String!
   caregiverType: CaregiverType!
 }
+
+type ServiceRequest{
+  ID: String!
+  RequestType: String!
+  Request: String!
+  Status: String! 
+  ClientID: String!
+  InProgressAt: Time!
+  InProgressBy: String!
+  ResolvedAt: Time!
+  ResolvedBy: String!
+}

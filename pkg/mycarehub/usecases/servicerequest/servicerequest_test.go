@@ -57,7 +57,7 @@ func TestUseCasesServiceRequestImpl_CreateServiceRequest(t *testing.T) {
 				}
 			}
 
-			u := servicerequest.NewUseCaseServiceRequestImpl(fakeDB)
+			u := servicerequest.NewUseCaseServiceRequestImpl(fakeDB, fakeDB)
 			got, err := u.CreateServiceRequest(tt.args.ctx, tt.args.clientID, tt.args.requestType, tt.args.request)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCasesServiceRequestImpl.CreateServiceRequest() error = %v, wantErr %v", err, tt.wantErr)
@@ -66,6 +66,73 @@ func TestUseCasesServiceRequestImpl_CreateServiceRequest(t *testing.T) {
 			if got != tt.want {
 				t.Errorf("UseCasesServiceRequestImpl.CreateServiceRequest() = %v, want %v", got, tt.want)
 			}
+		})
+	}
+}
+
+func TestUseCasesServiceRequestImpl_GetServiceRequests(t *testing.T) {
+	invalidRequestType := "invalid"
+	invalidStatus := "invalid"
+	type args struct {
+		ctx           context.Context
+		requestType   *string
+		requestStatus *string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    []*domain.ServiceRequest
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Successfully get service requests",
+			args: args{
+				ctx: context.Background(),
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad Case - Fail to get service requests type, invalid type",
+			args: args{
+				ctx:         context.Background(),
+				requestType: &invalidRequestType,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - Fail to get service requests status, invalid status",
+			args: args{
+				ctx:           context.Background(),
+				requestStatus: &invalidStatus,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - Fail to get service requests",
+			args: args{
+				ctx: context.Background(),
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			u := servicerequest.NewUseCaseServiceRequestImpl(fakeDB, fakeDB)
+
+			if tt.name == "Sad Case - Fail to get service requests" {
+				fakeDB.MockGetServiceRequestsFn = func(ctx context.Context, requestType *string, requestStatus *string) ([]*domain.ServiceRequest, error) {
+					return nil, fmt.Errorf("failed to get service requests")
+				}
+			}
+			_, err := u.GetServiceRequests(tt.args.ctx, tt.args.requestType, tt.args.requestStatus)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCasesServiceRequestImpl.GetServiceRequests() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			// if got != tt.want {
+			// 	t.Errorf("UseCasesServiceRequestImpl.CreateServiceRequest() = %v, want %v", got, tt.want)
+			// }
 		})
 	}
 }

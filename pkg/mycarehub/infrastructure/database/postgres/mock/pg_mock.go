@@ -75,6 +75,7 @@ type PostgresMock struct {
 	MockGetClientCaregiverFn                      func(ctx context.Context, caregiverID string) (*domain.Caregiver, error)
 	MockUpdateClientCaregiverFn                   func(ctx context.Context, caregiverInput *dto.CaregiverInput) error
 	MockGetClientByClientIDFn                     func(ctx context.Context, clientID string) (*domain.ClientProfile, error)
+	MockGetServiceRequestsFn                      func(ctx context.Context, requestType *string, requestStatus *string) ([]*domain.ServiceRequest, error)
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -156,6 +157,18 @@ func NewPostgresMock() *PostgresMock {
 		ID:      contentItemCategoryID,
 		Name:    name,
 		IconURL: "test",
+	}
+	serviceRequests := []*domain.ServiceRequest{
+		{
+			ID:           ID,
+			ClientID:     uuid.New().String(),
+			RequestType:  enums.ServiceRequestTypeHealthDiaryEntry.String(),
+			Status:       enums.ServiceRequestStatusPending.String(),
+			InProgressAt: time.Now(),
+			InProgressBy: uuid.New().String(),
+			ResolvedAt:   time.Now().Add(time.Hour * 24),
+			ResolvedBy:   uuid.New().String(),
+		},
 	}
 
 	return &PostgresMock{
@@ -434,6 +447,9 @@ func NewPostgresMock() *PostgresMock {
 				User: userProfile,
 			}
 			return client, nil
+		},
+		MockGetServiceRequestsFn: func(ctx context.Context, requestType *string, requestStatus *string) ([]*domain.ServiceRequest, error) {
+			return serviceRequests, nil
 		},
 	}
 }
@@ -731,4 +747,9 @@ func (gm *PostgresMock) UpdateClientCaregiver(ctx context.Context, caregiverInpu
 // GetClientByClientID mocks the implementation of getting a client by client id
 func (gm *PostgresMock) GetClientByClientID(ctx context.Context, clientID string) (*domain.ClientProfile, error) {
 	return gm.MockGetClientByClientIDFn(ctx, clientID)
+}
+
+// GetServiceRequests mocks the implementation of getting all service requests for a client
+func (gm *PostgresMock) GetServiceRequests(ctx context.Context, requestType *string, requestStatus *string) ([]*domain.ServiceRequest, error) {
+	return gm.MockGetServiceRequestsFn(ctx, requestType, requestStatus)
 }

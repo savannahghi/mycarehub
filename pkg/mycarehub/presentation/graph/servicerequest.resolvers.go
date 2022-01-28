@@ -5,9 +5,15 @@ package graph
 
 import (
 	"context"
+
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 )
 
 func (r *mutationResolver) CreateServiceRequest(ctx context.Context, clientID string, requestType string, request *string) (bool, error) {
 	r.checkPreconditions()
 	return r.mycarehub.ServiceRequest.CreateServiceRequest(ctx, clientID, requestType, *request)
+}
+
+func (r *queryResolver) GetServiceRequests(ctx context.Context, requestType *string, requestStatus *string) ([]*domain.ServiceRequest, error) {
+	return r.mycarehub.ServiceRequest.GetServiceRequests(ctx, requestType, requestStatus)
 }
