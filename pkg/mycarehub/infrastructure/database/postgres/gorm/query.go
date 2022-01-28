@@ -24,7 +24,7 @@ type Query interface {
 	GetUserProfileByPhoneNumber(ctx context.Context, phoneNumber string) (*User, error)
 	GetUserPINByUserID(ctx context.Context, userID string) (*PINData, error)
 	GetUserProfileByUserID(ctx context.Context, userID string) (*User, error)
-	GetCurrentTerms(ctx context.Context) (*TermsOfService, error)
+	GetCurrentTerms(ctx context.Context, flavour feedlib.Flavour) (*TermsOfService, error)
 	CheckWhetherUserHasLikedContent(ctx context.Context, userID string, contentID int) (bool, error)
 	GetSecurityQuestions(ctx context.Context, flavour feedlib.Flavour) ([]*SecurityQuestion, error)
 	GetSecurityQuestionByID(ctx context.Context, securityQuestionID *string) (*SecurityQuestion, error)
@@ -272,11 +272,11 @@ func (db *PGInstance) GetUserPINByUserID(ctx context.Context, userID string) (*P
 	return &pin, nil
 }
 
-// GetCurrentTerms fetches the most most recent terms of service
-func (db *PGInstance) GetCurrentTerms(ctx context.Context) (*TermsOfService, error) {
+// GetCurrentTerms fetches the most most recent terms of service depending on the flavour
+func (db *PGInstance) GetCurrentTerms(ctx context.Context, flavour feedlib.Flavour) (*TermsOfService, error) {
 	var termsOfService TermsOfService
 	validTo := time.Now()
-	if err := db.DB.Model(&TermsOfService{}).Where("valid_to > ?", validTo).Or("valid_to = ?", nil).Order("valid_to desc").First(&termsOfService).Error; err != nil {
+	if err := db.DB.Model(&TermsOfService{}).Where(db.DB.Where(&TermsOfService{Flavour: flavour}).Where("valid_to > ?", validTo).Or("valid_to = ?", nil).Order("valid_to desc")).First(&termsOfService).Statement.Error; err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed to get the current terms : %v", err)
 	}

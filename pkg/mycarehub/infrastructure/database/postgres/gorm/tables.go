@@ -206,11 +206,12 @@ func (PINData) TableName() string {
 type TermsOfService struct {
 	Base
 
-	TermsID   *int       `gorm:"primaryKey;unique;column:id;autoincrement"`
-	Text      *string    `gorm:"column:text;not null"`
-	ValidFrom *time.Time `gorm:"column:valid_from;not null"`
-	ValidTo   *time.Time `gorm:"column:valid_to;not null"`
-	Active    bool       `gorm:"column:active;not null"`
+	TermsID   *int            `gorm:"primaryKey;unique;column:id;autoincrement"`
+	Text      *string         `gorm:"column:text;not null"`
+	Flavour   feedlib.Flavour `gorm:"column:flavour;not null"`
+	ValidFrom *time.Time      `gorm:"column:valid_from;not null"`
+	ValidTo   *time.Time      `gorm:"column:valid_to;not null"`
+	Active    bool            `gorm:"column:active;not null"`
 }
 
 // TableName customizes how the table name is generated
