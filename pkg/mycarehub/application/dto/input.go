@@ -139,6 +139,11 @@ type VerifySecurityQuestionInput struct {
 	PhoneNumber string          `json:"phoneNumber" validate:"required"`
 }
 
+// VerifySecurityQuestionsPayload holds a list of security question inputs.
+type VerifySecurityQuestionsPayload struct {
+	SecurityQuestionsInput []*VerifySecurityQuestionInput `json:"verifySecurityQuestionsInput"`
+}
+
 // Validate checks to validate whether the field inputs for verifying a security question
 // are filled
 func (f *VerifySecurityQuestionInput) Validate() error {
