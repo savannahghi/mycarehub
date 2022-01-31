@@ -46,6 +46,7 @@ type Query interface {
 	GetFAQContent(ctx context.Context, flavour feedlib.Flavour, limit *int) ([]*FAQ, error)
 	GetClientCaregiver(ctx context.Context, caregiverID string) (*Caregiver, error)
 	GetClientByClientID(ctx context.Context, clientID string) (*Client, error)
+	GetServiceRequests(ctx context.Context, requestType *string, requestStatus *string) ([]*ClientServiceRequest, error)
 }
 
 // CheckWhetherUserHasLikedContent performs a operation to check whether user has liked the content
@@ -519,4 +520,36 @@ func (db *PGInstance) GetClientByClientID(ctx context.Context, clientID string) 
 		return nil, fmt.Errorf("failed to get client: %v", err)
 	}
 	return &client, nil
+}
+
+// GetServiceRequests fetches clients service requests from the database according to the type and or status passed
+func (db *PGInstance) GetServiceRequests(ctx context.Context, requestType *string, requestStatus *string) ([]*ClientServiceRequest, error) {
+	var serviceRequests []*ClientServiceRequest
+	if requestType != nil && requestStatus == nil {
+		err := db.DB.Where(&ClientServiceRequest{RequestType: *requestType}).Find(&serviceRequests).Error
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return nil, fmt.Errorf("failed to get service requests: %v", err)
+		}
+	} else if requestType == nil && requestStatus != nil {
+		err := db.DB.Where(&ClientServiceRequest{Status: *requestStatus}).Find(&serviceRequests).Error
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return nil, fmt.Errorf("failed to get service requests: %v", err)
+		}
+	} else if requestType != nil && requestStatus != nil {
+		err := db.DB.Where(&ClientServiceRequest{RequestType: *requestType, Status: *requestStatus}).Find(&serviceRequests).Error
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return nil, fmt.Errorf("failed to get service requests: %v", err)
+		}
+	} else {
+		err := db.DB.Find(&serviceRequests).Error
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return nil, fmt.Errorf("failed to get service requests: %v", err)
+		}
+	}
+
+	return serviceRequests, nil
 }

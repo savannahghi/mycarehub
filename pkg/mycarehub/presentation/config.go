@@ -90,7 +90,7 @@ func Router(ctx context.Context) (*mux.Router, error) {
 
 	faq := faq.NewUsecaseFAQ(db)
 
-	serviceRequestUseCase := servicerequest.NewUseCaseServiceRequestImpl(db)
+	serviceRequestUseCase := servicerequest.NewUseCaseServiceRequestImpl(db, db)
 
 	useCase := usecases.NewMyCareHubUseCase(
 		userUsecase, termsUsecase, facilityUseCase,

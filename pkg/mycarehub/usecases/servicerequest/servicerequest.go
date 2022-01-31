@@ -5,9 +5,10 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 )
 
 // Service requests are tasks for the healthcare staff on the platform. Some examples are:
@@ -27,22 +28,35 @@ type ICreateServiceRequest interface {
 	) (bool, error)
 }
 
+// IGetServiceRequests is an interface that holds the method signature for getting service requests
+type IGetServiceRequests interface {
+	GetServiceRequests(
+		ctx context.Context,
+		requestType *string,
+		requestStatus *string,
+	) ([]*domain.ServiceRequest, error)
+}
+
 // UseCaseServiceRequest holds all the interfaces that represent the service request business logic
 type UseCaseServiceRequest interface {
 	ICreateServiceRequest
+	IGetServiceRequests
 }
 
 // UseCasesServiceRequestImpl embeds the service request logic
 type UseCasesServiceRequestImpl struct {
 	Create infrastructure.Create
+	Query  infrastructure.Query
 }
 
 // NewUseCaseServiceRequestImpl creates a new service request instance
 func NewUseCaseServiceRequestImpl(
 	create infrastructure.Create,
+	query infrastructure.Query,
 ) *UseCasesServiceRequestImpl {
 	return &UseCasesServiceRequestImpl{
 		Create: create,
+		Query:  query,
 	}
 }
 
@@ -66,4 +80,24 @@ func (u *UseCasesServiceRequestImpl) CreateServiceRequest(
 		return false, fmt.Errorf("failed to create service request: %v", err)
 	}
 	return true, nil
+}
+
+// GetServiceRequests gets service requests based on the parameters provided
+func (u *UseCasesServiceRequestImpl) GetServiceRequests(
+	ctx context.Context,
+	requestType *string,
+	requestStatus *string,
+) ([]*domain.ServiceRequest, error) {
+	if requestType != nil {
+		if !enums.ServiceRequestType(*requestType).IsValid() {
+			return nil, fmt.Errorf("invalid request type: %v", *requestType)
+		}
+	}
+	if requestStatus != nil {
+		if !enums.ServiceRequestStatus(*requestStatus).IsValid() {
+			return nil, fmt.Errorf("invalid request status: %v", *requestStatus)
+		}
+	}
+
+	return u.Query.GetServiceRequests(ctx, requestType, requestStatus)
 }

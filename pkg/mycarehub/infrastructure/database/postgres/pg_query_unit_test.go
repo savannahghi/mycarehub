@@ -2600,16 +2600,112 @@ func TestMyCareHubDb_GetClientByClientID(t *testing.T) {
 		want    *domain.ClientProfile
 		wantErr bool
 	}{
-		// TODO: Add test cases.
+		{
+			name: "Happy Case - Successfully get client by client ID",
+			args: args{
+				ctx:      context.Background(),
+				clientID: uuid.New().String(),
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad Case - Fail to get client by client ID",
+			args: args{
+				ctx:      context.Background(),
+				clientID: uuid.New().String(),
+			},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var fakeGorm = gormMock.NewGormMock()
 			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
 
+			if tt.name == "Sad Case - Fail to get client by client ID" {
+				fakeGorm.MockGetClientByClientIDFn = func(ctx context.Context, clientID string) (*gorm.Client, error) {
+					return nil, fmt.Errorf("failed to get client by client ID")
+				}
+			}
 			got, err := d.GetClientByClientID(tt.args.ctx, tt.args.clientID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("MyCareHubDb.GetClientByClientID() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected a response but got: %v", got)
+				return
+			}
+		})
+	}
+}
+
+func TestMyCareHubDb_GetServiceRequests(t *testing.T) {
+	var requeststatus = enums.ServiceRequestStatusPending.String()
+	var requesttype = enums.ServiceRequestTypeRedFlag.String()
+	type args struct {
+		ctx           context.Context
+		requestType   *string
+		requestStatus *string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    []*domain.ServiceRequest
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Successfully get service requests by type",
+			args: args{
+				ctx:         context.Background(),
+				requestType: &requesttype,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Happy Case - Successfully get service requests by status",
+			args: args{
+				ctx:           context.Background(),
+				requestStatus: &requeststatus,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Happy Case - Successfully get service requests by status and type",
+			args: args{
+				ctx:           context.Background(),
+				requestStatus: &requeststatus,
+				requestType:   &requesttype,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Happy Case - Successfully get service requests",
+			args: args{
+				ctx: context.Background(),
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad Case - Fail to get service requests",
+			args: args{
+				ctx: context.Background(),
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var fakeGorm = gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+			if tt.name == "Sad Case - Fail to get service requests" {
+				fakeGorm.MockGetServiceRequestsFn = func(ctx context.Context, requestType *string, requestStatus *string) ([]*gorm.ClientServiceRequest, error) {
+					return nil, fmt.Errorf("failed to get service requests by type")
+				}
+			}
+			got, err := d.GetServiceRequests(tt.args.ctx, tt.args.requestType, tt.args.requestStatus)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.GetServiceRequests() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !tt.wantErr && got == nil {

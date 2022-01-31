@@ -632,3 +632,29 @@ func (d *MyCareHubDb) GetClientByClientID(ctx context.Context, clientID string) 
 		CaregiverID:             response.CaregiverID,
 	}, nil
 }
+
+// GetServiceRequests retrieves the service requests by the type passed in the parameters
+func (d *MyCareHubDb) GetServiceRequests(ctx context.Context, requestType *string, requestStatus *string) ([]*domain.ServiceRequest, error) {
+	var serviceRequests []*domain.ServiceRequest
+	clientServiceRequests, err := d.query.GetServiceRequests(ctx, requestType, requestStatus)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
+	for _, serviceRequest := range clientServiceRequests {
+		serviceRequest := &domain.ServiceRequest{
+			ID:           *serviceRequest.ID,
+			ClientID:     serviceRequest.ClientID,
+			RequestType:  serviceRequest.RequestType,
+			Status:       serviceRequest.Status,
+			InProgressAt: serviceRequest.InProgressAt,
+			InProgressBy: serviceRequest.InProgressByID,
+			ResolvedAt:   serviceRequest.ResolvedAt,
+			ResolvedBy:   serviceRequest.ResolvedByID,
+		}
+		serviceRequests = append(serviceRequests, serviceRequest)
+	}
+
+	return serviceRequests, err
+}

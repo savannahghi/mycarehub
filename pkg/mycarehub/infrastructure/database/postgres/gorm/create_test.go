@@ -556,7 +556,9 @@ func TestPGInstance_CreateServiceRequest(t *testing.T) {
 		Request:        gofakeit.Sentence(5),
 		Status:         "PENDING",
 		InProgressAt:   time.Now(),
+		InProgressByID: staffID,
 		ResolvedAt:     time.Now(),
+		ResolvedByID:   staffID,
 		ClientID:       clientID,
 		OrganisationID: orgID,
 	}

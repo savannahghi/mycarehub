@@ -1843,3 +1843,67 @@ func TestPGInstance_GetCurrentTerms(t *testing.T) {
 		t.Errorf("failed to delete record = %v", err)
 	}
 }
+
+func TestPGInstance_GetServiceRequests(t *testing.T) {
+	var requesttype = "RED_FLAG"
+	var requeststatus = "PENDING"
+
+	type args struct {
+		ctx           context.Context
+		requestType   *string
+		requestStatus *string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    []*gorm.ClientServiceRequest
+		wantErr bool
+	}{
+		{
+			name: "happy case: get service requests by type",
+			args: args{
+				ctx:         context.Background(),
+				requestType: &requesttype,
+			},
+			wantErr: false,
+		},
+		{
+			name: "happy case: get service requests by status",
+			args: args{
+				ctx:           context.Background(),
+				requestStatus: &requeststatus,
+			},
+			wantErr: false,
+		},
+		{
+			name: "happy case: get service requests by type and status",
+			args: args{
+				ctx:           context.Background(),
+				requestType:   &requesttype,
+				requestStatus: &requeststatus,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Happy Case - Successfully get service requests",
+			args: args{
+				ctx: context.Background(),
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			got, err := testingDB.GetServiceRequests(tt.args.ctx, tt.args.requestType, tt.args.requestStatus)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.GetServiceRequests() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected a response but got %v", got)
+				return
+			}
+		})
+	}
+}
