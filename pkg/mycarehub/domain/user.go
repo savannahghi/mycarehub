@@ -46,7 +46,7 @@ type User struct {
 	FailedLoginCount int `json:"failedLoginCount"`
 
 	// calculated each time there is a failed login
-	NextAllowedLogin *time.Time `json:"NextAllowedLogin"`
+	NextAllowedLogin *time.Time `json:"nextAllowedLogin"`
 
 	PinChangeRequired bool `json:"pinChangeRequired"`
 
@@ -55,7 +55,7 @@ type User struct {
 	IsPhoneVerified        bool `json:"isPhoneVerified"`
 
 	TermsAccepted   bool            `json:"termsAccepted"`
-	AcceptedTermsID int             `json:"AcceptedTermsID"` // foreign key to version of terms they accepted
+	AcceptedTermsID int             `json:"acceptedTermsID"` // foreign key to version of terms they accepted
 	Flavour         feedlib.Flavour `json:"flavour"`
 	Suspended       bool            `json:"suspended"`
 	Avatar          string          `json:"avatar"`
@@ -68,8 +68,8 @@ type User struct {
 type ClientProfile struct {
 	ID         *string `json:"id"`
 	User       *User   `json:"user"`
-	Active     bool    `json:"Active"`
-	ClientType string  `json:"ClientType"`
+	Active     bool    `json:"active"`
+	ClientType string  `json:"clientType"`
 	UserID     string  `json:"userID"`
 
 	TreatmentEnrollmentDate *time.Time `json:"treatmentEnrollmentDate"`
@@ -86,8 +86,8 @@ type ClientProfile struct {
 
 	FacilityID string `json:"facilityID"`
 
-	CHVUserID   string  `json:"CHVUserID"`
-	CaregiverID *string `json:"CaregiverID"`
+	CHVUserID   string  `json:"chvUserID"`
+	CaregiverID *string `json:"caregiverID"`
 }
 
 // StaffProfile represents the staff profile model
@@ -144,7 +144,7 @@ type Contact struct {
 // LoginResponse models the response that will be returned after a user logs in
 type LoginResponse struct {
 	Client          *ClientProfile  `json:"clientProfile"`
-	Staff           *StaffProfile   `json:"staff"`
+	Staff           *StaffProfile   `json:"staffProfile"`
 	AuthCredentials AuthCredentials `json:"credentials"`
 	Code            int             `json:"code"`
 	Message         string          `json:"message"`
