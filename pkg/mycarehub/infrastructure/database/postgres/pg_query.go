@@ -658,3 +658,30 @@ func (d *MyCareHubDb) GetServiceRequests(ctx context.Context, requestType *strin
 
 	return serviceRequests, err
 }
+
+func (d *MyCareHubDb) SearchUser(ctx context.Context, CCCNumber string) (*domain.ClientProfile, error) {
+	if CCCNumber == "" {
+		return nil, fmt.Errorf("ccc number cannot be empty: %v", CCCNumber)
+	}
+
+	patient, err := d.query.SearchUser(ctx, CCCNumber)
+	if err != nil {
+		return nil, fmt.Errorf("an error occurred while searching for patient: %v", err)
+	}
+
+	user := createMapUser(&patient.UserProfile)
+	return &domain.ClientProfile{
+		ID:               patient.ID,
+		User:             user,
+		Active:           patient.Active,
+		ClientType:       patient.ClientType,
+		UserID:           *patient.UserProfile.UserID,
+		FHIRPatientID:    patient.FHIRPatientID,
+		HealthRecordID:   patient.HealthRecordID,
+		TreatmentBuddy:   patient.TreatmentBuddy,
+		ClientCounselled: patient.ClientCounselled,
+		FacilityID:       patient.FacilityID,
+		CHVUserID:        patient.CHVUserID,
+		CaregiverID:      patient.CaregiverID,
+	}, nil
+}

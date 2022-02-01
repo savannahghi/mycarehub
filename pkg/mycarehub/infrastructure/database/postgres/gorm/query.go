@@ -12,6 +12,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/exceptions"
+	"github.com/sirupsen/logrus"
 	"gorm.io/gorm/clause"
 )
 
@@ -46,6 +47,7 @@ type Query interface {
 	GetFAQContent(ctx context.Context, flavour feedlib.Flavour, limit *int) ([]*FAQ, error)
 	GetClientCaregiver(ctx context.Context, caregiverID string) (*Caregiver, error)
 	GetClientByClientID(ctx context.Context, clientID string) (*Client, error)
+	SearchUser(ctx context.Context, CCCNumber string) (*Client, error)
 	GetServiceRequests(ctx context.Context, requestType *string, requestStatus *string) ([]*ClientServiceRequest, error)
 }
 
@@ -552,4 +554,26 @@ func (db *PGInstance) GetServiceRequests(ctx context.Context, requestType *strin
 	}
 
 	return serviceRequests, nil
+}
+
+// SearchUser searches for a patient using their CCC Number
+func (db *PGInstance) SearchUser(ctx context.Context, CCCNumber string) (*Client, error) {
+	var user *User
+
+	err := db.DB.Joins("JOIN common_contact on users_user.id = common_contact.user_id "+
+		"JOIN clients_client on users_user.id = clients_client.user_id "+
+		"JOIN clients_client_identifiers "+
+		"ON clients_client.id = clients_client_identifiers.client_id "+
+		"JOIN clients_identifier "+
+		"ON clients_client_identifiers.identifier_id = clients_identifier.id").
+		Where("clients_identifier.identifier_value = ?", CCCNumber).Preload(clause.Associations).
+		First(&user).Error
+	if err != nil {
+		return nil, fmt.Errorf("an error occurred: %v", err)
+	}
+	logrus.Print("THE USER PROFILE IS: ", user)
+	logrus.Print("THE CLIENT USER PROFILE FN IS: ", user.FirstName)
+	return &Client{
+		UserProfile: *user,
+	}, nil
 }

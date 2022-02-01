@@ -1907,3 +1907,47 @@ func TestPGInstance_GetServiceRequests(t *testing.T) {
 		})
 	}
 }
+
+func TestPGInstance_SearchUser(t *testing.T) {
+	ctx := context.Background()
+
+	type args struct {
+		ctx       context.Context
+		CCCNumber string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:       ctx,
+				CCCNumber: testCCCNumber,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case",
+			args: args{
+				ctx:       ctx,
+				CCCNumber: uuid.New().String(),
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := testingDB.SearchUser(tt.args.ctx, tt.args.CCCNumber)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.SearchUser() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected a response but got %v", got)
+				return
+			}
+		})
+	}
+}

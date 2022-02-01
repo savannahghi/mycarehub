@@ -89,8 +89,9 @@ var (
 	termsText = "Test terms"
 
 	// Staff
-	staffNumber = uuid.New().String()
-	staffID     = "8ecbbc80-24c8-421a-9f1a-e14e12678ef1"
+	staffNumber   = uuid.New().String()
+	staffID       = "8ecbbc80-24c8-421a-9f1a-e14e12678ef1"
+	testCCCNumber = uuid.New().String()
 )
 
 func TestMain(m *testing.M) {
@@ -158,6 +159,7 @@ func TestMain(m *testing.M) {
 			"staff_number":                   staffNumber,
 			"staff_default_facility":         facilityID,
 			"staff_id":                       staffID,
+			"test_ccc_number":                testCCCNumber,
 		}),
 		// this is the directory containing the YAML files.
 		// The file name should be the same as the table name
@@ -179,6 +181,8 @@ func TestMain(m *testing.M) {
 			"../../../../../../fixtures/clients_client.yml",
 			"../../../../../../fixtures/staff_staff.yml",
 			"../../../../../../fixtures/staff_staff_facilities.yml",
+			"../../../../../../fixtures/clients_identifier.yml",
+			"../../../../../../fixtures/clients_client_identifiers.yml",
 		),
 		// uncomment when running tests locally, if your db is not a test db
 		// Ensure the testing db in the ci is named `test`

@@ -75,6 +75,7 @@ type GormMock struct {
 	MockUpdateClientCaregiverFn                   func(ctx context.Context, caregiverInput *dto.CaregiverInput) error
 	MockGetClientByClientIDFn                     func(ctx context.Context, clientID string) (*gorm.Client, error)
 	MockGetServiceRequestsFn                      func(ctx context.Context, requestType *string, requestStatus *string) ([]*gorm.ClientServiceRequest, error)
+	MockSearchUserFn                              func(ctx context.Context, CCCNumber string) (*gorm.Client, error)
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -478,6 +479,28 @@ func NewGormMock() *GormMock {
 		MockGetServiceRequestsFn: func(ctx context.Context, requestType *string, requestStatus *string) ([]*gorm.ClientServiceRequest, error) {
 			return serviceRequests, nil
 		},
+		MockSearchUserFn: func(ctx context.Context, CCCNumber string) (*gorm.Client, error) {
+			ID := uuid.New().String()
+			now := time.Now()
+			healthID := uuid.New().String()
+			caregiverID := uuid.New().String()
+			return &gorm.Client{
+				ID:                      new(string),
+				Active:                  true,
+				ClientType:              "OTZ",
+				UserProfile:             *userProfile,
+				TreatmentEnrollmentDate: &now,
+				FHIRPatientID:           ID,
+				HealthRecordID:          &healthID,
+				TreatmentBuddy:          gofakeit.BeerHop(),
+				ClientCounselled:        true,
+				OrganisationID:          ID,
+				FacilityID:              ID,
+				CHVUserID:               ID,
+				UserID:                  &ID,
+				CaregiverID:             &caregiverID,
+			}, nil
+		},
 	}
 }
 
@@ -765,4 +788,9 @@ func (gm *GormMock) GetClientByClientID(ctx context.Context, clientID string) (*
 // GetServiceRequests mocks the implementation of getting service requests by type
 func (gm *GormMock) GetServiceRequests(ctx context.Context, requestType *string, requestStatus *string) ([]*gorm.ClientServiceRequest, error) {
 	return gm.MockGetServiceRequestsFn(ctx, requestType, requestStatus)
+}
+
+// SearchUser mocks the implementation of `gorm's` SearchUser method.
+func (gm *GormMock) SearchUser(ctx context.Context, CCCNumber string) (*gorm.Client, error) {
+	return gm.MockSearchUserFn(ctx, CCCNumber)
 }

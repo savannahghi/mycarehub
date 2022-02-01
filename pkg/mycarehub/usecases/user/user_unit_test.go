@@ -2074,3 +2074,67 @@ func TestUseCasesUserImpl_CompleteOnboardingTour(t *testing.T) {
 		})
 	}
 }
+
+func TestUseCasesUserImpl_SearchUser(t *testing.T) {
+	ctx := context.Background()
+
+	type args struct {
+		ctx       context.Context
+		CCCNumber string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:       ctx,
+				CCCNumber: gofakeit.BeerName(),
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case - Empty CCC number",
+			args: args{
+				ctx:       ctx,
+				CCCNumber: "",
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case",
+			args: args{
+				ctx:       ctx,
+				CCCNumber: gofakeit.BeerName(),
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			fakeExtension := extensionMock.NewFakeExtension()
+			otp := otp.NewOTPUseCase(fakeDB, fakeDB, fakeExtension)
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, otp)
+
+			if tt.name == "Sad case - Empty CCC number" {
+				fakeDB.MockSearchUserFn = func(ctx context.Context, CCCNumber string) (*domain.ClientProfile, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case" {
+				fakeDB.MockSearchUserFn = func(ctx context.Context, CCCNumber string) (*domain.ClientProfile, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+
+			_, err := us.SearchUser(tt.args.ctx, tt.args.CCCNumber)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCasesUserImpl.SearchUser() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}

@@ -77,6 +77,11 @@ type IGetClientCaregiver interface {
 	GetClientCaregiver(ctx context.Context, clientID string) (*domain.Caregiver, error)
 }
 
+// ISearchUser is an interface that contains the query to search for patient
+type ISearchUser interface {
+	SearchUser(ctx context.Context, CCCNumber string) (*domain.ClientProfile, error)
+}
+
 // UseCasesUser group all business logic usecases related to user
 type UseCasesUser interface {
 	ILogin
@@ -90,6 +95,7 @@ type UseCasesUser interface {
 	IVerifyPIN
 	ICreateClientCaregiver
 	IGetClientCaregiver
+	ISearchUser
 }
 
 // UseCasesUserImpl represents user implementation object
@@ -703,4 +709,13 @@ func (us *UseCasesUserImpl) GetClientCaregiver(ctx context.Context, clientID str
 		return nil, err
 	}
 	return caregiver, nil
+}
+
+// Search Patient gets the patient profile from the database using the CCC number
+func (us *UseCasesUserImpl) SearchUser(ctx context.Context, CCCNumber string) (*domain.ClientProfile, error) {
+	if CCCNumber == "" {
+		return nil, fmt.Errorf("patient's CCC number cannot be empty")
+	}
+
+	return us.Query.SearchUser(ctx, CCCNumber)
 }

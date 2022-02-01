@@ -1,0 +1,13 @@
+# client identifier
+- id: 55a6a0cd-42ac-417b-97d9-e939a1232de5
+  active: true
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  identifier_type: CCC
+  identifier_value: {{.test_ccc_number}}
+  identifier_use: OFFICIAL
+  description: CCC Number, Primary Identifier
+  valid_from: 2021-11-22 21:16:29.23639+03
+  valid_to: RAW=NOW()
+  is_primary_identifier: true
+  organisation_id: {{.test_organisation_id}}

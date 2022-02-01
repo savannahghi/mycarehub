@@ -370,7 +370,6 @@ type Client struct {
 func (c *Client) BeforeCreate(tx *gorm.DB) (err error) {
 	id := uuid.New().String()
 	c.ID = &id
-	c.OrganisationID = OrganizationID
 	return
 }
 

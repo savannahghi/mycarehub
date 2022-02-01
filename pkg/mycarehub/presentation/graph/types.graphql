@@ -208,3 +208,44 @@ type ServiceRequest{
   ResolvedAt: Time!
   ResolvedBy: String!
 }
+
+type ClientProfile {
+	ID: String
+	User: User
+	Active: Boolean
+	ClientType: String
+	UserID: String
+	TreatmentEnrollmentDate: Time
+	FHIRPatientID: String
+	HealthRecordID: String
+	TreatmentBuddy: String
+	ClientCounselled: Boolean
+	FacilityID: String
+	CHVUserID: String
+	CaregiverID: String
+}
+
+type User {
+	ID: String!
+	Username: String
+	DisplayName: String
+	FirstName: String
+	MiddleName: String
+	LastName: String
+	UserType: UsersType
+	Gender: Gender
+	Active: Boolean
+	Contacts: Contact!
+	TermsAccepted: Boolean
+	AcceptedTermsID: Int
+	Flavour: Flavour
+	IsPhoneVerified: Boolean
+}
+
+type Contact {
+	ID: String
+	ContactType: String
+	ContactValue: String
+	Active: Boolean
+	OptedIn: Boolean
+}

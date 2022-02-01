@@ -76,6 +76,7 @@ type PostgresMock struct {
 	MockUpdateClientCaregiverFn                   func(ctx context.Context, caregiverInput *dto.CaregiverInput) error
 	MockGetClientByClientIDFn                     func(ctx context.Context, clientID string) (*domain.ClientProfile, error)
 	MockGetServiceRequestsFn                      func(ctx context.Context, requestType *string, requestStatus *string) ([]*domain.ServiceRequest, error)
+	MockSearchUserFn                              func(ctx context.Context, CCCNumber string) (*domain.ClientProfile, error)
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -451,6 +452,28 @@ func NewPostgresMock() *PostgresMock {
 		MockGetServiceRequestsFn: func(ctx context.Context, requestType *string, requestStatus *string) ([]*domain.ServiceRequest, error) {
 			return serviceRequests, nil
 		},
+		MockSearchUserFn: func(ctx context.Context, CCCNumber string) (*domain.ClientProfile, error) {
+			ID := uuid.New().String()
+			now := time.Now()
+			healthID := uuid.New().String()
+			caregiverID := uuid.New().String()
+			return &domain.ClientProfile{
+				ID:                      &ID,
+				User:                    userProfile,
+				Active:                  false,
+				ClientType:              "OTZ",
+				UserID:                  ID,
+				TreatmentEnrollmentDate: &now,
+				FHIRPatientID:           ID,
+				HealthRecordID:          &healthID,
+				TreatmentBuddy:          "test",
+				ClientCounselled:        false,
+				OrganisationID:          ID,
+				FacilityID:              ID,
+				CHVUserID:               ID,
+				CaregiverID:             &caregiverID,
+			}, nil
+		},
 	}
 }
 
@@ -752,4 +775,9 @@ func (gm *PostgresMock) GetClientByClientID(ctx context.Context, clientID string
 // GetServiceRequests mocks the implementation of getting all service requests for a client
 func (gm *PostgresMock) GetServiceRequests(ctx context.Context, requestType *string, requestStatus *string) ([]*domain.ServiceRequest, error) {
 	return gm.MockGetServiceRequestsFn(ctx, requestType, requestStatus)
+}
+
+// SearchUser mocks the implementation of `gorm's` SearchUser method.
+func (gm *PostgresMock) SearchUser(ctx context.Context, CCCNumber string) (*domain.ClientProfile, error) {
+	return gm.MockSearchUserFn(ctx, CCCNumber)
 }

@@ -42,3 +42,7 @@ func (r *queryResolver) VerifyPin(ctx context.Context, userID string, flavour fe
 func (r *queryResolver) GetClientCaregiver(ctx context.Context, clientID string) (*domain.Caregiver, error) {
 	return r.mycarehub.User.GetClientCaregiver(ctx, clientID)
 }
+
+func (r *queryResolver) SearchUser(ctx context.Context, cccNumber string) (*domain.ClientProfile, error) {
+	return r.mycarehub.User.SearchUser(ctx, cccNumber)
+}

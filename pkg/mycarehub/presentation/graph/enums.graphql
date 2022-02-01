@@ -88,3 +88,13 @@ enum CaregiverType {
   SIBLING,
   HEALTHCARE_PROFESSIONAL,
 }
+
+enum UsersType {
+  HEALTHCAREWORKER,
+  CLIENT,
+}
+
+enum Gender {
+  male,
+  female,
+}
