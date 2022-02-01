@@ -1,8 +1,10 @@
 package dto
 
 import (
+	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
+	"github.com/savannahghi/scalarutils"
 	"gopkg.in/go-playground/validator.v9"
 )
 
@@ -248,4 +250,17 @@ func (f *CaregiverInput) Validate() error {
 	v := validator.New()
 	err := v.Struct(f)
 	return err
+}
+
+// ClientRegistrationInput defines the fields passed as a payload to the client registration API
+type ClientRegistrationInput struct {
+	Facility       string           `json:"facility"`
+	ClientType     enums.ClientType `json:"client_type"`
+	ClientName     string           `json:"name"`
+	Gender         enumutils.Gender `json:"gender"`
+	DateOfBirth    scalarutils.Date `json:"date_of_birth"`
+	PhoneNumber    string           `json:"phone_number"`
+	EnrollmentDate scalarutils.Date `json:"enrollment_date"`
+	CCCNumber      string           `json:"ccc_number"`
+	Counselled     bool             `json:"counselled"`
 }

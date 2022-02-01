@@ -2,11 +2,16 @@ package user
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/savannahghi/converterandformatter"
+	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/firebasetools"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
@@ -19,6 +24,10 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/otp"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/utils"
 	"github.com/savannahghi/serverutils"
+)
+
+var (
+	registerClientAPIEndpoint = serverutils.MustGetEnvVar("CLIENT_REGISTRATION_URL")
 )
 
 // ILogin is an interface that contans login related methods
@@ -77,6 +86,11 @@ type IGetClientCaregiver interface {
 	GetClientCaregiver(ctx context.Context, clientID string) (*domain.Caregiver, error)
 }
 
+// IRegisterClient interface defines a method signature that is used to register a client
+type IRegisterClient interface {
+	RegisterClient(ctx context.Context, input *dto.ClientRegistrationInput) (*dto.ClientRegistrationOutput, error)
+}
+
 // UseCasesUser group all business logic usecases related to user
 type UseCasesUser interface {
 	ILogin
@@ -90,6 +104,7 @@ type UseCasesUser interface {
 	IVerifyPIN
 	ICreateClientCaregiver
 	IGetClientCaregiver
+	IRegisterClient
 }
 
 // UseCasesUserImpl represents user implementation object
@@ -703,4 +718,34 @@ func (us *UseCasesUserImpl) GetClientCaregiver(ctx context.Context, clientID str
 		return nil, err
 	}
 	return caregiver, nil
+}
+
+// RegisterClient is used to register a client on our application. When a client is registered, their corresponding
+// user profile, contacts and identifiers are created.
+func (us *UseCasesUserImpl) RegisterClient(
+	ctx context.Context,
+	input *dto.ClientRegistrationInput,
+) (*dto.ClientRegistrationOutput, error) {
+	var registrationOutput *dto.ClientRegistrationOutput
+
+	input.Gender = enumutils.Gender(strings.ToUpper(input.Gender.String()))
+	resp, err := utilsExt.MakeRequest(ctx, http.MethodPost, registerClientAPIEndpoint, input)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, fmt.Errorf("failed to make request: %v", err)
+	}
+
+	dataResponse, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, fmt.Errorf("failed to read request body: %v", err)
+	}
+
+	err = json.Unmarshal(dataResponse, &registrationOutput)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, fmt.Errorf("failed to unmarshal response: %v", err)
+	}
+
+	return registrationOutput, nil
 }

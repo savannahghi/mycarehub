@@ -1,3 +1,5 @@
+scalar Date
+
 input FacilityInput {
   name: String!
   code: Int!
@@ -23,36 +25,47 @@ input SortsInput {
   Field: FilterSortDataType
 }
 
-
 input PINInput {
-	userID: String!
-	pin: String!
-	confirmPIN: String!
-	flavour: Flavour!
+  userID: String!
+  pin: String!
+  confirmPIN: String!
+  flavour: Flavour!
 }
 
 input SecurityQuestionResponseInput {
-	userID: String!
-	securityQuestionID: String!
-	response: String!
+  userID: String!
+  securityQuestionID: String!
+  response: String!
 }
 
 input ShareContentInput {
-	UserID:    String!
-	ContentID: Int! 
-	Channel:   String! 
+  UserID: String!
+  ContentID: Int!
+  Channel: String!
 }
 
 input FeedbackResponseInput {
-	userID: String!
-	message: String! 
-	requiresFollowUp: Boolean! 
+  userID: String!
+  message: String!
+  requiresFollowUp: Boolean!
 }
 
-input CaregiverInput{
+input CaregiverInput {
   clientID: String!
   firstName: String!
   lastName: String!
   phoneNumber: String!
   caregiverType: CaregiverType!
+}
+
+input ClientRegistrationInput {
+  facility: String!
+  clientType: ClientType!
+  clientName: String!
+  gender: Gender!
+  dateOfBirth: Date!
+  phoneNumber: String!
+  enrollmentDate: Date!
+  cccNumber: String!
+  counselled: Boolean!
 }

@@ -75,16 +75,35 @@ enum Flavour {
   PRO
 }
 
-enum SecurityQuestionResponseType{
+enum SecurityQuestionResponseType {
   TEXT
-	NUMBER
-	DATE
+  NUMBER
+  DATE
   BOOLEAN
 }
 
 enum CaregiverType {
-  FATHER,
-  MOTHER,
-  SIBLING,
-  HEALTHCARE_PROFESSIONAL,
+  FATHER
+  MOTHER
+  SIBLING
+  HEALTHCARE_PROFESSIONAL
+}
+
+enum Gender {
+  male
+  female
+  other
+  unknown
+}
+
+enum ClientType {
+  PMTCT
+  OVC
+  OTZ
+  OTZ_PLUS
+  HVL
+  DREAMS
+  HIGH_RISK
+  SPOUSES
+  YOUTH
 }
