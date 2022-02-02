@@ -25,6 +25,7 @@ type UserUseCaseMock struct {
 	MockVerifyPINFn                     func(ctx context.Context, userID string, flavour feedlib.Flavour, pin string) (bool, error)
 	MockGetClientCaregiverFn            func(ctx context.Context, clientID string) (*domain.Caregiver, error)
 	MockCreateOrUpdateClientCaregiverFn func(ctx context.Context, caregiverInput *dto.CaregiverInput) (bool, error)
+	MockRegisterClientFn                func(ctx context.Context, input *dto.ClientRegistrationInput) (*dto.ClientRegistrationOutput, error)
 }
 
 // NewUserUseCaseMock creates in itializes create type mocks
@@ -98,6 +99,11 @@ func NewUserUseCaseMock() *UserUseCaseMock {
 		MockCreateOrUpdateClientCaregiverFn: func(ctx context.Context, caregiverInput *dto.CaregiverInput) (bool, error) {
 			return true, nil
 		},
+		MockRegisterClientFn: func(ctx context.Context, input *dto.ClientRegistrationInput) (*dto.ClientRegistrationOutput, error) {
+			return &dto.ClientRegistrationOutput{
+				ID: uuid.New().String(),
+			}, nil
+		},
 	}
 }
 
@@ -154,4 +160,9 @@ func (f *UserUseCaseMock) GetClientCaregiver(ctx context.Context, clientID strin
 // CreateOrUpdateClientCaregiver mocks the implementation for creating or updating the caregiver of a client
 func (f *UserUseCaseMock) CreateOrUpdateClientCaregiver(ctx context.Context, caregiverInput *dto.CaregiverInput) (bool, error) {
 	return f.MockCreateOrUpdateClientCaregiverFn(ctx, caregiverInput)
+}
+
+// RegisterClient mocks the implementation for registering a client
+func (f *UserUseCaseMock) RegisterClient(ctx context.Context, input *dto.ClientRegistrationInput) (*dto.ClientRegistrationOutput, error) {
+	return f.MockRegisterClientFn(ctx, input)
 }

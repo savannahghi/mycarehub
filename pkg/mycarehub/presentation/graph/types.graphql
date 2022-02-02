@@ -190,21 +190,37 @@ type FAQ {
   Flavour: Flavour!
 }
 
-type Caregiver{
+type Caregiver {
   firstName: String!
   lastName: String!
   phoneNumber: String!
   caregiverType: CaregiverType!
 }
 
-type ServiceRequest{
+type ServiceRequest {
   ID: String!
   RequestType: String!
   Request: String!
-  Status: String! 
+  Status: String!
   ClientID: String!
   InProgressAt: Time!
   InProgressBy: String!
   ResolvedAt: Time!
   ResolvedBy: String!
+}
+
+type ClientRegistrationOutput {
+  ID: String!
+  active: Boolean!
+  clientType: ClientType!
+  enrollmentDate: Time
+  fhirPatientID: String
+  emrHealthRecordID: String
+  treatmentBuddy: String
+  counselled: Boolean!
+  organisation: String!
+  userID: String!
+  currentFacilityID: String!
+  chv: String!
+  caregiver: String!
 }

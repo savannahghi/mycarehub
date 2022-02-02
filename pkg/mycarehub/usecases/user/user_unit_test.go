@@ -25,6 +25,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/user"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/user/mock"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/extension"
+	"github.com/savannahghi/scalarutils"
 	"github.com/segmentio/ksuid"
 )
 
@@ -2070,6 +2071,68 @@ func TestUseCasesUserImpl_CompleteOnboardingTour(t *testing.T) {
 			}
 			if got != tt.want {
 				t.Errorf("UseCasesUserImpl.CompleteOnboardingTour() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestUseCasesUserImpl_RegisterClient(t *testing.T) {
+	type args struct {
+		ctx   context.Context
+		input *dto.ClientRegistrationInput
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Successfully register client",
+			args: args{
+				ctx: context.Background(),
+				input: &dto.ClientRegistrationInput{
+					Facility: "Kanairo",
+					DateOfBirth: scalarutils.Date{
+						Year:  1990,
+						Month: 3,
+						Day:   12,
+					},
+					EnrollmentDate: scalarutils.Date{
+						Year:  1990,
+						Month: 3,
+						Day:   12,
+					},
+					ClientType: enums.ClientTypeDreams,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad Case - Fail to make request",
+			args: args{
+				ctx: context.Background(),
+				input: &dto.ClientRegistrationInput{
+					Facility: "Kanairo",
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			fakeExtension := extensionMock.NewFakeExtension()
+			otp := otp.NewOTPUseCase(fakeDB, fakeDB, fakeExtension)
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, otp)
+
+			got, err := us.RegisterClient(tt.args.ctx, tt.args.input)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCasesUserImpl.RegisterClient() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected a response but got nil")
+				return
 			}
 		})
 	}
