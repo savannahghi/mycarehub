@@ -39,7 +39,7 @@ type ISetUserPIN interface {
 
 // IVerifyLoginPIN is used to verify the user's pin when logging in
 type IVerifyLoginPIN interface {
-	VerifyLoginPIN(ctx context.Context, userID string, pin string) (bool, int, error)
+	VerifyLoginPIN(ctx context.Context, userID string, pin string, flavour feedlib.Flavour) (bool, int, error)
 }
 
 // IVerifyPIN is used e.g to check the PIN when accessing sensitive content
@@ -123,8 +123,8 @@ func NewUseCasesUserImpl(
 
 // VerifyLoginPIN checks whether a pin is valid. If a pin is invalid, it will prompt
 // the user to change their pin
-func (us *UseCasesUserImpl) VerifyLoginPIN(ctx context.Context, userID string, pin string) (bool, int, error) {
-	pinData, err := us.Query.GetUserPINByUserID(ctx, userID)
+func (us *UseCasesUserImpl) VerifyLoginPIN(ctx context.Context, userID string, pin string, flavour feedlib.Flavour) (bool, int, error) {
+	pinData, err := us.Query.GetUserPINByUserID(ctx, userID, flavour)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return false, int(exceptions.PINNotFound), exceptions.PinNotFoundError(err)
@@ -212,7 +212,7 @@ func (us *UseCasesUserImpl) Login(ctx context.Context, phoneNumber string, pin s
 		return nil, int(exceptions.Internal), fmt.Errorf("please try again after a while")
 	}
 
-	_, statusCode, err := us.VerifyLoginPIN(ctx, *userProfile.ID, pin)
+	_, statusCode, err := us.VerifyLoginPIN(ctx, *userProfile.ID, pin, flavour)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, statusCode, err
@@ -335,7 +335,7 @@ func (us *UseCasesUserImpl) InviteUser(ctx context.Context, userID string, phone
 		IsValid:   true,
 	}
 
-	_, err = us.Update.InvalidatePIN(ctx, userID)
+	_, err = us.Update.InvalidatePIN(ctx, userID, flavour)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return false, exceptions.InvalidatePinErr(err)
@@ -401,12 +401,12 @@ func (us *UseCasesUserImpl) SetUserPIN(ctx context.Context, input dto.PINInput) 
 		HashedPIN: encryptedPIN,
 		ValidFrom: time.Now(),
 		ValidTo:   *expiryDate,
-		Flavour:   input.Flavour,
+		Flavour:   userProfile.Flavour,
 		IsValid:   true,
 		Salt:      salt,
 	}
 
-	_, err = us.Update.InvalidatePIN(ctx, *input.UserID)
+	_, err = us.Update.InvalidatePIN(ctx, *input.UserID, input.Flavour)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return false, exceptions.InvalidatePinErr(err)
@@ -573,7 +573,7 @@ func (us *UseCasesUserImpl) ResetPIN(ctx context.Context, input dto.UserResetPin
 		IsValid:   true,
 	}
 
-	ok, err = us.Update.InvalidatePIN(ctx, *userProfile.ID)
+	ok, err = us.Update.InvalidatePIN(ctx, *userProfile.ID, input.Flavour)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return false, exceptions.InvalidatePinErr(err)
@@ -628,7 +628,7 @@ func (us *UseCasesUserImpl) VerifyPIN(ctx context.Context, userID string, flavou
 	if pin == "" {
 		return false, exceptions.PINErr(fmt.Errorf("pin is empty"))
 	}
-	pinData, err := us.Query.GetUserPINByUserID(ctx, userID)
+	pinData, err := us.Query.GetUserPINByUserID(ctx, userID, flavour)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return false, exceptions.PinNotFoundError(err)

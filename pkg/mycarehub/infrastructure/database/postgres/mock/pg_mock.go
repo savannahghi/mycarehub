@@ -24,7 +24,7 @@ type PostgresMock struct {
 	MockDeleteFacilityFn                          func(ctx context.Context, id int) (bool, error)
 	MockRetrieveFacilityByMFLCodeFn               func(ctx context.Context, MFLCode int, isActive bool) (*domain.Facility, error)
 	MockGetUserProfileByPhoneNumberFn             func(ctx context.Context, phoneNumber string) (*domain.User, error)
-	MockGetUserPINByUserIDFn                      func(ctx context.Context, userID string) (*domain.UserPIN, error)
+	MockGetUserPINByUserIDFn                      func(ctx context.Context, userID string, flavour feedlib.Flavour) (*domain.UserPIN, error)
 	MockInactivateFacilityFn                      func(ctx context.Context, mflCode *int) (bool, error)
 	MockReactivateFacilityFn                      func(ctx context.Context, mflCode *int) (bool, error)
 	MockGetUserProfileByUserIDFn                  func(ctx context.Context, userID string) (*domain.User, error)
@@ -51,7 +51,7 @@ type PostgresMock struct {
 	MockUpdateUserPinChangeRequiredStatusFn       func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
 	MockGetOTPFn                                  func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*domain.OTP, error)
 	MockGetUserSecurityQuestionsResponsesFn       func(ctx context.Context, userID string) ([]*domain.SecurityQuestionResponse, error)
-	MockInvalidatePINFn                           func(ctx context.Context, userID string) (bool, error)
+	MockInvalidatePINFn                           func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
 	MockGetContactByUserIDFn                      func(ctx context.Context, userID *string, contactType string) (*domain.Contact, error)
 	MockUpdateIsCorrectSecurityQuestionResponseFn func(ctx context.Context, userID string, isCorrectSecurityQuestionResponse bool) (bool, error)
 	MockListContentCategoriesFn                   func(ctx context.Context) ([]*domain.ContentItemCategory, error)
@@ -190,7 +190,7 @@ func NewPostgresMock() *PostgresMock {
 		MockRetrieveFacilityByMFLCodeFn: func(ctx context.Context, MFLCode int, isActive bool) (*domain.Facility, error) {
 			return facilityInput, nil
 		},
-		MockGetUserPINByUserIDFn: func(ctx context.Context, userID string) (*domain.UserPIN, error) {
+		MockGetUserPINByUserIDFn: func(ctx context.Context, userID string, flavour feedlib.Flavour) (*domain.UserPIN, error) {
 			return &domain.UserPIN{
 				ValidTo: time.Now().Add(time.Hour * 10),
 			}, nil
@@ -340,7 +340,7 @@ func NewPostgresMock() *PostgresMock {
 				},
 			}, nil
 		},
-		MockInvalidatePINFn: func(ctx context.Context, userID string) (bool, error) {
+		MockInvalidatePINFn: func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
 			return true, nil
 		},
 		MockGetContactByUserIDFn: func(ctx context.Context, userID *string, contactType string) (*domain.Contact, error) {
@@ -500,8 +500,8 @@ func (gm *PostgresMock) GetUserProfileByPhoneNumber(ctx context.Context, phoneNu
 }
 
 // GetUserPINByUserID mocks the get user pin by ID implementation
-func (gm *PostgresMock) GetUserPINByUserID(ctx context.Context, userID string) (*domain.UserPIN, error) {
-	return gm.MockGetUserPINByUserIDFn(ctx, userID)
+func (gm *PostgresMock) GetUserPINByUserID(ctx context.Context, userID string, flavour feedlib.Flavour) (*domain.UserPIN, error) {
+	return gm.MockGetUserPINByUserIDFn(ctx, userID, flavour)
 }
 
 // InactivateFacility mocks the implementation of inactivating the active status of a particular facility
@@ -635,8 +635,8 @@ func (gm *PostgresMock) GetUserSecurityQuestionsResponses(ctx context.Context, u
 }
 
 // InvalidatePIN mocks the implementation of invalidating a user pin
-func (gm *PostgresMock) InvalidatePIN(ctx context.Context, userID string) (bool, error) {
-	return gm.MockInvalidatePINFn(ctx, userID)
+func (gm *PostgresMock) InvalidatePIN(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
+	return gm.MockInvalidatePINFn(ctx, userID, flavour)
 }
 
 // GetContactByUserID mocks the implementation of fetching a contact by userID

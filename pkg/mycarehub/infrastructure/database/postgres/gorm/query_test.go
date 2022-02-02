@@ -1451,8 +1451,9 @@ func TestPGInstance_GetUserProfileByPhoneNumber(t *testing.T) {
 
 func TestPGInstance_GetUserPINByUserID(t *testing.T) {
 	type args struct {
-		ctx    context.Context
-		userID string
+		ctx     context.Context
+		userID  string
+		flavour feedlib.Flavour
 	}
 	tests := []struct {
 		name    string
@@ -1462,15 +1463,25 @@ func TestPGInstance_GetUserPINByUserID(t *testing.T) {
 		{
 			name: "happy case: get user pin by user id",
 			args: args{
-				ctx:    context.Background(),
-				userID: userID,
+				ctx:     context.Background(),
+				userID:  userID,
+				flavour: feedlib.FlavourConsumer,
 			},
 			wantErr: false,
+		},
+		{
+			name: "Sad case: invalid-flavour",
+			args: args{
+				ctx:     context.Background(),
+				userID:  userID,
+				flavour: "Invalid-flavour",
+			},
+			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := testingDB.GetUserPINByUserID(tt.args.ctx, tt.args.userID)
+			got, err := testingDB.GetUserPINByUserID(tt.args.ctx, tt.args.userID, tt.args.flavour)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("PGInstance.GetUserPINByUserID() error = %v, wantErr %v", err, tt.wantErr)
 				return

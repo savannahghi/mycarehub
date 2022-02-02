@@ -732,6 +732,7 @@ func TestOnboardingDb_GetUserPINByUserID(t *testing.T) {
 	type args struct {
 		ctx    context.Context
 		userID string
+		flavour feedlib.Flavour
 	}
 	tests := []struct {
 		name    string
@@ -743,6 +744,7 @@ func TestOnboardingDb_GetUserPINByUserID(t *testing.T) {
 			args: args{
 				ctx:    ctx,
 				userID: "1234456",
+				flavour: feedlib.FlavourPro,
 			},
 			wantErr: false,
 		},
@@ -751,6 +753,7 @@ func TestOnboardingDb_GetUserPINByUserID(t *testing.T) {
 			args: args{
 				ctx:    ctx,
 				userID: "12345",
+				flavour: feedlib.FlavourPro,
 			},
 			wantErr: true,
 		},
@@ -759,6 +762,16 @@ func TestOnboardingDb_GetUserPINByUserID(t *testing.T) {
 			args: args{
 				ctx:    ctx,
 				userID: "",
+				flavour: feedlib.FlavourPro,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - invalid-flavour",
+			args: args{
+				ctx:    ctx,
+				userID: "",
+				flavour: "invalid-flavour",
 			},
 			wantErr: true,
 		},
@@ -769,17 +782,22 @@ func TestOnboardingDb_GetUserPINByUserID(t *testing.T) {
 			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
 
 			if tt.name == "Sad Case - Fail to get user pin" {
-				fakeGorm.MockGetUserPINByUserIDFn = func(ctx context.Context, userID string) (*gorm.PINData, error) {
+				fakeGorm.MockGetUserPINByUserIDFn = func(ctx context.Context, userID string, flavour feedlib.Flavour) (*gorm.PINData, error) {
 					return nil, fmt.Errorf("failed to get user pin")
 				}
 			}
 			if tt.name == "Sad Case - empty user id" {
-				fakeGorm.MockGetUserPINByUserIDFn = func(ctx context.Context, userID string) (*gorm.PINData, error) {
+				fakeGorm.MockGetUserPINByUserIDFn = func(ctx context.Context, userID string, flavour feedlib.Flavour) (*gorm.PINData, error) {
+					return nil, fmt.Errorf("failed to get user pin")
+				}
+			}
+			if tt.name == "Sad Case - invalid-flavour" {
+				fakeGorm.MockGetUserPINByUserIDFn = func(ctx context.Context, userID string, flavour feedlib.Flavour) (*gorm.PINData, error) {
 					return nil, fmt.Errorf("failed to get user pin")
 				}
 			}
 
-			got, err := d.GetUserPINByUserID(tt.args.ctx, tt.args.userID)
+			got, err := d.GetUserPINByUserID(tt.args.ctx, tt.args.userID, tt.args.flavour)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("OnboardingDb.GetUserPINByUserID() error = %v, wantErr %v", err, tt.wantErr)
 				return

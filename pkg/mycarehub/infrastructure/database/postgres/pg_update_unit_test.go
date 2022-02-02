@@ -739,8 +739,9 @@ func TestMyCareHubDb_InvalidatePIN(t *testing.T) {
 	ctx := context.Background()
 	userID := uuid.New().String()
 	type args struct {
-		ctx    context.Context
-		userID string
+		ctx     context.Context
+		userID  string
+		flavour feedlib.Flavour
 	}
 	tests := []struct {
 		name    string
@@ -751,8 +752,9 @@ func TestMyCareHubDb_InvalidatePIN(t *testing.T) {
 		{
 			name: "Happy case",
 			args: args{
-				ctx:    ctx,
-				userID: userID,
+				ctx:     ctx,
+				userID:  userID,
+				flavour: feedlib.FlavourConsumer,
 			},
 			want:    true,
 			wantErr: false,
@@ -761,7 +763,17 @@ func TestMyCareHubDb_InvalidatePIN(t *testing.T) {
 		{
 			name: "invalid: no user id provided",
 			args: args{
-				ctx: ctx,
+				ctx:     ctx,
+				flavour: feedlib.FlavourConsumer,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "invalid: invalid flavour",
+			args: args{
+				ctx:     ctx,
+				flavour: "invalid-flavour",
 			},
 			want:    false,
 			wantErr: true,
@@ -772,7 +784,7 @@ func TestMyCareHubDb_InvalidatePIN(t *testing.T) {
 			var fakeGorm = gormMock.NewGormMock()
 			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
 
-			got, err := d.InvalidatePIN(tt.args.ctx, tt.args.userID)
+			got, err := d.InvalidatePIN(tt.args.ctx, tt.args.userID, tt.args.flavour)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("MyCareHubDb.InvalidatePIN() error = %v, wantErr %v", err, tt.wantErr)
 				return

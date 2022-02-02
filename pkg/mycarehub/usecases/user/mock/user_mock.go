@@ -17,7 +17,7 @@ type UserUseCaseMock struct {
 	MockLoginFn                         func(ctx context.Context, phoneNumber string, pin string, flavour feedlib.Flavour) (*domain.LoginResponse, int, error)
 	MockInviteUserFn                    func(ctx context.Context, userID string, phoneNumber string, flavour feedlib.Flavour) (bool, error)
 	MockSavePinFn                       func(ctx context.Context, input dto.PINInput) (bool, error)
-	MockVerifyLoginPINFn                func(ctx context.Context, userID string, pin string) (bool, int, error)
+	MockVerifyLoginPINFn                func(ctx context.Context, userID string, pin string, flavour feedlib.Flavour) (bool, int, error)
 	MockSetNickNameFn                   func(ctx context.Context, userID *string, nickname *string) (bool, error)
 	MockRequestPINResetFn               func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (string, error)
 	MockResetPINFn                      func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
@@ -70,7 +70,7 @@ func NewUserUseCaseMock() *UserUseCaseMock {
 		MockSavePinFn: func(ctx context.Context, input dto.PINInput) (bool, error) {
 			return true, nil
 		},
-		MockVerifyLoginPINFn: func(ctx context.Context, userID string, pin string) (bool, int, error) {
+		MockVerifyLoginPINFn: func(ctx context.Context, userID string, pin string, flavour feedlib.Flavour) (bool, int, error) {
 			return true, 0, nil
 		},
 		MockSetNickNameFn: func(ctx context.Context, userID, nickname *string) (bool, error) {
@@ -117,8 +117,8 @@ func (f *UserUseCaseMock) SavePin(ctx context.Context, input dto.PINInput) (bool
 }
 
 // VerifyLoginPIN mocks the verify pin functionality
-func (f *UserUseCaseMock) VerifyLoginPIN(ctx context.Context, userID string, pin string) (bool, int, error) {
-	return f.MockVerifyLoginPINFn(ctx, userID, pin)
+func (f *UserUseCaseMock) VerifyLoginPIN(ctx context.Context, userID string, pin string, flavour feedlib.Flavour) (bool, int, error) {
+	return f.MockVerifyLoginPINFn(ctx, userID, pin, flavour)
 }
 
 // SetNickName is used to mock the implementation ofsetting or changing the user's nickname

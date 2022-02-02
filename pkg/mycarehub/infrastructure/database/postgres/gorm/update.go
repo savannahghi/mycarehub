@@ -22,7 +22,7 @@ type Update interface {
 	UpdateUserLastSuccessfulLoginTime(ctx context.Context, userID string) error
 	SetNickName(ctx context.Context, userID *string, nickname *string) (bool, error)
 	UpdateUserPinChangeRequiredStatus(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
-	InvalidatePIN(ctx context.Context, userID string) (bool, error)
+	InvalidatePIN(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
 	UpdateIsCorrectSecurityQuestionResponse(ctx context.Context, userID string, isCorrectSecurityQuestionResponse bool) (bool, error)
 	ShareContent(ctx context.Context, input dto.ShareContentInput) (bool, error)
 	BookmarkContent(ctx context.Context, userID string, contentID int) (bool, error)
@@ -278,12 +278,12 @@ func (db *PGInstance) UpdateUserPinChangeRequiredStatus(ctx context.Context, use
 }
 
 // InvalidatePIN toggles the valid field of a pin from true to false
-func (db *PGInstance) InvalidatePIN(ctx context.Context, userID string) (bool, error) {
+func (db *PGInstance) InvalidatePIN(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
 	if userID == "" {
 		return false, fmt.Errorf("userID cannot be empty")
 
 	}
-	err := db.DB.Model(&PINData{}).Where(&PINData{UserID: userID, IsValid: true}).Select("active").Updates(PINData{IsValid: false}).Error
+	err := db.DB.Model(&PINData{}).Where(&PINData{UserID: userID, IsValid: true, Flavour: flavour}).Select("active").Updates(PINData{IsValid: false}).Error
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return false, fmt.Errorf("an error occurred while invalidating the pin: %v", err)
