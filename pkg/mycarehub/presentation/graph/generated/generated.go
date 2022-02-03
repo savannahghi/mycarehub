@@ -2363,10 +2363,10 @@ type ServiceRequest {
   Request: String!
   Status: String!
   ClientID: String!
-  InProgressAt: Time!
-  InProgressBy: String!
-  ResolvedAt: Time!
-  ResolvedBy: String!
+  InProgressAt: Time
+  InProgressBy: String
+  ResolvedAt: Time
+  ResolvedBy: String
 }
 
 type ClientRegistrationOutput {
@@ -9607,14 +9607,11 @@ func (ec *executionContext) _ServiceRequest_InProgressAt(ctx context.Context, fi
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(time.Time)
+	res := resTmp.(*time.Time)
 	fc.Result = res
-	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+	return ec.marshalOTime2ᚖtimeᚐTime(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ServiceRequest_InProgressBy(ctx context.Context, field graphql.CollectedField, obj *domain.ServiceRequest) (ret graphql.Marshaler) {
@@ -9642,14 +9639,11 @@ func (ec *executionContext) _ServiceRequest_InProgressBy(ctx context.Context, fi
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*string)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ServiceRequest_ResolvedAt(ctx context.Context, field graphql.CollectedField, obj *domain.ServiceRequest) (ret graphql.Marshaler) {
@@ -9677,14 +9671,11 @@ func (ec *executionContext) _ServiceRequest_ResolvedAt(ctx context.Context, fiel
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(time.Time)
+	res := resTmp.(*time.Time)
 	fc.Result = res
-	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+	return ec.marshalOTime2ᚖtimeᚐTime(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ServiceRequest_ResolvedBy(ctx context.Context, field graphql.CollectedField, obj *domain.ServiceRequest) (ret graphql.Marshaler) {
@@ -9712,14 +9703,11 @@ func (ec *executionContext) _ServiceRequest_ResolvedBy(ctx context.Context, fiel
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*string)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _TermsOfService_termsID(ctx context.Context, field graphql.CollectedField, obj *domain.TermsOfService) (ret graphql.Marshaler) {
@@ -12991,24 +12979,12 @@ func (ec *executionContext) _ServiceRequest(ctx context.Context, sel ast.Selecti
 			}
 		case "InProgressAt":
 			out.Values[i] = ec._ServiceRequest_InProgressAt(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "InProgressBy":
 			out.Values[i] = ec._ServiceRequest_InProgressBy(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "ResolvedAt":
 			out.Values[i] = ec._ServiceRequest_ResolvedAt(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "ResolvedBy":
 			out.Values[i] = ec._ServiceRequest_ResolvedBy(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -13980,21 +13956,6 @@ func (ec *executionContext) marshalNTermsOfService2ᚖgithubᚗcomᚋsavannahghi
 		return graphql.Null
 	}
 	return ec._TermsOfService(ctx, sel, v)
-}
-
-func (ec *executionContext) unmarshalNTime2timeᚐTime(ctx context.Context, v interface{}) (time.Time, error) {
-	res, err := graphql.UnmarshalTime(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalNTime2timeᚐTime(ctx context.Context, sel ast.SelectionSet, v time.Time) graphql.Marshaler {
-	res := graphql.MarshalTime(v)
-	if res == graphql.Null {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "must not be null")
-		}
-	}
-	return res
 }
 
 func (ec *executionContext) unmarshalN_FieldSet2string(ctx context.Context, v interface{}) (string, error) {

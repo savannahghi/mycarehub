@@ -203,10 +203,10 @@ type ServiceRequest {
   Request: String!
   Status: String!
   ClientID: String!
-  InProgressAt: Time!
-  InProgressBy: String!
-  ResolvedAt: Time!
-  ResolvedBy: String!
+  InProgressAt: Time
+  InProgressBy: String
+  ResolvedAt: Time
+  ResolvedBy: String
 }
 
 type ClientRegistrationOutput {

@@ -159,15 +159,16 @@ func NewPostgresMock() *PostgresMock {
 		IconURL: "test",
 	}
 	serviceRequests := []*domain.ServiceRequest{
+
 		{
 			ID:           ID,
 			ClientID:     uuid.New().String(),
 			RequestType:  enums.ServiceRequestTypeHealthDiaryEntry.String(),
 			Status:       enums.ServiceRequestStatusPending.String(),
-			InProgressAt: time.Now(),
-			InProgressBy: uuid.New().String(),
-			ResolvedAt:   time.Now().Add(time.Hour * 24),
-			ResolvedBy:   uuid.New().String(),
+			InProgressAt: &currentTime,
+			InProgressBy: &ID,
+			ResolvedAt:   &currentTime,
+			ResolvedBy:   &ID,
 		},
 	}
 
