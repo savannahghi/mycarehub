@@ -549,16 +549,14 @@ func TestPGInstance_SaveOTP(t *testing.T) {
 
 func TestPGInstance_CreateServiceRequest(t *testing.T) {
 	ctx := context.Background()
-
+	testTime := time.Now()
 	serviceRequestInput := &gorm.ClientServiceRequest{
 		Active:         false,
 		RequestType:    "HealthDiary",
 		Request:        gofakeit.Sentence(5),
 		Status:         "PENDING",
-		InProgressAt:   time.Now(),
-		InProgressByID: staffID,
-		ResolvedAt:     time.Now(),
-		ResolvedByID:   staffID,
+		InProgressAt:   &testTime,
+		ResolvedAt:     &testTime,
 		ClientID:       clientID,
 		OrganisationID: orgID,
 	}

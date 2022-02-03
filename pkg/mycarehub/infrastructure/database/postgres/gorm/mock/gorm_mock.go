@@ -199,6 +199,8 @@ func NewGormMock() *GormMock {
 		Name:    name,
 		IconURL: "https://test-icon-url/test.png",
 	}
+	nowTime := time.Now()
+	laterTime := nowTime.Add(time.Hour * 24)
 	serviceRequests := []*gorm.ClientServiceRequest{
 		{
 			ID:             &UUID,
@@ -206,10 +208,10 @@ func NewGormMock() *GormMock {
 			Active:         true,
 			RequestType:    enums.ServiceRequestTypeHealthDiaryEntry.String(),
 			Status:         enums.ServiceRequestStatusPending.String(),
-			InProgressAt:   time.Now(),
-			InProgressByID: uuid.New().String(),
-			ResolvedAt:     time.Now().Add(time.Hour * 24),
-			ResolvedByID:   uuid.New().String(),
+			InProgressAt:   &nowTime,
+			InProgressByID: &UUID,
+			ResolvedAt:     &laterTime,
+			ResolvedByID:   &UUID,
 		},
 	}
 

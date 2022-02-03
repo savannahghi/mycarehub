@@ -156,13 +156,11 @@ func (d *MyCareHubDb) CreateServiceRequest(
 	serviceRequestInput *domain.ClientServiceRequest,
 ) error {
 	serviceRequest := &gorm.ClientServiceRequest{
-		Active:       serviceRequestInput.Active,
-		RequestType:  serviceRequestInput.RequestType,
-		Request:      serviceRequestInput.Request,
-		Status:       serviceRequestInput.Status,
-		InProgressAt: serviceRequestInput.InProgressAt,
-		ResolvedAt:   serviceRequestInput.ResolvedAt,
-		ClientID:     serviceRequestInput.ClientID,
+		Active:      serviceRequestInput.Active,
+		RequestType: serviceRequestInput.RequestType,
+		Request:     serviceRequestInput.Request,
+		Status:      serviceRequestInput.Status,
+		ClientID:    serviceRequestInput.ClientID,
 	}
 
 	err := d.create.CreateServiceRequest(ctx, serviceRequest)
