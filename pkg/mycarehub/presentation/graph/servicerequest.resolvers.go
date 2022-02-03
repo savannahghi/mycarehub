@@ -9,6 +9,11 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 )
 
+func (r *mutationResolver) SetInProgressBy(ctx context.Context, serviceRequestID string, staffID string) (bool, error) {
+	r.checkPreconditions()
+	return r.mycarehub.ServiceRequest.SetInProgressBy(ctx, serviceRequestID, staffID)
+}
+
 func (r *mutationResolver) CreateServiceRequest(ctx context.Context, clientID string, requestType string, request *string) (bool, error) {
 	r.checkPreconditions()
 	return r.mycarehub.ServiceRequest.CreateServiceRequest(ctx, clientID, requestType, *request)

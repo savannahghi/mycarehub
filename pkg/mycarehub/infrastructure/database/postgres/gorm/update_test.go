@@ -183,8 +183,8 @@ func TestPGInstance_InvalidatePIN(t *testing.T) {
 	ctx := context.Background()
 
 	type args struct {
-		ctx    context.Context
-		userID string
+		ctx     context.Context
+		userID  string
 		flavour feedlib.Flavour
 	}
 	tests := []struct {
@@ -196,8 +196,8 @@ func TestPGInstance_InvalidatePIN(t *testing.T) {
 		{
 			name: "Happy case",
 			args: args{
-				ctx:    ctx,
-				userID: userIDToInvalidate,
+				ctx:     ctx,
+				userID:  userIDToInvalidate,
 				flavour: feedlib.FlavourConsumer,
 			},
 			want:    true,
@@ -206,7 +206,7 @@ func TestPGInstance_InvalidatePIN(t *testing.T) {
 		{
 			name: "invalid: no user id provided",
 			args: args{
-				ctx: ctx,
+				ctx:     ctx,
 				flavour: feedlib.FlavourConsumer,
 			},
 			want:    false,
@@ -974,6 +974,84 @@ func TestPGInstance_UpdateUserLastSuccessfulLoginTime(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if err := testingDB.UpdateUserLastSuccessfulLoginTime(tt.args.ctx, tt.args.userID); (err != nil) != tt.wantErr {
 				t.Errorf("PGInstance.UpdateUserLastSuccessfulLoginTime() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestPGInstance_InProgressBy(t *testing.T) {
+	ctx := context.Background()
+
+	type args struct {
+		ctx       context.Context
+		requestID string
+		staffID   string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:       ctx,
+				requestID: clientsServiceRequestID,
+				staffID:   staffID,
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Sad case - invalid request ID",
+			args: args{
+				ctx:       ctx,
+				requestID: "clientsServiceRequestID",
+				staffID:   staffID,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case - invalid staff ID",
+			args: args{
+				ctx:       ctx,
+				requestID: clientsServiceRequestID,
+				staffID:   "staffID",
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case - invalid request and  staff ID",
+			args: args{
+				ctx:       ctx,
+				requestID: "clientsServiceRequestID",
+				staffID:   "staffID",
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case - invalid uuid for  staff ID",
+			args: args{
+				ctx:       ctx,
+				requestID: clientsServiceRequestID,
+				staffID:   uuid.New().String(),
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := testingDB.SetInProgressBy(tt.args.ctx, tt.args.requestID, tt.args.staffID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.SetInProgressBy() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("PGInstance.SetInProgressBy() = %v, want %v", got, tt.want)
 			}
 		})
 	}

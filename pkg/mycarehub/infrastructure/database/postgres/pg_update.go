@@ -145,6 +145,11 @@ func (d *MyCareHubDb) UnlikeContent(ctx context.Context, userID string, contentI
 	return d.update.UnlikeContent(ctx, userID, contentID)
 }
 
+// SetInProgressBy updates the the value of the staff assigned to a service request
+func (d *MyCareHubDb) SetInProgressBy(ctx context.Context, requestID string, staffID string) (bool, error) {
+	return d.update.SetInProgressBy(ctx, requestID, staffID)
+}
+
 // ViewContent gets a content item and updates the view count
 func (d *MyCareHubDb) ViewContent(ctx context.Context, userID string, contentID int) (bool, error) {
 	return d.update.ViewContent(ctx, userID, contentID)

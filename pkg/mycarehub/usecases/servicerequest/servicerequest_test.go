@@ -57,7 +57,7 @@ func TestUseCasesServiceRequestImpl_CreateServiceRequest(t *testing.T) {
 				}
 			}
 
-			u := servicerequest.NewUseCaseServiceRequestImpl(fakeDB, fakeDB)
+			u := servicerequest.NewUseCaseServiceRequestImpl(fakeDB, fakeDB, fakeDB)
 			got, err := u.CreateServiceRequest(tt.args.ctx, tt.args.clientID, tt.args.requestType, tt.args.request)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCasesServiceRequestImpl.CreateServiceRequest() error = %v, wantErr %v", err, tt.wantErr)
@@ -65,6 +65,94 @@ func TestUseCasesServiceRequestImpl_CreateServiceRequest(t *testing.T) {
 			}
 			if got != tt.want {
 				t.Errorf("UseCasesServiceRequestImpl.CreateServiceRequest() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestUseCasesServiceRequestImpl_InProgressBy(t *testing.T) {
+	ctx := context.Background()
+
+	type args struct {
+		ctx       context.Context
+		requestID string
+		staffID   string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:       ctx,
+				requestID: uuid.New().String(),
+				staffID:   uuid.New().String(),
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Sad case",
+			args: args{
+				ctx:       ctx,
+				requestID: uuid.New().String(),
+				staffID:   uuid.New().String(),
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case - empty request ID",
+			args: args{
+				ctx:       ctx,
+				requestID: "",
+				staffID:   uuid.New().String(),
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case - empty staff ID",
+			args: args{
+				ctx:       ctx,
+				requestID: uuid.New().String(),
+				staffID:   "",
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			u := servicerequest.NewUseCaseServiceRequestImpl(fakeDB, fakeDB, fakeDB)
+
+			if tt.name == "Sad case" {
+				fakeDB.MockInProgressByFn = func(ctx context.Context, requestID, staffID string) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - empty request ID" {
+				fakeDB.MockInProgressByFn = func(ctx context.Context, requestID, staffID string) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - empty staff ID" {
+				fakeDB.MockInProgressByFn = func(ctx context.Context, requestID, staffID string) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+
+			got, err := u.SetInProgressBy(tt.args.ctx, tt.args.requestID, tt.args.staffID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCasesServiceRequestImpl.SetInProgressBy() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("UseCasesServiceRequestImpl.SetInProgressBy() = %v, want %v", got, tt.want)
 			}
 		})
 	}
@@ -118,7 +206,7 @@ func TestUseCasesServiceRequestImpl_GetServiceRequests(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
-			u := servicerequest.NewUseCaseServiceRequestImpl(fakeDB, fakeDB)
+			u := servicerequest.NewUseCaseServiceRequestImpl(fakeDB, fakeDB, fakeDB)
 
 			if tt.name == "Sad Case - Fail to get service requests" {
 				fakeDB.MockGetServiceRequestsFn = func(ctx context.Context, requestType *string, requestStatus *string) ([]*domain.ServiceRequest, error) {

@@ -73,6 +73,7 @@ type GormMock struct {
 	MockCreateClientCaregiverFn                   func(ctx context.Context, clientID string, clientCaregiver *gorm.Caregiver) error
 	MockGetClientCaregiverFn                      func(ctx context.Context, caregiverID string) (*gorm.Caregiver, error)
 	MockUpdateClientCaregiverFn                   func(ctx context.Context, caregiverInput *dto.CaregiverInput) error
+	MockInProgressByFn                            func(ctx context.Context, requestID string, staffID string) (bool, error)
 	MockGetClientByClientIDFn                     func(ctx context.Context, clientID string) (*gorm.Client, error)
 	MockGetServiceRequestsFn                      func(ctx context.Context, requestType *string, requestStatus *string) ([]*gorm.ClientServiceRequest, error)
 }
@@ -474,6 +475,9 @@ func NewGormMock() *GormMock {
 		MockUpdateClientCaregiverFn: func(ctx context.Context, caregiverInput *dto.CaregiverInput) error {
 			return nil
 		},
+		MockInProgressByFn: func(ctx context.Context, requestID, staffID string) (bool, error) {
+			return true, nil
+		},
 		MockGetClientByClientIDFn: func(ctx context.Context, clientID string) (*gorm.Client, error) {
 			return client, nil
 		},
@@ -757,6 +761,11 @@ func (gm *GormMock) GetClientCaregiver(ctx context.Context, caregiverID string) 
 // UpdateClientCaregiver mocks the implementation of updating a caregiver
 func (gm *GormMock) UpdateClientCaregiver(ctx context.Context, caregiverInput *dto.CaregiverInput) error {
 	return gm.MockUpdateClientCaregiverFn(ctx, caregiverInput)
+}
+
+// SetInProgressBy mocks the implementation of the `SetInProgressBy` update method
+func (gm *GormMock) SetInProgressBy(ctx context.Context, requestID, staffID string) (bool, error) {
+	return gm.MockInProgressByFn(ctx, requestID, staffID)
 }
 
 // GetClientByClientID mocks the implementation of getting a client by client ID

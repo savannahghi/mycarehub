@@ -9,6 +9,7 @@ import (
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 )
 
 // Update represents all `update` operations to the database
@@ -30,6 +31,7 @@ type Update interface {
 	LikeContent(context context.Context, userID string, contentID int) (bool, error)
 	UnlikeContent(context context.Context, userID string, contentID int) (bool, error)
 	ViewContent(ctx context.Context, userID string, contentID int) (bool, error)
+	SetInProgressBy(ctx context.Context, requestID string, staffID string) (bool, error)
 	UpdateClientCaregiver(ctx context.Context, caregiverInput *dto.CaregiverInput) error
 }
 
@@ -255,6 +257,22 @@ func (db *PGInstance) SetNickName(ctx context.Context, userID *string, nickname 
 		return false, fmt.Errorf("failed to set nickname")
 	}
 
+	return true, nil
+}
+
+// SetInProgressBy updates the staff assigned to a service request
+func (db *PGInstance) SetInProgressBy(ctx context.Context, requestID string, staffID string) (bool, error) {
+	if requestID == "" || staffID == "" {
+		return false, fmt.Errorf("requestID or staffID cannot be empty")
+	}
+	if err := db.DB.Model(&ClientServiceRequest{}).Where(&ClientServiceRequest{ID: &requestID}).Updates(map[string]interface{}{
+		"status":            enums.ServiceRequestStatusInProgress,
+		"in_progress_by_id": staffID,
+		"in_progress_at":    time.Now(),
+	}).Error; err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, fmt.Errorf("failed to update the assi")
+	}
 	return true, nil
 }
 

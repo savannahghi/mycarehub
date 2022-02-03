@@ -91,6 +91,8 @@ var (
 	// Staff
 	staffNumber = uuid.New().String()
 	staffID     = "8ecbbc80-24c8-421a-9f1a-e14e12678ef1"
+
+	clientsServiceRequestID = "8ecbbc10-24c8-421a-9f1a-e17f12678ef1"
 )
 
 func TestMain(m *testing.M) {
@@ -156,6 +158,7 @@ func TestMain(m *testing.M) {
 			"user_id_to_add_caregiver":       userIDtoAddCaregiver,
 			"test_caregiver_id":              testCaregiverID,
 			"staff_number":                   staffNumber,
+			"clients_service_request_id":     clientsServiceRequestID,
 			"staff_default_facility":         facilityID,
 			"staff_id":                       staffID,
 		}),
@@ -177,6 +180,7 @@ func TestMain(m *testing.M) {
 			"../../../../../../fixtures/users_userpin.yml",
 			"../../../../../../fixtures/clients_caregiver.yml",
 			"../../../../../../fixtures/clients_client.yml",
+			"../../../../../../fixtures/clients_servicerequest.yml",
 			"../../../../../../fixtures/staff_staff.yml",
 			"../../../../../../fixtures/staff_staff_facilities.yml",
 		),
