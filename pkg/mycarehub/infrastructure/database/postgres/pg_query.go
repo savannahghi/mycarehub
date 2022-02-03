@@ -132,11 +132,11 @@ func (d *MyCareHubDb) GetUserProfileByPhoneNumber(ctx context.Context, phoneNumb
 }
 
 // GetUserPINByUserID fetches a user pin by the user ID
-func (d *MyCareHubDb) GetUserPINByUserID(ctx context.Context, userID string) (*domain.UserPIN, error) {
+func (d *MyCareHubDb) GetUserPINByUserID(ctx context.Context, userID string, flavour feedlib.Flavour) (*domain.UserPIN, error) {
 	if userID == "" {
 		return nil, fmt.Errorf("user id cannot be empty")
 	}
-	pinData, err := d.query.GetUserPINByUserID(ctx, userID)
+	pinData, err := d.query.GetUserPINByUserID(ctx, userID, flavour)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed query and retrieve user PIN data: %s", err)

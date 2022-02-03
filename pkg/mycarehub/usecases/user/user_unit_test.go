@@ -192,7 +192,7 @@ func TestUseCasesUserImpl_Login_Unittest(t *testing.T) {
 			}
 
 			if tt.name == "Sad case - unable to get user PIN By User ID" {
-				fakeDB.MockGetUserPINByUserIDFn = func(ctx context.Context, userID string) (*domain.UserPIN, error) {
+				fakeDB.MockGetUserPINByUserIDFn = func(ctx context.Context, userID string, flavour feedlib.Flavour) (*domain.UserPIN, error) {
 					return nil, fmt.Errorf("failed to get user PIN by user ID")
 				}
 			}
@@ -507,7 +507,7 @@ func TestUnit_InviteUser(t *testing.T) {
 			}
 
 			if tt.name == "Sad Case - Fail to invalidate pin" {
-				fakeDB.MockInvalidatePINFn = func(ctx context.Context, userID string) (bool, error) {
+				fakeDB.MockInvalidatePINFn = func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
 					return false, fmt.Errorf("failed to invalidate pin")
 				}
 			}
@@ -810,7 +810,7 @@ func TestUseCasesUserImpl_SetUserPIN(t *testing.T) {
 			}
 
 			if tt.name == "Sad Case - Fail to invalidate pin" {
-				fakeDB.MockInvalidatePINFn = func(ctx context.Context, userID string) (bool, error) {
+				fakeDB.MockInvalidatePINFn = func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
 					return false, fmt.Errorf("failed to invalidate pin")
 				}
 			}
@@ -831,9 +831,10 @@ func TestUseCasesUserImpl_VerifyLoginPIN(t *testing.T) {
 	ctx := context.Background()
 
 	type args struct {
-		ctx    context.Context
-		userID string
-		pin    string
+		ctx     context.Context
+		userID  string
+		pin     string
+		flavour feedlib.Flavour
 	}
 	tests := []struct {
 		name    string
@@ -844,9 +845,10 @@ func TestUseCasesUserImpl_VerifyLoginPIN(t *testing.T) {
 		{
 			name: "Happy Case - Successfully verify pin",
 			args: args{
-				ctx:    ctx,
-				userID: "12345",
-				pin:    "1234",
+				ctx:     ctx,
+				userID:  "12345",
+				pin:     "1234",
+				flavour: feedlib.FlavourConsumer,
 			},
 			want:    true,
 			wantErr: false,
@@ -854,9 +856,10 @@ func TestUseCasesUserImpl_VerifyLoginPIN(t *testing.T) {
 		{
 			name: "Sad Case - Fail to get user pin",
 			args: args{
-				ctx:    ctx,
-				userID: "12345",
-				pin:    "3456",
+				ctx:     ctx,
+				userID:  "12345",
+				pin:     "3456",
+				flavour: feedlib.FlavourConsumer,
 			},
 			want:    false,
 			wantErr: true,
@@ -864,9 +867,10 @@ func TestUseCasesUserImpl_VerifyLoginPIN(t *testing.T) {
 		{
 			name: "Sad Case - Pin mismatch",
 			args: args{
-				ctx:    ctx,
-				userID: "12345",
-				pin:    "1234",
+				ctx:     ctx,
+				userID:  "12345",
+				pin:     "1234",
+				flavour: feedlib.FlavourConsumer,
 			},
 			want:    false,
 			wantErr: true,
@@ -874,9 +878,10 @@ func TestUseCasesUserImpl_VerifyLoginPIN(t *testing.T) {
 		{
 			name: "Sad Case - Fail to get user profile by ID",
 			args: args{
-				ctx:    ctx,
-				userID: "12345",
-				pin:    "1234",
+				ctx:     ctx,
+				userID:  "12345",
+				pin:     "1234",
+				flavour: feedlib.FlavourConsumer,
 			},
 			want:    false,
 			wantErr: true,
@@ -884,9 +889,10 @@ func TestUseCasesUserImpl_VerifyLoginPIN(t *testing.T) {
 		{
 			name: "Sad Case - Fail to update user login count",
 			args: args{
-				ctx:    ctx,
-				userID: "12345",
-				pin:    "1234",
+				ctx:     ctx,
+				userID:  "12345",
+				pin:     "1234",
+				flavour: feedlib.FlavourConsumer,
 			},
 			want:    false,
 			wantErr: true,
@@ -894,9 +900,10 @@ func TestUseCasesUserImpl_VerifyLoginPIN(t *testing.T) {
 		{
 			name: "Sad Case - Fail to update last failed login time",
 			args: args{
-				ctx:    ctx,
-				userID: "12345",
-				pin:    "1234",
+				ctx:     ctx,
+				userID:  "12345",
+				pin:     "1234",
+				flavour: feedlib.FlavourConsumer,
 			},
 			want:    false,
 			wantErr: true,
@@ -904,9 +911,21 @@ func TestUseCasesUserImpl_VerifyLoginPIN(t *testing.T) {
 		{
 			name: "Sad Case - Fail to update next allowed login time",
 			args: args{
-				ctx:    ctx,
-				userID: "12345",
-				pin:    "1234",
+				ctx:     ctx,
+				userID:  "12345",
+				pin:     "1234",
+				flavour: feedlib.FlavourConsumer,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - Invalid flavour",
+			args: args{
+				ctx:     ctx,
+				userID:  "12345",
+				pin:     "1234",
+				flavour: "Invalid-flavour",
 			},
 			want:    false,
 			wantErr: true,
@@ -921,13 +940,19 @@ func TestUseCasesUserImpl_VerifyLoginPIN(t *testing.T) {
 			u := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, otp)
 
 			if tt.name == "Happy Case - Successfully verify pin" {
-				fakeUserMock.MockVerifyLoginPINFn = func(ctx context.Context, userID string, pin string) (bool, int, error) {
+				fakeUserMock.MockVerifyLoginPINFn = func(ctx context.Context, userID string, pin string, flavour feedlib.Flavour) (bool, int, error) {
 					return true, 0, nil
 				}
 			}
 
 			if tt.name == "Sad Case - Fail to get user pin" {
-				fakeDB.MockGetUserPINByUserIDFn = func(ctx context.Context, userID string) (*domain.UserPIN, error) {
+				fakeDB.MockGetUserPINByUserIDFn = func(ctx context.Context, userID string, flavour feedlib.Flavour) (*domain.UserPIN, error) {
+					return nil, fmt.Errorf("failed to get a pin")
+				}
+			}
+
+			if tt.name == "Sad Case - Invalid flavour" {
+				fakeDB.MockGetUserPINByUserIDFn = func(ctx context.Context, userID string, flavour feedlib.Flavour) (*domain.UserPIN, error) {
 					return nil, fmt.Errorf("failed to get a pin")
 				}
 			}
@@ -974,7 +999,7 @@ func TestUseCasesUserImpl_VerifyLoginPIN(t *testing.T) {
 				}
 			}
 
-			got, _, err := u.VerifyLoginPIN(tt.args.ctx, tt.args.userID, tt.args.pin)
+			got, _, err := u.VerifyLoginPIN(tt.args.ctx, tt.args.userID, tt.args.pin, tt.args.flavour)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCasesUserImpl.VerifyLoginPIN() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -1493,7 +1518,7 @@ func TestUseCasesUserImpl_ResetPIN(t *testing.T) {
 						},
 					}, nil
 				}
-				fakeDB.MockInvalidatePINFn = func(ctx context.Context, userID string) (bool, error) {
+				fakeDB.MockInvalidatePINFn = func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
 					return false, errors.New("failed to invalidate pin")
 				}
 			}
@@ -1709,13 +1734,13 @@ func TestUseCasesUserImpl_VerifyPIN(t *testing.T) {
 			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, otp)
 
 			if tt.name == "invalid: failed to get user pin by user id" {
-				fakeDB.MockGetUserPINByUserIDFn = func(ctx context.Context, userID string) (*domain.UserPIN, error) {
+				fakeDB.MockGetUserPINByUserIDFn = func(ctx context.Context, userID string, flavour feedlib.Flavour) (*domain.UserPIN, error) {
 					return nil, fmt.Errorf("failed to get user pin by user id")
 				}
 			}
 
 			if tt.name == "invalid: pin mismatch" {
-				fakeDB.MockGetUserPINByUserIDFn = func(ctx context.Context, userID string) (*domain.UserPIN, error) {
+				fakeDB.MockGetUserPINByUserIDFn = func(ctx context.Context, userID string, flavour feedlib.Flavour) (*domain.UserPIN, error) {
 					return &domain.UserPIN{
 						UserID:    userID,
 						HashedPIN: gofakeit.UUID(),

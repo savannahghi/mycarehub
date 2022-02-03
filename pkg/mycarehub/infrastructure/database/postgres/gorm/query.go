@@ -10,8 +10,8 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
-	"github.com/savannahghi/onboarding/pkg/onboarding/application/exceptions"
 	"gorm.io/gorm/clause"
 )
 
@@ -22,7 +22,7 @@ type Query interface {
 	GetFacilities(ctx context.Context) ([]Facility, error)
 	ListFacilities(ctx context.Context, searchTerm *string, filter []*domain.FiltersParam, pagination *domain.FacilityPage) (*domain.FacilityPage, error)
 	GetUserProfileByPhoneNumber(ctx context.Context, phoneNumber string) (*User, error)
-	GetUserPINByUserID(ctx context.Context, userID string) (*PINData, error)
+	GetUserPINByUserID(ctx context.Context, userID string, flavour feedlib.Flavour) (*PINData, error)
 	GetUserProfileByUserID(ctx context.Context, userID string) (*User, error)
 	GetCurrentTerms(ctx context.Context, flavour feedlib.Flavour) (*TermsOfService, error)
 	CheckWhetherUserHasLikedContent(ctx context.Context, userID string, contentID int) (bool, error)
@@ -263,10 +263,13 @@ func (db *PGInstance) GetUserProfileByPhoneNumber(ctx context.Context, phoneNumb
 	return &user, nil
 }
 
-// GetUserPINByUserID fetches a user's pin using the user ID
-func (db *PGInstance) GetUserPINByUserID(ctx context.Context, userID string) (*PINData, error) {
+// GetUserPINByUserID fetches a user's pin using the user ID and Flavour
+func (db *PGInstance) GetUserPINByUserID(ctx context.Context, userID string, flavour feedlib.Flavour) (*PINData, error) {
+	if !flavour.IsValid() {
+		return nil, exceptions.InvalidFlavourDefinedErr(fmt.Errorf("flavour is not valid"))
+	}
 	var pin PINData
-	if err := db.DB.Where(&PINData{UserID: userID, IsValid: true}).First(&pin).Error; err != nil {
+	if err := db.DB.Where(&PINData{UserID: userID, IsValid: true, Flavour: flavour}).First(&pin).Error; err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed to get pin: %v", err)
 	}
@@ -325,7 +328,7 @@ func (db *PGInstance) VerifyOTP(ctx context.Context, payload *dto.VerifyOTPInput
 		return false, fmt.Errorf("user ID or phone number or OTP cannot be empty")
 	}
 	if !payload.Flavour.IsValid() {
-		return false, exceptions.InvalidFlavourDefinedError()
+		return false, exceptions.InvalidFlavourDefinedErr(fmt.Errorf("flavour is not valid"))
 	}
 
 	err := db.DB.Model(&UserOTP{}).Where(&UserOTP{PhoneNumber: payload.PhoneNumber, Valid: true, OTP: payload.OTP, Flavour: payload.Flavour}).First(&userOTP).Error

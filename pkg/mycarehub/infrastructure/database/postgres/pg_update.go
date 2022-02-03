@@ -88,11 +88,11 @@ func (d *MyCareHubDb) UpdateUserPinChangeRequiredStatus(ctx context.Context, use
 
 // InvalidatePIN invalidates a pin that is linked to the user profile.
 // This is done by toggling the IsValid field to false
-func (d *MyCareHubDb) InvalidatePIN(ctx context.Context, userID string) (bool, error) {
+func (d *MyCareHubDb) InvalidatePIN(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
 	if userID == "" {
 		return false, fmt.Errorf("userID cannot be empty")
 	}
-	return d.update.InvalidatePIN(ctx, userID)
+	return d.update.InvalidatePIN(ctx, userID, flavour)
 }
 
 // UpdateIsCorrectSecurityQuestionResponse updates the user's security question response

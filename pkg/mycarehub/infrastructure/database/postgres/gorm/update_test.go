@@ -185,6 +185,7 @@ func TestPGInstance_InvalidatePIN(t *testing.T) {
 	type args struct {
 		ctx    context.Context
 		userID string
+		flavour feedlib.Flavour
 	}
 	tests := []struct {
 		name    string
@@ -197,6 +198,7 @@ func TestPGInstance_InvalidatePIN(t *testing.T) {
 			args: args{
 				ctx:    ctx,
 				userID: userIDToInvalidate,
+				flavour: feedlib.FlavourConsumer,
 			},
 			want:    true,
 			wantErr: false,
@@ -205,6 +207,7 @@ func TestPGInstance_InvalidatePIN(t *testing.T) {
 			name: "invalid: no user id provided",
 			args: args{
 				ctx: ctx,
+				flavour: feedlib.FlavourConsumer,
 			},
 			want:    false,
 			wantErr: true,
@@ -213,7 +216,7 @@ func TestPGInstance_InvalidatePIN(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			got, err := testingDB.InvalidatePIN(tt.args.ctx, tt.args.userID)
+			got, err := testingDB.InvalidatePIN(tt.args.ctx, tt.args.userID, tt.args.flavour)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("PGInstance.InvalidatePIN() error = %v, wantErr %v", err, tt.wantErr)
 				return
