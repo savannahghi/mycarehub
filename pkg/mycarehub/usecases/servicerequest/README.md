@@ -73,6 +73,45 @@ Variables:
 }
 ```
 
+#### 1.2.  setInProgressBy
+setInProgressBy allows a healthcare practitioner to indicate they have started looking into a client's service request
+```
+ mutation setInProgressBy($serviceRequestID: String!, $StaffID: String!){
+  setInProgressBy(
+    serviceRequestID: $serviceRequestID,
+    StaffID: $StaffID
+  )
+}
+```
+
+Variables
+
+```
+  {
+    "serviceRequestID": "8ecbbc80-24c8-421a-9f1a-e14e12678ef1",
+    "StaffID": "c1d58335-f441-4112-9ae4-c30e9d630e8c"
+  }
+```
+
+#### 1.2.  resolveServiceRequest
+resolveServiceRequest allows a healthcare practitioner to indicate they have finished looking into a client's service request 
+```
+mutation resolveServiceRequest($staffID: String!, $requestID: String!){
+  resolveServiceRequest(
+    staffID: $staffID,
+    requestID: $requestID
+  )
+}
+```
+
+Variables
+
+```
+  {
+    "staffID": "8ecbbc80-24c8-421a-9f1a-e14e12678ef1",
+    "requestID": "c1d58335-f441-4112-9ae4-c30e9d630e8c"
+  }
+```
 
 ### 2. Queries
 #### 2.1. getServiceRequests
@@ -80,6 +119,8 @@ Get service request gets all  service requests, if no params are passed, it will
 ```
 query getServiceRequests{
   getServiceRequests{
+    ID
+    ClientID
     Request
     RequestType
     Status
@@ -95,6 +136,8 @@ you can pass optional variables to get specific service requests; type, status o
 ```
 query getServiceRequests($type: String, $status: String){
   getServiceRequests(requestType: $type, requestStatus: $status){
+    ID
+    ClientID
     Request
     RequestType
     Status

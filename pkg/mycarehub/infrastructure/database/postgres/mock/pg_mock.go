@@ -77,6 +77,7 @@ type PostgresMock struct {
 	MockInProgressByFn                            func(ctx context.Context, requestID string, staffID string) (bool, error)
 	MockGetClientByClientIDFn                     func(ctx context.Context, clientID string) (*domain.ClientProfile, error)
 	MockGetServiceRequestsFn                      func(ctx context.Context, requestType *string, requestStatus *string) ([]*domain.ServiceRequest, error)
+	MockResolveServiceRequestFn                   func(ctx context.Context, staffID *string, serviceRequestID *string) (bool, error)
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -456,6 +457,9 @@ func NewPostgresMock() *PostgresMock {
 		MockGetServiceRequestsFn: func(ctx context.Context, requestType *string, requestStatus *string) ([]*domain.ServiceRequest, error) {
 			return serviceRequests, nil
 		},
+		MockResolveServiceRequestFn: func(ctx context.Context, staffID *string, serviceRequestID *string) (bool, error) {
+			return true, nil
+		},
 	}
 }
 
@@ -762,4 +766,9 @@ func (gm *PostgresMock) GetClientByClientID(ctx context.Context, clientID string
 // GetServiceRequests mocks the implementation of getting all service requests for a client
 func (gm *PostgresMock) GetServiceRequests(ctx context.Context, requestType *string, requestStatus *string) ([]*domain.ServiceRequest, error) {
 	return gm.MockGetServiceRequestsFn(ctx, requestType, requestStatus)
+}
+
+// ResolveServiceRequest mocks the implementation of resolving a service request
+func (gm *PostgresMock) ResolveServiceRequest(ctx context.Context, staffID *string, serviceRequestID *string) (bool, error) {
+	return gm.MockResolveServiceRequestFn(ctx, staffID, serviceRequestID)
 }

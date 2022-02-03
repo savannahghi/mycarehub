@@ -12,3 +12,18 @@
   in_progress_by_id: null
   organisation_id: {{.test_organisation_id}}
   resolved_by_id: null
+
+# Service Request to resolve
+- id: {{.test_service_request_id}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  active: true
+  request_type: RED_FLAG
+  request: test red flag request
+  status: IN PROGRESS
+  in_progress_at: 2021-11-22 21:16:29.23639+03
+  in_progress_by_id: {{.staff_id}}
+  resolved_at: null
+  resolved_by_id: null
+  client_id: {{.test_client_id}}
+  organisation_id: {{.test_organisation_id}}

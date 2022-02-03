@@ -1537,3 +1537,44 @@ func TestMyCareHubDb_UpdateClientCaregiver(t *testing.T) {
 		})
 	}
 }
+
+func TestMyCareHubDb_ResolveServiceRequest(t *testing.T) {
+	testUUD := uuid.New().String()
+	type args struct {
+		ctx              context.Context
+		staffID          *string
+		serviceRequestID *string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:              context.Background(),
+				staffID:          &testUUD,
+				serviceRequestID: &testUUD,
+			},
+			want:    true,
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var fakeGorm = gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			got, err := d.ResolveServiceRequest(tt.args.ctx, tt.args.staffID, tt.args.serviceRequestID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.ResolveServiceRequest() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("MyCareHubDb.ResolveServiceRequest() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

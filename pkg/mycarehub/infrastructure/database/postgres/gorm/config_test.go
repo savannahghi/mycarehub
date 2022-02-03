@@ -93,6 +93,8 @@ var (
 	staffID     = "8ecbbc80-24c8-421a-9f1a-e14e12678ef1"
 
 	clientsServiceRequestID = "8ecbbc10-24c8-421a-9f1a-e17f12678ef1"
+	// Service Request
+	serviceRequestID = "8ecbbc80-24c8-421a-9f1a-e14e12678ef2"
 )
 
 func TestMain(m *testing.M) {
@@ -161,6 +163,9 @@ func TestMain(m *testing.M) {
 			"clients_service_request_id":     clientsServiceRequestID,
 			"staff_default_facility":         facilityID,
 			"staff_id":                       staffID,
+
+			"test_service_request_id": serviceRequestID,
+			"test_client_id":          clientID,
 		}),
 		// this is the directory containing the YAML files.
 		// The file name should be the same as the table name
@@ -180,8 +185,8 @@ func TestMain(m *testing.M) {
 			"../../../../../../fixtures/users_userpin.yml",
 			"../../../../../../fixtures/clients_caregiver.yml",
 			"../../../../../../fixtures/clients_client.yml",
-			"../../../../../../fixtures/clients_servicerequest.yml",
 			"../../../../../../fixtures/staff_staff.yml",
+			"../../../../../../fixtures/clients_servicerequest.yml",
 			"../../../../../../fixtures/staff_staff_facilities.yml",
 		),
 		// uncomment when running tests locally, if your db is not a test db

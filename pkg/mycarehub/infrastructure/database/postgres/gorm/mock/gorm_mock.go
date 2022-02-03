@@ -76,6 +76,7 @@ type GormMock struct {
 	MockInProgressByFn                            func(ctx context.Context, requestID string, staffID string) (bool, error)
 	MockGetClientByClientIDFn                     func(ctx context.Context, clientID string) (*gorm.Client, error)
 	MockGetServiceRequestsFn                      func(ctx context.Context, requestType *string, requestStatus *string) ([]*gorm.ClientServiceRequest, error)
+	MockResolveServiceRequestFn                   func(ctx context.Context, staffID *string, serviceRequestID *string) (bool, error)
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -484,6 +485,9 @@ func NewGormMock() *GormMock {
 		MockGetServiceRequestsFn: func(ctx context.Context, requestType *string, requestStatus *string) ([]*gorm.ClientServiceRequest, error) {
 			return serviceRequests, nil
 		},
+		MockResolveServiceRequestFn: func(ctx context.Context, staffID *string, serviceRequestID *string) (bool, error) {
+			return true, nil
+		},
 	}
 }
 
@@ -776,4 +780,9 @@ func (gm *GormMock) GetClientByClientID(ctx context.Context, clientID string) (*
 // GetServiceRequests mocks the implementation of getting service requests by type
 func (gm *GormMock) GetServiceRequests(ctx context.Context, requestType *string, requestStatus *string) ([]*gorm.ClientServiceRequest, error) {
 	return gm.MockGetServiceRequestsFn(ctx, requestType, requestStatus)
+}
+
+// ResolveServiceRequest mocks the implementation of resolving a service request
+func (gm *GormMock) ResolveServiceRequest(ctx context.Context, staffID *string, serviceRequestID *string) (bool, error) {
+	return gm.MockResolveServiceRequestFn(ctx, staffID, serviceRequestID)
 }

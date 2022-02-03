@@ -5,6 +5,11 @@ extend type Mutation {
     requestType: String!
     request: String
   ): Boolean!
+
+  resolveServiceRequest(
+    staffID: String!
+    requestID: String!
+  ): Boolean!
 }
 
 extend type Query {

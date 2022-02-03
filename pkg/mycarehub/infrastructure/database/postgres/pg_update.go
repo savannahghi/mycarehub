@@ -159,3 +159,8 @@ func (d *MyCareHubDb) ViewContent(ctx context.Context, userID string, contentID 
 func (d *MyCareHubDb) UpdateClientCaregiver(ctx context.Context, caregiverInput *dto.CaregiverInput) error {
 	return d.update.UpdateClientCaregiver(ctx, caregiverInput)
 }
+
+// ResolveServiceRequest resolves a service request
+func (d *MyCareHubDb) ResolveServiceRequest(ctx context.Context, staffID *string, serviceRequestID *string) (bool, error) {
+	return d.update.ResolveServiceRequest(ctx, staffID, serviceRequestID)
+}
