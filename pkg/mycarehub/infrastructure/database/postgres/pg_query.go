@@ -648,10 +648,10 @@ func (d *MyCareHubDb) GetServiceRequests(ctx context.Context, requestType *strin
 			ClientID:     serviceRequest.ClientID,
 			RequestType:  serviceRequest.RequestType,
 			Status:       serviceRequest.Status,
-			InProgressAt: *serviceRequest.InProgressAt,
-			InProgressBy: *serviceRequest.InProgressByID,
-			ResolvedAt:   *serviceRequest.ResolvedAt,
-			ResolvedBy:   *serviceRequest.ResolvedByID,
+			InProgressAt: serviceRequest.InProgressAt,
+			InProgressBy: serviceRequest.InProgressByID,
+			ResolvedAt:   serviceRequest.ResolvedAt,
+			ResolvedBy:   serviceRequest.ResolvedByID,
 		}
 		serviceRequests = append(serviceRequests, serviceRequest)
 	}
