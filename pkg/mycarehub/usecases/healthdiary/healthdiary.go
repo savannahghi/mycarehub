@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 )
 
 // The healthdiary is used for engagement with clients on a day-by-day basis.
@@ -87,6 +87,7 @@ func (h UseCasesHealthDiaryImpl) CreateHealthDiaryEntry(
 			ShareWithHealthWorker: reportToStaff,
 			ClientID:              clientID,
 			SharedAt:              currentTime,
+			CreatedAt:             currentTime,
 		}
 
 		err := h.Create.CreateHealthDiaryEntry(ctx, healthDiaryEntry)
