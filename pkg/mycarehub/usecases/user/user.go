@@ -416,7 +416,7 @@ func (us *UseCasesUserImpl) SetUserPIN(ctx context.Context, input dto.PINInput) 
 		HashedPIN: encryptedPIN,
 		ValidFrom: time.Now(),
 		ValidTo:   *expiryDate,
-		Flavour:   userProfile.Flavour,
+		Flavour:   input.Flavour,
 		IsValid:   true,
 		Salt:      salt,
 	}
