@@ -57,7 +57,7 @@ func InitializeTestService(ctx context.Context) (*usecases.MyCareHub, error) {
 
 	healthDiaryUseCase := healthdiary.NewUseCaseHealthDiaryImpl(db, db)
 	faq := faq.NewUsecaseFAQ(db)
-	serviceRequestUseCase := servicerequest.NewUseCaseServiceRequestImpl(db, db)
+	serviceRequestUseCase := servicerequest.NewUseCaseServiceRequestImpl(db, db, db)
 
 	i := usecases.NewMyCareHubUseCase(
 		userUsecase, termsUsecase, facilityUseCase,

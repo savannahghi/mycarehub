@@ -1311,6 +1311,95 @@ func TestMyCareHubDb_BookmarkContent(t *testing.T) {
 	}
 }
 
+func TestMyCareHubDb_InProgressBy(t *testing.T) {
+	ctx := context.Background()
+
+	type args struct {
+		ctx       context.Context
+		requestID string
+		staffID   string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:       ctx,
+				requestID: uuid.New().String(),
+				staffID:   uuid.New().String(),
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Sad case",
+			args: args{
+				ctx:       ctx,
+				requestID: uuid.New().String(),
+				staffID:   uuid.New().String(),
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case - empty request ID",
+			args: args{
+				ctx:       ctx,
+				requestID: "",
+				staffID:   uuid.New().String(),
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case - empty staff ID",
+			args: args{
+				ctx:       ctx,
+				requestID: uuid.New().String(),
+				staffID:   "",
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var fakeGorm = gormMock.NewGormMock()
+			_ = pgMock.NewPostgresMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			if tt.name == "Sad case" {
+				fakeGorm.MockInProgressByFn = func(ctx context.Context, requestID, staffID string) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - empty request ID" {
+				fakeGorm.MockInProgressByFn = func(ctx context.Context, requestID, staffID string) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - empty staff ID" {
+				fakeGorm.MockInProgressByFn = func(ctx context.Context, requestID, staffID string) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+
+			got, err := d.SetInProgressBy(tt.args.ctx, tt.args.requestID, tt.args.staffID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.SetInProgressBy() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("MyCareHubDb.SetInProgressBy() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
 func TestMyCareHubDb_UnBookmarkContent(t *testing.T) {
 	ctx := context.Background()
 

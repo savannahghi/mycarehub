@@ -28,6 +28,11 @@ type ICreateServiceRequest interface {
 	) (bool, error)
 }
 
+// ISetInProgresssBy is an interface that contains the method signature for assigning the staff currently working on a request
+type ISetInProgresssBy interface {
+	SetInProgressBy(ctx context.Context, requestID string, staffID string) (bool, error)
+}
+
 // IGetServiceRequests is an interface that holds the method signature for getting service requests
 type IGetServiceRequests interface {
 	GetServiceRequests(
@@ -41,22 +46,26 @@ type IGetServiceRequests interface {
 type UseCaseServiceRequest interface {
 	ICreateServiceRequest
 	IGetServiceRequests
+	ISetInProgresssBy
 }
 
 // UseCasesServiceRequestImpl embeds the service request logic
 type UseCasesServiceRequestImpl struct {
 	Create infrastructure.Create
 	Query  infrastructure.Query
+	Update infrastructure.Update
 }
 
 // NewUseCaseServiceRequestImpl creates a new service request instance
 func NewUseCaseServiceRequestImpl(
 	create infrastructure.Create,
 	query infrastructure.Query,
+	update infrastructure.Update,
 ) *UseCasesServiceRequestImpl {
 	return &UseCasesServiceRequestImpl{
 		Create: create,
 		Query:  query,
+		Update: update,
 	}
 }
 
@@ -80,6 +89,14 @@ func (u *UseCasesServiceRequestImpl) CreateServiceRequest(
 		return false, fmt.Errorf("failed to create service request: %v", err)
 	}
 	return true, nil
+}
+
+// SetInProgressBy assigns to a service request, staff currently working on the service request
+func (u *UseCasesServiceRequestImpl) SetInProgressBy(ctx context.Context, requestID string, staffID string) (bool, error) {
+	if requestID == "" || staffID == "" {
+		return false, fmt.Errorf("request ID or staff ID cannot be empty")
+	}
+	return u.Update.SetInProgressBy(ctx, requestID, staffID)
 }
 
 // GetServiceRequests gets service requests based on the parameters provided

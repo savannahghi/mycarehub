@@ -74,6 +74,7 @@ type PostgresMock struct {
 	MockCreateClientCaregiverFn                   func(ctx context.Context, caregiverInput *dto.CaregiverInput) error
 	MockGetClientCaregiverFn                      func(ctx context.Context, caregiverID string) (*domain.Caregiver, error)
 	MockUpdateClientCaregiverFn                   func(ctx context.Context, caregiverInput *dto.CaregiverInput) error
+	MockInProgressByFn                            func(ctx context.Context, requestID string, staffID string) (bool, error)
 	MockGetClientByClientIDFn                     func(ctx context.Context, clientID string) (*domain.ClientProfile, error)
 	MockGetServiceRequestsFn                      func(ctx context.Context, requestType *string, requestStatus *string) ([]*domain.ServiceRequest, error)
 }
@@ -430,6 +431,9 @@ func NewPostgresMock() *PostgresMock {
 		MockCreateClientCaregiverFn: func(ctx context.Context, caregiverInput *dto.CaregiverInput) error {
 			return nil
 		},
+		MockInProgressByFn: func(ctx context.Context, requestID, staffID string) (bool, error) {
+			return true, nil
+		},
 		MockGetClientCaregiverFn: func(ctx context.Context, caregiverID string) (*domain.Caregiver, error) {
 			return &domain.Caregiver{
 				ID:            "26b20a42-cbb8-4553-aedb-c539602d04fc",
@@ -743,6 +747,11 @@ func (gm *PostgresMock) GetClientCaregiver(ctx context.Context, caregiverID stri
 // UpdateClientCaregiver mocks the implementation of updating a caregiver
 func (gm *PostgresMock) UpdateClientCaregiver(ctx context.Context, caregiverInput *dto.CaregiverInput) error {
 	return gm.MockUpdateClientCaregiverFn(ctx, caregiverInput)
+}
+
+// SetInProgressBy mocks the implementation of the `SetInProgressBy` update method
+func (gm *PostgresMock) SetInProgressBy(ctx context.Context, requestID, staffID string) (bool, error) {
+	return gm.MockInProgressByFn(ctx, requestID, staffID)
 }
 
 // GetClientByClientID mocks the implementation of getting a client by client id

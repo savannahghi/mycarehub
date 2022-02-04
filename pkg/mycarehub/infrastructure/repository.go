@@ -80,6 +80,7 @@ type Update interface {
 	UnBookmarkContent(ctx context.Context, userID string, contentID int) (bool, error)
 	LikeContent(ctx context.Context, userID string, contentID int) (bool, error)
 	UnlikeContent(ctx context.Context, userID string, contentID int) (bool, error)
+	SetInProgressBy(ctx context.Context, requestID string, staffID string) (bool, error)
 	ViewContent(ctx context.Context, userID string, contentID int) (bool, error)
 	UpdateClientCaregiver(ctx context.Context, caregiverInput *dto.CaregiverInput) error
 }
