@@ -19,6 +19,10 @@ func (r *mutationResolver) CreateServiceRequest(ctx context.Context, clientID st
 	return r.mycarehub.ServiceRequest.CreateServiceRequest(ctx, clientID, requestType, *request)
 }
 
+func (r *mutationResolver) ResolveServiceRequest(ctx context.Context, staffID string, requestID string) (bool, error) {
+	return r.mycarehub.ServiceRequest.ResolveServiceRequest(ctx, &staffID, &requestID)
+}
+
 func (r *queryResolver) GetServiceRequests(ctx context.Context, requestType *string, requestStatus *string) ([]*domain.ServiceRequest, error) {
 	return r.mycarehub.ServiceRequest.GetServiceRequests(ctx, requestType, requestStatus)
 }

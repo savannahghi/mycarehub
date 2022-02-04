@@ -83,4 +83,5 @@ type Update interface {
 	SetInProgressBy(ctx context.Context, requestID string, staffID string) (bool, error)
 	ViewContent(ctx context.Context, userID string, contentID int) (bool, error)
 	UpdateClientCaregiver(ctx context.Context, caregiverInput *dto.CaregiverInput) error
+	ResolveServiceRequest(ctx context.Context, staffID *string, serviceRequestID *string) (bool, error)
 }

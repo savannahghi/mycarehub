@@ -33,6 +33,7 @@ type Update interface {
 	ViewContent(ctx context.Context, userID string, contentID int) (bool, error)
 	SetInProgressBy(ctx context.Context, requestID string, staffID string) (bool, error)
 	UpdateClientCaregiver(ctx context.Context, caregiverInput *dto.CaregiverInput) error
+	ResolveServiceRequest(ctx context.Context, staffID *string, serviceRequestID *string) (bool, error)
 }
 
 // LikeContent perfoms the actual database operation to update content like. The operation
@@ -596,4 +597,49 @@ func (db *PGInstance) UpdateClientCaregiver(ctx context.Context, caregiverInput 
 	}
 
 	return nil
+}
+
+// ResolveServiceRequest resolves a service request for a given client
+func (db *PGInstance) ResolveServiceRequest(ctx context.Context, staffID *string, serviceRequestID *string) (bool, error) {
+	var (
+		serviceRequest ClientServiceRequest
+	)
+
+	currentTime := time.Now()
+
+	tx := db.DB.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+	if err := tx.Error; err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, fmt.Errorf("failied initialize database transaction %v", err)
+	}
+
+	if err := tx.Model(&ClientServiceRequest{}).Where(&ClientServiceRequest{ID: serviceRequestID}).First(&serviceRequest).Error; err != nil {
+		helpers.ReportErrorToSentry(err)
+		tx.Rollback()
+		return false, fmt.Errorf("failed to get service request: %v", err)
+	}
+
+	err := tx.Model(&ClientServiceRequest{}).Where(&ClientServiceRequest{ID: serviceRequestID}).Updates(ClientServiceRequest{
+		Status:       enums.ServiceRequestStatusResolved.String(),
+		ResolvedByID: staffID,
+		ResolvedAt:   &currentTime,
+	}).Error
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		tx.Rollback()
+		return false, fmt.Errorf("failed to update service request: %v", err)
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		helpers.ReportErrorToSentry(err)
+		tx.Rollback()
+		return false, fmt.Errorf("transaction commit to update service request failed: %v", err)
+	}
+
+	return true, nil
 }

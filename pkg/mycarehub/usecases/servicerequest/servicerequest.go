@@ -42,11 +42,17 @@ type IGetServiceRequests interface {
 	) ([]*domain.ServiceRequest, error)
 }
 
+// IResolveServiceRequest is an interface that holds the method signature for resolving a service request
+type IResolveServiceRequest interface {
+	ResolveServiceRequest(ctx context.Context, staffID *string, serviceRequestID *string) (bool, error)
+}
+
 // UseCaseServiceRequest holds all the interfaces that represent the service request business logic
 type UseCaseServiceRequest interface {
 	ICreateServiceRequest
 	IGetServiceRequests
 	ISetInProgresssBy
+	IResolveServiceRequest
 }
 
 // UseCasesServiceRequestImpl embeds the service request logic
@@ -117,4 +123,26 @@ func (u *UseCasesServiceRequestImpl) GetServiceRequests(
 	}
 
 	return u.Query.GetServiceRequests(ctx, requestType, requestStatus)
+}
+
+// ResolveServiceRequest resolves a service request
+func (u *UseCasesServiceRequestImpl) ResolveServiceRequest(ctx context.Context, staffID *string, serviceRequestID *string) (bool, error) {
+	if staffID == nil {
+		return false, fmt.Errorf("staff ID is required")
+	}
+	if serviceRequestID == nil {
+		return false, fmt.Errorf("service request ID is required")
+	}
+	ok, err := u.Update.ResolveServiceRequest(ctx, staffID, serviceRequestID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, fmt.Errorf("failed to update service request: %v", err)
+	}
+
+	if !ok {
+		helpers.ReportErrorToSentry(err)
+		return false, fmt.Errorf("failed to resolve service request")
+	}
+
+	return ok, nil
 }
