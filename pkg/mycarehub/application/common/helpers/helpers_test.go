@@ -58,8 +58,7 @@ func TestGetInviteLink(t *testing.T) {
 
 func TestCreateInviteMessage(t *testing.T) {
 
-	firstName := "Jon"
-	lastName := "Doe"
+	name := "John Doe"
 	inviteLink := "https://example.com"
 	pin := "99033"
 
@@ -79,8 +78,7 @@ func TestCreateInviteMessage(t *testing.T) {
 			name: "default case",
 			args: args{
 				user: &domain.User{
-					FirstName: firstName,
-					LastName:  lastName,
+					Name: name,
 				},
 				inviteLink: inviteLink,
 				pin:        pin,

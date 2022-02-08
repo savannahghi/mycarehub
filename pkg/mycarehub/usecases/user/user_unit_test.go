@@ -267,14 +267,11 @@ func TestUnit_InviteUser(t *testing.T) {
 	userID := ksuid.New().String()
 
 	userOutput := &domain.User{
-		ID:          &userID,
-		DisplayName: "Test User",
-		Username:    "testuser",
-		FirstName:   "Test",
-		LastName:    "User",
-		MiddleName:  "",
-		Active:      true,
-		Gender:      enumutils.GenderFemale,
+		ID:       &userID,
+		Name:     "Test User",
+		Username: "testuser",
+		Active:   true,
+		Gender:   enumutils.GenderFemale,
 	}
 
 	type args struct {
