@@ -559,6 +559,7 @@ func TestPGInstance_CreateServiceRequest(t *testing.T) {
 		ResolvedAt:     &testTime,
 		ClientID:       clientID,
 		OrganisationID: orgID,
+		FacilityID:     facilityID,
 	}
 	type args struct {
 		ctx                 context.Context

@@ -23,6 +23,6 @@ func (r *mutationResolver) ResolveServiceRequest(ctx context.Context, staffID st
 	return r.mycarehub.ServiceRequest.ResolveServiceRequest(ctx, &staffID, &requestID)
 }
 
-func (r *queryResolver) GetServiceRequests(ctx context.Context, requestType *string, requestStatus *string) ([]*domain.ServiceRequest, error) {
-	return r.mycarehub.ServiceRequest.GetServiceRequests(ctx, requestType, requestStatus)
+func (r *queryResolver) GetServiceRequests(ctx context.Context, requestType *string, requestStatus *string, facilityID string) ([]*domain.ServiceRequest, error) {
+	return r.mycarehub.ServiceRequest.GetServiceRequests(ctx, requestType, requestStatus, &facilityID)
 }

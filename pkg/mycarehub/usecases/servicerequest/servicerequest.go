@@ -3,10 +3,10 @@ package servicerequest
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
 )
@@ -35,11 +35,7 @@ type ISetInProgresssBy interface {
 
 // IGetServiceRequests is an interface that holds the method signature for getting service requests
 type IGetServiceRequests interface {
-	GetServiceRequests(
-		ctx context.Context,
-		requestType *string,
-		requestStatus *string,
-	) ([]*domain.ServiceRequest, error)
+	GetServiceRequests(ctx context.Context, requestType, requestStatus, facilityID *string) ([]*domain.ServiceRequest, error)
 }
 
 // IResolveServiceRequest is an interface that holds the method signature for resolving a service request
@@ -81,15 +77,20 @@ func (u *UseCasesServiceRequestImpl) CreateServiceRequest(
 	clientID string,
 	requestType, request string,
 ) (bool, error) {
-	serviceRequest := &domain.ClientServiceRequest{
-		Active:       true,
-		RequestType:  requestType,
-		Request:      request,
-		Status:       "PENDING",
-		InProgressAt: time.Now(),
-		ClientID:     clientID,
+	clientProfile, err := u.Query.GetClientProfileByClientID(ctx, clientID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, exceptions.ClientProfileNotFoundErr(err)
 	}
-	err := u.Create.CreateServiceRequest(ctx, serviceRequest)
+	serviceRequest := &domain.ClientServiceRequest{
+		Active:      true,
+		RequestType: requestType,
+		Request:     request,
+		Status:      "PENDING",
+		ClientID:    clientID,
+		FacilityID:  clientProfile.FacilityID,
+	}
+	err = u.Create.CreateServiceRequest(ctx, serviceRequest)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return false, fmt.Errorf("failed to create service request: %v", err)
@@ -110,6 +111,7 @@ func (u *UseCasesServiceRequestImpl) GetServiceRequests(
 	ctx context.Context,
 	requestType *string,
 	requestStatus *string,
+	facilityID *string,
 ) ([]*domain.ServiceRequest, error) {
 	if requestType != nil {
 		if !enums.ServiceRequestType(*requestType).IsValid() {
@@ -122,7 +124,7 @@ func (u *UseCasesServiceRequestImpl) GetServiceRequests(
 		}
 	}
 
-	return u.Query.GetServiceRequests(ctx, requestType, requestStatus)
+	return u.Query.GetServiceRequests(ctx, requestType, requestStatus, facilityID)
 }
 
 // ResolveServiceRequest resolves a service request

@@ -1834,7 +1834,7 @@ func TestUseCasesUserImpl_GetClientCaregiver(t *testing.T) {
 			}
 
 			if tt.name == "invalid: failed to get client by id" {
-				fakeDB.MockGetClientByClientIDFn = func(ctx context.Context, clientID string) (*domain.ClientProfile, error) {
+				fakeDB.MockGetClientProfileByClientIDFn = func(ctx context.Context, clientID string) (*domain.ClientProfile, error) {
 					return nil, fmt.Errorf("failed to get client by id")
 				}
 			}
@@ -1986,7 +1986,7 @@ func TestUseCasesUserImpl_CreateOrUpdateClientCaregiver(t *testing.T) {
 			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, otp)
 
 			if tt.name == "invalid: failed to get client by id" {
-				fakeDB.MockGetClientByClientIDFn = func(ctx context.Context, clientID string) (*domain.ClientProfile, error) {
+				fakeDB.MockGetClientProfileByClientIDFn = func(ctx context.Context, clientID string) (*domain.ClientProfile, error) {
 					return nil, fmt.Errorf("failed to get client by id")
 				}
 			}
@@ -1997,7 +1997,7 @@ func TestUseCasesUserImpl_CreateOrUpdateClientCaregiver(t *testing.T) {
 					ID:          &ID,
 					CaregiverID: &ID,
 				}
-				fakeDB.MockGetClientByClientIDFn = func(ctx context.Context, clientID string) (*domain.ClientProfile, error) {
+				fakeDB.MockGetClientProfileByClientIDFn = func(ctx context.Context, clientID string) (*domain.ClientProfile, error) {
 					return client, nil
 				}
 

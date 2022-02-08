@@ -74,8 +74,8 @@ type GormMock struct {
 	MockGetClientCaregiverFn                      func(ctx context.Context, caregiverID string) (*gorm.Caregiver, error)
 	MockUpdateClientCaregiverFn                   func(ctx context.Context, caregiverInput *dto.CaregiverInput) error
 	MockInProgressByFn                            func(ctx context.Context, requestID string, staffID string) (bool, error)
-	MockGetClientByClientIDFn                     func(ctx context.Context, clientID string) (*gorm.Client, error)
-	MockGetServiceRequestsFn                      func(ctx context.Context, requestType *string, requestStatus *string) ([]*gorm.ClientServiceRequest, error)
+	MockGetClientProfileByClientIDFn              func(ctx context.Context, clientID string) (*gorm.Client, error)
+	MockGetServiceRequestsFn                      func(ctx context.Context, requestType, requestStatus, facilityID *string) ([]*gorm.ClientServiceRequest, error)
 	MockResolveServiceRequestFn                   func(ctx context.Context, staffID *string, serviceRequestID *string) (bool, error)
 }
 
@@ -479,10 +479,10 @@ func NewGormMock() *GormMock {
 		MockInProgressByFn: func(ctx context.Context, requestID, staffID string) (bool, error) {
 			return true, nil
 		},
-		MockGetClientByClientIDFn: func(ctx context.Context, clientID string) (*gorm.Client, error) {
+		MockGetClientProfileByClientIDFn: func(ctx context.Context, clientID string) (*gorm.Client, error) {
 			return client, nil
 		},
-		MockGetServiceRequestsFn: func(ctx context.Context, requestType *string, requestStatus *string) ([]*gorm.ClientServiceRequest, error) {
+		MockGetServiceRequestsFn: func(ctx context.Context, requestType, requestStatus, facilityID *string) ([]*gorm.ClientServiceRequest, error) {
 			return serviceRequests, nil
 		},
 		MockResolveServiceRequestFn: func(ctx context.Context, staffID *string, serviceRequestID *string) (bool, error) {
@@ -772,14 +772,14 @@ func (gm *GormMock) SetInProgressBy(ctx context.Context, requestID, staffID stri
 	return gm.MockInProgressByFn(ctx, requestID, staffID)
 }
 
-// GetClientByClientID mocks the implementation of getting a client by client ID
-func (gm *GormMock) GetClientByClientID(ctx context.Context, clientID string) (*gorm.Client, error) {
-	return gm.MockGetClientByClientIDFn(ctx, clientID)
+// GetClientProfileByClientID mocks the implementation of getting a client by client ID
+func (gm *GormMock) GetClientProfileByClientID(ctx context.Context, clientID string) (*gorm.Client, error) {
+	return gm.MockGetClientProfileByClientIDFn(ctx, clientID)
 }
 
 // GetServiceRequests mocks the implementation of getting service requests by type
-func (gm *GormMock) GetServiceRequests(ctx context.Context, requestType *string, requestStatus *string) ([]*gorm.ClientServiceRequest, error) {
-	return gm.MockGetServiceRequestsFn(ctx, requestType, requestStatus)
+func (gm *GormMock) GetServiceRequests(ctx context.Context, requestType, requestStatus, facilityID *string) ([]*gorm.ClientServiceRequest, error) {
+	return gm.MockGetServiceRequestsFn(ctx, requestType, requestStatus, facilityID)
 }
 
 // ResolveServiceRequest mocks the implementation of resolving a service request

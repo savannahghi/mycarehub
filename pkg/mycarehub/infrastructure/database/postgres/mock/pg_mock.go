@@ -75,8 +75,8 @@ type PostgresMock struct {
 	MockGetClientCaregiverFn                      func(ctx context.Context, caregiverID string) (*domain.Caregiver, error)
 	MockUpdateClientCaregiverFn                   func(ctx context.Context, caregiverInput *dto.CaregiverInput) error
 	MockInProgressByFn                            func(ctx context.Context, requestID string, staffID string) (bool, error)
-	MockGetClientByClientIDFn                     func(ctx context.Context, clientID string) (*domain.ClientProfile, error)
-	MockGetServiceRequestsFn                      func(ctx context.Context, requestType *string, requestStatus *string) ([]*domain.ServiceRequest, error)
+	MockGetClientProfileByClientIDFn              func(ctx context.Context, clientID string) (*domain.ClientProfile, error)
+	MockGetServiceRequestsFn                      func(ctx context.Context, requestType, requestStatus, facilityID *string) ([]*domain.ServiceRequest, error)
 	MockResolveServiceRequestFn                   func(ctx context.Context, staffID *string, serviceRequestID *string) (bool, error)
 }
 
@@ -442,14 +442,14 @@ func NewPostgresMock() *PostgresMock {
 		MockUpdateClientCaregiverFn: func(ctx context.Context, caregiverInput *dto.CaregiverInput) error {
 			return nil
 		},
-		MockGetClientByClientIDFn: func(ctx context.Context, clientID string) (*domain.ClientProfile, error) {
+		MockGetClientProfileByClientIDFn: func(ctx context.Context, clientID string) (*domain.ClientProfile, error) {
 			client := &domain.ClientProfile{
 				ID:   &ID,
 				User: userProfile,
 			}
 			return client, nil
 		},
-		MockGetServiceRequestsFn: func(ctx context.Context, requestType *string, requestStatus *string) ([]*domain.ServiceRequest, error) {
+		MockGetServiceRequestsFn: func(ctx context.Context, requestType, requestStatus, facilityID *string) ([]*domain.ServiceRequest, error) {
 			return serviceRequests, nil
 		},
 		MockResolveServiceRequestFn: func(ctx context.Context, staffID *string, serviceRequestID *string) (bool, error) {
@@ -753,14 +753,14 @@ func (gm *PostgresMock) SetInProgressBy(ctx context.Context, requestID, staffID 
 	return gm.MockInProgressByFn(ctx, requestID, staffID)
 }
 
-// GetClientByClientID mocks the implementation of getting a client by client id
-func (gm *PostgresMock) GetClientByClientID(ctx context.Context, clientID string) (*domain.ClientProfile, error) {
-	return gm.MockGetClientByClientIDFn(ctx, clientID)
+// GetClientProfileByClientID mocks the implementation of getting a client by client id
+func (gm *PostgresMock) GetClientProfileByClientID(ctx context.Context, clientID string) (*domain.ClientProfile, error) {
+	return gm.MockGetClientProfileByClientIDFn(ctx, clientID)
 }
 
 // GetServiceRequests mocks the implementation of getting all service requests for a client
-func (gm *PostgresMock) GetServiceRequests(ctx context.Context, requestType *string, requestStatus *string) ([]*domain.ServiceRequest, error) {
-	return gm.MockGetServiceRequestsFn(ctx, requestType, requestStatus)
+func (gm *PostgresMock) GetServiceRequests(ctx context.Context, requestType, requestStatus, facilityID *string) ([]*domain.ServiceRequest, error) {
+	return gm.MockGetServiceRequestsFn(ctx, requestType, requestStatus, facilityID)
 }
 
 // ResolveServiceRequest mocks the implementation of resolving a service request

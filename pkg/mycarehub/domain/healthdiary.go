@@ -26,4 +26,5 @@ type ClientServiceRequest struct {
 	ClientID       string    `json:"clientID"`
 	InProgressByID string    `json:"inProgressByID"`
 	ResolvedByID   string    `json:"resolvedByID"`
+	FacilityID     string    `json:"facility_id"`
 }

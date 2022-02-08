@@ -609,9 +609,9 @@ func (d *MyCareHubDb) GetClientCaregiver(ctx context.Context, caregiverID string
 	}, nil
 }
 
-// GetClientByClientID retrieves the client for the specified clientID
-func (d *MyCareHubDb) GetClientByClientID(ctx context.Context, clientID string) (*domain.ClientProfile, error) {
-	response, err := d.query.GetClientByClientID(ctx, clientID)
+// GetClientProfileByClientID retrieves the client for the specified clientID
+func (d *MyCareHubDb) GetClientProfileByClientID(ctx context.Context, clientID string) (*domain.ClientProfile, error) {
+	response, err := d.query.GetClientProfileByClientID(ctx, clientID)
 	if err != nil {
 		return nil, err
 	}
@@ -634,9 +634,9 @@ func (d *MyCareHubDb) GetClientByClientID(ctx context.Context, clientID string) 
 }
 
 // GetServiceRequests retrieves the service requests by the type passed in the parameters
-func (d *MyCareHubDb) GetServiceRequests(ctx context.Context, requestType *string, requestStatus *string) ([]*domain.ServiceRequest, error) {
+func (d *MyCareHubDb) GetServiceRequests(ctx context.Context, requestType, requestStatus, facilityID *string) ([]*domain.ServiceRequest, error) {
 	var serviceRequests []*domain.ServiceRequest
-	clientServiceRequests, err := d.query.GetServiceRequests(ctx, requestType, requestStatus)
+	clientServiceRequests, err := d.query.GetServiceRequests(ctx, requestType, requestStatus, facilityID)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, err
@@ -645,13 +645,15 @@ func (d *MyCareHubDb) GetServiceRequests(ctx context.Context, requestType *strin
 	for _, serviceRequest := range clientServiceRequests {
 		serviceRequest := &domain.ServiceRequest{
 			ID:           *serviceRequest.ID,
-			ClientID:     serviceRequest.ClientID,
 			RequestType:  serviceRequest.RequestType,
+			Request:      serviceRequest.Request,
 			Status:       serviceRequest.Status,
+			ClientID:     serviceRequest.ClientID,
 			InProgressAt: serviceRequest.InProgressAt,
 			InProgressBy: serviceRequest.InProgressByID,
 			ResolvedAt:   serviceRequest.ResolvedAt,
 			ResolvedBy:   serviceRequest.ResolvedByID,
+			FacilityID:   facilityID,
 		}
 		serviceRequests = append(serviceRequests, serviceRequest)
 	}

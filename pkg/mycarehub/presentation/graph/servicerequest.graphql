@@ -13,5 +13,5 @@ extend type Mutation {
 }
 
 extend type Query {
-   getServiceRequests(requestType: String, requestStatus: String): [ServiceRequest]
+   getServiceRequests(requestType: String, requestStatus: String, facilityID: String!): [ServiceRequest]
 }
