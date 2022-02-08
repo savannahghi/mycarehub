@@ -16,13 +16,8 @@ type User struct {
 
 	Username string `json:"userName"`
 
-	DisplayName string `json:"displayName"`
-
-	FirstName  string `json:"firstName"`
-	MiddleName string `json:"middleName"`
-	LastName   string `json:"lastName"`
-
 	UserType enums.UsersType `json:"userType"`
+	Name     string          `json:"name"`
 
 	Gender enumutils.Gender `json:"gender"`
 	Active bool
