@@ -166,122 +166,122 @@ const (
 
 	//UnknownStateProvided means that
 	//an unknown state has been entered
-	//Its error code is 55
+	//Its error code is 32
 	UnknownStateProvided
 
 	//NavigationActionsError means that
 	//the system is not able to update or retrive a users navigation actions
-	//Its error code is 32
+	//Its error code is 33
 	NavigationActionsError
 
 	// GetInviteLinkError means that the system is unable to get a user's invite link'
 	// the flavour passed when generating the invite link is invalid
-	// Its error code is 33
+	// Its error code is 34
 	GetInviteLinkError
 
 	// SendInviteSMSError means that the system is unable to send an invite SMS' to a user'
 	// the system failed to make a successful request to the messaging service
-	// Its error code is 34
+	// Its error code is 35
 	SendInviteSMSError
 
 	// GenerateTempPINError means that the system is unable to generate a temporary PIN'
 	// the random number generator has failed (which is highly unlikely)
-	// Its error code is 35
+	// Its error code is 36
 	GenerateTempPINError
 
 	// InvalidResetPinPayloadError means that the system is unable to validate the reset pin input'
 	// the user ID or the flavor are not provided
-	// Its error code is 36
+	// Its error code is 37
 	InvalidResetPinPayloadError
 
 	// EmptyUserIDInputError means that the system is unable to userID input'
 	// the user ID is empty
-	// Its error code is 37
+	// Its error code is 38
 	EmptyUserIDInputError
 
 	// InvalidatePinError means that the system is unable to invalidate a reset pin'
 	// the invalidation action has failed
-	// Its error code is 38
+	// Its error code is 39
 	InvalidatePinError
 
 	// ResetPinError means that the system is unable to reset a pin'
 	// the reset action has failed
-	// Its error code is 39
+	// Its error code is 40
 	ResetPinError
 
 	// PINExpiredError means that the pin provided is expired'
 	// the pin's expiration time' has passed
-	// Its error code is 40
+	// Its error code is 41
 	PINExpiredError
 
 	// EmptyInputError means that the system is unable to validate the input'
 	// the input is empty
-	// Its error code is 41
+	// Its error code is 42
 	EmptyInputError
 
 	// NotOptedInError means that the system user has not opted in the input for a contact'
 	// the user has not opted in for the input'
-	// Its error code is 42
+	// Its error code is 43
 	NotOptedInError
 
 	// NotActiveError means that the a field is not active'
 	// the field is not active'
-	// Its error code is 43
+	// Its error code is 44
 	NotActiveError
 
 	// InvalidContactTypeError means that the system is unable to validate the contact type'
 	// the contact type is invalid'
-	// Its error code is 44
+	// Its error code is 45
 	InvalidContactTypeError
 
 	// NoContactsError means that the system could not find any contacts'
 	// the user has no contacts'
-	// Its error code is 45
+	// Its error code is 46
 	NoContactsError
 
 	// ContactNotFoundError means that the system could not find the contact'
 	// the contact was not found'
-	// Its error code is 46
+	// Its error code is 47
 	ContactNotFoundError
 
 	// ExpiredPinError means that the system is unable to validate the pin'
 	// The pin provided has expired'
-	// Its error code is 47
+	// Its error code is 48
 	ExpiredPinError
 
 	// LoginCountUpdateError means that the system is unable to update the login count'
 	// The login count update has failed'
-	// Its error code is 48
+	// Its error code is 49
 	LoginCountUpdateError
 
 	// LoginTimeUpdateError means that the system is unable to update the login time'
 	// The login time update has failed'
-	// Its error code is 49
+	// Its error code is 50
 	LoginTimeUpdateError
 
 	// NexAllowedLOginTimeError means that the system is unable to validate the login time'
 	// The login time is not allowed'
-	// Its error code is 50
+	// Its error code is 51
 	NexAllowedLOginTimeError
 
 	// SendSMSError means that the system is unable to send an SMS'
 	// The SMS sending has failed'
-	// Its error code is 51
+	// Its error code is 52
 	SendSMSError
 
 	// FailedToUpdateItemError means that the system is unable to update an item'
 	// The update has failed'
-	// Its error code is 52
+	// Its error code is 53
 	FailedToUpdateItemError
 
 	// ItemNotFoundError means that the system is unable to find an item'
 	// The item was not found'
-	// Its error code is 53
+	// Its error code is 54
 	ItemNotFoundError
 
 	// InputValidationError means that the system is unable to validate the input'
 	// The input is invalid'
-	// Its error code is 54
+	// Its error code is 55
 	InputValidationError
 
 	// EncryptionError means that the system is unable to encrypt the input'
@@ -318,4 +318,24 @@ const (
 	// The creation has failed'
 	// Its error code is 62
 	CreateClientCaregiverError
+
+	// GetLoggedInUserUIDError means that the system is unable to get the logged in user UID'
+	// The retrieval has failed'
+	// Its error code is 63
+	GetLoggedInUserUIDError
+
+	// CheckUserRoleError means that the system is unable to check the user role'
+	// The check has failed'
+	// Its error code is 64
+	CheckUserRoleError
+
+	// UserNotAuthorizedError means that the system is unable to validate the user'
+	// The user is not authorized'
+	// Its error code is 65
+	UserNotAuthorizedError
+
+	// CheckUserPermissionError means that the system is unable to check the user permission'
+	// The check has failed'
+	// Its error code is 66
+	CheckUserPermissionError
 )

@@ -2812,3 +2812,115 @@ func TestMyCareHubDb_GetServiceRequests(t *testing.T) {
 		})
 	}
 }
+
+func TestMyCareHubDb_CheckUserRole(t *testing.T) {
+	type args struct {
+		ctx    context.Context
+		userID string
+		role   string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "happy case: user has a role",
+			args: args{
+				ctx:    context.Background(),
+				userID: uuid.New().String(),
+				role:   string(enums.UserRoleTypeCommunityManagement),
+			},
+			wantErr: false,
+			want:    true,
+		},
+
+		{
+			name: "sad case: user has no role",
+			args: args{
+				ctx:    context.Background(),
+				userID: uuid.New().String(),
+				role:   string(enums.UserRoleTypeCommunityManagement),
+			},
+			wantErr: true,
+			want:    false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var fakeGorm = gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			if tt.name == "sad case: user has no role" {
+				fakeGorm.MockCheckUserRoleFn = func(ctx context.Context, userID string, role string) (bool, error) {
+					return false, fmt.Errorf("failed to get user role")
+				}
+			}
+			got, err := d.CheckUserRole(tt.args.ctx, tt.args.userID, tt.args.role)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.CheckUserRole() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("MyCareHubDb.CheckUserRole() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestMyCareHubDb_CheckUserPermission(t *testing.T) {
+	type args struct {
+		ctx        context.Context
+		userID     string
+		permission string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "happy case: user has a permission",
+			args: args{
+				ctx:        context.Background(),
+				userID:     uuid.New().String(),
+				permission: string(enums.PermissionTypeCanEditOwnRole),
+			},
+			wantErr: false,
+			want:    true,
+		},
+		{
+			name: "sad case: user has no permission",
+			args: args{
+				ctx:        context.Background(),
+				userID:     uuid.New().String(),
+				permission: string(enums.PermissionTypeCanEditOwnRole),
+			},
+			wantErr: true,
+			want:    false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var fakeGorm = gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			if tt.name == "sad case: user has no permission" {
+				fakeGorm.MockCheckUserPermissionFn = func(ctx context.Context, userID string, permission string) (bool, error) {
+					return false, fmt.Errorf("failed to get user permission")
+				}
+			}
+
+			got, err := d.CheckUserPermission(tt.args.ctx, tt.args.userID, tt.args.permission)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.CheckUserPermission() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("MyCareHubDb.CheckUserPermission() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

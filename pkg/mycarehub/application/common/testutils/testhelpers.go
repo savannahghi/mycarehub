@@ -9,6 +9,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/authority"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/content"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/facility"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/faq"
@@ -46,8 +47,9 @@ func InitializeTestService(ctx context.Context) (*usecases.MyCareHub, error) {
 	facilityUseCase := facility.NewFacilityUsecase(db, db, db, db)
 
 	otpUseCase := otp.NewOTPUseCase(db, db, externalExt)
+	authorityUseCase := authority.NewUsecaseAuthority(db, externalExt)
 
-	userUsecase := user.NewUseCasesUserImpl(db, db, db, db, externalExt, otpUseCase)
+	userUsecase := user.NewUseCasesUserImpl(db, db, db, db, externalExt, otpUseCase, authorityUseCase)
 
 	termsUsecase := terms.NewUseCasesTermsOfService(db, db)
 
@@ -62,7 +64,7 @@ func InitializeTestService(ctx context.Context) (*usecases.MyCareHub, error) {
 	i := usecases.NewMyCareHubUseCase(
 		userUsecase, termsUsecase, facilityUseCase,
 		securityQuestionsUsecase, otpUseCase, contentUseCase, feedbackUsecase, healthDiaryUseCase,
-		faq, serviceRequestUseCase,
+		faq, serviceRequestUseCase, authorityUseCase,
 	)
 	return i, nil
 }

@@ -754,3 +754,57 @@ func (c *Caregiver) BeforeCreate(tx *gorm.DB) (err error) {
 func (Caregiver) TableName() string {
 	return "clients_caregiver"
 }
+
+// AuthorityRole is the gorms authority role model
+type AuthorityRole struct {
+	Base
+	AuthorityRoleID *string `gorm:"column:id"`
+	Name            string  `gorm:"column:name"`
+	OrganisationID  string  `gorm:"column:organisation_id"`
+}
+
+// BeforeCreate is a hook run before creating authority role
+func (c *AuthorityRole) BeforeCreate(tx *gorm.DB) (err error) {
+	id := uuid.New().String()
+	c.AuthorityRoleID = &id
+	c.OrganisationID = OrganizationID
+	return
+}
+
+// TableName references the table that we map data from
+func (AuthorityRole) TableName() string {
+	return "authority_authorityrole"
+}
+
+// AuthorityPermissions is the gorms authority permission model
+type AuthorityPermissions struct {
+	Base
+	AuthorityPermissionID *string `gorm:"column:id"`
+	Name                  string  `gorm:"column:name"`
+	OrganisationID        string  `gorm:"column:organisation_id"`
+}
+
+// BeforeCreate is a hook run before creating authority permission
+func (c *AuthorityPermissions) BeforeCreate(tx *gorm.DB) (err error) {
+	id := uuid.New().String()
+	c.AuthorityPermissionID = &id
+	c.OrganisationID = OrganizationID
+	return
+}
+
+// TableName references the table that we map data from
+func (AuthorityPermissions) TableName() string {
+	return "authority_authoritypermission"
+}
+
+// AuthorityRoleUser is the gorms authority role user model
+type AuthorityRoleUser struct {
+	ID     int     `gorm:"primaryKey;column:id;autoincrement"`
+	UserID *string `gorm:"column:user_id"`
+	RoleID *string `gorm:"column:authorityrole_id"`
+}
+
+// TableName references the table that we map data from
+func (AuthorityRoleUser) TableName() string {
+	return "authority_authorityrole_users"
+}

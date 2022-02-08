@@ -26,6 +26,7 @@ type FakeExtensionImpl struct {
 	MockSendSMSViaTwilioFn                func(ctx context.Context, phonenumber, message string) error
 	MockSendInviteSMSFn                   func(ctx context.Context, phoneNumber, message string) error
 	MockSendFeedbackFn                    func(ctx context.Context, subject, feedbackMessage string) (bool, error)
+	MockGetLoggedInUserUIDFn              func(ctx context.Context) (string, error)
 }
 
 // NewFakeExtension initializes a new instance of the external calls mock
@@ -80,6 +81,9 @@ func NewFakeExtension() *FakeExtensionImpl {
 		},
 		MockSendFeedbackFn: func(ctx context.Context, subject, feedbackMessage string) (bool, error) {
 			return true, nil
+		},
+		MockGetLoggedInUserUIDFn: func(ctx context.Context) (string, error) {
+			return uuid.New().String(), nil
 		},
 	}
 }
@@ -142,4 +146,9 @@ func (f *FakeExtensionImpl) SendInviteSMS(ctx context.Context, phoneNumber, mess
 //SendFeedback mocks the implementation sending feedback
 func (f *FakeExtensionImpl) SendFeedback(ctx context.Context, subject, feedbackMessage string) (bool, error) {
 	return f.MockSendFeedbackFn(ctx, subject, feedbackMessage)
+}
+
+// GetLoggedInUserUID mocks the implementation of getting a logged in user
+func (f *FakeExtensionImpl) GetLoggedInUserUID(ctx context.Context) (string, error) {
+	return f.MockGetLoggedInUserUIDFn(ctx)
 }

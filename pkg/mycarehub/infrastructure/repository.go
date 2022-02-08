@@ -61,6 +61,8 @@ type Query interface {
 	GetClientCaregiver(ctx context.Context, caregiverID string) (*domain.Caregiver, error)
 	GetClientProfileByClientID(ctx context.Context, clientID string) (*domain.ClientProfile, error)
 	GetServiceRequests(ctx context.Context, requestType, requestStatus, facilityID *string) ([]*domain.ServiceRequest, error)
+	CheckUserRole(ctx context.Context, userID string, role string) (bool, error)
+	CheckUserPermission(ctx context.Context, userID string, permission string) (bool, error)
 }
 
 // Update represents all the update action interfaces

@@ -1,0 +1,28 @@
+# authority_authoritypermission.yml
+- id: {{.can_invite_user_permission}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  organisation_id: {{.test_organisation_id}}
+  active: true
+  name: CAN_INVITE_USER
+
+- id: {{.can_edit_own_role_permission}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  active: true
+  organisation_id: {{.test_organisation_id}}
+  name: CAN_EDIT_OWN_ROLE
+
+- id: {{.can_manage_content_permission}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  active: true
+  organisation_id: {{.test_organisation_id}}
+  name: CAN_MANAGE_CONTENT
+
+- id: {{.can_create_content_permission}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  active: true
+  organisation_id: {{.test_organisation_id}}
+  name: CAN_CREATE_CONTENT_IN_CMS

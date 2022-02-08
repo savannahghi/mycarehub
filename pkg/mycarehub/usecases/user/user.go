@@ -16,11 +16,13 @@ import (
 	"github.com/savannahghi/firebasetools"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
 	utilsExt "github.com/savannahghi/mycarehub/pkg/mycarehub/application/utils"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/authority"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/otp"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/utils"
 	"github.com/savannahghi/serverutils"
@@ -115,6 +117,7 @@ type UseCasesUserImpl struct {
 	Update      infrastructure.Update
 	ExternalExt extension.ExternalMethodsExtension
 	OTP         otp.UsecaseOTP
+	Authority   authority.UsecaseAuthority
 }
 
 // NewUseCasesUserImpl returns a new user service
@@ -125,6 +128,7 @@ func NewUseCasesUserImpl(
 	update infrastructure.Update,
 	externalExt extension.ExternalMethodsExtension,
 	otp otp.UsecaseOTP,
+	authority authority.UsecaseAuthority,
 ) *UseCasesUserImpl {
 	return &UseCasesUserImpl{
 		Create:      create,
@@ -133,6 +137,7 @@ func NewUseCasesUserImpl(
 		Update:      update,
 		ExternalExt: externalExt,
 		OTP:         otp,
+		Authority:   authority,
 	}
 }
 
@@ -727,6 +732,13 @@ func (us *UseCasesUserImpl) RegisterClient(
 	input *dto.ClientRegistrationInput,
 ) (*dto.ClientRegistrationOutput, error) {
 	var registrationOutput *dto.ClientRegistrationOutput
+
+	// check if logged in user can register client
+	err := us.Authority.CheckUserPermission(ctx, enums.PermissionTypeCanInviteClient)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, exceptions.UserNotAuthorizedErr(err)
+	}
 
 	input.Gender = enumutils.Gender(strings.ToUpper(input.Gender.String()))
 	resp, err := utilsExt.MakeRequest(ctx, http.MethodPost, registerClientAPIEndpoint, input)

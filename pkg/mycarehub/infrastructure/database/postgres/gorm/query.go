@@ -48,6 +48,8 @@ type Query interface {
 	GetClientCaregiver(ctx context.Context, caregiverID string) (*Caregiver, error)
 	GetClientProfileByClientID(ctx context.Context, clientID string) (*Client, error)
 	GetServiceRequests(ctx context.Context, requestType, requestStatus, facilityID *string) ([]*ClientServiceRequest, error)
+	CheckUserRole(ctx context.Context, userID string, role string) (bool, error)
+	CheckUserPermission(ctx context.Context, userID string, permission string) (bool, error)
 }
 
 // CheckWhetherUserHasLikedContent performs a operation to check whether user has liked the content
@@ -600,4 +602,59 @@ func (db *PGInstance) GetServiceRequests(ctx context.Context, requestType, reque
 	}
 
 	return serviceRequests, nil
+}
+
+// CheckUserRole checks if a user has a specific role
+func (db *PGInstance) CheckUserRole(ctx context.Context, userID string, role string) (bool, error) {
+	var returneduserID string
+	err := db.DB.Raw(
+		`
+		SELECT user_id 
+		FROM authority_authorityrole_users 
+		WHERE user_id = ? 
+		AND authority_authorityrole_users.authorityrole_id = 
+		(SELECT id FROM authority_authorityrole WHERE name = ?)
+		`, userID, role,
+	).Scan(&returneduserID).Error
+
+	if returneduserID == "" {
+		return false, nil
+	}
+
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, fmt.Errorf("failed to check if user has role: %v", err)
+	}
+
+	return true, nil
+}
+
+// CheckUserPermission checks if a user has a specific permission
+func (db *PGInstance) CheckUserPermission(ctx context.Context, userID string, permission string) (bool, error) {
+	var returneduserID string
+	err := db.DB.Raw(
+		`
+		SELECT user_id 
+		FROM authority_authorityrole_users 
+		WHERE authorityrole_id =
+		(
+			SELECT 	authorityrole_id 
+			FROM authority_authorityrole_permissions
+			WHERE authoritypermission_id = (SELECT id FROM authority_authoritypermission WHERE name = ?)
+		)
+		And 
+		user_id = ?
+		`, permission, userID,
+	).Scan(&returneduserID).Error
+
+	if returneduserID == "" {
+		return false, nil
+	}
+
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, fmt.Errorf("failed to check if user has permission: %v", err)
+	}
+
+	return true, nil
 }

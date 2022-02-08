@@ -369,3 +369,39 @@ func CreateClientCaregiverErr(err error) error {
 		Code:    int(CreateClientCaregiverError),
 	}
 }
+
+// GetLoggedInUserUIDErr returns an error message when the logged in user uid check fails
+func GetLoggedInUserUIDErr(err error) error {
+	return &CustomError{
+		Err:     err,
+		Message: GetLoggedInUserUIDErrorMsg,
+		Code:    int(GetLoggedInUserUIDError),
+	}
+}
+
+// CheckUserRoleErr returns an error message when the user role check fails
+func CheckUserRoleErr(err error) error {
+	return &CustomError{
+		Err:     err,
+		Message: CheckUserRoleErrorMsg,
+		Code:    int(CheckUserRoleError),
+	}
+}
+
+// UserNotAuthorizedErr returns an error message when the user is not authorized to perform the action
+func UserNotAuthorizedErr(err error) error {
+	return &CustomError{
+		Err:     err,
+		Message: UserNotAuthorizedErrorMsg,
+		Code:    int(UserNotAuthorizedError),
+	}
+}
+
+// CheckUserPermissionErr returns an error message when the user permission check fails
+func CheckUserPermissionErr(err error) error {
+	return &CustomError{
+		Err:     err,
+		Message: CheckUserPermissionErrorMsg,
+		Code:    int(CheckUserPermissionError),
+	}
+}

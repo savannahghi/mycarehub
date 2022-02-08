@@ -125,4 +125,16 @@ const (
 
 	// CreateClientCaregiverErrorMsg is the error message displayed when a caregiver is not created
 	CreateClientCaregiverErrorMsg = "unable to create caregiver"
+
+	// GetLoggedInUserUIDErrorMsg is the error message displayed when a logged in user uid is not found
+	GetLoggedInUserUIDErrorMsg = "unable to get logged in user uid"
+
+	// CheckUserRoleErrorMsg is the error message displayed when a user role is not found
+	CheckUserRoleErrorMsg = "unable to check user role"
+
+	// UserNotAuthorizedErrorMsg is the error message displayed when a user is not authorized
+	UserNotAuthorizedErrorMsg = "user not authorized"
+
+	// CheckUserPermissionErrorMsg is the error message displayed when a user permission is not found
+	CheckUserPermissionErrorMsg = "unable to check user permission"
 )

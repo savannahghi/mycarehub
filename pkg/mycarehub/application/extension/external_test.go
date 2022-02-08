@@ -4,9 +4,13 @@ import (
 	"context"
 	"log"
 	"os"
+	"reflect"
 	"testing"
 
+	openSourceDto "github.com/savannahghi/engagementcore/pkg/engagement/application/common/dto"
+	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/firebasetools"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension/mock"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/extension"
 	"github.com/segmentio/ksuid"
@@ -166,6 +170,187 @@ func TestExternal_ComparePIN(t *testing.T) {
 			}
 			if got := ext.ComparePIN(tt.args.rawPwd, tt.args.salt, tt.args.encodedPwd, tt.args.options); got != tt.want {
 				t.Errorf("External.ComparePIN() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestExternal_GetLoggedInUserUID(t *testing.T) {
+	type args struct {
+		ctx context.Context
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    string
+		wantErr bool
+	}{
+		{
+			name: "invalid: user not in context",
+			args: args{
+				ctx: context.Background(),
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := ext.GetLoggedInUserUID(tt.args.ctx)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("External.GetLoggedInUserUID() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("External.GetLoggedInUserUID() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestExternal_SendSMS(t *testing.T) {
+
+	type args struct {
+		ctx          context.Context
+		phoneNumbers string
+		message      string
+		from         enumutils.SenderID
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *openSourceDto.SendMessageResponse
+		wantErr bool
+		panics  bool
+	}{
+		{
+			name:   "invalid: missing params",
+			args:   args{},
+			panics: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.panics {
+				fcSendSMS := func() { _, _ = ext.SendSMS(tt.args.ctx, tt.args.phoneNumbers, tt.args.message, tt.args.from) }
+				assert.Panics(t, fcSendSMS)
+				return
+			}
+			got, err := ext.SendSMS(tt.args.ctx, tt.args.phoneNumbers, tt.args.message, tt.args.from)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("External.SendSMS() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("External.SendSMS() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestExternal_GenerateAndSendOTP(t *testing.T) {
+	type args struct {
+		ctx         context.Context
+		phoneNumber string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    string
+		wantErr bool
+		panics  bool
+	}{
+		{
+			name:    "invalid: missing params",
+			args:    args{},
+			wantErr: true,
+			panics:  true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.panics {
+				fcGenerateAndSendOTP := func() { _, _ = ext.GenerateAndSendOTP(tt.args.ctx, tt.args.phoneNumber) }
+				assert.Panics(t, fcGenerateAndSendOTP)
+				return
+			}
+			got, err := ext.GenerateAndSendOTP(tt.args.ctx, tt.args.phoneNumber)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("External.GenerateAndSendOTP() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("External.GenerateAndSendOTP() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestExternal_GenerateRetryOTP(t *testing.T) {
+	type args struct {
+		ctx     context.Context
+		payload *dto.SendRetryOTPPayload
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    string
+		wantErr bool
+		panics  bool
+	}{
+		{
+			name:    "invalid: missing params",
+			args:    args{},
+			wantErr: true,
+			panics:  true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.panics {
+				fcGenerateRetryOTP := func() { _, _ = ext.GenerateRetryOTP(tt.args.ctx, tt.args.payload) }
+				assert.Panics(t, fcGenerateRetryOTP)
+				return
+			}
+			got, err := ext.GenerateRetryOTP(tt.args.ctx, tt.args.payload)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("External.GenerateRetryOTP() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("External.GenerateRetryOTP() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestExternal_SendInviteSMS(t *testing.T) {
+	type args struct {
+		ctx         context.Context
+		phoneNumber string
+		message     string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+		panics  bool
+	}{
+		{
+			name:    "invalid: missing params",
+			args:    args{},
+			wantErr: true,
+			panics:  true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.panics {
+				fcSendInviteSMS := func() { _ = ext.SendInviteSMS(tt.args.ctx, tt.args.phoneNumber, tt.args.message) }
+				assert.Panics(t, fcSendInviteSMS)
+				return
+			}
+			if err := ext.SendInviteSMS(tt.args.ctx, tt.args.phoneNumber, tt.args.message); (err != nil) != tt.wantErr {
+				t.Errorf("External.SendInviteSMS() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}

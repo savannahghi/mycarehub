@@ -13,6 +13,7 @@ import (
 	"github.com/go-testfixtures/testfixtures/v3"
 	"github.com/google/uuid"
 	"github.com/savannahghi/feedlib"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
 )
@@ -95,6 +96,17 @@ var (
 	clientsServiceRequestID = "8ecbbc10-24c8-421a-9f1a-e17f12678ef1"
 	// Service Request
 	serviceRequestID = "8ecbbc80-24c8-421a-9f1a-e14e12678ef2"
+
+	// Authority
+	canInviteUserPermissionID    = "8ecbbc80-24c8-421a-9f1a-e14e12678ef3"
+	canEditOwnRolePermissionID   = "29672457-d081-48e0-a007-8f49cedb5c6f"
+	canManageContentPermissionID = "1b2ecba8-010b-46f8-8976-58dad7812189"
+	canCreateContentPermissionID = "a991f301-319b-4311-82cf-277551b71b4e"
+
+	systemAdminRoleID       = "2063dd58-4550-4340-a003-6dcf51d3ee10"
+	contentManagementRoleID = "043f12aa-6f51-434f-8e96-35020206f161"
+	systemAdminRole         = enums.UserRoleTypeSystemAdministrator.String()
+	contentManagementRole   = enums.UserRoleTypeContentManagement.String()
 )
 
 func TestMain(m *testing.M) {
@@ -166,6 +178,16 @@ func TestMain(m *testing.M) {
 
 			"test_service_request_id": serviceRequestID,
 			"test_client_id":          clientID,
+
+			"can_invite_user_permission":    canInviteUserPermissionID,
+			"can_edit_own_role_permission":  canEditOwnRolePermissionID,
+			"can_manage_content_permission": canManageContentPermissionID,
+			"can_create_content_permission": canCreateContentPermissionID,
+
+			"system_admin_role_id":       systemAdminRoleID,
+			"content_management_role_id": contentManagementRoleID,
+			"system_admin_role":          systemAdminRole,
+			"content_management_role":    contentManagementRole,
 		}),
 		// this is the directory containing the YAML files.
 		// The file name should be the same as the table name
@@ -188,6 +210,10 @@ func TestMain(m *testing.M) {
 			"../../../../../../fixtures/staff_staff.yml",
 			"../../../../../../fixtures/clients_servicerequest.yml",
 			"../../../../../../fixtures/staff_staff_facilities.yml",
+			"../../../../../../fixtures/authority_authoritypermission.yml",
+			"../../../../../../fixtures/authority_authorityrole.yml",
+			"../../../../../../fixtures/authority_authorityrole_permissions.yml",
+			"../../../../../../fixtures/authority_authorityrole_users.yml",
 		),
 		// uncomment when running tests locally, if your db is not a test db
 		// Ensure the testing db in the ci is named `test`

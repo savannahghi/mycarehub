@@ -33,6 +33,7 @@ type ExternalMethodsExtension interface {
 	SendSMSViaTwilio(ctx context.Context, phonenumber, message string) error
 	SendInviteSMS(ctx context.Context, phoneNumber, message string) error
 	SendFeedback(ctx context.Context, subject, feedbackMessage string) (bool, error)
+	GetLoggedInUserUID(ctx context.Context) (string, error)
 }
 
 // External type implements external methods
@@ -143,4 +144,9 @@ func (e *External) SendFeedback(ctx context.Context, subject, feedbackMessage st
 	}
 
 	return true, nil
+}
+
+// GetLoggedInUserUID get the logged in user uid
+func (e *External) GetLoggedInUserUID(ctx context.Context) (string, error) {
+	return firebasetools.GetLoggedInUserUID(ctx)
 }

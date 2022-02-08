@@ -1965,3 +1965,141 @@ func TestPGInstance_GetServiceRequests(t *testing.T) {
 		})
 	}
 }
+
+func TestPGInstance_CheckUserRole(t *testing.T) {
+	ctx := context.Background()
+
+	type args struct {
+		ctx    context.Context
+		userID string
+		role   string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "happy case: user has role",
+			args: args{
+				ctx:    ctx,
+				userID: userID,
+				role:   systemAdminRole,
+			},
+			wantErr: false,
+			want:    true,
+		},
+		{
+			name: "sad case: user does not have role",
+			args: args{
+				ctx:    ctx,
+				userID: userID2,
+				role:   systemAdminRole,
+			},
+			wantErr: false,
+			want:    false,
+		},
+
+		{
+			name: "sad case: invalid user passed",
+			args: args{
+				ctx:    ctx,
+				userID: uuid.New().String(),
+				role:   systemAdminRole,
+			},
+			wantErr: false,
+			want:    false,
+		},
+		{
+			name: "sad case: invalid role passed",
+			args: args{
+				ctx:    ctx,
+				userID: userID,
+				role:   uuid.New().String(),
+			},
+			wantErr: false,
+			want:    false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			got, err := testingDB.CheckUserRole(tt.args.ctx, tt.args.userID, tt.args.role)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.CheckUserRole() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("PGInstance.CheckUserRole() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestPGInstance_CheckUserPermission(t *testing.T) {
+	type args struct {
+		ctx        context.Context
+		userID     string
+		permission string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "happy case: user has permission",
+			args: args{
+				ctx:        context.Background(),
+				userID:     userID,
+				permission: string(enums.PermissionTypeCanEditOwnRole),
+			},
+			wantErr: false,
+			want:    true,
+		},
+		{
+			name: "sad case: user does not have permission",
+			args: args{
+				ctx:        context.Background(),
+				userID:     userID2,
+				permission: string(enums.PermissionTypeCanEditOwnRole),
+			},
+			wantErr: false,
+			want:    false,
+		},
+		{
+			name: "sad case: invalid user passed",
+			args: args{
+				ctx:        context.Background(),
+				userID:     uuid.New().String(),
+				permission: string(enums.PermissionTypeCanEditOwnRole),
+			},
+			wantErr: false,
+			want:    false,
+		},
+		{
+			name: "sad case: invalid permission passed",
+			args: args{
+				ctx:        context.Background(),
+				userID:     userID,
+				permission: uuid.New().String(),
+			},
+			wantErr: false,
+			want:    false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := testingDB.CheckUserPermission(tt.args.ctx, tt.args.userID, tt.args.permission)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.CheckUserPermission() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("PGInstance.CheckUserPermission() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
