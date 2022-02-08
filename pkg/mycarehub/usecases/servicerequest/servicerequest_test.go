@@ -339,3 +339,65 @@ func TestUseCasesServiceRequestImpl_ResolveServiceRequest(t *testing.T) {
 		})
 	}
 }
+
+func TestUseCasesServiceRequestImpl_GetServiceRequestsCount(t *testing.T) {
+	ctx := context.Background()
+	facilityID := uuid.New().String()
+	requestType := "RED_FLAG"
+	type args struct {
+		ctx         context.Context
+		requestType *string
+		facilityID  string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *int64
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:         ctx,
+				requestType: &requestType,
+				facilityID:  facilityID,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case",
+			args: args{
+				ctx:         ctx,
+				requestType: &requestType,
+				facilityID:  facilityID,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			u := servicerequest.NewUseCaseServiceRequestImpl(fakeDB, fakeDB, fakeDB)
+
+			if tt.name == "Sad case" {
+				fakeDB.MockGetServiceRequestsCountFn = func(ctx context.Context, requestType *string, facilityID string) (int, error) {
+					return 0, fmt.Errorf("an error occurred")
+				}
+			}
+
+			got, err := u.GetServiceRequestsCount(tt.args.ctx, tt.args.requestType, tt.args.facilityID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCasesServiceRequestImpl.GetServiceRequestsCount() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if tt.wantErr && got != 0 {
+				t.Errorf("PGInstance.GetServiceRequestsCount() = %v, want %v", got, tt.want)
+				return
+			}
+			if !tt.wantErr && got == 0 {
+				t.Errorf("PGInstance.GetServiceRequestsCount() = %v, want %v", got, tt.want)
+				return
+			}
+		})
+	}
+}

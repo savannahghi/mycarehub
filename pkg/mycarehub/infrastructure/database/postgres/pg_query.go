@@ -542,6 +542,11 @@ func (d *MyCareHubDb) CheckIfUserBookmarkedContent(ctx context.Context, userID s
 	return bookmarked, nil
 }
 
+// GetServiceRequestsCount is used to get the number of clients service request whom they share similar facility with the currently logged in staff
+func (d *MyCareHubDb) GetServiceRequestsCount(ctx context.Context, requestType *string, facilityID string) (int, error) {
+	return d.query.GetServiceRequestsCount(ctx, requestType, facilityID)
+}
+
 // GetClientHealthDiaryEntries queries the database to return a clients all health diary records
 func (d *MyCareHubDb) GetClientHealthDiaryEntries(ctx context.Context, clientID string) ([]*domain.ClientHealthDiaryEntry, error) {
 	var healthDiaryEntries []*domain.ClientHealthDiaryEntry

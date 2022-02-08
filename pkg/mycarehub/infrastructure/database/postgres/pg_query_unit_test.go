@@ -2607,6 +2607,82 @@ func TestMyCareHubDb_GetClientCaregiver(t *testing.T) {
 	}
 }
 
+func TestMyCareHubDb_GetServiceRequestsCount(t *testing.T) {
+	ctx := context.Background()
+	requestType := "RED_FLAG"
+
+	type args struct {
+		ctx        context.Context
+		facilityID string
+		requestType *string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *int64
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:        ctx,
+				facilityID: uuid.New().String(),
+				requestType: &requestType,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case",
+			args: args{
+				ctx:        ctx,
+				facilityID: uuid.New().String(),
+				requestType: &requestType,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case - empty facility ID",
+			args: args{
+				ctx:        ctx,
+				facilityID: "",
+				requestType: &requestType,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var fakeGorm = gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			if tt.name == "Sad case" {
+				fakeGorm.MockGetServiceRequestsCountFn = func(ctx context.Context, requestType *string, facilityID string) (int, error) {
+					return 0, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - empty facility ID" {
+				fakeGorm.MockGetServiceRequestsCountFn = func(ctx context.Context, requestType *string, facilityID string) (int, error) {
+					return 0, fmt.Errorf("an error occurred")
+				}
+			}
+
+			got, err := d.GetServiceRequestsCount(tt.args.ctx,tt.args.requestType, tt.args.facilityID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.GetServiceRequestsCount() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if tt.wantErr && got != 0 {
+				t.Errorf("PGInstance.GetServiceRequestsCount() = %v, want %v", got, tt.want)
+				return
+			}
+			if !tt.wantErr && got == 0 {
+				t.Errorf("PGInstance.GetServiceRequestsCount() = %v, want %v", got, tt.want)
+				return
+			}
+		})
+	}
+}
+
 func TestMyCareHubDb_GetClientByClientID(t *testing.T) {
 	type args struct {
 		ctx      context.Context
