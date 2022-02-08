@@ -28,8 +28,12 @@ const (
 
 	// EmptyUserIDInputErrorMsg is displayed when a user id input is empty
 	EmptyUserIDInputErrorMsg = "user id input is empty"
+
 	// ProfileNotFoundErrorMsg is displayed when a profile is not found
 	ProfileNotFoundErrorMsg = "user profile not found"
+
+	// StaffProfileNotFoundErrorMsg is displayed when a staff profile is not found
+	StaffProfileNotFoundErrorMsg = "staff profile not found"
 
 	// InvalidatePinErrMsg is displayed when the invalidate action for reset pin fails
 	InvalidatePinErrMsg = "unable to invalidate reset pin"

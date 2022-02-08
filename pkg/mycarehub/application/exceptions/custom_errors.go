@@ -93,7 +93,7 @@ func ProfileNotFoundErr(err error) error {
 func ClientProfileNotFoundErr(err error) error {
 	return &CustomError{
 		Err:     err,
-		Message: ProfileNotFoundErrorMsg,
+		Message: ClientProfileNotFoundErrorMsg,
 		Code:    int(ProfileNotFound),
 	}
 }
@@ -102,7 +102,7 @@ func ClientProfileNotFoundErr(err error) error {
 func StaffProfileNotFoundErr(err error) error {
 	return &CustomError{
 		Err:     err,
-		Message: ProfileNotFoundErrorMsg,
+		Message: StaffProfileNotFoundErrorMsg,
 		Code:    int(ProfileNotFound),
 	}
 }
