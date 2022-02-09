@@ -207,6 +207,7 @@ type ServiceRequest {
   InProgressBy: String
   ResolvedAt: Time
   ResolvedBy: String
+  FacilityID: String
 }
 
 type ClientRegistrationOutput {

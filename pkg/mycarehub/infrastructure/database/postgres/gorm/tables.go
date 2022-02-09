@@ -655,6 +655,7 @@ type ClientServiceRequest struct {
 	InProgressByID *string    `gorm:"column:in_progress_by_id"`
 	OrganisationID string     `gorm:"column:organisation_id"`
 	ResolvedByID   *string    `gorm:"column:resolved_by_id"`
+	FacilityID     string     `gorm:"column:facility_id"`
 }
 
 // BeforeCreate is a hook called before creating a service request.

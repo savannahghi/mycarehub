@@ -58,8 +58,8 @@ type Query interface {
 	GetClientHealthDiaryEntries(ctx context.Context, clientID string) ([]*domain.ClientHealthDiaryEntry, error)
 	GetFAQContent(ctx context.Context, flavour feedlib.Flavour, limit *int) ([]*domain.FAQ, error)
 	GetClientCaregiver(ctx context.Context, caregiverID string) (*domain.Caregiver, error)
-	GetClientByClientID(ctx context.Context, clientID string) (*domain.ClientProfile, error)
-	GetServiceRequests(ctx context.Context, requestType *string, requestStatus *string) ([]*domain.ServiceRequest, error)
+	GetClientProfileByClientID(ctx context.Context, clientID string) (*domain.ClientProfile, error)
+	GetServiceRequests(ctx context.Context, requestType, requestStatus, facilityID *string) ([]*domain.ServiceRequest, error)
 }
 
 // Update represents all the update action interfaces

@@ -284,7 +284,7 @@ type ComplexityRoot struct {
 		GetFAQContent                func(childComplexity int, flavour feedlib.Flavour, limit *int) int
 		GetHealthDiaryQuote          func(childComplexity int) int
 		GetSecurityQuestions         func(childComplexity int, flavour feedlib.Flavour) int
-		GetServiceRequests           func(childComplexity int, requestType *string, requestStatus *string) int
+		GetServiceRequests           func(childComplexity int, requestType *string, requestStatus *string, facilityID string) int
 		GetUserBookmarkedContent     func(childComplexity int, userID string) int
 		ListContentCategories        func(childComplexity int) int
 		ListFacilities               func(childComplexity int, searchTerm *string, filterInput []*dto.FiltersInput, paginationInput dto.PaginationsInput) int
@@ -309,6 +309,7 @@ type ComplexityRoot struct {
 
 	ServiceRequest struct {
 		ClientID     func(childComplexity int) int
+		FacilityID   func(childComplexity int) int
 		ID           func(childComplexity int) int
 		InProgressAt func(childComplexity int) int
 		InProgressBy func(childComplexity int) int
@@ -366,7 +367,7 @@ type QueryResolver interface {
 	GetClientHealthDiaryEntries(ctx context.Context, clientID string) ([]*domain.ClientHealthDiaryEntry, error)
 	SendOtp(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (string, error)
 	GetSecurityQuestions(ctx context.Context, flavour feedlib.Flavour) ([]*domain.SecurityQuestion, error)
-	GetServiceRequests(ctx context.Context, requestType *string, requestStatus *string) ([]*domain.ServiceRequest, error)
+	GetServiceRequests(ctx context.Context, requestType *string, requestStatus *string, facilityID string) ([]*domain.ServiceRequest, error)
 	GetCurrentTerms(ctx context.Context, flavour feedlib.Flavour) (*domain.TermsOfService, error)
 	VerifyPin(ctx context.Context, userID string, flavour feedlib.Flavour, pin string) (bool, error)
 	GetClientCaregiver(ctx context.Context, clientID string) (*domain.Caregiver, error)
@@ -1649,7 +1650,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.GetServiceRequests(childComplexity, args["requestType"].(*string), args["requestStatus"].(*string)), true
+		return e.complexity.Query.GetServiceRequests(childComplexity, args["requestType"].(*string), args["requestStatus"].(*string), args["facilityID"].(string)), true
 
 	case "Query.getUserBookmarkedContent":
 		if e.complexity.Query.GetUserBookmarkedContent == nil {
@@ -1785,6 +1786,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ServiceRequest.ClientID(childComplexity), true
+
+	case "ServiceRequest.FacilityID":
+		if e.complexity.ServiceRequest.FacilityID == nil {
+			break
+		}
+
+		return e.complexity.ServiceRequest.FacilityID(childComplexity), true
 
 	case "ServiceRequest.ID":
 		if e.complexity.ServiceRequest.ID == nil {
@@ -2189,7 +2197,7 @@ extend type Mutation {
 }
 
 extend type Query {
-   getServiceRequests(requestType: String, requestStatus: String): [ServiceRequest]
+   getServiceRequests(requestType: String, requestStatus: String, facilityID: String!): [ServiceRequest]
 }
 `, BuiltIn: false},
 	{Name: "pkg/mycarehub/presentation/graph/types.graphql", Input: `type Facility {
@@ -2401,6 +2409,7 @@ type ServiceRequest {
   InProgressBy: String
   ResolvedAt: Time
   ResolvedBy: String
+  FacilityID: String
 }
 
 type ClientRegistrationOutput {
@@ -3155,6 +3164,15 @@ func (ec *executionContext) field_Query_getServiceRequests_args(ctx context.Cont
 		}
 	}
 	args["requestStatus"] = arg1
+	var arg2 string
+	if tmp, ok := rawArgs["facilityID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("facilityID"))
+		arg2, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["facilityID"] = arg2
 	return args, nil
 }
 
@@ -9120,7 +9138,7 @@ func (ec *executionContext) _Query_getServiceRequests(ctx context.Context, field
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().GetServiceRequests(rctx, args["requestType"].(*string), args["requestStatus"].(*string))
+		return ec.resolvers.Query().GetServiceRequests(rctx, args["requestType"].(*string), args["requestStatus"].(*string), args["facilityID"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -9863,6 +9881,38 @@ func (ec *executionContext) _ServiceRequest_ResolvedBy(ctx context.Context, fiel
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.ResolvedBy, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ServiceRequest_FacilityID(ctx context.Context, field graphql.CollectedField, obj *domain.ServiceRequest) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ServiceRequest",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.FacilityID, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -13161,6 +13211,8 @@ func (ec *executionContext) _ServiceRequest(ctx context.Context, sel ast.Selecti
 			out.Values[i] = ec._ServiceRequest_ResolvedAt(ctx, field, obj)
 		case "ResolvedBy":
 			out.Values[i] = ec._ServiceRequest_ResolvedBy(ctx, field, obj)
+		case "FacilityID":
+			out.Values[i] = ec._ServiceRequest_FacilityID(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

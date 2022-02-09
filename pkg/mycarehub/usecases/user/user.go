@@ -678,7 +678,7 @@ func (us *UseCasesUserImpl) CreateOrUpdateClientCaregiver(ctx context.Context, c
 
 	caregiverInput.PhoneNumber = *phone
 
-	client, err := us.Query.GetClientByClientID(ctx, caregiverInput.ClientID)
+	client, err := us.Query.GetClientProfileByClientID(ctx, caregiverInput.ClientID)
 	if err != nil {
 		return false, exceptions.ClientProfileNotFoundErr(err)
 	}
@@ -704,7 +704,7 @@ func (us *UseCasesUserImpl) GetClientCaregiver(ctx context.Context, clientID str
 		return nil, exceptions.EmptyInputErr(fmt.Errorf("client id is empty"))
 	}
 
-	client, err := us.Query.GetClientByClientID(ctx, clientID)
+	client, err := us.Query.GetClientProfileByClientID(ctx, clientID)
 	if err != nil {
 		return nil, exceptions.ClientProfileNotFoundErr(err)
 	}

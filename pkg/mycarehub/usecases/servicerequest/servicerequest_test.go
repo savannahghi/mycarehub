@@ -46,6 +46,17 @@ func TestUseCasesServiceRequestImpl_CreateServiceRequest(t *testing.T) {
 			want:    false,
 			wantErr: true,
 		},
+		{
+			name: "Sad Case - Unable to get client profile",
+			args: args{
+				ctx:         context.Background(),
+				clientID:    uuid.New().String(),
+				requestType: "HEALTH_DIARY_ENTRY",
+				request:     "A random request",
+			},
+			want:    false,
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -54,6 +65,12 @@ func TestUseCasesServiceRequestImpl_CreateServiceRequest(t *testing.T) {
 			if tt.name == "Sad Case - Fail to create a service request" {
 				fakeDB.MockCreateServiceRequestFn = func(ctx context.Context, serviceRequestInput *domain.ClientServiceRequest) error {
 					return fmt.Errorf("failed to create service request")
+				}
+			}
+
+			if tt.name == "Sad Case - Unable to get client profile" {
+				fakeDB.MockGetClientProfileByClientIDFn = func(ctx context.Context, clientID string) (*domain.ClientProfile, error) {
+					return nil, fmt.Errorf("failed to get client profile")
 				}
 			}
 
@@ -161,10 +178,12 @@ func TestUseCasesServiceRequestImpl_InProgressBy(t *testing.T) {
 func TestUseCasesServiceRequestImpl_GetServiceRequests(t *testing.T) {
 	invalidRequestType := "invalid"
 	invalidStatus := "invalid"
+	facilityID := uuid.New().String()
 	type args struct {
 		ctx           context.Context
 		requestType   *string
 		requestStatus *string
+		facilityID    *string
 	}
 	tests := []struct {
 		name    string
@@ -176,6 +195,7 @@ func TestUseCasesServiceRequestImpl_GetServiceRequests(t *testing.T) {
 			name: "Happy Case - Successfully get service requests",
 			args: args{
 				ctx: context.Background(),
+				facilityID: &facilityID,
 			},
 			wantErr: false,
 		},
@@ -184,6 +204,7 @@ func TestUseCasesServiceRequestImpl_GetServiceRequests(t *testing.T) {
 			args: args{
 				ctx:         context.Background(),
 				requestType: &invalidRequestType,
+				facilityID: &facilityID,
 			},
 			wantErr: true,
 		},
@@ -192,6 +213,7 @@ func TestUseCasesServiceRequestImpl_GetServiceRequests(t *testing.T) {
 			args: args{
 				ctx:           context.Background(),
 				requestStatus: &invalidStatus,
+				facilityID: &facilityID,
 			},
 			wantErr: true,
 		},
@@ -199,6 +221,7 @@ func TestUseCasesServiceRequestImpl_GetServiceRequests(t *testing.T) {
 			name: "Sad Case - Fail to get service requests",
 			args: args{
 				ctx: context.Background(),
+				facilityID: &facilityID,
 			},
 			wantErr: true,
 		},
@@ -209,11 +232,11 @@ func TestUseCasesServiceRequestImpl_GetServiceRequests(t *testing.T) {
 			u := servicerequest.NewUseCaseServiceRequestImpl(fakeDB, fakeDB, fakeDB)
 
 			if tt.name == "Sad Case - Fail to get service requests" {
-				fakeDB.MockGetServiceRequestsFn = func(ctx context.Context, requestType *string, requestStatus *string) ([]*domain.ServiceRequest, error) {
+				fakeDB.MockGetServiceRequestsFn = func(ctx context.Context, requestType, requestStatus, facilityID *string) ([]*domain.ServiceRequest, error) {
 					return nil, fmt.Errorf("failed to get service requests")
 				}
 			}
-			_, err := u.GetServiceRequests(tt.args.ctx, tt.args.requestType, tt.args.requestStatus)
+			_, err := u.GetServiceRequests(tt.args.ctx, tt.args.requestType, tt.args.requestStatus, tt.args.facilityID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCasesServiceRequestImpl.GetServiceRequests() error = %v, wantErr %v", err, tt.wantErr)
 				return

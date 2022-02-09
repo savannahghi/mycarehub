@@ -13,4 +13,5 @@ type ServiceRequest struct {
 	InProgressBy *string    `json:"inProgressBy"`
 	ResolvedAt   *time.Time `json:"resolvedAt"`
 	ResolvedBy   *string    `json:"resolvedBy"`
+	FacilityID   *string    `json:"facility_id"`
 }

@@ -1769,9 +1769,9 @@ func TestPGInstance_GetClientByClientID(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := testingDB.GetClientByClientID(tt.args.ctx, tt.args.clientID)
+			got, err := testingDB.GetClientProfileByClientID(tt.args.ctx, tt.args.clientID)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("PGInstance.GetClientByClientID() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("PGInstance.GetClientProfileByClientID() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !tt.wantErr && got == nil {
@@ -1863,6 +1863,7 @@ func TestPGInstance_GetServiceRequests(t *testing.T) {
 		ctx           context.Context
 		requestType   *string
 		requestStatus *string
+		facilityID    *string
 	}
 	tests := []struct {
 		name    string
@@ -1875,6 +1876,7 @@ func TestPGInstance_GetServiceRequests(t *testing.T) {
 			args: args{
 				ctx:         context.Background(),
 				requestType: &requesttype,
+				facilityID:  &facilityID,
 			},
 			wantErr: false,
 		},
@@ -1883,6 +1885,7 @@ func TestPGInstance_GetServiceRequests(t *testing.T) {
 			args: args{
 				ctx:           context.Background(),
 				requestStatus: &requeststatus,
+				facilityID:    &facilityID,
 			},
 			wantErr: false,
 		},
@@ -1892,13 +1895,15 @@ func TestPGInstance_GetServiceRequests(t *testing.T) {
 				ctx:           context.Background(),
 				requestType:   &requesttype,
 				requestStatus: &requeststatus,
+				facilityID:    &facilityID,
 			},
 			wantErr: false,
 		},
 		{
 			name: "Happy Case - Successfully get service requests",
 			args: args{
-				ctx: context.Background(),
+				ctx:        context.Background(),
+				facilityID: &facilityID,
 			},
 			wantErr: false,
 		},
@@ -1906,7 +1911,7 @@ func TestPGInstance_GetServiceRequests(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			got, err := testingDB.GetServiceRequests(tt.args.ctx, tt.args.requestType, tt.args.requestStatus)
+			got, err := testingDB.GetServiceRequests(tt.args.ctx, tt.args.requestType, tt.args.requestStatus, tt.args.facilityID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("PGInstance.GetServiceRequests() error = %v, wantErr %v", err, tt.wantErr)
 				return
