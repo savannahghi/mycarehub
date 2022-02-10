@@ -319,19 +319,23 @@ func (d *MyCareHubDb) GetStaffProfileByUserID(ctx context.Context, userID string
 		return nil, fmt.Errorf("unable to get staff profile: %v", err)
 	}
 
-	var facility []domain.Facility
-	for _, f := range staff.Facilities {
-		domainFacility := &domain.Facility{
-			ID:          f.FacilityID,
-			Name:        f.Name,
-			Code:        f.Code,
-			Phone:       f.Phone,
-			Active:      f.Active,
-			County:      f.County,
-			Description: f.Description,
-		}
-		facility = append(facility, *domainFacility)
+	staffDefaultFacility, err := d.query.RetrieveFacility(ctx, &staff.DefaultFacilityID, true)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, fmt.Errorf("unable to get the staff facility: %v", err)
 	}
+
+	var facility []domain.Facility
+	domainFacility := &domain.Facility{
+		ID:          staffDefaultFacility.FacilityID,
+		Name:        staffDefaultFacility.Name,
+		Code:        staffDefaultFacility.Code,
+		Phone:       staffDefaultFacility.Phone,
+		Active:      staffDefaultFacility.Active,
+		County:      staffDefaultFacility.County,
+		Description: staffDefaultFacility.Description,
+	}
+	facility = append(facility, *domainFacility)
 
 	user := createMapUser(&staff.UserProfile)
 	return &domain.StaffProfile{
