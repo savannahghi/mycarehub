@@ -285,6 +285,7 @@ type ComplexityRoot struct {
 		GetHealthDiaryQuote          func(childComplexity int) int
 		GetSecurityQuestions         func(childComplexity int, flavour feedlib.Flavour) int
 		GetServiceRequests           func(childComplexity int, requestType *string, requestStatus *string, facilityID string) int
+		GetServiceRequestsCount      func(childComplexity int, requestType *string, facilityID string) int
 		GetUserBookmarkedContent     func(childComplexity int, userID string) int
 		ListContentCategories        func(childComplexity int) int
 		ListFacilities               func(childComplexity int, searchTerm *string, filterInput []*dto.FiltersInput, paginationInput dto.PaginationsInput) int
@@ -368,6 +369,7 @@ type QueryResolver interface {
 	SendOtp(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (string, error)
 	GetSecurityQuestions(ctx context.Context, flavour feedlib.Flavour) ([]*domain.SecurityQuestion, error)
 	GetServiceRequests(ctx context.Context, requestType *string, requestStatus *string, facilityID string) ([]*domain.ServiceRequest, error)
+	GetServiceRequestsCount(ctx context.Context, requestType *string, facilityID string) (int, error)
 	GetCurrentTerms(ctx context.Context, flavour feedlib.Flavour) (*domain.TermsOfService, error)
 	VerifyPin(ctx context.Context, userID string, flavour feedlib.Flavour, pin string) (bool, error)
 	GetClientCaregiver(ctx context.Context, clientID string) (*domain.Caregiver, error)
@@ -1652,6 +1654,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.GetServiceRequests(childComplexity, args["requestType"].(*string), args["requestStatus"].(*string), args["facilityID"].(string)), true
 
+	case "Query.getServiceRequestsCount":
+		if e.complexity.Query.GetServiceRequestsCount == nil {
+			break
+		}
+
+		args, err := ec.field_Query_getServiceRequestsCount_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetServiceRequestsCount(childComplexity, args["requestType"].(*string), args["facilityID"].(string)), true
+
 	case "Query.getUserBookmarkedContent":
 		if e.complexity.Query.GetUserBookmarkedContent == nil {
 			break
@@ -2197,7 +2211,8 @@ extend type Mutation {
 }
 
 extend type Query {
-   getServiceRequests(requestType: String, requestStatus: String, facilityID: String!): [ServiceRequest]
+  getServiceRequests(requestType: String, requestStatus: String, facilityID: String!): [ServiceRequest]
+  getServiceRequestsCount(requestType: String, facilityID: String!): Int!
 }
 `, BuiltIn: false},
 	{Name: "pkg/mycarehub/presentation/graph/types.graphql", Input: `type Facility {
@@ -3140,6 +3155,30 @@ func (ec *executionContext) field_Query_getSecurityQuestions_args(ctx context.Co
 		}
 	}
 	args["flavour"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_getServiceRequestsCount_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *string
+	if tmp, ok := rawArgs["requestType"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("requestType"))
+		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["requestType"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["facilityID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("facilityID"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["facilityID"] = arg1
 	return args, nil
 }
 
@@ -9152,6 +9191,48 @@ func (ec *executionContext) _Query_getServiceRequests(ctx context.Context, field
 	return ec.marshalOServiceRequest2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐServiceRequest(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Query_getServiceRequestsCount(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_getServiceRequestsCount_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GetServiceRequestsCount(rctx, args["requestType"].(*string), args["facilityID"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Query_getCurrentTerms(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -13032,6 +13113,20 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_getServiceRequests(ctx, field)
+				return res
+			})
+		case "getServiceRequestsCount":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_getServiceRequestsCount(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
 				return res
 			})
 		case "getCurrentTerms":

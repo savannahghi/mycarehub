@@ -33,7 +33,7 @@ func NewResolver(
 
 func (r Resolver) checkPreconditions() {
 	if r.mycarehub == nil {
-		log.Panicf("expected onboarding usecases to be defined resolver")
+		log.Panicf("expected mycarehub usecases to be defined resolver")
 	}
 }
 

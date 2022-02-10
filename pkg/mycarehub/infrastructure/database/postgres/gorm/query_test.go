@@ -1782,6 +1782,57 @@ func TestPGInstance_GetClientByClientID(t *testing.T) {
 	}
 }
 
+func TestPGInstance_GetServiceRequestsCount(t *testing.T) {
+	ctx := context.Background()
+	requestType := "RED_FLAG"
+	type args struct {
+		ctx         context.Context
+		requestType *string
+		facilityID  string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:         ctx,
+				requestType: &requestType,
+				facilityID:  facilityID,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Happy case - No request type",
+			args: args{
+				ctx:        ctx,
+				facilityID: facilityID,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case",
+			args: args{
+				ctx:         ctx,
+				facilityID:  "",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := testingDB.GetServiceRequestsCount(tt.args.ctx, tt.args.requestType, tt.args.facilityID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.GetServiceRequestsCount() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+		})
+	}
+}
+
 func TestPGInstance_GetCurrentTerms(t *testing.T) {
 	ctx := context.Background()
 

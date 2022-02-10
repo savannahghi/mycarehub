@@ -35,6 +35,7 @@ type Query interface {
 	GetStaffProfileByUserID(ctx context.Context, userID string) (*StaffProfile, error)
 	CheckUserHasPin(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
 	GetOTP(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*UserOTP, error)
+	GetServiceRequestsCount(ctx context.Context, requestType *string, facilityID string) (int, error)
 	GetUserSecurityQuestionsResponses(ctx context.Context, userID string) ([]*SecurityQuestionResponse, error)
 	GetContactByUserID(ctx context.Context, userID *string, contactType string) (*Contact, error)
 	ListContentCategories(ctx context.Context) ([]*domain.ContentItemCategory, error)
@@ -500,6 +501,32 @@ func (db *PGInstance) GetFAQContent(ctx context.Context, flavour feedlib.Flavour
 	}
 	return faq, nil
 
+}
+
+// GetServiceRequestsCount is used to get the number of clients service request whom they share similar facility with the currently logged in staff
+func (db *PGInstance) GetServiceRequestsCount(ctx context.Context, requestType *string, facilityID string) (int, error) {
+	if facilityID == "" {
+		return 0, fmt.Errorf("facilityID cannot be empty")
+	}
+	var serviceRequestsCount int64
+
+	if requestType != nil {
+		err := db.DB.Model(&ClientServiceRequest{}).
+			Where(&ClientServiceRequest{FacilityID: facilityID, RequestType: *requestType, Status: "PENDING"}).
+			Count(&serviceRequestsCount).Error
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return 0, fmt.Errorf("an error occurred while querying for service requests count: %v", err)
+		}
+		return int(serviceRequestsCount), nil
+	}
+
+	err := db.DB.Model(&ClientServiceRequest{}).Where(&ClientServiceRequest{FacilityID: facilityID, Status: "PENDING"}).Count(&serviceRequestsCount).Error
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return 0, fmt.Errorf("an error occurred while querying fo service requests count: %v", err)
+	}
+	return int(serviceRequestsCount), nil
 }
 
 // GetClientCaregiver fetches a client's caregiver from the database

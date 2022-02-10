@@ -76,6 +76,7 @@ type GormMock struct {
 	MockInProgressByFn                            func(ctx context.Context, requestID string, staffID string) (bool, error)
 	MockGetClientProfileByClientIDFn              func(ctx context.Context, clientID string) (*gorm.Client, error)
 	MockGetServiceRequestsFn                      func(ctx context.Context, requestType, requestStatus, facilityID *string) ([]*gorm.ClientServiceRequest, error)
+	MockGetServiceRequestsCountFn                 func(ctx context.Context, requestType *string, facilityID string) (int, error)
 	MockResolveServiceRequestFn                   func(ctx context.Context, staffID *string, serviceRequestID *string) (bool, error)
 }
 
@@ -461,6 +462,9 @@ func NewGormMock() *GormMock {
 		MockCreateClientCaregiverFn: func(ctx context.Context, clientID string, clientCaregiver *gorm.Caregiver) error {
 			return nil
 		},
+		MockGetServiceRequestsCountFn: func(ctx context.Context, requestType *string, facilityID string) (int, error) {
+			return 5, nil
+		},
 		MockGetClientCaregiverFn: func(ctx context.Context, caregiverID string) (*gorm.Caregiver, error) {
 			ID := uuid.New().String()
 			return &gorm.Caregiver{
@@ -775,6 +779,11 @@ func (gm *GormMock) SetInProgressBy(ctx context.Context, requestID, staffID stri
 // GetClientProfileByClientID mocks the implementation of getting a client by client ID
 func (gm *GormMock) GetClientProfileByClientID(ctx context.Context, clientID string) (*gorm.Client, error) {
 	return gm.MockGetClientProfileByClientIDFn(ctx, clientID)
+}
+
+// GetServiceRequestsCount mocks the implementation of getting the service requests count
+func (gm *GormMock) GetServiceRequestsCount(ctx context.Context, requestType *string, facilityID string) (int, error) {
+	return gm.MockGetServiceRequestsCountFn(ctx, requestType, facilityID)
 }
 
 // GetServiceRequests mocks the implementation of getting service requests by type

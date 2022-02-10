@@ -36,6 +36,11 @@ type ISetInProgresssBy interface {
 // IGetServiceRequests is an interface that holds the method signature for getting service requests
 type IGetServiceRequests interface {
 	GetServiceRequests(ctx context.Context, requestType, requestStatus, facilityID *string) ([]*domain.ServiceRequest, error)
+	GetServiceRequestsCount(
+		ctx context.Context,
+		requestType *string,
+		facilityID string,
+	) (int, error)
 }
 
 // IResolveServiceRequest is an interface that holds the method signature for resolving a service request
@@ -125,6 +130,16 @@ func (u *UseCasesServiceRequestImpl) GetServiceRequests(
 	}
 
 	return u.Query.GetServiceRequests(ctx, requestType, requestStatus, facilityID)
+}
+
+// GetServiceRequestsCount gets service requests count based on the parameters provided
+func (u *UseCasesServiceRequestImpl) GetServiceRequestsCount(
+	ctx context.Context,
+	requestType *string,
+	facilityID string,
+) (int, error) {
+
+	return u.Query.GetServiceRequestsCount(ctx, requestType, facilityID)
 }
 
 // ResolveServiceRequest resolves a service request
