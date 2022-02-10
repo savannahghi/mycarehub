@@ -2113,12 +2113,17 @@ func TestUseCasesUserImpl_RegisterClient(t *testing.T) {
 			args: args{
 				ctx: context.Background(),
 				input: &dto.ClientRegistrationInput{
-					Facility: "Kanairo",
+					Facility: "Test Facility",
 					DateOfBirth: scalarutils.Date{
 						Year:  1990,
 						Month: 3,
 						Day:   12,
 					},
+					ClientName:  gofakeit.FirstName(),
+					Gender:      enumutils.GenderFemale,
+					PhoneNumber: "+254700000000",
+					CCCNumber:   "5432",
+					Counselled:  true,
 					EnrollmentDate: scalarutils.Date{
 						Year:  1990,
 						Month: 3,
