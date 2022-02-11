@@ -741,6 +741,12 @@ func (us *UseCasesUserImpl) RegisterClient(
 		return nil, fmt.Errorf("failed to read request body: %v", err)
 	}
 
+	// Success is indicated with 2xx status codes
+	statusOK := resp.StatusCode >= 200 && resp.StatusCode < 300
+	if !statusOK {
+		return nil, fmt.Errorf("%v", string(dataResponse))
+	}
+
 	err = json.Unmarshal(dataResponse, &registrationOutput)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
