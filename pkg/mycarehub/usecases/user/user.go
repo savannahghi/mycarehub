@@ -753,5 +753,12 @@ func (us *UseCasesUserImpl) RegisterClient(
 		return nil, fmt.Errorf("failed to unmarshal response: %v", err)
 	}
 
+	if input.InviteClient {
+		_, err := us.InviteUser(ctx, registrationOutput.UserID, input.PhoneNumber, feedlib.FlavourConsumer)
+		if err != nil {
+			return nil, fmt.Errorf("failed to invite client: %v", err)
+		}
+	}
+
 	return registrationOutput, nil
 }

@@ -2177,6 +2177,7 @@ input ClientRegistrationInput {
   enrollmentDate: Date!
   cccNumber: String!
   counselled: Boolean!
+  inviteClient: Boolean!
 }
 `, BuiltIn: false},
 	{Name: "pkg/mycarehub/presentation/graph/otp.graphql", Input: `extend type Query {
@@ -11332,6 +11333,14 @@ func (ec *executionContext) unmarshalInputClientRegistrationInput(ctx context.Co
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("counselled"))
 			it.Counselled, err = ec.unmarshalNBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "inviteClient":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("inviteClient"))
+			it.InviteClient, err = ec.unmarshalNBoolean2bool(ctx, v)
 			if err != nil {
 				return it, err
 			}
