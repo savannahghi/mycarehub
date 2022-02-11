@@ -263,4 +263,5 @@ type ClientRegistrationInput struct {
 	EnrollmentDate scalarutils.Date `json:"enrollment_date"`
 	CCCNumber      string           `json:"ccc_number"`
 	Counselled     bool             `json:"counselled"`
+	InviteClient   bool             `json:"inviteClient"`
 }

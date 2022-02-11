@@ -68,4 +68,5 @@ input ClientRegistrationInput {
   enrollmentDate: Date!
   cccNumber: String!
   counselled: Boolean!
+  inviteClient: Boolean!
 }
