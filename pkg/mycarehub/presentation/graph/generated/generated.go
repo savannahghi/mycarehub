@@ -309,16 +309,18 @@ type ComplexityRoot struct {
 	}
 
 	ServiceRequest struct {
-		ClientID     func(childComplexity int) int
-		FacilityID   func(childComplexity int) int
-		ID           func(childComplexity int) int
-		InProgressAt func(childComplexity int) int
-		InProgressBy func(childComplexity int) int
-		Request      func(childComplexity int) int
-		RequestType  func(childComplexity int) int
-		ResolvedAt   func(childComplexity int) int
-		ResolvedBy   func(childComplexity int) int
-		Status       func(childComplexity int) int
+		ClientContact func(childComplexity int) int
+		ClientID      func(childComplexity int) int
+		ClientName    func(childComplexity int) int
+		FacilityID    func(childComplexity int) int
+		ID            func(childComplexity int) int
+		InProgressAt  func(childComplexity int) int
+		InProgressBy  func(childComplexity int) int
+		Request       func(childComplexity int) int
+		RequestType   func(childComplexity int) int
+		ResolvedAt    func(childComplexity int) int
+		ResolvedBy    func(childComplexity int) int
+		Status        func(childComplexity int) int
 	}
 
 	TermsOfService struct {
@@ -1794,12 +1796,26 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.SecurityQuestion.SecurityQuestionID(childComplexity), true
 
+	case "ServiceRequest.ClientContact":
+		if e.complexity.ServiceRequest.ClientContact == nil {
+			break
+		}
+
+		return e.complexity.ServiceRequest.ClientContact(childComplexity), true
+
 	case "ServiceRequest.ClientID":
 		if e.complexity.ServiceRequest.ClientID == nil {
 			break
 		}
 
 		return e.complexity.ServiceRequest.ClientID(childComplexity), true
+
+	case "ServiceRequest.ClientName":
+		if e.complexity.ServiceRequest.ClientName == nil {
+			break
+		}
+
+		return e.complexity.ServiceRequest.ClientName(childComplexity), true
 
 	case "ServiceRequest.FacilityID":
 		if e.complexity.ServiceRequest.FacilityID == nil {
@@ -2426,6 +2442,8 @@ type ServiceRequest {
   ResolvedAt: Time
   ResolvedBy: String
   FacilityID: String
+  ClientName: String!
+  ClientContact: String!
 }
 
 type ClientRegistrationOutput {
@@ -10008,6 +10026,76 @@ func (ec *executionContext) _ServiceRequest_FacilityID(ctx context.Context, fiel
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _ServiceRequest_ClientName(ctx context.Context, field graphql.CollectedField, obj *domain.ServiceRequest) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ServiceRequest",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ClientName, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalNString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ServiceRequest_ClientContact(ctx context.Context, field graphql.CollectedField, obj *domain.ServiceRequest) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ServiceRequest",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ClientContact, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalNString2ᚖstring(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _TermsOfService_termsID(ctx context.Context, field graphql.CollectedField, obj *domain.TermsOfService) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -13317,6 +13405,16 @@ func (ec *executionContext) _ServiceRequest(ctx context.Context, sel ast.Selecti
 			out.Values[i] = ec._ServiceRequest_ResolvedBy(ctx, field, obj)
 		case "FacilityID":
 			out.Values[i] = ec._ServiceRequest_FacilityID(ctx, field, obj)
+		case "ClientName":
+			out.Values[i] = ec._ServiceRequest_ClientName(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "ClientContact":
+			out.Values[i] = ec._ServiceRequest_ClientContact(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

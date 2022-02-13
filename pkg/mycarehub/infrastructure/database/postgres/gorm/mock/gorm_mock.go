@@ -27,7 +27,7 @@ type GormMock struct {
 	MockGetUserPINByUserIDFn                      func(ctx context.Context, userID string, flavour feedlib.Flavour) (*gorm.PINData, error)
 	MockInactivateFacilityFn                      func(ctx context.Context, mflCode *int) (bool, error)
 	MockReactivateFacilityFn                      func(ctx context.Context, mflCode *int) (bool, error)
-	MockGetUserProfileByUserIDFn                  func(ctx context.Context, UserID string) (*gorm.User, error)
+	MockGetUserProfileByUserIDFn                  func(ctx context.Context, userID *string) (*gorm.User, error)
 	MockSaveTemporaryUserPinFn                    func(ctx context.Context, pinData *gorm.PINData) (bool, error)
 	MockGetCurrentTermsFn                         func(ctx context.Context, flavour feedlib.Flavour) (*gorm.TermsOfService, error)
 	MockAcceptTermsFn                             func(ctx context.Context, userID *string, termsID *int) (bool, error)
@@ -276,9 +276,10 @@ func NewGormMock() *GormMock {
 			}
 			return terms, nil
 		},
-		MockGetUserProfileByUserIDFn: func(ctx context.Context, UserID string) (*gorm.User, error) {
+		MockGetUserProfileByUserIDFn: func(ctx context.Context, userID *string) (*gorm.User, error) {
+			ID := uuid.New().String()
 			return &gorm.User{
-				UserID: &UserID,
+				UserID: &ID,
 			}, nil
 		},
 		MockSaveTemporaryUserPinFn: func(ctx context.Context, pinData *gorm.PINData) (bool, error) {
@@ -557,8 +558,8 @@ func (gm *GormMock) GetCurrentTerms(ctx context.Context, flavour feedlib.Flavour
 }
 
 // GetUserProfileByUserID mocks the implementation of retrieving a user profile by user ID
-func (gm *GormMock) GetUserProfileByUserID(ctx context.Context, UserID string) (*gorm.User, error) {
-	return gm.MockGetUserProfileByUserIDFn(ctx, UserID)
+func (gm *GormMock) GetUserProfileByUserID(ctx context.Context, userID *string) (*gorm.User, error) {
+	return gm.MockGetUserProfileByUserIDFn(ctx, userID)
 }
 
 // SaveTemporaryUserPin mocks the implementation of saving a temporary user pin

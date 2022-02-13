@@ -173,7 +173,7 @@ func (d *MyCareHubDb) GetUserProfileByUserID(ctx context.Context, userID string)
 		return nil, fmt.Errorf("user ID should be provided")
 	}
 
-	user, err := d.query.GetUserProfileByUserID(ctx, userID)
+	user, err := d.query.GetUserProfileByUserID(ctx, &userID)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed to get user profile by user ID: %v", err)
@@ -546,7 +546,7 @@ func (d *MyCareHubDb) CheckIfUserBookmarkedContent(ctx context.Context, userID s
 	return bookmarked, nil
 }
 
-// GetServiceRequestsCount is used to get the number of clients service request whom they share similar facility with the currently logged in staff
+// GetServiceRequestsCount gets the total number of service requests
 func (d *MyCareHubDb) GetServiceRequestsCount(ctx context.Context, requestType *string, facilityID string) (int, error) {
 	return d.query.GetServiceRequestsCount(ctx, requestType, facilityID)
 }
@@ -652,17 +652,31 @@ func (d *MyCareHubDb) GetServiceRequests(ctx context.Context, requestType, reque
 	}
 
 	for _, serviceRequest := range clientServiceRequests {
+		clientProfile, err := d.query.GetClientProfileByClientID(ctx, serviceRequest.ClientID)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return nil, err
+		}
+
+		userProfile, err := d.query.GetUserProfileByUserID(ctx, clientProfile.UserID)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return nil, err
+		}
+
 		serviceRequest := &domain.ServiceRequest{
-			ID:           *serviceRequest.ID,
-			RequestType:  serviceRequest.RequestType,
-			Request:      serviceRequest.Request,
-			Status:       serviceRequest.Status,
-			ClientID:     serviceRequest.ClientID,
-			InProgressAt: serviceRequest.InProgressAt,
-			InProgressBy: serviceRequest.InProgressByID,
-			ResolvedAt:   serviceRequest.ResolvedAt,
-			ResolvedBy:   serviceRequest.ResolvedByID,
-			FacilityID:   facilityID,
+			ID:            *serviceRequest.ID,
+			RequestType:   serviceRequest.RequestType,
+			Request:       serviceRequest.Request,
+			Status:        serviceRequest.Status,
+			ClientID:      serviceRequest.ClientID,
+			InProgressAt:  serviceRequest.InProgressAt,
+			InProgressBy:  serviceRequest.InProgressByID,
+			ResolvedAt:    serviceRequest.ResolvedAt,
+			ResolvedBy:    serviceRequest.ResolvedByID,
+			FacilityID:    facilityID,
+			ClientName:    &userProfile.Name,
+			ClientContact: &userProfile.Contacts.ContactValue,
 		}
 		serviceRequests = append(serviceRequests, serviceRequest)
 	}
