@@ -208,6 +208,8 @@ type ServiceRequest {
   ResolvedAt: Time
   ResolvedBy: String
   FacilityID: String
+  ClientName: String!
+  ClientContact: String!
 }
 
 type ClientRegistrationOutput {
