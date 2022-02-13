@@ -23,7 +23,7 @@ type Query interface {
 	ListFacilities(ctx context.Context, searchTerm *string, filter []*domain.FiltersParam, pagination *domain.FacilityPage) (*domain.FacilityPage, error)
 	GetUserProfileByPhoneNumber(ctx context.Context, phoneNumber string) (*User, error)
 	GetUserPINByUserID(ctx context.Context, userID string, flavour feedlib.Flavour) (*PINData, error)
-	GetUserProfileByUserID(ctx context.Context, userID string) (*User, error)
+	GetUserProfileByUserID(ctx context.Context, userID *string) (*User, error)
 	GetCurrentTerms(ctx context.Context, flavour feedlib.Flavour) (*TermsOfService, error)
 	CheckWhetherUserHasLikedContent(ctx context.Context, userID string, contentID int) (bool, error)
 	GetSecurityQuestions(ctx context.Context, flavour feedlib.Flavour) ([]*SecurityQuestion, error)
@@ -290,12 +290,12 @@ func (db *PGInstance) GetCurrentTerms(ctx context.Context, flavour feedlib.Flavo
 }
 
 // GetUserProfileByUserID fetches a user profile using the user ID
-func (db *PGInstance) GetUserProfileByUserID(ctx context.Context, userID string) (*User, error) {
-	if userID == "" {
+func (db *PGInstance) GetUserProfileByUserID(ctx context.Context, userID *string) (*User, error) {
+	if userID == nil {
 		return nil, fmt.Errorf("userID cannot be empty")
 	}
 	var user User
-	if err := db.DB.Where(&User{UserID: &userID}).First(&user).Error; err != nil {
+	if err := db.DB.Where(&User{UserID: userID}).Preload(clause.Associations).First(&user).Error; err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed to get user by user ID %v: %v", userID, err)
 	}
@@ -503,7 +503,7 @@ func (db *PGInstance) GetFAQContent(ctx context.Context, flavour feedlib.Flavour
 
 }
 
-// GetServiceRequestsCount is used to get the number of clients service request whom they share similar facility with the currently logged in staff
+// GetServiceRequestsCount gets the number of service requests
 func (db *PGInstance) GetServiceRequestsCount(ctx context.Context, requestType *string, facilityID string) (int, error) {
 	if facilityID == "" {
 		return 0, fmt.Errorf("facilityID cannot be empty")
@@ -516,7 +516,7 @@ func (db *PGInstance) GetServiceRequestsCount(ctx context.Context, requestType *
 			Count(&serviceRequestsCount).Error
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
-			return 0, fmt.Errorf("an error occurred while querying for service requests count: %v", err)
+			return 0, fmt.Errorf("failed to get client's service requests: %v", err)
 		}
 		return int(serviceRequestsCount), nil
 	}
@@ -524,7 +524,7 @@ func (db *PGInstance) GetServiceRequestsCount(ctx context.Context, requestType *
 	err := db.DB.Model(&ClientServiceRequest{}).Where(&ClientServiceRequest{FacilityID: facilityID, Status: "PENDING"}).Count(&serviceRequestsCount).Error
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return 0, fmt.Errorf("an error occurred while querying fo service requests count: %v", err)
+		return 0, fmt.Errorf("failed to get client's service requests:: %v", err)
 	}
 	return int(serviceRequestsCount), nil
 }
@@ -545,7 +545,7 @@ func (db *PGInstance) GetClientCaregiver(ctx context.Context, caregiverID string
 // GetClientProfileByClientID fetches a client from the database
 func (db *PGInstance) GetClientProfileByClientID(ctx context.Context, clientID string) (*Client, error) {
 	var client Client
-	err := db.DB.Where(&Client{ID: &clientID}).First(&client).Error
+	err := db.DB.Where(&Client{ID: &clientID}).Preload(clause.Associations).First(&client).Error
 	if err != nil {
 		return nil, fmt.Errorf("failed to get client: %v", err)
 	}
