@@ -920,20 +920,20 @@ func TestOnboardingDb_GetUserProfileByUserID(t *testing.T) {
 			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
 
 			if tt.name == "Happy Case - Successfully get user profile by user ID" {
-				fakeGorm.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*gorm.User, error) {
+				fakeGorm.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID *string) (*gorm.User, error) {
 					return &gorm.User{
 						UserID: &validUserID,
 					}, nil
 				}
 			}
 			if tt.name == "Sad Case - Passed in empty User ID" {
-				fakeGorm.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*gorm.User, error) {
+				fakeGorm.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID *string) (*gorm.User, error) {
 					return nil, fmt.Errorf("user ID should be provided")
 				}
 			}
 
 			if tt.name == "Sad Case - Fail to get user profile by user ID" {
-				fakeGorm.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*gorm.User, error) {
+				fakeGorm.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID *string) (*gorm.User, error) {
 					return nil, fmt.Errorf("failed to get user profile by user ID")
 				}
 			}
@@ -2612,8 +2612,8 @@ func TestMyCareHubDb_GetServiceRequestsCount(t *testing.T) {
 	requestType := "RED_FLAG"
 
 	type args struct {
-		ctx        context.Context
-		facilityID string
+		ctx         context.Context
+		facilityID  string
 		requestType *string
 	}
 	tests := []struct {
@@ -2625,8 +2625,8 @@ func TestMyCareHubDb_GetServiceRequestsCount(t *testing.T) {
 		{
 			name: "Happy case",
 			args: args{
-				ctx:        ctx,
-				facilityID: uuid.New().String(),
+				ctx:         ctx,
+				facilityID:  uuid.New().String(),
 				requestType: &requestType,
 			},
 			wantErr: false,
@@ -2634,8 +2634,8 @@ func TestMyCareHubDb_GetServiceRequestsCount(t *testing.T) {
 		{
 			name: "Sad case",
 			args: args{
-				ctx:        ctx,
-				facilityID: uuid.New().String(),
+				ctx:         ctx,
+				facilityID:  uuid.New().String(),
 				requestType: &requestType,
 			},
 			wantErr: true,
@@ -2643,8 +2643,8 @@ func TestMyCareHubDb_GetServiceRequestsCount(t *testing.T) {
 		{
 			name: "Sad case - empty facility ID",
 			args: args{
-				ctx:        ctx,
-				facilityID: "",
+				ctx:         ctx,
+				facilityID:  "",
 				requestType: &requestType,
 			},
 			wantErr: true,
@@ -2666,7 +2666,7 @@ func TestMyCareHubDb_GetServiceRequestsCount(t *testing.T) {
 				}
 			}
 
-			got, err := d.GetServiceRequestsCount(tt.args.ctx,tt.args.requestType, tt.args.facilityID)
+			got, err := d.GetServiceRequestsCount(tt.args.ctx, tt.args.requestType, tt.args.facilityID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("MyCareHubDb.GetServiceRequestsCount() error = %v, wantErr %v", err, tt.wantErr)
 				return

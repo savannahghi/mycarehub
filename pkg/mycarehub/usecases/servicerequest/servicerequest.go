@@ -132,7 +132,7 @@ func (u *UseCasesServiceRequestImpl) GetServiceRequests(
 	return u.Query.GetServiceRequests(ctx, requestType, requestStatus, facilityID)
 }
 
-// GetServiceRequestsCount gets service requests count based on the parameters provided
+// GetServiceRequestsCount gets the total number of service requests
 func (u *UseCasesServiceRequestImpl) GetServiceRequestsCount(
 	ctx context.Context,
 	requestType *string,
