@@ -2607,14 +2607,12 @@ func TestMyCareHubDb_GetClientCaregiver(t *testing.T) {
 	}
 }
 
-func TestMyCareHubDb_GetServiceRequestsCount(t *testing.T) {
+func TestMyCareHubDb_GetPendingServiceRequestsCount(t *testing.T) {
 	ctx := context.Background()
-	requestType := "RED_FLAG"
 
 	type args struct {
-		ctx         context.Context
-		facilityID  string
-		requestType *string
+		ctx        context.Context
+		facilityID string
 	}
 	tests := []struct {
 		name    string
@@ -2625,27 +2623,24 @@ func TestMyCareHubDb_GetServiceRequestsCount(t *testing.T) {
 		{
 			name: "Happy case",
 			args: args{
-				ctx:         ctx,
-				facilityID:  uuid.New().String(),
-				requestType: &requestType,
+				ctx:        ctx,
+				facilityID: uuid.New().String(),
 			},
 			wantErr: false,
 		},
 		{
 			name: "Sad case",
 			args: args{
-				ctx:         ctx,
-				facilityID:  uuid.New().String(),
-				requestType: &requestType,
+				ctx:        ctx,
+				facilityID: uuid.New().String(),
 			},
 			wantErr: true,
 		},
 		{
 			name: "Sad case - empty facility ID",
 			args: args{
-				ctx:         ctx,
-				facilityID:  "",
-				requestType: &requestType,
+				ctx:        ctx,
+				facilityID: "",
 			},
 			wantErr: true,
 		},
@@ -2656,27 +2651,27 @@ func TestMyCareHubDb_GetServiceRequestsCount(t *testing.T) {
 			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
 
 			if tt.name == "Sad case" {
-				fakeGorm.MockGetServiceRequestsCountFn = func(ctx context.Context, requestType *string, facilityID string) (int, error) {
-					return 0, fmt.Errorf("an error occurred")
+				fakeGorm.MockGetPendingServiceRequestsCountFn = func(ctx context.Context, facilityID string) (*domain.ServiceRequestsCount, error) {
+					return nil, fmt.Errorf("an error occurred")
 				}
 			}
 			if tt.name == "Sad case - empty facility ID" {
-				fakeGorm.MockGetServiceRequestsCountFn = func(ctx context.Context, requestType *string, facilityID string) (int, error) {
-					return 0, fmt.Errorf("an error occurred")
+				fakeGorm.MockGetPendingServiceRequestsCountFn = func(ctx context.Context, facilityID string) (*domain.ServiceRequestsCount, error) {
+					return nil, fmt.Errorf("an error occurred")
 				}
 			}
 
-			got, err := d.GetServiceRequestsCount(tt.args.ctx, tt.args.requestType, tt.args.facilityID)
+			got, err := d.GetPendingServiceRequestsCount(tt.args.ctx, tt.args.facilityID)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("MyCareHubDb.GetServiceRequestsCount() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("MyCareHubDb.GetPendingServiceRequestsCount() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if tt.wantErr && got != 0 {
-				t.Errorf("PGInstance.GetServiceRequestsCount() = %v, want %v", got, tt.want)
+			if tt.wantErr && got != nil {
+				t.Errorf("PGInstance.GetPendingServiceRequestsCount() = %v, want %v", got, tt.want)
 				return
 			}
-			if !tt.wantErr && got == 0 {
-				t.Errorf("PGInstance.GetServiceRequestsCount() = %v, want %v", got, tt.want)
+			if !tt.wantErr && got == nil {
+				t.Errorf("PGInstance.GetPendingServiceRequestsCount() = %v, want %v", got, tt.want)
 				return
 			}
 		})

@@ -1,6 +1,10 @@
 package domain
 
-import "time"
+import (
+	"time"
+
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
+)
 
 // ServiceRequest is a domain entity that represents a service request.
 type ServiceRequest struct {
@@ -16,4 +20,16 @@ type ServiceRequest struct {
 	FacilityID    *string    `json:"facility_id"`
 	ClientName    *string    `json:"client_name"`
 	ClientContact *string    `json:"client_contact"`
+}
+
+// RequestTypeCount ...
+type RequestTypeCount struct {
+	RequestType enums.ServiceRequestType `json:"requestType"`
+	Total       int                      `json:"total"`
+}
+
+// ServiceRequestsCount ...
+type ServiceRequestsCount struct {
+	Total             int                 `json:"total"`
+	RequestsTypeCount []*RequestTypeCount `json:"requestsTypeCount"`
 }

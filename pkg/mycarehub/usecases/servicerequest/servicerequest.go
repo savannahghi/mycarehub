@@ -36,11 +36,7 @@ type ISetInProgresssBy interface {
 // IGetServiceRequests is an interface that holds the method signature for getting service requests
 type IGetServiceRequests interface {
 	GetServiceRequests(ctx context.Context, requestType, requestStatus, facilityID *string) ([]*domain.ServiceRequest, error)
-	GetServiceRequestsCount(
-		ctx context.Context,
-		requestType *string,
-		facilityID string,
-	) (int, error)
+	GetPendingServiceRequestsCount(ctx context.Context, facilityID string) (*domain.ServiceRequestsCount, error)
 }
 
 // IResolveServiceRequest is an interface that holds the method signature for resolving a service request
@@ -132,14 +128,13 @@ func (u *UseCasesServiceRequestImpl) GetServiceRequests(
 	return u.Query.GetServiceRequests(ctx, requestType, requestStatus, facilityID)
 }
 
-// GetServiceRequestsCount gets the total number of service requests
-func (u *UseCasesServiceRequestImpl) GetServiceRequestsCount(
-	ctx context.Context,
-	requestType *string,
-	facilityID string,
-) (int, error) {
+// GetPendingServiceRequestsCount gets the total number of service requests
+func (u *UseCasesServiceRequestImpl) GetPendingServiceRequestsCount(ctx context.Context, facilityID string) (*domain.ServiceRequestsCount, error) {
+	if facilityID == "" {
+		return nil, fmt.Errorf("facility id cannot be empty")
+	}
 
-	return u.Query.GetServiceRequestsCount(ctx, requestType, facilityID)
+	return u.Query.GetPendingServiceRequestsCount(ctx, facilityID)
 }
 
 // ResolveServiceRequest resolves a service request

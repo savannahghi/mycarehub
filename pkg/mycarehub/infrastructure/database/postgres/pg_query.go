@@ -546,9 +546,9 @@ func (d *MyCareHubDb) CheckIfUserBookmarkedContent(ctx context.Context, userID s
 	return bookmarked, nil
 }
 
-// GetServiceRequestsCount gets the total number of service requests
-func (d *MyCareHubDb) GetServiceRequestsCount(ctx context.Context, requestType *string, facilityID string) (int, error) {
-	return d.query.GetServiceRequestsCount(ctx, requestType, facilityID)
+// GetPendingServiceRequestsCount gets the total number of service requests
+func (d *MyCareHubDb) GetPendingServiceRequestsCount(ctx context.Context, facilityID string) (*domain.ServiceRequestsCount, error) {
+	return d.query.GetPendingServiceRequestsCount(ctx, facilityID)
 }
 
 // GetClientHealthDiaryEntries queries the database to return a clients all health diary records

@@ -194,7 +194,7 @@ func TestUseCasesServiceRequestImpl_GetServiceRequests(t *testing.T) {
 		{
 			name: "Happy Case - Successfully get service requests",
 			args: args{
-				ctx: context.Background(),
+				ctx:        context.Background(),
 				facilityID: &facilityID,
 			},
 			wantErr: false,
@@ -204,7 +204,7 @@ func TestUseCasesServiceRequestImpl_GetServiceRequests(t *testing.T) {
 			args: args{
 				ctx:         context.Background(),
 				requestType: &invalidRequestType,
-				facilityID: &facilityID,
+				facilityID:  &facilityID,
 			},
 			wantErr: true,
 		},
@@ -213,14 +213,14 @@ func TestUseCasesServiceRequestImpl_GetServiceRequests(t *testing.T) {
 			args: args{
 				ctx:           context.Background(),
 				requestStatus: &invalidStatus,
-				facilityID: &facilityID,
+				facilityID:    &facilityID,
 			},
 			wantErr: true,
 		},
 		{
 			name: "Sad Case - Fail to get service requests",
 			args: args{
-				ctx: context.Background(),
+				ctx:        context.Background(),
 				facilityID: &facilityID,
 			},
 			wantErr: true,
@@ -340,14 +340,12 @@ func TestUseCasesServiceRequestImpl_ResolveServiceRequest(t *testing.T) {
 	}
 }
 
-func TestUseCasesServiceRequestImpl_GetServiceRequestsCount(t *testing.T) {
+func TestUseCasesServiceRequestImpl_GetPendingServiceRequestsCount(t *testing.T) {
 	ctx := context.Background()
 	facilityID := uuid.New().String()
-	requestType := "RED_FLAG"
 	type args struct {
-		ctx         context.Context
-		requestType *string
-		facilityID  string
+		ctx        context.Context
+		facilityID string
 	}
 	tests := []struct {
 		name    string
@@ -358,18 +356,24 @@ func TestUseCasesServiceRequestImpl_GetServiceRequestsCount(t *testing.T) {
 		{
 			name: "Happy case",
 			args: args{
-				ctx:         ctx,
-				requestType: &requestType,
-				facilityID:  facilityID,
+				ctx:        ctx,
+				facilityID: facilityID,
 			},
 			wantErr: false,
 		},
 		{
 			name: "Sad case",
 			args: args{
-				ctx:         ctx,
-				requestType: &requestType,
-				facilityID:  facilityID,
+				ctx:        ctx,
+				facilityID: facilityID,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case - empty facility id",
+			args: args{
+				ctx:        ctx,
+				facilityID: facilityID,
 			},
 			wantErr: true,
 		},
@@ -380,22 +384,27 @@ func TestUseCasesServiceRequestImpl_GetServiceRequestsCount(t *testing.T) {
 			u := servicerequest.NewUseCaseServiceRequestImpl(fakeDB, fakeDB, fakeDB)
 
 			if tt.name == "Sad case" {
-				fakeDB.MockGetServiceRequestsCountFn = func(ctx context.Context, requestType *string, facilityID string) (int, error) {
-					return 0, fmt.Errorf("an error occurred")
+				fakeDB.MockGetPendingServiceRequestsCountFn = func(ctx context.Context, facilityID string) (*domain.ServiceRequestsCount, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - empty facility id" {
+				fakeDB.MockGetPendingServiceRequestsCountFn = func(ctx context.Context, facilityID string) (*domain.ServiceRequestsCount, error) {
+					return nil, fmt.Errorf("an error occurred")
 				}
 			}
 
-			got, err := u.GetServiceRequestsCount(tt.args.ctx, tt.args.requestType, tt.args.facilityID)
+			got, err := u.GetPendingServiceRequestsCount(tt.args.ctx, tt.args.facilityID)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("UseCasesServiceRequestImpl.GetServiceRequestsCount() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("UseCasesServiceRequestImpl.GetPendingServiceRequestsCount() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if tt.wantErr && got != 0 {
-				t.Errorf("PGInstance.GetServiceRequestsCount() = %v, want %v", got, tt.want)
+			if tt.wantErr && got != nil {
+				t.Errorf("PGInstance.GetPendingServiceRequestsCount() = %v, want %v", got, tt.want)
 				return
 			}
-			if !tt.wantErr && got == 0 {
-				t.Errorf("PGInstance.GetServiceRequestsCount() = %v, want %v", got, tt.want)
+			if !tt.wantErr && got == nil {
+				t.Errorf("PGInstance.GetPendingServiceRequestsCount() = %v, want %v", got, tt.want)
 				return
 			}
 		})

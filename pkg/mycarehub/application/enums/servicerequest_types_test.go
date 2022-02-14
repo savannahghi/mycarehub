@@ -13,9 +13,9 @@ func TestServiceRequestType_Number(t *testing.T) {
 		want string
 	}{
 		{
-			name: "HEALTH_DIARY_ENTRY",
-			e:    ServiceRequestTypeHealthDiaryEntry,
-			want: "HEALTH_DIARY_ENTRY",
+			name: "RED_FLAG",
+			e:    ServiceRequestTypeRedFlag,
+			want: "RED_FLAG",
 		},
 	}
 	for _, tt := range tests {
@@ -35,7 +35,7 @@ func TestServiceRequestType_IsValid(t *testing.T) {
 	}{
 		{
 			name: "valid type",
-			e:    ServiceRequestTypeHealthDiaryEntry,
+			e:    ServiceRequestTypeRedFlag,
 			want: true,
 		},
 		{
@@ -110,9 +110,9 @@ func TestServiceRequestType_MarshalGQL(t *testing.T) {
 	}{
 		{
 			name:  "valid type enums",
-			e:     ServiceRequestTypeHealthDiaryEntry,
+			e:     ServiceRequestTypeRedFlag,
 			b:     w,
-			wantW: strconv.Quote("HEALTH_DIARY_ENTRY"),
+			wantW: strconv.Quote("RED_FLAG"),
 		},
 	}
 	for _, tt := range tests {
