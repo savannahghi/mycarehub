@@ -23,7 +23,7 @@ type PostgresMock struct {
 	ListFacilitiesFn                              func(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationsInput *dto.PaginationsInput) (*domain.FacilityPage, error)
 	MockDeleteFacilityFn                          func(ctx context.Context, id int) (bool, error)
 	MockRetrieveFacilityByMFLCodeFn               func(ctx context.Context, MFLCode int, isActive bool) (*domain.Facility, error)
-	MockGetUserProfileByPhoneNumberFn             func(ctx context.Context, phoneNumber string) (*domain.User, error)
+	MockGetUserProfileByPhoneNumberFn             func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*domain.User, error)
 	MockGetUserPINByUserIDFn                      func(ctx context.Context, userID string, flavour feedlib.Flavour) (*domain.UserPIN, error)
 	MockInactivateFacilityFn                      func(ctx context.Context, mflCode *int) (bool, error)
 	MockReactivateFacilityFn                      func(ctx context.Context, mflCode *int) (bool, error)
@@ -197,7 +197,7 @@ func NewPostgresMock() *PostgresMock {
 				ValidTo: time.Now().Add(time.Hour * 10),
 			}, nil
 		},
-		MockGetUserProfileByPhoneNumberFn: func(ctx context.Context, phoneNumber string) (*domain.User, error) {
+		MockGetUserProfileByPhoneNumberFn: func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*domain.User, error) {
 			return userProfile, nil
 		},
 		MockInactivateFacilityFn: func(ctx context.Context, mflCode *int) (bool, error) {
@@ -511,8 +511,8 @@ func (gm *PostgresMock) RetrieveFacilityByMFLCode(ctx context.Context, MFLCode i
 }
 
 // GetUserProfileByPhoneNumber mocks the implementation of fetching a user profile by phonenumber
-func (gm *PostgresMock) GetUserProfileByPhoneNumber(ctx context.Context, phoneNumber string) (*domain.User, error) {
-	return gm.MockGetUserProfileByPhoneNumberFn(ctx, phoneNumber)
+func (gm *PostgresMock) GetUserProfileByPhoneNumber(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*domain.User, error) {
+	return gm.MockGetUserProfileByPhoneNumberFn(ctx, phoneNumber, flavour)
 }
 
 // GetUserPINByUserID mocks the get user pin by ID implementation

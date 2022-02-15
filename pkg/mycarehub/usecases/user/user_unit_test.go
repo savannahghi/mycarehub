@@ -180,13 +180,13 @@ func TestUseCasesUserImpl_Login_Unittest(t *testing.T) {
 			u := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, otp)
 
 			if tt.name == "Sad case - no phone" {
-				fakeDB.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*domain.User, error) {
+				fakeDB.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*domain.User, error) {
 					return nil, fmt.Errorf("failed to get user profile by phone number")
 				}
 			}
 
 			if tt.name == "Sad case - fail to get user profile by phonenumber" {
-				fakeDB.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*domain.User, error) {
+				fakeDB.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*domain.User, error) {
 					return nil, fmt.Errorf("failed to get user profile by phone number")
 				}
 			}
@@ -216,7 +216,7 @@ func TestUseCasesUserImpl_Login_Unittest(t *testing.T) {
 			}
 
 			if tt.name == "Sad case - un-normalized phone" {
-				fakeDB.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*domain.User, error) {
+				fakeDB.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*domain.User, error) {
 					return nil, fmt.Errorf("failed to get user profile by phone number")
 				}
 			}
@@ -1207,7 +1207,7 @@ func TestUseCasesUserImpl_RequestPINReset(t *testing.T) {
 			}
 
 			if tt.name == "Sad Case - Fail to get user profile by phonenumber" {
-				fakeDB.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*domain.User, error) {
+				fakeDB.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*domain.User, error) {
 					return nil, fmt.Errorf("failed to get user profile by phone number")
 				}
 			}
@@ -1450,7 +1450,7 @@ func TestUseCasesUserImpl_ResetPIN(t *testing.T) {
 						},
 					}, nil
 				}
-				fakeDB.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*domain.User, error) {
+				fakeDB.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*domain.User, error) {
 					return nil, errors.New("failed to get user profile by phone")
 				}
 			}
