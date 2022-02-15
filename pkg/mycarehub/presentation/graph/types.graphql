@@ -227,3 +227,13 @@ type ClientRegistrationOutput {
   chv: String!
   caregiver: String!
 }
+
+type RequestTypeCount {
+  requestType: ServiceRequestType!
+  total: Int!
+}
+
+type ServiceRequestsCount {
+  total: Int!
+  requestsTypeCount: [RequestTypeCount!]!
+}

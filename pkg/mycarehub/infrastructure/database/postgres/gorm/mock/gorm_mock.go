@@ -76,7 +76,7 @@ type GormMock struct {
 	MockInProgressByFn                            func(ctx context.Context, requestID string, staffID string) (bool, error)
 	MockGetClientProfileByClientIDFn              func(ctx context.Context, clientID string) (*gorm.Client, error)
 	MockGetServiceRequestsFn                      func(ctx context.Context, requestType, requestStatus, facilityID *string) ([]*gorm.ClientServiceRequest, error)
-	MockGetServiceRequestsCountFn                 func(ctx context.Context, requestType *string, facilityID string) (int, error)
+	MockGetPendingServiceRequestsCountFn          func(ctx context.Context, facilityID string) (*domain.ServiceRequestsCount, error)
 	MockResolveServiceRequestFn                   func(ctx context.Context, staffID *string, serviceRequestID *string) (bool, error)
 }
 
@@ -209,7 +209,7 @@ func NewGormMock() *GormMock {
 			ID:             &UUID,
 			ClientID:       uuid.New().String(),
 			Active:         true,
-			RequestType:    enums.ServiceRequestTypeHealthDiaryEntry.String(),
+			RequestType:    enums.ServiceRequestTypeRedFlag.String(),
 			Status:         enums.ServiceRequestStatusPending.String(),
 			InProgressAt:   &nowTime,
 			InProgressByID: &UUID,
@@ -463,8 +463,16 @@ func NewGormMock() *GormMock {
 		MockCreateClientCaregiverFn: func(ctx context.Context, clientID string, clientCaregiver *gorm.Caregiver) error {
 			return nil
 		},
-		MockGetServiceRequestsCountFn: func(ctx context.Context, requestType *string, facilityID string) (int, error) {
-			return 5, nil
+		MockGetPendingServiceRequestsCountFn: func(ctx context.Context, facilityID string) (*domain.ServiceRequestsCount, error) {
+			return &domain.ServiceRequestsCount{
+				Total: 0,
+				RequestsTypeCount: []*domain.RequestTypeCount{
+					{
+						RequestType: enums.ServiceRequestTypeRedFlag,
+						Total:       0,
+					},
+				},
+			}, nil
 		},
 		MockGetClientCaregiverFn: func(ctx context.Context, caregiverID string) (*gorm.Caregiver, error) {
 			ID := uuid.New().String()
@@ -782,9 +790,9 @@ func (gm *GormMock) GetClientProfileByClientID(ctx context.Context, clientID str
 	return gm.MockGetClientProfileByClientIDFn(ctx, clientID)
 }
 
-// GetServiceRequestsCount mocks the implementation of getting the service requests count
-func (gm *GormMock) GetServiceRequestsCount(ctx context.Context, requestType *string, facilityID string) (int, error) {
-	return gm.MockGetServiceRequestsCountFn(ctx, requestType, facilityID)
+// GetPendingServiceRequestsCount mocks the implementation of getting the service requests count
+func (gm *GormMock) GetPendingServiceRequestsCount(ctx context.Context, facilityID string) (*domain.ServiceRequestsCount, error) {
+	return gm.MockGetPendingServiceRequestsCountFn(ctx, facilityID)
 }
 
 // GetServiceRequests mocks the implementation of getting service requests by type

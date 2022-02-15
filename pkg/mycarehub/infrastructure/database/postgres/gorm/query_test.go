@@ -1782,13 +1782,11 @@ func TestPGInstance_GetClientByClientID(t *testing.T) {
 	}
 }
 
-func TestPGInstance_GetServiceRequestsCount(t *testing.T) {
+func TestPGInstance_GetPendingServiceRequestsCount(t *testing.T) {
 	ctx := context.Background()
-	requestType := "RED_FLAG"
 	type args struct {
-		ctx         context.Context
-		requestType *string
-		facilityID  string
+		ctx        context.Context
+		facilityID string
 	}
 	tests := []struct {
 		name    string
@@ -1798,9 +1796,8 @@ func TestPGInstance_GetServiceRequestsCount(t *testing.T) {
 		{
 			name: "Happy case",
 			args: args{
-				ctx:         ctx,
-				requestType: &requestType,
-				facilityID:  facilityID,
+				ctx:        ctx,
+				facilityID: facilityID,
 			},
 			wantErr: false,
 		},
@@ -1812,20 +1809,12 @@ func TestPGInstance_GetServiceRequestsCount(t *testing.T) {
 			},
 			wantErr: false,
 		},
-		{
-			name: "Sad case",
-			args: args{
-				ctx:        ctx,
-				facilityID: "",
-			},
-			wantErr: true,
-		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := testingDB.GetServiceRequestsCount(tt.args.ctx, tt.args.requestType, tt.args.facilityID)
+			_, err := testingDB.GetPendingServiceRequestsCount(tt.args.ctx, tt.args.facilityID)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("PGInstance.GetServiceRequestsCount() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("PGInstance.GetPendingServiceRequestsCount() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 

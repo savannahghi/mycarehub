@@ -27,7 +27,6 @@ func (r *queryResolver) GetServiceRequests(ctx context.Context, requestType *str
 	return r.mycarehub.ServiceRequest.GetServiceRequests(ctx, requestType, requestStatus, &facilityID)
 }
 
-func (r *queryResolver) GetServiceRequestsCount(ctx context.Context, requestType *string, facilityID string) (int, error) {
-	r.checkPreconditions()
-	return r.mycarehub.ServiceRequest.GetServiceRequestsCount(ctx, requestType, facilityID)
+func (r *queryResolver) GetPendingServiceRequestsCount(ctx context.Context, facilityID string) (*domain.ServiceRequestsCount, error) {
+	return r.mycarehub.ServiceRequest.GetPendingServiceRequestsCount(ctx, facilityID)
 }

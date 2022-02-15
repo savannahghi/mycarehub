@@ -98,7 +98,7 @@ func (h UseCasesHealthDiaryImpl) CreateHealthDiaryEntry(
 
 		serviceRequest := &domain.ClientServiceRequest{
 			Active:       true,
-			RequestType:  "HEALTH_DIARY_ENTRY", //TODO make this an enum
+			RequestType:  string(enums.ServiceRequestTypeRedFlag), //TODO make this an enum
 			Request:      "",
 			Status:       "PENDING", // TODO; enum
 			InProgressAt: time.Now(),

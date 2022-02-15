@@ -10,23 +10,27 @@ import (
 type ServiceRequestType string
 
 const (
-	//ServiceRequestTypeHealthDiaryEntry represents a health diary entry
-	ServiceRequestTypeHealthDiaryEntry ServiceRequestType = "HEALTH_DIARY_ENTRY"
 	//ServiceRequestTypeRedFlag represents a health diary entry
 	ServiceRequestTypeRedFlag ServiceRequestType = "RED_FLAG"
+	// ServiceRequestTypePinReset represents the reset pin service request
+	ServiceRequestTypePinReset ServiceRequestType = "PIN_RESET"
+	// ServiceRequestTypeProfileUpdate represents the profile update service request
+	ServiceRequestTypeProfileUpdate ServiceRequestType = "PROFILE_UPDATE"
 )
 
 // AllServiceRequestType is a set of a  valid and known service request types.
 var AllServiceRequestType = []ServiceRequestType{
-	ServiceRequestTypeHealthDiaryEntry,
 	ServiceRequestTypeRedFlag,
+	ServiceRequestTypePinReset,
+	ServiceRequestTypeProfileUpdate,
 }
 
 // IsValid returns true if a request type is valid
 func (m ServiceRequestType) IsValid() bool {
 	switch m {
-	case ServiceRequestTypeHealthDiaryEntry,
-		ServiceRequestTypeRedFlag:
+	case ServiceRequestTypeRedFlag,
+		ServiceRequestTypePinReset,
+		ServiceRequestTypeProfileUpdate:
 		return true
 	}
 	return false

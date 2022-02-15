@@ -35,7 +35,7 @@ type Query interface {
 	GetStaffProfileByUserID(ctx context.Context, userID string) (*StaffProfile, error)
 	CheckUserHasPin(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
 	GetOTP(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*UserOTP, error)
-	GetServiceRequestsCount(ctx context.Context, requestType *string, facilityID string) (int, error)
+	GetPendingServiceRequestsCount(ctx context.Context, facilityID string) (*domain.ServiceRequestsCount, error)
 	GetUserSecurityQuestionsResponses(ctx context.Context, userID string) ([]*SecurityQuestionResponse, error)
 	GetContactByUserID(ctx context.Context, userID *string, contactType string) (*Contact, error)
 	ListContentCategories(ctx context.Context) ([]*domain.ContentItemCategory, error)
@@ -503,30 +503,47 @@ func (db *PGInstance) GetFAQContent(ctx context.Context, flavour feedlib.Flavour
 
 }
 
-// GetServiceRequestsCount gets the number of service requests
-func (db *PGInstance) GetServiceRequestsCount(ctx context.Context, requestType *string, facilityID string) (int, error) {
-	if facilityID == "" {
-		return 0, fmt.Errorf("facilityID cannot be empty")
-	}
-	var serviceRequestsCount int64
+// GetPendingServiceRequestsCount gets the number of service requests
+func (db *PGInstance) GetPendingServiceRequestsCount(ctx context.Context, facilityID string) (*domain.ServiceRequestsCount, error) {
+	var serviceRequests []*ClientServiceRequest
 
-	if requestType != nil {
-		err := db.DB.Model(&ClientServiceRequest{}).
-			Where(&ClientServiceRequest{FacilityID: facilityID, RequestType: *requestType, Status: "PENDING"}).
-			Count(&serviceRequestsCount).Error
-		if err != nil {
-			helpers.ReportErrorToSentry(err)
-			return 0, fmt.Errorf("failed to get client's service requests: %v", err)
-		}
-		return int(serviceRequestsCount), nil
-	}
-
-	err := db.DB.Model(&ClientServiceRequest{}).Where(&ClientServiceRequest{FacilityID: facilityID, Status: "PENDING"}).Count(&serviceRequestsCount).Error
+	err := db.DB.Model(&ClientServiceRequest{}).Where(&ClientServiceRequest{FacilityID: facilityID, Status: "PENDING"}).Find(&serviceRequests).Error
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return 0, fmt.Errorf("failed to get client's service requests:: %v", err)
+		return nil, fmt.Errorf("failed to get client's service requests:: %v", err)
 	}
-	return int(serviceRequestsCount), nil
+
+	serviceRequestsCount := domain.ServiceRequestsCount{
+		Total: len(serviceRequests),
+		RequestsTypeCount: []*domain.RequestTypeCount{
+			{
+				RequestType: enums.ServiceRequestTypeRedFlag,
+				Total:       0,
+			},
+			{
+				RequestType: enums.ServiceRequestTypePinReset,
+				Total:       0,
+			},
+			{
+				RequestType: enums.ServiceRequestTypeProfileUpdate,
+				Total:       0,
+			},
+		},
+	}
+
+	for _, request := range serviceRequests {
+		if request.RequestType == enums.ServiceRequestTypeRedFlag.String() {
+			serviceRequestsCount.RequestsTypeCount[0].Total++
+		}
+		if request.RequestType == enums.ServiceRequestTypePinReset.String() {
+			serviceRequestsCount.RequestsTypeCount[1].Total++
+		}
+		if request.RequestType == enums.ServiceRequestTypeProfileUpdate.String() {
+			serviceRequestsCount.RequestsTypeCount[2].Total++
+		}
+	}
+
+	return &serviceRequestsCount, nil
 }
 
 // GetClientCaregiver fetches a client's caregiver from the database
