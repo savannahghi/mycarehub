@@ -683,3 +683,13 @@ func (d *MyCareHubDb) GetServiceRequests(ctx context.Context, requestType, reque
 
 	return serviceRequests, err
 }
+
+// CheckUserRole check if a user has a role
+func (d *MyCareHubDb) CheckUserRole(ctx context.Context, userID string, role string) (bool, error) {
+	return d.query.CheckUserRole(ctx, userID, role)
+}
+
+// CheckUserPermission check if a user has a permission
+func (d *MyCareHubDb) CheckUserPermission(ctx context.Context, userID string, permission string) (bool, error) {
+	return d.query.CheckUserPermission(ctx, userID, permission)
+}

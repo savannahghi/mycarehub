@@ -94,4 +94,14 @@ func TestCustomErrors(t *testing.T) {
 	assert.NotNil(t, err)
 	err = exceptions.CreateClientCaregiverErr(fmt.Errorf("error"))
 	assert.NotNil(t, err)
+
+	err = exceptions.GetLoggedInUserUIDErr(fmt.Errorf("error"))
+	assert.NotNil(t, err)
+	err = exceptions.CheckUserRoleErr(fmt.Errorf("error"))
+	assert.NotNil(t, err)
+	err = exceptions.UserNotAuthorizedErr(fmt.Errorf("error"))
+	assert.NotNil(t, err)
+
+	err = exceptions.CheckUserPermissionErr(fmt.Errorf("error"))
+	assert.NotNil(t, err)
 }

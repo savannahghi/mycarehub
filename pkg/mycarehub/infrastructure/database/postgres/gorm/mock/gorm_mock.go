@@ -78,6 +78,8 @@ type GormMock struct {
 	MockGetServiceRequestsFn                      func(ctx context.Context, requestType, requestStatus, facilityID *string) ([]*gorm.ClientServiceRequest, error)
 	MockGetPendingServiceRequestsCountFn          func(ctx context.Context, facilityID string) (*domain.ServiceRequestsCount, error)
 	MockResolveServiceRequestFn                   func(ctx context.Context, staffID *string, serviceRequestID *string) (bool, error)
+	MockCheckUserRoleFn                           func(ctx context.Context, userID string, role string) (bool, error)
+	MockCheckUserPermissionFn                     func(ctx context.Context, userID string, permission string) (bool, error)
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -501,6 +503,12 @@ func NewGormMock() *GormMock {
 		MockResolveServiceRequestFn: func(ctx context.Context, staffID *string, serviceRequestID *string) (bool, error) {
 			return true, nil
 		},
+		MockCheckUserRoleFn: func(ctx context.Context, userID string, role string) (bool, error) {
+			return true, nil
+		},
+		MockCheckUserPermissionFn: func(ctx context.Context, userID string, permission string) (bool, error) {
+			return true, nil
+		},
 	}
 }
 
@@ -803,4 +811,14 @@ func (gm *GormMock) GetServiceRequests(ctx context.Context, requestType, request
 // ResolveServiceRequest mocks the implementation of resolving a service request
 func (gm *GormMock) ResolveServiceRequest(ctx context.Context, staffID *string, serviceRequestID *string) (bool, error) {
 	return gm.MockResolveServiceRequestFn(ctx, staffID, serviceRequestID)
+}
+
+// CheckUserRole mocks the implementation of checking if a user has a role
+func (gm *GormMock) CheckUserRole(ctx context.Context, userID string, role string) (bool, error) {
+	return gm.MockCheckUserRoleFn(ctx, userID, role)
+}
+
+// CheckUserPermission mocks the implementation of checking if a user has a permission
+func (gm *GormMock) CheckUserPermission(ctx context.Context, userID string, permission string) (bool, error) {
+	return gm.MockCheckUserPermissionFn(ctx, userID, permission)
 }

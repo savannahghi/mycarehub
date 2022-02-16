@@ -1,0 +1,19 @@
+# authority_authorityrole_permissions.yml
+
+- id: 1
+  authorityrole_id: {{.system_admin_role_id}}
+  authoritypermission_id: {{.can_invite_user_permission}}
+
+- id: 2
+  authorityrole_id: {{.system_admin_role_id}}
+  authoritypermission_id: {{.can_edit_own_role_permission}}
+
+- id: 3
+  authorityrole_id: {{.content_management_role_id}}
+  authoritypermission_id: {{.can_manage_content_permission}}
+
+- id: 4
+  authorityrole_id: {{.content_management_role_id}}
+  authoritypermission_id: {{.can_create_content_permission}}
+
+
