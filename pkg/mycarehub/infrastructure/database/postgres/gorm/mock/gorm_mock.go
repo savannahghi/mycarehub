@@ -23,7 +23,7 @@ type GormMock struct {
 	MockGetFacilitiesFn                           func(ctx context.Context) ([]gorm.Facility, error)
 	MockDeleteFacilityFn                          func(ctx context.Context, mflCode int) (bool, error)
 	MockListFacilitiesFn                          func(ctx context.Context, searchTerm *string, filter []*domain.FiltersParam, pagination *domain.FacilityPage) (*domain.FacilityPage, error)
-	MockGetUserProfileByPhoneNumberFn             func(ctx context.Context, phoneNumber string) (*gorm.User, error)
+	MockGetUserProfileByPhoneNumberFn             func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*gorm.User, error)
 	MockGetUserPINByUserIDFn                      func(ctx context.Context, userID string, flavour feedlib.Flavour) (*gorm.PINData, error)
 	MockInactivateFacilityFn                      func(ctx context.Context, mflCode *int) (bool, error)
 	MockReactivateFacilityFn                      func(ctx context.Context, mflCode *int) (bool, error)
@@ -242,7 +242,7 @@ func NewGormMock() *GormMock {
 			return facilitiesPage, nil
 		},
 
-		MockGetUserProfileByPhoneNumberFn: func(ctx context.Context, phoneNumber string) (*gorm.User, error) {
+		MockGetUserProfileByPhoneNumberFn: func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*gorm.User, error) {
 			ID := uuid.New().String()
 			return &gorm.User{
 				UserID: &ID,
@@ -541,8 +541,8 @@ func (gm *GormMock) ListFacilities(ctx context.Context, searchTerm *string, filt
 }
 
 // GetUserProfileByPhoneNumber mocks the implementation of retrieving a user profile by phonenumber
-func (gm *GormMock) GetUserProfileByPhoneNumber(ctx context.Context, phoneNumber string) (*gorm.User, error) {
-	return gm.MockGetUserProfileByPhoneNumberFn(ctx, phoneNumber)
+func (gm *GormMock) GetUserProfileByPhoneNumber(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*gorm.User, error) {
+	return gm.MockGetUserProfileByPhoneNumberFn(ctx, phoneNumber, flavour)
 }
 
 // GetUserPINByUserID mocks the implementation of retrieving a user pin by user ID

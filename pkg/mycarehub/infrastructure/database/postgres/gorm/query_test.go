@@ -1419,6 +1419,7 @@ func TestPGInstance_GetUserProfileByPhoneNumber(t *testing.T) {
 	type args struct {
 		ctx         context.Context
 		phoneNumber string
+		flavour     feedlib.Flavour
 	}
 	tests := []struct {
 		name    string
@@ -1430,13 +1431,14 @@ func TestPGInstance_GetUserProfileByPhoneNumber(t *testing.T) {
 			args: args{
 				ctx:         context.Background(),
 				phoneNumber: testPhone,
+				flavour:     feedlib.FlavourConsumer,
 			},
 			wantErr: false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := testingDB.GetUserProfileByPhoneNumber(tt.args.ctx, tt.args.phoneNumber)
+			got, err := testingDB.GetUserProfileByPhoneNumber(tt.args.ctx, tt.args.phoneNumber, tt.args.flavour)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("PGInstance.GetUserProfileByPhoneNumber() error = %v, wantErr %v", err, tt.wantErr)
 				return

@@ -34,7 +34,7 @@ type Query interface {
 	GetFacilities(ctx context.Context) ([]*domain.Facility, error)
 	RetrieveFacilityByMFLCode(ctx context.Context, MFLCode int, isActive bool) (*domain.Facility, error)
 	ListFacilities(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationsInput *dto.PaginationsInput) (*domain.FacilityPage, error)
-	GetUserProfileByPhoneNumber(ctx context.Context, phoneNumber string) (*domain.User, error)
+	GetUserProfileByPhoneNumber(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*domain.User, error)
 	GetUserPINByUserID(ctx context.Context, userID string, flavour feedlib.Flavour) (*domain.UserPIN, error)
 	GetUserProfileByUserID(ctx context.Context, userID string) (*domain.User, error)
 	GetCurrentTerms(ctx context.Context, flavour feedlib.Flavour) (*domain.TermsOfService, error)

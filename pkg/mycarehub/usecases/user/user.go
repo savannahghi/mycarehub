@@ -208,7 +208,7 @@ func (us *UseCasesUserImpl) Login(ctx context.Context, phoneNumber string, pin s
 		return nil, int(exceptions.InvalidFlavour), exceptions.InvalidFlavourDefinedErr(fmt.Errorf("flavour is not valid"))
 	}
 
-	userProfile, err := us.Query.GetUserProfileByPhoneNumber(ctx, *phone)
+	userProfile, err := us.Query.GetUserProfileByPhoneNumber(ctx, *phone, flavour)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, int(exceptions.ProfileNotFound), exceptions.ProfileNotFoundErr(err)
@@ -458,7 +458,7 @@ func (us *UseCasesUserImpl) RequestPINReset(ctx context.Context, phoneNumber str
 		return "", exceptions.InvalidFlavourDefinedErr(fmt.Errorf("flavour is not valid"))
 	}
 
-	userProfile, err := us.Query.GetUserProfileByPhoneNumber(ctx, *phone)
+	userProfile, err := us.Query.GetUserProfileByPhoneNumber(ctx, *phone, flavour)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return "", exceptions.UserNotFoundError(err)
@@ -539,7 +539,7 @@ func (us *UseCasesUserImpl) ResetPIN(ctx context.Context, input dto.UserResetPin
 		return false, exceptions.PINErr(fmt.Errorf("PIN length be 4 digits: %v", err))
 	}
 
-	userProfile, err := us.Query.GetUserProfileByPhoneNumber(ctx, *phone)
+	userProfile, err := us.Query.GetUserProfileByPhoneNumber(ctx, *phone, input.Flavour)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return false, exceptions.ContactNotFoundErr(err)

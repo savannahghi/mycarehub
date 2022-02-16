@@ -667,6 +667,7 @@ func TestOnboardingDb_GetUserProfileByPhoneNumber(t *testing.T) {
 	type args struct {
 		ctx         context.Context
 		phoneNumber string
+		flavour     feedlib.Flavour
 	}
 	tests := []struct {
 		name    string
@@ -703,18 +704,18 @@ func TestOnboardingDb_GetUserProfileByPhoneNumber(t *testing.T) {
 			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
 
 			if tt.name == "Sad Case - Fail to get user profile by phonenumber" {
-				fakeGorm.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*gorm.User, error) {
+				fakeGorm.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*gorm.User, error) {
 					return nil, fmt.Errorf("failed to get user profile by phonenumber")
 				}
 			}
 
 			if tt.name == "Sad Case - Missing phonenumber" {
-				fakeGorm.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*gorm.User, error) {
+				fakeGorm.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*gorm.User, error) {
 					return nil, fmt.Errorf("phone number should be provided")
 				}
 			}
 
-			got, err := d.GetUserProfileByPhoneNumber(tt.args.ctx, tt.args.phoneNumber)
+			got, err := d.GetUserProfileByPhoneNumber(tt.args.ctx, tt.args.phoneNumber, tt.args.flavour)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("OnboardingDb.GetUserProfileByPhoneNumber() error = %v, wantErr %v", err, tt.wantErr)
 				return

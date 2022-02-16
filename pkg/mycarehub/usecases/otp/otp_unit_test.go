@@ -123,7 +123,7 @@ func TestUseCaseOTPImpl_GenerateAndSendOTP(t *testing.T) {
 			}
 
 			if tt.name == "Sad Case - Fail to get user profile by phone number" {
-				fakeDB.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*domain.User, error) {
+				fakeDB.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*domain.User, error) {
 					return nil, fmt.Errorf("failed to get user profile")
 				}
 			}
@@ -434,22 +434,22 @@ func TestUseCaseOTPImpl_VerifyPhoneNumber(t *testing.T) {
 				}
 			}
 			if tt.name == "Sad case - unable to get profile by phone" {
-				fakeDB.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*domain.User, error) {
+				fakeDB.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*domain.User, error) {
 					return nil, fmt.Errorf("an error occurred")
 				}
 			}
 			if tt.name == "Sad case - unable to get profile by invalid phone number" {
-				fakeDB.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*domain.User, error) {
+				fakeDB.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*domain.User, error) {
 					return nil, fmt.Errorf("an error occurred")
 				}
 			}
 			if tt.name == "Sad case - unable to get profile with very bad phone number" {
-				fakeDB.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*domain.User, error) {
+				fakeDB.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*domain.User, error) {
 					return nil, fmt.Errorf("an error occurred")
 				}
 			}
 			if tt.name == "Sad case - unable to get profile with very bad phone number and invalid flavor" {
-				fakeDB.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*domain.User, error) {
+				fakeDB.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*domain.User, error) {
 					return nil, fmt.Errorf("an error occurred")
 				}
 			}
@@ -700,12 +700,12 @@ func TestUseCaseOTPImpl_GenerateRetryOTP(t *testing.T) {
 				}
 			}
 			if tt.name == "Sad case - unable to check if user exists" {
-				fakeDB.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*domain.User, error) {
+				fakeDB.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*domain.User, error) {
 					return nil, fmt.Errorf("an error occurred")
 				}
 			}
 			if tt.name == "Sad case - unable to get user profile" {
-				fakeDB.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*domain.User, error) {
+				fakeDB.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*domain.User, error) {
 					return nil, fmt.Errorf("an error occurred")
 				}
 			}

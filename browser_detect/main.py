@@ -14,8 +14,8 @@ app = flask.Flask(__name__)
 IOS = "iOS"
 ANDROID = "Android"
 A_LANDING_PAGE = "https://a.bewell.co.ke"
-PLAY_STORE_LINK = "https://play.google.com/store/apps/details?id=com.savannah.myafyahub"
-APPLE_STORE_LINK = "https://testflight.apple.com/join/XVx2CiaL"
+PLAY_STORE_LINK = "https://appdistribution.firebase.dev/i/eb0b5d95e67a3b3f"
+APPLE_STORE_LINK = "https://testflight.apple.com/join/p2GAbpaz"
 
 
 events = {

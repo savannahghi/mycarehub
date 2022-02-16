@@ -21,7 +21,7 @@ type Query interface {
 	RetrieveFacilityByMFLCode(ctx context.Context, MFLCode int, isActive bool) (*Facility, error)
 	GetFacilities(ctx context.Context) ([]Facility, error)
 	ListFacilities(ctx context.Context, searchTerm *string, filter []*domain.FiltersParam, pagination *domain.FacilityPage) (*domain.FacilityPage, error)
-	GetUserProfileByPhoneNumber(ctx context.Context, phoneNumber string) (*User, error)
+	GetUserProfileByPhoneNumber(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*User, error)
 	GetUserPINByUserID(ctx context.Context, userID string, flavour feedlib.Flavour) (*PINData, error)
 	GetUserProfileByUserID(ctx context.Context, userID *string) (*User, error)
 	GetCurrentTerms(ctx context.Context, flavour feedlib.Flavour) (*TermsOfService, error)
@@ -255,9 +255,10 @@ func (db *PGInstance) ListFacilities(
 }
 
 // GetUserProfileByPhoneNumber retrieves a user profile using their phonenumber
-func (db *PGInstance) GetUserProfileByPhoneNumber(ctx context.Context, phoneNumber string) (*User, error) {
+func (db *PGInstance) GetUserProfileByPhoneNumber(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*User, error) {
 	var user User
-	if err := db.DB.Joins("JOIN common_contact on users_user.id = common_contact.user_id").Where("common_contact.contact_value = ?", phoneNumber).Preload(clause.Associations).First(&user).Error; err != nil {
+	if err := db.DB.Joins("JOIN common_contact on users_user.id = common_contact.user_id").Where("common_contact.contact_value = ? AND common_contact.flavour = ?", phoneNumber, flavour).
+		Preload(clause.Associations).First(&user).Error; err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed to get user by phonenumber %v: %v", phoneNumber, err)
 	}

@@ -117,12 +117,12 @@ func (d *MyCareHubDb) ListFacilities(
 }
 
 // GetUserProfileByPhoneNumber fetches and returns a userprofile using their phonenumber
-func (d *MyCareHubDb) GetUserProfileByPhoneNumber(ctx context.Context, phoneNumber string) (*domain.User, error) {
+func (d *MyCareHubDb) GetUserProfileByPhoneNumber(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*domain.User, error) {
 	if phoneNumber == "" {
 		return nil, fmt.Errorf("phone number should be provided")
 	}
 
-	user, err := d.query.GetUserProfileByPhoneNumber(ctx, phoneNumber)
+	user, err := d.query.GetUserProfileByPhoneNumber(ctx, phoneNumber, flavour)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed to get user profile by phonenumber: %v", err)
