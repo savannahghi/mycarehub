@@ -5,6 +5,7 @@ go 1.17
 require (
 	firebase.google.com/go v3.13.0+incompatible
 	github.com/99designs/gqlgen v0.14.0
+	github.com/GetStream/stream-chat-go/v5 v5.0.0
 	github.com/GoogleCloudPlatform/cloudsql-proxy v1.27.0
 	github.com/brianvoe/gofakeit v3.18.0+incompatible
 	github.com/getsentry/sentry-go v0.12.0
@@ -58,6 +59,7 @@ require (
 	github.com/gobuffalo/here v0.6.2 // indirect
 	github.com/gofrs/uuid v4.0.0+incompatible // indirect
 	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
+	github.com/golang-jwt/jwt/v4 v4.0.0 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/google/go-cmp v0.5.6 // indirect
