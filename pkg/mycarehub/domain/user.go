@@ -141,6 +141,7 @@ type LoginResponse struct {
 	Client          *ClientProfile  `json:"clientProfile"`
 	Staff           *StaffProfile   `json:"staffProfile"`
 	AuthCredentials AuthCredentials `json:"credentials"`
+	GetStreamToken  string          `json:"getStreamToken"`
 	Code            int             `json:"code"`
 	Message         string          `json:"message"`
 }

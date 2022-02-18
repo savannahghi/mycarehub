@@ -8,6 +8,7 @@ import (
 	externalExtension "github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/getstream"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/authority"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/content"
@@ -48,8 +49,9 @@ func InitializeTestService(ctx context.Context) (*usecases.MyCareHub, error) {
 
 	otpUseCase := otp.NewOTPUseCase(db, db, externalExt)
 	authorityUseCase := authority.NewUsecaseAuthority(db, externalExt)
+	getStream := getstream.NewServiceGetStream()
 
-	userUsecase := user.NewUseCasesUserImpl(db, db, db, db, externalExt, otpUseCase, authorityUseCase)
+	userUsecase := user.NewUseCasesUserImpl(db, db, db, db, externalExt, otpUseCase, authorityUseCase, getStream)
 
 	termsUsecase := terms.NewUseCasesTermsOfService(db, db)
 

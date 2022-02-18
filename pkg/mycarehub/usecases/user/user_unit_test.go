@@ -21,6 +21,7 @@ import (
 	extensionMock "github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension/mock"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	pgMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/mock"
+	getStreamMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/getstream/mock"
 	authorityMock "github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/authority/mock"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/otp"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/user"
@@ -178,8 +179,9 @@ func TestUseCasesUserImpl_Login_Unittest(t *testing.T) {
 			fakeExtension := extensionMock.NewFakeExtension()
 			otp := otp.NewOTPUseCase(fakeDB, fakeDB, fakeExtension)
 			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
+			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 
-			u := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, otp, fakeAuthority)
+			u := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, otp, fakeAuthority, fakeGetStream)
 
 			if tt.name == "Sad case - no phone" {
 				fakeDB.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*domain.User, error) {
@@ -474,8 +476,9 @@ func TestUnit_InviteUser(t *testing.T) {
 			fakeUserMock := mock.NewUserUseCaseMock()
 			otp := otp.NewOTPUseCase(fakeDB, fakeDB, fakeExtension)
 			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
+			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 
-			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, otp, fakeAuthority)
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, otp, fakeAuthority, fakeGetStream)
 
 			if tt.name == "valid: valid phone number" {
 				fakeUserMock.MockInviteUserFn = func(ctx context.Context, userID string, phoneNumber string, flavour feedlib.Flavour) (bool, error) {
@@ -762,8 +765,8 @@ func TestUseCasesUserImpl_SetUserPIN(t *testing.T) {
 
 			otp := otp.NewOTPUseCase(fakeDB, fakeDB, fakeExtension)
 			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
-
-			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, otp, fakeAuthority)
+			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, otp, fakeAuthority, fakeGetStream)
 
 			if tt.name == "invalid: user not found" {
 				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
@@ -941,8 +944,9 @@ func TestUseCasesUserImpl_VerifyLoginPIN(t *testing.T) {
 			fakeExtension := extensionMock.NewFakeExtension()
 			otp := otp.NewOTPUseCase(fakeDB, fakeDB, fakeExtension)
 			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
+			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 
-			u := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, otp, fakeAuthority)
+			u := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, otp, fakeAuthority, fakeGetStream)
 
 			if tt.name == "Happy Case - Successfully verify pin" {
 				fakeUserMock.MockVerifyLoginPINFn = func(ctx context.Context, userID string, pin string, flavour feedlib.Flavour) (bool, int, error) {
@@ -1091,8 +1095,8 @@ func TestUseCasesUserImpl_SetNickName(t *testing.T) {
 			fakeExtension := extensionMock.NewFakeExtension()
 			otp := otp.NewOTPUseCase(fakeDB, fakeDB, fakeExtension)
 			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
-
-			u := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, otp, fakeAuthority)
+			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
+			u := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, otp, fakeAuthority, fakeGetStream)
 
 			if tt.name == "Sad case" {
 				fakeDB.MockSetNickNameFn = func(ctx context.Context, userID, nickname *string) (bool, error) {
@@ -1203,8 +1207,8 @@ func TestUseCasesUserImpl_RequestPINReset(t *testing.T) {
 			fakeExtension := extensionMock.NewFakeExtension()
 			otp := otp.NewOTPUseCase(fakeDB, fakeDB, fakeExtension)
 			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
-
-			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, otp, fakeAuthority)
+			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, otp, fakeAuthority, fakeGetStream)
 
 			if tt.name == "Sad Case - Invalid phonenumber" {
 				fakeUser.MockRequestPINResetFn = func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (string, error) {
@@ -1436,8 +1440,8 @@ func TestUseCasesUserImpl_ResetPIN(t *testing.T) {
 			fakeExtension := extensionMock.NewFakeExtension()
 			otp := otp.NewOTPUseCase(fakeDB, fakeDB, fakeExtension)
 			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
-
-			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, otp, fakeAuthority)
+			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, otp, fakeAuthority, fakeGetStream)
 
 			if tt.name == "Happy Case - Successfully reset pin" {
 				fakeDB.MockGetUserSecurityQuestionsResponsesFn = func(ctx context.Context, userID string) ([]*domain.SecurityQuestionResponse, error) {
@@ -1611,8 +1615,8 @@ func TestUseCasesUserImpl_RefreshToken(t *testing.T) {
 			fakeExtension := extensionMock.NewFakeExtension()
 			otp := otp.NewOTPUseCase(fakeDB, fakeDB, fakeExtension)
 			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
-
-			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, otp, fakeAuthority)
+			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, otp, fakeAuthority, fakeGetStream)
 
 			if tt.name == "Sad Case - Fail to create firebase custom token" {
 				fakeExtension.MockCreateFirebaseCustomTokenFn = func(ctx context.Context, uid string) (string, error) {
@@ -1745,8 +1749,8 @@ func TestUseCasesUserImpl_VerifyPIN(t *testing.T) {
 			fakeExtension := extensionMock.NewFakeExtension()
 			otp := otp.NewOTPUseCase(fakeDB, fakeDB, fakeExtension)
 			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
-
-			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, otp, fakeAuthority)
+			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, otp, fakeAuthority, fakeGetStream)
 
 			if tt.name == "invalid: failed to get user pin by user id" {
 				fakeDB.MockGetUserPINByUserIDFn = func(ctx context.Context, userID string, flavour feedlib.Flavour) (*domain.UserPIN, error) {
@@ -1839,8 +1843,8 @@ func TestUseCasesUserImpl_GetClientCaregiver(t *testing.T) {
 			fakeExtension := extensionMock.NewFakeExtension()
 			otp := otp.NewOTPUseCase(fakeDB, fakeDB, fakeExtension)
 			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
-
-			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, otp, fakeAuthority)
+			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, otp, fakeAuthority, fakeGetStream)
 
 			if tt.name == "valid: no caregiver assigned" {
 				fakeDB.MockGetClientCaregiverFn = func(ctx context.Context, clientID string) (*domain.Caregiver, error) {
@@ -2004,8 +2008,8 @@ func TestUseCasesUserImpl_CreateOrUpdateClientCaregiver(t *testing.T) {
 			fakeExtension := extensionMock.NewFakeExtension()
 			otp := otp.NewOTPUseCase(fakeDB, fakeDB, fakeExtension)
 			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
-
-			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, otp, fakeAuthority)
+			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, otp, fakeAuthority, fakeGetStream)
 
 			if tt.name == "invalid: failed to get client by id" {
 				fakeDB.MockGetClientProfileByClientIDFn = func(ctx context.Context, clientID string) (*domain.ClientProfile, error) {
@@ -2094,8 +2098,8 @@ func TestUseCasesUserImpl_CompleteOnboardingTour(t *testing.T) {
 			fakeExtension := extensionMock.NewFakeExtension()
 			otp := otp.NewOTPUseCase(fakeDB, fakeDB, fakeExtension)
 			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
-
-			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, otp, fakeAuthority)
+			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, otp, fakeAuthority, fakeGetStream)
 
 			if tt.name == "Sad case - no userID" {
 				fakeDB.MockUpdateUserPinChangeRequiredStatusFn = func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
@@ -2153,7 +2157,8 @@ func TestUseCasesUserImpl_RegisterClient(t *testing.T) {
 						Month: 3,
 						Day:   12,
 					},
-					ClientType: enums.ClientTypeDreams,
+					ClientType:   enums.ClientTypeDreams,
+					InviteClient: true,
 				},
 			},
 			wantErr: false,
@@ -2201,8 +2206,8 @@ func TestUseCasesUserImpl_RegisterClient(t *testing.T) {
 			fakeExtension := extensionMock.NewFakeExtension()
 			otp := otp.NewOTPUseCase(fakeDB, fakeDB, fakeExtension)
 			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
-
-			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, otp, fakeAuthority)
+			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, otp, fakeAuthority, fakeGetStream)
 
 			if tt.name == "Sad Case - User not authorized" {
 				fakeAuthority.MockCheckUserPermissionFn = func(ctx context.Context, permission enums.PermissionType) error {

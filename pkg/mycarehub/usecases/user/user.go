@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	getStreamClient "github.com/GetStream/stream-chat-go/v5"
 	"github.com/savannahghi/converterandformatter"
 	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/feedlib"
@@ -22,6 +23,7 @@ import (
 	utilsExt "github.com/savannahghi/mycarehub/pkg/mycarehub/application/utils"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/getstream"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/authority"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/otp"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/utils"
@@ -118,6 +120,7 @@ type UseCasesUserImpl struct {
 	ExternalExt extension.ExternalMethodsExtension
 	OTP         otp.UsecaseOTP
 	Authority   authority.UsecaseAuthority
+	GetStream   getstream.ServiceGetStream
 }
 
 // NewUseCasesUserImpl returns a new user service
@@ -129,6 +132,7 @@ func NewUseCasesUserImpl(
 	externalExt extension.ExternalMethodsExtension,
 	otp otp.UsecaseOTP,
 	authority authority.UsecaseAuthority,
+	getstream getstream.ServiceGetStream,
 ) *UseCasesUserImpl {
 	return &UseCasesUserImpl{
 		Create:      create,
@@ -138,6 +142,7 @@ func NewUseCasesUserImpl(
 		ExternalExt: externalExt,
 		OTP:         otp,
 		Authority:   authority,
+		GetStream:   getstream,
 	}
 }
 
@@ -269,6 +274,23 @@ func (us *UseCasesUserImpl) ReturnLoginResponse(ctx context.Context, flavour fee
 			return nil, int(exceptions.ProfileNotFound), exceptions.ClientProfileNotFoundErr(err)
 		}
 
+		// Create/update a client's getstream user
+		getStreamUser := &getStreamClient.User{
+			ID:   *clientProfile.ID,
+			Role: "user",
+			Name: userProfile.Name,
+		}
+
+		_, err = us.GetStream.CreateGetStreamUser(ctx, getStreamUser)
+		if err != nil {
+			return nil, 0, fmt.Errorf("failed to create client's getstream user account: %v", err)
+		}
+
+		getStreamToken, err := us.GetStream.CreateGetStreamUserToken(ctx, *clientProfile.ID)
+		if err != nil {
+			return nil, 0, fmt.Errorf("failed to generate getstream token: %v", err)
+		}
+
 		clientProfile.User = userProfile
 		loginResponse := &domain.LoginResponse{
 			Client: clientProfile,
@@ -277,8 +299,9 @@ func (us *UseCasesUserImpl) ReturnLoginResponse(ctx context.Context, flavour fee
 				IDToken:      userTokens.IDToken,
 				ExpiresIn:    userTokens.ExpiresIn,
 			},
-			Code:    int(exceptions.OK),
-			Message: "Success",
+			GetStreamToken: getStreamToken,
+			Code:           int(exceptions.OK),
+			Message:        "Success",
 		}
 
 		return loginResponse, int(exceptions.OK), nil
@@ -290,6 +313,23 @@ func (us *UseCasesUserImpl) ReturnLoginResponse(ctx context.Context, flavour fee
 			return nil, int(exceptions.ProfileNotFound), exceptions.StaffProfileNotFoundErr(err)
 		}
 
+		// Create/update a staff's getstream user
+		getStreamUser := &getStreamClient.User{
+			ID:   *staffProfile.ID,
+			Role: "user",
+			Name: userProfile.Name,
+		}
+
+		_, err = us.GetStream.CreateGetStreamUser(ctx, getStreamUser)
+		if err != nil {
+			return nil, 0, fmt.Errorf("failed to create staff's getstream user account: %v", err)
+		}
+
+		getStreamToken, err := us.GetStream.CreateGetStreamUserToken(ctx, *staffProfile.ID)
+		if err != nil {
+			return nil, 0, fmt.Errorf("failed to generate getstream token: %v", err)
+		}
+
 		staffProfile.User = userProfile
 		loginResponse := &domain.LoginResponse{
 			Staff: staffProfile,
@@ -298,8 +338,9 @@ func (us *UseCasesUserImpl) ReturnLoginResponse(ctx context.Context, flavour fee
 				IDToken:      userTokens.IDToken,
 				ExpiresIn:    userTokens.ExpiresIn,
 			},
-			Code:    int(exceptions.OK),
-			Message: "Success",
+			GetStreamToken: getStreamToken,
+			Code:           int(exceptions.OK),
+			Message:        "Success",
 		}
 
 		return loginResponse, int(exceptions.OK), nil
@@ -763,6 +804,18 @@ func (us *UseCasesUserImpl) RegisterClient(
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed to unmarshal response: %v", err)
+	}
+
+	// Create a client's getstream user
+	getStreamUser := &getStreamClient.User{
+		ID:   registrationOutput.ID,
+		Role: "user",
+		Name: input.ClientName,
+	}
+
+	_, err = us.GetStream.CreateGetStreamUser(ctx, getStreamUser)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create client's getstream user account: %v", err)
 	}
 
 	if input.InviteClient {

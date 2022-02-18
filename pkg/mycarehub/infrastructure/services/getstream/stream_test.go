@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
-	getstream "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/stream"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/getstream"
 )
 
 func TestGetStreamClient_CreateUserGetStreamToken(t *testing.T) {
