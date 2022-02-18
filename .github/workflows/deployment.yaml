@@ -135,6 +135,8 @@ jobs:
           --set-env-vars "INVITE_PIN_EXPIRY_DAYS=${{ secrets.INVITE_PIN_EXPIRY_DAYS }}" \
           --set-env-vars "CLIENT_REGISTRATION_URL=${{ secrets.CLIENT_REGISTRATION_URL }}" \
           --set-env-vars "PIN_EXPIRY_DAYS=${{ secrets.PIN_EXPIRY_DAYS }}" \
+          --set-env-vars "GET_STREAM_KEY=${{ secrets.GET_STREAM_KEY }}" \
+          --set-env-vars "GET_STREAM_SECRET=${{ secrets.GET_STREAM_SECRET }}" \
           --set-env-vars "SAVANNAH_ADMIN_EMAIL=${{ secrets.SAVANNAH_ADMIN_EMAIL }}"
 
           gcloud run services update-traffic ${{ secrets.SERVICE_NAME }} --region europe-west1 --to-latest
@@ -225,6 +227,8 @@ jobs:
           --set-env-vars "INVITE_PIN_EXPIRY_DAYS=${{ secrets.INVITE_PIN_EXPIRY_DAYS }}" \
           --set-env-vars "PIN_EXPIRY_DAYS=${{ secrets.PIN_EXPIRY_DAYS }}" \
           --set-env-vars "CLIENT_REGISTRATION_URL=${{ secrets.CLIENT_REGISTRATION_URL }}" \
+          --set-env-vars "GET_STREAM_KEY=${{ secrets.GET_STREAM_KEY }}" \
+          --set-env-vars "GET_STREAM_SECRET=${{ secrets.GET_STREAM_SECRET }}" \
           --set-env-vars "SAVANNAH_ADMIN_EMAIL=${{ secrets.SAVANNAH_ADMIN_EMAIL }}" 
 
           gcloud run services update-traffic ${{ secrets.SERVICE_NAME }} --region europe-west1 --to-latest
@@ -327,6 +331,8 @@ jobs:
           --set-env-vars "INVITE_PIN_EXPIRY_DAYS=${{ secrets.INVITE_PIN_EXPIRY_DAYS }}" \
           --set-env-vars "PIN_EXPIRY_DAYS=${{ secrets.PIN_EXPIRY_DAYS }}" \
           --set-env-vars "GOOGLE_CLOUD_STORAGE_URL=${{ secrets.GOOGLE_CLOUD_STORAGE_URL }}" \
+          --set-env-vars "GET_STREAM_KEY=${{ secrets.GET_STREAM_KEY }}" \
+          --set-env-vars "GET_STREAM_SECRET=${{ secrets.GET_STREAM_SECRET }}" \
           --set-env-vars "CLIENT_REGISTRATION_URL=${{ secrets.CLIENT_REGISTRATION_URL }}" \
           --set-env-vars "SAVANNAH_ADMIN_EMAIL=${{ secrets.SAVANNAH_ADMIN_EMAIL }}" 
 
