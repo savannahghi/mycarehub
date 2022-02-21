@@ -1192,3 +1192,61 @@ func TestPGInstance_AssignRoles(t *testing.T) {
 		})
 	}
 }
+
+func TestPGInstance_RevokeRoles(t *testing.T) {
+	ctx := context.Background()
+	type args struct {
+		ctx    context.Context
+		userID string
+		roles  []enums.UserRoleType
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:    ctx,
+				userID: userID,
+				roles:  []enums.UserRoleType{enums.UserRoleTypeSystemAdministrator, enums.UserRoleTypeContentManagement},
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Invalid: invalid user ID",
+			args: args{
+				ctx:    ctx,
+				userID: uuid.New().String(),
+				roles:  []enums.UserRoleType{enums.UserRoleTypeSystemAdministrator, enums.UserRoleTypeContentManagement},
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Invalid: invalid role",
+			args: args{
+				ctx:    ctx,
+				userID: userID,
+				roles:  []enums.UserRoleType{enums.UserRoleType("invalid"), enums.UserRoleTypeContentManagement},
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := testingDB.RevokeRoles(tt.args.ctx, tt.args.userID, tt.args.roles)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.RevokeRoles() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("PGInstance.RevokeRoles() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

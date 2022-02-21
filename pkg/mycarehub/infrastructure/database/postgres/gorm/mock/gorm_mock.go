@@ -84,6 +84,7 @@ type GormMock struct {
 	MockGetUserRolesFn                            func(ctx context.Context, userID string) ([]*gorm.AuthorityRole, error)
 	MockGetUserPermissionsFn                      func(ctx context.Context, userID string) ([]*gorm.AuthorityPermission, error)
 	MockCheckIfUsernameExistsFn                   func(ctx context.Context, username string) (bool, error)
+	MockRevokeRolesFn                             func(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error)
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -549,6 +550,9 @@ func NewGormMock() *GormMock {
 		MockCheckIfUsernameExistsFn: func(ctx context.Context, username string) (bool, error) {
 			return true, nil
 		},
+		MockRevokeRolesFn: func(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error) {
+			return true, nil
+		},
 	}
 }
 
@@ -886,4 +890,9 @@ func (gm *GormMock) GetUserPermissions(ctx context.Context, userID string) ([]*g
 // CheckIfUsernameExists mocks the implementation of checking whether a username exists
 func (gm *GormMock) CheckIfUsernameExists(ctx context.Context, username string) (bool, error) {
 	return gm.MockCheckIfUsernameExistsFn(ctx, username)
+}
+
+// RevokeRoles mocks the implementation of revoking roles from a user
+func (gm *GormMock) RevokeRoles(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error) {
+	return gm.MockRevokeRolesFn(ctx, userID, roles)
 }

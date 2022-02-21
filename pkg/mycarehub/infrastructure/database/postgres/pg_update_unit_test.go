@@ -1618,3 +1618,43 @@ func TestMyCareHubDb_AssignRoles(t *testing.T) {
 		})
 	}
 }
+
+func TestMyCareHubDb_RevokeRoles(t *testing.T) {
+	type args struct {
+		ctx    context.Context
+		userID string
+		roles  []enums.UserRoleType
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:    context.Background(),
+				userID: uuid.New().String(),
+				roles:  []enums.UserRoleType{enums.UserRoleTypeSystemAdministrator},
+			},
+			want:    true,
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var fakeGorm = gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			got, err := d.RevokeRoles(tt.args.ctx, tt.args.userID, tt.args.roles)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.RevokeRoles() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("MyCareHubDb.RevokeRoles() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

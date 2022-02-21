@@ -352,4 +352,8 @@ const (
 	// The retrieval has failed'
 	// Its error code is 69
 	GetUserPermissionsError
+	// RevokeRolesError means that the system is unable to revoke roles
+	// The revocation has failed'
+	// Its error code is 70
+	RevokeRolesError
 )

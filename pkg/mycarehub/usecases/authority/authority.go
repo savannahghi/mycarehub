@@ -22,8 +22,8 @@ type ICheckUserPermission interface {
 	CheckUserPermission(ctx context.Context, permission enums.PermissionType) error
 }
 
-// IAssignRole contains methods to assign a role to a user
-type IAssignRole interface {
+// IAssignRoles contains methods to assign roles to a user
+type IAssignRoles interface {
 	AssignRoles(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error)
 }
 
@@ -37,13 +37,19 @@ type IGetUserPermissions interface {
 	GetUserPermissions(ctx context.Context, userID string) ([]*domain.AuthorityPermission, error)
 }
 
+// IRevokeRoles contains methods to revoke roles from a user
+type IRevokeRoles interface {
+	RevokeRoles(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error)
+}
+
 // UsecaseAuthority groups al the interfaces for the Authority usecase
 type UsecaseAuthority interface {
 	ICheckUserRole
 	ICheckUserPermission
-	IAssignRole
+	IAssignRoles
 	IGetUserRoles
 	IGetUserPermissions
+	IRevokeRoles
 }
 
 // UsecaseAuthorityImpl represents the Authority implementation
@@ -136,7 +142,7 @@ func (u *UsecaseAuthorityImpl) AssignRoles(ctx context.Context, userID string, r
 	err := u.CheckUserPermission(ctx, enums.PermissionTypeCanEditUserRole)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return false, exceptions.CheckUserPermissionErr(err)
+		return false, exceptions.UserNotAuthorizedErr(err)
 	}
 
 	ok, err := u.Update.AssignRoles(ctx, userID, roles)
@@ -177,4 +183,31 @@ func (u *UsecaseAuthorityImpl) GetUserPermissions(ctx context.Context, userID st
 		return nil, exceptions.GetUserPermissionsErr(err)
 	}
 	return permissions, nil
+}
+
+// RevokeRoles revokes the specified roles from the user
+func (u *UsecaseAuthorityImpl) RevokeRoles(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error) {
+	if userID == "" {
+		err := fmt.Errorf("userID must not be empty")
+		helpers.ReportErrorToSentry(err)
+		return false, exceptions.EmptyInputErr(err)
+	}
+	if len(roles) == 0 {
+		err := fmt.Errorf("roles must not be empty")
+		helpers.ReportErrorToSentry(err)
+		return false, exceptions.EmptyInputErr(err)
+	}
+	// check if user can revoke role
+	err := u.CheckUserPermission(ctx, enums.PermissionTypeCanEditUserRole)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, exceptions.UserNotAuthorizedErr(err)
+	}
+
+	ok, err := u.Update.RevokeRoles(ctx, userID, roles)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, exceptions.RevokeRolesErr(err)
+	}
+	return ok, nil
 }

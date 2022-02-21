@@ -170,3 +170,8 @@ func (d *MyCareHubDb) ResolveServiceRequest(ctx context.Context, staffID *string
 func (d *MyCareHubDb) AssignRoles(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error) {
 	return d.update.AssignRoles(ctx, userID, roles)
 }
+
+// RevokeRoles revokes roles from a user
+func (d *MyCareHubDb) RevokeRoles(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error) {
+	return d.update.RevokeRoles(ctx, userID, roles)
+}

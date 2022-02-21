@@ -143,4 +143,7 @@ const (
 	GetUserRolesErrorMsg = "unable to get user roles"
 	// GetUserPermissionsErrorMsg is the error message displayed when a user permission is not found
 	GetUserPermissionsErrorMsg = "unable to get user permissions"
+
+	// RevokeRolesErrorMsg is the error message displayed when a user roles' revocation fails
+	RevokeRolesErrorMsg = "unable to revoke roles"
 )
