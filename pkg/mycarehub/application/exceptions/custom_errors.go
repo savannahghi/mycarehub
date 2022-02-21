@@ -405,3 +405,12 @@ func CheckUserPermissionErr(err error) error {
 		Code:    int(CheckUserPermissionError),
 	}
 }
+
+// AssignRolesErr returns an error message when the user role assignment fails
+func AssignRolesErr(err error) error {
+	return &CustomError{
+		Err:     err,
+		Message: AssignRolesErrorMsg,
+		Code:    int(AssignRolesError),
+	}
+}

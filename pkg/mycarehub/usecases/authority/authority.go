@@ -21,25 +21,34 @@ type ICheckUserPermission interface {
 	CheckUserPermission(ctx context.Context, permission enums.PermissionType) error
 }
 
+// IAssignRole contains methods to assign a role to a user
+type IAssignRole interface {
+	AssignRoles(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error)
+}
+
 // UsecaseAuthority groups al the interfaces for the Authority usecase
 type UsecaseAuthority interface {
 	ICheckUserRole
 	ICheckUserPermission
+	IAssignRole
 }
 
 // UsecaseAuthorityImpl represents the Authority implementation
 type UsecaseAuthorityImpl struct {
 	Query       infrastructure.Query
+	Update      infrastructure.Update
 	ExternalExt extension.ExternalMethodsExtension
 }
 
 // NewUsecaseAuthority is the controller function for the Authority usecase
 func NewUsecaseAuthority(
 	query infrastructure.Query,
+	update infrastructure.Update,
 	externalExt extension.ExternalMethodsExtension,
 ) *UsecaseAuthorityImpl {
 	return &UsecaseAuthorityImpl{
 		Query:       query,
+		Update:      update,
 		ExternalExt: externalExt,
 	}
 }
@@ -96,4 +105,31 @@ func (u *UsecaseAuthorityImpl) CheckUserPermission(ctx context.Context, permissi
 		return exceptions.UserNotAuthorizedErr(err)
 	}
 	return nil
+}
+
+// AssignRoles assigns the specified roles to the user
+func (u *UsecaseAuthorityImpl) AssignRoles(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error) {
+	if userID == "" {
+		err := fmt.Errorf("userID must not be empty")
+		helpers.ReportErrorToSentry(err)
+		return false, exceptions.EmptyInputErr(err)
+	}
+	if len(roles) == 0 {
+		err := fmt.Errorf("roles must not be empty")
+		helpers.ReportErrorToSentry(err)
+		return false, exceptions.EmptyInputErr(err)
+	}
+	// check if user can assign role
+	err := u.CheckUserPermission(ctx, enums.PermissionTypeCanEditUserRole)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, exceptions.CheckUserPermissionErr(err)
+	}
+
+	ok, err := u.Update.AssignRoles(ctx, userID, roles)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, exceptions.AssignRolesErr(err)
+	}
+	return ok, nil
 }

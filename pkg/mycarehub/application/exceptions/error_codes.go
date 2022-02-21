@@ -338,4 +338,8 @@ const (
 	// The check has failed'
 	// Its error code is 66
 	CheckUserPermissionError
+	// AssignRolesError means that the system is unable to assign roles'
+	// The assignment has failed'
+	// Its error code is 67
+	AssignRolesError
 )

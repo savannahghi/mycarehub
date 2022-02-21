@@ -76,7 +76,7 @@ func TestUsecaseAuthorityImpl_CheckUserRole(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
 			fakeExtension := extensionMock.NewFakeExtension()
-			u := NewUsecaseAuthority(fakeDB, fakeExtension)
+			u := NewUsecaseAuthority(fakeDB, fakeDB, fakeExtension)
 
 			if tt.name == "sad case: failed to check if use has role" {
 				fakeDB.MockCheckUserRoleFn = func(ctx context.Context, userID string, role string) (bool, error) {
@@ -160,7 +160,7 @@ func TestUsecaseAuthorityImpl_CheckUserPermission(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
 			fakeExtension := extensionMock.NewFakeExtension()
-			u := NewUsecaseAuthority(fakeDB, fakeExtension)
+			u := NewUsecaseAuthority(fakeDB, fakeDB, fakeExtension)
 
 			if tt.name == "sad case: failed to check if use has permission" {
 				fakeDB.MockCheckUserPermissionFn = func(ctx context.Context, userID string, permission string) (bool, error) {
@@ -184,6 +184,99 @@ func TestUsecaseAuthorityImpl_CheckUserPermission(t *testing.T) {
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UsecaseAuthorityImpl.CheckUserPermission() error = %v, wantErr %v", err, tt.wantErr)
 				return
+			}
+		})
+	}
+}
+
+func TestUsecaseAuthorityImpl_AssignRoles(t *testing.T) {
+	type args struct {
+		ctx    context.Context
+		userID string
+		roles  []enums.UserRoleType
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "happy case: successfully assign roles to a user",
+			args: args{
+				ctx:    context.Background(),
+				userID: uuid.New().String(),
+				roles:  []enums.UserRoleType{enums.UserRoleTypeSystemAdministrator},
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "sad case: missing user id",
+			args: args{
+				ctx:    context.Background(),
+				userID: "",
+				roles:  []enums.UserRoleType{enums.UserRoleTypeSystemAdministrator},
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "sad case: missing roles",
+			args: args{
+				ctx:    context.Background(),
+				userID: uuid.New().String(),
+				roles:  []enums.UserRoleType{},
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "sad case: user not authorized",
+			args: args{
+				ctx:    context.Background(),
+				userID: uuid.New().String(),
+				roles:  []enums.UserRoleType{enums.UserRoleTypeSystemAdministrator},
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "sad case: failed to assign roles to a user",
+			args: args{
+				ctx:    context.Background(),
+				userID: uuid.New().String(),
+				roles:  []enums.UserRoleType{enums.UserRoleTypeSystemAdministrator},
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			fakeExtension := extensionMock.NewFakeExtension()
+			u := NewUsecaseAuthority(fakeDB, fakeDB, fakeExtension)
+
+			if tt.name == "sad case: user not authorized" {
+				fakeDB.MockCheckUserPermissionFn = func(ctx context.Context, userID string, permission string) (bool, error) {
+					return false, nil
+				}
+			}
+
+			if tt.name == "sad case: failed to assign roles to a user" {
+				fakeDB.MockAssignRolesFn = func(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error) {
+					return false, fmt.Errorf("failed to assign roles to a user")
+				}
+			}
+
+			got, err := u.AssignRoles(tt.args.ctx, tt.args.userID, tt.args.roles)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UsecaseAuthorityImpl.AssignRoles() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("UsecaseAuthorityImpl.AssignRoles() = %v, want %v", got, tt.want)
 			}
 		})
 	}

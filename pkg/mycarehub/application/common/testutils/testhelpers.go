@@ -48,8 +48,8 @@ func InitializeTestService(ctx context.Context) (*usecases.MyCareHub, error) {
 	facilityUseCase := facility.NewFacilityUsecase(db, db, db, db)
 
 	otpUseCase := otp.NewOTPUseCase(db, db, externalExt)
-	authorityUseCase := authority.NewUsecaseAuthority(db, externalExt)
 	getStream := getstream.NewServiceGetStream()
+	authorityUseCase := authority.NewUsecaseAuthority(db, db, externalExt)
 
 	userUsecase := user.NewUseCasesUserImpl(db, db, db, db, externalExt, otpUseCase, authorityUseCase, getStream)
 

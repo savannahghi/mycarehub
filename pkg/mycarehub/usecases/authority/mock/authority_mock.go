@@ -10,6 +10,7 @@ import (
 type AuthorityUseCaseMock struct {
 	MockCheckUserRoleFn       func(ctx context.Context, role enums.UserRoleType) error
 	MockCheckUserPermissionFn func(ctx context.Context, permission enums.PermissionType) error
+	MockAssignRolesFn         func(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error)
 }
 
 // NewAuthorityUseCaseMock creates in initializes create type mocks
@@ -23,6 +24,9 @@ func NewAuthorityUseCaseMock() *AuthorityUseCaseMock {
 		MockCheckUserPermissionFn: func(ctx context.Context, permission enums.PermissionType) error {
 			return nil
 		},
+		MockAssignRolesFn: func(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error) {
+			return false, nil
+		},
 	}
 }
 
@@ -34,4 +38,9 @@ func (f *AuthorityUseCaseMock) CheckUserRole(ctx context.Context, role enums.Use
 // CheckUserPermission mocks the implementation for checking the user permission
 func (f *AuthorityUseCaseMock) CheckUserPermission(ctx context.Context, permission enums.PermissionType) error {
 	return f.MockCheckUserPermissionFn(ctx, permission)
+}
+
+// AssignRoles mocks the implementation for assigning the roles to the user
+func (f *AuthorityUseCaseMock) AssignRoles(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error) {
+	return f.MockAssignRolesFn(ctx, userID, roles)
 }

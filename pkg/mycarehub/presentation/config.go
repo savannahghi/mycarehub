@@ -77,7 +77,7 @@ func Router(ctx context.Context) (*mux.Router, error) {
 
 	otpUseCase := otp.NewOTPUseCase(db, db, externalExt)
 
-	authorityUseCase := authority.NewUsecaseAuthority(db, externalExt)
+	authorityUseCase := authority.NewUsecaseAuthority(db, db, externalExt)
 
 	getStream := getstream.NewServiceGetStream()
 	// Initialize user usecase
