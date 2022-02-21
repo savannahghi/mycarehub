@@ -249,3 +249,23 @@ type GetStreamUser {
   createdAt: Time!
   updatedAt: Time!
 }
+type Community {
+  id: String!
+  name: String!
+  description: String!
+  ageRange: AgeRange
+  gender: [Gender!]!
+  clientType: [ClientType!]
+  inviteOnly: Boolean!
+}
+
+
+type AgeRange {
+  lowerBound: Int!
+  upperBound: Int!
+}
+
+type PostingHours {
+  start: Time!
+  end: Time!
+}

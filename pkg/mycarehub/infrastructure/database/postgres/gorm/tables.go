@@ -5,6 +5,7 @@ import (
 
 	"github.com/brianvoe/gofakeit"
 	"github.com/google/uuid"
+	"github.com/lib/pq"
 	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common"
@@ -807,4 +808,61 @@ type AuthorityRoleUser struct {
 // TableName references the table that we map data from
 func (AuthorityRoleUser) TableName() string {
 	return "authority_authorityrole_users"
+}
+
+// Community defines the payload to create a channel
+type Community struct {
+	Base
+
+	ID             string         `gorm:"primaryKey;column:id"`
+	Name           string         `gorm:"column:name"`
+	Description    string         `gorm:"column:description"`
+	Active         bool           `gorm:"column:active"`
+	MinimumAge     int            `gorm:"column:min_age"`
+	MaximumAge     int            `gorm:"column:max_age"`
+	Gender         pq.StringArray `gorm:"type:text[];column:gender"`
+	ClientTypes    pq.StringArray `gorm:"type:text[];column:client_types"`
+	InviteOnly     bool           `gorm:"column:invite_only"`
+	Discoverable   bool           `gorm:"column:discoverable"`
+	OrganisationID string         `gorm:"column:organisation_id"`
+}
+
+// BeforeCreate is a hook run before creating a community
+func (c *Community) BeforeCreate(tx *gorm.DB) (err error) {
+	id := uuid.New().String()
+	c.ID = id
+	c.OrganisationID = OrganizationID
+	return
+}
+
+// TableName references the table that we map data from
+func (Community) TableName() string {
+	return "communities_community"
+}
+
+// AgeRange defines the channel users age input
+// type AgeRange struct {
+// 	LowerBound int `gorm:"column:lower_bound"`
+// 	UpperBound int `gorm:"column:upper_bound"`
+// }
+
+// PostingHours defines the channel posting hours
+type PostingHours struct {
+	ID             string    `gorm:"primaryKey;column:id;"`
+	Start          time.Time `gorm:"column:start"`
+	End            time.Time `gorm:"column:end"`
+	OrganisationID string    `gorm:"column:organisation_id"`
+}
+
+// TableName references the table that we map data from
+func (PostingHours) TableName() string {
+	return "communities_postinghour"
+}
+
+// BeforeCreate is a hook run before creating authority permission
+func (p *PostingHours) BeforeCreate(tx *gorm.DB) (err error) {
+	id := uuid.New().String()
+	p.ID = id
+	p.OrganisationID = OrganizationID
+	return
 }

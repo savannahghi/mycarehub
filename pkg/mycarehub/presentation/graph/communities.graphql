@@ -1,3 +1,7 @@
 extend type Query {
   listGetStreamUsers(input: QueryOption): QueryUsersResponse!
 }
+
+extend type Mutation {
+  createCommunity(input: CommunityInput!): Community!
+}

@@ -84,3 +84,18 @@ input SortOption {
   field: String!
   direction: Int!
 }
+input CommunityInput {
+  name: String!
+  description: String!
+  ageRange: AgeRangeInput
+  gender: [Gender!]!
+  clientType: [ClientType!]
+  inviteOnly: Boolean!
+}
+
+input AgeRangeInput {
+  lowerBound: Int!
+  upperBound: Int!
+}
+
+

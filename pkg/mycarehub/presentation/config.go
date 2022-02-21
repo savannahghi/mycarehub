@@ -17,7 +17,7 @@ import (
 	externalExtension "github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/getstream"
+	streamService "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/getstream"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/presentation/graph"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/presentation/graph/generated"
 	internalRest "github.com/savannahghi/mycarehub/pkg/mycarehub/presentation/rest"
@@ -80,7 +80,7 @@ func Router(ctx context.Context) (*mux.Router, error) {
 
 	authorityUseCase := authority.NewUsecaseAuthority(db, db, externalExt)
 
-	getStream := getstream.NewServiceGetStream()
+	getStream := streamService.NewServiceGetStream()
 	// Initialize user usecase
 	userUsecase := user.NewUseCasesUserImpl(db, db, db, db, externalExt, otpUseCase, authorityUseCase, getStream)
 
@@ -97,12 +97,15 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	faq := faq.NewUsecaseFAQ(db)
 
 	serviceRequestUseCase := servicerequest.NewUseCaseServiceRequestImpl(db, db, db)
-	communitiesUseCase := communities.NewUseCaseCommunitiesImpl(getStream)
+
+	stream := streamService.NewServiceGetStream()
+
+	communities := communities.NewUseCaseCommunities(stream, db, externalExt)
 
 	useCase := usecases.NewMyCareHubUseCase(
 		userUsecase, termsUsecase, facilityUseCase,
 		securityQuestionsUsecase, otpUseCase, contentUseCase, feedbackUsecase, healthDiaryUseCase,
-		faq, serviceRequestUseCase, authorityUseCase, communitiesUseCase,
+		faq, serviceRequestUseCase, authorityUseCase, communities,
 	)
 
 	internalHandlers := internalRest.NewMyCareHubHandlersInterfaces(*useCase)

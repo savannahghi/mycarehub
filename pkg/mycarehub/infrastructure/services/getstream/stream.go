@@ -20,6 +20,8 @@ type ServiceGetStream interface {
 	CreateGetStreamUserToken(ctx context.Context, userID string) (string, error)
 	CreateGetStreamUser(ctx context.Context, user *stream.User) (*stream.UpsertUserResponse, error)
 	ListGetStreamUsers(ctx context.Context, input *stream.QueryOption) (*stream.QueryUsersResponse, error)
+	CreateChannel(ctx context.Context, chanType, chanID, userID string, data map[string]interface{}) (*stream.CreateChannelResponse, error)
+	DeleteChannels(ctx context.Context, chanIDs []string, hardDelete bool) (*stream.AsyncTaskResponse, error)
 }
 
 // ChatClient is the service's struct implementation
@@ -59,4 +61,16 @@ func (c *ChatClient) ListGetStreamUsers(ctx context.Context, input *stream.Query
 	}
 
 	return user, nil
+}
+
+// CreateChannel creates new channel of given type and id or returns already created one.
+func (c *ChatClient) CreateChannel(ctx context.Context, chanType, chanID, userID string, data map[string]interface{}) (*stream.CreateChannelResponse, error) {
+	return c.client.CreateChannel(ctx, chanType, chanID, userID, data)
+}
+
+// DeleteChannels deletes channels asynchronously.
+// Channels and messages will be hard deleted if hardDelete is true.
+// It returns an AsyncTaskResponse object which contains the task ID, the status of the task can be check with client.GetTask method.
+func (c *ChatClient) DeleteChannels(ctx context.Context, chanIDs []string, hardDelete bool) (*stream.AsyncTaskResponse, error) {
+	return c.client.DeleteChannels(ctx, chanIDs, hardDelete)
 }
