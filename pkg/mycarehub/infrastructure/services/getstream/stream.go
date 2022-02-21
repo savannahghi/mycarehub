@@ -19,6 +19,7 @@ var (
 type ServiceGetStream interface {
 	CreateGetStreamUserToken(ctx context.Context, userID string) (string, error)
 	CreateGetStreamUser(ctx context.Context, user *stream.User) (*stream.UpsertUserResponse, error)
+	ListGetStreamUsers(ctx context.Context, input *stream.QueryOption) (*stream.QueryUsersResponse, error)
 }
 
 // ChatClient is the service's struct implementation
@@ -47,4 +48,15 @@ func (c *ChatClient) CreateGetStreamUserToken(ctx context.Context, userID string
 // CreateGetStreamUser creates or updates a user
 func (c *ChatClient) CreateGetStreamUser(ctx context.Context, user *stream.User) (*stream.UpsertUserResponse, error) {
 	return c.client.UpsertUser(ctx, user)
+}
+
+// ListGetStreamUsers returns list of users that match QueryOption.
+// If any number of SortOption are set, result will be sorted by field and direction in the order of sort options.
+func (c *ChatClient) ListGetStreamUsers(ctx context.Context, input *stream.QueryOption) (*stream.QueryUsersResponse, error) {
+	user, err := c.client.QueryUsers(ctx, input)
+	if err != nil {
+		return nil, err
+	}
+
+	return user, nil
 }

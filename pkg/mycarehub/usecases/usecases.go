@@ -2,6 +2,7 @@ package usecases
 
 import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/authority"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/communities"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/content"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/facility"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/faq"
@@ -27,6 +28,7 @@ type MyCareHub struct {
 	FAQ               faq.UsecaseFAQ
 	ServiceRequest    servicerequest.UseCaseServiceRequest
 	Authority         authority.UsecaseAuthority
+	Community         communities.UseCasesCommunities
 }
 
 // NewMyCareHubUseCase initializes a new my care hub instance
@@ -42,6 +44,7 @@ func NewMyCareHubUseCase(
 	faq faq.UsecaseFAQ,
 	servicerequest servicerequest.UseCaseServiceRequest,
 	authority authority.UsecaseAuthority,
+	community communities.UseCasesCommunities,
 ) *MyCareHub {
 	return &MyCareHub{
 		User:              user,
@@ -55,5 +58,6 @@ func NewMyCareHubUseCase(
 		FAQ:               faq,
 		ServiceRequest:    servicerequest,
 		Authority:         authority,
+		Community:         community,
 	}
 }

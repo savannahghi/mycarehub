@@ -8,7 +8,6 @@ import (
 
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/presentation/graph/generated"
 )
 
 func (r *mutationResolver) ShareContent(ctx context.Context, input dto.ShareContentInput) (bool, error) {
@@ -62,8 +61,3 @@ func (r *queryResolver) CheckIfUserHasLikedContent(ctx context.Context, userID s
 func (r *queryResolver) CheckIfUserBookmarkedContent(ctx context.Context, userID string, contentID int) (bool, error) {
 	return r.mycarehub.Content.CheckIfUserBookmarkedContent(ctx, userID, contentID)
 }
-
-// Query returns generated.QueryResolver implementation.
-func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
-
-type queryResolver struct{ *Resolver }

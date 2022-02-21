@@ -237,3 +237,15 @@ type ServiceRequestsCount {
   total: Int!
   requestsTypeCount: [RequestTypeCount!]!
 }
+
+type QueryUsersResponse {
+  users: [GetStreamUser!]!
+}
+
+type GetStreamUser {
+  ID: String!
+  name: String!
+  role: String!
+  createdAt: Time!
+  updatedAt: Time!
+}

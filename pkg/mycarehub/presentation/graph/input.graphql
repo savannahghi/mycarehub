@@ -70,3 +70,17 @@ input ClientRegistrationInput {
   counselled: Boolean!
   inviteClient: Boolean!
 }
+
+input QueryOption {
+  sort: [SortOption!]
+  userID: String
+  limit: Int
+  offset: Int
+  messageLimit: Int
+  memberLimit: Int
+}
+
+input SortOption {
+  field: String!
+  direction: Int!
+}
