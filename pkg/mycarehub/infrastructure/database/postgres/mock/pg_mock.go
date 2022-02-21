@@ -81,6 +81,7 @@ type PostgresMock struct {
 	MockResolveServiceRequestFn                   func(ctx context.Context, staffID *string, serviceRequestID *string) (bool, error)
 	MockCheckUserRoleFn                           func(ctx context.Context, userID string, role string) (bool, error)
 	MockCheckUserPermissionFn                     func(ctx context.Context, userID string, permission string) (bool, error)
+	MockAssignRolesFn                             func(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error)
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -475,6 +476,9 @@ func NewPostgresMock() *PostgresMock {
 		MockCheckUserPermissionFn: func(ctx context.Context, userID string, permission string) (bool, error) {
 			return true, nil
 		},
+		MockAssignRolesFn: func(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error) {
+			return true, nil
+		},
 	}
 }
 
@@ -801,4 +805,9 @@ func (gm *PostgresMock) CheckUserRole(ctx context.Context, userID string, role s
 // CheckUserPermission mocks the implementation of checking if a user has a permission
 func (gm *PostgresMock) CheckUserPermission(ctx context.Context, userID string, permission string) (bool, error) {
 	return gm.MockCheckUserPermissionFn(ctx, userID, permission)
+}
+
+// AssignRoles mocks the implementation of assigning roles to a user
+func (gm *PostgresMock) AssignRoles(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error) {
+	return gm.MockAssignRolesFn(ctx, userID, roles)
 }

@@ -80,6 +80,7 @@ type GormMock struct {
 	MockResolveServiceRequestFn                   func(ctx context.Context, staffID *string, serviceRequestID *string) (bool, error)
 	MockCheckUserRoleFn                           func(ctx context.Context, userID string, role string) (bool, error)
 	MockCheckUserPermissionFn                     func(ctx context.Context, userID string, permission string) (bool, error)
+	MockAssignRolesFn                             func(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error)
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -509,6 +510,9 @@ func NewGormMock() *GormMock {
 		MockCheckUserPermissionFn: func(ctx context.Context, userID string, permission string) (bool, error) {
 			return true, nil
 		},
+		MockAssignRolesFn: func(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error) {
+			return true, nil
+		},
 	}
 }
 
@@ -821,4 +825,9 @@ func (gm *GormMock) CheckUserRole(ctx context.Context, userID string, role strin
 // CheckUserPermission mocks the implementation of checking if a user has a permission
 func (gm *GormMock) CheckUserPermission(ctx context.Context, userID string, permission string) (bool, error) {
 	return gm.MockCheckUserPermissionFn(ctx, userID, permission)
+}
+
+// AssignRoles mocks the implementation of assigning roles to a user
+func (gm *GormMock) AssignRoles(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error) {
+	return gm.MockAssignRolesFn(ctx, userID, roles)
 }

@@ -7,6 +7,7 @@ import (
 
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 )
 
 // ReactivateFacility changes the status of an active facility from false to true
@@ -163,4 +164,9 @@ func (d *MyCareHubDb) UpdateClientCaregiver(ctx context.Context, caregiverInput 
 // ResolveServiceRequest resolves a service request
 func (d *MyCareHubDb) ResolveServiceRequest(ctx context.Context, staffID *string, serviceRequestID *string) (bool, error) {
 	return d.update.ResolveServiceRequest(ctx, staffID, serviceRequestID)
+}
+
+// AssignRoles assigns roles to a user
+func (d *MyCareHubDb) AssignRoles(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error) {
+	return d.update.AssignRoles(ctx, userID, roles)
 }

@@ -34,6 +34,7 @@ type Update interface {
 	SetInProgressBy(ctx context.Context, requestID string, staffID string) (bool, error)
 	UpdateClientCaregiver(ctx context.Context, caregiverInput *dto.CaregiverInput) error
 	ResolveServiceRequest(ctx context.Context, staffID *string, serviceRequestID *string) (bool, error)
+	AssignRoles(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error)
 }
 
 // LikeContent perfoms the actual database operation to update content like. The operation
@@ -112,6 +113,8 @@ func (db *PGInstance) UnlikeContent(context context.Context, userID string, cont
 		}
 	}()
 	if err := tx.Error; err != nil {
+		helpers.ReportErrorToSentry(err)
+		tx.Rollback()
 		return false, fmt.Errorf("failed to initialize like transaction")
 	}
 
@@ -121,18 +124,21 @@ func (db *PGInstance) UnlikeContent(context context.Context, userID string, cont
 			return true, nil
 		}
 		helpers.ReportErrorToSentry(err)
+		tx.Rollback()
 		return false, fmt.Errorf("unable to get content like for the specifies user: %v", err)
 	}
 
 	var contentItem ContentItem
 	if err := tx.Model(&ContentItem{}).Where(&ContentItem{PagePtrID: contentID}).First(&contentItem).Error; err != nil {
 		helpers.ReportErrorToSentry(err)
+		tx.Rollback()
 		return false, fmt.Errorf("unable to get content item: %v", err)
 	}
 
-	err := tx.Where("user_id = ?", userID, "content_item_id = ?", contentID).Delete(&ContentLike{}).Error
+	err := tx.Model(&ContentLike{}).Where(&ContentLike{UserID: userID, ContentID: contentID}).Delete(&ContentLike{}).Error
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
+		tx.Rollback()
 		return false, fmt.Errorf("unable to delete content likes: %v", err)
 	}
 
@@ -142,10 +148,12 @@ func (db *PGInstance) UnlikeContent(context context.Context, userID string, cont
 		}).Error
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
+		tx.Rollback()
 		return false, fmt.Errorf("unable to update like count in content item table: %v", err)
 	}
 
 	if err := tx.Commit().Error; err != nil {
+		helpers.ReportErrorToSentry(err)
 		tx.Rollback()
 		return false, fmt.Errorf("transaction commit to like count failed: %v", err)
 	}
@@ -639,6 +647,59 @@ func (db *PGInstance) ResolveServiceRequest(ctx context.Context, staffID *string
 		helpers.ReportErrorToSentry(err)
 		tx.Rollback()
 		return false, fmt.Errorf("transaction commit to update service request failed: %v", err)
+	}
+
+	return true, nil
+}
+
+// AssignRoles assigns roles to a user
+func (db *PGInstance) AssignRoles(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error) {
+	var (
+		user User
+	)
+
+	tx := db.DB.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+	if err := tx.Error; err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, fmt.Errorf("failied initialize database transaction %v", err)
+	}
+
+	err := tx.Model(&User{}).Where(&User{UserID: &userID}).First(&user).Error
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		tx.Rollback()
+		return false, fmt.Errorf("failed to get user: %v", err)
+	}
+
+	for _, role := range roles {
+		var (
+			roleID string
+		)
+
+		err := tx.Raw(`SELECT id FROM authority_authorityrole WHERE name = ?`, role.String()).Row().Scan(&roleID)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			tx.Rollback()
+			return false, fmt.Errorf("failed to get authority role: %v", err)
+		}
+
+		err = tx.Model(&AuthorityRoleUser{}).Where(&AuthorityRoleUser{UserID: user.UserID, RoleID: &roleID}).FirstOrCreate(&AuthorityRoleUser{}).Error
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			tx.Rollback()
+			return false, fmt.Errorf("failed to assign role: %v", err)
+		}
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		helpers.ReportErrorToSentry(err)
+		tx.Rollback()
+		return false, fmt.Errorf("transaction commit to update user roles failed: %v", err)
 	}
 
 	return true, nil

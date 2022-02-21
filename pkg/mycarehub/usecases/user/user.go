@@ -17,7 +17,6 @@ import (
 	"github.com/savannahghi/firebasetools"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
 	utilsExt "github.com/savannahghi/mycarehub/pkg/mycarehub/application/utils"
@@ -774,12 +773,13 @@ func (us *UseCasesUserImpl) RegisterClient(
 ) (*dto.ClientRegistrationOutput, error) {
 	var registrationOutput *dto.ClientRegistrationOutput
 
+	// TODO: Restore after aligning with frontend
 	// check if logged in user can register client
-	err := us.Authority.CheckUserPermission(ctx, enums.PermissionTypeCanInviteClient)
-	if err != nil {
-		helpers.ReportErrorToSentry(err)
-		return nil, exceptions.UserNotAuthorizedErr(err)
-	}
+	// err := us.Authority.CheckUserPermission(ctx, enums.PermissionTypeCanInviteClient)
+	// if err != nil {
+	// 	helpers.ReportErrorToSentry(err)
+	// 	return nil, exceptions.UserNotAuthorizedErr(err)
+	// }
 
 	input.Gender = enumutils.Gender(strings.ToUpper(input.Gender.String()))
 	resp, err := utilsExt.MakeRequest(ctx, http.MethodPost, registerClientAPIEndpoint, input)
