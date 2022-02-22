@@ -79,6 +79,7 @@ type PostgresMock struct {
 	MockGetServiceRequestsFn                      func(ctx context.Context, requestType, requestStatus, facilityID *string) ([]*domain.ServiceRequest, error)
 	MockGetPendingServiceRequestsCountFn          func(ctx context.Context, facilityID string) (*domain.ServiceRequestsCount, error)
 	MockResolveServiceRequestFn                   func(ctx context.Context, staffID *string, serviceRequestID *string) (bool, error)
+	MockCreateChannelFn                           func(ctx context.Context, community *dto.CommunityInput) (*domain.Community, error)
 	MockCheckUserRoleFn                           func(ctx context.Context, userID string, role string) (bool, error)
 	MockCheckUserPermissionFn                     func(ctx context.Context, userID string, permission string) (bool, error)
 	MockAssignRolesFn                             func(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error)
@@ -457,6 +458,26 @@ func NewPostgresMock() *PostgresMock {
 				},
 			}, nil
 		},
+		MockCreateChannelFn: func(ctx context.Context, communityInput *dto.CommunityInput) (*domain.Community, error) {
+			return &domain.Community{
+				ID:          uuid.New().String(),
+				Name:        name,
+				Description: description,
+				AgeRange: &domain.AgeRange{
+					LowerBound: 10,
+					UpperBound: 20,
+				},
+				Gender: []enumutils.Gender{
+					enumutils.AllGender[0],
+					enumutils.AllGender[1],
+				},
+				ClientType: []enums.ClientType{
+					enums.AllClientType[0],
+					enums.AllClientType[1],
+				},
+				InviteOnly: true,
+			}, nil
+		},
 		MockGetClientProfileByClientIDFn: func(ctx context.Context, clientID string) (*domain.ClientProfile, error) {
 			client := &domain.ClientProfile{
 				ID:   &ID,
@@ -810,4 +831,9 @@ func (gm *PostgresMock) CheckUserPermission(ctx context.Context, userID string, 
 // AssignRoles mocks the implementation of assigning roles to a user
 func (gm *PostgresMock) AssignRoles(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error) {
 	return gm.MockAssignRolesFn(ctx, userID, roles)
+}
+
+// CreateChannel mocks the implementation of creating a channel
+func (gm *PostgresMock) CreateChannel(ctx context.Context, community *dto.CommunityInput) (*domain.Community, error) {
+	return gm.MockCreateChannelFn(ctx, community)
 }

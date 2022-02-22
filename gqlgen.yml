@@ -79,4 +79,3 @@ models:
   FacilityInput:
     model:
       - github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto.FacilityInput
-

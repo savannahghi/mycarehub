@@ -6,7 +6,9 @@ import (
 	"testing"
 
 	stream "github.com/GetStream/stream-chat-go/v5"
+	extensionMock "github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension/mock"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
+	pgMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/mock"
 	getStreamMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/getstream/mock"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/communities"
 )
@@ -49,7 +51,9 @@ func TestUseCasesCommunitiesImpl_ListGetStreamUsers(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
-			communities := communities.NewUseCaseCommunitiesImpl(fakeGetStream)
+			fakeDB := pgMock.NewPostgresMock()
+			fakeExtension := extensionMock.NewFakeExtension()
+			communities := communities.NewUseCaseCommunities(fakeGetStream, fakeDB, fakeExtension)
 
 			if tt.name == "Sad Case - Fail to list stream users" {
 				fakeGetStream.MockListGetStreamUsersFn = func(ctx context.Context, queryOptions *stream.QueryOption) (*stream.QueryUsersResponse, error) {

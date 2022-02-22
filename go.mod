@@ -145,6 +145,6 @@ require (
 	cloud.google.com/go/trace v1.0.0 // indirect
 	github.com/go-playground/universal-translator v0.18.0 // indirect
 	github.com/leodido/go-urn v1.2.1 // indirect
-	github.com/lib/pq v1.10.4 // indirect
+	github.com/lib/pq v1.10.4
 	github.com/savannahghi/engagementcore v0.0.34
 )

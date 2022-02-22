@@ -8,7 +8,7 @@ import (
 	externalExtension "github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/getstream"
+	streamService "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/getstream"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/authority"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/communities"
@@ -49,12 +49,14 @@ func InitializeTestService(ctx context.Context) (*usecases.MyCareHub, error) {
 	facilityUseCase := facility.NewFacilityUsecase(db, db, db, db)
 
 	otpUseCase := otp.NewOTPUseCase(db, db, externalExt)
-	getStream := getstream.NewServiceGetStream()
+	getStream := streamService.NewServiceGetStream()
 	authorityUseCase := authority.NewUsecaseAuthority(db, db, externalExt)
 
 	userUsecase := user.NewUseCasesUserImpl(db, db, db, db, externalExt, otpUseCase, authorityUseCase, getStream)
 
 	termsUsecase := terms.NewUseCasesTermsOfService(db, db)
+
+	communityUsecase := communities.NewUseCaseCommunities(getStream, db, externalExt)
 
 	securityQuestionsUsecase := securityquestions.NewSecurityQuestionsUsecase(db, db, db, externalExt)
 	contentUseCase := content.NewUseCasesContentImplementation(db, db)
@@ -63,12 +65,11 @@ func InitializeTestService(ctx context.Context) (*usecases.MyCareHub, error) {
 	healthDiaryUseCase := healthdiary.NewUseCaseHealthDiaryImpl(db, db)
 	faq := faq.NewUsecaseFAQ(db)
 	serviceRequestUseCase := servicerequest.NewUseCaseServiceRequestImpl(db, db, db)
-	communitiesUseCase := communities.NewUseCaseCommunitiesImpl(getStream)
 
 	i := usecases.NewMyCareHubUseCase(
 		userUsecase, termsUsecase, facilityUseCase,
 		securityQuestionsUsecase, otpUseCase, contentUseCase, feedbackUsecase, healthDiaryUseCase,
-		faq, serviceRequestUseCase, authorityUseCase, communitiesUseCase,
+		faq, serviceRequestUseCase, authorityUseCase, communityUsecase,
 	)
 	return i, nil
 }

@@ -109,3 +109,71 @@ func TestChatClient_ListGetStreamUsers(t *testing.T) {
 		})
 	}
 }
+
+func TestChatClient_CreateChannel(t *testing.T) {
+	g := getstream.NewServiceGetStream()
+
+	ctx := context.Background()
+	channelID := "channelJnJ"
+
+	type args struct {
+		ctx      context.Context
+		chanType string
+		chanID   string
+		userID   string
+		data     map[string]interface{}
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *stream.CreateChannelResponse
+		wantErr bool
+	}{
+		{
+			name: "Happy case - Create channel",
+			args: args{
+				ctx:      ctx,
+				chanType: "messaging",
+				chanID:   channelID,
+				userID:   uuid.New().String(),
+				data: map[string]interface{}{
+					"age": map[string]interface{}{
+						"lowerBound": 10,
+						"upperBound": 20,
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case - unable to create channel",
+			args: args{
+				ctx:      ctx,
+				chanType: "test",
+				chanID:   "",
+				userID:   uuid.New().String(),
+				data:     nil,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := g.CreateChannel(tt.args.ctx, tt.args.chanType, tt.args.chanID, tt.args.userID, tt.args.data)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ChatClient.CreateChannel() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected a response but got: %v", got)
+				return
+			}
+		})
+	}
+
+	//TODO: Delete the created test channel from stream server
+	_, err := g.DeleteChannels(ctx, []string{channelID}, true)
+	if err != nil {
+		t.Errorf("ChatClient.DeleteChannel() error = %v", err)
+	}
+}

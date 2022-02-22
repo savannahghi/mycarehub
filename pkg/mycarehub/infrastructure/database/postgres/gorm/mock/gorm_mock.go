@@ -81,6 +81,7 @@ type GormMock struct {
 	MockCheckUserRoleFn                           func(ctx context.Context, userID string, role string) (bool, error)
 	MockCheckUserPermissionFn                     func(ctx context.Context, userID string, permission string) (bool, error)
 	MockAssignRolesFn                             func(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error)
+	MockCreateChannelFn                           func(ctx context.Context, community *gorm.Community) (*gorm.Community, error)
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -504,6 +505,20 @@ func NewGormMock() *GormMock {
 		MockResolveServiceRequestFn: func(ctx context.Context, staffID *string, serviceRequestID *string) (bool, error) {
 			return true, nil
 		},
+		MockCreateChannelFn: func(ctx context.Context, community *gorm.Community) (*gorm.Community, error) {
+			return &gorm.Community{
+				Base:           gorm.Base{},
+				ID:             UUID,
+				Name:           name,
+				Description:    description,
+				Active:         false,
+				Gender:         []string{"test"},
+				ClientTypes:    []string{"test"},
+				InviteOnly:     true,
+				Discoverable:   true,
+				OrganisationID: uuid.New().String(),
+			}, nil
+		},
 		MockCheckUserRoleFn: func(ctx context.Context, userID string, role string) (bool, error) {
 			return true, nil
 		},
@@ -830,4 +845,9 @@ func (gm *GormMock) CheckUserPermission(ctx context.Context, userID string, perm
 // AssignRoles mocks the implementation of assigning roles to a user
 func (gm *GormMock) AssignRoles(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error) {
 	return gm.MockAssignRolesFn(ctx, userID, roles)
+}
+
+// CreateChannel mocks the implementation of creating a channel
+func (gm *GormMock) CreateChannel(ctx context.Context, community *gorm.Community) (*gorm.Community, error) {
+	return gm.MockCreateChannelFn(ctx, community)
 }

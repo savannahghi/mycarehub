@@ -8,6 +8,8 @@ import (
 
 	"github.com/brianvoe/gofakeit"
 	"github.com/google/uuid"
+	"github.com/lib/pq"
+	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
@@ -721,6 +723,77 @@ func TestPGInstance_CreateHealthDiaryEntry(t *testing.T) {
 
 			if err := testingDB.CreateHealthDiaryEntry(tt.args.ctx, tt.args.healthDiaryInput); (err != nil) != tt.wantErr {
 				t.Errorf("PGInstance.CreateHealthDiaryEntry() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestPGInstance_CreateChannel(t *testing.T) {
+	ctx := context.Background()
+
+	var genderList pq.StringArray
+	for _, g := range enumutils.AllGender {
+		genderList = append(genderList, string(g))
+	}
+
+	var clientTypeList pq.StringArray
+	for _, c := range enums.AllClientType {
+		clientTypeList = append(clientTypeList, string(c))
+	}
+
+	type args struct {
+		ctx       context.Context
+		community *gorm.Community
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx: ctx,
+				community: &gorm.Community{
+					ID:             uuid.New().String(),
+					Name:           "test",
+					Description:    "test",
+					Active:         true,
+					MinimumAge:     19,
+					MaximumAge:     30,
+					Gender:         genderList,
+					ClientTypes:    clientTypeList,
+					InviteOnly:     true,
+					Discoverable:   true,
+					OrganisationID: uuid.New().String(),
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case",
+			args: args{
+				ctx: ctx,
+				community: &gorm.Community{
+					Name:           "test",
+					Description:    "test",
+					Active:         true,
+					MinimumAge:     19,
+					MaximumAge:     30,
+					InviteOnly:     true,
+					Discoverable:   true,
+					OrganisationID: uuid.New().String(),
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := testingDB.CreateChannel(tt.args.ctx, tt.args.community)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.CreateChannel() error = %v, wantErr %v", err, tt.wantErr)
+				return
 			}
 		})
 	}

@@ -4,12 +4,16 @@ import (
 	"context"
 
 	"github.com/google/uuid"
+	"github.com/savannahghi/enumutils"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 )
 
 // CommunityUsecaseMock contains the community usecase mock methods
 type CommunityUsecaseMock struct {
 	MockListGetStreamUsersFn func(ctx context.Context, input *domain.QueryOption) (*domain.QueryUsersResponse, error)
+	MockCreateCommunityFn    func(ctx context.Context, input dto.CommunityInput) (*domain.Community, error)
 }
 
 // NewCommunityUsecaseMock initializes a new instance of the Community usecase happy cases
@@ -25,10 +29,29 @@ func NewCommunityUsecaseMock() *CommunityUsecaseMock {
 				},
 			}, nil
 		},
+		MockCreateCommunityFn: func(ctx context.Context, input dto.CommunityInput) (*domain.Community, error) {
+			return &domain.Community{
+				ID:          uuid.New().String(),
+				Name:        "test",
+				Description: "test",
+				AgeRange: &domain.AgeRange{
+					LowerBound: 1,
+					UpperBound: 3,
+				},
+				Gender:     []enumutils.Gender{enumutils.AllGender[0]},
+				ClientType: []enums.ClientType{enums.AllClientType[0]},
+				InviteOnly: true,
+			}, nil
+		},
 	}
 }
 
 // ListGetStreamUsers mocks the implementation for listing getstream users
 func (c CommunityUsecaseMock) ListGetStreamUsers(ctx context.Context, input *domain.QueryOption) (*domain.QueryUsersResponse, error) {
 	return c.MockListGetStreamUsersFn(ctx, input)
+}
+
+// CreateCommunity mocks the implementation of creating communities
+func (c CommunityUsecaseMock) CreateCommunity(ctx context.Context, input dto.CommunityInput) (*domain.Community, error) {
+	return c.MockCreateCommunityFn(ctx, input)
 }

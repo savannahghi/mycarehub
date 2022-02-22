@@ -8,6 +8,7 @@ import (
 
 	"github.com/brianvoe/gofakeit"
 	"github.com/google/uuid"
+	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/interserviceclient"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
@@ -557,6 +558,79 @@ func TestMyCareHubDb_CreateClientCaregiver(t *testing.T) {
 			}
 			if err := d.CreateClientCaregiver(tt.args.ctx, tt.args.caregiverInput); (err != nil) != tt.wantErr {
 				t.Errorf("MyCareHubDb.CreateClientCaregiver() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestMyCareHubDb_CreateChannel(t *testing.T) {
+	ctx := context.Background()
+
+	type args struct {
+		ctx            context.Context
+		communityInput *dto.CommunityInput
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx: ctx,
+				communityInput: &dto.CommunityInput{
+					Name:        "test",
+					Description: "test",
+					AgeRange: &dto.AgeRangeInput{
+						LowerBound: 0,
+						UpperBound: 0,
+					},
+					Gender:     []*enumutils.Gender{&enumutils.AllGender[0]},
+					ClientType: []*enums.ClientType{&enums.AllClientType[0]},
+					InviteOnly: true,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case",
+			args: args{
+				ctx: ctx,
+				communityInput: &dto.CommunityInput{
+					Name:        "test",
+					Description: "test",
+					AgeRange: &dto.AgeRangeInput{
+						LowerBound: 0,
+						UpperBound: 0,
+					},
+					Gender:     []*enumutils.Gender{&enumutils.AllGender[0]},
+					ClientType: []*enums.ClientType{&enums.AllClientType[0]},
+					InviteOnly: true,
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var fakeGorm = gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			if tt.name == "Sad case" {
+				fakeGorm.MockCreateChannelFn = func(ctx context.Context, community *gorm.Community) (*gorm.Community, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+
+			got, err := d.CreateChannel(tt.args.ctx, tt.args.communityInput)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.CreateChannel() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected a response but got: %v", got)
+				return
 			}
 		})
 	}

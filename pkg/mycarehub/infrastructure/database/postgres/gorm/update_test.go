@@ -845,11 +845,11 @@ func TestPGInstance_UnlikeContent(t *testing.T) {
 
 			got, err := testingDB.UnlikeContent(tt.args.context, tt.args.userID, tt.args.contentID)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("PGInstance.LikeContent() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("PGInstance.UnlikeContent() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if got != tt.want {
-				t.Errorf("PGInstance.LikeContent() = %v, want %v", got, tt.want)
+				t.Errorf("PGInstance.UnlikeContent() = %v, want %v", got, tt.want)
 			}
 		})
 	}

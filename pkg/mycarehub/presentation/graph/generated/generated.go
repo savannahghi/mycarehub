@@ -49,6 +49,11 @@ type DirectiveRoot struct {
 }
 
 type ComplexityRoot struct {
+	AgeRange struct {
+		LowerBound func(childComplexity int) int
+		UpperBound func(childComplexity int) int
+	}
+
 	Author struct {
 		ID func(childComplexity int) int
 	}
@@ -96,6 +101,16 @@ type ComplexityRoot struct {
 		Organisation      func(childComplexity int) int
 		TreatmentBuddy    func(childComplexity int) int
 		UserID            func(childComplexity int) int
+	}
+
+	Community struct {
+		AgeRange    func(childComplexity int) int
+		ClientType  func(childComplexity int) int
+		Description func(childComplexity int) int
+		Gender      func(childComplexity int) int
+		ID          func(childComplexity int) int
+		InviteOnly  func(childComplexity int) int
+		Name        func(childComplexity int) int
 	}
 
 	Content struct {
@@ -250,6 +265,7 @@ type ComplexityRoot struct {
 		AssignRoles                     func(childComplexity int, userID string, roles []enums.UserRoleType) int
 		BookmarkContent                 func(childComplexity int, userID string, contentItemID int) int
 		CompleteOnboardingTour          func(childComplexity int, userID string, flavour feedlib.Flavour) int
+		CreateCommunity                 func(childComplexity int, input dto.CommunityInput) int
 		CreateFacility                  func(childComplexity int, input dto.FacilityInput) int
 		CreateHealthDiaryEntry          func(childComplexity int, clientID string, note *string, mood string, reportToStaff bool) int
 		CreateOrUpdateClientCaregiver   func(childComplexity int, caregiverInput *dto.CaregiverInput) int
@@ -279,6 +295,11 @@ type ComplexityRoot struct {
 		NextPage     func(childComplexity int) int
 		PreviousPage func(childComplexity int) int
 		TotalPages   func(childComplexity int) int
+	}
+
+	PostingHours struct {
+		End   func(childComplexity int) int
+		Start func(childComplexity int) int
 	}
 
 	Query struct {
@@ -355,6 +376,7 @@ type ComplexityRoot struct {
 
 type MutationResolver interface {
 	AssignRoles(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error)
+	CreateCommunity(ctx context.Context, input dto.CommunityInput) (*domain.Community, error)
 	ShareContent(ctx context.Context, input dto.ShareContentInput) (bool, error)
 	BookmarkContent(ctx context.Context, userID string, contentItemID int) (bool, error)
 	UnBookmarkContent(ctx context.Context, userID string, contentItemID int) (bool, error)
@@ -417,6 +439,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 	ec := executionContext{nil, e}
 	_ = ec
 	switch typeName + "." + field {
+
+	case "AgeRange.lowerBound":
+		if e.complexity.AgeRange.LowerBound == nil {
+			break
+		}
+
+		return e.complexity.AgeRange.LowerBound(childComplexity), true
+
+	case "AgeRange.upperBound":
+		if e.complexity.AgeRange.UpperBound == nil {
+			break
+		}
+
+		return e.complexity.AgeRange.UpperBound(childComplexity), true
 
 	case "Author.ID":
 		if e.complexity.Author.ID == nil {
@@ -634,6 +670,55 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ClientRegistrationOutput.UserID(childComplexity), true
+
+	case "Community.ageRange":
+		if e.complexity.Community.AgeRange == nil {
+			break
+		}
+
+		return e.complexity.Community.AgeRange(childComplexity), true
+
+	case "Community.clientType":
+		if e.complexity.Community.ClientType == nil {
+			break
+		}
+
+		return e.complexity.Community.ClientType(childComplexity), true
+
+	case "Community.description":
+		if e.complexity.Community.Description == nil {
+			break
+		}
+
+		return e.complexity.Community.Description(childComplexity), true
+
+	case "Community.gender":
+		if e.complexity.Community.Gender == nil {
+			break
+		}
+
+		return e.complexity.Community.Gender(childComplexity), true
+
+	case "Community.id":
+		if e.complexity.Community.ID == nil {
+			break
+		}
+
+		return e.complexity.Community.ID(childComplexity), true
+
+	case "Community.inviteOnly":
+		if e.complexity.Community.InviteOnly == nil {
+			break
+		}
+
+		return e.complexity.Community.InviteOnly(childComplexity), true
+
+	case "Community.name":
+		if e.complexity.Community.Name == nil {
+			break
+		}
+
+		return e.complexity.Community.Name(childComplexity), true
 
 	case "Content.items":
 		if e.complexity.Content.Items == nil {
@@ -1313,6 +1398,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.CompleteOnboardingTour(childComplexity, args["userID"].(string), args["flavour"].(feedlib.Flavour)), true
 
+	case "Mutation.createCommunity":
+		if e.complexity.Mutation.CreateCommunity == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createCommunity_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateCommunity(childComplexity, args["input"].(dto.CommunityInput)), true
+
 	case "Mutation.createFacility":
 		if e.complexity.Mutation.CreateFacility == nil {
 			break
@@ -1594,6 +1691,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Pagination.TotalPages(childComplexity), true
+
+	case "PostingHours.end":
+		if e.complexity.PostingHours.End == nil {
+			break
+		}
+
+		return e.complexity.PostingHours.End(childComplexity), true
+
+	case "PostingHours.start":
+		if e.complexity.PostingHours.Start == nil {
+			break
+		}
+
+		return e.complexity.PostingHours.Start(childComplexity), true
 
 	case "Query.canRecordMood":
 		if e.complexity.Query.CanRecordMood == nil {
@@ -2085,6 +2196,10 @@ var sources = []*ast.Source{
 	{Name: "pkg/mycarehub/presentation/graph/communities.graphql", Input: `extend type Query {
   listGetStreamUsers(input: QueryOption): QueryUsersResponse!
 }
+
+extend type Mutation {
+  createCommunity(input: CommunityInput!): Community!
+}
 `, BuiltIn: false},
 	{Name: "pkg/mycarehub/presentation/graph/content.graphql", Input: `extend type Query {
   getContent(categoryID: Int, Limit: String!): Content!
@@ -2349,6 +2464,21 @@ input SortOption {
   field: String!
   direction: Int!
 }
+input CommunityInput {
+  name: String!
+  description: String!
+  ageRange: AgeRangeInput
+  gender: [Gender!]!
+  clientType: [ClientType!]
+  inviteOnly: Boolean!
+}
+
+input AgeRangeInput {
+  lowerBound: Int!
+  upperBound: Int!
+}
+
+
 `, BuiltIn: false},
 	{Name: "pkg/mycarehub/presentation/graph/otp.graphql", Input: `extend type Query {
   sendOTP(phoneNumber: String!, flavour: Flavour!): String!
@@ -2637,6 +2767,26 @@ type GetStreamUser {
   createdAt: Time!
   updatedAt: Time!
 }
+type Community {
+  id: String!
+  name: String!
+  description: String!
+  ageRange: AgeRange
+  gender: [Gender!]!
+  clientType: [ClientType!]
+  inviteOnly: Boolean!
+}
+
+
+type AgeRange {
+  lowerBound: Int!
+  upperBound: Int!
+}
+
+type PostingHours {
+  start: Time!
+  end: Time!
+}
 `, BuiltIn: false},
 	{Name: "pkg/mycarehub/presentation/graph/user.graphql", Input: `extend type Query {
   getCurrentTerms(flavour: Flavour!): TermsOfService!
@@ -2786,6 +2936,21 @@ func (ec *executionContext) field_Mutation_completeOnboardingTour_args(ctx conte
 		}
 	}
 	args["flavour"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_createCommunity_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 dto.CommunityInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNCommunityInput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐCommunityInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
 	return args, nil
 }
 
@@ -3630,6 +3795,76 @@ func (ec *executionContext) field___Type_fields_args(ctx context.Context, rawArg
 // endregion ************************** directives.gotpl **************************
 
 // region    **************************** field.gotpl *****************************
+
+func (ec *executionContext) _AgeRange_lowerBound(ctx context.Context, field graphql.CollectedField, obj *domain.AgeRange) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "AgeRange",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.LowerBound, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _AgeRange_upperBound(ctx context.Context, field graphql.CollectedField, obj *domain.AgeRange) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "AgeRange",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UpperBound, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
 
 func (ec *executionContext) _Author_ID(ctx context.Context, field graphql.CollectedField, obj *domain.Author) (ret graphql.Marshaler) {
 	defer func() {
@@ -4693,6 +4928,245 @@ func (ec *executionContext) _ClientRegistrationOutput_caregiver(ctx context.Cont
 	res := resTmp.(string)
 	fc.Result = res
 	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Community_id(ctx context.Context, field graphql.CollectedField, obj *domain.Community) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Community",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Community_name(ctx context.Context, field graphql.CollectedField, obj *domain.Community) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Community",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Community_description(ctx context.Context, field graphql.CollectedField, obj *domain.Community) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Community",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Description, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Community_ageRange(ctx context.Context, field graphql.CollectedField, obj *domain.Community) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Community",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.AgeRange, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*domain.AgeRange)
+	fc.Result = res
+	return ec.marshalOAgeRange2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐAgeRange(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Community_gender(ctx context.Context, field graphql.CollectedField, obj *domain.Community) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Community",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Gender, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]enumutils.Gender)
+	fc.Result = res
+	return ec.marshalNGender2ᚕgithubᚗcomᚋsavannahghiᚋenumutilsᚐGenderᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Community_clientType(ctx context.Context, field graphql.CollectedField, obj *domain.Community) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Community",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ClientType, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]enums.ClientType)
+	fc.Result = res
+	return ec.marshalOClientType2ᚕgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐClientTypeᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Community_inviteOnly(ctx context.Context, field graphql.CollectedField, obj *domain.Community) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Community",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.InviteOnly, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Content_items(ctx context.Context, field graphql.CollectedField, obj *domain.Content) (ret graphql.Marshaler) {
@@ -7833,6 +8307,48 @@ func (ec *executionContext) _Mutation_assignRoles(ctx context.Context, field gra
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Mutation_createCommunity(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_createCommunity_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CreateCommunity(rctx, args["input"].(dto.CommunityInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*domain.Community)
+	fc.Result = res
+	return ec.marshalNCommunity2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐCommunity(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Mutation_shareContent(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -8995,6 +9511,76 @@ func (ec *executionContext) _Pagination_PreviousPage(ctx context.Context, field 
 	res := resTmp.(*int)
 	fc.Result = res
 	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _PostingHours_start(ctx context.Context, field graphql.CollectedField, obj *domain.PostingHours) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "PostingHours",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Start, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _PostingHours_end(ctx context.Context, field graphql.CollectedField, obj *domain.PostingHours) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "PostingHours",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.End, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_listGetStreamUsers(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -11928,6 +12514,37 @@ func (ec *executionContext) ___Type_ofType(ctx context.Context, field graphql.Co
 
 // region    **************************** input.gotpl *****************************
 
+func (ec *executionContext) unmarshalInputAgeRangeInput(ctx context.Context, obj interface{}) (dto.AgeRangeInput, error) {
+	var it dto.AgeRangeInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	for k, v := range asMap {
+		switch k {
+		case "lowerBound":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lowerBound"))
+			it.LowerBound, err = ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "upperBound":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("upperBound"))
+			it.UpperBound, err = ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputCaregiverInput(ctx context.Context, obj interface{}) (dto.CaregiverInput, error) {
 	var it dto.CaregiverInput
 	asMap := map[string]interface{}{}
@@ -12069,6 +12686,69 @@ func (ec *executionContext) unmarshalInputClientRegistrationInput(ctx context.Co
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("inviteClient"))
 			it.InviteClient, err = ec.unmarshalNBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputCommunityInput(ctx context.Context, obj interface{}) (dto.CommunityInput, error) {
+	var it dto.CommunityInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	for k, v := range asMap {
+		switch k {
+		case "name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			it.Name, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "description":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("description"))
+			it.Description, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "ageRange":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("ageRange"))
+			it.AgeRange, err = ec.unmarshalOAgeRangeInput2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐAgeRangeInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "gender":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("gender"))
+			it.Gender, err = ec.unmarshalNGender2ᚕᚖgithubᚗcomᚋsavannahghiᚋenumutilsᚐGenderᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "clientType":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clientType"))
+			it.ClientType, err = ec.unmarshalOClientType2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐClientTypeᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "inviteOnly":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("inviteOnly"))
+			it.InviteOnly, err = ec.unmarshalNBoolean2bool(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -12508,6 +13188,38 @@ func (ec *executionContext) unmarshalInputSortsInput(ctx context.Context, obj in
 
 // region    **************************** object.gotpl ****************************
 
+var ageRangeImplementors = []string{"AgeRange"}
+
+func (ec *executionContext) _AgeRange(ctx context.Context, sel ast.SelectionSet, obj *domain.AgeRange) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, ageRangeImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("AgeRange")
+		case "lowerBound":
+			out.Values[i] = ec._AgeRange_lowerBound(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "upperBound":
+			out.Values[i] = ec._AgeRange_upperBound(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var authorImplementors = []string{"Author"}
 
 func (ec *executionContext) _Author(ctx context.Context, sel ast.SelectionSet, obj *domain.Author) graphql.Marshaler {
@@ -12760,6 +13472,57 @@ func (ec *executionContext) _ClientRegistrationOutput(ctx context.Context, sel a
 			}
 		case "caregiver":
 			out.Values[i] = ec._ClientRegistrationOutput_caregiver(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var communityImplementors = []string{"Community"}
+
+func (ec *executionContext) _Community(ctx context.Context, sel ast.SelectionSet, obj *domain.Community) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, communityImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Community")
+		case "id":
+			out.Values[i] = ec._Community_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "name":
+			out.Values[i] = ec._Community_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "description":
+			out.Values[i] = ec._Community_description(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "ageRange":
+			out.Values[i] = ec._Community_ageRange(ctx, field, obj)
+		case "gender":
+			out.Values[i] = ec._Community_gender(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "clientType":
+			out.Values[i] = ec._Community_clientType(ctx, field, obj)
+		case "inviteOnly":
+			out.Values[i] = ec._Community_inviteOnly(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -13608,6 +14371,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "createCommunity":
+			out.Values[i] = ec._Mutation_createCommunity(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "shareContent":
 			out.Values[i] = ec._Mutation_shareContent(ctx, field)
 			if out.Values[i] == graphql.Null {
@@ -13763,6 +14531,38 @@ func (ec *executionContext) _Pagination(ctx context.Context, sel ast.SelectionSe
 			out.Values[i] = ec._Pagination_NextPage(ctx, field, obj)
 		case "PreviousPage":
 			out.Values[i] = ec._Pagination_PreviousPage(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var postingHoursImplementors = []string{"PostingHours"}
+
+func (ec *executionContext) _PostingHours(ctx context.Context, sel ast.SelectionSet, obj *domain.PostingHours) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, postingHoursImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("PostingHours")
+		case "start":
+			out.Values[i] = ec._PostingHours_start(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "end":
+			out.Values[i] = ec._PostingHours_end(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -14734,6 +15534,41 @@ func (ec *executionContext) marshalNClientType2githubᚗcomᚋsavannahghiᚋmyca
 	return v
 }
 
+func (ec *executionContext) unmarshalNClientType2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐClientType(ctx context.Context, v interface{}) (*enums.ClientType, error) {
+	var res = new(enums.ClientType)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNClientType2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐClientType(ctx context.Context, sel ast.SelectionSet, v *enums.ClientType) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return v
+}
+
+func (ec *executionContext) marshalNCommunity2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐCommunity(ctx context.Context, sel ast.SelectionSet, v domain.Community) graphql.Marshaler {
+	return ec._Community(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNCommunity2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐCommunity(ctx context.Context, sel ast.SelectionSet, v *domain.Community) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._Community(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNCommunityInput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐCommunityInput(ctx context.Context, v interface{}) (dto.CommunityInput, error) {
+	res, err := ec.unmarshalInputCommunityInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) marshalNContent2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐContent(ctx context.Context, sel ast.SelectionSet, v domain.Content) graphql.Marshaler {
 	return ec._Content(ctx, sel, &v)
 }
@@ -15005,6 +15840,152 @@ func (ec *executionContext) unmarshalNGender2githubᚗcomᚋsavannahghiᚋenumut
 }
 
 func (ec *executionContext) marshalNGender2githubᚗcomᚋsavannahghiᚋenumutilsᚐGender(ctx context.Context, sel ast.SelectionSet, v enumutils.Gender) graphql.Marshaler {
+	return v
+}
+
+func (ec *executionContext) unmarshalNGender2ᚕgithubᚗcomᚋsavannahghiᚋenumutilsᚐGenderᚄ(ctx context.Context, v interface{}) ([]enumutils.Gender, error) {
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]enumutils.Gender, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNGender2githubᚗcomᚋsavannahghiᚋenumutilsᚐGender(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalNGender2ᚕgithubᚗcomᚋsavannahghiᚋenumutilsᚐGenderᚄ(ctx context.Context, sel ast.SelectionSet, v []enumutils.Gender) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNGender2githubᚗcomᚋsavannahghiᚋenumutilsᚐGender(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) unmarshalNGender2ᚕᚖgithubᚗcomᚋsavannahghiᚋenumutilsᚐGenderᚄ(ctx context.Context, v interface{}) ([]*enumutils.Gender, error) {
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]*enumutils.Gender, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNGender2ᚖgithubᚗcomᚋsavannahghiᚋenumutilsᚐGender(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalNGender2ᚕᚖgithubᚗcomᚋsavannahghiᚋenumutilsᚐGenderᚄ(ctx context.Context, sel ast.SelectionSet, v []*enumutils.Gender) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNGender2ᚖgithubᚗcomᚋsavannahghiᚋenumutilsᚐGender(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) unmarshalNGender2ᚖgithubᚗcomᚋsavannahghiᚋenumutilsᚐGender(ctx context.Context, v interface{}) (*enumutils.Gender, error) {
+	var res = new(enumutils.Gender)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNGender2ᚖgithubᚗcomᚋsavannahghiᚋenumutilsᚐGender(ctx context.Context, sel ast.SelectionSet, v *enumutils.Gender) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
 	return v
 }
 
@@ -15430,6 +16411,21 @@ func (ec *executionContext) marshalNTermsOfService2ᚖgithubᚗcomᚋsavannahghi
 	return ec._TermsOfService(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalNTime2timeᚐTime(ctx context.Context, v interface{}) (time.Time, error) {
+	res, err := graphql.UnmarshalTime(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNTime2timeᚐTime(ctx context.Context, sel ast.SelectionSet, v time.Time) graphql.Marshaler {
+	res := graphql.MarshalTime(v)
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+	}
+	return res
+}
+
 func (ec *executionContext) unmarshalNTime2ᚖtimeᚐTime(ctx context.Context, v interface{}) (*time.Time, error) {
 	res, err := graphql.UnmarshalTime(v)
 	return &res, graphql.ErrorOnPath(ctx, err)
@@ -15798,6 +16794,21 @@ func (ec *executionContext) marshalN__TypeKind2string(ctx context.Context, sel a
 	return res
 }
 
+func (ec *executionContext) marshalOAgeRange2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐAgeRange(ctx context.Context, sel ast.SelectionSet, v *domain.AgeRange) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._AgeRange(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOAgeRangeInput2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐAgeRangeInput(ctx context.Context, v interface{}) (*dto.AgeRangeInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputAgeRangeInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalOBoolean2bool(ctx context.Context, v interface{}) (bool, error) {
 	res, err := graphql.UnmarshalBoolean(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -15881,6 +16892,148 @@ func (ec *executionContext) unmarshalOClientRegistrationInput2ᚖgithubᚗcomᚋ
 	}
 	res, err := ec.unmarshalInputClientRegistrationInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOClientType2ᚕgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐClientTypeᚄ(ctx context.Context, v interface{}) ([]enums.ClientType, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]enums.ClientType, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNClientType2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐClientType(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalOClientType2ᚕgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐClientTypeᚄ(ctx context.Context, sel ast.SelectionSet, v []enums.ClientType) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNClientType2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐClientType(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) unmarshalOClientType2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐClientTypeᚄ(ctx context.Context, v interface{}) ([]*enums.ClientType, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]*enums.ClientType, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNClientType2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐClientType(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalOClientType2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐClientTypeᚄ(ctx context.Context, sel ast.SelectionSet, v []*enums.ClientType) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNClientType2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐClientType(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
 }
 
 func (ec *executionContext) marshalOContent2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐContent(ctx context.Context, sel ast.SelectionSet, v *domain.Content) graphql.Marshaler {

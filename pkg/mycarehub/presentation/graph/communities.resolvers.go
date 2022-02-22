@@ -6,9 +6,14 @@ package graph
 import (
 	"context"
 
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/presentation/graph/generated"
 )
+
+func (r *mutationResolver) CreateCommunity(ctx context.Context, input dto.CommunityInput) (*domain.Community, error) {
+	return r.mycarehub.Community.CreateCommunity(ctx, input)
+}
 
 func (r *queryResolver) ListGetStreamUsers(ctx context.Context, input *domain.QueryOption) (*domain.QueryUsersResponse, error) {
 	return r.mycarehub.Community.ListGetStreamUsers(ctx, input)

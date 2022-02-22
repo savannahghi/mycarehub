@@ -4,8 +4,11 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/lib/pq"
+	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
 )
@@ -188,4 +191,59 @@ func (d *MyCareHubDb) CreateClientCaregiver(ctx context.Context, caregiverInput 
 	}
 
 	return nil
+}
+
+// CreateChannel creates a channel in the database
+func (d *MyCareHubDb) CreateChannel(ctx context.Context, communityInput *dto.CommunityInput) (*domain.Community, error) {
+
+	var genderList pq.StringArray
+	for _, g := range communityInput.Gender {
+		genderList = append(genderList, string(*g))
+	}
+
+	var clientTypeList pq.StringArray
+	for _, c := range communityInput.ClientType {
+		clientTypeList = append(clientTypeList, string(*c))
+	}
+
+	input := &gorm.Community{
+		Name:         communityInput.Name,
+		Description:  communityInput.Description,
+		Active:       true,
+		MinimumAge:   communityInput.AgeRange.LowerBound,
+		MaximumAge:   communityInput.AgeRange.UpperBound,
+		Gender:       genderList,
+		ClientTypes:  clientTypeList,
+		InviteOnly:   communityInput.InviteOnly,
+		Discoverable: true,
+	}
+
+	channel, err := d.create.CreateChannel(ctx, input)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
+	var genders []enumutils.Gender
+	for _, k := range channel.Gender {
+		genders = append(genders, enumutils.Gender(k))
+	}
+
+	var clientTypes []enums.ClientType
+	for _, k := range channel.ClientTypes {
+		clientTypes = append(clientTypes, enums.ClientType(k))
+	}
+
+	return &domain.Community{
+		ID:          channel.ID,
+		Name:        channel.Name,
+		Description: channel.Description,
+		AgeRange: &domain.AgeRange{
+			LowerBound: channel.MinimumAge,
+			UpperBound: channel.MaximumAge,
+		},
+		Gender:     genders,
+		ClientType: clientTypes,
+		InviteOnly: channel.InviteOnly,
+	}, nil
 }

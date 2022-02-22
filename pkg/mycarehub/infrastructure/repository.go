@@ -22,6 +22,7 @@ type Create interface {
 	CreateHealthDiaryEntry(ctx context.Context, healthDiaryInput *domain.ClientHealthDiaryEntry) error
 	CreateServiceRequest(ctx context.Context, serviceRequestInput *domain.ClientServiceRequest) error
 	CreateClientCaregiver(ctx context.Context, caregiverInput *dto.CaregiverInput) error
+	CreateChannel(ctx context.Context, communityInput *dto.CommunityInput) (*domain.Community, error)
 }
 
 // Delete represents all the deletion action interfaces

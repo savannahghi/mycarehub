@@ -265,3 +265,19 @@ type ClientRegistrationInput struct {
 	Counselled     bool             `json:"counselled"`
 	InviteClient   bool             `json:"inviteClient"`
 }
+
+// CommunityInput defines the payload to create a channel
+type CommunityInput struct {
+	Name        string              `json:"name"`
+	Description string              `json:"description"`
+	AgeRange    *AgeRangeInput      `json:"ageRange"`
+	Gender      []*enumutils.Gender `json:"gender"`
+	ClientType  []*enums.ClientType `json:"clientType"`
+	InviteOnly  bool                `json:"inviteOnly"`
+}
+
+// AgeRangeInput defines the channel users age input
+type AgeRangeInput struct {
+	LowerBound int `json:"lowerBound"`
+	UpperBound int `json:"upperBound"`
+}
