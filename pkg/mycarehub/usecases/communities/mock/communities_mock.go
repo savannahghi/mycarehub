@@ -14,6 +14,7 @@ import (
 type CommunityUsecaseMock struct {
 	MockListGetStreamUsersFn func(ctx context.Context, input *domain.QueryOption) (*domain.QueryUsersResponse, error)
 	MockCreateCommunityFn    func(ctx context.Context, input dto.CommunityInput) (*domain.Community, error)
+	MockListCommunityMembers func(ctx context.Context, communityID string) ([]*domain.CommunityMember, error)
 }
 
 // NewCommunityUsecaseMock initializes a new instance of the Community usecase happy cases
@@ -43,6 +44,16 @@ func NewCommunityUsecaseMock() *CommunityUsecaseMock {
 				InviteOnly: true,
 			}, nil
 		},
+		MockListCommunityMembers: func(ctx context.Context, communityID string) ([]*domain.CommunityMember, error) {
+			return []*domain.CommunityMember{
+				{
+					UserID: uuid.New().String(),
+					User: domain.Member{
+						ID: uuid.New().String(),
+					},
+				},
+			}, nil
+		},
 	}
 }
 
@@ -54,4 +65,9 @@ func (c CommunityUsecaseMock) ListGetStreamUsers(ctx context.Context, input *dom
 // CreateCommunity mocks the implementation of creating communities
 func (c CommunityUsecaseMock) CreateCommunity(ctx context.Context, input dto.CommunityInput) (*domain.Community, error) {
 	return c.MockCreateCommunityFn(ctx, input)
+}
+
+// ListCommunityMembers mocks the implementation of listing members
+func (c CommunityUsecaseMock) ListCommunityMembers(ctx context.Context, communityID string) ([]*domain.CommunityMember, error) {
+	return c.MockListCommunityMembers(ctx, communityID)
 }

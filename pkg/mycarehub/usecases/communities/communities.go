@@ -26,6 +26,7 @@ type ICreateCommunity interface {
 
 // IListUsers is an interface that is used to list getstream users
 type IListUsers interface {
+	ListCommunityMembers(ctx context.Context, communityID string) ([]*domain.CommunityMember, error)
 	ListGetStreamUsers(ctx context.Context, input *domain.QueryOption) (*domain.QueryUsersResponse, error)
 }
 
@@ -233,4 +234,46 @@ func (us *UseCasesCommunitiesImpl) ListGetStreamChannels(ctx context.Context, in
 	return &domain.QueryChannelsResponse{
 		Channels: channelResponse,
 	}, nil
+}
+
+// ListCommunityMembers retrieves the members of a community
+func (us *UseCasesCommunitiesImpl) ListCommunityMembers(ctx context.Context, communityID string) ([]*domain.CommunityMember, error) {
+	members := []*domain.CommunityMember{}
+
+	channel, err := us.GetstreamService.GetChannel(ctx, communityID)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, member := range channel.Members {
+		var userType string
+		var userID string
+
+		if val, ok := member.User.ExtraData["userType"]; ok {
+			userType = val.(string)
+		}
+
+		if val, ok := member.User.ExtraData["userID"]; ok {
+			userID = val.(string)
+		}
+
+		user := domain.Member{
+			ID:   member.User.ID,
+			Name: member.User.Name,
+			Role: member.User.Role,
+		}
+
+		commMem := &domain.CommunityMember{
+			UserID:      userID,
+			User:        user,
+			Role:        member.Role,
+			IsModerator: member.IsModerator,
+			UserType:    userType,
+		}
+
+		members = append(members, commMem)
+
+	}
+
+	return members, nil
 }

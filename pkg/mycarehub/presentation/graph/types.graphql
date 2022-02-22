@@ -249,6 +249,7 @@ type GetStreamUser {
   createdAt: Time!
   updatedAt: Time!
 }
+
 type Community {
   id: String!
   name: String!
@@ -257,8 +258,8 @@ type Community {
   gender: [Gender!]!
   clientType: [ClientType!]
   inviteOnly: Boolean!
+  members: [CommunityMember]
 }
-
 
 type AgeRange {
   lowerBound: Int!
@@ -269,7 +270,6 @@ type PostingHours {
   start: Time!
   end: Time!
 }
-
 
 type QueryChannelsResponse {
   channels: [GetStreamChannel!]!
@@ -290,4 +290,27 @@ type GetStreamChannel {
   updatedAt: Time
   lastMessageAt: Time
   # extraData: String!
+}
+
+"""
+Member represents a user and is specific to use in the context of communities
+"""
+type Member {
+  ID: ID!
+  name: String!
+  role: String!
+
+  username: String!
+  gender: Gender!
+}
+
+"""
+CommunityMember represents a user in a community and their associated additional details.
+"""
+type CommunityMember {
+  UserID: ID!
+  user: Member!
+  isModerator: Boolean!
+  role: String
+  userType: String!
 }

@@ -278,6 +278,10 @@ func (us *UseCasesUserImpl) ReturnLoginResponse(ctx context.Context, flavour fee
 			ID:   *clientProfile.ID,
 			Role: "user",
 			Name: userProfile.Name,
+			ExtraData: map[string]interface{}{
+				"userType": "CLIENT",
+				"userID":   userProfile.ID,
+			},
 		}
 
 		_, err = us.GetStream.CreateGetStreamUser(ctx, getStreamUser)
@@ -317,6 +321,10 @@ func (us *UseCasesUserImpl) ReturnLoginResponse(ctx context.Context, flavour fee
 			ID:   *staffProfile.ID,
 			Role: "user",
 			Name: userProfile.Name,
+			ExtraData: map[string]interface{}{
+				"userType": "STAFF",
+				"userID":   userProfile.ID,
+			},
 		}
 
 		_, err = us.GetStream.CreateGetStreamUser(ctx, getStreamUser)

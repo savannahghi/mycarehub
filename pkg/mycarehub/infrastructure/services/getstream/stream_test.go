@@ -208,3 +208,69 @@ func TestChatClient_ListGetStreamChannels(t *testing.T) {
 		})
 	}
 }
+
+func TestChatClient_GetChannel(t *testing.T) {
+	c := getstream.NewServiceGetStream()
+
+	userID := uuid.New().String()
+	channelID := uuid.New().String()
+
+	_, err := c.CreateChannel(context.Background(), "messaging", channelID, userID, nil)
+	if err != nil {
+		t.Errorf("ChatClient.CreateChannel() error = %v", err)
+		return
+	}
+
+	type args struct {
+		ctx       context.Context
+		channelID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case - successfully retrieve a getstream channel",
+			args: args{
+				ctx:       context.Background(),
+				channelID: channelID,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case - channel does not exist",
+			args: args{
+				ctx:       context.Background(),
+				channelID: "no-existent-channel",
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case - invalid channel id",
+			args: args{
+				ctx:       context.Background(),
+				channelID: "",
+			},
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			_, err := c.GetChannel(tt.args.ctx, tt.args.channelID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ChatClient.GetChannel() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+
+		// Delete the created test channel from stream server
+		_, err := c.DeleteChannels(context.Background(), []string{channelID}, true)
+		if err != nil {
+			t.Errorf("ChatClient.DeleteChannel() error = %v", err)
+		}
+	}
+
+}

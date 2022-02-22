@@ -2,6 +2,7 @@ package getstream
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"time"
 
@@ -24,6 +25,8 @@ type ServiceGetStream interface {
 	DeleteChannels(ctx context.Context, chanIDs []string, hardDelete bool) (*stream.AsyncTaskResponse, error)
 	InviteMembers(ctx context.Context, userIDs []string, channelID string, message *stream.Message) (*stream.Response, error)
 	ListGetStreamChannels(ctr context.Context, input *stream.QueryOption) (*stream.QueryChannelsResponse, error)
+	ListChannelMembers(ctx context.Context, channelID string, q *stream.QueryOption, sorters ...*stream.SortOption) ([]*stream.ChannelMember, error)
+	GetChannel(ctx context.Context, channelID string) (*stream.Channel, error)
 }
 
 // ChatClient is the service's struct implementation
@@ -86,4 +89,32 @@ func (c *ChatClient) InviteMembers(ctx context.Context, userIDs []string, channe
 // If any number of SortOption are set, result will be sorted by field and direction in oder of sort options.
 func (c *ChatClient) ListGetStreamChannels(ctx context.Context, input *stream.QueryOption) (*stream.QueryChannelsResponse, error) {
 	return c.client.QueryChannels(ctx, input)
+}
+
+// ListChannelMembers returns list of channel members
+func (c *ChatClient) ListChannelMembers(ctx context.Context, channelID string, query *stream.QueryOption, sorters ...*stream.SortOption) ([]*stream.ChannelMember, error) {
+	return nil, nil
+}
+
+// GetChannel retrieves a channel from Getstream using the channel id
+func (c *ChatClient) GetChannel(ctx context.Context, channelID string) (*stream.Channel, error) {
+
+	query := &stream.QueryOption{
+		Filter: map[string]interface{}{
+			"id": map[string]interface{}{
+				"$eq": channelID,
+			},
+		},
+	}
+
+	resp, err := c.client.QueryChannels(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(resp.Channels) != 1 {
+		return nil, fmt.Errorf("expected a single getstream channel, got: %v", len(resp.Channels))
+	}
+
+	return resp.Channels[0], nil
 }

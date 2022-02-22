@@ -18,6 +18,8 @@ type GetStreamServiceMock struct {
 	MockDeleteChannelsFn           func(ctx context.Context, chanIDs []string, hardDelete bool) (*stream.AsyncTaskResponse, error)
 	MockInviteMembersFn            func(ctx context.Context, userIDs []string, channelID string, message *stream.Message) (*stream.Response, error)
 	MockListGetStreamChannelsFn    func(ctx context.Context, input *stream.QueryOption) (*stream.QueryChannelsResponse, error)
+	MockListChannelMembersFn       func(ctx context.Context, channelID string, q *stream.QueryOption, sorters ...*stream.SortOption) ([]*stream.ChannelMember, error)
+	MockGetChannel                 func(ctx context.Context, channelID string) (*stream.Channel, error)
 }
 
 // NewGetStreamServiceMock initializes the mock service
@@ -119,4 +121,14 @@ func (g GetStreamServiceMock) InviteMembers(ctx context.Context, userIDs []strin
 // ListGetStreamChannels mocks the implementation for listing getstream channels
 func (g GetStreamServiceMock) ListGetStreamChannels(ctx context.Context, input *stream.QueryOption) (*stream.QueryChannelsResponse, error) {
 	return g.MockListGetStreamChannelsFn(ctx, input)
+}
+
+// ListChannelMembers mocks implementation for listing channel members
+func (g GetStreamServiceMock) ListChannelMembers(ctx context.Context, channelID string, query *stream.QueryOption, sorters ...*stream.SortOption) ([]*stream.ChannelMember, error) {
+	return g.MockListChannelMembersFn(ctx, channelID, query, sorters...)
+}
+
+// GetChannel mocks implementation for retrieving a channel
+func (g GetStreamServiceMock) GetChannel(ctx context.Context, channelID string) (*stream.Channel, error) {
+	return g.MockGetChannel(ctx, channelID)
 }

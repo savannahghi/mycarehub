@@ -74,3 +74,18 @@ type GetStreamChannel struct {
 type QueryChannelsResponse struct {
 	Channels []*GetStreamChannel `json:"channels"`
 }
+
+// ChannelMember ...
+type ChannelMember struct {
+	UserID      string         `json:"user_id"`
+	User        *GetStreamUser `json:"user"`
+	IsModerator bool           `json:"is_moderator"`
+
+	Invited          bool       `json:"invited"`
+	InviteAcceptedAt *time.Time `json:"invite_accepted_at"`
+	InviteRejectedAt *time.Time `json:"invite_rejected_at"`
+	Role             string     `json:"role"`
+
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+}
