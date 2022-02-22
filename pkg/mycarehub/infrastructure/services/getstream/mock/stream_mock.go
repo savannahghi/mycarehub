@@ -12,6 +12,7 @@ import (
 type GetStreamServiceMock struct {
 	MockCreateGetStreamUserTokenFn func(ctx context.Context, userID string) (string, error)
 	MockCreateGetStreamUserFn      func(ctx context.Context, user *stream.User) (*stream.UpsertUserResponse, error)
+	MockListGetStreamUsersFn       func(ctx context.Context, queryOptions *stream.QueryOption) (*stream.QueryUsersResponse, error)
 }
 
 // NewGetStreamServiceMock initializes the mock service
@@ -28,6 +29,16 @@ func NewGetStreamServiceMock() *GetStreamServiceMock {
 				},
 			}, nil
 		},
+		MockListGetStreamUsersFn: func(ctx context.Context, queryOptions *stream.QueryOption) (*stream.QueryUsersResponse, error) {
+			return &stream.QueryUsersResponse{
+				Users: []*stream.User{
+					{
+						ID:   uuid.NewString(),
+						Name: gofakeit.Name(),
+					},
+				},
+			}, nil
+		},
 	}
 }
 
@@ -39,4 +50,9 @@ func (g GetStreamServiceMock) CreateGetStreamUserToken(ctx context.Context, user
 // CreateGetStreamUser mocks creating a getstream user
 func (g GetStreamServiceMock) CreateGetStreamUser(ctx context.Context, user *stream.User) (*stream.UpsertUserResponse, error) {
 	return g.MockCreateGetStreamUserFn(ctx, user)
+}
+
+// ListGetStreamUsers mocks the implementation for listing getstream users
+func (g GetStreamServiceMock) ListGetStreamUsers(ctx context.Context, queryOptions *stream.QueryOption) (*stream.QueryUsersResponse, error) {
+	return g.MockListGetStreamUsersFn(ctx, queryOptions)
 }

@@ -209,6 +209,14 @@ type ComplexityRoot struct {
 		Image func(childComplexity int) int
 	}
 
+	GetStreamUser struct {
+		CreatedAt func(childComplexity int) int
+		ID        func(childComplexity int) int
+		Name      func(childComplexity int) int
+		Role      func(childComplexity int) int
+		UpdatedAt func(childComplexity int) int
+	}
+
 	HeroImage struct {
 		ID    func(childComplexity int) int
 		Title func(childComplexity int) int
@@ -290,10 +298,15 @@ type ComplexityRoot struct {
 		GetUserBookmarkedContent       func(childComplexity int, userID string) int
 		ListContentCategories          func(childComplexity int) int
 		ListFacilities                 func(childComplexity int, searchTerm *string, filterInput []*dto.FiltersInput, paginationInput dto.PaginationsInput) int
+		ListGetStreamUsers             func(childComplexity int, input *domain.QueryOption) int
 		RetrieveFacility               func(childComplexity int, id string, active bool) int
 		RetrieveFacilityByMFLCode      func(childComplexity int, mflCode int, isActive bool) int
 		SendOtp                        func(childComplexity int, phoneNumber string, flavour feedlib.Flavour) int
 		VerifyPin                      func(childComplexity int, userID string, flavour feedlib.Flavour, pin string) int
+	}
+
+	QueryUsersResponse struct {
+		Users func(childComplexity int) int
 	}
 
 	RecordSecurityQuestionResponse struct {
@@ -367,6 +380,7 @@ type MutationResolver interface {
 	RegisterClient(ctx context.Context, input *dto.ClientRegistrationInput) (*dto.ClientRegistrationOutput, error)
 }
 type QueryResolver interface {
+	ListGetStreamUsers(ctx context.Context, input *domain.QueryOption) (*domain.QueryUsersResponse, error)
 	GetContent(ctx context.Context, categoryID *int, limit string) (*domain.Content, error)
 	ListContentCategories(ctx context.Context) ([]*domain.ContentItemCategory, error)
 	GetUserBookmarkedContent(ctx context.Context, userID string) (*domain.Content, error)
@@ -1125,6 +1139,41 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.GalleryImage.Image(childComplexity), true
 
+	case "GetStreamUser.createdAt":
+		if e.complexity.GetStreamUser.CreatedAt == nil {
+			break
+		}
+
+		return e.complexity.GetStreamUser.CreatedAt(childComplexity), true
+
+	case "GetStreamUser.ID":
+		if e.complexity.GetStreamUser.ID == nil {
+			break
+		}
+
+		return e.complexity.GetStreamUser.ID(childComplexity), true
+
+	case "GetStreamUser.name":
+		if e.complexity.GetStreamUser.Name == nil {
+			break
+		}
+
+		return e.complexity.GetStreamUser.Name(childComplexity), true
+
+	case "GetStreamUser.role":
+		if e.complexity.GetStreamUser.Role == nil {
+			break
+		}
+
+		return e.complexity.GetStreamUser.Role(childComplexity), true
+
+	case "GetStreamUser.updatedAt":
+		if e.complexity.GetStreamUser.UpdatedAt == nil {
+			break
+		}
+
+		return e.complexity.GetStreamUser.UpdatedAt(childComplexity), true
+
 	case "HeroImage.ID":
 		if e.complexity.HeroImage.ID == nil {
 			break
@@ -1723,6 +1772,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.ListFacilities(childComplexity, args["searchTerm"].(*string), args["filterInput"].([]*dto.FiltersInput), args["paginationInput"].(dto.PaginationsInput)), true
 
+	case "Query.listGetStreamUsers":
+		if e.complexity.Query.ListGetStreamUsers == nil {
+			break
+		}
+
+		args, err := ec.field_Query_listGetStreamUsers_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.ListGetStreamUsers(childComplexity, args["input"].(*domain.QueryOption)), true
+
 	case "Query.retrieveFacility":
 		if e.complexity.Query.RetrieveFacility == nil {
 			break
@@ -1770,6 +1831,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.VerifyPin(childComplexity, args["userID"].(string), args["flavour"].(feedlib.Flavour), args["pin"].(string)), true
+
+	case "QueryUsersResponse.users":
+		if e.complexity.QueryUsersResponse.Users == nil {
+			break
+		}
+
+		return e.complexity.QueryUsersResponse.Users(childComplexity), true
 
 	case "RecordSecurityQuestionResponse.isCorrect":
 		if e.complexity.RecordSecurityQuestionResponse.IsCorrect == nil {
@@ -2012,6 +2080,10 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 var sources = []*ast.Source{
 	{Name: "pkg/mycarehub/presentation/graph/authority.graphql", Input: `extend type Mutation {
   assignRoles(userID: String!, roles: [UserRoleType!]!): Boolean!
+}
+`, BuiltIn: false},
+	{Name: "pkg/mycarehub/presentation/graph/communities.graphql", Input: `extend type Query {
+  listGetStreamUsers(input: QueryOption): QueryUsersResponse!
 }
 `, BuiltIn: false},
 	{Name: "pkg/mycarehub/presentation/graph/content.graphql", Input: `extend type Query {
@@ -2262,6 +2334,20 @@ input ClientRegistrationInput {
   cccNumber: String!
   counselled: Boolean!
   inviteClient: Boolean!
+}
+
+input QueryOption {
+  sort: [SortOption!]
+  userID: String
+  limit: Int
+  offset: Int
+  messageLimit: Int
+  memberLimit: Int
+}
+
+input SortOption {
+  field: String!
+  direction: Int!
 }
 `, BuiltIn: false},
 	{Name: "pkg/mycarehub/presentation/graph/otp.graphql", Input: `extend type Query {
@@ -2538,7 +2624,20 @@ type RequestTypeCount {
 type ServiceRequestsCount {
   total: Int!
   requestsTypeCount: [RequestTypeCount!]!
-}`, BuiltIn: false},
+}
+
+type QueryUsersResponse {
+  users: [GetStreamUser!]!
+}
+
+type GetStreamUser {
+  ID: String!
+  name: String!
+  role: String!
+  createdAt: Time!
+  updatedAt: Time!
+}
+`, BuiltIn: false},
 	{Name: "pkg/mycarehub/presentation/graph/user.graphql", Input: `extend type Query {
   getCurrentTerms(flavour: Flavour!): TermsOfService!
   verifyPIN(userID: String!, flavour: Flavour!, pin: String!): Boolean!
@@ -3371,6 +3470,21 @@ func (ec *executionContext) field_Query_listFacilities_args(ctx context.Context,
 		}
 	}
 	args["paginationInput"] = arg2
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_listGetStreamUsers_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *domain.QueryOption
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalOQueryOption2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐQueryOption(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
 	return args, nil
 }
 
@@ -7047,6 +7161,181 @@ func (ec *executionContext) _GalleryImage_image(ctx context.Context, field graph
 	return ec.marshalNImageDetail2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐImageDetail(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _GetStreamUser_ID(ctx context.Context, field graphql.CollectedField, obj *domain.GetStreamUser) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "GetStreamUser",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _GetStreamUser_name(ctx context.Context, field graphql.CollectedField, obj *domain.GetStreamUser) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "GetStreamUser",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _GetStreamUser_role(ctx context.Context, field graphql.CollectedField, obj *domain.GetStreamUser) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "GetStreamUser",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Role, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _GetStreamUser_createdAt(ctx context.Context, field graphql.CollectedField, obj *domain.GetStreamUser) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "GetStreamUser",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CreatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*time.Time)
+	fc.Result = res
+	return ec.marshalNTime2ᚖtimeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _GetStreamUser_updatedAt(ctx context.Context, field graphql.CollectedField, obj *domain.GetStreamUser) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "GetStreamUser",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UpdatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*time.Time)
+	fc.Result = res
+	return ec.marshalNTime2ᚖtimeᚐTime(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _HeroImage_ID(ctx context.Context, field graphql.CollectedField, obj *domain.HeroImage) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -8708,6 +8997,48 @@ func (ec *executionContext) _Pagination_PreviousPage(ctx context.Context, field 
 	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Query_listGetStreamUsers(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_listGetStreamUsers_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().ListGetStreamUsers(rctx, args["input"].(*domain.QueryOption))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*domain.QueryUsersResponse)
+	fc.Result = res
+	return ec.marshalNQueryUsersResponse2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐQueryUsersResponse(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Query_getContent(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -9581,6 +9912,41 @@ func (ec *executionContext) _Query___schema(ctx context.Context, field graphql.C
 	res := resTmp.(*introspection.Schema)
 	fc.Result = res
 	return ec.marshalO__Schema2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐSchema(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _QueryUsersResponse_users(ctx context.Context, field graphql.CollectedField, obj *domain.QueryUsersResponse) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "QueryUsersResponse",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Users, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*domain.GetStreamUser)
+	fc.Result = res
+	return ec.marshalNGetStreamUser2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐGetStreamUserᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _RecordSecurityQuestionResponse_securityQuestionID(ctx context.Context, field graphql.CollectedField, obj *domain.RecordSecurityQuestionResponse) (ret graphql.Marshaler) {
@@ -11931,6 +12297,69 @@ func (ec *executionContext) unmarshalInputPaginationsInput(ctx context.Context, 
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputQueryOption(ctx context.Context, obj interface{}) (domain.QueryOption, error) {
+	var it domain.QueryOption
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	for k, v := range asMap {
+		switch k {
+		case "sort":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sort"))
+			it.Sort, err = ec.unmarshalOSortOption2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐSortOptionᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "userID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userID"))
+			it.UserID, err = ec.unmarshalOString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "limit":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit"))
+			it.Limit, err = ec.unmarshalOInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "offset":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("offset"))
+			it.Offset, err = ec.unmarshalOInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "messageLimit":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("messageLimit"))
+			it.MessageLimit, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "memberLimit":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("memberLimit"))
+			it.MemberLimit, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputSecurityQuestionResponseInput(ctx context.Context, obj interface{}) (dto.SecurityQuestionResponseInput, error) {
 	var it dto.SecurityQuestionResponseInput
 	asMap := map[string]interface{}{}
@@ -12000,6 +12429,37 @@ func (ec *executionContext) unmarshalInputShareContentInput(ctx context.Context,
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Channel"))
 			it.Channel, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputSortOption(ctx context.Context, obj interface{}) (domain.SortOption, error) {
+	var it domain.SortOption
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	for k, v := range asMap {
+		switch k {
+		case "field":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("field"))
+			it.Field, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "direction":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("direction"))
+			it.Direction, err = ec.unmarshalNInt2int(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -12906,6 +13366,53 @@ func (ec *executionContext) _GalleryImage(ctx context.Context, sel ast.Selection
 	return out
 }
 
+var getStreamUserImplementors = []string{"GetStreamUser"}
+
+func (ec *executionContext) _GetStreamUser(ctx context.Context, sel ast.SelectionSet, obj *domain.GetStreamUser) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, getStreamUserImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("GetStreamUser")
+		case "ID":
+			out.Values[i] = ec._GetStreamUser_ID(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "name":
+			out.Values[i] = ec._GetStreamUser_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "role":
+			out.Values[i] = ec._GetStreamUser_role(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "createdAt":
+			out.Values[i] = ec._GetStreamUser_createdAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "updatedAt":
+			out.Values[i] = ec._GetStreamUser_updatedAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var heroImageImplementors = []string{"HeroImage"}
 
 func (ec *executionContext) _HeroImage(ctx context.Context, sel ast.SelectionSet, obj *domain.HeroImage) graphql.Marshaler {
@@ -13282,6 +13789,20 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Query")
+		case "listGetStreamUsers":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_listGetStreamUsers(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "getContent":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -13551,6 +14072,33 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Values[i] = ec._Query___type(ctx, field)
 		case "__schema":
 			out.Values[i] = ec._Query___schema(ctx, field)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var queryUsersResponseImplementors = []string{"QueryUsersResponse"}
+
+func (ec *executionContext) _QueryUsersResponse(ctx context.Context, sel ast.SelectionSet, obj *domain.QueryUsersResponse) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, queryUsersResponseImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("QueryUsersResponse")
+		case "users":
+			out.Values[i] = ec._QueryUsersResponse_users(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -14460,6 +15008,60 @@ func (ec *executionContext) marshalNGender2githubᚗcomᚋsavannahghiᚋenumutil
 	return v
 }
 
+func (ec *executionContext) marshalNGetStreamUser2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐGetStreamUserᚄ(ctx context.Context, sel ast.SelectionSet, v []*domain.GetStreamUser) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNGetStreamUser2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐGetStreamUser(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNGetStreamUser2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐGetStreamUser(ctx context.Context, sel ast.SelectionSet, v *domain.GetStreamUser) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._GetStreamUser(ctx, sel, v)
+}
+
 func (ec *executionContext) marshalNImageDetail2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐImageDetail(ctx context.Context, sel ast.SelectionSet, v domain.ImageDetail) graphql.Marshaler {
 	return ec._ImageDetail(ctx, sel, &v)
 }
@@ -14494,6 +15096,20 @@ func (ec *executionContext) marshalNPagination2githubᚗcomᚋsavannahghiᚋmyca
 func (ec *executionContext) unmarshalNPaginationsInput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐPaginationsInput(ctx context.Context, v interface{}) (dto.PaginationsInput, error) {
 	res, err := ec.unmarshalInputPaginationsInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNQueryUsersResponse2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐQueryUsersResponse(ctx context.Context, sel ast.SelectionSet, v domain.QueryUsersResponse) graphql.Marshaler {
+	return ec._QueryUsersResponse(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNQueryUsersResponse2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐQueryUsersResponse(ctx context.Context, sel ast.SelectionSet, v *domain.QueryUsersResponse) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._QueryUsersResponse(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNRecordSecurityQuestionResponse2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐRecordSecurityQuestionResponseᚄ(ctx context.Context, sel ast.SelectionSet, v []*domain.RecordSecurityQuestionResponse) graphql.Marshaler {
@@ -14723,6 +15339,11 @@ func (ec *executionContext) unmarshalNShareContentInput2githubᚗcomᚋsavannahg
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) unmarshalNSortOption2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐSortOption(ctx context.Context, v interface{}) (*domain.SortOption, error) {
+	res, err := ec.unmarshalInputSortOption(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalNString2string(ctx context.Context, v interface{}) (string, error) {
 	res, err := graphql.UnmarshalString(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -14807,6 +15428,27 @@ func (ec *executionContext) marshalNTermsOfService2ᚖgithubᚗcomᚋsavannahghi
 		return graphql.Null
 	}
 	return ec._TermsOfService(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNTime2ᚖtimeᚐTime(ctx context.Context, v interface{}) (*time.Time, error) {
+	res, err := graphql.UnmarshalTime(v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNTime2ᚖtimeᚐTime(ctx context.Context, sel ast.SelectionSet, v *time.Time) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := graphql.MarshalTime(*v)
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+	}
+	return res
 }
 
 func (ec *executionContext) unmarshalNUserRoleType2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐUserRoleType(ctx context.Context, v interface{}) (enums.UserRoleType, error) {
@@ -15542,6 +16184,14 @@ func (ec *executionContext) unmarshalOPINInput2ᚖgithubᚗcomᚋsavannahghiᚋm
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) unmarshalOQueryOption2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐQueryOption(ctx context.Context, v interface{}) (*domain.QueryOption, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputQueryOption(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) marshalOServiceRequest2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐServiceRequest(ctx context.Context, sel ast.SelectionSet, v []*domain.ServiceRequest) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
@@ -15598,6 +16248,30 @@ func (ec *executionContext) unmarshalOSortDataType2githubᚗcomᚋsavannahghiᚋ
 
 func (ec *executionContext) marshalOSortDataType2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐSortDataType(ctx context.Context, sel ast.SelectionSet, v enums.SortDataType) graphql.Marshaler {
 	return v
+}
+
+func (ec *executionContext) unmarshalOSortOption2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐSortOptionᚄ(ctx context.Context, v interface{}) ([]*domain.SortOption, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]*domain.SortOption, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNSortOption2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐSortOption(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
 }
 
 func (ec *executionContext) unmarshalOSortsInput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐSortsInput(ctx context.Context, v interface{}) (dto.SortsInput, error) {
