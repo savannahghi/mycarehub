@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	stream "github.com/GetStream/stream-chat-go/v5"
+	"github.com/google/uuid"
 	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
@@ -103,7 +104,7 @@ func TestUseCaseStreamImpl_CreateCommunity(t *testing.T) {
 			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 			fakeExtension := extensionMock.NewFakeExtension()
 
-			c := communities.NewUseCaseCommunities(fakeGetStream, fakeDB, fakeExtension)
+			c := communities.NewUseCaseCommunitiesImpl(fakeGetStream, fakeExtension, fakeDB, fakeDB)
 
 			if tt.name == "Sad case - cannot create channel in the database" {
 				fakeDB.MockCreateChannelFn = func(ctx context.Context, community *dto.CommunityInput) (*domain.Community, error) {
@@ -129,6 +130,169 @@ func TestUseCaseStreamImpl_CreateCommunity(t *testing.T) {
 			if !tt.wantErr && got == nil {
 				t.Errorf("expected a response but got: %v", got)
 				return
+			}
+		})
+	}
+}
+
+func TestUseCasesCommunitiesImpl_ListGetStreamUsers(t *testing.T) {
+	type args struct {
+		ctx   context.Context
+		input *domain.QueryOption
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Successfully list stream users",
+			args: args{
+				ctx: context.Background(),
+				input: &domain.QueryOption{
+					Filter: map[string]interface{}{
+						"role": "user",
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad Case - Fail to list stream users",
+			args: args{
+				ctx: context.Background(),
+				input: &domain.QueryOption{
+					Filter: map[string]interface{}{
+						"role": "user",
+					},
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
+			fakeExtension := extensionMock.NewFakeExtension()
+			fakeDB := pgMock.NewPostgresMock()
+			communities := communities.NewUseCaseCommunitiesImpl(fakeGetStream, fakeExtension, fakeDB, fakeDB)
+
+			if tt.name == "Sad Case - Fail to list stream users" {
+				fakeGetStream.MockListGetStreamUsersFn = func(ctx context.Context, queryOptions *stream.QueryOption) (*stream.QueryUsersResponse, error) {
+					return nil, fmt.Errorf("failed to get users")
+				}
+			}
+
+			got, err := communities.ListGetStreamUsers(tt.args.ctx, tt.args.input)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCasesCommunitiesImpl.ListGetStreamUsers() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected a response but got: %v", got)
+				return
+			}
+		})
+	}
+}
+
+func TestUseCasesCommunitiesImpl_InviteMembers(t *testing.T) {
+	type args struct {
+		ctx         context.Context
+		communityID string
+		userIDS     []string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Successfully invite members",
+			args: args{
+				ctx:         context.Background(),
+				communityID: uuid.New().String(),
+				userIDS: []string{
+					uuid.NewString(),
+					uuid.NewString(),
+				},
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Sad Case - Fail to get logged in user",
+			args: args{
+				ctx:         context.Background(),
+				communityID: uuid.New().String(),
+				userIDS: []string{
+					uuid.NewString(),
+					uuid.NewString(),
+				},
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - Fail to get staff user",
+			args: args{
+				ctx:         context.Background(),
+				communityID: uuid.New().String(),
+				userIDS: []string{
+					uuid.NewString(),
+					uuid.NewString(),
+				},
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - Fail to invite members",
+			args: args{
+				ctx:         context.Background(),
+				communityID: uuid.New().String(),
+				userIDS: []string{
+					uuid.NewString(),
+					uuid.NewString(),
+				},
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
+			fakeExtension := extensionMock.NewFakeExtension()
+			fakeDB := pgMock.NewPostgresMock()
+			communities := communities.NewUseCaseCommunitiesImpl(fakeGetStream, fakeExtension, fakeDB, fakeDB)
+
+			if tt.name == "Sad Case - Fail to get logged in user" {
+				fakeExtension.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "", fmt.Errorf("failed to get logged in user")
+				}
+			}
+
+			if tt.name == "Sad Case - Fail to get staff user" {
+				fakeDB.MockGetStaffProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.StaffProfile, error) {
+					return nil, fmt.Errorf("failed to get staff profile")
+				}
+			}
+
+			if tt.name == "Sad Case - Fail to invite members" {
+				fakeGetStream.MockInviteMembersFn = func(ctx context.Context, userIDs []string, channelID string, message *stream.Message) (*stream.Response, error) {
+					return nil, fmt.Errorf("failed to invite members")
+				}
+			}
+
+			got, err := communities.InviteMembers(tt.args.ctx, tt.args.communityID, tt.args.userIDS)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCasesCommunitiesImpl.InviteMembers() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("UseCasesCommunitiesImpl.InviteMembers() = %v, want %v", got, tt.want)
 			}
 		})
 	}
