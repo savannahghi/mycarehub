@@ -46,6 +46,11 @@ type IDeleteCommunities interface {
 	DeleteCommunities(ctx context.Context, communityIDs []string, hardDelete bool) (bool, error)
 }
 
+// IRejectInvites interface holds methods that are used to reject invitation into communities.
+type IRejectInvites interface {
+	RejectInvite(ctx context.Context, userID string, channelID string) (bool, error)
+}
+
 // UseCasesCommunities holds all interfaces required to implement the communities feature
 type UseCasesCommunities interface {
 	ICreateCommunity
@@ -53,6 +58,7 @@ type UseCasesCommunities interface {
 	IListUsers
 	IListCommunities
 	IDeleteCommunities
+	IRejectInvites
 }
 
 // UseCasesCommunitiesImpl represents communities implementation
@@ -295,6 +301,24 @@ func (us *UseCasesCommunitiesImpl) DeleteCommunities(ctx context.Context, commun
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return false, fmt.Errorf("failed to delete channels: %v", err)
+	}
+
+	return true, nil
+}
+
+// RejectInvite rejects an invite into a community
+func (us *UseCasesCommunitiesImpl) RejectInvite(ctx context.Context, userID string, channelID string) (bool, error) {
+	message := &stream.Message{
+		ID: uuid.New().String(),
+		User: &stream.User{
+			ID: userID,
+		},
+	}
+
+	_, err := us.GetstreamService.RejectInvite(ctx, userID, channelID, message)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, fmt.Errorf("failed reject invite into a community")
 	}
 
 	return true, nil

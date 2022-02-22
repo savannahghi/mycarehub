@@ -162,8 +162,7 @@ func TestChatClient_CreateChannel(t *testing.T) {
 		})
 	}
 
-	//TODO: Delete the created test channel from stream server
-	_, err := g.DeleteChannels(ctx, []string{channelID}, true)
+	_, err := g.DeleteChannels(ctx, []string{"messaging:" + channelID}, true)
 	if err != nil {
 		t.Errorf("ChatClient.DeleteChannel() error = %v", err)
 	}
@@ -273,4 +272,84 @@ func TestChatClient_GetChannel(t *testing.T) {
 		}
 	}
 
+}
+
+func TestChatClient_RejectInvite(t *testing.T) {
+	ctx := context.Background()
+
+	g := getstream.NewServiceGetStream()
+	userID := uuid.New().String()
+	channelID := uuid.New().String()
+
+	ch, err := g.CreateChannel(ctx, "messaging", channelID, userID, nil)
+	if err != nil {
+		t.Errorf("ChatClient.CreateChannel() error = %v", err)
+		return
+	}
+
+	user := stream.User{
+		ID:        userID,
+		Name:      "test",
+		Invisible: false,
+	}
+	streamUser, err := g.CreateGetStreamUser(ctx, &user)
+	if err != nil {
+		t.Errorf("ChatClient.CreateGetStreamUser() error = %v", err)
+		return
+	}
+
+	_, err = g.InviteMembers(ctx, []string{streamUser.User.ID}, ch.Channel.ID, nil)
+	if err != nil {
+		t.Errorf("ChatClient.InviteMembers() error = %v", err)
+		return
+	}
+	type args struct {
+		ctx       context.Context
+		userID    string
+		channelID string
+		message   *stream.Message
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *stream.Response
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:       ctx,
+				userID:    userID,
+				channelID: ch.Channel.ID,
+				message:   nil,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case",
+			args: args{
+				ctx:       ctx,
+				userID:    uuid.New().String(),
+				channelID: ch.Channel.ID,
+				message:   nil,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := g.RejectInvite(tt.args.ctx, tt.args.userID, tt.args.channelID, tt.args.message)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ChatClient.RejectInvite() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected a response but got: %v", err)
+			}
+		})
+	}
+	_, err = g.DeleteChannels(ctx, []string{ch.Channel.ID}, true)
+	if err != nil {
+		t.Errorf("ChatClient.DeleteChannel() error = %v", err)
+	}
 }

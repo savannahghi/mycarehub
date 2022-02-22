@@ -28,6 +28,7 @@ type ServiceGetStream interface {
 	ListChannelMembers(ctx context.Context, channelID string, q *stream.QueryOption, sorters ...*stream.SortOption) ([]*stream.ChannelMember, error)
 	GetChannel(ctx context.Context, channelID string) (*stream.Channel, error)
 	AddMembersToCommunity(ctx context.Context, userIDs []string, channelID string) (*stream.Response, error)
+	RejectInvite(ctx context.Context, userID string, channelID string, message *stream.Message) (*stream.Response, error)
 }
 
 // ChatClient is the service's struct implementation
@@ -123,4 +124,9 @@ func (c *ChatClient) GetChannel(ctx context.Context, channelID string) (*stream.
 // AddMembersToCommunity adds the specified clients/staffs to a community
 func (c *ChatClient) AddMembersToCommunity(ctx context.Context, userIDs []string, channelID string) (*stream.Response, error) {
 	return c.client.Channel("messaging", channelID).AddMembers(ctx, userIDs)
+}
+
+// RejectInvite rejects invitation to a getstream channel
+func (c *ChatClient) RejectInvite(ctx context.Context, userID string, channelID string, message *stream.Message) (*stream.Response, error) {
+	return c.client.Channel("messaging", channelID).RejectInvite(ctx, userID, message)
 }

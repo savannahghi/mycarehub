@@ -300,6 +300,7 @@ type ComplexityRoot struct {
 		ReactivateFacility              func(childComplexity int, mflCode int) int
 		RecordSecurityQuestionResponses func(childComplexity int, input []*dto.SecurityQuestionResponseInput) int
 		RegisterClient                  func(childComplexity int, input *dto.ClientRegistrationInput) int
+		RejectInvitation                func(childComplexity int, userID string, communityID string) int
 		ResolveServiceRequest           func(childComplexity int, staffID string, requestID string) int
 		SendFeedback                    func(childComplexity int, input dto.FeedbackResponseInput) int
 		SetInProgressBy                 func(childComplexity int, serviceRequestID string, staffID string) int
@@ -400,6 +401,7 @@ type MutationResolver interface {
 	AssignRoles(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error)
 	CreateCommunity(ctx context.Context, input dto.CommunityInput) (*domain.Community, error)
 	DeleteCommunities(ctx context.Context, communityIDs []string, hardDelete bool) (bool, error)
+	RejectInvitation(ctx context.Context, userID string, communityID string) (bool, error)
 	ShareContent(ctx context.Context, input dto.ShareContentInput) (bool, error)
 	BookmarkContent(ctx context.Context, userID string, contentItemID int) (bool, error)
 	UnBookmarkContent(ctx context.Context, userID string, contentItemID int) (bool, error)
@@ -1706,6 +1708,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.RegisterClient(childComplexity, args["input"].(*dto.ClientRegistrationInput)), true
 
+	case "Mutation.rejectInvitation":
+		if e.complexity.Mutation.RejectInvitation == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_rejectInvitation_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.RejectInvitation(childComplexity, args["userID"].(string), args["communityID"].(string)), true
+
 	case "Mutation.resolveServiceRequest":
 		if e.complexity.Mutation.ResolveServiceRequest == nil {
 			break
@@ -2396,6 +2410,7 @@ var sources = []*ast.Source{
 extend type Mutation {
   createCommunity(input: CommunityInput!): Community!
   deleteCommunities(communityIDs: [String!]!, hardDelete: Boolean!): Boolean!
+  rejectInvitation(userID: String!, communityID: String!): Boolean!
 }
 `, BuiltIn: false},
 	{Name: "pkg/mycarehub/presentation/graph/content.graphql", Input: `extend type Query {
@@ -3436,6 +3451,30 @@ func (ec *executionContext) field_Mutation_registerClient_args(ctx context.Conte
 		}
 	}
 	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_rejectInvitation_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["userID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userID"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["userID"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["communityID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("communityID"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["communityID"] = arg1
 	return args, nil
 }
 
@@ -9271,6 +9310,48 @@ func (ec *executionContext) _Mutation_deleteCommunities(ctx context.Context, fie
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Mutation().DeleteCommunities(rctx, args["communityIDs"].([]string), args["hardDelete"].(bool))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_rejectInvitation(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_rejectInvitation_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().RejectInvitation(rctx, args["userID"].(string), args["communityID"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -15482,6 +15563,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			}
 		case "deleteCommunities":
 			out.Values[i] = ec._Mutation_deleteCommunities(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "rejectInvitation":
+			out.Values[i] = ec._Mutation_rejectInvitation(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
