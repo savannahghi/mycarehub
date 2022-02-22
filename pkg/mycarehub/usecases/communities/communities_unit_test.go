@@ -297,3 +297,76 @@ func TestUseCasesCommunitiesImpl_InviteMembers(t *testing.T) {
 		})
 	}
 }
+
+func TestUseCasesCommunitiesImpl_ListGetStreamChannels(t *testing.T) {
+	type args struct {
+		ctx   context.Context
+		input *domain.QueryOption
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Successfully list stream channels",
+			args: args{
+				ctx: context.Background(),
+				input: &domain.QueryOption{
+					Filter: map[string]interface{}{
+						"type": "channel",
+					},
+					Limit:  10,
+					Offset: 0,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Happy Case - Successfully list stream channels, no params",
+			args: args{
+				ctx: context.Background(),
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad Case - Fail to list stream channels",
+			args: args{
+				ctx: context.Background(),
+				input: &domain.QueryOption{
+					Filter: map[string]interface{}{
+						"type": "channel",
+					},
+					Limit:  10,
+					Offset: 0,
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
+			fakeExtension := extensionMock.NewFakeExtension()
+			fakeDB := pgMock.NewPostgresMock()
+			communities := communities.NewUseCaseCommunitiesImpl(fakeGetStream, fakeExtension, fakeDB, fakeDB)
+
+			if tt.name == "Sad Case - Fail to list stream channels" {
+				fakeGetStream.MockListGetStreamChannelsFn = func(ctx context.Context, queryOptions *stream.QueryOption) (*stream.QueryChannelsResponse, error) {
+					return nil, fmt.Errorf("failed to get channels")
+				}
+			}
+
+			got, err := communities.ListGetStreamChannels(tt.args.ctx, tt.args.input)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCasesCommunitiesImpl.ListGetStreamChannels() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected a response but got: %v", got)
+				return
+			}
+		})
+	}
+}

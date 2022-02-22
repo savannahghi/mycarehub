@@ -19,26 +19,32 @@ const (
 	inviteMessage = "%v has invited you to join this community"
 )
 
-// CreateCommunity is an interface that is used to create communities
-type CreateCommunity interface {
+// ICreateCommunity is an interface that is used to create communities
+type ICreateCommunity interface {
 	CreateCommunity(ctx context.Context, input dto.CommunityInput) (*domain.Community, error)
 }
 
-// ListUsers is an interface that is used to list getstream users
-type ListUsers interface {
+// IListUsers is an interface that is used to list getstream users
+type IListUsers interface {
 	ListGetStreamUsers(ctx context.Context, input *domain.QueryOption) (*domain.QueryUsersResponse, error)
 }
 
-// InviteMembers interface holds methods that are used to send member invites
-type InviteMembers interface {
+// IInviteMembers interface holds methods that are used to send member invites
+type IInviteMembers interface {
 	InviteMembers(ctx context.Context, communityID string, userIDS []string) (bool, error)
+}
+
+// IListChannels is an interface that is used to list getstream channels
+type IListChannels interface {
+	ListGetStreamChannels(ctx context.Context, input *domain.QueryOption) (*domain.QueryChannelsResponse, error)
 }
 
 // UseCasesCommunities holds all interfaces required to implement the communities feature
 type UseCasesCommunities interface {
-	CreateCommunity
-	ListUsers
-	InviteMembers
+	ICreateCommunity
+	IInviteMembers
+	IListUsers
+	IListChannels
 }
 
 // UseCasesCommunitiesImpl represents communities implementation
@@ -172,4 +178,59 @@ func (us *UseCasesCommunitiesImpl) InviteMembers(ctx context.Context, communityI
 	}
 
 	return true, nil
+}
+
+// ListGetStreamChannels returns list of channels that match QueryOption that's passed as the input
+func (us *UseCasesCommunitiesImpl) ListGetStreamChannels(ctx context.Context, input *domain.QueryOption) (*domain.QueryChannelsResponse, error) {
+	channelResponse := []*domain.GetStreamChannel{}
+
+	var query stream.QueryOption
+	// set default offset and limit if none is passed
+	if input == nil {
+		query = stream.QueryOption{
+			Filter: map[string]interface{}{},
+			Limit:  10,
+			Offset: 0,
+		}
+	} else {
+		query = stream.QueryOption{
+			Filter: input.Filter,
+			Limit:  input.Limit,
+			Offset: input.Offset,
+		}
+	}
+
+	getStreamChannelResponse, err := us.GetstreamService.ListGetStreamChannels(ctx, &query)
+	if err != nil {
+		return nil, fmt.Errorf("failed to return getstream channels :%v", err)
+	}
+
+	for _, channel := range getStreamChannelResponse.Channels {
+
+		createdBy := &domain.GetStreamUser{
+			ID:        channel.CreatedBy.ID,
+			Name:      channel.CreatedBy.Name,
+			Role:      channel.CreatedBy.Role,
+			CreatedAt: channel.CreatedBy.CreatedAt,
+			UpdatedAt: channel.CreatedBy.UpdatedAt,
+		}
+
+		channelResponse = append(channelResponse, &domain.GetStreamChannel{
+			ID:            channel.ID,
+			Type:          channel.Type,
+			CID:           channel.CID,
+			Team:          channel.Team,
+			CreatedBy:     createdBy,
+			Disabled:      channel.Disabled,
+			Frozen:        channel.Frozen,
+			MemberCount:   channel.MemberCount,
+			CreatedAt:     channel.CreatedAt,
+			UpdatedAt:     channel.UpdatedAt,
+			LastMessageAt: channel.UpdatedAt,
+		})
+	}
+
+	return &domain.QueryChannelsResponse{
+		Channels: channelResponse,
+	}, nil
 }

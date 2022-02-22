@@ -1,6 +1,7 @@
 extend type Query {
   listGetStreamUsers(input: QueryOption): QueryUsersResponse!
   inviteMembersToCommunity(communityID: String!, userIDS: [String!]!): Boolean!
+  listGetStreamChannels(input: QueryOption): QueryChannelsResponse!
 }
 
 extend type Mutation {

@@ -168,3 +168,43 @@ func TestChatClient_CreateChannel(t *testing.T) {
 		t.Errorf("ChatClient.DeleteChannel() error = %v", err)
 	}
 }
+
+func TestChatClient_ListGetStreamChannels(t *testing.T) {
+	type args struct {
+		ctx   context.Context
+		input *stream.QueryOption
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Successfully list get stream channels",
+			args: args{
+				ctx: context.Background(),
+				input: &stream.QueryOption{
+					Filter: map[string]interface{}{
+						"type": "messaging",
+					},
+				},
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			getStream := getstream.NewServiceGetStream()
+
+			got, err := getStream.ListGetStreamChannels(tt.args.ctx, tt.args.input)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ChatClient.ListGetStreamChannels() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected a response but got: %v", got)
+				return
+			}
+		})
+	}
+}
