@@ -2,13 +2,11 @@ package getstream_test
 
 import (
 	"context"
-	"fmt"
 	"testing"
 
 	stream "github.com/GetStream/stream-chat-go/v5"
 	"github.com/google/uuid"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/getstream"
-	getStreamMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/getstream/mock"
 )
 
 func TestGetStreamClient_CreateUserGetStreamToken(t *testing.T) {
@@ -89,13 +87,6 @@ func TestChatClient_ListGetStreamUsers(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			getStream := getstream.NewServiceGetStream()
-			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
-
-			if tt.name == "Sad Case - Fail to get users" {
-				fakeGetStream.MockListGetStreamUsersFn = func(ctx context.Context, queryOptions *stream.QueryOption) (*stream.QueryUsersResponse, error) {
-					return nil, fmt.Errorf("failed to get users")
-				}
-			}
 
 			got, err := getStream.ListGetStreamUsers(tt.args.ctx, tt.args.input)
 			if (err != nil) != tt.wantErr {

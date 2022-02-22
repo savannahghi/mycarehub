@@ -56,8 +56,6 @@ func InitializeTestService(ctx context.Context) (*usecases.MyCareHub, error) {
 
 	termsUsecase := terms.NewUseCasesTermsOfService(db, db)
 
-	communityUsecase := communities.NewUseCaseCommunities(getStream, db, externalExt)
-
 	securityQuestionsUsecase := securityquestions.NewSecurityQuestionsUsecase(db, db, db, externalExt)
 	contentUseCase := content.NewUseCasesContentImplementation(db, db)
 	feedbackUsecase := feedback.NewUsecaseFeedback(db, externalExt)
@@ -65,6 +63,7 @@ func InitializeTestService(ctx context.Context) (*usecases.MyCareHub, error) {
 	healthDiaryUseCase := healthdiary.NewUseCaseHealthDiaryImpl(db, db)
 	faq := faq.NewUsecaseFAQ(db)
 	serviceRequestUseCase := servicerequest.NewUseCaseServiceRequestImpl(db, db, db)
+	communityUsecase := communities.NewUseCaseCommunitiesImpl(getStream, externalExt, db, db)
 
 	i := usecases.NewMyCareHubUseCase(
 		userUsecase, termsUsecase, facilityUseCase,

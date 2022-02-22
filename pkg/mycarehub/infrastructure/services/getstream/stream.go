@@ -22,6 +22,7 @@ type ServiceGetStream interface {
 	ListGetStreamUsers(ctx context.Context, input *stream.QueryOption) (*stream.QueryUsersResponse, error)
 	CreateChannel(ctx context.Context, chanType, chanID, userID string, data map[string]interface{}) (*stream.CreateChannelResponse, error)
 	DeleteChannels(ctx context.Context, chanIDs []string, hardDelete bool) (*stream.AsyncTaskResponse, error)
+	InviteMembers(ctx context.Context, userIDs []string, channelID string, message *stream.Message) (*stream.Response, error)
 }
 
 // ChatClient is the service's struct implementation
@@ -73,4 +74,9 @@ func (c *ChatClient) CreateChannel(ctx context.Context, chanType, chanID, userID
 // It returns an AsyncTaskResponse object which contains the task ID, the status of the task can be check with client.GetTask method.
 func (c *ChatClient) DeleteChannels(ctx context.Context, chanIDs []string, hardDelete bool) (*stream.AsyncTaskResponse, error) {
 	return c.client.DeleteChannels(ctx, chanIDs, hardDelete)
+}
+
+// InviteMembers invites users with given IDs to the channel while at the same time composing a message to show the users
+func (c *ChatClient) InviteMembers(ctx context.Context, userIDs []string, channelID string, message *stream.Message) (*stream.Response, error) {
+	return c.client.Channel("messaging", channelID).InviteMembersWithMessage(ctx, userIDs, message)
 }

@@ -97,15 +97,12 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	faq := faq.NewUsecaseFAQ(db)
 
 	serviceRequestUseCase := servicerequest.NewUseCaseServiceRequestImpl(db, db, db)
-
-	stream := streamService.NewServiceGetStream()
-
-	communities := communities.NewUseCaseCommunities(stream, db, externalExt)
+	communitiesUseCase := communities.NewUseCaseCommunitiesImpl(getStream, externalExt, db, db)
 
 	useCase := usecases.NewMyCareHubUseCase(
 		userUsecase, termsUsecase, facilityUseCase,
 		securityQuestionsUsecase, otpUseCase, contentUseCase, feedbackUsecase, healthDiaryUseCase,
-		faq, serviceRequestUseCase, authorityUseCase, communities,
+		faq, serviceRequestUseCase, authorityUseCase, communitiesUseCase,
 	)
 
 	internalHandlers := internalRest.NewMyCareHubHandlersInterfaces(*useCase)
