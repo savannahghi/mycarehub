@@ -370,3 +370,78 @@ func TestUseCasesCommunitiesImpl_ListGetStreamChannels(t *testing.T) {
 		})
 	}
 }
+
+func TestUseCasesCommunitiesImpl_ListCommunityMembers(t *testing.T) {
+	fakeGetStream := getStreamMock.NewGetStreamServiceMock()
+	fakeExtension := extensionMock.NewFakeExtension()
+	fakeDB := pgMock.NewPostgresMock()
+	communities := communities.NewUseCaseCommunitiesImpl(fakeGetStream, fakeExtension, fakeDB, fakeDB)
+
+	type args struct {
+		ctx         context.Context
+		communityID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case - success list community members",
+			args: args{
+				ctx:         context.Background(),
+				communityID: "test-community",
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case - fail invalid community id",
+			args: args{
+				ctx:         context.Background(),
+				communityID: "test-community",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			if tt.name == "Happy case - success list community members" {
+				fakeGetStream.MockGetChannel = func(ctx context.Context, channelID string) (*stream.Channel, error) {
+
+					user := &stream.User{
+						ID:   uuid.NewString(),
+						Name: "john doe",
+						Role: "user",
+						ExtraData: map[string]interface{}{
+							"userType": "CLIENT",
+							"userID":   uuid.NewString(),
+						},
+					}
+
+					return &stream.Channel{
+						Members: []*stream.ChannelMember{
+							{
+								User:        user,
+								Role:        "member",
+								IsModerator: false,
+							},
+						},
+					}, nil
+				}
+			}
+
+			if tt.name == "Sad case - fail invalid community id" {
+				fakeGetStream.MockGetChannel = func(ctx context.Context, channelID string) (*stream.Channel, error) {
+					return nil, fmt.Errorf("channel does not exist")
+				}
+			}
+
+			_, err := communities.ListCommunityMembers(tt.args.ctx, tt.args.communityID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCasesCommunitiesImpl.ListCommunityMembers() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}

@@ -27,6 +27,10 @@ func (r *queryResolver) ListGetStreamChannels(ctx context.Context, input *domain
 	return r.mycarehub.Community.ListGetStreamChannels(ctx, input)
 }
 
+func (r *queryResolver) ListCommunityMembers(ctx context.Context, communityID string) ([]*domain.CommunityMember, error) {
+	return r.mycarehub.Community.ListCommunityMembers(ctx, communityID)
+}
+
 // Query returns generated.QueryResolver implementation.
 func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
 
