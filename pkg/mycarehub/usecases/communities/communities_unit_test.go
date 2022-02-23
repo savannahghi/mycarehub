@@ -135,10 +135,10 @@ func TestUseCaseStreamImpl_CreateCommunity(t *testing.T) {
 	}
 }
 
-func TestUseCasesCommunitiesImpl_ListGetStreamUsers(t *testing.T) {
+func TestUseCasesCommunitiesImpl_ListMembers(t *testing.T) {
 	type args struct {
 		ctx   context.Context
-		input *domain.QueryOption
+		input *stream.QueryOption
 	}
 	tests := []struct {
 		name    string
@@ -149,7 +149,7 @@ func TestUseCasesCommunitiesImpl_ListGetStreamUsers(t *testing.T) {
 			name: "Happy Case - Successfully list stream users",
 			args: args{
 				ctx: context.Background(),
-				input: &domain.QueryOption{
+				input: &stream.QueryOption{
 					Filter: map[string]interface{}{
 						"role": "user",
 					},
@@ -161,7 +161,7 @@ func TestUseCasesCommunitiesImpl_ListGetStreamUsers(t *testing.T) {
 			name: "Sad Case - Fail to list stream users",
 			args: args{
 				ctx: context.Background(),
-				input: &domain.QueryOption{
+				input: &stream.QueryOption{
 					Filter: map[string]interface{}{
 						"role": "user",
 					},
@@ -183,7 +183,7 @@ func TestUseCasesCommunitiesImpl_ListGetStreamUsers(t *testing.T) {
 				}
 			}
 
-			got, err := communities.ListGetStreamUsers(tt.args.ctx, tt.args.input)
+			got, err := communities.ListMembers(tt.args.ctx, tt.args.input)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCasesCommunitiesImpl.ListGetStreamUsers() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -298,10 +298,10 @@ func TestUseCasesCommunitiesImpl_InviteMembers(t *testing.T) {
 	}
 }
 
-func TestUseCasesCommunitiesImpl_ListGetStreamChannels(t *testing.T) {
+func TestUseCasesCommunitiesImpl_ListCommunities(t *testing.T) {
 	type args struct {
 		ctx   context.Context
-		input *domain.QueryOption
+		input *stream.QueryOption
 	}
 	tests := []struct {
 		name    string
@@ -312,7 +312,7 @@ func TestUseCasesCommunitiesImpl_ListGetStreamChannels(t *testing.T) {
 			name: "Happy Case - Successfully list stream channels",
 			args: args{
 				ctx: context.Background(),
-				input: &domain.QueryOption{
+				input: &stream.QueryOption{
 					Filter: map[string]interface{}{
 						"type": "channel",
 					},
@@ -333,7 +333,7 @@ func TestUseCasesCommunitiesImpl_ListGetStreamChannels(t *testing.T) {
 			name: "Sad Case - Fail to list stream channels",
 			args: args{
 				ctx: context.Background(),
-				input: &domain.QueryOption{
+				input: &stream.QueryOption{
 					Filter: map[string]interface{}{
 						"type": "channel",
 					},
@@ -358,7 +358,7 @@ func TestUseCasesCommunitiesImpl_ListGetStreamChannels(t *testing.T) {
 				}
 			}
 
-			got, err := communities.ListGetStreamChannels(tt.args.ctx, tt.args.input)
+			got, err := communities.ListCommunities(tt.args.ctx, tt.args.input)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCasesCommunitiesImpl.ListGetStreamChannels() error = %v, wantErr %v", err, tt.wantErr)
 				return

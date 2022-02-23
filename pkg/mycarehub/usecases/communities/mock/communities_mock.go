@@ -3,6 +3,7 @@ package mock
 import (
 	"context"
 
+	stream "github.com/GetStream/stream-chat-go/v5"
 	"github.com/google/uuid"
 	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
@@ -12,7 +13,7 @@ import (
 
 // CommunityUsecaseMock contains the community usecase mock methods
 type CommunityUsecaseMock struct {
-	MockListGetStreamUsersFn func(ctx context.Context, input *domain.QueryOption) (*domain.QueryUsersResponse, error)
+	MockListMembersFn        func(ctx context.Context, input *stream.QueryOption) ([]*domain.Member, error)
 	MockCreateCommunityFn    func(ctx context.Context, input dto.CommunityInput) (*domain.Community, error)
 	MockListCommunityMembers func(ctx context.Context, communityID string) ([]*domain.CommunityMember, error)
 }
@@ -20,13 +21,11 @@ type CommunityUsecaseMock struct {
 // NewCommunityUsecaseMock initializes a new instance of the Community usecase happy cases
 func NewCommunityUsecaseMock() *CommunityUsecaseMock {
 	return &CommunityUsecaseMock{
-		MockListGetStreamUsersFn: func(ctx context.Context, input *domain.QueryOption) (*domain.QueryUsersResponse, error) {
-			return &domain.QueryUsersResponse{
-				Users: []*domain.GetStreamUser{
-					{
-						ID:   uuid.NewString(),
-						Role: "user",
-					},
+		MockListMembersFn: func(ctx context.Context, input *stream.QueryOption) ([]*domain.Member, error) {
+			return []*domain.Member{
+				{
+					ID:   uuid.New().String(),
+					Role: "user",
 				},
 			}, nil
 		},
@@ -57,9 +56,9 @@ func NewCommunityUsecaseMock() *CommunityUsecaseMock {
 	}
 }
 
-// ListGetStreamUsers mocks the implementation for listing getstream users
-func (c CommunityUsecaseMock) ListGetStreamUsers(ctx context.Context, input *domain.QueryOption) (*domain.QueryUsersResponse, error) {
-	return c.MockListGetStreamUsersFn(ctx, input)
+// ListMembers mocks the implementation for listing getstream users
+func (c CommunityUsecaseMock) ListMembers(ctx context.Context, input *stream.QueryOption) ([]*domain.Member, error) {
+	return c.MockListMembersFn(ctx, input)
 }
 
 // CreateCommunity mocks the implementation of creating communities

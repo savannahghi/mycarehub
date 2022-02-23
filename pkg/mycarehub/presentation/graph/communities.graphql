@@ -1,7 +1,7 @@
 extend type Query {
-  listGetStreamUsers(input: QueryOption): QueryUsersResponse!
+  listMembers(input: QueryOption): [Member]
   inviteMembersToCommunity(communityID: String!, userIDS: [String!]!): Boolean!
-  listGetStreamChannels(input: QueryOption): QueryChannelsResponse!
+  listCommunities(input: QueryOption): [Community]
   listCommunityMembers(communityID: ID!): [CommunityMember]
 }
 

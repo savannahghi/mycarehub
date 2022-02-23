@@ -238,27 +238,24 @@ type ServiceRequestsCount {
   requestsTypeCount: [RequestTypeCount!]!
 }
 
-type QueryUsersResponse {
-  users: [GetStreamUser!]!
-}
-
-type GetStreamUser {
-  ID: String!
-  name: String!
-  role: String!
-  createdAt: Time!
-  updatedAt: Time!
-}
-
 type Community {
   id: String!
+  cid: String
   name: String!
-  description: String!
+  disabled: Boolean
+  frozen: Boolean
+  memberCount: Int
+  createdAt: Time
+  updatedAt: Time
+
+  # Custom defined fields
   ageRange: AgeRange
   gender: [Gender!]!
   clientType: [ClientType!]
   inviteOnly: Boolean!
+  description: String!
   members: [CommunityMember]
+  createdBy: Member
 }
 
 type AgeRange {
@@ -271,35 +268,14 @@ type PostingHours {
   end: Time!
 }
 
-type QueryChannelsResponse {
-  channels: [GetStreamChannel!]!
-}
-
-type GetStreamChannel {
-  ID: String!
-  type: String!
-  cid: String
-  team: String
-  # config: ChannelConfig!
-  createdBy: GetStreamUser
-  disabled: Boolean
-  frozen: Boolean
-  memberCount: Int
-  # read: [ChannelRead]
-  createdAt: Time
-  updatedAt: Time
-  lastMessageAt: Time
-  # extraData: String!
-}
-
 """
 Member represents a user and is specific to use in the context of communities
 """
 type Member {
   ID: ID!
+  userID: ID!
   name: String!
   role: String!
-
   username: String!
   gender: Gender!
 }
