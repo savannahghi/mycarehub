@@ -23,6 +23,10 @@ func (r *queryResolver) InviteMembersToCommunity(ctx context.Context, communityI
 	return r.mycarehub.Community.InviteMembers(ctx, communityID, userIDS)
 }
 
+func (r *queryResolver) ListGetStreamChannels(ctx context.Context, input *domain.QueryOption) (*domain.QueryChannelsResponse, error) {
+	return r.mycarehub.Community.ListGetStreamChannels(ctx, input)
+}
+
 // Query returns generated.QueryResolver implementation.
 func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
 

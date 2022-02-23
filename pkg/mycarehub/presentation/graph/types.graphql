@@ -269,3 +269,25 @@ type PostingHours {
   start: Time!
   end: Time!
 }
+
+
+type QueryChannelsResponse {
+  channels: [GetStreamChannel!]!
+}
+
+type GetStreamChannel {
+  ID: String!
+  type: String!
+  cid: String
+  team: String
+  # config: ChannelConfig!
+  createdBy: GetStreamUser
+  disabled: Boolean
+  frozen: Boolean
+  memberCount: Int
+  # read: [ChannelRead]
+  createdAt: Time
+  updatedAt: Time
+  lastMessageAt: Time
+  # extraData: String!
+}

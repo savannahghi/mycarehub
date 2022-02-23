@@ -2,6 +2,7 @@ package mock
 
 import (
 	"context"
+	"time"
 
 	stream "github.com/GetStream/stream-chat-go/v5"
 	"github.com/brianvoe/gofakeit"
@@ -16,10 +17,12 @@ type GetStreamServiceMock struct {
 	MockCreateChannelFn            func(ctx context.Context, chanType, chanID, userID string, data map[string]interface{}) (*stream.CreateChannelResponse, error)
 	MockDeleteChannelsFn           func(ctx context.Context, chanIDs []string, hardDelete bool) (*stream.AsyncTaskResponse, error)
 	MockInviteMembersFn            func(ctx context.Context, userIDs []string, channelID string, message *stream.Message) (*stream.Response, error)
+	MockListGetStreamChannelsFn    func(ctx context.Context, input *stream.QueryOption) (*stream.QueryChannelsResponse, error)
 }
 
 // NewGetStreamServiceMock initializes the mock service
 func NewGetStreamServiceMock() *GetStreamServiceMock {
+	var now = time.Now()
 	return &GetStreamServiceMock{
 		MockCreateGetStreamUserTokenFn: func(ctx context.Context, userID string) (string, error) {
 			return uuid.New().String(), nil
@@ -53,6 +56,33 @@ func NewGetStreamServiceMock() *GetStreamServiceMock {
 				Limit: 100,
 			}}, nil
 		},
+		MockListGetStreamChannelsFn: func(ctx context.Context, input *stream.QueryOption) (*stream.QueryChannelsResponse, error) {
+
+			createdBy := &stream.User{
+				ID:        uuid.NewString(),
+				Name:      gofakeit.Name(),
+				Role:      gofakeit.Name(),
+				CreatedAt: &now,
+				UpdatedAt: &now,
+			}
+			return &stream.QueryChannelsResponse{
+				Channels: []*stream.Channel{
+					{
+						ID:            uuid.NewString(),
+						Type:          gofakeit.Name(),
+						CID:           uuid.NewString(),
+						Team:          uuid.NewString(),
+						CreatedBy:     createdBy,
+						Disabled:      false,
+						Frozen:        false,
+						MemberCount:   1,
+						CreatedAt:     time.Now(),
+						UpdatedAt:     time.Now(),
+						LastMessageAt: time.Now(),
+					},
+				},
+			}, nil
+		},
 	}
 }
 
@@ -84,4 +114,9 @@ func (g GetStreamServiceMock) DeleteChannels(ctx context.Context, chanIDs []stri
 // InviteMembers mocks the implementation for inviting members to a specified channel
 func (g GetStreamServiceMock) InviteMembers(ctx context.Context, userIDs []string, channelID string, message *stream.Message) (*stream.Response, error) {
 	return g.MockInviteMembersFn(ctx, userIDs, channelID, message)
+}
+
+// ListGetStreamChannels mocks the implementation for listing getstream channels
+func (g GetStreamServiceMock) ListGetStreamChannels(ctx context.Context, input *stream.QueryOption) (*stream.QueryChannelsResponse, error) {
+	return g.MockListGetStreamChannelsFn(ctx, input)
 }

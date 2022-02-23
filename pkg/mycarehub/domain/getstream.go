@@ -45,3 +45,32 @@ type SortOption struct {
 	Field     string `json:"field"`
 	Direction int    `json:"direction"`
 }
+
+// GetStreamChannel models the getstream channel data structure
+type GetStreamChannel struct {
+	ID   string `json:"id"`
+	Type string `json:"type"`
+	CID  string `json:"cid"` // full id in format channel_type:channel_ID
+	Team string `json:"team"`
+
+	// Config ChannelConfig `json:"config"`
+
+	CreatedBy *GetStreamUser `json:"created_by"`
+	Disabled  bool           `json:"disabled"`
+	Frozen    bool           `json:"frozen"`
+
+	MemberCount int `json:"member_count"`
+
+	// Read     []*ChannelRead      `json:"read"`
+
+	CreatedAt     time.Time `json:"created_at"`
+	UpdatedAt     time.Time `json:"updated_at"`
+	LastMessageAt time.Time `json:"last_message_at"`
+
+	// ExtraData map[string]interface{} `json:"-"`
+}
+
+// QueryChannelsResponse models the response that is returned by getstream API when fetching channels
+type QueryChannelsResponse struct {
+	Channels []*GetStreamChannel `json:"channels"`
+}
