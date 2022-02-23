@@ -79,3 +79,9 @@ models:
   FacilityInput:
     model:
       - github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto.FacilityInput
+  QueryOption:
+    model:
+      - github.com/GetStream/stream-chat-go/v5.QueryOption
+  SortOption:
+    model:
+      - github.com/GetStream/stream-chat-go/v5.SortOption

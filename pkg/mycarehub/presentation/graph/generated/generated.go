@@ -13,6 +13,7 @@ import (
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
+	stream_chat "github.com/GetStream/stream-chat-go/v5"
 	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
@@ -105,13 +106,20 @@ type ComplexityRoot struct {
 
 	Community struct {
 		AgeRange    func(childComplexity int) int
+		CID         func(childComplexity int) int
 		ClientType  func(childComplexity int) int
+		CreatedAt   func(childComplexity int) int
+		CreatedBy   func(childComplexity int) int
 		Description func(childComplexity int) int
+		Disabled    func(childComplexity int) int
+		Frozen      func(childComplexity int) int
 		Gender      func(childComplexity int) int
 		ID          func(childComplexity int) int
 		InviteOnly  func(childComplexity int) int
+		MemberCount func(childComplexity int) int
 		Members     func(childComplexity int) int
 		Name        func(childComplexity int) int
+		UpdatedAt   func(childComplexity int) int
 	}
 
 	CommunityMember struct {
@@ -233,28 +241,6 @@ type ComplexityRoot struct {
 		Image func(childComplexity int) int
 	}
 
-	GetStreamChannel struct {
-		CID           func(childComplexity int) int
-		CreatedAt     func(childComplexity int) int
-		CreatedBy     func(childComplexity int) int
-		Disabled      func(childComplexity int) int
-		Frozen        func(childComplexity int) int
-		ID            func(childComplexity int) int
-		LastMessageAt func(childComplexity int) int
-		MemberCount   func(childComplexity int) int
-		Team          func(childComplexity int) int
-		Type          func(childComplexity int) int
-		UpdatedAt     func(childComplexity int) int
-	}
-
-	GetStreamUser struct {
-		CreatedAt func(childComplexity int) int
-		ID        func(childComplexity int) int
-		Name      func(childComplexity int) int
-		Role      func(childComplexity int) int
-		UpdatedAt func(childComplexity int) int
-	}
-
 	HeroImage struct {
 		ID    func(childComplexity int) int
 		Title func(childComplexity int) int
@@ -284,6 +270,7 @@ type ComplexityRoot struct {
 		ID       func(childComplexity int) int
 		Name     func(childComplexity int) int
 		Role     func(childComplexity int) int
+		UserID   func(childComplexity int) int
 		Username func(childComplexity int) int
 	}
 
@@ -349,23 +336,15 @@ type ComplexityRoot struct {
 		GetServiceRequests             func(childComplexity int, requestType *string, requestStatus *string, facilityID string) int
 		GetUserBookmarkedContent       func(childComplexity int, userID string) int
 		InviteMembersToCommunity       func(childComplexity int, communityID string, userIDS []string) int
+		ListCommunities                func(childComplexity int, input *stream_chat.QueryOption) int
 		ListCommunityMembers           func(childComplexity int, communityID string) int
 		ListContentCategories          func(childComplexity int) int
 		ListFacilities                 func(childComplexity int, searchTerm *string, filterInput []*dto.FiltersInput, paginationInput dto.PaginationsInput) int
-		ListGetStreamChannels          func(childComplexity int, input *domain.QueryOption) int
-		ListGetStreamUsers             func(childComplexity int, input *domain.QueryOption) int
+		ListMembers                    func(childComplexity int, input *stream_chat.QueryOption) int
 		RetrieveFacility               func(childComplexity int, id string, active bool) int
 		RetrieveFacilityByMFLCode      func(childComplexity int, mflCode int, isActive bool) int
 		SendOtp                        func(childComplexity int, phoneNumber string, flavour feedlib.Flavour) int
 		VerifyPin                      func(childComplexity int, userID string, flavour feedlib.Flavour, pin string) int
-	}
-
-	QueryChannelsResponse struct {
-		Channels func(childComplexity int) int
-	}
-
-	QueryUsersResponse struct {
-		Users func(childComplexity int) int
 	}
 
 	RecordSecurityQuestionResponse struct {
@@ -440,9 +419,9 @@ type MutationResolver interface {
 	RegisterClient(ctx context.Context, input *dto.ClientRegistrationInput) (*dto.ClientRegistrationOutput, error)
 }
 type QueryResolver interface {
-	ListGetStreamUsers(ctx context.Context, input *domain.QueryOption) (*domain.QueryUsersResponse, error)
+	ListMembers(ctx context.Context, input *stream_chat.QueryOption) ([]*domain.Member, error)
 	InviteMembersToCommunity(ctx context.Context, communityID string, userIDS []string) (bool, error)
-	ListGetStreamChannels(ctx context.Context, input *domain.QueryOption) (*domain.QueryChannelsResponse, error)
+	ListCommunities(ctx context.Context, input *stream_chat.QueryOption) ([]*domain.Community, error)
 	ListCommunityMembers(ctx context.Context, communityID string) ([]*domain.CommunityMember, error)
 	GetContent(ctx context.Context, categoryID *int, limit string) (*domain.Content, error)
 	ListContentCategories(ctx context.Context) ([]*domain.ContentItemCategory, error)
@@ -719,6 +698,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Community.AgeRange(childComplexity), true
 
+	case "Community.cid":
+		if e.complexity.Community.CID == nil {
+			break
+		}
+
+		return e.complexity.Community.CID(childComplexity), true
+
 	case "Community.clientType":
 		if e.complexity.Community.ClientType == nil {
 			break
@@ -726,12 +712,40 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Community.ClientType(childComplexity), true
 
+	case "Community.createdAt":
+		if e.complexity.Community.CreatedAt == nil {
+			break
+		}
+
+		return e.complexity.Community.CreatedAt(childComplexity), true
+
+	case "Community.createdBy":
+		if e.complexity.Community.CreatedBy == nil {
+			break
+		}
+
+		return e.complexity.Community.CreatedBy(childComplexity), true
+
 	case "Community.description":
 		if e.complexity.Community.Description == nil {
 			break
 		}
 
 		return e.complexity.Community.Description(childComplexity), true
+
+	case "Community.disabled":
+		if e.complexity.Community.Disabled == nil {
+			break
+		}
+
+		return e.complexity.Community.Disabled(childComplexity), true
+
+	case "Community.frozen":
+		if e.complexity.Community.Frozen == nil {
+			break
+		}
+
+		return e.complexity.Community.Frozen(childComplexity), true
 
 	case "Community.gender":
 		if e.complexity.Community.Gender == nil {
@@ -754,6 +768,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Community.InviteOnly(childComplexity), true
 
+	case "Community.memberCount":
+		if e.complexity.Community.MemberCount == nil {
+			break
+		}
+
+		return e.complexity.Community.MemberCount(childComplexity), true
+
 	case "Community.members":
 		if e.complexity.Community.Members == nil {
 			break
@@ -767,6 +788,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Community.Name(childComplexity), true
+
+	case "Community.updatedAt":
+		if e.complexity.Community.UpdatedAt == nil {
+			break
+		}
+
+		return e.complexity.Community.UpdatedAt(childComplexity), true
 
 	case "CommunityMember.isModerator":
 		if e.complexity.CommunityMember.IsModerator == nil {
@@ -1307,118 +1335,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.GalleryImage.Image(childComplexity), true
 
-	case "GetStreamChannel.cid":
-		if e.complexity.GetStreamChannel.CID == nil {
-			break
-		}
-
-		return e.complexity.GetStreamChannel.CID(childComplexity), true
-
-	case "GetStreamChannel.createdAt":
-		if e.complexity.GetStreamChannel.CreatedAt == nil {
-			break
-		}
-
-		return e.complexity.GetStreamChannel.CreatedAt(childComplexity), true
-
-	case "GetStreamChannel.createdBy":
-		if e.complexity.GetStreamChannel.CreatedBy == nil {
-			break
-		}
-
-		return e.complexity.GetStreamChannel.CreatedBy(childComplexity), true
-
-	case "GetStreamChannel.disabled":
-		if e.complexity.GetStreamChannel.Disabled == nil {
-			break
-		}
-
-		return e.complexity.GetStreamChannel.Disabled(childComplexity), true
-
-	case "GetStreamChannel.frozen":
-		if e.complexity.GetStreamChannel.Frozen == nil {
-			break
-		}
-
-		return e.complexity.GetStreamChannel.Frozen(childComplexity), true
-
-	case "GetStreamChannel.ID":
-		if e.complexity.GetStreamChannel.ID == nil {
-			break
-		}
-
-		return e.complexity.GetStreamChannel.ID(childComplexity), true
-
-	case "GetStreamChannel.lastMessageAt":
-		if e.complexity.GetStreamChannel.LastMessageAt == nil {
-			break
-		}
-
-		return e.complexity.GetStreamChannel.LastMessageAt(childComplexity), true
-
-	case "GetStreamChannel.memberCount":
-		if e.complexity.GetStreamChannel.MemberCount == nil {
-			break
-		}
-
-		return e.complexity.GetStreamChannel.MemberCount(childComplexity), true
-
-	case "GetStreamChannel.team":
-		if e.complexity.GetStreamChannel.Team == nil {
-			break
-		}
-
-		return e.complexity.GetStreamChannel.Team(childComplexity), true
-
-	case "GetStreamChannel.type":
-		if e.complexity.GetStreamChannel.Type == nil {
-			break
-		}
-
-		return e.complexity.GetStreamChannel.Type(childComplexity), true
-
-	case "GetStreamChannel.updatedAt":
-		if e.complexity.GetStreamChannel.UpdatedAt == nil {
-			break
-		}
-
-		return e.complexity.GetStreamChannel.UpdatedAt(childComplexity), true
-
-	case "GetStreamUser.createdAt":
-		if e.complexity.GetStreamUser.CreatedAt == nil {
-			break
-		}
-
-		return e.complexity.GetStreamUser.CreatedAt(childComplexity), true
-
-	case "GetStreamUser.ID":
-		if e.complexity.GetStreamUser.ID == nil {
-			break
-		}
-
-		return e.complexity.GetStreamUser.ID(childComplexity), true
-
-	case "GetStreamUser.name":
-		if e.complexity.GetStreamUser.Name == nil {
-			break
-		}
-
-		return e.complexity.GetStreamUser.Name(childComplexity), true
-
-	case "GetStreamUser.role":
-		if e.complexity.GetStreamUser.Role == nil {
-			break
-		}
-
-		return e.complexity.GetStreamUser.Role(childComplexity), true
-
-	case "GetStreamUser.updatedAt":
-		if e.complexity.GetStreamUser.UpdatedAt == nil {
-			break
-		}
-
-		return e.complexity.GetStreamUser.UpdatedAt(childComplexity), true
-
 	case "HeroImage.ID":
 		if e.complexity.HeroImage.ID == nil {
 			break
@@ -1530,6 +1446,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Member.Role(childComplexity), true
+
+	case "Member.userID":
+		if e.complexity.Member.UserID == nil {
+			break
+		}
+
+		return e.complexity.Member.UserID(childComplexity), true
 
 	case "Member.username":
 		if e.complexity.Member.Username == nil {
@@ -2071,6 +1994,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.InviteMembersToCommunity(childComplexity, args["communityID"].(string), args["userIDS"].([]string)), true
 
+	case "Query.listCommunities":
+		if e.complexity.Query.ListCommunities == nil {
+			break
+		}
+
+		args, err := ec.field_Query_listCommunities_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.ListCommunities(childComplexity, args["input"].(*stream_chat.QueryOption)), true
+
 	case "Query.listCommunityMembers":
 		if e.complexity.Query.ListCommunityMembers == nil {
 			break
@@ -2102,29 +2037,17 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.ListFacilities(childComplexity, args["searchTerm"].(*string), args["filterInput"].([]*dto.FiltersInput), args["paginationInput"].(dto.PaginationsInput)), true
 
-	case "Query.listGetStreamChannels":
-		if e.complexity.Query.ListGetStreamChannels == nil {
+	case "Query.listMembers":
+		if e.complexity.Query.ListMembers == nil {
 			break
 		}
 
-		args, err := ec.field_Query_listGetStreamChannels_args(context.TODO(), rawArgs)
+		args, err := ec.field_Query_listMembers_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Query.ListGetStreamChannels(childComplexity, args["input"].(*domain.QueryOption)), true
-
-	case "Query.listGetStreamUsers":
-		if e.complexity.Query.ListGetStreamUsers == nil {
-			break
-		}
-
-		args, err := ec.field_Query_listGetStreamUsers_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.ListGetStreamUsers(childComplexity, args["input"].(*domain.QueryOption)), true
+		return e.complexity.Query.ListMembers(childComplexity, args["input"].(*stream_chat.QueryOption)), true
 
 	case "Query.retrieveFacility":
 		if e.complexity.Query.RetrieveFacility == nil {
@@ -2173,20 +2096,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.VerifyPin(childComplexity, args["userID"].(string), args["flavour"].(feedlib.Flavour), args["pin"].(string)), true
-
-	case "QueryChannelsResponse.channels":
-		if e.complexity.QueryChannelsResponse.Channels == nil {
-			break
-		}
-
-		return e.complexity.QueryChannelsResponse.Channels(childComplexity), true
-
-	case "QueryUsersResponse.users":
-		if e.complexity.QueryUsersResponse.Users == nil {
-			break
-		}
-
-		return e.complexity.QueryUsersResponse.Users(childComplexity), true
 
 	case "RecordSecurityQuestionResponse.isCorrect":
 		if e.complexity.RecordSecurityQuestionResponse.IsCorrect == nil {
@@ -2432,9 +2341,9 @@ var sources = []*ast.Source{
 }
 `, BuiltIn: false},
 	{Name: "pkg/mycarehub/presentation/graph/communities.graphql", Input: `extend type Query {
-  listGetStreamUsers(input: QueryOption): QueryUsersResponse!
+  listMembers(input: QueryOption): [Member]
   inviteMembersToCommunity(communityID: String!, userIDS: [String!]!): Boolean!
-  listGetStreamChannels(input: QueryOption): QueryChannelsResponse!
+  listCommunities(input: QueryOption): [Community]
   listCommunityMembers(communityID: ID!): [CommunityMember]
 }
 
@@ -2621,6 +2530,7 @@ extend type Query {
 }
 `, BuiltIn: false},
 	{Name: "pkg/mycarehub/presentation/graph/input.graphql", Input: `scalar Date
+scalar Map
 
 input FacilityInput {
   name: String!
@@ -2707,6 +2617,7 @@ input SortOption {
   field: String!
   direction: Int!
 }
+
 input CommunityInput {
   name: String!
   description: String!
@@ -2720,8 +2631,6 @@ input AgeRangeInput {
   lowerBound: Int!
   upperBound: Int!
 }
-
-
 `, BuiltIn: false},
 	{Name: "pkg/mycarehub/presentation/graph/otp.graphql", Input: `extend type Query {
   sendOTP(phoneNumber: String!, flavour: Flavour!): String!
@@ -2730,7 +2639,6 @@ input AgeRangeInput {
   inviteUser(userID: String!,phoneNumber: String!, flavour:Flavour! ): Boolean!
   setUserPIN(input: PINInput): Boolean!
 }`, BuiltIn: false},
-	{Name: "pkg/mycarehub/presentation/graph/scalar.graphql", Input: `scalar Map`, BuiltIn: false},
 	{Name: "pkg/mycarehub/presentation/graph/securityquestion.graphql", Input: `extend type Query {
   getSecurityQuestions(flavour: Flavour!): [SecurityQuestion!]!
 }
@@ -3000,27 +2908,24 @@ type ServiceRequestsCount {
   requestsTypeCount: [RequestTypeCount!]!
 }
 
-type QueryUsersResponse {
-  users: [GetStreamUser!]!
-}
-
-type GetStreamUser {
-  ID: String!
-  name: String!
-  role: String!
-  createdAt: Time!
-  updatedAt: Time!
-}
-
 type Community {
   id: String!
+  cid: String
   name: String!
-  description: String!
+  disabled: Boolean
+  frozen: Boolean
+  memberCount: Int
+  createdAt: Time
+  updatedAt: Time
+
+  # Custom defined fields
   ageRange: AgeRange
   gender: [Gender!]!
   clientType: [ClientType!]
   inviteOnly: Boolean!
+  description: String!
   members: [CommunityMember]
+  createdBy: Member
 }
 
 type AgeRange {
@@ -3033,35 +2938,14 @@ type PostingHours {
   end: Time!
 }
 
-type QueryChannelsResponse {
-  channels: [GetStreamChannel!]!
-}
-
-type GetStreamChannel {
-  ID: String!
-  type: String!
-  cid: String
-  team: String
-  # config: ChannelConfig!
-  createdBy: GetStreamUser
-  disabled: Boolean
-  frozen: Boolean
-  memberCount: Int
-  # read: [ChannelRead]
-  createdAt: Time
-  updatedAt: Time
-  lastMessageAt: Time
-  # extraData: String!
-}
-
 """
 Member represents a user and is specific to use in the context of communities
 """
 type Member {
   ID: ID!
+  userID: ID!
   name: String!
   role: String!
-
   username: String!
   gender: Gender!
 }
@@ -3918,6 +3802,21 @@ func (ec *executionContext) field_Query_inviteMembersToCommunity_args(ctx contex
 	return args, nil
 }
 
+func (ec *executionContext) field_Query_listCommunities_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *stream_chat.QueryOption
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalOQueryOption2ᚖgithubᚗcomᚋGetStreamᚋstreamᚑchatᚑgoᚋv5ᚐQueryOption(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Query_listCommunityMembers_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -3966,28 +3865,13 @@ func (ec *executionContext) field_Query_listFacilities_args(ctx context.Context,
 	return args, nil
 }
 
-func (ec *executionContext) field_Query_listGetStreamChannels_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Query_listMembers_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 *domain.QueryOption
+	var arg0 *stream_chat.QueryOption
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalOQueryOption2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐQueryOption(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["input"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Query_listGetStreamUsers_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 *domain.QueryOption
-	if tmp, ok := rawArgs["input"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalOQueryOption2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐQueryOption(ctx, tmp)
+		arg0, err = ec.unmarshalOQueryOption2ᚖgithubᚗcomᚋGetStreamᚋstreamᚑchatᚑgoᚋv5ᚐQueryOption(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -5308,6 +5192,38 @@ func (ec *executionContext) _Community_id(ctx context.Context, field graphql.Col
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Community_cid(ctx context.Context, field graphql.CollectedField, obj *domain.Community) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Community",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Community_name(ctx context.Context, field graphql.CollectedField, obj *domain.Community) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -5343,7 +5259,7 @@ func (ec *executionContext) _Community_name(ctx context.Context, field graphql.C
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Community_description(ctx context.Context, field graphql.CollectedField, obj *domain.Community) (ret graphql.Marshaler) {
+func (ec *executionContext) _Community_disabled(ctx context.Context, field graphql.CollectedField, obj *domain.Community) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -5361,21 +5277,146 @@ func (ec *executionContext) _Community_description(ctx context.Context, field gr
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Description, nil
+		return obj.Disabled, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(bool)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Community_frozen(ctx context.Context, field graphql.CollectedField, obj *domain.Community) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Community",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Frozen, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Community_memberCount(ctx context.Context, field graphql.CollectedField, obj *domain.Community) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Community",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.MemberCount, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalOInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Community_createdAt(ctx context.Context, field graphql.CollectedField, obj *domain.Community) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Community",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CreatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalOTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Community_updatedAt(ctx context.Context, field graphql.CollectedField, obj *domain.Community) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Community",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UpdatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalOTime2timeᚐTime(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Community_ageRange(ctx context.Context, field graphql.CollectedField, obj *domain.Community) (ret graphql.Marshaler) {
@@ -5512,6 +5553,41 @@ func (ec *executionContext) _Community_inviteOnly(ctx context.Context, field gra
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Community_description(ctx context.Context, field graphql.CollectedField, obj *domain.Community) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Community",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Description, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Community_members(ctx context.Context, field graphql.CollectedField, obj *domain.Community) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -5542,6 +5618,38 @@ func (ec *executionContext) _Community_members(ctx context.Context, field graphq
 	res := resTmp.([]domain.CommunityMember)
 	fc.Result = res
 	return ec.marshalOCommunityMember2ᚕgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐCommunityMember(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Community_createdBy(ctx context.Context, field graphql.CollectedField, obj *domain.Community) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Community",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CreatedBy, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*domain.Member)
+	fc.Result = res
+	return ec.marshalOMember2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐMember(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _CommunityMember_UserID(ctx context.Context, field graphql.CollectedField, obj *domain.CommunityMember) (ret graphql.Marshaler) {
@@ -8182,539 +8290,6 @@ func (ec *executionContext) _GalleryImage_image(ctx context.Context, field graph
 	return ec.marshalNImageDetail2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐImageDetail(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _GetStreamChannel_ID(ctx context.Context, field graphql.CollectedField, obj *domain.GetStreamChannel) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "GetStreamChannel",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.ID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _GetStreamChannel_type(ctx context.Context, field graphql.CollectedField, obj *domain.GetStreamChannel) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "GetStreamChannel",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Type, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _GetStreamChannel_cid(ctx context.Context, field graphql.CollectedField, obj *domain.GetStreamChannel) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "GetStreamChannel",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.CID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalOString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _GetStreamChannel_team(ctx context.Context, field graphql.CollectedField, obj *domain.GetStreamChannel) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "GetStreamChannel",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Team, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalOString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _GetStreamChannel_createdBy(ctx context.Context, field graphql.CollectedField, obj *domain.GetStreamChannel) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "GetStreamChannel",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.CreatedBy, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*domain.GetStreamUser)
-	fc.Result = res
-	return ec.marshalOGetStreamUser2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐGetStreamUser(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _GetStreamChannel_disabled(ctx context.Context, field graphql.CollectedField, obj *domain.GetStreamChannel) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "GetStreamChannel",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Disabled, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(bool)
-	fc.Result = res
-	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _GetStreamChannel_frozen(ctx context.Context, field graphql.CollectedField, obj *domain.GetStreamChannel) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "GetStreamChannel",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Frozen, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(bool)
-	fc.Result = res
-	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _GetStreamChannel_memberCount(ctx context.Context, field graphql.CollectedField, obj *domain.GetStreamChannel) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "GetStreamChannel",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.MemberCount, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(int)
-	fc.Result = res
-	return ec.marshalOInt2int(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _GetStreamChannel_createdAt(ctx context.Context, field graphql.CollectedField, obj *domain.GetStreamChannel) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "GetStreamChannel",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.CreatedAt, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(time.Time)
-	fc.Result = res
-	return ec.marshalOTime2timeᚐTime(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _GetStreamChannel_updatedAt(ctx context.Context, field graphql.CollectedField, obj *domain.GetStreamChannel) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "GetStreamChannel",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.UpdatedAt, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(time.Time)
-	fc.Result = res
-	return ec.marshalOTime2timeᚐTime(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _GetStreamChannel_lastMessageAt(ctx context.Context, field graphql.CollectedField, obj *domain.GetStreamChannel) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "GetStreamChannel",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.LastMessageAt, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(time.Time)
-	fc.Result = res
-	return ec.marshalOTime2timeᚐTime(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _GetStreamUser_ID(ctx context.Context, field graphql.CollectedField, obj *domain.GetStreamUser) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "GetStreamUser",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.ID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _GetStreamUser_name(ctx context.Context, field graphql.CollectedField, obj *domain.GetStreamUser) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "GetStreamUser",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Name, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _GetStreamUser_role(ctx context.Context, field graphql.CollectedField, obj *domain.GetStreamUser) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "GetStreamUser",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Role, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _GetStreamUser_createdAt(ctx context.Context, field graphql.CollectedField, obj *domain.GetStreamUser) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "GetStreamUser",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.CreatedAt, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*time.Time)
-	fc.Result = res
-	return ec.marshalNTime2ᚖtimeᚐTime(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _GetStreamUser_updatedAt(ctx context.Context, field graphql.CollectedField, obj *domain.GetStreamUser) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "GetStreamUser",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.UpdatedAt, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*time.Time)
-	fc.Result = res
-	return ec.marshalNTime2ᚖtimeᚐTime(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) _HeroImage_ID(ctx context.Context, field graphql.CollectedField, obj *domain.HeroImage) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -9154,6 +8729,41 @@ func (ec *executionContext) _Member_ID(ctx context.Context, field graphql.Collec
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Member_userID(ctx context.Context, field graphql.CollectedField, obj *domain.Member) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Member",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UserID, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -10663,7 +10273,7 @@ func (ec *executionContext) _PostingHours_end(ctx context.Context, field graphql
 	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Query_listGetStreamUsers(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _Query_listMembers(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -10680,7 +10290,7 @@ func (ec *executionContext) _Query_listGetStreamUsers(ctx context.Context, field
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Query_listGetStreamUsers_args(ctx, rawArgs)
+	args, err := ec.field_Query_listMembers_args(ctx, rawArgs)
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
@@ -10688,21 +10298,18 @@ func (ec *executionContext) _Query_listGetStreamUsers(ctx context.Context, field
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().ListGetStreamUsers(rctx, args["input"].(*domain.QueryOption))
+		return ec.resolvers.Query().ListMembers(rctx, args["input"].(*stream_chat.QueryOption))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(*domain.QueryUsersResponse)
+	res := resTmp.([]*domain.Member)
 	fc.Result = res
-	return ec.marshalNQueryUsersResponse2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐQueryUsersResponse(ctx, field.Selections, res)
+	return ec.marshalOMember2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐMember(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_inviteMembersToCommunity(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -10747,7 +10354,7 @@ func (ec *executionContext) _Query_inviteMembersToCommunity(ctx context.Context,
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Query_listGetStreamChannels(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _Query_listCommunities(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -10764,7 +10371,7 @@ func (ec *executionContext) _Query_listGetStreamChannels(ctx context.Context, fi
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Query_listGetStreamChannels_args(ctx, rawArgs)
+	args, err := ec.field_Query_listCommunities_args(ctx, rawArgs)
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
@@ -10772,21 +10379,18 @@ func (ec *executionContext) _Query_listGetStreamChannels(ctx context.Context, fi
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().ListGetStreamChannels(rctx, args["input"].(*domain.QueryOption))
+		return ec.resolvers.Query().ListCommunities(rctx, args["input"].(*stream_chat.QueryOption))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(*domain.QueryChannelsResponse)
+	res := resTmp.([]*domain.Community)
 	fc.Result = res
-	return ec.marshalNQueryChannelsResponse2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐQueryChannelsResponse(ctx, field.Selections, res)
+	return ec.marshalOCommunity2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐCommunity(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_listCommunityMembers(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -11701,76 +11305,6 @@ func (ec *executionContext) _Query___schema(ctx context.Context, field graphql.C
 	res := resTmp.(*introspection.Schema)
 	fc.Result = res
 	return ec.marshalO__Schema2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐSchema(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _QueryChannelsResponse_channels(ctx context.Context, field graphql.CollectedField, obj *domain.QueryChannelsResponse) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "QueryChannelsResponse",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Channels, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.([]*domain.GetStreamChannel)
-	fc.Result = res
-	return ec.marshalNGetStreamChannel2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐGetStreamChannelᚄ(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _QueryUsersResponse_users(ctx context.Context, field graphql.CollectedField, obj *domain.QueryUsersResponse) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "QueryUsersResponse",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Users, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.([]*domain.GetStreamUser)
-	fc.Result = res
-	return ec.marshalNGetStreamUser2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐGetStreamUserᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _RecordSecurityQuestionResponse_securityQuestionID(ctx context.Context, field graphql.CollectedField, obj *domain.RecordSecurityQuestionResponse) (ret graphql.Marshaler) {
@@ -14215,8 +13749,8 @@ func (ec *executionContext) unmarshalInputPaginationsInput(ctx context.Context, 
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputQueryOption(ctx context.Context, obj interface{}) (domain.QueryOption, error) {
-	var it domain.QueryOption
+func (ec *executionContext) unmarshalInputQueryOption(ctx context.Context, obj interface{}) (stream_chat.QueryOption, error) {
+	var it stream_chat.QueryOption
 	asMap := map[string]interface{}{}
 	for k, v := range obj.(map[string]interface{}) {
 		asMap[k] = v
@@ -14236,7 +13770,7 @@ func (ec *executionContext) unmarshalInputQueryOption(ctx context.Context, obj i
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sort"))
-			it.Sort, err = ec.unmarshalOSortOption2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐSortOptionᚄ(ctx, v)
+			it.Sort, err = ec.unmarshalOSortOption2ᚕᚖgithubᚗcomᚋGetStreamᚋstreamᚑchatᚑgoᚋv5ᚐSortOptionᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -14364,8 +13898,8 @@ func (ec *executionContext) unmarshalInputShareContentInput(ctx context.Context,
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputSortOption(ctx context.Context, obj interface{}) (domain.SortOption, error) {
-	var it domain.SortOption
+func (ec *executionContext) unmarshalInputSortOption(ctx context.Context, obj interface{}) (stream_chat.SortOption, error) {
+	var it stream_chat.SortOption
 	asMap := map[string]interface{}{}
 	for k, v := range obj.(map[string]interface{}) {
 		asMap[k] = v
@@ -14748,16 +14282,23 @@ func (ec *executionContext) _Community(ctx context.Context, sel ast.SelectionSet
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "cid":
+			out.Values[i] = ec._Community_cid(ctx, field, obj)
 		case "name":
 			out.Values[i] = ec._Community_name(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "description":
-			out.Values[i] = ec._Community_description(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
+		case "disabled":
+			out.Values[i] = ec._Community_disabled(ctx, field, obj)
+		case "frozen":
+			out.Values[i] = ec._Community_frozen(ctx, field, obj)
+		case "memberCount":
+			out.Values[i] = ec._Community_memberCount(ctx, field, obj)
+		case "createdAt":
+			out.Values[i] = ec._Community_createdAt(ctx, field, obj)
+		case "updatedAt":
+			out.Values[i] = ec._Community_updatedAt(ctx, field, obj)
 		case "ageRange":
 			out.Values[i] = ec._Community_ageRange(ctx, field, obj)
 		case "gender":
@@ -14772,8 +14313,15 @@ func (ec *executionContext) _Community(ctx context.Context, sel ast.SelectionSet
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "description":
+			out.Values[i] = ec._Community_description(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "members":
 			out.Values[i] = ec._Community_members(ctx, field, obj)
+		case "createdBy":
+			out.Values[i] = ec._Community_createdBy(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -15421,103 +14969,6 @@ func (ec *executionContext) _GalleryImage(ctx context.Context, sel ast.Selection
 	return out
 }
 
-var getStreamChannelImplementors = []string{"GetStreamChannel"}
-
-func (ec *executionContext) _GetStreamChannel(ctx context.Context, sel ast.SelectionSet, obj *domain.GetStreamChannel) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, getStreamChannelImplementors)
-
-	out := graphql.NewFieldSet(fields)
-	var invalids uint32
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("GetStreamChannel")
-		case "ID":
-			out.Values[i] = ec._GetStreamChannel_ID(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "type":
-			out.Values[i] = ec._GetStreamChannel_type(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "cid":
-			out.Values[i] = ec._GetStreamChannel_cid(ctx, field, obj)
-		case "team":
-			out.Values[i] = ec._GetStreamChannel_team(ctx, field, obj)
-		case "createdBy":
-			out.Values[i] = ec._GetStreamChannel_createdBy(ctx, field, obj)
-		case "disabled":
-			out.Values[i] = ec._GetStreamChannel_disabled(ctx, field, obj)
-		case "frozen":
-			out.Values[i] = ec._GetStreamChannel_frozen(ctx, field, obj)
-		case "memberCount":
-			out.Values[i] = ec._GetStreamChannel_memberCount(ctx, field, obj)
-		case "createdAt":
-			out.Values[i] = ec._GetStreamChannel_createdAt(ctx, field, obj)
-		case "updatedAt":
-			out.Values[i] = ec._GetStreamChannel_updatedAt(ctx, field, obj)
-		case "lastMessageAt":
-			out.Values[i] = ec._GetStreamChannel_lastMessageAt(ctx, field, obj)
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch()
-	if invalids > 0 {
-		return graphql.Null
-	}
-	return out
-}
-
-var getStreamUserImplementors = []string{"GetStreamUser"}
-
-func (ec *executionContext) _GetStreamUser(ctx context.Context, sel ast.SelectionSet, obj *domain.GetStreamUser) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, getStreamUserImplementors)
-
-	out := graphql.NewFieldSet(fields)
-	var invalids uint32
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("GetStreamUser")
-		case "ID":
-			out.Values[i] = ec._GetStreamUser_ID(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "name":
-			out.Values[i] = ec._GetStreamUser_name(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "role":
-			out.Values[i] = ec._GetStreamUser_role(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "createdAt":
-			out.Values[i] = ec._GetStreamUser_createdAt(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "updatedAt":
-			out.Values[i] = ec._GetStreamUser_updatedAt(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch()
-	if invalids > 0 {
-		return graphql.Null
-	}
-	return out
-}
-
 var heroImageImplementors = []string{"HeroImage"}
 
 func (ec *executionContext) _HeroImage(ctx context.Context, sel ast.SelectionSet, obj *domain.HeroImage) graphql.Marshaler {
@@ -15679,6 +15130,11 @@ func (ec *executionContext) _Member(ctx context.Context, sel ast.SelectionSet, o
 			out.Values[i] = graphql.MarshalString("Member")
 		case "ID":
 			out.Values[i] = ec._Member_ID(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "userID":
+			out.Values[i] = ec._Member_userID(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -15978,7 +15434,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Query")
-		case "listGetStreamUsers":
+		case "listMembers":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
 				defer func() {
@@ -15986,10 +15442,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Query_listGetStreamUsers(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
+				res = ec._Query_listMembers(ctx, field)
 				return res
 			})
 		case "inviteMembersToCommunity":
@@ -16006,7 +15459,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				}
 				return res
 			})
-		case "listGetStreamChannels":
+		case "listCommunities":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
 				defer func() {
@@ -16014,10 +15467,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Query_listGetStreamChannels(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
+				res = ec._Query_listCommunities(ctx, field)
 				return res
 			})
 		case "listCommunityMembers":
@@ -16300,60 +15750,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Values[i] = ec._Query___type(ctx, field)
 		case "__schema":
 			out.Values[i] = ec._Query___schema(ctx, field)
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch()
-	if invalids > 0 {
-		return graphql.Null
-	}
-	return out
-}
-
-var queryChannelsResponseImplementors = []string{"QueryChannelsResponse"}
-
-func (ec *executionContext) _QueryChannelsResponse(ctx context.Context, sel ast.SelectionSet, obj *domain.QueryChannelsResponse) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, queryChannelsResponseImplementors)
-
-	out := graphql.NewFieldSet(fields)
-	var invalids uint32
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("QueryChannelsResponse")
-		case "channels":
-			out.Values[i] = ec._QueryChannelsResponse_channels(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch()
-	if invalids > 0 {
-		return graphql.Null
-	}
-	return out
-}
-
-var queryUsersResponseImplementors = []string{"QueryUsersResponse"}
-
-func (ec *executionContext) _QueryUsersResponse(ctx context.Context, sel ast.SelectionSet, obj *domain.QueryUsersResponse) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, queryUsersResponseImplementors)
-
-	out := graphql.NewFieldSet(fields)
-	var invalids uint32
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("QueryUsersResponse")
-		case "users":
-			out.Values[i] = ec._QueryUsersResponse_users(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -17444,114 +16840,6 @@ func (ec *executionContext) marshalNGender2ᚖgithubᚗcomᚋsavannahghiᚋenumu
 	return v
 }
 
-func (ec *executionContext) marshalNGetStreamChannel2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐGetStreamChannelᚄ(ctx context.Context, sel ast.SelectionSet, v []*domain.GetStreamChannel) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalNGetStreamChannel2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐGetStreamChannel(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-
-	for _, e := range ret {
-		if e == graphql.Null {
-			return graphql.Null
-		}
-	}
-
-	return ret
-}
-
-func (ec *executionContext) marshalNGetStreamChannel2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐGetStreamChannel(ctx context.Context, sel ast.SelectionSet, v *domain.GetStreamChannel) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	return ec._GetStreamChannel(ctx, sel, v)
-}
-
-func (ec *executionContext) marshalNGetStreamUser2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐGetStreamUserᚄ(ctx context.Context, sel ast.SelectionSet, v []*domain.GetStreamUser) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalNGetStreamUser2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐGetStreamUser(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-
-	for _, e := range ret {
-		if e == graphql.Null {
-			return graphql.Null
-		}
-	}
-
-	return ret
-}
-
-func (ec *executionContext) marshalNGetStreamUser2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐGetStreamUser(ctx context.Context, sel ast.SelectionSet, v *domain.GetStreamUser) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	return ec._GetStreamUser(ctx, sel, v)
-}
-
 func (ec *executionContext) unmarshalNID2string(ctx context.Context, v interface{}) (string, error) {
 	res, err := graphql.UnmarshalID(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -17605,34 +16893,6 @@ func (ec *executionContext) marshalNPagination2githubᚗcomᚋsavannahghiᚋmyca
 func (ec *executionContext) unmarshalNPaginationsInput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐPaginationsInput(ctx context.Context, v interface{}) (dto.PaginationsInput, error) {
 	res, err := ec.unmarshalInputPaginationsInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalNQueryChannelsResponse2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐQueryChannelsResponse(ctx context.Context, sel ast.SelectionSet, v domain.QueryChannelsResponse) graphql.Marshaler {
-	return ec._QueryChannelsResponse(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalNQueryChannelsResponse2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐQueryChannelsResponse(ctx context.Context, sel ast.SelectionSet, v *domain.QueryChannelsResponse) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	return ec._QueryChannelsResponse(ctx, sel, v)
-}
-
-func (ec *executionContext) marshalNQueryUsersResponse2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐQueryUsersResponse(ctx context.Context, sel ast.SelectionSet, v domain.QueryUsersResponse) graphql.Marshaler {
-	return ec._QueryUsersResponse(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalNQueryUsersResponse2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐQueryUsersResponse(ctx context.Context, sel ast.SelectionSet, v *domain.QueryUsersResponse) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	return ec._QueryUsersResponse(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNRecordSecurityQuestionResponse2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐRecordSecurityQuestionResponseᚄ(ctx context.Context, sel ast.SelectionSet, v []*domain.RecordSecurityQuestionResponse) graphql.Marshaler {
@@ -17862,7 +17122,7 @@ func (ec *executionContext) unmarshalNShareContentInput2githubᚗcomᚋsavannahg
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNSortOption2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐSortOption(ctx context.Context, v interface{}) (*domain.SortOption, error) {
+func (ec *executionContext) unmarshalNSortOption2ᚖgithubᚗcomᚋGetStreamᚋstreamᚑchatᚑgoᚋv5ᚐSortOption(ctx context.Context, v interface{}) (*stream_chat.SortOption, error) {
 	res, err := ec.unmarshalInputSortOption(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
@@ -17960,27 +17220,6 @@ func (ec *executionContext) unmarshalNTime2timeᚐTime(ctx context.Context, v in
 
 func (ec *executionContext) marshalNTime2timeᚐTime(ctx context.Context, sel ast.SelectionSet, v time.Time) graphql.Marshaler {
 	res := graphql.MarshalTime(v)
-	if res == graphql.Null {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "must not be null")
-		}
-	}
-	return res
-}
-
-func (ec *executionContext) unmarshalNTime2ᚖtimeᚐTime(ctx context.Context, v interface{}) (*time.Time, error) {
-	res, err := graphql.UnmarshalTime(v)
-	return &res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalNTime2ᚖtimeᚐTime(ctx context.Context, sel ast.SelectionSet, v *time.Time) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := graphql.MarshalTime(*v)
 	if res == graphql.Null {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
@@ -18578,6 +17817,54 @@ func (ec *executionContext) marshalOClientType2ᚕᚖgithubᚗcomᚋsavannahghi�
 	return ret
 }
 
+func (ec *executionContext) marshalOCommunity2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐCommunity(ctx context.Context, sel ast.SelectionSet, v []*domain.Community) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOCommunity2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐCommunity(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	return ret
+}
+
+func (ec *executionContext) marshalOCommunity2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐCommunity(ctx context.Context, sel ast.SelectionSet, v *domain.Community) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._Community(ctx, sel, v)
+}
+
 func (ec *executionContext) marshalOCommunityMember2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐCommunityMember(ctx context.Context, sel ast.SelectionSet, v domain.CommunityMember) graphql.Marshaler {
 	return ec._CommunityMember(ctx, sel, &v)
 }
@@ -18923,13 +18210,6 @@ func (ec *executionContext) marshalOGalleryImage2ᚕgithubᚗcomᚋsavannahghi�
 	return ret
 }
 
-func (ec *executionContext) marshalOGetStreamUser2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐGetStreamUser(ctx context.Context, sel ast.SelectionSet, v *domain.GetStreamUser) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._GetStreamUser(ctx, sel, v)
-}
-
 func (ec *executionContext) marshalOHeroImage2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐHeroImage(ctx context.Context, sel ast.SelectionSet, v domain.HeroImage) graphql.Marshaler {
 	return ec._HeroImage(ctx, sel, &v)
 }
@@ -18986,6 +18266,54 @@ func (ec *executionContext) marshalOMap2map(ctx context.Context, sel ast.Selecti
 	return graphql.MarshalMap(v)
 }
 
+func (ec *executionContext) marshalOMember2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐMember(ctx context.Context, sel ast.SelectionSet, v []*domain.Member) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOMember2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐMember(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	return ret
+}
+
+func (ec *executionContext) marshalOMember2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐMember(ctx context.Context, sel ast.SelectionSet, v *domain.Member) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._Member(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalOPINInput2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐPINInput(ctx context.Context, v interface{}) (*dto.PINInput, error) {
 	if v == nil {
 		return nil, nil
@@ -18994,7 +18322,7 @@ func (ec *executionContext) unmarshalOPINInput2ᚖgithubᚗcomᚋsavannahghiᚋm
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOQueryOption2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐQueryOption(ctx context.Context, v interface{}) (*domain.QueryOption, error) {
+func (ec *executionContext) unmarshalOQueryOption2ᚖgithubᚗcomᚋGetStreamᚋstreamᚑchatᚑgoᚋv5ᚐQueryOption(ctx context.Context, v interface{}) (*stream_chat.QueryOption, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -19060,7 +18388,7 @@ func (ec *executionContext) marshalOSortDataType2githubᚗcomᚋsavannahghiᚋmy
 	return v
 }
 
-func (ec *executionContext) unmarshalOSortOption2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐSortOptionᚄ(ctx context.Context, v interface{}) ([]*domain.SortOption, error) {
+func (ec *executionContext) unmarshalOSortOption2ᚕᚖgithubᚗcomᚋGetStreamᚋstreamᚑchatᚑgoᚋv5ᚐSortOptionᚄ(ctx context.Context, v interface{}) ([]*stream_chat.SortOption, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -19073,10 +18401,10 @@ func (ec *executionContext) unmarshalOSortOption2ᚕᚖgithubᚗcomᚋsavannahgh
 		}
 	}
 	var err error
-	res := make([]*domain.SortOption, len(vSlice))
+	res := make([]*stream_chat.SortOption, len(vSlice))
 	for i := range vSlice {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalNSortOption2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐSortOption(ctx, vSlice[i])
+		res[i], err = ec.unmarshalNSortOption2ᚖgithubᚗcomᚋGetStreamᚋstreamᚑchatᚑgoᚋv5ᚐSortOption(ctx, vSlice[i])
 		if err != nil {
 			return nil, err
 		}

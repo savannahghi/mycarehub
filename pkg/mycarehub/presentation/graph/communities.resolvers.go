@@ -6,6 +6,7 @@ package graph
 import (
 	"context"
 
+	stream_chat "github.com/GetStream/stream-chat-go/v5"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/presentation/graph/generated"
@@ -15,16 +16,16 @@ func (r *mutationResolver) CreateCommunity(ctx context.Context, input dto.Commun
 	return r.mycarehub.Community.CreateCommunity(ctx, input)
 }
 
-func (r *queryResolver) ListGetStreamUsers(ctx context.Context, input *domain.QueryOption) (*domain.QueryUsersResponse, error) {
-	return r.mycarehub.Community.ListGetStreamUsers(ctx, input)
+func (r *queryResolver) ListMembers(ctx context.Context, input *stream_chat.QueryOption) ([]*domain.Member, error) {
+	return r.mycarehub.Community.ListMembers(ctx, input)
 }
 
 func (r *queryResolver) InviteMembersToCommunity(ctx context.Context, communityID string, userIDS []string) (bool, error) {
 	return r.mycarehub.Community.InviteMembers(ctx, communityID, userIDS)
 }
 
-func (r *queryResolver) ListGetStreamChannels(ctx context.Context, input *domain.QueryOption) (*domain.QueryChannelsResponse, error) {
-	return r.mycarehub.Community.ListGetStreamChannels(ctx, input)
+func (r *queryResolver) ListCommunities(ctx context.Context, input *stream_chat.QueryOption) ([]*domain.Community, error) {
+	return r.mycarehub.Community.ListCommunities(ctx, input)
 }
 
 func (r *queryResolver) ListCommunityMembers(ctx context.Context, communityID string) ([]*domain.CommunityMember, error) {

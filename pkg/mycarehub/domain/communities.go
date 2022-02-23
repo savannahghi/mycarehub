@@ -9,14 +9,23 @@ import (
 
 // Community defines the payload to create a channel
 type Community struct {
-	ID          string             `json:"id"`
-	Name        string             `json:"name"`
+	ID          string    `json:"id"`
+	CID         string    `json:"cid"`
+	Name        string    `json:"name"`
+	Disabled    bool      `json:"disabled"`
+	Frozen      bool      `json:"frozen"`
+	MemberCount int       `json:"member_count"`
+	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
+
+	// The fields below are custom to our implementation
 	Description string             `json:"description"`
 	AgeRange    *AgeRange          `json:"ageRange"`
 	Gender      []enumutils.Gender `json:"gender"`
 	ClientType  []enums.ClientType `json:"clientType"`
 	InviteOnly  bool               `json:"inviteOnly"`
 	Members     []CommunityMember  `json:"members"`
+	CreatedBy   *Member            `json:"created_by"`
 }
 
 // AgeRange defines the channel users age input
@@ -33,9 +42,10 @@ type PostingHours struct {
 
 // Member represents a user and is specific to use in the context of communities
 type Member struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
-	Role string `json:"role"`
+	ID     string `json:"id"`
+	UserID string `json:"userID"`
+	Name   string `json:"name"`
+	Role   string `json:"role"`
 
 	Username string           `json:"username"`
 	Gender   enumutils.Gender `json:"gender"`

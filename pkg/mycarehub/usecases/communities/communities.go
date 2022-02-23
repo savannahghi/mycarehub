@@ -27,7 +27,7 @@ type ICreateCommunity interface {
 // IListUsers is an interface that is used to list getstream users
 type IListUsers interface {
 	ListCommunityMembers(ctx context.Context, communityID string) ([]*domain.CommunityMember, error)
-	ListGetStreamUsers(ctx context.Context, input *domain.QueryOption) (*domain.QueryUsersResponse, error)
+	ListMembers(ctx context.Context, input *stream.QueryOption) ([]*domain.Member, error)
 }
 
 // IInviteMembers interface holds methods that are used to send member invites
@@ -35,9 +35,9 @@ type IInviteMembers interface {
 	InviteMembers(ctx context.Context, communityID string, userIDS []string) (bool, error)
 }
 
-// IListChannels is an interface that is used to list getstream channels
-type IListChannels interface {
-	ListGetStreamChannels(ctx context.Context, input *domain.QueryOption) (*domain.QueryChannelsResponse, error)
+// IListCommunities is an interface that is used to list getstream channels
+type IListCommunities interface {
+	ListCommunities(ctx context.Context, input *stream.QueryOption) ([]*domain.Community, error)
 }
 
 // UseCasesCommunities holds all interfaces required to implement the communities feature
@@ -45,7 +45,7 @@ type UseCasesCommunities interface {
 	ICreateCommunity
 	IInviteMembers
 	IListUsers
-	IListChannels
+	IListCommunities
 }
 
 // UseCasesCommunitiesImpl represents communities implementation
@@ -71,20 +71,28 @@ func NewUseCaseCommunitiesImpl(
 	}
 }
 
-// ListGetStreamUsers returns list of users that match QueryOption that's passed as the input
-func (us *UseCasesCommunitiesImpl) ListGetStreamUsers(ctx context.Context, input *domain.QueryOption) (*domain.QueryUsersResponse, error) {
-	userResponse := []*domain.GetStreamUser{}
+// ListMembers returns list of the members that match QueryOption that's passed as the input
+func (us *UseCasesCommunitiesImpl) ListMembers(ctx context.Context, input *stream.QueryOption) ([]*domain.Member, error) {
+	var query *stream.QueryOption
 
-	query := &stream.QueryOption{
-		Filter: map[string]interface{}{
-			"role": "user",
-		},
-		UserID:       input.UserID,
-		Limit:        input.Limit,
-		Offset:       input.Offset,
-		MessageLimit: input.MessageLimit,
-		MemberLimit:  input.MemberLimit,
+	if input == nil {
+		query = &stream.QueryOption{
+			Filter: map[string]interface{}{
+				"role": "user",
+			},
+		}
+	} else {
+		query = &stream.QueryOption{
+			Filter:       input.Filter,
+			UserID:       input.UserID,
+			Limit:        input.Limit,
+			Offset:       input.Offset,
+			MessageLimit: input.MessageLimit,
+			MemberLimit:  input.MemberLimit,
+		}
 	}
+
+	userResponse := []*domain.Member{}
 
 	getStreamUserResponse, err := us.GetstreamService.ListGetStreamUsers(ctx, query)
 	if err != nil {
@@ -92,19 +100,21 @@ func (us *UseCasesCommunitiesImpl) ListGetStreamUsers(ctx context.Context, input
 	}
 
 	for _, user := range getStreamUserResponse.Users {
-		Users := domain.GetStreamUser{
-			ID:        user.ID,
-			Name:      user.Name,
-			Role:      user.Role,
-			CreatedAt: user.CreatedAt,
-			UpdatedAt: user.UpdatedAt,
+		var userID string
+		if val, ok := user.ExtraData["userID"]; ok {
+			userID = val.(string)
+		}
+
+		Users := domain.Member{
+			ID:     user.ID,
+			Name:   user.Name,
+			Role:   user.Role,
+			UserID: userID,
 		}
 		userResponse = append(userResponse, &Users)
 	}
 
-	return &domain.QueryUsersResponse{
-		Users: userResponse,
-	}, nil
+	return userResponse, nil
 }
 
 // CreateCommunity creates channel with the GetStream chat service
@@ -138,6 +148,7 @@ func (us *UseCasesCommunitiesImpl) CreateCommunity(ctx context.Context, input dt
 
 	return &domain.Community{
 		ID:          channelResponse.ID,
+		CID:         channelResponse.CID,
 		Name:        channelResponse.Name,
 		Description: channelResponse.Description,
 		AgeRange: &domain.AgeRange{
@@ -181,9 +192,9 @@ func (us *UseCasesCommunitiesImpl) InviteMembers(ctx context.Context, communityI
 	return true, nil
 }
 
-// ListGetStreamChannels returns list of channels that match QueryOption that's passed as the input
-func (us *UseCasesCommunitiesImpl) ListGetStreamChannels(ctx context.Context, input *domain.QueryOption) (*domain.QueryChannelsResponse, error) {
-	channelResponse := []*domain.GetStreamChannel{}
+// ListCommunities returns list of the communities that match QueryOption that's passed as the input
+func (us *UseCasesCommunitiesImpl) ListCommunities(ctx context.Context, input *stream.QueryOption) ([]*domain.Community, error) {
+	channelResponse := []*domain.Community{}
 
 	var query stream.QueryOption
 	// set default offset and limit if none is passed
@@ -208,32 +219,25 @@ func (us *UseCasesCommunitiesImpl) ListGetStreamChannels(ctx context.Context, in
 
 	for _, channel := range getStreamChannelResponse.Channels {
 
-		createdBy := &domain.GetStreamUser{
-			ID:        channel.CreatedBy.ID,
-			Name:      channel.CreatedBy.Name,
-			Role:      channel.CreatedBy.Role,
-			CreatedAt: channel.CreatedBy.CreatedAt,
-			UpdatedAt: channel.CreatedBy.UpdatedAt,
+		createdBy := &domain.Member{
+			ID:   channel.CreatedBy.ID,
+			Name: channel.CreatedBy.Name,
+			Role: channel.CreatedBy.Role,
 		}
 
-		channelResponse = append(channelResponse, &domain.GetStreamChannel{
-			ID:            channel.ID,
-			Type:          channel.Type,
-			CID:           channel.CID,
-			Team:          channel.Team,
-			CreatedBy:     createdBy,
-			Disabled:      channel.Disabled,
-			Frozen:        channel.Frozen,
-			MemberCount:   channel.MemberCount,
-			CreatedAt:     channel.CreatedAt,
-			UpdatedAt:     channel.UpdatedAt,
-			LastMessageAt: channel.UpdatedAt,
+		channelResponse = append(channelResponse, &domain.Community{
+			ID:          channel.ID,
+			CID:         channel.CID,
+			CreatedBy:   createdBy,
+			Disabled:    channel.Disabled,
+			Frozen:      channel.Frozen,
+			MemberCount: channel.MemberCount,
+			CreatedAt:   channel.CreatedAt,
+			UpdatedAt:   channel.UpdatedAt,
 		})
 	}
 
-	return &domain.QueryChannelsResponse{
-		Channels: channelResponse,
-	}, nil
+	return channelResponse, nil
 }
 
 // ListCommunityMembers retrieves the members of a community
@@ -258,9 +262,10 @@ func (us *UseCasesCommunitiesImpl) ListCommunityMembers(ctx context.Context, com
 		}
 
 		user := domain.Member{
-			ID:   member.User.ID,
-			Name: member.User.Name,
-			Role: member.User.Role,
+			ID:     member.User.ID,
+			Name:   member.User.Name,
+			Role:   member.User.Role,
+			UserID: userID,
 		}
 
 		commMem := &domain.CommunityMember{

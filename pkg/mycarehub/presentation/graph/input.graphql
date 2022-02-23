@@ -1,4 +1,5 @@
 scalar Date
+scalar Map
 
 input FacilityInput {
   name: String!
@@ -85,6 +86,7 @@ input SortOption {
   field: String!
   direction: Int!
 }
+
 input CommunityInput {
   name: String!
   description: String!
@@ -98,5 +100,3 @@ input AgeRangeInput {
   lowerBound: Int!
   upperBound: Int!
 }
-
-
