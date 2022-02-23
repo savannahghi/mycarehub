@@ -2,6 +2,7 @@ package utils
 
 import (
 	"context"
+	"reflect"
 	"testing"
 	"time"
 
@@ -104,6 +105,48 @@ func TestMakeRequest(t *testing.T) {
 			if !tt.wantErr && got == nil {
 				t.Errorf("expected facility not to be nil for %v", tt.name)
 				return
+			}
+		})
+	}
+}
+
+func TestFormatFilterParamsHelper(t *testing.T) {
+	type args struct {
+		a map[string]interface{}
+	}
+	tests := []struct {
+		name string
+		args args
+		want map[string]interface{}
+	}{
+		{
+			name: "test",
+			args: args{
+				a: map[string]interface{}{
+					"status": map[string]interface{}{
+						"in": []string{"pending", "open", "new"},
+					},
+					"members": map[string]interface{}{
+						"in": []string{"thierry"},
+					},
+					"member_count": 2,
+				},
+			},
+			want: map[string]interface{}{
+				"status": map[string]interface{}{
+					"$in": []string{"pending", "open", "new"},
+				},
+				"members": map[string]interface{}{
+					"$in": []string{"thierry"},
+				},
+				"member_count": 2,
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := FormatFilterParamsHelper(tt.args.a); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("FormatFilterParamsHelper() = %v, want %v", got, tt.want)
 			}
 		})
 	}

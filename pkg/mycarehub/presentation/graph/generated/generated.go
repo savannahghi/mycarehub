@@ -123,11 +123,14 @@ type ComplexityRoot struct {
 	}
 
 	CommunityMember struct {
-		IsModerator func(childComplexity int) int
-		Role        func(childComplexity int) int
-		User        func(childComplexity int) int
-		UserID      func(childComplexity int) int
-		UserType    func(childComplexity int) int
+		InviteAcceptedAt func(childComplexity int) int
+		InviteRejectedAt func(childComplexity int) int
+		Invited          func(childComplexity int) int
+		IsModerator      func(childComplexity int) int
+		Role             func(childComplexity int) int
+		User             func(childComplexity int) int
+		UserID           func(childComplexity int) int
+		UserType         func(childComplexity int) int
 	}
 
 	Content struct {
@@ -289,6 +292,7 @@ type ComplexityRoot struct {
 		CreateHealthDiaryEntry          func(childComplexity int, clientID string, note *string, mood string, reportToStaff bool) int
 		CreateOrUpdateClientCaregiver   func(childComplexity int, caregiverInput *dto.CaregiverInput) int
 		CreateServiceRequest            func(childComplexity int, clientID string, requestType string, request *string) int
+		DeleteCommunities               func(childComplexity int, communityIDs []string, hardDelete bool) int
 		DeleteFacility                  func(childComplexity int, mflCode int) int
 		InactivateFacility              func(childComplexity int, mflCode int) int
 		InviteUser                      func(childComplexity int, userID string, phoneNumber string, flavour feedlib.Flavour) int
@@ -395,6 +399,7 @@ type ComplexityRoot struct {
 type MutationResolver interface {
 	AssignRoles(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error)
 	CreateCommunity(ctx context.Context, input dto.CommunityInput) (*domain.Community, error)
+	DeleteCommunities(ctx context.Context, communityIDs []string, hardDelete bool) (bool, error)
 	ShareContent(ctx context.Context, input dto.ShareContentInput) (bool, error)
 	BookmarkContent(ctx context.Context, userID string, contentItemID int) (bool, error)
 	UnBookmarkContent(ctx context.Context, userID string, contentItemID int) (bool, error)
@@ -796,6 +801,27 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Community.UpdatedAt(childComplexity), true
+
+	case "CommunityMember.inviteAcceptedAt":
+		if e.complexity.CommunityMember.InviteAcceptedAt == nil {
+			break
+		}
+
+		return e.complexity.CommunityMember.InviteAcceptedAt(childComplexity), true
+
+	case "CommunityMember.inviteRejectedAt":
+		if e.complexity.CommunityMember.InviteRejectedAt == nil {
+			break
+		}
+
+		return e.complexity.CommunityMember.InviteRejectedAt(childComplexity), true
+
+	case "CommunityMember.invited":
+		if e.complexity.CommunityMember.Invited == nil {
+			break
+		}
+
+		return e.complexity.CommunityMember.Invited(childComplexity), true
 
 	case "CommunityMember.isModerator":
 		if e.complexity.CommunityMember.IsModerator == nil {
@@ -1584,6 +1610,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.CreateServiceRequest(childComplexity, args["clientID"].(string), args["requestType"].(string), args["request"].(*string)), true
 
+	case "Mutation.deleteCommunities":
+		if e.complexity.Mutation.DeleteCommunities == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_deleteCommunities_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.DeleteCommunities(childComplexity, args["communityIDs"].([]string), args["hardDelete"].(bool)), true
+
 	case "Mutation.deleteFacility":
 		if e.complexity.Mutation.DeleteFacility == nil {
 			break
@@ -2357,6 +2395,7 @@ var sources = []*ast.Source{
 
 extend type Mutation {
   createCommunity(input: CommunityInput!): Community!
+  deleteCommunities(communityIDs: [String!]!, hardDelete: Boolean!): Boolean!
 }
 `, BuiltIn: false},
 	{Name: "pkg/mycarehub/presentation/graph/content.graphql", Input: `extend type Query {
@@ -2615,7 +2654,7 @@ input QueryOption {
   filter: Map
   sort: [SortOption!]
   userID: String
-  limit: Int
+  limit: Int!
   offset: Int
   messageLimit: Int
   memberLimit: Int
@@ -2926,7 +2965,6 @@ type Community {
   memberCount: Int
   createdAt: Time
   updatedAt: Time
-
   # Custom defined fields
   ageRange: AgeRange
   gender: [Gender!]!
@@ -2947,6 +2985,7 @@ type PostingHours {
   end: Time!
 }
 
+
 """
 Member represents a user and is specific to use in the context of communities
 """
@@ -2966,6 +3005,9 @@ type CommunityMember {
   UserID: ID!
   user: Member!
   isModerator: Boolean!
+  invited: Boolean
+  inviteAcceptedAt: Time
+  inviteRejectedAt: Time
   role: String
   userType: String!
 }
@@ -3238,6 +3280,30 @@ func (ec *executionContext) field_Mutation_createServiceRequest_args(ctx context
 		}
 	}
 	args["request"] = arg2
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_deleteCommunities_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 []string
+	if tmp, ok := rawArgs["communityIDs"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("communityIDs"))
+		arg0, err = ec.unmarshalNString2ᚕstringᚄ(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["communityIDs"] = arg0
+	var arg1 bool
+	if tmp, ok := rawArgs["hardDelete"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hardDelete"))
+		arg1, err = ec.unmarshalNBoolean2bool(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["hardDelete"] = arg1
 	return args, nil
 }
 
@@ -5764,6 +5830,102 @@ func (ec *executionContext) _CommunityMember_isModerator(ctx context.Context, fi
 	res := resTmp.(bool)
 	fc.Result = res
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _CommunityMember_invited(ctx context.Context, field graphql.CollectedField, obj *domain.CommunityMember) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "CommunityMember",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Invited, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _CommunityMember_inviteAcceptedAt(ctx context.Context, field graphql.CollectedField, obj *domain.CommunityMember) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "CommunityMember",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.InviteAcceptedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*time.Time)
+	fc.Result = res
+	return ec.marshalOTime2ᚖtimeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _CommunityMember_inviteRejectedAt(ctx context.Context, field graphql.CollectedField, obj *domain.CommunityMember) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "CommunityMember",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.InviteRejectedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*time.Time)
+	fc.Result = res
+	return ec.marshalOTime2ᚖtimeᚐTime(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _CommunityMember_role(ctx context.Context, field graphql.CollectedField, obj *domain.CommunityMember) (ret graphql.Marshaler) {
@@ -9081,6 +9243,48 @@ func (ec *executionContext) _Mutation_createCommunity(ctx context.Context, field
 	res := resTmp.(*domain.Community)
 	fc.Result = res
 	return ec.marshalNCommunity2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐCommunity(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_deleteCommunities(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_deleteCommunities_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().DeleteCommunities(rctx, args["communityIDs"].([]string), args["hardDelete"].(bool))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_shareContent(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -13830,7 +14034,7 @@ func (ec *executionContext) unmarshalInputQueryOption(ctx context.Context, obj i
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit"))
-			it.Limit, err = ec.unmarshalOInt2int(ctx, v)
+			it.Limit, err = ec.unmarshalNInt2int(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -14403,6 +14607,12 @@ func (ec *executionContext) _CommunityMember(ctx context.Context, sel ast.Select
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "invited":
+			out.Values[i] = ec._CommunityMember_invited(ctx, field, obj)
+		case "inviteAcceptedAt":
+			out.Values[i] = ec._CommunityMember_inviteAcceptedAt(ctx, field, obj)
+		case "inviteRejectedAt":
+			out.Values[i] = ec._CommunityMember_inviteRejectedAt(ctx, field, obj)
 		case "role":
 			out.Values[i] = ec._CommunityMember_role(ctx, field, obj)
 		case "userType":
@@ -15267,6 +15477,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			}
 		case "createCommunity":
 			out.Values[i] = ec._Mutation_createCommunity(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "deleteCommunities":
+			out.Values[i] = ec._Mutation_deleteCommunities(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}

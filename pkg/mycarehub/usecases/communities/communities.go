@@ -10,6 +10,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/utils"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
 	streamService "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/getstream"
@@ -40,12 +41,18 @@ type IListCommunities interface {
 	ListCommunities(ctx context.Context, input *stream.QueryOption) ([]*domain.Community, error)
 }
 
+// IDeleteCommunities is an interface that is used to delete channels
+type IDeleteCommunities interface {
+	DeleteCommunities(ctx context.Context, communityIDs []string, hardDelete bool) (bool, error)
+}
+
 // UseCasesCommunities holds all interfaces required to implement the communities feature
 type UseCasesCommunities interface {
 	ICreateCommunity
 	IInviteMembers
 	IListUsers
 	IListCommunities
+	IDeleteCommunities
 }
 
 // UseCasesCommunitiesImpl represents communities implementation
@@ -202,20 +209,13 @@ func (us *UseCasesCommunitiesImpl) InviteMembers(ctx context.Context, communityI
 func (us *UseCasesCommunitiesImpl) ListCommunities(ctx context.Context, input *stream.QueryOption) ([]*domain.Community, error) {
 	channelResponse := []*domain.Community{}
 
-	var query stream.QueryOption
-	// set default offset and limit if none is passed
-	if input == nil {
-		query = stream.QueryOption{
-			Filter: map[string]interface{}{},
-			Limit:  10,
-			Offset: 0,
-		}
-	} else {
-		query = stream.QueryOption{
-			Filter: input.Filter,
-			Limit:  input.Limit,
-			Offset: input.Offset,
-		}
+	input.Filter = utils.FormatFilterParamsHelper(input.Filter)
+
+	query := stream.QueryOption{
+		Filter: input.Filter,
+		Limit:  input.Limit,
+		Offset: input.Offset,
+		Sort:   input.Sort,
 	}
 
 	getStreamChannelResponse, err := us.GetstreamService.ListGetStreamChannels(ctx, &query)
@@ -287,4 +287,15 @@ func (us *UseCasesCommunitiesImpl) ListCommunityMembers(ctx context.Context, com
 	}
 
 	return members, nil
+}
+
+// DeleteCommunities deletes the specified communities by provided [cid]
+func (us *UseCasesCommunitiesImpl) DeleteCommunities(ctx context.Context, communityIDs []string, hardDelete bool) (bool, error) {
+	_, err := us.GetstreamService.DeleteChannels(ctx, communityIDs, hardDelete)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, fmt.Errorf("failed to delete channels: %v", err)
+	}
+
+	return true, nil
 }

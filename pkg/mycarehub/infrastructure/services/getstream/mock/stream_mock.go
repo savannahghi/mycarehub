@@ -77,6 +77,35 @@ func NewGetStreamServiceMock() *GetStreamServiceMock {
 				CreatedAt: &now,
 				UpdatedAt: &now,
 			}
+			channelMembers := []*stream.ChannelMember{
+				{
+					UserID: uuid.NewString(),
+					User: &stream.User{
+						ID:                       uuid.NewString(),
+						Name:                     gofakeit.Name(),
+						Image:                    gofakeit.URL(),
+						Role:                     gofakeit.Name(),
+						Teams:                    []string{gofakeit.Name()},
+						Online:                   false,
+						Invisible:                false,
+						CreatedAt:                &now,
+						UpdatedAt:                &now,
+						LastActive:               &now,
+						Mutes:                    nil,
+						ChannelMutes:             nil,
+						ExtraData:                map[string]interface{}{},
+						RevokeTokensIssuedBefore: nil,
+					},
+					IsModerator:      false,
+					Invited:          false,
+					InviteAcceptedAt: &now,
+					InviteRejectedAt: nil,
+					Role:             gofakeit.Name(),
+					CreatedAt:        now,
+					UpdatedAt:        now,
+				},
+			}
+
 			return &stream.QueryChannelsResponse{
 				Channels: []*stream.Channel{
 					{
@@ -88,9 +117,21 @@ func NewGetStreamServiceMock() *GetStreamServiceMock {
 						Disabled:      false,
 						Frozen:        false,
 						MemberCount:   1,
+						Members:       channelMembers,
 						CreatedAt:     time.Now(),
 						UpdatedAt:     time.Now(),
 						LastMessageAt: time.Now(),
+					},
+				},
+			}, nil
+		},
+		MockDeleteChannelsFn: func(ctx context.Context, chanIDs []string, hardDelete bool) (*stream.AsyncTaskResponse, error) {
+			return &stream.AsyncTaskResponse{
+				Response: stream.Response{
+					RateLimitInfo: &stream.RateLimitInfo{
+						Limit:     100,
+						Remaining: 100,
+						Reset:     10,
 					},
 				},
 			}, nil
