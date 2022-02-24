@@ -1,4 +1,4 @@
-*env.sh
+*.sh
 coverage.txt
 coverage.out
 server

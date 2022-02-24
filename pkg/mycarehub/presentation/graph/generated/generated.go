@@ -243,6 +243,7 @@ type ComplexityRoot struct {
 
 	HeroImage struct {
 		ID    func(childComplexity int) int
+		Meta  func(childComplexity int) int
 		Title func(childComplexity int) int
 	}
 
@@ -1341,6 +1342,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.HeroImage.ID(childComplexity), true
+
+	case "HeroImage.meta":
+		if e.complexity.HeroImage.Meta == nil {
+			break
+		}
+
+		return e.complexity.HeroImage.Meta(childComplexity), true
 
 	case "HeroImage.title":
 		if e.complexity.HeroImage.Title == nil {
@@ -2751,6 +2759,7 @@ type ContentItem {
 
 type HeroImage {
   ID: Int!
+  meta: ImageMeta!
   title: String!
 }
 
@@ -8323,6 +8332,41 @@ func (ec *executionContext) _HeroImage_ID(ctx context.Context, field graphql.Col
 	res := resTmp.(int)
 	fc.Result = res
 	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _HeroImage_meta(ctx context.Context, field graphql.CollectedField, obj *domain.HeroImage) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "HeroImage",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Meta, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(domain.ImageMeta)
+	fc.Result = res
+	return ec.marshalNImageMeta2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐImageMeta(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _HeroImage_title(ctx context.Context, field graphql.CollectedField, obj *domain.HeroImage) (ret graphql.Marshaler) {
@@ -14982,6 +15026,11 @@ func (ec *executionContext) _HeroImage(ctx context.Context, sel ast.SelectionSet
 			out.Values[i] = graphql.MarshalString("HeroImage")
 		case "ID":
 			out.Values[i] = ec._HeroImage_ID(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "meta":
+			out.Values[i] = ec._HeroImage_meta(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
