@@ -2228,3 +2228,56 @@ func TestUseCasesUserImpl_RegisterClient(t *testing.T) {
 		})
 	}
 }
+
+func TestUseCasesUserImpl_RefreshGetStreamToken(t *testing.T) {
+	type args struct {
+		ctx    context.Context
+		userID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Successfully refresh token",
+			args: args{
+				ctx:    context.Background(),
+				userID: uuid.New().String(),
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad Case - Fail to refresh token",
+			args: args{
+				ctx: context.Background(),
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			fakeExtension := extensionMock.NewFakeExtension()
+			otp := otp.NewOTPUseCase(fakeDB, fakeDB, fakeExtension)
+			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
+			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, otp, fakeAuthority, fakeGetStream)
+
+			if tt.name == "Sad Case - Fail to refresh token" {
+				fakeGetStream.MockCreateGetStreamUserTokenFn = func(ctx context.Context, userID string) (string, error) {
+					return "", fmt.Errorf("failed to generate token")
+				}
+			}
+
+			got, err := us.RefreshGetStreamToken(tt.args.ctx, tt.args.userID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCasesUserImpl.RefreshGetStreamToken() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got == nil && !tt.wantErr {
+				t.Errorf("expected a response but got %v", got)
+			}
+		})
+	}
+}

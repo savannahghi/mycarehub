@@ -42,6 +42,7 @@ type ILogin interface {
 // IRefreshToken contains the method refreshing a token
 type IRefreshToken interface {
 	RefreshToken(ctx context.Context, userID string) (*domain.AuthCredentials, error)
+	RefreshGetStreamToken(ctx context.Context, userID string) (*domain.GetStreamToken, error)
 }
 
 // ISetUserPIN is an interface that contains all the user use cases for pins
@@ -834,4 +835,17 @@ func (us *UseCasesUserImpl) RegisterClient(
 	}
 
 	return registrationOutput, nil
+}
+
+// RefreshGetStreamToken update a getstream token as soon as a token exception occurs. The implementation
+// is that frontend will call backend with the ID of the user as well as a valid session id or secret needed to authenticate them.
+func (us *UseCasesUserImpl) RefreshGetStreamToken(ctx context.Context, userID string) (*domain.GetStreamToken, error) {
+	token, err := us.GetStream.CreateGetStreamUserToken(ctx, userID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to refresh getstream token: %v", err)
+	}
+
+	return &domain.GetStreamToken{
+		Token: token,
+	}, nil
 }

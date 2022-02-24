@@ -23,6 +23,7 @@ type MyCareHubHandlersInterfaces interface {
 	GetUserRespondedSecurityQuestions() http.HandlerFunc
 	ResetPIN() http.HandlerFunc
 	RefreshToken() http.HandlerFunc
+	RefreshGetStreamToken() http.HandlerFunc
 }
 
 // MyCareHubHandlersInterfacesImpl represents the usecase implementation object
@@ -387,6 +388,34 @@ func (h *MyCareHubHandlersInterfacesImpl) RefreshToken() http.HandlerFunc {
 		}
 
 		response, err := h.usecase.User.RefreshToken(ctx, *payload.UserID)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			serverutils.WriteJSONResponse(w, serverutils.ErrorMap(err), http.StatusBadRequest)
+			return
+		}
+
+		serverutils.WriteJSONResponse(w, response, http.StatusOK)
+	}
+}
+
+// RefreshGetStreamToken takes a userID and returns a valid getstream token
+func (h *MyCareHubHandlersInterfacesImpl) RefreshGetStreamToken() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+		payload := &dto.RefreshTokenPayload{}
+		serverutils.DecodeJSONToTargetStruct(w, r, payload)
+
+		if payload.UserID == nil {
+			err := fmt.Errorf("expected `userID` to be defined")
+			helpers.ReportErrorToSentry(err)
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusBadRequest)
+			return
+		}
+
+		response, err := h.usecase.User.RefreshGetStreamToken(ctx, *payload.UserID)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
 			serverutils.WriteJSONResponse(w, serverutils.ErrorMap(err), http.StatusBadRequest)
