@@ -81,6 +81,7 @@ type ContentItem {
 
 type HeroImage {
   ID: Int!
+  meta: ImageMeta!
   title: String!
 }
 
