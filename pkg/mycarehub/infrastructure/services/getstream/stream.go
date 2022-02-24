@@ -11,9 +11,8 @@ import (
 )
 
 var (
-	getStreamAPIKey          = serverutils.MustGetEnvVar("GET_STREAM_KEY")
-	getStreamAPISecret       = serverutils.MustGetEnvVar("GET_STREAM_SECRET")
-	getStreamTokenExpiryTime = time.Now().UTC().Add(time.Hour * 12)
+	getStreamAPIKey    = serverutils.MustGetEnvVar("GET_STREAM_KEY")
+	getStreamAPISecret = serverutils.MustGetEnvVar("GET_STREAM_SECRET")
 )
 
 // ServiceGetStream represents the various Getstream usecases
@@ -27,6 +26,7 @@ type ServiceGetStream interface {
 	ListGetStreamChannels(ctr context.Context, input *stream.QueryOption) (*stream.QueryChannelsResponse, error)
 	ListChannelMembers(ctx context.Context, channelID string, q *stream.QueryOption, sorters ...*stream.SortOption) ([]*stream.ChannelMember, error)
 	GetChannel(ctx context.Context, channelID string) (*stream.Channel, error)
+	AddMembersToCommunity(ctx context.Context, userIDs []string, channelID string) (*stream.Response, error)
 }
 
 // ChatClient is the service's struct implementation
@@ -49,7 +49,7 @@ func NewServiceGetStream() ServiceGetStream {
 // CreateGetStreamUserToken creates a new token for a user with optional expire time. This token is handed
 // to the client side during login. It allows the client side to connect to the chat API for that user.
 func (c *ChatClient) CreateGetStreamUserToken(ctx context.Context, userID string) (string, error) {
-	return c.client.CreateToken(userID, getStreamTokenExpiryTime)
+	return c.client.CreateToken(userID, time.Time{})
 }
 
 // CreateGetStreamUser creates or updates a user
@@ -117,4 +117,9 @@ func (c *ChatClient) GetChannel(ctx context.Context, channelID string) (*stream.
 	}
 
 	return resp.Channels[0], nil
+}
+
+// AddMembersToCommunity adds the specified clients/staffs to a community
+func (c *ChatClient) AddMembersToCommunity(ctx context.Context, userIDs []string, channelID string) (*stream.Response, error) {
+	return c.client.Channel("messaging", channelID).AddMembers(ctx, userIDs)
 }
