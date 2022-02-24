@@ -140,10 +140,16 @@ func (us *UseCasesCommunitiesImpl) CreateCommunity(ctx context.Context, input dt
 		"name":       channelResponse.Name,
 	}
 
-	_, err = us.GetstreamService.CreateChannel(ctx, "messaging", channelResponse.ID, loggedInUserID, data)
+	channel, err := us.GetstreamService.CreateChannel(ctx, "messaging", channelResponse.ID, loggedInUserID, data)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("unable to create channel: %v", err)
+	}
+
+	_, err = us.GetstreamService.AddMembersToCommunity(ctx, []string{channel.Channel.CreatedBy.ID}, channel.Channel.ID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, fmt.Errorf("failed to add member to channel: %v", err)
 	}
 
 	return &domain.Community{

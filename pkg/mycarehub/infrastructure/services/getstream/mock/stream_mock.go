@@ -20,6 +20,7 @@ type GetStreamServiceMock struct {
 	MockListGetStreamChannelsFn    func(ctx context.Context, input *stream.QueryOption) (*stream.QueryChannelsResponse, error)
 	MockListChannelMembersFn       func(ctx context.Context, channelID string, q *stream.QueryOption, sorters ...*stream.SortOption) ([]*stream.ChannelMember, error)
 	MockGetChannel                 func(ctx context.Context, channelID string) (*stream.Channel, error)
+	MockAddMembersToCommunityFn    func(ctx context.Context, userIDs []string, channelID string) (*stream.Response, error)
 }
 
 // NewGetStreamServiceMock initializes the mock service
@@ -49,11 +50,20 @@ func NewGetStreamServiceMock() *GetStreamServiceMock {
 		},
 		MockCreateChannelFn: func(ctx context.Context, chanType, chanID, userID string, data map[string]interface{}) (*stream.CreateChannelResponse, error) {
 			return &stream.CreateChannelResponse{
-				Channel:  &stream.Channel{},
+				Channel: &stream.Channel{
+					CreatedBy: &stream.User{
+						ID: uuid.New().String(),
+					},
+				},
 				Response: &stream.Response{},
 			}, nil
 		},
 		MockInviteMembersFn: func(ctx context.Context, userIDs []string, channelID string, message *stream.Message) (*stream.Response, error) {
+			return &stream.Response{RateLimitInfo: &stream.RateLimitInfo{
+				Limit: 100,
+			}}, nil
+		},
+		MockAddMembersToCommunityFn: func(ctx context.Context, userIDs []string, channelID string) (*stream.Response, error) {
 			return &stream.Response{RateLimitInfo: &stream.RateLimitInfo{
 				Limit: 100,
 			}}, nil
@@ -131,4 +141,9 @@ func (g GetStreamServiceMock) ListChannelMembers(ctx context.Context, channelID 
 // GetChannel mocks implementation for retrieving a channel
 func (g GetStreamServiceMock) GetChannel(ctx context.Context, channelID string) (*stream.Channel, error) {
 	return g.MockGetChannel(ctx, channelID)
+}
+
+// AddMembersToCommunity mocks the implementation for adding members(s) to a community
+func (g GetStreamServiceMock) AddMembersToCommunity(ctx context.Context, userIDs []string, channelID string) (*stream.Response, error) {
+	return g.MockAddMembersToCommunityFn(ctx, userIDs, channelID)
 }
