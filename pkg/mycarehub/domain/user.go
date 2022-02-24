@@ -111,6 +111,11 @@ type AuthCredentials struct {
 	ExpiresIn    string `json:"expiresIn"`
 }
 
+// GetStreamToken models the response received when generating a getstream token
+type GetStreamToken struct {
+	Token string `json:"getStreamToken"`
+}
+
 // UserPIN is used to store users' PINs and their entire change history.
 type UserPIN struct {
 	UserID    string          `json:"userID"`

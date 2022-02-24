@@ -135,6 +135,11 @@ func Router(ctx context.Context) (*mux.Router, error) {
 		http.MethodOptions,
 	).HandlerFunc(internalHandlers.RefreshToken())
 
+	r.Path("/refresh_getstream_token").Methods(
+		http.MethodPost,
+		http.MethodOptions,
+	).HandlerFunc(internalHandlers.RefreshGetStreamToken())
+
 	r.Path("/verify_security_questions").Methods(
 		http.MethodPost,
 		http.MethodOptions,
