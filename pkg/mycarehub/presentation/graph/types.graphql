@@ -248,7 +248,6 @@ type Community {
   memberCount: Int
   createdAt: Time
   updatedAt: Time
-
   # Custom defined fields
   ageRange: AgeRange
   gender: [Gender!]!
@@ -269,6 +268,7 @@ type PostingHours {
   end: Time!
 }
 
+
 """
 Member represents a user and is specific to use in the context of communities
 """
@@ -288,6 +288,9 @@ type CommunityMember {
   UserID: ID!
   user: Member!
   isModerator: Boolean!
+  invited: Boolean
+  inviteAcceptedAt: Time
+  inviteRejectedAt: Time
   role: String
   userType: String!
 }

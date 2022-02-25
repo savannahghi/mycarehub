@@ -16,6 +16,10 @@ func (r *mutationResolver) CreateCommunity(ctx context.Context, input dto.Commun
 	return r.mycarehub.Community.CreateCommunity(ctx, input)
 }
 
+func (r *mutationResolver) DeleteCommunities(ctx context.Context, communityIDs []string, hardDelete bool) (bool, error) {
+	return r.mycarehub.Community.DeleteCommunities(ctx, communityIDs, hardDelete)
+}
+
 func (r *queryResolver) ListMembers(ctx context.Context, input *stream_chat.QueryOption) ([]*domain.Member, error) {
 	return r.mycarehub.Community.ListMembers(ctx, input)
 }

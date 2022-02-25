@@ -76,3 +76,34 @@ func MakeRequest(ctx context.Context, method string, path string, body interface
 
 	return client.Do(req)
 }
+
+// FormatFilterParamsHelper is a helper function that formats the filter params from getstream
+func FormatFilterParamsHelper(a map[string]interface{}) map[string]interface{} {
+	supportedOperations := map[string]string{
+		"lt":           "$lt",
+		"lte":          "$lte",
+		"gt":           "$gt",
+		"gte":          "$gte",
+		"eq":           "$eq",
+		"ne":           "$ne",
+		"in":           "$in",
+		"autocomplete": "$autocomplete",
+	}
+
+	newMap := map[string]interface{}{}
+	for k, v := range a {
+
+		switch v := v.(type) {
+		case map[string]interface{}:
+			newMap[k] = FormatFilterParamsHelper(v)
+		default:
+			if supportedOperations[k] != "" {
+				operation := supportedOperations[k]
+				newMap[operation] = a[k]
+			} else {
+				newMap[k] = v
+			}
+		}
+	}
+	return newMap
+}

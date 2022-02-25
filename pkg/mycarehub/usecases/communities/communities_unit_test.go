@@ -323,9 +323,12 @@ func TestUseCasesCommunitiesImpl_ListCommunities(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "Happy Case - Successfully list stream channels, no params",
+			name: "Happy Case - Successfully list stream channels, with limit",
 			args: args{
 				ctx: context.Background(),
+				input: &stream.QueryOption{
+					Limit: 10,
+				},
 			},
 			wantErr: false,
 		},
@@ -444,4 +447,105 @@ func TestUseCasesCommunitiesImpl_ListCommunityMembers(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestUseCasesCommunitiesImpl_DeleteChannels(t *testing.T) {
+
+	type args struct {
+		ctx context.Context
+
+		communityIDs []string
+
+		hardDelete bool
+	}
+
+	tests := []struct {
+		name string
+
+		args args
+
+		want bool
+
+		wantErr bool
+	}{
+
+		{
+
+			name: "Happy Case - Successfully delete channels",
+
+			args: args{
+
+				ctx: context.Background(),
+
+				communityIDs: []string{uuid.NewString()},
+
+				hardDelete: false,
+			},
+
+			want: true,
+
+			wantErr: false,
+		},
+
+		{
+
+			name: "Sad Case - Fail to delete channels",
+
+			args: args{
+
+				ctx: context.Background(),
+
+				communityIDs: []string{uuid.NewString()},
+
+				hardDelete: false,
+			},
+
+			want: false,
+
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+
+		t.Run(tt.name, func(t *testing.T) {
+
+			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
+
+			fakeExtension := extensionMock.NewFakeExtension()
+
+			fakeDB := pgMock.NewPostgresMock()
+
+			communities := communities.NewUseCaseCommunitiesImpl(fakeGetStream, fakeExtension, fakeDB, fakeDB)
+
+			if tt.name == "Sad Case - Fail to delete channels" {
+
+				fakeGetStream.MockDeleteChannelsFn = func(ctx context.Context, communityIDs []string, hardDelete bool) (*stream.AsyncTaskResponse, error) {
+
+					return nil, fmt.Errorf("failed to delete channels")
+
+				}
+
+			}
+
+			got, err := communities.DeleteCommunities(tt.args.ctx, tt.args.communityIDs, tt.args.hardDelete)
+
+			if (err != nil) != tt.wantErr {
+
+				t.Errorf("UseCasesCommunitiesImpl.DeleteCommunities() error = %v, wantErr %v", err, tt.wantErr)
+
+				return
+
+			}
+
+			if got != tt.want {
+
+				t.Errorf("UseCasesCommunitiesImpl.DeleteCommunities() = %v, want %v", got, tt.want)
+
+			}
+
+		})
+
+	}
+
 }

@@ -53,9 +53,12 @@ type Member struct {
 
 // CommunityMember represents a user in a community and their associated additional details.
 type CommunityMember struct {
-	UserID      string `json:"userID"`
-	User        Member `json:"user"`
-	Role        string `json:"role"`
-	IsModerator bool   `json:"isModerator"`
-	UserType    string `json:"userType"`
+	UserID           string     `json:"userID"`
+	User             Member     `json:"user"`
+	Role             string     `json:"role"`
+	IsModerator      bool       `json:"isModerator"`
+	UserType         string     `json:"userType"`
+	Invited          bool       `json:"invited"`
+	InviteAcceptedAt *time.Time `json:"invite_accepted_at"`
+	InviteRejectedAt *time.Time `json:"invite_rejected_at"`
 }
