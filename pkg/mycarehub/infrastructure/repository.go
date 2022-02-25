@@ -65,6 +65,8 @@ type Query interface {
 	GetServiceRequests(ctx context.Context, requestType, requestStatus, facilityID *string) ([]*domain.ServiceRequest, error)
 	CheckUserRole(ctx context.Context, userID string, role string) (bool, error)
 	CheckUserPermission(ctx context.Context, userID string, permission string) (bool, error)
+	GetUserRoles(ctx context.Context, userID string) ([]*domain.AuthorityRole, error)
+	GetUserPermissions(ctx context.Context, userID string) ([]*domain.AuthorityPermission, error)
 }
 
 // Update represents all the update action interfaces

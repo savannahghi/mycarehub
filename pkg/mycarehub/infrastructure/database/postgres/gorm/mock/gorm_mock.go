@@ -82,6 +82,8 @@ type GormMock struct {
 	MockCheckUserPermissionFn                     func(ctx context.Context, userID string, permission string) (bool, error)
 	MockAssignRolesFn                             func(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error)
 	MockCreateChannelFn                           func(ctx context.Context, community *gorm.Community) (*gorm.Community, error)
+	MockGetUserRolesFn                            func(ctx context.Context, userID string) ([]*gorm.AuthorityRole, error)
+	MockGetUserPermissionsFn                      func(ctx context.Context, userID string) ([]*gorm.AuthorityPermission, error)
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -528,6 +530,22 @@ func NewGormMock() *GormMock {
 		MockAssignRolesFn: func(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error) {
 			return true, nil
 		},
+		MockGetUserRolesFn: func(ctx context.Context, userID string) ([]*gorm.AuthorityRole, error) {
+			return []*gorm.AuthorityRole{
+				{
+					AuthorityRoleID: &UUID,
+					Name:            enums.UserRoleTypeClientManagement.String(),
+				},
+			}, nil
+		},
+		MockGetUserPermissionsFn: func(ctx context.Context, userID string) ([]*gorm.AuthorityPermission, error) {
+			return []*gorm.AuthorityPermission{
+				{
+					AuthorityPermissionID: &UUID,
+					Name:                  enums.PermissionTypeCanCreateGroup.String(),
+				},
+			}, nil
+		},
 	}
 }
 
@@ -850,4 +868,14 @@ func (gm *GormMock) AssignRoles(ctx context.Context, userID string, roles []enum
 // CreateChannel mocks the implementation of creating a channel
 func (gm *GormMock) CreateChannel(ctx context.Context, community *gorm.Community) (*gorm.Community, error) {
 	return gm.MockCreateChannelFn(ctx, community)
+}
+
+// GetUserRoles mocks the implementation of getting a user's roles
+func (gm *GormMock) GetUserRoles(ctx context.Context, userID string) ([]*gorm.AuthorityRole, error) {
+	return gm.MockGetUserRolesFn(ctx, userID)
+}
+
+// GetUserPermissions mocks the implementation of getting a user's permissions
+func (gm *GormMock) GetUserPermissions(ctx context.Context, userID string) ([]*gorm.AuthorityPermission, error) {
+	return gm.MockGetUserPermissionsFn(ctx, userID)
 }

@@ -342,4 +342,14 @@ const (
 	// The assignment has failed'
 	// Its error code is 67
 	AssignRolesError
+
+	// GetUserRolesError means that the system is unable to get the user roles'
+	// The retrieval has failed'
+	// Its error code is 68
+	GetUserRolesError
+
+	// GetUserPermissionsError means that the system is unable to get the user permissions'
+	// The retrieval has failed'
+	// Its error code is 69
+	GetUserPermissionsError
 )

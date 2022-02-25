@@ -49,11 +49,13 @@ type User struct {
 	HasSetSecurityQuestion bool `json:"hasSetSecurityQuestions"`
 	IsPhoneVerified        bool `json:"isPhoneVerified"`
 
-	TermsAccepted   bool            `json:"termsAccepted"`
-	AcceptedTermsID int             `json:"acceptedTermsID"` // foreign key to version of terms they accepted
-	Flavour         feedlib.Flavour `json:"flavour"`
-	Suspended       bool            `json:"suspended"`
-	Avatar          string          `json:"avatar"`
+	TermsAccepted   bool                   `json:"termsAccepted"`
+	AcceptedTermsID int                    `json:"acceptedTermsID"` // foreign key to version of terms they accepted
+	Flavour         feedlib.Flavour        `json:"flavour"`
+	Suspended       bool                   `json:"suspended"`
+	Avatar          string                 `json:"avatar"`
+	Roles           []*AuthorityRole       `json:"roles"`
+	Permissions     []*AuthorityPermission `json:"permissions"`
 }
 
 // ClientProfile holds the details of end users who are not using the system in

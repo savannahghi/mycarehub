@@ -414,3 +414,21 @@ func AssignRolesErr(err error) error {
 		Code:    int(AssignRolesError),
 	}
 }
+
+// GetUserRolesErr returns an error message when the user role retrieval fails
+func GetUserRolesErr(err error) error {
+	return &CustomError{
+		Err:     err,
+		Message: GetUserRolesErrorMsg,
+		Code:    int(GetUserRolesError),
+	}
+}
+
+// GetUserPermissionsErr returns an error message when the user permission retrieval fails
+func GetUserPermissionsErr(err error) error {
+	return &CustomError{
+		Err:     err,
+		Message: GetUserPermissionsErrorMsg,
+		Code:    int(GetUserPermissionsError),
+	}
+}

@@ -7,6 +7,7 @@ import (
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/exceptions"
 	"github.com/savannahghi/serverutils"
@@ -692,4 +693,44 @@ func (d *MyCareHubDb) CheckUserRole(ctx context.Context, userID string, role str
 // CheckUserPermission check if a user has a permission
 func (d *MyCareHubDb) CheckUserPermission(ctx context.Context, userID string, permission string) (bool, error) {
 	return d.query.CheckUserPermission(ctx, userID, permission)
+}
+
+// GetUserRoles retrieves the roles for the specified user
+func (d *MyCareHubDb) GetUserRoles(ctx context.Context, userID string) ([]*domain.AuthorityRole, error) {
+	var roles []*domain.AuthorityRole
+	rolesList, err := d.query.GetUserRoles(ctx, userID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
+	for _, role := range rolesList {
+		role := &domain.AuthorityRole{
+			RoleID: *role.AuthorityRoleID,
+			Name:   enums.UserRoleType(role.Name),
+		}
+		roles = append(roles, role)
+	}
+
+	return roles, nil
+}
+
+// GetUserPermissions retrieves the permissions for the specified user
+func (d *MyCareHubDb) GetUserPermissions(ctx context.Context, userID string) ([]*domain.AuthorityPermission, error) {
+	var permissions []*domain.AuthorityPermission
+	permissionsList, err := d.query.GetUserPermissions(ctx, userID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
+	for _, permission := range permissionsList {
+		permission := &domain.AuthorityPermission{
+			PermissionID: *permission.AuthorityPermissionID,
+			Name:         enums.PermissionType(permission.Name),
+		}
+		permissions = append(permissions, permission)
+	}
+
+	return permissions, nil
 }

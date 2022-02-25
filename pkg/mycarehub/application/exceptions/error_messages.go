@@ -139,4 +139,8 @@ const (
 	CheckUserPermissionErrorMsg = "unable to check user permission"
 	//AssignRolesErrorMsg is the error message displayed when a user role assignment fails
 	AssignRolesErrorMsg = "unable to assign roles"
+	// GetUserRolesErrorMsg is the error message displayed when a user role is not found
+	GetUserRolesErrorMsg = "unable to get user roles"
+	// GetUserPermissionsErrorMsg is the error message displayed when a user permission is not found
+	GetUserPermissionsErrorMsg = "unable to get user permissions"
 )

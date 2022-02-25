@@ -8,6 +8,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
 )
 
@@ -26,11 +27,23 @@ type IAssignRole interface {
 	AssignRoles(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error)
 }
 
+// IGetUserRoles contains methods to get the roles of a user
+type IGetUserRoles interface {
+	GetUserRoles(ctx context.Context, userID string) ([]*domain.AuthorityRole, error)
+}
+
+// IGetUserPermissions contains methods to get the permissions of a user
+type IGetUserPermissions interface {
+	GetUserPermissions(ctx context.Context, userID string) ([]*domain.AuthorityPermission, error)
+}
+
 // UsecaseAuthority groups al the interfaces for the Authority usecase
 type UsecaseAuthority interface {
 	ICheckUserRole
 	ICheckUserPermission
 	IAssignRole
+	IGetUserRoles
+	IGetUserPermissions
 }
 
 // UsecaseAuthorityImpl represents the Authority implementation
@@ -132,4 +145,36 @@ func (u *UsecaseAuthorityImpl) AssignRoles(ctx context.Context, userID string, r
 		return false, exceptions.AssignRolesErr(err)
 	}
 	return ok, nil
+}
+
+// GetUserRoles returns the roles of the user
+func (u *UsecaseAuthorityImpl) GetUserRoles(ctx context.Context, userID string) ([]*domain.AuthorityRole, error) {
+	if userID == "" {
+		err := fmt.Errorf("userID must not be empty")
+		helpers.ReportErrorToSentry(err)
+		return nil, exceptions.EmptyInputErr(err)
+	}
+
+	roles, err := u.Query.GetUserRoles(ctx, userID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, exceptions.GetUserRolesErr(err)
+	}
+	return roles, nil
+}
+
+// GetUserPermissions returns the permissions of the user
+func (u *UsecaseAuthorityImpl) GetUserPermissions(ctx context.Context, userID string) ([]*domain.AuthorityPermission, error) {
+	if userID == "" {
+		err := fmt.Errorf("userID must not be empty")
+		helpers.ReportErrorToSentry(err)
+		return nil, exceptions.EmptyInputErr(err)
+	}
+
+	permissions, err := u.Query.GetUserPermissions(ctx, userID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, exceptions.GetUserPermissionsErr(err)
+	}
+	return permissions, nil
 }

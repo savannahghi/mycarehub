@@ -2103,3 +2103,103 @@ func TestPGInstance_CheckUserPermission(t *testing.T) {
 		})
 	}
 }
+
+func TestPGInstance_GetUserRoles(t *testing.T) {
+	type args struct {
+		ctx    context.Context
+		userID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+		want    []*gorm.AuthorityRole
+	}{
+		{
+			name: "happy case: user has roles",
+			args: args{
+				ctx:    context.Background(),
+				userID: userID,
+			},
+			wantErr: false,
+		},
+		{
+			name: "happy case: user does not have roles",
+			args: args{
+				ctx:    context.Background(),
+				userID: userID2,
+			},
+			wantErr: false,
+		},
+		{
+			name: "sad case: user does not exist",
+			args: args{
+				ctx:    context.Background(),
+				userID: uuid.New().String(),
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := testingDB.GetUserRoles(tt.args.ctx, tt.args.userID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.GetUserRoles() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if tt.wantErr && got != nil {
+				t.Errorf("PGInstance.GetUserRoles() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestPGInstance_GetUserPermissions(t *testing.T) {
+	type args struct {
+		ctx    context.Context
+		userID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    []*gorm.AuthorityPermission
+		wantErr bool
+	}{
+		{
+			name: "happy case: user has permissions",
+			args: args{
+				ctx:    context.Background(),
+				userID: userID,
+			},
+			wantErr: false,
+		},
+		{
+			name: "happy case: user does not have permissions",
+			args: args{
+				ctx:    context.Background(),
+				userID: userID2,
+			},
+			wantErr: false,
+		},
+		{
+			name: "sad case: user does not exist",
+			args: args{
+				ctx:    context.Background(),
+				userID: uuid.New().String(),
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := testingDB.GetUserPermissions(tt.args.ctx, tt.args.userID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.GetUserPermissions() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if tt.wantErr && got != nil {
+				t.Errorf("PGInstance.GetUserRoles() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

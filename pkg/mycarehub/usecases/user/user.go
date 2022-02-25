@@ -266,6 +266,21 @@ func (us *UseCasesUserImpl) Login(ctx context.Context, phoneNumber string, pin s
 
 // ReturnLoginResponse returns either a client's or staff's response depending on the specified flavour
 func (us *UseCasesUserImpl) ReturnLoginResponse(ctx context.Context, flavour feedlib.Flavour, userProfile *domain.User, userTokens *firebasetools.FirebaseUserTokens) (*domain.LoginResponse, int, error) {
+	// add user roles and permissions to the response
+	roles, err := us.Authority.GetUserRoles(ctx, *userProfile.ID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, int(exceptions.Internal), fmt.Errorf("failed to get user roles")
+	}
+	userProfile.Roles = roles
+
+	permissions, err := us.Authority.GetUserPermissions(ctx, *userProfile.ID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, int(exceptions.Internal), fmt.Errorf("failed to get user permissions")
+	}
+	userProfile.Permissions = permissions
+
 	switch flavour {
 	case feedlib.FlavourConsumer:
 		clientProfile, err := us.Query.GetClientProfileByUserID(ctx, *userProfile.ID)
