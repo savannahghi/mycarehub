@@ -3047,3 +3047,64 @@ func TestMyCareHubDb_GetUserPermissions(t *testing.T) {
 		})
 	}
 }
+
+func TestMyCareHubDb_CheckIfUserNameExists(t *testing.T) {
+	type args struct {
+		ctx      context.Context
+		username string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Successfully check if username exists",
+			args: args{
+				ctx:      context.Background(),
+				username: gofakeit.Username(),
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Sad Case - Username already exists",
+			args: args{
+				ctx:      context.Background(),
+				username: gofakeit.Username(),
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Sad Case - Missing username",
+			args: args{
+				ctx: context.Background(),
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var fakeGorm = gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			if tt.name == "Sad Case - Username already exists" {
+				fakeGorm.MockCheckIfUsernameExistsFn = func(ctx context.Context, username string) (bool, error) {
+					return true, nil
+				}
+			}
+
+			got, err := d.CheckIfUsernameExists(tt.args.ctx, tt.args.username)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.CheckIfUserNameExists() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("MyCareHubDb.CheckIfUserNameExists() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

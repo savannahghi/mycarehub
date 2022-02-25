@@ -18,7 +18,7 @@ func (r *mutationResolver) AcceptTerms(ctx context.Context, userID string, terms
 
 func (r *mutationResolver) SetNickName(ctx context.Context, userID string, nickname string) (bool, error) {
 	r.checkPreconditions()
-	return r.mycarehub.User.SetNickName(ctx, &userID, &nickname)
+	return r.mycarehub.User.SetNickName(ctx, userID, nickname)
 }
 
 func (r *mutationResolver) CompleteOnboardingTour(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {

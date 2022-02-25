@@ -67,6 +67,7 @@ type Query interface {
 	CheckUserPermission(ctx context.Context, userID string, permission string) (bool, error)
 	GetUserRoles(ctx context.Context, userID string) ([]*domain.AuthorityRole, error)
 	GetUserPermissions(ctx context.Context, userID string) ([]*domain.AuthorityPermission, error)
+	CheckIfUsernameExists(ctx context.Context, username string) (bool, error)
 }
 
 // Update represents all the update action interfaces

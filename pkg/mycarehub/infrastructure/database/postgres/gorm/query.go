@@ -12,6 +12,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
+	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
 
@@ -52,6 +53,7 @@ type Query interface {
 	CheckUserPermission(ctx context.Context, userID string, permission string) (bool, error)
 	GetUserRoles(ctx context.Context, userID string) ([]*AuthorityRole, error)
 	GetUserPermissions(ctx context.Context, userID string) ([]*AuthorityPermission, error)
+	CheckIfUsernameExists(ctx context.Context, username string) (bool, error)
 }
 
 // CheckWhetherUserHasLikedContent performs a operation to check whether user has liked the content
@@ -700,4 +702,18 @@ func (db *PGInstance) GetUserPermissions(ctx context.Context, userID string) ([]
 	}
 
 	return permissions, nil
+}
+
+// CheckIfUsernameExists checks to see whether the provided username exists
+func (db *PGInstance) CheckIfUsernameExists(ctx context.Context, username string) (bool, error) {
+	var user User
+	err := db.DB.Where(&User{Username: username}).First(&user).Error
+	if err != nil {
+		if strings.Contains(err.Error(), gorm.ErrRecordNotFound.Error()) {
+			return false, nil
+		}
+		return false, fmt.Errorf("failed to check if username exists: %v", err)
+	}
+
+	return true, nil
 }

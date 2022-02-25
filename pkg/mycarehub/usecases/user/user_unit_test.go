@@ -1058,8 +1058,8 @@ func TestUseCasesUserImpl_SetNickName(t *testing.T) {
 
 	type args struct {
 		ctx      context.Context
-		userID   *string
-		nickname *string
+		userID   string
+		nickname string
 	}
 	tests := []struct {
 		name    string
@@ -1071,8 +1071,8 @@ func TestUseCasesUserImpl_SetNickName(t *testing.T) {
 			name: "Happy case",
 			args: args{
 				ctx:      ctx,
-				userID:   &userID,
-				nickname: &nickname,
+				userID:   userID,
+				nickname: gofakeit.Username(),
 			},
 			want:    true,
 			wantErr: false,
@@ -1081,8 +1081,8 @@ func TestUseCasesUserImpl_SetNickName(t *testing.T) {
 			name: "Sad case",
 			args: args{
 				ctx:      ctx,
-				userID:   &userID,
-				nickname: &nickname,
+				userID:   userID,
+				nickname: nickname,
 			},
 			want:    false,
 			wantErr: true,
@@ -1091,8 +1091,8 @@ func TestUseCasesUserImpl_SetNickName(t *testing.T) {
 			name: "Sad case - no userID",
 			args: args{
 				ctx:      ctx,
-				userID:   nil,
-				nickname: &nickname,
+				userID:   "",
+				nickname: nickname,
 			},
 			want:    false,
 			wantErr: true,
@@ -1101,8 +1101,8 @@ func TestUseCasesUserImpl_SetNickName(t *testing.T) {
 			name: "Sad case - no nickname",
 			args: args{
 				ctx:      ctx,
-				userID:   &userID,
-				nickname: nil,
+				userID:   userID,
+				nickname: "",
 			},
 			want:    false,
 			wantErr: true,
@@ -1111,8 +1111,8 @@ func TestUseCasesUserImpl_SetNickName(t *testing.T) {
 			name: "Both userID and nickname nil",
 			args: args{
 				ctx:      ctx,
-				userID:   nil,
-				nickname: nil,
+				userID:   "",
+				nickname: "",
 			},
 			want:    false,
 			wantErr: true,
@@ -1128,6 +1128,16 @@ func TestUseCasesUserImpl_SetNickName(t *testing.T) {
 			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 			u := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, otp, fakeAuthority, fakeGetStream)
 
+			if tt.name == "Happy case" {
+				fakeDB.MockCheckIfUsernameExistsFn = func(ctx context.Context, username string) (bool, error) {
+					return false, nil
+				}
+
+				fakeDB.MockSetNickNameFn = func(ctx context.Context, userID, nickname *string) (bool, error) {
+					return true, nil
+				}
+			}
+
 			if tt.name == "Sad case" {
 				fakeDB.MockSetNickNameFn = func(ctx context.Context, userID, nickname *string) (bool, error) {
 					return false, fmt.Errorf("an error occurred")
@@ -1139,7 +1149,7 @@ func TestUseCasesUserImpl_SetNickName(t *testing.T) {
 				}
 			}
 			if tt.name == "Sad case - no nickname" {
-				fakeDB.MockSetNickNameFn = func(ctx context.Context, userID, nickname *string) (bool, error) {
+				fakeDB.MockCheckIfUsernameExistsFn = func(ctx context.Context, username string) (bool, error) {
 					return false, fmt.Errorf("an error occurred")
 				}
 			}

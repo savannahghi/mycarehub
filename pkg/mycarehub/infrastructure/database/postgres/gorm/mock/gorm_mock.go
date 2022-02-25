@@ -44,7 +44,6 @@ type GormMock struct {
 	MockGetSecurityQuestionResponseByIDFn         func(ctx context.Context, questionID string) (*gorm.SecurityQuestionResponse, error)
 	MockCheckIfPhoneNumberExistsFn                func(ctx context.Context, phone string, isOptedIn bool, flavour feedlib.Flavour) (bool, error)
 	MockVerifyOTPFn                               func(ctx context.Context, payload *dto.VerifyOTPInput) (bool, error)
-	MockGetSntProfileByUserIDFn                   func(ctx context.Context, userID string) (*gorm.Client, error)
 	MockGetClientProfileByUserIDFn                func(ctx context.Context, userID string) (*gorm.Client, error)
 	MockGetStaffProfileByUserIDFn                 func(ctx context.Context, userID string) (*gorm.StaffProfile, error)
 	MockCheckUserHasPinFn                         func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
@@ -84,6 +83,7 @@ type GormMock struct {
 	MockCreateChannelFn                           func(ctx context.Context, community *gorm.Community) (*gorm.Community, error)
 	MockGetUserRolesFn                            func(ctx context.Context, userID string) ([]*gorm.AuthorityRole, error)
 	MockGetUserPermissionsFn                      func(ctx context.Context, userID string) ([]*gorm.AuthorityPermission, error)
+	MockCheckIfUsernameExistsFn                   func(ctx context.Context, username string) (bool, error)
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -546,6 +546,9 @@ func NewGormMock() *GormMock {
 				},
 			}, nil
 		},
+		MockCheckIfUsernameExistsFn: func(ctx context.Context, username string) (bool, error) {
+			return true, nil
+		},
 	}
 }
 
@@ -878,4 +881,9 @@ func (gm *GormMock) GetUserRoles(ctx context.Context, userID string) ([]*gorm.Au
 // GetUserPermissions mocks the implementation of getting a user's permissions
 func (gm *GormMock) GetUserPermissions(ctx context.Context, userID string) ([]*gorm.AuthorityPermission, error) {
 	return gm.MockGetUserPermissionsFn(ctx, userID)
+}
+
+// CheckIfUsernameExists mocks the implementation of checking whether a username exists
+func (gm *GormMock) CheckIfUsernameExists(ctx context.Context, username string) (bool, error) {
+	return gm.MockCheckIfUsernameExistsFn(ctx, username)
 }
