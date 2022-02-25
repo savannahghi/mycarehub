@@ -169,6 +169,26 @@ func TestUseCasesUserImpl_Login_Unittest(t *testing.T) {
 			},
 			wantErr: true,
 		},
+		{
+			name: "Sad Case - Fail to get user roles by user ID",
+			args: args{
+				ctx:         ctx,
+				phoneNumber: interserviceclient.TestUserPhoneNumber,
+				pin:         PIN,
+				flavour:     feedlib.FlavourPro,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - Fail to get user permissions by user ID",
+			args: args{
+				ctx:         ctx,
+				phoneNumber: interserviceclient.TestUserPhoneNumber,
+				pin:         PIN,
+				flavour:     feedlib.FlavourPro,
+			},
+			wantErr: true,
+		},
 	}
 
 	for _, tt := range tests {
@@ -246,6 +266,16 @@ func TestUseCasesUserImpl_Login_Unittest(t *testing.T) {
 			if tt.name == "Sad Case - Fail to get staff profile by user ID" {
 				fakeDB.MockGetStaffProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.StaffProfile, error) {
 					return nil, fmt.Errorf("failed to get staff profile")
+				}
+			}
+			if tt.name == "Sad Case - Fail to get user roles by user ID" {
+				fakeAuthority.MockGetUserRolesFn = func(ctx context.Context, userID string) ([]*domain.AuthorityRole, error) {
+					return nil, fmt.Errorf("failed to get user role")
+				}
+			}
+			if tt.name == "Sad Case - Fail to get user permissions by user ID" {
+				fakeAuthority.MockGetUserPermissionsFn = func(ctx context.Context, userID string) ([]*domain.AuthorityPermission, error) {
+					return nil, fmt.Errorf("failed to get user permission")
 				}
 			}
 

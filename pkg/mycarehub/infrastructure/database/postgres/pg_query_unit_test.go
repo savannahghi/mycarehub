@@ -2924,3 +2924,126 @@ func TestMyCareHubDb_CheckUserPermission(t *testing.T) {
 		})
 	}
 }
+
+func TestMyCareHubDb_GetUserRoles(t *testing.T) {
+
+	type args struct {
+		ctx    context.Context
+		userID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+		want    []*domain.AuthorityRole
+	}{
+		{
+			name: "happy case: user has a role",
+			args: args{
+				ctx:    context.Background(),
+				userID: uuid.New().String(),
+			},
+			wantErr: false,
+		},
+		{
+			name: "sad case: user has no role",
+			args: args{
+				ctx:    context.Background(),
+				userID: uuid.New().String(),
+			},
+			wantErr: false, //should not error if user has no roles
+		},
+		{
+			name: "sad case: failed to get user roles",
+			args: args{
+				ctx:    context.Background(),
+				userID: uuid.New().String(),
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			var fakeGorm = gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			if tt.name == "sad case: failed to get user roles" {
+				fakeGorm.MockGetUserRolesFn = func(ctx context.Context, userID string) ([]*gorm.AuthorityRole, error) {
+					return nil, fmt.Errorf("failed to get user roles")
+				}
+			}
+
+			got, err := d.GetUserRoles(tt.args.ctx, tt.args.userID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.GetUserRoles() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("MyCareHubDb.GetUserRoles() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestMyCareHubDb_GetUserPermissions(t *testing.T) {
+
+	type args struct {
+		ctx    context.Context
+		userID string
+	}
+	tests := []struct {
+		name string
+
+		args    args
+		want    []*domain.AuthorityPermission
+		wantErr bool
+	}{
+		{
+			name: "happy case: user has a permission",
+			args: args{
+				ctx:    context.Background(),
+				userID: uuid.New().String(),
+			},
+			wantErr: false,
+		},
+		{
+			name: "sad case: user has no permission",
+			args: args{
+				ctx:    context.Background(),
+				userID: uuid.New().String(),
+			},
+			wantErr: false, //should not error if user has no permissions
+		},
+		{
+			name: "sad case: failed to get user permissions",
+			args: args{
+				ctx:    context.Background(),
+				userID: uuid.New().String(),
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			var fakeGorm = gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			if tt.name == "sad case: failed to get user permissions" {
+				fakeGorm.MockGetUserPermissionsFn = func(ctx context.Context, userID string) ([]*gorm.AuthorityPermission, error) {
+					return nil, fmt.Errorf("failed to get user permissions")
+				}
+			}
+
+			got, err := d.GetUserPermissions(tt.args.ctx, tt.args.userID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.GetUserPermissions() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("MyCareHubDb.GetUserRoles() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

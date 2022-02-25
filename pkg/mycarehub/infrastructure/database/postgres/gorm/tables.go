@@ -777,8 +777,8 @@ func (AuthorityRole) TableName() string {
 	return "authority_authorityrole"
 }
 
-// AuthorityPermissions is the gorms authority permission model
-type AuthorityPermissions struct {
+// AuthorityPermission is the gorms authority permission model
+type AuthorityPermission struct {
 	Base
 	AuthorityPermissionID *string `gorm:"column:id"`
 	Name                  string  `gorm:"column:name"`
@@ -786,7 +786,7 @@ type AuthorityPermissions struct {
 }
 
 // BeforeCreate is a hook run before creating authority permission
-func (c *AuthorityPermissions) BeforeCreate(tx *gorm.DB) (err error) {
+func (c *AuthorityPermission) BeforeCreate(tx *gorm.DB) (err error) {
 	id := uuid.New().String()
 	c.AuthorityPermissionID = &id
 	c.OrganisationID = OrganizationID
@@ -794,7 +794,7 @@ func (c *AuthorityPermissions) BeforeCreate(tx *gorm.DB) (err error) {
 }
 
 // TableName references the table that we map data from
-func (AuthorityPermissions) TableName() string {
+func (AuthorityPermission) TableName() string {
 	return "authority_authoritypermission"
 }
 

@@ -83,6 +83,8 @@ type PostgresMock struct {
 	MockCheckUserRoleFn                           func(ctx context.Context, userID string, role string) (bool, error)
 	MockCheckUserPermissionFn                     func(ctx context.Context, userID string, permission string) (bool, error)
 	MockAssignRolesFn                             func(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error)
+	MockGetUserRolesFn                            func(ctx context.Context, userID string) ([]*domain.AuthorityRole, error)
+	MockGetUserPermissionsFn                      func(ctx context.Context, userID string) ([]*domain.AuthorityPermission, error)
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -500,6 +502,22 @@ func NewPostgresMock() *PostgresMock {
 		MockAssignRolesFn: func(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error) {
 			return true, nil
 		},
+		MockGetUserRolesFn: func(ctx context.Context, userID string) ([]*domain.AuthorityRole, error) {
+			return []*domain.AuthorityRole{
+				{
+					RoleID: uuid.New().String(),
+					Name:   enums.UserRoleTypeClientManagement,
+				},
+			}, nil
+		},
+		MockGetUserPermissionsFn: func(ctx context.Context, userID string) ([]*domain.AuthorityPermission, error) {
+			return []*domain.AuthorityPermission{
+				{
+					PermissionID: uuid.New().String(),
+					Name:         enums.PermissionTypeCanManageClient,
+				},
+			}, nil
+		},
 	}
 }
 
@@ -836,4 +854,14 @@ func (gm *PostgresMock) AssignRoles(ctx context.Context, userID string, roles []
 // CreateChannel mocks the implementation of creating a channel
 func (gm *PostgresMock) CreateChannel(ctx context.Context, community *dto.CommunityInput) (*domain.Community, error) {
 	return gm.MockCreateChannelFn(ctx, community)
+}
+
+// GetUserRoles mocks the implementation of getting all roles for a user
+func (gm *PostgresMock) GetUserRoles(ctx context.Context, userID string) ([]*domain.AuthorityRole, error) {
+	return gm.MockGetUserRolesFn(ctx, userID)
+}
+
+// GetUserPermissions mocks the implementation of getting all permissions for a user
+func (gm *PostgresMock) GetUserPermissions(ctx context.Context, userID string) ([]*domain.AuthorityPermission, error) {
+	return gm.MockGetUserPermissionsFn(ctx, userID)
 }

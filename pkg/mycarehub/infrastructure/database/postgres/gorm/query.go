@@ -50,6 +50,8 @@ type Query interface {
 	GetServiceRequests(ctx context.Context, requestType, requestStatus, facilityID *string) ([]*ClientServiceRequest, error)
 	CheckUserRole(ctx context.Context, userID string, role string) (bool, error)
 	CheckUserPermission(ctx context.Context, userID string, permission string) (bool, error)
+	GetUserRoles(ctx context.Context, userID string) ([]*AuthorityRole, error)
+	GetUserPermissions(ctx context.Context, userID string) ([]*AuthorityPermission, error)
 }
 
 // CheckWhetherUserHasLikedContent performs a operation to check whether user has liked the content
@@ -657,4 +659,45 @@ func (db *PGInstance) CheckUserPermission(ctx context.Context, userID string, pe
 	}
 
 	return true, nil
+}
+
+// GetUserRoles fetches a user's roles from the database
+func (db *PGInstance) GetUserRoles(ctx context.Context, userID string) ([]*AuthorityRole, error) {
+	var roles []*AuthorityRole
+	err := db.DB.Raw(
+		`
+		SELECT * 
+		FROM authority_authorityrole_users 
+		JOIN authority_authorityrole ON authority_authorityrole_users.authorityrole_id = authority_authorityrole.id
+		WHERE user_id = ?
+		`, userID,
+	).Find(&roles).Error
+
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, fmt.Errorf("failed to get user roles: %v", err)
+	}
+
+	return roles, nil
+}
+
+// GetUserPermissions fetches a user's permissions from the database
+func (db *PGInstance) GetUserPermissions(ctx context.Context, userID string) ([]*AuthorityPermission, error) {
+	var permissions []*AuthorityPermission
+	err := db.DB.Raw(
+		`
+		SELECT * 
+		FROM authority_authorityrole_users 
+		JOIN authority_authorityrole_permissions ON authority_authorityrole_users.authorityrole_id = authority_authorityrole_permissions.authorityrole_id
+		JOIN authority_authoritypermission ON authority_authorityrole_permissions.authoritypermission_id = authority_authoritypermission.id
+		WHERE user_id = ?
+		`, userID,
+	).Find(&permissions).Error
+
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, fmt.Errorf("failed to get user permissions: %v", err)
+	}
+
+	return permissions, nil
 }

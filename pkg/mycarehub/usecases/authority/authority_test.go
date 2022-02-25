@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	extensionMock "github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension/mock"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
 	pgMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/mock"
 )
@@ -277,6 +278,126 @@ func TestUsecaseAuthorityImpl_AssignRoles(t *testing.T) {
 			}
 			if got != tt.want {
 				t.Errorf("UsecaseAuthorityImpl.AssignRoles() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestUsecaseAuthorityImpl_GetUserRoles(t *testing.T) {
+	type args struct {
+		ctx    context.Context
+		userID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    []*domain.AuthorityRole
+		wantErr bool
+	}{
+		{
+			name: "happy case: successfully get user roles",
+			args: args{
+				ctx:    context.Background(),
+				userID: uuid.New().String(),
+			},
+			wantErr: false,
+		},
+		{
+			name: "sad case: missing user id",
+			args: args{
+				ctx:    context.Background(),
+				userID: "",
+			},
+			wantErr: true,
+		},
+		{
+			name: "sad case: failed to get user roles",
+			args: args{
+				ctx:    context.Background(),
+				userID: uuid.New().String(),
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			fakeExtension := extensionMock.NewFakeExtension()
+			u := NewUsecaseAuthority(fakeDB, fakeDB, fakeExtension)
+
+			if tt.name == "sad case: failed to get user roles" {
+				fakeDB.MockGetUserRolesFn = func(ctx context.Context, userID string) ([]*domain.AuthorityRole, error) {
+					return nil, fmt.Errorf("failed to get user roles")
+				}
+			}
+
+			got, err := u.GetUserRoles(tt.args.ctx, tt.args.userID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UsecaseAuthorityImpl.GetUserRoles() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("UsecaseAuthorityImpl.GetUserRoles() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestUsecaseAuthorityImpl_GetUserPermissions(t *testing.T) {
+	type args struct {
+		ctx    context.Context
+		userID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    []*domain.AuthorityPermission
+		wantErr bool
+	}{
+		{
+			name: "happy case: successfully get user permissions",
+			args: args{
+				ctx:    context.Background(),
+				userID: uuid.New().String(),
+			},
+			wantErr: false,
+		},
+		{
+			name: "sad case: missing user id",
+			args: args{
+				ctx:    context.Background(),
+				userID: "",
+			},
+			wantErr: true,
+		},
+		{
+			name: "sad case: failed to get user permissions",
+			args: args{
+				ctx:    context.Background(),
+				userID: uuid.New().String(),
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			fakeExtension := extensionMock.NewFakeExtension()
+			u := NewUsecaseAuthority(fakeDB, fakeDB, fakeExtension)
+
+			if tt.name == "sad case: failed to get user permissions" {
+				fakeDB.MockGetUserPermissionsFn = func(ctx context.Context, userID string) ([]*domain.AuthorityPermission, error) {
+					return nil, fmt.Errorf("failed to get user permissions")
+				}
+			}
+
+			got, err := u.GetUserPermissions(tt.args.ctx, tt.args.userID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UsecaseAuthorityImpl.GetUserPermissions() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("UsecaseAuthorityImpl.GetUserPermissions() = %v, want %v", got, tt.want)
 			}
 		})
 	}
