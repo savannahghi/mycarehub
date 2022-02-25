@@ -349,7 +349,6 @@ func TestUseCasesCommunitiesImpl_ListCommunities(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-
 			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 			fakeExtension := extensionMock.NewFakeExtension()
 			fakeDB := pgMock.NewPostgresMock()
@@ -548,4 +547,65 @@ func TestUseCasesCommunitiesImpl_DeleteChannels(t *testing.T) {
 
 	}
 
+}
+
+func TestUseCasesCommunitiesImpl_RejectInvite(t *testing.T) {
+	ctx := context.Background()
+	type args struct {
+		ctx       context.Context
+		userID    string
+		channelID string
+		message   string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:       ctx,
+				userID:    uuid.New().String(),
+				channelID: uuid.New().String(),
+				message:   uuid.New().String(),
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Sad case",
+			args: args{
+				ctx:       ctx,
+				channelID: uuid.New().String(),
+				message:   uuid.New().String(),
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
+			fakeExtension := extensionMock.NewFakeExtension()
+			fakeDB := pgMock.NewPostgresMock()
+			communities := communities.NewUseCaseCommunitiesImpl(fakeGetStream, fakeExtension, fakeDB, fakeDB)
+
+			if tt.name == "Sad case" {
+				fakeGetStream.MockRejectInviteFn = func(ctx context.Context, userID, channelID string, message *stream.Message) (*stream.Response, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+
+			got, err := communities.RejectInvite(tt.args.ctx, tt.args.userID, tt.args.channelID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCasesCommunitiesImpl.RejectInvite() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("UseCasesCommunitiesImpl.RejectInvite() = %v, want %v", got, tt.want)
+			}
+		})
+	}
 }

@@ -16,6 +16,7 @@ type CommunityUsecaseMock struct {
 	MockListMembersFn        func(ctx context.Context, input *stream.QueryOption) ([]*domain.Member, error)
 	MockCreateCommunityFn    func(ctx context.Context, input dto.CommunityInput) (*domain.Community, error)
 	MockListCommunityMembers func(ctx context.Context, communityID string) ([]*domain.CommunityMember, error)
+	MockRejectInviteFn       func(ctx context.Context, userID string, channelID string) (bool, error)
 }
 
 // NewCommunityUsecaseMock initializes a new instance of the Community usecase happy cases
@@ -53,6 +54,10 @@ func NewCommunityUsecaseMock() *CommunityUsecaseMock {
 				},
 			}, nil
 		},
+
+		MockRejectInviteFn: func(ctx context.Context, userID string, channelID string) (bool, error) {
+			return true, nil
+		},
 	}
 }
 
@@ -69,4 +74,9 @@ func (c CommunityUsecaseMock) CreateCommunity(ctx context.Context, input dto.Com
 // ListCommunityMembers mocks the implementation of listing members
 func (c CommunityUsecaseMock) ListCommunityMembers(ctx context.Context, communityID string) ([]*domain.CommunityMember, error) {
 	return c.MockListCommunityMembers(ctx, communityID)
+}
+
+// RejectInvite mocks the implementation of rejecting an invite into a community
+func (c CommunityUsecaseMock) RejectInvite(ctx context.Context, userID string, channelID string, message string) (bool, error) {
+	return c.MockRejectInviteFn(ctx, userID, channelID)
 }
