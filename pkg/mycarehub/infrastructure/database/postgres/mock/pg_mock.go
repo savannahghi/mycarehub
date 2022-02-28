@@ -85,6 +85,7 @@ type PostgresMock struct {
 	MockAssignRolesFn                             func(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error)
 	MockGetUserRolesFn                            func(ctx context.Context, userID string) ([]*domain.AuthorityRole, error)
 	MockGetUserPermissionsFn                      func(ctx context.Context, userID string) ([]*domain.AuthorityPermission, error)
+	MockCheckIfUsernameExistsFn                   func(ctx context.Context, username string) (bool, error)
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -518,6 +519,9 @@ func NewPostgresMock() *PostgresMock {
 				},
 			}, nil
 		},
+		MockCheckIfUsernameExistsFn: func(ctx context.Context, username string) (bool, error) {
+			return true, nil
+		},
 	}
 }
 
@@ -864,4 +868,9 @@ func (gm *PostgresMock) GetUserRoles(ctx context.Context, userID string) ([]*dom
 // GetUserPermissions mocks the implementation of getting all permissions for a user
 func (gm *PostgresMock) GetUserPermissions(ctx context.Context, userID string) ([]*domain.AuthorityPermission, error) {
 	return gm.MockGetUserPermissionsFn(ctx, userID)
+}
+
+// CheckIfUsernameExists mocks the implementation of checking whether a username exists
+func (gm *PostgresMock) CheckIfUsernameExists(ctx context.Context, username string) (bool, error) {
+	return gm.MockCheckIfUsernameExistsFn(ctx, username)
 }

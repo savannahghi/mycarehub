@@ -62,7 +62,7 @@ type IVerifyPIN interface {
 
 // ISetNickName is used change and or set user nickname
 type ISetNickName interface {
-	SetNickName(ctx context.Context, userID *string, nickname *string) (bool, error)
+	SetNickName(ctx context.Context, userID string, nickname string) (bool, error)
 }
 
 // IRequestPinReset defines a method signature that is used to request a pin reset
@@ -505,9 +505,19 @@ func (us *UseCasesUserImpl) SetUserPIN(ctx context.Context, input dto.PINInput) 
 	return true, nil
 }
 
-// SetNickName is used to set the user's nickname
-func (us *UseCasesUserImpl) SetNickName(ctx context.Context, userID *string, nickname *string) (bool, error) {
-	ok, err := us.Update.SetNickName(ctx, userID, nickname)
+// SetNickName is used to set the user's nickname. The nickname is also the username
+func (us *UseCasesUserImpl) SetNickName(ctx context.Context, userID string, nickname string) (bool, error) {
+	exists, err := us.Query.CheckIfUsernameExists(ctx, nickname)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, err
+	}
+
+	if exists {
+		return false, fmt.Errorf("username has already been taken")
+	}
+
+	ok, err := us.Update.SetNickName(ctx, &userID, &nickname)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return false, exceptions.FailedToUpdateItemErr(fmt.Errorf("failed to set user nickname %v", err))

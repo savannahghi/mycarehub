@@ -734,3 +734,17 @@ func (d *MyCareHubDb) GetUserPermissions(ctx context.Context, userID string) ([]
 
 	return permissions, nil
 }
+
+// CheckIfUsernameExists checks whether the provided username exists
+func (d *MyCareHubDb) CheckIfUsernameExists(ctx context.Context, username string) (bool, error) {
+	if username == "" {
+		return false, fmt.Errorf("username must be defined")
+	}
+
+	ok, err := d.query.CheckIfUsernameExists(ctx, username)
+	if err != nil {
+		return false, err
+	}
+
+	return ok, nil
+}
