@@ -209,17 +209,6 @@ func TestChatClient_ListGetStreamChannels(t *testing.T) {
 }
 
 func TestChatClient_GetChannel(t *testing.T) {
-	c := getstream.NewServiceGetStream()
-
-	userID := uuid.New().String()
-	channelID := uuid.New().String()
-
-	_, err := c.CreateChannel(context.Background(), "messaging", channelID, userID, nil)
-	if err != nil {
-		t.Errorf("ChatClient.CreateChannel() error = %v", err)
-		return
-	}
-
 	type args struct {
 		ctx       context.Context
 		channelID string
@@ -264,41 +253,25 @@ func TestChatClient_GetChannel(t *testing.T) {
 				return
 			}
 		})
-
-		// Delete the created test channel from stream server
-		_, err := c.DeleteChannels(context.Background(), []string{channelID}, true)
-		if err != nil {
-			t.Errorf("ChatClient.DeleteChannel() error = %v", err)
-		}
 	}
 
 }
 
 func TestChatClient_RejectInvite(t *testing.T) {
 	ctx := context.Background()
-
-	g := getstream.NewServiceGetStream()
-	userID := uuid.New().String()
-	channelID := uuid.New().String()
-
-	ch, err := g.CreateChannel(ctx, "messaging", channelID, userID, nil)
-	if err != nil {
-		t.Errorf("ChatClient.CreateChannel() error = %v", err)
-		return
-	}
-
+	invitedUserID := uuid.New().String()
 	user := stream.User{
-		ID:        userID,
+		ID:        invitedUserID,
 		Name:      "test",
 		Invisible: false,
 	}
-	streamUser, err := g.CreateGetStreamUser(ctx, &user)
+	streamUser, err := c.CreateGetStreamUser(ctx, &user)
 	if err != nil {
 		t.Errorf("ChatClient.CreateGetStreamUser() error = %v", err)
 		return
 	}
 
-	_, err = g.InviteMembers(ctx, []string{streamUser.User.ID}, ch.Channel.ID, nil)
+	_, err = c.InviteMembers(ctx, []string{streamUser.User.ID}, ch.Channel.ID, nil)
 	if err != nil {
 		t.Errorf("ChatClient.InviteMembers() error = %v", err)
 		return
@@ -319,18 +292,28 @@ func TestChatClient_RejectInvite(t *testing.T) {
 			name: "Happy case",
 			args: args{
 				ctx:       ctx,
-				userID:    userID,
-				channelID: ch.Channel.ID,
+				userID:    invitedUserID,
+				channelID: channelID,
 				message:   nil,
 			},
 			wantErr: false,
 		},
 		{
-			name: "Sad case",
+			name: "Sad case: invalid user id",
 			args: args{
 				ctx:       ctx,
 				userID:    uuid.New().String(),
-				channelID: ch.Channel.ID,
+				channelID: channelID,
+				message:   nil,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: invalid channel id",
+			args: args{
+				ctx:       ctx,
+				userID:    invitedUserID,
+				channelID: "",
 				message:   nil,
 			},
 			wantErr: true,
@@ -338,7 +321,7 @@ func TestChatClient_RejectInvite(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := g.RejectInvite(tt.args.ctx, tt.args.userID, tt.args.channelID, tt.args.message)
+			got, err := c.RejectInvite(tt.args.ctx, tt.args.userID, tt.args.channelID, tt.args.message)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ChatClient.RejectInvite() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -348,8 +331,87 @@ func TestChatClient_RejectInvite(t *testing.T) {
 			}
 		})
 	}
-	_, err = g.DeleteChannels(ctx, []string{ch.Channel.ID}, true)
+}
+
+func TestChatClient_AcceptInvite(t *testing.T) {
+	ctx := context.Background()
+	invitedUserID := uuid.New().String()
+	user := stream.User{
+		ID:        invitedUserID,
+		Name:      "test user accepted invite",
+		Invisible: false,
+	}
+	streamUser, err := c.CreateGetStreamUser(ctx, &user)
 	if err != nil {
-		t.Errorf("ChatClient.DeleteChannel() error = %v", err)
+		t.Errorf("ChatClient.CreateGetStreamUser() error = %v", err)
+		return
+	}
+
+	_, err = c.InviteMembers(ctx, []string{streamUser.User.ID}, ch.Channel.ID, nil)
+	if err != nil {
+		t.Errorf("ChatClient.InviteMembers() error = %v", err)
+		return
+	}
+	customInviteMessage := "the user" + user.Name + "accepted the invite"
+	type args struct {
+		ctx       context.Context
+		userID    string
+		channelID string
+		message   *stream.Message
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *stream.Response
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:       ctx,
+				userID:    invitedUserID,
+				channelID: channelID,
+				message: &stream.Message{
+					Text: customInviteMessage,
+					User: &stream.User{
+						ID:   user.ID,
+						Name: user.Name,
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: invalid user id",
+			args: args{
+				ctx:       ctx,
+				userID:    uuid.New().String(),
+				channelID: channelID,
+				message:   nil,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: invalid channel id",
+			args: args{
+				ctx:       ctx,
+				userID:    invitedUserID,
+				channelID: uuid.New().String(),
+				message:   &stream.Message{Text: customInviteMessage},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := c.AcceptInvite(tt.args.ctx, tt.args.userID, tt.args.channelID, tt.args.message)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ChatClient.AcceptInvite() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("ChatClient.AcceptInvite() = %v, want %v", got, tt.want)
+			}
+		})
 	}
 }

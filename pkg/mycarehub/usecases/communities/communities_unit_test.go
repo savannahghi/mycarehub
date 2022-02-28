@@ -609,3 +609,80 @@ func TestUseCasesCommunitiesImpl_RejectInvite(t *testing.T) {
 		})
 	}
 }
+
+func TestUseCasesCommunitiesImpl_AcceptInvite(t *testing.T) {
+	type args struct {
+		ctx       context.Context
+		userID    string
+		channelID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:       context.Background(),
+				userID:    uuid.New().String(),
+				channelID: uuid.New().String(),
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Sad case: userID is empty",
+			args: args{
+				ctx:       context.Background(),
+				channelID: uuid.New().String(),
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case: channelID is empty",
+			args: args{
+				ctx:    context.Background(),
+				userID: uuid.New().String(),
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case: failed to accept invite",
+			args: args{
+				ctx:       context.Background(),
+				userID:    uuid.New().String(),
+				channelID: uuid.New().String(),
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
+			fakeExtension := extensionMock.NewFakeExtension()
+			fakeDB := pgMock.NewPostgresMock()
+			communities := communities.NewUseCaseCommunitiesImpl(fakeGetStream, fakeExtension, fakeDB, fakeDB)
+
+			if tt.name == "Sad case: failed to accept invite" {
+				fakeGetStream.MockAcceptInviteFn = func(ctx context.Context, userID string, channelID string, message *stream.Message) (*stream.Response, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+
+			got, err := communities.AcceptInvite(tt.args.ctx, tt.args.userID, tt.args.channelID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCasesCommunitiesImpl.AcceptInvite() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("UseCasesCommunitiesImpl.AcceptInvite() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
