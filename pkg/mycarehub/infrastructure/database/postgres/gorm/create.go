@@ -17,7 +17,7 @@ type Create interface {
 	CreateHealthDiaryEntry(ctx context.Context, healthDiaryInput *ClientHealthDiaryEntry) error
 	CreateServiceRequest(ctx context.Context, serviceRequestInput *ClientServiceRequest) error
 	CreateClientCaregiver(ctx context.Context, clientID string, clientCaregiver *Caregiver) error
-	CreateChannel(ctx context.Context, community *Community) (*Community, error)
+	CreateCommunity(ctx context.Context, community *Community) (*Community, error)
 }
 
 // GetOrCreateFacility is used to get or create a facility
@@ -199,8 +199,8 @@ func (db *PGInstance) CreateClientCaregiver(ctx context.Context, clientID string
 
 }
 
-// CreateChannel creates a channel in the database
-func (db *PGInstance) CreateChannel(ctx context.Context, community *Community) (*Community, error) {
+// CreateCommunity creates a channel in the database
+func (db *PGInstance) CreateCommunity(ctx context.Context, community *Community) (*Community, error) {
 	err := db.DB.Create(community).Error
 	if err != nil {
 		helpers.ReportErrorToSentry(err)

@@ -107,7 +107,7 @@ func TestUseCaseStreamImpl_CreateCommunity(t *testing.T) {
 			c := communities.NewUseCaseCommunitiesImpl(fakeGetStream, fakeExtension, fakeDB, fakeDB)
 
 			if tt.name == "Sad case - cannot create channel in the database" {
-				fakeDB.MockCreateChannelFn = func(ctx context.Context, community *dto.CommunityInput) (*domain.Community, error) {
+				fakeDB.MockCreateCommunityFn = func(ctx context.Context, community *dto.CommunityInput) (*domain.Community, error) {
 					return nil, fmt.Errorf("an error occurred")
 				}
 			}
@@ -682,6 +682,99 @@ func TestUseCasesCommunitiesImpl_AcceptInvite(t *testing.T) {
 			}
 			if got != tt.want {
 				t.Errorf("UseCasesCommunitiesImpl.AcceptInvite() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestUseCasesCommunitiesImpl_AddMembersToCommunity(t *testing.T) {
+	ctx := context.Background()
+
+	userID := uuid.New().String()
+	communityID := uuid.New().String()
+
+	type args struct {
+		ctx         context.Context
+		userIDs     []string
+		communityID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:         ctx,
+				userIDs:     []string{userID},
+				communityID: communityID,
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Sad case",
+			args: args{
+				ctx:         ctx,
+				userIDs:     []string{userID},
+				communityID: communityID,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case - no community ID",
+			args: args{
+				ctx:         ctx,
+				userIDs:     []string{userID},
+				communityID: "",
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case - no user ID(s)",
+			args: args{
+				ctx:         ctx,
+				userIDs:     nil,
+				communityID: communityID,
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
+			fakeExtension := extensionMock.NewFakeExtension()
+			fakeDB := pgMock.NewPostgresMock()
+			communities := communities.NewUseCaseCommunitiesImpl(fakeGetStream, fakeExtension, fakeDB, fakeDB)
+
+			if tt.name == "Sad case" {
+				fakeGetStream.MockAddMembersToCommunityFn = func(ctx context.Context, userIDs []string, channelID string) (*stream.Response, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - no community ID" {
+				fakeGetStream.MockAddMembersToCommunityFn = func(ctx context.Context, userIDs []string, channelID string) (*stream.Response, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - no user ID" {
+				fakeGetStream.MockAddMembersToCommunityFn = func(ctx context.Context, userIDs []string, channelID string) (*stream.Response, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+
+			got, err := communities.AddMembersToCommunity(tt.args.ctx, tt.args.userIDs, tt.args.communityID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCasesCommunitiesImpl.AddMembersToCommunity() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("UseCasesCommunitiesImpl.AddMembersToCommunity() = %v, want %v", got, tt.want)
 			}
 		})
 	}

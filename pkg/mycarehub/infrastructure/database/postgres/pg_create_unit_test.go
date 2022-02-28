@@ -618,14 +618,14 @@ func TestMyCareHubDb_CreateChannel(t *testing.T) {
 			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
 
 			if tt.name == "Sad case" {
-				fakeGorm.MockCreateChannelFn = func(ctx context.Context, community *gorm.Community) (*gorm.Community, error) {
+				fakeGorm.MockCreateCommunityFn = func(ctx context.Context, community *gorm.Community) (*gorm.Community, error) {
 					return nil, fmt.Errorf("an error occurred")
 				}
 			}
 
-			got, err := d.CreateChannel(tt.args.ctx, tt.args.communityInput)
+			got, err := d.CreateCommunity(tt.args.ctx, tt.args.communityInput)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("MyCareHubDb.CreateChannel() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("MyCareHubDb.CreateCommunity() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !tt.wantErr && got == nil {

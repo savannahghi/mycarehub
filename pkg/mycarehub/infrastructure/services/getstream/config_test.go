@@ -27,7 +27,7 @@ func TestMain(m *testing.M) {
 	// Create a test channel
 	ch, err = c.CreateChannel(ctx, channelType, channelID, testChannelOwner, nil)
 	if err != nil {
-		fmt.Printf("ChatClient.CreateChannel() error = %v", err)
+		fmt.Printf("ChatClient.CreateCommunity() error = %v", err)
 		os.Exit(1)
 	}
 

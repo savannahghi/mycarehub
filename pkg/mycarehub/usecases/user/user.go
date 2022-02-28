@@ -289,7 +289,6 @@ func (us *UseCasesUserImpl) ReturnLoginResponse(ctx context.Context, flavour fee
 			return nil, int(exceptions.ProfileNotFound), exceptions.ClientProfileNotFoundErr(err)
 		}
 
-		// add CHV username to payload
 		if clientProfile.CHVUserID != "" {
 			CHVProfile, err := us.Query.GetUserProfileByUserID(ctx, clientProfile.CHVUserID)
 			if err != nil {

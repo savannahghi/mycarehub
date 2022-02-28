@@ -22,7 +22,7 @@ type Create interface {
 	CreateHealthDiaryEntry(ctx context.Context, healthDiaryInput *domain.ClientHealthDiaryEntry) error
 	CreateServiceRequest(ctx context.Context, serviceRequestInput *domain.ClientServiceRequest) error
 	CreateClientCaregiver(ctx context.Context, caregiverInput *dto.CaregiverInput) error
-	CreateChannel(ctx context.Context, communityInput *dto.CommunityInput) (*domain.Community, error)
+	CreateCommunity(ctx context.Context, communityInput *dto.CommunityInput) (*domain.Community, error)
 }
 
 // Delete represents all the deletion action interfaces
@@ -68,6 +68,7 @@ type Query interface {
 	GetUserRoles(ctx context.Context, userID string) ([]*domain.AuthorityRole, error)
 	GetUserPermissions(ctx context.Context, userID string) ([]*domain.AuthorityPermission, error)
 	CheckIfUsernameExists(ctx context.Context, username string) (bool, error)
+	GetCommunityByID(ctx context.Context, communityID string) (*domain.Community, error)
 }
 
 // Update represents all the update action interfaces

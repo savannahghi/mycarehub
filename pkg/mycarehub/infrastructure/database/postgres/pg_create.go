@@ -193,8 +193,8 @@ func (d *MyCareHubDb) CreateClientCaregiver(ctx context.Context, caregiverInput 
 	return nil
 }
 
-// CreateChannel creates a channel in the database
-func (d *MyCareHubDb) CreateChannel(ctx context.Context, communityInput *dto.CommunityInput) (*domain.Community, error) {
+// CreateCommunity creates a channel in the database
+func (d *MyCareHubDb) CreateCommunity(ctx context.Context, communityInput *dto.CommunityInput) (*domain.Community, error) {
 
 	var genderList pq.StringArray
 	for _, g := range communityInput.Gender {
@@ -218,7 +218,7 @@ func (d *MyCareHubDb) CreateChannel(ctx context.Context, communityInput *dto.Com
 		Discoverable: true,
 	}
 
-	channel, err := d.create.CreateChannel(ctx, input)
+	channel, err := d.create.CreateCommunity(ctx, input)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, err
