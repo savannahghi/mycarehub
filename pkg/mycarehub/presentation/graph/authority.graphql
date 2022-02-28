@@ -1,3 +1,4 @@
 extend type Mutation {
   assignRoles(userID: String!, roles: [UserRoleType!]!): Boolean!
+  revokeRoles(userID: String!, roles: [UserRoleType!]!): Boolean!
 }

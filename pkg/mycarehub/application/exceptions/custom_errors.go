@@ -432,3 +432,12 @@ func GetUserPermissionsErr(err error) error {
 		Code:    int(GetUserPermissionsError),
 	}
 }
+
+// RevokeRolesErr returns an error message when the user roles' revocation fails
+func RevokeRolesErr(err error) error {
+	return &CustomError{
+		Err:     err,
+		Message: RevokeRolesErrorMsg,
+		Code:    int(RevokeRolesError),
+	}
+}

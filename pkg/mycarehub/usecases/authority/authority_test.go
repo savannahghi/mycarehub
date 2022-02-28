@@ -402,3 +402,95 @@ func TestUsecaseAuthorityImpl_GetUserPermissions(t *testing.T) {
 		})
 	}
 }
+
+func TestUsecaseAuthorityImpl_RevokeRoles(t *testing.T) {
+	type args struct {
+		ctx    context.Context
+		userID string
+		roles  []enums.UserRoleType
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "happy case: successfully revoke roles from a user",
+			args: args{
+				ctx:    context.Background(),
+				userID: uuid.New().String(),
+				roles:  []enums.UserRoleType{enums.UserRoleTypeSystemAdministrator},
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "sad case: missing user id",
+			args: args{
+				ctx:    context.Background(),
+				userID: "",
+				roles:  []enums.UserRoleType{enums.UserRoleTypeSystemAdministrator},
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "sad case: missing roles",
+			args: args{
+				ctx:    context.Background(),
+				userID: uuid.New().String(),
+				roles:  []enums.UserRoleType{},
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "sad case: user not authorized",
+			args: args{
+				ctx:    context.Background(),
+				userID: uuid.New().String(),
+				roles:  []enums.UserRoleType{enums.UserRoleTypeSystemAdministrator},
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "sad case: failed to revoke roles from a user",
+			args: args{
+				ctx:    context.Background(),
+				userID: uuid.New().String(),
+				roles:  []enums.UserRoleType{enums.UserRoleTypeSystemAdministrator},
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			fakeExtension := extensionMock.NewFakeExtension()
+			u := NewUsecaseAuthority(fakeDB, fakeDB, fakeExtension)
+			if tt.name == "sad case: user not authorized" {
+				fakeDB.MockCheckUserPermissionFn = func(ctx context.Context, userID string, permission string) (bool, error) {
+					return false, nil
+				}
+			}
+
+			if tt.name == "sad case: failed to revoke roles from a user" {
+				fakeDB.MockRevokeRolesFn = func(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error) {
+					return false, fmt.Errorf("failed to revoke roles from a user")
+				}
+			}
+
+			got, err := u.RevokeRoles(tt.args.ctx, tt.args.userID, tt.args.roles)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UsecaseAuthorityImpl.RevokeRoles() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("UsecaseAuthorityImpl.RevokeRoles() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

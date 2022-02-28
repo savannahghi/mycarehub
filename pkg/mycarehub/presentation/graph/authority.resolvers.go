@@ -14,6 +14,10 @@ func (r *mutationResolver) AssignRoles(ctx context.Context, userID string, roles
 	return r.mycarehub.Authority.AssignRoles(ctx, userID, roles)
 }
 
+func (r *mutationResolver) RevokeRoles(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error) {
+	return r.mycarehub.Authority.RevokeRoles(ctx, userID, roles)
+}
+
 // Mutation returns generated.MutationResolver implementation.
 func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
 

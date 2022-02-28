@@ -93,4 +93,5 @@ type Update interface {
 	UpdateClientCaregiver(ctx context.Context, caregiverInput *dto.CaregiverInput) error
 	ResolveServiceRequest(ctx context.Context, staffID *string, serviceRequestID *string) (bool, error)
 	AssignRoles(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error)
+	RevokeRoles(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error)
 }

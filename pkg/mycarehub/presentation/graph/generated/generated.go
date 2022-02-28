@@ -303,6 +303,7 @@ type ComplexityRoot struct {
 		RegisterClient                  func(childComplexity int, input *dto.ClientRegistrationInput) int
 		RejectInvitation                func(childComplexity int, userID string, communityID string) int
 		ResolveServiceRequest           func(childComplexity int, staffID string, requestID string) int
+		RevokeRoles                     func(childComplexity int, userID string, roles []enums.UserRoleType) int
 		SendFeedback                    func(childComplexity int, input dto.FeedbackResponseInput) int
 		SetInProgressBy                 func(childComplexity int, serviceRequestID string, staffID string) int
 		SetNickName                     func(childComplexity int, userID string, nickname string) int
@@ -400,6 +401,7 @@ type ComplexityRoot struct {
 
 type MutationResolver interface {
 	AssignRoles(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error)
+	RevokeRoles(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error)
 	CreateCommunity(ctx context.Context, input dto.CommunityInput) (*domain.Community, error)
 	DeleteCommunities(ctx context.Context, communityIDs []string, hardDelete bool) (bool, error)
 	RejectInvitation(ctx context.Context, userID string, communityID string) (bool, error)
@@ -1746,6 +1748,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.ResolveServiceRequest(childComplexity, args["staffID"].(string), args["requestID"].(string)), true
 
+	case "Mutation.revokeRoles":
+		if e.complexity.Mutation.RevokeRoles == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_revokeRoles_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.RevokeRoles(childComplexity, args["userID"].(string), args["roles"].([]enums.UserRoleType)), true
+
 	case "Mutation.sendFeedback":
 		if e.complexity.Mutation.SendFeedback == nil {
 			break
@@ -2412,6 +2426,7 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 var sources = []*ast.Source{
 	{Name: "pkg/mycarehub/presentation/graph/authority.graphql", Input: `extend type Mutation {
   assignRoles(userID: String!, roles: [UserRoleType!]!): Boolean!
+  revokeRoles(userID: String!, roles: [UserRoleType!]!): Boolean!
 }
 `, BuiltIn: false},
 	{Name: "pkg/mycarehub/presentation/graph/communities.graphql", Input: `extend type Query {
@@ -3538,6 +3553,30 @@ func (ec *executionContext) field_Mutation_resolveServiceRequest_args(ctx contex
 		}
 	}
 	args["requestID"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_revokeRoles_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["userID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userID"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["userID"] = arg0
+	var arg1 []enums.UserRoleType
+	if tmp, ok := rawArgs["roles"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("roles"))
+		arg1, err = ec.unmarshalNUserRoleType2ᚕgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐUserRoleTypeᚄ(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["roles"] = arg1
 	return args, nil
 }
 
@@ -9265,6 +9304,48 @@ func (ec *executionContext) _Mutation_assignRoles(ctx context.Context, field gra
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Mutation().AssignRoles(rctx, args["userID"].(string), args["roles"].([]enums.UserRoleType))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_revokeRoles(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_revokeRoles_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().RevokeRoles(rctx, args["userID"].(string), args["roles"].([]enums.UserRoleType))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -15634,6 +15715,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = graphql.MarshalString("Mutation")
 		case "assignRoles":
 			out.Values[i] = ec._Mutation_assignRoles(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "revokeRoles":
+			out.Values[i] = ec._Mutation_revokeRoles(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}

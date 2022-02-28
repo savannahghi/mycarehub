@@ -15,6 +15,7 @@ type AuthorityUseCaseMock struct {
 	MockAssignRolesFn         func(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error)
 	MockGetUserRolesFn        func(ctx context.Context, userID string) ([]*domain.AuthorityRole, error)
 	MockGetUserPermissionsFn  func(ctx context.Context, userID string) ([]*domain.AuthorityPermission, error)
+	MockRevokeRolesFn         func(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error)
 }
 
 // NewAuthorityUseCaseMock creates in initializes create type mocks
@@ -47,6 +48,9 @@ func NewAuthorityUseCaseMock() *AuthorityUseCaseMock {
 				},
 			}, nil
 		},
+		MockRevokeRolesFn: func(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error) {
+			return false, nil
+		},
 	}
 }
 
@@ -73,4 +77,9 @@ func (f *AuthorityUseCaseMock) GetUserRoles(ctx context.Context, userID string) 
 // GetUserPermissions mocks the implementation of getting all permissions for a user
 func (f *AuthorityUseCaseMock) GetUserPermissions(ctx context.Context, userID string) ([]*domain.AuthorityPermission, error) {
 	return f.MockGetUserPermissionsFn(ctx, userID)
+}
+
+// RevokeRoles mocks the implementation for revoking the roles from the user
+func (f *AuthorityUseCaseMock) RevokeRoles(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error) {
+	return f.MockRevokeRolesFn(ctx, userID, roles)
 }
