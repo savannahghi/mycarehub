@@ -29,6 +29,7 @@ type ServiceGetStream interface {
 	GetChannel(ctx context.Context, channelID string) (*stream.Channel, error)
 	AddMembersToCommunity(ctx context.Context, userIDs []string, channelID string) (*stream.Response, error)
 	RejectInvite(ctx context.Context, userID string, channelID string, message *stream.Message) (*stream.Response, error)
+	AcceptInvite(ctx context.Context, userID string, channelID string, message *stream.Message) (*stream.Response, error)
 }
 
 // ChatClient is the service's struct implementation
@@ -129,4 +130,9 @@ func (c *ChatClient) AddMembersToCommunity(ctx context.Context, userIDs []string
 // RejectInvite rejects invitation to a getstream channel
 func (c *ChatClient) RejectInvite(ctx context.Context, userID string, channelID string, message *stream.Message) (*stream.Response, error) {
 	return c.client.Channel("messaging", channelID).RejectInvite(ctx, userID, message)
+}
+
+// AcceptInvite accepts invitation to a getstream channel
+func (c *ChatClient) AcceptInvite(ctx context.Context, userID string, channelID string, message *stream.Message) (*stream.Response, error) {
+	return c.client.Channel("messaging", channelID).AcceptInvite(ctx, userID, message)
 }

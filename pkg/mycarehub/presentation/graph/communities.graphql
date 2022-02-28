@@ -9,4 +9,5 @@ extend type Mutation {
   createCommunity(input: CommunityInput!): Community!
   deleteCommunities(communityIDs: [String!]!, hardDelete: Boolean!): Boolean!
   rejectInvitation(userID: String!, communityID: String!): Boolean!
+  acceptInvitation(userID: String!, communityID: String!): Boolean!
 }

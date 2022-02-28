@@ -283,6 +283,7 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
+		AcceptInvitation                func(childComplexity int, userID string, communityID string) int
 		AcceptTerms                     func(childComplexity int, userID string, termsID int) int
 		AssignRoles                     func(childComplexity int, userID string, roles []enums.UserRoleType) int
 		BookmarkContent                 func(childComplexity int, userID string, contentItemID int) int
@@ -402,6 +403,7 @@ type MutationResolver interface {
 	CreateCommunity(ctx context.Context, input dto.CommunityInput) (*domain.Community, error)
 	DeleteCommunities(ctx context.Context, communityIDs []string, hardDelete bool) (bool, error)
 	RejectInvitation(ctx context.Context, userID string, communityID string) (bool, error)
+	AcceptInvitation(ctx context.Context, userID string, communityID string) (bool, error)
 	ShareContent(ctx context.Context, input dto.ShareContentInput) (bool, error)
 	BookmarkContent(ctx context.Context, userID string, contentItemID int) (bool, error)
 	UnBookmarkContent(ctx context.Context, userID string, contentItemID int) (bool, error)
@@ -1504,6 +1506,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Meta.TotalCount(childComplexity), true
 
+	case "Mutation.acceptInvitation":
+		if e.complexity.Mutation.AcceptInvitation == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_acceptInvitation_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.AcceptInvitation(childComplexity, args["userID"].(string), args["communityID"].(string)), true
+
 	case "Mutation.acceptTerms":
 		if e.complexity.Mutation.AcceptTerms == nil {
 			break
@@ -2411,6 +2425,7 @@ extend type Mutation {
   createCommunity(input: CommunityInput!): Community!
   deleteCommunities(communityIDs: [String!]!, hardDelete: Boolean!): Boolean!
   rejectInvitation(userID: String!, communityID: String!): Boolean!
+  acceptInvitation(userID: String!, communityID: String!): Boolean!
 }
 `, BuiltIn: false},
 	{Name: "pkg/mycarehub/presentation/graph/content.graphql", Input: `extend type Query {
@@ -3079,6 +3094,30 @@ func (ec *executionContext) field_Mutation_UnBookmarkContent_args(ctx context.Co
 		}
 	}
 	args["contentItemID"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_acceptInvitation_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["userID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userID"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["userID"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["communityID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("communityID"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["communityID"] = arg1
 	return args, nil
 }
 
@@ -9368,6 +9407,48 @@ func (ec *executionContext) _Mutation_rejectInvitation(ctx context.Context, fiel
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Mutation_acceptInvitation(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_acceptInvitation_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().AcceptInvitation(rctx, args["userID"].(string), args["communityID"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Mutation_shareContent(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -15568,6 +15649,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			}
 		case "rejectInvitation":
 			out.Values[i] = ec._Mutation_rejectInvitation(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "acceptInvitation":
+			out.Values[i] = ec._Mutation_acceptInvitation(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}

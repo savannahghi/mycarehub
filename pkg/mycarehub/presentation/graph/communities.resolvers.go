@@ -24,6 +24,10 @@ func (r *mutationResolver) RejectInvitation(ctx context.Context, userID string, 
 	return r.mycarehub.Community.RejectInvite(ctx, userID, communityID)
 }
 
+func (r *mutationResolver) AcceptInvitation(ctx context.Context, userID string, communityID string) (bool, error) {
+	return r.mycarehub.Community.AcceptInvite(ctx, userID, communityID)
+}
+
 func (r *queryResolver) ListMembers(ctx context.Context, input *stream_chat.QueryOption) ([]*domain.Member, error) {
 	return r.mycarehub.Community.ListMembers(ctx, input)
 }

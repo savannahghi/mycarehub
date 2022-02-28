@@ -46,8 +46,9 @@ type IDeleteCommunities interface {
 	DeleteCommunities(ctx context.Context, communityIDs []string, hardDelete bool) (bool, error)
 }
 
-// IRejectInvites interface holds methods that are used to reject invitation into communities.
-type IRejectInvites interface {
+// ICommunityInvites is an interface that is used to manage community invites
+type ICommunityInvites interface {
+	AcceptInvite(ctx context.Context, userID string, channelID string) (bool, error)
 	RejectInvite(ctx context.Context, userID string, channelID string) (bool, error)
 }
 
@@ -58,7 +59,7 @@ type UseCasesCommunities interface {
 	IListUsers
 	IListCommunities
 	IDeleteCommunities
-	IRejectInvites
+	ICommunityInvites
 }
 
 // UseCasesCommunitiesImpl represents communities implementation
@@ -281,11 +282,14 @@ func (us *UseCasesCommunitiesImpl) ListCommunityMembers(ctx context.Context, com
 		}
 
 		commMem := &domain.CommunityMember{
-			UserID:      userID,
-			User:        user,
-			Role:        member.Role,
-			IsModerator: member.IsModerator,
-			UserType:    userType,
+			UserID:           userID,
+			User:             user,
+			Role:             member.Role,
+			IsModerator:      member.IsModerator,
+			UserType:         userType,
+			Invited:          member.Invited,
+			InviteAcceptedAt: member.InviteAcceptedAt,
+			InviteRejectedAt: member.InviteRejectedAt,
 		}
 
 		members = append(members, commMem)
@@ -319,6 +323,30 @@ func (us *UseCasesCommunitiesImpl) RejectInvite(ctx context.Context, userID stri
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return false, fmt.Errorf("failed reject invite into a community")
+	}
+
+	return true, nil
+}
+
+// AcceptInvite accepts an invite into a community
+func (us *UseCasesCommunitiesImpl) AcceptInvite(ctx context.Context, userID string, channelID string) (bool, error) {
+	if userID == "" {
+		return false, fmt.Errorf("user id cannot be empty")
+	}
+	if channelID == "" {
+		return false, fmt.Errorf("channel id cannot be empty")
+	}
+	message := &stream.Message{
+		ID: uuid.New().String(),
+		User: &stream.User{
+			ID: userID,
+		},
+	}
+
+	_, err := us.GetstreamService.AcceptInvite(ctx, userID, channelID, message)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, fmt.Errorf("failed to accept invite into a community")
 	}
 
 	return true, nil

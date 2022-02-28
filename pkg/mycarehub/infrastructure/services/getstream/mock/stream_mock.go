@@ -22,6 +22,7 @@ type GetStreamServiceMock struct {
 	MockGetChannel                 func(ctx context.Context, channelID string) (*stream.Channel, error)
 	MockAddMembersToCommunityFn    func(ctx context.Context, userIDs []string, channelID string) (*stream.Response, error)
 	MockRejectInviteFn             func(ctx context.Context, userID string, channelID string, message *stream.Message) (*stream.Response, error)
+	MockAcceptInviteFn             func(ctx context.Context, userID string, channelID string, message *stream.Message) (*stream.Response, error)
 }
 
 // NewGetStreamServiceMock initializes the mock service
@@ -146,6 +147,16 @@ func NewGetStreamServiceMock() *GetStreamServiceMock {
 				},
 			}, nil
 		},
+		MockAcceptInviteFn: func(ctx context.Context, userID string, channelID string, message *stream.Message) (*stream.Response, error) {
+			return &stream.Response{
+				RateLimitInfo: &stream.RateLimitInfo{
+					Limit:     0,
+					Remaining: 0,
+					Reset:     0,
+				},
+			}, nil
+
+		},
 	}
 }
 
@@ -202,4 +213,9 @@ func (g GetStreamServiceMock) AddMembersToCommunity(ctx context.Context, userIDs
 // RejectInvite mocks the implementation for rejecting invite into a community
 func (g GetStreamServiceMock) RejectInvite(ctx context.Context, userID string, channelID string, message *stream.Message) (*stream.Response, error) {
 	return g.MockRejectInviteFn(ctx, userID, channelID, message)
+}
+
+// AcceptInvite mocks the implementation for accepting invite into a community
+func (g GetStreamServiceMock) AcceptInvite(ctx context.Context, userID string, channelID string, message *stream.Message) (*stream.Response, error) {
+	return g.MockAcceptInviteFn(ctx, userID, channelID, message)
 }
