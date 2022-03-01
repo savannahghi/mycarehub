@@ -28,16 +28,20 @@ func (r *mutationResolver) AcceptInvitation(ctx context.Context, userID string, 
 	return r.mycarehub.Community.AcceptInvite(ctx, userID, communityID)
 }
 
-func (r *mutationResolver) AddMembersToCommunity(ctx context.Context, userID []string, communityID string) (bool, error) {
-	return r.mycarehub.Community.AddMembersToCommunity(ctx, userID, communityID)
+func (r *mutationResolver) AddMembersToCommunity(ctx context.Context, memberIDs []string, communityID string) (bool, error) {
+	return r.mycarehub.Community.AddMembersToCommunity(ctx, memberIDs, communityID)
+}
+
+func (r *mutationResolver) RemoveMembersFromCommunity(ctx context.Context, communityID string, memberIDs []string) (bool, error) {
+	return r.mycarehub.Community.RemoveMembersFromCommunity(ctx, communityID, memberIDs)
 }
 
 func (r *queryResolver) ListMembers(ctx context.Context, input *stream_chat.QueryOption) ([]*domain.Member, error) {
 	return r.mycarehub.Community.ListMembers(ctx, input)
 }
 
-func (r *queryResolver) InviteMembersToCommunity(ctx context.Context, communityID string, userIDS []string) (bool, error) {
-	return r.mycarehub.Community.InviteMembers(ctx, communityID, userIDS)
+func (r *queryResolver) InviteMembersToCommunity(ctx context.Context, communityID string, memberIDs []string) (bool, error) {
+	return r.mycarehub.Community.InviteMembers(ctx, communityID, memberIDs)
 }
 
 func (r *queryResolver) ListCommunities(ctx context.Context, input *stream_chat.QueryOption) ([]*domain.Community, error) {

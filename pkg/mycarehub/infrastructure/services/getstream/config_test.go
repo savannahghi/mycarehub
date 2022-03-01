@@ -15,6 +15,8 @@ var (
 	channelID        = "testChannelJnJ"
 	channelType      = "messaging"
 	testChannelOwner = uuid.New().String()
+	member1          = uuid.New().String()
+	member2          = uuid.New().String()
 	c                getstream.ServiceGetStream
 	ch               *stream.CreateChannelResponse
 	err              error
@@ -31,6 +33,9 @@ func TestMain(m *testing.M) {
 		os.Exit(1)
 	}
 
+	// Add members to the channel
+	addMembersToAChannel()
+
 	run := m.Run()
 	os.Exit(run)
 
@@ -41,4 +46,29 @@ func TestMain(m *testing.M) {
 		os.Exit(1)
 	}
 
+}
+
+func addMembersToAChannel() {
+	ctx := context.Background()
+	user1 := stream.User{
+		ID:        member1,
+		Name:      "test",
+		Invisible: false,
+	}
+	user2 := stream.User{
+		ID:        member2,
+		Name:      "test",
+		Invisible: false,
+	}
+	_, err := c.CreateGetStreamUser(ctx, &user1)
+	if err != nil {
+		fmt.Printf("ChatClient.CreateGetStreamUser() error = %v", err)
+		return
+	}
+
+	_, err = c.CreateGetStreamUser(ctx, &user2)
+	if err != nil {
+		fmt.Printf("ChatClient.CreateGetStreamUser() error = %v", err)
+		return
+	}
 }

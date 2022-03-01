@@ -96,6 +96,24 @@ func TestUseCaseStreamImpl_CreateCommunity(t *testing.T) {
 			},
 			wantErr: true,
 		},
+		{
+			name: "Sad case - fail to get staff profile by logged in user id",
+			args: args{
+				ctx: ctx,
+				input: dto.CommunityInput{
+					Name:        "test",
+					Description: "test",
+					AgeRange: &dto.AgeRangeInput{
+						LowerBound: 10,
+						UpperBound: 20,
+					},
+					Gender:     []*enumutils.Gender{&enumutils.AllGender[0]},
+					ClientType: []*enums.ClientType{&enums.AllClientType[0]},
+					InviteOnly: true,
+				},
+			},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -118,6 +136,12 @@ func TestUseCaseStreamImpl_CreateCommunity(t *testing.T) {
 			}
 			if tt.name == "Sad case - fail to create streams channel" {
 				fakeGetStream.MockCreateChannelFn = func(ctx context.Context, chanType, chanID, userID string, data map[string]interface{}) (*stream.CreateChannelResponse, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+
+			if tt.name == "Sad case - fail to get staff profile by logged in user id" {
+				fakeDB.MockGetStaffProfileByUserIDFn = func(ctx context.Context, uid string) (*domain.StaffProfile, error) {
 					return nil, fmt.Errorf("an error occurred")
 				}
 			}
@@ -200,7 +224,7 @@ func TestUseCasesCommunitiesImpl_InviteMembers(t *testing.T) {
 	type args struct {
 		ctx         context.Context
 		communityID string
-		userIDS     []string
+		memberIDs   []string
 	}
 	tests := []struct {
 		name    string
@@ -213,7 +237,7 @@ func TestUseCasesCommunitiesImpl_InviteMembers(t *testing.T) {
 			args: args{
 				ctx:         context.Background(),
 				communityID: uuid.New().String(),
-				userIDS: []string{
+				memberIDs: []string{
 					uuid.NewString(),
 					uuid.NewString(),
 				},
@@ -226,7 +250,7 @@ func TestUseCasesCommunitiesImpl_InviteMembers(t *testing.T) {
 			args: args{
 				ctx:         context.Background(),
 				communityID: uuid.New().String(),
-				userIDS: []string{
+				memberIDs: []string{
 					uuid.NewString(),
 					uuid.NewString(),
 				},
@@ -239,7 +263,7 @@ func TestUseCasesCommunitiesImpl_InviteMembers(t *testing.T) {
 			args: args{
 				ctx:         context.Background(),
 				communityID: uuid.New().String(),
-				userIDS: []string{
+				memberIDs: []string{
 					uuid.NewString(),
 					uuid.NewString(),
 				},
@@ -252,7 +276,7 @@ func TestUseCasesCommunitiesImpl_InviteMembers(t *testing.T) {
 			args: args{
 				ctx:         context.Background(),
 				communityID: uuid.New().String(),
-				userIDS: []string{
+				memberIDs: []string{
 					uuid.NewString(),
 					uuid.NewString(),
 				},
@@ -281,12 +305,12 @@ func TestUseCasesCommunitiesImpl_InviteMembers(t *testing.T) {
 			}
 
 			if tt.name == "Sad Case - Fail to invite members" {
-				fakeGetStream.MockInviteMembersFn = func(ctx context.Context, userIDs []string, channelID string, message *stream.Message) (*stream.Response, error) {
+				fakeGetStream.MockInviteMembersFn = func(ctx context.Context, memberIDs []string, channelID string, message *stream.Message) (*stream.Response, error) {
 					return nil, fmt.Errorf("failed to invite members")
 				}
 			}
 
-			got, err := communities.InviteMembers(tt.args.ctx, tt.args.communityID, tt.args.userIDS)
+			got, err := communities.InviteMembers(tt.args.ctx, tt.args.communityID, tt.args.memberIDs)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCasesCommunitiesImpl.InviteMembers() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -695,7 +719,7 @@ func TestUseCasesCommunitiesImpl_AddMembersToCommunity(t *testing.T) {
 
 	type args struct {
 		ctx         context.Context
-		userIDs     []string
+		memberIDs   []string
 		communityID string
 	}
 	tests := []struct {
@@ -708,7 +732,7 @@ func TestUseCasesCommunitiesImpl_AddMembersToCommunity(t *testing.T) {
 			name: "Happy case",
 			args: args{
 				ctx:         ctx,
-				userIDs:     []string{userID},
+				memberIDs:   []string{userID},
 				communityID: communityID,
 			},
 			want:    true,
@@ -718,7 +742,7 @@ func TestUseCasesCommunitiesImpl_AddMembersToCommunity(t *testing.T) {
 			name: "Sad case",
 			args: args{
 				ctx:         ctx,
-				userIDs:     []string{userID},
+				memberIDs:   []string{userID},
 				communityID: communityID,
 			},
 			want:    false,
@@ -728,7 +752,7 @@ func TestUseCasesCommunitiesImpl_AddMembersToCommunity(t *testing.T) {
 			name: "Sad case - no community ID",
 			args: args{
 				ctx:         ctx,
-				userIDs:     []string{userID},
+				memberIDs:   []string{userID},
 				communityID: "",
 			},
 			want:    false,
@@ -738,7 +762,7 @@ func TestUseCasesCommunitiesImpl_AddMembersToCommunity(t *testing.T) {
 			name: "Sad case - no user ID(s)",
 			args: args{
 				ctx:         ctx,
-				userIDs:     nil,
+				memberIDs:   nil,
 				communityID: communityID,
 			},
 			want:    false,
@@ -753,28 +777,104 @@ func TestUseCasesCommunitiesImpl_AddMembersToCommunity(t *testing.T) {
 			communities := communities.NewUseCaseCommunitiesImpl(fakeGetStream, fakeExtension, fakeDB, fakeDB)
 
 			if tt.name == "Sad case" {
-				fakeGetStream.MockAddMembersToCommunityFn = func(ctx context.Context, userIDs []string, channelID string) (*stream.Response, error) {
+				fakeGetStream.MockAddMembersToCommunityFn = func(ctx context.Context, memberIDs []string, channelID string) (*stream.Response, error) {
 					return nil, fmt.Errorf("an error occurred")
 				}
 			}
 			if tt.name == "Sad case - no community ID" {
-				fakeGetStream.MockAddMembersToCommunityFn = func(ctx context.Context, userIDs []string, channelID string) (*stream.Response, error) {
+				fakeGetStream.MockAddMembersToCommunityFn = func(ctx context.Context, memberIDs []string, channelID string) (*stream.Response, error) {
 					return nil, fmt.Errorf("an error occurred")
 				}
 			}
 			if tt.name == "Sad case - no user ID" {
-				fakeGetStream.MockAddMembersToCommunityFn = func(ctx context.Context, userIDs []string, channelID string) (*stream.Response, error) {
+				fakeGetStream.MockAddMembersToCommunityFn = func(ctx context.Context, memberIDs []string, channelID string) (*stream.Response, error) {
 					return nil, fmt.Errorf("an error occurred")
 				}
 			}
 
-			got, err := communities.AddMembersToCommunity(tt.args.ctx, tt.args.userIDs, tt.args.communityID)
+			got, err := communities.AddMembersToCommunity(tt.args.ctx, tt.args.memberIDs, tt.args.communityID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCasesCommunitiesImpl.AddMembersToCommunity() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if got != tt.want {
 				t.Errorf("UseCasesCommunitiesImpl.AddMembersToCommunity() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestUseCasesCommunitiesImpl_RemoveMembers(t *testing.T) {
+	type args struct {
+		ctx       context.Context
+		channelID string
+		memberIDs []string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:       context.Background(),
+				channelID: uuid.New().String(),
+				memberIDs: []string{uuid.New().String()},
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Sad case: channelID is empty",
+			args: args{
+				ctx:       context.Background(),
+				memberIDs: []string{uuid.New().String()},
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case: memberIDs is empty",
+			args: args{
+				ctx:       context.Background(),
+				channelID: uuid.New().String(),
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case: failed to remove members",
+			args: args{
+				ctx:       context.Background(),
+				channelID: uuid.New().String(),
+				memberIDs: []string{uuid.New().String()},
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
+			fakeExtension := extensionMock.NewFakeExtension()
+			fakeDB := pgMock.NewPostgresMock()
+			communities := communities.NewUseCaseCommunitiesImpl(fakeGetStream, fakeExtension, fakeDB, fakeDB)
+
+			if tt.name == "Sad case: failed to remove members" {
+				fakeGetStream.MockRemoveMembersFn = func(ctx context.Context, channelID string, memberIDs []string, message *stream.Message) (*stream.Response, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+
+			got, err := communities.RemoveMembersFromCommunity(tt.args.ctx, tt.args.channelID, tt.args.memberIDs)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCasesCommunitiesImpl.RemoveMembersFromCommunity() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("UseCasesCommunitiesImpl.RemoveMembersFromCommunity() = %v, want %v", got, tt.want)
 			}
 		})
 	}

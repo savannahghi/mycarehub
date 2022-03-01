@@ -17,7 +17,7 @@ type CommunityUsecaseMock struct {
 	MockCreateCommunityFn       func(ctx context.Context, input dto.CommunityInput) (*domain.Community, error)
 	MockListCommunityMembers    func(ctx context.Context, communityID string) ([]*domain.CommunityMember, error)
 	MockRejectInviteFn          func(ctx context.Context, userID string, channelID string) (bool, error)
-	MockAddMembersToCommunityFn func(ctx context.Context, userIDs []string, communityID string) (*stream.Response, error)
+	MockAddMembersToCommunityFn func(ctx context.Context, memberIDs []string, communityID string) (*stream.Response, error)
 }
 
 // NewCommunityUsecaseMock initializes a new instance of the Community usecase happy cases
@@ -59,7 +59,7 @@ func NewCommunityUsecaseMock() *CommunityUsecaseMock {
 		MockRejectInviteFn: func(ctx context.Context, userID string, channelID string) (bool, error) {
 			return true, nil
 		},
-		MockAddMembersToCommunityFn: func(ctx context.Context, userIDs []string, communityID string) (*stream.Response, error) {
+		MockAddMembersToCommunityFn: func(ctx context.Context, memberIDs []string, communityID string) (*stream.Response, error) {
 			return &stream.Response{
 				RateLimitInfo: &stream.RateLimitInfo{
 					Limit:     10,
@@ -92,6 +92,6 @@ func (c CommunityUsecaseMock) RejectInvite(ctx context.Context, userID string, c
 }
 
 // AddMembersToCommunity mocks the implementation of adding members to a community
-func (c CommunityUsecaseMock) AddMembersToCommunity(ctx context.Context, userIDs []string, communityID string) (*stream.Response, error) {
-	return c.MockAddMembersToCommunityFn(ctx, userIDs, communityID)
+func (c CommunityUsecaseMock) AddMembersToCommunity(ctx context.Context, memberIDs []string, communityID string) (*stream.Response, error) {
+	return c.MockAddMembersToCommunityFn(ctx, memberIDs, communityID)
 }

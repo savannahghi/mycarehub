@@ -415,3 +415,62 @@ func TestChatClient_AcceptInvite(t *testing.T) {
 		})
 	}
 }
+
+func TestChatClient_RemoveMembers(t *testing.T) {
+	ctx := context.Background()
+	type args struct {
+		ctx       context.Context
+		channelID string
+		memberIDs []string
+		message   *stream.Message
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *stream.Response
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:       ctx,
+				channelID: channelID,
+				memberIDs: []string{member1},
+				message:   nil,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: invalid channel id",
+			args: args{
+				ctx:       ctx,
+				channelID: uuid.New().String(),
+				memberIDs: []string{member1},
+				message:   nil,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: invalid user id",
+			args: args{
+				ctx:       ctx,
+				channelID: channelID,
+				memberIDs: []string{uuid.New().String()},
+				message:   nil,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := c.RemoveMembersFromCommunity(tt.args.ctx, tt.args.channelID, tt.args.memberIDs, tt.args.message)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ChatClient.RemoveMembersFromCommunity() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected a response but got: %v", err)
+			}
+		})
+	}
+}

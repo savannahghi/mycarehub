@@ -16,13 +16,14 @@ type GetStreamServiceMock struct {
 	MockListGetStreamUsersFn       func(ctx context.Context, queryOptions *stream.QueryOption) (*stream.QueryUsersResponse, error)
 	MockCreateChannelFn            func(ctx context.Context, chanType, chanID, userID string, data map[string]interface{}) (*stream.CreateChannelResponse, error)
 	MockDeleteChannelsFn           func(ctx context.Context, chanIDs []string, hardDelete bool) (*stream.AsyncTaskResponse, error)
-	MockInviteMembersFn            func(ctx context.Context, userIDs []string, channelID string, message *stream.Message) (*stream.Response, error)
+	MockInviteMembersFn            func(ctx context.Context, memberIDs []string, channelID string, message *stream.Message) (*stream.Response, error)
 	MockListGetStreamChannelsFn    func(ctx context.Context, input *stream.QueryOption) (*stream.QueryChannelsResponse, error)
 	MockListChannelMembersFn       func(ctx context.Context, channelID string, q *stream.QueryOption, sorters ...*stream.SortOption) ([]*stream.ChannelMember, error)
 	MockGetChannel                 func(ctx context.Context, channelID string) (*stream.Channel, error)
-	MockAddMembersToCommunityFn    func(ctx context.Context, userIDs []string, channelID string) (*stream.Response, error)
+	MockAddMembersToCommunityFn    func(ctx context.Context, memberIDs []string, channelID string) (*stream.Response, error)
 	MockRejectInviteFn             func(ctx context.Context, userID string, channelID string, message *stream.Message) (*stream.Response, error)
 	MockAcceptInviteFn             func(ctx context.Context, userID string, channelID string, message *stream.Message) (*stream.Response, error)
+	MockRemoveMembersFn            func(ctx context.Context, channelID string, memberIDs []string, message *stream.Message) (*stream.Response, error)
 }
 
 // NewGetStreamServiceMock initializes the mock service
@@ -60,12 +61,12 @@ func NewGetStreamServiceMock() *GetStreamServiceMock {
 				Response: &stream.Response{},
 			}, nil
 		},
-		MockInviteMembersFn: func(ctx context.Context, userIDs []string, channelID string, message *stream.Message) (*stream.Response, error) {
+		MockInviteMembersFn: func(ctx context.Context, memberIDs []string, channelID string, message *stream.Message) (*stream.Response, error) {
 			return &stream.Response{RateLimitInfo: &stream.RateLimitInfo{
 				Limit: 100,
 			}}, nil
 		},
-		MockAddMembersToCommunityFn: func(ctx context.Context, userIDs []string, channelID string) (*stream.Response, error) {
+		MockAddMembersToCommunityFn: func(ctx context.Context, memberIDs []string, channelID string) (*stream.Response, error) {
 			return &stream.Response{RateLimitInfo: &stream.RateLimitInfo{
 				Limit: 100,
 			}}, nil
@@ -157,6 +158,15 @@ func NewGetStreamServiceMock() *GetStreamServiceMock {
 			}, nil
 
 		},
+		MockRemoveMembersFn: func(ctx context.Context, channelID string, memberIDs []string, message *stream.Message) (*stream.Response, error) {
+			return &stream.Response{
+				RateLimitInfo: &stream.RateLimitInfo{
+					Limit:     0,
+					Remaining: 0,
+					Reset:     0,
+				},
+			}, nil
+		},
 	}
 }
 
@@ -186,8 +196,8 @@ func (g GetStreamServiceMock) DeleteChannels(ctx context.Context, chanIDs []stri
 }
 
 // InviteMembers mocks the implementation for inviting members to a specified channel
-func (g GetStreamServiceMock) InviteMembers(ctx context.Context, userIDs []string, channelID string, message *stream.Message) (*stream.Response, error) {
-	return g.MockInviteMembersFn(ctx, userIDs, channelID, message)
+func (g GetStreamServiceMock) InviteMembers(ctx context.Context, memberIDs []string, channelID string, message *stream.Message) (*stream.Response, error) {
+	return g.MockInviteMembersFn(ctx, memberIDs, channelID, message)
 }
 
 // ListGetStreamChannels mocks the implementation for listing getstream channels
@@ -206,8 +216,8 @@ func (g GetStreamServiceMock) GetChannel(ctx context.Context, channelID string) 
 }
 
 // AddMembersToCommunity mocks the implementation for adding members(s) to a community
-func (g GetStreamServiceMock) AddMembersToCommunity(ctx context.Context, userIDs []string, channelID string) (*stream.Response, error) {
-	return g.MockAddMembersToCommunityFn(ctx, userIDs, channelID)
+func (g GetStreamServiceMock) AddMembersToCommunity(ctx context.Context, memberIDs []string, channelID string) (*stream.Response, error) {
+	return g.MockAddMembersToCommunityFn(ctx, memberIDs, channelID)
 }
 
 // RejectInvite mocks the implementation for rejecting invite into a community
@@ -218,4 +228,9 @@ func (g GetStreamServiceMock) RejectInvite(ctx context.Context, userID string, c
 // AcceptInvite mocks the implementation for accepting invite into a community
 func (g GetStreamServiceMock) AcceptInvite(ctx context.Context, userID string, channelID string, message *stream.Message) (*stream.Response, error) {
 	return g.MockAcceptInviteFn(ctx, userID, channelID, message)
+}
+
+// RemoveMembersFromCommunity mocks the implementation for removing members from a community
+func (g GetStreamServiceMock) RemoveMembersFromCommunity(ctx context.Context, channelID string, memberIDs []string, message *stream.Message) (*stream.Response, error) {
+	return g.MockRemoveMembersFn(ctx, channelID, memberIDs, message)
 }
