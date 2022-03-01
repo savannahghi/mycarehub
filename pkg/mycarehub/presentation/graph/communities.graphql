@@ -1,6 +1,6 @@
 extend type Query {
   listMembers(input: QueryOption): [Member]
-  inviteMembersToCommunity(communityID: String!, userIDS: [String!]!): Boolean!
+  inviteMembersToCommunity(communityID: String!, memberIDs: [String!]!): Boolean!
   listCommunities(input: QueryOption): [Community]
   listCommunityMembers(communityID: ID!): [CommunityMember]
 }
@@ -10,5 +10,6 @@ extend type Mutation {
   deleteCommunities(communityIDs: [String!]!, hardDelete: Boolean!): Boolean!
   rejectInvitation(userID: String!, communityID: String!): Boolean!
   acceptInvitation(userID: String!, communityID: String!): Boolean!
-  addMembersToCommunity(userID: [String!]!, communityID: String!): Boolean!
+  addMembersToCommunity(memberIDs: [String!]!, communityID: String!): Boolean!
+  removeMembersFromCommunity(communityID: String!, memberIDs: [String!]): Boolean!
 }

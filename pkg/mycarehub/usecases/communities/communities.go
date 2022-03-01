@@ -33,7 +33,7 @@ type IListUsers interface {
 
 // IInviteMembers interface holds methods that are used to send member invites
 type IInviteMembers interface {
-	InviteMembers(ctx context.Context, communityID string, userIDS []string) (bool, error)
+	InviteMembers(ctx context.Context, communityID string, memberIDs []string) (bool, error)
 }
 
 // IListCommunities is an interface that is used to list getstream channels
@@ -52,9 +52,10 @@ type ICommunityInvites interface {
 	RejectInvite(ctx context.Context, userID string, channelID string) (bool, error)
 }
 
-// IAddMembersToCommunity interface holds the method(s) used to add members into communities.
-type IAddMembersToCommunity interface {
-	AddMembersToCommunity(ctx context.Context, userIDs []string, communityID string) (bool, error)
+// IManageMembers is an interface that is used to manage community members
+type IManageMembers interface {
+	RemoveMembersFromCommunity(ctx context.Context, channelID string, memberIDs []string) (bool, error)
+	AddMembersToCommunity(ctx context.Context, memberIDs []string, communityID string) (bool, error)
 }
 
 // UseCasesCommunities holds all interfaces required to implement the communities feature
@@ -65,7 +66,7 @@ type UseCasesCommunities interface {
 	IListCommunities
 	IDeleteCommunities
 	ICommunityInvites
-	IAddMembersToCommunity
+	IManageMembers
 }
 
 // UseCasesCommunitiesImpl represents communities implementation
@@ -160,7 +161,13 @@ func (us *UseCasesCommunitiesImpl) CreateCommunity(ctx context.Context, input dt
 		"name":       channelResponse.Name,
 	}
 
-	channel, err := us.GetstreamService.CreateChannel(ctx, "messaging", channelResponse.ID, loggedInUserID, data)
+	staff, err := us.Query.GetStaffProfileByUserID(ctx, loggedInUserID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, exceptions.GetLoggedInUserUIDErr(err)
+	}
+
+	channel, err := us.GetstreamService.CreateChannel(ctx, "messaging", channelResponse.ID, *staff.ID, data)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("unable to create channel: %v", err)
@@ -188,7 +195,7 @@ func (us *UseCasesCommunitiesImpl) CreateCommunity(ctx context.Context, input dt
 }
 
 // InviteMembers invites specified members to a community
-func (us *UseCasesCommunitiesImpl) InviteMembers(ctx context.Context, communityID string, userIDS []string) (bool, error) {
+func (us *UseCasesCommunitiesImpl) InviteMembers(ctx context.Context, communityID string, memberIDs []string) (bool, error) {
 	loggedInUserID, err := us.ExternalExt.GetLoggedInUserUID(ctx)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
@@ -209,7 +216,7 @@ func (us *UseCasesCommunitiesImpl) InviteMembers(ctx context.Context, communityI
 		},
 	}
 
-	_, err = us.GetstreamService.InviteMembers(ctx, userIDS, communityID, message)
+	_, err = us.GetstreamService.InviteMembers(ctx, memberIDs, communityID, message)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return false, fmt.Errorf("failed to invite members to a community: %v", err)
@@ -317,9 +324,13 @@ func (us *UseCasesCommunitiesImpl) DeleteCommunities(ctx context.Context, commun
 }
 
 // AddMembersToCommunity adds a user (staff/client) to a community
-func (us *UseCasesCommunitiesImpl) AddMembersToCommunity(ctx context.Context, userIDs []string, communityID string) (bool, error) {
-	if len(userIDs) == 0 || communityID == "" {
-		return false, fmt.Errorf("invalid user ID or community ID")
+// memberID can either be a Client or a Staff ID
+func (us *UseCasesCommunitiesImpl) AddMembersToCommunity(ctx context.Context, memberIDs []string, communityID string) (bool, error) {
+	if len(memberIDs) == 0 {
+		return false, fmt.Errorf("memberIDs cannot be empty")
+	}
+	if communityID == "" {
+		return false, fmt.Errorf("communityID cannot be empty")
 	}
 
 	community, err := us.Query.GetCommunityByID(ctx, communityID)
@@ -332,7 +343,7 @@ func (us *UseCasesCommunitiesImpl) AddMembersToCommunity(ctx context.Context, us
 		return false, fmt.Errorf("group is invite only")
 	}
 
-	_, err = us.GetstreamService.AddMembersToCommunity(ctx, userIDs, communityID)
+	_, err = us.GetstreamService.AddMembersToCommunity(ctx, memberIDs, communityID)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return false, fmt.Errorf("failed to add member(s) to a community: %v", err)
@@ -378,6 +389,30 @@ func (us *UseCasesCommunitiesImpl) AcceptInvite(ctx context.Context, userID stri
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return false, fmt.Errorf("failed to accept invite into a community")
+	}
+
+	return true, nil
+}
+
+// RemoveMembersFromCommunity removes members from a community
+// memberID can either be a Client or a Staff ID
+func (us *UseCasesCommunitiesImpl) RemoveMembersFromCommunity(ctx context.Context, communityID string, memberIDs []string) (bool, error) {
+	if len(memberIDs) == 0 {
+		return false, fmt.Errorf("user id cannot be empty")
+	}
+	if communityID == "" {
+		return false, fmt.Errorf("channel id cannot be empty")
+	}
+	message := &stream.Message{
+		ID: uuid.New().String(),
+		User: &stream.User{
+			ID: memberIDs[0],
+		},
+	}
+	_, err := us.GetstreamService.RemoveMembersFromCommunity(ctx, communityID, memberIDs, message)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, fmt.Errorf("failed to remove members from a community: %v", err)
 	}
 
 	return true, nil

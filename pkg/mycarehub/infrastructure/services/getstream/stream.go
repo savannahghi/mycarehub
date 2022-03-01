@@ -23,13 +23,14 @@ type ServiceGetStream interface {
 	ListGetStreamUsers(ctx context.Context, input *stream.QueryOption) (*stream.QueryUsersResponse, error)
 	CreateChannel(ctx context.Context, chanType, chanID, userID string, data map[string]interface{}) (*stream.CreateChannelResponse, error)
 	DeleteChannels(ctx context.Context, chanIDs []string, hardDelete bool) (*stream.AsyncTaskResponse, error)
-	InviteMembers(ctx context.Context, userIDs []string, channelID string, message *stream.Message) (*stream.Response, error)
+	InviteMembers(ctx context.Context, memberIDs []string, channelID string, message *stream.Message) (*stream.Response, error)
 	ListGetStreamChannels(ctr context.Context, input *stream.QueryOption) (*stream.QueryChannelsResponse, error)
 	ListChannelMembers(ctx context.Context, channelID string, q *stream.QueryOption, sorters ...*stream.SortOption) ([]*stream.ChannelMember, error)
 	GetChannel(ctx context.Context, channelID string) (*stream.Channel, error)
-	AddMembersToCommunity(ctx context.Context, userIDs []string, channelID string) (*stream.Response, error)
+	AddMembersToCommunity(ctx context.Context, memberIDs []string, channelID string) (*stream.Response, error)
 	RejectInvite(ctx context.Context, userID string, channelID string, message *stream.Message) (*stream.Response, error)
 	AcceptInvite(ctx context.Context, userID string, channelID string, message *stream.Message) (*stream.Response, error)
+	RemoveMembersFromCommunity(ctx context.Context, channelID string, memberIDs []string, message *stream.Message) (*stream.Response, error)
 }
 
 // ChatClient is the service's struct implementation
@@ -84,8 +85,8 @@ func (c *ChatClient) DeleteChannels(ctx context.Context, chanIDs []string, hardD
 }
 
 // InviteMembers invites users with given IDs to the channel while at the same time composing a message to show the users
-func (c *ChatClient) InviteMembers(ctx context.Context, userIDs []string, channelID string, message *stream.Message) (*stream.Response, error) {
-	return c.client.Channel("messaging", channelID).InviteMembersWithMessage(ctx, userIDs, message)
+func (c *ChatClient) InviteMembers(ctx context.Context, memberIDs []string, channelID string, message *stream.Message) (*stream.Response, error) {
+	return c.client.Channel("messaging", channelID).InviteMembersWithMessage(ctx, memberIDs, message)
 }
 
 // ListGetStreamChannels returns list of channels that match QueryOption.
@@ -123,8 +124,8 @@ func (c *ChatClient) GetChannel(ctx context.Context, channelID string) (*stream.
 }
 
 // AddMembersToCommunity adds the specified clients/staffs to a community
-func (c *ChatClient) AddMembersToCommunity(ctx context.Context, userIDs []string, channelID string) (*stream.Response, error) {
-	return c.client.Channel("messaging", channelID).AddMembers(ctx, userIDs)
+func (c *ChatClient) AddMembersToCommunity(ctx context.Context, memberIDs []string, channelID string) (*stream.Response, error) {
+	return c.client.Channel("messaging", channelID).AddMembers(ctx, memberIDs)
 }
 
 // RejectInvite rejects invitation to a getstream channel
@@ -135,4 +136,9 @@ func (c *ChatClient) RejectInvite(ctx context.Context, userID string, channelID 
 // AcceptInvite accepts invitation to a getstream channel
 func (c *ChatClient) AcceptInvite(ctx context.Context, userID string, channelID string, message *stream.Message) (*stream.Response, error) {
 	return c.client.Channel("messaging", channelID).AcceptInvite(ctx, userID, message)
+}
+
+// RemoveMembersFromCommunity deletes members from a community
+func (c *ChatClient) RemoveMembersFromCommunity(ctx context.Context, channelID string, memberIDs []string, message *stream.Message) (*stream.Response, error) {
+	return c.client.Channel("messaging", channelID).RemoveMembers(ctx, memberIDs, message)
 }
