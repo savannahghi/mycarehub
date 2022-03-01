@@ -189,6 +189,16 @@ func TestUseCasesUserImpl_Login_Unittest(t *testing.T) {
 			},
 			wantErr: true,
 		},
+		{
+			name: "Sad Case - Fail to get chv user profile by chv user ID",
+			args: args{
+				ctx:         ctx,
+				phoneNumber: interserviceclient.TestUserPhoneNumber,
+				pin:         PIN,
+				flavour:     feedlib.FlavourPro,
+			},
+			wantErr: true,
+		},
 	}
 
 	for _, tt := range tests {
@@ -276,6 +286,11 @@ func TestUseCasesUserImpl_Login_Unittest(t *testing.T) {
 			if tt.name == "Sad Case - Fail to get user permissions by user ID" {
 				fakeAuthority.MockGetUserPermissionsFn = func(ctx context.Context, userID string) ([]*domain.AuthorityPermission, error) {
 					return nil, fmt.Errorf("failed to get user permission")
+				}
+			}
+			if tt.name == "Sad Case - Fail to get chv user profile by chv user ID" {
+				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
+					return nil, fmt.Errorf("failed to get chv profile")
 				}
 			}
 

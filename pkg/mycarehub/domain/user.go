@@ -84,6 +84,7 @@ type ClientProfile struct {
 	FacilityID string `json:"facilityID"`
 
 	CHVUserID   string  `json:"chvUserID"`
+	CHVUserName string  `json:"chvUserName"`
 	CaregiverID *string `json:"caregiverID"`
 }
 
