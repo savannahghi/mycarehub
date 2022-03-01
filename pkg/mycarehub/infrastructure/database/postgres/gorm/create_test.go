@@ -392,6 +392,7 @@ func TestPGInstance_SaveOTP(t *testing.T) {
 	}
 
 	otpInput := &gorm.UserOTP{
+		OTPID:       gofakeit.Number(100, 120020),
 		UserID:      userID,
 		Valid:       true,
 		GeneratedAt: generatedAt,
@@ -413,6 +414,7 @@ func TestPGInstance_SaveOTP(t *testing.T) {
 	}
 
 	gormOTPInput := &gorm.UserOTP{
+		OTPID:       gofakeit.Number(100, 200200),
 		UserID:      userID,
 		Valid:       otpInput.Valid,
 		GeneratedAt: otpInput.GeneratedAt,
@@ -728,7 +730,7 @@ func TestPGInstance_CreateHealthDiaryEntry(t *testing.T) {
 	}
 }
 
-func TestPGInstance_CreateChannel(t *testing.T) {
+func TestPGInstance_CreateCommunity(t *testing.T) {
 	ctx := context.Background()
 
 	var genderList pq.StringArray
@@ -755,7 +757,6 @@ func TestPGInstance_CreateChannel(t *testing.T) {
 			args: args{
 				ctx: ctx,
 				community: &gorm.Community{
-					ID:             uuid.New().String(),
 					Name:           "test",
 					Description:    "test",
 					Active:         true,
@@ -790,9 +791,9 @@ func TestPGInstance_CreateChannel(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := testingDB.CreateChannel(tt.args.ctx, tt.args.community)
+			_, err := testingDB.CreateCommunity(tt.args.ctx, tt.args.community)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("PGInstance.CreateChannel() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("PGInstance.CreateCommunity() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 		})

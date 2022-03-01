@@ -79,7 +79,7 @@ type PostgresMock struct {
 	MockGetServiceRequestsFn                      func(ctx context.Context, requestType, requestStatus, facilityID *string) ([]*domain.ServiceRequest, error)
 	MockGetPendingServiceRequestsCountFn          func(ctx context.Context, facilityID string) (*domain.ServiceRequestsCount, error)
 	MockResolveServiceRequestFn                   func(ctx context.Context, staffID *string, serviceRequestID *string) (bool, error)
-	MockCreateChannelFn                           func(ctx context.Context, community *dto.CommunityInput) (*domain.Community, error)
+	MockCreateCommunityFn                         func(ctx context.Context, community *dto.CommunityInput) (*domain.Community, error)
 	MockCheckUserRoleFn                           func(ctx context.Context, userID string, role string) (bool, error)
 	MockCheckUserPermissionFn                     func(ctx context.Context, userID string, permission string) (bool, error)
 	MockAssignRolesFn                             func(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error)
@@ -87,6 +87,7 @@ type PostgresMock struct {
 	MockGetUserPermissionsFn                      func(ctx context.Context, userID string) ([]*domain.AuthorityPermission, error)
 	MockCheckIfUsernameExistsFn                   func(ctx context.Context, username string) (bool, error)
 	MockRevokeRolesFn                             func(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error)
+	MockGetCommunityByIDFn                        func(ctx context.Context, communityID string) (*domain.Community, error)
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -462,7 +463,7 @@ func NewPostgresMock() *PostgresMock {
 				},
 			}, nil
 		},
-		MockCreateChannelFn: func(ctx context.Context, communityInput *dto.CommunityInput) (*domain.Community, error) {
+		MockCreateCommunityFn: func(ctx context.Context, communityInput *dto.CommunityInput) (*domain.Community, error) {
 			return &domain.Community{
 				ID:          uuid.New().String(),
 				Name:        name,
@@ -525,6 +526,28 @@ func NewPostgresMock() *PostgresMock {
 		},
 		MockRevokeRolesFn: func(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error) {
 			return true, nil
+		},
+		MockGetCommunityByIDFn: func(ctx context.Context, communityID string) (*domain.Community, error) {
+			return &domain.Community{
+				ID:          uuid.New().String(),
+				CID:         uuid.New().String(),
+				Name:        gofakeit.Name(),
+				Disabled:    false,
+				Frozen:      false,
+				MemberCount: 10,
+				CreatedAt:   time.Now(),
+				UpdatedAt:   time.Now(),
+				Description: description,
+				AgeRange: &domain.AgeRange{
+					LowerBound: 0,
+					UpperBound: 0,
+				},
+				Gender:     []enumutils.Gender{},
+				ClientType: []enums.ClientType{},
+				InviteOnly: false,
+				Members:    []domain.CommunityMember{},
+				CreatedBy:  &domain.Member{},
+			}, nil
 		},
 	}
 }
@@ -859,9 +882,9 @@ func (gm *PostgresMock) AssignRoles(ctx context.Context, userID string, roles []
 	return gm.MockAssignRolesFn(ctx, userID, roles)
 }
 
-// CreateChannel mocks the implementation of creating a channel
-func (gm *PostgresMock) CreateChannel(ctx context.Context, community *dto.CommunityInput) (*domain.Community, error) {
-	return gm.MockCreateChannelFn(ctx, community)
+// CreateCommunity mocks the implementation of creating a channel
+func (gm *PostgresMock) CreateCommunity(ctx context.Context, community *dto.CommunityInput) (*domain.Community, error) {
+	return gm.MockCreateCommunityFn(ctx, community)
 }
 
 // GetUserRoles mocks the implementation of getting all roles for a user
@@ -882,4 +905,9 @@ func (gm *PostgresMock) CheckIfUsernameExists(ctx context.Context, username stri
 // RevokeRoles mocks the implementation of revoking roles from a user
 func (gm *PostgresMock) RevokeRoles(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error) {
 	return gm.MockRevokeRolesFn(ctx, userID, roles)
+}
+
+// GetCommunityByID mocks the implementation of getting the community by ID
+func (gm *PostgresMock) GetCommunityByID(ctx context.Context, communityID string) (*domain.Community, error) {
+	return gm.MockGetCommunityByIDFn(ctx, communityID)
 }

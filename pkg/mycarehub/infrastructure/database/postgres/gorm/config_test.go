@@ -107,6 +107,8 @@ var (
 	contentManagementRoleID = "043f12aa-6f51-434f-8e96-35020206f161"
 	systemAdminRole         = enums.UserRoleTypeSystemAdministrator.String()
 	contentManagementRole   = enums.UserRoleTypeContentManagement.String()
+
+	communityID = "043f12aa-6f51-434f-8e96-35030306f161"
 )
 
 func TestMain(m *testing.M) {
@@ -188,6 +190,8 @@ func TestMain(m *testing.M) {
 			"content_management_role_id": contentManagementRoleID,
 			"system_admin_role":          systemAdminRole,
 			"content_management_role":    contentManagementRole,
+
+			"community_id": communityID,
 		}),
 		// this is the directory containing the YAML files.
 		// The file name should be the same as the table name
@@ -214,6 +218,7 @@ func TestMain(m *testing.M) {
 			"../../../../../../fixtures/authority_authorityrole.yml",
 			"../../../../../../fixtures/authority_authorityrole_permissions.yml",
 			"../../../../../../fixtures/authority_authorityrole_users.yml",
+			"../../../../../../fixtures/communities_community.yml",
 		),
 		// uncomment when running tests locally, if your db is not a test db
 		// Ensure the testing db in the ci is named `test`

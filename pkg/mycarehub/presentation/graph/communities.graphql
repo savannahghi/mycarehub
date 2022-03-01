@@ -10,4 +10,5 @@ extend type Mutation {
   deleteCommunities(communityIDs: [String!]!, hardDelete: Boolean!): Boolean!
   rejectInvitation(userID: String!, communityID: String!): Boolean!
   acceptInvitation(userID: String!, communityID: String!): Boolean!
+  addMembersToCommunity(userID: [String!]!, communityID: String!): Boolean!
 }

@@ -54,6 +54,7 @@ type Query interface {
 	GetUserRoles(ctx context.Context, userID string) ([]*AuthorityRole, error)
 	GetUserPermissions(ctx context.Context, userID string) ([]*AuthorityPermission, error)
 	CheckIfUsernameExists(ctx context.Context, username string) (bool, error)
+	GetCommunityByID(ctx context.Context, communityID string) (*Community, error)
 }
 
 // CheckWhetherUserHasLikedContent performs a operation to check whether user has liked the content
@@ -716,4 +717,17 @@ func (db *PGInstance) CheckIfUsernameExists(ctx context.Context, username string
 	}
 
 	return true, nil
+}
+
+// GetCommunityByID fetches the community using its ID
+func (db *PGInstance) GetCommunityByID(ctx context.Context, communityID string) (*Community, error) {
+	var community *Community
+
+	err := db.DB.Where(&Community{ID: communityID}).First(&community).Error
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, fmt.Errorf("failed to find community by ID %s", communityID)
+	}
+
+	return community, nil
 }

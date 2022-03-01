@@ -743,8 +743,28 @@ func (d *MyCareHubDb) CheckIfUsernameExists(ctx context.Context, username string
 
 	ok, err := d.query.CheckIfUsernameExists(ctx, username)
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return false, err
 	}
 
 	return ok, nil
+}
+
+// GetCommunityByID fetches the community by ID
+func (d *MyCareHubDb) GetCommunityByID(ctx context.Context, communityID string) (*domain.Community, error) {
+	if communityID == "" {
+		return nil, fmt.Errorf("communityID cannot be empty")
+	}
+	community, err := d.query.GetCommunityByID(ctx, communityID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
+	return &domain.Community{
+		ID:          community.ID,
+		Name:        community.Name,
+		Description: community.Description,
+		InviteOnly:  community.InviteOnly,
+	}, nil
 }

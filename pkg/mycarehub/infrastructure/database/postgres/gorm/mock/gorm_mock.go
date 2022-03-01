@@ -80,11 +80,12 @@ type GormMock struct {
 	MockCheckUserRoleFn                           func(ctx context.Context, userID string, role string) (bool, error)
 	MockCheckUserPermissionFn                     func(ctx context.Context, userID string, permission string) (bool, error)
 	MockAssignRolesFn                             func(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error)
-	MockCreateChannelFn                           func(ctx context.Context, community *gorm.Community) (*gorm.Community, error)
+	MockCreateCommunityFn                         func(ctx context.Context, community *gorm.Community) (*gorm.Community, error)
 	MockGetUserRolesFn                            func(ctx context.Context, userID string) ([]*gorm.AuthorityRole, error)
 	MockGetUserPermissionsFn                      func(ctx context.Context, userID string) ([]*gorm.AuthorityPermission, error)
 	MockCheckIfUsernameExistsFn                   func(ctx context.Context, username string) (bool, error)
 	MockRevokeRolesFn                             func(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error)
+	MockGetCommunityByIDFn                        func(ctx context.Context, communityID string) (*gorm.Community, error)
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -508,7 +509,7 @@ func NewGormMock() *GormMock {
 		MockResolveServiceRequestFn: func(ctx context.Context, staffID *string, serviceRequestID *string) (bool, error) {
 			return true, nil
 		},
-		MockCreateChannelFn: func(ctx context.Context, community *gorm.Community) (*gorm.Community, error) {
+		MockCreateCommunityFn: func(ctx context.Context, community *gorm.Community) (*gorm.Community, error) {
 			return &gorm.Community{
 				Base:           gorm.Base{},
 				ID:             UUID,
@@ -552,6 +553,21 @@ func NewGormMock() *GormMock {
 		},
 		MockRevokeRolesFn: func(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error) {
 			return true, nil
+		},
+		MockGetCommunityByIDFn: func(ctx context.Context, communityID string) (*gorm.Community, error) {
+			return &gorm.Community{
+				ID:             uuid.New().String(),
+				Name:           name,
+				Description:    description,
+				Active:         false,
+				MinimumAge:     0,
+				MaximumAge:     0,
+				Gender:         []string{"MALE"},
+				ClientTypes:    []string{"PMTCT"},
+				InviteOnly:     false,
+				Discoverable:   false,
+				OrganisationID: uuid.New().String(),
+			}, nil
 		},
 	}
 }
@@ -872,9 +888,9 @@ func (gm *GormMock) AssignRoles(ctx context.Context, userID string, roles []enum
 	return gm.MockAssignRolesFn(ctx, userID, roles)
 }
 
-// CreateChannel mocks the implementation of creating a channel
-func (gm *GormMock) CreateChannel(ctx context.Context, community *gorm.Community) (*gorm.Community, error) {
-	return gm.MockCreateChannelFn(ctx, community)
+// CreateCommunity mocks the implementation of creating a channel
+func (gm *GormMock) CreateCommunity(ctx context.Context, community *gorm.Community) (*gorm.Community, error) {
+	return gm.MockCreateCommunityFn(ctx, community)
 }
 
 // GetUserRoles mocks the implementation of getting a user's roles
@@ -895,4 +911,9 @@ func (gm *GormMock) CheckIfUsernameExists(ctx context.Context, username string) 
 // RevokeRoles mocks the implementation of revoking roles from a user
 func (gm *GormMock) RevokeRoles(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error) {
 	return gm.MockRevokeRolesFn(ctx, userID, roles)
+}
+
+// GetCommunityByID mocks the implementation of getting the community by ID
+func (gm *GormMock) GetCommunityByID(ctx context.Context, communityID string) (*gorm.Community, error) {
+	return gm.MockGetCommunityByIDFn(ctx, communityID)
 }

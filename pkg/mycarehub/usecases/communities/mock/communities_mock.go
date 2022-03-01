@@ -13,10 +13,11 @@ import (
 
 // CommunityUsecaseMock contains the community usecase mock methods
 type CommunityUsecaseMock struct {
-	MockListMembersFn        func(ctx context.Context, input *stream.QueryOption) ([]*domain.Member, error)
-	MockCreateCommunityFn    func(ctx context.Context, input dto.CommunityInput) (*domain.Community, error)
-	MockListCommunityMembers func(ctx context.Context, communityID string) ([]*domain.CommunityMember, error)
-	MockRejectInviteFn       func(ctx context.Context, userID string, channelID string) (bool, error)
+	MockListMembersFn           func(ctx context.Context, input *stream.QueryOption) ([]*domain.Member, error)
+	MockCreateCommunityFn       func(ctx context.Context, input dto.CommunityInput) (*domain.Community, error)
+	MockListCommunityMembers    func(ctx context.Context, communityID string) ([]*domain.CommunityMember, error)
+	MockRejectInviteFn          func(ctx context.Context, userID string, channelID string) (bool, error)
+	MockAddMembersToCommunityFn func(ctx context.Context, userIDs []string, communityID string) (*stream.Response, error)
 }
 
 // NewCommunityUsecaseMock initializes a new instance of the Community usecase happy cases
@@ -58,6 +59,15 @@ func NewCommunityUsecaseMock() *CommunityUsecaseMock {
 		MockRejectInviteFn: func(ctx context.Context, userID string, channelID string) (bool, error) {
 			return true, nil
 		},
+		MockAddMembersToCommunityFn: func(ctx context.Context, userIDs []string, communityID string) (*stream.Response, error) {
+			return &stream.Response{
+				RateLimitInfo: &stream.RateLimitInfo{
+					Limit:     10,
+					Remaining: 10,
+					Reset:     10,
+				},
+			}, nil
+		},
 	}
 }
 
@@ -79,4 +89,9 @@ func (c CommunityUsecaseMock) ListCommunityMembers(ctx context.Context, communit
 // RejectInvite mocks the implementation of rejecting an invite into a community
 func (c CommunityUsecaseMock) RejectInvite(ctx context.Context, userID string, channelID string, message string) (bool, error) {
 	return c.MockRejectInviteFn(ctx, userID, channelID)
+}
+
+// AddMembersToCommunity mocks the implementation of adding members to a community
+func (c CommunityUsecaseMock) AddMembersToCommunity(ctx context.Context, userIDs []string, communityID string) (*stream.Response, error) {
+	return c.MockAddMembersToCommunityFn(ctx, userIDs, communityID)
 }

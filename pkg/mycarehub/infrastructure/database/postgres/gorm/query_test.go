@@ -2203,3 +2203,66 @@ func TestPGInstance_GetUserPermissions(t *testing.T) {
 		})
 	}
 }
+
+func TestPGInstance_GetCommunityByID(t *testing.T) {
+	ctx := context.Background()
+
+	communityInput := &gorm.Community{
+		ID:             communityID,
+		Name:           "test",
+		Description:    "test",
+		Active:         true,
+		MinimumAge:     19,
+		MaximumAge:     30,
+		Gender:         []string{"MALE"},
+		ClientTypes:    []string{"PMTCT"},
+		InviteOnly:     true,
+		Discoverable:   true,
+		OrganisationID: uuid.New().String(),
+	}
+
+	community, err := testingDB.CreateCommunity(ctx, communityInput)
+	if err != nil {
+		t.Errorf("unable to create community: %v", err)
+		return
+	}
+
+	type args struct {
+		ctx         context.Context
+		communityID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:         ctx,
+				communityID: community.ID,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case",
+			args: args{
+				ctx:         ctx,
+				communityID: uuid.New().String(),
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := testingDB.GetCommunityByID(tt.args.ctx, tt.args.communityID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.GetCommunityByID() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if tt.wantErr && got != nil {
+				t.Errorf("PGInstance.GetCommunityByID() = %v, want %v", got, tt.wantErr)
+			}
+		})
+	}
+}
