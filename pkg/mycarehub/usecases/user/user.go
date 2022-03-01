@@ -289,6 +289,15 @@ func (us *UseCasesUserImpl) ReturnLoginResponse(ctx context.Context, flavour fee
 			return nil, int(exceptions.ProfileNotFound), exceptions.ClientProfileNotFoundErr(err)
 		}
 
+		// add CHV username to payload
+		if clientProfile.CHVUserID != "" {
+			CHVProfile, err := us.Query.GetUserProfileByUserID(ctx, clientProfile.CHVUserID)
+			if err != nil {
+				helpers.ReportErrorToSentry(err)
+				return nil, int(exceptions.ProfileNotFound), exceptions.UserNotFoundError(err)
+			}
+			clientProfile.CHVUserName = CHVProfile.Name
+		}
 		// Create/update a client's getstream user
 		getStreamUser := &getStreamClient.User{
 			ID:   *clientProfile.ID,
