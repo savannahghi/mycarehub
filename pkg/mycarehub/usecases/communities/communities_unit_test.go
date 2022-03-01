@@ -879,3 +879,78 @@ func TestUseCasesCommunitiesImpl_RemoveMembers(t *testing.T) {
 		})
 	}
 }
+
+func TestUseCasesCommunitiesImpl_AddModeratorsWithMessage(t *testing.T) {
+	ctx := context.Background()
+	userID := uuid.New().String()
+
+	type args struct {
+		ctx         context.Context
+		userIDs     []string
+		communityID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:         ctx,
+				userIDs:     []string{userID},
+				communityID: uuid.New().String(),
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Sad case",
+			args: args{
+				ctx:         ctx,
+				userIDs:     []string{userID},
+				communityID: "",
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case - Unable to get community",
+			args: args{
+				ctx:         ctx,
+				userIDs:     []string{userID},
+				communityID: uuid.New().String(),
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
+			fakeExtension := extensionMock.NewFakeExtension()
+			fakeDB := pgMock.NewPostgresMock()
+			communities := communities.NewUseCaseCommunitiesImpl(fakeGetStream, fakeExtension, fakeDB, fakeDB)
+
+			if tt.name == "Sad case" {
+				fakeGetStream.MockAddModeratorsWithMessageFn = func(ctx context.Context, userIDs []string, communityID string, message *stream.Message) (*stream.Response, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - Unable to get community" {
+				fakeDB.MockGetCommunityByIDFn = func(ctx context.Context, communityID string) (*domain.Community, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+			got, err := communities.AddModeratorsWithMessage(tt.args.ctx, tt.args.userIDs, tt.args.communityID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCasesCommunitiesImpl.AddModeratorsWithMessage() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("UseCasesCommunitiesImpl.AddModeratorsWithMessage() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

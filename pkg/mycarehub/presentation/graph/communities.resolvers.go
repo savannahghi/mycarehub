@@ -36,6 +36,10 @@ func (r *mutationResolver) RemoveMembersFromCommunity(ctx context.Context, commu
 	return r.mycarehub.Community.RemoveMembersFromCommunity(ctx, communityID, memberIDs)
 }
 
+func (r *mutationResolver) AddModerators(ctx context.Context, userIDs []string, communityID string) (bool, error) {
+	return r.mycarehub.Community.AddModeratorsWithMessage(ctx, userIDs, communityID)
+}
+
 func (r *queryResolver) ListMembers(ctx context.Context, input *stream_chat.QueryOption) ([]*domain.Member, error) {
 	return r.mycarehub.Community.ListMembers(ctx, input)
 }
