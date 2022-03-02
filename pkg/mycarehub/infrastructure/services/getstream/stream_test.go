@@ -474,3 +474,58 @@ func TestChatClient_RemoveMembers(t *testing.T) {
 		})
 	}
 }
+
+func TestChatClient_DemoteModerators(t *testing.T) {
+	ctx := context.Background()
+	type args struct {
+		ctx       context.Context
+		channelID string
+		memberIDs []string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *stream.Response
+		wantErr bool
+	}{
+		{
+			name: "Happy case: demote moderators",
+			args: args{
+				ctx:       ctx,
+				channelID: channelID,
+				memberIDs: []string{moderator1},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: invalid channel id",
+			args: args{
+				ctx:       ctx,
+				channelID: uuid.New().String(),
+				memberIDs: []string{member1},
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: invalid user id",
+			args: args{
+				ctx:       ctx,
+				channelID: channelID,
+				memberIDs: []string{uuid.New().String()},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := c.DemoteModerators(tt.args.ctx, tt.args.channelID, tt.args.memberIDs)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ChatClient.DemoteModerators() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected a response but got: %v", err)
+			}
+		})
+	}
+}

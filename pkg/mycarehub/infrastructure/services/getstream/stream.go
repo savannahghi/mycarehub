@@ -32,6 +32,7 @@ type ServiceGetStream interface {
 	AcceptInvite(ctx context.Context, userID string, channelID string, message *stream.Message) (*stream.Response, error)
 	RemoveMembersFromCommunity(ctx context.Context, channelID string, memberIDs []string, message *stream.Message) (*stream.Response, error)
 	AddModeratorsWithMessage(ctx context.Context, userIDs []string, communityID string, msg *stream.Message) (*stream.Response, error)
+	DemoteModerators(ctx context.Context, channelID string, memberIDs []string) (*stream.Response, error)
 }
 
 // ChatClient is the service's struct implementation
@@ -147,4 +148,9 @@ func (c *ChatClient) RemoveMembersFromCommunity(ctx context.Context, channelID s
 // AddModeratorsWithMessage adds moderators with given IDs to the channel and produces a message.
 func (c *ChatClient) AddModeratorsWithMessage(ctx context.Context, userIDs []string, communityID string, message *stream.Message) (*stream.Response, error) {
 	return c.client.Channel("messaging", communityID).AddModeratorsWithMessage(ctx, userIDs, message)
+}
+
+// DemoteModerators demotes moderators to members
+func (c *ChatClient) DemoteModerators(ctx context.Context, channelID string, memberIDs []string) (*stream.Response, error) {
+	return c.client.Channel("messaging", channelID).DemoteModerators(ctx, memberIDs...)
 }

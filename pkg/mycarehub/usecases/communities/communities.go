@@ -62,6 +62,7 @@ type IManageMembers interface {
 // IModeration interface contains all the moderation functions
 type IModeration interface {
 	AddModeratorsWithMessage(ctx context.Context, userIDs []string, communityID string) (bool, error)
+	DemoteModerators(ctx context.Context, communityID string, memberIDs []string) (bool, error)
 }
 
 // UseCasesCommunities holds all interfaces required to implement the communities feature
@@ -448,5 +449,24 @@ func (us *UseCasesCommunitiesImpl) AddModeratorsWithMessage(ctx context.Context,
 			return false, fmt.Errorf("failed to add moderator(s)")
 		}
 	}
+	return true, nil
+}
+
+// DemoteModerators demotes moderators in a community
+// memberID can either be a Client or a Staff ID
+func (us *UseCasesCommunitiesImpl) DemoteModerators(ctx context.Context, communityID string, memberIDs []string) (bool, error) {
+	if len(memberIDs) == 0 {
+		return false, fmt.Errorf("member id cannot be empty")
+	}
+	if communityID == "" {
+		return false, fmt.Errorf("community id cannot be empty")
+	}
+
+	_, err := us.GetstreamService.DemoteModerators(ctx, communityID, memberIDs)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, fmt.Errorf("failed to demote moderators in a community: %v", err)
+	}
+
 	return true, nil
 }

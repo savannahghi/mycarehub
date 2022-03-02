@@ -297,6 +297,7 @@ type ComplexityRoot struct {
 		CreateServiceRequest            func(childComplexity int, clientID string, requestType string, request *string) int
 		DeleteCommunities               func(childComplexity int, communityIDs []string, hardDelete bool) int
 		DeleteFacility                  func(childComplexity int, mflCode int) int
+		DemoteModerators                func(childComplexity int, communityID string, memberIDs []string) int
 		InactivateFacility              func(childComplexity int, mflCode int) int
 		InviteUser                      func(childComplexity int, userID string, phoneNumber string, flavour feedlib.Flavour) int
 		LikeContent                     func(childComplexity int, userID string, contentID int) int
@@ -412,6 +413,7 @@ type MutationResolver interface {
 	AddMembersToCommunity(ctx context.Context, memberIDs []string, communityID string) (bool, error)
 	RemoveMembersFromCommunity(ctx context.Context, communityID string, memberIDs []string) (bool, error)
 	AddModerators(ctx context.Context, userIDs []string, communityID string) (bool, error)
+	DemoteModerators(ctx context.Context, communityID string, memberIDs []string) (bool, error)
 	ShareContent(ctx context.Context, input dto.ShareContentInput) (bool, error)
 	BookmarkContent(ctx context.Context, userID string, contentItemID int) (bool, error)
 	UnBookmarkContent(ctx context.Context, userID string, contentItemID int) (bool, error)
@@ -1682,6 +1684,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.DeleteFacility(childComplexity, args["mflCode"].(int)), true
 
+	case "Mutation.demoteModerators":
+		if e.complexity.Mutation.DemoteModerators == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_demoteModerators_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.DemoteModerators(childComplexity, args["communityID"].(string), args["memberIDs"].([]string)), true
+
 	case "Mutation.inactivateFacility":
 		if e.complexity.Mutation.InactivateFacility == nil {
 			break
@@ -2486,6 +2500,7 @@ extend type Mutation {
   addMembersToCommunity(memberIDs: [String!]!, communityID: String!): Boolean!
   removeMembersFromCommunity(communityID: String!, memberIDs: [String!]): Boolean!
   addModerators(userIDs: [String!]!, communityID: String!): Boolean!
+  demoteModerators(communityID: String!, memberIDs: [String!]!): Boolean!
 }
 `, BuiltIn: false},
 	{Name: "pkg/mycarehub/presentation/graph/content.graphql", Input: `extend type Query {
@@ -3481,6 +3496,30 @@ func (ec *executionContext) field_Mutation_deleteFacility_args(ctx context.Conte
 		}
 	}
 	args["mflCode"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_demoteModerators_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["communityID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("communityID"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["communityID"] = arg0
+	var arg1 []string
+	if tmp, ok := rawArgs["memberIDs"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("memberIDs"))
+		arg1, err = ec.unmarshalNString2ᚕstringᚄ(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["memberIDs"] = arg1
 	return args, nil
 }
 
@@ -9773,6 +9812,48 @@ func (ec *executionContext) _Mutation_addModerators(ctx context.Context, field g
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Mutation_demoteModerators(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_demoteModerators_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().DemoteModerators(rctx, args["communityID"].(string), args["memberIDs"].([]string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Mutation_shareContent(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -15998,6 +16079,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			}
 		case "addModerators":
 			out.Values[i] = ec._Mutation_addModerators(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "demoteModerators":
+			out.Values[i] = ec._Mutation_demoteModerators(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}

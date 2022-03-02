@@ -954,3 +954,79 @@ func TestUseCasesCommunitiesImpl_AddModeratorsWithMessage(t *testing.T) {
 		})
 	}
 }
+
+func TestUseCasesCommunitiesImpl_DemoteModerators(t *testing.T) {
+	type args struct {
+		ctx         context.Context
+		communityID string
+		memberIDs   []string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:         context.Background(),
+				communityID: uuid.New().String(),
+				memberIDs:   []string{uuid.New().String()},
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Sad case: communityID is empty",
+			args: args{
+				ctx:       context.Background(),
+				memberIDs: []string{uuid.New().String()},
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case: memberIDs is empty",
+			args: args{
+				ctx:         context.Background(),
+				communityID: uuid.New().String(),
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case: failed to demote moderators",
+			args: args{
+				ctx:         context.Background(),
+				communityID: uuid.New().String(),
+				memberIDs:   []string{uuid.New().String()},
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
+			fakeExtension := extensionMock.NewFakeExtension()
+			fakeDB := pgMock.NewPostgresMock()
+			communities := communities.NewUseCaseCommunitiesImpl(fakeGetStream, fakeExtension, fakeDB, fakeDB)
+
+			if tt.name == "Sad case: failed to demote moderators" {
+				fakeGetStream.MockDemoteModeratorsFn = func(ctx context.Context, channelID string, memberIDs []string) (*stream.Response, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+
+			got, err := communities.DemoteModerators(tt.args.ctx, tt.args.communityID, tt.args.memberIDs)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCasesCommunitiesImpl.DemoteModerators() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("UseCasesCommunitiesImpl.DemoteModerators() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
