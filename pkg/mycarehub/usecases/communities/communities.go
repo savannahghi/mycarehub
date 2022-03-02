@@ -17,7 +17,8 @@ import (
 )
 
 const (
-	inviteMessage = "%v has invited you to join this community"
+	inviteMessage             = "%v has invited you to join this community"
+	promoteToModeratorMessage = "You have been promoted to be a moderator in %v community"
 )
 
 // ICreateCommunity is an interface that is used to create communities
@@ -58,6 +59,11 @@ type IManageMembers interface {
 	AddMembersToCommunity(ctx context.Context, memberIDs []string, communityID string) (bool, error)
 }
 
+// IModeration interface contains all the moderation functions
+type IModeration interface {
+	AddModeratorsWithMessage(ctx context.Context, userIDs []string, communityID string) (bool, error)
+}
+
 // UseCasesCommunities holds all interfaces required to implement the communities feature
 type UseCasesCommunities interface {
 	ICreateCommunity
@@ -67,6 +73,7 @@ type UseCasesCommunities interface {
 	IDeleteCommunities
 	ICommunityInvites
 	IManageMembers
+	IModeration
 }
 
 // UseCasesCommunitiesImpl represents communities implementation
@@ -415,5 +422,31 @@ func (us *UseCasesCommunitiesImpl) RemoveMembersFromCommunity(ctx context.Contex
 		return false, fmt.Errorf("failed to remove members from a community: %v", err)
 	}
 
+	return true, nil
+}
+
+// AddModeratorsWithMessage adds moderators with given IDs to the channel and produces a message.
+func (us *UseCasesCommunitiesImpl) AddModeratorsWithMessage(ctx context.Context, userIDs []string, communityID string) (bool, error) {
+	community, err := us.Query.GetCommunityByID(ctx, communityID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, err
+	}
+
+	for _, v := range userIDs {
+		message := &stream.Message{
+			ID:   uuid.New().String(),
+			Text: fmt.Sprintf(promoteToModeratorMessage, community.Name),
+			User: &stream.User{
+				ID: v,
+			},
+		}
+
+		_, err = us.GetstreamService.AddModeratorsWithMessage(ctx, userIDs, communityID, message)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return false, fmt.Errorf("failed to add moderator(s)")
+		}
+	}
 	return true, nil
 }
