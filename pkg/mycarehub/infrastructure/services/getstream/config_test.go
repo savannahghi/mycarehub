@@ -7,16 +7,16 @@ import (
 	"testing"
 
 	stream "github.com/GetStream/stream-chat-go/v5"
-	"github.com/google/uuid"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/getstream"
 )
 
 var (
 	channelID        = "testChannelJnJ"
 	channelType      = "messaging"
-	testChannelOwner = uuid.New().String()
-	member1          = uuid.New().String()
-	member2          = uuid.New().String()
+	testChannelOwner = "256b9f95-c53e-44c3-81f7-4c37cf4e6510"
+	member1          = "422a6d86-7f01-4c63-8ebd-51a343775f1b"
+	member2          = "310145d2-95ad-4a2c-ac88-1e60bacfd37c"
+	moderator1       = "3cad8cad-7623-4e78-b46e-06c150552aa3"
 	c                getstream.ServiceGetStream
 	ch               *stream.CreateChannelResponse
 	err              error
@@ -40,6 +40,11 @@ func TestMain(m *testing.M) {
 	os.Exit(run)
 
 	// Clean up
+	_, err := c.RemoveMembersFromCommunity(ctx, channelID, []string{member1, member2, moderator1, testChannelOwner}, nil)
+	if err != nil {
+		fmt.Printf("ChatClient.RemoveMembersFromCommunity() error = %v", err)
+		os.Exit(1)
+	}
 	_, err = c.DeleteChannels(ctx, []string{channelType + ":" + channelID}, true)
 	if err != nil {
 		fmt.Printf("ChatClient.DeleteChannels() error = %v", err)
@@ -52,12 +57,18 @@ func addMembersToAChannel() {
 	ctx := context.Background()
 	user1 := stream.User{
 		ID:        member1,
-		Name:      "test",
+		Name:      "member1",
 		Invisible: false,
 	}
 	user2 := stream.User{
 		ID:        member2,
-		Name:      "test",
+		Name:      "member2",
+		Invisible: false,
+	}
+
+	userModerator1 := stream.User{
+		ID:        moderator1,
+		Name:      "moderator1",
 		Invisible: false,
 	}
 	_, err := c.CreateGetStreamUser(ctx, &user1)
@@ -69,6 +80,18 @@ func addMembersToAChannel() {
 	_, err = c.CreateGetStreamUser(ctx, &user2)
 	if err != nil {
 		fmt.Printf("ChatClient.CreateGetStreamUser() error = %v", err)
+		return
+	}
+
+	_, err = c.CreateGetStreamUser(ctx, &userModerator1)
+	if err != nil {
+		fmt.Printf("ChatClient.CreateGetStreamUser() error = %v", err)
+		return
+	}
+
+	_, err = c.AddModeratorsWithMessage(ctx, []string{moderator1}, channelID, nil)
+	if err != nil {
+		fmt.Printf("ChatClient.AddModeratorsWithMessage() error = %v", err)
 		return
 	}
 }
