@@ -283,10 +283,10 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		AcceptInvitation                func(childComplexity int, userID string, communityID string) int
+		AcceptInvitation                func(childComplexity int, memberID string, communityID string) int
 		AcceptTerms                     func(childComplexity int, userID string, termsID int) int
 		AddMembersToCommunity           func(childComplexity int, memberIDs []string, communityID string) int
-		AddModerators                   func(childComplexity int, userIDs []string, communityID string) int
+		AddModerators                   func(childComplexity int, memberIDs []string, communityID string) int
 		AssignRoles                     func(childComplexity int, userID string, roles []enums.UserRoleType) int
 		BookmarkContent                 func(childComplexity int, userID string, contentItemID int) int
 		CompleteOnboardingTour          func(childComplexity int, userID string, flavour feedlib.Flavour) int
@@ -304,7 +304,7 @@ type ComplexityRoot struct {
 		ReactivateFacility              func(childComplexity int, mflCode int) int
 		RecordSecurityQuestionResponses func(childComplexity int, input []*dto.SecurityQuestionResponseInput) int
 		RegisterClient                  func(childComplexity int, input *dto.ClientRegistrationInput) int
-		RejectInvitation                func(childComplexity int, userID string, communityID string) int
+		RejectInvitation                func(childComplexity int, memberID string, communityID string) int
 		RemoveMembersFromCommunity      func(childComplexity int, communityID string, memberIDs []string) int
 		ResolveServiceRequest           func(childComplexity int, staffID string, requestID string) int
 		RevokeRoles                     func(childComplexity int, userID string, roles []enums.UserRoleType) int
@@ -353,6 +353,7 @@ type ComplexityRoot struct {
 		ListContentCategories          func(childComplexity int) int
 		ListFacilities                 func(childComplexity int, searchTerm *string, filterInput []*dto.FiltersInput, paginationInput dto.PaginationsInput) int
 		ListMembers                    func(childComplexity int, input *stream_chat.QueryOption) int
+		ListPendingInvites             func(childComplexity int, memberID string, input *stream_chat.QueryOption) int
 		RetrieveFacility               func(childComplexity int, id string, active bool) int
 		RetrieveFacilityByMFLCode      func(childComplexity int, mflCode int, isActive bool) int
 		SendOtp                        func(childComplexity int, phoneNumber string, flavour feedlib.Flavour) int
@@ -408,11 +409,11 @@ type MutationResolver interface {
 	RevokeRoles(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error)
 	CreateCommunity(ctx context.Context, input dto.CommunityInput) (*domain.Community, error)
 	DeleteCommunities(ctx context.Context, communityIDs []string, hardDelete bool) (bool, error)
-	RejectInvitation(ctx context.Context, userID string, communityID string) (bool, error)
-	AcceptInvitation(ctx context.Context, userID string, communityID string) (bool, error)
+	RejectInvitation(ctx context.Context, memberID string, communityID string) (bool, error)
+	AcceptInvitation(ctx context.Context, memberID string, communityID string) (bool, error)
 	AddMembersToCommunity(ctx context.Context, memberIDs []string, communityID string) (bool, error)
 	RemoveMembersFromCommunity(ctx context.Context, communityID string, memberIDs []string) (bool, error)
-	AddModerators(ctx context.Context, userIDs []string, communityID string) (bool, error)
+	AddModerators(ctx context.Context, memberIDs []string, communityID string) (bool, error)
 	DemoteModerators(ctx context.Context, communityID string, memberIDs []string) (bool, error)
 	ShareContent(ctx context.Context, input dto.ShareContentInput) (bool, error)
 	BookmarkContent(ctx context.Context, userID string, contentItemID int) (bool, error)
@@ -443,6 +444,7 @@ type QueryResolver interface {
 	InviteMembersToCommunity(ctx context.Context, communityID string, memberIDs []string) (bool, error)
 	ListCommunities(ctx context.Context, input *stream_chat.QueryOption) ([]*domain.Community, error)
 	ListCommunityMembers(ctx context.Context, communityID string) ([]*domain.CommunityMember, error)
+	ListPendingInvites(ctx context.Context, memberID string, input *stream_chat.QueryOption) ([]*domain.Community, error)
 	GetContent(ctx context.Context, categoryID *int, limit string) (*domain.Content, error)
 	ListContentCategories(ctx context.Context) ([]*domain.ContentItemCategory, error)
 	GetUserBookmarkedContent(ctx context.Context, userID string) (*domain.Content, error)
@@ -1526,7 +1528,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.AcceptInvitation(childComplexity, args["userID"].(string), args["communityID"].(string)), true
+		return e.complexity.Mutation.AcceptInvitation(childComplexity, args["memberID"].(string), args["communityID"].(string)), true
 
 	case "Mutation.acceptTerms":
 		if e.complexity.Mutation.AcceptTerms == nil {
@@ -1562,7 +1564,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.AddModerators(childComplexity, args["userIDs"].([]string), args["communityID"].(string)), true
+		return e.complexity.Mutation.AddModerators(childComplexity, args["memberIDs"].([]string), args["communityID"].(string)), true
 
 	case "Mutation.assignRoles":
 		if e.complexity.Mutation.AssignRoles == nil {
@@ -1778,7 +1780,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.RejectInvitation(childComplexity, args["userID"].(string), args["communityID"].(string)), true
+		return e.complexity.Mutation.RejectInvitation(childComplexity, args["memberID"].(string), args["communityID"].(string)), true
 
 	case "Mutation.removeMembersFromCommunity":
 		if e.complexity.Mutation.RemoveMembersFromCommunity == nil {
@@ -2193,6 +2195,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.ListMembers(childComplexity, args["input"].(*stream_chat.QueryOption)), true
 
+	case "Query.listPendingInvites":
+		if e.complexity.Query.ListPendingInvites == nil {
+			break
+		}
+
+		args, err := ec.field_Query_listPendingInvites_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.ListPendingInvites(childComplexity, args["memberID"].(string), args["input"].(*stream_chat.QueryOption)), true
+
 	case "Query.retrieveFacility":
 		if e.complexity.Query.RetrieveFacility == nil {
 			break
@@ -2490,16 +2504,17 @@ var sources = []*ast.Source{
   inviteMembersToCommunity(communityID: String!, memberIDs: [String!]!): Boolean!
   listCommunities(input: QueryOption): [Community]
   listCommunityMembers(communityID: ID!): [CommunityMember]
+  listPendingInvites(memberID: String!, input: QueryOption): [Community]
 }
 
 extend type Mutation {
   createCommunity(input: CommunityInput!): Community!
   deleteCommunities(communityIDs: [String!]!, hardDelete: Boolean!): Boolean!
-  rejectInvitation(userID: String!, communityID: String!): Boolean!
-  acceptInvitation(userID: String!, communityID: String!): Boolean!
+  rejectInvitation(memberID: String!, communityID: String!): Boolean!
+  acceptInvitation(memberID: String!, communityID: String!): Boolean!
   addMembersToCommunity(memberIDs: [String!]!, communityID: String!): Boolean!
   removeMembersFromCommunity(communityID: String!, memberIDs: [String!]): Boolean!
-  addModerators(userIDs: [String!]!, communityID: String!): Boolean!
+  addModerators(memberIDs: [String!]!, communityID: String!): Boolean!
   demoteModerators(communityID: String!, memberIDs: [String!]!): Boolean!
 }
 `, BuiltIn: false},
@@ -3176,14 +3191,14 @@ func (ec *executionContext) field_Mutation_acceptInvitation_args(ctx context.Con
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
-	if tmp, ok := rawArgs["userID"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userID"))
+	if tmp, ok := rawArgs["memberID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("memberID"))
 		arg0, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["userID"] = arg0
+	args["memberID"] = arg0
 	var arg1 string
 	if tmp, ok := rawArgs["communityID"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("communityID"))
@@ -3248,14 +3263,14 @@ func (ec *executionContext) field_Mutation_addModerators_args(ctx context.Contex
 	var err error
 	args := map[string]interface{}{}
 	var arg0 []string
-	if tmp, ok := rawArgs["userIDs"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userIDs"))
+	if tmp, ok := rawArgs["memberIDs"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("memberIDs"))
 		arg0, err = ec.unmarshalNString2ᚕstringᚄ(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["userIDs"] = arg0
+	args["memberIDs"] = arg0
 	var arg1 string
 	if tmp, ok := rawArgs["communityID"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("communityID"))
@@ -3644,14 +3659,14 @@ func (ec *executionContext) field_Mutation_rejectInvitation_args(ctx context.Con
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
-	if tmp, ok := rawArgs["userID"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userID"))
+	if tmp, ok := rawArgs["memberID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("memberID"))
 		arg0, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["userID"] = arg0
+	args["memberID"] = arg0
 	var arg1 string
 	if tmp, ok := rawArgs["communityID"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("communityID"))
@@ -4225,6 +4240,30 @@ func (ec *executionContext) field_Query_listMembers_args(ctx context.Context, ra
 		}
 	}
 	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_listPendingInvites_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["memberID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("memberID"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["memberID"] = arg0
+	var arg1 *stream_chat.QueryOption
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg1, err = ec.unmarshalOQueryOption2ᚖgithubᚗcomᚋGetStreamᚋstreamᚑchatᚑgoᚋv5ᚐQueryOption(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg1
 	return args, nil
 }
 
@@ -9627,7 +9666,7 @@ func (ec *executionContext) _Mutation_rejectInvitation(ctx context.Context, fiel
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().RejectInvitation(rctx, args["userID"].(string), args["communityID"].(string))
+		return ec.resolvers.Mutation().RejectInvitation(rctx, args["memberID"].(string), args["communityID"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -9669,7 +9708,7 @@ func (ec *executionContext) _Mutation_acceptInvitation(ctx context.Context, fiel
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().AcceptInvitation(rctx, args["userID"].(string), args["communityID"].(string))
+		return ec.resolvers.Mutation().AcceptInvitation(rctx, args["memberID"].(string), args["communityID"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -9795,7 +9834,7 @@ func (ec *executionContext) _Mutation_addModerators(ctx context.Context, field g
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().AddModerators(rctx, args["userIDs"].([]string), args["communityID"].(string))
+		return ec.resolvers.Mutation().AddModerators(rctx, args["memberIDs"].([]string), args["communityID"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -11245,6 +11284,45 @@ func (ec *executionContext) _Query_listCommunityMembers(ctx context.Context, fie
 	res := resTmp.([]*domain.CommunityMember)
 	fc.Result = res
 	return ec.marshalOCommunityMember2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐCommunityMember(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_listPendingInvites(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_listPendingInvites_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().ListPendingInvites(rctx, args["memberID"].(string), args["input"].(*stream_chat.QueryOption))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*domain.Community)
+	fc.Result = res
+	return ec.marshalOCommunity2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐCommunity(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_getContent(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -16345,6 +16423,17 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_listCommunityMembers(ctx, field)
+				return res
+			})
+		case "listPendingInvites":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_listPendingInvites(ctx, field)
 				return res
 			})
 		case "getContent":
