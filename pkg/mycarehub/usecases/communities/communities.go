@@ -40,6 +40,7 @@ type IInviteMembers interface {
 // IListCommunities is an interface that is used to list getstream channels
 type IListCommunities interface {
 	ListCommunities(ctx context.Context, input *stream.QueryOption) ([]*domain.Community, error)
+	ListPendingInvites(ctx context.Context, memberID string, input *stream.QueryOption) ([]*domain.Community, error)
 }
 
 // IDeleteCommunities is an interface that is used to delete channels
@@ -49,8 +50,8 @@ type IDeleteCommunities interface {
 
 // ICommunityInvites is an interface that is used to manage community invites
 type ICommunityInvites interface {
-	AcceptInvite(ctx context.Context, userID string, channelID string) (bool, error)
-	RejectInvite(ctx context.Context, userID string, channelID string) (bool, error)
+	AcceptInvite(ctx context.Context, memberID string, channelID string) (bool, error)
+	RejectInvite(ctx context.Context, memberID string, channelID string) (bool, error)
 }
 
 // IManageMembers is an interface that is used to manage community members
@@ -61,7 +62,7 @@ type IManageMembers interface {
 
 // IModeration interface contains all the moderation functions
 type IModeration interface {
-	AddModeratorsWithMessage(ctx context.Context, userIDs []string, communityID string) (bool, error)
+	AddModeratorsWithMessage(ctx context.Context, memberIDs []string, communityID string) (bool, error)
 	DemoteModerators(ctx context.Context, communityID string, memberIDs []string) (bool, error)
 }
 
@@ -161,12 +162,13 @@ func (us *UseCasesCommunitiesImpl) CreateCommunity(ctx context.Context, input dt
 	}
 
 	data := map[string]interface{}{
-		"minimumAge": channelResponse.AgeRange.LowerBound,
-		"maximumAge": channelResponse.AgeRange.UpperBound,
-		"gender":     channelResponse.Gender,
-		"clientType": channelResponse.ClientType,
-		"inviteOnly": channelResponse.InviteOnly,
-		"name":       channelResponse.Name,
+		"minimumAge":  channelResponse.AgeRange.LowerBound,
+		"maximumAge":  channelResponse.AgeRange.UpperBound,
+		"gender":      channelResponse.Gender,
+		"clientType":  channelResponse.ClientType,
+		"inviteOnly":  channelResponse.InviteOnly,
+		"name":        channelResponse.Name,
+		"description": channelResponse.Description,
 	}
 
 	staff, err := us.Query.GetStaffProfileByUserID(ctx, loggedInUserID)
@@ -427,14 +429,14 @@ func (us *UseCasesCommunitiesImpl) RemoveMembersFromCommunity(ctx context.Contex
 }
 
 // AddModeratorsWithMessage adds moderators with given IDs to the channel and produces a message.
-func (us *UseCasesCommunitiesImpl) AddModeratorsWithMessage(ctx context.Context, userIDs []string, communityID string) (bool, error) {
+func (us *UseCasesCommunitiesImpl) AddModeratorsWithMessage(ctx context.Context, memberIDs []string, communityID string) (bool, error) {
 	community, err := us.Query.GetCommunityByID(ctx, communityID)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return false, err
 	}
 
-	for _, v := range userIDs {
+	for _, v := range memberIDs {
 		message := &stream.Message{
 			ID:   uuid.New().String(),
 			Text: fmt.Sprintf(promoteToModeratorMessage, community.Name),
@@ -443,7 +445,7 @@ func (us *UseCasesCommunitiesImpl) AddModeratorsWithMessage(ctx context.Context,
 			},
 		}
 
-		_, err = us.GetstreamService.AddModeratorsWithMessage(ctx, userIDs, communityID, message)
+		_, err = us.GetstreamService.AddModeratorsWithMessage(ctx, memberIDs, communityID, message)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
 			return false, fmt.Errorf("failed to add moderator(s)")
@@ -469,4 +471,52 @@ func (us *UseCasesCommunitiesImpl) DemoteModerators(ctx context.Context, communi
 	}
 
 	return true, nil
+}
+
+// ListPendingInvites lists all communities that a user has been invited into
+func (us *UseCasesCommunitiesImpl) ListPendingInvites(ctx context.Context, memberID string, input *stream.QueryOption) ([]*domain.Community, error) {
+	if memberID == "" {
+		return nil, fmt.Errorf("memberID cannot be empty")
+	}
+	query := &stream.QueryOption{
+		Filter: map[string]interface{}{
+			"invite": "pending",
+		},
+		UserID: memberID,
+		Limit:  input.Limit,
+		Offset: input.Offset,
+	}
+
+	streamChannelsResponse, err := us.GetstreamService.ListGetStreamChannels(ctx, query)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, fmt.Errorf("an error occurred: %v", err)
+	}
+
+	var communities []*domain.Community
+	for _, channel := range streamChannelsResponse.Channels {
+		var (
+			channelName string
+			description string
+		)
+
+		if val, ok := channel.ExtraData["name"]; ok {
+			channelName = val.(string)
+		}
+		if val, ok := channel.ExtraData["description"]; ok {
+			description = val.(string)
+		}
+
+		community := &domain.Community{
+			ID:          channel.ID,
+			Name:        channelName,
+			Description: description,
+			MemberCount: channel.MemberCount,
+			CreatedAt:   channel.CreatedAt,
+		}
+
+		communities = append(communities, community)
+	}
+
+	return communities, nil
 }

@@ -1030,3 +1030,60 @@ func TestUseCasesCommunitiesImpl_DemoteModerators(t *testing.T) {
 		})
 	}
 }
+
+func TestUseCasesCommunitiesImpl_ListPendingInvites(t *testing.T) {
+	ctx := context.Background()
+
+	type args struct {
+		ctx      context.Context
+		memberID string
+		input    *stream.QueryOption
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    []*domain.Community
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:      ctx,
+				memberID: uuid.New().String(),
+				input: &stream.QueryOption{
+					Filter: map[string]interface{}{
+						"invite": "pending",
+					},
+					UserID: uuid.New().String(),
+					Limit:  10,
+					Offset: 0,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case",
+			args: args{
+				ctx:      ctx,
+				memberID: "",
+				input:    &stream.QueryOption{},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
+			fakeExtension := extensionMock.NewFakeExtension()
+			fakeDB := pgMock.NewPostgresMock()
+			communities := communities.NewUseCaseCommunitiesImpl(fakeGetStream, fakeExtension, fakeDB, fakeDB)
+
+			_, err := communities.ListPendingInvites(tt.args.ctx, tt.args.memberID, tt.args.input)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCasesCommunitiesImpl.ListPendingInvites() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}

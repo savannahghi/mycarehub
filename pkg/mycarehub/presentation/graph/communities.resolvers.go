@@ -20,12 +20,12 @@ func (r *mutationResolver) DeleteCommunities(ctx context.Context, communityIDs [
 	return r.mycarehub.Community.DeleteCommunities(ctx, communityIDs, hardDelete)
 }
 
-func (r *mutationResolver) RejectInvitation(ctx context.Context, userID string, communityID string) (bool, error) {
-	return r.mycarehub.Community.RejectInvite(ctx, userID, communityID)
+func (r *mutationResolver) RejectInvitation(ctx context.Context, memberID string, communityID string) (bool, error) {
+	return r.mycarehub.Community.RejectInvite(ctx, memberID, communityID)
 }
 
-func (r *mutationResolver) AcceptInvitation(ctx context.Context, userID string, communityID string) (bool, error) {
-	return r.mycarehub.Community.AcceptInvite(ctx, userID, communityID)
+func (r *mutationResolver) AcceptInvitation(ctx context.Context, memberID string, communityID string) (bool, error) {
+	return r.mycarehub.Community.AcceptInvite(ctx, memberID, communityID)
 }
 
 func (r *mutationResolver) AddMembersToCommunity(ctx context.Context, memberIDs []string, communityID string) (bool, error) {
@@ -36,8 +36,8 @@ func (r *mutationResolver) RemoveMembersFromCommunity(ctx context.Context, commu
 	return r.mycarehub.Community.RemoveMembersFromCommunity(ctx, communityID, memberIDs)
 }
 
-func (r *mutationResolver) AddModerators(ctx context.Context, userIDs []string, communityID string) (bool, error) {
-	return r.mycarehub.Community.AddModeratorsWithMessage(ctx, userIDs, communityID)
+func (r *mutationResolver) AddModerators(ctx context.Context, memberIDs []string, communityID string) (bool, error) {
+	return r.mycarehub.Community.AddModeratorsWithMessage(ctx, memberIDs, communityID)
 }
 
 func (r *mutationResolver) DemoteModerators(ctx context.Context, communityID string, memberIDs []string) (bool, error) {
@@ -58,6 +58,10 @@ func (r *queryResolver) ListCommunities(ctx context.Context, input *stream_chat.
 
 func (r *queryResolver) ListCommunityMembers(ctx context.Context, communityID string) ([]*domain.CommunityMember, error) {
 	return r.mycarehub.Community.ListCommunityMembers(ctx, communityID)
+}
+
+func (r *queryResolver) ListPendingInvites(ctx context.Context, memberID string, input *stream_chat.QueryOption) ([]*domain.Community, error) {
+	return r.mycarehub.Community.ListPendingInvites(ctx, memberID, input)
 }
 
 // Query returns generated.QueryResolver implementation.
