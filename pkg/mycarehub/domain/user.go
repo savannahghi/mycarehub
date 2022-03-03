@@ -56,6 +56,7 @@ type User struct {
 	Avatar          string                 `json:"avatar"`
 	Roles           []*AuthorityRole       `json:"roles"`
 	Permissions     []*AuthorityPermission `json:"permissions"`
+	DateOfBirth     *time.Time             `json:"dateOfBirth"`
 }
 
 // ClientProfile holds the details of end users who are not using the system in

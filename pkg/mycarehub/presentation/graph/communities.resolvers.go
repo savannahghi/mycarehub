@@ -64,6 +64,10 @@ func (r *queryResolver) ListPendingInvites(ctx context.Context, memberID string,
 	return r.mycarehub.Community.ListPendingInvites(ctx, memberID, input)
 }
 
+func (r *queryResolver) RecommendedCommunities(ctx context.Context, clientID string, limit int) ([]*domain.Community, error) {
+	return r.mycarehub.Community.RecommendedCommunities(ctx, clientID, limit)
+}
+
 // Query returns generated.QueryResolver implementation.
 func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
 

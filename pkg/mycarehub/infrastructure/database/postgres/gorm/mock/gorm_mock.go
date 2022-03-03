@@ -104,6 +104,8 @@ func NewGormMock() *GormMock {
 	county := "Nairobi"
 	description := gofakeit.HipsterSentence(15)
 	phoneContact := gofakeit.Phone()
+	acceptedTermsID := gofakeit.Number(1, 10)
+	currentTime := time.Now()
 
 	facility := &gorm.Facility{
 		FacilityID:  &UUID,
@@ -142,11 +144,56 @@ func NewGormMock() *GormMock {
 	}
 
 	client := &gorm.Client{
-		ID: &UUID,
+		ID:         &UUID,
+		Active:     true,
+		ClientType: "",
+		UserProfile: gorm.User{
+			UserID:                 &UUID,
+			Username:               gofakeit.Name(),
+			FirstName:              gofakeit.Name(),
+			MiddleName:             name,
+			LastName:               gofakeit.Name(),
+			UserType:               enums.HealthcareWorkerUser,
+			Gender:                 enumutils.GenderMale,
+			Active:                 true,
+			Contacts:               gorm.Contact{},
+			PushTokens:             []string{},
+			LastSuccessfulLogin:    &currentTime,
+			LastFailedLogin:        &currentTime,
+			FailedLoginCount:       3,
+			NextAllowedLogin:       &currentTime,
+			TermsAccepted:          true,
+			AcceptedTermsID:        &acceptedTermsID,
+			Flavour:                feedlib.FlavourPro,
+			Avatar:                 gofakeit.URL(),
+			IsSuspended:            true,
+			PinChangeRequired:      true,
+			HasSetPin:              true,
+			HasSetSecurityQuestion: true,
+			IsPhoneVerified:        true,
+			OrganisationID:         uuid.New().String(),
+			Password:               gofakeit.Name(),
+			IsSuperuser:            true,
+			IsStaff:                true,
+			Email:                  gofakeit.Email(),
+			DateJoined:             gofakeit.BeerIbu(),
+			Name:                   name,
+			IsApproved:             true,
+			ApprovalNotified:       true,
+			Handle:                 "@test",
+			DateOfBirth:            &currentTime,
+		},
+		TreatmentEnrollmentDate: &currentTime,
+		FHIRPatientID:           uuid.New().String(),
+		HealthRecordID:          &UUID,
+		TreatmentBuddy:          gofakeit.Name(),
+		ClientCounselled:        true,
+		OrganisationID:          uuid.New().String(),
+		FacilityID:              uuid.New().String(),
+		CHVUserID:               uuid.New().String(),
+		UserID:                  &UUID,
+		CaregiverID:             &UUID,
 	}
-
-	acceptedTermsID := gofakeit.Number(1, 10)
-	currentTime := time.Now()
 
 	userProfile := &gorm.User{
 		UserID:                 &UUID,
@@ -182,6 +229,7 @@ func NewGormMock() *GormMock {
 		IsApproved:             true,
 		ApprovalNotified:       true,
 		Handle:                 "@test",
+		DateOfBirth:            &currentTime,
 	}
 
 	staff := &gorm.StaffProfile{

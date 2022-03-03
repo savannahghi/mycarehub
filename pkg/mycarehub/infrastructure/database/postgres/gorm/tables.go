@@ -111,16 +111,17 @@ type User struct {
 	IsPhoneVerified        bool            `gorm:"column:is_phone_verified"`
 
 	// Django required fields
-	OrganisationID   string `gorm:"column:organisation_id"`
-	Password         string `gorm:"column:password"`
-	IsSuperuser      bool   `gorm:"column:is_superuser"`
-	IsStaff          bool   `gorm:"column:is_staff"`
-	Email            string `gorm:"column:email"`
-	DateJoined       string `gorm:"column:date_joined"`
-	Name             string `gorm:"column:name"`
-	IsApproved       bool   `gorm:"column:is_approved"`
-	ApprovalNotified bool   `gorm:"column:approval_notified"`
-	Handle           string `gorm:"column:handle"`
+	OrganisationID   string     `gorm:"column:organisation_id"`
+	Password         string     `gorm:"column:password"`
+	IsSuperuser      bool       `gorm:"column:is_superuser"`
+	IsStaff          bool       `gorm:"column:is_staff"`
+	Email            string     `gorm:"column:email"`
+	DateJoined       string     `gorm:"column:date_joined"`
+	Name             string     `gorm:"column:name"`
+	IsApproved       bool       `gorm:"column:is_approved"`
+	ApprovalNotified bool       `gorm:"column:approval_notified"`
+	Handle           string     `gorm:"column:handle"`
+	DateOfBirth      *time.Time `gorm:"column:date_of_birth"`
 }
 
 // BeforeCreate is a hook run before creating a new user

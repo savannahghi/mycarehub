@@ -151,3 +151,29 @@ func TestFormatFilterParamsHelper(t *testing.T) {
 		})
 	}
 }
+
+func TestCalculateAge(t *testing.T) {
+	type args struct {
+		birthday time.Time
+	}
+	tests := []struct {
+		name string
+		args args
+		want int
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				birthday: time.Now(),
+			},
+			want: 0,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := CalculateAge(tt.args.birthday); got != tt.want {
+				t.Errorf("CalculateAge() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

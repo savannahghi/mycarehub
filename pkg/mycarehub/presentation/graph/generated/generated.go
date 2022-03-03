@@ -354,6 +354,7 @@ type ComplexityRoot struct {
 		ListFacilities                 func(childComplexity int, searchTerm *string, filterInput []*dto.FiltersInput, paginationInput dto.PaginationsInput) int
 		ListMembers                    func(childComplexity int, input *stream_chat.QueryOption) int
 		ListPendingInvites             func(childComplexity int, memberID string, input *stream_chat.QueryOption) int
+		RecommendedCommunities         func(childComplexity int, clientID string, limit int) int
 		RetrieveFacility               func(childComplexity int, id string, active bool) int
 		RetrieveFacilityByMFLCode      func(childComplexity int, mflCode int, isActive bool) int
 		SendOtp                        func(childComplexity int, phoneNumber string, flavour feedlib.Flavour) int
@@ -445,6 +446,7 @@ type QueryResolver interface {
 	ListCommunities(ctx context.Context, input *stream_chat.QueryOption) ([]*domain.Community, error)
 	ListCommunityMembers(ctx context.Context, communityID string) ([]*domain.CommunityMember, error)
 	ListPendingInvites(ctx context.Context, memberID string, input *stream_chat.QueryOption) ([]*domain.Community, error)
+	RecommendedCommunities(ctx context.Context, clientID string, limit int) ([]*domain.Community, error)
 	GetContent(ctx context.Context, categoryID *int, limit string) (*domain.Content, error)
 	ListContentCategories(ctx context.Context) ([]*domain.ContentItemCategory, error)
 	GetUserBookmarkedContent(ctx context.Context, userID string) (*domain.Content, error)
@@ -2207,6 +2209,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.ListPendingInvites(childComplexity, args["memberID"].(string), args["input"].(*stream_chat.QueryOption)), true
 
+	case "Query.recommendedCommunities":
+		if e.complexity.Query.RecommendedCommunities == nil {
+			break
+		}
+
+		args, err := ec.field_Query_recommendedCommunities_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.RecommendedCommunities(childComplexity, args["clientID"].(string), args["limit"].(int)), true
+
 	case "Query.retrieveFacility":
 		if e.complexity.Query.RetrieveFacility == nil {
 			break
@@ -2505,6 +2519,7 @@ var sources = []*ast.Source{
   listCommunities(input: QueryOption): [Community]
   listCommunityMembers(communityID: ID!): [CommunityMember]
   listPendingInvites(memberID: String!, input: QueryOption): [Community]
+  recommendedCommunities(clientID: String!, limit: Int!): [Community]
 }
 
 extend type Mutation {
@@ -4264,6 +4279,30 @@ func (ec *executionContext) field_Query_listPendingInvites_args(ctx context.Cont
 		}
 	}
 	args["input"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_recommendedCommunities_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["clientID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clientID"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["clientID"] = arg0
+	var arg1 int
+	if tmp, ok := rawArgs["limit"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit"))
+		arg1, err = ec.unmarshalNInt2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["limit"] = arg1
 	return args, nil
 }
 
@@ -11325,6 +11364,45 @@ func (ec *executionContext) _Query_listPendingInvites(ctx context.Context, field
 	return ec.marshalOCommunity2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐCommunity(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Query_recommendedCommunities(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_recommendedCommunities_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().RecommendedCommunities(rctx, args["clientID"].(string), args["limit"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*domain.Community)
+	fc.Result = res
+	return ec.marshalOCommunity2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐCommunity(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Query_getContent(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -16434,6 +16512,17 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_listPendingInvites(ctx, field)
+				return res
+			})
+		case "recommendedCommunities":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_recommendedCommunities(ctx, field)
 				return res
 			})
 		case "getContent":

@@ -640,7 +640,9 @@ func (d *MyCareHubDb) GetClientProfileByClientID(ctx context.Context, clientID s
 		FacilityID:              response.FacilityID,
 		CHVUserID:               response.CHVUserID,
 		CaregiverID:             response.CaregiverID,
+		UserID:                  *response.UserID,
 	}, nil
+
 }
 
 // GetServiceRequests retrieves the service requests by the type passed in the parameters

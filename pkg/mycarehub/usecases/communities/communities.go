@@ -3,6 +3,7 @@ package communities
 import (
 	"context"
 	"fmt"
+	"time"
 
 	stream "github.com/GetStream/stream-chat-go/v5"
 	"github.com/google/uuid"
@@ -67,6 +68,11 @@ type IModeration interface {
 	DemoteModerators(ctx context.Context, communityID string, memberIDs []string) (bool, error)
 }
 
+// IRecommendations interface contains all the recommendation functions
+type IRecommendations interface {
+	RecommendedCommunities(ctx context.Context, clientID string, limit int) ([]*domain.Community, error)
+}
+
 // UseCasesCommunities holds all interfaces required to implement the communities feature
 type UseCasesCommunities interface {
 	ICreateCommunity
@@ -77,6 +83,7 @@ type UseCasesCommunities interface {
 	ICommunityInvites
 	IManageMembers
 	IModeration
+	IRecommendations
 }
 
 // UseCasesCommunitiesImpl represents communities implementation
@@ -537,6 +544,91 @@ func (us *UseCasesCommunitiesImpl) ListPendingInvites(ctx context.Context, membe
 				LowerBound: metaData.MinimumAge,
 				UpperBound: metaData.MaximumAge,
 			},
+		}
+
+		communities = append(communities, community)
+	}
+
+	return communities, nil
+}
+
+// RecommendedCommunities returns a list of communities that have been recommended to the user
+//the recomendations are based on the channel meta data and the client data; client type, age range, gender
+// e.g. if a channel's age range value is 25-30, and the client's age is between this range,
+// this channel will be recommended to the user if they have not joined
+func (us *UseCasesCommunitiesImpl) RecommendedCommunities(ctx context.Context, clientID string, limit int) ([]*domain.Community, error) {
+	if clientID == "" {
+		return nil, fmt.Errorf("memberID cannot be empty")
+	}
+
+	clientProfile, err := us.Query.GetClientProfileByClientID(ctx, clientID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
+	userID := clientProfile.UserID
+
+	clientUserProfile, err := us.Query.GetUserProfileByUserID(ctx, userID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
+	clientType := clientProfile.ClientType
+
+	var dob = time.Now()
+	if clientUserProfile.DateOfBirth != nil {
+		dob = *clientUserProfile.DateOfBirth
+	}
+
+	age := utils.CalculateAge(dob)
+
+	clientGender := clientUserProfile.Gender.String()
+
+	query := &stream.QueryOption{
+		Filter: map[string]interface{}{
+			"clientType": []string{clientType},
+			"gender":     []string{clientGender},
+
+			"minimumAge": map[string]interface{}{"$lte": age},
+			"maximumAge": map[string]interface{}{"$gte": age},
+			"inviteOnly": false,
+		},
+		Limit: limit,
+	}
+
+	streamChannelsResponse, err := us.GetstreamService.ListGetStreamChannels(ctx, query)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, fmt.Errorf("an error occurred: %v", err)
+	}
+	var communities []*domain.Community
+	for _, channel := range streamChannelsResponse.Channels {
+
+		var metaData domain.CommunityMetadata
+
+		err := mapstructure.Decode(channel.ExtraData, &metaData)
+		if err != nil {
+			return nil, fmt.Errorf("failed to decode payload: %v", err)
+		}
+
+		// TODO:check if user has joined the community
+		// TODO: nullable filters for client type and age
+
+		community := &domain.Community{
+			ID:          channel.ID,
+			Name:        metaData.Name,
+			Description: metaData.Description,
+			MemberCount: channel.MemberCount,
+			CreatedAt:   channel.CreatedAt,
+			ClientType:  metaData.ClientType,
+			Gender:      metaData.Gender,
+			AgeRange: &domain.AgeRange{
+				LowerBound: metaData.MinimumAge,
+				UpperBound: metaData.MaximumAge,
+			},
+			InviteOnly: metaData.InviteOnly,
 		}
 
 		communities = append(communities, community)
