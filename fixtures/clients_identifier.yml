@@ -1,0 +1,11 @@
+- id: bcbdaf68-3d36-4365-b575-4182d6749af5
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  active: true
+  organisation_id: {{.test_organisation_id}}
+  valid_from: 2021-11-22 21:16:29.23639+03
+  identifier_type: CCC
+  identifier_value: "123456"
+  identifier_use: OFFICIAL
+  is_primary_identifier: true
+  description: "A CCC number"

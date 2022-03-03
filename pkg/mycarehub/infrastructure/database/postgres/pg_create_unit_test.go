@@ -635,3 +635,86 @@ func TestMyCareHubDb_CreateChannel(t *testing.T) {
 		})
 	}
 }
+
+func TestMyCareHubDb_CreateNextOfKin(t *testing.T) {
+	var fakeGorm = gormMock.NewGormMock()
+	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+	type args struct {
+		ctx    context.Context
+		person *dto.NextOfKinPayload
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: create a next of kin",
+			args: args{
+				ctx: context.Background(),
+				person: &dto.NextOfKinPayload{
+					Name:         "John Doe",
+					Relationship: "Next of Kin",
+				},
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+
+		if tt.name == "Happy case: create a next of kin" {
+			fakeGorm.MockCreateRelatedPerson = func(ctx context.Context, person *gorm.RelatedPerson) error {
+				return nil
+			}
+		}
+
+		t.Run(tt.name, func(t *testing.T) {
+			if err := d.CreateNextOfKin(tt.args.ctx, tt.args.person); (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.CreateNextOfKin() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestMyCareHubDb_CreateContact(t *testing.T) {
+	var fakeGorm = gormMock.NewGormMock()
+	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+	type args struct {
+		ctx     context.Context
+		contact *domain.Contact
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: create a new contact",
+			args: args{
+				ctx: context.Background(),
+				contact: &domain.Contact{
+					Active:       true,
+					ContactType:  "PHONE",
+					ContactValue: gofakeit.Phone(),
+				},
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+
+		if tt.name == "Happy case: create a new contact" {
+			fakeGorm.MockCreateContact = func(ctx context.Context, contact *gorm.Contact) error {
+				return nil
+			}
+		}
+
+		t.Run(tt.name, func(t *testing.T) {
+			if err := d.CreateContact(tt.args.ctx, tt.args.contact); (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.CreateContact() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}

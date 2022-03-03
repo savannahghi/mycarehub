@@ -799,3 +799,69 @@ func TestPGInstance_CreateCommunity(t *testing.T) {
 		})
 	}
 }
+
+func TestPGInstance_CreateRelatedPerson(t *testing.T) {
+	type args struct {
+		ctx    context.Context
+		person *gorm.RelatedPerson
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: create related person",
+			args: args{
+				ctx: context.Background(),
+				person: &gorm.RelatedPerson{
+					Active:           true,
+					FirstName:        gofakeit.Name(),
+					LastName:         gofakeit.Name(),
+					Gender:           "MALE",
+					RelationshipType: "Next of Kin",
+				},
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			if err := testingDB.CreateRelatedPerson(tt.args.ctx, tt.args.person); (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.CreateRelatedPerson() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestPGInstance_CreateContact(t *testing.T) {
+	type args struct {
+		ctx     context.Context
+		contact *gorm.Contact
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: create a contacts",
+			args: args{
+				ctx: context.Background(),
+				contact: &gorm.Contact{
+					Active:       true,
+					ContactType:  "Phone",
+					ContactValue: gofakeit.Phone(),
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := testingDB.CreateContact(tt.args.ctx, tt.args.contact); (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.CreateContact() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}

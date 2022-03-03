@@ -841,12 +841,6 @@ func (Community) TableName() string {
 	return "communities_community"
 }
 
-// AgeRange defines the channel users age input
-// type AgeRange struct {
-// 	LowerBound int `gorm:"column:lower_bound"`
-// 	UpperBound int `gorm:"column:upper_bound"`
-// }
-
 // PostingHours defines the channel posting hours
 type PostingHours struct {
 	ID             string    `gorm:"primaryKey;column:id;"`
@@ -866,4 +860,111 @@ func (p *PostingHours) BeforeCreate(tx *gorm.DB) (err error) {
 	p.ID = id
 	p.OrganisationID = OrganizationID
 	return
+}
+
+// Identifier is the the table used to store a user's identifying documents
+type Identifier struct {
+	Base
+
+	ID                  string    `gorm:"primaryKey;column:id;"`
+	OrganisationID      string    `gorm:"column:organisation_id;not null"`
+	Active              bool      `gorm:"column:active;not null"`
+	IdentifierType      string    `gorm:"column:identifier_type;not null"`
+	IdentifierValue     string    `gorm:"column:identifier_value;not null"`
+	IdentifierUse       string    `gorm:"column:identifier_use;not null"`
+	Description         string    `gorm:"column:description;not null"`
+	ValidFrom           time.Time `gorm:"column:valid_from;not null"`
+	ValidTo             time.Time `gorm:"column:valid_to"`
+	IsPrimaryIdentifier bool      `gorm:"column:is_primary_identifier"`
+}
+
+// TableName references the table that we map data from
+func (i *Identifier) TableName() string {
+	return "clients_identifier"
+}
+
+// BeforeCreate is a hook run before creating authority permission
+func (i *Identifier) BeforeCreate(tx *gorm.DB) (err error) {
+	id := uuid.New().String()
+
+	i.ID = id
+	i.OrganisationID = OrganizationID
+
+	return
+}
+
+// ClientIdentifiers links a client with their identifiers
+type ClientIdentifiers struct {
+	ID           int     `gorm:"primaryKey;column:id;autoincrement"`
+	ClientID     *string `gorm:"column:client_id"`
+	IdentifierID *string `gorm:"column:identifier_id"`
+}
+
+// TableName references the table that we map data from
+func (c *ClientIdentifiers) TableName() string {
+	return "clients_client_identifiers"
+}
+
+// ClientRelatedPerson links a client with their related person e.g next of kin
+type ClientRelatedPerson struct {
+	ID              int     `gorm:"primaryKey;column:id;autoincrement"`
+	ClientID        *string `gorm:"column:client_id"`
+	RelatedPersonID *string `gorm:"column:relatedperson_id"`
+}
+
+// TableName references the table that we map data from
+func (c *ClientRelatedPerson) TableName() string {
+	return "clients_client_related_persons"
+}
+
+// RelatedPerson represents information for a person related to another user
+type RelatedPerson struct {
+	Base
+
+	ID               string `gorm:"primaryKey;column:id;"`
+	OrganisationID   string `gorm:"column:organisation_id;not null"`
+	Active           bool   `gorm:"column:active;not null"`
+	FirstName        string `gorm:"column:first_name"`
+	LastName         string `gorm:"column:last_name"`
+	OtherName        string `gorm:"column:other_name"`
+	Gender           string `gorm:"column:gender"`
+	RelationshipType string `gorm:"column:relationship_type"`
+}
+
+// TableName references the table that we map data from
+func (r *RelatedPerson) TableName() string {
+	return "clients_relatedperson"
+}
+
+// BeforeCreate is a hook run before creating a related person
+func (r *RelatedPerson) BeforeCreate(tx *gorm.DB) (err error) {
+	id := uuid.New().String()
+	r.ID = id
+	r.OrganisationID = OrganizationID
+
+	return
+}
+
+// RelatedPersonContacts links a related person with their contact
+type RelatedPersonContacts struct {
+	ID              int     `gorm:"primaryKey;column:id;autoincrement"`
+	RelatedPersonID *string `gorm:"column:relatedperson_id"`
+	ContactID       *string `gorm:"column:contact_id"`
+}
+
+// TableName references the table that we map data from
+func (r *RelatedPersonContacts) TableName() string {
+	return "clients_relatedperson_contacts"
+}
+
+// RelatedPersonAddresses links a related person with their addresses
+type RelatedPersonAddresses struct {
+	ID              int     `gorm:"primaryKey;column:id;autoincrement"`
+	RelatedPersonID *string `gorm:"column:relatedperson_id"`
+	AddressID       *string `gorm:"column:address_id"`
+}
+
+// TableName references the table that we map data from
+func (r *RelatedPersonAddresses) TableName() string {
+	return "clients_relatedperson_addresses"
 }

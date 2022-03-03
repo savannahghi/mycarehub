@@ -55,6 +55,8 @@ type Query interface {
 	GetUserPermissions(ctx context.Context, userID string) ([]*AuthorityPermission, error)
 	CheckIfUsernameExists(ctx context.Context, username string) (bool, error)
 	GetCommunityByID(ctx context.Context, communityID string) (*Community, error)
+	CheckIdentifierExists(ctx context.Context, identifierType string, identifierValue string) (bool, error)
+	CheckFacilityExistsByMFLCode(ctx context.Context, MFLCode int) (bool, error)
 }
 
 // CheckWhetherUserHasLikedContent performs a operation to check whether user has liked the content
@@ -730,4 +732,36 @@ func (db *PGInstance) GetCommunityByID(ctx context.Context, communityID string) 
 	}
 
 	return community, nil
+}
+
+// CheckIdentifierExists checks whether an identifier of a certain type and value exists
+// Used to validate uniqueness and prevent duplicates
+func (db *PGInstance) CheckIdentifierExists(ctx context.Context, identifierType string, identifierValue string) (bool, error) {
+	var identifier *Identifier
+
+	err := db.DB.Where(&Identifier{IdentifierType: identifierType, IdentifierValue: identifierValue}).First(&identifier).Error
+	if err != nil {
+		if strings.Contains(err.Error(), gorm.ErrRecordNotFound.Error()) {
+			return false, nil
+		}
+		helpers.ReportErrorToSentry(err)
+		return false, fmt.Errorf("failed to check identifier of type: %s and value: %s", identifierType, identifierValue)
+	}
+
+	return true, nil
+}
+
+// CheckFacilityExistsByMFLCode checks whether a facility exists using the mfl code.
+// Used to validate existence of a facility
+func (db *PGInstance) CheckFacilityExistsByMFLCode(ctx context.Context, MFLCode int) (bool, error) {
+	_, err := db.RetrieveFacilityByMFLCode(ctx, MFLCode, true)
+	if err != nil {
+		if strings.Contains(err.Error(), gorm.ErrRecordNotFound.Error()) {
+			return false, nil
+		}
+		helpers.ReportErrorToSentry(err)
+		return false, fmt.Errorf("failed to check for facility: %s", err)
+	}
+
+	return true, nil
 }

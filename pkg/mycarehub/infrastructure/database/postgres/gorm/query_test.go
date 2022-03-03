@@ -2266,3 +2266,52 @@ func TestPGInstance_GetCommunityByID(t *testing.T) {
 		})
 	}
 }
+
+func TestPGInstance_CheckIdentifierExists(t *testing.T) {
+	ctx := context.Background()
+
+	type args struct {
+		ctx             context.Context
+		identifierType  string
+		identifierValue string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Sad case: identifier doesn't exist",
+			args: args{
+				ctx:             ctx,
+				identifierType:  "CCC",
+				identifierValue: "no-exist",
+			},
+			want:    false,
+			wantErr: false,
+		},
+		{
+			name: "Happy case: identifier exists",
+			args: args{
+				ctx:             ctx,
+				identifierType:  "CCC",
+				identifierValue: "123456",
+			},
+			want:    true,
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := testingDB.CheckIdentifierExists(tt.args.ctx, tt.args.identifierType, tt.args.identifierValue)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.CheckIdentifierExists() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("PGInstance.CheckIdentifierExists() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

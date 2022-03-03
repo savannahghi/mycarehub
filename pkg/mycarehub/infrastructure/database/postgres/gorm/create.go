@@ -18,6 +18,8 @@ type Create interface {
 	CreateServiceRequest(ctx context.Context, serviceRequestInput *ClientServiceRequest) error
 	CreateClientCaregiver(ctx context.Context, clientID string, clientCaregiver *Caregiver) error
 	CreateCommunity(ctx context.Context, community *Community) (*Community, error)
+	CreateRelatedPerson(ctx context.Context, person *RelatedPerson) error
+	CreateContact(ctx context.Context, contact *Contact) error
 }
 
 // GetOrCreateFacility is used to get or create a facility
@@ -207,4 +209,50 @@ func (db *PGInstance) CreateCommunity(ctx context.Context, community *Community)
 		return nil, fmt.Errorf("failed to create a community: %v", err)
 	}
 	return community, nil
+}
+
+// CreateRelatedPerson creates a related person in the database
+func (db *PGInstance) CreateRelatedPerson(ctx context.Context, person *RelatedPerson) error {
+	tx := db.DB.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	err := tx.Create(person).Error
+	if err != nil {
+		tx.Rollback()
+		return fmt.Errorf("failed to create related person: %v", err)
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		tx.Rollback()
+		return fmt.Errorf("transaction commit to create related person failed: %v", err)
+	}
+
+	return nil
+}
+
+// CreateContact creates a person's contact in the database
+func (db *PGInstance) CreateContact(ctx context.Context, contact *Contact) error {
+	tx := db.DB.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	err := tx.Create(contact).Error
+	if err != nil {
+		tx.Rollback()
+		return fmt.Errorf("failed to create contact: %v", err)
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		tx.Rollback()
+		return fmt.Errorf("transaction commit to create contact failed: %v", err)
+	}
+
+	return nil
 }

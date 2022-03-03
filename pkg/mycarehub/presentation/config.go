@@ -181,6 +181,12 @@ func Router(ctx context.Context) (*mux.Router, error) {
 		http.MethodPost,
 	).HandlerFunc(internalHandlers.GetUserRespondedSecurityQuestions())
 
+	// KenyaEMR routes
+	r.Path("/register_patient").Methods(
+		http.MethodOptions,
+		http.MethodPost,
+	).HandlerFunc(internalHandlers.RegisterKenyaEMRPatients())
+
 	// Graphql route
 	authR := r.Path("/graphql").Subrouter()
 	authR.Use(firebasetools.AuthenticationMiddleware(firebaseApp))

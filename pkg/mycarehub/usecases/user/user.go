@@ -93,6 +93,7 @@ type IGetClientCaregiver interface {
 // IRegisterClient interface defines a method signature that is used to register a client
 type IRegisterClient interface {
 	RegisterClient(ctx context.Context, input *dto.ClientRegistrationInput) (*dto.ClientRegistrationOutput, error)
+	RegisterKenyaEMRPatients(ctx context.Context, input []*dto.PatientRegistrationPayload) ([]*dto.ClientRegistrationOutput, error)
 }
 
 // UseCasesUser group all business logic usecases related to user
@@ -889,4 +890,68 @@ func (us *UseCasesUserImpl) RefreshGetStreamToken(ctx context.Context, userID st
 	return &domain.GetStreamToken{
 		Token: token,
 	}, nil
+}
+
+// RegisterKenyaEMRPatients is the usecase for registering patients from KenyaEMR as clients
+func (us *UseCasesUserImpl) RegisterKenyaEMRPatients(ctx context.Context, input []*dto.PatientRegistrationPayload) ([]*dto.ClientRegistrationOutput, error) {
+	clients := []*dto.ClientRegistrationOutput{}
+
+	for _, patient := range input {
+		exists, err := us.Query.CheckFacilityExistsByMFLCode(ctx, patient.MFLCode)
+		if err != nil {
+			return nil, fmt.Errorf("error checking for facility")
+		}
+		if !exists {
+			return nil, fmt.Errorf("facility with that identifier doesn't exists %v", patient.MFLCode)
+		}
+
+		facility, err := us.Query.RetrieveFacilityByMFLCode(ctx, patient.MFLCode, true)
+		if err != nil {
+			return nil, fmt.Errorf("error retrieving facility: %v", err)
+		}
+
+		exists, err = us.Query.CheckIdentifierExists(ctx, "CCC", patient.CCCNumber)
+		if err != nil {
+			return nil, fmt.Errorf("error checking for identifier")
+		}
+		if exists {
+			return nil, fmt.Errorf("patient with that identifier exists: %v", patient.CCCNumber)
+		}
+
+		input := &dto.ClientRegistrationInput{
+			Facility:       facility.Name,
+			ClientType:     "",
+			ClientName:     patient.Name,
+			Gender:         enumutils.Gender(patient.Gender),
+			DateOfBirth:    patient.DateOfBirth,
+			PhoneNumber:    patient.PhoneNumber,
+			EnrollmentDate: patient.EnrollmentDate,
+			CCCNumber:      patient.CCCNumber,
+			Counselled:     patient.Counselled,
+			InviteClient:   true,
+		}
+
+		client, err := us.RegisterClient(ctx, input)
+		if err != nil {
+			return nil, err
+		}
+
+		contact := domain.Contact{
+			ContactType:  "PHONE",
+			ContactValue: patient.NextOfKin.Contact,
+		}
+		err = us.Create.CreateContact(ctx, &contact)
+		if err != nil {
+			return nil, err
+		}
+
+		err = us.Create.CreateNextOfKin(ctx, &patient.NextOfKin)
+		if err != nil {
+			return nil, err
+		}
+
+		clients = append(clients, client)
+	}
+
+	return clients, nil
 }

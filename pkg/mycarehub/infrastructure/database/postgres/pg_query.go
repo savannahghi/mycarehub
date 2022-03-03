@@ -66,9 +66,6 @@ func (d *MyCareHubDb) RetrieveFacility(ctx context.Context, id *string, isActive
 
 // RetrieveFacilityByMFLCode gets a facility by ID from the database
 func (d *MyCareHubDb) RetrieveFacilityByMFLCode(ctx context.Context, MFLCode int, isActive bool) (*domain.Facility, error) {
-	if MFLCode == 0 {
-		return nil, fmt.Errorf("facility ID should be defined")
-	}
 	facilitySession, err := d.query.RetrieveFacilityByMFLCode(ctx, MFLCode, isActive)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
@@ -769,4 +766,16 @@ func (d *MyCareHubDb) GetCommunityByID(ctx context.Context, communityID string) 
 		Description: community.Description,
 		InviteOnly:  community.InviteOnly,
 	}, nil
+}
+
+// CheckIdentifierExists checks whether an identifier of a certain type and value exists
+// Used to validate uniqueness and prevent duplicates
+func (d *MyCareHubDb) CheckIdentifierExists(ctx context.Context, identifierType string, identifierValue string) (bool, error) {
+	return d.query.CheckIdentifierExists(ctx, identifierType, identifierValue)
+}
+
+// CheckFacilityExistsByMFLCode checks whether a facility exists using the mfl code.
+// Used to validate existence of a facility
+func (d *MyCareHubDb) CheckFacilityExistsByMFLCode(ctx context.Context, MFLCode int) (bool, error) {
+	return d.query.CheckFacilityExistsByMFLCode(ctx, MFLCode)
 }
