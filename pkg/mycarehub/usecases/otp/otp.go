@@ -20,7 +20,9 @@ import (
 )
 
 const (
-	otpMessage = "%s is your MyCareHub verification code"
+	otpMessage      = "%s is your %v verification code"
+	consumerAppName = "myAfyaHub"
+	proAppName      = "myCareHub Professional"
 )
 
 // IGenerateOTP specifies the method signature for generating an OTP
@@ -122,7 +124,14 @@ func (o *UseCaseOTPImpl) GenerateAndSendOTP(
 		return "", fmt.Errorf("failed to generate an OTP")
 	}
 
-	message := fmt.Sprintf(otpMessage, otp)
+	var message string
+	switch flavour {
+	case feedlib.FlavourConsumer:
+		message = fmt.Sprintf(otpMessage, otp, consumerAppName)
+	case feedlib.FlavourPro:
+		message = fmt.Sprintf(otpMessage, otp, proAppName)
+	}
+
 	otp, err = o.SendOTP(ctx, *phone, otp, message)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
@@ -188,7 +197,14 @@ func (o *UseCaseOTPImpl) VerifyPhoneNumber(ctx context.Context, phone string, fl
 		return nil, fmt.Errorf("failed to generate an OTP")
 	}
 
-	message := fmt.Sprintf(otpMessage, otp)
+	var message string
+	switch flavour {
+	case feedlib.FlavourConsumer:
+		message = fmt.Sprintf(otpMessage, otp, consumerAppName)
+	case feedlib.FlavourPro:
+		message = fmt.Sprintf(otpMessage, otp, proAppName)
+	}
+
 	otp, err = o.SendOTP(ctx, phone, otp, message)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
