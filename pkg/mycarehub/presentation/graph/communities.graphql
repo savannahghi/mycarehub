@@ -4,6 +4,7 @@ extend type Query {
   listCommunities(input: QueryOption): [Community]
   listCommunityMembers(communityID: ID!): [CommunityMember]
   listPendingInvites(memberID: String!, input: QueryOption): [Community]
+  recommendedCommunities(clientID: String!, limit: Int!): [Community]
 }
 
 extend type Mutation {

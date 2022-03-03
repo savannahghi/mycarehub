@@ -1087,3 +1087,99 @@ func TestUseCasesCommunitiesImpl_ListPendingInvites(t *testing.T) {
 		})
 	}
 }
+
+func TestUseCasesCommunitiesImpl_RecommendedCommunities(t *testing.T) {
+	type args struct {
+		ctx      context.Context
+		clientID string
+		limit    int
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    []*domain.Community
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:      context.Background(),
+				clientID: uuid.New().String(),
+				limit:    10,
+			},
+			wantErr: false,
+		},
+		{
+			name: "sad case: missing clientID",
+			args: args{
+				ctx:      context.Background(),
+				clientID: "",
+				limit:    10,
+			},
+			wantErr: true,
+		},
+		{
+			name: "sad case: failed client profile by client ID",
+			args: args{
+				ctx:      context.Background(),
+				clientID: uuid.New().String(),
+				limit:    10,
+			},
+			wantErr: true,
+		},
+		{
+			name: "sad case: failed to get user profile by user ID",
+			args: args{
+				ctx:      context.Background(),
+				clientID: uuid.New().String(),
+				limit:    10,
+			},
+			wantErr: true,
+		},
+		{
+			name: "sad case: failed to get recommended channels",
+			args: args{
+				ctx:      context.Background(),
+				clientID: uuid.New().String(),
+				limit:    10,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
+			fakeExtension := extensionMock.NewFakeExtension()
+			fakeDB := pgMock.NewPostgresMock()
+			communities := communities.NewUseCaseCommunitiesImpl(fakeGetStream, fakeExtension, fakeDB, fakeDB)
+
+			if tt.name == "sad case: failed client profile by client ID" {
+				fakeDB.MockGetClientProfileByClientIDFn = func(ctx context.Context, clientID string) (*domain.ClientProfile, error) {
+					return nil, fmt.Errorf("failed to get client profile by client ID")
+				}
+			}
+
+			if tt.name == "sad case: failed to get user profile by user ID" {
+				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
+					return nil, fmt.Errorf("failed to get user profile by user ID")
+				}
+			}
+
+			if tt.name == "sad case: failed to get recommended channels" {
+				fakeGetStream.MockListGetStreamChannelsFn = func(ctx context.Context, input *stream.QueryOption) (*stream.QueryChannelsResponse, error) {
+					return nil, fmt.Errorf("failed to get recommended channels")
+				}
+			}
+
+			got, err := communities.RecommendedCommunities(tt.args.ctx, tt.args.clientID, tt.args.limit)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCasesCommunitiesImpl.RecommendedCommunities() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("UseCasesCommunitiesImpl.RecommendedCommunities() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

@@ -107,3 +107,16 @@ func FormatFilterParamsHelper(a map[string]interface{}) map[string]interface{} {
 	}
 	return newMap
 }
+
+// CalculateAge calculates the age of a community member
+func CalculateAge(birthday time.Time) int {
+	if birthday.IsZero() {
+		return 0
+	}
+	now := time.Now()
+	age := now.Year() - birthday.Year()
+	if now.Month() < birthday.Month() || (now.Month() == birthday.Month() && now.Day() < birthday.Day()) {
+		age--
+	}
+	return age
+}
