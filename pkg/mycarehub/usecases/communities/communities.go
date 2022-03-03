@@ -6,6 +6,7 @@ import (
 
 	stream "github.com/GetStream/stream-chat-go/v5"
 	"github.com/google/uuid"
+	"github.com/mitchellh/mapstructure"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions"
@@ -161,14 +162,20 @@ func (us *UseCasesCommunitiesImpl) CreateCommunity(ctx context.Context, input dt
 		return nil, exceptions.GetLoggedInUserUIDErr(err)
 	}
 
-	data := map[string]interface{}{
-		"minimumAge":  channelResponse.AgeRange.LowerBound,
-		"maximumAge":  channelResponse.AgeRange.UpperBound,
-		"gender":      channelResponse.Gender,
-		"clientType":  channelResponse.ClientType,
-		"inviteOnly":  channelResponse.InviteOnly,
-		"name":        channelResponse.Name,
-		"description": channelResponse.Description,
+	channelMetadata := domain.CommunityMetadata{
+		MinimumAge:  channelResponse.AgeRange.LowerBound,
+		MaximumAge:  channelResponse.AgeRange.UpperBound,
+		Gender:      channelResponse.Gender,
+		ClientType:  channelResponse.ClientType,
+		InviteOnly:  channelResponse.InviteOnly,
+		Name:        channelResponse.Name,
+		Description: channelResponse.Description,
+	}
+
+	var data map[string]interface{}
+	err = mapstructure.Decode(channelMetadata, &data)
+	if err != nil {
+		return nil, fmt.Errorf("failed to decode payload: %v", err)
 	}
 
 	staff, err := us.Query.GetStaffProfileByUserID(ctx, loggedInUserID)
@@ -261,6 +268,12 @@ func (us *UseCasesCommunitiesImpl) ListCommunities(ctx context.Context, input *s
 			Role: channel.CreatedBy.Role,
 		}
 
+		var metaData domain.CommunityMetadata
+		err := mapstructure.Decode(channel.ExtraData, &metaData)
+		if err != nil {
+			return nil, fmt.Errorf("failed to decode payload: %v", err)
+		}
+
 		channelResponse = append(channelResponse, &domain.Community{
 			ID:          channel.ID,
 			CID:         channel.CID,
@@ -270,6 +283,15 @@ func (us *UseCasesCommunitiesImpl) ListCommunities(ctx context.Context, input *s
 			MemberCount: channel.MemberCount,
 			CreatedAt:   channel.CreatedAt,
 			UpdatedAt:   channel.UpdatedAt,
+			Description: metaData.Description,
+			Gender:      metaData.Gender,
+			ClientType:  metaData.ClientType,
+			InviteOnly:  metaData.InviteOnly,
+			Name:        metaData.Name,
+			AgeRange: &domain.AgeRange{
+				LowerBound: metaData.MinimumAge,
+				UpperBound: metaData.MaximumAge,
+			},
 		})
 	}
 
@@ -495,24 +517,26 @@ func (us *UseCasesCommunitiesImpl) ListPendingInvites(ctx context.Context, membe
 
 	var communities []*domain.Community
 	for _, channel := range streamChannelsResponse.Channels {
-		var (
-			channelName string
-			description string
-		)
+		var metaData domain.CommunityMetadata
 
-		if val, ok := channel.ExtraData["name"]; ok {
-			channelName = val.(string)
-		}
-		if val, ok := channel.ExtraData["description"]; ok {
-			description = val.(string)
+		err := mapstructure.Decode(channel.ExtraData, &metaData)
+		if err != nil {
+			return nil, fmt.Errorf("failed to decode payload: %v", err)
 		}
 
 		community := &domain.Community{
 			ID:          channel.ID,
-			Name:        channelName,
-			Description: description,
+			Name:        metaData.Name,
+			Description: metaData.Description,
 			MemberCount: channel.MemberCount,
 			CreatedAt:   channel.CreatedAt,
+			Gender:      metaData.Gender,
+			ClientType:  metaData.ClientType,
+			InviteOnly:  metaData.InviteOnly,
+			AgeRange: &domain.AgeRange{
+				LowerBound: metaData.MinimumAge,
+				UpperBound: metaData.MaximumAge,
+			},
 		}
 
 		communities = append(communities, community)

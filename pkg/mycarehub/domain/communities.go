@@ -62,3 +62,15 @@ type CommunityMember struct {
 	InviteAcceptedAt *time.Time `json:"invite_accepted_at"`
 	InviteRejectedAt *time.Time `json:"invite_rejected_at"`
 }
+
+// CommunityMetadata is extra data that is added to the communities. This data will
+// be used in showing recommended channels to the users
+type CommunityMetadata struct {
+	MinimumAge  int                `json:"minimumAge"`
+	MaximumAge  int                `json:"maximumAge"`
+	Gender      []enumutils.Gender `json:"gender"`
+	ClientType  []enums.ClientType `json:"clientType"`
+	InviteOnly  bool               `json:"inviteOnly"`
+	Name        string             `json:"name"`
+	Description string             `json:"description"`
+}
