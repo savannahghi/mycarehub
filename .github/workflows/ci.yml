@@ -120,12 +120,30 @@ jobs:
 
       - name: Access cloned repository contents
         run: |
+          sudo apt-get clean
           sudo apt-get update && sudo apt-get upgrade
           sudo apt-get install postgis gdal-bin libgdal-dev
           pip install -r requirements/local.txt && pip install -r requirements/production.txt
           npm ci
           npm install -g mjml
           
+      - name: Purge postgres 
+        run: |
+          sudo apt-get --purge remove postgresql postgresql-*
+      
+      - name: Upgrade packages
+        run: |
+          sudo apt-get update && sudo apt-get upgrade
+
+      - name: Install Postgresql/PostGIS 12
+        run: |
+          sudo apt-get install postgresql-12 postgresql-12-postgis-3
+
+      - name: Setup and start postgres service
+        run: |
+          sudo pg_ctlcluster 12 main start
+          sudo -u ${POSTGRES_USER} psql -p ${POSTGRES_PORT} -c "ALTER USER ${POSTGRES_USER} WITH PASSWORD '${POSTGRES_PASSWORD}';" 
+
       - name: run migrations
         run: |
           python manage.py migrate
