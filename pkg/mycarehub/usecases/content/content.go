@@ -12,7 +12,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/utils"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
 	"github.com/savannahghi/serverutils"
@@ -111,18 +111,21 @@ type IViewContent interface {
 
 // UseCasesContentImpl represents content implementation
 type UseCasesContentImpl struct {
-	Update infrastructure.Update
-	Query  infrastructure.Query
+	Update      infrastructure.Update
+	Query       infrastructure.Query
+	ExternalExt extension.ExternalMethodsExtension
 }
 
 // NewUseCasesContentImplementation initializes a new contents service
 func NewUseCasesContentImplementation(
 	update infrastructure.Update,
 	query infrastructure.Query,
+	externalExt extension.ExternalMethodsExtension,
 ) *UseCasesContentImpl {
 	return &UseCasesContentImpl{
-		Update: update,
-		Query:  query,
+		Update:      update,
+		Query:       query,
+		ExternalExt: externalExt,
 	}
 
 }
@@ -156,7 +159,7 @@ func (u UseCasesContentImpl) GetContent(ctx context.Context, categoryID *int, li
 
 	getContentEndpoint := fmt.Sprintf(contentAPIEndpoint + "/?" + params.Encode())
 	var contentItems *domain.Content
-	resp, err := utils.MakeRequest(ctx, http.MethodGet, getContentEndpoint, nil)
+	resp, err := u.ExternalExt.MakeRequest(ctx, http.MethodGet, getContentEndpoint, nil)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed to make request")
@@ -242,7 +245,7 @@ func (u *UseCasesContentImpl) GetContentByContentItemID(ctx context.Context, con
 
 	getContentEndpoint := fmt.Sprintf(contentAPIEndpoint + "/?" + params.Encode())
 	var contentItems *domain.Content
-	resp, err := utils.MakeRequest(ctx, http.MethodGet, getContentEndpoint, nil)
+	resp, err := u.ExternalExt.MakeRequest(ctx, http.MethodGet, getContentEndpoint, nil)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed to make request")

@@ -824,7 +824,7 @@ func (us *UseCasesUserImpl) RegisterClient(
 	// }
 
 	input.Gender = enumutils.Gender(strings.ToUpper(input.Gender.String()))
-	resp, err := utilsExt.MakeRequest(ctx, http.MethodPost, registerClientAPIEndpoint, input)
+	resp, err := us.ExternalExt.MakeRequest(ctx, http.MethodPost, registerClientAPIEndpoint, input)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed to make request: %v", err)
@@ -839,6 +839,9 @@ func (us *UseCasesUserImpl) RegisterClient(
 	// Success is indicated with 2xx status codes
 	statusOK := resp.StatusCode >= 200 && resp.StatusCode < 300
 	if !statusOK {
+		if strings.Contains(string(dataResponse), "already exists") {
+			return nil, fmt.Errorf("a client with this identifier type and value already exists")
+		}
 		return nil, fmt.Errorf("%v", string(dataResponse))
 	}
 

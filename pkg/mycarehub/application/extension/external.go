@@ -1,8 +1,11 @@
 package extension
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
+	"net/http"
 
 	openSourceDto "github.com/savannahghi/engagementcore/pkg/engagement/application/common/dto"
 	engagementInfra "github.com/savannahghi/engagementcore/pkg/engagement/infrastructure"
@@ -16,6 +19,12 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/extension"
 	"github.com/savannahghi/serverutils"
+)
+
+const (
+	// DjangoAuthorizationToken is used as an authorization token for making request to our
+	// django backend service
+	DjangoAuthorizationToken = "DJANGO_AUTHORIZATION_TOKEN"
 )
 
 // ExternalMethodsExtension is an interface that represents methods that are
@@ -34,6 +43,7 @@ type ExternalMethodsExtension interface {
 	SendInviteSMS(ctx context.Context, phoneNumber, message string) error
 	SendFeedback(ctx context.Context, subject, feedbackMessage string) (bool, error)
 	GetLoggedInUserUID(ctx context.Context) (string, error)
+	MakeRequest(ctx context.Context, method string, path string, body interface{}) (*http.Response, error)
 }
 
 // External type implements external methods
@@ -43,6 +53,7 @@ type External struct {
 	twilioExtension engagementTwilio.ImplTwilio
 	smsExtension    engagementSMS.UsecaseSMS
 	emailExtension  engagementEmail.UsecaseMail
+	iscClient       interserviceclient.InterServiceClient
 }
 
 // NewExternalMethodsImpl creates a new instance of the external methods
@@ -52,12 +63,17 @@ func NewExternalMethodsImpl() ExternalMethodsExtension {
 	twilioExt := engagementTwilio.NewImplTwilio(engagementInfra.NewInteractor())
 	smsExt := engagementSMS.NewSMS(engagementInfra.NewInteractor())
 	emailExt := engagementEmail.NewMail(engagementInfra.NewInteractor())
+	interserviceClient, err := interserviceclient.NewInterserviceClient(interserviceclient.ISCService{})
+	if err != nil {
+		return nil
+	}
 	return &External{
 		pinExt:          pinExtension,
 		otpExtension:    *otpExt,
 		twilioExtension: *twilioExt,
 		smsExtension:    smsExt,
 		emailExtension:  emailExt,
+		iscClient:       *interserviceClient,
 	}
 }
 
@@ -149,4 +165,43 @@ func (e *External) SendFeedback(ctx context.Context, subject, feedbackMessage st
 // GetLoggedInUserUID get the logged in user uid
 func (e *External) GetLoggedInUserUID(ctx context.Context) (string, error) {
 	return firebasetools.GetLoggedInUserUID(ctx)
+}
+
+// MakeRequest performs a http request and returns a response
+func (e *External) MakeRequest(ctx context.Context, method string, path string, body interface{}) (*http.Response, error) {
+	token := serverutils.MustGetEnvVar(DjangoAuthorizationToken)
+	client := http.Client{}
+	// A GET request should not send data when doing a request. We should use query parameters
+	// instead of having a request body. In some cases where a GET request has an empty body {},
+	// it might result in status code 400 with the error:
+	//  `Your client has issued a malformed or illegal request. That’s all we know.`
+	if method == http.MethodGet {
+		req, reqErr := http.NewRequestWithContext(ctx, method, path, nil)
+		if reqErr != nil {
+			return nil, reqErr
+		}
+
+		req.Header.Set("Authorization", "Token "+token)
+		req.Header.Set("Accept", "application/json")
+		req.Header.Set("Content-Type", "application/json")
+
+		return client.Do(req)
+	}
+
+	encoded, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+
+	payload := bytes.NewBuffer(encoded)
+	req, reqErr := http.NewRequestWithContext(ctx, method, path, payload)
+	if reqErr != nil {
+		return nil, reqErr
+	}
+
+	req.Header.Set("Authorization", "Token "+token)
+	req.Header.Set("Accept", "application/json")
+	req.Header.Set("Content-Type", "application/json")
+
+	return client.Do(req)
 }

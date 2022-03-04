@@ -57,7 +57,7 @@ func InitializeTestService(ctx context.Context) (*usecases.MyCareHub, error) {
 	termsUsecase := terms.NewUseCasesTermsOfService(db, db)
 
 	securityQuestionsUsecase := securityquestions.NewSecurityQuestionsUsecase(db, db, db, externalExt)
-	contentUseCase := content.NewUseCasesContentImplementation(db, db)
+	contentUseCase := content.NewUseCasesContentImplementation(db, db, externalExt)
 	feedbackUsecase := feedback.NewUsecaseFeedback(db, externalExt)
 
 	healthDiaryUseCase := healthdiary.NewUseCaseHealthDiaryImpl(db, db)

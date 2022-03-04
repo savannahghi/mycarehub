@@ -1,10 +1,14 @@
 package user_test
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"math"
+	"net/http"
 	"strconv"
 	"testing"
 	"time"
@@ -2264,6 +2268,31 @@ func TestUseCasesUserImpl_RegisterClient(t *testing.T) {
 			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
 			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, otp, fakeAuthority, fakeGetStream)
+
+			if tt.name == "Happy Case - Successfully register client" {
+				fakeExtension.MockMakeRequestFn = func(ctx context.Context, method string, path string, body interface{}) (*http.Response, error) {
+					registrationOutput := dto.ClientRegistrationOutput{
+						ID: uuid.New().String(),
+					}
+
+					payload, err := json.Marshal(registrationOutput)
+					if err != nil {
+						t.Errorf("unable to marshal test item: %s", err)
+					}
+
+					return &http.Response{
+						StatusCode: http.StatusOK,
+						Status:     "OK",
+						Body:       ioutil.NopCloser(bytes.NewBuffer(payload)),
+					}, nil
+				}
+			}
+
+			if tt.name == "Sad Case - Fail to make request" {
+				fakeExtension.MockMakeRequestFn = func(ctx context.Context, method string, path string, body interface{}) (*http.Response, error) {
+					return nil, fmt.Errorf("failed to make a request")
+				}
+			}
 
 			if tt.name == "Sad Case - User not authorized" {
 				fakeAuthority.MockCheckUserPermissionFn = func(ctx context.Context, permission enums.PermissionType) error {
