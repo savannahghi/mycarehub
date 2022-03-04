@@ -19,6 +19,7 @@ var (
 // ServiceGetStream represents the various Getstream usecases
 type ServiceGetStream interface {
 	CreateGetStreamUserToken(ctx context.Context, userID string) (string, error)
+	RevokeGetStreamUserToken(ctx context.Context, userID string) (*stream.Response, error)
 	CreateGetStreamUser(ctx context.Context, user *stream.User) (*stream.UpsertUserResponse, error)
 	ListGetStreamUsers(ctx context.Context, input *stream.QueryOption) (*stream.QueryUsersResponse, error)
 	CreateChannel(ctx context.Context, chanType, chanID, userID string, data map[string]interface{}) (*stream.CreateChannelResponse, error)
@@ -55,7 +56,14 @@ func NewServiceGetStream() ServiceGetStream {
 // CreateGetStreamUserToken creates a new token for a user with optional expire time. This token is handed
 // to the client side during login. It allows the client side to connect to the chat API for that user.
 func (c *ChatClient) CreateGetStreamUserToken(ctx context.Context, userID string) (string, error) {
-	return c.client.CreateToken(userID, getStreamTokenExpiryTime)
+	return c.client.CreateToken(userID, getStreamTokenExpiryTime, time.Now())
+}
+
+// RevokeGetStreamUserToken expires a users token. It sets a `revoke_tokens_issued_before` time which implies
+// that any token issued before this time will be considered expired and fail to authenticate.
+func (c *ChatClient) RevokeGetStreamUserToken(ctx context.Context, userID string) (*stream.Response, error) {
+	revokeTime := time.Now()
+	return c.client.RevokeUserToken(ctx, userID, &revokeTime)
 }
 
 // CreateGetStreamUser creates or updates a user

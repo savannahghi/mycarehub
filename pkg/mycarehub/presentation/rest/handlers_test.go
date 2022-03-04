@@ -10,7 +10,6 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/google/uuid"
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/interserviceclient"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
@@ -999,7 +998,6 @@ func TestMyCareHubHandlersInterfacesImpl_RefreshToken(t *testing.T) {
 
 func TestMyCareHubHandlersInterfacesImpl_RefreshGetStreamToken(t *testing.T) {
 	ctx := context.Background()
-	userID := uuid.New().String()
 	headers, err := GetGraphQLHeaders(ctx)
 	if err != nil {
 		t.Errorf("failed to get GraphQL headers: %v", err)
@@ -1016,15 +1014,6 @@ func TestMyCareHubHandlersInterfacesImpl_RefreshGetStreamToken(t *testing.T) {
 		return
 	}
 
-	validPayload := &dto.RefreshTokenPayload{
-		UserID: &userID,
-	}
-	marshalledValidPayload, err := json.Marshal(validPayload)
-	if err != nil {
-		t.Errorf("failed to marshal payload")
-		return
-	}
-
 	type args struct {
 		url        string
 		httpMethod string
@@ -1036,19 +1025,6 @@ func TestMyCareHubHandlersInterfacesImpl_RefreshGetStreamToken(t *testing.T) {
 		wantStatus int
 		wantErr    bool
 	}{
-		{
-			name: "Happy Case - Successfully generate token",
-			args: args{
-				url: fmt.Sprintf(
-					"%s/refresh_getstream_token",
-					baseURL,
-				),
-				httpMethod: http.MethodPost,
-				body:       bytes.NewBuffer(marshalledValidPayload),
-			},
-			wantStatus: http.StatusOK,
-			wantErr:    false,
-		},
 		{
 			name: "Sad Case - Missing user ID",
 			args: args{
