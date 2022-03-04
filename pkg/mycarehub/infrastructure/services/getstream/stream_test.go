@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	stream "github.com/GetStream/stream-chat-go/v5"
-	"github.com/google/uuid"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/getstream"
 )
 
@@ -24,7 +23,7 @@ func TestGetStreamClient_CreateUserGetStreamToken(t *testing.T) {
 			name: "Happy Case - Successfully generate a user token",
 			args: args{
 				ctx:    context.Background(),
-				userID: uuid.New().String(),
+				userID: "fe9a8f7c-f8f9-4f0c-b8b1-f8b8f8b8f8b8",
 			},
 			wantErr: false,
 		},
@@ -126,7 +125,7 @@ func TestChatClient_CreateChannel(t *testing.T) {
 				ctx:      ctx,
 				chanType: "messaging",
 				chanID:   channelID,
-				userID:   uuid.New().String(),
+				userID:   "fe9a8f7c-f8f9-4f0c-b8b1-f8b8f8b8f8b8",
 				data: map[string]interface{}{
 					"age": map[string]interface{}{
 						"lowerBound": 10,
@@ -137,12 +136,12 @@ func TestChatClient_CreateChannel(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "Sad case - unable to create channel",
+			name: "Sad case - empty channel id",
 			args: args{
 				ctx:      ctx,
 				chanType: "test",
 				chanID:   "",
-				userID:   uuid.New().String(),
+				userID:   member1,
 				data:     nil,
 			},
 			wantErr: true,
@@ -259,10 +258,9 @@ func TestChatClient_GetChannel(t *testing.T) {
 
 func TestChatClient_RejectInvite(t *testing.T) {
 	ctx := context.Background()
-	invitedUserID := uuid.New().String()
 	user := stream.User{
-		ID:        invitedUserID,
-		Name:      "test",
+		ID:        userToRejectInviteID,
+		Name:      "test user accepted invite",
 		Invisible: false,
 	}
 	streamUser, err := c.CreateGetStreamUser(ctx, &user)
@@ -292,17 +290,17 @@ func TestChatClient_RejectInvite(t *testing.T) {
 			name: "Happy case",
 			args: args{
 				ctx:       ctx,
-				userID:    invitedUserID,
+				userID:    userToRejectInviteID,
 				channelID: channelID,
 				message:   nil,
 			},
 			wantErr: false,
 		},
 		{
-			name: "Sad case: invalid user id",
+			name: "Sad case: non existent user",
 			args: args{
 				ctx:       ctx,
-				userID:    uuid.New().String(),
+				userID:    "non-existent-user",
 				channelID: channelID,
 				message:   nil,
 			},
@@ -312,7 +310,7 @@ func TestChatClient_RejectInvite(t *testing.T) {
 			name: "Sad case: invalid channel id",
 			args: args{
 				ctx:       ctx,
-				userID:    invitedUserID,
+				userID:    userToRejectInviteID,
 				channelID: "",
 				message:   nil,
 			},
@@ -335,9 +333,8 @@ func TestChatClient_RejectInvite(t *testing.T) {
 
 func TestChatClient_AcceptInvite(t *testing.T) {
 	ctx := context.Background()
-	invitedUserID := uuid.New().String()
 	user := stream.User{
-		ID:        invitedUserID,
+		ID:        userToAcceptInviteID,
 		Name:      "test user accepted invite",
 		Invisible: false,
 	}
@@ -369,7 +366,7 @@ func TestChatClient_AcceptInvite(t *testing.T) {
 			name: "Happy case",
 			args: args{
 				ctx:       ctx,
-				userID:    invitedUserID,
+				userID:    userToAcceptInviteID,
 				channelID: channelID,
 				message: &stream.Message{
 					Text: customInviteMessage,
@@ -382,21 +379,21 @@ func TestChatClient_AcceptInvite(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "Sad case: invalid user id",
+			name: "Sad case: user does not exist",
 			args: args{
 				ctx:       ctx,
-				userID:    uuid.New().String(),
+				userID:    "no-existent-user",
 				channelID: channelID,
 				message:   nil,
 			},
 			wantErr: true,
 		},
 		{
-			name: "Sad case: invalid channel id",
+			name: "Sad case: channel does not exist",
 			args: args{
 				ctx:       ctx,
-				userID:    invitedUserID,
-				channelID: uuid.New().String(),
+				userID:    userToAcceptInviteID,
+				channelID: "no-existent-channel",
 				message:   &stream.Message{Text: customInviteMessage},
 			},
 			wantErr: true,
@@ -418,6 +415,11 @@ func TestChatClient_AcceptInvite(t *testing.T) {
 
 func TestChatClient_RemoveMembers(t *testing.T) {
 	ctx := context.Background()
+	_, err := c.AddMembersToCommunity(ctx, []string{member1}, ch.Channel.ID)
+	if err != nil {
+		t.Errorf("ChatClient.AddMembersToCommunity() error = %v", err)
+		return
+	}
 	type args struct {
 		ctx       context.Context
 		channelID string
@@ -441,21 +443,21 @@ func TestChatClient_RemoveMembers(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "Sad case: invalid channel id",
+			name: "Sad case: channel does not exist",
 			args: args{
 				ctx:       ctx,
-				channelID: uuid.New().String(),
+				channelID: "no-existent-channel",
 				memberIDs: []string{member1},
 				message:   nil,
 			},
 			wantErr: true,
 		},
 		{
-			name: "Sad case: invalid user id",
+			name: "Sad case: non-existent member",
 			args: args{
 				ctx:       ctx,
 				channelID: channelID,
-				memberIDs: []string{uuid.New().String()},
+				memberIDs: []string{"no-existent-member"},
 				message:   nil,
 			},
 			wantErr: true,
@@ -477,6 +479,25 @@ func TestChatClient_RemoveMembers(t *testing.T) {
 
 func TestChatClient_DemoteModerators(t *testing.T) {
 	ctx := context.Background()
+	moderatorID := "5c272749-8ad7-4b1b-b581-302d85833f4f"
+	moderator1 := stream.User{
+		ID:        moderatorID,
+		Name:      "test user demoted moderator",
+		Invisible: false,
+	}
+
+	_, err := c.CreateGetStreamUser(ctx, &moderator1)
+	if err != nil {
+		t.Errorf("ChatClient.CreateGetStreamUser() error = %v", err)
+		return
+	}
+
+	_, err = c.AddModeratorsWithMessage(ctx, []string{moderatorID}, channelID, nil)
+	if err != nil {
+		t.Errorf("ChatClient.AddModeratorsWithMessage() error = %v", err)
+		return
+	}
+
 	type args struct {
 		ctx       context.Context
 		channelID string
@@ -493,16 +514,16 @@ func TestChatClient_DemoteModerators(t *testing.T) {
 			args: args{
 				ctx:       ctx,
 				channelID: channelID,
-				memberIDs: []string{moderator1},
+				memberIDs: []string{moderatorID},
 			},
 			wantErr: false,
 		},
 		{
-			name: "Sad case: invalid channel id",
+			name: "Sad case: non-existent channel",
 			args: args{
 				ctx:       ctx,
-				channelID: uuid.New().String(),
-				memberIDs: []string{member1},
+				channelID: "no-existent-channel",
+				memberIDs: []string{moderatorID},
 			},
 			wantErr: true,
 		},
@@ -511,7 +532,7 @@ func TestChatClient_DemoteModerators(t *testing.T) {
 			args: args{
 				ctx:       ctx,
 				channelID: channelID,
-				memberIDs: []string{uuid.New().String()},
+				memberIDs: []string{"no-existent-member"},
 			},
 			wantErr: true,
 		},
@@ -527,5 +548,15 @@ func TestChatClient_DemoteModerators(t *testing.T) {
 				t.Errorf("expected a response but got: %v", err)
 			}
 		})
+	}
+
+	// teardown
+	_, err = c.DeleteUsers(ctx, []string{moderatorID}, stream.DeleteUserOptions{
+		User:     stream.HardDelete,
+		Messages: stream.HardDelete,
+	})
+	if err != nil {
+		t.Errorf("ChatClient.DeleteUsers() error = %v", err)
+		return
 	}
 }
