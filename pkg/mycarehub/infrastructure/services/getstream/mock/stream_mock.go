@@ -26,6 +26,7 @@ type GetStreamServiceMock struct {
 	MockRemoveMembersFn            func(ctx context.Context, channelID string, memberIDs []string, message *stream.Message) (*stream.Response, error)
 	MockAddModeratorsWithMessageFn func(ctx context.Context, userIDs []string, communityID string, message *stream.Message) (*stream.Response, error)
 	MockDemoteModeratorsFn         func(ctx context.Context, channelID string, memberIDs []string) (*stream.Response, error)
+	MockRevokeGetStreamUserTokenFn func(ctx context.Context, userID string) (*stream.Response, error)
 }
 
 // NewGetStreamServiceMock initializes the mock service
@@ -187,6 +188,15 @@ func NewGetStreamServiceMock() *GetStreamServiceMock {
 				},
 			}, nil
 		},
+		MockRevokeGetStreamUserTokenFn: func(ctx context.Context, userID string) (*stream.Response, error) {
+			return &stream.Response{
+				RateLimitInfo: &stream.RateLimitInfo{
+					Limit:     0,
+					Remaining: 0,
+					Reset:     0,
+				},
+			}, nil
+		},
 	}
 }
 
@@ -263,4 +273,9 @@ func (g GetStreamServiceMock) AddModeratorsWithMessage(ctx context.Context, user
 // DemoteModerators mocks the implementation for demoting moderators from a community
 func (g GetStreamServiceMock) DemoteModerators(ctx context.Context, channelID string, memberIDs []string) (*stream.Response, error) {
 	return g.MockDemoteModeratorsFn(ctx, channelID, memberIDs)
+}
+
+// RevokeGetStreamUserToken mocks the implementation for revoking a getstream user token
+func (g GetStreamServiceMock) RevokeGetStreamUserToken(ctx context.Context, userID string) (*stream.Response, error) {
+	return g.MockRevokeGetStreamUserTokenFn(ctx, userID)
 }

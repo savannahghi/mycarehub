@@ -873,6 +873,11 @@ func (us *UseCasesUserImpl) RegisterClient(
 // RefreshGetStreamToken update a getstream token as soon as a token exception occurs. The implementation
 // is that frontend will call backend with the ID of the user as well as a valid session id or secret needed to authenticate them.
 func (us *UseCasesUserImpl) RefreshGetStreamToken(ctx context.Context, userID string) (*domain.GetStreamToken, error) {
+	_, err := us.GetStream.RevokeGetStreamUserToken(ctx, userID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to revoke user token: %v", err)
+	}
+
 	token, err := us.GetStream.CreateGetStreamUserToken(ctx, userID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to refresh getstream token: %v", err)
