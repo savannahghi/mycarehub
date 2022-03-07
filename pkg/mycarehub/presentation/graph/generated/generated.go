@@ -275,6 +275,7 @@ type ComplexityRoot struct {
 		Name     func(childComplexity int) int
 		Role     func(childComplexity int) int
 		UserID   func(childComplexity int) int
+		UserType func(childComplexity int) int
 		Username func(childComplexity int) int
 	}
 
@@ -1505,6 +1506,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Member.UserID(childComplexity), true
+
+	case "Member.userType":
+		if e.complexity.Member.UserType == nil {
+			break
+		}
+
+		return e.complexity.Member.UserType(childComplexity), true
 
 	case "Member.username":
 		if e.complexity.Member.Username == nil {
@@ -3120,7 +3128,6 @@ type PostingHours {
   end: Time!
 }
 
-
 """
 Member represents a user and is specific to use in the context of communities
 """
@@ -3131,6 +3138,7 @@ type Member {
   role: String!
   username: String!
   gender: Gender!
+  userType: String
 }
 
 """
@@ -9475,6 +9483,38 @@ func (ec *executionContext) _Member_gender(ctx context.Context, field graphql.Co
 	res := resTmp.(enumutils.Gender)
 	fc.Result = res
 	return ec.marshalNGender2githubᚗcomᚋsavannahghiᚋenumutilsᚐGender(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Member_userType(ctx context.Context, field graphql.CollectedField, obj *domain.Member) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Member",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UserType, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalOString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Meta_totalCount(ctx context.Context, field graphql.CollectedField, obj *domain.Meta) (ret graphql.Marshaler) {
@@ -16140,6 +16180,8 @@ func (ec *executionContext) _Member(ctx context.Context, sel ast.SelectionSet, o
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "userType":
+			out.Values[i] = ec._Member_userType(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
