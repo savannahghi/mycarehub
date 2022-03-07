@@ -2,6 +2,7 @@ package mock
 
 import (
 	"context"
+	"net/http"
 
 	"github.com/google/uuid"
 	openSourceDto "github.com/savannahghi/engagementcore/pkg/engagement/application/common/dto"
@@ -27,6 +28,7 @@ type FakeExtensionImpl struct {
 	MockSendInviteSMSFn                   func(ctx context.Context, phoneNumber, message string) error
 	MockSendFeedbackFn                    func(ctx context.Context, subject, feedbackMessage string) (bool, error)
 	MockGetLoggedInUserUIDFn              func(ctx context.Context) (string, error)
+	MockMakeRequestFn                     func(ctx context.Context, method string, path string, body interface{}) (*http.Response, error)
 }
 
 // NewFakeExtension initializes a new instance of the external calls mock
@@ -84,6 +86,11 @@ func NewFakeExtension() *FakeExtensionImpl {
 		},
 		MockGetLoggedInUserUIDFn: func(ctx context.Context) (string, error) {
 			return uuid.New().String(), nil
+		},
+		MockMakeRequestFn: func(ctx context.Context, method, path string, body interface{}) (*http.Response, error) {
+			return &http.Response{
+				StatusCode: http.StatusOK,
+			}, nil
 		},
 	}
 }
@@ -151,4 +158,9 @@ func (f *FakeExtensionImpl) SendFeedback(ctx context.Context, subject, feedbackM
 // GetLoggedInUserUID mocks the implementation of getting a logged in user
 func (f *FakeExtensionImpl) GetLoggedInUserUID(ctx context.Context) (string, error) {
 	return f.MockGetLoggedInUserUIDFn(ctx)
+}
+
+// MakeRequest mocks the implementation of making a http request
+func (f *FakeExtensionImpl) MakeRequest(ctx context.Context, method string, path string, body interface{}) (*http.Response, error) {
+	return f.MockMakeRequestFn(ctx, method, path, body)
 }

@@ -1,14 +1,19 @@
 package content_test
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"net/http"
 	"testing"
 
 	"github.com/brianvoe/gofakeit"
 	"github.com/google/uuid"
 	helpers_mock "github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers/mock"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
+	extensionMock "github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension/mock"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	pgMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/mock"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/content"
@@ -46,7 +51,8 @@ func TestUsecaseContentImpl_ListContentCategories(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
 			_ = mock.NewContentUsecaseMock()
-			c := content.NewUseCasesContentImplementation(fakeDB, fakeDB)
+			fakeExt := extensionMock.NewFakeExtension()
+			c := content.NewUseCasesContentImplementation(fakeDB, fakeDB, fakeExt)
 
 			if tt.name == "Sad case" {
 				fakeDB.MockListContentCategoriesFn = func(ctx context.Context) ([]*domain.ContentItemCategory, error) {
@@ -140,7 +146,8 @@ func TestUseCasesContentImpl_LikeContent(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			_ = mock.NewContentUsecaseMock()
 			fakeDB := pgMock.NewPostgresMock()
-			c := content.NewUseCasesContentImplementation(fakeDB, fakeDB)
+			fakeExt := extensionMock.NewFakeExtension()
+			c := content.NewUseCasesContentImplementation(fakeDB, fakeDB, fakeExt)
 
 			if tt.name == "Sad case" {
 				fakeDB.MockLikeContentFn = func(ctx context.Context, userID string, contentID int) (bool, error) {
@@ -219,7 +226,8 @@ func TestUseCaseContentImpl_ShareContent(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 
 			fakeDB := pgMock.NewPostgresMock()
-			c := content.NewUseCasesContentImplementation(fakeDB, fakeDB)
+			fakeExt := extensionMock.NewFakeExtension()
+			c := content.NewUseCasesContentImplementation(fakeDB, fakeDB, fakeExt)
 
 			if tt.name == "Sad Case - no userID" {
 				fakeDB.MockShareContentFn = func(ctx context.Context, input dto.ShareContentInput) (bool, error) {
@@ -308,7 +316,8 @@ func TestUseCasesContentImpl_UnlikeContent(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			_ = mock.NewContentUsecaseMock()
 			fakeDB := pgMock.NewPostgresMock()
-			c := content.NewUseCasesContentImplementation(fakeDB, fakeDB)
+			fakeExt := extensionMock.NewFakeExtension()
+			c := content.NewUseCasesContentImplementation(fakeDB, fakeDB, fakeExt)
 
 			if tt.name == "Sad case" {
 				fakeDB.MockUnlikeContentFn = func(ctx context.Context, userID string, contentID int) (bool, error) {
@@ -398,8 +407,33 @@ func TestUseCasesContentImpl_GetUserBookmarkedContent(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
 			fakeContent := mock.NewContentUsecaseMock()
-			c := content.NewUseCasesContentImplementation(fakeDB, fakeDB)
+			fakeExt := extensionMock.NewFakeExtension()
+			c := content.NewUseCasesContentImplementation(fakeDB, fakeDB, fakeExt)
 			fakeHelpers := helpers_mock.NewHelper()
+
+			if tt.name == "Happy Case - Successfully get user bookmarked content" {
+				fakeExt.MockMakeRequestFn = func(ctx context.Context, method string, path string, body interface{}) (*http.Response, error) {
+
+					content := domain.Content{
+						Items: []domain.ContentItem{
+							{
+								ID: 10,
+							},
+						},
+					}
+
+					payload, err := json.Marshal(content)
+					if err != nil {
+						t.Errorf("unable to marshal test item: %s", err)
+					}
+
+					return &http.Response{
+						StatusCode: http.StatusOK,
+						Status:     "OK",
+						Body:       ioutil.NopCloser(bytes.NewBuffer(payload)),
+					}, nil
+				}
+			}
 
 			if tt.name == "Sad Case - Missing user ID" {
 				fakeContent.MockGetUserBookmarkedContentFn = func(ctx context.Context, userID string) (*domain.Content, error) {
@@ -463,7 +497,32 @@ func TestUseCasesContentImpl_GetContent(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
-			c := content.NewUseCasesContentImplementation(fakeDB, fakeDB)
+			fakeExt := extensionMock.NewFakeExtension()
+			c := content.NewUseCasesContentImplementation(fakeDB, fakeDB, fakeExt)
+
+			if tt.name == "Happy Case - Successfully get content" {
+				fakeExt.MockMakeRequestFn = func(ctx context.Context, method string, path string, body interface{}) (*http.Response, error) {
+
+					content := domain.Content{
+						Items: []domain.ContentItem{
+							{
+								ID: 10,
+							},
+						},
+					}
+
+					payload, err := json.Marshal(content)
+					if err != nil {
+						t.Errorf("unable to marshal test item: %s", err)
+					}
+
+					return &http.Response{
+						StatusCode: http.StatusOK,
+						Status:     "OK",
+						Body:       ioutil.NopCloser(bytes.NewBuffer(payload)),
+					}, nil
+				}
+			}
 
 			got, err := c.GetContent(tt.args.ctx, tt.args.categoryID, tt.args.limit)
 			if (err != nil) != tt.wantErr {
@@ -501,7 +560,32 @@ func TestUseCasesContentImpl_GetContentByContentItemID(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
-			c := content.NewUseCasesContentImplementation(fakeDB, fakeDB)
+			fakeExt := extensionMock.NewFakeExtension()
+			c := content.NewUseCasesContentImplementation(fakeDB, fakeDB, fakeExt)
+
+			if tt.name == "Happy Case - Successfully get content" {
+				fakeExt.MockMakeRequestFn = func(ctx context.Context, method string, path string, body interface{}) (*http.Response, error) {
+
+					content := domain.Content{
+						Items: []domain.ContentItem{
+							{
+								ID: 10,
+							},
+						},
+					}
+
+					payload, err := json.Marshal(content)
+					if err != nil {
+						t.Errorf("unable to marshal test item: %s", err)
+					}
+
+					return &http.Response{
+						StatusCode: http.StatusOK,
+						Status:     "OK",
+						Body:       ioutil.NopCloser(bytes.NewBuffer(payload)),
+					}, nil
+				}
+			}
 
 			got, err := c.GetContentByContentItemID(tt.args.ctx, tt.args.contentID)
 			if (err != nil) != tt.wantErr {
@@ -559,7 +643,8 @@ func TestUseCasesContentImpl_ViewContent(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
-			c := content.NewUseCasesContentImplementation(fakeDB, fakeDB)
+			fakeExt := extensionMock.NewFakeExtension()
+			c := content.NewUseCasesContentImplementation(fakeDB, fakeDB, fakeExt)
 
 			if tt.name == "Sad Case - Fail to update view count" {
 				fakeDB.MockViewContentFn = func(ctx context.Context, userID string, contentID int) (bool, error) {
@@ -648,7 +733,8 @@ func TestUseCasesContentImpl_BookmarkContent(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
-			c := content.NewUseCasesContentImplementation(fakeDB, fakeDB)
+			fakeExt := extensionMock.NewFakeExtension()
+			c := content.NewUseCasesContentImplementation(fakeDB, fakeDB, fakeExt)
 
 			if tt.name == "Sad Case - Fail to bookmark content" {
 				fakeDB.MockBookmarkContentFn = func(ctx context.Context, userID string, contentID int) (bool, error) {
@@ -751,7 +837,8 @@ func TestUseCasesContentImpl_CheckWhetherUserHasLikedContent(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
-			c := content.NewUseCasesContentImplementation(fakeDB, fakeDB)
+			fakeExt := extensionMock.NewFakeExtension()
+			c := content.NewUseCasesContentImplementation(fakeDB, fakeDB, fakeExt)
 
 			if tt.name == "Sad case" {
 				fakeDB.MockCheckWhetherUserHasLikedContentFn = func(ctx context.Context, userID string, contentID int) (bool, error) {
@@ -851,6 +938,8 @@ func TestUseCasesContentImpl_CheckIfUserBookmarkedContent(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
+			fakeExt := extensionMock.NewFakeExtension()
+			c := content.NewUseCasesContentImplementation(fakeDB, fakeDB, fakeExt)
 
 			if tt.name == "Happy Case - Successfully check if user bookmarked content, but user has not bookmarked content" {
 				fakeDB.MockCheckIfUserBookmarkedContentFn = func(ctx context.Context, userID string, contentID int) (bool, error) {
@@ -862,7 +951,7 @@ func TestUseCasesContentImpl_CheckIfUserBookmarkedContent(t *testing.T) {
 					return false, fmt.Errorf("failed to check if user bookmarked content")
 				}
 			}
-			c := content.NewUseCasesContentImplementation(fakeDB, fakeDB)
+
 			got, err := c.CheckIfUserBookmarkedContent(tt.args.ctx, tt.args.userID, tt.args.contentID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCasesContentImpl.CheckIfUserBookmarkedContent() error = %v, wantErr %v", err, tt.wantErr)
@@ -939,7 +1028,8 @@ func TestUseCasesContentImpl_UnBookmarkContent(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
-			c := content.NewUseCasesContentImplementation(fakeDB, fakeDB)
+			fakeExt := extensionMock.NewFakeExtension()
+			c := content.NewUseCasesContentImplementation(fakeDB, fakeDB, fakeExt)
 
 			if tt.name == "Sad case" {
 				fakeDB.MockUnBookmarkContentFn = func(ctx context.Context, userID string, contentID int) (bool, error) {
