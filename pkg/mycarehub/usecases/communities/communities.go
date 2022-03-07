@@ -122,7 +122,7 @@ func (us *UseCasesCommunitiesImpl) ListMembers(ctx context.Context, input *strea
 		}
 	} else {
 		query = &stream.QueryOption{
-			Filter:       input.Filter,
+			Filter:       utils.FormatFilterParamsHelper(input.Filter),
 			UserID:       input.UserID,
 			Limit:        input.Limit,
 			Offset:       input.Offset,
@@ -139,16 +139,18 @@ func (us *UseCasesCommunitiesImpl) ListMembers(ctx context.Context, input *strea
 	}
 
 	for _, user := range getStreamUserResponse.Users {
-		var userID string
-		if val, ok := user.ExtraData["userID"]; ok {
-			userID = val.(string)
+		var metadata domain.MemberMetadata
+		err := mapstructure.Decode(user.ExtraData, &metadata)
+		if err != nil {
+			return nil, fmt.Errorf("failed to decode payload: %v", err)
 		}
 
 		Users := domain.Member{
-			ID:     user.ID,
-			Name:   user.Name,
-			Role:   user.Role,
-			UserID: userID,
+			ID:       user.ID,
+			Name:     user.Name,
+			Role:     user.Role,
+			UserID:   metadata.UserID,
+			UserType: metadata.UserType,
 		}
 		userResponse = append(userResponse, &Users)
 	}

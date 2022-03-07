@@ -49,6 +49,7 @@ type Member struct {
 
 	Username string           `json:"username"`
 	Gender   enumutils.Gender `json:"gender"`
+	UserType string           `json:"userType"`
 }
 
 // CommunityMember represents a user in a community and their associated additional details.
@@ -73,4 +74,10 @@ type CommunityMetadata struct {
 	InviteOnly  bool               `json:"inviteOnly"`
 	Name        string             `json:"name"`
 	Description string             `json:"description"`
+}
+
+// MemberMetadata is extra data that is associated with a getstream user.
+type MemberMetadata struct {
+	UserID   string `json:"userID"`
+	UserType string `json:"userType"`
 }

@@ -268,7 +268,6 @@ type PostingHours {
   end: Time!
 }
 
-
 """
 Member represents a user and is specific to use in the context of communities
 """
@@ -279,6 +278,7 @@ type Member {
   role: String!
   username: String!
   gender: Gender!
+  userType: String
 }
 
 """
