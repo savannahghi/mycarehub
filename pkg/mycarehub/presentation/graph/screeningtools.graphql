@@ -1,0 +1,6 @@
+
+extend type Query {
+    getScreeningToolQuestions(toolType: String) : [ScreeningToolQuestion!]!
+}
+
+

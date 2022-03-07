@@ -9,6 +9,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/utils"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/exceptions"
@@ -940,4 +941,46 @@ func (d *MyCareHubDb) GetServiceRequestsForKenyaEMR(ctx context.Context, payload
 	}
 
 	return serviceRequests, nil
+}
+
+// GetScreeningToolQuestions fetches the screening tools questions
+func (d *MyCareHubDb) GetScreeningToolQuestions(ctx context.Context, questionType string) ([]*domain.ScreeningToolQuestion, error) {
+	var screeningToolQuestions []*domain.ScreeningToolQuestion
+	screeningToolQuestionsList, err := d.query.GetScreeningToolQuestions(ctx, questionType)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
+	for _, screeningToolQuestion := range screeningToolQuestionsList {
+		choices, err := utils.ConvertJSONStringToMap(screeningToolQuestion.ResponseChoices)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return nil, fmt.Errorf("error converting response choices json string to map: %v", err)
+		}
+
+		var meta map[string]interface{}
+
+		if screeningToolQuestion.Meta != "" {
+			meta, err = utils.ConvertJSONStringToMap(screeningToolQuestion.Meta)
+			if err != nil {
+				helpers.ReportErrorToSentry(err)
+				return nil, fmt.Errorf("error converting meta json string to map: %v", err)
+			}
+		}
+		screeningToolQuestion := &domain.ScreeningToolQuestion{
+			ID:               screeningToolQuestion.ID,
+			Question:         screeningToolQuestion.Question,
+			ToolType:         enums.ScreeningToolType(screeningToolQuestion.ToolType),
+			ResponseChoices:  choices,
+			ResponseType:     enums.ScreeningToolResponseType(screeningToolQuestion.ResponseType),
+			ResponseCategory: enums.ScreeningToolResponseCategory(screeningToolQuestion.ResponseCategory),
+			Sequence:         screeningToolQuestion.Sequence,
+			Meta:             meta,
+			Active:           screeningToolQuestion.Active,
+		}
+		screeningToolQuestions = append(screeningToolQuestions, screeningToolQuestion)
+	}
+
+	return screeningToolQuestions, nil
 }

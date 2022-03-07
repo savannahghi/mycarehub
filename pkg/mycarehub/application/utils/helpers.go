@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"encoding/json"
 	"math"
 	"time"
 )
@@ -70,4 +71,14 @@ func CalculateAge(birthday time.Time) int {
 		age--
 	}
 	return age
+}
+
+// ConvertJSONStringToMap converts a json string to a map of string interface{}
+func ConvertJSONStringToMap(jsonString string) (map[string]interface{}, error) {
+	jsonMap := make(map[string]interface{})
+	err := json.Unmarshal([]byte(jsonString), &jsonMap)
+	if err != nil {
+		return nil, err
+	}
+	return jsonMap, nil
 }

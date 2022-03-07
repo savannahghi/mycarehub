@@ -62,6 +62,7 @@ type Query interface {
 	GetClientsByParams(ctx context.Context, query Client, lastSyncTime *time.Time) ([]*Client, error)
 	GetClientCCCIdentifier(ctx context.Context, clientID string) (*Identifier, error)
 	GetServiceRequestsForKenyaEMR(ctx context.Context, facilityID string, lastSyncTime time.Time) ([]*ClientServiceRequest, error)
+	GetScreeningToolQuestions(ctx context.Context, toolType string) ([]ScreeningToolQuestion, error)
 }
 
 // CheckWhetherUserHasLikedContent performs a operation to check whether user has liked the content
@@ -858,4 +859,15 @@ func (db *PGInstance) GetClientCCCIdentifier(ctx context.Context, clientID strin
 	}
 
 	return &identifier, nil
+}
+
+// GetScreeningToolQuestions fetches the screening tools questions
+func (db *PGInstance) GetScreeningToolQuestions(ctx context.Context, toolType string) ([]ScreeningToolQuestion, error) {
+	var screeningToolsQuestions []ScreeningToolQuestion
+	err := db.DB.Where(&ScreeningToolQuestion{ToolType: toolType}).Find(&screeningToolsQuestions).Error
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, fmt.Errorf("failed to get screening tools questions: %v", err)
+	}
+	return screeningToolsQuestions, nil
 }
