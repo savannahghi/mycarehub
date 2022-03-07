@@ -34,6 +34,7 @@ type ServiceGetStream interface {
 	RemoveMembersFromCommunity(ctx context.Context, channelID string, memberIDs []string, message *stream.Message) (*stream.Response, error)
 	AddModeratorsWithMessage(ctx context.Context, userIDs []string, communityID string, msg *stream.Message) (*stream.Response, error)
 	DemoteModerators(ctx context.Context, channelID string, memberIDs []string) (*stream.Response, error)
+	DeleteUsers(ctx context.Context, userIDs []string, options stream.DeleteUserOptions) (*stream.AsyncTaskResponse, error)
 }
 
 // ChatClient is the service's struct implementation
@@ -161,4 +162,10 @@ func (c *ChatClient) AddModeratorsWithMessage(ctx context.Context, userIDs []str
 // DemoteModerators demotes moderators to members
 func (c *ChatClient) DemoteModerators(ctx context.Context, channelID string, memberIDs []string) (*stream.Response, error) {
 	return c.client.Channel("messaging", channelID).DemoteModerators(ctx, memberIDs...)
+}
+
+// DeleteUsers deletes users from the platform with the specified options.
+// Users and messages will be hard deleted if hardDelete is true.
+func (c *ChatClient) DeleteUsers(ctx context.Context, userIDs []string, options stream.DeleteUserOptions) (*stream.AsyncTaskResponse, error) {
+	return c.client.DeleteUsers(ctx, userIDs, options)
 }

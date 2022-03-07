@@ -3,6 +3,7 @@ package communities
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	stream "github.com/GetStream/stream-chat-go/v5"
@@ -585,6 +586,7 @@ func (us *UseCasesCommunitiesImpl) RecommendedCommunities(ctx context.Context, c
 	age := utils.CalculateAge(dob)
 
 	clientGender := clientUserProfile.Gender.String()
+	clientGender = strings.ToUpper(clientGender)
 
 	query := &stream.QueryOption{
 		Filter: map[string]interface{}{

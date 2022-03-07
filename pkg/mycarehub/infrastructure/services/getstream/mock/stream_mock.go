@@ -27,6 +27,7 @@ type GetStreamServiceMock struct {
 	MockAddModeratorsWithMessageFn func(ctx context.Context, userIDs []string, communityID string, message *stream.Message) (*stream.Response, error)
 	MockDemoteModeratorsFn         func(ctx context.Context, channelID string, memberIDs []string) (*stream.Response, error)
 	MockRevokeGetStreamUserTokenFn func(ctx context.Context, userID string) (*stream.Response, error)
+	MockDeleteUsersFn              func(ctx context.Context, userIDs []string, options stream.DeleteUserOptions) (*stream.AsyncTaskResponse, error)
 }
 
 // NewGetStreamServiceMock initializes the mock service
@@ -197,6 +198,18 @@ func NewGetStreamServiceMock() *GetStreamServiceMock {
 				},
 			}, nil
 		},
+
+		MockDeleteUsersFn: func(ctx context.Context, userIDs []string, options stream.DeleteUserOptions) (*stream.AsyncTaskResponse, error) {
+			return &stream.AsyncTaskResponse{
+				Response: stream.Response{
+					RateLimitInfo: &stream.RateLimitInfo{
+						Limit:     0,
+						Remaining: 0,
+						Reset:     0,
+					},
+				},
+			}, nil
+		},
 	}
 }
 
@@ -278,4 +291,9 @@ func (g GetStreamServiceMock) DemoteModerators(ctx context.Context, channelID st
 // RevokeGetStreamUserToken mocks the implementation for revoking a getstream user token
 func (g GetStreamServiceMock) RevokeGetStreamUserToken(ctx context.Context, userID string) (*stream.Response, error) {
 	return g.MockRevokeGetStreamUserTokenFn(ctx, userID)
+}
+
+// DeleteUsers mocks the implementation for deleting users
+func (g GetStreamServiceMock) DeleteUsers(ctx context.Context, userIDs []string, options stream.DeleteUserOptions) (*stream.AsyncTaskResponse, error) {
+	return g.MockDeleteUsersFn(ctx, userIDs, options)
 }
