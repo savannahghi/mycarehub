@@ -281,3 +281,27 @@ type AgeRangeInput struct {
 	LowerBound int `json:"lowerBound"`
 	UpperBound int `json:"upperBound"`
 }
+
+// NextOfKinPayload defines the payload from KenyaEMR
+// used for client registration
+type NextOfKinPayload struct {
+	Name         string `json:"name"`
+	Contact      string `json:"contact"`
+	Relationship string `json:"relationship"`
+}
+
+// PatientRegistrationPayload defines the payload from KenyaEMR
+// used for client registration
+type PatientRegistrationPayload struct {
+	MFLCode            int              `json:"MFLCODE"`
+	CCCNumber          string           `json:"cccNumber"`
+	Name               string           `json:"name"`
+	DateOfBirth        scalarutils.Date `json:"dateOfBirth"`
+	ClientType         string           `json:"clientType"`
+	PhoneNumber        string           `json:"phoneNumber"`
+	EnrollmentDate     scalarutils.Date `json:"enrollmentDate"`
+	BirthDateEstimated bool             `json:"birthDateEstimated"`
+	Gender             string           `json:"gender"`
+	Counselled         bool             `json:"counselled"`
+	NextOfKin          NextOfKinPayload `json:"nextOfKin"`
+}

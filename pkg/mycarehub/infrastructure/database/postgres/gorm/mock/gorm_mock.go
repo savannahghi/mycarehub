@@ -86,6 +86,10 @@ type GormMock struct {
 	MockCheckIfUsernameExistsFn                   func(ctx context.Context, username string) (bool, error)
 	MockRevokeRolesFn                             func(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error)
 	MockGetCommunityByIDFn                        func(ctx context.Context, communityID string) (*gorm.Community, error)
+	MockCheckIdentifierExists                     func(ctx context.Context, identifierType string, identifierValue string) (bool, error)
+	MockCheckFacilityExistsByMFLCode              func(ctx context.Context, MFLCode int) (bool, error)
+	MockCreateRelatedPerson                       func(ctx context.Context, person *gorm.RelatedPerson) error
+	MockCreateContact                             func(ctx context.Context, contact *gorm.Contact) error
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -964,4 +968,24 @@ func (gm *GormMock) RevokeRoles(ctx context.Context, userID string, roles []enum
 // GetCommunityByID mocks the implementation of getting the community by ID
 func (gm *GormMock) GetCommunityByID(ctx context.Context, communityID string) (*gorm.Community, error) {
 	return gm.MockGetCommunityByIDFn(ctx, communityID)
+}
+
+// CheckIdentifierExists mocks checking of identifiers
+func (gm *GormMock) CheckIdentifierExists(ctx context.Context, identifierType string, identifierValue string) (bool, error) {
+	return gm.MockCheckIdentifierExists(ctx, identifierType, identifierValue)
+}
+
+// CheckFacilityExistsByMFLCode mocks checking a facility by MFL Code
+func (gm *GormMock) CheckFacilityExistsByMFLCode(ctx context.Context, MFLCode int) (bool, error) {
+	return gm.MockCheckFacilityExistsByMFLCode(ctx, MFLCode)
+}
+
+// CreateRelatedPerson mocks creating a related person
+func (gm *GormMock) CreateRelatedPerson(ctx context.Context, person *gorm.RelatedPerson) error {
+	return gm.MockCreateRelatedPerson(ctx, person)
+}
+
+// CreateContact mocks creating a contact
+func (gm *GormMock) CreateContact(ctx context.Context, contact *gorm.Contact) error {
+	return gm.MockCreateContact(ctx, contact)
 }

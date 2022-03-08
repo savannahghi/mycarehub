@@ -247,3 +247,27 @@ func (d *MyCareHubDb) CreateCommunity(ctx context.Context, communityInput *dto.C
 		InviteOnly: channel.InviteOnly,
 	}, nil
 }
+
+// CreateNextOfKin creates a related person who is a next of kin
+func (d *MyCareHubDb) CreateNextOfKin(ctx context.Context, person *dto.NextOfKinPayload) error {
+
+	pn := &gorm.RelatedPerson{
+		FirstName:        person.Name,
+		RelationshipType: "NEXT_OF_KIN",
+	}
+
+	return d.create.CreateRelatedPerson(ctx, pn)
+}
+
+// CreateContact creates a contact
+func (d *MyCareHubDb) CreateContact(ctx context.Context, contact *domain.Contact) error {
+
+	ct := &gorm.Contact{
+		Active:       true,
+		ContactType:  contact.ContactType,
+		ContactValue: contact.ContactValue,
+		OptedIn:      false,
+	}
+
+	return d.create.CreateContact(ctx, ct)
+}

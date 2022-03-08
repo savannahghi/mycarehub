@@ -88,6 +88,10 @@ type PostgresMock struct {
 	MockCheckIfUsernameExistsFn                   func(ctx context.Context, username string) (bool, error)
 	MockRevokeRolesFn                             func(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error)
 	MockGetCommunityByIDFn                        func(ctx context.Context, communityID string) (*domain.Community, error)
+	MockCheckIdentifierExists                     func(ctx context.Context, identifierType string, identifierValue string) (bool, error)
+	MockCheckFacilityExistsByMFLCode              func(ctx context.Context, MFLCode int) (bool, error)
+	MockCreateNextOfKin                           func(ctx context.Context, person *dto.NextOfKinPayload) error
+	MockCreateContact                             func(ctx context.Context, contact *domain.Contact) error
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -910,4 +914,24 @@ func (gm *PostgresMock) RevokeRoles(ctx context.Context, userID string, roles []
 // GetCommunityByID mocks the implementation of getting the community by ID
 func (gm *PostgresMock) GetCommunityByID(ctx context.Context, communityID string) (*domain.Community, error) {
 	return gm.MockGetCommunityByIDFn(ctx, communityID)
+}
+
+// CheckIdentifierExists mocks checking an identifier exists
+func (gm *PostgresMock) CheckIdentifierExists(ctx context.Context, identifierType string, identifierValue string) (bool, error) {
+	return gm.MockCheckIdentifierExists(ctx, identifierType, identifierValue)
+}
+
+// CheckFacilityExistsByMFLCode mocks checking a facility by mfl codes
+func (gm *PostgresMock) CheckFacilityExistsByMFLCode(ctx context.Context, MFLCode int) (bool, error) {
+	return gm.MockCheckFacilityExistsByMFLCode(ctx, MFLCode)
+}
+
+// CreateNextOfKin mocks creating a next of kin
+func (gm *PostgresMock) CreateNextOfKin(ctx context.Context, person *dto.NextOfKinPayload) error {
+	return gm.MockCreateNextOfKin(ctx, person)
+}
+
+// CreateContact mocks creating a contact
+func (gm *PostgresMock) CreateContact(ctx context.Context, contact *domain.Contact) error {
+	return gm.MockCreateContact(ctx, contact)
 }

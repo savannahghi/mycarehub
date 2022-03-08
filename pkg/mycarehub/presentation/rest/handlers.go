@@ -24,6 +24,7 @@ type MyCareHubHandlersInterfaces interface {
 	ResetPIN() http.HandlerFunc
 	RefreshToken() http.HandlerFunc
 	RefreshGetStreamToken() http.HandlerFunc
+	RegisterKenyaEMRPatients() http.HandlerFunc
 }
 
 // MyCareHubHandlersInterfacesImpl represents the usecase implementation object
@@ -423,5 +424,31 @@ func (h *MyCareHubHandlersInterfacesImpl) RefreshGetStreamToken() http.HandlerFu
 		}
 
 		serverutils.WriteJSONResponse(w, response, http.StatusOK)
+	}
+}
+
+// RegisterKenyaEMRPatients is the handler for registering patients from KenyaEMR as clients
+// It accepts multiple record for registration.
+func (h *MyCareHubHandlersInterfacesImpl) RegisterKenyaEMRPatients() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+
+		var payload []*dto.PatientRegistrationPayload
+
+		serverutils.DecodeJSONToTargetStruct(w, r, payload)
+
+		// error decoding json
+		if payload == nil {
+			return
+		}
+
+		response, err := h.usecase.User.RegisterKenyaEMRPatients(ctx, payload)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			serverutils.WriteJSONResponse(w, serverutils.ErrorMap(err), http.StatusInternalServerError)
+			return
+		}
+
+		serverutils.WriteJSONResponse(w, response, http.StatusCreated)
 	}
 }

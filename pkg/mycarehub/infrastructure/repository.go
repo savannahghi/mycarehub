@@ -23,6 +23,8 @@ type Create interface {
 	CreateServiceRequest(ctx context.Context, serviceRequestInput *domain.ClientServiceRequest) error
 	CreateClientCaregiver(ctx context.Context, caregiverInput *dto.CaregiverInput) error
 	CreateCommunity(ctx context.Context, communityInput *dto.CommunityInput) (*domain.Community, error)
+	CreateNextOfKin(ctx context.Context, person *dto.NextOfKinPayload) error
+	CreateContact(ctx context.Context, contact *domain.Contact) error
 }
 
 // Delete represents all the deletion action interfaces
@@ -69,6 +71,8 @@ type Query interface {
 	GetUserPermissions(ctx context.Context, userID string) ([]*domain.AuthorityPermission, error)
 	CheckIfUsernameExists(ctx context.Context, username string) (bool, error)
 	GetCommunityByID(ctx context.Context, communityID string) (*domain.Community, error)
+	CheckIdentifierExists(ctx context.Context, identifierType string, identifierValue string) (bool, error)
+	CheckFacilityExistsByMFLCode(ctx context.Context, MFLCode int) (bool, error)
 }
 
 // Update represents all the update action interfaces
