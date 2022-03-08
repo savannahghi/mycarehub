@@ -27,6 +27,7 @@ type MyCareHubHandlersInterfaces interface {
 	RegisterKenyaEMRPatients() http.HandlerFunc
 	GetClientHealthDiaryEntries() http.HandlerFunc
 	RegisteredFacilityPatients() http.HandlerFunc
+	GetServiceRequests() http.HandlerFunc
 }
 
 // MyCareHubHandlersInterfacesImpl represents the usecase implementation object
@@ -515,6 +516,35 @@ func (h *MyCareHubHandlersInterfacesImpl) RegisteredFacilityPatients() http.Hand
 			return
 		}
 
+		serverutils.WriteJSONResponse(w, response, http.StatusOK)
+	}
+}
+
+// GetServiceRequests is the endpoint used to sync service requests from MyCareHub to KenyaEMR
+func (h *MyCareHubHandlersInterfacesImpl) GetServiceRequests() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+
+		payload := &dto.ServiceRequestPayload{}
+		serverutils.DecodeJSONToTargetStruct(w, r, payload)
+		if payload.MFLCode == 0 || payload.LastSyncTime == nil {
+			err := fmt.Errorf("expected `MFLCODE` and `lastSyncTime` to be defined")
+			helpers.ReportErrorToSentry(err)
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusBadRequest)
+			return
+		}
+
+		serviceRequests, err := h.usecase.ServiceRequest.GetServiceRequestsForKenyaEMR(ctx, payload)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			serverutils.WriteJSONResponse(w, serverutils.ErrorMap(err), http.StatusBadRequest)
+			return
+		}
+
+		response := helpers.RestAPIResponseHelper("serviceRequests", serviceRequests)
 		serverutils.WriteJSONResponse(w, response, http.StatusOK)
 	}
 }

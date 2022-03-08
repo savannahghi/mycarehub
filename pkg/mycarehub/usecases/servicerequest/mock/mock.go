@@ -2,8 +2,10 @@ package mock
 
 import (
 	"context"
+	"time"
 
 	"github.com/google/uuid"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 )
 
@@ -18,6 +20,7 @@ type ServiceRequestUseCaseMock struct {
 	MockGetServiceRequestsFn             func(ctx context.Context, requestType, requestStatus, facilityID *string) ([]*domain.ServiceRequest, error)
 	MockResolveServiceRequestFn          func(ctx context.Context, staffID *string, serviceRequestID *string) (bool, error)
 	MockSetInProgressByFn                func(ctx context.Context, requestID string, staffID string) (bool, error)
+	MockGetServiceRequestsForKenyaEMRFn  func(ctx context.Context, payload *dto.ServiceRequestPayload) ([]*domain.ServiceRequest, error)
 }
 
 // NewServiceRequestUseCaseMock initializes a new service request instance mock
@@ -45,6 +48,27 @@ func NewServiceRequestUseCaseMock() *ServiceRequestUseCaseMock {
 		},
 		MockSetInProgressByFn: func(ctx context.Context, requestID string, staffID string) (bool, error) {
 			return true, nil
+		},
+		MockGetServiceRequestsForKenyaEMRFn: func(ctx context.Context, payload *dto.ServiceRequestPayload) ([]*domain.ServiceRequest, error) {
+			currentTime := time.Now()
+			staffID := uuid.New().String()
+			facilityID := uuid.New().String()
+			contact := "123454323"
+			serviceReq := &domain.ServiceRequest{
+				ID:            staffID,
+				RequestType:   "SERVICE_REQUEST",
+				Request:       "SERVICE_REQUEST",
+				Status:        "PENDING",
+				ClientID:      uuid.New().String(),
+				InProgressAt:  &currentTime,
+				InProgressBy:  &staffID,
+				ResolvedAt:    &currentTime,
+				ResolvedBy:    &staffID,
+				FacilityID:    &facilityID,
+				ClientName:    &staffID,
+				ClientContact: &contact,
+			}
+			return []*domain.ServiceRequest{serviceReq}, nil
 		},
 	}
 }
@@ -76,4 +100,9 @@ func (s *ServiceRequestUseCaseMock) ResolveServiceRequest(ctx context.Context, s
 // SetInProgressBy mocks the implementation of marking a service request as in progress
 func (s *ServiceRequestUseCaseMock) SetInProgressBy(ctx context.Context, requestID string, staffID string) (bool, error) {
 	return s.MockSetInProgressByFn(ctx, requestID, staffID)
+}
+
+// GetServiceRequestsForKenyaEMR mocks getting service requests attached to a specific facility to be used by KenyaEMR
+func (s *ServiceRequestUseCaseMock) GetServiceRequestsForKenyaEMR(ctx context.Context, payload *dto.ServiceRequestPayload) ([]*domain.ServiceRequest, error) {
+	return s.MockGetServiceRequestsForKenyaEMRFn(ctx, payload)
 }

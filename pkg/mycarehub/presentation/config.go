@@ -191,6 +191,10 @@ func Router(ctx context.Context) (*mux.Router, error) {
 		http.MethodGet,
 		http.MethodOptions,
 	).HandlerFunc(internalHandlers.GetClientHealthDiaryEntries())
+	r.Path("/service_request").Methods(
+		http.MethodOptions,
+		http.MethodGet,
+	).HandlerFunc(internalHandlers.GetServiceRequests())
 
 	r.Path("/patients").Methods(
 		http.MethodOptions,

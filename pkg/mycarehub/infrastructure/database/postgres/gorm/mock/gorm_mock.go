@@ -94,6 +94,7 @@ type GormMock struct {
 	MockGetRecentHealthDiaryEntriesFn             func(ctx context.Context, lastSyncTime time.Time, clientID string) ([]*gorm.ClientHealthDiaryEntry, error)
 	MockGetClientsByParams                        func(ctx context.Context, params gorm.Client, lastSyncTime *time.Time) ([]*gorm.Client, error)
 	MockGetClientCCCIdentifier                    func(ctx context.Context, clientID string) (*gorm.Identifier, error)
+	MockGetServiceRequestsForKenyaEMRFn           func(ctx context.Context, facilityID string, lastSyncTime time.Time) ([]*gorm.ClientServiceRequest, error)
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -652,6 +653,27 @@ func NewGormMock() *GormMock {
 				IsPrimaryIdentifier: false,
 			}, nil
 		},
+		MockGetServiceRequestsForKenyaEMRFn: func(ctx context.Context, facilityID string, lastSyncTime time.Time) ([]*gorm.ClientServiceRequest, error) {
+			currentTime := time.Now()
+			staffID := uuid.New().String()
+			facility := uuid.New().String()
+			requestID := uuid.New().String()
+			serviceReq := &gorm.ClientServiceRequest{
+				ID:             &requestID,
+				Active:         true,
+				RequestType:    "TYPE",
+				Request:        "REQUEST",
+				Status:         "PENDING",
+				InProgressAt:   &currentTime,
+				ResolvedAt:     &currentTime,
+				ClientID:       uuid.New().String(),
+				InProgressByID: &staffID,
+				OrganisationID: "",
+				ResolvedByID:   &staffID,
+				FacilityID:     facility,
+			}
+			return []*gorm.ClientServiceRequest{serviceReq}, nil
+		},
 	}
 }
 
@@ -1039,4 +1061,9 @@ func (gm *GormMock) GetClientsByParams(ctx context.Context, params gorm.Client, 
 // GetClientCCCIdentifier retrieves a client's ccc identifier
 func (gm *GormMock) GetClientCCCIdentifier(ctx context.Context, clientID string) (*gorm.Identifier, error) {
 	return gm.MockGetClientCCCIdentifier(ctx, clientID)
+}
+
+// GetServiceRequestsForKenyaEMR mocks the getting of service requests attched to a specific facility for use by KenyaEMR
+func (gm *GormMock) GetServiceRequestsForKenyaEMR(ctx context.Context, facilityID string, lastSyncTime time.Time) ([]*gorm.ClientServiceRequest, error) {
+	return gm.MockGetServiceRequestsForKenyaEMRFn(ctx, facilityID, lastSyncTime)
 }

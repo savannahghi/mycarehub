@@ -97,6 +97,7 @@ type PostgresMock struct {
 	MockGetRecentHealthDiaryEntriesFn             func(ctx context.Context, lastSyncTime time.Time, clientID string) ([]*domain.ClientHealthDiaryEntry, error)
 	MockGetClientsByParams                        func(ctx context.Context, params gorm.Client, lastSyncTime *time.Time) ([]*domain.ClientProfile, error)
 	MockGetClientCCCIdentifier                    func(ctx context.Context, clientID string) (*domain.Identifier, error)
+	MockGetServiceRequestsForKenyaEMRFn           func(ctx context.Context, payload *dto.ServiceRequestPayload) ([]*domain.ServiceRequest, error)
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -585,6 +586,27 @@ func NewPostgresMock() *PostgresMock {
 				IsPrimaryIdentifier: false,
 			}, nil
 		},
+		MockGetServiceRequestsForKenyaEMRFn: func(ctx context.Context, payload *dto.ServiceRequestPayload) ([]*domain.ServiceRequest, error) {
+			currentTime := time.Now()
+			staffID := uuid.New().String()
+			facilityID := uuid.New().String()
+			contact := "123454323"
+			serviceReq := &domain.ServiceRequest{
+				ID:            ID,
+				RequestType:   "SERVICE_REQUEST",
+				Request:       "SERVICE_REQUEST",
+				Status:        "PENDING",
+				ClientID:      ID,
+				InProgressAt:  &currentTime,
+				InProgressBy:  &staffID,
+				ResolvedAt:    &currentTime,
+				ResolvedBy:    &staffID,
+				FacilityID:    &facilityID,
+				ClientName:    &staffID,
+				ClientContact: &contact,
+			}
+			return []*domain.ServiceRequest{serviceReq}, nil
+		},
 	}
 }
 
@@ -986,4 +1008,9 @@ func (gm *PostgresMock) GetClientsByParams(ctx context.Context, params gorm.Clie
 // GetClientCCCIdentifier retrieves client's ccc number
 func (gm *PostgresMock) GetClientCCCIdentifier(ctx context.Context, clientID string) (*domain.Identifier, error) {
 	return gm.MockGetClientCCCIdentifier(ctx, clientID)
+}
+
+// GetServiceRequestsForKenyaEMR mocks the getting of red flag service requests for use by KenyaEMR
+func (gm *PostgresMock) GetServiceRequestsForKenyaEMR(ctx context.Context, payload *dto.ServiceRequestPayload) ([]*domain.ServiceRequest, error) {
+	return gm.MockGetServiceRequestsForKenyaEMRFn(ctx, payload)
 }

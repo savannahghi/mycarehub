@@ -26,7 +26,6 @@ type ServiceGetStream interface {
 	DeleteChannels(ctx context.Context, chanIDs []string, hardDelete bool) (*stream.AsyncTaskResponse, error)
 	InviteMembers(ctx context.Context, memberIDs []string, channelID string, message *stream.Message) (*stream.Response, error)
 	ListGetStreamChannels(ctr context.Context, input *stream.QueryOption) (*stream.QueryChannelsResponse, error)
-	ListChannelMembers(ctx context.Context, channelID string, q *stream.QueryOption, sorters ...*stream.SortOption) ([]*stream.ChannelMember, error)
 	GetChannel(ctx context.Context, channelID string) (*stream.Channel, error)
 	AddMembersToCommunity(ctx context.Context, memberIDs []string, channelID string) (*stream.Response, error)
 	RejectInvite(ctx context.Context, userID string, channelID string, message *stream.Message) (*stream.Response, error)
@@ -104,11 +103,6 @@ func (c *ChatClient) InviteMembers(ctx context.Context, memberIDs []string, chan
 // If any number of SortOption are set, result will be sorted by field and direction in oder of sort options.
 func (c *ChatClient) ListGetStreamChannels(ctx context.Context, input *stream.QueryOption) (*stream.QueryChannelsResponse, error) {
 	return c.client.QueryChannels(ctx, input)
-}
-
-// ListChannelMembers returns list of channel members
-func (c *ChatClient) ListChannelMembers(ctx context.Context, channelID string, query *stream.QueryOption, sorters ...*stream.SortOption) ([]*stream.ChannelMember, error) {
-	return nil, nil
 }
 
 // GetChannel retrieves a channel from Getstream using the channel id
