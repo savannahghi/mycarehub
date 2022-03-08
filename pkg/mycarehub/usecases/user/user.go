@@ -22,6 +22,7 @@ import (
 	utilsExt "github.com/savannahghi/mycarehub/pkg/mycarehub/application/utils"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/getstream"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/authority"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/otp"
@@ -96,6 +97,11 @@ type IRegisterClient interface {
 	RegisterKenyaEMRPatients(ctx context.Context, input []*dto.PatientRegistrationPayload) ([]*dto.ClientRegistrationOutput, error)
 }
 
+// IClientMedicalHistory interface defines method signature for dealing with medical history
+type IClientMedicalHistory interface {
+	RegisteredFacilityPatients(ctx context.Context, input dto.PatientSyncPayload) (*dto.PatientSyncResponse, error)
+}
+
 // UseCasesUser group all business logic usecases related to user
 type UseCasesUser interface {
 	ILogin
@@ -110,6 +116,7 @@ type UseCasesUser interface {
 	ICreateClientCaregiver
 	IGetClientCaregiver
 	IRegisterClient
+	IClientMedicalHistory
 }
 
 // UseCasesUserImpl represents user implementation object
@@ -902,7 +909,7 @@ func (us *UseCasesUserImpl) RegisterKenyaEMRPatients(ctx context.Context, input 
 			return nil, fmt.Errorf("error checking for facility")
 		}
 		if !exists {
-			return nil, fmt.Errorf("facility with that identifier doesn't exists %v", patient.MFLCode)
+			return nil, fmt.Errorf("facility with provided MFL code doesn't exist, code: %v", patient.MFLCode)
 		}
 
 		facility, err := us.Query.RetrieveFacilityByMFLCode(ctx, patient.MFLCode, true)
@@ -954,4 +961,53 @@ func (us *UseCasesUserImpl) RegisterKenyaEMRPatients(ctx context.Context, input 
 	}
 
 	return clients, nil
+}
+
+// RegisteredFacilityPatients checks for newly registered clients at a facility
+// from a given time i,e sync time. It is useful to fetch all patient information
+// from Kenya EMR and sync it to mycarehub
+func (us *UseCasesUserImpl) RegisteredFacilityPatients(ctx context.Context, input dto.PatientSyncPayload) (*dto.PatientSyncResponse, error) {
+	exists, err := us.Query.CheckFacilityExistsByMFLCode(ctx, input.MFLCode)
+	if err != nil {
+		return nil, fmt.Errorf("error checking for facility")
+	}
+	if !exists {
+		return nil, fmt.Errorf("facility with provided MFL code doesn't exist, code: %v", input.MFLCode)
+	}
+
+	facility, err := us.Query.RetrieveFacilityByMFLCode(ctx, input.MFLCode, true)
+	if err != nil {
+		return nil, fmt.Errorf("error retrieving facility: %v", err)
+	}
+
+	var clients []*domain.ClientProfile
+
+	if input.SyncTime == nil {
+		clients, err = us.Query.GetClientsByParams(ctx, gorm.Client{FacilityID: *facility.ID}, nil)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		clients, err = us.Query.GetClientsByParams(ctx, gorm.Client{
+			FacilityID: *facility.ID,
+		}, input.SyncTime)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	output := dto.PatientSyncResponse{
+		MFLCode: facility.Code,
+	}
+
+	for _, client := range clients {
+		identifier, err := us.Query.GetClientCCCIdentifier(ctx, *client.ID)
+		if err != nil {
+			return nil, err
+		}
+
+		output.Patients = append(output.Patients, identifier.IdentifierValue)
+	}
+
+	return &output, nil
 }

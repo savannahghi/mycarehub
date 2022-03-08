@@ -92,6 +92,8 @@ type GormMock struct {
 	MockCreateContact                             func(ctx context.Context, contact *gorm.Contact) error
 	MockGetClientsInAFacilityFn                   func(ctx context.Context, facilityID string) ([]*gorm.Client, error)
 	MockGetRecentHealthDiaryEntriesFn             func(ctx context.Context, lastSyncTime time.Time, clientID string) ([]*gorm.ClientHealthDiaryEntry, error)
+	MockGetClientsByParams                        func(ctx context.Context, params gorm.Client, lastSyncTime *time.Time) ([]*gorm.Client, error)
+	MockGetClientCCCIdentifier                    func(ctx context.Context, clientID string) (*gorm.Identifier, error)
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -635,6 +637,21 @@ func NewGormMock() *GormMock {
 				},
 			}, nil
 		},
+		MockGetClientsByParams: func(ctx context.Context, params gorm.Client, lastSyncTime *time.Time) ([]*gorm.Client, error) {
+			return []*gorm.Client{client}, nil
+		},
+		MockGetClientCCCIdentifier: func(ctx context.Context, clientID string) (*gorm.Identifier, error) {
+			return &gorm.Identifier{
+				ID:                  uuid.New().String(),
+				IdentifierType:      "CCC",
+				IdentifierValue:     "123456",
+				IdentifierUse:       "OFFICIAL",
+				Description:         description,
+				ValidFrom:           time.Time{},
+				ValidTo:             time.Time{},
+				IsPrimaryIdentifier: false,
+			}, nil
+		},
 	}
 }
 
@@ -1012,4 +1029,14 @@ func (gm *GormMock) GetClientsInAFacility(ctx context.Context, facilityID string
 // GetRecentHealthDiaryEntries mocks getting the most recent health diary entries
 func (gm *GormMock) GetRecentHealthDiaryEntries(ctx context.Context, lastSyncTime time.Time, clientID string) ([]*gorm.ClientHealthDiaryEntry, error) {
 	return gm.MockGetRecentHealthDiaryEntriesFn(ctx, lastSyncTime, clientID)
+}
+
+// GetClientsByParams retrieves clients using the parameters provided
+func (gm *GormMock) GetClientsByParams(ctx context.Context, params gorm.Client, lastSyncTime *time.Time) ([]*gorm.Client, error) {
+	return gm.MockGetClientsByParams(ctx, params, lastSyncTime)
+}
+
+// GetClientCCCIdentifier retrieves a client's ccc identifier
+func (gm *GormMock) GetClientCCCIdentifier(ctx context.Context, clientID string) (*gorm.Identifier, error) {
+	return gm.MockGetClientCCCIdentifier(ctx, clientID)
 }

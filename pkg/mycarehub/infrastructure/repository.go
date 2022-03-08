@@ -8,6 +8,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
 )
 
 // Create represents a contract that contains all `create` ops to the database
@@ -75,6 +76,8 @@ type Query interface {
 	CheckFacilityExistsByMFLCode(ctx context.Context, MFLCode int) (bool, error)
 	GetClientsInAFacility(ctx context.Context, facilityID string) ([]*domain.ClientProfile, error)
 	GetRecentHealthDiaryEntries(ctx context.Context, lastSyncTime time.Time, clientID string) ([]*domain.ClientHealthDiaryEntry, error)
+	GetClientsByParams(ctx context.Context, params gorm.Client, lastSyncTime *time.Time) ([]*domain.ClientProfile, error)
+	GetClientCCCIdentifier(ctx context.Context, clientID string) (*domain.Identifier, error)
 }
 
 // Update represents all the update action interfaces

@@ -2315,3 +2315,106 @@ func TestPGInstance_CheckIdentifierExists(t *testing.T) {
 		})
 	}
 }
+
+func TestPGInstance_GetClientsByParams(t *testing.T) {
+
+	unknown := "a908710b-d3d2-4ca7-bf99-5eda47356bd8"
+	syncTime := time.Now()
+
+	type args struct {
+		ctx          context.Context
+		params       gorm.Client
+		lastSyncTime *time.Time
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    []*gorm.Client
+		wantErr bool
+	}{
+		{
+			name: "happy case: retrieve non existent client",
+			args: args{
+				ctx: context.Background(),
+				params: gorm.Client{
+					ID: &unknown,
+				},
+				lastSyncTime: nil,
+			},
+			want:    []*gorm.Client{},
+			wantErr: false,
+		},
+		{
+			name: "happy case: retrieve non existent client",
+			args: args{
+				ctx: context.Background(),
+				params: gorm.Client{
+					ID: &unknown,
+				},
+				lastSyncTime: &syncTime,
+			},
+			want:    []*gorm.Client{},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := testingDB.GetClientsByParams(tt.args.ctx, tt.args.params, tt.args.lastSyncTime)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.GetClientsByParams() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("PGInstance.GetClientsByParams() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestPGInstance_GetClientCCCIdentifier(t *testing.T) {
+	type args struct {
+		ctx      context.Context
+		clientID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *gorm.Identifier
+		wantErr bool
+	}{
+		{
+			name: "happy case: retrieve ccc identifier",
+			args: args{
+				ctx:      context.Background(),
+				clientID: clientID,
+			},
+			wantErr: false,
+		},
+		{
+			name: "sad case: client has no identifier",
+			args: args{
+				ctx:      context.Background(),
+				clientID: clientID2,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := testingDB.GetClientCCCIdentifier(tt.args.ctx, tt.args.clientID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.GetClientCCCIdentifier() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if tt.wantErr && got != nil {
+				t.Errorf("expected community to be nil for %v", tt.name)
+				return
+			}
+
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected community not to be nil for %v", tt.name)
+				return
+			}
+		})
+	}
+}

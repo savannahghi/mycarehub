@@ -220,6 +220,7 @@ func TestMain(m *testing.M) {
 			"../../../../../../fixtures/authority_authorityrole_users.yml",
 			"../../../../../../fixtures/communities_community.yml",
 			"../../../../../../fixtures/clients_identifier.yml",
+			"../../../../../../fixtures/clients_client_identifiers.yml",
 		),
 		// uncomment when running tests locally, if your db is not a test db
 		// Ensure the testing db in the ci is named `test`
