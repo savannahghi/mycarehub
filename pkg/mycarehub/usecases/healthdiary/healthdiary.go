@@ -10,6 +10,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/servicerequest"
 )
 
 // The healthdiary is used for engagement with clients on a day-by-day basis.
@@ -52,18 +53,21 @@ type UseCasesHealthDiary interface {
 
 // UseCasesHealthDiaryImpl embeds the healthdiary logic defined on the domain
 type UseCasesHealthDiaryImpl struct {
-	Create infrastructure.Create
-	Query  infrastructure.Query
+	Create         infrastructure.Create
+	Query          infrastructure.Query
+	ServiceRequest servicerequest.UseCaseServiceRequest
 }
 
 // NewUseCaseHealthDiaryImpl creates a new instance of health diary
 func NewUseCaseHealthDiaryImpl(
 	create infrastructure.Create,
 	query infrastructure.Query,
+	servicerequest servicerequest.UseCaseServiceRequest,
 ) *UseCasesHealthDiaryImpl {
 	return &UseCasesHealthDiaryImpl{
-		Create: create,
-		Query:  query,
+		Create:         create,
+		Query:          query,
+		ServiceRequest: servicerequest,
 	}
 }
 
@@ -96,16 +100,12 @@ func (h UseCasesHealthDiaryImpl) CreateHealthDiaryEntry(
 			return false, fmt.Errorf("failed to save health diary entry")
 		}
 
-		serviceRequest := &domain.ClientServiceRequest{
-			Active:       true,
-			RequestType:  string(enums.ServiceRequestTypeRedFlag), //TODO make this an enum
-			Request:      "",
-			Status:       "PENDING", // TODO; enum
-			InProgressAt: time.Now(),
-			ClientID:     clientID,
-		}
-
-		err = h.Create.CreateServiceRequest(ctx, serviceRequest)
+		_, err = h.ServiceRequest.CreateServiceRequest(
+			ctx,
+			clientID,
+			string(enums.ServiceRequestTypeRedFlag),
+			"",
+		)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
 			return false, fmt.Errorf("failed to create service request: %v", err)
