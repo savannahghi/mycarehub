@@ -90,15 +90,15 @@ func Router(ctx context.Context) (*mux.Router, error) {
 
 	contentUseCase := content.NewUseCasesContentImplementation(db, db, externalExt)
 
-	healthDiaryUseCase := healthdiary.NewUseCaseHealthDiaryImpl(db, db)
-
 	feedbackUsecase := feedback.NewUsecaseFeedback(db, externalExt)
 
 	faq := faq.NewUsecaseFAQ(db)
 
 	serviceRequestUseCase := servicerequest.NewUseCaseServiceRequestImpl(db, db, db)
+
 	communitiesUseCase := communities.NewUseCaseCommunitiesImpl(getStream, externalExt, db, db)
 
+	healthDiaryUseCase := healthdiary.NewUseCaseHealthDiaryImpl(db, db, serviceRequestUseCase)
 	useCase := usecases.NewMyCareHubUseCase(
 		userUsecase, termsUsecase, facilityUseCase,
 		securityQuestionsUsecase, otpUseCase, contentUseCase, feedbackUsecase, healthDiaryUseCase,

@@ -13,6 +13,7 @@ import (
 	pgMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/mock"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/healthdiary"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/healthdiary/mock"
+	serviceRequestMock "github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/servicerequest/mock"
 )
 
 func TestUseCasesHealthDiaryImpl_CreateHealthDiaryEntry(t *testing.T) {
@@ -95,6 +96,7 @@ func TestUseCasesHealthDiaryImpl_CreateHealthDiaryEntry(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
+			fakeServiceRequest := serviceRequestMock.NewServiceRequestUseCaseMock()
 			_ = mock.NewHealthDiaryUseCaseMock()
 
 			if tt.name == "Sad Case - Fail to create healthdiary entry for happy mood" {
@@ -110,12 +112,16 @@ func TestUseCasesHealthDiaryImpl_CreateHealthDiaryEntry(t *testing.T) {
 			}
 
 			if tt.name == "Sad Case - Fail to create service request for very sad mood" {
-				fakeDB.MockCreateServiceRequestFn = func(ctx context.Context, serviceRequestInput *domain.ClientServiceRequest) error {
-					return fmt.Errorf("failed to create service request")
+				fakeServiceRequest.MockCreateServiceRequestFn = func(
+					ctx context.Context,
+					clientID string,
+					requestType, request string,
+				) (bool, error) {
+					return false, fmt.Errorf("failed to create service request")
 				}
 			}
 
-			h := healthdiary.NewUseCaseHealthDiaryImpl(fakeDB, fakeDB)
+			h := healthdiary.NewUseCaseHealthDiaryImpl(fakeDB, fakeDB, fakeServiceRequest)
 			got, err := h.CreateHealthDiaryEntry(tt.args.ctx, tt.args.clientID, tt.args.note, tt.args.mood, tt.args.reportToStaff)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCasesHealthDiaryImpl.CreateHealthDiaryEntry() error = %v, wantErr %v", err, tt.wantErr)
@@ -162,7 +168,8 @@ func TestUseCasesHealthDiaryImpl_GetClientHealthDiaryQuote(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
 			_ = mock.NewHealthDiaryUseCaseMock()
-			h := healthdiary.NewUseCaseHealthDiaryImpl(fakeDB, fakeDB)
+			fakeServiceRequest := serviceRequestMock.NewServiceRequestUseCaseMock()
+			h := healthdiary.NewUseCaseHealthDiaryImpl(fakeDB, fakeDB, fakeServiceRequest)
 
 			if tt.name == "Sad Case - Fail to get quote" {
 				fakeDB.MockGetClientHealthDiaryQuoteFn = func(ctx context.Context) (*domain.ClientHealthDiaryQuote, error) {
@@ -213,7 +220,8 @@ func TestUsecaseHealthDiaryImpl_CanRecordHeathDiary(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
-			healthdiary := healthdiary.NewUseCaseHealthDiaryImpl(fakeDB, fakeDB)
+			fakeServiceRequest := serviceRequestMock.NewServiceRequestUseCaseMock()
+			healthdiary := healthdiary.NewUseCaseHealthDiaryImpl(fakeDB, fakeDB, fakeServiceRequest)
 
 			got, err := healthdiary.CanRecordHeathDiary(tt.args.ctx, tt.args.clientID)
 			if (err != nil) != tt.wantErr {
@@ -258,7 +266,8 @@ func TestUseCasesHealthDiaryImpl_GetClientHealthDiaryEntries(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
 			fakeHealthDiary := mock.NewHealthDiaryUseCaseMock()
-			healthdiary := healthdiary.NewUseCaseHealthDiaryImpl(fakeDB, fakeDB)
+			fakeServiceRequest := serviceRequestMock.NewServiceRequestUseCaseMock()
+			healthdiary := healthdiary.NewUseCaseHealthDiaryImpl(fakeDB, fakeDB, fakeServiceRequest)
 
 			if tt.name == "Sad Case - Missing user ID" {
 				fakeHealthDiary.MockGetClientHealthDiaryEntriesFn = func(ctx context.Context, clientID string) ([]*domain.ClientHealthDiaryEntry, error) {
