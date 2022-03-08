@@ -90,6 +90,8 @@ type GormMock struct {
 	MockCheckFacilityExistsByMFLCode              func(ctx context.Context, MFLCode int) (bool, error)
 	MockCreateRelatedPerson                       func(ctx context.Context, person *gorm.RelatedPerson) error
 	MockCreateContact                             func(ctx context.Context, contact *gorm.Contact) error
+	MockGetClientsInAFacilityFn                   func(ctx context.Context, facilityID string) ([]*gorm.Client, error)
+	MockGetRecentHealthDiaryEntriesFn             func(ctx context.Context, lastSyncTime time.Time, clientID string) ([]*gorm.ClientHealthDiaryEntry, error)
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -621,6 +623,18 @@ func NewGormMock() *GormMock {
 				OrganisationID: uuid.New().String(),
 			}, nil
 		},
+		MockGetClientsInAFacilityFn: func(ctx context.Context, facilityID string) ([]*gorm.Client, error) {
+			return []*gorm.Client{
+				client,
+			}, nil
+		},
+		MockGetRecentHealthDiaryEntriesFn: func(ctx context.Context, lastSyncTime time.Time, clientID string) ([]*gorm.ClientHealthDiaryEntry, error) {
+			return []*gorm.ClientHealthDiaryEntry{
+				{
+					Active: true,
+				},
+			}, nil
+		},
 	}
 }
 
@@ -988,4 +1002,14 @@ func (gm *GormMock) CreateRelatedPerson(ctx context.Context, person *gorm.Relate
 // CreateContact mocks creating a contact
 func (gm *GormMock) CreateContact(ctx context.Context, contact *gorm.Contact) error {
 	return gm.MockCreateContact(ctx, contact)
+}
+
+// GetClientsInAFacility mocks getting clients that belong to a certain facility
+func (gm *GormMock) GetClientsInAFacility(ctx context.Context, facilityID string) ([]*gorm.Client, error) {
+	return gm.MockGetClientsInAFacilityFn(ctx, facilityID)
+}
+
+// GetRecentHealthDiaryEntries mocks getting the most recent health diary entries
+func (gm *GormMock) GetRecentHealthDiaryEntries(ctx context.Context, lastSyncTime time.Time, clientID string) ([]*gorm.ClientHealthDiaryEntry, error) {
+	return gm.MockGetRecentHealthDiaryEntriesFn(ctx, lastSyncTime, clientID)
 }

@@ -57,6 +57,8 @@ type Query interface {
 	GetCommunityByID(ctx context.Context, communityID string) (*Community, error)
 	CheckIdentifierExists(ctx context.Context, identifierType string, identifierValue string) (bool, error)
 	CheckFacilityExistsByMFLCode(ctx context.Context, MFLCode int) (bool, error)
+	GetClientsInAFacility(ctx context.Context, facilityID string) ([]*Client, error)
+	GetRecentHealthDiaryEntries(ctx context.Context, lastSyncTime time.Time, clientID string) ([]*ClientHealthDiaryEntry, error)
 }
 
 // CheckWhetherUserHasLikedContent performs a operation to check whether user has liked the content
@@ -764,4 +766,27 @@ func (db *PGInstance) CheckFacilityExistsByMFLCode(ctx context.Context, MFLCode 
 	}
 
 	return true, nil
+}
+
+// GetClientsInAFacility returns all the clients registered within a specified facility
+func (db *PGInstance) GetClientsInAFacility(ctx context.Context, facilityID string) ([]*Client, error) {
+	var clientProfiles []*Client
+	if err := db.DB.Where(&Client{FacilityID: facilityID}).Preload(clause.Associations).Find(&clientProfiles).Error; err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, fmt.Errorf("failed to get all clients in the specified facility: %v", err)
+	}
+	return clientProfiles, nil
+}
+
+// GetRecentHealthDiaryEntries fetches the health diary entries that were added after the last time the entries were
+// synced to KenyaEMR
+func (db *PGInstance) GetRecentHealthDiaryEntries(ctx context.Context, lastSyncTime time.Time, clientID string) ([]*ClientHealthDiaryEntry, error) {
+	var healthDiaryEntry []*ClientHealthDiaryEntry
+	err := db.DB.Where(&ClientHealthDiaryEntry{ClientID: clientID, Active: true}).Where("? > ?", clause.Column{Name: "created"}, lastSyncTime).
+		Order(clause.OrderByColumn{Column: clause.Column{Name: "created"}, Desc: true}).Find(&healthDiaryEntry).Error
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, fmt.Errorf("failed to get all client health diary entries: %v", err)
+	}
+	return healthDiaryEntry, nil
 }

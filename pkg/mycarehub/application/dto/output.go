@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 )
 
 // RestEndpointResponses represents the rest endpoints response(s) output
@@ -26,4 +27,11 @@ type ClientRegistrationOutput struct {
 	CurrentFacilityID string           `json:"current_facility"`
 	CHV               string           `json:"chv"`
 	Caregiver         string           `json:"caregiver"`
+}
+
+// HealthDiaryEntriesResponse is the response returned after querying the
+// health diary entries for a specific facility
+type HealthDiaryEntriesResponse struct {
+	MFLCode            int                              `json:"MFLCODE"`
+	HealthDiaryEntries []*domain.ClientHealthDiaryEntry `json:"healthDiaries"`
 }

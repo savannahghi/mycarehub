@@ -92,6 +92,8 @@ type PostgresMock struct {
 	MockCheckFacilityExistsByMFLCode              func(ctx context.Context, MFLCode int) (bool, error)
 	MockCreateNextOfKin                           func(ctx context.Context, person *dto.NextOfKinPayload) error
 	MockCreateContact                             func(ctx context.Context, contact *domain.Contact) error
+	MockGetClientsInAFacilityFn                   func(ctx context.Context, facilityID string) ([]*domain.ClientProfile, error)
+	MockGetRecentHealthDiaryEntriesFn             func(ctx context.Context, lastSyncTime time.Time, clientID string) ([]*domain.ClientHealthDiaryEntry, error)
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -553,6 +555,21 @@ func NewPostgresMock() *PostgresMock {
 				CreatedBy:  &domain.Member{},
 			}, nil
 		},
+		MockGetClientsInAFacilityFn: func(ctx context.Context, facilityID string) ([]*domain.ClientProfile, error) {
+			return []*domain.ClientProfile{
+				client,
+			}, nil
+		},
+		MockGetRecentHealthDiaryEntriesFn: func(ctx context.Context, lastSyncTime time.Time, clientID string) ([]*domain.ClientHealthDiaryEntry, error) {
+			return []*domain.ClientHealthDiaryEntry{
+				{
+					Active: true,
+				},
+			}, nil
+		},
+		MockCheckFacilityExistsByMFLCode: func(ctx context.Context, MFLCode int) (bool, error) {
+			return true, nil
+		},
 	}
 }
 
@@ -934,4 +951,14 @@ func (gm *PostgresMock) CreateNextOfKin(ctx context.Context, person *dto.NextOfK
 // CreateContact mocks creating a contact
 func (gm *PostgresMock) CreateContact(ctx context.Context, contact *domain.Contact) error {
 	return gm.MockCreateContact(ctx, contact)
+}
+
+// GetClientsInAFacility mocks getting all the clients in a facility
+func (gm *PostgresMock) GetClientsInAFacility(ctx context.Context, facilityID string) ([]*domain.ClientProfile, error) {
+	return gm.MockGetClientsInAFacilityFn(ctx, facilityID)
+}
+
+// GetRecentHealthDiaryEntries mocks getting the most recent health diary entry
+func (gm *PostgresMock) GetRecentHealthDiaryEntries(ctx context.Context, lastSyncTime time.Time, clientID string) ([]*domain.ClientHealthDiaryEntry, error) {
+	return gm.MockGetRecentHealthDiaryEntriesFn(ctx, lastSyncTime, clientID)
 }

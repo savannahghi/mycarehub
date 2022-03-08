@@ -73,6 +73,8 @@ type Query interface {
 	GetCommunityByID(ctx context.Context, communityID string) (*domain.Community, error)
 	CheckIdentifierExists(ctx context.Context, identifierType string, identifierValue string) (bool, error)
 	CheckFacilityExistsByMFLCode(ctx context.Context, MFLCode int) (bool, error)
+	GetClientsInAFacility(ctx context.Context, facilityID string) ([]*domain.ClientProfile, error)
+	GetRecentHealthDiaryEntries(ctx context.Context, lastSyncTime time.Time, clientID string) ([]*domain.ClientHealthDiaryEntry, error)
 }
 
 // Update represents all the update action interfaces
