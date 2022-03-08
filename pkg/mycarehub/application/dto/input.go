@@ -1,6 +1,8 @@
 package dto
 
 import (
+	"time"
+
 	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
@@ -304,4 +306,12 @@ type PatientRegistrationPayload struct {
 	Gender             string           `json:"gender"`
 	Counselled         bool             `json:"counselled"`
 	NextOfKin          NextOfKinPayload `json:"nextOfKin"`
+}
+
+// FetchHealthDiaryEntries models the payload that is passed when
+// fetching the health diary entries that were recorded by patients assigned to
+// the matching facility
+type FetchHealthDiaryEntries struct {
+	MFLCode      int        `json:"MFLCODE"`
+	LastSyncTime *time.Time `json:"lastSyncTime"`
 }

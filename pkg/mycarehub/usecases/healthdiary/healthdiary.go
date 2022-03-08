@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
@@ -41,6 +42,8 @@ type IGetRandomQuote interface {
 // IGetClientHealthDiaryEntry defines a method signature that is used to fetch a client's health diary records
 type IGetClientHealthDiaryEntry interface {
 	GetClientHealthDiaryEntries(ctx context.Context, clientID string) ([]*domain.ClientHealthDiaryEntry, error)
+	GetFacilityHealthDiaryEntries(ctx context.Context, input dto.FetchHealthDiaryEntries) (*dto.HealthDiaryEntriesResponse, error)
+	GetRecentHealthDiaryEntries(ctx context.Context, lastSyncTime time.Time, clientID string) ([]*domain.ClientHealthDiaryEntry, error)
 }
 
 // UseCasesHealthDiary holds all the interfaces that represents the business logic to implement the health diary
@@ -150,4 +153,48 @@ func (h UseCasesHealthDiaryImpl) GetClientHealthDiaryEntries(ctx context.Context
 		return nil, exceptions.EmptyInputErr(fmt.Errorf("missing client ID"))
 	}
 	return h.Query.GetClientHealthDiaryEntries(ctx, clientID)
+}
+
+// GetFacilityHealthDiaryEntries retrieves all the health diary entries that have been recorded by clients
+// from a specified facility and have not yet been synced to KenyaEMR.
+// This will be used by the KenyaEMR module to retrieve the health diaries and save them into KenyaEMR database
+func (h UseCasesHealthDiaryImpl) GetFacilityHealthDiaryEntries(ctx context.Context, input dto.FetchHealthDiaryEntries) (*dto.HealthDiaryEntriesResponse, error) {
+	exists, err := h.Query.CheckFacilityExistsByMFLCode(ctx, input.MFLCode)
+	if err != nil {
+		return nil, fmt.Errorf("error checking for facility")
+	}
+
+	if !exists {
+		return nil, fmt.Errorf("facility with provided MFL code doesn't exist, code: %v", input.MFLCode)
+	}
+
+	facility, err := h.Query.RetrieveFacilityByMFLCode(ctx, input.MFLCode, true)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get facility: %v", err)
+	}
+
+	clients, err := h.Query.GetClientsInAFacility(ctx, *facility.ID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query users in %v facility: %v", facility.Name, err)
+	}
+
+	response := dto.HealthDiaryEntriesResponse{
+		MFLCode: facility.Code,
+	}
+
+	for _, client := range clients {
+		healthDiaryEntry, err := h.GetRecentHealthDiaryEntries(ctx, *input.LastSyncTime, *client.ID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to fetch client health diary entries: %v", err)
+		}
+		response.HealthDiaryEntries = append(response.HealthDiaryEntries, healthDiaryEntry...)
+	}
+
+	return &response, nil
+}
+
+// GetRecentHealthDiaryEntries fetches the most recent health diary entries. It returns the new entries
+// that were added after the last synced time. This will help KenyEMR module fetch for new health diary entries
+func (h UseCasesHealthDiaryImpl) GetRecentHealthDiaryEntries(ctx context.Context, lastSyncTime time.Time, clientID string) ([]*domain.ClientHealthDiaryEntry, error) {
+	return h.Query.GetRecentHealthDiaryEntries(ctx, lastSyncTime, clientID)
 }

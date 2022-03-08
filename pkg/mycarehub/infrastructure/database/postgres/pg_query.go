@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
@@ -778,4 +779,66 @@ func (d *MyCareHubDb) CheckIdentifierExists(ctx context.Context, identifierType 
 // Used to validate existence of a facility
 func (d *MyCareHubDb) CheckFacilityExistsByMFLCode(ctx context.Context, MFLCode int) (bool, error) {
 	return d.query.CheckFacilityExistsByMFLCode(ctx, MFLCode)
+}
+
+// GetClientsInAFacility fetches all the clients that belong to a specific facility
+func (d *MyCareHubDb) GetClientsInAFacility(ctx context.Context, facilityID string) ([]*domain.ClientProfile, error) {
+	clientProfiles, err := d.query.GetClientsInAFacility(ctx, facilityID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, fmt.Errorf("failed to fetch clients that belong to a facility: %v", err)
+	}
+	var clients []*domain.ClientProfile
+
+	for _, cli := range clientProfiles {
+		user := createMapUser(&cli.UserProfile)
+		client := &domain.ClientProfile{
+			ID:                      cli.ID,
+			User:                    user,
+			Active:                  cli.Active,
+			ClientType:              cli.ClientType,
+			TreatmentEnrollmentDate: cli.TreatmentEnrollmentDate,
+			FHIRPatientID:           cli.FHIRPatientID,
+			HealthRecordID:          cli.HealthRecordID,
+			TreatmentBuddy:          cli.TreatmentBuddy,
+			ClientCounselled:        cli.ClientCounselled,
+			OrganisationID:          cli.OrganisationID,
+			FacilityID:              cli.FacilityID,
+			CHVUserID:               cli.CHVUserID,
+			CaregiverID:             cli.CaregiverID,
+			UserID:                  *cli.UserID,
+		}
+		clients = append(clients, client)
+	}
+	return clients, nil
+}
+
+// GetRecentHealthDiaryEntries queries the database for health diary entries that were
+// recorded after the last time the entries were synced to KenyaEMR.
+func (d *MyCareHubDb) GetRecentHealthDiaryEntries(
+	ctx context.Context,
+	lastSyncTime time.Time,
+	clientID string,
+) ([]*domain.ClientHealthDiaryEntry, error) {
+	var healthDiaryEntries []*domain.ClientHealthDiaryEntry
+	clientHealthDiaryEntry, err := d.query.GetRecentHealthDiaryEntries(ctx, lastSyncTime, clientID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+	for _, healthdiary := range clientHealthDiaryEntry {
+		healthDiaryEntry := &domain.ClientHealthDiaryEntry{
+			Active:                healthdiary.Active,
+			Mood:                  healthdiary.Mood,
+			Note:                  healthdiary.Note,
+			EntryType:             healthdiary.EntryType,
+			ShareWithHealthWorker: healthdiary.ShareWithHealthWorker,
+			SharedAt:              healthdiary.SharedAt,
+			ClientID:              healthdiary.ClientID,
+			CreatedAt:             healthdiary.CreatedAt,
+		}
+		healthDiaryEntries = append(healthDiaryEntries, healthDiaryEntry)
+	}
+
+	return healthDiaryEntries, nil
 }

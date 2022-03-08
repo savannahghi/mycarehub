@@ -25,6 +25,7 @@ type MyCareHubHandlersInterfaces interface {
 	RefreshToken() http.HandlerFunc
 	RefreshGetStreamToken() http.HandlerFunc
 	RegisterKenyaEMRPatients() http.HandlerFunc
+	GetClientHealthDiaryEntries() http.HandlerFunc
 }
 
 // MyCareHubHandlersInterfacesImpl represents the usecase implementation object
@@ -450,5 +451,34 @@ func (h *MyCareHubHandlersInterfacesImpl) RegisterKenyaEMRPatients() http.Handle
 		}
 
 		serverutils.WriteJSONResponse(w, response, http.StatusCreated)
+	}
+}
+
+// GetClientHealthDiaryEntries fetches and returns the health diary entries that were recorded
+// in the specified facility.
+func (h *MyCareHubHandlersInterfacesImpl) GetClientHealthDiaryEntries() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+		payload := &dto.FetchHealthDiaryEntries{}
+		serverutils.DecodeJSONToTargetStruct(w, r, payload)
+
+		if payload.MFLCode == 0 || payload.LastSyncTime == nil {
+			err := fmt.Errorf("expected `MFLCODE` and `lastSyncTime` to be defined")
+			helpers.ReportErrorToSentry(err)
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusBadRequest)
+			return
+		}
+
+		response, err := h.usecase.HealthDiary.GetFacilityHealthDiaryEntries(ctx, *payload)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			serverutils.WriteJSONResponse(w, serverutils.ErrorMap(err), http.StatusInternalServerError)
+			return
+		}
+
+		serverutils.WriteJSONResponse(w, response, http.StatusOK)
 	}
 }

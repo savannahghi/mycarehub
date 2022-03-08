@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strconv"
 	"testing"
+	"time"
 
 	"github.com/brianvoe/gofakeit"
 	"github.com/google/uuid"
@@ -3155,6 +3156,113 @@ func TestMyCareHubDb_GetCommunityByID(t *testing.T) {
 
 			if !tt.wantErr && got == nil {
 				t.Errorf("expected community not to be nil for %v", tt.name)
+				return
+			}
+		})
+	}
+}
+
+func TestMyCareHubDb_GetClientsInAFacility(t *testing.T) {
+	ctx := context.Background()
+	type args struct {
+		ctx        context.Context
+		facilityID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Successfully get clients in a facility",
+			args: args{
+				ctx:        ctx,
+				facilityID: "1223445",
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad Case - Fail to get clients in a facility",
+			args: args{
+				ctx:        ctx,
+				facilityID: "",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var fakeGorm = gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			if tt.name == "Sad Case - Fail to get clients in a facility" {
+				fakeGorm.MockGetClientsInAFacilityFn = func(ctx context.Context, facilityID string) ([]*gorm.Client, error) {
+					return nil, fmt.Errorf("failed to get clients in a facility")
+				}
+			}
+
+			got, err := d.GetClientsInAFacility(tt.args.ctx, tt.args.facilityID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.GetClientsInAFacility() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected a response but got %v", got)
+				return
+			}
+		})
+	}
+}
+
+func TestMyCareHubDb_GetRecentHealthDiaryEntries(t *testing.T) {
+	ctx := context.Background()
+	type args struct {
+		ctx          context.Context
+		lastSyncTime time.Time
+		clientID     string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Successfully get recent health diary entries",
+			args: args{
+				ctx:          ctx,
+				lastSyncTime: time.Time{},
+				clientID:     "1234",
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad Case - Fail to get recent entries",
+			args: args{
+				ctx:          ctx,
+				lastSyncTime: time.Time{},
+				clientID:     "1234",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var fakeGorm = gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			if tt.name == "Sad Case - Fail to get recent entries" {
+				fakeGorm.MockGetRecentHealthDiaryEntriesFn = func(ctx context.Context, lastSyncTime time.Time, clientID string) ([]*gorm.ClientHealthDiaryEntry, error) {
+					return nil, fmt.Errorf("failed to get recent health diary entries")
+				}
+			}
+
+			got, err := d.GetRecentHealthDiaryEntries(tt.args.ctx, tt.args.lastSyncTime, tt.args.clientID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.GetRecentHealthDiaryEntries() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected a response but got %v", got)
 				return
 			}
 		})
