@@ -12,6 +12,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
 )
 
 // PostgresMock struct implements mocks of `postgres's` internal methods.
@@ -94,6 +95,8 @@ type PostgresMock struct {
 	MockCreateContact                             func(ctx context.Context, contact *domain.Contact) error
 	MockGetClientsInAFacilityFn                   func(ctx context.Context, facilityID string) ([]*domain.ClientProfile, error)
 	MockGetRecentHealthDiaryEntriesFn             func(ctx context.Context, lastSyncTime time.Time, clientID string) ([]*domain.ClientHealthDiaryEntry, error)
+	MockGetClientsByParams                        func(ctx context.Context, params gorm.Client, lastSyncTime *time.Time) ([]*domain.ClientProfile, error)
+	MockGetClientCCCIdentifier                    func(ctx context.Context, clientID string) (*domain.Identifier, error)
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -570,6 +573,18 @@ func NewPostgresMock() *PostgresMock {
 		MockCheckFacilityExistsByMFLCode: func(ctx context.Context, MFLCode int) (bool, error) {
 			return true, nil
 		},
+		MockGetClientCCCIdentifier: func(ctx context.Context, clientID string) (*domain.Identifier, error) {
+			return &domain.Identifier{
+				ID:                  uuid.New().String(),
+				IdentifierType:      "CCC",
+				IdentifierValue:     "123456",
+				IdentifierUse:       "OFFICIAL",
+				Description:         description,
+				ValidFrom:           time.Time{},
+				ValidTo:             time.Time{},
+				IsPrimaryIdentifier: false,
+			}, nil
+		},
 	}
 }
 
@@ -961,4 +976,14 @@ func (gm *PostgresMock) GetClientsInAFacility(ctx context.Context, facilityID st
 // GetRecentHealthDiaryEntries mocks getting the most recent health diary entry
 func (gm *PostgresMock) GetRecentHealthDiaryEntries(ctx context.Context, lastSyncTime time.Time, clientID string) ([]*domain.ClientHealthDiaryEntry, error) {
 	return gm.MockGetRecentHealthDiaryEntriesFn(ctx, lastSyncTime, clientID)
+}
+
+// GetClientsByParams retrieves client profiles matching the provided parameters
+func (gm *PostgresMock) GetClientsByParams(ctx context.Context, params gorm.Client, lastSyncTime *time.Time) ([]*domain.ClientProfile, error) {
+	return gm.MockGetClientsByParams(ctx, params, lastSyncTime)
+}
+
+// GetClientCCCIdentifier retrieves client's ccc number
+func (gm *PostgresMock) GetClientCCCIdentifier(ctx context.Context, clientID string) (*domain.Identifier, error) {
+	return gm.MockGetClientCCCIdentifier(ctx, clientID)
 }

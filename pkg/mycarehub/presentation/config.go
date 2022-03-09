@@ -192,6 +192,11 @@ func Router(ctx context.Context) (*mux.Router, error) {
 		http.MethodOptions,
 	).HandlerFunc(internalHandlers.GetClientHealthDiaryEntries())
 
+	r.Path("/patients").Methods(
+		http.MethodOptions,
+		http.MethodGet,
+	).HandlerFunc(internalHandlers.RegisteredFacilityPatients())
+
 	// Graphql route
 	authR := r.Path("/graphql").Subrouter()
 	authR.Use(firebasetools.AuthenticationMiddleware(firebaseApp))

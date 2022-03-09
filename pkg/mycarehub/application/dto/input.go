@@ -315,3 +315,15 @@ type FetchHealthDiaryEntries struct {
 	MFLCode      int        `json:"MFLCODE"`
 	LastSyncTime *time.Time `json:"lastSyncTime"`
 }
+
+// PatientsPayload is the payload for registering patients
+type PatientsPayload struct {
+	Patients []*PatientRegistrationPayload `json:"patients"`
+}
+
+// PatientSyncPayload is the payload for polling newly created patients/clients
+// since the last polling/sync time
+type PatientSyncPayload struct {
+	MFLCode  int        `json:"MFLCODE"`
+	SyncTime *time.Time `json:"lastSyncTime"`
+}

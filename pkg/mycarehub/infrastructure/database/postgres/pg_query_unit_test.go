@@ -3268,3 +3268,118 @@ func TestMyCareHubDb_GetRecentHealthDiaryEntries(t *testing.T) {
 		})
 	}
 }
+
+func TestMyCareHubDb_GetClientsByParams(t *testing.T) {
+	var fakeGorm = gormMock.NewGormMock()
+	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+	type args struct {
+		ctx          context.Context
+		params       gorm.Client
+		lastSyncTime *time.Time
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    []*domain.ClientProfile
+		wantErr bool
+	}{
+		{
+			name: "happy case: retrieving clients",
+			args: args{
+				ctx:    context.Background(),
+				params: gorm.Client{},
+			},
+			wantErr: false,
+		},
+		{
+			name: "sad case: error retrieving clients",
+			args: args{
+				ctx:    context.Background(),
+				params: gorm.Client{},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "sad case: error retrieving clients" {
+				fakeGorm.MockGetClientsByParams = func(ctx context.Context, params gorm.Client, lastSyncTime *time.Time) ([]*gorm.Client, error) {
+					return nil, fmt.Errorf("cannot retrieve clients")
+				}
+			}
+
+			got, err := d.GetClientsByParams(tt.args.ctx, tt.args.params, tt.args.lastSyncTime)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.GetClientsByParams() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if tt.wantErr && got != nil {
+				t.Errorf("expected community to be nil for %v", tt.name)
+				return
+			}
+
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected community not to be nil for %v", tt.name)
+				return
+			}
+		})
+	}
+}
+
+func TestMyCareHubDb_GetClientCCCIdentifier(t *testing.T) {
+	var fakeGorm = gormMock.NewGormMock()
+	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+	type args struct {
+		ctx      context.Context
+		clientID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *domain.Identifier
+		wantErr bool
+	}{
+		{
+			name: "happy case: retrieve client ccc identifier",
+			args: args{
+				ctx:      context.Background(),
+				clientID: "",
+			},
+			wantErr: false,
+		},
+		{
+			name: "sad case: error retrieving client ccc identifier",
+			args: args{
+				ctx:      context.Background(),
+				clientID: "",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		if tt.name == "sad case: error retrieving client ccc identifier" {
+			fakeGorm.MockGetClientCCCIdentifier = func(ctx context.Context, clientID string) (*gorm.Identifier, error) {
+				return nil, fmt.Errorf("cannot get client identifier")
+			}
+		}
+
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := d.GetClientCCCIdentifier(tt.args.ctx, tt.args.clientID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.GetClientCCCIdentifier() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if tt.wantErr && got != nil {
+				t.Errorf("expected community to be nil for %v", tt.name)
+				return
+			}
+
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected community not to be nil for %v", tt.name)
+				return
+			}
+		})
+	}
+}

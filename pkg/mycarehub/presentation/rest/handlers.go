@@ -26,6 +26,7 @@ type MyCareHubHandlersInterfaces interface {
 	RefreshGetStreamToken() http.HandlerFunc
 	RegisterKenyaEMRPatients() http.HandlerFunc
 	GetClientHealthDiaryEntries() http.HandlerFunc
+	RegisteredFacilityPatients() http.HandlerFunc
 }
 
 // MyCareHubHandlersInterfacesImpl represents the usecase implementation object
@@ -434,16 +435,24 @@ func (h *MyCareHubHandlersInterfacesImpl) RegisterKenyaEMRPatients() http.Handle
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 
-		var payload []*dto.PatientRegistrationPayload
+		payload := &dto.PatientsPayload{}
 
 		serverutils.DecodeJSONToTargetStruct(w, r, payload)
 
 		// error decoding json
+		// the decode error is already in response
 		if payload == nil {
 			return
 		}
 
-		response, err := h.usecase.User.RegisterKenyaEMRPatients(ctx, payload)
+		if len(payload.Patients) == 0 {
+			err := fmt.Errorf("expected at least one patient")
+			helpers.ReportErrorToSentry(err)
+			serverutils.WriteJSONResponse(w, serverutils.ErrorMap(err), http.StatusBadRequest)
+			return
+		}
+
+		response, err := h.usecase.User.RegisterKenyaEMRPatients(ctx, payload.Patients)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
 			serverutils.WriteJSONResponse(w, serverutils.ErrorMap(err), http.StatusInternalServerError)
@@ -473,6 +482,33 @@ func (h *MyCareHubHandlersInterfacesImpl) GetClientHealthDiaryEntries() http.Han
 		}
 
 		response, err := h.usecase.HealthDiary.GetFacilityHealthDiaryEntries(ctx, *payload)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			serverutils.WriteJSONResponse(w, serverutils.ErrorMap(err), http.StatusInternalServerError)
+			return
+		}
+
+		serverutils.WriteJSONResponse(w, response, http.StatusOK)
+	}
+}
+
+// RegisteredFacilityPatients handler for syncing newly registered patients for a facility
+func (h *MyCareHubHandlersInterfacesImpl) RegisteredFacilityPatients() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+
+		payload := &dto.PatientSyncPayload{}
+
+		serverutils.DecodeJSONToTargetStruct(w, r, payload)
+
+		if payload.MFLCode == 0 {
+			err := fmt.Errorf("expected `MFLCODE` to be defined")
+			helpers.ReportErrorToSentry(err)
+			serverutils.WriteJSONResponse(w, serverutils.ErrorMap(err), http.StatusBadRequest)
+			return
+		}
+
+		response, err := h.usecase.User.RegisteredFacilityPatients(ctx, *payload)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
 			serverutils.WriteJSONResponse(w, serverutils.ErrorMap(err), http.StatusInternalServerError)

@@ -24,6 +24,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	extensionMock "github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension/mock"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
 	pgMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/mock"
 	getStreamMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/getstream/mock"
 	authorityMock "github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/authority/mock"
@@ -2665,6 +2666,269 @@ func TestUseCasesUserImpl_RegisterKenyaEMRPatients(t *testing.T) {
 				return
 			}
 
+		})
+	}
+}
+
+func TestUseCasesUserImpl_RegisteredFacilityPatients(t *testing.T) {
+	fakeDB := pgMock.NewPostgresMock()
+	fakeExtension := extensionMock.NewFakeExtension()
+	otp := otp.NewOTPUseCase(fakeDB, fakeDB, fakeExtension)
+	fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
+	fakeGetStream := getStreamMock.NewGetStreamServiceMock()
+	us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, otp, fakeAuthority, fakeGetStream)
+
+	ctx := context.Background()
+	syncTime := time.Now()
+
+	type args struct {
+		ctx   context.Context
+		input dto.PatientSyncPayload
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *dto.PatientSyncResponse
+		wantErr bool
+	}{
+		{
+			name: "sad case: error checking facility",
+			args: args{
+				ctx: ctx,
+				input: dto.PatientSyncPayload{
+					MFLCode:  0,
+					SyncTime: &syncTime,
+				},
+			},
+			want:    nil,
+			wantErr: true,
+		},
+		{
+			name: "sad case: facility doesn't exist",
+			args: args{
+				ctx: ctx,
+				input: dto.PatientSyncPayload{
+					MFLCode:  0,
+					SyncTime: &syncTime,
+				},
+			},
+			want:    nil,
+			wantErr: true,
+		},
+		{
+			name: "sad case: error retrieving facility",
+			args: args{
+				ctx: ctx,
+				input: dto.PatientSyncPayload{
+					MFLCode:  0,
+					SyncTime: &syncTime,
+				},
+			},
+			want:    nil,
+			wantErr: true,
+		},
+		{
+			name: "sad case: error retrieving clients with sync time",
+			args: args{
+				ctx: ctx,
+				input: dto.PatientSyncPayload{
+					MFLCode:  0,
+					SyncTime: &syncTime,
+				},
+			},
+			want:    nil,
+			wantErr: true,
+		},
+		{
+			name: "sad case: error retrieving clients without sync time",
+			args: args{
+				ctx: ctx,
+				input: dto.PatientSyncPayload{
+					MFLCode:  0,
+					SyncTime: nil,
+				},
+			},
+			want:    nil,
+			wantErr: true,
+		},
+		{
+			name: "sad case: error retrieving client identifier",
+			args: args{
+				ctx: ctx,
+				input: dto.PatientSyncPayload{
+					MFLCode:  0,
+					SyncTime: nil,
+				},
+			},
+			want:    nil,
+			wantErr: true,
+		},
+		{
+			name: "happy case: success retrieving new clients without sync time",
+			args: args{
+				ctx: ctx,
+				input: dto.PatientSyncPayload{
+					MFLCode:  0,
+					SyncTime: nil,
+				},
+			},
+			want:    nil,
+			wantErr: false,
+		},
+		{
+			name: "happy case: success retrieving new clients with sync time",
+			args: args{
+				ctx: ctx,
+				input: dto.PatientSyncPayload{
+					MFLCode:  0,
+					SyncTime: &syncTime,
+				},
+			},
+			want:    nil,
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			if tt.name == "sad case: error checking facility" {
+				fakeDB.MockCheckFacilityExistsByMFLCode = func(ctx context.Context, MFLCode int) (bool, error) {
+					return false, fmt.Errorf("error fetching facility")
+				}
+			}
+
+			if tt.name == "sad case: facility doesn't exist" {
+				fakeDB.MockCheckFacilityExistsByMFLCode = func(ctx context.Context, MFLCode int) (bool, error) {
+					return false, nil
+				}
+			}
+
+			if tt.name == "sad case: error retrieving facility" {
+				fakeDB.MockCheckFacilityExistsByMFLCode = func(ctx context.Context, MFLCode int) (bool, error) {
+					return true, nil
+				}
+
+				fakeDB.MockRetrieveFacilityByMFLCodeFn = func(ctx context.Context, MFLCode int, isActive bool) (*domain.Facility, error) {
+					return nil, fmt.Errorf("cannot retrieve facility")
+				}
+			}
+
+			if tt.name == "sad case: error retrieving clients with sync time" {
+				fakeDB.MockCheckFacilityExistsByMFLCode = func(ctx context.Context, MFLCode int) (bool, error) {
+					return true, nil
+				}
+
+				fakeDB.MockRetrieveFacilityByMFLCodeFn = func(ctx context.Context, MFLCode int, isActive bool) (*domain.Facility, error) {
+					id := uuid.NewString()
+					return &domain.Facility{ID: &id}, nil
+				}
+
+				fakeDB.MockGetClientsByParams = func(ctx context.Context, params gorm.Client, lastSyncTime *time.Time) ([]*domain.ClientProfile, error) {
+					return nil, fmt.Errorf("cannot retrieve clients")
+				}
+			}
+
+			if tt.name == "sad case: error retrieving clients without sync time" {
+				fakeDB.MockCheckFacilityExistsByMFLCode = func(ctx context.Context, MFLCode int) (bool, error) {
+					return true, nil
+				}
+
+				fakeDB.MockRetrieveFacilityByMFLCodeFn = func(ctx context.Context, MFLCode int, isActive bool) (*domain.Facility, error) {
+					id := uuid.NewString()
+					return &domain.Facility{ID: &id}, nil
+				}
+
+				fakeDB.MockGetClientsByParams = func(ctx context.Context, params gorm.Client, lastSyncTime *time.Time) ([]*domain.ClientProfile, error) {
+					return nil, fmt.Errorf("cannot retrieve clients")
+				}
+			}
+
+			if tt.name == "sad case: error retrieving client identifier" {
+				fakeDB.MockCheckFacilityExistsByMFLCode = func(ctx context.Context, MFLCode int) (bool, error) {
+					return true, nil
+				}
+
+				fakeDB.MockRetrieveFacilityByMFLCodeFn = func(ctx context.Context, MFLCode int, isActive bool) (*domain.Facility, error) {
+					id := uuid.NewString()
+					return &domain.Facility{ID: &id}, nil
+				}
+
+				fakeDB.MockGetClientsByParams = func(ctx context.Context, params gorm.Client, lastSyncTime *time.Time) ([]*domain.ClientProfile, error) {
+					id := uuid.NewString()
+					return []*domain.ClientProfile{
+						{
+							ID: &id,
+						},
+					}, nil
+				}
+
+				fakeDB.MockGetClientCCCIdentifier = func(ctx context.Context, clientID string) (*domain.Identifier, error) {
+					return nil, fmt.Errorf("cannot get ccc identifier")
+				}
+			}
+
+			if tt.name == "happy case: success retrieving new clients with sync time" {
+				fakeDB.MockCheckFacilityExistsByMFLCode = func(ctx context.Context, MFLCode int) (bool, error) {
+					return true, nil
+				}
+
+				fakeDB.MockRetrieveFacilityByMFLCodeFn = func(ctx context.Context, MFLCode int, isActive bool) (*domain.Facility, error) {
+					id := uuid.NewString()
+					return &domain.Facility{ID: &id}, nil
+				}
+
+				fakeDB.MockGetClientsByParams = func(ctx context.Context, params gorm.Client, lastSyncTime *time.Time) ([]*domain.ClientProfile, error) {
+					id := uuid.NewString()
+					return []*domain.ClientProfile{
+						{
+							ID: &id,
+						},
+					}, nil
+				}
+
+				fakeDB.MockGetClientCCCIdentifier = func(ctx context.Context, clientID string) (*domain.Identifier, error) {
+					return &domain.Identifier{IdentifierValue: "123456"}, nil
+				}
+			}
+
+			if tt.name == "happy case: success retrieving new clients without sync time" {
+				fakeDB.MockCheckFacilityExistsByMFLCode = func(ctx context.Context, MFLCode int) (bool, error) {
+					return true, nil
+				}
+
+				fakeDB.MockRetrieveFacilityByMFLCodeFn = func(ctx context.Context, MFLCode int, isActive bool) (*domain.Facility, error) {
+					id := uuid.NewString()
+					return &domain.Facility{ID: &id}, nil
+				}
+
+				fakeDB.MockGetClientsByParams = func(ctx context.Context, params gorm.Client, lastSyncTime *time.Time) ([]*domain.ClientProfile, error) {
+					id := uuid.NewString()
+					return []*domain.ClientProfile{
+						{
+							ID: &id,
+						},
+					}, nil
+				}
+
+				fakeDB.MockGetClientCCCIdentifier = func(ctx context.Context, clientID string) (*domain.Identifier, error) {
+					return &domain.Identifier{IdentifierValue: "123456"}, nil
+				}
+			}
+
+			got, err := us.RegisteredFacilityPatients(tt.args.ctx, tt.args.input)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCasesUserImpl.RegisteredFacilityPatients() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if tt.wantErr && got != nil {
+				t.Errorf("expected community to be nil for %v", tt.name)
+				return
+			}
+
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected community not to be nil for %v", tt.name)
+				return
+			}
 		})
 	}
 }

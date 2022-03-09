@@ -59,6 +59,8 @@ type Query interface {
 	CheckFacilityExistsByMFLCode(ctx context.Context, MFLCode int) (bool, error)
 	GetClientsInAFacility(ctx context.Context, facilityID string) ([]*Client, error)
 	GetRecentHealthDiaryEntries(ctx context.Context, lastSyncTime time.Time, clientID string) ([]*ClientHealthDiaryEntry, error)
+	GetClientsByParams(ctx context.Context, query Client, lastSyncTime *time.Time) ([]*Client, error)
+	GetClientCCCIdentifier(ctx context.Context, clientID string) (*Identifier, error)
 }
 
 // CheckWhetherUserHasLikedContent performs a operation to check whether user has liked the content
@@ -741,7 +743,7 @@ func (db *PGInstance) GetCommunityByID(ctx context.Context, communityID string) 
 func (db *PGInstance) CheckIdentifierExists(ctx context.Context, identifierType string, identifierValue string) (bool, error) {
 	var identifier *Identifier
 
-	err := db.DB.Where(&Identifier{IdentifierType: identifierType, IdentifierValue: identifierValue}).First(&identifier).Error
+	err := db.DB.Where(&Identifier{IdentifierType: identifierType, IdentifierValue: identifierValue, Active: true}).First(&identifier).Error
 	if err != nil {
 		if strings.Contains(err.Error(), gorm.ErrRecordNotFound.Error()) {
 			return false, nil
@@ -789,4 +791,57 @@ func (db *PGInstance) GetRecentHealthDiaryEntries(ctx context.Context, lastSyncT
 		return nil, fmt.Errorf("failed to get all client health diary entries: %v", err)
 	}
 	return healthDiaryEntry, nil
+}
+
+// GetClientsByParams retrieves clients using the parameters provided
+func (db *PGInstance) GetClientsByParams(ctx context.Context, params Client, lastSyncTime *time.Time) ([]*Client, error) {
+	var clients []*Client
+
+	// add active parameter
+	params.Active = true
+
+	query := db.DB.Where(&params)
+
+	if lastSyncTime != nil {
+		query.Where("? > ?", clause.Column{Name: "created"}, lastSyncTime)
+	}
+
+	err := query.Find(&clients).Error
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, fmt.Errorf("failed to find clients: %v", err)
+	}
+
+	return clients, nil
+}
+
+// GetClientCCCIdentifier retrieves a client's ccc identifier
+func (db *PGInstance) GetClientCCCIdentifier(ctx context.Context, clientID string) (*Identifier, error) {
+	var clientIdentifiers []*ClientIdentifiers
+
+	err := db.DB.Where(&ClientIdentifiers{ClientID: &clientID}).Find(&clientIdentifiers).Error
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, fmt.Errorf("failed to find client identifiers: %v", err)
+	}
+
+	if len(clientIdentifiers) == 0 {
+		err := fmt.Errorf("client has no associated identifiers, clientID: %v", clientID)
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
+	ids := []string{}
+	for _, clientIdentifier := range clientIdentifiers {
+		ids = append(ids, *clientIdentifier.IdentifierID)
+	}
+
+	var identifier Identifier
+	err = db.DB.Where(ids).Where("identifier_type = ?", "CCC").Where("active = ?", true).First(&identifier).Error
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, fmt.Errorf("failed to find client identifiers: %v", err)
+	}
+
+	return &identifier, nil
 }

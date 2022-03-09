@@ -154,3 +154,15 @@ type LoginResponse struct {
 	Code            int             `json:"code"`
 	Message         string          `json:"message"`
 }
+
+// Identifier is used to store a user's identifying details e.d ID number, CCC number
+type Identifier struct {
+	ID                  string    `json:"id"`
+	IdentifierType      string    `json:"identifierType"`
+	IdentifierValue     string    `json:"identifierValue"`
+	IdentifierUse       string    `json:"identifierUse"`
+	Description         string    `json:"description"`
+	ValidFrom           time.Time `json:"validFrom"`
+	ValidTo             time.Time `json:"validTo"`
+	IsPrimaryIdentifier bool      `json:"isPrimaryIdentifier"`
+}

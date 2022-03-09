@@ -10,6 +10,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/exceptions"
 	"github.com/savannahghi/serverutils"
 )
@@ -841,4 +842,54 @@ func (d *MyCareHubDb) GetRecentHealthDiaryEntries(
 	}
 
 	return healthDiaryEntries, nil
+}
+
+// GetClientsByParams retrieves client profiles matching the provided parameters
+func (d *MyCareHubDb) GetClientsByParams(ctx context.Context, params gorm.Client, lastSyncTime *time.Time) ([]*domain.ClientProfile, error) {
+	clients, err := d.query.GetClientsByParams(ctx, params, lastSyncTime)
+	if err != nil {
+		return nil, err
+	}
+
+	profiles := []*domain.ClientProfile{}
+	for _, c := range clients {
+		profiles = append(profiles, &domain.ClientProfile{
+			ID:                      c.ID,
+			Active:                  c.Active,
+			ClientType:              c.ClientType,
+			UserID:                  *c.UserID,
+			TreatmentEnrollmentDate: c.TreatmentEnrollmentDate,
+			FHIRPatientID:           c.FHIRPatientID,
+			HealthRecordID:          c.HealthRecordID,
+			TreatmentBuddy:          c.TreatmentBuddy,
+			ClientCounselled:        c.ClientCounselled,
+			OrganisationID:          c.OrganisationID,
+			FacilityID:              c.FacilityID,
+			CHVUserID:               c.CHVUserID,
+			CaregiverID:             c.CaregiverID,
+		})
+	}
+
+	return profiles, nil
+}
+
+// GetClientCCCIdentifier retrieves a client's ccc identifier record
+func (d *MyCareHubDb) GetClientCCCIdentifier(ctx context.Context, clientID string) (*domain.Identifier, error) {
+	identifier, err := d.query.GetClientCCCIdentifier(ctx, clientID)
+	if err != nil {
+		return nil, err
+	}
+
+	id := domain.Identifier{
+		ID:                  identifier.ID,
+		IdentifierType:      identifier.IdentifierType,
+		IdentifierValue:     identifier.IdentifierValue,
+		IdentifierUse:       identifier.IdentifierUse,
+		Description:         identifier.Description,
+		ValidFrom:           identifier.ValidFrom,
+		ValidTo:             identifier.ValidTo,
+		IsPrimaryIdentifier: identifier.IsPrimaryIdentifier,
+	}
+
+	return &id, nil
 }

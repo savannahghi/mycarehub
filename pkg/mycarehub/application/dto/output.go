@@ -35,3 +35,11 @@ type HealthDiaryEntriesResponse struct {
 	MFLCode            int                              `json:"MFLCODE"`
 	HealthDiaryEntries []*domain.ClientHealthDiaryEntry `json:"healthDiaries"`
 }
+
+// PatientSyncResponse is the response to a patient sync poll
+// the patients payload contains ccc numbers
+type PatientSyncResponse struct {
+	MFLCode int `json:"MFLCODE"`
+	// Patients is a slice of CCC numbers
+	Patients []string `json:"patients"`
+}
