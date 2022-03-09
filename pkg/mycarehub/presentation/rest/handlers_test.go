@@ -8,6 +8,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"testing"
 
 	"github.com/savannahghi/feedlib"
@@ -1235,12 +1236,9 @@ func TestMyCareHubHandlersInterfacesImpl_GetClientHealthDiaryEntries(t *testing.
 		return
 	}
 
-	invalidPayload := &dto.FetchHealthDiaryEntries{}
-	marshalledEmptyPayload, err := json.Marshal(invalidPayload)
-	if err != nil {
-		t.Errorf("failed to marshal payload")
-		return
-	}
+	invalidparams := url.Values{}
+	invalidparams.Add("invalid", "invalid")
+	invalidparams.Add("invalid", "invalid")
 
 	type args struct {
 		url        string
@@ -1256,9 +1254,8 @@ func TestMyCareHubHandlersInterfacesImpl_GetClientHealthDiaryEntries(t *testing.
 		{
 			name: "Sad Case - Empty payload",
 			args: args{
-				url:        fmt.Sprintf("%s/health_diary", baseURL),
+				url:        fmt.Sprintf("%s/health_diary?%s", baseURL, invalidparams.Encode()),
 				httpMethod: http.MethodGet,
-				body:       bytes.NewBuffer(marshalledEmptyPayload),
 			},
 			wantStatus: http.StatusBadRequest,
 			wantErr:    true,

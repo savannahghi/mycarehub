@@ -3,6 +3,8 @@ package rest
 import (
 	"fmt"
 	"net/http"
+	"strconv"
+	"time"
 
 	"github.com/savannahghi/errorcodeutil"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
@@ -469,8 +471,26 @@ func (h *MyCareHubHandlersInterfacesImpl) RegisterKenyaEMRPatients() http.Handle
 func (h *MyCareHubHandlersInterfacesImpl) GetClientHealthDiaryEntries() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
-		payload := &dto.FetchHealthDiaryEntries{}
-		serverutils.DecodeJSONToTargetStruct(w, r, payload)
+
+		facilityMflCode := r.URL.Query().Get("MFLCODE")
+		lastSyncTime := r.URL.Query().Get("lastSyncTime")
+
+		mflCode, err := strconv.Atoi(facilityMflCode)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return
+		}
+
+		syncTime, err := time.Parse(time.RFC3339, lastSyncTime)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return
+		}
+
+		payload := &dto.FetchHealthDiaryEntries{
+			MFLCode:      mflCode,
+			LastSyncTime: &syncTime,
+		}
 
 		if payload.MFLCode == 0 || payload.LastSyncTime == nil {
 			err := fmt.Errorf("expected `MFLCODE` and `lastSyncTime` to be defined")
