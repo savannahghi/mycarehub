@@ -3,6 +3,8 @@ package rest
 import (
 	"fmt"
 	"net/http"
+	"strconv"
+	"time"
 
 	"github.com/savannahghi/errorcodeutil"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
@@ -469,8 +471,30 @@ func (h *MyCareHubHandlersInterfacesImpl) RegisterKenyaEMRPatients() http.Handle
 func (h *MyCareHubHandlersInterfacesImpl) GetClientHealthDiaryEntries() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
-		payload := &dto.FetchHealthDiaryEntries{}
-		serverutils.DecodeJSONToTargetStruct(w, r, payload)
+		MFLCode, err := strconv.Atoi(r.URL.Query().Get("MFLCODE"))
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusBadRequest)
+			return
+		}
+
+		syncTime, err := time.Parse(time.RFC3339, r.URL.Query().Get("lastSyncTime"))
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusBadRequest)
+			return
+		}
+
+		payload := &dto.FetchHealthDiaryEntries{
+			MFLCode:      MFLCode,
+			LastSyncTime: &syncTime,
+		}
 
 		if payload.MFLCode == 0 || payload.LastSyncTime == nil {
 			err := fmt.Errorf("expected `MFLCODE` and `lastSyncTime` to be defined")
@@ -497,10 +521,30 @@ func (h *MyCareHubHandlersInterfacesImpl) GetClientHealthDiaryEntries() http.Han
 func (h *MyCareHubHandlersInterfacesImpl) RegisteredFacilityPatients() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
+		MFLCode, err := strconv.Atoi(r.URL.Query().Get("MFLCODE"))
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusBadRequest)
+			return
+		}
 
-		payload := &dto.PatientSyncPayload{}
+		syncTime, err := time.Parse(time.RFC3339, r.URL.Query().Get("lastSyncTime"))
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusBadRequest)
+			return
+		}
 
-		serverutils.DecodeJSONToTargetStruct(w, r, payload)
+		payload := &dto.PatientSyncPayload{
+			MFLCode:  MFLCode,
+			SyncTime: &syncTime,
+		}
 
 		if payload.MFLCode == 0 {
 			err := fmt.Errorf("expected `MFLCODE` to be defined")
@@ -525,8 +569,28 @@ func (h *MyCareHubHandlersInterfacesImpl) GetServiceRequests() http.HandlerFunc 
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 
-		payload := &dto.ServiceRequestPayload{}
-		serverutils.DecodeJSONToTargetStruct(w, r, payload)
+		MFLCode, err := strconv.Atoi(r.URL.Query().Get("MFLCODE"))
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusBadRequest)
+			return
+		}
+		syncTime, err := time.Parse(time.RFC3339, r.URL.Query().Get("lastSyncTime"))
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusBadRequest)
+			return
+		}
+		payload := &dto.ServiceRequestPayload{
+			MFLCode:      MFLCode,
+			LastSyncTime: &syncTime,
+		}
 		if payload.MFLCode == 0 || payload.LastSyncTime == nil {
 			err := fmt.Errorf("expected `MFLCODE` and `lastSyncTime` to be defined")
 			helpers.ReportErrorToSentry(err)

@@ -1063,3 +1063,65 @@ func TestUseCasesContentImpl_UnBookmarkContent(t *testing.T) {
 		})
 	}
 }
+
+func TestUseCasesContentImpl_ShareContent(t *testing.T) {
+	ctx := context.Background()
+	fakeDB := pgMock.NewPostgresMock()
+	fakeExt := extensionMock.NewFakeExtension()
+	c := content.NewUseCasesContentImplementation(fakeDB, fakeDB, fakeExt)
+
+	type args struct {
+		ctx   context.Context
+		input dto.ShareContentInput
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx: ctx,
+				input: dto.ShareContentInput{
+					UserID:    uuid.New().String(),
+					ContentID: 20,
+					Channel:   "test",
+				},
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Sad case",
+			args: args{
+				ctx: ctx,
+				input: dto.ShareContentInput{
+					UserID:    uuid.New().String(),
+					ContentID: 20,
+					Channel:   "test",
+				},
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "Sad case" {
+				fakeDB.MockShareContentFn = func(ctx context.Context, input dto.ShareContentInput) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+			got, err := c.ShareContent(tt.args.ctx, tt.args.input)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCasesContentImpl.ShareContent() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("UseCasesContentImpl.ShareContent() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

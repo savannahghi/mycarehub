@@ -2528,3 +2528,150 @@ func TestPGInstance_GetScreeningToolsQuestions(t *testing.T) {
 		})
 	}
 }
+
+func TestPGInstance_CheckFacilityExistsByMFLCode(t *testing.T) {
+	ctx := context.Background()
+
+	type args struct {
+		ctx     context.Context
+		MFLCode int
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:     ctx,
+				MFLCode: mflCode,
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Sad case",
+			args: args{
+				ctx:     ctx,
+				MFLCode: 0,
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := testingDB.CheckFacilityExistsByMFLCode(tt.args.ctx, tt.args.MFLCode)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.CheckFacilityExistsByMFLCode() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("PGInstance.CheckFacilityExistsByMFLCode() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestPGInstance_GetClientsInAFacility(t *testing.T) {
+	ctx := context.Background()
+
+	type args struct {
+		ctx        context.Context
+		facilityID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:        ctx,
+				facilityID: facilityID,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case",
+			args: args{
+				ctx:        ctx,
+				facilityID: uuid.New().String(),
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := testingDB.GetClientsInAFacility(tt.args.ctx, tt.args.facilityID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.GetClientsInAFacility() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if tt.wantErr && got != nil {
+				t.Errorf("expected client to be nil for %v", tt.name)
+				return
+			}
+
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected client not to be nil for %v", tt.name)
+				return
+			}
+		})
+	}
+}
+
+func TestPGInstance_GetRecentHealthDiaryEntries(t *testing.T) {
+	ctx := context.Background()
+
+	type args struct {
+		ctx          context.Context
+		lastSyncTime time.Time
+		clientID     string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    []*gorm.ClientHealthDiaryEntry
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:          ctx,
+				lastSyncTime: time.Now().AddDate(0, 0, 10),
+				clientID:     clientID,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case",
+			args: args{
+				ctx:      ctx,
+				clientID: "qwert123",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := testingDB.GetRecentHealthDiaryEntries(tt.args.ctx, tt.args.lastSyncTime, tt.args.clientID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.GetRecentHealthDiaryEntries() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if tt.wantErr && got != nil {
+				t.Errorf("expected client health diary to be nil for %v", tt.name)
+				return
+			}
+
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected client health diary not to be nil for %v", tt.name)
+				return
+			}
+		})
+	}
+}

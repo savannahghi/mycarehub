@@ -13,6 +13,7 @@ import (
 	"testing"
 	"time"
 
+	stream_chat "github.com/GetStream/stream-chat-go/v5"
 	"github.com/brianvoe/gofakeit"
 	"github.com/google/uuid"
 	openSourceDto "github.com/savannahghi/engagementcore/pkg/engagement/application/common/dto"
@@ -204,6 +205,26 @@ func TestUseCasesUserImpl_Login_Unittest(t *testing.T) {
 			},
 			wantErr: true,
 		},
+		{
+			name: "Sad Case - Unable to create getstream user",
+			args: args{
+				ctx:         ctx,
+				phoneNumber: interserviceclient.TestUserPhoneNumber,
+				pin:         PIN,
+				flavour:     feedlib.FlavourPro,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - Unable to create getstream token",
+			args: args{
+				ctx:         ctx,
+				phoneNumber: interserviceclient.TestUserPhoneNumber,
+				pin:         PIN,
+				flavour:     feedlib.FlavourPro,
+			},
+			wantErr: true,
+		},
 	}
 
 	for _, tt := range tests {
@@ -296,6 +317,16 @@ func TestUseCasesUserImpl_Login_Unittest(t *testing.T) {
 			if tt.name == "Sad Case - Fail to get chv user profile by chv user ID" {
 				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
 					return nil, fmt.Errorf("failed to get chv profile")
+				}
+			}
+			if tt.name == "Sad Case - Unable to create getstream user" {
+				fakeGetStream.MockCreateGetStreamUserFn = func(ctx context.Context, user *stream_chat.User) (*stream_chat.UpsertUserResponse, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad Case - Unable to create getstream token" {
+				fakeGetStream.MockCreateGetStreamUserTokenFn = func(ctx context.Context, userID string) (string, error) {
+					return "", fmt.Errorf("failed to create getstream token")
 				}
 			}
 

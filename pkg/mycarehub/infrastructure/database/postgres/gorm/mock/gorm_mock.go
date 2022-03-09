@@ -639,6 +639,12 @@ func NewGormMock() *GormMock {
 				},
 			}, nil
 		},
+		MockCheckFacilityExistsByMFLCode: func(ctx context.Context, MFLCode int) (bool, error) {
+			return true, nil
+		},
+		MockCheckIdentifierExists: func(ctx context.Context, identifierType, identifierValue string) (bool, error) {
+			return true, nil
+		},
 		MockGetClientsByParams: func(ctx context.Context, params gorm.Client, lastSyncTime *time.Time) ([]*gorm.Client, error) {
 			return []*gorm.Client{client}, nil
 		},
@@ -690,12 +696,6 @@ func NewGormMock() *GormMock {
 					OrganisationID:   uuid.New().String(),
 				},
 			}, nil
-		},
-		MockCheckIdentifierExists: func(ctx context.Context, identifierType string, identifierValue string) (bool, error) {
-			return true, nil
-		},
-		MockCheckFacilityExistsByMFLCode: func(ctx context.Context, MFLCode int) (bool, error) {
-			return true, nil
 		},
 	}
 }
