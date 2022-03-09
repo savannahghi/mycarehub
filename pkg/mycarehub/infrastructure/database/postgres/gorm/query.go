@@ -61,6 +61,7 @@ type Query interface {
 	GetRecentHealthDiaryEntries(ctx context.Context, lastSyncTime time.Time, clientID string) ([]*ClientHealthDiaryEntry, error)
 	GetClientsByParams(ctx context.Context, query Client, lastSyncTime *time.Time) ([]*Client, error)
 	GetClientCCCIdentifier(ctx context.Context, clientID string) (*Identifier, error)
+	GetServiceRequestsForKenyaEMR(ctx context.Context, facilityID string, lastSyncTime time.Time) ([]*ClientServiceRequest, error)
 }
 
 // CheckWhetherUserHasLikedContent performs a operation to check whether user has liked the content
@@ -501,6 +502,19 @@ func (db *PGInstance) GetClientHealthDiaryEntries(ctx context.Context, clientID 
 		return nil, fmt.Errorf("failed to get all client health diary entries: %v", err)
 	}
 	return healthDiaryEntry, nil
+}
+
+// GetServiceRequestsForKenyaEMR gets all the service requests to be used by the KenyaEMR.
+func (db *PGInstance) GetServiceRequestsForKenyaEMR(ctx context.Context, facilityID string, lastSyncTime time.Time) ([]*ClientServiceRequest, error) {
+	var serviceRequests []*ClientServiceRequest
+
+	err := db.DB.Where(&ClientServiceRequest{FacilityID: facilityID}).Where("created > ?", lastSyncTime).
+		Order(clause.OrderByColumn{Column: clause.Column{Name: "created"}, Desc: true}).Find(&serviceRequests).Error
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, fmt.Errorf("failed to get service requests: %v", err)
+	}
+	return serviceRequests, nil
 }
 
 // GetFAQContent fetches the FAQ content from the database

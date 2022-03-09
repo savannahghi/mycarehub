@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
@@ -36,6 +37,7 @@ type ISetInProgresssBy interface {
 // IGetServiceRequests is an interface that holds the method signature for getting service requests
 type IGetServiceRequests interface {
 	GetServiceRequests(ctx context.Context, requestType, requestStatus, facilityID *string) ([]*domain.ServiceRequest, error)
+	GetServiceRequestsForKenyaEMR(ctx context.Context, payload *dto.ServiceRequestPayload) ([]*domain.ServiceRequest, error)
 	GetPendingServiceRequestsCount(ctx context.Context, facilityID string) (*domain.ServiceRequestsCount, error)
 }
 
@@ -126,6 +128,12 @@ func (u *UseCasesServiceRequestImpl) GetServiceRequests(
 	}
 
 	return u.Query.GetServiceRequests(ctx, requestType, requestStatus, facilityID)
+}
+
+// GetServiceRequestsForKenyaEMR fetches all the most recent service requests  that have not been
+// synced to KenyaEMR.
+func (u *UseCasesServiceRequestImpl) GetServiceRequestsForKenyaEMR(ctx context.Context, payload *dto.ServiceRequestPayload) ([]*domain.ServiceRequest, error) {
+	return u.Query.GetServiceRequestsForKenyaEMR(ctx, payload)
 }
 
 // GetPendingServiceRequestsCount gets the total number of service requests

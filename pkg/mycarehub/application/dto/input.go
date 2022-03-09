@@ -327,3 +327,10 @@ type PatientSyncPayload struct {
 	MFLCode  int        `json:"MFLCODE"`
 	SyncTime *time.Time `json:"lastSyncTime"`
 }
+
+//ServiceRequestPayload defines the payload from KenyaEMR used to fetch
+// service requests.
+type ServiceRequestPayload struct {
+	MFLCode      int        `json:"MFLCODE"`
+	LastSyncTime *time.Time `json:"lastSyncTime"`
+}

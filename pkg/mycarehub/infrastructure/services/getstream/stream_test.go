@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	stream "github.com/GetStream/stream-chat-go/v5"
+	"github.com/google/uuid"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/getstream"
 )
 
@@ -552,6 +553,78 @@ func TestChatClient_DemoteModerators(t *testing.T) {
 
 	// teardown
 	_, err = c.DeleteUsers(ctx, []string{moderatorID}, stream.DeleteUserOptions{
+		User:     stream.HardDelete,
+		Messages: stream.HardDelete,
+	})
+	if err != nil {
+		t.Errorf("ChatClient.DeleteUsers() error = %v", err)
+		return
+	}
+}
+
+func TestChatClient_RevokeGetStreamUserToken(t *testing.T) {
+	ctx := context.Background()
+
+	streamUser := &stream.User{
+		ID:        uuid.New().String(),
+		Name:      "Test",
+		Role:      "moderator",
+		Invisible: false,
+	}
+
+	user, err := c.CreateGetStreamUser(ctx, streamUser)
+	if err != nil {
+		t.Errorf("ChatClient.CreateGetStreamUser() error = %v", err)
+		return
+	}
+
+	_, err = c.CreateGetStreamUserToken(ctx, user.User.ID)
+	if err != nil {
+		t.Errorf("ChatClient.CreateGetStreamUserToken() error = %v", err)
+		return
+	}
+
+	type args struct {
+		ctx    context.Context
+		userID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *stream.Response
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:    ctx,
+				userID: user.User.ID,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case",
+			args: args{
+				ctx:    ctx,
+				userID: uuid.New().String(),
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := c.RevokeGetStreamUserToken(tt.args.ctx, tt.args.userID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ChatClient.RevokeGetStreamUserToken() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected a response but got: %v", err)
+			}
+		})
+	}
+	// teardown
+	_, err = c.DeleteUsers(ctx, []string{user.User.ID}, stream.DeleteUserOptions{
 		User:     stream.HardDelete,
 		Messages: stream.HardDelete,
 	})

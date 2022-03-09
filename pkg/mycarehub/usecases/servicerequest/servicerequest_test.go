@@ -4,8 +4,10 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/google/uuid"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	pgMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/mock"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/servicerequest"
@@ -405,6 +407,84 @@ func TestUseCasesServiceRequestImpl_GetPendingServiceRequestsCount(t *testing.T)
 			}
 			if !tt.wantErr && got == nil {
 				t.Errorf("PGInstance.GetPendingServiceRequestsCount() = %v, want %v", got, tt.want)
+				return
+			}
+		})
+	}
+}
+
+func TestUseCasesServiceRequestImpl_GetServiceRequestsForKenyaEMR(t *testing.T) {
+	ctx := context.Background()
+	fakeDB := pgMock.NewPostgresMock()
+	u := servicerequest.NewUseCaseServiceRequestImpl(fakeDB, fakeDB, fakeDB)
+	currentTime := time.Now()
+
+	type args struct {
+		ctx     context.Context
+		payload *dto.ServiceRequestPayload
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    []*domain.ServiceRequest
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx: ctx,
+				payload: &dto.ServiceRequestPayload{
+					MFLCode:      1234,
+					LastSyncTime: &currentTime,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case",
+			args: args{
+				ctx: ctx,
+				payload: &dto.ServiceRequestPayload{
+					MFLCode:      1234,
+					LastSyncTime: &currentTime,
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case - Bad Input",
+			args: args{
+				ctx: ctx,
+				payload: &dto.ServiceRequestPayload{
+					MFLCode: 0,
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "Sad case" {
+				fakeDB.MockGetServiceRequestsForKenyaEMRFn = func(ctx context.Context, payload *dto.ServiceRequestPayload) ([]*domain.ServiceRequest, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - Bad Input" {
+				fakeDB.MockGetServiceRequestsForKenyaEMRFn = func(ctx context.Context, payload *dto.ServiceRequestPayload) ([]*domain.ServiceRequest, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+			got, err := u.GetServiceRequestsForKenyaEMR(tt.args.ctx, tt.args.payload)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCasesServiceRequestImpl.GetServiceRequestsForKenyaEMR() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if tt.wantErr && got != nil {
+				t.Errorf("UseCasesServiceRequestImpl.GetServiceRequestsForKenyaEMR = %v, want %v", got, tt.want)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("UseCasesServiceRequestImpl.GetServiceRequestsForKenyaEMR = %v, want %v", got, tt.want)
 				return
 			}
 		})

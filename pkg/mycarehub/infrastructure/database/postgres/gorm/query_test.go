@@ -2418,3 +2418,78 @@ func TestPGInstance_GetClientCCCIdentifier(t *testing.T) {
 		})
 	}
 }
+
+func TestPGInstance_GetServiceRequestsForKenyaEMR(t *testing.T) {
+	ctx := context.Background()
+	currentTime := time.Now()
+
+	requestID := uuid.New().String()
+	serviceRequest := &gorm.ClientServiceRequest{
+		ID:             &requestID,
+		Active:         true,
+		RequestType:    "RED_FLAG",
+		Request:        "SAD",
+		Status:         "PENDING",
+		InProgressAt:   &currentTime,
+		ResolvedAt:     &currentTime,
+		ClientID:       clientID,
+		InProgressByID: &staffID,
+		OrganisationID: uuid.New().String(),
+		ResolvedByID:   &staffID,
+		FacilityID:     facilityID,
+	}
+
+	err := testingDB.CreateServiceRequest(ctx, serviceRequest)
+	if err != nil {
+		t.Errorf("an error occurred %v", err)
+		return
+	}
+
+	type args struct {
+		ctx          context.Context
+		facilityID   string
+		lastSyncTime time.Time
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    []*gorm.ClientServiceRequest
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:          ctx,
+				facilityID:   facilityID,
+				lastSyncTime: time.Now().AddDate(0, 0, 10),
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case",
+			args: args{
+				ctx:          ctx,
+				facilityID:   "123Q4",
+				lastSyncTime: time.Now(),
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := testingDB.GetServiceRequestsForKenyaEMR(tt.args.ctx, tt.args.facilityID, tt.args.lastSyncTime)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.GetServiceRequestsForKenyaEMR() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if tt.wantErr && got != nil {
+				t.Errorf("PGInstance.GetServiceRequestsForKenyaEMR() error = %v, want %v", got, tt.want)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("PGInstance.GetServiceRequestsForKenyaEMR() error = %v, want %v", got, tt.want)
+				return
+			}
+		})
+	}
+}

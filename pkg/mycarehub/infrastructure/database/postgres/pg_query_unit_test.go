@@ -3383,3 +3383,66 @@ func TestMyCareHubDb_GetClientCCCIdentifier(t *testing.T) {
 		})
 	}
 }
+
+func TestMyCareHubDb_GetServiceRequestsForKenyaEMR(t *testing.T) {
+	ctx := context.Background()
+	var fakeGorm = gormMock.NewGormMock()
+	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+	currentTime := time.Now()
+
+	type args struct {
+		ctx     context.Context
+		payload *dto.ServiceRequestPayload
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    []*domain.ServiceRequest
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx: ctx,
+				payload: &dto.ServiceRequestPayload{
+					MFLCode:      1234,
+					LastSyncTime: &currentTime,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case",
+			args: args{
+				ctx: ctx,
+				payload: &dto.ServiceRequestPayload{
+					MFLCode:      123,
+					LastSyncTime: &currentTime,
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "Sad case" {
+				fakeGorm.MockGetServiceRequestsForKenyaEMRFn = func(ctx context.Context, facilityID string, lastSyncTime time.Time) ([]*gorm.ClientServiceRequest, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+			got, err := d.GetServiceRequestsForKenyaEMR(tt.args.ctx, tt.args.payload)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.GetServiceRequestsForKenyaEMR() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if tt.wantErr && got != nil {
+				t.Errorf("UseCasesServiceRequestImpl.GetServiceRequestsForKenyaEMR = %v, want %v", got, tt.want)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("UseCasesServiceRequestImpl.GetServiceRequestsForKenyaEMR = %v, want %v", got, tt.want)
+				return
+			}
+		})
+	}
+}

@@ -78,6 +78,7 @@ type Query interface {
 	GetRecentHealthDiaryEntries(ctx context.Context, lastSyncTime time.Time, clientID string) ([]*domain.ClientHealthDiaryEntry, error)
 	GetClientsByParams(ctx context.Context, params gorm.Client, lastSyncTime *time.Time) ([]*domain.ClientProfile, error)
 	GetClientCCCIdentifier(ctx context.Context, clientID string) (*domain.Identifier, error)
+	GetServiceRequestsForKenyaEMR(ctx context.Context, payload *dto.ServiceRequestPayload) ([]*domain.ServiceRequest, error)
 }
 
 // Update represents all the update action interfaces

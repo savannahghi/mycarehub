@@ -893,3 +893,51 @@ func (d *MyCareHubDb) GetClientCCCIdentifier(ctx context.Context, clientID strin
 
 	return &id, nil
 }
+
+// GetServiceRequestsForKenyaEMR retrieves from the database all service requests belonging to a specific facility
+func (d *MyCareHubDb) GetServiceRequestsForKenyaEMR(ctx context.Context, payload *dto.ServiceRequestPayload) ([]*domain.ServiceRequest, error) {
+
+	facility, err := d.query.RetrieveFacilityByMFLCode(ctx, payload.MFLCode, true)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
+	serviceRequests := []*domain.ServiceRequest{}
+	allServiceRequests, err := d.query.GetServiceRequestsForKenyaEMR(ctx, *facility.FacilityID, *payload.LastSyncTime)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+	for _, serviceReq := range allServiceRequests {
+		clientProfile, err := d.query.GetClientProfileByClientID(ctx, serviceReq.ClientID)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return nil, err
+		}
+
+		userProfile, err := d.query.GetUserProfileByUserID(ctx, clientProfile.UserID)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return nil, err
+		}
+		serviceRequest := &domain.ServiceRequest{
+			ID:            *serviceReq.ID,
+			RequestType:   serviceReq.RequestType,
+			Request:       serviceReq.Request,
+			Status:        serviceReq.Status,
+			ClientID:      serviceReq.ClientID,
+			InProgressAt:  serviceReq.InProgressAt,
+			InProgressBy:  serviceReq.InProgressByID,
+			ResolvedAt:    serviceReq.ResolvedAt,
+			ResolvedBy:    serviceReq.ResolvedByID,
+			FacilityID:    &serviceReq.FacilityID,
+			ClientName:    &userProfile.Name,
+			ClientContact: &userProfile.Contacts.ContactValue,
+		}
+
+		serviceRequests = append(serviceRequests, serviceRequest)
+	}
+
+	return serviceRequests, nil
+}
