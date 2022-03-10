@@ -334,3 +334,17 @@ type ServiceRequestPayload struct {
 	MFLCode      int        `json:"MFLCODE"`
 	LastSyncTime *time.Time `json:"lastSyncTime"`
 }
+
+// AnswerScreeningToolsQuestionInput defines the field passed when answering screening tools questions
+type AnswerScreeningToolsQuestionInput struct {
+	ClientID   string `json:"clientID" validate:"required"`
+	QuestionID string `json:"questionID" validate:"required"`
+	Response   string `json:"response" validate:"required"`
+}
+
+// Validate helps with validation of AnswerScreeningToolsQuestionInput fields
+func (f *AnswerScreeningToolsQuestionInput) Validate() error {
+	v := validator.New()
+	err := v.Struct(f)
+	return err
+}

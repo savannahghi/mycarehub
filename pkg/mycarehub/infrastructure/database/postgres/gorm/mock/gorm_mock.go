@@ -95,6 +95,7 @@ type GormMock struct {
 	MockGetClientsByParams                        func(ctx context.Context, params gorm.Client, lastSyncTime *time.Time) ([]*gorm.Client, error)
 	MockGetClientCCCIdentifier                    func(ctx context.Context, clientID string) (*gorm.Identifier, error)
 	MockGetServiceRequestsForKenyaEMRFn           func(ctx context.Context, facilityID string, lastSyncTime time.Time) ([]*gorm.ClientServiceRequest, error)
+	MockGetScreeningToolsQuestionsFn              func(ctx context.Context, toolType string) ([]gorm.ScreeningToolQuestion, error)
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -674,6 +675,28 @@ func NewGormMock() *GormMock {
 			}
 			return []*gorm.ClientServiceRequest{serviceReq}, nil
 		},
+		MockGetScreeningToolsQuestionsFn: func(ctx context.Context, toolType string) ([]gorm.ScreeningToolQuestion, error) {
+			return []gorm.ScreeningToolQuestion{
+				{
+					ID:               UUID,
+					Question:         gofakeit.Sentence(1),
+					ToolType:         enums.ScreeningToolTypeTB.String(),
+					ResponseChoices:  `{"1": "Yes", "2": "No"}`,
+					ResponseCategory: enums.ScreeningToolResponseCategorySingleChoice.String(),
+					ResponseType:     enums.ScreeningToolResponseTypeInteger.String(),
+					Sequence:         1,
+					Active:           true,
+					Meta:             `{"meta": "data"}`,
+					OrganisationID:   uuid.New().String(),
+				},
+			}, nil
+		},
+		MockCheckIdentifierExists: func(ctx context.Context, identifierType string, identifierValue string) (bool, error) {
+			return true, nil
+		},
+		MockCheckFacilityExistsByMFLCode: func(ctx context.Context, MFLCode int) (bool, error) {
+			return true, nil
+		},
 	}
 }
 
@@ -1066,4 +1089,9 @@ func (gm *GormMock) GetClientCCCIdentifier(ctx context.Context, clientID string)
 // GetServiceRequestsForKenyaEMR mocks the getting of service requests attched to a specific facility for use by KenyaEMR
 func (gm *GormMock) GetServiceRequestsForKenyaEMR(ctx context.Context, facilityID string, lastSyncTime time.Time) ([]*gorm.ClientServiceRequest, error) {
 	return gm.MockGetServiceRequestsForKenyaEMRFn(ctx, facilityID, lastSyncTime)
+}
+
+// GetScreeningToolQuestions mocks the implementation of getting screening tools questions
+func (gm *GormMock) GetScreeningToolQuestions(ctx context.Context, toolType string) ([]gorm.ScreeningToolQuestion, error) {
+	return gm.MockGetScreeningToolsQuestionsFn(ctx, toolType)
 }

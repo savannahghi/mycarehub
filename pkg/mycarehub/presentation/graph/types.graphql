@@ -294,3 +294,15 @@ type CommunityMember {
   role: String
   userType: String!
 }
+
+type ScreeningToolQuestion {
+  id: String
+  question: String
+  toolType: ScreeningToolType
+  responseChoices: Map
+  responseType: ScreeningToolResponseType
+  responseCategory: ScreeningToolResponseCategory
+  sequence: Int
+  active: Boolean
+  meta: Map
+}

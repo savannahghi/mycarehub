@@ -2493,3 +2493,38 @@ func TestPGInstance_GetServiceRequestsForKenyaEMR(t *testing.T) {
 		})
 	}
 }
+
+func TestPGInstance_GetScreeningToolsQuestions(t *testing.T) {
+	ctx := context.Background()
+	type args struct {
+		ctx      context.Context
+		toolType string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "happy case",
+			args: args{
+				ctx:      ctx,
+				toolType: enums.ScreeningToolTypeTB.String(),
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			got, err := testingDB.GetScreeningToolQuestions(tt.args.ctx, tt.args.toolType)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.GetScreeningToolQuestions() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if tt.wantErr && got != nil {
+				t.Errorf("PGInstance.GetScreeningToolQuestions() = %v, want %v", got, tt.wantErr)
+			}
+		})
+	}
+}

@@ -98,6 +98,7 @@ type PostgresMock struct {
 	MockGetClientsByParams                        func(ctx context.Context, params gorm.Client, lastSyncTime *time.Time) ([]*domain.ClientProfile, error)
 	MockGetClientCCCIdentifier                    func(ctx context.Context, clientID string) (*domain.Identifier, error)
 	MockGetServiceRequestsForKenyaEMRFn           func(ctx context.Context, payload *dto.ServiceRequestPayload) ([]*domain.ServiceRequest, error)
+	MockGetScreeningToolsQuestionsFn              func(ctx context.Context, toolType string) ([]*domain.ScreeningToolQuestion, error)
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -607,6 +608,24 @@ func NewPostgresMock() *PostgresMock {
 			}
 			return []*domain.ServiceRequest{serviceReq}, nil
 		},
+		MockGetScreeningToolsQuestionsFn: func(ctx context.Context, toolType string) ([]*domain.ScreeningToolQuestion, error) {
+			return []*domain.ScreeningToolQuestion{
+				{
+					ID:       ID,
+					Question: gofakeit.Sentence(1),
+					ToolType: enums.ScreeningToolTypeTB,
+					ResponseChoices: map[string]interface{}{
+						"1": "yes",
+						"2": "no",
+					},
+					ResponseCategory: enums.ScreeningToolResponseCategorySingleChoice,
+					ResponseType:     enums.ScreeningToolResponseTypeInteger,
+					Sequence:         1,
+					Meta:             nil,
+					Active:           true,
+				},
+			}, nil
+		},
 	}
 }
 
@@ -1013,4 +1032,9 @@ func (gm *PostgresMock) GetClientCCCIdentifier(ctx context.Context, clientID str
 // GetServiceRequestsForKenyaEMR mocks the getting of red flag service requests for use by KenyaEMR
 func (gm *PostgresMock) GetServiceRequestsForKenyaEMR(ctx context.Context, payload *dto.ServiceRequestPayload) ([]*domain.ServiceRequest, error) {
 	return gm.MockGetServiceRequestsForKenyaEMRFn(ctx, payload)
+}
+
+// GetScreeningToolQuestions mocks the implementation of getting screening tools questions
+func (gm *PostgresMock) GetScreeningToolQuestions(ctx context.Context, toolType string) ([]*domain.ScreeningToolQuestion, error) {
+	return gm.MockGetScreeningToolsQuestionsFn(ctx, toolType)
 }

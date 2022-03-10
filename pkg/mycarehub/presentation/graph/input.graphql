@@ -100,3 +100,10 @@ input AgeRangeInput {
   lowerBound: Int!
   upperBound: Int!
 }
+
+
+input AnswerScreeningToolsQuestionInput {
+	clientID:   String! 
+	questionID: String! 
+	response:   String! 
+}

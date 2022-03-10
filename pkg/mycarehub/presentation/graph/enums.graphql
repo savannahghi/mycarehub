@@ -120,3 +120,24 @@ enum UserRoleType {
   CONTENT_MANAGEMENT
   CLIENT_MANAGEMENT
 }
+
+
+enum ScreeningToolResponseCategory {
+  SINGLE_CHOICE
+  MULTI_CHOICE
+  OPEN_ENDED
+}
+
+enum ScreeningToolResponseType {
+  INTEGER
+  TEXT
+  DATE
+}
+
+
+enum ScreeningToolType {
+  TB_ASSESSMENT
+  VIOLENCE_ASSESSMENT
+  CONTRACEPTIVE_ASSESSMENT
+  ALCOHOL_SUBSTANCE_ASSESSMENT
+}

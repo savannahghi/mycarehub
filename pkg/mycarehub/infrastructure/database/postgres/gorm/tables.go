@@ -968,3 +968,57 @@ type RelatedPersonAddresses struct {
 func (r *RelatedPersonAddresses) TableName() string {
 	return "clients_relatedperson_addresses"
 }
+
+// ScreeningToolQuestion defines the payload to create screening tools questions
+type ScreeningToolQuestion struct {
+	Base
+
+	ID               string `gorm:"primaryKey;column:id"`
+	Question         string `gorm:"column:question"`
+	ToolType         string `gorm:"column:tool_type"`
+	ResponseChoices  string `gorm:"column:response_choices"`
+	ResponseType     string `gorm:"column:response_type"`
+	ResponseCategory string `gorm:"column:response_category"`
+	Sequence         int    `gorm:"column:sequence"`
+	Active           bool   `gorm:"column:active"`
+	Meta             string `gorm:"column:meta"`
+	OrganisationID   string `gorm:"column:organisation_id"`
+}
+
+// BeforeCreate is a hook run before creating a screening tools question
+func (c *ScreeningToolQuestion) BeforeCreate(tx *gorm.DB) (err error) {
+	id := uuid.New().String()
+	c.ID = id
+	c.OrganisationID = OrganizationID
+	return
+}
+
+// TableName references the table that we map data from
+func (ScreeningToolQuestion) TableName() string {
+	return "screeningtools_screeningtoolsquestion"
+}
+
+// ScreeningToolsResponse defines the payload to create screening tools responses
+type ScreeningToolsResponse struct {
+	Base
+
+	ID             string `gorm:"primaryKey;column:id"`
+	ClientID       string `gorm:"column:client_id"`
+	QuestionID     string `gorm:"column:question_id"`
+	Response       string `gorm:"column:response"`
+	Active         bool   `gorm:"column:active"`
+	OrganisationID string `gorm:"column:organisation_id"`
+}
+
+// BeforeCreate is a hook run before creating a screening tools response
+func (c *ScreeningToolsResponse) BeforeCreate(tx *gorm.DB) (err error) {
+	id := uuid.New().String()
+	c.ID = id
+	c.OrganisationID = OrganizationID
+	return
+}
+
+// TableName references the table that we map data from
+func (ScreeningToolsResponse) TableName() string {
+	return "screeningtools_screeningtoolsresponse"
+}

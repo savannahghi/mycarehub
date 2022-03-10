@@ -128,3 +128,62 @@ func TestCalculateAge(t *testing.T) {
 		})
 	}
 }
+
+func TestConvertJsonStringToMap(t *testing.T) {
+	type args struct {
+		jsonString string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    map[string]interface{}
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				jsonString: `{"key":"value"}`,
+			},
+			want: map[string]interface{}{
+				"key": "value",
+			},
+			wantErr: false,
+		},
+		{
+			name: "invalid json",
+			args: args{
+				jsonString: `{"key":"value`,
+			},
+			want:    nil,
+			wantErr: true,
+		},
+		{
+			name: "empty json",
+			args: args{
+				jsonString: ``,
+			},
+			want:    nil,
+			wantErr: true,
+		},
+		{
+			name: "non map json",
+			args: args{
+				jsonString: `["yes","no"]`,
+			},
+			want:    nil,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := ConvertJSONStringToMap(tt.args.jsonString)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ConvertJSONStringToMap() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("ConvertJSONStringToMap() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

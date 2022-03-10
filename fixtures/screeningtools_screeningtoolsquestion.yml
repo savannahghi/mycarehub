@@ -1,0 +1,13 @@
+# screeningtools_screeningtoolsquestion.yml
+- id: {{.screenintoolsquestion_id}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  active: true
+  organisation_id: {{.test_organisation_id}}
+  question: "In the last one month have you had any of the following? Cough"
+  tool_type: TB_ASSESSMENT
+  response_choices: '{"0": "Yes", "1": "No"}'
+  response_type: INTEGER
+  response_category: SINGLE_CHOICE
+  sequence: 0
+  meta: null
