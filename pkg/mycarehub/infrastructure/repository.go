@@ -26,6 +26,7 @@ type Create interface {
 	CreateCommunity(ctx context.Context, communityInput *dto.CommunityInput) (*domain.Community, error)
 	CreateNextOfKin(ctx context.Context, person *dto.NextOfKinPayload) error
 	CreateContact(ctx context.Context, contact *domain.Contact) error
+	AnswerScreeningToolQuestions(ctx context.Context, screeningToolResponses []*dto.ScreeningToolQuestionResponseInput) error
 }
 
 // Delete represents all the deletion action interfaces
@@ -80,6 +81,7 @@ type Query interface {
 	GetClientCCCIdentifier(ctx context.Context, clientID string) (*domain.Identifier, error)
 	GetServiceRequestsForKenyaEMR(ctx context.Context, payload *dto.ServiceRequestPayload) ([]*domain.ServiceRequest, error)
 	GetScreeningToolQuestions(ctx context.Context, toolType string) ([]*domain.ScreeningToolQuestion, error)
+	GetScreeningToolQuestionByQuestionID(ctx context.Context, questionID string) (*domain.ScreeningToolQuestion, error)
 }
 
 // Update represents all the update action interfaces
@@ -106,4 +108,5 @@ type Update interface {
 	ResolveServiceRequest(ctx context.Context, staffID *string, serviceRequestID *string) (bool, error)
 	AssignRoles(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error)
 	RevokeRoles(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error)
+	InvalidateScreeningToolResponse(ctx context.Context, clientID string, questionID string) error
 }

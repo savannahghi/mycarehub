@@ -3,4 +3,6 @@ extend type Query {
     getScreeningToolQuestions(toolType: String) : [ScreeningToolQuestion!]!
 }
 
-
+extend type Mutation{
+    answerScreeningToolQuestion(screeningToolResponses: [ScreeningToolQuestionResponseInput!]!): Boolean!
+}

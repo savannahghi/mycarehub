@@ -3628,3 +3628,103 @@ func TestMyCareHubDb_CheckFacilityExistsByMFLCode(t *testing.T) {
 		})
 	}
 }
+
+func TestMyCareHubDb_GetScreeningToolQuestionByQuestionID(t *testing.T) {
+	type args struct {
+		ctx        context.Context
+		questionID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:        context.Background(),
+				questionID: uuid.New().String(),
+			},
+			wantErr: false,
+		},
+		{
+			name: "failed to convert response choices to map",
+			args: args{
+				ctx:        context.Background(),
+				questionID: uuid.New().String(),
+			},
+			wantErr: true,
+		},
+		{
+			name: "failed to convert metadata to map",
+			args: args{
+				ctx:        context.Background(),
+				questionID: uuid.New().String(),
+			},
+			wantErr: true,
+		},
+		{
+			name: "failed to get screeningtool questions",
+			args: args{
+				ctx:        context.Background(),
+				questionID: uuid.New().String(),
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var fakeGorm = gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			if tt.name == "failed to convert response choices to map" {
+				fakeGorm.MockGetScreeningToolQuestionByQuestionIDFn = func(ctx context.Context, questionID string) (*gorm.ScreeningToolQuestion, error) {
+					return &gorm.ScreeningToolQuestion{
+						ID:               uuid.New().String(),
+						Question:         gofakeit.Sentence(1),
+						ToolType:         enums.ScreeningToolTypeTB.String(),
+						ResponseChoices:  `{"1": "Yes", "2": "No"`,
+						ResponseCategory: enums.ScreeningToolResponseCategorySingleChoice.String(),
+						ResponseType:     enums.ScreeningToolResponseTypeInteger.String(),
+						Sequence:         1,
+						Active:           true,
+						OrganisationID:   uuid.New().String(),
+					}, nil
+				}
+			}
+
+			if tt.name == "failed to convert metadata to map" {
+				fakeGorm.MockGetScreeningToolQuestionByQuestionIDFn = func(ctx context.Context, questionID string) (*gorm.ScreeningToolQuestion, error) {
+					return &gorm.ScreeningToolQuestion{
+						ID:               uuid.New().String(),
+						Question:         gofakeit.Sentence(1),
+						ToolType:         enums.ScreeningToolTypeTB.String(),
+						ResponseChoices:  `{"1": "Yes", "2": "No"}`,
+						ResponseCategory: enums.ScreeningToolResponseCategorySingleChoice.String(),
+						ResponseType:     enums.ScreeningToolResponseTypeInteger.String(),
+						Sequence:         1,
+						Active:           true,
+						Meta:             `{"meta": "data"`,
+						OrganisationID:   uuid.New().String(),
+					}, nil
+				}
+			}
+
+			if tt.name == "failed to get screeningtool questions" {
+				fakeGorm.MockGetScreeningToolQuestionByQuestionIDFn = func(ctx context.Context, questionID string) (*gorm.ScreeningToolQuestion, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+
+			got, err := d.GetScreeningToolQuestionByQuestionID(tt.args.ctx, tt.args.questionID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.GetScreeningToolQuestionByQuestionID() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected community not to be nil for %v", tt.name)
+				return
+			}
+		})
+	}
+}

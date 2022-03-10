@@ -36,6 +36,7 @@ type Update interface {
 	ResolveServiceRequest(ctx context.Context, staffID *string, serviceRequestID *string) (bool, error)
 	AssignRoles(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error)
 	RevokeRoles(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error)
+	InvalidateScreeningToolResponse(ctx context.Context, clientID string, questionID string) error
 }
 
 // LikeContent perfoms the actual database operation to update content like. The operation
@@ -753,4 +754,48 @@ func (db *PGInstance) RevokeRoles(ctx context.Context, userID string, roles []en
 	}
 
 	return true, nil
+}
+
+// InvalidateScreeningToolResponse invalidates a screening tool response
+func (db *PGInstance) InvalidateScreeningToolResponse(ctx context.Context, clientID string, questionID string) error {
+	var (
+		client               Client
+		screeningToolRespose ScreeningToolsResponse
+	)
+
+	tx := db.DB.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+	if err := tx.Error; err != nil {
+		helpers.ReportErrorToSentry(err)
+		return fmt.Errorf("failied initialize database transaction %v", err)
+	}
+
+	err := tx.Model(&Client{}).Where(&Client{ID: &clientID}).First(&client).Error
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		tx.Rollback()
+		return fmt.Errorf("failed to get client: %v", err)
+	}
+
+	err = tx.Model(&screeningToolRespose).Where(
+		&ScreeningToolsResponse{
+			ClientID:   clientID,
+			QuestionID: questionID,
+		}).Updates(map[string]interface{}{"active": false}).Error
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		tx.Rollback()
+		return fmt.Errorf("failed to invalidate screening tool response: %v", err)
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		helpers.ReportErrorToSentry(err)
+		tx.Rollback()
+		return fmt.Errorf("transaction commit to update screening tool response failed: %v", err)
+	}
+	return nil
 }

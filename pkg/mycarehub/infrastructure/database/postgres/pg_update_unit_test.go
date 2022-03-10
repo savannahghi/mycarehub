@@ -1658,3 +1658,36 @@ func TestMyCareHubDb_RevokeRoles(t *testing.T) {
 		})
 	}
 }
+
+func TestMyCareHubDb_InvalidateScreeningToolResponse(t *testing.T) {
+	type args struct {
+		ctx        context.Context
+		clientID   string
+		questionID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:        context.Background(),
+				clientID:   uuid.New().String(),
+				questionID: uuid.New().String(),
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var fakeGorm = gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			if err := d.InvalidateScreeningToolResponse(tt.args.ctx, tt.args.clientID, tt.args.questionID); (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.InvalidateScreeningToolResponse() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}

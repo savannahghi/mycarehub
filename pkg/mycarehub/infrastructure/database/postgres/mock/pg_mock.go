@@ -99,6 +99,9 @@ type PostgresMock struct {
 	MockGetClientCCCIdentifier                    func(ctx context.Context, clientID string) (*domain.Identifier, error)
 	MockGetServiceRequestsForKenyaEMRFn           func(ctx context.Context, payload *dto.ServiceRequestPayload) ([]*domain.ServiceRequest, error)
 	MockGetScreeningToolsQuestionsFn              func(ctx context.Context, toolType string) ([]*domain.ScreeningToolQuestion, error)
+	MockAnswerScreeningToolQuestionsFn            func(ctx context.Context, screeningToolResponses []*dto.ScreeningToolQuestionResponseInput) error
+	MockGetScreeningToolQuestionByQuestionIDFn    func(ctx context.Context, questionID string) (*domain.ScreeningToolQuestion, error)
+	MockInvalidateScreeningToolResponseFn         func(ctx context.Context, clientID string, questionID string) error
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -626,6 +629,28 @@ func NewPostgresMock() *PostgresMock {
 				},
 			}, nil
 		},
+		MockAnswerScreeningToolQuestionsFn: func(ctx context.Context, screeningToolResponses []*dto.ScreeningToolQuestionResponseInput) error {
+			return nil
+		},
+		MockGetScreeningToolQuestionByQuestionIDFn: func(ctx context.Context, questionID string) (*domain.ScreeningToolQuestion, error) {
+			return &domain.ScreeningToolQuestion{
+				ID:       ID,
+				Question: gofakeit.Sentence(1),
+				ToolType: enums.ScreeningToolTypeTB,
+				ResponseChoices: map[string]interface{}{
+					"0": "yes",
+					"1": "no",
+				},
+				ResponseCategory: enums.ScreeningToolResponseCategorySingleChoice,
+				ResponseType:     enums.ScreeningToolResponseTypeInteger,
+				Sequence:         1,
+				Meta:             map[string]interface{}{"meta": "data"},
+				Active:           true,
+			}, nil
+		},
+		MockInvalidateScreeningToolResponseFn: func(ctx context.Context, clientID string, questionID string) error {
+			return nil
+		},
 	}
 }
 
@@ -1037,4 +1062,19 @@ func (gm *PostgresMock) GetServiceRequestsForKenyaEMR(ctx context.Context, paylo
 // GetScreeningToolQuestions mocks the implementation of getting screening tools questions
 func (gm *PostgresMock) GetScreeningToolQuestions(ctx context.Context, toolType string) ([]*domain.ScreeningToolQuestion, error) {
 	return gm.MockGetScreeningToolsQuestionsFn(ctx, toolType)
+}
+
+// AnswerScreeningToolQuestions mocks the implementation of answering screening tool questions
+func (gm *PostgresMock) AnswerScreeningToolQuestions(ctx context.Context, screeningToolResponses []*dto.ScreeningToolQuestionResponseInput) error {
+	return gm.MockAnswerScreeningToolQuestionsFn(ctx, screeningToolResponses)
+}
+
+// GetScreeningToolQuestionByQuestionID mocks the implementation of getting screening tool questions by question ID
+func (gm *PostgresMock) GetScreeningToolQuestionByQuestionID(ctx context.Context, questionID string) (*domain.ScreeningToolQuestion, error) {
+	return gm.MockGetScreeningToolQuestionByQuestionIDFn(ctx, questionID)
+}
+
+// InvalidateScreeningToolResponse mocks the implementation of invalidating screening tool responses
+func (gm *PostgresMock) InvalidateScreeningToolResponse(ctx context.Context, clientID string, questionID string) error {
+	return gm.MockInvalidateScreeningToolResponseFn(ctx, clientID, questionID)
 }

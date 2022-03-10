@@ -175,3 +175,8 @@ func (d *MyCareHubDb) AssignRoles(ctx context.Context, userID string, roles []en
 func (d *MyCareHubDb) RevokeRoles(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error) {
 	return d.update.RevokeRoles(ctx, userID, roles)
 }
+
+// InvalidateScreeningToolResponse invalidates a screening tool response
+func (d *MyCareHubDb) InvalidateScreeningToolResponse(ctx context.Context, clientID string, questionID string) error {
+	return d.update.InvalidateScreeningToolResponse(ctx, clientID, questionID)
+}

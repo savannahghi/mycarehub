@@ -20,6 +20,7 @@ type Create interface {
 	CreateCommunity(ctx context.Context, community *Community) (*Community, error)
 	CreateRelatedPerson(ctx context.Context, person *RelatedPerson) error
 	CreateContact(ctx context.Context, contact *Contact) error
+	AnswerScreeningToolQuestions(ctx context.Context, screeningToolResponses []*ScreeningToolsResponse) error
 }
 
 // GetOrCreateFacility is used to get or create a facility
@@ -252,6 +253,29 @@ func (db *PGInstance) CreateContact(ctx context.Context, contact *Contact) error
 	if err := tx.Commit().Error; err != nil {
 		tx.Rollback()
 		return fmt.Errorf("transaction commit to create contact failed: %v", err)
+	}
+
+	return nil
+}
+
+// AnswerScreeningToolQuestions answers the screening tool questions
+func (db *PGInstance) AnswerScreeningToolQuestions(ctx context.Context, screeningToolResponses []*ScreeningToolsResponse) error {
+	tx := db.DB.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+	for _, response := range screeningToolResponses {
+		err := tx.Create(response).Error
+		if err != nil {
+			tx.Rollback()
+			return fmt.Errorf("failed to create screening tool response: %v", err)
+		}
+	}
+	if err := tx.Commit().Error; err != nil {
+		tx.Rollback()
+		return fmt.Errorf("transaction commit to create screening tool responses failed: %v", err)
 	}
 
 	return nil

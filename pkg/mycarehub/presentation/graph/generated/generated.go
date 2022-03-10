@@ -288,6 +288,7 @@ type ComplexityRoot struct {
 		AcceptTerms                     func(childComplexity int, userID string, termsID int) int
 		AddMembersToCommunity           func(childComplexity int, memberIDs []string, communityID string) int
 		AddModerators                   func(childComplexity int, memberIDs []string, communityID string) int
+		AnswerScreeningToolQuestion     func(childComplexity int, screeningToolResponses []*dto.ScreeningToolQuestionResponseInput) int
 		AssignRoles                     func(childComplexity int, userID string, roles []enums.UserRoleType) int
 		BookmarkContent                 func(childComplexity int, userID string, contentItemID int) int
 		CompleteOnboardingTour          func(childComplexity int, userID string, flavour feedlib.Flavour) int
@@ -444,6 +445,7 @@ type MutationResolver interface {
 	CreateHealthDiaryEntry(ctx context.Context, clientID string, note *string, mood string, reportToStaff bool) (bool, error)
 	InviteUser(ctx context.Context, userID string, phoneNumber string, flavour feedlib.Flavour) (bool, error)
 	SetUserPin(ctx context.Context, input *dto.PINInput) (bool, error)
+	AnswerScreeningToolQuestion(ctx context.Context, screeningToolResponses []*dto.ScreeningToolQuestionResponseInput) (bool, error)
 	RecordSecurityQuestionResponses(ctx context.Context, input []*dto.SecurityQuestionResponseInput) ([]*domain.RecordSecurityQuestionResponse, error)
 	SetInProgressBy(ctx context.Context, serviceRequestID string, staffID string) (bool, error)
 	CreateServiceRequest(ctx context.Context, clientID string, requestType string, request *string) (bool, error)
@@ -1589,6 +1591,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.AddModerators(childComplexity, args["memberIDs"].([]string), args["communityID"].(string)), true
+
+	case "Mutation.answerScreeningToolQuestion":
+		if e.complexity.Mutation.AnswerScreeningToolQuestion == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_answerScreeningToolQuestion_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.AnswerScreeningToolQuestion(childComplexity, args["screeningToolResponses"].([]*dto.ScreeningToolQuestionResponseInput)), true
 
 	case "Mutation.assignRoles":
 		if e.complexity.Mutation.AssignRoles == nil {
@@ -2932,8 +2946,8 @@ input AgeRangeInput {
 }
 
 
-input AnswerScreeningToolsQuestionInput {
-	clientID:   String! 
+input ScreeningToolQuestionResponseInput { 
+  clientID: String!
 	questionID: String! 
 	response:   String! 
 }
@@ -2950,8 +2964,9 @@ extend type Query {
     getScreeningToolQuestions(toolType: String) : [ScreeningToolQuestion!]!
 }
 
-
-`, BuiltIn: false},
+extend type Mutation{
+    answerScreeningToolQuestion(screeningToolResponses: [ScreeningToolQuestionResponseInput!]!): Boolean!
+}`, BuiltIn: false},
 	{Name: "pkg/mycarehub/presentation/graph/securityquestion.graphql", Input: `extend type Query {
   getSecurityQuestions(flavour: Flavour!): [SecurityQuestion!]!
 }
@@ -3438,6 +3453,21 @@ func (ec *executionContext) field_Mutation_addModerators_args(ctx context.Contex
 		}
 	}
 	args["communityID"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_answerScreeningToolQuestion_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 []*dto.ScreeningToolQuestionResponseInput
+	if tmp, ok := rawArgs["screeningToolResponses"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("screeningToolResponses"))
+		arg0, err = ec.unmarshalNScreeningToolQuestionResponseInput2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐScreeningToolQuestionResponseInputᚄ(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["screeningToolResponses"] = arg0
 	return args, nil
 }
 
@@ -10710,6 +10740,48 @@ func (ec *executionContext) _Mutation_setUserPIN(ctx context.Context, field grap
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Mutation_answerScreeningToolQuestion(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_answerScreeningToolQuestion_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().AnswerScreeningToolQuestion(rctx, args["screeningToolResponses"].([]*dto.ScreeningToolQuestionResponseInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Mutation_recordSecurityQuestionResponses(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -14808,45 +14880,6 @@ func (ec *executionContext) unmarshalInputAgeRangeInput(ctx context.Context, obj
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputAnswerScreeningToolsQuestionInput(ctx context.Context, obj interface{}) (dto.AnswerScreeningToolsQuestionInput, error) {
-	var it dto.AnswerScreeningToolsQuestionInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
-		asMap[k] = v
-	}
-
-	for k, v := range asMap {
-		switch k {
-		case "clientID":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clientID"))
-			it.ClientID, err = ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "questionID":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("questionID"))
-			it.QuestionID, err = ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "response":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("response"))
-			it.Response, err = ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		}
-	}
-
-	return it, nil
-}
-
 func (ec *executionContext) unmarshalInputCaregiverInput(ctx context.Context, obj interface{}) (dto.CaregiverInput, error) {
 	var it dto.CaregiverInput
 	asMap := map[string]interface{}{}
@@ -15341,6 +15374,45 @@ func (ec *executionContext) unmarshalInputQueryOption(ctx context.Context, obj i
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("memberLimit"))
 			it.MemberLimit, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputScreeningToolQuestionResponseInput(ctx context.Context, obj interface{}) (dto.ScreeningToolQuestionResponseInput, error) {
+	var it dto.ScreeningToolQuestionResponseInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	for k, v := range asMap {
+		switch k {
+		case "clientID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clientID"))
+			it.ClientID, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "questionID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("questionID"))
+			it.QuestionID, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "response":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("response"))
+			it.Response, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -16871,6 +16943,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			}
 		case "setUserPIN":
 			out.Values[i] = ec._Mutation_setUserPIN(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "answerScreeningToolQuestion":
+			out.Values[i] = ec._Mutation_answerScreeningToolQuestion(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -18714,6 +18791,32 @@ func (ec *executionContext) marshalNScreeningToolQuestion2ᚖgithubᚗcomᚋsava
 		return graphql.Null
 	}
 	return ec._ScreeningToolQuestion(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNScreeningToolQuestionResponseInput2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐScreeningToolQuestionResponseInputᚄ(ctx context.Context, v interface{}) ([]*dto.ScreeningToolQuestionResponseInput, error) {
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]*dto.ScreeningToolQuestionResponseInput, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNScreeningToolQuestionResponseInput2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐScreeningToolQuestionResponseInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalNScreeningToolQuestionResponseInput2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐScreeningToolQuestionResponseInput(ctx context.Context, v interface{}) (*dto.ScreeningToolQuestionResponseInput, error) {
+	res, err := ec.unmarshalInputScreeningToolQuestionResponseInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalNSecurityQuestion2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐSecurityQuestionᚄ(ctx context.Context, sel ast.SelectionSet, v []*domain.SecurityQuestion) graphql.Marshaler {

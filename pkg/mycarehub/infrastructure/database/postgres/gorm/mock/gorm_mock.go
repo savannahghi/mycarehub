@@ -96,6 +96,9 @@ type GormMock struct {
 	MockGetClientCCCIdentifier                    func(ctx context.Context, clientID string) (*gorm.Identifier, error)
 	MockGetServiceRequestsForKenyaEMRFn           func(ctx context.Context, facilityID string, lastSyncTime time.Time) ([]*gorm.ClientServiceRequest, error)
 	MockGetScreeningToolsQuestionsFn              func(ctx context.Context, toolType string) ([]gorm.ScreeningToolQuestion, error)
+	MockAnswerScreeningToolQuestionsFn            func(ctx context.Context, screeningToolResponses []*gorm.ScreeningToolsResponse) error
+	MockGetScreeningToolQuestionByQuestionIDFn    func(ctx context.Context, questionID string) (*gorm.ScreeningToolQuestion, error)
+	MockInvalidateScreeningToolResponseFn         func(ctx context.Context, clientID string, questionID string) error
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -697,6 +700,26 @@ func NewGormMock() *GormMock {
 				},
 			}, nil
 		},
+		MockAnswerScreeningToolQuestionsFn: func(ctx context.Context, screeningToolResponses []*gorm.ScreeningToolsResponse) error {
+			return nil
+		},
+		MockGetScreeningToolQuestionByQuestionIDFn: func(ctx context.Context, questionID string) (*gorm.ScreeningToolQuestion, error) {
+			return &gorm.ScreeningToolQuestion{
+				ID:               UUID,
+				Question:         gofakeit.Sentence(1),
+				ToolType:         enums.ScreeningToolTypeTB.String(),
+				ResponseChoices:  `{"1": "Yes", "2": "No"}`,
+				ResponseCategory: enums.ScreeningToolResponseCategorySingleChoice.String(),
+				ResponseType:     enums.ScreeningToolResponseTypeInteger.String(),
+				Sequence:         1,
+				Active:           true,
+				Meta:             `{"meta": "data"}`,
+				OrganisationID:   uuid.New().String(),
+			}, nil
+		},
+		MockInvalidateScreeningToolResponseFn: func(ctx context.Context, clientID string, questionID string) error {
+			return nil
+		},
 	}
 }
 
@@ -1094,4 +1117,19 @@ func (gm *GormMock) GetServiceRequestsForKenyaEMR(ctx context.Context, facilityI
 // GetScreeningToolQuestions mocks the implementation of getting screening tools questions
 func (gm *GormMock) GetScreeningToolQuestions(ctx context.Context, toolType string) ([]gorm.ScreeningToolQuestion, error) {
 	return gm.MockGetScreeningToolsQuestionsFn(ctx, toolType)
+}
+
+// AnswerScreeningToolQuestions mocks the implementation of answering screening tool questions
+func (gm *GormMock) AnswerScreeningToolQuestions(ctx context.Context, screeningToolResponses []*gorm.ScreeningToolsResponse) error {
+	return gm.MockAnswerScreeningToolQuestionsFn(ctx, screeningToolResponses)
+}
+
+// GetScreeningToolQuestionByQuestionID mocks the implementation of getting screening tool questions by question ID
+func (gm *GormMock) GetScreeningToolQuestionByQuestionID(ctx context.Context, questionID string) (*gorm.ScreeningToolQuestion, error) {
+	return gm.MockGetScreeningToolQuestionByQuestionIDFn(ctx, questionID)
+}
+
+// InvalidateScreeningToolResponse mocks the implementation of invalidating screening tool responses
+func (gm *GormMock) InvalidateScreeningToolResponse(ctx context.Context, clientID string, questionID string) error {
+	return gm.MockInvalidateScreeningToolResponseFn(ctx, clientID, questionID)
 }

@@ -66,7 +66,7 @@ func InitializeTestService(ctx context.Context) (*usecases.MyCareHub, error) {
 	healthDiaryUseCase := healthdiary.NewUseCaseHealthDiaryImpl(db, db, serviceRequestUseCase)
 	communityUsecase := communities.NewUseCaseCommunitiesImpl(getStream, externalExt, db, db)
 
-	screeningToolsUsecases := screeningtools.NewUseCasesScreeningTools(db)
+	screeningToolsUsecases := screeningtools.NewUseCasesScreeningTools(db, db, db)
 
 	i := usecases.NewMyCareHubUseCase(
 		userUsecase, termsUsecase, facilityUseCase,
