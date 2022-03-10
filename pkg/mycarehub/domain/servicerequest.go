@@ -34,3 +34,8 @@ type ServiceRequestsCount struct {
 	Total             int                 `json:"total"`
 	RequestsTypeCount []*RequestTypeCount `json:"requestsTypeCount"`
 }
+
+// UpdateServiceRequestsPayload defined a list of service requests to synchronize MyCareHub with.
+type UpdateServiceRequestsPayload struct {
+	ServiceRequests []ServiceRequest `json:"serviceRequests" validate:"required"`
+}

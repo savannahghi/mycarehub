@@ -1,6 +1,7 @@
 package rest
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -29,7 +30,7 @@ type MyCareHubHandlersInterfaces interface {
 	RegisterKenyaEMRPatients() http.HandlerFunc
 	GetClientHealthDiaryEntries() http.HandlerFunc
 	RegisteredFacilityPatients() http.HandlerFunc
-	GetServiceRequests() http.HandlerFunc
+	ServiceRequests() http.HandlerFunc
 }
 
 // MyCareHubHandlersInterfacesImpl represents the usecase implementation object
@@ -564,51 +565,97 @@ func (h *MyCareHubHandlersInterfacesImpl) RegisteredFacilityPatients() http.Hand
 	}
 }
 
-// GetServiceRequests is the endpoint used to sync service requests from MyCareHub to KenyaEMR
-func (h *MyCareHubHandlersInterfacesImpl) GetServiceRequests() http.HandlerFunc {
+// ServiceRequests is the endpoint used to sync service requests from MyCareHub to KenyaEMR
+func (h *MyCareHubHandlersInterfacesImpl) ServiceRequests() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 
-		MFLCode, err := strconv.Atoi(r.URL.Query().Get("MFLCODE"))
-		if err != nil {
-			helpers.ReportErrorToSentry(err)
-			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
-				Err:     err,
-				Message: err.Error(),
-			}, http.StatusBadRequest)
-			return
-		}
-		syncTime, err := time.Parse(time.RFC3339, r.URL.Query().Get("lastSyncTime"))
-		if err != nil {
-			helpers.ReportErrorToSentry(err)
-			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
-				Err:     err,
-				Message: err.Error(),
-			}, http.StatusBadRequest)
-			return
-		}
-		payload := &dto.ServiceRequestPayload{
-			MFLCode:      MFLCode,
-			LastSyncTime: &syncTime,
-		}
-		if payload.MFLCode == 0 || payload.LastSyncTime == nil {
-			err := fmt.Errorf("expected `MFLCODE` and `lastSyncTime` to be defined")
-			helpers.ReportErrorToSentry(err)
-			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
-				Err:     err,
-				Message: err.Error(),
-			}, http.StatusBadRequest)
-			return
+		if r.Method == http.MethodGet {
+			err := h.GetServiceRequestsForKenyaEMR(ctx, r, w)
+			if err != nil {
+				helpers.ReportErrorToSentry(err)
+				return
+			}
 		}
 
-		serviceRequests, err := h.usecase.ServiceRequest.GetServiceRequestsForKenyaEMR(ctx, payload)
-		if err != nil {
-			helpers.ReportErrorToSentry(err)
-			serverutils.WriteJSONResponse(w, serverutils.ErrorMap(err), http.StatusBadRequest)
-			return
+		if r.Method == http.MethodPost {
+			err := h.UpdateServiceRequests(ctx, w, r)
+			if err != nil {
+				helpers.ReportErrorToSentry(err)
+				return
+			}
 		}
 
-		response := helpers.RestAPIResponseHelper("serviceRequests", serviceRequests)
-		serverutils.WriteJSONResponse(w, response, http.StatusOK)
 	}
+}
+
+// GetServiceRequestsForKenyaEMR gets all the service requests from MyCareHub
+func (h *MyCareHubHandlersInterfacesImpl) GetServiceRequestsForKenyaEMR(ctx context.Context, r *http.Request, w http.ResponseWriter) error {
+	MFLCode, err := strconv.Atoi(r.URL.Query().Get("MFLCODE"))
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
+			Err:     err,
+			Message: err.Error(),
+		}, http.StatusBadRequest)
+		return err
+	}
+	syncTime, err := time.Parse(time.RFC3339, r.URL.Query().Get("lastSyncTime"))
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
+			Err:     err,
+			Message: err.Error(),
+		}, http.StatusBadRequest)
+		return err
+	}
+	payload := &dto.ServiceRequestPayload{
+		MFLCode:      MFLCode,
+		LastSyncTime: &syncTime,
+	}
+	if payload.MFLCode == 0 || payload.LastSyncTime == nil {
+		err := fmt.Errorf("expected `MFLCODE` and `lastSyncTime` to be defined")
+		helpers.ReportErrorToSentry(err)
+		serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
+			Err:     err,
+			Message: err.Error(),
+		}, http.StatusBadRequest)
+		return err
+	}
+
+	serviceRequests, err := h.usecase.ServiceRequest.GetServiceRequestsForKenyaEMR(ctx, payload)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		serverutils.WriteJSONResponse(w, serverutils.ErrorMap(err), http.StatusBadRequest)
+		return err
+	}
+
+	response := helpers.RestAPIResponseHelper("serviceRequests", serviceRequests)
+	serverutils.WriteJSONResponse(w, response, http.StatusOK)
+	return nil
+}
+
+//UpdateServiceRequests is an endpoint used to update service requests from KenyaEMR to MyCareHub
+func (h *MyCareHubHandlersInterfacesImpl) UpdateServiceRequests(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+	payload := &dto.UpdateServiceRequestsPayload{}
+	serverutils.DecodeJSONToTargetStruct(w, r, payload)
+
+	if len(payload.ServiceRequests) == 0 {
+		err := fmt.Errorf("no service requests payload defined")
+		helpers.ReportErrorToSentry(err)
+		serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
+			Err:     err,
+			Message: err.Error(),
+		}, http.StatusBadRequest)
+		return err
+	}
+
+	serviceRequests, err := h.usecase.ServiceRequest.UpdateServiceRequestsFromKenyaEMR(ctx, payload)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		serverutils.WriteJSONResponse(w, serverutils.ErrorMap(err), http.StatusBadRequest)
+	}
+	response := helpers.RestAPIResponseHelper("serviceRequests", serviceRequests)
+	serverutils.WriteJSONResponse(w, response, http.StatusOK)
+	return nil
 }

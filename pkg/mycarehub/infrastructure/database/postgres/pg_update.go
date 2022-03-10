@@ -8,6 +8,8 @@ import (
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
 )
 
 // ReactivateFacility changes the status of an active facility from false to true
@@ -179,4 +181,25 @@ func (d *MyCareHubDb) RevokeRoles(ctx context.Context, userID string, roles []en
 // InvalidateScreeningToolResponse invalidates a screening tool response
 func (d *MyCareHubDb) InvalidateScreeningToolResponse(ctx context.Context, clientID string, questionID string) error {
 	return d.update.InvalidateScreeningToolResponse(ctx, clientID, questionID)
+}
+
+// UpdateServiceRequests updates service requests
+func (d *MyCareHubDb) UpdateServiceRequests(ctx context.Context, payload *domain.UpdateServiceRequestsPayload) (bool, error) {
+	var serviceRequests []*gorm.ClientServiceRequest
+	for _, k := range payload.ServiceRequests {
+		// Update service request
+		serviceRequest := &gorm.ClientServiceRequest{
+			ID:             &k.ID,
+			RequestType:    k.RequestType,
+			Status:         k.Status,
+			InProgressAt:   k.InProgressAt,
+			ResolvedAt:     k.ResolvedAt,
+			InProgressByID: k.InProgressBy,
+			ResolvedByID:   k.ResolvedBy,
+		}
+
+		serviceRequests = append(serviceRequests, serviceRequest)
+	}
+
+	return d.update.UpdateServiceRequests(ctx, serviceRequests)
 }

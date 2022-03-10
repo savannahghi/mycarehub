@@ -16,11 +16,12 @@ type ServiceRequestUseCaseMock struct {
 		clientID string,
 		requestType, request string,
 	) (bool, error)
-	MockGetPendingServiceRequestsCountFn func(ctx context.Context, facilityID string) (*domain.ServiceRequestsCount, error)
-	MockGetServiceRequestsFn             func(ctx context.Context, requestType, requestStatus, facilityID *string) ([]*domain.ServiceRequest, error)
-	MockResolveServiceRequestFn          func(ctx context.Context, staffID *string, serviceRequestID *string) (bool, error)
-	MockSetInProgressByFn                func(ctx context.Context, requestID string, staffID string) (bool, error)
-	MockGetServiceRequestsForKenyaEMRFn  func(ctx context.Context, payload *dto.ServiceRequestPayload) ([]*domain.ServiceRequest, error)
+	MockGetPendingServiceRequestsCountFn    func(ctx context.Context, facilityID string) (*domain.ServiceRequestsCount, error)
+	MockGetServiceRequestsFn                func(ctx context.Context, requestType, requestStatus, facilityID *string) ([]*domain.ServiceRequest, error)
+	MockResolveServiceRequestFn             func(ctx context.Context, staffID *string, serviceRequestID *string) (bool, error)
+	MockSetInProgressByFn                   func(ctx context.Context, requestID string, staffID string) (bool, error)
+	MockGetServiceRequestsForKenyaEMRFn     func(ctx context.Context, payload *dto.ServiceRequestPayload) ([]*domain.ServiceRequest, error)
+	MockUpdateServiceRequestsFromKenyaEMRFn func(ctx context.Context, payload *dto.UpdateServiceRequestsPayload) (bool, error)
 }
 
 // NewServiceRequestUseCaseMock initializes a new service request instance mock
@@ -47,6 +48,9 @@ func NewServiceRequestUseCaseMock() *ServiceRequestUseCaseMock {
 			return true, nil
 		},
 		MockSetInProgressByFn: func(ctx context.Context, requestID string, staffID string) (bool, error) {
+			return true, nil
+		},
+		MockUpdateServiceRequestsFromKenyaEMRFn: func(ctx context.Context, payload *dto.UpdateServiceRequestsPayload) (bool, error) {
 			return true, nil
 		},
 		MockGetServiceRequestsForKenyaEMRFn: func(ctx context.Context, payload *dto.ServiceRequestPayload) ([]*domain.ServiceRequest, error) {
@@ -105,4 +109,9 @@ func (s *ServiceRequestUseCaseMock) SetInProgressBy(ctx context.Context, request
 // GetServiceRequestsForKenyaEMR mocks getting service requests attached to a specific facility to be used by KenyaEMR
 func (s *ServiceRequestUseCaseMock) GetServiceRequestsForKenyaEMR(ctx context.Context, payload *dto.ServiceRequestPayload) ([]*domain.ServiceRequest, error) {
 	return s.MockGetServiceRequestsForKenyaEMRFn(ctx, payload)
+}
+
+// UpdateServiceRequestsFromKenyaEMR mocks the implementation of updating service requests from KenyaEMR to MyCareHub
+func (s *ServiceRequestUseCaseMock) UpdateServiceRequestsFromKenyaEMR(ctx context.Context, payload *dto.UpdateServiceRequestsPayload) (bool, error) {
+	return s.MockUpdateServiceRequestsFromKenyaEMRFn(ctx, payload)
 }

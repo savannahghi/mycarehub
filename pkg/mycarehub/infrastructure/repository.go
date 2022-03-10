@@ -109,4 +109,5 @@ type Update interface {
 	AssignRoles(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error)
 	RevokeRoles(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error)
 	InvalidateScreeningToolResponse(ctx context.Context, clientID string, questionID string) error
+	UpdateServiceRequests(ctx context.Context, payload *domain.UpdateServiceRequestsPayload) (bool, error)
 }

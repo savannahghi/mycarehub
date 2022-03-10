@@ -11,6 +11,8 @@ import (
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
 	gormMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm/mock"
 	pgMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/mock"
 	"github.com/segmentio/ksuid"
@@ -1687,6 +1689,78 @@ func TestMyCareHubDb_InvalidateScreeningToolResponse(t *testing.T) {
 
 			if err := d.InvalidateScreeningToolResponse(tt.args.ctx, tt.args.clientID, tt.args.questionID); (err != nil) != tt.wantErr {
 				t.Errorf("MyCareHubDb.InvalidateScreeningToolResponse() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestMyCareHubDb_UpdateServiceRequests(t *testing.T) {
+	ctx := context.Background()
+	var fakeGorm = gormMock.NewGormMock()
+	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+	currentTime := time.Now()
+	inProgressBy := uuid.New().String()
+
+	payload := domain.ServiceRequest{
+		ID:           uuid.New().String(),
+		RequestType:  gofakeit.BeerName(),
+		Status:       "STATUS",
+		InProgressAt: &currentTime,
+		InProgressBy: &inProgressBy,
+		ResolvedAt:   &currentTime,
+		ResolvedBy:   &inProgressBy,
+	}
+
+	serviceReq := &domain.UpdateServiceRequestsPayload{
+		ServiceRequests: []domain.ServiceRequest{
+			payload,
+		},
+	}
+
+	type args struct {
+		ctx     context.Context
+		payload *domain.UpdateServiceRequestsPayload
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:     ctx,
+				payload: serviceReq,
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Sad case",
+			args: args{
+				ctx:     ctx,
+				payload: serviceReq,
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "Sad case" {
+				fakeGorm.MockUpdateServiceRequestsFn = func(ctx context.Context, payload []*gorm.ClientServiceRequest) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+			got, err := d.UpdateServiceRequests(tt.args.ctx, tt.args.payload)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.UpdateServiceRequests() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("MyCareHubDb.UpdateServiceRequests() = %v, want %v", got, tt.want)
 			}
 		})
 	}

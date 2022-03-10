@@ -348,3 +348,19 @@ func (f *ScreeningToolQuestionResponseInput) Validate() error {
 	err := v.Struct(f)
 	return err
 }
+
+// UpdateServiceRequestsPayload defined a list of service requests to synchronize MyCareHub with.
+type UpdateServiceRequestsPayload struct {
+	ServiceRequests []UpdateServiceRequestPayload `json:"serviceRequests" validate:"required"`
+}
+
+// UpdateServiceRequestPayload defines the payload that is used to synchronize KenyaEMR service requests to MyCareHub.
+type UpdateServiceRequestPayload struct {
+	ID           string    `json:"id" validate:"required"`
+	RequestType  string    `json:"request_type" validate:"required"`
+	Status       string    `json:"status" validate:"required"`
+	InProgressAt time.Time `json:"in_progress_at"`
+	InProgressBy string    `json:"in_progress_by"`
+	ResolvedAt   time.Time `json:"resolved_at"`
+	ResolvedBy   string    `json:"resolved_by"`
+}

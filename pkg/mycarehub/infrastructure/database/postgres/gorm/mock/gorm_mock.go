@@ -99,6 +99,7 @@ type GormMock struct {
 	MockAnswerScreeningToolQuestionsFn            func(ctx context.Context, screeningToolResponses []*gorm.ScreeningToolsResponse) error
 	MockGetScreeningToolQuestionByQuestionIDFn    func(ctx context.Context, questionID string) (*gorm.ScreeningToolQuestion, error)
 	MockInvalidateScreeningToolResponseFn         func(ctx context.Context, clientID string, questionID string) error
+	MockUpdateServiceRequestsFn                   func(ctx context.Context, payload []*gorm.ClientServiceRequest) (bool, error)
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -358,6 +359,9 @@ func NewGormMock() *GormMock {
 			return true, nil
 		},
 		MockSavePinFn: func(ctx context.Context, pinData *gorm.PINData) (bool, error) {
+			return true, nil
+		},
+		MockUpdateServiceRequestsFn: func(ctx context.Context, payload []*gorm.ClientServiceRequest) (bool, error) {
 			return true, nil
 		},
 		MockUpdateUserFailedLoginCountFn: func(ctx context.Context, userID string, failedLoginAttempts int) error {
@@ -1132,4 +1136,9 @@ func (gm *GormMock) GetScreeningToolQuestionByQuestionID(ctx context.Context, qu
 // InvalidateScreeningToolResponse mocks the implementation of invalidating screening tool responses
 func (gm *GormMock) InvalidateScreeningToolResponse(ctx context.Context, clientID string, questionID string) error {
 	return gm.MockInvalidateScreeningToolResponseFn(ctx, clientID, questionID)
+}
+
+// UpdateServiceRequests mocks the implementation of updating service requests from KenyaEMR to MyCareHub
+func (gm *GormMock) UpdateServiceRequests(ctx context.Context, payload []*gorm.ClientServiceRequest) (bool, error) {
+	return gm.MockUpdateServiceRequestsFn(ctx, payload)
 }
