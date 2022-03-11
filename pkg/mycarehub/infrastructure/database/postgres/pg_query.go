@@ -673,6 +673,7 @@ func (d *MyCareHubDb) GetServiceRequests(ctx context.Context, requestType, reque
 			Request:       serviceRequest.Request,
 			Status:        serviceRequest.Status,
 			ClientID:      serviceRequest.ClientID,
+			CreatedAt:     serviceRequest.Base.CreatedAt,
 			InProgressAt:  serviceRequest.InProgressAt,
 			InProgressBy:  serviceRequest.InProgressByID,
 			ResolvedAt:    serviceRequest.ResolvedAt,

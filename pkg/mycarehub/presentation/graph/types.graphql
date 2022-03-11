@@ -204,6 +204,7 @@ type ServiceRequest {
   Request: String!
   Status: String!
   ClientID: String!
+  CreatedAt: Time
   InProgressAt: Time
   InProgressBy: String
   ResolvedAt: Time
