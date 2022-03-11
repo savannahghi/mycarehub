@@ -5,6 +5,7 @@ import (
 
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
+	"github.com/savannahghi/scalarutils"
 )
 
 // RestEndpointResponses represents the rest endpoints response(s) output
@@ -27,6 +28,22 @@ type ClientRegistrationOutput struct {
 	CurrentFacilityID string           `json:"current_facility"`
 	CHV               string           `json:"chv"`
 	Caregiver         string           `json:"caregiver"`
+}
+
+// FacilityAppointmentsResponse is the response sent after creating/updating an appointment
+type FacilityAppointmentsResponse struct {
+	MFLCode      string                `json:"MFLCODE"`
+	Appointments []AppointmentResponse `json:"appointments"`
+}
+
+// AppointmentResponse is the response representing an appointment
+type AppointmentResponse struct {
+	CCCNumber       string                  `json:"ccc_number"`
+	AppointmentUUID string                  `json:"appointment_uuid"`
+	AppointmentType string                  `json:"appointment_type"`
+	Status          enums.AppointmentStatus `json:"status"`
+	AppointmentDate scalarutils.Date        `json:"appointment_date"`
+	TimeSlot        string                  `json:"time_slot"`
 }
 
 // HealthDiaryEntriesResponse is the response returned after querying the

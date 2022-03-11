@@ -719,6 +719,49 @@ func TestMyCareHubDb_CreateContact(t *testing.T) {
 	}
 }
 
+func TestMyCareHubDb_CreateAppointment(t *testing.T) {
+	var fakeGorm = gormMock.NewGormMock()
+	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+	type args struct {
+		ctx             context.Context
+		appointment     domain.Appointment
+		appointmentUUID string
+		clientID        string
+		staffID         string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "happy case: create a new appointment",
+			args: args{
+				ctx: context.Background(),
+				appointment: domain.Appointment{
+					ID:       gofakeit.UUID(),
+					Type:     "Dental",
+					Status:   "COMPLETED",
+					Reason:   "Knocked out",
+					ClientID: gofakeit.UUID(),
+				},
+				appointmentUUID: gofakeit.UUID(),
+				clientID:        gofakeit.UUID(),
+				staffID:         gofakeit.UUID(),
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := d.CreateAppointment(tt.args.ctx, tt.args.appointment, tt.args.appointmentUUID, tt.args.clientID, tt.args.staffID); (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.CreateAppointment() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
 func TestMyCareHubDb_AnswerScreeningToolQuestions(t *testing.T) {
 	type args struct {
 		ctx                    context.Context

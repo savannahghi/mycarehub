@@ -121,7 +121,6 @@ enum UserRoleType {
   CLIENT_MANAGEMENT
 }
 
-
 enum ScreeningToolResponseCategory {
   SINGLE_CHOICE
   MULTI_CHOICE
@@ -134,10 +133,21 @@ enum ScreeningToolResponseType {
   DATE
 }
 
-
 enum ScreeningToolType {
   TB_ASSESSMENT
   VIOLENCE_ASSESSMENT
   CONTRACEPTIVE_ASSESSMENT
   ALCOHOL_SUBSTANCE_ASSESSMENT
+}
+
+enum AppointmentStatus {
+  SCHEDULED
+  RESCHEDULED
+  WAITING
+  MISSED
+  COMPLETED
+  IN_CONSULTATION
+  WALK_IN
+  CANCELLED
+  NEEDS_RESCHEDULE
 }

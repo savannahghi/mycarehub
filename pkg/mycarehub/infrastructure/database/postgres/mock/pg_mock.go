@@ -13,6 +13,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
+	"github.com/savannahghi/scalarutils"
 )
 
 // PostgresMock struct implements mocks of `postgres's` internal methods.
@@ -98,11 +99,14 @@ type PostgresMock struct {
 	MockGetClientsByParams                        func(ctx context.Context, params gorm.Client, lastSyncTime *time.Time) ([]*domain.ClientProfile, error)
 	MockGetClientCCCIdentifier                    func(ctx context.Context, clientID string) (*domain.Identifier, error)
 	MockGetServiceRequestsForKenyaEMRFn           func(ctx context.Context, payload *dto.ServiceRequestPayload) ([]*domain.ServiceRequest, error)
+	MockCreateAppointment                         func(ctx context.Context, appointment domain.Appointment, appointmentUUID, clientID, staffID string) error
+	MockUpdateAppointment                         func(ctx context.Context, appointment domain.Appointment, appointmentUUID, clientID, staffID string) error
 	MockGetScreeningToolsQuestionsFn              func(ctx context.Context, toolType string) ([]*domain.ScreeningToolQuestion, error)
 	MockAnswerScreeningToolQuestionsFn            func(ctx context.Context, screeningToolResponses []*dto.ScreeningToolQuestionResponseInput) error
 	MockGetScreeningToolQuestionByQuestionIDFn    func(ctx context.Context, questionID string) (*domain.ScreeningToolQuestion, error)
 	MockInvalidateScreeningToolResponseFn         func(ctx context.Context, clientID string, questionID string) error
 	MockUpdateServiceRequestsFn                   func(ctx context.Context, payload *domain.UpdateServiceRequestsPayload) (bool, error)
+	MockListAppointments                          func(ctx context.Context, params *domain.Appointment, filter []*domain.FiltersParam, pagination *domain.Pagination) ([]*domain.Appointment, *domain.Pagination, error)
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -619,6 +623,28 @@ func NewPostgresMock() *PostgresMock {
 			}
 			return []*domain.ServiceRequest{serviceReq}, nil
 		},
+		MockCreateAppointment: func(ctx context.Context, appointment domain.Appointment, appointmentUUID, clientID, staffID string) error {
+			return nil
+		},
+		MockUpdateAppointment: func(ctx context.Context, appointment domain.Appointment, appointmentUUID, clientID, staffID string) error {
+			return nil
+		},
+		MockListAppointments: func(ctx context.Context, params *domain.Appointment, filter []*domain.FiltersParam, pagination *domain.Pagination) ([]*domain.Appointment, *domain.Pagination, error) {
+			return []*domain.Appointment{{
+				ID:       ID,
+				Type:     "Dental",
+				Status:   "COMPLETED",
+				Reason:   "Bad tooth",
+				Provider: "X",
+				Date: scalarutils.Date{
+					Year:  2023,
+					Month: 1,
+					Day:   1,
+				},
+				Start: time.Now(),
+				End:   time.Now().Add(1 * time.Hour),
+			}}, &domain.Pagination{}, nil
+		},
 		MockGetScreeningToolsQuestionsFn: func(ctx context.Context, toolType string) ([]*domain.ScreeningToolQuestion, error) {
 			return []*domain.ScreeningToolQuestion{
 				{
@@ -1085,6 +1111,21 @@ func (gm *PostgresMock) GetScreeningToolQuestionByQuestionID(ctx context.Context
 // InvalidateScreeningToolResponse mocks the implementation of invalidating screening tool responses
 func (gm *PostgresMock) InvalidateScreeningToolResponse(ctx context.Context, clientID string, questionID string) error {
 	return gm.MockInvalidateScreeningToolResponseFn(ctx, clientID, questionID)
+}
+
+// ListAppointments lists appointments based on provided criteria
+func (gm *PostgresMock) ListAppointments(ctx context.Context, params *domain.Appointment, filter []*domain.FiltersParam, pagination *domain.Pagination) ([]*domain.Appointment, *domain.Pagination, error) {
+	return gm.MockListAppointments(ctx, params, filter, pagination)
+}
+
+// CreateAppointment creates a new appointment
+func (gm *PostgresMock) CreateAppointment(ctx context.Context, appointment domain.Appointment, appointmentUUID, clientID, staffID string) error {
+	return gm.MockCreateAppointment(ctx, appointment, appointmentUUID, clientID, staffID)
+}
+
+// UpdateAppointment updates an appointment
+func (gm *PostgresMock) UpdateAppointment(ctx context.Context, appointment domain.Appointment, appointmentUUID, clientID, staffID string) error {
+	return gm.MockUpdateAppointment(ctx, appointment, appointmentUUID, clientID, staffID)
 }
 
 // UpdateServiceRequests mocks the implementation of updating service requests

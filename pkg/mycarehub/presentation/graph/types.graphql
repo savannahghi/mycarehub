@@ -296,6 +296,21 @@ type CommunityMember {
   userType: String!
 }
 
+type Appointment {
+  ID: ID!
+  type: String!
+  status: String!
+  reason: String!
+  date: Date!
+  start: Time
+  end: Time
+}
+
+type AppointmentsPage {
+  appointments: [Appointment]!
+  pagination: Pagination!
+}
+
 type ScreeningToolQuestion {
   id: String
   question: String

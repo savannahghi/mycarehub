@@ -30,6 +30,8 @@ const (
 	FilterSortDataTypeCounty FilterSortDataType = "county"
 
 	// Other Filter data Types
+	// FilterSortDataTypeCounty represents the Status Filter data type
+	FilterSortDataTypeAppointmentStatus FilterSortDataType = "status"
 )
 
 // FacilityFilterDataTypes represents a slice of all possible `FilterDataTypes` values
@@ -58,7 +60,8 @@ func (e FilterSortDataType) IsValid() bool {
 		FilterSortDataTypeName,
 		FilterSortDataTypeMFLCode,
 		FilterSortDataTypeActive,
-		FilterSortDataTypeCounty:
+		FilterSortDataTypeCounty,
+		FilterSortDataTypeAppointmentStatus:
 		return true
 	}
 	return false

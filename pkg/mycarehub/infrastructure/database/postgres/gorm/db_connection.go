@@ -10,6 +10,7 @@ import (
 
 	// responsible for providing methods that are by gorm to connect to cloud SQL
 	_ "github.com/GoogleCloudPlatform/cloudsql-proxy/proxy/dialers/postgres"
+	_ "github.com/lib/pq"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"

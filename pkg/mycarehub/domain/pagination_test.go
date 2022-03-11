@@ -232,10 +232,7 @@ func TestPagination_GetSort(t *testing.T) {
 				TotalPages:   2,
 				NextPage:     &nextPage,
 				PreviousPage: &previousPage,
-				Sort: &SortParam{
-					Field:     "",
-					Direction: "",
-				},
+				Sort:         nil,
 			},
 			want: "updated desc",
 		},

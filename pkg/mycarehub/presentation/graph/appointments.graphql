@@ -1,0 +1,7 @@
+extend type Query {
+  fetchClientAppointments(
+    clientID: ID!
+    paginationInput: PaginationsInput!
+    filterInput: [FiltersInput]
+  ): AppointmentsPage
+}

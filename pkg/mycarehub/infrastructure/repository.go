@@ -26,6 +26,7 @@ type Create interface {
 	CreateCommunity(ctx context.Context, communityInput *dto.CommunityInput) (*domain.Community, error)
 	CreateNextOfKin(ctx context.Context, person *dto.NextOfKinPayload) error
 	CreateContact(ctx context.Context, contact *domain.Contact) error
+	CreateAppointment(ctx context.Context, appointment domain.Appointment, appointmentUUID, clientID, staffID string) error
 	AnswerScreeningToolQuestions(ctx context.Context, screeningToolResponses []*dto.ScreeningToolQuestionResponseInput) error
 }
 
@@ -80,6 +81,7 @@ type Query interface {
 	GetClientsByParams(ctx context.Context, params gorm.Client, lastSyncTime *time.Time) ([]*domain.ClientProfile, error)
 	GetClientCCCIdentifier(ctx context.Context, clientID string) (*domain.Identifier, error)
 	GetServiceRequestsForKenyaEMR(ctx context.Context, payload *dto.ServiceRequestPayload) ([]*domain.ServiceRequest, error)
+	ListAppointments(ctx context.Context, params *domain.Appointment, filter []*domain.FiltersParam, pagination *domain.Pagination) ([]*domain.Appointment, *domain.Pagination, error)
 	GetScreeningToolQuestions(ctx context.Context, toolType string) ([]*domain.ScreeningToolQuestion, error)
 	GetScreeningToolQuestionByQuestionID(ctx context.Context, questionID string) (*domain.ScreeningToolQuestion, error)
 }
@@ -108,6 +110,7 @@ type Update interface {
 	ResolveServiceRequest(ctx context.Context, staffID *string, serviceRequestID *string) (bool, error)
 	AssignRoles(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error)
 	RevokeRoles(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error)
+	UpdateAppointment(ctx context.Context, appointment domain.Appointment, appointmentUUID, clientID, staffID string) error
 	InvalidateScreeningToolResponse(ctx context.Context, clientID string, questionID string) error
 	UpdateServiceRequests(ctx context.Context, payload *domain.UpdateServiceRequestsPayload) (bool, error)
 }

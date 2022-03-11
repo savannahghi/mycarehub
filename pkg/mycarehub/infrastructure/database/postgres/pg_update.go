@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/lib/pq"
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
@@ -181,6 +182,25 @@ func (d *MyCareHubDb) RevokeRoles(ctx context.Context, userID string, roles []en
 // InvalidateScreeningToolResponse invalidates a screening tool response
 func (d *MyCareHubDb) InvalidateScreeningToolResponse(ctx context.Context, clientID string, questionID string) error {
 	return d.update.InvalidateScreeningToolResponse(ctx, clientID, questionID)
+}
+
+// UpdateAppointment updates an appointment
+func (d *MyCareHubDb) UpdateAppointment(ctx context.Context, appointment domain.Appointment, appointmentUUID, clientID, staffID string) error {
+	date := appointment.Date.AsTime()
+	ap := &gorm.Appointment{
+		Active:          true,
+		AppointmentUUID: appointmentUUID,
+		AppointmentType: appointment.Type,
+		Status:          appointment.Status,
+		ClientID:        clientID,
+		Reason:          appointment.Reason,
+		Provider:        appointment.Provider,
+		Date:            date,
+		StartTime:       pq.NullTime{Time: appointment.Start, Valid: true},
+		EndTime:         pq.NullTime{Time: appointment.End, Valid: true},
+	}
+
+	return d.update.UpdateAppointment(ctx, ap)
 }
 
 // UpdateServiceRequests updates service requests

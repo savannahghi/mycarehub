@@ -900,3 +900,43 @@ func TestPGInstance_AnswerScreeningToolQuestions(t *testing.T) {
 		})
 	}
 }
+
+func TestPGInstance_CreateAppointment(t *testing.T) {
+
+	type args struct {
+		ctx         context.Context
+		appointment *gorm.Appointment
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: create an appointment",
+			args: args{
+				ctx: context.Background(),
+				appointment: &gorm.Appointment{
+					Active:          true,
+					AppointmentUUID: gofakeit.UUID(),
+					AppointmentType: "Dental",
+					Status:          enums.AppointmentStatusCompleted.String(),
+					ClientID:        clientID,
+
+					Reason:    "Knocked up",
+					Date:      time.Now().Add(time.Duration(100)),
+					StartTime: pq.NullTime{Time: time.Now(), Valid: true},
+					EndTime:   pq.NullTime{Time: time.Now().Add(30 * time.Minute), Valid: true},
+				},
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := testingDB.CreateAppointment(tt.args.ctx, tt.args.appointment); (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.CreateAppointment() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}

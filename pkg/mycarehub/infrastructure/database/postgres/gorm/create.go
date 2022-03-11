@@ -20,6 +20,7 @@ type Create interface {
 	CreateCommunity(ctx context.Context, community *Community) (*Community, error)
 	CreateRelatedPerson(ctx context.Context, person *RelatedPerson) error
 	CreateContact(ctx context.Context, contact *Contact) error
+	CreateAppointment(ctx context.Context, appointment *Appointment) error
 	AnswerScreeningToolQuestions(ctx context.Context, screeningToolResponses []*ScreeningToolsResponse) error
 }
 
@@ -253,6 +254,29 @@ func (db *PGInstance) CreateContact(ctx context.Context, contact *Contact) error
 	if err := tx.Commit().Error; err != nil {
 		tx.Rollback()
 		return fmt.Errorf("transaction commit to create contact failed: %v", err)
+	}
+
+	return nil
+}
+
+// CreateAppointment creates an appointment in the database
+func (db *PGInstance) CreateAppointment(ctx context.Context, appointment *Appointment) error {
+	tx := db.DB.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	err := tx.Create(appointment).Error
+	if err != nil {
+		tx.Rollback()
+		return fmt.Errorf("failed to create an appointment: %v", err)
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		tx.Rollback()
+		return fmt.Errorf("transaction commit to create an appointment failed: %v", err)
 	}
 
 	return nil

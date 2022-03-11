@@ -40,7 +40,7 @@ func (p *Pagination) GetPage() int {
 func (p *Pagination) GetSort() string {
 	var sortString string
 
-	if p.Sort.Field == "" || p.Sort.Direction == "" {
+	if p.Sort == nil {
 		p.Sort = &SortParam{
 			Field:     enums.FilterSortDataTypeUpdatedAt,
 			Direction: enums.SortDataTypeDesc,
