@@ -398,6 +398,7 @@ type ComplexityRoot struct {
 		ClientContact func(childComplexity int) int
 		ClientID      func(childComplexity int) int
 		ClientName    func(childComplexity int) int
+		CreatedAt     func(childComplexity int) int
 		FacilityID    func(childComplexity int) int
 		ID            func(childComplexity int) int
 		InProgressAt  func(childComplexity int) int
@@ -2464,6 +2465,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ServiceRequest.ClientName(childComplexity), true
 
+	case "ServiceRequest.CreatedAt":
+		if e.complexity.ServiceRequest.CreatedAt == nil {
+			break
+		}
+
+		return e.complexity.ServiceRequest.CreatedAt(childComplexity), true
+
 	case "ServiceRequest.FacilityID":
 		if e.complexity.ServiceRequest.FacilityID == nil {
 			break
@@ -3202,6 +3210,7 @@ type ServiceRequest {
   Request: String!
   Status: String!
   ClientID: String!
+  CreatedAt: Time
   InProgressAt: Time
   InProgressBy: String
   ResolvedAt: Time
@@ -13357,6 +13366,38 @@ func (ec *executionContext) _ServiceRequest_ClientID(ctx context.Context, field 
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _ServiceRequest_CreatedAt(ctx context.Context, field graphql.CollectedField, obj *domain.ServiceRequest) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ServiceRequest",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CreatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalOTime2timeᚐTime(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _ServiceRequest_InProgressAt(ctx context.Context, field graphql.CollectedField, obj *domain.ServiceRequest) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -17641,6 +17682,8 @@ func (ec *executionContext) _ServiceRequest(ctx context.Context, sel ast.Selecti
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "CreatedAt":
+			out.Values[i] = ec._ServiceRequest_CreatedAt(ctx, field, obj)
 		case "InProgressAt":
 			out.Values[i] = ec._ServiceRequest_InProgressAt(ctx, field, obj)
 		case "InProgressBy":

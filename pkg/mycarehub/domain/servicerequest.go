@@ -13,6 +13,7 @@ type ServiceRequest struct {
 	Request       string     `json:"request"`
 	Status        string     `json:"status"`
 	ClientID      string     `json:"clientID"`
+	CreatedAt     time.Time  `json:"created"`
 	InProgressAt  *time.Time `json:"inProgressAt"`
 	InProgressBy  *string    `json:"inProgressBy"`
 	ResolvedAt    *time.Time `json:"resolvedAt"`
