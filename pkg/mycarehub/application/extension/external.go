@@ -44,6 +44,9 @@ type ExternalMethodsExtension interface {
 	SendFeedback(ctx context.Context, subject, feedbackMessage string) (bool, error)
 	GetLoggedInUserUID(ctx context.Context) (string, error)
 	MakeRequest(ctx context.Context, method string, path string, body interface{}) (*http.Response, error)
+
+	// Login
+	Login(ctx context.Context) http.HandlerFunc
 }
 
 // External type implements external methods
@@ -204,4 +207,9 @@ func (e *External) MakeRequest(ctx context.Context, method string, path string, 
 	req.Header.Set("Content-Type", "application/json")
 
 	return client.Do(req)
+}
+
+// Login authenticates against firebase to return a valid token
+func (e *External) Login(ctx context.Context) http.HandlerFunc {
+	return firebasetools.GetLoginFunc(ctx, &firebasetools.FirebaseClient{})
 }

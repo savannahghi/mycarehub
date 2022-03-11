@@ -29,6 +29,7 @@ type FakeExtensionImpl struct {
 	MockSendFeedbackFn                    func(ctx context.Context, subject, feedbackMessage string) (bool, error)
 	MockGetLoggedInUserUIDFn              func(ctx context.Context) (string, error)
 	MockMakeRequestFn                     func(ctx context.Context, method string, path string, body interface{}) (*http.Response, error)
+	MockLoginFn                           func(ctx context.Context) http.HandlerFunc
 }
 
 // NewFakeExtension initializes a new instance of the external calls mock
@@ -163,4 +164,9 @@ func (f *FakeExtensionImpl) GetLoggedInUserUID(ctx context.Context) (string, err
 // MakeRequest mocks the implementation of making a http request
 func (f *FakeExtensionImpl) MakeRequest(ctx context.Context, method string, path string, body interface{}) (*http.Response, error) {
 	return f.MockMakeRequestFn(ctx, method, path, body)
+}
+
+// Login mocks the login implementation to retrieve a token
+func (f *FakeExtensionImpl) Login(ctx context.Context) http.HandlerFunc {
+	return f.MockLoginFn(ctx)
 }
