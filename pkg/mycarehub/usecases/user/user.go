@@ -313,6 +313,7 @@ func (us *UseCasesUserImpl) ReturnLoginResponse(ctx context.Context, flavour fee
 			ExtraData: map[string]interface{}{
 				"userType": "CLIENT",
 				"userID":   userProfile.ID,
+				"nickName": userProfile.Username,
 			},
 		}
 
@@ -356,6 +357,7 @@ func (us *UseCasesUserImpl) ReturnLoginResponse(ctx context.Context, flavour fee
 			ExtraData: map[string]interface{}{
 				"userType": "STAFF",
 				"userID":   userProfile.ID,
+				"nickName": userProfile.Username,
 			},
 		}
 

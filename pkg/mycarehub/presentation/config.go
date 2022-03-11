@@ -193,23 +193,27 @@ func Router(ctx context.Context) (*mux.Router, error) {
 		http.MethodPost,
 	).HandlerFunc(loginsvc.Login(ctx))
 
-	// KenyaEMR routes
-	r.Path("/register_patient").Methods(
+	// KenyaEMR routes. These endpoints are authenticated and are used for integrations
+	// between myCareHub and KenyaEMR
+	kenyaEMR := r.PathPrefix("/kenya-emr").Subrouter()
+	kenyaEMR.Use(firebasetools.AuthenticationMiddleware(firebaseApp))
+
+	kenyaEMR.Path("/register_patient").Methods(
 		http.MethodOptions,
 		http.MethodPost,
 	).HandlerFunc(internalHandlers.RegisterKenyaEMRPatients())
 
-	r.Path("/health_diary").Methods(
+	kenyaEMR.Path("/health_diary").Methods(
 		http.MethodGet,
 		http.MethodOptions,
 	).HandlerFunc(internalHandlers.GetClientHealthDiaryEntries())
 
-	r.Path("/service_request").Methods(
+	kenyaEMR.Path("/service_request").Methods(
 		http.MethodOptions,
 		http.MethodGet,
 	).HandlerFunc(internalHandlers.GetServiceRequests())
 
-	r.Path("/patients").Methods(
+	kenyaEMR.Path("/patients").Methods(
 		http.MethodOptions,
 		http.MethodGet,
 	).HandlerFunc(internalHandlers.RegisteredFacilityPatients())
