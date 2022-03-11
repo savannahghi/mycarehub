@@ -211,7 +211,8 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	kenyaEMR.Path("/service_request").Methods(
 		http.MethodOptions,
 		http.MethodGet,
-	).HandlerFunc(internalHandlers.GetServiceRequests())
+		http.MethodPost,
+	).HandlerFunc(internalHandlers.ServiceRequests())
 
 	kenyaEMR.Path("/patients").Methods(
 		http.MethodOptions,

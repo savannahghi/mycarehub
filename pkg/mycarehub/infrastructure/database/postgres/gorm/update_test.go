@@ -10,6 +10,7 @@ import (
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
 	"github.com/segmentio/ksuid"
 )
 
@@ -1295,6 +1296,84 @@ func TestPGInstance_InvalidateScreeningToolResponse(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if err := testingDB.InvalidateScreeningToolResponse(tt.args.ctx, tt.args.clientID, tt.args.questionID); (err != nil) != tt.wantErr {
 				t.Errorf("PGInstance.InvalidateScreeningToolResponse() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestPGInstance_UpdateServiceRequestsFromKenyaEMR(t *testing.T) {
+	ctx := context.Background()
+	pg, err := gorm.NewPGInstance()
+	if err != nil {
+		t.Errorf("failed to initialize new PG instance: %v", err)
+		return
+	}
+
+	serviceReq := &gorm.ClientServiceRequest{
+		Base:           gorm.Base{},
+		ID:             &serviceRequestID,
+		Active:         true,
+		RequestType:    "RED_FLAG",
+		Request:        "VERY SAD",
+		Status:         "IN PROGRESS",
+		InProgressAt:   &time.Time{},
+		ResolvedAt:     &time.Time{},
+		ClientID:       clientID,
+		InProgressByID: &staffID,
+		OrganisationID: uuid.New().String(),
+		ResolvedByID:   &staffID,
+		FacilityID:     facilityID,
+	}
+
+	badServiceRequestID := "badServiceRequestID"
+	invalidServiceReq := &gorm.ClientServiceRequest{
+		ID: &badServiceRequestID,
+	}
+
+	err = pg.DB.Create(serviceReq).Error
+	if err != nil {
+		t.Errorf("Create securityQuestionResponse failed: %v", err)
+		return
+	}
+
+	type args struct {
+		ctx     context.Context
+		payload []*gorm.ClientServiceRequest
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:     ctx,
+				payload: []*gorm.ClientServiceRequest{serviceReq},
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Sad case",
+			args: args{
+				ctx:     ctx,
+				payload: []*gorm.ClientServiceRequest{invalidServiceReq},
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := testingDB.UpdateServiceRequests(tt.args.ctx, tt.args.payload)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.UpdateServiceRequests() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("PGInstance.UpdateServiceRequests() = %v, want %v", got, tt.want)
 			}
 		})
 	}

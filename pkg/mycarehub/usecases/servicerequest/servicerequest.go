@@ -46,12 +46,18 @@ type IResolveServiceRequest interface {
 	ResolveServiceRequest(ctx context.Context, staffID *string, serviceRequestID *string) (bool, error)
 }
 
+// IUpdateServiceRequest is the interface holding the method signature for updating service requests.
+type IUpdateServiceRequest interface {
+	UpdateServiceRequestsFromKenyaEMR(ctx context.Context, payload *dto.UpdateServiceRequestsPayload) (bool, error)
+}
+
 // UseCaseServiceRequest holds all the interfaces that represent the service request business logic
 type UseCaseServiceRequest interface {
 	ICreateServiceRequest
 	IGetServiceRequests
 	ISetInProgresssBy
 	IResolveServiceRequest
+	IUpdateServiceRequest
 }
 
 // UseCasesServiceRequestImpl embeds the service request logic
@@ -165,4 +171,27 @@ func (u *UseCasesServiceRequestImpl) ResolveServiceRequest(ctx context.Context, 
 	}
 
 	return ok, nil
+}
+
+// UpdateServiceRequestsFromKenyaEMR is used to update service requests from KenyaEMR to MyCareHub service.
+func (u *UseCasesServiceRequestImpl) UpdateServiceRequestsFromKenyaEMR(ctx context.Context, payload *dto.UpdateServiceRequestsPayload) (bool, error) {
+	var serviceRequests []domain.ServiceRequest
+	for _, v := range payload.ServiceRequests {
+		serviceRequest := &domain.ServiceRequest{
+			ID:           v.ID,
+			RequestType:  v.RequestType,
+			Status:       v.Status,
+			InProgressAt: &v.InProgressAt,
+			InProgressBy: &v.InProgressBy,
+			ResolvedAt:   &v.ResolvedAt,
+			ResolvedBy:   &v.ResolvedBy,
+		}
+
+		serviceRequests = append(serviceRequests, *serviceRequest)
+	}
+
+	serviceReq := &domain.UpdateServiceRequestsPayload{
+		ServiceRequests: serviceRequests,
+	}
+	return u.Update.UpdateServiceRequests(ctx, serviceReq)
 }

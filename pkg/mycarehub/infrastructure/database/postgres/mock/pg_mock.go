@@ -102,6 +102,7 @@ type PostgresMock struct {
 	MockAnswerScreeningToolQuestionsFn            func(ctx context.Context, screeningToolResponses []*dto.ScreeningToolQuestionResponseInput) error
 	MockGetScreeningToolQuestionByQuestionIDFn    func(ctx context.Context, questionID string) (*domain.ScreeningToolQuestion, error)
 	MockInvalidateScreeningToolResponseFn         func(ctx context.Context, clientID string, questionID string) error
+	MockUpdateServiceRequestsFn                   func(ctx context.Context, payload *domain.UpdateServiceRequestsPayload) (bool, error)
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -258,6 +259,9 @@ func NewPostgresMock() *PostgresMock {
 			}, nil
 		},
 		MockSetNickNameFn: func(ctx context.Context, userID, nickname *string) (bool, error) {
+			return true, nil
+		},
+		MockUpdateServiceRequestsFn: func(ctx context.Context, payload *domain.UpdateServiceRequestsPayload) (bool, error) {
 			return true, nil
 		},
 		MockSaveTemporaryUserPinFn: func(ctx context.Context, pinData *domain.UserPIN) (bool, error) {
@@ -1077,4 +1081,9 @@ func (gm *PostgresMock) GetScreeningToolQuestionByQuestionID(ctx context.Context
 // InvalidateScreeningToolResponse mocks the implementation of invalidating screening tool responses
 func (gm *PostgresMock) InvalidateScreeningToolResponse(ctx context.Context, clientID string, questionID string) error {
 	return gm.MockInvalidateScreeningToolResponseFn(ctx, clientID, questionID)
+}
+
+// UpdateServiceRequests mocks the implementation of updating service requests
+func (gm *PostgresMock) UpdateServiceRequests(ctx context.Context, payload *domain.UpdateServiceRequestsPayload) (bool, error) {
+	return gm.MockUpdateServiceRequestsFn(ctx, payload)
 }

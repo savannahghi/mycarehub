@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/brianvoe/gofakeit"
 	"github.com/google/uuid"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
@@ -486,6 +487,70 @@ func TestUseCasesServiceRequestImpl_GetServiceRequestsForKenyaEMR(t *testing.T) 
 			if !tt.wantErr && got == nil {
 				t.Errorf("UseCasesServiceRequestImpl.GetServiceRequestsForKenyaEMR = %v, want %v", got, tt.want)
 				return
+			}
+		})
+	}
+}
+
+func TestUseCasesServiceRequestImpl_UpdateServiceRequestsFromKenyaEMR(t *testing.T) {
+	ctx := context.Background()
+	fakeDB := pgMock.NewPostgresMock()
+	u := servicerequest.NewUseCaseServiceRequestImpl(fakeDB, fakeDB, fakeDB)
+
+	payload := dto.UpdateServiceRequestPayload{
+		ID:           uuid.New().String(),
+		RequestType:  gofakeit.BeerName(),
+		Status:       "STATUS",
+		InProgressAt: time.Time{},
+		InProgressBy: uuid.New().String(),
+		ResolvedAt:   time.Time{},
+		ResolvedBy:   uuid.New().String(),
+	}
+
+	serviceReq := &dto.UpdateServiceRequestsPayload{
+		ServiceRequests: []dto.UpdateServiceRequestPayload{
+			payload,
+		},
+	}
+
+	type args struct {
+		ctx     context.Context
+		payload *dto.UpdateServiceRequestsPayload
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:     ctx,
+				payload: serviceReq,
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Sad case",
+			args: args{
+				ctx:     ctx,
+				payload: serviceReq,
+			},
+			want:    true,
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := u.UpdateServiceRequestsFromKenyaEMR(tt.args.ctx, tt.args.payload)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCasesServiceRequestImpl.UpdateServiceRequestsFromKenyaEMR() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("UseCasesServiceRequestImpl.UpdateServiceRequestsFromKenyaEMR() = %v, want %v", got, tt.want)
 			}
 		})
 	}

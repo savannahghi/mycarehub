@@ -37,6 +37,7 @@ type Update interface {
 	AssignRoles(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error)
 	RevokeRoles(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error)
 	InvalidateScreeningToolResponse(ctx context.Context, clientID string, questionID string) error
+	UpdateServiceRequests(ctx context.Context, payload []*ClientServiceRequest) (bool, error)
 }
 
 // LikeContent perfoms the actual database operation to update content like. The operation
@@ -798,4 +799,38 @@ func (db *PGInstance) InvalidateScreeningToolResponse(ctx context.Context, clien
 		return fmt.Errorf("transaction commit to update screening tool response failed: %v", err)
 	}
 	return nil
+}
+
+// UpdateServiceRequests performs and update to the client service requests
+func (db *PGInstance) UpdateServiceRequests(ctx context.Context, payload []*ClientServiceRequest) (bool, error) {
+	tx := db.DB.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+	if err := tx.Error; err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, fmt.Errorf("unable to initialize database transaction: %v", err)
+	}
+
+	for _, k := range payload {
+		err := db.DB.Model(&ClientServiceRequest{}).Where(&ClientServiceRequest{ID: k.ID, RequestType: k.RequestType}).Updates(map[string]interface{}{
+			"status":         k.Status,
+			"in_progress_at": k.InProgressAt,
+			"resolved_at":    k.ResolvedAt,
+		}).Error
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return false, fmt.Errorf("unable to update client's service request: %v", err)
+		}
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		helpers.ReportErrorToSentry(err)
+		tx.Rollback()
+		return false, fmt.Errorf("unable to commit transaction: %v", err)
+	}
+
+	return true, nil
 }
