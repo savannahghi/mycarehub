@@ -18,6 +18,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
 	streamService "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/getstream"
+	loginservice "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/login"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/presentation/graph"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/presentation/graph/generated"
 	internalRest "github.com/savannahghi/mycarehub/pkg/mycarehub/presentation/rest"
@@ -72,6 +73,7 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	}
 
 	externalExt := externalExtension.NewExternalMethodsImpl()
+	loginsvc := loginservice.NewServiceLoginImpl(externalExt)
 	db := postgres.NewMyCareHubDb(pg, pg, pg, pg)
 
 	// Initialize facility usecase
@@ -183,6 +185,13 @@ func Router(ctx context.Context) (*mux.Router, error) {
 		http.MethodOptions,
 		http.MethodPost,
 	).HandlerFunc(internalHandlers.GetUserRespondedSecurityQuestions())
+
+	// This endpoint will be used by external services to get a token that will be used to
+	// authenticate against our APIs
+	r.Path("/login").Methods(
+		http.MethodOptions,
+		http.MethodPost,
+	).HandlerFunc(loginsvc.Login(ctx))
 
 	// KenyaEMR routes
 	r.Path("/register_patient").Methods(
