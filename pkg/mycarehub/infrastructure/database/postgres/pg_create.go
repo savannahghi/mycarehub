@@ -271,3 +271,25 @@ func (d *MyCareHubDb) CreateContact(ctx context.Context, contact *domain.Contact
 
 	return d.create.CreateContact(ctx, ct)
 }
+
+// AnswerScreeningToolQuestions creates a screening tool answers
+func (d *MyCareHubDb) AnswerScreeningToolQuestions(ctx context.Context, screeningToolResponses []*dto.ScreeningToolQuestionResponseInput) error {
+	fmt.Println("AnswerScreeningToolQuestions", screeningToolResponses)
+
+	var screeningToolResponsesObj []*gorm.ScreeningToolsResponse
+	for _, st := range screeningToolResponses {
+		stq := &gorm.ScreeningToolsResponse{
+			ClientID:   st.ClientID,
+			QuestionID: st.QuestionID,
+			Response:   st.Response,
+			Active:     true,
+		}
+		screeningToolResponsesObj = append(screeningToolResponsesObj, stq)
+	}
+	err := d.create.AnswerScreeningToolQuestions(ctx, screeningToolResponsesObj)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return err
+	}
+	return nil
+}

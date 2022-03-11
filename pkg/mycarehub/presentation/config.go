@@ -100,7 +100,7 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	communitiesUseCase := communities.NewUseCaseCommunitiesImpl(getStream, externalExt, db, db)
 
 	healthDiaryUseCase := healthdiary.NewUseCaseHealthDiaryImpl(db, db, serviceRequestUseCase)
-	screeningToolsUsecases := screeningtools.NewUseCasesScreeningTools(db)
+	screeningToolsUsecases := screeningtools.NewUseCasesScreeningTools(db, db, db)
 
 	useCase := usecases.NewMyCareHubUseCase(
 		userUsecase, termsUsecase, facilityUseCase,

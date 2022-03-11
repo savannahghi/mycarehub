@@ -335,15 +335,15 @@ type ServiceRequestPayload struct {
 	LastSyncTime *time.Time `json:"lastSyncTime"`
 }
 
-// AnswerScreeningToolsQuestionInput defines the field passed when answering screening tools questions
-type AnswerScreeningToolsQuestionInput struct {
+// ScreeningToolQuestionResponseInput defines the field passed when answering screening tools questions
+type ScreeningToolQuestionResponseInput struct {
 	ClientID   string `json:"clientID" validate:"required"`
 	QuestionID string `json:"questionID" validate:"required"`
 	Response   string `json:"response" validate:"required"`
 }
 
-// Validate helps with validation of AnswerScreeningToolsQuestionInput fields
-func (f *AnswerScreeningToolsQuestionInput) Validate() error {
+// Validate helps with validation of ScreeningToolQuestionResponseInput fields
+func (f *ScreeningToolQuestionResponseInput) Validate() error {
 	v := validator.New()
 	err := v.Struct(f)
 	return err

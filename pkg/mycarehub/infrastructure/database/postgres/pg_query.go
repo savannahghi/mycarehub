@@ -984,3 +984,41 @@ func (d *MyCareHubDb) GetScreeningToolQuestions(ctx context.Context, questionTyp
 
 	return screeningToolQuestions, nil
 }
+
+// GetScreeningToolQuestionByQuestionID fetches a screening tool question by question id
+func (d *MyCareHubDb) GetScreeningToolQuestionByQuestionID(ctx context.Context, questionID string) (*domain.ScreeningToolQuestion, error) {
+	screeningToolQuestion, err := d.query.GetScreeningToolQuestionByQuestionID(ctx, questionID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
+	choices, err := utils.ConvertJSONStringToMap(screeningToolQuestion.ResponseChoices)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, fmt.Errorf("error converting response choices json string to map: %v", err)
+	}
+
+	var meta map[string]interface{}
+
+	if screeningToolQuestion.Meta != "" {
+		meta, err = utils.ConvertJSONStringToMap(screeningToolQuestion.Meta)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return nil, fmt.Errorf("error converting meta json string to map: %v", err)
+		}
+	}
+	screeningToolQuestionObj := &domain.ScreeningToolQuestion{
+		ID:               screeningToolQuestion.ID,
+		Question:         screeningToolQuestion.Question,
+		ToolType:         enums.ScreeningToolType(screeningToolQuestion.ToolType),
+		ResponseChoices:  choices,
+		ResponseType:     enums.ScreeningToolResponseType(screeningToolQuestion.ResponseType),
+		ResponseCategory: enums.ScreeningToolResponseCategory(screeningToolQuestion.ResponseCategory),
+		Sequence:         screeningToolQuestion.Sequence,
+		Meta:             meta,
+		Active:           screeningToolQuestion.Active,
+	}
+
+	return screeningToolQuestionObj, nil
+}

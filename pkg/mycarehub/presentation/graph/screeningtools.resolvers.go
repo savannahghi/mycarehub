@@ -6,8 +6,13 @@ package graph
 import (
 	"context"
 
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 )
+
+func (r *mutationResolver) AnswerScreeningToolQuestion(ctx context.Context, screeningToolResponses []*dto.ScreeningToolQuestionResponseInput) (bool, error) {
+	return r.mycarehub.ScreeningTools.AnswerScreeningToolQuestions(ctx, screeningToolResponses)
+}
 
 func (r *queryResolver) GetScreeningToolQuestions(ctx context.Context, toolType *string) ([]*domain.ScreeningToolQuestion, error) {
 	return r.mycarehub.ScreeningTools.GetScreeningToolQuestions(ctx, toolType)

@@ -102,8 +102,8 @@ input AgeRangeInput {
 }
 
 
-input AnswerScreeningToolsQuestionInput {
-	clientID:   String! 
+input ScreeningToolQuestionResponseInput { 
+  clientID: String!
 	questionID: String! 
 	response:   String! 
 }

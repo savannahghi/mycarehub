@@ -2675,3 +2675,54 @@ func TestPGInstance_GetRecentHealthDiaryEntries(t *testing.T) {
 		})
 	}
 }
+
+func TestPGInstance_GetScreeningToolQuestionByQuestionID(t *testing.T) {
+	ctx := context.Background()
+	type args struct {
+		ctx        context.Context
+		questionID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "happy case",
+			args: args{
+				ctx:        ctx,
+				questionID: screeningToolsQuestionID,
+			},
+			wantErr: false,
+		},
+		{
+			name: "sad case: invalid uuid",
+			args: args{
+				ctx:        ctx,
+				questionID: "123Q4",
+			},
+			wantErr: true,
+		},
+		{
+			name: "sad case: question not found",
+			args: args{
+				ctx:        ctx,
+				questionID: uuid.New().String(),
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			got, err := testingDB.GetScreeningToolQuestionByQuestionID(tt.args.ctx, tt.args.questionID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.GetScreeningToolQuestionByQuestionID() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if tt.wantErr && got != nil {
+				t.Errorf("PGInstance.GetScreeningToolQuestions() = %v, want %v", got, tt.wantErr)
+			}
+		})
+	}
+}
