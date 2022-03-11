@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strconv"
 	"time"
 
 	stream "github.com/GetStream/stream-chat-go/v5"
@@ -11,9 +12,9 @@ import (
 )
 
 var (
-	getStreamAPIKey          = serverutils.MustGetEnvVar("GET_STREAM_KEY")
-	getStreamAPISecret       = serverutils.MustGetEnvVar("GET_STREAM_SECRET")
-	getStreamTokenExpiryTime = time.Now().UTC().Add(time.Hour * 12)
+	getStreamAPIKey            = serverutils.MustGetEnvVar("GET_STREAM_KEY")
+	getStreamAPISecret         = serverutils.MustGetEnvVar("GET_STREAM_SECRET")
+	getStreamTokenExpiryInDays = serverutils.MustGetEnvVar("GET_STREAM_TOKEN_EXPIRY_DAYS")
 )
 
 // ServiceGetStream represents the various Getstream usecases
@@ -56,6 +57,12 @@ func NewServiceGetStream() ServiceGetStream {
 // CreateGetStreamUserToken creates a new token for a user with optional expire time. This token is handed
 // to the client side during login. It allows the client side to connect to the chat API for that user.
 func (c *ChatClient) CreateGetStreamUserToken(ctx context.Context, userID string) (string, error) {
+	tokenExpiry, err := strconv.Atoi(getStreamTokenExpiryInDays)
+	if err != nil {
+		return "", fmt.Errorf("failed to convert expiry days to integer: %v", err)
+	}
+	getStreamTokenExpiryTime := time.Now().UTC().AddDate(0, 0, tokenExpiry)
+
 	return c.client.CreateToken(userID, getStreamTokenExpiryTime, time.Now())
 }
 

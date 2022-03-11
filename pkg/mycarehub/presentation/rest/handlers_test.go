@@ -1145,7 +1145,7 @@ func TestMyCareHubHandlersInterfacesImpl_RegisterKenyaEMRPatients(t *testing.T) 
 			name: "Sad case - empty payload",
 			args: args{
 				url: fmt.Sprintf(
-					"%s/register_patient",
+					"%s/kenya-emr/register_patient",
 					baseURL,
 				),
 				httpMethod: http.MethodPost,
@@ -1254,7 +1254,7 @@ func TestMyCareHubHandlersInterfacesImpl_GetClientHealthDiaryEntries(t *testing.
 		{
 			name: "Sad Case - Empty payload",
 			args: args{
-				url:        fmt.Sprintf("%s/health_diary?%s", baseURL, invalidparams.Encode()),
+				url:        fmt.Sprintf("%s/kenya-emr/health_diary?%s", baseURL, invalidparams.Encode()),
 				httpMethod: http.MethodGet,
 			},
 			wantStatus: http.StatusBadRequest,
@@ -1359,7 +1359,7 @@ func TestMyCareHubHandlersInterfacesImpl_RegisteredFacilityPatients(t *testing.T
 		{
 			name: "Sad Case - Empty payload",
 			args: args{
-				url:        fmt.Sprintf("%s/patients?%s", baseURL, invalidparams.Encode()),
+				url:        fmt.Sprintf("%s/kenya-emr/patients?%s", baseURL, invalidparams.Encode()),
 				httpMethod: http.MethodGet,
 			},
 			wantStatus: http.StatusBadRequest,
@@ -1465,7 +1465,7 @@ func TestMyCareHubHandlersInterfacesImpl_GetServiceRequests(t *testing.T) {
 		{
 			name: "Sad Case - Empty payload",
 			args: args{
-				url:        fmt.Sprintf("%s/service_request?%s", baseURL, invalidparams.Encode()),
+				url:        fmt.Sprintf("%s/kenya-emr/service_request?%s", baseURL, invalidparams.Encode()),
 				httpMethod: http.MethodGet,
 			},
 			wantStatus: http.StatusBadRequest,

@@ -71,6 +71,7 @@ env:
   CLIENT_REGISTRATION_URL: ${{ secrets.CLIENT_REGISTRATION_URL }}
   GET_STREAM_KEY: ${{ secrets.GET_STREAM_KEY }}
   GET_STREAM_SECRET: ${{ secrets.GET_STREAM_SECRET }}
+  GET_STREAM_TOKEN_EXPIRY_DAYS: ${{ secrets.GET_STREAM_TOKEN_EXPIRY_DAYS }}
 
 concurrency:
   group: lint-and-test
