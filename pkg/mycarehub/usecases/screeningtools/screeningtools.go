@@ -70,14 +70,60 @@ func (t *ServiceScreeningToolsImpl) GetScreeningToolQuestions(ctx context.Contex
 }
 
 // AnswerScreeningToolQuestions answer screening tools questions
+// a condition is a collection of values collected when answering a set of screening tool questions.
+// 		some of the data we can save in the condition includes:
+// 			1. response value
+// 			2. meta data of the question
+// 			3. the number of times the a given choice has been selected for the given set of questions (based on `ToolType`)
+// Example:
+// 		given a set of screening tool questions:
+// 		[
+// 			{
+// 				"ID": "fe8f8f8f-8f8f-8f8f-8f8f-8f8f8f8f8f8f",
+// 				"Question": "In the past, has anyone made you feel threatened, fearful or in danger?",
+// 				"ToolType": "VIOLENCE_ASSESSMENT",
+// 				"ResponseChoices": map[string]interface{}{"1": "Yes", "2": "No"},
+// 				"ResponseType": "INTEGER",
+// 				"ResponseCategory": "SINGLE_CHOICE",
+// 				"Active": true,
+// 				"Sequence": 0
+// 				"Meta": map[string]interface{}{
+// 					"helper_text": "Emotional violence Assessment",
+// 					"violence_type": "EMOTIONAL",
+// 					"violence_code": "GBV-EV",
+// 				}
+// 			}
+// 		]
+// 		we can formulate a condition like:
+// 		we assume the user answered yes for this question
+// 		{
+// 			"VIOLENCE_ASSESSMENT_question_number_0": "yes", // response value
+// 			"VIOLENCE_ASSESSMENT_question_number_0_meta": {
+// 				"helper_text": "Emotional violence Assessment",
+// 				"violence_type": "EMOTIONAL",
+// 				"violence_code": "GBV-EV",
+// 			},// meta data of question number 0
+// 			"VIOLENCE_ASSESSMENT_yes_count": 1, // number of times question of tool type VIOLENCE_ASSESSMENT has been answered yes
+// 			"VIOLENCE_ASSESSMENT_no_count": 0, // number of times question of tool type VIOLENCE_ASSESSMENT has been answered no
+// 		}
 func (t *ServiceScreeningToolsImpl) AnswerScreeningToolQuestions(ctx context.Context, screeningToolResponses []*dto.ScreeningToolQuestionResponseInput) (bool, error) {
+	condition := make(map[string]interface{})
+	serviceRequests := make([]*domain.ClientServiceRequest, 0)
+
 	if len(screeningToolResponses) == 0 {
 		return false, fmt.Errorf("no screening tool responses provided")
 	}
+
+	clientProfile, err := t.Query.GetClientProfileByClientID(ctx, screeningToolResponses[0].ClientID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, exceptions.ItemNotFoundErr(fmt.Errorf("failed to get client profile: %v", err))
+	}
+
 	for _, screeningToolResponse := range screeningToolResponses {
 		err := screeningToolResponse.Validate()
 		if err != nil {
-			return false, fmt.Errorf("invalid screening tool response: %v", err)
+			return false, fmt.Errorf("screening tool responses are empty: %v", err)
 		}
 
 		screeningToolQuestion, err := t.Query.GetScreeningToolQuestionByQuestionID(ctx, screeningToolResponse.QuestionID)
@@ -86,25 +132,42 @@ func (t *ServiceScreeningToolsImpl) AnswerScreeningToolQuestions(ctx context.Con
 			return false, fmt.Errorf("failed to get screening tool question: %v", err)
 		}
 
-		err = screeningToolQuestion.ValidateResponseQUestionCategory(screeningToolResponse.Response, screeningToolQuestion.ResponseCategory)
+		err = screeningToolQuestion.ValidateResponseQuestionCategory(screeningToolResponse.Response, screeningToolQuestion.ResponseCategory)
 		if err != nil {
-			return false, fmt.Errorf("invalid screening tool response: %v", err)
+			return false, fmt.Errorf("invalid response: %v", err)
 		}
 
 		err = screeningToolQuestion.ValidateResponseQUestionType(screeningToolResponse.Response, screeningToolQuestion.ResponseType)
 		if err != nil {
-			return false, fmt.Errorf("invalid screening tool response: %v", err)
+			return false, fmt.Errorf("invalid response: %v", err)
 		}
 		err = t.Update.InvalidateScreeningToolResponse(ctx, screeningToolResponse.ClientID, screeningToolResponse.QuestionID)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
 			return false, fmt.Errorf("failed to invalidate previous screening tool response: %v", err)
 		}
+
+		condition = addCondition(screeningToolQuestion, screeningToolResponse.Response, condition)
+		serviceRequest := createServiceRequest(screeningToolQuestion, screeningToolResponse.Response, condition)
+		if serviceRequest != nil {
+			serviceRequest.ClientID = screeningToolResponse.ClientID
+			serviceRequest.FacilityID = clientProfile.FacilityID
+			serviceRequests = append(serviceRequests, serviceRequest)
+		}
 	}
-	err := t.Create.AnswerScreeningToolQuestions(ctx, screeningToolResponses)
+
+	err = t.Create.AnswerScreeningToolQuestions(ctx, screeningToolResponses)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return false, fmt.Errorf("failed to answer screening tools questions: %v", err)
+	}
+
+	for s := range serviceRequests {
+		err = t.Create.CreateServiceRequest(ctx, serviceRequests[s])
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return false, fmt.Errorf("failed to create service request: %v", err)
+		}
 	}
 	return true, nil
 }

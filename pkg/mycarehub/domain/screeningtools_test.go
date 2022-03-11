@@ -174,8 +174,8 @@ func TestScreeningToolQuestion_ValidateResponseQUestionCategory(t *testing.T) {
 				Meta:             tt.fields.Meta,
 				Active:           tt.fields.Active,
 			}
-			if err := q.ValidateResponseQUestionCategory(tt.args.response, tt.args.category); (err != nil) != tt.wantErr {
-				t.Errorf("ScreeningToolQuestion.ValidateResponseQUestionCategory() error = %v, wantErr %v", err, tt.wantErr)
+			if err := q.ValidateResponseQuestionCategory(tt.args.response, tt.args.category); (err != nil) != tt.wantErr {
+				t.Errorf("ScreeningToolQuestion.ValidateResponseQuestionCategory() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}

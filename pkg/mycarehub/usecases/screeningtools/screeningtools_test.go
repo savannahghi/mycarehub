@@ -128,6 +128,20 @@ func TestServiceScreeningToolsImpl_AnswerScreeningToolQuestions(t *testing.T) {
 			wantErr: true,
 		},
 		{
+			name: "sad case: failed to get client by id",
+			args: args{
+				ctx: context.Background(),
+				screeningToolResponses: []*dto.ScreeningToolQuestionResponseInput{
+					{
+						ClientID:   uuid.New().String(),
+						QuestionID: uuid.New().String(),
+						Response:   "0",
+					},
+				},
+			},
+			wantErr: true,
+		},
+		{
 			name: "sad case: invalid screening tool response type, int not valid",
 			args: args{
 				ctx: context.Background(),
@@ -203,6 +217,12 @@ func TestServiceScreeningToolsImpl_AnswerScreeningToolQuestions(t *testing.T) {
 			if tt.name == "sad case: failed to invalidate previous responses" {
 				fakeDB.MockInvalidateScreeningToolResponseFn = func(ctx context.Context, clientID string, questionID string) error {
 					return fmt.Errorf("failed to invalidate previous responses")
+				}
+			}
+
+			if tt.name == "sad case: failed to get client by id" {
+				fakeDB.MockGetClientProfileByClientIDFn = func(ctx context.Context, clientID string) (*domain.ClientProfile, error) {
+					return nil, fmt.Errorf("failed to get client by id")
 				}
 			}
 
