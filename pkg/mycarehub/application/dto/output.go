@@ -43,3 +43,12 @@ type PatientSyncResponse struct {
 	// Patients is a slice of CCC numbers
 	Patients []string `json:"patients"`
 }
+
+// StaffRegistrationOutput models the staff registration api response
+type StaffRegistrationOutput struct {
+	ID              string `json:"id"`
+	Active          bool   `json:"active"`
+	StaffNumber     string `json:"staff_number"`
+	UserID          string `json:"user"`
+	DefaultFacility string `json:"default_facility"`
+}

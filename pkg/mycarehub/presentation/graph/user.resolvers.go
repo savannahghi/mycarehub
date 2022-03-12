@@ -34,6 +34,10 @@ func (r *mutationResolver) RegisterClient(ctx context.Context, input *dto.Client
 	return r.mycarehub.User.RegisterClient(ctx, input)
 }
 
+func (r *mutationResolver) RegisterStaff(ctx context.Context, input dto.StaffRegistrationInput) (*dto.StaffRegistrationOutput, error) {
+	return r.mycarehub.User.RegisterStaff(ctx, input)
+}
+
 func (r *queryResolver) GetCurrentTerms(ctx context.Context, flavour feedlib.Flavour) (*domain.TermsOfService, error) {
 	r.checkPreconditions()
 	return r.mycarehub.Terms.GetCurrentTerms(ctx, flavour)

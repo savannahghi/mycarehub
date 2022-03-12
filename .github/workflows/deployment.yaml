@@ -134,6 +134,7 @@ jobs:
           --set-env-vars "GOOGLE_CLOUD_STORAGE_URL=${{ secrets.GOOGLE_CLOUD_STORAGE_URL }}" \
           --set-env-vars "INVITE_PIN_EXPIRY_DAYS=${{ secrets.INVITE_PIN_EXPIRY_DAYS }}" \
           --set-env-vars "CLIENT_REGISTRATION_URL=${{ secrets.CLIENT_REGISTRATION_URL }}" \
+          --set-env-vars "STAFF_REGISTRATION_URL=${{ secrets.STAFF_REGISTRATION_URL }}" \
           --set-env-vars "PIN_EXPIRY_DAYS=${{ secrets.PIN_EXPIRY_DAYS }}" \
           --set-env-vars "GET_STREAM_KEY=${{ secrets.GET_STREAM_KEY }}" \
           --set-env-vars "GET_STREAM_SECRET=${{ secrets.GET_STREAM_SECRET }}" \
@@ -228,6 +229,7 @@ jobs:
           --set-env-vars "INVITE_PIN_EXPIRY_DAYS=${{ secrets.INVITE_PIN_EXPIRY_DAYS }}" \
           --set-env-vars "PIN_EXPIRY_DAYS=${{ secrets.PIN_EXPIRY_DAYS }}" \
           --set-env-vars "CLIENT_REGISTRATION_URL=${{ secrets.CLIENT_REGISTRATION_URL }}" \
+          --set-env-vars "STAFF_REGISTRATION_URL=${{ secrets.STAFF_REGISTRATION_URL }}" \
           --set-env-vars "GET_STREAM_KEY=${{ secrets.GET_STREAM_KEY }}" \
           --set-env-vars "GET_STREAM_SECRET=${{ secrets.GET_STREAM_SECRET }}" \
           --set-env-vars "GET_STREAM_TOKEN_EXPIRY_DAYS=${{ secrets.GET_STREAM_TOKEN_EXPIRY_DAYS }}" \
@@ -336,6 +338,7 @@ jobs:
           --set-env-vars "GET_STREAM_KEY=${{ secrets.GET_STREAM_KEY }}" \
           --set-env-vars "GET_STREAM_SECRET=${{ secrets.GET_STREAM_SECRET }}" \
           --set-env-vars "CLIENT_REGISTRATION_URL=${{ secrets.CLIENT_REGISTRATION_URL }}" \
+          --set-env-vars "STAFF_REGISTRATION_URL=${{ secrets.STAFF_REGISTRATION_URL }}" \
           --set-env-vars "GET_STREAM_TOKEN_EXPIRY_DAYS=${{ secrets.GET_STREAM_TOKEN_EXPIRY_DAYS }}" \
           --set-env-vars "SAVANNAH_ADMIN_EMAIL=${{ secrets.SAVANNAH_ADMIN_EMAIL }}" 
 

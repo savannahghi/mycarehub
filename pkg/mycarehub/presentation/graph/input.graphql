@@ -101,9 +101,20 @@ input AgeRangeInput {
   upperBound: Int!
 }
 
-
-input ScreeningToolQuestionResponseInput { 
+input ScreeningToolQuestionResponseInput {
   clientID: String!
-	questionID: String! 
-	response:   String! 
+  questionID: String!
+  response: String!
+}
+
+input StaffRegistrationInput {
+  facility: String!
+  staffName: String!
+  gender: Gender!
+  dateOfBirth: Date!
+  phoneNumber: String!
+  idNumber: Int!
+  staffNumber: String!
+  staffRoles: String
+  inviteStaff: Boolean!
 }

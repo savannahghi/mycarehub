@@ -32,6 +32,7 @@ import (
 
 var (
 	registerClientAPIEndpoint = serverutils.MustGetEnvVar("CLIENT_REGISTRATION_URL")
+	registerStaffAPIEndpoint  = serverutils.MustGetEnvVar("STAFF_REGISTRATION_URL")
 )
 
 // ILogin is an interface that contans login related methods
@@ -91,10 +92,11 @@ type IGetClientCaregiver interface {
 	GetClientCaregiver(ctx context.Context, clientID string) (*domain.Caregiver, error)
 }
 
-// IRegisterClient interface defines a method signature that is used to register a client
-type IRegisterClient interface {
+// IRegisterUser interface defines a method signature that is used to register users
+type IRegisterUser interface {
 	RegisterClient(ctx context.Context, input *dto.ClientRegistrationInput) (*dto.ClientRegistrationOutput, error)
 	RegisterKenyaEMRPatients(ctx context.Context, input []*dto.PatientRegistrationPayload) ([]*dto.ClientRegistrationOutput, error)
+	RegisterStaff(ctx context.Context, input dto.StaffRegistrationInput) (*dto.StaffRegistrationOutput, error)
 }
 
 // IClientMedicalHistory interface defines method signature for dealing with medical history
@@ -115,7 +117,7 @@ type UseCasesUser interface {
 	IVerifyPIN
 	ICreateClientCaregiver
 	IGetClientCaregiver
-	IRegisterClient
+	IRegisterUser
 	IClientMedicalHistory
 }
 
@@ -199,7 +201,12 @@ func (us *UseCasesUserImpl) VerifyLoginPIN(ctx context.Context, userID string, p
 			return false, int(exceptions.NexAllowedLOginTimeError), exceptions.NexAllowedLOginTimeErr(fmt.Errorf("failed to update user next allowed login time"))
 		}
 
-		return false, int(exceptions.PINMismatch), exceptions.PinMismatchError(err)
+		return false, int(exceptions.PINMismatch), exceptions.PinMismatchError(
+			err,
+			map[string]interface{}{
+				"failedLoginCount": failedLoginAttempts,
+			},
+		)
 	}
 
 	// In the event of a successful login, reset the failed login count to 0
@@ -489,7 +496,7 @@ func (us *UseCasesUserImpl) SetUserPIN(ctx context.Context, input dto.PINInput) 
 
 	isMatch := us.ExternalExt.ComparePIN(*input.ConfirmPIN, salt, encryptedPIN, nil)
 	if !isMatch {
-		return false, exceptions.PinMismatchError(fmt.Errorf("the provided PINs do not match"))
+		return false, exceptions.PinMismatchError(fmt.Errorf("the provided PINs do not match"), nil)
 	}
 
 	expiryDate, err := helpers.GetPinExpiryDate()
@@ -749,7 +756,7 @@ func (us *UseCasesUserImpl) VerifyPIN(ctx context.Context, userID string, flavou
 	// If pin data does not match, this means the user cant access the data
 	matched := us.ExternalExt.ComparePIN(pin, pinData.Salt, pinData.HashedPIN, nil)
 	if !matched {
-		return false, exceptions.PinMismatchError(err)
+		return false, exceptions.PinMismatchError(err, nil)
 	}
 	return true, nil
 }
@@ -859,18 +866,6 @@ func (us *UseCasesUserImpl) RegisterClient(
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed to unmarshal response: %v", err)
-	}
-
-	// Create a client's getstream user
-	getStreamUser := &getStreamClient.User{
-		ID:   registrationOutput.ID,
-		Role: "user",
-		Name: input.ClientName,
-	}
-
-	_, err = us.GetStream.CreateGetStreamUser(ctx, getStreamUser)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create client's getstream user account: %v", err)
 	}
 
 	if input.InviteClient {
@@ -1012,4 +1007,43 @@ func (us *UseCasesUserImpl) RegisteredFacilityPatients(ctx context.Context, inpu
 	}
 
 	return &output, nil
+}
+
+// RegisterStaff is used to register a staff user on our application
+func (us *UseCasesUserImpl) RegisterStaff(ctx context.Context, input dto.StaffRegistrationInput) (*dto.StaffRegistrationOutput, error) {
+	var registrationOutput *dto.StaffRegistrationOutput
+
+	input.Gender = enumutils.Gender(strings.ToUpper(input.Gender.String()))
+	resp, err := us.ExternalExt.MakeRequest(ctx, http.MethodPost, registerStaffAPIEndpoint, input)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, fmt.Errorf("failed to make request: %v", err)
+	}
+
+	dataResponse, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, fmt.Errorf("failed to read request body: %v", err)
+	}
+
+	// Success is indicated with 2xx status codes
+	statusOK := resp.StatusCode >= 200 && resp.StatusCode < 300
+	if !statusOK {
+		return nil, fmt.Errorf("%v", string(dataResponse))
+	}
+
+	err = json.Unmarshal(dataResponse, &registrationOutput)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, fmt.Errorf("failed to unmarshal response: %v", err)
+	}
+
+	if input.InviteStaff {
+		_, err := us.InviteUser(ctx, registrationOutput.UserID, input.PhoneNumber, feedlib.FlavourPro)
+		if err != nil {
+			return nil, fmt.Errorf("failed to invite staff user: %v", err)
+		}
+	}
+
+	return registrationOutput, nil
 }

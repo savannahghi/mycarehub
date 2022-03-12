@@ -307,3 +307,11 @@ type ScreeningToolQuestion {
   active: Boolean
   meta: Map
 }
+
+type StaffRegistrationOutput {
+  ID: String!
+  active: Boolean!
+  staffNumber: String!
+  userID: String!
+  defaultFacility: String!
+}

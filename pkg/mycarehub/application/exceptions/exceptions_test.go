@@ -16,7 +16,7 @@ func TestCustomErrors(t *testing.T) {
 	assert.NotNil(t, err)
 	err = exceptions.PinNotFoundError(fmt.Errorf("error"))
 	assert.NotNil(t, err)
-	err = exceptions.PinMismatchError(fmt.Errorf("error"))
+	err = exceptions.PinMismatchError(fmt.Errorf("error"), nil)
 	assert.NotNil(t, err)
 	err = exceptions.InvalidFlavourDefinedErr(fmt.Errorf("error"))
 	assert.NotNil(t, err)

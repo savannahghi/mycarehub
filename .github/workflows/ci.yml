@@ -69,6 +69,7 @@ env:
   PIN_EXPIRY_DAYS: ${{ secrets.PIN_EXPIRY_DAYS }}
   INVITE_PIN_EXPIRY_DAYS: ${{ secrets.INVITE_PIN_EXPIRY_DAYS }}
   CLIENT_REGISTRATION_URL: ${{ secrets.CLIENT_REGISTRATION_URL }}
+  STAFF_REGISTRATION_URL: ${{ secrets.STAFF_REGISTRATION_URL }}
   GET_STREAM_KEY: ${{ secrets.GET_STREAM_KEY }}
   GET_STREAM_SECRET: ${{ secrets.GET_STREAM_SECRET }}
   GET_STREAM_TOKEN_EXPIRY_DAYS: ${{ secrets.GET_STREAM_TOKEN_EXPIRY_DAYS }}
@@ -87,7 +88,7 @@ jobs:
         image: postgis/postgis:14-3.1
         env:
           POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres                   
+          POSTGRES_PASSWORD: postgres
           POSTGRES_DB: postgres
           POSTGRES_HOST_AUTH_METHOD: trust
           POSTGRES_PORT: ${{ job.services.postgres.ports[5432] }}
@@ -100,7 +101,7 @@ jobs:
         ports:
           # Maps tcp port 5432 on service container to the host
           - 5432:5432
-        
+
     steps:
       - name: Set up Python 3.10
         uses: actions/setup-python@v2
@@ -127,11 +128,11 @@ jobs:
           pip install -r requirements/local.txt && pip install -r requirements/production.txt
           npm ci
           npm install -g mjml
-          
-      - name: Purge postgres 
+
+      - name: Purge postgres
         run: |
           sudo apt-get --purge remove postgresql postgresql-*
-      
+
       - name: Upgrade packages
         run: |
           sudo apt-get update && sudo apt-get upgrade
@@ -143,7 +144,7 @@ jobs:
       - name: Setup and start postgres service
         run: |
           sudo pg_ctlcluster 12 main start
-          sudo -u ${POSTGRES_USER} psql -p ${POSTGRES_PORT} -c "ALTER USER ${POSTGRES_USER} WITH PASSWORD '${POSTGRES_PASSWORD}';" 
+          sudo -u ${POSTGRES_USER} psql -p ${POSTGRES_PORT} -c "ALTER USER ${POSTGRES_USER} WITH PASSWORD '${POSTGRES_PASSWORD}';"
 
       - name: run migrations
         run: |
