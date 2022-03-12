@@ -2963,3 +2963,93 @@ func TestUseCasesUserImpl_RegisteredFacilityPatients(t *testing.T) {
 		})
 	}
 }
+
+func TestUseCasesUserImpl_RegisterStaff(t *testing.T) {
+	type args struct {
+		ctx   context.Context
+		input dto.StaffRegistrationInput
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Successfully register staff",
+			args: args{
+				ctx: context.Background(),
+				input: dto.StaffRegistrationInput{
+					Facility:  "Test Facility",
+					StaffName: gofakeit.Name(),
+					Gender:    enumutils.GenderFemale,
+					DateOfBirth: scalarutils.Date{
+						Year:  1990,
+						Month: 3,
+						Day:   12,
+					},
+					PhoneNumber: "+254700000000",
+					IDNumber:    0,
+					StaffNumber: "MS-01",
+					StaffRoles:  "CONTENT_MANAGEMENT",
+					InviteStaff: true,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad Case - Fail to make request",
+			args: args{
+				ctx: context.Background(),
+				input: dto.StaffRegistrationInput{
+					Facility: "non existent",
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			fakeExtension := extensionMock.NewFakeExtension()
+			otp := otp.NewOTPUseCase(fakeDB, fakeDB, fakeExtension)
+			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
+			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, otp, fakeAuthority, fakeGetStream)
+
+			if tt.name == "Happy Case - Successfully register staff" {
+				fakeExtension.MockMakeRequestFn = func(ctx context.Context, method string, path string, body interface{}) (*http.Response, error) {
+					registrationOutput := dto.StaffRegistrationOutput{
+						ID: uuid.New().String(),
+					}
+
+					payload, err := json.Marshal(registrationOutput)
+					if err != nil {
+						t.Errorf("unable to marshal test item: %s", err)
+					}
+
+					return &http.Response{
+						StatusCode: http.StatusOK,
+						Status:     "OK",
+						Body:       ioutil.NopCloser(bytes.NewBuffer(payload)),
+					}, nil
+				}
+			}
+
+			if tt.name == "Sad Case - Fail to make request" {
+				fakeExtension.MockMakeRequestFn = func(ctx context.Context, method string, path string, body interface{}) (*http.Response, error) {
+					return nil, fmt.Errorf("failed to make a request")
+				}
+			}
+
+			got, err := us.RegisterStaff(tt.args.ctx, tt.args.input)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCasesUserImpl.RegisterStaff() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected a response but got nil")
+				return
+			}
+		})
+	}
+}

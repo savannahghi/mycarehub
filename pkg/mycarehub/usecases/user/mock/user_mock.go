@@ -27,6 +27,7 @@ type UserUseCaseMock struct {
 	MockCreateOrUpdateClientCaregiverFn func(ctx context.Context, caregiverInput *dto.CaregiverInput) (bool, error)
 	MockRegisterClientFn                func(ctx context.Context, input *dto.ClientRegistrationInput) (*dto.ClientRegistrationOutput, error)
 	MockRefreshGetStreamTokenFn         func(ctx context.Context, userID string) (string, error)
+	MockRegisterStaffFn                 func(ctx context.Context, input dto.StaffRegistrationInput) (*dto.StaffRegistrationOutput, error)
 }
 
 // NewUserUseCaseMock creates in itializes create type mocks
@@ -108,6 +109,11 @@ func NewUserUseCaseMock() *UserUseCaseMock {
 		MockRefreshGetStreamTokenFn: func(ctx context.Context, userID string) (string, error) {
 			return uuid.New().String(), nil
 		},
+		MockRegisterStaffFn: func(ctx context.Context, input dto.StaffRegistrationInput) (*dto.StaffRegistrationOutput, error) {
+			return &dto.StaffRegistrationOutput{
+				ID: uuid.New().String(),
+			}, nil
+		},
 	}
 }
 
@@ -174,4 +180,9 @@ func (f *UserUseCaseMock) RegisterClient(ctx context.Context, input *dto.ClientR
 // RefreshGetStreamToken mocks the implementation for generating a new getstream token
 func (f *UserUseCaseMock) RefreshGetStreamToken(ctx context.Context, userID string) (string, error) {
 	return f.MockRefreshGetStreamTokenFn(ctx, userID)
+}
+
+// RegisterStaff mocks the implementation of registering a staff user
+func (f *UserUseCaseMock) RegisterStaff(ctx context.Context, input dto.StaffRegistrationInput) (*dto.StaffRegistrationOutput, error) {
+	return f.MockRegisterStaffFn(ctx, input)
 }

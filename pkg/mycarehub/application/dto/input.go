@@ -364,3 +364,16 @@ type UpdateServiceRequestPayload struct {
 	ResolvedAt   time.Time `json:"resolved_at"`
 	ResolvedBy   string    `json:"resolved_by"`
 }
+
+// StaffRegistrationInput is a model that represents the inputs passed when registering a staff user
+type StaffRegistrationInput struct {
+	Facility    string           `json:"facility"`
+	StaffName   string           `json:"name"`
+	Gender      enumutils.Gender `json:"gender"`
+	DateOfBirth scalarutils.Date `json:"date_of_birth"`
+	PhoneNumber string           `json:"phone_number"`
+	IDNumber    int              `json:"id_number"`
+	StaffNumber string           `json:"staff_number"`
+	StaffRoles  string           `json:"staff_roles"`
+	InviteStaff bool             `json:"invite_staff"`
+}

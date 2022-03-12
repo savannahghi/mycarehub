@@ -306,6 +306,7 @@ type ComplexityRoot struct {
 		ReactivateFacility              func(childComplexity int, mflCode int) int
 		RecordSecurityQuestionResponses func(childComplexity int, input []*dto.SecurityQuestionResponseInput) int
 		RegisterClient                  func(childComplexity int, input *dto.ClientRegistrationInput) int
+		RegisterStaff                   func(childComplexity int, input dto.StaffRegistrationInput) int
 		RejectInvitation                func(childComplexity int, memberID string, communityID string) int
 		RemoveMembersFromCommunity      func(childComplexity int, communityID string, memberIDs []string) int
 		ResolveServiceRequest           func(childComplexity int, staffID string, requestID string) int
@@ -415,6 +416,14 @@ type ComplexityRoot struct {
 		Total             func(childComplexity int) int
 	}
 
+	StaffRegistrationOutput struct {
+		Active          func(childComplexity int) int
+		DefaultFacility func(childComplexity int) int
+		ID              func(childComplexity int) int
+		StaffNumber     func(childComplexity int) int
+		UserID          func(childComplexity int) int
+	}
+
 	TermsOfService struct {
 		TermsID func(childComplexity int) int
 		Text    func(childComplexity int) int
@@ -456,6 +465,7 @@ type MutationResolver interface {
 	CompleteOnboardingTour(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
 	CreateOrUpdateClientCaregiver(ctx context.Context, caregiverInput *dto.CaregiverInput) (bool, error)
 	RegisterClient(ctx context.Context, input *dto.ClientRegistrationInput) (*dto.ClientRegistrationOutput, error)
+	RegisterStaff(ctx context.Context, input dto.StaffRegistrationInput) (*dto.StaffRegistrationOutput, error)
 }
 type QueryResolver interface {
 	ListMembers(ctx context.Context, input *stream_chat.QueryOption) ([]*domain.Member, error)
@@ -1809,6 +1819,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.RegisterClient(childComplexity, args["input"].(*dto.ClientRegistrationInput)), true
 
+	case "Mutation.registerStaff":
+		if e.complexity.Mutation.RegisterStaff == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_registerStaff_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.RegisterStaff(childComplexity, args["input"].(dto.StaffRegistrationInput)), true
+
 	case "Mutation.rejectInvitation":
 		if e.complexity.Mutation.RejectInvitation == nil {
 			break
@@ -2549,6 +2571,41 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ServiceRequestsCount.Total(childComplexity), true
 
+	case "StaffRegistrationOutput.active":
+		if e.complexity.StaffRegistrationOutput.Active == nil {
+			break
+		}
+
+		return e.complexity.StaffRegistrationOutput.Active(childComplexity), true
+
+	case "StaffRegistrationOutput.defaultFacility":
+		if e.complexity.StaffRegistrationOutput.DefaultFacility == nil {
+			break
+		}
+
+		return e.complexity.StaffRegistrationOutput.DefaultFacility(childComplexity), true
+
+	case "StaffRegistrationOutput.ID":
+		if e.complexity.StaffRegistrationOutput.ID == nil {
+			break
+		}
+
+		return e.complexity.StaffRegistrationOutput.ID(childComplexity), true
+
+	case "StaffRegistrationOutput.staffNumber":
+		if e.complexity.StaffRegistrationOutput.StaffNumber == nil {
+			break
+		}
+
+		return e.complexity.StaffRegistrationOutput.StaffNumber(childComplexity), true
+
+	case "StaffRegistrationOutput.userID":
+		if e.complexity.StaffRegistrationOutput.UserID == nil {
+			break
+		}
+
+		return e.complexity.StaffRegistrationOutput.UserID(childComplexity), true
+
 	case "TermsOfService.termsID":
 		if e.complexity.TermsOfService.TermsID == nil {
 			break
@@ -2953,11 +3010,22 @@ input AgeRangeInput {
   upperBound: Int!
 }
 
-
-input ScreeningToolQuestionResponseInput { 
+input ScreeningToolQuestionResponseInput {
   clientID: String!
-	questionID: String! 
-	response:   String! 
+  questionID: String!
+  response: String!
+}
+
+input StaffRegistrationInput {
+  facility: String!
+  staffName: String!
+  gender: Gender!
+  dateOfBirth: Date!
+  phoneNumber: String!
+  idNumber: Int!
+  staffNumber: String!
+  staffRoles: String
+  inviteStaff: Boolean!
 }
 `, BuiltIn: false},
 	{Name: "pkg/mycarehub/presentation/graph/otp.graphql", Input: `extend type Query {
@@ -3313,6 +3381,14 @@ type ScreeningToolQuestion {
   active: Boolean
   meta: Map
 }
+
+type StaffRegistrationOutput {
+  ID: String!
+  active: Boolean!
+  staffNumber: String!
+  userID: String!
+  defaultFacility: String!
+}
 `, BuiltIn: false},
 	{Name: "pkg/mycarehub/presentation/graph/user.graphql", Input: `extend type Query {
   getCurrentTerms(flavour: Flavour!): TermsOfService!
@@ -3326,6 +3402,7 @@ extend type Mutation {
   completeOnboardingTour(userID: String!, flavour: Flavour!): Boolean!
   createOrUpdateClientCaregiver(caregiverInput: CaregiverInput): Boolean!
   registerClient(input: ClientRegistrationInput): ClientRegistrationOutput!
+  registerStaff(input: StaffRegistrationInput!): StaffRegistrationOutput!
 }
 `, BuiltIn: false},
 	{Name: "federation/directives.graphql", Input: `
@@ -3844,6 +3921,21 @@ func (ec *executionContext) field_Mutation_registerClient_args(ctx context.Conte
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 		arg0, err = ec.unmarshalOClientRegistrationInput2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐClientRegistrationInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_registerStaff_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 dto.StaffRegistrationInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNStaffRegistrationInput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐStaffRegistrationInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -11169,6 +11261,48 @@ func (ec *executionContext) _Mutation_registerClient(ctx context.Context, field 
 	return ec.marshalNClientRegistrationOutput2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐClientRegistrationOutput(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Mutation_registerStaff(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_registerStaff_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().RegisterStaff(rctx, args["input"].(dto.StaffRegistrationInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*dto.StaffRegistrationOutput)
+	fc.Result = res
+	return ec.marshalNStaffRegistrationOutput2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐStaffRegistrationOutput(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Pagination_Limit(ctx context.Context, field graphql.CollectedField, obj *domain.Pagination) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -13698,6 +13832,181 @@ func (ec *executionContext) _ServiceRequestsCount_requestsTypeCount(ctx context.
 	return ec.marshalNRequestTypeCount2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐRequestTypeCountᚄ(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _StaffRegistrationOutput_ID(ctx context.Context, field graphql.CollectedField, obj *dto.StaffRegistrationOutput) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "StaffRegistrationOutput",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _StaffRegistrationOutput_active(ctx context.Context, field graphql.CollectedField, obj *dto.StaffRegistrationOutput) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "StaffRegistrationOutput",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Active, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _StaffRegistrationOutput_staffNumber(ctx context.Context, field graphql.CollectedField, obj *dto.StaffRegistrationOutput) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "StaffRegistrationOutput",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.StaffNumber, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _StaffRegistrationOutput_userID(ctx context.Context, field graphql.CollectedField, obj *dto.StaffRegistrationOutput) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "StaffRegistrationOutput",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UserID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _StaffRegistrationOutput_defaultFacility(ctx context.Context, field graphql.CollectedField, obj *dto.StaffRegistrationOutput) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "StaffRegistrationOutput",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.DefaultFacility, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _TermsOfService_termsID(ctx context.Context, field graphql.CollectedField, obj *domain.TermsOfService) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -15603,6 +15912,93 @@ func (ec *executionContext) unmarshalInputSortsInput(ctx context.Context, obj in
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputStaffRegistrationInput(ctx context.Context, obj interface{}) (dto.StaffRegistrationInput, error) {
+	var it dto.StaffRegistrationInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	for k, v := range asMap {
+		switch k {
+		case "facility":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("facility"))
+			it.Facility, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "staffName":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("staffName"))
+			it.StaffName, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "gender":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("gender"))
+			it.Gender, err = ec.unmarshalNGender2githubᚗcomᚋsavannahghiᚋenumutilsᚐGender(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "dateOfBirth":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("dateOfBirth"))
+			it.DateOfBirth, err = ec.unmarshalNDate2githubᚗcomᚋsavannahghiᚋscalarutilsᚐDate(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "phoneNumber":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("phoneNumber"))
+			it.PhoneNumber, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "idNumber":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idNumber"))
+			it.IDNumber, err = ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "staffNumber":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("staffNumber"))
+			it.StaffNumber, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "staffRoles":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("staffRoles"))
+			it.StaffRoles, err = ec.unmarshalOString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "inviteStaff":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("inviteStaff"))
+			it.InviteStaff, err = ec.unmarshalNBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 // endregion **************************** input.gotpl *****************************
 
 // region    ************************** interface.gotpl ***************************
@@ -17037,6 +17433,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "registerStaff":
+			out.Values[i] = ec._Mutation_registerStaff(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -17733,6 +18134,53 @@ func (ec *executionContext) _ServiceRequestsCount(ctx context.Context, sel ast.S
 			}
 		case "requestsTypeCount":
 			out.Values[i] = ec._ServiceRequestsCount_requestsTypeCount(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var staffRegistrationOutputImplementors = []string{"StaffRegistrationOutput"}
+
+func (ec *executionContext) _StaffRegistrationOutput(ctx context.Context, sel ast.SelectionSet, obj *dto.StaffRegistrationOutput) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, staffRegistrationOutputImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("StaffRegistrationOutput")
+		case "ID":
+			out.Values[i] = ec._StaffRegistrationOutput_ID(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "active":
+			out.Values[i] = ec._StaffRegistrationOutput_active(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "staffNumber":
+			out.Values[i] = ec._StaffRegistrationOutput_staffNumber(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "userID":
+			out.Values[i] = ec._StaffRegistrationOutput_userID(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "defaultFacility":
+			out.Values[i] = ec._StaffRegistrationOutput_defaultFacility(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -18984,6 +19432,25 @@ func (ec *executionContext) unmarshalNShareContentInput2githubᚗcomᚋsavannahg
 func (ec *executionContext) unmarshalNSortOption2ᚖgithubᚗcomᚋGetStreamᚋstreamᚑchatᚑgoᚋv5ᚐSortOption(ctx context.Context, v interface{}) (*stream_chat.SortOption, error) {
 	res, err := ec.unmarshalInputSortOption(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNStaffRegistrationInput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐStaffRegistrationInput(ctx context.Context, v interface{}) (dto.StaffRegistrationInput, error) {
+	res, err := ec.unmarshalInputStaffRegistrationInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNStaffRegistrationOutput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐStaffRegistrationOutput(ctx context.Context, sel ast.SelectionSet, v dto.StaffRegistrationOutput) graphql.Marshaler {
+	return ec._StaffRegistrationOutput(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNStaffRegistrationOutput2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐStaffRegistrationOutput(ctx context.Context, sel ast.SelectionSet, v *dto.StaffRegistrationOutput) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._StaffRegistrationOutput(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNString2string(ctx context.Context, v interface{}) (string, error) {

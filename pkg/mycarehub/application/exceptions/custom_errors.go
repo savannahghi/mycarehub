@@ -35,11 +35,12 @@ func PinNotFoundError(err error) error {
 
 // PinMismatchError displays an error when the supplied PIN
 // does not match the PIN stored
-func PinMismatchError(err error) error {
+func PinMismatchError(err error, meta map[string]interface{}) error {
 	return &CustomError{
 		Err:     err,
 		Message: PINMismatchErrMsg,
 		Code:    int(PINMismatch),
+		Meta:    meta,
 	}
 }
 

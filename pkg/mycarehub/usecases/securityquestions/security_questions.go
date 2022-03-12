@@ -243,11 +243,11 @@ func (s *UseCaseSecurityQuestionsImpl) GetUserRespondedSecurityQuestions(ctx con
 		securityQuestionResponses[i], securityQuestionResponses[j] = securityQuestionResponses[j], securityQuestionResponses[i]
 	})
 
-	randomThreeSecurityQuestionresponses := securityQuestionResponses[:3]
+	randomTwoSecurityQuestionresponses := securityQuestionResponses[:2]
 	securityQuestions := []*domain.SecurityQuestion{}
 
-	// return random 3 security questions
-	for _, i := range randomThreeSecurityQuestionresponses {
+	// return random 2 security questions
+	for _, i := range randomTwoSecurityQuestionresponses {
 		securityQuestion, err := s.Query.GetSecurityQuestionByID(ctx, &i.QuestionID)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
