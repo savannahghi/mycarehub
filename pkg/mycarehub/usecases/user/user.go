@@ -17,6 +17,7 @@ import (
 	"github.com/savannahghi/firebasetools"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
 	utilsExt "github.com/savannahghi/mycarehub/pkg/mycarehub/application/utils"
@@ -198,15 +199,10 @@ func (us *UseCasesUserImpl) VerifyLoginPIN(ctx context.Context, userID string, p
 		err = us.Update.UpdateUserNextAllowedLoginTime(ctx, userID, nextAllowedLoginTime)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
-			return false, int(exceptions.NexAllowedLOginTimeError), exceptions.NexAllowedLOginTimeErr(fmt.Errorf("failed to update user next allowed login time"))
+			return false, int(exceptions.NexAllowedLoginTimeError), exceptions.NexAllowedLoginTimeErr(fmt.Errorf("failed to update user next allowed login time"))
 		}
 
-		return false, int(exceptions.PINMismatch), exceptions.PinMismatchError(
-			err,
-			map[string]interface{}{
-				"failedLoginCount": failedLoginAttempts,
-			},
-		)
+		return false, int(exceptions.PINMismatch), exceptions.PinMismatchError(err)
 	}
 
 	// In the event of a successful login, reset the failed login count to 0
@@ -247,9 +243,10 @@ func (us *UseCasesUserImpl) Login(ctx context.Context, phoneNumber string, pin s
 	// The user has to retry after some time. We check whether time out (the current time being greater than
 	// the next allowed login time) has happened. If not, the user will have to wait before trying to log in.
 	currentTime := time.Now()
+	retryTime := userProfile.NextAllowedLogin.Sub(currentTime)
 	timeOutOccured := currentTime.Before(*userProfile.NextAllowedLogin)
 	if timeOutOccured {
-		return nil, int(exceptions.Internal), fmt.Errorf("please try again after a while")
+		return nil, int(exceptions.Internal), fmt.Errorf("please try again after %v", retryTime)
 	}
 
 	_, statusCode, err := us.VerifyLoginPIN(ctx, *userProfile.ID, pin, flavour)
@@ -496,7 +493,7 @@ func (us *UseCasesUserImpl) SetUserPIN(ctx context.Context, input dto.PINInput) 
 
 	isMatch := us.ExternalExt.ComparePIN(*input.ConfirmPIN, salt, encryptedPIN, nil)
 	if !isMatch {
-		return false, exceptions.PinMismatchError(fmt.Errorf("the provided PINs do not match"), nil)
+		return false, exceptions.PinMismatchError(fmt.Errorf("the provided PINs do not match"))
 	}
 
 	expiryDate, err := helpers.GetPinExpiryDate()
@@ -539,7 +536,7 @@ func (us *UseCasesUserImpl) SetNickName(ctx context.Context, userID string, nick
 	}
 
 	if exists {
-		return false, fmt.Errorf("username has already been taken")
+		return false, exceptions.UserNameExistsErr(fmt.Errorf("username has already been taken"))
 	}
 
 	ok, err := us.Update.SetNickName(ctx, &userID, &nickname)
@@ -756,7 +753,7 @@ func (us *UseCasesUserImpl) VerifyPIN(ctx context.Context, userID string, flavou
 	// If pin data does not match, this means the user cant access the data
 	matched := us.ExternalExt.ComparePIN(pin, pinData.Salt, pinData.HashedPIN, nil)
 	if !matched {
-		return false, exceptions.PinMismatchError(err, nil)
+		return false, exceptions.PinMismatchError(err)
 	}
 	return true, nil
 }
@@ -924,7 +921,7 @@ func (us *UseCasesUserImpl) RegisterKenyaEMRPatients(ctx context.Context, input 
 
 		input := &dto.ClientRegistrationInput{
 			Facility:       facility.Name,
-			ClientType:     "",
+			ClientType:     enums.ClientType(patient.ClientType),
 			ClientName:     patient.Name,
 			Gender:         enumutils.Gender(patient.Gender),
 			DateOfBirth:    patient.DateOfBirth,

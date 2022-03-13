@@ -259,10 +259,10 @@ const (
 	// Its error code is 50
 	LoginTimeUpdateError
 
-	// NexAllowedLOginTimeError means that the system is unable to validate the login time'
+	// NexAllowedLoginTimeError means that the system is unable to validate the login time'
 	// The login time is not allowed'
 	// Its error code is 51
-	NexAllowedLOginTimeError
+	NexAllowedLoginTimeError
 
 	// SendSMSError means that the system is unable to send an SMS'
 	// The SMS sending has failed'
@@ -356,4 +356,8 @@ const (
 	// The revocation has failed'
 	// Its error code is 70
 	RevokeRolesError
+
+	// NickNameExistsError implies that the set nickname has already been taken
+	// Its error code is 71
+	NickNameExistsError
 )
