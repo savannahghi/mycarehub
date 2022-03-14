@@ -75,6 +75,8 @@ type PostgresMock struct {
 	MockGetClientCaregiverFn                      func(ctx context.Context, caregiverID string) (*domain.Caregiver, error)
 	MockUpdateClientCaregiverFn                   func(ctx context.Context, caregiverInput *dto.CaregiverInput) error
 	MockGetClientByClientIDFn                     func(ctx context.Context, clientID string) (*domain.ClientProfile, error)
+	MockCheckSecurityQuestionNumberOfTriesFn      func(ctx context.Context, userID string) (int, error)
+	MockUpdateVerifySecurityQuestionFailCountFn   func(ctx context.Context, securityQuestionID string, failCount int) (int, error)
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -375,6 +377,9 @@ func NewPostgresMock() *PostgresMock {
 		MockCheckWhetherUserHasLikedContentFn: func(ctx context.Context, userID string, contentID int) (bool, error) {
 			return true, nil
 		},
+		MockUpdateVerifySecurityQuestionFailCountFn: func(ctx context.Context, securityQuestionID string, failCount int) (int, error) {
+			return 10, nil
+		},
 		MockCreateHealthDiaryEntryFn: func(ctx context.Context, healthDiaryInput *domain.ClientHealthDiaryEntry) error {
 			return nil
 		},
@@ -433,6 +438,9 @@ func NewPostgresMock() *PostgresMock {
 				User: userProfile,
 			}
 			return client, nil
+		},
+		MockCheckSecurityQuestionNumberOfTriesFn: func(ctx context.Context, userID string) (int, error) {
+			return 1, nil
 		},
 	}
 }
@@ -730,4 +738,14 @@ func (gm *PostgresMock) UpdateClientCaregiver(ctx context.Context, caregiverInpu
 // GetClientByClientID mocks the implementation of getting a client by client id
 func (gm *PostgresMock) GetClientByClientID(ctx context.Context, clientID string) (*domain.ClientProfile, error) {
 	return gm.MockGetClientByClientIDFn(ctx, clientID)
+}
+
+// CheckSecurityQuestionNumberOfTries mocks the implementation of the security question number of tries
+func (gm *PostgresMock) CheckSecurityQuestionNumberOfTries(ctx context.Context, userID string) (int, error) {
+	return gm.MockCheckSecurityQuestionNumberOfTriesFn(ctx, userID)
+}
+
+// UpdateVerifySecurityQuestionFailCount mocks the implementation updating the number of verification tries
+func (gm *PostgresMock) UpdateVerifySecurityQuestionFailCount(ctx context.Context, securityQuestionID string, failCount int) (int, error) {
+	return gm.MockUpdateVerifySecurityQuestionFailCountFn(ctx, securityQuestionID, failCount)
 }

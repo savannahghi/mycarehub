@@ -46,6 +46,7 @@ type Query interface {
 	GetFAQContent(ctx context.Context, flavour feedlib.Flavour, limit *int) ([]*FAQ, error)
 	GetClientCaregiver(ctx context.Context, caregiverID string) (*Caregiver, error)
 	GetClientByClientID(ctx context.Context, clientID string) (*Client, error)
+	CheckSecurityQuestionNumberOfTries(ctx context.Context, securityQuestionID string) (int, error)
 }
 
 // CheckWhetherUserHasLikedContent performs a operation to check whether user has liked the content

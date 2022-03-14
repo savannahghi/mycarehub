@@ -172,6 +172,41 @@ func (s *UseCaseSecurityQuestionsImpl) VerifySecurityQuestionResponses(
 				return false, fmt.Errorf("failed to update security question response: %v", err)
 			}
 			if !ok {
+				// Get the number of security questions verification attempts
+				tries, err := s.Query.CheckSecurityQuestionNumberOfTries(ctx, *userProfile.ID)
+				if err != nil {
+					helpers.ReportErrorToSentry(err)
+					return false, err
+				}
+
+				// Increment the number of tries in the database
+				failedVerificationAttempts := tries + 1
+				response, err := s.Update.UpdateVerifySecurityQuestionFailCount(ctx, securityQuestionResponse.QuestionID, failedVerificationAttempts)
+				if err != nil {
+					helpers.ReportErrorToSentry(err)
+					return false, err
+				}
+
+				// If the number of tries >= 3, create a service request
+				if response >= 3 {
+					clientProfile, err := s.Query.GetClientProfileByUserID(ctx, *userProfile.ID)
+					if err != nil {
+						helpers.ReportErrorToSentry(err)
+						return false, err
+					}
+					serviceRequest := &domain.ClientServiceRequest{
+						Active:      true,
+						RequestType: "SECURITY_QUESTION",
+						Request:     "UNABLE TO VERIFY SECURITY QUESTION",
+						Status:      "PENDING",
+						ClientID:    *clientProfile.ID,
+					}
+					err = s.Create.CreateServiceRequest(ctx, serviceRequest)
+					if err != nil {
+						helpers.ReportErrorToSentry(err)
+						return false, err
+					}
+				}
 				return false, fmt.Errorf("failed to update security question response")
 			}
 

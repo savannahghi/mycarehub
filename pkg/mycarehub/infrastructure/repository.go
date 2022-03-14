@@ -59,6 +59,7 @@ type Query interface {
 	GetFAQContent(ctx context.Context, flavour feedlib.Flavour, limit *int) ([]*domain.FAQ, error)
 	GetClientCaregiver(ctx context.Context, caregiverID string) (*domain.Caregiver, error)
 	GetClientByClientID(ctx context.Context, clientID string) (*domain.ClientProfile, error)
+	CheckSecurityQuestionNumberOfTries(ctx context.Context, userID string) (int, error)
 }
 
 // Update represents all the update action interfaces
@@ -81,4 +82,5 @@ type Update interface {
 	UnlikeContent(ctx context.Context, userID string, contentID int) (bool, error)
 	ViewContent(ctx context.Context, userID string, contentID int) (bool, error)
 	UpdateClientCaregiver(ctx context.Context, caregiverInput *dto.CaregiverInput) error
+	UpdateVerifySecurityQuestionFailCount(ctx context.Context, securityQuestionID string, failCount int) (int, error)
 }

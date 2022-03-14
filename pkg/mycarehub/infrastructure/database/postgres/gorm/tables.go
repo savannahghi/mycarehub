@@ -96,6 +96,8 @@ type User struct {
 	// set to zero after successful login
 	FailedLoginCount int `gorm:"column:failed_login_count"`
 
+	VerifySecurityQuestionFailCount int `gorm:"column:verify_security_question_fail_count"`
+
 	// calculated each time there is a failed login
 	NextAllowedLogin *time.Time `gorm:"type:time;column:next_allowed_login"`
 

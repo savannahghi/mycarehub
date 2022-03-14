@@ -632,3 +632,13 @@ func (d *MyCareHubDb) GetClientByClientID(ctx context.Context, clientID string) 
 		CaregiverID:             response.CaregiverID,
 	}, nil
 }
+
+// CheckSecurityQuestionNumberOfTries gets the number of times a user tried to verify their security question
+func (d *MyCareHubDb) CheckSecurityQuestionNumberOfTries(ctx context.Context, userID string) (int, error) {
+	userProfile, err := d.query.GetUserProfileByUserID(ctx, userID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return 0, err
+	}
+	return userProfile.VerifySecurityQuestionFailCount, nil
+}
