@@ -38,7 +38,7 @@ var (
 
 // ILogin is an interface that contans login related methods
 type ILogin interface {
-	Login(ctx context.Context, phoneNumber string, pin string, flavour feedlib.Flavour) (*domain.LoginResponse, int, error)
+	Login(ctx context.Context, phoneNumber string, pin string, flavour feedlib.Flavour) (*domain.LoginResponse, error)
 	InviteUser(ctx context.Context, userID string, phoneNumber string, flavour feedlib.Flavour) (bool, error)
 }
 
@@ -55,7 +55,7 @@ type ISetUserPIN interface {
 
 // IVerifyLoginPIN is used to verify the user's pin when logging in
 type IVerifyLoginPIN interface {
-	VerifyLoginPIN(ctx context.Context, userID string, pin string, flavour feedlib.Flavour) (bool, int, error)
+	VerifyLoginPIN(ctx context.Context, userID string, pin string, flavour feedlib.Flavour) (bool, int, int, error)
 }
 
 // IVerifyPIN is used e.g to check the PIN when accessing sensitive content
@@ -159,17 +159,17 @@ func NewUseCasesUserImpl(
 
 // VerifyLoginPIN checks whether a pin is valid. If a pin is invalid, it will prompt
 // the user to change their pin
-func (us *UseCasesUserImpl) VerifyLoginPIN(ctx context.Context, userID string, pin string, flavour feedlib.Flavour) (bool, int, error) {
+func (us *UseCasesUserImpl) VerifyLoginPIN(ctx context.Context, userID string, pin string, flavour feedlib.Flavour) (bool, int, int, error) {
 	pinData, err := us.Query.GetUserPINByUserID(ctx, userID, flavour)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return false, int(exceptions.PINNotFound), exceptions.PinNotFoundError(err)
+		return false, 0, int(exceptions.PINNotFound), exceptions.PinNotFoundError(err)
 	}
 
 	userProfile, err := us.Query.GetUserProfileByUserID(ctx, userID)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return false, int(exceptions.UserNotFound), exceptions.UserNotFoundError(err)
+		return false, 0, int(exceptions.UserNotFound), exceptions.UserNotFoundError(err)
 	}
 
 	// If pin `ValidTo` field is in the past (expired), throw an error. This means the user has to
@@ -177,7 +177,7 @@ func (us *UseCasesUserImpl) VerifyLoginPIN(ctx context.Context, userID string, p
 	currentTime := time.Now()
 	expired := currentTime.After(pinData.ValidTo)
 	if expired {
-		return false, int(exceptions.ExpiredPinError), exceptions.ExpiredPinErr(fmt.Errorf("the provided pin has expired"))
+		return false, 0, int(exceptions.ExpiredPinError), exceptions.ExpiredPinErr(fmt.Errorf("the provided pin has expired"))
 	}
 
 	matched := us.ExternalExt.ComparePIN(pin, pinData.Salt, pinData.HashedPIN, nil)
@@ -186,23 +186,23 @@ func (us *UseCasesUserImpl) VerifyLoginPIN(ctx context.Context, userID string, p
 		err := us.Update.UpdateUserFailedLoginCount(ctx, userID, failedLoginAttempts)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
-			return false, int(exceptions.LoginCountUpdateError), exceptions.LoginCountUpdateErr(fmt.Errorf("failed to update user failed login count"))
+			return false, failedLoginAttempts, int(exceptions.LoginCountUpdateError), exceptions.LoginCountUpdateErr(fmt.Errorf("failed to update user failed login count"))
 		}
 
 		err = us.Update.UpdateUserLastFailedLoginTime(ctx, userID)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
-			return false, int(exceptions.LoginTimeUpdateError), exceptions.LoginTimeUpdateErr(fmt.Errorf("failed to update user last failed login time"))
+			return false, 0, int(exceptions.LoginTimeUpdateError), exceptions.LoginTimeUpdateErr(fmt.Errorf("failed to update user last failed login time"))
 		}
 
 		nextAllowedLoginTime := utilsExt.NextAllowedLoginTime(failedLoginAttempts)
 		err = us.Update.UpdateUserNextAllowedLoginTime(ctx, userID, nextAllowedLoginTime)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
-			return false, int(exceptions.NexAllowedLoginTimeError), exceptions.NexAllowedLoginTimeErr(fmt.Errorf("failed to update user next allowed login time"))
+			return false, 0, int(exceptions.NexAllowedLoginTimeError), exceptions.NexAllowedLoginTimeErr(fmt.Errorf("failed to update user next allowed login time"))
 		}
 
-		return false, int(exceptions.PINMismatch), exceptions.PinMismatchError(err)
+		return false, failedLoginAttempts, int(exceptions.PINMismatch), exceptions.PinMismatchError(err)
 	}
 
 	// In the event of a successful login, reset the failed login count to 0
@@ -210,86 +210,93 @@ func (us *UseCasesUserImpl) VerifyLoginPIN(ctx context.Context, userID string, p
 		err := us.Update.UpdateUserFailedLoginCount(ctx, userID, 0)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
-			return false, int(exceptions.LoginCountUpdateError), exceptions.LoginCountUpdateErr(fmt.Errorf("failed to update user failed login count"))
+			return false, 0, int(exceptions.LoginCountUpdateError), exceptions.LoginCountUpdateErr(fmt.Errorf("failed to update user failed login count"))
 		}
 	}
 
-	return true, int(exceptions.OK), nil
+	return true, 0, int(exceptions.OK), nil
 }
 
 // Login is used to login the user into the application
-func (us *UseCasesUserImpl) Login(ctx context.Context, phoneNumber string, pin string, flavour feedlib.Flavour) (*domain.LoginResponse, int, error) {
+func (us *UseCasesUserImpl) Login(ctx context.Context, phoneNumber string, pin string, flavour feedlib.Flavour) (*domain.LoginResponse, error) {
 	phone, err := converterandformatter.NormalizeMSISDN(phoneNumber)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return nil, int(exceptions.InvalidPhoneNumberFormat), exceptions.NormalizeMSISDNError(err)
+		return nil, exceptions.NormalizeMSISDNError(err)
 	}
 
 	if !flavour.IsValid() {
-		return nil, int(exceptions.InvalidFlavour), exceptions.InvalidFlavourDefinedErr(fmt.Errorf("flavour is not valid"))
+		return nil, exceptions.InvalidFlavourDefinedErr(fmt.Errorf("flavour is not valid"))
 	}
 
 	userProfile, err := us.Query.GetUserProfileByPhoneNumber(ctx, *phone, flavour)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return nil, int(exceptions.ProfileNotFound), exceptions.ProfileNotFoundErr(err)
+		return nil, exceptions.ProfileNotFoundErr(err)
 	}
 
 	if !userProfile.Active {
-		return nil, int(exceptions.Internal), fmt.Errorf("user is not active")
+		return nil, fmt.Errorf("user is not active")
 	}
 
 	// If the next allowed login time is after the current time, don't log in the user
 	// The user has to retry after some time. We check whether time out (the current time being greater than
 	// the next allowed login time) has happened. If not, the user will have to wait before trying to log in.
 	currentTime := time.Now()
-	retryTime := userProfile.NextAllowedLogin.Sub(currentTime)
+	retryTime := userProfile.NextAllowedLogin.Sub(currentTime).Seconds()
 	timeOutOccured := currentTime.Before(*userProfile.NextAllowedLogin)
 	if timeOutOccured {
-		return nil, int(exceptions.Internal), fmt.Errorf("please try again after %v", retryTime)
+		return &domain.LoginResponse{
+			Message:   fmt.Sprintf("please try again after %v seconds", retryTime),
+			RetryTime: retryTime,
+			Code:      int(exceptions.PINError),
+		}, nil
 	}
 
-	_, statusCode, err := us.VerifyLoginPIN(ctx, *userProfile.ID, pin, flavour)
+	_, attempts, _, err := us.VerifyLoginPIN(ctx, *userProfile.ID, pin, flavour)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return nil, statusCode, err
+		return &domain.LoginResponse{
+			Attempts: attempts,
+			Code:     int(exceptions.PINMismatch),
+		}, err
 	}
 
 	customToken, err := us.ExternalExt.CreateFirebaseCustomToken(ctx, *userProfile.ID)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return nil, int(exceptions.Internal), err
+		return nil, err
 	}
 
 	userTokens, err := us.ExternalExt.AuthenticateCustomFirebaseToken(customToken)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return nil, int(exceptions.Internal), err
+		return nil, err
 	}
 
 	err = us.Update.UpdateUserLastSuccessfulLoginTime(ctx, *userProfile.ID)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return nil, int(exceptions.Internal), fmt.Errorf("failed to update user last successful login time")
+		return nil, fmt.Errorf("failed to update user last successful login time")
 	}
 
 	return us.ReturnLoginResponse(ctx, flavour, userProfile, userTokens)
 }
 
 // ReturnLoginResponse returns either a client's or staff's response depending on the specified flavour
-func (us *UseCasesUserImpl) ReturnLoginResponse(ctx context.Context, flavour feedlib.Flavour, userProfile *domain.User, userTokens *firebasetools.FirebaseUserTokens) (*domain.LoginResponse, int, error) {
+func (us *UseCasesUserImpl) ReturnLoginResponse(ctx context.Context, flavour feedlib.Flavour, userProfile *domain.User, userTokens *firebasetools.FirebaseUserTokens) (*domain.LoginResponse, error) {
 	// add user roles and permissions to the response
 	roles, err := us.Authority.GetUserRoles(ctx, *userProfile.ID)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return nil, int(exceptions.Internal), fmt.Errorf("failed to get user roles")
+		return nil, fmt.Errorf("failed to get user roles")
 	}
 	userProfile.Roles = roles
 
 	permissions, err := us.Authority.GetUserPermissions(ctx, *userProfile.ID)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return nil, int(exceptions.Internal), fmt.Errorf("failed to get user permissions")
+		return nil, fmt.Errorf("failed to get user permissions")
 	}
 	userProfile.Permissions = permissions
 
@@ -298,14 +305,14 @@ func (us *UseCasesUserImpl) ReturnLoginResponse(ctx context.Context, flavour fee
 		clientProfile, err := us.Query.GetClientProfileByUserID(ctx, *userProfile.ID)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
-			return nil, int(exceptions.ProfileNotFound), exceptions.ClientProfileNotFoundErr(err)
+			return nil, exceptions.ClientProfileNotFoundErr(err)
 		}
 
 		if clientProfile.CHVUserID != "" {
 			CHVProfile, err := us.Query.GetUserProfileByUserID(ctx, clientProfile.CHVUserID)
 			if err != nil {
 				helpers.ReportErrorToSentry(err)
-				return nil, int(exceptions.ProfileNotFound), exceptions.UserNotFoundError(err)
+				return nil, exceptions.UserNotFoundError(err)
 			}
 			clientProfile.CHVUserName = CHVProfile.Name
 		}
@@ -323,16 +330,16 @@ func (us *UseCasesUserImpl) ReturnLoginResponse(ctx context.Context, flavour fee
 
 		_, err = us.GetStream.CreateGetStreamUser(ctx, getStreamUser)
 		if err != nil {
-			return nil, 0, fmt.Errorf("failed to create client's getstream user account: %v", err)
+			return nil, fmt.Errorf("failed to create client's getstream user account: %v", err)
 		}
 
 		getStreamToken, err := us.GetStream.CreateGetStreamUserToken(ctx, *clientProfile.ID)
 		if err != nil {
-			return nil, 0, fmt.Errorf("failed to generate getstream token: %v", err)
+			return nil, fmt.Errorf("failed to generate getstream token: %v", err)
 		}
 
 		clientProfile.User = userProfile
-		loginResponse := &domain.LoginResponse{
+		loginResponse := &domain.Response{
 			Client: clientProfile,
 			AuthCredentials: domain.AuthCredentials{
 				RefreshToken: userTokens.RefreshToken,
@@ -340,17 +347,19 @@ func (us *UseCasesUserImpl) ReturnLoginResponse(ctx context.Context, flavour fee
 				ExpiresIn:    userTokens.ExpiresIn,
 			},
 			GetStreamToken: getStreamToken,
-			Code:           int(exceptions.OK),
-			Message:        "Success",
 		}
 
-		return loginResponse, int(exceptions.OK), nil
+		return &domain.LoginResponse{
+			Response: loginResponse,
+			Message:  "Success",
+			Code:     int(exceptions.OK),
+		}, nil
 
 	case feedlib.FlavourPro:
 		staffProfile, err := us.Query.GetStaffProfileByUserID(ctx, *userProfile.ID)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
-			return nil, int(exceptions.ProfileNotFound), exceptions.StaffProfileNotFoundErr(err)
+			return nil, exceptions.StaffProfileNotFoundErr(err)
 		}
 
 		// Create/update a staff's getstream user
@@ -367,16 +376,16 @@ func (us *UseCasesUserImpl) ReturnLoginResponse(ctx context.Context, flavour fee
 
 		_, err = us.GetStream.CreateGetStreamUser(ctx, getStreamUser)
 		if err != nil {
-			return nil, 0, fmt.Errorf("failed to create staff's getstream user account: %v", err)
+			return nil, fmt.Errorf("failed to create staff's getstream user account: %v", err)
 		}
 
 		getStreamToken, err := us.GetStream.CreateGetStreamUserToken(ctx, *staffProfile.ID)
 		if err != nil {
-			return nil, 0, fmt.Errorf("failed to generate getstream token: %v", err)
+			return nil, fmt.Errorf("failed to generate getstream token: %v", err)
 		}
 
 		staffProfile.User = userProfile
-		loginResponse := &domain.LoginResponse{
+		loginResponse := &domain.Response{
 			Staff: staffProfile,
 			AuthCredentials: domain.AuthCredentials{
 				RefreshToken: userTokens.RefreshToken,
@@ -384,14 +393,16 @@ func (us *UseCasesUserImpl) ReturnLoginResponse(ctx context.Context, flavour fee
 				ExpiresIn:    userTokens.ExpiresIn,
 			},
 			GetStreamToken: getStreamToken,
-			Code:           int(exceptions.OK),
-			Message:        "Success",
 		}
 
-		return loginResponse, int(exceptions.OK), nil
+		return &domain.LoginResponse{
+			Response: loginResponse,
+			Message:  "Success",
+			Code:     int(exceptions.OK),
+		}, nil
 
 	default:
-		return nil, 0, fmt.Errorf("an error occurred while logging in user with phone number")
+		return nil, fmt.Errorf("an error occurred while logging in user with phone number")
 	}
 }
 

@@ -14,10 +14,10 @@ import (
 
 // UserUseCaseMock mocks the implementation of usecase methods.
 type UserUseCaseMock struct {
-	MockLoginFn                         func(ctx context.Context, phoneNumber string, pin string, flavour feedlib.Flavour) (*domain.LoginResponse, int, error)
+	MockLoginFn                         func(ctx context.Context, phoneNumber string, pin string, flavour feedlib.Flavour) (*domain.LoginResponse, error)
 	MockInviteUserFn                    func(ctx context.Context, userID string, phoneNumber string, flavour feedlib.Flavour) (bool, error)
 	MockSavePinFn                       func(ctx context.Context, input dto.PINInput) (bool, error)
-	MockVerifyLoginPINFn                func(ctx context.Context, userID string, pin string, flavour feedlib.Flavour) (bool, int, error)
+	MockVerifyLoginPINFn                func(ctx context.Context, userID string, pin string, flavour feedlib.Flavour) (bool, *int, int, error)
 	MockSetNickNameFn                   func(ctx context.Context, userID string, nickname string) (bool, error)
 	MockRequestPINResetFn               func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (string, error)
 	MockResetPINFn                      func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
@@ -43,29 +43,21 @@ func NewUserUseCaseMock() *UserUseCaseMock {
 
 	return &UserUseCaseMock{
 
-		MockLoginFn: func(ctx context.Context, phoneNumber, pin string, flavour feedlib.Flavour) (*domain.LoginResponse, int, error) {
+		MockLoginFn: func(ctx context.Context, phoneNumber, pin string, flavour feedlib.Flavour) (*domain.LoginResponse, error) {
 			ID := uuid.New().String()
 			time := time.Now()
+			resp := &domain.Response{
+				Client:          &domain.ClientProfile{ID: &ID, User: &domain.User{ID: &ID, Username: gofakeit.Username(), TermsAccepted: true, Active: true, NextAllowedLogin: &time, FailedLoginCount: 1}},
+				Staff:           &domain.StaffProfile{},
+				AuthCredentials: domain.AuthCredentials{RefreshToken: gofakeit.HipsterSentence(15), IDToken: gofakeit.BeerAlcohol(), ExpiresIn: gofakeit.BeerHop()},
+				GetStreamToken:  "",
+			}
 			return &domain.LoginResponse{
-				Client: &domain.ClientProfile{
-					ID: &ID,
-					User: &domain.User{
-						ID:               &ID,
-						Username:         gofakeit.Username(),
-						TermsAccepted:    true,
-						Active:           true,
-						NextAllowedLogin: &time,
-						FailedLoginCount: 1,
-					},
-				},
-				AuthCredentials: domain.AuthCredentials{
-					RefreshToken: gofakeit.HipsterSentence(15),
-					IDToken:      gofakeit.BeerAlcohol(),
-					ExpiresIn:    gofakeit.BeerHop(),
-				},
-				Code:    1,
-				Message: "Success",
-			}, 1, nil
+				Response: resp,
+				Attempts: 10,
+				Message:  "Success",
+				Code:     10,
+			}, nil
 		},
 		MockInviteUserFn: func(ctx context.Context, userID string, phoneNumber string, flavour feedlib.Flavour) (bool, error) {
 			return true, nil
@@ -73,8 +65,9 @@ func NewUserUseCaseMock() *UserUseCaseMock {
 		MockSavePinFn: func(ctx context.Context, input dto.PINInput) (bool, error) {
 			return true, nil
 		},
-		MockVerifyLoginPINFn: func(ctx context.Context, userID string, pin string, flavour feedlib.Flavour) (bool, int, error) {
-			return true, 0, nil
+		MockVerifyLoginPINFn: func(ctx context.Context, userID string, pin string, flavour feedlib.Flavour) (bool, *int, int, error) {
+			attempts := 0
+			return true, &attempts, 0, nil
 		},
 		MockSetNickNameFn: func(ctx context.Context, userID, nickname string) (bool, error) {
 			return true, nil
@@ -118,7 +111,7 @@ func NewUserUseCaseMock() *UserUseCaseMock {
 }
 
 // Login mocks the login functionality
-func (f *UserUseCaseMock) Login(ctx context.Context, phoneNumber string, pin string, flavour feedlib.Flavour) (*domain.LoginResponse, int, error) {
+func (f *UserUseCaseMock) Login(ctx context.Context, phoneNumber string, pin string, flavour feedlib.Flavour) (*domain.LoginResponse, error) {
 	return f.MockLoginFn(ctx, phoneNumber, pin, flavour)
 }
 
@@ -133,7 +126,7 @@ func (f *UserUseCaseMock) SavePin(ctx context.Context, input dto.PINInput) (bool
 }
 
 // VerifyLoginPIN mocks the verify pin functionality
-func (f *UserUseCaseMock) VerifyLoginPIN(ctx context.Context, userID string, pin string, flavour feedlib.Flavour) (bool, int, error) {
+func (f *UserUseCaseMock) VerifyLoginPIN(ctx context.Context, userID string, pin string, flavour feedlib.Flavour) (bool, *int, int, error) {
 	return f.MockVerifyLoginPINFn(ctx, userID, pin, flavour)
 }
 

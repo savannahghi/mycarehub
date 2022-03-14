@@ -145,14 +145,29 @@ type Contact struct {
 	OptedIn bool `json:"optedIn"`
 }
 
-// LoginResponse models the response that will be returned after a user logs in
+// LoginResponse models the response to be returned on successful login
 type LoginResponse struct {
+	Response  *Response `json:"response,omitempty"`
+	Attempts  int       `json:"attempts,omitempty"`
+	Message   string    `json:"message,omitempty"`
+	Code      int       `json:"code,omitempty"`
+	RetryTime float64   `json:"retryTime,omitempty"`
+}
+
+// Response models the response that will be returned after a user logs in
+type Response struct {
 	Client          *ClientProfile  `json:"clientProfile"`
 	Staff           *StaffProfile   `json:"staffProfile"`
 	AuthCredentials AuthCredentials `json:"credentials"`
 	GetStreamToken  string          `json:"getStreamToken"`
-	Code            int             `json:"code"`
-	Message         string          `json:"message"`
+}
+
+// CustomResponse models the response that will response to be returned incase of an error when logging in
+type CustomResponse struct {
+	Message          string  `json:"message"`
+	Code             int     `json:"code"`
+	FailedLoginCount int     `json:"failed_login_count"`
+	RetryTime        float64 `json:"retryTime,omitempty"`
 }
 
 // Identifier is used to store a user's identifying details e.d ID number, CCC number

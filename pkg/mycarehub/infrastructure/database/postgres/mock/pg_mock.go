@@ -218,7 +218,11 @@ func NewPostgresMock() *PostgresMock {
 		},
 		MockGetUserPINByUserIDFn: func(ctx context.Context, userID string, flavour feedlib.Flavour) (*domain.UserPIN, error) {
 			return &domain.UserPIN{
-				ValidTo: time.Now().Add(time.Hour * 10),
+				UserID:    userID,
+				ValidFrom: time.Now().Add(time.Hour * 10),
+				ValidTo:   time.Now().Add(time.Hour * 20),
+				Flavour:   flavour,
+				IsValid:   false,
 			}, nil
 		},
 		MockGetUserProfileByPhoneNumberFn: func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*domain.User, error) {
