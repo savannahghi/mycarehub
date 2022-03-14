@@ -282,8 +282,8 @@ func TestUseCasesUserImpl_Login_Unittest(t *testing.T) {
 			}
 
 			if tt.name == "invalid: invalid flavour" {
-				fakeUserMock.MockLoginFn = func(ctx context.Context, phoneNumber string, pin string, flavour feedlib.Flavour) (*domain.LoginResponse, int, error) {
-					return nil, 2, fmt.Errorf("invalid flavour defined")
+				fakeUserMock.MockLoginFn = func(ctx context.Context, phoneNumber string, pin string, flavour feedlib.Flavour) (*domain.LoginResponse, error) {
+					return nil, fmt.Errorf("invalid flavour defined")
 				}
 			}
 
@@ -330,7 +330,7 @@ func TestUseCasesUserImpl_Login_Unittest(t *testing.T) {
 				}
 			}
 
-			_, _, err := u.Login(tt.args.ctx, tt.args.phoneNumber, tt.args.pin, tt.args.flavour)
+			_, err := u.Login(tt.args.ctx, tt.args.phoneNumber, tt.args.pin, tt.args.flavour)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCasesUserImpl.Login() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -1030,8 +1030,8 @@ func TestUseCasesUserImpl_VerifyLoginPIN(t *testing.T) {
 			u := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, otp, fakeAuthority, fakeGetStream)
 
 			if tt.name == "Happy Case - Successfully verify pin" {
-				fakeUserMock.MockVerifyLoginPINFn = func(ctx context.Context, userID string, pin string, flavour feedlib.Flavour) (bool, int, error) {
-					return true, 0, nil
+				fakeUserMock.MockVerifyLoginPINFn = func(ctx context.Context, userID string, pin string, flavour feedlib.Flavour) (bool, *int, int, error) {
+					return true, nil, 0, nil
 				}
 			}
 
@@ -1089,7 +1089,7 @@ func TestUseCasesUserImpl_VerifyLoginPIN(t *testing.T) {
 				}
 			}
 
-			got, _, err := u.VerifyLoginPIN(tt.args.ctx, tt.args.userID, tt.args.pin, tt.args.flavour)
+			got, _, _, err := u.VerifyLoginPIN(tt.args.ctx, tt.args.userID, tt.args.pin, tt.args.flavour)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCasesUserImpl.VerifyLoginPIN() error = %v, wantErr %v", err, tt.wantErr)
 				return
