@@ -630,8 +630,7 @@ func (h *MyCareHubHandlersInterfacesImpl) GetServiceRequestsForKenyaEMR(ctx cont
 		return err
 	}
 
-	response := helpers.RestAPIResponseHelper("serviceRequests", serviceRequests)
-	serverutils.WriteJSONResponse(w, response, http.StatusOK)
+	serverutils.WriteJSONResponse(w, serviceRequests, http.StatusOK)
 	return nil
 }
 
@@ -655,7 +654,7 @@ func (h *MyCareHubHandlersInterfacesImpl) UpdateServiceRequests(ctx context.Cont
 		helpers.ReportErrorToSentry(err)
 		serverutils.WriteJSONResponse(w, serverutils.ErrorMap(err), http.StatusBadRequest)
 	}
-	response := helpers.RestAPIResponseHelper("serviceRequests", serviceRequests)
-	serverutils.WriteJSONResponse(w, response, http.StatusOK)
+
+	serverutils.WriteJSONResponse(w, serviceRequests, http.StatusOK)
 	return nil
 }

@@ -35,12 +35,11 @@ func PinNotFoundError(err error) error {
 
 // PinMismatchError displays an error when the supplied PIN
 // does not match the PIN stored
-func PinMismatchError(err error, meta map[string]interface{}) error {
+func PinMismatchError(err error) error {
 	return &CustomError{
 		Err:     err,
 		Message: PINMismatchErrMsg,
 		Code:    int(PINMismatch),
-		Meta:    meta,
 	}
 }
 
@@ -234,12 +233,12 @@ func LoginTimeUpdateErr(err error) error {
 	}
 }
 
-// NexAllowedLOginTimeErr returns an error message when the login time update fails
-func NexAllowedLOginTimeErr(err error) error {
+// NexAllowedLoginTimeErr returns an error message when the login time update fails
+func NexAllowedLoginTimeErr(err error) error {
 	return &CustomError{
 		Err:     err,
 		Message: NexAllowedLOginTimeErrorMsg,
-		Code:    int(NexAllowedLOginTimeError),
+		Code:    int(NexAllowedLoginTimeError),
 	}
 }
 
@@ -440,5 +439,14 @@ func RevokeRolesErr(err error) error {
 		Err:     err,
 		Message: RevokeRolesErrorMsg,
 		Code:    int(RevokeRolesError),
+	}
+}
+
+// UserNameExistsErr returns an error message when the item update fails
+func UserNameExistsErr(err error) error {
+	return &CustomError{
+		Err:     err,
+		Message: NickNameExistsErrorMsg,
+		Code:    int(NickNameExistsError),
 	}
 }

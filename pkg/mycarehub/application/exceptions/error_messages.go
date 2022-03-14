@@ -146,4 +146,8 @@ const (
 
 	// RevokeRolesErrorMsg is the error message displayed when a user roles' revocation fails
 	RevokeRolesErrorMsg = "unable to revoke roles"
+
+	// NickNameExistsErrorMsg is the error message displayed when a user attempts to set a nickname that
+	// has already been taken
+	NickNameExistsErrorMsg = "username has already been taken"
 )
