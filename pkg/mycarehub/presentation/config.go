@@ -23,6 +23,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/presentation/graph/generated"
 	internalRest "github.com/savannahghi/mycarehub/pkg/mycarehub/presentation/rest"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases"
+	appointment "github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/appointments"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/authority"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/communities"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/content"
@@ -101,13 +102,17 @@ func Router(ctx context.Context) (*mux.Router, error) {
 
 	communitiesUseCase := communities.NewUseCaseCommunitiesImpl(getStream, externalExt, db, db)
 
+	appointmentUsecase := appointment.NewUseCaseAppointmentsImpl(externalExt, db, db, db)
+
 	healthDiaryUseCase := healthdiary.NewUseCaseHealthDiaryImpl(db, db, serviceRequestUseCase)
+
 	screeningToolsUsecases := screeningtools.NewUseCasesScreeningTools(db, db, db)
 
 	useCase := usecases.NewMyCareHubUseCase(
 		userUsecase, termsUsecase, facilityUseCase,
 		securityQuestionsUsecase, otpUseCase, contentUseCase, feedbackUsecase, healthDiaryUseCase,
 		faq, serviceRequestUseCase, authorityUseCase, communitiesUseCase, screeningToolsUsecases,
+		appointmentUsecase,
 	)
 
 	internalHandlers := internalRest.NewMyCareHubHandlersInterfaces(*useCase)
@@ -218,6 +223,12 @@ func Router(ctx context.Context) (*mux.Router, error) {
 		http.MethodOptions,
 		http.MethodGet,
 	).HandlerFunc(internalHandlers.RegisteredFacilityPatients())
+
+	kenyaEMR.Path("/appointments").Methods(
+		http.MethodOptions,
+		http.MethodPost,
+		http.MethodPatch,
+	).HandlerFunc(internalHandlers.CreateOrUpdateKenyaEMRAppointments())
 
 	// Graphql route
 	authR := r.Path("/graphql").Subrouter()

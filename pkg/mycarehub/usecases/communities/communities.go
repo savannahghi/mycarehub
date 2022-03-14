@@ -151,6 +151,7 @@ func (us *UseCasesCommunitiesImpl) ListMembers(ctx context.Context, input *strea
 			Role:     user.Role,
 			UserID:   metadata.UserID,
 			UserType: metadata.UserType,
+			Username: metadata.NickName,
 		}
 		userResponse = append(userResponse, &Users)
 	}

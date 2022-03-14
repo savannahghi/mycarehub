@@ -2726,3 +2726,77 @@ func TestPGInstance_GetScreeningToolQuestionByQuestionID(t *testing.T) {
 		})
 	}
 }
+
+func TestPGInstance_ListAppointments(t *testing.T) {
+
+	type args struct {
+		ctx        context.Context
+		params     *gorm.Appointment
+		filter     []*domain.FiltersParam
+		pagination *domain.Pagination
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    []*gorm.Appointment
+		wantErr bool
+	}{
+		{
+			name: "happy case list all facilities",
+			args: args{
+				ctx:        context.Background(),
+				params:     nil,
+				filter:     nil,
+				pagination: nil,
+			},
+			wantErr: false,
+		},
+		{
+			name: "happy case list paginated facilities",
+			args: args{
+				ctx:    context.Background(),
+				params: nil,
+				filter: nil,
+				pagination: &domain.Pagination{
+					Limit:       1,
+					CurrentPage: 1,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "happy case list filtered facilities",
+			args: args{
+				ctx:    context.Background(),
+				params: nil,
+				filter: []*domain.FiltersParam{
+					{
+						Name:     enums.FilterSortDataTypeAppointmentStatus.String(),
+						DataType: enums.FilterSortDataTypeAppointmentStatus,
+						Value:    "COMPLETED",
+					},
+				},
+				pagination: nil,
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, _, err := testingDB.ListAppointments(tt.args.ctx, tt.args.params, tt.args.filter, tt.args.pagination)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.ListAppointments() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			if tt.wantErr && got != nil {
+				t.Errorf("expected appointments to be nil for %v", tt.name)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected appointments not to be nil for %v", tt.name)
+				return
+			}
+		})
+	}
+}

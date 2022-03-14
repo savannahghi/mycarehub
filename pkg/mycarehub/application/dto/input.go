@@ -1,6 +1,7 @@
 package dto
 
 import (
+	"strings"
 	"time"
 
 	"github.com/savannahghi/enumutils"
@@ -333,6 +334,52 @@ type PatientSyncPayload struct {
 type ServiceRequestPayload struct {
 	MFLCode      int        `json:"MFLCODE"`
 	LastSyncTime *time.Time `json:"lastSyncTime"`
+}
+
+// FacilityAppointmentsPayload is the payload sent for creating/updating an appointment
+type FacilityAppointmentsPayload struct {
+	MFLCode      string               `json:"MFLCODE"`
+	Appointments []AppointmentPayload `json:"appointments"`
+}
+
+// AppointmentPayload is the payload representing an appointment
+type AppointmentPayload struct {
+	CCCNumber       string                  `json:"ccc_number"`
+	AppointmentUUID string                  `json:"appointment_uuid"`
+	AppointmentType string                  `json:"appointment_type"`
+	Status          enums.AppointmentStatus `json:"status"`
+	AppointmentDate scalarutils.Date        `json:"appointment_date"`
+	TimeSlot        string                  `json:"time_slot"`
+}
+
+// StartTime extracts the start time from the time slot field'
+// Expected time slot: "13:00 - 14:00" start time: "13:00"
+func (a AppointmentPayload) StartTime() *time.Time {
+	trimmed := strings.ReplaceAll(a.TimeSlot, " ", "")
+	split := strings.Split(trimmed, "-")
+
+	start := split[0]
+	startTime, err := time.Parse("15:04", start)
+	if err != nil {
+		return nil
+	}
+
+	return &startTime
+}
+
+// EndTime extracts the end time from the time slot field
+// Expected time slot: "13:00 - 14:00" end time: "14:00"
+func (a AppointmentPayload) EndTime() *time.Time {
+	trimmed := strings.ReplaceAll(a.TimeSlot, " ", "")
+	split := strings.Split(trimmed, "-")
+
+	end := split[1]
+	endTime, err := time.Parse("15:04", end)
+	if err != nil {
+		return nil
+	}
+
+	return &endTime
 }
 
 // ScreeningToolQuestionResponseInput defines the field passed when answering screening tools questions

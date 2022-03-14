@@ -1,7 +1,9 @@
 package dto
 
 import (
+	"reflect"
 	"testing"
+	"time"
 
 	"github.com/brianvoe/gofakeit"
 	"github.com/savannahghi/feedlib"
@@ -617,6 +619,90 @@ func TestShareContentInput_Validate(t *testing.T) {
 			}
 			if err := f.Validate(); (err != nil) != tt.wantErr {
 				t.Errorf("ShareContentInput.Validate() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestAppointmentPayload_StartTime(t *testing.T) {
+	startTime, err := time.Parse("15:04", "13:00")
+	if err != nil {
+		t.Errorf("cannot parse start time")
+		return
+	}
+
+	type fields struct {
+		TimeSlot string
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		want   *time.Time
+	}{
+		{
+			name: "Happy case: valid time slot",
+			fields: fields{
+				TimeSlot: "13:00 - 14:00",
+			},
+			want: &startTime,
+		},
+		{
+			name: "Sad case: invalid time slot",
+			fields: fields{
+				TimeSlot: "invalid - 14:00",
+			},
+			want: nil,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			a := AppointmentPayload{
+				TimeSlot: tt.fields.TimeSlot,
+			}
+			if got := a.StartTime(); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("AppointmentPayload.StartTime() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestAppointmentPayload_EndTime(t *testing.T) {
+	endTime, err := time.Parse("15:04", "14:00")
+	if err != nil {
+		t.Errorf("cannot parse end time")
+		return
+	}
+
+	type fields struct {
+		TimeSlot string
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		want   *time.Time
+	}{
+		{
+			name: "Happy case: valid time slot",
+			fields: fields{
+				TimeSlot: "13:00 - 14:00",
+			},
+			want: &endTime,
+		},
+		{
+			name: "Sad case: invalid time slot",
+			fields: fields{
+				TimeSlot: "13:00 - invalid",
+			},
+			want: nil,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			a := AppointmentPayload{
+				TimeSlot: tt.fields.TimeSlot,
+			}
+			if got := a.EndTime(); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("AppointmentPayload.EndTime() = %v, want %v", got, tt.want)
 			}
 		})
 	}

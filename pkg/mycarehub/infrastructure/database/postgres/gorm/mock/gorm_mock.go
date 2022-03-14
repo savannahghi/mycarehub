@@ -6,6 +6,7 @@ import (
 
 	"github.com/brianvoe/gofakeit"
 	"github.com/google/uuid"
+	"github.com/lib/pq"
 	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
@@ -95,6 +96,9 @@ type GormMock struct {
 	MockGetClientsByParams                        func(ctx context.Context, params gorm.Client, lastSyncTime *time.Time) ([]*gorm.Client, error)
 	MockGetClientCCCIdentifier                    func(ctx context.Context, clientID string) (*gorm.Identifier, error)
 	MockGetServiceRequestsForKenyaEMRFn           func(ctx context.Context, facilityID string, lastSyncTime time.Time) ([]*gorm.ClientServiceRequest, error)
+	MockCreateAppointment                         func(ctx context.Context, appointment *gorm.Appointment) error
+	MockListAppointments                          func(ctx context.Context, params *gorm.Appointment, filter []*domain.FiltersParam, pagination *domain.Pagination) ([]*gorm.Appointment, *domain.Pagination, error)
+	MockUpdateAppointment                         func(ctx context.Context, payload *gorm.Appointment) error
 	MockGetScreeningToolsQuestionsFn              func(ctx context.Context, toolType string) ([]gorm.ScreeningToolQuestion, error)
 	MockAnswerScreeningToolQuestionsFn            func(ctx context.Context, screeningToolResponses []*gorm.ScreeningToolsResponse) error
 	MockGetScreeningToolQuestionByQuestionIDFn    func(ctx context.Context, questionID string) (*gorm.ScreeningToolQuestion, error)
@@ -688,6 +692,31 @@ func NewGormMock() *GormMock {
 			}
 			return []*gorm.ClientServiceRequest{serviceReq}, nil
 		},
+		MockCreateAppointment: func(ctx context.Context, appointment *gorm.Appointment) error {
+			return nil
+		},
+		MockListAppointments: func(ctx context.Context, params *gorm.Appointment, filter []*domain.FiltersParam, pagination *domain.Pagination) ([]*gorm.Appointment, *domain.Pagination, error) {
+			date := time.Now().Add(time.Duration(100))
+			return []*gorm.Appointment{
+				{
+					ID:              gofakeit.UUID(),
+					OrganisationID:  gofakeit.UUID(),
+					Active:          true,
+					AppointmentUUID: gofakeit.UUID(),
+					AppointmentType: "Dental",
+					Status:          enums.AppointmentStatusCompleted.String(),
+					// ClientID:        gofakeit.UUID(),
+					// StaffID:         gofakeit.UUID(),
+					Reason:    "Knocked up",
+					Date:      date,
+					StartTime: pq.NullTime{Time: time.Now(), Valid: true},
+					EndTime:   pq.NullTime{Time: time.Now().Add(30 * time.Minute), Valid: true},
+				},
+			}, &domain.Pagination{Limit: 10, CurrentPage: 1}, nil
+		},
+		MockUpdateAppointment: func(ctx context.Context, payload *gorm.Appointment) error {
+			return nil
+		},
 		MockGetScreeningToolsQuestionsFn: func(ctx context.Context, toolType string) ([]gorm.ScreeningToolQuestion, error) {
 			return []gorm.ScreeningToolQuestion{
 				{
@@ -1131,6 +1160,21 @@ func (gm *GormMock) AnswerScreeningToolQuestions(ctx context.Context, screeningT
 // GetScreeningToolQuestionByQuestionID mocks the implementation of getting screening tool questions by question ID
 func (gm *GormMock) GetScreeningToolQuestionByQuestionID(ctx context.Context, questionID string) (*gorm.ScreeningToolQuestion, error) {
 	return gm.MockGetScreeningToolQuestionByQuestionIDFn(ctx, questionID)
+}
+
+// CreateAppointment creates an appointment in the database
+func (gm *GormMock) CreateAppointment(ctx context.Context, appointment *gorm.Appointment) error {
+	return gm.MockCreateAppointment(ctx, appointment)
+}
+
+// ListAppointments Retrieves appointments using the provided parameters and filters
+func (gm *GormMock) ListAppointments(ctx context.Context, params *gorm.Appointment, filter []*domain.FiltersParam, pagination *domain.Pagination) ([]*gorm.Appointment, *domain.Pagination, error) {
+	return gm.MockListAppointments(ctx, params, filter, pagination)
+}
+
+// UpdateAppointment updates the details of an appointment requires the ID or appointment_uuid to be provided
+func (gm *GormMock) UpdateAppointment(ctx context.Context, payload *gorm.Appointment) error {
+	return gm.MockUpdateAppointment(ctx, payload)
 }
 
 // InvalidateScreeningToolResponse mocks the implementation of invalidating screening tool responses

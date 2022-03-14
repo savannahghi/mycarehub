@@ -10,6 +10,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
 	streamService "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/getstream"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases"
+	appointment "github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/appointments"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/authority"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/communities"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/content"
@@ -64,6 +65,7 @@ func InitializeTestService(ctx context.Context) (*usecases.MyCareHub, error) {
 	faq := faq.NewUsecaseFAQ(db)
 	serviceRequestUseCase := servicerequest.NewUseCaseServiceRequestImpl(db, db, db)
 	healthDiaryUseCase := healthdiary.NewUseCaseHealthDiaryImpl(db, db, serviceRequestUseCase)
+	appointmentUsecase := appointment.NewUseCaseAppointmentsImpl(externalExt, db, db, db)
 	communityUsecase := communities.NewUseCaseCommunitiesImpl(getStream, externalExt, db, db)
 
 	screeningToolsUsecases := screeningtools.NewUseCasesScreeningTools(db, db, db)
@@ -72,6 +74,7 @@ func InitializeTestService(ctx context.Context) (*usecases.MyCareHub, error) {
 		userUsecase, termsUsecase, facilityUseCase,
 		securityQuestionsUsecase, otpUseCase, contentUseCase, feedbackUsecase, healthDiaryUseCase,
 		faq, serviceRequestUseCase, authorityUseCase, communityUsecase, screeningToolsUsecases,
+		appointmentUsecase,
 	)
 	return i, nil
 }

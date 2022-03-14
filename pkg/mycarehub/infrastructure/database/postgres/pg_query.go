@@ -13,6 +13,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/exceptions"
+	"github.com/savannahghi/scalarutils"
 	"github.com/savannahghi/serverutils"
 )
 
@@ -984,6 +985,46 @@ func (d *MyCareHubDb) GetScreeningToolQuestions(ctx context.Context, questionTyp
 	}
 
 	return screeningToolQuestions, nil
+}
+
+// ListAppointments lists appointments at a facility
+func (d *MyCareHubDb) ListAppointments(ctx context.Context, params *domain.Appointment, filter []*domain.FiltersParam, pagination *domain.Pagination) ([]*domain.Appointment, *domain.Pagination, error) {
+
+	parameters := &gorm.Appointment{
+		Active:          true,
+		AppointmentType: params.Type,
+		Status:          params.Type,
+		// ClientID:        params.ClientID,
+		Reason:   params.Reason,
+		Provider: params.Provider,
+	}
+
+	appointments, pageInfo, err := d.query.ListAppointments(ctx, parameters, filter, pagination)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	mapped := []*domain.Appointment{}
+	for _, a := range appointments {
+		m := &domain.Appointment{
+			ID:       a.ID,
+			Type:     a.AppointmentType,
+			Status:   a.Status,
+			Reason:   a.Reason,
+			Provider: a.Provider,
+			Date: scalarutils.Date{
+				Year:  a.Date.Year(),
+				Month: int(a.Date.Month()),
+				Day:   a.Date.Day(),
+			},
+			Start: a.StartTime.Time,
+			End:   a.EndTime.Time,
+		}
+
+		mapped = append(mapped, m)
+	}
+
+	return mapped, pageInfo, nil
 }
 
 // GetScreeningToolQuestionByQuestionID fetches a screening tool question by question id

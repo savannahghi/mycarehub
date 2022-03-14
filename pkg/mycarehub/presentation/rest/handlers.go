@@ -32,6 +32,7 @@ type MyCareHubHandlersInterfaces interface {
 	GetClientHealthDiaryEntries() http.HandlerFunc
 	RegisteredFacilityPatients() http.HandlerFunc
 	ServiceRequests() http.HandlerFunc
+	CreateOrUpdateKenyaEMRAppointments() http.HandlerFunc
 }
 
 // MyCareHubHandlersInterfacesImpl represents the usecase implementation object
@@ -665,4 +666,59 @@ func (h *MyCareHubHandlersInterfacesImpl) UpdateServiceRequests(ctx context.Cont
 
 	serverutils.WriteJSONResponse(w, serviceRequests, http.StatusOK)
 	return nil
+}
+
+// CreateOrUpdateKenyaEMRAppointments is tha handler used to sync appointmens from Kenya EMR
+// The appointment can be a POST, handled as a create or PUT handled as an update to existing appointment
+func (h *MyCareHubHandlersInterfacesImpl) CreateOrUpdateKenyaEMRAppointments() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+		payload := &dto.FacilityAppointmentsPayload{}
+
+		serverutils.DecodeJSONToTargetStruct(w, r, payload)
+
+		// error decoding json
+		// the decode error is already in response
+		if payload == nil {
+			return
+		}
+
+		if payload.MFLCode == "" {
+			err := fmt.Errorf("expected an MFL code to be defined")
+			helpers.ReportErrorToSentry(err)
+			serverutils.WriteJSONResponse(w, serverutils.ErrorMap(err), http.StatusBadRequest)
+			return
+		}
+
+		if len(payload.Appointments) == 0 {
+			err := fmt.Errorf("expected at least one appointment to be defined")
+			helpers.ReportErrorToSentry(err)
+			serverutils.WriteJSONResponse(w, serverutils.ErrorMap(err), http.StatusBadRequest)
+			return
+		}
+
+		if r.Method == http.MethodPost {
+			response, err := h.usecase.Appointment.CreateKenyaEMRAppointments(ctx, *payload)
+			if err != nil {
+				helpers.ReportErrorToSentry(err)
+				serverutils.WriteJSONResponse(w, serverutils.ErrorMap(err), http.StatusBadRequest)
+				return
+			}
+
+			serverutils.WriteJSONResponse(w, response, http.StatusCreated)
+			return
+		}
+
+		if r.Method == http.MethodPatch {
+			response, err := h.usecase.Appointment.CreateKenyaEMRAppointments(ctx, *payload)
+			if err != nil {
+				helpers.ReportErrorToSentry(err)
+				serverutils.WriteJSONResponse(w, serverutils.ErrorMap(err), http.StatusBadRequest)
+				return
+			}
+
+			serverutils.WriteJSONResponse(w, response, http.StatusOK)
+			return
+		}
+	}
 }

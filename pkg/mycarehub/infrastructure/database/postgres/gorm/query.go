@@ -22,6 +22,7 @@ type Query interface {
 	RetrieveFacilityByMFLCode(ctx context.Context, MFLCode int, isActive bool) (*Facility, error)
 	GetFacilities(ctx context.Context) ([]Facility, error)
 	ListFacilities(ctx context.Context, searchTerm *string, filter []*domain.FiltersParam, pagination *domain.FacilityPage) (*domain.FacilityPage, error)
+	ListAppointments(ctx context.Context, params *Appointment, filter []*domain.FiltersParam, pagination *domain.Pagination) ([]*Appointment, *domain.Pagination, error)
 	GetUserProfileByPhoneNumber(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*User, error)
 	GetUserPINByUserID(ctx context.Context, userID string, flavour feedlib.Flavour) (*PINData, error)
 	GetUserProfileByUserID(ctx context.Context, userID *string) (*User, error)
@@ -268,6 +269,55 @@ func (db *PGInstance) ListFacilities(
 	pagination.Pagination.PreviousPage = paginatedFacilities.Pagination.PreviousPage
 
 	return pagination, nil
+}
+
+// ListAppointments Retrieves appointments using the provided parameters and filters
+func (db *PGInstance) ListAppointments(ctx context.Context, params *Appointment, filter []*domain.FiltersParam, pagination *domain.Pagination) ([]*Appointment, *domain.Pagination, error) {
+	var appointments []*Appointment
+	var pageInfo *domain.Pagination // TODO: fix pagination implementation
+	// this will keep track of the results for pagination
+	// Count query is unreliable for this since it is returning the count for all rows instead of results
+	var resultCount int64
+
+	for _, f := range filter {
+		err := f.Validate()
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return nil, nil, fmt.Errorf("failed to validate filter %v: %v", f.Value, err)
+		}
+	}
+
+	mappedFilterParams := filterParamsToMap(filter)
+
+	tx := db.DB.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	if err := tx.Error; err != nil {
+		return nil, nil, fmt.Errorf("failed to initialize filter appointments transaction %v", err)
+	}
+
+	tx.Where(params).Where(mappedFilterParams).Find(&appointments)
+
+	resultCount = int64(len(appointments))
+
+	if pagination != nil {
+		tx.Scopes(
+			paginate(appointments, pagination, resultCount, db.DB),
+		).Where(params).Where(mappedFilterParams).Find(&appointments)
+
+		pageInfo = pagination
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		tx.Rollback()
+		return nil, nil, fmt.Errorf("failed to commit transaction list facilities transaction%v", err)
+	}
+
+	return appointments, pageInfo, nil
 }
 
 // GetUserProfileByPhoneNumber retrieves a user profile using their phonenumber

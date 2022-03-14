@@ -80,4 +80,5 @@ type CommunityMetadata struct {
 type MemberMetadata struct {
 	UserID   string `json:"userID"`
 	UserType string `json:"userType"`
+	NickName string `json:"nickName"`
 }

@@ -9,7 +9,6 @@ import (
 	stream_chat "github.com/GetStream/stream-chat-go/v5"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/presentation/graph/generated"
 )
 
 func (r *mutationResolver) CreateCommunity(ctx context.Context, input dto.CommunityInput) (*domain.Community, error) {
@@ -67,8 +66,3 @@ func (r *queryResolver) ListPendingInvites(ctx context.Context, memberID string,
 func (r *queryResolver) RecommendedCommunities(ctx context.Context, clientID string, limit int) ([]*domain.Community, error) {
 	return r.mycarehub.Community.RecommendedCommunities(ctx, clientID, limit)
 }
-
-// Query returns generated.QueryResolver implementation.
-func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
-
-type queryResolver struct{ *Resolver }

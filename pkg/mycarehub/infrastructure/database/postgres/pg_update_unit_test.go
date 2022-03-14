@@ -1694,6 +1694,48 @@ func TestMyCareHubDb_InvalidateScreeningToolResponse(t *testing.T) {
 	}
 }
 
+func TestMyCareHubDb_UpdateAppointment(t *testing.T) {
+	var fakeGorm = gormMock.NewGormMock()
+	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+	type args struct {
+		ctx             context.Context
+		appointment     domain.Appointment
+		appointmentUUID string
+		clientID        string
+		staffID         string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "happy case: update an appointment",
+			args: args{
+				ctx: context.Background(),
+				appointment: domain.Appointment{
+					ID:       gofakeit.UUID(),
+					Type:     "Dental",
+					Status:   "COMPLETED",
+					Reason:   "Knocked out",
+					ClientID: gofakeit.UUID(),
+				},
+				appointmentUUID: gofakeit.UUID(),
+				clientID:        gofakeit.UUID(),
+				staffID:         gofakeit.UUID(),
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := d.UpdateAppointment(tt.args.ctx, tt.args.appointment, tt.args.appointmentUUID, tt.args.clientID, tt.args.staffID); (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.UpdateAppointment() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
 func TestMyCareHubDb_UpdateServiceRequests(t *testing.T) {
 	ctx := context.Background()
 	var fakeGorm = gormMock.NewGormMock()

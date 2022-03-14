@@ -1228,6 +1228,146 @@ func TestMyCareHubHandlersInterfacesImpl_RegisterKenyaEMRPatients(t *testing.T) 
 	}
 }
 
+func TestMyCareHubHandlersInterfacesImpl_CreateOrUpdateKenyaEMRAppointment(t *testing.T) {
+	ctx := context.Background()
+	headers, err := GetGraphQLHeaders(ctx)
+	if err != nil {
+		t.Errorf("failed to get GraphQL headers: %v", err)
+		return
+	}
+
+	missingMFLCode := dto.FacilityAppointmentsPayload{
+		MFLCode:      "",
+		Appointments: []dto.AppointmentPayload{},
+	}
+	marshalledMissingMFLCode, err := json.Marshal(missingMFLCode)
+	if err != nil {
+		t.Errorf("failed to marshal payload")
+		return
+	}
+
+	missingAppointment := dto.FacilityAppointmentsPayload{
+		MFLCode:      "1234",
+		Appointments: []dto.AppointmentPayload{},
+	}
+	marshalledMissingAppointment, err := json.Marshal(missingAppointment)
+	if err != nil {
+		t.Errorf("failed to marshal payload")
+		return
+	}
+
+	type args struct {
+		url        string
+		httpMethod string
+		body       io.Reader
+	}
+	tests := []struct {
+		name       string
+		args       args
+		wantStatus int
+		wantErr    bool
+	}{
+
+		{
+			name: "Sad case - invalid payload missing MFL code",
+			args: args{
+				url: fmt.Sprintf(
+					"%s/kenya-emr/appointments",
+					baseURL,
+				),
+				httpMethod: http.MethodPatch,
+				body:       bytes.NewBuffer(marshalledMissingMFLCode),
+			},
+			wantStatus: http.StatusBadRequest,
+			wantErr:    true,
+		},
+		{
+			name: "Sad case - invalid payload Missing Appointment",
+			args: args{
+				url: fmt.Sprintf(
+					"%s/kenya-emr/appointments",
+					baseURL,
+				),
+				httpMethod: http.MethodPatch,
+				body:       bytes.NewBuffer(marshalledMissingAppointment),
+			},
+			wantStatus: http.StatusBadRequest,
+			wantErr:    true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r, err := http.NewRequest(
+				tt.args.httpMethod,
+				tt.args.url,
+				tt.args.body,
+			)
+			if err != nil {
+				t.Errorf("unable to compose request: %s", err)
+				return
+			}
+
+			if r == nil {
+				t.Errorf("nil request")
+				return
+			}
+
+			for k, v := range headers {
+				r.Header.Add(k, v)
+			}
+			client := http.DefaultClient
+			resp, err := client.Do(r)
+			if err != nil {
+				t.Errorf("request error: %s", err)
+				return
+			}
+
+			if resp == nil && !tt.wantErr {
+				t.Errorf("nil response")
+				return
+			}
+
+			dataResponse, err := ioutil.ReadAll(resp.Body)
+			if err != nil {
+				t.Errorf("can't read request body: %s", err)
+				return
+			}
+			if dataResponse == nil {
+				t.Errorf("nil response data")
+				return
+			}
+
+			data := map[string]interface{}{}
+			err = json.Unmarshal(dataResponse, &data)
+			if tt.wantErr && err != nil {
+				t.Errorf("bad data returned: %v", err)
+				return
+			}
+
+			if tt.wantErr {
+				errMsg, ok := data["error"]
+				if !ok {
+					t.Errorf("expected error: %s", errMsg)
+					return
+				}
+			}
+
+			if !tt.wantErr {
+				_, ok := data["error"]
+				if ok {
+					t.Errorf("error not expected")
+					return
+				}
+			}
+
+			if resp.StatusCode != tt.wantStatus {
+				t.Errorf("expected status %d, got %s", tt.wantStatus, resp.Status)
+				return
+			}
+		})
+	}
+}
+
 func TestMyCareHubHandlersInterfacesImpl_GetClientHealthDiaryEntries(t *testing.T) {
 	ctx := context.Background()
 	headers, err := GetGraphQLHeaders(ctx)

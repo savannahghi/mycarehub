@@ -36,6 +36,7 @@ type Update interface {
 	ResolveServiceRequest(ctx context.Context, staffID *string, serviceRequestID *string) (bool, error)
 	AssignRoles(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error)
 	RevokeRoles(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error)
+	UpdateAppointment(ctx context.Context, payload *Appointment) error
 	InvalidateScreeningToolResponse(ctx context.Context, clientID string, questionID string) error
 	UpdateServiceRequests(ctx context.Context, payload []*ClientServiceRequest) (bool, error)
 }
@@ -755,6 +756,48 @@ func (db *PGInstance) RevokeRoles(ctx context.Context, userID string, roles []en
 	}
 
 	return true, nil
+}
+
+// UpdateAppointment updates the details of an appointment requires the ID or appointment_uuid to be provided
+func (db *PGInstance) UpdateAppointment(ctx context.Context, payload *Appointment) error {
+	var appointment Appointment
+
+	if payload.ID == "" && payload.AppointmentUUID == "" {
+		return fmt.Errorf("an appointment id or appointment_uuid is required")
+	}
+
+	tx := db.DB.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+	if err := tx.Error; err != nil {
+		helpers.ReportErrorToSentry(err)
+		return fmt.Errorf("failied initialize database transaction %v", err)
+	}
+
+	err := tx.Model(&Appointment{}).Where(&Appointment{ID: payload.ID, AppointmentUUID: payload.AppointmentUUID}).First(&appointment).Error
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		tx.Rollback()
+		return fmt.Errorf("failed to get appointment: %v", err)
+	}
+
+	err = tx.Model(&Appointment{}).Where(&Appointment{ID: payload.ID, AppointmentUUID: payload.AppointmentUUID}).Updates(payload).Error
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		tx.Rollback()
+		return fmt.Errorf("failed to update the appointment: %v", err)
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		helpers.ReportErrorToSentry(err)
+		tx.Rollback()
+		return fmt.Errorf("transaction commit to update an appointment failed: %v", err)
+	}
+
+	return nil
 }
 
 // InvalidateScreeningToolResponse invalidates a screening tool response

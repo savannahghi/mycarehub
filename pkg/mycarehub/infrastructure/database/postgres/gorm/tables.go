@@ -1022,3 +1022,34 @@ func (c *ScreeningToolsResponse) BeforeCreate(tx *gorm.DB) (err error) {
 func (ScreeningToolsResponse) TableName() string {
 	return "screeningtools_screeningtoolsresponse"
 }
+
+// Appointment represents a single appointment
+type Appointment struct {
+	Base
+
+	ID              string      `gorm:"primaryKey;column:id;"`
+	OrganisationID  string      `gorm:"column:organisation_id;not null"`
+	Active          bool        `gorm:"column:active;not null"`
+	AppointmentUUID string      `gorm:"column:appointment_uuid"`
+	AppointmentType string      `gorm:"column:appointment_type;not null"`
+	Status          string      `gorm:"column:status;not null"`
+	ClientID        string      `gorm:"column:client_id"`
+	Reason          string      `gorm:"column:reason"`
+	Provider        string      `gorm:"column:provider"`
+	Date            time.Time   `gorm:"column:date"`
+	StartTime       pq.NullTime `gorm:"column:start_time"` // TODO create custom scanner for time
+	EndTime         pq.NullTime `gorm:"column:end_time"`   // TODO create custom scanner for time
+}
+
+// BeforeCreate is a hook run before creating an appointment
+func (a *Appointment) BeforeCreate(tx *gorm.DB) (err error) {
+	id := uuid.New().String()
+	a.ID = id
+	a.OrganisationID = OrganizationID
+	return
+}
+
+// TableName references the table that we map data from
+func (Appointment) TableName() string {
+	return "appointments_appointment"
+}
