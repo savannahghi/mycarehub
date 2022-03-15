@@ -108,6 +108,7 @@ func (h UseCasesHealthDiaryImpl) CreateHealthDiaryEntry(
 			clientID,
 			string(enums.ServiceRequestTypeRedFlag),
 			"",
+			"",
 		)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)

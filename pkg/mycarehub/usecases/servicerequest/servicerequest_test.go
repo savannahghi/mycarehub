@@ -8,6 +8,7 @@ import (
 
 	"github.com/brianvoe/gofakeit"
 	"github.com/google/uuid"
+	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	pgMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/mock"
@@ -20,6 +21,7 @@ func TestUseCasesServiceRequestImpl_CreateServiceRequest(t *testing.T) {
 		clientID    string
 		requestType string
 		request     string
+		cccNumber   string
 	}
 	tests := []struct {
 		name    string
@@ -78,7 +80,7 @@ func TestUseCasesServiceRequestImpl_CreateServiceRequest(t *testing.T) {
 			}
 
 			u := servicerequest.NewUseCaseServiceRequestImpl(fakeDB, fakeDB, fakeDB)
-			got, err := u.CreateServiceRequest(tt.args.ctx, tt.args.clientID, tt.args.requestType, tt.args.request)
+			got, err := u.CreateServiceRequest(tt.args.ctx, tt.args.clientID, tt.args.requestType, tt.args.request, tt.args.cccNumber)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCasesServiceRequestImpl.CreateServiceRequest() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -551,6 +553,95 @@ func TestUseCasesServiceRequestImpl_UpdateServiceRequestsFromKenyaEMR(t *testing
 			}
 			if got != tt.want {
 				t.Errorf("UseCasesServiceRequestImpl.UpdateServiceRequestsFromKenyaEMR() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestUseCasesServiceRequestImpl_CreatePinResetServiceRequest(t *testing.T) {
+	ctx := context.Background()
+	type args struct {
+		ctx         context.Context
+		phoneNumber string
+		cccNumber   string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Successfully create service request",
+			args: args{
+				ctx:         ctx,
+				phoneNumber: "12345",
+				cccNumber:   "12345",
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Sad Case - Fail to create service request",
+			args: args{
+				ctx:         ctx,
+				phoneNumber: "12345",
+				cccNumber:   "12345",
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - Fail to get user profile by phonenumber",
+			args: args{
+				ctx:         ctx,
+				phoneNumber: "12345",
+				cccNumber:   "12345",
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - Fail to get client profile by user ID",
+			args: args{
+				ctx:         ctx,
+				phoneNumber: "12345",
+				cccNumber:   "12345",
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			u := servicerequest.NewUseCaseServiceRequestImpl(fakeDB, fakeDB, fakeDB)
+
+			if tt.name == "Sad Case - Fail to create service request" {
+				fakeDB.MockCreateServiceRequestFn = func(ctx context.Context, serviceRequestInput *domain.ClientServiceRequest) error {
+					return fmt.Errorf("failed to create service request")
+				}
+			}
+
+			if tt.name == "Sad Case - Fail to get user profile by phonenumber" {
+				fakeDB.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*domain.User, error) {
+					return nil, fmt.Errorf("failed to get user profile by phonenumber")
+				}
+			}
+
+			if tt.name == "Sad Case - Fail to get client profile by user ID" {
+				fakeDB.MockGetClientProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.ClientProfile, error) {
+					return nil, fmt.Errorf("failed to get client profile by user id")
+				}
+			}
+
+			got, err := u.CreatePinResetServiceRequest(tt.args.ctx, tt.args.phoneNumber, tt.args.cccNumber)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCasesServiceRequestImpl.CreatePinResetServiceRequest() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("UseCasesServiceRequestImpl.CreatePinResetServiceRequest() = %v, want %v", got, tt.want)
 			}
 		})
 	}
