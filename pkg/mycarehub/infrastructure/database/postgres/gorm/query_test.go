@@ -2800,3 +2800,37 @@ func TestPGInstance_ListAppointments(t *testing.T) {
 		})
 	}
 }
+
+func TestPGInstance_GetClientProfileByCCCNumber(t *testing.T) {
+	ctx := context.Background()
+	type args struct {
+		ctx       context.Context
+		CCCNumber string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Successfully get client profile by CCC number",
+			args: args{
+				ctx:       ctx,
+				CCCNumber: "123456",
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := testingDB.GetClientProfileByCCCNumber(tt.args.ctx, tt.args.CCCNumber)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.GetClientProfileByCCCNumber() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("PGInstance.GetClientProfileByCCCNumber() Expected a response but got = %v", got)
+			}
+		})
+	}
+}

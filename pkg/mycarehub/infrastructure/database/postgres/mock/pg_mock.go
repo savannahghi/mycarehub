@@ -107,6 +107,7 @@ type PostgresMock struct {
 	MockInvalidateScreeningToolResponseFn         func(ctx context.Context, clientID string, questionID string) error
 	MockUpdateServiceRequestsFn                   func(ctx context.Context, payload *domain.UpdateServiceRequestsPayload) (bool, error)
 	MockListAppointments                          func(ctx context.Context, params *domain.Appointment, filter []*domain.FiltersParam, pagination *domain.Pagination) ([]*domain.Appointment, *domain.Pagination, error)
+	MockGetClientProfileByCCCNumberFn             func(ctx context.Context, CCCNumber string) (*domain.ClientProfile, error)
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -685,6 +686,9 @@ func NewPostgresMock() *PostgresMock {
 		MockInvalidateScreeningToolResponseFn: func(ctx context.Context, clientID string, questionID string) error {
 			return nil
 		},
+		MockGetClientProfileByCCCNumberFn: func(ctx context.Context, CCCNumber string) (*domain.ClientProfile, error) {
+			return client, nil
+		},
 	}
 }
 
@@ -1131,4 +1135,9 @@ func (gm *PostgresMock) UpdateAppointment(ctx context.Context, appointment domai
 // UpdateServiceRequests mocks the implementation of updating service requests
 func (gm *PostgresMock) UpdateServiceRequests(ctx context.Context, payload *domain.UpdateServiceRequestsPayload) (bool, error) {
 	return gm.MockUpdateServiceRequestsFn(ctx, payload)
+}
+
+// GetClientProfileByCCCNumber mocks the implementation of getting a client profile using the CCC number
+func (gm *PostgresMock) GetClientProfileByCCCNumber(ctx context.Context, CCCNumber string) (*domain.ClientProfile, error) {
+	return gm.MockGetClientProfileByCCCNumberFn(ctx, CCCNumber)
 }

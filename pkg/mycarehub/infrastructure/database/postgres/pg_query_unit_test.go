@@ -3813,3 +3813,55 @@ func TestMyCareHubDb_GetScreeningToolQuestionByQuestionID(t *testing.T) {
 		})
 	}
 }
+
+func TestMyCareHubDb_GetClientProfileByCCCNumber(t *testing.T) {
+	ctx := context.Background()
+	type args struct {
+		ctx       context.Context
+		CCCNumber string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Successfully get client profile by CCC number",
+			args: args{
+				ctx:       ctx,
+				CCCNumber: "345678",
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad Case - Fail to get client profile by CCC number",
+			args: args{
+				ctx:       ctx,
+				CCCNumber: "111111",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var fakeGorm = gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			if tt.name == "Sad Case - Fail to get client profile by CCC number" {
+				fakeGorm.MockGetClientProfileByCCCNumberFn = func(ctx context.Context, CCCNumber string) (*gorm.Client, error) {
+					return nil, fmt.Errorf("failed to get client profile by CCC number")
+				}
+			}
+
+			got, err := d.GetClientProfileByCCCNumber(tt.args.ctx, tt.args.CCCNumber)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.GetClientProfileByCCCNumber() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected a response but got: %v", got)
+				return
+			}
+		})
+	}
+}
