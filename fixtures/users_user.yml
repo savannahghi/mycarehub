@@ -10,6 +10,7 @@
   last_successful_login: RAW=NOW()
   last_failed_login: null
   failed_login_count: 0
+  failed_security_count: 0
   next_allowed_login: RAW=NOW()
   accepted_terms_of_service_id: {{.test_terms_id}}
   terms_accepted: true
@@ -42,6 +43,7 @@
   last_successful_login: RAW=NOW()
   last_failed_login: null
   failed_login_count: 0
+  failed_security_count: 0
   next_allowed_login: RAW=NOW()
   accepted_terms_of_service_id: {{.test_terms_id}}
   terms_accepted: true
@@ -75,6 +77,7 @@
   last_successful_login: RAW=NOW()
   last_failed_login: null
   failed_login_count: 0
+  failed_security_count: 0
   next_allowed_login: RAW=NOW()
   accepted_terms_of_service_id: {{.test_terms_id}}
   terms_accepted: true
@@ -108,6 +111,7 @@
   last_successful_login: RAW=NOW()
   last_failed_login: null
   failed_login_count: 0
+  failed_security_count: 0
   next_allowed_login: RAW=NOW()
   accepted_terms_of_service_id: {{.test_terms_id}}
   terms_accepted: true
@@ -141,6 +145,7 @@
   last_successful_login: RAW=NOW()
   last_failed_login: null
   failed_login_count: 0
+  failed_security_count: 0
   next_allowed_login: RAW=NOW()
   accepted_terms_of_service_id: null
   terms_accepted: false
@@ -174,6 +179,7 @@
   last_successful_login: RAW=NOW()
   last_failed_login: null
   failed_login_count: 0
+  failed_security_count: 0
   next_allowed_login: RAW=NOW()
   accepted_terms_of_service_id: {{.test_terms_id}}
   terms_accepted: true
@@ -207,6 +213,7 @@
   last_successful_login: RAW=NOW()
   last_failed_login: null
   failed_login_count: 0
+  failed_security_count: 0
   next_allowed_login: RAW=NOW()
   accepted_terms_of_service_id: {{.test_terms_id}}
   terms_accepted: true
@@ -240,6 +247,7 @@
   last_successful_login: RAW=NOW()
   last_failed_login: null
   failed_login_count: 0
+  failed_security_count: 0
   next_allowed_login: RAW=NOW()
   accepted_terms_of_service_id: {{.test_terms_id}}
   terms_accepted: true
@@ -273,6 +281,7 @@
   last_successful_login: RAW=NOW()
   last_failed_login: null
   failed_login_count: 0
+  failed_security_count: 0
   next_allowed_login: RAW=NOW()
   accepted_terms_of_service_id: {{.test_terms_id}}
   terms_accepted: true
@@ -306,6 +315,7 @@
   last_successful_login: RAW=NOW()
   last_failed_login: null
   failed_login_count: 0
+  failed_security_count: 0
   next_allowed_login: RAW=NOW()
   accepted_terms_of_service_id: {{.test_terms_id}}
   terms_accepted: true
@@ -339,6 +349,7 @@
   last_successful_login: RAW=NOW()
   last_failed_login: null
   failed_login_count: 0
+  failed_security_count: 0
   next_allowed_login: RAW=NOW()
   accepted_terms_of_service_id: {{.test_terms_id}}
   terms_accepted: true
@@ -372,6 +383,7 @@
   last_successful_login: RAW=NOW()
   last_failed_login: null
   failed_login_count: 0
+  failed_security_count: 0
   next_allowed_login: RAW=NOW()
   accepted_terms_of_service_id: {{.test_terms_id}}
   terms_accepted: true
