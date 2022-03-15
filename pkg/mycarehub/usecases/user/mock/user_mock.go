@@ -28,6 +28,7 @@ type UserUseCaseMock struct {
 	MockRegisterClientFn                func(ctx context.Context, input *dto.ClientRegistrationInput) (*dto.ClientRegistrationOutput, error)
 	MockRefreshGetStreamTokenFn         func(ctx context.Context, userID string) (string, error)
 	MockRegisterStaffFn                 func(ctx context.Context, input dto.StaffRegistrationInput) (*dto.StaffRegistrationOutput, error)
+	MockGetClientByCCCNumberFn          func(ctx context.Context, CCCNumber string) (*domain.ClientProfile, error)
 }
 
 // NewUserUseCaseMock creates in itializes create type mocks
@@ -107,6 +108,20 @@ func NewUserUseCaseMock() *UserUseCaseMock {
 				ID: uuid.New().String(),
 			}, nil
 		},
+		MockGetClientByCCCNumberFn: func(ctx context.Context, CCCNumber string) (*domain.ClientProfile, error) {
+			clientID := uuid.New().String()
+			return &domain.ClientProfile{
+				ID:                      &clientID,
+				User:                    &domain.User{},
+				Active:                  true,
+				ClientType:              "PMTCT",
+				UserID:                  uuid.New().String(),
+				TreatmentEnrollmentDate: &time.Time{},
+				HealthRecordID:          &clientID,
+				ClientCounselled:        false,
+				CaregiverID:             &clientID,
+			}, nil
+		},
 	}
 }
 
@@ -178,4 +193,9 @@ func (f *UserUseCaseMock) RefreshGetStreamToken(ctx context.Context, userID stri
 // RegisterStaff mocks the implementation of registering a staff user
 func (f *UserUseCaseMock) RegisterStaff(ctx context.Context, input dto.StaffRegistrationInput) (*dto.StaffRegistrationOutput, error) {
 	return f.MockRegisterStaffFn(ctx, input)
+}
+
+// GetClientByCCCNumber mocks the implementation getting the client by CCC number
+func (f *UserUseCaseMock) GetClientByCCCNumber(ctx context.Context, CCCNumber string) (*domain.ClientProfile, error) {
+	return f.MockGetClientByCCCNumberFn(ctx, CCCNumber)
 }
