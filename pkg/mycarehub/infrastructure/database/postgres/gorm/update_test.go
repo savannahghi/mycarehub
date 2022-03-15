@@ -942,7 +942,7 @@ func TestPGInstance_UpdateClientCaregiver(t *testing.T) {
 	}
 }
 
-func TestPGInstance_UpdateUserLastSuccessfulLoginTime(t *testing.T) {
+func TestPGInstance_UpdateUserProfileAfterLoginSuccess(t *testing.T) {
 	ctx := context.Background()
 
 	type args struct {
@@ -958,7 +958,7 @@ func TestPGInstance_UpdateUserLastSuccessfulLoginTime(t *testing.T) {
 			name: "Happy case",
 			args: args{
 				ctx:    ctx,
-				userID: userIDToUpdateUserLastSuccessfulLoginTime,
+				userID: userIDToUpdateUserProfileAfterLoginSuccess,
 			},
 			wantErr: false,
 		},
@@ -973,8 +973,8 @@ func TestPGInstance_UpdateUserLastSuccessfulLoginTime(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := testingDB.UpdateUserLastSuccessfulLoginTime(tt.args.ctx, tt.args.userID); (err != nil) != tt.wantErr {
-				t.Errorf("PGInstance.UpdateUserLastSuccessfulLoginTime() error = %v, wantErr %v", err, tt.wantErr)
+			if err := testingDB.UpdateUserProfileAfterLoginSuccess(tt.args.ctx, tt.args.userID); (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.UpdateUserProfileAfterLoginSuccess() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}

@@ -450,3 +450,21 @@ func UserNameExistsErr(err error) error {
 		Code:    int(NickNameExistsError),
 	}
 }
+
+// ClientHasUnresolvedPinResetRequestErr returns an error message when the client has an unresolved pin reset request
+func ClientHasUnresolvedPinResetRequestErr(err error) error {
+	return &CustomError{
+		Err:     err,
+		Message: ClientHasUnresolvedPinResetRequestErrorMsg,
+		Code:    int(ClientHasUnresolvedPinResetRequestError),
+	}
+}
+
+// RetryLoginErr returns an error message when the user is not authorized to perform the action
+func RetryLoginErr(err error) error {
+	return &CustomError{
+		Err:     err,
+		Message: RetryLoginErrorMsg,
+		Code:    int(RetryLoginError),
+	}
+}

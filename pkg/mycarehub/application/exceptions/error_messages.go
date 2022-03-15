@@ -150,4 +150,10 @@ const (
 	// NickNameExistsErrorMsg is the error message displayed when a user attempts to set a nickname that
 	// has already been taken
 	NickNameExistsErrorMsg = "username has already been taken"
+
+	// ClientHasUnresolvedPinResetRequestErrorMsg is the error message displayed when a client has an unresolved pin reset request
+	ClientHasUnresolvedPinResetRequestErrorMsg = "client has unresolved pin reset request"
+
+	// RetryLoginErrorMsg is the error message displayed when a user attempts to login when they have exponential backoff
+	RetryLoginErrorMsg = "retry login failed due to exponential backoff"
 )

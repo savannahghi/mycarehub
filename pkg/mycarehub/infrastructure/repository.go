@@ -85,6 +85,7 @@ type Query interface {
 	GetScreeningToolQuestions(ctx context.Context, toolType string) ([]*domain.ScreeningToolQuestion, error)
 	GetScreeningToolQuestionByQuestionID(ctx context.Context, questionID string) (*domain.ScreeningToolQuestion, error)
 	GetClientProfileByCCCNumber(ctx context.Context, CCCNumber string) (*domain.ClientProfile, error)
+	CheckIfClientHasUnresolvedServiceRequests(ctx context.Context, clientID string, serviceRequestType string) (bool, error)
 }
 
 // Update represents all the update action interfaces
@@ -95,7 +96,7 @@ type Update interface {
 	UpdateUserFailedLoginCount(ctx context.Context, userID string, failedLoginAttempts int) error
 	UpdateUserLastFailedLoginTime(ctx context.Context, userID string) error
 	UpdateUserNextAllowedLoginTime(ctx context.Context, userID string, nextAllowedLoginTime time.Time) error
-	UpdateUserLastSuccessfulLoginTime(ctx context.Context, userID string) error
+	UpdateUserProfileAfterLoginSuccess(ctx context.Context, userID string) error
 	SetNickName(ctx context.Context, userID *string, nickname *string) (bool, error)
 	UpdateUserPinChangeRequiredStatus(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
 	InvalidatePIN(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)

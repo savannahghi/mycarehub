@@ -62,13 +62,13 @@ func (d *MyCareHubDb) UpdateUserNextAllowedLoginTime(ctx context.Context, userID
 	return d.update.UpdateUserNextAllowedLoginTime(ctx, userID, nextAllowedLoginTime)
 }
 
-// UpdateUserLastSuccessfulLoginTime updates the user's last successful login time to the current time in case a user
+// UpdateUserProfileAfterLoginSuccess updates the user's last successful login time to the current time in case a user
 // successfully logs into the app
-func (d *MyCareHubDb) UpdateUserLastSuccessfulLoginTime(ctx context.Context, userID string) error {
+func (d *MyCareHubDb) UpdateUserProfileAfterLoginSuccess(ctx context.Context, userID string) error {
 	if userID == "" {
 		return fmt.Errorf("userID must be defined")
 	}
-	return d.update.UpdateUserLastSuccessfulLoginTime(ctx, userID)
+	return d.update.UpdateUserProfileAfterLoginSuccess(ctx, userID)
 }
 
 // SetNickName is used to set the user's nickname

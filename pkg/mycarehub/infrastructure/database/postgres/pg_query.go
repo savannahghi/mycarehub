@@ -1096,3 +1096,8 @@ func (d *MyCareHubDb) GetClientProfileByCCCNumber(ctx context.Context, CCCNumber
 		CHVUserID:               clientProfile.CHVUserID,
 	}, nil
 }
+
+// CheckIfClientHasUnresolvedServiceRequests checks if a client has an unresolved service request
+func (d *MyCareHubDb) CheckIfClientHasUnresolvedServiceRequests(ctx context.Context, clientID string, serviceRequestType string) (bool, error) {
+	return d.query.CheckIfClientHasUnresolvedServiceRequests(ctx, clientID, serviceRequestType)
+}

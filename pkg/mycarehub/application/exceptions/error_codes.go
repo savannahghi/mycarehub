@@ -360,4 +360,12 @@ const (
 	// NickNameExistsError implies that the set nickname has already been taken
 	// Its error code is 71
 	NickNameExistsError
+
+	// ClientHasUnresolvedPinResetRequestError implies that the client has an unresolved pin reset request
+	// Its error code is 72
+	ClientHasUnresolvedPinResetRequestError
+
+	// RetryLoginError implies that the system is unable to retry the login
+	// Its error code is 73
+	RetryLoginError
 )

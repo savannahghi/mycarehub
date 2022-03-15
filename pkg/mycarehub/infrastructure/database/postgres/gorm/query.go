@@ -66,6 +66,7 @@ type Query interface {
 	GetServiceRequestsForKenyaEMR(ctx context.Context, facilityID string, lastSyncTime time.Time) ([]*ClientServiceRequest, error)
 	GetScreeningToolQuestions(ctx context.Context, toolType string) ([]ScreeningToolQuestion, error)
 	GetScreeningToolQuestionByQuestionID(ctx context.Context, questionID string) (*ScreeningToolQuestion, error)
+	CheckIfClientHasUnresolvedServiceRequests(ctx context.Context, clientID string, serviceRequestType string) (bool, error)
 }
 
 // CheckWhetherUserHasLikedContent performs a operation to check whether user has liked the content
@@ -945,4 +946,22 @@ func (db *PGInstance) GetClientProfileByCCCNumber(ctx context.Context, CCCNumber
 		return nil, fmt.Errorf("failed to get client profile by CCC number: %v", err)
 	}
 	return &client, nil
+}
+
+// CheckIfClientHasUnresolvedServiceRequests checks whether a client has a pending or in progress service request of the type passed in
+func (db *PGInstance) CheckIfClientHasUnresolvedServiceRequests(ctx context.Context, clientID string, serviceRequestType string) (bool, error) {
+	var unresolvedServiceRequests []*ClientServiceRequest
+	err := db.DB.Where(&ClientServiceRequest{ClientID: clientID, RequestType: serviceRequestType, Status: enums.ServiceRequestStatusPending.String()}).
+		Or(&ClientServiceRequest{ClientID: clientID, RequestType: serviceRequestType, Status: enums.ServiceRequestStatusInProgress.String()}).
+		Find(&unresolvedServiceRequests).Error
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, fmt.Errorf("failed to check for unresolved service requests: %v", err)
+	}
+
+	if len(unresolvedServiceRequests) > 0 {
+		return true, nil
+	}
+
+	return false, nil
 }
