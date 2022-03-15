@@ -1028,18 +1028,21 @@ func (ScreeningToolsResponse) TableName() string {
 type Appointment struct {
 	Base
 
-	ID              string      `gorm:"primaryKey;column:id;"`
-	OrganisationID  string      `gorm:"column:organisation_id;not null"`
-	Active          bool        `gorm:"column:active;not null"`
-	AppointmentUUID string      `gorm:"column:appointment_uuid"`
-	AppointmentType string      `gorm:"column:appointment_type;not null"`
-	Status          string      `gorm:"column:status;not null"`
-	ClientID        string      `gorm:"column:client_id"`
-	Reason          string      `gorm:"column:reason"`
-	Provider        string      `gorm:"column:provider"`
-	Date            time.Time   `gorm:"column:date"`
-	StartTime       pq.NullTime `gorm:"column:start_time"` // TODO create custom scanner for time
-	EndTime         pq.NullTime `gorm:"column:end_time"`   // TODO create custom scanner for time
+	ID              string    `gorm:"primaryKey;column:id;"`
+	OrganisationID  string    `gorm:"column:organisation_id;not null"`
+	Active          bool      `gorm:"column:active;not null"`
+	AppointmentUUID string    `gorm:"column:appointment_uuid"`
+	AppointmentType string    `gorm:"column:appointment_type;not null"`
+	Status          string    `gorm:"column:status;not null"`
+	ClientID        string    `gorm:"column:client_id"`
+	FacilityID      string    `gorm:"column:facility_id"`
+	Reason          string    `gorm:"column:reason"`
+	Provider        string    `gorm:"column:provider"`
+	Date            time.Time `gorm:"column:date"`
+
+	// uses a CustomTime type because there is no direct mapping postgres Time to Go time.Time
+	StartTime CustomTime `gorm:"column:start_time"`
+	EndTime   CustomTime `gorm:"column:end_time"`
 }
 
 // BeforeCreate is a hook run before creating an appointment

@@ -1730,7 +1730,7 @@ func TestMyCareHubDb_UpdateAppointment(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := d.UpdateAppointment(tt.args.ctx, tt.args.appointment, tt.args.appointmentUUID, tt.args.clientID, tt.args.staffID); (err != nil) != tt.wantErr {
+			if err := d.UpdateAppointment(tt.args.ctx, tt.args.appointment, tt.args.appointmentUUID, tt.args.clientID); (err != nil) != tt.wantErr {
 				t.Errorf("MyCareHubDb.UpdateAppointment() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})

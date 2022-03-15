@@ -2742,7 +2742,7 @@ func TestPGInstance_ListAppointments(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "happy case list all facilities",
+			name: "happy case: list all appointments",
 			args: args{
 				ctx:        context.Background(),
 				params:     nil,
@@ -2752,7 +2752,7 @@ func TestPGInstance_ListAppointments(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "happy case list paginated facilities",
+			name: "happy case: list paginated appointments",
 			args: args{
 				ctx:    context.Background(),
 				params: nil,
@@ -2765,7 +2765,7 @@ func TestPGInstance_ListAppointments(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "happy case list filtered facilities",
+			name: "happy case: list filtered appointments",
 			args: args{
 				ctx:    context.Background(),
 				params: nil,

@@ -99,8 +99,8 @@ type PostgresMock struct {
 	MockGetClientsByParams                        func(ctx context.Context, params gorm.Client, lastSyncTime *time.Time) ([]*domain.ClientProfile, error)
 	MockGetClientCCCIdentifier                    func(ctx context.Context, clientID string) (*domain.Identifier, error)
 	MockGetServiceRequestsForKenyaEMRFn           func(ctx context.Context, payload *dto.ServiceRequestPayload) ([]*domain.ServiceRequest, error)
-	MockCreateAppointment                         func(ctx context.Context, appointment domain.Appointment, appointmentUUID, clientID, staffID string) error
-	MockUpdateAppointment                         func(ctx context.Context, appointment domain.Appointment, appointmentUUID, clientID, staffID string) error
+	MockCreateAppointment                         func(ctx context.Context, appointment domain.Appointment, appointmentUUID, clientID string) error
+	MockUpdateAppointment                         func(ctx context.Context, appointment domain.Appointment, appointmentUUID, clientID string) error
 	MockGetScreeningToolsQuestionsFn              func(ctx context.Context, toolType string) ([]*domain.ScreeningToolQuestion, error)
 	MockAnswerScreeningToolQuestionsFn            func(ctx context.Context, screeningToolResponses []*dto.ScreeningToolQuestionResponseInput) error
 	MockGetScreeningToolQuestionByQuestionIDFn    func(ctx context.Context, questionID string) (*domain.ScreeningToolQuestion, error)
@@ -624,10 +624,10 @@ func NewPostgresMock() *PostgresMock {
 			}
 			return []*domain.ServiceRequest{serviceReq}, nil
 		},
-		MockCreateAppointment: func(ctx context.Context, appointment domain.Appointment, appointmentUUID, clientID, staffID string) error {
+		MockCreateAppointment: func(ctx context.Context, appointment domain.Appointment, appointmentUUID, clientID string) error {
 			return nil
 		},
-		MockUpdateAppointment: func(ctx context.Context, appointment domain.Appointment, appointmentUUID, clientID, staffID string) error {
+		MockUpdateAppointment: func(ctx context.Context, appointment domain.Appointment, appointmentUUID, clientID string) error {
 			return nil
 		},
 		MockListAppointments: func(ctx context.Context, params *domain.Appointment, filter []*domain.FiltersParam, pagination *domain.Pagination) ([]*domain.Appointment, *domain.Pagination, error) {
@@ -1123,13 +1123,13 @@ func (gm *PostgresMock) ListAppointments(ctx context.Context, params *domain.App
 }
 
 // CreateAppointment creates a new appointment
-func (gm *PostgresMock) CreateAppointment(ctx context.Context, appointment domain.Appointment, appointmentUUID, clientID, staffID string) error {
-	return gm.MockCreateAppointment(ctx, appointment, appointmentUUID, clientID, staffID)
+func (gm *PostgresMock) CreateAppointment(ctx context.Context, appointment domain.Appointment, appointmentUUID, clientID string) error {
+	return gm.MockCreateAppointment(ctx, appointment, appointmentUUID, clientID)
 }
 
 // UpdateAppointment updates an appointment
-func (gm *PostgresMock) UpdateAppointment(ctx context.Context, appointment domain.Appointment, appointmentUUID, clientID, staffID string) error {
-	return gm.MockUpdateAppointment(ctx, appointment, appointmentUUID, clientID, staffID)
+func (gm *PostgresMock) UpdateAppointment(ctx context.Context, appointment domain.Appointment, appointmentUUID, clientID string) error {
+	return gm.MockUpdateAppointment(ctx, appointment, appointmentUUID, clientID)
 }
 
 // UpdateServiceRequests mocks the implementation of updating service requests

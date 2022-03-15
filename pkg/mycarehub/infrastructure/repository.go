@@ -26,7 +26,7 @@ type Create interface {
 	CreateCommunity(ctx context.Context, communityInput *dto.CommunityInput) (*domain.Community, error)
 	CreateNextOfKin(ctx context.Context, person *dto.NextOfKinPayload) error
 	CreateContact(ctx context.Context, contact *domain.Contact) error
-	CreateAppointment(ctx context.Context, appointment domain.Appointment, appointmentUUID, clientID, staffID string) error
+	CreateAppointment(ctx context.Context, appointment domain.Appointment, appointmentUUID, clientID string) error
 	AnswerScreeningToolQuestions(ctx context.Context, screeningToolResponses []*dto.ScreeningToolQuestionResponseInput) error
 }
 
@@ -111,7 +111,7 @@ type Update interface {
 	ResolveServiceRequest(ctx context.Context, staffID *string, serviceRequestID *string) (bool, error)
 	AssignRoles(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error)
 	RevokeRoles(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error)
-	UpdateAppointment(ctx context.Context, appointment domain.Appointment, appointmentUUID, clientID, staffID string) error
+	UpdateAppointment(ctx context.Context, appointment domain.Appointment, appointmentUUID, clientID string) error
 	InvalidateScreeningToolResponse(ctx context.Context, clientID string, questionID string) error
 	UpdateServiceRequests(ctx context.Context, payload *domain.UpdateServiceRequestsPayload) (bool, error)
 }

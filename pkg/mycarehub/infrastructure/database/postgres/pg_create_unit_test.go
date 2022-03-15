@@ -755,7 +755,7 @@ func TestMyCareHubDb_CreateAppointment(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := d.CreateAppointment(tt.args.ctx, tt.args.appointment, tt.args.appointmentUUID, tt.args.clientID, tt.args.staffID); (err != nil) != tt.wantErr {
+			if err := d.CreateAppointment(tt.args.ctx, tt.args.appointment, tt.args.appointmentUUID, tt.args.clientID); (err != nil) != tt.wantErr {
 				t.Errorf("MyCareHubDb.CreateAppointment() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
