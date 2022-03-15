@@ -2,6 +2,7 @@ package mock
 
 import (
 	"context"
+	"time"
 
 	"github.com/brianvoe/gofakeit"
 	"github.com/google/uuid"
@@ -29,11 +30,38 @@ func NewContentUsecaseMock() *ContentUsecaseMock {
 		IconURL: "test",
 	}
 
+	now := time.Now()
+
 	content := &domain.Content{
+		Meta: domain.Meta{},
 		Items: []domain.ContentItem{
 			{
-				ID:    int(uuid.New()[9]),
+				ID:    1,
+				Meta:  domain.ContentMeta{},
 				Title: gofakeit.Name(),
+				Date:  now.String(),
+				Intro: gofakeit.Sentence(2),
+				Author: domain.Author{
+					ID: uuid.New().String(),
+					Meta: domain.AuthorMeta{
+						Type: gofakeit.Name(),
+					},
+				},
+				AuthorName:          gofakeit.Name(),
+				ItemType:            gofakeit.Name(),
+				TimeEstimateSeconds: 30,
+				Body:                gofakeit.Name(),
+				TagNames:            []string{},
+				HeroImage:           domain.HeroImage{},
+				HeroImageRendition:  domain.HeroImageRendition{},
+				LikeCount:           0,
+				BookmarkCount:       0,
+				ViewCount:           0,
+				ShareCount:          0,
+				Documents:           []domain.Document{},
+				CategoryDetails:     []domain.CategoryDetail{},
+				FeaturedMedia:       []domain.FeaturedMedia{},
+				GalleryImages:       []domain.GalleryImage{},
 			},
 		},
 	}

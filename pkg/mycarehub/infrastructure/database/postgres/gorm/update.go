@@ -44,6 +44,7 @@ type Update interface {
 	UpdateClient(ctx context.Context, client *Client, updates map[string]interface{}) (*Client, error)
 	UpdateUserPinUpdateRequiredStatus(ctx context.Context, userID string, flavour feedlib.Flavour, status bool) error
 	UpdateHealthDiary(ctx context.Context, payload *ClientHealthDiaryEntry) (bool, error)
+	UpdateFailedSecurityQuestionsAnsweringAttempts(ctx context.Context, userID string, failCount int) error
 }
 
 // LikeContent perfoms the actual database operation to update content like. The operation
@@ -984,4 +985,47 @@ func (db *PGInstance) UpdateHealthDiary(ctx context.Context, payload *ClientHeal
 	}
 
 	return true, nil
+}
+
+// UpdateFailedSecurityQuestionsAnsweringAttempts sets the failed security attempts
+// the reset happens in an instance where:
+// 1. the fail count is less than 3 and the user successfully answers the security questions correctly
+// 2. the fail count is 3, the service request for resetting the pin is resolved (client), the user should set the security questions again
+// 3. verification of the security questions is unsuccessful
+func (db *PGInstance) UpdateFailedSecurityQuestionsAnsweringAttempts(ctx context.Context, userID string, failCount int) error {
+	var user User
+
+	tx := db.DB.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+	if err := tx.Error; err != nil {
+		helpers.ReportErrorToSentry(err)
+		return fmt.Errorf("failied initialize database transaction %v", err)
+	}
+
+	err := tx.Model(&User{}).Where(&User{UserID: &userID}).First(&user).Error
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		tx.Rollback()
+		return fmt.Errorf("failed to get user: %v", err)
+	}
+
+	err = tx.Model(&User{}).Where(&User{UserID: &userID}).Updates(map[string]interface{}{
+		"failed_security_count": failCount,
+	}).Error
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		tx.Rollback()
+		return fmt.Errorf("failed to update user failed security count: %v", err)
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		helpers.ReportErrorToSentry(err)
+		tx.Rollback()
+		return fmt.Errorf("transaction commit to update user failed: %v", err)
+	}
+	return nil
 }

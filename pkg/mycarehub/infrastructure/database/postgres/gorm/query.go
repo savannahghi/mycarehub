@@ -73,6 +73,7 @@ type Query interface {
 	GetAllRoles(ctx context.Context) ([]*AuthorityRole, error)
 	GetUserProfileByStaffID(ctx context.Context, staffID string) (*User, error)
 	GetHealthDiaryEntryByID(ctx context.Context, healthDiaryEntryID string) (*ClientHealthDiaryEntry, error)
+	GetServiceRequestByID(ctx context.Context, serviceRequestID string) (*ClientServiceRequest, error)
 }
 
 // CheckWhetherUserHasLikedContent performs a operation to check whether user has liked the content
@@ -1038,4 +1039,15 @@ func (db *PGInstance) GetHealthDiaryEntryByID(ctx context.Context, healthDiaryEn
 	}
 
 	return healthDiaryEntry, nil
+}
+
+// GetServiceRequestByID returns a service request by ID
+func (db *PGInstance) GetServiceRequestByID(ctx context.Context, serviceRequestID string) (*ClientServiceRequest, error) {
+	var serviceRequest ClientServiceRequest
+	err := db.DB.Where(&ClientServiceRequest{ID: &serviceRequestID}).First(&serviceRequest).Error
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, fmt.Errorf("failed to get service request by ID: %v", err)
+	}
+	return &serviceRequest, nil
 }

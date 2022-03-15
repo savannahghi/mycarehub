@@ -486,3 +486,30 @@ func RecordNotFoundErr(err error) error {
 		Code:    int(RecordNotFoundError),
 	}
 }
+
+// FailedSecurityCountExceededErr returns an error message when the user is not authorized to verify the security question response
+func FailedSecurityCountExceededErr(err error) error {
+	return &CustomError{
+		Err:     err,
+		Message: FailedSecurityCountExceededErrorMsg,
+		Code:    int(FailedSecurityCountExceededError),
+	}
+}
+
+// SecurityQuestionResponseMismatchErr returns an error message when the security question response does not match
+func SecurityQuestionResponseMismatchErr(err error) error {
+	return &CustomError{
+		Err:     err,
+		Message: SecurityQuestionResponseMismatchErrorMsg,
+		Code:    int(SecurityQuestionResponseMismatchError),
+	}
+}
+
+// SecurityQuestionNotFoundErr returns an error message when the security question is not found
+func SecurityQuestionNotFoundErr(err error) error {
+	return &CustomError{
+		Err:     err,
+		Message: SecurityQuestionNotFoundErrorMsg,
+		Code:    int(SecurityQuestionNotFoundError),
+	}
+}

@@ -34,6 +34,7 @@ func createMapUser(userObject *gorm.User) *domain.User {
 		HasSetSecurityQuestion: userObject.HasSetSecurityQuestion,
 		IsPhoneVerified:        userObject.IsPhoneVerified,
 		DateOfBirth:            userObject.DateOfBirth,
+		FailedSecurityCount:    userObject.FailedSecurityCount,
 	}
 	return user
 }

@@ -549,6 +549,7 @@ func TestPGInstance_GetSecurityQuestions(t *testing.T) {
 
 func TestPGInstance_GetSecurityQuestionByID(t *testing.T) {
 	ctx := context.Background()
+	invalid := "invalid"
 
 	type args struct {
 		ctx                context.Context
@@ -566,6 +567,14 @@ func TestPGInstance_GetSecurityQuestionByID(t *testing.T) {
 				securityQuestionID: &securityQuestionID,
 			},
 			wantErr: false,
+		},
+		{
+			name: "Sad case: invalid security question id",
+			args: args{
+				ctx:                ctx,
+				securityQuestionID: &invalid,
+			},
+			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
@@ -650,6 +659,11 @@ func TestPGInstance_VerifyOTP(t *testing.T) {
 		OTP:         testOTP,
 		Flavour:     flavour,
 	}
+	OTPnotFound := &dto.VerifyOTPInput{
+		PhoneNumber: testPhone,
+		OTP:         "5555",
+		Flavour:     flavour,
+	}
 	invalidOTPPayload2 := &dto.VerifyOTPInput{
 		PhoneNumber: "",
 		OTP:         testOTP,
@@ -693,6 +707,15 @@ func TestPGInstance_VerifyOTP(t *testing.T) {
 				payload: validOTPPayload,
 			},
 			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Sad case - invalid OTP",
+			args: args{
+				ctx:     ctx,
+				payload: OTPnotFound,
+			},
+			want:    false,
 			wantErr: false,
 		},
 		{
@@ -1147,10 +1170,11 @@ func TestPGInstance_CheckWhetherUserHasLikedContent(t *testing.T) {
 
 func TestPGInstance_GetUserProfileByUserID(t *testing.T) {
 	ctx := context.Background()
+	UUID := uuid.New().String()
 
 	type args struct {
 		ctx    context.Context
-		userID string
+		userID *string
 	}
 	tests := []struct {
 		name    string
@@ -1161,7 +1185,7 @@ func TestPGInstance_GetUserProfileByUserID(t *testing.T) {
 			name: "Happy case",
 			args: args{
 				ctx:    ctx,
-				userID: userID,
+				userID: &userID,
 			},
 			wantErr: false,
 		},
@@ -1169,7 +1193,7 @@ func TestPGInstance_GetUserProfileByUserID(t *testing.T) {
 			name: "Sad case",
 			args: args{
 				ctx:    ctx,
-				userID: uuid.New().String(),
+				userID: &UUID,
 			},
 			wantErr: true,
 		},
@@ -1177,14 +1201,14 @@ func TestPGInstance_GetUserProfileByUserID(t *testing.T) {
 			name: "Sad case - empty user ID",
 			args: args{
 				ctx:    ctx,
-				userID: "",
+				userID: nil,
 			},
 			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := testingDB.GetUserProfileByUserID(tt.args.ctx, &tt.args.userID)
+			got, err := testingDB.GetUserProfileByUserID(tt.args.ctx, tt.args.userID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("PGInstance.GetUserProfileByUserID() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -1415,6 +1439,16 @@ func TestPGInstance_CheckIfUserBookmarkedContent(t *testing.T) {
 			want:    true,
 			wantErr: false,
 		},
+		{
+			name: "sad case: invalid user id",
+			args: args{
+				ctx:       ctx,
+				userID:    "userID",
+				contentID: bookmarkInput.ContentID,
+			},
+			want:    false,
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -1556,6 +1590,14 @@ func TestPGInstance_GetSecurityQuestionResponseByID(t *testing.T) {
 				questionID: securityQuestionID,
 			},
 			wantErr: false,
+		},
+		{
+			name: "sad case: invalid question id",
+			args: args{
+				ctx:        context.Background(),
+				questionID: "securityQuestionID",
+			},
+			wantErr: true,
 		},
 	}
 	for _, tt := range tests {

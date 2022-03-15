@@ -2036,3 +2036,34 @@ func TestMyCareHubDb_UpdateHealthDiary(t *testing.T) {
 		})
 	}
 }
+
+func TestMyCareHubDb_UpdateFailedSecurityQuestionsAnsweringAttempts(t *testing.T) {
+	var fakeGorm = gormMock.NewGormMock()
+	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+	type args struct {
+		ctx       context.Context
+		userID    string
+		failCount int
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:       context.Background(),
+				userID:    uuid.New().String(),
+				failCount: 5,
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := d.UpdateFailedSecurityQuestionsAnsweringAttempts(tt.args.ctx, tt.args.userID, tt.args.failCount); (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.UpdateFailedSecurityQuestionsAnsweringAttempts() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}

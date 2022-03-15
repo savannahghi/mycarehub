@@ -269,3 +269,8 @@ func (d *MyCareHubDb) UpdateClient(ctx context.Context, client *domain.ClientPro
 		CaregiverID:             c.CaregiverID,
 	}, nil
 }
+
+// UpdateFailedSecurityQuestionsAnsweringAttempts resets the failed attempts for answered security questions
+func (d *MyCareHubDb) UpdateFailedSecurityQuestionsAnsweringAttempts(ctx context.Context, userID string, failCount int) error {
+	return d.update.UpdateFailedSecurityQuestionsAnsweringAttempts(ctx, userID, failCount)
+}

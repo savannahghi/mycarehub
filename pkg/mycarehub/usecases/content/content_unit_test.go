@@ -454,7 +454,7 @@ func TestUseCasesContentImpl_GetUserBookmarkedContent(t *testing.T) {
 			}
 
 			if tt.name == "Sad Case - user not found" {
-				fakeDB.MockGetUserBookmarkedContentFn = func(ctx context.Context, userID string) ([]*domain.ContentItem, error) {
+				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
 					return nil, fmt.Errorf("user not found")
 				}
 			}
@@ -556,12 +556,26 @@ func TestUseCasesContentImpl_GetContentByContentItemID(t *testing.T) {
 			},
 			wantErr: false,
 		},
+		{
+			name: "Sad Case - Failed to make request",
+			args: args{
+				ctx:       ctx,
+				contentID: int(uuid.New()[8]),
+			},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
 			fakeExt := extensionMock.NewFakeExtension()
 			c := content.NewUseCasesContentImplementation(fakeDB, fakeDB, fakeExt)
+
+			if tt.name == "Sad Case - Failed to make request" {
+				fakeExt.MockMakeRequestFn = func(ctx context.Context, method string, path string, body interface{}) (*http.Response, error) {
+					return nil, fmt.Errorf("failed to make request")
+				}
+			}
 
 			if tt.name == "Happy Case - Successfully get content" {
 				fakeExt.MockMakeRequestFn = func(ctx context.Context, method string, path string, body interface{}) (*http.Response, error) {

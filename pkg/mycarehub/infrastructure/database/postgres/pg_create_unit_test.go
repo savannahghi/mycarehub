@@ -704,6 +704,18 @@ func TestMyCareHubDb_CreateContact(t *testing.T) {
 			},
 			wantErr: false,
 		},
+		{
+			name: "Sad case: Failed to create a new contact",
+			args: args{
+				ctx: context.Background(),
+				contact: &domain.Contact{
+					Active:       true,
+					ContactType:  "PHONE",
+					ContactValue: gofakeit.Phone(),
+				},
+			},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 
@@ -716,6 +728,11 @@ func TestMyCareHubDb_CreateContact(t *testing.T) {
 					ContactValue: gofakeit.Phone(),
 					Active:       false,
 				}, nil
+			}
+		}
+		if tt.name == "Sad case: Failed to create a new contact" {
+			fakeGorm.MockCreateContact = func(ctx context.Context, contact *gorm.Contact) (*gorm.Contact, error) {
+				return nil, fmt.Errorf("an error occurred")
 			}
 		}
 

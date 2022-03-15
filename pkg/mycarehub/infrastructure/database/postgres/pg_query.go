@@ -1287,3 +1287,25 @@ func (d *MyCareHubDb) GetUserProfileByStaffID(ctx context.Context, staffID strin
 	user := createMapUser(userProfile)
 	return user, nil
 }
+
+// GetServiceRequestByID fetches a service request by id
+func (d *MyCareHubDb) GetServiceRequestByID(ctx context.Context, serviceRequestID string) (*domain.ServiceRequest, error) {
+	serviceRequest, err := d.query.GetServiceRequestByID(ctx, serviceRequestID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+	return &domain.ServiceRequest{
+		ID:           *serviceRequest.ID,
+		RequestType:  serviceRequest.RequestType,
+		Request:      serviceRequest.Request,
+		Status:       serviceRequest.Status,
+		ClientID:     serviceRequest.ClientID,
+		CreatedAt:    serviceRequest.CreatedAt,
+		InProgressAt: serviceRequest.InProgressAt,
+		InProgressBy: serviceRequest.InProgressByID,
+		ResolvedAt:   serviceRequest.ResolvedAt,
+		ResolvedBy:   serviceRequest.ResolvedByID,
+		FacilityID:   serviceRequest.FacilityID,
+	}, nil
+}
