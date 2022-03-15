@@ -1064,3 +1064,28 @@ func (d *MyCareHubDb) GetScreeningToolQuestionByQuestionID(ctx context.Context, 
 
 	return screeningToolQuestionObj, nil
 }
+
+// GetClientProfileByCCCNumber fetches a client using their CCC number
+func (d *MyCareHubDb) GetClientProfileByCCCNumber(ctx context.Context, CCCNumber string) (*domain.ClientProfile, error) {
+	clientProfile, err := d.query.GetClientProfileByCCCNumber(ctx, CCCNumber)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
+	user := createMapUser(&clientProfile.UserProfile)
+	return &domain.ClientProfile{
+		ID:                      clientProfile.ID,
+		User:                    user,
+		Active:                  clientProfile.Active,
+		ClientType:              clientProfile.ClientType,
+		TreatmentEnrollmentDate: clientProfile.TreatmentEnrollmentDate,
+		FHIRPatientID:           clientProfile.FHIRPatientID,
+		HealthRecordID:          clientProfile.HealthRecordID,
+		TreatmentBuddy:          clientProfile.TreatmentBuddy,
+		ClientCounselled:        clientProfile.ClientCounselled,
+		OrganisationID:          clientProfile.OrganisationID,
+		FacilityID:              clientProfile.FacilityID,
+		CHVUserID:               clientProfile.CHVUserID,
+	}, nil
+}

@@ -62,7 +62,6 @@ func (a *UseCasesAppointmentsImpl) CreateKenyaEMRAppointments(ctx context.Contex
 
 	MFLCode, err := strconv.Atoi(input.MFLCode)
 	if err != nil {
-
 		return nil, err
 	}
 
@@ -85,9 +84,15 @@ func (a *UseCasesAppointmentsImpl) CreateKenyaEMRAppointments(ctx context.Contex
 			End:    *ap.EndTime(),
 		}
 
-		clientID := "26b20a42-cbb8-4553-aedb-c539602d04fc" // TODO: use ccc number
+		// get client profile using the ccc number
+		clientProfile, err := a.Query.GetClientProfileByCCCNumber(ctx, ap.CCCNumber)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get client profile by CCC number")
+		}
 
-		err = a.Create.CreateAppointment(ctx, appointment, ap.AppointmentUUID, clientID, "")
+		clientID := clientProfile.ID
+
+		err = a.Create.CreateAppointment(ctx, appointment, ap.AppointmentUUID, *clientID, "")
 		if err != nil {
 			return nil, err
 		}

@@ -77,9 +77,12 @@ func (h *MyCareHubHandlersInterfacesImpl) LoginByPhone() http.HandlerFunc {
 		response, err := h.usecase.User.Login(ctx, *payload.PhoneNumber, *payload.PIN, payload.Flavour)
 		if err != nil {
 			resp := &domain.CustomResponse{
-				Message:   err.Error(),
-				Code:      response.Code,
-				RetryTime: response.RetryTime,
+				Message: err.Error(),
+				Code:    response.Code,
+			}
+
+			if response.RetryTime != 0 {
+				resp.RetryTime = response.RetryTime
 			}
 
 			if response.Attempts != 0 {

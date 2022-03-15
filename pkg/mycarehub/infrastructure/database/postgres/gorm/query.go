@@ -34,6 +34,7 @@ type Query interface {
 	CheckIfPhoneNumberExists(ctx context.Context, phone string, isOptedIn bool, flavour feedlib.Flavour) (bool, error)
 	VerifyOTP(ctx context.Context, payload *dto.VerifyOTPInput) (bool, error)
 	GetClientProfileByUserID(ctx context.Context, userID string) (*Client, error)
+	GetClientProfileByCCCNumber(ctx context.Context, CCCNumber string) (*Client, error)
 	GetStaffProfileByUserID(ctx context.Context, userID string) (*StaffProfile, error)
 	CheckUserHasPin(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
 	GetOTP(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*UserOTP, error)
@@ -932,4 +933,16 @@ func (db *PGInstance) GetScreeningToolQuestionByQuestionID(ctx context.Context, 
 		return nil, fmt.Errorf("failed to get screening tool question: %v", err)
 	}
 	return &screeningToolQuestion, nil
+}
+
+// GetClientProfileByCCCNumber returns a client profile using the CCC number
+func (db *PGInstance) GetClientProfileByCCCNumber(ctx context.Context, CCCNumber string) (*Client, error) {
+	var client Client
+	if err := db.DB.Joins("JOIN clients_client_identifiers on clients_client.id = clients_client_identifiers.client_id").
+		Joins("JOIN clients_identifier on clients_identifier.id = clients_client_identifiers.identifier_id").
+		Where("clients_identifier.identifier_type = ? AND clients_identifier.identifier_value = ? ", "CCC", CCCNumber).
+		Preload(clause.Associations).Find(&client).Error; err != nil {
+		return nil, fmt.Errorf("failed to get client profile by CCC number: %v", err)
+	}
+	return &client, nil
 }

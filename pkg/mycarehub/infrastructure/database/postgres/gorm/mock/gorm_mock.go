@@ -104,6 +104,7 @@ type GormMock struct {
 	MockGetScreeningToolQuestionByQuestionIDFn    func(ctx context.Context, questionID string) (*gorm.ScreeningToolQuestion, error)
 	MockInvalidateScreeningToolResponseFn         func(ctx context.Context, clientID string, questionID string) error
 	MockUpdateServiceRequestsFn                   func(ctx context.Context, payload []*gorm.ClientServiceRequest) (bool, error)
+	MockGetClientProfileByCCCNumberFn             func(ctx context.Context, CCCNumber string) (*gorm.Client, error)
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -753,6 +754,9 @@ func NewGormMock() *GormMock {
 		MockInvalidateScreeningToolResponseFn: func(ctx context.Context, clientID string, questionID string) error {
 			return nil
 		},
+		MockGetClientProfileByCCCNumberFn: func(ctx context.Context, CCCNumber string) (*gorm.Client, error) {
+			return client, nil
+		},
 	}
 }
 
@@ -1185,4 +1189,9 @@ func (gm *GormMock) InvalidateScreeningToolResponse(ctx context.Context, clientI
 // UpdateServiceRequests mocks the implementation of updating service requests from KenyaEMR to MyCareHub
 func (gm *GormMock) UpdateServiceRequests(ctx context.Context, payload []*gorm.ClientServiceRequest) (bool, error) {
 	return gm.MockUpdateServiceRequestsFn(ctx, payload)
+}
+
+// GetClientProfileByCCCNumber mocks the implementation of retrieving a client profile by CCC number
+func (gm *GormMock) GetClientProfileByCCCNumber(ctx context.Context, CCCNumber string) (*gorm.Client, error) {
+	return gm.MockGetClientProfileByCCCNumberFn(ctx, CCCNumber)
 }
