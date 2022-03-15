@@ -22,8 +22,8 @@ type ScreeningToolQuestion struct {
 	Active           bool                                `json:"active"`
 }
 
-// ValidateResponseQUestionCategory validates the response by category
-func (q *ScreeningToolQuestion) ValidateResponseQUestionCategory(response string, category enums.ScreeningToolResponseCategory) error {
+// ValidateResponseQuestionCategory validates the response by category
+func (q *ScreeningToolQuestion) ValidateResponseQuestionCategory(response string, category enums.ScreeningToolResponseCategory) error {
 	switch category {
 	case enums.ScreeningToolResponseCategorySingleChoice:
 		if q.ResponseChoices == nil {
@@ -31,7 +31,7 @@ func (q *ScreeningToolQuestion) ValidateResponseQUestionCategory(response string
 		}
 		_, ok := q.ResponseChoices[response]
 		if !ok {
-			return fmt.Errorf("invalid response: %s", response)
+			return fmt.Errorf("invalid response: %s for category: %s", response, category)
 		}
 	case enums.ScreeningToolResponseCategoryMultiChoice:
 		if q.ResponseChoices == nil {
@@ -42,13 +42,13 @@ func (q *ScreeningToolQuestion) ValidateResponseQUestionCategory(response string
 		for _, responseChoice := range responses {
 			_, ok := q.ResponseChoices[string(responseChoice)]
 			if !ok {
-				return fmt.Errorf("invalid response: %s", response)
+				return fmt.Errorf("invalid response: %s for category: %s", response, category)
 			}
 		}
 	case enums.ScreeningToolResponseCategoryOpenEnded:
 		// no validation
 	default:
-		return fmt.Errorf("invalid response category: %s", category)
+		return fmt.Errorf("invalid response: %s for category: %s", response, category)
 	}
 	return nil
 }
@@ -59,17 +59,17 @@ func (q *ScreeningToolQuestion) ValidateResponseQUestionType(response string, re
 	case enums.ScreeningToolResponseTypeInteger:
 		_, err := strconv.ParseInt(response, 10, 64)
 		if err != nil {
-			return fmt.Errorf("invalid response: %s", response)
+			return fmt.Errorf("invalid response:%s for question response type:%s", responseType, response)
 		}
 	case enums.ScreeningToolResponseTypeDate:
 		_, err := time.Parse("02-01-2006", response)
 		if err != nil {
-			return fmt.Errorf("invalid response: %s", response)
+			return fmt.Errorf("invalid response:%s for question response type:%s", responseType, response)
 		}
 	case enums.ScreeningToolResponseTypeText:
 		// no validation
 	default:
-		return fmt.Errorf("invalid response type: %s", responseType)
+		return fmt.Errorf("invalid response:%s for question response type:%s", responseType, response)
 	}
 	return nil
 }

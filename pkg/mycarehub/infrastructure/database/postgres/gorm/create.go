@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
+	"gorm.io/gorm"
 )
 
 // Create contains all the methods used to perform a create operation in DB
@@ -109,13 +110,17 @@ func (db *PGInstance) SaveSecurityQuestionResponse(ctx context.Context, security
 				tx.Rollback()
 				return fmt.Errorf("failed to update security question response data: %v", err)
 			}
-		} else {
+		} else if err == gorm.ErrRecordNotFound {
 			err = tx.Create(&questionResponse).Error
 			if err != nil {
 				helpers.ReportErrorToSentry(err)
 				tx.Rollback()
 				return fmt.Errorf("failed to create security question response data: %v", err)
 			}
+		} else {
+			helpers.ReportErrorToSentry(err)
+			tx.Rollback()
+			return fmt.Errorf("failed to get security question response data: %v", err)
 		}
 	}
 	if err := tx.Commit().Error; err != nil {
