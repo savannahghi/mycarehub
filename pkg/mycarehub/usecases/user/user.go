@@ -105,6 +105,11 @@ type IClientMedicalHistory interface {
 	RegisteredFacilityPatients(ctx context.Context, input dto.PatientSyncPayload) (*dto.PatientSyncResponse, error)
 }
 
+// IGetClientByCCCNumber interface contain the method used to get a client using his/her CCC number
+type IGetClientByCCCNumber interface {
+	GetClientByCCCNumber(ctx context.Context, CCCNumber string) (*domain.ClientProfile, error)
+}
+
 // UseCasesUser group all business logic usecases related to user
 type UseCasesUser interface {
 	ILogin
@@ -120,6 +125,7 @@ type UseCasesUser interface {
 	IGetClientCaregiver
 	IRegisterUser
 	IClientMedicalHistory
+	IGetClientByCCCNumber
 }
 
 // UseCasesUserImpl represents user implementation object
@@ -1054,4 +1060,15 @@ func (us *UseCasesUserImpl) RegisterStaff(ctx context.Context, input dto.StaffRe
 	}
 
 	return registrationOutput, nil
+}
+
+// GetClientByCCCNumber is used to search for a client using their CCC number
+func (us *UseCasesUserImpl) GetClientByCCCNumber(ctx context.Context, CCCNumber string) (*domain.ClientProfile, error) {
+	clientProfile, err := us.Query.GetClientProfileByCCCNumber(ctx, CCCNumber)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, fmt.Errorf("unable to get client profile: %v", err)
+	}
+
+	return clientProfile, nil
 }

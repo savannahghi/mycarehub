@@ -330,3 +330,42 @@ type StaffRegistrationOutput {
   userID: String!
   defaultFacility: String!
 }
+
+type ClientProfile {
+  ID: String!
+	User: User!
+  Active: Boolean
+	ClientType: String
+	TreatmentEnrollmentDate: Time
+	FHIRPatientID: String
+	HealthRecordID: String
+	TreatmentBuddy: String
+	ClientCounselled:Boolean
+	FacilityID: String
+	CHVUserID: String
+	CHVUserName: String
+	CaregiverID: String
+}
+
+type User {
+  ID: String!
+	Username: String!
+	Name: String!
+	Gender: Gender
+	Active: Boolean
+	Contacts: Contact!
+	IsPhoneVerified: Boolean
+	TermsAccepted: Boolean
+	AcceptedTermsID: Int
+	Flavour: Flavour
+	Suspended: Boolean
+	DateOfBirth: Time
+}
+
+type Contact {
+	ID: String!
+	ContactType: String!
+	ContactValue: String!
+	Active: Boolean!
+	OptedIn: Boolean!
+}
