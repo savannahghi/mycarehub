@@ -290,6 +290,36 @@ func TestUseCasesServiceRequestImpl_ResolveServiceRequest(t *testing.T) {
 			wantErr: false,
 		},
 		{
+			name: "Sad Case - Failed to get service request by id",
+			args: args{
+				ctx:              context.Background(),
+				staffID:          &testID,
+				serviceRequestID: &testID,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - Failed to get client profile by client id",
+			args: args{
+				ctx:              context.Background(),
+				staffID:          &testID,
+				serviceRequestID: &testID,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - Failed to update security question answering attempts",
+			args: args{
+				ctx:              context.Background(),
+				staffID:          &testID,
+				serviceRequestID: &testID,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
 			name: "Sad Case - no staff ID present",
 			args: args{
 				ctx:              context.Background(),
@@ -345,6 +375,46 @@ func TestUseCasesServiceRequestImpl_ResolveServiceRequest(t *testing.T) {
 			if tt.name == "Sad Case - Fail to resolve service request, return false" {
 				fakeDB.MockResolveServiceRequestFn = func(ctx context.Context, staffID *string, serviceRequestID *string) (bool, error) {
 					return false, nil
+				}
+			}
+
+			if tt.name == "Sad Case - Failed to get service request by id" {
+				fakeDB.MockGetServiceRequestByIDFn = func(ctx context.Context, id string) (*domain.ServiceRequest, error) {
+					return nil, fmt.Errorf("failed to get service request by id")
+				}
+			}
+
+			if tt.name == "Sad Case - Failed to get client profile by client id" {
+				fakeDB.MockGetClientProfileByClientIDFn = func(ctx context.Context, id string) (*domain.ClientProfile, error) {
+					return nil, fmt.Errorf("failed to get client profile by client id")
+				}
+			}
+
+			if tt.name == "Sad Case - Failed to update security question answering attempts" {
+				// pin request service request
+				fakeDB.MockGetServiceRequestByIDFn = func(ctx context.Context, id string) (*domain.ServiceRequest, error) {
+					return &domain.ServiceRequest{
+						ID:             testID,
+						RequestType:    enums.ServiceRequestTypePinReset.String(),
+						Request:        gofakeit.Sentence(5),
+						Status:         enums.ServiceRequestStatusPending.String(),
+						Active:         false,
+						ClientID:       testID,
+						CreatedAt:      time.Time{},
+						InProgressAt:   &time.Time{},
+						InProgressBy:   new(string),
+						ResolvedAt:     &time.Time{},
+						ResolvedBy:     new(string),
+						ResolvedByName: new(string),
+						FacilityID:     testID,
+						ClientName:     new(string),
+						ClientContact:  new(string),
+						Meta:           map[string]interface{}{},
+					}, nil
+				}
+				fakeDB.MockUpdateFailedSecurityQuestionsAnsweringAttemptsFn = func(ctx context.Context, userID string, failCount int) error {
+					return fmt.Errorf("failed to update security question answering attempts")
+
 				}
 			}
 

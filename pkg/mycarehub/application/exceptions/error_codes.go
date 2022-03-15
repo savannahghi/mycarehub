@@ -381,4 +381,16 @@ const (
 	// RecordNotFoundError implies that the system is unable to find the record
 	// Its error code is 76
 	RecordNotFoundError
+
+	// FailedSecurityCountExceededError implies that the user is unable to verify security questions because the number of failed verification attempts has been exceeded
+	// Its error code is 77
+	FailedSecurityCountExceededError
+
+	// SecurityQuestionResponseMismatchError implies that the user is unable to verify security questions because the response does not match the one in the database
+	// Its error code is 78
+	SecurityQuestionResponseMismatchError
+
+	// SecurityQuestionNotFoundError implies that the user is unable to verify security questions because the question was not found
+	// Its error code is 79
+	SecurityQuestionNotFoundError
 )

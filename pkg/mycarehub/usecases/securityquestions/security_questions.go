@@ -147,42 +147,64 @@ func (s *UseCaseSecurityQuestionsImpl) VerifySecurityQuestionResponses(
 	ctx context.Context,
 	responses *dto.VerifySecurityQuestionsPayload,
 ) (bool, error) {
+	failCountInstance := make(map[string]int)
 	if len(responses.SecurityQuestionsInput) == 0 {
 		helpers.ReportErrorToSentry(fmt.Errorf("no responses provided"))
 		return false, exceptions.EmptyInputErr(fmt.Errorf("no responses provided"))
+	}
+	userProfile, err := s.Query.GetUserProfileByPhoneNumber(ctx, responses.SecurityQuestionsInput[0].PhoneNumber, responses.SecurityQuestionsInput[0].Flavour)
+	if err != nil {
+		return false, exceptions.ProfileNotFoundErr(err)
+	}
+
+	failCount := userProfile.FailedSecurityCount
+	if failCount >= 3 {
+		err := fmt.Errorf("failed: security questions answering attempts exceeded 3 attempts")
+		helpers.ReportErrorToSentry(err)
+		return false, exceptions.FailedSecurityCountExceededErr(err)
 	}
 	for _, securityQuestionResponse := range responses.SecurityQuestionsInput {
 		questionResponse, err := s.Query.GetSecurityQuestionResponseByID(ctx, securityQuestionResponse.QuestionID)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
-			return false, fmt.Errorf("failed to fetch security question response")
+			return false, exceptions.SecurityQuestionNotFoundErr(fmt.Errorf("security question does not exist"))
 		}
 
 		decryptedResponse, err := helpers.DecryptSensitiveData(questionResponse.Response, SensitiveContentPassphrase)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
-			return false, fmt.Errorf("failed to decrypt the response: %v", err)
+			return false, exceptions.InternalErr(fmt.Errorf("failed to decrypt sensitive data response: %v", err))
 		}
 
 		if !strings.EqualFold(securityQuestionResponse.Response, decryptedResponse) {
-			userProfile, err := s.Query.GetUserProfileByPhoneNumber(ctx, securityQuestionResponse.PhoneNumber, securityQuestionResponse.Flavour)
-			if err != nil {
-				return false, fmt.Errorf("failed to get user profile by phone number: %v", err)
-			}
 
-			ok, err := s.Update.UpdateIsCorrectSecurityQuestionResponse(ctx, *userProfile.ID, false)
+			_, err := s.Update.UpdateIsCorrectSecurityQuestionResponse(ctx, *userProfile.ID, false)
 			if err != nil {
 				helpers.ReportErrorToSentry(err)
-				return false, fmt.Errorf("failed to update security question response: %v", err)
-			}
-			if !ok {
-				return false, fmt.Errorf("failed to update security question response")
+				return false, exceptions.InternalErr(fmt.Errorf("failed to update security question response: %v", err))
 			}
 
-			return false, fmt.Errorf("the security question response does not match")
+			failCount++
+			failCountInstance[securityQuestionResponse.PhoneNumber] = failCount
+
+			err = s.Update.UpdateFailedSecurityQuestionsAnsweringAttempts(ctx, *userProfile.ID, failCount)
+			if err != nil {
+				helpers.ReportErrorToSentry(err)
+				return false, exceptions.InternalErr(fmt.Errorf("failed to update security question response fail count %v", err))
+			}
+
+			helpers.ReportErrorToSentry(err)
+			return false, exceptions.SecurityQuestionResponseMismatchErr(fmt.Errorf("the security question response does not match: %d attempts left", 3-failCount))
 		}
 	}
 
+	if failCountInstance[responses.SecurityQuestionsInput[0].PhoneNumber] <= 3 && err == nil {
+		err := s.Update.UpdateFailedSecurityQuestionsAnsweringAttempts(ctx, *userProfile.ID, 0)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return false, exceptions.InternalErr(fmt.Errorf("failed to reset security question response fail count %v", err))
+		}
+	}
 	return true, nil
 }
 

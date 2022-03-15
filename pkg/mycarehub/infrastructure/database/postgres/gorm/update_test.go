@@ -1664,3 +1664,50 @@ func TestPGInstance_UpdateUserPinChangeRequiredStatus(t *testing.T) {
 		})
 	}
 }
+
+func TestPGInstance_UpdateFailedSecurityQuestionsAnsweringAttempts(t *testing.T) {
+	ctx := context.Background()
+	type args struct {
+		ctx       context.Context
+		userID    string
+		failCount int
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: reset failed security attempts",
+			args: args{
+				ctx:       ctx,
+				userID:    userFailedSecurityCountID,
+				failCount: 0,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: user not found",
+			args: args{
+				ctx:    ctx,
+				userID: gofakeit.UUID(),
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: invalid user ID",
+			args: args{
+				ctx:    ctx,
+				userID: "32354",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := testingDB.UpdateFailedSecurityQuestionsAnsweringAttempts(tt.args.ctx, tt.args.userID, tt.args.failCount); (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.UpdateFailedSecurityQuestionsAnsweringAttempts() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}

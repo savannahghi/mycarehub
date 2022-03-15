@@ -162,4 +162,13 @@ const (
 
 	// RecordNotFoundErrorMsg is the error message displayed when a record is not found
 	RecordNotFoundErrorMsg = "record not found"
+
+	// FailedSecurityCountExceededErrorMsg is the error message displayed when a user has failed security count
+	FailedSecurityCountExceededErrorMsg = "you have reached the maximum number of attempts"
+
+	// SecurityQuestionResponseMismatchErrorMsg is the error message displayed when a user's security question response does not match
+	SecurityQuestionResponseMismatchErrorMsg = "security question response does not match"
+
+	// SecurityQuestionNotFoundErrorMsg is the error message displayed when a user's security question is not found
+	SecurityQuestionNotFoundErrorMsg = "security question not found"
 )

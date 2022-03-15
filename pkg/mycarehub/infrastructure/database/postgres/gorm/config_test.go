@@ -123,6 +123,7 @@ var (
 	clientUserUnresolvedRequestID = "6ecbbc80-24c8-421a-9f1a-e14e12678ef7"
 	pendingServiceRequestID       = "8ecbbc80-24c8-421a-9f1a-e14e12678ef7"
 	inProgressServiceRequestID    = "8ecbbc80-24c8-421a-9f1a-e14e12678ef8"
+	userFailedSecurityCountID     = "07ee2012-18c7-4cc7-8fd8-27249afb091d"
 )
 
 func TestMain(m *testing.M) {
@@ -215,6 +216,7 @@ func TestMain(m *testing.M) {
 			"test_client_id_with_unresolved_request": clientUnresolvedRequestID,
 			"pending_service_request_id":             pendingServiceRequestID,
 			"in_progress_service_request_id":         inProgressServiceRequestID,
+			"user_failed_security_count_id":          userFailedSecurityCountID,
 		}),
 		// this is the directory containing the YAML files.
 		// The file name should be the same as the table name

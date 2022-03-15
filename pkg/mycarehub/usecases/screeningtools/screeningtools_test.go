@@ -203,6 +203,13 @@ func TestServiceScreeningToolsImpl_AnswerScreeningToolQuestions(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
 			tr := NewUseCasesScreeningTools(fakeDB, fakeDB, fakeDB)
 
+			if tt.name == "happy case: answer screening tool questions" {
+				fakeDB.MockCreateServiceRequestFn = func(ctx context.Context, serviceRequestInput *dto.ServiceRequestInput) error {
+					return nil
+				}
+
+			}
+
 			if tt.name == "sad case: failed to get screening tools question by id" {
 				fakeDB.MockGetScreeningToolQuestionByQuestionIDFn = func(ctx context.Context, id string) (*domain.ScreeningToolQuestion, error) {
 					return nil, fmt.Errorf("failed to get screening tool question by id")

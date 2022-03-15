@@ -181,6 +181,23 @@ func (u *UseCasesServiceRequestImpl) ResolveServiceRequest(ctx context.Context, 
 	if serviceRequestID == nil {
 		return false, fmt.Errorf("service request ID is required")
 	}
+	serviceRequest, err := u.Query.GetServiceRequestByID(ctx, *serviceRequestID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, fmt.Errorf("failed to get service request: %v", err)
+	}
+	clientProfile, err := u.Query.GetClientProfileByClientID(ctx, serviceRequest.ClientID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, fmt.Errorf("failed to get client profile: %v", err)
+	}
+	if serviceRequest.RequestType == enums.ServiceRequestTypePinReset.String() {
+		err = u.Update.UpdateFailedSecurityQuestionsAnsweringAttempts(ctx, clientProfile.UserID, 0)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return false, fmt.Errorf("failed to reset client's failed security answering attempts: %v", err)
+		}
+	}
 	ok, err := u.Update.ResolveServiceRequest(ctx, staffID, serviceRequestID)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)

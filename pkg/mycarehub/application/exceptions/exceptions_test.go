@@ -122,4 +122,10 @@ func TestCustomErrors(t *testing.T) {
 
 	err = exceptions.RetryLoginErr(fmt.Errorf("error"))
 	assert.NotNil(t, err)
+
+	err = exceptions.FailedSecurityCountExceededErr(fmt.Errorf("error"))
+	assert.NotNil(t, err)
+
+	err = exceptions.SecurityQuestionResponseMismatchErr(fmt.Errorf("error"))
+	assert.NotNil(t, err)
 }
