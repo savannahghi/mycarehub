@@ -38,6 +38,7 @@ type ServiceGetStream interface {
 	DemoteModerators(ctx context.Context, channelID string, memberIDs []string) (*stream.Response, error)
 	DeleteUsers(ctx context.Context, userIDs []string, options stream.DeleteUserOptions) (*stream.AsyncTaskResponse, error)
 	BanUser(ctx context.Context, targetMemberID string, bannedBy string, communityID string) (bool, error)
+	UnBanUser(ctx context.Context, targetID string, communityID string) (bool, error)
 }
 
 // ChatClient is the service's struct implementation
@@ -184,8 +185,36 @@ func (c *ChatClient) BanUser(ctx context.Context, targetMemberID string, bannedB
 	_, err := c.client.Channel("messaging", communityID).BanUser(ctx, targetMemberID, bannedBy)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return false, fmt.Errorf("failed to ban user %v from channel %v", targetMemberID, communityID)
+		return false, fmt.Errorf("failed to ban user %v from channel %v: %v", targetMemberID, communityID, err)
 	}
 
 	return true, nil
+}
+
+// UnBanUser unbans a user who was banned in the specified channel
+func (c *ChatClient) UnBanUser(ctx context.Context, targetID string, communityID string) (bool, error) {
+	if targetID == "" || communityID == "" {
+		return false, fmt.Errorf("neither targetID or communityID cannot be empty")
+	}
+
+	response, err := c.client.QueryBannedUsers(ctx, &stream.QueryBannedUsersOptions{
+		QueryOption: &stream.QueryOption{Filter: map[string]interface{}{
+			"channel_cid": "messaging:" + communityID,
+		}},
+	})
+	if err != nil {
+		return false, fmt.Errorf("an error occurred: %v", err)
+	}
+	for _, v := range response.Bans {
+		if v.User.ID == targetID {
+			_, err = c.client.Channel("messaging", communityID).UnBanUser(ctx, targetID)
+			if err != nil {
+				helpers.ReportErrorToSentry(err)
+				return false, fmt.Errorf("unable to unban user: %v", err)
+			}
+			return true, nil
+		}
+	}
+
+	return false, nil
 }

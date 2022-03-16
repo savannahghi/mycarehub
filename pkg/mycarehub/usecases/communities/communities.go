@@ -67,16 +67,13 @@ type IManageMembers interface {
 type IModeration interface {
 	AddModeratorsWithMessage(ctx context.Context, memberIDs []string, communityID string) (bool, error)
 	DemoteModerators(ctx context.Context, communityID string, memberIDs []string) (bool, error)
+	BanUser(ctx context.Context, targetMemberID string, bannedBy string, communityID string) (bool, error)
+	UnBanUser(ctx context.Context, targetID string, communityID string) (bool, error)
 }
 
 // IRecommendations interface contains all the recommendation functions
 type IRecommendations interface {
 	RecommendedCommunities(ctx context.Context, clientID string, limit int) ([]*domain.Community, error)
-}
-
-// IBanUser interface contains the method(s) used to ban a user from a channel.
-type IBanUser interface {
-	BanUser(ctx context.Context, targetMemberID string, bannedBy string, communityID string) (bool, error)
 }
 
 // UseCasesCommunities holds all interfaces required to implement the communities feature
@@ -90,7 +87,6 @@ type UseCasesCommunities interface {
 	IManageMembers
 	IModeration
 	IRecommendations
-	IBanUser
 }
 
 // UseCasesCommunitiesImpl represents communities implementation
@@ -560,6 +556,11 @@ func (us *UseCasesCommunitiesImpl) ListPendingInvites(ctx context.Context, membe
 	}
 
 	return communities, nil
+}
+
+// UnBanUser unbans a user from the specified channel
+func (us *UseCasesCommunitiesImpl) UnBanUser(ctx context.Context, targetID string, communityID string) (bool, error) {
+	return us.GetstreamService.UnBanUser(ctx, targetID, communityID)
 }
 
 // RecommendedCommunities returns a list of communities that have been recommended to the user

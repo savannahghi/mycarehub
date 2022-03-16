@@ -330,7 +330,7 @@ type ComplexityRoot struct {
 		AnswerScreeningToolQuestion     func(childComplexity int, screeningToolResponses []*dto.ScreeningToolQuestionResponseInput) int
 		ApprovePinResetServiceRequest   func(childComplexity int, clientID string, serviceRequestID string, cccNumber string, phoneNumber string, physicalIdentityVerified bool) int
 		AssignRoles                     func(childComplexity int, userID string, roles []enums.UserRoleType) int
-		BanUser                         func(childComplexity int, targetMemberID string, bannedBy string, communityID string) int
+		BanUser                         func(childComplexity int, memberID string, bannedBy string, communityID string) int
 		BookmarkContent                 func(childComplexity int, userID string, contentItemID int) int
 		CompleteOnboardingTour          func(childComplexity int, userID string, flavour feedlib.Flavour) int
 		CreateCommunity                 func(childComplexity int, input dto.CommunityInput) int
@@ -357,6 +357,7 @@ type ComplexityRoot struct {
 		SetNickName                     func(childComplexity int, userID string, nickname string) int
 		SetUserPin                      func(childComplexity int, input *dto.PINInput) int
 		ShareContent                    func(childComplexity int, input dto.ShareContentInput) int
+		UnBanUser                       func(childComplexity int, memberID string, communityID string) int
 		UnBookmarkContent               func(childComplexity int, userID string, contentItemID int) int
 		UnlikeContent                   func(childComplexity int, userID string, contentID int) int
 		ViewContent                     func(childComplexity int, userID string, contentID int) int
@@ -500,7 +501,8 @@ type MutationResolver interface {
 	RemoveMembersFromCommunity(ctx context.Context, communityID string, memberIDs []string) (bool, error)
 	AddModerators(ctx context.Context, memberIDs []string, communityID string) (bool, error)
 	DemoteModerators(ctx context.Context, communityID string, memberIDs []string) (bool, error)
-	BanUser(ctx context.Context, targetMemberID string, bannedBy string, communityID string) (bool, error)
+	BanUser(ctx context.Context, memberID string, bannedBy string, communityID string) (bool, error)
+	UnBanUser(ctx context.Context, memberID string, communityID string) (bool, error)
 	ShareContent(ctx context.Context, input dto.ShareContentInput) (bool, error)
 	BookmarkContent(ctx context.Context, userID string, contentItemID int) (bool, error)
 	UnBookmarkContent(ctx context.Context, userID string, contentItemID int) (bool, error)
@@ -1901,7 +1903,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.BanUser(childComplexity, args["targetMemberID"].(string), args["bannedBy"].(string), args["communityID"].(string)), true
+		return e.complexity.Mutation.BanUser(childComplexity, args["MemberID"].(string), args["bannedBy"].(string), args["communityID"].(string)), true
 
 	case "Mutation.bookmarkContent":
 		if e.complexity.Mutation.BookmarkContent == nil {
@@ -2214,6 +2216,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.ShareContent(childComplexity, args["input"].(dto.ShareContentInput)), true
+
+	case "Mutation.unBanUser":
+		if e.complexity.Mutation.UnBanUser == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_unBanUser_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UnBanUser(childComplexity, args["memberID"].(string), args["communityID"].(string)), true
 
 	case "Mutation.UnBookmarkContent":
 		if e.complexity.Mutation.UnBookmarkContent == nil {
@@ -3106,7 +3120,8 @@ extend type Mutation {
   removeMembersFromCommunity(communityID: String!, memberIDs: [String!]): Boolean!
   addModerators(memberIDs: [String!]!, communityID: String!): Boolean!
   demoteModerators(communityID: String!, memberIDs: [String!]!): Boolean!
-  banUser(targetMemberID: String!, bannedBy: String!, communityID: String!): Boolean!
+  banUser(MemberID: String!, bannedBy: String!, communityID: String!): Boolean!
+  unBanUser(memberID: String!, communityID: String!): Boolean!
 }
 `, BuiltIn: false},
 	{Name: "pkg/mycarehub/presentation/graph/content.graphql", Input: `extend type Query {
@@ -4112,14 +4127,14 @@ func (ec *executionContext) field_Mutation_banUser_args(ctx context.Context, raw
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
-	if tmp, ok := rawArgs["targetMemberID"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("targetMemberID"))
+	if tmp, ok := rawArgs["MemberID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("MemberID"))
 		arg0, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["targetMemberID"] = arg0
+	args["MemberID"] = arg0
 	var arg1 string
 	if tmp, ok := rawArgs["bannedBy"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("bannedBy"))
@@ -4690,6 +4705,30 @@ func (ec *executionContext) field_Mutation_shareContent_args(ctx context.Context
 		}
 	}
 	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_unBanUser_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["memberID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("memberID"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["memberID"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["communityID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("communityID"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["communityID"] = arg1
 	return args, nil
 }
 
@@ -11792,7 +11831,49 @@ func (ec *executionContext) _Mutation_banUser(ctx context.Context, field graphql
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().BanUser(rctx, args["targetMemberID"].(string), args["bannedBy"].(string), args["communityID"].(string))
+		return ec.resolvers.Mutation().BanUser(rctx, args["MemberID"].(string), args["bannedBy"].(string), args["communityID"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_unBanUser(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_unBanUser_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UnBanUser(rctx, args["memberID"].(string), args["communityID"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -19606,6 +19687,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			}
 		case "banUser":
 			out.Values[i] = ec._Mutation_banUser(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "unBanUser":
+			out.Values[i] = ec._Mutation_unBanUser(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
