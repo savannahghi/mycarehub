@@ -1272,3 +1272,87 @@ func TestUseCasesCommunitiesImpl_BanUser(t *testing.T) {
 		})
 	}
 }
+
+func TestUseCasesCommunitiesImpl_UnBanUser(t *testing.T) {
+	ctx := context.Background()
+
+	fakeGetStream := getStreamMock.NewGetStreamServiceMock()
+	fakeExtension := extensionMock.NewFakeExtension()
+	fakeDB := pgMock.NewPostgresMock()
+	communities := communities.NewUseCaseCommunitiesImpl(fakeGetStream, fakeExtension, fakeDB, fakeDB)
+
+	type args struct {
+		ctx         context.Context
+		targetID    string
+		communityID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:         ctx,
+				targetID:    uuid.New().String(),
+				communityID: uuid.New().String(),
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Sad case",
+			args: args{
+				ctx:         ctx,
+				targetID:    uuid.New().String(),
+				communityID: uuid.New().String(),
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case - no community ID",
+			args: args{
+				ctx:         ctx,
+				targetID:    uuid.New().String(),
+				communityID: "",
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case - user does no belong to the community",
+			args: args{
+				ctx:         ctx,
+				targetID:    uuid.New().String(),
+				communityID: uuid.New().String(),
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "Sad case" {
+				fakeGetStream.MockUnBanUserFn = func(ctx context.Context, targetID, communityID string) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - no community ID" {
+				fakeGetStream.MockUnBanUserFn = func(ctx context.Context, targetID, communityID string) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+			got, err := communities.UnBanUser(tt.args.ctx, tt.args.targetID, tt.args.communityID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCasesCommunitiesImpl.UnBanUser() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("UseCasesCommunitiesImpl.UnBanUser() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

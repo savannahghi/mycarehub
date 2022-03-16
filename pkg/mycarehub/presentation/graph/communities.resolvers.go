@@ -43,8 +43,12 @@ func (r *mutationResolver) DemoteModerators(ctx context.Context, communityID str
 	return r.mycarehub.Community.DemoteModerators(ctx, communityID, memberIDs)
 }
 
-func (r *mutationResolver) BanUser(ctx context.Context, targetMemberID string, bannedBy string, communityID string) (bool, error) {
-	return r.mycarehub.Community.BanUser(ctx, targetMemberID, bannedBy, communityID)
+func (r *mutationResolver) BanUser(ctx context.Context, memberID string, bannedBy string, communityID string) (bool, error) {
+	return r.mycarehub.Community.BanUser(ctx, memberID, bannedBy, communityID)
+}
+
+func (r *mutationResolver) UnBanUser(ctx context.Context, memberID string, communityID string) (bool, error) {
+	return r.mycarehub.Community.UnBanUser(ctx, memberID, communityID)
 }
 
 func (r *queryResolver) ListMembers(ctx context.Context, input *stream_chat.QueryOption) ([]*domain.Member, error) {
