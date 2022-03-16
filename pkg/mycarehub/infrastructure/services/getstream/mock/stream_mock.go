@@ -27,6 +27,7 @@ type GetStreamServiceMock struct {
 	MockDemoteModeratorsFn         func(ctx context.Context, channelID string, memberIDs []string) (*stream.Response, error)
 	MockRevokeGetStreamUserTokenFn func(ctx context.Context, userID string) (*stream.Response, error)
 	MockDeleteUsersFn              func(ctx context.Context, userIDs []string, options stream.DeleteUserOptions) (*stream.AsyncTaskResponse, error)
+	MockBanUserFn                  func(ctx context.Context, targetMemberID string, bannedBy string, communityID string) (bool, error)
 }
 
 // NewGetStreamServiceMock initializes the mock service
@@ -209,6 +210,9 @@ func NewGetStreamServiceMock() *GetStreamServiceMock {
 				},
 			}, nil
 		},
+		MockBanUserFn: func(ctx context.Context, targetMemberID, bannedBy, communityID string) (bool, error) {
+			return true, nil
+		},
 	}
 }
 
@@ -290,4 +294,9 @@ func (g GetStreamServiceMock) RevokeGetStreamUserToken(ctx context.Context, user
 // DeleteUsers mocks the implementation for deleting users
 func (g GetStreamServiceMock) DeleteUsers(ctx context.Context, userIDs []string, options stream.DeleteUserOptions) (*stream.AsyncTaskResponse, error) {
 	return g.MockDeleteUsersFn(ctx, userIDs, options)
+}
+
+// BanUser mocks the implementation banning a user from a specified channel
+func (g GetStreamServiceMock) BanUser(ctx context.Context, targetMemberID string, bannedBy string, communityID string) (bool, error) {
+	return g.MockBanUserFn(ctx, targetMemberID, bannedBy, communityID)
 }

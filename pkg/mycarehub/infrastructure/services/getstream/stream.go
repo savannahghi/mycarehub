@@ -5,9 +5,11 @@ import (
 	"fmt"
 	"log"
 	"strconv"
+	"strings"
 	"time"
 
 	stream "github.com/GetStream/stream-chat-go/v5"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	"github.com/savannahghi/serverutils"
 )
 
@@ -35,6 +37,7 @@ type ServiceGetStream interface {
 	AddModeratorsWithMessage(ctx context.Context, userIDs []string, communityID string, msg *stream.Message) (*stream.Response, error)
 	DemoteModerators(ctx context.Context, channelID string, memberIDs []string) (*stream.Response, error)
 	DeleteUsers(ctx context.Context, userIDs []string, options stream.DeleteUserOptions) (*stream.AsyncTaskResponse, error)
+	BanUser(ctx context.Context, targetMemberID string, bannedBy string, communityID string) (bool, error)
 }
 
 // ChatClient is the service's struct implementation
@@ -169,4 +172,20 @@ func (c *ChatClient) DemoteModerators(ctx context.Context, channelID string, mem
 // Users and messages will be hard deleted if hardDelete is true.
 func (c *ChatClient) DeleteUsers(ctx context.Context, userIDs []string, options stream.DeleteUserOptions) (*stream.AsyncTaskResponse, error) {
 	return c.client.DeleteUsers(ctx, userIDs, options)
+}
+
+// BanUser bans a user from a specified channel
+func (c *ChatClient) BanUser(ctx context.Context, targetMemberID string, bannedBy string, communityID string) (bool, error) {
+	similar := strings.EqualFold(targetMemberID, bannedBy)
+	if similar {
+		return false, fmt.Errorf("users cannot ban themselves from a channel")
+	}
+
+	_, err := c.client.Channel("messaging", communityID).BanUser(ctx, targetMemberID, bannedBy)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, fmt.Errorf("failed to ban user %v from channel %v", targetMemberID, communityID)
+	}
+
+	return true, nil
 }
