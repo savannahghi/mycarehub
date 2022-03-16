@@ -633,3 +633,100 @@ func TestChatClient_RevokeGetStreamUserToken(t *testing.T) {
 		return
 	}
 }
+
+func TestChatClient_BanUser(t *testing.T) {
+	ctx := context.Background()
+
+	// Create the user
+	streamUser := &stream.User{
+		ID:        uuid.New().String(),
+		Name:      "Test",
+		Invisible: false,
+	}
+
+	user, err := c.CreateGetStreamUser(ctx, streamUser)
+	if err != nil {
+		t.Errorf("ChatClient.CreateGetStreamUser() error = %v", err)
+		return
+	}
+
+	// Add them to a community
+	_, err = c.AddMembersToCommunity(ctx, []string{user.User.ID}, channelID)
+	if err != nil {
+		t.Errorf("ChatClient.AddMembersToCommunity() error = %v", err)
+		return
+	}
+
+	type args struct {
+		ctx            context.Context
+		targetMemberID string
+		bannedBy       string
+		communityID    string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy Case",
+			args: args{
+				ctx:            ctx,
+				targetMemberID: user.User.ID,
+				bannedBy:       member2,
+				communityID:    ch.Channel.ID,
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Sad Case",
+			args: args{
+				ctx:            ctx,
+				targetMemberID: "",
+				bannedBy:       "",
+				communityID:    "",
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - same targetMemberID",
+			args: args{
+				ctx:            ctx,
+				targetMemberID: user.User.ID,
+				bannedBy:       user.User.ID,
+				communityID:    ch.Channel.ID,
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := c.BanUser(tt.args.ctx, tt.args.targetMemberID, tt.args.bannedBy, tt.args.communityID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ChatClient.BanUser() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("ChatClient.BanUser() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+
+	// teardown
+	_, err = c.DeleteUsers(ctx, []string{user.User.ID}, stream.DeleteUserOptions{
+		User:     stream.HardDelete,
+		Messages: stream.HardDelete,
+	})
+	if err != nil {
+		t.Errorf("ChatClient.DeleteUsers() error = %v", err)
+		return
+	}
+	_, err = c.DeleteChannels(ctx, []string{"messaging:" + channelID}, true)
+	if err != nil {
+		t.Errorf("ChatClient.DeleteChannel() error = %v", err)
+	}
+}

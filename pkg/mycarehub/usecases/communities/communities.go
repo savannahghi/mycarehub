@@ -74,6 +74,11 @@ type IRecommendations interface {
 	RecommendedCommunities(ctx context.Context, clientID string, limit int) ([]*domain.Community, error)
 }
 
+// IBanUser interface contains the method(s) used to ban a user from a channel.
+type IBanUser interface {
+	BanUser(ctx context.Context, targetMemberID string, bannedBy string, communityID string) (bool, error)
+}
+
 // UseCasesCommunities holds all interfaces required to implement the communities feature
 type UseCasesCommunities interface {
 	ICreateCommunity
@@ -85,6 +90,7 @@ type UseCasesCommunities interface {
 	IManageMembers
 	IModeration
 	IRecommendations
+	IBanUser
 }
 
 // UseCasesCommunitiesImpl represents communities implementation
@@ -640,4 +646,12 @@ func (us *UseCasesCommunitiesImpl) RecommendedCommunities(ctx context.Context, c
 	}
 
 	return communities, nil
+}
+
+// BanUser is used to ban user from a specified channel
+func (us *UseCasesCommunitiesImpl) BanUser(ctx context.Context, targetMemberID string, bannedBy string, communityID string) (bool, error) {
+	if targetMemberID == "" {
+		return false, fmt.Errorf("target member ID cannot be empty")
+	}
+	return us.GetstreamService.BanUser(ctx, targetMemberID, bannedBy, communityID)
 }

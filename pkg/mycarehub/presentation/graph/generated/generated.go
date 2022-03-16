@@ -329,6 +329,7 @@ type ComplexityRoot struct {
 		AddModerators                   func(childComplexity int, memberIDs []string, communityID string) int
 		AnswerScreeningToolQuestion     func(childComplexity int, screeningToolResponses []*dto.ScreeningToolQuestionResponseInput) int
 		AssignRoles                     func(childComplexity int, userID string, roles []enums.UserRoleType) int
+		BanUser                         func(childComplexity int, targetMemberID string, bannedBy string, communityID string) int
 		BookmarkContent                 func(childComplexity int, userID string, contentItemID int) int
 		CompleteOnboardingTour          func(childComplexity int, userID string, flavour feedlib.Flavour) int
 		CreateCommunity                 func(childComplexity int, input dto.CommunityInput) int
@@ -497,6 +498,7 @@ type MutationResolver interface {
 	RemoveMembersFromCommunity(ctx context.Context, communityID string, memberIDs []string) (bool, error)
 	AddModerators(ctx context.Context, memberIDs []string, communityID string) (bool, error)
 	DemoteModerators(ctx context.Context, communityID string, memberIDs []string) (bool, error)
+	BanUser(ctx context.Context, targetMemberID string, bannedBy string, communityID string) (bool, error)
 	ShareContent(ctx context.Context, input dto.ShareContentInput) (bool, error)
 	BookmarkContent(ctx context.Context, userID string, contentItemID int) (bool, error)
 	UnBookmarkContent(ctx context.Context, userID string, contentItemID int) (bool, error)
@@ -1874,6 +1876,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.AssignRoles(childComplexity, args["userID"].(string), args["roles"].([]enums.UserRoleType)), true
 
+	case "Mutation.banUser":
+		if e.complexity.Mutation.BanUser == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_banUser_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.BanUser(childComplexity, args["targetMemberID"].(string), args["bannedBy"].(string), args["communityID"].(string)), true
+
 	case "Mutation.bookmarkContent":
 		if e.complexity.Mutation.BookmarkContent == nil {
 			break
@@ -3070,6 +3084,7 @@ extend type Mutation {
   removeMembersFromCommunity(communityID: String!, memberIDs: [String!]): Boolean!
   addModerators(memberIDs: [String!]!, communityID: String!): Boolean!
   demoteModerators(communityID: String!, memberIDs: [String!]!): Boolean!
+  banUser(targetMemberID: String!, bannedBy: String!, communityID: String!): Boolean!
 }
 `, BuiltIn: false},
 	{Name: "pkg/mycarehub/presentation/graph/content.graphql", Input: `extend type Query {
@@ -4006,6 +4021,39 @@ func (ec *executionContext) field_Mutation_assignRoles_args(ctx context.Context,
 		}
 	}
 	args["roles"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_banUser_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["targetMemberID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("targetMemberID"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["targetMemberID"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["bannedBy"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("bannedBy"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["bannedBy"] = arg1
+	var arg2 string
+	if tmp, ok := rawArgs["communityID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("communityID"))
+		arg2, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["communityID"] = arg2
 	return args, nil
 }
 
@@ -11619,6 +11667,48 @@ func (ec *executionContext) _Mutation_demoteModerators(ctx context.Context, fiel
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Mutation().DemoteModerators(rctx, args["communityID"].(string), args["memberIDs"].([]string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_banUser(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_banUser_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().BanUser(rctx, args["targetMemberID"].(string), args["bannedBy"].(string), args["communityID"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -19353,6 +19443,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			}
 		case "demoteModerators":
 			out.Values[i] = ec._Mutation_demoteModerators(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "banUser":
+			out.Values[i] = ec._Mutation_banUser(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}

@@ -18,6 +18,7 @@ type CommunityUsecaseMock struct {
 	MockListCommunityMembers    func(ctx context.Context, communityID string) ([]*domain.CommunityMember, error)
 	MockRejectInviteFn          func(ctx context.Context, userID string, channelID string) (bool, error)
 	MockAddMembersToCommunityFn func(ctx context.Context, memberIDs []string, communityID string) (*stream.Response, error)
+	MockBanUserFn               func(ctx context.Context, targetMemberID string, bannedBy string, communityID string) (bool, error)
 }
 
 // NewCommunityUsecaseMock initializes a new instance of the Community usecase happy cases
@@ -68,6 +69,9 @@ func NewCommunityUsecaseMock() *CommunityUsecaseMock {
 				},
 			}, nil
 		},
+		MockBanUserFn: func(ctx context.Context, targetMemberID, bannedBy, communityID string) (bool, error) {
+			return true, nil
+		},
 	}
 }
 
@@ -94,4 +98,9 @@ func (c CommunityUsecaseMock) RejectInvite(ctx context.Context, userID string, c
 // AddMembersToCommunity mocks the implementation of adding members to a community
 func (c CommunityUsecaseMock) AddMembersToCommunity(ctx context.Context, memberIDs []string, communityID string) (*stream.Response, error) {
 	return c.MockAddMembersToCommunityFn(ctx, memberIDs, communityID)
+}
+
+// BanUser mocks the implementation banning a user from a specified channel
+func (c CommunityUsecaseMock) BanUser(ctx context.Context, targetMemberID string, bannedBy string, communityID string) (bool, error) {
+	return c.MockBanUserFn(ctx, targetMemberID, bannedBy, communityID)
 }

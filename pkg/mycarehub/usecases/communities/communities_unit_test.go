@@ -1183,3 +1183,92 @@ func TestUseCasesCommunitiesImpl_RecommendedCommunities(t *testing.T) {
 		})
 	}
 }
+
+func TestUseCasesCommunitiesImpl_BanUser(t *testing.T) {
+	ctx := context.Background()
+
+	fakeGetStream := getStreamMock.NewGetStreamServiceMock()
+	fakeExtension := extensionMock.NewFakeExtension()
+	fakeDB := pgMock.NewPostgresMock()
+	communities := communities.NewUseCaseCommunitiesImpl(fakeGetStream, fakeExtension, fakeDB, fakeDB)
+
+	type args struct {
+		ctx            context.Context
+		targetMemberID string
+		bannedBy       string
+		communityID    string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:            ctx,
+				targetMemberID: uuid.New().String(),
+				bannedBy:       uuid.New().String(),
+				communityID:    uuid.New().String(),
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Sad case",
+			args: args{
+				ctx:            ctx,
+				targetMemberID: uuid.New().String(),
+				bannedBy:       uuid.New().String(),
+				communityID:    uuid.New().String(),
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case",
+			args: args{
+				ctx:            ctx,
+				targetMemberID: uuid.New().String(),
+				bannedBy:       uuid.New().String(),
+				communityID:    uuid.New().String(),
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case - empty target ID",
+			args: args{
+				ctx:            ctx,
+				targetMemberID: "",
+				bannedBy:       uuid.New().String(),
+				communityID:    uuid.New().String(),
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "Sad case" {
+				fakeGetStream.MockBanUserFn = func(ctx context.Context, targetMemberID, bannedBy, communityID string) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - empty target ID" {
+				fakeGetStream.MockBanUserFn = func(ctx context.Context, targetMemberID, bannedBy, communityID string) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+			got, err := communities.BanUser(tt.args.ctx, tt.args.targetMemberID, tt.args.bannedBy, tt.args.communityID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCasesCommunitiesImpl.BanUser() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("UseCasesCommunitiesImpl.BanUser() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
