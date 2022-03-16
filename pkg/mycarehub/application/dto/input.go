@@ -421,7 +421,7 @@ type StaffRegistrationInput struct {
 	PhoneNumber string           `json:"phone_number"`
 	IDNumber    int              `json:"id_number"`
 	StaffNumber string           `json:"staff_number"`
-	StaffRoles  string           `json:"staff_roles"`
+	StaffRoles  string           `json:"role"`
 	InviteStaff bool             `json:"invite_staff"`
 }
 

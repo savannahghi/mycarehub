@@ -170,7 +170,7 @@ func (us *UseCasesCommunitiesImpl) CreateCommunity(ctx context.Context, input dt
 	channelResponse, err := us.Create.CreateCommunity(ctx, &input)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return nil, exceptions.GetLoggedInUserUIDErr(err)
+		return nil, err
 	}
 
 	loggedInUserID, err := us.ExternalExt.GetLoggedInUserUID(ctx)

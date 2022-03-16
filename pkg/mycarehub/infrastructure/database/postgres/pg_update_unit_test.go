@@ -651,7 +651,7 @@ func TestMyCareHubDb_SetNickName(t *testing.T) {
 	}
 }
 
-func TestMyCareHubDb_UpdateUserPinChangeRequiredStatus(t *testing.T) {
+func TestMyCareHubDb_CompleteOnboardingTour(t *testing.T) {
 	ctx := context.Background()
 	type args struct {
 		ctx     context.Context
@@ -708,29 +708,29 @@ func TestMyCareHubDb_UpdateUserPinChangeRequiredStatus(t *testing.T) {
 			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
 
 			if tt.name == "Sad Case - Fail to update" {
-				fakeGorm.MockUpdateUserPinChangeRequiredStatusFn = func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
+				fakeGorm.MockCompleteOnboardingTourFn = func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
 					return false, fmt.Errorf("failed to update status")
 				}
 			}
 
 			if tt.name == "Sad Case - Missing user id" {
-				fakeGorm.MockUpdateUserPinChangeRequiredStatusFn = func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
+				fakeGorm.MockCompleteOnboardingTourFn = func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
 					return false, fmt.Errorf("failed to update status")
 				}
 			}
 			if tt.name == "Sad Case - No user id and flavour" {
-				fakeGorm.MockUpdateUserPinChangeRequiredStatusFn = func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
+				fakeGorm.MockCompleteOnboardingTourFn = func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
 					return false, fmt.Errorf("failed to update status")
 				}
 			}
 
-			got, err := d.UpdateUserPinChangeRequiredStatus(tt.args.ctx, tt.args.userID, tt.args.flavour)
+			got, err := d.CompleteOnboardingTour(tt.args.ctx, tt.args.userID, tt.args.flavour)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("MyCareHubDb.UpdateUserPinChangeRequiredStatus() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("MyCareHubDb.CompleteOnboardingTour() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if got != tt.want {
-				t.Errorf("MyCareHubDb.UpdateUserPinChangeRequiredStatus() = %v, want %v", got, tt.want)
+				t.Errorf("MyCareHubDb.CompleteOnboardingTour() = %v, want %v", got, tt.want)
 			}
 		})
 	}

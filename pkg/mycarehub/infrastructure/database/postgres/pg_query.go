@@ -682,6 +682,7 @@ func (d *MyCareHubDb) GetServiceRequests(ctx context.Context, requestType, reque
 			FacilityID:    facilityID,
 			ClientName:    &userProfile.Name,
 			ClientContact: &userProfile.Contacts.ContactValue,
+			CCCNumber:     serviceRequest.CCCNumber,
 		}
 		serviceRequests = append(serviceRequests, serviceRequest)
 	}

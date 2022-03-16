@@ -9,8 +9,10 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/user"
 )
 
 // Service requests are tasks for the healthcare staff on the platform. Some examples are:
@@ -51,6 +53,14 @@ type IGetServiceRequests interface {
 // IResolveServiceRequest is an interface that holds the method signature for resolving a service request
 type IResolveServiceRequest interface {
 	ResolveServiceRequest(ctx context.Context, staffID *string, serviceRequestID *string) (bool, error)
+	ApprovePinResetServiceRequest(
+		ctx context.Context,
+		clientID string,
+		serviceRequestID string,
+		cccNumber string,
+		phoneNumber string,
+		physicalIdentityVerified bool,
+	) (bool, error)
 }
 
 // IUpdateServiceRequest is the interface holding the method signature for updating service requests.
@@ -69,9 +79,11 @@ type UseCaseServiceRequest interface {
 
 // UseCasesServiceRequestImpl embeds the service request logic
 type UseCasesServiceRequestImpl struct {
-	Create infrastructure.Create
-	Query  infrastructure.Query
-	Update infrastructure.Update
+	Create      infrastructure.Create
+	Query       infrastructure.Query
+	Update      infrastructure.Update
+	ExternalExt extension.ExternalMethodsExtension
+	User        user.UseCasesUser
 }
 
 // NewUseCaseServiceRequestImpl creates a new service request instance
@@ -79,11 +91,15 @@ func NewUseCaseServiceRequestImpl(
 	create infrastructure.Create,
 	query infrastructure.Query,
 	update infrastructure.Update,
+	ext extension.ExternalMethodsExtension,
+	user user.UseCasesUser,
 ) *UseCasesServiceRequestImpl {
 	return &UseCasesServiceRequestImpl{
-		Create: create,
-		Query:  query,
-		Update: update,
+		Create:      create,
+		Query:       query,
+		Update:      update,
+		ExternalExt: ext,
+		User:        user,
 	}
 }
 
@@ -230,6 +246,83 @@ func (u *UseCasesServiceRequestImpl) CreatePinResetServiceRequest(ctx context.Co
 	)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
+		return false, err
+	}
+
+	return true, nil
+}
+
+// ApprovePinResetServiceRequest is used to approve a pin reset service request. This is used by the
+// healthcare worker to reset the login credentials of a user who failed to login and requested for help from
+// the health care worker.
+//
+// The basic workflow is
+// 1. Get the logged in user ID - This will be used to identify the staff who resolved the request
+// 2. Verify that the patient was physically verified by the healthcare worker and that the provided
+// ccc number matches the one on their profile
+// 3. Mark the service request as IN_PROGRESS
+// 4. Send a fresh invite to the user and invalidate the previous pins
+// 5. Update the field `pin_change_required` to true and mark the service request as resolved
+func (u *UseCasesServiceRequestImpl) ApprovePinResetServiceRequest(
+	ctx context.Context,
+	clientID string,
+	serviceRequestID string,
+	cccNumber string,
+	phoneNumber string,
+	physicalIdentityVerified bool,
+) (bool, error) {
+	flavour := feedlib.FlavourConsumer
+	loggedInUserID, err := u.ExternalExt.GetLoggedInUserUID(ctx)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, exceptions.GetLoggedInUserUIDErr(err)
+	}
+
+	staff, err := u.Query.GetStaffProfileByUserID(ctx, loggedInUserID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, exceptions.StaffProfileNotFoundErr(err)
+	}
+
+	if !physicalIdentityVerified {
+		return false, fmt.Errorf("the patient has not been physically verified by the healthcare worker")
+	}
+
+	identifier, err := u.Query.GetClientCCCIdentifier(ctx, clientID)
+	if err != nil {
+		return false, err
+	}
+
+	if identifier == nil {
+		return false, fmt.Errorf("patient has no recorded identifier")
+	}
+
+	if cccNumber != identifier.IdentifierValue {
+		return false, fmt.Errorf("the ccc number provided does not match with the one on the patient profile")
+	}
+
+	_, err = u.SetInProgressBy(ctx, serviceRequestID, *staff.ID)
+	if err != nil {
+		return false, err
+	}
+
+	user, err := u.Query.GetUserProfileByPhoneNumber(ctx, phoneNumber, flavour)
+	if err != nil {
+		return false, err
+	}
+
+	_, err = u.User.InviteUser(ctx, *user.ID, phoneNumber, flavour)
+	if err != nil {
+		return false, err
+	}
+
+	err = u.Update.UpdateUserPinChangeRequiredStatus(ctx, *user.ID, flavour, true)
+	if err != nil {
+		return false, err
+	}
+
+	_, err = u.ResolveServiceRequest(ctx, staff.ID, &serviceRequestID)
+	if err != nil {
 		return false, err
 	}
 

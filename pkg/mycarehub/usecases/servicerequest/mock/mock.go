@@ -16,6 +16,14 @@ type ServiceRequestUseCaseMock struct {
 		clientID string,
 		requestType, request, cccNumber string,
 	) (bool, error)
+	MockApprovePinResetServiceRequestFn func(
+		ctx context.Context,
+		clientID string,
+		serviceRequestID string,
+		cccNumber string,
+		phoneNumber string,
+		physicalIdentityVerified bool,
+	) (bool, error)
 	MockGetPendingServiceRequestsCountFn    func(ctx context.Context, facilityID string) (*domain.ServiceRequestsCount, error)
 	MockGetServiceRequestsFn                func(ctx context.Context, requestType, requestStatus, facilityID *string) ([]*domain.ServiceRequest, error)
 	MockResolveServiceRequestFn             func(ctx context.Context, staffID *string, serviceRequestID *string) (bool, error)
@@ -78,6 +86,16 @@ func NewServiceRequestUseCaseMock() *ServiceRequestUseCaseMock {
 		MockCreatePinResetServiceRequestFn: func(ctx context.Context, phoneNumber string, cccNumber string) (bool, error) {
 			return true, nil
 		},
+		MockApprovePinResetServiceRequestFn: func(
+			ctx context.Context,
+			clientID string,
+			serviceRequestID string,
+			cccNumber string,
+			phoneNumber string,
+			physicalIdentityVerified bool,
+		) (bool, error) {
+			return true, nil
+		},
 	}
 }
 
@@ -123,4 +141,16 @@ func (s *ServiceRequestUseCaseMock) UpdateServiceRequestsFromKenyaEMR(ctx contex
 // CreatePinResetServiceRequest mocks the implementation of creating a pin reset service request
 func (s *ServiceRequestUseCaseMock) CreatePinResetServiceRequest(ctx context.Context, phoneNumber string, cccNumber string) (bool, error) {
 	return s.MockCreatePinResetServiceRequestFn(ctx, phoneNumber, cccNumber)
+}
+
+// ApprovePinResetServiceRequest mocks the implementation of approving a pin reset service request
+func (s *ServiceRequestUseCaseMock) ApprovePinResetServiceRequest(
+	ctx context.Context,
+	clientID string,
+	serviceRequestID string,
+	cccNumber string,
+	phoneNumber string,
+	physicalIdentityVerified bool,
+) (bool, error) {
+	return s.MockApprovePinResetServiceRequestFn(ctx, clientID, serviceRequestID, cccNumber, phoneNumber, physicalIdentityVerified)
 }

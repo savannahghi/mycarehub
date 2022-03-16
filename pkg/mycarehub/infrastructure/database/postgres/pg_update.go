@@ -80,13 +80,13 @@ func (d *MyCareHubDb) SetNickName(ctx context.Context, userID *string, nickname 
 	return d.update.SetNickName(ctx, userID, nickname)
 }
 
-// UpdateUserPinChangeRequiredStatus updates the user's pin change required from true to false. It'll be used to
+// CompleteOnboardingTour updates the user's pin change required from true to false. It'll be used to
 // determine the onboarding journey for a user.
-func (d *MyCareHubDb) UpdateUserPinChangeRequiredStatus(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
+func (d *MyCareHubDb) CompleteOnboardingTour(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
 	if userID == "" {
 		return false, fmt.Errorf("userID must be defined")
 	}
-	return d.update.UpdateUserPinChangeRequiredStatus(ctx, userID, flavour)
+	return d.update.CompleteOnboardingTour(ctx, userID, flavour)
 }
 
 // InvalidatePIN invalidates a pin that is linked to the user profile.
@@ -222,4 +222,10 @@ func (d *MyCareHubDb) UpdateServiceRequests(ctx context.Context, payload *domain
 	}
 
 	return d.update.UpdateServiceRequests(ctx, serviceRequests)
+}
+
+// UpdateUserPinChangeRequiredStatus updates a users pin_change_required status. This will
+// be used to redirect a user to the change pin page on the app
+func (d *MyCareHubDb) UpdateUserPinChangeRequiredStatus(ctx context.Context, userID string, flavour feedlib.Flavour, status bool) error {
+	return d.update.UpdateUserPinChangeRequiredStatus(ctx, userID, flavour, status)
 }

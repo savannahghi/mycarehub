@@ -6,13 +6,22 @@ extend type Mutation {
     request: String
   ): Boolean!
 
-  resolveServiceRequest(
-    staffID: String!
-    requestID: String!
+  resolveServiceRequest(staffID: String!, requestID: String!): Boolean!
+
+  approvePinResetServiceRequest(
+    clientID: String!
+    serviceRequestID: String!
+    cccNumber: String!
+    phoneNumber: String!
+    physicalIdentityVerified: Boolean!
   ): Boolean!
 }
 
 extend type Query {
-  getServiceRequests(requestType: String, requestStatus: String, facilityID: String!): [ServiceRequest]
+  getServiceRequests(
+    requestType: String
+    requestStatus: String
+    facilityID: String!
+  ): [ServiceRequest]
   getPendingServiceRequestsCount(facilityID: String!): ServiceRequestsCount!
 }

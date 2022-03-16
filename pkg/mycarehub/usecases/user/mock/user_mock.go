@@ -17,18 +17,22 @@ type UserUseCaseMock struct {
 	MockLoginFn                         func(ctx context.Context, phoneNumber string, pin string, flavour feedlib.Flavour) (*domain.LoginResponse, error)
 	MockInviteUserFn                    func(ctx context.Context, userID string, phoneNumber string, flavour feedlib.Flavour) (bool, error)
 	MockSavePinFn                       func(ctx context.Context, input dto.PINInput) (bool, error)
-	MockVerifyLoginPINFn                func(ctx context.Context, userID string, pin string, flavour feedlib.Flavour) (bool, *int, int, error)
+	MockVerifyLoginPINFn                func(ctx context.Context, userProfile *domain.User, pin string, flavour feedlib.Flavour) (bool, error)
 	MockSetNickNameFn                   func(ctx context.Context, userID string, nickname string) (bool, error)
 	MockRequestPINResetFn               func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (string, error)
-	MockResetPINFn                      func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
+	MockResetPINFn                      func(ctx context.Context, input dto.UserResetPinInput) (bool, error)
 	MockRefreshTokenFn                  func(ctx context.Context, userID string) (*domain.AuthCredentials, error)
 	MockVerifyPINFn                     func(ctx context.Context, userID string, flavour feedlib.Flavour, pin string) (bool, error)
 	MockGetClientCaregiverFn            func(ctx context.Context, clientID string) (*domain.Caregiver, error)
 	MockCreateOrUpdateClientCaregiverFn func(ctx context.Context, caregiverInput *dto.CaregiverInput) (bool, error)
 	MockRegisterClientFn                func(ctx context.Context, input *dto.ClientRegistrationInput) (*dto.ClientRegistrationOutput, error)
-	MockRefreshGetStreamTokenFn         func(ctx context.Context, userID string) (string, error)
+	MockRefreshGetStreamTokenFn         func(ctx context.Context, userID string) (*domain.GetStreamToken, error)
 	MockRegisterStaffFn                 func(ctx context.Context, input dto.StaffRegistrationInput) (*dto.StaffRegistrationOutput, error)
 	MockGetClientByCCCNumberFn          func(ctx context.Context, CCCNumber string) (*domain.ClientProfile, error)
+	MockCompleteOnboardingTourFn        func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
+	MockRegisterKenyaEMRPatientsFn      func(ctx context.Context, input []*dto.PatientRegistrationPayload) ([]*dto.ClientRegistrationOutput, error)
+	MockRegisteredFacilityPatientsFn    func(ctx context.Context, input dto.PatientSyncPayload) (*dto.PatientSyncResponse, error)
+	MockSetUserPINFn                    func(ctx context.Context, input dto.PINInput) (bool, error)
 }
 
 // NewUserUseCaseMock creates in itializes create type mocks
@@ -66,9 +70,8 @@ func NewUserUseCaseMock() *UserUseCaseMock {
 		MockSavePinFn: func(ctx context.Context, input dto.PINInput) (bool, error) {
 			return true, nil
 		},
-		MockVerifyLoginPINFn: func(ctx context.Context, userID string, pin string, flavour feedlib.Flavour) (bool, *int, int, error) {
-			attempts := 0
-			return true, &attempts, 0, nil
+		MockVerifyLoginPINFn: func(ctx context.Context, userProfile *domain.User, pin string, flavour feedlib.Flavour) (bool, error) {
+			return true, nil
 		},
 		MockSetNickNameFn: func(ctx context.Context, userID, nickname string) (bool, error) {
 			return true, nil
@@ -76,7 +79,7 @@ func NewUserUseCaseMock() *UserUseCaseMock {
 		MockRequestPINResetFn: func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (string, error) {
 			return "111222", nil
 		},
-		MockResetPINFn: func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
+		MockResetPINFn: func(ctx context.Context, input dto.UserResetPinInput) (bool, error) {
 			return true, nil
 		},
 		MockRefreshTokenFn: func(ctx context.Context, userID string) (*domain.AuthCredentials, error) {
@@ -100,8 +103,10 @@ func NewUserUseCaseMock() *UserUseCaseMock {
 				ID: uuid.New().String(),
 			}, nil
 		},
-		MockRefreshGetStreamTokenFn: func(ctx context.Context, userID string) (string, error) {
-			return uuid.New().String(), nil
+		MockRefreshGetStreamTokenFn: func(ctx context.Context, userID string) (*domain.GetStreamToken, error) {
+			return &domain.GetStreamToken{
+				Token: uuid.New().String(),
+			}, nil
 		},
 		MockRegisterStaffFn: func(ctx context.Context, input dto.StaffRegistrationInput) (*dto.StaffRegistrationOutput, error) {
 			return &dto.StaffRegistrationOutput{
@@ -122,6 +127,25 @@ func NewUserUseCaseMock() *UserUseCaseMock {
 				CaregiverID:             &clientID,
 			}, nil
 		},
+		MockCompleteOnboardingTourFn: func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
+			return true, nil
+		},
+		MockRegisterKenyaEMRPatientsFn: func(ctx context.Context, input []*dto.PatientRegistrationPayload) ([]*dto.ClientRegistrationOutput, error) {
+			return []*dto.ClientRegistrationOutput{
+				{
+					ID: uuid.New().String(),
+				},
+			}, nil
+		},
+		MockRegisteredFacilityPatientsFn: func(ctx context.Context, input dto.PatientSyncPayload) (*dto.PatientSyncResponse, error) {
+			return &dto.PatientSyncResponse{
+				MFLCode:  1234,
+				Patients: []string{"12345"},
+			}, nil
+		},
+		MockSetUserPINFn: func(ctx context.Context, input dto.PINInput) (bool, error) {
+			return true, nil
+		},
 	}
 }
 
@@ -141,8 +165,8 @@ func (f *UserUseCaseMock) SavePin(ctx context.Context, input dto.PINInput) (bool
 }
 
 // VerifyLoginPIN mocks the verify pin functionality
-func (f *UserUseCaseMock) VerifyLoginPIN(ctx context.Context, userID string, pin string, flavour feedlib.Flavour) (bool, *int, int, error) {
-	return f.MockVerifyLoginPINFn(ctx, userID, pin, flavour)
+func (f *UserUseCaseMock) VerifyLoginPIN(ctx context.Context, userProfile *domain.User, pin string, flavour feedlib.Flavour) (bool, error) {
+	return f.MockVerifyLoginPINFn(ctx, userProfile, pin, flavour)
 }
 
 // SetNickName is used to mock the implementation ofsetting or changing the user's nickname
@@ -156,8 +180,8 @@ func (f *UserUseCaseMock) RequestPINReset(ctx context.Context, phoneNumber strin
 }
 
 // ResetPIN mocks the reset pin functionality
-func (f *UserUseCaseMock) ResetPIN(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
-	return f.MockResetPINFn(ctx, userID, flavour)
+func (f *UserUseCaseMock) ResetPIN(ctx context.Context, input dto.UserResetPinInput) (bool, error) {
+	return f.MockResetPINFn(ctx, input)
 }
 
 // RefreshToken mocks the implementation for refreshing a token
@@ -186,7 +210,7 @@ func (f *UserUseCaseMock) RegisterClient(ctx context.Context, input *dto.ClientR
 }
 
 // RefreshGetStreamToken mocks the implementation for generating a new getstream token
-func (f *UserUseCaseMock) RefreshGetStreamToken(ctx context.Context, userID string) (string, error) {
+func (f *UserUseCaseMock) RefreshGetStreamToken(ctx context.Context, userID string) (*domain.GetStreamToken, error) {
 	return f.MockRefreshGetStreamTokenFn(ctx, userID)
 }
 
@@ -198,4 +222,24 @@ func (f *UserUseCaseMock) RegisterStaff(ctx context.Context, input dto.StaffRegi
 // GetClientByCCCNumber mocks the implementation getting the client by CCC number
 func (f *UserUseCaseMock) GetClientByCCCNumber(ctx context.Context, CCCNumber string) (*domain.ClientProfile, error) {
 	return f.MockGetClientByCCCNumberFn(ctx, CCCNumber)
+}
+
+// CompleteOnboardingTour mocks the implementation of completing an onboarding tour
+func (f *UserUseCaseMock) CompleteOnboardingTour(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
+	return f.MockCompleteOnboardingTourFn(ctx, userID, flavour)
+}
+
+// RegisterKenyaEMRPatients mocks the implementation of registering kenyaEMR patients
+func (f *UserUseCaseMock) RegisterKenyaEMRPatients(ctx context.Context, input []*dto.PatientRegistrationPayload) ([]*dto.ClientRegistrationOutput, error) {
+	return f.MockRegisterKenyaEMRPatientsFn(ctx, input)
+}
+
+// RegisteredFacilityPatients mocks the implementation of syncing the registered patients
+func (f *UserUseCaseMock) RegisteredFacilityPatients(ctx context.Context, input dto.PatientSyncPayload) (*dto.PatientSyncResponse, error) {
+	return f.MockRegisteredFacilityPatientsFn(ctx, input)
+}
+
+// SetUserPIN mocks the implementation of setting a user pin
+func (f *UserUseCaseMock) SetUserPIN(ctx context.Context, input dto.PINInput) (bool, error) {
+	return f.MockSetUserPINFn(ctx, input)
 }
