@@ -6,7 +6,6 @@ import (
 
 	"github.com/brianvoe/gofakeit"
 	"github.com/google/uuid"
-	"github.com/lib/pq"
 	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
@@ -706,12 +705,12 @@ func NewGormMock() *GormMock {
 					AppointmentUUID: gofakeit.UUID(),
 					AppointmentType: "Dental",
 					Status:          enums.AppointmentStatusCompleted.String(),
-					// ClientID:        gofakeit.UUID(),
-					// StaffID:         gofakeit.UUID(),
-					Reason:    "Knocked up",
-					Date:      date,
-					StartTime: pq.NullTime{Time: time.Now(), Valid: true},
-					EndTime:   pq.NullTime{Time: time.Now().Add(30 * time.Minute), Valid: true},
+					ClientID:        gofakeit.UUID(),
+					FacilityID:      gofakeit.UUID(),
+					Reason:          "Knocked up",
+					Date:            date,
+					StartTime:       gorm.CustomTime{Time: time.Now()},
+					EndTime:         gorm.CustomTime{Time: time.Now().Add(30 * time.Minute)},
 				},
 			}, &domain.Pagination{Limit: 10, CurrentPage: 1}, nil
 		},

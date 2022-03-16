@@ -79,6 +79,30 @@ func TestUseCasesAppointmentsImpl_CreateKenyaEMRAppointments(t *testing.T) {
 			wantErr: true,
 		},
 		{
+			name: "sad case: error retrieving facility",
+			args: args{
+				ctx: context.Background(),
+				input: dto.FacilityAppointmentsPayload{
+					MFLCode: "1234",
+					Appointments: []dto.AppointmentPayload{
+						{
+							CCCNumber:       "1234",
+							AppointmentUUID: gofakeit.UUID(),
+							AppointmentType: "Dental",
+							Status:          enums.AppointmentStatusCompleted,
+							AppointmentDate: scalarutils.Date{
+								Year:  2020,
+								Month: 12,
+								Day:   12,
+							},
+							TimeSlot: "8:00 - 12:00",
+						},
+					},
+				},
+			},
+			wantErr: true,
+		},
+		{
 			name: "sad case: error creating appointment",
 			args: args{
 				ctx: context.Background(),
@@ -142,12 +166,26 @@ func TestUseCasesAppointmentsImpl_CreateKenyaEMRAppointments(t *testing.T) {
 				}
 			}
 
+			if tt.name == "sad case: error retrieving facility" {
+				fakeDB.MockCheckFacilityExistsByMFLCode = func(ctx context.Context, MFLCode int) (bool, error) {
+					return true, nil
+				}
+				fakeDB.MockRetrieveFacilityByMFLCodeFn = func(ctx context.Context, MFLCode int, isActive bool) (*domain.Facility, error) {
+					return nil, fmt.Errorf("cannot retrieve facility by mfl code")
+				}
+			}
+
 			if tt.name == "sad case: error creating appointment" {
 				fakeDB.MockCheckFacilityExistsByMFLCode = func(ctx context.Context, MFLCode int) (bool, error) {
 					return true, nil
 				}
 
-				fakeDB.MockCreateAppointment = func(ctx context.Context, appointment domain.Appointment, appointmentUUID, clientID, staffID string) error {
+				fakeDB.MockRetrieveFacilityByMFLCodeFn = func(ctx context.Context, MFLCode int, isActive bool) (*domain.Facility, error) {
+					id := gofakeit.UUID()
+					return &domain.Facility{ID: &id}, nil
+				}
+
+				fakeDB.MockCreateAppointment = func(ctx context.Context, appointment domain.Appointment, appointmentUUID, clientID string) error {
 					return fmt.Errorf("cannot create appointment")
 				}
 			}
@@ -157,7 +195,12 @@ func TestUseCasesAppointmentsImpl_CreateKenyaEMRAppointments(t *testing.T) {
 					return true, nil
 				}
 
-				fakeDB.MockCreateAppointment = func(ctx context.Context, appointment domain.Appointment, appointmentUUID, clientID, staffID string) error {
+				fakeDB.MockRetrieveFacilityByMFLCodeFn = func(ctx context.Context, MFLCode int, isActive bool) (*domain.Facility, error) {
+					id := gofakeit.UUID()
+					return &domain.Facility{ID: &id}, nil
+				}
+
+				fakeDB.MockCreateAppointment = func(ctx context.Context, appointment domain.Appointment, appointmentUUID, clientID string) error {
 					return nil
 				}
 			}
@@ -244,6 +287,30 @@ func TestUseCasesAppointmentsImpl_UpdateKenyaEMRAppointments(t *testing.T) {
 			wantErr: true,
 		},
 		{
+			name: "sad case: error retrieving facility",
+			args: args{
+				ctx: context.Background(),
+				input: dto.FacilityAppointmentsPayload{
+					MFLCode: "1234",
+					Appointments: []dto.AppointmentPayload{
+						{
+							CCCNumber:       "1234",
+							AppointmentUUID: gofakeit.UUID(),
+							AppointmentType: "Dental",
+							Status:          enums.AppointmentStatusCompleted,
+							AppointmentDate: scalarutils.Date{
+								Year:  2020,
+								Month: 12,
+								Day:   12,
+							},
+							TimeSlot: "8:00 - 12:00",
+						},
+					},
+				},
+			},
+			wantErr: true,
+		},
+		{
 			name: "sad case: error updating appointment",
 			args: args{
 				ctx: context.Background(),
@@ -307,12 +374,26 @@ func TestUseCasesAppointmentsImpl_UpdateKenyaEMRAppointments(t *testing.T) {
 				}
 			}
 
+			if tt.name == "sad case: error retrieving facility" {
+				fakeDB.MockCheckFacilityExistsByMFLCode = func(ctx context.Context, MFLCode int) (bool, error) {
+					return true, nil
+				}
+				fakeDB.MockRetrieveFacilityByMFLCodeFn = func(ctx context.Context, MFLCode int, isActive bool) (*domain.Facility, error) {
+					return nil, fmt.Errorf("cannot retrieve facility by mfl code")
+				}
+			}
+
 			if tt.name == "sad case: error updating appointment" {
 				fakeDB.MockCheckFacilityExistsByMFLCode = func(ctx context.Context, MFLCode int) (bool, error) {
 					return true, nil
 				}
 
-				fakeDB.MockUpdateAppointment = func(ctx context.Context, appointment domain.Appointment, appointmentUUID, clientID, staffID string) error {
+				fakeDB.MockRetrieveFacilityByMFLCodeFn = func(ctx context.Context, MFLCode int, isActive bool) (*domain.Facility, error) {
+					id := gofakeit.UUID()
+					return &domain.Facility{ID: &id}, nil
+				}
+
+				fakeDB.MockUpdateAppointment = func(ctx context.Context, appointment domain.Appointment, appointmentUUID, clientID string) error {
 					return fmt.Errorf("error updating appointment")
 				}
 			}
@@ -322,7 +403,12 @@ func TestUseCasesAppointmentsImpl_UpdateKenyaEMRAppointments(t *testing.T) {
 					return true, nil
 				}
 
-				fakeDB.MockUpdateAppointment = func(ctx context.Context, appointment domain.Appointment, appointmentUUID, clientID, staffID string) error {
+				fakeDB.MockRetrieveFacilityByMFLCodeFn = func(ctx context.Context, MFLCode int, isActive bool) (*domain.Facility, error) {
+					id := gofakeit.UUID()
+					return &domain.Facility{ID: &id}, nil
+				}
+
+				fakeDB.MockUpdateAppointment = func(ctx context.Context, appointment domain.Appointment, appointmentUUID, clientID string) error {
 					return nil
 				}
 			}

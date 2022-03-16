@@ -73,6 +73,11 @@ func (a *UseCasesAppointmentsImpl) CreateKenyaEMRAppointments(ctx context.Contex
 		return nil, fmt.Errorf("facility with provided MFL code doesn't exist, code: %v", MFLCode)
 	}
 
+	facility, err := a.Query.RetrieveFacilityByMFLCode(ctx, MFLCode, true)
+	if err != nil {
+		return nil, fmt.Errorf("error retrieving facility: %v", err)
+	}
+
 	response := dto.FacilityAppointmentsResponse{MFLCode: input.MFLCode}
 
 	for _, ap := range input.Appointments {
@@ -82,6 +87,8 @@ func (a *UseCasesAppointmentsImpl) CreateKenyaEMRAppointments(ctx context.Contex
 			Date:   ap.AppointmentDate,
 			Start:  *ap.StartTime(),
 			End:    *ap.EndTime(),
+
+			FacilityID: *facility.ID,
 		}
 
 		// get client profile using the ccc number
@@ -92,7 +99,7 @@ func (a *UseCasesAppointmentsImpl) CreateKenyaEMRAppointments(ctx context.Contex
 
 		clientID := clientProfile.ID
 
-		err = a.Create.CreateAppointment(ctx, appointment, ap.AppointmentUUID, *clientID, "")
+		err = a.Create.CreateAppointment(ctx, appointment, ap.AppointmentUUID, *clientID)
 		if err != nil {
 			return nil, err
 		}
@@ -120,21 +127,32 @@ func (a *UseCasesAppointmentsImpl) UpdateKenyaEMRAppointments(ctx context.Contex
 		return nil, fmt.Errorf("facility with provided MFL code doesn't exist, code: %v", MFLCode)
 	}
 
+	facility, err := a.Query.RetrieveFacilityByMFLCode(ctx, MFLCode, true)
+	if err != nil {
+		return nil, fmt.Errorf("error retrieving facility: %v", err)
+	}
+
 	response := dto.FacilityAppointmentsResponse{MFLCode: input.MFLCode}
 
 	for _, ap := range input.Appointments {
 		appointment := domain.Appointment{
-			Type:   ap.AppointmentType,
-			Status: ap.Status.String(),
-			Date:   ap.AppointmentDate,
-			Start:  *ap.StartTime(),
-			End:    *ap.EndTime(),
+			Type:       ap.AppointmentType,
+			Status:     ap.Status.String(),
+			Date:       ap.AppointmentDate,
+			Start:      *ap.StartTime(),
+			End:        *ap.EndTime(),
+			FacilityID: *facility.ID,
 		}
 
-		clientID := "" // TODO: use ccc number to retrieve
-		staffID := ""  // TODO: replace with facility id
+		// get client profile using the ccc number
+		clientProfile, err := a.Query.GetClientProfileByCCCNumber(ctx, ap.CCCNumber)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get client profile by CCC number")
+		}
 
-		err = a.Update.UpdateAppointment(ctx, appointment, ap.AppointmentUUID, clientID, staffID)
+		clientID := clientProfile.ID
+
+		err = a.Update.UpdateAppointment(ctx, appointment, ap.AppointmentUUID, *clientID)
 		if err != nil {
 			return nil, err
 		}

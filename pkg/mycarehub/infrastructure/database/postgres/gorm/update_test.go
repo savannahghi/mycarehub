@@ -1402,7 +1402,7 @@ func TestPGInstance_UpdateAppointment(t *testing.T) {
 					ClientID:        clientID,
 
 					Reason: "Knocked up",
-					// Date:            time.Now().Add(time.Duration(100)),
+					Date:   time.Now().Add(time.Duration(100)),
 				},
 			},
 			wantErr: false,
@@ -1417,9 +1417,8 @@ func TestPGInstance_UpdateAppointment(t *testing.T) {
 					AppointmentType: "Dental",
 					Status:          enums.AppointmentStatusCompleted.String(),
 					ClientID:        clientID,
-
-					Reason: "Knocked up",
-					// Date:            time.Now().Add(time.Duration(100)),
+					Reason:          "Knocked up",
+					Date:            time.Now().Add(time.Duration(100)),
 				},
 			},
 			wantErr: false,
@@ -1436,7 +1435,7 @@ func TestPGInstance_UpdateAppointment(t *testing.T) {
 					ClientID:        clientID,
 
 					Reason: "Knocked up",
-					// Date:            time.Now().Add(time.Duration(100)),
+					Date:   time.Now().Add(time.Duration(100)),
 				},
 			},
 			wantErr: true,
@@ -1453,7 +1452,7 @@ func TestPGInstance_UpdateAppointment(t *testing.T) {
 					ClientID:        clientID,
 
 					Reason: "Knocked up",
-					// Date:            time.Now().Add(time.Duration(100)),
+					Date:   time.Now().Add(time.Duration(100)),
 				},
 			},
 			wantErr: true,
