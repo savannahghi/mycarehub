@@ -165,6 +165,7 @@ func (d *MyCareHubDb) CreateServiceRequest(
 		Status:      serviceRequestInput.Status,
 		ClientID:    serviceRequestInput.ClientID,
 		FacilityID:  serviceRequestInput.FacilityID,
+		CCCNumber:   serviceRequestInput.CCCNumber,
 	}
 
 	err := d.create.CreateServiceRequest(ctx, serviceRequest)

@@ -117,7 +117,7 @@ func TestUseCasesHealthDiaryImpl_CreateHealthDiaryEntry(t *testing.T) {
 				fakeServiceRequest.MockCreateServiceRequestFn = func(
 					ctx context.Context,
 					clientID string,
-					requestType, request string,
+					requestType, request, cccNumber string,
 				) (bool, error) {
 					return false, fmt.Errorf("failed to create service request")
 				}

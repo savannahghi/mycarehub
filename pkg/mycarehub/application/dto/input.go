@@ -424,3 +424,10 @@ type StaffRegistrationInput struct {
 	StaffRoles  string           `json:"staff_roles"`
 	InviteStaff bool             `json:"invite_staff"`
 }
+
+// PinResetServiceRequestPayload models the details passed to an API when a pin reset service request
+// is being created
+type PinResetServiceRequestPayload struct {
+	CCCNumber   string `json:"cccNumber"`
+	PhoneNumber string `json:"phoneNumber"`
+}

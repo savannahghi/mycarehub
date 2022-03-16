@@ -33,6 +33,11 @@ type MyCareHubHandlersInterfaces interface {
 	RegisteredFacilityPatients() http.HandlerFunc
 	ServiceRequests() http.HandlerFunc
 	CreateOrUpdateKenyaEMRAppointments() http.HandlerFunc
+	CreatePinResetServiceRequest() http.HandlerFunc
+}
+
+type okResp struct {
+	Status bool `json:"status"`
 }
 
 // MyCareHubHandlersInterfacesImpl represents the usecase implementation object
@@ -723,5 +728,39 @@ func (h *MyCareHubHandlersInterfacesImpl) CreateOrUpdateKenyaEMRAppointments() h
 			serverutils.WriteJSONResponse(w, response, http.StatusOK)
 			return
 		}
+	}
+}
+
+// CreatePinResetServiceRequest is used to create a "PIN_RESET" service request. This is trigerred
+// when a user has failed loggin in to the app and requests for help. The service request will be viewed
+// by the healthcare worker and either approved/rejected
+func (h *MyCareHubHandlersInterfacesImpl) CreatePinResetServiceRequest() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+
+		payload := &dto.PinResetServiceRequestPayload{}
+		serverutils.DecodeJSONToTargetStruct(w, r, payload)
+
+		if payload.CCCNumber == "" || payload.PhoneNumber == "" {
+			err := fmt.Errorf("expected both `cccNumber` and `phoneNumber` to be defined")
+			helpers.ReportErrorToSentry(err)
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusBadRequest)
+			return
+		}
+
+		response, err := h.usecase.ServiceRequest.CreatePinResetServiceRequest(ctx, payload.PhoneNumber, payload.CCCNumber)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusBadRequest)
+			return
+		}
+
+		serverutils.WriteJSONResponse(w, okResp{Status: response}, http.StatusOK)
 	}
 }

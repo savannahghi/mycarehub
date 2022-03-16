@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
@@ -25,7 +26,13 @@ type ICreateServiceRequest interface {
 	CreateServiceRequest(
 		ctx context.Context,
 		clientID string,
-		requestType, request string,
+		requestType, request, cccNumber string,
+	) (bool, error)
+
+	CreatePinResetServiceRequest(
+		ctx context.Context,
+		phoneNumber string,
+		cccNumber string,
 	) (bool, error)
 }
 
@@ -84,7 +91,7 @@ func NewUseCaseServiceRequestImpl(
 func (u *UseCasesServiceRequestImpl) CreateServiceRequest(
 	ctx context.Context,
 	clientID string,
-	requestType, request string,
+	requestType, request, cccNumber string,
 ) (bool, error) {
 	clientProfile, err := u.Query.GetClientProfileByClientID(ctx, clientID)
 	if err != nil {
@@ -98,6 +105,7 @@ func (u *UseCasesServiceRequestImpl) CreateServiceRequest(
 		Status:      "PENDING",
 		ClientID:    clientID,
 		FacilityID:  clientProfile.FacilityID,
+		CCCNumber:   cccNumber,
 	}
 	err = u.Create.CreateServiceRequest(ctx, serviceRequest)
 	if err != nil {
@@ -194,4 +202,36 @@ func (u *UseCasesServiceRequestImpl) UpdateServiceRequestsFromKenyaEMR(ctx conte
 		ServiceRequests: serviceRequests,
 	}
 	return u.Update.UpdateServiceRequests(ctx, serviceReq)
+}
+
+// CreatePinResetServiceRequest creates a PIN_RESET service request. This occurs when a user attempts to change
+// their pin but they don't succeed.
+func (u *UseCasesServiceRequestImpl) CreatePinResetServiceRequest(ctx context.Context, phoneNumber string, cccNumber string) (bool, error) {
+	// TODO: Check if the service request exists before creating a new one
+	userProfile, err := u.Query.GetUserProfileByPhoneNumber(ctx, phoneNumber, feedlib.FlavourConsumer)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, exceptions.ProfileNotFoundErr(err)
+	}
+
+	clientProfile, err := u.Query.GetClientProfileByUserID(ctx, *userProfile.ID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, exceptions.ClientProfileNotFoundErr(err)
+	}
+
+	request := "Request to change pin"
+	_, err = u.CreateServiceRequest(
+		ctx,
+		*clientProfile.ID,
+		string(enums.ServiceRequestTypePinReset),
+		request,
+		cccNumber,
+	)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, err
+	}
+
+	return true, nil
 }
