@@ -26,10 +26,10 @@ var (
 	userToBanID                  = "19d7d30d-6cc2-483c-98cb-c261fb2cae54"
 	userToUnbanID                = "114b857c-4365-4a68-9299-ed33975d9ddc"
 	userRemoveFromCommunityID    = "71c90bc3-bb6d-4a6e-b9e1-a8dee8059431"
-	userToDelete                 = "71c90bc3-bb6d-4a6e-b9e1-a8dee8059432"
 	moderatorToDemoteID          = "627f9740-41cb-409d-8f1a-fa9b05733609"
 	userToRevokeGetstreamTokenID = "e75f3cc5-d085-4df4-b870-1d3aa3430d82"
 	userToUpsertID               = "e3620079-1e98-4d48-8d89-530ad5c1978a"
+	userToDeleteID               = "71c90bc3-bb6d-4a6e-b9e1-a8dee8059432"
 
 	c   getstream.ServiceGetStream
 	ch  *stream.CreateChannelResponse
@@ -184,12 +184,12 @@ func createTestUsers() {
 		return
 	}
 
-	userToDeleteFromStream := stream.User{
-		ID:        userToDelete,
-		Name:      "userToUpsert",
+	userToDelete := stream.User{
+		ID:        userToDeleteID,
+		Name:      "userToDelete",
 		Invisible: false,
 	}
-	_, err = c.CreateGetStreamUser(ctx, &userToDeleteFromStream)
+	_, err = c.CreateGetStreamUser(ctx, &userToDelete)
 	if err != nil {
 		fmt.Printf("ChatClient.CreateGetStreamUser() error = %v", err)
 		return
@@ -205,6 +205,7 @@ func createTestUsers() {
 		moderatorToDemoteID,
 		userToRevokeGetstreamTokenID,
 		userToUpsertID,
+		userToDeleteID,
 	}, channelID)
 	if err != nil {
 		fmt.Printf("ChatClient.AddMembersToCommunity() error = %v", err)

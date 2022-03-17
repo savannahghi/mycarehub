@@ -83,3 +83,117 @@ type MemberMetadata struct {
 	UserType string `json:"userType"`
 	NickName string `json:"nickName"`
 }
+
+// AIModerationResponse is the response from the AIModeration service
+type AIModerationResponse struct {
+	Toxic    *float64 `json:"toxic"`
+	Explicit *float64 `json:"explicit"`
+	Spam     *float64 `json:"spam"`
+}
+
+// Explicit gets the explicit response from the AIModeration service
+type Explicit struct {
+	Flag  *float64 `json:"flag"`
+	Block *float64 `json:"block"`
+}
+
+// ModerationResult is the response from the AIModeration service or the moderation by the user
+type ModerationResult struct {
+	MessageID            *string               `json:"messageID"`
+	Action               *string               `json:"action"`
+	ModeratedBy          *string               `json:"moderatedBy"`
+	BlockedWord          *string               `json:"blockedWord"`
+	BlocklistName        *string               `json:"blocklistName"`
+	ModerationThresholds *ModerationThresholds `json:"moderationThresholds"`
+	AiModerationResponse *AIModerationResponse `json:"AIModerationResponse"`
+	UserKarma            *float64              `json:"userKarma"`
+	UserBadKarma         *bool                 `json:"userBadKarma"`
+	CreatedAt            *time.Time            `json:"createdAt"`
+	UpdatedAt            *time.Time            `json:"updatedAt"`
+}
+
+// ModerationThresholds gets the moderation thresholds from the moderation result
+type ModerationThresholds struct {
+	Explicit *Explicit `json:"explicit"`
+	Spam     *Spam     `json:"spam"`
+	Toxic    *Toxic    `json:"toxic"`
+}
+
+// Spam gets the spam response from the AIModeration service or the moderation by the user
+type Spam struct {
+	Flag  *float64 `json:"flag"`
+	Block *float64 `json:"block"`
+}
+
+// Toxic gets the toxic response from the AIModeration service or the moderation by the user
+type Toxic struct {
+	Flag  *float64 `json:"flag"`
+	Block *float64 `json:"block"`
+}
+
+// Attachment is the attachment payload for a message
+type Attachment struct {
+	Type        *string `json:"type"`
+	AuthorName  *string `json:"authorName"`
+	Title       *string `json:"title"`
+	TitleLink   *string `json:"titleLink"`
+	Text        *string `json:"text"`
+	ImageURL    *string `json:"imageUrl"`
+	ThumbURL    *string `json:"thumbUrl"`
+	AssetURL    *string `json:"assetUrl"`
+	OgScrapeURL *string `json:"ogScrapeUrl"`
+}
+
+// MessageFlag is the payload for a message flag
+type MessageFlag struct {
+	CreatedByAutomod *bool             `json:"createdByAutomod"`
+	ModerationResult *ModerationResult `json:"moderationResult"`
+	Message          *GetstreamMessage `json:"message"`
+	User             *Member           `json:"user"`
+	CreatedAt        *time.Time        `json:"createdAt"`
+	UpdatedAt        *time.Time        `json:"updatedAt"`
+	ReviewedAt       *time.Time        `json:"reviewedAt"`
+	ReviewedBy       Member            `json:"reviewedBy"`
+	ApprovedAt       *time.Time        `json:"approvedAt"`
+	RejectedAt       *time.Time        `json:"rejectedAt"`
+}
+
+// Reaction is the payload for a message reaction
+type Reaction struct {
+	MessageID *string `json:"messageID"`
+	UserID    *string `json:"userID"`
+	Type      *string `json:"type"`
+}
+
+// GetstreamMessage is the payload for a message
+type GetstreamMessage struct {
+	ID string `json:"id"`
+
+	Text string `json:"text"`
+	HTML string `json:"html"`
+
+	Type            enums.MessageType `json:"type,omitempty"` // one of MessageType* constants
+	Silent          bool              `json:"silent,omitempty"`
+	User            *Member           `json:"user"`
+	Attachments     []*Attachment     `json:"attachments"`
+	LatestReactions []*Reaction       `json:"latestReactions"` // last reactions
+	OwnReactions    []*Reaction       `json:"ownReactions"`
+	ReactionCounts  map[string]int    `json:"reactionCounts"`
+
+	ParentID      string `json:"parentID"`      // id of parent message if it's reply
+	ShowInChannel bool   `json:"showInChannel"` // show reply message also in channel
+
+	ReplyCount int `json:"replyCount,omitempty"`
+
+	MentionedUsers []*Member `json:"mentionedUsers"`
+
+	Shadowed bool       `json:"shadowed,omitempty"`
+	PinnedAt *time.Time `json:"pinnedAt,omitempty"`
+	PinnedBy *Member    `json:"pinnedBy,omitempty"`
+
+	CreatedAt *time.Time `json:"createdAt,omitempty"`
+	UpdatedAt *time.Time `json:"updatedAt,omitempty"`
+	DeletedAt *time.Time `json:"deletedAt,omitempty"`
+
+	ExtraData map[string]interface{} `json:"-"`
+}

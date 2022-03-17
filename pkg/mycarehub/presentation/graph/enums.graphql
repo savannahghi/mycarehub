@@ -151,3 +151,11 @@ enum AppointmentStatus {
   CANCELLED
   NEEDS_RESCHEDULE
 }
+
+enum MessageType {
+  regular
+  error
+  reply
+  system
+  ephemeral
+}

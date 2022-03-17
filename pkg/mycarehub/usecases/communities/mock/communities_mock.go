@@ -13,12 +13,13 @@ import (
 
 // CommunityUsecaseMock contains the community usecase mock methods
 type CommunityUsecaseMock struct {
-	MockListMembersFn           func(ctx context.Context, input *stream.QueryOption) ([]*domain.Member, error)
-	MockCreateCommunityFn       func(ctx context.Context, input dto.CommunityInput) (*domain.Community, error)
-	MockListCommunityMembers    func(ctx context.Context, communityID string) ([]*domain.CommunityMember, error)
-	MockRejectInviteFn          func(ctx context.Context, userID string, channelID string) (bool, error)
-	MockAddMembersToCommunityFn func(ctx context.Context, memberIDs []string, communityID string) (*stream.Response, error)
-	MockBanUserFn               func(ctx context.Context, targetMemberID string, bannedBy string, communityID string) (bool, error)
+	MockListMembersFn            func(ctx context.Context, input *stream.QueryOption) ([]*domain.Member, error)
+	MockCreateCommunityFn        func(ctx context.Context, input dto.CommunityInput) (*domain.Community, error)
+	MockListCommunityMembers     func(ctx context.Context, communityID string) ([]*domain.CommunityMember, error)
+	MockRejectInviteFn           func(ctx context.Context, userID string, channelID string) (bool, error)
+	MockAddMembersToCommunityFn  func(ctx context.Context, memberIDs []string, communityID string) (*stream.Response, error)
+	MockBanUserFn                func(ctx context.Context, targetMemberID string, bannedBy string, communityID string) (bool, error)
+	MockDeleteCommunityMessageFn func(ctx context.Context, messageID string) (bool, error)
 }
 
 // NewCommunityUsecaseMock initializes a new instance of the Community usecase happy cases
@@ -72,6 +73,9 @@ func NewCommunityUsecaseMock() *CommunityUsecaseMock {
 		MockBanUserFn: func(ctx context.Context, targetMemberID, bannedBy, communityID string) (bool, error) {
 			return true, nil
 		},
+		MockDeleteCommunityMessageFn: func(ctx context.Context, messageID string) (bool, error) {
+			return true, nil
+		},
 	}
 }
 
@@ -103,4 +107,9 @@ func (c CommunityUsecaseMock) AddMembersToCommunity(ctx context.Context, memberI
 // BanUser mocks the implementation banning a user from a specified channel
 func (c CommunityUsecaseMock) BanUser(ctx context.Context, targetMemberID string, bannedBy string, communityID string) (bool, error) {
 	return c.MockBanUserFn(ctx, targetMemberID, bannedBy, communityID)
+}
+
+// DeleteCommunityMessage mocks the implementation of deleting messages
+func (c CommunityUsecaseMock) DeleteCommunityMessage(ctx context.Context, messageID string) (bool, error) {
+	return c.MockDeleteCommunityMessageFn(ctx, messageID)
 }

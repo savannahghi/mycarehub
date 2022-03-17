@@ -41,6 +41,8 @@ type ServiceGetStream interface {
 	UnBanUser(ctx context.Context, targetID string, communityID string) (bool, error)
 	ListCommunityBannedMembers(ctx context.Context, communityID string) (*stream.QueryBannedUsersResponse, error)
 	UpsertUser(ctx context.Context, user *stream.User) (*stream.UpsertUserResponse, error)
+	ListFlaggedMessages(ctx context.Context, input *stream.QueryOption) (*stream.QueryMessageFlagsResponse, error)
+	DeleteMessage(ctx context.Context, messageID string) (*stream.Response, error)
 }
 
 // ChatClient is the service's struct implementation
@@ -238,4 +240,14 @@ func (c *ChatClient) UnBanUser(ctx context.Context, targetID string, communityID
 // UpsertUser updates a user's details
 func (c *ChatClient) UpsertUser(ctx context.Context, user *stream.User) (*stream.UpsertUserResponse, error) {
 	return c.client.UpsertUser(ctx, user)
+}
+
+// ListFlaggedMessages returns a list of message flags for the given user and channel.
+func (c *ChatClient) ListFlaggedMessages(ctx context.Context, input *stream.QueryOption) (*stream.QueryMessageFlagsResponse, error) {
+	return c.client.QueryMessageFlags(ctx, input)
+}
+
+// DeleteMessage deletes messages from the platform with the specified options.
+func (c *ChatClient) DeleteMessage(ctx context.Context, messageID string) (*stream.Response, error) {
+	return c.client.DeleteMessage(ctx, messageID)
 }

@@ -747,7 +747,7 @@ func TestChatClient_DeleteUsers(t *testing.T) {
 			name: "Happy case",
 			args: args{
 				ctx:     ctx,
-				userIDs: []string{userToDelete},
+				userIDs: []string{userToDeleteID},
 				options: stream.DeleteUserOptions{
 					User:     stream.HardDelete,
 					Messages: stream.HardDelete,

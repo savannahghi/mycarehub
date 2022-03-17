@@ -31,6 +31,8 @@ type GetStreamServiceMock struct {
 	MockUnBanUserFn                  func(ctx context.Context, targetID string, communityID string) (bool, error)
 	MockListCommunityBannedMembersFn func(ctx context.Context, communityID string) (*stream.QueryBannedUsersResponse, error)
 	MockUpsertUserFn                 func(ctx context.Context, user *stream.User) (*stream.UpsertUserResponse, error)
+	MockListFlaggedMessagesFn        func(ctx context.Context, input *stream.QueryOption) (*stream.QueryMessageFlagsResponse, error)
+	MockDeleteMessageFn              func(ctx context.Context, messageID string) (*stream.Response, error)
 }
 
 // NewGetStreamServiceMock initializes the mock service
@@ -259,6 +261,26 @@ func NewGetStreamServiceMock() *GetStreamServiceMock {
 				},
 			}, nil
 		},
+		MockListFlaggedMessagesFn: func(ctx context.Context, input *stream.QueryOption) (*stream.QueryMessageFlagsResponse, error) {
+			return &stream.QueryMessageFlagsResponse{
+				Response: stream.Response{
+					RateLimitInfo: &stream.RateLimitInfo{
+						Limit:     0,
+						Remaining: 0,
+						Reset:     0,
+					},
+				},
+			}, nil
+		},
+		MockDeleteMessageFn: func(ctx context.Context, messageID string) (*stream.Response, error) {
+			return &stream.Response{
+				RateLimitInfo: &stream.RateLimitInfo{
+					Limit:     0,
+					Remaining: 0,
+					Reset:     0,
+				},
+			}, nil
+		},
 	}
 }
 
@@ -360,4 +382,14 @@ func (g GetStreamServiceMock) ListCommunityBannedMembers(ctx context.Context, co
 // UpsertUser mocks the implementation of upserting a user
 func (g GetStreamServiceMock) UpsertUser(ctx context.Context, user *stream.User) (*stream.UpsertUserResponse, error) {
 	return g.MockUpsertUserFn(ctx, user)
+}
+
+// ListFlaggedMessages mocks the implementation for querying message flags
+func (g GetStreamServiceMock) ListFlaggedMessages(ctx context.Context, input *stream.QueryOption) (*stream.QueryMessageFlagsResponse, error) {
+	return g.MockListFlaggedMessagesFn(ctx, input)
+}
+
+// DeleteMessage mocks the implementation for deleting messages
+func (g GetStreamServiceMock) DeleteMessage(ctx context.Context, messageID string) (*stream.Response, error) {
+	return g.MockDeleteMessageFn(ctx, messageID)
 }
