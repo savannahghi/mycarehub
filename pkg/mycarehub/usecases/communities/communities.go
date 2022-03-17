@@ -69,6 +69,7 @@ type IModeration interface {
 	DemoteModerators(ctx context.Context, communityID string, memberIDs []string) (bool, error)
 	BanUser(ctx context.Context, targetMemberID string, bannedBy string, communityID string) (bool, error)
 	UnBanUser(ctx context.Context, targetID string, communityID string) (bool, error)
+	ListCommunityBannedMembers(ctx context.Context, communityID string) ([]*domain.Member, error)
 }
 
 // IRecommendations interface contains all the recommendation functions
@@ -647,6 +648,39 @@ func (us *UseCasesCommunitiesImpl) RecommendedCommunities(ctx context.Context, c
 	}
 
 	return communities, nil
+}
+
+// ListCommunityBannedMembers is used to list members banned from a channel.
+func (us *UseCasesCommunitiesImpl) ListCommunityBannedMembers(ctx context.Context, communityID string) ([]*domain.Member, error) {
+	if communityID == "" {
+		return nil, fmt.Errorf("communityID cannot be empty")
+	}
+
+	response, err := us.GetstreamService.ListCommunityBannedMembers(ctx, communityID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
+	var members []*domain.Member
+	for _, v := range response.Bans {
+		var metadata domain.MemberMetadata
+		err := mapstructure.Decode(v.User.ExtraData, &metadata)
+		if err != nil {
+			return nil, fmt.Errorf("failed to decode payload: %v", err)
+		}
+
+		member := &domain.Member{
+			ID:       v.User.ID,
+			UserID:   metadata.UserID,
+			Name:     v.User.Name,
+			Role:     v.User.Role,
+			UserType: metadata.UserType,
+		}
+
+		members = append(members, member)
+	}
+	return members, nil
 }
 
 // BanUser is used to ban user from a specified channel

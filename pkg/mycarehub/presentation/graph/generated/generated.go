@@ -397,6 +397,7 @@ type ComplexityRoot struct {
 		GetUserBookmarkedContent       func(childComplexity int, userID string) int
 		InviteMembersToCommunity       func(childComplexity int, communityID string, memberIDs []string) int
 		ListCommunities                func(childComplexity int, input *stream_chat.QueryOption) int
+		ListCommunityBannedMembers     func(childComplexity int, communityID string) int
 		ListCommunityMembers           func(childComplexity int, communityID string) int
 		ListContentCategories          func(childComplexity int) int
 		ListFacilities                 func(childComplexity int, searchTerm *string, filterInput []*dto.FiltersInput, paginationInput dto.PaginationsInput) int
@@ -533,6 +534,7 @@ type MutationResolver interface {
 type QueryResolver interface {
 	FetchClientAppointments(ctx context.Context, clientID string, paginationInput dto.PaginationsInput, filterInput []*dto.FiltersInput) (*domain.AppointmentsPage, error)
 	ListMembers(ctx context.Context, input *stream_chat.QueryOption) ([]*domain.Member, error)
+	ListCommunityBannedMembers(ctx context.Context, communityID string) ([]*domain.Member, error)
 	InviteMembersToCommunity(ctx context.Context, communityID string, memberIDs []string) (bool, error)
 	ListCommunities(ctx context.Context, input *stream_chat.QueryOption) ([]*domain.Community, error)
 	ListCommunityMembers(ctx context.Context, communityID string) ([]*domain.CommunityMember, error)
@@ -2539,6 +2541,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.ListCommunities(childComplexity, args["input"].(*stream_chat.QueryOption)), true
 
+	case "Query.listCommunityBannedMembers":
+		if e.complexity.Query.ListCommunityBannedMembers == nil {
+			break
+		}
+
+		args, err := ec.field_Query_listCommunityBannedMembers_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.ListCommunityBannedMembers(childComplexity, args["communityID"].(string)), true
+
 	case "Query.listCommunityMembers":
 		if e.complexity.Query.ListCommunityMembers == nil {
 			break
@@ -3104,6 +3118,7 @@ var sources = []*ast.Source{
 `, BuiltIn: false},
 	{Name: "pkg/mycarehub/presentation/graph/communities.graphql", Input: `extend type Query {
   listMembers(input: QueryOption): [Member]
+  listCommunityBannedMembers(communityID: String!): [Member]
   inviteMembersToCommunity(communityID: String!, memberIDs: [String!]!): Boolean!
   listCommunities(input: QueryOption): [Community]
   listCommunityMembers(communityID: ID!): [CommunityMember]
@@ -5128,6 +5143,21 @@ func (ec *executionContext) field_Query_listCommunities_args(ctx context.Context
 		}
 	}
 	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_listCommunityBannedMembers_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["communityID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("communityID"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["communityID"] = arg0
 	return args, nil
 }
 
@@ -13328,6 +13358,45 @@ func (ec *executionContext) _Query_listMembers(ctx context.Context, field graphq
 	return ec.marshalOMember2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐMember(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Query_listCommunityBannedMembers(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_listCommunityBannedMembers_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().ListCommunityBannedMembers(rctx, args["communityID"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*domain.Member)
+	fc.Result = res
+	return ec.marshalOMember2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐMember(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Query_inviteMembersToCommunity(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -19943,6 +20012,17 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_listMembers(ctx, field)
+				return res
+			})
+		case "listCommunityBannedMembers":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_listCommunityBannedMembers(ctx, field)
 				return res
 			})
 		case "inviteMembersToCommunity":

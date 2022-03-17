@@ -11,24 +11,25 @@ import (
 
 // GetStreamServiceMock mocks the GetStream service library implementations
 type GetStreamServiceMock struct {
-	MockCreateGetStreamUserTokenFn func(ctx context.Context, userID string) (string, error)
-	MockCreateGetStreamUserFn      func(ctx context.Context, user *stream.User) (*stream.UpsertUserResponse, error)
-	MockListGetStreamUsersFn       func(ctx context.Context, queryOptions *stream.QueryOption) (*stream.QueryUsersResponse, error)
-	MockCreateChannelFn            func(ctx context.Context, chanType, chanID, userID string, data map[string]interface{}) (*stream.CreateChannelResponse, error)
-	MockDeleteChannelsFn           func(ctx context.Context, chanIDs []string, hardDelete bool) (*stream.AsyncTaskResponse, error)
-	MockInviteMembersFn            func(ctx context.Context, memberIDs []string, channelID string, message *stream.Message) (*stream.Response, error)
-	MockListGetStreamChannelsFn    func(ctx context.Context, input *stream.QueryOption) (*stream.QueryChannelsResponse, error)
-	MockGetChannel                 func(ctx context.Context, channelID string) (*stream.Channel, error)
-	MockAddMembersToCommunityFn    func(ctx context.Context, memberIDs []string, channelID string) (*stream.Response, error)
-	MockRejectInviteFn             func(ctx context.Context, userID string, channelID string, message *stream.Message) (*stream.Response, error)
-	MockAcceptInviteFn             func(ctx context.Context, userID string, channelID string, message *stream.Message) (*stream.Response, error)
-	MockRemoveMembersFn            func(ctx context.Context, channelID string, memberIDs []string, message *stream.Message) (*stream.Response, error)
-	MockAddModeratorsWithMessageFn func(ctx context.Context, userIDs []string, communityID string, message *stream.Message) (*stream.Response, error)
-	MockDemoteModeratorsFn         func(ctx context.Context, channelID string, memberIDs []string) (*stream.Response, error)
-	MockRevokeGetStreamUserTokenFn func(ctx context.Context, userID string) (*stream.Response, error)
-	MockDeleteUsersFn              func(ctx context.Context, userIDs []string, options stream.DeleteUserOptions) (*stream.AsyncTaskResponse, error)
-	MockBanUserFn                  func(ctx context.Context, targetMemberID string, bannedBy string, communityID string) (bool, error)
-	MockUnBanUserFn                func(ctx context.Context, targetID string, communityID string) (bool, error)
+	MockCreateGetStreamUserTokenFn   func(ctx context.Context, userID string) (string, error)
+	MockCreateGetStreamUserFn        func(ctx context.Context, user *stream.User) (*stream.UpsertUserResponse, error)
+	MockListGetStreamUsersFn         func(ctx context.Context, queryOptions *stream.QueryOption) (*stream.QueryUsersResponse, error)
+	MockCreateChannelFn              func(ctx context.Context, chanType, chanID, userID string, data map[string]interface{}) (*stream.CreateChannelResponse, error)
+	MockDeleteChannelsFn             func(ctx context.Context, chanIDs []string, hardDelete bool) (*stream.AsyncTaskResponse, error)
+	MockInviteMembersFn              func(ctx context.Context, memberIDs []string, channelID string, message *stream.Message) (*stream.Response, error)
+	MockListGetStreamChannelsFn      func(ctx context.Context, input *stream.QueryOption) (*stream.QueryChannelsResponse, error)
+	MockGetChannel                   func(ctx context.Context, channelID string) (*stream.Channel, error)
+	MockAddMembersToCommunityFn      func(ctx context.Context, memberIDs []string, channelID string) (*stream.Response, error)
+	MockRejectInviteFn               func(ctx context.Context, userID string, channelID string, message *stream.Message) (*stream.Response, error)
+	MockAcceptInviteFn               func(ctx context.Context, userID string, channelID string, message *stream.Message) (*stream.Response, error)
+	MockRemoveMembersFn              func(ctx context.Context, channelID string, memberIDs []string, message *stream.Message) (*stream.Response, error)
+	MockAddModeratorsWithMessageFn   func(ctx context.Context, userIDs []string, communityID string, message *stream.Message) (*stream.Response, error)
+	MockDemoteModeratorsFn           func(ctx context.Context, channelID string, memberIDs []string) (*stream.Response, error)
+	MockRevokeGetStreamUserTokenFn   func(ctx context.Context, userID string) (*stream.Response, error)
+	MockDeleteUsersFn                func(ctx context.Context, userIDs []string, options stream.DeleteUserOptions) (*stream.AsyncTaskResponse, error)
+	MockBanUserFn                    func(ctx context.Context, targetMemberID string, bannedBy string, communityID string) (bool, error)
+	MockUnBanUserFn                  func(ctx context.Context, targetID string, communityID string) (bool, error)
+	MockListCommunityBannedMembersFn func(ctx context.Context, communityID string) (*stream.QueryBannedUsersResponse, error)
 }
 
 // NewGetStreamServiceMock initializes the mock service
@@ -200,6 +201,25 @@ func NewGetStreamServiceMock() *GetStreamServiceMock {
 			}, nil
 		},
 
+		MockListCommunityBannedMembersFn: func(ctx context.Context, communityID string) (*stream.QueryBannedUsersResponse, error) {
+			return &stream.QueryBannedUsersResponse{
+				Bans: []*stream.Ban{
+					{
+						Channel:   &stream.Channel{},
+						User:      &stream.User{},
+						Expires:   &time.Time{},
+						Reason:    "",
+						Shadow:    false,
+						BannedBy:  &stream.User{},
+						CreatedAt: time.Time{},
+					},
+				},
+				Response: stream.Response{
+					RateLimitInfo: &stream.RateLimitInfo{},
+				},
+			}, nil
+		},
+
 		MockDeleteUsersFn: func(ctx context.Context, userIDs []string, options stream.DeleteUserOptions) (*stream.AsyncTaskResponse, error) {
 			return &stream.AsyncTaskResponse{
 				Response: stream.Response{
@@ -318,4 +338,9 @@ func (g GetStreamServiceMock) BanUser(ctx context.Context, targetMemberID string
 // UnBanUser mocks the implementation of unbanning a user from a specified channel
 func (g GetStreamServiceMock) UnBanUser(ctx context.Context, targetID string, communityID string) (bool, error) {
 	return g.MockUnBanUserFn(ctx, targetID, communityID)
+}
+
+// ListCommunityBannedMembers mocks the implementation of listing the community members
+func (g GetStreamServiceMock) ListCommunityBannedMembers(ctx context.Context, communityID string) (*stream.QueryBannedUsersResponse, error) {
+	return g.MockListCommunityBannedMembersFn(ctx, communityID)
 }

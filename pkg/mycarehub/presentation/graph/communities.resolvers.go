@@ -55,6 +55,10 @@ func (r *queryResolver) ListMembers(ctx context.Context, input *stream_chat.Quer
 	return r.mycarehub.Community.ListMembers(ctx, input)
 }
 
+func (r *queryResolver) ListCommunityBannedMembers(ctx context.Context, communityID string) ([]*domain.Member, error) {
+	return r.mycarehub.Community.ListCommunityBannedMembers(ctx, communityID)
+}
+
 func (r *queryResolver) InviteMembersToCommunity(ctx context.Context, communityID string, memberIDs []string) (bool, error) {
 	return r.mycarehub.Community.InviteMembers(ctx, communityID, memberIDs)
 }
