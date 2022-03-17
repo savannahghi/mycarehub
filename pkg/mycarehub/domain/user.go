@@ -87,6 +87,7 @@ type ClientProfile struct {
 	CHVUserID   string  `json:"chvUserID"`
 	CHVUserName string  `json:"chvUserName"`
 	CaregiverID *string `json:"caregiverID"`
+	CCCNumber   string  `json:"CCCNumber"`
 }
 
 // StaffProfile represents the staff profile model

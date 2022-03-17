@@ -346,6 +346,7 @@ type ClientProfile {
   CHVUserID: String
   CHVUserName: String
   CaregiverID: String
+  CCCNumber: String!
 }
 
 type User {

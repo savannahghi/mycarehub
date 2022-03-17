@@ -63,6 +63,7 @@ type Query interface {
 	GetRecentHealthDiaryEntries(ctx context.Context, lastSyncTime time.Time, clientID string) ([]*ClientHealthDiaryEntry, error)
 	GetClientsByParams(ctx context.Context, query Client, lastSyncTime *time.Time) ([]*Client, error)
 	GetClientCCCIdentifier(ctx context.Context, clientID string) (*Identifier, error)
+	SearchClientProfilesByCCCNumber(ctx context.Context, CCCNumber string) ([]*Client, error)
 	GetServiceRequestsForKenyaEMR(ctx context.Context, facilityID string, lastSyncTime time.Time) ([]*ClientServiceRequest, error)
 	GetScreeningToolQuestions(ctx context.Context, toolType string) ([]ScreeningToolQuestion, error)
 	GetScreeningToolQuestionByQuestionID(ctx context.Context, questionID string) (*ScreeningToolQuestion, error)
@@ -976,4 +977,17 @@ func (db *PGInstance) GetAllRoles(ctx context.Context) ([]*AuthorityRole, error)
 		return nil, fmt.Errorf("failed to get all roles: %v", err)
 	}
 	return roles, nil
+}
+
+// SearchClientProfilesByCCCNumber is used to search for client profiles
+// It returns clients profiles whose parts of the CCC number matches
+func (db *PGInstance) SearchClientProfilesByCCCNumber(ctx context.Context, CCCNumber string) ([]*Client, error) {
+	var client []*Client
+	if err := db.DB.Joins("JOIN clients_client_identifiers on clients_client.id = clients_client_identifiers.client_id").
+		Joins("JOIN clients_identifier on clients_identifier.id = clients_client_identifiers.identifier_id").
+		Where("clients_identifier.identifier_type = ? AND clients_identifier.identifier_value ~~* ? ", "CCC", "%"+CCCNumber+"%").
+		Preload(clause.Associations).Find(&client).Error; err != nil {
+		return nil, fmt.Errorf("failed to get client profile by CCC number: %v", err)
+	}
+	return client, nil
 }

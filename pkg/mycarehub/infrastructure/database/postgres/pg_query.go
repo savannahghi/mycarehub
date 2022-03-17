@@ -1098,6 +1098,54 @@ func (d *MyCareHubDb) GetClientProfileByCCCNumber(ctx context.Context, CCCNumber
 	}, nil
 }
 
+// SearchClientProfilesByCCCNumber searches for client profiles with the specified CCC number.
+// It returns a list of profiles whose CCC number may match at a given time
+func (d *MyCareHubDb) SearchClientProfilesByCCCNumber(ctx context.Context, CCCNumber string) ([]*domain.ClientProfile, error) {
+	clientProfile, err := d.query.SearchClientProfilesByCCCNumber(ctx, CCCNumber)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
+	var clients []*domain.ClientProfile
+
+	for _, c := range clientProfile {
+		userProfile, err := d.query.GetUserProfileByUserID(ctx, c.UserID)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return nil, err
+		}
+		user := createMapUser(userProfile)
+
+		indentifier, err := d.query.GetClientCCCIdentifier(ctx, *c.ID)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return nil, err
+		}
+
+		client := &domain.ClientProfile{
+			ID:                      c.ID,
+			User:                    user,
+			Active:                  c.Active,
+			ClientType:              c.ClientType,
+			UserID:                  *c.UserID,
+			TreatmentEnrollmentDate: c.TreatmentEnrollmentDate,
+			FHIRPatientID:           c.FHIRPatientID,
+			HealthRecordID:          c.HealthRecordID,
+			TreatmentBuddy:          c.TreatmentBuddy,
+			ClientCounselled:        c.ClientCounselled,
+			OrganisationID:          c.OrganisationID,
+			FacilityID:              c.FacilityID,
+			CHVUserID:               c.CHVUserID,
+			CCCNumber:               indentifier.IdentifierValue,
+		}
+
+		clients = append(clients, client)
+	}
+
+	return clients, nil
+}
+
 // CheckIfClientHasUnresolvedServiceRequests checks if a client has an unresolved service request
 func (d *MyCareHubDb) CheckIfClientHasUnresolvedServiceRequests(ctx context.Context, clientID string, serviceRequestType string) (bool, error) {
 	return d.query.CheckIfClientHasUnresolvedServiceRequests(ctx, clientID, serviceRequestType)

@@ -28,7 +28,7 @@ type UserUseCaseMock struct {
 	MockRegisterClientFn                func(ctx context.Context, input *dto.ClientRegistrationInput) (*dto.ClientRegistrationOutput, error)
 	MockRefreshGetStreamTokenFn         func(ctx context.Context, userID string) (*domain.GetStreamToken, error)
 	MockRegisterStaffFn                 func(ctx context.Context, input dto.StaffRegistrationInput) (*dto.StaffRegistrationOutput, error)
-	MockGetClientByCCCNumberFn          func(ctx context.Context, CCCNumber string) (*domain.ClientProfile, error)
+	MockSearchClientsByCCCNumberFn      func(ctx context.Context, CCCNumber string) ([]*domain.ClientProfile, error)
 	MockCompleteOnboardingTourFn        func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
 	MockRegisterKenyaEMRPatientsFn      func(ctx context.Context, input []*dto.PatientRegistrationPayload) ([]*dto.ClientRegistrationOutput, error)
 	MockRegisteredFacilityPatientsFn    func(ctx context.Context, input dto.PatientSyncPayload) (*dto.PatientSyncResponse, error)
@@ -113,9 +113,9 @@ func NewUserUseCaseMock() *UserUseCaseMock {
 				ID: uuid.New().String(),
 			}, nil
 		},
-		MockGetClientByCCCNumberFn: func(ctx context.Context, CCCNumber string) (*domain.ClientProfile, error) {
+		MockSearchClientsByCCCNumberFn: func(ctx context.Context, CCCNumber string) ([]*domain.ClientProfile, error) {
 			clientID := uuid.New().String()
-			return &domain.ClientProfile{
+			client := &domain.ClientProfile{
 				ID:                      &clientID,
 				User:                    &domain.User{},
 				Active:                  true,
@@ -125,7 +125,8 @@ func NewUserUseCaseMock() *UserUseCaseMock {
 				HealthRecordID:          &clientID,
 				ClientCounselled:        false,
 				CaregiverID:             &clientID,
-			}, nil
+			}
+			return []*domain.ClientProfile{client}, nil
 		},
 		MockCompleteOnboardingTourFn: func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
 			return true, nil
@@ -219,9 +220,9 @@ func (f *UserUseCaseMock) RegisterStaff(ctx context.Context, input dto.StaffRegi
 	return f.MockRegisterStaffFn(ctx, input)
 }
 
-// GetClientByCCCNumber mocks the implementation getting the client by CCC number
-func (f *UserUseCaseMock) GetClientByCCCNumber(ctx context.Context, CCCNumber string) (*domain.ClientProfile, error) {
-	return f.MockGetClientByCCCNumberFn(ctx, CCCNumber)
+// SearchClientsByCCCNumber mocks the implementation getting the client by CCC number
+func (f *UserUseCaseMock) SearchClientsByCCCNumber(ctx context.Context, CCCNumber string) ([]*domain.ClientProfile, error) {
+	return f.MockSearchClientsByCCCNumberFn(ctx, CCCNumber)
 }
 
 // CompleteOnboardingTour mocks the implementation of completing an onboarding tour
