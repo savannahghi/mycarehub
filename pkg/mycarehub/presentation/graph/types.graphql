@@ -370,3 +370,9 @@ type Contact {
   Active: Boolean!
   OptedIn: Boolean!
 }
+
+type AuthorityRole {
+  roleID: String
+	name:   UserRoleType 
+  active: Boolean
+}

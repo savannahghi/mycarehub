@@ -468,3 +468,12 @@ func RetryLoginErr(err error) error {
 		Code:    int(RetryLoginError),
 	}
 }
+
+// GetAllRolesErr returns an error message when the user role retrieval fails
+func GetAllRolesErr(err error) error {
+	return &CustomError{
+		Err:     err,
+		Message: GetAllRolesErrorMsg,
+		Code:    int(GetAllRolesError),
+	}
+}

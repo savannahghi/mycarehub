@@ -3905,3 +3905,51 @@ func TestMyCareHubDb_CheckIfClientHasUnresolvedServiceRequests(t *testing.T) {
 		})
 	}
 }
+
+func TestMyCareHubDb_GetAllRoles(t *testing.T) {
+	type args struct {
+		ctx context.Context
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx: context.Background(),
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: failed to get roles",
+			args: args{
+				ctx: context.Background(),
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var fakeGorm = gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			if tt.name == "Sad case: failed to get roles" {
+				fakeGorm.MockGetAllRolesFn = func(ctx context.Context) ([]*gorm.AuthorityRole, error) {
+					return nil, fmt.Errorf("failed to get roles")
+				}
+			}
+
+			got, err := d.GetAllRoles(tt.args.ctx)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.GetAllRoles() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected a response but got: %v", got)
+				return
+			}
+		})
+	}
+}

@@ -1102,3 +1102,25 @@ func (d *MyCareHubDb) GetClientProfileByCCCNumber(ctx context.Context, CCCNumber
 func (d *MyCareHubDb) CheckIfClientHasUnresolvedServiceRequests(ctx context.Context, clientID string, serviceRequestType string) (bool, error) {
 	return d.query.CheckIfClientHasUnresolvedServiceRequests(ctx, clientID, serviceRequestType)
 }
+
+// GetAllRoles fetches all roles
+func (d *MyCareHubDb) GetAllRoles(ctx context.Context) ([]*domain.AuthorityRole, error) {
+	roles, err := d.query.GetAllRoles(ctx)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
+	mapped := []*domain.AuthorityRole{}
+	for _, r := range roles {
+		m := &domain.AuthorityRole{
+			RoleID: *r.AuthorityRoleID,
+			Name:   enums.UserRoleType(r.Name),
+			Active: r.Active,
+		}
+
+		mapped = append(mapped, m)
+	}
+
+	return mapped, nil
+}

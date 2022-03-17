@@ -27,17 +27,18 @@ type IAssignRoles interface {
 	AssignRoles(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error)
 }
 
-// IGetUserRoles contains methods to get the roles of a user
-type IGetUserRoles interface {
+// IGetRoles contains methods that get the roles
+type IGetRoles interface {
 	GetUserRoles(ctx context.Context, userID string) ([]*domain.AuthorityRole, error)
+	GetAllRoles(ctx context.Context) ([]*domain.AuthorityRole, error)
 }
 
-// IGetUserPermissions contains methods to get the permissions of a user
-type IGetUserPermissions interface {
+// IGetPermissions contains methods that get the permissions
+type IGetPermissions interface {
 	GetUserPermissions(ctx context.Context, userID string) ([]*domain.AuthorityPermission, error)
 }
 
-// IRevokeRoles contains methods to revoke roles from a user
+// IRevokeRoles contains methods that revoke roles from a user
 type IRevokeRoles interface {
 	RevokeRoles(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error)
 }
@@ -47,8 +48,8 @@ type UsecaseAuthority interface {
 	ICheckUserRole
 	ICheckUserPermission
 	IAssignRoles
-	IGetUserRoles
-	IGetUserPermissions
+	IGetRoles
+	IGetPermissions
 	IRevokeRoles
 }
 
@@ -210,4 +211,14 @@ func (u *UsecaseAuthorityImpl) RevokeRoles(ctx context.Context, userID string, r
 		return false, exceptions.RevokeRolesErr(err)
 	}
 	return ok, nil
+}
+
+// GetAllRoles returns all roles
+func (u *UsecaseAuthorityImpl) GetAllRoles(ctx context.Context) ([]*domain.AuthorityRole, error) {
+	roles, err := u.Query.GetAllRoles(ctx)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, exceptions.GetAllRolesErr(err)
+	}
+	return roles, nil
 }

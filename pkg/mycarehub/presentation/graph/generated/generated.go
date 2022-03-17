@@ -74,6 +74,12 @@ type ComplexityRoot struct {
 		ID func(childComplexity int) int
 	}
 
+	AuthorityRole struct {
+		Active func(childComplexity int) int
+		Name   func(childComplexity int) int
+		RoleID func(childComplexity int) int
+	}
+
 	Caregiver struct {
 		CaregiverType func(childComplexity int) int
 		FirstName     func(childComplexity int) int
@@ -383,6 +389,7 @@ type ComplexityRoot struct {
 		CheckIfUserHasLikedContent     func(childComplexity int, userID string, contentID int) int
 		FetchClientAppointments        func(childComplexity int, clientID string, paginationInput dto.PaginationsInput, filterInput []*dto.FiltersInput) int
 		FetchFacilities                func(childComplexity int) int
+		GetAllAuthorityRoles           func(childComplexity int) int
 		GetClientByCCCNumber           func(childComplexity int, cCCNumber string) int
 		GetClientCaregiver             func(childComplexity int, clientID string) int
 		GetClientHealthDiaryEntries    func(childComplexity int, clientID string) int
@@ -395,6 +402,7 @@ type ComplexityRoot struct {
 		GetSecurityQuestions           func(childComplexity int, flavour feedlib.Flavour) int
 		GetServiceRequests             func(childComplexity int, requestType *string, requestStatus *string, facilityID string) int
 		GetUserBookmarkedContent       func(childComplexity int, userID string) int
+		GetUserRoles                   func(childComplexity int, userID string) int
 		InviteMembersToCommunity       func(childComplexity int, communityID string, memberIDs []string) int
 		ListCommunities                func(childComplexity int, input *stream_chat.QueryOption) int
 		ListCommunityBannedMembers     func(childComplexity int, communityID string) int
@@ -533,6 +541,8 @@ type MutationResolver interface {
 }
 type QueryResolver interface {
 	FetchClientAppointments(ctx context.Context, clientID string, paginationInput dto.PaginationsInput, filterInput []*dto.FiltersInput) (*domain.AppointmentsPage, error)
+	GetUserRoles(ctx context.Context, userID string) ([]*domain.AuthorityRole, error)
+	GetAllAuthorityRoles(ctx context.Context) ([]*domain.AuthorityRole, error)
 	ListMembers(ctx context.Context, input *stream_chat.QueryOption) ([]*domain.Member, error)
 	ListCommunityBannedMembers(ctx context.Context, communityID string) ([]*domain.Member, error)
 	InviteMembersToCommunity(ctx context.Context, communityID string, memberIDs []string) (bool, error)
@@ -662,6 +672,27 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Author.ID(childComplexity), true
+
+	case "AuthorityRole.active":
+		if e.complexity.AuthorityRole.Active == nil {
+			break
+		}
+
+		return e.complexity.AuthorityRole.Active(childComplexity), true
+
+	case "AuthorityRole.name":
+		if e.complexity.AuthorityRole.Name == nil {
+			break
+		}
+
+		return e.complexity.AuthorityRole.Name(childComplexity), true
+
+	case "AuthorityRole.roleID":
+		if e.complexity.AuthorityRole.RoleID == nil {
+			break
+		}
+
+		return e.complexity.AuthorityRole.RoleID(childComplexity), true
 
 	case "Caregiver.caregiverType":
 		if e.complexity.Caregiver.CaregiverType == nil {
@@ -2378,6 +2409,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.FetchFacilities(childComplexity), true
 
+	case "Query.getAllAuthorityRoles":
+		if e.complexity.Query.GetAllAuthorityRoles == nil {
+			break
+		}
+
+		return e.complexity.Query.GetAllAuthorityRoles(childComplexity), true
+
 	case "Query.getClientByCCCNumber":
 		if e.complexity.Query.GetClientByCCCNumber == nil {
 			break
@@ -2516,6 +2554,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.GetUserBookmarkedContent(childComplexity, args["userID"].(string)), true
+
+	case "Query.getUserRoles":
+		if e.complexity.Query.GetUserRoles == nil {
+			break
+		}
+
+		args, err := ec.field_Query_getUserRoles_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetUserRoles(childComplexity, args["userID"].(string)), true
 
 	case "Query.inviteMembersToCommunity":
 		if e.complexity.Query.InviteMembersToCommunity == nil {
@@ -3115,7 +3165,11 @@ var sources = []*ast.Source{
   assignRoles(userID: String!, roles: [UserRoleType!]!): Boolean!
   revokeRoles(userID: String!, roles: [UserRoleType!]!): Boolean!
 }
-`, BuiltIn: false},
+
+extend type Query{
+  getUserRoles(userID: String!): [AuthorityRole!]
+  getAllAuthorityRoles: [AuthorityRole!]
+}`, BuiltIn: false},
 	{Name: "pkg/mycarehub/presentation/graph/communities.graphql", Input: `extend type Query {
   listMembers(input: QueryOption): [Member]
   listCommunityBannedMembers(communityID: String!): [Member]
@@ -3894,7 +3948,12 @@ type Contact {
   Active: Boolean!
   OptedIn: Boolean!
 }
-`, BuiltIn: false},
+
+type AuthorityRole {
+  roleID: String
+	name:   UserRoleType 
+  active: Boolean
+}`, BuiltIn: false},
 	{Name: "pkg/mycarehub/presentation/graph/user.graphql", Input: `extend type Query {
   getCurrentTerms(flavour: Flavour!): TermsOfService!
   verifyPIN(userID: String!, flavour: Flavour!, pin: String!): Boolean!
@@ -5107,6 +5166,21 @@ func (ec *executionContext) field_Query_getUserBookmarkedContent_args(ctx contex
 	return args, nil
 }
 
+func (ec *executionContext) field_Query_getUserRoles_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["userID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userID"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["userID"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Query_inviteMembersToCommunity_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -5827,6 +5901,102 @@ func (ec *executionContext) _Author_ID(ctx context.Context, field graphql.Collec
 	res := resTmp.(string)
 	fc.Result = res
 	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _AuthorityRole_roleID(ctx context.Context, field graphql.CollectedField, obj *domain.AuthorityRole) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "AuthorityRole",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.RoleID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _AuthorityRole_name(ctx context.Context, field graphql.CollectedField, obj *domain.AuthorityRole) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "AuthorityRole",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(enums.UserRoleType)
+	fc.Result = res
+	return ec.marshalOUserRoleType2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐUserRoleType(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _AuthorityRole_active(ctx context.Context, field graphql.CollectedField, obj *domain.AuthorityRole) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "AuthorityRole",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Active, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Caregiver_firstName(ctx context.Context, field graphql.CollectedField, obj *domain.Caregiver) (ret graphql.Marshaler) {
@@ -13319,6 +13489,77 @@ func (ec *executionContext) _Query_fetchClientAppointments(ctx context.Context, 
 	return ec.marshalOAppointmentsPage2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐAppointmentsPage(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Query_getUserRoles(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_getUserRoles_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GetUserRoles(rctx, args["userID"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*domain.AuthorityRole)
+	fc.Result = res
+	return ec.marshalOAuthorityRole2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐAuthorityRoleᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_getAllAuthorityRoles(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GetAllAuthorityRoles(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*domain.AuthorityRole)
+	fc.Result = res
+	return ec.marshalOAuthorityRole2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐAuthorityRoleᚄ(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Query_listMembers(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -18406,6 +18647,34 @@ func (ec *executionContext) _Author(ctx context.Context, sel ast.SelectionSet, o
 	return out
 }
 
+var authorityRoleImplementors = []string{"AuthorityRole"}
+
+func (ec *executionContext) _AuthorityRole(ctx context.Context, sel ast.SelectionSet, obj *domain.AuthorityRole) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, authorityRoleImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("AuthorityRole")
+		case "roleID":
+			out.Values[i] = ec._AuthorityRole_roleID(ctx, field, obj)
+		case "name":
+			out.Values[i] = ec._AuthorityRole_name(ctx, field, obj)
+		case "active":
+			out.Values[i] = ec._AuthorityRole_active(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var caregiverImplementors = []string{"Caregiver"}
 
 func (ec *executionContext) _Caregiver(ctx context.Context, sel ast.SelectionSet, obj *domain.Caregiver) graphql.Marshaler {
@@ -20003,6 +20272,28 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				res = ec._Query_fetchClientAppointments(ctx, field)
 				return res
 			})
+		case "getUserRoles":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_getUserRoles(ctx, field)
+				return res
+			})
+		case "getAllAuthorityRoles":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_getAllAuthorityRoles(ctx, field)
+				return res
+			})
 		case "listMembers":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -21069,6 +21360,16 @@ func (ec *executionContext) marshalNAppointment2ᚕᚖgithubᚗcomᚋsavannahghi
 
 func (ec *executionContext) marshalNAuthor2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐAuthor(ctx context.Context, sel ast.SelectionSet, v domain.Author) graphql.Marshaler {
 	return ec._Author(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNAuthorityRole2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐAuthorityRole(ctx context.Context, sel ast.SelectionSet, v *domain.AuthorityRole) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._AuthorityRole(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNBoolean2bool(ctx context.Context, v interface{}) (bool, error) {
@@ -22554,6 +22855,53 @@ func (ec *executionContext) marshalOAppointmentsPage2ᚖgithubᚗcomᚋsavannahg
 	return ec._AppointmentsPage(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalOAuthorityRole2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐAuthorityRoleᚄ(ctx context.Context, sel ast.SelectionSet, v []*domain.AuthorityRole) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNAuthorityRole2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐAuthorityRole(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
 func (ec *executionContext) unmarshalOBoolean2bool(ctx context.Context, v interface{}) (bool, error) {
 	res, err := graphql.UnmarshalBoolean(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -23519,6 +23867,16 @@ func (ec *executionContext) marshalOTime2ᚖtimeᚐTime(ctx context.Context, sel
 		return graphql.Null
 	}
 	return graphql.MarshalTime(*v)
+}
+
+func (ec *executionContext) unmarshalOUserRoleType2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐUserRoleType(ctx context.Context, v interface{}) (enums.UserRoleType, error) {
+	var res enums.UserRoleType
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOUserRoleType2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐUserRoleType(ctx context.Context, sel ast.SelectionSet, v enums.UserRoleType) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) marshalO__EnumValue2ᚕgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐEnumValueᚄ(ctx context.Context, sel ast.SelectionSet, v []introspection.EnumValue) graphql.Marshaler {
