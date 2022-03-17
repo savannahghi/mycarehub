@@ -225,6 +225,26 @@ func TestUseCasesUserImpl_Login_Unittest(t *testing.T) {
 			},
 			wantErr: true,
 		},
+		{
+			name: "Sad Case - failed to check if client has pending pin reset request",
+			args: args{
+				ctx:         ctx,
+				phoneNumber: interserviceclient.TestUserPhoneNumber,
+				pin:         PIN,
+				flavour:     feedlib.FlavourConsumer,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - client has pending pin reset request",
+			args: args{
+				ctx:         ctx,
+				phoneNumber: interserviceclient.TestUserPhoneNumber,
+				pin:         PIN,
+				flavour:     feedlib.FlavourConsumer,
+			},
+			wantErr: true,
+		},
 	}
 
 	for _, tt := range tests {
@@ -288,7 +308,7 @@ func TestUseCasesUserImpl_Login_Unittest(t *testing.T) {
 			}
 
 			if tt.name == "Sad Case - Fail to update successful login time" {
-				fakeDB.MockUpdateUserLastSuccessfulLoginTimeFn = func(ctx context.Context, userID string) error {
+				fakeDB.MockUpdateUserProfileAfterLoginSuccessFn = func(ctx context.Context, userID string) error {
 					return fmt.Errorf("failed to update last successfult login time")
 				}
 			}
@@ -315,6 +335,14 @@ func TestUseCasesUserImpl_Login_Unittest(t *testing.T) {
 				}
 			}
 			if tt.name == "Sad Case - Fail to get chv user profile by chv user ID" {
+				fakeDB.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*domain.User, error) {
+					userID := uuid.NewString()
+					return &domain.User{
+						ID:      &userID,
+						Flavour: feedlib.FlavourConsumer,
+					}, nil
+				}
+
 				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
 					return nil, fmt.Errorf("failed to get chv profile")
 				}
@@ -327,6 +355,18 @@ func TestUseCasesUserImpl_Login_Unittest(t *testing.T) {
 			if tt.name == "Sad Case - Unable to create getstream token" {
 				fakeGetStream.MockCreateGetStreamUserTokenFn = func(ctx context.Context, userID string) (string, error) {
 					return "", fmt.Errorf("failed to create getstream token")
+				}
+			}
+
+			if tt.name == "Sad Case - failed to check if client has pending pin reset request" {
+				fakeDB.MockCheckIfClientHasUnresolvedServiceRequestsFn = func(ctx context.Context, clientID string, serviceRequestType string) (bool, error) {
+					return false, fmt.Errorf("failed to check if client has pending pin reset request")
+				}
+			}
+
+			if tt.name == "Sad Case - client has pending pin reset request" {
+				fakeDB.MockCheckIfClientHasUnresolvedServiceRequestsFn = func(ctx context.Context, clientID string, serviceRequestType string) (bool, error) {
+					return true, nil
 				}
 			}
 
@@ -916,12 +956,37 @@ func TestUseCasesUserImpl_SetUserPIN(t *testing.T) {
 
 func TestUseCasesUserImpl_VerifyLoginPIN(t *testing.T) {
 	ctx := context.Background()
+	UUID := uuid.New().String()
+	now := time.Now()
+	past := now.Add(-time.Hour * 1000000)
+	userProfile := &domain.User{
+		ID:                     &UUID,
+		Username:               gofakeit.Name(),
+		UserType:               enums.ClientUser,
+		Name:                   gofakeit.Name(),
+		Gender:                 enumutils.GenderMale,
+		Active:                 true,
+		LastSuccessfulLogin:    &now,
+		LastFailedLogin:        &now,
+		FailedLoginCount:       0,
+		NextAllowedLogin:       &now,
+		PinChangeRequired:      false,
+		HasSetPin:              false,
+		HasSetSecurityQuestion: false,
+		IsPhoneVerified:        false,
+		TermsAccepted:          false,
+		AcceptedTermsID:        0,
+		Flavour:                "CONSUMER",
+		Suspended:              false,
+		Avatar:                 "",
+		DateOfBirth:            &past,
+	}
 
 	type args struct {
-		ctx     context.Context
-		userID  string
-		pin     string
-		flavour feedlib.Flavour
+		ctx         context.Context
+		userProfile *domain.User
+		pin         string
+		flavour     feedlib.Flavour
 	}
 	tests := []struct {
 		name    string
@@ -932,10 +997,10 @@ func TestUseCasesUserImpl_VerifyLoginPIN(t *testing.T) {
 		{
 			name: "Happy Case - Successfully verify pin",
 			args: args{
-				ctx:     ctx,
-				userID:  "12345",
-				pin:     "1234",
-				flavour: feedlib.FlavourConsumer,
+				ctx:         ctx,
+				userProfile: userProfile,
+				pin:         "1234",
+				flavour:     feedlib.FlavourConsumer,
 			},
 			want:    true,
 			wantErr: false,
@@ -943,10 +1008,10 @@ func TestUseCasesUserImpl_VerifyLoginPIN(t *testing.T) {
 		{
 			name: "Sad Case - Fail to get user pin",
 			args: args{
-				ctx:     ctx,
-				userID:  "12345",
-				pin:     "3456",
-				flavour: feedlib.FlavourConsumer,
+				ctx:         ctx,
+				userProfile: userProfile,
+				pin:         "3456",
+				flavour:     feedlib.FlavourConsumer,
 			},
 			want:    false,
 			wantErr: true,
@@ -954,21 +1019,10 @@ func TestUseCasesUserImpl_VerifyLoginPIN(t *testing.T) {
 		{
 			name: "Sad Case - Pin mismatch",
 			args: args{
-				ctx:     ctx,
-				userID:  "12345",
-				pin:     "1234",
-				flavour: feedlib.FlavourConsumer,
-			},
-			want:    false,
-			wantErr: true,
-		},
-		{
-			name: "Sad Case - Fail to get user profile by ID",
-			args: args{
-				ctx:     ctx,
-				userID:  "12345",
-				pin:     "1234",
-				flavour: feedlib.FlavourConsumer,
+				ctx:         ctx,
+				userProfile: userProfile,
+				pin:         "1234",
+				flavour:     feedlib.FlavourConsumer,
 			},
 			want:    false,
 			wantErr: true,
@@ -976,10 +1030,10 @@ func TestUseCasesUserImpl_VerifyLoginPIN(t *testing.T) {
 		{
 			name: "Sad Case - Fail to update user login count",
 			args: args{
-				ctx:     ctx,
-				userID:  "12345",
-				pin:     "1234",
-				flavour: feedlib.FlavourConsumer,
+				ctx:         ctx,
+				userProfile: userProfile,
+				pin:         "1234",
+				flavour:     feedlib.FlavourConsumer,
 			},
 			want:    false,
 			wantErr: true,
@@ -987,10 +1041,10 @@ func TestUseCasesUserImpl_VerifyLoginPIN(t *testing.T) {
 		{
 			name: "Sad Case - Fail to update last failed login time",
 			args: args{
-				ctx:     ctx,
-				userID:  "12345",
-				pin:     "1234",
-				flavour: feedlib.FlavourConsumer,
+				ctx:         ctx,
+				userProfile: userProfile,
+				pin:         "1234",
+				flavour:     feedlib.FlavourConsumer,
 			},
 			want:    false,
 			wantErr: true,
@@ -998,10 +1052,10 @@ func TestUseCasesUserImpl_VerifyLoginPIN(t *testing.T) {
 		{
 			name: "Sad Case - Fail to update next allowed login time",
 			args: args{
-				ctx:     ctx,
-				userID:  "12345",
-				pin:     "1234",
-				flavour: feedlib.FlavourConsumer,
+				ctx:         ctx,
+				userProfile: userProfile,
+				pin:         "1234",
+				flavour:     feedlib.FlavourConsumer,
 			},
 			want:    false,
 			wantErr: true,
@@ -1009,15 +1063,38 @@ func TestUseCasesUserImpl_VerifyLoginPIN(t *testing.T) {
 		{
 			name: "Sad Case - Invalid flavour",
 			args: args{
-				ctx:     ctx,
-				userID:  "12345",
-				pin:     "1234",
-				flavour: "Invalid-flavour",
+				ctx:         ctx,
+				userProfile: userProfile,
+				pin:         "1234",
+				flavour:     "Invalid-flavour",
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - failed to get the updated user profile after updating last failed login time and login count",
+			args: args{
+				ctx:         ctx,
+				userProfile: userProfile,
+				pin:         "1234",
+				flavour:     feedlib.FlavourConsumer,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - failed to get the updated user profile after updating next allowed login time",
+			args: args{
+				ctx:         ctx,
+				userProfile: userProfile,
+				pin:         "1234",
+				flavour:     feedlib.FlavourConsumer,
 			},
 			want:    false,
 			wantErr: true,
 		},
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
@@ -1053,12 +1130,6 @@ func TestUseCasesUserImpl_VerifyLoginPIN(t *testing.T) {
 				}
 			}
 
-			if tt.name == "Sad Case - Fail to get user profile by ID" {
-				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
-					return nil, fmt.Errorf("failed to get user profile by user ID")
-				}
-			}
-
 			if tt.name == "Sad Case - Fail to update user login count" {
 				fakeExtension.MockComparePINFn = func(rawPwd string, salt string, encodedPwd string, options *extension.Options) bool {
 					return false
@@ -1089,7 +1160,28 @@ func TestUseCasesUserImpl_VerifyLoginPIN(t *testing.T) {
 				}
 			}
 
-			got, _, _, err := u.VerifyLoginPIN(tt.args.ctx, tt.args.userID, tt.args.pin, tt.args.flavour)
+			if tt.name == "Sad Case - failed to get the updated user profile after updating last failed login time and login count" {
+				fakeExtension.MockComparePINFn = func(rawPwd string, salt string, encodedPwd string, options *extension.Options) bool {
+					return false
+				}
+				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
+					return nil, fmt.Errorf("failed to get user profile by user ID")
+				}
+			}
+
+			if tt.name == "Sad Case - failed to get the updated user profile after updating next allowed login time" {
+				fakeExtension.MockComparePINFn = func(rawPwd string, salt string, encodedPwd string, options *extension.Options) bool {
+					return false
+				}
+				fakeDB.MockUpdateUserNextAllowedLoginTimeFn = func(ctx context.Context, userID string, nextAllowedLoginTime time.Time) error {
+					return nil
+				}
+				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
+					return nil, fmt.Errorf("failed to get user profile by user ID")
+				}
+			}
+
+			got, err := u.VerifyLoginPIN(tt.args.ctx, tt.args.userProfile, tt.args.pin, tt.args.flavour)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCasesUserImpl.VerifyLoginPIN() error = %v, wantErr %v", err, tt.wantErr)
 				return

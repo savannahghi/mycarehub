@@ -19,95 +19,96 @@ import (
 // PostgresMock struct implements mocks of `postgres's` internal methods.
 type PostgresMock struct {
 	//Get
-	MockGetOrCreateFacilityFn                     func(ctx context.Context, facility *dto.FacilityInput) (*domain.Facility, error)
-	MockGetFacilitiesFn                           func(ctx context.Context) ([]*domain.Facility, error)
-	MockRetrieveFacilityFn                        func(ctx context.Context, id *string, isActive bool) (*domain.Facility, error)
-	ListFacilitiesFn                              func(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationsInput *dto.PaginationsInput) (*domain.FacilityPage, error)
-	MockDeleteFacilityFn                          func(ctx context.Context, id int) (bool, error)
-	MockRetrieveFacilityByMFLCodeFn               func(ctx context.Context, MFLCode int, isActive bool) (*domain.Facility, error)
-	MockGetUserProfileByPhoneNumberFn             func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*domain.User, error)
-	MockGetUserPINByUserIDFn                      func(ctx context.Context, userID string, flavour feedlib.Flavour) (*domain.UserPIN, error)
-	MockInactivateFacilityFn                      func(ctx context.Context, mflCode *int) (bool, error)
-	MockReactivateFacilityFn                      func(ctx context.Context, mflCode *int) (bool, error)
-	MockGetUserProfileByUserIDFn                  func(ctx context.Context, userID string) (*domain.User, error)
-	MockSaveTemporaryUserPinFn                    func(ctx context.Context, pinData *domain.UserPIN) (bool, error)
-	MockGetCurrentTermsFn                         func(ctx context.Context, flavour feedlib.Flavour) (*domain.TermsOfService, error)
-	MockAcceptTermsFn                             func(ctx context.Context, userID *string, termsID *int) (bool, error)
-	MockSavePinFn                                 func(ctx context.Context, pin *domain.UserPIN) (bool, error)
-	MockUpdateUserFailedLoginCountFn              func(ctx context.Context, userID string, failedLoginAttempts int) error
-	MockUpdateUserLastFailedLoginTimeFn           func(ctx context.Context, userID string) error
-	MockUpdateUserNextAllowedLoginTimeFn          func(ctx context.Context, userID string, nextAllowedLoginTime time.Time) error
-	MockSetNickNameFn                             func(ctx context.Context, userID *string, nickname *string) (bool, error)
-	MockUpdateUserLastSuccessfulLoginTimeFn       func(ctx context.Context, userID string) error
-	MockGetSecurityQuestionsFn                    func(ctx context.Context, flavour feedlib.Flavour) ([]*domain.SecurityQuestion, error)
-	MockSaveOTPFn                                 func(ctx context.Context, otpInput *domain.OTP) error
-	MockGetSecurityQuestionByIDFn                 func(ctx context.Context, securityQuestionID *string) (*domain.SecurityQuestion, error)
-	MockSaveSecurityQuestionResponseFn            func(ctx context.Context, securityQuestionResponse []*dto.SecurityQuestionResponseInput) error
-	MockGetSecurityQuestionResponseByIDFn         func(ctx context.Context, questionID string) (*domain.SecurityQuestionResponse, error)
-	MockCheckIfPhoneNumberExistsFn                func(ctx context.Context, phone string, isOptedIn bool, flavour feedlib.Flavour) (bool, error)
-	MockVerifyOTPFn                               func(ctx context.Context, payload *dto.VerifyOTPInput) (bool, error)
-	MockGetClientProfileByUserIDFn                func(ctx context.Context, userID string) (*domain.ClientProfile, error)
-	MockGetStaffProfileByUserIDFn                 func(ctx context.Context, userID string) (*domain.StaffProfile, error)
-	MockCheckUserHasPinFn                         func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
-	MockGenerateRetryOTPFn                        func(ctx context.Context, payload *dto.SendRetryOTPPayload) (string, error)
-	MockUpdateUserPinChangeRequiredStatusFn       func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
-	MockGetOTPFn                                  func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*domain.OTP, error)
-	MockGetUserSecurityQuestionsResponsesFn       func(ctx context.Context, userID string) ([]*domain.SecurityQuestionResponse, error)
-	MockInvalidatePINFn                           func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
-	MockGetContactByUserIDFn                      func(ctx context.Context, userID *string, contactType string) (*domain.Contact, error)
-	MockUpdateIsCorrectSecurityQuestionResponseFn func(ctx context.Context, userID string, isCorrectSecurityQuestionResponse bool) (bool, error)
-	MockListContentCategoriesFn                   func(ctx context.Context) ([]*domain.ContentItemCategory, error)
-	MockShareContentFn                            func(ctx context.Context, input dto.ShareContentInput) (bool, error)
-	MockBookmarkContentFn                         func(ctx context.Context, userID string, contentID int) (bool, error)
-	MockUnBookmarkContentFn                       func(ctx context.Context, userID string, contentID int) (bool, error)
-	MockGetUserBookmarkedContentFn                func(ctx context.Context, userID string) ([]*domain.ContentItem, error)
-	MockLikeContentFn                             func(ctx context.Context, userID string, contentID int) (bool, error)
-	MockCheckWhetherUserHasLikedContentFn         func(ctx context.Context, userID string, contentID int) (bool, error)
-	MockUnlikeContentFn                           func(ctx context.Context, userID string, contentID int) (bool, error)
-	MockFetchFacilitiesFn                         func(ctx context.Context) ([]*domain.Facility, error)
-	MockViewContentFn                             func(ctx context.Context, userID string, contentID int) (bool, error)
-	MockCreateHealthDiaryEntryFn                  func(ctx context.Context, healthDiaryInput *domain.ClientHealthDiaryEntry) error
-	MockCreateServiceRequestFn                    func(ctx context.Context, serviceRequestInput *domain.ClientServiceRequest) error
-	MockCanRecordHeathDiaryFn                     func(ctx context.Context, userID string) (bool, error)
-	MockGetClientHealthDiaryQuoteFn               func(ctx context.Context) (*domain.ClientHealthDiaryQuote, error)
-	MockCheckIfUserBookmarkedContentFn            func(ctx context.Context, userID string, contentID int) (bool, error)
-	MockGetClientHealthDiaryEntriesFn             func(ctx context.Context, clientID string) ([]*domain.ClientHealthDiaryEntry, error)
-	MockGetFAQContentFn                           func(ctx context.Context, flavour feedlib.Flavour, limit *int) ([]*domain.FAQ, error)
-	MockCreateClientCaregiverFn                   func(ctx context.Context, caregiverInput *dto.CaregiverInput) error
-	MockGetClientCaregiverFn                      func(ctx context.Context, caregiverID string) (*domain.Caregiver, error)
-	MockUpdateClientCaregiverFn                   func(ctx context.Context, caregiverInput *dto.CaregiverInput) error
-	MockInProgressByFn                            func(ctx context.Context, requestID string, staffID string) (bool, error)
-	MockGetClientProfileByClientIDFn              func(ctx context.Context, clientID string) (*domain.ClientProfile, error)
-	MockGetServiceRequestsFn                      func(ctx context.Context, requestType, requestStatus, facilityID *string) ([]*domain.ServiceRequest, error)
-	MockGetPendingServiceRequestsCountFn          func(ctx context.Context, facilityID string) (*domain.ServiceRequestsCount, error)
-	MockResolveServiceRequestFn                   func(ctx context.Context, staffID *string, serviceRequestID *string) (bool, error)
-	MockCreateCommunityFn                         func(ctx context.Context, community *dto.CommunityInput) (*domain.Community, error)
-	MockCheckUserRoleFn                           func(ctx context.Context, userID string, role string) (bool, error)
-	MockCheckUserPermissionFn                     func(ctx context.Context, userID string, permission string) (bool, error)
-	MockAssignRolesFn                             func(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error)
-	MockGetUserRolesFn                            func(ctx context.Context, userID string) ([]*domain.AuthorityRole, error)
-	MockGetUserPermissionsFn                      func(ctx context.Context, userID string) ([]*domain.AuthorityPermission, error)
-	MockCheckIfUsernameExistsFn                   func(ctx context.Context, username string) (bool, error)
-	MockRevokeRolesFn                             func(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error)
-	MockGetCommunityByIDFn                        func(ctx context.Context, communityID string) (*domain.Community, error)
-	MockCheckIdentifierExists                     func(ctx context.Context, identifierType string, identifierValue string) (bool, error)
-	MockCheckFacilityExistsByMFLCode              func(ctx context.Context, MFLCode int) (bool, error)
-	MockCreateNextOfKin                           func(ctx context.Context, person *dto.NextOfKinPayload) error
-	MockCreateContact                             func(ctx context.Context, contact *domain.Contact) error
-	MockGetClientsInAFacilityFn                   func(ctx context.Context, facilityID string) ([]*domain.ClientProfile, error)
-	MockGetRecentHealthDiaryEntriesFn             func(ctx context.Context, lastSyncTime time.Time, clientID string) ([]*domain.ClientHealthDiaryEntry, error)
-	MockGetClientsByParams                        func(ctx context.Context, params gorm.Client, lastSyncTime *time.Time) ([]*domain.ClientProfile, error)
-	MockGetClientCCCIdentifier                    func(ctx context.Context, clientID string) (*domain.Identifier, error)
-	MockGetServiceRequestsForKenyaEMRFn           func(ctx context.Context, payload *dto.ServiceRequestPayload) ([]*domain.ServiceRequest, error)
-	MockCreateAppointment                         func(ctx context.Context, appointment domain.Appointment, appointmentUUID, clientID string) error
-	MockUpdateAppointment                         func(ctx context.Context, appointment domain.Appointment, appointmentUUID, clientID string) error
-	MockGetScreeningToolsQuestionsFn              func(ctx context.Context, toolType string) ([]*domain.ScreeningToolQuestion, error)
-	MockAnswerScreeningToolQuestionsFn            func(ctx context.Context, screeningToolResponses []*dto.ScreeningToolQuestionResponseInput) error
-	MockGetScreeningToolQuestionByQuestionIDFn    func(ctx context.Context, questionID string) (*domain.ScreeningToolQuestion, error)
-	MockInvalidateScreeningToolResponseFn         func(ctx context.Context, clientID string, questionID string) error
-	MockUpdateServiceRequestsFn                   func(ctx context.Context, payload *domain.UpdateServiceRequestsPayload) (bool, error)
-	MockListAppointments                          func(ctx context.Context, params *domain.Appointment, filter []*domain.FiltersParam, pagination *domain.Pagination) ([]*domain.Appointment, *domain.Pagination, error)
-	MockGetClientProfileByCCCNumberFn             func(ctx context.Context, CCCNumber string) (*domain.ClientProfile, error)
+	MockGetOrCreateFacilityFn                       func(ctx context.Context, facility *dto.FacilityInput) (*domain.Facility, error)
+	MockGetFacilitiesFn                             func(ctx context.Context) ([]*domain.Facility, error)
+	MockRetrieveFacilityFn                          func(ctx context.Context, id *string, isActive bool) (*domain.Facility, error)
+	ListFacilitiesFn                                func(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationsInput *dto.PaginationsInput) (*domain.FacilityPage, error)
+	MockDeleteFacilityFn                            func(ctx context.Context, id int) (bool, error)
+	MockRetrieveFacilityByMFLCodeFn                 func(ctx context.Context, MFLCode int, isActive bool) (*domain.Facility, error)
+	MockGetUserProfileByPhoneNumberFn               func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*domain.User, error)
+	MockGetUserPINByUserIDFn                        func(ctx context.Context, userID string, flavour feedlib.Flavour) (*domain.UserPIN, error)
+	MockInactivateFacilityFn                        func(ctx context.Context, mflCode *int) (bool, error)
+	MockReactivateFacilityFn                        func(ctx context.Context, mflCode *int) (bool, error)
+	MockGetUserProfileByUserIDFn                    func(ctx context.Context, userID string) (*domain.User, error)
+	MockSaveTemporaryUserPinFn                      func(ctx context.Context, pinData *domain.UserPIN) (bool, error)
+	MockGetCurrentTermsFn                           func(ctx context.Context, flavour feedlib.Flavour) (*domain.TermsOfService, error)
+	MockAcceptTermsFn                               func(ctx context.Context, userID *string, termsID *int) (bool, error)
+	MockSavePinFn                                   func(ctx context.Context, pin *domain.UserPIN) (bool, error)
+	MockUpdateUserFailedLoginCountFn                func(ctx context.Context, userID string, failedLoginAttempts int) error
+	MockUpdateUserLastFailedLoginTimeFn             func(ctx context.Context, userID string) error
+	MockUpdateUserNextAllowedLoginTimeFn            func(ctx context.Context, userID string, nextAllowedLoginTime time.Time) error
+	MockSetNickNameFn                               func(ctx context.Context, userID *string, nickname *string) (bool, error)
+	MockUpdateUserProfileAfterLoginSuccessFn        func(ctx context.Context, userID string) error
+	MockGetSecurityQuestionsFn                      func(ctx context.Context, flavour feedlib.Flavour) ([]*domain.SecurityQuestion, error)
+	MockSaveOTPFn                                   func(ctx context.Context, otpInput *domain.OTP) error
+	MockGetSecurityQuestionByIDFn                   func(ctx context.Context, securityQuestionID *string) (*domain.SecurityQuestion, error)
+	MockSaveSecurityQuestionResponseFn              func(ctx context.Context, securityQuestionResponse []*dto.SecurityQuestionResponseInput) error
+	MockGetSecurityQuestionResponseByIDFn           func(ctx context.Context, questionID string) (*domain.SecurityQuestionResponse, error)
+	MockCheckIfPhoneNumberExistsFn                  func(ctx context.Context, phone string, isOptedIn bool, flavour feedlib.Flavour) (bool, error)
+	MockVerifyOTPFn                                 func(ctx context.Context, payload *dto.VerifyOTPInput) (bool, error)
+	MockGetClientProfileByUserIDFn                  func(ctx context.Context, userID string) (*domain.ClientProfile, error)
+	MockGetStaffProfileByUserIDFn                   func(ctx context.Context, userID string) (*domain.StaffProfile, error)
+	MockCheckUserHasPinFn                           func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
+	MockGenerateRetryOTPFn                          func(ctx context.Context, payload *dto.SendRetryOTPPayload) (string, error)
+	MockUpdateUserPinChangeRequiredStatusFn         func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
+	MockGetOTPFn                                    func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*domain.OTP, error)
+	MockGetUserSecurityQuestionsResponsesFn         func(ctx context.Context, userID string) ([]*domain.SecurityQuestionResponse, error)
+	MockInvalidatePINFn                             func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
+	MockGetContactByUserIDFn                        func(ctx context.Context, userID *string, contactType string) (*domain.Contact, error)
+	MockUpdateIsCorrectSecurityQuestionResponseFn   func(ctx context.Context, userID string, isCorrectSecurityQuestionResponse bool) (bool, error)
+	MockListContentCategoriesFn                     func(ctx context.Context) ([]*domain.ContentItemCategory, error)
+	MockShareContentFn                              func(ctx context.Context, input dto.ShareContentInput) (bool, error)
+	MockBookmarkContentFn                           func(ctx context.Context, userID string, contentID int) (bool, error)
+	MockUnBookmarkContentFn                         func(ctx context.Context, userID string, contentID int) (bool, error)
+	MockGetUserBookmarkedContentFn                  func(ctx context.Context, userID string) ([]*domain.ContentItem, error)
+	MockLikeContentFn                               func(ctx context.Context, userID string, contentID int) (bool, error)
+	MockCheckWhetherUserHasLikedContentFn           func(ctx context.Context, userID string, contentID int) (bool, error)
+	MockUnlikeContentFn                             func(ctx context.Context, userID string, contentID int) (bool, error)
+	MockFetchFacilitiesFn                           func(ctx context.Context) ([]*domain.Facility, error)
+	MockViewContentFn                               func(ctx context.Context, userID string, contentID int) (bool, error)
+	MockCreateHealthDiaryEntryFn                    func(ctx context.Context, healthDiaryInput *domain.ClientHealthDiaryEntry) error
+	MockCreateServiceRequestFn                      func(ctx context.Context, serviceRequestInput *domain.ClientServiceRequest) error
+	MockCanRecordHeathDiaryFn                       func(ctx context.Context, userID string) (bool, error)
+	MockGetClientHealthDiaryQuoteFn                 func(ctx context.Context) (*domain.ClientHealthDiaryQuote, error)
+	MockCheckIfUserBookmarkedContentFn              func(ctx context.Context, userID string, contentID int) (bool, error)
+	MockGetClientHealthDiaryEntriesFn               func(ctx context.Context, clientID string) ([]*domain.ClientHealthDiaryEntry, error)
+	MockGetFAQContentFn                             func(ctx context.Context, flavour feedlib.Flavour, limit *int) ([]*domain.FAQ, error)
+	MockCreateClientCaregiverFn                     func(ctx context.Context, caregiverInput *dto.CaregiverInput) error
+	MockGetClientCaregiverFn                        func(ctx context.Context, caregiverID string) (*domain.Caregiver, error)
+	MockUpdateClientCaregiverFn                     func(ctx context.Context, caregiverInput *dto.CaregiverInput) error
+	MockInProgressByFn                              func(ctx context.Context, requestID string, staffID string) (bool, error)
+	MockGetClientProfileByClientIDFn                func(ctx context.Context, clientID string) (*domain.ClientProfile, error)
+	MockGetServiceRequestsFn                        func(ctx context.Context, requestType, requestStatus, facilityID *string) ([]*domain.ServiceRequest, error)
+	MockGetPendingServiceRequestsCountFn            func(ctx context.Context, facilityID string) (*domain.ServiceRequestsCount, error)
+	MockResolveServiceRequestFn                     func(ctx context.Context, staffID *string, serviceRequestID *string) (bool, error)
+	MockCreateCommunityFn                           func(ctx context.Context, community *dto.CommunityInput) (*domain.Community, error)
+	MockCheckUserRoleFn                             func(ctx context.Context, userID string, role string) (bool, error)
+	MockCheckUserPermissionFn                       func(ctx context.Context, userID string, permission string) (bool, error)
+	MockAssignRolesFn                               func(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error)
+	MockGetUserRolesFn                              func(ctx context.Context, userID string) ([]*domain.AuthorityRole, error)
+	MockGetUserPermissionsFn                        func(ctx context.Context, userID string) ([]*domain.AuthorityPermission, error)
+	MockCheckIfUsernameExistsFn                     func(ctx context.Context, username string) (bool, error)
+	MockRevokeRolesFn                               func(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error)
+	MockGetCommunityByIDFn                          func(ctx context.Context, communityID string) (*domain.Community, error)
+	MockCheckIdentifierExists                       func(ctx context.Context, identifierType string, identifierValue string) (bool, error)
+	MockCheckFacilityExistsByMFLCode                func(ctx context.Context, MFLCode int) (bool, error)
+	MockCreateNextOfKin                             func(ctx context.Context, person *dto.NextOfKinPayload) error
+	MockCreateContact                               func(ctx context.Context, contact *domain.Contact) error
+	MockGetClientsInAFacilityFn                     func(ctx context.Context, facilityID string) ([]*domain.ClientProfile, error)
+	MockGetRecentHealthDiaryEntriesFn               func(ctx context.Context, lastSyncTime time.Time, clientID string) ([]*domain.ClientHealthDiaryEntry, error)
+	MockGetClientsByParams                          func(ctx context.Context, params gorm.Client, lastSyncTime *time.Time) ([]*domain.ClientProfile, error)
+	MockGetClientCCCIdentifier                      func(ctx context.Context, clientID string) (*domain.Identifier, error)
+	MockGetServiceRequestsForKenyaEMRFn             func(ctx context.Context, payload *dto.ServiceRequestPayload) ([]*domain.ServiceRequest, error)
+	MockCreateAppointment                           func(ctx context.Context, appointment domain.Appointment, appointmentUUID, clientID string) error
+	MockUpdateAppointment                           func(ctx context.Context, appointment domain.Appointment, appointmentUUID, clientID string) error
+	MockGetScreeningToolsQuestionsFn                func(ctx context.Context, toolType string) ([]*domain.ScreeningToolQuestion, error)
+	MockAnswerScreeningToolQuestionsFn              func(ctx context.Context, screeningToolResponses []*dto.ScreeningToolQuestionResponseInput) error
+	MockGetScreeningToolQuestionByQuestionIDFn      func(ctx context.Context, questionID string) (*domain.ScreeningToolQuestion, error)
+	MockInvalidateScreeningToolResponseFn           func(ctx context.Context, clientID string, questionID string) error
+	MockUpdateServiceRequestsFn                     func(ctx context.Context, payload *domain.UpdateServiceRequestsPayload) (bool, error)
+	MockListAppointments                            func(ctx context.Context, params *domain.Appointment, filter []*domain.FiltersParam, pagination *domain.Pagination) ([]*domain.Appointment, *domain.Pagination, error)
+	MockGetClientProfileByCCCNumberFn               func(ctx context.Context, CCCNumber string) (*domain.ClientProfile, error)
+	MockCheckIfClientHasUnresolvedServiceRequestsFn func(ctx context.Context, clientID string, serviceRequestType string) (bool, error)
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -170,7 +171,9 @@ func NewPostgresMock() *PostgresMock {
 	}
 
 	client := &domain.ClientProfile{
-		ID: &ID,
+		ID:        &ID,
+		CHVUserID: ID,
+		UserID:    ID,
 	}
 	staff := &domain.StaffProfile{
 		ID:                &ID,
@@ -291,7 +294,7 @@ func NewPostgresMock() *PostgresMock {
 		MockUpdateUserNextAllowedLoginTimeFn: func(ctx context.Context, userID string, nextAllowedLoginTime time.Time) error {
 			return nil
 		},
-		MockUpdateUserLastSuccessfulLoginTimeFn: func(ctx context.Context, userID string) error {
+		MockUpdateUserProfileAfterLoginSuccessFn: func(ctx context.Context, userID string) error {
 			return nil
 		},
 		MockGetSecurityQuestionsFn: func(ctx context.Context, flavour feedlib.Flavour) ([]*domain.SecurityQuestion, error) {
@@ -689,6 +692,9 @@ func NewPostgresMock() *PostgresMock {
 		MockGetClientProfileByCCCNumberFn: func(ctx context.Context, CCCNumber string) (*domain.ClientProfile, error) {
 			return client, nil
 		},
+		MockCheckIfClientHasUnresolvedServiceRequestsFn: func(ctx context.Context, clientID string, serviceRequestType string) (bool, error) {
+			return false, nil
+		},
 	}
 }
 
@@ -792,9 +798,9 @@ func (gm *PostgresMock) UpdateUserNextAllowedLoginTime(ctx context.Context, user
 	return gm.MockUpdateUserNextAllowedLoginTimeFn(ctx, userID, nextAllowedLoginTime)
 }
 
-// UpdateUserLastSuccessfulLoginTime mocks the implementation of updating a user's last successful login time
-func (gm *PostgresMock) UpdateUserLastSuccessfulLoginTime(ctx context.Context, userID string) error {
-	return gm.MockUpdateUserLastSuccessfulLoginTimeFn(ctx, userID)
+// UpdateUserProfileAfterLoginSuccess mocks the implementation of updating a user's last successful login time
+func (gm *PostgresMock) UpdateUserProfileAfterLoginSuccess(ctx context.Context, userID string) error {
+	return gm.MockUpdateUserProfileAfterLoginSuccessFn(ctx, userID)
 }
 
 //GetSecurityQuestions mocks the implementation of getting all the security questions.
@@ -1140,4 +1146,9 @@ func (gm *PostgresMock) UpdateServiceRequests(ctx context.Context, payload *doma
 // GetClientProfileByCCCNumber mocks the implementation of getting a client profile using the CCC number
 func (gm *PostgresMock) GetClientProfileByCCCNumber(ctx context.Context, CCCNumber string) (*domain.ClientProfile, error) {
 	return gm.MockGetClientProfileByCCCNumberFn(ctx, CCCNumber)
+}
+
+// CheckIfClientHasUnresolvedServiceRequests mocks the implementation of checking if a client has an unresolved service request
+func (gm *PostgresMock) CheckIfClientHasUnresolvedServiceRequests(ctx context.Context, clientID string, serviceRequestType string) (bool, error) {
+	return gm.MockCheckIfClientHasUnresolvedServiceRequestsFn(ctx, clientID, serviceRequestType)
 }

@@ -486,7 +486,7 @@ func TestMyCareHubDb_UpdateUserNextAllowedLoginTime(t *testing.T) {
 	}
 }
 
-func TestMyCareHubDb_UpdateUserLastSuccessfulLoginTime(t *testing.T) {
+func TestMyCareHubDb_UpdateUserProfileAfterLoginSuccess(t *testing.T) {
 	ctx := context.Background()
 	type args struct {
 		ctx    context.Context
@@ -527,19 +527,19 @@ func TestMyCareHubDb_UpdateUserLastSuccessfulLoginTime(t *testing.T) {
 			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
 
 			if tt.name == "Sad Case - Fail to update" {
-				fakeGorm.MockUpdateUserLastSuccessfulLoginTimeFn = func(ctx context.Context, userID string) error {
+				fakeGorm.MockUpdateUserProfileAfterLoginSuccessFn = func(ctx context.Context, userID string) error {
 					return fmt.Errorf("failed to update last successful login time")
 				}
 			}
 
 			if tt.name == "Sad Case - Missing user ID" {
-				fakeGorm.MockUpdateUserLastSuccessfulLoginTimeFn = func(ctx context.Context, userID string) error {
+				fakeGorm.MockUpdateUserProfileAfterLoginSuccessFn = func(ctx context.Context, userID string) error {
 					return fmt.Errorf("missing user ID")
 				}
 			}
 
-			if err := d.UpdateUserLastSuccessfulLoginTime(tt.args.ctx, tt.args.userID); (err != nil) != tt.wantErr {
-				t.Errorf("MyCareHubDb.UpdateUserLastSuccessfulLoginTime() error = %v, wantErr %v", err, tt.wantErr)
+			if err := d.UpdateUserProfileAfterLoginSuccess(tt.args.ctx, tt.args.userID); (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.UpdateUserProfileAfterLoginSuccess() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}

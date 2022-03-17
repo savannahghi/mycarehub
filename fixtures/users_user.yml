@@ -405,4 +405,39 @@
   approval_notified: false
   handle: "@usstaff"
 
+  # test test user client  with unresolved service requests
+- id: {{.client_user_unresolved_request_id}}
+  username: test client user10
+  name: test client10
+  first_name: first name10
+  middle_name: middle name10
+  last_name: last name10
+  user_type: client
+  gender: male
+  last_successful_login: RAW=NOW()
+  last_failed_login: null
+  failed_login_count: 0
+  failed_security_count: 0
+  next_allowed_login: RAW=NOW()
+  accepted_terms_of_service_id: {{.test_terms_id}}
+  terms_accepted: true
+  flavour:  CONSUMER
+  avatar: null
+  is_suspended: false
+  pin_change_required: false
+  has_set_pin: true
+  has_set_security_questions: true
+  is_phone_verified: true
+  organisation_id: {{.test_organisation_id}}
+  password: {{.test_password}}
+  is_superuser: false
+  is_staff: false
+  email: test@example10.co
+  date_joined: RAW=NOW()
+  is_approved: true
+  is_active: true
+  approval_notified: false
+  handle: "@client10"
+
+  
   

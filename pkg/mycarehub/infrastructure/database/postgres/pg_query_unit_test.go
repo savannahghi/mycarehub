@@ -3865,3 +3865,43 @@ func TestMyCareHubDb_GetClientProfileByCCCNumber(t *testing.T) {
 		})
 	}
 }
+
+func TestMyCareHubDb_CheckIfClientHasUnresolvedServiceRequests(t *testing.T) {
+	type args struct {
+		ctx                context.Context
+		clientID           string
+		serviceRequestType string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:                context.Background(),
+				clientID:           uuid.New().String(),
+				serviceRequestType: string(enums.ServiceRequestTypePinReset),
+			},
+			want:    true,
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var fakeGorm = gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			got, err := d.CheckIfClientHasUnresolvedServiceRequests(tt.args.ctx, tt.args.clientID, tt.args.serviceRequestType)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.CheckIfClientHasUnresolvedServiceRequests() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("MyCareHubDb.CheckIfClientHasUnresolvedServiceRequests() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

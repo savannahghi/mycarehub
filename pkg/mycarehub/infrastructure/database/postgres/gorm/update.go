@@ -20,7 +20,7 @@ type Update interface {
 	UpdateUserFailedLoginCount(ctx context.Context, userID string, failedLoginAttempts int) error
 	UpdateUserLastFailedLoginTime(ctx context.Context, userID string) error
 	UpdateUserNextAllowedLoginTime(ctx context.Context, userID string, nextAllowedLoginTime time.Time) error
-	UpdateUserLastSuccessfulLoginTime(ctx context.Context, userID string) error
+	UpdateUserProfileAfterLoginSuccess(ctx context.Context, userID string) error
 	SetNickName(ctx context.Context, userID *string, nickname *string) (bool, error)
 	UpdateUserPinChangeRequiredStatus(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
 	InvalidatePIN(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
@@ -215,12 +215,14 @@ func (db *PGInstance) AcceptTerms(ctx context.Context, userID *string, termsID *
 // UpdateUserFailedLoginCount updates the user's failed login count field in an event where a user fails to
 // log into the app
 func (db *PGInstance) UpdateUserFailedLoginCount(ctx context.Context, userID string, failedLoginAttempts int) error {
-	err := db.DB.Model(&User{}).Where(&User{UserID: &userID}).Updates(map[string]interface{}{
-		"failed_login_count": failedLoginAttempts,
-	}).Error
+	// get user profile and update the count in transaction
+	err := db.DB.Model(&User{}).Where(&User{UserID: &userID}).
+		Updates(map[string]interface{}{
+			"failed_login_count": failedLoginAttempts,
+		}).Error
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return err
+		return fmt.Errorf("an error occurred while updating the user failed login count: %v", err)
 	}
 	return nil
 }
@@ -247,16 +249,25 @@ func (db *PGInstance) UpdateUserNextAllowedLoginTime(ctx context.Context, userID
 	return nil
 }
 
-// UpdateUserLastSuccessfulLoginTime updates the `lastSuccessfulLogin` field in the event where a user
+// UpdateUserProfileAfterLoginSuccess updates the `lastSuccessfulLogin` field in the event where a user
 // successfully logs into the app
-func (db *PGInstance) UpdateUserLastSuccessfulLoginTime(ctx context.Context, userID string) error {
+func (db *PGInstance) UpdateUserProfileAfterLoginSuccess(ctx context.Context, userID string) error {
 	currentTime := time.Now()
-	err := db.DB.Model(&User{}).Where(&User{UserID: &userID}).Updates(&User{LastSuccessfulLogin: &currentTime}).Error
+	failedLoginCount := 0
+
+	err := db.DB.Model(&User{}).Where(&User{UserID: &userID}).
+		Updates(map[string]interface{}{
+			"last_successful_login": &currentTime,
+			"failed_login_count":    failedLoginCount,
+			"next_allowed_login":    currentTime,
+		}).Error
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return err
+		return fmt.Errorf("an error occurred while updating the user profile: %v", err)
 	}
+
 	return nil
+
 }
 
 // SetNickName is used to set the user's nickname in the database

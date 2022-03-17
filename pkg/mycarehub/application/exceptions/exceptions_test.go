@@ -113,4 +113,13 @@ func TestCustomErrors(t *testing.T) {
 	assert.NotNil(t, err)
 	err = exceptions.RevokeRolesErr(fmt.Errorf("error"))
 	assert.NotNil(t, err)
+
+	err = exceptions.ClientHasUnresolvedPinResetRequestErr(fmt.Errorf("error"))
+	assert.NotNil(t, err)
+
+	err = exceptions.UserNameExistsErr(fmt.Errorf("error"))
+	assert.NotNil(t, err)
+
+	err = exceptions.RetryLoginErr(fmt.Errorf("error"))
+	assert.NotNil(t, err)
 }
