@@ -2924,3 +2924,46 @@ func TestPGInstance_GetAllRoles(t *testing.T) {
 		})
 	}
 }
+
+func TestPGInstance_SearchClientProfilesByCCCNumber(t *testing.T) {
+	ctx := context.Background()
+
+	type args struct {
+		ctx       context.Context
+		CCCNumber string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    []*gorm.Client
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Successfully get client profiles by CCC number",
+			args: args{
+				ctx:       ctx,
+				CCCNumber: "123456",
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := testingDB.SearchClientProfilesByCCCNumber(tt.args.ctx, tt.args.CCCNumber)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.SearchClientProfilesByCCCNumber() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			if tt.wantErr && got != nil {
+				t.Errorf("expected client profiles to be nil for %v", tt.name)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected client profiles not to be nil for %v", tt.name)
+				return
+			}
+
+		})
+	}
+}

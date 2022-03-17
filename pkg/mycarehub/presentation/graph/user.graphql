@@ -2,7 +2,7 @@ extend type Query {
   getCurrentTerms(flavour: Flavour!): TermsOfService!
   verifyPIN(userID: String!, flavour: Flavour!, pin: String!): Boolean!
   getClientCaregiver(clientID: String!): Caregiver!
-  getClientByCCCNumber(CCCNumber: String!): ClientProfile!
+  searchClientsByCCCNumber(CCCNumber: String!): [ClientProfile!]
 }
 
 extend type Mutation {

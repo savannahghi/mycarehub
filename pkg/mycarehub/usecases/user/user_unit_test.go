@@ -3146,7 +3146,7 @@ func TestUseCasesUserImpl_RegisterStaff(t *testing.T) {
 	}
 }
 
-func TestUseCasesUserImpl_GetClientByCCCNumber(t *testing.T) {
+func TestUseCasesUserImpl_SearchClientByCCCNumber(t *testing.T) {
 	ctx := context.Background()
 
 	fakeDB := pgMock.NewPostgresMock()
@@ -3186,11 +3186,11 @@ func TestUseCasesUserImpl_GetClientByCCCNumber(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.name == "Sad case" {
-				fakeDB.MockGetClientProfileByCCCNumberFn = func(ctx context.Context, CCCNumber string) (*domain.ClientProfile, error) {
+				fakeDB.MockSearchClientProfilesByCCCNumberFn = func(ctx context.Context, CCCNumber string) ([]*domain.ClientProfile, error) {
 					return nil, fmt.Errorf("an error occurred")
 				}
 			}
-			got, err := us.GetClientByCCCNumber(tt.args.ctx, tt.args.CCCNumber)
+			got, err := us.SearchClientsByCCCNumber(tt.args.ctx, tt.args.CCCNumber)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCasesUserImpl.GetClientByCCCNumber() error = %v, wantErr %v", err, tt.wantErr)
 				return

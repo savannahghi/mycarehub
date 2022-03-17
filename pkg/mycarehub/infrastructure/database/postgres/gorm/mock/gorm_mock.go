@@ -104,6 +104,7 @@ type GormMock struct {
 	MockInvalidateScreeningToolResponseFn           func(ctx context.Context, clientID string, questionID string) error
 	MockUpdateServiceRequestsFn                     func(ctx context.Context, payload []*gorm.ClientServiceRequest) (bool, error)
 	MockGetClientProfileByCCCNumberFn               func(ctx context.Context, CCCNumber string) (*gorm.Client, error)
+	MockSearchClientProfilesByCCCNumberFn           func(ctx context.Context, CCCNumber string) ([]*gorm.Client, error)
 	MockUpdateUserPinChangeRequiredStatusFn         func(ctx context.Context, userID string, flavour feedlib.Flavour, status bool) error
 	MockCheckIfClientHasUnresolvedServiceRequestsFn func(ctx context.Context, clientID string, serviceRequestType string) (bool, error)
 	MockGetAllRolesFn                               func(ctx context.Context) ([]*gorm.AuthorityRole, error)
@@ -759,6 +760,9 @@ func NewGormMock() *GormMock {
 		MockGetClientProfileByCCCNumberFn: func(ctx context.Context, CCCNumber string) (*gorm.Client, error) {
 			return client, nil
 		},
+		MockSearchClientProfilesByCCCNumberFn: func(ctx context.Context, CCCNumber string) ([]*gorm.Client, error) {
+			return []*gorm.Client{client}, nil
+		},
 		MockCheckIfClientHasUnresolvedServiceRequestsFn: func(ctx context.Context, clientID string, serviceRequestType string) (bool, error) {
 			return true, nil
 		},
@@ -1226,4 +1230,10 @@ func (gm *GormMock) UpdateUserPinChangeRequiredStatus(ctx context.Context, userI
 // GetAllRoles mocks the implementation of getting all roles
 func (gm *GormMock) GetAllRoles(ctx context.Context) ([]*gorm.AuthorityRole, error) {
 	return gm.MockGetAllRolesFn(ctx)
+}
+
+// SearchClientProfilesByCCCNumber mocks the implementation of searching for client profiles.
+// It returns clients profiles whose parts of the CCC number matches
+func (gm *GormMock) SearchClientProfilesByCCCNumber(ctx context.Context, CCCNumber string) ([]*gorm.Client, error) {
+	return gm.MockSearchClientProfilesByCCCNumberFn(ctx, CCCNumber)
 }

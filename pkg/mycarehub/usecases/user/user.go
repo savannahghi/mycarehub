@@ -107,7 +107,7 @@ type IClientMedicalHistory interface {
 
 // IGetClientByCCCNumber interface contain the method used to get a client using his/her CCC number
 type IGetClientByCCCNumber interface {
-	GetClientByCCCNumber(ctx context.Context, CCCNumber string) (*domain.ClientProfile, error)
+	SearchClientsByCCCNumber(ctx context.Context, CCCNumber string) ([]*domain.ClientProfile, error)
 }
 
 // UseCasesUser group all business logic usecases related to user
@@ -1126,9 +1126,9 @@ func (us *UseCasesUserImpl) RegisterStaff(ctx context.Context, input dto.StaffRe
 	return registrationOutput, nil
 }
 
-// GetClientByCCCNumber is used to search for a client using their CCC number
-func (us *UseCasesUserImpl) GetClientByCCCNumber(ctx context.Context, CCCNumber string) (*domain.ClientProfile, error) {
-	clientProfile, err := us.Query.GetClientProfileByCCCNumber(ctx, CCCNumber)
+// SearchClientsByCCCNumber is used to search for a client using their CCC number.
+func (us *UseCasesUserImpl) SearchClientsByCCCNumber(ctx context.Context, CCCNumber string) ([]*domain.ClientProfile, error) {
+	clientProfile, err := us.Query.SearchClientProfilesByCCCNumber(ctx, CCCNumber)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("unable to get client profile: %v", err)

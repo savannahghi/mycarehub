@@ -3953,3 +3953,74 @@ func TestMyCareHubDb_GetAllRoles(t *testing.T) {
 		})
 	}
 }
+
+func TestMyCareHubDb_SearchClientProfilesByCCCNumber(t *testing.T) {
+	ctx := context.Background()
+
+	var fakeGorm = gormMock.NewGormMock()
+	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+	type args struct {
+		ctx       context.Context
+		CCCNumber string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    []*domain.ClientProfile
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Successfully get client profiles by CCC number",
+			args: args{
+				ctx:       ctx,
+				CCCNumber: "345678",
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad Case - Fail to get user profile",
+			args: args{
+				ctx:       ctx,
+				CCCNumber: "111111",
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - Fail to get client identifier",
+			args: args{
+				ctx:       ctx,
+				CCCNumber: "111111",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "Sad Case - Fail to get user profile" {
+				fakeGorm.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID *string) (*gorm.User, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad Case - Fail to get client identifier" {
+				fakeGorm.MockGetClientCCCIdentifier = func(ctx context.Context, clientID string) (*gorm.Identifier, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+
+			got, err := d.SearchClientProfilesByCCCNumber(tt.args.ctx, tt.args.CCCNumber)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.SearchClientProfilesByCCCNumber() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if tt.wantErr && got != nil {
+				t.Errorf("expected client profiles to be nil for %v", tt.name)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected client profiles not to be nil for %v", tt.name)
+				return
+			}
+		})
+	}
+}

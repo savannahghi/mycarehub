@@ -109,6 +109,7 @@ type PostgresMock struct {
 	MockListAppointments                            func(ctx context.Context, params *domain.Appointment, filter []*domain.FiltersParam, pagination *domain.Pagination) ([]*domain.Appointment, *domain.Pagination, error)
 	MockGetClientProfileByCCCNumberFn               func(ctx context.Context, CCCNumber string) (*domain.ClientProfile, error)
 	MockUpdateUserPinChangeRequiredStatusFn         func(ctx context.Context, userID string, flavour feedlib.Flavour, status bool) error
+	MockSearchClientProfilesByCCCNumberFn           func(ctx context.Context, CCCNumber string) ([]*domain.ClientProfile, error)
 	MockCheckIfClientHasUnresolvedServiceRequestsFn func(ctx context.Context, clientID string, serviceRequestType string) (bool, error)
 	MockGetAllRolesFn                               func(ctx context.Context) ([]*domain.AuthorityRole, error)
 }
@@ -443,6 +444,9 @@ func NewPostgresMock() *PostgresMock {
 				Quote:  "test",
 				Author: "test",
 			}, nil
+		},
+		MockSearchClientProfilesByCCCNumberFn: func(ctx context.Context, CCCNumber string) ([]*domain.ClientProfile, error) {
+			return []*domain.ClientProfile{client}, nil
 		},
 		MockCheckIfUserBookmarkedContentFn: func(ctx context.Context, userID string, contentID int) (bool, error) {
 			return true, nil
@@ -1175,4 +1179,10 @@ func (gm *PostgresMock) UpdateUserPinChangeRequiredStatus(ctx context.Context, u
 // GetAllRoles mocks the implementation of getting all roles
 func (gm *PostgresMock) GetAllRoles(ctx context.Context) ([]*domain.AuthorityRole, error) {
 	return gm.MockGetAllRolesFn(ctx)
+}
+
+// SearchClientProfilesByCCCNumber mocks the implementation of searching for client profiles.
+// It returns clients profiles whose parts of the CCC number matches
+func (gm *PostgresMock) SearchClientProfilesByCCCNumber(ctx context.Context, CCCNumber string) ([]*domain.ClientProfile, error) {
+	return gm.MockSearchClientProfilesByCCCNumberFn(ctx, CCCNumber)
 }
