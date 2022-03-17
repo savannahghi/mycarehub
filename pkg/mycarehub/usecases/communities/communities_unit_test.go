@@ -1184,6 +1184,70 @@ func TestUseCasesCommunitiesImpl_RecommendedCommunities(t *testing.T) {
 	}
 }
 
+func TestUseCasesCommunitiesImpl_ListCommunityBannedMembers(t *testing.T) {
+	ctx := context.Background()
+
+	fakeGetStream := getStreamMock.NewGetStreamServiceMock()
+	fakeExtension := extensionMock.NewFakeExtension()
+	fakeDB := pgMock.NewPostgresMock()
+	communities := communities.NewUseCaseCommunitiesImpl(fakeGetStream, fakeExtension, fakeDB, fakeDB)
+
+	type args struct {
+		ctx         context.Context
+		communityID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    []*domain.Member
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:         ctx,
+				communityID: uuid.New().String(),
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case",
+			args: args{
+				ctx:         ctx,
+				communityID: uuid.New().String(),
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case - empty community ID",
+			args: args{
+				ctx:         ctx,
+				communityID: "",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "Sad case" {
+				fakeGetStream.MockListCommunityBannedMembersFn = func(ctx context.Context, communityID string) (*stream.QueryBannedUsersResponse, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - empty community ID" {
+				fakeGetStream.MockListCommunityBannedMembersFn = func(ctx context.Context, communityID string) (*stream.QueryBannedUsersResponse, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+			_, err := communities.ListCommunityBannedMembers(tt.args.ctx, tt.args.communityID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCasesCommunitiesImpl.ListCommunityBannedMembers() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}
+
 func TestUseCasesCommunitiesImpl_BanUser(t *testing.T) {
 	ctx := context.Background()
 

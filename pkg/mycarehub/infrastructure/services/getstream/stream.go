@@ -39,6 +39,7 @@ type ServiceGetStream interface {
 	DeleteUsers(ctx context.Context, userIDs []string, options stream.DeleteUserOptions) (*stream.AsyncTaskResponse, error)
 	BanUser(ctx context.Context, targetMemberID string, bannedBy string, communityID string) (bool, error)
 	UnBanUser(ctx context.Context, targetID string, communityID string) (bool, error)
+	ListCommunityBannedMembers(ctx context.Context, communityID string) (*stream.QueryBannedUsersResponse, error)
 }
 
 // ChatClient is the service's struct implementation
@@ -175,6 +176,20 @@ func (c *ChatClient) DeleteUsers(ctx context.Context, userIDs []string, options 
 	return c.client.DeleteUsers(ctx, userIDs, options)
 }
 
+// ListCommunityBannedMembers is used to list members banned from a channel.
+func (c *ChatClient) ListCommunityBannedMembers(ctx context.Context, communityID string) (*stream.QueryBannedUsersResponse, error) {
+	response, err := c.client.QueryBannedUsers(ctx, &stream.QueryBannedUsersOptions{
+		QueryOption: &stream.QueryOption{Filter: map[string]interface{}{
+			"channel_cid": "messaging:" + communityID,
+		}},
+	})
+	if err != nil {
+		return nil, fmt.Errorf("an error occurred: %v", err)
+	}
+
+	return response, nil
+}
+
 // BanUser bans a user from a specified channel
 func (c *ChatClient) BanUser(ctx context.Context, targetMemberID string, bannedBy string, communityID string) (bool, error) {
 	similar := strings.EqualFold(targetMemberID, bannedBy)
@@ -194,7 +209,7 @@ func (c *ChatClient) BanUser(ctx context.Context, targetMemberID string, bannedB
 // UnBanUser unbans a user who was banned in the specified channel
 func (c *ChatClient) UnBanUser(ctx context.Context, targetID string, communityID string) (bool, error) {
 	if targetID == "" || communityID == "" {
-		return false, fmt.Errorf("neither targetID or communityID cannot be empty")
+		return false, fmt.Errorf("neither targetID nor communityID can be empty")
 	}
 
 	response, err := c.client.QueryBannedUsers(ctx, &stream.QueryBannedUsersOptions{
