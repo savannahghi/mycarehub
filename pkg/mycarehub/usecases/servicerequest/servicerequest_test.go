@@ -10,9 +10,12 @@ import (
 	"github.com/google/uuid"
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
+	extensionMock "github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension/mock"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	pgMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/mock"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/servicerequest"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/servicerequest/mock"
+	userMock "github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/user/mock"
 )
 
 func TestUseCasesServiceRequestImpl_CreateServiceRequest(t *testing.T) {
@@ -66,6 +69,8 @@ func TestUseCasesServiceRequestImpl_CreateServiceRequest(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
+			fakeExtension := extensionMock.NewFakeExtension()
+			fakeUser := userMock.NewUserUseCaseMock()
 
 			if tt.name == "Sad Case - Fail to create a service request" {
 				fakeDB.MockCreateServiceRequestFn = func(ctx context.Context, serviceRequestInput *domain.ClientServiceRequest) error {
@@ -79,7 +84,7 @@ func TestUseCasesServiceRequestImpl_CreateServiceRequest(t *testing.T) {
 				}
 			}
 
-			u := servicerequest.NewUseCaseServiceRequestImpl(fakeDB, fakeDB, fakeDB)
+			u := servicerequest.NewUseCaseServiceRequestImpl(fakeDB, fakeDB, fakeDB, fakeExtension, fakeUser)
 			got, err := u.CreateServiceRequest(tt.args.ctx, tt.args.clientID, tt.args.requestType, tt.args.request, tt.args.cccNumber)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCasesServiceRequestImpl.CreateServiceRequest() error = %v, wantErr %v", err, tt.wantErr)
@@ -150,7 +155,9 @@ func TestUseCasesServiceRequestImpl_InProgressBy(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
-			u := servicerequest.NewUseCaseServiceRequestImpl(fakeDB, fakeDB, fakeDB)
+			fakeExtension := extensionMock.NewFakeExtension()
+			fakeUser := userMock.NewUserUseCaseMock()
+			u := servicerequest.NewUseCaseServiceRequestImpl(fakeDB, fakeDB, fakeDB, fakeExtension, fakeUser)
 
 			if tt.name == "Sad case" {
 				fakeDB.MockInProgressByFn = func(ctx context.Context, requestID, staffID string) (bool, error) {
@@ -234,7 +241,9 @@ func TestUseCasesServiceRequestImpl_GetServiceRequests(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
-			u := servicerequest.NewUseCaseServiceRequestImpl(fakeDB, fakeDB, fakeDB)
+			fakeExtension := extensionMock.NewFakeExtension()
+			fakeUser := userMock.NewUserUseCaseMock()
+			u := servicerequest.NewUseCaseServiceRequestImpl(fakeDB, fakeDB, fakeDB, fakeExtension, fakeUser)
 
 			if tt.name == "Sad Case - Fail to get service requests" {
 				fakeDB.MockGetServiceRequestsFn = func(ctx context.Context, requestType, requestStatus, facilityID *string) ([]*domain.ServiceRequest, error) {
@@ -320,7 +329,9 @@ func TestUseCasesServiceRequestImpl_ResolveServiceRequest(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
-			u := servicerequest.NewUseCaseServiceRequestImpl(fakeDB, fakeDB, fakeDB)
+			fakeExtension := extensionMock.NewFakeExtension()
+			fakeUser := userMock.NewUserUseCaseMock()
+			u := servicerequest.NewUseCaseServiceRequestImpl(fakeDB, fakeDB, fakeDB, fakeExtension, fakeUser)
 
 			if tt.name == "Sad Case - Fail to resolve service request" {
 				fakeDB.MockResolveServiceRequestFn = func(ctx context.Context, staffID *string, serviceRequestID *string) (bool, error) {
@@ -386,7 +397,9 @@ func TestUseCasesServiceRequestImpl_GetPendingServiceRequestsCount(t *testing.T)
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
-			u := servicerequest.NewUseCaseServiceRequestImpl(fakeDB, fakeDB, fakeDB)
+			fakeExtension := extensionMock.NewFakeExtension()
+			fakeUser := userMock.NewUserUseCaseMock()
+			u := servicerequest.NewUseCaseServiceRequestImpl(fakeDB, fakeDB, fakeDB, fakeExtension, fakeUser)
 
 			if tt.name == "Sad case" {
 				fakeDB.MockGetPendingServiceRequestsCountFn = func(ctx context.Context, facilityID string) (*domain.ServiceRequestsCount, error) {
@@ -419,7 +432,10 @@ func TestUseCasesServiceRequestImpl_GetPendingServiceRequestsCount(t *testing.T)
 func TestUseCasesServiceRequestImpl_GetServiceRequestsForKenyaEMR(t *testing.T) {
 	ctx := context.Background()
 	fakeDB := pgMock.NewPostgresMock()
-	u := servicerequest.NewUseCaseServiceRequestImpl(fakeDB, fakeDB, fakeDB)
+	fakeExtension := extensionMock.NewFakeExtension()
+	fakeUser := userMock.NewUserUseCaseMock()
+	u := servicerequest.NewUseCaseServiceRequestImpl(fakeDB, fakeDB, fakeDB, fakeExtension, fakeUser)
+
 	currentTime := time.Now()
 
 	type args struct {
@@ -497,7 +513,9 @@ func TestUseCasesServiceRequestImpl_GetServiceRequestsForKenyaEMR(t *testing.T) 
 func TestUseCasesServiceRequestImpl_UpdateServiceRequestsFromKenyaEMR(t *testing.T) {
 	ctx := context.Background()
 	fakeDB := pgMock.NewPostgresMock()
-	u := servicerequest.NewUseCaseServiceRequestImpl(fakeDB, fakeDB, fakeDB)
+	fakeExtension := extensionMock.NewFakeExtension()
+	fakeUser := userMock.NewUserUseCaseMock()
+	u := servicerequest.NewUseCaseServiceRequestImpl(fakeDB, fakeDB, fakeDB, fakeExtension, fakeUser)
 
 	payload := dto.UpdateServiceRequestPayload{
 		ID:           uuid.New().String(),
@@ -615,7 +633,9 @@ func TestUseCasesServiceRequestImpl_CreatePinResetServiceRequest(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
-			u := servicerequest.NewUseCaseServiceRequestImpl(fakeDB, fakeDB, fakeDB)
+			fakeExtension := extensionMock.NewFakeExtension()
+			fakeUser := userMock.NewUserUseCaseMock()
+			u := servicerequest.NewUseCaseServiceRequestImpl(fakeDB, fakeDB, fakeDB, fakeExtension, fakeUser)
 
 			if tt.name == "Sad Case - Fail to create service request" {
 				fakeDB.MockCreateServiceRequestFn = func(ctx context.Context, serviceRequestInput *domain.ClientServiceRequest) error {
@@ -642,6 +662,226 @@ func TestUseCasesServiceRequestImpl_CreatePinResetServiceRequest(t *testing.T) {
 			}
 			if got != tt.want {
 				t.Errorf("UseCasesServiceRequestImpl.CreatePinResetServiceRequest() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestUseCasesServiceRequestImpl_ApprovePinResetServiceRequest(t *testing.T) {
+	ctx := context.Background()
+	type args struct {
+		ctx                      context.Context
+		clientID                 string
+		serviceRequestID         string
+		cccNumber                string
+		phoneNumber              string
+		physicalIdentityVerified bool
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Successfully approve pin reset service request",
+			args: args{
+				ctx:                      ctx,
+				clientID:                 "26b20a42-cbb8-4553-aedb-c539602d04fc",
+				serviceRequestID:         uuid.New().String(),
+				cccNumber:                "123456",
+				phoneNumber:              "+254711111111",
+				physicalIdentityVerified: true,
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Sad Case - Fail to get logged in user",
+			args: args{
+				ctx:      ctx,
+				clientID: uuid.New().String(),
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - Fail to get staff profile by user ID",
+			args: args{
+				ctx:      ctx,
+				clientID: uuid.New().String(),
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - Patient not verified by healthcare worker",
+			args: args{
+				ctx:                      ctx,
+				clientID:                 "26b20a42-cbb8-4553-aedb-c539602d04fc",
+				serviceRequestID:         uuid.New().String(),
+				cccNumber:                "123456",
+				phoneNumber:              "+254711111111",
+				physicalIdentityVerified: false,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - Fail to get ccc number",
+			args: args{
+				ctx:                      ctx,
+				clientID:                 "26b20a42-cbb8-4553-aedb-c539602d04fc",
+				serviceRequestID:         uuid.New().String(),
+				cccNumber:                "123456",
+				phoneNumber:              "+254711111111",
+				physicalIdentityVerified: true,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - Fail to mark service request as in progress",
+			args: args{
+				ctx:                      ctx,
+				clientID:                 "26b20a42-cbb8-4553-aedb-c539602d04fc",
+				serviceRequestID:         uuid.New().String(),
+				cccNumber:                "123456",
+				phoneNumber:              "+254711111111",
+				physicalIdentityVerified: true,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - Fail to get useer profile by phonenumber",
+			args: args{
+				ctx:                      ctx,
+				clientID:                 "26b20a42-cbb8-4553-aedb-c539602d04fc",
+				serviceRequestID:         uuid.New().String(),
+				cccNumber:                "123456",
+				phoneNumber:              "+254711111111",
+				physicalIdentityVerified: true,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - Fail to invite user",
+			args: args{
+				ctx:                      ctx,
+				clientID:                 "26b20a42-cbb8-4553-aedb-c539602d04fc",
+				serviceRequestID:         uuid.New().String(),
+				cccNumber:                "123456",
+				phoneNumber:              "+254711111111",
+				physicalIdentityVerified: true,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - Fail to update user pin changed required status",
+			args: args{
+				ctx:                      ctx,
+				clientID:                 "26b20a42-cbb8-4553-aedb-c539602d04fc",
+				serviceRequestID:         uuid.New().String(),
+				cccNumber:                "123456",
+				phoneNumber:              "+254711111111",
+				physicalIdentityVerified: true,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - Fail to resolve service request",
+			args: args{
+				ctx:                      ctx,
+				clientID:                 "26b20a42-cbb8-4553-aedb-c539602d04fc",
+				serviceRequestID:         uuid.New().String(),
+				cccNumber:                "123456",
+				phoneNumber:              "+254711111111",
+				physicalIdentityVerified: true,
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			fakeExtension := extensionMock.NewFakeExtension()
+			fakeUser := userMock.NewUserUseCaseMock()
+			fakeServiceRequest := mock.NewServiceRequestUseCaseMock()
+			u := servicerequest.NewUseCaseServiceRequestImpl(fakeDB, fakeDB, fakeDB, fakeExtension, fakeUser)
+
+			if tt.name == "Sad Case - Fail to get logged in user" {
+				fakeExtension.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "", fmt.Errorf("failed to get logged in user UID")
+				}
+			}
+
+			if tt.name == "Sad Case - Fail to get staff profile by user ID" {
+				fakeDB.MockGetStaffProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.StaffProfile, error) {
+					return nil, fmt.Errorf("failed to get staff profile by user ID")
+				}
+			}
+
+			if tt.name == "Sad Case - Patient not verified by healthcare worker" {
+				fakeServiceRequest.MockApprovePinResetServiceRequestFn = func(
+					ctx context.Context,
+					clientID string,
+					serviceRequestID string,
+					cccNumber string,
+					phoneNumber string,
+					physicalIdentityVerified bool,
+				) (bool, error) {
+					return false, fmt.Errorf("patient not verified")
+				}
+			}
+
+			if tt.name == "Sad Case - Fail to get ccc number" {
+				fakeDB.MockGetClientCCCIdentifier = func(ctx context.Context, clientID string) (*domain.Identifier, error) {
+					return nil, fmt.Errorf("fail to get client ccc number")
+				}
+			}
+
+			if tt.name == "Sad Case - Fail to mark service request as in progress" {
+				fakeDB.MockInProgressByFn = func(ctx context.Context, requestID string, staffID string) (bool, error) {
+					return false, fmt.Errorf("failed to mark service request as in progress")
+				}
+			}
+
+			if tt.name == "Sad Case - Fail to get useer profile by phonenumber" {
+				fakeDB.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*domain.User, error) {
+					return nil, fmt.Errorf("failed to get user profile by phone")
+				}
+			}
+
+			if tt.name == "Sad Case - Fail to invite user" {
+				fakeUser.MockInviteUserFn = func(ctx context.Context, userID string, phoneNumber string, flavour feedlib.Flavour) (bool, error) {
+					return false, fmt.Errorf("failed to invite user")
+				}
+			}
+
+			if tt.name == "Sad Case - Fail to update user pin changed required status" {
+				fakeDB.MockUpdateUserPinChangeRequiredStatusFn = func(ctx context.Context, userID string, flavour feedlib.Flavour, status bool) error {
+					return fmt.Errorf("failed to update user pin changed required status")
+				}
+			}
+
+			if tt.name == "Sad Case - Fail to resolve service request" {
+				fakeDB.MockResolveServiceRequestFn = func(ctx context.Context, staffID *string, serviceRequestID *string) (bool, error) {
+					return false, fmt.Errorf("failed to resolve service request")
+				}
+			}
+
+			got, err := u.ApprovePinResetServiceRequest(tt.args.ctx, tt.args.clientID, tt.args.serviceRequestID, tt.args.cccNumber, tt.args.phoneNumber, tt.args.physicalIdentityVerified)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCasesServiceRequestImpl.ApprovePinResetServiceRequest() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("UseCasesServiceRequestImpl.ApprovePinResetServiceRequest() = %v, want %v", got, tt.want)
 			}
 		})
 	}

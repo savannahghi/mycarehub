@@ -649,7 +649,7 @@ func TestPGInstance_UnBookmarkContent(t *testing.T) {
 
 }
 
-func TestPGInstance_UpdateUserPinChangeRequiredStatus(t *testing.T) {
+func TestPGInstance_CompleteOnboardingTour(t *testing.T) {
 	ctx := context.Background()
 	flavour := feedlib.FlavourConsumer
 
@@ -699,13 +699,13 @@ func TestPGInstance_UpdateUserPinChangeRequiredStatus(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			got, err := testingDB.UpdateUserPinChangeRequiredStatus(tt.args.ctx, tt.args.userID, tt.args.flavour)
+			got, err := testingDB.CompleteOnboardingTour(tt.args.ctx, tt.args.userID, tt.args.flavour)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("PGInstance.UpdateUserPinChangeRequiredStatus() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("PGInstance.CompleteOnboardingTour() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if got != tt.want {
-				t.Errorf("PGInstance.UpdateUserPinChangeRequiredStatus() = %v, want %v", got, tt.want)
+				t.Errorf("PGInstance.CompleteOnboardingTour() = %v, want %v", got, tt.want)
 			}
 		})
 	}

@@ -22,7 +22,7 @@ type Update interface {
 	UpdateUserNextAllowedLoginTime(ctx context.Context, userID string, nextAllowedLoginTime time.Time) error
 	UpdateUserProfileAfterLoginSuccess(ctx context.Context, userID string) error
 	SetNickName(ctx context.Context, userID *string, nickname *string) (bool, error)
-	UpdateUserPinChangeRequiredStatus(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
+	CompleteOnboardingTour(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
 	InvalidatePIN(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
 	UpdateIsCorrectSecurityQuestionResponse(ctx context.Context, userID string, isCorrectSecurityQuestionResponse bool) (bool, error)
 	ShareContent(ctx context.Context, input dto.ShareContentInput) (bool, error)
@@ -39,6 +39,7 @@ type Update interface {
 	UpdateAppointment(ctx context.Context, payload *Appointment) error
 	InvalidateScreeningToolResponse(ctx context.Context, clientID string, questionID string) error
 	UpdateServiceRequests(ctx context.Context, payload []*ClientServiceRequest) (bool, error)
+	UpdateUserPinChangeRequiredStatus(ctx context.Context, userID string, flavour feedlib.Flavour, status bool) error
 }
 
 // LikeContent perfoms the actual database operation to update content like. The operation
@@ -300,9 +301,11 @@ func (db *PGInstance) SetInProgressBy(ctx context.Context, requestID string, sta
 	return true, nil
 }
 
-// UpdateUserPinChangeRequiredStatus updates the user's pin change required from true to false. It'll be used to
-// determine the onboarding journey for a user.
-func (db *PGInstance) UpdateUserPinChangeRequiredStatus(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
+// CompleteOnboardingTour updates the user's pin change required from true to false
+// It also updates the phone_verified, set_pin and set_security_questions to true
+// It'll be used to determine the onboarding journey for a user i.e where to redirect a user
+// after they log in
+func (db *PGInstance) CompleteOnboardingTour(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
 	if !flavour.IsValid() {
 		return false, fmt.Errorf("invalid flavour provided")
 	}
@@ -887,4 +890,16 @@ func (db *PGInstance) UpdateServiceRequests(ctx context.Context, payload []*Clie
 	}
 
 	return true, nil
+}
+
+// UpdateUserPinChangeRequiredStatus updates a user's pin change required status
+func (db *PGInstance) UpdateUserPinChangeRequiredStatus(ctx context.Context, userID string, flavour feedlib.Flavour, status bool) error {
+	err := db.DB.Model(&User{}).Where(&User{UserID: &userID, Flavour: flavour}).Updates(map[string]interface{}{
+		"pin_change_required": status,
+	}).Error
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return err
+	}
+	return nil
 }

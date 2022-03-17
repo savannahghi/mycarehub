@@ -683,7 +683,7 @@ func (us *UseCasesUserImpl) RequestPINReset(ctx context.Context, phoneNumber str
 // through the process of setting a new pin, accepting terms and setting security questions. After all this is done,
 // the field will be set to false. It will enable the user to be directed to the login page when they log in again.
 func (us *UseCasesUserImpl) CompleteOnboardingTour(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
-	return us.Update.UpdateUserPinChangeRequiredStatus(ctx, userID, flavour)
+	return us.Update.CompleteOnboardingTour(ctx, userID, flavour)
 }
 
 // ResetPIN resets the user's PIN when they start the reset pin process. this is a user driven request

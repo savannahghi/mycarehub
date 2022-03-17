@@ -98,7 +98,7 @@ func Router(ctx context.Context) (*mux.Router, error) {
 
 	faq := faq.NewUsecaseFAQ(db)
 
-	serviceRequestUseCase := servicerequest.NewUseCaseServiceRequestImpl(db, db, db)
+	serviceRequestUseCase := servicerequest.NewUseCaseServiceRequestImpl(db, db, db, externalExt, userUsecase)
 
 	communitiesUseCase := communities.NewUseCaseCommunitiesImpl(getStream, externalExt, db, db)
 

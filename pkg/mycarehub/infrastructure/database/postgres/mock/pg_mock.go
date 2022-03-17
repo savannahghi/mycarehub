@@ -50,7 +50,7 @@ type PostgresMock struct {
 	MockGetStaffProfileByUserIDFn                   func(ctx context.Context, userID string) (*domain.StaffProfile, error)
 	MockCheckUserHasPinFn                           func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
 	MockGenerateRetryOTPFn                          func(ctx context.Context, payload *dto.SendRetryOTPPayload) (string, error)
-	MockUpdateUserPinChangeRequiredStatusFn         func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
+	MockCompleteOnboardingTourFn                    func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
 	MockGetOTPFn                                    func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*domain.OTP, error)
 	MockGetUserSecurityQuestionsResponsesFn         func(ctx context.Context, userID string) ([]*domain.SecurityQuestionResponse, error)
 	MockInvalidatePINFn                             func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
@@ -108,6 +108,7 @@ type PostgresMock struct {
 	MockUpdateServiceRequestsFn                     func(ctx context.Context, payload *domain.UpdateServiceRequestsPayload) (bool, error)
 	MockListAppointments                            func(ctx context.Context, params *domain.Appointment, filter []*domain.FiltersParam, pagination *domain.Pagination) ([]*domain.Appointment, *domain.Pagination, error)
 	MockGetClientProfileByCCCNumberFn               func(ctx context.Context, CCCNumber string) (*domain.ClientProfile, error)
+	MockUpdateUserPinChangeRequiredStatusFn         func(ctx context.Context, userID string, flavour feedlib.Flavour, status bool) error
 	MockCheckIfClientHasUnresolvedServiceRequestsFn func(ctx context.Context, clientID string, serviceRequestType string) (bool, error)
 }
 
@@ -348,7 +349,7 @@ func NewPostgresMock() *PostgresMock {
 		MockGenerateRetryOTPFn: func(ctx context.Context, payload *dto.SendRetryOTPPayload) (string, error) {
 			return "test-OTP", nil
 		},
-		MockUpdateUserPinChangeRequiredStatusFn: func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
+		MockCompleteOnboardingTourFn: func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
 			return true, nil
 		},
 		MockGetOTPFn: func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*domain.OTP, error) {
@@ -695,6 +696,9 @@ func NewPostgresMock() *PostgresMock {
 		MockCheckIfClientHasUnresolvedServiceRequestsFn: func(ctx context.Context, clientID string, serviceRequestType string) (bool, error) {
 			return false, nil
 		},
+		MockUpdateUserPinChangeRequiredStatusFn: func(ctx context.Context, userID string, flavour feedlib.Flavour, status bool) error {
+			return nil
+		},
 	}
 }
 
@@ -863,9 +867,9 @@ func (gm *PostgresMock) GenerateRetryOTP(ctx context.Context, payload *dto.SendR
 	return gm.MockGenerateRetryOTPFn(ctx, payload)
 }
 
-// UpdateUserPinChangeRequiredStatus mocks the implementation for updating a user's pin change required state
-func (gm *PostgresMock) UpdateUserPinChangeRequiredStatus(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
-	return gm.MockUpdateUserPinChangeRequiredStatusFn(ctx, userID, flavour)
+// CompleteOnboardingTour mocks the implementation for updating a user's pin change required state
+func (gm *PostgresMock) CompleteOnboardingTour(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
+	return gm.MockCompleteOnboardingTourFn(ctx, userID, flavour)
 }
 
 // GetOTP mocks the implementation of fetching an OTP
@@ -1151,4 +1155,9 @@ func (gm *PostgresMock) GetClientProfileByCCCNumber(ctx context.Context, CCCNumb
 // CheckIfClientHasUnresolvedServiceRequests mocks the implementation of checking if a client has an unresolved service request
 func (gm *PostgresMock) CheckIfClientHasUnresolvedServiceRequests(ctx context.Context, clientID string, serviceRequestType string) (bool, error) {
 	return gm.MockCheckIfClientHasUnresolvedServiceRequestsFn(ctx, clientID, serviceRequestType)
+}
+
+// UpdateUserPinChangeRequiredStatus mocks the implementation of updating a user pin change required state
+func (gm *PostgresMock) UpdateUserPinChangeRequiredStatus(ctx context.Context, userID string, flavour feedlib.Flavour, status bool) error {
+	return gm.MockUpdateUserPinChangeRequiredStatusFn(ctx, userID, flavour, status)
 }

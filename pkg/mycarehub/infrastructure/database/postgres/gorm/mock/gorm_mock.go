@@ -47,7 +47,7 @@ type GormMock struct {
 	MockGetClientProfileByUserIDFn                  func(ctx context.Context, userID string) (*gorm.Client, error)
 	MockGetStaffProfileByUserIDFn                   func(ctx context.Context, userID string) (*gorm.StaffProfile, error)
 	MockCheckUserHasPinFn                           func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
-	MockUpdateUserPinChangeRequiredStatusFn         func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
+	MockCompleteOnboardingTourFn                    func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
 	MockGetOTPFn                                    func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*gorm.UserOTP, error)
 	MockGetUserSecurityQuestionsResponsesFn         func(ctx context.Context, userID string) ([]*gorm.SecurityQuestionResponse, error)
 	MockInvalidatePINFn                             func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
@@ -103,8 +103,9 @@ type GormMock struct {
 	MockGetScreeningToolQuestionByQuestionIDFn      func(ctx context.Context, questionID string) (*gorm.ScreeningToolQuestion, error)
 	MockInvalidateScreeningToolResponseFn           func(ctx context.Context, clientID string, questionID string) error
 	MockUpdateServiceRequestsFn                     func(ctx context.Context, payload []*gorm.ClientServiceRequest) (bool, error)
-	MockCheckIfClientHasUnresolvedServiceRequestsFn func(ctx context.Context, clientID string, serviceRequestType string) (bool, error)
 	MockGetClientProfileByCCCNumberFn               func(ctx context.Context, CCCNumber string) (*gorm.Client, error)
+	MockUpdateUserPinChangeRequiredStatusFn         func(ctx context.Context, userID string, flavour feedlib.Flavour, status bool) error
+	MockCheckIfClientHasUnresolvedServiceRequestsFn func(ctx context.Context, clientID string, serviceRequestType string) (bool, error)
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -435,7 +436,7 @@ func NewGormMock() *GormMock {
 		MockCheckUserHasPinFn: func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
 			return true, nil
 		},
-		MockUpdateUserPinChangeRequiredStatusFn: func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
+		MockCompleteOnboardingTourFn: func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
 			return true, nil
 		},
 		MockGetOTPFn: func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*gorm.UserOTP, error) {
@@ -760,6 +761,9 @@ func NewGormMock() *GormMock {
 		MockCheckIfClientHasUnresolvedServiceRequestsFn: func(ctx context.Context, clientID string, serviceRequestType string) (bool, error) {
 			return true, nil
 		},
+		MockUpdateUserPinChangeRequiredStatusFn: func(ctx context.Context, userID string, flavour feedlib.Flavour, status bool) error {
+			return nil
+		},
 	}
 }
 
@@ -919,9 +923,9 @@ func (gm *GormMock) CheckUserHasPin(ctx context.Context, userID string, flavour 
 	return gm.MockCheckUserHasPinFn(ctx, userID, flavour)
 }
 
-// UpdateUserPinChangeRequiredStatus mocks the implementation for updating a user's pin change required state
-func (gm *GormMock) UpdateUserPinChangeRequiredStatus(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
-	return gm.MockUpdateUserPinChangeRequiredStatusFn(ctx, userID, flavour)
+// CompleteOnboardingTour mocks the implementation for updating a user's pin change required state
+func (gm *GormMock) CompleteOnboardingTour(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
+	return gm.MockCompleteOnboardingTourFn(ctx, userID, flavour)
 }
 
 // GetOTP fetches the OTP for the given phone number
@@ -1202,4 +1206,9 @@ func (gm *GormMock) GetClientProfileByCCCNumber(ctx context.Context, CCCNumber s
 // CheckIfClientHasUnresolvedServiceRequests mocks the implementation of checking if a client has a pending service request
 func (gm *GormMock) CheckIfClientHasUnresolvedServiceRequests(ctx context.Context, clientID string, serviceRequestType string) (bool, error) {
 	return gm.MockCheckIfClientHasUnresolvedServiceRequestsFn(ctx, clientID, serviceRequestType)
+}
+
+// UpdateUserPinChangeRequiredStatus mocks the implementation of updating a user pin change required state
+func (gm *GormMock) UpdateUserPinChangeRequiredStatus(ctx context.Context, userID string, flavour feedlib.Flavour, status bool) error {
+	return gm.MockUpdateUserPinChangeRequiredStatusFn(ctx, userID, flavour, status)
 }

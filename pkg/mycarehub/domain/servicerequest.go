@@ -21,6 +21,7 @@ type ServiceRequest struct {
 	FacilityID    *string    `json:"facility_id"`
 	ClientName    *string    `json:"client_name"`
 	ClientContact *string    `json:"client_contact"`
+	CCCNumber     string     `json:"cccNumber"`
 }
 
 // RequestTypeCount ...

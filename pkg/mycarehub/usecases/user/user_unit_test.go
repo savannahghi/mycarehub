@@ -1107,8 +1107,8 @@ func TestUseCasesUserImpl_VerifyLoginPIN(t *testing.T) {
 			u := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, otp, fakeAuthority, fakeGetStream)
 
 			if tt.name == "Happy Case - Successfully verify pin" {
-				fakeUserMock.MockVerifyLoginPINFn = func(ctx context.Context, userID string, pin string, flavour feedlib.Flavour) (bool, *int, int, error) {
-					return true, nil, 0, nil
+				fakeUserMock.MockVerifyLoginPINFn = func(ctx context.Context, userProfile *domain.User, pin string, flavour feedlib.Flavour) (bool, error) {
+					return true, nil
 				}
 			}
 
@@ -1739,7 +1739,7 @@ func TestUseCasesUserImpl_ResetPIN(t *testing.T) {
 			}
 
 			if tt.name == "invalid: invalid reset pin input" {
-				fakeUser.MockResetPINFn = func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
+				fakeUser.MockResetPINFn = func(ctx context.Context, input dto.UserResetPinInput) (bool, error) {
 					return false, fmt.Errorf("an error occurred")
 				}
 			}
@@ -2285,13 +2285,13 @@ func TestUseCasesUserImpl_CompleteOnboardingTour(t *testing.T) {
 			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, otp, fakeAuthority, fakeGetStream)
 
 			if tt.name == "Sad case - no userID" {
-				fakeDB.MockUpdateUserPinChangeRequiredStatusFn = func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
+				fakeDB.MockCompleteOnboardingTourFn = func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
 					return false, fmt.Errorf("an error occurred")
 				}
 			}
 
 			if tt.name == "Sad case - no userID and flavour" {
-				fakeDB.MockUpdateUserPinChangeRequiredStatusFn = func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
+				fakeDB.MockCompleteOnboardingTourFn = func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
 					return false, fmt.Errorf("an error occurred")
 				}
 
