@@ -70,11 +70,17 @@ type IModeration interface {
 	BanUser(ctx context.Context, targetMemberID string, bannedBy string, communityID string) (bool, error)
 	UnBanUser(ctx context.Context, targetID string, communityID string) (bool, error)
 	ListCommunityBannedMembers(ctx context.Context, communityID string) ([]*domain.Member, error)
+	ListFlaggedMessages(ctx context.Context, communityCID *string, memberIDs []*string) ([]*domain.MessageFlag, error)
 }
 
 // IRecommendations interface contains all the recommendation functions
 type IRecommendations interface {
 	RecommendedCommunities(ctx context.Context, clientID string, limit int) ([]*domain.Community, error)
+}
+
+// IMessage interface is used to contains all the message related methods
+type IMessage interface {
+	DeleteCommunityMessage(ctx context.Context, messageID string) (bool, error)
 }
 
 // UseCasesCommunities holds all interfaces required to implement the communities feature
@@ -88,6 +94,7 @@ type UseCasesCommunities interface {
 	IManageMembers
 	IModeration
 	IRecommendations
+	IMessage
 }
 
 // UseCasesCommunitiesImpl represents communities implementation
@@ -706,4 +713,66 @@ func (us *UseCasesCommunitiesImpl) BanUser(ctx context.Context, targetMemberID s
 		return false, fmt.Errorf("target member ID cannot be empty")
 	}
 	return us.GetstreamService.BanUser(ctx, targetMemberID, bannedBy, communityID)
+}
+
+// ListFlaggedMessages returns a list of flaged messages
+// passing in a communityID only will return all the flagged messages in that community
+// passing in memberIDs only will return all the flagged messages for members in all channels
+// passing in both a communityID and memberIDs will return all the flagged messages for members in that channel
+func (us *UseCasesCommunitiesImpl) ListFlaggedMessages(ctx context.Context, communityCID *string, memberIDs []*string) ([]*domain.MessageFlag, error) {
+	var (
+		newMemberIDs    []string
+		newCommunityCID string
+	)
+	messageFilter := map[string]interface{}{}
+
+	for _, memberID := range memberIDs {
+		if memberID != nil {
+			newMemberIDs = append(newMemberIDs, *memberID)
+		}
+	}
+	if communityCID != nil {
+		newCommunityCID = *communityCID
+		messageFilter["channel_cid"] = newCommunityCID
+	}
+
+	if len(newMemberIDs) > 0 {
+		messageFilter["user_id"] = map[string][]string{"$in": newMemberIDs}
+	}
+
+	query := &stream.QueryOption{
+		Filter: messageFilter,
+	}
+	messageFlagsResponse, err := us.GetstreamService.ListFlaggedMessages(ctx, query)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, fmt.Errorf("failed to get flagged messages: %v", err)
+	}
+
+	messageFlags := []*domain.MessageFlag{}
+	for _, messageFlag := range messageFlagsResponse.Flags {
+
+		newMessageFlag := &domain.MessageFlag{}
+		err := mapstructure.Decode(messageFlag, newMessageFlag)
+		if err != nil {
+			return nil, fmt.Errorf("failed to decode payload: %v", err)
+		}
+
+		if messageFlag.Message.DeletedAt != nil {
+			continue
+		}
+
+		messageFlags = append(messageFlags, newMessageFlag)
+	}
+	return messageFlags, nil
+}
+
+// DeleteCommunityMessage is used to delete a message from a channel
+func (us *UseCasesCommunitiesImpl) DeleteCommunityMessage(ctx context.Context, messageID string) (bool, error) {
+	_, err := us.GetstreamService.DeleteMessage(ctx, messageID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, fmt.Errorf("failed to delete message: %v", err)
+	}
+	return true, nil
 }

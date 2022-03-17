@@ -51,6 +51,10 @@ func (r *mutationResolver) UnBanUser(ctx context.Context, memberID string, commu
 	return r.mycarehub.Community.UnBanUser(ctx, memberID, communityID)
 }
 
+func (r *mutationResolver) DeleteCommunityMessage(ctx context.Context, messageID string) (bool, error) {
+	return r.mycarehub.Community.DeleteCommunityMessage(ctx, messageID)
+}
+
 func (r *queryResolver) ListMembers(ctx context.Context, input *stream_chat.QueryOption) ([]*domain.Member, error) {
 	return r.mycarehub.Community.ListMembers(ctx, input)
 }
@@ -77,4 +81,8 @@ func (r *queryResolver) ListPendingInvites(ctx context.Context, memberID string,
 
 func (r *queryResolver) RecommendedCommunities(ctx context.Context, clientID string, limit int) ([]*domain.Community, error) {
 	return r.mycarehub.Community.RecommendedCommunities(ctx, clientID, limit)
+}
+
+func (r *queryResolver) ListFlaggedMessages(ctx context.Context, communityCid *string, memberIDs []*string) ([]*domain.MessageFlag, error) {
+	return r.mycarehub.Community.ListFlaggedMessages(ctx, communityCid, memberIDs)
 }

@@ -1420,3 +1420,143 @@ func TestUseCasesCommunitiesImpl_UnBanUser(t *testing.T) {
 		})
 	}
 }
+
+func TestUseCasesCommunitiesImpl_ListFlaggedMessages(t *testing.T) {
+	fakeGetStream := getStreamMock.NewGetStreamServiceMock()
+	fakeExtension := extensionMock.NewFakeExtension()
+	fakeDB := pgMock.NewPostgresMock()
+	communities := communities.NewUseCaseCommunitiesImpl(fakeGetStream, fakeExtension, fakeDB, fakeDB)
+
+	ctx := context.Background()
+	communityID := uuid.New().String()
+	userID := uuid.New().String()
+	userIIDs := []*string{&userID}
+
+	type args struct {
+		ctx          context.Context
+		communityCID *string
+		memberIDs    []*string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+		want    []*domain.MessageFlag
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:          ctx,
+				communityCID: &communityID,
+				memberIDs:    userIIDs,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Happy case - empty community ID",
+			args: args{
+				ctx:          ctx,
+				communityCID: nil,
+				memberIDs:    userIIDs,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Happy case - empty isReviewed",
+			args: args{
+				ctx:          ctx,
+				communityCID: &communityID,
+				memberIDs:    userIIDs,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Happy case - empty params",
+			args: args{
+				ctx: ctx,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case - failed to get message flags",
+			args: args{
+				ctx:          ctx,
+				communityCID: &communityID,
+				memberIDs:    userIIDs,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			if tt.name == "Sad case - failed to get message flags" {
+				fakeGetStream.MockListFlaggedMessagesFn = func(ctx context.Context, input *stream.QueryOption) (*stream.QueryMessageFlagsResponse, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+
+			got, err := communities.ListFlaggedMessages(tt.args.ctx, tt.args.communityCID, tt.args.memberIDs)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCasesCommunitiesImpl.ListFlaggedMessages() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("UseCasesCommunitiesImpl.ListFlaggedMessages() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestUseCasesCommunitiesImpl_DeleteCommunityMessage(t *testing.T) {
+	fakeGetStream := getStreamMock.NewGetStreamServiceMock()
+	fakeExtension := extensionMock.NewFakeExtension()
+	fakeDB := pgMock.NewPostgresMock()
+	communities := communities.NewUseCaseCommunitiesImpl(fakeGetStream, fakeExtension, fakeDB, fakeDB)
+	type args struct {
+		ctx       context.Context
+		messageID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:       context.Background(),
+				messageID: uuid.New().String(),
+			},
+			want: true,
+		},
+		{
+			name: "Sad case - failed to delete message",
+			args: args{
+				ctx:       context.Background(),
+				messageID: uuid.New().String(),
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			if tt.name == "Sad case - failed to delete message" {
+				fakeGetStream.MockDeleteMessageFn = func(ctx context.Context, messageID string) (*stream.Response, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+
+			got, err := communities.DeleteCommunityMessage(tt.args.ctx, tt.args.messageID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCasesCommunitiesImpl.DeleteCommunityMessage() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("UseCasesCommunitiesImpl.DeleteCommunityMessage() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

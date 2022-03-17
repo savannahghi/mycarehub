@@ -6,6 +6,7 @@ extend type Query {
   listCommunityMembers(communityID: ID!): [CommunityMember]
   listPendingInvites(memberID: String!, input: QueryOption): [Community]
   recommendedCommunities(clientID: String!, limit: Int!): [Community]
+  listFlaggedMessages(communityCID: String, memberIDs: [String]): [MessageFlag]
 }
 
 extend type Mutation {
@@ -19,4 +20,5 @@ extend type Mutation {
   demoteModerators(communityID: String!, memberIDs: [String!]!): Boolean!
   banUser(MemberID: String!, bannedBy: String!, communityID: String!): Boolean!
   unBanUser(memberID: String!, communityID: String!): Boolean!
+  deleteCommunityMessage(messageID: String!): Boolean!
 }
