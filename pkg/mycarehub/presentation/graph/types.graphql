@@ -349,6 +349,15 @@ type ClientProfile {
   CCCNumber: String!
 }
 
+type StaffProfile {
+  ID: String!
+  User: User!
+  UserID: String!
+  Active: Boolean!
+  StaffNumber: String!
+  DefaultFacilityID: String!
+}
+
 type User {
   ID: String!
   Username: String!

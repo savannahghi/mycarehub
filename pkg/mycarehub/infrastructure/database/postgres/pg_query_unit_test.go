@@ -1797,6 +1797,76 @@ func TestMyCareHubDb_GetStaffProfileByUserID(t *testing.T) {
 	}
 }
 
+func TestMyCareHubDb_SearchStaffProfileByStaffNumber(t *testing.T) {
+	ctx := context.Background()
+
+	var fakeGorm = gormMock.NewGormMock()
+	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+	type args struct {
+		ctx         context.Context
+		staffNumber string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    []*domain.StaffProfile
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:         ctx,
+				staffNumber: uuid.New().String(),
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case - fail to get staff profile(s)",
+			args: args{
+				ctx:         ctx,
+				staffNumber: uuid.New().String(),
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case - fail to get user profile",
+			args: args{
+				ctx:         ctx,
+				staffNumber: uuid.New().String(),
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "Sad case - fail to get staff profile(s)" {
+				fakeGorm.MockSearchStaffProfileByStaffNumberFn = func(ctx context.Context, staffNumber string) ([]*gorm.StaffProfile, error) {
+					return nil, fmt.Errorf("failed to get staff profile")
+				}
+			}
+			if tt.name == "Sad case - fail to get user profile" {
+				fakeGorm.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID *string) (*gorm.User, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+			got, err := d.SearchStaffProfileByStaffNumber(tt.args.ctx, tt.args.staffNumber)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.SearchStaffProfileByStaffNumber() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if tt.wantErr && got != nil {
+				t.Errorf("expected staff profiles to be nil for %v", tt.name)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected staff profiles not to be nil for %v", tt.name)
+				return
+			}
+		})
+	}
+}
+
 func TestMyCareHubDb_ListContentCategories(t *testing.T) {
 	ctx := context.Background()
 

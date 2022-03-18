@@ -351,6 +351,40 @@ func (d *MyCareHubDb) GetStaffProfileByUserID(ctx context.Context, userID string
 	}, nil
 }
 
+// SearchStaffProfileByStaffNumber searches for the staff profile(s) of a given staff.
+// It may also return other staffs whose staff number may match at a given time.
+func (d *MyCareHubDb) SearchStaffProfileByStaffNumber(ctx context.Context, staffNumber string) ([]*domain.StaffProfile, error) {
+	var staffProfiles []*domain.StaffProfile
+
+	staffs, err := d.query.SearchStaffProfileByStaffNumber(ctx, staffNumber)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
+	for _, s := range staffs {
+		userProfile, err := d.query.GetUserProfileByUserID(ctx, &s.UserID)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return nil, err
+		}
+		user := createMapUser(userProfile)
+
+		staffProfile := &domain.StaffProfile{
+			ID:                s.ID,
+			User:              user,
+			UserID:            s.UserID,
+			Active:            s.Active,
+			StaffNumber:       s.StaffNumber,
+			DefaultFacilityID: s.DefaultFacilityID,
+		}
+
+		staffProfiles = append(staffProfiles, staffProfile)
+	}
+
+	return staffProfiles, nil
+}
+
 // CheckUserHasPin performs a look up on the pins table to check whether a user has a pin
 func (d *MyCareHubDb) CheckUserHasPin(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
 	if userID == "" {

@@ -105,9 +105,14 @@ type IClientMedicalHistory interface {
 	RegisteredFacilityPatients(ctx context.Context, input dto.PatientSyncPayload) (*dto.PatientSyncResponse, error)
 }
 
-// IGetClientByCCCNumber interface contain the method used to get a client using his/her CCC number
-type IGetClientByCCCNumber interface {
+// ISearchClientByCCCNumber interface contain the method used to get a client using his/her CCC number
+type ISearchClientByCCCNumber interface {
 	SearchClientsByCCCNumber(ctx context.Context, CCCNumber string) ([]*domain.ClientProfile, error)
+}
+
+// ISearchStaffByStaffNumber interface contain the method used to get a client using his/her CCC number
+type ISearchStaffByStaffNumber interface {
+	SearchStaffByStaffNumber(ctx context.Context, staffNumber string) ([]*domain.StaffProfile, error)
 }
 
 // UseCasesUser group all business logic usecases related to user
@@ -125,7 +130,8 @@ type UseCasesUser interface {
 	IGetClientCaregiver
 	IRegisterUser
 	IClientMedicalHistory
-	IGetClientByCCCNumber
+	ISearchClientByCCCNumber
+	ISearchStaffByStaffNumber
 }
 
 // UseCasesUserImpl represents user implementation object
@@ -1128,6 +1134,9 @@ func (us *UseCasesUserImpl) RegisterStaff(ctx context.Context, input dto.StaffRe
 
 // SearchClientsByCCCNumber is used to search for a client using their CCC number.
 func (us *UseCasesUserImpl) SearchClientsByCCCNumber(ctx context.Context, CCCNumber string) ([]*domain.ClientProfile, error) {
+	if CCCNumber == "" {
+		return nil, fmt.Errorf("ccc number must not be empty")
+	}
 	clientProfile, err := us.Query.SearchClientProfilesByCCCNumber(ctx, CCCNumber)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
@@ -1135,4 +1144,19 @@ func (us *UseCasesUserImpl) SearchClientsByCCCNumber(ctx context.Context, CCCNum
 	}
 
 	return clientProfile, nil
+}
+
+// SearchStaffByStaffNumber is used to search for a staff using their staff number.
+// The method may also return a list of staffs at a given time depending on the value of staff number provided
+func (us *UseCasesUserImpl) SearchStaffByStaffNumber(ctx context.Context, staffNumber string) ([]*domain.StaffProfile, error) {
+	if staffNumber == "" {
+		return nil, fmt.Errorf("staff number must not be empty")
+	}
+	staffProfile, err := us.Query.SearchStaffProfileByStaffNumber(ctx, staffNumber)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
+	return staffProfile, nil
 }
