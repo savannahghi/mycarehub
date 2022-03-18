@@ -30,7 +30,7 @@ type ServiceRequestUseCaseMock struct {
 	MockSetInProgressByFn                   func(ctx context.Context, requestID string, staffID string) (bool, error)
 	MockGetServiceRequestsForKenyaEMRFn     func(ctx context.Context, payload *dto.ServiceRequestPayload) ([]*domain.ServiceRequest, error)
 	MockUpdateServiceRequestsFromKenyaEMRFn func(ctx context.Context, payload *dto.UpdateServiceRequestsPayload) (bool, error)
-	MockCreatePinResetServiceRequestFn      func(ctx context.Context, phoneNumber string, cccNumber string) (bool, error)
+	MockCreatePinResetServiceRequestFn      func(ctx context.Context, cccNumber string) (bool, error)
 }
 
 // NewServiceRequestUseCaseMock initializes a new service request instance mock
@@ -83,7 +83,7 @@ func NewServiceRequestUseCaseMock() *ServiceRequestUseCaseMock {
 			}
 			return []*domain.ServiceRequest{serviceReq}, nil
 		},
-		MockCreatePinResetServiceRequestFn: func(ctx context.Context, phoneNumber string, cccNumber string) (bool, error) {
+		MockCreatePinResetServiceRequestFn: func(ctx context.Context, cccNumber string) (bool, error) {
 			return true, nil
 		},
 		MockApprovePinResetServiceRequestFn: func(
@@ -139,8 +139,8 @@ func (s *ServiceRequestUseCaseMock) UpdateServiceRequestsFromKenyaEMR(ctx contex
 }
 
 // CreatePinResetServiceRequest mocks the implementation of creating a pin reset service request
-func (s *ServiceRequestUseCaseMock) CreatePinResetServiceRequest(ctx context.Context, phoneNumber string, cccNumber string) (bool, error) {
-	return s.MockCreatePinResetServiceRequestFn(ctx, phoneNumber, cccNumber)
+func (s *ServiceRequestUseCaseMock) CreatePinResetServiceRequest(ctx context.Context, cccNumber string) (bool, error) {
+	return s.MockCreatePinResetServiceRequestFn(ctx, cccNumber)
 }
 
 // ApprovePinResetServiceRequest mocks the implementation of approving a pin reset service request

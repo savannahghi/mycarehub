@@ -579,9 +579,8 @@ func TestUseCasesServiceRequestImpl_UpdateServiceRequestsFromKenyaEMR(t *testing
 func TestUseCasesServiceRequestImpl_CreatePinResetServiceRequest(t *testing.T) {
 	ctx := context.Background()
 	type args struct {
-		ctx         context.Context
-		phoneNumber string
-		cccNumber   string
+		ctx       context.Context
+		cccNumber string
 	}
 	tests := []struct {
 		name    string
@@ -592,9 +591,8 @@ func TestUseCasesServiceRequestImpl_CreatePinResetServiceRequest(t *testing.T) {
 		{
 			name: "Happy Case - Successfully create service request",
 			args: args{
-				ctx:         ctx,
-				phoneNumber: "12345",
-				cccNumber:   "12345",
+				ctx:       ctx,
+				cccNumber: "12345",
 			},
 			want:    true,
 			wantErr: false,
@@ -602,29 +600,17 @@ func TestUseCasesServiceRequestImpl_CreatePinResetServiceRequest(t *testing.T) {
 		{
 			name: "Sad Case - Fail to create service request",
 			args: args{
-				ctx:         ctx,
-				phoneNumber: "12345",
-				cccNumber:   "12345",
+				ctx:       ctx,
+				cccNumber: "12345",
 			},
 			want:    false,
 			wantErr: true,
 		},
 		{
-			name: "Sad Case - Fail to get user profile by phonenumber",
+			name: "Sad Case - Fail to get client profile by ccc number",
 			args: args{
-				ctx:         ctx,
-				phoneNumber: "12345",
-				cccNumber:   "12345",
-			},
-			want:    false,
-			wantErr: true,
-		},
-		{
-			name: "Sad Case - Fail to get client profile by user ID",
-			args: args{
-				ctx:         ctx,
-				phoneNumber: "12345",
-				cccNumber:   "12345",
+				ctx:       ctx,
+				cccNumber: "12345",
 			},
 			want:    false,
 			wantErr: true,
@@ -643,19 +629,13 @@ func TestUseCasesServiceRequestImpl_CreatePinResetServiceRequest(t *testing.T) {
 				}
 			}
 
-			if tt.name == "Sad Case - Fail to get user profile by phonenumber" {
-				fakeDB.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*domain.User, error) {
-					return nil, fmt.Errorf("failed to get user profile by phonenumber")
+			if tt.name == "Sad Case - Fail to get client profile by ccc number" {
+				fakeDB.MockGetClientProfileByCCCNumberFn = func(ctx context.Context, CCCNumber string) (*domain.ClientProfile, error) {
+					return nil, fmt.Errorf("failed to get client profile by ccc number")
 				}
 			}
 
-			if tt.name == "Sad Case - Fail to get client profile by user ID" {
-				fakeDB.MockGetClientProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.ClientProfile, error) {
-					return nil, fmt.Errorf("failed to get client profile by user id")
-				}
-			}
-
-			got, err := u.CreatePinResetServiceRequest(tt.args.ctx, tt.args.phoneNumber, tt.args.cccNumber)
+			got, err := u.CreatePinResetServiceRequest(tt.args.ctx, tt.args.cccNumber)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCasesServiceRequestImpl.CreatePinResetServiceRequest() error = %v, wantErr %v", err, tt.wantErr)
 				return

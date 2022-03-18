@@ -477,3 +477,12 @@ func GetAllRolesErr(err error) error {
 		Code:    int(GetAllRolesError),
 	}
 }
+
+// GetClientByCCCNumberNotFoundErr returns an error message when the client is not found
+func GetClientByCCCNumberNotFoundErr(err error) error {
+	return &CustomError{
+		Err:     err,
+		Message: GetClientByCCCNumberNotFoundErrorMsg,
+		Code:    int(GetClientByCCCNumberNotFoundError),
+	}
+}
