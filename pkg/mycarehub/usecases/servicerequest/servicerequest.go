@@ -31,7 +31,11 @@ type ICreateServiceRequest interface {
 		requestType, request, cccNumber string,
 	) (bool, error)
 
-	CreatePinResetServiceRequest(ctx context.Context, cccNumber string) (bool, error)
+	CreatePinResetServiceRequest(
+		ctx context.Context,
+		phoneNumber string,
+		cccNumber string,
+	) (bool, error)
 }
 
 // ISetInProgresssBy is an interface that contains the method signature for assigning the staff currently working on a request
@@ -218,12 +222,18 @@ func (u *UseCasesServiceRequestImpl) UpdateServiceRequestsFromKenyaEMR(ctx conte
 
 // CreatePinResetServiceRequest creates a PIN_RESET service request. This occurs when a user attempts to change
 // their pin but they don't succeed.
-func (u *UseCasesServiceRequestImpl) CreatePinResetServiceRequest(ctx context.Context, cccNumber string) (bool, error) {
+func (u *UseCasesServiceRequestImpl) CreatePinResetServiceRequest(ctx context.Context, phoneNumber string, cccNumber string) (bool, error) {
 	// TODO: Check if the service request exists before creating a new one
-	clientProfile, err := u.Query.GetClientProfileByCCCNumber(ctx, cccNumber)
+	userProfile, err := u.Query.GetUserProfileByPhoneNumber(ctx, phoneNumber, feedlib.FlavourConsumer)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return false, exceptions.GetError(err)
+		return false, exceptions.ProfileNotFoundErr(err)
+	}
+
+	clientProfile, err := u.Query.GetClientProfileByUserID(ctx, *userProfile.ID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, exceptions.ClientProfileNotFoundErr(err)
 	}
 
 	request := "Request to change pin"
@@ -236,7 +246,7 @@ func (u *UseCasesServiceRequestImpl) CreatePinResetServiceRequest(ctx context.Co
 	)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return false, exceptions.InternalErr(err)
+		return false, err
 	}
 
 	return true, nil

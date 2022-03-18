@@ -2820,14 +2820,6 @@ func TestPGInstance_GetClientProfileByCCCNumber(t *testing.T) {
 			},
 			wantErr: false,
 		},
-		{
-			name: "Sad Case - Invalid CCC number",
-			args: args{
-				ctx:       ctx,
-				CCCNumber: "99929291921",
-			},
-			wantErr: true,
-		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

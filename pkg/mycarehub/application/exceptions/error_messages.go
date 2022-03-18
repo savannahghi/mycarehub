@@ -159,7 +159,4 @@ const (
 
 	// GetAllRolesErrorMsg is the error message displayed when a user role is not found
 	GetAllRolesErrorMsg = "unable to query all roles"
-
-	// GetClientByCCCNumberNotFoundErrorMsg is the error message displayed when a client is not found
-	GetClientByCCCNumberNotFoundErrorMsg = "client with provided CCC number not found"
 )
