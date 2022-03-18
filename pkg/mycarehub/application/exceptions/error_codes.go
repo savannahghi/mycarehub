@@ -372,4 +372,8 @@ const (
 	// GetAllRolesError implies that the system is unable to get all roles
 	// Its error code is 74
 	GetAllRolesError
+
+	// GetClientByCCCNumberNotFoundError implies that the system is unable to get the client by ccc number
+	// Its error code is 75
+	GetClientByCCCNumberNotFoundError
 )

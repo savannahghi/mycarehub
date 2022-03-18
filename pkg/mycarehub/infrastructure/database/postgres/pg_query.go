@@ -9,6 +9,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
+	internalExceptions "github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/utils"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
@@ -1071,7 +1072,7 @@ func (d *MyCareHubDb) GetClientProfileByCCCNumber(ctx context.Context, CCCNumber
 	clientProfile, err := d.query.GetClientProfileByCCCNumber(ctx, CCCNumber)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return nil, err
+		return nil, internalExceptions.GetError(err)
 	}
 
 	userProfile, err := d.query.GetUserProfileByUserID(ctx, clientProfile.UserID)

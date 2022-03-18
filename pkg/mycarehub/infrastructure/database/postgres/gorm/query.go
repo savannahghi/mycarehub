@@ -941,12 +941,17 @@ func (db *PGInstance) GetScreeningToolQuestionByQuestionID(ctx context.Context, 
 // GetClientProfileByCCCNumber returns a client profile using the CCC number
 func (db *PGInstance) GetClientProfileByCCCNumber(ctx context.Context, CCCNumber string) (*Client, error) {
 	var client Client
+
 	if err := db.DB.Joins("JOIN clients_client_identifiers on clients_client.id = clients_client_identifiers.client_id").
 		Joins("JOIN clients_identifier on clients_identifier.id = clients_client_identifiers.identifier_id").
 		Where("clients_identifier.identifier_type = ? AND clients_identifier.identifier_value = ? ", "CCC", CCCNumber).
-		Preload(clause.Associations).Find(&client).Error; err != nil {
-		return nil, fmt.Errorf("failed to get client profile by CCC number: %v", err)
+		Preload(clause.Associations).First(&client).Error; err != nil {
+		if gorm.ErrRecordNotFound == err {
+			return nil, exceptions.GetClientByCCCNumberNotFoundErr(err)
+		}
+		return nil, exceptions.InternalErr(err)
 	}
+
 	return &client, nil
 }
 
