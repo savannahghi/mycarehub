@@ -33,6 +33,7 @@ type UserUseCaseMock struct {
 	MockRegisterKenyaEMRPatientsFn      func(ctx context.Context, input []*dto.PatientRegistrationPayload) ([]*dto.ClientRegistrationOutput, error)
 	MockRegisteredFacilityPatientsFn    func(ctx context.Context, input dto.PatientSyncPayload) (*dto.PatientSyncResponse, error)
 	MockSetUserPINFn                    func(ctx context.Context, input dto.PINInput) (bool, error)
+	MockSearchStaffByStaffNumberFn      func(ctx context.Context, staffNumber string) ([]*domain.StaffProfile, error)
 }
 
 // NewUserUseCaseMock creates in itializes create type mocks
@@ -44,6 +45,16 @@ func NewUserUseCaseMock() *UserUseCaseMock {
 		LastName:      gofakeit.LastName(),
 		PhoneNumber:   gofakeit.Phone(),
 		CaregiverType: enums.CaregiverTypeFather,
+	}
+
+	staff := &domain.StaffProfile{
+		ID:                &UUID,
+		User:              &domain.User{},
+		UserID:            uuid.New().String(),
+		Active:            true,
+		StaffNumber:       "test-staff-101",
+		Facilities:        []domain.Facility{},
+		DefaultFacilityID: uuid.New().String(),
 	}
 
 	return &UserUseCaseMock{
@@ -91,6 +102,9 @@ func NewUserUseCaseMock() *UserUseCaseMock {
 		},
 		MockVerifyPINFn: func(ctx context.Context, userID string, flavour feedlib.Flavour, pin string) (bool, error) {
 			return true, nil
+		},
+		MockSearchStaffByStaffNumberFn: func(ctx context.Context, staffNumber string) ([]*domain.StaffProfile, error) {
+			return []*domain.StaffProfile{staff}, nil
 		},
 		MockGetClientCaregiverFn: func(ctx context.Context, clientID string) (*domain.Caregiver, error) {
 			return caregiver, nil
@@ -243,4 +257,9 @@ func (f *UserUseCaseMock) RegisteredFacilityPatients(ctx context.Context, input 
 // SetUserPIN mocks the implementation of setting a user pin
 func (f *UserUseCaseMock) SetUserPIN(ctx context.Context, input dto.PINInput) (bool, error) {
 	return f.MockSetUserPINFn(ctx, input)
+}
+
+// SearchStaffByStaffNumber mocks the implementation of getting staff profile using their staff number.
+func (f *UserUseCaseMock) SearchStaffByStaffNumber(ctx context.Context, staffNumber string) ([]*domain.StaffProfile, error) {
+	return f.MockSearchStaffByStaffNumberFn(ctx, staffNumber)
 }

@@ -852,6 +852,47 @@ func TestPGInstance_GetStaffProfileByUserID(t *testing.T) {
 	}
 }
 
+func TestPGInstance_SearchStaffProfileByStaffNumber(t *testing.T) {
+	ctx := context.Background()
+
+	type args struct {
+		ctx         context.Context
+		staffNumber string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    []*gorm.StaffProfile
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:         ctx,
+				staffNumber: staffNumber,
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := testingDB.SearchStaffProfileByStaffNumber(tt.args.ctx, tt.args.staffNumber)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.SearchStaffProfileByStaffNumber() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if tt.wantErr && got != nil {
+				t.Errorf("expected staff profiles to be nil for %v", tt.name)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected staff profiles not to be nil for %v", tt.name)
+				return
+			}
+		})
+	}
+}
+
 func TestPGInstance_GetOTP(t *testing.T) {
 	ctx := context.Background()
 

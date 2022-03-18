@@ -3,6 +3,7 @@ extend type Query {
   verifyPIN(userID: String!, flavour: Flavour!, pin: String!): Boolean!
   getClientCaregiver(clientID: String!): Caregiver!
   searchClientsByCCCNumber(CCCNumber: String!): [ClientProfile!]
+  searchStaffByStaffNumber(staffNumber: String!): [StaffProfile!]
 }
 
 extend type Mutation {

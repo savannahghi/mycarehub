@@ -104,6 +104,7 @@ type PostgresMock struct {
 	MockGetScreeningToolsQuestionsFn                func(ctx context.Context, toolType string) ([]*domain.ScreeningToolQuestion, error)
 	MockAnswerScreeningToolQuestionsFn              func(ctx context.Context, screeningToolResponses []*dto.ScreeningToolQuestionResponseInput) error
 	MockGetScreeningToolQuestionByQuestionIDFn      func(ctx context.Context, questionID string) (*domain.ScreeningToolQuestion, error)
+	MockSearchStaffProfileByStaffNumberFn           func(ctx context.Context, staffNumber string) ([]*domain.StaffProfile, error)
 	MockInvalidateScreeningToolResponseFn           func(ctx context.Context, clientID string, questionID string) error
 	MockUpdateServiceRequestsFn                     func(ctx context.Context, payload *domain.UpdateServiceRequestsPayload) (bool, error)
 	MockListAppointments                            func(ctx context.Context, params *domain.Appointment, filter []*domain.FiltersParam, pagination *domain.Pagination) ([]*domain.Appointment, *domain.Pagination, error)
@@ -526,6 +527,9 @@ func NewPostgresMock() *PostgresMock {
 			}
 			return client, nil
 		},
+		MockSearchStaffProfileByStaffNumberFn: func(ctx context.Context, staffNumber string) ([]*domain.StaffProfile, error) {
+			return []*domain.StaffProfile{staff}, nil
+		},
 		MockGetServiceRequestsFn: func(ctx context.Context, requestType, requestStatus, facilityID *string) ([]*domain.ServiceRequest, error) {
 			return serviceRequests, nil
 		},
@@ -869,6 +873,11 @@ func (gm *PostgresMock) GetClientProfileByUserID(ctx context.Context, userID str
 // GetStaffProfileByUserID mocks the method for fetching a staff profile using the user ID
 func (gm *PostgresMock) GetStaffProfileByUserID(ctx context.Context, userID string) (*domain.StaffProfile, error) {
 	return gm.MockGetStaffProfileByUserIDFn(ctx, userID)
+}
+
+// SearchStaffProfileByStaffNumber mocks the implementation of getting staff profile using their staff number.
+func (gm *PostgresMock) SearchStaffProfileByStaffNumber(ctx context.Context, staffNumber string) ([]*domain.StaffProfile, error) {
+	return gm.MockSearchStaffProfileByStaffNumberFn(ctx, staffNumber)
 }
 
 // CheckUserHasPin mocks the method for checking if a user has a pin

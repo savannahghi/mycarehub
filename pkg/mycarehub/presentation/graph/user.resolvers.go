@@ -54,3 +54,7 @@ func (r *queryResolver) GetClientCaregiver(ctx context.Context, clientID string)
 func (r *queryResolver) SearchClientsByCCCNumber(ctx context.Context, cCCNumber string) ([]*domain.ClientProfile, error) {
 	return r.mycarehub.User.SearchClientsByCCCNumber(ctx, cCCNumber)
 }
+
+func (r *queryResolver) SearchStaffByStaffNumber(ctx context.Context, staffNumber string) ([]*domain.StaffProfile, error) {
+	return r.mycarehub.User.SearchStaffByStaffNumber(ctx, staffNumber)
+}

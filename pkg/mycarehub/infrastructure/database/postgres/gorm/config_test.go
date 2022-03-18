@@ -11,7 +11,6 @@ import (
 
 	"github.com/brianvoe/gofakeit"
 	"github.com/go-testfixtures/testfixtures/v3"
-	"github.com/google/uuid"
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
@@ -90,7 +89,7 @@ var (
 	termsText = "Test terms"
 
 	// Staff
-	staffNumber = uuid.New().String()
+	staffNumber = "test-Staff-101"
 	staffID     = "8ecbbc80-24c8-421a-9f1a-e14e12678ef1"
 
 	clientsServiceRequestID = "8ecbbc10-24c8-421a-9f1a-e17f12678ef1"

@@ -64,6 +64,7 @@ type Query interface {
 	GetClientsByParams(ctx context.Context, query Client, lastSyncTime *time.Time) ([]*Client, error)
 	GetClientCCCIdentifier(ctx context.Context, clientID string) (*Identifier, error)
 	SearchClientProfilesByCCCNumber(ctx context.Context, CCCNumber string) ([]*Client, error)
+	SearchStaffProfileByStaffNumber(ctx context.Context, staffNumber string) ([]*StaffProfile, error)
 	GetServiceRequestsForKenyaEMR(ctx context.Context, facilityID string, lastSyncTime time.Time) ([]*ClientServiceRequest, error)
 	GetScreeningToolQuestions(ctx context.Context, toolType string) ([]ScreeningToolQuestion, error)
 	GetScreeningToolQuestionByQuestionID(ctx context.Context, questionID string) (*ScreeningToolQuestion, error)
@@ -435,6 +436,19 @@ func (db *PGInstance) GetStaffProfileByUserID(ctx context.Context, userID string
 	}
 
 	return &staff, nil
+}
+
+// SearchStaffProfileByStaffNumber searches for the staff profile(s) of a given staff.
+// It may also return other staffs whose staff number may match at a given time.
+func (db *PGInstance) SearchStaffProfileByStaffNumber(ctx context.Context, staffNumber string) ([]*StaffProfile, error) {
+	var staff []*StaffProfile
+
+	if err := db.DB.Where("staff_number ~~* ? ", "%"+staffNumber+"%").Preload(clause.Associations).Find(&staff).Error; err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, fmt.Errorf("unable to ge staff %v", err)
+	}
+
+	return staff, nil
 }
 
 // CheckUserHasPin performs a look up on the pins table to check whether a user has a pin
