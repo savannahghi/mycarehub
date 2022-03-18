@@ -156,4 +156,7 @@ const (
 
 	// RetryLoginErrorMsg is the error message displayed when a user attempts to login when they have exponential backoff
 	RetryLoginErrorMsg = "retry login failed due to exponential backoff"
+
+	// GetAllRolesErrorMsg is the error message displayed when a user role is not found
+	GetAllRolesErrorMsg = "unable to query all roles"
 )

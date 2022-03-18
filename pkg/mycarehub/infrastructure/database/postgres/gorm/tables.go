@@ -764,6 +764,7 @@ type AuthorityRole struct {
 	AuthorityRoleID *string `gorm:"column:id"`
 	Name            string  `gorm:"column:name"`
 	OrganisationID  string  `gorm:"column:organisation_id"`
+	Active          bool    `gorm:"column:active"`
 }
 
 // BeforeCreate is a hook run before creating authority role

@@ -2892,3 +2892,35 @@ func TestPGInstance_CheckIfClientHasUnresolvedServiceRequests(t *testing.T) {
 		})
 	}
 }
+
+func TestPGInstance_GetAllRoles(t *testing.T) {
+	type args struct {
+		ctx context.Context
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "happy case: get all roles",
+			args: args{
+				ctx: context.Background(),
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			got, err := testingDB.GetAllRoles(tt.args.ctx)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.GetAllRoles() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("PGInstance.GetAllRoles() Expected a response but got = %v", got)
+			}
+		})
+	}
+}

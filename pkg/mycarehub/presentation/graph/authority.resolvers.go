@@ -7,6 +7,7 @@ import (
 	"context"
 
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/presentation/graph/generated"
 )
 
@@ -16,6 +17,14 @@ func (r *mutationResolver) AssignRoles(ctx context.Context, userID string, roles
 
 func (r *mutationResolver) RevokeRoles(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error) {
 	return r.mycarehub.Authority.RevokeRoles(ctx, userID, roles)
+}
+
+func (r *queryResolver) GetUserRoles(ctx context.Context, userID string) ([]*domain.AuthorityRole, error) {
+	return r.mycarehub.Authority.GetUserRoles(ctx, userID)
+}
+
+func (r *queryResolver) GetAllAuthorityRoles(ctx context.Context) ([]*domain.AuthorityRole, error) {
+	return r.mycarehub.Authority.GetAllRoles(ctx)
 }
 
 // Mutation returns generated.MutationResolver implementation.

@@ -86,6 +86,7 @@ type Query interface {
 	GetScreeningToolQuestionByQuestionID(ctx context.Context, questionID string) (*domain.ScreeningToolQuestion, error)
 	GetClientProfileByCCCNumber(ctx context.Context, CCCNumber string) (*domain.ClientProfile, error)
 	CheckIfClientHasUnresolvedServiceRequests(ctx context.Context, clientID string, serviceRequestType string) (bool, error)
+	GetAllRoles(ctx context.Context) ([]*domain.AuthorityRole, error)
 }
 
 // Update represents all the update action interfaces

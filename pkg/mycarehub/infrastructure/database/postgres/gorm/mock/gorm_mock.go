@@ -106,6 +106,7 @@ type GormMock struct {
 	MockGetClientProfileByCCCNumberFn               func(ctx context.Context, CCCNumber string) (*gorm.Client, error)
 	MockUpdateUserPinChangeRequiredStatusFn         func(ctx context.Context, userID string, flavour feedlib.Flavour, status bool) error
 	MockCheckIfClientHasUnresolvedServiceRequestsFn func(ctx context.Context, clientID string, serviceRequestType string) (bool, error)
+	MockGetAllRolesFn                               func(ctx context.Context) ([]*gorm.AuthorityRole, error)
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -764,6 +765,15 @@ func NewGormMock() *GormMock {
 		MockUpdateUserPinChangeRequiredStatusFn: func(ctx context.Context, userID string, flavour feedlib.Flavour, status bool) error {
 			return nil
 		},
+		MockGetAllRolesFn: func(ctx context.Context) ([]*gorm.AuthorityRole, error) {
+			return []*gorm.AuthorityRole{
+				{
+					AuthorityRoleID: &UUID,
+					Name:            enums.UserRoleTypeClientManagement.String(),
+					Active:          true,
+				},
+			}, nil
+		},
 	}
 }
 
@@ -1211,4 +1221,9 @@ func (gm *GormMock) CheckIfClientHasUnresolvedServiceRequests(ctx context.Contex
 // UpdateUserPinChangeRequiredStatus mocks the implementation of updating a user pin change required state
 func (gm *GormMock) UpdateUserPinChangeRequiredStatus(ctx context.Context, userID string, flavour feedlib.Flavour, status bool) error {
 	return gm.MockUpdateUserPinChangeRequiredStatusFn(ctx, userID, flavour, status)
+}
+
+// GetAllRoles mocks the implementation of getting all roles
+func (gm *GormMock) GetAllRoles(ctx context.Context) ([]*gorm.AuthorityRole, error) {
+	return gm.MockGetAllRolesFn(ctx)
 }

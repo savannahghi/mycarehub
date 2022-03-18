@@ -2,3 +2,8 @@ extend type Mutation {
   assignRoles(userID: String!, roles: [UserRoleType!]!): Boolean!
   revokeRoles(userID: String!, roles: [UserRoleType!]!): Boolean!
 }
+
+extend type Query{
+  getUserRoles(userID: String!): [AuthorityRole!]
+  getAllAuthorityRoles: [AuthorityRole!]
+}

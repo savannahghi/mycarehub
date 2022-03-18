@@ -368,4 +368,8 @@ const (
 	// RetryLoginError implies that the system is unable to retry the login
 	// Its error code is 73
 	RetryLoginError
+
+	// GetAllRolesError implies that the system is unable to get all roles
+	// Its error code is 74
+	GetAllRolesError
 )

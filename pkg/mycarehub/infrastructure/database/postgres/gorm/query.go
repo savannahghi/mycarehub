@@ -67,6 +67,7 @@ type Query interface {
 	GetScreeningToolQuestions(ctx context.Context, toolType string) ([]ScreeningToolQuestion, error)
 	GetScreeningToolQuestionByQuestionID(ctx context.Context, questionID string) (*ScreeningToolQuestion, error)
 	CheckIfClientHasUnresolvedServiceRequests(ctx context.Context, clientID string, serviceRequestType string) (bool, error)
+	GetAllRoles(ctx context.Context) ([]*AuthorityRole, error)
 }
 
 // CheckWhetherUserHasLikedContent performs a operation to check whether user has liked the content
@@ -964,4 +965,15 @@ func (db *PGInstance) CheckIfClientHasUnresolvedServiceRequests(ctx context.Cont
 	}
 
 	return false, nil
+}
+
+// GetAllRoles returns all roles
+func (db *PGInstance) GetAllRoles(ctx context.Context) ([]*AuthorityRole, error) {
+	var roles []*AuthorityRole
+	err := db.DB.Find(&roles).Error
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, fmt.Errorf("failed to get all roles: %v", err)
+	}
+	return roles, nil
 }
