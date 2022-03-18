@@ -3289,3 +3289,95 @@ func TestUseCasesUserImpl_SearchClientByCCCNumber(t *testing.T) {
 		})
 	}
 }
+
+func TestUseCasesUserImpl_Consent(t *testing.T) {
+	ctx := context.Background()
+	type args struct {
+		ctx         context.Context
+		phoneNumber string
+		flavour     feedlib.Flavour
+		active      bool
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Successfully offer consent",
+			args: args{
+				ctx:         ctx,
+				phoneNumber: gofakeit.Phone(),
+				flavour:     feedlib.FlavourConsumer,
+				active:      true,
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Happy Case - Successfully withdraw consent",
+			args: args{
+				ctx:         ctx,
+				phoneNumber: gofakeit.Phone(),
+				flavour:     feedlib.FlavourConsumer,
+				active:      false,
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Sad Case - Fail to get user profile by phone",
+			args: args{
+				ctx:         ctx,
+				phoneNumber: "",
+				flavour:     "",
+				active:      true,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - Fail to update user status",
+			args: args{
+				ctx:         ctx,
+				phoneNumber: "",
+				flavour:     "",
+				active:      true,
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			fakeExtension := extensionMock.NewFakeExtension()
+			otp := otp.NewOTPUseCase(fakeDB, fakeDB, fakeExtension)
+			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
+			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, otp, fakeAuthority, fakeGetStream)
+
+			if tt.name == "Sad Case - Fail to get user profile by phone" {
+				fakeDB.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*domain.User, error) {
+					return nil, fmt.Errorf("failed to get user profile by phonenumber")
+				}
+			}
+
+			if tt.name == "Sad Case - Fail to update user status" {
+				fakeDB.MockUpdateUserActiveStatusFn = func(ctx context.Context, userID string, flavour feedlib.Flavour, active bool) error {
+					return fmt.Errorf("failed to update user active status")
+				}
+			}
+
+			got, err := us.Consent(tt.args.ctx, tt.args.phoneNumber, tt.args.flavour, tt.args.active)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCasesUserImpl.Consent() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("UseCasesUserImpl.Consent() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

@@ -372,4 +372,9 @@ const (
 	// GetAllRolesError implies that the system is unable to get all roles
 	// Its error code is 74
 	GetAllRolesError
+
+	// InactiveUser is returned when a user profile is not active. If they are inactive
+	// it mens they opted out and they should not be able to access the platform
+	// Its error code is 75
+	InactiveUser
 )

@@ -113,6 +113,7 @@ type PostgresMock struct {
 	MockSearchClientProfilesByCCCNumberFn           func(ctx context.Context, CCCNumber string) ([]*domain.ClientProfile, error)
 	MockCheckIfClientHasUnresolvedServiceRequestsFn func(ctx context.Context, clientID string, serviceRequestType string) (bool, error)
 	MockGetAllRolesFn                               func(ctx context.Context) ([]*domain.AuthorityRole, error)
+	MockUpdateUserActiveStatusFn                    func(ctx context.Context, userID string, flavour feedlib.Flavour, active bool) error
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -717,6 +718,9 @@ func NewPostgresMock() *PostgresMock {
 				},
 			}, nil
 		},
+		MockUpdateUserActiveStatusFn: func(ctx context.Context, userID string, flavour feedlib.Flavour, active bool) error {
+			return nil
+		},
 	}
 }
 
@@ -1194,4 +1198,9 @@ func (gm *PostgresMock) GetAllRoles(ctx context.Context) ([]*domain.AuthorityRol
 // It returns clients profiles whose parts of the CCC number matches
 func (gm *PostgresMock) SearchClientProfilesByCCCNumber(ctx context.Context, CCCNumber string) ([]*domain.ClientProfile, error) {
 	return gm.MockSearchClientProfilesByCCCNumberFn(ctx, CCCNumber)
+}
+
+// UpdateUserActiveStatus mocks updating a user `active status`
+func (gm *PostgresMock) UpdateUserActiveStatus(ctx context.Context, userID string, flavour feedlib.Flavour, active bool) error {
+	return gm.MockUpdateUserActiveStatusFn(ctx, userID, flavour, active)
 }

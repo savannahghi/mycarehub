@@ -109,6 +109,7 @@ type GormMock struct {
 	MockUpdateUserPinChangeRequiredStatusFn         func(ctx context.Context, userID string, flavour feedlib.Flavour, status bool) error
 	MockCheckIfClientHasUnresolvedServiceRequestsFn func(ctx context.Context, clientID string, serviceRequestType string) (bool, error)
 	MockGetAllRolesFn                               func(ctx context.Context) ([]*gorm.AuthorityRole, error)
+	MockUpdateUserActiveStatusFn                    func(ctx context.Context, userID string, flavour feedlib.Flavour, active bool) error
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -782,6 +783,9 @@ func NewGormMock() *GormMock {
 				},
 			}, nil
 		},
+		MockUpdateUserActiveStatusFn: func(ctx context.Context, userID string, flavour feedlib.Flavour, active bool) error {
+			return nil
+		},
 	}
 }
 
@@ -1245,4 +1249,9 @@ func (gm *GormMock) SearchClientProfilesByCCCNumber(ctx context.Context, CCCNumb
 // SearchStaffProfileByStaffNumber mocks the implementation of getting staff profile using their staff number.
 func (gm *GormMock) SearchStaffProfileByStaffNumber(ctx context.Context, staffNumber string) ([]*gorm.StaffProfile, error) {
 	return gm.MockSearchStaffProfileByStaffNumberFn(ctx, staffNumber)
+}
+
+// UpdateUserActiveStatus mocks updating a user `active status`
+func (gm *GormMock) UpdateUserActiveStatus(ctx context.Context, userID string, flavour feedlib.Flavour, active bool) error {
+	return gm.MockUpdateUserActiveStatusFn(ctx, userID, flavour, active)
 }

@@ -38,6 +38,10 @@ func (r *mutationResolver) RegisterStaff(ctx context.Context, input dto.StaffReg
 	return r.mycarehub.User.RegisterStaff(ctx, input)
 }
 
+func (r *mutationResolver) OptOut(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (bool, error) {
+	return r.mycarehub.User.Consent(ctx, phoneNumber, flavour, false)
+}
+
 func (r *queryResolver) GetCurrentTerms(ctx context.Context, flavour feedlib.Flavour) (*domain.TermsOfService, error) {
 	r.checkPreconditions()
 	return r.mycarehub.Terms.GetCurrentTerms(ctx, flavour)
