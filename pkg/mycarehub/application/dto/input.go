@@ -7,7 +7,9 @@ import (
 
 	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/feedlib"
+	"github.com/savannahghi/firebasetools"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/scalarutils"
 	validator "gopkg.in/go-playground/validator.v9"
 )
@@ -535,4 +537,13 @@ type AppointmentServiceRequestInput struct {
 type UpdateFacilityPayload struct {
 	FacilityID         string `json:"facilityID"`
 	FHIROrganisationID string `json:"fhirOrganisationID"`
+}
+
+// LoginResponseInput models the input passed to the login endpoint
+type LoginResponseInput struct {
+	UserProfile   *domain.User                      `json:"userProfile"`
+	ClientProfile *domain.ClientProfile             `json:"clientProfile"`
+	StaffProfile  *domain.StaffProfile              `json:"staffProfile"`
+	Flavour       feedlib.Flavour                   `json:"flavour"`
+	UserTokens    *firebasetools.FirebaseUserTokens `json:"userTokens"`
 }

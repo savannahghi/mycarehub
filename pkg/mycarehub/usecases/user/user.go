@@ -17,7 +17,6 @@ import (
 	"github.com/savannahghi/converterandformatter"
 	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/feedlib"
-	"github.com/savannahghi/firebasetools"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
@@ -260,12 +259,11 @@ func (us *UseCasesUserImpl) VerifyLoginPIN(ctx context.Context, userProfile *dom
 	// 1. failed login count to 0
 	// 2. next allowed login time
 	// 3. last successful login time
-	// 4. last failed login time
 	if userProfile.FailedLoginCount > 0 {
 		err = us.Update.UpdateUserProfileAfterLoginSuccess(ctx, *userProfile.ID)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
-			return false, exceptions.LoginCountUpdateErr(fmt.Errorf("failed to update user profile after login success"))
+			return false, exceptions.LoginCountUpdateErr(fmt.Errorf("failed to update user profile successful login"))
 		}
 	}
 	return true, nil
@@ -273,7 +271,10 @@ func (us *UseCasesUserImpl) VerifyLoginPIN(ctx context.Context, userProfile *dom
 
 // Login is used to login the user into the application
 func (us *UseCasesUserImpl) Login(ctx context.Context, phoneNumber string, pin string, flavour feedlib.Flavour) (*domain.LoginResponse, error) {
-	var userProfile *domain.User
+	var (
+		userProfile *domain.User
+	)
+	loginResponseInput := &dto.LoginResponseInput{}
 
 	phone, err := converterandformatter.NormalizeMSISDN(phoneNumber)
 	if err != nil {
@@ -290,6 +291,7 @@ func (us *UseCasesUserImpl) Login(ctx context.Context, phoneNumber string, pin s
 			Code:    int(exceptions.InvalidFlavour),
 		}, exceptions.InvalidFlavourDefinedErr(fmt.Errorf("flavour is not valid"))
 	}
+	loginResponseInput.Flavour = flavour
 
 	userProfile, err = us.Query.GetUserProfileByPhoneNumber(ctx, *phone, flavour)
 	if err != nil {
@@ -306,14 +308,31 @@ func (us *UseCasesUserImpl) Login(ctx context.Context, phoneNumber string, pin s
 			Code:    int(exceptions.InactiveUser),
 		}, fmt.Errorf("user is not active")
 	}
+	loginResponseInput.UserProfile = userProfile
+
+	err = us.GetLoggingInUserProfiles(ctx, loginResponseInput)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return &domain.LoginResponse{
+			Message: "failed to get logging in user profiles",
+			Code:    exceptions.GetErrorCode(err),
+		}, exceptions.GetError(err)
+	}
+
+	err = us.CheckLoginPreconditions(ctx, loginResponseInput)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return &domain.LoginResponse{
+			Message: "all login preconditions did not pass",
+			Code:    exceptions.GetErrorCode(err),
+		}, exceptions.GetError(err)
+	}
 
 	// If the next allowed login time is after the current time, don't log in the user
 	// The user has to retry after some time. We check whether time out (the current time being greater than
 	// the next allowed login time) has happened. If not, the user will have to wait before trying to log in.
 	currentTime := time.Now()
-
 	timeOutOccurred := currentTime.Before(*userProfile.NextAllowedLogin)
-
 	if timeOutOccurred {
 		loginRetryTime := userProfile.NextAllowedLogin.Sub(currentTime).Seconds()
 		err := fmt.Errorf("please try again after %v seconds", loginRetryTime)
@@ -352,14 +371,89 @@ func (us *UseCasesUserImpl) Login(ctx context.Context, phoneNumber string, pin s
 			Code:    int(exceptions.Internal),
 		}, err
 	}
+	loginResponseInput.UserTokens = userTokens
 
-	return us.ReturnLoginResponse(ctx, flavour, userProfile, userTokens)
+	return us.ReturnLoginResponse(ctx, loginResponseInput)
+}
+
+// GetLoggingInUserProfiles returns the user profiles that are currently being logged in
+// 1. if the flavour is PRO, return staff profile
+// 2. if the flavour is CONSUMER, return client profile
+func (us *UseCasesUserImpl) GetLoggingInUserProfiles(ctx context.Context, input *dto.LoginResponseInput) error {
+	switch input.Flavour {
+	case feedlib.FlavourConsumer:
+		clientProfile, err := us.Query.GetClientProfileByUserID(ctx, *input.UserProfile.ID)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return exceptions.ClientProfileNotFoundErr(err)
+		}
+		input.ClientProfile = clientProfile
+		return nil
+	case feedlib.FlavourPro:
+		staffProfile, err := us.Query.GetStaffProfileByUserID(ctx, *input.UserProfile.ID)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return exceptions.StaffProfileNotFoundErr(err)
+		}
+		input.StaffProfile = staffProfile
+		return nil
+	}
+	return exceptions.InvalidFlavourDefinedErr(fmt.Errorf("flavour is not valid"))
+}
+
+// CheckLoginPreconditions checks whether the user is allowed to login
+func (us *UseCasesUserImpl) CheckLoginPreconditions(ctx context.Context, input *dto.LoginResponseInput) error {
+	switch input.Flavour {
+	case feedlib.FlavourConsumer:
+		// check if client has unresolved pin reset request
+		ok, err := us.Query.CheckIfClientHasUnresolvedServiceRequests(ctx, *input.ClientProfile.ID, string(enums.ServiceRequestTypePinReset))
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return exceptions.InternalErr(err)
+		}
+		if ok {
+			err := fmt.Errorf("client has unresolved pin reset request")
+			helpers.ReportErrorToSentry(err)
+			return exceptions.ClientHasUnresolvedPinResetRequestErr(err)
+		}
+		if input.ClientProfile.CHVUserID != nil {
+			CHVProfile, err := us.Query.GetUserProfileByUserID(ctx, *input.ClientProfile.CHVUserID)
+			if err != nil {
+				helpers.ReportErrorToSentry(err)
+				return exceptions.UserNotFoundError(err)
+			}
+			input.ClientProfile.CHVUserName = CHVProfile.Name
+		}
+		clientCCCIdentifier, err := us.Query.GetClientCCCIdentifier(ctx, *input.ClientProfile.ID)
+		if err != nil {
+			// An exception is not raised since we do not want to lock the user(client) out of the
+			// app if their identifiers are not found.
+			helpers.ReportErrorToSentry(err)
+		}
+		if clientCCCIdentifier != nil {
+			input.ClientProfile.CCCNumber = clientCCCIdentifier.IdentifierValue
+		}
+	case feedlib.FlavourPro:
+		// check if staff has unresolved pin reset request
+		exists, err := us.Query.CheckIfStaffHasUnresolvedServiceRequests(ctx, *input.StaffProfile.ID, string(enums.ServiceRequestTypeStaffPinReset))
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return exceptions.InternalErr(err)
+		}
+		if exists {
+			err := fmt.Errorf("staff has unresolved pin reset request")
+			helpers.ReportErrorToSentry(err)
+			return exceptions.StaffHasUnresolvedPinResetRequestErr(err)
+		}
+	}
+	return nil
+
 }
 
 // ReturnLoginResponse returns either a client's or staff's response depending on the specified flavour
-func (us *UseCasesUserImpl) ReturnLoginResponse(ctx context.Context, flavour feedlib.Flavour, userProfile *domain.User, userTokens *firebasetools.FirebaseUserTokens) (*domain.LoginResponse, error) {
+func (us *UseCasesUserImpl) ReturnLoginResponse(ctx context.Context, input *dto.LoginResponseInput) (*domain.LoginResponse, error) {
 	// add user roles and permissions to the response
-	roles, err := us.Authority.GetUserRoles(ctx, *userProfile.ID)
+	roles, err := us.Authority.GetUserRoles(ctx, *input.UserProfile.ID)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return &domain.LoginResponse{
@@ -367,9 +461,9 @@ func (us *UseCasesUserImpl) ReturnLoginResponse(ctx context.Context, flavour fee
 			Code:    int(exceptions.GetUserRolesError),
 		}, exceptions.GetUserRolesErr(err)
 	}
-	userProfile.Roles = roles
+	input.UserProfile.Roles = roles
 
-	permissions, err := us.Authority.GetUserPermissions(ctx, *userProfile.ID)
+	permissions, err := us.Authority.GetUserPermissions(ctx, *input.UserProfile.ID)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return &domain.LoginResponse{
@@ -377,66 +471,19 @@ func (us *UseCasesUserImpl) ReturnLoginResponse(ctx context.Context, flavour fee
 			Code:    int(exceptions.GetUserPermissionsError),
 		}, exceptions.GetUserPermissionsErr(err)
 	}
-	userProfile.Permissions = permissions
+	input.UserProfile.Permissions = permissions
 
-	switch flavour {
+	switch input.Flavour {
 	case feedlib.FlavourConsumer:
-		clientProfile, err := us.Query.GetClientProfileByUserID(ctx, *userProfile.ID)
-		if err != nil {
-			helpers.ReportErrorToSentry(err)
-			return &domain.LoginResponse{
-				Message: "failed to get client profile",
-				Code:    int(exceptions.ProfileNotFound),
-			}, exceptions.ClientProfileNotFoundErr(err)
-		}
-		clientCCCIdentifier, err := us.Query.GetClientCCCIdentifier(ctx, *clientProfile.ID)
-		if err != nil {
-			// An exception is not raised since we do not want to lock the user(client) out of the
-			// app if their identifiers are not found.
-			helpers.ReportErrorToSentry(err)
-		}
-		if clientCCCIdentifier != nil {
-			clientProfile.CCCNumber = clientCCCIdentifier.IdentifierValue
-		}
-
-		// check if client has unresolved pin reset request
-		exists, err := us.Query.CheckIfClientHasUnresolvedServiceRequests(ctx, *clientProfile.ID, string(enums.ServiceRequestTypePinReset))
-		if err != nil {
-			helpers.ReportErrorToSentry(err)
-			return &domain.LoginResponse{
-				Message: "failed to check if client has unresolved pin reset request",
-				Code:    int(exceptions.Internal),
-			}, exceptions.InternalErr(err)
-		}
-		if exists {
-			err := fmt.Errorf("client has unresolved pin reset request")
-			helpers.ReportErrorToSentry(err)
-			return &domain.LoginResponse{
-				Message: err.Error(),
-				Code:    int(exceptions.ClientHasUnresolvedPinResetRequestError),
-			}, exceptions.ClientHasUnresolvedPinResetRequestErr(err)
-		}
-		if clientProfile.CHVUserID != nil {
-			CHVProfile, err := us.Query.GetUserProfileByUserID(ctx, *clientProfile.CHVUserID)
-			if err != nil {
-				helpers.ReportErrorToSentry(err)
-				return &domain.LoginResponse{
-					Message: "failed to get CHV profile",
-					Code:    int(exceptions.ProfileNotFound),
-				}, exceptions.UserNotFoundError(err)
-			}
-			clientProfile.CHVUserName = CHVProfile.Name
-		}
-
 		// Create/update a client's getstream user
 		getStreamUser := &getStreamClient.User{
-			ID:   *clientProfile.ID,
+			ID:   *input.ClientProfile.ID,
 			Role: "user",
-			Name: userProfile.Name,
+			Name: input.UserProfile.Name,
 			ExtraData: map[string]interface{}{
 				"userType": "CLIENT",
-				"userID":   userProfile.ID,
-				"nickName": userProfile.Username,
+				"userID":   input.UserProfile.ID,
+				"nickName": input.UserProfile.Username,
 			},
 		}
 
@@ -445,18 +492,18 @@ func (us *UseCasesUserImpl) ReturnLoginResponse(ctx context.Context, flavour fee
 			helpers.ReportErrorToSentry(err)
 		}
 
-		getStreamToken, err := us.GetStream.CreateGetStreamUserToken(ctx, *clientProfile.ID)
+		getStreamToken, err := us.GetStream.CreateGetStreamUserToken(ctx, *input.ClientProfile.ID)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
 		}
 
-		clientProfile.User = userProfile
+		input.ClientProfile.User = input.UserProfile
 		loginResponse := &domain.Response{
-			Client: clientProfile,
+			Client: input.ClientProfile,
 			AuthCredentials: domain.AuthCredentials{
-				RefreshToken: userTokens.RefreshToken,
-				IDToken:      userTokens.IDToken,
-				ExpiresIn:    userTokens.ExpiresIn,
+				RefreshToken: input.UserTokens.RefreshToken,
+				IDToken:      input.UserTokens.IDToken,
+				ExpiresIn:    input.UserTokens.ExpiresIn,
 			},
 			GetStreamToken: getStreamToken,
 		}
@@ -468,39 +515,15 @@ func (us *UseCasesUserImpl) ReturnLoginResponse(ctx context.Context, flavour fee
 		}, nil
 
 	case feedlib.FlavourPro:
-		staffProfile, err := us.Query.GetStaffProfileByUserID(ctx, *userProfile.ID)
-		if err != nil {
-			helpers.ReportErrorToSentry(err)
-			return &domain.LoginResponse{
-				Message: "failed to get staff profile",
-				Code:    int(exceptions.ProfileNotFound),
-			}, exceptions.StaffProfileNotFoundErr(err)
-		}
-		exists, err := us.Query.CheckIfStaffHasUnresolvedServiceRequests(ctx, *staffProfile.ID, string(enums.ServiceRequestTypeStaffPinReset))
-		if err != nil {
-			helpers.ReportErrorToSentry(err)
-			return &domain.LoginResponse{
-				Message: "failed to check if staff has unresolved pin reset request",
-				Code:    int(exceptions.Internal),
-			}, exceptions.InternalErr(err)
-		}
-		if exists {
-			err := fmt.Errorf("staff has unresolved pin reset request")
-			helpers.ReportErrorToSentry(err)
-			return &domain.LoginResponse{
-				Message: err.Error(),
-				Code:    int(exceptions.ClientHasUnresolvedPinResetRequestError),
-			}, exceptions.StaffHasUnresolvedPinResetRequestErr(err)
-		}
 		// Create/update a staff's getstream user
 		getStreamUser := &getStreamClient.User{
-			ID:   *staffProfile.ID,
+			ID:   *input.StaffProfile.ID,
 			Role: "user",
-			Name: userProfile.Name,
+			Name: input.UserProfile.Name,
 			ExtraData: map[string]interface{}{
 				"userType": "STAFF",
-				"userID":   userProfile.ID,
-				"nickName": userProfile.Username,
+				"userID":   input.UserProfile.ID,
+				"nickName": input.UserProfile.Username,
 			},
 		}
 
@@ -509,18 +532,18 @@ func (us *UseCasesUserImpl) ReturnLoginResponse(ctx context.Context, flavour fee
 			helpers.ReportErrorToSentry(err)
 		}
 
-		getStreamToken, err := us.GetStream.CreateGetStreamUserToken(ctx, *staffProfile.ID)
+		getStreamToken, err := us.GetStream.CreateGetStreamUserToken(ctx, *input.StaffProfile.ID)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
 		}
 
-		staffProfile.User = userProfile
+		input.StaffProfile.User = input.UserProfile
 		loginResponse := &domain.Response{
-			Staff: staffProfile,
+			Staff: input.StaffProfile,
 			AuthCredentials: domain.AuthCredentials{
-				RefreshToken: userTokens.RefreshToken,
-				IDToken:      userTokens.IDToken,
-				ExpiresIn:    userTokens.ExpiresIn,
+				RefreshToken: input.UserTokens.RefreshToken,
+				IDToken:      input.UserTokens.IDToken,
+				ExpiresIn:    input.UserTokens.ExpiresIn,
 			},
 			GetStreamToken: getStreamToken,
 		}
