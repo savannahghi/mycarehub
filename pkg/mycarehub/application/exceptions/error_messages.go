@@ -159,4 +159,7 @@ const (
 
 	// GetAllRolesErrorMsg is the error message displayed when a user role is not found
 	GetAllRolesErrorMsg = "unable to query all roles"
+
+	// RecordNotFoundErrorMsg is the error message displayed when a record is not found
+	RecordNotFoundErrorMsg = "record not found"
 )

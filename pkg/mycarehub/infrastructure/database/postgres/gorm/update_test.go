@@ -1323,6 +1323,7 @@ func TestPGInstance_UpdateServiceRequestsFromKenyaEMR(t *testing.T) {
 		OrganisationID: uuid.New().String(),
 		ResolvedByID:   &staffID,
 		FacilityID:     facilityID,
+		Meta:           `{}`,
 	}
 
 	badServiceRequestID := "badServiceRequestID"

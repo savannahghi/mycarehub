@@ -165,17 +165,17 @@ func Test_createServiceRequest(t *testing.T) {
 	sequence := 1
 	gbvQuestionMeta := enums.ScreeningToolTypeGBV.String() + "_question_number_" + strconv.Itoa(sequence) + "_question_meta"
 
-	wantRedFlagTBRequest := &domain.ClientServiceRequest{
+	wantRedFlagTBRequest := &domain.ServiceRequest{
 		RequestType: enums.ServiceRequestTypeRedFlag.String(),
 		Request:     wantPositiveTBassessment,
 	}
 
-	wantRedFlagGBVAssessment := &domain.ClientServiceRequest{
+	wantRedFlagGBVAssessment := &domain.ServiceRequest{
 		RequestType: enums.ServiceRequestTypeRedFlag.String(),
 		Request:     wantPositiveGBVassessment,
 	}
 
-	wantRedFlagAlcoholAssessment := &domain.ClientServiceRequest{
+	wantRedFlagAlcoholAssessment := &domain.ServiceRequest{
 		RequestType: enums.ServiceRequestTypeRedFlag.String(),
 		Request:     wantPositiveAlcoholAssessment,
 	}
@@ -188,7 +188,7 @@ func Test_createServiceRequest(t *testing.T) {
 	tests := []struct {
 		name string
 		args args
-		want *domain.ClientServiceRequest
+		want *domain.ServiceRequest
 	}{
 		{
 			name: "Test_createServiceRequest:  yes count greater than or equal to 3 for TB_ASSESSMENT",

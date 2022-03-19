@@ -20,11 +20,8 @@ import (
 
 func TestUseCasesServiceRequestImpl_CreateServiceRequest(t *testing.T) {
 	type args struct {
-		ctx         context.Context
-		clientID    string
-		requestType string
-		request     string
-		cccNumber   string
+		ctx                 context.Context
+		serviceRequestInput *dto.ServiceRequestInput
 	}
 	tests := []struct {
 		name    string
@@ -35,10 +32,12 @@ func TestUseCasesServiceRequestImpl_CreateServiceRequest(t *testing.T) {
 		{
 			name: "Happy Case - Successfully create a service request",
 			args: args{
-				ctx:         context.Background(),
-				clientID:    uuid.New().String(),
-				requestType: "HEALTH_DIARY_ENTRY",
-				request:     "A random request",
+				ctx: context.Background(),
+				serviceRequestInput: &dto.ServiceRequestInput{
+					ClientID:    uuid.New().String(),
+					RequestType: "HEALTH_DIARY_ENTRY",
+					Request:     "A random request",
+				},
 			},
 			want:    true,
 			wantErr: false,
@@ -46,10 +45,12 @@ func TestUseCasesServiceRequestImpl_CreateServiceRequest(t *testing.T) {
 		{
 			name: "Sad Case - Fail to create a service request",
 			args: args{
-				ctx:         context.Background(),
-				clientID:    uuid.New().String(),
-				requestType: "HEALTH_DIARY_ENTRY",
-				request:     "A random request",
+				ctx: context.Background(),
+				serviceRequestInput: &dto.ServiceRequestInput{
+					ClientID:    uuid.New().String(),
+					RequestType: "HEALTH_DIARY_ENTRY",
+					Request:     "A random request",
+				},
 			},
 			want:    false,
 			wantErr: true,
@@ -57,10 +58,12 @@ func TestUseCasesServiceRequestImpl_CreateServiceRequest(t *testing.T) {
 		{
 			name: "Sad Case - Unable to get client profile",
 			args: args{
-				ctx:         context.Background(),
-				clientID:    uuid.New().String(),
-				requestType: "HEALTH_DIARY_ENTRY",
-				request:     "A random request",
+				ctx: context.Background(),
+				serviceRequestInput: &dto.ServiceRequestInput{
+					ClientID:    uuid.New().String(),
+					RequestType: "HEALTH_DIARY_ENTRY",
+					Request:     "A random request",
+				},
 			},
 			want:    false,
 			wantErr: true,
@@ -73,7 +76,7 @@ func TestUseCasesServiceRequestImpl_CreateServiceRequest(t *testing.T) {
 			fakeUser := userMock.NewUserUseCaseMock()
 
 			if tt.name == "Sad Case - Fail to create a service request" {
-				fakeDB.MockCreateServiceRequestFn = func(ctx context.Context, serviceRequestInput *domain.ClientServiceRequest) error {
+				fakeDB.MockCreateServiceRequestFn = func(ctx context.Context, serviceRequestInput *dto.ServiceRequestInput) error {
 					return fmt.Errorf("failed to create service request")
 				}
 			}
@@ -85,7 +88,7 @@ func TestUseCasesServiceRequestImpl_CreateServiceRequest(t *testing.T) {
 			}
 
 			u := servicerequest.NewUseCaseServiceRequestImpl(fakeDB, fakeDB, fakeDB, fakeExtension, fakeUser)
-			got, err := u.CreateServiceRequest(tt.args.ctx, tt.args.clientID, tt.args.requestType, tt.args.request, tt.args.cccNumber)
+			got, err := u.CreateServiceRequest(tt.args.ctx, tt.args.serviceRequestInput)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCasesServiceRequestImpl.CreateServiceRequest() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -638,7 +641,7 @@ func TestUseCasesServiceRequestImpl_CreatePinResetServiceRequest(t *testing.T) {
 			u := servicerequest.NewUseCaseServiceRequestImpl(fakeDB, fakeDB, fakeDB, fakeExtension, fakeUser)
 
 			if tt.name == "Sad Case - Fail to create service request" {
-				fakeDB.MockCreateServiceRequestFn = func(ctx context.Context, serviceRequestInput *domain.ClientServiceRequest) error {
+				fakeDB.MockCreateServiceRequestFn = func(ctx context.Context, serviceRequestInput *dto.ServiceRequestInput) error {
 					return fmt.Errorf("failed to create service request")
 				}
 			}

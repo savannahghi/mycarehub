@@ -1,11 +1,6 @@
 extend type Mutation {
   setInProgressBy(serviceRequestID: String!, staffID: String!): Boolean!
-  createServiceRequest(
-    clientID: String!
-    requestType: String!
-    request: String
-  ): Boolean!
-
+  createServiceRequest(input: ServiceRequestInput!): Boolean!
   resolveServiceRequest(staffID: String!, requestID: String!): Boolean!
 
   approvePinResetServiceRequest(

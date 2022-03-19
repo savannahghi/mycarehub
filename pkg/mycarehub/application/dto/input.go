@@ -437,3 +437,17 @@ type OptInPayload struct {
 	PhoneNumber string          `json:"phoneNumber"`
 	Flavour     feedlib.Flavour `json:"flavour"`
 }
+
+// ServiceRequestInput is a domain entity that represents a service request.
+type ServiceRequestInput struct {
+	Active       bool                   `json:"active"`
+	RequestType  string                 `json:"requestType"`
+	Status       string                 `json:"status"`
+	Request      string                 `json:"request"`
+	ClientID     string                 `json:"clientID"`
+	InProgressBy *string                `json:"inProgressBy"`
+	ResolvedBy   *string                `json:"resolvedBy"`
+	FacilityID   string                 `json:"facility_id"`
+	ClientName   *string                `json:"client_name"`
+	Meta         map[string]interface{} `json:"meta"`
+}

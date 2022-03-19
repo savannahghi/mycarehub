@@ -682,7 +682,11 @@ func (d *MyCareHubDb) GetClientProfileByClientID(ctx context.Context, clientID s
 
 // GetServiceRequests retrieves the service requests by the type passed in the parameters
 func (d *MyCareHubDb) GetServiceRequests(ctx context.Context, requestType, requestStatus, facilityID *string) ([]*domain.ServiceRequest, error) {
-	var serviceRequests []*domain.ServiceRequest
+	var (
+		serviceRequests []*domain.ServiceRequest
+		meta            map[string]interface{}
+	)
+
 	clientServiceRequests, err := d.query.GetServiceRequests(ctx, requestType, requestStatus, facilityID)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
@@ -702,6 +706,14 @@ func (d *MyCareHubDb) GetServiceRequests(ctx context.Context, requestType, reque
 			return nil, err
 		}
 
+		if serviceRequest.Meta != "" {
+			meta, err = utils.ConvertJSONStringToMap(serviceRequest.Meta)
+			if err != nil {
+				helpers.ReportErrorToSentry(err)
+				return nil, fmt.Errorf("error converting meta json string to map: %v", err)
+			}
+		}
+
 		serviceRequest := &domain.ServiceRequest{
 			ID:            *serviceRequest.ID,
 			RequestType:   serviceRequest.RequestType,
@@ -713,10 +725,10 @@ func (d *MyCareHubDb) GetServiceRequests(ctx context.Context, requestType, reque
 			InProgressBy:  serviceRequest.InProgressByID,
 			ResolvedAt:    serviceRequest.ResolvedAt,
 			ResolvedBy:    serviceRequest.ResolvedByID,
-			FacilityID:    facilityID,
+			FacilityID:    *facilityID,
 			ClientName:    &userProfile.Name,
 			ClientContact: &userProfile.Contacts.ContactValue,
-			CCCNumber:     serviceRequest.CCCNumber,
+			Meta:          meta,
 		}
 		serviceRequests = append(serviceRequests, serviceRequest)
 	}
@@ -969,7 +981,7 @@ func (d *MyCareHubDb) GetServiceRequestsForKenyaEMR(ctx context.Context, payload
 			InProgressBy:  serviceReq.InProgressByID,
 			ResolvedAt:    serviceReq.ResolvedAt,
 			ResolvedBy:    serviceReq.ResolvedByID,
-			FacilityID:    &serviceReq.FacilityID,
+			FacilityID:    serviceReq.FacilityID,
 			ClientName:    &userProfile.Name,
 			ClientContact: &userProfile.Contacts.ContactValue,
 		}

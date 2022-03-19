@@ -377,4 +377,8 @@ const (
 	// it mens they opted out and they should not be able to access the platform
 	// Its error code is 75
 	InactiveUser
+
+	// RecordNotFoundError implies that the system is unable to find the record
+	// Its error code is 76
+	RecordNotFoundError
 )

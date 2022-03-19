@@ -6,6 +6,7 @@ package graph
 import (
 	"context"
 
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 )
 
@@ -14,9 +15,9 @@ func (r *mutationResolver) SetInProgressBy(ctx context.Context, serviceRequestID
 	return r.mycarehub.ServiceRequest.SetInProgressBy(ctx, serviceRequestID, staffID)
 }
 
-func (r *mutationResolver) CreateServiceRequest(ctx context.Context, clientID string, requestType string, request *string) (bool, error) {
+func (r *mutationResolver) CreateServiceRequest(ctx context.Context, input dto.ServiceRequestInput) (bool, error) {
 	r.checkPreconditions()
-	return r.mycarehub.ServiceRequest.CreateServiceRequest(ctx, clientID, requestType, *request, "")
+	return r.mycarehub.ServiceRequest.CreateServiceRequest(ctx, &input)
 }
 
 func (r *mutationResolver) ResolveServiceRequest(ctx context.Context, staffID string, requestID string) (bool, error) {

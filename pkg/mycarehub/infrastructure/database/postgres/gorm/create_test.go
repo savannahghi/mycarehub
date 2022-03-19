@@ -554,6 +554,7 @@ func TestPGInstance_SaveOTP(t *testing.T) {
 func TestPGInstance_CreateServiceRequest(t *testing.T) {
 	ctx := context.Background()
 	testTime := time.Now()
+	meta := `{"test":"test"}`
 	serviceRequestInput := &gorm.ClientServiceRequest{
 		Active:         false,
 		RequestType:    "HealthDiary",
@@ -564,6 +565,19 @@ func TestPGInstance_CreateServiceRequest(t *testing.T) {
 		ClientID:       clientID,
 		OrganisationID: orgID,
 		FacilityID:     facilityID,
+		Meta:           meta,
+	}
+	InvalidServiceRequestInput := &gorm.ClientServiceRequest{
+		Active:         false,
+		RequestType:    "HealthDiary",
+		Request:        gofakeit.Sentence(5),
+		Status:         "PENDING",
+		InProgressAt:   &testTime,
+		ResolvedAt:     &testTime,
+		ClientID:       clientID,
+		OrganisationID: orgID,
+		FacilityID:     facilityID,
+		Meta:           "",
 	}
 	type args struct {
 		ctx                 context.Context
@@ -581,6 +595,14 @@ func TestPGInstance_CreateServiceRequest(t *testing.T) {
 				serviceRequestInput: serviceRequestInput,
 			},
 			wantErr: false,
+		},
+		{
+			name: "Sad case: invalid meta data",
+			args: args{
+				ctx:                 ctx,
+				serviceRequestInput: InvalidServiceRequestInput,
+			},
+			wantErr: true,
 		},
 	}
 	for _, tt := range tests {

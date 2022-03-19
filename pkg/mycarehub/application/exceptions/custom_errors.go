@@ -477,3 +477,12 @@ func GetAllRolesErr(err error) error {
 		Code:    int(GetAllRolesError),
 	}
 }
+
+// RecordNotFoundErr returns an error message when a record is not found when querying the database
+func RecordNotFoundErr(err error) error {
+	return &CustomError{
+		Err:     err,
+		Message: RecordNotFoundErrorMsg,
+		Code:    int(RecordNotFoundError),
+	}
+}

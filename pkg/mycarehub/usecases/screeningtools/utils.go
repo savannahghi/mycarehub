@@ -53,7 +53,7 @@ func addCondition(question *domain.ScreeningToolQuestion, response string, condi
 	return condition
 }
 
-func createServiceRequest(question *domain.ScreeningToolQuestion, response string, condition map[string]interface{}) *domain.ClientServiceRequest {
+func createServiceRequest(question *domain.ScreeningToolQuestion, response string, condition map[string]interface{}) *domain.ServiceRequest {
 	serviceRequestTemplate := serviceRequestTemplate(question, response, condition)
 
 	yesCount := interfaceToInt(condition[question.ToolType.String()+"_"+"yes"+"_count"])
@@ -62,7 +62,7 @@ func createServiceRequest(question *domain.ScreeningToolQuestion, response strin
 	switch question.ToolType {
 	case enums.ScreeningToolTypeTB:
 		if yesCount >= 3 {
-			return &domain.ClientServiceRequest{
+			return &domain.ServiceRequest{
 				RequestType: enums.ServiceRequestTypeRedFlag.String(),
 				Request:     serviceRequestTemplate,
 			}
@@ -73,7 +73,7 @@ func createServiceRequest(question *domain.ScreeningToolQuestion, response strin
 		}
 	case enums.ScreeningToolTypeGBV:
 		if yesCount >= 1 {
-			return &domain.ClientServiceRequest{
+			return &domain.ServiceRequest{
 				RequestType: enums.ServiceRequestTypeRedFlag.String(),
 				Request:     serviceRequestTemplate,
 			}
@@ -86,7 +86,7 @@ func createServiceRequest(question *domain.ScreeningToolQuestion, response strin
 		}
 	case enums.ScreeningToolTypeAlcoholSubstanceAssessment:
 		if yesCount >= 3 {
-			return &domain.ClientServiceRequest{
+			return &domain.ServiceRequest{
 				RequestType: enums.ServiceRequestTypeRedFlag.String(),
 				Request:     serviceRequestTemplate,
 			}

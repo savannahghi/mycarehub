@@ -13,6 +13,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/user"
+	"gorm.io/gorm"
 )
 
 // Service requests are tasks for the healthcare staff on the platform. Some examples are:
@@ -25,12 +26,7 @@ import (
 
 // ICreateServiceRequest is an interface that holds the method signature for creating a service request
 type ICreateServiceRequest interface {
-	CreateServiceRequest(
-		ctx context.Context,
-		clientID string,
-		requestType, request, cccNumber string,
-	) (bool, error)
-
+	CreateServiceRequest(ctx context.Context, input *dto.ServiceRequestInput) (bool, error)
 	CreatePinResetServiceRequest(
 		ctx context.Context,
 		phoneNumber string,
@@ -104,26 +100,22 @@ func NewUseCaseServiceRequestImpl(
 }
 
 // CreateServiceRequest creates a service request
-func (u *UseCasesServiceRequestImpl) CreateServiceRequest(
-	ctx context.Context,
-	clientID string,
-	requestType, request, cccNumber string,
-) (bool, error) {
-	clientProfile, err := u.Query.GetClientProfileByClientID(ctx, clientID)
+func (u *UseCasesServiceRequestImpl) CreateServiceRequest(ctx context.Context, input *dto.ServiceRequestInput) (bool, error) {
+	clientProfile, err := u.Query.GetClientProfileByClientID(ctx, input.ClientID)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return false, exceptions.ClientProfileNotFoundErr(err)
 	}
-	serviceRequest := &domain.ClientServiceRequest{
+	serviceRequestInput := &dto.ServiceRequestInput{
 		Active:      true,
-		RequestType: requestType,
-		Request:     request,
+		RequestType: input.RequestType,
+		Request:     input.Request,
 		Status:      "PENDING",
-		ClientID:    clientID,
+		ClientID:    input.ClientID,
 		FacilityID:  clientProfile.FacilityID,
-		CCCNumber:   cccNumber,
+		Meta:        input.Meta,
 	}
-	err = u.Create.CreateServiceRequest(ctx, serviceRequest)
+	err = u.Create.CreateServiceRequest(ctx, serviceRequestInput)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return false, fmt.Errorf("failed to create service request: %v", err)
@@ -223,6 +215,16 @@ func (u *UseCasesServiceRequestImpl) UpdateServiceRequestsFromKenyaEMR(ctx conte
 // CreatePinResetServiceRequest creates a PIN_RESET service request. This occurs when a user attempts to change
 // their pin but they don't succeed.
 func (u *UseCasesServiceRequestImpl) CreatePinResetServiceRequest(ctx context.Context, phoneNumber string, cccNumber string) (bool, error) {
+	if cccNumber == "" {
+		return false, fmt.Errorf("ccc number cannot be empty")
+	}
+	if phoneNumber == "" {
+		return false, fmt.Errorf("phone number cannot be empty")
+	}
+
+	var meta = map[string]interface{}{}
+	meta["ccc_number"] = cccNumber
+
 	// TODO: Check if the service request exists before creating a new one
 	userProfile, err := u.Query.GetUserProfileByPhoneNumber(ctx, phoneNumber, feedlib.FlavourConsumer)
 	if err != nil {
@@ -236,14 +238,27 @@ func (u *UseCasesServiceRequestImpl) CreatePinResetServiceRequest(ctx context.Co
 		return false, exceptions.ClientProfileNotFoundErr(err)
 	}
 
-	request := "Request to change pin"
-	_, err = u.CreateServiceRequest(
-		ctx,
-		*clientProfile.ID,
-		string(enums.ServiceRequestTypePinReset),
-		request,
-		cccNumber,
-	)
+	meta["is_ccc_number_valid"] = true
+	_, err = u.Query.GetClientProfileByCCCNumber(ctx, cccNumber)
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			meta["is_ccc_number_valid"] = false
+		} else {
+			helpers.ReportErrorToSentry(err)
+			return false, exceptions.GetError(err)
+		}
+	}
+
+	serviceRequestInput := &dto.ServiceRequestInput{
+		Active:      true,
+		RequestType: string(enums.ServiceRequestTypePinReset),
+		Request:     "Request to change pin",
+		ClientID:    *clientProfile.ID,
+		FacilityID:  clientProfile.FacilityID,
+		Meta:        meta,
+	}
+
+	_, err = u.CreateServiceRequest(ctx, serviceRequestInput)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return false, err
