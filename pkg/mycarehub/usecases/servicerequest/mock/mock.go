@@ -11,11 +11,7 @@ import (
 
 // ServiceRequestUseCaseMock mocks the service request instance
 type ServiceRequestUseCaseMock struct {
-	MockCreateServiceRequestFn func(
-		ctx context.Context,
-		clientID string,
-		requestType, request, cccNumber string,
-	) (bool, error)
+	MockCreateServiceRequestFn          func(ctx context.Context, input *dto.ServiceRequestInput) (bool, error)
 	MockApprovePinResetServiceRequestFn func(
 		ctx context.Context,
 		clientID string,
@@ -36,11 +32,7 @@ type ServiceRequestUseCaseMock struct {
 // NewServiceRequestUseCaseMock initializes a new service request instance mock
 func NewServiceRequestUseCaseMock() *ServiceRequestUseCaseMock {
 	return &ServiceRequestUseCaseMock{
-		MockCreateServiceRequestFn: func(
-			ctx context.Context,
-			clientID string,
-			requestType, request, cccNumber string,
-		) (bool, error) {
+		MockCreateServiceRequestFn: func(ctx context.Context, input *dto.ServiceRequestInput) (bool, error) {
 			return true, nil
 		},
 		MockGetPendingServiceRequestsCountFn: func(ctx context.Context, facilityID string) (*domain.ServiceRequestsCount, error) {
@@ -77,9 +69,10 @@ func NewServiceRequestUseCaseMock() *ServiceRequestUseCaseMock {
 				InProgressBy:  &staffID,
 				ResolvedAt:    &currentTime,
 				ResolvedBy:    &staffID,
-				FacilityID:    &facilityID,
+				FacilityID:    facilityID,
 				ClientName:    &staffID,
 				ClientContact: &contact,
+				Meta:          map[string]interface{}{"meta": "data"},
 			}
 			return []*domain.ServiceRequest{serviceReq}, nil
 		},
@@ -100,12 +93,8 @@ func NewServiceRequestUseCaseMock() *ServiceRequestUseCaseMock {
 }
 
 // CreateServiceRequest mocks the implementation for creating a service request
-func (s *ServiceRequestUseCaseMock) CreateServiceRequest(
-	ctx context.Context,
-	clientID string,
-	requestType, request, cccNumber string,
-) (bool, error) {
-	return s.MockCreateServiceRequestFn(ctx, clientID, requestType, request, cccNumber)
+func (s *ServiceRequestUseCaseMock) CreateServiceRequest(ctx context.Context, input *dto.ServiceRequestInput) (bool, error) {
+	return s.MockCreateServiceRequestFn(ctx, input)
 }
 
 // GetPendingServiceRequestsCount mocks the method of getting the number of pending service requests count

@@ -958,8 +958,8 @@ func (db *PGInstance) GetClientProfileByCCCNumber(ctx context.Context, CCCNumber
 	if err := db.DB.Joins("JOIN clients_client_identifiers on clients_client.id = clients_client_identifiers.client_id").
 		Joins("JOIN clients_identifier on clients_identifier.id = clients_client_identifiers.identifier_id").
 		Where("clients_identifier.identifier_type = ? AND clients_identifier.identifier_value = ? ", "CCC", CCCNumber).
-		Preload(clause.Associations).Find(&client).Error; err != nil {
-		return nil, fmt.Errorf("failed to get client profile by CCC number: %v", err)
+		Preload(clause.Associations).First(&client).Error; err != nil {
+		return nil, err
 	}
 	return &client, nil
 }

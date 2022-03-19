@@ -13,6 +13,8 @@
   organisation_id: {{.test_organisation_id}}
   resolved_by_id: null
   facility_id: {{.test_facility_id}}
+  meta: null
+
 
 # Service Request to resolve
 - id: {{.test_service_request_id}}
@@ -29,6 +31,7 @@
   client_id: {{.test_client_id}}
   organisation_id: {{.test_organisation_id}}
   facility_id: {{.test_facility_id}}
+  meta: null
 
 
   # client with pending service requests
@@ -46,6 +49,7 @@
   client_id: {{.test_client_id_with_unresolved_request}}
   organisation_id: {{.test_organisation_id}}
   facility_id: {{.test_facility_id}}
+  meta: null
 
   # client with in progress service requests
 - id: {{.in_progress_service_request_id}}
@@ -62,4 +66,5 @@
   client_id: {{.test_client_id_with_unresolved_request}}
   organisation_id: {{.test_organisation_id}}
   facility_id: {{.test_facility_id}}
+  meta: null
 

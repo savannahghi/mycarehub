@@ -103,12 +103,14 @@ func (h UseCasesHealthDiaryImpl) CreateHealthDiaryEntry(
 			return false, fmt.Errorf("failed to save health diary entry")
 		}
 
+		serviceRequestInput := &dto.ServiceRequestInput{
+			ClientID:    clientID,
+			RequestType: string(enums.ServiceRequestTypeRedFlag),
+		}
+
 		_, err = h.ServiceRequest.CreateServiceRequest(
 			ctx,
-			clientID,
-			string(enums.ServiceRequestTypeRedFlag),
-			"",
-			"",
+			serviceRequestInput,
 		)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)

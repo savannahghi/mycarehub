@@ -212,7 +212,7 @@ type ServiceRequest {
   FacilityID: String
   ClientName: String!
   ClientContact: String!
-  CCCNumber: String
+  Meta: Map
 }
 
 type ClientRegistrationOutput {

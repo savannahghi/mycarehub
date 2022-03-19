@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/lib/pq"
@@ -154,10 +155,12 @@ func (d *MyCareHubDb) CreateHealthDiaryEntry(ctx context.Context, healthDiaryInp
 // CreateServiceRequest creates  a service request which will be handled by a staff user.
 // This happens in a transaction because we do not want to
 // create a health diary entry without a subsequent service request when the client's mood is "VERY_BAD"
-func (d *MyCareHubDb) CreateServiceRequest(
-	ctx context.Context,
-	serviceRequestInput *domain.ClientServiceRequest,
-) error {
+func (d *MyCareHubDb) CreateServiceRequest(ctx context.Context, serviceRequestInput *dto.ServiceRequestInput) error {
+	meta, err := json.Marshal(serviceRequestInput.Meta)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return fmt.Errorf("failed to marshal meta data: %v", err)
+	}
 	serviceRequest := &gorm.ClientServiceRequest{
 		Active:      serviceRequestInput.Active,
 		RequestType: serviceRequestInput.RequestType,
@@ -165,10 +168,10 @@ func (d *MyCareHubDb) CreateServiceRequest(
 		Status:      serviceRequestInput.Status,
 		ClientID:    serviceRequestInput.ClientID,
 		FacilityID:  serviceRequestInput.FacilityID,
-		CCCNumber:   serviceRequestInput.CCCNumber,
+		Meta:        string(meta),
 	}
 
-	err := d.create.CreateServiceRequest(ctx, serviceRequest)
+	err = d.create.CreateServiceRequest(ctx, serviceRequest)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return err

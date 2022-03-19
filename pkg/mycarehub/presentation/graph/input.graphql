@@ -118,3 +118,17 @@ input StaffRegistrationInput {
   staffRoles: String
   inviteStaff: Boolean!
 }
+
+
+input ServiceRequestInput {
+	Active:       Boolean                  
+	RequestType:  String!
+	Status:       String 
+	Request:      String! 
+	ClientID:     String! 
+	InProgressBy: String
+	ResolvedBy:   String
+	FacilityID:   String 
+	ClientName:   String
+	Meta:         Map
+}

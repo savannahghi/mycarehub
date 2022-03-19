@@ -14,18 +14,3 @@ type ClientHealthDiaryEntry struct {
 	ClientID              string    `json:"clientID"`
 	CreatedAt             time.Time `json:"createdAt"`
 }
-
-// ClientServiceRequest models a service request created for the healthcare worker.
-type ClientServiceRequest struct {
-	Active         bool      `json:"active"`
-	RequestType    string    `json:"requestType"`
-	Request        string    `json:"request"`
-	Status         string    `json:"status"`
-	InProgressAt   time.Time `json:"inProgressAt"`
-	ResolvedAt     time.Time `json:"resolvedAt"`
-	ClientID       string    `json:"clientID"`
-	InProgressByID string    `json:"inProgressByID"`
-	ResolvedByID   string    `json:"resolvedByID"`
-	FacilityID     string    `json:"facility_id"`
-	CCCNumber      string    `json:"cccNumber"`
-}

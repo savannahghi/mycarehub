@@ -108,7 +108,7 @@ func (t *ServiceScreeningToolsImpl) GetScreeningToolQuestions(ctx context.Contex
 // 		}
 func (t *ServiceScreeningToolsImpl) AnswerScreeningToolQuestions(ctx context.Context, screeningToolResponses []*dto.ScreeningToolQuestionResponseInput) (bool, error) {
 	condition := make(map[string]interface{})
-	serviceRequests := make([]*domain.ClientServiceRequest, 0)
+	serviceRequests := make([]*domain.ServiceRequest, 0)
 
 	if len(screeningToolResponses) == 0 {
 		return false, fmt.Errorf("no screening tool responses provided")
@@ -163,7 +163,19 @@ func (t *ServiceScreeningToolsImpl) AnswerScreeningToolQuestions(ctx context.Con
 	}
 
 	for s := range serviceRequests {
-		err = t.Create.CreateServiceRequest(ctx, serviceRequests[s])
+		serviceRequestInput := &dto.ServiceRequestInput{
+			Active:       serviceRequests[s].Active,
+			RequestType:  serviceRequests[s].RequestType,
+			Status:       serviceRequests[s].Status,
+			Request:      serviceRequests[s].Request,
+			ClientID:     serviceRequests[s].ClientID,
+			InProgressBy: serviceRequests[s].InProgressBy,
+			ResolvedBy:   serviceRequests[s].ResolvedBy,
+			FacilityID:   serviceRequests[s].FacilityID,
+			ClientName:   serviceRequests[s].ClientName,
+			Meta:         serviceRequests[s].Meta,
+		}
+		err = t.Create.CreateServiceRequest(ctx, serviceRequestInput)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
 			return false, fmt.Errorf("failed to create service request: %v", err)

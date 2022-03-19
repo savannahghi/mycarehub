@@ -2478,6 +2478,7 @@ func TestPGInstance_GetServiceRequestsForKenyaEMR(t *testing.T) {
 		OrganisationID: uuid.New().String(),
 		ResolvedByID:   &staffID,
 		FacilityID:     facilityID,
+		Meta:           `{}`,
 	}
 
 	err := testingDB.CreateServiceRequest(ctx, serviceRequest)
@@ -2860,6 +2861,14 @@ func TestPGInstance_GetClientProfileByCCCNumber(t *testing.T) {
 				CCCNumber: "123456",
 			},
 			wantErr: false,
+		},
+		{
+			name: "Sad Case - Failed to get client profile by CCC number",
+			args: args{
+				ctx:       ctx,
+				CCCNumber: "3232873827382",
+			},
+			wantErr: true,
 		},
 	}
 	for _, tt := range tests {

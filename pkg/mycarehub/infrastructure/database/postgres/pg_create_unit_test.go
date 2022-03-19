@@ -462,7 +462,7 @@ func TestMyCareHubDb_CreateServiceRequest(t *testing.T) {
 
 	type args struct {
 		ctx                 context.Context
-		serviceRequestInput *domain.ClientServiceRequest
+		serviceRequestInput *dto.ServiceRequestInput
 	}
 	tests := []struct {
 		name    string
@@ -473,7 +473,7 @@ func TestMyCareHubDb_CreateServiceRequest(t *testing.T) {
 			name: "Happy Case - Create a service request",
 			args: args{
 				ctx: ctx,
-				serviceRequestInput: &domain.ClientServiceRequest{
+				serviceRequestInput: &dto.ServiceRequestInput{
 					Active: true,
 				},
 			},
@@ -483,7 +483,7 @@ func TestMyCareHubDb_CreateServiceRequest(t *testing.T) {
 			name: "Sad Case - Fail to create a service request",
 			args: args{
 				ctx: ctx,
-				serviceRequestInput: &domain.ClientServiceRequest{
+				serviceRequestInput: &dto.ServiceRequestInput{
 					Active: true,
 				},
 			},

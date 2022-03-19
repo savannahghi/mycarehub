@@ -698,6 +698,7 @@ func NewGormMock() *GormMock {
 				OrganisationID: "",
 				ResolvedByID:   &staffID,
 				FacilityID:     facility,
+				Meta:           `{"key":"value"}`,
 			}
 			return []*gorm.ClientServiceRequest{serviceReq}, nil
 		},

@@ -344,7 +344,7 @@ type ComplexityRoot struct {
 		CreateFacility                  func(childComplexity int, input dto.FacilityInput) int
 		CreateHealthDiaryEntry          func(childComplexity int, clientID string, note *string, mood string, reportToStaff bool) int
 		CreateOrUpdateClientCaregiver   func(childComplexity int, caregiverInput *dto.CaregiverInput) int
-		CreateServiceRequest            func(childComplexity int, clientID string, requestType string, request *string) int
+		CreateServiceRequest            func(childComplexity int, input dto.ServiceRequestInput) int
 		DeleteCommunities               func(childComplexity int, communityIDs []string, hardDelete bool) int
 		DeleteFacility                  func(childComplexity int, mflCode int) int
 		DemoteModerators                func(childComplexity int, communityID string, memberIDs []string) int
@@ -452,7 +452,6 @@ type ComplexityRoot struct {
 	}
 
 	ServiceRequest struct {
-		CCCNumber     func(childComplexity int) int
 		ClientContact func(childComplexity int) int
 		ClientID      func(childComplexity int) int
 		ClientName    func(childComplexity int) int
@@ -461,6 +460,7 @@ type ComplexityRoot struct {
 		ID            func(childComplexity int) int
 		InProgressAt  func(childComplexity int) int
 		InProgressBy  func(childComplexity int) int
+		Meta          func(childComplexity int) int
 		Request       func(childComplexity int) int
 		RequestType   func(childComplexity int) int
 		ResolvedAt    func(childComplexity int) int
@@ -541,7 +541,7 @@ type MutationResolver interface {
 	AnswerScreeningToolQuestion(ctx context.Context, screeningToolResponses []*dto.ScreeningToolQuestionResponseInput) (bool, error)
 	RecordSecurityQuestionResponses(ctx context.Context, input []*dto.SecurityQuestionResponseInput) ([]*domain.RecordSecurityQuestionResponse, error)
 	SetInProgressBy(ctx context.Context, serviceRequestID string, staffID string) (bool, error)
-	CreateServiceRequest(ctx context.Context, clientID string, requestType string, request *string) (bool, error)
+	CreateServiceRequest(ctx context.Context, input dto.ServiceRequestInput) (bool, error)
 	ResolveServiceRequest(ctx context.Context, staffID string, requestID string) (bool, error)
 	ApprovePinResetServiceRequest(ctx context.Context, clientID string, serviceRequestID string, cccNumber string, phoneNumber string, physicalIdentityVerified bool) (bool, error)
 	AcceptTerms(ctx context.Context, userID string, termsID int) (bool, error)
@@ -2041,7 +2041,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateServiceRequest(childComplexity, args["clientID"].(string), args["requestType"].(string), args["request"].(*string)), true
+		return e.complexity.Mutation.CreateServiceRequest(childComplexity, args["input"].(dto.ServiceRequestInput)), true
 
 	case "Mutation.deleteCommunities":
 		if e.complexity.Mutation.DeleteCommunities == nil {
@@ -2889,13 +2889,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.SecurityQuestion.SecurityQuestionID(childComplexity), true
 
-	case "ServiceRequest.CCCNumber":
-		if e.complexity.ServiceRequest.CCCNumber == nil {
-			break
-		}
-
-		return e.complexity.ServiceRequest.CCCNumber(childComplexity), true
-
 	case "ServiceRequest.ClientContact":
 		if e.complexity.ServiceRequest.ClientContact == nil {
 			break
@@ -2951,6 +2944,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ServiceRequest.InProgressBy(childComplexity), true
+
+	case "ServiceRequest.Meta":
+		if e.complexity.ServiceRequest.Meta == nil {
+			break
+		}
+
+		return e.complexity.ServiceRequest.Meta(childComplexity), true
 
 	case "ServiceRequest.Request":
 		if e.complexity.ServiceRequest.Request == nil {
@@ -3609,7 +3609,20 @@ input StaffRegistrationInput {
   staffRoles: String
   inviteStaff: Boolean!
 }
-`, BuiltIn: false},
+
+
+input ServiceRequestInput {
+	Active:       Boolean                  
+	RequestType:  String!
+	Status:       String 
+	Request:      String! 
+	ClientID:     String! 
+	InProgressBy: String
+	ResolvedBy:   String
+	FacilityID:   String 
+	ClientName:   String
+	Meta:         Map
+}`, BuiltIn: false},
 	{Name: "pkg/mycarehub/presentation/graph/otp.graphql", Input: `extend type Query {
   sendOTP(phoneNumber: String!, flavour: Flavour!): String!
 }`, BuiltIn: false},
@@ -3637,12 +3650,7 @@ extend type Mutation {
 `, BuiltIn: false},
 	{Name: "pkg/mycarehub/presentation/graph/servicerequest.graphql", Input: `extend type Mutation {
   setInProgressBy(serviceRequestID: String!, staffID: String!): Boolean!
-  createServiceRequest(
-    clientID: String!
-    requestType: String!
-    request: String
-  ): Boolean!
-
+  createServiceRequest(input: ServiceRequestInput!): Boolean!
   resolveServiceRequest(staffID: String!, requestID: String!): Boolean!
 
   approvePinResetServiceRequest(
@@ -3877,7 +3885,7 @@ type ServiceRequest {
   FacilityID: String
   ClientName: String!
   ClientContact: String!
-  CCCNumber: String
+  Meta: Map
 }
 
 type ClientRegistrationOutput {
@@ -4050,7 +4058,8 @@ type AuthorityRole {
   roleID: String
 	name:   UserRoleType 
   active: Boolean
-}`, BuiltIn: false},
+}
+`, BuiltIn: false},
 	{Name: "pkg/mycarehub/presentation/graph/user.graphql", Input: `extend type Query {
   getCurrentTerms(flavour: Flavour!): TermsOfService!
   verifyPIN(userID: String!, flavour: Flavour!, pin: String!): Boolean!
@@ -4467,33 +4476,15 @@ func (ec *executionContext) field_Mutation_createOrUpdateClientCaregiver_args(ct
 func (ec *executionContext) field_Mutation_createServiceRequest_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["clientID"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clientID"))
-		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+	var arg0 dto.ServiceRequestInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNServiceRequestInput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐServiceRequestInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["clientID"] = arg0
-	var arg1 string
-	if tmp, ok := rawArgs["requestType"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("requestType"))
-		arg1, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["requestType"] = arg1
-	var arg2 *string
-	if tmp, ok := rawArgs["request"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("request"))
-		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["request"] = arg2
+	args["input"] = arg0
 	return args, nil
 }
 
@@ -13002,7 +12993,7 @@ func (ec *executionContext) _Mutation_createServiceRequest(ctx context.Context, 
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateServiceRequest(rctx, args["clientID"].(string), args["requestType"].(string), args["request"].(*string))
+		return ec.resolvers.Mutation().CreateServiceRequest(rctx, args["input"].(dto.ServiceRequestInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -16008,9 +15999,9 @@ func (ec *executionContext) _ServiceRequest_FacilityID(ctx context.Context, fiel
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*string)
+	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+	return ec.marshalOString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ServiceRequest_ClientName(ctx context.Context, field graphql.CollectedField, obj *domain.ServiceRequest) (ret graphql.Marshaler) {
@@ -16083,7 +16074,7 @@ func (ec *executionContext) _ServiceRequest_ClientContact(ctx context.Context, f
 	return ec.marshalNString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _ServiceRequest_CCCNumber(ctx context.Context, field graphql.CollectedField, obj *domain.ServiceRequest) (ret graphql.Marshaler) {
+func (ec *executionContext) _ServiceRequest_Meta(ctx context.Context, field graphql.CollectedField, obj *domain.ServiceRequest) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -16101,7 +16092,7 @@ func (ec *executionContext) _ServiceRequest_CCCNumber(ctx context.Context, field
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.CCCNumber, nil
+		return obj.Meta, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -16110,9 +16101,9 @@ func (ec *executionContext) _ServiceRequest_CCCNumber(ctx context.Context, field
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(map[string]interface{})
 	fc.Result = res
-	return ec.marshalOString2string(ctx, field.Selections, res)
+	return ec.marshalOMap2map(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ServiceRequestsCount_total(ctx context.Context, field graphql.CollectedField, obj *domain.ServiceRequestsCount) (ret graphql.Marshaler) {
@@ -18770,6 +18761,101 @@ func (ec *executionContext) unmarshalInputSecurityQuestionResponseInput(ctx cont
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputServiceRequestInput(ctx context.Context, obj interface{}) (dto.ServiceRequestInput, error) {
+	var it dto.ServiceRequestInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	for k, v := range asMap {
+		switch k {
+		case "Active":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Active"))
+			it.Active, err = ec.unmarshalOBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "RequestType":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("RequestType"))
+			it.RequestType, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "Status":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Status"))
+			it.Status, err = ec.unmarshalOString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "Request":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Request"))
+			it.Request, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "ClientID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("ClientID"))
+			it.ClientID, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "InProgressBy":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("InProgressBy"))
+			it.InProgressBy, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "ResolvedBy":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("ResolvedBy"))
+			it.ResolvedBy, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "FacilityID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("FacilityID"))
+			it.FacilityID, err = ec.unmarshalOString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "ClientName":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("ClientName"))
+			it.ClientName, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "Meta":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Meta"))
+			it.Meta, err = ec.unmarshalOMap2map(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputShareContentInput(ctx context.Context, obj interface{}) (dto.ShareContentInput, error) {
 	var it dto.ShareContentInput
 	asMap := map[string]interface{}{}
@@ -21367,8 +21453,8 @@ func (ec *executionContext) _ServiceRequest(ctx context.Context, sel ast.Selecti
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "CCCNumber":
-			out.Values[i] = ec._ServiceRequest_CCCNumber(ctx, field, obj)
+		case "Meta":
+			out.Values[i] = ec._ServiceRequest_Meta(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -22840,6 +22926,11 @@ func (ec *executionContext) unmarshalNSecurityQuestionResponseType2githubᚗcom�
 
 func (ec *executionContext) marshalNSecurityQuestionResponseType2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐSecurityQuestionResponseType(ctx context.Context, sel ast.SelectionSet, v enums.SecurityQuestionResponseType) graphql.Marshaler {
 	return v
+}
+
+func (ec *executionContext) unmarshalNServiceRequestInput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐServiceRequestInput(ctx context.Context, v interface{}) (dto.ServiceRequestInput, error) {
+	res, err := ec.unmarshalInputServiceRequestInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalNServiceRequestType2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐServiceRequestType(ctx context.Context, v interface{}) (enums.ServiceRequestType, error) {

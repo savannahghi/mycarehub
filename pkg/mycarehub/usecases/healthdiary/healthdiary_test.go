@@ -114,11 +114,7 @@ func TestUseCasesHealthDiaryImpl_CreateHealthDiaryEntry(t *testing.T) {
 			}
 
 			if tt.name == "Sad Case - Fail to create service request for very sad mood" {
-				fakeServiceRequest.MockCreateServiceRequestFn = func(
-					ctx context.Context,
-					clientID string,
-					requestType, request, cccNumber string,
-				) (bool, error) {
+				fakeServiceRequest.MockCreateServiceRequestFn = func(ctx context.Context, input *dto.ServiceRequestInput) (bool, error) {
 					return false, fmt.Errorf("failed to create service request")
 				}
 			}
