@@ -209,6 +209,7 @@ type ServiceRequest {
   InProgressBy: String
   ResolvedAt: Time
   ResolvedBy: String
+  ResolvedByName: String
   FacilityID: String
   ClientName: String!
   ClientContact: String!

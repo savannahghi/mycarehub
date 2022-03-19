@@ -8,21 +8,22 @@ import (
 
 // ServiceRequest is a domain entity that represents a service request.
 type ServiceRequest struct {
-	ID            string                 `json:"id"`
-	RequestType   string                 `json:"requestType"`
-	Request       string                 `json:"request"`
-	Status        string                 `json:"status"`
-	Active        bool                   `json:"active"`
-	ClientID      string                 `json:"clientID"`
-	CreatedAt     time.Time              `json:"created"`
-	InProgressAt  *time.Time             `json:"inProgressAt"`
-	InProgressBy  *string                `json:"inProgressBy"`
-	ResolvedAt    *time.Time             `json:"resolvedAt"`
-	ResolvedBy    *string                `json:"resolvedBy"`
-	FacilityID    string                 `json:"facility_id"`
-	ClientName    *string                `json:"client_name"`
-	ClientContact *string                `json:"client_contact"`
-	Meta          map[string]interface{} `json:"meta"`
+	ID             string                 `json:"id"`
+	RequestType    string                 `json:"requestType"`
+	Request        string                 `json:"request"`
+	Status         string                 `json:"status"`
+	Active         bool                   `json:"active"`
+	ClientID       string                 `json:"clientID"`
+	CreatedAt      time.Time              `json:"created"`
+	InProgressAt   *time.Time             `json:"inProgressAt"`
+	InProgressBy   *string                `json:"inProgressBy"`
+	ResolvedAt     *time.Time             `json:"resolvedAt"`
+	ResolvedBy     *string                `json:"resolvedBy"`
+	ResolvedByName *string                `string:"resolvedByName"`
+	FacilityID     string                 `json:"facility_id"`
+	ClientName     *string                `json:"client_name"`
+	ClientContact  *string                `json:"client_contact"`
+	Meta           map[string]interface{} `json:"meta"`
 }
 
 // RequestTypeCount ...

@@ -800,6 +800,13 @@ func (us *UseCasesUserImpl) ResetPIN(ctx context.Context, input dto.UserResetPin
 		return false, exceptions.ResetPinErr(err)
 	}
 
+	// change pin update required to true
+	err = us.Update.UpdateUserPinUpdateRequiredStatus(ctx, *userProfile.ID, input.Flavour, true)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, exceptions.InternalErr(fmt.Errorf("failed to update user pin update required status: %v", err))
+	}
+
 	return true, nil
 }
 

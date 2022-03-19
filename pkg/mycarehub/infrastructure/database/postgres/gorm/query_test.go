@@ -3017,3 +3017,44 @@ func TestPGInstance_SearchClientProfilesByCCCNumber(t *testing.T) {
 		})
 	}
 }
+
+func TestPGInstance_GetUserProfileByStaffID(t *testing.T) {
+	type args struct {
+		ctx     context.Context
+		staffID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Successfully get user profile by staff ID",
+			args: args{
+				ctx:     context.Background(),
+				staffID: staffID,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad Case - Failed to get user profile by staff ID, invalid uuid",
+			args: args{
+				ctx:     context.Background(),
+				staffID: "123456",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := testingDB.GetUserProfileByStaffID(tt.args.ctx, tt.args.staffID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.GetUserProfileByStaffID() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("PGInstance.GetUserProfileByStaffID() Expected a response but got = %v", got)
+			}
+		})
+	}
+}

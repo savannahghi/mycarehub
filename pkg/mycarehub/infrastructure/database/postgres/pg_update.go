@@ -234,3 +234,9 @@ func (d *MyCareHubDb) UpdateUserPinChangeRequiredStatus(ctx context.Context, use
 func (d *MyCareHubDb) UpdateUserActiveStatus(ctx context.Context, userID string, flavour feedlib.Flavour, active bool) error {
 	return d.update.UpdateUserActiveStatus(ctx, userID, flavour, active)
 }
+
+// UpdateUserPinUpdateRequiredStatus updates a users pin_update_required status. This will
+// enable to redirect a user to the change pin page on the app
+func (d *MyCareHubDb) UpdateUserPinUpdateRequiredStatus(ctx context.Context, userID string, flavour feedlib.Flavour, status bool) error {
+	return d.update.UpdateUserPinUpdateRequiredStatus(ctx, userID, flavour, status)
+}

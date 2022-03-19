@@ -1467,3 +1467,35 @@ func TestPGInstance_UpdateAppointment(t *testing.T) {
 		})
 	}
 }
+
+func TestPGInstance_UpdateUserPinUpdateRequiredStatus(t *testing.T) {
+	type args struct {
+		ctx     context.Context
+		userID  string
+		flavour feedlib.Flavour
+		status  bool
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: update user pin update required status",
+			args: args{
+				ctx:     context.Background(),
+				userID:  userID2,
+				flavour: feedlib.FlavourConsumer,
+				status:  true,
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := testingDB.UpdateUserPinUpdateRequiredStatus(tt.args.ctx, tt.args.userID, tt.args.flavour, tt.args.status); (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.UpdateUserPinUpdateRequiredStatus() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}

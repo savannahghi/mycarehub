@@ -110,6 +110,8 @@ type GormMock struct {
 	MockCheckIfClientHasUnresolvedServiceRequestsFn func(ctx context.Context, clientID string, serviceRequestType string) (bool, error)
 	MockGetAllRolesFn                               func(ctx context.Context) ([]*gorm.AuthorityRole, error)
 	MockUpdateUserActiveStatusFn                    func(ctx context.Context, userID string, flavour feedlib.Flavour, active bool) error
+	MockUpdateUserPinUpdateRequiredStatusFn         func(ctx context.Context, userID string, flavour feedlib.Flavour, status bool) error
+	MockGetUserProfileByStaffIDFn                   func(ctx context.Context, staffID string) (*gorm.User, error)
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -787,6 +789,12 @@ func NewGormMock() *GormMock {
 		MockUpdateUserActiveStatusFn: func(ctx context.Context, userID string, flavour feedlib.Flavour, active bool) error {
 			return nil
 		},
+		MockUpdateUserPinUpdateRequiredStatusFn: func(ctx context.Context, userID string, flavour feedlib.Flavour, status bool) error {
+			return nil
+		},
+		MockGetUserProfileByStaffIDFn: func(ctx context.Context, staffID string) (*gorm.User, error) {
+			return userProfile, nil
+		},
 	}
 }
 
@@ -1255,4 +1263,14 @@ func (gm *GormMock) SearchStaffProfileByStaffNumber(ctx context.Context, staffNu
 // UpdateUserActiveStatus mocks updating a user `active status`
 func (gm *GormMock) UpdateUserActiveStatus(ctx context.Context, userID string, flavour feedlib.Flavour, active bool) error {
 	return gm.MockUpdateUserActiveStatusFn(ctx, userID, flavour, active)
+}
+
+// UpdateUserPinUpdateRequiredStatus mocks updating a user `pin update required status`
+func (gm *GormMock) UpdateUserPinUpdateRequiredStatus(ctx context.Context, userID string, flavour feedlib.Flavour, status bool) error {
+	return gm.MockUpdateUserPinUpdateRequiredStatusFn(ctx, userID, flavour, status)
+}
+
+// GetUserProfileByStaffID mocks the implementation of getting a user profile by staff ID
+func (gm *GormMock) GetUserProfileByStaffID(ctx context.Context, staffID string) (*gorm.User, error) {
+	return gm.MockGetUserProfileByStaffIDFn(ctx, staffID)
 }

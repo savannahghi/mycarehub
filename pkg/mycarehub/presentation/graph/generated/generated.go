@@ -452,20 +452,21 @@ type ComplexityRoot struct {
 	}
 
 	ServiceRequest struct {
-		ClientContact func(childComplexity int) int
-		ClientID      func(childComplexity int) int
-		ClientName    func(childComplexity int) int
-		CreatedAt     func(childComplexity int) int
-		FacilityID    func(childComplexity int) int
-		ID            func(childComplexity int) int
-		InProgressAt  func(childComplexity int) int
-		InProgressBy  func(childComplexity int) int
-		Meta          func(childComplexity int) int
-		Request       func(childComplexity int) int
-		RequestType   func(childComplexity int) int
-		ResolvedAt    func(childComplexity int) int
-		ResolvedBy    func(childComplexity int) int
-		Status        func(childComplexity int) int
+		ClientContact  func(childComplexity int) int
+		ClientID       func(childComplexity int) int
+		ClientName     func(childComplexity int) int
+		CreatedAt      func(childComplexity int) int
+		FacilityID     func(childComplexity int) int
+		ID             func(childComplexity int) int
+		InProgressAt   func(childComplexity int) int
+		InProgressBy   func(childComplexity int) int
+		Meta           func(childComplexity int) int
+		Request        func(childComplexity int) int
+		RequestType    func(childComplexity int) int
+		ResolvedAt     func(childComplexity int) int
+		ResolvedBy     func(childComplexity int) int
+		ResolvedByName func(childComplexity int) int
+		Status         func(childComplexity int) int
 	}
 
 	ServiceRequestsCount struct {
@@ -2980,6 +2981,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ServiceRequest.ResolvedBy(childComplexity), true
 
+	case "ServiceRequest.ResolvedByName":
+		if e.complexity.ServiceRequest.ResolvedByName == nil {
+			break
+		}
+
+		return e.complexity.ServiceRequest.ResolvedByName(childComplexity), true
+
 	case "ServiceRequest.Status":
 		if e.complexity.ServiceRequest.Status == nil {
 			break
@@ -3883,6 +3891,7 @@ type ServiceRequest {
   InProgressBy: String
   ResolvedAt: Time
   ResolvedBy: String
+  ResolvedByName: String
   FacilityID: String
   ClientName: String!
   ClientContact: String!
@@ -15967,6 +15976,38 @@ func (ec *executionContext) _ServiceRequest_ResolvedBy(ctx context.Context, fiel
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _ServiceRequest_ResolvedByName(ctx context.Context, field graphql.CollectedField, obj *domain.ServiceRequest) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ServiceRequest",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ResolvedByName, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _ServiceRequest_FacilityID(ctx context.Context, field graphql.CollectedField, obj *domain.ServiceRequest) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -21421,6 +21462,8 @@ func (ec *executionContext) _ServiceRequest(ctx context.Context, sel ast.Selecti
 			out.Values[i] = ec._ServiceRequest_ResolvedAt(ctx, field, obj)
 		case "ResolvedBy":
 			out.Values[i] = ec._ServiceRequest_ResolvedBy(ctx, field, obj)
+		case "ResolvedByName":
+			out.Values[i] = ec._ServiceRequest_ResolvedByName(ctx, field, obj)
 		case "FacilityID":
 			out.Values[i] = ec._ServiceRequest_FacilityID(ctx, field, obj)
 		case "ClientName":

@@ -1856,3 +1856,37 @@ func TestMyCareHubDb_UpdateUserActiveStatus(t *testing.T) {
 		})
 	}
 }
+
+func TestMyCareHubDb_UpdateUserPinUpdateRequiredStatus(t *testing.T) {
+	var fakeGorm = gormMock.NewGormMock()
+	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+	type args struct {
+		ctx     context.Context
+		userID  string
+		flavour feedlib.Flavour
+		status  bool
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Successfully update user pin update required status",
+			args: args{
+				ctx:     context.Background(),
+				userID:  uuid.New().String(),
+				flavour: feedlib.FlavourConsumer,
+				status:  true,
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			if err := d.UpdateUserPinUpdateRequiredStatus(tt.args.ctx, tt.args.userID, tt.args.flavour, tt.args.status); (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.UpdateUserPinUpdateRequiredStatus() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
