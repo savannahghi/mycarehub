@@ -58,3 +58,51 @@ func (m *ServiceRequestStatus) UnmarshalGQL(v interface{}) error {
 func (m ServiceRequestStatus) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(m.String()))
 }
+
+// VerifyServiceRequestState  status for verifying pin reset service request
+type VerifyServiceRequestState string
+
+// Valid VerifyServiceRequestState
+const (
+	VerifyServiceRequestStateApproved VerifyServiceRequestState = "APPROVED"
+	VerifyServiceRequestStateRejected VerifyServiceRequestState = "REJECTED"
+)
+
+// AllVerifyServiceRequestState is a set of valid and known states
+var AllVerifyServiceRequestState = []VerifyServiceRequestState{
+	VerifyServiceRequestStateApproved,
+	VerifyServiceRequestStateRejected,
+}
+
+// IsValid checks if the VerifyServiceRequestState is valid
+func (e VerifyServiceRequestState) IsValid() bool {
+	switch e {
+	case VerifyServiceRequestStateApproved, VerifyServiceRequestStateRejected:
+		return true
+	}
+	return false
+}
+
+// String returns the string
+func (e VerifyServiceRequestState) String() string {
+	return string(e)
+}
+
+// UnmarshalGQL converts the input, if valid, into an VerifyServiceRequestState value
+func (e *VerifyServiceRequestState) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = VerifyServiceRequestState(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid VerifyServiceRequestState", str)
+	}
+	return nil
+}
+
+// MarshalGQL converts VerifyServiceRequestState into a valid JSON string
+func (e VerifyServiceRequestState) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
