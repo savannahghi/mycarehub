@@ -109,7 +109,7 @@ func Router(ctx context.Context) (*mux.Router, error) {
 
 	communitiesUseCase := communities.NewUseCaseCommunitiesImpl(getStream, externalExt, db, db)
 
-	appointmentUsecase := appointment.NewUseCaseAppointmentsImpl(externalExt, db, db, db)
+	appointmentUsecase := appointment.NewUseCaseAppointmentsImpl(externalExt, db, db, db, pubSub)
 
 	healthDiaryUseCase := healthdiary.NewUseCaseHealthDiaryImpl(db, db, db, serviceRequestUseCase)
 
@@ -248,6 +248,11 @@ func Router(ctx context.Context) (*mux.Router, error) {
 		http.MethodPost,
 		http.MethodPatch,
 	).HandlerFunc(internalHandlers.CreateOrUpdateKenyaEMRAppointments())
+
+	kenyaEMR.Path("/observations").Methods(
+		http.MethodOptions,
+		http.MethodPost,
+	).HandlerFunc(internalHandlers.AddPatientsRecords())
 
 	// ISC routes. These are inter service route
 	isc := r.PathPrefix("/internal").Subrouter()

@@ -30,3 +30,28 @@ func (ps *ServicePubSubMessaging) newPublish(
 func (ps ServicePubSubMessaging) NotifyCreatePatient(ctx context.Context, client *dto.ClientRegistrationOutput) error {
 	return ps.newPublish(ctx, client, common.CreatePatientTopic, ClinicalServiceName)
 }
+
+// NotifyCreateVitals publishes to the create vitals topic
+func (ps ServicePubSubMessaging) NotifyCreateVitals(ctx context.Context, vitals *dto.PatientVitalSignOutput) error {
+	return ps.newPublish(ctx, vitals, common.CreateVitalsTopicName, ClinicalServiceName)
+}
+
+// NotifyCreateAllergy publishes to the create allergy topic
+func (ps ServicePubSubMessaging) NotifyCreateAllergy(ctx context.Context, allergy *dto.PatientAllergyOutput) error {
+	return ps.newPublish(ctx, allergy, common.CreateAllergyTopicName, ClinicalServiceName)
+}
+
+// NotifyCreateMedication publishes to the create medication topic
+func (ps ServicePubSubMessaging) NotifyCreateMedication(ctx context.Context, medication *dto.PatientMedicationOutput) error {
+	return ps.newPublish(ctx, medication, common.CreateMedicationTopicName, ClinicalServiceName)
+}
+
+// NotifyCreateTestOrder publishes to the create test order topic
+func (ps ServicePubSubMessaging) NotifyCreateTestOrder(ctx context.Context, testOrder *dto.PatientTestOrderOutput) error {
+	return ps.newPublish(ctx, testOrder, common.CreateTestOrderTopicName, ClinicalServiceName)
+}
+
+// NotifyCreateTestResult publishes to the create test result topic
+func (ps ServicePubSubMessaging) NotifyCreateTestResult(ctx context.Context, testResult *dto.PatientTestResultOutput) error {
+	return ps.newPublish(ctx, testResult, common.CreateTestResultTopicName, ClinicalServiceName)
+}

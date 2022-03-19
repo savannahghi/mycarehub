@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/brianvoe/gofakeit"
 	"github.com/savannahghi/firebasetools"
@@ -12,14 +13,16 @@ import (
 	extensionMock "github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension/mock"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	pgMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/mock"
+	pubsubMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/pubsub/mock"
 	"github.com/savannahghi/scalarutils"
 )
 
 func TestUseCasesAppointmentsImpl_CreateKenyaEMRAppointments(t *testing.T) {
 	fakeDB := pgMock.NewPostgresMock()
 	fakeExtension := extensionMock.NewFakeExtension()
+	fakePubsub := pubsubMock.NewPubsubServiceMock()
 
-	a := NewUseCaseAppointmentsImpl(fakeExtension, fakeDB, fakeDB, fakeDB)
+	a := NewUseCaseAppointmentsImpl(fakeExtension, fakeDB, fakeDB, fakeDB, fakePubsub)
 
 	type args struct {
 		ctx   context.Context
@@ -226,8 +229,9 @@ func TestUseCasesAppointmentsImpl_CreateKenyaEMRAppointments(t *testing.T) {
 func TestUseCasesAppointmentsImpl_UpdateKenyaEMRAppointments(t *testing.T) {
 	fakeDB := pgMock.NewPostgresMock()
 	fakeExtension := extensionMock.NewFakeExtension()
+	fakePubsub := pubsubMock.NewPubsubServiceMock()
 
-	a := NewUseCaseAppointmentsImpl(fakeExtension, fakeDB, fakeDB, fakeDB)
+	a := NewUseCaseAppointmentsImpl(fakeExtension, fakeDB, fakeDB, fakeDB, fakePubsub)
 
 	type args struct {
 		ctx   context.Context
@@ -434,8 +438,9 @@ func TestUseCasesAppointmentsImpl_UpdateKenyaEMRAppointments(t *testing.T) {
 func TestUseCasesAppointmentsImpl_FetchClientAppointments(t *testing.T) {
 	fakeDB := pgMock.NewPostgresMock()
 	fakeExtension := extensionMock.NewFakeExtension()
+	fakePubsub := pubsubMock.NewPubsubServiceMock()
 
-	a := NewUseCaseAppointmentsImpl(fakeExtension, fakeDB, fakeDB, fakeDB)
+	a := NewUseCaseAppointmentsImpl(fakeExtension, fakeDB, fakeDB, fakeDB, fakePubsub)
 
 	type args struct {
 		ctx             context.Context
@@ -506,6 +511,411 @@ func TestUseCasesAppointmentsImpl_FetchClientAppointments(t *testing.T) {
 			if !tt.wantErr && got == nil {
 				t.Errorf("expected appointments not to be nil for %v", tt.name)
 				return
+			}
+		})
+	}
+}
+
+func TestUseCasesAppointmentsImpl_AddPatientsRecords(t *testing.T) {
+	conceptID := gofakeit.UUID()
+
+	type args struct {
+		ctx   context.Context
+		input dto.PatientsRecordsPayload
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "sad case: invalid mfl code",
+			args: args{
+				ctx: context.Background(),
+				input: dto.PatientsRecordsPayload{
+					MFLCode: "invalid",
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "sad case: error checking facility exist",
+			args: args{
+				ctx: context.Background(),
+				input: dto.PatientsRecordsPayload{
+					MFLCode: "1234",
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "sad case: facility doesn't exist",
+			args: args{
+				ctx: context.Background(),
+				input: dto.PatientsRecordsPayload{
+					MFLCode: "1234",
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "sad case: error retrieving facility",
+			args: args{
+				ctx: context.Background(),
+				input: dto.PatientsRecordsPayload{
+					MFLCode: "1234",
+					Records: []dto.PatientRecordPayload{
+						{
+							CCCNumber: "1234",
+						},
+						{
+							CCCNumber: "12345",
+						},
+					},
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "happy case: success add observations",
+			args: args{
+				ctx: context.Background(),
+				input: dto.PatientsRecordsPayload{
+					MFLCode: "1234",
+					Records: []dto.PatientRecordPayload{
+						{
+							CCCNumber: "1234",
+							MFLCode:   1234,
+							VitalSigns: []*dto.VitalSignPayload{
+								{
+									Name:      "Vitals",
+									ConceptID: &conceptID,
+									Value:     "23",
+									Date:      time.Now(),
+								},
+							},
+							TestOrders: []*dto.TestOrderPayload{
+								{
+									Name:      "Test order",
+									ConceptID: &conceptID,
+									Date:      time.Now(),
+								},
+							},
+							TestResults: []*dto.TestResultPayload{
+								{
+									Name:            "Result",
+									TestConceptID:   &conceptID,
+									Date:            time.Now(),
+									Result:          "Good",
+									ResultConceptID: &conceptID,
+								},
+							},
+							Medications: []*dto.MedicationPayload{
+								{
+									Name:                "Medication",
+									MedicationConceptID: &conceptID,
+									Date:                time.Now(),
+									Value:               "ARV",
+									DrugConceptID:       &conceptID,
+								},
+							},
+							Allergies: []*dto.AllergyPayload{
+								{
+									Name:              "Alergy",
+									AllergyConceptID:  &conceptID,
+									Reaction:          "Bad",
+									ReactionConceptID: &conceptID,
+									Severity:          "High",
+									SeverityConceptID: &conceptID,
+									Date:              time.Now(),
+								},
+							},
+						},
+						{
+							CCCNumber: "12345",
+						},
+					},
+				},
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			fakeExtension := extensionMock.NewFakeExtension()
+			fakePubsub := pubsubMock.NewPubsubServiceMock()
+
+			a := NewUseCaseAppointmentsImpl(fakeExtension, fakeDB, fakeDB, fakeDB, fakePubsub)
+
+			if tt.name == "sad case: error checking facility exist" {
+				fakeDB.MockCheckFacilityExistsByMFLCode = func(ctx context.Context, MFLCode int) (bool, error) {
+					return false, fmt.Errorf("error checking facility")
+				}
+			}
+
+			if tt.name == "sad case: facility doesn't exist" {
+				fakeDB.MockCheckFacilityExistsByMFLCode = func(ctx context.Context, MFLCode int) (bool, error) {
+					return false, nil
+				}
+			}
+
+			if tt.name == "sad case: error retrieving facility" {
+				fakeDB.MockRetrieveFacilityByMFLCodeFn = func(ctx context.Context, MFLCode int, isActive bool) (*domain.Facility, error) {
+					return nil, fmt.Errorf("error retrieving facility")
+				}
+			}
+
+			if err := a.AddPatientsRecords(tt.args.ctx, tt.args.input); (err != nil) != tt.wantErr {
+				t.Errorf("UseCasesAppointmentsImpl.AddPatientsRecords() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestUseCasesAppointmentsImpl_AddPatientRecord(t *testing.T) {
+	conceptID := gofakeit.UUID()
+
+	type args struct {
+		ctx   context.Context
+		input dto.PatientRecordPayload
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "sad case: missing ccc number",
+			args: args{
+				ctx:   context.Background(),
+				input: dto.PatientRecordPayload{CCCNumber: ""},
+			},
+			wantErr: true,
+		},
+		{
+			name: "sad case: error retrieving mfl code",
+			args: args{
+				ctx:   context.Background(),
+				input: dto.PatientRecordPayload{CCCNumber: "1234", MFLCode: 1234},
+			},
+			wantErr: true,
+		},
+		{
+			name: "sad case: error retrieving client profile",
+			args: args{
+				ctx:   context.Background(),
+				input: dto.PatientRecordPayload{CCCNumber: "1234", MFLCode: 1234},
+			},
+			wantErr: true,
+		},
+		{
+			name: "sad case: error publishing to vitals topic",
+			args: args{
+				ctx: context.Background(),
+				input: dto.PatientRecordPayload{
+					CCCNumber: "1234",
+					MFLCode:   1234,
+					VitalSigns: []*dto.VitalSignPayload{
+						{
+							Name:      "Vitals",
+							ConceptID: &conceptID,
+							Value:     "23",
+							Date:      time.Now(),
+						},
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "sad case: error publishing to allergy topic",
+			args: args{
+				ctx: context.Background(),
+				input: dto.PatientRecordPayload{
+					CCCNumber: "1234",
+					MFLCode:   1234,
+					Allergies: []*dto.AllergyPayload{
+						{
+							Name:              "Alergy",
+							AllergyConceptID:  &conceptID,
+							Reaction:          "Bad",
+							ReactionConceptID: &conceptID,
+							Severity:          "High",
+							SeverityConceptID: &conceptID,
+							Date:              time.Now(),
+						},
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "sad case: error publishing to medication topic",
+			args: args{
+				ctx: context.Background(),
+				input: dto.PatientRecordPayload{
+					CCCNumber: "1234",
+					MFLCode:   1234,
+					Medications: []*dto.MedicationPayload{
+						{
+							Name:                "Medication",
+							MedicationConceptID: &conceptID,
+							Date:                time.Now(),
+							Value:               "ARV",
+							DrugConceptID:       &conceptID,
+						},
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "sad case: error publishing to result topic",
+			args: args{
+				ctx: context.Background(),
+				input: dto.PatientRecordPayload{
+					CCCNumber: "1234",
+					MFLCode:   1234,
+					TestResults: []*dto.TestResultPayload{
+						{
+							Name:            "Result",
+							TestConceptID:   &conceptID,
+							Date:            time.Now(),
+							Result:          "Good",
+							ResultConceptID: &conceptID,
+						},
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "sad case: error publishing to order topic",
+			args: args{
+				ctx: context.Background(),
+				input: dto.PatientRecordPayload{
+					CCCNumber: "1234",
+					MFLCode:   1234,
+					TestOrders: []*dto.TestOrderPayload{
+						{
+							Name:      "Test order",
+							ConceptID: &conceptID,
+							Date:      time.Now(),
+						},
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "happy case: successfully update patient observations",
+			args: args{
+				ctx: context.Background(),
+				input: dto.PatientRecordPayload{
+					CCCNumber: "1234",
+					MFLCode:   1234,
+					VitalSigns: []*dto.VitalSignPayload{
+						{
+							Name:      "Vitals",
+							ConceptID: &conceptID,
+							Value:     "23",
+							Date:      time.Now(),
+						},
+					},
+					TestOrders: []*dto.TestOrderPayload{
+						{
+							Name:      "Test order",
+							ConceptID: &conceptID,
+							Date:      time.Now(),
+						},
+					},
+					TestResults: []*dto.TestResultPayload{
+						{
+							Name:            "Result",
+							TestConceptID:   &conceptID,
+							Date:            time.Now(),
+							Result:          "Good",
+							ResultConceptID: &conceptID,
+						},
+					},
+					Medications: []*dto.MedicationPayload{
+						{
+							Name:                "Medication",
+							MedicationConceptID: &conceptID,
+							Date:                time.Now(),
+							Value:               "ARV",
+							DrugConceptID:       &conceptID,
+						},
+					},
+					Allergies: []*dto.AllergyPayload{
+						{
+							Name:              "Alergy",
+							AllergyConceptID:  &conceptID,
+							Reaction:          "Bad",
+							ReactionConceptID: &conceptID,
+							Severity:          "High",
+							SeverityConceptID: &conceptID,
+							Date:              time.Now(),
+						},
+					},
+				},
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			fakeExtension := extensionMock.NewFakeExtension()
+			fakePubsub := pubsubMock.NewPubsubServiceMock()
+
+			a := NewUseCaseAppointmentsImpl(fakeExtension, fakeDB, fakeDB, fakeDB, fakePubsub)
+
+			if tt.name == "sad case: error retrieving mfl code" {
+				fakeDB.MockRetrieveFacilityByMFLCodeFn = func(ctx context.Context, MFLCode int, isActive bool) (*domain.Facility, error) {
+					return nil, fmt.Errorf("cannot retrieve facility by mfl code")
+				}
+			}
+
+			if tt.name == "sad case: error retrieving client profile" {
+				fakeDB.MockGetClientProfileByCCCNumberFn = func(ctx context.Context, CCCNumber string) (*domain.ClientProfile, error) {
+					return nil, fmt.Errorf("error retrieving client by mfl code")
+				}
+			}
+
+			if tt.name == "sad case: error publishing to vitals topic" {
+				fakePubsub.MockNotifyCreateVitalsFn = func(ctx context.Context, vitals *dto.PatientVitalSignOutput) error {
+					return fmt.Errorf("error notifying topic")
+				}
+			}
+
+			if tt.name == "sad case: error publishing to allergy topic" {
+				fakePubsub.MockNotifyCreateAllergyFn = func(ctx context.Context, allergy *dto.PatientAllergyOutput) error {
+					return fmt.Errorf("error notifying topic")
+				}
+			}
+
+			if tt.name == "sad case: error publishing to medication topic" {
+				fakePubsub.MockNotifyCreateMedicationFn = func(ctx context.Context, medication *dto.PatientMedicationOutput) error {
+					return fmt.Errorf("error notifying topic")
+				}
+			}
+
+			if tt.name == "sad case: error publishing to result topic" {
+				fakePubsub.MockNotifyCreateTestResultFn = func(ctx context.Context, testResult *dto.PatientTestResultOutput) error {
+					return fmt.Errorf("error notifying topic")
+				}
+			}
+
+			if tt.name == "sad case: error publishing to order topic" {
+				fakePubsub.MockNotifyCreateTestOrderFn = func(ctx context.Context, testOrder *dto.PatientTestOrderOutput) error {
+					return fmt.Errorf("error notifying topic")
+				}
+			}
+
+			if err := a.AddPatientRecord(tt.args.ctx, tt.args.input); (err != nil) != tt.wantErr {
+				t.Errorf("UseCasesAppointmentsImpl.AddPatientRecord() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}

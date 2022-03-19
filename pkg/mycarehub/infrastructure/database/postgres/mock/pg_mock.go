@@ -184,9 +184,10 @@ func NewPostgresMock() *PostgresMock {
 	}
 
 	client := &domain.ClientProfile{
-		ID:        &ID,
-		CHVUserID: ID,
-		UserID:    ID,
+		ID:            &ID,
+		CHVUserID:     ID,
+		UserID:        ID,
+		FHIRPatientID: &ID,
 	}
 	staff := &domain.StaffProfile{
 		ID:                &ID,

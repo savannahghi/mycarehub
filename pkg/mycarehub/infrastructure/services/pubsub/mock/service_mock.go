@@ -23,6 +23,12 @@ type FakeServicePubSub struct {
 	)
 
 	MockNotifyCreatePatientFn func(ctx context.Context, client *dto.ClientRegistrationOutput) error
+
+	MockNotifyCreateVitalsFn     func(ctx context.Context, vitals *dto.PatientVitalSignOutput) error
+	MockNotifyCreateAllergyFn    func(ctx context.Context, allergy *dto.PatientAllergyOutput) error
+	MockNotifyCreateMedicationFn func(ctx context.Context, medication *dto.PatientMedicationOutput) error
+	MockNotifyCreateTestOrderFn  func(ctx context.Context, testOrder *dto.PatientTestOrderOutput) error
+	MockNotifyCreateTestResultFn func(ctx context.Context, testResult *dto.PatientTestResultOutput) error
 }
 
 // NewPubsubServiceMock mocks the pubsub service implementation
@@ -37,6 +43,21 @@ func NewPubsubServiceMock() *FakeServicePubSub {
 			_, _ = w.Write(returnedResponse)
 		},
 		MockNotifyCreatePatientFn: func(ctx context.Context, client *dto.ClientRegistrationOutput) error {
+			return nil
+		},
+		MockNotifyCreateVitalsFn: func(ctx context.Context, vitals *dto.PatientVitalSignOutput) error {
+			return nil
+		},
+		MockNotifyCreateAllergyFn: func(ctx context.Context, allergy *dto.PatientAllergyOutput) error {
+			return nil
+		},
+		MockNotifyCreateMedicationFn: func(ctx context.Context, medication *dto.PatientMedicationOutput) error {
+			return nil
+		},
+		MockNotifyCreateTestOrderFn: func(ctx context.Context, testOrder *dto.PatientTestOrderOutput) error {
+			return nil
+		},
+		MockNotifyCreateTestResultFn: func(ctx context.Context, testResult *dto.PatientTestResultOutput) error {
 			return nil
 		},
 	}
@@ -63,4 +84,29 @@ func (m *FakeServicePubSub) ReceivePubSubPushMessages(
 	r *http.Request,
 ) {
 	m.MockReceivePubSubPushMessagesFn(w, r)
+}
+
+// NotifyCreateVitals publishes to the create vitals topic
+func (m *FakeServicePubSub) NotifyCreateVitals(ctx context.Context, vitals *dto.PatientVitalSignOutput) error {
+	return m.MockNotifyCreateVitalsFn(ctx, vitals)
+}
+
+// NotifyCreateAllergy publishes to the create allergy topic
+func (m *FakeServicePubSub) NotifyCreateAllergy(ctx context.Context, allergy *dto.PatientAllergyOutput) error {
+	return m.MockNotifyCreateAllergyFn(ctx, allergy)
+}
+
+// NotifyCreateMedication publishes to the create medication topic
+func (m *FakeServicePubSub) NotifyCreateMedication(ctx context.Context, medication *dto.PatientMedicationOutput) error {
+	return m.MockNotifyCreateMedicationFn(ctx, medication)
+}
+
+// NotifyCreateTestOrder publishes to the create test order topic
+func (m *FakeServicePubSub) NotifyCreateTestOrder(ctx context.Context, testOrder *dto.PatientTestOrderOutput) error {
+	return m.MockNotifyCreateTestOrderFn(ctx, testOrder)
+}
+
+// NotifyCreateTestResult publishes to the create test result topic
+func (m *FakeServicePubSub) NotifyCreateTestResult(ctx context.Context, testResult *dto.PatientTestResultOutput) error {
+	return m.MockNotifyCreateTestResultFn(ctx, testResult)
 }

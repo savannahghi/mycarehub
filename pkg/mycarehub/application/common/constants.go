@@ -10,4 +10,19 @@ const (
 
 	// CreatePatientTopic is the topic ID for patient creation in clinical service
 	CreatePatientTopic = "patient.create"
+
+	// CreateVitalsTopicName is the topic for publishing a patient's vital signs
+	CreateVitalsTopicName = "vitals.create"
+
+	// CreateAllergyTopicName is the topic for publishing a patient's allergy
+	CreateAllergyTopicName = "allergy.create"
+
+	// CreateMedicationTopicName is the topic for publishing a patient's medication
+	CreateMedicationTopicName = "medication.create"
+
+	// CreateTestResultTopicName is the topic for publishing a patient's test results
+	CreateTestResultTopicName = "test.result.create"
+
+	// CreateTestOrderTopicName is the topic for publishing a patient's test order
+	CreateTestOrderTopicName = "test.order.create"
 )

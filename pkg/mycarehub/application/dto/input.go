@@ -475,3 +475,66 @@ type ClientFHIRPayload struct {
 	ClientID string `json:"clientID,omitempty"`
 	FHIRID   string `json:"fhirID,omitempty"`
 }
+
+// AllergyPayload contains allergy details for a client/patient
+type AllergyPayload struct {
+	Name              string    `json:"allergy"`
+	AllergyConceptID  *string   `json:"allergyConceptId"`
+	Reaction          string    `json:"reaction"`
+	ReactionConceptID *string   `json:"reactionConceptId"`
+	Severity          string    `json:"severity"`
+	SeverityConceptID *string   `json:"severityConceptId"`
+	Date              time.Time `json:"allergyDateTime"`
+}
+
+// VitalSignPayload contains vital signs collected for a particular client/patient
+type VitalSignPayload struct {
+	Name      string    `json:"name"`
+	ConceptID *string   `json:"conceptId"`
+	Value     string    `json:"value"`
+	Date      time.Time `json:"obsDateTime"`
+}
+
+// TestOrderPayload contains details of an orderered test and the date
+type TestOrderPayload struct {
+	Name      string    `json:"orderedTestName"`
+	ConceptID *string   `json:"conceptId"`
+	Date      time.Time `json:"orderDateTime"`
+}
+
+// TestResultPayload contains results for a completed test
+type TestResultPayload struct {
+	Name            string    `json:"test"`
+	TestConceptID   *string   `json:"testConceptId"`
+	Date            time.Time `json:"testDateTime"`
+	Result          string    `json:"result"`
+	ResultConceptID *string   `json:"resultConceptId"`
+}
+
+// MedicationPayload contains details for medication that a patient/client is prescribed or using
+type MedicationPayload struct {
+	Name                string    `json:"medication"`
+	MedicationConceptID *string   `json:"medicationConceptId"`
+	Date                time.Time `json:"medicationDateTime"`
+	Value               string    `json:"value"`
+	DrugConceptID       *string   `json:"drugConceptId"`
+}
+
+// PatientRecordPayload contains all the available records for a patient that is available from KenyaEMR
+// for syncing an updating on myCareHub
+type PatientRecordPayload struct {
+	CCCNumber   string               `json:"ccc_number"`
+	MFLCode     int                  `json:"MFLCODE"`
+	Allergies   []*AllergyPayload    `json:"allergies"`
+	VitalSigns  []*VitalSignPayload  `json:"vitalSigns"`
+	TestOrders  []*TestOrderPayload  `json:"testOrders"`
+	TestResults []*TestResultPayload `json:"testResults"`
+	Medications []*MedicationPayload `json:"medications"`
+}
+
+// PatientsRecordsPayload is the payload sent from a Kenya EMR instance containing records
+// of all newly created/updated patients/clients since the last sync
+type PatientsRecordsPayload struct {
+	MFLCode string                 `json:"MFLCODE"`
+	Records []PatientRecordPayload `json:"records"`
+}
