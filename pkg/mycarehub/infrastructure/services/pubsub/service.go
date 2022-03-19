@@ -43,6 +43,11 @@ type ServicePubsub interface {
 	)
 
 	NotifyCreatePatient(ctx context.Context, client *dto.ClientRegistrationOutput) error
+	NotifyCreateVitals(ctx context.Context, vitals *dto.PatientVitalSignOutput) error
+	NotifyCreateAllergy(ctx context.Context, allergy *dto.PatientAllergyOutput) error
+	NotifyCreateMedication(ctx context.Context, medication *dto.PatientMedicationOutput) error
+	NotifyCreateTestOrder(ctx context.Context, testOrder *dto.PatientTestOrderOutput) error
+	NotifyCreateTestResult(ctx context.Context, testResult *dto.PatientTestResultOutput) error
 }
 
 // ServicePubSubMessaging is used to send and receive pubsub notifications

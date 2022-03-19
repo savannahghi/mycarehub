@@ -38,6 +38,7 @@ type MyCareHubHandlersInterfaces interface {
 	OptIn() http.HandlerFunc
 	GetUserProfile() http.HandlerFunc
 	AddClientFHIRID() http.HandlerFunc
+	AddPatientsRecords() http.HandlerFunc
 }
 
 type okResp struct {
@@ -820,6 +821,46 @@ func (h *MyCareHubHandlersInterfacesImpl) GetUserProfile() http.HandlerFunc {
 		}
 
 		serverutils.WriteJSONResponse(w, user, http.StatusOK)
+	}
+}
+
+// AddPatientsRecords handles bulk creation of patient records
+func (h *MyCareHubHandlersInterfacesImpl) AddPatientsRecords() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		payload := &dto.PatientsRecordsPayload{}
+		serverutils.DecodeJSONToTargetStruct(w, r, payload)
+
+		if payload.MFLCode == "" {
+			err := fmt.Errorf("expected an MFL code to be defined")
+			helpers.ReportErrorToSentry(err)
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusBadRequest)
+			return
+		}
+
+		if len(payload.Records) == 0 {
+			err := fmt.Errorf("expected at least one record to be defined")
+			helpers.ReportErrorToSentry(err)
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusBadRequest)
+			return
+		}
+
+		err := h.usecase.Appointment.AddPatientsRecords(r.Context(), *payload)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusBadRequest)
+			return
+		}
+
+		serverutils.WriteJSONResponse(w, nil, http.StatusCreated)
 	}
 }
 

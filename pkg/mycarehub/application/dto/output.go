@@ -61,6 +61,85 @@ type PatientSyncResponse struct {
 	Patients []string `json:"patients"`
 }
 
+// PatientAllergyOutput contains allergy details for a client/patient
+type PatientAllergyOutput struct {
+	PatientID      string `json:"patientID"`
+	OrganizationID string `json:"organizationID"`
+
+	Name      string          `json:"name"`
+	ConceptID *string         `json:"conceptID"`
+	Date      time.Time       `json:"date"`
+	Reaction  AllergyReaction `json:"reaction"`
+	Severity  AllergySeverity `json:"severity"`
+}
+
+// AllergyReaction ...
+type AllergyReaction struct {
+	Name      string  `json:"name"`
+	ConceptID *string `json:"conceptID"`
+}
+
+// AllergySeverity ...
+type AllergySeverity struct {
+	Name      string  `json:"name"`
+	ConceptID *string `json:"conceptID"`
+}
+
+// PatientVitalSignOutput contains vital signs collected for a particular client/patient
+type PatientVitalSignOutput struct {
+	PatientID      string `json:"patientID"`
+	OrganizationID string `json:"organizationID"`
+
+	Name      string    `json:"name"`
+	ConceptID *string   `json:"conceptId"`
+	Value     string    `json:"value"`
+	Date      time.Time `json:"date"`
+}
+
+// PatientTestOrderOutput contains details of an orderered test and the date
+type PatientTestOrderOutput struct {
+	PatientID      string `json:"patientID"`
+	OrganizationID string `json:"organizationID"`
+
+	Name      string    `json:"name"`
+	ConceptID *string   `json:"conceptId"`
+	Date      time.Time `json:"date"`
+}
+
+// PatientTestResultOutput contains results for a completed test
+type PatientTestResultOutput struct {
+	PatientID      string `json:"patientID"`
+	OrganizationID string `json:"organizationID"`
+
+	Name      string     `json:"name"`
+	ConceptID *string    `json:"conceptId"`
+	Date      time.Time  `json:"date"`
+	Result    TestResult `json:"result"`
+}
+
+// TestResult ...
+type TestResult struct {
+	Name      string  `json:"name"`
+	ConceptID *string `json:"conceptId"`
+}
+
+// PatientMedicationOutput contains details for medication that a patient/client is prescribed or using
+type PatientMedicationOutput struct {
+	PatientID      string `json:"patientID"`
+	OrganizationID string `json:"organizationID"`
+
+	Name      string          `json:"medication"`
+	ConceptID *string         `json:"conceptId"`
+	Date      time.Time       `json:"date"`
+	Value     string          `json:"value"`
+	Drug      *MedicationDrug `json:"drug"`
+}
+
+// MedicationDrug ...
+type MedicationDrug struct {
+	ConceptID *string `json:"conceptId"`
+}
+
 // StaffRegistrationOutput models the staff registration api response
 type StaffRegistrationOutput struct {
 	ID              string `json:"id"`
