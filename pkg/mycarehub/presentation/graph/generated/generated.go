@@ -4048,11 +4048,11 @@ type User {
 }
 
 type Contact {
-  ID: String!
-  ContactType: String!
-  ContactValue: String!
-  Active: Boolean!
-  OptedIn: Boolean!
+  ID: String
+  ContactType: String
+  ContactValue: String
+  Active: Boolean
+  OptedIn: Boolean
 }
 
 type AuthorityRole {
@@ -8412,14 +8412,11 @@ func (ec *executionContext) _Contact_ID(ctx context.Context, field graphql.Colle
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.(*string)
 	fc.Result = res
-	return ec.marshalNString2ᚖstring(ctx, field.Selections, res)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Contact_ContactType(ctx context.Context, field graphql.CollectedField, obj *domain.Contact) (ret graphql.Marshaler) {
@@ -8447,14 +8444,11 @@ func (ec *executionContext) _Contact_ContactType(ctx context.Context, field grap
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalOString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Contact_ContactValue(ctx context.Context, field graphql.CollectedField, obj *domain.Contact) (ret graphql.Marshaler) {
@@ -8482,14 +8476,11 @@ func (ec *executionContext) _Contact_ContactValue(ctx context.Context, field gra
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalOString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Contact_Active(ctx context.Context, field graphql.CollectedField, obj *domain.Contact) (ret graphql.Marshaler) {
@@ -8517,14 +8508,11 @@ func (ec *executionContext) _Contact_Active(ctx context.Context, field graphql.C
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.(bool)
 	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Contact_OptedIn(ctx context.Context, field graphql.CollectedField, obj *domain.Contact) (ret graphql.Marshaler) {
@@ -8552,14 +8540,11 @@ func (ec *executionContext) _Contact_OptedIn(ctx context.Context, field graphql.
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.(bool)
 	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Content_items(ctx context.Context, field graphql.CollectedField, obj *domain.Content) (ret graphql.Marshaler) {
@@ -19660,29 +19645,14 @@ func (ec *executionContext) _Contact(ctx context.Context, sel ast.SelectionSet, 
 			out.Values[i] = graphql.MarshalString("Contact")
 		case "ID":
 			out.Values[i] = ec._Contact_ID(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "ContactType":
 			out.Values[i] = ec._Contact_ContactType(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "ContactValue":
 			out.Values[i] = ec._Contact_ContactValue(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "Active":
 			out.Values[i] = ec._Contact_Active(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "OptedIn":
 			out.Values[i] = ec._Contact_OptedIn(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
