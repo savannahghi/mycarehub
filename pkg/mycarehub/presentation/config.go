@@ -196,6 +196,11 @@ func Router(ctx context.Context) (*mux.Router, error) {
 		http.MethodPost,
 	).HandlerFunc(internalHandlers.CreatePinResetServiceRequest())
 
+	r.Path("/opt-in").Methods(
+		http.MethodOptions,
+		http.MethodPost,
+	).HandlerFunc(internalHandlers.OptIn())
+
 	// This endpoint will be used by external services to get a token that will be used to
 	// authenticate against our APIs
 	r.Path("/login").Methods(

@@ -229,3 +229,8 @@ func (d *MyCareHubDb) UpdateServiceRequests(ctx context.Context, payload *domain
 func (d *MyCareHubDb) UpdateUserPinChangeRequiredStatus(ctx context.Context, userID string, flavour feedlib.Flavour, status bool) error {
 	return d.update.UpdateUserPinChangeRequiredStatus(ctx, userID, flavour, status)
 }
+
+// UpdateUserActiveStatus updates a user's `active` status. It will be used to opt out/in a user
+func (d *MyCareHubDb) UpdateUserActiveStatus(ctx context.Context, userID string, flavour feedlib.Flavour, active bool) error {
+	return d.update.UpdateUserActiveStatus(ctx, userID, flavour, active)
+}

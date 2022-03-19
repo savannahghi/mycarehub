@@ -34,6 +34,7 @@ type UserUseCaseMock struct {
 	MockRegisteredFacilityPatientsFn    func(ctx context.Context, input dto.PatientSyncPayload) (*dto.PatientSyncResponse, error)
 	MockSetUserPINFn                    func(ctx context.Context, input dto.PINInput) (bool, error)
 	MockSearchStaffByStaffNumberFn      func(ctx context.Context, staffNumber string) ([]*domain.StaffProfile, error)
+	MockConsentFn                       func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour, active bool) (bool, error)
 }
 
 // NewUserUseCaseMock creates in itializes create type mocks
@@ -161,6 +162,9 @@ func NewUserUseCaseMock() *UserUseCaseMock {
 		MockSetUserPINFn: func(ctx context.Context, input dto.PINInput) (bool, error) {
 			return true, nil
 		},
+		MockConsentFn: func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour, active bool) (bool, error) {
+			return true, nil
+		},
 	}
 }
 
@@ -262,4 +266,9 @@ func (f *UserUseCaseMock) SetUserPIN(ctx context.Context, input dto.PINInput) (b
 // SearchStaffByStaffNumber mocks the implementation of getting staff profile using their staff number.
 func (f *UserUseCaseMock) SearchStaffByStaffNumber(ctx context.Context, staffNumber string) ([]*domain.StaffProfile, error) {
 	return f.MockSearchStaffByStaffNumberFn(ctx, staffNumber)
+}
+
+// Consent mocks the implementation of a user withdrawing or offering their consent to the app
+func (f *UserUseCaseMock) Consent(ctx context.Context, phoneNumber string, flavour feedlib.Flavour, active bool) (bool, error) {
+	return f.MockConsentFn(ctx, phoneNumber, flavour, active)
 }

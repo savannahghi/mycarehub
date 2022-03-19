@@ -431,3 +431,9 @@ type PinResetServiceRequestPayload struct {
 	CCCNumber   string `json:"cccNumber"`
 	PhoneNumber string `json:"phoneNumber"`
 }
+
+// OptInPayload models the details passed when opting a user in
+type OptInPayload struct {
+	PhoneNumber string          `json:"phoneNumber"`
+	Flavour     feedlib.Flavour `json:"flavour"`
+}

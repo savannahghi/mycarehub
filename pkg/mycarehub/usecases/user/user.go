@@ -115,6 +115,11 @@ type ISearchStaffByStaffNumber interface {
 	SearchStaffByStaffNumber(ctx context.Context, staffNumber string) ([]*domain.StaffProfile, error)
 }
 
+// IConsent interface contains the method used to opt out a client
+type IConsent interface {
+	Consent(ctx context.Context, phoneNumber string, flavour feedlib.Flavour, active bool) (bool, error)
+}
+
 // UseCasesUser group all business logic usecases related to user
 type UseCasesUser interface {
 	ILogin
@@ -132,6 +137,7 @@ type UseCasesUser interface {
 	IClientMedicalHistory
 	ISearchClientByCCCNumber
 	ISearchStaffByStaffNumber
+	IConsent
 }
 
 // UseCasesUserImpl represents user implementation object
@@ -260,7 +266,7 @@ func (us *UseCasesUserImpl) Login(ctx context.Context, phoneNumber string, pin s
 	if !userProfile.Active {
 		return &domain.LoginResponse{
 			Message: "user profile is not active",
-			Code:    int(exceptions.Internal),
+			Code:    int(exceptions.InactiveUser),
 		}, fmt.Errorf("user is not active")
 	}
 
@@ -1159,4 +1165,22 @@ func (us *UseCasesUserImpl) SearchStaffByStaffNumber(ctx context.Context, staffN
 	}
 
 	return staffProfile, nil
+}
+
+// Consent gives the client an option to choose to withdraw from the app by withdrawing their consent. It can also
+// be used to opt back in to the app
+func (us *UseCasesUserImpl) Consent(ctx context.Context, phoneNumber string, flavour feedlib.Flavour, active bool) (bool, error) {
+	userProfile, err := us.Query.GetUserProfileByPhoneNumber(ctx, phoneNumber, flavour)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, exceptions.ProfileNotFoundErr(err)
+	}
+
+	err = us.Update.UpdateUserActiveStatus(ctx, *userProfile.ID, flavour, active)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, fmt.Errorf("failed to update user's active status: %v", err)
+	}
+
+	return true, nil
 }
