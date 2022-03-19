@@ -714,21 +714,28 @@ func (d *MyCareHubDb) GetServiceRequests(ctx context.Context, requestType, reque
 			}
 		}
 
+		resolvedBy, err := d.query.GetUserProfileByStaffID(ctx, *serviceRequest.ResolvedByID)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return nil, err
+		}
+
 		serviceRequest := &domain.ServiceRequest{
-			ID:            *serviceRequest.ID,
-			RequestType:   serviceRequest.RequestType,
-			Request:       serviceRequest.Request,
-			Status:        serviceRequest.Status,
-			ClientID:      serviceRequest.ClientID,
-			CreatedAt:     serviceRequest.Base.CreatedAt,
-			InProgressAt:  serviceRequest.InProgressAt,
-			InProgressBy:  serviceRequest.InProgressByID,
-			ResolvedAt:    serviceRequest.ResolvedAt,
-			ResolvedBy:    serviceRequest.ResolvedByID,
-			FacilityID:    *facilityID,
-			ClientName:    &userProfile.Name,
-			ClientContact: &userProfile.Contacts.ContactValue,
-			Meta:          meta,
+			ID:             *serviceRequest.ID,
+			RequestType:    serviceRequest.RequestType,
+			Request:        serviceRequest.Request,
+			Status:         serviceRequest.Status,
+			ClientID:       serviceRequest.ClientID,
+			CreatedAt:      serviceRequest.Base.CreatedAt,
+			InProgressAt:   serviceRequest.InProgressAt,
+			InProgressBy:   serviceRequest.InProgressByID,
+			ResolvedAt:     serviceRequest.ResolvedAt,
+			ResolvedBy:     serviceRequest.ResolvedByID,
+			ResolvedByName: &resolvedBy.Name,
+			FacilityID:     *facilityID,
+			ClientName:     &userProfile.Name,
+			ClientContact:  &userProfile.Contacts.ContactValue,
+			Meta:           meta,
 		}
 		serviceRequests = append(serviceRequests, serviceRequest)
 	}
@@ -971,19 +978,26 @@ func (d *MyCareHubDb) GetServiceRequestsForKenyaEMR(ctx context.Context, payload
 			helpers.ReportErrorToSentry(err)
 			return nil, err
 		}
+
+		resolvedBy, err := d.query.GetUserProfileByStaffID(ctx, *serviceReq.ResolvedByID)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return nil, err
+		}
 		serviceRequest := &domain.ServiceRequest{
-			ID:            *serviceReq.ID,
-			RequestType:   serviceReq.RequestType,
-			Request:       serviceReq.Request,
-			Status:        serviceReq.Status,
-			ClientID:      serviceReq.ClientID,
-			InProgressAt:  serviceReq.InProgressAt,
-			InProgressBy:  serviceReq.InProgressByID,
-			ResolvedAt:    serviceReq.ResolvedAt,
-			ResolvedBy:    serviceReq.ResolvedByID,
-			FacilityID:    serviceReq.FacilityID,
-			ClientName:    &userProfile.Name,
-			ClientContact: &userProfile.Contacts.ContactValue,
+			ID:             *serviceReq.ID,
+			RequestType:    serviceReq.RequestType,
+			Request:        serviceReq.Request,
+			Status:         serviceReq.Status,
+			ClientID:       serviceReq.ClientID,
+			InProgressAt:   serviceReq.InProgressAt,
+			InProgressBy:   serviceReq.InProgressByID,
+			ResolvedAt:     serviceReq.ResolvedAt,
+			ResolvedBy:     serviceReq.ResolvedByID,
+			ResolvedByName: &resolvedBy.Name,
+			FacilityID:     serviceReq.FacilityID,
+			ClientName:     &userProfile.Name,
+			ClientContact:  &userProfile.Contacts.ContactValue,
 		}
 
 		serviceRequests = append(serviceRequests, serviceRequest)
@@ -1217,4 +1231,16 @@ func (d *MyCareHubDb) GetAllRoles(ctx context.Context) ([]*domain.AuthorityRole,
 	}
 
 	return mapped, nil
+}
+
+// GetUserProfileByStaffID fetches a user profile using their staff ID
+func (d *MyCareHubDb) GetUserProfileByStaffID(ctx context.Context, staffID string) (*domain.User, error) {
+	userProfile, err := d.query.GetUserProfileByStaffID(ctx, staffID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
+	user := createMapUser(userProfile)
+	return user, nil
 }

@@ -41,6 +41,7 @@ type Update interface {
 	UpdateServiceRequests(ctx context.Context, payload []*ClientServiceRequest) (bool, error)
 	UpdateUserPinChangeRequiredStatus(ctx context.Context, userID string, flavour feedlib.Flavour, status bool) error
 	UpdateUserActiveStatus(ctx context.Context, userID string, flavour feedlib.Flavour, active bool) error
+	UpdateUserPinUpdateRequiredStatus(ctx context.Context, userID string, flavour feedlib.Flavour, status bool) error
 }
 
 // LikeContent perfoms the actual database operation to update content like. The operation
@@ -262,6 +263,7 @@ func (db *PGInstance) UpdateUserProfileAfterLoginSuccess(ctx context.Context, us
 			"last_successful_login": &currentTime,
 			"failed_login_count":    failedLoginCount,
 			"next_allowed_login":    currentTime,
+			"pin_update_required":   false,
 		}).Error
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
@@ -909,6 +911,18 @@ func (db *PGInstance) UpdateUserPinChangeRequiredStatus(ctx context.Context, use
 func (db *PGInstance) UpdateUserActiveStatus(ctx context.Context, userID string, flavour feedlib.Flavour, active bool) error {
 	err := db.DB.Model(&User{}).Where(&User{UserID: &userID, Flavour: flavour}).Updates(map[string]interface{}{
 		"is_active": active,
+	}).Error
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return err
+	}
+	return nil
+}
+
+// UpdateUserPinUpdateRequiredStatus updates a user's pin update required status
+func (db *PGInstance) UpdateUserPinUpdateRequiredStatus(ctx context.Context, userID string, flavour feedlib.Flavour, status bool) error {
+	err := db.DB.Model(&User{}).Where(&User{UserID: &userID, Flavour: flavour}).Updates(map[string]interface{}{
+		"pin_update_required": status,
 	}).Error
 	if err != nil {
 		helpers.ReportErrorToSentry(err)

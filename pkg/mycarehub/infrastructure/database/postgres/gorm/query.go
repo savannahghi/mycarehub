@@ -70,6 +70,7 @@ type Query interface {
 	GetScreeningToolQuestionByQuestionID(ctx context.Context, questionID string) (*ScreeningToolQuestion, error)
 	CheckIfClientHasUnresolvedServiceRequests(ctx context.Context, clientID string, serviceRequestType string) (bool, error)
 	GetAllRoles(ctx context.Context) ([]*AuthorityRole, error)
+	GetUserProfileByStaffID(ctx context.Context, staffID string) (*User, error)
 }
 
 // CheckWhetherUserHasLikedContent performs a operation to check whether user has liked the content
@@ -1004,4 +1005,19 @@ func (db *PGInstance) SearchClientProfilesByCCCNumber(ctx context.Context, CCCNu
 		return nil, fmt.Errorf("failed to get client profile by CCC number: %v", err)
 	}
 	return client, nil
+}
+
+// GetUserProfileByStaffID returns a user profile using the staff ID
+func (db *PGInstance) GetUserProfileByStaffID(ctx context.Context, staffID string) (*User, error) {
+	var user User
+	if err := db.DB.Raw(`
+	 SELECT * FROM users_user
+	 WHERE id = (
+		SELECT user_id FROM staff_staff
+		WHERE id = ?
+	)`, staffID).Scan(&user).Error; err != nil {
+		return nil, fmt.Errorf("failed to get user profile by staff ID: %v", err)
+	}
+
+	return &user, nil
 }

@@ -1615,6 +1615,20 @@ func TestUseCasesUserImpl_ResetPIN(t *testing.T) {
 			want:    false,
 			wantErr: true,
 		},
+		{
+			name: "invalid: failed update pin update required status",
+			args: args{
+				ctx: context.Background(),
+				input: dto.UserResetPinInput{
+					PhoneNumber: gofakeit.Phone(),
+					Flavour:     feedlib.FlavourConsumer,
+					OTP:         "111222",
+					PIN:         "1234",
+				},
+			},
+			want:    false,
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -1741,6 +1755,12 @@ func TestUseCasesUserImpl_ResetPIN(t *testing.T) {
 			if tt.name == "invalid: invalid reset pin input" {
 				fakeUser.MockResetPINFn = func(ctx context.Context, input dto.UserResetPinInput) (bool, error) {
 					return false, fmt.Errorf("an error occurred")
+				}
+			}
+
+			if tt.name == "invalid: failed update pin update required status" {
+				fakeDB.MockUpdateUserPinUpdateRequiredStatusFn = func(ctx context.Context, userID string, flavour feedlib.Flavour, status bool) error {
+					return fmt.Errorf("failed to update pin update required status")
 				}
 			}
 

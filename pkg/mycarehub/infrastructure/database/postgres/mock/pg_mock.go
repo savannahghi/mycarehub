@@ -114,6 +114,7 @@ type PostgresMock struct {
 	MockCheckIfClientHasUnresolvedServiceRequestsFn func(ctx context.Context, clientID string, serviceRequestType string) (bool, error)
 	MockGetAllRolesFn                               func(ctx context.Context) ([]*domain.AuthorityRole, error)
 	MockUpdateUserActiveStatusFn                    func(ctx context.Context, userID string, flavour feedlib.Flavour, active bool) error
+	MockUpdateUserPinUpdateRequiredStatusFn         func(ctx context.Context, userID string, flavour feedlib.Flavour, status bool) error
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -721,6 +722,9 @@ func NewPostgresMock() *PostgresMock {
 		MockUpdateUserActiveStatusFn: func(ctx context.Context, userID string, flavour feedlib.Flavour, active bool) error {
 			return nil
 		},
+		MockUpdateUserPinUpdateRequiredStatusFn: func(ctx context.Context, userID string, flavour feedlib.Flavour, status bool) error {
+			return nil
+		},
 	}
 }
 
@@ -1203,4 +1207,9 @@ func (gm *PostgresMock) SearchClientProfilesByCCCNumber(ctx context.Context, CCC
 // UpdateUserActiveStatus mocks updating a user `active status`
 func (gm *PostgresMock) UpdateUserActiveStatus(ctx context.Context, userID string, flavour feedlib.Flavour, active bool) error {
 	return gm.MockUpdateUserActiveStatusFn(ctx, userID, flavour, active)
+}
+
+// UpdateUserPinUpdateRequiredStatus mocks updating a user `pin update required status`
+func (gm *PostgresMock) UpdateUserPinUpdateRequiredStatus(ctx context.Context, userID string, flavour feedlib.Flavour, status bool) error {
+	return gm.MockUpdateUserPinUpdateRequiredStatusFn(ctx, userID, flavour, status)
 }
