@@ -10,6 +10,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	extensionMock "github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension/mock"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	pgMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/mock"
@@ -670,7 +671,7 @@ func TestUseCasesServiceRequestImpl_CreatePinResetServiceRequest(t *testing.T) {
 	}
 }
 
-func TestUseCasesServiceRequestImpl_ApprovePinResetServiceRequest(t *testing.T) {
+func TestUseCasesServiceRequestImpl_VerifyPinResetServiceRequest(t *testing.T) {
 	ctx := context.Background()
 	type args struct {
 		ctx                      context.Context
@@ -679,6 +680,7 @@ func TestUseCasesServiceRequestImpl_ApprovePinResetServiceRequest(t *testing.T) 
 		cccNumber                string
 		phoneNumber              string
 		physicalIdentityVerified bool
+		state                    string
 	}
 	tests := []struct {
 		name    string
@@ -695,6 +697,21 @@ func TestUseCasesServiceRequestImpl_ApprovePinResetServiceRequest(t *testing.T) 
 				cccNumber:                "123456",
 				phoneNumber:              "+254711111111",
 				physicalIdentityVerified: true,
+				state:                    enums.VerifyServiceRequestStateApproved.String(),
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Happy Case - Successfully reject pin reset service request",
+			args: args{
+				ctx:                      ctx,
+				clientID:                 "26b20a42-cbb8-4553-aedb-c539602d04fc",
+				serviceRequestID:         uuid.New().String(),
+				cccNumber:                "123456",
+				phoneNumber:              "+254711111111",
+				physicalIdentityVerified: true,
+				state:                    enums.VerifyServiceRequestStateRejected.String(),
 			},
 			want:    true,
 			wantErr: false,
@@ -752,6 +769,7 @@ func TestUseCasesServiceRequestImpl_ApprovePinResetServiceRequest(t *testing.T) 
 				cccNumber:                "123456",
 				phoneNumber:              "+254711111111",
 				physicalIdentityVerified: true,
+				state:                    enums.VerifyServiceRequestStateApproved.String(),
 			},
 			want:    false,
 			wantErr: true,
@@ -778,6 +796,7 @@ func TestUseCasesServiceRequestImpl_ApprovePinResetServiceRequest(t *testing.T) 
 				cccNumber:                "123456",
 				phoneNumber:              "+254711111111",
 				physicalIdentityVerified: true,
+				state:                    enums.VerifyServiceRequestStateApproved.String(),
 			},
 			want:    false,
 			wantErr: true,
@@ -791,6 +810,7 @@ func TestUseCasesServiceRequestImpl_ApprovePinResetServiceRequest(t *testing.T) 
 				cccNumber:                "123456",
 				phoneNumber:              "+254711111111",
 				physicalIdentityVerified: true,
+				state:                    enums.VerifyServiceRequestStateApproved.String(),
 			},
 			want:    false,
 			wantErr: true,
@@ -804,6 +824,7 @@ func TestUseCasesServiceRequestImpl_ApprovePinResetServiceRequest(t *testing.T) 
 				cccNumber:                "123456",
 				phoneNumber:              "+254711111111",
 				physicalIdentityVerified: true,
+				state:                    enums.VerifyServiceRequestStateApproved.String(),
 			},
 			want:    false,
 			wantErr: true,
@@ -830,13 +851,14 @@ func TestUseCasesServiceRequestImpl_ApprovePinResetServiceRequest(t *testing.T) 
 			}
 
 			if tt.name == "Sad Case - Patient not verified by healthcare worker" {
-				fakeServiceRequest.MockApprovePinResetServiceRequestFn = func(
+				fakeServiceRequest.MockVerifyPinResetServiceRequestFn = func(
 					ctx context.Context,
 					clientID string,
 					serviceRequestID string,
 					cccNumber string,
 					phoneNumber string,
 					physicalIdentityVerified bool,
+					state string,
 				) (bool, error) {
 					return false, fmt.Errorf("patient not verified")
 				}
@@ -878,13 +900,13 @@ func TestUseCasesServiceRequestImpl_ApprovePinResetServiceRequest(t *testing.T) 
 				}
 			}
 
-			got, err := u.ApprovePinResetServiceRequest(tt.args.ctx, tt.args.clientID, tt.args.serviceRequestID, tt.args.cccNumber, tt.args.phoneNumber, tt.args.physicalIdentityVerified)
+			got, err := u.VerifyPinResetServiceRequest(tt.args.ctx, tt.args.clientID, tt.args.serviceRequestID, tt.args.cccNumber, tt.args.phoneNumber, tt.args.physicalIdentityVerified, tt.args.state)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("UseCasesServiceRequestImpl.ApprovePinResetServiceRequest() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("UseCasesServiceRequestImpl.VerifyPinResetServiceRequest() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if got != tt.want {
-				t.Errorf("UseCasesServiceRequestImpl.ApprovePinResetServiceRequest() = %v, want %v", got, tt.want)
+				t.Errorf("UseCasesServiceRequestImpl.VerifyPinResetServiceRequest() = %v, want %v", got, tt.want)
 			}
 		})
 	}

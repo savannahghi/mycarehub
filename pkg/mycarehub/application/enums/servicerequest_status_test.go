@@ -124,3 +124,101 @@ func TestServiceRequestStatus_MarshalGQL(t *testing.T) {
 		})
 	}
 }
+
+func TestVerifyServiceRequestState_IsValid(t *testing.T) {
+	tests := []struct {
+		name string
+		e    VerifyServiceRequestState
+		want bool
+	}{
+		{
+			name: "Happy Case - Valid",
+			e:    VerifyServiceRequestStateApproved,
+			want: true,
+		},
+		{
+			name: "Sad Case - Invalid State",
+			e:    VerifyServiceRequestState("invalid"),
+			want: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := tt.e.IsValid(); got != tt.want {
+				t.Errorf("VerifyServiceRequestState.IsValid() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestVerifyServiceRequestState_String(t *testing.T) {
+	tests := []struct {
+		name string
+		e    VerifyServiceRequestState
+		want string
+	}{
+		{
+			name: "approved",
+			e:    VerifyServiceRequestStateApproved,
+			want: "APPROVED",
+		},
+		{
+			name: "rejected",
+			e:    VerifyServiceRequestStateRejected,
+			want: "REJECTED",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := tt.e.String(); got != tt.want {
+				t.Errorf("VerifyServiceRequestState.String() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestVerifyServiceRequestState_UnmarshalGQL(t *testing.T) {
+	valid := VerifyServiceRequestStateApproved
+	invalid := VerifyServiceRequestState("invalid")
+	type args struct {
+		v interface{}
+	}
+	tests := []struct {
+		name    string
+		e       *VerifyServiceRequestState
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "valid",
+			e:    &valid,
+			args: args{
+				v: "APPROVED",
+			},
+			wantErr: false,
+		},
+		{
+			name: "invalid",
+			e:    &invalid,
+			args: args{
+				v: "this is not a real kyc process status",
+			},
+			wantErr: true,
+		},
+		{
+			name: "non string",
+			e:    &invalid,
+			args: args{
+				v: 1,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := tt.e.UnmarshalGQL(tt.args.v); (err != nil) != tt.wantErr {
+				t.Errorf("VerifyServiceRequestState.UnmarshalGQL() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}

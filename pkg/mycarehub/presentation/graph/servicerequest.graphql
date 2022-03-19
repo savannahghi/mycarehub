@@ -3,12 +3,13 @@ extend type Mutation {
   createServiceRequest(input: ServiceRequestInput!): Boolean!
   resolveServiceRequest(staffID: String!, requestID: String!): Boolean!
 
-  approvePinResetServiceRequest(
+  verifyPinResetServiceRequest(
     clientID: String!
     serviceRequestID: String!
     cccNumber: String!
     phoneNumber: String!
     physicalIdentityVerified: Boolean!
+    state: String!
   ): Boolean!
 }
 

@@ -335,7 +335,6 @@ type ComplexityRoot struct {
 		AddMembersToCommunity           func(childComplexity int, memberIDs []string, communityID string) int
 		AddModerators                   func(childComplexity int, memberIDs []string, communityID string) int
 		AnswerScreeningToolQuestion     func(childComplexity int, screeningToolResponses []*dto.ScreeningToolQuestionResponseInput) int
-		ApprovePinResetServiceRequest   func(childComplexity int, clientID string, serviceRequestID string, cccNumber string, phoneNumber string, physicalIdentityVerified bool) int
 		AssignRoles                     func(childComplexity int, userID string, roles []enums.UserRoleType) int
 		BanUser                         func(childComplexity int, memberID string, bannedBy string, communityID string) int
 		BookmarkContent                 func(childComplexity int, userID string, contentItemID int) int
@@ -368,6 +367,7 @@ type ComplexityRoot struct {
 		UnBanUser                       func(childComplexity int, memberID string, communityID string) int
 		UnBookmarkContent               func(childComplexity int, userID string, contentItemID int) int
 		UnlikeContent                   func(childComplexity int, userID string, contentID int) int
+		VerifyPinResetServiceRequest    func(childComplexity int, clientID string, serviceRequestID string, cccNumber string, phoneNumber string, physicalIdentityVerified bool, state string) int
 		ViewContent                     func(childComplexity int, userID string, contentID int) int
 	}
 
@@ -543,7 +543,7 @@ type MutationResolver interface {
 	SetInProgressBy(ctx context.Context, serviceRequestID string, staffID string) (bool, error)
 	CreateServiceRequest(ctx context.Context, input dto.ServiceRequestInput) (bool, error)
 	ResolveServiceRequest(ctx context.Context, staffID string, requestID string) (bool, error)
-	ApprovePinResetServiceRequest(ctx context.Context, clientID string, serviceRequestID string, cccNumber string, phoneNumber string, physicalIdentityVerified bool) (bool, error)
+	VerifyPinResetServiceRequest(ctx context.Context, clientID string, serviceRequestID string, cccNumber string, phoneNumber string, physicalIdentityVerified bool, state string) (bool, error)
 	AcceptTerms(ctx context.Context, userID string, termsID int) (bool, error)
 	SetNickName(ctx context.Context, userID string, nickname string) (bool, error)
 	CompleteOnboardingTour(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
@@ -1923,18 +1923,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.AnswerScreeningToolQuestion(childComplexity, args["screeningToolResponses"].([]*dto.ScreeningToolQuestionResponseInput)), true
 
-	case "Mutation.approvePinResetServiceRequest":
-		if e.complexity.Mutation.ApprovePinResetServiceRequest == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_approvePinResetServiceRequest_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.ApprovePinResetServiceRequest(childComplexity, args["clientID"].(string), args["serviceRequestID"].(string), args["cccNumber"].(string), args["phoneNumber"].(string), args["physicalIdentityVerified"].(bool)), true
-
 	case "Mutation.assignRoles":
 		if e.complexity.Mutation.AssignRoles == nil {
 			break
@@ -2318,6 +2306,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.UnlikeContent(childComplexity, args["userID"].(string), args["contentID"].(int)), true
+
+	case "Mutation.verifyPinResetServiceRequest":
+		if e.complexity.Mutation.VerifyPinResetServiceRequest == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_verifyPinResetServiceRequest_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.VerifyPinResetServiceRequest(childComplexity, args["clientID"].(string), args["serviceRequestID"].(string), args["cccNumber"].(string), args["phoneNumber"].(string), args["physicalIdentityVerified"].(bool), args["state"].(string)), true
 
 	case "Mutation.viewContent":
 		if e.complexity.Mutation.ViewContent == nil {
@@ -3653,12 +3653,13 @@ extend type Mutation {
   createServiceRequest(input: ServiceRequestInput!): Boolean!
   resolveServiceRequest(staffID: String!, requestID: String!): Boolean!
 
-  approvePinResetServiceRequest(
+  verifyPinResetServiceRequest(
     clientID: String!
     serviceRequestID: String!
     cccNumber: String!
     phoneNumber: String!
     physicalIdentityVerified: Boolean!
+    state: String!
   ): Boolean!
 }
 
@@ -4227,57 +4228,6 @@ func (ec *executionContext) field_Mutation_answerScreeningToolQuestion_args(ctx 
 		}
 	}
 	args["screeningToolResponses"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_approvePinResetServiceRequest_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["clientID"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clientID"))
-		arg0, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["clientID"] = arg0
-	var arg1 string
-	if tmp, ok := rawArgs["serviceRequestID"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("serviceRequestID"))
-		arg1, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["serviceRequestID"] = arg1
-	var arg2 string
-	if tmp, ok := rawArgs["cccNumber"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("cccNumber"))
-		arg2, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["cccNumber"] = arg2
-	var arg3 string
-	if tmp, ok := rawArgs["phoneNumber"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("phoneNumber"))
-		arg3, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["phoneNumber"] = arg3
-	var arg4 bool
-	if tmp, ok := rawArgs["physicalIdentityVerified"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("physicalIdentityVerified"))
-		arg4, err = ec.unmarshalNBoolean2bool(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["physicalIdentityVerified"] = arg4
 	return args, nil
 }
 
@@ -4941,6 +4891,66 @@ func (ec *executionContext) field_Mutation_unlikeContent_args(ctx context.Contex
 		}
 	}
 	args["contentID"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_verifyPinResetServiceRequest_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["clientID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clientID"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["clientID"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["serviceRequestID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("serviceRequestID"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["serviceRequestID"] = arg1
+	var arg2 string
+	if tmp, ok := rawArgs["cccNumber"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("cccNumber"))
+		arg2, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["cccNumber"] = arg2
+	var arg3 string
+	if tmp, ok := rawArgs["phoneNumber"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("phoneNumber"))
+		arg3, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["phoneNumber"] = arg3
+	var arg4 bool
+	if tmp, ok := rawArgs["physicalIdentityVerified"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("physicalIdentityVerified"))
+		arg4, err = ec.unmarshalNBoolean2bool(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["physicalIdentityVerified"] = arg4
+	var arg5 string
+	if tmp, ok := rawArgs["state"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("state"))
+		arg5, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["state"] = arg5
 	return args, nil
 }
 
@@ -13052,7 +13062,7 @@ func (ec *executionContext) _Mutation_resolveServiceRequest(ctx context.Context,
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Mutation_approvePinResetServiceRequest(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _Mutation_verifyPinResetServiceRequest(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -13069,7 +13079,7 @@ func (ec *executionContext) _Mutation_approvePinResetServiceRequest(ctx context.
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_approvePinResetServiceRequest_args(ctx, rawArgs)
+	args, err := ec.field_Mutation_verifyPinResetServiceRequest_args(ctx, rawArgs)
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
@@ -13077,7 +13087,7 @@ func (ec *executionContext) _Mutation_approvePinResetServiceRequest(ctx context.
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().ApprovePinResetServiceRequest(rctx, args["clientID"].(string), args["serviceRequestID"].(string), args["cccNumber"].(string), args["phoneNumber"].(string), args["physicalIdentityVerified"].(bool))
+		return ec.resolvers.Mutation().VerifyPinResetServiceRequest(rctx, args["clientID"].(string), args["serviceRequestID"].(string), args["cccNumber"].(string), args["phoneNumber"].(string), args["physicalIdentityVerified"].(bool), args["state"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -20680,8 +20690,8 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "approvePinResetServiceRequest":
-			out.Values[i] = ec._Mutation_approvePinResetServiceRequest(ctx, field)
+		case "verifyPinResetServiceRequest":
+			out.Values[i] = ec._Mutation_verifyPinResetServiceRequest(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}

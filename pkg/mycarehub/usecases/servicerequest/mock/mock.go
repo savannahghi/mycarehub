@@ -11,14 +11,15 @@ import (
 
 // ServiceRequestUseCaseMock mocks the service request instance
 type ServiceRequestUseCaseMock struct {
-	MockCreateServiceRequestFn          func(ctx context.Context, input *dto.ServiceRequestInput) (bool, error)
-	MockApprovePinResetServiceRequestFn func(
+	MockCreateServiceRequestFn         func(ctx context.Context, input *dto.ServiceRequestInput) (bool, error)
+	MockVerifyPinResetServiceRequestFn func(
 		ctx context.Context,
 		clientID string,
 		serviceRequestID string,
 		cccNumber string,
 		phoneNumber string,
 		physicalIdentityVerified bool,
+		state string,
 	) (bool, error)
 	MockGetPendingServiceRequestsCountFn    func(ctx context.Context, facilityID string) (*domain.ServiceRequestsCount, error)
 	MockGetServiceRequestsFn                func(ctx context.Context, requestType, requestStatus, facilityID *string) ([]*domain.ServiceRequest, error)
@@ -79,13 +80,14 @@ func NewServiceRequestUseCaseMock() *ServiceRequestUseCaseMock {
 		MockCreatePinResetServiceRequestFn: func(ctx context.Context, phoneNumber string, cccNumber string) (bool, error) {
 			return true, nil
 		},
-		MockApprovePinResetServiceRequestFn: func(
+		MockVerifyPinResetServiceRequestFn: func(
 			ctx context.Context,
 			clientID string,
 			serviceRequestID string,
 			cccNumber string,
 			phoneNumber string,
 			physicalIdentityVerified bool,
+			state string,
 		) (bool, error) {
 			return true, nil
 		},
@@ -132,14 +134,15 @@ func (s *ServiceRequestUseCaseMock) CreatePinResetServiceRequest(ctx context.Con
 	return s.MockCreatePinResetServiceRequestFn(ctx, phoneNumber, cccNumber)
 }
 
-// ApprovePinResetServiceRequest mocks the implementation of approving a pin reset service request
-func (s *ServiceRequestUseCaseMock) ApprovePinResetServiceRequest(
+// VerifyPinResetServiceRequest mocks the implementation of approving a pin reset service request
+func (s *ServiceRequestUseCaseMock) VerifyPinResetServiceRequest(
 	ctx context.Context,
 	clientID string,
 	serviceRequestID string,
 	cccNumber string,
 	phoneNumber string,
 	physicalIdentityVerified bool,
+	state string,
 ) (bool, error) {
-	return s.MockApprovePinResetServiceRequestFn(ctx, clientID, serviceRequestID, cccNumber, phoneNumber, physicalIdentityVerified)
+	return s.MockVerifyPinResetServiceRequestFn(ctx, clientID, serviceRequestID, cccNumber, phoneNumber, physicalIdentityVerified, state)
 }

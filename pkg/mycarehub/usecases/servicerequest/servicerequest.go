@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
@@ -23,6 +24,10 @@ import (
 // Each task will have a status. When first created, the tasks will be marked as “PENDING”.
 // Once the relevant actions are taken, it will be possible to mark them as “IN PROGRESS”, “RESOLVED” and add relevant notes.
 // In order to ensure that a task is not addressed by multiple people at the same time, each task will be updated with a record of the user and timestamp each time the status is changed.
+
+const (
+	callCenterNumber = "0790 360 360"
+)
 
 // ICreateServiceRequest is an interface that holds the method signature for creating a service request
 type ICreateServiceRequest interface {
@@ -49,13 +54,14 @@ type IGetServiceRequests interface {
 // IResolveServiceRequest is an interface that holds the method signature for resolving a service request
 type IResolveServiceRequest interface {
 	ResolveServiceRequest(ctx context.Context, staffID *string, serviceRequestID *string) (bool, error)
-	ApprovePinResetServiceRequest(
+	VerifyPinResetServiceRequest(
 		ctx context.Context,
 		clientID string,
 		serviceRequestID string,
 		cccNumber string,
 		phoneNumber string,
 		physicalIdentityVerified bool,
+		state string,
 	) (bool, error)
 }
 
@@ -267,7 +273,7 @@ func (u *UseCasesServiceRequestImpl) CreatePinResetServiceRequest(ctx context.Co
 	return true, nil
 }
 
-// ApprovePinResetServiceRequest is used to approve a pin reset service request. This is used by the
+// VerifyPinResetServiceRequest is used to approve/reject a pin reset service request. This is used by the
 // healthcare worker to reset the login credentials of a user who failed to login and requested for help from
 // the health care worker.
 //
@@ -278,13 +284,14 @@ func (u *UseCasesServiceRequestImpl) CreatePinResetServiceRequest(ctx context.Co
 // 3. Mark the service request as IN_PROGRESS
 // 4. Send a fresh invite to the user and invalidate the previous pins
 // 5. Update the field `pin_change_required` to true and mark the service request as resolved
-func (u *UseCasesServiceRequestImpl) ApprovePinResetServiceRequest(
+func (u *UseCasesServiceRequestImpl) VerifyPinResetServiceRequest(
 	ctx context.Context,
 	clientID string,
 	serviceRequestID string,
 	cccNumber string,
 	phoneNumber string,
 	physicalIdentityVerified bool,
+	state string,
 ) (bool, error) {
 	flavour := feedlib.FlavourConsumer
 	loggedInUserID, err := u.ExternalExt.GetLoggedInUserUID(ctx)
@@ -297,6 +304,11 @@ func (u *UseCasesServiceRequestImpl) ApprovePinResetServiceRequest(
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return false, exceptions.StaffProfileNotFoundErr(err)
+	}
+
+	user, err := u.Query.GetUserProfileByPhoneNumber(ctx, phoneNumber, flavour)
+	if err != nil {
+		return false, err
 	}
 
 	if !physicalIdentityVerified {
@@ -316,30 +328,43 @@ func (u *UseCasesServiceRequestImpl) ApprovePinResetServiceRequest(
 		return false, fmt.Errorf("the ccc number provided does not match with the one on the patient profile")
 	}
 
-	_, err = u.SetInProgressBy(ctx, serviceRequestID, *staff.ID)
-	if err != nil {
-		return false, err
-	}
+	switch state {
+	case enums.VerifyServiceRequestStateRejected.String():
+		text := fmt.Sprintf(
+			"Dear %s, your request to reset your pin has been rejected. "+
+				"For enquiries call us on %s.", user.Name, callCenterNumber,
+		)
 
-	user, err := u.Query.GetUserProfileByPhoneNumber(ctx, phoneNumber, flavour)
-	if err != nil {
-		return false, err
-	}
+		_, err := u.ExternalExt.SendSMS(ctx, phoneNumber, text, enumutils.SenderIDBewell)
+		if err != nil {
+			return false, err
+		}
 
-	_, err = u.User.InviteUser(ctx, *user.ID, phoneNumber, flavour)
-	if err != nil {
-		return false, err
-	}
+		return true, nil
 
-	err = u.Update.UpdateUserPinChangeRequiredStatus(ctx, *user.ID, flavour, true)
-	if err != nil {
-		return false, err
-	}
+	case enums.VerifyServiceRequestStateApproved.String():
+		_, err = u.SetInProgressBy(ctx, serviceRequestID, *staff.ID)
+		if err != nil {
+			return false, err
+		}
 
-	_, err = u.ResolveServiceRequest(ctx, staff.ID, &serviceRequestID)
-	if err != nil {
-		return false, err
-	}
+		_, err = u.User.InviteUser(ctx, *user.ID, phoneNumber, flavour)
+		if err != nil {
+			return false, err
+		}
 
-	return true, nil
+		err = u.Update.UpdateUserPinChangeRequiredStatus(ctx, *user.ID, flavour, true)
+		if err != nil {
+			return false, err
+		}
+
+		_, err = u.ResolveServiceRequest(ctx, staff.ID, &serviceRequestID)
+		if err != nil {
+			return false, err
+		}
+
+		return true, nil
+	default:
+		return false, fmt.Errorf("unknown state provided")
+	}
 }
