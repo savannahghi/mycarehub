@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/brianvoe/gofakeit"
+	"github.com/savannahghi/firebasetools"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	extensionMock "github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension/mock"
@@ -440,7 +441,7 @@ func TestUseCasesAppointmentsImpl_FetchClientAppointments(t *testing.T) {
 		ctx             context.Context
 		clientID        string
 		paginationInput dto.PaginationsInput
-		filterInput     []*dto.FiltersInput
+		filters         []*firebasetools.FilterParam
 	}
 	tests := []struct {
 		name    string
@@ -454,7 +455,7 @@ func TestUseCasesAppointmentsImpl_FetchClientAppointments(t *testing.T) {
 				ctx:             context.Background(),
 				clientID:        "client-id",
 				paginationInput: dto.PaginationsInput{},
-				filterInput:     []*dto.FiltersInput{},
+				filters:         []*firebasetools.FilterParam{},
 			},
 			wantErr: true,
 		},
@@ -467,7 +468,7 @@ func TestUseCasesAppointmentsImpl_FetchClientAppointments(t *testing.T) {
 					CurrentPage: 1,
 					Limit:       5,
 				},
-				filterInput: []*dto.FiltersInput{},
+				filters: []*firebasetools.FilterParam{},
 			},
 			wantErr: true,
 		},
@@ -480,7 +481,7 @@ func TestUseCasesAppointmentsImpl_FetchClientAppointments(t *testing.T) {
 					CurrentPage: 1,
 					Limit:       5,
 				},
-				filterInput: []*dto.FiltersInput{},
+				filters: []*firebasetools.FilterParam{},
 			},
 			wantErr: true,
 		},
@@ -489,11 +490,11 @@ func TestUseCasesAppointmentsImpl_FetchClientAppointments(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 
 			if tt.name == "sad case: error listing appointments" {
-				fakeDB.MockListAppointments = func(ctx context.Context, params *domain.Appointment, filter []*domain.FiltersParam, pagination *domain.Pagination) ([]*domain.Appointment, *domain.Pagination, error) {
+				fakeDB.MockListAppointments = func(ctx context.Context, params *domain.Appointment, filters []*firebasetools.FilterParam, pagination *domain.Pagination) ([]*domain.Appointment, *domain.Pagination, error) {
 					return nil, nil, fmt.Errorf("error listing appointments")
 				}
 			}
-			got, err := a.FetchClientAppointments(tt.args.ctx, tt.args.clientID, tt.args.paginationInput, tt.args.filterInput)
+			got, err := a.FetchClientAppointments(tt.args.ctx, tt.args.clientID, tt.args.paginationInput, tt.args.filters)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCasesAppointmentsImpl.FetchClientAppointments() error = %v, wantErr %v", err, tt.wantErr)
 				return

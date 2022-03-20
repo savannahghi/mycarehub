@@ -8,6 +8,7 @@
   status: CANCELLED
   client_id: {{.test_client_id}}
   staff_id: {{.staff_id}}
+  facility_id: {{.test_facility_id}}
   date: 2022-03-13
   start_time: 11:07:56.27955
   end_time: 11:37:56.27955

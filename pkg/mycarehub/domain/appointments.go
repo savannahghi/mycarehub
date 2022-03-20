@@ -3,18 +3,19 @@ package domain
 import (
 	"time"
 
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/scalarutils"
 )
 
 // Appointment represents a single appointment
 type Appointment struct {
-	ID     string           `json:"ID"`
-	Type   string           `json:"type"`
-	Status string           `json:"status"`
-	Reason string           `json:"reason"`
-	Date   scalarutils.Date `json:"date"`
-	Start  time.Time        `json:"start"`
-	End    time.Time        `json:"end"`
+	ID     string                  `json:"ID"`
+	Type   string                  `json:"type"`
+	Status enums.AppointmentStatus `json:"status"`
+	Reason string                  `json:"reason"`
+	Date   scalarutils.Date        `json:"date"`
+	Start  time.Time               `json:"start"`
+	End    time.Time               `json:"end"`
 
 	ClientID   string
 	FacilityID string

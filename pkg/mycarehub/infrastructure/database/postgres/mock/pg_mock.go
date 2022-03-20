@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/feedlib"
+	"github.com/savannahghi/firebasetools"
 	"github.com/savannahghi/interserviceclient"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
@@ -107,7 +108,7 @@ type PostgresMock struct {
 	MockSearchStaffProfileByStaffNumberFn           func(ctx context.Context, staffNumber string) ([]*domain.StaffProfile, error)
 	MockInvalidateScreeningToolResponseFn           func(ctx context.Context, clientID string, questionID string) error
 	MockUpdateServiceRequestsFn                     func(ctx context.Context, payload *domain.UpdateServiceRequestsPayload) (bool, error)
-	MockListAppointments                            func(ctx context.Context, params *domain.Appointment, filter []*domain.FiltersParam, pagination *domain.Pagination) ([]*domain.Appointment, *domain.Pagination, error)
+	MockListAppointments                            func(ctx context.Context, params *domain.Appointment, filters []*firebasetools.FilterParam, pagination *domain.Pagination) ([]*domain.Appointment, *domain.Pagination, error)
 	MockGetClientProfileByCCCNumberFn               func(ctx context.Context, CCCNumber string) (*domain.ClientProfile, error)
 	MockUpdateUserPinChangeRequiredStatusFn         func(ctx context.Context, userID string, flavour feedlib.Flavour, status bool) error
 	MockSearchClientProfilesByCCCNumberFn           func(ctx context.Context, CCCNumber string) ([]*domain.ClientProfile, error)
@@ -645,7 +646,7 @@ func NewPostgresMock() *PostgresMock {
 		MockUpdateAppointment: func(ctx context.Context, appointment domain.Appointment, appointmentUUID, clientID string) error {
 			return nil
 		},
-		MockListAppointments: func(ctx context.Context, params *domain.Appointment, filter []*domain.FiltersParam, pagination *domain.Pagination) ([]*domain.Appointment, *domain.Pagination, error) {
+		MockListAppointments: func(ctx context.Context, params *domain.Appointment, filters []*firebasetools.FilterParam, pagination *domain.Pagination) ([]*domain.Appointment, *domain.Pagination, error) {
 			return []*domain.Appointment{{
 				ID:       ID,
 				Type:     "Dental",
@@ -843,7 +844,7 @@ func (gm *PostgresMock) SaveOTP(ctx context.Context, otpInput *domain.OTP) error
 	return gm.MockSaveOTPFn(ctx, otpInput)
 }
 
-// SetNickName is used to mock the implementation ofsetting or changing the user's nickname
+// SetNickName is used to mock the implementation ofset or changing the user's nickname
 func (gm *PostgresMock) SetNickName(ctx context.Context, userID *string, nickname *string) (bool, error) {
 	return gm.MockSetNickNameFn(ctx, userID, nickname)
 }
@@ -943,7 +944,7 @@ func (gm *PostgresMock) BookmarkContent(ctx context.Context, userID string, cont
 	return gm.MockBookmarkContentFn(ctx, userID, contentID)
 }
 
-// UnBookmarkContent unbookmarks a content
+// UnBookmarkContent unbookmark a content
 func (gm *PostgresMock) UnBookmarkContent(ctx context.Context, userID string, contentID int) (bool, error) {
 	return gm.MockUnBookmarkContentFn(ctx, userID, contentID)
 }
@@ -1159,8 +1160,8 @@ func (gm *PostgresMock) InvalidateScreeningToolResponse(ctx context.Context, cli
 }
 
 // ListAppointments lists appointments based on provided criteria
-func (gm *PostgresMock) ListAppointments(ctx context.Context, params *domain.Appointment, filter []*domain.FiltersParam, pagination *domain.Pagination) ([]*domain.Appointment, *domain.Pagination, error) {
-	return gm.MockListAppointments(ctx, params, filter, pagination)
+func (gm *PostgresMock) ListAppointments(ctx context.Context, params *domain.Appointment, filters []*firebasetools.FilterParam, pagination *domain.Pagination) ([]*domain.Appointment, *domain.Pagination, error) {
+	return gm.MockListAppointments(ctx, params, filters, pagination)
 }
 
 // CreateAppointment creates a new appointment

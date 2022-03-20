@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/feedlib"
+	"github.com/savannahghi/firebasetools"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
@@ -96,7 +97,7 @@ type GormMock struct {
 	MockGetClientCCCIdentifier                      func(ctx context.Context, clientID string) (*gorm.Identifier, error)
 	MockGetServiceRequestsForKenyaEMRFn             func(ctx context.Context, facilityID string, lastSyncTime time.Time) ([]*gorm.ClientServiceRequest, error)
 	MockCreateAppointment                           func(ctx context.Context, appointment *gorm.Appointment) error
-	MockListAppointments                            func(ctx context.Context, params *gorm.Appointment, filter []*domain.FiltersParam, pagination *domain.Pagination) ([]*gorm.Appointment, *domain.Pagination, error)
+	MockListAppointments                            func(ctx context.Context, params *gorm.Appointment, filters []*firebasetools.FilterParam, pagination *domain.Pagination) ([]*gorm.Appointment, *domain.Pagination, error)
 	MockUpdateAppointment                           func(ctx context.Context, payload *gorm.Appointment) error
 	MockGetScreeningToolsQuestionsFn                func(ctx context.Context, toolType string) ([]gorm.ScreeningToolQuestion, error)
 	MockAnswerScreeningToolQuestionsFn              func(ctx context.Context, screeningToolResponses []*gorm.ScreeningToolsResponse) error
@@ -707,7 +708,7 @@ func NewGormMock() *GormMock {
 		MockCreateAppointment: func(ctx context.Context, appointment *gorm.Appointment) error {
 			return nil
 		},
-		MockListAppointments: func(ctx context.Context, params *gorm.Appointment, filter []*domain.FiltersParam, pagination *domain.Pagination) ([]*gorm.Appointment, *domain.Pagination, error) {
+		MockListAppointments: func(ctx context.Context, params *gorm.Appointment, filters []*firebasetools.FilterParam, pagination *domain.Pagination) ([]*gorm.Appointment, *domain.Pagination, error) {
 			date := time.Now().Add(time.Duration(100))
 			return []*gorm.Appointment{
 				{
@@ -1210,8 +1211,8 @@ func (gm *GormMock) CreateAppointment(ctx context.Context, appointment *gorm.App
 }
 
 // ListAppointments Retrieves appointments using the provided parameters and filters
-func (gm *GormMock) ListAppointments(ctx context.Context, params *gorm.Appointment, filter []*domain.FiltersParam, pagination *domain.Pagination) ([]*gorm.Appointment, *domain.Pagination, error) {
-	return gm.MockListAppointments(ctx, params, filter, pagination)
+func (gm *GormMock) ListAppointments(ctx context.Context, params *gorm.Appointment, filters []*firebasetools.FilterParam, pagination *domain.Pagination) ([]*gorm.Appointment, *domain.Pagination, error) {
+	return gm.MockListAppointments(ctx, params, filters, pagination)
 }
 
 // UpdateAppointment updates the details of an appointment requires the ID or appointment_uuid to be provided

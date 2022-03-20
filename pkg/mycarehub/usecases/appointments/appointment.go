@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/savannahghi/firebasetools"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
@@ -24,7 +25,7 @@ type IUpdateAppointments interface {
 
 // IListAppointments defines method signatures for listing appointments
 type IListAppointments interface {
-	FetchClientAppointments(ctx context.Context, clientID string, paginationInput dto.PaginationsInput, filterInput []*dto.FiltersInput) (*domain.AppointmentsPage, error)
+	FetchClientAppointments(ctx context.Context, clientID string, paginationInput dto.PaginationsInput, filters []*firebasetools.FilterParam) (*domain.AppointmentsPage, error)
 }
 
 // UseCasesAppointments holds all interfaces required to implement the appointments features
@@ -83,7 +84,7 @@ func (a *UseCasesAppointmentsImpl) CreateKenyaEMRAppointments(ctx context.Contex
 	for _, ap := range input.Appointments {
 		appointment := domain.Appointment{
 			Type:   ap.AppointmentType,
-			Status: ap.Status.String(),
+			Status: ap.Status,
 			Date:   ap.AppointmentDate,
 			Start:  *ap.StartTime(),
 			End:    *ap.EndTime(),
@@ -137,7 +138,7 @@ func (a *UseCasesAppointmentsImpl) UpdateKenyaEMRAppointments(ctx context.Contex
 	for _, ap := range input.Appointments {
 		appointment := domain.Appointment{
 			Type:       ap.AppointmentType,
-			Status:     ap.Status.String(),
+			Status:     ap.Status,
 			Date:       ap.AppointmentDate,
 			Start:      *ap.StartTime(),
 			End:        *ap.EndTime(),
@@ -164,7 +165,7 @@ func (a *UseCasesAppointmentsImpl) UpdateKenyaEMRAppointments(ctx context.Contex
 }
 
 // FetchClientAppointments fetches appointments for a client
-func (a *UseCasesAppointmentsImpl) FetchClientAppointments(ctx context.Context, clientID string, paginationInput dto.PaginationsInput, filterInput []*dto.FiltersInput) (*domain.AppointmentsPage, error) {
+func (a *UseCasesAppointmentsImpl) FetchClientAppointments(ctx context.Context, clientID string, paginationInput dto.PaginationsInput, filters []*firebasetools.FilterParam) (*domain.AppointmentsPage, error) {
 
 	// if user did not provide current page, throw an error
 	if err := paginationInput.Validate(); err != nil {
@@ -175,16 +176,6 @@ func (a *UseCasesAppointmentsImpl) FetchClientAppointments(ctx context.Context, 
 	page := &domain.Pagination{
 		Limit:       paginationInput.Limit,
 		CurrentPage: paginationInput.CurrentPage,
-	}
-
-	filters := []*domain.FiltersParam{}
-	for _, f := range filterInput {
-		filter := &domain.FiltersParam{
-			Name:     string(f.DataType),
-			DataType: f.DataType,
-			Value:    f.Value,
-		}
-		filters = append(filters, filter)
 	}
 
 	appointments, pageInfo, err := a.Query.ListAppointments(ctx, &domain.Appointment{ClientID: clientID}, filters, page)

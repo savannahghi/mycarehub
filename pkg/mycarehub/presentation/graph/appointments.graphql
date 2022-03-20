@@ -1,7 +1,34 @@
+scalar Any
+
 extend type Query {
   fetchClientAppointments(
     clientID: ID!
     paginationInput: PaginationsInput!
-    filterInput: [FiltersInput]
+    filters: [FilterParam!]
   ): AppointmentsPage
+}
+
+input FilterParam {
+  fieldName: String!
+  fieldType: FieldType!
+  comparisonOperation: Operation!
+  fieldValue: Any!
+}
+
+enum FieldType {
+  BOOLEAN
+  TIMESTAMP
+  NUMBER
+  INTEGER
+  STRING
+}
+
+enum Operation {
+  LESS_THAN
+  LESS_THAN_OR_EQUAL_TO
+  EQUAL
+  GREATER_THAN
+  GREATER_THAN_OR_EQUAL_TO
+  IN
+  CONTAINS
 }
