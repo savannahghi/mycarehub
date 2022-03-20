@@ -2521,7 +2521,7 @@ func TestUseCasesUserImpl_RegisterKenyaEMRPatients(t *testing.T) {
 	ctx := context.Background()
 	input := []*dto.PatientRegistrationPayload{
 		{
-			MFLCode:   1234,
+			MFLCode:   "1234",
 			CCCNumber: "1234",
 			Name:      "Jane Doe",
 			DateOfBirth: scalarutils.Date{

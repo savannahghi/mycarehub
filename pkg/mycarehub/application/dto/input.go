@@ -296,7 +296,7 @@ type NextOfKinPayload struct {
 // PatientRegistrationPayload defines the payload from KenyaEMR
 // used for client registration
 type PatientRegistrationPayload struct {
-	MFLCode            int              `json:"MFLCODE"`
+	MFLCode            string           `json:"MFLCODE"`
 	CCCNumber          string           `json:"cccNumber"`
 	Name               string           `json:"name"`
 	DateOfBirth        scalarutils.Date `json:"dateOfBirth"`
