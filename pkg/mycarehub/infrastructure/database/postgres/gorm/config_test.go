@@ -54,6 +54,7 @@ var (
 	userNickname                               = "test user"
 	clientID                                   = "26b20a42-cbb8-4553-aedb-c539602d04fc"
 	clientID2                                  = "00a6a0cd-42ac-417b-97d9-e939a1232de1"
+	contactID                                  = "bdc22436-e314-43f2-bb39-ba1ab332f9b0"
 	ClientToAddCaregiver                       = "00a6a0cd-42ac-417b-97d9-e939a1232de2"
 	// Facility variables
 	facilityID          = "4181df12-ca96-4f28-b78b-8e8ad88b25df"

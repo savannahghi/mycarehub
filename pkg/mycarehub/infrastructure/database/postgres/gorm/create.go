@@ -19,8 +19,8 @@ type Create interface {
 	CreateServiceRequest(ctx context.Context, serviceRequestInput *ClientServiceRequest) error
 	CreateClientCaregiver(ctx context.Context, clientID string, clientCaregiver *Caregiver) error
 	CreateCommunity(ctx context.Context, community *Community) (*Community, error)
-	CreateRelatedPerson(ctx context.Context, person *RelatedPerson) error
-	CreateContact(ctx context.Context, contact *Contact) error
+	CreateRelatedPerson(ctx context.Context, person *RelatedPerson, clientID, contactID string) error
+	CreateContact(ctx context.Context, contact *Contact) (*Contact, error)
 	CreateAppointment(ctx context.Context, appointment *Appointment) error
 	AnswerScreeningToolQuestions(ctx context.Context, screeningToolResponses []*ScreeningToolsResponse) error
 }
@@ -219,7 +219,9 @@ func (db *PGInstance) CreateCommunity(ctx context.Context, community *Community)
 }
 
 // CreateRelatedPerson creates a related person in the database
-func (db *PGInstance) CreateRelatedPerson(ctx context.Context, person *RelatedPerson) error {
+// The client ID and contact ID are used to link the created person with a client
+// and the associated contact for the person
+func (db *PGInstance) CreateRelatedPerson(ctx context.Context, person *RelatedPerson, clientID, contactID string) error {
 	tx := db.DB.Begin()
 	defer func() {
 		if r := recover(); r != nil {
@@ -233,6 +235,28 @@ func (db *PGInstance) CreateRelatedPerson(ctx context.Context, person *RelatedPe
 		return fmt.Errorf("failed to create related person: %v", err)
 	}
 
+	// link contact
+	contact := RelatedPersonContacts{
+		RelatedPersonID: &person.ID,
+		ContactID:       &contactID,
+	}
+	err = tx.Create(&contact).Error
+	if err != nil {
+		tx.Rollback()
+		return fmt.Errorf("failed to create related person contact: %v", err)
+	}
+
+	// link client
+	client := ClientRelatedPerson{
+		ClientID:        &clientID,
+		RelatedPersonID: &person.ID,
+	}
+	err = tx.Create(&client).Error
+	if err != nil {
+		tx.Rollback()
+		return fmt.Errorf("failed to create related person client: %v", err)
+	}
+
 	if err := tx.Commit().Error; err != nil {
 		tx.Rollback()
 		return fmt.Errorf("transaction commit to create related person failed: %v", err)
@@ -242,7 +266,7 @@ func (db *PGInstance) CreateRelatedPerson(ctx context.Context, person *RelatedPe
 }
 
 // CreateContact creates a person's contact in the database
-func (db *PGInstance) CreateContact(ctx context.Context, contact *Contact) error {
+func (db *PGInstance) CreateContact(ctx context.Context, contact *Contact) (*Contact, error) {
 	tx := db.DB.Begin()
 	defer func() {
 		if r := recover(); r != nil {
@@ -253,15 +277,15 @@ func (db *PGInstance) CreateContact(ctx context.Context, contact *Contact) error
 	err := tx.Create(contact).Error
 	if err != nil {
 		tx.Rollback()
-		return fmt.Errorf("failed to create contact: %v", err)
+		return nil, fmt.Errorf("failed to create contact: %v", err)
 	}
 
 	if err := tx.Commit().Error; err != nil {
 		tx.Rollback()
-		return fmt.Errorf("transaction commit to create contact failed: %v", err)
+		return nil, fmt.Errorf("transaction commit to create contact failed: %v", err)
 	}
 
-	return nil
+	return contact, nil
 }
 
 // CreateAppointment creates an appointment in the database

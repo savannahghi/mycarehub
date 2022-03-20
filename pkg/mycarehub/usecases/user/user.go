@@ -1035,7 +1035,7 @@ func (us *UseCasesUserImpl) RegisterKenyaEMRPatients(ctx context.Context, input 
 			EnrollmentDate: patient.EnrollmentDate,
 			CCCNumber:      patient.CCCNumber,
 			Counselled:     patient.Counselled,
-			InviteClient:   true,
+			InviteClient:   false,
 		}
 
 		client, err := us.RegisterClient(ctx, input)
@@ -1043,16 +1043,16 @@ func (us *UseCasesUserImpl) RegisterKenyaEMRPatients(ctx context.Context, input 
 			return nil, err
 		}
 
-		contact := domain.Contact{
+		cntct := domain.Contact{
 			ContactType:  "PHONE",
 			ContactValue: patient.NextOfKin.Contact,
 		}
-		err = us.Create.CreateContact(ctx, &contact)
+		contact, err := us.Create.CreateContact(ctx, &cntct)
 		if err != nil {
 			return nil, err
 		}
 
-		err = us.Create.CreateNextOfKin(ctx, &patient.NextOfKin)
+		err = us.Create.CreateNextOfKin(ctx, &patient.NextOfKin, client.ID, *contact.ID)
 		if err != nil {
 			return nil, err
 		}

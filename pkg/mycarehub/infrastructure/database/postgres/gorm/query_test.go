@@ -2876,6 +2876,108 @@ func TestPGInstance_ListAppointments(t *testing.T) {
 			},
 			wantErr: false,
 		},
+		{
+			name: "sad case: list filtered appointments invalid filter",
+			args: args{
+				ctx:    context.Background(),
+				params: nil,
+				filters: []*firebasetools.FilterParam{
+					{
+						FieldName:           "active",
+						FieldType:           "INVALID",
+						ComparisonOperation: enumutils.OperationEqual,
+						FieldValue:          false,
+					},
+				},
+				pagination: nil,
+			},
+			wantErr: true,
+		},
+		{
+			name: "sad case: list filtered appointments invalid operation",
+			args: args{
+				ctx:    context.Background(),
+				params: nil,
+				filters: []*firebasetools.FilterParam{
+					{
+						FieldName:           "active",
+						FieldType:           enumutils.FieldTypeBoolean,
+						ComparisonOperation: "INVALID",
+						FieldValue:          false,
+					},
+				},
+				pagination: nil,
+			},
+			wantErr: true,
+		},
+		{
+			name: "sad case: list filtered appointments invalid boolean filter",
+			args: args{
+				ctx:    context.Background(),
+				params: nil,
+				filters: []*firebasetools.FilterParam{
+					{
+						FieldName:           "active",
+						FieldType:           enumutils.FieldTypeBoolean,
+						ComparisonOperation: enumutils.OperationEqual,
+						FieldValue:          "INVALID",
+					},
+				},
+				pagination: nil,
+			},
+			wantErr: true,
+		},
+		{
+			name: "sad case: list filtered appointments invalid string filter",
+			args: args{
+				ctx:    context.Background(),
+				params: nil,
+				filters: []*firebasetools.FilterParam{
+					{
+						FieldName:           "status",
+						FieldType:           enumutils.FieldTypeString,
+						ComparisonOperation: enumutils.OperationEqual,
+						FieldValue:          1234,
+					},
+				},
+				pagination: nil,
+			},
+			wantErr: true,
+		},
+		{
+			name: "sad case: list filtered appointments invalid integer filter",
+			args: args{
+				ctx:    context.Background(),
+				params: nil,
+				filters: []*firebasetools.FilterParam{
+					{
+						FieldName:           "status",
+						FieldType:           enumutils.FieldTypeInteger,
+						ComparisonOperation: enumutils.OperationEqual,
+						FieldValue:          "INVALID",
+					},
+				},
+				pagination: nil,
+			},
+			wantErr: true,
+		},
+		{
+			name: "sad case: list filtered appointments invalid timestamp filter",
+			args: args{
+				ctx:    context.Background(),
+				params: nil,
+				filters: []*firebasetools.FilterParam{
+					{
+						FieldName:           "date",
+						FieldType:           enumutils.FieldTypeTimestamp,
+						ComparisonOperation: enumutils.OperationEqual,
+						FieldValue:          123456,
+					},
+				},
+				pagination: nil,
+			},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

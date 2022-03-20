@@ -89,8 +89,8 @@ type GormMock struct {
 	MockGetCommunityByIDFn                          func(ctx context.Context, communityID string) (*gorm.Community, error)
 	MockCheckIdentifierExists                       func(ctx context.Context, identifierType string, identifierValue string) (bool, error)
 	MockCheckFacilityExistsByMFLCode                func(ctx context.Context, MFLCode int) (bool, error)
-	MockCreateRelatedPerson                         func(ctx context.Context, person *gorm.RelatedPerson) error
-	MockCreateContact                               func(ctx context.Context, contact *gorm.Contact) error
+	MockCreateRelatedPerson                         func(ctx context.Context, person *gorm.RelatedPerson, clientID, contactID string) error
+	MockCreateContact                               func(ctx context.Context, contact *gorm.Contact) (*gorm.Contact, error)
 	MockGetClientsInAFacilityFn                     func(ctx context.Context, facilityID string) ([]*gorm.Client, error)
 	MockGetRecentHealthDiaryEntriesFn               func(ctx context.Context, lastSyncTime time.Time, clientID string) ([]*gorm.ClientHealthDiaryEntry, error)
 	MockGetClientsByParams                          func(ctx context.Context, params gorm.Client, lastSyncTime *time.Time) ([]*gorm.Client, error)
@@ -1156,12 +1156,12 @@ func (gm *GormMock) CheckFacilityExistsByMFLCode(ctx context.Context, MFLCode in
 }
 
 // CreateRelatedPerson mocks creating a related person
-func (gm *GormMock) CreateRelatedPerson(ctx context.Context, person *gorm.RelatedPerson) error {
-	return gm.MockCreateRelatedPerson(ctx, person)
+func (gm *GormMock) CreateRelatedPerson(ctx context.Context, person *gorm.RelatedPerson, clientID, contactID string) error {
+	return gm.MockCreateRelatedPerson(ctx, person, clientID, contactID)
 }
 
 // CreateContact mocks creating a contact
-func (gm *GormMock) CreateContact(ctx context.Context, contact *gorm.Contact) error {
+func (gm *GormMock) CreateContact(ctx context.Context, contact *gorm.Contact) (*gorm.Contact, error) {
 	return gm.MockCreateContact(ctx, contact)
 }
 

@@ -93,8 +93,8 @@ type PostgresMock struct {
 	MockGetCommunityByIDFn                          func(ctx context.Context, communityID string) (*domain.Community, error)
 	MockCheckIdentifierExists                       func(ctx context.Context, identifierType string, identifierValue string) (bool, error)
 	MockCheckFacilityExistsByMFLCode                func(ctx context.Context, MFLCode int) (bool, error)
-	MockCreateNextOfKin                             func(ctx context.Context, person *dto.NextOfKinPayload) error
-	MockCreateContact                               func(ctx context.Context, contact *domain.Contact) error
+	MockCreateNextOfKin                             func(ctx context.Context, person *dto.NextOfKinPayload, clientID, contactID string) error
+	MockCreateContact                               func(ctx context.Context, contact *domain.Contact) (*domain.Contact, error)
 	MockGetClientsInAFacilityFn                     func(ctx context.Context, facilityID string) ([]*domain.ClientProfile, error)
 	MockGetRecentHealthDiaryEntriesFn               func(ctx context.Context, lastSyncTime time.Time, clientID string) ([]*domain.ClientHealthDiaryEntry, error)
 	MockGetClientsByParams                          func(ctx context.Context, params gorm.Client, lastSyncTime *time.Time) ([]*domain.ClientProfile, error)
@@ -1105,12 +1105,12 @@ func (gm *PostgresMock) CheckFacilityExistsByMFLCode(ctx context.Context, MFLCod
 }
 
 // CreateNextOfKin mocks creating a next of kin
-func (gm *PostgresMock) CreateNextOfKin(ctx context.Context, person *dto.NextOfKinPayload) error {
-	return gm.MockCreateNextOfKin(ctx, person)
+func (gm *PostgresMock) CreateNextOfKin(ctx context.Context, person *dto.NextOfKinPayload, clientID, contactID string) error {
+	return gm.MockCreateNextOfKin(ctx, person, clientID, contactID)
 }
 
 // CreateContact mocks creating a contact
-func (gm *PostgresMock) CreateContact(ctx context.Context, contact *domain.Contact) error {
+func (gm *PostgresMock) CreateContact(ctx context.Context, contact *domain.Contact) (*domain.Contact, error) {
 	return gm.MockCreateContact(ctx, contact)
 }
 
