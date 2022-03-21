@@ -3640,7 +3640,7 @@ input StaffRegistrationInput {
   gender: Gender!
   dateOfBirth: Date!
   phoneNumber: String!
-  idNumber: Int!
+  idNumber: String!
   staffNumber: String!
   staffRoles: String
   inviteStaff: Boolean!
@@ -19121,7 +19121,7 @@ func (ec *executionContext) unmarshalInputStaffRegistrationInput(ctx context.Con
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idNumber"))
-			it.IDNumber, err = ec.unmarshalNInt2int(ctx, v)
+			it.IDNumber, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}

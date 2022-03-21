@@ -113,7 +113,7 @@ input StaffRegistrationInput {
   gender: Gender!
   dateOfBirth: Date!
   phoneNumber: String!
-  idNumber: Int!
+  idNumber: String!
   staffNumber: String!
   staffRoles: String
   inviteStaff: Boolean!

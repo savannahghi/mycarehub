@@ -1,6 +1,8 @@
 package dto
 
 import (
+	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -414,15 +416,31 @@ type UpdateServiceRequestPayload struct {
 
 // StaffRegistrationInput is a model that represents the inputs passed when registering a staff user
 type StaffRegistrationInput struct {
-	Facility    string           `json:"facility"`
-	StaffName   string           `json:"name"`
-	Gender      enumutils.Gender `json:"gender"`
-	DateOfBirth scalarutils.Date `json:"date_of_birth"`
-	PhoneNumber string           `json:"phone_number"`
-	IDNumber    int              `json:"id_number"`
-	StaffNumber string           `json:"staff_number"`
+	Facility    string           `json:"facility" validate:"required"`
+	StaffName   string           `json:"name" validate:"required"`
+	Gender      enumutils.Gender `json:"gender" validate:"required"`
+	DateOfBirth scalarutils.Date `json:"date_of_birth" validate:"required"`
+	PhoneNumber string           `json:"phone_number" validate:"required"`
+	IDNumber    string           `json:"id_number" validate:"required"`
+	StaffNumber string           `json:"staff_number" validate:"required"`
 	StaffRoles  string           `json:"role"`
 	InviteStaff bool             `json:"invite_staff"`
+}
+
+// Validate helps with validation of StaffRegistrationInput fields
+func (s StaffRegistrationInput) Validate() error {
+	var err error
+
+	// try converting the ID number to an int
+	_, err = strconv.Atoi(s.IDNumber)
+	if err != nil {
+		return fmt.Errorf("ID number must be an integer")
+	}
+	v := validator.New()
+
+	err = v.Struct(s)
+
+	return err
 }
 
 // PinResetServiceRequestPayload models the details passed to an API when a pin reset service request
