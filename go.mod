@@ -3,6 +3,7 @@ module github.com/savannahghi/mycarehub
 go 1.17
 
 require (
+	cloud.google.com/go/pubsub v1.12.2
 	firebase.google.com/go v3.13.0+incompatible
 	github.com/99designs/gqlgen v0.14.0
 	github.com/GetStream/stream-chat-go/v5 v5.0.0
@@ -22,6 +23,7 @@ require (
 	github.com/savannahghi/interserviceclient v0.0.18
 	github.com/savannahghi/onboarding v0.0.29
 	github.com/savannahghi/profileutils v0.0.23
+	github.com/savannahghi/pubsubtools v0.0.3
 	github.com/savannahghi/scalarutils v0.0.4
 	github.com/savannahghi/serverutils v0.0.6
 	github.com/segmentio/ksuid v1.0.4
@@ -42,7 +44,6 @@ require (
 	cloud.google.com/go/firestore v1.6.1 // indirect
 	cloud.google.com/go/iam v0.3.0 // indirect
 	cloud.google.com/go/logging v1.4.2 // indirect
-	cloud.google.com/go/pubsub v1.12.2 // indirect
 	cloud.google.com/go/storage v1.18.2 // indirect
 	contrib.go.opencensus.io/exporter/stackdriver v0.13.8 // indirect
 	github.com/agnivade/levenshtein v1.1.1 // indirect
@@ -92,7 +93,6 @@ require (
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/pquerna/otp v1.3.0 // indirect
 	github.com/rs/xid v1.3.0 // indirect
-	github.com/savannahghi/pubsubtools v0.0.2 // indirect
 	github.com/shopspring/decimal v1.2.0 // indirect
 	github.com/ttacon/builder v0.0.0-20170518171403-c099f663e1c2 // indirect
 	github.com/ttacon/libphonenumber v1.2.1 // indirect
