@@ -685,6 +685,7 @@ func (d *MyCareHubDb) GetServiceRequests(ctx context.Context, requestType, reque
 	var (
 		serviceRequests []*domain.ServiceRequest
 		meta            map[string]interface{}
+		resolvedByName  string
 	)
 
 	clientServiceRequests, err := d.query.GetServiceRequests(ctx, requestType, requestStatus, facilityID)
@@ -714,10 +715,14 @@ func (d *MyCareHubDb) GetServiceRequests(ctx context.Context, requestType, reque
 			}
 		}
 
-		resolvedBy, err := d.query.GetUserProfileByStaffID(ctx, *serviceRequest.ResolvedByID)
-		if err != nil {
-			helpers.ReportErrorToSentry(err)
-			return nil, err
+		if serviceRequest.ResolvedByID != nil {
+
+			resolvedBy, err := d.query.GetUserProfileByStaffID(ctx, *serviceRequest.ResolvedByID)
+			if err != nil {
+				helpers.ReportErrorToSentry(err)
+				return nil, err
+			}
+			resolvedByName = resolvedBy.Name
 		}
 
 		serviceRequest := &domain.ServiceRequest{
@@ -731,7 +736,7 @@ func (d *MyCareHubDb) GetServiceRequests(ctx context.Context, requestType, reque
 			InProgressBy:   serviceRequest.InProgressByID,
 			ResolvedAt:     serviceRequest.ResolvedAt,
 			ResolvedBy:     serviceRequest.ResolvedByID,
-			ResolvedByName: &resolvedBy.Name,
+			ResolvedByName: &resolvedByName,
 			FacilityID:     *facilityID,
 			ClientName:     &userProfile.Name,
 			ClientContact:  &userProfile.Contacts.ContactValue,

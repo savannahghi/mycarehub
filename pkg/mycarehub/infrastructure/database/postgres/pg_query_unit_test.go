@@ -2854,6 +2854,16 @@ func TestMyCareHubDb_GetServiceRequests(t *testing.T) {
 			wantErr: false,
 		},
 		{
+			name: "Happy Case - Successfully get unresolved service requests",
+			args: args{
+				ctx:           context.Background(),
+				requestStatus: &requeststatus,
+				requestType:   &requesttype,
+				facilityID:    &facilityID,
+			},
+			wantErr: false,
+		},
+		{
 			name: "Sad Case - Fail to get service requests",
 			args: args{
 				ctx:        context.Background(),
@@ -2869,6 +2879,28 @@ func TestMyCareHubDb_GetServiceRequests(t *testing.T) {
 			if tt.name == "Sad Case - Fail to get service requests" {
 				fakeGorm.MockGetServiceRequestsFn = func(ctx context.Context, requestType, requestStatus, facilityID *string) ([]*gorm.ClientServiceRequest, error) {
 					return nil, fmt.Errorf("failed to get service requests by type")
+				}
+			}
+
+			if tt.name == "Happy Case - Successfully get unresolved service requests" {
+				UUID := uuid.New().String()
+				nowTime := time.Now()
+
+				serviceRequests := []*gorm.ClientServiceRequest{
+					{
+						ID:             &UUID,
+						ClientID:       uuid.New().String(),
+						Active:         true,
+						RequestType:    enums.ServiceRequestTypeRedFlag.String(),
+						Status:         enums.ServiceRequestStatusPending.String(),
+						InProgressAt:   &nowTime,
+						InProgressByID: &UUID,
+						ResolvedAt:     nil,
+						ResolvedByID:   nil,
+					},
+				}
+				fakeGorm.MockGetServiceRequestsFn = func(ctx context.Context, requestType, requestStatus, facilityID *string) ([]*gorm.ClientServiceRequest, error) {
+					return serviceRequests, nil
 				}
 			}
 			got, err := d.GetServiceRequests(tt.args.ctx, tt.args.requestType, tt.args.requestStatus, tt.args.facilityID)
