@@ -6,9 +6,11 @@ import (
 	"time"
 
 	"github.com/brianvoe/gofakeit"
+	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/interserviceclient"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
+	"github.com/savannahghi/scalarutils"
 	"github.com/segmentio/ksuid"
 )
 
@@ -703,6 +705,100 @@ func TestAppointmentPayload_EndTime(t *testing.T) {
 			}
 			if got := a.EndTime(); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("AppointmentPayload.EndTime() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestStaffRegistrationInput_Validate(t *testing.T) {
+	type fields struct {
+		Facility    string
+		StaffName   string
+		Gender      enumutils.Gender
+		DateOfBirth scalarutils.Date
+		PhoneNumber string
+		IDNumber    string
+		StaffNumber string
+		StaffRoles  string
+		InviteStaff bool
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		wantErr bool
+	}{
+		{
+			name: "valid: all params passed",
+			fields: fields{
+				Facility:  "123",
+				StaffName: "123",
+				Gender:    enumutils.GenderMale,
+				DateOfBirth: scalarutils.Date{
+					Year:  1992,
+					Month: 2,
+					Day:   12,
+				},
+				PhoneNumber: "+254098759039",
+				IDNumber:    "12121212121",
+				StaffNumber: "s212121",
+				StaffRoles:  string(enums.UserRoleTypeClientManagement),
+				InviteStaff: false,
+			},
+		},
+		{
+			name: "invalid: empty id number",
+			fields: fields{
+				Facility:  "123",
+				StaffName: "123",
+				Gender:    enumutils.GenderMale,
+				DateOfBirth: scalarutils.Date{
+					Year:  1992,
+					Month: 2,
+					Day:   12,
+				},
+				PhoneNumber: "+254098759039",
+				IDNumber:    "",
+				StaffNumber: "s212121",
+				StaffRoles:  string(enums.UserRoleTypeClientManagement),
+				InviteStaff: false,
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid: INVALID id number",
+			fields: fields{
+				Facility:  "123",
+				StaffName: "123",
+				Gender:    enumutils.GenderMale,
+				DateOfBirth: scalarutils.Date{
+					Year:  1992,
+					Month: 2,
+					Day:   12,
+				},
+				PhoneNumber: "+254098759039",
+				IDNumber:    "e12121212121",
+				StaffNumber: "s212121",
+				StaffRoles:  string(enums.UserRoleTypeClientManagement),
+				InviteStaff: false,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := StaffRegistrationInput{
+				Facility:    tt.fields.Facility,
+				StaffName:   tt.fields.StaffName,
+				Gender:      tt.fields.Gender,
+				DateOfBirth: tt.fields.DateOfBirth,
+				PhoneNumber: tt.fields.PhoneNumber,
+				IDNumber:    tt.fields.IDNumber,
+				StaffNumber: tt.fields.StaffNumber,
+				StaffRoles:  tt.fields.StaffRoles,
+				InviteStaff: tt.fields.InviteStaff,
+			}
+			if err := s.Validate(); (err != nil) != tt.wantErr {
+				t.Errorf("StaffRegistrationInput.Validate() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}

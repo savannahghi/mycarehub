@@ -1116,6 +1116,11 @@ func (us *UseCasesUserImpl) RegisteredFacilityPatients(ctx context.Context, inpu
 func (us *UseCasesUserImpl) RegisterStaff(ctx context.Context, input dto.StaffRegistrationInput) (*dto.StaffRegistrationOutput, error) {
 	var registrationOutput *dto.StaffRegistrationOutput
 
+	err := input.Validate()
+	if err != nil {
+		return nil, err
+	}
+
 	input.Gender = enumutils.Gender(strings.ToUpper(input.Gender.String()))
 	resp, err := us.ExternalExt.MakeRequest(ctx, http.MethodPost, registerStaffAPIEndpoint, input)
 	if err != nil {
