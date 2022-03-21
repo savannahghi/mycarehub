@@ -113,6 +113,7 @@ type GormMock struct {
 	MockUpdateHealthDiaryFn                         func(ctx context.Context, payload *gorm.ClientHealthDiaryEntry) (bool, error)
 	MockUpdateUserActiveStatusFn                    func(ctx context.Context, userID string, flavour feedlib.Flavour, active bool) error
 	MockUpdateUserPinUpdateRequiredStatusFn         func(ctx context.Context, userID string, flavour feedlib.Flavour, status bool) error
+	MockUpdateClientFn                              func(ctx context.Context, client *gorm.Client, updates map[string]interface{}) (*gorm.Client, error)
 	MockGetUserProfileByStaffIDFn                   func(ctx context.Context, staffID string) (*gorm.User, error)
 	MockGetHealthDiaryEntryByIDFn                   func(ctx context.Context, healthDiaryEntryID string) (*gorm.ClientHealthDiaryEntry, error)
 }
@@ -172,7 +173,8 @@ func NewGormMock() *GormMock {
 		},
 	}
 
-	client := &gorm.Client{
+	fhirID := uuid.New().String()
+	clientProfile := &gorm.Client{
 		ID:         &UUID,
 		Active:     true,
 		ClientType: "",
@@ -213,7 +215,7 @@ func NewGormMock() *GormMock {
 			DateOfBirth:            &currentTime,
 		},
 		TreatmentEnrollmentDate: &currentTime,
-		FHIRPatientID:           uuid.New().String(),
+		FHIRPatientID:           &fhirID,
 		HealthRecordID:          &UUID,
 		TreatmentBuddy:          gofakeit.Name(),
 		ClientCounselled:        true,
@@ -453,7 +455,7 @@ func NewGormMock() *GormMock {
 			return true, nil
 		},
 		MockGetClientProfileByUserIDFn: func(ctx context.Context, userID string) (*gorm.Client, error) {
-			return client, nil
+			return clientProfile, nil
 		},
 		MockGetStaffProfileByUserIDFn: func(ctx context.Context, userID string) (*gorm.StaffProfile, error) {
 			return staff, nil
@@ -600,7 +602,7 @@ func NewGormMock() *GormMock {
 			return true, nil
 		},
 		MockGetClientProfileByClientIDFn: func(ctx context.Context, clientID string) (*gorm.Client, error) {
-			return client, nil
+			return clientProfile, nil
 		},
 		MockGetServiceRequestsFn: func(ctx context.Context, requestType, requestStatus, facilityID *string) ([]*gorm.ClientServiceRequest, error) {
 			return serviceRequests, nil
@@ -670,7 +672,7 @@ func NewGormMock() *GormMock {
 		},
 		MockGetClientsInAFacilityFn: func(ctx context.Context, facilityID string) ([]*gorm.Client, error) {
 			return []*gorm.Client{
-				client,
+				clientProfile,
 			}, nil
 		},
 		MockGetRecentHealthDiaryEntriesFn: func(ctx context.Context, lastSyncTime time.Time, clientID string) ([]*gorm.ClientHealthDiaryEntry, error) {
@@ -687,7 +689,7 @@ func NewGormMock() *GormMock {
 			return true, nil
 		},
 		MockGetClientsByParams: func(ctx context.Context, params gorm.Client, lastSyncTime *time.Time) ([]*gorm.Client, error) {
-			return []*gorm.Client{client}, nil
+			return []*gorm.Client{clientProfile}, nil
 		},
 		MockGetClientCCCIdentifier: func(ctx context.Context, clientID string) (*gorm.Identifier, error) {
 			return &gorm.Identifier{
@@ -785,10 +787,10 @@ func NewGormMock() *GormMock {
 			return nil
 		},
 		MockGetClientProfileByCCCNumberFn: func(ctx context.Context, CCCNumber string) (*gorm.Client, error) {
-			return client, nil
+			return clientProfile, nil
 		},
 		MockSearchClientProfilesByCCCNumberFn: func(ctx context.Context, CCCNumber string) ([]*gorm.Client, error) {
-			return []*gorm.Client{client}, nil
+			return []*gorm.Client{clientProfile}, nil
 		},
 		MockCheckIfClientHasUnresolvedServiceRequestsFn: func(ctx context.Context, clientID string, serviceRequestType string) (bool, error) {
 			return true, nil
@@ -810,6 +812,9 @@ func NewGormMock() *GormMock {
 		},
 		MockUpdateUserPinUpdateRequiredStatusFn: func(ctx context.Context, userID string, flavour feedlib.Flavour, status bool) error {
 			return nil
+		},
+		MockUpdateClientFn: func(ctx context.Context, client *gorm.Client, updates map[string]interface{}) (*gorm.Client, error) {
+			return clientProfile, nil
 		},
 		MockGetUserProfileByStaffIDFn: func(ctx context.Context, staffID string) (*gorm.User, error) {
 			return userProfile, nil
@@ -1287,6 +1292,11 @@ func (gm *GormMock) UpdateUserActiveStatus(ctx context.Context, userID string, f
 // UpdateUserPinUpdateRequiredStatus mocks updating a user `pin update required status`
 func (gm *GormMock) UpdateUserPinUpdateRequiredStatus(ctx context.Context, userID string, flavour feedlib.Flavour, status bool) error {
 	return gm.MockUpdateUserPinUpdateRequiredStatusFn(ctx, userID, flavour, status)
+}
+
+// UpdateClient updates details for a particular client
+func (gm *GormMock) UpdateClient(ctx context.Context, client *gorm.Client, updates map[string]interface{}) (*gorm.Client, error) {
+	return gm.MockUpdateClientFn(ctx, client, updates)
 }
 
 // GetUserProfileByStaffID mocks the implementation of getting a user profile by staff ID

@@ -6,14 +6,18 @@ import (
 	"net/http"
 
 	"cloud.google.com/go/pubsub"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
 	"github.com/savannahghi/pubsubtools"
 	"github.com/savannahghi/serverutils"
 )
 
 const (
-	// ServiceName defines the service where the topic is created
-	ServiceName = "mycarehub"
+	// ClinicalServiceName defines the service where the topic is created
+	ClinicalServiceName = "clinical"
+
+	// MyCareHubServiceName defines the service where some of the topics have been created
+	MyCareHubServiceName = "mycarehub"
 
 	// TopicVersion defines the topic version. That standard one is `v1`
 	TopicVersion = "v1"
@@ -27,25 +31,18 @@ const (
 
 // ServicePubsub represent all the logic required to interact with pubsub
 type ServicePubsub interface {
-	TopicIDs() []string
-	AddPubSubNamespace(topicName string) string
 	PublishToPubsub(
 		ctx context.Context,
 		topicID string,
+		serviceName string,
 		payload []byte,
 	) error
-	EnsureTopicsExist(
-		ctx context.Context,
-		topicIDs []string,
-	) error
-	EnsureSubscriptionsExist(
-		ctx context.Context,
-	) error
-	SubscriptionIDs() map[string]string
 	ReceivePubSubPushMessages(
 		w http.ResponseWriter,
 		r *http.Request,
 	)
+
+	NotifyCreatePatient(ctx context.Context, client *dto.ClientRegistrationOutput) error
 }
 
 // ServicePubSubMessaging is used to send and receive pubsub notifications
@@ -56,9 +53,22 @@ type ServicePubSubMessaging struct {
 
 // NewServicePubSubMessaging returns a new instance of pubsub
 func NewServicePubSubMessaging(
-	client *pubsub.Client,
 	baseExt extension.ExternalMethodsExtension,
 ) (*ServicePubSubMessaging, error) {
+	projectID, err := serverutils.GetEnvVar(serverutils.GoogleCloudProjectIDEnvVarName)
+	if err != nil {
+		return nil, fmt.Errorf(
+			"can't get projectID from env var `%s`: %w",
+			serverutils.GoogleCloudProjectIDEnvVarName,
+			err,
+		)
+	}
+
+	client, err := pubsub.NewClient(context.Background(), projectID)
+	if err != nil {
+		return nil, fmt.Errorf("unable to initialize pubsub client: %w", err)
+	}
+
 	s := &ServicePubSubMessaging{
 		client:  client,
 		baseExt: baseExt,
@@ -79,8 +89,8 @@ func NewServicePubSubMessaging(
 }
 
 // AddPubSubNamespace creates unique topics. The topics will be in the form
-// edi-<topicName>-<environment>-v1
-func (ps ServicePubSubMessaging) AddPubSubNamespace(topicName string) string {
+// <service name>-<topicName>-<environment>-v1
+func (ps ServicePubSubMessaging) AddPubSubNamespace(topicName string, ServiceName string) string {
 	environment := serverutils.GetRunningEnvironment()
 	return pubsubtools.NamespacePubsubIdentifier(
 		ServiceName,
@@ -93,14 +103,14 @@ func (ps ServicePubSubMessaging) AddPubSubNamespace(topicName string) string {
 // TopicIDs returns the known (registered) topic IDs
 func (ps ServicePubSubMessaging) TopicIDs() []string {
 	return []string{
-		ps.AddPubSubNamespace(TestTopicName),
+		ps.AddPubSubNamespace(TestTopicName, MyCareHubServiceName),
 	}
 }
 
 // PublishToPubsub publishes a message to a specified topic
 func (ps ServicePubSubMessaging) PublishToPubsub(
 	ctx context.Context,
-	topicID string,
+	topicID, serviceName string,
 	payload []byte,
 ) error {
 	environment, err := serverutils.GetEnvVar(serverutils.GoogleCloudProjectIDEnvVarName)
@@ -112,7 +122,7 @@ func (ps ServicePubSubMessaging) PublishToPubsub(
 		ps.client,
 		topicID,
 		environment,
-		ServiceName,
+		serviceName,
 		TopicVersion,
 		payload,
 	)

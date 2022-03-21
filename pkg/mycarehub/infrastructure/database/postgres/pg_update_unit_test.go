@@ -1891,6 +1891,76 @@ func TestMyCareHubDb_UpdateUserPinUpdateRequiredStatus(t *testing.T) {
 	}
 }
 
+func TestMyCareHubDb_UpdateClient(t *testing.T) {
+	var fakeGorm = gormMock.NewGormMock()
+	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+	clientID := gofakeit.UUID()
+	type args struct {
+		ctx     context.Context
+		client  *domain.ClientProfile
+		updates map[string]interface{}
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *domain.ClientProfile
+		wantErr bool
+	}{
+		{
+			name: "Happy case: update client details",
+			args: args{
+				ctx: context.Background(),
+				client: &domain.ClientProfile{
+					ID: &clientID,
+				},
+				updates: map[string]interface{}{
+					"active": true,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: update client details error",
+			args: args{
+				ctx: context.Background(),
+				client: &domain.ClientProfile{
+					ID: &clientID,
+				},
+				updates: map[string]interface{}{
+					"active": true,
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+
+		if tt.name == "Sad case: update client details error" {
+			fakeGorm.MockUpdateClientFn = func(ctx context.Context, client *gorm.Client, updates map[string]interface{}) (*gorm.Client, error) {
+				return nil, fmt.Errorf("error cannot update client")
+			}
+		}
+
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := d.UpdateClient(tt.args.ctx, tt.args.client, tt.args.updates)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.UpdateClient() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if tt.wantErr && got != nil {
+				t.Errorf("expected client to be nil for %v", tt.name)
+				return
+			}
+
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected client not to be nil for %v", tt.name)
+				return
+			}
+		})
+	}
+}
+
 func TestMyCareHubDb_UpdateHealthDiary(t *testing.T) {
 	ctx := context.Background()
 	UUID := uuid.New().String()

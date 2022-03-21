@@ -9,12 +9,12 @@ import (
 	"os"
 	"time"
 
-	"cloud.google.com/go/pubsub"
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/savannahghi/firebasetools"
+	"github.com/savannahghi/interserviceclient"
 	externalExtension "github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
@@ -79,24 +79,7 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	loginsvc := loginservice.NewServiceLoginImpl(externalExt)
 	db := postgres.NewMyCareHubDb(pg, pg, pg, pg)
 
-	projectID, err := serverutils.GetEnvVar(serverutils.GoogleCloudProjectIDEnvVarName)
-	if err != nil {
-		return nil, fmt.Errorf(
-			"can't get projectID from env var `%s`: %w",
-			serverutils.GoogleCloudProjectIDEnvVarName,
-			err,
-		)
-	}
-
-	pubSubClient, err := pubsub.NewClient(ctx, projectID)
-	if err != nil {
-		return nil, fmt.Errorf("unable to initialize pubsub client: %w", err)
-	}
-
-	pubSub, err := pubsubmessaging.NewServicePubSubMessaging(
-		pubSubClient,
-		externalExt,
-	)
+	pubSub, err := pubsubmessaging.NewServicePubSubMessaging(externalExt)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize pubsub messaging service: %w", err)
 	}
@@ -110,7 +93,7 @@ func Router(ctx context.Context) (*mux.Router, error) {
 
 	getStream := streamService.NewServiceGetStream()
 	// Initialize user usecase
-	userUsecase := user.NewUseCasesUserImpl(db, db, db, db, externalExt, otpUseCase, authorityUseCase, getStream)
+	userUsecase := user.NewUseCasesUserImpl(db, db, db, db, externalExt, otpUseCase, authorityUseCase, getStream, pubSub)
 
 	termsUsecase := terms.NewUseCasesTermsOfService(db, db)
 
@@ -265,6 +248,18 @@ func Router(ctx context.Context) (*mux.Router, error) {
 		http.MethodPost,
 		http.MethodPatch,
 	).HandlerFunc(internalHandlers.CreateOrUpdateKenyaEMRAppointments())
+
+	// ISC routes. These are inter service route
+	isc := r.PathPrefix("/internal").Subrouter()
+	isc.Use(interserviceclient.InterServiceAuthenticationMiddleware())
+	isc.Path("/user-profile/{id}").Methods(
+		http.MethodOptions,
+		http.MethodGet,
+	).HandlerFunc(internalHandlers.GetUserProfile())
+	isc.Path("/add-fhir-id").Methods(
+		http.MethodOptions,
+		http.MethodPatch,
+	).HandlerFunc(internalHandlers.AddClientFHIRID())
 
 	// Graphql route
 	authR := r.Path("/graphql").Subrouter()

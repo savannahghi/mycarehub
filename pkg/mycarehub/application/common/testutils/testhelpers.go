@@ -9,6 +9,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
 	streamService "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/getstream"
+	pubsubmessaging "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/pubsub"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases"
 	appointment "github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/appointments"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/authority"
@@ -53,8 +54,12 @@ func InitializeTestService(ctx context.Context) (*usecases.MyCareHub, error) {
 	otpUseCase := otp.NewOTPUseCase(db, db, externalExt)
 	getStream := streamService.NewServiceGetStream()
 	authorityUseCase := authority.NewUsecaseAuthority(db, db, externalExt)
+	pubsub, err := pubsubmessaging.NewServicePubSubMessaging(externalExt)
+	if err != nil {
+		return nil, fmt.Errorf("can't instantiate pubsub service: %v", err)
+	}
 
-	userUsecase := user.NewUseCasesUserImpl(db, db, db, db, externalExt, otpUseCase, authorityUseCase, getStream)
+	userUsecase := user.NewUseCasesUserImpl(db, db, db, db, externalExt, otpUseCase, authorityUseCase, getStream, pubsub)
 
 	termsUsecase := terms.NewUseCasesTermsOfService(db, db)
 

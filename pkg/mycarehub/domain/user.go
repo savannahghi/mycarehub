@@ -73,7 +73,7 @@ type ClientProfile struct {
 
 	TreatmentEnrollmentDate *time.Time `json:"treatmentEnrollmentDate"`
 
-	FHIRPatientID string `json:"fhirPatientID"`
+	FHIRPatientID *string `json:"fhirPatientID"`
 
 	HealthRecordID *string `json:"healthRecordID"`
 

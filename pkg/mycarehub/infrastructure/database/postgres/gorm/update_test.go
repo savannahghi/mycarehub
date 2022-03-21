@@ -1500,6 +1500,75 @@ func TestPGInstance_UpdateUserPinUpdateRequiredStatus(t *testing.T) {
 	}
 }
 
+func TestPGInstance_UpdateClient(t *testing.T) {
+	type args struct {
+		ctx     context.Context
+		client  *gorm.Client
+		updates map[string]interface{}
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *gorm.Client
+		wantErr bool
+	}{
+		{
+			name: "Happy case: update client profile",
+			args: args{
+				ctx: context.Background(),
+				client: &gorm.Client{
+					ID: &clientID,
+				},
+				updates: map[string]interface{}{
+					"fhir_patient_id": gofakeit.UUID(),
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: update client missing ID",
+			args: args{
+				ctx:    context.Background(),
+				client: &gorm.Client{},
+				updates: map[string]interface{}{
+					"fhir_patient_id": gofakeit.UUID(),
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: update client invalid field",
+			args: args{
+				ctx:    context.Background(),
+				client: &gorm.Client{},
+				updates: map[string]interface{}{
+					"invalid_field_id": gofakeit.UUID(),
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			got, err := testingDB.UpdateClient(tt.args.ctx, tt.args.client, tt.args.updates)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.UpdateClient() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if tt.wantErr && got != nil {
+				t.Errorf("expected client to be nil for %v", tt.name)
+				return
+			}
+
+			if !tt.wantErr && got == nil && got.FHIRPatientID == nil {
+				t.Errorf("expected client not to be nil for %v", tt.name)
+				return
+			}
+		})
+	}
+}
+
 func TestPGInstance_UpdateHealthDiary(t *testing.T) {
 	ctx := context.Background()
 

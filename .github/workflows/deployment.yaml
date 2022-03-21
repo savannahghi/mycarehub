@@ -24,7 +24,7 @@ jobs:
           service_account_key: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}
           project_id: ${{ secrets.GOOGLE_CLOUD_PROJECT }}
           export_default_credentials: true
-      
+
       # Build docker image
       - name: Build
         run: |-
@@ -37,7 +37,7 @@ jobs:
       - name: Push
         run: |-
           docker push eu.gcr.io/${{ secrets.GOOGLE_CLOUD_PROJECT }}/${{ secrets.GCR_NAME }}:$GITHUB_SHA
-          
+
   deploy_to_staging:
     name: Deploy Staging Server to Google Cloud Run
     runs-on: ubuntu-latest

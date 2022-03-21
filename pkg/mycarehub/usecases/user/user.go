@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -25,6 +26,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/getstream"
+	pubsubmessaging "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/pubsub"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/authority"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/otp"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/utils"
@@ -83,14 +85,10 @@ type IResetPIN interface {
 	ResetPIN(ctx context.Context, input dto.UserResetPinInput) (bool, error)
 }
 
-// ICreateClientCaregiver is an interface that contains all the create client caregiver use cases
-type ICreateClientCaregiver interface {
-	CreateOrUpdateClientCaregiver(ctx context.Context, clientCaregiver *dto.CaregiverInput) (bool, error)
-}
-
-// IGetClientCaregiver is an interface that contains all the query client caregiver use cases
-type IGetClientCaregiver interface {
+// IClientCaregiver is an interface that contains all the client caregiver use cases
+type IClientCaregiver interface {
 	GetClientCaregiver(ctx context.Context, clientID string) (*domain.Caregiver, error)
+	CreateOrUpdateClientCaregiver(ctx context.Context, clientCaregiver *dto.CaregiverInput) (bool, error)
 }
 
 // IRegisterUser interface defines a method signature that is used to register users
@@ -120,6 +118,16 @@ type IConsent interface {
 	Consent(ctx context.Context, phoneNumber string, flavour feedlib.Flavour, active bool) (bool, error)
 }
 
+// IUserProfile interface contains the methods to retrieve a user profile
+type IUserProfile interface {
+	GetUserProfile(ctx context.Context, userID string) (*domain.User, error)
+}
+
+// IClientProfile interface contains method signatures related to a client profile
+type IClientProfile interface {
+	AddClientFHIRID(ctx context.Context, input dto.ClientFHIRPayload) error
+}
+
 // UseCasesUser group all business logic usecases related to user
 type UseCasesUser interface {
 	ILogin
@@ -131,13 +139,14 @@ type UseCasesUser interface {
 	IResetPIN
 	IRefreshToken
 	IVerifyPIN
-	ICreateClientCaregiver
-	IGetClientCaregiver
+	IClientCaregiver
 	IRegisterUser
 	IClientMedicalHistory
 	ISearchClientByCCCNumber
 	ISearchStaffByStaffNumber
 	IConsent
+	IUserProfile
+	IClientProfile
 }
 
 // UseCasesUserImpl represents user implementation object
@@ -150,6 +159,7 @@ type UseCasesUserImpl struct {
 	OTP         otp.UsecaseOTP
 	Authority   authority.UsecaseAuthority
 	GetStream   getstream.ServiceGetStream
+	Pubsub      pubsubmessaging.ServicePubsub
 }
 
 // NewUseCasesUserImpl returns a new user service
@@ -162,6 +172,7 @@ func NewUseCasesUserImpl(
 	otp otp.UsecaseOTP,
 	authority authority.UsecaseAuthority,
 	getstream getstream.ServiceGetStream,
+	pubsub pubsubmessaging.ServicePubsub,
 ) *UseCasesUserImpl {
 	return &UseCasesUserImpl{
 		Create:      create,
@@ -172,7 +183,28 @@ func NewUseCasesUserImpl(
 		OTP:         otp,
 		Authority:   authority,
 		GetStream:   getstream,
+		Pubsub:      pubsub,
 	}
+}
+
+// GetUserProfile returns a user profile given the user ID
+func (us *UseCasesUserImpl) GetUserProfile(ctx context.Context, userID string) (*domain.User, error) {
+	return us.Query.GetUserProfileByUserID(ctx, userID)
+}
+
+// AddClientFHIRID updates the client profile with the patient fhir ID from clinical
+func (us *UseCasesUserImpl) AddClientFHIRID(ctx context.Context, input dto.ClientFHIRPayload) error {
+	client, err := us.Query.GetClientProfileByClientID(ctx, input.ClientID)
+	if err != nil {
+		return fmt.Errorf("error retrieving client profile: %v", err)
+	}
+
+	_, err = us.Update.UpdateClient(ctx, client, map[string]interface{}{"fhir_patient_id": input.FHIRID})
+	if err != nil {
+		return fmt.Errorf("error updating client profile: %v", err)
+	}
+
+	return nil
 }
 
 // VerifyLoginPIN checks whether a pin is valid. If a pin is invalid, it will prompt
@@ -970,6 +1002,12 @@ func (us *UseCasesUserImpl) RegisterClient(
 		if err != nil {
 			return nil, fmt.Errorf("failed to invite client: %v", err)
 		}
+	}
+
+	err = us.Pubsub.NotifyCreatePatient(ctx, registrationOutput)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		log.Printf("failed to publish to create patient topic: %v", err)
 	}
 
 	return registrationOutput, nil
