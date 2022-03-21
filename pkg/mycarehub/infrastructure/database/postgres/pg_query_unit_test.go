@@ -2538,6 +2538,22 @@ func TestMyCareHubDb_GetClientHealthDiaryEntries(t *testing.T) {
 			},
 			wantErr: true,
 		},
+		{
+			name: "Sad Case - Fail to get client profile",
+			args: args{
+				ctx:      ctx,
+				clientID: uuid.New().String(),
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - Fail to get user profile",
+			args: args{
+				ctx:      ctx,
+				clientID: uuid.New().String(),
+			},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -2547,6 +2563,16 @@ func TestMyCareHubDb_GetClientHealthDiaryEntries(t *testing.T) {
 			if tt.name == "Sad Case - Fail to get client health diary entries" {
 				fakeGorm.MockGetClientHealthDiaryEntriesFn = func(ctx context.Context, clientID string) ([]*gorm.ClientHealthDiaryEntry, error) {
 					return nil, fmt.Errorf("failed to get client health diary entries")
+				}
+			}
+			if tt.name == "Sad Case - Fail to get client profile" {
+				fakeGorm.MockGetClientProfileByClientIDFn = func(ctx context.Context, clientID string) (*gorm.Client, error) {
+					return nil, fmt.Errorf("failed to get client profile")
+				}
+			}
+			if tt.name == "Sad Case - Fail to get user profile" {
+				fakeGorm.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID *string) (*gorm.User, error) {
+					return nil, fmt.Errorf("an error occurred")
 				}
 			}
 
@@ -4122,6 +4148,63 @@ func TestMyCareHubDb_SearchClientProfilesByCCCNumber(t *testing.T) {
 			}
 			if !tt.wantErr && got == nil {
 				t.Errorf("expected client profiles not to be nil for %v", tt.name)
+				return
+			}
+		})
+	}
+}
+
+func TestMyCareHubDb_GetHealthDiaryEntryByID(t *testing.T) {
+	ctx := context.Background()
+
+	var fakeGorm = gormMock.NewGormMock()
+	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+	type args struct {
+		ctx                context.Context
+		healthDiaryEntryID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *domain.ClientHealthDiaryEntry
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:                ctx,
+				healthDiaryEntryID: uuid.New().String(),
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case",
+			args: args{
+				ctx:                ctx,
+				healthDiaryEntryID: uuid.New().String(),
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "Sad case" {
+				fakeGorm.MockGetHealthDiaryEntryByIDFn = func(ctx context.Context, healthDiaryEntryID string) (*gorm.ClientHealthDiaryEntry, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+			got, err := d.GetHealthDiaryEntryByID(tt.args.ctx, tt.args.healthDiaryEntryID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.GetHealthDiaryEntryByID() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if tt.wantErr && got != nil {
+				t.Errorf("expected healthdiary to be nil for %v", tt.name)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected health diary not to be nil for %v", tt.name)
 				return
 			}
 		})

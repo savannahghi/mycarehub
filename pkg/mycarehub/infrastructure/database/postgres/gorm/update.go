@@ -42,6 +42,7 @@ type Update interface {
 	UpdateUserPinChangeRequiredStatus(ctx context.Context, userID string, flavour feedlib.Flavour, status bool) error
 	UpdateUserActiveStatus(ctx context.Context, userID string, flavour feedlib.Flavour, active bool) error
 	UpdateUserPinUpdateRequiredStatus(ctx context.Context, userID string, flavour feedlib.Flavour, status bool) error
+	UpdateHealthDiary(ctx context.Context, payload *ClientHealthDiaryEntry) (bool, error)
 }
 
 // LikeContent perfoms the actual database operation to update content like. The operation
@@ -929,4 +930,15 @@ func (db *PGInstance) UpdateUserPinUpdateRequiredStatus(ctx context.Context, use
 		return err
 	}
 	return nil
+}
+
+// UpdateHealthDiary updates the status of the specified health diary entry
+func (db *PGInstance) UpdateHealthDiary(ctx context.Context, payload *ClientHealthDiaryEntry) (bool, error) {
+	err := db.DB.Model(&ClientHealthDiaryEntry{}).Where(&ClientHealthDiaryEntry{ClientID: payload.ClientID, ClientHealthDiaryEntryID: payload.ClientHealthDiaryEntryID}).Updates(&payload).Error
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, fmt.Errorf("unable to update health diary shares status for client: %v", err)
+	}
+
+	return true, nil
 }

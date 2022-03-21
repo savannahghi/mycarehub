@@ -90,6 +90,7 @@ type Query interface {
 	SearchClientProfilesByCCCNumber(ctx context.Context, CCCNumber string) ([]*domain.ClientProfile, error)
 	CheckIfClientHasUnresolvedServiceRequests(ctx context.Context, clientID string, serviceRequestType string) (bool, error)
 	GetAllRoles(ctx context.Context) ([]*domain.AuthorityRole, error)
+	GetHealthDiaryEntryByID(ctx context.Context, healthDiaryEntryID string) (*domain.ClientHealthDiaryEntry, error)
 }
 
 // Update represents all the update action interfaces
@@ -122,4 +123,5 @@ type Update interface {
 	UpdateUserPinChangeRequiredStatus(ctx context.Context, userID string, flavour feedlib.Flavour, status bool) error
 	UpdateUserActiveStatus(ctx context.Context, userID string, flavour feedlib.Flavour, active bool) error
 	UpdateUserPinUpdateRequiredStatus(ctx context.Context, userID string, flavour feedlib.Flavour, status bool) error
+	UpdateHealthDiary(ctx context.Context, updateInput *gorm.ClientHealthDiaryEntry) (bool, error)
 }

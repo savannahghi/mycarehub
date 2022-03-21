@@ -128,7 +128,7 @@ func Router(ctx context.Context) (*mux.Router, error) {
 
 	appointmentUsecase := appointment.NewUseCaseAppointmentsImpl(externalExt, db, db, db)
 
-	healthDiaryUseCase := healthdiary.NewUseCaseHealthDiaryImpl(db, db, serviceRequestUseCase)
+	healthDiaryUseCase := healthdiary.NewUseCaseHealthDiaryImpl(db, db, db, serviceRequestUseCase)
 
 	screeningToolsUsecases := screeningtools.NewUseCasesScreeningTools(db, db, db)
 

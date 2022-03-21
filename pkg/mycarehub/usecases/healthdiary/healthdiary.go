@@ -11,6 +11,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/servicerequest"
 )
 
@@ -46,18 +47,25 @@ type IGetClientHealthDiaryEntry interface {
 	GetRecentHealthDiaryEntries(ctx context.Context, lastSyncTime time.Time, clientID string) ([]*domain.ClientHealthDiaryEntry, error)
 }
 
+// IShareHealthDiaryEntry contains the methods to share the health diary with the health care worker
+type IShareHealthDiaryEntry interface {
+	ShareHealthDiaryEntry(ctx context.Context, healthDiaryEntryID string) (bool, error)
+}
+
 // UseCasesHealthDiary holds all the interfaces that represents the business logic to implement the health diary
 type UseCasesHealthDiary interface {
 	ICanRecordHealthDiary
 	ICreateHealthDiaryEntry
 	IGetRandomQuote
 	IGetClientHealthDiaryEntry
+	IShareHealthDiaryEntry
 }
 
 // UseCasesHealthDiaryImpl embeds the healthdiary logic defined on the domain
 type UseCasesHealthDiaryImpl struct {
 	Create         infrastructure.Create
 	Query          infrastructure.Query
+	Update         infrastructure.Update
 	ServiceRequest servicerequest.UseCaseServiceRequest
 }
 
@@ -65,11 +73,13 @@ type UseCasesHealthDiaryImpl struct {
 func NewUseCaseHealthDiaryImpl(
 	create infrastructure.Create,
 	query infrastructure.Query,
+	update infrastructure.Update,
 	servicerequest servicerequest.UseCaseServiceRequest,
 ) *UseCasesHealthDiaryImpl {
 	return &UseCasesHealthDiaryImpl{
 		Create:         create,
 		Query:          query,
+		Update:         update,
 		ServiceRequest: servicerequest,
 	}
 }
@@ -90,7 +100,7 @@ func (h UseCasesHealthDiaryImpl) CreateHealthDiaryEntry(
 			Active:                true,
 			Mood:                  mood,
 			Note:                  *note,
-			EntryType:             "HOME_PAGE_HEALTH_DIARY_ENTRY", //TODO: Make this an enum
+			EntryType:             string(enums.ServiceRequestTypeHomePageHealthDiary),
 			ShareWithHealthWorker: reportToStaff,
 			ClientID:              clientID,
 			SharedAt:              currentTime,
@@ -122,7 +132,7 @@ func (h UseCasesHealthDiaryImpl) CreateHealthDiaryEntry(
 			Active:                true,
 			Mood:                  mood,
 			Note:                  *note,
-			EntryType:             "HOME_PAGE_HEALTH_DIARY_ENTRY", //TODO: Make this an enum
+			EntryType:             string(enums.ServiceRequestTypeHomePageHealthDiary),
 			ShareWithHealthWorker: false,
 			ClientID:              clientID,
 			SharedAt:              time.Now(),
@@ -200,4 +210,41 @@ func (h UseCasesHealthDiaryImpl) GetFacilityHealthDiaryEntries(ctx context.Conte
 // that were added after the last synced time. This will help KenyEMR module fetch for new health diary entries
 func (h UseCasesHealthDiaryImpl) GetRecentHealthDiaryEntries(ctx context.Context, lastSyncTime time.Time, clientID string) ([]*domain.ClientHealthDiaryEntry, error) {
 	return h.Query.GetRecentHealthDiaryEntries(ctx, lastSyncTime, clientID)
+}
+
+// ShareHealthDiaryEntry create a service request when the client opts to share their service request
+func (h UseCasesHealthDiaryImpl) ShareHealthDiaryEntry(ctx context.Context, healthDiaryEntryID string) (bool, error) {
+	if healthDiaryEntryID == "" {
+		return false, fmt.Errorf("healthDiary entry id cannot be empty")
+	}
+
+	healthDiaryEntry, err := h.Query.GetHealthDiaryEntryByID(ctx, healthDiaryEntryID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, err
+	}
+
+	payload := &gorm.ClientHealthDiaryEntry{
+		ClientHealthDiaryEntryID: healthDiaryEntry.ID,
+		ShareWithHealthWorker:    true,
+		SharedAt:                 time.Now(),
+		ClientID:                 healthDiaryEntry.ClientID,
+	}
+	ok, err := h.Update.UpdateHealthDiary(ctx, payload)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, err
+	}
+	if !ok {
+		return false, nil
+	}
+
+	serviceRequestInput := &dto.ServiceRequestInput{
+		RequestType: healthDiaryEntry.EntryType,
+		Status:      "PENDING",
+		Request:     healthDiaryEntry.Note,
+		ClientID:    healthDiaryEntry.ClientID,
+	}
+
+	return h.ServiceRequest.CreateServiceRequest(ctx, serviceRequestInput)
 }

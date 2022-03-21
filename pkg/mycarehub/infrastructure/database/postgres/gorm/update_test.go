@@ -1499,3 +1499,99 @@ func TestPGInstance_UpdateUserPinUpdateRequiredStatus(t *testing.T) {
 		})
 	}
 }
+
+func TestPGInstance_UpdateHealthDiary(t *testing.T) {
+	ctx := context.Background()
+
+	type args struct {
+		ctx     context.Context
+		payload *gorm.ClientHealthDiaryEntry
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx: ctx,
+				payload: &gorm.ClientHealthDiaryEntry{
+					ClientHealthDiaryEntryID: &clientsHealthDiaryEntryID,
+					ClientID:                 clientID,
+				},
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Sad case",
+			args: args{
+				ctx: ctx,
+				payload: &gorm.ClientHealthDiaryEntry{
+					ClientHealthDiaryEntryID: &clientsHealthDiaryEntryID,
+					ClientID:                 "clientID",
+				},
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := testingDB.UpdateHealthDiary(tt.args.ctx, tt.args.payload)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.UpdateHealthDiary() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("PGInstance.UpdateHealthDiary() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestPGInstance_UpdateUserPinChangeRequiredStatus(t *testing.T) {
+	ctx := context.Background()
+
+	type args struct {
+		ctx     context.Context
+		userID  string
+		flavour feedlib.Flavour
+		status  bool
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:     ctx,
+				userID:  userID2,
+				flavour: "CONSUMER",
+				status:  true,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case",
+			args: args{
+				ctx:     ctx,
+				userID:  "userID2",
+				flavour: "CONSUMER",
+				status:  true,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := testingDB.UpdateUserPinChangeRequiredStatus(tt.args.ctx, tt.args.userID, tt.args.flavour, tt.args.status); (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.UpdateUserPinChangeRequiredStatus() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}

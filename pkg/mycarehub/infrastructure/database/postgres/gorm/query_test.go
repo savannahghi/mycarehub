@@ -3214,3 +3214,89 @@ func TestPGInstance_GetUserProfileByStaffID(t *testing.T) {
 		})
 	}
 }
+
+func TestPGInstance_GetHealthDiaryEntryByID(t *testing.T) {
+	ctx := context.Background()
+
+	type args struct {
+		ctx                context.Context
+		healthDiaryEntryID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *gorm.ClientHealthDiaryEntry
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:                ctx,
+				healthDiaryEntryID: clientsHealthDiaryEntryID,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case",
+			args: args{
+				ctx:                ctx,
+				healthDiaryEntryID: "entryID",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := testingDB.GetHealthDiaryEntryByID(tt.args.ctx, tt.args.healthDiaryEntryID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.GetHealthDiaryEntryByID() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if tt.wantErr && got != nil {
+				t.Errorf("expected healthdiary to be nil for %v", tt.name)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected health diary not to be nil for %v", tt.name)
+				return
+			}
+		})
+	}
+}
+
+func TestPGInstance_CheckIfUsernameExists(t *testing.T) {
+	ctx := context.Background()
+
+	type args struct {
+		ctx      context.Context
+		username string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:      ctx,
+				username: "test user",
+			},
+			want:    true,
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := testingDB.CheckIfUsernameExists(tt.args.ctx, tt.args.username)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.CheckIfUsernameExists() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("PGInstance.CheckIfUsernameExists() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

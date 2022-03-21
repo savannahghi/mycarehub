@@ -97,10 +97,13 @@ type ComplexityRoot struct {
 	ClientHealthDiaryEntry struct {
 		Active                func(childComplexity int) int
 		ClientID              func(childComplexity int) int
+		ClientName            func(childComplexity int) int
 		CreatedAt             func(childComplexity int) int
 		EntryType             func(childComplexity int) int
+		ID                    func(childComplexity int) int
 		Mood                  func(childComplexity int) int
 		Note                  func(childComplexity int) int
+		PhoneNumber           func(childComplexity int) int
 		ShareWithHealthWorker func(childComplexity int) int
 		SharedAt              func(childComplexity int) int
 	}
@@ -365,6 +368,7 @@ type ComplexityRoot struct {
 		SetNickName                     func(childComplexity int, userID string, nickname string) int
 		SetUserPin                      func(childComplexity int, input *dto.PINInput) int
 		ShareContent                    func(childComplexity int, input dto.ShareContentInput) int
+		ShareHealthDiaryEntry           func(childComplexity int, healthDiaryEntryID string) int
 		UnBanUser                       func(childComplexity int, memberID string, communityID string) int
 		UnBookmarkContent               func(childComplexity int, userID string, contentItemID int) int
 		UnlikeContent                   func(childComplexity int, userID string, contentID int) int
@@ -538,6 +542,7 @@ type MutationResolver interface {
 	InactivateFacility(ctx context.Context, mflCode int) (bool, error)
 	SendFeedback(ctx context.Context, input dto.FeedbackResponseInput) (bool, error)
 	CreateHealthDiaryEntry(ctx context.Context, clientID string, note *string, mood string, reportToStaff bool) (bool, error)
+	ShareHealthDiaryEntry(ctx context.Context, healthDiaryEntryID string) (bool, error)
 	InviteUser(ctx context.Context, userID string, phoneNumber string, flavour feedlib.Flavour) (bool, error)
 	SetUserPin(ctx context.Context, input *dto.PINInput) (bool, error)
 	AnswerScreeningToolQuestion(ctx context.Context, screeningToolResponses []*dto.ScreeningToolQuestionResponseInput) (bool, error)
@@ -773,6 +778,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ClientHealthDiaryEntry.ClientID(childComplexity), true
 
+	case "ClientHealthDiaryEntry.clientName":
+		if e.complexity.ClientHealthDiaryEntry.ClientName == nil {
+			break
+		}
+
+		return e.complexity.ClientHealthDiaryEntry.ClientName(childComplexity), true
+
 	case "ClientHealthDiaryEntry.createdAt":
 		if e.complexity.ClientHealthDiaryEntry.CreatedAt == nil {
 			break
@@ -787,6 +799,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ClientHealthDiaryEntry.EntryType(childComplexity), true
 
+	case "ClientHealthDiaryEntry.id":
+		if e.complexity.ClientHealthDiaryEntry.ID == nil {
+			break
+		}
+
+		return e.complexity.ClientHealthDiaryEntry.ID(childComplexity), true
+
 	case "ClientHealthDiaryEntry.mood":
 		if e.complexity.ClientHealthDiaryEntry.Mood == nil {
 			break
@@ -800,6 +819,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ClientHealthDiaryEntry.Note(childComplexity), true
+
+	case "ClientHealthDiaryEntry.phoneNumber":
+		if e.complexity.ClientHealthDiaryEntry.PhoneNumber == nil {
+			break
+		}
+
+		return e.complexity.ClientHealthDiaryEntry.PhoneNumber(childComplexity), true
 
 	case "ClientHealthDiaryEntry.shareWithHealthWorker":
 		if e.complexity.ClientHealthDiaryEntry.ShareWithHealthWorker == nil {
@@ -2273,6 +2299,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.ShareContent(childComplexity, args["input"].(dto.ShareContentInput)), true
 
+	case "Mutation.shareHealthDiaryEntry":
+		if e.complexity.Mutation.ShareHealthDiaryEntry == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_shareHealthDiaryEntry_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.ShareHealthDiaryEntry(childComplexity, args["healthDiaryEntryID"].(string)), true
+
 	case "Mutation.unBanUser":
 		if e.complexity.Mutation.UnBanUser == nil {
 			break
@@ -3518,6 +3556,7 @@ extend type Query {
     mood: String!
     reportToStaff: Boolean!
   ): Boolean!
+  shareHealthDiaryEntry(healthDiaryEntryID: String!): Boolean!
 }
 extend type Query {
   canRecordMood(clientID: String!): Boolean!
@@ -3882,6 +3921,7 @@ type ClientHealthDiaryQuote {
 }
 
 type ClientHealthDiaryEntry {
+  id: String!
   active: Boolean!
   mood: String!
   note: String!
@@ -3890,6 +3930,8 @@ type ClientHealthDiaryEntry {
   sharedAt: Time
   clientID: String!
   createdAt: Time
+  phoneNumber: String
+  clientName: String
 }
 
 type FAQ {
@@ -4880,6 +4922,21 @@ func (ec *executionContext) field_Mutation_shareContent_args(ctx context.Context
 		}
 	}
 	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_shareHealthDiaryEntry_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["healthDiaryEntryID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("healthDiaryEntryID"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["healthDiaryEntryID"] = arg0
 	return args, nil
 }
 
@@ -6420,6 +6477,41 @@ func (ec *executionContext) _CategoryDetail_categoryIcon(ctx context.Context, fi
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _ClientHealthDiaryEntry_id(ctx context.Context, field graphql.CollectedField, obj *domain.ClientHealthDiaryEntry) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ClientHealthDiaryEntry",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _ClientHealthDiaryEntry_active(ctx context.Context, field graphql.CollectedField, obj *domain.ClientHealthDiaryEntry) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -6689,6 +6781,70 @@ func (ec *executionContext) _ClientHealthDiaryEntry_createdAt(ctx context.Contex
 	res := resTmp.(time.Time)
 	fc.Result = res
 	return ec.marshalOTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ClientHealthDiaryEntry_phoneNumber(ctx context.Context, field graphql.CollectedField, obj *domain.ClientHealthDiaryEntry) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ClientHealthDiaryEntry",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PhoneNumber, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ClientHealthDiaryEntry_clientName(ctx context.Context, field graphql.CollectedField, obj *domain.ClientHealthDiaryEntry) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ClientHealthDiaryEntry",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ClientName, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalOString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ClientHealthDiaryQuote_author(ctx context.Context, field graphql.CollectedField, obj *domain.ClientHealthDiaryQuote) (ret graphql.Marshaler) {
@@ -12774,6 +12930,48 @@ func (ec *executionContext) _Mutation_createHealthDiaryEntry(ctx context.Context
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Mutation().CreateHealthDiaryEntry(rctx, args["clientID"].(string), args["note"].(*string), args["mood"].(string), args["reportToStaff"].(bool))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_shareHealthDiaryEntry(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_shareHealthDiaryEntry_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().ShareHealthDiaryEntry(rctx, args["healthDiaryEntryID"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -19423,6 +19621,11 @@ func (ec *executionContext) _ClientHealthDiaryEntry(ctx context.Context, sel ast
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("ClientHealthDiaryEntry")
+		case "id":
+			out.Values[i] = ec._ClientHealthDiaryEntry_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "active":
 			out.Values[i] = ec._ClientHealthDiaryEntry_active(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -19454,6 +19657,10 @@ func (ec *executionContext) _ClientHealthDiaryEntry(ctx context.Context, sel ast
 			}
 		case "createdAt":
 			out.Values[i] = ec._ClientHealthDiaryEntry_createdAt(ctx, field, obj)
+		case "phoneNumber":
+			out.Values[i] = ec._ClientHealthDiaryEntry_phoneNumber(ctx, field, obj)
+		case "clientName":
+			out.Values[i] = ec._ClientHealthDiaryEntry_clientName(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -20738,6 +20945,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			}
 		case "createHealthDiaryEntry":
 			out.Values[i] = ec._Mutation_createHealthDiaryEntry(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "shareHealthDiaryEntry":
+			out.Values[i] = ec._Mutation_shareHealthDiaryEntry(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
