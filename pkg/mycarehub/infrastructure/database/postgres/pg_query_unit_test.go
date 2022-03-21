@@ -10,6 +10,7 @@ import (
 	"github.com/brianvoe/gofakeit"
 	"github.com/google/uuid"
 	"github.com/savannahghi/feedlib"
+	"github.com/savannahghi/firebasetools"
 	"github.com/savannahghi/interserviceclient"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
@@ -3738,7 +3739,7 @@ func TestMyCareHubDb_ListAppointments(t *testing.T) {
 	type args struct {
 		ctx        context.Context
 		params     *domain.Appointment
-		filter     []*domain.FiltersParam
+		filter     []*firebasetools.FilterParam
 		pagination *domain.Pagination
 	}
 	tests := []struct {
@@ -3783,7 +3784,7 @@ func TestMyCareHubDb_ListAppointments(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 
 			if tt.name == "sad case: error listing appointments" {
-				fakeGorm.MockListAppointments = func(ctx context.Context, params *gorm.Appointment, filter []*domain.FiltersParam, pagination *domain.Pagination) ([]*gorm.Appointment, *domain.Pagination, error) {
+				fakeGorm.MockListAppointments = func(ctx context.Context, params *gorm.Appointment, filters []*firebasetools.FilterParam, pagination *domain.Pagination) ([]*gorm.Appointment, *domain.Pagination, error) {
 					return nil, nil, fmt.Errorf("error listing appointments")
 				}
 			}

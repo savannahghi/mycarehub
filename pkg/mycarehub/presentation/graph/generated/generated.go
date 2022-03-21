@@ -16,6 +16,7 @@ import (
 	stream_chat "github.com/GetStream/stream-chat-go/v5"
 	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/feedlib"
+	"github.com/savannahghi/firebasetools"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
@@ -389,7 +390,7 @@ type ComplexityRoot struct {
 		CanRecordMood                  func(childComplexity int, clientID string) int
 		CheckIfUserBookmarkedContent   func(childComplexity int, userID string, contentID int) int
 		CheckIfUserHasLikedContent     func(childComplexity int, userID string, contentID int) int
-		FetchClientAppointments        func(childComplexity int, clientID string, paginationInput dto.PaginationsInput, filterInput []*dto.FiltersInput) int
+		FetchClientAppointments        func(childComplexity int, clientID string, paginationInput dto.PaginationsInput, filters []*firebasetools.FilterParam) int
 		FetchFacilities                func(childComplexity int) int
 		GetAllAuthorityRoles           func(childComplexity int) int
 		GetClientCaregiver             func(childComplexity int, clientID string) int
@@ -554,7 +555,7 @@ type MutationResolver interface {
 	OptOut(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (bool, error)
 }
 type QueryResolver interface {
-	FetchClientAppointments(ctx context.Context, clientID string, paginationInput dto.PaginationsInput, filterInput []*dto.FiltersInput) (*domain.AppointmentsPage, error)
+	FetchClientAppointments(ctx context.Context, clientID string, paginationInput dto.PaginationsInput, filters []*firebasetools.FilterParam) (*domain.AppointmentsPage, error)
 	GetUserRoles(ctx context.Context, userID string) ([]*domain.AuthorityRole, error)
 	GetAllAuthorityRoles(ctx context.Context) ([]*domain.AuthorityRole, error)
 	ListMembers(ctx context.Context, input *stream_chat.QueryOption) ([]*domain.Member, error)
@@ -2434,7 +2435,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.FetchClientAppointments(childComplexity, args["clientID"].(string), args["paginationInput"].(dto.PaginationsInput), args["filterInput"].([]*dto.FiltersInput)), true
+		return e.complexity.Query.FetchClientAppointments(childComplexity, args["clientID"].(string), args["paginationInput"].(dto.PaginationsInput), args["filters"].([]*firebasetools.FilterParam)), true
 
 	case "Query.fetchFacilities":
 		if e.complexity.Query.FetchFacilities == nil {
@@ -3248,12 +3249,39 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 }
 
 var sources = []*ast.Source{
-	{Name: "pkg/mycarehub/presentation/graph/appointments.graphql", Input: `extend type Query {
+	{Name: "pkg/mycarehub/presentation/graph/appointments.graphql", Input: `scalar Any
+
+extend type Query {
   fetchClientAppointments(
     clientID: ID!
     paginationInput: PaginationsInput!
-    filterInput: [FiltersInput]
+    filters: [FilterParam!]
   ): AppointmentsPage
+}
+
+input FilterParam {
+  fieldName: String!
+  fieldType: FieldType!
+  comparisonOperation: Operation!
+  fieldValue: Any!
+}
+
+enum FieldType {
+  BOOLEAN
+  TIMESTAMP
+  NUMBER
+  INTEGER
+  STRING
+}
+
+enum Operation {
+  LESS_THAN
+  LESS_THAN_OR_EQUAL_TO
+  EQUAL
+  GREATER_THAN
+  GREATER_THAN_OR_EQUAL_TO
+  IN
+  CONTAINS
 }
 `, BuiltIn: false},
 	{Name: "pkg/mycarehub/presentation/graph/authority.graphql", Input: `extend type Mutation {
@@ -3983,7 +4011,7 @@ type CommunityMember {
 type Appointment {
   ID: ID!
   type: String!
-  status: String!
+  status: AppointmentStatus!
   reason: String!
   date: Date!
   start: Time
@@ -4066,7 +4094,7 @@ type Contact {
 
 type AuthorityRole {
   roleID: String
-	name:   UserRoleType 
+  name: UserRoleType
   active: Boolean
 }
 `, BuiltIn: false},
@@ -5086,15 +5114,15 @@ func (ec *executionContext) field_Query_fetchClientAppointments_args(ctx context
 		}
 	}
 	args["paginationInput"] = arg1
-	var arg2 []*dto.FiltersInput
-	if tmp, ok := rawArgs["filterInput"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filterInput"))
-		arg2, err = ec.unmarshalOFiltersInput2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐFiltersInput(ctx, tmp)
+	var arg2 []*firebasetools.FilterParam
+	if tmp, ok := rawArgs["filters"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filters"))
+		arg2, err = ec.unmarshalOFilterParam2ᚕᚖgithubᚗcomᚋsavannahghiᚋfirebasetoolsᚐFilterParamᚄ(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["filterInput"] = arg2
+	args["filters"] = arg2
 	return args, nil
 }
 
@@ -5807,9 +5835,9 @@ func (ec *executionContext) _Appointment_status(ctx context.Context, field graph
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(enums.AppointmentStatus)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNAppointmentStatus2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐAppointmentStatus(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Appointment_reason(ctx context.Context, field graphql.CollectedField, obj *domain.Appointment) (ret graphql.Marshaler) {
@@ -13685,7 +13713,7 @@ func (ec *executionContext) _Query_fetchClientAppointments(ctx context.Context, 
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().FetchClientAppointments(rctx, args["clientID"].(string), args["paginationInput"].(dto.PaginationsInput), args["filterInput"].([]*dto.FiltersInput))
+		return ec.resolvers.Query().FetchClientAppointments(rctx, args["clientID"].(string), args["paginationInput"].(dto.PaginationsInput), args["filters"].([]*firebasetools.FilterParam))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -18531,6 +18559,53 @@ func (ec *executionContext) unmarshalInputFeedbackResponseInput(ctx context.Cont
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputFilterParam(ctx context.Context, obj interface{}) (firebasetools.FilterParam, error) {
+	var it firebasetools.FilterParam
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	for k, v := range asMap {
+		switch k {
+		case "fieldName":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("fieldName"))
+			it.FieldName, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "fieldType":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("fieldType"))
+			it.FieldType, err = ec.unmarshalNFieldType2githubᚗcomᚋsavannahghiᚋenumutilsᚐFieldType(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "comparisonOperation":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("comparisonOperation"))
+			it.ComparisonOperation, err = ec.unmarshalNOperation2githubᚗcomᚋsavannahghiᚋenumutilsᚐOperation(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "fieldValue":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("fieldValue"))
+			it.FieldValue, err = ec.unmarshalNAny2interface(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputFiltersInput(ctx context.Context, obj interface{}) (dto.FiltersInput, error) {
 	var it dto.FiltersInput
 	asMap := map[string]interface{}{}
@@ -21960,6 +22035,27 @@ func (ec *executionContext) ___Type(ctx context.Context, sel ast.SelectionSet, o
 
 // region    ***************************** type.gotpl *****************************
 
+func (ec *executionContext) unmarshalNAny2interface(ctx context.Context, v interface{}) (interface{}, error) {
+	res, err := graphql.UnmarshalAny(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNAny2interface(ctx context.Context, sel ast.SelectionSet, v interface{}) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := graphql.MarshalAny(v)
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+	}
+	return res
+}
+
 func (ec *executionContext) marshalNAppointment2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐAppointment(ctx context.Context, sel ast.SelectionSet, v []*domain.Appointment) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
@@ -21996,6 +22092,16 @@ func (ec *executionContext) marshalNAppointment2ᚕᚖgithubᚗcomᚋsavannahghi
 	wg.Wait()
 
 	return ret
+}
+
+func (ec *executionContext) unmarshalNAppointmentStatus2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐAppointmentStatus(ctx context.Context, v interface{}) (enums.AppointmentStatus, error) {
+	var res enums.AppointmentStatus
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNAppointmentStatus2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐAppointmentStatus(ctx context.Context, sel ast.SelectionSet, v enums.AppointmentStatus) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) marshalNAuthor2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐAuthor(ctx context.Context, sel ast.SelectionSet, v domain.Author) graphql.Marshaler {
@@ -22452,6 +22558,21 @@ func (ec *executionContext) unmarshalNFeedbackResponseInput2githubᚗcomᚋsavan
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) unmarshalNFieldType2githubᚗcomᚋsavannahghiᚋenumutilsᚐFieldType(ctx context.Context, v interface{}) (enumutils.FieldType, error) {
+	var res enumutils.FieldType
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNFieldType2githubᚗcomᚋsavannahghiᚋenumutilsᚐFieldType(ctx context.Context, sel ast.SelectionSet, v enumutils.FieldType) graphql.Marshaler {
+	return v
+}
+
+func (ec *executionContext) unmarshalNFilterParam2ᚖgithubᚗcomᚋsavannahghiᚋfirebasetoolsᚐFilterParam(ctx context.Context, v interface{}) (*firebasetools.FilterParam, error) {
+	res, err := ec.unmarshalInputFilterParam(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalNFlavour2githubᚗcomᚋsavannahghiᚋfeedlibᚐFlavour(ctx context.Context, v interface{}) (feedlib.Flavour, error) {
 	var res feedlib.Flavour
 	err := res.UnmarshalGQL(v)
@@ -22662,6 +22783,16 @@ func (ec *executionContext) marshalNMember2githubᚗcomᚋsavannahghiᚋmycarehu
 
 func (ec *executionContext) marshalNMeta2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐMeta(ctx context.Context, sel ast.SelectionSet, v domain.Meta) graphql.Marshaler {
 	return ec._Meta(ctx, sel, &v)
+}
+
+func (ec *executionContext) unmarshalNOperation2githubᚗcomᚋsavannahghiᚋenumutilsᚐOperation(ctx context.Context, v interface{}) (enumutils.Operation, error) {
+	var res enumutils.Operation
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNOperation2githubᚗcomᚋsavannahghiᚋenumutilsᚐOperation(ctx context.Context, sel ast.SelectionSet, v enumutils.Operation) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) marshalNPagination2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐPagination(ctx context.Context, sel ast.SelectionSet, v domain.Pagination) graphql.Marshaler {
@@ -24122,6 +24253,30 @@ func (ec *executionContext) marshalOFeaturedMedia2ᚕgithubᚗcomᚋsavannahghi�
 	wg.Wait()
 
 	return ret
+}
+
+func (ec *executionContext) unmarshalOFilterParam2ᚕᚖgithubᚗcomᚋsavannahghiᚋfirebasetoolsᚐFilterParamᚄ(ctx context.Context, v interface{}) ([]*firebasetools.FilterParam, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]*firebasetools.FilterParam, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNFilterParam2ᚖgithubᚗcomᚋsavannahghiᚋfirebasetoolsᚐFilterParam(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
 }
 
 func (ec *executionContext) unmarshalOFilterSortDataType2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐFilterSortDataType(ctx context.Context, v interface{}) (enums.FilterSortDataType, error) {

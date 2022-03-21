@@ -824,8 +824,10 @@ func TestPGInstance_CreateCommunity(t *testing.T) {
 
 func TestPGInstance_CreateRelatedPerson(t *testing.T) {
 	type args struct {
-		ctx    context.Context
-		person *gorm.RelatedPerson
+		ctx       context.Context
+		person    *gorm.RelatedPerson
+		clientID  string
+		contactID string
 	}
 	tests := []struct {
 		name    string
@@ -843,6 +845,8 @@ func TestPGInstance_CreateRelatedPerson(t *testing.T) {
 					Gender:           "MALE",
 					RelationshipType: "Next of Kin",
 				},
+				clientID:  clientID,
+				contactID: contactID,
 			},
 			wantErr: false,
 		},
@@ -850,7 +854,7 @@ func TestPGInstance_CreateRelatedPerson(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			if err := testingDB.CreateRelatedPerson(tt.args.ctx, tt.args.person); (err != nil) != tt.wantErr {
+			if err := testingDB.CreateRelatedPerson(tt.args.ctx, tt.args.person, tt.args.clientID, tt.args.contactID); (err != nil) != tt.wantErr {
 				t.Errorf("PGInstance.CreateRelatedPerson() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -881,8 +885,19 @@ func TestPGInstance_CreateContact(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := testingDB.CreateContact(tt.args.ctx, tt.args.contact); (err != nil) != tt.wantErr {
+			got, err := testingDB.CreateContact(tt.args.ctx, tt.args.contact)
+			if (err != nil) != tt.wantErr {
 				t.Errorf("PGInstance.CreateContact() error = %v, wantErr %v", err, tt.wantErr)
+			}
+
+			if tt.wantErr && got != nil {
+				t.Errorf("expected contact to be nil for %v", tt.name)
+				return
+			}
+
+			if !tt.wantErr && got == nil && got.ContactID == nil {
+				t.Errorf("expected contact not to be nil for %v", tt.name)
+				return
 			}
 		})
 	}

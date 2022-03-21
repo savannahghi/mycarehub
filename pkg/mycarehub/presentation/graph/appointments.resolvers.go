@@ -6,13 +6,14 @@ package graph
 import (
 	"context"
 
+	"github.com/savannahghi/firebasetools"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/presentation/graph/generated"
 )
 
-func (r *queryResolver) FetchClientAppointments(ctx context.Context, clientID string, paginationInput dto.PaginationsInput, filterInput []*dto.FiltersInput) (*domain.AppointmentsPage, error) {
-	return r.mycarehub.Appointment.FetchClientAppointments(ctx, clientID, paginationInput, filterInput)
+func (r *queryResolver) FetchClientAppointments(ctx context.Context, clientID string, paginationInput dto.PaginationsInput, filters []*firebasetools.FilterParam) (*domain.AppointmentsPage, error) {
+	return r.mycarehub.Appointment.FetchClientAppointments(ctx, clientID, paginationInput, filters)
 }
 
 // Query returns generated.QueryResolver implementation.

@@ -301,7 +301,7 @@ type CommunityMember {
 type Appointment {
   ID: ID!
   type: String!
-  status: String!
+  status: AppointmentStatus!
   reason: String!
   date: Date!
   start: Time
@@ -384,6 +384,6 @@ type Contact {
 
 type AuthorityRole {
   roleID: String
-	name:   UserRoleType 
+  name: UserRoleType
   active: Boolean
 }

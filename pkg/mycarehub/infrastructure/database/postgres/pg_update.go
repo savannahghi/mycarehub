@@ -190,7 +190,7 @@ func (d *MyCareHubDb) UpdateAppointment(ctx context.Context, appointment domain.
 		Active:          true,
 		AppointmentUUID: appointmentUUID,
 		AppointmentType: appointment.Type,
-		Status:          appointment.Status,
+		Status:          appointment.Status.String(),
 		ClientID:        clientID,
 		FacilityID:      appointment.FacilityID,
 		Reason:          appointment.Reason,

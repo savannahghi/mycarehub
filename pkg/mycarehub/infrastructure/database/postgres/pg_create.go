@@ -253,18 +253,18 @@ func (d *MyCareHubDb) CreateCommunity(ctx context.Context, communityInput *dto.C
 }
 
 // CreateNextOfKin creates a related person who is a next of kin
-func (d *MyCareHubDb) CreateNextOfKin(ctx context.Context, person *dto.NextOfKinPayload) error {
+func (d *MyCareHubDb) CreateNextOfKin(ctx context.Context, person *dto.NextOfKinPayload, clientID, contactID string) error {
 
 	pn := &gorm.RelatedPerson{
 		FirstName:        person.Name,
 		RelationshipType: "NEXT_OF_KIN",
 	}
 
-	return d.create.CreateRelatedPerson(ctx, pn)
+	return d.create.CreateRelatedPerson(ctx, pn, clientID, contactID)
 }
 
 // CreateContact creates a contact
-func (d *MyCareHubDb) CreateContact(ctx context.Context, contact *domain.Contact) error {
+func (d *MyCareHubDb) CreateContact(ctx context.Context, contact *domain.Contact) (*domain.Contact, error) {
 
 	ct := &gorm.Contact{
 		Active:       true,
@@ -273,7 +273,18 @@ func (d *MyCareHubDb) CreateContact(ctx context.Context, contact *domain.Contact
 		OptedIn:      false,
 	}
 
-	return d.create.CreateContact(ctx, ct)
+	c, err := d.create.CreateContact(ctx, ct)
+	if err != nil {
+		return nil, err
+	}
+
+	return &domain.Contact{
+		ID:           c.ContactID,
+		ContactType:  *c.ContactID,
+		ContactValue: c.ContactValue,
+		Active:       c.Active,
+		OptedIn:      c.OptedIn,
+	}, nil
 }
 
 // CreateAppointment creates a new appointment
@@ -284,7 +295,7 @@ func (d *MyCareHubDb) CreateAppointment(ctx context.Context, appointment domain.
 		Active:          true,
 		AppointmentUUID: appointmentUUID,
 		AppointmentType: appointment.Type,
-		Status:          appointment.Status,
+		Status:          appointment.Status.String(),
 		ClientID:        clientID,
 		FacilityID:      appointment.FacilityID,
 		Reason:          appointment.Reason,

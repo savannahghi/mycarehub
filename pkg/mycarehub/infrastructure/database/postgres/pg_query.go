@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/savannahghi/feedlib"
+	"github.com/savannahghi/firebasetools"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
@@ -1054,7 +1055,7 @@ func (d *MyCareHubDb) GetScreeningToolQuestions(ctx context.Context, questionTyp
 }
 
 // ListAppointments lists appointments at a facility
-func (d *MyCareHubDb) ListAppointments(ctx context.Context, params *domain.Appointment, filter []*domain.FiltersParam, pagination *domain.Pagination) ([]*domain.Appointment, *domain.Pagination, error) {
+func (d *MyCareHubDb) ListAppointments(ctx context.Context, params *domain.Appointment, filters []*firebasetools.FilterParam, pagination *domain.Pagination) ([]*domain.Appointment, *domain.Pagination, error) {
 
 	parameters := &gorm.Appointment{
 		Active:          true,
@@ -1065,7 +1066,7 @@ func (d *MyCareHubDb) ListAppointments(ctx context.Context, params *domain.Appoi
 		Provider: params.Provider,
 	}
 
-	appointments, pageInfo, err := d.query.ListAppointments(ctx, parameters, filter, pagination)
+	appointments, pageInfo, err := d.query.ListAppointments(ctx, parameters, filters, pagination)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -1075,7 +1076,7 @@ func (d *MyCareHubDb) ListAppointments(ctx context.Context, params *domain.Appoi
 		m := &domain.Appointment{
 			ID:       a.ID,
 			Type:     a.AppointmentType,
-			Status:   a.Status,
+			Status:   enums.AppointmentStatus(a.Status),
 			Reason:   a.Reason,
 			Provider: a.Provider,
 			Date: scalarutils.Date{

@@ -998,7 +998,13 @@ func (us *UseCasesUserImpl) RegisterKenyaEMRPatients(ctx context.Context, input 
 	clients := []*dto.ClientRegistrationOutput{}
 
 	for _, patient := range input {
-		exists, err := us.Query.CheckFacilityExistsByMFLCode(ctx, patient.MFLCode)
+		MFLCode, err := strconv.Atoi(patient.MFLCode)
+		if err != nil {
+
+			return nil, err
+		}
+
+		exists, err := us.Query.CheckFacilityExistsByMFLCode(ctx, MFLCode)
 		if err != nil {
 			return nil, fmt.Errorf("error checking for facility")
 		}
@@ -1006,7 +1012,7 @@ func (us *UseCasesUserImpl) RegisterKenyaEMRPatients(ctx context.Context, input 
 			return nil, fmt.Errorf("facility with provided MFL code doesn't exist, code: %v", patient.MFLCode)
 		}
 
-		facility, err := us.Query.RetrieveFacilityByMFLCode(ctx, patient.MFLCode, true)
+		facility, err := us.Query.RetrieveFacilityByMFLCode(ctx, MFLCode, true)
 		if err != nil {
 			return nil, fmt.Errorf("error retrieving facility: %v", err)
 		}
@@ -1029,7 +1035,7 @@ func (us *UseCasesUserImpl) RegisterKenyaEMRPatients(ctx context.Context, input 
 			EnrollmentDate: patient.EnrollmentDate,
 			CCCNumber:      patient.CCCNumber,
 			Counselled:     patient.Counselled,
-			InviteClient:   true,
+			InviteClient:   false,
 		}
 
 		client, err := us.RegisterClient(ctx, input)
@@ -1037,16 +1043,16 @@ func (us *UseCasesUserImpl) RegisterKenyaEMRPatients(ctx context.Context, input 
 			return nil, err
 		}
 
-		contact := domain.Contact{
+		cntct := domain.Contact{
 			ContactType:  "PHONE",
 			ContactValue: patient.NextOfKin.Contact,
 		}
-		err = us.Create.CreateContact(ctx, &contact)
+		contact, err := us.Create.CreateContact(ctx, &cntct)
 		if err != nil {
 			return nil, err
 		}
 
-		err = us.Create.CreateNextOfKin(ctx, &patient.NextOfKin)
+		err = us.Create.CreateNextOfKin(ctx, &patient.NextOfKin, client.ID, *contact.ID)
 		if err != nil {
 			return nil, err
 		}

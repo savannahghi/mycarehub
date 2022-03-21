@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/savannahghi/feedlib"
+	"github.com/savannahghi/firebasetools"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
@@ -24,8 +25,8 @@ type Create interface {
 	CreateServiceRequest(ctx context.Context, serviceRequestInput *dto.ServiceRequestInput) error
 	CreateClientCaregiver(ctx context.Context, caregiverInput *dto.CaregiverInput) error
 	CreateCommunity(ctx context.Context, communityInput *dto.CommunityInput) (*domain.Community, error)
-	CreateNextOfKin(ctx context.Context, person *dto.NextOfKinPayload) error
-	CreateContact(ctx context.Context, contact *domain.Contact) error
+	CreateNextOfKin(ctx context.Context, person *dto.NextOfKinPayload, clientID, contactID string) error
+	CreateContact(ctx context.Context, contact *domain.Contact) (*domain.Contact, error)
 	CreateAppointment(ctx context.Context, appointment domain.Appointment, appointmentUUID, clientID string) error
 	AnswerScreeningToolQuestions(ctx context.Context, screeningToolResponses []*dto.ScreeningToolQuestionResponseInput) error
 }
@@ -81,7 +82,7 @@ type Query interface {
 	GetClientsByParams(ctx context.Context, params gorm.Client, lastSyncTime *time.Time) ([]*domain.ClientProfile, error)
 	GetClientCCCIdentifier(ctx context.Context, clientID string) (*domain.Identifier, error)
 	GetServiceRequestsForKenyaEMR(ctx context.Context, payload *dto.ServiceRequestPayload) ([]*domain.ServiceRequest, error)
-	ListAppointments(ctx context.Context, params *domain.Appointment, filter []*domain.FiltersParam, pagination *domain.Pagination) ([]*domain.Appointment, *domain.Pagination, error)
+	ListAppointments(ctx context.Context, params *domain.Appointment, filters []*firebasetools.FilterParam, pagination *domain.Pagination) ([]*domain.Appointment, *domain.Pagination, error)
 	GetScreeningToolQuestions(ctx context.Context, toolType string) ([]*domain.ScreeningToolQuestion, error)
 	GetScreeningToolQuestionByQuestionID(ctx context.Context, questionID string) (*domain.ScreeningToolQuestion, error)
 	SearchStaffProfileByStaffNumber(ctx context.Context, staffNumber string) ([]*domain.StaffProfile, error)

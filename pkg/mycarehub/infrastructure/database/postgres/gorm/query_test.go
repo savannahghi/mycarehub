@@ -9,7 +9,9 @@ import (
 
 	"github.com/brianvoe/gofakeit"
 	"github.com/google/uuid"
+	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/feedlib"
+	"github.com/savannahghi/firebasetools"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
@@ -2774,7 +2776,7 @@ func TestPGInstance_ListAppointments(t *testing.T) {
 	type args struct {
 		ctx        context.Context
 		params     *gorm.Appointment
-		filter     []*domain.FiltersParam
+		filters    []*firebasetools.FilterParam
 		pagination *domain.Pagination
 	}
 	tests := []struct {
@@ -2788,7 +2790,7 @@ func TestPGInstance_ListAppointments(t *testing.T) {
 			args: args{
 				ctx:        context.Background(),
 				params:     nil,
-				filter:     nil,
+				filters:    nil,
 				pagination: nil,
 			},
 			wantErr: false,
@@ -2796,9 +2798,9 @@ func TestPGInstance_ListAppointments(t *testing.T) {
 		{
 			name: "happy case: list paginated appointments",
 			args: args{
-				ctx:    context.Background(),
-				params: nil,
-				filter: nil,
+				ctx:     context.Background(),
+				params:  nil,
+				filters: nil,
 				pagination: &domain.Pagination{
 					Limit:       1,
 					CurrentPage: 1,
@@ -2807,25 +2809,179 @@ func TestPGInstance_ListAppointments(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "happy case: list filtered appointments",
+			name: "happy case: list filtered appointments status",
 			args: args{
 				ctx:    context.Background(),
 				params: nil,
-				filter: []*domain.FiltersParam{
+				filters: []*firebasetools.FilterParam{
 					{
-						Name:     enums.FilterSortDataTypeAppointmentStatus.String(),
-						DataType: enums.FilterSortDataTypeAppointmentStatus,
-						Value:    "COMPLETED",
+						FieldName:           "status",
+						FieldType:           enumutils.FieldTypeString,
+						ComparisonOperation: enumutils.OperationEqual,
+						FieldValue:          enums.AppointmentStatusCompleted.String(),
 					},
 				},
 				pagination: nil,
 			},
 			wantErr: false,
 		},
+		{
+			name: "happy case: list filtered appointments date",
+			args: args{
+				ctx:    context.Background(),
+				params: nil,
+				filters: []*firebasetools.FilterParam{
+					{
+						FieldName:           "date",
+						FieldType:           enumutils.FieldTypeTimestamp,
+						ComparisonOperation: enumutils.OperationLessThanOrEqualTo,
+						FieldValue:          time.Now().Format(time.RFC3339),
+					},
+				},
+				pagination: nil,
+			},
+			wantErr: false,
+		},
+		{
+			name: "happy case: list filtered appointments time",
+			args: args{
+				ctx:    context.Background(),
+				params: nil,
+				filters: []*firebasetools.FilterParam{
+					{
+						FieldName:           "created",
+						FieldType:           enumutils.FieldTypeTimestamp,
+						ComparisonOperation: enumutils.OperationLessThanOrEqualTo,
+						FieldValue:          time.Now().Format(time.RFC3339),
+					},
+				},
+				pagination: nil,
+			},
+			wantErr: false,
+		},
+		{
+			name: "happy case: list filtered appointments active",
+			args: args{
+				ctx:    context.Background(),
+				params: nil,
+				filters: []*firebasetools.FilterParam{
+					{
+						FieldName:           "active",
+						FieldType:           enumutils.FieldTypeBoolean,
+						ComparisonOperation: enumutils.OperationLessThanOrEqualTo,
+						FieldValue:          false,
+					},
+				},
+				pagination: nil,
+			},
+			wantErr: false,
+		},
+		{
+			name: "sad case: list filtered appointments invalid filter",
+			args: args{
+				ctx:    context.Background(),
+				params: nil,
+				filters: []*firebasetools.FilterParam{
+					{
+						FieldName:           "active",
+						FieldType:           "INVALID",
+						ComparisonOperation: enumutils.OperationEqual,
+						FieldValue:          false,
+					},
+				},
+				pagination: nil,
+			},
+			wantErr: true,
+		},
+		{
+			name: "sad case: list filtered appointments invalid operation",
+			args: args{
+				ctx:    context.Background(),
+				params: nil,
+				filters: []*firebasetools.FilterParam{
+					{
+						FieldName:           "active",
+						FieldType:           enumutils.FieldTypeBoolean,
+						ComparisonOperation: "INVALID",
+						FieldValue:          false,
+					},
+				},
+				pagination: nil,
+			},
+			wantErr: true,
+		},
+		{
+			name: "sad case: list filtered appointments invalid boolean filter",
+			args: args{
+				ctx:    context.Background(),
+				params: nil,
+				filters: []*firebasetools.FilterParam{
+					{
+						FieldName:           "active",
+						FieldType:           enumutils.FieldTypeBoolean,
+						ComparisonOperation: enumutils.OperationEqual,
+						FieldValue:          "INVALID",
+					},
+				},
+				pagination: nil,
+			},
+			wantErr: true,
+		},
+		{
+			name: "sad case: list filtered appointments invalid string filter",
+			args: args{
+				ctx:    context.Background(),
+				params: nil,
+				filters: []*firebasetools.FilterParam{
+					{
+						FieldName:           "status",
+						FieldType:           enumutils.FieldTypeString,
+						ComparisonOperation: enumutils.OperationEqual,
+						FieldValue:          1234,
+					},
+				},
+				pagination: nil,
+			},
+			wantErr: true,
+		},
+		{
+			name: "sad case: list filtered appointments invalid integer filter",
+			args: args{
+				ctx:    context.Background(),
+				params: nil,
+				filters: []*firebasetools.FilterParam{
+					{
+						FieldName:           "status",
+						FieldType:           enumutils.FieldTypeInteger,
+						ComparisonOperation: enumutils.OperationEqual,
+						FieldValue:          "INVALID",
+					},
+				},
+				pagination: nil,
+			},
+			wantErr: true,
+		},
+		{
+			name: "sad case: list filtered appointments invalid timestamp filter",
+			args: args{
+				ctx:    context.Background(),
+				params: nil,
+				filters: []*firebasetools.FilterParam{
+					{
+						FieldName:           "date",
+						FieldType:           enumutils.FieldTypeTimestamp,
+						ComparisonOperation: enumutils.OperationEqual,
+						FieldValue:          123456,
+					},
+				},
+				pagination: nil,
+			},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, _, err := testingDB.ListAppointments(tt.args.ctx, tt.args.params, tt.args.filter, tt.args.pagination)
+			got, _, err := testingDB.ListAppointments(tt.args.ctx, tt.args.params, tt.args.filters, tt.args.pagination)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("PGInstance.ListAppointments() error = %v, wantErr %v", err, tt.wantErr)
 				return

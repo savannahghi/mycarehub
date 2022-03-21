@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/savannahghi/feedlib"
+	"github.com/savannahghi/firebasetools"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
@@ -22,7 +23,7 @@ type Query interface {
 	RetrieveFacilityByMFLCode(ctx context.Context, MFLCode int, isActive bool) (*Facility, error)
 	GetFacilities(ctx context.Context) ([]Facility, error)
 	ListFacilities(ctx context.Context, searchTerm *string, filter []*domain.FiltersParam, pagination *domain.FacilityPage) (*domain.FacilityPage, error)
-	ListAppointments(ctx context.Context, params *Appointment, filter []*domain.FiltersParam, pagination *domain.Pagination) ([]*Appointment, *domain.Pagination, error)
+	ListAppointments(ctx context.Context, params *Appointment, filters []*firebasetools.FilterParam, pagination *domain.Pagination) ([]*Appointment, *domain.Pagination, error)
 	GetUserProfileByPhoneNumber(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*User, error)
 	GetUserPINByUserID(ctx context.Context, userID string, flavour feedlib.Flavour) (*PINData, error)
 	GetUserProfileByUserID(ctx context.Context, userID *string) (*User, error)
@@ -278,22 +279,12 @@ func (db *PGInstance) ListFacilities(
 }
 
 // ListAppointments Retrieves appointments using the provided parameters and filters
-func (db *PGInstance) ListAppointments(ctx context.Context, params *Appointment, filter []*domain.FiltersParam, pagination *domain.Pagination) ([]*Appointment, *domain.Pagination, error) {
+func (db *PGInstance) ListAppointments(ctx context.Context, params *Appointment, filters []*firebasetools.FilterParam, pagination *domain.Pagination) ([]*Appointment, *domain.Pagination, error) {
 	var appointments []*Appointment
-	var pageInfo *domain.Pagination // TODO: fix pagination implementation
+	pageInfo := &domain.Pagination{} // TODO: fix pagination implementation
 	// this will keep track of the results for pagination
 	// Count query is unreliable for this since it is returning the count for all rows instead of results
 	var resultCount int64
-
-	for _, f := range filter {
-		err := f.Validate()
-		if err != nil {
-			helpers.ReportErrorToSentry(err)
-			return nil, nil, fmt.Errorf("failed to validate filter %v: %v", f.Value, err)
-		}
-	}
-
-	mappedFilterParams := filterParamsToMap(filter)
 
 	tx := db.DB.Begin()
 	defer func() {
@@ -303,24 +294,37 @@ func (db *PGInstance) ListAppointments(ctx context.Context, params *Appointment,
 	}()
 
 	if err := tx.Error; err != nil {
-		return nil, nil, fmt.Errorf("failed to initialize filter appointments transaction %v", err)
+		return nil, pageInfo, fmt.Errorf("failed to initialize filter appointments transaction %v", err)
 	}
 
-	tx.Where(params).Where(mappedFilterParams).Find(&appointments)
+	transaction := tx.Where(params)
+
+	transaction, err := addFilters(transaction, filters)
+	if err != nil {
+		return nil, pageInfo, fmt.Errorf("failed to add filters: %v", err)
+	}
+
+	transaction.Find(&appointments)
 
 	resultCount = int64(len(appointments))
 
 	if pagination != nil {
-		tx.Scopes(
+		transaction = tx.Scopes(
 			paginate(appointments, pagination, resultCount, db.DB),
-		).Where(params).Where(mappedFilterParams).Find(&appointments)
+		).Where(params)
+
+		transaction, err := addFilters(transaction, filters)
+		if err != nil {
+			return nil, pageInfo, fmt.Errorf("failed to add filters: %v", err)
+		}
+
+		transaction.Find(&appointments)
 
 		pageInfo = pagination
 	}
 
 	if err := tx.Commit().Error; err != nil {
-		tx.Rollback()
-		return nil, nil, fmt.Errorf("failed to commit transaction list facilities transaction%v", err)
+		return nil, pageInfo, fmt.Errorf("failed to commit transaction list facilities transaction%v", err)
 	}
 
 	return appointments, pageInfo, nil
