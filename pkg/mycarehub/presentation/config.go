@@ -9,6 +9,7 @@ import (
 	"os"
 	"time"
 
+	"cloud.google.com/go/pubsub"
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/gorilla/handlers"
@@ -19,6 +20,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
 	streamService "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/getstream"
 	loginservice "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/login"
+	pubsubmessaging "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/pubsub"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/presentation/graph"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/presentation/graph/generated"
 	internalRest "github.com/savannahghi/mycarehub/pkg/mycarehub/presentation/rest"
@@ -76,6 +78,28 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	externalExt := externalExtension.NewExternalMethodsImpl()
 	loginsvc := loginservice.NewServiceLoginImpl(externalExt)
 	db := postgres.NewMyCareHubDb(pg, pg, pg, pg)
+
+	projectID, err := serverutils.GetEnvVar(serverutils.GoogleCloudProjectIDEnvVarName)
+	if err != nil {
+		return nil, fmt.Errorf(
+			"can't get projectID from env var `%s`: %w",
+			serverutils.GoogleCloudProjectIDEnvVarName,
+			err,
+		)
+	}
+
+	pubSubClient, err := pubsub.NewClient(ctx, projectID)
+	if err != nil {
+		return nil, fmt.Errorf("unable to initialize pubsub client: %w", err)
+	}
+
+	pubSub, err := pubsubmessaging.NewServicePubSubMessaging(
+		pubSubClient,
+		externalExt,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialize pubsub messaging service: %w", err)
+	}
 
 	// Initialize facility usecase
 	facilityUseCase := facility.NewFacilityUsecase(db, db, db, db)
@@ -200,6 +224,8 @@ func Router(ctx context.Context) (*mux.Router, error) {
 		http.MethodOptions,
 		http.MethodPost,
 	).HandlerFunc(internalHandlers.OptIn())
+
+	r.Path("/pubsub").Methods(http.MethodPost).HandlerFunc(pubSub.ReceivePubSubPushMessages)
 
 	// This endpoint will be used by external services to get a token that will be used to
 	// authenticate against our APIs

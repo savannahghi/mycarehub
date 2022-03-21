@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"cloud.google.com/go/pubsub"
 	openSourceDto "github.com/savannahghi/engagementcore/pkg/engagement/application/common/dto"
 	engagementInfra "github.com/savannahghi/engagementcore/pkg/engagement/infrastructure"
 	engagementEmail "github.com/savannahghi/engagementcore/pkg/engagement/usecases/mail"
@@ -18,6 +19,7 @@ import (
 	"github.com/savannahghi/interserviceclient"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/extension"
+	"github.com/savannahghi/pubsubtools"
 	"github.com/savannahghi/serverutils"
 )
 
@@ -47,6 +49,12 @@ type ExternalMethodsExtension interface {
 
 	// Login
 	Login(ctx context.Context) http.HandlerFunc
+
+	//Pubsub
+	PublishToPubsub(ctx context.Context, pubsubClient *pubsub.Client, topicID string, environment string, serviceName string, version string, payload []byte) error
+	EnsureTopicsExist(ctx context.Context, pubsubClient *pubsub.Client, topicIDs []string) error
+	EnsureSubscriptionsExist(ctx context.Context, pubsubClient *pubsub.Client, topicSubscriptionMap map[string]string, callbackURL string) error
+	VerifyPubSubJWTAndDecodePayload(w http.ResponseWriter, r *http.Request) (*pubsubtools.PubSubPayload, error)
 }
 
 // External type implements external methods
@@ -212,4 +220,43 @@ func (e *External) MakeRequest(ctx context.Context, method string, path string, 
 // Login authenticates against firebase to return a valid token
 func (e *External) Login(ctx context.Context) http.HandlerFunc {
 	return firebasetools.GetLoginFunc(ctx, &firebasetools.FirebaseClient{})
+}
+
+// PublishToPubsub sends the supplied payload to the indicated topic
+func (e *External) PublishToPubsub(ctx context.Context, pubsubClient *pubsub.Client, topicID string, environment string, serviceName string, version string, payload []byte) error {
+	return pubsubtools.PublishToPubsub(
+		ctx,
+		pubsubClient,
+		topicID,
+		environment,
+		serviceName,
+		version,
+		payload,
+	)
+}
+
+// EnsureTopicsExist creates the topic(s) in the suppplied list if they do not
+// already exist.
+func (e *External) EnsureTopicsExist(ctx context.Context, pubsubClient *pubsub.Client, topicIDs []string) error {
+	return pubsubtools.EnsureTopicsExist(ctx, pubsubClient, topicIDs)
+}
+
+// EnsureSubscriptionsExist ensures that the subscriptions named in the supplied
+// topic:subscription map exist. If any does not exist, it is created.
+func (e *External) EnsureSubscriptionsExist(ctx context.Context, pubsubClient *pubsub.Client, topicSubscriptionMap map[string]string, callbackURL string) error {
+	return pubsubtools.EnsureSubscriptionsExist(
+		ctx,
+		pubsubClient,
+		topicSubscriptionMap,
+		callbackURL,
+	)
+}
+
+// VerifyPubSubJWTAndDecodePayload confirms that there is a valid Google signed
+// JWT and decodes the pubsub message payload into a struct.
+//
+// It's use will simplify & shorten the handler funcs that process Cloud Pubsub
+// push notifications.
+func (e *External) VerifyPubSubJWTAndDecodePayload(w http.ResponseWriter, r *http.Request) (*pubsubtools.PubSubPayload, error) {
+	return pubsubtools.VerifyPubSubJWTAndDecodePayload(w, r)
 }

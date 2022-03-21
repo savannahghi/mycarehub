@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 
+	"cloud.google.com/go/pubsub"
 	"github.com/google/uuid"
 	openSourceDto "github.com/savannahghi/engagementcore/pkg/engagement/application/common/dto"
 	"github.com/savannahghi/enumutils"
@@ -11,6 +12,7 @@ import (
 	"github.com/savannahghi/interserviceclient"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/extension"
+	"github.com/savannahghi/pubsubtools"
 )
 
 // FakeExtensionImpl mocks the external calls logic
@@ -30,6 +32,11 @@ type FakeExtensionImpl struct {
 	MockGetLoggedInUserUIDFn              func(ctx context.Context) (string, error)
 	MockMakeRequestFn                     func(ctx context.Context, method string, path string, body interface{}) (*http.Response, error)
 	MockLoginFn                           func(ctx context.Context) http.HandlerFunc
+	MockNamespacePubsubIdentifierFn       func(serviceName string, topicID string, environment string, version string) string
+	MockPublishToPubsubFn                 func(ctx context.Context, pubsubClient *pubsub.Client, topicID string, environment string, serviceName string, version string, payload []byte) error
+	MockEnsureTopicsExistFn               func(ctx context.Context, pubsubClient *pubsub.Client, topicIDs []string) error
+	MockEnsureSubscriptionsExistFn        func(ctx context.Context, pubsubClient *pubsub.Client, topicSubscriptionMap map[string]string, callbackURL string) error
+	MockVerifyPubSubJWTAndDecodePayloadFn func(w http.ResponseWriter, r *http.Request) (*pubsubtools.PubSubPayload, error)
 }
 
 // NewFakeExtension initializes a new instance of the external calls mock
@@ -91,6 +98,25 @@ func NewFakeExtension() *FakeExtensionImpl {
 		MockMakeRequestFn: func(ctx context.Context, method, path string, body interface{}) (*http.Response, error) {
 			return &http.Response{
 				StatusCode: http.StatusOK,
+			}, nil
+		},
+		MockPublishToPubsubFn: func(ctx context.Context, pubsubClient *pubsub.Client, topicID string, environment string, serviceName string, version string, payload []byte) error {
+			return nil
+		},
+		MockEnsureTopicsExistFn: func(ctx context.Context, pubsubClient *pubsub.Client, topicIDs []string) error {
+			return nil
+		},
+		MockEnsureSubscriptionsExistFn: func(ctx context.Context, pubsubClient *pubsub.Client, topicSubscriptionMap map[string]string, callbackURL string) error {
+			return nil
+		},
+		MockVerifyPubSubJWTAndDecodePayloadFn: func(w http.ResponseWriter, r *http.Request) (*pubsubtools.PubSubPayload, error) {
+			return &pubsubtools.PubSubPayload{
+				Message: pubsubtools.PubSubMessage{
+					Attributes: map[string]string{
+						"topicID": "test-id",
+					},
+				},
+				Subscription: "test-subscription",
 			}, nil
 		},
 	}
@@ -169,4 +195,43 @@ func (f *FakeExtensionImpl) MakeRequest(ctx context.Context, method string, path
 // Login mocks the login implementation to retrieve a token
 func (f *FakeExtensionImpl) Login(ctx context.Context) http.HandlerFunc {
 	return f.MockLoginFn(ctx)
+}
+
+// PublishToPubsub sends the supplied payload to the indicated topic
+func (f *FakeExtensionImpl) PublishToPubsub(ctx context.Context, pubsubClient *pubsub.Client, topicID string, environment string, serviceName string, version string, payload []byte) error {
+	return f.MockPublishToPubsubFn(
+		ctx,
+		pubsubClient,
+		topicID,
+		environment,
+		serviceName,
+		version,
+		payload,
+	)
+}
+
+// EnsureTopicsExist creates the topic(s) in the suppplied list if they do not
+// already exist.
+func (f *FakeExtensionImpl) EnsureTopicsExist(ctx context.Context, pubsubClient *pubsub.Client, topicIDs []string) error {
+	return f.MockEnsureTopicsExistFn(ctx, pubsubClient, topicIDs)
+}
+
+// EnsureSubscriptionsExist ensures that the subscriptions named in the supplied
+// topic:subscription map exist. If any does not exist, it is created.
+func (f *FakeExtensionImpl) EnsureSubscriptionsExist(ctx context.Context, pubsubClient *pubsub.Client, topicSubscriptionMap map[string]string, callbackURL string) error {
+	return f.MockEnsureSubscriptionsExistFn(
+		ctx,
+		pubsubClient,
+		topicSubscriptionMap,
+		callbackURL,
+	)
+}
+
+// VerifyPubSubJWTAndDecodePayload confirms that there is a valid Google signed
+// JWT and decodes the pubsub message payload into a struct.
+//
+// It's use will simplify & shorten the handler funcs that process Cloud Pubsub
+// push notifications.
+func (f *FakeExtensionImpl) VerifyPubSubJWTAndDecodePayload(w http.ResponseWriter, r *http.Request) (*pubsubtools.PubSubPayload, error) {
+	return f.MockVerifyPubSubJWTAndDecodePayloadFn(w, r)
 }
