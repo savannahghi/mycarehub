@@ -469,3 +469,9 @@ type ServiceRequestInput struct {
 	ClientName   *string                `json:"client_name"`
 	Meta         map[string]interface{} `json:"meta"`
 }
+
+// ClientFHIRPayload is the payload from clinical service with patient's fhir ID
+type ClientFHIRPayload struct {
+	ClientID string `json:"clientID,omitempty"`
+	FHIRID   string `json:"fhirID,omitempty"`
+}

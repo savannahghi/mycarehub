@@ -11,6 +11,7 @@ import (
 	"net/url"
 	"testing"
 
+	"github.com/brianvoe/gofakeit"
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/interserviceclient"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
@@ -1756,6 +1757,236 @@ func TestMyCareHubHandlersInterfacesImpl_CreatePinResetServiceRequest(t *testing
 			}
 
 			for k, v := range headers {
+				r.Header.Add(k, v)
+			}
+			client := http.DefaultClient
+			resp, err := client.Do(r)
+			if err != nil {
+				t.Errorf("request error: %s", err)
+				return
+			}
+
+			if resp == nil && !tt.wantErr {
+				t.Errorf("nil response")
+				return
+			}
+
+			dataResponse, err := ioutil.ReadAll(resp.Body)
+			if err != nil {
+				t.Errorf("can't read request body: %s", err)
+				return
+			}
+			if dataResponse == nil {
+				t.Errorf("nil response data")
+				return
+			}
+
+			data := map[string]interface{}{}
+			err = json.Unmarshal(dataResponse, &data)
+			if tt.wantErr && err != nil {
+				t.Errorf("bad data returned: %v", err)
+				return
+			}
+
+			if tt.wantErr {
+				errMsg, ok := data["error"]
+				if !ok {
+					t.Errorf("expected error: %s", errMsg)
+					return
+				}
+			}
+
+			if !tt.wantErr {
+				_, ok := data["error"]
+				if ok {
+					t.Errorf("error not expected")
+					return
+				}
+			}
+
+			if resp.StatusCode != tt.wantStatus {
+				t.Errorf("expected status %d, got %s", tt.wantStatus, resp.Status)
+				return
+			}
+		})
+	}
+}
+
+func TestMyCareHubHandlersInterfacesImpl_GetUserProfile(t *testing.T) {
+	type args struct {
+		url        string
+		httpMethod string
+		body       io.Reader
+	}
+	tests := []struct {
+		name       string
+		args       args
+		wantStatus int
+		wantErr    bool
+	}{
+		{
+			name: "Sad Case -  invalid user id",
+			args: args{
+				url:        fmt.Sprintf("%s/internal/user-profile/123456", baseURL),
+				httpMethod: http.MethodGet,
+			},
+			wantStatus: http.StatusInternalServerError,
+			wantErr:    true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r, err := http.NewRequest(
+				tt.args.httpMethod,
+				tt.args.url,
+				tt.args.body,
+			)
+			if err != nil {
+				t.Errorf("unable to compose request: %s", err)
+				return
+			}
+
+			if r == nil {
+				t.Errorf("nil request")
+				return
+			}
+
+			for k, v := range interserviceclient.GetDefaultHeaders(t, baseURL, "mycarehub") {
+				r.Header.Add(k, v)
+			}
+
+			client := http.DefaultClient
+			resp, err := client.Do(r)
+			if err != nil {
+				t.Errorf("request error: %s", err)
+				return
+			}
+
+			if resp == nil && !tt.wantErr {
+				t.Errorf("nil response")
+				return
+			}
+
+			dataResponse, err := ioutil.ReadAll(resp.Body)
+			if err != nil {
+				t.Errorf("can't read request body: %s", err)
+				return
+			}
+			if dataResponse == nil {
+				t.Errorf("nil response data")
+				return
+			}
+
+			data := map[string]interface{}{}
+			err = json.Unmarshal(dataResponse, &data)
+			if tt.wantErr && err != nil {
+				t.Errorf("bad data returned: %v", err)
+				return
+			}
+
+			if tt.wantErr {
+				errMsg, ok := data["error"]
+				if !ok {
+					t.Errorf("expected error: %s", errMsg)
+					return
+				}
+			}
+
+			if !tt.wantErr {
+				_, ok := data["error"]
+				if ok {
+					t.Errorf("error not expected")
+					return
+				}
+			}
+
+			if resp.StatusCode != tt.wantStatus {
+				t.Errorf("expected status %d, got %s", tt.wantStatus, resp.Status)
+				return
+			}
+		})
+	}
+}
+
+func TestMyCareHubHandlersInterfacesImpl_AddClientFHIRID(t *testing.T) {
+	invalidPayload, err := json.Marshal(&dto.ClientFHIRPayload{})
+	if err != nil {
+		t.Errorf("failed to marshal payload")
+		return
+	}
+
+	invalidPayload1, err := json.Marshal(&dto.ClientFHIRPayload{ClientID: gofakeit.UUID()})
+	if err != nil {
+		t.Errorf("failed to marshal payload")
+		return
+	}
+
+	invalidPayload2, err := json.Marshal(&dto.ClientFHIRPayload{FHIRID: gofakeit.UUID()})
+	if err != nil {
+		t.Errorf("failed to marshal payload")
+		return
+	}
+
+	type args struct {
+		url        string
+		httpMethod string
+		body       io.Reader
+	}
+	tests := []struct {
+		name       string
+		args       args
+		wantStatus int
+		wantErr    bool
+	}{
+		{
+			name: "Sad Case - Empty payload",
+			args: args{
+				url:        fmt.Sprintf("%s/internal/add-fhir-id", baseURL),
+				httpMethod: http.MethodPatch,
+				body:       bytes.NewBuffer(invalidPayload),
+			},
+			wantStatus: http.StatusBadRequest,
+			wantErr:    true,
+		},
+		{
+			name: "Sad Case - missing client ID in payload",
+			args: args{
+				url:        fmt.Sprintf("%s/internal/add-fhir-id", baseURL),
+				httpMethod: http.MethodPatch,
+				body:       bytes.NewBuffer(invalidPayload1),
+			},
+			wantStatus: http.StatusBadRequest,
+			wantErr:    true,
+		},
+		{
+			name: "Sad Case - missing fhir id in payload",
+			args: args{
+				url:        fmt.Sprintf("%s/internal/add-fhir-id", baseURL),
+				httpMethod: http.MethodPatch,
+				body:       bytes.NewBuffer(invalidPayload2),
+			},
+			wantStatus: http.StatusBadRequest,
+			wantErr:    true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r, err := http.NewRequest(
+				tt.args.httpMethod,
+				tt.args.url,
+				tt.args.body,
+			)
+			if err != nil {
+				t.Errorf("unable to compose request: %s", err)
+				return
+			}
+
+			if r == nil {
+				t.Errorf("nil request")
+				return
+			}
+
+			for k, v := range interserviceclient.GetDefaultHeaders(t, baseURL, "mycarehub") {
 				r.Header.Add(k, v)
 			}
 			client := http.DefaultClient

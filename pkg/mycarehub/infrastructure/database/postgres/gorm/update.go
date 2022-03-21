@@ -41,6 +41,7 @@ type Update interface {
 	UpdateServiceRequests(ctx context.Context, payload []*ClientServiceRequest) (bool, error)
 	UpdateUserPinChangeRequiredStatus(ctx context.Context, userID string, flavour feedlib.Flavour, status bool) error
 	UpdateUserActiveStatus(ctx context.Context, userID string, flavour feedlib.Flavour, active bool) error
+	UpdateClient(ctx context.Context, client *Client, updates map[string]interface{}) (*Client, error)
 	UpdateUserPinUpdateRequiredStatus(ctx context.Context, userID string, flavour feedlib.Flavour, status bool) error
 	UpdateHealthDiary(ctx context.Context, payload *ClientHealthDiaryEntry) (bool, error)
 }
@@ -380,7 +381,7 @@ func (db *PGInstance) ShareContent(ctx context.Context, input dto.ShareContentIn
 		}
 	}()
 	if err := tx.Error; err != nil {
-		return false, fmt.Errorf("failied initialize database transaction %v", err)
+		return false, fmt.Errorf("failed to initialize database transaction %v", err)
 	}
 
 	if err := tx.Model(&ContentItem{}).Where(&ContentItem{PagePtrID: contentShare.ContentID}).First(&contentItem).Error; err != nil {
@@ -437,7 +438,7 @@ func (db *PGInstance) BookmarkContent(ctx context.Context, userID string, conten
 		}
 	}()
 	if err := tx.Error; err != nil {
-		return false, fmt.Errorf("failied initialize database transaction %v", err)
+		return false, fmt.Errorf("failed to initialize database transaction %v", err)
 	}
 
 	if err := tx.Model(&ContentItem{}).Where(&ContentItem{PagePtrID: contentID}).First(&contentItem).Error; err != nil {
@@ -498,7 +499,7 @@ func (db *PGInstance) UnBookmarkContent(ctx context.Context, userID string, cont
 		}
 	}()
 	if err := tx.Error; err != nil {
-		return false, fmt.Errorf("failied initialize database transaction %v", err)
+		return false, fmt.Errorf("failed to initialize database transaction %v", err)
 	}
 
 	if err := tx.Model(&ContentItem{}).Where(&ContentItem{PagePtrID: contentID}).First(&contentItem).Error; err != nil {
@@ -556,7 +557,7 @@ func (db *PGInstance) ViewContent(ctx context.Context, userID string, contentID 
 		}
 	}()
 	if err := tx.Error; err != nil {
-		return false, fmt.Errorf("failied initialize database transaction %v", err)
+		return false, fmt.Errorf("failed to initialize database transaction %v", err)
 	}
 
 	if err := tx.Model(&ContentItem{}).Where(&ContentItem{PagePtrID: contentView.ContentID}).First(&contentItem).Error; err != nil {
@@ -589,6 +590,48 @@ func (db *PGInstance) ViewContent(ctx context.Context, userID string, contentID 
 	return true, nil
 }
 
+// UpdateClient updates details for a particular client
+func (db *PGInstance) UpdateClient(ctx context.Context, client *Client, updates map[string]interface{}) (*Client, error) {
+	updateClient := &Client{}
+
+	if client.ID == nil {
+		return nil, fmt.Errorf("client id is required")
+	}
+
+	tx := db.DB.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+	if err := tx.Error; err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, fmt.Errorf("failed to initialize database transaction %v", err)
+	}
+
+	err := tx.Model(updateClient).Where(client).Updates(updates).Error
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		tx.Rollback()
+		return nil, fmt.Errorf("failed to update client profile: %v", err)
+	}
+
+	err = tx.First(updateClient, client.ID).Error
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		tx.Rollback()
+		return nil, fmt.Errorf("failed to retrieve client profile: %v", err)
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		helpers.ReportErrorToSentry(err)
+		tx.Rollback()
+		return nil, fmt.Errorf("failed transaction commit to update client profile: %v", err)
+	}
+
+	return updateClient, nil
+}
+
 // UpdateClientCaregiver updates the caregiver for a client
 func (db *PGInstance) UpdateClientCaregiver(ctx context.Context, caregiverInput *dto.CaregiverInput) error {
 	var (
@@ -602,7 +645,7 @@ func (db *PGInstance) UpdateClientCaregiver(ctx context.Context, caregiverInput 
 		}
 	}()
 	if err := tx.Error; err != nil {
-		return fmt.Errorf("failied initialize database transaction %v", err)
+		return fmt.Errorf("failed to initialize database transaction %v", err)
 	}
 
 	if err := tx.Model(&Client{}).Where(&Client{ID: &caregiverInput.ClientID}).First(&client).Error; err != nil {
@@ -645,7 +688,7 @@ func (db *PGInstance) ResolveServiceRequest(ctx context.Context, staffID *string
 	}()
 	if err := tx.Error; err != nil {
 		helpers.ReportErrorToSentry(err)
-		return false, fmt.Errorf("failied initialize database transaction %v", err)
+		return false, fmt.Errorf("failed to initialize database transaction %v", err)
 	}
 
 	if err := tx.Model(&ClientServiceRequest{}).Where(&ClientServiceRequest{ID: serviceRequestID}).First(&serviceRequest).Error; err != nil {
@@ -688,7 +731,7 @@ func (db *PGInstance) AssignRoles(ctx context.Context, userID string, roles []en
 	}()
 	if err := tx.Error; err != nil {
 		helpers.ReportErrorToSentry(err)
-		return false, fmt.Errorf("failied initialize database transaction %v", err)
+		return false, fmt.Errorf("failed to initialize database transaction %v", err)
 	}
 
 	err := tx.Model(&User{}).Where(&User{UserID: &userID}).First(&user).Error
@@ -739,7 +782,7 @@ func (db *PGInstance) RevokeRoles(ctx context.Context, userID string, roles []en
 	}()
 	if err := tx.Error; err != nil {
 		helpers.ReportErrorToSentry(err)
-		return false, fmt.Errorf("failied initialize database transaction %v", err)
+		return false, fmt.Errorf("failed to initialize database transaction %v", err)
 	}
 
 	err := tx.Model(&User{}).Where(&User{UserID: &userID}).First(&user).Error
@@ -792,7 +835,7 @@ func (db *PGInstance) UpdateAppointment(ctx context.Context, payload *Appointmen
 	}()
 	if err := tx.Error; err != nil {
 		helpers.ReportErrorToSentry(err)
-		return fmt.Errorf("failied initialize database transaction %v", err)
+		return fmt.Errorf("failed to initialize database transaction %v", err)
 	}
 
 	err := tx.Model(&Appointment{}).Where(&Appointment{ID: payload.ID, AppointmentUUID: payload.AppointmentUUID}).First(&appointment).Error
@@ -833,7 +876,7 @@ func (db *PGInstance) InvalidateScreeningToolResponse(ctx context.Context, clien
 	}()
 	if err := tx.Error; err != nil {
 		helpers.ReportErrorToSentry(err)
-		return fmt.Errorf("failied initialize database transaction %v", err)
+		return fmt.Errorf("failed to initialize database transaction %v", err)
 	}
 
 	err := tx.Model(&Client{}).Where(&Client{ID: &clientID}).First(&client).Error

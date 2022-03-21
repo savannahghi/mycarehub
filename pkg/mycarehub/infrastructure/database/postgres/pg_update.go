@@ -245,3 +245,27 @@ func (d *MyCareHubDb) UpdateUserPinUpdateRequiredStatus(ctx context.Context, use
 func (d *MyCareHubDb) UpdateHealthDiary(ctx context.Context, payload *gorm.ClientHealthDiaryEntry) (bool, error) {
 	return d.update.UpdateHealthDiary(ctx, payload)
 }
+
+// UpdateClient updates the client details for a particular client
+func (d *MyCareHubDb) UpdateClient(ctx context.Context, client *domain.ClientProfile, updates map[string]interface{}) (*domain.ClientProfile, error) {
+	c, err := d.update.UpdateClient(ctx, &gorm.Client{ID: client.ID}, updates)
+	if err != nil {
+		return nil, err
+	}
+
+	return &domain.ClientProfile{
+		ID:                      c.ID,
+		Active:                  c.Active,
+		ClientType:              c.ClientType,
+		UserID:                  *c.UserID,
+		TreatmentEnrollmentDate: c.TreatmentEnrollmentDate,
+		FHIRPatientID:           c.FHIRPatientID,
+		HealthRecordID:          c.HealthRecordID,
+		TreatmentBuddy:          c.TreatmentBuddy,
+		ClientCounselled:        c.ClientCounselled,
+		OrganisationID:          c.OrganisationID,
+		FacilityID:              c.FacilityID,
+		CHVUserID:               c.CHVUserID,
+		CaregiverID:             c.CaregiverID,
+	}, nil
+}

@@ -114,6 +114,7 @@ type Update interface {
 	SetInProgressBy(ctx context.Context, requestID string, staffID string) (bool, error)
 	ViewContent(ctx context.Context, userID string, contentID int) (bool, error)
 	UpdateClientCaregiver(ctx context.Context, caregiverInput *dto.CaregiverInput) error
+	UpdateClient(ctx context.Context, client *domain.ClientProfile, updates map[string]interface{}) (*domain.ClientProfile, error)
 	ResolveServiceRequest(ctx context.Context, staffID *string, serviceRequestID *string) (bool, error)
 	AssignRoles(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error)
 	RevokeRoles(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error)

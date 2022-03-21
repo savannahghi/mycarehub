@@ -6,6 +6,7 @@ import (
 
 	"github.com/brianvoe/gofakeit"
 	"github.com/google/uuid"
+	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
@@ -35,6 +36,8 @@ type UserUseCaseMock struct {
 	MockSetUserPINFn                    func(ctx context.Context, input dto.PINInput) (bool, error)
 	MockSearchStaffByStaffNumberFn      func(ctx context.Context, staffNumber string) ([]*domain.StaffProfile, error)
 	MockConsentFn                       func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour, active bool) (bool, error)
+	MockGetUserProfileFn                func(ctx context.Context, userID string) (*domain.User, error)
+	MockAddClientFHIRIDFn               func(ctx context.Context, input dto.ClientFHIRPayload) error
 }
 
 // NewUserUseCaseMock creates in itializes create type mocks
@@ -165,6 +168,19 @@ func NewUserUseCaseMock() *UserUseCaseMock {
 		MockConsentFn: func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour, active bool) (bool, error) {
 			return true, nil
 		},
+		MockGetUserProfileFn: func(ctx context.Context, userID string) (*domain.User, error) {
+			id := gofakeit.UUID()
+			return &domain.User{
+				ID:       &id,
+				Username: gofakeit.Username(),
+				Name:     gofakeit.Gender(),
+				Gender:   enumutils.GenderOther,
+				Active:   true,
+			}, nil
+		},
+		MockAddClientFHIRIDFn: func(ctx context.Context, input dto.ClientFHIRPayload) error {
+			return nil
+		},
 	}
 }
 
@@ -271,4 +287,14 @@ func (f *UserUseCaseMock) SearchStaffByStaffNumber(ctx context.Context, staffNum
 // Consent mocks the implementation of a user withdrawing or offering their consent to the app
 func (f *UserUseCaseMock) Consent(ctx context.Context, phoneNumber string, flavour feedlib.Flavour, active bool) (bool, error) {
 	return f.MockConsentFn(ctx, phoneNumber, flavour, active)
+}
+
+// GetUserProfile returns a user profile given the user ID
+func (f *UserUseCaseMock) GetUserProfile(ctx context.Context, userID string) (*domain.User, error) {
+	return f.MockGetUserProfileFn(ctx, userID)
+}
+
+// AddClientFHIRID updates the client profile with the patient fhir ID from clinical
+func (f *UserUseCaseMock) AddClientFHIRID(ctx context.Context, input dto.ClientFHIRPayload) error {
+	return f.MockAddClientFHIRIDFn(ctx, input)
 }

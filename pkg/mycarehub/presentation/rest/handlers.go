@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/gorilla/mux"
 	"github.com/savannahghi/errorcodeutil"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
@@ -35,6 +36,8 @@ type MyCareHubHandlersInterfaces interface {
 	CreateOrUpdateKenyaEMRAppointments() http.HandlerFunc
 	CreatePinResetServiceRequest() http.HandlerFunc
 	OptIn() http.HandlerFunc
+	GetUserProfile() http.HandlerFunc
+	AddClientFHIRID() http.HandlerFunc
 }
 
 type okResp struct {
@@ -795,5 +798,60 @@ func (h *MyCareHubHandlersInterfacesImpl) OptIn() http.HandlerFunc {
 		}
 
 		serverutils.WriteJSONResponse(w, okResp{Status: response}, http.StatusOK)
+	}
+}
+
+// GetUserProfile returns a user profile given the user ID
+func (h *MyCareHubHandlersInterfacesImpl) GetUserProfile() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+		userID := vars["id"]
+
+		ctx := r.Context()
+
+		user, err := h.usecase.User.GetUserProfile(ctx, userID)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusInternalServerError)
+			return
+		}
+
+		serverutils.WriteJSONResponse(w, user, http.StatusOK)
+	}
+}
+
+// AddClientFHIRID adds the created fhir ID to a client profile
+func (h *MyCareHubHandlersInterfacesImpl) AddClientFHIRID() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+
+		payload := &dto.ClientFHIRPayload{}
+		serverutils.DecodeJSONToTargetStruct(w, r, payload)
+
+		if payload.ClientID == "" || payload.FHIRID == "" {
+			err := fmt.Errorf("expected both `client ID` and `fhir ID` to be defined")
+			helpers.ReportErrorToSentry(err)
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusBadRequest)
+			return
+		}
+
+		err := h.usecase.User.AddClientFHIRID(ctx, *payload)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusInternalServerError)
+			return
+		}
+
+		serverutils.WriteJSONResponse(w, okResp{Status: true}, http.StatusOK)
+
 	}
 }

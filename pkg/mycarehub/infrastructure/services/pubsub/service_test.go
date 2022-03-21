@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"testing"
 
-	"cloud.google.com/go/pubsub"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
 	pubsubmessaging "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/pubsub"
 	"github.com/savannahghi/serverutils"
@@ -14,28 +13,10 @@ import (
 )
 
 func InitializeTestPubSub(t *testing.T) (*pubsubmessaging.ServicePubSubMessaging, error) {
-	ctx := context.Background()
-	projectID, err := serverutils.GetEnvVar(serverutils.GoogleCloudProjectIDEnvVarName)
-	if err != nil {
-		return nil, fmt.Errorf(
-			"can't get projectID from env var `%s`: %w",
-			serverutils.GoogleCloudProjectIDEnvVarName,
-			err,
-		)
-	}
-
-	pubSubClient, err := pubsub.NewClient(ctx, projectID)
-	if err != nil {
-		return nil, fmt.Errorf("unable to initialize pubsub client: %w", err)
-	}
-
 	// Initialize base (common) extension
 	baseExt := extension.NewExternalMethodsImpl()
 
-	pubSub, err := pubsubmessaging.NewServicePubSubMessaging(
-		pubSubClient,
-		baseExt,
-	)
+	pubSub, err := pubsubmessaging.NewServicePubSubMessaging(baseExt)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize pubsub messaging service: %w", err)
 	}
@@ -53,7 +34,8 @@ func TestServicePubSubMessaging_AddPubSubNamespace(t *testing.T) {
 	environment := serverutils.GetRunningEnvironment()
 
 	type args struct {
-		topicName string
+		topicName   string
+		serviceName string
 	}
 	tests := []struct {
 		name    string
@@ -64,10 +46,11 @@ func TestServicePubSubMessaging_AddPubSubNamespace(t *testing.T) {
 		{
 			name: "Happy Case -> Correct pubsub namespace",
 			args: args{
-				topicName: topicName,
+				topicName:   topicName,
+				serviceName: pubsubmessaging.MyCareHubServiceName,
 			},
 			want: fmt.Sprintf("%s-%s-%s-%s",
-				pubsubmessaging.ServiceName,
+				pubsubmessaging.MyCareHubServiceName,
 				topicName,
 				environment,
 				pubsubmessaging.TopicVersion,
@@ -77,7 +60,7 @@ func TestServicePubSubMessaging_AddPubSubNamespace(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := ps.AddPubSubNamespace(tt.args.topicName)
+			got := ps.AddPubSubNamespace(tt.args.topicName, tt.args.serviceName)
 			logrus.Printf("we got %v", got)
 			if got != tt.want {
 				t.Errorf("ServicePubSubMessaging.AddPubSubNamespace() = %v, want %v", got, tt.want)
@@ -94,7 +77,7 @@ func TestServicePubSubMessaging_PublishToPubsub(t *testing.T) {
 		return
 	}
 
-	topic := ps.AddPubSubNamespace(pubsubmessaging.TestTopicName)
+	topic := ps.AddPubSubNamespace(pubsubmessaging.TestTopicName, pubsubmessaging.MyCareHubServiceName)
 	// Create the test topic
 	topics := ps.TopicIDs()
 	topics = append(topics, topic)
@@ -116,9 +99,10 @@ func TestServicePubSubMessaging_PublishToPubsub(t *testing.T) {
 	}
 
 	type args struct {
-		ctx     context.Context
-		topicID string
-		payload []byte
+		ctx         context.Context
+		topicID     string
+		serviceName string
+		payload     []byte
 	}
 	tests := []struct {
 		name    string
@@ -128,27 +112,30 @@ func TestServicePubSubMessaging_PublishToPubsub(t *testing.T) {
 		{
 			name: "Sad Case -> Fail to publish to pubsub - nil payload",
 			args: args{
-				ctx:     ctx,
-				topicID: topic,
-				payload: nil,
+				ctx:         ctx,
+				topicID:     topic,
+				serviceName: pubsubmessaging.MyCareHubServiceName,
+				payload:     nil,
 			},
 			wantErr: true,
 		},
 		{
 			name: "Sad Case -> Fail to publish to pubsub - unknown topic",
 			args: args{
-				ctx:     ctx,
-				topicID: "invalid",
-				payload: marshalled,
+				ctx:         ctx,
+				topicID:     "invalid",
+				serviceName: pubsubmessaging.MyCareHubServiceName,
+				payload:     marshalled,
 			},
 			wantErr: true,
 		},
 		{
 			name: "Happy Case-> Publish to pubsub",
 			args: args{
-				ctx:     ctx,
-				topicID: topic,
-				payload: marshalled,
+				ctx:         ctx,
+				topicID:     topic,
+				serviceName: pubsubmessaging.MyCareHubServiceName,
+				payload:     marshalled,
 			},
 			wantErr: false,
 		},
@@ -156,7 +143,7 @@ func TestServicePubSubMessaging_PublishToPubsub(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := ps.PublishToPubsub(tt.args.ctx, tt.args.topicID, tt.args.payload); (err != nil) != tt.wantErr {
+			if err := ps.PublishToPubsub(tt.args.ctx, tt.args.topicID, tt.args.serviceName, tt.args.payload); (err != nil) != tt.wantErr {
 				t.Errorf("ServicePubSubMessaging.PublishToPubsub() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})

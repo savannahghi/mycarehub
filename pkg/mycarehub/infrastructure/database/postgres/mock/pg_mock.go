@@ -118,6 +118,7 @@ type PostgresMock struct {
 	MockUpdateUserActiveStatusFn                    func(ctx context.Context, userID string, flavour feedlib.Flavour, active bool) error
 	MockUpdateUserPinUpdateRequiredStatusFn         func(ctx context.Context, userID string, flavour feedlib.Flavour, status bool) error
 	MockGetHealthDiaryEntryByIDFn                   func(ctx context.Context, healthDiaryEntryID string) (*domain.ClientHealthDiaryEntry, error)
+	MockUpdateClientFn                              func(ctx context.Context, client *domain.ClientProfile, updates map[string]interface{}) (*domain.ClientProfile, error)
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -756,6 +757,9 @@ func NewPostgresMock() *PostgresMock {
 		MockUpdateUserPinUpdateRequiredStatusFn: func(ctx context.Context, userID string, flavour feedlib.Flavour, status bool) error {
 			return nil
 		},
+		MockUpdateClientFn: func(ctx context.Context, client *domain.ClientProfile, updates map[string]interface{}) (*domain.ClientProfile, error) {
+			return client, nil
+		},
 	}
 }
 
@@ -1238,6 +1242,11 @@ func (gm *PostgresMock) SearchClientProfilesByCCCNumber(ctx context.Context, CCC
 // UpdateUserActiveStatus mocks updating a user `active status`
 func (gm *PostgresMock) UpdateUserActiveStatus(ctx context.Context, userID string, flavour feedlib.Flavour, active bool) error {
 	return gm.MockUpdateUserActiveStatusFn(ctx, userID, flavour, active)
+}
+
+// UpdateClient updates the client details for a particular client
+func (gm *PostgresMock) UpdateClient(ctx context.Context, client *domain.ClientProfile, updates map[string]interface{}) (*domain.ClientProfile, error) {
+	return gm.MockUpdateClientFn(ctx, client, updates)
 }
 
 // UpdateUserPinUpdateRequiredStatus mocks updating a user `pin update required status`

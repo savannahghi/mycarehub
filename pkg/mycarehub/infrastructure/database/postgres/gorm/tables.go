@@ -351,7 +351,7 @@ type Client struct {
 
 	TreatmentEnrollmentDate *time.Time `gorm:"column:enrollment_date"`
 
-	FHIRPatientID string `gorm:"column:fhir_patient_id"`
+	FHIRPatientID *string `gorm:"column:fhir_patient_id"`
 
 	HealthRecordID *string `gorm:"column:emr_health_record_id"`
 
