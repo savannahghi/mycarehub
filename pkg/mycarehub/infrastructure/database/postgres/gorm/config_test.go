@@ -93,7 +93,8 @@ var (
 	staffNumber = "test-Staff-101"
 	staffID     = "8ecbbc80-24c8-421a-9f1a-e14e12678ef1"
 
-	clientsServiceRequestID = "8ecbbc10-24c8-421a-9f1a-e17f12678ef1"
+	clientsServiceRequestID   = "8ecbbc10-24c8-421a-9f1a-e17f12678ef1"
+	clientsHealthDiaryEntryID = "8ecbbc10-24c8-421a-9f1a-e17f12678ef1"
 	// Service Request
 	serviceRequestID = "8ecbbc80-24c8-421a-9f1a-e14e12678ef2"
 
@@ -188,6 +189,7 @@ func TestMain(m *testing.M) {
 			"test_caregiver_id":              testCaregiverID,
 			"staff_number":                   staffNumber,
 			"clients_service_request_id":     clientsServiceRequestID,
+			"clients_healthdiaryentry_id":    clientsHealthDiaryEntryID,
 			"staff_default_facility":         facilityID,
 			"staff_id":                       staffID,
 
@@ -245,6 +247,7 @@ func TestMain(m *testing.M) {
 			"../../../../../../fixtures/appointments_appointment.yml",
 			"../../../../../../fixtures/screeningtools_screeningtoolsquestion.yml",
 			"../../../../../../fixtures/screeningtools_screeningtoolsresponse.yml",
+			"../../../../../../fixtures/clients_healthdiaryentry.yml",
 		),
 		// uncomment when running tests locally, if your db is not a test db
 		// Ensure the testing db in the ci is named `test`

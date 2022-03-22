@@ -597,8 +597,22 @@ func (d *MyCareHubDb) GetClientHealthDiaryEntries(ctx context.Context, clientID 
 		return nil, err
 	}
 
+	//Get user profile information using the client ID
+	clientProfile, err := d.query.GetClientProfileByClientID(ctx, clientID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
+	userProfile, err := d.query.GetUserProfileByUserID(ctx, clientProfile.UserID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
 	for _, healthdiary := range clientHealthDiaryEntry {
 		healthDiaryEntry := &domain.ClientHealthDiaryEntry{
+			ID:                    healthdiary.ClientHealthDiaryEntryID,
 			Active:                healthdiary.Active,
 			Mood:                  healthdiary.Mood,
 			Note:                  healthdiary.Note,
@@ -607,6 +621,8 @@ func (d *MyCareHubDb) GetClientHealthDiaryEntries(ctx context.Context, clientID 
 			SharedAt:              healthdiary.SharedAt,
 			ClientID:              healthdiary.ClientID,
 			CreatedAt:             healthdiary.CreatedAt,
+			PhoneNumber:           userProfile.Contacts.ContactValue,
+			ClientName:            userProfile.Name,
 		}
 		healthDiaryEntries = append(healthDiaryEntries, healthDiaryEntry)
 	}
@@ -955,6 +971,27 @@ func (d *MyCareHubDb) GetClientCCCIdentifier(ctx context.Context, clientID strin
 	}
 
 	return &id, nil
+}
+
+// GetHealthDiaryEntryByID gets the health diary entry with the given ID
+func (d *MyCareHubDb) GetHealthDiaryEntryByID(ctx context.Context, healthDiaryEntryID string) (*domain.ClientHealthDiaryEntry, error) {
+	healthDiaryEntry, err := d.query.GetHealthDiaryEntryByID(ctx, healthDiaryEntryID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
+	return &domain.ClientHealthDiaryEntry{
+		ID:                    healthDiaryEntry.ClientHealthDiaryEntryID,
+		Active:                healthDiaryEntry.Active,
+		Mood:                  healthDiaryEntry.Mood,
+		Note:                  healthDiaryEntry.Note,
+		EntryType:             healthDiaryEntry.EntryType,
+		ShareWithHealthWorker: healthDiaryEntry.ShareWithHealthWorker,
+		SharedAt:              healthDiaryEntry.SharedAt,
+		ClientID:              healthDiaryEntry.ClientID,
+		CreatedAt:             healthDiaryEntry.CreatedAt,
+	}, nil
 }
 
 // GetServiceRequestsForKenyaEMR retrieves from the database all service requests belonging to a specific facility

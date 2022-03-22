@@ -1890,3 +1890,79 @@ func TestMyCareHubDb_UpdateUserPinUpdateRequiredStatus(t *testing.T) {
 		})
 	}
 }
+
+func TestMyCareHubDb_UpdateHealthDiary(t *testing.T) {
+	ctx := context.Background()
+	UUID := uuid.New().String()
+	var fakeGorm = gormMock.NewGormMock()
+	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+	type args struct {
+		ctx     context.Context
+		payload *gorm.ClientHealthDiaryEntry
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx: ctx,
+				payload: &gorm.ClientHealthDiaryEntry{
+					ClientHealthDiaryEntryID: &UUID,
+					ClientID:                 uuid.New().String(),
+				},
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Sad case",
+			args: args{
+				ctx: ctx,
+				payload: &gorm.ClientHealthDiaryEntry{
+					ClientHealthDiaryEntryID: &UUID,
+					ClientID:                 uuid.New().String(),
+				},
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case - empty ids",
+			args: args{
+				ctx: ctx,
+				payload: &gorm.ClientHealthDiaryEntry{
+					ClientID: "",
+				},
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "Sad case" {
+				fakeGorm.MockUpdateHealthDiaryFn = func(ctx context.Context, payload *gorm.ClientHealthDiaryEntry) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - empty ids" {
+				fakeGorm.MockUpdateHealthDiaryFn = func(ctx context.Context, payload *gorm.ClientHealthDiaryEntry) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+			got, err := d.UpdateHealthDiary(tt.args.ctx, tt.args.payload)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.UpdateHealthDiary() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("MyCareHubDb.UpdateHealthDiary() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

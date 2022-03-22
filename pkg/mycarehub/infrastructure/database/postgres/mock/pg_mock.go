@@ -106,6 +106,7 @@ type PostgresMock struct {
 	MockAnswerScreeningToolQuestionsFn              func(ctx context.Context, screeningToolResponses []*dto.ScreeningToolQuestionResponseInput) error
 	MockGetScreeningToolQuestionByQuestionIDFn      func(ctx context.Context, questionID string) (*domain.ScreeningToolQuestion, error)
 	MockSearchStaffProfileByStaffNumberFn           func(ctx context.Context, staffNumber string) ([]*domain.StaffProfile, error)
+	MockUpdateHealthDiaryFn                         func(ctx context.Context, payload *gorm.ClientHealthDiaryEntry) (bool, error)
 	MockInvalidateScreeningToolResponseFn           func(ctx context.Context, clientID string, questionID string) error
 	MockUpdateServiceRequestsFn                     func(ctx context.Context, payload *domain.UpdateServiceRequestsPayload) (bool, error)
 	MockListAppointments                            func(ctx context.Context, params *domain.Appointment, filters []*firebasetools.FilterParam, pagination *domain.Pagination) ([]*domain.Appointment, *domain.Pagination, error)
@@ -116,6 +117,7 @@ type PostgresMock struct {
 	MockGetAllRolesFn                               func(ctx context.Context) ([]*domain.AuthorityRole, error)
 	MockUpdateUserActiveStatusFn                    func(ctx context.Context, userID string, flavour feedlib.Flavour, active bool) error
 	MockUpdateUserPinUpdateRequiredStatusFn         func(ctx context.Context, userID string, flavour feedlib.Flavour, status bool) error
+	MockGetHealthDiaryEntryByIDFn                   func(ctx context.Context, healthDiaryEntryID string) (*domain.ClientHealthDiaryEntry, error)
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -212,6 +214,20 @@ func NewPostgresMock() *PostgresMock {
 		},
 	}
 
+	healthDiaryEntry := &domain.ClientHealthDiaryEntry{
+		ID:                    &ID,
+		Active:                false,
+		Mood:                  "test",
+		Note:                  "test",
+		EntryType:             "test",
+		ShareWithHealthWorker: false,
+		SharedAt:              time.Time{},
+		ClientID:              ID,
+		CreatedAt:             time.Time{},
+		PhoneNumber:           phone,
+		ClientName:            name,
+	}
+
 	return &PostgresMock{
 		MockGetOrCreateFacilityFn: func(ctx context.Context, facility *dto.FacilityInput) (*domain.Facility, error) {
 			return facilityInput, nil
@@ -285,6 +301,21 @@ func NewPostgresMock() *PostgresMock {
 		},
 		MockSaveTemporaryUserPinFn: func(ctx context.Context, pinData *domain.UserPIN) (bool, error) {
 			return true, nil
+		},
+		MockGetHealthDiaryEntryByIDFn: func(ctx context.Context, healthDiaryEntryID string) (*domain.ClientHealthDiaryEntry, error) {
+			return &domain.ClientHealthDiaryEntry{
+				ID:                    &ID,
+				Active:                false,
+				Mood:                  "",
+				Note:                  "",
+				EntryType:             "",
+				ShareWithHealthWorker: false,
+				SharedAt:              time.Time{},
+				ClientID:              ID,
+				CreatedAt:             time.Time{},
+				PhoneNumber:           phone,
+				ClientName:            name,
+			}, nil
 		},
 		MockAcceptTermsFn: func(ctx context.Context, userID *string, termsID *int) (bool, error) {
 			return true, nil
@@ -456,11 +487,7 @@ func NewPostgresMock() *PostgresMock {
 			return true, nil
 		},
 		MockGetClientHealthDiaryEntriesFn: func(ctx context.Context, clientID string) ([]*domain.ClientHealthDiaryEntry, error) {
-			return []*domain.ClientHealthDiaryEntry{
-				{
-					Active: true,
-				},
-			}, nil
+			return []*domain.ClientHealthDiaryEntry{healthDiaryEntry}, nil
 		},
 		MockGetFAQContentFn: func(ctx context.Context, flavour feedlib.Flavour, limit *int) ([]*domain.FAQ, error) {
 			return []*domain.FAQ{
@@ -682,6 +709,9 @@ func NewPostgresMock() *PostgresMock {
 		},
 		MockAnswerScreeningToolQuestionsFn: func(ctx context.Context, screeningToolResponses []*dto.ScreeningToolQuestionResponseInput) error {
 			return nil
+		},
+		MockUpdateHealthDiaryFn: func(ctx context.Context, payload *gorm.ClientHealthDiaryEntry) (bool, error) {
+			return true, nil
 		},
 		MockGetScreeningToolQuestionByQuestionIDFn: func(ctx context.Context, questionID string) (*domain.ScreeningToolQuestion, error) {
 			return &domain.ScreeningToolQuestion{
@@ -1213,4 +1243,14 @@ func (gm *PostgresMock) UpdateUserActiveStatus(ctx context.Context, userID strin
 // UpdateUserPinUpdateRequiredStatus mocks updating a user `pin update required status`
 func (gm *PostgresMock) UpdateUserPinUpdateRequiredStatus(ctx context.Context, userID string, flavour feedlib.Flavour, status bool) error {
 	return gm.MockUpdateUserPinUpdateRequiredStatusFn(ctx, userID, flavour, status)
+}
+
+// UpdateHealthDiary mocks the implementation of updating the share status a health diary entry when the client opts for the sharing
+func (gm *PostgresMock) UpdateHealthDiary(ctx context.Context, payload *gorm.ClientHealthDiaryEntry) (bool, error) {
+	return gm.MockUpdateHealthDiaryFn(ctx, payload)
+}
+
+// GetHealthDiaryEntryByID mocks the implementation of getting health diary entry bu a given ID
+func (gm *PostgresMock) GetHealthDiaryEntryByID(ctx context.Context, healthDiaryEntryID string) (*domain.ClientHealthDiaryEntry, error) {
+	return gm.MockGetHealthDiaryEntryByIDFn(ctx, healthDiaryEntryID)
 }

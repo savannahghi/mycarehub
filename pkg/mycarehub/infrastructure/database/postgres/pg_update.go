@@ -240,3 +240,8 @@ func (d *MyCareHubDb) UpdateUserActiveStatus(ctx context.Context, userID string,
 func (d *MyCareHubDb) UpdateUserPinUpdateRequiredStatus(ctx context.Context, userID string, flavour feedlib.Flavour, status bool) error {
 	return d.update.UpdateUserPinUpdateRequiredStatus(ctx, userID, flavour, status)
 }
+
+// UpdateHealthDiary updates the status of the specified health diary
+func (d *MyCareHubDb) UpdateHealthDiary(ctx context.Context, payload *gorm.ClientHealthDiaryEntry) (bool, error) {
+	return d.update.UpdateHealthDiary(ctx, payload)
+}

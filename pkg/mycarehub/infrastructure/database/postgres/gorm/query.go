@@ -72,6 +72,7 @@ type Query interface {
 	CheckIfClientHasUnresolvedServiceRequests(ctx context.Context, clientID string, serviceRequestType string) (bool, error)
 	GetAllRoles(ctx context.Context) ([]*AuthorityRole, error)
 	GetUserProfileByStaffID(ctx context.Context, staffID string) (*User, error)
+	GetHealthDiaryEntryByID(ctx context.Context, healthDiaryEntryID string) (*ClientHealthDiaryEntry, error)
 }
 
 // CheckWhetherUserHasLikedContent performs a operation to check whether user has liked the content
@@ -1024,4 +1025,17 @@ func (db *PGInstance) GetUserProfileByStaffID(ctx context.Context, staffID strin
 	}
 
 	return &user, nil
+}
+
+// GetHealthDiaryEntryByID gets the health diary entry with the given ID
+func (db *PGInstance) GetHealthDiaryEntryByID(ctx context.Context, healthDiaryEntryID string) (*ClientHealthDiaryEntry, error) {
+	var healthDiaryEntry *ClientHealthDiaryEntry
+
+	err := db.DB.Where(&ClientHealthDiaryEntry{ClientHealthDiaryEntryID: &healthDiaryEntryID}).Find(&healthDiaryEntry).Error
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, fmt.Errorf("failed to get health diary entry: %v", err)
+	}
+
+	return healthDiaryEntry, nil
 }

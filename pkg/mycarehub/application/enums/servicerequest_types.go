@@ -16,6 +16,8 @@ const (
 	ServiceRequestTypePinReset ServiceRequestType = "PIN_RESET"
 	// ServiceRequestTypeProfileUpdate represents the profile update service request
 	ServiceRequestTypeProfileUpdate ServiceRequestType = "PROFILE_UPDATE"
+	// ServiceRequestTypeHomePageHealthDiary represents the homepage healthdiary service request
+	ServiceRequestTypeHomePageHealthDiary ServiceRequestType = "HOME_PAGE_HEALTH_DIARY_ENTRY"
 )
 
 // AllServiceRequestType is a set of a  valid and known service request types.
@@ -23,6 +25,7 @@ var AllServiceRequestType = []ServiceRequestType{
 	ServiceRequestTypeRedFlag,
 	ServiceRequestTypePinReset,
 	ServiceRequestTypeProfileUpdate,
+	ServiceRequestTypeHomePageHealthDiary,
 }
 
 // IsValid returns true if a request type is valid
@@ -30,7 +33,8 @@ func (m ServiceRequestType) IsValid() bool {
 	switch m {
 	case ServiceRequestTypeRedFlag,
 		ServiceRequestTypePinReset,
-		ServiceRequestTypeProfileUpdate:
+		ServiceRequestTypeProfileUpdate,
+		ServiceRequestTypeHomePageHealthDiary:
 		return true
 	}
 	return false

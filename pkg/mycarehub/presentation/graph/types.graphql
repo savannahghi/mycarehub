@@ -172,6 +172,7 @@ type ClientHealthDiaryQuote {
 }
 
 type ClientHealthDiaryEntry {
+  id: String!
   active: Boolean!
   mood: String!
   note: String!
@@ -180,6 +181,8 @@ type ClientHealthDiaryEntry {
   sharedAt: Time
   clientID: String!
   createdAt: Time
+  phoneNumber: String
+  clientName: String
 }
 
 type FAQ {
