@@ -1022,25 +1022,19 @@ func (d *MyCareHubDb) GetServiceRequestsForKenyaEMR(ctx context.Context, payload
 			return nil, err
 		}
 
-		resolvedBy, err := d.query.GetUserProfileByStaffID(ctx, *serviceReq.ResolvedByID)
-		if err != nil {
-			helpers.ReportErrorToSentry(err)
-			return nil, err
-		}
 		serviceRequest := &domain.ServiceRequest{
-			ID:             *serviceReq.ID,
-			RequestType:    serviceReq.RequestType,
-			Request:        serviceReq.Request,
-			Status:         serviceReq.Status,
-			ClientID:       serviceReq.ClientID,
-			InProgressAt:   serviceReq.InProgressAt,
-			InProgressBy:   serviceReq.InProgressByID,
-			ResolvedAt:     serviceReq.ResolvedAt,
-			ResolvedBy:     serviceReq.ResolvedByID,
-			ResolvedByName: &resolvedBy.Name,
-			FacilityID:     serviceReq.FacilityID,
-			ClientName:     &userProfile.Name,
-			ClientContact:  &userProfile.Contacts.ContactValue,
+			ID:            *serviceReq.ID,
+			RequestType:   serviceReq.RequestType,
+			Request:       serviceReq.Request,
+			Status:        serviceReq.Status,
+			ClientID:      serviceReq.ClientID,
+			InProgressAt:  serviceReq.InProgressAt,
+			InProgressBy:  serviceReq.InProgressByID,
+			ResolvedAt:    serviceReq.ResolvedAt,
+			ResolvedBy:    serviceReq.ResolvedByID,
+			FacilityID:    serviceReq.FacilityID,
+			ClientName:    &userProfile.Name,
+			ClientContact: &userProfile.Contacts.ContactValue,
 		}
 
 		serviceRequests = append(serviceRequests, serviceRequest)

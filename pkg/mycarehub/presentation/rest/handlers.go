@@ -860,7 +860,7 @@ func (h *MyCareHubHandlersInterfacesImpl) AddPatientsRecords() http.HandlerFunc 
 			return
 		}
 
-		serverutils.WriteJSONResponse(w, nil, http.StatusCreated)
+		serverutils.WriteJSONResponse(w, okResp{Status: true}, http.StatusCreated)
 	}
 }
 
