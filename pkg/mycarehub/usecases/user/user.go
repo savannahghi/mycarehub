@@ -80,9 +80,10 @@ type ICompleteOnboardingTour interface {
 	CompleteOnboardingTour(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
 }
 
-// IResetPIN is an interface that contains all the user use cases for pin resets
-type IResetPIN interface {
+// IPIN is an interface that contains all the user use cases for pins
+type IPIN interface {
 	ResetPIN(ctx context.Context, input dto.UserResetPinInput) (bool, error)
+	GenerateTemporaryPin(ctx context.Context, userID string, flavour feedlib.Flavour) (string, error)
 }
 
 // IClientCaregiver is an interface that contains all the client caregiver use cases
@@ -136,7 +137,7 @@ type UseCasesUser interface {
 	ISetNickName
 	IRequestPinReset
 	ICompleteOnboardingTour
-	IResetPIN
+	IPIN
 	IRefreshToken
 	IVerifyPIN
 	IClientCaregiver
@@ -539,10 +540,35 @@ func (us *UseCasesUserImpl) InviteUser(ctx context.Context, userID string, phone
 		return false, exceptions.UserNotFoundError(err)
 	}
 
+	inviteLink, err := helpers.GetInviteLink(flavour)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, exceptions.GetInviteLinkErr(err)
+	}
+
+	tempPin, err := us.GenerateTemporaryPin(ctx, userID, flavour)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, exceptions.GetError(err)
+	}
+
+	message := helpers.CreateInviteMessage(userProfile, inviteLink, tempPin)
+
+	err = us.ExternalExt.SendInviteSMS(ctx, *phone, message)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, exceptions.SendSMSErr(fmt.Errorf("failed to send invite SMS: %v", err))
+	}
+
+	return true, nil
+}
+
+// GenerateTemporaryPin generates a temporary user pin and invalidates the previous user pins
+func (us *UseCasesUserImpl) GenerateTemporaryPin(ctx context.Context, userID string, flavour feedlib.Flavour) (string, error) {
 	tempPin, err := us.ExternalExt.GenerateTempPIN(ctx)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return false, exceptions.GeneratePinErr(fmt.Errorf("failed to generate temporary pin: %v", err))
+		return "", exceptions.GeneratePinErr(fmt.Errorf("failed to generate temporary pin: %v", err))
 	}
 
 	pinExpiryDays := serverutils.MustGetEnvVar("INVITE_PIN_EXPIRY_DAYS")
@@ -550,7 +576,7 @@ func (us *UseCasesUserImpl) InviteUser(ctx context.Context, userID string, phone
 	pinExpiryDaysInt, err := strconv.Atoi(pinExpiryDays)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return false, exceptions.InternalErr(fmt.Errorf("failed to convert invite pin expiry days to int"))
+		return "", exceptions.InternalErr(fmt.Errorf("failed to convert invite pin expiry days to int"))
 	}
 
 	pinExpiryDate := time.Now().AddDate(0, 0, pinExpiryDaysInt)
@@ -569,30 +595,17 @@ func (us *UseCasesUserImpl) InviteUser(ctx context.Context, userID string, phone
 	_, err = us.Update.InvalidatePIN(ctx, userID, flavour)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return false, exceptions.InvalidatePinErr(err)
+		return "", exceptions.InvalidatePinErr(err)
 	}
 
 	_, err = us.Create.SaveTemporaryUserPin(ctx, pinPayload)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return false, exceptions.SaveUserPinError(err)
+		return "", exceptions.SaveUserPinError(err)
 	}
 
-	inviteLink, err := helpers.GetInviteLink(flavour)
-	if err != nil {
-		helpers.ReportErrorToSentry(err)
-		return false, exceptions.GetInviteLinkErr(err)
-	}
+	return tempPin, nil
 
-	message := helpers.CreateInviteMessage(userProfile, inviteLink, tempPin)
-
-	err = us.ExternalExt.SendInviteSMS(ctx, *phone, message)
-	if err != nil {
-		helpers.ReportErrorToSentry(err)
-		return false, exceptions.SendSMSErr(fmt.Errorf("failed to send invite SMS: %v", err))
-	}
-
-	return true, nil
 }
 
 // SetUserPIN is used to set the user's PIN

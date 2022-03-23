@@ -38,6 +38,7 @@ type UserUseCaseMock struct {
 	MockConsentFn                       func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour, active bool) (bool, error)
 	MockGetUserProfileFn                func(ctx context.Context, userID string) (*domain.User, error)
 	MockAddClientFHIRIDFn               func(ctx context.Context, input dto.ClientFHIRPayload) error
+	MockGenerateTemporaryPinFn          func(ctx context.Context, userID string, flavour feedlib.Flavour) (string, error)
 }
 
 // NewUserUseCaseMock creates in itializes create type mocks
@@ -181,6 +182,9 @@ func NewUserUseCaseMock() *UserUseCaseMock {
 		MockAddClientFHIRIDFn: func(ctx context.Context, input dto.ClientFHIRPayload) error {
 			return nil
 		},
+		MockGenerateTemporaryPinFn: func(ctx context.Context, userID string, flavour feedlib.Flavour) (string, error) {
+			return "1234", nil
+		},
 	}
 }
 
@@ -297,4 +301,9 @@ func (f *UserUseCaseMock) GetUserProfile(ctx context.Context, userID string) (*d
 // AddClientFHIRID updates the client profile with the patient fhir ID from clinical
 func (f *UserUseCaseMock) AddClientFHIRID(ctx context.Context, input dto.ClientFHIRPayload) error {
 	return f.MockAddClientFHIRIDFn(ctx, input)
+}
+
+// GenerateTemporaryPin mocks the implementation of generating temporary pin
+func (f *UserUseCaseMock) GenerateTemporaryPin(ctx context.Context, userID string, flavour feedlib.Flavour) (string, error) {
+	return f.MockGenerateTemporaryPinFn(ctx, userID, flavour)
 }

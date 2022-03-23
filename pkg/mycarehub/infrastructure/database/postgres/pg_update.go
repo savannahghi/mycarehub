@@ -164,8 +164,8 @@ func (d *MyCareHubDb) UpdateClientCaregiver(ctx context.Context, caregiverInput 
 }
 
 // ResolveServiceRequest resolves a service request
-func (d *MyCareHubDb) ResolveServiceRequest(ctx context.Context, staffID *string, serviceRequestID *string) (bool, error) {
-	return d.update.ResolveServiceRequest(ctx, staffID, serviceRequestID)
+func (d *MyCareHubDb) ResolveServiceRequest(ctx context.Context, staffID *string, serviceRequestID *string, status string) (bool, error) {
+	return d.update.ResolveServiceRequest(ctx, staffID, serviceRequestID, status)
 }
 
 // AssignRoles assigns roles to a user

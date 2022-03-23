@@ -81,7 +81,7 @@ type PostgresMock struct {
 	MockGetClientProfileByClientIDFn                     func(ctx context.Context, clientID string) (*domain.ClientProfile, error)
 	MockGetServiceRequestsFn                             func(ctx context.Context, requestType, requestStatus, facilityID *string) ([]*domain.ServiceRequest, error)
 	MockGetPendingServiceRequestsCountFn                 func(ctx context.Context, facilityID string) (*domain.ServiceRequestsCount, error)
-	MockResolveServiceRequestFn                          func(ctx context.Context, staffID *string, serviceRequestID *string) (bool, error)
+	MockResolveServiceRequestFn                          func(ctx context.Context, staffID *string, serviceRequestID *string, status string) (bool, error)
 	MockCreateCommunityFn                                func(ctx context.Context, community *dto.CommunityInput) (*domain.Community, error)
 	MockCheckUserRoleFn                                  func(ctx context.Context, userID string, role string) (bool, error)
 	MockCheckUserPermissionFn                            func(ctx context.Context, userID string, permission string) (bool, error)
@@ -571,7 +571,7 @@ func NewPostgresMock() *PostgresMock {
 		MockGetServiceRequestsFn: func(ctx context.Context, requestType, requestStatus, facilityID *string) ([]*domain.ServiceRequest, error) {
 			return serviceRequests, nil
 		},
-		MockResolveServiceRequestFn: func(ctx context.Context, staffID *string, serviceRequestID *string) (bool, error) {
+		MockResolveServiceRequestFn: func(ctx context.Context, staffID *string, serviceRequestID *string, status string) (bool, error) {
 			return true, nil
 		},
 		MockCheckUserRoleFn: func(ctx context.Context, userID string, role string) (bool, error) {
@@ -1107,8 +1107,8 @@ func (gm *PostgresMock) GetServiceRequests(ctx context.Context, requestType, req
 }
 
 // ResolveServiceRequest mocks the implementation of resolving a service request
-func (gm *PostgresMock) ResolveServiceRequest(ctx context.Context, staffID *string, serviceRequestID *string) (bool, error) {
-	return gm.MockResolveServiceRequestFn(ctx, staffID, serviceRequestID)
+func (gm *PostgresMock) ResolveServiceRequest(ctx context.Context, staffID *string, serviceRequestID *string, status string) (bool, error) {
+	return gm.MockResolveServiceRequestFn(ctx, staffID, serviceRequestID, status)
 }
 
 // CheckUserRole mocks the implementation of checking if a user has a role

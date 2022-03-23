@@ -33,7 +33,7 @@ type Update interface {
 	ViewContent(ctx context.Context, userID string, contentID int) (bool, error)
 	SetInProgressBy(ctx context.Context, requestID string, staffID string) (bool, error)
 	UpdateClientCaregiver(ctx context.Context, caregiverInput *dto.CaregiverInput) error
-	ResolveServiceRequest(ctx context.Context, staffID *string, serviceRequestID *string) (bool, error)
+	ResolveServiceRequest(ctx context.Context, staffID *string, serviceRequestID *string, status string) (bool, error)
 	AssignRoles(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error)
 	RevokeRoles(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error)
 	UpdateAppointment(ctx context.Context, payload *Appointment) error
@@ -675,7 +675,7 @@ func (db *PGInstance) UpdateClientCaregiver(ctx context.Context, caregiverInput 
 }
 
 // ResolveServiceRequest resolves a service request for a given client
-func (db *PGInstance) ResolveServiceRequest(ctx context.Context, staffID *string, serviceRequestID *string) (bool, error) {
+func (db *PGInstance) ResolveServiceRequest(ctx context.Context, staffID *string, serviceRequestID *string, status string) (bool, error) {
 	var (
 		serviceRequest ClientServiceRequest
 	)
@@ -700,7 +700,7 @@ func (db *PGInstance) ResolveServiceRequest(ctx context.Context, staffID *string
 	}
 
 	err := tx.Model(&ClientServiceRequest{}).Where(&ClientServiceRequest{ID: serviceRequestID}).Updates(ClientServiceRequest{
-		Status:       enums.ServiceRequestStatusResolved.String(),
+		Status:       status,
 		ResolvedByID: staffID,
 		ResolvedAt:   &currentTime,
 	}).Error

@@ -77,7 +77,7 @@ type GormMock struct {
 	MockGetClientProfileByClientIDFn                     func(ctx context.Context, clientID string) (*gorm.Client, error)
 	MockGetServiceRequestsFn                             func(ctx context.Context, requestType, requestStatus, facilityID *string) ([]*gorm.ClientServiceRequest, error)
 	MockGetPendingServiceRequestsCountFn                 func(ctx context.Context, facilityID string) (*domain.ServiceRequestsCount, error)
-	MockResolveServiceRequestFn                          func(ctx context.Context, staffID *string, serviceRequestID *string) (bool, error)
+	MockResolveServiceRequestFn                          func(ctx context.Context, staffID *string, serviceRequestID *string, status string) (bool, error)
 	MockCheckUserRoleFn                                  func(ctx context.Context, userID string, role string) (bool, error)
 	MockCheckUserPermissionFn                            func(ctx context.Context, userID string, permission string) (bool, error)
 	MockAssignRolesFn                                    func(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error)
@@ -613,7 +613,7 @@ func NewGormMock() *GormMock {
 		MockGetServiceRequestsFn: func(ctx context.Context, requestType, requestStatus, facilityID *string) ([]*gorm.ClientServiceRequest, error) {
 			return serviceRequests, nil
 		},
-		MockResolveServiceRequestFn: func(ctx context.Context, staffID *string, serviceRequestID *string) (bool, error) {
+		MockResolveServiceRequestFn: func(ctx context.Context, staffID *string, serviceRequestID *string, status string) (bool, error) {
 			return true, nil
 		},
 		MockCreateCommunityFn: func(ctx context.Context, community *gorm.Community) (*gorm.Community, error) {
@@ -1149,8 +1149,8 @@ func (gm *GormMock) GetServiceRequests(ctx context.Context, requestType, request
 }
 
 // ResolveServiceRequest mocks the implementation of resolving a service request
-func (gm *GormMock) ResolveServiceRequest(ctx context.Context, staffID *string, serviceRequestID *string) (bool, error) {
-	return gm.MockResolveServiceRequestFn(ctx, staffID, serviceRequestID)
+func (gm *GormMock) ResolveServiceRequest(ctx context.Context, staffID *string, serviceRequestID *string, status string) (bool, error) {
+	return gm.MockResolveServiceRequestFn(ctx, staffID, serviceRequestID, status)
 }
 
 // CheckUserRole mocks the implementation of checking if a user has a role

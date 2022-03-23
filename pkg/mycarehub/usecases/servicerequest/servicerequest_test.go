@@ -378,12 +378,12 @@ func TestUseCasesServiceRequestImpl_ResolveServiceRequest(t *testing.T) {
 			u := servicerequest.NewUseCaseServiceRequestImpl(fakeDB, fakeDB, fakeDB, fakeExtension, fakeUser)
 
 			if tt.name == "Sad Case - Fail to resolve service request" {
-				fakeDB.MockResolveServiceRequestFn = func(ctx context.Context, staffID *string, serviceRequestID *string) (bool, error) {
+				fakeDB.MockResolveServiceRequestFn = func(ctx context.Context, staffID *string, serviceRequestID *string, status string) (bool, error) {
 					return false, fmt.Errorf("failed to resolve service request")
 				}
 			}
 			if tt.name == "Sad Case - Fail to resolve service request, return false" {
-				fakeDB.MockResolveServiceRequestFn = func(ctx context.Context, staffID *string, serviceRequestID *string) (bool, error) {
+				fakeDB.MockResolveServiceRequestFn = func(ctx context.Context, staffID *string, serviceRequestID *string, status string) (bool, error) {
 					return false, nil
 				}
 			}
@@ -894,7 +894,7 @@ func TestUseCasesServiceRequestImpl_VerifyPinResetServiceRequest(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "Sad Case - Fail to invite user",
+			name: "Sad Case - Fail to generate temporary pin",
 			args: args{
 				ctx:                      ctx,
 				clientID:                 "26b20a42-cbb8-4553-aedb-c539602d04fc",
@@ -988,20 +988,20 @@ func TestUseCasesServiceRequestImpl_VerifyPinResetServiceRequest(t *testing.T) {
 				}
 			}
 
-			if tt.name == "Sad Case - Fail to invite user" {
-				fakeUser.MockInviteUserFn = func(ctx context.Context, userID string, phoneNumber string, flavour feedlib.Flavour) (bool, error) {
-					return false, fmt.Errorf("failed to invite user")
+			if tt.name == "Sad Case - Fail to generate temporary pin" {
+				fakeUser.MockGenerateTemporaryPinFn = func(ctx context.Context, userID string, flavour feedlib.Flavour) (string, error) {
+					return "", fmt.Errorf("failed to generate temporary pin")
 				}
 			}
 
 			if tt.name == "Sad Case - Fail to update user pin changed required status" {
-				fakeDB.MockUpdateUserPinChangeRequiredStatusFn = func(ctx context.Context, userID string, flavour feedlib.Flavour, status bool) error {
+				fakeDB.MockUpdateUserFn = func(ctx context.Context, user *domain.User, updateData map[string]interface{}) error {
 					return fmt.Errorf("failed to update user pin changed required status")
 				}
 			}
 
 			if tt.name == "Sad Case - Fail to resolve service request" {
-				fakeDB.MockResolveServiceRequestFn = func(ctx context.Context, staffID *string, serviceRequestID *string) (bool, error) {
+				fakeDB.MockResolveServiceRequestFn = func(ctx context.Context, staffID *string, serviceRequestID *string, status string) (bool, error) {
 					return false, fmt.Errorf("failed to resolve service request")
 				}
 			}

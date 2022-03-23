@@ -1067,6 +1067,7 @@ func TestPGInstance_ResolveServiceRequest(t *testing.T) {
 		ctx              context.Context
 		staffID          *string
 		serviceRequestID *string
+		status           string
 	}
 	tests := []struct {
 		name    string
@@ -1080,6 +1081,7 @@ func TestPGInstance_ResolveServiceRequest(t *testing.T) {
 				ctx:              ctx,
 				staffID:          &staffID,
 				serviceRequestID: &serviceRequestID,
+				status:           enums.ServiceRequestStatusResolved.String(),
 			},
 			wantErr: false,
 			want:    true,
@@ -1090,6 +1092,7 @@ func TestPGInstance_ResolveServiceRequest(t *testing.T) {
 				ctx:              ctx,
 				staffID:          &longWord,
 				serviceRequestID: &serviceRequestID,
+				status:           enums.ServiceRequestStatusResolved.String(),
 			},
 			wantErr: true,
 		},
@@ -1099,6 +1102,7 @@ func TestPGInstance_ResolveServiceRequest(t *testing.T) {
 				ctx:              ctx,
 				staffID:          &nonExistentUUID,
 				serviceRequestID: &serviceRequestID,
+				status:           enums.ServiceRequestStatusResolved.String(),
 			},
 			wantErr: true,
 		},
@@ -1108,6 +1112,7 @@ func TestPGInstance_ResolveServiceRequest(t *testing.T) {
 				ctx:              ctx,
 				staffID:          &staffID,
 				serviceRequestID: &longWord,
+				status:           enums.ServiceRequestStatusResolved.String(),
 			},
 			wantErr: true,
 		},
@@ -1117,6 +1122,7 @@ func TestPGInstance_ResolveServiceRequest(t *testing.T) {
 				ctx:              ctx,
 				staffID:          &staffID,
 				serviceRequestID: &nonExistentUUID,
+				status:           enums.ServiceRequestStatusResolved.String(),
 			},
 			wantErr: true,
 		},
@@ -1124,7 +1130,7 @@ func TestPGInstance_ResolveServiceRequest(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			got, err := testingDB.ResolveServiceRequest(tt.args.ctx, tt.args.staffID, tt.args.serviceRequestID)
+			got, err := testingDB.ResolveServiceRequest(tt.args.ctx, tt.args.staffID, tt.args.serviceRequestID, tt.args.status)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("PGInstance.ResolveServiceRequest() error = %v, wantErr %v", err, tt.wantErr)
 				return
