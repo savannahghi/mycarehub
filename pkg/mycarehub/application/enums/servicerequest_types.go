@@ -12,8 +12,10 @@ type ServiceRequestType string
 const (
 	//ServiceRequestTypeRedFlag represents a health diary entry
 	ServiceRequestTypeRedFlag ServiceRequestType = "RED_FLAG"
-	// ServiceRequestTypePinReset represents the reset pin service request
+	// ServiceRequestTypePinReset represents the client's reset pin service request
 	ServiceRequestTypePinReset ServiceRequestType = "PIN_RESET"
+	// ServiceRequestTypeStaffPinReset represents the reset pin service request
+	ServiceRequestTypeStaffPinReset ServiceRequestType = "STAFF_PIN_RESET"
 	// ServiceRequestTypeProfileUpdate represents the profile update service request
 	ServiceRequestTypeProfileUpdate ServiceRequestType = "PROFILE_UPDATE"
 	// ServiceRequestTypeHomePageHealthDiary represents the homepage healthdiary service request
@@ -24,6 +26,7 @@ const (
 var AllServiceRequestType = []ServiceRequestType{
 	ServiceRequestTypeRedFlag,
 	ServiceRequestTypePinReset,
+	ServiceRequestTypeStaffPinReset,
 	ServiceRequestTypeProfileUpdate,
 	ServiceRequestTypeHomePageHealthDiary,
 }
@@ -33,6 +36,7 @@ func (m ServiceRequestType) IsValid() bool {
 	switch m {
 	case ServiceRequestTypeRedFlag,
 		ServiceRequestTypePinReset,
+		ServiceRequestTypeStaffPinReset,
 		ServiceRequestTypeProfileUpdate,
 		ServiceRequestTypeHomePageHealthDiary:
 		return true

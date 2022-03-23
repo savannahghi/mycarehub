@@ -843,3 +843,65 @@ func TestMyCareHubDb_AnswerScreeningToolQuestions(t *testing.T) {
 		})
 	}
 }
+
+func TestMyCareHubDb_CreateStaffServiceRequest(t *testing.T) {
+	ctx := context.Background()
+
+	var fakeGorm = gormMock.NewGormMock()
+	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+	type args struct {
+		ctx                 context.Context
+		serviceRequestInput *dto.ServiceRequestInput
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx: ctx,
+				serviceRequestInput: &dto.ServiceRequestInput{
+					Active:      true,
+					RequestType: uuid.New().String(),
+					Status:      uuid.New().String(),
+					Request:     uuid.New().String(),
+					StaffID:     uuid.New().String(),
+					FacilityID:  uuid.New().String(),
+					StaffName:   uuid.New().String(),
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case",
+			args: args{
+				ctx: ctx,
+				serviceRequestInput: &dto.ServiceRequestInput{
+					Active:      true,
+					RequestType: uuid.New().String(),
+					Status:      uuid.New().String(),
+					Request:     uuid.New().String(),
+					StaffID:     uuid.New().String(),
+					FacilityID:  uuid.New().String(),
+					StaffName:   uuid.New().String(),
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "Sad case" {
+				fakeGorm.MockCreateStaffServiceRequestFn = func(ctx context.Context, serviceRequestInput *gorm.StaffServiceRequest) error {
+					return fmt.Errorf("failed to create staff service request")
+				}
+			}
+			if err := d.CreateStaffServiceRequest(tt.args.ctx, tt.args.serviceRequestInput); (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.CreateStaffServiceRequest() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}

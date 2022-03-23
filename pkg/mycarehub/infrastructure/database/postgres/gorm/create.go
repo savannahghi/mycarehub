@@ -17,6 +17,7 @@ type Create interface {
 	SaveSecurityQuestionResponse(ctx context.Context, securityQuestionResponse []*SecurityQuestionResponse) error
 	CreateHealthDiaryEntry(ctx context.Context, healthDiaryInput *ClientHealthDiaryEntry) error
 	CreateServiceRequest(ctx context.Context, serviceRequestInput *ClientServiceRequest) error
+	CreateStaffServiceRequest(ctx context.Context, serviceRequestInput *StaffServiceRequest) error
 	CreateClientCaregiver(ctx context.Context, clientID string, clientCaregiver *Caregiver) error
 	CreateCommunity(ctx context.Context, community *Community) (*Community, error)
 	CreateRelatedPerson(ctx context.Context, person *RelatedPerson, clientID, contactID string) error
@@ -164,6 +165,24 @@ func (db *PGInstance) CreateServiceRequest(
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		tx.Rollback()
+		return err
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		tx.Rollback()
+		return fmt.Errorf("failed to commit transaction: %v", err)
+	}
+
+	return nil
+}
+
+// CreateStaffServiceRequest creates a new staff service request
+func (db *PGInstance) CreateStaffServiceRequest(ctx context.Context, serviceRequestInput *StaffServiceRequest) error {
+	tx := db.DB.Begin()
+
+	err := tx.Create(serviceRequestInput).Error
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return err
 	}
 

@@ -119,6 +119,8 @@ type GormMock struct {
 	MockUpdateFailedSecurityQuestionsAnsweringAttemptsFn func(ctx context.Context, userID string, failCount int) error
 	MockGetServiceRequestByIDFn                          func(ctx context.Context, serviceRequestID string) (*gorm.ClientServiceRequest, error)
 	MockUpdateUserFn                                     func(ctx context.Context, user *gorm.User, updateData map[string]interface{}) error
+	MockGetStaffProfileByStaffIDFn                       func(ctx context.Context, staffID string) (*gorm.StaffProfile, error)
+	MockCreateStaffServiceRequestFn                      func(ctx context.Context, serviceRequestInput *gorm.StaffServiceRequest) error
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -393,6 +395,23 @@ func NewGormMock() *GormMock {
 		},
 		MockAcceptTermsFn: func(ctx context.Context, userID *string, termsID *int) (bool, error) {
 			return true, nil
+		},
+		MockCreateStaffServiceRequestFn: func(ctx context.Context, serviceRequestInput *gorm.StaffServiceRequest) error {
+			return nil
+		},
+		MockGetStaffProfileByStaffIDFn: func(ctx context.Context, staffID string) (*gorm.StaffProfile, error) {
+			return &gorm.StaffProfile{
+				ID: &UUID,
+				UserProfile: gorm.User{
+					UserID: &UUID,
+				},
+				UserID:            UUID,
+				Active:            true,
+				StaffNumber:       "TEST-001",
+				Facilities:        facilities,
+				DefaultFacilityID: UUID,
+				OrganisationID:    UUID,
+			}, nil
 		},
 		MockSavePinFn: func(ctx context.Context, pinData *gorm.PINData) (bool, error) {
 			return true, nil
@@ -1357,4 +1376,14 @@ func (gm *GormMock) GetServiceRequestByID(ctx context.Context, serviceRequestID 
 // UpdateUser mocks the implementation of updating a user profile
 func (gm *GormMock) UpdateUser(ctx context.Context, user *gorm.User, updateData map[string]interface{}) error {
 	return gm.MockUpdateUserFn(ctx, user, updateData)
+}
+
+// GetStaffProfileByStaffID mocks the implementation getting staff profile by staff ID
+func (gm *GormMock) GetStaffProfileByStaffID(ctx context.Context, staffID string) (*gorm.StaffProfile, error) {
+	return gm.MockGetStaffProfileByStaffIDFn(ctx, staffID)
+}
+
+// CreateStaffServiceRequest mocks the implementation creating a staff's service request
+func (gm *GormMock) CreateStaffServiceRequest(ctx context.Context, serviceRequestInput *gorm.StaffServiceRequest) error {
+	return gm.MockCreateStaffServiceRequestFn(ctx, serviceRequestInput)
 }

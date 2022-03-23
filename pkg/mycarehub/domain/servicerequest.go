@@ -14,6 +14,7 @@ type ServiceRequest struct {
 	Status         string                 `json:"status"`
 	Active         bool                   `json:"active"`
 	ClientID       string                 `json:"clientID"`
+	StaffID        string                 `json:"staffID"`
 	CreatedAt      time.Time              `json:"created"`
 	InProgressAt   *time.Time             `json:"inProgressAt"`
 	InProgressBy   *string                `json:"inProgressBy"`

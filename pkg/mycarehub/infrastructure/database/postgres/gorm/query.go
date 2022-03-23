@@ -74,6 +74,7 @@ type Query interface {
 	GetUserProfileByStaffID(ctx context.Context, staffID string) (*User, error)
 	GetHealthDiaryEntryByID(ctx context.Context, healthDiaryEntryID string) (*ClientHealthDiaryEntry, error)
 	GetServiceRequestByID(ctx context.Context, serviceRequestID string) (*ClientServiceRequest, error)
+	GetStaffProfileByStaffID(ctx context.Context, staffID string) (*StaffProfile, error)
 }
 
 // CheckWhetherUserHasLikedContent performs a operation to check whether user has liked the content
@@ -672,6 +673,16 @@ func (db *PGInstance) GetClientProfileByClientID(ctx context.Context, clientID s
 		return nil, fmt.Errorf("failed to get client: %v", err)
 	}
 	return &client, nil
+}
+
+// GetStaffProfileByStaffID fetches a staff from the database
+func (db *PGInstance) GetStaffProfileByStaffID(ctx context.Context, staffID string) (*StaffProfile, error) {
+	var staff StaffProfile
+	err := db.DB.Where(&StaffProfile{ID: &staffID}).Preload(clause.Associations).First(&staff).Error
+	if err != nil {
+		return nil, fmt.Errorf("failed to get staff: %v", err)
+	}
+	return &staff, nil
 }
 
 // GetServiceRequests fetches clients service requests from the database according to the type and or status passed

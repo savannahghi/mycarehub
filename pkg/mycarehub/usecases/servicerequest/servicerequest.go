@@ -37,6 +37,7 @@ type ICreateServiceRequest interface {
 		ctx context.Context,
 		phoneNumber string,
 		cccNumber string,
+		flavour feedlib.Flavour,
 	) (bool, error)
 }
 
@@ -108,26 +109,59 @@ func NewUseCaseServiceRequestImpl(
 
 // CreateServiceRequest creates a service request
 func (u *UseCasesServiceRequestImpl) CreateServiceRequest(ctx context.Context, input *dto.ServiceRequestInput) (bool, error) {
-	clientProfile, err := u.Query.GetClientProfileByClientID(ctx, input.ClientID)
-	if err != nil {
-		helpers.ReportErrorToSentry(err)
-		return false, exceptions.ClientProfileNotFoundErr(err)
+	switch input.Flavour {
+	case feedlib.FlavourConsumer:
+		if input.ClientID == "" {
+			return false, fmt.Errorf("client ID is required")
+		}
+		clientProfile, err := u.Query.GetClientProfileByClientID(ctx, input.ClientID)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return false, exceptions.ClientProfileNotFoundErr(err)
+		}
+		serviceRequestInput := &dto.ServiceRequestInput{
+			Active:      true,
+			RequestType: input.RequestType,
+			Request:     input.Request,
+			Status:      "PENDING",
+			ClientID:    input.ClientID,
+			FacilityID:  clientProfile.FacilityID,
+			Meta:        input.Meta,
+		}
+		err = u.Create.CreateServiceRequest(ctx, serviceRequestInput)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return false, fmt.Errorf("failed to create client's service request: %v", err)
+		}
+		return true, nil
+
+	case feedlib.FlavourPro:
+		if input.StaffID == "" {
+			return false, fmt.Errorf("staff ID cannot be empty")
+		}
+		staffProfile, err := u.Query.GetStaffProfileByStaffID(ctx, input.StaffID)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return false, exceptions.StaffProfileNotFoundErr(err)
+		}
+		serviceRequestInput := &dto.ServiceRequestInput{
+			Active:      true,
+			RequestType: input.RequestType,
+			Request:     input.Request,
+			Status:      "PENDING",
+			StaffID:     input.StaffID,
+			FacilityID:  staffProfile.DefaultFacilityID,
+		}
+		err = u.Create.CreateStaffServiceRequest(ctx, serviceRequestInput)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return false, fmt.Errorf("failed to create staff's service request: %v", err)
+		}
+		return true, nil
+	default:
+		return false, fmt.Errorf("invalid flavour defined: %v", input.Flavour)
 	}
-	serviceRequestInput := &dto.ServiceRequestInput{
-		Active:      true,
-		RequestType: input.RequestType,
-		Request:     input.Request,
-		Status:      "PENDING",
-		ClientID:    input.ClientID,
-		FacilityID:  clientProfile.FacilityID,
-		Meta:        input.Meta,
-	}
-	err = u.Create.CreateServiceRequest(ctx, serviceRequestInput)
-	if err != nil {
-		helpers.ReportErrorToSentry(err)
-		return false, fmt.Errorf("failed to create service request: %v", err)
-	}
-	return true, nil
+
 }
 
 // SetInProgressBy assigns to a service request, staff currently working on the service request
@@ -252,57 +286,95 @@ func (u *UseCasesServiceRequestImpl) UpdateServiceRequestsFromKenyaEMR(ctx conte
 
 // CreatePinResetServiceRequest creates a PIN_RESET service request. This occurs when a user attempts to change
 // their pin but they don't succeed.
-func (u *UseCasesServiceRequestImpl) CreatePinResetServiceRequest(ctx context.Context, phoneNumber string, cccNumber string) (bool, error) {
-	if cccNumber == "" {
-		return false, fmt.Errorf("ccc number cannot be empty")
-	}
-	if phoneNumber == "" {
-		return false, fmt.Errorf("phone number cannot be empty")
-	}
-
-	var meta = map[string]interface{}{}
-	meta["ccc_number"] = cccNumber
-
-	// TODO: Check if the service request exists before creating a new one
-	userProfile, err := u.Query.GetUserProfileByPhoneNumber(ctx, phoneNumber, feedlib.FlavourConsumer)
-	if err != nil {
-		helpers.ReportErrorToSentry(err)
-		return false, exceptions.ProfileNotFoundErr(err)
-	}
-
-	clientProfile, err := u.Query.GetClientProfileByUserID(ctx, *userProfile.ID)
-	if err != nil {
-		helpers.ReportErrorToSentry(err)
-		return false, exceptions.ClientProfileNotFoundErr(err)
-	}
-
-	meta["is_ccc_number_valid"] = true
-	_, err = u.Query.GetClientProfileByCCCNumber(ctx, cccNumber)
-	if err != nil {
-		if err == gorm.ErrRecordNotFound {
-			meta["is_ccc_number_valid"] = false
-		} else {
-			helpers.ReportErrorToSentry(err)
-			return false, exceptions.GetError(err)
+func (u *UseCasesServiceRequestImpl) CreatePinResetServiceRequest(ctx context.Context, phoneNumber string, cccNumber string, flavour feedlib.Flavour) (bool, error) {
+	switch flavour {
+	case feedlib.FlavourConsumer:
+		if cccNumber == "" {
+			return false, fmt.Errorf("ccc number cannot be empty")
 		}
+		if phoneNumber == "" {
+			return false, fmt.Errorf("phone number cannot be empty")
+		}
+
+		var meta = map[string]interface{}{}
+		meta["ccc_number"] = cccNumber
+
+		// TODO: Check if the service request exists before creating a new one
+		userProfile, err := u.Query.GetUserProfileByPhoneNumber(ctx, phoneNumber, feedlib.FlavourConsumer)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return false, exceptions.ProfileNotFoundErr(err)
+		}
+
+		clientProfile, err := u.Query.GetClientProfileByUserID(ctx, *userProfile.ID)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return false, exceptions.ClientProfileNotFoundErr(err)
+		}
+
+		meta["is_ccc_number_valid"] = true
+		_, err = u.Query.GetClientProfileByCCCNumber(ctx, cccNumber)
+		if err != nil {
+			if err == gorm.ErrRecordNotFound {
+				meta["is_ccc_number_valid"] = false
+			} else {
+				helpers.ReportErrorToSentry(err)
+				return false, exceptions.GetError(err)
+			}
+		}
+
+		serviceRequestInput := &dto.ServiceRequestInput{
+			Active:      true,
+			RequestType: string(enums.ServiceRequestTypePinReset),
+			Request:     "Change PIN Request",
+			ClientID:    *clientProfile.ID,
+			FacilityID:  clientProfile.FacilityID,
+			Flavour:     feedlib.FlavourConsumer,
+			Meta:        meta,
+		}
+
+		_, err = u.CreateServiceRequest(ctx, serviceRequestInput)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return false, err
+		}
+
+		return true, nil
+
+	case feedlib.FlavourPro:
+		userProfile, err := u.Query.GetUserProfileByPhoneNumber(ctx, phoneNumber, feedlib.FlavourPro)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return false, exceptions.ProfileNotFoundErr(err)
+		}
+
+		staffProfile, err := u.Query.GetStaffProfileByUserID(ctx, *userProfile.ID)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return false, exceptions.StaffProfileNotFoundErr(err)
+		}
+
+		serviceRequestInput := &dto.ServiceRequestInput{
+			Active:      true,
+			RequestType: string(enums.ServiceRequestTypeStaffPinReset),
+			Request:     "Change PIN Request",
+			StaffID:     *staffProfile.ID,
+			FacilityID:  staffProfile.DefaultFacilityID,
+			Flavour:     feedlib.FlavourPro,
+		}
+
+		_, err = u.CreateServiceRequest(ctx, serviceRequestInput)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return false, err
+		}
+
+		return true, nil
+
+	default:
+		return false, nil
 	}
 
-	serviceRequestInput := &dto.ServiceRequestInput{
-		Active:      true,
-		RequestType: string(enums.ServiceRequestTypePinReset),
-		Request:     "Request to change pin",
-		ClientID:    *clientProfile.ID,
-		FacilityID:  clientProfile.FacilityID,
-		Meta:        meta,
-	}
-
-	_, err = u.CreateServiceRequest(ctx, serviceRequestInput)
-	if err != nil {
-		helpers.ReportErrorToSentry(err)
-		return false, err
-	}
-
-	return true, nil
 }
 
 // VerifyPinResetServiceRequest is used to approve/reject a pin reset service request. This is used by the

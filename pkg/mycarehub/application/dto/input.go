@@ -446,8 +446,9 @@ func (s StaffRegistrationInput) Validate() error {
 // PinResetServiceRequestPayload models the details passed to an API when a pin reset service request
 // is being created
 type PinResetServiceRequestPayload struct {
-	CCCNumber   string `json:"cccNumber"`
-	PhoneNumber string `json:"phoneNumber"`
+	CCCNumber   string          `json:"cccNumber"`
+	PhoneNumber string          `json:"phoneNumber"`
+	Flavour     feedlib.Flavour `json:"flavour"`
 }
 
 // OptInPayload models the details passed when opting a user in
@@ -463,10 +464,13 @@ type ServiceRequestInput struct {
 	Status       string                 `json:"status"`
 	Request      string                 `json:"request"`
 	ClientID     string                 `json:"clientID"`
+	StaffID      string                 `json:"staffID"`
 	InProgressBy *string                `json:"inProgressBy"`
 	ResolvedBy   *string                `json:"resolvedBy"`
 	FacilityID   string                 `json:"facility_id"`
 	ClientName   *string                `json:"client_name"`
+	StaffName    string                 `json:"staff_name"`
+	Flavour      feedlib.Flavour        `json:"flavour"`
 	Meta         map[string]interface{} `json:"meta"`
 }
 

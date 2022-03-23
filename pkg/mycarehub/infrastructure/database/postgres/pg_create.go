@@ -180,6 +180,31 @@ func (d *MyCareHubDb) CreateServiceRequest(ctx context.Context, serviceRequestIn
 	return nil
 }
 
+// CreateStaffServiceRequest creates a new service request for the specified staff
+func (d *MyCareHubDb) CreateStaffServiceRequest(ctx context.Context, serviceRequestInput *dto.ServiceRequestInput) error {
+	meta, err := json.Marshal(serviceRequestInput.Meta)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return fmt.Errorf("failed to marshal meta data: %v", err)
+	}
+	serviceRequest := &gorm.StaffServiceRequest{
+		Active:      serviceRequestInput.Active,
+		RequestType: serviceRequestInput.RequestType,
+		Request:     serviceRequestInput.Request,
+		Status:      serviceRequestInput.Status,
+		StaffID:     serviceRequestInput.StaffID,
+		Meta:        string(meta),
+	}
+
+	err = d.create.CreateStaffServiceRequest(ctx, serviceRequest)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return err
+	}
+
+	return nil
+}
+
 // CreateClientCaregiver creates a client's caregiver
 func (d *MyCareHubDb) CreateClientCaregiver(ctx context.Context, caregiverInput *dto.CaregiverInput) error {
 	caregiver := &gorm.Caregiver{

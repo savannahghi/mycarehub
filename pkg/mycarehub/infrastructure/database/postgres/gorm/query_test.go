@@ -3344,3 +3344,52 @@ func TestPGInstance_CheckIfUsernameExists(t *testing.T) {
 		})
 	}
 }
+
+func TestPGInstance_GetStaffProfileByStaffID(t *testing.T) {
+	ctx := context.Background()
+
+	type args struct {
+		ctx     context.Context
+		staffID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *gorm.StaffProfile
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:     ctx,
+				staffID: staffID,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case",
+			args: args{
+				ctx:     ctx,
+				staffID: "staffID",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := testingDB.GetStaffProfileByStaffID(tt.args.ctx, tt.args.staffID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.GetStaffProfileByStaffID() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if tt.wantErr && got != nil {
+				t.Errorf("expected staff to be nil for %v", tt.name)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected staff not to be nil for %v", tt.name)
+				return
+			}
+		})
+	}
+}

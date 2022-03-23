@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 )
@@ -27,7 +28,7 @@ type ServiceRequestUseCaseMock struct {
 	MockSetInProgressByFn                   func(ctx context.Context, requestID string, staffID string) (bool, error)
 	MockGetServiceRequestsForKenyaEMRFn     func(ctx context.Context, payload *dto.ServiceRequestPayload) ([]*domain.ServiceRequest, error)
 	MockUpdateServiceRequestsFromKenyaEMRFn func(ctx context.Context, payload *dto.UpdateServiceRequestsPayload) (bool, error)
-	MockCreatePinResetServiceRequestFn      func(ctx context.Context, phoneNumber string, cccNumber string) (bool, error)
+	MockCreatePinResetServiceRequestFn      func(ctx context.Context, phoneNumber string, cccNumber string, flavour feedlib.Flavour) (bool, error)
 }
 
 // NewServiceRequestUseCaseMock initializes a new service request instance mock
@@ -77,7 +78,7 @@ func NewServiceRequestUseCaseMock() *ServiceRequestUseCaseMock {
 			}
 			return []*domain.ServiceRequest{serviceReq}, nil
 		},
-		MockCreatePinResetServiceRequestFn: func(ctx context.Context, phoneNumber string, cccNumber string) (bool, error) {
+		MockCreatePinResetServiceRequestFn: func(ctx context.Context, phoneNumber string, cccNumber string, flavour feedlib.Flavour) (bool, error) {
 			return true, nil
 		},
 		MockVerifyPinResetServiceRequestFn: func(
@@ -130,8 +131,8 @@ func (s *ServiceRequestUseCaseMock) UpdateServiceRequestsFromKenyaEMR(ctx contex
 }
 
 // CreatePinResetServiceRequest mocks the implementation of creating a pin reset service request
-func (s *ServiceRequestUseCaseMock) CreatePinResetServiceRequest(ctx context.Context, phoneNumber string, cccNumber string) (bool, error) {
-	return s.MockCreatePinResetServiceRequestFn(ctx, phoneNumber, cccNumber)
+func (s *ServiceRequestUseCaseMock) CreatePinResetServiceRequest(ctx context.Context, phoneNumber string, cccNumber string, flavour feedlib.Flavour) (bool, error) {
+	return s.MockCreatePinResetServiceRequestFn(ctx, phoneNumber, cccNumber, flavour)
 }
 
 // VerifyPinResetServiceRequest mocks the implementation of approving a pin reset service request
