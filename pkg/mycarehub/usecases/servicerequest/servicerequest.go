@@ -3,6 +3,7 @@ package servicerequest
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/feedlib"
@@ -192,6 +193,20 @@ func (u *UseCasesServiceRequestImpl) ResolveServiceRequest(ctx context.Context, 
 		return false, fmt.Errorf("failed to get client profile: %v", err)
 	}
 	if serviceRequest.RequestType == enums.ServiceRequestTypePinReset.String() {
+		user := &domain.User{
+			ID: &clientProfile.UserID,
+		}
+		updatePayload := map[string]interface{}{
+			"next_allowed_login":    time.Now(),
+			"failed_login_count":    0,
+			"failed_security_count": 0,
+		}
+		err := u.Update.UpdateUser(ctx, user, updatePayload)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return false, fmt.Errorf("failed to update user: %v", err)
+		}
+
 		err = u.Update.UpdateFailedSecurityQuestionsAnsweringAttempts(ctx, clientProfile.UserID, 0)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)

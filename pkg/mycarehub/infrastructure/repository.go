@@ -127,4 +127,5 @@ type Update interface {
 	UpdateUserPinUpdateRequiredStatus(ctx context.Context, userID string, flavour feedlib.Flavour, status bool) error
 	UpdateHealthDiary(ctx context.Context, updateInput *gorm.ClientHealthDiaryEntry) (bool, error)
 	UpdateFailedSecurityQuestionsAnsweringAttempts(ctx context.Context, userID string, failCount int) error
+	UpdateUser(ctx context.Context, user *domain.User, updateData map[string]interface{}) error
 }

@@ -2067,3 +2067,57 @@ func TestMyCareHubDb_UpdateFailedSecurityQuestionsAnsweringAttempts(t *testing.T
 		})
 	}
 }
+
+func TestMyCareHubDb_UpdateUser(t *testing.T) {
+	ctx := context.Background()
+	var fakeGorm = gormMock.NewGormMock()
+	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+	UUID := uuid.New().String()
+
+	type args struct {
+		ctx        context.Context
+		user       *domain.User
+		updateData map[string]interface{}
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:  ctx,
+				user: &domain.User{ID: &UUID},
+				updateData: map[string]interface{}{
+					"test": "test",
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case",
+			args: args{
+				ctx:  ctx,
+				user: &domain.User{ID: &UUID},
+				updateData: map[string]interface{}{
+					"test": "test",
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "Sad case" {
+				fakeGorm.MockUpdateUserFn = func(ctx context.Context, user *gorm.User, updateData map[string]interface{}) error {
+					return fmt.Errorf("failed to update user")
+				}
+			}
+			if err := d.UpdateUser(tt.args.ctx, tt.args.user, tt.args.updateData); (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.UpdateUser() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}

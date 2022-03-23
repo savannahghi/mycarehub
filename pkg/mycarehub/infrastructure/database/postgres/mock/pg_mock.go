@@ -121,6 +121,7 @@ type PostgresMock struct {
 	MockUpdateClientFn                                   func(ctx context.Context, client *domain.ClientProfile, updates map[string]interface{}) (*domain.ClientProfile, error)
 	MockUpdateFailedSecurityQuestionsAnsweringAttemptsFn func(ctx context.Context, userID string, failCount int) error
 	MockGetServiceRequestByIDFn                          func(ctx context.Context, id string) (*domain.ServiceRequest, error)
+	MockUpdateUserFn                                     func(ctx context.Context, user *domain.User, updateData map[string]interface{}) error
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -277,6 +278,9 @@ func NewPostgresMock() *PostgresMock {
 				Flavour: feedlib.FlavourPro,
 			}
 			return terms, nil
+		},
+		MockUpdateUserFn: func(ctx context.Context, user *domain.User, updateData map[string]interface{}) error {
+			return nil
 		},
 		MockGetUserProfileByUserIDFn: func(ctx context.Context, userID string) (*domain.User, error) {
 			return &domain.User{
@@ -1295,4 +1299,9 @@ func (gm *PostgresMock) UpdateFailedSecurityQuestionsAnsweringAttempts(ctx conte
 // GetServiceRequestByID mocks the implementation of getting a service request by ID
 func (gm *PostgresMock) GetServiceRequestByID(ctx context.Context, serviceRequestID string) (*domain.ServiceRequest, error) {
 	return gm.MockGetServiceRequestByIDFn(ctx, serviceRequestID)
+}
+
+// UpdateUser mocks the implementation of updating a user profile
+func (gm *PostgresMock) UpdateUser(ctx context.Context, user *domain.User, updateData map[string]interface{}) error {
+	return gm.MockUpdateUserFn(ctx, user, updateData)
 }

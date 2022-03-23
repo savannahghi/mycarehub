@@ -1711,3 +1711,56 @@ func TestPGInstance_UpdateFailedSecurityQuestionsAnsweringAttempts(t *testing.T)
 		})
 	}
 }
+
+func TestPGInstance_UpdateUser(t *testing.T) {
+	ctx := context.Background()
+
+	invalidUserID := "invalid user"
+
+	type args struct {
+		ctx        context.Context
+		user       *gorm.User
+		updateData map[string]interface{}
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx: ctx,
+				user: &gorm.User{
+					UserID: &userID,
+				},
+				updateData: map[string]interface{}{
+					"next_allowed_login": time.Now(),
+					"failed_login_count": 0,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case",
+			args: args{
+				ctx: ctx,
+				user: &gorm.User{
+					UserID: &invalidUserID,
+				},
+				updateData: map[string]interface{}{
+					"next_allowed_login": time.Now(),
+					"failed_login_count": 0,
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := testingDB.UpdateUser(tt.args.ctx, tt.args.user, tt.args.updateData); (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.UpdateUser() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
