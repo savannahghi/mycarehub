@@ -1075,7 +1075,7 @@ func (us *UseCasesUserImpl) RegisterKenyaEMRPatients(ctx context.Context, input 
 			EnrollmentDate: patient.EnrollmentDate,
 			CCCNumber:      patient.CCCNumber,
 			Counselled:     patient.Counselled,
-			InviteClient:   false,
+			InviteClient:   true,
 		}
 
 		client, err := us.RegisterClient(ctx, input)
