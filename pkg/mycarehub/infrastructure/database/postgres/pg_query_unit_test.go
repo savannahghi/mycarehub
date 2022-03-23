@@ -1090,11 +1090,12 @@ func TestMyCareHubDb_GetSecurityQuestionByID(t *testing.T) {
 	}
 }
 
-func TestMyCareHubDb_GetSecurityQuestionResponseByID(t *testing.T) {
+func TestMyCareHubDb_GetSecurityQuestionResponse(t *testing.T) {
 	ctx := context.Background()
 	type args struct {
 		ctx        context.Context
 		questionID string
+		userID     string
 	}
 	tests := []struct {
 		name    string
@@ -1103,7 +1104,7 @@ func TestMyCareHubDb_GetSecurityQuestionResponseByID(t *testing.T) {
 	}{
 		{
 			name:    "Happy Case - Successfully get security question response",
-			args:    args{ctx: ctx, questionID: "12345"},
+			args:    args{ctx: ctx, questionID: "12345", userID: uuid.NewString()},
 			wantErr: false,
 		},
 		{
@@ -1128,20 +1129,20 @@ func TestMyCareHubDb_GetSecurityQuestionResponseByID(t *testing.T) {
 			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
 
 			if tt.name == "Sad Case - Missing question ID" {
-				fakeGorm.MockGetSecurityQuestionResponseByIDFn = func(ctx context.Context, questionID string) (*gorm.SecurityQuestionResponse, error) {
+				fakeGorm.MockGetSecurityQuestionResponseFn = func(ctx context.Context, questionID string, userID string) (*gorm.SecurityQuestionResponse, error) {
 					return nil, fmt.Errorf("failed to get security question response")
 				}
 			}
 
 			if tt.name == "Sad Case - Fail to get security question response" {
-				fakeGorm.MockGetSecurityQuestionResponseByIDFn = func(ctx context.Context, questionID string) (*gorm.SecurityQuestionResponse, error) {
+				fakeGorm.MockGetSecurityQuestionResponseFn = func(ctx context.Context, questionID string, userID string) (*gorm.SecurityQuestionResponse, error) {
 					return nil, fmt.Errorf("failed to get security question response")
 				}
 			}
 
-			got, err := d.GetSecurityQuestionResponseByID(tt.args.ctx, tt.args.questionID)
+			got, err := d.GetSecurityQuestionResponse(tt.args.ctx, tt.args.questionID, tt.args.userID)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("MyCareHubDb.GetSecurityQuestionResponseByID() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("MyCareHubDb.GetSecurityQuestionResponse() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !tt.wantErr && got == nil {

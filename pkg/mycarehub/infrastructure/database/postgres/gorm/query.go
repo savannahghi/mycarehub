@@ -31,7 +31,7 @@ type Query interface {
 	CheckWhetherUserHasLikedContent(ctx context.Context, userID string, contentID int) (bool, error)
 	GetSecurityQuestions(ctx context.Context, flavour feedlib.Flavour) ([]*SecurityQuestion, error)
 	GetSecurityQuestionByID(ctx context.Context, securityQuestionID *string) (*SecurityQuestion, error)
-	GetSecurityQuestionResponseByID(ctx context.Context, questionID string) (*SecurityQuestionResponse, error)
+	GetSecurityQuestionResponse(ctx context.Context, questionID string, userID string) (*SecurityQuestionResponse, error)
 	CheckIfPhoneNumberExists(ctx context.Context, phone string, isOptedIn bool, flavour feedlib.Flavour) (bool, error)
 	VerifyOTP(ctx context.Context, payload *dto.VerifyOTPInput) (bool, error)
 	GetClientProfileByUserID(ctx context.Context, userID string) (*Client, error)
@@ -391,10 +391,10 @@ func (db *PGInstance) GetSecurityQuestionByID(ctx context.Context, securityQuest
 	return &securityQuestion, nil
 }
 
-// GetSecurityQuestionResponseByID returns the security question response
-func (db *PGInstance) GetSecurityQuestionResponseByID(ctx context.Context, questionID string) (*SecurityQuestionResponse, error) {
+// GetSecurityQuestionResponse returns the security question response
+func (db *PGInstance) GetSecurityQuestionResponse(ctx context.Context, questionID string, userID string) (*SecurityQuestionResponse, error) {
 	var questionResponse SecurityQuestionResponse
-	if err := db.DB.Where(&SecurityQuestionResponse{QuestionID: questionID}).First(&questionResponse).Error; err != nil {
+	if err := db.DB.Where(&SecurityQuestionResponse{QuestionID: questionID, UserID: userID}).First(&questionResponse).Error; err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed to get the security question response by ID")
 	}
