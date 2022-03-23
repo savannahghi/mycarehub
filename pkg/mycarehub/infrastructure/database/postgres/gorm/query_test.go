@@ -1573,10 +1573,11 @@ func TestPGInstance_GetUserPINByUserID(t *testing.T) {
 	}
 }
 
-func TestPGInstance_GetSecurityQuestionResponseByID(t *testing.T) {
+func TestPGInstance_GetSecurityQuestionResponse(t *testing.T) {
 	type args struct {
 		ctx        context.Context
 		questionID string
+		userID     string
 	}
 	tests := []struct {
 		name    string
@@ -1588,6 +1589,7 @@ func TestPGInstance_GetSecurityQuestionResponseByID(t *testing.T) {
 			args: args{
 				ctx:        context.Background(),
 				questionID: securityQuestionID,
+				userID:     userID,
 			},
 			wantErr: false,
 		},
@@ -1602,9 +1604,9 @@ func TestPGInstance_GetSecurityQuestionResponseByID(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := testingDB.GetSecurityQuestionResponseByID(tt.args.ctx, tt.args.questionID)
+			got, err := testingDB.GetSecurityQuestionResponse(tt.args.ctx, tt.args.questionID, tt.args.userID)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("PGInstance.GetSecurityQuestionResponseByID() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("PGInstance.GetSecurityQuestionResponse() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !tt.wantErr && got == nil {

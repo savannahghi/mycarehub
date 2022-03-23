@@ -42,7 +42,7 @@ type GormMock struct {
 	MockSaveOTPFn                                        func(ctx context.Context, otpInput *gorm.UserOTP) error
 	MockGetSecurityQuestionByIDFn                        func(ctx context.Context, securityQuestionID *string) (*gorm.SecurityQuestion, error)
 	MockSaveSecurityQuestionResponseFn                   func(ctx context.Context, securityQuestionResponse []*gorm.SecurityQuestionResponse) error
-	MockGetSecurityQuestionResponseByIDFn                func(ctx context.Context, questionID string) (*gorm.SecurityQuestionResponse, error)
+	MockGetSecurityQuestionResponseFn                    func(ctx context.Context, questionID string, userID string) (*gorm.SecurityQuestionResponse, error)
 	MockCheckIfPhoneNumberExistsFn                       func(ctx context.Context, phone string, isOptedIn bool, flavour feedlib.Flavour) (bool, error)
 	MockVerifyOTPFn                                      func(ctx context.Context, payload *dto.VerifyOTPInput) (bool, error)
 	MockGetClientProfileByUserIDFn                       func(ctx context.Context, userID string) (*gorm.Client, error)
@@ -446,7 +446,7 @@ func NewGormMock() *GormMock {
 		MockSaveSecurityQuestionResponseFn: func(ctx context.Context, securityQuestionResponse []*gorm.SecurityQuestionResponse) error {
 			return nil
 		},
-		MockGetSecurityQuestionResponseByIDFn: func(ctx context.Context, questionID string) (*gorm.SecurityQuestionResponse, error) {
+		MockGetSecurityQuestionResponseFn: func(ctx context.Context, questionID string, userID string) (*gorm.SecurityQuestionResponse, error) {
 			return &gorm.SecurityQuestionResponse{
 				ResponseID: "1234",
 				QuestionID: "1234",
@@ -978,9 +978,9 @@ func (gm *GormMock) SaveSecurityQuestionResponse(ctx context.Context, securityQu
 	return gm.MockSaveSecurityQuestionResponseFn(ctx, securityQuestionResponse)
 }
 
-// GetSecurityQuestionResponseByID mocks the get security question implementation
-func (gm *GormMock) GetSecurityQuestionResponseByID(ctx context.Context, questionID string) (*gorm.SecurityQuestionResponse, error) {
-	return gm.MockGetSecurityQuestionResponseByIDFn(ctx, questionID)
+// GetSecurityQuestionResponse mocks the get security question implementation
+func (gm *GormMock) GetSecurityQuestionResponse(ctx context.Context, questionID string, userID string) (*gorm.SecurityQuestionResponse, error) {
+	return gm.MockGetSecurityQuestionResponseFn(ctx, questionID, userID)
 }
 
 // CheckIfPhoneNumberExists mock the implementation of checking the existence of phone number

@@ -164,7 +164,7 @@ func (s *UseCaseSecurityQuestionsImpl) VerifySecurityQuestionResponses(
 		return false, exceptions.FailedSecurityCountExceededErr(err)
 	}
 	for _, securityQuestionResponse := range responses.SecurityQuestionsInput {
-		questionResponse, err := s.Query.GetSecurityQuestionResponseByID(ctx, securityQuestionResponse.QuestionID)
+		questionResponse, err := s.Query.GetSecurityQuestionResponse(ctx, securityQuestionResponse.QuestionID, *userProfile.ID)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
 			return false, exceptions.SecurityQuestionNotFoundErr(fmt.Errorf("security question does not exist"))
