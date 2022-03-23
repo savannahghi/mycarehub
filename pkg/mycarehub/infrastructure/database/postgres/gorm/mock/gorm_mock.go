@@ -118,6 +118,7 @@ type GormMock struct {
 	MockGetHealthDiaryEntryByIDFn                        func(ctx context.Context, healthDiaryEntryID string) (*gorm.ClientHealthDiaryEntry, error)
 	MockUpdateFailedSecurityQuestionsAnsweringAttemptsFn func(ctx context.Context, userID string, failCount int) error
 	MockGetServiceRequestByIDFn                          func(ctx context.Context, serviceRequestID string) (*gorm.ClientServiceRequest, error)
+	MockUpdateUserFn                                     func(ctx context.Context, user *gorm.User, updateData map[string]interface{}) error
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -377,6 +378,9 @@ func NewGormMock() *GormMock {
 				Active:    false,
 			}
 			return terms, nil
+		},
+		MockUpdateUserFn: func(ctx context.Context, user *gorm.User, updateData map[string]interface{}) error {
+			return nil
 		},
 		MockGetUserProfileByUserIDFn: func(ctx context.Context, userID *string) (*gorm.User, error) {
 			ID := uuid.New().String()
@@ -1348,4 +1352,9 @@ func (gm *GormMock) UpdateFailedSecurityQuestionsAnsweringAttempts(ctx context.C
 // GetServiceRequestByID mocks the implementation of getting a service request by ID
 func (gm *GormMock) GetServiceRequestByID(ctx context.Context, serviceRequestID string) (*gorm.ClientServiceRequest, error) {
 	return gm.MockGetServiceRequestByIDFn(ctx, serviceRequestID)
+}
+
+// UpdateUser mocks the implementation of updating a user profile
+func (gm *GormMock) UpdateUser(ctx context.Context, user *gorm.User, updateData map[string]interface{}) error {
+	return gm.MockUpdateUserFn(ctx, user, updateData)
 }

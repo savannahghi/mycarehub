@@ -45,6 +45,7 @@ type Update interface {
 	UpdateUserPinUpdateRequiredStatus(ctx context.Context, userID string, flavour feedlib.Flavour, status bool) error
 	UpdateHealthDiary(ctx context.Context, payload *ClientHealthDiaryEntry) (bool, error)
 	UpdateFailedSecurityQuestionsAnsweringAttempts(ctx context.Context, userID string, failCount int) error
+	UpdateUser(ctx context.Context, user *User, updateData map[string]interface{}) error
 }
 
 // LikeContent perfoms the actual database operation to update content like. The operation
@@ -985,6 +986,17 @@ func (db *PGInstance) UpdateHealthDiary(ctx context.Context, payload *ClientHeal
 	}
 
 	return true, nil
+}
+
+// UpdateUser updates the user model
+func (db *PGInstance) UpdateUser(ctx context.Context, user *User, updateData map[string]interface{}) error {
+	err := db.DB.Model(&User{}).Where(&User{UserID: user.UserID}).Updates(updateData).Error
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return fmt.Errorf("unable to update user: %v", err)
+	}
+
+	return nil
 }
 
 // UpdateFailedSecurityQuestionsAnsweringAttempts sets the failed security attempts

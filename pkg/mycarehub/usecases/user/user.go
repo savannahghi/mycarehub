@@ -985,8 +985,10 @@ func (us *UseCasesUserImpl) RegisterClient(
 	// Success is indicated with 2xx status codes
 	statusOK := resp.StatusCode >= 200 && resp.StatusCode < 300
 	if !statusOK {
-		if strings.Contains(string(dataResponse), "already exists") {
+		if strings.Contains(string(dataResponse), "Identifier with this Identifier") {
 			return nil, fmt.Errorf("a client with this identifier type and value already exists")
+		} else if strings.Contains(string(dataResponse), "Contact with this Contact value and Flavour already exists") {
+			return nil, fmt.Errorf("a contact with this value and flavour already exists")
 		}
 		return nil, fmt.Errorf("%v", string(dataResponse))
 	}
@@ -1175,7 +1177,7 @@ func (us *UseCasesUserImpl) RegisterStaff(ctx context.Context, input dto.StaffRe
 	// Success is indicated with 2xx status codes
 	statusOK := resp.StatusCode >= 200 && resp.StatusCode < 300
 	if !statusOK {
-		if strings.Contains(string(dataResponse), "already exists") {
+		if strings.Contains(string(dataResponse), "Contact with this Contact value and Flavour already exists") {
 			return nil, fmt.Errorf("a contact with this value and flavour already exists")
 		}
 		return nil, fmt.Errorf("%v", string(dataResponse))

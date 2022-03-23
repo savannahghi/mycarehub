@@ -274,3 +274,11 @@ func (d *MyCareHubDb) UpdateClient(ctx context.Context, client *domain.ClientPro
 func (d *MyCareHubDb) UpdateFailedSecurityQuestionsAnsweringAttempts(ctx context.Context, userID string, failCount int) error {
 	return d.update.UpdateFailedSecurityQuestionsAnsweringAttempts(ctx, userID, failCount)
 }
+
+// UpdateUser updates the user details
+func (d *MyCareHubDb) UpdateUser(ctx context.Context, user *domain.User, updateData map[string]interface{}) error {
+	userPayload := &gorm.User{
+		UserID: user.ID,
+	}
+	return d.update.UpdateUser(ctx, userPayload, updateData)
+}
