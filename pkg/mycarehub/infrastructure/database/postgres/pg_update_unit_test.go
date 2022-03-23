@@ -1546,6 +1546,7 @@ func TestMyCareHubDb_ResolveServiceRequest(t *testing.T) {
 		ctx              context.Context
 		staffID          *string
 		serviceRequestID *string
+		status           string
 	}
 	tests := []struct {
 		name    string
@@ -1559,6 +1560,7 @@ func TestMyCareHubDb_ResolveServiceRequest(t *testing.T) {
 				ctx:              context.Background(),
 				staffID:          &testUUD,
 				serviceRequestID: &testUUD,
+				status:           enums.ServiceRequestStatusResolved.String(),
 			},
 			want:    true,
 			wantErr: false,
@@ -1569,7 +1571,7 @@ func TestMyCareHubDb_ResolveServiceRequest(t *testing.T) {
 			var fakeGorm = gormMock.NewGormMock()
 			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
 
-			got, err := d.ResolveServiceRequest(tt.args.ctx, tt.args.staffID, tt.args.serviceRequestID)
+			got, err := d.ResolveServiceRequest(tt.args.ctx, tt.args.staffID, tt.args.serviceRequestID, tt.args.status)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("MyCareHubDb.ResolveServiceRequest() error = %v, wantErr %v", err, tt.wantErr)
 				return

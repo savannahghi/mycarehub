@@ -16,6 +16,8 @@ const (
 	ServiceRequestStatusInProgress ServiceRequestStatus = "IN PROGRESS"
 	//ServiceRequestStatusResolved is the string type service request
 	ServiceRequestStatusResolved ServiceRequestStatus = "RESOLVED"
+	//ServiceRequestStatusRejected is the string type service request
+	ServiceRequestStatusRejected ServiceRequestStatus = "REJECTED"
 )
 
 // AllServiceRequestStatus is a set of a  valid and known service request status.
@@ -23,6 +25,7 @@ var AllServiceRequestStatus = []ServiceRequestStatus{
 	ServiceRequestStatusPending,
 	ServiceRequestStatusInProgress,
 	ServiceRequestStatusResolved,
+	ServiceRequestStatusRejected,
 }
 
 // IsValid returns true if a request type is valid
@@ -30,7 +33,8 @@ func (m ServiceRequestStatus) IsValid() bool {
 	switch m {
 	case ServiceRequestStatusPending,
 		ServiceRequestStatusInProgress,
-		ServiceRequestStatusResolved:
+		ServiceRequestStatusResolved,
+		ServiceRequestStatusRejected:
 		return true
 	}
 	return false

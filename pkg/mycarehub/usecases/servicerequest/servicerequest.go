@@ -213,7 +213,7 @@ func (u *UseCasesServiceRequestImpl) ResolveServiceRequest(ctx context.Context, 
 			return false, fmt.Errorf("failed to reset client's failed security answering attempts: %v", err)
 		}
 	}
-	ok, err := u.Update.ResolveServiceRequest(ctx, staffID, serviceRequestID)
+	ok, err := u.Update.ResolveServiceRequest(ctx, staffID, serviceRequestID, enums.ServiceRequestStatusResolved.String())
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return false, fmt.Errorf("failed to update service request: %v", err)
@@ -371,6 +371,10 @@ func (u *UseCasesServiceRequestImpl) VerifyPinResetServiceRequest(
 		if err != nil {
 			return false, err
 		}
+		_, err = u.Update.ResolveServiceRequest(ctx, staff.ID, &serviceRequestID, enums.ServiceRequestStatusRejected.String())
+		if err != nil {
+			return false, err
+		}
 
 		return true, nil
 
@@ -380,17 +384,34 @@ func (u *UseCasesServiceRequestImpl) VerifyPinResetServiceRequest(
 			return false, err
 		}
 
-		_, err = u.User.InviteUser(ctx, *user.ID, phoneNumber, flavour)
+		tempPin, err := u.User.GenerateTemporaryPin(ctx, *user.ID, flavour)
 		if err != nil {
 			return false, err
 		}
 
-		err = u.Update.UpdateUserPinChangeRequiredStatus(ctx, *user.ID, flavour, true)
+		text := fmt.Sprintf(
+			"Dear %s, your request to reset your pin has been accepted. "+
+				"Your One Time PIN is %s.", user.Name, tempPin,
+		)
+
+		_, err = u.ExternalExt.SendSMS(ctx, phoneNumber, text, enumutils.SenderIDBewell)
 		if err != nil {
 			return false, err
 		}
 
-		_, err = u.ResolveServiceRequest(ctx, staff.ID, &serviceRequestID)
+		updatePayload := map[string]interface{}{
+			"next_allowed_login":    time.Now(),
+			"failed_login_count":    0,
+			"failed_security_count": 0,
+			"pin_change_required":   true,
+		}
+		err = u.Update.UpdateUser(ctx, user, updatePayload)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return false, fmt.Errorf("failed to update user: %v", err)
+		}
+
+		_, err = u.Update.ResolveServiceRequest(ctx, staff.ID, &serviceRequestID, enums.ServiceRequestStatusResolved.String())
 		if err != nil {
 			return false, err
 		}
