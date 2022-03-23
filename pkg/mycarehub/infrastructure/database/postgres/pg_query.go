@@ -233,13 +233,13 @@ func (d *MyCareHubDb) GetSecurityQuestionByID(ctx context.Context, securityQuest
 	}, nil
 }
 
-// GetSecurityQuestionResponseByID returns the security question response from the database
-func (d *MyCareHubDb) GetSecurityQuestionResponseByID(ctx context.Context, questionID string) (*domain.SecurityQuestionResponse, error) {
+// GetSecurityQuestionResponse returns the security question response from the database
+func (d *MyCareHubDb) GetSecurityQuestionResponse(ctx context.Context, questionID string, userID string) (*domain.SecurityQuestionResponse, error) {
 	if questionID == "" {
 		return nil, fmt.Errorf("security question ID must be defined")
 	}
 
-	response, err := d.query.GetSecurityQuestionResponseByID(ctx, questionID)
+	response, err := d.query.GetSecurityQuestionResponse(ctx, questionID, userID)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, err

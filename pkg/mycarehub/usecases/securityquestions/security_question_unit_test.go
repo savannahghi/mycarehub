@@ -384,7 +384,7 @@ func TestUseCaseSecurityQuestionsImpl_VerifySecurityQuestionResponses(t *testing
 			s := securityquestions.NewSecurityQuestionsUsecase(fakeDB, fakeDB, fakeDB, fakeExtension)
 
 			if tt.name == "Sad Case - Fail to get security question by ID" {
-				fakeDB.MockGetSecurityQuestionResponseByIDFn = func(ctx context.Context, questionID string) (*domain.SecurityQuestionResponse, error) {
+				fakeDB.MockGetSecurityQuestionResponseFn = func(ctx context.Context, questionID string, userID string) (*domain.SecurityQuestionResponse, error) {
 					return nil, fmt.Errorf("failed to get security question response")
 				}
 			}

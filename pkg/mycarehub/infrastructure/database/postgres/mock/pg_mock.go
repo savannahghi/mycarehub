@@ -44,7 +44,7 @@ type PostgresMock struct {
 	MockSaveOTPFn                                        func(ctx context.Context, otpInput *domain.OTP) error
 	MockGetSecurityQuestionByIDFn                        func(ctx context.Context, securityQuestionID *string) (*domain.SecurityQuestion, error)
 	MockSaveSecurityQuestionResponseFn                   func(ctx context.Context, securityQuestionResponse []*dto.SecurityQuestionResponseInput) error
-	MockGetSecurityQuestionResponseByIDFn                func(ctx context.Context, questionID string) (*domain.SecurityQuestionResponse, error)
+	MockGetSecurityQuestionResponseFn                    func(ctx context.Context, questionID string, userID string) (*domain.SecurityQuestionResponse, error)
 	MockCheckIfPhoneNumberExistsFn                       func(ctx context.Context, phone string, isOptedIn bool, flavour feedlib.Flavour) (bool, error)
 	MockVerifyOTPFn                                      func(ctx context.Context, payload *dto.VerifyOTPInput) (bool, error)
 	MockGetClientProfileByUserIDFn                       func(ctx context.Context, userID string) (*domain.ClientProfile, error)
@@ -367,7 +367,7 @@ func NewPostgresMock() *PostgresMock {
 		MockSaveSecurityQuestionResponseFn: func(ctx context.Context, securityQuestionResponse []*dto.SecurityQuestionResponseInput) error {
 			return nil
 		},
-		MockGetSecurityQuestionResponseByIDFn: func(ctx context.Context, questionID string) (*domain.SecurityQuestionResponse, error) {
+		MockGetSecurityQuestionResponseFn: func(ctx context.Context, questionID string, userID string) (*domain.SecurityQuestionResponse, error) {
 			return &domain.SecurityQuestionResponse{
 				ResponseID: "1234",
 				QuestionID: "1234",
@@ -920,9 +920,9 @@ func (gm *PostgresMock) SaveSecurityQuestionResponse(ctx context.Context, securi
 	return gm.MockSaveSecurityQuestionResponseFn(ctx, securityQuestionResponse)
 }
 
-// GetSecurityQuestionResponseByID mocks the get security question implementation
-func (gm *PostgresMock) GetSecurityQuestionResponseByID(ctx context.Context, questionID string) (*domain.SecurityQuestionResponse, error) {
-	return gm.MockGetSecurityQuestionResponseByIDFn(ctx, questionID)
+// GetSecurityQuestionResponse mocks the get security question implementation
+func (gm *PostgresMock) GetSecurityQuestionResponse(ctx context.Context, questionID string, userID string) (*domain.SecurityQuestionResponse, error) {
+	return gm.MockGetSecurityQuestionResponseFn(ctx, questionID, userID)
 }
 
 // CheckIfPhoneNumberExists mock the implementation of checking the existence of phone number
