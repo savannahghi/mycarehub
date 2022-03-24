@@ -48,7 +48,7 @@ type ISetInProgresssBy interface {
 
 // IGetServiceRequests is an interface that holds the method signature for getting service requests
 type IGetServiceRequests interface {
-	GetServiceRequests(ctx context.Context, requestType, requestStatus, facilityID *string) ([]*domain.ServiceRequest, error)
+	GetServiceRequests(ctx context.Context, requestType, requestStatus *string, facilityID string, flavour feedlib.Flavour) ([]*domain.ServiceRequest, error)
 	GetServiceRequestsForKenyaEMR(ctx context.Context, payload *dto.ServiceRequestPayload) ([]*domain.ServiceRequest, error)
 	GetPendingServiceRequestsCount(ctx context.Context, facilityID string, flavour feedlib.Flavour) (*domain.ServiceRequestsCount, error)
 }
@@ -177,7 +177,8 @@ func (u *UseCasesServiceRequestImpl) GetServiceRequests(
 	ctx context.Context,
 	requestType *string,
 	requestStatus *string,
-	facilityID *string,
+	facilityID string,
+	flavour feedlib.Flavour,
 ) ([]*domain.ServiceRequest, error) {
 	if requestType != nil {
 		if !enums.ServiceRequestType(*requestType).IsValid() {
@@ -190,7 +191,7 @@ func (u *UseCasesServiceRequestImpl) GetServiceRequests(
 		}
 	}
 
-	return u.Query.GetServiceRequests(ctx, requestType, requestStatus, facilityID)
+	return u.Query.GetServiceRequests(ctx, requestType, requestStatus, facilityID, flavour)
 }
 
 // GetServiceRequestsForKenyaEMR fetches all the most recent service requests  that have not been

@@ -52,7 +52,8 @@ type Query interface {
 	GetFAQContent(ctx context.Context, flavour feedlib.Flavour, limit *int) ([]*FAQ, error)
 	GetClientCaregiver(ctx context.Context, caregiverID string) (*Caregiver, error)
 	GetClientProfileByClientID(ctx context.Context, clientID string) (*Client, error)
-	GetServiceRequests(ctx context.Context, requestType, requestStatus, facilityID *string) ([]*ClientServiceRequest, error)
+	GetServiceRequests(ctx context.Context, requestType, requestStatus *string, facilityID string) ([]*ClientServiceRequest, error)
+	GetStaffServiceRequests(ctx context.Context, requestType, requestStatus *string, facilityID string) ([]*StaffServiceRequest, error)
 	CheckUserRole(ctx context.Context, userID string, role string) (bool, error)
 	CheckUserPermission(ctx context.Context, userID string, permission string) (bool, error)
 	GetUserRoles(ctx context.Context, userID string) ([]*AuthorityRole, error)
@@ -614,7 +615,7 @@ func (db *PGInstance) GetFAQContent(ctx context.Context, flavour feedlib.Flavour
 func (db *PGInstance) GetStaffPendingServiceRequestsCount(ctx context.Context, facilityID string) (*domain.ServiceRequestsCount, error) {
 	var staffServiceRequest []*StaffServiceRequest
 
-	err := db.DB.Model(&StaffServiceRequest{}).Where(&StaffServiceRequest{FacilityID: facilityID, RequestType: "STAFF_PIN_RESET", Status: "PENDING"}).Find(&staffServiceRequest).Error
+	err := db.DB.Model(&StaffServiceRequest{}).Where(&StaffServiceRequest{DefaultFacilityID: &facilityID, RequestType: "STAFF_PIN_RESET", Status: "PENDING"}).Find(&staffServiceRequest).Error
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, err
@@ -716,28 +717,28 @@ func (db *PGInstance) GetStaffProfileByStaffID(ctx context.Context, staffID stri
 }
 
 // GetServiceRequests fetches clients service requests from the database according to the type and or status passed
-func (db *PGInstance) GetServiceRequests(ctx context.Context, requestType, requestStatus, facilityID *string) ([]*ClientServiceRequest, error) {
+func (db *PGInstance) GetServiceRequests(ctx context.Context, requestType, requestStatus *string, facilityID string) ([]*ClientServiceRequest, error) {
 	var serviceRequests []*ClientServiceRequest
 	if requestType != nil && requestStatus == nil {
-		err := db.DB.Where(&ClientServiceRequest{RequestType: *requestType, FacilityID: *facilityID}).Find(&serviceRequests).Error
+		err := db.DB.Where(&ClientServiceRequest{RequestType: *requestType, FacilityID: facilityID}).Find(&serviceRequests).Error
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
 			return nil, fmt.Errorf("failed to get service requests: %v", err)
 		}
 	} else if requestType == nil && requestStatus != nil {
-		err := db.DB.Where(&ClientServiceRequest{Status: *requestStatus, FacilityID: *facilityID}).Find(&serviceRequests).Error
+		err := db.DB.Where(&ClientServiceRequest{Status: *requestStatus, FacilityID: facilityID}).Find(&serviceRequests).Error
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
 			return nil, fmt.Errorf("failed to get service requests: %v", err)
 		}
 	} else if requestType != nil && requestStatus != nil {
-		err := db.DB.Where(&ClientServiceRequest{RequestType: *requestType, Status: *requestStatus, FacilityID: *facilityID}).Find(&serviceRequests).Error
+		err := db.DB.Where(&ClientServiceRequest{RequestType: *requestType, Status: *requestStatus, FacilityID: facilityID}).Find(&serviceRequests).Error
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
 			return nil, fmt.Errorf("failed to get service requests: %v", err)
 		}
 	} else {
-		err := db.DB.Where(&ClientServiceRequest{FacilityID: *facilityID}).Find(&serviceRequests).Error
+		err := db.DB.Where(&ClientServiceRequest{FacilityID: facilityID}).Find(&serviceRequests).Error
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
 			return nil, fmt.Errorf("failed to get service requests: %v", err)
@@ -745,6 +746,38 @@ func (db *PGInstance) GetServiceRequests(ctx context.Context, requestType, reque
 	}
 
 	return serviceRequests, nil
+}
+
+// GetStaffServiceRequests gets all the staff's service requests depending on the provided parameters
+func (db *PGInstance) GetStaffServiceRequests(ctx context.Context, requestType, requestStatus *string, facilityID string) ([]*StaffServiceRequest, error) {
+	var staffServiceRequests []*StaffServiceRequest
+	if requestType != nil && requestStatus != nil {
+		err := db.DB.Where(&StaffServiceRequest{RequestType: *requestType, Status: *requestStatus, DefaultFacilityID: &facilityID}).Find(&staffServiceRequests).Error
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return nil, fmt.Errorf("failed to get staff service requests: %v", err)
+		}
+	} else if requestType == nil && requestStatus != nil {
+		err := db.DB.Where(&StaffServiceRequest{Status: *requestStatus, DefaultFacilityID: &facilityID}).Find(&staffServiceRequests).Error
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return nil, fmt.Errorf("failed to get staff service requests: %v", err)
+		}
+	} else if requestType != nil && requestStatus == nil {
+		err := db.DB.Where(&StaffServiceRequest{RequestType: *requestType, DefaultFacilityID: &facilityID}).Find(&staffServiceRequests).Error
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return nil, fmt.Errorf("failed to get staff service requests: %v", err)
+		}
+	} else {
+		err := db.DB.Where(&StaffServiceRequest{DefaultFacilityID: &facilityID}).Find(&staffServiceRequests).Error
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return nil, fmt.Errorf("failed to get staff service requests: %v", err)
+		}
+	}
+
+	return staffServiceRequests, nil
 }
 
 // CheckUserRole checks if a user has a specific role

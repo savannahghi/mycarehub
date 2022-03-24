@@ -681,17 +681,17 @@ func (ClientServiceRequest) TableName() string {
 type StaffServiceRequest struct {
 	Base
 
-	ID             *string    `gorm:"column:id"`
-	Active         bool       `gorm:"column:active"`
-	RequestType    string     `gorm:"column:request_type"`
-	Request        string     `gorm:"column:request"`
-	Status         string     `gorm:"column:status"`
-	ResolvedAt     *time.Time `gorm:"column:resolved_at"`
-	StaffID        string     `gorm:"column:staff_id"`
-	OrganisationID string     `gorm:"column:organisation_id"`
-	ResolvedByID   *string    `gorm:"column:resolved_by_id"`
-	FacilityID     string     `gorm:"column:facility_id"`
-	Meta           string     `gorm:"column:meta"`
+	ID                *string    `gorm:"column:id"`
+	Active            bool       `gorm:"column:active"`
+	RequestType       string     `gorm:"column:request_type"`
+	Request           string     `gorm:"column:request"`
+	Status            string     `gorm:"column:status"`
+	ResolvedAt        *time.Time `gorm:"column:resolved_at"`
+	StaffID           string     `gorm:"column:staff_id"`
+	OrganisationID    string     `gorm:"column:organisation_id"`
+	ResolvedByID      *string    `gorm:"column:resolved_by_id"`
+	DefaultFacilityID *string    `gorm:"column:facility_id"`
+	Meta              string     `gorm:"column:meta"`
 }
 
 // BeforeCreate is a hook called before creating a service request.

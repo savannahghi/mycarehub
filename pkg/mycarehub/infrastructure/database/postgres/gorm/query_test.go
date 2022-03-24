@@ -1992,7 +1992,7 @@ func TestPGInstance_GetServiceRequests(t *testing.T) {
 		ctx           context.Context
 		requestType   *string
 		requestStatus *string
-		facilityID    *string
+		facilityID    string
 	}
 	tests := []struct {
 		name    string
@@ -2005,7 +2005,7 @@ func TestPGInstance_GetServiceRequests(t *testing.T) {
 			args: args{
 				ctx:         context.Background(),
 				requestType: &requesttype,
-				facilityID:  &facilityID,
+				facilityID:  facilityID,
 			},
 			wantErr: false,
 		},
@@ -2014,7 +2014,7 @@ func TestPGInstance_GetServiceRequests(t *testing.T) {
 			args: args{
 				ctx:           context.Background(),
 				requestStatus: &requeststatus,
-				facilityID:    &facilityID,
+				facilityID:    facilityID,
 			},
 			wantErr: false,
 		},
@@ -2024,7 +2024,7 @@ func TestPGInstance_GetServiceRequests(t *testing.T) {
 				ctx:           context.Background(),
 				requestType:   &requesttype,
 				requestStatus: &requeststatus,
-				facilityID:    &facilityID,
+				facilityID:    facilityID,
 			},
 			wantErr: false,
 		},
@@ -2032,7 +2032,7 @@ func TestPGInstance_GetServiceRequests(t *testing.T) {
 			name: "Happy Case - Successfully get service requests",
 			args: args{
 				ctx:        context.Background(),
-				facilityID: &facilityID,
+				facilityID: facilityID,
 			},
 			wantErr: false,
 		},
@@ -3437,6 +3437,110 @@ func TestPGInstance_GetStaffPendingServiceRequestsCount(t *testing.T) {
 			}
 			if !tt.wantErr && got == nil {
 				t.Errorf("expected staff not to be nil for %v", tt.name)
+				return
+			}
+		})
+	}
+}
+
+func TestPGInstance_GetStaffServiceRequests(t *testing.T) {
+	ctx := context.Background()
+
+	var requesttype = "STAFF_PIN_RESET"
+	var requestStatus = "PENDING"
+
+	type args struct {
+		ctx           context.Context
+		requestType   *string
+		requestStatus *string
+		facilityID    string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    []*gorm.StaffServiceRequest
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:           ctx,
+				requestType:   &requesttype,
+				requestStatus: &requestStatus,
+				facilityID:    facilityID,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case",
+			args: args{
+				ctx: ctx,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := testingDB.GetStaffServiceRequests(tt.args.ctx, tt.args.requestType, tt.args.requestStatus, tt.args.facilityID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.GetStaffServiceRequests() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if tt.wantErr && got != nil {
+				t.Errorf("expected staff to be nil for %v", tt.name)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected staff not to be nil for %v", tt.name)
+				return
+			}
+		})
+	}
+}
+
+func TestPGInstance_GetServiceRequestByID(t *testing.T) {
+	ctx := context.Background()
+
+	type args struct {
+		ctx              context.Context
+		serviceRequestID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *gorm.ClientServiceRequest
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:              ctx,
+				serviceRequestID: serviceRequestID,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case",
+			args: args{
+				ctx:              ctx,
+				serviceRequestID: "serviceRequestID",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := testingDB.GetServiceRequestByID(tt.args.ctx, tt.args.serviceRequestID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.GetServiceRequestByID() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if tt.wantErr && got != nil {
+				t.Errorf("expected service request to be nil for %v", tt.name)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected service request not to be nil for %v", tt.name)
 				return
 			}
 		})

@@ -13,17 +13,19 @@ type ServiceRequest struct {
 	Request        string                 `json:"request"`
 	Status         string                 `json:"status"`
 	Active         bool                   `json:"active"`
-	ClientID       string                 `json:"clientID"`
-	StaffID        string                 `json:"staffID"`
+	ClientID       string                 `json:"clientID,omitempty"`
+	StaffID        string                 `json:"staffID,omitempty"`
 	CreatedAt      time.Time              `json:"created"`
 	InProgressAt   *time.Time             `json:"inProgressAt"`
 	InProgressBy   *string                `json:"inProgressBy"`
 	ResolvedAt     *time.Time             `json:"resolvedAt"`
 	ResolvedBy     *string                `json:"resolvedBy"`
 	ResolvedByName *string                `string:"resolvedByName"`
-	FacilityID     string                 `json:"facility_id"`
-	ClientName     *string                `json:"client_name"`
-	ClientContact  *string                `json:"client_contact"`
+	FacilityID     string                 `json:"facilityID,omitempty"`
+	ClientName     *string                `json:"clientName,omitempty"`
+	StaffName      *string                `json:"staffName,omitempty"`
+	StaffContact   *string                `json:"staffContact,omitempty"`
+	ClientContact  *string                `json:"clientContact,omitempty"`
 	Meta           map[string]interface{} `json:"meta"`
 }
 

@@ -222,7 +222,8 @@ func TestUseCasesServiceRequestImpl_GetServiceRequests(t *testing.T) {
 		ctx           context.Context
 		requestType   *string
 		requestStatus *string
-		facilityID    *string
+		facilityID    string
+		flavour       feedlib.Flavour
 	}
 	tests := []struct {
 		name    string
@@ -234,7 +235,8 @@ func TestUseCasesServiceRequestImpl_GetServiceRequests(t *testing.T) {
 			name: "Happy Case - Successfully get service requests",
 			args: args{
 				ctx:        context.Background(),
-				facilityID: &facilityID,
+				facilityID: facilityID,
+				flavour:    feedlib.FlavourConsumer,
 			},
 			wantErr: false,
 		},
@@ -243,7 +245,8 @@ func TestUseCasesServiceRequestImpl_GetServiceRequests(t *testing.T) {
 			args: args{
 				ctx:         context.Background(),
 				requestType: &invalidRequestType,
-				facilityID:  &facilityID,
+				facilityID:  facilityID,
+				flavour:     feedlib.FlavourConsumer,
 			},
 			wantErr: true,
 		},
@@ -252,7 +255,8 @@ func TestUseCasesServiceRequestImpl_GetServiceRequests(t *testing.T) {
 			args: args{
 				ctx:           context.Background(),
 				requestStatus: &invalidStatus,
-				facilityID:    &facilityID,
+				facilityID:    facilityID,
+				flavour:       feedlib.FlavourConsumer,
 			},
 			wantErr: true,
 		},
@@ -260,7 +264,8 @@ func TestUseCasesServiceRequestImpl_GetServiceRequests(t *testing.T) {
 			name: "Sad Case - Fail to get service requests",
 			args: args{
 				ctx:        context.Background(),
-				facilityID: &facilityID,
+				facilityID: facilityID,
+				flavour:    feedlib.FlavourConsumer,
 			},
 			wantErr: true,
 		},
@@ -273,11 +278,11 @@ func TestUseCasesServiceRequestImpl_GetServiceRequests(t *testing.T) {
 			u := servicerequest.NewUseCaseServiceRequestImpl(fakeDB, fakeDB, fakeDB, fakeExtension, fakeUser)
 
 			if tt.name == "Sad Case - Fail to get service requests" {
-				fakeDB.MockGetServiceRequestsFn = func(ctx context.Context, requestType, requestStatus, facilityID *string) ([]*domain.ServiceRequest, error) {
+				fakeDB.MockGetServiceRequestsFn = func(ctx context.Context, requestType, requestStatus *string, facilityID string, flavour feedlib.Flavour) ([]*domain.ServiceRequest, error) {
 					return nil, fmt.Errorf("failed to get service requests")
 				}
 			}
-			_, err := u.GetServiceRequests(tt.args.ctx, tt.args.requestType, tt.args.requestStatus, tt.args.facilityID)
+			_, err := u.GetServiceRequests(tt.args.ctx, tt.args.requestType, tt.args.requestStatus, tt.args.facilityID, tt.args.flavour)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCasesServiceRequestImpl.GetServiceRequests() error = %v, wantErr %v", err, tt.wantErr)
 				return

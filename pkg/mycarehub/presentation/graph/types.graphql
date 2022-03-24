@@ -206,7 +206,8 @@ type ServiceRequest {
   RequestType: String!
   Request: String!
   Status: String!
-  ClientID: String!
+  ClientID: String
+  StaffID: String
   CreatedAt: Time
   InProgressAt: Time
   InProgressBy: String
@@ -214,8 +215,10 @@ type ServiceRequest {
   ResolvedBy: String
   ResolvedByName: String
   FacilityID: String
-  ClientName: String!
-  ClientContact: String!
+  ClientName: String
+  StaffName: String
+  StaffContact: String
+  ClientContact: String
   Meta: Map
 }
 

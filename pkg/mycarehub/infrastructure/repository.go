@@ -69,7 +69,7 @@ type Query interface {
 	GetPendingServiceRequestsCount(ctx context.Context, facilityID string, flavour feedlib.Flavour) (*domain.ServiceRequestsCount, error)
 	GetClientCaregiver(ctx context.Context, caregiverID string) (*domain.Caregiver, error)
 	GetClientProfileByClientID(ctx context.Context, clientID string) (*domain.ClientProfile, error)
-	GetServiceRequests(ctx context.Context, requestType, requestStatus, facilityID *string) ([]*domain.ServiceRequest, error)
+	GetServiceRequests(ctx context.Context, requestType, requestStatus *string, facilityID string, flavour feedlib.Flavour) ([]*domain.ServiceRequest, error)
 	CheckUserRole(ctx context.Context, userID string, role string) (bool, error)
 	CheckUserPermission(ctx context.Context, userID string, permission string) (bool, error)
 	GetUserRoles(ctx context.Context, userID string) ([]*domain.AuthorityRole, error)
