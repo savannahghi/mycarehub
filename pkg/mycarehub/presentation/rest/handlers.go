@@ -11,6 +11,7 @@ import (
 	"github.com/savannahghi/errorcodeutil"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases"
 	"github.com/savannahghi/serverutils"
@@ -123,8 +124,9 @@ func (h *MyCareHubHandlersInterfacesImpl) VerifySecurityQuestions() http.Handler
 			if err != nil {
 				helpers.ReportErrorToSentry(err)
 				serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
-					Err:     err,
+					Err:     exceptions.InternalErr(err),
 					Message: err.Error(),
+					Code:    int(exceptions.Internal),
 				}, http.StatusBadRequest)
 				return
 			}
@@ -136,6 +138,7 @@ func (h *MyCareHubHandlersInterfacesImpl) VerifySecurityQuestions() http.Handler
 			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
 				Err:     err,
 				Message: err.Error(),
+				Code:    exceptions.GetErrorCode(err),
 			}, http.StatusBadRequest)
 			return
 		}
