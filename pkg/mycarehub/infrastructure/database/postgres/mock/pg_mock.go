@@ -122,6 +122,8 @@ type PostgresMock struct {
 	MockUpdateFailedSecurityQuestionsAnsweringAttemptsFn func(ctx context.Context, userID string, failCount int) error
 	MockGetServiceRequestByIDFn                          func(ctx context.Context, id string) (*domain.ServiceRequest, error)
 	MockUpdateUserFn                                     func(ctx context.Context, user *domain.User, updateData map[string]interface{}) error
+	MockGetStaffProfileByStaffIDFn                       func(ctx context.Context, staffID string) (*domain.StaffProfile, error)
+	MockCreateStaffServiceRequestFn                      func(ctx context.Context, serviceRequestInput *dto.ServiceRequestInput) error
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -270,6 +272,17 @@ func NewPostgresMock() *PostgresMock {
 		MockReactivateFacilityFn: func(ctx context.Context, mflCode *int) (bool, error) {
 			return true, nil
 		},
+		MockGetStaffProfileByStaffIDFn: func(ctx context.Context, staffID string) (*domain.StaffProfile, error) {
+			return &domain.StaffProfile{
+				ID:                &ID,
+				User:              userProfile,
+				UserID:            ID,
+				Active:            false,
+				StaffNumber:       "TEST-00",
+				Facilities:        []domain.Facility{},
+				DefaultFacilityID: ID,
+			}, nil
+		},
 		MockGetCurrentTermsFn: func(ctx context.Context, flavour feedlib.Flavour) (*domain.TermsOfService, error) {
 			termsID := gofakeit.Number(1, 1000)
 			testText := "test"
@@ -303,6 +316,9 @@ func NewPostgresMock() *PostgresMock {
 		},
 		MockSetNickNameFn: func(ctx context.Context, userID, nickname *string) (bool, error) {
 			return true, nil
+		},
+		MockCreateStaffServiceRequestFn: func(ctx context.Context, serviceRequestInput *dto.ServiceRequestInput) error {
+			return nil
 		},
 		MockUpdateServiceRequestsFn: func(ctx context.Context, payload *domain.UpdateServiceRequestsPayload) (bool, error) {
 			return true, nil
@@ -1305,4 +1321,14 @@ func (gm *PostgresMock) GetServiceRequestByID(ctx context.Context, serviceReques
 // UpdateUser mocks the implementation of updating a user profile
 func (gm *PostgresMock) UpdateUser(ctx context.Context, user *domain.User, updateData map[string]interface{}) error {
 	return gm.MockUpdateUserFn(ctx, user, updateData)
+}
+
+// GetStaffProfileByStaffID mocks the implementation getting staff profile by staff ID
+func (gm *PostgresMock) GetStaffProfileByStaffID(ctx context.Context, staffID string) (*domain.StaffProfile, error) {
+	return gm.MockGetStaffProfileByStaffIDFn(ctx, staffID)
+}
+
+// CreateStaffServiceRequest mocks the implementation creating a staff's service request
+func (gm *PostgresMock) CreateStaffServiceRequest(ctx context.Context, serviceRequestInput *dto.ServiceRequestInput) error {
+	return gm.MockCreateStaffServiceRequestFn(ctx, serviceRequestInput)
 }

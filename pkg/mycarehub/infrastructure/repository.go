@@ -29,6 +29,7 @@ type Create interface {
 	CreateContact(ctx context.Context, contact *domain.Contact) (*domain.Contact, error)
 	CreateAppointment(ctx context.Context, appointment domain.Appointment, appointmentUUID, clientID string) error
 	AnswerScreeningToolQuestions(ctx context.Context, screeningToolResponses []*dto.ScreeningToolQuestionResponseInput) error
+	CreateStaffServiceRequest(ctx context.Context, serviceRequestInput *dto.ServiceRequestInput) error
 }
 
 // Delete represents all the deletion action interfaces
@@ -90,6 +91,7 @@ type Query interface {
 	SearchClientProfilesByCCCNumber(ctx context.Context, CCCNumber string) ([]*domain.ClientProfile, error)
 	CheckIfClientHasUnresolvedServiceRequests(ctx context.Context, clientID string, serviceRequestType string) (bool, error)
 	GetAllRoles(ctx context.Context) ([]*domain.AuthorityRole, error)
+	GetStaffProfileByStaffID(ctx context.Context, staffID string) (*domain.StaffProfile, error)
 	GetHealthDiaryEntryByID(ctx context.Context, healthDiaryEntryID string) (*domain.ClientHealthDiaryEntry, error)
 	GetServiceRequestByID(ctx context.Context, serviceRequestID string) (*domain.ServiceRequest, error)
 }

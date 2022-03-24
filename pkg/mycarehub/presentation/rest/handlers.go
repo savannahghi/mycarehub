@@ -749,8 +749,8 @@ func (h *MyCareHubHandlersInterfacesImpl) CreatePinResetServiceRequest() http.Ha
 		payload := &dto.PinResetServiceRequestPayload{}
 		serverutils.DecodeJSONToTargetStruct(w, r, payload)
 
-		if payload.CCCNumber == "" || payload.PhoneNumber == "" {
-			err := fmt.Errorf("expected both `cccNumber` and `phoneNumber` to be defined")
+		if !payload.Flavour.IsValid() || payload.PhoneNumber == "" {
+			err := fmt.Errorf("expected a valid `flavour` or `phoneNumber` to be defined")
 			helpers.ReportErrorToSentry(err)
 			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
 				Err:     err,
@@ -759,7 +759,7 @@ func (h *MyCareHubHandlersInterfacesImpl) CreatePinResetServiceRequest() http.Ha
 			return
 		}
 
-		response, err := h.usecase.ServiceRequest.CreatePinResetServiceRequest(ctx, payload.PhoneNumber, payload.CCCNumber)
+		response, err := h.usecase.ServiceRequest.CreatePinResetServiceRequest(ctx, payload.PhoneNumber, payload.CCCNumber, payload.Flavour)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
 			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{

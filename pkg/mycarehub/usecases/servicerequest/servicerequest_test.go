@@ -38,6 +38,7 @@ func TestUseCasesServiceRequestImpl_CreateServiceRequest(t *testing.T) {
 					ClientID:    uuid.New().String(),
 					RequestType: "HEALTH_DIARY_ENTRY",
 					Request:     "A random request",
+					Flavour:     feedlib.FlavourConsumer,
 				},
 			},
 			want:    true,
@@ -51,6 +52,7 @@ func TestUseCasesServiceRequestImpl_CreateServiceRequest(t *testing.T) {
 					ClientID:    uuid.New().String(),
 					RequestType: "HEALTH_DIARY_ENTRY",
 					Request:     "A random request",
+					Flavour:     feedlib.FlavourConsumer,
 				},
 			},
 			want:    false,
@@ -64,6 +66,22 @@ func TestUseCasesServiceRequestImpl_CreateServiceRequest(t *testing.T) {
 					ClientID:    uuid.New().String(),
 					RequestType: "HEALTH_DIARY_ENTRY",
 					Request:     "A random request",
+					Flavour:     feedlib.FlavourConsumer,
+				},
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - Fail to get staff profile by staff ID",
+			args: args{
+				ctx: context.Background(),
+				serviceRequestInput: &dto.ServiceRequestInput{
+					ClientID:    uuid.New().String(),
+					RequestType: "PIN_RESET",
+					Request:     "A random request",
+					Flavour:     feedlib.FlavourPro,
+					StaffID:     uuid.New().String(),
 				},
 			},
 			want:    false,
@@ -85,6 +103,11 @@ func TestUseCasesServiceRequestImpl_CreateServiceRequest(t *testing.T) {
 			if tt.name == "Sad Case - Unable to get client profile" {
 				fakeDB.MockGetClientProfileByClientIDFn = func(ctx context.Context, clientID string) (*domain.ClientProfile, error) {
 					return nil, fmt.Errorf("failed to get client profile")
+				}
+			}
+			if tt.name == "Sad Case - Fail to get staff profile by staff ID" {
+				fakeDB.MockGetStaffProfileByStaffIDFn = func(ctx context.Context, staffID string) (*domain.StaffProfile, error) {
+					return nil, fmt.Errorf("an error occurred while getting staff profile")
 				}
 			}
 
@@ -692,6 +715,7 @@ func TestUseCasesServiceRequestImpl_CreatePinResetServiceRequest(t *testing.T) {
 		ctx         context.Context
 		phoneNumber string
 		cccNumber   string
+		flavour     feedlib.Flavour
 	}
 	tests := []struct {
 		name    string
@@ -705,6 +729,7 @@ func TestUseCasesServiceRequestImpl_CreatePinResetServiceRequest(t *testing.T) {
 				ctx:         ctx,
 				phoneNumber: "12345",
 				cccNumber:   "12345",
+				flavour:     feedlib.FlavourPro,
 			},
 			want:    true,
 			wantErr: false,
@@ -715,6 +740,7 @@ func TestUseCasesServiceRequestImpl_CreatePinResetServiceRequest(t *testing.T) {
 				ctx:         ctx,
 				phoneNumber: "12345",
 				cccNumber:   "12345",
+				flavour:     feedlib.FlavourConsumer,
 			},
 			want:    false,
 			wantErr: true,
@@ -725,6 +751,7 @@ func TestUseCasesServiceRequestImpl_CreatePinResetServiceRequest(t *testing.T) {
 				ctx:         ctx,
 				phoneNumber: "12345",
 				cccNumber:   "12345",
+				flavour:     feedlib.FlavourPro,
 			},
 			want:    false,
 			wantErr: true,
@@ -735,6 +762,7 @@ func TestUseCasesServiceRequestImpl_CreatePinResetServiceRequest(t *testing.T) {
 				ctx:         ctx,
 				phoneNumber: "12345",
 				cccNumber:   "12345",
+				flavour:     feedlib.FlavourConsumer,
 			},
 			want:    false,
 			wantErr: true,
@@ -765,7 +793,7 @@ func TestUseCasesServiceRequestImpl_CreatePinResetServiceRequest(t *testing.T) {
 				}
 			}
 
-			got, err := u.CreatePinResetServiceRequest(tt.args.ctx, tt.args.phoneNumber, tt.args.cccNumber)
+			got, err := u.CreatePinResetServiceRequest(tt.args.ctx, tt.args.phoneNumber, tt.args.cccNumber, tt.args.flavour)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCasesServiceRequestImpl.CreatePinResetServiceRequest() error = %v, wantErr %v", err, tt.wantErr)
 				return

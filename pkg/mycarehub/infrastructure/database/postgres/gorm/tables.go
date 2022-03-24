@@ -676,6 +676,36 @@ func (ClientServiceRequest) TableName() string {
 	return "clients_servicerequest"
 }
 
+// StaffServiceRequest maps the staffs's service request table. It is used to
+// store the tasks for the healthcare staff on the platform
+type StaffServiceRequest struct {
+	Base
+
+	ID             *string    `gorm:"column:id"`
+	Active         bool       `gorm:"column:active"`
+	RequestType    string     `gorm:"column:request_type"`
+	Request        string     `gorm:"column:request"`
+	Status         string     `gorm:"column:status"`
+	ResolvedAt     *time.Time `gorm:"column:resolved_at"`
+	StaffID        string     `gorm:"column:staff_id"`
+	OrganisationID string     `gorm:"column:organisation_id"`
+	ResolvedByID   *string    `gorm:"column:resolved_by_id"`
+	Meta           string     `gorm:"column:meta"`
+}
+
+// BeforeCreate is a hook called before creating a service request.
+func (c *StaffServiceRequest) BeforeCreate(tx *gorm.DB) (err error) {
+	id := uuid.New().String()
+	c.ID = &id
+	c.OrganisationID = OrganizationID
+	return
+}
+
+// TableName references the table that we map data from
+func (StaffServiceRequest) TableName() string {
+	return "staff_servicerequest"
+}
+
 // ClientHealthDiaryQuote is the gorms client health diary quotes model
 type ClientHealthDiaryQuote struct {
 	Base

@@ -977,3 +977,64 @@ func TestPGInstance_CreateAppointment(t *testing.T) {
 		})
 	}
 }
+
+func TestPGInstance_CreateStaffServiceRequest(t *testing.T) {
+	ctx := context.Background()
+
+	ID := uuid.New().String()
+	currentTime := time.Now()
+	meta := `{"test":"test"}`
+
+	type args struct {
+		ctx                 context.Context
+		serviceRequestInput *gorm.StaffServiceRequest
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx: ctx,
+				serviceRequestInput: &gorm.StaffServiceRequest{
+					ID:             &ID,
+					Active:         true,
+					RequestType:    gofakeit.BeerName(),
+					Request:        gofakeit.BeerName(),
+					Status:         gofakeit.BeerName(),
+					ResolvedAt:     &currentTime,
+					StaffID:        staffID,
+					OrganisationID: orgID,
+					Meta:           meta,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case",
+			args: args{
+				ctx: ctx,
+				serviceRequestInput: &gorm.StaffServiceRequest{
+					ID:             &ID,
+					Active:         true,
+					RequestType:    gofakeit.BeerName(),
+					Request:        gofakeit.BeerName(),
+					Status:         gofakeit.BeerName(),
+					ResolvedAt:     &currentTime,
+					StaffID:        "staffID",
+					OrganisationID: orgID,
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := testingDB.CreateStaffServiceRequest(tt.args.ctx, tt.args.serviceRequestInput); (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.CreateStaffServiceRequest() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}

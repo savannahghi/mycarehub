@@ -1303,3 +1303,22 @@ func (d *MyCareHubDb) GetServiceRequestByID(ctx context.Context, serviceRequestI
 		FacilityID:   serviceRequest.FacilityID,
 	}, nil
 }
+
+// GetStaffProfileByStaffID is used to retrieve staff profile using their staff ID
+func (d *MyCareHubDb) GetStaffProfileByStaffID(ctx context.Context, staffID string) (*domain.StaffProfile, error) {
+	staffProfile, err := d.query.GetStaffProfileByStaffID(ctx, staffID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+	user := createMapUser(&staffProfile.UserProfile)
+
+	return &domain.StaffProfile{
+		ID:                staffProfile.ID,
+		User:              user,
+		UserID:            staffProfile.UserID,
+		Active:            staffProfile.Active,
+		StaffNumber:       staffProfile.StaffNumber,
+		DefaultFacilityID: staffProfile.DefaultFacilityID,
+	}, nil
+}
