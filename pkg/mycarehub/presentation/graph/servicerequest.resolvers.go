@@ -29,8 +29,8 @@ func (r *mutationResolver) VerifyPinResetServiceRequest(ctx context.Context, cli
 	return r.mycarehub.ServiceRequest.VerifyPinResetServiceRequest(ctx, clientID, serviceRequestID, cccNumber, phoneNumber, physicalIdentityVerified, state)
 }
 
-func (r *queryResolver) GetServiceRequests(ctx context.Context, requestType *string, requestStatus *string, facilityID string) ([]*domain.ServiceRequest, error) {
-	return r.mycarehub.ServiceRequest.GetServiceRequests(ctx, requestType, requestStatus, &facilityID)
+func (r *queryResolver) GetServiceRequests(ctx context.Context, requestType *string, requestStatus *string, facilityID string, flavour feedlib.Flavour) ([]*domain.ServiceRequest, error) {
+	return r.mycarehub.ServiceRequest.GetServiceRequests(ctx, requestType, requestStatus, facilityID, flavour)
 }
 
 func (r *queryResolver) GetPendingServiceRequestsCount(ctx context.Context, facilityID string, flavour feedlib.Flavour) (*domain.ServiceRequestsCount, error) {

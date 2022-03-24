@@ -407,7 +407,7 @@ type ComplexityRoot struct {
 		GetPendingServiceRequestsCount func(childComplexity int, facilityID string, flavour feedlib.Flavour) int
 		GetScreeningToolQuestions      func(childComplexity int, toolType *string) int
 		GetSecurityQuestions           func(childComplexity int, flavour feedlib.Flavour) int
-		GetServiceRequests             func(childComplexity int, requestType *string, requestStatus *string, facilityID string) int
+		GetServiceRequests             func(childComplexity int, requestType *string, requestStatus *string, facilityID string, flavour feedlib.Flavour) int
 		GetUserBookmarkedContent       func(childComplexity int, userID string) int
 		GetUserRoles                   func(childComplexity int, userID string) int
 		InviteMembersToCommunity       func(childComplexity int, communityID string, memberIDs []string) int
@@ -472,6 +472,9 @@ type ComplexityRoot struct {
 		ResolvedAt     func(childComplexity int) int
 		ResolvedBy     func(childComplexity int) int
 		ResolvedByName func(childComplexity int) int
+		StaffContact   func(childComplexity int) int
+		StaffID        func(childComplexity int) int
+		StaffName      func(childComplexity int) int
 		Status         func(childComplexity int) int
 	}
 
@@ -587,7 +590,7 @@ type QueryResolver interface {
 	SendOtp(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (string, error)
 	GetScreeningToolQuestions(ctx context.Context, toolType *string) ([]*domain.ScreeningToolQuestion, error)
 	GetSecurityQuestions(ctx context.Context, flavour feedlib.Flavour) ([]*domain.SecurityQuestion, error)
-	GetServiceRequests(ctx context.Context, requestType *string, requestStatus *string, facilityID string) ([]*domain.ServiceRequest, error)
+	GetServiceRequests(ctx context.Context, requestType *string, requestStatus *string, facilityID string, flavour feedlib.Flavour) ([]*domain.ServiceRequest, error)
 	GetPendingServiceRequestsCount(ctx context.Context, facilityID string, flavour feedlib.Flavour) (*domain.ServiceRequestsCount, error)
 	GetCurrentTerms(ctx context.Context, flavour feedlib.Flavour) (*domain.TermsOfService, error)
 	VerifyPin(ctx context.Context, userID string, flavour feedlib.Flavour, pin string) (bool, error)
@@ -2610,7 +2613,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.GetServiceRequests(childComplexity, args["requestType"].(*string), args["requestStatus"].(*string), args["facilityID"].(string)), true
+		return e.complexity.Query.GetServiceRequests(childComplexity, args["requestType"].(*string), args["requestStatus"].(*string), args["facilityID"].(string), args["flavour"].(feedlib.Flavour)), true
 
 	case "Query.getUserBookmarkedContent":
 		if e.complexity.Query.GetUserBookmarkedContent == nil {
@@ -3034,6 +3037,27 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ServiceRequest.ResolvedByName(childComplexity), true
+
+	case "ServiceRequest.StaffContact":
+		if e.complexity.ServiceRequest.StaffContact == nil {
+			break
+		}
+
+		return e.complexity.ServiceRequest.StaffContact(childComplexity), true
+
+	case "ServiceRequest.StaffID":
+		if e.complexity.ServiceRequest.StaffID == nil {
+			break
+		}
+
+		return e.complexity.ServiceRequest.StaffID(childComplexity), true
+
+	case "ServiceRequest.StaffName":
+		if e.complexity.ServiceRequest.StaffName == nil {
+			break
+		}
+
+		return e.complexity.ServiceRequest.StaffName(childComplexity), true
 
 	case "ServiceRequest.Status":
 		if e.complexity.ServiceRequest.Status == nil {
@@ -3752,6 +3776,7 @@ extend type Query {
     requestType: String
     requestStatus: String
     facilityID: String!
+    flavour: Flavour!
   ): [ServiceRequest]
   getPendingServiceRequestsCount(facilityID: String!, flavour: Flavour!): ServiceRequestsCount!
 }
@@ -3964,7 +3989,8 @@ type ServiceRequest {
   RequestType: String!
   Request: String!
   Status: String!
-  ClientID: String!
+  ClientID: String
+  StaffID: String
   CreatedAt: Time
   InProgressAt: Time
   InProgressBy: String
@@ -3972,8 +3998,10 @@ type ServiceRequest {
   ResolvedBy: String
   ResolvedByName: String
   FacilityID: String
-  ClientName: String!
-  ClientContact: String!
+  ClientName: String
+  StaffName: String
+  StaffContact: String
+  ClientContact: String
   Meta: Map
 }
 
@@ -5370,6 +5398,15 @@ func (ec *executionContext) field_Query_getServiceRequests_args(ctx context.Cont
 		}
 	}
 	args["facilityID"] = arg2
+	var arg3 feedlib.Flavour
+	if tmp, ok := rawArgs["flavour"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("flavour"))
+		arg3, err = ec.unmarshalNFlavour2githubᚗcomᚋsavannahghiᚋfeedlibᚐFlavour(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["flavour"] = arg3
 	return args, nil
 }
 
@@ -14987,7 +15024,7 @@ func (ec *executionContext) _Query_getServiceRequests(ctx context.Context, field
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().GetServiceRequests(rctx, args["requestType"].(*string), args["requestStatus"].(*string), args["facilityID"].(string))
+		return ec.resolvers.Query().GetServiceRequests(rctx, args["requestType"].(*string), args["requestStatus"].(*string), args["facilityID"].(string), args["flavour"].(feedlib.Flavour))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -16083,14 +16120,43 @@ func (ec *executionContext) _ServiceRequest_ClientID(ctx context.Context, field 
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ServiceRequest_StaffID(ctx context.Context, field graphql.CollectedField, obj *domain.ServiceRequest) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ServiceRequest",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.StaffID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalOString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ServiceRequest_CreatedAt(ctx context.Context, field graphql.CollectedField, obj *domain.ServiceRequest) (ret graphql.Marshaler) {
@@ -16342,14 +16408,75 @@ func (ec *executionContext) _ServiceRequest_ClientName(ctx context.Context, fiel
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.(*string)
 	fc.Result = res
-	return ec.marshalNString2ᚖstring(ctx, field.Selections, res)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ServiceRequest_StaffName(ctx context.Context, field graphql.CollectedField, obj *domain.ServiceRequest) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ServiceRequest",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.StaffName, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ServiceRequest_StaffContact(ctx context.Context, field graphql.CollectedField, obj *domain.ServiceRequest) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ServiceRequest",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.StaffContact, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ServiceRequest_ClientContact(ctx context.Context, field graphql.CollectedField, obj *domain.ServiceRequest) (ret graphql.Marshaler) {
@@ -16377,14 +16504,11 @@ func (ec *executionContext) _ServiceRequest_ClientContact(ctx context.Context, f
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.(*string)
 	fc.Result = res
-	return ec.marshalNString2ᚖstring(ctx, field.Selections, res)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ServiceRequest_Meta(ctx context.Context, field graphql.CollectedField, obj *domain.ServiceRequest) (ret graphql.Marshaler) {
@@ -21797,9 +21921,8 @@ func (ec *executionContext) _ServiceRequest(ctx context.Context, sel ast.Selecti
 			}
 		case "ClientID":
 			out.Values[i] = ec._ServiceRequest_ClientID(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
+		case "StaffID":
+			out.Values[i] = ec._ServiceRequest_StaffID(ctx, field, obj)
 		case "CreatedAt":
 			out.Values[i] = ec._ServiceRequest_CreatedAt(ctx, field, obj)
 		case "InProgressAt":
@@ -21816,14 +21939,12 @@ func (ec *executionContext) _ServiceRequest(ctx context.Context, sel ast.Selecti
 			out.Values[i] = ec._ServiceRequest_FacilityID(ctx, field, obj)
 		case "ClientName":
 			out.Values[i] = ec._ServiceRequest_ClientName(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
+		case "StaffName":
+			out.Values[i] = ec._ServiceRequest_StaffName(ctx, field, obj)
+		case "StaffContact":
+			out.Values[i] = ec._ServiceRequest_StaffContact(ctx, field, obj)
 		case "ClientContact":
 			out.Values[i] = ec._ServiceRequest_ClientContact(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "Meta":
 			out.Values[i] = ec._ServiceRequest_Meta(ctx, field, obj)
 		default:

@@ -188,12 +188,13 @@ func (d *MyCareHubDb) CreateStaffServiceRequest(ctx context.Context, serviceRequ
 		return fmt.Errorf("failed to marshal meta data: %v", err)
 	}
 	serviceRequest := &gorm.StaffServiceRequest{
-		Active:      serviceRequestInput.Active,
-		RequestType: serviceRequestInput.RequestType,
-		Request:     serviceRequestInput.Request,
-		Status:      serviceRequestInput.Status,
-		StaffID:     serviceRequestInput.StaffID,
-		Meta:        string(meta),
+		Active:            serviceRequestInput.Active,
+		RequestType:       serviceRequestInput.RequestType,
+		Request:           serviceRequestInput.Request,
+		Status:            serviceRequestInput.Status,
+		StaffID:           serviceRequestInput.StaffID,
+		DefaultFacilityID: &serviceRequestInput.FacilityID,
+		Meta:              string(meta),
 	}
 
 	err = d.create.CreateStaffServiceRequest(ctx, serviceRequest)

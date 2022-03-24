@@ -18,6 +18,7 @@ extend type Query {
     requestType: String
     requestStatus: String
     facilityID: String!
+    flavour: Flavour!
   ): [ServiceRequest]
   getPendingServiceRequestsCount(facilityID: String!, flavour: Flavour!): ServiceRequestsCount!
 }

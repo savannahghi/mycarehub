@@ -23,7 +23,7 @@ type ServiceRequestUseCaseMock struct {
 		state string,
 	) (bool, error)
 	MockGetPendingServiceRequestsCountFn    func(ctx context.Context, facilityID string, flavour feedlib.Flavour) (*domain.ServiceRequestsCount, error)
-	MockGetServiceRequestsFn                func(ctx context.Context, requestType, requestStatus, facilityID *string) ([]*domain.ServiceRequest, error)
+	MockGetServiceRequestsFn                func(ctx context.Context, requestType, requestStatus *string, facilityID string, flavour feedlib.Flavour) ([]*domain.ServiceRequest, error)
 	MockResolveServiceRequestFn             func(ctx context.Context, staffID *string, serviceRequestID *string) (bool, error)
 	MockSetInProgressByFn                   func(ctx context.Context, requestID string, staffID string) (bool, error)
 	MockGetServiceRequestsForKenyaEMRFn     func(ctx context.Context, payload *dto.ServiceRequestPayload) ([]*domain.ServiceRequest, error)
@@ -40,7 +40,7 @@ func NewServiceRequestUseCaseMock() *ServiceRequestUseCaseMock {
 		MockGetPendingServiceRequestsCountFn: func(ctx context.Context, facilityID string, flavour feedlib.Flavour) (*domain.ServiceRequestsCount, error) {
 			return &domain.ServiceRequestsCount{Total: 10}, nil
 		},
-		MockGetServiceRequestsFn: func(ctx context.Context, requestType, requestStatus, facilityID *string) ([]*domain.ServiceRequest, error) {
+		MockGetServiceRequestsFn: func(ctx context.Context, requestType, requestStatus *string, facilityID string, flavour feedlib.Flavour) ([]*domain.ServiceRequest, error) {
 			return []*domain.ServiceRequest{
 				{
 					ID: uuid.New().String(),
@@ -106,8 +106,8 @@ func (s *ServiceRequestUseCaseMock) GetPendingServiceRequestsCount(ctx context.C
 }
 
 // GetServiceRequests mocks the method for fetching service requests
-func (s *ServiceRequestUseCaseMock) GetServiceRequests(ctx context.Context, requestType, requestStatus, facilityID *string) ([]*domain.ServiceRequest, error) {
-	return s.MockGetServiceRequestsFn(ctx, requestType, requestStatus, facilityID)
+func (s *ServiceRequestUseCaseMock) GetServiceRequests(ctx context.Context, requestType, requestStatus *string, facilityID string, flavour feedlib.Flavour) ([]*domain.ServiceRequest, error) {
+	return s.MockGetServiceRequestsFn(ctx, requestType, requestStatus, facilityID, flavour)
 }
 
 // ResolveServiceRequest mocks resolving a service request

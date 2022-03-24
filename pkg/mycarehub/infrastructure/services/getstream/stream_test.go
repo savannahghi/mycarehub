@@ -105,7 +105,7 @@ func TestChatClient_CreateChannel(t *testing.T) {
 	g := getstream.NewServiceGetStream()
 
 	ctx := context.Background()
-	channelID := "channelJnJ"
+	testChannelID := "channelJnJ"
 
 	type args struct {
 		ctx      context.Context
@@ -125,8 +125,8 @@ func TestChatClient_CreateChannel(t *testing.T) {
 			args: args{
 				ctx:      ctx,
 				chanType: "messaging",
-				chanID:   channelID,
-				userID:   "fe9a8f7c-f8f9-4f0c-b8b1-f8b8f8b8f8b8",
+				chanID:   testChannelID,
+				userID:   userToAddToNewChannelID,
 				data: map[string]interface{}{
 					"age": map[string]interface{}{
 						"lowerBound": 10,
@@ -142,7 +142,7 @@ func TestChatClient_CreateChannel(t *testing.T) {
 				ctx:      ctx,
 				chanType: "test",
 				chanID:   "",
-				userID:   member1,
+				userID:   userToAddToNewChannelID,
 				data:     nil,
 			},
 			wantErr: true,
@@ -162,7 +162,7 @@ func TestChatClient_CreateChannel(t *testing.T) {
 		})
 	}
 
-	_, err := g.DeleteChannels(ctx, []string{"messaging:" + channelID}, true)
+	_, err := g.DeleteChannels(ctx, []string{"messaging:" + testChannelID}, true)
 	if err != nil {
 		t.Errorf("ChatClient.DeleteChannel() error = %v", err)
 	}
@@ -276,7 +276,7 @@ func TestChatClient_RejectInvite(t *testing.T) {
 			name: "Happy case",
 			args: args{
 				ctx:       ctx,
-				userID:    member1,
+				userID:    userToRejectInviteID,
 				channelID: channelID,
 				message:   nil,
 			},
@@ -319,13 +319,7 @@ func TestChatClient_RejectInvite(t *testing.T) {
 
 func TestChatClient_AcceptInvite(t *testing.T) {
 	ctx := context.Background()
-
-	_, err = c.InviteMembers(ctx, []string{member1}, ch.Channel.ID, nil)
-	if err != nil {
-		t.Errorf("ChatClient.InviteMembers() error = %v", err)
-		return
-	}
-	customInviteMessage := "the user" + member1 + "accepted the invite"
+	customInviteMessage := "the user " + userToAcceptInviteName + "accepted the invite"
 	type args struct {
 		ctx       context.Context
 		userID    string
@@ -347,8 +341,8 @@ func TestChatClient_AcceptInvite(t *testing.T) {
 				message: &stream.Message{
 					Text: customInviteMessage,
 					User: &stream.User{
-						ID:   member1,
-						Name: "member1",
+						ID:   userToAcceptInviteID,
+						Name: userToAcceptInviteName,
 					},
 				},
 			},
@@ -391,7 +385,6 @@ func TestChatClient_AcceptInvite(t *testing.T) {
 
 func TestChatClient_RemoveMembers(t *testing.T) {
 	ctx := context.Background()
-
 	type args struct {
 		ctx       context.Context
 		channelID string
@@ -409,7 +402,7 @@ func TestChatClient_RemoveMembers(t *testing.T) {
 			args: args{
 				ctx:       ctx,
 				channelID: channelID,
-				memberIDs: []string{member1},
+				memberIDs: []string{userRemoveFromCommunityID},
 				message:   nil,
 			},
 			wantErr: false,
@@ -419,7 +412,7 @@ func TestChatClient_RemoveMembers(t *testing.T) {
 			args: args{
 				ctx:       ctx,
 				channelID: "no-existent-channel",
-				memberIDs: []string{member1},
+				memberIDs: []string{userRemoveFromCommunityID},
 				message:   nil,
 			},
 			wantErr: true,
@@ -468,7 +461,7 @@ func TestChatClient_DemoteModerators(t *testing.T) {
 			args: args{
 				ctx:       ctx,
 				channelID: channelID,
-				memberIDs: []string{moderator1},
+				memberIDs: []string{moderatorToDemoteID},
 			},
 			wantErr: false,
 		},
@@ -477,7 +470,7 @@ func TestChatClient_DemoteModerators(t *testing.T) {
 			args: args{
 				ctx:       ctx,
 				channelID: "no-existent-channel",
-				memberIDs: []string{moderator1},
+				memberIDs: []string{moderatorToDemoteID},
 			},
 			wantErr: true,
 		},
@@ -522,7 +515,7 @@ func TestChatClient_RevokeGetStreamUserToken(t *testing.T) {
 			name: "Happy case",
 			args: args{
 				ctx:    ctx,
-				userID: member1,
+				userID: userToRevokeGetstreamTokenID,
 			},
 			wantErr: false,
 		},
@@ -551,7 +544,6 @@ func TestChatClient_RevokeGetStreamUserToken(t *testing.T) {
 
 func TestChatClient_BanUser(t *testing.T) {
 	ctx := context.Background()
-
 	type args struct {
 		ctx            context.Context
 		targetMemberID string
@@ -568,9 +560,9 @@ func TestChatClient_BanUser(t *testing.T) {
 			name: "Happy Case",
 			args: args{
 				ctx:            ctx,
-				targetMemberID: member1,
-				bannedBy:       member2,
-				communityID:    channelID,
+				targetMemberID: userToBanID,
+				bannedBy:       defaultModeratorID,
+				communityID:    ch.Channel.ID,
 			},
 			want:    true,
 			wantErr: false,
@@ -590,9 +582,9 @@ func TestChatClient_BanUser(t *testing.T) {
 			name: "Sad Case - same targetMemberID",
 			args: args{
 				ctx:            ctx,
-				targetMemberID: member1,
-				bannedBy:       member1,
-				communityID:    channelID,
+				targetMemberID: userToBanID,
+				bannedBy:       defaultModeratorID,
+				communityID:    channelCID,
 			},
 			want:    false,
 			wantErr: true,
@@ -610,17 +602,10 @@ func TestChatClient_BanUser(t *testing.T) {
 			}
 		})
 	}
-
 }
 
 func TestChatClient_UnBanUser(t *testing.T) {
 	ctx := context.Background()
-
-	_, err = c.BanUser(ctx, member1, member2, channelID)
-	if err != nil {
-		t.Errorf("unable to ban user: %v", err)
-		return
-	}
 
 	type args struct {
 		ctx         context.Context
@@ -637,7 +622,7 @@ func TestChatClient_UnBanUser(t *testing.T) {
 			name: "Happy case",
 			args: args{
 				ctx:         ctx,
-				targetID:    member1,
+				targetID:    userToUnbanID,
 				communityID: channelID,
 			},
 			want:    true,
@@ -666,16 +651,15 @@ func TestChatClient_UnBanUser(t *testing.T) {
 			}
 		})
 	}
+
+	if err != nil {
+		t.Errorf("ChatClient.DeleteUsers() error = %v", err)
+		return
+	}
 }
 
 func TestChatClient_ListCommunityBannedMembers(t *testing.T) {
 	ctx := context.Background()
-
-	_, err = c.BanUser(ctx, member1, member2, channelID)
-	if err != nil {
-		t.Errorf("unable to ban user: %v", err)
-		return
-	}
 
 	type args struct {
 		ctx         context.Context
@@ -705,7 +689,6 @@ func TestChatClient_ListCommunityBannedMembers(t *testing.T) {
 			}
 		})
 	}
-
 }
 
 func TestChatClient_UpsertUser(t *testing.T) {
@@ -725,7 +708,7 @@ func TestChatClient_UpsertUser(t *testing.T) {
 			args: args{
 				ctx: context.Background(),
 				user: &stream.User{
-					ID:   member1,
+					ID:   userToUpsertID,
 					Name: "Test",
 					Role: "moderator",
 				},
@@ -741,6 +724,47 @@ func TestChatClient_UpsertUser(t *testing.T) {
 			}
 			if !tt.wantErr && got == nil {
 				t.Errorf("ChatClient.UpsertUser() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestChatClient_DeleteUsers(t *testing.T) {
+	ctx := context.Background()
+
+	type args struct {
+		ctx     context.Context
+		userIDs []string
+		options stream.DeleteUserOptions
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *stream.AsyncTaskResponse
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:     ctx,
+				userIDs: []string{userToDelete},
+				options: stream.DeleteUserOptions{
+					User:     stream.HardDelete,
+					Messages: stream.HardDelete,
+				},
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := c.DeleteUsers(tt.args.ctx, tt.args.userIDs, tt.args.options)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ChatClient.DeleteUsers() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("ChatClient.DeleteUsers() = %v, want %v", got, tt.want)
 			}
 		})
 	}

@@ -711,71 +711,138 @@ func (d *MyCareHubDb) GetClientProfileByClientID(ctx context.Context, clientID s
 }
 
 // GetServiceRequests retrieves the service requests by the type passed in the parameters
-func (d *MyCareHubDb) GetServiceRequests(ctx context.Context, requestType, requestStatus, facilityID *string) ([]*domain.ServiceRequest, error) {
+func (d *MyCareHubDb) GetServiceRequests(ctx context.Context, requestType, requestStatus *string, facilityID string, flavour feedlib.Flavour) ([]*domain.ServiceRequest, error) {
 	var (
 		serviceRequests []*domain.ServiceRequest
 		meta            map[string]interface{}
 		resolvedByName  string
 	)
 
-	clientServiceRequests, err := d.query.GetServiceRequests(ctx, requestType, requestStatus, facilityID)
-	if err != nil {
-		helpers.ReportErrorToSentry(err)
-		return nil, err
-	}
-
-	for _, serviceRequest := range clientServiceRequests {
-		clientProfile, err := d.query.GetClientProfileByClientID(ctx, serviceRequest.ClientID)
+	switch flavour {
+	case feedlib.FlavourConsumer:
+		clientServiceRequests, err := d.query.GetServiceRequests(ctx, requestType, requestStatus, facilityID)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
 			return nil, err
 		}
 
-		userProfile, err := d.query.GetUserProfileByUserID(ctx, clientProfile.UserID)
-		if err != nil {
-			helpers.ReportErrorToSentry(err)
-			return nil, err
-		}
-
-		if serviceRequest.Meta != "" {
-			meta, err = utils.ConvertJSONStringToMap(serviceRequest.Meta)
-			if err != nil {
-				helpers.ReportErrorToSentry(err)
-				return nil, fmt.Errorf("error converting meta json string to map: %v", err)
-			}
-		}
-
-		if serviceRequest.ResolvedByID != nil {
-
-			resolvedBy, err := d.query.GetUserProfileByStaffID(ctx, *serviceRequest.ResolvedByID)
+		for _, serviceRequest := range clientServiceRequests {
+			clientProfile, err := d.query.GetClientProfileByClientID(ctx, serviceRequest.ClientID)
 			if err != nil {
 				helpers.ReportErrorToSentry(err)
 				return nil, err
 			}
-			resolvedByName = resolvedBy.Name
+
+			userProfile, err := d.query.GetUserProfileByUserID(ctx, clientProfile.UserID)
+			if err != nil {
+				helpers.ReportErrorToSentry(err)
+				return nil, err
+			}
+
+			if serviceRequest.Meta != "" {
+				meta, err = utils.ConvertJSONStringToMap(serviceRequest.Meta)
+				if err != nil {
+					helpers.ReportErrorToSentry(err)
+					return nil, fmt.Errorf("error converting meta json string to map: %v", err)
+				}
+			}
+
+			if serviceRequest.ResolvedByID != nil {
+
+				resolvedBy, err := d.query.GetUserProfileByStaffID(ctx, *serviceRequest.ResolvedByID)
+				if err != nil {
+					helpers.ReportErrorToSentry(err)
+					return nil, err
+				}
+				resolvedByName = resolvedBy.Name
+			}
+
+			serviceRequest := &domain.ServiceRequest{
+				ID:             *serviceRequest.ID,
+				RequestType:    serviceRequest.RequestType,
+				Request:        serviceRequest.Request,
+				Status:         serviceRequest.Status,
+				ClientID:       serviceRequest.ClientID,
+				CreatedAt:      serviceRequest.Base.CreatedAt,
+				InProgressAt:   serviceRequest.InProgressAt,
+				InProgressBy:   serviceRequest.InProgressByID,
+				ResolvedAt:     serviceRequest.ResolvedAt,
+				ResolvedBy:     serviceRequest.ResolvedByID,
+				ResolvedByName: &resolvedByName,
+				FacilityID:     facilityID,
+				ClientName:     &userProfile.Name,
+				ClientContact:  &userProfile.Contacts.ContactValue,
+				Meta:           meta,
+			}
+			serviceRequests = append(serviceRequests, serviceRequest)
+		}
+		return serviceRequests, nil
+
+	case feedlib.FlavourPro:
+		if facilityID == "" {
+			return nil, fmt.Errorf("facility ID is required")
+		}
+		staffServiceRequests, err := d.query.GetStaffServiceRequests(ctx, requestType, requestStatus, facilityID)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return nil, err
 		}
 
-		serviceRequest := &domain.ServiceRequest{
-			ID:             *serviceRequest.ID,
-			RequestType:    serviceRequest.RequestType,
-			Request:        serviceRequest.Request,
-			Status:         serviceRequest.Status,
-			ClientID:       serviceRequest.ClientID,
-			CreatedAt:      serviceRequest.Base.CreatedAt,
-			InProgressAt:   serviceRequest.InProgressAt,
-			InProgressBy:   serviceRequest.InProgressByID,
-			ResolvedAt:     serviceRequest.ResolvedAt,
-			ResolvedBy:     serviceRequest.ResolvedByID,
-			ResolvedByName: &resolvedByName,
-			FacilityID:     *facilityID,
-			ClientName:     &userProfile.Name,
-			ClientContact:  &userProfile.Contacts.ContactValue,
-			Meta:           meta,
+		for _, serviceReq := range staffServiceRequests {
+			staffProfile, err := d.query.GetStaffProfileByStaffID(ctx, serviceReq.StaffID)
+			if err != nil {
+				helpers.ReportErrorToSentry(err)
+				return nil, err
+			}
+
+			userProfile, err := d.query.GetUserProfileByUserID(ctx, &staffProfile.UserID)
+			if err != nil {
+				helpers.ReportErrorToSentry(err)
+				return nil, err
+			}
+
+			if serviceReq.Meta != "" {
+				meta, err = utils.ConvertJSONStringToMap(serviceReq.Meta)
+				if err != nil {
+					helpers.ReportErrorToSentry(err)
+					return nil, fmt.Errorf("error converting meta json string to map: %v", err)
+				}
+			}
+
+			if serviceReq.ResolvedByID != nil {
+
+				resolvedBy, err := d.query.GetUserProfileByStaffID(ctx, *serviceReq.ResolvedByID)
+				if err != nil {
+					helpers.ReportErrorToSentry(err)
+					return nil, err
+				}
+				resolvedByName = resolvedBy.Name
+			}
+
+			serviceRequest := &domain.ServiceRequest{
+				ID:             *serviceReq.ID,
+				RequestType:    serviceReq.RequestType,
+				Request:        serviceReq.Request,
+				Status:         serviceReq.Status,
+				StaffID:        serviceReq.StaffID,
+				CreatedAt:      serviceReq.CreatedAt,
+				ResolvedAt:     serviceReq.ResolvedAt,
+				ResolvedBy:     serviceReq.ResolvedByID,
+				ResolvedByName: &resolvedByName,
+				FacilityID:     staffProfile.DefaultFacilityID,
+				StaffName:      &userProfile.Name,
+				StaffContact:   &userProfile.Contacts.ContactValue,
+				Meta:           meta,
+			}
+
+			serviceRequests = append(serviceRequests, serviceRequest)
+
 		}
-		serviceRequests = append(serviceRequests, serviceRequest)
+		return serviceRequests, nil
+
+	default:
+		return nil, fmt.Errorf("invalid flavour %v defined: ", flavour)
 	}
-
-	return serviceRequests, err
 }
 
 // CheckUserRole check if a user has a role

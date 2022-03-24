@@ -10,4 +10,5 @@
   staff_id: {{.staff_id}}
   organisation_id: {{.test_organisation_id}}
   resolved_by_id: null
+  facility_id: {{.staff_default_facility}}
   meta: null

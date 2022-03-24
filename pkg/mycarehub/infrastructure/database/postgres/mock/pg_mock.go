@@ -79,8 +79,8 @@ type PostgresMock struct {
 	MockUpdateClientCaregiverFn                          func(ctx context.Context, caregiverInput *dto.CaregiverInput) error
 	MockInProgressByFn                                   func(ctx context.Context, requestID string, staffID string) (bool, error)
 	MockGetClientProfileByClientIDFn                     func(ctx context.Context, clientID string) (*domain.ClientProfile, error)
-	MockGetServiceRequestsFn                             func(ctx context.Context, requestType, requestStatus, facilityID *string) ([]*domain.ServiceRequest, error)
 	MockGetPendingServiceRequestsCountFn                 func(ctx context.Context, facilityID string, flavour feedlib.Flavour) (*domain.ServiceRequestsCount, error)
+	MockGetServiceRequestsFn                             func(ctx context.Context, requestType, requestStatus *string, facilityID string, flavour feedlib.Flavour) ([]*domain.ServiceRequest, error)
 	MockResolveServiceRequestFn                          func(ctx context.Context, staffID *string, serviceRequestID *string, status string) (bool, error)
 	MockCreateCommunityFn                                func(ctx context.Context, community *dto.CommunityInput) (*domain.Community, error)
 	MockCheckUserRoleFn                                  func(ctx context.Context, userID string, role string) (bool, error)
@@ -584,7 +584,7 @@ func NewPostgresMock() *PostgresMock {
 		MockSearchStaffProfileByStaffNumberFn: func(ctx context.Context, staffNumber string) ([]*domain.StaffProfile, error) {
 			return []*domain.StaffProfile{staff}, nil
 		},
-		MockGetServiceRequestsFn: func(ctx context.Context, requestType, requestStatus, facilityID *string) ([]*domain.ServiceRequest, error) {
+		MockGetServiceRequestsFn: func(ctx context.Context, requestType, requestStatus *string, facilityID string, flavour feedlib.Flavour) ([]*domain.ServiceRequest, error) {
 			return serviceRequests, nil
 		},
 		MockResolveServiceRequestFn: func(ctx context.Context, staffID *string, serviceRequestID *string, status string) (bool, error) {
@@ -1118,8 +1118,8 @@ func (gm *PostgresMock) GetPendingServiceRequestsCount(ctx context.Context, faci
 }
 
 // GetServiceRequests mocks the implementation of getting all service requests for a client
-func (gm *PostgresMock) GetServiceRequests(ctx context.Context, requestType, requestStatus, facilityID *string) ([]*domain.ServiceRequest, error) {
-	return gm.MockGetServiceRequestsFn(ctx, requestType, requestStatus, facilityID)
+func (gm *PostgresMock) GetServiceRequests(ctx context.Context, requestType, requestStatus *string, facilityID string, flavour feedlib.Flavour) ([]*domain.ServiceRequest, error) {
+	return gm.MockGetServiceRequestsFn(ctx, requestType, requestStatus, facilityID, flavour)
 }
 
 // ResolveServiceRequest mocks the implementation of resolving a service request
