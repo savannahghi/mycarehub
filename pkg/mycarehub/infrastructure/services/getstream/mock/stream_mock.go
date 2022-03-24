@@ -30,6 +30,7 @@ type GetStreamServiceMock struct {
 	MockBanUserFn                    func(ctx context.Context, targetMemberID string, bannedBy string, communityID string) (bool, error)
 	MockUnBanUserFn                  func(ctx context.Context, targetID string, communityID string) (bool, error)
 	MockListCommunityBannedMembersFn func(ctx context.Context, communityID string) (*stream.QueryBannedUsersResponse, error)
+	MockUpsertUserFn                 func(ctx context.Context, user *stream.User) (*stream.UpsertUserResponse, error)
 }
 
 // NewGetStreamServiceMock initializes the mock service
@@ -247,6 +248,17 @@ func NewGetStreamServiceMock() *GetStreamServiceMock {
 				Config: stream.ChannelConfig{},
 			}, nil
 		},
+		MockUpsertUserFn: func(ctx context.Context, user *stream.User) (*stream.UpsertUserResponse, error) {
+			return &stream.UpsertUserResponse{
+				Response: stream.Response{
+					RateLimitInfo: &stream.RateLimitInfo{
+						Limit:     0,
+						Remaining: 0,
+						Reset:     0,
+					},
+				},
+			}, nil
+		},
 	}
 }
 
@@ -343,4 +355,9 @@ func (g GetStreamServiceMock) UnBanUser(ctx context.Context, targetID string, co
 // ListCommunityBannedMembers mocks the implementation of listing the community members
 func (g GetStreamServiceMock) ListCommunityBannedMembers(ctx context.Context, communityID string) (*stream.QueryBannedUsersResponse, error) {
 	return g.MockListCommunityBannedMembersFn(ctx, communityID)
+}
+
+// UpsertUser mocks the implementation of upserting a user
+func (g GetStreamServiceMock) UpsertUser(ctx context.Context, user *stream.User) (*stream.UpsertUserResponse, error) {
+	return g.MockUpsertUserFn(ctx, user)
 }

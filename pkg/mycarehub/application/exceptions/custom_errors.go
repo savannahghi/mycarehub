@@ -513,3 +513,12 @@ func SecurityQuestionNotFoundErr(err error) error {
 		Code:    int(SecurityQuestionNotFoundError),
 	}
 }
+
+// UpdateProfileErr returns an error message when the user profile update fails
+func UpdateProfileErr(err error) error {
+	return &CustomError{
+		Err:     err,
+		Message: UpdateProfileErrorMsg,
+		Code:    int(UpdateProfileError),
+	}
+}

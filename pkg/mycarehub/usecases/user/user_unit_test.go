@@ -879,6 +879,20 @@ func TestUseCasesUserImpl_SetUserPIN(t *testing.T) {
 			want:    false,
 			wantErr: true,
 		},
+		{
+			name: "Sad Case - Fail to save pin update required",
+			args: args{
+				ctx: ctx,
+				input: dto.PINInput{
+					UserID:     &UserID,
+					PIN:        &PIN,
+					ConfirmPIN: &PIN,
+					Flavour:    flavour,
+				},
+			},
+			want:    false,
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -943,6 +957,12 @@ func TestUseCasesUserImpl_SetUserPIN(t *testing.T) {
 			if tt.name == "Sad Case - Fail to invalidate pin" {
 				fakeDB.MockInvalidatePINFn = func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
 					return false, fmt.Errorf("failed to invalidate pin")
+				}
+			}
+
+			if tt.name == "Sad Case - Fail to save pin update required" {
+				fakeDB.MockUpdateUserFn = func(ctx context.Context, user *domain.User, updateData map[string]interface{}) error {
+					return fmt.Errorf("failed to save pin")
 				}
 			}
 

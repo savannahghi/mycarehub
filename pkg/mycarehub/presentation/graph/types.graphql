@@ -285,6 +285,7 @@ type Member {
   username: String!
   gender: Gender!
   userType: String
+  extraData: Map
 }
 
 """

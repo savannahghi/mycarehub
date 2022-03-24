@@ -267,7 +267,6 @@ func (db *PGInstance) UpdateUserProfileAfterLoginSuccess(ctx context.Context, us
 			"last_successful_login": &currentTime,
 			"failed_login_count":    failedLoginCount,
 			"next_allowed_login":    currentTime,
-			"pin_update_required":   false,
 		}).Error
 	if err != nil {
 		helpers.ReportErrorToSentry(err)

@@ -321,6 +321,17 @@ func (us *UseCasesCommunitiesImpl) ListCommunityMembers(ctx context.Context, com
 		return nil, err
 	}
 
+	extraData := make(map[string]interface{})
+	bannedMembersHashmap := make(map[string]string)
+	bannedCommunityMembers, err := us.ListCommunityBannedMembers(ctx, communityID)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, bannedMember := range bannedCommunityMembers {
+		bannedMembersHashmap[bannedMember.ID] = bannedMember.ID
+	}
+
 	for _, member := range channel.Members {
 		var userType string
 		var userID string
@@ -333,11 +344,17 @@ func (us *UseCasesCommunitiesImpl) ListCommunityMembers(ctx context.Context, com
 			userID = val.(string)
 		}
 
+		_, ok := bannedMembersHashmap[member.User.ID]
+		if ok {
+			extraData["bannedInCommunity"] = true
+		}
+
 		user := domain.Member{
-			ID:     member.User.ID,
-			Name:   member.User.Name,
-			Role:   member.User.Role,
-			UserID: userID,
+			ID:        member.User.ID,
+			Name:      member.User.Name,
+			Role:      member.User.Role,
+			UserID:    userID,
+			ExtraData: extraData,
 		}
 
 		commMem := &domain.CommunityMember{

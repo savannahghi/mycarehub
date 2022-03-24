@@ -662,6 +662,14 @@ func (us *UseCasesUserImpl) SetUserPIN(ctx context.Context, input dto.PINInput) 
 		return false, exceptions.SaveUserPinError(fmt.Errorf("failed to save user pin: %v", err))
 	}
 
+	err = us.Update.UpdateUser(ctx, userProfile, map[string]interface{}{
+		"pin_update_required": false,
+	})
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, exceptions.UpdateProfileErr(fmt.Errorf("failed to update user profile: %v", err))
+	}
+
 	return true, nil
 }
 
