@@ -171,4 +171,7 @@ const (
 
 	// SecurityQuestionNotFoundErrorMsg is the error message displayed when a user's security question is not found
 	SecurityQuestionNotFoundErrorMsg = "security question not found"
+
+	// UpdateProfileErrorMsg is the error message displayed when a user's profile is not updated
+	UpdateProfileErrorMsg = "unable to update profile"
 )

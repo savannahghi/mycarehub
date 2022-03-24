@@ -40,6 +40,7 @@ type ServiceGetStream interface {
 	BanUser(ctx context.Context, targetMemberID string, bannedBy string, communityID string) (bool, error)
 	UnBanUser(ctx context.Context, targetID string, communityID string) (bool, error)
 	ListCommunityBannedMembers(ctx context.Context, communityID string) (*stream.QueryBannedUsersResponse, error)
+	UpsertUser(ctx context.Context, user *stream.User) (*stream.UpsertUserResponse, error)
 }
 
 // ChatClient is the service's struct implementation
@@ -232,4 +233,9 @@ func (c *ChatClient) UnBanUser(ctx context.Context, targetID string, communityID
 	}
 
 	return false, nil
+}
+
+// UpsertUser updates a user's details
+func (c *ChatClient) UpsertUser(ctx context.Context, user *stream.User) (*stream.UpsertUserResponse, error) {
+	return c.client.UpsertUser(ctx, user)
 }

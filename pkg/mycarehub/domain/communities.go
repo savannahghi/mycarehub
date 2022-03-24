@@ -47,9 +47,10 @@ type Member struct {
 	Name   string `json:"name"`
 	Role   string `json:"role"`
 
-	Username string           `json:"username"`
-	Gender   enumutils.Gender `json:"gender"`
-	UserType string           `json:"userType"`
+	Username  string                 `json:"username"`
+	Gender    enumutils.Gender       `json:"gender"`
+	UserType  string                 `json:"userType"`
+	ExtraData map[string]interface{} `json:"extraData"`
 }
 
 // CommunityMember represents a user in a community and their associated additional details.

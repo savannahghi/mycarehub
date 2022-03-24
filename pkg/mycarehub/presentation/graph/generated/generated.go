@@ -320,13 +320,14 @@ type ComplexityRoot struct {
 	}
 
 	Member struct {
-		Gender   func(childComplexity int) int
-		ID       func(childComplexity int) int
-		Name     func(childComplexity int) int
-		Role     func(childComplexity int) int
-		UserID   func(childComplexity int) int
-		UserType func(childComplexity int) int
-		Username func(childComplexity int) int
+		ExtraData func(childComplexity int) int
+		Gender    func(childComplexity int) int
+		ID        func(childComplexity int) int
+		Name      func(childComplexity int) int
+		Role      func(childComplexity int) int
+		UserID    func(childComplexity int) int
+		UserType  func(childComplexity int) int
+		Username  func(childComplexity int) int
 	}
 
 	Meta struct {
@@ -1834,6 +1835,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ImageMeta.Type(childComplexity), true
+
+	case "Member.extraData":
+		if e.complexity.Member.ExtraData == nil {
+			break
+		}
+
+		return e.complexity.Member.ExtraData(childComplexity), true
 
 	case "Member.gender":
 		if e.complexity.Member.Gender == nil {
@@ -4034,6 +4042,7 @@ type Member {
   username: String!
   gender: Gender!
   userType: String
+  extraData: Map
 }
 
 """
@@ -6507,9 +6516,9 @@ func (ec *executionContext) _ClientHealthDiaryEntry_id(ctx context.Context, fiel
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*string)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ClientHealthDiaryEntry_active(ctx context.Context, field graphql.CollectedField, obj *domain.ClientHealthDiaryEntry) (ret graphql.Marshaler) {
@@ -7110,9 +7119,9 @@ func (ec *executionContext) _ClientProfile_FHIRPatientID(ctx context.Context, fi
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*string)
 	fc.Result = res
-	return ec.marshalOString2string(ctx, field.Selections, res)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ClientProfile_HealthRecordID(ctx context.Context, field graphql.CollectedField, obj *domain.ClientProfile) (ret graphql.Marshaler) {
@@ -11901,6 +11910,38 @@ func (ec *executionContext) _Member_userType(ctx context.Context, field graphql.
 	res := resTmp.(string)
 	fc.Result = res
 	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Member_extraData(ctx context.Context, field graphql.CollectedField, obj *domain.Member) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Member",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ExtraData, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(map[string]interface{})
+	fc.Result = res
+	return ec.marshalOMap2map(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Meta_totalCount(ctx context.Context, field graphql.CollectedField, obj *domain.Meta) (ret graphql.Marshaler) {
@@ -20775,6 +20816,8 @@ func (ec *executionContext) _Member(ctx context.Context, sel ast.SelectionSet, o
 			}
 		case "userType":
 			out.Values[i] = ec._Member_userType(ctx, field, obj)
+		case "extraData":
+			out.Values[i] = ec._Member_extraData(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

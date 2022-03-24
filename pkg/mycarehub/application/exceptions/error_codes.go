@@ -393,4 +393,8 @@ const (
 	// SecurityQuestionNotFoundError implies that the user is unable to verify security questions because the question was not found
 	// Its error code is 79
 	SecurityQuestionNotFoundError
+
+	// UpdateProfileError implies that the system is unable to update the profile
+	// Its error code is 80
+	UpdateProfileError
 )

@@ -903,3 +903,41 @@ func TestChatClient_ListCommunityBannedMembers(t *testing.T) {
 		t.Errorf("ChatClient.DeleteChannel() error = %v", err)
 	}
 }
+
+func TestChatClient_UpsertUser(t *testing.T) {
+	type args struct {
+		ctx  context.Context
+		user *stream.User
+	}
+	tests := []struct {
+		name string
+
+		args    args
+		want    *stream.UpsertUserResponse
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx: context.Background(),
+				user: &stream.User{
+					ID:   member1,
+					Name: "Test",
+					Role: "moderator",
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := c.UpsertUser(tt.args.ctx, tt.args.user)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ChatClient.UpsertUser() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("ChatClient.UpsertUser() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
