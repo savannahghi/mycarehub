@@ -690,6 +690,7 @@ type StaffServiceRequest struct {
 	StaffID        string     `gorm:"column:staff_id"`
 	OrganisationID string     `gorm:"column:organisation_id"`
 	ResolvedByID   *string    `gorm:"column:resolved_by_id"`
+	FacilityID     string     `gorm:"column:facility_id"`
 	Meta           string     `gorm:"column:meta"`
 }
 

@@ -494,7 +494,8 @@ func TestUseCasesServiceRequestImpl_GetPendingServiceRequestsCount(t *testing.T)
 	facilityID := uuid.New().String()
 	type args struct {
 		ctx        context.Context
-		facilityID string
+		facilityID *string
+		flavour    feedlib.Flavour
 	}
 	tests := []struct {
 		name    string
@@ -506,7 +507,8 @@ func TestUseCasesServiceRequestImpl_GetPendingServiceRequestsCount(t *testing.T)
 			name: "Happy case",
 			args: args{
 				ctx:        ctx,
-				facilityID: facilityID,
+				facilityID: &facilityID,
+				flavour:    feedlib.FlavourConsumer,
 			},
 			wantErr: false,
 		},
@@ -514,7 +516,8 @@ func TestUseCasesServiceRequestImpl_GetPendingServiceRequestsCount(t *testing.T)
 			name: "Sad case",
 			args: args{
 				ctx:        ctx,
-				facilityID: facilityID,
+				facilityID: &facilityID,
+				flavour:    feedlib.FlavourConsumer,
 			},
 			wantErr: true,
 		},
@@ -522,7 +525,17 @@ func TestUseCasesServiceRequestImpl_GetPendingServiceRequestsCount(t *testing.T)
 			name: "Sad case - empty facility id",
 			args: args{
 				ctx:        ctx,
-				facilityID: facilityID,
+				facilityID: &facilityID,
+				flavour:    feedlib.FlavourConsumer,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case - invalid flavour",
+			args: args{
+				ctx:        ctx,
+				facilityID: &facilityID,
+				flavour:    "invalid-flavour",
 			},
 			wantErr: true,
 		},
@@ -535,17 +548,22 @@ func TestUseCasesServiceRequestImpl_GetPendingServiceRequestsCount(t *testing.T)
 			u := servicerequest.NewUseCaseServiceRequestImpl(fakeDB, fakeDB, fakeDB, fakeExtension, fakeUser)
 
 			if tt.name == "Sad case" {
-				fakeDB.MockGetPendingServiceRequestsCountFn = func(ctx context.Context, facilityID string) (*domain.ServiceRequestsCount, error) {
+				fakeDB.MockGetPendingServiceRequestsCountFn = func(ctx context.Context, facilityID string, flavour feedlib.Flavour) (*domain.ServiceRequestsCount, error) {
 					return nil, fmt.Errorf("an error occurred")
 				}
 			}
 			if tt.name == "Sad case - empty facility id" {
-				fakeDB.MockGetPendingServiceRequestsCountFn = func(ctx context.Context, facilityID string) (*domain.ServiceRequestsCount, error) {
+				fakeDB.MockGetPendingServiceRequestsCountFn = func(ctx context.Context, facilityID string, flavour feedlib.Flavour) (*domain.ServiceRequestsCount, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - invalid flavour" {
+				fakeDB.MockGetPendingServiceRequestsCountFn = func(ctx context.Context, facilityID string, flavour feedlib.Flavour) (*domain.ServiceRequestsCount, error) {
 					return nil, fmt.Errorf("an error occurred")
 				}
 			}
 
-			got, err := u.GetPendingServiceRequestsCount(tt.args.ctx, tt.args.facilityID)
+			got, err := u.GetPendingServiceRequestsCount(tt.args.ctx, *tt.args.facilityID, tt.args.flavour)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCasesServiceRequestImpl.GetPendingServiceRequestsCount() error = %v, wantErr %v", err, tt.wantErr)
 				return

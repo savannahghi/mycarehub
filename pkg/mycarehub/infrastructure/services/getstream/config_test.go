@@ -11,17 +11,21 @@ import (
 )
 
 var (
-	channelID            = "testChannelJnJ"
-	channelType          = "messaging"
-	testChannelOwner     = "256b9f95-c53e-44c3-81f7-4c37cf4e6510"
+	channelID        = "testChannelJnJ"
+	channelType      = "messaging"
+	testChannelOwner = "256b9f95-c53e-44c3-81f7-4c37cf4e6510"
+
+	// Channel members
 	member1              = "422a6d86-7f01-4c63-8ebd-51a343775f1b"
 	member2              = "310145d2-95ad-4a2c-ac88-1e60bacfd37c"
 	moderator1           = "3cad8cad-7623-4e78-b46e-06c150552aa3"
 	userToAcceptInviteID = "f3926591-27f8-4756-90d9-fa88e228c582"
 	userToRejectInviteID = "f3926591-27f8-4756-90d9-fa88e228c583"
-	c                    getstream.ServiceGetStream
-	ch                   *stream.CreateChannelResponse
-	err                  error
+	userToUnbanID        = "114b857c-4365-4a68-9299-ed33975d9ddc"
+
+	c   getstream.ServiceGetStream
+	ch  *stream.CreateChannelResponse
+	err error
 )
 
 func TestMain(m *testing.M) {
@@ -66,6 +70,7 @@ func createTestUsers() {
 		Name:      "moderator1",
 		Invisible: false,
 	}
+
 	_, err := c.CreateGetStreamUser(ctx, &user1)
 	if err != nil {
 		fmt.Printf("ChatClient.CreateGetStreamUser() error = %v", err)
@@ -89,6 +94,26 @@ func createTestUsers() {
 		fmt.Printf("ChatClient.AddModeratorsWithMessage() error = %v", err)
 		return
 	}
+
+	_, err = c.CreateGetStreamUserToken(ctx, member1)
+	if err != nil {
+		fmt.Printf("ChatClient.CreateGetStreamUserToken() error = %v", err)
+		return
+	}
+
+	// Add them to a community
+	_, err = c.AddMembersToCommunity(ctx, []string{userToUnbanID, member1, member2}, channelID)
+	if err != nil {
+		fmt.Printf("ChatClient.AddMembersToCommunity() error = %v", err)
+		return
+	}
+
+	_, err = c.InviteMembers(ctx, []string{member1, member2}, channelID, nil)
+	if err != nil {
+		fmt.Printf("ChatClient.InviteMembers() error = %v", err)
+		return
+	}
+
 }
 
 func deleteTestUsers() {

@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	stream "github.com/GetStream/stream-chat-go/v5"
-	"github.com/google/uuid"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/getstream"
 )
@@ -260,22 +259,7 @@ func TestChatClient_GetChannel(t *testing.T) {
 
 func TestChatClient_RejectInvite(t *testing.T) {
 	ctx := context.Background()
-	user := stream.User{
-		ID:        userToRejectInviteID,
-		Name:      "test user accepted invite",
-		Invisible: false,
-	}
-	streamUser, err := c.CreateGetStreamUser(ctx, &user)
-	if err != nil {
-		t.Errorf("ChatClient.CreateGetStreamUser() error = %v", err)
-		return
-	}
 
-	_, err = c.InviteMembers(ctx, []string{streamUser.User.ID}, ch.Channel.ID, nil)
-	if err != nil {
-		t.Errorf("ChatClient.InviteMembers() error = %v", err)
-		return
-	}
 	type args struct {
 		ctx       context.Context
 		userID    string
@@ -292,7 +276,7 @@ func TestChatClient_RejectInvite(t *testing.T) {
 			name: "Happy case",
 			args: args{
 				ctx:       ctx,
-				userID:    userToRejectInviteID,
+				userID:    member1,
 				channelID: channelID,
 				message:   nil,
 			},
@@ -335,23 +319,13 @@ func TestChatClient_RejectInvite(t *testing.T) {
 
 func TestChatClient_AcceptInvite(t *testing.T) {
 	ctx := context.Background()
-	user := stream.User{
-		ID:        userToAcceptInviteID,
-		Name:      "test user accepted invite",
-		Invisible: false,
-	}
-	streamUser, err := c.CreateGetStreamUser(ctx, &user)
-	if err != nil {
-		t.Errorf("ChatClient.CreateGetStreamUser() error = %v", err)
-		return
-	}
 
-	_, err = c.InviteMembers(ctx, []string{streamUser.User.ID}, ch.Channel.ID, nil)
+	_, err = c.InviteMembers(ctx, []string{member1}, ch.Channel.ID, nil)
 	if err != nil {
 		t.Errorf("ChatClient.InviteMembers() error = %v", err)
 		return
 	}
-	customInviteMessage := "the user" + user.Name + "accepted the invite"
+	customInviteMessage := "the user" + member1 + "accepted the invite"
 	type args struct {
 		ctx       context.Context
 		userID    string
@@ -373,8 +347,8 @@ func TestChatClient_AcceptInvite(t *testing.T) {
 				message: &stream.Message{
 					Text: customInviteMessage,
 					User: &stream.User{
-						ID:   user.ID,
-						Name: user.Name,
+						ID:   member1,
+						Name: "member1",
 					},
 				},
 			},
@@ -417,11 +391,7 @@ func TestChatClient_AcceptInvite(t *testing.T) {
 
 func TestChatClient_RemoveMembers(t *testing.T) {
 	ctx := context.Background()
-	_, err := c.AddMembersToCommunity(ctx, []string{member1}, ch.Channel.ID)
-	if err != nil {
-		t.Errorf("ChatClient.AddMembersToCommunity() error = %v", err)
-		return
-	}
+
 	type args struct {
 		ctx       context.Context
 		channelID string
@@ -481,24 +451,6 @@ func TestChatClient_RemoveMembers(t *testing.T) {
 
 func TestChatClient_DemoteModerators(t *testing.T) {
 	ctx := context.Background()
-	moderatorID := "5c272749-8ad7-4b1b-b581-302d85833f4f"
-	moderator1 := stream.User{
-		ID:        moderatorID,
-		Name:      "test user demoted moderator",
-		Invisible: false,
-	}
-
-	_, err := c.CreateGetStreamUser(ctx, &moderator1)
-	if err != nil {
-		t.Errorf("ChatClient.CreateGetStreamUser() error = %v", err)
-		return
-	}
-
-	_, err = c.AddModeratorsWithMessage(ctx, []string{moderatorID}, channelID, nil)
-	if err != nil {
-		t.Errorf("ChatClient.AddModeratorsWithMessage() error = %v", err)
-		return
-	}
 
 	type args struct {
 		ctx       context.Context
@@ -516,7 +468,7 @@ func TestChatClient_DemoteModerators(t *testing.T) {
 			args: args{
 				ctx:       ctx,
 				channelID: channelID,
-				memberIDs: []string{moderatorID},
+				memberIDs: []string{moderator1},
 			},
 			wantErr: false,
 		},
@@ -525,7 +477,7 @@ func TestChatClient_DemoteModerators(t *testing.T) {
 			args: args{
 				ctx:       ctx,
 				channelID: "no-existent-channel",
-				memberIDs: []string{moderatorID},
+				memberIDs: []string{moderator1},
 			},
 			wantErr: true,
 		},
@@ -551,39 +503,10 @@ func TestChatClient_DemoteModerators(t *testing.T) {
 			}
 		})
 	}
-
-	// teardown
-	_, err = c.DeleteUsers(ctx, []string{moderatorID}, stream.DeleteUserOptions{
-		User:     stream.HardDelete,
-		Messages: stream.HardDelete,
-	})
-	if err != nil {
-		t.Errorf("ChatClient.DeleteUsers() error = %v", err)
-		return
-	}
 }
 
 func TestChatClient_RevokeGetStreamUserToken(t *testing.T) {
 	ctx := context.Background()
-
-	streamUser := &stream.User{
-		ID:        uuid.New().String(),
-		Name:      "Test",
-		Role:      "moderator",
-		Invisible: false,
-	}
-
-	user, err := c.CreateGetStreamUser(ctx, streamUser)
-	if err != nil {
-		t.Errorf("ChatClient.CreateGetStreamUser() error = %v", err)
-		return
-	}
-
-	_, err = c.CreateGetStreamUserToken(ctx, user.User.ID)
-	if err != nil {
-		t.Errorf("ChatClient.CreateGetStreamUserToken() error = %v", err)
-		return
-	}
 
 	type args struct {
 		ctx    context.Context
@@ -599,7 +522,7 @@ func TestChatClient_RevokeGetStreamUserToken(t *testing.T) {
 			name: "Happy case",
 			args: args{
 				ctx:    ctx,
-				userID: user.User.ID,
+				userID: member1,
 			},
 			wantErr: false,
 		},
@@ -607,7 +530,7 @@ func TestChatClient_RevokeGetStreamUserToken(t *testing.T) {
 			name: "Sad case",
 			args: args{
 				ctx:    ctx,
-				userID: uuid.New().String(),
+				userID: "5ea9dc51-a67e-4e5d-aaba-c590c9a66b67",
 			},
 			wantErr: true,
 		},
@@ -624,39 +547,10 @@ func TestChatClient_RevokeGetStreamUserToken(t *testing.T) {
 			}
 		})
 	}
-	// teardown
-	_, err = c.DeleteUsers(ctx, []string{user.User.ID}, stream.DeleteUserOptions{
-		User:     stream.HardDelete,
-		Messages: stream.HardDelete,
-	})
-	if err != nil {
-		t.Errorf("ChatClient.DeleteUsers() error = %v", err)
-		return
-	}
 }
 
 func TestChatClient_BanUser(t *testing.T) {
 	ctx := context.Background()
-
-	// Create the user
-	streamUser := &stream.User{
-		ID:        uuid.New().String(),
-		Name:      "Test",
-		Invisible: false,
-	}
-
-	user, err := c.CreateGetStreamUser(ctx, streamUser)
-	if err != nil {
-		t.Errorf("ChatClient.CreateGetStreamUser() error = %v", err)
-		return
-	}
-
-	// Add them to a community
-	_, err = c.AddMembersToCommunity(ctx, []string{user.User.ID}, channelID)
-	if err != nil {
-		t.Errorf("ChatClient.AddMembersToCommunity() error = %v", err)
-		return
-	}
 
 	type args struct {
 		ctx            context.Context
@@ -674,9 +568,9 @@ func TestChatClient_BanUser(t *testing.T) {
 			name: "Happy Case",
 			args: args{
 				ctx:            ctx,
-				targetMemberID: user.User.ID,
+				targetMemberID: member1,
 				bannedBy:       member2,
-				communityID:    ch.Channel.ID,
+				communityID:    channelID,
 			},
 			want:    true,
 			wantErr: false,
@@ -696,9 +590,9 @@ func TestChatClient_BanUser(t *testing.T) {
 			name: "Sad Case - same targetMemberID",
 			args: args{
 				ctx:            ctx,
-				targetMemberID: user.User.ID,
-				bannedBy:       user.User.ID,
-				communityID:    ch.Channel.ID,
+				targetMemberID: member1,
+				bannedBy:       member1,
+				communityID:    channelID,
 			},
 			want:    false,
 			wantErr: true,
@@ -717,50 +611,12 @@ func TestChatClient_BanUser(t *testing.T) {
 		})
 	}
 
-	// teardown
-	_, err = c.DeleteUsers(ctx, []string{user.User.ID}, stream.DeleteUserOptions{
-		User:     stream.HardDelete,
-		Messages: stream.HardDelete,
-	})
-	if err != nil {
-		t.Errorf("ChatClient.DeleteUsers() error = %v", err)
-		return
-	}
-	_, err = c.DeleteChannels(ctx, []string{"messaging:" + channelID}, true)
-	if err != nil {
-		t.Errorf("ChatClient.DeleteChannel() error = %v", err)
-	}
 }
 
 func TestChatClient_UnBanUser(t *testing.T) {
 	ctx := context.Background()
 
-	streamUser := &stream.User{
-		ID:        uuid.New().String(),
-		Name:      "Test",
-		Invisible: false,
-	}
-
-	user, err := c.CreateGetStreamUser(ctx, streamUser)
-	if err != nil {
-		t.Errorf("ChatClient.CreateGetStreamUser() error = %v", err)
-		return
-	}
-
-	channel, err := c.CreateChannel(ctx, "messaging", "channelToUnbanFrom", user.User.ID, nil)
-	if err != nil {
-		t.Errorf("ChatClient.CreateChannel() error = %v", err)
-		return
-	}
-
-	// Add them to a community
-	_, err = c.AddMembersToCommunity(ctx, []string{user.User.ID, member2}, channel.Channel.ID)
-	if err != nil {
-		t.Errorf("ChatClient.AddMembersToCommunity() error = %v", err)
-		return
-	}
-
-	_, err = c.BanUser(ctx, user.User.ID, member2, channel.Channel.ID)
+	_, err = c.BanUser(ctx, member1, member2, channelID)
 	if err != nil {
 		t.Errorf("unable to ban user: %v", err)
 		return
@@ -781,8 +637,8 @@ func TestChatClient_UnBanUser(t *testing.T) {
 			name: "Happy case",
 			args: args{
 				ctx:         ctx,
-				targetID:    user.User.ID,
-				communityID: channel.Channel.ID,
+				targetID:    member1,
+				communityID: channelID,
 			},
 			want:    true,
 			wantErr: false,
@@ -791,8 +647,8 @@ func TestChatClient_UnBanUser(t *testing.T) {
 			name: "Sad case",
 			args: args{
 				ctx:         ctx,
-				targetID:    uuid.New().String(),
-				communityID: channel.Channel.ID,
+				targetID:    "6d743db7-d2ea-4364-a581-b15bad19ada7",
+				communityID: channelID,
 			},
 			want:    false,
 			wantErr: false,
@@ -810,51 +666,12 @@ func TestChatClient_UnBanUser(t *testing.T) {
 			}
 		})
 	}
-
-	// teardown
-	_, err = c.DeleteUsers(ctx, []string{user.User.ID}, stream.DeleteUserOptions{
-		User:     stream.HardDelete,
-		Messages: stream.HardDelete,
-	})
-	if err != nil {
-		t.Errorf("ChatClient.DeleteUsers() error = %v", err)
-		return
-	}
-	_, err = c.DeleteChannels(ctx, []string{"messaging:" + channel.Channel.CID}, true)
-	if err != nil {
-		t.Errorf("ChatClient.DeleteChannel() error = %v", err)
-	}
 }
 
 func TestChatClient_ListCommunityBannedMembers(t *testing.T) {
 	ctx := context.Background()
 
-	streamUser := &stream.User{
-		ID:        uuid.New().String(),
-		Name:      "Test",
-		Invisible: false,
-	}
-
-	user, err := c.CreateGetStreamUser(ctx, streamUser)
-	if err != nil {
-		t.Errorf("ChatClient.CreateGetStreamUser() error = %v", err)
-		return
-	}
-
-	channel, err := c.CreateChannel(ctx, "messaging", "channelToListMembersFrom", user.User.ID, nil)
-	if err != nil {
-		t.Errorf("ChatClient.CreateChannel() error = %v", err)
-		return
-	}
-
-	// Add them to a community
-	_, err = c.AddMembersToCommunity(ctx, []string{user.User.ID, member2}, channel.Channel.ID)
-	if err != nil {
-		t.Errorf("ChatClient.AddMembersToCommunity() error = %v", err)
-		return
-	}
-
-	_, err = c.BanUser(ctx, user.User.ID, member2, channel.Channel.ID)
+	_, err = c.BanUser(ctx, member1, member2, channelID)
 	if err != nil {
 		t.Errorf("unable to ban user: %v", err)
 		return
@@ -874,7 +691,7 @@ func TestChatClient_ListCommunityBannedMembers(t *testing.T) {
 			name: "Happy case",
 			args: args{
 				ctx:         ctx,
-				communityID: channel.Channel.ID,
+				communityID: channelID,
 			},
 			wantErr: false,
 		},
@@ -889,19 +706,6 @@ func TestChatClient_ListCommunityBannedMembers(t *testing.T) {
 		})
 	}
 
-	// teardown
-	_, err = c.DeleteUsers(ctx, []string{user.User.ID}, stream.DeleteUserOptions{
-		User:     stream.HardDelete,
-		Messages: stream.HardDelete,
-	})
-	if err != nil {
-		t.Errorf("ChatClient.DeleteUsers() error = %v", err)
-		return
-	}
-	_, err = c.DeleteChannels(ctx, []string{"messaging:" + channel.Channel.ID}, true)
-	if err != nil {
-		t.Errorf("ChatClient.DeleteChannel() error = %v", err)
-	}
 }
 
 func TestChatClient_UpsertUser(t *testing.T) {

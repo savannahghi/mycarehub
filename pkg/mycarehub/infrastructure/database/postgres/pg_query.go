@@ -584,8 +584,21 @@ func (d *MyCareHubDb) CheckIfUserBookmarkedContent(ctx context.Context, userID s
 }
 
 // GetPendingServiceRequestsCount gets the total number of service requests
-func (d *MyCareHubDb) GetPendingServiceRequestsCount(ctx context.Context, facilityID string) (*domain.ServiceRequestsCount, error) {
-	return d.query.GetPendingServiceRequestsCount(ctx, facilityID)
+func (d *MyCareHubDb) GetPendingServiceRequestsCount(ctx context.Context, facilityID string, flavour feedlib.Flavour) (*domain.ServiceRequestsCount, error) {
+	if facilityID == "" {
+		return nil, fmt.Errorf("facility ID cannot be empty")
+	}
+	switch flavour {
+	case feedlib.FlavourConsumer:
+		return d.query.GetPendingServiceRequestsCount(ctx, facilityID)
+
+	case feedlib.FlavourPro:
+		return d.query.GetStaffPendingServiceRequestsCount(ctx, facilityID)
+
+	default:
+		return nil, fmt.Errorf("invalid flavour %v provided", flavour)
+	}
+
 }
 
 // GetClientHealthDiaryEntries queries the database to return a clients all health diary records
