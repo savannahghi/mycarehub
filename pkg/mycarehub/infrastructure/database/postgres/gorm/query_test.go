@@ -3393,3 +3393,52 @@ func TestPGInstance_GetStaffProfileByStaffID(t *testing.T) {
 		})
 	}
 }
+
+func TestPGInstance_GetStaffPendingServiceRequestsCount(t *testing.T) {
+	ctx := context.Background()
+
+	type args struct {
+		ctx        context.Context
+		facilityID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *domain.ServiceRequestsCount
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:        ctx,
+				facilityID: facilityID,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Happy case",
+			args: args{
+				ctx:        ctx,
+				facilityID: "facilityID",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := testingDB.GetStaffPendingServiceRequestsCount(tt.args.ctx, tt.args.facilityID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.GetStaffPendingServiceRequestsCount() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if tt.wantErr && got != nil {
+				t.Errorf("expected staff to be nil for %v", tt.name)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected staff not to be nil for %v", tt.name)
+				return
+			}
+		})
+	}
+}

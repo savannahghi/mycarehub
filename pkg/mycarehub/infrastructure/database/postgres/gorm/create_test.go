@@ -999,7 +999,7 @@ func TestPGInstance_CreateStaffServiceRequest(t *testing.T) {
 			args: args{
 				ctx: ctx,
 				serviceRequestInput: &gorm.StaffServiceRequest{
-					ID:             &ID,
+					ID:             &staffServiceRequestID,
 					Active:         true,
 					RequestType:    gofakeit.BeerName(),
 					Request:        gofakeit.BeerName(),
@@ -1007,6 +1007,7 @@ func TestPGInstance_CreateStaffServiceRequest(t *testing.T) {
 					ResolvedAt:     &currentTime,
 					StaffID:        staffID,
 					OrganisationID: orgID,
+					FacilityID:     facilityID,
 					Meta:           meta,
 				},
 			},

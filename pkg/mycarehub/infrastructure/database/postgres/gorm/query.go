@@ -40,6 +40,7 @@ type Query interface {
 	CheckUserHasPin(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
 	GetOTP(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*UserOTP, error)
 	GetPendingServiceRequestsCount(ctx context.Context, facilityID string) (*domain.ServiceRequestsCount, error)
+	GetStaffPendingServiceRequestsCount(ctx context.Context, facilityID string) (*domain.ServiceRequestsCount, error)
 	GetUserSecurityQuestionsResponses(ctx context.Context, userID string) ([]*SecurityQuestionResponse, error)
 	GetContactByUserID(ctx context.Context, userID *string, contactType string) (*Contact, error)
 	ListContentCategories(ctx context.Context) ([]*domain.ContentItemCategory, error)
@@ -607,6 +608,35 @@ func (db *PGInstance) GetFAQContent(ctx context.Context, flavour feedlib.Flavour
 	}
 	return faq, nil
 
+}
+
+// GetStaffPendingServiceRequestsCount gets the number of staffs pending pin reser service requests
+func (db *PGInstance) GetStaffPendingServiceRequestsCount(ctx context.Context, facilityID string) (*domain.ServiceRequestsCount, error) {
+	var staffServiceRequest []*StaffServiceRequest
+
+	err := db.DB.Model(&StaffServiceRequest{}).Where(&StaffServiceRequest{FacilityID: facilityID, RequestType: "STAFF_PIN_RESET", Status: "PENDING"}).Find(&staffServiceRequest).Error
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
+	staffServiceRequestCount := &domain.ServiceRequestsCount{
+		Total: len(staffServiceRequest),
+		RequestsTypeCount: []*domain.RequestTypeCount{
+			{
+				RequestType: enums.ServiceRequestTypeStaffPinReset,
+				Total:       0,
+			},
+		},
+	}
+
+	for _, req := range staffServiceRequest {
+		if req.RequestType == enums.ServiceRequestTypeStaffPinReset.String() {
+			staffServiceRequestCount.RequestsTypeCount[0].Total++
+		}
+	}
+
+	return staffServiceRequestCount, nil
 }
 
 // GetPendingServiceRequestsCount gets the number of service requests

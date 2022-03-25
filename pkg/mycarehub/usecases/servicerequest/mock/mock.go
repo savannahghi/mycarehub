@@ -22,7 +22,7 @@ type ServiceRequestUseCaseMock struct {
 		physicalIdentityVerified bool,
 		state string,
 	) (bool, error)
-	MockGetPendingServiceRequestsCountFn    func(ctx context.Context, facilityID string) (*domain.ServiceRequestsCount, error)
+	MockGetPendingServiceRequestsCountFn    func(ctx context.Context, facilityID string, flavour feedlib.Flavour) (*domain.ServiceRequestsCount, error)
 	MockGetServiceRequestsFn                func(ctx context.Context, requestType, requestStatus, facilityID *string) ([]*domain.ServiceRequest, error)
 	MockResolveServiceRequestFn             func(ctx context.Context, staffID *string, serviceRequestID *string) (bool, error)
 	MockSetInProgressByFn                   func(ctx context.Context, requestID string, staffID string) (bool, error)
@@ -37,7 +37,7 @@ func NewServiceRequestUseCaseMock() *ServiceRequestUseCaseMock {
 		MockCreateServiceRequestFn: func(ctx context.Context, input *dto.ServiceRequestInput) (bool, error) {
 			return true, nil
 		},
-		MockGetPendingServiceRequestsCountFn: func(ctx context.Context, facilityID string) (*domain.ServiceRequestsCount, error) {
+		MockGetPendingServiceRequestsCountFn: func(ctx context.Context, facilityID string, flavour feedlib.Flavour) (*domain.ServiceRequestsCount, error) {
 			return &domain.ServiceRequestsCount{Total: 10}, nil
 		},
 		MockGetServiceRequestsFn: func(ctx context.Context, requestType, requestStatus, facilityID *string) ([]*domain.ServiceRequest, error) {
@@ -101,8 +101,8 @@ func (s *ServiceRequestUseCaseMock) CreateServiceRequest(ctx context.Context, in
 }
 
 // GetPendingServiceRequestsCount mocks the method of getting the number of pending service requests count
-func (s *ServiceRequestUseCaseMock) GetPendingServiceRequestsCount(ctx context.Context, facilityID string) (*domain.ServiceRequestsCount, error) {
-	return s.MockGetPendingServiceRequestsCountFn(ctx, facilityID)
+func (s *ServiceRequestUseCaseMock) GetPendingServiceRequestsCount(ctx context.Context, facilityID string, flavour feedlib.Flavour) (*domain.ServiceRequestsCount, error) {
+	return s.MockGetPendingServiceRequestsCountFn(ctx, facilityID, flavour)
 }
 
 // GetServiceRequests mocks the method for fetching service requests

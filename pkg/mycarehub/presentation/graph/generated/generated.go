@@ -404,7 +404,7 @@ type ComplexityRoot struct {
 		GetCurrentTerms                func(childComplexity int, flavour feedlib.Flavour) int
 		GetFAQContent                  func(childComplexity int, flavour feedlib.Flavour, limit *int) int
 		GetHealthDiaryQuote            func(childComplexity int) int
-		GetPendingServiceRequestsCount func(childComplexity int, facilityID string) int
+		GetPendingServiceRequestsCount func(childComplexity int, facilityID string, flavour feedlib.Flavour) int
 		GetScreeningToolQuestions      func(childComplexity int, toolType *string) int
 		GetSecurityQuestions           func(childComplexity int, flavour feedlib.Flavour) int
 		GetServiceRequests             func(childComplexity int, requestType *string, requestStatus *string, facilityID string) int
@@ -588,7 +588,7 @@ type QueryResolver interface {
 	GetScreeningToolQuestions(ctx context.Context, toolType *string) ([]*domain.ScreeningToolQuestion, error)
 	GetSecurityQuestions(ctx context.Context, flavour feedlib.Flavour) ([]*domain.SecurityQuestion, error)
 	GetServiceRequests(ctx context.Context, requestType *string, requestStatus *string, facilityID string) ([]*domain.ServiceRequest, error)
-	GetPendingServiceRequestsCount(ctx context.Context, facilityID string) (*domain.ServiceRequestsCount, error)
+	GetPendingServiceRequestsCount(ctx context.Context, facilityID string, flavour feedlib.Flavour) (*domain.ServiceRequestsCount, error)
 	GetCurrentTerms(ctx context.Context, flavour feedlib.Flavour) (*domain.TermsOfService, error)
 	VerifyPin(ctx context.Context, userID string, flavour feedlib.Flavour, pin string) (bool, error)
 	GetClientCaregiver(ctx context.Context, clientID string) (*domain.Caregiver, error)
@@ -2574,7 +2574,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.GetPendingServiceRequestsCount(childComplexity, args["facilityID"].(string)), true
+		return e.complexity.Query.GetPendingServiceRequestsCount(childComplexity, args["facilityID"].(string), args["flavour"].(feedlib.Flavour)), true
 
 	case "Query.getScreeningToolQuestions":
 		if e.complexity.Query.GetScreeningToolQuestions == nil {
@@ -3704,6 +3704,7 @@ input ServiceRequestInput {
 	ResolvedBy:   String
 	FacilityID:   String 
 	ClientName:   String
+  Flavour: Flavour!
 	Meta:         Map
 }`, BuiltIn: false},
 	{Name: "pkg/mycarehub/presentation/graph/otp.graphql", Input: `extend type Query {
@@ -3752,7 +3753,7 @@ extend type Query {
     requestStatus: String
     facilityID: String!
   ): [ServiceRequest]
-  getPendingServiceRequestsCount(facilityID: String!): ServiceRequestsCount!
+  getPendingServiceRequestsCount(facilityID: String!, flavour: Flavour!): ServiceRequestsCount!
 }
 `, BuiltIn: false},
 	{Name: "pkg/mycarehub/presentation/graph/types.graphql", Input: `type Facility {
@@ -5297,6 +5298,15 @@ func (ec *executionContext) field_Query_getPendingServiceRequestsCount_args(ctx 
 		}
 	}
 	args["facilityID"] = arg0
+	var arg1 feedlib.Flavour
+	if tmp, ok := rawArgs["flavour"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("flavour"))
+		arg1, err = ec.unmarshalNFlavour2githubᚗcomᚋsavannahghiᚋfeedlibᚐFlavour(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["flavour"] = arg1
 	return args, nil
 }
 
@@ -15016,7 +15026,7 @@ func (ec *executionContext) _Query_getPendingServiceRequestsCount(ctx context.Co
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().GetPendingServiceRequestsCount(rctx, args["facilityID"].(string))
+		return ec.resolvers.Query().GetPendingServiceRequestsCount(rctx, args["facilityID"].(string), args["flavour"].(feedlib.Flavour))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -19189,6 +19199,14 @@ func (ec *executionContext) unmarshalInputServiceRequestInput(ctx context.Contex
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("ClientName"))
 			it.ClientName, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "Flavour":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Flavour"))
+			it.Flavour, err = ec.unmarshalNFlavour2githubᚗcomᚋsavannahghiᚋfeedlibᚐFlavour(ctx, v)
 			if err != nil {
 				return it, err
 			}

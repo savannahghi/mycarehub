@@ -1,0 +1,13 @@
+# staff_servicerequest
+- id: {{.staff_service_request_id}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  active: true
+  request_type: STAFF_PIN_RESET
+  request: TEST REQUEST
+  status: PENDING
+  resolved_at: null
+  staff_id: {{.staff_id}}
+  organisation_id: {{.test_organisation_id}}
+  resolved_by_id: null
+  meta: null

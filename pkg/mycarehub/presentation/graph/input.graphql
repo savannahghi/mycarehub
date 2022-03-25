@@ -130,5 +130,6 @@ input ServiceRequestInput {
 	ResolvedBy:   String
 	FacilityID:   String 
 	ClientName:   String
+  Flavour: Flavour!
 	Meta:         Map
 }
