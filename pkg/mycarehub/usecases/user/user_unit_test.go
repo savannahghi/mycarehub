@@ -1574,34 +1574,6 @@ func TestUseCasesUserImpl_ResetPIN(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "invalid: failed to get security question responses",
-			args: args{
-				ctx: context.Background(),
-				input: dto.UserResetPinInput{
-					PhoneNumber: gofakeit.Phone(),
-					Flavour:     feedlib.FlavourConsumer,
-					OTP:         "111222",
-					PIN:         "1234",
-				},
-			},
-			want:    false,
-			wantErr: true,
-		},
-		{
-			name: "invalid: security question responses are incorrect",
-			args: args{
-				ctx: context.Background(),
-				input: dto.UserResetPinInput{
-					PhoneNumber: gofakeit.Phone(),
-					Flavour:     feedlib.FlavourConsumer,
-					OTP:         "111222",
-					PIN:         "1234",
-				},
-			},
-			want:    false,
-			wantErr: true,
-		},
-		{
 			name: "invalid: failed to invalidate pin",
 			args: args{
 				ctx: context.Background(),
@@ -1712,37 +1684,6 @@ func TestUseCasesUserImpl_ResetPIN(t *testing.T) {
 				}
 				fakeDB.MockVerifyOTPFn = func(ctx context.Context, payload *dto.VerifyOTPInput) (bool, error) {
 					return false, nil
-				}
-			}
-
-			if tt.name == "invalid: failed to get security question responses" {
-				fakeDB.MockGetUserSecurityQuestionsResponsesFn = func(ctx context.Context, userID string) ([]*domain.SecurityQuestionResponse, error) {
-					return []*domain.SecurityQuestionResponse{
-						{
-							ResponseID: "1234",
-							QuestionID: "1234",
-							Active:     true,
-							Response:   "Yes",
-							IsCorrect:  true,
-						},
-					}, nil
-				}
-				fakeDB.MockGetUserSecurityQuestionsResponsesFn = func(ctx context.Context, userID string) ([]*domain.SecurityQuestionResponse, error) {
-					return nil, errors.New("failed to get user security question responses")
-				}
-			}
-
-			if tt.name == "invalid: security question responses are incorrect" {
-				fakeDB.MockGetUserSecurityQuestionsResponsesFn = func(ctx context.Context, userID string) ([]*domain.SecurityQuestionResponse, error) {
-					return []*domain.SecurityQuestionResponse{
-						{
-							ResponseID: "1234",
-							QuestionID: "1234",
-							Active:     true,
-							Response:   "Yes",
-							IsCorrect:  false,
-						},
-					}, nil
 				}
 			}
 
