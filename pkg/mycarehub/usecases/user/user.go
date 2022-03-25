@@ -806,18 +806,6 @@ func (us *UseCasesUserImpl) ResetPIN(ctx context.Context, input dto.UserResetPin
 		return false, exceptions.InternalErr(fmt.Errorf("failed to verify otp: %v", err))
 	}
 
-	userResponse, err := us.Query.GetUserSecurityQuestionsResponses(ctx, *userProfile.ID)
-	if err != nil {
-		helpers.ReportErrorToSentry(err)
-		return false, exceptions.InternalErr(fmt.Errorf("failed to get user security question responses: %v", err))
-	}
-
-	for _, response := range userResponse {
-		if !response.IsCorrect {
-			return false, fmt.Errorf("user security question response is not correct")
-		}
-	}
-
 	salt, encryptedPin := us.ExternalExt.EncryptPIN(input.PIN, nil)
 	expiryDate, err := helpers.GetPinExpiryDate()
 	if err != nil {
