@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"strconv"
 	"testing"
@@ -17,6 +18,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
 	gormMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm/mock"
+	"github.com/savannahghi/scalarutils"
 	"github.com/segmentio/ksuid"
 )
 
@@ -4417,6 +4419,323 @@ func TestMyCareHubDb_GetUserProfileByStaffID(t *testing.T) {
 			got, err := d.GetUserProfileByStaffID(tt.args.ctx, tt.args.staffID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("MyCareHubDb.GetUserProfileByStaffID() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected a response but got: %v", got)
+			}
+		})
+	}
+}
+
+func TestMyCareHubDb_GetAppointmentServiceRequests(t *testing.T) {
+	var fakeGorm = gormMock.NewGormMock()
+	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+	type args struct {
+		ctx          context.Context
+		lastSyncTime time.Time
+		mflCode      string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:          context.Background(),
+				lastSyncTime: time.Now(),
+				mflCode:      "1234567890",
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case:  failed to get appointment service request",
+			args: args{
+				ctx:          context.Background(),
+				lastSyncTime: time.Now(),
+				mflCode:      "1234567890",
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case:  invalid service request meta",
+			args: args{
+				ctx:          context.Background(),
+				lastSyncTime: time.Now(),
+				mflCode:      "1234567890",
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case:  failed to get appointment by id",
+			args: args{
+				ctx:          context.Background(),
+				lastSyncTime: time.Now(),
+				mflCode:      "1234567890",
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case:  failed to convert to suggested time",
+			args: args{
+				ctx:          context.Background(),
+				lastSyncTime: time.Now(),
+				mflCode:      "1234567890",
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case:  failed to convert to suggested date",
+			args: args{
+				ctx:          context.Background(),
+				lastSyncTime: time.Now(),
+				mflCode:      "1234567890",
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case:  failed to get in progress by staff",
+			args: args{
+				ctx:          context.Background(),
+				lastSyncTime: time.Now(),
+				mflCode:      "1234567890",
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case:  failed to get resolved by staff",
+			args: args{
+				ctx:          context.Background(),
+				lastSyncTime: time.Now(),
+				mflCode:      "1234567890",
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case:  failed to get client profile by client ID",
+			args: args{
+				ctx:          context.Background(),
+				lastSyncTime: time.Now(),
+				mflCode:      "1234567890",
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case:  failed to get user profile by user ID",
+			args: args{
+				ctx:          context.Background(),
+				lastSyncTime: time.Now(),
+				mflCode:      "1234567890",
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case:  failed to get client ccc identifier by client ID",
+			args: args{
+				ctx:          context.Background(),
+				lastSyncTime: time.Now(),
+				mflCode:      "1234567890",
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case:  failed to facility by facility by id",
+			args: args{
+				ctx:          context.Background(),
+				lastSyncTime: time.Now(),
+				mflCode:      "1234567890",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			if tt.name == "Sad case:  failed to get appointment service request" {
+				fakeGorm.MockGetAppointmentServiceRequestsFn = func(ctx context.Context, lastSyncTime time.Time) ([]*gorm.ClientServiceRequest, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+
+			if tt.name == "Sad case:  invalid service request meta" {
+				fakeGorm.MockGetAppointmentServiceRequestsFn = func(ctx context.Context, lastSyncTime time.Time) ([]*gorm.ClientServiceRequest, error) {
+					requestID := uuid.New().String()
+					currentTime := time.Now()
+					staffID := uuid.New().String()
+					facilityID := uuid.New().String()
+					return []*gorm.ClientServiceRequest{
+						{
+							ID:             &requestID,
+							Active:         true,
+							RequestType:    enums.ServiceRequestTypeAppointments.String(),
+							Request:        "REQUEST",
+							Status:         "PENDING",
+							InProgressAt:   &currentTime,
+							ResolvedAt:     &currentTime,
+							ClientID:       uuid.New().String(),
+							InProgressByID: &staffID,
+							OrganisationID: "",
+							ResolvedByID:   &staffID,
+							FacilityID:     facilityID,
+							Meta:           ``,
+						},
+					}, nil
+				}
+			}
+
+			if tt.name == "Sad case:  failed to get appointment by id" {
+				fakeGorm.MockGetAppointmentByIDFn = func(ctx context.Context, appointmentID string) (*gorm.Appointment, error) {
+					return nil, fmt.Errorf("an error occurred")
+
+				}
+			}
+
+			if tt.name == "Sad case:  failed to convert to suggested time" {
+				fakeGorm.MockGetAppointmentByIDFn = func(ctx context.Context, appointmentID string) (*gorm.Appointment, error) {
+					date := time.Now().Add(time.Duration(100))
+					return &gorm.Appointment{
+						ID:              gofakeit.UUID(),
+						OrganisationID:  gofakeit.UUID(),
+						Active:          true,
+						AppointmentUUID: gofakeit.UUID(),
+						AppointmentType: "Dental",
+						Status:          enums.AppointmentStatusCompleted.String(),
+						ClientID:        gofakeit.UUID(),
+						FacilityID:      gofakeit.UUID(),
+						Reason:          "Knocked up",
+						Date:            date,
+						StartTime:       gorm.CustomTime{},
+						EndTime:         gorm.CustomTime{},
+					}, nil
+				}
+			}
+
+			if tt.name == "Sad case:  failed to convert to suggested date" {
+				fakeGorm.MockGetAppointmentByIDFn = func(ctx context.Context, appointmentID string) (*gorm.Appointment, error) {
+					return &gorm.Appointment{
+						ID:              gofakeit.UUID(),
+						OrganisationID:  gofakeit.UUID(),
+						Active:          true,
+						AppointmentUUID: gofakeit.UUID(),
+						AppointmentType: "Dental",
+						Status:          enums.AppointmentStatusCompleted.String(),
+						ClientID:        gofakeit.UUID(),
+						FacilityID:      gofakeit.UUID(),
+						Reason:          "Knocked up",
+						Date:            time.Now(),
+						StartTime:       gorm.CustomTime{Time: time.Now()},
+						EndTime:         gorm.CustomTime{Time: time.Now().Add(30 * time.Minute)},
+					}, nil
+				}
+			}
+
+			if tt.name == "Sad case:  failed to get in progress by staff" {
+				now := time.Now()
+				UUID := uuid.New().String()
+				meta := map[string]interface{}{
+					"id":                uuid.New().String(),
+					"appointmentUUID":   uuid.New().String(),
+					"appointmentType":   "BLOOD_TEST",
+					"appointmentReason": "reason",
+					"provider":          "provider",
+					"suggestedTime":     "12:30-13:30",
+					"suggestedDate":     scalarutils.Date{Year: 2022, Month: 3, Day: 30},
+					"status":            enums.AppointmentStatusWaiting.String(),
+				}
+
+				bs, err := json.Marshal(meta)
+				if err != nil {
+					t.Errorf("failed to marshal meta: %v", err)
+				}
+
+				fakeGorm.MockGetAppointmentServiceRequestsFn = func(ctx context.Context, lastSyncTime time.Time) ([]*gorm.ClientServiceRequest, error) {
+					return []*gorm.ClientServiceRequest{
+						{
+							ID:             &UUID,
+							Active:         true,
+							RequestType:    enums.ServiceRequestTypeAppointments.String(),
+							Request:        gofakeit.Sentence(1),
+							Status:         enums.ServiceRequestStatusPending.String(),
+							InProgressAt:   &now,
+							ResolvedAt:     nil,
+							ClientID:       gofakeit.Name(),
+							InProgressByID: &UUID,
+							ResolvedByID:   nil,
+							FacilityID:     gofakeit.Name(),
+							Meta:           string(bs),
+						},
+					}, nil
+				}
+				fakeGorm.MockGetUserProfileByStaffIDFn = func(ctx context.Context, staffID string) (*gorm.User, error) {
+					return nil, fmt.Errorf("failed to get user profile")
+				}
+			}
+
+			if tt.name == "Sad case:  failed to get resolved by staff" {
+				now := time.Now()
+				UUID := uuid.New().String()
+				meta := map[string]interface{}{
+					"id":                uuid.New().String(),
+					"appointmentUUID":   uuid.New().String(),
+					"appointmentType":   "BLOOD_",
+					"appointmentReason": "reason",
+					"provider":          "provider",
+					"suggestedTime":     "12:30-13:30",
+					"suggestedDate":     scalarutils.Date{Year: 2022, Month: 3, Day: 30},
+					"status":            enums.AppointmentStatusWaiting.String(),
+				}
+
+				bs, err := json.Marshal(meta)
+				if err != nil {
+					t.Errorf("failed to marshal meta: %v", err)
+				}
+
+				fakeGorm.MockGetAppointmentServiceRequestsFn = func(ctx context.Context, lastSyncTime time.Time) ([]*gorm.ClientServiceRequest, error) {
+					return []*gorm.ClientServiceRequest{
+						{
+							ID:             &UUID,
+							Active:         true,
+							RequestType:    enums.ServiceRequestTypeAppointments.String(),
+							Request:        gofakeit.Sentence(1),
+							Status:         enums.ServiceRequestStatusPending.String(),
+							InProgressAt:   &now,
+							ResolvedAt:     &now,
+							ClientID:       gofakeit.Name(),
+							InProgressByID: &UUID,
+							ResolvedByID:   &UUID,
+							FacilityID:     gofakeit.Name(),
+							Meta:           string(bs),
+						},
+					}, nil
+				}
+				fakeGorm.MockGetUserProfileByStaffIDFn = func(ctx context.Context, staffID string) (*gorm.User, error) {
+					return nil, fmt.Errorf("failed to get user profile")
+				}
+			}
+
+			if tt.name == "Sad case:  failed to get client profile by client ID" {
+				fakeGorm.MockGetClientProfileByClientIDFn = func(ctx context.Context, clientID string) (*gorm.Client, error) {
+					return nil, fmt.Errorf("failed to get client profile")
+				}
+			}
+
+			if tt.name == "Sad case:  failed to get client ccc identifier by client ID" {
+				fakeGorm.MockGetClientProfileByCCCNumberFn = func(ctx context.Context, CCCNumber string) (*gorm.Client, error) {
+					return nil, fmt.Errorf("failed to get client ccc identifier")
+				}
+			}
+
+			if tt.name == "Sad case:  failed to facility by facility by id" {
+				fakeGorm.MockRetrieveFacilityFn = func(ctx context.Context, id *string, isActive bool) (*gorm.Facility, error) {
+					return nil, fmt.Errorf("failed to get facility by id")
+				}
+			}
+			got, err := d.GetAppointmentServiceRequests(tt.args.ctx, tt.args.lastSyncTime, tt.args.mflCode)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.GetAppointmentServiceRequests() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !tt.wantErr && got == nil {

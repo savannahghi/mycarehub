@@ -2,6 +2,7 @@ package mock
 
 import (
 	"context"
+	"encoding/json"
 	"time"
 
 	"github.com/brianvoe/gofakeit"
@@ -124,6 +125,8 @@ type GormMock struct {
 	MockGetStaffPendingServiceRequestsCountFn            func(ctx context.Context, facilityID string) (*domain.ServiceRequestsCount, error)
 	MockGetStaffServiceRequestsFn                        func(ctx context.Context, requestType, requestStatus *string, facilityID string) ([]*gorm.StaffServiceRequest, error)
 	MockResolveStaffServiceRequestFn                     func(ctx context.Context, staffID *string, serviceRequestID *string, verificationStatus string) (bool, error)
+	MockGetAppointmentServiceRequestsFn                  func(ctx context.Context, lastSyncTime time.Time) ([]*gorm.ClientServiceRequest, error)
+	MockGetAppointmentByIDFn                             func(ctx context.Context, appointmentID string) (*gorm.Appointment, error)
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -138,7 +141,7 @@ func NewGormMock() *GormMock {
 	ID := gofakeit.Number(300, 400)
 	UUID := ksuid.New().String()
 	name := gofakeit.Name()
-	code := gofakeit.Number(0, 100)
+	code := 1234567890
 	county := "Nairobi"
 	description := gofakeit.HipsterSentence(15)
 	phoneContact := gofakeit.Phone()
@@ -901,6 +904,50 @@ func NewGormMock() *GormMock {
 			}
 			return serviceReq, nil
 		},
+		MockGetAppointmentServiceRequestsFn: func(ctx context.Context, lastSyncTime time.Time) ([]*gorm.ClientServiceRequest, error) {
+			meta := map[string]interface{}{
+				"appointmentID": uuid.New().String(),
+			}
+
+			bs, err := json.Marshal(meta)
+			if err != nil {
+				return nil, err
+			}
+			return []*gorm.ClientServiceRequest{
+				{
+					ID:             &UUID,
+					Active:         true,
+					RequestType:    "TYPE",
+					Request:        "REQUEST",
+					Status:         "PENDING",
+					InProgressAt:   nil,
+					ResolvedAt:     nil,
+					ClientID:       uuid.New().String(),
+					InProgressByID: &UUID,
+					OrganisationID: "",
+					ResolvedByID:   &UUID,
+					FacilityID:     uuid.New().String(),
+					Meta:           string(bs),
+				},
+			}, nil
+		},
+		MockGetAppointmentByIDFn: func(ctx context.Context, appointmentID string) (*gorm.Appointment, error) {
+			date := time.Now().Add(time.Duration(100))
+			return &gorm.Appointment{
+				ID:              gofakeit.UUID(),
+				OrganisationID:  gofakeit.UUID(),
+				Active:          true,
+				AppointmentUUID: gofakeit.UUID(),
+				AppointmentType: "Dental",
+				Status:          enums.AppointmentStatusCompleted.String(),
+				ClientID:        gofakeit.UUID(),
+				FacilityID:      gofakeit.UUID(),
+				Reason:          "Knocked up",
+				Date:            date,
+				StartTime:       gorm.CustomTime{Time: time.Now()},
+				EndTime:         gorm.CustomTime{Time: time.Now().Add(30 * time.Minute)},
+			}, nil
+		},
 	}
 }
 
@@ -1434,4 +1481,14 @@ func (gm *GormMock) GetStaffServiceRequests(ctx context.Context, requestType, re
 // ResolveStaffServiceRequest mocks the implementation resolving staff service requests
 func (gm *GormMock) ResolveStaffServiceRequest(ctx context.Context, staffID *string, serviceRequestID *string, verificationStatus string) (bool, error) {
 	return gm.MockResolveStaffServiceRequestFn(ctx, staffID, serviceRequestID, verificationStatus)
+}
+
+// GetAppointmentServiceRequests mocks the implementation of getting appointments service requests
+func (gm *GormMock) GetAppointmentServiceRequests(ctx context.Context, lastSyncTime time.Time) ([]*gorm.ClientServiceRequest, error) {
+	return gm.MockGetAppointmentServiceRequestsFn(ctx, lastSyncTime)
+}
+
+// GetAppointmentByID mocks the implementation of getting appointment by ID
+func (gm *GormMock) GetAppointmentByID(ctx context.Context, appointmentID string) (*gorm.Appointment, error) {
+	return gm.MockGetAppointmentByIDFn(ctx, appointmentID)
 }

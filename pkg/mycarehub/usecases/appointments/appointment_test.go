@@ -920,3 +920,97 @@ func TestUseCasesAppointmentsImpl_AddPatientRecord(t *testing.T) {
 		})
 	}
 }
+
+func TestUseCasesAppointmentsImpl_GetAppointmentServiceRequests(t *testing.T) {
+	fakeDB := pgMock.NewPostgresMock()
+	fakeExtension := extensionMock.NewFakeExtension()
+	fakePubsub := pubsubMock.NewPubsubServiceMock()
+
+	a := NewUseCaseAppointmentsImpl(fakeExtension, fakeDB, fakeDB, fakeDB, fakePubsub)
+
+	now := time.Now()
+	type args struct {
+		ctx     context.Context
+		payload dto.AppointmentServiceRequestInput
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "happy case",
+			args: args{
+				ctx: context.Background(),
+				payload: dto.AppointmentServiceRequestInput{
+					LastSyncTime: &now,
+					MFLCode:      123,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "sad case: error facility with provided mfl code not found",
+			args: args{
+				ctx: context.Background(),
+				payload: dto.AppointmentServiceRequestInput{
+					LastSyncTime: &now,
+					MFLCode:      123,
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "sad case: error retrieving facility by mfl code",
+			args: args{
+				ctx: context.Background(),
+				payload: dto.AppointmentServiceRequestInput{
+					LastSyncTime: &now,
+					MFLCode:      123,
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "sad case: error retrieving appointment service requests",
+			args: args{
+				ctx: context.Background(),
+				payload: dto.AppointmentServiceRequestInput{
+					LastSyncTime: &now,
+					MFLCode:      123,
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			if tt.name == "sad case: error facility with provided mfl code not found" {
+				fakeDB.MockCheckFacilityExistsByMFLCode = func(ctx context.Context, MFLCode int) (bool, error) {
+					return false, nil
+				}
+
+			}
+			if tt.name == "sad case: error retrieving facility by mfl code" {
+				fakeDB.MockCheckFacilityExistsByMFLCode = func(ctx context.Context, MFLCode int) (bool, error) {
+					return false, fmt.Errorf("error retrieving facility by mfl code")
+				}
+			}
+
+			if tt.name == "sad case: error retrieving appointment service requests" {
+				fakeDB.MockGetAppointmentServiceRequestsFn = func(ctx context.Context, lastSyncTime time.Time, mflCode string) ([]domain.AppointmentServiceRequests, error) {
+					return nil, fmt.Errorf("error retrieving appointment service requests")
+				}
+			}
+			got, err := a.GetAppointmentServiceRequests(tt.args.ctx, tt.args.payload)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCasesAppointmentsImpl.GetAppointmentServiceRequests() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("UseCasesAppointmentsImpl.GetAppointmentServiceRequests() = %v, want %v", got, tt.wantErr)
+			}
+		})
+	}
+}

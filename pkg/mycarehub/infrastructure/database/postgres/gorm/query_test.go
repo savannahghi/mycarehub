@@ -3546,3 +3546,79 @@ func TestPGInstance_GetServiceRequestByID(t *testing.T) {
 		})
 	}
 }
+
+func TestPGInstance_GetAppointmentServiceRequests(t *testing.T) {
+	type args struct {
+		ctx          context.Context
+		lastSyncTime time.Time
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:          context.Background(),
+				lastSyncTime: time.Now(),
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := testingDB.GetAppointmentServiceRequests(tt.args.ctx, tt.args.lastSyncTime)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.GetAppointmentServiceRequests() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected service requests not to be nil for %v", tt.name)
+				return
+			}
+		})
+	}
+}
+
+func TestPGInstance_GetAppointmentByID(t *testing.T) {
+	type args struct {
+		ctx           context.Context
+		appointmentID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:           context.Background(),
+				appointmentID: appointmentID,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case",
+			args: args{
+				ctx:           context.Background(),
+				appointmentID: "appointmentID",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := testingDB.GetAppointmentByID(tt.args.ctx, tt.args.appointmentID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.GetAppointmentByID() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected appointment not to be nil for %v", tt.name)
+				return
+			}
+		})
+	}
+}

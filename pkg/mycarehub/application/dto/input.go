@@ -542,3 +542,10 @@ type PatientsRecordsPayload struct {
 	MFLCode string                 `json:"MFLCODE"`
 	Records []PatientRecordPayload `json:"records"`
 }
+
+// AppointmentServiceRequestInput models the payload that is passed when
+// fetching appointment service requests
+type AppointmentServiceRequestInput struct {
+	MFLCode      int        `json:"MFLCODE"`
+	LastSyncTime *time.Time `json:"lastSyncTime"`
+}

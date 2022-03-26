@@ -148,3 +148,9 @@ type StaffRegistrationOutput struct {
 	UserID          string `json:"user"`
 	DefaultFacility string `json:"default_facility"`
 }
+
+// AppointmentServiceRequestOutput is the response returned after querying the
+// appointment service requests for a specific facility
+type AppointmentServiceRequestOutput struct {
+	AppointmentServiceRequests []domain.AppointmentServiceRequests `json:"Results"`
+}

@@ -77,6 +77,8 @@ type Query interface {
 	GetHealthDiaryEntryByID(ctx context.Context, healthDiaryEntryID string) (*ClientHealthDiaryEntry, error)
 	GetServiceRequestByID(ctx context.Context, serviceRequestID string) (*ClientServiceRequest, error)
 	GetStaffProfileByStaffID(ctx context.Context, staffID string) (*StaffProfile, error)
+	GetAppointmentServiceRequests(ctx context.Context, lastSyncTime time.Time) ([]*ClientServiceRequest, error)
+	GetAppointmentByID(ctx context.Context, appointmentID string) (*Appointment, error)
 }
 
 // CheckWhetherUserHasLikedContent performs a operation to check whether user has liked the content
@@ -1124,4 +1126,31 @@ func (db *PGInstance) GetServiceRequestByID(ctx context.Context, serviceRequestI
 		return nil, fmt.Errorf("failed to get service request by ID: %v", err)
 	}
 	return &serviceRequest, nil
+}
+
+// GetAppointmentServiceRequests returns all appointments service requests that have been updated since the last sync time
+func (db *PGInstance) GetAppointmentServiceRequests(ctx context.Context, lastSyncTime time.Time) ([]*ClientServiceRequest, error) {
+	var serviceRequests []*ClientServiceRequest
+	err := db.DB.Where("created > ?", lastSyncTime).
+		Where(&ClientServiceRequest{
+			RequestType: enums.ServiceRequestTypeAppointments.String(),
+			Status:      enums.ServiceRequestStatusPending.String(),
+		}).
+		Find(&serviceRequests).Error
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, fmt.Errorf("failed to get appointments service requests by last sync time: %v", err)
+	}
+	return serviceRequests, nil
+}
+
+// GetAppointmentByID returns an appointment by ID
+func (db *PGInstance) GetAppointmentByID(ctx context.Context, appointmentID string) (*Appointment, error) {
+	var appointment Appointment
+	err := db.DB.Where(&Appointment{ID: appointmentID}).First(&appointment).Error
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, fmt.Errorf("failed to get appointment by ID: %v", err)
+	}
+	return &appointment, nil
 }
