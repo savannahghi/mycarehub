@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/savannahghi/feedlib"
@@ -1407,4 +1408,122 @@ func (d *MyCareHubDb) GetStaffProfileByStaffID(ctx context.Context, staffID stri
 		StaffNumber:       staffProfile.StaffNumber,
 		DefaultFacilityID: staffProfile.DefaultFacilityID,
 	}, nil
+}
+
+// GetAppointmentServiceRequests fetches all service requests of request type appointment given the last sync time
+func (d *MyCareHubDb) GetAppointmentServiceRequests(ctx context.Context, lastSyncTime time.Time, mflCode string) ([]domain.AppointmentServiceRequests, error) {
+
+	serviceRequests, err := d.query.GetAppointmentServiceRequests(ctx, lastSyncTime)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
+	var appointmentServiceRequests []domain.AppointmentServiceRequests
+	for _, r := range serviceRequests {
+
+		var (
+			appointmentID    string
+			inProgressByName *string
+			resolvedByName   *string
+		)
+		metaMap, err := utils.ConvertJSONStringToMap(r.Meta)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return nil, err
+		}
+
+		if _, ok := metaMap["appointmentID"]; ok {
+			appointmentID = metaMap["appointmentID"].(string)
+		}
+
+		appointment, err := d.query.GetAppointmentByID(ctx, appointmentID)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return nil, err
+		}
+
+		suggestedTime, err := utils.ConvertStartEndTimeToStringTime(appointment.StartTime.Time, appointment.EndTime.Time)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return nil, err
+		}
+
+		suggestedDate, err := utils.ConvertTimeToScalarDate(appointment.Date)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return nil, err
+		}
+
+		if r.InProgressByID != nil {
+			inProgressBy, err := d.GetUserProfileByStaffID(ctx, *r.InProgressByID)
+			if err != nil {
+				helpers.ReportErrorToSentry(err)
+				return nil, err
+			}
+			inProgressByName = &inProgressBy.Name
+		}
+
+		if r.ResolvedByID != nil {
+			resolvedBy, err := d.GetUserProfileByStaffID(ctx, *r.ResolvedByID)
+			if err != nil {
+				helpers.ReportErrorToSentry(err)
+				return nil, err
+			}
+			resolvedByName = &resolvedBy.Name
+		}
+
+		clientProfile, err := d.query.GetClientProfileByClientID(ctx, r.ClientID)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return nil, err
+		}
+		userProfile, err := d.query.GetUserProfileByUserID(ctx, clientProfile.UserID)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return nil, err
+		}
+
+		identifier, err := d.GetClientCCCIdentifier(ctx, r.ClientID)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return nil, err
+		}
+
+		facility, err := d.query.RetrieveFacility(ctx, &r.FacilityID, true)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return nil, err
+		}
+		appointmentMFLCode := strconv.Itoa(facility.Code)
+
+		if appointmentMFLCode != mflCode {
+			continue
+		}
+
+		m := domain.AppointmentServiceRequests{
+			ID:              appointmentID,
+			AppointmentUUID: appointment.AppointmentUUID,
+			Type:            appointment.AppointmentType,
+			Reason:          appointment.Reason,
+			Provider:        appointment.Provider,
+			SuggestedTime:   suggestedTime,
+			Date:            suggestedDate,
+			Status:          enums.AppointmentStatus(r.Status),
+
+			InProgressAt:  r.InProgressAt,
+			InProgressBy:  inProgressByName,
+			ResolvedAt:    r.ResolvedAt,
+			ResolvedBy:    resolvedByName,
+			ClientName:    &userProfile.Name,
+			ClientContact: &userProfile.Contacts.ContactValue,
+			CCCNumber:     identifier.IdentifierValue,
+			MFLCODE:       appointmentMFLCode,
+		}
+
+		appointmentServiceRequests = append(appointmentServiceRequests, m)
+
+	}
+
+	return appointmentServiceRequests, nil
 }

@@ -2317,3 +2317,145 @@ func TestMyCareHubHandlersInterfacesImpl_OptIn(t *testing.T) {
 		})
 	}
 }
+
+func TestMyCareHubHandlersInterfacesImpl_GetAppointmentServiceRequests(t *testing.T) {
+	ctx := context.Background()
+	headers, err := GetGraphQLHeaders(ctx)
+	if err != nil {
+		t.Errorf("failed to get GraphQL headers: %v", err)
+		return
+	}
+
+	var (
+		emptyPayload   = url.Values{}
+		missingMFLCode = url.Values{
+			"lastSyncTime": {"2006-01-02T15:04:05Z"},
+		}
+		missingLastSyncTime = url.Values{
+			"MFLCODE": {"212121212121"},
+		}
+		zeroMFLCode = url.Values{
+			"MFLCODE":      {"0"},
+			"lastSyncTime": {"2006-01-02T15:04:05Z"},
+		}
+	)
+
+	type args struct {
+		url        string
+		httpMethod string
+		body       io.Reader
+	}
+	tests := []struct {
+		name       string
+		args       args
+		wantStatus int
+		wantErr    bool
+	}{
+		{
+			name: "Sad Case - Empty payload",
+			args: args{
+				url:        fmt.Sprintf("%s/kenya-emr/appointment-service-request?%s", baseURL, emptyPayload.Encode()),
+				httpMethod: http.MethodGet,
+			},
+			wantStatus: http.StatusBadRequest,
+			wantErr:    true,
+		},
+		{
+			name: "Sad Case - Missing MFL Code",
+			args: args{
+				url:        fmt.Sprintf("%s/kenya-emr/appointment-service-request?%s", baseURL, missingMFLCode.Encode()),
+				httpMethod: http.MethodGet,
+			},
+			wantStatus: http.StatusBadRequest,
+			wantErr:    true,
+		},
+		{
+			name: "Sad Case - missing last sync time",
+			args: args{
+				url:        fmt.Sprintf("%s/kenya-emr/appointment-service-request?%s", baseURL, missingLastSyncTime.Encode()),
+				httpMethod: http.MethodGet,
+			},
+			wantStatus: http.StatusBadRequest,
+			wantErr:    true,
+		},
+		{
+			name: "Sad Case - zero MFL Code",
+			args: args{
+				url:        fmt.Sprintf("%s/kenya-emr/appointment-service-request?%s", baseURL, zeroMFLCode.Encode()),
+				httpMethod: http.MethodGet,
+			},
+			wantStatus: http.StatusBadRequest,
+			wantErr:    true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r, err := http.NewRequest(
+				tt.args.httpMethod,
+				tt.args.url,
+				tt.args.body,
+			)
+			if err != nil {
+				t.Errorf("unable to compose request: %s", err)
+				return
+			}
+
+			if r == nil {
+				t.Errorf("nil request")
+				return
+			}
+
+			for k, v := range headers {
+				r.Header.Add(k, v)
+			}
+			client := http.DefaultClient
+			resp, err := client.Do(r)
+			if err != nil {
+				t.Errorf("request error: %s", err)
+				return
+			}
+
+			if resp == nil && !tt.wantErr {
+				t.Errorf("nil response")
+				return
+			}
+
+			dataResponse, err := ioutil.ReadAll(resp.Body)
+			if err != nil {
+				t.Errorf("can't read request body: %s", err)
+				return
+			}
+			if dataResponse == nil {
+				t.Errorf("nil response data")
+				return
+			}
+			data := map[string]interface{}{}
+			err = json.Unmarshal(dataResponse, &data)
+			if tt.wantErr && err != nil {
+				t.Errorf("bad data returned: %v", err)
+				return
+			}
+
+			if tt.wantErr {
+				errMsg, ok := data["error"]
+				if !ok {
+					t.Errorf("expected error: %s", errMsg)
+					return
+				}
+			}
+
+			if !tt.wantErr {
+				_, ok := data["error"]
+				if ok {
+					t.Errorf("error not expected")
+					return
+				}
+			}
+
+			if resp.StatusCode != tt.wantStatus {
+				t.Errorf("expected status %d, got %s", tt.wantStatus, resp.Status)
+				return
+			}
+		})
+	}
+}

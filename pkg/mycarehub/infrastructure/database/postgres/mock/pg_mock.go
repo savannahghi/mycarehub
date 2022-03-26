@@ -125,6 +125,7 @@ type PostgresMock struct {
 	MockGetStaffProfileByStaffIDFn                       func(ctx context.Context, staffID string) (*domain.StaffProfile, error)
 	MockResolveStaffServiceRequestFn                     func(ctx context.Context, staffID *string, serviceRequestID *string, verificationStatus string) (bool, error)
 	MockCreateStaffServiceRequestFn                      func(ctx context.Context, serviceRequestInput *dto.ServiceRequestInput) error
+	MockGetAppointmentServiceRequestsFn                  func(ctx context.Context, lastSyncTime time.Time, mflCode string) ([]domain.AppointmentServiceRequests, error)
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -819,6 +820,29 @@ func NewPostgresMock() *PostgresMock {
 			}
 			return serviceReq, nil
 		},
+		MockGetAppointmentServiceRequestsFn: func(ctx context.Context, lastSyncTime time.Time, mflCode string) ([]domain.AppointmentServiceRequests, error) {
+			return []domain.AppointmentServiceRequests{
+				{
+					ID:              ID,
+					AppointmentUUID: ID,
+					Type:            "BLOOD_TEST",
+					Reason:          "reason",
+					Provider:        "provider",
+					SuggestedTime:   "12:00 - 13:00",
+					Date:            scalarutils.Date{Year: 2020, Month: 1, Day: 1},
+					Status:          enums.AppointmentStatusWalkIn,
+
+					InProgressAt:  &currentTime,
+					InProgressBy:  &name,
+					ResolvedAt:    &currentTime,
+					ResolvedBy:    &name,
+					ClientName:    &name,
+					ClientContact: &phone,
+					CCCNumber:     "1234567890",
+					MFLCODE:       "1234567890",
+				},
+			}, nil
+		},
 	}
 }
 
@@ -1351,4 +1375,9 @@ func (gm *PostgresMock) CreateStaffServiceRequest(ctx context.Context, serviceRe
 // ResolveStaffServiceRequest mocks the implementation resolving staff service requests
 func (gm *PostgresMock) ResolveStaffServiceRequest(ctx context.Context, staffID *string, serviceRequestID *string, verificationStatus string) (bool, error) {
 	return gm.MockResolveStaffServiceRequestFn(ctx, staffID, serviceRequestID, verificationStatus)
+}
+
+// GetAppointmentServiceRequests mocks the implementation of getting appointments and service requests
+func (gm *PostgresMock) GetAppointmentServiceRequests(ctx context.Context, lastSyncTime time.Time, mflCode string) ([]domain.AppointmentServiceRequests, error) {
+	return gm.MockGetAppointmentServiceRequestsFn(ctx, lastSyncTime, mflCode)
 }

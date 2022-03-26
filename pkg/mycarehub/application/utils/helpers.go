@@ -2,8 +2,11 @@ package utils
 
 import (
 	"encoding/json"
+	"fmt"
 	"math"
 	"time"
+
+	"github.com/savannahghi/scalarutils"
 )
 
 const (
@@ -81,4 +84,27 @@ func ConvertJSONStringToMap(jsonString string) (map[string]interface{}, error) {
 		return nil, err
 	}
 	return jsonMap, nil
+}
+
+// ConvertStartEndTimeToStringTime converts a start and end time to a string time
+func ConvertStartEndTimeToStringTime(startTime, endTime time.Time) (string, error) {
+	if startTime.IsZero() || endTime.IsZero() {
+		return "", fmt.Errorf("invalid time format")
+	}
+
+	startTimeString := startTime.Format("15:04")
+	endTimeString := endTime.Format("15:04")
+	return fmt.Sprintf("%s - %s", startTimeString, endTimeString), nil
+}
+
+// ConvertTimeToScalarDate converts a time to a scalar date
+func ConvertTimeToScalarDate(t time.Time) (scalarutils.Date, error) {
+	if t.IsZero() {
+		return scalarutils.Date{}, fmt.Errorf("invalid time format")
+	}
+	return scalarutils.Date{
+		Year:  t.Year(),
+		Month: int(t.Month()),
+		Day:   t.Day(),
+	}, nil
 }

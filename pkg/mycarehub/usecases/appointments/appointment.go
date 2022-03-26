@@ -35,6 +35,7 @@ type IUpdateAppointments interface {
 // IListAppointments defines method signatures for listing appointments
 type IListAppointments interface {
 	FetchClientAppointments(ctx context.Context, clientID string, paginationInput dto.PaginationsInput, filters []*firebasetools.FilterParam) (*domain.AppointmentsPage, error)
+	GetAppointmentServiceRequests(ctx context.Context, payload dto.AppointmentServiceRequestInput) (*dto.AppointmentServiceRequestOutput, error)
 }
 
 // UseCasesAppointments holds all interfaces required to implement the appointments features
@@ -346,4 +347,34 @@ func (a *UseCasesAppointmentsImpl) AddPatientRecord(ctx context.Context, input d
 	}
 
 	return nil
+}
+
+// GetAppointmentServiceRequests returns a list of appointment service requests
+func (a *UseCasesAppointmentsImpl) GetAppointmentServiceRequests(ctx context.Context, payload dto.AppointmentServiceRequestInput) (*dto.AppointmentServiceRequestOutput, error) {
+
+	exists, err := a.Query.CheckFacilityExistsByMFLCode(ctx, payload.MFLCode)
+	if err != nil {
+		return nil, fmt.Errorf("error checking for facility")
+	}
+
+	if !exists {
+		return nil, fmt.Errorf("facility with provided MFL code doesn't exist, code: %v", payload.MFLCode)
+	}
+
+	mflCode := strconv.Itoa(payload.MFLCode)
+
+	appointmentServiceRequests, err := a.Query.GetAppointmentServiceRequests(ctx, *payload.LastSyncTime, mflCode)
+	if err != nil {
+		return nil, fmt.Errorf("error getting appointment service requests")
+	}
+
+	if appointmentServiceRequests == nil {
+		return &dto.AppointmentServiceRequestOutput{
+			AppointmentServiceRequests: []domain.AppointmentServiceRequests{},
+		}, nil
+	}
+
+	return &dto.AppointmentServiceRequestOutput{
+		AppointmentServiceRequests: appointmentServiceRequests,
+	}, nil
 }

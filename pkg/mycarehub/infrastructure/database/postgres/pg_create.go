@@ -336,7 +336,6 @@ func (d *MyCareHubDb) CreateAppointment(ctx context.Context, appointment domain.
 
 // AnswerScreeningToolQuestions creates a screening tool answers
 func (d *MyCareHubDb) AnswerScreeningToolQuestions(ctx context.Context, screeningToolResponses []*dto.ScreeningToolQuestionResponseInput) error {
-	fmt.Println("AnswerScreeningToolQuestions", screeningToolResponses)
 
 	var screeningToolResponsesObj []*gorm.ScreeningToolsResponse
 	for _, st := range screeningToolResponses {
