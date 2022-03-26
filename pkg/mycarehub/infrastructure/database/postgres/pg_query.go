@@ -1172,9 +1172,9 @@ func (d *MyCareHubDb) ListAppointments(ctx context.Context, params *domain.Appoi
 		Active:          true,
 		AppointmentType: params.Type,
 		Status:          params.Type,
-		// ClientID:        params.ClientID,
-		Reason:   params.Reason,
-		Provider: params.Provider,
+		ClientID:        params.ClientID,
+		Reason:          params.Reason,
+		Provider:        params.Provider,
 	}
 
 	appointments, pageInfo, err := d.query.ListAppointments(ctx, parameters, filters, pagination)
