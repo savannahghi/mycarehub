@@ -34,6 +34,7 @@ type Update interface {
 	SetInProgressBy(ctx context.Context, requestID string, staffID string) (bool, error)
 	UpdateClientCaregiver(ctx context.Context, caregiverInput *dto.CaregiverInput) error
 	ResolveServiceRequest(ctx context.Context, staffID *string, serviceRequestID *string, status string) (bool, error)
+	ResolveStaffServiceRequest(ctx context.Context, staffID *string, serviceRequestID *string, verificattionStatus string) (bool, error)
 	AssignRoles(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error)
 	RevokeRoles(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error)
 	UpdateAppointment(ctx context.Context, payload *Appointment) error
@@ -671,6 +672,23 @@ func (db *PGInstance) UpdateClientCaregiver(ctx context.Context, caregiverInput 
 	}
 
 	return nil
+}
+
+// ResolveStaffServiceRequest resolves the service request for a given staff
+func (db *PGInstance) ResolveStaffServiceRequest(ctx context.Context, staffID *string, serviceRequestID *string, verificationStatus string) (bool, error) {
+	currentTime := time.Now()
+
+	err := db.DB.Model(&StaffServiceRequest{}).Where(&StaffServiceRequest{ID: serviceRequestID}).Updates(StaffServiceRequest{
+		Status:       verificationStatus,
+		ResolvedByID: staffID,
+		ResolvedAt:   &currentTime,
+	}).Error
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, fmt.Errorf("failed to update staff's service request: %v", err)
+	}
+
+	return true, nil
 }
 
 // ResolveServiceRequest resolves a service request for a given client

@@ -1142,6 +1142,90 @@ func TestPGInstance_ResolveServiceRequest(t *testing.T) {
 	}
 }
 
+func TestPGInstance_ResolveStaffServiceRequest(t *testing.T) {
+	ctx := context.Background()
+	fakeString := gofakeit.HipsterSentence(10)
+	serviceRequestID := "26b20a42-cbb8-4553-aedb-c539602d04fc"
+	badUID := "BadUID"
+
+	type args struct {
+		ctx                context.Context
+		staffID            *string
+		serviceRequestID   *string
+		verificationStatus string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:                ctx,
+				staffID:            &staffID,
+				serviceRequestID:   &serviceRequestID,
+				verificationStatus: enums.ServiceRequestStatusResolved.String(),
+			},
+			wantErr: false,
+			want:    true,
+		},
+		{
+			name: "Sad case: invalid staff id",
+			args: args{
+				ctx:                ctx,
+				staffID:            &fakeString,
+				serviceRequestID:   &serviceRequestID,
+				verificationStatus: enums.ServiceRequestStatusResolved.String(),
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: non-existent staff",
+			args: args{
+				ctx:                ctx,
+				staffID:            &badUID,
+				serviceRequestID:   &serviceRequestID,
+				verificationStatus: enums.ServiceRequestStatusResolved.String(),
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: invalid service request id",
+			args: args{
+				ctx:                ctx,
+				staffID:            &staffID,
+				serviceRequestID:   &fakeString,
+				verificationStatus: enums.ServiceRequestStatusResolved.String(),
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: non existent service request",
+			args: args{
+				ctx:                ctx,
+				staffID:            &staffID,
+				serviceRequestID:   &badUID,
+				verificationStatus: enums.ServiceRequestStatusResolved.String(),
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := testingDB.ResolveStaffServiceRequest(tt.args.ctx, tt.args.staffID, tt.args.serviceRequestID, tt.args.verificationStatus)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.ResolveStaffServiceRequest() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("PGInstance.ResolveStaffServiceRequest() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
 func TestPGInstance_AssignRoles(t *testing.T) {
 	ctx := context.Background()
 	type args struct {

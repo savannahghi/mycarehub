@@ -3,7 +3,7 @@ extend type Mutation {
   createServiceRequest(input: ServiceRequestInput!): Boolean!
   resolveServiceRequest(staffID: String!, requestID: String!): Boolean!
 
-  verifyPinResetServiceRequest(
+  verifyClientPinResetServiceRequest(
     clientID: String!
     serviceRequestID: String!
     cccNumber: String!
@@ -11,6 +11,8 @@ extend type Mutation {
     physicalIdentityVerified: Boolean!
     state: String!
   ): Boolean!
+
+  verifyStaffPinResetServiceRequest(phoneNumber: String!, serviceRequestID: String!, verificationStatus: String!): Boolean!
 }
 
 extend type Query {

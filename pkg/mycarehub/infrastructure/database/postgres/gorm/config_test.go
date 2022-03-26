@@ -83,9 +83,6 @@ var (
 	// Caregiver
 	testCaregiverID = "26b20a42-cbb8-4553-aedb-c539602d04fc"
 
-	// contact variables
-	// contactID = "bdc22436-e314-43f2-bb39-ba1ab332f9b0"
-
 	//Terms
 	termsText = "Test terms"
 

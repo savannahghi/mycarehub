@@ -168,6 +168,11 @@ func (d *MyCareHubDb) ResolveServiceRequest(ctx context.Context, staffID *string
 	return d.update.ResolveServiceRequest(ctx, staffID, serviceRequestID, status)
 }
 
+// ResolveStaffServiceRequest resolves a staff's service request
+func (d *MyCareHubDb) ResolveStaffServiceRequest(ctx context.Context, staffID *string, serviceRequestID *string, verificationStatus string) (bool, error) {
+	return d.update.ResolveStaffServiceRequest(ctx, staffID, serviceRequestID, verificationStatus)
+}
+
 // AssignRoles assigns roles to a user
 func (d *MyCareHubDb) AssignRoles(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error) {
 	return d.update.AssignRoles(ctx, userID, roles)

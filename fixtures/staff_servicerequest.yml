@@ -12,3 +12,18 @@
   resolved_by_id: null
   facility_id: {{.staff_default_facility}}
   meta: null
+
+# staff_servicerequest
+- id: 26b20a42-cbb8-4553-aedb-c539602d04fc
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  active: true
+  request_type: STAFF_PIN_RESET
+  request: TEST REQUEST
+  status: RESOLVED
+  resolved_at: RAW=NOW()
+  staff_id: {{.staff_id}}
+  organisation_id: {{.test_organisation_id}}
+  resolved_by_id: {{.staff_id}}
+  facility_id: {{.staff_default_facility}}
+  meta: null

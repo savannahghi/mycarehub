@@ -2123,3 +2123,116 @@ func TestMyCareHubDb_UpdateUser(t *testing.T) {
 		})
 	}
 }
+
+func TestMyCareHubDb_ResolveStaffServiceRequest(t *testing.T) {
+	ctx := context.Background()
+	UUID := uuid.New().String()
+	var fakeGorm = gormMock.NewGormMock()
+	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+	type args struct {
+		ctx                context.Context
+		staffID            *string
+		serviceRequestID   *string
+		verificationStatus string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:                ctx,
+				staffID:            &UUID,
+				serviceRequestID:   &UUID,
+				verificationStatus: "APPROVED",
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Sad case",
+			args: args{
+				ctx:                ctx,
+				staffID:            &UUID,
+				serviceRequestID:   &UUID,
+				verificationStatus: "REJECTED",
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "Sad case" {
+				fakeGorm.MockResolveStaffServiceRequestFn = func(ctx context.Context, staffID, serviceRequestID *string, verificationStatus string) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+			got, err := d.ResolveStaffServiceRequest(tt.args.ctx, tt.args.staffID, tt.args.serviceRequestID, tt.args.verificationStatus)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.ResolveStaffServiceRequest() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("MyCareHubDb.ResolveStaffServiceRequest() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestMyCareHubDb_UpdateUserPinChangeRequiredStatus(t *testing.T) {
+	ctx := context.Background()
+	UUID := uuid.New().String()
+	var fakeGorm = gormMock.NewGormMock()
+	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+	type args struct {
+		ctx     context.Context
+		userID  string
+		flavour feedlib.Flavour
+		status  bool
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:     ctx,
+				userID:  UUID,
+				flavour: feedlib.FlavourConsumer,
+				status:  true,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case",
+			args: args{
+				ctx:     ctx,
+				userID:  UUID,
+				flavour: feedlib.FlavourConsumer,
+				status:  true,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "Sad case" {
+				fakeGorm.MockUpdateUserPinChangeRequiredStatusFn = func(ctx context.Context, userID string, flavour feedlib.Flavour, status bool) error {
+					return fmt.Errorf("failed to update user")
+				}
+			}
+
+			if err := d.UpdateUserPinChangeRequiredStatus(tt.args.ctx, tt.args.userID, tt.args.flavour, tt.args.status); (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.UpdateUserPinChangeRequiredStatus() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
