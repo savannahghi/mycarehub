@@ -123,6 +123,7 @@ type Update interface {
 	RevokeRoles(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error)
 	UpdateAppointment(ctx context.Context, appointment domain.Appointment, appointmentUUID, clientID string) error
 	InvalidateScreeningToolResponse(ctx context.Context, clientID string, questionID string) error
+	ResolveStaffServiceRequest(ctx context.Context, staffID *string, serviceRequestID *string, verificationStatus string) (bool, error)
 	UpdateServiceRequests(ctx context.Context, payload *domain.UpdateServiceRequestsPayload) (bool, error)
 	UpdateUserPinChangeRequiredStatus(ctx context.Context, userID string, flavour feedlib.Flavour, status bool) error
 	UpdateUserActiveStatus(ctx context.Context, userID string, flavour feedlib.Flavour, active bool) error

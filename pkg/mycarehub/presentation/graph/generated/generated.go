@@ -405,47 +405,48 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		AcceptInvitation                func(childComplexity int, memberID string, communityID string) int
-		AcceptTerms                     func(childComplexity int, userID string, termsID int) int
-		AddMembersToCommunity           func(childComplexity int, memberIDs []string, communityID string) int
-		AddModerators                   func(childComplexity int, memberIDs []string, communityID string) int
-		AnswerScreeningToolQuestion     func(childComplexity int, screeningToolResponses []*dto.ScreeningToolQuestionResponseInput) int
-		AssignRoles                     func(childComplexity int, userID string, roles []enums.UserRoleType) int
-		BanUser                         func(childComplexity int, memberID string, bannedBy string, communityID string) int
-		BookmarkContent                 func(childComplexity int, userID string, contentItemID int) int
-		CompleteOnboardingTour          func(childComplexity int, userID string, flavour feedlib.Flavour) int
-		CreateCommunity                 func(childComplexity int, input dto.CommunityInput) int
-		CreateFacility                  func(childComplexity int, input dto.FacilityInput) int
-		CreateHealthDiaryEntry          func(childComplexity int, clientID string, note *string, mood string, reportToStaff bool) int
-		CreateOrUpdateClientCaregiver   func(childComplexity int, caregiverInput *dto.CaregiverInput) int
-		CreateServiceRequest            func(childComplexity int, input dto.ServiceRequestInput) int
-		DeleteCommunities               func(childComplexity int, communityIDs []string, hardDelete bool) int
-		DeleteCommunityMessage          func(childComplexity int, messageID string) int
-		DeleteFacility                  func(childComplexity int, mflCode int) int
-		DemoteModerators                func(childComplexity int, communityID string, memberIDs []string) int
-		InactivateFacility              func(childComplexity int, mflCode int) int
-		InviteUser                      func(childComplexity int, userID string, phoneNumber string, flavour feedlib.Flavour) int
-		LikeContent                     func(childComplexity int, userID string, contentID int) int
-		OptOut                          func(childComplexity int, phoneNumber string, flavour feedlib.Flavour) int
-		ReactivateFacility              func(childComplexity int, mflCode int) int
-		RecordSecurityQuestionResponses func(childComplexity int, input []*dto.SecurityQuestionResponseInput) int
-		RegisterClient                  func(childComplexity int, input *dto.ClientRegistrationInput) int
-		RegisterStaff                   func(childComplexity int, input dto.StaffRegistrationInput) int
-		RejectInvitation                func(childComplexity int, memberID string, communityID string) int
-		RemoveMembersFromCommunity      func(childComplexity int, communityID string, memberIDs []string) int
-		ResolveServiceRequest           func(childComplexity int, staffID string, requestID string) int
-		RevokeRoles                     func(childComplexity int, userID string, roles []enums.UserRoleType) int
-		SendFeedback                    func(childComplexity int, input dto.FeedbackResponseInput) int
-		SetInProgressBy                 func(childComplexity int, serviceRequestID string, staffID string) int
-		SetNickName                     func(childComplexity int, userID string, nickname string) int
-		SetUserPin                      func(childComplexity int, input *dto.PINInput) int
-		ShareContent                    func(childComplexity int, input dto.ShareContentInput) int
-		ShareHealthDiaryEntry           func(childComplexity int, healthDiaryEntryID string) int
-		UnBanUser                       func(childComplexity int, memberID string, communityID string) int
-		UnBookmarkContent               func(childComplexity int, userID string, contentItemID int) int
-		UnlikeContent                   func(childComplexity int, userID string, contentID int) int
-		VerifyPinResetServiceRequest    func(childComplexity int, clientID string, serviceRequestID string, cccNumber string, phoneNumber string, physicalIdentityVerified bool, state string) int
-		ViewContent                     func(childComplexity int, userID string, contentID int) int
+		AcceptInvitation                   func(childComplexity int, memberID string, communityID string) int
+		AcceptTerms                        func(childComplexity int, userID string, termsID int) int
+		AddMembersToCommunity              func(childComplexity int, memberIDs []string, communityID string) int
+		AddModerators                      func(childComplexity int, memberIDs []string, communityID string) int
+		AnswerScreeningToolQuestion        func(childComplexity int, screeningToolResponses []*dto.ScreeningToolQuestionResponseInput) int
+		AssignRoles                        func(childComplexity int, userID string, roles []enums.UserRoleType) int
+		BanUser                            func(childComplexity int, memberID string, bannedBy string, communityID string) int
+		BookmarkContent                    func(childComplexity int, userID string, contentItemID int) int
+		CompleteOnboardingTour             func(childComplexity int, userID string, flavour feedlib.Flavour) int
+		CreateCommunity                    func(childComplexity int, input dto.CommunityInput) int
+		CreateFacility                     func(childComplexity int, input dto.FacilityInput) int
+		CreateHealthDiaryEntry             func(childComplexity int, clientID string, note *string, mood string, reportToStaff bool) int
+		CreateOrUpdateClientCaregiver      func(childComplexity int, caregiverInput *dto.CaregiverInput) int
+		CreateServiceRequest               func(childComplexity int, input dto.ServiceRequestInput) int
+		DeleteCommunities                  func(childComplexity int, communityIDs []string, hardDelete bool) int
+		DeleteCommunityMessage             func(childComplexity int, messageID string) int
+		DeleteFacility                     func(childComplexity int, mflCode int) int
+		DemoteModerators                   func(childComplexity int, communityID string, memberIDs []string) int
+		InactivateFacility                 func(childComplexity int, mflCode int) int
+		InviteUser                         func(childComplexity int, userID string, phoneNumber string, flavour feedlib.Flavour) int
+		LikeContent                        func(childComplexity int, userID string, contentID int) int
+		OptOut                             func(childComplexity int, phoneNumber string, flavour feedlib.Flavour) int
+		ReactivateFacility                 func(childComplexity int, mflCode int) int
+		RecordSecurityQuestionResponses    func(childComplexity int, input []*dto.SecurityQuestionResponseInput) int
+		RegisterClient                     func(childComplexity int, input *dto.ClientRegistrationInput) int
+		RegisterStaff                      func(childComplexity int, input dto.StaffRegistrationInput) int
+		RejectInvitation                   func(childComplexity int, memberID string, communityID string) int
+		RemoveMembersFromCommunity         func(childComplexity int, communityID string, memberIDs []string) int
+		ResolveServiceRequest              func(childComplexity int, staffID string, requestID string) int
+		RevokeRoles                        func(childComplexity int, userID string, roles []enums.UserRoleType) int
+		SendFeedback                       func(childComplexity int, input dto.FeedbackResponseInput) int
+		SetInProgressBy                    func(childComplexity int, serviceRequestID string, staffID string) int
+		SetNickName                        func(childComplexity int, userID string, nickname string) int
+		SetUserPin                         func(childComplexity int, input *dto.PINInput) int
+		ShareContent                       func(childComplexity int, input dto.ShareContentInput) int
+		ShareHealthDiaryEntry              func(childComplexity int, healthDiaryEntryID string) int
+		UnBanUser                          func(childComplexity int, memberID string, communityID string) int
+		UnBookmarkContent                  func(childComplexity int, userID string, contentItemID int) int
+		UnlikeContent                      func(childComplexity int, userID string, contentID int) int
+		VerifyClientPinResetServiceRequest func(childComplexity int, clientID string, serviceRequestID string, cccNumber string, phoneNumber string, physicalIdentityVerified bool, state string) int
+		VerifyStaffPinResetServiceRequest  func(childComplexity int, phoneNumber string, serviceRequestID string, verificationStatus string) int
+		ViewContent                        func(childComplexity int, userID string, contentID int) int
 	}
 
 	Pagination struct {
@@ -643,7 +644,8 @@ type MutationResolver interface {
 	SetInProgressBy(ctx context.Context, serviceRequestID string, staffID string) (bool, error)
 	CreateServiceRequest(ctx context.Context, input dto.ServiceRequestInput) (bool, error)
 	ResolveServiceRequest(ctx context.Context, staffID string, requestID string) (bool, error)
-	VerifyPinResetServiceRequest(ctx context.Context, clientID string, serviceRequestID string, cccNumber string, phoneNumber string, physicalIdentityVerified bool, state string) (bool, error)
+	VerifyClientPinResetServiceRequest(ctx context.Context, clientID string, serviceRequestID string, cccNumber string, phoneNumber string, physicalIdentityVerified bool, state string) (bool, error)
+	VerifyStaffPinResetServiceRequest(ctx context.Context, phoneNumber string, serviceRequestID string, verificationStatus string) (bool, error)
 	AcceptTerms(ctx context.Context, userID string, termsID int) (bool, error)
 	SetNickName(ctx context.Context, userID string, nickname string) (bool, error)
 	CompleteOnboardingTour(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
@@ -2803,17 +2805,29 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.UnlikeContent(childComplexity, args["userID"].(string), args["contentID"].(int)), true
 
-	case "Mutation.verifyPinResetServiceRequest":
-		if e.complexity.Mutation.VerifyPinResetServiceRequest == nil {
+	case "Mutation.verifyClientPinResetServiceRequest":
+		if e.complexity.Mutation.VerifyClientPinResetServiceRequest == nil {
 			break
 		}
 
-		args, err := ec.field_Mutation_verifyPinResetServiceRequest_args(context.TODO(), rawArgs)
+		args, err := ec.field_Mutation_verifyClientPinResetServiceRequest_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Mutation.VerifyPinResetServiceRequest(childComplexity, args["clientID"].(string), args["serviceRequestID"].(string), args["cccNumber"].(string), args["phoneNumber"].(string), args["physicalIdentityVerified"].(bool), args["state"].(string)), true
+		return e.complexity.Mutation.VerifyClientPinResetServiceRequest(childComplexity, args["clientID"].(string), args["serviceRequestID"].(string), args["cccNumber"].(string), args["phoneNumber"].(string), args["physicalIdentityVerified"].(bool), args["state"].(string)), true
+
+	case "Mutation.verifyStaffPinResetServiceRequest":
+		if e.complexity.Mutation.VerifyStaffPinResetServiceRequest == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_verifyStaffPinResetServiceRequest_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.VerifyStaffPinResetServiceRequest(childComplexity, args["phoneNumber"].(string), args["serviceRequestID"].(string), args["verificationStatus"].(string)), true
 
 	case "Mutation.viewContent":
 		if e.complexity.Mutation.ViewContent == nil {
@@ -4276,7 +4290,7 @@ extend type Mutation {
   createServiceRequest(input: ServiceRequestInput!): Boolean!
   resolveServiceRequest(staffID: String!, requestID: String!): Boolean!
 
-  verifyPinResetServiceRequest(
+  verifyClientPinResetServiceRequest(
     clientID: String!
     serviceRequestID: String!
     cccNumber: String!
@@ -4284,6 +4298,8 @@ extend type Mutation {
     physicalIdentityVerified: Boolean!
     state: String!
   ): Boolean!
+
+  verifyStaffPinResetServiceRequest(phoneNumber: String!, serviceRequestID: String!, verificationStatus: String!): Boolean!
 }
 
 extend type Query {
@@ -5643,7 +5659,7 @@ func (ec *executionContext) field_Mutation_unlikeContent_args(ctx context.Contex
 	return args, nil
 }
 
-func (ec *executionContext) field_Mutation_verifyPinResetServiceRequest_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Mutation_verifyClientPinResetServiceRequest_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
@@ -5700,6 +5716,39 @@ func (ec *executionContext) field_Mutation_verifyPinResetServiceRequest_args(ctx
 		}
 	}
 	args["state"] = arg5
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_verifyStaffPinResetServiceRequest_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["phoneNumber"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("phoneNumber"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["phoneNumber"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["serviceRequestID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("serviceRequestID"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["serviceRequestID"] = arg1
+	var arg2 string
+	if tmp, ok := rawArgs["verificationStatus"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("verificationStatus"))
+		arg2, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["verificationStatus"] = arg2
 	return args, nil
 }
 
@@ -15621,7 +15670,7 @@ func (ec *executionContext) _Mutation_resolveServiceRequest(ctx context.Context,
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Mutation_verifyPinResetServiceRequest(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _Mutation_verifyClientPinResetServiceRequest(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -15638,7 +15687,7 @@ func (ec *executionContext) _Mutation_verifyPinResetServiceRequest(ctx context.C
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_verifyPinResetServiceRequest_args(ctx, rawArgs)
+	args, err := ec.field_Mutation_verifyClientPinResetServiceRequest_args(ctx, rawArgs)
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
@@ -15646,7 +15695,49 @@ func (ec *executionContext) _Mutation_verifyPinResetServiceRequest(ctx context.C
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().VerifyPinResetServiceRequest(rctx, args["clientID"].(string), args["serviceRequestID"].(string), args["cccNumber"].(string), args["phoneNumber"].(string), args["physicalIdentityVerified"].(bool), args["state"].(string))
+		return ec.resolvers.Mutation().VerifyClientPinResetServiceRequest(rctx, args["clientID"].(string), args["serviceRequestID"].(string), args["cccNumber"].(string), args["phoneNumber"].(string), args["physicalIdentityVerified"].(bool), args["state"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_verifyStaffPinResetServiceRequest(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_verifyStaffPinResetServiceRequest_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().VerifyStaffPinResetServiceRequest(rctx, args["phoneNumber"].(string), args["serviceRequestID"].(string), args["verificationStatus"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -23944,8 +24035,13 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "verifyPinResetServiceRequest":
-			out.Values[i] = ec._Mutation_verifyPinResetServiceRequest(ctx, field)
+		case "verifyClientPinResetServiceRequest":
+			out.Values[i] = ec._Mutation_verifyClientPinResetServiceRequest(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "verifyStaffPinResetServiceRequest":
+			out.Values[i] = ec._Mutation_verifyStaffPinResetServiceRequest(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}

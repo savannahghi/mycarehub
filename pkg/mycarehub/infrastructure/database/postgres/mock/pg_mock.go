@@ -123,6 +123,7 @@ type PostgresMock struct {
 	MockGetServiceRequestByIDFn                          func(ctx context.Context, id string) (*domain.ServiceRequest, error)
 	MockUpdateUserFn                                     func(ctx context.Context, user *domain.User, updateData map[string]interface{}) error
 	MockGetStaffProfileByStaffIDFn                       func(ctx context.Context, staffID string) (*domain.StaffProfile, error)
+	MockResolveStaffServiceRequestFn                     func(ctx context.Context, staffID *string, serviceRequestID *string, verificationStatus string) (bool, error)
 	MockCreateStaffServiceRequestFn                      func(ctx context.Context, serviceRequestInput *dto.ServiceRequestInput) error
 }
 
@@ -756,6 +757,9 @@ func NewPostgresMock() *PostgresMock {
 		MockInvalidateScreeningToolResponseFn: func(ctx context.Context, clientID string, questionID string) error {
 			return nil
 		},
+		MockResolveStaffServiceRequestFn: func(ctx context.Context, staffID, serviceRequestID *string, verificationStatus string) (bool, error) {
+			return true, nil
+		},
 		MockGetClientProfileByCCCNumberFn: func(ctx context.Context, CCCNumber string) (*domain.ClientProfile, error) {
 			return client, nil
 		},
@@ -1331,4 +1335,9 @@ func (gm *PostgresMock) GetStaffProfileByStaffID(ctx context.Context, staffID st
 // CreateStaffServiceRequest mocks the implementation creating a staff's service request
 func (gm *PostgresMock) CreateStaffServiceRequest(ctx context.Context, serviceRequestInput *dto.ServiceRequestInput) error {
 	return gm.MockCreateStaffServiceRequestFn(ctx, serviceRequestInput)
+}
+
+// ResolveStaffServiceRequest mocks the implementation resolving staff service requests
+func (gm *PostgresMock) ResolveStaffServiceRequest(ctx context.Context, staffID *string, serviceRequestID *string, verificationStatus string) (bool, error) {
+	return gm.MockResolveStaffServiceRequestFn(ctx, staffID, serviceRequestID, verificationStatus)
 }

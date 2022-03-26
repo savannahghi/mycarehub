@@ -4392,3 +4392,54 @@ func TestMyCareHubDb_GetStaffProfileByStaffID(t *testing.T) {
 		})
 	}
 }
+
+func TestMyCareHubDb_GetUserProfileByStaffID(t *testing.T) {
+	ctx := context.Background()
+	var fakeGorm = gormMock.NewGormMock()
+	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+	type args struct {
+		ctx     context.Context
+		staffID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *domain.User
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:     ctx,
+				staffID: uuid.New().String(),
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case",
+			args: args{
+				ctx:     ctx,
+				staffID: uuid.New().String(),
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "Sad case" {
+				fakeGorm.MockGetUserProfileByStaffIDFn = func(ctx context.Context, staffID string) (*gorm.User, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+			got, err := d.GetUserProfileByStaffID(tt.args.ctx, tt.args.staffID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.GetUserProfileByStaffID() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected a response but got: %v", got)
+			}
+		})
+	}
+}

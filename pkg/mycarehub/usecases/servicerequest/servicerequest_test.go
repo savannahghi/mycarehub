@@ -1008,7 +1008,7 @@ func TestUseCasesServiceRequestImpl_VerifyPinResetServiceRequest(t *testing.T) {
 			}
 
 			if tt.name == "Sad Case - Patient not verified by healthcare worker" {
-				fakeServiceRequest.MockVerifyPinResetServiceRequestFn = func(
+				fakeServiceRequest.MockVerifyClientPinResetServiceRequestFn = func(
 					ctx context.Context,
 					clientID string,
 					serviceRequestID string,
@@ -1057,13 +1057,194 @@ func TestUseCasesServiceRequestImpl_VerifyPinResetServiceRequest(t *testing.T) {
 				}
 			}
 
-			got, err := u.VerifyPinResetServiceRequest(tt.args.ctx, tt.args.clientID, tt.args.serviceRequestID, tt.args.cccNumber, tt.args.phoneNumber, tt.args.physicalIdentityVerified, tt.args.state)
+			got, err := u.VerifyClientPinResetServiceRequest(tt.args.ctx, tt.args.clientID, tt.args.serviceRequestID, tt.args.cccNumber, tt.args.phoneNumber, tt.args.physicalIdentityVerified, tt.args.state)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCasesServiceRequestImpl.VerifyPinResetServiceRequest() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if got != tt.want {
 				t.Errorf("UseCasesServiceRequestImpl.VerifyPinResetServiceRequest() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestUseCasesServiceRequestImpl_VerifyStaffPinResetServiceRequest(t *testing.T) {
+	ctx := context.Background()
+
+	fakeDB := pgMock.NewPostgresMock()
+	fakeExtension := extensionMock.NewFakeExtension()
+	fakeUser := userMock.NewUserUseCaseMock()
+	_ = mock.NewServiceRequestUseCaseMock()
+	u := servicerequest.NewUseCaseServiceRequestImpl(fakeDB, fakeDB, fakeDB, fakeExtension, fakeUser)
+
+	type args struct {
+		ctx                context.Context
+		phoneNumber        string
+		serviceRequestID   string
+		verificationStatus string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:                ctx,
+				phoneNumber:        uuid.New().String(),
+				serviceRequestID:   uuid.New().String(),
+				verificationStatus: "APPROVED",
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Happy Case - Successfully reject pin reset service request",
+			args: args{
+				ctx:                ctx,
+				serviceRequestID:   uuid.New().String(),
+				phoneNumber:        "+254711111111",
+				verificationStatus: enums.VerifyServiceRequestStateRejected.String(),
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Sad case",
+			args: args{
+				ctx:                ctx,
+				phoneNumber:        uuid.New().String(),
+				serviceRequestID:   uuid.New().String(),
+				verificationStatus: "APPROVED",
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - Fail to get logged in user",
+			args: args{
+				ctx:         ctx,
+				phoneNumber: "+254711111111",
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - Fail to get staff profile by user ID",
+			args: args{
+				ctx:         ctx,
+				phoneNumber: "+254711111111",
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - Fail to mark service request as in progress",
+			args: args{
+				ctx:                ctx,
+				serviceRequestID:   uuid.New().String(),
+				phoneNumber:        "+254711111111",
+				verificationStatus: enums.VerifyServiceRequestStateApproved.String(),
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - Fail to get user profile by phonenumber",
+			args: args{
+				ctx:              ctx,
+				serviceRequestID: uuid.New().String(),
+				phoneNumber:      "+254711111111",
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - Fail to generate temporary pin",
+			args: args{
+				ctx:                ctx,
+				serviceRequestID:   uuid.New().String(),
+				phoneNumber:        "+254711111111",
+				verificationStatus: enums.VerifyServiceRequestStateApproved.String(),
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - Fail to update user pin changed required status",
+			args: args{
+				ctx:                ctx,
+				serviceRequestID:   uuid.New().String(),
+				phoneNumber:        "+254711111111",
+				verificationStatus: enums.VerifyServiceRequestStateApproved.String(),
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - Fail to resolve service request",
+			args: args{
+				ctx:                ctx,
+				serviceRequestID:   uuid.New().String(),
+				phoneNumber:        "+254711111111",
+				verificationStatus: enums.VerifyServiceRequestStateApproved.String(),
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "Sad case" {
+				fakeDB.MockResolveStaffServiceRequestFn = func(ctx context.Context, staffID, serviceRequestID *string, verificationStatus string) (bool, error) {
+					return false, fmt.Errorf("failed to resolve service request")
+				}
+			}
+			if tt.name == "Sad Case - Fail to get logged in user" {
+				fakeExtension.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "", fmt.Errorf("failed to get logged in user UID")
+				}
+			}
+			if tt.name == "Sad Case - Fail to get staff profile by user ID" {
+				fakeDB.MockGetStaffProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.StaffProfile, error) {
+					return nil, fmt.Errorf("failed to get staff profile by user ID")
+				}
+			}
+			if tt.name == "Sad Case - Fail to mark service request as in progress" {
+				fakeDB.MockInProgressByFn = func(ctx context.Context, requestID string, staffID string) (bool, error) {
+					return false, fmt.Errorf("failed to mark service request as in progress")
+				}
+			}
+			if tt.name == "Sad Case - Fail to get user profile by phonenumber" {
+				fakeDB.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*domain.User, error) {
+					return nil, fmt.Errorf("failed to get user profile by phonenumber")
+				}
+			}
+			if tt.name == "Sad Case - Fail to generate temporary pin" {
+				fakeUser.MockGenerateTemporaryPinFn = func(ctx context.Context, userID string, flavour feedlib.Flavour) (string, error) {
+					return "", fmt.Errorf("failed to generate temporary pin")
+				}
+			}
+			if tt.name == "Sad Case - Fail to update user pin changed required status" {
+				fakeDB.MockUpdateUserFn = func(ctx context.Context, user *domain.User, updateData map[string]interface{}) error {
+					return fmt.Errorf("failed to update user pin changed required status")
+				}
+			}
+			if tt.name == "Sad Case - Fail to resolve service request" {
+				fakeDB.MockResolveStaffServiceRequestFn = func(ctx context.Context, staffID *string, serviceRequestID *string, status string) (bool, error) {
+					return false, fmt.Errorf("failed to resolve service request")
+				}
+			}
+			got, err := u.VerifyStaffPinResetServiceRequest(tt.args.ctx, tt.args.phoneNumber, tt.args.serviceRequestID, tt.args.verificationStatus)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCasesServiceRequestImpl.VerifyStaffPinResetServiceRequest() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("UseCasesServiceRequestImpl.VerifyStaffPinResetServiceRequest() = %v, want %v", got, tt.want)
 			}
 		})
 	}
