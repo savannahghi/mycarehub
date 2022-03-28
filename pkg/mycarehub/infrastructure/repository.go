@@ -25,8 +25,8 @@ type Create interface {
 	CreateServiceRequest(ctx context.Context, serviceRequestInput *dto.ServiceRequestInput) error
 	CreateClientCaregiver(ctx context.Context, caregiverInput *dto.CaregiverInput) error
 	CreateCommunity(ctx context.Context, communityInput *dto.CommunityInput) (*domain.Community, error)
-	CreateNextOfKin(ctx context.Context, person *dto.NextOfKinPayload, clientID, contactID string) error
-	CreateContact(ctx context.Context, contact *domain.Contact) (*domain.Contact, error)
+	GetOrCreateNextOfKin(ctx context.Context, person *dto.NextOfKinPayload, clientID, contactID string) error
+	GetOrCreateContact(ctx context.Context, contact *domain.Contact) (*domain.Contact, error)
 	CreateAppointment(ctx context.Context, appointment domain.Appointment, appointmentUUID, clientID string) error
 	AnswerScreeningToolQuestions(ctx context.Context, screeningToolResponses []*dto.ScreeningToolQuestionResponseInput) error
 	CreateStaffServiceRequest(ctx context.Context, serviceRequestInput *dto.ServiceRequestInput) error

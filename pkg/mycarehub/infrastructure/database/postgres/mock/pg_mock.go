@@ -93,8 +93,8 @@ type PostgresMock struct {
 	MockGetCommunityByIDFn                               func(ctx context.Context, communityID string) (*domain.Community, error)
 	MockCheckIdentifierExists                            func(ctx context.Context, identifierType string, identifierValue string) (bool, error)
 	MockCheckFacilityExistsByMFLCode                     func(ctx context.Context, MFLCode int) (bool, error)
-	MockCreateNextOfKin                                  func(ctx context.Context, person *dto.NextOfKinPayload, clientID, contactID string) error
-	MockCreateContact                                    func(ctx context.Context, contact *domain.Contact) (*domain.Contact, error)
+	MockGetOrCreateNextOfKin                             func(ctx context.Context, person *dto.NextOfKinPayload, clientID, contactID string) error
+	MockGetOrCreateContact                               func(ctx context.Context, contact *domain.Contact) (*domain.Contact, error)
 	MockGetClientsInAFacilityFn                          func(ctx context.Context, facilityID string) ([]*domain.ClientProfile, error)
 	MockGetRecentHealthDiaryEntriesFn                    func(ctx context.Context, lastSyncTime time.Time, clientID string) ([]*domain.ClientHealthDiaryEntry, error)
 	MockGetClientsByParams                               func(ctx context.Context, params gorm.Client, lastSyncTime *time.Time) ([]*domain.ClientProfile, error)
@@ -1221,14 +1221,14 @@ func (gm *PostgresMock) CheckFacilityExistsByMFLCode(ctx context.Context, MFLCod
 	return gm.MockCheckFacilityExistsByMFLCode(ctx, MFLCode)
 }
 
-// CreateNextOfKin mocks creating a next of kin
-func (gm *PostgresMock) CreateNextOfKin(ctx context.Context, person *dto.NextOfKinPayload, clientID, contactID string) error {
-	return gm.MockCreateNextOfKin(ctx, person, clientID, contactID)
+// GetOrCreateNextOfKin mocks creating a next of kin
+func (gm *PostgresMock) GetOrCreateNextOfKin(ctx context.Context, person *dto.NextOfKinPayload, clientID, contactID string) error {
+	return gm.MockGetOrCreateNextOfKin(ctx, person, clientID, contactID)
 }
 
-// CreateContact mocks creating a contact
-func (gm *PostgresMock) CreateContact(ctx context.Context, contact *domain.Contact) (*domain.Contact, error) {
-	return gm.MockCreateContact(ctx, contact)
+// GetOrCreateContact mocks creating a contact
+func (gm *PostgresMock) GetOrCreateContact(ctx context.Context, contact *domain.Contact) (*domain.Contact, error) {
+	return gm.MockGetOrCreateContact(ctx, contact)
 }
 
 // GetClientsInAFacility mocks getting all the clients in a facility
