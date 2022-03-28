@@ -448,19 +448,6 @@ func (u *UseCasesServiceRequestImpl) VerifyClientPinResetServiceRequest(
 		return false, fmt.Errorf("the patient has not been physically verified by the healthcare worker")
 	}
 
-	identifier, err := u.Query.GetClientCCCIdentifier(ctx, clientID)
-	if err != nil {
-		return false, err
-	}
-
-	if identifier == nil {
-		return false, fmt.Errorf("patient has no recorded identifier")
-	}
-
-	if cccNumber != identifier.IdentifierValue {
-		return false, fmt.Errorf("the ccc number provided does not match with the one on the patient profile")
-	}
-
 	return u.VerifyServiceRequestResponse(ctx, state, phoneNumber, serviceRequestID, user, staff, feedlib.FlavourConsumer)
 
 }

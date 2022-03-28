@@ -11,12 +11,8 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/presentation/graph/generated"
 )
 
-func (r *mutationResolver) AssignRoles(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error) {
-	return r.mycarehub.Authority.AssignRoles(ctx, userID, roles)
-}
-
-func (r *mutationResolver) RevokeRoles(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error) {
-	return r.mycarehub.Authority.RevokeRoles(ctx, userID, roles)
+func (r *mutationResolver) AssignOrRevokeRoles(ctx context.Context, userID string, roles []*enums.UserRoleType) (bool, error) {
+	return r.mycarehub.Authority.AssignOrRevokeRoles(ctx, userID, roles)
 }
 
 func (r *queryResolver) GetUserRoles(ctx context.Context, userID string) ([]*domain.AuthorityRole, error) {

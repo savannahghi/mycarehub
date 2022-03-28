@@ -494,3 +494,117 @@ func TestUsecaseAuthorityImpl_RevokeRoles(t *testing.T) {
 		})
 	}
 }
+
+func TestUsecaseAuthorityImpl_AssignOrRevokeRoles(t *testing.T) {
+	fakeDB := pgMock.NewPostgresMock()
+	fakeExtension := extensionMock.NewFakeExtension()
+	u := NewUsecaseAuthority(fakeDB, fakeDB, fakeExtension)
+	adminRole := enums.UserRoleTypeSystemAdministrator
+	type args struct {
+		ctx    context.Context
+		userID string
+		roles  []*enums.UserRoleType
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "happy case: successfully assign or revoke roles from a user",
+			args: args{
+				ctx:    context.Background(),
+				userID: uuid.New().String(),
+				roles:  []*enums.UserRoleType{&adminRole},
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "sad case: missing user id",
+			args: args{
+				ctx:    context.Background(),
+				userID: "",
+				roles:  []*enums.UserRoleType{&adminRole},
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "sad case: failed to get current roles",
+			args: args{
+				ctx:    context.Background(),
+				userID: "",
+				roles:  []*enums.UserRoleType{&adminRole},
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "sad case: failed to revoke current roles",
+			args: args{
+				ctx:    context.Background(),
+				userID: "",
+				roles:  []*enums.UserRoleType{&adminRole},
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "sad case: user not authorized",
+			args: args{
+				ctx:    context.Background(),
+				userID: uuid.New().String(),
+				roles:  []*enums.UserRoleType{&adminRole},
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "sad case: failed to assign roles",
+			args: args{
+				ctx:    context.Background(),
+				userID: uuid.New().String(),
+				roles:  []*enums.UserRoleType{&adminRole},
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "sad case: failed to get current roles" {
+				fakeDB.MockGetUserRolesFn = func(ctx context.Context, userID string) ([]*domain.AuthorityRole, error) {
+					return nil, fmt.Errorf("failed to get current roles")
+				}
+			}
+
+			if tt.name == "sad case: failed to revoke current roles" {
+				fakeDB.MockRevokeRolesFn = func(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error) {
+					return false, fmt.Errorf("failed to revoke current roles")
+				}
+			}
+			if tt.name == "sad case: user not authorized" {
+				fakeDB.MockCheckUserPermissionFn = func(ctx context.Context, userID string, permission string) (bool, error) {
+					return false, nil
+				}
+			}
+
+			if tt.name == "sad case: failed to assign roles" {
+				fakeDB.MockAssignRolesFn = func(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error) {
+					return false, fmt.Errorf("failed to assign roles")
+				}
+			}
+
+			got, err := u.AssignOrRevokeRoles(tt.args.ctx, tt.args.userID, tt.args.roles)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UsecaseAuthorityImpl.AssignOrRevokeRoles() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("UsecaseAuthorityImpl.AssignOrRevokeRoles() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

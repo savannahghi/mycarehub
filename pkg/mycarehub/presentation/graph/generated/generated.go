@@ -410,7 +410,7 @@ type ComplexityRoot struct {
 		AddMembersToCommunity              func(childComplexity int, memberIDs []string, communityID string) int
 		AddModerators                      func(childComplexity int, memberIDs []string, communityID string) int
 		AnswerScreeningToolQuestion        func(childComplexity int, screeningToolResponses []*dto.ScreeningToolQuestionResponseInput) int
-		AssignRoles                        func(childComplexity int, userID string, roles []enums.UserRoleType) int
+		AssignOrRevokeRoles                func(childComplexity int, userID string, roles []*enums.UserRoleType) int
 		BanUser                            func(childComplexity int, memberID string, bannedBy string, communityID string) int
 		BookmarkContent                    func(childComplexity int, userID string, contentItemID int) int
 		CompleteOnboardingTour             func(childComplexity int, userID string, flavour feedlib.Flavour) int
@@ -434,7 +434,6 @@ type ComplexityRoot struct {
 		RejectInvitation                   func(childComplexity int, memberID string, communityID string) int
 		RemoveMembersFromCommunity         func(childComplexity int, communityID string, memberIDs []string) int
 		ResolveServiceRequest              func(childComplexity int, staffID string, requestID string) int
-		RevokeRoles                        func(childComplexity int, userID string, roles []enums.UserRoleType) int
 		SendFeedback                       func(childComplexity int, input dto.FeedbackResponseInput) int
 		SetInProgressBy                    func(childComplexity int, serviceRequestID string, staffID string) int
 		SetNickName                        func(childComplexity int, userID string, nickname string) int
@@ -615,8 +614,7 @@ type ComplexityRoot struct {
 }
 
 type MutationResolver interface {
-	AssignRoles(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error)
-	RevokeRoles(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error)
+	AssignOrRevokeRoles(ctx context.Context, userID string, roles []*enums.UserRoleType) (bool, error)
 	CreateCommunity(ctx context.Context, input dto.CommunityInput) (*domain.Community, error)
 	DeleteCommunities(ctx context.Context, communityIDs []string, hardDelete bool) (bool, error)
 	RejectInvitation(ctx context.Context, memberID string, communityID string) (bool, error)
@@ -2401,17 +2399,17 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.AnswerScreeningToolQuestion(childComplexity, args["screeningToolResponses"].([]*dto.ScreeningToolQuestionResponseInput)), true
 
-	case "Mutation.assignRoles":
-		if e.complexity.Mutation.AssignRoles == nil {
+	case "Mutation.assignOrRevokeRoles":
+		if e.complexity.Mutation.AssignOrRevokeRoles == nil {
 			break
 		}
 
-		args, err := ec.field_Mutation_assignRoles_args(context.TODO(), rawArgs)
+		args, err := ec.field_Mutation_assignOrRevokeRoles_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Mutation.AssignRoles(childComplexity, args["userID"].(string), args["roles"].([]enums.UserRoleType)), true
+		return e.complexity.Mutation.AssignOrRevokeRoles(childComplexity, args["userID"].(string), args["roles"].([]*enums.UserRoleType)), true
 
 	case "Mutation.banUser":
 		if e.complexity.Mutation.BanUser == nil {
@@ -2688,18 +2686,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.ResolveServiceRequest(childComplexity, args["staffID"].(string), args["requestID"].(string)), true
-
-	case "Mutation.revokeRoles":
-		if e.complexity.Mutation.RevokeRoles == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_revokeRoles_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.RevokeRoles(childComplexity, args["userID"].(string), args["roles"].([]enums.UserRoleType)), true
 
 	case "Mutation.sendFeedback":
 		if e.complexity.Mutation.SendFeedback == nil {
@@ -3886,8 +3872,7 @@ enum Operation {
 }
 `, BuiltIn: false},
 	{Name: "pkg/mycarehub/presentation/graph/authority.graphql", Input: `extend type Mutation {
-  assignRoles(userID: String!, roles: [UserRoleType!]!): Boolean!
-  revokeRoles(userID: String!, roles: [UserRoleType!]!): Boolean!
+  assignOrRevokeRoles(userID: String!, roles: [UserRoleType]): Boolean!
 }
 
 extend type Query{
@@ -4981,7 +4966,7 @@ func (ec *executionContext) field_Mutation_answerScreeningToolQuestion_args(ctx 
 	return args, nil
 }
 
-func (ec *executionContext) field_Mutation_assignRoles_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Mutation_assignOrRevokeRoles_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
@@ -4993,10 +4978,10 @@ func (ec *executionContext) field_Mutation_assignRoles_args(ctx context.Context,
 		}
 	}
 	args["userID"] = arg0
-	var arg1 []enums.UserRoleType
+	var arg1 []*enums.UserRoleType
 	if tmp, ok := rawArgs["roles"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("roles"))
-		arg1, err = ec.unmarshalNUserRoleType2ᚕgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐUserRoleTypeᚄ(ctx, tmp)
+		arg1, err = ec.unmarshalOUserRoleType2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐUserRoleType(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -5491,30 +5476,6 @@ func (ec *executionContext) field_Mutation_resolveServiceRequest_args(ctx contex
 		}
 	}
 	args["requestID"] = arg1
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_revokeRoles_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["userID"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userID"))
-		arg0, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["userID"] = arg0
-	var arg1 []enums.UserRoleType
-	if tmp, ok := rawArgs["roles"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("roles"))
-		arg1, err = ec.unmarshalNUserRoleType2ᚕgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐUserRoleTypeᚄ(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["roles"] = arg1
 	return args, nil
 }
 
@@ -14290,7 +14251,7 @@ func (ec *executionContext) _ModerationThresholds_toxic(ctx context.Context, fie
 	return ec.marshalOToxic2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐToxic(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Mutation_assignRoles(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _Mutation_assignOrRevokeRoles(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -14307,7 +14268,7 @@ func (ec *executionContext) _Mutation_assignRoles(ctx context.Context, field gra
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_assignRoles_args(ctx, rawArgs)
+	args, err := ec.field_Mutation_assignOrRevokeRoles_args(ctx, rawArgs)
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
@@ -14315,49 +14276,7 @@ func (ec *executionContext) _Mutation_assignRoles(ctx context.Context, field gra
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().AssignRoles(rctx, args["userID"].(string), args["roles"].([]enums.UserRoleType))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(bool)
-	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Mutation_revokeRoles(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_revokeRoles_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().RevokeRoles(rctx, args["userID"].(string), args["roles"].([]enums.UserRoleType))
+		return ec.resolvers.Mutation().AssignOrRevokeRoles(rctx, args["userID"].(string), args["roles"].([]*enums.UserRoleType))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -23911,13 +23830,8 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Mutation")
-		case "assignRoles":
-			out.Values[i] = ec._Mutation_assignRoles(ctx, field)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "revokeRoles":
-			out.Values[i] = ec._Mutation_revokeRoles(ctx, field)
+		case "assignOrRevokeRoles":
+			out.Values[i] = ec._Mutation_assignOrRevokeRoles(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -26691,81 +26605,6 @@ func (ec *executionContext) marshalNUser2ᚖgithubᚗcomᚋsavannahghiᚋmycareh
 	return ec._User(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNUserRoleType2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐUserRoleType(ctx context.Context, v interface{}) (enums.UserRoleType, error) {
-	var res enums.UserRoleType
-	err := res.UnmarshalGQL(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalNUserRoleType2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐUserRoleType(ctx context.Context, sel ast.SelectionSet, v enums.UserRoleType) graphql.Marshaler {
-	return v
-}
-
-func (ec *executionContext) unmarshalNUserRoleType2ᚕgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐUserRoleTypeᚄ(ctx context.Context, v interface{}) ([]enums.UserRoleType, error) {
-	var vSlice []interface{}
-	if v != nil {
-		if tmp1, ok := v.([]interface{}); ok {
-			vSlice = tmp1
-		} else {
-			vSlice = []interface{}{v}
-		}
-	}
-	var err error
-	res := make([]enums.UserRoleType, len(vSlice))
-	for i := range vSlice {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalNUserRoleType2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐUserRoleType(ctx, vSlice[i])
-		if err != nil {
-			return nil, err
-		}
-	}
-	return res, nil
-}
-
-func (ec *executionContext) marshalNUserRoleType2ᚕgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐUserRoleTypeᚄ(ctx context.Context, sel ast.SelectionSet, v []enums.UserRoleType) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalNUserRoleType2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐUserRoleType(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-
-	for _, e := range ret {
-		if e == graphql.Null {
-			return graphql.Null
-		}
-	}
-
-	return ret
-}
-
 func (ec *executionContext) unmarshalN_FieldSet2string(ctx context.Context, v interface{}) (string, error) {
 	res, err := graphql.UnmarshalString(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -28453,6 +28292,87 @@ func (ec *executionContext) unmarshalOUserRoleType2githubᚗcomᚋsavannahghiᚋ
 }
 
 func (ec *executionContext) marshalOUserRoleType2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐUserRoleType(ctx context.Context, sel ast.SelectionSet, v enums.UserRoleType) graphql.Marshaler {
+	return v
+}
+
+func (ec *executionContext) unmarshalOUserRoleType2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐUserRoleType(ctx context.Context, v interface{}) ([]*enums.UserRoleType, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]*enums.UserRoleType, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalOUserRoleType2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐUserRoleType(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalOUserRoleType2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐUserRoleType(ctx context.Context, sel ast.SelectionSet, v []*enums.UserRoleType) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOUserRoleType2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐUserRoleType(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	return ret
+}
+
+func (ec *executionContext) unmarshalOUserRoleType2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐUserRoleType(ctx context.Context, v interface{}) (*enums.UserRoleType, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(enums.UserRoleType)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOUserRoleType2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐUserRoleType(ctx context.Context, sel ast.SelectionSet, v *enums.UserRoleType) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
 	return v
 }
 
