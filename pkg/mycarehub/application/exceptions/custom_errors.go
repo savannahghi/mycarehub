@@ -98,6 +98,15 @@ func ClientProfileNotFoundErr(err error) error {
 	}
 }
 
+// ClientCCCIdentifierNotFoundErr returns an error message when the client profile is not found
+func ClientCCCIdentifierNotFoundErr(err error) error {
+	return &CustomError{
+		Err:     err,
+		Message: ClientCCCIdentifierNotFoundErrorMsg,
+		Code:    int(CCCIdentifierNotFoundError),
+	}
+}
+
 // StaffProfileNotFoundErr returns an error message when the client profile is not found
 func StaffProfileNotFoundErr(err error) error {
 	return &CustomError{

@@ -385,6 +385,15 @@ func (us *UseCasesUserImpl) ReturnLoginResponse(ctx context.Context, flavour fee
 				Code:    int(exceptions.ProfileNotFound),
 			}, exceptions.ClientProfileNotFoundErr(err)
 		}
+		clientCCCIdentifier, err := us.Query.GetClientCCCIdentifier(ctx, *clientProfile.ID)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return &domain.LoginResponse{
+				Message: "failed to get client ccc identifier",
+				Code:    int(exceptions.CCCIdentifierNotFoundError),
+			}, exceptions.ClientCCCIdentifierNotFoundErr(err)
+		}
+
 		// check if client has unresolved pin reset request
 		ok, err := us.Query.CheckIfClientHasUnresolvedServiceRequests(ctx, *clientProfile.ID, string(enums.ServiceRequestTypePinReset))
 		if err != nil {
@@ -442,6 +451,7 @@ func (us *UseCasesUserImpl) ReturnLoginResponse(ctx context.Context, flavour fee
 		}
 
 		clientProfile.User = userProfile
+		clientProfile.CCCNumber = clientCCCIdentifier.IdentifierValue
 		loginResponse := &domain.Response{
 			Client: clientProfile,
 			AuthCredentials: domain.AuthCredentials{

@@ -397,4 +397,8 @@ const (
 	// UpdateProfileError implies that the system is unable to update the profile
 	// Its error code is 80
 	UpdateProfileError
+
+	// CCCIdentifierNotFoundError implies that the clients identifier was not found
+	// Its error code is 81
+	CCCIdentifierNotFoundError
 )

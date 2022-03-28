@@ -114,6 +114,9 @@ const (
 	// ClientProfileNotFoundErrorMsg is displayed when a profile is not found
 	ClientProfileNotFoundErrorMsg = "client profile not found"
 
+	// ClientCCCIdentifierNotFoundErrorMsg is displayed when a clients CCC number identifier is not found
+	ClientCCCIdentifierNotFoundErrorMsg = "client ccc identifier not found"
+
 	// InternalErrorMsg is the error message displayed when an internal server error occurs
 	InternalErrorMsg = "internal error"
 
