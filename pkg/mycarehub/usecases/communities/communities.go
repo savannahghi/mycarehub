@@ -328,7 +328,6 @@ func (us *UseCasesCommunitiesImpl) ListCommunityMembers(ctx context.Context, com
 		return nil, err
 	}
 
-	extraData := make(map[string]interface{})
 	bannedMembersHashmap := make(map[string]string)
 	bannedCommunityMembers, err := us.ListCommunityBannedMembers(ctx, communityID)
 	if err != nil {
@@ -336,22 +335,21 @@ func (us *UseCasesCommunitiesImpl) ListCommunityMembers(ctx context.Context, com
 	}
 
 	for _, bannedMember := range bannedCommunityMembers {
-		bannedMembersHashmap[bannedMember.ID] = bannedMember.ID
+		bannedMembersHashmap[bannedMember.UserID] = bannedMember.UserID
 	}
 
 	for _, member := range channel.Members {
-		var userType string
-		var userID string
-
-		if val, ok := member.User.ExtraData["userType"]; ok {
-			userType = val.(string)
+		extraData := map[string]interface{}{
+			"bannedInCommunity": false,
 		}
 
-		if val, ok := member.User.ExtraData["userID"]; ok {
-			userID = val.(string)
+		var metaData domain.MemberMetadata
+		err := mapstructure.Decode(member.User.ExtraData, &metaData)
+		if err != nil {
+			return nil, fmt.Errorf("failed to decode payload: %v", err)
 		}
 
-		_, ok := bannedMembersHashmap[member.User.ID]
+		_, ok := bannedMembersHashmap[metaData.UserID]
 		if ok {
 			extraData["bannedInCommunity"] = true
 		}
@@ -360,16 +358,16 @@ func (us *UseCasesCommunitiesImpl) ListCommunityMembers(ctx context.Context, com
 			ID:        member.User.ID,
 			Name:      member.User.Name,
 			Role:      member.User.Role,
-			UserID:    userID,
+			UserID:    metaData.UserID,
 			ExtraData: extraData,
 		}
 
 		commMem := &domain.CommunityMember{
-			UserID:           userID,
+			UserID:           metaData.UserID,
 			User:             user,
 			Role:             member.Role,
 			IsModerator:      member.IsModerator,
-			UserType:         userType,
+			UserType:         metaData.UserType,
 			Invited:          member.Invited,
 			InviteAcceptedAt: member.InviteAcceptedAt,
 			InviteRejectedAt: member.InviteRejectedAt,
