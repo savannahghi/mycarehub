@@ -1,6 +1,5 @@
 extend type Mutation {
-  assignRoles(userID: String!, roles: [UserRoleType!]!): Boolean!
-  revokeRoles(userID: String!, roles: [UserRoleType!]!): Boolean!
+  assignOrRevokeRoles(userID: String!, roles: [UserRoleType!]! isAssigning: Boolean!): Boolean!
 }
 
 extend type Query{

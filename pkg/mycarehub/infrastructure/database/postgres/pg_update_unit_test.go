@@ -1583,11 +1583,12 @@ func TestMyCareHubDb_ResolveServiceRequest(t *testing.T) {
 	}
 }
 
-func TestMyCareHubDb_AssignRoles(t *testing.T) {
+func TestMyCareHubDb_AssignOrRevokeRoles(t *testing.T) {
 	type args struct {
-		ctx    context.Context
-		userID string
-		roles  []enums.UserRoleType
+		ctx         context.Context
+		userID      string
+		roles       []enums.UserRoleType
+		isAssigning bool
 	}
 	tests := []struct {
 		name    string
@@ -1596,7 +1597,18 @@ func TestMyCareHubDb_AssignRoles(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "Happy case",
+			name: "Happy case: is assigning",
+			args: args{
+				ctx:         context.Background(),
+				userID:      uuid.New().String(),
+				roles:       []enums.UserRoleType{enums.UserRoleTypeSystemAdministrator},
+				isAssigning: true,
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Happy case: is rejecting",
 			args: args{
 				ctx:    context.Background(),
 				userID: uuid.New().String(),
@@ -1611,53 +1623,13 @@ func TestMyCareHubDb_AssignRoles(t *testing.T) {
 			var fakeGorm = gormMock.NewGormMock()
 			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
 
-			got, err := d.AssignRoles(tt.args.ctx, tt.args.userID, tt.args.roles)
+			got, err := d.AssignOrRevokeRoles(tt.args.ctx, tt.args.userID, tt.args.roles, tt.args.isAssigning)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("MyCareHubDb.AssignRoles() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("MyCareHubDb.AssignOrRevokeRoles() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if got != tt.want {
-				t.Errorf("MyCareHubDb.AssignRoles() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func TestMyCareHubDb_RevokeRoles(t *testing.T) {
-	type args struct {
-		ctx    context.Context
-		userID string
-		roles  []enums.UserRoleType
-	}
-	tests := []struct {
-		name    string
-		args    args
-		want    bool
-		wantErr bool
-	}{
-		{
-			name: "Happy case",
-			args: args{
-				ctx:    context.Background(),
-				userID: uuid.New().String(),
-				roles:  []enums.UserRoleType{enums.UserRoleTypeSystemAdministrator},
-			},
-			want:    true,
-			wantErr: false,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			var fakeGorm = gormMock.NewGormMock()
-			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
-
-			got, err := d.RevokeRoles(tt.args.ctx, tt.args.userID, tt.args.roles)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("MyCareHubDb.RevokeRoles() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if got != tt.want {
-				t.Errorf("MyCareHubDb.RevokeRoles() = %v, want %v", got, tt.want)
+				t.Errorf("MyCareHubDb.AssignOrRevokeRoles() = %v, want %v", got, tt.want)
 			}
 		})
 	}

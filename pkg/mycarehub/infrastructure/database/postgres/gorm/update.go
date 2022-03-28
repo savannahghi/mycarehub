@@ -35,8 +35,7 @@ type Update interface {
 	UpdateClientCaregiver(ctx context.Context, caregiverInput *dto.CaregiverInput) error
 	ResolveServiceRequest(ctx context.Context, staffID *string, serviceRequestID *string, status string) (bool, error)
 	ResolveStaffServiceRequest(ctx context.Context, staffID *string, serviceRequestID *string, verificattionStatus string) (bool, error)
-	AssignRoles(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error)
-	RevokeRoles(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error)
+	AssignOrRevokeRoles(ctx context.Context, userID string, roles []enums.UserRoleType, isAssigning bool) (bool, error)
 	UpdateAppointment(ctx context.Context, payload *Appointment) error
 	InvalidateScreeningToolResponse(ctx context.Context, clientID string, questionID string) error
 	UpdateServiceRequests(ctx context.Context, payload []*ClientServiceRequest) (bool, error)
@@ -736,8 +735,8 @@ func (db *PGInstance) ResolveServiceRequest(ctx context.Context, staffID *string
 	return true, nil
 }
 
-// AssignRoles assigns roles to a user
-func (db *PGInstance) AssignRoles(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error) {
+// AssignOrRevokeRoles assigns or revokes user roles
+func (db *PGInstance) AssignOrRevokeRoles(ctx context.Context, userID string, roles []enums.UserRoleType, isAssigning bool) (bool, error) {
 	var (
 		user User
 	)
@@ -771,61 +770,20 @@ func (db *PGInstance) AssignRoles(ctx context.Context, userID string, roles []en
 			tx.Rollback()
 			return false, fmt.Errorf("failed to get authority role: %v", err)
 		}
-
-		err = tx.Model(&AuthorityRoleUser{}).Where(&AuthorityRoleUser{UserID: user.UserID, RoleID: &roleID}).FirstOrCreate(&AuthorityRoleUser{}).Error
-		if err != nil {
-			helpers.ReportErrorToSentry(err)
-			tx.Rollback()
-			return false, fmt.Errorf("failed to assign role: %v", err)
-		}
-	}
-
-	if err := tx.Commit().Error; err != nil {
-		helpers.ReportErrorToSentry(err)
-		tx.Rollback()
-		return false, fmt.Errorf("transaction commit to update user roles failed: %v", err)
-	}
-
-	return true, nil
-}
-
-// RevokeRoles revokes roles from a user
-func (db *PGInstance) RevokeRoles(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error) {
-	var user User
-
-	tx := db.DB.Begin()
-	defer func() {
-		if r := recover(); r != nil {
-			tx.Rollback()
-		}
-	}()
-	if err := tx.Error; err != nil {
-		helpers.ReportErrorToSentry(err)
-		return false, fmt.Errorf("failed to initialize database transaction %v", err)
-	}
-
-	err := tx.Model(&User{}).Where(&User{UserID: &userID}).First(&user).Error
-	if err != nil {
-		helpers.ReportErrorToSentry(err)
-		tx.Rollback()
-		return false, fmt.Errorf("failed to get user: %v", err)
-	}
-
-	for _, role := range roles {
-		var roleID string
-
-		err := tx.Raw(`SELECT id FROM authority_authorityrole WHERE name = ?`, role.String()).Row().Scan(&roleID)
-		if err != nil {
-			helpers.ReportErrorToSentry(err)
-			tx.Rollback()
-			return false, fmt.Errorf("failed to get authority role: %v", err)
-		}
-
-		err = tx.Model(&AuthorityRoleUser{}).Where(&AuthorityRoleUser{UserID: user.UserID, RoleID: &roleID}).Delete(&AuthorityRoleUser{}).Error
-		if err != nil {
-			helpers.ReportErrorToSentry(err)
-			tx.Rollback()
-			return false, fmt.Errorf("failed to revoke role: %v", err)
+		if isAssigning {
+			err = tx.Model(&AuthorityRoleUser{}).Where(&AuthorityRoleUser{UserID: user.UserID, RoleID: &roleID}).FirstOrCreate(&AuthorityRoleUser{}).Error
+			if err != nil {
+				helpers.ReportErrorToSentry(err)
+				tx.Rollback()
+				return false, fmt.Errorf("failed to assign role: %v", err)
+			}
+		} else {
+			err = tx.Model(&AuthorityRoleUser{}).Where(&AuthorityRoleUser{UserID: user.UserID, RoleID: &roleID}).Delete(&AuthorityRoleUser{}).Error
+			if err != nil {
+				helpers.ReportErrorToSentry(err)
+				tx.Rollback()
+				return false, fmt.Errorf("failed to revoke role: %v", err)
+			}
 		}
 	}
 

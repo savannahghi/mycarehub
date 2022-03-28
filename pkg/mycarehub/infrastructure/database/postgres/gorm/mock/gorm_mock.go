@@ -80,12 +80,11 @@ type GormMock struct {
 	MockResolveServiceRequestFn                          func(ctx context.Context, staffID *string, serviceRequestID *string, status string) (bool, error)
 	MockCheckUserRoleFn                                  func(ctx context.Context, userID string, role string) (bool, error)
 	MockCheckUserPermissionFn                            func(ctx context.Context, userID string, permission string) (bool, error)
-	MockAssignRolesFn                                    func(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error)
+	MockAssignOrRevokeRolesFn                            func(ctx context.Context, userID string, roles []enums.UserRoleType, isAssigning bool) (bool, error)
 	MockCreateCommunityFn                                func(ctx context.Context, community *gorm.Community) (*gorm.Community, error)
 	MockGetUserRolesFn                                   func(ctx context.Context, userID string) ([]*gorm.AuthorityRole, error)
 	MockGetUserPermissionsFn                             func(ctx context.Context, userID string) ([]*gorm.AuthorityPermission, error)
 	MockCheckIfUsernameExistsFn                          func(ctx context.Context, username string) (bool, error)
-	MockRevokeRolesFn                                    func(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error)
 	MockGetCommunityByIDFn                               func(ctx context.Context, communityID string) (*gorm.Community, error)
 	MockCheckIdentifierExists                            func(ctx context.Context, identifierType string, identifierValue string) (bool, error)
 	MockCheckFacilityExistsByMFLCode                     func(ctx context.Context, MFLCode int) (bool, error)
@@ -688,7 +687,7 @@ func NewGormMock() *GormMock {
 		MockCheckUserPermissionFn: func(ctx context.Context, userID string, permission string) (bool, error) {
 			return true, nil
 		},
-		MockAssignRolesFn: func(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error) {
+		MockAssignOrRevokeRolesFn: func(ctx context.Context, userID string, roles []enums.UserRoleType, isAssigning bool) (bool, error) {
 			return true, nil
 		},
 		MockGetUserRolesFn: func(ctx context.Context, userID string) ([]*gorm.AuthorityRole, error) {
@@ -708,9 +707,6 @@ func NewGormMock() *GormMock {
 			}, nil
 		},
 		MockCheckIfUsernameExistsFn: func(ctx context.Context, username string) (bool, error) {
-			return true, nil
-		},
-		MockRevokeRolesFn: func(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error) {
 			return true, nil
 		},
 		MockGetCommunityByIDFn: func(ctx context.Context, communityID string) (*gorm.Community, error) {
@@ -1215,9 +1211,9 @@ func (gm *GormMock) CheckUserPermission(ctx context.Context, userID string, perm
 	return gm.MockCheckUserPermissionFn(ctx, userID, permission)
 }
 
-// AssignRoles mocks the implementation of assigning roles to a user
-func (gm *GormMock) AssignRoles(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error) {
-	return gm.MockAssignRolesFn(ctx, userID, roles)
+// AssignOrRevokeRoles mocks the implementation of assigning roles to a user
+func (gm *GormMock) AssignOrRevokeRoles(ctx context.Context, userID string, roles []enums.UserRoleType, isAssigning bool) (bool, error) {
+	return gm.MockAssignOrRevokeRolesFn(ctx, userID, roles, isAssigning)
 }
 
 // CreateCommunity mocks the implementation of creating a channel
@@ -1238,11 +1234,6 @@ func (gm *GormMock) GetUserPermissions(ctx context.Context, userID string) ([]*g
 // CheckIfUsernameExists mocks the implementation of checking whether a username exists
 func (gm *GormMock) CheckIfUsernameExists(ctx context.Context, username string) (bool, error) {
 	return gm.MockCheckIfUsernameExistsFn(ctx, username)
-}
-
-// RevokeRoles mocks the implementation of revoking roles from a user
-func (gm *GormMock) RevokeRoles(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error) {
-	return gm.MockRevokeRolesFn(ctx, userID, roles)
 }
 
 // GetCommunityByID mocks the implementation of getting the community by ID

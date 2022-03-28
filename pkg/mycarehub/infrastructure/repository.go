@@ -119,8 +119,7 @@ type Update interface {
 	UpdateClientCaregiver(ctx context.Context, caregiverInput *dto.CaregiverInput) error
 	UpdateClient(ctx context.Context, client *domain.ClientProfile, updates map[string]interface{}) (*domain.ClientProfile, error)
 	ResolveServiceRequest(ctx context.Context, staffID *string, serviceRequestID *string, status string) (bool, error)
-	AssignRoles(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error)
-	RevokeRoles(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error)
+	AssignOrRevokeRoles(ctx context.Context, userID string, roles []enums.UserRoleType, isAssigning bool) (bool, error)
 	UpdateAppointment(ctx context.Context, appointment domain.Appointment, appointmentUUID, clientID string) error
 	InvalidateScreeningToolResponse(ctx context.Context, clientID string, questionID string) error
 	ResolveStaffServiceRequest(ctx context.Context, staffID *string, serviceRequestID *string, verificationStatus string) (bool, error)

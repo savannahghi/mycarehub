@@ -406,12 +406,12 @@ func CheckUserPermissionErr(err error) error {
 	}
 }
 
-// AssignRolesErr returns an error message when the user role assignment fails
-func AssignRolesErr(err error) error {
+// AssignOrRevokeRolesErr returns an error message when the user role assignment or revocation fails
+func AssignOrRevokeRolesErr(err error) error {
 	return &CustomError{
 		Err:     err,
-		Message: AssignRolesErrorMsg,
-		Code:    int(AssignRolesError),
+		Message: AssignOrRevokeRolesErrorMsg,
+		Code:    int(AssignOrRevokeRolesError),
 	}
 }
 

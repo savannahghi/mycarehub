@@ -109,7 +109,7 @@ func TestCustomErrors(t *testing.T) {
 	assert.NotNil(t, err)
 	err = exceptions.GetUserPermissionsErr(fmt.Errorf("error"))
 	assert.NotNil(t, err)
-	err = exceptions.AssignRolesErr(fmt.Errorf("error"))
+	err = exceptions.AssignOrRevokeRolesErr(fmt.Errorf("error"))
 	assert.NotNil(t, err)
 	err = exceptions.RevokeRolesErr(fmt.Errorf("error"))
 	assert.NotNil(t, err)

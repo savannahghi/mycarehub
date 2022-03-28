@@ -338,10 +338,10 @@ const (
 	// The check has failed'
 	// Its error code is 66
 	CheckUserPermissionError
-	// AssignRolesError means that the system is unable to assign roles'
+	// AssignOrRevokeRolesError means that the system is unable to assign or revoke roles'
 	// The assignment has failed'
 	// Its error code is 67
-	AssignRolesError
+	AssignOrRevokeRolesError
 
 	// GetUserRolesError means that the system is unable to get the user roles'
 	// The retrieval has failed'
