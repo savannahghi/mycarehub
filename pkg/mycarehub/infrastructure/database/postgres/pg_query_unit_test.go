@@ -2715,7 +2715,6 @@ func TestMyCareHubDb_GetPendingServiceRequestsCount(t *testing.T) {
 	type args struct {
 		ctx        context.Context
 		facilityID string
-		flavour    feedlib.Flavour
 	}
 	tests := []struct {
 		name    string
@@ -2728,7 +2727,6 @@ func TestMyCareHubDb_GetPendingServiceRequestsCount(t *testing.T) {
 			args: args{
 				ctx:        ctx,
 				facilityID: facilityID,
-				flavour:    feedlib.FlavourConsumer,
 			},
 			wantErr: false,
 		},
@@ -2737,31 +2735,20 @@ func TestMyCareHubDb_GetPendingServiceRequestsCount(t *testing.T) {
 			args: args{
 				ctx:        ctx,
 				facilityID: facilityID,
-				flavour:    feedlib.FlavourConsumer,
 			},
 			wantErr: true,
 		},
 		{
 			name: "Sad case - empty facility ID",
 			args: args{
-				ctx:     ctx,
-				flavour: feedlib.FlavourConsumer,
+				ctx: ctx,
 			},
 			wantErr: true,
 		},
 		{
 			name: "Sad case - fail to get staff service requests count",
 			args: args{
-				ctx:     ctx,
-				flavour: feedlib.FlavourPro,
-			},
-			wantErr: true,
-		},
-		{
-			name: "Sad case - Invalid flavour",
-			args: args{
-				ctx:     ctx,
-				flavour: "invalid-flavour",
+				ctx: ctx,
 			},
 			wantErr: true,
 		},
@@ -2786,13 +2773,8 @@ func TestMyCareHubDb_GetPendingServiceRequestsCount(t *testing.T) {
 					return nil, fmt.Errorf("an error occurred")
 				}
 			}
-			if tt.name == "invalid-flavour" {
-				fakeGorm.MockGetStaffPendingServiceRequestsCountFn = func(ctx context.Context, facilityID string) (*domain.ServiceRequestsCount, error) {
-					return nil, fmt.Errorf("invalid flavour")
-				}
-			}
 
-			got, err := d.GetPendingServiceRequestsCount(tt.args.ctx, tt.args.facilityID, tt.args.flavour)
+			got, err := d.GetPendingServiceRequestsCount(tt.args.ctx, tt.args.facilityID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("MyCareHubDb.GetPendingServiceRequestsCount() error = %v, wantErr %v", err, tt.wantErr)
 				return

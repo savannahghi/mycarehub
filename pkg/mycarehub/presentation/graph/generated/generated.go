@@ -476,7 +476,7 @@ type ComplexityRoot struct {
 		GetCurrentTerms                func(childComplexity int, flavour feedlib.Flavour) int
 		GetFAQContent                  func(childComplexity int, flavour feedlib.Flavour, limit *int) int
 		GetHealthDiaryQuote            func(childComplexity int) int
-		GetPendingServiceRequestsCount func(childComplexity int, facilityID string, flavour feedlib.Flavour) int
+		GetPendingServiceRequestsCount func(childComplexity int, facilityID string) int
 		GetScreeningToolQuestions      func(childComplexity int, toolType *string) int
 		GetSecurityQuestions           func(childComplexity int, flavour feedlib.Flavour) int
 		GetServiceRequests             func(childComplexity int, requestType *string, requestStatus *string, facilityID string, flavour feedlib.Flavour) int
@@ -559,7 +559,11 @@ type ComplexityRoot struct {
 
 	ServiceRequestsCount struct {
 		RequestsTypeCount func(childComplexity int) int
-		Total             func(childComplexity int) int
+	}
+
+	ServiceRequestsCountResponse struct {
+		ClientsServiceRequestCount func(childComplexity int) int
+		StaffServiceRequestCount   func(childComplexity int) int
 	}
 
 	Spam struct {
@@ -683,7 +687,7 @@ type QueryResolver interface {
 	GetScreeningToolQuestions(ctx context.Context, toolType *string) ([]*domain.ScreeningToolQuestion, error)
 	GetSecurityQuestions(ctx context.Context, flavour feedlib.Flavour) ([]*domain.SecurityQuestion, error)
 	GetServiceRequests(ctx context.Context, requestType *string, requestStatus *string, facilityID string, flavour feedlib.Flavour) ([]*domain.ServiceRequest, error)
-	GetPendingServiceRequestsCount(ctx context.Context, facilityID string, flavour feedlib.Flavour) (*domain.ServiceRequestsCount, error)
+	GetPendingServiceRequestsCount(ctx context.Context, facilityID string) (*domain.ServiceRequestsCountResponse, error)
 	GetCurrentTerms(ctx context.Context, flavour feedlib.Flavour) (*domain.TermsOfService, error)
 	VerifyPin(ctx context.Context, userID string, flavour feedlib.Flavour, pin string) (bool, error)
 	GetClientCaregiver(ctx context.Context, clientID string) (*domain.Caregiver, error)
@@ -3036,7 +3040,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.GetPendingServiceRequestsCount(childComplexity, args["facilityID"].(string), args["flavour"].(feedlib.Flavour)), true
+		return e.complexity.Query.GetPendingServiceRequestsCount(childComplexity, args["facilityID"].(string)), true
 
 	case "Query.getScreeningToolQuestions":
 		if e.complexity.Query.GetScreeningToolQuestions == nil {
@@ -3565,12 +3569,19 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ServiceRequestsCount.RequestsTypeCount(childComplexity), true
 
-	case "ServiceRequestsCount.total":
-		if e.complexity.ServiceRequestsCount.Total == nil {
+	case "ServiceRequestsCountResponse.clientsServiceRequestCount":
+		if e.complexity.ServiceRequestsCountResponse.ClientsServiceRequestCount == nil {
 			break
 		}
 
-		return e.complexity.ServiceRequestsCount.Total(childComplexity), true
+		return e.complexity.ServiceRequestsCountResponse.ClientsServiceRequestCount(childComplexity), true
+
+	case "ServiceRequestsCountResponse.staffServiceRequestCount":
+		if e.complexity.ServiceRequestsCountResponse.StaffServiceRequestCount == nil {
+			break
+		}
+
+		return e.complexity.ServiceRequestsCountResponse.StaffServiceRequestCount(childComplexity), true
 
 	case "Spam.block":
 		if e.complexity.Spam.Block == nil {
@@ -4309,7 +4320,7 @@ extend type Query {
     facilityID: String!
     flavour: Flavour!
   ): [ServiceRequest]
-  getPendingServiceRequestsCount(facilityID: String!, flavour: Flavour!): ServiceRequestsCount!
+  getPendingServiceRequestsCount(facilityID: String!): ServiceRequestsCountResponse!
 }
 `, BuiltIn: false},
 	{Name: "pkg/mycarehub/presentation/graph/types.graphql", Input: `type Facility {
@@ -4558,8 +4569,12 @@ type RequestTypeCount {
 }
 
 type ServiceRequestsCount {
-  total: Int!
   requestsTypeCount: [RequestTypeCount!]!
+}
+
+type ServiceRequestsCountResponse {
+  clientsServiceRequestCount: ServiceRequestsCount!
+  staffServiceRequestCount: ServiceRequestsCount!
 }
 
 type Community {
@@ -5992,15 +6007,6 @@ func (ec *executionContext) field_Query_getPendingServiceRequestsCount_args(ctx 
 		}
 	}
 	args["facilityID"] = arg0
-	var arg1 feedlib.Flavour
-	if tmp, ok := rawArgs["flavour"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("flavour"))
-		arg1, err = ec.unmarshalNFlavour2githubᚗcomᚋsavannahghiᚋfeedlibᚐFlavour(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["flavour"] = arg1
 	return args, nil
 }
 
@@ -17444,7 +17450,7 @@ func (ec *executionContext) _Query_getPendingServiceRequestsCount(ctx context.Co
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().GetPendingServiceRequestsCount(rctx, args["facilityID"].(string), args["flavour"].(feedlib.Flavour))
+		return ec.resolvers.Query().GetPendingServiceRequestsCount(rctx, args["facilityID"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -17456,9 +17462,9 @@ func (ec *executionContext) _Query_getPendingServiceRequestsCount(ctx context.Co
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*domain.ServiceRequestsCount)
+	res := resTmp.(*domain.ServiceRequestsCountResponse)
 	fc.Result = res
-	return ec.marshalNServiceRequestsCount2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐServiceRequestsCount(ctx, field.Selections, res)
+	return ec.marshalNServiceRequestsCountResponse2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐServiceRequestsCountResponse(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_getCurrentTerms(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -19020,41 +19026,6 @@ func (ec *executionContext) _ServiceRequest_Meta(ctx context.Context, field grap
 	return ec.marshalOMap2map(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _ServiceRequestsCount_total(ctx context.Context, field graphql.CollectedField, obj *domain.ServiceRequestsCount) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "ServiceRequestsCount",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Total, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(int)
-	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) _ServiceRequestsCount_requestsTypeCount(ctx context.Context, field graphql.CollectedField, obj *domain.ServiceRequestsCount) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -19088,6 +19059,76 @@ func (ec *executionContext) _ServiceRequestsCount_requestsTypeCount(ctx context.
 	res := resTmp.([]*domain.RequestTypeCount)
 	fc.Result = res
 	return ec.marshalNRequestTypeCount2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐRequestTypeCountᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ServiceRequestsCountResponse_clientsServiceRequestCount(ctx context.Context, field graphql.CollectedField, obj *domain.ServiceRequestsCountResponse) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ServiceRequestsCountResponse",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ClientsServiceRequestCount, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*domain.ServiceRequestsCount)
+	fc.Result = res
+	return ec.marshalNServiceRequestsCount2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐServiceRequestsCount(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ServiceRequestsCountResponse_staffServiceRequestCount(ctx context.Context, field graphql.CollectedField, obj *domain.ServiceRequestsCountResponse) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ServiceRequestsCountResponse",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.StaffServiceRequestCount, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*domain.ServiceRequestsCount)
+	fc.Result = res
+	return ec.marshalNServiceRequestsCount2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐServiceRequestsCount(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Spam_flag(ctx context.Context, field graphql.CollectedField, obj *domain.Spam) (ret graphql.Marshaler) {
@@ -24875,13 +24916,40 @@ func (ec *executionContext) _ServiceRequestsCount(ctx context.Context, sel ast.S
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("ServiceRequestsCount")
-		case "total":
-			out.Values[i] = ec._ServiceRequestsCount_total(ctx, field, obj)
+		case "requestsTypeCount":
+			out.Values[i] = ec._ServiceRequestsCount_requestsTypeCount(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "requestsTypeCount":
-			out.Values[i] = ec._ServiceRequestsCount_requestsTypeCount(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var serviceRequestsCountResponseImplementors = []string{"ServiceRequestsCountResponse"}
+
+func (ec *executionContext) _ServiceRequestsCountResponse(ctx context.Context, sel ast.SelectionSet, obj *domain.ServiceRequestsCountResponse) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, serviceRequestsCountResponseImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ServiceRequestsCountResponse")
+		case "clientsServiceRequestCount":
+			out.Values[i] = ec._ServiceRequestsCountResponse_clientsServiceRequestCount(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "staffServiceRequestCount":
+			out.Values[i] = ec._ServiceRequestsCountResponse_staffServiceRequestCount(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -26449,10 +26517,6 @@ func (ec *executionContext) marshalNServiceRequestType2githubᚗcomᚋsavannahgh
 	return v
 }
 
-func (ec *executionContext) marshalNServiceRequestsCount2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐServiceRequestsCount(ctx context.Context, sel ast.SelectionSet, v domain.ServiceRequestsCount) graphql.Marshaler {
-	return ec._ServiceRequestsCount(ctx, sel, &v)
-}
-
 func (ec *executionContext) marshalNServiceRequestsCount2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐServiceRequestsCount(ctx context.Context, sel ast.SelectionSet, v *domain.ServiceRequestsCount) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
@@ -26461,6 +26525,20 @@ func (ec *executionContext) marshalNServiceRequestsCount2ᚖgithubᚗcomᚋsavan
 		return graphql.Null
 	}
 	return ec._ServiceRequestsCount(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNServiceRequestsCountResponse2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐServiceRequestsCountResponse(ctx context.Context, sel ast.SelectionSet, v domain.ServiceRequestsCountResponse) graphql.Marshaler {
+	return ec._ServiceRequestsCountResponse(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNServiceRequestsCountResponse2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐServiceRequestsCountResponse(ctx context.Context, sel ast.SelectionSet, v *domain.ServiceRequestsCountResponse) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._ServiceRequestsCountResponse(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNShareContentInput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐShareContentInput(ctx context.Context, v interface{}) (dto.ShareContentInput, error) {

@@ -244,8 +244,12 @@ type RequestTypeCount {
 }
 
 type ServiceRequestsCount {
-  total: Int!
   requestsTypeCount: [RequestTypeCount!]!
+}
+
+type ServiceRequestsCountResponse {
+  clientsServiceRequestCount: ServiceRequestsCount!
+  staffServiceRequestCount: ServiceRequestsCount!
 }
 
 type Community {

@@ -41,6 +41,12 @@ type ServiceRequestsCount struct {
 	RequestsTypeCount []*RequestTypeCount `json:"requestsTypeCount"`
 }
 
+// ServiceRequestsCountResponse returns both clients and staff service requests
+type ServiceRequestsCountResponse struct {
+	ClientsServiceRequestCount *ServiceRequestsCount `json:"clientServiceRequestCount"`
+	StaffServiceRequestCount   *ServiceRequestsCount `json:"staffServiceRequestCount"`
+}
+
 // UpdateServiceRequestsPayload defined a list of service requests to synchronize MyCareHub with.
 type UpdateServiceRequestsPayload struct {
 	ServiceRequests []ServiceRequest `json:"serviceRequests" validate:"required"`

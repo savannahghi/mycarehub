@@ -50,7 +50,7 @@ type ISetInProgresssBy interface {
 type IGetServiceRequests interface {
 	GetServiceRequests(ctx context.Context, requestType, requestStatus *string, facilityID string, flavour feedlib.Flavour) ([]*domain.ServiceRequest, error)
 	GetServiceRequestsForKenyaEMR(ctx context.Context, payload *dto.ServiceRequestPayload) ([]*domain.ServiceRequest, error)
-	GetPendingServiceRequestsCount(ctx context.Context, facilityID string, flavour feedlib.Flavour) (*domain.ServiceRequestsCount, error)
+	GetPendingServiceRequestsCount(ctx context.Context, facilityID string) (*domain.ServiceRequestsCountResponse, error)
 }
 
 // IResolveServiceRequest is an interface that holds the method signature for resolving a service request
@@ -202,8 +202,8 @@ func (u *UseCasesServiceRequestImpl) GetServiceRequestsForKenyaEMR(ctx context.C
 }
 
 // GetPendingServiceRequestsCount gets the total number of service requests
-func (u *UseCasesServiceRequestImpl) GetPendingServiceRequestsCount(ctx context.Context, facilityID string, flavour feedlib.Flavour) (*domain.ServiceRequestsCount, error) {
-	return u.Query.GetPendingServiceRequestsCount(ctx, facilityID, flavour)
+func (u *UseCasesServiceRequestImpl) GetPendingServiceRequestsCount(ctx context.Context, facilityID string) (*domain.ServiceRequestsCountResponse, error) {
+	return u.Query.GetPendingServiceRequestsCount(ctx, facilityID)
 }
 
 // ResolveServiceRequest resolves a service request

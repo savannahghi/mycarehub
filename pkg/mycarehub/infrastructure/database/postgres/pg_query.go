@@ -584,20 +584,26 @@ func (d *MyCareHubDb) CheckIfUserBookmarkedContent(ctx context.Context, userID s
 }
 
 // GetPendingServiceRequestsCount gets the total number of service requests
-func (d *MyCareHubDb) GetPendingServiceRequestsCount(ctx context.Context, facilityID string, flavour feedlib.Flavour) (*domain.ServiceRequestsCount, error) {
+func (d *MyCareHubDb) GetPendingServiceRequestsCount(ctx context.Context, facilityID string) (*domain.ServiceRequestsCountResponse, error) {
 	if facilityID == "" {
 		return nil, fmt.Errorf("facility ID cannot be empty")
 	}
-	switch flavour {
-	case feedlib.FlavourConsumer:
-		return d.query.GetPendingServiceRequestsCount(ctx, facilityID)
-
-	case feedlib.FlavourPro:
-		return d.query.GetStaffPendingServiceRequestsCount(ctx, facilityID)
-
-	default:
-		return nil, fmt.Errorf("invalid flavour %v provided", flavour)
+	clientsPendingServiceRequestsCount, err := d.query.GetClientsPendingServiceRequestsCount(ctx, facilityID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, fmt.Errorf("failed to fetch clients pending service requests count: %v", err)
 	}
+
+	staffPendingServiceRequestsCount, err := d.query.GetStaffPendingServiceRequestsCount(ctx, facilityID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, fmt.Errorf("failed to fetch staff pending service requests count: %v", err)
+	}
+
+	return &domain.ServiceRequestsCountResponse{
+		ClientsServiceRequestCount: clientsPendingServiceRequestsCount,
+		StaffServiceRequestCount:   staffPendingServiceRequestsCount,
+	}, nil
 
 }
 
