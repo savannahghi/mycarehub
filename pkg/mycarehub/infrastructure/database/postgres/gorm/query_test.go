@@ -1871,7 +1871,7 @@ func TestPGInstance_GetClientByClientID(t *testing.T) {
 	}
 }
 
-func TestPGInstance_GetPendingServiceRequestsCount(t *testing.T) {
+func TestPGInstance_GetClientsPendingServiceRequestsCount(t *testing.T) {
 	ctx := context.Background()
 	type args struct {
 		ctx        context.Context
@@ -1901,9 +1901,9 @@ func TestPGInstance_GetPendingServiceRequestsCount(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := testingDB.GetPendingServiceRequestsCount(tt.args.ctx, tt.args.facilityID)
+			_, err := testingDB.GetClientsPendingServiceRequestsCount(tt.args.ctx, tt.args.facilityID)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("PGInstance.GetPendingServiceRequestsCount() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("PGInstance.GetClientsPendingServiceRequestsCount() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 

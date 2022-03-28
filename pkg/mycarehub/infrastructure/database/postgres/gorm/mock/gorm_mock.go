@@ -1190,8 +1190,8 @@ func (gm *GormMock) GetClientProfileByClientID(ctx context.Context, clientID str
 	return gm.MockGetClientProfileByClientIDFn(ctx, clientID)
 }
 
-// GetPendingServiceRequestsCount mocks the implementation of getting the service requests count
-func (gm *GormMock) GetPendingServiceRequestsCount(ctx context.Context, facilityID string) (*domain.ServiceRequestsCount, error) {
+// GetClientsPendingServiceRequestsCount mocks the implementation of getting the service requests count
+func (gm *GormMock) GetClientsPendingServiceRequestsCount(ctx context.Context, facilityID string) (*domain.ServiceRequestsCount, error) {
 	return gm.MockGetPendingServiceRequestsCountFn(ctx, facilityID)
 }
 

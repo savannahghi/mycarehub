@@ -79,7 +79,7 @@ type PostgresMock struct {
 	MockUpdateClientCaregiverFn                          func(ctx context.Context, caregiverInput *dto.CaregiverInput) error
 	MockInProgressByFn                                   func(ctx context.Context, requestID string, staffID string) (bool, error)
 	MockGetClientProfileByClientIDFn                     func(ctx context.Context, clientID string) (*domain.ClientProfile, error)
-	MockGetPendingServiceRequestsCountFn                 func(ctx context.Context, facilityID string, flavour feedlib.Flavour) (*domain.ServiceRequestsCount, error)
+	MockGetPendingServiceRequestsCountFn                 func(ctx context.Context, facilityID string) (*domain.ServiceRequestsCountResponse, error)
 	MockGetServiceRequestsFn                             func(ctx context.Context, requestType, requestStatus *string, facilityID string, flavour feedlib.Flavour) ([]*domain.ServiceRequest, error)
 	MockResolveServiceRequestFn                          func(ctx context.Context, staffID *string, serviceRequestID *string, status string) (bool, error)
 	MockCreateCommunityFn                                func(ctx context.Context, community *dto.CommunityInput) (*domain.Community, error)
@@ -345,6 +345,28 @@ func NewPostgresMock() *PostgresMock {
 		MockAcceptTermsFn: func(ctx context.Context, userID *string, termsID *int) (bool, error) {
 			return true, nil
 		},
+		MockGetPendingServiceRequestsCountFn: func(ctx context.Context, facilityID string) (*domain.ServiceRequestsCountResponse, error) {
+			return &domain.ServiceRequestsCountResponse{
+				ClientsServiceRequestCount: &domain.ServiceRequestsCount{
+					Total: 0,
+					RequestsTypeCount: []*domain.RequestTypeCount{
+						{
+							RequestType: "test",
+							Total:       0,
+						},
+					},
+				},
+				StaffServiceRequestCount: &domain.ServiceRequestsCount{
+					Total: 0,
+					RequestsTypeCount: []*domain.RequestTypeCount{
+						{
+							RequestType: "test",
+							Total:       0,
+						},
+					},
+				},
+			}, nil
+		},
 		MockSavePinFn: func(ctx context.Context, pin *domain.UserPIN) (bool, error) {
 			return true, nil
 		},
@@ -543,17 +565,6 @@ func NewPostgresMock() *PostgresMock {
 		},
 		MockUpdateClientCaregiverFn: func(ctx context.Context, caregiverInput *dto.CaregiverInput) error {
 			return nil
-		},
-		MockGetPendingServiceRequestsCountFn: func(ctx context.Context, facilityID string, flavour feedlib.Flavour) (*domain.ServiceRequestsCount, error) {
-			return &domain.ServiceRequestsCount{
-				Total: 5,
-				RequestsTypeCount: []*domain.RequestTypeCount{
-					{
-						RequestType: enums.ServiceRequestTypeRedFlag,
-						Total:       1,
-					},
-				},
-			}, nil
 		},
 		MockCreateCommunityFn: func(ctx context.Context, communityInput *dto.CommunityInput) (*domain.Community, error) {
 			return &domain.Community{
@@ -1117,8 +1128,8 @@ func (gm *PostgresMock) GetClientProfileByClientID(ctx context.Context, clientID
 }
 
 // GetPendingServiceRequestsCount mocks the implementation of getting the service requests count
-func (gm *PostgresMock) GetPendingServiceRequestsCount(ctx context.Context, facilityID string, flavour feedlib.Flavour) (*domain.ServiceRequestsCount, error) {
-	return gm.MockGetPendingServiceRequestsCountFn(ctx, facilityID, flavour)
+func (gm *PostgresMock) GetPendingServiceRequestsCount(ctx context.Context, facilityID string) (*domain.ServiceRequestsCountResponse, error) {
+	return gm.MockGetPendingServiceRequestsCountFn(ctx, facilityID)
 }
 
 // GetServiceRequests mocks the implementation of getting all service requests for a client
