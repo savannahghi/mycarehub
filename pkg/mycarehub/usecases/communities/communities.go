@@ -359,6 +359,7 @@ func (us *UseCasesCommunitiesImpl) ListCommunityMembers(ctx context.Context, com
 			Name:      member.User.Name,
 			Role:      member.User.Role,
 			UserID:    metaData.UserID,
+			Username:  metaData.NickName,
 			ExtraData: extraData,
 		}
 

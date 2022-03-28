@@ -22,9 +22,11 @@ type ICheckUserPermission interface {
 	CheckUserPermission(ctx context.Context, permission enums.PermissionType) error
 }
 
-// IAssignRoles contains methods to assign roles to a user
-type IAssignRoles interface {
+// IManageRoles contains methods to manage user roles
+type IManageRoles interface {
 	AssignRoles(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error)
+	RevokeRoles(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error)
+	AssignOrRevokeRoles(ctx context.Context, userID string, roles []*enums.UserRoleType) (bool, error)
 }
 
 // IGetRoles contains methods that get the roles
@@ -38,19 +40,13 @@ type IGetPermissions interface {
 	GetUserPermissions(ctx context.Context, userID string) ([]*domain.AuthorityPermission, error)
 }
 
-// IRevokeRoles contains methods that revoke roles from a user
-type IRevokeRoles interface {
-	RevokeRoles(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error)
-}
-
 // UsecaseAuthority groups al the interfaces for the Authority usecase
 type UsecaseAuthority interface {
 	ICheckUserRole
 	ICheckUserPermission
-	IAssignRoles
+	IManageRoles
 	IGetRoles
 	IGetPermissions
-	IRevokeRoles
 }
 
 // UsecaseAuthorityImpl represents the Authority implementation
@@ -221,4 +217,49 @@ func (u *UsecaseAuthorityImpl) GetAllRoles(ctx context.Context) ([]*domain.Autho
 		return nil, exceptions.GetAllRolesErr(err)
 	}
 	return roles, nil
+}
+
+// AssignOrRevokeRoles assigns the specified roles to the user
+func (u *UsecaseAuthorityImpl) AssignOrRevokeRoles(ctx context.Context, userID string, roles []*enums.UserRoleType) (bool, error) {
+	if userID == "" {
+		err := fmt.Errorf("userID must not be empty")
+		helpers.ReportErrorToSentry(err)
+		return false, exceptions.EmptyInputErr(err)
+	}
+
+	newRoles := []enums.UserRoleType{}
+	for _, role := range roles {
+		if role != nil {
+			newRoles = append(newRoles, *role)
+		}
+	}
+
+	err := u.CheckUserPermission(ctx, enums.PermissionTypeCanEditUserRole)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, exceptions.UserNotAuthorizedErr(err)
+	}
+
+	currentRoles, err := u.Query.GetUserRoles(ctx, userID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, exceptions.GetUserRolesErr(err)
+	}
+
+	currentRoleList := []enums.UserRoleType{}
+	for _, role := range currentRoles {
+		currentRoleList = append(currentRoleList, role.Name)
+	}
+	_, err = u.Update.RevokeRoles(ctx, userID, currentRoleList)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, exceptions.RevokeRolesErr(err)
+	}
+
+	_, err = u.Update.AssignRoles(ctx, userID, newRoles)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, exceptions.AssignRolesErr(err)
+	}
+	return true, nil
 }
