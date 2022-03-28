@@ -246,6 +246,16 @@ func TestUseCasesUserImpl_Login_Unittest(t *testing.T) {
 			},
 			wantErr: true,
 		},
+		{
+			name: "Sad Case - unable to get client ccc number identifier value",
+			args: args{
+				ctx:         ctx,
+				phoneNumber: interserviceclient.TestUserPhoneNumber,
+				pin:         PIN,
+				flavour:     feedlib.FlavourConsumer,
+			},
+			wantErr: true,
+		},
 	}
 
 	for _, tt := range tests {
@@ -369,6 +379,11 @@ func TestUseCasesUserImpl_Login_Unittest(t *testing.T) {
 			if tt.name == "Sad Case - client has pending pin reset request" {
 				fakeDB.MockCheckIfClientHasUnresolvedServiceRequestsFn = func(ctx context.Context, clientID string, serviceRequestType string) (bool, error) {
 					return true, nil
+				}
+			}
+			if tt.name == "Sad Case - unable to get client ccc number identifier value" {
+				fakeDB.MockGetClientCCCIdentifier = func(ctx context.Context, clientID string) (*domain.Identifier, error) {
+					return nil, fmt.Errorf("failed to get client ccc number identifier value")
 				}
 			}
 

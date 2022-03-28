@@ -128,4 +128,7 @@ func TestCustomErrors(t *testing.T) {
 
 	err = exceptions.SecurityQuestionResponseMismatchErr(fmt.Errorf("error"))
 	assert.NotNil(t, err)
+
+	err = exceptions.ClientCCCIdentifierNotFoundErr(fmt.Errorf("error"))
+	assert.NotNil(t, err)
 }
