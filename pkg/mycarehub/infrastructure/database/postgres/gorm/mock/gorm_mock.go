@@ -127,6 +127,8 @@ type GormMock struct {
 	MockResolveStaffServiceRequestFn                     func(ctx context.Context, staffID *string, serviceRequestID *string, verificationStatus string) (bool, error)
 	MockGetAppointmentServiceRequestsFn                  func(ctx context.Context, lastSyncTime time.Time) ([]*gorm.ClientServiceRequest, error)
 	MockGetAppointmentByIDFn                             func(ctx context.Context, appointmentID string) (*gorm.Appointment, error)
+	MockUpdateFacilityFn                                 func(ctx context.Context, facility *gorm.Facility, updateData map[string]interface{}) error
+	MockGetFacilitiesWithoutFHIRIDFn                     func(ctx context.Context) ([]*gorm.Facility, error)
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -347,6 +349,9 @@ func NewGormMock() *GormMock {
 		MockRetrieveFacilityByMFLCodeFn: func(ctx context.Context, MFLCode int, isActive bool) (*gorm.Facility, error) {
 			return facility, nil
 		},
+		MockUpdateFacilityFn: func(ctx context.Context, facility *gorm.Facility, updateData map[string]interface{}) error {
+			return nil
+		},
 		MockListFacilitiesFn: func(ctx context.Context, searchTerm *string, filter []*domain.FiltersParam, pagination *domain.FacilityPage) (*domain.FacilityPage, error) {
 			return facilitiesPage, nil
 		},
@@ -425,6 +430,9 @@ func NewGormMock() *GormMock {
 		},
 		MockSaveTemporaryUserPinFn: func(ctx context.Context, pinData *gorm.PINData) (bool, error) {
 			return true, nil
+		},
+		MockGetFacilitiesWithoutFHIRIDFn: func(ctx context.Context) ([]*gorm.Facility, error) {
+			return []*gorm.Facility{facility}, nil
 		},
 		MockAcceptTermsFn: func(ctx context.Context, userID *string, termsID *int) (bool, error) {
 			return true, nil
@@ -1491,4 +1499,14 @@ func (gm *GormMock) GetAppointmentServiceRequests(ctx context.Context, lastSyncT
 // GetAppointmentByID mocks the implementation of getting appointment by ID
 func (gm *GormMock) GetAppointmentByID(ctx context.Context, appointmentID string) (*gorm.Appointment, error) {
 	return gm.MockGetAppointmentByIDFn(ctx, appointmentID)
+}
+
+// UpdateFacility mocks the implementation of updating a facility
+func (gm *GormMock) UpdateFacility(ctx context.Context, facility *gorm.Facility, updateData map[string]interface{}) error {
+	return gm.MockUpdateFacilityFn(ctx, facility, updateData)
+}
+
+// GetFacilitiesWithoutFHIRID mocks the implementation of getting a facility without FHIR Organisation
+func (gm *GormMock) GetFacilitiesWithoutFHIRID(ctx context.Context) ([]*gorm.Facility, error) {
+	return gm.MockGetFacilitiesWithoutFHIRIDFn(ctx)
 }

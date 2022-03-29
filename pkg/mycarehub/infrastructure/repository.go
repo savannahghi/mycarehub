@@ -41,6 +41,7 @@ type Delete interface {
 type Query interface {
 	RetrieveFacility(ctx context.Context, id *string, isActive bool) (*domain.Facility, error)
 	GetFacilities(ctx context.Context) ([]*domain.Facility, error)
+	GetFacilitiesWithoutFHIRID(ctx context.Context) ([]*domain.Facility, error)
 	RetrieveFacilityByMFLCode(ctx context.Context, MFLCode int, isActive bool) (*domain.Facility, error)
 	ListFacilities(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationsInput *dto.PaginationsInput) (*domain.FacilityPage, error)
 	GetUserProfileByPhoneNumber(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*domain.User, error)
@@ -101,6 +102,7 @@ type Query interface {
 type Update interface {
 	InactivateFacility(ctx context.Context, mflCode *int) (bool, error)
 	ReactivateFacility(ctx context.Context, mflCode *int) (bool, error)
+	UpdateFacility(ctx context.Context, facility *domain.Facility, updateData map[string]interface{}) error
 	AcceptTerms(ctx context.Context, userID *string, termsID *int) (bool, error)
 	UpdateUserFailedLoginCount(ctx context.Context, userID string, failedLoginAttempts int) error
 	UpdateUserLastFailedLoginTime(ctx context.Context, userID string) error

@@ -16,6 +16,7 @@ import (
 type Update interface {
 	InactivateFacility(ctx context.Context, mflCode *int) (bool, error)
 	ReactivateFacility(ctx context.Context, mflCode *int) (bool, error)
+	UpdateFacility(ctx context.Context, facility *Facility, updateData map[string]interface{}) error
 	AcceptTerms(ctx context.Context, userID *string, termsID *int) (bool, error)
 	UpdateUserFailedLoginCount(ctx context.Context, userID string, failedLoginAttempts int) error
 	UpdateUserLastFailedLoginTime(ctx context.Context, userID string) error
@@ -1011,6 +1012,17 @@ func (db *PGInstance) UpdateUser(ctx context.Context, user *User, updateData map
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return fmt.Errorf("unable to update user: %v", err)
+	}
+
+	return nil
+}
+
+// UpdateFacility updates the facility model
+func (db *PGInstance) UpdateFacility(ctx context.Context, facility *Facility, updateData map[string]interface{}) error {
+	err := db.DB.Model(&Facility{}).Where(&Facility{FacilityID: facility.FacilityID}).Updates(updateData).Error
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return fmt.Errorf("unable to update facility: %v", err)
 	}
 
 	return nil

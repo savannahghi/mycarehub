@@ -41,13 +41,14 @@ func (d *MyCareHubDb) GetFacilities(ctx context.Context) ([]*domain.Facility, er
 	}
 	for _, m := range facilities {
 		singleFacility := domain.Facility{
-			ID:          m.FacilityID,
-			Name:        m.Name,
-			Code:        m.Code,
-			Phone:       m.Phone,
-			Active:      m.Active,
-			County:      m.County,
-			Description: m.Description,
+			ID:                 m.FacilityID,
+			Name:               m.Name,
+			Code:               m.Code,
+			Phone:              m.Phone,
+			Active:             m.Active,
+			County:             m.County,
+			Description:        m.Description,
+			FHIROrganisationID: m.FHIROrganisationID,
 		}
 
 		facility = append(facility, &singleFacility)
@@ -1526,4 +1527,29 @@ func (d *MyCareHubDb) GetAppointmentServiceRequests(ctx context.Context, lastSyn
 	}
 
 	return appointmentServiceRequests, nil
+}
+
+// GetFacilitiesWithoutFHIRID fetches all facilities without FHIR Organisation ID
+func (d *MyCareHubDb) GetFacilitiesWithoutFHIRID(ctx context.Context) ([]*domain.Facility, error) {
+	var facilities []*domain.Facility
+	results, err := d.query.GetFacilitiesWithoutFHIRID(ctx)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
+	for _, f := range results {
+		facilities = append(facilities, &domain.Facility{
+			ID:                 f.FacilityID,
+			Name:               f.Name,
+			Code:               f.Code,
+			Phone:              f.Phone,
+			Active:             f.Active,
+			County:             f.County,
+			Description:        f.Description,
+			FHIROrganisationID: f.FHIROrganisationID,
+		})
+	}
+
+	return facilities, nil
 }

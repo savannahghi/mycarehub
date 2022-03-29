@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	stream "github.com/GetStream/stream-chat-go/v5"
+	"github.com/google/uuid"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/getstream"
 )
@@ -769,6 +770,96 @@ func TestChatClient_DeleteUsers(t *testing.T) {
 			}
 			if !tt.wantErr && got == nil {
 				t.Errorf("ChatClient.DeleteUsers() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestChatClient_ListFlaggedMessages(t *testing.T) {
+	ctx := context.Background()
+
+	type args struct {
+		ctx   context.Context
+		input *stream.QueryOption
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *stream.QueryMessageFlagsResponse
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx: ctx,
+				input: &stream.QueryOption{
+					Filter: map[string]interface{}{
+						"channel_cid": channelID,
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case",
+			args: args{
+				ctx: ctx,
+				input: &stream.QueryOption{
+					Filter: map[string]interface{}{
+						"channel_cid": uuid.New().String(),
+					},
+				},
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := c.ListFlaggedMessages(tt.args.ctx, tt.args.input)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ChatClient.ListFlaggedMessages() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected a response but got: %v", got)
+				return
+			}
+		})
+	}
+}
+
+func TestChatClient_DeleteMessage(t *testing.T) {
+	ctx := context.Background()
+
+	type args struct {
+		ctx       context.Context
+		messageID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *stream.Response
+		wantErr bool
+	}{
+		{
+			name: "Sad case",
+			args: args{
+				ctx:       ctx,
+				messageID: uuid.New().String(),
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := c.DeleteMessage(tt.args.ctx, tt.args.messageID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ChatClient.DeleteMessage() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected a response but got: %v", got)
+				return
 			}
 		})
 	}

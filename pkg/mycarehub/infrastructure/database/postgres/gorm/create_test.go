@@ -24,13 +24,15 @@ func TestPGInstance_GetOrCreateFacility(t *testing.T) {
 	code := rand.Intn(1000000)
 	county := gofakeit.Name()
 	description := gofakeit.HipsterSentence(15)
+	FHIROrganisationID := uuid.New().String()
 
 	facility := &gorm.Facility{
-		Name:        name,
-		Code:        code,
-		Active:      true,
-		County:      county,
-		Description: description,
+		Name:               name,
+		Code:               code,
+		Active:             true,
+		County:             county,
+		Description:        description,
+		FHIROrganisationID: FHIROrganisationID,
 	}
 
 	invalidFacility := &gorm.Facility{
@@ -954,19 +956,40 @@ func TestPGInstance_CreateAppointment(t *testing.T) {
 			args: args{
 				ctx: context.Background(),
 				appointment: &gorm.Appointment{
-					Active:          true,
-					AppointmentUUID: gofakeit.UUID(),
-					AppointmentType: "Dental",
-					Status:          enums.AppointmentStatusCompleted.String(),
-					ClientID:        clientID,
-					FacilityID:      facilityID,
-					Reason:          "Knocked up",
-					Date:            time.Now().Add(time.Duration(100)),
-					StartTime:       gorm.CustomTime{Time: time.Now()},
-					EndTime:         gorm.CustomTime{Time: time.Now().Add(30 * time.Minute)},
+					Active:                    true,
+					AppointmentUUID:           gofakeit.UUID(),
+					AppointmentType:           "Dental",
+					Status:                    enums.AppointmentStatusCompleted.String(),
+					ClientID:                  clientID,
+					FacilityID:                facilityID,
+					Reason:                    "Knocked up",
+					Date:                      time.Now().Add(time.Duration(100)),
+					StartTime:                 gorm.CustomTime{Time: time.Now()},
+					EndTime:                   gorm.CustomTime{Time: time.Now().Add(30 * time.Minute)},
+					HasRescheduledAppointment: true,
 				},
 			},
 			wantErr: false,
+		},
+		{
+			name: "Sad case: unable to create an appointment",
+			args: args{
+				ctx: context.Background(),
+				appointment: &gorm.Appointment{
+					Active:                    true,
+					AppointmentUUID:           gofakeit.UUID(),
+					AppointmentType:           "Dental",
+					Status:                    enums.AppointmentStatusCompleted.String(),
+					ClientID:                  clientID,
+					FacilityID:                "facilityID",
+					Reason:                    "Knocked up",
+					Date:                      time.Now().Add(time.Duration(100)),
+					StartTime:                 gorm.CustomTime{Time: time.Now()},
+					EndTime:                   gorm.CustomTime{Time: time.Now().Add(30 * time.Minute)},
+					HasRescheduledAppointment: true,
+				},
+			},
+			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
@@ -1026,6 +1049,24 @@ func TestPGInstance_CreateStaffServiceRequest(t *testing.T) {
 					ResolvedAt:     &currentTime,
 					StaffID:        "staffID",
 					OrganisationID: orgID,
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case - invalid metadata",
+			args: args{
+				ctx: ctx,
+				serviceRequestInput: &gorm.StaffServiceRequest{
+					ID:             &ID,
+					Active:         true,
+					RequestType:    gofakeit.BeerName(),
+					Request:        gofakeit.BeerName(),
+					Status:         gofakeit.BeerName(),
+					ResolvedAt:     &currentTime,
+					StaffID:        "staffID",
+					OrganisationID: orgID,
+					Meta:           "meta",
 				},
 			},
 			wantErr: true,

@@ -22,6 +22,7 @@ type Query interface {
 	RetrieveFacility(ctx context.Context, id *string, isActive bool) (*Facility, error)
 	RetrieveFacilityByMFLCode(ctx context.Context, MFLCode int, isActive bool) (*Facility, error)
 	GetFacilities(ctx context.Context) ([]Facility, error)
+	GetFacilitiesWithoutFHIRID(ctx context.Context) ([]*Facility, error)
 	ListFacilities(ctx context.Context, searchTerm *string, filter []*domain.FiltersParam, pagination *domain.FacilityPage) (*domain.FacilityPage, error)
 	ListAppointments(ctx context.Context, params *Appointment, filters []*firebasetools.FilterParam, pagination *domain.Pagination) ([]*Appointment, *domain.Pagination, error)
 	GetUserProfileByPhoneNumber(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*User, error)
@@ -176,6 +177,19 @@ func (db *PGInstance) GetFacilities(ctx context.Context) ([]Facility, error) {
 		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed to query all facilities %v", err)
 	}
+	return facility, nil
+}
+
+// GetFacilitiesWithoutFHIRID fetches all the healthcare facilities in the platform without FHIR Organisation ID
+func (db *PGInstance) GetFacilitiesWithoutFHIRID(ctx context.Context) ([]*Facility, error) {
+	var facility []*Facility
+	err := db.DB.Raw(
+		`SELECT * FROM common_facility WHERE fhir_organization_id IS NULL`).Scan(&facility).Error
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, fmt.Errorf("failed to query all facilities %v", err)
+	}
+
 	return facility, nil
 }
 

@@ -77,6 +77,7 @@ type PostgresMock struct {
 	MockCreateClientCaregiverFn                          func(ctx context.Context, caregiverInput *dto.CaregiverInput) error
 	MockGetClientCaregiverFn                             func(ctx context.Context, caregiverID string) (*domain.Caregiver, error)
 	MockUpdateClientCaregiverFn                          func(ctx context.Context, caregiverInput *dto.CaregiverInput) error
+	MockUpdateFacilityFn                                 func(ctx context.Context, facility *domain.Facility, updateData map[string]interface{}) error
 	MockInProgressByFn                                   func(ctx context.Context, requestID string, staffID string) (bool, error)
 	MockGetClientProfileByClientIDFn                     func(ctx context.Context, clientID string) (*domain.ClientProfile, error)
 	MockGetPendingServiceRequestsCountFn                 func(ctx context.Context, facilityID string) (*domain.ServiceRequestsCountResponse, error)
@@ -120,6 +121,7 @@ type PostgresMock struct {
 	MockGetHealthDiaryEntryByIDFn                        func(ctx context.Context, healthDiaryEntryID string) (*domain.ClientHealthDiaryEntry, error)
 	MockUpdateClientFn                                   func(ctx context.Context, client *domain.ClientProfile, updates map[string]interface{}) (*domain.ClientProfile, error)
 	MockUpdateFailedSecurityQuestionsAnsweringAttemptsFn func(ctx context.Context, userID string, failCount int) error
+	MockGetFacilitiesWithoutFHIRIDFn                     func(ctx context.Context) ([]*domain.Facility, error)
 	MockGetServiceRequestByIDFn                          func(ctx context.Context, id string) (*domain.ServiceRequest, error)
 	MockUpdateUserFn                                     func(ctx context.Context, user *domain.User, updateData map[string]interface{}) error
 	MockGetStaffProfileByStaffIDFn                       func(ctx context.Context, staffID string) (*domain.StaffProfile, error)
@@ -661,6 +663,9 @@ func NewPostgresMock() *PostgresMock {
 				client,
 			}, nil
 		},
+		MockGetFacilitiesWithoutFHIRIDFn: func(ctx context.Context) ([]*domain.Facility, error) {
+			return []*domain.Facility{facilityInput}, nil
+		},
 		MockGetRecentHealthDiaryEntriesFn: func(ctx context.Context, lastSyncTime time.Time, clientID string) ([]*domain.ClientHealthDiaryEntry, error) {
 			return []*domain.ClientHealthDiaryEntry{
 				{
@@ -771,6 +776,9 @@ func NewPostgresMock() *PostgresMock {
 		},
 		MockResolveStaffServiceRequestFn: func(ctx context.Context, staffID, serviceRequestID *string, verificationStatus string) (bool, error) {
 			return true, nil
+		},
+		MockUpdateFacilityFn: func(ctx context.Context, facility *domain.Facility, updateData map[string]interface{}) error {
+			return nil
 		},
 		MockGetClientProfileByCCCNumberFn: func(ctx context.Context, CCCNumber string) (*domain.ClientProfile, error) {
 			return client, nil
@@ -1380,4 +1388,14 @@ func (gm *PostgresMock) ResolveStaffServiceRequest(ctx context.Context, staffID 
 // GetAppointmentServiceRequests mocks the implementation of getting appointments and service requests
 func (gm *PostgresMock) GetAppointmentServiceRequests(ctx context.Context, lastSyncTime time.Time, mflCode string) ([]domain.AppointmentServiceRequests, error) {
 	return gm.MockGetAppointmentServiceRequestsFn(ctx, lastSyncTime, mflCode)
+}
+
+// UpdateFacility mocks the implementation of updating a facility
+func (gm *PostgresMock) UpdateFacility(ctx context.Context, facility *domain.Facility, updateData map[string]interface{}) error {
+	return gm.MockUpdateFacilityFn(ctx, facility, updateData)
+}
+
+// GetFacilitiesWithoutFHIRID mocks the implementation of getting a facility without FHIR Organisation
+func (gm *PostgresMock) GetFacilitiesWithoutFHIRID(ctx context.Context) ([]*domain.Facility, error) {
+	return gm.MockGetFacilitiesWithoutFHIRIDFn(ctx)
 }

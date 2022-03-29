@@ -12,6 +12,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	pgMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/mock"
+	pubsubMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/pubsub/mock"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/facility"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/facility/mock"
 )
@@ -81,8 +82,9 @@ func TestUnit_CreateFacility(t *testing.T) {
 
 			fakeDB := pgMock.NewPostgresMock()
 			fakeFacility := mock.NewFacilityUsecaseMock()
+			fakePubsub := pubsubMock.NewPubsubServiceMock()
 
-			f := facility.NewFacilityUsecase(fakeDB, fakeDB, fakeDB, fakeDB)
+			f := facility.NewFacilityUsecase(fakeDB, fakeDB, fakeDB, fakeDB, fakePubsub)
 
 			if tt.name == "Happy case - Create facility" {
 				fakeDB.MockRetrieveFacilityByMFLCodeFn = func(ctx context.Context, MFLCode int, isActive bool) (*domain.Facility, error) {
@@ -150,7 +152,8 @@ func TestUseCaseFacilityImpl_RetrieveFacility_Unittest(t *testing.T) {
 			fakeFacility := mock.NewFacilityUsecaseMock()
 
 			fakeDB := pgMock.NewPostgresMock()
-			facility := facility.NewFacilityUsecase(fakeDB, fakeDB, fakeDB, fakeDB)
+			fakePubsub := pubsubMock.NewPubsubServiceMock()
+			facility := facility.NewFacilityUsecase(fakeDB, fakeDB, fakeDB, fakeDB, fakePubsub)
 
 			if tt.name == "Sad case - no id" {
 				fakeFacility.MockRetrieveFacilityFn = func(ctx context.Context, id *string, isActive bool) (*domain.Facility, error) {
@@ -209,8 +212,8 @@ func TestUseCaseFacilityImpl_RetrieveFacilityByMFLCode_Unittest(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
 			fakeFacility := mock.NewFacilityUsecaseMock()
-
-			f := facility.NewFacilityUsecase(fakeDB, fakeDB, fakeDB, fakeDB)
+			fakePubsub := pubsubMock.NewPubsubServiceMock()
+			f := facility.NewFacilityUsecase(fakeDB, fakeDB, fakeDB, fakeDB, fakePubsub)
 
 			if tt.name == "Sad case" {
 
@@ -313,8 +316,9 @@ func TestUnit_ListFacilities(t *testing.T) {
 
 			fakeDB := pgMock.NewPostgresMock()
 			fakeFacility := mock.NewFacilityUsecaseMock()
+			fakePubsub := pubsubMock.NewPubsubServiceMock()
 
-			f := facility.NewFacilityUsecase(fakeDB, fakeDB, fakeDB, fakeDB)
+			f := facility.NewFacilityUsecase(fakeDB, fakeDB, fakeDB, fakeDB, fakePubsub)
 
 			if tt.name == "Sad case- empty search term" {
 				fakeFacility.MockListFacilitiesFn = func(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationsInput *dto.PaginationsInput) (*domain.FacilityPage, error) {
@@ -409,8 +413,9 @@ func TestUseCaseFacilityImpl_Inactivate_Unittest(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
+			fakePubsub := pubsubMock.NewPubsubServiceMock()
 
-			f := facility.NewFacilityUsecase(fakeDB, fakeDB, fakeDB, fakeDB)
+			f := facility.NewFacilityUsecase(fakeDB, fakeDB, fakeDB, fakeDB, fakePubsub)
 
 			if tt.name == "Sad Case - empty mflCode" {
 				fakeDB.MockInactivateFacilityFn = func(ctx context.Context, mflCode *int) (bool, error) {
@@ -501,8 +506,9 @@ func TestUseCaseFacilityImpl_Reactivate_Unittest(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
+			fakePubsub := pubsubMock.NewPubsubServiceMock()
 
-			f := facility.NewFacilityUsecase(fakeDB, fakeDB, fakeDB, fakeDB)
+			f := facility.NewFacilityUsecase(fakeDB, fakeDB, fakeDB, fakeDB, fakePubsub)
 
 			if tt.name == "Sad Case - empty mflCode" {
 				fakeDB.MockReactivateFacilityFn = func(ctx context.Context, mflCode *int) (bool, error) {
@@ -571,8 +577,9 @@ func TestUseCaseFacilityImpl_DeleteFacility(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
 			fakeFacility := mock.NewFacilityUsecaseMock()
+			fakePubsub := pubsubMock.NewPubsubServiceMock()
 
-			f := facility.NewFacilityUsecase(fakeDB, fakeDB, fakeDB, fakeDB)
+			f := facility.NewFacilityUsecase(fakeDB, fakeDB, fakeDB, fakeDB, fakePubsub)
 
 			if tt.name == "Happy Case - Successfully delete facility" {
 				fakeFacility.DeleteFacilityFn = func(ctx context.Context, id int) (bool, error) {
@@ -620,7 +627,8 @@ func TestUseCaseFacilityImpl_FetchFacilities(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
 			_ = mock.NewFacilityUsecaseMock()
-			f := facility.NewFacilityUsecase(fakeDB, fakeDB, fakeDB, fakeDB)
+			fakePubsub := pubsubMock.NewPubsubServiceMock()
+			f := facility.NewFacilityUsecase(fakeDB, fakeDB, fakeDB, fakeDB, fakePubsub)
 
 			got, err := f.FetchFacilities(tt.args.ctx)
 			if (err != nil) != tt.wantErr {
@@ -657,7 +665,8 @@ func TestUseCaseFacilityImpl_FetchFacilities_Unittest(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
 			_ = mock.NewFacilityUsecaseMock()
-			f := facility.NewFacilityUsecase(fakeDB, fakeDB, fakeDB, fakeDB)
+			fakePubsub := pubsubMock.NewPubsubServiceMock()
+			f := facility.NewFacilityUsecase(fakeDB, fakeDB, fakeDB, fakeDB, fakePubsub)
 
 			if tt.name == "Sad case" {
 				fakeDB.MockFetchFacilitiesFn = func(ctx context.Context) ([]*domain.Facility, error) {
@@ -667,6 +676,130 @@ func TestUseCaseFacilityImpl_FetchFacilities_Unittest(t *testing.T) {
 			_, err := f.FetchFacilities(tt.args.ctx)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCaseFacilityImpl.FetchFacilities() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}
+
+func TestUseCaseFacilityImpl_SyncFacilities(t *testing.T) {
+	ctx := context.Background()
+	fakeDB := pgMock.NewPostgresMock()
+	_ = mock.NewFacilityUsecaseMock()
+	fakePubsub := pubsubMock.NewPubsubServiceMock()
+	f := facility.NewFacilityUsecase(fakeDB, fakeDB, fakeDB, fakeDB, fakePubsub)
+
+	type args struct {
+		ctx context.Context
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy Case",
+			args: args{
+				ctx: ctx,
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Sad Case - unable to notify pubsub",
+			args: args{
+				ctx: ctx,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - unable to get facilities without FHIROrganisationID",
+			args: args{
+				ctx: ctx,
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "Sad Case - unable to notify pubsub" {
+				fakePubsub.MockNotifyCreateOrganizationFn = func(ctx context.Context, facility *domain.Facility) error {
+					return fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad Case - unable to get facilities without FHIROrganisationID" {
+				fakeDB.MockGetFacilitiesWithoutFHIRIDFn = func(ctx context.Context) ([]*domain.Facility, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+
+			err := f.SyncFacilities(tt.args.ctx)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCaseFacilityImpl.SyncFacilities() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}
+
+func TestUseCaseFacilityImpl_UpdateFacility(t *testing.T) {
+	ctx := context.Background()
+	fakeDB := pgMock.NewPostgresMock()
+	_ = mock.NewFacilityUsecaseMock()
+	fakePubsub := pubsubMock.NewPubsubServiceMock()
+	f := facility.NewFacilityUsecase(fakeDB, fakeDB, fakeDB, fakeDB, fakePubsub)
+
+	UUID := uuid.New().String()
+
+	type args struct {
+		ctx                context.Context
+		updateFacilityData *dto.UpdateFacilityPayload
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy Case",
+			args: args{
+				ctx: ctx,
+				updateFacilityData: &dto.UpdateFacilityPayload{
+					FacilityID:         UUID,
+					FHIROrganisationID: UUID,
+				},
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Sad Case",
+			args: args{
+				ctx: ctx,
+				updateFacilityData: &dto.UpdateFacilityPayload{
+					FacilityID:         UUID,
+					FHIROrganisationID: UUID,
+				},
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			if tt.name == "Sad Case" {
+				fakeDB.MockUpdateFacilityFn = func(ctx context.Context, facility *domain.Facility, updateData map[string]interface{}) error {
+					return fmt.Errorf("an error occurred")
+				}
+			}
+			err := f.UpdateFacility(tt.args.ctx, tt.args.updateFacilityData)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCaseFacilityImpl.UpdateFacility() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 		})

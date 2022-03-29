@@ -87,6 +87,36 @@ func TestUseCasesServiceRequestImpl_CreateServiceRequest(t *testing.T) {
 			want:    false,
 			wantErr: true,
 		},
+		{
+			name: "Sad Case - No staff ID",
+			args: args{
+				ctx: context.Background(),
+				serviceRequestInput: &dto.ServiceRequestInput{
+					ClientID:    uuid.New().String(),
+					RequestType: "PIN_RESET",
+					Request:     "A random request",
+					Flavour:     feedlib.FlavourPro,
+					StaffID:     "",
+				},
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - No client ID",
+			args: args{
+				ctx: context.Background(),
+				serviceRequestInput: &dto.ServiceRequestInput{
+					ClientID:    "",
+					RequestType: "PIN_RESET",
+					Request:     "A random request",
+					Flavour:     feedlib.FlavourConsumer,
+					StaffID:     uuid.New().String(),
+				},
+			},
+			want:    false,
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -106,6 +136,16 @@ func TestUseCasesServiceRequestImpl_CreateServiceRequest(t *testing.T) {
 				}
 			}
 			if tt.name == "Sad Case - Fail to get staff profile by staff ID" {
+				fakeDB.MockGetStaffProfileByStaffIDFn = func(ctx context.Context, staffID string) (*domain.StaffProfile, error) {
+					return nil, fmt.Errorf("an error occurred while getting staff profile")
+				}
+			}
+			if tt.name == "Sad Case - No staff ID" {
+				fakeDB.MockGetClientProfileByClientIDFn = func(ctx context.Context, clientID string) (*domain.ClientProfile, error) {
+					return nil, fmt.Errorf("failed to get client profile")
+				}
+			}
+			if tt.name == "Sad Case - No client IDD" {
 				fakeDB.MockGetStaffProfileByStaffIDFn = func(ctx context.Context, staffID string) (*domain.StaffProfile, error) {
 					return nil, fmt.Errorf("an error occurred while getting staff profile")
 				}

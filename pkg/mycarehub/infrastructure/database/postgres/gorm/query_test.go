@@ -1601,6 +1601,14 @@ func TestPGInstance_GetSecurityQuestionResponse(t *testing.T) {
 			},
 			wantErr: true,
 		},
+		{
+			name: "sad case: invalid user ID",
+			args: args{
+				ctx:        context.Background(),
+				questionID: "securityQuestionID",
+			},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -3472,6 +3480,16 @@ func TestPGInstance_GetStaffServiceRequests(t *testing.T) {
 			wantErr: false,
 		},
 		{
+			name: "Sad case - invalid facility ID",
+			args: args{
+				ctx:           ctx,
+				requestType:   &requesttype,
+				requestStatus: &requestStatus,
+				facilityID:    "facilityID",
+			},
+			wantErr: true,
+		},
+		{
 			name: "Sad case",
 			args: args{
 				ctx: ctx,
@@ -3617,6 +3635,47 @@ func TestPGInstance_GetAppointmentByID(t *testing.T) {
 			}
 			if !tt.wantErr && got == nil {
 				t.Errorf("expected appointment not to be nil for %v", tt.name)
+				return
+			}
+		})
+	}
+}
+
+func TestPGInstance_GetFacilitiesWithoutFHIRID(t *testing.T) {
+	ctx := context.Background()
+
+	type args struct {
+		ctx context.Context
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    []*gorm.Facility
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx: ctx,
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := testingDB.GetFacilitiesWithoutFHIRID(tt.args.ctx)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.GetFacilitiesWithoutFHIRID() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			if tt.wantErr && got != nil {
+				t.Errorf("expected client to be nil for %v", tt.name)
+				return
+			}
+
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected client not to be nil for %v", tt.name)
 				return
 			}
 		})

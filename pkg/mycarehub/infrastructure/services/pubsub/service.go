@@ -8,6 +8,7 @@ import (
 	"cloud.google.com/go/pubsub"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/pubsubtools"
 	"github.com/savannahghi/serverutils"
 )
@@ -48,6 +49,7 @@ type ServicePubsub interface {
 	NotifyCreateMedication(ctx context.Context, medication *dto.PatientMedicationOutput) error
 	NotifyCreateTestOrder(ctx context.Context, testOrder *dto.PatientTestOrderOutput) error
 	NotifyCreateTestResult(ctx context.Context, testResult *dto.PatientTestResultOutput) error
+	NotifyCreateOrganization(ctx context.Context, facility *domain.Facility) error
 }
 
 // ServicePubSubMessaging is used to send and receive pubsub notifications

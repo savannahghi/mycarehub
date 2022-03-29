@@ -19,14 +19,16 @@ func TestPGInstance_DeleteFacility(t *testing.T) {
 	code := rand.Intn(1000000)
 	county := gofakeit.Name()
 	description := gofakeit.HipsterSentence(15)
+	FHIROrganisationID := uuid.New().String()
 
 	facility := &gorm.Facility{
-		FacilityID:  &ID,
-		Name:        name,
-		Code:        code,
-		Active:      true,
-		County:      county,
-		Description: description,
+		FacilityID:         &ID,
+		Name:               name,
+		Code:               code,
+		Active:             true,
+		County:             county,
+		Description:        description,
+		FHIROrganisationID: FHIROrganisationID,
 	}
 
 	facility, err := testingDB.GetOrCreateFacility(ctx, facility)

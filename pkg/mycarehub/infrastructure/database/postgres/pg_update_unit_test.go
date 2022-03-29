@@ -2236,3 +2236,75 @@ func TestMyCareHubDb_UpdateUserPinChangeRequiredStatus(t *testing.T) {
 		})
 	}
 }
+
+func TestMyCareHubDb_UpdateFacility(t *testing.T) {
+	ctx := context.Background()
+	UUID := uuid.New().String()
+	var fakeGorm = gormMock.NewGormMock()
+	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+	type args struct {
+		ctx        context.Context
+		facility   *domain.Facility
+		updateData map[string]interface{}
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx: ctx,
+				facility: &domain.Facility{
+					ID:                 &UUID,
+					FHIROrganisationID: UUID,
+				},
+				updateData: map[string]interface{}{"name": "new name"},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case",
+			args: args{
+				ctx: ctx,
+				facility: &domain.Facility{
+					ID:                 &UUID,
+					FHIROrganisationID: UUID,
+				},
+				updateData: map[string]interface{}{"name": "new name"},
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case - no ID",
+			args: args{
+				ctx: ctx,
+				facility: &domain.Facility{
+					ID:                 &UUID,
+					FHIROrganisationID: UUID,
+				},
+				updateData: map[string]interface{}{"name": "new name"},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "Sad case" {
+				fakeGorm.MockUpdateFacilityFn = func(ctx context.Context, facility *gorm.Facility, updateData map[string]interface{}) error {
+					return fmt.Errorf("failed to update facility")
+				}
+			}
+			if tt.name == "Sad case - no ID" {
+				fakeGorm.MockUpdateFacilityFn = func(ctx context.Context, facility *gorm.Facility, updateData map[string]interface{}) error {
+					return fmt.Errorf("failed to update facility")
+				}
+			}
+			if err := d.UpdateFacility(tt.args.ctx, tt.args.facility, tt.args.updateData); (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.UpdateFacility() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}

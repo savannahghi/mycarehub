@@ -15,12 +15,13 @@ import (
 
 // FacilityInput describes the facility input
 type FacilityInput struct {
-	Name        string `json:"name" validate:"required,min=3,max=100"`
-	Code        int    `json:"code" validate:"required"`
-	Phone       string `json:"phone" validate:"required"`
-	Active      bool   `json:"active"`
-	County      string `json:"county" validate:"required"`
-	Description string `json:"description" validate:"required,min=3,max=256"`
+	Name               string `json:"name" validate:"required,min=3,max=100"`
+	Code               int    `json:"code" validate:"required"`
+	Phone              string `json:"phone" validate:"required"`
+	Active             bool   `json:"active"`
+	County             string `json:"county" validate:"required"`
+	Description        string `json:"description" validate:"required,min=3,max=256"`
+	FHIROrganisationID string `json:"fhirOrganisationId"`
 }
 
 // Validate helps with validation of facility input fields
@@ -548,4 +549,10 @@ type PatientsRecordsPayload struct {
 type AppointmentServiceRequestInput struct {
 	MFLCode      int        `json:"MFLCODE"`
 	LastSyncTime *time.Time `json:"lastSyncTime"`
+}
+
+// UpdateFacilityPayload is the payload for updating faacility(s) fhir organization ID
+type UpdateFacilityPayload struct {
+	FacilityID         string `json:"facilityID"`
+	FHIROrganisationID string `json:"fhirOrganisationID"`
 }

@@ -37,12 +37,13 @@ type Facility struct {
 	// unique within this structure
 	Name string `gorm:"column:name;unique;not null"`
 	// MFL Code for Kenyan facilities, globally unique
-	Code           int    `gorm:"unique;column:mfl_code;not null"`
-	Active         bool   `gorm:"column:active;not null"`
-	County         string `gorm:"column:county;not null"` // TODO: Controlled list of counties
-	Phone          string `gorm:"column:phone"`
-	Description    string `gorm:"column:description;not null"`
-	OrganisationID string `gorm:"column:organisation_id"`
+	Code               int    `gorm:"unique;column:mfl_code;not null"`
+	Active             bool   `gorm:"column:active;not null"`
+	County             string `gorm:"column:county;not null"` // TODO: Controlled list of counties
+	Phone              string `gorm:"column:phone"`
+	Description        string `gorm:"column:description;not null"`
+	FHIROrganisationID string `gorm:"column:fhir_organization_id"`
+	OrganisationID     string `gorm:"column:organisation_id"`
 }
 
 // BeforeCreate is a hook run before creating a new facility
@@ -1075,8 +1076,9 @@ type Appointment struct {
 	Date            time.Time `gorm:"column:date"`
 
 	// uses a CustomTime type because there is no direct mapping postgres Time to Go time.Time
-	StartTime CustomTime `gorm:"column:start_time"`
-	EndTime   CustomTime `gorm:"column:end_time"`
+	StartTime                 CustomTime `gorm:"column:start_time"`
+	EndTime                   CustomTime `gorm:"column:end_time"`
+	HasRescheduledAppointment bool       `gorm:"column:has_rescheduled_appointment"`
 }
 
 // BeforeCreate is a hook run before creating an appointment

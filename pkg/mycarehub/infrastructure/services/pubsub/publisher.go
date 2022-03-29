@@ -7,6 +7,7 @@ import (
 
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 )
 
 func (ps *ServicePubSubMessaging) newPublish(
@@ -54,4 +55,9 @@ func (ps ServicePubSubMessaging) NotifyCreateTestOrder(ctx context.Context, test
 // NotifyCreateTestResult publishes to the create test result topic
 func (ps ServicePubSubMessaging) NotifyCreateTestResult(ctx context.Context, testResult *dto.PatientTestResultOutput) error {
 	return ps.newPublish(ctx, testResult, common.CreateTestResultTopicName, ClinicalServiceName)
+}
+
+// NotifyCreateOrganization publishes to the create organisation topic the facilities without a FHIR organisation ID
+func (ps ServicePubSubMessaging) NotifyCreateOrganization(ctx context.Context, facility *domain.Facility) error {
+	return ps.newPublish(ctx, facility, common.CreateOrganizationTopicName, ClinicalServiceName)
 }

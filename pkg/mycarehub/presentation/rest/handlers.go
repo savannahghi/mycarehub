@@ -41,6 +41,8 @@ type MyCareHubHandlersInterfaces interface {
 	AddClientFHIRID() http.HandlerFunc
 	AddPatientsRecords() http.HandlerFunc
 	GetAppointmentServiceRequests() http.HandlerFunc
+	SyncFacilities() http.HandlerFunc
+	AddFacilityFHIRID() http.HandlerFunc
 }
 
 type okResp struct {
@@ -146,6 +148,66 @@ func (h *MyCareHubHandlersInterfacesImpl) VerifySecurityQuestions() http.Handler
 
 		response := helpers.RestAPIResponseHelper("verifySecurityQuestionResponses", ok)
 		serverutils.WriteJSONResponse(w, response, http.StatusOK)
+	}
+}
+
+// SyncFacilities is an unauthenticated endpoint that returns a list of facilities
+// that do not have an FHIR organisation ID
+func (h *MyCareHubHandlersInterfacesImpl) SyncFacilities() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+
+		err := h.usecase.Facility.SyncFacilities(ctx)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
+				Err:     err,
+				Message: err.Error(),
+				Code:    exceptions.GetErrorCode(err),
+			}, http.StatusBadRequest)
+			return
+		}
+
+		ok := okResp{
+			Status: true,
+		}
+
+		serverutils.WriteJSONResponse(w, ok, http.StatusOK)
+	}
+}
+
+// AddFacilityFHIRID is an authenticated endpoint used to update facility(also known as organization in FHIR), details from clinical service to MyCareHub
+func (h *MyCareHubHandlersInterfacesImpl) AddFacilityFHIRID() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+		payload := &dto.UpdateFacilityPayload{}
+		serverutils.DecodeJSONToTargetStruct(w, r, payload)
+
+		if payload.FacilityID == "" || payload.FHIROrganisationID == "" {
+			err := fmt.Errorf("neither facility ID nor FHIR organisation ID can be empty")
+			helpers.ReportErrorToSentry(err)
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusBadRequest)
+			return
+		}
+
+		err := h.usecase.Facility.UpdateFacility(ctx, payload)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusBadRequest)
+			return
+		}
+
+		ok := okResp{
+			Status: true,
+		}
+
+		serverutils.WriteJSONResponse(w, ok, http.StatusOK)
 	}
 }
 

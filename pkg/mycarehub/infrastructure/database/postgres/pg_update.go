@@ -287,3 +287,12 @@ func (d *MyCareHubDb) UpdateUser(ctx context.Context, user *domain.User, updateD
 	}
 	return d.update.UpdateUser(ctx, userPayload, updateData)
 }
+
+// UpdateFacility updates the facility with the provided facility details
+func (d *MyCareHubDb) UpdateFacility(ctx context.Context, facility *domain.Facility, updateData map[string]interface{}) error {
+	gormFacility := &gorm.Facility{
+		FacilityID: facility.ID,
+	}
+
+	return d.update.UpdateFacility(ctx, gormFacility, updateData)
+}

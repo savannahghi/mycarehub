@@ -85,7 +85,7 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	}
 
 	// Initialize facility usecase
-	facilityUseCase := facility.NewFacilityUsecase(db, db, db, db)
+	facilityUseCase := facility.NewFacilityUsecase(db, db, db, db, pubSub)
 
 	otpUseCase := otp.NewOTPUseCase(db, db, externalExt)
 
@@ -208,6 +208,11 @@ func Router(ctx context.Context) (*mux.Router, error) {
 		http.MethodPost,
 	).HandlerFunc(internalHandlers.OptIn())
 
+	r.Path("/facilities").Methods(
+		http.MethodOptions,
+		http.MethodGet,
+	).HandlerFunc(internalHandlers.SyncFacilities())
+
 	r.Path("/pubsub").Methods(http.MethodPost).HandlerFunc(pubSub.ReceivePubSubPushMessages)
 
 	// This endpoint will be used by external services to get a token that will be used to
@@ -269,6 +274,11 @@ func Router(ctx context.Context) (*mux.Router, error) {
 		http.MethodOptions,
 		http.MethodPatch,
 	).HandlerFunc(internalHandlers.AddClientFHIRID())
+
+	isc.Path("/facilities").Methods(
+		http.MethodOptions,
+		http.MethodPost,
+	).HandlerFunc(internalHandlers.AddFacilityFHIRID())
 
 	// Graphql route
 	authR := r.Path("/graphql").Subrouter()

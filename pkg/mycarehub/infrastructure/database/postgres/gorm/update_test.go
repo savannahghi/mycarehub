@@ -1898,3 +1898,54 @@ func TestPGInstance_UpdateUserActiveStatus(t *testing.T) {
 		})
 	}
 }
+
+func TestPGInstance_UpdateFacility(t *testing.T) {
+	ctx := context.Background()
+
+	invalidFacilityID := "invalid facility"
+
+	type args struct {
+		ctx        context.Context
+		facility   *gorm.Facility
+		updateData map[string]interface{}
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx: ctx,
+				facility: &gorm.Facility{
+					FacilityID: &facilityID,
+				},
+				updateData: map[string]interface{}{
+					"fhir_organization_id": uuid.New().String(),
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case",
+			args: args{
+				ctx: ctx,
+				facility: &gorm.Facility{
+					FacilityID: &invalidFacilityID,
+				},
+				updateData: map[string]interface{}{
+					"fhir_organization_id": uuid.New().String(),
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := testingDB.UpdateFacility(tt.args.ctx, tt.args.facility, tt.args.updateData); (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.UpdateFacility() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
