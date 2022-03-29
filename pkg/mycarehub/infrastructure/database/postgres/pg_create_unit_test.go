@@ -636,7 +636,7 @@ func TestMyCareHubDb_CreateChannel(t *testing.T) {
 	}
 }
 
-func TestMyCareHubDb_CreateNextOfKin(t *testing.T) {
+func TestMyCareHubDb_GetOrCreateNextOfKin(t *testing.T) {
 	var fakeGorm = gormMock.NewGormMock()
 	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
 
@@ -666,20 +666,20 @@ func TestMyCareHubDb_CreateNextOfKin(t *testing.T) {
 	for _, tt := range tests {
 
 		if tt.name == "Happy case: create a next of kin" {
-			fakeGorm.MockCreateRelatedPerson = func(ctx context.Context, person *gorm.RelatedPerson, clientID, contactID string) error {
+			fakeGorm.MockGetOrCreateNextOfKin = func(ctx context.Context, person *gorm.RelatedPerson, clientID, contactID string) error {
 				return nil
 			}
 		}
 
 		t.Run(tt.name, func(t *testing.T) {
-			if err := d.CreateNextOfKin(tt.args.ctx, tt.args.person, tt.args.clientID, tt.args.contactID); (err != nil) != tt.wantErr {
-				t.Errorf("MyCareHubDb.CreateNextOfKin() error = %v, wantErr %v", err, tt.wantErr)
+			if err := d.GetOrCreateNextOfKin(tt.args.ctx, tt.args.person, tt.args.clientID, tt.args.contactID); (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.GetOrCreateNextOfKin() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
 }
 
-func TestMyCareHubDb_CreateContact(t *testing.T) {
+func TestMyCareHubDb_GetOrCreateContact(t *testing.T) {
 	var fakeGorm = gormMock.NewGormMock()
 	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
 
@@ -720,7 +720,7 @@ func TestMyCareHubDb_CreateContact(t *testing.T) {
 	for _, tt := range tests {
 
 		if tt.name == "Happy case: create a new contact" {
-			fakeGorm.MockCreateContact = func(ctx context.Context, contact *gorm.Contact) (*gorm.Contact, error) {
+			fakeGorm.MockGetOrCreateContact = func(ctx context.Context, contact *gorm.Contact) (*gorm.Contact, error) {
 				id := gofakeit.UUID()
 				return &gorm.Contact{
 					ContactID:    &id,
@@ -731,14 +731,14 @@ func TestMyCareHubDb_CreateContact(t *testing.T) {
 			}
 		}
 		if tt.name == "Sad case: Failed to create a new contact" {
-			fakeGorm.MockCreateContact = func(ctx context.Context, contact *gorm.Contact) (*gorm.Contact, error) {
+			fakeGorm.MockGetOrCreateContact = func(ctx context.Context, contact *gorm.Contact) (*gorm.Contact, error) {
 				return nil, fmt.Errorf("an error occurred")
 			}
 		}
 
 		t.Run(tt.name, func(t *testing.T) {
-			if _, err := d.CreateContact(tt.args.ctx, tt.args.contact); (err != nil) != tt.wantErr {
-				t.Errorf("MyCareHubDb.CreateContact() error = %v, wantErr %v", err, tt.wantErr)
+			if _, err := d.GetOrCreateContact(tt.args.ctx, tt.args.contact); (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.GetOrCreateContact() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}

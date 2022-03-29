@@ -1106,12 +1106,12 @@ func (us *UseCasesUserImpl) RegisterKenyaEMRPatients(ctx context.Context, input 
 			ContactType:  "PHONE",
 			ContactValue: patient.NextOfKin.Contact,
 		}
-		contact, err := us.Create.CreateContact(ctx, &cntct)
+		contact, err := us.Create.GetOrCreateContact(ctx, &cntct)
 		if err != nil {
 			return nil, err
 		}
 
-		err = us.Create.CreateNextOfKin(ctx, &patient.NextOfKin, client.ID, *contact.ID)
+		err = us.Create.GetOrCreateNextOfKin(ctx, &patient.NextOfKin, client.ID, *contact.ID)
 		if err != nil {
 			return nil, err
 		}

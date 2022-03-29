@@ -822,7 +822,7 @@ func TestPGInstance_CreateCommunity(t *testing.T) {
 	}
 }
 
-func TestPGInstance_CreateRelatedPerson(t *testing.T) {
+func TestPGInstance_GetOrCreateNextOfKin(t *testing.T) {
 	type args struct {
 		ctx       context.Context
 		person    *gorm.RelatedPerson
@@ -854,14 +854,14 @@ func TestPGInstance_CreateRelatedPerson(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			if err := testingDB.CreateRelatedPerson(tt.args.ctx, tt.args.person, tt.args.clientID, tt.args.contactID); (err != nil) != tt.wantErr {
-				t.Errorf("PGInstance.CreateRelatedPerson() error = %v, wantErr %v", err, tt.wantErr)
+			if err := testingDB.GetOrCreateNextOfKin(tt.args.ctx, tt.args.person, tt.args.clientID, tt.args.contactID); (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.GetOrCreateNextOfKin() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
 }
 
-func TestPGInstance_CreateContact(t *testing.T) {
+func TestPGInstance_GetOrCreateContact(t *testing.T) {
 	type args struct {
 		ctx     context.Context
 		contact *gorm.Contact
@@ -885,9 +885,9 @@ func TestPGInstance_CreateContact(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := testingDB.CreateContact(tt.args.ctx, tt.args.contact)
+			got, err := testingDB.GetOrCreateContact(tt.args.ctx, tt.args.contact)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("PGInstance.CreateContact() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("PGInstance.GetOrCreateContact() error = %v, wantErr %v", err, tt.wantErr)
 			}
 
 			if tt.wantErr && got != nil {

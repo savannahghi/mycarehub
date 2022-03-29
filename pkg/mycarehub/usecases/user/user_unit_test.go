@@ -2834,7 +2834,7 @@ func TestUseCasesUserImpl_RegisterKenyaEMRPatients(t *testing.T) {
 					}, nil
 				}
 
-				fakeDB.MockCreateContact = func(ctx context.Context, contact *domain.Contact) (*domain.Contact, error) {
+				fakeDB.MockGetOrCreateContact = func(ctx context.Context, contact *domain.Contact) (*domain.Contact, error) {
 					return nil, fmt.Errorf("error creating contact")
 				}
 			}
@@ -2852,7 +2852,7 @@ func TestUseCasesUserImpl_RegisterKenyaEMRPatients(t *testing.T) {
 					return false, nil
 				}
 
-				fakeDB.MockCreateContact = func(ctx context.Context, contact *domain.Contact) (*domain.Contact, error) {
+				fakeDB.MockGetOrCreateContact = func(ctx context.Context, contact *domain.Contact) (*domain.Contact, error) {
 					id := gofakeit.UUID()
 					return &domain.Contact{ID: &id}, nil
 				}
@@ -2874,7 +2874,7 @@ func TestUseCasesUserImpl_RegisterKenyaEMRPatients(t *testing.T) {
 					}, nil
 				}
 
-				fakeDB.MockCreateNextOfKin = func(ctx context.Context, person *dto.NextOfKinPayload, clientID, contactID string) error {
+				fakeDB.MockGetOrCreateNextOfKin = func(ctx context.Context, person *dto.NextOfKinPayload, clientID, contactID string) error {
 					return fmt.Errorf("cannot create the next of kin")
 				}
 			}
@@ -2909,12 +2909,12 @@ func TestUseCasesUserImpl_RegisterKenyaEMRPatients(t *testing.T) {
 					}, nil
 				}
 
-				fakeDB.MockCreateContact = func(ctx context.Context, contact *domain.Contact) (*domain.Contact, error) {
+				fakeDB.MockGetOrCreateContact = func(ctx context.Context, contact *domain.Contact) (*domain.Contact, error) {
 					id := gofakeit.UUID()
 					return &domain.Contact{ID: &id}, nil
 				}
 
-				fakeDB.MockCreateNextOfKin = func(ctx context.Context, person *dto.NextOfKinPayload, clientID, contactID string) error {
+				fakeDB.MockGetOrCreateNextOfKin = func(ctx context.Context, person *dto.NextOfKinPayload, clientID, contactID string) error {
 					return nil
 				}
 			}
