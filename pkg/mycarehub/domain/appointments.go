@@ -18,9 +18,10 @@ type Appointment struct {
 	Start           time.Time               `json:"start"`
 	End             time.Time               `json:"end"`
 
-	ClientID   string
-	FacilityID string
-	Provider   string
+	ClientID                  string
+	FacilityID                string
+	Provider                  string
+	HasRescheduledAppointment bool `json:"hasRescheduledApointment"`
 }
 
 //AppointmentsPage is a list of paginated appointments

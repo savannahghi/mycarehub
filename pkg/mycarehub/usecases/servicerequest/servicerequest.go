@@ -403,6 +403,14 @@ func (u *UseCasesServiceRequestImpl) VerifyStaffPinResetServiceRequest(ctx conte
 		return false, exceptions.StaffProfileNotFoundErr(err)
 	}
 
+	err = u.Update.UpdateUser(ctx, &domain.User{ID: userProfile.ID}, map[string]interface{}{
+		"pin_update_required": true,
+	})
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, exceptions.UpdateProfileErr(err)
+	}
+
 	return u.VerifyServiceRequestResponse(ctx, verificationStatus, phoneNumber, serviceRequestID, userProfile, loggedInStaffProfile, feedlib.FlavourPro)
 
 }
@@ -446,6 +454,14 @@ func (u *UseCasesServiceRequestImpl) VerifyClientPinResetServiceRequest(
 
 	if !physicalIdentityVerified {
 		return false, fmt.Errorf("the patient has not been physically verified by the healthcare worker")
+	}
+
+	err = u.Update.UpdateUser(ctx, &domain.User{ID: user.ID}, map[string]interface{}{
+		"pin_update_required": true,
+	})
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, exceptions.UpdateProfileErr(err)
 	}
 
 	return u.VerifyServiceRequestResponse(ctx, state, phoneNumber, serviceRequestID, user, staff, feedlib.FlavourConsumer)

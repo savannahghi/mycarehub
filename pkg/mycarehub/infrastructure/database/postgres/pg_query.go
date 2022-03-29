@@ -1203,8 +1203,9 @@ func (d *MyCareHubDb) ListAppointments(ctx context.Context, params *domain.Appoi
 				Month: int(a.Date.Month()),
 				Day:   a.Date.Day(),
 			},
-			Start: a.StartTime.Time,
-			End:   a.EndTime.Time,
+			Start:                     a.StartTime.Time,
+			End:                       a.EndTime.Time,
+			HasRescheduledAppointment: a.HasRescheduledAppointment,
 		}
 
 		mapped = append(mapped, m)
@@ -1552,4 +1553,60 @@ func (d *MyCareHubDb) GetFacilitiesWithoutFHIRID(ctx context.Context) ([]*domain
 	}
 
 	return facilities, nil
+}
+
+// GetClientAppointmentByID reschedules an appointment
+func (d *MyCareHubDb) GetClientAppointmentByID(ctx context.Context, appointmentID string) (*domain.Appointment, error) {
+	appointment, err := d.query.GetAppointmentByID(ctx, appointmentID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
+	appointmentDate, err := utils.ConvertTimeToScalarDate(appointment.Date)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+	newAppointment := &domain.Appointment{
+		ID:              appointment.ID,
+		AppointmentUUID: appointment.AppointmentUUID,
+		Type:            appointment.AppointmentType,
+		Date:            appointmentDate,
+		Status:          enums.AppointmentStatus(appointment.Status),
+		Reason:          appointment.Reason,
+		ClientID:        appointment.ClientID,
+		FacilityID:      appointment.FacilityID,
+		Provider:        appointment.Provider,
+	}
+
+	return newAppointment, nil
+}
+
+// GetAppointmentByAppointmentUUID fetches an appointment by UUID
+func (d *MyCareHubDb) GetAppointmentByAppointmentUUID(ctx context.Context, appointmentUUID string) (*domain.Appointment, error) {
+	appointment, err := d.query.GetAppointmentByAppointmentUUID(ctx, appointmentUUID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
+	appointmentDate, err := utils.ConvertTimeToScalarDate(appointment.Date)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+	newAppointment := &domain.Appointment{
+		ID:              appointment.ID,
+		AppointmentUUID: appointment.AppointmentUUID,
+		Type:            appointment.AppointmentType,
+		Date:            appointmentDate,
+		Status:          enums.AppointmentStatus(appointment.Status),
+		Reason:          appointment.Reason,
+		ClientID:        appointment.ClientID,
+		FacilityID:      appointment.FacilityID,
+		Provider:        appointment.Provider,
+	}
+
+	return newAppointment, nil
 }

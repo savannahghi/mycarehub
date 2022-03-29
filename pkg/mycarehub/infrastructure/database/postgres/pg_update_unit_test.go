@@ -1699,13 +1699,10 @@ func TestMyCareHubDb_InvalidateScreeningToolResponse(t *testing.T) {
 func TestMyCareHubDb_UpdateAppointment(t *testing.T) {
 	var fakeGorm = gormMock.NewGormMock()
 	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
-
 	type args struct {
-		ctx             context.Context
-		appointment     domain.Appointment
-		appointmentUUID string
-		clientID        string
-		staffID         string
+		ctx         context.Context
+		appointment *domain.Appointment
+		updateData  map[string]interface{}
 	}
 	tests := []struct {
 		name    string
@@ -1713,31 +1710,34 @@ func TestMyCareHubDb_UpdateAppointment(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "happy case: update an appointment",
+			name: "Sad case: invalid date format",
 			args: args{
 				ctx: context.Background(),
-				appointment: domain.Appointment{
-					ID:       gofakeit.UUID(),
-					Type:     "Dental",
-					Status:   "COMPLETED",
-					Reason:   "Knocked out",
-					ClientID: gofakeit.UUID(),
+				appointment: &domain.Appointment{
+					AppointmentUUID: gofakeit.UUID(),
 				},
-				appointmentUUID: gofakeit.UUID(),
-				clientID:        gofakeit.UUID(),
-				staffID:         gofakeit.UUID(),
+				updateData: map[string]interface{}{
+					"type":   "Dental",
+					"status": "COMPLETED",
+					"reason": "Knocked out",
+				},
 			},
-			wantErr: false,
+			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := d.UpdateAppointment(tt.args.ctx, tt.args.appointment, tt.args.appointmentUUID, tt.args.clientID); (err != nil) != tt.wantErr {
+			got, err := d.UpdateAppointment(tt.args.ctx, tt.args.appointment, tt.args.updateData)
+			if (err != nil) != tt.wantErr {
 				t.Errorf("MyCareHubDb.UpdateAppointment() error = %v, wantErr %v", err, tt.wantErr)
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("MyCareHubDb.UpdateAppointment() = %v, want %v", got, tt.wantErr)
 			}
 		})
 	}
 }
+
 func TestMyCareHubDb_UpdateServiceRequests(t *testing.T) {
 	ctx := context.Background()
 	var fakeGorm = gormMock.NewGormMock()

@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/brianvoe/gofakeit"
+	"github.com/google/uuid"
 	"github.com/savannahghi/firebasetools"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
@@ -363,6 +364,30 @@ func TestUseCasesAppointmentsImpl_UpdateKenyaEMRAppointments(t *testing.T) {
 			},
 			wantErr: false,
 		},
+		{
+			name: "sad case: failed to get appointment by UUID",
+			args: args{
+				ctx: context.Background(),
+				input: dto.FacilityAppointmentsPayload{
+					MFLCode: "1234",
+					Appointments: []dto.AppointmentPayload{
+						{
+							CCCNumber:       "1234",
+							AppointmentUUID: gofakeit.UUID(),
+							AppointmentType: "Dental",
+							Status:          enums.AppointmentStatusCompleted,
+							AppointmentDate: scalarutils.Date{
+								Year:  2020,
+								Month: 12,
+								Day:   12,
+							},
+							TimeSlot: "8:00 - 12:00",
+						},
+					},
+				},
+			},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -398,8 +423,8 @@ func TestUseCasesAppointmentsImpl_UpdateKenyaEMRAppointments(t *testing.T) {
 					return &domain.Facility{ID: &id}, nil
 				}
 
-				fakeDB.MockUpdateAppointment = func(ctx context.Context, appointment domain.Appointment, appointmentUUID, clientID string) error {
-					return fmt.Errorf("error updating appointment")
+				fakeDB.MockUpdateAppointmentFn = func(ctx context.Context, appointment *domain.Appointment, updateData map[string]interface{}) (*domain.Appointment, error) {
+					return nil, fmt.Errorf("error updating appointment")
 				}
 			}
 
@@ -413,8 +438,39 @@ func TestUseCasesAppointmentsImpl_UpdateKenyaEMRAppointments(t *testing.T) {
 					return &domain.Facility{ID: &id}, nil
 				}
 
-				fakeDB.MockUpdateAppointment = func(ctx context.Context, appointment domain.Appointment, appointmentUUID, clientID string) error {
-					return nil
+				fakeDB.MockUpdateAppointmentFn = func(ctx context.Context, appointment *domain.Appointment, updateData map[string]interface{}) (*domain.Appointment, error) {
+					return appointment, nil
+				}
+			}
+			if tt.name == "sad case: failed to get appointment by UUID" {
+				fakeDB.MockCheckFacilityExistsByMFLCode = func(ctx context.Context, MFLCode int) (bool, error) {
+					return true, nil
+				}
+
+				fakeDB.MockRetrieveFacilityByMFLCodeFn = func(ctx context.Context, MFLCode int, isActive bool) (*domain.Facility, error) {
+					id := gofakeit.UUID()
+					return &domain.Facility{ID: &id}, nil
+				}
+
+				fakeDB.MockUpdateAppointmentFn = func(ctx context.Context, appointment *domain.Appointment, updateData map[string]interface{}) (*domain.Appointment, error) {
+					return &domain.Appointment{
+						ID:                        "",
+						AppointmentUUID:           "uuid",
+						Type:                      "",
+						Status:                    "",
+						Reason:                    "",
+						Date:                      scalarutils.Date{},
+						Start:                     time.Time{},
+						End:                       time.Time{},
+						ClientID:                  "",
+						FacilityID:                "",
+						Provider:                  "",
+						HasRescheduledAppointment: false,
+					}, nil
+				}
+
+				fakeDB.MockGetAppointmentByAppointmentUUIDFn = func(ctx context.Context, UUID string) (*domain.Appointment, error) {
+					return nil, fmt.Errorf("error retrieving appointment by UUID")
 				}
 			}
 
@@ -1010,6 +1066,128 @@ func TestUseCasesAppointmentsImpl_GetAppointmentServiceRequests(t *testing.T) {
 			}
 			if !tt.wantErr && got == nil {
 				t.Errorf("UseCasesAppointmentsImpl.GetAppointmentServiceRequests() = %v, want %v", got, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestUseCasesAppointmentsImpl_RescheduleClientAppointment(t *testing.T) {
+	fakeDB := pgMock.NewPostgresMock()
+	fakeExtension := extensionMock.NewFakeExtension()
+	fakePubsub := pubsubMock.NewPubsubServiceMock()
+
+	a := NewUseCaseAppointmentsImpl(fakeExtension, fakeDB, fakeDB, fakeDB, fakePubsub)
+	type args struct {
+		ctx           context.Context
+		appointmentID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "happy case",
+			args: args{
+				ctx:           context.Background(),
+				appointmentID: uuid.New().String(),
+			},
+			wantErr: false,
+			want:    true,
+		},
+		{
+			name: "sad case: empty appointment id",
+			args: args{
+				ctx:           context.Background(),
+				appointmentID: "",
+			},
+			wantErr: true,
+			want:    false,
+		},
+		{
+			name: "sad case: failed to get client by id",
+			args: args{
+				ctx:           context.Background(),
+				appointmentID: uuid.New().String(),
+			},
+			wantErr: true,
+			want:    false,
+		},
+		{
+			name: "sad case: failed to get user profile by id",
+			args: args{
+				ctx:           context.Background(),
+				appointmentID: uuid.New().String(),
+			},
+			wantErr: true,
+			want:    false,
+		},
+		{
+			name: "sad case: failed to get appointment by id",
+			args: args{
+				ctx:           context.Background(),
+				appointmentID: uuid.New().String(),
+			},
+			wantErr: true,
+			want:    false,
+		},
+		{
+			name: "sad case: failed to create service request",
+			args: args{
+				ctx:           context.Background(),
+				appointmentID: uuid.New().String(),
+			},
+			wantErr: true,
+			want:    false,
+		},
+		{
+			name: "sad case: failed to update appointment",
+			args: args{
+				ctx:           context.Background(),
+				appointmentID: uuid.New().String(),
+			},
+			wantErr: true,
+			want:    false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "sad case: failed to get client by id" {
+				fakeDB.MockGetClientProfileByClientIDFn = func(ctx context.Context, clientID string) (*domain.ClientProfile, error) {
+					return nil, fmt.Errorf("error retrieving client by id")
+				}
+			}
+
+			if tt.name == "sad case: failed to get user profile by id" {
+				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
+					return nil, fmt.Errorf("error retrieving user profile by id")
+				}
+			}
+
+			if tt.name == "sad case: failed to get appointment by id" {
+				fakeDB.MockGetClientAppointmentByIDFn = func(ctx context.Context, clientID string) (*domain.Appointment, error) {
+					return nil, fmt.Errorf("error retrieving appointment by id")
+				}
+			}
+			if tt.name == "sad case: failed to create service request" {
+				fakeDB.MockCreateServiceRequestFn = func(ctx context.Context, serviceRequestInput *dto.ServiceRequestInput) error {
+					return nil
+				}
+			}
+			if tt.name == "sad case: failed to update appointment" {
+				fakeDB.MockUpdateAppointmentFn = func(ctx context.Context, appointment *domain.Appointment, updateData map[string]interface{}) (*domain.Appointment, error) {
+					return nil, fmt.Errorf("error updating appointment")
+				}
+			}
+
+			got, err := a.RescheduleClientAppointment(tt.args.ctx, tt.args.appointmentID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCasesAppointmentsImpl.RescheduleClientAppointment() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("UseCasesAppointmentsImpl.RescheduleClientAppointment() = %v, want %v", got, tt.want)
 			}
 		})
 	}

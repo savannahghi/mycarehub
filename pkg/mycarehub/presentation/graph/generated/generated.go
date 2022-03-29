@@ -20,6 +20,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain/model"
 	"github.com/savannahghi/scalarutils"
 	gqlparser "github.com/vektah/gqlparser/v2"
 	"github.com/vektah/gqlparser/v2/ast"
@@ -434,6 +435,7 @@ type ComplexityRoot struct {
 		RegisterStaff                      func(childComplexity int, input dto.StaffRegistrationInput) int
 		RejectInvitation                   func(childComplexity int, memberID string, communityID string) int
 		RemoveMembersFromCommunity         func(childComplexity int, communityID string, memberIDs []string) int
+		RescheduleAppointment              func(childComplexity int, appointmentID string) int
 		ResolveServiceRequest              func(childComplexity int, staffID string, requestID string) int
 		SendFeedback                       func(childComplexity int, input dto.FeedbackResponseInput) int
 		SetInProgressBy                    func(childComplexity int, serviceRequestID string, staffID string) int
@@ -615,6 +617,7 @@ type ComplexityRoot struct {
 }
 
 type MutationResolver interface {
+	RescheduleAppointment(ctx context.Context, appointmentID string) (bool, error)
 	AssignOrRevokeRoles(ctx context.Context, userID string, roles []*enums.UserRoleType) (bool, error)
 	CreateCommunity(ctx context.Context, input dto.CommunityInput) (*domain.Community, error)
 	DeleteCommunities(ctx context.Context, communityIDs []string, hardDelete bool) (bool, error)
@@ -2683,6 +2686,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.RemoveMembersFromCommunity(childComplexity, args["communityID"].(string), args["memberIDs"].([]string)), true
 
+	case "Mutation.rescheduleAppointment":
+		if e.complexity.Mutation.RescheduleAppointment == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_rescheduleAppointment_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.RescheduleAppointment(childComplexity, args["appointmentID"].(string)), true
+
 	case "Mutation.resolveServiceRequest":
 		if e.complexity.Mutation.ResolveServiceRequest == nil {
 			break
@@ -3844,9 +3859,7 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 }
 
 var sources = []*ast.Source{
-	{Name: "pkg/mycarehub/presentation/graph/appointments.graphql", Input: `scalar Any
-
-extend type Query {
+	{Name: "pkg/mycarehub/presentation/graph/appointments.graphql", Input: `extend type Query {
   fetchClientAppointments(
     clientID: ID!
     paginationInput: PaginationsInput!
@@ -3854,30 +3867,10 @@ extend type Query {
   ): AppointmentsPage
 }
 
-input FilterParam {
-  fieldName: String!
-  fieldType: FieldType!
-  comparisonOperation: Operation!
-  fieldValue: Any!
+extend type Mutation {
+  rescheduleAppointment(appointmentID: String!): Boolean!
 }
 
-enum FieldType {
-  BOOLEAN
-  TIMESTAMP
-  NUMBER
-  INTEGER
-  STRING
-}
-
-enum Operation {
-  LESS_THAN
-  LESS_THAN_OR_EQUAL_TO
-  EQUAL
-  GREATER_THAN
-  GREATER_THAN_OR_EQUAL_TO
-  IN
-  CONTAINS
-}
 `, BuiltIn: false},
 	{Name: "pkg/mycarehub/presentation/graph/authority.graphql", Input: `extend type Mutation {
   assignOrRevokeRoles(userID: String!, roles: [UserRoleType]): Boolean!
@@ -4089,7 +4082,26 @@ enum MessageType {
   reply
   system
   ephemeral
-}`, BuiltIn: false},
+}
+
+enum FieldType {
+  BOOLEAN
+  TIMESTAMP
+  NUMBER
+  INTEGER
+  STRING
+}
+
+enum Operation {
+  LESS_THAN
+  LESS_THAN_OR_EQUAL_TO
+  EQUAL
+  GREATER_THAN
+  GREATER_THAN_OR_EQUAL_TO
+  IN
+  CONTAINS
+}
+`, BuiltIn: false},
 	{Name: "pkg/mycarehub/presentation/graph/facility.graphql", Input: `extend type Mutation {
   createFacility(input: FacilityInput!): Facility!
   deleteFacility(mflCode: Int!): Boolean!
@@ -4131,6 +4143,7 @@ extend type Query {
 `, BuiltIn: false},
 	{Name: "pkg/mycarehub/presentation/graph/input.graphql", Input: `scalar Date
 scalar Map
+scalar Any
 
 input FacilityInput {
   name: String!
@@ -4263,6 +4276,18 @@ input ServiceRequestInput {
 	ClientName:   String
   Flavour: Flavour!
 	Meta:         Map
+}
+
+input FilterParam {
+  fieldName: String!
+  fieldType: FieldType!
+  comparisonOperation: Operation!
+  fieldValue: Any!
+}
+
+input RescheduleAppointmentInput {
+  appointmentID: String!
+  clientID: String!
 }`, BuiltIn: false},
 	{Name: "pkg/mycarehub/presentation/graph/otp.graphql", Input: `extend type Query {
   sendOTP(phoneNumber: String!, flavour: Flavour!): String!
@@ -5461,6 +5486,21 @@ func (ec *executionContext) field_Mutation_removeMembersFromCommunity_args(ctx c
 		}
 	}
 	args["memberIDs"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_rescheduleAppointment_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["appointmentID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("appointmentID"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["appointmentID"] = arg0
 	return args, nil
 }
 
@@ -14295,6 +14335,48 @@ func (ec *executionContext) _ModerationThresholds_toxic(ctx context.Context, fie
 	return ec.marshalOToxic2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐToxic(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Mutation_rescheduleAppointment(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_rescheduleAppointment_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().RescheduleAppointment(rctx, args["appointmentID"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Mutation_assignOrRevokeRoles(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -21776,6 +21858,37 @@ func (ec *executionContext) unmarshalInputQueryOption(ctx context.Context, obj i
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputRescheduleAppointmentInput(ctx context.Context, obj interface{}) (model.RescheduleAppointmentInput, error) {
+	var it model.RescheduleAppointmentInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	for k, v := range asMap {
+		switch k {
+		case "appointmentID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("appointmentID"))
+			it.AppointmentID, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "clientID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clientID"))
+			it.ClientID, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputScreeningToolQuestionResponseInput(ctx context.Context, obj interface{}) (dto.ScreeningToolQuestionResponseInput, error) {
 	var it dto.ScreeningToolQuestionResponseInput
 	asMap := map[string]interface{}{}
@@ -23879,6 +23992,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Mutation")
+		case "rescheduleAppointment":
+			out.Values[i] = ec._Mutation_rescheduleAppointment(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "assignOrRevokeRoles":
 			out.Values[i] = ec._Mutation_assignOrRevokeRoles(ctx, field)
 			if out.Values[i] == graphql.Null {

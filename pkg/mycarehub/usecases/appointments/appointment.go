@@ -10,6 +10,7 @@ import (
 	"github.com/savannahghi/firebasetools"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
@@ -30,6 +31,7 @@ type ICreateHealthRecords interface {
 // IUpdateAppointments defines method signatures for updating appointments
 type IUpdateAppointments interface {
 	UpdateKenyaEMRAppointments(ctx context.Context, payload dto.FacilityAppointmentsPayload) (*dto.FacilityAppointmentsResponse, error)
+	RescheduleClientAppointment(ctx context.Context, appointmentID string) (bool, error)
 }
 
 // IListAppointments defines method signatures for listing appointments
@@ -150,24 +152,32 @@ func (a *UseCasesAppointmentsImpl) UpdateKenyaEMRAppointments(ctx context.Contex
 	response := dto.FacilityAppointmentsResponse{MFLCode: input.MFLCode}
 
 	for _, ap := range input.Appointments {
-		appointment := domain.Appointment{
-			Type:       ap.AppointmentType,
-			Status:     ap.Status,
-			Date:       ap.AppointmentDate,
-			Start:      *ap.StartTime(),
-			End:        *ap.EndTime(),
-			FacilityID: *facility.ID,
+		if err != nil {
+			return nil, fmt.Errorf("error parsing appointment date")
+		}
+		appointmentToUpdate := map[string]interface{}{
+			"appointment_type": ap.AppointmentType,
+			"status":           ap.Status,
+			"date":             ap.AppointmentDate.AsTime(),
+			"start_time":       *ap.StartTime(),
+			"end_time":         *ap.EndTime(),
+			"facility_id":      *facility.ID,
 		}
 
 		// get client profile using the ccc number
-		clientProfile, err := a.Query.GetClientProfileByCCCNumber(ctx, ap.CCCNumber)
+		_, err := a.Query.GetClientProfileByCCCNumber(ctx, ap.CCCNumber)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get client profile by CCC number")
 		}
 
-		clientID := clientProfile.ID
+		appointment, err := a.Query.GetAppointmentByAppointmentUUID(ctx, ap.AppointmentUUID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get appointment by UUID")
+		}
 
-		err = a.Update.UpdateAppointment(ctx, appointment, ap.AppointmentUUID, *clientID)
+		appointmentInput := &domain.Appointment{ID: appointment.ID}
+
+		_, err = a.Update.UpdateAppointment(ctx, appointmentInput, appointmentToUpdate)
 		if err != nil {
 			return nil, err
 		}
@@ -377,4 +387,51 @@ func (a *UseCasesAppointmentsImpl) GetAppointmentServiceRequests(ctx context.Con
 	return &dto.AppointmentServiceRequestOutput{
 		AppointmentServiceRequests: appointmentServiceRequests,
 	}, nil
+}
+
+// RescheduleClientAppointment creates a service request to reschedule a client appointment
+func (a *UseCasesAppointmentsImpl) RescheduleClientAppointment(ctx context.Context, appointmentID string) (bool, error) {
+	if appointmentID == "" {
+		return false, fmt.Errorf("invalid input provided")
+	}
+
+	appointment, err := a.Query.GetClientAppointmentByID(ctx, appointmentID)
+	if err != nil {
+		return false, fmt.Errorf("error getting client appointment: %v", err)
+	}
+
+	client, err := a.Query.GetClientProfileByClientID(ctx, appointment.ClientID)
+	if err != nil {
+		return false, fmt.Errorf("error getting client profile")
+	}
+
+	userProfile, err := a.Query.GetUserProfileByUserID(ctx, client.UserID)
+	if err != nil {
+		return false, fmt.Errorf("error getting user profile")
+	}
+
+	// update appointment has rescheduled field to true
+	_, err = a.Update.UpdateAppointment(ctx, &domain.Appointment{ID: appointment.ID}, map[string]interface{}{"has_rescheduled_appointment": true})
+	if err != nil {
+		return false, fmt.Errorf("error updating appointment")
+	}
+
+	appointmentDate := appointment.Date.AsTime().Format("02-Jan-2006")
+
+	serviceRequest := &dto.ServiceRequestInput{
+		Active:      true,
+		RequestType: enums.ServiceRequestTypeAppointments.String(),
+		Request:     fmt.Sprintf(`%v has requested to reschedule a %v appointment from %v to a later date`, userProfile.Name, appointment.Type, appointmentDate),
+		Status:      enums.ServiceRequestStatusPending.String(),
+		ClientID:    appointment.ClientID,
+		FacilityID:  appointment.FacilityID,
+		Meta:        map[string]interface{}{"appointmentID": appointmentID, "appointmentUUID": appointment.AppointmentUUID},
+	}
+
+	err = a.Create.CreateServiceRequest(ctx, serviceRequest)
+	if err != nil {
+		return false, fmt.Errorf("error creating service request")
+	}
+
+	return true, nil
 }

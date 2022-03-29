@@ -248,7 +248,9 @@ func (u *UsecaseAuthorityImpl) AssignOrRevokeRoles(ctx context.Context, userID s
 
 	currentRoleList := []enums.UserRoleType{}
 	for _, role := range currentRoles {
-		currentRoleList = append(currentRoleList, role.Name)
+		if role != nil {
+			currentRoleList = append(currentRoleList, role.Name)
+		}
 	}
 	_, err = u.Update.RevokeRoles(ctx, userID, currentRoleList)
 	if err != nil {

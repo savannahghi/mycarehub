@@ -99,7 +99,7 @@ type GormMock struct {
 	MockGetServiceRequestsForKenyaEMRFn                  func(ctx context.Context, facilityID string, lastSyncTime time.Time) ([]*gorm.ClientServiceRequest, error)
 	MockCreateAppointment                                func(ctx context.Context, appointment *gorm.Appointment) error
 	MockListAppointments                                 func(ctx context.Context, params *gorm.Appointment, filters []*firebasetools.FilterParam, pagination *domain.Pagination) ([]*gorm.Appointment, *domain.Pagination, error)
-	MockUpdateAppointment                                func(ctx context.Context, payload *gorm.Appointment) error
+	MockUpdateAppointmentFn                              func(ctx context.Context, appointment *gorm.Appointment, updateData map[string]interface{}) (*gorm.Appointment, error)
 	MockGetScreeningToolsQuestionsFn                     func(ctx context.Context, toolType string) ([]gorm.ScreeningToolQuestion, error)
 	MockAnswerScreeningToolQuestionsFn                   func(ctx context.Context, screeningToolResponses []*gorm.ScreeningToolsResponse) error
 	MockGetScreeningToolQuestionByQuestionIDFn           func(ctx context.Context, questionID string) (*gorm.ScreeningToolQuestion, error)
@@ -129,6 +129,8 @@ type GormMock struct {
 	MockGetAppointmentByIDFn                             func(ctx context.Context, appointmentID string) (*gorm.Appointment, error)
 	MockUpdateFacilityFn                                 func(ctx context.Context, facility *gorm.Facility, updateData map[string]interface{}) error
 	MockGetFacilitiesWithoutFHIRIDFn                     func(ctx context.Context) ([]*gorm.Facility, error)
+	MockGetClientAppointmentByIDFn                       func(ctx context.Context, appointmentID, clientID string) (*gorm.Appointment, error)
+	MockGetAppointmentByAppointmentUUIDFn                func(ctx context.Context, appointmentUUID string) (*gorm.Appointment, error)
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -816,8 +818,8 @@ func NewGormMock() *GormMock {
 				},
 			}, &domain.Pagination{Limit: 10, CurrentPage: 1}, nil
 		},
-		MockUpdateAppointment: func(ctx context.Context, payload *gorm.Appointment) error {
-			return nil
+		MockUpdateAppointmentFn: func(ctx context.Context, appointment *gorm.Appointment, updateData map[string]interface{}) (*gorm.Appointment, error) {
+			return appointment, nil
 		},
 		MockGetScreeningToolsQuestionsFn: func(ctx context.Context, toolType string) ([]gorm.ScreeningToolQuestion, error) {
 			return []gorm.ScreeningToolQuestion{
@@ -954,6 +956,46 @@ func NewGormMock() *GormMock {
 				Date:            date,
 				StartTime:       gorm.CustomTime{Time: time.Now()},
 				EndTime:         gorm.CustomTime{Time: time.Now().Add(30 * time.Minute)},
+			}, nil
+		},
+		MockGetClientAppointmentByIDFn: func(ctx context.Context, appointmentID, clientID string) (*gorm.Appointment, error) {
+			return &gorm.Appointment{
+				ID:              UUID,
+				Active:          true,
+				AppointmentUUID: appointmentID,
+				AppointmentType: "BLOOD_TEST",
+				Status:          enums.AppointmentStatusCompleted.String(),
+				ClientID:        clientID,
+				FacilityID:      UUID,
+				Reason:          "reason",
+				Provider:        "provider",
+				Date:            time.Now(),
+				StartTime: gorm.CustomTime{
+					Time: time.Now(),
+				},
+				EndTime: gorm.CustomTime{
+					Time: time.Now().Add(30 * time.Minute),
+				},
+			}, nil
+		},
+		MockGetAppointmentByAppointmentUUIDFn: func(ctx context.Context, appointmentUUID string) (*gorm.Appointment, error) {
+			return &gorm.Appointment{
+				ID:              UUID,
+				Active:          true,
+				AppointmentUUID: appointmentUUID,
+				AppointmentType: "BLOOD_TEST",
+				Status:          enums.AppointmentStatusCompleted.String(),
+				ClientID:        UUID,
+				FacilityID:      UUID,
+				Reason:          "reason",
+				Provider:        "provider",
+				Date:            time.Now(),
+				StartTime: gorm.CustomTime{
+					Time: time.Now(),
+				},
+				EndTime: gorm.CustomTime{
+					Time: time.Now().Add(30 * time.Minute),
+				},
 			}, nil
 		},
 	}
@@ -1376,8 +1418,8 @@ func (gm *GormMock) ListAppointments(ctx context.Context, params *gorm.Appointme
 }
 
 // UpdateAppointment updates the details of an appointment requires the ID or appointment_uuid to be provided
-func (gm *GormMock) UpdateAppointment(ctx context.Context, payload *gorm.Appointment) error {
-	return gm.MockUpdateAppointment(ctx, payload)
+func (gm *GormMock) UpdateAppointment(ctx context.Context, appointment *gorm.Appointment, updateData map[string]interface{}) (*gorm.Appointment, error) {
+	return gm.MockUpdateAppointmentFn(ctx, appointment, updateData)
 }
 
 // InvalidateScreeningToolResponse mocks the implementation of invalidating screening tool responses
@@ -1509,4 +1551,14 @@ func (gm *GormMock) UpdateFacility(ctx context.Context, facility *gorm.Facility,
 // GetFacilitiesWithoutFHIRID mocks the implementation of getting a facility without FHIR Organisation
 func (gm *GormMock) GetFacilitiesWithoutFHIRID(ctx context.Context) ([]*gorm.Facility, error) {
 	return gm.MockGetFacilitiesWithoutFHIRIDFn(ctx)
+}
+
+// GetClientAppointmentByID mocks the implementation of rescheduling an appointment
+func (gm *GormMock) GetClientAppointmentByID(ctx context.Context, appointmentID, clientID string) (*gorm.Appointment, error) {
+	return gm.MockGetClientAppointmentByIDFn(ctx, appointmentID, clientID)
+}
+
+// GetAppointmentByAppointmentUUID mocks the implementation of getting an appointment by appointment UUID
+func (gm *GormMock) GetAppointmentByAppointmentUUID(ctx context.Context, appointmentUUID string) (*gorm.Appointment, error) {
+	return gm.MockGetAppointmentByAppointmentUUIDFn(ctx, appointmentUUID)
 }

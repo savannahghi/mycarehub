@@ -1300,6 +1300,16 @@ func TestUseCasesUserImpl_SetNickName(t *testing.T) {
 			want:    false,
 			wantErr: true,
 		},
+		{
+			name: "Sad Case: failed to update user profile",
+			args: args{
+				ctx:      ctx,
+				userID:   userID,
+				nickname: gofakeit.Username(),
+			},
+			want:    false,
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -1340,6 +1350,14 @@ func TestUseCasesUserImpl_SetNickName(t *testing.T) {
 			if tt.name == "Both userID and nickname nil" {
 				fakeDB.MockSetNickNameFn = func(ctx context.Context, userID, nickname *string) (bool, error) {
 					return false, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad Case: failed to update user profile" {
+				fakeDB.MockCheckIfUsernameExistsFn = func(ctx context.Context, username string) (bool, error) {
+					return false, nil
+				}
+				fakeDB.MockUpdateUserFn = func(ctx context.Context, user *domain.User, updateData map[string]interface{}) error {
+					return fmt.Errorf("an error occurred")
 				}
 			}
 
@@ -1629,20 +1647,6 @@ func TestUseCasesUserImpl_ResetPIN(t *testing.T) {
 			want:    false,
 			wantErr: true,
 		},
-		{
-			name: "invalid: failed update pin update required status",
-			args: args{
-				ctx: context.Background(),
-				input: dto.UserResetPinInput{
-					PhoneNumber: gofakeit.Phone(),
-					Flavour:     feedlib.FlavourConsumer,
-					OTP:         "111222",
-					PIN:         "1234",
-				},
-			},
-			want:    false,
-			wantErr: true,
-		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -1739,12 +1743,6 @@ func TestUseCasesUserImpl_ResetPIN(t *testing.T) {
 			if tt.name == "invalid: invalid reset pin input" {
 				fakeUser.MockResetPINFn = func(ctx context.Context, input dto.UserResetPinInput) (bool, error) {
 					return false, fmt.Errorf("an error occurred")
-				}
-			}
-
-			if tt.name == "invalid: failed update pin update required status" {
-				fakeDB.MockUpdateUserPinUpdateRequiredStatusFn = func(ctx context.Context, userID string, flavour feedlib.Flavour, status bool) error {
-					return fmt.Errorf("failed to update pin update required status")
 				}
 			}
 

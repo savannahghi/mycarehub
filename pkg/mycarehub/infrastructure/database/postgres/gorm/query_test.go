@@ -3681,3 +3681,82 @@ func TestPGInstance_GetFacilitiesWithoutFHIRID(t *testing.T) {
 		})
 	}
 }
+
+func TestPGInstance_GetClientAppointmentByID(t *testing.T) {
+	type args struct {
+		ctx           context.Context
+		appointmentID string
+		clientID      string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:           context.Background(),
+				appointmentID: appointmentID,
+				clientID:      clientID,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case",
+			args: args{
+				ctx:           context.Background(),
+				appointmentID: "appointmentID",
+				clientID:      clientID,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := testingDB.GetClientAppointmentByID(tt.args.ctx, tt.args.appointmentID, tt.args.clientID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.GetClientAppointmentByID() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected appointment not to be nil for %v", tt.name)
+				return
+			}
+		})
+	}
+}
+
+func TestPGInstance_GetAppointmentByAppointmentUUID(t *testing.T) {
+	type args struct {
+		ctx             context.Context
+		appointmentUUID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:             context.Background(),
+				appointmentUUID: appointmentUUID,
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := testingDB.GetAppointmentByAppointmentUUID(tt.args.ctx, tt.args.appointmentUUID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.GetAppointmentByAppointmentUUID() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected appointment not to be nil for %v", tt.name)
+				return
+			}
+		})
+	}
+}

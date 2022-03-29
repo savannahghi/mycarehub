@@ -12,11 +12,19 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/presentation/graph/generated"
 )
 
+func (r *mutationResolver) RescheduleAppointment(ctx context.Context, appointmentID string) (bool, error) {
+	return r.mycarehub.Appointment.RescheduleClientAppointment(ctx, appointmentID)
+}
+
 func (r *queryResolver) FetchClientAppointments(ctx context.Context, clientID string, paginationInput dto.PaginationsInput, filters []*firebasetools.FilterParam) (*domain.AppointmentsPage, error) {
 	return r.mycarehub.Appointment.FetchClientAppointments(ctx, clientID, paginationInput, filters)
 }
 
+// Mutation returns generated.MutationResolver implementation.
+func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
+
 // Query returns generated.QueryResolver implementation.
 func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
 
+type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
