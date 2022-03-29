@@ -25,4 +25,7 @@ const (
 
 	// CreateTestOrderTopicName is the topic for publishing a patient's test order
 	CreateTestOrderTopicName = "test.order.create"
+
+	// CreateOrganizationTopicName is the topic for publishing a organization
+	CreateOrganizationTopicName = "organization.create"
 )

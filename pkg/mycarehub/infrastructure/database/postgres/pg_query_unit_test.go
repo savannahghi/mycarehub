@@ -128,14 +128,16 @@ func TestMyCareHubDb_GetFacilities(t *testing.T) {
 	code := gofakeit.Number(0, 100)
 	county := "Nairobi"
 	description := gofakeit.HipsterSentence(15)
+	FHIROrganisationID := uuid.New().String()
 
 	facility := &domain.Facility{
-		ID:          &id,
-		Name:        name,
-		Code:        code,
-		Active:      true,
-		County:      county,
-		Description: description,
+		ID:                 &id,
+		Name:               name,
+		Code:               code,
+		Active:             true,
+		County:             county,
+		Description:        description,
+		FHIROrganisationID: FHIROrganisationID,
 	}
 
 	var facilityData []*domain.Facility
@@ -4740,6 +4742,48 @@ func TestMyCareHubDb_GetAppointmentServiceRequests(t *testing.T) {
 			}
 			if !tt.wantErr && got == nil {
 				t.Errorf("expected a response but got: %v", got)
+			}
+		})
+	}
+}
+
+func TestMyCareHubDb_GetFacilitiesWithoutFHIRID(t *testing.T) {
+	ctx := context.Background()
+	var fakeGorm = gormMock.NewGormMock()
+	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+	type args struct {
+		ctx context.Context
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    []*domain.Facility
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx: ctx,
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := d.GetFacilitiesWithoutFHIRID(tt.args.ctx)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.GetFacilitiesWithoutFHIRID() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if tt.wantErr && got != nil {
+				t.Errorf("expected client to be nil for %v", tt.name)
+				return
+			}
+
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected client not to be nil for %v", tt.name)
+				return
 			}
 		})
 	}

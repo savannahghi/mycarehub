@@ -281,13 +281,14 @@ type ComplexityRoot struct {
 	}
 
 	Facility struct {
-		Active      func(childComplexity int) int
-		Code        func(childComplexity int) int
-		County      func(childComplexity int) int
-		Description func(childComplexity int) int
-		ID          func(childComplexity int) int
-		Name        func(childComplexity int) int
-		Phone       func(childComplexity int) int
+		Active             func(childComplexity int) int
+		Code               func(childComplexity int) int
+		County             func(childComplexity int) int
+		Description        func(childComplexity int) int
+		FHIROrganisationID func(childComplexity int) int
+		ID                 func(childComplexity int) int
+		Name               func(childComplexity int) int
+		Phone              func(childComplexity int) int
 	}
 
 	FacilityPage struct {
@@ -1813,6 +1814,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Facility.Description(childComplexity), true
+
+	case "Facility.fhirOrganisationID":
+		if e.complexity.Facility.FHIROrganisationID == nil {
+			break
+		}
+
+		return e.complexity.Facility.FHIROrganisationID(childComplexity), true
 
 	case "Facility.ID":
 		if e.complexity.Facility.ID == nil {
@@ -4316,6 +4324,7 @@ extend type Query {
   active: Boolean!
   county: String!
   description: String!
+  fhirOrganisationID: String!
 }
 
 type Pagination {
@@ -11847,6 +11856,41 @@ func (ec *executionContext) _Facility_description(ctx context.Context, field gra
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Description, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Facility_fhirOrganisationID(ctx context.Context, field graphql.CollectedField, obj *domain.Facility) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Facility",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.FHIROrganisationID, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -23265,6 +23309,11 @@ func (ec *executionContext) _Facility(ctx context.Context, sel ast.SelectionSet,
 			}
 		case "description":
 			out.Values[i] = ec._Facility_description(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "fhirOrganisationID":
+			out.Values[i] = ec._Facility_fhirOrganisationID(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}

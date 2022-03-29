@@ -5,10 +5,11 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
+	pubsubmessaging "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/pubsub"
 )
 
 // UseCasesFacility ...
@@ -19,6 +20,7 @@ type UseCasesFacility interface {
 	IFacilityDelete
 	IFacilityInactivate
 	IFacilityReactivate
+	IUpdateFacility
 }
 
 // IFacilityCreate contains the method used to create a facility
@@ -50,6 +52,7 @@ type IFacilityList interface {
 	// TODO Document: callers should specify active
 	ListFacilities(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationsInput *dto.PaginationsInput) (*domain.FacilityPage, error)
 	FetchFacilities(ctx context.Context) ([]*domain.Facility, error)
+	SyncFacilities(ctx context.Context) error
 }
 
 // IFacilityRetrieve contains the method to retrieve a facility
@@ -58,21 +61,34 @@ type IFacilityRetrieve interface {
 	RetrieveFacilityByMFLCode(ctx context.Context, MFLCode int, isActive bool) (*domain.Facility, error)
 }
 
+// IUpdateFacility contains the methods for updating a facility
+type IUpdateFacility interface {
+	UpdateFacility(ctx context.Context, updatePayload *dto.UpdateFacilityPayload) error
+}
+
 // UseCaseFacilityImpl represents facility implementation object
 type UseCaseFacilityImpl struct {
 	Create infrastructure.Create
 	Query  infrastructure.Query
 	Delete infrastructure.Delete
 	Update infrastructure.Update
+	Pubsub pubsubmessaging.ServicePubsub
 }
 
 // NewFacilityUsecase returns a new facility service
-func NewFacilityUsecase(create infrastructure.Create, query infrastructure.Query, delete infrastructure.Delete, update infrastructure.Update) *UseCaseFacilityImpl {
+func NewFacilityUsecase(
+	create infrastructure.Create,
+	query infrastructure.Query,
+	delete infrastructure.Delete,
+	update infrastructure.Update,
+	pubsub pubsubmessaging.ServicePubsub,
+) *UseCaseFacilityImpl {
 	return &UseCaseFacilityImpl{
 		Create: create,
 		Query:  query,
 		Delete: delete,
 		Update: update,
+		Pubsub: pubsub,
 	}
 }
 
@@ -126,6 +142,46 @@ func (f *UseCaseFacilityImpl) RetrieveFacility(ctx context.Context, id *string, 
 // FetchFacilities fetches healthcare facilities in platform
 func (f *UseCaseFacilityImpl) FetchFacilities(ctx context.Context) ([]*domain.Facility, error) {
 	return f.Query.GetFacilities(ctx)
+}
+
+// SyncFacilities gets a list of facilities without a fhir organisation ID from the database
+// and pusblishes them to create organisation pubsub topic
+func (f *UseCaseFacilityImpl) SyncFacilities(ctx context.Context) error {
+
+	response, err := f.Query.GetFacilitiesWithoutFHIRID(ctx)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return err
+	}
+
+	for _, facility := range response {
+		err = f.Pubsub.NotifyCreateOrganization(ctx, facility)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return err
+		}
+	}
+
+	return nil
+}
+
+// UpdateFacility updates the details of a facility or set of facilities specified
+func (f *UseCaseFacilityImpl) UpdateFacility(ctx context.Context, facilityUpdatePayload *dto.UpdateFacilityPayload) error {
+	updatePayload := map[string]interface{}{
+		"fhir_organization_id": facilityUpdatePayload.FHIROrganisationID,
+	}
+
+	facility := &domain.Facility{
+		ID: &facilityUpdatePayload.FacilityID,
+	}
+
+	err := f.Update.UpdateFacility(ctx, facility, updatePayload)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return err
+	}
+
+	return nil
 }
 
 // RetrieveFacilityByMFLCode find the health facility by MFL Code

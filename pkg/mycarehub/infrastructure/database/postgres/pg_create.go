@@ -27,12 +27,13 @@ func (d *MyCareHubDb) GetOrCreateFacility(ctx context.Context, facility *dto.Fac
 	}
 
 	facilityObj := &gorm.Facility{
-		Name:        facility.Name,
-		Code:        facility.Code,
-		Active:      facility.Active,
-		County:      facility.County,
-		Phone:       facility.Phone,
-		Description: facility.Description,
+		Name:               facility.Name,
+		Code:               facility.Code,
+		Active:             facility.Active,
+		County:             facility.County,
+		Phone:              facility.Phone,
+		Description:        facility.Description,
+		FHIROrganisationID: facility.FHIROrganisationID,
 	}
 
 	facilitySession, err := d.create.GetOrCreateFacility(ctx, facilityObj)

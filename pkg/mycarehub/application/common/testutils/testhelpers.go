@@ -45,19 +45,19 @@ func InitializeTestService(ctx context.Context) (*usecases.MyCareHub, error) {
 	// createOrganization(pg)
 
 	externalExt := externalExtension.NewExternalMethodsImpl()
-
-	db := postgres.NewMyCareHubDb(pg, pg, pg, pg)
-
-	// Initialize facility usecase
-	facilityUseCase := facility.NewFacilityUsecase(db, db, db, db)
-
-	otpUseCase := otp.NewOTPUseCase(db, db, externalExt)
-	getStream := streamService.NewServiceGetStream()
-	authorityUseCase := authority.NewUsecaseAuthority(db, db, externalExt)
 	pubsub, err := pubsubmessaging.NewServicePubSubMessaging(externalExt)
 	if err != nil {
 		return nil, fmt.Errorf("can't instantiate pubsub service: %v", err)
 	}
+
+	db := postgres.NewMyCareHubDb(pg, pg, pg, pg)
+
+	// Initialize facility usecase
+	facilityUseCase := facility.NewFacilityUsecase(db, db, db, db, pubsub)
+
+	otpUseCase := otp.NewOTPUseCase(db, db, externalExt)
+	getStream := streamService.NewServiceGetStream()
+	authorityUseCase := authority.NewUsecaseAuthority(db, db, externalExt)
 
 	userUsecase := user.NewUseCasesUserImpl(db, db, db, db, externalExt, otpUseCase, authorityUseCase, getStream, pubsub)
 

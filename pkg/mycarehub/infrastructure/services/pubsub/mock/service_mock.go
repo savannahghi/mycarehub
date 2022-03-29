@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 )
 
 // FakeServicePubSub ...
@@ -24,11 +25,12 @@ type FakeServicePubSub struct {
 
 	MockNotifyCreatePatientFn func(ctx context.Context, client *dto.ClientRegistrationOutput) error
 
-	MockNotifyCreateVitalsFn     func(ctx context.Context, vitals *dto.PatientVitalSignOutput) error
-	MockNotifyCreateAllergyFn    func(ctx context.Context, allergy *dto.PatientAllergyOutput) error
-	MockNotifyCreateMedicationFn func(ctx context.Context, medication *dto.PatientMedicationOutput) error
-	MockNotifyCreateTestOrderFn  func(ctx context.Context, testOrder *dto.PatientTestOrderOutput) error
-	MockNotifyCreateTestResultFn func(ctx context.Context, testResult *dto.PatientTestResultOutput) error
+	MockNotifyCreateVitalsFn       func(ctx context.Context, vitals *dto.PatientVitalSignOutput) error
+	MockNotifyCreateAllergyFn      func(ctx context.Context, allergy *dto.PatientAllergyOutput) error
+	MockNotifyCreateMedicationFn   func(ctx context.Context, medication *dto.PatientMedicationOutput) error
+	MockNotifyCreateTestOrderFn    func(ctx context.Context, testOrder *dto.PatientTestOrderOutput) error
+	MockNotifyCreateTestResultFn   func(ctx context.Context, testResult *dto.PatientTestResultOutput) error
+	MockNotifyCreateOrganizationFn func(ctx context.Context, facility *domain.Facility) error
 }
 
 // NewPubsubServiceMock mocks the pubsub service implementation
@@ -58,6 +60,9 @@ func NewPubsubServiceMock() *FakeServicePubSub {
 			return nil
 		},
 		MockNotifyCreateTestResultFn: func(ctx context.Context, testResult *dto.PatientTestResultOutput) error {
+			return nil
+		},
+		MockNotifyCreateOrganizationFn: func(ctx context.Context, facility *domain.Facility) error {
 			return nil
 		},
 	}
@@ -109,4 +114,9 @@ func (m *FakeServicePubSub) NotifyCreateTestOrder(ctx context.Context, testOrder
 // NotifyCreateTestResult publishes to the create test result topic
 func (m *FakeServicePubSub) NotifyCreateTestResult(ctx context.Context, testResult *dto.PatientTestResultOutput) error {
 	return m.MockNotifyCreateTestResultFn(ctx, testResult)
+}
+
+// NotifyCreateOrganization publishes to the create organization create topic
+func (m *FakeServicePubSub) NotifyCreateOrganization(ctx context.Context, facility *domain.Facility) error {
+	return m.MockNotifyCreateOrganizationFn(ctx, facility)
 }

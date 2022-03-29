@@ -279,14 +279,16 @@ func TestInactivateFacility(t *testing.T) {
 	mflcode := rand.Intn(1000000)
 	facilityName := ksuid.New().String()
 	description := gofakeit.HipsterSentence(10)
+	fhirOrganisationID := gofakeit.UUID()
 
 	facilityInput := &dto.FacilityInput{
-		Name:        facilityName,
-		Code:        mflcode,
-		Phone:       "+254711223344",
-		Active:      true,
-		County:      "Baringo",
-		Description: description,
+		Name:               facilityName,
+		Code:               mflcode,
+		Phone:              "+254711223344",
+		Active:             true,
+		County:             "Baringo",
+		Description:        description,
+		FHIROrganisationID: fhirOrganisationID,
 	}
 
 	facility, err := i.Facility.GetOrCreateFacility(ctx, facilityInput)
@@ -430,14 +432,16 @@ func TestReactivateFacility(t *testing.T) {
 	mflcode := rand.Intn(1000000)
 	facilityName := ksuid.New().String()
 	description := gofakeit.HipsterSentence(10)
+	fhirOrganisationID := gofakeit.UUID()
 
 	facilityInput := &dto.FacilityInput{
-		Name:        facilityName,
-		Code:        mflcode,
-		Phone:       "+254711223344",
-		Active:      false,
-		County:      "Baringo",
-		Description: description,
+		Name:               facilityName,
+		Code:               mflcode,
+		Phone:              "+254711223344",
+		Active:             false,
+		County:             "Baringo",
+		Description:        description,
+		FHIROrganisationID: fhirOrganisationID,
 	}
 
 	facility, err := i.Facility.GetOrCreateFacility(ctx, facilityInput)

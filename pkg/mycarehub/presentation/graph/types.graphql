@@ -6,6 +6,7 @@ type Facility {
   active: Boolean!
   county: String!
   description: String!
+  fhirOrganisationID: String!
 }
 
 type Pagination {

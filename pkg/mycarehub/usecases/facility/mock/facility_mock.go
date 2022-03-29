@@ -20,6 +20,7 @@ type FacilityUsecaseMock struct {
 	DeleteFacilityFn                func(ctx context.Context, id int) (bool, error)
 	FetchFacilitiesFn               func(ctx context.Context) ([]*domain.Facility, error)
 	MockInactivateFacilityFn        func(ctx context.Context, mflCode *int) (bool, error)
+	MockUpdateFacilityFn            func(ctx context.Context, updateFacilityData *domain.UpdateFacilityPayload) error
 }
 
 // NewFacilityUsecaseMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -30,15 +31,17 @@ func NewFacilityUsecaseMock() *FacilityUsecaseMock {
 	county := "Nairobi"
 	phone := interserviceclient.TestUserPhoneNumber
 	description := gofakeit.HipsterSentence(15)
+	FHIROrganisationID := uuid.New().String()
 
 	facilityInput := &domain.Facility{
-		ID:          &ID,
-		Name:        name,
-		Code:        code,
-		Phone:       phone,
-		Active:      true,
-		County:      county,
-		Description: description,
+		ID:                 &ID,
+		Name:               name,
+		Code:               code,
+		Phone:              phone,
+		Active:             true,
+		County:             county,
+		Description:        description,
+		FHIROrganisationID: FHIROrganisationID,
 	}
 
 	var facilitiesList []*domain.Facility
@@ -71,6 +74,10 @@ func NewFacilityUsecaseMock() *FacilityUsecaseMock {
 	return &FacilityUsecaseMock{
 		MockGetOrCreateFacilityFn: func(ctx context.Context, facility *dto.FacilityInput) (*domain.Facility, error) {
 			return facilityInput, nil
+		},
+
+		MockUpdateFacilityFn: func(ctx context.Context, updateFacilityData *domain.UpdateFacilityPayload) error {
+			return nil
 		},
 
 		MockRetrieveFacilityFn: func(ctx context.Context, id *string, isActive bool) (*domain.Facility, error) {
@@ -144,4 +151,9 @@ func (f *FacilityUsecaseMock) FetchFacilities(ctx context.Context) ([]*domain.Fa
 // InactivateFacility mocks the implementation of inactivating the active status of a particular facility
 func (f *FacilityUsecaseMock) InactivateFacility(ctx context.Context, mflCode *int) (bool, error) {
 	return f.MockInactivateFacilityFn(ctx, mflCode)
+}
+
+// UpdateFacility mocks the implementation of updating a facility
+func (f *FacilityUsecaseMock) UpdateFacility(ctx context.Context, updateFacilityData *domain.UpdateFacilityPayload) error {
+	return f.MockUpdateFacilityFn(ctx, updateFacilityData)
 }

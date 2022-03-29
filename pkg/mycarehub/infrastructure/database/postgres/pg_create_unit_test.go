@@ -850,6 +850,10 @@ func TestMyCareHubDb_CreateStaffServiceRequest(t *testing.T) {
 	var fakeGorm = gormMock.NewGormMock()
 	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
 
+	meta := map[string]interface{}{
+		"client_id": uuid.New().String(),
+	}
+
 	type args struct {
 		ctx                 context.Context
 		serviceRequestInput *dto.ServiceRequestInput
@@ -891,10 +895,32 @@ func TestMyCareHubDb_CreateStaffServiceRequest(t *testing.T) {
 			},
 			wantErr: true,
 		},
+		{
+			name: "Sad case - invalid meta",
+			args: args{
+				ctx: ctx,
+				serviceRequestInput: &dto.ServiceRequestInput{
+					Active:      true,
+					RequestType: uuid.New().String(),
+					Status:      uuid.New().String(),
+					Request:     uuid.New().String(),
+					StaffID:     uuid.New().String(),
+					FacilityID:  uuid.New().String(),
+					StaffName:   uuid.New().String(),
+					Meta:        meta,
+				},
+			},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.name == "Sad case" {
+				fakeGorm.MockCreateStaffServiceRequestFn = func(ctx context.Context, serviceRequestInput *gorm.StaffServiceRequest) error {
+					return fmt.Errorf("failed to create staff service request")
+				}
+			}
+			if tt.name == "Sad case - invalid meta" {
 				fakeGorm.MockCreateStaffServiceRequestFn = func(ctx context.Context, serviceRequestInput *gorm.StaffServiceRequest) error {
 					return fmt.Errorf("failed to create staff service request")
 				}
