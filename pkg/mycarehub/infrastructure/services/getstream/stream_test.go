@@ -105,7 +105,7 @@ func TestChatClient_CreateChannel(t *testing.T) {
 	g := getstream.NewServiceGetStream()
 
 	ctx := context.Background()
-	testChannelID := "channelJnJ"
+	testChannelID := "streamTestChannel"
 
 	type args struct {
 		ctx      context.Context
@@ -162,7 +162,11 @@ func TestChatClient_CreateChannel(t *testing.T) {
 		})
 	}
 
-	_, err := g.DeleteChannels(ctx, []string{"messaging:" + testChannelID}, true)
+	_, err := c.RemoveMembersFromCommunity(ctx, testChannelID, []string{userToAddToNewChannelID}, nil)
+	if err != nil {
+		t.Errorf("ChatClient.DeleteUsers() error = %v", err)
+	}
+	_, err = g.DeleteChannels(ctx, []string{"messaging:" + testChannelID}, true)
 	if err != nil {
 		t.Errorf("ChatClient.DeleteChannel() error = %v", err)
 	}

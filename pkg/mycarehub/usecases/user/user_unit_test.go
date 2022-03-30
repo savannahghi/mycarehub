@@ -247,14 +247,14 @@ func TestUseCasesUserImpl_Login_Unittest(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "Sad Case - unable to get client ccc number identifier value",
+			name: "Happy Case - should not fail when CCC number is not found",
 			args: args{
 				ctx:         ctx,
 				phoneNumber: interserviceclient.TestUserPhoneNumber,
 				pin:         PIN,
 				flavour:     feedlib.FlavourConsumer,
 			},
-			wantErr: true,
+			wantErr: false,
 		},
 	}
 
@@ -381,7 +381,7 @@ func TestUseCasesUserImpl_Login_Unittest(t *testing.T) {
 					return true, nil
 				}
 			}
-			if tt.name == "Sad Case - unable to get client ccc number identifier value" {
+			if tt.name == "Happy Case - should not fail when CCC number is not found" {
 				fakeDB.MockGetClientCCCIdentifier = func(ctx context.Context, clientID string) (*domain.Identifier, error) {
 					return nil, fmt.Errorf("failed to get client ccc number identifier value")
 				}

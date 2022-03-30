@@ -53,6 +53,7 @@ func TestMain(m *testing.M) {
 	run := m.Run()
 
 	// Clean up
+	removeMembersfromCommunity()
 	deleteTestUsers()
 	deleteTestChannel()
 
@@ -112,6 +113,17 @@ func createTestUsers() {
 		Invisible: false,
 	}
 	_, err = c.CreateGetStreamUser(ctx, userToBan)
+	if err != nil {
+		fmt.Printf("ChatClient.CreateGetStreamUser() error = %v", err)
+		return
+	}
+
+	userToAddToNewChannel := &stream.User{
+		ID:        userToAddToNewChannelID,
+		Name:      "userToAddToNewChannel",
+		Invisible: false,
+	}
+	_, err = c.CreateGetStreamUser(ctx, userToAddToNewChannel)
 	if err != nil {
 		fmt.Printf("ChatClient.CreateGetStreamUser() error = %v", err)
 		return
@@ -228,6 +240,25 @@ func createTestUsers() {
 
 }
 
+func removeMembersfromCommunity() {
+	ctx := context.Background()
+	_, err := c.RemoveMembersFromCommunity(ctx, channelID, []string{
+		defaultMemberID,
+		defaultModeratorID,
+		userToAcceptInviteID,
+		userToRejectInviteID,
+		userToBanID,
+		userToUnbanID,
+		moderatorToDemoteID,
+		userToRevokeGetstreamTokenID,
+		userToUpsertID,
+	}, nil)
+	if err != nil {
+		fmt.Printf("ChatClient.RemoveMembersFromChannel() error = %v", err)
+		return
+	}
+}
+
 func deleteTestUsers() {
 	ctx := context.Background()
 	_, err := c.DeleteUsers(
@@ -244,6 +275,7 @@ func deleteTestUsers() {
 			moderatorToDemoteID,
 			userToRevokeGetstreamTokenID,
 			userToUpsertID,
+			userToAddToNewChannelID,
 		},
 		stream.DeleteUserOptions{
 			User:     stream.HardDelete,

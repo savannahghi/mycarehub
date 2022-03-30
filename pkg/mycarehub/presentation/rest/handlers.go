@@ -466,14 +466,7 @@ func (h *MyCareHubHandlersInterfacesImpl) RegisterKenyaEMRPatients() http.Handle
 		ctx := r.Context()
 
 		payload := &dto.PatientsPayload{}
-
 		serverutils.DecodeJSONToTargetStruct(w, r, payload)
-
-		// error decoding json
-		// the decode error is already in response
-		if payload == nil {
-			return
-		}
 
 		if len(payload.Patients) == 0 {
 			err := fmt.Errorf("expected at least one patient")
@@ -691,14 +684,7 @@ func (h *MyCareHubHandlersInterfacesImpl) CreateOrUpdateKenyaEMRAppointments() h
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		payload := &dto.FacilityAppointmentsPayload{}
-
 		serverutils.DecodeJSONToTargetStruct(w, r, payload)
-
-		// error decoding json
-		// the decode error is already in response
-		if payload == nil {
-			return
-		}
 
 		if payload.MFLCode == "" {
 			err := fmt.Errorf("expected an MFL code to be defined")
