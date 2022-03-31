@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
@@ -115,6 +116,7 @@ func (h UseCasesHealthDiaryImpl) CreateHealthDiaryEntry(
 
 		serviceRequestInput := &dto.ServiceRequestInput{
 			ClientID:    clientID,
+			Flavour:     feedlib.FlavourConsumer,
 			RequestType: string(enums.ServiceRequestTypeRedFlag),
 		}
 
@@ -244,6 +246,7 @@ func (h UseCasesHealthDiaryImpl) ShareHealthDiaryEntry(ctx context.Context, heal
 		Status:      "PENDING",
 		Request:     healthDiaryEntry.Note,
 		ClientID:    healthDiaryEntry.ClientID,
+		Flavour:     feedlib.FlavourConsumer,
 	}
 
 	return h.ServiceRequest.CreateServiceRequest(ctx, serviceRequestInput)

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
@@ -173,6 +174,7 @@ func (t *ServiceScreeningToolsImpl) AnswerScreeningToolQuestions(ctx context.Con
 			ResolvedBy:   serviceRequests[s].ResolvedBy,
 			FacilityID:   serviceRequests[s].FacilityID,
 			ClientName:   serviceRequests[s].ClientName,
+			Flavour:      feedlib.FlavourConsumer,
 			Meta:         serviceRequests[s].Meta,
 		}
 		err = t.Create.CreateServiceRequest(ctx, serviceRequestInput)
