@@ -39,7 +39,7 @@ func TestGetStreamClient_CreateUserGetStreamToken(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			getStream := getstream.NewServiceGetStream()
+			getStream := getstream.NewServiceGetStream(streamClient)
 			got, err := getStream.CreateGetStreamUserToken(tt.args.ctx, tt.args.userID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GetStreamClient.CreateGetStreamUserToken() error = %v, wantErr %v", err, tt.wantErr)
@@ -87,7 +87,7 @@ func TestChatClient_ListGetStreamUsers(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			getStream := getstream.NewServiceGetStream()
+			getStream := getstream.NewServiceGetStream(streamClient)
 
 			got, err := getStream.ListGetStreamUsers(tt.args.ctx, tt.args.input)
 			if (err != nil) != tt.wantErr {
@@ -103,7 +103,7 @@ func TestChatClient_ListGetStreamUsers(t *testing.T) {
 }
 
 func TestChatClient_CreateChannel(t *testing.T) {
-	g := getstream.NewServiceGetStream()
+	g := getstream.NewServiceGetStream(streamClient)
 
 	ctx := context.Background()
 	testChannelID := "streamTestChannel"
@@ -198,7 +198,7 @@ func TestChatClient_ListGetStreamChannels(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			getStream := getstream.NewServiceGetStream()
+			getStream := getstream.NewServiceGetStream(streamClient)
 
 			got, err := getStream.ListGetStreamChannels(tt.args.ctx, tt.args.input)
 			if (err != nil) != tt.wantErr {

@@ -3,7 +3,6 @@ package getstream
 import (
 	"context"
 	"fmt"
-	"log"
 	"strconv"
 	"strings"
 	"time"
@@ -14,8 +13,6 @@ import (
 )
 
 var (
-	getStreamAPIKey            = serverutils.MustGetEnvVar("GET_STREAM_KEY")
-	getStreamAPISecret         = serverutils.MustGetEnvVar("GET_STREAM_SECRET")
 	getStreamTokenExpiryInDays = serverutils.MustGetEnvVar("GET_STREAM_TOKEN_EXPIRY_DAYS")
 )
 
@@ -51,12 +48,7 @@ type ChatClient struct {
 }
 
 // NewServiceGetStream initializes a new getstream service
-func NewServiceGetStream() ServiceGetStream {
-	client, err := stream.NewClient(getStreamAPIKey, getStreamAPISecret)
-	if err != nil {
-		log.Fatalf("failed to start getstream client: %v", err)
-	}
-
+func NewServiceGetStream(client *stream.Client) ServiceGetStream {
 	return &ChatClient{
 		client: client,
 	}

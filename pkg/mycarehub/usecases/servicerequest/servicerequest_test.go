@@ -45,14 +45,14 @@ func TestUseCasesServiceRequestImpl_CreateServiceRequest(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "Sad Case - Fail to create a service request",
+			name: "Sad Case - Invalid Flavour",
 			args: args{
 				ctx: context.Background(),
 				serviceRequestInput: &dto.ServiceRequestInput{
 					ClientID:    uuid.New().String(),
 					RequestType: "HEALTH_DIARY_ENTRY",
 					Request:     "A random request",
-					Flavour:     feedlib.FlavourConsumer,
+					Flavour:     feedlib.Flavour("invalid"),
 				},
 			},
 			want:    false,
@@ -117,6 +117,21 @@ func TestUseCasesServiceRequestImpl_CreateServiceRequest(t *testing.T) {
 			want:    false,
 			wantErr: true,
 		},
+		{
+			name: "Sad Case - Failed to create staff service request",
+			args: args{
+				ctx: context.Background(),
+				serviceRequestInput: &dto.ServiceRequestInput{
+					ClientID:    uuid.New().String(),
+					RequestType: "PIN_RESET",
+					Request:     "A random request",
+					Flavour:     feedlib.FlavourPro,
+					StaffID:     uuid.New().String(),
+				},
+			},
+			want:    false,
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -125,7 +140,7 @@ func TestUseCasesServiceRequestImpl_CreateServiceRequest(t *testing.T) {
 			fakeUser := userMock.NewUserUseCaseMock()
 
 			if tt.name == "Sad Case - Fail to create a service request" {
-				fakeDB.MockCreateServiceRequestFn = func(ctx context.Context, serviceRequestInput *dto.ServiceRequestInput) error {
+				fakeDB.MockCreateStaffServiceRequestFn = func(ctx context.Context, serviceRequestInput *dto.ServiceRequestInput) error {
 					return fmt.Errorf("failed to create service request")
 				}
 			}
@@ -148,6 +163,12 @@ func TestUseCasesServiceRequestImpl_CreateServiceRequest(t *testing.T) {
 			if tt.name == "Sad Case - No client IDD" {
 				fakeDB.MockGetStaffProfileByStaffIDFn = func(ctx context.Context, staffID string) (*domain.StaffProfile, error) {
 					return nil, fmt.Errorf("an error occurred while getting staff profile")
+				}
+			}
+
+			if tt.name == "Sad Case - Failed to create staff service request" {
+				fakeDB.MockCreateStaffServiceRequestFn = func(ctx context.Context, serviceRequestInput *dto.ServiceRequestInput) error {
+					return fmt.Errorf("failed to create service request")
 				}
 			}
 
@@ -798,7 +819,50 @@ func TestUseCasesServiceRequestImpl_CreatePinResetServiceRequest(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "Sad Case - Fail to create service request",
+			name: "Happy Case - Successfully create service request",
+			args: args{
+				ctx:         ctx,
+				phoneNumber: "12345",
+				cccNumber:   "12345",
+				flavour:     feedlib.FlavourConsumer,
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Sad Case - Empty Phone number",
+			args: args{
+				ctx:       ctx,
+				cccNumber: "12345",
+				flavour:   feedlib.FlavourConsumer,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - 	Invalid flavour",
+			args: args{
+				ctx:         ctx,
+				cccNumber:   "12345",
+				phoneNumber: "12345",
+				flavour:     feedlib.Flavour("invalid"),
+			},
+			want:    false,
+			wantErr: false,
+		},
+		{
+			name: "Sad Case - Empty CCC number",
+			args: args{
+				ctx:         ctx,
+				phoneNumber: "12345",
+				flavour:     feedlib.FlavourConsumer,
+			},
+			want:    false,
+			wantErr: true,
+		},
+
+		{
+			name: "Sad Case - Fail to user Profile by phone number",
 			args: args{
 				ctx:         ctx,
 				phoneNumber: "12345",
@@ -820,7 +884,40 @@ func TestUseCasesServiceRequestImpl_CreatePinResetServiceRequest(t *testing.T) {
 			wantErr: true,
 		},
 		{
+			name: "Sad Case - Fail to get client profile by ccc number",
+			args: args{
+				ctx:         ctx,
+				phoneNumber: "12345",
+				cccNumber:   "12345",
+				flavour:     feedlib.FlavourConsumer,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
 			name: "Sad Case - Fail to get client profile by user ID",
+			args: args{
+				ctx:         ctx,
+				phoneNumber: "12345",
+				cccNumber:   "12345",
+				flavour:     feedlib.FlavourConsumer,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - Fail to get staff profile by user ID",
+			args: args{
+				ctx:         ctx,
+				phoneNumber: "12345",
+				cccNumber:   "12345",
+				flavour:     feedlib.FlavourPro,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - Fail to create service request",
 			args: args{
 				ctx:         ctx,
 				phoneNumber: "12345",
@@ -856,6 +953,29 @@ func TestUseCasesServiceRequestImpl_CreatePinResetServiceRequest(t *testing.T) {
 				}
 			}
 
+			if tt.name == "Sad Case - Fail to user Profile by phone number" {
+				fakeDB.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*domain.User, error) {
+					return nil, fmt.Errorf("failed to get user profile by phonenumber")
+				}
+			}
+
+			if tt.name == "Sad Case - Fail to get client profile by ccc number" {
+				fakeDB.MockGetClientProfileByCCCNumberFn = func(ctx context.Context, cccNumber string) (*domain.ClientProfile, error) {
+					return nil, fmt.Errorf("failed to get client profile by ccc number")
+				}
+			}
+
+			if tt.name == "Sad Case - Fail to get staff profile by user ID" {
+				fakeDB.MockGetStaffProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.StaffProfile, error) {
+					return nil, fmt.Errorf("failed to get staff profile by user id")
+				}
+			}
+
+			if tt.name == "Sad Case - Fail to create service request" {
+				fakeDB.MockCreateServiceRequestFn = func(ctx context.Context, serviceRequestInput *dto.ServiceRequestInput) error {
+					return fmt.Errorf("failed to create service request")
+				}
+			}
 			got, err := u.CreatePinResetServiceRequest(tt.args.ctx, tt.args.phoneNumber, tt.args.cccNumber, tt.args.flavour)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCasesServiceRequestImpl.CreatePinResetServiceRequest() error = %v, wantErr %v", err, tt.wantErr)

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	stream "github.com/GetStream/stream-chat-go/v5"
 	"github.com/savannahghi/firebasetools"
 	externalExtension "github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres"
@@ -56,7 +57,7 @@ func InitializeTestService(ctx context.Context) (*usecases.MyCareHub, error) {
 	facilityUseCase := facility.NewFacilityUsecase(db, db, db, db, pubsub)
 
 	otpUseCase := otp.NewOTPUseCase(db, db, externalExt)
-	getStream := streamService.NewServiceGetStream()
+	getStream := streamService.NewServiceGetStream(&stream.Client{})
 	authorityUseCase := authority.NewUsecaseAuthority(db, db, externalExt)
 
 	userUsecase := user.NewUseCasesUserImpl(db, db, db, db, externalExt, otpUseCase, authorityUseCase, getStream, pubsub)
@@ -73,7 +74,7 @@ func InitializeTestService(ctx context.Context) (*usecases.MyCareHub, error) {
 	appointmentUsecase := appointment.NewUseCaseAppointmentsImpl(externalExt, db, db, db, pubsub)
 	communityUsecase := communities.NewUseCaseCommunitiesImpl(getStream, externalExt, db, db)
 
-	screeningToolsUsecases := screeningtools.NewUseCasesScreeningTools(db, db, db)
+	screeningToolsUsecases := screeningtools.NewUseCasesScreeningTools(db, db, db, externalExt)
 
 	i := usecases.NewMyCareHubUseCase(
 		userUsecase, termsUsecase, facilityUseCase,

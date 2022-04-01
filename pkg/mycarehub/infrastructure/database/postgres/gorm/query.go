@@ -82,6 +82,8 @@ type Query interface {
 	GetAppointmentByID(ctx context.Context, appointmentID string) (*Appointment, error)
 	GetAppointmentByAppointmentUUID(ctx context.Context, appointmentUUID string) (*Appointment, error)
 	GetClientAppointmentByID(ctx context.Context, appointmentID, clientID string) (*Appointment, error)
+	GetClientServiceRequests(ctx context.Context, requestType, status, clientID string) ([]*ClientServiceRequest, error)
+	GetActiveScreeningToolResponses(ctx context.Context, clientID string) ([]*ScreeningToolsResponse, error)
 }
 
 // CheckWhetherUserHasLikedContent performs a operation to check whether user has liked the content
@@ -1191,4 +1193,33 @@ func (db *PGInstance) GetAppointmentByAppointmentUUID(ctx context.Context, appoi
 		return nil, fmt.Errorf("failed to get appointment by appointment UUID: %v", err)
 	}
 	return &appointment, nil
+}
+
+// GetClientServiceRequests returns all system generated service requests by status passed in param
+func (db *PGInstance) GetClientServiceRequests(ctx context.Context, requestType, status, clientID string) ([]*ClientServiceRequest, error) {
+	var serviceRequests []*ClientServiceRequest
+	err := db.DB.Where(&ClientServiceRequest{
+		RequestType: requestType,
+		Status:      status,
+		ClientID:    clientID,
+	}).Find(&serviceRequests).Error
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, fmt.Errorf("failed to get client service requests by status: %v", err)
+	}
+	return serviceRequests, nil
+}
+
+// GetActiveScreeningToolResponses returns all active screening tool responses that are within 24 hours of previous response
+func (db *PGInstance) GetActiveScreeningToolResponses(ctx context.Context, clientID string) ([]*ScreeningToolsResponse, error) {
+	var responses []*ScreeningToolsResponse
+	err := db.DB.Where(&ScreeningToolsResponse{
+		ClientID: clientID,
+		Active:   true,
+	}).Where("created >  ?", time.Now().Add(time.Hour*-24)).Find(&responses).Error
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, fmt.Errorf("failed to get responses for client: %v", err)
+	}
+	return responses, nil
 }

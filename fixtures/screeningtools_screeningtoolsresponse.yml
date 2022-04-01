@@ -1,7 +1,7 @@
 # screeningtools_screeningtoolsresponse.yml
 - id: {{.screenintoolsresponse_id}}
-  created: 2021-11-22 21:16:29.23639+03
-  updated: 2021-11-22 21:16:29.23639+03
+  created: NOW()
+  updated: NOW()
   active: true
   organisation_id: {{.test_organisation_id}}
   client_id: {{.test_client_id}}

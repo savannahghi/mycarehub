@@ -98,6 +98,8 @@ type Query interface {
 	GetAppointmentServiceRequests(ctx context.Context, lastSyncTime time.Time, facilityID string) ([]domain.AppointmentServiceRequests, error)
 	GetClientAppointmentByID(ctx context.Context, clientID string) (*domain.Appointment, error)
 	GetAppointmentByAppointmentUUID(ctx context.Context, appointmentUUID string) (*domain.Appointment, error)
+	GetClientServiceRequests(ctx context.Context, requestType, status, clientID string) ([]*domain.ServiceRequest, error)
+	GetActiveScreeningToolResponses(ctx context.Context, clientID string) ([]*domain.ScreeningToolQuestionResponse, error)
 }
 
 // Update represents all the update action interfaces

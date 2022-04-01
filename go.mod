@@ -142,6 +142,7 @@ require (
 	cloud.google.com/go/profiler v0.2.0 // indirect
 	cloud.google.com/go/trace v1.2.0 // indirect
 	github.com/go-playground/universal-translator v0.18.0 // indirect
+	github.com/jarcoal/httpmock v1.1.0
 	github.com/leodido/go-urn v1.2.1 // indirect
 	github.com/lib/pq v1.10.4
 	github.com/mitchellh/mapstructure v1.4.3

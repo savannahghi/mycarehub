@@ -100,6 +100,10 @@ type ComplexityRoot struct {
 		RoleID func(childComplexity int) int
 	}
 
+	AvailableScreeningTools struct {
+		ToolType func(childComplexity int) int
+	}
+
 	Caregiver struct {
 		CaregiverType func(childComplexity int) int
 		FirstName     func(childComplexity int) int
@@ -466,40 +470,41 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		CanRecordMood                  func(childComplexity int, clientID string) int
-		CheckIfUserBookmarkedContent   func(childComplexity int, userID string, contentID int) int
-		CheckIfUserHasLikedContent     func(childComplexity int, userID string, contentID int) int
-		FetchClientAppointments        func(childComplexity int, clientID string, paginationInput dto.PaginationsInput, filters []*firebasetools.FilterParam) int
-		FetchFacilities                func(childComplexity int) int
-		GetAllAuthorityRoles           func(childComplexity int) int
-		GetClientCaregiver             func(childComplexity int, clientID string) int
-		GetClientHealthDiaryEntries    func(childComplexity int, clientID string) int
-		GetContent                     func(childComplexity int, categoryID *int, limit string) int
-		GetCurrentTerms                func(childComplexity int, flavour feedlib.Flavour) int
-		GetFAQContent                  func(childComplexity int, flavour feedlib.Flavour, limit *int) int
-		GetHealthDiaryQuote            func(childComplexity int) int
-		GetPendingServiceRequestsCount func(childComplexity int, facilityID string) int
-		GetScreeningToolQuestions      func(childComplexity int, toolType *string) int
-		GetSecurityQuestions           func(childComplexity int, flavour feedlib.Flavour) int
-		GetServiceRequests             func(childComplexity int, requestType *string, requestStatus *string, facilityID string, flavour feedlib.Flavour) int
-		GetUserBookmarkedContent       func(childComplexity int, userID string) int
-		GetUserRoles                   func(childComplexity int, userID string) int
-		InviteMembersToCommunity       func(childComplexity int, communityID string, memberIDs []string) int
-		ListCommunities                func(childComplexity int, input *stream_chat.QueryOption) int
-		ListCommunityBannedMembers     func(childComplexity int, communityID string) int
-		ListCommunityMembers           func(childComplexity int, communityID string) int
-		ListContentCategories          func(childComplexity int) int
-		ListFacilities                 func(childComplexity int, searchTerm *string, filterInput []*dto.FiltersInput, paginationInput dto.PaginationsInput) int
-		ListFlaggedMessages            func(childComplexity int, communityCid *string, memberIDs []*string) int
-		ListMembers                    func(childComplexity int, input *stream_chat.QueryOption) int
-		ListPendingInvites             func(childComplexity int, memberID string, input *stream_chat.QueryOption) int
-		RecommendedCommunities         func(childComplexity int, clientID string, limit int) int
-		RetrieveFacility               func(childComplexity int, id string, active bool) int
-		RetrieveFacilityByMFLCode      func(childComplexity int, mflCode int, isActive bool) int
-		SearchClientsByCCCNumber       func(childComplexity int, cCCNumber string) int
-		SearchStaffByStaffNumber       func(childComplexity int, staffNumber string) int
-		SendOtp                        func(childComplexity int, phoneNumber string, flavour feedlib.Flavour) int
-		VerifyPin                      func(childComplexity int, userID string, flavour feedlib.Flavour, pin string) int
+		CanRecordMood                      func(childComplexity int, clientID string) int
+		CheckIfUserBookmarkedContent       func(childComplexity int, userID string, contentID int) int
+		CheckIfUserHasLikedContent         func(childComplexity int, userID string, contentID int) int
+		FetchClientAppointments            func(childComplexity int, clientID string, paginationInput dto.PaginationsInput, filters []*firebasetools.FilterParam) int
+		FetchFacilities                    func(childComplexity int) int
+		GetAllAuthorityRoles               func(childComplexity int) int
+		GetAvailableScreeningToolQuestions func(childComplexity int, clientID string) int
+		GetClientCaregiver                 func(childComplexity int, clientID string) int
+		GetClientHealthDiaryEntries        func(childComplexity int, clientID string) int
+		GetContent                         func(childComplexity int, categoryID *int, limit string) int
+		GetCurrentTerms                    func(childComplexity int, flavour feedlib.Flavour) int
+		GetFAQContent                      func(childComplexity int, flavour feedlib.Flavour, limit *int) int
+		GetHealthDiaryQuote                func(childComplexity int) int
+		GetPendingServiceRequestsCount     func(childComplexity int, facilityID string) int
+		GetScreeningToolQuestions          func(childComplexity int, toolType *string) int
+		GetSecurityQuestions               func(childComplexity int, flavour feedlib.Flavour) int
+		GetServiceRequests                 func(childComplexity int, requestType *string, requestStatus *string, facilityID string, flavour feedlib.Flavour) int
+		GetUserBookmarkedContent           func(childComplexity int, userID string) int
+		GetUserRoles                       func(childComplexity int, userID string) int
+		InviteMembersToCommunity           func(childComplexity int, communityID string, memberIDs []string) int
+		ListCommunities                    func(childComplexity int, input *stream_chat.QueryOption) int
+		ListCommunityBannedMembers         func(childComplexity int, communityID string) int
+		ListCommunityMembers               func(childComplexity int, communityID string) int
+		ListContentCategories              func(childComplexity int) int
+		ListFacilities                     func(childComplexity int, searchTerm *string, filterInput []*dto.FiltersInput, paginationInput dto.PaginationsInput) int
+		ListFlaggedMessages                func(childComplexity int, communityCid *string, memberIDs []*string) int
+		ListMembers                        func(childComplexity int, input *stream_chat.QueryOption) int
+		ListPendingInvites                 func(childComplexity int, memberID string, input *stream_chat.QueryOption) int
+		RecommendedCommunities             func(childComplexity int, clientID string, limit int) int
+		RetrieveFacility                   func(childComplexity int, id string, active bool) int
+		RetrieveFacilityByMFLCode          func(childComplexity int, mflCode int, isActive bool) int
+		SearchClientsByCCCNumber           func(childComplexity int, cCCNumber string) int
+		SearchStaffByStaffNumber           func(childComplexity int, staffNumber string) int
+		SendOtp                            func(childComplexity int, phoneNumber string, flavour feedlib.Flavour) int
+		VerifyPin                          func(childComplexity int, userID string, flavour feedlib.Flavour, pin string) int
 	}
 
 	Reaction struct {
@@ -687,6 +692,7 @@ type QueryResolver interface {
 	GetClientHealthDiaryEntries(ctx context.Context, clientID string) ([]*domain.ClientHealthDiaryEntry, error)
 	SendOtp(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (string, error)
 	GetScreeningToolQuestions(ctx context.Context, toolType *string) ([]*domain.ScreeningToolQuestion, error)
+	GetAvailableScreeningToolQuestions(ctx context.Context, clientID string) ([]*domain.AvailableScreeningTools, error)
 	GetSecurityQuestions(ctx context.Context, flavour feedlib.Flavour) ([]*domain.SecurityQuestion, error)
 	GetServiceRequests(ctx context.Context, requestType *string, requestStatus *string, facilityID string, flavour feedlib.Flavour) ([]*domain.ServiceRequest, error)
 	GetPendingServiceRequestsCount(ctx context.Context, facilityID string) (*domain.ServiceRequestsCountResponse, error)
@@ -900,6 +906,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.AuthorityRole.RoleID(childComplexity), true
+
+	case "AvailableScreeningTools.toolType":
+		if e.complexity.AvailableScreeningTools.ToolType == nil {
+			break
+		}
+
+		return e.complexity.AvailableScreeningTools.ToolType(childComplexity), true
 
 	case "Caregiver.caregiverType":
 		if e.complexity.Caregiver.CaregiverType == nil {
@@ -2972,6 +2985,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.GetAllAuthorityRoles(childComplexity), true
 
+	case "Query.getAvailableScreeningToolQuestions":
+		if e.complexity.Query.GetAvailableScreeningToolQuestions == nil {
+			break
+		}
+
+		args, err := ec.field_Query_getAvailableScreeningToolQuestions_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetAvailableScreeningToolQuestions(childComplexity, args["clientID"].(string)), true
+
 	case "Query.getClientCaregiver":
 		if e.complexity.Query.GetClientCaregiver == nil {
 			break
@@ -4299,6 +4324,7 @@ input RescheduleAppointmentInput {
 	{Name: "pkg/mycarehub/presentation/graph/screeningtools.graphql", Input: `
 extend type Query {
     getScreeningToolQuestions(toolType: String) : [ScreeningToolQuestion!]!
+    getAvailableScreeningToolQuestions(clientID: String!) : [AvailableScreeningTools!]!
 }
 
 extend type Mutation{
@@ -4829,7 +4855,11 @@ type Spam {
 type Toxic {
   flag:  Float 
   block: Float 
-} `, BuiltIn: false},
+} 
+
+type AvailableScreeningTools{
+  toolType: ScreeningToolType!
+}`, BuiltIn: false},
 	{Name: "pkg/mycarehub/presentation/graph/user.graphql", Input: `extend type Query {
   getCurrentTerms(flavour: Flavour!): TermsOfService!
   verifyPIN(userID: String!, flavour: Flavour!, pin: String!): Boolean!
@@ -5909,6 +5939,21 @@ func (ec *executionContext) field_Query_fetchClientAppointments_args(ctx context
 		}
 	}
 	args["filters"] = arg2
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_getAvailableScreeningToolQuestions_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["clientID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clientID"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["clientID"] = arg0
 	return args, nil
 }
 
@@ -7376,6 +7421,41 @@ func (ec *executionContext) _AuthorityRole_active(ctx context.Context, field gra
 	res := resTmp.(bool)
 	fc.Result = res
 	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _AvailableScreeningTools_toolType(ctx context.Context, field graphql.CollectedField, obj *domain.AvailableScreeningTools) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "AvailableScreeningTools",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ToolType, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(enums.ScreeningToolType)
+	fc.Result = res
+	return ec.marshalNScreeningToolType2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐScreeningToolType(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Caregiver_firstName(ctx context.Context, field graphql.CollectedField, obj *domain.Caregiver) (ret graphql.Marshaler) {
@@ -17389,6 +17469,48 @@ func (ec *executionContext) _Query_getScreeningToolQuestions(ctx context.Context
 	return ec.marshalNScreeningToolQuestion2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐScreeningToolQuestionᚄ(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Query_getAvailableScreeningToolQuestions(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_getAvailableScreeningToolQuestions_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GetAvailableScreeningToolQuestions(rctx, args["clientID"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*domain.AvailableScreeningTools)
+	fc.Result = res
+	return ec.marshalNAvailableScreeningTools2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐAvailableScreeningToolsᚄ(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Query_getSecurityQuestions(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -22504,6 +22626,33 @@ func (ec *executionContext) _AuthorityRole(ctx context.Context, sel ast.Selectio
 	return out
 }
 
+var availableScreeningToolsImplementors = []string{"AvailableScreeningTools"}
+
+func (ec *executionContext) _AvailableScreeningTools(ctx context.Context, sel ast.SelectionSet, obj *domain.AvailableScreeningTools) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, availableScreeningToolsImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("AvailableScreeningTools")
+		case "toolType":
+			out.Values[i] = ec._AvailableScreeningTools_toolType(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var caregiverImplementors = []string{"Caregiver"}
 
 func (ec *executionContext) _Caregiver(ctx context.Context, sel ast.SelectionSet, obj *domain.Caregiver) graphql.Marshaler {
@@ -24622,6 +24771,20 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				}
 				return res
 			})
+		case "getAvailableScreeningToolQuestions":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_getAvailableScreeningToolQuestions(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "getSecurityQuestions":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -25619,6 +25782,60 @@ func (ec *executionContext) marshalNAuthorityRole2ᚖgithubᚗcomᚋsavannahghi�
 	return ec._AuthorityRole(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNAvailableScreeningTools2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐAvailableScreeningToolsᚄ(ctx context.Context, sel ast.SelectionSet, v []*domain.AvailableScreeningTools) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNAvailableScreeningTools2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐAvailableScreeningTools(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNAvailableScreeningTools2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐAvailableScreeningTools(ctx context.Context, sel ast.SelectionSet, v *domain.AvailableScreeningTools) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._AvailableScreeningTools(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalNBoolean2bool(ctx context.Context, v interface{}) (bool, error) {
 	res, err := graphql.UnmarshalBoolean(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -26491,6 +26708,16 @@ func (ec *executionContext) unmarshalNScreeningToolQuestionResponseInput2ᚕᚖg
 func (ec *executionContext) unmarshalNScreeningToolQuestionResponseInput2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐScreeningToolQuestionResponseInput(ctx context.Context, v interface{}) (*dto.ScreeningToolQuestionResponseInput, error) {
 	res, err := ec.unmarshalInputScreeningToolQuestionResponseInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNScreeningToolType2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐScreeningToolType(ctx context.Context, v interface{}) (enums.ScreeningToolType, error) {
+	var res enums.ScreeningToolType
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNScreeningToolType2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐScreeningToolType(ctx context.Context, sel ast.SelectionSet, v enums.ScreeningToolType) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) marshalNSecurityQuestion2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐSecurityQuestionᚄ(ctx context.Context, sel ast.SelectionSet, v []*domain.SecurityQuestion) graphql.Marshaler {
