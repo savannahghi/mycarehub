@@ -62,12 +62,15 @@ func TestCreateInviteMessage(t *testing.T) {
 	inviteLink := "https://example.com"
 	pin := "99033"
 
-	want := fmt.Sprintf("You have been invited to My Afya Hub. Download the app on %v. Your single use pin is %v",
+	consumerMessage := fmt.Sprintf("You have been invited to My Afya Hub. Download the app on %v. Your single use pin is %v",
+		inviteLink, pin)
+	proMessage := fmt.Sprintf("You have been invited to myCareHub Professional. Download the app on %v. Your single use pin is %v",
 		inviteLink, pin)
 	type args struct {
 		user       *domain.User
 		inviteLink string
 		pin        string
+		flavour    feedlib.Flavour
 	}
 	tests := []struct {
 		name string
@@ -75,20 +78,45 @@ func TestCreateInviteMessage(t *testing.T) {
 		want string
 	}{
 		{
-			name: "default case",
+			name: "Happy Case - Create consumer invite message",
 			args: args{
 				user: &domain.User{
 					Name: name,
 				},
 				inviteLink: inviteLink,
 				pin:        pin,
+				flavour:    feedlib.FlavourConsumer,
 			},
-			want: want,
+			want: consumerMessage,
+		},
+		{
+			name: "Happy Case - Create Pro invite message",
+			args: args{
+				user: &domain.User{
+					Name: name,
+				},
+				inviteLink: inviteLink,
+				pin:        pin,
+				flavour:    feedlib.FlavourPro,
+			},
+			want: proMessage,
+		},
+		{
+			name: "Sad Case - Fail to create message",
+			args: args{
+				user: &domain.User{
+					Name: name,
+				},
+				inviteLink: inviteLink,
+				pin:        pin,
+				flavour:    feedlib.Flavour("invalid"),
+			},
+			want: "",
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := CreateInviteMessage(tt.args.user, tt.args.inviteLink, tt.args.pin); got != tt.want {
+			if got := CreateInviteMessage(tt.args.user, tt.args.inviteLink, tt.args.pin, tt.args.flavour); got != tt.want {
 				t.Errorf("CreateInviteMessage() = %v, want %v", got, tt.want)
 			}
 		})

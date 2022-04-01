@@ -562,7 +562,7 @@ func (us *UseCasesUserImpl) InviteUser(ctx context.Context, userID string, phone
 		return false, exceptions.GetError(err)
 	}
 
-	message := helpers.CreateInviteMessage(userProfile, inviteLink, tempPin)
+	message := helpers.CreateInviteMessage(userProfile, inviteLink, tempPin, flavour)
 
 	err = us.ExternalExt.SendInviteSMS(ctx, *phone, message)
 	if err != nil {
