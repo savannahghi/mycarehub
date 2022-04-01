@@ -131,6 +131,8 @@ type PostgresMock struct {
 	MockGetAppointmentServiceRequestsFn                  func(ctx context.Context, lastSyncTime time.Time, mflCode string) ([]domain.AppointmentServiceRequests, error)
 	MockGetClientAppointmentByIDFn                       func(ctx context.Context, appointmentID string) (*domain.Appointment, error)
 	MockGetAppointmentByAppointmentUUIDFn                func(ctx context.Context, appointmentUUID string) (*domain.Appointment, error)
+	MockGetClientServiceRequestsFn                       func(ctx context.Context, requestType, status, clientID string) ([]*domain.ServiceRequest, error)
+	MockGetActiveScreeningToolResponsesFn                func(ctx context.Context, clientID string) ([]*domain.ScreeningToolQuestionResponse, error)
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -769,7 +771,7 @@ func NewPostgresMock() *PostgresMock {
 			return &domain.ScreeningToolQuestion{
 				ID:       ID,
 				Question: gofakeit.Sentence(1),
-				ToolType: enums.ScreeningToolTypeTB,
+				ToolType: enums.ScreeningToolTypeGBV,
 				ResponseChoices: map[string]interface{}{
 					"0": "yes",
 					"1": "no",
@@ -777,8 +779,14 @@ func NewPostgresMock() *PostgresMock {
 				ResponseCategory: enums.ScreeningToolResponseCategorySingleChoice,
 				ResponseType:     enums.ScreeningToolResponseTypeInteger,
 				Sequence:         1,
-				Meta:             map[string]interface{}{"meta": "data"},
-				Active:           true,
+				Meta: map[string]interface{}{
+					"category":             "Violence",
+					"category_description": "Response from GBV tool",
+					"helper_text":          "Emotional violence Assessment",
+					"violence_type":        "EMOTIONAL",
+					"violence_code":        "GBV-EV",
+				},
+				Active: true,
 			}, nil
 		},
 		MockInvalidateScreeningToolResponseFn: func(ctx context.Context, clientID string, questionID string) error {
@@ -890,6 +898,33 @@ func NewPostgresMock() *PostgresMock {
 				ClientID:        ID,
 				FacilityID:      ID,
 				Provider:        "provider",
+			}, nil
+		},
+		MockGetClientServiceRequestsFn: func(ctx context.Context, requestType, status, clientID string) ([]*domain.ServiceRequest, error) {
+			return []*domain.ServiceRequest{
+				{
+					ID:           ID,
+					RequestType:  enums.ServiceRequestTypeRedFlag.String(),
+					Request:      "SERVICE_REQUEST",
+					Status:       "PENDING",
+					ClientID:     ID,
+					InProgressAt: &currentTime,
+					InProgressBy: &name,
+					ResolvedAt:   &currentTime,
+					ResolvedBy:   &name,
+					FacilityID:   uuid.New().String(),
+				},
+			}, nil
+		},
+		MockGetActiveScreeningToolResponsesFn: func(ctx context.Context, clientID string) ([]*domain.ScreeningToolQuestionResponse, error) {
+			return []*domain.ScreeningToolQuestionResponse{
+				{
+					ID:         ID,
+					QuestionID: ID,
+					ClientID:   clientID,
+					Answer:     "0",
+					Active:     true,
+				},
 			}, nil
 		},
 	}
@@ -1449,4 +1484,14 @@ func (gm *PostgresMock) GetClientAppointmentByID(ctx context.Context, appointmen
 // GetAppointmentByAppointmentUUID mocks the implementation of getting an appointment by appointment UUID
 func (gm *PostgresMock) GetAppointmentByAppointmentUUID(ctx context.Context, appointmentUUID string) (*domain.Appointment, error) {
 	return gm.MockGetAppointmentByAppointmentUUIDFn(ctx, appointmentUUID)
+}
+
+// GetClientServiceRequests mocks the implementation of getting system generated client service requests
+func (gm *PostgresMock) GetClientServiceRequests(ctx context.Context, requestType, status, clientID string) ([]*domain.ServiceRequest, error) {
+	return gm.MockGetClientServiceRequestsFn(ctx, requestType, status, clientID)
+}
+
+// GetActiveScreeningToolResponses mocks the implementation of getting active screening tool responses
+func (gm *PostgresMock) GetActiveScreeningToolResponses(ctx context.Context, clientID string) ([]*domain.ScreeningToolQuestionResponse, error) {
+	return gm.MockGetActiveScreeningToolResponsesFn(ctx, clientID)
 }

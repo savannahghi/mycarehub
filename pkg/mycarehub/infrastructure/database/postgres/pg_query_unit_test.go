@@ -4900,3 +4900,79 @@ func TestMyCareHubDb_GetAppointmentByAppointmentUUID(t *testing.T) {
 		})
 	}
 }
+
+func TestMyCareHubDb_GetClientServiceRequests(t *testing.T) {
+	var fakeGorm = gormMock.NewGormMock()
+	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+	type args struct {
+		ctx      context.Context
+		toolType string
+		status   string
+		clientID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case:  get system generated client service requests",
+			args: args{
+				ctx:      context.Background(),
+				toolType: "SCREENING_TOOLS",
+				status:   enums.ServiceRequestStatusPending.String(),
+				clientID: uuid.New().String(),
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			got, err := d.GetClientServiceRequests(tt.args.ctx, tt.args.toolType, tt.args.status, tt.args.clientID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.GetClientServiceRequests() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected a response but got: %v", got)
+			}
+		})
+	}
+}
+
+func TestMyCareHubDb_GetActiveScreeningToolResponses(t *testing.T) {
+	var fakeGorm = gormMock.NewGormMock()
+	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+	type args struct {
+		ctx      context.Context
+		clientID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    []*domain.ScreeningToolQuestionResponse
+		wantErr bool
+	}{
+		{
+			name: "Happy case:  get active screening tool responses",
+			args: args{
+				ctx:      context.Background(),
+				clientID: uuid.New().String(),
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			got, err := d.GetActiveScreeningToolResponses(tt.args.ctx, tt.args.clientID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.GetActiveScreeningToolResponses() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected a response but got: %v", got)
+			}
+		})
+	}
+}

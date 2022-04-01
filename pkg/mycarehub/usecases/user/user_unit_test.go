@@ -214,7 +214,7 @@ func TestUseCasesUserImpl_Login_Unittest(t *testing.T) {
 				pin:         PIN,
 				flavour:     feedlib.FlavourPro,
 			},
-			wantErr: true,
+			wantErr: false, // a user should still be able to log in
 		},
 		{
 			name: "Sad Case - Unable to create getstream token",
@@ -224,7 +224,7 @@ func TestUseCasesUserImpl_Login_Unittest(t *testing.T) {
 				pin:         PIN,
 				flavour:     feedlib.FlavourPro,
 			},
-			wantErr: true,
+			wantErr: false, // a user should still be able to log in
 		},
 		{
 			name: "Sad Case - failed to check if client has pending pin reset request",

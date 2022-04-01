@@ -423,6 +423,7 @@ func (us *UseCasesUserImpl) ReturnLoginResponse(ctx context.Context, flavour fee
 			}
 			clientProfile.CHVUserName = CHVProfile.Name
 		}
+
 		// Create/update a client's getstream user
 		getStreamUser := &getStreamClient.User{
 			ID:   *clientProfile.ID,
@@ -471,7 +472,6 @@ func (us *UseCasesUserImpl) ReturnLoginResponse(ctx context.Context, flavour fee
 				Code:    int(exceptions.ProfileNotFound),
 			}, exceptions.StaffProfileNotFoundErr(err)
 		}
-
 		// Create/update a staff's getstream user
 		getStreamUser := &getStreamClient.User{
 			ID:   *staffProfile.ID,

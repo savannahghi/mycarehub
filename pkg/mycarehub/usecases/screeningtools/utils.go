@@ -63,7 +63,7 @@ func createServiceRequest(question *domain.ScreeningToolQuestion, response strin
 	case enums.ScreeningToolTypeTB:
 		if yesCount >= 3 {
 			return &domain.ServiceRequest{
-				RequestType: enums.ServiceRequestTypeRedFlag.String(),
+				RequestType: enums.ServiceRequestTypeScreeningTools.String(),
 				Request:     serviceRequestTemplate,
 			}
 		}
@@ -74,7 +74,7 @@ func createServiceRequest(question *domain.ScreeningToolQuestion, response strin
 	case enums.ScreeningToolTypeGBV:
 		if yesCount >= 1 {
 			return &domain.ServiceRequest{
-				RequestType: enums.ServiceRequestTypeRedFlag.String(),
+				RequestType: enums.ServiceRequestTypeScreeningTools.String(),
 				Request:     serviceRequestTemplate,
 			}
 		}
@@ -87,7 +87,7 @@ func createServiceRequest(question *domain.ScreeningToolQuestion, response strin
 	case enums.ScreeningToolTypeAlcoholSubstanceAssessment:
 		if yesCount >= 3 {
 			return &domain.ServiceRequest{
-				RequestType: enums.ServiceRequestTypeRedFlag.String(),
+				RequestType: enums.ServiceRequestTypeScreeningTools.String(),
 				Request:     serviceRequestTemplate,
 			}
 		}

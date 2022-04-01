@@ -3,11 +3,13 @@ package getstream_test
 import (
 	"context"
 	"fmt"
+	"log"
 	"os"
 	"testing"
 
 	stream "github.com/GetStream/stream-chat-go/v5"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/getstream"
+	"github.com/savannahghi/serverutils"
 )
 
 var (
@@ -36,9 +38,19 @@ var (
 	err error
 )
 
+var (
+	streamClient       *stream.Client
+	getStreamAPIKey    = serverutils.MustGetEnvVar("GET_STREAM_KEY")
+	getStreamAPISecret = serverutils.MustGetEnvVar("GET_STREAM_SECRET")
+)
+
 func TestMain(m *testing.M) {
+	streamClient, err = stream.NewClient(getStreamAPIKey, getStreamAPISecret)
+	if err != nil {
+		log.Fatalf("failed to start getstream client: %v", err)
+	}
 	ctx := context.Background()
-	c = getstream.NewServiceGetStream()
+	c = getstream.NewServiceGetStream(streamClient)
 
 	// Create a test channel
 	ch, err = c.CreateChannel(ctx, channelType, channelID, testChannelOwner, nil)

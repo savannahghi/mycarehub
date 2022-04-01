@@ -2,12 +2,37 @@ package mock
 
 import (
 	"context"
+	"net/http"
 	"time"
 
 	stream "github.com/GetStream/stream-chat-go/v5"
 	"github.com/brianvoe/gofakeit"
 	"github.com/google/uuid"
 )
+
+// Client mocks the implementation of a getstream client
+type Client struct {
+	BaseURL string
+	HTTP    *http.Client `json:"-"`
+
+	apiKey       string
+	apiSecret    []byte
+	authToken    string
+	ClientID     string
+	ClientSecret string
+	Client       stream.Client
+}
+
+// NewClient mocks the implementation of creating a new getstream client
+func (g Client) NewClient() *Client {
+	return &Client{
+		BaseURL:   "",
+		HTTP:      &http.Client{},
+		apiKey:    "",
+		apiSecret: []byte("ew"),
+		authToken: "",
+	}
+}
 
 // GetStreamServiceMock mocks the GetStream service library implementations
 type GetStreamServiceMock struct {

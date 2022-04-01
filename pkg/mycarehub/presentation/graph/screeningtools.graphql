@@ -1,6 +1,7 @@
 
 extend type Query {
     getScreeningToolQuestions(toolType: String) : [ScreeningToolQuestion!]!
+    getAvailableScreeningToolQuestions(clientID: String!) : [AvailableScreeningTools!]!
 }
 
 extend type Mutation{

@@ -68,3 +68,18 @@
   facility_id: {{.test_facility_id}}
   meta: null
 
+- id: {{.resolved_service_request_id}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  active: true
+  request_type: SCREENING_TOOLS
+  request: TEST REQUEST
+  status: RESOLVED
+  in_progress_at: RAW=NOW()
+  resolved_at: null
+  client_id: 26b20a42-cbb8-4553-aedb-c539602d04fc
+  in_progress_by_id: null
+  organisation_id: {{.test_organisation_id}}
+  resolved_by_id: null
+  facility_id: {{.test_facility_id}}
+  

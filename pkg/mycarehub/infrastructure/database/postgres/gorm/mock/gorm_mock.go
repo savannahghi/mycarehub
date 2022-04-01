@@ -3,6 +3,7 @@ package mock
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/brianvoe/gofakeit"
@@ -131,6 +132,8 @@ type GormMock struct {
 	MockGetFacilitiesWithoutFHIRIDFn                     func(ctx context.Context) ([]*gorm.Facility, error)
 	MockGetClientAppointmentByIDFn                       func(ctx context.Context, appointmentID, clientID string) (*gorm.Appointment, error)
 	MockGetAppointmentByAppointmentUUIDFn                func(ctx context.Context, appointmentUUID string) (*gorm.Appointment, error)
+	MockGetClientServiceRequestsFn                       func(ctx context.Context, requestType, status, clientID string) ([]*gorm.ClientServiceRequest, error)
+	MockGetActiveScreeningToolResponsesFn                func(ctx context.Context, clientID string) ([]*gorm.ScreeningToolsResponse, error)
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -998,6 +1001,38 @@ func NewGormMock() *GormMock {
 				},
 			}, nil
 		},
+		MockGetClientServiceRequestsFn: func(ctx context.Context, requestType, status, clientID string) ([]*gorm.ClientServiceRequest, error) {
+			return []*gorm.ClientServiceRequest{
+				{
+					ID:             &UUID,
+					Active:         true,
+					RequestType:    enums.ServiceRequestTypeRedFlag.String(),
+					Request:        "REQUEST",
+					Status:         string(enums.ServiceRequestStatusResolved),
+					InProgressAt:   nil,
+					ResolvedAt:     nil,
+					ClientID:       uuid.New().String(),
+					InProgressByID: &UUID,
+					OrganisationID: "",
+					ResolvedByID:   &UUID,
+					FacilityID:     uuid.New().String(),
+					Meta:           fmt.Sprintf(`{"question_id":"%s"}`, "screening_tool_question_id"),
+				},
+			}, nil
+		},
+		MockGetActiveScreeningToolResponsesFn: func(ctx context.Context, clientID string) ([]*gorm.ScreeningToolsResponse, error) {
+			return []*gorm.ScreeningToolsResponse{
+				{
+					Base:           gorm.Base{},
+					ID:             UUID,
+					ClientID:       uuid.New().String(),
+					QuestionID:     "",
+					Response:       "",
+					Active:         true,
+					OrganisationID: "",
+				},
+			}, nil
+		},
 	}
 }
 
@@ -1561,4 +1596,14 @@ func (gm *GormMock) GetClientAppointmentByID(ctx context.Context, appointmentID,
 // GetAppointmentByAppointmentUUID mocks the implementation of getting an appointment by appointment UUID
 func (gm *GormMock) GetAppointmentByAppointmentUUID(ctx context.Context, appointmentUUID string) (*gorm.Appointment, error) {
 	return gm.MockGetAppointmentByAppointmentUUIDFn(ctx, appointmentUUID)
+}
+
+// GetClientServiceRequests mocks the implementation of getting system generated client service requests
+func (gm *GormMock) GetClientServiceRequests(ctx context.Context, requestType, status, clientID string) ([]*gorm.ClientServiceRequest, error) {
+	return gm.MockGetClientServiceRequestsFn(ctx, requestType, status, clientID)
+}
+
+// GetActiveScreeningToolResponses mocks the implementation of getting active screening tool responses
+func (gm *GormMock) GetActiveScreeningToolResponses(ctx context.Context, clientID string) ([]*gorm.ScreeningToolsResponse, error) {
+	return gm.MockGetActiveScreeningToolResponsesFn(ctx, clientID)
 }

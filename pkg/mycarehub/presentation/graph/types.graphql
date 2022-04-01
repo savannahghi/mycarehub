@@ -487,3 +487,7 @@ type Toxic {
   flag:  Float 
   block: Float 
 } 
+
+type AvailableScreeningTools{
+  toolType: ScreeningToolType!
+}

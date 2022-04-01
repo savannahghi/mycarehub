@@ -166,17 +166,17 @@ func Test_createServiceRequest(t *testing.T) {
 	gbvQuestionMeta := enums.ScreeningToolTypeGBV.String() + "_question_number_" + strconv.Itoa(sequence) + "_question_meta"
 
 	wantRedFlagTBRequest := &domain.ServiceRequest{
-		RequestType: enums.ServiceRequestTypeRedFlag.String(),
+		RequestType: enums.ServiceRequestTypeScreeningTools.String(),
 		Request:     wantPositiveTBassessment,
 	}
 
 	wantRedFlagGBVAssessment := &domain.ServiceRequest{
-		RequestType: enums.ServiceRequestTypeRedFlag.String(),
+		RequestType: enums.ServiceRequestTypeScreeningTools.String(),
 		Request:     wantPositiveGBVassessment,
 	}
 
 	wantRedFlagAlcoholAssessment := &domain.ServiceRequest{
-		RequestType: enums.ServiceRequestTypeRedFlag.String(),
+		RequestType: enums.ServiceRequestTypeScreeningTools.String(),
 		Request:     wantPositiveAlcoholAssessment,
 	}
 

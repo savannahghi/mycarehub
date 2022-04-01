@@ -17,3 +17,7 @@ func (r *mutationResolver) AnswerScreeningToolQuestion(ctx context.Context, scre
 func (r *queryResolver) GetScreeningToolQuestions(ctx context.Context, toolType *string) ([]*domain.ScreeningToolQuestion, error) {
 	return r.mycarehub.ScreeningTools.GetScreeningToolQuestions(ctx, toolType)
 }
+
+func (r *queryResolver) GetAvailableScreeningToolQuestions(ctx context.Context, clientID string) ([]*domain.AvailableScreeningTools, error) {
+	return r.mycarehub.ScreeningTools.GetAvailableScreeningToolQuestions(ctx, clientID)
+}

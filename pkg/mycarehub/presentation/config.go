@@ -11,6 +11,7 @@ import (
 
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
+	stream "github.com/GetStream/stream-chat-go/v5"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/savannahghi/firebasetools"
@@ -62,6 +63,11 @@ var allowedHeaders = []string{
 	"Content-Type",
 }
 
+var (
+	getStreamAPIKey    = serverutils.MustGetEnvVar("GET_STREAM_KEY")
+	getStreamAPISecret = serverutils.MustGetEnvVar("GET_STREAM_SECRET")
+)
+
 // Router sets up the ginContext router
 func Router(ctx context.Context) (*mux.Router, error) {
 	fc := &firebasetools.FirebaseClient{}
@@ -84,6 +90,11 @@ func Router(ctx context.Context) (*mux.Router, error) {
 		return nil, fmt.Errorf("failed to initialize pubsub messaging service: %w", err)
 	}
 
+	streamClient, err := stream.NewClient(getStreamAPIKey, getStreamAPISecret)
+	if err != nil {
+		log.Fatalf("failed to start getstream client: %v", err)
+	}
+
 	// Initialize facility usecase
 	facilityUseCase := facility.NewFacilityUsecase(db, db, db, db, pubSub)
 
@@ -91,7 +102,7 @@ func Router(ctx context.Context) (*mux.Router, error) {
 
 	authorityUseCase := authority.NewUsecaseAuthority(db, db, externalExt)
 
-	getStream := streamService.NewServiceGetStream()
+	getStream := streamService.NewServiceGetStream(streamClient)
 	// Initialize user usecase
 	userUsecase := user.NewUseCasesUserImpl(db, db, db, db, externalExt, otpUseCase, authorityUseCase, getStream, pubSub)
 
@@ -113,7 +124,7 @@ func Router(ctx context.Context) (*mux.Router, error) {
 
 	healthDiaryUseCase := healthdiary.NewUseCaseHealthDiaryImpl(db, db, db, serviceRequestUseCase)
 
-	screeningToolsUsecases := screeningtools.NewUseCasesScreeningTools(db, db, db)
+	screeningToolsUsecases := screeningtools.NewUseCasesScreeningTools(db, db, db, externalExt)
 
 	useCase := usecases.NewMyCareHubUseCase(
 		userUsecase, termsUsecase, facilityUseCase,

@@ -3760,3 +3760,83 @@ func TestPGInstance_GetAppointmentByAppointmentUUID(t *testing.T) {
 		})
 	}
 }
+
+func TestPGInstance_GetClientServiceRequests(t *testing.T) {
+	type args struct {
+		ctx         context.Context
+		requestType string
+		status      string
+		clientID    string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:         context.Background(),
+				requestType: string(enums.ServiceRequestTypeScreeningTools),
+				status:      string(enums.ServiceRequestStatusResolved),
+				clientID:    clientID,
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := testingDB.GetClientServiceRequests(tt.args.ctx, tt.args.requestType, tt.args.status, tt.args.clientID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.GetClientServiceRequests() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected service requests not to be nil for %v", tt.name)
+				return
+			}
+		})
+	}
+}
+
+func TestPGInstance_GetActiveScreeningToolResponses(t *testing.T) {
+	type args struct {
+		ctx      context.Context
+		clientID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:      context.Background(),
+				clientID: clientID,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: clientID is invalid",
+			args: args{
+				ctx:      context.Background(),
+				clientID: "invalid",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := testingDB.GetActiveScreeningToolResponses(tt.args.ctx, tt.args.clientID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.GetActiveScreeningToolResponses() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected service requests not to be nil for %v", tt.name)
+				return
+			}
+		})
+	}
+}

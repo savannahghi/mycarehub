@@ -82,3 +82,11 @@ type ScreeningToolQuestionResponse struct {
 	Answer     string `json:"answer"`
 	Active     bool   `json:"active"`
 }
+
+// AvailableScreeningTools returns a list of available screening tool types
+// this response must fit the following criteria:
+// 1. A screening tool response for each client should be after 24 hours of the last response
+// 2. A screening tool response that creates a service request should be resolved first before the next response
+type AvailableScreeningTools struct {
+	ToolType enums.ScreeningToolType `json:"toolType"`
+}
