@@ -45,10 +45,19 @@ func GetInviteLink(flavour feedlib.Flavour) (string, error) {
 }
 
 // CreateInviteMessage creates a new invite message
-func CreateInviteMessage(user *domain.User, inviteLink string, pin string) string {
-	message := fmt.Sprintf("You have been invited to My Afya Hub. Download the app on %v. Your single use pin is %v",
-		inviteLink, pin)
-	return message
+func CreateInviteMessage(user *domain.User, inviteLink string, pin string, flavour feedlib.Flavour) string {
+	switch flavour {
+	case feedlib.FlavourConsumer:
+		message := fmt.Sprintf("You have been invited to My Afya Hub. Download the app on %v. Your single use pin is %v",
+			inviteLink, pin)
+		return message
+	case feedlib.FlavourPro:
+		message := fmt.Sprintf("You have been invited to myCareHub Professional. Download the app on %v. Your single use pin is %v",
+			inviteLink, pin)
+		return message
+	default:
+		return ""
+	}
 }
 
 func encode(b []byte) string {
