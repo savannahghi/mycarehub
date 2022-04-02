@@ -1026,6 +1026,20 @@ func TestUseCasesServiceRequestImpl_VerifyPinResetServiceRequest(t *testing.T) {
 			want:    false,
 			wantErr: true,
 		},
+		{
+			name: "Sad Case - Fail to update user profile",
+			args: args{
+				ctx:                      ctx,
+				clientID:                 "26b20a42-cbb8-4553-aedb-c539602d04fc",
+				serviceRequestID:         uuid.New().String(),
+				cccNumber:                "123456",
+				phoneNumber:              "+254711111111",
+				physicalIdentityVerified: true,
+				state:                    enums.VerifyServiceRequestStateApproved.String(),
+			},
+			want:    false,
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -1044,6 +1058,12 @@ func TestUseCasesServiceRequestImpl_VerifyPinResetServiceRequest(t *testing.T) {
 			if tt.name == "Sad Case - Fail to get staff profile by user ID" {
 				fakeDB.MockGetStaffProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.StaffProfile, error) {
 					return nil, fmt.Errorf("failed to get staff profile by user ID")
+				}
+			}
+
+			if tt.name == "Sad Case - Fail to update user profile" {
+				fakeDB.MockUpdateUserFn = func(ctx context.Context, user *domain.User, updateData map[string]interface{}) error {
+					return fmt.Errorf("failed to update user profile")
 				}
 			}
 
@@ -1235,6 +1255,15 @@ func TestUseCasesServiceRequestImpl_VerifyStaffPinResetServiceRequest(t *testing
 			want:    false,
 			wantErr: true,
 		},
+		{
+			name: "Sad Case - Fail to update user profile",
+			args: args{
+				ctx:         ctx,
+				phoneNumber: "+254711111111",
+			},
+			want:    false,
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -1276,6 +1305,12 @@ func TestUseCasesServiceRequestImpl_VerifyStaffPinResetServiceRequest(t *testing
 			if tt.name == "Sad Case - Fail to resolve service request" {
 				fakeDB.MockResolveStaffServiceRequestFn = func(ctx context.Context, staffID *string, serviceRequestID *string, status string) (bool, error) {
 					return false, fmt.Errorf("failed to resolve service request")
+				}
+			}
+
+			if tt.name == "Sad Case - Fail to update user profile" {
+				fakeDB.MockUpdateUserFn = func(ctx context.Context, user *domain.User, updateData map[string]interface{}) error {
+					return fmt.Errorf("failed to update user profile")
 				}
 			}
 			got, err := u.VerifyStaffPinResetServiceRequest(tt.args.ctx, tt.args.phoneNumber, tt.args.serviceRequestID, tt.args.verificationStatus)

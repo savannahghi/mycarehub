@@ -96,6 +96,8 @@ type Query interface {
 	GetHealthDiaryEntryByID(ctx context.Context, healthDiaryEntryID string) (*domain.ClientHealthDiaryEntry, error)
 	GetServiceRequestByID(ctx context.Context, serviceRequestID string) (*domain.ServiceRequest, error)
 	GetAppointmentServiceRequests(ctx context.Context, lastSyncTime time.Time, facilityID string) ([]domain.AppointmentServiceRequests, error)
+	GetClientAppointmentByID(ctx context.Context, clientID string) (*domain.Appointment, error)
+	GetAppointmentByAppointmentUUID(ctx context.Context, appointmentUUID string) (*domain.Appointment, error)
 }
 
 // Update represents all the update action interfaces
@@ -124,7 +126,7 @@ type Update interface {
 	ResolveServiceRequest(ctx context.Context, staffID *string, serviceRequestID *string, status string) (bool, error)
 	AssignRoles(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error)
 	RevokeRoles(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error)
-	UpdateAppointment(ctx context.Context, appointment domain.Appointment, appointmentUUID, clientID string) error
+	UpdateAppointment(ctx context.Context, appointment *domain.Appointment, updateData map[string]interface{}) (*domain.Appointment, error)
 	InvalidateScreeningToolResponse(ctx context.Context, clientID string, questionID string) error
 	ResolveStaffServiceRequest(ctx context.Context, staffID *string, serviceRequestID *string, verificationStatus string) (bool, error)
 	UpdateServiceRequests(ctx context.Context, payload *domain.UpdateServiceRequestsPayload) (bool, error)

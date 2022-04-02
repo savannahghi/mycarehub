@@ -80,6 +80,8 @@ type Query interface {
 	GetStaffProfileByStaffID(ctx context.Context, staffID string) (*StaffProfile, error)
 	GetAppointmentServiceRequests(ctx context.Context, lastSyncTime time.Time) ([]*ClientServiceRequest, error)
 	GetAppointmentByID(ctx context.Context, appointmentID string) (*Appointment, error)
+	GetAppointmentByAppointmentUUID(ctx context.Context, appointmentUUID string) (*Appointment, error)
+	GetClientAppointmentByID(ctx context.Context, appointmentID, clientID string) (*Appointment, error)
 }
 
 // CheckWhetherUserHasLikedContent performs a operation to check whether user has liked the content
@@ -1165,6 +1167,28 @@ func (db *PGInstance) GetAppointmentByID(ctx context.Context, appointmentID stri
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed to get appointment by ID: %v", err)
+	}
+	return &appointment, nil
+}
+
+// GetClientAppointmentByID returns a client appointment by ID
+func (db *PGInstance) GetClientAppointmentByID(ctx context.Context, appointmentID, clientID string) (*Appointment, error) {
+	var appointment Appointment
+	err := db.DB.Where(&Appointment{ID: appointmentID, ClientID: clientID}).First(&appointment).Error
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, fmt.Errorf("failed to get client appointment by ID: %v", err)
+	}
+	return &appointment, nil
+}
+
+// GetAppointmentByAppointmentUUID returns an appointment by appointment UUID
+func (db *PGInstance) GetAppointmentByAppointmentUUID(ctx context.Context, appointmentUUID string) (*Appointment, error) {
+	var appointment Appointment
+	err := db.DB.Where(&Appointment{AppointmentUUID: appointmentUUID}).First(&appointment).Error
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, fmt.Errorf("failed to get appointment by appointment UUID: %v", err)
 	}
 	return &appointment, nil
 }

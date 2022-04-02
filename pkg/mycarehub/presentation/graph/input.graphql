@@ -1,5 +1,6 @@
 scalar Date
 scalar Map
+scalar Any
 
 input FacilityInput {
   name: String!
@@ -132,4 +133,16 @@ input ServiceRequestInput {
 	ClientName:   String
   Flavour: Flavour!
 	Meta:         Map
+}
+
+input FilterParam {
+  fieldName: String!
+  fieldType: FieldType!
+  comparisonOperation: Operation!
+  fieldValue: Any!
+}
+
+input RescheduleAppointmentInput {
+  appointmentID: String!
+  clientID: String!
 }

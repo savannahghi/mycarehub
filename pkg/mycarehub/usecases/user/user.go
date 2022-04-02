@@ -700,6 +700,15 @@ func (us *UseCasesUserImpl) SetNickName(ctx context.Context, userID string, nick
 		helpers.ReportErrorToSentry(err)
 		return false, exceptions.FailedToUpdateItemErr(fmt.Errorf("failed to set user nickname %v", err))
 	}
+
+	err = us.Update.UpdateUser(ctx, &domain.User{ID: &userID}, map[string]interface{}{
+		"has_set_nickname": true,
+	})
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, exceptions.UpdateProfileErr(fmt.Errorf("failed to update user profile: %v", err))
+	}
+
 	return ok, err
 }
 
@@ -849,13 +858,6 @@ func (us *UseCasesUserImpl) ResetPIN(ctx context.Context, input dto.UserResetPin
 	}
 	if !ok {
 		return false, exceptions.ResetPinErr(err)
-	}
-
-	// change pin update required to true
-	err = us.Update.UpdateUserPinUpdateRequiredStatus(ctx, *userProfile.ID, input.Flavour, true)
-	if err != nil {
-		helpers.ReportErrorToSentry(err)
-		return false, exceptions.InternalErr(fmt.Errorf("failed to update user pin update required status: %v", err))
 	}
 
 	return true, nil

@@ -4768,14 +4768,28 @@ func TestMyCareHubDb_GetFacilitiesWithoutFHIRID(t *testing.T) {
 			},
 			wantErr: false,
 		},
+		{
+			name: "Sad case:  failed to get facilities without fhir id",
+			args: args{
+				ctx: ctx,
+			},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "Sad case:  failed to get facilities without fhir id" {
+				fakeGorm.MockGetFacilitiesWithoutFHIRIDFn = func(ctx context.Context) ([]*gorm.Facility, error) {
+					return nil, fmt.Errorf("failed to get facilities without fhir id")
+
+				}
+			}
 			got, err := d.GetFacilitiesWithoutFHIRID(tt.args.ctx)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("MyCareHubDb.GetFacilitiesWithoutFHIRID() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
+
 			if tt.wantErr && got != nil {
 				t.Errorf("expected client to be nil for %v", tt.name)
 				return
@@ -4784,6 +4798,104 @@ func TestMyCareHubDb_GetFacilitiesWithoutFHIRID(t *testing.T) {
 			if !tt.wantErr && got == nil {
 				t.Errorf("expected client not to be nil for %v", tt.name)
 				return
+			}
+		})
+	}
+}
+
+func TestMyCareHubDb_GetClientAppointmentByID(t *testing.T) {
+	var fakeGorm = gormMock.NewGormMock()
+	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+	type args struct {
+		ctx           context.Context
+		appointmentID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case:  get client appointment by id",
+			args: args{
+				ctx:           context.Background(),
+				appointmentID: uuid.New().String(),
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case:  failed to get client appointment by id",
+			args: args{
+				ctx:           context.Background(),
+				appointmentID: uuid.New().String(),
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "Sad case:  failed to get client appointment by id" {
+				fakeGorm.MockGetAppointmentByIDFn = func(ctx context.Context, appointmentID string) (*gorm.Appointment, error) {
+					return nil, fmt.Errorf("failed to get client appointment by id")
+				}
+			}
+			got, err := d.GetClientAppointmentByID(tt.args.ctx, tt.args.appointmentID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.GetClientAppointmentByID() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected a response but got: %v", got)
+			}
+		})
+	}
+}
+
+func TestMyCareHubDb_GetAppointmentByAppointmentUUID(t *testing.T) {
+	var fakeGorm = gormMock.NewGormMock()
+	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+	type args struct {
+		ctx             context.Context
+		appointmentUUID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case:  get appointment by appointment UUID",
+			args: args{
+				ctx:             context.Background(),
+				appointmentUUID: uuid.New().String(),
+			},
+		},
+		{
+			name: "Sad case:  failed to get appointment by appointment UUID",
+			args: args{
+				ctx:             context.Background(),
+				appointmentUUID: uuid.New().String(),
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "Sad case:  failed to get appointment by appointment UUID" {
+				fakeGorm.MockGetAppointmentByAppointmentUUIDFn = func(ctx context.Context, appointmentUUID string) (*gorm.Appointment, error) {
+					return nil, fmt.Errorf("failed to get appointment by appointment UUID")
+				}
+			}
+
+			got, err := d.GetAppointmentByAppointmentUUID(tt.args.ctx, tt.args.appointmentUUID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.GetAppointmentByAppointmentUUID() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected a response but got: %v", got)
 			}
 		})
 	}

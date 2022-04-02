@@ -1473,8 +1473,9 @@ func TestPGInstance_UpdateServiceRequestsFromKenyaEMR(t *testing.T) {
 func TestPGInstance_UpdateAppointment(t *testing.T) {
 
 	type args struct {
-		ctx     context.Context
-		payload *gorm.Appointment
+		ctx        context.Context
+		payload    *gorm.Appointment
+		updateData map[string]interface{}
 	}
 	tests := []struct {
 		name    string
@@ -1486,30 +1487,14 @@ func TestPGInstance_UpdateAppointment(t *testing.T) {
 			args: args{
 				ctx: context.Background(),
 				payload: &gorm.Appointment{
-					ID:              appointmentID,
-					AppointmentUUID: "",
-					AppointmentType: "Dental",
-					Status:          enums.AppointmentStatusCompleted.String(),
-					ClientID:        clientID,
-
-					Reason: "Knocked up",
-					Date:   time.Now().Add(time.Duration(100)),
+					ID: appointmentID,
 				},
-			},
-			wantErr: false,
-		},
-		{
-			name: "Happy case: update an appointment using appointment uuid",
-			args: args{
-				ctx: context.Background(),
-				payload: &gorm.Appointment{
-					ID:              "",
-					AppointmentUUID: appointmentUUID,
-					AppointmentType: "Dental",
-					Status:          enums.AppointmentStatusCompleted.String(),
-					ClientID:        clientID,
-					Reason:          "Knocked up",
-					Date:            time.Now().Add(time.Duration(100)),
+				updateData: map[string]interface{}{
+					"appointment_type": "Dental",
+					"status":           enums.AppointmentStatusCompleted.String(),
+					"client_id":        clientID,
+					"reason":           "Knocked up",
+					"date":             time.Now().Add(time.Duration(100)),
 				},
 			},
 			wantErr: false,
@@ -1519,14 +1504,14 @@ func TestPGInstance_UpdateAppointment(t *testing.T) {
 			args: args{
 				ctx: context.Background(),
 				payload: &gorm.Appointment{
-					ID:              gofakeit.UUID(),
-					AppointmentUUID: gofakeit.UUID(),
-					AppointmentType: "Dental",
-					Status:          enums.AppointmentStatusCompleted.String(),
-					ClientID:        clientID,
-
-					Reason: "Knocked up",
-					Date:   time.Now().Add(time.Duration(100)),
+					ID: gofakeit.UUID(),
+				},
+				updateData: map[string]interface{}{
+					"appointment_type": "Dental",
+					"status":           enums.AppointmentStatusCompleted.String(),
+					"client_id":        clientID,
+					"reason":           "Knocked up",
+					"date":             time.Now().Add(time.Duration(100)),
 				},
 			},
 			wantErr: true,
@@ -1534,16 +1519,14 @@ func TestPGInstance_UpdateAppointment(t *testing.T) {
 		{
 			name: "Sad case: update appointment missing ids",
 			args: args{
-				ctx: context.Background(),
-				payload: &gorm.Appointment{
-					ID:              "",
-					AppointmentUUID: "",
-					AppointmentType: "Dental",
-					Status:          enums.AppointmentStatusCompleted.String(),
-					ClientID:        clientID,
-
-					Reason: "Knocked up",
-					Date:   time.Now().Add(time.Duration(100)),
+				ctx:     context.Background(),
+				payload: &gorm.Appointment{},
+				updateData: map[string]interface{}{
+					"appointment_type": "Dental",
+					"status":           enums.AppointmentStatusCompleted.String(),
+					"client_id":        clientID,
+					"reason":           "Knocked up",
+					"date":             time.Now().Add(time.Duration(100)),
 				},
 			},
 			wantErr: true,
@@ -1551,8 +1534,12 @@ func TestPGInstance_UpdateAppointment(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := testingDB.UpdateAppointment(tt.args.ctx, tt.args.payload); (err != nil) != tt.wantErr {
+			got, err := testingDB.UpdateAppointment(tt.args.ctx, tt.args.payload, tt.args.updateData)
+			if (err != nil) != tt.wantErr {
 				t.Errorf("PGInstance.UpdateAppointment() error = %v, wantErr %v", err, tt.wantErr)
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("PGInstance.UpdateAppointment() = %v, want %v", got, tt.wantErr)
 			}
 		})
 	}

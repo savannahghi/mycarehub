@@ -775,7 +775,7 @@ func (h *MyCareHubHandlersInterfacesImpl) CreateOrUpdateKenyaEMRAppointments() h
 		}
 
 		if r.Method == http.MethodPatch {
-			response, err := h.usecase.Appointment.CreateKenyaEMRAppointments(ctx, *payload)
+			response, err := h.usecase.Appointment.UpdateKenyaEMRAppointments(ctx, *payload)
 			if err != nil {
 				helpers.ReportErrorToSentry(err)
 				serverutils.WriteJSONResponse(w, serverutils.ErrorMap(err), http.StatusBadRequest)

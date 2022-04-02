@@ -8,6 +8,7 @@ import (
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/utils"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
 )
@@ -189,23 +190,35 @@ func (d *MyCareHubDb) InvalidateScreeningToolResponse(ctx context.Context, clien
 }
 
 // UpdateAppointment updates an appointment
-func (d *MyCareHubDb) UpdateAppointment(ctx context.Context, appointment domain.Appointment, appointmentUUID, clientID string) error {
-	date := appointment.Date.AsTime()
+func (d *MyCareHubDb) UpdateAppointment(ctx context.Context, appointment *domain.Appointment, updateData map[string]interface{}) (*domain.Appointment, error) {
 	ap := &gorm.Appointment{
-		Active:          true,
-		AppointmentUUID: appointmentUUID,
-		AppointmentType: appointment.Type,
-		Status:          appointment.Status.String(),
-		ClientID:        clientID,
-		FacilityID:      appointment.FacilityID,
-		Reason:          appointment.Reason,
-		Provider:        appointment.Provider,
-		Date:            date,
-		StartTime:       gorm.CustomTime{Time: appointment.Start},
-		EndTime:         gorm.CustomTime{Time: appointment.End},
+		ID:              appointment.ID,
+		AppointmentUUID: appointment.AppointmentUUID,
+	}
+	updatedAppointment, err := d.update.UpdateAppointment(ctx, ap, updateData)
+	if err != nil {
+		return nil, err
 	}
 
-	return d.update.UpdateAppointment(ctx, ap)
+	appointmentDate, err := utils.ConvertTimeToScalarDate(updatedAppointment.Date)
+	if err != nil {
+		return nil, err
+	}
+
+	return &domain.Appointment{
+		ID:                        updatedAppointment.ID,
+		AppointmentUUID:           updatedAppointment.AppointmentUUID,
+		Type:                      updatedAppointment.AppointmentType,
+		Status:                    enums.AppointmentStatus(updatedAppointment.Status),
+		Reason:                    updatedAppointment.Reason,
+		Date:                      appointmentDate,
+		Start:                     updatedAppointment.StartTime.Time,
+		End:                       updatedAppointment.EndTime.Time,
+		ClientID:                  updatedAppointment.ClientID,
+		FacilityID:                updatedAppointment.FacilityID,
+		Provider:                  updatedAppointment.Provider,
+		HasRescheduledAppointment: updatedAppointment.HasRescheduledAppointment,
+	}, nil
 }
 
 // UpdateServiceRequests updates service requests
