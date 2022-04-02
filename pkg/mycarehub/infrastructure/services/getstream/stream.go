@@ -99,7 +99,17 @@ func (c *ChatClient) ListGetStreamUsers(ctx context.Context, input *stream.Query
 
 // CreateChannel creates new channel of given type and id or returns already created one.
 func (c *ChatClient) CreateChannel(ctx context.Context, chanType, chanID, userID string, data map[string]interface{}) (*stream.CreateChannelResponse, error) {
-	return c.client.CreateChannel(ctx, chanType, chanID, userID, data)
+	response, err := c.client.CreateChannel(ctx, chanType, chanID, userID, data)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create channel: %v", err)
+	}
+
+	_, err = c.AddModeratorsWithMessage(ctx, []string{userID}, chanID, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return response, nil
 }
 
 // DeleteChannels deletes channels asynchronously.
