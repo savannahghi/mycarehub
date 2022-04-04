@@ -396,7 +396,7 @@ func (us *UseCasesUserImpl) ReturnLoginResponse(ctx context.Context, flavour fee
 		}
 
 		// check if client has unresolved pin reset request
-		ok, err := us.Query.CheckIfClientHasUnresolvedServiceRequests(ctx, *clientProfile.ID, string(enums.ServiceRequestTypePinReset))
+		exists, err := us.Query.CheckIfClientHasUnresolvedServiceRequests(ctx, *clientProfile.ID, string(enums.ServiceRequestTypePinReset))
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
 			return &domain.LoginResponse{
@@ -404,11 +404,11 @@ func (us *UseCasesUserImpl) ReturnLoginResponse(ctx context.Context, flavour fee
 				Code:    int(exceptions.Internal),
 			}, exceptions.InternalErr(err)
 		}
-		if ok {
+		if exists {
 			err := fmt.Errorf("client has unresolved pin reset request")
 			helpers.ReportErrorToSentry(err)
 			return &domain.LoginResponse{
-				Message: "client has unresolved pin reset request",
+				Message: err.Error(),
 				Code:    int(exceptions.ClientHasUnresolvedPinResetRequestError),
 			}, exceptions.ClientHasUnresolvedPinResetRequestErr(err)
 		}
@@ -437,18 +437,12 @@ func (us *UseCasesUserImpl) ReturnLoginResponse(ctx context.Context, flavour fee
 
 		_, err = us.GetStream.CreateGetStreamUser(ctx, getStreamUser)
 		if err != nil {
-			return &domain.LoginResponse{
-				Message: "failed to create/update client's getstream user",
-				Code:    int(exceptions.Internal),
-			}, fmt.Errorf("failed to create client's getstream user account: %v", err)
+			helpers.ReportErrorToSentry(err)
 		}
 
 		getStreamToken, err := us.GetStream.CreateGetStreamUserToken(ctx, *clientProfile.ID)
 		if err != nil {
-			return &domain.LoginResponse{
-				Message: "failed to create client's getstream user token",
-				Code:    int(exceptions.Internal),
-			}, fmt.Errorf("failed to generate getstream token: %v", err)
+			helpers.ReportErrorToSentry(err)
 		}
 
 		clientProfile.User = userProfile
@@ -492,18 +486,12 @@ func (us *UseCasesUserImpl) ReturnLoginResponse(ctx context.Context, flavour fee
 
 		_, err = us.GetStream.CreateGetStreamUser(ctx, getStreamUser)
 		if err != nil {
-			return &domain.LoginResponse{
-				Message: "failed to create/update staff's getstream user",
-				Code:    int(exceptions.Internal),
-			}, fmt.Errorf("failed to create staff's getstream user account: %v", err)
+			helpers.ReportErrorToSentry(err)
 		}
 
 		getStreamToken, err := us.GetStream.CreateGetStreamUserToken(ctx, *staffProfile.ID)
 		if err != nil {
-			return &domain.LoginResponse{
-				Message: "failed to create staff's getstream user token",
-				Code:    int(exceptions.Internal),
-			}, fmt.Errorf("failed to generate getstream token: %v", err)
+			helpers.ReportErrorToSentry(err)
 		}
 
 		staffProfile.User = userProfile
