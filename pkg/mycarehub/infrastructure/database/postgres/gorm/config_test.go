@@ -110,8 +110,8 @@ var (
 	communityID = "043f12aa-6f51-434f-8e96-35030306f161"
 
 	// Appointments
-	appointmentID   = "2fc2b603-05ef-40f1-987a-3259eab87aef"
-	appointmentUUID = "d0ba38f2-5a9c-4969-8eb4-beea0a4ff9a5"
+	appointmentID         = "2fc2b603-05ef-40f1-987a-3259eab87aef"
+	externalAppointmentID = "5"
 
 	// screeningtools
 	screeningToolsQuestionID = "8ecbbc80-24c8-421a-9f1a-e14e12678ef4"

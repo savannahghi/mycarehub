@@ -27,7 +27,7 @@ type Create interface {
 	CreateCommunity(ctx context.Context, communityInput *dto.CommunityInput) (*domain.Community, error)
 	GetOrCreateNextOfKin(ctx context.Context, person *dto.NextOfKinPayload, clientID, contactID string) error
 	GetOrCreateContact(ctx context.Context, contact *domain.Contact) (*domain.Contact, error)
-	CreateAppointment(ctx context.Context, appointment domain.Appointment, appointmentUUID, clientID string) error
+	CreateAppointment(ctx context.Context, appointment domain.Appointment) error
 	AnswerScreeningToolQuestions(ctx context.Context, screeningToolResponses []*dto.ScreeningToolQuestionResponseInput) error
 	CreateStaffServiceRequest(ctx context.Context, serviceRequestInput *dto.ServiceRequestInput) error
 }
@@ -96,10 +96,11 @@ type Query interface {
 	GetHealthDiaryEntryByID(ctx context.Context, healthDiaryEntryID string) (*domain.ClientHealthDiaryEntry, error)
 	GetServiceRequestByID(ctx context.Context, serviceRequestID string) (*domain.ServiceRequest, error)
 	GetAppointmentServiceRequests(ctx context.Context, lastSyncTime time.Time, facilityID string) ([]domain.AppointmentServiceRequests, error)
-	GetClientAppointmentByID(ctx context.Context, clientID string) (*domain.Appointment, error)
-	GetAppointmentByAppointmentUUID(ctx context.Context, appointmentUUID string) (*domain.Appointment, error)
 	GetClientServiceRequests(ctx context.Context, requestType, status, clientID string) ([]*domain.ServiceRequest, error)
 	GetActiveScreeningToolResponses(ctx context.Context, clientID string) ([]*domain.ScreeningToolQuestionResponse, error)
+	GetAppointmentByClientID(ctx context.Context, clientID string) (*domain.Appointment, error)
+	GetAppointmentByExternalID(ctx context.Context, externalID string) (*domain.Appointment, error)
+	CheckAppointmentExistsByExternalID(ctx context.Context, externalID string) (bool, error)
 }
 
 // Update represents all the update action interfaces
@@ -138,4 +139,5 @@ type Update interface {
 	UpdateHealthDiary(ctx context.Context, updateInput *gorm.ClientHealthDiaryEntry) (bool, error)
 	UpdateFailedSecurityQuestionsAnsweringAttempts(ctx context.Context, userID string, failCount int) error
 	UpdateUser(ctx context.Context, user *domain.User, updateData map[string]interface{}) error
+	CheckAppointmentExistsByExternalID(ctx context.Context, externalID string) (bool, error)
 }

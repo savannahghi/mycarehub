@@ -3,13 +3,9 @@
   updated: 2021-11-22 21:16:29.23639+03
   active: true
   organisation_id: {{.test_organisation_id}}
-  appointment_uuid: d0ba38f2-5a9c-4969-8eb4-beea0a4ff9a5
-  appointment_type: Dental
-  status: CANCELLED
+  external_id: '5'
   client_id: {{.test_client_id}}
   staff_id: {{.staff_id}}
   facility_id: {{.test_facility_id}}
   date: 2022-03-13
-  start_time: 11:07:56.27955
-  end_time: 11:37:56.27955
   has_rescheduled_appointment: true

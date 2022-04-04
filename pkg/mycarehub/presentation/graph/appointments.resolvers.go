@@ -10,10 +10,11 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/presentation/graph/generated"
+	"github.com/savannahghi/scalarutils"
 )
 
-func (r *mutationResolver) RescheduleAppointment(ctx context.Context, appointmentID string) (bool, error) {
-	return r.mycarehub.Appointment.RescheduleClientAppointment(ctx, appointmentID)
+func (r *mutationResolver) RescheduleAppointment(ctx context.Context, appointmentID string, date scalarutils.Date) (bool, error) {
+	return r.mycarehub.Appointment.RescheduleClientAppointment(ctx, appointmentID, date)
 }
 
 func (r *queryResolver) FetchClientAppointments(ctx context.Context, clientID string, paginationInput dto.PaginationsInput, filters []*firebasetools.FilterParam) (*domain.AppointmentsPage, error) {

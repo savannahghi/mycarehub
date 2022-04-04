@@ -762,29 +762,14 @@ func (h *MyCareHubHandlersInterfacesImpl) CreateOrUpdateKenyaEMRAppointments() h
 			return
 		}
 
-		if r.Method == http.MethodPost {
-			response, err := h.usecase.Appointment.CreateKenyaEMRAppointments(ctx, *payload)
-			if err != nil {
-				helpers.ReportErrorToSentry(err)
-				serverutils.WriteJSONResponse(w, serverutils.ErrorMap(err), http.StatusBadRequest)
-				return
-			}
-
-			serverutils.WriteJSONResponse(w, response, http.StatusCreated)
+		response, err := h.usecase.Appointment.CreateOrUpdateKenyaEMRAppointments(ctx, *payload)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			serverutils.WriteJSONResponse(w, serverutils.ErrorMap(err), http.StatusBadRequest)
 			return
 		}
 
-		if r.Method == http.MethodPatch {
-			response, err := h.usecase.Appointment.UpdateKenyaEMRAppointments(ctx, *payload)
-			if err != nil {
-				helpers.ReportErrorToSentry(err)
-				serverutils.WriteJSONResponse(w, serverutils.ErrorMap(err), http.StatusBadRequest)
-				return
-			}
-
-			serverutils.WriteJSONResponse(w, response, http.StatusOK)
-			return
-		}
+		serverutils.WriteJSONResponse(w, response, http.StatusCreated)
 	}
 }
 

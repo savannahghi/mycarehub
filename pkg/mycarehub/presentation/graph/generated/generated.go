@@ -64,13 +64,10 @@ type ComplexityRoot struct {
 	}
 
 	Appointment struct {
-		Date   func(childComplexity int) int
-		End    func(childComplexity int) int
-		ID     func(childComplexity int) int
-		Reason func(childComplexity int) int
-		Start  func(childComplexity int) int
-		Status func(childComplexity int) int
-		Type   func(childComplexity int) int
+		Date                      func(childComplexity int) int
+		HasRescheduledAppointment func(childComplexity int) int
+		ID                        func(childComplexity int) int
+		Reason                    func(childComplexity int) int
 	}
 
 	AppointmentsPage struct {
@@ -439,7 +436,7 @@ type ComplexityRoot struct {
 		RegisterStaff                      func(childComplexity int, input dto.StaffRegistrationInput) int
 		RejectInvitation                   func(childComplexity int, memberID string, communityID string) int
 		RemoveMembersFromCommunity         func(childComplexity int, communityID string, memberIDs []string) int
-		RescheduleAppointment              func(childComplexity int, appointmentID string) int
+		RescheduleAppointment              func(childComplexity int, appointmentID string, date scalarutils.Date) int
 		ResolveServiceRequest              func(childComplexity int, staffID string, requestID string) int
 		SendFeedback                       func(childComplexity int, input dto.FeedbackResponseInput) int
 		SetInProgressBy                    func(childComplexity int, serviceRequestID string, staffID string) int
@@ -623,7 +620,7 @@ type ComplexityRoot struct {
 }
 
 type MutationResolver interface {
-	RescheduleAppointment(ctx context.Context, appointmentID string) (bool, error)
+	RescheduleAppointment(ctx context.Context, appointmentID string, date scalarutils.Date) (bool, error)
 	AssignOrRevokeRoles(ctx context.Context, userID string, roles []*enums.UserRoleType) (bool, error)
 	CreateCommunity(ctx context.Context, input dto.CommunityInput) (*domain.Community, error)
 	DeleteCommunities(ctx context.Context, communityIDs []string, hardDelete bool) (bool, error)
@@ -762,12 +759,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Appointment.Date(childComplexity), true
 
-	case "Appointment.end":
-		if e.complexity.Appointment.End == nil {
+	case "Appointment.HasRescheduledAppointment":
+		if e.complexity.Appointment.HasRescheduledAppointment == nil {
 			break
 		}
 
-		return e.complexity.Appointment.End(childComplexity), true
+		return e.complexity.Appointment.HasRescheduledAppointment(childComplexity), true
 
 	case "Appointment.ID":
 		if e.complexity.Appointment.ID == nil {
@@ -782,27 +779,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Appointment.Reason(childComplexity), true
-
-	case "Appointment.start":
-		if e.complexity.Appointment.Start == nil {
-			break
-		}
-
-		return e.complexity.Appointment.Start(childComplexity), true
-
-	case "Appointment.status":
-		if e.complexity.Appointment.Status == nil {
-			break
-		}
-
-		return e.complexity.Appointment.Status(childComplexity), true
-
-	case "Appointment.type":
-		if e.complexity.Appointment.Type == nil {
-			break
-		}
-
-		return e.complexity.Appointment.Type(childComplexity), true
 
 	case "AppointmentsPage.appointments":
 		if e.complexity.AppointmentsPage.Appointments == nil {
@@ -2711,7 +2687,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.RescheduleAppointment(childComplexity, args["appointmentID"].(string)), true
+		return e.complexity.Mutation.RescheduleAppointment(childComplexity, args["appointmentID"].(string), args["date"].(scalarutils.Date)), true
 
 	case "Mutation.resolveServiceRequest":
 		if e.complexity.Mutation.ResolveServiceRequest == nil {
@@ -3907,9 +3883,8 @@ var sources = []*ast.Source{
 }
 
 extend type Mutation {
-  rescheduleAppointment(appointmentID: String!): Boolean!
+  rescheduleAppointment(appointmentID: String!, date: Date!): Boolean!
 }
-
 `, BuiltIn: false},
 	{Name: "pkg/mycarehub/presentation/graph/authority.graphql", Input: `extend type Mutation {
   assignOrRevokeRoles(userID: String!, roles: [UserRoleType]): Boolean!
@@ -4101,18 +4076,6 @@ enum ScreeningToolType {
   VIOLENCE_ASSESSMENT
   CONTRACEPTIVE_ASSESSMENT
   ALCOHOL_SUBSTANCE_ASSESSMENT
-}
-
-enum AppointmentStatus {
-  SCHEDULED
-  RESCHEDULED
-  WAITING
-  MISSED
-  COMPLETED
-  IN_CONSULTATION
-  WALK_IN
-  CANCELLED
-  NEEDS_RESCHEDULE
 }
 
 enum MessageType {
@@ -4696,12 +4659,9 @@ type CommunityMember {
 
 type Appointment {
   ID: ID!
-  type: String!
-  status: AppointmentStatus!
   reason: String!
   date: Date!
-  start: Time
-  end: Time
+  HasRescheduledAppointment: Boolean!
 }
 
 type AppointmentsPage {
@@ -4784,97 +4744,98 @@ type AuthorityRole {
   active: Boolean
 }
 
-type Attachment{
+type Attachment {
   type: String
-	authorName: String 
-	title:      String 
-	titleLink:  String 
-	text:       String
-	imageUrl:    String
-	thumbUrl:    String 
-	assetUrl:    String
-	ogScrapeUrl: String
+  authorName: String
+  title: String
+  titleLink: String
+  text: String
+  imageUrl: String
+  thumbUrl: String
+  assetUrl: String
+  ogScrapeUrl: String
 }
 
 type Reaction {
   messageID: String
-	userID:    String
-	type:      String
+  userID: String
+  type: String
 }
 
 type GetstreamMessage {
   id: String
-	text: String
-	html: String 
-	type:   MessageType
-	silent: Boolean    
-	user:            Member         
-	attachments:     [Attachment]  
-	latestReactions: [Reaction]    
-	ownReactions:    [Reaction]    
-	# reaction_counts:  Map
-	parentID:      String
-	showInChannel: Boolean
-	replyCount: Int
-	mentionedUsers: [Member]
-	shadowed: Boolean 
-	pinnedAt: Time 
-	pinnedBy: Member
-  createdAt:    Time 
-	updatedAt:    Time 
-	deletedAt: Time
+  text: String
+  html: String
+  type: MessageType
+  silent: Boolean
+  user: Member
+  attachments: [Attachment]
+  latestReactions: [Reaction]
+  ownReactions: [Reaction]
+  # reaction_counts:  Map
+  parentID: String
+  showInChannel: Boolean
+  replyCount: Int
+  mentionedUsers: [Member]
+  shadowed: Boolean
+  pinnedAt: Time
+  pinnedBy: Member
+  createdAt: Time
+  updatedAt: Time
+  deletedAt: Time
 }
 
 # message Fag response
-type MessageFlag{
-  user: Member    
-  message: GetstreamMessage 
+type MessageFlag {
+  user: Member
+  message: GetstreamMessage
 }
 
-type ModerationResult  {
-  messageID:            String 
-  action:               String
-  moderatedBy:          String 
-  blockedWord:          String 
-  blocklistName:        String
+type ModerationResult {
+  messageID: String
+  action: String
+  moderatedBy: String
+  blockedWord: String
+  blocklistName: String
   moderationThresholds: ModerationThresholds
   AIModerationResponse: AIModerationResponse
-  userKarma:    Float   
-  userBadKarma: Boolean      
-  createdAt:    Time 
-  updatedAt:    Time 
+  userKarma: Float
+  userBadKarma: Boolean
+  createdAt: Time
+  updatedAt: Time
 }
 
-type ModerationThresholds  {
+type ModerationThresholds {
   explicit: Explicit
-  spam:     Spam
+  spam: Spam
   toxic: Toxic
-} 
+}
 
 type AIModerationResponse {
-  toxic:    Float 
-  explicit: Float 
-  spam:     Float 
-} 
+  toxic: Float
+  explicit: Float
+  spam: Float
+}
 
-type Explicit  {
-  flag:  Float 
+type Explicit {
+  flag: Float
   block: Float
-} 
+}
 
 type Spam {
-  flag:  Float 
-  block: Float 
+  flag: Float
+  block: Float
 }
 
 type Toxic {
-  flag:  Float 
-  block: Float 
-} 
+  flag: Float
+  block: Float
+}
 
-type AvailableScreeningTools{
+type AvailableScreeningTools {
   toolType: ScreeningToolType!
-}`, BuiltIn: false},
+}
+`, BuiltIn: false},
 	{Name: "pkg/mycarehub/presentation/graph/user.graphql", Input: `extend type Query {
   getCurrentTerms(flavour: Flavour!): TermsOfService!
   verifyPIN(userID: String!, flavour: Flavour!, pin: String!): Boolean!
@@ -5546,6 +5507,15 @@ func (ec *executionContext) field_Mutation_rescheduleAppointment_args(ctx contex
 		}
 	}
 	args["appointmentID"] = arg0
+	var arg1 scalarutils.Date
+	if tmp, ok := rawArgs["date"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("date"))
+		arg1, err = ec.unmarshalNDate2githubᚗcomᚋsavannahghiᚋscalarutilsᚐDate(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["date"] = arg1
 	return args, nil
 }
 
@@ -6760,76 +6730,6 @@ func (ec *executionContext) _Appointment_ID(ctx context.Context, field graphql.C
 	return ec.marshalNID2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Appointment_type(ctx context.Context, field graphql.CollectedField, obj *domain.Appointment) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Appointment",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Type, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Appointment_status(ctx context.Context, field graphql.CollectedField, obj *domain.Appointment) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Appointment",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Status, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(enums.AppointmentStatus)
-	fc.Result = res
-	return ec.marshalNAppointmentStatus2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐAppointmentStatus(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) _Appointment_reason(ctx context.Context, field graphql.CollectedField, obj *domain.Appointment) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -6900,7 +6800,7 @@ func (ec *executionContext) _Appointment_date(ctx context.Context, field graphql
 	return ec.marshalNDate2githubᚗcomᚋsavannahghiᚋscalarutilsᚐDate(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Appointment_start(ctx context.Context, field graphql.CollectedField, obj *domain.Appointment) (ret graphql.Marshaler) {
+func (ec *executionContext) _Appointment_HasRescheduledAppointment(ctx context.Context, field graphql.CollectedField, obj *domain.Appointment) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -6918,50 +6818,21 @@ func (ec *executionContext) _Appointment_start(ctx context.Context, field graphq
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Start, nil
+		return obj.HasRescheduledAppointment, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
 	}
 	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(time.Time)
-	fc.Result = res
-	return ec.marshalOTime2timeᚐTime(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Appointment_end(ctx context.Context, field graphql.CollectedField, obj *domain.Appointment) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
 		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Appointment",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.End, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
 		return graphql.Null
 	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(time.Time)
+	res := resTmp.(bool)
 	fc.Result = res
-	return ec.marshalOTime2timeᚐTime(ctx, field.Selections, res)
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _AppointmentsPage_appointments(ctx context.Context, field graphql.CollectedField, obj *domain.AppointmentsPage) (ret graphql.Marshaler) {
@@ -14470,7 +14341,7 @@ func (ec *executionContext) _Mutation_rescheduleAppointment(ctx context.Context,
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().RescheduleAppointment(rctx, args["appointmentID"].(string))
+		return ec.resolvers.Mutation().RescheduleAppointment(rctx, args["appointmentID"].(string), args["date"].(scalarutils.Date))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -22536,16 +22407,6 @@ func (ec *executionContext) _Appointment(ctx context.Context, sel ast.SelectionS
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "type":
-			out.Values[i] = ec._Appointment_type(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "status":
-			out.Values[i] = ec._Appointment_status(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "reason":
 			out.Values[i] = ec._Appointment_reason(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -22556,10 +22417,11 @@ func (ec *executionContext) _Appointment(ctx context.Context, sel ast.SelectionS
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "start":
-			out.Values[i] = ec._Appointment_start(ctx, field, obj)
-		case "end":
-			out.Values[i] = ec._Appointment_end(ctx, field, obj)
+		case "HasRescheduledAppointment":
+			out.Values[i] = ec._Appointment_HasRescheduledAppointment(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -25842,16 +25704,6 @@ func (ec *executionContext) marshalNAppointment2ᚕᚖgithubᚗcomᚋsavannahghi
 	wg.Wait()
 
 	return ret
-}
-
-func (ec *executionContext) unmarshalNAppointmentStatus2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐAppointmentStatus(ctx context.Context, v interface{}) (enums.AppointmentStatus, error) {
-	var res enums.AppointmentStatus
-	err := res.UnmarshalGQL(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalNAppointmentStatus2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐAppointmentStatus(ctx context.Context, sel ast.SelectionSet, v enums.AppointmentStatus) graphql.Marshaler {
-	return v
 }
 
 func (ec *executionContext) marshalNAuthor2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐAuthor(ctx context.Context, sel ast.SelectionSet, v domain.Author) graphql.Marshaler {

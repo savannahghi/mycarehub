@@ -1714,7 +1714,7 @@ func TestMyCareHubDb_UpdateAppointment(t *testing.T) {
 			args: args{
 				ctx: context.Background(),
 				appointment: &domain.Appointment{
-					AppointmentUUID: gofakeit.UUID(),
+					ExternalID: gofakeit.UUID(),
 				},
 				updateData: map[string]interface{}{
 					"type":   "Dental",
@@ -2304,6 +2304,44 @@ func TestMyCareHubDb_UpdateFacility(t *testing.T) {
 			}
 			if err := d.UpdateFacility(tt.args.ctx, tt.args.facility, tt.args.updateData); (err != nil) != tt.wantErr {
 				t.Errorf("MyCareHubDb.UpdateFacility() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestMyCareHubDb_CheckAppointmentExistsByExternalID(t *testing.T) {
+	var fakeGorm = gormMock.NewGormMock()
+	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+	type args struct {
+		ctx        context.Context
+		externalID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy case: check appointment exists",
+			args: args{
+				ctx:        context.Background(),
+				externalID: uuid.New().String(),
+			},
+			want:    true,
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := d.CheckAppointmentExistsByExternalID(tt.args.ctx, tt.args.externalID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.CheckAppointmentExistsByExternalID() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("MyCareHubDb.CheckAppointmentExistsByExternalID() = %v, want %v", got, tt.want)
 			}
 		})
 	}

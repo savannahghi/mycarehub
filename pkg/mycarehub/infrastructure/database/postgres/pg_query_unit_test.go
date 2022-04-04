@@ -18,7 +18,6 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
 	gormMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm/mock"
-	"github.com/savannahghi/scalarutils"
 	"github.com/segmentio/ksuid"
 )
 
@@ -4599,18 +4598,14 @@ func TestMyCareHubDb_GetAppointmentServiceRequests(t *testing.T) {
 				fakeGorm.MockGetAppointmentByIDFn = func(ctx context.Context, appointmentID string) (*gorm.Appointment, error) {
 					date := time.Now().Add(time.Duration(100))
 					return &gorm.Appointment{
-						ID:              gofakeit.UUID(),
-						OrganisationID:  gofakeit.UUID(),
-						Active:          true,
-						AppointmentUUID: gofakeit.UUID(),
-						AppointmentType: "Dental",
-						Status:          enums.AppointmentStatusCompleted.String(),
-						ClientID:        gofakeit.UUID(),
-						FacilityID:      gofakeit.UUID(),
-						Reason:          "Knocked up",
-						Date:            date,
-						StartTime:       gorm.CustomTime{},
-						EndTime:         gorm.CustomTime{},
+						ID:             gofakeit.UUID(),
+						OrganisationID: gofakeit.UUID(),
+						Active:         true,
+						ExternalID:     gofakeit.UUID(),
+						ClientID:       gofakeit.UUID(),
+						FacilityID:     gofakeit.UUID(),
+						Reason:         "Knocked up",
+						Date:           date,
 					}, nil
 				}
 			}
@@ -4618,18 +4613,14 @@ func TestMyCareHubDb_GetAppointmentServiceRequests(t *testing.T) {
 			if tt.name == "Sad case:  failed to convert to suggested date" {
 				fakeGorm.MockGetAppointmentByIDFn = func(ctx context.Context, appointmentID string) (*gorm.Appointment, error) {
 					return &gorm.Appointment{
-						ID:              gofakeit.UUID(),
-						OrganisationID:  gofakeit.UUID(),
-						Active:          true,
-						AppointmentUUID: gofakeit.UUID(),
-						AppointmentType: "Dental",
-						Status:          enums.AppointmentStatusCompleted.String(),
-						ClientID:        gofakeit.UUID(),
-						FacilityID:      gofakeit.UUID(),
-						Reason:          "Knocked up",
-						Date:            time.Now(),
-						StartTime:       gorm.CustomTime{Time: time.Now()},
-						EndTime:         gorm.CustomTime{Time: time.Now().Add(30 * time.Minute)},
+						ID:             gofakeit.UUID(),
+						OrganisationID: gofakeit.UUID(),
+						Active:         true,
+						ExternalID:     gofakeit.UUID(),
+						ClientID:       gofakeit.UUID(),
+						FacilityID:     gofakeit.UUID(),
+						Reason:         "Knocked up",
+						Date:           time.Now(),
 					}, nil
 				}
 			}
@@ -4639,13 +4630,10 @@ func TestMyCareHubDb_GetAppointmentServiceRequests(t *testing.T) {
 				UUID := uuid.New().String()
 				meta := map[string]interface{}{
 					"id":                uuid.New().String(),
-					"appointmentUUID":   uuid.New().String(),
-					"appointmentType":   "BLOOD_TEST",
+					"externalID":        uuid.New().String(),
 					"appointmentReason": "reason",
 					"provider":          "provider",
-					"suggestedTime":     "12:30-13:30",
-					"suggestedDate":     scalarutils.Date{Year: 2022, Month: 3, Day: 30},
-					"status":            enums.AppointmentStatusWaiting.String(),
+					"rescheduleTime":    time.Now().Add(1 * time.Hour).Format(time.RFC3339),
 				}
 
 				bs, err := json.Marshal(meta)
@@ -4681,13 +4669,10 @@ func TestMyCareHubDb_GetAppointmentServiceRequests(t *testing.T) {
 				UUID := uuid.New().String()
 				meta := map[string]interface{}{
 					"id":                uuid.New().String(),
-					"appointmentUUID":   uuid.New().String(),
-					"appointmentType":   "BLOOD_",
+					"externalID":        uuid.New().String(),
 					"appointmentReason": "reason",
 					"provider":          "provider",
-					"suggestedTime":     "12:30-13:30",
-					"suggestedDate":     scalarutils.Date{Year: 2022, Month: 3, Day: 30},
-					"status":            enums.AppointmentStatusWaiting.String(),
+					"rescheduleTime":    time.Now().Add(1 * time.Hour).Format(time.RFC3339),
 				}
 
 				bs, err := json.Marshal(meta)
@@ -4803,7 +4788,7 @@ func TestMyCareHubDb_GetFacilitiesWithoutFHIRID(t *testing.T) {
 	}
 }
 
-func TestMyCareHubDb_GetClientAppointmentByID(t *testing.T) {
+func TestMyCareHubDb_GetAppointmentByClientID(t *testing.T) {
 	var fakeGorm = gormMock.NewGormMock()
 	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
 
@@ -4840,9 +4825,9 @@ func TestMyCareHubDb_GetClientAppointmentByID(t *testing.T) {
 					return nil, fmt.Errorf("failed to get client appointment by id")
 				}
 			}
-			got, err := d.GetClientAppointmentByID(tt.args.ctx, tt.args.appointmentID)
+			got, err := d.GetAppointmentByClientID(tt.args.ctx, tt.args.appointmentID)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("MyCareHubDb.GetClientAppointmentByID() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("MyCareHubDb.GetAppointmentByClientID() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !tt.wantErr && got == nil {
@@ -4852,13 +4837,13 @@ func TestMyCareHubDb_GetClientAppointmentByID(t *testing.T) {
 	}
 }
 
-func TestMyCareHubDb_GetAppointmentByAppointmentUUID(t *testing.T) {
+func TestMyCareHubDb_GetAppointmentByExternalID(t *testing.T) {
 	var fakeGorm = gormMock.NewGormMock()
 	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
 
 	type args struct {
-		ctx             context.Context
-		appointmentUUID string
+		ctx        context.Context
+		externalID string
 	}
 	tests := []struct {
 		name    string
@@ -4868,15 +4853,15 @@ func TestMyCareHubDb_GetAppointmentByAppointmentUUID(t *testing.T) {
 		{
 			name: "Happy case:  get appointment by appointment UUID",
 			args: args{
-				ctx:             context.Background(),
-				appointmentUUID: uuid.New().String(),
+				ctx:        context.Background(),
+				externalID: uuid.New().String(),
 			},
 		},
 		{
 			name: "Sad case:  failed to get appointment by appointment UUID",
 			args: args{
-				ctx:             context.Background(),
-				appointmentUUID: uuid.New().String(),
+				ctx:        context.Background(),
+				externalID: uuid.New().String(),
 			},
 			wantErr: true,
 		},
@@ -4884,14 +4869,14 @@ func TestMyCareHubDb_GetAppointmentByAppointmentUUID(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.name == "Sad case:  failed to get appointment by appointment UUID" {
-				fakeGorm.MockGetAppointmentByAppointmentUUIDFn = func(ctx context.Context, appointmentUUID string) (*gorm.Appointment, error) {
+				fakeGorm.MockGetAppointmentByExternalIDFn = func(ctx context.Context, externalID string) (*gorm.Appointment, error) {
 					return nil, fmt.Errorf("failed to get appointment by appointment UUID")
 				}
 			}
 
-			got, err := d.GetAppointmentByAppointmentUUID(tt.args.ctx, tt.args.appointmentUUID)
+			got, err := d.GetAppointmentByExternalID(tt.args.ctx, tt.args.externalID)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("MyCareHubDb.GetAppointmentByAppointmentUUID() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("MyCareHubDb.GetAppointmentByExternalID() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !tt.wantErr && got == nil {

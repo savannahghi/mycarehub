@@ -3,7 +3,6 @@ package dto
 import (
 	"fmt"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/savannahghi/enumutils"
@@ -347,42 +346,10 @@ type FacilityAppointmentsPayload struct {
 
 // AppointmentPayload is the payload representing an appointment
 type AppointmentPayload struct {
-	CCCNumber       string                  `json:"ccc_number"`
-	AppointmentUUID string                  `json:"appointment_uuid"`
-	AppointmentType string                  `json:"appointment_type"`
-	Status          enums.AppointmentStatus `json:"status"`
-	AppointmentDate scalarutils.Date        `json:"appointment_date"`
-	TimeSlot        string                  `json:"time_slot"`
-}
-
-// StartTime extracts the start time from the time slot field'
-// Expected time slot: "13:00 - 14:00" start time: "13:00"
-func (a AppointmentPayload) StartTime() *time.Time {
-	trimmed := strings.ReplaceAll(a.TimeSlot, " ", "")
-	split := strings.Split(trimmed, "-")
-
-	start := split[0]
-	startTime, err := time.Parse("15:04", start)
-	if err != nil {
-		return nil
-	}
-
-	return &startTime
-}
-
-// EndTime extracts the end time from the time slot field
-// Expected time slot: "13:00 - 14:00" end time: "14:00"
-func (a AppointmentPayload) EndTime() *time.Time {
-	trimmed := strings.ReplaceAll(a.TimeSlot, " ", "")
-	split := strings.Split(trimmed, "-")
-
-	end := split[1]
-	endTime, err := time.Parse("15:04", end)
-	if err != nil {
-		return nil
-	}
-
-	return &endTime
+	CCCNumber         string           `json:"ccc_number"`
+	ExternalID        string           `json:"appointment_id"`
+	AppointmentDate   scalarutils.Date `json:"appointment_date"`
+	AppointmentReason string           `json:"appointment_reason"`
 }
 
 // ScreeningToolQuestionResponseInput defines the field passed when answering screening tools questions

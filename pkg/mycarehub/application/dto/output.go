@@ -38,12 +38,10 @@ type FacilityAppointmentsResponse struct {
 
 // AppointmentResponse is the response representing an appointment
 type AppointmentResponse struct {
-	CCCNumber       string                  `json:"ccc_number"`
-	AppointmentUUID string                  `json:"appointment_uuid"`
-	AppointmentType string                  `json:"appointment_type"`
-	Status          enums.AppointmentStatus `json:"status"`
-	AppointmentDate scalarutils.Date        `json:"appointment_date"`
-	TimeSlot        string                  `json:"time_slot"`
+	CCCNumber         string           `json:"ccc_number"`
+	ExternalID        string           `json:"appointment_id"`
+	AppointmentDate   scalarutils.Date `json:"appointment_date"`
+	AppointmentReason string           `json:"appointment_reason"`
 }
 
 // HealthDiaryEntriesResponse is the response returned after querying the
@@ -149,8 +147,8 @@ type StaffRegistrationOutput struct {
 	DefaultFacility string `json:"default_facility"`
 }
 
-// AppointmentServiceRequestOutput is the response returned after querying the
+// AppointmentServiceRequestsOutput is the response returned after querying the
 // appointment service requests for a specific facility
-type AppointmentServiceRequestOutput struct {
+type AppointmentServiceRequestsOutput struct {
 	AppointmentServiceRequests []domain.AppointmentServiceRequests `json:"Results"`
 }

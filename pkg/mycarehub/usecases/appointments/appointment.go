@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"strconv"
+	"time"
 
 	"github.com/hashicorp/go-multierror"
 	"github.com/savannahghi/firebasetools"
@@ -15,11 +16,13 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
 	pubsubmessaging "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/pubsub"
+	"github.com/savannahghi/scalarutils"
 )
 
 // ICreateAppointments defines method signatures for creating appointments
 type ICreateAppointments interface {
-	CreateKenyaEMRAppointments(ctx context.Context, payload dto.FacilityAppointmentsPayload) (*dto.FacilityAppointmentsResponse, error)
+	CreateKenyaEMRAppointments(ctx context.Context, facility *domain.Facility, payload dto.AppointmentPayload) (*dto.AppointmentPayload, error)
+	CreateOrUpdateKenyaEMRAppointments(ctx context.Context, payload dto.FacilityAppointmentsPayload) (*dto.FacilityAppointmentsResponse, error)
 }
 
 // ICreateHealthRecords defines method signatures for creating health records
@@ -30,14 +33,14 @@ type ICreateHealthRecords interface {
 
 // IUpdateAppointments defines method signatures for updating appointments
 type IUpdateAppointments interface {
-	UpdateKenyaEMRAppointments(ctx context.Context, payload dto.FacilityAppointmentsPayload) (*dto.FacilityAppointmentsResponse, error)
-	RescheduleClientAppointment(ctx context.Context, appointmentID string) (bool, error)
+	UpdateKenyaEMRAppointments(ctx context.Context, facility *domain.Facility, payload dto.AppointmentPayload) (*dto.AppointmentPayload, error)
+	RescheduleClientAppointment(ctx context.Context, appointmentID string, date scalarutils.Date) (bool, error)
 }
 
 // IListAppointments defines method signatures for listing appointments
 type IListAppointments interface {
 	FetchClientAppointments(ctx context.Context, clientID string, paginationInput dto.PaginationsInput, filters []*firebasetools.FilterParam) (*domain.AppointmentsPage, error)
-	GetAppointmentServiceRequests(ctx context.Context, payload dto.AppointmentServiceRequestInput) (*dto.AppointmentServiceRequestOutput, error)
+	GetAppointmentServiceRequests(ctx context.Context, payload dto.AppointmentServiceRequestInput) (*dto.AppointmentServiceRequestsOutput, error)
 }
 
 // UseCasesAppointments holds all interfaces required to implement the appointments features
@@ -74,9 +77,8 @@ func NewUseCaseAppointmentsImpl(
 	}
 }
 
-// CreateKenyaEMRAppointments creates appointments from Kenya EMR
-func (a *UseCasesAppointmentsImpl) CreateKenyaEMRAppointments(ctx context.Context, input dto.FacilityAppointmentsPayload) (*dto.FacilityAppointmentsResponse, error) {
-
+// CreateOrUpdateKenyaEMRAppointments creates or updates appointments from Kenya EMR
+func (a *UseCasesAppointmentsImpl) CreateOrUpdateKenyaEMRAppointments(ctx context.Context, input dto.FacilityAppointmentsPayload) (*dto.FacilityAppointmentsResponse, error) {
 	MFLCode, err := strconv.Atoi(input.MFLCode)
 	if err != nil {
 		return nil, err
@@ -95,97 +97,88 @@ func (a *UseCasesAppointmentsImpl) CreateKenyaEMRAppointments(ctx context.Contex
 		return nil, fmt.Errorf("error retrieving facility: %v", err)
 	}
 
-	response := dto.FacilityAppointmentsResponse{MFLCode: input.MFLCode}
+	response := &dto.FacilityAppointmentsResponse{MFLCode: input.MFLCode}
 
 	for _, ap := range input.Appointments {
-		appointment := domain.Appointment{
-			Type:   ap.AppointmentType,
-			Status: ap.Status,
-			Date:   ap.AppointmentDate,
-			Start:  *ap.StartTime(),
-			End:    *ap.EndTime(),
 
-			FacilityID: *facility.ID,
-		}
-
-		// get client profile using the ccc number
-		clientProfile, err := a.Query.GetClientProfileByCCCNumber(ctx, ap.CCCNumber)
-		if err != nil {
-			return nil, fmt.Errorf("failed to get client profile by CCC number")
-		}
-
-		clientID := clientProfile.ID
-
-		err = a.Create.CreateAppointment(ctx, appointment, ap.AppointmentUUID, *clientID)
+		exists, err := a.Query.CheckAppointmentExistsByExternalID(ctx, ap.ExternalID)
 		if err != nil {
 			return nil, err
+		}
+
+		if exists {
+
+			_, err := a.UpdateKenyaEMRAppointments(ctx, facility, ap)
+			if err != nil {
+				return nil, err
+			}
+
+		} else {
+
+			_, err := a.CreateKenyaEMRAppointments(ctx, facility, ap)
+			if err != nil {
+				return nil, err
+			}
+
 		}
 
 		response.Appointments = append(response.Appointments, dto.AppointmentResponse(ap))
 	}
 
-	return &response, nil
+	return response, nil
+}
+
+// CreateKenyaEMRAppointments creates appointments from Kenya EMR
+func (a *UseCasesAppointmentsImpl) CreateKenyaEMRAppointments(ctx context.Context, facility *domain.Facility, input dto.AppointmentPayload) (*dto.AppointmentPayload, error) {
+	// get client profile using the ccc number
+	clientProfile, err := a.Query.GetClientProfileByCCCNumber(ctx, input.CCCNumber)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get client profile by CCC number")
+	}
+
+	appointment := domain.Appointment{
+		Date:       input.AppointmentDate,
+		Reason:     input.AppointmentReason,
+		FacilityID: *facility.ID,
+		ExternalID: input.ExternalID,
+		ClientID:   *clientProfile.ID,
+	}
+
+	err = a.Create.CreateAppointment(ctx, appointment)
+	if err != nil {
+		return nil, err
+	}
+
+	return &input, nil
 }
 
 // UpdateKenyaEMRAppointments updates an appointment with changes from Kenya EMR
-func (a *UseCasesAppointmentsImpl) UpdateKenyaEMRAppointments(ctx context.Context, input dto.FacilityAppointmentsPayload) (*dto.FacilityAppointmentsResponse, error) {
+func (a *UseCasesAppointmentsImpl) UpdateKenyaEMRAppointments(ctx context.Context, facility *domain.Facility, input dto.AppointmentPayload) (*dto.AppointmentPayload, error) {
 
-	MFLCode, err := strconv.Atoi(input.MFLCode)
+	updates := map[string]interface{}{
+		"date":                        input.AppointmentDate.AsTime(),
+		"reason":                      input.AppointmentReason,
+		"facility_id":                 *facility.ID,
+		"has_rescheduled_appointment": false,
+	}
+
+	// get client profile using the ccc number
+	_, err := a.Query.GetClientProfileByCCCNumber(ctx, input.CCCNumber)
 	if err != nil {
+		return nil, fmt.Errorf("failed to get client profile by CCC number")
+	}
 
+	appointment, err := a.Query.GetAppointmentByExternalID(ctx, input.ExternalID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get appointment by UUID")
+	}
+
+	_, err = a.Update.UpdateAppointment(ctx, appointment, updates)
+	if err != nil {
 		return nil, err
 	}
 
-	exists, err := a.Query.CheckFacilityExistsByMFLCode(ctx, MFLCode)
-	if err != nil {
-		return nil, fmt.Errorf("error checking for facility")
-	}
-	if !exists {
-		return nil, fmt.Errorf("facility with provided MFL code doesn't exist, code: %v", MFLCode)
-	}
-
-	facility, err := a.Query.RetrieveFacilityByMFLCode(ctx, MFLCode, true)
-	if err != nil {
-		return nil, fmt.Errorf("error retrieving facility: %v", err)
-	}
-
-	response := dto.FacilityAppointmentsResponse{MFLCode: input.MFLCode}
-
-	for _, ap := range input.Appointments {
-		if err != nil {
-			return nil, fmt.Errorf("error parsing appointment date")
-		}
-		appointmentToUpdate := map[string]interface{}{
-			"appointment_type": ap.AppointmentType,
-			"status":           ap.Status,
-			"date":             ap.AppointmentDate.AsTime(),
-			"start_time":       *ap.StartTime(),
-			"end_time":         *ap.EndTime(),
-			"facility_id":      *facility.ID,
-		}
-
-		// get client profile using the ccc number
-		_, err := a.Query.GetClientProfileByCCCNumber(ctx, ap.CCCNumber)
-		if err != nil {
-			return nil, fmt.Errorf("failed to get client profile by CCC number")
-		}
-
-		appointment, err := a.Query.GetAppointmentByAppointmentUUID(ctx, ap.AppointmentUUID)
-		if err != nil {
-			return nil, fmt.Errorf("failed to get appointment by UUID")
-		}
-
-		appointmentInput := &domain.Appointment{ID: appointment.ID}
-
-		_, err = a.Update.UpdateAppointment(ctx, appointmentInput, appointmentToUpdate)
-		if err != nil {
-			return nil, err
-		}
-
-		response.Appointments = append(response.Appointments, dto.AppointmentResponse(ap))
-	}
-
-	return &response, nil
+	return &input, nil
 }
 
 // FetchClientAppointments fetches appointments for a client
@@ -360,7 +353,7 @@ func (a *UseCasesAppointmentsImpl) AddPatientRecord(ctx context.Context, input d
 }
 
 // GetAppointmentServiceRequests returns a list of appointment service requests
-func (a *UseCasesAppointmentsImpl) GetAppointmentServiceRequests(ctx context.Context, payload dto.AppointmentServiceRequestInput) (*dto.AppointmentServiceRequestOutput, error) {
+func (a *UseCasesAppointmentsImpl) GetAppointmentServiceRequests(ctx context.Context, payload dto.AppointmentServiceRequestInput) (*dto.AppointmentServiceRequestsOutput, error) {
 
 	exists, err := a.Query.CheckFacilityExistsByMFLCode(ctx, payload.MFLCode)
 	if err != nil {
@@ -379,23 +372,23 @@ func (a *UseCasesAppointmentsImpl) GetAppointmentServiceRequests(ctx context.Con
 	}
 
 	if appointmentServiceRequests == nil {
-		return &dto.AppointmentServiceRequestOutput{
+		return &dto.AppointmentServiceRequestsOutput{
 			AppointmentServiceRequests: []domain.AppointmentServiceRequests{},
 		}, nil
 	}
 
-	return &dto.AppointmentServiceRequestOutput{
+	return &dto.AppointmentServiceRequestsOutput{
 		AppointmentServiceRequests: appointmentServiceRequests,
 	}, nil
 }
 
 // RescheduleClientAppointment creates a service request to reschedule a client appointment
-func (a *UseCasesAppointmentsImpl) RescheduleClientAppointment(ctx context.Context, appointmentID string) (bool, error) {
+func (a *UseCasesAppointmentsImpl) RescheduleClientAppointment(ctx context.Context, appointmentID string, date scalarutils.Date) (bool, error) {
 	if appointmentID == "" {
 		return false, fmt.Errorf("invalid input provided")
 	}
 
-	appointment, err := a.Query.GetClientAppointmentByID(ctx, appointmentID)
+	appointment, err := a.Query.GetAppointmentByClientID(ctx, appointmentID)
 	if err != nil {
 		return false, fmt.Errorf("error getting client appointment: %v", err)
 	}
@@ -416,16 +409,21 @@ func (a *UseCasesAppointmentsImpl) RescheduleClientAppointment(ctx context.Conte
 		return false, fmt.Errorf("error updating appointment")
 	}
 
-	appointmentDate := appointment.Date.AsTime().Format("02-Jan-2006")
+	currentDate := appointment.Date.AsTime().Format("02-Jan-2006")
+	requestedDate := date.AsTime().Format("02-Jan-2006")
 
 	serviceRequest := &dto.ServiceRequestInput{
 		Active:      true,
 		RequestType: enums.ServiceRequestTypeAppointments.String(),
-		Request:     fmt.Sprintf(`%v has requested to reschedule a %v appointment from %v to a later date`, userProfile.Name, appointment.Type, appointmentDate),
+		Request:     fmt.Sprintf(`%s has requested to reschedule appointment: %s from %s to %s`, userProfile.Name, appointment.Reason, currentDate, requestedDate),
 		Status:      enums.ServiceRequestStatusPending.String(),
 		ClientID:    appointment.ClientID,
 		FacilityID:  appointment.FacilityID,
-		Meta:        map[string]interface{}{"appointmentID": appointmentID, "appointmentUUID": appointment.AppointmentUUID},
+		Meta: map[string]interface{}{
+			"appointmentID":  appointmentID,
+			"externalID":     appointment.ExternalID,
+			"rescheduleTime": date.AsTime().Format(time.RFC3339),
+		},
 	}
 
 	err = a.Create.CreateServiceRequest(ctx, serviceRequest)

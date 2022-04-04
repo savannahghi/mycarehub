@@ -80,10 +80,11 @@ type Query interface {
 	GetStaffProfileByStaffID(ctx context.Context, staffID string) (*StaffProfile, error)
 	GetAppointmentServiceRequests(ctx context.Context, lastSyncTime time.Time) ([]*ClientServiceRequest, error)
 	GetAppointmentByID(ctx context.Context, appointmentID string) (*Appointment, error)
-	GetAppointmentByAppointmentUUID(ctx context.Context, appointmentUUID string) (*Appointment, error)
-	GetClientAppointmentByID(ctx context.Context, appointmentID, clientID string) (*Appointment, error)
 	GetClientServiceRequests(ctx context.Context, requestType, status, clientID string) ([]*ClientServiceRequest, error)
 	GetActiveScreeningToolResponses(ctx context.Context, clientID string) ([]*ScreeningToolsResponse, error)
+	GetAppointmentByExternalID(ctx context.Context, externalID string) (*Appointment, error)
+	GetAppointmentByClientID(ctx context.Context, appointmentID, clientID string) (*Appointment, error)
+	CheckAppointmentExistsByExternalID(ctx context.Context, externalID string) (bool, error)
 }
 
 // CheckWhetherUserHasLikedContent performs a operation to check whether user has liked the content
@@ -1173,8 +1174,8 @@ func (db *PGInstance) GetAppointmentByID(ctx context.Context, appointmentID stri
 	return &appointment, nil
 }
 
-// GetClientAppointmentByID returns a client appointment by ID
-func (db *PGInstance) GetClientAppointmentByID(ctx context.Context, appointmentID, clientID string) (*Appointment, error) {
+// GetAppointmentByClientID returns a client appointment by ID
+func (db *PGInstance) GetAppointmentByClientID(ctx context.Context, appointmentID, clientID string) (*Appointment, error) {
 	var appointment Appointment
 	err := db.DB.Where(&Appointment{ID: appointmentID, ClientID: clientID}).First(&appointment).Error
 	if err != nil {
@@ -1184,10 +1185,10 @@ func (db *PGInstance) GetClientAppointmentByID(ctx context.Context, appointmentI
 	return &appointment, nil
 }
 
-// GetAppointmentByAppointmentUUID returns an appointment by appointment UUID
-func (db *PGInstance) GetAppointmentByAppointmentUUID(ctx context.Context, appointmentUUID string) (*Appointment, error) {
+// GetAppointmentByExternalID returns an appointment by shared external appointment id
+func (db *PGInstance) GetAppointmentByExternalID(ctx context.Context, externalID string) (*Appointment, error) {
 	var appointment Appointment
-	err := db.DB.Where(&Appointment{AppointmentUUID: appointmentUUID}).First(&appointment).Error
+	err := db.DB.Where(&Appointment{ExternalID: externalID}).First(&appointment).Error
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed to get appointment by appointment UUID: %v", err)
@@ -1222,4 +1223,19 @@ func (db *PGInstance) GetActiveScreeningToolResponses(ctx context.Context, clien
 		return nil, fmt.Errorf("failed to get responses for client: %v", err)
 	}
 	return responses, nil
+}
+
+// CheckAppointmentExistsByExternalID checks if an appointment with the external id exists
+func (db *PGInstance) CheckAppointmentExistsByExternalID(ctx context.Context, externalID string) (bool, error) {
+	var appointment Appointment
+	err := db.DB.Where(&Appointment{ExternalID: externalID}).First(&appointment).Error
+	if err != nil {
+		if strings.Contains(err.Error(), gorm.ErrRecordNotFound.Error()) {
+			return false, nil
+		}
+		helpers.ReportErrorToSentry(err)
+		return false, fmt.Errorf("failed to get appointment by appointment UUID: %v", err)
+	}
+
+	return true, nil
 }

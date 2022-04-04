@@ -192,8 +192,8 @@ func (d *MyCareHubDb) InvalidateScreeningToolResponse(ctx context.Context, clien
 // UpdateAppointment updates an appointment
 func (d *MyCareHubDb) UpdateAppointment(ctx context.Context, appointment *domain.Appointment, updateData map[string]interface{}) (*domain.Appointment, error) {
 	ap := &gorm.Appointment{
-		ID:              appointment.ID,
-		AppointmentUUID: appointment.AppointmentUUID,
+		ID:         appointment.ID,
+		ExternalID: appointment.ExternalID,
 	}
 	updatedAppointment, err := d.update.UpdateAppointment(ctx, ap, updateData)
 	if err != nil {
@@ -207,13 +207,9 @@ func (d *MyCareHubDb) UpdateAppointment(ctx context.Context, appointment *domain
 
 	return &domain.Appointment{
 		ID:                        updatedAppointment.ID,
-		AppointmentUUID:           updatedAppointment.AppointmentUUID,
-		Type:                      updatedAppointment.AppointmentType,
-		Status:                    enums.AppointmentStatus(updatedAppointment.Status),
+		ExternalID:                updatedAppointment.ExternalID,
 		Reason:                    updatedAppointment.Reason,
 		Date:                      appointmentDate,
-		Start:                     updatedAppointment.StartTime.Time,
-		End:                       updatedAppointment.EndTime.Time,
 		ClientID:                  updatedAppointment.ClientID,
 		FacilityID:                updatedAppointment.FacilityID,
 		Provider:                  updatedAppointment.Provider,

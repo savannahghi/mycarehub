@@ -140,18 +140,6 @@ enum ScreeningToolType {
   ALCOHOL_SUBSTANCE_ASSESSMENT
 }
 
-enum AppointmentStatus {
-  SCHEDULED
-  RESCHEDULED
-  WAITING
-  MISSED
-  COMPLETED
-  IN_CONSULTATION
-  WALK_IN
-  CANCELLED
-  NEEDS_RESCHEDULE
-}
-
 enum MessageType {
   regular
   error
