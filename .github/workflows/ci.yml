@@ -101,10 +101,10 @@ jobs:
         ports:
           # Maps tcp port 5432 on service container to the host
           - 5432:5432
-
+          
     steps:
       - name: Set up Python 3.10
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v3.1.0
         with:
           python-version: 3.10.0
 
@@ -128,23 +128,6 @@ jobs:
           pip install -r requirements/local.txt && pip install -r requirements/production.txt
           npm ci
           npm install -g mjml
-
-      - name: Purge postgres
-        run: |
-          sudo apt-get --purge remove postgresql postgresql-*
-
-      - name: Upgrade packages
-        run: |
-          sudo apt-get update && sudo apt-get upgrade
-
-      - name: Install Postgresql/PostGIS 12
-        run: |
-          sudo apt-get install postgresql-12 postgresql-12-postgis-3
-
-      - name: Setup and start postgres service
-        run: |
-          sudo pg_ctlcluster 12 main start
-          sudo -u ${POSTGRES_USER} psql -p ${POSTGRES_PORT} -c "ALTER USER ${POSTGRES_USER} WITH PASSWORD '${POSTGRES_PASSWORD}';"
 
       - name: run migrations
         run: |
