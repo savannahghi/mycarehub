@@ -749,11 +749,8 @@ func TestMyCareHubDb_CreateAppointment(t *testing.T) {
 	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
 
 	type args struct {
-		ctx             context.Context
-		appointment     domain.Appointment
-		appointmentUUID string
-		clientID        string
-		staffID         string
+		ctx         context.Context
+		appointment domain.Appointment
 	}
 	tests := []struct {
 		name    string
@@ -765,22 +762,18 @@ func TestMyCareHubDb_CreateAppointment(t *testing.T) {
 			args: args{
 				ctx: context.Background(),
 				appointment: domain.Appointment{
-					ID:       gofakeit.UUID(),
-					Type:     "Dental",
-					Status:   "COMPLETED",
-					Reason:   "Knocked out",
-					ClientID: gofakeit.UUID(),
+					ID:         gofakeit.UUID(),
+					Reason:     "Dental",
+					ClientID:   gofakeit.UUID(),
+					ExternalID: gofakeit.UUID(),
 				},
-				appointmentUUID: gofakeit.UUID(),
-				clientID:        gofakeit.UUID(),
-				staffID:         gofakeit.UUID(),
 			},
 			wantErr: false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := d.CreateAppointment(tt.args.ctx, tt.args.appointment, tt.args.appointmentUUID, tt.args.clientID); (err != nil) != tt.wantErr {
+			if err := d.CreateAppointment(tt.args.ctx, tt.args.appointment); (err != nil) != tt.wantErr {
 				t.Errorf("MyCareHubDb.CreateAppointment() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})

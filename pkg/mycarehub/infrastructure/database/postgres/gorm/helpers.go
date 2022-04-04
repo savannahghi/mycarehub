@@ -1,10 +1,8 @@
 package gorm
 
 import (
-	"database/sql/driver"
 	"fmt"
 	"math"
-	"time"
 
 	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/firebasetools"
@@ -53,29 +51,6 @@ func filterParamsToMap(mapString []*domain.FiltersParam) map[string]interface{} 
 		res[v.Name] = v.Value
 	}
 	return res
-}
-
-// CustomTime is a custom gorm type maps database time to time.Time
-type CustomTime struct {
-	Time time.Time
-}
-
-// Value - Implementation of valuer for database/sql
-func (c CustomTime) Value() (driver.Value, error) {
-	return driver.Value(c.Time.Format("15:04:05")), nil
-}
-
-// Scan - Implement the database/sql scanner interface
-func (c *CustomTime) Scan(value interface{}) error {
-
-	timeValue, err := time.Parse("15:04:05", fmt.Sprintf("%v", value))
-	if err != nil {
-		return err
-	}
-
-	c.Time = timeValue
-
-	return nil
 }
 
 func addFilters(transaction *gorm.DB, filters []*firebasetools.FilterParam) (*gorm.DB, error) {

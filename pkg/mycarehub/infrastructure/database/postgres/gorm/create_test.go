@@ -3,6 +3,7 @@ package gorm_test
 import (
 	"context"
 	"math/rand"
+	"strconv"
 	"testing"
 	"time"
 
@@ -957,15 +958,11 @@ func TestPGInstance_CreateAppointment(t *testing.T) {
 				ctx: context.Background(),
 				appointment: &gorm.Appointment{
 					Active:                    true,
-					AppointmentUUID:           gofakeit.UUID(),
-					AppointmentType:           "Dental",
-					Status:                    enums.AppointmentStatusCompleted.String(),
+					ExternalID:                strconv.Itoa(gofakeit.Number(0, 1000)),
 					ClientID:                  clientID,
 					FacilityID:                facilityID,
-					Reason:                    "Knocked up",
+					Reason:                    "Dental",
 					Date:                      time.Now().Add(time.Duration(100)),
-					StartTime:                 gorm.CustomTime{Time: time.Now()},
-					EndTime:                   gorm.CustomTime{Time: time.Now().Add(30 * time.Minute)},
 					HasRescheduledAppointment: true,
 				},
 			},
@@ -977,15 +974,11 @@ func TestPGInstance_CreateAppointment(t *testing.T) {
 				ctx: context.Background(),
 				appointment: &gorm.Appointment{
 					Active:                    true,
-					AppointmentUUID:           gofakeit.UUID(),
-					AppointmentType:           "Dental",
-					Status:                    enums.AppointmentStatusCompleted.String(),
+					ExternalID:                strconv.Itoa(gofakeit.Number(0, 1000)),
 					ClientID:                  clientID,
 					FacilityID:                "facilityID",
-					Reason:                    "Knocked up",
+					Reason:                    "Dental",
 					Date:                      time.Now().Add(time.Duration(100)),
-					StartTime:                 gorm.CustomTime{Time: time.Now()},
-					EndTime:                   gorm.CustomTime{Time: time.Now().Add(30 * time.Minute)},
 					HasRescheduledAppointment: true,
 				},
 			},

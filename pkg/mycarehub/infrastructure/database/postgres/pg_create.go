@@ -315,21 +315,17 @@ func (d *MyCareHubDb) GetOrCreateContact(ctx context.Context, contact *domain.Co
 }
 
 // CreateAppointment creates a new appointment
-func (d *MyCareHubDb) CreateAppointment(ctx context.Context, appointment domain.Appointment, appointmentUUID, clientID string) error {
+func (d *MyCareHubDb) CreateAppointment(ctx context.Context, appointment domain.Appointment) error {
 
 	date := appointment.Date.AsTime()
 	ap := &gorm.Appointment{
-		Active:          true,
-		AppointmentUUID: appointmentUUID,
-		AppointmentType: appointment.Type,
-		Status:          appointment.Status.String(),
-		ClientID:        clientID,
-		FacilityID:      appointment.FacilityID,
-		Reason:          appointment.Reason,
-		Provider:        appointment.Provider,
-		Date:            date,
-		StartTime:       gorm.CustomTime{Time: appointment.Start},
-		EndTime:         gorm.CustomTime{Time: appointment.End},
+		Active:     true,
+		ExternalID: appointment.ExternalID,
+		ClientID:   appointment.ClientID,
+		FacilityID: appointment.FacilityID,
+		Reason:     appointment.Reason,
+		Provider:   appointment.Provider,
+		Date:       date,
 	}
 
 	return d.create.CreateAppointment(ctx, ap)

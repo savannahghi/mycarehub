@@ -2861,23 +2861,6 @@ func TestPGInstance_ListAppointments(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "happy case: list filtered appointments status",
-			args: args{
-				ctx:    context.Background(),
-				params: nil,
-				filters: []*firebasetools.FilterParam{
-					{
-						FieldName:           "status",
-						FieldType:           enumutils.FieldTypeString,
-						ComparisonOperation: enumutils.OperationEqual,
-						FieldValue:          enums.AppointmentStatusCompleted.String(),
-					},
-				},
-				pagination: nil,
-			},
-			wantErr: false,
-		},
-		{
 			name: "happy case: list filtered appointments date",
 			args: args{
 				ctx:    context.Background(),
@@ -3682,7 +3665,7 @@ func TestPGInstance_GetFacilitiesWithoutFHIRID(t *testing.T) {
 	}
 }
 
-func TestPGInstance_GetClientAppointmentByID(t *testing.T) {
+func TestPGInstance_GetAppointmentByClientID(t *testing.T) {
 	type args struct {
 		ctx           context.Context
 		appointmentID string
@@ -3714,9 +3697,9 @@ func TestPGInstance_GetClientAppointmentByID(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := testingDB.GetClientAppointmentByID(tt.args.ctx, tt.args.appointmentID, tt.args.clientID)
+			got, err := testingDB.GetAppointmentByClientID(tt.args.ctx, tt.args.appointmentID, tt.args.clientID)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("PGInstance.GetClientAppointmentByID() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("PGInstance.GetAppointmentByClientID() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !tt.wantErr && got == nil {
@@ -3727,10 +3710,10 @@ func TestPGInstance_GetClientAppointmentByID(t *testing.T) {
 	}
 }
 
-func TestPGInstance_GetAppointmentByAppointmentUUID(t *testing.T) {
+func TestPGInstance_GetAppointmentByExternalID(t *testing.T) {
 	type args struct {
-		ctx             context.Context
-		appointmentUUID string
+		ctx           context.Context
+		appointmentID string
 	}
 	tests := []struct {
 		name    string
@@ -3740,17 +3723,17 @@ func TestPGInstance_GetAppointmentByAppointmentUUID(t *testing.T) {
 		{
 			name: "Happy case",
 			args: args{
-				ctx:             context.Background(),
-				appointmentUUID: appointmentUUID,
+				ctx:           context.Background(),
+				appointmentID: externalAppointmentID,
 			},
 			wantErr: false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := testingDB.GetAppointmentByAppointmentUUID(tt.args.ctx, tt.args.appointmentUUID)
+			got, err := testingDB.GetAppointmentByExternalID(tt.args.ctx, tt.args.appointmentID)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("PGInstance.GetAppointmentByAppointmentUUID() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("PGInstance.GetAppointmentByExternalID() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !tt.wantErr && got == nil {
@@ -3836,6 +3819,50 @@ func TestPGInstance_GetActiveScreeningToolResponses(t *testing.T) {
 			if !tt.wantErr && got == nil {
 				t.Errorf("expected service requests not to be nil for %v", tt.name)
 				return
+			}
+		})
+	}
+}
+
+func TestPGInstance_CheckAppointmentExistsByExternalID(t *testing.T) {
+	type args struct {
+		ctx        context.Context
+		externalID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy case: existing appointment",
+			args: args{
+				ctx:        context.Background(),
+				externalID: externalAppointmentID,
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Happy case: non existent appointment",
+			args: args{
+				ctx:        context.Background(),
+				externalID: "non-existent",
+			},
+			want:    false,
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := testingDB.CheckAppointmentExistsByExternalID(tt.args.ctx, tt.args.externalID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.CheckAppointmentExistsByExternalID() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("PGInstance.CheckAppointmentExistsByExternalID() = %v, want %v", got, tt.want)
 			}
 		})
 	}

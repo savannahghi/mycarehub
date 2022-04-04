@@ -189,66 +189,6 @@ func TestConvertJsonStringToMap(t *testing.T) {
 	}
 }
 
-func TestConvertStartEndTimeToStringTime(t *testing.T) {
-	startTimeString := "Mon, 02 Jan 2006 15:04:05 -0700"
-	startTime, err := time.Parse(time.RFC1123Z, startTimeString)
-	assert.NoError(t, err)
-	endTimeString := "Mon, 02 Jan 2006 16:04:05 -0700"
-	endTime, err := time.Parse(time.RFC1123Z, endTimeString)
-	assert.NoError(t, err)
-
-	type args struct {
-		startTime time.Time
-		endTime   time.Time
-	}
-	tests := []struct {
-		name    string
-		args    args
-		want    string
-		wantErr bool
-	}{
-		{
-			name: "Happy case",
-			args: args{
-				startTime: startTime,
-				endTime:   endTime,
-			},
-			want:    "15:04 - 16:04",
-			wantErr: false,
-		},
-		{
-			name: "startTime is empty",
-			args: args{
-				startTime: time.Time{},
-				endTime:   endTime,
-			},
-			want:    "",
-			wantErr: true,
-		},
-		{
-			name: "endTime is empty",
-			args: args{
-				startTime: startTime,
-				endTime:   time.Time{},
-			},
-			want:    "",
-			wantErr: true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got, err := ConvertStartEndTimeToStringTime(tt.args.startTime, tt.args.endTime)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("ConvertStartEndTimeToStringTime() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if got != tt.want {
-				t.Errorf("ConvertStartEndTimeToStringTime() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
 func TestConvertTimeToScalarDate(t *testing.T) {
 	type args struct {
 		t time.Time

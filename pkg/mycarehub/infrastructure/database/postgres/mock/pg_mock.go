@@ -102,7 +102,7 @@ type PostgresMock struct {
 	MockGetClientsByParams                               func(ctx context.Context, params gorm.Client, lastSyncTime *time.Time) ([]*domain.ClientProfile, error)
 	MockGetClientCCCIdentifier                           func(ctx context.Context, clientID string) (*domain.Identifier, error)
 	MockGetServiceRequestsForKenyaEMRFn                  func(ctx context.Context, payload *dto.ServiceRequestPayload) ([]*domain.ServiceRequest, error)
-	MockCreateAppointment                                func(ctx context.Context, appointment domain.Appointment, appointmentUUID, clientID string) error
+	MockCreateAppointment                                func(ctx context.Context, appointment domain.Appointment) error
 	MockUpdateAppointmentFn                              func(ctx context.Context, appointment *domain.Appointment, updateData map[string]interface{}) (*domain.Appointment, error)
 	MockGetScreeningToolsQuestionsFn                     func(ctx context.Context, toolType string) ([]*domain.ScreeningToolQuestion, error)
 	MockAnswerScreeningToolQuestionsFn                   func(ctx context.Context, screeningToolResponses []*dto.ScreeningToolQuestionResponseInput) error
@@ -129,10 +129,11 @@ type PostgresMock struct {
 	MockResolveStaffServiceRequestFn                     func(ctx context.Context, staffID *string, serviceRequestID *string, verificationStatus string) (bool, error)
 	MockCreateStaffServiceRequestFn                      func(ctx context.Context, serviceRequestInput *dto.ServiceRequestInput) error
 	MockGetAppointmentServiceRequestsFn                  func(ctx context.Context, lastSyncTime time.Time, mflCode string) ([]domain.AppointmentServiceRequests, error)
-	MockGetClientAppointmentByIDFn                       func(ctx context.Context, appointmentID string) (*domain.Appointment, error)
-	MockGetAppointmentByAppointmentUUIDFn                func(ctx context.Context, appointmentUUID string) (*domain.Appointment, error)
 	MockGetClientServiceRequestsFn                       func(ctx context.Context, requestType, status, clientID string) ([]*domain.ServiceRequest, error)
 	MockGetActiveScreeningToolResponsesFn                func(ctx context.Context, clientID string) ([]*domain.ScreeningToolQuestionResponse, error)
+	MockGetAppointmentByClientIDFn                       func(ctx context.Context, clientID string) (*domain.Appointment, error)
+	MockCheckAppointmentExistsByExternalIDFn             func(ctx context.Context, externalID string) (bool, error)
+	MockGetAppointmentByExternalIDFn                     func(ctx context.Context, externalID string) (*domain.Appointment, error)
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -714,24 +715,22 @@ func NewPostgresMock() *PostgresMock {
 			}
 			return []*domain.ServiceRequest{serviceReq}, nil
 		},
-		MockCreateAppointment: func(ctx context.Context, appointment domain.Appointment, appointmentUUID, clientID string) error {
+		MockCreateAppointment: func(ctx context.Context, appointment domain.Appointment) error {
 			return nil
 		},
 		MockUpdateAppointmentFn: func(ctx context.Context, appointment *domain.Appointment, updateData map[string]interface{}) (*domain.Appointment, error) {
 			appointmentDate, _ := utils.ConvertTimeToScalarDate(time.Now())
 
 			return &domain.Appointment{
-				ID:              gofakeit.UUID(),
-				ClientID:        gofakeit.UUID(),
-				AppointmentUUID: gofakeit.UUID(),
-				Date:            appointmentDate,
+				ID:         gofakeit.UUID(),
+				ClientID:   gofakeit.UUID(),
+				ExternalID: gofakeit.UUID(),
+				Date:       appointmentDate,
 			}, nil
 		},
 		MockListAppointments: func(ctx context.Context, params *domain.Appointment, filters []*firebasetools.FilterParam, pagination *domain.Pagination) ([]*domain.Appointment, *domain.Pagination, error) {
 			return []*domain.Appointment{{
 				ID:       ID,
-				Type:     "Dental",
-				Status:   "COMPLETED",
 				Reason:   "Bad tooth",
 				Provider: "X",
 				Date: scalarutils.Date{
@@ -739,8 +738,6 @@ func NewPostgresMock() *PostgresMock {
 					Month: 1,
 					Day:   1,
 				},
-				Start: time.Now(),
-				End:   time.Now().Add(1 * time.Hour),
 			}}, &domain.Pagination{}, nil
 		},
 		MockGetScreeningToolsQuestionsFn: func(ctx context.Context, toolType string) ([]*domain.ScreeningToolQuestion, error) {
@@ -849,14 +846,10 @@ func NewPostgresMock() *PostgresMock {
 		MockGetAppointmentServiceRequestsFn: func(ctx context.Context, lastSyncTime time.Time, mflCode string) ([]domain.AppointmentServiceRequests, error) {
 			return []domain.AppointmentServiceRequests{
 				{
-					ID:              ID,
-					AppointmentUUID: ID,
-					Type:            "BLOOD_TEST",
-					Reason:          "reason",
-					Provider:        "provider",
-					SuggestedTime:   "12:00 - 13:00",
-					Date:            scalarutils.Date{Year: 2020, Month: 1, Day: 1},
-					Status:          enums.AppointmentStatusWalkIn,
+					ID:         ID,
+					ExternalID: ID,
+					Reason:     "reason",
+					Date:       scalarutils.Date{Year: 2020, Month: 1, Day: 1},
 
 					InProgressAt:  &currentTime,
 					InProgressBy:  &name,
@@ -869,35 +862,30 @@ func NewPostgresMock() *PostgresMock {
 				},
 			}, nil
 		},
-		MockGetClientAppointmentByIDFn: func(ctx context.Context, appointmentID string) (*domain.Appointment, error) {
+		MockGetAppointmentByClientIDFn: func(ctx context.Context, clientID string) (*domain.Appointment, error) {
 			return &domain.Appointment{
-				ID:              ID,
-				AppointmentUUID: ID,
-				Type:            "BLOOD_TEST",
-				Status:          enums.AppointmentStatusWalkIn,
-				Reason:          "reason",
-				Date:            scalarutils.Date{},
-				Start:           time.Now(),
-				End:             time.Now(),
-				ClientID:        ID,
-				FacilityID:      ID,
-				Provider:        "provider",
+				ID:         ID,
+				ExternalID: ID,
+				Reason:     "reason",
+				Date:       scalarutils.Date{},
+				ClientID:   ID,
+				FacilityID: ID,
+				Provider:   "provider",
 			}, nil
 
 		},
-		MockGetAppointmentByAppointmentUUIDFn: func(ctx context.Context, appointmentUUID string) (*domain.Appointment, error) {
+		MockCheckAppointmentExistsByExternalIDFn: func(ctx context.Context, externalID string) (bool, error) {
+			return true, nil
+		},
+		MockGetAppointmentByExternalIDFn: func(ctx context.Context, externalID string) (*domain.Appointment, error) {
 			return &domain.Appointment{
-				ID:              ID,
-				AppointmentUUID: "uuid",
-				Type:            "BLOOD_TEST",
-				Status:          enums.AppointmentStatusWalkIn,
-				Reason:          "reason",
-				Date:            scalarutils.Date{},
-				Start:           time.Now(),
-				End:             time.Now(),
-				ClientID:        ID,
-				FacilityID:      ID,
-				Provider:        "provider",
+				ID:         ID,
+				ExternalID: "uuid",
+				Reason:     "reason",
+				Date:       scalarutils.Date{},
+				ClientID:   ID,
+				FacilityID: ID,
+				Provider:   "provider",
 			}, nil
 		},
 		MockGetClientServiceRequestsFn: func(ctx context.Context, requestType, status, clientID string) ([]*domain.ServiceRequest, error) {
@@ -1045,7 +1033,7 @@ func (gm *PostgresMock) SaveOTP(ctx context.Context, otpInput *domain.OTP) error
 	return gm.MockSaveOTPFn(ctx, otpInput)
 }
 
-// SetNickName is used to mock the implementation ofset or changing the user's nickname
+// SetNickName is used to mock the implementation offset or changing the user's nickname
 func (gm *PostgresMock) SetNickName(ctx context.Context, userID *string, nickname *string) (bool, error) {
 	return gm.MockSetNickNameFn(ctx, userID, nickname)
 }
@@ -1145,7 +1133,7 @@ func (gm *PostgresMock) BookmarkContent(ctx context.Context, userID string, cont
 	return gm.MockBookmarkContentFn(ctx, userID, contentID)
 }
 
-// UnBookmarkContent unbookmark a content
+// UnBookmarkContent remove bookmark from content
 func (gm *PostgresMock) UnBookmarkContent(ctx context.Context, userID string, contentID int) (bool, error) {
 	return gm.MockUnBookmarkContentFn(ctx, userID, contentID)
 }
@@ -1366,8 +1354,8 @@ func (gm *PostgresMock) ListAppointments(ctx context.Context, params *domain.App
 }
 
 // CreateAppointment creates a new appointment
-func (gm *PostgresMock) CreateAppointment(ctx context.Context, appointment domain.Appointment, appointmentUUID, clientID string) error {
-	return gm.MockCreateAppointment(ctx, appointment, appointmentUUID, clientID)
+func (gm *PostgresMock) CreateAppointment(ctx context.Context, appointment domain.Appointment) error {
+	return gm.MockCreateAppointment(ctx, appointment)
 }
 
 // UpdateAppointment updates an appointment
@@ -1476,14 +1464,19 @@ func (gm *PostgresMock) GetFacilitiesWithoutFHIRID(ctx context.Context) ([]*doma
 	return gm.MockGetFacilitiesWithoutFHIRIDFn(ctx)
 }
 
-// GetClientAppointmentByID mocks the implementation of getting a client appointment by id
-func (gm *PostgresMock) GetClientAppointmentByID(ctx context.Context, appointmentID string) (*domain.Appointment, error) {
-	return gm.MockGetClientAppointmentByIDFn(ctx, appointmentID)
+// GetAppointmentByClientID mocks the implementation of getting a client appointment by id
+func (gm *PostgresMock) GetAppointmentByClientID(ctx context.Context, clientID string) (*domain.Appointment, error) {
+	return gm.MockGetAppointmentByClientIDFn(ctx, clientID)
 }
 
-// GetAppointmentByAppointmentUUID mocks the implementation of getting an appointment by appointment UUID
-func (gm *PostgresMock) GetAppointmentByAppointmentUUID(ctx context.Context, appointmentUUID string) (*domain.Appointment, error) {
-	return gm.MockGetAppointmentByAppointmentUUIDFn(ctx, appointmentUUID)
+// CheckAppointmentExistsByExternalID checks if an appointment with the external id exists
+func (gm *PostgresMock) CheckAppointmentExistsByExternalID(ctx context.Context, externalID string) (bool, error) {
+	return gm.MockCheckAppointmentExistsByExternalIDFn(ctx, externalID)
+}
+
+// GetAppointmentByExternalID mocks the implementation of getting an appointment by appointment UUID
+func (gm *PostgresMock) GetAppointmentByExternalID(ctx context.Context, externalID string) (*domain.Appointment, error) {
+	return gm.MockGetAppointmentByExternalIDFn(ctx, externalID)
 }
 
 // GetClientServiceRequests mocks the implementation of getting system generated client service requests

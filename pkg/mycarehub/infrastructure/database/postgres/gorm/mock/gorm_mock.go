@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/brianvoe/gofakeit"
@@ -130,10 +131,11 @@ type GormMock struct {
 	MockGetAppointmentByIDFn                             func(ctx context.Context, appointmentID string) (*gorm.Appointment, error)
 	MockUpdateFacilityFn                                 func(ctx context.Context, facility *gorm.Facility, updateData map[string]interface{}) error
 	MockGetFacilitiesWithoutFHIRIDFn                     func(ctx context.Context) ([]*gorm.Facility, error)
-	MockGetClientAppointmentByIDFn                       func(ctx context.Context, appointmentID, clientID string) (*gorm.Appointment, error)
-	MockGetAppointmentByAppointmentUUIDFn                func(ctx context.Context, appointmentUUID string) (*gorm.Appointment, error)
 	MockGetClientServiceRequestsFn                       func(ctx context.Context, requestType, status, clientID string) ([]*gorm.ClientServiceRequest, error)
 	MockGetActiveScreeningToolResponsesFn                func(ctx context.Context, clientID string) ([]*gorm.ScreeningToolsResponse, error)
+	MockGetAppointmentByClientIDFn                       func(ctx context.Context, appointmentID, clientID string) (*gorm.Appointment, error)
+	MockCheckAppointmentExistsByExternalIDFn             func(ctx context.Context, externalID string) (bool, error)
+	MockGetAppointmentByExternalIDFn                     func(ctx context.Context, externalID string) (*gorm.Appointment, error)
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -806,18 +808,14 @@ func NewGormMock() *GormMock {
 			date := time.Now().Add(time.Duration(100))
 			return []*gorm.Appointment{
 				{
-					ID:              gofakeit.UUID(),
-					OrganisationID:  gofakeit.UUID(),
-					Active:          true,
-					AppointmentUUID: gofakeit.UUID(),
-					AppointmentType: "Dental",
-					Status:          enums.AppointmentStatusCompleted.String(),
-					ClientID:        gofakeit.UUID(),
-					FacilityID:      gofakeit.UUID(),
-					Reason:          "Knocked up",
-					Date:            date,
-					StartTime:       gorm.CustomTime{Time: time.Now()},
-					EndTime:         gorm.CustomTime{Time: time.Now().Add(30 * time.Minute)},
+					ID:             gofakeit.UUID(),
+					OrganisationID: gofakeit.UUID(),
+					Active:         true,
+					ExternalID:     strconv.Itoa(gofakeit.Number(0, 1000)),
+					ClientID:       gofakeit.UUID(),
+					FacilityID:     gofakeit.UUID(),
+					Reason:         "Knocked up",
+					Date:           date,
 				},
 			}, &domain.Pagination{Limit: 10, CurrentPage: 1}, nil
 		},
@@ -919,7 +917,8 @@ func NewGormMock() *GormMock {
 		},
 		MockGetAppointmentServiceRequestsFn: func(ctx context.Context, lastSyncTime time.Time) ([]*gorm.ClientServiceRequest, error) {
 			meta := map[string]interface{}{
-				"appointmentID": uuid.New().String(),
+				"appointmentID":  uuid.New().String(),
+				"rescheduleTime": time.Now().Add(1 * time.Hour).Format(time.RFC3339),
 			}
 
 			bs, err := json.Marshal(meta)
@@ -947,58 +946,41 @@ func NewGormMock() *GormMock {
 		MockGetAppointmentByIDFn: func(ctx context.Context, appointmentID string) (*gorm.Appointment, error) {
 			date := time.Now().Add(time.Duration(100))
 			return &gorm.Appointment{
-				ID:              gofakeit.UUID(),
-				OrganisationID:  gofakeit.UUID(),
-				Active:          true,
-				AppointmentUUID: gofakeit.UUID(),
-				AppointmentType: "Dental",
-				Status:          enums.AppointmentStatusCompleted.String(),
-				ClientID:        gofakeit.UUID(),
-				FacilityID:      gofakeit.UUID(),
-				Reason:          "Knocked up",
-				Date:            date,
-				StartTime:       gorm.CustomTime{Time: time.Now()},
-				EndTime:         gorm.CustomTime{Time: time.Now().Add(30 * time.Minute)},
+				ID:             gofakeit.UUID(),
+				OrganisationID: gofakeit.UUID(),
+				Active:         true,
+				ExternalID:     strconv.Itoa(gofakeit.Number(0, 1000)),
+				ClientID:       gofakeit.UUID(),
+				FacilityID:     gofakeit.UUID(),
+				Reason:         "Knocked up",
+				Date:           date,
 			}, nil
 		},
-		MockGetClientAppointmentByIDFn: func(ctx context.Context, appointmentID, clientID string) (*gorm.Appointment, error) {
+		MockGetAppointmentByClientIDFn: func(ctx context.Context, appointmentID, clientID string) (*gorm.Appointment, error) {
 			return &gorm.Appointment{
-				ID:              UUID,
-				Active:          true,
-				AppointmentUUID: appointmentID,
-				AppointmentType: "BLOOD_TEST",
-				Status:          enums.AppointmentStatusCompleted.String(),
-				ClientID:        clientID,
-				FacilityID:      UUID,
-				Reason:          "reason",
-				Provider:        "provider",
-				Date:            time.Now(),
-				StartTime: gorm.CustomTime{
-					Time: time.Now(),
-				},
-				EndTime: gorm.CustomTime{
-					Time: time.Now().Add(30 * time.Minute),
-				},
+				ID:         UUID,
+				Active:     true,
+				ExternalID: strconv.Itoa(gofakeit.Number(0, 1000)),
+				ClientID:   clientID,
+				FacilityID: UUID,
+				Reason:     "reason",
+				Provider:   "provider",
+				Date:       time.Now(),
 			}, nil
 		},
-		MockGetAppointmentByAppointmentUUIDFn: func(ctx context.Context, appointmentUUID string) (*gorm.Appointment, error) {
+		MockCheckAppointmentExistsByExternalIDFn: func(ctx context.Context, externalID string) (bool, error) {
+			return true, nil
+		},
+		MockGetAppointmentByExternalIDFn: func(ctx context.Context, externalID string) (*gorm.Appointment, error) {
 			return &gorm.Appointment{
-				ID:              UUID,
-				Active:          true,
-				AppointmentUUID: appointmentUUID,
-				AppointmentType: "BLOOD_TEST",
-				Status:          enums.AppointmentStatusCompleted.String(),
-				ClientID:        UUID,
-				FacilityID:      UUID,
-				Reason:          "reason",
-				Provider:        "provider",
-				Date:            time.Now(),
-				StartTime: gorm.CustomTime{
-					Time: time.Now(),
-				},
-				EndTime: gorm.CustomTime{
-					Time: time.Now().Add(30 * time.Minute),
-				},
+				ID:         UUID,
+				Active:     true,
+				ExternalID: strconv.Itoa(gofakeit.Number(0, 1000)),
+				ClientID:   UUID,
+				FacilityID: UUID,
+				Reason:     "reason",
+				Provider:   "provider",
+				Date:       time.Now(),
 			}, nil
 		},
 		MockGetClientServiceRequestsFn: func(ctx context.Context, requestType, status, clientID string) ([]*gorm.ClientServiceRequest, error) {
@@ -1588,14 +1570,19 @@ func (gm *GormMock) GetFacilitiesWithoutFHIRID(ctx context.Context) ([]*gorm.Fac
 	return gm.MockGetFacilitiesWithoutFHIRIDFn(ctx)
 }
 
-// GetClientAppointmentByID mocks the implementation of rescheduling an appointment
-func (gm *GormMock) GetClientAppointmentByID(ctx context.Context, appointmentID, clientID string) (*gorm.Appointment, error) {
-	return gm.MockGetClientAppointmentByIDFn(ctx, appointmentID, clientID)
+// GetAppointmentByClientID mocks the implementation of rescheduling an appointment
+func (gm *GormMock) GetAppointmentByClientID(ctx context.Context, appointmentID, clientID string) (*gorm.Appointment, error) {
+	return gm.MockGetAppointmentByClientIDFn(ctx, appointmentID, clientID)
 }
 
-// GetAppointmentByAppointmentUUID mocks the implementation of getting an appointment by appointment UUID
-func (gm *GormMock) GetAppointmentByAppointmentUUID(ctx context.Context, appointmentUUID string) (*gorm.Appointment, error) {
-	return gm.MockGetAppointmentByAppointmentUUIDFn(ctx, appointmentUUID)
+// GetAppointmentByExternalID mocks the implementation of getting an appointment by external
+func (gm *GormMock) GetAppointmentByExternalID(ctx context.Context, externalID string) (*gorm.Appointment, error) {
+	return gm.MockGetAppointmentByExternalIDFn(ctx, externalID)
+}
+
+// CheckAppointmentExistsByExternalID checks if an appointment with the external id exists
+func (gm *GormMock) CheckAppointmentExistsByExternalID(ctx context.Context, externalID string) (bool, error) {
+	return gm.MockCheckAppointmentExistsByExternalIDFn(ctx, externalID)
 }
 
 // GetClientServiceRequests mocks the implementation of getting system generated client service requests

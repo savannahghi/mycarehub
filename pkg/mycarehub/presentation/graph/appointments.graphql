@@ -7,6 +7,5 @@ extend type Query {
 }
 
 extend type Mutation {
-  rescheduleAppointment(appointmentID: String!): Boolean!
+  rescheduleAppointment(appointmentID: String!, date: Date!): Boolean!
 }
-

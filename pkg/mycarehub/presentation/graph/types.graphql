@@ -312,12 +312,9 @@ type CommunityMember {
 
 type Appointment {
   ID: ID!
-  type: String!
-  status: AppointmentStatus!
   reason: String!
   date: Date!
-  start: Time
-  end: Time
+  HasRescheduledAppointment: Boolean!
 }
 
 type AppointmentsPage {
@@ -400,94 +397,94 @@ type AuthorityRole {
   active: Boolean
 }
 
-type Attachment{
+type Attachment {
   type: String
-	authorName: String 
-	title:      String 
-	titleLink:  String 
-	text:       String
-	imageUrl:    String
-	thumbUrl:    String 
-	assetUrl:    String
-	ogScrapeUrl: String
+  authorName: String
+  title: String
+  titleLink: String
+  text: String
+  imageUrl: String
+  thumbUrl: String
+  assetUrl: String
+  ogScrapeUrl: String
 }
 
 type Reaction {
   messageID: String
-	userID:    String
-	type:      String
+  userID: String
+  type: String
 }
 
 type GetstreamMessage {
   id: String
-	text: String
-	html: String 
-	type:   MessageType
-	silent: Boolean    
-	user:            Member         
-	attachments:     [Attachment]  
-	latestReactions: [Reaction]    
-	ownReactions:    [Reaction]    
-	# reaction_counts:  Map
-	parentID:      String
-	showInChannel: Boolean
-	replyCount: Int
-	mentionedUsers: [Member]
-	shadowed: Boolean 
-	pinnedAt: Time 
-	pinnedBy: Member
-  createdAt:    Time 
-	updatedAt:    Time 
-	deletedAt: Time
+  text: String
+  html: String
+  type: MessageType
+  silent: Boolean
+  user: Member
+  attachments: [Attachment]
+  latestReactions: [Reaction]
+  ownReactions: [Reaction]
+  # reaction_counts:  Map
+  parentID: String
+  showInChannel: Boolean
+  replyCount: Int
+  mentionedUsers: [Member]
+  shadowed: Boolean
+  pinnedAt: Time
+  pinnedBy: Member
+  createdAt: Time
+  updatedAt: Time
+  deletedAt: Time
 }
 
 # message Fag response
-type MessageFlag{
-  user: Member    
-  message: GetstreamMessage 
+type MessageFlag {
+  user: Member
+  message: GetstreamMessage
 }
 
-type ModerationResult  {
-  messageID:            String 
-  action:               String
-  moderatedBy:          String 
-  blockedWord:          String 
-  blocklistName:        String
+type ModerationResult {
+  messageID: String
+  action: String
+  moderatedBy: String
+  blockedWord: String
+  blocklistName: String
   moderationThresholds: ModerationThresholds
   AIModerationResponse: AIModerationResponse
-  userKarma:    Float   
-  userBadKarma: Boolean      
-  createdAt:    Time 
-  updatedAt:    Time 
+  userKarma: Float
+  userBadKarma: Boolean
+  createdAt: Time
+  updatedAt: Time
 }
 
-type ModerationThresholds  {
+type ModerationThresholds {
   explicit: Explicit
-  spam:     Spam
+  spam: Spam
   toxic: Toxic
-} 
+}
 
 type AIModerationResponse {
-  toxic:    Float 
-  explicit: Float 
-  spam:     Float 
-} 
+  toxic: Float
+  explicit: Float
+  spam: Float
+}
 
-type Explicit  {
-  flag:  Float 
+type Explicit {
+  flag: Float
   block: Float
-} 
+}
 
 type Spam {
-  flag:  Float 
-  block: Float 
+  flag: Float
+  block: Float
 }
 
 type Toxic {
-  flag:  Float 
-  block: Float 
-} 
+  flag: Float
+  block: Float
+}
 
-type AvailableScreeningTools{
+type AvailableScreeningTools {
   toolType: ScreeningToolType!
 }

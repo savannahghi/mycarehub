@@ -1177,12 +1177,10 @@ func (d *MyCareHubDb) GetScreeningToolQuestions(ctx context.Context, questionTyp
 func (d *MyCareHubDb) ListAppointments(ctx context.Context, params *domain.Appointment, filters []*firebasetools.FilterParam, pagination *domain.Pagination) ([]*domain.Appointment, *domain.Pagination, error) {
 
 	parameters := &gorm.Appointment{
-		Active:          true,
-		AppointmentType: params.Type,
-		Status:          params.Type,
-		ClientID:        params.ClientID,
-		Reason:          params.Reason,
-		Provider:        params.Provider,
+		Active:   true,
+		ClientID: params.ClientID,
+		Reason:   params.Reason,
+		Provider: params.Provider,
 	}
 
 	appointments, pageInfo, err := d.query.ListAppointments(ctx, parameters, filters, pagination)
@@ -1193,18 +1191,15 @@ func (d *MyCareHubDb) ListAppointments(ctx context.Context, params *domain.Appoi
 	mapped := []*domain.Appointment{}
 	for _, a := range appointments {
 		m := &domain.Appointment{
-			ID:       a.ID,
-			Type:     a.AppointmentType,
-			Status:   enums.AppointmentStatus(a.Status),
-			Reason:   a.Reason,
-			Provider: a.Provider,
+			ID:         a.ID,
+			ExternalID: a.ExternalID,
+			Reason:     a.Reason,
+			Provider:   a.Provider,
 			Date: scalarutils.Date{
 				Year:  a.Date.Year(),
 				Month: int(a.Date.Month()),
 				Day:   a.Date.Day(),
 			},
-			Start:                     a.StartTime.Time,
-			End:                       a.EndTime.Time,
 			HasRescheduledAppointment: a.HasRescheduledAppointment,
 		}
 
@@ -1303,7 +1298,7 @@ func (d *MyCareHubDb) SearchClientProfilesByCCCNumber(ctx context.Context, CCCNu
 		}
 		user := createMapUser(userProfile)
 
-		indentifier, err := d.query.GetClientCCCIdentifier(ctx, *c.ID)
+		identifier, err := d.query.GetClientCCCIdentifier(ctx, *c.ID)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
 			return nil, err
@@ -1323,7 +1318,7 @@ func (d *MyCareHubDb) SearchClientProfilesByCCCNumber(ctx context.Context, CCCNu
 			OrganisationID:          c.OrganisationID,
 			FacilityID:              c.FacilityID,
 			CHVUserID:               c.CHVUserID,
-			CCCNumber:               indentifier.IdentifierValue,
+			CCCNumber:               identifier.IdentifierValue,
 		}
 
 		clients = append(clients, client)
@@ -1439,19 +1434,23 @@ func (d *MyCareHubDb) GetAppointmentServiceRequests(ctx context.Context, lastSyn
 			appointmentID = metaMap["appointmentID"].(string)
 		}
 
+		var rescheduleTime time.Time
+		if _, ok := metaMap["rescheduleTime"]; ok {
+			reschedule := metaMap["rescheduleTime"].(string)
+			rescheduleTime, err = time.Parse(time.RFC3339, reschedule)
+			if err != nil {
+				helpers.ReportErrorToSentry(err)
+				return nil, err
+			}
+		}
+
 		appointment, err := d.query.GetAppointmentByID(ctx, appointmentID)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
 			return nil, err
 		}
 
-		suggestedTime, err := utils.ConvertStartEndTimeToStringTime(appointment.StartTime.Time, appointment.EndTime.Time)
-		if err != nil {
-			helpers.ReportErrorToSentry(err)
-			return nil, err
-		}
-
-		suggestedDate, err := utils.ConvertTimeToScalarDate(appointment.Date)
+		suggestedDate, err := utils.ConvertTimeToScalarDate(rescheduleTime)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
 			return nil, err
@@ -1504,15 +1503,12 @@ func (d *MyCareHubDb) GetAppointmentServiceRequests(ctx context.Context, lastSyn
 		}
 
 		m := domain.AppointmentServiceRequests{
-			ID:              appointmentID,
-			AppointmentUUID: appointment.AppointmentUUID,
-			Type:            appointment.AppointmentType,
-			Reason:          appointment.Reason,
-			Provider:        appointment.Provider,
-			SuggestedTime:   suggestedTime,
-			Date:            suggestedDate,
-			Status:          enums.AppointmentStatus(r.Status),
+			ID:         appointmentID,
+			ExternalID: appointment.ExternalID,
+			Reason:     appointment.Reason,
+			Date:       suggestedDate,
 
+			Status:        r.Status,
 			InProgressAt:  r.InProgressAt,
 			InProgressBy:  inProgressByName,
 			ResolvedAt:    r.ResolvedAt,
@@ -1555,8 +1551,8 @@ func (d *MyCareHubDb) GetFacilitiesWithoutFHIRID(ctx context.Context) ([]*domain
 	return facilities, nil
 }
 
-// GetClientAppointmentByID reschedules an appointment
-func (d *MyCareHubDb) GetClientAppointmentByID(ctx context.Context, appointmentID string) (*domain.Appointment, error) {
+// GetAppointmentByClientID reschedules an appointment
+func (d *MyCareHubDb) GetAppointmentByClientID(ctx context.Context, appointmentID string) (*domain.Appointment, error) {
 	appointment, err := d.query.GetAppointmentByID(ctx, appointmentID)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
@@ -1569,23 +1565,21 @@ func (d *MyCareHubDb) GetClientAppointmentByID(ctx context.Context, appointmentI
 		return nil, err
 	}
 	newAppointment := &domain.Appointment{
-		ID:              appointment.ID,
-		AppointmentUUID: appointment.AppointmentUUID,
-		Type:            appointment.AppointmentType,
-		Date:            appointmentDate,
-		Status:          enums.AppointmentStatus(appointment.Status),
-		Reason:          appointment.Reason,
-		ClientID:        appointment.ClientID,
-		FacilityID:      appointment.FacilityID,
-		Provider:        appointment.Provider,
+		ID:         appointment.ID,
+		ExternalID: appointment.ExternalID,
+		Date:       appointmentDate,
+		Reason:     appointment.Reason,
+		ClientID:   appointment.ClientID,
+		FacilityID: appointment.FacilityID,
+		Provider:   appointment.Provider,
 	}
 
 	return newAppointment, nil
 }
 
-// GetAppointmentByAppointmentUUID fetches an appointment by UUID
-func (d *MyCareHubDb) GetAppointmentByAppointmentUUID(ctx context.Context, appointmentUUID string) (*domain.Appointment, error) {
-	appointment, err := d.query.GetAppointmentByAppointmentUUID(ctx, appointmentUUID)
+// GetAppointmentByExternalID fetches an appointment by the external ID
+func (d *MyCareHubDb) GetAppointmentByExternalID(ctx context.Context, externalID string) (*domain.Appointment, error) {
+	appointment, err := d.query.GetAppointmentByExternalID(ctx, externalID)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, err
@@ -1597,15 +1591,13 @@ func (d *MyCareHubDb) GetAppointmentByAppointmentUUID(ctx context.Context, appoi
 		return nil, err
 	}
 	newAppointment := &domain.Appointment{
-		ID:              appointment.ID,
-		AppointmentUUID: appointment.AppointmentUUID,
-		Type:            appointment.AppointmentType,
-		Date:            appointmentDate,
-		Status:          enums.AppointmentStatus(appointment.Status),
-		Reason:          appointment.Reason,
-		ClientID:        appointment.ClientID,
-		FacilityID:      appointment.FacilityID,
-		Provider:        appointment.Provider,
+		ID:         appointment.ID,
+		ExternalID: appointment.ExternalID,
+		Date:       appointmentDate,
+		Reason:     appointment.Reason,
+		ClientID:   appointment.ClientID,
+		FacilityID: appointment.FacilityID,
+		Provider:   appointment.Provider,
 	}
 
 	return newAppointment, nil
@@ -1665,4 +1657,9 @@ func (d *MyCareHubDb) GetActiveScreeningToolResponses(ctx context.Context, clien
 	}
 
 	return responseList, nil
+}
+
+// CheckAppointmentExistsByExternalID checks if an appointment with the external id exists
+func (d *MyCareHubDb) CheckAppointmentExistsByExternalID(ctx context.Context, externalID string) (bool, error) {
+	return d.query.CheckAppointmentExistsByExternalID(ctx, externalID)
 }

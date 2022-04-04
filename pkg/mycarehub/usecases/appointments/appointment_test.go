@@ -10,7 +10,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/savannahghi/firebasetools"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	extensionMock "github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension/mock"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	pgMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/mock"
@@ -43,16 +42,14 @@ func TestUseCasesAppointmentsImpl_CreateKenyaEMRAppointments(t *testing.T) {
 					MFLCode: "1234",
 					Appointments: []dto.AppointmentPayload{
 						{
-							CCCNumber:       "1234",
-							AppointmentUUID: gofakeit.UUID(),
-							AppointmentType: "Dental",
-							Status:          enums.AppointmentStatusCompleted,
+							CCCNumber:         "1234",
+							ExternalID:        gofakeit.UUID(),
+							AppointmentReason: "Dental",
 							AppointmentDate: scalarutils.Date{
 								Year:  2020,
 								Month: 12,
 								Day:   12,
 							},
-							TimeSlot: "8:00 - 12:00",
 						},
 					},
 				},
@@ -67,16 +64,14 @@ func TestUseCasesAppointmentsImpl_CreateKenyaEMRAppointments(t *testing.T) {
 					MFLCode: "1234",
 					Appointments: []dto.AppointmentPayload{
 						{
-							CCCNumber:       "1234",
-							AppointmentUUID: gofakeit.UUID(),
-							AppointmentType: "Dental",
-							Status:          enums.AppointmentStatusCompleted,
+							CCCNumber:         "1234",
+							ExternalID:        gofakeit.UUID(),
+							AppointmentReason: "Dental",
 							AppointmentDate: scalarutils.Date{
 								Year:  2020,
 								Month: 12,
 								Day:   12,
 							},
-							TimeSlot: "8:00 - 12:00",
 						},
 					},
 				},
@@ -91,16 +86,14 @@ func TestUseCasesAppointmentsImpl_CreateKenyaEMRAppointments(t *testing.T) {
 					MFLCode: "1234",
 					Appointments: []dto.AppointmentPayload{
 						{
-							CCCNumber:       "1234",
-							AppointmentUUID: gofakeit.UUID(),
-							AppointmentType: "Dental",
-							Status:          enums.AppointmentStatusCompleted,
+							CCCNumber:         "1234",
+							ExternalID:        gofakeit.UUID(),
+							AppointmentReason: "Dental",
 							AppointmentDate: scalarutils.Date{
 								Year:  2020,
 								Month: 12,
 								Day:   12,
 							},
-							TimeSlot: "8:00 - 12:00",
 						},
 					},
 				},
@@ -115,16 +108,14 @@ func TestUseCasesAppointmentsImpl_CreateKenyaEMRAppointments(t *testing.T) {
 					MFLCode: "1234",
 					Appointments: []dto.AppointmentPayload{
 						{
-							CCCNumber:       "1234",
-							AppointmentUUID: gofakeit.UUID(),
-							AppointmentType: "Dental",
-							Status:          enums.AppointmentStatusCompleted,
+							CCCNumber:         "1234",
+							ExternalID:        gofakeit.UUID(),
+							AppointmentReason: "Dental",
 							AppointmentDate: scalarutils.Date{
 								Year:  2020,
 								Month: 12,
 								Day:   12,
 							},
-							TimeSlot: "8:00 - 12:00",
 						},
 					},
 				},
@@ -139,16 +130,14 @@ func TestUseCasesAppointmentsImpl_CreateKenyaEMRAppointments(t *testing.T) {
 					MFLCode: "1234",
 					Appointments: []dto.AppointmentPayload{
 						{
-							CCCNumber:       "1234",
-							AppointmentUUID: gofakeit.UUID(),
-							AppointmentType: "Dental",
-							Status:          enums.AppointmentStatusCompleted,
+							CCCNumber:         "1234",
+							ExternalID:        gofakeit.UUID(),
+							AppointmentReason: "Dental",
 							AppointmentDate: scalarutils.Date{
 								Year:  2020,
 								Month: 12,
 								Day:   12,
 							},
-							TimeSlot: "8:00 - 12:00",
 						},
 					},
 				},
@@ -181,6 +170,10 @@ func TestUseCasesAppointmentsImpl_CreateKenyaEMRAppointments(t *testing.T) {
 			}
 
 			if tt.name == "sad case: error creating appointment" {
+				fakeDB.MockCheckAppointmentExistsByExternalIDFn = func(ctx context.Context, externalID string) (bool, error) {
+					return false, nil
+				}
+
 				fakeDB.MockCheckFacilityExistsByMFLCode = func(ctx context.Context, MFLCode int) (bool, error) {
 					return true, nil
 				}
@@ -190,12 +183,16 @@ func TestUseCasesAppointmentsImpl_CreateKenyaEMRAppointments(t *testing.T) {
 					return &domain.Facility{ID: &id}, nil
 				}
 
-				fakeDB.MockCreateAppointment = func(ctx context.Context, appointment domain.Appointment, appointmentUUID, clientID string) error {
+				fakeDB.MockCreateAppointment = func(ctx context.Context, appointment domain.Appointment) error {
 					return fmt.Errorf("cannot create appointment")
 				}
 			}
 
 			if tt.name == "happy case: success creating appointment" {
+				fakeDB.MockCheckAppointmentExistsByExternalIDFn = func(ctx context.Context, externalID string) (bool, error) {
+					return false, nil
+				}
+
 				fakeDB.MockCheckFacilityExistsByMFLCode = func(ctx context.Context, MFLCode int) (bool, error) {
 					return true, nil
 				}
@@ -205,12 +202,12 @@ func TestUseCasesAppointmentsImpl_CreateKenyaEMRAppointments(t *testing.T) {
 					return &domain.Facility{ID: &id}, nil
 				}
 
-				fakeDB.MockCreateAppointment = func(ctx context.Context, appointment domain.Appointment, appointmentUUID, clientID string) error {
+				fakeDB.MockCreateAppointment = func(ctx context.Context, appointment domain.Appointment) error {
 					return nil
 				}
 			}
 
-			got, err := a.CreateKenyaEMRAppointments(tt.args.ctx, tt.args.input)
+			got, err := a.CreateOrUpdateKenyaEMRAppointments(tt.args.ctx, tt.args.input)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCasesAppointmentsImpl.CreateKenyaEMRAppointments() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -252,16 +249,14 @@ func TestUseCasesAppointmentsImpl_UpdateKenyaEMRAppointments(t *testing.T) {
 					MFLCode: "1234",
 					Appointments: []dto.AppointmentPayload{
 						{
-							CCCNumber:       "1234",
-							AppointmentUUID: gofakeit.UUID(),
-							AppointmentType: "Dental",
-							Status:          enums.AppointmentStatusCompleted,
+							CCCNumber:         "1234",
+							ExternalID:        gofakeit.UUID(),
+							AppointmentReason: "Dental",
 							AppointmentDate: scalarutils.Date{
 								Year:  2020,
 								Month: 12,
 								Day:   12,
 							},
-							TimeSlot: "8:00 - 12:00",
 						},
 					},
 				},
@@ -276,16 +271,14 @@ func TestUseCasesAppointmentsImpl_UpdateKenyaEMRAppointments(t *testing.T) {
 					MFLCode: "1234",
 					Appointments: []dto.AppointmentPayload{
 						{
-							CCCNumber:       "1234",
-							AppointmentUUID: gofakeit.UUID(),
-							AppointmentType: "Dental",
-							Status:          enums.AppointmentStatusCompleted,
+							CCCNumber:         "1234",
+							ExternalID:        gofakeit.UUID(),
+							AppointmentReason: "Dental",
 							AppointmentDate: scalarutils.Date{
 								Year:  2020,
 								Month: 12,
 								Day:   12,
 							},
-							TimeSlot: "8:00 - 12:00",
 						},
 					},
 				},
@@ -300,16 +293,14 @@ func TestUseCasesAppointmentsImpl_UpdateKenyaEMRAppointments(t *testing.T) {
 					MFLCode: "1234",
 					Appointments: []dto.AppointmentPayload{
 						{
-							CCCNumber:       "1234",
-							AppointmentUUID: gofakeit.UUID(),
-							AppointmentType: "Dental",
-							Status:          enums.AppointmentStatusCompleted,
+							CCCNumber:         "1234",
+							ExternalID:        gofakeit.UUID(),
+							AppointmentReason: "Dental",
 							AppointmentDate: scalarutils.Date{
 								Year:  2020,
 								Month: 12,
 								Day:   12,
 							},
-							TimeSlot: "8:00 - 12:00",
 						},
 					},
 				},
@@ -324,16 +315,14 @@ func TestUseCasesAppointmentsImpl_UpdateKenyaEMRAppointments(t *testing.T) {
 					MFLCode: "1234",
 					Appointments: []dto.AppointmentPayload{
 						{
-							CCCNumber:       "1234",
-							AppointmentUUID: gofakeit.UUID(),
-							AppointmentType: "Dental",
-							Status:          enums.AppointmentStatusCompleted,
+							CCCNumber:         "1234",
+							ExternalID:        gofakeit.UUID(),
+							AppointmentReason: "Dental",
 							AppointmentDate: scalarutils.Date{
 								Year:  2020,
 								Month: 12,
 								Day:   12,
 							},
-							TimeSlot: "8:00 - 12:00",
 						},
 					},
 				},
@@ -341,23 +330,21 @@ func TestUseCasesAppointmentsImpl_UpdateKenyaEMRAppointments(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "happy case: success creating appointment",
+			name: "happy case: success updating appointment",
 			args: args{
 				ctx: context.Background(),
 				input: dto.FacilityAppointmentsPayload{
 					MFLCode: "1234",
 					Appointments: []dto.AppointmentPayload{
 						{
-							CCCNumber:       "1234",
-							AppointmentUUID: gofakeit.UUID(),
-							AppointmentType: "Dental",
-							Status:          enums.AppointmentStatusCompleted,
+							CCCNumber:         "1234",
+							ExternalID:        gofakeit.UUID(),
+							AppointmentReason: "Dental",
 							AppointmentDate: scalarutils.Date{
 								Year:  2020,
 								Month: 12,
 								Day:   12,
 							},
-							TimeSlot: "8:00 - 12:00",
 						},
 					},
 				},
@@ -372,16 +359,14 @@ func TestUseCasesAppointmentsImpl_UpdateKenyaEMRAppointments(t *testing.T) {
 					MFLCode: "1234",
 					Appointments: []dto.AppointmentPayload{
 						{
-							CCCNumber:       "1234",
-							AppointmentUUID: gofakeit.UUID(),
-							AppointmentType: "Dental",
-							Status:          enums.AppointmentStatusCompleted,
+							CCCNumber:         "1234",
+							ExternalID:        gofakeit.UUID(),
+							AppointmentReason: "Dental",
 							AppointmentDate: scalarutils.Date{
 								Year:  2020,
 								Month: 12,
 								Day:   12,
 							},
-							TimeSlot: "8:00 - 12:00",
 						},
 					},
 				},
@@ -428,7 +413,7 @@ func TestUseCasesAppointmentsImpl_UpdateKenyaEMRAppointments(t *testing.T) {
 				}
 			}
 
-			if tt.name == "happy case: success creating appointment" {
+			if tt.name == "happy case: success updating appointment" {
 				fakeDB.MockCheckFacilityExistsByMFLCode = func(ctx context.Context, MFLCode int) (bool, error) {
 					return true, nil
 				}
@@ -441,6 +426,7 @@ func TestUseCasesAppointmentsImpl_UpdateKenyaEMRAppointments(t *testing.T) {
 				fakeDB.MockUpdateAppointmentFn = func(ctx context.Context, appointment *domain.Appointment, updateData map[string]interface{}) (*domain.Appointment, error) {
 					return appointment, nil
 				}
+
 			}
 			if tt.name == "sad case: failed to get appointment by UUID" {
 				fakeDB.MockCheckFacilityExistsByMFLCode = func(ctx context.Context, MFLCode int) (bool, error) {
@@ -455,13 +441,9 @@ func TestUseCasesAppointmentsImpl_UpdateKenyaEMRAppointments(t *testing.T) {
 				fakeDB.MockUpdateAppointmentFn = func(ctx context.Context, appointment *domain.Appointment, updateData map[string]interface{}) (*domain.Appointment, error) {
 					return &domain.Appointment{
 						ID:                        "",
-						AppointmentUUID:           "uuid",
-						Type:                      "",
-						Status:                    "",
+						ExternalID:                "uuid",
 						Reason:                    "",
 						Date:                      scalarutils.Date{},
-						Start:                     time.Time{},
-						End:                       time.Time{},
 						ClientID:                  "",
 						FacilityID:                "",
 						Provider:                  "",
@@ -469,12 +451,12 @@ func TestUseCasesAppointmentsImpl_UpdateKenyaEMRAppointments(t *testing.T) {
 					}, nil
 				}
 
-				fakeDB.MockGetAppointmentByAppointmentUUIDFn = func(ctx context.Context, UUID string) (*domain.Appointment, error) {
+				fakeDB.MockGetAppointmentByExternalIDFn = func(ctx context.Context, UUID string) (*domain.Appointment, error) {
 					return nil, fmt.Errorf("error retrieving appointment by UUID")
 				}
 			}
 
-			got, err := a.UpdateKenyaEMRAppointments(tt.args.ctx, tt.args.input)
+			got, err := a.CreateOrUpdateKenyaEMRAppointments(tt.args.ctx, tt.args.input)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCasesAppointmentsImpl.UpdateKenyaEMRAppointments() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -677,7 +659,7 @@ func TestUseCasesAppointmentsImpl_AddPatientsRecords(t *testing.T) {
 							},
 							Allergies: []*dto.AllergyPayload{
 								{
-									Name:              "Alergy",
+									Name:              "Allergy",
 									AllergyConceptID:  &conceptID,
 									Reaction:          "Bad",
 									ReactionConceptID: &conceptID,
@@ -793,7 +775,7 @@ func TestUseCasesAppointmentsImpl_AddPatientRecord(t *testing.T) {
 					MFLCode:   1234,
 					Allergies: []*dto.AllergyPayload{
 						{
-							Name:              "Alergy",
+							Name:              "Allergy",
 							AllergyConceptID:  &conceptID,
 							Reaction:          "Bad",
 							ReactionConceptID: &conceptID,
@@ -906,7 +888,7 @@ func TestUseCasesAppointmentsImpl_AddPatientRecord(t *testing.T) {
 					},
 					Allergies: []*dto.AllergyPayload{
 						{
-							Name:              "Alergy",
+							Name:              "Allergy",
 							AllergyConceptID:  &conceptID,
 							Reaction:          "Bad",
 							ReactionConceptID: &conceptID,
@@ -1076,10 +1058,18 @@ func TestUseCasesAppointmentsImpl_RescheduleClientAppointment(t *testing.T) {
 	fakeExtension := extensionMock.NewFakeExtension()
 	fakePubsub := pubsubMock.NewPubsubServiceMock()
 
+	futureTime := time.Now().Add(24 * time.Hour)
+	futureDate, err := scalarutils.NewDate(futureTime.Day(), int(futureTime.Month()), futureTime.Year())
+	if err != nil {
+		t.Errorf("unable to create future date error: %v", err)
+		return
+	}
+
 	a := NewUseCaseAppointmentsImpl(fakeExtension, fakeDB, fakeDB, fakeDB, fakePubsub)
 	type args struct {
 		ctx           context.Context
 		appointmentID string
+		date          scalarutils.Date
 	}
 	tests := []struct {
 		name    string
@@ -1092,6 +1082,7 @@ func TestUseCasesAppointmentsImpl_RescheduleClientAppointment(t *testing.T) {
 			args: args{
 				ctx:           context.Background(),
 				appointmentID: uuid.New().String(),
+				date:          *futureDate,
 			},
 			wantErr: false,
 			want:    true,
@@ -1101,6 +1092,7 @@ func TestUseCasesAppointmentsImpl_RescheduleClientAppointment(t *testing.T) {
 			args: args{
 				ctx:           context.Background(),
 				appointmentID: "",
+				date:          *futureDate,
 			},
 			wantErr: true,
 			want:    false,
@@ -1110,6 +1102,7 @@ func TestUseCasesAppointmentsImpl_RescheduleClientAppointment(t *testing.T) {
 			args: args{
 				ctx:           context.Background(),
 				appointmentID: uuid.New().String(),
+				date:          *futureDate,
 			},
 			wantErr: true,
 			want:    false,
@@ -1119,6 +1112,7 @@ func TestUseCasesAppointmentsImpl_RescheduleClientAppointment(t *testing.T) {
 			args: args{
 				ctx:           context.Background(),
 				appointmentID: uuid.New().String(),
+				date:          *futureDate,
 			},
 			wantErr: true,
 			want:    false,
@@ -1128,6 +1122,7 @@ func TestUseCasesAppointmentsImpl_RescheduleClientAppointment(t *testing.T) {
 			args: args{
 				ctx:           context.Background(),
 				appointmentID: uuid.New().String(),
+				date:          *futureDate,
 			},
 			wantErr: true,
 			want:    false,
@@ -1137,6 +1132,7 @@ func TestUseCasesAppointmentsImpl_RescheduleClientAppointment(t *testing.T) {
 			args: args{
 				ctx:           context.Background(),
 				appointmentID: uuid.New().String(),
+				date:          *futureDate,
 			},
 			wantErr: true,
 			want:    false,
@@ -1146,6 +1142,7 @@ func TestUseCasesAppointmentsImpl_RescheduleClientAppointment(t *testing.T) {
 			args: args{
 				ctx:           context.Background(),
 				appointmentID: uuid.New().String(),
+				date:          *futureDate,
 			},
 			wantErr: true,
 			want:    false,
@@ -1166,7 +1163,7 @@ func TestUseCasesAppointmentsImpl_RescheduleClientAppointment(t *testing.T) {
 			}
 
 			if tt.name == "sad case: failed to get appointment by id" {
-				fakeDB.MockGetClientAppointmentByIDFn = func(ctx context.Context, clientID string) (*domain.Appointment, error) {
+				fakeDB.MockGetAppointmentByClientIDFn = func(ctx context.Context, clientID string) (*domain.Appointment, error) {
 					return nil, fmt.Errorf("error retrieving appointment by id")
 				}
 			}
@@ -1181,7 +1178,7 @@ func TestUseCasesAppointmentsImpl_RescheduleClientAppointment(t *testing.T) {
 				}
 			}
 
-			got, err := a.RescheduleClientAppointment(tt.args.ctx, tt.args.appointmentID)
+			got, err := a.RescheduleClientAppointment(tt.args.ctx, tt.args.appointmentID, tt.args.date)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCasesAppointmentsImpl.RescheduleClientAppointment() error = %v, wantErr %v", err, tt.wantErr)
 				return
