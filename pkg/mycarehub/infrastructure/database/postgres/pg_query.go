@@ -1131,6 +1131,37 @@ func (d *MyCareHubDb) GetServiceRequestsForKenyaEMR(ctx context.Context, payload
 	return serviceRequests, nil
 }
 
+// GetAssessmentResponses retrieves from the database all violence assessment responses belonging
+func (d *MyCareHubDb) GetAssessmentResponses(ctx context.Context, facilityID string, toolType string) ([]*domain.ScreeningToolAssesmentResponse, error) {
+	var responses []*domain.ScreeningToolAssesmentResponse
+	answeredQuestions, err := d.query.GetAnsweredScreeningToolQuestions(ctx, facilityID, toolType)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
+	for _, answeredQuestion := range answeredQuestions {
+		clientProfile, err := d.query.GetClientProfileByClientID(ctx, answeredQuestion.ClientID)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return nil, err
+		}
+
+		userProfile, err := d.query.GetUserProfileByUserID(ctx, clientProfile.UserID)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return nil, err
+		}
+		responses = append(responses, &domain.ScreeningToolAssesmentResponse{
+			ClientName:   userProfile.Name,
+			DateAnswered: answeredQuestion.Base.CreatedAt,
+			ClientID:     *clientProfile.ID,
+		})
+	}
+
+	return responses, nil
+}
+
 // GetScreeningToolQuestions fetches the screening tools questions
 func (d *MyCareHubDb) GetScreeningToolQuestions(ctx context.Context, questionType string) ([]*domain.ScreeningToolQuestion, error) {
 	var screeningToolQuestions []*domain.ScreeningToolQuestion

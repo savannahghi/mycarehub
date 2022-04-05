@@ -3867,3 +3867,65 @@ func TestPGInstance_CheckAppointmentExistsByExternalID(t *testing.T) {
 		})
 	}
 }
+
+func TestPGInstance_GetAnsweredScreeningToolQuestions(t *testing.T) {
+	ctx := context.Background()
+
+	type args struct {
+		ctx        context.Context
+		toolType   string
+		facilityID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *gorm.ScreeningToolsResponse
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:        ctx,
+				toolType:   "TB_ASSESSMENT",
+				facilityID: facilityID,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case",
+			args: args{
+				ctx:        ctx,
+				toolType:   "",
+				facilityID: "",
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case - invalid tool type",
+			args: args{
+				ctx:        ctx,
+				toolType:   "INVALID-TOOL-TYPE",
+				facilityID: "facilityID",
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case - invalid facilityID",
+			args: args{
+				ctx:        ctx,
+				toolType:   "INVALID-TOOL-TYPE",
+				facilityID: "facilityID",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := testingDB.GetAnsweredScreeningToolQuestions(tt.args.ctx, tt.args.facilityID, tt.args.toolType)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.GetAnsweredScreeningToolQuestions() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}

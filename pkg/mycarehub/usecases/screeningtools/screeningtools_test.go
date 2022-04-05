@@ -412,3 +412,80 @@ func TestServiceScreeningToolsImpl_GetAvailableFacilityScreeningTools(t *testing
 		})
 	}
 }
+
+func TestServiceScreeningToolsImpl_GetAssessmentResponses(t *testing.T) {
+	ctx := context.Background()
+
+	fakeDB := pgMock.NewPostgresMock()
+	fakeExtension := extensionMock.NewFakeExtension()
+	tr := NewUseCasesScreeningTools(fakeDB, fakeDB, fakeDB, fakeExtension)
+
+	type args struct {
+		ctx        context.Context
+		facilityID string
+		toolType   string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    []*domain.ScreeningToolAssesmentResponse
+		wantErr bool
+	}{
+		{
+
+			name: "Happy case:  get assessment responses",
+			args: args{
+				ctx:        ctx,
+				facilityID: uuid.New().String(),
+				toolType:   "VIOLENCE_ASSESSMENT",
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case:  unable to get assessment responses",
+			args: args{
+				ctx:        ctx,
+				facilityID: "facilityID",
+				toolType:   "GBV",
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case:  empty facility",
+			args: args{
+				ctx:        ctx,
+				facilityID: "",
+				toolType:   "VIOLENCE_ASSESSMENT",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "Sad case:  unable to get assessment responses" {
+				fakeDB.MockGetAssessmentResponsesFn = func(ctx context.Context, facilityID, toolType string) ([]*domain.ScreeningToolAssesmentResponse, error) {
+					return nil, fmt.Errorf("failed to get assessment responses")
+				}
+			}
+			if tt.name == "Sad case:  empty facility" {
+				fakeDB.MockGetAssessmentResponsesFn = func(ctx context.Context, facilityID, toolType string) ([]*domain.ScreeningToolAssesmentResponse, error) {
+					return nil, fmt.Errorf("failed to get assessment responses")
+				}
+			}
+
+			got, err := tr.GetAssessmentResponses(tt.args.ctx, tt.args.facilityID, tt.args.toolType)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ServiceScreeningToolsImpl.GetAssessmentResponses() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if tt.wantErr && got != nil {
+				t.Errorf("expected response to be nil for %v", tt.name)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected response not to be nil for %v", tt.name)
+				return
+			}
+		})
+	}
+}

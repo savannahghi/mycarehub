@@ -1,0 +1,10 @@
+- id: 16031627-6ed0-42d4-a245-1d1029e36daf
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  active: true
+  assigned: RAW=NOW()
+  transferred_out: RAW=NOW()
+  client_id: {{.test_client_id}}
+  facility_id: {{.test_facility_id}}
+  organisation_id: {{.test_organisation_id}}
+  notes: notes

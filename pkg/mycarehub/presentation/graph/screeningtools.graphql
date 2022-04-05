@@ -3,8 +3,9 @@ extend type Query {
     getScreeningToolQuestions(toolType: String) : [ScreeningToolQuestion!]!
     getAvailableScreeningToolQuestions(clientID: String!) : [AvailableScreeningTools!]!
     getAvailableFacilityScreeningTools(facilityID: String!): [AvailableScreeningTools!]!
+    getAssessmentResponsesByToolType(facilityID: String!, toolType: String!) : [ScreeningToolAssesmentResponse!]
 }
 
-extend type Mutation{
+extend type Mutation {
     answerScreeningToolQuestion(screeningToolResponses: [ScreeningToolQuestionResponseInput!]!): Boolean!
 }

@@ -85,6 +85,7 @@ type Query interface {
 	GetAppointmentByExternalID(ctx context.Context, externalID string) (*Appointment, error)
 	GetAppointmentByClientID(ctx context.Context, appointmentID, clientID string) (*Appointment, error)
 	CheckAppointmentExistsByExternalID(ctx context.Context, externalID string) (bool, error)
+	GetAnsweredScreeningToolQuestions(ctx context.Context, facilityID string, toolType string) ([]*ScreeningToolsResponse, error)
 }
 
 // CheckWhetherUserHasLikedContent performs a operation to check whether user has liked the content
@@ -413,6 +414,27 @@ func (db *PGInstance) GetSecurityQuestionByID(ctx context.Context, securityQuest
 		return nil, fmt.Errorf("failed to get security question by ID %v: %v", securityQuestionID, err)
 	}
 	return &securityQuestion, nil
+}
+
+//GetAnsweredScreeningToolQuestions returns the answered screening tool questions
+func (db *PGInstance) GetAnsweredScreeningToolQuestions(ctx context.Context, facilityID string, toolType string) ([]*ScreeningToolsResponse, error) {
+	var screeningToolResponse []*ScreeningToolsResponse
+
+	err := db.DB.Raw(`SELECT * FROM screeningtools_screeningtoolsquestion
+	JOIN screeningtools_screeningtoolsresponse
+	ON screeningtools_screeningtoolsquestion.id = screeningtools_screeningtoolsresponse.question_id
+	JOIN clients_clientfacility
+	ON clients_clientfacility.client_id = screeningtools_screeningtoolsresponse.client_id
+	WHERE screeningtools_screeningtoolsresponse.active = ?
+	AND tool_type = ? AND clients_clientfacility.facility_id = ? `, true, toolType, facilityID).
+		Scan(&screeningToolResponse).Error
+
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, fmt.Errorf("failed to get answered screening tool questions: %v", err)
+	}
+
+	return screeningToolResponse, nil
 }
 
 // GetSecurityQuestionResponse returns the security question response

@@ -129,6 +129,9 @@ type PostgresMock struct {
 	MockResolveStaffServiceRequestFn                     func(ctx context.Context, staffID *string, serviceRequestID *string, verificationStatus string) (bool, error)
 	MockCreateStaffServiceRequestFn                      func(ctx context.Context, serviceRequestInput *dto.ServiceRequestInput) error
 	MockGetAppointmentServiceRequestsFn                  func(ctx context.Context, lastSyncTime time.Time, mflCode string) ([]domain.AppointmentServiceRequests, error)
+	MockGetClientAppointmentByIDFn                       func(ctx context.Context, appointmentID string) (*domain.Appointment, error)
+	MockGetAssessmentResponsesFn                         func(ctx context.Context, facilityID string, toolType string) ([]*domain.ScreeningToolAssesmentResponse, error)
+	MockGetAppointmentByAppointmentUUIDFn                func(ctx context.Context, appointmentUUID string) (*domain.Appointment, error)
 	MockGetClientServiceRequestsFn                       func(ctx context.Context, requestType, status, clientID string) ([]*domain.ServiceRequest, error)
 	MockGetActiveScreeningToolResponsesFn                func(ctx context.Context, clientID string) ([]*domain.ScreeningToolQuestionResponse, error)
 	MockGetAppointmentByClientIDFn                       func(ctx context.Context, clientID string) (*domain.Appointment, error)
@@ -825,6 +828,15 @@ func NewPostgresMock() *PostgresMock {
 		MockUpdateFailedSecurityQuestionsAnsweringAttemptsFn: func(ctx context.Context, userID string, failCount int) error {
 			return nil
 		},
+		MockGetAssessmentResponsesFn: func(ctx context.Context, facilityID string, toolType string) ([]*domain.ScreeningToolAssesmentResponse, error) {
+			return []*domain.ScreeningToolAssesmentResponse{
+				{
+					ClientName:   name,
+					DateAnswered: time.Now(),
+					ClientID:     ID,
+				},
+			}, nil
+		},
 		MockGetServiceRequestByIDFn: func(ctx context.Context, id string) (*domain.ServiceRequest, error) {
 			currentTime := time.Now()
 			staffID := uuid.New().String()
@@ -1487,4 +1499,9 @@ func (gm *PostgresMock) GetClientServiceRequests(ctx context.Context, requestTyp
 // GetActiveScreeningToolResponses mocks the implementation of getting active screening tool responses
 func (gm *PostgresMock) GetActiveScreeningToolResponses(ctx context.Context, clientID string) ([]*domain.ScreeningToolQuestionResponse, error) {
 	return gm.MockGetActiveScreeningToolResponsesFn(ctx, clientID)
+}
+
+// GetAssessmentResponses mocks the implementation of getting answered screening tool questions
+func (gm *PostgresMock) GetAssessmentResponses(ctx context.Context, facilityID string, toolType string) ([]*domain.ScreeningToolAssesmentResponse, error) {
+	return gm.MockGetAssessmentResponsesFn(ctx, facilityID, toolType)
 }

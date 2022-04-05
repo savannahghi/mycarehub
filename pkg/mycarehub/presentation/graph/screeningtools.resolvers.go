@@ -25,3 +25,7 @@ func (r *queryResolver) GetAvailableScreeningToolQuestions(ctx context.Context, 
 func (r *queryResolver) GetAvailableFacilityScreeningTools(ctx context.Context, facilityID string) ([]*domain.AvailableScreeningTools, error) {
 	return r.mycarehub.ScreeningTools.GetAvailableFacilityScreeningTools(ctx, facilityID)
 }
+
+func (r *queryResolver) GetAssessmentResponsesByToolType(ctx context.Context, facilityID string, toolType string) ([]*domain.ScreeningToolAssesmentResponse, error) {
+	return r.mycarehub.ScreeningTools.GetAssessmentResponses(ctx, facilityID, toolType)
+}
