@@ -133,7 +133,7 @@ type PostgresMock struct {
 	MockCreateStaffServiceRequestFn                      func(ctx context.Context, serviceRequestInput *dto.ServiceRequestInput) error
 	MockGetAppointmentServiceRequestsFn                  func(ctx context.Context, lastSyncTime time.Time, mflCode string) ([]domain.AppointmentServiceRequests, error)
 	MockGetClientAppointmentByIDFn                       func(ctx context.Context, appointmentID string) (*domain.Appointment, error)
-	MockGetAssessmentResponsesFn                         func(ctx context.Context, facilityID string, toolType string) ([]*domain.ScreeningToolAssesmentResponse, error)
+	MockGetAssessmentResponsesFn                         func(ctx context.Context, facilityID string, toolType string) ([]*domain.ScreeningToolAssessmentResponse, error)
 	MockGetAppointmentByAppointmentUUIDFn                func(ctx context.Context, appointmentUUID string) (*domain.Appointment, error)
 	MockGetClientServiceRequestsFn                       func(ctx context.Context, requestType, status, clientID string) ([]*domain.ServiceRequest, error)
 	MockGetActiveScreeningToolResponsesFn                func(ctx context.Context, clientID string) ([]*domain.ScreeningToolQuestionResponse, error)
@@ -142,6 +142,8 @@ type PostgresMock struct {
 	MockGetAppointmentByExternalIDFn                     func(ctx context.Context, externalID string) (*domain.Appointment, error)
 	MockListNotificationsFn                              func(ctx context.Context, params *domain.Notification, pagination *domain.Pagination) ([]*domain.Notification, *domain.Pagination, error)
 	MockSaveNotificationFn                               func(ctx context.Context, payload *domain.Notification) error
+	MockGetClientScreeningToolResponsesByToolTypeFn      func(ctx context.Context, clientID, toolType string, active bool) ([]*domain.ScreeningToolQuestionResponse, error)
+	MockGetClientScreeningToolServiceRequestByToolTypeFn func(ctx context.Context, clientID, toolType, status string) (*domain.ServiceRequest, error)
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -850,8 +852,8 @@ func NewPostgresMock() *PostgresMock {
 		MockUpdateFailedSecurityQuestionsAnsweringAttemptsFn: func(ctx context.Context, userID string, failCount int) error {
 			return nil
 		},
-		MockGetAssessmentResponsesFn: func(ctx context.Context, facilityID string, toolType string) ([]*domain.ScreeningToolAssesmentResponse, error) {
-			return []*domain.ScreeningToolAssesmentResponse{
+		MockGetAssessmentResponsesFn: func(ctx context.Context, facilityID string, toolType string) ([]*domain.ScreeningToolAssessmentResponse, error) {
+			return []*domain.ScreeningToolAssessmentResponse{
 				{
 					ClientName:   name,
 					DateAnswered: time.Now(),
@@ -947,6 +949,31 @@ func NewPostgresMock() *PostgresMock {
 					Answer:     "0",
 					Active:     true,
 				},
+			}, nil
+		},
+		MockGetClientScreeningToolResponsesByToolTypeFn: func(ctx context.Context, clientID, toolType string, active bool) ([]*domain.ScreeningToolQuestionResponse, error) {
+			return []*domain.ScreeningToolQuestionResponse{
+				{
+					ID:         ID,
+					QuestionID: ID,
+					ClientID:   clientID,
+					Answer:     "0",
+					Active:     true,
+				},
+			}, nil
+		},
+		MockGetClientScreeningToolServiceRequestByToolTypeFn: func(ctx context.Context, clientID, toolType, status string) (*domain.ServiceRequest, error) {
+			return &domain.ServiceRequest{
+				ID:           ID,
+				RequestType:  enums.ServiceRequestTypeRedFlag.String(),
+				Request:      "SERVICE_REQUEST",
+				Status:       "PENDING",
+				ClientID:     ID,
+				InProgressAt: &currentTime,
+				InProgressBy: &name,
+				ResolvedAt:   &currentTime,
+				ResolvedBy:   &name,
+				FacilityID:   uuid.New().String(),
 			}, nil
 		},
 	}
@@ -1524,7 +1551,7 @@ func (gm *PostgresMock) GetActiveScreeningToolResponses(ctx context.Context, cli
 }
 
 // GetAssessmentResponses mocks the implementation of getting answered screening tool questions
-func (gm *PostgresMock) GetAssessmentResponses(ctx context.Context, facilityID string, toolType string) ([]*domain.ScreeningToolAssesmentResponse, error) {
+func (gm *PostgresMock) GetAssessmentResponses(ctx context.Context, facilityID string, toolType string) ([]*domain.ScreeningToolAssessmentResponse, error) {
 	return gm.MockGetAssessmentResponsesFn(ctx, facilityID, toolType)
 }
 
@@ -1556,4 +1583,14 @@ func (gm *PostgresMock) SaveNotification(ctx context.Context, payload *domain.No
 // GetSharedHealthDiaryEntry mocks the implementation of getting the most recently shared health diary entires by the client to a health care worker
 func (gm *PostgresMock) GetSharedHealthDiaryEntry(ctx context.Context, clientID string, facilityID string) (*domain.ClientHealthDiaryEntry, error) {
 	return gm.MockGetSharedHealthDiaryEntryFn(ctx, clientID, facilityID)
+}
+
+// GetClientScreeningToolResponsesByToolType mocks the implementation of getting client screening tool responses by tool type
+func (gm *PostgresMock) GetClientScreeningToolResponsesByToolType(ctx context.Context, clientID string, toolType string, active bool) ([]*domain.ScreeningToolQuestionResponse, error) {
+	return gm.MockGetClientScreeningToolResponsesByToolTypeFn(ctx, clientID, toolType, active)
+}
+
+// GetClientScreeningToolServiceRequestByToolType mocks the implementation of getting client screening tool service request by question ID
+func (gm *PostgresMock) GetClientScreeningToolServiceRequestByToolType(ctx context.Context, clientID string, questionID string, status string) (*domain.ServiceRequest, error) {
+	return gm.MockGetClientScreeningToolServiceRequestByToolTypeFn(ctx, clientID, questionID, status)
 }

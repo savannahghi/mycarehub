@@ -88,6 +88,8 @@ type Query interface {
 	GetAppointmentByClientID(ctx context.Context, appointmentID, clientID string) (*Appointment, error)
 	CheckAppointmentExistsByExternalID(ctx context.Context, externalID string) (bool, error)
 	GetAnsweredScreeningToolQuestions(ctx context.Context, facilityID string, toolType string) ([]*ScreeningToolsResponse, error)
+	GetClientScreeningToolResponsesByToolType(ctx context.Context, clientID, toolType string, active bool) ([]*ScreeningToolsResponse, error)
+	GetClientScreeningToolServiceRequestByToolType(ctx context.Context, clientID, toolType, status string) (*ClientServiceRequest, error)
 }
 
 // CheckWhetherUserHasLikedContent performs a operation to check whether user has liked the content
@@ -1314,4 +1316,41 @@ func (db *PGInstance) CheckAppointmentExistsByExternalID(ctx context.Context, ex
 	}
 
 	return true, nil
+}
+
+// GetClientScreeningToolResponsesByToolType returns all screening tool responses for a client based on the tooltype
+func (db *PGInstance) GetClientScreeningToolResponsesByToolType(ctx context.Context, clientID, toolType string, active bool) ([]*ScreeningToolsResponse, error) {
+	var responses []*ScreeningToolsResponse
+	err := db.DB.Joins(
+		"JOIN screeningtools_screeningtoolsquestion ON screeningtools_screeningtoolsquestion.id = screeningtools_screeningtoolsresponse.question_id",
+	).Where(`
+	    screeningtools_screeningtoolsquestion.tool_type = ?
+		AND screeningtools_screeningtoolsresponse.client_id = ?
+		AND screeningtools_screeningtoolsresponse.active = ?
+	`, toolType, clientID, active).Find(&responses).Error
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, fmt.Errorf("failed to get responses for client: %v", err)
+	}
+	return responses, nil
+}
+
+// GetClientScreeningToolServiceRequestByToolType returns a screening tool of type service request by based on tool type
+func (db *PGInstance) GetClientScreeningToolServiceRequestByToolType(ctx context.Context, clientID, toolType, status string) (*ClientServiceRequest, error) {
+	var serviceRequest ClientServiceRequest
+	err := db.DB.Where(`
+		client_id = ?
+		AND meta->>'question_type' = ?
+		AND request_type = ?
+		AND status = ?
+	`, clientID,
+		toolType,
+		enums.ServiceRequestTypeScreeningToolsRedFlag.String(),
+		status,
+	).First(&serviceRequest).Error
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, fmt.Errorf("failed to get client service request by question ID: %v", err)
+	}
+	return &serviceRequest, nil
 }

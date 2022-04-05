@@ -381,10 +381,10 @@ type StaffProfile {
   DefaultFacilityID: String!
 }
 
-type ScreeningToolAssesmentResponse {
-  clientName: String!
-  dateAnswered: Time!
-  clientID: String!
+type ScreeningToolAssessmentResponse {
+ clientName: String!
+ dateAnswered: Time!
+ clientID: String!
 }
 
 type User {
@@ -506,4 +506,10 @@ type Toxic {
 
 type AvailableScreeningTools {
   toolType: ScreeningToolType!
+}
+type ScreeningToolResponse {
+    toolIndex: Int!
+    tool: String!
+    response: String!
+    serviceRequestID: String!
 }

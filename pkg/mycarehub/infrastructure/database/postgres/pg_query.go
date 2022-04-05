@@ -1173,8 +1173,8 @@ func (d *MyCareHubDb) GetServiceRequestsForKenyaEMR(ctx context.Context, payload
 }
 
 // GetAssessmentResponses retrieves from the database all violence assessment responses belonging
-func (d *MyCareHubDb) GetAssessmentResponses(ctx context.Context, facilityID string, toolType string) ([]*domain.ScreeningToolAssesmentResponse, error) {
-	var responses []*domain.ScreeningToolAssesmentResponse
+func (d *MyCareHubDb) GetAssessmentResponses(ctx context.Context, facilityID string, toolType string) ([]*domain.ScreeningToolAssessmentResponse, error) {
+	var responses []*domain.ScreeningToolAssessmentResponse
 	answeredQuestions, err := d.query.GetAnsweredScreeningToolQuestions(ctx, facilityID, toolType)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
@@ -1193,7 +1193,7 @@ func (d *MyCareHubDb) GetAssessmentResponses(ctx context.Context, facilityID str
 			helpers.ReportErrorToSentry(err)
 			return nil, err
 		}
-		responses = append(responses, &domain.ScreeningToolAssesmentResponse{
+		responses = append(responses, &domain.ScreeningToolAssessmentResponse{
 			ClientName:   userProfile.Name,
 			DateAnswered: answeredQuestion.Base.CreatedAt,
 			ClientID:     *clientProfile.ID,
@@ -1793,4 +1793,54 @@ func (d *MyCareHubDb) GetSharedHealthDiaryEntry(ctx context.Context, clientID st
 		PhoneNumber:           clientProfile.User.Contacts.ContactValue,
 		ClientName:            clientProfile.User.Name,
 	}, nil
+}
+
+// GetClientScreeningToolResponsesByToolType fetches all screening tool responses
+func (d *MyCareHubDb) GetClientScreeningToolResponsesByToolType(ctx context.Context, clientID, toolType string, active bool) ([]*domain.ScreeningToolQuestionResponse, error) {
+	responses, err := d.query.GetClientScreeningToolResponsesByToolType(ctx, clientID, toolType, active)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
+	var responseList []*domain.ScreeningToolQuestionResponse
+	for _, r := range responses {
+		responseList = append(responseList,
+			&domain.ScreeningToolQuestionResponse{
+				ID:         r.ID,
+				QuestionID: r.QuestionID,
+				ClientID:   r.ClientID,
+				Answer:     r.Response,
+				Active:     r.Active,
+			},
+		)
+	}
+
+	return responseList, nil
+}
+
+// GetClientScreeningToolServiceRequestByToolType fetches a screening tool service request by tooltype, client ID and status
+func (d *MyCareHubDb) GetClientScreeningToolServiceRequestByToolType(ctx context.Context, clientID, toolType, status string) (*domain.ServiceRequest, error) {
+	serviceRequest, err := d.query.GetClientScreeningToolServiceRequestByToolType(ctx, clientID, toolType, status)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+	meta, err := utils.ConvertJSONStringToMap(serviceRequest.Meta)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
+	return &domain.ServiceRequest{
+		ID:          *serviceRequest.ID,
+		RequestType: serviceRequest.RequestType,
+		Request:     serviceRequest.Request,
+		Status:      serviceRequest.Status,
+		Active:      serviceRequest.Active,
+		ClientID:    serviceRequest.ClientID,
+		CreatedAt:   serviceRequest.CreatedAt,
+		Meta:        meta,
+	}, nil
+
 }

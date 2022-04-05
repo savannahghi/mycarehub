@@ -78,6 +78,9 @@ func CalculateAge(birthday time.Time) int {
 
 // ConvertJSONStringToMap converts a json string to a map of string interface{}
 func ConvertJSONStringToMap(jsonString string) (map[string]interface{}, error) {
+	if jsonString == "" {
+		return map[string]interface{}{}, nil
+	}
 	jsonMap := make(map[string]interface{})
 	err := json.Unmarshal([]byte(jsonString), &jsonMap)
 	if err != nil {
