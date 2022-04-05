@@ -84,9 +84,11 @@ type ScreeningToolQuestionResponse struct {
 }
 
 // AvailableScreeningTools returns a list of available screening tool types
-// this response must fit the following criteria:
+// this response must fit the following criteria when fetching for clients:
 // 1. A screening tool response for each client should be after 24 hours of the last response
 // 2. A screening tool response that creates a service request should be resolved first before the next response
+//
+// For the Staff, they are returned when a facility has unresolved SCREENING_TOOLS service requests
 type AvailableScreeningTools struct {
 	ToolType enums.ScreeningToolType `json:"toolType"`
 }

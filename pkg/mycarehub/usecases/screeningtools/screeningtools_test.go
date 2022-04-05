@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
+	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	extensionMock "github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension/mock"
@@ -352,6 +353,57 @@ func TestServiceScreeningToolsImpl_GetAvailableScreeningToolQuestions(t *testing
 			got, err := tr.GetAvailableScreeningToolQuestions(tt.args.ctx, tt.args.clientID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ServiceScreeningToolsImpl.GetAvailableScreeningToolQuestions() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && len(got) == 0 {
+				t.Errorf("expected to get screening tool questions: %v", got)
+			}
+		})
+	}
+}
+
+func TestServiceScreeningToolsImpl_GetAvailableFacilityScreeningTools(t *testing.T) {
+	fakeDB := pgMock.NewPostgresMock()
+	fakeExtension := extensionMock.NewFakeExtension()
+	tr := NewUseCasesScreeningTools(fakeDB, fakeDB, fakeDB, fakeExtension)
+	type args struct {
+		ctx        context.Context
+		facilityID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "happy case: get available facility screening tools",
+			args: args{
+				ctx:        context.Background(),
+				facilityID: uuid.New().String(),
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: failed to get service requests",
+			args: args{
+				ctx:        context.Background(),
+				facilityID: uuid.New().String(),
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			if tt.name == "Sad case: failed to get service requests" {
+				fakeDB.MockGetServiceRequestsFn = func(ctx context.Context, requestType *string, requestStatus *string, facilityID string, flavour feedlib.Flavour) ([]*domain.ServiceRequest, error) {
+					return nil, fmt.Errorf("failed to get service requests")
+				}
+			}
+
+			got, err := tr.GetAvailableFacilityScreeningTools(tt.args.ctx, tt.args.facilityID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ServiceScreeningToolsImpl.GetAvailableFacilityScreeningTools() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !tt.wantErr && len(got) == 0 {
