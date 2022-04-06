@@ -368,6 +368,13 @@ type StaffProfile {
   DefaultFacilityID: String!
 }
 
+type ScreeningToolAssesmentResponse {
+ clientName: String!
+ dateAnswered: Time!
+ clientID: String!
+}
+
+
 type User {
   ID: String!
   Username: String!

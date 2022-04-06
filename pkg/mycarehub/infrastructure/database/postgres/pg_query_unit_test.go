@@ -4732,6 +4732,95 @@ func TestMyCareHubDb_GetAppointmentServiceRequests(t *testing.T) {
 	}
 }
 
+func TestMyCareHubDb_GetAssessmentResponses(t *testing.T) {
+	ctx := context.Background()
+
+	var fakeGorm = gormMock.NewGormMock()
+	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+	type args struct {
+		ctx        context.Context
+		facilityID string
+		toolType   string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    []*domain.ScreeningToolAssesmentResponse
+		wantErr bool
+	}{
+		{
+			name: "Happy case:  get assessment responses",
+			args: args{
+				ctx:        ctx,
+				facilityID: uuid.New().String(),
+				toolType:   "GBV",
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case:  unable to get assessment responses",
+			args: args{
+				ctx:        ctx,
+				facilityID: "facilityID",
+				toolType:   "GBV",
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case:  unable to get client profile",
+			args: args{
+				ctx:        ctx,
+				facilityID: "facilityID",
+				toolType:   "GBV",
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case:  unable to get user profile",
+			args: args{
+				ctx:        ctx,
+				facilityID: "facilityID",
+				toolType:   "GBV",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "Sad case:  unable to get assessment responses" {
+				fakeGorm.MockGetAnsweredScreeningToolQuestionsFn = func(ctx context.Context, facilityID, toolType string) ([]*gorm.ScreeningToolsResponse, error) {
+					return nil, fmt.Errorf("failed to get assessment responses")
+				}
+			}
+			if tt.name == "Sad case:  unable to get client profile" {
+				fakeGorm.MockGetClientProfileByClientIDFn = func(ctx context.Context, clientID string) (*gorm.Client, error) {
+					return nil, fmt.Errorf("failed to get client profile")
+				}
+			}
+
+			if tt.name == "Sad case:  unable to get user profile" {
+				fakeGorm.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID *string) (*gorm.User, error) {
+					return nil, fmt.Errorf("failed to get user profile")
+				}
+			}
+			got, err := d.GetAssessmentResponses(tt.args.ctx, tt.args.facilityID, tt.args.toolType)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.GetAssessmentResponses() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if tt.wantErr && got != nil {
+				t.Errorf("expected response to be nil for %v", tt.name)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected response not to be nil for %v", tt.name)
+				return
+			}
+		})
+	}
+}
+
 func TestMyCareHubDb_GetFacilitiesWithoutFHIRID(t *testing.T) {
 	ctx := context.Background()
 	var fakeGorm = gormMock.NewGormMock()

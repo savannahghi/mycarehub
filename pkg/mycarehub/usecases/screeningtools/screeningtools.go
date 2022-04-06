@@ -26,10 +26,16 @@ type IAnswerScreeningToolQuestion interface {
 	AnswerScreeningToolQuestions(ctx context.Context, screeningToolResponses []*dto.ScreeningToolQuestionResponseInput) (bool, error)
 }
 
+// IGetAssessmentResponses is used to get the screening tools assessment responses
+type IGetAssessmentResponses interface {
+	GetAssessmentResponses(ctx context.Context, facilityID string, toolType string) ([]*domain.ScreeningToolAssesmentResponse, error)
+}
+
 // UseCasesScreeningTools represents the usecases for screening tools
 type UseCasesScreeningTools interface {
 	IGetScreeningToolsQuestion
 	IAnswerScreeningToolQuestion
+	IGetAssessmentResponses
 }
 
 // ServiceScreeningToolsImpl represents screening tools implementation object
@@ -304,4 +310,12 @@ func (t *ServiceScreeningToolsImpl) GetAvailableFacilityScreeningTools(ctx conte
 		availableScreeningTools = append(availableScreeningTools, v)
 	}
 	return availableScreeningTools, nil
+}
+
+// GetAssessmentResponses returns the assessment responses for a given facility
+func (t *ServiceScreeningToolsImpl) GetAssessmentResponses(ctx context.Context, facilityID string, toolType string) ([]*domain.ScreeningToolAssesmentResponse, error) {
+	if facilityID == "" || !enums.ScreeningToolType(toolType).IsValid() {
+		return nil, fmt.Errorf("invalid facility id or tool type")
+	}
+	return t.Query.GetAssessmentResponses(ctx, facilityID, toolType)
 }

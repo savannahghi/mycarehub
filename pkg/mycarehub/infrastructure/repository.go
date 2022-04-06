@@ -101,6 +101,7 @@ type Query interface {
 	GetAppointmentByClientID(ctx context.Context, clientID string) (*domain.Appointment, error)
 	GetAppointmentByExternalID(ctx context.Context, externalID string) (*domain.Appointment, error)
 	CheckAppointmentExistsByExternalID(ctx context.Context, externalID string) (bool, error)
+	GetAssessmentResponses(ctx context.Context, facilityID string, toolType string) ([]*domain.ScreeningToolAssesmentResponse, error)
 }
 
 // Update represents all the update action interfaces

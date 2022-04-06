@@ -136,6 +136,7 @@ type GormMock struct {
 	MockGetAppointmentByClientIDFn                       func(ctx context.Context, appointmentID, clientID string) (*gorm.Appointment, error)
 	MockCheckAppointmentExistsByExternalIDFn             func(ctx context.Context, externalID string) (bool, error)
 	MockGetAppointmentByExternalIDFn                     func(ctx context.Context, externalID string) (*gorm.Appointment, error)
+	MockGetAnsweredScreeningToolQuestionsFn              func(ctx context.Context, facilityID string, toolType string) ([]*gorm.ScreeningToolsResponse, error)
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -355,6 +356,18 @@ func NewGormMock() *GormMock {
 
 		MockRetrieveFacilityByMFLCodeFn: func(ctx context.Context, MFLCode int, isActive bool) (*gorm.Facility, error) {
 			return facility, nil
+		},
+		MockGetAnsweredScreeningToolQuestionsFn: func(ctx context.Context, facilityID string, toolType string) ([]*gorm.ScreeningToolsResponse, error) {
+			return []*gorm.ScreeningToolsResponse{
+				{
+					ID:             fhirID,
+					ClientID:       uuid.New().String(),
+					QuestionID:     uuid.New().String(),
+					Response:       uuid.New().String(),
+					Active:         true,
+					OrganisationID: uuid.New().String(),
+				},
+			}, nil
 		},
 		MockUpdateFacilityFn: func(ctx context.Context, facility *gorm.Facility, updateData map[string]interface{}) error {
 			return nil
@@ -1593,4 +1606,9 @@ func (gm *GormMock) GetClientServiceRequests(ctx context.Context, requestType, s
 // GetActiveScreeningToolResponses mocks the implementation of getting active screening tool responses
 func (gm *GormMock) GetActiveScreeningToolResponses(ctx context.Context, clientID string) ([]*gorm.ScreeningToolsResponse, error) {
 	return gm.MockGetActiveScreeningToolResponsesFn(ctx, clientID)
+}
+
+// GetAnsweredScreeningToolQuestions mocks the implementation of getting answered screening tool questions
+func (gm *GormMock) GetAnsweredScreeningToolQuestions(ctx context.Context, facilityID string, toolType string) ([]*gorm.ScreeningToolsResponse, error) {
+	return gm.MockGetAnsweredScreeningToolQuestionsFn(ctx, facilityID, toolType)
 }
