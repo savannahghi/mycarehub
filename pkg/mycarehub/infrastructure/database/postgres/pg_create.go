@@ -297,7 +297,9 @@ func (d *MyCareHubDb) GetOrCreateContact(ctx context.Context, contact *domain.Co
 		Active:       true,
 		ContactType:  contact.ContactType,
 		ContactValue: contact.ContactValue,
-		OptedIn:      false,
+		UserID:       contact.UserID,
+		Flavour:      contact.Flavour,
+		OptedIn:      contact.OptedIn,
 	}
 
 	c, err := d.create.GetOrCreateContact(ctx, ct)
@@ -350,4 +352,87 @@ func (d *MyCareHubDb) AnswerScreeningToolQuestions(ctx context.Context, screenin
 		return err
 	}
 	return nil
+}
+
+// CreateUser creates a new user
+func (d *MyCareHubDb) CreateUser(ctx context.Context, user domain.User) (*domain.User, error) {
+
+	u := &gorm.User{
+		Active:      true,
+		Username:    user.Username,
+		Name:        user.Name,
+		Gender:      user.Gender,
+		DateOfBirth: user.DateOfBirth,
+		UserType:    user.UserType,
+		Flavour:     user.Flavour,
+	}
+
+	err := d.create.CreateUser(ctx, u)
+	if err != nil {
+		return nil, err
+	}
+
+	return createMapUser(u), nil
+}
+
+// CreateClient creates a new client
+func (d *MyCareHubDb) CreateClient(ctx context.Context, client domain.ClientProfile, contactID, identifierID string) (*domain.ClientProfile, error) {
+	c := &gorm.Client{
+		Active:                  true,
+		UserID:                  &client.UserID,
+		FacilityID:              client.FacilityID,
+		ClientCounselled:        client.ClientCounselled,
+		ClientType:              client.ClientType,
+		TreatmentEnrollmentDate: client.TreatmentEnrollmentDate,
+	}
+
+	err := d.create.CreateClient(ctx, c, contactID, identifierID)
+	if err != nil {
+		return nil, err
+	}
+
+	user := createMapUser(&c.UserProfile)
+
+	return &domain.ClientProfile{
+		ID:                      c.ID,
+		User:                    user,
+		Active:                  c.Active,
+		ClientType:              c.ClientType,
+		TreatmentEnrollmentDate: c.TreatmentEnrollmentDate,
+		FHIRPatientID:           c.FHIRPatientID,
+		HealthRecordID:          c.HealthRecordID,
+		TreatmentBuddy:          c.TreatmentBuddy,
+		ClientCounselled:        c.ClientCounselled,
+		OrganisationID:          c.OrganisationID,
+		FacilityID:              c.FacilityID,
+		CHVUserID:               c.CHVUserID,
+	}, nil
+}
+
+// CreateIdentifier creates a new identifier
+func (d *MyCareHubDb) CreateIdentifier(ctx context.Context, identifier domain.Identifier) (*domain.Identifier, error) {
+	i := &gorm.Identifier{
+		Active:              true,
+		IdentifierType:      identifier.IdentifierType,
+		IdentifierValue:     identifier.IdentifierValue,
+		IdentifierUse:       identifier.IdentifierUse,
+		Description:         identifier.Description,
+		IsPrimaryIdentifier: identifier.IsPrimaryIdentifier,
+	}
+
+	err := d.create.CreateIdentifier(ctx, i)
+	if err != nil {
+		return nil, err
+	}
+
+	return &domain.Identifier{
+		ID:                  i.ID,
+		IdentifierType:      i.IdentifierType,
+		IdentifierValue:     i.IdentifierValue,
+		IdentifierUse:       i.IdentifierUse,
+		Description:         i.Description,
+		ValidFrom:           i.ValidFrom,
+		ValidTo:             i.ValidTo,
+		IsPrimaryIdentifier: i.IsPrimaryIdentifier,
+	}, nil
 }

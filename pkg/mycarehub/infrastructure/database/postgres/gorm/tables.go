@@ -3,16 +3,13 @@ package gorm
 import (
 	"time"
 
-	"github.com/brianvoe/gofakeit"
 	"github.com/google/uuid"
 	"github.com/lib/pq"
 	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
 	"github.com/savannahghi/serverutils"
-	"github.com/segmentio/ksuid"
 	"gorm.io/gorm"
 )
 
@@ -132,17 +129,27 @@ func (u *User) BeforeCreate(tx *gorm.DB) (err error) {
 	id := uuid.New().String()
 	u.UserID = &id
 	u.OrganisationID = OrganizationID
-	salt, _ := extension.NewExternalMethodsImpl().EncryptPIN(ksuid.New().String(), nil)
-	bytePass := []byte(salt)
-	u.Password = string(bytePass[0:127])
 	u.IsSuperuser = false
 	u.IsStaff = false
-	u.Email = gofakeit.Email()
 	u.DateJoined = time.Now().UTC().Format(time.RFC1123Z)
-	u.Name = gofakeit.Name()
 	u.IsApproved = false
 	u.ApprovalNotified = false
 	u.Handle = "@" + u.Username
+
+	login := time.Now()
+
+	u.NextAllowedLogin = &login
+	u.FailedLoginCount = 0
+	u.FailedSecurityCount = 0
+	u.IsApproved = false
+	u.ApprovalNotified = false
+	u.TermsAccepted = false
+	u.IsSuspended = false
+	u.PinChangeRequired = true
+	u.HasSetPin = false
+	u.IsPhoneVerified = false
+	u.HasSetSecurityQuestion = false
+	u.PinUpdateRequired = false
 
 	return
 }
@@ -365,7 +372,7 @@ type Client struct {
 
 	FacilityID string `gorm:"column:current_facility_id"`
 
-	CHVUserID string `gorm:"column:chv_id"`
+	CHVUserID *string `gorm:"column:chv_id"`
 
 	UserID      *string `gorm:"column:user_id;not null"`
 	CaregiverID *string `gorm:"column:caregiver_id"`
@@ -951,6 +958,18 @@ type ClientRelatedPerson struct {
 // TableName references the table that we map data from
 func (c *ClientRelatedPerson) TableName() string {
 	return "clients_client_related_persons"
+}
+
+// ClientContacts links a client with their contacts
+type ClientContacts struct {
+	ID        int     `gorm:"primaryKey;column:id;autoincrement"`
+	ClientID  *string `gorm:"column:client_id"`
+	ContactID *string `gorm:"column:contact_id"`
+}
+
+// TableName references the table that we map data from
+func (c *ClientContacts) TableName() string {
+	return "clients_client_contacts"
 }
 
 // RelatedPerson represents information for a person related to another user

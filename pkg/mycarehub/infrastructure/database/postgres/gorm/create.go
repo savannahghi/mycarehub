@@ -24,6 +24,9 @@ type Create interface {
 	GetOrCreateContact(ctx context.Context, contact *Contact) (*Contact, error)
 	CreateAppointment(ctx context.Context, appointment *Appointment) error
 	AnswerScreeningToolQuestions(ctx context.Context, screeningToolResponses []*ScreeningToolsResponse) error
+	CreateUser(ctx context.Context, user *User) error
+	CreateClient(ctx context.Context, client *Client, contactID, identifierID string) error
+	CreateIdentifier(ctx context.Context, identifier *Identifier) error
 }
 
 // GetOrCreateFacility is used to get or create a facility
@@ -248,7 +251,7 @@ func (db *PGInstance) GetOrCreateNextOfKin(ctx context.Context, person *RelatedP
 		}
 	}()
 
-	err := tx.FirstOrCreate(person).Error
+	err := tx.Where(person).FirstOrCreate(person).Error
 	if err != nil {
 		tx.Rollback()
 		return fmt.Errorf("failed to get or create related person: %v", err)
@@ -259,7 +262,7 @@ func (db *PGInstance) GetOrCreateNextOfKin(ctx context.Context, person *RelatedP
 		RelatedPersonID: &person.ID,
 		ContactID:       &contactID,
 	}
-	err = tx.FirstOrCreate(&contact).Error
+	err = tx.Where(contact).FirstOrCreate(&contact).Error
 	if err != nil {
 		tx.Rollback()
 		return fmt.Errorf("failed to get or create related person contact: %v", err)
@@ -270,7 +273,7 @@ func (db *PGInstance) GetOrCreateNextOfKin(ctx context.Context, person *RelatedP
 		ClientID:        &clientID,
 		RelatedPersonID: &person.ID,
 	}
-	err = tx.FirstOrCreate(&client).Error
+	err = tx.Where(client).FirstOrCreate(&client).Error
 	if err != nil {
 		tx.Rollback()
 		return fmt.Errorf("failed to get or create related person client: %v", err)
@@ -293,7 +296,7 @@ func (db *PGInstance) GetOrCreateContact(ctx context.Context, contact *Contact) 
 		}
 	}()
 
-	err := tx.FirstOrCreate(contact).Error
+	err := tx.Where(Contact{ContactValue: contact.ContactValue, Flavour: contact.Flavour}).FirstOrCreate(contact).Error
 	if err != nil {
 		tx.Rollback()
 		return nil, fmt.Errorf("failed to get or create contact: %v", err)
@@ -348,6 +351,90 @@ func (db *PGInstance) AnswerScreeningToolQuestions(ctx context.Context, screenin
 	if err := tx.Commit().Error; err != nil {
 		tx.Rollback()
 		return fmt.Errorf("transaction commit to create screening tool responses failed: %v", err)
+	}
+
+	return nil
+}
+
+// CreateUser creates a new user
+func (db *PGInstance) CreateUser(ctx context.Context, user *User) error {
+	tx := db.DB.Begin()
+
+	err := tx.Create(user).Error
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		tx.Rollback()
+		return fmt.Errorf("failed to create user: %w", err)
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		helpers.ReportErrorToSentry(err)
+		tx.Rollback()
+		return fmt.Errorf("failed to commit create user transaction: %w", err)
+	}
+
+	return nil
+}
+
+// CreateClient creates a new client
+func (db *PGInstance) CreateClient(ctx context.Context, client *Client, contactID, identifierID string) error {
+	tx := db.DB.Begin()
+
+	err := tx.Create(client).Error
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		tx.Rollback()
+		return fmt.Errorf("failed to create client: %w", err)
+	}
+
+	// link contact
+	contact := ClientContacts{
+		ClientID:  client.ID,
+		ContactID: &contactID,
+	}
+	err = tx.Where(contact).FirstOrCreate(&contact).Error
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		tx.Rollback()
+		return fmt.Errorf("failed to get or create client contact: %w", err)
+	}
+
+	// link identifiers
+	identifier := ClientIdentifiers{
+		ClientID:     client.ID,
+		IdentifierID: &identifierID,
+	}
+	err = tx.Where(identifier).FirstOrCreate(&identifier).Error
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		tx.Rollback()
+		return fmt.Errorf("failed to get or create client identifier: %w", err)
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		helpers.ReportErrorToSentry(err)
+		tx.Rollback()
+		return fmt.Errorf("failed to commit create client transaction: %w", err)
+	}
+
+	return nil
+}
+
+// CreateIdentifier creates a new identifier
+func (db *PGInstance) CreateIdentifier(ctx context.Context, identifier *Identifier) error {
+	tx := db.DB.Begin()
+
+	err := tx.Create(identifier).Error
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		tx.Rollback()
+		return fmt.Errorf("failed to create identifier: %w", err)
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		helpers.ReportErrorToSentry(err)
+		tx.Rollback()
+		return fmt.Errorf("failed to commit create identifier transaction: %w", err)
 	}
 
 	return nil

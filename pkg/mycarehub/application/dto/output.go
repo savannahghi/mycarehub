@@ -158,3 +158,9 @@ type StaffRegistrationOutput struct {
 type AppointmentServiceRequestsOutput struct {
 	AppointmentServiceRequests []domain.AppointmentServiceRequests `json:"Results"`
 }
+
+// PatientCreationOutput is the payload sent to the clinical service for creation of a patient
+type PatientCreationOutput struct {
+	ID     string `json:"id"`
+	UserID string `json:"user"`
+}

@@ -43,7 +43,7 @@ type ServicePubsub interface {
 		r *http.Request,
 	)
 
-	NotifyCreatePatient(ctx context.Context, client *dto.ClientRegistrationOutput) error
+	NotifyCreatePatient(ctx context.Context, client *dto.PatientCreationOutput) error
 	NotifyCreateVitals(ctx context.Context, vitals *dto.PatientVitalSignOutput) error
 	NotifyCreateAllergy(ctx context.Context, allergy *dto.PatientAllergyOutput) error
 	NotifyCreateMedication(ctx context.Context, medication *dto.PatientMedicationOutput) error

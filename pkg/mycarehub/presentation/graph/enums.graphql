@@ -106,6 +106,7 @@ enum ClientType {
   HIGH_RISK
   SPOUSES
   YOUTH
+  KenyaEMR
 }
 
 enum ServiceRequestType {

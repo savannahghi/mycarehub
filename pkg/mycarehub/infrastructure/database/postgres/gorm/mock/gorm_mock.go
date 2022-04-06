@@ -21,6 +21,9 @@ import (
 
 // GormMock struct implements mocks of `gorm's`internal methods.
 type GormMock struct {
+	MockCreateUserFn                                     func(ctx context.Context, user *gorm.User) error
+	MockCreateClientFn                                   func(ctx context.Context, client *gorm.Client, contactID, identifierID string) error
+	MockCreateIdentifierFn                               func(ctx context.Context, identifier *gorm.Identifier) error
 	MockGetOrCreateFacilityFn                            func(ctx context.Context, facility *gorm.Facility) (*gorm.Facility, error)
 	MockRetrieveFacilityFn                               func(ctx context.Context, id *string, isActive bool) (*gorm.Facility, error)
 	MockRetrieveFacilityByMFLCodeFn                      func(ctx context.Context, MFLCode int, isActive bool) (*gorm.Facility, error)
@@ -242,7 +245,7 @@ func NewGormMock() *GormMock {
 		ClientCounselled:        true,
 		OrganisationID:          uuid.New().String(),
 		FacilityID:              uuid.New().String(),
-		CHVUserID:               uuid.New().String(),
+		CHVUserID:               &UUID,
 		UserID:                  &UUID,
 		CaregiverID:             &UUID,
 	}
@@ -327,6 +330,15 @@ func NewGormMock() *GormMock {
 	}
 
 	return &GormMock{
+		MockCreateUserFn: func(ctx context.Context, user *gorm.User) error {
+			return nil
+		},
+		MockCreateClientFn: func(ctx context.Context, client *gorm.Client, contactID, identifierID string) error {
+			return nil
+		},
+		MockCreateIdentifierFn: func(ctx context.Context, identifier *gorm.Identifier) error {
+			return nil
+		},
 		MockGetOrCreateFacilityFn: func(ctx context.Context, facility *gorm.Facility) (*gorm.Facility, error) {
 			return facility, nil
 		},
@@ -383,7 +395,7 @@ func NewGormMock() *GormMock {
 				Note:                     "",
 				EntryType:                "",
 				ShareWithHealthWorker:    false,
-				SharedAt:                 time.Time{},
+				SharedAt:                 time.Now(),
 				ClientID:                 "",
 				OrganisationID:           "",
 			}, nil
@@ -408,13 +420,14 @@ func NewGormMock() *GormMock {
 		},
 		MockGetStaffServiceRequestsFn: func(ctx context.Context, requestType, requestStatus *string, facilityID string) ([]*gorm.StaffServiceRequest, error) {
 			UUID := uuid.New().String()
+			rt := time.Now()
 			serviceRequest := &gorm.StaffServiceRequest{
 				ID:             &UUID,
 				Active:         true,
 				RequestType:    "test",
 				Request:        "test",
 				Status:         "test",
-				ResolvedAt:     &time.Time{},
+				ResolvedAt:     &rt,
 				StaffID:        "test",
 				OrganisationID: "test",
 				ResolvedByID:   &UUID,
@@ -787,8 +800,8 @@ func NewGormMock() *GormMock {
 				IdentifierValue:     "123456",
 				IdentifierUse:       "OFFICIAL",
 				Description:         description,
-				ValidFrom:           time.Time{},
-				ValidTo:             time.Time{},
+				ValidFrom:           time.Now(),
+				ValidTo:             time.Now(),
 				IsPrimaryIdentifier: false,
 			}, nil
 		},
@@ -1611,4 +1624,19 @@ func (gm *GormMock) GetActiveScreeningToolResponses(ctx context.Context, clientI
 // GetAnsweredScreeningToolQuestions mocks the implementation of getting answered screening tool questions
 func (gm *GormMock) GetAnsweredScreeningToolQuestions(ctx context.Context, facilityID string, toolType string) ([]*gorm.ScreeningToolsResponse, error) {
 	return gm.MockGetAnsweredScreeningToolQuestionsFn(ctx, facilityID, toolType)
+}
+
+// CreateUser creates a new user
+func (gm *GormMock) CreateUser(ctx context.Context, user *gorm.User) error {
+	return gm.MockCreateUserFn(ctx, user)
+}
+
+// CreateClient creates a new client
+func (gm *GormMock) CreateClient(ctx context.Context, client *gorm.Client, contactID, identifierID string) error {
+	return gm.MockCreateClientFn(ctx, client, contactID, identifierID)
+}
+
+// CreateIdentifier creates a new identifier
+func (gm *GormMock) CreateIdentifier(ctx context.Context, identifier *gorm.Identifier) error {
+	return gm.MockCreateIdentifierFn(ctx, identifier)
 }

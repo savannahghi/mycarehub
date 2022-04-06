@@ -4099,6 +4099,7 @@ enum ClientType {
   HIGH_RISK
   SPOUSES
   YOUTH
+  KenyaEMR
 }
 
 enum ServiceRequestType {
@@ -8500,9 +8501,9 @@ func (ec *executionContext) _ClientProfile_CHVUserID(ctx context.Context, field 
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*string)
 	fc.Result = res
-	return ec.marshalOString2string(ctx, field.Selections, res)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ClientProfile_CHVUserName(ctx context.Context, field graphql.CollectedField, obj *domain.ClientProfile) (ret graphql.Marshaler) {

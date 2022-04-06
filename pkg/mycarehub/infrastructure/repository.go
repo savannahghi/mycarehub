@@ -16,6 +16,9 @@ import (
 //
 // All the  contracts for create operations are assembled here
 type Create interface {
+	CreateUser(ctx context.Context, user domain.User) (*domain.User, error)
+	CreateClient(ctx context.Context, client domain.ClientProfile, contactID, identifierID string) (*domain.ClientProfile, error)
+	CreateIdentifier(ctx context.Context, identifier domain.Identifier) (*domain.Identifier, error)
 	GetOrCreateFacility(ctx context.Context, facility *dto.FacilityInput) (*domain.Facility, error)
 	SaveTemporaryUserPin(ctx context.Context, pinData *domain.UserPIN) (bool, error)
 	SavePin(ctx context.Context, pinInput *domain.UserPIN) (bool, error)

@@ -20,7 +20,9 @@ import (
 
 // PostgresMock struct implements mocks of `postgres's` internal methods.
 type PostgresMock struct {
-	//Get
+	MockCreateUserFn                                     func(ctx context.Context, user domain.User) (*domain.User, error)
+	MockCreateClientFn                                   func(ctx context.Context, client domain.ClientProfile, contactID, identifierID string) (*domain.ClientProfile, error)
+	MockCreateIdentifierFn                               func(ctx context.Context, identifier domain.Identifier) (*domain.Identifier, error)
 	MockGetOrCreateFacilityFn                            func(ctx context.Context, facility *dto.FacilityInput) (*domain.Facility, error)
 	MockGetFacilitiesFn                                  func(ctx context.Context) ([]*domain.Facility, error)
 	MockRetrieveFacilityFn                               func(ctx context.Context, id *string, isActive bool) (*domain.Facility, error)
@@ -200,7 +202,7 @@ func NewPostgresMock() *PostgresMock {
 
 	client := &domain.ClientProfile{
 		ID:            &ID,
-		CHVUserID:     ID,
+		CHVUserID:     &ID,
 		UserID:        ID,
 		FHIRPatientID: &ID,
 	}
@@ -1504,4 +1506,19 @@ func (gm *PostgresMock) GetActiveScreeningToolResponses(ctx context.Context, cli
 // GetAssessmentResponses mocks the implementation of getting answered screening tool questions
 func (gm *PostgresMock) GetAssessmentResponses(ctx context.Context, facilityID string, toolType string) ([]*domain.ScreeningToolAssesmentResponse, error) {
 	return gm.MockGetAssessmentResponsesFn(ctx, facilityID, toolType)
+}
+
+// CreateUser creates a new user
+func (gm *PostgresMock) CreateUser(ctx context.Context, user domain.User) (*domain.User, error) {
+	return gm.MockCreateUserFn(ctx, user)
+}
+
+// CreateClient creates a new client
+func (gm *PostgresMock) CreateClient(ctx context.Context, client domain.ClientProfile, contactID, identifierID string) (*domain.ClientProfile, error) {
+	return gm.MockCreateClientFn(ctx, client, contactID, identifierID)
+}
+
+// CreateIdentifier creates a new identifier
+func (gm *PostgresMock) CreateIdentifier(ctx context.Context, identifier domain.Identifier) (*domain.Identifier, error) {
+	return gm.MockCreateIdentifierFn(ctx, identifier)
 }

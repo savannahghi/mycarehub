@@ -1277,7 +1277,7 @@ func TestMyCareHubHandlersInterfacesImpl_CreateOrUpdateKenyaEMRAppointment(t *te
 					"%s/kenya-emr/appointments",
 					baseURL,
 				),
-				httpMethod: http.MethodPatch,
+				httpMethod: http.MethodPost,
 				body:       bytes.NewBuffer(marshalledMissingMFLCode),
 			},
 			wantStatus: http.StatusBadRequest,
@@ -1290,7 +1290,7 @@ func TestMyCareHubHandlersInterfacesImpl_CreateOrUpdateKenyaEMRAppointment(t *te
 					"%s/kenya-emr/appointments",
 					baseURL,
 				),
-				httpMethod: http.MethodPatch,
+				httpMethod: http.MethodPost,
 				body:       bytes.NewBuffer(marshalledMissingAppointment),
 			},
 			wantStatus: http.StatusBadRequest,
@@ -2105,7 +2105,7 @@ func TestMyCareHubHandlersInterfacesImpl_GetUserProfile(t *testing.T) {
 		{
 			name: "Sad Case -  invalid user id",
 			args: args{
-				url:        fmt.Sprintf("%s/internal/user-profile/123456", baseURL),
+				url:        fmt.Sprintf("%s/internal/user-profile/ae701bee-aa65-41dc-8953-1c668d0aa14d", baseURL),
 				httpMethod: http.MethodGet,
 			},
 			wantStatus: http.StatusInternalServerError,

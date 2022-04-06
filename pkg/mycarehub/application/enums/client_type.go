@@ -37,6 +37,9 @@ const (
 
 	// ClientTypeYouth represents 20-24 year olds, both male and female
 	ClientTypeYouth ClientType = "YOUTH"
+
+	// ClientTypeKenyaEMR represents clients created from Kenya EMR and their type is initially unknown
+	ClientTypeKenyaEMR ClientType = "KenyaEMR"
 )
 
 // AllClientType represents a slice of all possible `ClientType` values
@@ -50,6 +53,7 @@ var AllClientType = []ClientType{
 	ClientTypeHighRisk,
 	ClientTypeSpouses,
 	ClientTypeYouth,
+	ClientTypeKenyaEMR,
 }
 
 // IsValid returns true if a client type is valid
@@ -64,6 +68,7 @@ func (e ClientType) IsValid() bool {
 		ClientTypeDreams,
 		ClientTypeHighRisk,
 		ClientTypeSpouses,
+		ClientTypeKenyaEMR,
 		ClientTypeYouth:
 		return true
 	}

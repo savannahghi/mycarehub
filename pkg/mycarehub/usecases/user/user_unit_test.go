@@ -2688,6 +2688,15 @@ func TestUseCasesUserImpl_RegisterKenyaEMRPatients(t *testing.T) {
 			wantErr: true,
 		},
 		{
+			name: "Sad case: cannot retrieve facility",
+			args: args{
+				ctx:   ctx,
+				input: input,
+			},
+			want:    nil,
+			wantErr: true,
+		},
+		{
 			name: "Sad case: check identifier exists error",
 			args: args{
 				ctx:   ctx,
@@ -2697,7 +2706,16 @@ func TestUseCasesUserImpl_RegisterKenyaEMRPatients(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "Sad case: identifier already exists",
+			name: "Happy case: identifier already exists",
+			args: args{
+				ctx:   ctx,
+				input: input,
+			},
+			want:    nil,
+			wantErr: false,
+		},
+		{
+			name: "Sad case: cannot create user",
 			args: args{
 				ctx:   ctx,
 				input: input,
@@ -2706,13 +2724,49 @@ func TestUseCasesUserImpl_RegisterKenyaEMRPatients(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "Sad case: cannot register client",
+			name: "Sad case: cannot normalize phone number",
 			args: args{
 				ctx:   ctx,
 				input: input,
 			},
 			want:    nil,
 			wantErr: true,
+		},
+		{
+			name: "Sad case: cannot get or create contact",
+			args: args{
+				ctx:   ctx,
+				input: input,
+			},
+			want:    nil,
+			wantErr: true,
+		},
+		{
+			name: "Sad case: cannot create identifier",
+			args: args{
+				ctx:   ctx,
+				input: input,
+			},
+			want:    nil,
+			wantErr: true,
+		},
+		{
+			name: "Sad case: cannot create client",
+			args: args{
+				ctx:   ctx,
+				input: input,
+			},
+			want:    nil,
+			wantErr: true,
+		},
+		{
+			name: "Sad case: cannot publish to patient topic",
+			args: args{
+				ctx:   ctx,
+				input: input,
+			},
+			want:    nil,
+			wantErr: false,
 		},
 		{
 			name: "Sad case: cannot create next of kin contact",
@@ -2756,27 +2810,24 @@ func TestUseCasesUserImpl_RegisterKenyaEMRPatients(t *testing.T) {
 				}
 			}
 
-			if tt.name == "Sad case: check identifier exists error" {
+			if tt.name == "Sad case: cannot retrieve facility" {
 				fakeDB.MockCheckFacilityExistsByMFLCode = func(ctx context.Context, MFLCode int) (bool, error) {
 					return true, nil
 				}
 
 				fakeDB.MockRetrieveFacilityByMFLCodeFn = func(ctx context.Context, MFLCode int, isActive bool) (*domain.Facility, error) {
-					return &domain.Facility{}, nil
-				}
-
-				fakeDB.MockCheckIdentifierExists = func(ctx context.Context, identifierType, identifierValue string) (bool, error) {
-					return false, fmt.Errorf("error checking for identifier")
+					return nil, fmt.Errorf("cannot retrieve facility by mfl code")
 				}
 			}
 
-			if tt.name == "Sad case: identifier already exists" {
+			if tt.name == "Happy case: identifier already exists" {
 				fakeDB.MockCheckFacilityExistsByMFLCode = func(ctx context.Context, MFLCode int) (bool, error) {
 					return true, nil
 				}
 
 				fakeDB.MockRetrieveFacilityByMFLCodeFn = func(ctx context.Context, MFLCode int, isActive bool) (*domain.Facility, error) {
-					return &domain.Facility{}, nil
+					id := gofakeit.UUID()
+					return &domain.Facility{ID: &id}, nil
 				}
 
 				fakeDB.MockCheckIdentifierExists = func(ctx context.Context, identifierType, identifierValue string) (bool, error) {
@@ -2784,22 +2835,159 @@ func TestUseCasesUserImpl_RegisterKenyaEMRPatients(t *testing.T) {
 				}
 			}
 
-			if tt.name == "Sad case: cannot register client" {
+			if tt.name == "Sad case: cannot create user" {
 				fakeDB.MockCheckFacilityExistsByMFLCode = func(ctx context.Context, MFLCode int) (bool, error) {
 					return true, nil
 				}
 
 				fakeDB.MockRetrieveFacilityByMFLCodeFn = func(ctx context.Context, MFLCode int, isActive bool) (*domain.Facility, error) {
-					return &domain.Facility{}, nil
+					id := gofakeit.UUID()
+					return &domain.Facility{ID: &id}, nil
 				}
 
 				fakeDB.MockCheckIdentifierExists = func(ctx context.Context, identifierType, identifierValue string) (bool, error) {
 					return false, nil
 				}
 
-				fakeExtension.MockMakeRequestFn = func(ctx context.Context, method string, path string, body interface{}) (*http.Response, error) {
-					return nil, fmt.Errorf("create client request fails")
+				fakeDB.MockCreateUserFn = func(ctx context.Context, user domain.User) (*domain.User, error) {
+					return nil, fmt.Errorf("cannot create user")
 				}
+			}
+
+			if tt.name == "Sad case: cannot get or create contact" {
+				fakeDB.MockCheckFacilityExistsByMFLCode = func(ctx context.Context, MFLCode int) (bool, error) {
+					return true, nil
+				}
+
+				fakeDB.MockRetrieveFacilityByMFLCodeFn = func(ctx context.Context, MFLCode int, isActive bool) (*domain.Facility, error) {
+					id := gofakeit.UUID()
+					return &domain.Facility{ID: &id}, nil
+				}
+
+				fakeDB.MockCheckIdentifierExists = func(ctx context.Context, identifierType, identifierValue string) (bool, error) {
+					return false, nil
+				}
+
+				fakeDB.MockCreateUserFn = func(ctx context.Context, user domain.User) (*domain.User, error) {
+					id := gofakeit.UUID()
+					return &domain.User{ID: &id}, nil
+				}
+
+				fakeDB.MockGetOrCreateContact = func(ctx context.Context, contact *domain.Contact) (*domain.Contact, error) {
+					return nil, fmt.Errorf("cannot get or create contact")
+				}
+			}
+
+			if tt.name == "Sad case: cannot create identifier" {
+				fakeDB.MockCheckFacilityExistsByMFLCode = func(ctx context.Context, MFLCode int) (bool, error) {
+					return true, nil
+				}
+
+				fakeDB.MockRetrieveFacilityByMFLCodeFn = func(ctx context.Context, MFLCode int, isActive bool) (*domain.Facility, error) {
+					id := gofakeit.UUID()
+					return &domain.Facility{ID: &id}, nil
+				}
+
+				fakeDB.MockCheckIdentifierExists = func(ctx context.Context, identifierType, identifierValue string) (bool, error) {
+					return false, nil
+				}
+
+				fakeDB.MockCreateUserFn = func(ctx context.Context, user domain.User) (*domain.User, error) {
+					id := gofakeit.UUID()
+					return &domain.User{ID: &id}, nil
+				}
+
+				fakeDB.MockGetOrCreateContact = func(ctx context.Context, contact *domain.Contact) (*domain.Contact, error) {
+					id := gofakeit.UUID()
+					return &domain.Contact{ID: &id}, nil
+				}
+
+				fakeDB.MockCreateIdentifierFn = func(ctx context.Context, identifier domain.Identifier) (*domain.Identifier, error) {
+					return nil, fmt.Errorf("cannot create identifier")
+				}
+
+			}
+
+			if tt.name == "Sad case: cannot create client" {
+				fakeDB.MockCheckFacilityExistsByMFLCode = func(ctx context.Context, MFLCode int) (bool, error) {
+					return true, nil
+				}
+
+				fakeDB.MockRetrieveFacilityByMFLCodeFn = func(ctx context.Context, MFLCode int, isActive bool) (*domain.Facility, error) {
+					id := gofakeit.UUID()
+					return &domain.Facility{ID: &id}, nil
+				}
+
+				fakeDB.MockCheckIdentifierExists = func(ctx context.Context, identifierType, identifierValue string) (bool, error) {
+					return false, nil
+				}
+
+				fakeDB.MockCreateUserFn = func(ctx context.Context, user domain.User) (*domain.User, error) {
+					id := gofakeit.UUID()
+					return &domain.User{ID: &id}, nil
+				}
+
+				fakeDB.MockGetOrCreateContact = func(ctx context.Context, contact *domain.Contact) (*domain.Contact, error) {
+					id := gofakeit.UUID()
+					return &domain.Contact{ID: &id}, nil
+				}
+
+				fakeDB.MockCreateIdentifierFn = func(ctx context.Context, identifier domain.Identifier) (*domain.Identifier, error) {
+					return &domain.Identifier{ID: gofakeit.UUID()}, nil
+				}
+
+				fakeDB.MockCreateClientFn = func(ctx context.Context, client domain.ClientProfile, contactID, identifierID string) (*domain.ClientProfile, error) {
+					return nil, fmt.Errorf("cannot create client")
+				}
+
+			}
+
+			if tt.name == "Sad case: cannot publish to patient topic" {
+				fakeDB.MockCheckFacilityExistsByMFLCode = func(ctx context.Context, MFLCode int) (bool, error) {
+					return true, nil
+				}
+
+				fakeDB.MockRetrieveFacilityByMFLCodeFn = func(ctx context.Context, MFLCode int, isActive bool) (*domain.Facility, error) {
+					id := gofakeit.UUID()
+					return &domain.Facility{ID: &id}, nil
+				}
+
+				fakeDB.MockCheckIdentifierExists = func(ctx context.Context, identifierType, identifierValue string) (bool, error) {
+					return false, nil
+				}
+
+				fakeDB.MockCreateUserFn = func(ctx context.Context, user domain.User) (*domain.User, error) {
+					id := gofakeit.UUID()
+					return &domain.User{ID: &id}, nil
+				}
+
+				fakeDB.MockGetOrCreateContact = func(ctx context.Context, contact *domain.Contact) (*domain.Contact, error) {
+					id := gofakeit.UUID()
+					return &domain.Contact{ID: &id}, nil
+				}
+
+				fakeDB.MockCreateIdentifierFn = func(ctx context.Context, identifier domain.Identifier) (*domain.Identifier, error) {
+					return &domain.Identifier{ID: gofakeit.UUID()}, nil
+				}
+
+				fakeDB.MockCreateClientFn = func(ctx context.Context, client domain.ClientProfile, contactID, identifierID string) (*domain.ClientProfile, error) {
+					id := gofakeit.UUID()
+					return &domain.ClientProfile{ID: &id}, nil
+				}
+
+				fakePubsub.MockNotifyCreatePatientFn = func(ctx context.Context, client *dto.PatientCreationOutput) error {
+					return fmt.Errorf("error notifying patient creation topic")
+				}
+
+				fakeDB.MockGetOrCreateContact = func(ctx context.Context, contact *domain.Contact) (*domain.Contact, error) {
+					id := gofakeit.UUID()
+					return &domain.Contact{ID: &id}, nil
+				}
+
+				fakeDB.MockGetOrCreateNextOfKin = func(ctx context.Context, person *dto.NextOfKinPayload, clientID, contactID string) error {
+					return nil
+				}
+
 			}
 
 			if tt.name == "Sad case: cannot create next of kin contact" {
@@ -2808,28 +2996,35 @@ func TestUseCasesUserImpl_RegisterKenyaEMRPatients(t *testing.T) {
 				}
 
 				fakeDB.MockRetrieveFacilityByMFLCodeFn = func(ctx context.Context, MFLCode int, isActive bool) (*domain.Facility, error) {
-					return &domain.Facility{}, nil
+					id := gofakeit.UUID()
+					return &domain.Facility{ID: &id}, nil
 				}
 
 				fakeDB.MockCheckIdentifierExists = func(ctx context.Context, identifierType, identifierValue string) (bool, error) {
 					return false, nil
 				}
 
-				fakeExtension.MockMakeRequestFn = func(ctx context.Context, method string, path string, body interface{}) (*http.Response, error) {
-					registrationOutput := dto.ClientRegistrationOutput{
-						ID: uuid.New().String(),
-					}
+				fakeDB.MockCreateUserFn = func(ctx context.Context, user domain.User) (*domain.User, error) {
+					id := gofakeit.UUID()
+					return &domain.User{ID: &id}, nil
+				}
 
-					payload, err := json.Marshal(registrationOutput)
-					if err != nil {
-						t.Errorf("unable to marshal test item: %s", err)
-					}
+				fakeDB.MockGetOrCreateContact = func(ctx context.Context, contact *domain.Contact) (*domain.Contact, error) {
+					id := gofakeit.UUID()
+					return &domain.Contact{ID: &id}, nil
+				}
 
-					return &http.Response{
-						StatusCode: http.StatusOK,
-						Status:     "OK",
-						Body:       ioutil.NopCloser(bytes.NewBuffer(payload)),
-					}, nil
+				fakeDB.MockCreateIdentifierFn = func(ctx context.Context, identifier domain.Identifier) (*domain.Identifier, error) {
+					return &domain.Identifier{ID: gofakeit.UUID()}, nil
+				}
+
+				fakeDB.MockCreateClientFn = func(ctx context.Context, client domain.ClientProfile, contactID, identifierID string) (*domain.ClientProfile, error) {
+					id := gofakeit.UUID()
+					return &domain.ClientProfile{ID: &id}, nil
+				}
+
+				fakePubsub.MockNotifyCreatePatientFn = func(ctx context.Context, client *dto.PatientCreationOutput) error {
+					return nil
 				}
 
 				fakeDB.MockGetOrCreateContact = func(ctx context.Context, contact *domain.Contact) (*domain.Contact, error) {
@@ -2843,7 +3038,8 @@ func TestUseCasesUserImpl_RegisterKenyaEMRPatients(t *testing.T) {
 				}
 
 				fakeDB.MockRetrieveFacilityByMFLCodeFn = func(ctx context.Context, MFLCode int, isActive bool) (*domain.Facility, error) {
-					return &domain.Facility{}, nil
+					id := gofakeit.UUID()
+					return &domain.Facility{ID: &id}, nil
 				}
 
 				fakeDB.MockCheckIdentifierExists = func(ctx context.Context, identifierType, identifierValue string) (bool, error) {
@@ -2855,21 +3051,27 @@ func TestUseCasesUserImpl_RegisterKenyaEMRPatients(t *testing.T) {
 					return &domain.Contact{ID: &id}, nil
 				}
 
-				fakeExtension.MockMakeRequestFn = func(ctx context.Context, method string, path string, body interface{}) (*http.Response, error) {
-					registrationOutput := dto.ClientRegistrationOutput{
-						ID: uuid.New().String(),
-					}
+				fakeDB.MockCreateUserFn = func(ctx context.Context, user domain.User) (*domain.User, error) {
+					id := gofakeit.UUID()
+					return &domain.User{ID: &id}, nil
+				}
 
-					payload, err := json.Marshal(registrationOutput)
-					if err != nil {
-						t.Errorf("unable to marshal test item: %s", err)
-					}
+				fakeDB.MockGetOrCreateContact = func(ctx context.Context, contact *domain.Contact) (*domain.Contact, error) {
+					id := gofakeit.UUID()
+					return &domain.Contact{ID: &id}, nil
+				}
 
-					return &http.Response{
-						StatusCode: http.StatusOK,
-						Status:     "OK",
-						Body:       ioutil.NopCloser(bytes.NewBuffer(payload)),
-					}, nil
+				fakeDB.MockCreateIdentifierFn = func(ctx context.Context, identifier domain.Identifier) (*domain.Identifier, error) {
+					return &domain.Identifier{ID: gofakeit.UUID()}, nil
+				}
+
+				fakeDB.MockCreateClientFn = func(ctx context.Context, client domain.ClientProfile, contactID, identifierID string) (*domain.ClientProfile, error) {
+					id := gofakeit.UUID()
+					return &domain.ClientProfile{ID: &id}, nil
+				}
+
+				fakePubsub.MockNotifyCreatePatientFn = func(ctx context.Context, client *dto.PatientCreationOutput) error {
+					return nil
 				}
 
 				fakeDB.MockGetOrCreateNextOfKin = func(ctx context.Context, person *dto.NextOfKinPayload, clientID, contactID string) error {
@@ -2883,28 +3085,35 @@ func TestUseCasesUserImpl_RegisterKenyaEMRPatients(t *testing.T) {
 				}
 
 				fakeDB.MockRetrieveFacilityByMFLCodeFn = func(ctx context.Context, MFLCode int, isActive bool) (*domain.Facility, error) {
-					return &domain.Facility{}, nil
+					id := gofakeit.UUID()
+					return &domain.Facility{ID: &id}, nil
 				}
 
 				fakeDB.MockCheckIdentifierExists = func(ctx context.Context, identifierType, identifierValue string) (bool, error) {
 					return false, nil
 				}
 
-				fakeExtension.MockMakeRequestFn = func(ctx context.Context, method string, path string, body interface{}) (*http.Response, error) {
-					registrationOutput := dto.ClientRegistrationOutput{
-						ID: uuid.New().String(),
-					}
+				fakeDB.MockCreateUserFn = func(ctx context.Context, user domain.User) (*domain.User, error) {
+					id := gofakeit.UUID()
+					return &domain.User{ID: &id}, nil
+				}
 
-					payload, err := json.Marshal(registrationOutput)
-					if err != nil {
-						t.Errorf("unable to marshal test item: %s", err)
-					}
+				fakeDB.MockGetOrCreateContact = func(ctx context.Context, contact *domain.Contact) (*domain.Contact, error) {
+					id := gofakeit.UUID()
+					return &domain.Contact{ID: &id}, nil
+				}
 
-					return &http.Response{
-						StatusCode: http.StatusOK,
-						Status:     "OK",
-						Body:       ioutil.NopCloser(bytes.NewBuffer(payload)),
-					}, nil
+				fakeDB.MockCreateIdentifierFn = func(ctx context.Context, identifier domain.Identifier) (*domain.Identifier, error) {
+					return &domain.Identifier{ID: gofakeit.UUID()}, nil
+				}
+
+				fakeDB.MockCreateClientFn = func(ctx context.Context, client domain.ClientProfile, contactID, identifierID string) (*domain.ClientProfile, error) {
+					id := gofakeit.UUID()
+					return &domain.ClientProfile{ID: &id}, nil
+				}
+
+				fakePubsub.MockNotifyCreatePatientFn = func(ctx context.Context, client *dto.PatientCreationOutput) error {
+					return nil
 				}
 
 				fakeDB.MockGetOrCreateContact = func(ctx context.Context, contact *domain.Contact) (*domain.Contact, error) {

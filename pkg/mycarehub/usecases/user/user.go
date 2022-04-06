@@ -12,6 +12,7 @@ import (
 	"time"
 
 	getStreamClient "github.com/GetStream/stream-chat-go/v5"
+	"github.com/hashicorp/go-multierror"
 	"github.com/lib/pq"
 	"github.com/savannahghi/converterandformatter"
 	"github.com/savannahghi/enumutils"
@@ -97,7 +98,7 @@ type IClientCaregiver interface {
 // IRegisterUser interface defines a method signature that is used to register users
 type IRegisterUser interface {
 	RegisterClient(ctx context.Context, input *dto.ClientRegistrationInput) (*dto.ClientRegistrationOutput, error)
-	RegisterKenyaEMRPatients(ctx context.Context, input []*dto.PatientRegistrationPayload) ([]*dto.ClientRegistrationOutput, error)
+	RegisterKenyaEMRPatients(ctx context.Context, input []*dto.PatientRegistrationPayload) ([]*dto.PatientRegistrationPayload, error)
 	RegisterStaff(ctx context.Context, input dto.StaffRegistrationInput) (*dto.StaffRegistrationOutput, error)
 }
 
@@ -414,8 +415,8 @@ func (us *UseCasesUserImpl) ReturnLoginResponse(ctx context.Context, flavour fee
 				Code:    int(exceptions.ClientHasUnresolvedPinResetRequestError),
 			}, exceptions.ClientHasUnresolvedPinResetRequestErr(err)
 		}
-		if clientProfile.CHVUserID != "" {
-			CHVProfile, err := us.Query.GetUserProfileByUserID(ctx, clientProfile.CHVUserID)
+		if clientProfile.CHVUserID != nil {
+			CHVProfile, err := us.Query.GetUserProfileByUserID(ctx, *clientProfile.CHVUserID)
 			if err != nil {
 				helpers.ReportErrorToSentry(err)
 				return &domain.LoginResponse{
@@ -1017,7 +1018,11 @@ func (us *UseCasesUserImpl) RegisterClient(
 		}
 	}
 
-	err = us.Pubsub.NotifyCreatePatient(ctx, registrationOutput)
+	payload := &dto.PatientCreationOutput{
+		ID:     registrationOutput.ID,
+		UserID: registrationOutput.UserID,
+	}
+	err = us.Pubsub.NotifyCreatePatient(ctx, payload)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		log.Printf("failed to publish to create patient topic: %v", err)
@@ -1044,74 +1049,155 @@ func (us *UseCasesUserImpl) RefreshGetStreamToken(ctx context.Context, userID st
 	}, nil
 }
 
-// RegisterKenyaEMRPatients is the usecase for registering patients from KenyaEMR as clients
-func (us *UseCasesUserImpl) RegisterKenyaEMRPatients(ctx context.Context, input []*dto.PatientRegistrationPayload) ([]*dto.ClientRegistrationOutput, error) {
-	clients := []*dto.ClientRegistrationOutput{}
+func (us *UseCasesUserImpl) createClient(ctx context.Context, patient dto.PatientRegistrationPayload, facility domain.Facility) (*domain.ClientProfile, error) {
+	// Adding ccc number makes it unique
+	username := patient.Name + patient.CCCNumber
+	dob := patient.DateOfBirth.AsTime()
+	usr := domain.User{
+		Username:    username,
+		Name:        patient.Name,
+		Gender:      enumutils.Gender(strings.ToUpper(patient.Gender)),
+		DateOfBirth: &dob,
+		UserType:    enums.ClientUser,
+		Flavour:     feedlib.FlavourConsumer,
+	}
+	user, err := us.Create.CreateUser(ctx, usr)
+	if err != nil {
+		return nil, err
+	}
 
+	normalized, err := converterandformatter.NormalizeMSISDN(patient.PhoneNumber)
+	if err != nil {
+		return nil, err
+	}
+	phone := domain.Contact{
+		ContactType:  "PHONE",
+		ContactValue: *normalized,
+		Flavour:      feedlib.FlavourConsumer,
+		UserID:       user.ID,
+		OptedIn:      false,
+	}
+	contact, err := us.Create.GetOrCreateContact(ctx, &phone)
+	if err != nil {
+		return nil, err
+	}
+
+	ccc := domain.Identifier{
+		IdentifierType:      "CCC",
+		IdentifierValue:     patient.CCCNumber,
+		IdentifierUse:       "OFFICIAL",
+		Description:         "CCC Number, Primary Identifier",
+		IsPrimaryIdentifier: true,
+	}
+	identifier, err := us.Create.CreateIdentifier(ctx, ccc)
+	if err != nil {
+		return nil, err
+	}
+
+	enrollment := patient.EnrollmentDate.AsTime()
+	newClient := domain.ClientProfile{
+		UserID:                  *user.ID,
+		FacilityID:              *facility.ID,
+		ClientCounselled:        patient.Counselled,
+		ClientType:              patient.ClientType,
+		TreatmentEnrollmentDate: &enrollment,
+	}
+	client, err := us.Create.CreateClient(ctx, newClient, *contact.ID, identifier.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	payload := &dto.PatientCreationOutput{
+		ID:     *client.ID,
+		UserID: *user.ID,
+	}
+	err = us.Pubsub.NotifyCreatePatient(ctx, payload)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		log.Printf("failed to publish to create patient topic: %v", err)
+		return client, nil
+	}
+
+	return client, nil
+}
+
+// RegisterKenyaEMRPatients is the usecase for registering patients from KenyaEMR as clients
+func (us *UseCasesUserImpl) RegisterKenyaEMRPatients(ctx context.Context, input []*dto.PatientRegistrationPayload) ([]*dto.PatientRegistrationPayload, error) {
+	patients := []*dto.PatientRegistrationPayload{}
+
+	var errs error
 	for _, patient := range input {
 		MFLCode, err := strconv.Atoi(patient.MFLCode)
 		if err != nil {
-
+			helpers.ReportErrorToSentry(err)
 			return nil, err
 		}
 
 		exists, err := us.Query.CheckFacilityExistsByMFLCode(ctx, MFLCode)
 		if err != nil {
+			helpers.ReportErrorToSentry(err)
 			return nil, fmt.Errorf("error checking for facility")
 		}
 		if !exists {
+
 			return nil, fmt.Errorf("facility with provided MFL code doesn't exist, code: %v", patient.MFLCode)
 		}
 
 		facility, err := us.Query.RetrieveFacilityByMFLCode(ctx, MFLCode, true)
 		if err != nil {
+			helpers.ReportErrorToSentry(err)
 			return nil, fmt.Errorf("error retrieving facility: %v", err)
 		}
 
+		// ---- Actual Client/Patient Registration begins here ----
 		exists, err = us.Query.CheckIdentifierExists(ctx, "CCC", patient.CCCNumber)
 		if err != nil {
-			return nil, fmt.Errorf("error checking for identifier")
+			// accumulate errors rather than failing early for each client/patient
+			errs = multierror.Append(errs, fmt.Errorf("error checking existing ccc number:%s, error:%w", patient.CCCNumber, err))
+			helpers.ReportErrorToSentry(errs)
+			continue
 		}
+
+		var client *domain.ClientProfile
 		if exists {
-			return nil, fmt.Errorf("patient with that identifier exists: %v", patient.CCCNumber)
+			patients = append(patients, patient)
+			continue
+		} else {
+			client, err = us.createClient(ctx, *patient, *facility)
+			if err != nil {
+				// accumulate errors rather than failing early for each client/patient
+				errs = multierror.Append(errs, fmt.Errorf("error creating kenya emr client:%w", err))
+				helpers.ReportErrorToSentry(errs)
+				continue
+			}
 		}
 
-		input := &dto.ClientRegistrationInput{
-			Facility:       facility.Name,
-			ClientType:     enums.ClientType(patient.ClientType),
-			ClientName:     patient.Name,
-			Gender:         enumutils.Gender(patient.Gender),
-			DateOfBirth:    patient.DateOfBirth,
-			PhoneNumber:    patient.PhoneNumber,
-			EnrollmentDate: patient.EnrollmentDate,
-			CCCNumber:      patient.CCCNumber,
-			Counselled:     patient.Counselled,
-			InviteClient:   true,
-		}
-
-		client, err := us.RegisterClient(ctx, input)
-		if err != nil {
-			return nil, err
-		}
-
-		cntct := domain.Contact{
+		phone := domain.Contact{
 			ContactType:  "PHONE",
 			ContactValue: patient.NextOfKin.Contact,
+			OptedIn:      false,
+			Flavour:      feedlib.FlavourConsumer,
 		}
-		contact, err := us.Create.GetOrCreateContact(ctx, &cntct)
+		contact, err := us.Create.GetOrCreateContact(ctx, &phone)
 		if err != nil {
-			return nil, err
+			// accumulate errors rather than failing early for each client/patient
+			errs = multierror.Append(errs, fmt.Errorf("error creating client next of kin contact:%w", err))
+			helpers.ReportErrorToSentry(errs)
+			continue
 		}
 
-		err = us.Create.GetOrCreateNextOfKin(ctx, &patient.NextOfKin, client.ID, *contact.ID)
+		err = us.Create.GetOrCreateNextOfKin(ctx, &patient.NextOfKin, *client.ID, *contact.ID)
 		if err != nil {
-			return nil, err
+			// accumulate errors rather than failing early for each client/patient
+			errs = multierror.Append(errs, fmt.Errorf("error creating client next of kin:%w", err))
+			helpers.ReportErrorToSentry(errs)
+			continue
 		}
 
-		clients = append(clients, client)
+		patients = append(patients, patient)
 	}
 
-	return clients, nil
+	return patients, errs
 }
 
 // RegisteredFacilityPatients checks for newly registered clients at a facility
