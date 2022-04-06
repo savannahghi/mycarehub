@@ -3542,3 +3542,86 @@ func TestUseCasesUserImpl_Consent(t *testing.T) {
 		})
 	}
 }
+
+func TestUseCasesUserImpl_RegisterPushToken(t *testing.T) {
+	ctx := context.Background()
+	type args struct {
+		ctx   context.Context
+		token string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Successfully register a push token",
+			args: args{
+				ctx:   ctx,
+				token: "valid token",
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Sad Case - invalid token length",
+			args: args{
+				ctx:   ctx,
+				token: "123",
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - Fail to get logged in user",
+			args: args{
+				ctx:   ctx,
+				token: "valid token",
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - Fail to update user profile",
+			args: args{
+				ctx:   ctx,
+				token: "valid token",
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			fakeExtension := extensionMock.NewFakeExtension()
+			otp := otp.NewOTPUseCase(fakeDB, fakeDB, fakeExtension)
+			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
+			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
+			fakePubsub := pubsubMock.NewPubsubServiceMock()
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, otp, fakeAuthority, fakeGetStream, fakePubsub)
+
+			if tt.name == "Sad Case - Fail to get logged in user" {
+				fakeExtension.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "", fmt.Errorf("failed to get logged in user")
+				}
+			}
+
+			if tt.name == "Sad Case - Fail to update user profile" {
+				fakeDB.MockUpdateUserFn = func(ctx context.Context, user *domain.User, updateData map[string]interface{}) error {
+					return fmt.Errorf("failed to update user profile")
+				}
+			}
+
+			got, err := us.RegisterPushToken(tt.args.ctx, tt.args.token)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCasesUserImpl.RegisterPushToken() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("UseCasesUserImpl.RegisterPushToken() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

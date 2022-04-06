@@ -27,7 +27,7 @@ type User struct {
 	// for the preferred language list, order matters
 	// Languages []enumutils.Language `json:"languages"`
 
-	// PushTokens []string
+	PushTokens []string `json:"pushTokens"`
 
 	// when a user logs in successfully, set this
 	LastSuccessfulLogin *time.Time `json:"lastSuccessfulLogin"`
