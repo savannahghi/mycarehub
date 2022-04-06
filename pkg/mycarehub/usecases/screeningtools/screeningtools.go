@@ -18,6 +18,7 @@ import (
 type IGetScreeningToolsQuestion interface {
 	GetScreeningToolQuestions(ctx context.Context, questionType *string) ([]*domain.ScreeningToolQuestion, error)
 	GetAvailableScreeningToolQuestions(ctx context.Context, clientID string) ([]*domain.AvailableScreeningTools, error)
+	GetAvailableFacilityScreeningTools(ctx context.Context, facilityID string) ([]*domain.AvailableScreeningTools, error)
 }
 
 // IAnswerScreeningToolQuestion represents the interface to answer screening tools questions
@@ -170,7 +171,6 @@ func (t *ServiceScreeningToolsImpl) AnswerScreeningToolQuestions(ctx context.Con
 			}
 			toolTypeCategory[string(screeningToolQuestion.ToolType)] = string(screeningToolQuestion.ToolType)
 			serviceRequests = append(serviceRequests, serviceRequest)
-
 		}
 	}
 
@@ -271,5 +271,37 @@ func (t *ServiceScreeningToolsImpl) GetAvailableScreeningToolQuestions(ctx conte
 		availableScreeningTools = append(availableScreeningTools, v)
 	}
 
+	return availableScreeningTools, nil
+}
+
+// GetAvailableFacilityScreeningTools returns all screening tool questions that fit the following criteria:
+// 1. Each tool type returned must have a response by the client and it's service request status must be pending
+// 2. The client and the staff must belong to the same facility
+func (t *ServiceScreeningToolsImpl) GetAvailableFacilityScreeningTools(ctx context.Context, facilityID string) ([]*domain.AvailableScreeningTools, error) {
+	availableScreeningTools := []*domain.AvailableScreeningTools{}
+	validToolTypes := make(map[enums.ScreeningToolType]*domain.AvailableScreeningTools)
+
+	toolType := enums.ServiceRequestTypeScreeningTools.String()
+	status := enums.ServiceRequestStatusPending.String()
+	pendingServiceRequests, err := t.Query.GetServiceRequests(
+		ctx,
+		&toolType,
+		&status,
+		facilityID,
+		feedlib.FlavourConsumer,
+	)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, fmt.Errorf("failed to get pending service requests: %v", err)
+	}
+	for _, pendingServiceRequest := range pendingServiceRequests {
+		validToolTypes[enums.ScreeningToolType(interfaceToString(pendingServiceRequest.Meta["question_type"]))] = &domain.AvailableScreeningTools{
+			ToolType: enums.ScreeningToolType(interfaceToString(pendingServiceRequest.Meta["question_type"])),
+		}
+	}
+
+	for _, v := range validToolTypes {
+		availableScreeningTools = append(availableScreeningTools, v)
+	}
 	return availableScreeningTools, nil
 }
