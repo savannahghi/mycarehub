@@ -86,7 +86,7 @@ type ClientProfile struct {
 
 	FacilityID string `json:"facilityID"`
 
-	CHVUserID   string  `json:"chvUserID"`
+	CHVUserID   *string `json:"chvUserID"`
 	CHVUserName string  `json:"chvUserName"`
 	CaregiverID *string `json:"caregiverID"`
 	CCCNumber   string  `json:"CCCNumber"`
@@ -146,6 +146,9 @@ type Contact struct {
 	// a user may opt not to be contacted via this contact
 	// e.g if it's a shared phone owned by a teenager
 	OptedIn bool `json:"optedIn"`
+
+	UserID  *string
+	Flavour feedlib.Flavour
 }
 
 // LoginResponse models the response to be returned on successful login

@@ -11,6 +11,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
+	"github.com/savannahghi/scalarutils"
 )
 
 // UserUseCaseMock mocks the implementation of usecase methods.
@@ -31,7 +32,7 @@ type UserUseCaseMock struct {
 	MockRegisterStaffFn                 func(ctx context.Context, input dto.StaffRegistrationInput) (*dto.StaffRegistrationOutput, error)
 	MockSearchClientsByCCCNumberFn      func(ctx context.Context, CCCNumber string) ([]*domain.ClientProfile, error)
 	MockCompleteOnboardingTourFn        func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
-	MockRegisterKenyaEMRPatientsFn      func(ctx context.Context, input []*dto.PatientRegistrationPayload) ([]*dto.ClientRegistrationOutput, error)
+	MockRegisterKenyaEMRPatientsFn      func(ctx context.Context, input []*dto.PatientRegistrationPayload) ([]*dto.PatientRegistrationPayload, error)
 	MockRegisteredFacilityPatientsFn    func(ctx context.Context, input dto.PatientSyncPayload) (*dto.PatientSyncResponse, error)
 	MockSetUserPINFn                    func(ctx context.Context, input dto.PINInput) (bool, error)
 	MockSearchStaffByStaffNumberFn      func(ctx context.Context, staffNumber string) ([]*domain.StaffProfile, error)
@@ -42,7 +43,7 @@ type UserUseCaseMock struct {
 	MockRegisterPushTokenFn             func(ctx context.Context, token string) (bool, error)
 }
 
-// NewUserUseCaseMock creates in itializes create type mocks
+// NewUserUseCaseMock creates in initializes create type mocks
 func NewUserUseCaseMock() *UserUseCaseMock {
 	var UUID = uuid.New().String()
 	caregiver := &domain.Caregiver{
@@ -151,10 +152,32 @@ func NewUserUseCaseMock() *UserUseCaseMock {
 		MockCompleteOnboardingTourFn: func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
 			return true, nil
 		},
-		MockRegisterKenyaEMRPatientsFn: func(ctx context.Context, input []*dto.PatientRegistrationPayload) ([]*dto.ClientRegistrationOutput, error) {
-			return []*dto.ClientRegistrationOutput{
+		MockRegisterKenyaEMRPatientsFn: func(ctx context.Context, input []*dto.PatientRegistrationPayload) ([]*dto.PatientRegistrationPayload, error) {
+			return []*dto.PatientRegistrationPayload{
 				{
-					ID: uuid.New().String(),
+					MFLCode:   "12345",
+					CCCNumber: "12345",
+					Name:      gofakeit.Name(),
+					DateOfBirth: scalarutils.Date{
+						Year:  2000,
+						Month: 12,
+						Day:   12,
+					},
+					ClientType:  "KenyaEMR",
+					PhoneNumber: gofakeit.Phone(),
+					EnrollmentDate: scalarutils.Date{
+						Year:  2000,
+						Month: 12,
+						Day:   12,
+					},
+					BirthDateEstimated: false,
+					Gender:             "MALE",
+					Counselled:         false,
+					NextOfKin: dto.NextOfKinPayload{
+						Name:         gofakeit.Name(),
+						Contact:      gofakeit.Phone(),
+						Relationship: "Brother",
+					},
 				},
 			}, nil
 		},
@@ -212,7 +235,7 @@ func (f *UserUseCaseMock) VerifyLoginPIN(ctx context.Context, userProfile *domai
 	return f.MockVerifyLoginPINFn(ctx, userProfile, pin, flavour)
 }
 
-// SetNickName is used to mock the implementation ofsetting or changing the user's nickname
+// SetNickName is used to mock the implementation to offset or change the user's nickname
 func (f *UserUseCaseMock) SetNickName(ctx context.Context, userID string, nickname string) (bool, error) {
 	return f.MockSetNickNameFn(ctx, userID, nickname)
 }
@@ -273,7 +296,7 @@ func (f *UserUseCaseMock) CompleteOnboardingTour(ctx context.Context, userID str
 }
 
 // RegisterKenyaEMRPatients mocks the implementation of registering kenyaEMR patients
-func (f *UserUseCaseMock) RegisterKenyaEMRPatients(ctx context.Context, input []*dto.PatientRegistrationPayload) ([]*dto.ClientRegistrationOutput, error) {
+func (f *UserUseCaseMock) RegisterKenyaEMRPatients(ctx context.Context, input []*dto.PatientRegistrationPayload) ([]*dto.PatientRegistrationPayload, error) {
 	return f.MockRegisterKenyaEMRPatientsFn(ctx, input)
 }
 

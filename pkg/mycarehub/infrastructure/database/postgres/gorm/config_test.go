@@ -34,6 +34,7 @@ var (
 	userID                                     = "6ecbbc80-24c8-421a-9f1a-e14e12678ee0"
 	userID2                                    = "6ecbbc80-24c8-421a-9f1a-e14e12678ef0"
 	userIDtoAddCaregiver                       = "8ecbbc80-24c8-421a-9f1a-e14e12678ef1"
+	userIDtoAssignClient                       = "4181df12-ca96-4f28-b78b-8e8ad88b25df"
 	userIDtoAssignStaff                        = "6ecccc80-24c8-421a-9f1a-e14e13678ef0"
 	userIDToInvalidate                         = "5ecbbc80-24c8-421a-9f1a-e14e12678ee0"
 	userIDToAcceptTerms                        = "4ecbbc80-24c8-421a-9f1a-e14e12678ee0"
@@ -55,6 +56,7 @@ var (
 	clientID                                   = "26b20a42-cbb8-4553-aedb-c539602d04fc"
 	clientID2                                  = "00a6a0cd-42ac-417b-97d9-e939a1232de1"
 	contactID                                  = "bdc22436-e314-43f2-bb39-ba1ab332f9b0"
+	identifierID                               = "bcbdaf68-3d36-4365-b575-4182d6749af5"
 	ClientToAddCaregiver                       = "00a6a0cd-42ac-417b-97d9-e939a1232de2"
 	// Facility variables
 	facilityID          = "4181df12-ca96-4f28-b78b-8e8ad88b25df"

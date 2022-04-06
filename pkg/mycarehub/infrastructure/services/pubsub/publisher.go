@@ -28,7 +28,7 @@ func (ps *ServicePubSubMessaging) newPublish(
 }
 
 // NotifyCreatePatient publishes to the create patient topic
-func (ps ServicePubSubMessaging) NotifyCreatePatient(ctx context.Context, client *dto.ClientRegistrationOutput) error {
+func (ps ServicePubSubMessaging) NotifyCreatePatient(ctx context.Context, client *dto.PatientCreationOutput) error {
 	return ps.newPublish(ctx, client, common.CreatePatientTopic, ClinicalServiceName)
 }
 

@@ -23,7 +23,7 @@ type FakeServicePubSub struct {
 		r *http.Request,
 	)
 
-	MockNotifyCreatePatientFn func(ctx context.Context, client *dto.ClientRegistrationOutput) error
+	MockNotifyCreatePatientFn func(ctx context.Context, client *dto.PatientCreationOutput) error
 
 	MockNotifyCreateVitalsFn       func(ctx context.Context, vitals *dto.PatientVitalSignOutput) error
 	MockNotifyCreateAllergyFn      func(ctx context.Context, allergy *dto.PatientAllergyOutput) error
@@ -44,7 +44,7 @@ func NewPubsubServiceMock() *FakeServicePubSub {
 			returnedResponse, _ := json.Marshal(resp)
 			_, _ = w.Write(returnedResponse)
 		},
-		MockNotifyCreatePatientFn: func(ctx context.Context, client *dto.ClientRegistrationOutput) error {
+		MockNotifyCreatePatientFn: func(ctx context.Context, client *dto.PatientCreationOutput) error {
 			return nil
 		},
 		MockNotifyCreateVitalsFn: func(ctx context.Context, vitals *dto.PatientVitalSignOutput) error {
@@ -79,7 +79,7 @@ func (m *FakeServicePubSub) PublishToPubsub(
 }
 
 // NotifyCreatePatient publishes to the create patient topic
-func (m *FakeServicePubSub) NotifyCreatePatient(ctx context.Context, client *dto.ClientRegistrationOutput) error {
+func (m *FakeServicePubSub) NotifyCreatePatient(ctx context.Context, client *dto.PatientCreationOutput) error {
 	return m.MockNotifyCreatePatientFn(ctx, client)
 }
 

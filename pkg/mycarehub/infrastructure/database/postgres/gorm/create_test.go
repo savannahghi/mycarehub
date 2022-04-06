@@ -1073,3 +1073,132 @@ func TestPGInstance_CreateStaffServiceRequest(t *testing.T) {
 		})
 	}
 }
+
+func TestPGInstance_CreateUser(t *testing.T) {
+	date := gofakeit.Date()
+
+	type args struct {
+		ctx  context.Context
+		user *gorm.User
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "happy case: create a new user",
+			args: args{
+				ctx: context.Background(),
+				user: &gorm.User{
+					Active:      true,
+					Username:    gofakeit.Username(),
+					Name:        gofakeit.Name(),
+					Gender:      enumutils.GenderMale,
+					DateOfBirth: &date,
+					UserType:    enums.ClientUser,
+					Flavour:     feedlib.FlavourConsumer,
+				},
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := testingDB.CreateUser(tt.args.ctx, tt.args.user); (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.CreateUser() error = %v, wantErr %v", err, tt.wantErr)
+			}
+
+			if !tt.wantErr && tt.args.user.UserID == nil {
+				t.Errorf("expected user ID not to be nil for %v", tt.name)
+				return
+			}
+		})
+	}
+}
+
+func TestPGInstance_CreateClient(t *testing.T) {
+	enrollment := time.Now()
+
+	type args struct {
+		ctx          context.Context
+		client       *gorm.Client
+		contactID    string
+		identifierID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "happy case: create client",
+			args: args{
+				ctx: context.Background(),
+				client: &gorm.Client{
+					Active:                  true,
+					UserID:                  &userIDtoAssignClient,
+					FacilityID:              facilityID,
+					ClientCounselled:        true,
+					ClientType:              enums.ClientTypePmtct.String(),
+					TreatmentEnrollmentDate: &enrollment,
+				},
+				contactID:    contactID,
+				identifierID: identifierID,
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := testingDB.CreateClient(tt.args.ctx, tt.args.client, tt.args.contactID, tt.args.identifierID); (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.CreateClient() error = %v, wantErr %v", err, tt.wantErr)
+			}
+
+			if !tt.wantErr && tt.args.client.ID == nil {
+				t.Errorf("expected client ID not to be nil for %v", tt.name)
+				return
+			}
+		})
+	}
+}
+
+func TestPGInstance_CreateIdentifier(t *testing.T) {
+	type args struct {
+		ctx        context.Context
+		identifier *gorm.Identifier
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "happy case: create identifier",
+			args: args{
+				ctx: context.Background(),
+				identifier: &gorm.Identifier{
+					Active:              true,
+					IdentifierType:      "CCC",
+					IdentifierValue:     "5678901234789",
+					IdentifierUse:       "OFFICIAL",
+					Description:         "CCC Number, Primary Identifier",
+					IsPrimaryIdentifier: true,
+				},
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := testingDB.CreateIdentifier(tt.args.ctx, tt.args.identifier); (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.CreateIdentifier() error = %v, wantErr %v", err, tt.wantErr)
+			}
+
+			if !tt.wantErr && tt.args.identifier.ID == "" {
+				t.Errorf("expected identifier ID not to be empty for %v", tt.name)
+				return
+			}
+		})
+	}
+}

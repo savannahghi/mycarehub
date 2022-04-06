@@ -780,6 +780,166 @@ func TestMyCareHubDb_CreateAppointment(t *testing.T) {
 	}
 }
 
+func TestMyCareHubDb_CreateUser(t *testing.T) {
+	var fakeGorm = gormMock.NewGormMock()
+	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+	date := gofakeit.Date()
+
+	type args struct {
+		ctx  context.Context
+		user domain.User
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *domain.User
+		wantErr bool
+	}{
+		{
+			name: "happy case: create user",
+			args: args{
+				ctx: context.Background(),
+				user: domain.User{
+					Username:    gofakeit.Username(),
+					Name:        gofakeit.Name(),
+					Gender:      enumutils.GenderMale,
+					DateOfBirth: &date,
+					UserType:    enums.ClientUser,
+					Flavour:     feedlib.FlavourConsumer,
+				},
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := d.CreateUser(tt.args.ctx, tt.args.user)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.CreateUser() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			if tt.wantErr && got != nil {
+				t.Errorf("expected user to be nil for %v", tt.name)
+				return
+			}
+
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected user not to be nil for %v", tt.name)
+				return
+			}
+		})
+	}
+}
+
+func TestMyCareHubDb_CreateClient(t *testing.T) {
+	var fakeGorm = gormMock.NewGormMock()
+	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+	enrollment := time.Now()
+	userID := gofakeit.UUID()
+
+	type args struct {
+		ctx          context.Context
+		client       domain.ClientProfile
+		contactID    string
+		identifierID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *domain.ClientProfile
+		wantErr bool
+	}{
+		{
+			name: "happy case: create client",
+			args: args{
+				ctx: context.Background(),
+				client: domain.ClientProfile{
+					Active:                  true,
+					UserID:                  userID,
+					FacilityID:              gofakeit.UUID(),
+					ClientCounselled:        true,
+					ClientType:              enums.ClientTypePmtct.String(),
+					TreatmentEnrollmentDate: &enrollment,
+				},
+				contactID:    gofakeit.UUID(),
+				identifierID: gofakeit.UUID(),
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := d.CreateClient(tt.args.ctx, tt.args.client, tt.args.contactID, tt.args.identifierID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.CreateClient() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			if tt.wantErr && got != nil {
+				t.Errorf("expected client to be nil for %v", tt.name)
+				return
+			}
+
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected client not to be nil for %v", tt.name)
+				return
+			}
+		})
+	}
+}
+
+func TestMyCareHubDb_CreateIdentifier(t *testing.T) {
+	var fakeGorm = gormMock.NewGormMock()
+	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+	type args struct {
+		ctx        context.Context
+		identifier domain.Identifier
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *domain.Identifier
+		wantErr bool
+	}{
+		{
+			name: "happy case: create identifier",
+			args: args{
+				ctx: context.Background(),
+				identifier: domain.Identifier{
+					IdentifierType:      "CCC",
+					IdentifierValue:     "5678901234789",
+					IdentifierUse:       "OFFICIAL",
+					Description:         "CCC Number, Primary Identifier",
+					IsPrimaryIdentifier: true,
+				},
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := d.CreateIdentifier(tt.args.ctx, tt.args.identifier)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.CreateIdentifier() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			if tt.wantErr && got != nil {
+				t.Errorf("expected identifier to be nil for %v", tt.name)
+				return
+			}
+
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected identifier not to be nil for %v", tt.name)
+				return
+			}
+		})
+	}
+}
+
 func TestMyCareHubDb_AnswerScreeningToolQuestions(t *testing.T) {
 	type args struct {
 		ctx                    context.Context
