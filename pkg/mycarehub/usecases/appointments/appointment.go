@@ -247,7 +247,7 @@ func (a *UseCasesAppointmentsImpl) AddPatientRecord(ctx context.Context, input d
 		return fmt.Errorf("ccc number is required")
 	}
 
-	_, err := a.Query.RetrieveFacilityByMFLCode(ctx, input.MFLCode, true)
+	facility, err := a.Query.RetrieveFacilityByMFLCode(ctx, input.MFLCode, true)
 	if err != nil {
 		return fmt.Errorf("error retrieving facility with mfl code: %v", input.MFLCode)
 	}
@@ -260,7 +260,7 @@ func (a *UseCasesAppointmentsImpl) AddPatientRecord(ctx context.Context, input d
 	for _, vital := range input.VitalSigns {
 		payload := dto.PatientVitalSignOutput{
 			PatientID:      *client.FHIRPatientID,
-			OrganizationID: "", //TODO: FHIR organization ID
+			OrganizationID: facility.FHIROrganisationID,
 			Name:           vital.Name,
 			ConceptID:      vital.ConceptID,
 			Value:          vital.Value,
@@ -275,7 +275,7 @@ func (a *UseCasesAppointmentsImpl) AddPatientRecord(ctx context.Context, input d
 	for _, allergy := range input.Allergies {
 		payload := dto.PatientAllergyOutput{
 			PatientID:      *client.FHIRPatientID,
-			OrganizationID: "", //TODO: FHIR organization ID
+			OrganizationID: facility.FHIROrganisationID,
 			Name:           allergy.Name,
 			ConceptID:      allergy.AllergyConceptID,
 			Date:           allergy.Date,
@@ -297,7 +297,7 @@ func (a *UseCasesAppointmentsImpl) AddPatientRecord(ctx context.Context, input d
 	for _, medication := range input.Medications {
 		payload := dto.PatientMedicationOutput{
 			PatientID:      *client.FHIRPatientID,
-			OrganizationID: "", //TODO: FHIR organization ID
+			OrganizationID: facility.FHIROrganisationID,
 			Name:           medication.Name,
 			ConceptID:      medication.MedicationConceptID,
 			Date:           medication.Date,
@@ -319,7 +319,7 @@ func (a *UseCasesAppointmentsImpl) AddPatientRecord(ctx context.Context, input d
 	for _, result := range input.TestResults {
 		payload := dto.PatientTestResultOutput{
 			PatientID:      *client.FHIRPatientID,
-			OrganizationID: "", //TODO: FHIR organization ID
+			OrganizationID: facility.FHIROrganisationID,
 			Name:           result.Name,
 			ConceptID:      result.TestConceptID,
 			Date:           result.Date,
@@ -337,7 +337,7 @@ func (a *UseCasesAppointmentsImpl) AddPatientRecord(ctx context.Context, input d
 	for _, order := range input.TestOrders {
 		payload := dto.PatientTestOrderOutput{
 			PatientID:      *client.FHIRPatientID,
-			OrganizationID: "", //TODO: FHIR organization ID
+			OrganizationID: facility.FHIROrganisationID,
 			Name:           order.Name,
 			ConceptID:      order.ConceptID,
 			Date:           order.Date,
