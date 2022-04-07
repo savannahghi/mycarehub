@@ -39,6 +39,7 @@ type UserUseCaseMock struct {
 	MockGetUserProfileFn                func(ctx context.Context, userID string) (*domain.User, error)
 	MockAddClientFHIRIDFn               func(ctx context.Context, input dto.ClientFHIRPayload) error
 	MockGenerateTemporaryPinFn          func(ctx context.Context, userID string, flavour feedlib.Flavour) (string, error)
+	MockRegisterPushTokenFn             func(ctx context.Context, token string) (bool, error)
 }
 
 // NewUserUseCaseMock creates in itializes create type mocks
@@ -185,6 +186,9 @@ func NewUserUseCaseMock() *UserUseCaseMock {
 		MockGenerateTemporaryPinFn: func(ctx context.Context, userID string, flavour feedlib.Flavour) (string, error) {
 			return "1234", nil
 		},
+		MockRegisterPushTokenFn: func(ctx context.Context, token string) (bool, error) {
+			return true, nil
+		},
 	}
 }
 
@@ -306,4 +310,9 @@ func (f *UserUseCaseMock) AddClientFHIRID(ctx context.Context, input dto.ClientF
 // GenerateTemporaryPin mocks the implementation of generating temporary pin
 func (f *UserUseCaseMock) GenerateTemporaryPin(ctx context.Context, userID string, flavour feedlib.Flavour) (string, error) {
 	return f.MockGenerateTemporaryPinFn(ctx, userID, flavour)
+}
+
+// RegisterPushToken mocks the implementation for adding a push token to a user's profile
+func (f *UserUseCaseMock) RegisterPushToken(ctx context.Context, token string) (bool, error) {
+	return f.MockRegisterPushTokenFn(ctx, token)
 }

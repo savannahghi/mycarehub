@@ -42,6 +42,10 @@ func (r *mutationResolver) OptOut(ctx context.Context, phoneNumber string, flavo
 	return r.mycarehub.User.Consent(ctx, phoneNumber, flavour, false)
 }
 
+func (r *mutationResolver) SetPushToken(ctx context.Context, token string) (bool, error) {
+	return r.mycarehub.User.RegisterPushToken(ctx, token)
+}
+
 func (r *queryResolver) GetCurrentTerms(ctx context.Context, flavour feedlib.Flavour) (*domain.TermsOfService, error) {
 	r.checkPreconditions()
 	return r.mycarehub.Terms.GetCurrentTerms(ctx, flavour)

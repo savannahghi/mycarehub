@@ -12,6 +12,7 @@ import (
 	"time"
 
 	getStreamClient "github.com/GetStream/stream-chat-go/v5"
+	"github.com/lib/pq"
 	"github.com/savannahghi/converterandformatter"
 	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/feedlib"
@@ -48,6 +49,7 @@ type ILogin interface {
 type IRefreshToken interface {
 	RefreshToken(ctx context.Context, userID string) (*domain.AuthCredentials, error)
 	RefreshGetStreamToken(ctx context.Context, userID string) (*domain.GetStreamToken, error)
+	RegisterPushToken(ctx context.Context, token string) (bool, error)
 }
 
 // ISetUserPIN is an interface that contains all the user use cases for pins
@@ -1250,6 +1252,31 @@ func (us *UseCasesUserImpl) Consent(ctx context.Context, phoneNumber string, fla
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return false, fmt.Errorf("failed to update user's active status: %v", err)
+	}
+
+	return true, nil
+}
+
+// RegisterPushToken adds a new push token in the users profile
+func (us *UseCasesUserImpl) RegisterPushToken(ctx context.Context, token string) (bool, error) {
+	if len(token) < 5 {
+		return false, fmt.Errorf("invalid push token length")
+	}
+
+	loggedInUserID, err := us.ExternalExt.GetLoggedInUserUID(ctx)
+	if err != nil {
+		return false, exceptions.GetLoggedInUserUIDErr(err)
+	}
+
+	var tokens pq.StringArray
+	tokens = append(tokens, token)
+	err = us.Update.UpdateUser(ctx, &domain.User{
+		ID: &loggedInUserID,
+	}, map[string]interface{}{
+		"push_tokens": tokens,
+	})
+	if err != nil {
+		return false, fmt.Errorf("failed to update user push token")
 	}
 
 	return true, nil
