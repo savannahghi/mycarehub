@@ -3583,8 +3583,6 @@ func TestMyCareHubDb_GetClientCCCIdentifier(t *testing.T) {
 
 func TestMyCareHubDb_GetServiceRequestsForKenyaEMR(t *testing.T) {
 	ctx := context.Background()
-	var fakeGorm = gormMock.NewGormMock()
-	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
 	currentTime := time.Now()
 
 	type args struct {
@@ -3619,14 +3617,69 @@ func TestMyCareHubDb_GetServiceRequestsForKenyaEMR(t *testing.T) {
 			},
 			wantErr: true,
 		},
+		{
+			name: "Sad case: Fail to retrieve facility by mfl code",
+			args: args{
+				ctx: ctx,
+				payload: &dto.ServiceRequestPayload{
+					MFLCode:      123,
+					LastSyncTime: &currentTime,
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case - Fail to get client profile by client ID",
+			args: args{
+				ctx: ctx,
+				payload: &dto.ServiceRequestPayload{
+					MFLCode:      1234,
+					LastSyncTime: &currentTime,
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case - Fail to get user profile by user ID",
+			args: args{
+				ctx: ctx,
+				payload: &dto.ServiceRequestPayload{
+					MFLCode:      1234,
+					LastSyncTime: &currentTime,
+				},
+			},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			var fakeGorm = gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
 			if tt.name == "Sad case" {
 				fakeGorm.MockGetServiceRequestsForKenyaEMRFn = func(ctx context.Context, facilityID string, lastSyncTime time.Time) ([]*gorm.ClientServiceRequest, error) {
 					return nil, fmt.Errorf("an error occurred")
 				}
 			}
+
+			if tt.name == "Sad case: Fail to retrieve facility by mfl code" {
+				fakeGorm.MockRetrieveFacilityByMFLCodeFn = func(ctx context.Context, MFLCode int, isActive bool) (*gorm.Facility, error) {
+					return nil, fmt.Errorf("failed to retrieve facility by mflcode")
+				}
+			}
+
+			if tt.name == "Sad case - Fail to get client profile by client ID" {
+				fakeGorm.MockGetClientProfileByClientIDFn = func(ctx context.Context, clientID string) (*gorm.Client, error) {
+					return nil, fmt.Errorf("failed to get client profile")
+				}
+			}
+
+			if tt.name == "Sad case - Fail to get user profile by user ID" {
+				fakeGorm.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID *string) (*gorm.User, error) {
+					return nil, fmt.Errorf("failed to get user profile by user ID")
+				}
+			}
+
 			got, err := d.GetServiceRequestsForKenyaEMR(tt.args.ctx, tt.args.payload)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("MyCareHubDb.GetServiceRequestsForKenyaEMR() error = %v, wantErr %v", err, tt.wantErr)

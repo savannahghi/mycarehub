@@ -85,7 +85,7 @@ type User struct {
 	// // for the preferred language list, order matters
 	// Languages pq.StringArray `gorm:"type:text[];column:languages;not null"` // TODO: turn this into a slice of enums, start small (en, sw)
 
-	PushTokens []string `gorm:"type:text[];column:push_tokens"`
+	PushTokens pq.StringArray `gorm:"type:text[];column:push_tokens"`
 
 	// when a user logs in successfully, set this
 	LastSuccessfulLogin *time.Time `gorm:"type:time;column:last_successful_login"`

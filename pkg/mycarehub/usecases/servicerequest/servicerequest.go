@@ -49,7 +49,7 @@ type ISetInProgresssBy interface {
 // IGetServiceRequests is an interface that holds the method signature for getting service requests
 type IGetServiceRequests interface {
 	GetServiceRequests(ctx context.Context, requestType, requestStatus *string, facilityID string, flavour feedlib.Flavour) ([]*domain.ServiceRequest, error)
-	GetServiceRequestsForKenyaEMR(ctx context.Context, payload *dto.ServiceRequestPayload) ([]*domain.ServiceRequest, error)
+	GetServiceRequestsForKenyaEMR(ctx context.Context, payload *dto.ServiceRequestPayload) (*dto.RedFlagServiceRequestResponse, error)
 	GetPendingServiceRequestsCount(ctx context.Context, facilityID string) (*domain.ServiceRequestsCountResponse, error)
 }
 
@@ -197,8 +197,15 @@ func (u *UseCasesServiceRequestImpl) GetServiceRequests(
 
 // GetServiceRequestsForKenyaEMR fetches all the most recent service requests  that have not been
 // synced to KenyaEMR.
-func (u *UseCasesServiceRequestImpl) GetServiceRequestsForKenyaEMR(ctx context.Context, payload *dto.ServiceRequestPayload) ([]*domain.ServiceRequest, error) {
-	return u.Query.GetServiceRequestsForKenyaEMR(ctx, payload)
+func (u *UseCasesServiceRequestImpl) GetServiceRequestsForKenyaEMR(ctx context.Context, payload *dto.ServiceRequestPayload) (*dto.RedFlagServiceRequestResponse, error) {
+	serviceRequests, err := u.Query.GetServiceRequestsForKenyaEMR(ctx, payload)
+	if err != nil {
+		return nil, err
+	}
+
+	return &dto.RedFlagServiceRequestResponse{
+		RedFlagServiceRequests: serviceRequests,
+	}, nil
 }
 
 // GetPendingServiceRequestsCount gets the total number of service requests
