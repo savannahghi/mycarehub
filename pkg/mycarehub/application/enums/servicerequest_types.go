@@ -22,8 +22,8 @@ const (
 	ServiceRequestTypeHomePageHealthDiary ServiceRequestType = "HOME_PAGE_HEALTH_DIARY_ENTRY"
 	// ServiceRequestTypeAppointments represents the appointments service request
 	ServiceRequestTypeAppointments ServiceRequestType = "APPOINTMENTS"
-	// ServiceRequestTypeScreeningTools represents the screening tools service request
-	ServiceRequestTypeScreeningTools ServiceRequestType = "SCREENING_TOOLS_RED_FLAG"
+	// ServiceRequestTypeScreeningToolsRedFlag represents the screening tools service request
+	ServiceRequestTypeScreeningToolsRedFlag ServiceRequestType = "SCREENING_TOOLS_RED_FLAG"
 )
 
 // AllServiceRequestType is a set of a  valid and known service request types.
@@ -34,7 +34,7 @@ var AllServiceRequestType = []ServiceRequestType{
 	ServiceRequestTypeProfileUpdate,
 	ServiceRequestTypeHomePageHealthDiary,
 	ServiceRequestTypeAppointments,
-	ServiceRequestTypeScreeningTools,
+	ServiceRequestTypeScreeningToolsRedFlag,
 }
 
 // IsValid returns true if a request type is valid
@@ -46,7 +46,7 @@ func (m ServiceRequestType) IsValid() bool {
 		ServiceRequestTypeProfileUpdate,
 		ServiceRequestTypeHomePageHealthDiary,
 		ServiceRequestTypeAppointments,
-		ServiceRequestTypeScreeningTools:
+		ServiceRequestTypeScreeningToolsRedFlag:
 		return true
 	}
 	return false

@@ -97,3 +97,19 @@ func ConvertTimeToScalarDate(t time.Time) (scalarutils.Date, error) {
 		Day:   t.Day(),
 	}, nil
 }
+
+// InterfaceToInt converts an interface to an int
+func InterfaceToInt(n interface{}) int {
+	if n == nil {
+		return 0
+	}
+	return n.(int)
+}
+
+// InterfaceToString converts an interface to a string
+func InterfaceToString(n interface{}) string {
+	if n == nil {
+		return ""
+	}
+	return n.(string)
+}

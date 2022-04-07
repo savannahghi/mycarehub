@@ -5046,7 +5046,7 @@ func TestMyCareHubDb_GetClientServiceRequests(t *testing.T) {
 			name: "Happy case:  get system generated client service requests",
 			args: args{
 				ctx:      context.Background(),
-				toolType: "SCREENING_TOOLS",
+				toolType: "SCREENING_TOOLS_RED_FLAG",
 				status:   enums.ServiceRequestStatusPending.String(),
 				clientID: uuid.New().String(),
 			},

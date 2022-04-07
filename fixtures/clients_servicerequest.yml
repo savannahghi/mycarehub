@@ -72,7 +72,7 @@
   created: 2021-11-22 21:16:29.23639+03
   updated: 2021-11-22 21:16:29.23639+03
   active: true
-  request_type: SCREENING_TOOLS
+  request_type: SCREENING_TOOLS_RED_FLAG
   request: TEST REQUEST
   status: RESOLVED
   in_progress_at: RAW=NOW()

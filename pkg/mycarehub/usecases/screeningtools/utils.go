@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/utils"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 )
 
@@ -35,7 +36,7 @@ func addCondition(question *domain.ScreeningToolQuestion, response string, condi
 		//
 		// the key will be `VIOLENCE_ASSESSMENT_yes_count`
 		responseCountKey := question.ToolType.String() + "_" + responseTrimmedValue + "_count"
-		condition[responseCountKey] = interfaceToInt(condition[responseCountKey]) + 1
+		condition[responseCountKey] = utils.InterfaceToInt(condition[responseCountKey]) + 1
 	}
 	/*
 				The condition would resemble this:
@@ -56,14 +57,16 @@ func addCondition(question *domain.ScreeningToolQuestion, response string, condi
 func createServiceRequest(question *domain.ScreeningToolQuestion, response string, condition map[string]interface{}) *domain.ServiceRequest {
 	serviceRequestTemplate := serviceRequestTemplate(question, response, condition)
 
-	yesCount := interfaceToInt(condition[question.ToolType.String()+"_"+"yes"+"_count"])
-	noCount := interfaceToInt(condition[question.ToolType.String()+"_"+"no"+"_count"])
+	yesCount := utils.InterfaceToInt(condition[question.ToolType.String()+"_"+"yes"+"_count"])
+	noCount := utils.InterfaceToInt(condition[question.ToolType.String()+"_"+"no"+"_count"])
 
 	switch question.ToolType {
 	case enums.ScreeningToolTypeTB:
 		if yesCount >= 3 {
+			condition[question.ToolType.String()+"_score"] = yesCount
+			condition[question.ToolType.String()+"_screening_tool_name"] = "TB"
 			return &domain.ServiceRequest{
-				RequestType: enums.ServiceRequestTypeScreeningTools.String(),
+				RequestType: enums.ServiceRequestTypeScreeningToolsRedFlag.String(),
 				Request:     serviceRequestTemplate,
 			}
 		}
@@ -73,21 +76,25 @@ func createServiceRequest(question *domain.ScreeningToolQuestion, response strin
 		}
 	case enums.ScreeningToolTypeGBV:
 		if yesCount >= 1 {
+			condition[question.ToolType.String()+"_score"] = yesCount
+			condition[question.ToolType.String()+"_screening_tool_name"] = "GBV"
 			return &domain.ServiceRequest{
-				RequestType: enums.ServiceRequestTypeScreeningTools.String(),
+				RequestType: enums.ServiceRequestTypeScreeningToolsRedFlag.String(),
 				Request:     serviceRequestTemplate,
 			}
 		}
 	case enums.ScreeningToolTypeCUI:
 		toolTypeResponse := enums.ScreeningToolTypeCUI.String() + "_question_number_" + "3"
+		// TODO:  send a notification to HCW in the client’s facility for discussion with the clinician during the next visit
 		if condition[toolTypeResponse] == "yes" {
-			// TODO:  send a notification to HCW in the client’s facility for discussion with the clinician during the next visit
 			return nil
 		}
 	case enums.ScreeningToolTypeAlcoholSubstanceAssessment:
 		if yesCount >= 3 {
+			condition[question.ToolType.String()+"_score"] = yesCount
+			condition[question.ToolType.String()+"_screening_tool_name"] = "Alcohol and Substance"
 			return &domain.ServiceRequest{
-				RequestType: enums.ServiceRequestTypeScreeningTools.String(),
+				RequestType: enums.ServiceRequestTypeScreeningToolsRedFlag.String(),
 				Request:     serviceRequestTemplate,
 			}
 		}
@@ -99,20 +106,15 @@ func serviceRequestTemplate(question *domain.ScreeningToolQuestion, response str
 	var (
 		requestTemplate string
 		gbvMetaTemplate string
-		questionMeta    map[string]interface{}
 	)
 
-	questionMetaKey := question.ToolType.String() + "_question_number_" + strconv.Itoa(question.Sequence) + "_question_meta"
-
-	if condition[questionMetaKey] != nil {
-		questionMeta = condition[questionMetaKey].(map[string]interface{})
-	}
+	questionMeta := getQuestionMeta(question, condition)
 
 	callClientString := "Consider calling Client for further discussion."
 	repeatScreeningString := "Repeat screening for client on subsequent visits."
 
-	yesCount := interfaceToInt(condition[question.ToolType.String()+"_"+"yes"+"_count"])
-	noCount := interfaceToInt(condition[question.ToolType.String()+"_"+"no"+"_count"])
+	yesCount := utils.InterfaceToInt(condition[question.ToolType.String()+"_"+"yes"+"_count"])
+	noCount := utils.InterfaceToInt(condition[question.ToolType.String()+"_"+"no"+"_count"])
 
 	switch question.ToolType {
 	case enums.ScreeningToolTypeTB:
@@ -123,7 +125,7 @@ func serviceRequestTemplate(question *domain.ScreeningToolQuestion, response str
 			requestTemplate = "TB assessment: all no responses indicates no TB cases. " + repeatScreeningString
 		}
 	case enums.ScreeningToolTypeGBV:
-		gbvMetaTemplate = "The GBV code is " + interfaceToString(questionMeta["violence_code"]) + ". "
+		gbvMetaTemplate = "The GBV code is " + utils.InterfaceToString(questionMeta["violence_code"]) + ". "
 		if yesCount >= 1 {
 			requestTemplate = "Violence assessment: greater than or equal to 1 yes responses indicates positive Violence cases. " + gbvMetaTemplate + callClientString
 		}
@@ -147,16 +149,11 @@ func serviceRequestTemplate(question *domain.ScreeningToolQuestion, response str
 	return requestTemplate
 }
 
-func interfaceToInt(n interface{}) int {
-	if n == nil {
-		return 0
-	}
-	return n.(int)
-}
+func getQuestionMeta(question *domain.ScreeningToolQuestion, condition map[string]interface{}) map[string]interface{} {
+	questionMetaKey := question.ToolType.String() + "_question_number_" + strconv.Itoa(question.Sequence) + "_question_meta"
 
-func interfaceToString(n interface{}) string {
-	if n == nil {
-		return ""
+	if condition[questionMetaKey] != nil {
+		return condition[questionMetaKey].(map[string]interface{})
 	}
-	return n.(string)
+	return nil
 }
