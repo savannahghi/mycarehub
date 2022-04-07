@@ -3760,7 +3760,7 @@ func TestPGInstance_GetClientServiceRequests(t *testing.T) {
 			name: "Happy case",
 			args: args{
 				ctx:         context.Background(),
-				requestType: string(enums.ServiceRequestTypeScreeningTools),
+				requestType: string(enums.ServiceRequestTypeScreeningToolsRedFlag),
 				status:      string(enums.ServiceRequestStatusResolved),
 				clientID:    clientID,
 			},

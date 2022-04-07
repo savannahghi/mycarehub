@@ -229,3 +229,69 @@ func TestConvertTimeToScalarDate(t *testing.T) {
 		})
 	}
 }
+
+func Test_InterfaceToInt(t *testing.T) {
+	type args struct {
+		n interface{}
+	}
+	tests := []struct {
+		name string
+		args args
+		want int
+	}{
+		{
+			name: "Test_initializeInt:  initialize existing int",
+			args: args{
+				n: 130,
+			},
+			want: 130,
+		},
+		{
+			name: "Test_initializeInt:  initialize int",
+			args: args{
+				n: nil,
+			},
+			want: 0,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := InterfaceToInt(tt.args.n); got != tt.want {
+				t.Errorf("InterfaceToInt() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func Test_interfaceToString(t *testing.T) {
+	type args struct {
+		n interface{}
+	}
+	tests := []struct {
+		name string
+		args args
+		want string
+	}{
+		{
+			name: "Test_interfaceToString:  initialize existing string",
+			args: args{
+				n: "130",
+			},
+			want: "130",
+		},
+		{
+			name: "Test_interfaceToString:  initialize string",
+			args: args{
+				n: nil,
+			},
+			want: "",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := InterfaceToString(tt.args.n); got != tt.want {
+				t.Errorf("InterfaceToString() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

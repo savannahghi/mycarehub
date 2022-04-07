@@ -3,6 +3,7 @@ package screeningtools
 import (
 	"context"
 	"fmt"
+	"strconv"
 
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
@@ -10,6 +11,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/utils"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
 )
@@ -164,14 +166,18 @@ func (t *ServiceScreeningToolsImpl) AnswerScreeningToolQuestions(ctx context.Con
 		condition = addCondition(screeningToolQuestion, screeningToolResponse.Response, condition)
 		serviceRequest := createServiceRequest(screeningToolQuestion, screeningToolResponse.Response, condition)
 		if serviceRequest != nil {
+			score := strconv.Itoa(utils.InterfaceToInt(condition[screeningToolQuestion.ToolType.String()+"_score"]))
 			serviceRequest.Active = true
 			serviceRequest.Status = enums.ServiceRequestStatusPending.String()
 			serviceRequest.ClientID = screeningToolResponse.ClientID
 			serviceRequest.FacilityID = clientProfile.FacilityID
 			serviceRequest.Meta = map[string]interface{}{
-				"question_id":   screeningToolQuestion.ID,
-				"question_type": screeningToolQuestion.ToolType,
+				"question_id":         screeningToolQuestion.ID,
+				"question_type":       screeningToolQuestion.ToolType,
+				"score":               score,
+				"screening_tool_name": utils.InterfaceToString(condition[screeningToolQuestion.ToolType.String()+"_screening_tool_name"]),
 			}
+			// delete(toolTypeCategory, string(enums.ScreeningToolTypeGBV))
 			if _, ok := toolTypeCategory[screeningToolQuestion.ToolType.String()]; ok {
 				continue
 			}
@@ -261,7 +267,7 @@ func (t *ServiceScreeningToolsImpl) GetAvailableScreeningToolQuestions(ctx conte
 
 	pendingServiceRequests, err := t.Query.GetClientServiceRequests(
 		ctx,
-		enums.ServiceRequestTypeScreeningTools.String(),
+		enums.ServiceRequestTypeScreeningToolsRedFlag.String(),
 		enums.ServiceRequestStatusPending.String(),
 		clientID,
 	)
@@ -270,7 +276,7 @@ func (t *ServiceScreeningToolsImpl) GetAvailableScreeningToolQuestions(ctx conte
 		return nil, fmt.Errorf("failed to get pending service requests: %v", err)
 	}
 	for _, pendingServiceRequest := range pendingServiceRequests {
-		delete(validToolTypes, enums.ScreeningToolType(interfaceToString(pendingServiceRequest.Meta["question_type"])))
+		delete(validToolTypes, enums.ScreeningToolType(utils.InterfaceToString(pendingServiceRequest.Meta["question_type"])))
 	}
 
 	for _, v := range validToolTypes {
@@ -287,7 +293,7 @@ func (t *ServiceScreeningToolsImpl) GetAvailableFacilityScreeningTools(ctx conte
 	availableScreeningTools := []*domain.AvailableScreeningTools{}
 	validToolTypes := make(map[enums.ScreeningToolType]*domain.AvailableScreeningTools)
 
-	toolType := enums.ServiceRequestTypeScreeningTools.String()
+	toolType := enums.ServiceRequestTypeScreeningToolsRedFlag.String()
 	status := enums.ServiceRequestStatusPending.String()
 	pendingServiceRequests, err := t.Query.GetServiceRequests(
 		ctx,
@@ -301,8 +307,8 @@ func (t *ServiceScreeningToolsImpl) GetAvailableFacilityScreeningTools(ctx conte
 		return nil, fmt.Errorf("failed to get pending service requests: %v", err)
 	}
 	for _, pendingServiceRequest := range pendingServiceRequests {
-		validToolTypes[enums.ScreeningToolType(interfaceToString(pendingServiceRequest.Meta["question_type"]))] = &domain.AvailableScreeningTools{
-			ToolType: enums.ScreeningToolType(interfaceToString(pendingServiceRequest.Meta["question_type"])),
+		validToolTypes[enums.ScreeningToolType(utils.InterfaceToString(pendingServiceRequest.Meta["question_type"]))] = &domain.AvailableScreeningTools{
+			ToolType: enums.ScreeningToolType(utils.InterfaceToString(pendingServiceRequest.Meta["question_type"])),
 		}
 	}
 

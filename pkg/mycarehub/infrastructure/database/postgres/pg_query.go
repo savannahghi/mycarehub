@@ -1111,6 +1111,10 @@ func (d *MyCareHubDb) GetServiceRequestsForKenyaEMR(ctx context.Context, payload
 		return nil, err
 	}
 	for _, serviceReq := range allServiceRequests {
+		var (
+			screeningToolName  string
+			screeningToolScore string
+		)
 		clientProfile, err := d.query.GetClientProfileByClientID(ctx, serviceReq.ClientID)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
@@ -1125,6 +1129,16 @@ func (d *MyCareHubDb) GetServiceRequestsForKenyaEMR(ctx context.Context, payload
 			continue
 		}
 
+		meta, err := utils.ConvertJSONStringToMap(serviceReq.Meta)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return nil, err
+		}
+		if serviceReq.RequestType == string(enums.ServiceRequestTypeScreeningToolsRedFlag) {
+			screeningToolName = utils.InterfaceToString(meta["screening_tool_name"])
+			screeningToolScore = utils.InterfaceToString(meta["score"])
+		}
+
 		userProfile, err := d.query.GetUserProfileByUserID(ctx, clientProfile.UserID)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
@@ -1132,19 +1146,21 @@ func (d *MyCareHubDb) GetServiceRequestsForKenyaEMR(ctx context.Context, payload
 		}
 
 		serviceRequest := &domain.ServiceRequest{
-			ID:            *serviceReq.ID,
-			RequestType:   serviceReq.RequestType,
-			Request:       serviceReq.Request,
-			Status:        serviceReq.Status,
-			ClientID:      serviceReq.ClientID,
-			InProgressAt:  serviceReq.InProgressAt,
-			InProgressBy:  serviceReq.InProgressByID,
-			ResolvedAt:    serviceReq.ResolvedAt,
-			ResolvedBy:    serviceReq.ResolvedByID,
-			FacilityID:    serviceReq.FacilityID,
-			ClientName:    &userProfile.Name,
-			ClientContact: &userProfile.Contacts.ContactValue,
-			CCCNumber:     &clientIdentifier.IdentifierValue,
+			ID:                 *serviceReq.ID,
+			RequestType:        serviceReq.RequestType,
+			Request:            serviceReq.Request,
+			Status:             serviceReq.Status,
+			ClientID:           serviceReq.ClientID,
+			InProgressAt:       serviceReq.InProgressAt,
+			InProgressBy:       serviceReq.InProgressByID,
+			ResolvedAt:         serviceReq.ResolvedAt,
+			ResolvedBy:         serviceReq.ResolvedByID,
+			FacilityID:         serviceReq.FacilityID,
+			ClientName:         &userProfile.Name,
+			ClientContact:      &userProfile.Contacts.ContactValue,
+			CCCNumber:          &clientIdentifier.IdentifierValue,
+			ScreeningToolName:  screeningToolName,
+			ScreeningToolScore: screeningToolScore,
 		}
 		serviceRequests = append(serviceRequests, serviceRequest)
 	}

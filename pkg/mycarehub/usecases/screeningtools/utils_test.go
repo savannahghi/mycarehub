@@ -166,17 +166,17 @@ func Test_createServiceRequest(t *testing.T) {
 	gbvQuestionMeta := enums.ScreeningToolTypeGBV.String() + "_question_number_" + strconv.Itoa(sequence) + "_question_meta"
 
 	wantRedFlagTBRequest := &domain.ServiceRequest{
-		RequestType: enums.ServiceRequestTypeScreeningTools.String(),
+		RequestType: enums.ServiceRequestTypeScreeningToolsRedFlag.String(),
 		Request:     wantPositiveTBassessment,
 	}
 
 	wantRedFlagGBVAssessment := &domain.ServiceRequest{
-		RequestType: enums.ServiceRequestTypeScreeningTools.String(),
+		RequestType: enums.ServiceRequestTypeScreeningToolsRedFlag.String(),
 		Request:     wantPositiveGBVassessment,
 	}
 
 	wantRedFlagAlcoholAssessment := &domain.ServiceRequest{
-		RequestType: enums.ServiceRequestTypeScreeningTools.String(),
+		RequestType: enums.ServiceRequestTypeScreeningToolsRedFlag.String(),
 		Request:     wantPositiveAlcoholAssessment,
 	}
 
@@ -353,72 +353,6 @@ func Test_addServiceRequestCreateConditions(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := addCondition(tt.args.question, tt.args.response, tt.args.condition); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("addServiceRequestCreateConditions() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func Test_initializeInt(t *testing.T) {
-	type args struct {
-		n interface{}
-	}
-	tests := []struct {
-		name string
-		args args
-		want int
-	}{
-		{
-			name: "Test_initializeInt:  initialize existing int",
-			args: args{
-				n: 130,
-			},
-			want: 130,
-		},
-		{
-			name: "Test_initializeInt:  initialize int",
-			args: args{
-				n: nil,
-			},
-			want: 0,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := interfaceToInt(tt.args.n); got != tt.want {
-				t.Errorf("interfaceToInt() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func Test_interfaceToString(t *testing.T) {
-	type args struct {
-		n interface{}
-	}
-	tests := []struct {
-		name string
-		args args
-		want string
-	}{
-		{
-			name: "Test_interfaceToString:  initialize existing string",
-			args: args{
-				n: "130",
-			},
-			want: "130",
-		},
-		{
-			name: "Test_interfaceToString:  initialize string",
-			args: args{
-				n: nil,
-			},
-			want: "",
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := interfaceToString(tt.args.n); got != tt.want {
-				t.Errorf("interfaceToString() = %v, want %v", got, tt.want)
 			}
 		})
 	}
