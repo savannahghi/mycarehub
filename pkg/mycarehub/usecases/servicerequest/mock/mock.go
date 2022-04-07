@@ -26,7 +26,7 @@ type ServiceRequestUseCaseMock struct {
 	MockGetServiceRequestsFn                func(ctx context.Context, requestType, requestStatus *string, facilityID string, flavour feedlib.Flavour) ([]*domain.ServiceRequest, error)
 	MockResolveServiceRequestFn             func(ctx context.Context, staffID *string, serviceRequestID *string) (bool, error)
 	MockSetInProgressByFn                   func(ctx context.Context, requestID string, staffID string) (bool, error)
-	MockGetServiceRequestsForKenyaEMRFn     func(ctx context.Context, payload *dto.ServiceRequestPayload) ([]*domain.ServiceRequest, error)
+	MockGetServiceRequestsForKenyaEMRFn     func(ctx context.Context, payload *dto.ServiceRequestPayload) (*dto.RedFlagServiceRequestResponse, error)
 	MockUpdateServiceRequestsFromKenyaEMRFn func(ctx context.Context, payload *dto.UpdateServiceRequestsPayload) (bool, error)
 	MockCreatePinResetServiceRequestFn      func(ctx context.Context, phoneNumber string, cccNumber string, flavour feedlib.Flavour) (bool, error)
 	MockVerifyStaffPinResetServiceRequestFn func(ctx context.Context, phoneNumber string, serviceRequestID string, verificationStatus string) (bool, error)
@@ -76,7 +76,7 @@ func NewServiceRequestUseCaseMock() *ServiceRequestUseCaseMock {
 		MockUpdateServiceRequestsFromKenyaEMRFn: func(ctx context.Context, payload *dto.UpdateServiceRequestsPayload) (bool, error) {
 			return true, nil
 		},
-		MockGetServiceRequestsForKenyaEMRFn: func(ctx context.Context, payload *dto.ServiceRequestPayload) ([]*domain.ServiceRequest, error) {
+		MockGetServiceRequestsForKenyaEMRFn: func(ctx context.Context, payload *dto.ServiceRequestPayload) (*dto.RedFlagServiceRequestResponse, error) {
 			currentTime := time.Now()
 			staffID := uuid.New().String()
 			facilityID := uuid.New().String()
@@ -96,7 +96,9 @@ func NewServiceRequestUseCaseMock() *ServiceRequestUseCaseMock {
 				ClientContact: &contact,
 				Meta:          map[string]interface{}{"meta": "data"},
 			}
-			return []*domain.ServiceRequest{serviceReq}, nil
+			return &dto.RedFlagServiceRequestResponse{
+				RedFlagServiceRequests: []*domain.ServiceRequest{serviceReq},
+			}, nil
 		},
 		MockCreatePinResetServiceRequestFn: func(ctx context.Context, phoneNumber string, cccNumber string, flavour feedlib.Flavour) (bool, error) {
 			return true, nil
@@ -149,7 +151,7 @@ func (s *ServiceRequestUseCaseMock) SetInProgressBy(ctx context.Context, request
 }
 
 // GetServiceRequestsForKenyaEMR mocks getting service requests attached to a specific facility to be used by KenyaEMR
-func (s *ServiceRequestUseCaseMock) GetServiceRequestsForKenyaEMR(ctx context.Context, payload *dto.ServiceRequestPayload) ([]*domain.ServiceRequest, error) {
+func (s *ServiceRequestUseCaseMock) GetServiceRequestsForKenyaEMR(ctx context.Context, payload *dto.ServiceRequestPayload) (*dto.RedFlagServiceRequestResponse, error) {
 	return s.MockGetServiceRequestsForKenyaEMRFn(ctx, payload)
 }
 

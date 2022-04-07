@@ -994,8 +994,20 @@ func (d *MyCareHubDb) GetRecentHealthDiaryEntries(
 		helpers.ReportErrorToSentry(err)
 		return nil, err
 	}
+
+	clientIdentifier, err := d.GetClientCCCIdentifier(ctx, clientID)
+	if err != nil {
+		// This should not be blocking. In an event where an identifier value is not found, is should not
+		// fail and return
+		helpers.ReportErrorToSentry(err)
+	}
+
 	for _, healthdiary := range clientHealthDiaryEntry {
+		if clientIdentifier == nil {
+			continue
+		}
 		healthDiaryEntry := &domain.ClientHealthDiaryEntry{
+			ID:                    healthdiary.ClientHealthDiaryEntryID,
 			Active:                healthdiary.Active,
 			Mood:                  healthdiary.Mood,
 			Note:                  healthdiary.Note,
@@ -1004,6 +1016,7 @@ func (d *MyCareHubDb) GetRecentHealthDiaryEntries(
 			SharedAt:              healthdiary.SharedAt,
 			ClientID:              healthdiary.ClientID,
 			CreatedAt:             healthdiary.CreatedAt,
+			CCCNumber:             clientIdentifier.IdentifierValue,
 		}
 		healthDiaryEntries = append(healthDiaryEntries, healthDiaryEntry)
 	}
@@ -1104,6 +1117,14 @@ func (d *MyCareHubDb) GetServiceRequestsForKenyaEMR(ctx context.Context, payload
 			return nil, err
 		}
 
+		clientIdentifier, err := d.GetClientCCCIdentifier(ctx, *clientProfile.ID)
+		if err != nil {
+			// This should not be blocking. In an event where an identifier value is not found, is should not
+			// fail and return
+			helpers.ReportErrorToSentry(err)
+			continue
+		}
+
 		userProfile, err := d.query.GetUserProfileByUserID(ctx, clientProfile.UserID)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
@@ -1123,8 +1144,8 @@ func (d *MyCareHubDb) GetServiceRequestsForKenyaEMR(ctx context.Context, payload
 			FacilityID:    serviceReq.FacilityID,
 			ClientName:    &userProfile.Name,
 			ClientContact: &userProfile.Contacts.ContactValue,
+			CCCNumber:     &clientIdentifier.IdentifierValue,
 		}
-
 		serviceRequests = append(serviceRequests, serviceRequest)
 	}
 

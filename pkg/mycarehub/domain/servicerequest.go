@@ -26,6 +26,7 @@ type ServiceRequest struct {
 	StaffName      *string                `json:"staffName,omitempty"`
 	StaffContact   *string                `json:"staffContact,omitempty"`
 	ClientContact  *string                `json:"clientContact,omitempty"`
+	CCCNumber      *string                `json:"cccNumber,omitempty"`
 	Meta           map[string]interface{} `json:"meta"`
 }
 

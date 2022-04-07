@@ -51,6 +51,12 @@ type HealthDiaryEntriesResponse struct {
 	HealthDiaryEntries []*domain.ClientHealthDiaryEntry `json:"healthDiaries"`
 }
 
+// RedFlagServiceRequestResponse models the response returned when fetching for
+// red flags service requests
+type RedFlagServiceRequestResponse struct {
+	RedFlagServiceRequests []*domain.ServiceRequest `json:"redFlags"`
+}
+
 // PatientSyncResponse is the response to a patient sync poll
 // the patients payload contains ccc numbers
 type PatientSyncResponse struct {
