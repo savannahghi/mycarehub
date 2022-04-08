@@ -368,7 +368,7 @@ func (a *UseCasesAppointmentsImpl) GetAppointmentServiceRequests(ctx context.Con
 
 	appointmentServiceRequests, err := a.Query.GetAppointmentServiceRequests(ctx, *payload.LastSyncTime, mflCode)
 	if err != nil {
-		return nil, fmt.Errorf("error getting appointment service requests")
+		return nil, fmt.Errorf("error getting appointment service requests: %v", err)
 	}
 
 	if appointmentServiceRequests == nil {

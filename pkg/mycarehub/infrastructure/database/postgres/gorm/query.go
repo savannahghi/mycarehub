@@ -632,7 +632,9 @@ func (db *PGInstance) GetServiceRequestsForKenyaEMR(ctx context.Context, facilit
 	var serviceRequests []*ClientServiceRequest
 
 	err := db.DB.Where(&ClientServiceRequest{FacilityID: facilityID}).Where("created > ?", lastSyncTime).
-		Order(clause.OrderByColumn{Column: clause.Column{Name: "created"}, Desc: true}).Find(&serviceRequests).Error
+		Order(clause.OrderByColumn{Column: clause.Column{Name: "created"}, Desc: true}).
+		Not(&ClientServiceRequest{RequestType: string(enums.ServiceRequestTypePinReset)}).
+		Find(&serviceRequests).Error
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed to get service requests: %v", err)
