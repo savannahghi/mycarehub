@@ -5188,3 +5188,92 @@ func TestMyCareHubDb_GetActiveScreeningToolResponses(t *testing.T) {
 		})
 	}
 }
+
+func TestMyCareHubDb_GetSharedHealthDiaryEntry(t *testing.T) {
+	ctx := context.Background()
+
+	var fakeGorm = gormMock.NewGormMock()
+	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+	type args struct {
+		ctx        context.Context
+		clientID   string
+		facilityID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *domain.ClientHealthDiaryEntry
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:        ctx,
+				clientID:   uuid.New().String(),
+				facilityID: uuid.New().String(),
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case - invalid facility",
+			args: args{
+				ctx:        ctx,
+				clientID:   uuid.New().String(),
+				facilityID: gofakeit.HipsterSentence(44),
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case - empty facility",
+			args: args{
+				ctx:        ctx,
+				clientID:   uuid.New().String(),
+				facilityID: "",
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case - unable to get client profile",
+			args: args{
+				ctx:        ctx,
+				clientID:   uuid.New().String(),
+				facilityID: uuid.New().String(),
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "Sad case - invalid facility" {
+				fakeGorm.MockGetSharedHealthDiaryEntryFn = func(ctx context.Context, clientID string, facilityID string) (*gorm.ClientHealthDiaryEntry, error) {
+					return nil, fmt.Errorf("failed to get shared health diary entries")
+				}
+			}
+			if tt.name == "Sad case - empty facility" {
+				fakeGorm.MockGetSharedHealthDiaryEntryFn = func(ctx context.Context, clientID string, facilityID string) (*gorm.ClientHealthDiaryEntry, error) {
+					return nil, fmt.Errorf("failed to get shared health diary entries")
+				}
+			}
+			if tt.name == "Sad case - unable to get client profile" {
+				fakeGorm.MockGetClientProfileByClientIDFn = func(ctx context.Context, clientID string) (*gorm.Client, error) {
+					return nil, fmt.Errorf("failed to get client profile")
+				}
+			}
+
+			got, err := d.GetSharedHealthDiaryEntry(tt.args.ctx, tt.args.clientID, tt.args.facilityID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.GetSharedHealthDiaryEntry() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if tt.wantErr && got != nil {
+				t.Errorf("expected shared health diary entries to be nil for %v", tt.name)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected shared health diary entries not to be nil for %v", tt.name)
+				return
+			}
+		})
+	}
+}

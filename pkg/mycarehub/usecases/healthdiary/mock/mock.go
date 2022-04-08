@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 )
@@ -17,6 +18,7 @@ type HealthDiaryUseCaseMock struct {
 	MockGetFacilityHealthDiaryEntriesFn func(ctx context.Context, input dto.FetchHealthDiaryEntries) (*dto.HealthDiaryEntriesResponse, error)
 	MockGetRecentHealthDiaryEntriesFn   func(ctx context.Context, lastSyncTime time.Time, clientID string) ([]*domain.ClientHealthDiaryEntry, error)
 	MockShareHealthDiaryEntryFn         func(ctx context.Context, clientID string, shareWithStaff bool) (bool, error)
+	MockGetSharedHealthDiaryEntryFn     func(ctx context.Context, clientID string, facilityID string) (*domain.ClientHealthDiaryEntry, error)
 }
 
 // NewHealthDiaryUseCaseMock initializes a new instance mock of the HealthDiary usecase
@@ -57,6 +59,23 @@ func NewHealthDiaryUseCaseMock() *HealthDiaryUseCaseMock {
 		MockGetRecentHealthDiaryEntriesFn: func(ctx context.Context, lastSyncTime time.Time, clientID string) ([]*domain.ClientHealthDiaryEntry, error) {
 			return []*domain.ClientHealthDiaryEntry{}, nil
 		},
+		MockGetSharedHealthDiaryEntryFn: func(ctx context.Context, clientID string, facilityID string) (*domain.ClientHealthDiaryEntry, error) {
+			UUID := uuid.New().String()
+			return &domain.ClientHealthDiaryEntry{
+				ID:                    &UUID,
+				Active:                true,
+				Mood:                  "test",
+				Note:                  "test",
+				EntryType:             "test",
+				ShareWithHealthWorker: true,
+				SharedAt:              time.Now(),
+				ClientID:              "test",
+				CreatedAt:             time.Now(),
+				PhoneNumber:           "test",
+				ClientName:            "test",
+				CCCNumber:             "test",
+			}, nil
+		},
 	}
 }
 
@@ -93,4 +112,9 @@ func (h *HealthDiaryUseCaseMock) GetRecentHealthDiaryEntries(ctx context.Context
 // ShareHealthDiaryEntry mocks the implementation of sharing a health diary entry when the client opts to share it with the health care worker
 func (h *HealthDiaryUseCaseMock) ShareHealthDiaryEntry(ctx context.Context, clientID string, shareWithStaff bool) (bool, error) {
 	return h.MockShareHealthDiaryEntryFn(ctx, clientID, shareWithStaff)
+}
+
+// GetSharedHealthDiaryEntry mocks the implementation of getting the most recently shared health diary entires by the client to a health care worker
+func (h *HealthDiaryUseCaseMock) GetSharedHealthDiaryEntry(ctx context.Context, clientID string, facilityID string) (*domain.ClientHealthDiaryEntry, error) {
+	return h.MockGetSharedHealthDiaryEntryFn(ctx, clientID, facilityID)
 }

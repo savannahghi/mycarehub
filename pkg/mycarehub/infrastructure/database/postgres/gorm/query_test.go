@@ -4003,3 +4003,71 @@ func TestPGInstance_GetAnsweredScreeningToolQuestions(t *testing.T) {
 		})
 	}
 }
+
+func TestPGInstance_GetSharedHealthDiaryEntry(t *testing.T) {
+	ctx := context.Background()
+
+	type args struct {
+		ctx        context.Context
+		clientID   string
+		facilityID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *gorm.ClientHealthDiaryEntry
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:        ctx,
+				clientID:   clientID,
+				facilityID: facilityID,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case - invalid facility",
+			args: args{
+				ctx:        ctx,
+				facilityID: gofakeit.HipsterSentence(44),
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case - empty facility",
+			args: args{
+				ctx:        ctx,
+				facilityID: "",
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case - invalid client ID",
+			args: args{
+				ctx:        ctx,
+				clientID:   gofakeit.HipsterSentence(45),
+				facilityID: facilityID,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := testingDB.GetSharedHealthDiaryEntry(tt.args.ctx, tt.args.clientID, tt.args.facilityID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.GetSharedHealthDiaryEntry() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if tt.wantErr && got != nil {
+				t.Errorf("expected shared health diary entries to be nil for %v", tt.name)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected shared health diary entries not to be nil for %v", tt.name)
+				return
+			}
+		})
+	}
+}
