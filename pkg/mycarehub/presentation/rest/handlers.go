@@ -40,9 +40,9 @@ type MyCareHubHandlersInterfaces interface {
 	GetUserProfile() http.HandlerFunc
 	AddClientFHIRID() http.HandlerFunc
 	AddPatientsRecords() http.HandlerFunc
-	GetAppointmentServiceRequests() http.HandlerFunc
 	SyncFacilities() http.HandlerFunc
 	AddFacilityFHIRID() http.HandlerFunc
+	AppointmentsServiceRequests() http.HandlerFunc
 }
 
 type okResp struct {
@@ -666,7 +666,6 @@ func (h *MyCareHubHandlersInterfacesImpl) ServiceRequests() http.HandlerFunc {
 				return
 			}
 		}
-
 	}
 }
 
@@ -736,7 +735,7 @@ func (h *MyCareHubHandlersInterfacesImpl) UpdateServiceRequests(ctx context.Cont
 		serverutils.WriteJSONResponse(w, serverutils.ErrorMap(err), http.StatusBadRequest)
 	}
 
-	serverutils.WriteJSONResponse(w, serviceRequests, http.StatusOK)
+	serverutils.WriteJSONResponse(w, okResp{Status: serviceRequests}, http.StatusOK)
 	return nil
 }
 
@@ -934,49 +933,74 @@ func (h *MyCareHubHandlersInterfacesImpl) AddClientFHIRID() http.HandlerFunc {
 	}
 }
 
-// GetAppointmentServiceRequests handler for syncing red-flags from the my carehub endpoint to Kenya EMR for display
-func (h *MyCareHubHandlersInterfacesImpl) GetAppointmentServiceRequests() http.HandlerFunc {
+// AppointmentsServiceRequests is used to check for the oncoming request and routes it to the correct handler.
+// If the method is POST, we update the appointment service request and if it's a GET, we return all the
+// appointment service requests from the last time syncing occurred between the two platforms
+func (h *MyCareHubHandlersInterfacesImpl) AppointmentsServiceRequests() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
-		MFLCode, err := strconv.Atoi(r.URL.Query().Get("MFLCODE"))
-		if err != nil {
-			helpers.ReportErrorToSentry(err)
+		switch r.Method {
+		case http.MethodGet:
+			h.GetAppointmentServiceRequests(ctx, w, r)
+		case http.MethodPost:
+			err := h.UpdateServiceRequests(ctx, w, r)
+			if err != nil {
+				helpers.ReportErrorToSentry(err)
+				serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
+					Err:     err,
+					Message: err.Error(),
+				}, http.StatusBadRequest)
+				return
+			}
+		default:
+			err := fmt.Errorf("wrong method passed")
 			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
 				Err:     err,
 				Message: err.Error(),
 			}, http.StatusBadRequest)
-			return
 		}
-
-		lastSyncTime, err := time.Parse(time.RFC3339, r.URL.Query().Get("lastSyncTime"))
-		if err != nil {
-			helpers.ReportErrorToSentry(err)
-			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
-				Err:     err,
-				Message: err.Error(),
-			}, http.StatusBadRequest)
-			return
-		}
-
-		payload := &dto.AppointmentServiceRequestInput{
-			MFLCode:      MFLCode,
-			LastSyncTime: &lastSyncTime,
-		}
-
-		if payload.MFLCode == 0 {
-			err := fmt.Errorf("expected `MFLCODE` to be defined")
-			helpers.ReportErrorToSentry(err)
-			serverutils.WriteJSONResponse(w, serverutils.ErrorMap(err), http.StatusBadRequest)
-			return
-		}
-
-		response, err := h.usecase.Appointment.GetAppointmentServiceRequests(ctx, *payload)
-		if err != nil {
-			helpers.ReportErrorToSentry(err)
-			serverutils.WriteJSONResponse(w, serverutils.ErrorMap(err), http.StatusInternalServerError)
-			return
-		}
-
-		serverutils.WriteJSONResponse(w, response, http.StatusOK)
 	}
+}
+
+// GetAppointmentServiceRequests handler for syncing red-flags from the my carehub endpoint to Kenya EMR for display
+func (h *MyCareHubHandlersInterfacesImpl) GetAppointmentServiceRequests(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+	MFLCode, err := strconv.Atoi(r.URL.Query().Get("MFLCODE"))
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
+			Err:     err,
+			Message: err.Error(),
+		}, http.StatusBadRequest)
+		return
+	}
+
+	lastSyncTime, err := time.Parse(time.RFC3339, r.URL.Query().Get("lastSyncTime"))
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
+			Err:     err,
+			Message: err.Error(),
+		}, http.StatusBadRequest)
+		return
+	}
+
+	payload := &dto.AppointmentServiceRequestInput{
+		MFLCode:      MFLCode,
+		LastSyncTime: &lastSyncTime,
+	}
+
+	if payload.MFLCode == 0 {
+		err := fmt.Errorf("expected `MFLCODE` to be defined")
+		helpers.ReportErrorToSentry(err)
+		serverutils.WriteJSONResponse(w, serverutils.ErrorMap(err), http.StatusBadRequest)
+		return
+	}
+
+	response, err := h.usecase.Appointment.GetAppointmentServiceRequests(ctx, *payload)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		serverutils.WriteJSONResponse(w, serverutils.ErrorMap(err), http.StatusInternalServerError)
+		return
+	}
+	serverutils.WriteJSONResponse(w, response, http.StatusOK)
 }

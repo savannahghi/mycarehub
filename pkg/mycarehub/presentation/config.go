@@ -272,7 +272,8 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	kenyaEMR.Path("/appointment-service-request").Methods(
 		http.MethodOptions,
 		http.MethodGet,
-	).HandlerFunc(internalHandlers.GetAppointmentServiceRequests())
+		http.MethodPost,
+	).HandlerFunc(internalHandlers.AppointmentsServiceRequests())
 
 	// ISC routes. These are inter service route
 	isc := r.PathPrefix("/internal").Subrouter()
