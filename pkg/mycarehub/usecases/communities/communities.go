@@ -596,6 +596,8 @@ func (us *UseCasesCommunitiesImpl) RecommendedCommunities(ctx context.Context, c
 		return nil, fmt.Errorf("memberID cannot be empty")
 	}
 
+	joinedChannelsMap := make(map[string]bool)
+
 	clientProfile, err := us.Query.GetClientProfileByClientID(ctx, clientID)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
@@ -609,8 +611,21 @@ func (us *UseCasesCommunitiesImpl) RecommendedCommunities(ctx context.Context, c
 		helpers.ReportErrorToSentry(err)
 		return nil, err
 	}
-
 	clientType := clientProfile.ClientType
+
+	joinedChannels, err := us.GetstreamService.ListGetStreamChannels(ctx, &stream.QueryOption{
+		Filter: map[string]interface{}{
+			"members": map[string]interface{}{"$in": []string{clientID}},
+		},
+	})
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
+	for _, channel := range joinedChannels.Channels {
+		joinedChannelsMap[channel.ID] = true
+	}
 
 	var dob = time.Now()
 	if clientUserProfile.DateOfBirth != nil {
@@ -620,13 +635,12 @@ func (us *UseCasesCommunitiesImpl) RecommendedCommunities(ctx context.Context, c
 	age := utils.CalculateAge(dob)
 
 	clientGender := clientUserProfile.Gender.String()
-	clientGender = strings.ToUpper(clientGender)
+	clientGender = strings.ToLower(clientGender)
 
 	query := &stream.QueryOption{
 		Filter: map[string]interface{}{
 			"clientType": []string{clientType},
 			"gender":     []string{clientGender},
-
 			"minimumAge": map[string]interface{}{"$lte": age},
 			"maximumAge": map[string]interface{}{"$gte": age},
 			"inviteOnly": false,
@@ -641,6 +655,9 @@ func (us *UseCasesCommunitiesImpl) RecommendedCommunities(ctx context.Context, c
 	}
 	var communities []*domain.Community
 	for _, channel := range streamChannelsResponse.Channels {
+		if _, ok := joinedChannelsMap[channel.ID]; ok {
+			continue
+		}
 
 		var metaData domain.CommunityMetadata
 
