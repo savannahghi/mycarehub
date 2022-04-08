@@ -6,7 +6,7 @@
   mood: RED_FLAG
   note: TEST NOTE
   entry_type: HEALTH_DIARY_ENTRY
-  share_with_health_worker: false
+  share_with_health_worker: true
   shared_at: RAW=NOW()
   client_id: {{.test_client_id}}
   organisation_id: {{.test_organisation_id}}

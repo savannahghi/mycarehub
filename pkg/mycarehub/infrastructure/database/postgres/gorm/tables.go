@@ -357,7 +357,9 @@ type Client struct {
 
 	ClientType string `gorm:"column:client_type"`
 
-	UserProfile User `gorm:"ForeignKey:user_id;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;not null"`
+	UserID *string `gorm:"column:user_id;not null"`
+
+	User User `gorm:"ForeignKey:user_id;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;not null"`
 
 	TreatmentEnrollmentDate *time.Time `gorm:"column:enrollment_date"`
 
@@ -375,7 +377,6 @@ type Client struct {
 
 	CHVUserID *string `gorm:"column:chv_id"`
 
-	UserID      *string `gorm:"column:user_id;not null"`
 	CaregiverID *string `gorm:"column:caregiver_id"`
 }
 

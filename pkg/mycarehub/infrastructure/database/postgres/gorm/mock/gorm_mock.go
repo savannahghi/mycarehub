@@ -134,6 +134,7 @@ type GormMock struct {
 	MockGetAppointmentByIDFn                             func(ctx context.Context, appointmentID string) (*gorm.Appointment, error)
 	MockUpdateFacilityFn                                 func(ctx context.Context, facility *gorm.Facility, updateData map[string]interface{}) error
 	MockGetFacilitiesWithoutFHIRIDFn                     func(ctx context.Context) ([]*gorm.Facility, error)
+	MockGetSharedHealthDiaryEntryFn                      func(ctx context.Context, clientID string, facilityID string) (*gorm.ClientHealthDiaryEntry, error)
 	MockGetClientServiceRequestsFn                       func(ctx context.Context, requestType, status, clientID string) ([]*gorm.ClientServiceRequest, error)
 	MockGetActiveScreeningToolResponsesFn                func(ctx context.Context, clientID string) ([]*gorm.ScreeningToolsResponse, error)
 	MockGetAppointmentByClientIDFn                       func(ctx context.Context, appointmentID, clientID string) (*gorm.Appointment, error)
@@ -204,7 +205,7 @@ func NewGormMock() *GormMock {
 		ID:         &UUID,
 		Active:     true,
 		ClientType: "",
-		UserProfile: gorm.User{
+		User: gorm.User{
 			UserID:                 &UUID,
 			Username:               gofakeit.Name(),
 			FirstName:              gofakeit.Name(),
@@ -372,6 +373,19 @@ func NewGormMock() *GormMock {
 
 		MockRetrieveFacilityByMFLCodeFn: func(ctx context.Context, MFLCode int, isActive bool) (*gorm.Facility, error) {
 			return facility, nil
+		},
+		MockGetSharedHealthDiaryEntryFn: func(ctx context.Context, clientID string, facilityID string) (*gorm.ClientHealthDiaryEntry, error) {
+			return &gorm.ClientHealthDiaryEntry{
+				ClientHealthDiaryEntryID: &UUID,
+				Active:                   true,
+				Mood:                     "Bad",
+				Note:                     "Note",
+				EntryType:                "EntryType",
+				ShareWithHealthWorker:    true,
+				SharedAt:                 time.Now(),
+				ClientID:                 UUID,
+				OrganisationID:           UUID,
+			}, nil
 		},
 		MockGetAnsweredScreeningToolQuestionsFn: func(ctx context.Context, facilityID string, toolType string) ([]*gorm.ScreeningToolsResponse, error) {
 			return []*gorm.ScreeningToolsResponse{
@@ -1666,4 +1680,9 @@ func (gm *GormMock) CreateNotification(ctx context.Context, notification *gorm.N
 // ListNotifications Retrieves notifications using the provided parameters and filters
 func (gm *GormMock) ListNotifications(ctx context.Context, params *gorm.Notification, pagination *domain.Pagination) ([]*gorm.Notification, *domain.Pagination, error) {
 	return gm.MockListNotificationsFn(ctx, params, pagination)
+}
+
+// GetSharedHealthDiaryEntry mocks the implementation of getting the most recently shared health diary entires by the client to a health care worker
+func (gm *GormMock) GetSharedHealthDiaryEntry(ctx context.Context, clientID string, facilityID string) (*gorm.ClientHealthDiaryEntry, error) {
+	return gm.MockGetSharedHealthDiaryEntryFn(ctx, clientID, facilityID)
 }

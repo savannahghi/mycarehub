@@ -391,7 +391,7 @@ func (d *MyCareHubDb) CreateClient(ctx context.Context, client domain.ClientProf
 		return nil, err
 	}
 
-	user := createMapUser(&c.UserProfile)
+	user := createMapUser(&c.User)
 
 	return &domain.ClientProfile{
 		ID:                      c.ID,

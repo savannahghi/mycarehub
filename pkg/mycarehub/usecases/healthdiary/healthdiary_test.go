@@ -515,3 +515,78 @@ func TestUseCasesHealthDiaryImpl_ShareHealthDiaryEntry(t *testing.T) {
 		})
 	}
 }
+
+func TestUseCasesHealthDiaryImpl_GetSharedHealthDiaryEntry(t *testing.T) {
+	ctx := context.Background()
+
+	fakeDB := pgMock.NewPostgresMock()
+	fakeServiceRequest := serviceRequestMock.NewServiceRequestUseCaseMock()
+	healthdiary := healthdiary.NewUseCaseHealthDiaryImpl(fakeDB, fakeDB, fakeDB, fakeServiceRequest)
+
+	type args struct {
+		ctx        context.Context
+		clientID   string
+		facilityID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *domain.ClientHealthDiaryEntry
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:        ctx,
+				clientID:   uuid.New().String(),
+				facilityID: uuid.New().String(),
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case",
+			args: args{
+				ctx:        ctx,
+				clientID:   uuid.New().String(),
+				facilityID: "",
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case - empty client ID",
+			args: args{
+				ctx:        ctx,
+				clientID:   uuid.New().String(),
+				facilityID: "",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "Sad case" {
+				fakeDB.MockGetSharedHealthDiaryEntryFn = func(ctx context.Context, clientID string, facilityID string) (*domain.ClientHealthDiaryEntry, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - empty client ID" {
+				fakeDB.MockGetSharedHealthDiaryEntryFn = func(ctx context.Context, clientID string, facilityID string) (*domain.ClientHealthDiaryEntry, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+			got, err := healthdiary.GetSharedHealthDiaryEntry(tt.args.ctx, tt.args.clientID, tt.args.facilityID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCasesHealthDiaryImpl.GetSharedHealthDiaryEntry() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if tt.wantErr && got != nil {
+				t.Errorf("expected shared health diary entries to be nil for %v", tt.name)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected shared health diary entries not to be nil for %v", tt.name)
+				return
+			}
+		})
+	}
+}

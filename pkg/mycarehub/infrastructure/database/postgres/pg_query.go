@@ -295,7 +295,7 @@ func (d *MyCareHubDb) GetClientProfileByUserID(ctx context.Context, userID strin
 		return nil, err
 	}
 
-	user := createMapUser(&response.UserProfile)
+	user := createMapUser(&response.User)
 	return &domain.ClientProfile{
 		ID:                      response.ID,
 		User:                    user,
@@ -698,7 +698,7 @@ func (d *MyCareHubDb) GetClientProfileByClientID(ctx context.Context, clientID s
 	if err != nil {
 		return nil, err
 	}
-	user := createMapUser(&response.UserProfile)
+	user := createMapUser(&response.User)
 	return &domain.ClientProfile{
 		ID:                      response.ID,
 		User:                    user,
@@ -959,7 +959,7 @@ func (d *MyCareHubDb) GetClientsInAFacility(ctx context.Context, facilityID stri
 	var clients []*domain.ClientProfile
 
 	for _, cli := range clientProfiles {
-		user := createMapUser(&cli.UserProfile)
+		user := createMapUser(&cli.User)
 		client := &domain.ClientProfile{
 			ID:                      cli.ID,
 			User:                    user,
@@ -1764,4 +1764,33 @@ func (d *MyCareHubDb) GetActiveScreeningToolResponses(ctx context.Context, clien
 // CheckAppointmentExistsByExternalID checks if an appointment with the external id exists
 func (d *MyCareHubDb) CheckAppointmentExistsByExternalID(ctx context.Context, externalID string) (bool, error) {
 	return d.query.CheckAppointmentExistsByExternalID(ctx, externalID)
+}
+
+// GetSharedHealthDiaryEntry fetches the mostg recent shared health diary entry
+func (d *MyCareHubDb) GetSharedHealthDiaryEntry(ctx context.Context, clientID string, facilityID string) (*domain.ClientHealthDiaryEntry, error) {
+	entries, err := d.query.GetSharedHealthDiaryEntry(ctx, clientID, facilityID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
+	clientProfile, err := d.query.GetClientProfileByClientID(ctx, entries.ClientID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
+	return &domain.ClientHealthDiaryEntry{
+		ID:                    entries.ClientHealthDiaryEntryID,
+		Active:                entries.Active,
+		Mood:                  entries.Mood,
+		Note:                  entries.Note,
+		EntryType:             entries.EntryType,
+		ShareWithHealthWorker: entries.ShareWithHealthWorker,
+		SharedAt:              entries.SharedAt,
+		ClientID:              entries.ClientID,
+		CreatedAt:             entries.CreatedAt,
+		PhoneNumber:           clientProfile.User.Contacts.ContactValue,
+		ClientName:            clientProfile.User.Name,
+	}, nil
 }
