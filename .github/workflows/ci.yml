@@ -19,7 +19,7 @@ env:
   # Schema Registry CLI command version
   CLI_VERSION: v0.0.1
   #Schema Registry URL
-  REGISTRY_URL: ${{ secrets.TEST_SCHEMA_REGISTRY_URL }}
+  REGISTRY_URL: ${{ secrets.STAGING_SCHEMA_REGISTRY_URL }}
   GCR_NAME: ${{ secrets.GCR_NAME }}
   DATABASE_REGION: ${{ secrets.PROD_DATABASE_REGION }}
   DATABASE_INSTANCE: ${{ secrets.PROD_DATABASE_INSTANCE }}
