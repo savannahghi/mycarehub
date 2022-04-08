@@ -1540,7 +1540,7 @@ func (d *MyCareHubDb) GetAppointmentServiceRequests(ctx context.Context, lastSyn
 		identifier, err := d.GetClientCCCIdentifier(ctx, r.ClientID)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
-			return nil, err
+			continue
 		}
 
 		facility, err := d.query.RetrieveFacility(ctx, &r.FacilityID, true)
@@ -1572,7 +1572,6 @@ func (d *MyCareHubDb) GetAppointmentServiceRequests(ctx context.Context, lastSyn
 		}
 
 		appointmentServiceRequests = append(appointmentServiceRequests, m)
-
 	}
 
 	return appointmentServiceRequests, nil

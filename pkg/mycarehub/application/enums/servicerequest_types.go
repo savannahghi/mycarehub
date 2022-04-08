@@ -23,7 +23,7 @@ const (
 	// ServiceRequestTypeAppointments represents the appointments service request
 	ServiceRequestTypeAppointments ServiceRequestType = "APPOINTMENTS"
 	// ServiceRequestTypeScreeningTools represents the screening tools service request
-	ServiceRequestTypeScreeningTools ServiceRequestType = "SCREENING_TOOLS"
+	ServiceRequestTypeScreeningTools ServiceRequestType = "SCREENING_TOOLS_RED_FLAG"
 )
 
 // AllServiceRequestType is a set of a  valid and known service request types.
