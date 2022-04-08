@@ -1129,6 +1129,10 @@ func (d *MyCareHubDb) GetServiceRequestsForKenyaEMR(ctx context.Context, payload
 			continue
 		}
 
+		if serviceReq.Meta == "" {
+			serviceReq.Meta = "{}"
+		}
+
 		meta, err := utils.ConvertJSONStringToMap(serviceReq.Meta)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
