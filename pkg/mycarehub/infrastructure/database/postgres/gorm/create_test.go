@@ -1202,3 +1202,40 @@ func TestPGInstance_CreateIdentifier(t *testing.T) {
 		})
 	}
 }
+
+func TestPGInstance_CreateNotification(t *testing.T) {
+	type args struct {
+		ctx          context.Context
+		notification *gorm.Notification
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: create appointment",
+			args: args{
+				ctx: context.Background(),
+				notification: &gorm.Notification{
+					Active:     true,
+					Title:      "New Teleconsult",
+					Body:       "Teleconsult with Doctor Who at the Tardis",
+					Type:       "TELECONSULT",
+					Flavour:    feedlib.FlavourConsumer,
+					IsRead:     false,
+					UserID:     &userID,
+					FacilityID: &facilityID,
+				},
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := testingDB.CreateNotification(tt.args.ctx, tt.args.notification); (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.CreateNotification() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}

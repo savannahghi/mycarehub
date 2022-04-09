@@ -100,3 +100,28 @@ func addFilters(transaction *gorm.DB, filters []*firebasetools.FilterParam) (*go
 
 	return transaction, nil
 }
+
+// paginateQuery adds offset and limit conditions to a database query
+func paginateQuery(db *gorm.DB, pagination *domain.Pagination) {
+	// If no limit is specified, default to 10
+	if pagination.Limit == 0 {
+		pagination.Limit = pagination.GetLimit()
+	}
+	totalPages := int(math.Ceil(float64(pagination.Count) / float64(pagination.Limit)))
+	pagination.TotalPages = totalPages
+
+	currentPage := pagination.GetPage()
+
+	nextPage := currentPage + 1
+	if nextPage <= totalPages {
+		pagination.NextPage = &nextPage
+	}
+
+	previousPage := currentPage - 1
+	if previousPage > 0 {
+		pagination.PreviousPage = &previousPage
+	}
+
+	db.Offset(pagination.GetOffset()).Limit(pagination.GetLimit())
+
+}

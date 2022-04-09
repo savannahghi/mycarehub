@@ -322,6 +322,19 @@ type AppointmentsPage {
   pagination: Pagination!
 }
 
+type Notification {
+  id: ID!
+  title: String
+  body: String!
+  type: String
+  isRead: Boolean
+}
+
+type NotificationsPage {
+  notifications: [Notification]!
+  pagination: Pagination!
+}
+
 type ScreeningToolQuestion {
   id: String
   question: String
@@ -369,11 +382,10 @@ type StaffProfile {
 }
 
 type ScreeningToolAssesmentResponse {
- clientName: String!
- dateAnswered: Time!
- clientID: String!
+  clientName: String!
+  dateAnswered: Time!
+  clientID: String!
 }
-
 
 type User {
   ID: String!

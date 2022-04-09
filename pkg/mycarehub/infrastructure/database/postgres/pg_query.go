@@ -1281,6 +1281,37 @@ func (d *MyCareHubDb) ListAppointments(ctx context.Context, params *domain.Appoi
 	return mapped, pageInfo, nil
 }
 
+// ListNotifications lists notifications based on the provided parameters
+func (d *MyCareHubDb) ListNotifications(ctx context.Context, params *domain.Notification, pagination *domain.Pagination) ([]*domain.Notification, *domain.Pagination, error) {
+
+	parameters := &gorm.Notification{
+		Active:     true,
+		UserID:     params.UserID,
+		FacilityID: params.FacilityID,
+		Flavour:    params.Flavour,
+	}
+
+	notifications, pageInfo, err := d.query.ListNotifications(ctx, parameters, pagination)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	mapped := []*domain.Notification{}
+	for _, a := range notifications {
+		m := &domain.Notification{
+			ID:     a.ID,
+			Title:  a.Title,
+			Body:   a.Body,
+			Type:   a.Type,
+			IsRead: a.IsRead,
+		}
+
+		mapped = append(mapped, m)
+	}
+
+	return mapped, pageInfo, nil
+}
+
 // GetScreeningToolQuestionByQuestionID fetches a screening tool question by question id
 func (d *MyCareHubDb) GetScreeningToolQuestionByQuestionID(ctx context.Context, questionID string) (*domain.ScreeningToolQuestion, error) {
 	screeningToolQuestion, err := d.query.GetScreeningToolQuestionByQuestionID(ctx, questionID)

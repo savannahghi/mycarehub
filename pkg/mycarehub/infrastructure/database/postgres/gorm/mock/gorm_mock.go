@@ -140,6 +140,8 @@ type GormMock struct {
 	MockCheckAppointmentExistsByExternalIDFn             func(ctx context.Context, externalID string) (bool, error)
 	MockGetAppointmentByExternalIDFn                     func(ctx context.Context, externalID string) (*gorm.Appointment, error)
 	MockGetAnsweredScreeningToolQuestionsFn              func(ctx context.Context, facilityID string, toolType string) ([]*gorm.ScreeningToolsResponse, error)
+	MockCreateNotificationFn                             func(ctx context.Context, notification *gorm.Notification) error
+	MockListNotificationsFn                              func(ctx context.Context, params *gorm.Notification, pagination *domain.Pagination) ([]*gorm.Notification, *domain.Pagination, error)
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -330,6 +332,9 @@ func NewGormMock() *GormMock {
 	}
 
 	return &GormMock{
+		MockCreateNotificationFn: func(ctx context.Context, notification *gorm.Notification) error {
+			return nil
+		},
 		MockCreateUserFn: func(ctx context.Context, user *gorm.User) error {
 			return nil
 		},
@@ -342,7 +347,6 @@ func NewGormMock() *GormMock {
 		MockGetOrCreateFacilityFn: func(ctx context.Context, facility *gorm.Facility) (*gorm.Facility, error) {
 			return facility, nil
 		},
-
 		MockRetrieveFacilityFn: func(ctx context.Context, id *string, isActive bool) (*gorm.Facility, error) {
 
 			return facility, nil
@@ -842,6 +846,19 @@ func NewGormMock() *GormMock {
 					FacilityID:     gofakeit.UUID(),
 					Reason:         "Knocked up",
 					Date:           date,
+				},
+			}, &domain.Pagination{Limit: 10, CurrentPage: 1}, nil
+		},
+		MockListNotificationsFn: func(ctx context.Context, params *gorm.Notification, pagination *domain.Pagination) ([]*gorm.Notification, *domain.Pagination, error) {
+			return []*gorm.Notification{
+				{
+					Title:      "A notification",
+					Body:       "This is what it's about",
+					Type:       "TELECONSULT",
+					Flavour:    "PRO",
+					IsRead:     false,
+					UserID:     &UUID,
+					FacilityID: &UUID,
 				},
 			}, &domain.Pagination{Limit: 10, CurrentPage: 1}, nil
 		},
@@ -1639,4 +1656,14 @@ func (gm *GormMock) CreateClient(ctx context.Context, client *gorm.Client, conta
 // CreateIdentifier creates a new identifier
 func (gm *GormMock) CreateIdentifier(ctx context.Context, identifier *gorm.Identifier) error {
 	return gm.MockCreateIdentifierFn(ctx, identifier)
+}
+
+// CreateNotification saves a new notification to the database
+func (gm *GormMock) CreateNotification(ctx context.Context, notification *gorm.Notification) error {
+	return gm.MockCreateNotificationFn(ctx, notification)
+}
+
+// ListNotifications Retrieves notifications using the provided parameters and filters
+func (gm *GormMock) ListNotifications(ctx context.Context, params *gorm.Notification, pagination *domain.Pagination) ([]*gorm.Notification, *domain.Pagination, error) {
+	return gm.MockListNotificationsFn(ctx, params, pagination)
 }

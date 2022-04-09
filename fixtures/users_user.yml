@@ -378,7 +378,7 @@
   first_name: first name8
   middle_name: middle name8
   last_name: last name8
-  user_type: client
+  user_type: staff
   gender: male
   last_successful_login: RAW=NOW()
   last_failed_login: null

@@ -3964,6 +3964,91 @@ func TestMyCareHubDb_ListAppointments(t *testing.T) {
 	}
 }
 
+func TestMyCareHubDb_ListNotifications(t *testing.T) {
+	var fakeGorm = gormMock.NewGormMock()
+	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+	id := gofakeit.UUID()
+
+	type args struct {
+		ctx        context.Context
+		params     *domain.Notification
+		pagination *domain.Pagination
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    []*domain.Notification
+		want1   *domain.Pagination
+		wantErr bool
+	}{
+		{
+			name: "happy case: success listing notifications",
+			args: args{
+				ctx: context.Background(),
+				params: &domain.Notification{
+					UserID:  &id,
+					Flavour: feedlib.FlavourConsumer,
+				},
+				pagination: &domain.Pagination{
+					Limit:       2,
+					CurrentPage: 1,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "sad case: error listing notifications",
+			args: args{
+				ctx: context.Background(),
+				params: &domain.Notification{
+					UserID:  &id,
+					Flavour: feedlib.FlavourPro,
+				},
+				pagination: &domain.Pagination{
+					Limit:       2,
+					CurrentPage: 1,
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "sad case: error listing notifications" {
+				fakeGorm.MockListNotificationsFn = func(ctx context.Context, params *gorm.Notification, pagination *domain.Pagination) ([]*gorm.Notification, *domain.Pagination, error) {
+					return nil, nil, fmt.Errorf("error listing notifications")
+				}
+			}
+
+			got, got1, err := d.ListNotifications(tt.args.ctx, tt.args.params, tt.args.pagination)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.ListNotifications() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			if tt.wantErr && got != nil {
+				t.Errorf("expected notifications to be nil for %v", tt.name)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected notifications not to be nil for %v", tt.name)
+				return
+			}
+
+			if tt.wantErr && got1 != nil {
+				t.Errorf("expected page info to be nil for %v", tt.name)
+				return
+			}
+			if !tt.wantErr && got1 == nil {
+				t.Errorf("expected page info not to be nil for %v", tt.name)
+				return
+			}
+
+		})
+	}
+}
+
 func TestMyCareHubDb_GetScreeningToolQuestionByQuestionID(t *testing.T) {
 	type args struct {
 		ctx        context.Context
