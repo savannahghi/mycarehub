@@ -531,7 +531,7 @@ func (u *UseCasesServiceRequestImpl) VerifyServiceRequestResponse(ctx context.Co
 			"next_allowed_login":    time.Now(),
 			"failed_login_count":    0,
 			"failed_security_count": 0,
-			"pin_change_required":   true,
+			"pin_update_required":   true,
 		}
 		err = u.Update.UpdateUser(ctx, user, updatePayload)
 		if err != nil {

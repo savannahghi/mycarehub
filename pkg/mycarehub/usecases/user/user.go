@@ -560,6 +560,11 @@ func (us *UseCasesUserImpl) InviteUser(ctx context.Context, userID string, phone
 		helpers.ReportErrorToSentry(err)
 		return false, exceptions.SendSMSErr(fmt.Errorf("failed to send invite SMS: %v", err))
 	}
+	err = us.Update.UpdateUser(ctx, userProfile, map[string]interface{}{"pin_change_required": true})
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, fmt.Errorf("failed to update user: %v", err)
+	}
 
 	return true, nil
 }

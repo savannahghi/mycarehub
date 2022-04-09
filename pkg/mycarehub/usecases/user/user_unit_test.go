@@ -604,6 +604,17 @@ func TestUnit_InviteUser(t *testing.T) {
 			wantErr: true,
 			want:    false,
 		},
+		{
+			name: "Sad Case - Fail to update user",
+			args: args{
+				ctx:         ctx,
+				userID:      userID,
+				phoneNumber: validPhone,
+				flavour:     validFlavour,
+			},
+			wantErr: true,
+			want:    false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -715,6 +726,12 @@ func TestUnit_InviteUser(t *testing.T) {
 			if tt.name == "invalid: send in message error" {
 				fakeExtension.MockSendInviteSMSFn = func(ctx context.Context, phoneNumber, message string) error {
 					return fmt.Errorf("failed to send SMS")
+				}
+			}
+
+			if tt.name == "Sad Case - Fail to update user" {
+				fakeDB.MockUpdateUserFn = func(ctx context.Context, user *domain.User, updateData map[string]interface{}) error {
+					return fmt.Errorf("failed to update user")
 				}
 			}
 
