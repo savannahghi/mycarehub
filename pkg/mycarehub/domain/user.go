@@ -59,6 +59,7 @@ type User struct {
 	DateOfBirth         *time.Time             `json:"dateOfBirth"`
 	FailedSecurityCount int                    `json:"failedSecurityCount"`
 	PinUpdateRequired   bool                   `json:"pinUpdateRequired"`
+	HasSetNickname      bool                   `json:"hasSetNickname"`
 }
 
 // ClientProfile holds the details of end users who are not using the system in

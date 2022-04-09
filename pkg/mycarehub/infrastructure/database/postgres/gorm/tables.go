@@ -122,6 +122,7 @@ type User struct {
 	DateOfBirth         *time.Time `gorm:"column:date_of_birth"`
 	FailedSecurityCount int        `gorm:"column:failed_security_count"`
 	PinUpdateRequired   bool       `gorm:"column:pin_update_required"`
+	HasSetNickname      bool       `gorm:"column:has_set_nickname"`
 }
 
 // BeforeCreate is a hook run before creating a new user
