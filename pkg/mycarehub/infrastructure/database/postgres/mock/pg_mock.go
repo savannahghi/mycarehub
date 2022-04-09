@@ -139,6 +139,7 @@ type PostgresMock struct {
 	MockGetAppointmentByClientIDFn                       func(ctx context.Context, clientID string) (*domain.Appointment, error)
 	MockCheckAppointmentExistsByExternalIDFn             func(ctx context.Context, externalID string) (bool, error)
 	MockGetAppointmentByExternalIDFn                     func(ctx context.Context, externalID string) (*domain.Appointment, error)
+	MockListNotificationsFn                              func(ctx context.Context, params *domain.Notification, pagination *domain.Pagination) ([]*domain.Notification, *domain.Pagination, error)
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -540,6 +541,17 @@ func NewPostgresMock() *PostgresMock {
 				Quote:  "test",
 				Author: "test",
 			}, nil
+		},
+		MockListNotificationsFn: func(ctx context.Context, params *domain.Notification, pagination *domain.Pagination) ([]*domain.Notification, *domain.Pagination, error) {
+			return []*domain.Notification{
+				{
+					ID:     ID,
+					Title:  "A notification",
+					Body:   "The notification is about this",
+					Type:   "Teleconsult",
+					IsRead: false,
+				},
+			}, &domain.Pagination{}, nil
 		},
 		MockSearchClientProfilesByCCCNumberFn: func(ctx context.Context, CCCNumber string) ([]*domain.ClientProfile, error) {
 			return []*domain.ClientProfile{client}, nil
@@ -1521,4 +1533,9 @@ func (gm *PostgresMock) CreateClient(ctx context.Context, client domain.ClientPr
 // CreateIdentifier creates a new identifier
 func (gm *PostgresMock) CreateIdentifier(ctx context.Context, identifier domain.Identifier) (*domain.Identifier, error) {
 	return gm.MockCreateIdentifierFn(ctx, identifier)
+}
+
+// ListNotifications lists notifications based on the provided parameters
+func (gm *PostgresMock) ListNotifications(ctx context.Context, params *domain.Notification, pagination *domain.Pagination) ([]*domain.Notification, *domain.Pagination, error) {
+	return gm.MockListNotificationsFn(ctx, params, pagination)
 }

@@ -1107,3 +1107,32 @@ func (a *Appointment) BeforeCreate(tx *gorm.DB) (err error) {
 func (Appointment) TableName() string {
 	return "appointments_appointment"
 }
+
+// Notification represents a single notification
+type Notification struct {
+	Base
+
+	ID             string          `gorm:"primaryKey;column:id;"`
+	OrganisationID string          `gorm:"column:organisation_id;not null"`
+	Active         bool            `gorm:"column:active;not null"`
+	Title          string          `gorm:"column:title"`
+	Body           string          `gorm:"column:body"`
+	Type           string          `gorm:"column:notification_type"`
+	Flavour        feedlib.Flavour `gorm:"column:flavour"`
+	IsRead         bool            `gorm:"column:is_read"`
+	UserID         *string         `gorm:"column:user_id"`
+	FacilityID     *string         `gorm:"column:facility_id"`
+}
+
+// BeforeCreate is a hook run before creating an appointment
+func (n *Notification) BeforeCreate(tx *gorm.DB) (err error) {
+	id := uuid.New().String()
+	n.ID = id
+	n.OrganisationID = OrganizationID
+	return
+}
+
+// TableName references the table that we map data from
+func (Notification) TableName() string {
+	return "common_notification"
+}

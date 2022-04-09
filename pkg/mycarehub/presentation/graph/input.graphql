@@ -120,19 +120,18 @@ input StaffRegistrationInput {
   inviteStaff: Boolean!
 }
 
-
 input ServiceRequestInput {
-	Active:       Boolean                  
-	RequestType:  String!
-	Status:       String 
-	Request:      String! 
-	ClientID:     String! 
-	InProgressBy: String
-	ResolvedBy:   String
-	FacilityID:   String 
-	ClientName:   String
+  Active: Boolean
+  RequestType: String!
+  Status: String
+  Request: String!
+  ClientID: String!
+  InProgressBy: String
+  ResolvedBy: String
+  FacilityID: String
+  ClientName: String
   Flavour: Flavour!
-	Meta:         Map
+  Meta: Map
 }
 
 input FilterParam {

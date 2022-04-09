@@ -3769,6 +3769,113 @@ func TestUseCasesUserImpl_Consent(t *testing.T) {
 	}
 }
 
+func TestUseCasesUserImpl_FetchNotifications(t *testing.T) {
+
+	type args struct {
+		ctx             context.Context
+		userID          string
+		flavour         feedlib.Flavour
+		paginationInput dto.PaginationsInput
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *domain.NotificationsPage
+		wantErr bool
+	}{
+		{
+			name: "happy case: list client notifications",
+			args: args{
+				ctx:     context.Background(),
+				userID:  gofakeit.UUID(),
+				flavour: feedlib.FlavourConsumer,
+				paginationInput: dto.PaginationsInput{
+					CurrentPage: 1,
+					Limit:       5,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "happy case: list staff notifications",
+			args: args{
+				ctx:     context.Background(),
+				userID:  gofakeit.UUID(),
+				flavour: feedlib.FlavourPro,
+				paginationInput: dto.PaginationsInput{
+					CurrentPage: 1,
+					Limit:       5,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "sad case: cannot retrieve staff profile",
+			args: args{
+				ctx:     context.Background(),
+				userID:  gofakeit.UUID(),
+				flavour: feedlib.FlavourPro,
+				paginationInput: dto.PaginationsInput{
+					CurrentPage: 1,
+					Limit:       5,
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "sad case: cannot list notifications",
+			args: args{
+				ctx:     context.Background(),
+				userID:  gofakeit.UUID(),
+				flavour: feedlib.FlavourPro,
+				paginationInput: dto.PaginationsInput{
+					CurrentPage: 1,
+					Limit:       5,
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			fakeExtension := extensionMock.NewFakeExtension()
+			otp := otp.NewOTPUseCase(fakeDB, fakeDB, fakeExtension)
+			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
+			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
+			fakePubsub := pubsubMock.NewPubsubServiceMock()
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, otp, fakeAuthority, fakeGetStream, fakePubsub)
+
+			if tt.name == "sad case: cannot retrieve staff profile" {
+				fakeDB.MockGetStaffProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.StaffProfile, error) {
+					return nil, fmt.Errorf("cannot retrieve staff profile")
+				}
+			}
+
+			if tt.name == "sad case: cannot list notifications" {
+				fakeDB.MockListNotificationsFn = func(ctx context.Context, params *domain.Notification, pagination *domain.Pagination) ([]*domain.Notification, *domain.Pagination, error) {
+					return nil, nil, fmt.Errorf("cannot list notifications")
+				}
+			}
+
+			got, err := us.FetchNotifications(tt.args.ctx, tt.args.userID, tt.args.flavour, tt.args.paginationInput)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCasesUserImpl.FetchNotifications() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			if tt.wantErr && got != nil {
+				t.Errorf("expected notifications to be nil for %v", tt.name)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected notifications not to be nil for %v", tt.name)
+				return
+			}
+		})
+	}
+}
+
 func TestUseCasesUserImpl_RegisterPushToken(t *testing.T) {
 	ctx := context.Background()
 	type args struct {

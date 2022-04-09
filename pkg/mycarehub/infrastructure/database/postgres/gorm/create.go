@@ -27,6 +27,7 @@ type Create interface {
 	CreateUser(ctx context.Context, user *User) error
 	CreateClient(ctx context.Context, client *Client, contactID, identifierID string) error
 	CreateIdentifier(ctx context.Context, identifier *Identifier) error
+	CreateNotification(ctx context.Context, notification *Notification) error
 }
 
 // GetOrCreateFacility is used to get or create a facility
@@ -425,6 +426,26 @@ func (db *PGInstance) CreateIdentifier(ctx context.Context, identifier *Identifi
 	tx := db.DB.Begin()
 
 	err := tx.Create(identifier).Error
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		tx.Rollback()
+		return fmt.Errorf("failed to create identifier: %w", err)
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		helpers.ReportErrorToSentry(err)
+		tx.Rollback()
+		return fmt.Errorf("failed to commit create identifier transaction: %w", err)
+	}
+
+	return nil
+}
+
+// CreateNotification saves a new notification to the database
+func (db *PGInstance) CreateNotification(ctx context.Context, notification *Notification) error {
+	tx := db.DB.Begin()
+
+	err := tx.Create(notification).Error
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		tx.Rollback()

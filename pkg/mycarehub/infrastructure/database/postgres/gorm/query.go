@@ -24,6 +24,7 @@ type Query interface {
 	GetFacilities(ctx context.Context) ([]Facility, error)
 	GetFacilitiesWithoutFHIRID(ctx context.Context) ([]*Facility, error)
 	ListFacilities(ctx context.Context, searchTerm *string, filter []*domain.FiltersParam, pagination *domain.FacilityPage) (*domain.FacilityPage, error)
+	ListNotifications(ctx context.Context, params *Notification, pagination *domain.Pagination) ([]*Notification, *domain.Pagination, error)
 	ListAppointments(ctx context.Context, params *Appointment, filters []*firebasetools.FilterParam, pagination *domain.Pagination) ([]*Appointment, *domain.Pagination, error)
 	GetUserProfileByPhoneNumber(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*User, error)
 	GetUserPINByUserID(ctx context.Context, userID string, flavour feedlib.Flavour) (*PINData, error)
@@ -355,6 +356,36 @@ func (db *PGInstance) ListAppointments(ctx context.Context, params *Appointment,
 	}
 
 	return appointments, pageInfo, nil
+}
+
+// ListNotifications retrieves notifications using the provided parameters and filters
+func (db *PGInstance) ListNotifications(ctx context.Context, params *Notification, pagination *domain.Pagination) ([]*Notification, *domain.Pagination, error) {
+	var count int64
+	var notifications []*Notification
+
+	tx := db.DB.Model(&Notification{}).Or(Notification{UserID: params.UserID, Flavour: params.Flavour, Active: params.Active})
+
+	// add filter for facility notifications
+	if params.FacilityID != nil {
+		tx.Or(Notification{FacilityID: params.FacilityID, Flavour: params.Flavour, Active: params.Active})
+	}
+
+	if pagination != nil {
+		if err := tx.Count(&count).Error; err != nil {
+			helpers.ReportErrorToSentry(err)
+			return nil, pagination, fmt.Errorf("failed to execute count query: %v", err)
+		}
+
+		pagination.Count = count
+		paginateQuery(tx, pagination)
+	}
+
+	if err := tx.Find(&notifications).Error; err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, pagination, fmt.Errorf("failed to execute paginated query: %v", err)
+	}
+
+	return notifications, pagination, nil
 }
 
 // GetUserProfileByPhoneNumber retrieves a user profile using their phonenumber
