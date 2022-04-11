@@ -10,6 +10,7 @@ import (
 
 	"github.com/getsentry/sentry-go"
 	"github.com/savannahghi/feedlib"
+	"github.com/savannahghi/firebasetools"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
@@ -124,4 +125,15 @@ func RestAPIResponseHelper(key string, value interface{}) *dto.RestEndpointRespo
 func ReportErrorToSentry(err error) {
 	defer sentry.Flush(2 * time.Millisecond)
 	sentry.CaptureException(err)
+}
+
+// ComposeNotificationPayload creates the notification payload that will sent via pubsub
+func ComposeNotificationPayload(userProfile *domain.User, notificationData dto.NotificationPubSubMessage) *firebasetools.SendNotificationPayload {
+	return &firebasetools.SendNotificationPayload{
+		RegistrationTokens: userProfile.PushTokens,
+		Notification: &firebasetools.FirebaseSimpleNotificationInput{
+			Title: notificationData.Title,
+			Body:  notificationData.Body,
+		},
+	}
 }

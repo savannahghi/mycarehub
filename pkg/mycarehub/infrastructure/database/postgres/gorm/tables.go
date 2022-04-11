@@ -357,7 +357,7 @@ type Client struct {
 
 	ClientType string `gorm:"column:client_type"`
 
-	UserProfile User `gorm:"ForeignKey:UserID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;not null"`
+	UserProfile User `gorm:"ForeignKey:user_id;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;not null"`
 
 	TreatmentEnrollmentDate *time.Time `gorm:"column:enrollment_date"`
 

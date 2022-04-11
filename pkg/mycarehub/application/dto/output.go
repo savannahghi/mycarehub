@@ -3,6 +3,7 @@ package dto
 import (
 	"time"
 
+	"github.com/savannahghi/firebasetools"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/scalarutils"
@@ -163,4 +164,29 @@ type AppointmentServiceRequestsOutput struct {
 type PatientCreationOutput struct {
 	ID     string `json:"id"`
 	UserID string `json:"user"`
+}
+
+// NotificationPubSubMessage models the payload passed when composing a notification payload
+//
+// The title is what will appear as the notification's title message on the phone's notification tray
+// Most of the notifications will be `BLIND` meaning that the body will be empty
+type NotificationPubSubMessage struct {
+	Title string `json:"title"`
+	Body  string `json:"body"`
+}
+
+// SavedNotification is used to serialize and save successful FCM notifications.
+//
+// It's the basis for a primitive "inbox" - a mechanism by which an app can
+// request it's messages in bulk.
+type SavedNotification struct {
+	ID                string                                         `json:"id,omitempty"`
+	RegistrationToken string                                         `json:"registrationToken,omitempty"`
+	MessageID         string                                         `json:"messageID,omitempty"`
+	Timestamp         time.Time                                      `json:"timestamp,omitempty"`
+	Data              map[string]interface{}                         `json:"data,omitempty"`
+	Notification      *firebasetools.FirebaseSimpleNotificationInput `json:"notification,omitempty"`
+	AndroidConfig     *firebasetools.FirebaseAndroidConfigInput      `json:"androidConfig,omitempty"`
+	WebpushConfig     *firebasetools.FirebaseWebpushConfigInput      `json:"webpushConfig,omitempty"`
+	APNSConfig        *firebasetools.FirebaseAPNSConfigInput         `json:"apnsConfig,omitempty"`
 }

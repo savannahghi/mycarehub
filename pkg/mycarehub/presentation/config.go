@@ -19,6 +19,7 @@ import (
 	externalExtension "github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/fcm"
 	streamService "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/getstream"
 	loginservice "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/login"
 	pubsubmessaging "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/pubsub"
@@ -89,7 +90,7 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize pubsub messaging service: %w", err)
 	}
-
+	fcm := fcm.NewService()
 	streamClient, err := stream.NewClient(getStreamAPIKey, getStreamAPISecret)
 	if err != nil {
 		log.Fatalf("failed to start getstream client: %v", err)
@@ -116,7 +117,7 @@ func Router(ctx context.Context) (*mux.Router, error) {
 
 	faq := faq.NewUsecaseFAQ(db)
 
-	serviceRequestUseCase := servicerequest.NewUseCaseServiceRequestImpl(db, db, db, externalExt, userUsecase)
+	serviceRequestUseCase := servicerequest.NewUseCaseServiceRequestImpl(db, db, db, externalExt, userUsecase, fcm)
 
 	communitiesUseCase := communities.NewUseCaseCommunitiesImpl(getStream, externalExt, db, db)
 
