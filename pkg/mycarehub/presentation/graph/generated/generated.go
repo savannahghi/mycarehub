@@ -821,28 +821,28 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.AppointmentsPage.Pagination(childComplexity), true
 
-	case "Attachment.assetUrl":
+	case "Attachment.asset_URL":
 		if e.complexity.Attachment.AssetURL == nil {
 			break
 		}
 
 		return e.complexity.Attachment.AssetURL(childComplexity), true
 
-	case "Attachment.authorName":
+	case "Attachment.author_name":
 		if e.complexity.Attachment.AuthorName == nil {
 			break
 		}
 
 		return e.complexity.Attachment.AuthorName(childComplexity), true
 
-	case "Attachment.imageUrl":
+	case "Attachment.image_URL":
 		if e.complexity.Attachment.ImageURL == nil {
 			break
 		}
 
 		return e.complexity.Attachment.ImageURL(childComplexity), true
 
-	case "Attachment.ogScrapeUrl":
+	case "Attachment.og_scrape_URL":
 		if e.complexity.Attachment.OgScrapeURL == nil {
 			break
 		}
@@ -856,7 +856,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Attachment.Text(childComplexity), true
 
-	case "Attachment.thumbUrl":
+	case "Attachment.thumb_URL":
 		if e.complexity.Attachment.ThumbURL == nil {
 			break
 		}
@@ -870,7 +870,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Attachment.Title(childComplexity), true
 
-	case "Attachment.titleLink":
+	case "Attachment.title_link":
 		if e.complexity.Attachment.TitleLink == nil {
 			break
 		}
@@ -1976,14 +1976,14 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.GetstreamMessage.Attachments(childComplexity), true
 
-	case "GetstreamMessage.createdAt":
+	case "GetstreamMessage.created_at":
 		if e.complexity.GetstreamMessage.CreatedAt == nil {
 			break
 		}
 
 		return e.complexity.GetstreamMessage.CreatedAt(childComplexity), true
 
-	case "GetstreamMessage.deletedAt":
+	case "GetstreamMessage.deleted_at":
 		if e.complexity.GetstreamMessage.DeletedAt == nil {
 			break
 		}
@@ -2004,49 +2004,49 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.GetstreamMessage.ID(childComplexity), true
 
-	case "GetstreamMessage.latestReactions":
+	case "GetstreamMessage.latest_reactions":
 		if e.complexity.GetstreamMessage.LatestReactions == nil {
 			break
 		}
 
 		return e.complexity.GetstreamMessage.LatestReactions(childComplexity), true
 
-	case "GetstreamMessage.mentionedUsers":
+	case "GetstreamMessage.mentioned_users":
 		if e.complexity.GetstreamMessage.MentionedUsers == nil {
 			break
 		}
 
 		return e.complexity.GetstreamMessage.MentionedUsers(childComplexity), true
 
-	case "GetstreamMessage.ownReactions":
+	case "GetstreamMessage.own_reactions":
 		if e.complexity.GetstreamMessage.OwnReactions == nil {
 			break
 		}
 
 		return e.complexity.GetstreamMessage.OwnReactions(childComplexity), true
 
-	case "GetstreamMessage.parentID":
+	case "GetstreamMessage.parent_id":
 		if e.complexity.GetstreamMessage.ParentID == nil {
 			break
 		}
 
 		return e.complexity.GetstreamMessage.ParentID(childComplexity), true
 
-	case "GetstreamMessage.pinnedAt":
+	case "GetstreamMessage.pinned_at":
 		if e.complexity.GetstreamMessage.PinnedAt == nil {
 			break
 		}
 
 		return e.complexity.GetstreamMessage.PinnedAt(childComplexity), true
 
-	case "GetstreamMessage.pinnedBy":
+	case "GetstreamMessage.pinned_by":
 		if e.complexity.GetstreamMessage.PinnedBy == nil {
 			break
 		}
 
 		return e.complexity.GetstreamMessage.PinnedBy(childComplexity), true
 
-	case "GetstreamMessage.replyCount":
+	case "GetstreamMessage.reply_count":
 		if e.complexity.GetstreamMessage.ReplyCount == nil {
 			break
 		}
@@ -2060,7 +2060,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.GetstreamMessage.Shadowed(childComplexity), true
 
-	case "GetstreamMessage.showInChannel":
+	case "GetstreamMessage.show_in_channel":
 		if e.complexity.GetstreamMessage.ShowInChannel == nil {
 			break
 		}
@@ -2088,7 +2088,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.GetstreamMessage.Type(childComplexity), true
 
-	case "GetstreamMessage.updatedAt":
+	case "GetstreamMessage.updated_at":
 		if e.complexity.GetstreamMessage.UpdatedAt == nil {
 			break
 		}
@@ -2207,7 +2207,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Member.Gender(childComplexity), true
 
-	case "Member.ID":
+	case "Member.id":
 		if e.complexity.Member.ID == nil {
 			break
 		}
@@ -2277,70 +2277,70 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ModerationResult.Action(childComplexity), true
 
-	case "ModerationResult.AIModerationResponse":
+	case "ModerationResult.AI_moderation_response":
 		if e.complexity.ModerationResult.AiModerationResponse == nil {
 			break
 		}
 
 		return e.complexity.ModerationResult.AiModerationResponse(childComplexity), true
 
-	case "ModerationResult.blockedWord":
+	case "ModerationResult.blocked_word":
 		if e.complexity.ModerationResult.BlockedWord == nil {
 			break
 		}
 
 		return e.complexity.ModerationResult.BlockedWord(childComplexity), true
 
-	case "ModerationResult.blocklistName":
+	case "ModerationResult.blocklist_name":
 		if e.complexity.ModerationResult.BlocklistName == nil {
 			break
 		}
 
 		return e.complexity.ModerationResult.BlocklistName(childComplexity), true
 
-	case "ModerationResult.createdAt":
+	case "ModerationResult.created_at":
 		if e.complexity.ModerationResult.CreatedAt == nil {
 			break
 		}
 
 		return e.complexity.ModerationResult.CreatedAt(childComplexity), true
 
-	case "ModerationResult.messageID":
+	case "ModerationResult.message_id":
 		if e.complexity.ModerationResult.MessageID == nil {
 			break
 		}
 
 		return e.complexity.ModerationResult.MessageID(childComplexity), true
 
-	case "ModerationResult.moderatedBy":
+	case "ModerationResult.moderated_by":
 		if e.complexity.ModerationResult.ModeratedBy == nil {
 			break
 		}
 
 		return e.complexity.ModerationResult.ModeratedBy(childComplexity), true
 
-	case "ModerationResult.moderationThresholds":
+	case "ModerationResult.moderation_thresholds":
 		if e.complexity.ModerationResult.ModerationThresholds == nil {
 			break
 		}
 
 		return e.complexity.ModerationResult.ModerationThresholds(childComplexity), true
 
-	case "ModerationResult.updatedAt":
+	case "ModerationResult.updated_at":
 		if e.complexity.ModerationResult.UpdatedAt == nil {
 			break
 		}
 
 		return e.complexity.ModerationResult.UpdatedAt(childComplexity), true
 
-	case "ModerationResult.userBadKarma":
+	case "ModerationResult.user_bad_karma":
 		if e.complexity.ModerationResult.UserBadKarma == nil {
 			break
 		}
 
 		return e.complexity.ModerationResult.UserBadKarma(childComplexity), true
 
-	case "ModerationResult.userKarma":
+	case "ModerationResult.user_karma":
 		if e.complexity.ModerationResult.UserKarma == nil {
 			break
 		}
@@ -3437,7 +3437,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.VerifyPin(childComplexity, args["userID"].(string), args["flavour"].(feedlib.Flavour), args["pin"].(string)), true
 
-	case "Reaction.messageID":
+	case "Reaction.message_id":
 		if e.complexity.Reaction.MessageID == nil {
 			break
 		}
@@ -3451,7 +3451,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Reaction.Type(childComplexity), true
 
-	case "Reaction.userID":
+	case "Reaction.user_id":
 		if e.complexity.Reaction.UserID == nil {
 			break
 		}
@@ -4789,7 +4789,7 @@ type PostingHours {
 Member represents a user and is specific to use in the context of communities
 """
 type Member {
-  ID: ID!
+  id: ID!
   userID: ID!
   name: String!
   role: String!
@@ -4921,19 +4921,19 @@ type AuthorityRole {
 
 type Attachment {
   type: String
-  authorName: String
+  author_name: String
   title: String
-  titleLink: String
+  title_link: String
   text: String
-  imageUrl: String
-  thumbUrl: String
-  assetUrl: String
-  ogScrapeUrl: String
+  image_URL: String
+  thumb_URL: String
+  asset_URL: String
+  og_scrape_URL: String
 }
 
 type Reaction {
-  messageID: String
-  userID: String
+  message_id: String
+  user_id: String
   type: String
 }
 
@@ -4945,19 +4945,19 @@ type GetstreamMessage {
   silent: Boolean
   user: Member
   attachments: [Attachment]
-  latestReactions: [Reaction]
-  ownReactions: [Reaction]
+  latest_reactions: [Reaction]
+  own_reactions: [Reaction]
   # reaction_counts:  Map
-  parentID: String
-  showInChannel: Boolean
-  replyCount: Int
-  mentionedUsers: [Member]
+  parent_id: String
+  show_in_channel: Boolean
+  reply_count: Int
+  mentioned_users: [Member]
   shadowed: Boolean
-  pinnedAt: Time
-  pinnedBy: Member
-  createdAt: Time
-  updatedAt: Time
-  deletedAt: Time
+  pinned_at: Time
+  pinned_by: Member
+  created_at: Time
+  updated_at: Time
+  deleted_at: Time
 }
 
 # message Fag response
@@ -4967,17 +4967,17 @@ type MessageFlag {
 }
 
 type ModerationResult {
-  messageID: String
+  message_id: String
   action: String
-  moderatedBy: String
-  blockedWord: String
-  blocklistName: String
-  moderationThresholds: ModerationThresholds
-  AIModerationResponse: AIModerationResponse
-  userKarma: Float
-  userBadKarma: Boolean
-  createdAt: Time
-  updatedAt: Time
+  moderated_by: String
+  blocked_word: String
+  blocklist_name: String
+  moderation_thresholds: ModerationThresholds
+  AI_moderation_response: AIModerationResponse
+  user_karma: Float
+  user_bad_karma: Boolean
+  created_at: Time
+  updated_at: Time
 }
 
 type ModerationThresholds {
@@ -7209,7 +7209,7 @@ func (ec *executionContext) _Attachment_type(ctx context.Context, field graphql.
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Attachment_authorName(ctx context.Context, field graphql.CollectedField, obj *domain.Attachment) (ret graphql.Marshaler) {
+func (ec *executionContext) _Attachment_author_name(ctx context.Context, field graphql.CollectedField, obj *domain.Attachment) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -7273,7 +7273,7 @@ func (ec *executionContext) _Attachment_title(ctx context.Context, field graphql
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Attachment_titleLink(ctx context.Context, field graphql.CollectedField, obj *domain.Attachment) (ret graphql.Marshaler) {
+func (ec *executionContext) _Attachment_title_link(ctx context.Context, field graphql.CollectedField, obj *domain.Attachment) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -7337,7 +7337,7 @@ func (ec *executionContext) _Attachment_text(ctx context.Context, field graphql.
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Attachment_imageUrl(ctx context.Context, field graphql.CollectedField, obj *domain.Attachment) (ret graphql.Marshaler) {
+func (ec *executionContext) _Attachment_image_URL(ctx context.Context, field graphql.CollectedField, obj *domain.Attachment) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -7369,7 +7369,7 @@ func (ec *executionContext) _Attachment_imageUrl(ctx context.Context, field grap
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Attachment_thumbUrl(ctx context.Context, field graphql.CollectedField, obj *domain.Attachment) (ret graphql.Marshaler) {
+func (ec *executionContext) _Attachment_thumb_URL(ctx context.Context, field graphql.CollectedField, obj *domain.Attachment) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -7401,7 +7401,7 @@ func (ec *executionContext) _Attachment_thumbUrl(ctx context.Context, field grap
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Attachment_assetUrl(ctx context.Context, field graphql.CollectedField, obj *domain.Attachment) (ret graphql.Marshaler) {
+func (ec *executionContext) _Attachment_asset_URL(ctx context.Context, field graphql.CollectedField, obj *domain.Attachment) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -7433,7 +7433,7 @@ func (ec *executionContext) _Attachment_assetUrl(ctx context.Context, field grap
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Attachment_ogScrapeUrl(ctx context.Context, field graphql.CollectedField, obj *domain.Attachment) (ret graphql.Marshaler) {
+func (ec *executionContext) _Attachment_og_scrape_URL(ctx context.Context, field graphql.CollectedField, obj *domain.Attachment) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -12928,7 +12928,7 @@ func (ec *executionContext) _GetstreamMessage_attachments(ctx context.Context, f
 	return ec.marshalOAttachment2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐAttachment(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _GetstreamMessage_latestReactions(ctx context.Context, field graphql.CollectedField, obj *domain.GetstreamMessage) (ret graphql.Marshaler) {
+func (ec *executionContext) _GetstreamMessage_latest_reactions(ctx context.Context, field graphql.CollectedField, obj *domain.GetstreamMessage) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -12960,7 +12960,7 @@ func (ec *executionContext) _GetstreamMessage_latestReactions(ctx context.Contex
 	return ec.marshalOReaction2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐReaction(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _GetstreamMessage_ownReactions(ctx context.Context, field graphql.CollectedField, obj *domain.GetstreamMessage) (ret graphql.Marshaler) {
+func (ec *executionContext) _GetstreamMessage_own_reactions(ctx context.Context, field graphql.CollectedField, obj *domain.GetstreamMessage) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -12992,7 +12992,7 @@ func (ec *executionContext) _GetstreamMessage_ownReactions(ctx context.Context, 
 	return ec.marshalOReaction2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐReaction(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _GetstreamMessage_parentID(ctx context.Context, field graphql.CollectedField, obj *domain.GetstreamMessage) (ret graphql.Marshaler) {
+func (ec *executionContext) _GetstreamMessage_parent_id(ctx context.Context, field graphql.CollectedField, obj *domain.GetstreamMessage) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -13024,7 +13024,7 @@ func (ec *executionContext) _GetstreamMessage_parentID(ctx context.Context, fiel
 	return ec.marshalOString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _GetstreamMessage_showInChannel(ctx context.Context, field graphql.CollectedField, obj *domain.GetstreamMessage) (ret graphql.Marshaler) {
+func (ec *executionContext) _GetstreamMessage_show_in_channel(ctx context.Context, field graphql.CollectedField, obj *domain.GetstreamMessage) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -13056,7 +13056,7 @@ func (ec *executionContext) _GetstreamMessage_showInChannel(ctx context.Context,
 	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _GetstreamMessage_replyCount(ctx context.Context, field graphql.CollectedField, obj *domain.GetstreamMessage) (ret graphql.Marshaler) {
+func (ec *executionContext) _GetstreamMessage_reply_count(ctx context.Context, field graphql.CollectedField, obj *domain.GetstreamMessage) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -13088,7 +13088,7 @@ func (ec *executionContext) _GetstreamMessage_replyCount(ctx context.Context, fi
 	return ec.marshalOInt2int(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _GetstreamMessage_mentionedUsers(ctx context.Context, field graphql.CollectedField, obj *domain.GetstreamMessage) (ret graphql.Marshaler) {
+func (ec *executionContext) _GetstreamMessage_mentioned_users(ctx context.Context, field graphql.CollectedField, obj *domain.GetstreamMessage) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -13152,7 +13152,7 @@ func (ec *executionContext) _GetstreamMessage_shadowed(ctx context.Context, fiel
 	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _GetstreamMessage_pinnedAt(ctx context.Context, field graphql.CollectedField, obj *domain.GetstreamMessage) (ret graphql.Marshaler) {
+func (ec *executionContext) _GetstreamMessage_pinned_at(ctx context.Context, field graphql.CollectedField, obj *domain.GetstreamMessage) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -13184,7 +13184,7 @@ func (ec *executionContext) _GetstreamMessage_pinnedAt(ctx context.Context, fiel
 	return ec.marshalOTime2ᚖtimeᚐTime(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _GetstreamMessage_pinnedBy(ctx context.Context, field graphql.CollectedField, obj *domain.GetstreamMessage) (ret graphql.Marshaler) {
+func (ec *executionContext) _GetstreamMessage_pinned_by(ctx context.Context, field graphql.CollectedField, obj *domain.GetstreamMessage) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -13216,7 +13216,7 @@ func (ec *executionContext) _GetstreamMessage_pinnedBy(ctx context.Context, fiel
 	return ec.marshalOMember2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐMember(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _GetstreamMessage_createdAt(ctx context.Context, field graphql.CollectedField, obj *domain.GetstreamMessage) (ret graphql.Marshaler) {
+func (ec *executionContext) _GetstreamMessage_created_at(ctx context.Context, field graphql.CollectedField, obj *domain.GetstreamMessage) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -13248,7 +13248,7 @@ func (ec *executionContext) _GetstreamMessage_createdAt(ctx context.Context, fie
 	return ec.marshalOTime2ᚖtimeᚐTime(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _GetstreamMessage_updatedAt(ctx context.Context, field graphql.CollectedField, obj *domain.GetstreamMessage) (ret graphql.Marshaler) {
+func (ec *executionContext) _GetstreamMessage_updated_at(ctx context.Context, field graphql.CollectedField, obj *domain.GetstreamMessage) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -13280,7 +13280,7 @@ func (ec *executionContext) _GetstreamMessage_updatedAt(ctx context.Context, fie
 	return ec.marshalOTime2ᚖtimeᚐTime(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _GetstreamMessage_deletedAt(ctx context.Context, field graphql.CollectedField, obj *domain.GetstreamMessage) (ret graphql.Marshaler) {
+func (ec *executionContext) _GetstreamMessage_deleted_at(ctx context.Context, field graphql.CollectedField, obj *domain.GetstreamMessage) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -13767,7 +13767,7 @@ func (ec *executionContext) _ImageMeta_imageDownloadUrl(ctx context.Context, fie
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Member_ID(ctx context.Context, field graphql.CollectedField, obj *domain.Member) (ret graphql.Marshaler) {
+func (ec *executionContext) _Member_id(ctx context.Context, field graphql.CollectedField, obj *domain.Member) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -14140,7 +14140,7 @@ func (ec *executionContext) _Meta_totalCount(ctx context.Context, field graphql.
 	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _ModerationResult_messageID(ctx context.Context, field graphql.CollectedField, obj *domain.ModerationResult) (ret graphql.Marshaler) {
+func (ec *executionContext) _ModerationResult_message_id(ctx context.Context, field graphql.CollectedField, obj *domain.ModerationResult) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -14204,7 +14204,7 @@ func (ec *executionContext) _ModerationResult_action(ctx context.Context, field 
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _ModerationResult_moderatedBy(ctx context.Context, field graphql.CollectedField, obj *domain.ModerationResult) (ret graphql.Marshaler) {
+func (ec *executionContext) _ModerationResult_moderated_by(ctx context.Context, field graphql.CollectedField, obj *domain.ModerationResult) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -14236,7 +14236,7 @@ func (ec *executionContext) _ModerationResult_moderatedBy(ctx context.Context, f
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _ModerationResult_blockedWord(ctx context.Context, field graphql.CollectedField, obj *domain.ModerationResult) (ret graphql.Marshaler) {
+func (ec *executionContext) _ModerationResult_blocked_word(ctx context.Context, field graphql.CollectedField, obj *domain.ModerationResult) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -14268,7 +14268,7 @@ func (ec *executionContext) _ModerationResult_blockedWord(ctx context.Context, f
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _ModerationResult_blocklistName(ctx context.Context, field graphql.CollectedField, obj *domain.ModerationResult) (ret graphql.Marshaler) {
+func (ec *executionContext) _ModerationResult_blocklist_name(ctx context.Context, field graphql.CollectedField, obj *domain.ModerationResult) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -14300,7 +14300,7 @@ func (ec *executionContext) _ModerationResult_blocklistName(ctx context.Context,
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _ModerationResult_moderationThresholds(ctx context.Context, field graphql.CollectedField, obj *domain.ModerationResult) (ret graphql.Marshaler) {
+func (ec *executionContext) _ModerationResult_moderation_thresholds(ctx context.Context, field graphql.CollectedField, obj *domain.ModerationResult) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -14332,7 +14332,7 @@ func (ec *executionContext) _ModerationResult_moderationThresholds(ctx context.C
 	return ec.marshalOModerationThresholds2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐModerationThresholds(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _ModerationResult_AIModerationResponse(ctx context.Context, field graphql.CollectedField, obj *domain.ModerationResult) (ret graphql.Marshaler) {
+func (ec *executionContext) _ModerationResult_AI_moderation_response(ctx context.Context, field graphql.CollectedField, obj *domain.ModerationResult) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -14364,7 +14364,7 @@ func (ec *executionContext) _ModerationResult_AIModerationResponse(ctx context.C
 	return ec.marshalOAIModerationResponse2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐAIModerationResponse(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _ModerationResult_userKarma(ctx context.Context, field graphql.CollectedField, obj *domain.ModerationResult) (ret graphql.Marshaler) {
+func (ec *executionContext) _ModerationResult_user_karma(ctx context.Context, field graphql.CollectedField, obj *domain.ModerationResult) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -14396,7 +14396,7 @@ func (ec *executionContext) _ModerationResult_userKarma(ctx context.Context, fie
 	return ec.marshalOFloat2ᚖfloat64(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _ModerationResult_userBadKarma(ctx context.Context, field graphql.CollectedField, obj *domain.ModerationResult) (ret graphql.Marshaler) {
+func (ec *executionContext) _ModerationResult_user_bad_karma(ctx context.Context, field graphql.CollectedField, obj *domain.ModerationResult) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -14428,7 +14428,7 @@ func (ec *executionContext) _ModerationResult_userBadKarma(ctx context.Context, 
 	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _ModerationResult_createdAt(ctx context.Context, field graphql.CollectedField, obj *domain.ModerationResult) (ret graphql.Marshaler) {
+func (ec *executionContext) _ModerationResult_created_at(ctx context.Context, field graphql.CollectedField, obj *domain.ModerationResult) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -14460,7 +14460,7 @@ func (ec *executionContext) _ModerationResult_createdAt(ctx context.Context, fie
 	return ec.marshalOTime2ᚖtimeᚐTime(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _ModerationResult_updatedAt(ctx context.Context, field graphql.CollectedField, obj *domain.ModerationResult) (ret graphql.Marshaler) {
+func (ec *executionContext) _ModerationResult_updated_at(ctx context.Context, field graphql.CollectedField, obj *domain.ModerationResult) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -18519,7 +18519,7 @@ func (ec *executionContext) _Query___schema(ctx context.Context, field graphql.C
 	return ec.marshalO__Schema2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐSchema(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Reaction_messageID(ctx context.Context, field graphql.CollectedField, obj *domain.Reaction) (ret graphql.Marshaler) {
+func (ec *executionContext) _Reaction_message_id(ctx context.Context, field graphql.CollectedField, obj *domain.Reaction) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -18551,7 +18551,7 @@ func (ec *executionContext) _Reaction_messageID(ctx context.Context, field graph
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Reaction_userID(ctx context.Context, field graphql.CollectedField, obj *domain.Reaction) (ret graphql.Marshaler) {
+func (ec *executionContext) _Reaction_user_id(ctx context.Context, field graphql.CollectedField, obj *domain.Reaction) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -23250,22 +23250,22 @@ func (ec *executionContext) _Attachment(ctx context.Context, sel ast.SelectionSe
 			out.Values[i] = graphql.MarshalString("Attachment")
 		case "type":
 			out.Values[i] = ec._Attachment_type(ctx, field, obj)
-		case "authorName":
-			out.Values[i] = ec._Attachment_authorName(ctx, field, obj)
+		case "author_name":
+			out.Values[i] = ec._Attachment_author_name(ctx, field, obj)
 		case "title":
 			out.Values[i] = ec._Attachment_title(ctx, field, obj)
-		case "titleLink":
-			out.Values[i] = ec._Attachment_titleLink(ctx, field, obj)
+		case "title_link":
+			out.Values[i] = ec._Attachment_title_link(ctx, field, obj)
 		case "text":
 			out.Values[i] = ec._Attachment_text(ctx, field, obj)
-		case "imageUrl":
-			out.Values[i] = ec._Attachment_imageUrl(ctx, field, obj)
-		case "thumbUrl":
-			out.Values[i] = ec._Attachment_thumbUrl(ctx, field, obj)
-		case "assetUrl":
-			out.Values[i] = ec._Attachment_assetUrl(ctx, field, obj)
-		case "ogScrapeUrl":
-			out.Values[i] = ec._Attachment_ogScrapeUrl(ctx, field, obj)
+		case "image_URL":
+			out.Values[i] = ec._Attachment_image_URL(ctx, field, obj)
+		case "thumb_URL":
+			out.Values[i] = ec._Attachment_thumb_URL(ctx, field, obj)
+		case "asset_URL":
+			out.Values[i] = ec._Attachment_asset_URL(ctx, field, obj)
+		case "og_scrape_URL":
+			out.Values[i] = ec._Attachment_og_scrape_URL(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -24463,30 +24463,30 @@ func (ec *executionContext) _GetstreamMessage(ctx context.Context, sel ast.Selec
 			out.Values[i] = ec._GetstreamMessage_user(ctx, field, obj)
 		case "attachments":
 			out.Values[i] = ec._GetstreamMessage_attachments(ctx, field, obj)
-		case "latestReactions":
-			out.Values[i] = ec._GetstreamMessage_latestReactions(ctx, field, obj)
-		case "ownReactions":
-			out.Values[i] = ec._GetstreamMessage_ownReactions(ctx, field, obj)
-		case "parentID":
-			out.Values[i] = ec._GetstreamMessage_parentID(ctx, field, obj)
-		case "showInChannel":
-			out.Values[i] = ec._GetstreamMessage_showInChannel(ctx, field, obj)
-		case "replyCount":
-			out.Values[i] = ec._GetstreamMessage_replyCount(ctx, field, obj)
-		case "mentionedUsers":
-			out.Values[i] = ec._GetstreamMessage_mentionedUsers(ctx, field, obj)
+		case "latest_reactions":
+			out.Values[i] = ec._GetstreamMessage_latest_reactions(ctx, field, obj)
+		case "own_reactions":
+			out.Values[i] = ec._GetstreamMessage_own_reactions(ctx, field, obj)
+		case "parent_id":
+			out.Values[i] = ec._GetstreamMessage_parent_id(ctx, field, obj)
+		case "show_in_channel":
+			out.Values[i] = ec._GetstreamMessage_show_in_channel(ctx, field, obj)
+		case "reply_count":
+			out.Values[i] = ec._GetstreamMessage_reply_count(ctx, field, obj)
+		case "mentioned_users":
+			out.Values[i] = ec._GetstreamMessage_mentioned_users(ctx, field, obj)
 		case "shadowed":
 			out.Values[i] = ec._GetstreamMessage_shadowed(ctx, field, obj)
-		case "pinnedAt":
-			out.Values[i] = ec._GetstreamMessage_pinnedAt(ctx, field, obj)
-		case "pinnedBy":
-			out.Values[i] = ec._GetstreamMessage_pinnedBy(ctx, field, obj)
-		case "createdAt":
-			out.Values[i] = ec._GetstreamMessage_createdAt(ctx, field, obj)
-		case "updatedAt":
-			out.Values[i] = ec._GetstreamMessage_updatedAt(ctx, field, obj)
-		case "deletedAt":
-			out.Values[i] = ec._GetstreamMessage_deletedAt(ctx, field, obj)
+		case "pinned_at":
+			out.Values[i] = ec._GetstreamMessage_pinned_at(ctx, field, obj)
+		case "pinned_by":
+			out.Values[i] = ec._GetstreamMessage_pinned_by(ctx, field, obj)
+		case "created_at":
+			out.Values[i] = ec._GetstreamMessage_created_at(ctx, field, obj)
+		case "updated_at":
+			out.Values[i] = ec._GetstreamMessage_updated_at(ctx, field, obj)
+		case "deleted_at":
+			out.Values[i] = ec._GetstreamMessage_deleted_at(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -24662,8 +24662,8 @@ func (ec *executionContext) _Member(ctx context.Context, sel ast.SelectionSet, o
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Member")
-		case "ID":
-			out.Values[i] = ec._Member_ID(ctx, field, obj)
+		case "id":
+			out.Values[i] = ec._Member_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -24771,28 +24771,28 @@ func (ec *executionContext) _ModerationResult(ctx context.Context, sel ast.Selec
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("ModerationResult")
-		case "messageID":
-			out.Values[i] = ec._ModerationResult_messageID(ctx, field, obj)
+		case "message_id":
+			out.Values[i] = ec._ModerationResult_message_id(ctx, field, obj)
 		case "action":
 			out.Values[i] = ec._ModerationResult_action(ctx, field, obj)
-		case "moderatedBy":
-			out.Values[i] = ec._ModerationResult_moderatedBy(ctx, field, obj)
-		case "blockedWord":
-			out.Values[i] = ec._ModerationResult_blockedWord(ctx, field, obj)
-		case "blocklistName":
-			out.Values[i] = ec._ModerationResult_blocklistName(ctx, field, obj)
-		case "moderationThresholds":
-			out.Values[i] = ec._ModerationResult_moderationThresholds(ctx, field, obj)
-		case "AIModerationResponse":
-			out.Values[i] = ec._ModerationResult_AIModerationResponse(ctx, field, obj)
-		case "userKarma":
-			out.Values[i] = ec._ModerationResult_userKarma(ctx, field, obj)
-		case "userBadKarma":
-			out.Values[i] = ec._ModerationResult_userBadKarma(ctx, field, obj)
-		case "createdAt":
-			out.Values[i] = ec._ModerationResult_createdAt(ctx, field, obj)
-		case "updatedAt":
-			out.Values[i] = ec._ModerationResult_updatedAt(ctx, field, obj)
+		case "moderated_by":
+			out.Values[i] = ec._ModerationResult_moderated_by(ctx, field, obj)
+		case "blocked_word":
+			out.Values[i] = ec._ModerationResult_blocked_word(ctx, field, obj)
+		case "blocklist_name":
+			out.Values[i] = ec._ModerationResult_blocklist_name(ctx, field, obj)
+		case "moderation_thresholds":
+			out.Values[i] = ec._ModerationResult_moderation_thresholds(ctx, field, obj)
+		case "AI_moderation_response":
+			out.Values[i] = ec._ModerationResult_AI_moderation_response(ctx, field, obj)
+		case "user_karma":
+			out.Values[i] = ec._ModerationResult_user_karma(ctx, field, obj)
+		case "user_bad_karma":
+			out.Values[i] = ec._ModerationResult_user_bad_karma(ctx, field, obj)
+		case "created_at":
+			out.Values[i] = ec._ModerationResult_created_at(ctx, field, obj)
+		case "updated_at":
+			out.Values[i] = ec._ModerationResult_updated_at(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -25742,10 +25742,10 @@ func (ec *executionContext) _Reaction(ctx context.Context, sel ast.SelectionSet,
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Reaction")
-		case "messageID":
-			out.Values[i] = ec._Reaction_messageID(ctx, field, obj)
-		case "userID":
-			out.Values[i] = ec._Reaction_userID(ctx, field, obj)
+		case "message_id":
+			out.Values[i] = ec._Reaction_message_id(ctx, field, obj)
+		case "user_id":
+			out.Values[i] = ec._Reaction_user_id(ctx, field, obj)
 		case "type":
 			out.Values[i] = ec._Reaction_type(ctx, field, obj)
 		default:
