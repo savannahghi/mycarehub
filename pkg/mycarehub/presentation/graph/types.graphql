@@ -286,7 +286,7 @@ type PostingHours {
 Member represents a user and is specific to use in the context of communities
 """
 type Member {
-  ID: ID!
+  id: ID!
   userID: ID!
   name: String!
   role: String!
@@ -418,19 +418,19 @@ type AuthorityRole {
 
 type Attachment {
   type: String
-  authorName: String
+  author_name: String
   title: String
-  titleLink: String
+  title_link: String
   text: String
-  imageUrl: String
-  thumbUrl: String
-  assetUrl: String
-  ogScrapeUrl: String
+  image_URL: String
+  thumb_URL: String
+  asset_URL: String
+  og_scrape_URL: String
 }
 
 type Reaction {
-  messageID: String
-  userID: String
+  message_id: String
+  user_id: String
   type: String
 }
 
@@ -442,19 +442,19 @@ type GetstreamMessage {
   silent: Boolean
   user: Member
   attachments: [Attachment]
-  latestReactions: [Reaction]
-  ownReactions: [Reaction]
+  latest_reactions: [Reaction]
+  own_reactions: [Reaction]
   # reaction_counts:  Map
-  parentID: String
-  showInChannel: Boolean
-  replyCount: Int
-  mentionedUsers: [Member]
+  parent_id: String
+  show_in_channel: Boolean
+  reply_count: Int
+  mentioned_users: [Member]
   shadowed: Boolean
-  pinnedAt: Time
-  pinnedBy: Member
-  createdAt: Time
-  updatedAt: Time
-  deletedAt: Time
+  pinned_at: Time
+  pinned_by: Member
+  created_at: Time
+  updated_at: Time
+  deleted_at: Time
 }
 
 # message Fag response
@@ -464,17 +464,17 @@ type MessageFlag {
 }
 
 type ModerationResult {
-  messageID: String
+  message_id: String
   action: String
-  moderatedBy: String
-  blockedWord: String
-  blocklistName: String
-  moderationThresholds: ModerationThresholds
-  AIModerationResponse: AIModerationResponse
-  userKarma: Float
-  userBadKarma: Boolean
-  createdAt: Time
-  updatedAt: Time
+  moderated_by: String
+  blocked_word: String
+  blocklist_name: String
+  moderation_thresholds: ModerationThresholds
+  AI_moderation_response: AIModerationResponse
+  user_karma: Float
+  user_bad_karma: Boolean
+  created_at: Time
+  updated_at: Time
 }
 
 type ModerationThresholds {
