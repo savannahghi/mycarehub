@@ -33,6 +33,7 @@ type Create interface {
 	CreateAppointment(ctx context.Context, appointment domain.Appointment) error
 	AnswerScreeningToolQuestions(ctx context.Context, screeningToolResponses []*dto.ScreeningToolQuestionResponseInput) error
 	CreateStaffServiceRequest(ctx context.Context, serviceRequestInput *dto.ServiceRequestInput) error
+	SaveNotification(ctx context.Context, payload *domain.Notification) error
 }
 
 // Delete represents all the deletion action interfaces

@@ -3,7 +3,6 @@ package servicerequest
 import (
 	"context"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/savannahghi/enumutils"
@@ -15,7 +14,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/fcm"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/notification"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/user"
 	"gorm.io/gorm"
 )
@@ -86,12 +85,12 @@ type UseCaseServiceRequest interface {
 
 // UseCasesServiceRequestImpl embeds the service request logic
 type UseCasesServiceRequestImpl struct {
-	Create      infrastructure.Create
-	Query       infrastructure.Query
-	Update      infrastructure.Update
-	ExternalExt extension.ExternalMethodsExtension
-	User        user.UseCasesUser
-	FCM         fcm.ServiceFCM
+	Create       infrastructure.Create
+	Query        infrastructure.Query
+	Update       infrastructure.Update
+	ExternalExt  extension.ExternalMethodsExtension
+	User         user.UseCasesUser
+	Notification notification.UseCaseNotification
 }
 
 // NewUseCaseServiceRequestImpl creates a new service request instance
@@ -101,15 +100,15 @@ func NewUseCaseServiceRequestImpl(
 	update infrastructure.Update,
 	ext extension.ExternalMethodsExtension,
 	user user.UseCasesUser,
-	fcm fcm.ServiceFCM,
+	notification notification.UseCaseNotification,
 ) *UseCasesServiceRequestImpl {
 	return &UseCasesServiceRequestImpl{
-		Create:      create,
-		Query:       query,
-		Update:      update,
-		ExternalExt: ext,
-		User:        user,
-		FCM:         fcm,
+		Create:       create,
+		Query:        query,
+		Update:       update,
+		ExternalExt:  ext,
+		User:         user,
+		Notification: notification,
 	}
 }
 
@@ -140,16 +139,15 @@ func (u *UseCasesServiceRequestImpl) CreateServiceRequest(ctx context.Context, i
 			return false, fmt.Errorf("failed to create client's service request: %v", err)
 		}
 
-		notificationData := &dto.NotificationPubSubMessage{
-			Title: "Your service request has been created",
-			Body:  "",
+		notificationData := &domain.Notification{
+			Title:   "Your service request has been created",
+			Body:    "",
+			Flavour: feedlib.FlavourConsumer,
+			Type:    "SERVICE_REQUEST",
 		}
-
-		payload := helpers.ComposeNotificationPayload(clientProfile.User, *notificationData)
-		_, err = u.FCM.SendNotification(ctx, payload)
+		err = u.Notification.NotifyUser(ctx, clientProfile.User, notificationData)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
-			log.Printf("failed to send notification: %v", err)
 		}
 
 		return true, nil

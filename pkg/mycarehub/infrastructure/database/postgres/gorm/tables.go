@@ -398,7 +398,7 @@ type StaffProfile struct {
 
 	ID *string `gorm:"column:id"`
 
-	UserProfile User `gorm:"ForeignKey:UserID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;not null"`
+	UserProfile User `gorm:"ForeignKey:user_id;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;not null"`
 
 	UserID string `gorm:"column:user_id"` // foreign key to user
 
