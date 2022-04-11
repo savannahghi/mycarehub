@@ -46,6 +46,7 @@ func NewNotificationUseCaseImpl(
 
 // NotifyUser is used to send a FCM notification to a user
 func (n UseCaseNotificationImpl) NotifyUser(ctx context.Context, userProfile *domain.User, notificationPayload *domain.Notification) error {
+	notificationPayload.UserID = userProfile.ID
 	err := n.Create.SaveNotification(ctx, notificationPayload)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)

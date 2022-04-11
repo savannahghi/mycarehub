@@ -449,13 +449,13 @@ func (db *PGInstance) CreateNotification(ctx context.Context, notification *Noti
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		tx.Rollback()
-		return fmt.Errorf("failed to create identifier: %w", err)
+		return fmt.Errorf("failed to create notification: %w", err)
 	}
 
 	if err := tx.Commit().Error; err != nil {
 		helpers.ReportErrorToSentry(err)
 		tx.Rollback()
-		return fmt.Errorf("failed to commit create identifier transaction: %w", err)
+		return fmt.Errorf("failed to commit create notification transaction: %w", err)
 	}
 
 	return nil

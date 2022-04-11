@@ -104,7 +104,7 @@ jobs:
           
     steps:
       - name: Set up Python 3.10
-        uses: actions/setup-python@v3.1.0
+        uses: actions/setup-python@v3.1.1
         with:
           python-version: 3.10.0
 
@@ -115,7 +115,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup Google Application Credentials
-        uses: google-github-actions/auth@v0.4.3
+        uses: google-github-actions/auth@v0.7.0
         with:
           project_id: ${{ secrets.GOOGLE_CLOUD_PROJECT }}
           credentials_json: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}
@@ -141,7 +141,7 @@ jobs:
           service_account_key: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}
           export_default_credentials: true
       - name: Install Go
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@v3
         with:
           go-version: ${{ matrix.go-version }}
 
@@ -183,7 +183,7 @@ jobs:
           errcheck -ignore 'os:.*,' $(go list ./... | grep -v /vendor/)
           misspell -error .
           gosec -exclude=G304,G101 ./...
-          go-acc -o coverage.txt --ignore generated,cmd  ./... -- -timeout 60m
+          go-acc -o coverage.txt --ignore generated,cmd,graph  ./... -- -timeout 60m
           grep -v "generated.go" coverage.txt | grep -v "_gen.go" | grep -v "mocks.go" | grep -v "*mocks.go" | grep -v "mock.go" | grep -v "*mock.go" | grep -v "*resolvers*go" | grep -v "*.resolvers.go" | grep -v "server.go" > coverage.out
           go tool cover -html=coverage.out -o coverage.html
           gocov convert coverage.out > coverage.json
