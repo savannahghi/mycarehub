@@ -436,3 +436,18 @@ func (d *MyCareHubDb) CreateIdentifier(ctx context.Context, identifier domain.Id
 		IsPrimaryIdentifier: i.IsPrimaryIdentifier,
 	}, nil
 }
+
+// SaveNotification saves a notification in the database
+func (d *MyCareHubDb) SaveNotification(ctx context.Context, payload *domain.Notification) error {
+	notification := &gorm.Notification{
+		Active:     true,
+		Title:      payload.Title,
+		Body:       payload.Body,
+		Type:       payload.Type,
+		Flavour:    payload.Flavour,
+		IsRead:     false,
+		UserID:     payload.UserID,
+		FacilityID: payload.FacilityID,
+	}
+	return d.create.CreateNotification(ctx, notification)
+}

@@ -132,11 +132,6 @@ type IClientProfile interface {
 	AddClientFHIRID(ctx context.Context, input dto.ClientFHIRPayload) error
 }
 
-// INotifications interface contains method  signatures related to notifications
-type INotifications interface {
-	FetchNotifications(ctx context.Context, userID string, flavour feedlib.Flavour, paginationInput dto.PaginationsInput) (*domain.NotificationsPage, error)
-}
-
 // UseCasesUser group all business logic usecases related to user
 type UseCasesUser interface {
 	ILogin
@@ -156,7 +151,6 @@ type UseCasesUser interface {
 	IConsent
 	IUserProfile
 	IClientProfile
-	INotifications
 }
 
 // UseCasesUserImpl represents user implementation object
@@ -1378,41 +1372,4 @@ func (us *UseCasesUserImpl) RegisterPushToken(ctx context.Context, token string)
 	}
 
 	return true, nil
-}
-
-// FetchNotifications retrieves a users notifications
-func (us *UseCasesUserImpl) FetchNotifications(ctx context.Context, userID string, flavour feedlib.Flavour, paginationInput dto.PaginationsInput) (*domain.NotificationsPage, error) {
-	// if user did not provide current page, throw an error
-	if err := paginationInput.Validate(); err != nil {
-		helpers.ReportErrorToSentry(err)
-		return nil, fmt.Errorf("pagination input validation failed: %v", err)
-	}
-
-	page := &domain.Pagination{
-		Limit:       paginationInput.Limit,
-		CurrentPage: paginationInput.CurrentPage,
-	}
-
-	parameters := &domain.Notification{UserID: &userID, Flavour: flavour}
-
-	switch flavour {
-	case feedlib.FlavourPro:
-		staff, err := us.Query.GetStaffProfileByUserID(ctx, userID)
-		if err != nil {
-			return nil, err
-		}
-		parameters.FacilityID = &staff.DefaultFacilityID
-	}
-
-	notifications, pageInfo, err := us.Query.ListNotifications(ctx, parameters, page)
-	if err != nil {
-		return nil, err
-	}
-
-	response := &domain.NotificationsPage{
-		Notifications: notifications,
-		Pagination:    *pageInfo,
-	}
-
-	return response, nil
 }

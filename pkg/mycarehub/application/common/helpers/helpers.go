@@ -128,7 +128,7 @@ func ReportErrorToSentry(err error) {
 }
 
 // ComposeNotificationPayload creates the notification payload that will sent via pubsub
-func ComposeNotificationPayload(userProfile *domain.User, notificationData dto.NotificationPubSubMessage) *firebasetools.SendNotificationPayload {
+func ComposeNotificationPayload(userProfile *domain.User, notificationData dto.FCMNotificationMessage) *firebasetools.SendNotificationPayload {
 	return &firebasetools.SendNotificationPayload{
 		RegistrationTokens: userProfile.PushTokens,
 		Notification: &firebasetools.FirebaseSimpleNotificationInput{

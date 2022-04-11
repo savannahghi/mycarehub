@@ -41,7 +41,6 @@ type UserUseCaseMock struct {
 	MockAddClientFHIRIDFn               func(ctx context.Context, input dto.ClientFHIRPayload) error
 	MockGenerateTemporaryPinFn          func(ctx context.Context, userID string, flavour feedlib.Flavour) (string, error)
 	MockRegisterPushTokenFn             func(ctx context.Context, token string) (bool, error)
-	MockFetchNotificationsFn            func(ctx context.Context, userID string, flavour feedlib.Flavour, paginationInput dto.PaginationsInput) (*domain.NotificationsPage, error)
 }
 
 // NewUserUseCaseMock creates in initializes create type mocks
@@ -81,23 +80,6 @@ func NewUserUseCaseMock() *UserUseCaseMock {
 				Attempts: 10,
 				Message:  "Success",
 				Code:     10,
-			}, nil
-		},
-		MockFetchNotificationsFn: func(ctx context.Context, userID string, flavour feedlib.Flavour, paginationInput dto.PaginationsInput) (*domain.NotificationsPage, error) {
-			return &domain.NotificationsPage{
-				Notifications: []*domain.Notification{
-					{
-						ID:         UUID,
-						Title:      "New Teleconsult",
-						Body:       "Teleconsult with Doctor Who at the Tardis",
-						Type:       "TELECONSULT",
-						IsRead:     false,
-						UserID:     &UUID,
-						FacilityID: &UUID,
-						Flavour:    flavour,
-					},
-				},
-				Pagination: domain.Pagination{},
 			}, nil
 		},
 		MockInviteUserFn: func(ctx context.Context, userID string, phoneNumber string, flavour feedlib.Flavour) (bool, error) {
@@ -356,9 +338,4 @@ func (f *UserUseCaseMock) GenerateTemporaryPin(ctx context.Context, userID strin
 // RegisterPushToken mocks the implementation for adding a push token to a user's profile
 func (f *UserUseCaseMock) RegisterPushToken(ctx context.Context, token string) (bool, error) {
 	return f.MockRegisterPushTokenFn(ctx, token)
-}
-
-// FetchNotifications retrieves a users notifications
-func (f *UserUseCaseMock) FetchNotifications(ctx context.Context, userID string, flavour feedlib.Flavour, paginationInput dto.PaginationsInput) (*domain.NotificationsPage, error) {
-	return f.MockFetchNotificationsFn(ctx, userID, flavour, paginationInput)
 }

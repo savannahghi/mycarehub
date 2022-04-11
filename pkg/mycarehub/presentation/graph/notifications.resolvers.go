@@ -12,5 +12,5 @@ import (
 )
 
 func (r *queryResolver) FetchNotifications(ctx context.Context, userID string, flavour feedlib.Flavour, paginationInput dto.PaginationsInput) (*domain.NotificationsPage, error) {
-	return r.mycarehub.User.FetchNotifications(ctx, userID, flavour, paginationInput)
+	return r.mycarehub.Notification.FetchNotifications(ctx, userID, flavour, paginationInput)
 }

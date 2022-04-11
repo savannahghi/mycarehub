@@ -441,7 +441,7 @@ func (db *PGInstance) CreateIdentifier(ctx context.Context, identifier *Identifi
 	return nil
 }
 
-// CreateNotification saves a new notification to the database
+// CreateNotification saves a notification to the database
 func (db *PGInstance) CreateNotification(ctx context.Context, notification *Notification) error {
 	tx := db.DB.Begin()
 

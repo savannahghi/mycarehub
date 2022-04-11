@@ -1084,3 +1084,66 @@ func TestMyCareHubDb_CreateStaffServiceRequest(t *testing.T) {
 		})
 	}
 }
+
+func TestMyCareHubDb_SaveNotification(t *testing.T) {
+	ctx := context.Background()
+	UUID := uuid.New().String()
+	type args struct {
+		ctx     context.Context
+		payload *domain.Notification
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Successfully save a notification",
+			args: args{
+				ctx: ctx,
+				payload: &domain.Notification{
+					Title:      "An introduction",
+					Body:       "This is a new introduction",
+					Type:       "Test Notification",
+					IsRead:     false,
+					UserID:     &UUID,
+					FacilityID: &UUID,
+					Flavour:    feedlib.FlavourConsumer,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad Case - Fail to save a notification",
+			args: args{
+				ctx: ctx,
+				payload: &domain.Notification{
+					Title:      "An introduction",
+					Body:       "This is a new introduction",
+					Type:       "Test Notification",
+					IsRead:     false,
+					UserID:     &UUID,
+					FacilityID: &UUID,
+					Flavour:    feedlib.FlavourConsumer,
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var fakeGorm = gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			if tt.name == "Sad Case - Fail to save a notification" {
+				fakeGorm.MockCreateNotificationFn = func(ctx context.Context, notification *gorm.Notification) error {
+					return fmt.Errorf("failed to save notification")
+				}
+			}
+
+			if err := d.SaveNotification(tt.args.ctx, tt.args.payload); (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.SaveNotification() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}

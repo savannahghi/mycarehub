@@ -35,6 +35,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/faq"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/feedback"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/healthdiary"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/notification"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/otp"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/screeningtools"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/securityquestions"
@@ -117,7 +118,9 @@ func Router(ctx context.Context) (*mux.Router, error) {
 
 	faq := faq.NewUsecaseFAQ(db)
 
-	serviceRequestUseCase := servicerequest.NewUseCaseServiceRequestImpl(db, db, db, externalExt, userUsecase, fcm)
+	notificationUseCase := notification.NewNotificationUseCaseImpl(fcm, db, db)
+
+	serviceRequestUseCase := servicerequest.NewUseCaseServiceRequestImpl(db, db, db, externalExt, userUsecase, notificationUseCase)
 
 	communitiesUseCase := communities.NewUseCaseCommunitiesImpl(getStream, externalExt, db, db)
 
@@ -131,7 +134,7 @@ func Router(ctx context.Context) (*mux.Router, error) {
 		userUsecase, termsUsecase, facilityUseCase,
 		securityQuestionsUsecase, otpUseCase, contentUseCase, feedbackUsecase, healthDiaryUseCase,
 		faq, serviceRequestUseCase, authorityUseCase, communitiesUseCase, screeningToolsUsecases,
-		appointmentUsecase,
+		appointmentUsecase, notificationUseCase,
 	)
 
 	internalHandlers := internalRest.NewMyCareHubHandlersInterfaces(*useCase)

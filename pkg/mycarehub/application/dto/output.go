@@ -166,11 +166,11 @@ type PatientCreationOutput struct {
 	UserID string `json:"user"`
 }
 
-// NotificationPubSubMessage models the payload passed when composing a notification payload
+// FCMNotificationMessage models the payload passed when composing a notification payload
 //
 // The title is what will appear as the notification's title message on the phone's notification tray
 // Most of the notifications will be `BLIND` meaning that the body will be empty
-type NotificationPubSubMessage struct {
+type FCMNotificationMessage struct {
 	Title string `json:"title"`
 	Body  string `json:"body"`
 }

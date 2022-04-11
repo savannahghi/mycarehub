@@ -140,6 +140,7 @@ type PostgresMock struct {
 	MockCheckAppointmentExistsByExternalIDFn             func(ctx context.Context, externalID string) (bool, error)
 	MockGetAppointmentByExternalIDFn                     func(ctx context.Context, externalID string) (*domain.Appointment, error)
 	MockListNotificationsFn                              func(ctx context.Context, params *domain.Notification, pagination *domain.Pagination) ([]*domain.Notification, *domain.Pagination, error)
+	MockSaveNotificationFn                               func(ctx context.Context, payload *domain.Notification) error
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -332,6 +333,9 @@ func NewPostgresMock() *PostgresMock {
 		},
 		MockSetNickNameFn: func(ctx context.Context, userID, nickname *string) (bool, error) {
 			return true, nil
+		},
+		MockSaveNotificationFn: func(ctx context.Context, payload *domain.Notification) error {
+			return nil
 		},
 		MockCreateStaffServiceRequestFn: func(ctx context.Context, serviceRequestInput *dto.ServiceRequestInput) error {
 			return nil
@@ -1538,4 +1542,9 @@ func (gm *PostgresMock) CreateIdentifier(ctx context.Context, identifier domain.
 // ListNotifications lists notifications based on the provided parameters
 func (gm *PostgresMock) ListNotifications(ctx context.Context, params *domain.Notification, pagination *domain.Pagination) ([]*domain.Notification, *domain.Pagination, error) {
 	return gm.MockListNotificationsFn(ctx, params, pagination)
+}
+
+// SaveNotification saves the notifications to the database
+func (gm *PostgresMock) SaveNotification(ctx context.Context, payload *domain.Notification) error {
+	return gm.MockSaveNotificationFn(ctx, payload)
 }
