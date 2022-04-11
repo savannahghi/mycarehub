@@ -3,6 +3,7 @@ package servicerequest
 import (
 	"context"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/savannahghi/enumutils"
@@ -14,6 +15,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/fcm"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/user"
 	"gorm.io/gorm"
 )
@@ -89,6 +91,7 @@ type UseCasesServiceRequestImpl struct {
 	Update      infrastructure.Update
 	ExternalExt extension.ExternalMethodsExtension
 	User        user.UseCasesUser
+	FCM         fcm.ServiceFCM
 }
 
 // NewUseCaseServiceRequestImpl creates a new service request instance
@@ -98,6 +101,7 @@ func NewUseCaseServiceRequestImpl(
 	update infrastructure.Update,
 	ext extension.ExternalMethodsExtension,
 	user user.UseCasesUser,
+	fcm fcm.ServiceFCM,
 ) *UseCasesServiceRequestImpl {
 	return &UseCasesServiceRequestImpl{
 		Create:      create,
@@ -105,6 +109,7 @@ func NewUseCaseServiceRequestImpl(
 		Update:      update,
 		ExternalExt: ext,
 		User:        user,
+		FCM:         fcm,
 	}
 }
 
@@ -134,6 +139,19 @@ func (u *UseCasesServiceRequestImpl) CreateServiceRequest(ctx context.Context, i
 			helpers.ReportErrorToSentry(err)
 			return false, fmt.Errorf("failed to create client's service request: %v", err)
 		}
+
+		notificationData := &dto.NotificationPubSubMessage{
+			Title: "Your service request has been created",
+			Body:  "",
+		}
+
+		payload := helpers.ComposeNotificationPayload(clientProfile.User, *notificationData)
+		_, err = u.FCM.SendNotification(ctx, payload)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			log.Printf("failed to send notification: %v", err)
+		}
+
 		return true, nil
 
 	case feedlib.FlavourPro:
@@ -476,7 +494,12 @@ func (u *UseCasesServiceRequestImpl) VerifyClientPinResetServiceRequest(
 }
 
 // VerifyServiceRequestResponse returns the boolean response indicating whether the processing of a service request is successful or not.
-func (u *UseCasesServiceRequestImpl) VerifyServiceRequestResponse(ctx context.Context, state, phoneNumber, serviceRequestID string, user *domain.User, staff *domain.StaffProfile, flavour feedlib.Flavour) (bool, error) {
+func (u *UseCasesServiceRequestImpl) VerifyServiceRequestResponse(
+	ctx context.Context, state, phoneNumber, serviceRequestID string,
+	user *domain.User,
+	staff *domain.StaffProfile,
+	flavour feedlib.Flavour,
+) (bool, error) {
 	switch state {
 	case enums.VerifyServiceRequestStateRejected.String():
 		text := fmt.Sprintf(

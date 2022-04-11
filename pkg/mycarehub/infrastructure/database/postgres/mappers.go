@@ -37,6 +37,7 @@ func createMapUser(userObject *gorm.User) *domain.User {
 		FailedSecurityCount:    userObject.FailedSecurityCount,
 		PinUpdateRequired:      userObject.PinUpdateRequired,
 		HasSetNickname:         userObject.HasSetNickname,
+		PushTokens:             userObject.PushTokens,
 	}
 	return user
 }
