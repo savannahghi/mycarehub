@@ -1092,7 +1092,9 @@ func (db *PGInstance) GetClientCCCIdentifier(ctx context.Context, clientID strin
 // GetScreeningToolQuestions fetches the screening tools questions
 func (db *PGInstance) GetScreeningToolQuestions(ctx context.Context, toolType string) ([]ScreeningToolQuestion, error) {
 	var screeningToolsQuestions []ScreeningToolQuestion
-	err := db.DB.Where(&ScreeningToolQuestion{ToolType: toolType}).Find(&screeningToolsQuestions).Order("sequence asc").Error
+	err := db.DB.Where(&ScreeningToolQuestion{ToolType: toolType}).
+		Order("sequence asc").
+		Find(&screeningToolsQuestions).Error
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed to get screening tools questions: %v", err)
