@@ -184,7 +184,6 @@ func (s ServiceFCMImpl) SendNotification(
 					Headers: payload.Ios.Headers,
 				}
 			}
-			// TODO - Save the notification
 		}
 	}
 	if len(errorMessages) > 0 {

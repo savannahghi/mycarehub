@@ -1,0 +1,6 @@
+repos:
+  - repo: https://github.com/gitguardian/ggshield
+    rev: main
+    hooks:
+      - id: ggshield
+        stages: [commit]

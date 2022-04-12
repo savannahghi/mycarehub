@@ -54,26 +54,6 @@ def htmlTemplate(event, link):
     <!-- The core Firebase JS SDK  -->
     <script src="https://www.gstatic.com/firebasejs/8.7.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.7.0/firebase-analytics.js"></script>
-    <script>
-        var firebaseConfig = {{
-            apiKey: "AIzaSyAv2aRsSSHkOR6xGwwaw6-UTkvED3RNlBQ",
-            authDomain: "bewell-app.firebaseapp.com",
-            databaseURL: "https://bewell-app.firebaseio.com",
-            projectId: "bewell-app",
-            storageBucket: "bewell-app.appspot.com",
-            messagingSenderId: "841947754847",
-            appId: "1:841947754847:web:034e338de70038796686ea",
-            measurementId: "G-WR8JPLG8ZH"
-        }};
-
-        firebase.initializeApp(firebaseConfig);
-        var analytics = firebase.analytics();
-
-        analytics.logEvent("{event}");
-
-        window.location.replace("{link}");
-    </script>
-
      <!-- AdRoll tracking pixel -->
     <script type="text/javascript">
       adroll_adv_id = "G34MBP2POFA2VKFCJHXOZ4";
