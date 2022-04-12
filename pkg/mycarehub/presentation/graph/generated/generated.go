@@ -514,6 +514,7 @@ type ComplexityRoot struct {
 		ListFlaggedMessages                     func(childComplexity int, communityCid *string, memberIDs []*string) int
 		ListMembers                             func(childComplexity int, input *stream_chat.QueryOption) int
 		ListPendingInvites                      func(childComplexity int, memberID string, input *stream_chat.QueryOption) int
+		NextRefill                              func(childComplexity int, clientID string) int
 		RecommendedCommunities                  func(childComplexity int, clientID string, limit int) int
 		RetrieveFacility                        func(childComplexity int, id string, active bool) int
 		RetrieveFacilityByMFLCode               func(childComplexity int, mflCode int, isActive bool) int
@@ -697,6 +698,7 @@ type MutationResolver interface {
 }
 type QueryResolver interface {
 	FetchClientAppointments(ctx context.Context, clientID string, paginationInput dto.PaginationsInput, filters []*firebasetools.FilterParam) (*domain.AppointmentsPage, error)
+	NextRefill(ctx context.Context, clientID string) (*scalarutils.Date, error)
 	GetUserRoles(ctx context.Context, userID string) ([]*domain.AuthorityRole, error)
 	GetAllAuthorityRoles(ctx context.Context) ([]*domain.AuthorityRole, error)
 	ListMembers(ctx context.Context, input *stream_chat.QueryOption) ([]*domain.Member, error)
@@ -3374,6 +3376,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.ListPendingInvites(childComplexity, args["memberID"].(string), args["input"].(*stream_chat.QueryOption)), true
 
+	case "Query.nextRefill":
+		if e.complexity.Query.NextRefill == nil {
+			break
+		}
+
+		args, err := ec.field_Query_nextRefill_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.NextRefill(childComplexity, args["clientID"].(string)), true
+
 	case "Query.recommendedCommunities":
 		if e.complexity.Query.RecommendedCommunities == nil {
 			break
@@ -4074,6 +4088,7 @@ var sources = []*ast.Source{
     paginationInput: PaginationsInput!
     filters: [FilterParam!]
   ): AppointmentsPage
+  nextRefill(clientID: ID!): Date
 }
 
 extend type Mutation {
@@ -6681,6 +6696,21 @@ func (ec *executionContext) field_Query_listPendingInvites_args(ctx context.Cont
 		}
 	}
 	args["input"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_nextRefill_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["clientID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clientID"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["clientID"] = arg0
 	return args, nil
 }
 
@@ -17017,6 +17047,45 @@ func (ec *executionContext) _Query_fetchClientAppointments(ctx context.Context, 
 	return ec.marshalOAppointmentsPage2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐAppointmentsPage(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Query_nextRefill(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_nextRefill_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().NextRefill(rctx, args["clientID"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*scalarutils.Date)
+	fc.Result = res
+	return ec.marshalODate2ᚖgithubᚗcomᚋsavannahghiᚋscalarutilsᚐDate(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Query_getUserRoles(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -25503,6 +25572,17 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				res = ec._Query_fetchClientAppointments(ctx, field)
 				return res
 			})
+		case "nextRefill":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_nextRefill(ctx, field)
+				return res
+			})
 		case "getUserRoles":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -29104,6 +29184,22 @@ func (ec *executionContext) marshalOContent2ᚖgithubᚗcomᚋsavannahghiᚋmyca
 		return graphql.Null
 	}
 	return ec._Content(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalODate2ᚖgithubᚗcomᚋsavannahghiᚋscalarutilsᚐDate(ctx context.Context, v interface{}) (*scalarutils.Date, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(scalarutils.Date)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalODate2ᚖgithubᚗcomᚋsavannahghiᚋscalarutilsᚐDate(ctx context.Context, sel ast.SelectionSet, v *scalarutils.Date) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
 }
 
 func (ec *executionContext) marshalODocument2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐDocument(ctx context.Context, sel ast.SelectionSet, v domain.Document) graphql.Marshaler {

@@ -15,6 +15,7 @@ import (
 	pgMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/mock"
 	pubsubMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/pubsub/mock"
 	"github.com/savannahghi/scalarutils"
+	"gorm.io/gorm"
 )
 
 func TestUseCasesAppointmentsImpl_CreateKenyaEMRAppointments(t *testing.T) {
@@ -1185,6 +1186,98 @@ func TestUseCasesAppointmentsImpl_RescheduleClientAppointment(t *testing.T) {
 			}
 			if got != tt.want {
 				t.Errorf("UseCasesAppointmentsImpl.RescheduleClientAppointment() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestUseCasesAppointmentsImpl_NextRefill(t *testing.T) {
+
+	type args struct {
+		ctx      context.Context
+		clientID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *scalarutils.Date
+		wantErr bool
+		wantNil bool
+	}{
+		{
+			name: "Happy case: has next refill date",
+			args: args{
+				ctx:      context.Background(),
+				clientID: gofakeit.UUID(),
+			},
+			wantErr: false,
+			wantNil: false,
+		},
+		{
+			name: "Happy case: has no refill date",
+			args: args{
+				ctx:      context.Background(),
+				clientID: gofakeit.UUID(),
+			},
+			wantErr: false,
+			wantNil: true,
+		},
+		{
+			name: "Sad case: invalid client id",
+			args: args{
+				ctx:      context.Background(),
+				clientID: gofakeit.UUID(),
+			},
+			wantErr: true,
+			wantNil: true,
+		},
+		{
+			name: "Sad case: error fetching appointment",
+			args: args{
+				ctx:      context.Background(),
+				clientID: gofakeit.UUID(),
+			},
+			wantErr: true,
+			wantNil: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			fakeExtension := extensionMock.NewFakeExtension()
+			fakePubsub := pubsubMock.NewPubsubServiceMock()
+
+			if tt.name == "Happy case: has no refill date" {
+				fakeDB.MockGetAppointmentFn = func(ctx context.Context, params domain.Appointment) (*domain.Appointment, error) {
+					return nil, gorm.ErrRecordNotFound
+				}
+			}
+
+			if tt.name == "Sad case: invalid client id" {
+				fakeDB.MockGetClientProfileByClientIDFn = func(ctx context.Context, clientID string) (*domain.ClientProfile, error) {
+					return nil, fmt.Errorf("client does not exist")
+				}
+			}
+
+			if tt.name == "Sad case: error fetching appointment" {
+				fakeDB.MockGetAppointmentFn = func(ctx context.Context, params domain.Appointment) (*domain.Appointment, error) {
+					return nil, fmt.Errorf("db transaction error")
+				}
+			}
+
+			a := NewUseCaseAppointmentsImpl(fakeExtension, fakeDB, fakeDB, fakeDB, fakePubsub)
+			got, err := a.NextRefill(tt.args.ctx, tt.args.clientID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCasesAppointmentsImpl.NextRefill() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if tt.wantErr && got != nil {
+				t.Errorf("expected next refill to be nil for %v", tt.name)
+				return
+			}
+			if !tt.wantErr && !tt.wantNil && got == nil {
+				t.Errorf("expected next refill not to be nil for %v", tt.name)
+				return
 			}
 		})
 	}

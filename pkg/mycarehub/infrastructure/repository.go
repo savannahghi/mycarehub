@@ -110,6 +110,7 @@ type Query interface {
 	GetAssessmentResponses(ctx context.Context, facilityID string, toolType string) ([]*domain.ScreeningToolAssessmentResponse, error)
 	GetClientScreeningToolResponsesByToolType(ctx context.Context, clientID, toolType string, active bool) ([]*domain.ScreeningToolQuestionResponse, error)
 	GetClientScreeningToolServiceRequestByToolType(ctx context.Context, clientID, toolType, status string) (*domain.ServiceRequest, error)
+	GetAppointment(ctx context.Context, params domain.Appointment) (*domain.Appointment, error)
 }
 
 // Update represents all the update action interfaces

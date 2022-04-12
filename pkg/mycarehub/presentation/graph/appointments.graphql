@@ -4,6 +4,7 @@ extend type Query {
     paginationInput: PaginationsInput!
     filters: [FilterParam!]
   ): AppointmentsPage
+  nextRefill(clientID: ID!): Date
 }
 
 extend type Mutation {

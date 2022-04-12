@@ -8,4 +8,5 @@
   staff_id: {{.staff_id}}
   facility_id: {{.test_facility_id}}
   date: 2022-03-13
+  reason: Pharmacy Visit
   has_rescheduled_appointment: true
