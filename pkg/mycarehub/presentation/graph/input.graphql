@@ -48,7 +48,10 @@ input ShareContentInput {
 
 input FeedbackResponseInput {
   userID: String!
-  message: String!
+  feedbackType: FeedbackType!
+  satisfactionLevel: Int!
+  serviceName: String
+  feedback: String!
   requiresFollowUp: Boolean!
 }
 

@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/google/uuid"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	extensionMock "github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension/mock"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	pgMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/mock"
@@ -17,19 +19,30 @@ func TestUsecaseFeedbackImpl_SendFeedback(t *testing.T) {
 	ctx := context.Background()
 
 	feedbackInput := &dto.FeedbackResponseInput{
-		UserID:           "test",
-		Message:          "test",
-		RequiresFollowUp: true,
+		UserID:            uuid.New().String(),
+		FeedbackType:      enums.GeneralFeedbackType,
+		SatisfactionLevel: 4,
+		ServiceName:       "JOIN",
+		Feedback:          "test",
+		RequiresFollowUp:  true,
 	}
 	noUserIDFeedback := &dto.FeedbackResponseInput{
 		UserID:           "",
-		Message:          "test",
+		Feedback:         "test",
 		RequiresFollowUp: true,
 	}
 	noMessageFeedback := &dto.FeedbackResponseInput{
 		UserID:           "user-id",
-		Message:          "",
+		Feedback:         "",
 		RequiresFollowUp: true,
+	}
+	invalidFeedbackType := &dto.FeedbackResponseInput{
+		UserID:            uuid.New().String(),
+		FeedbackType:      enums.FeedbackType("invalid"),
+		SatisfactionLevel: 4,
+		ServiceName:       "JOIN",
+		Feedback:          "test",
+		RequiresFollowUp:  true,
 	}
 
 	type args struct {
@@ -87,6 +100,15 @@ func TestUsecaseFeedbackImpl_SendFeedback(t *testing.T) {
 			want:    false,
 			wantErr: true,
 		},
+		{
+			name: "Sad case - invalid feedback type",
+			args: args{
+				ctx:     ctx,
+				payload: invalidFeedbackType,
+			},
+			want:    false,
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -112,6 +134,11 @@ func TestUsecaseFeedbackImpl_SendFeedback(t *testing.T) {
 				}
 			}
 			if tt.name == "Sad case - unable to send message" {
+				fakeExtension.MockSendFeedbackFn = func(ctx context.Context, subject, feedbackMessage string) (bool, error) {
+					return false, fmt.Errorf("an error occurred while sending feedback")
+				}
+			}
+			if tt.name == "Sad case - invalid feedback type" {
 				fakeExtension.MockSendFeedbackFn = func(ctx context.Context, subject, feedbackMessage string) (bool, error) {
 					return false, fmt.Errorf("an error occurred while sending feedback")
 				}

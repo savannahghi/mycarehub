@@ -8,6 +8,7 @@ import (
 
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/utils"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
@@ -42,34 +43,45 @@ func NewUsecaseFeedback(
 
 // SendFeedback sends the users feedback tothe admin
 func (f *UsecaseFeedbackImpl) SendFeedback(ctx context.Context, payload *dto.FeedbackResponseInput) (bool, error) {
-	if payload.Message == "" {
-		return false, fmt.Errorf("message cannot be empty")
+	if payload.Feedback == "" {
+		return false, fmt.Errorf("feedback input cannot be empty")
 	}
+
 	userProfile, err := f.Query.GetUserProfileByUserID(ctx, payload.UserID)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return false, fmt.Errorf("unable to get user profile: %v", err)
 	}
 
-	feedbackSubject := userProfile.Username + "'s Feedback"
+	feedbackSubject := fmt.Sprintf("%s's feedback", userProfile.Name)
 
-	var followUpRequest string
+	feedbackInput := &dto.FeedbackEmail{
+		User:              userProfile.Name,
+		FeedbackType:      payload.FeedbackType,
+		SatisfactionLevel: payload.SatisfactionLevel,
+		Feedback:          payload.Feedback,
+	}
+	if payload.FeedbackType == enums.ServiceFeedbackType {
+		feedbackInput.ServiceName = payload.ServiceName
+	}
 	if payload.RequiresFollowUp {
-		followUpRequest = userProfile.Username + "\n requires follow up."
+		phoneNumber := fmt.Sprintf("Phone Number: %s", userProfile.Contacts.ContactValue)
+		feedbackInput.PhoneNumber = phoneNumber
 	}
 
 	var writer bytes.Buffer
 	template := template.Must(template.New("FeedbackNotificationEmail").Parse(utils.FeedbackNotificationEmail))
-	_ = template.Execute(&writer, dto.FeedbackEmail{
-		User:             userProfile.Username,
-		Message:          payload.Message,
-		RequiresFollowUp: followUpRequest,
-	})
+	err = template.Execute(&writer, feedbackInput)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, fmt.Errorf("unable to create feedback email: %v", err)
+	}
 
 	feedbackSent, err := f.ExternalExt.SendFeedback(ctx, feedbackSubject, writer.String())
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return false, fmt.Errorf("unable to send feedback: %v", err)
 	}
+
 	return feedbackSent, nil
 }
