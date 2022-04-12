@@ -4884,7 +4884,7 @@ func TestMyCareHubDb_GetAssessmentResponses(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    []*domain.ScreeningToolAssesmentResponse
+		want    []*domain.ScreeningToolAssessmentResponse
 		wantErr bool
 	}{
 		{
@@ -5273,6 +5273,115 @@ func TestMyCareHubDb_GetSharedHealthDiaryEntry(t *testing.T) {
 			if !tt.wantErr && got == nil {
 				t.Errorf("expected shared health diary entries not to be nil for %v", tt.name)
 				return
+			}
+		})
+	}
+}
+
+func TestMyCareHubDb_GetClientScreeningToolResponsesByToolType(t *testing.T) {
+	var fakeGorm = gormMock.NewGormMock()
+	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+	type args struct {
+		ctx      context.Context
+		clientID string
+		toolType string
+		active   bool
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    []*domain.ScreeningToolQuestionResponse
+		wantErr bool
+	}{
+		{
+			name: "Happy case:  get client screening tool responses by tool type",
+			args: args{
+				ctx:      context.Background(),
+				clientID: uuid.New().String(),
+				toolType: "SCREENING_TOOLS",
+				active:   true,
+			},
+		},
+		{
+			name: "Sad case:  failed to get client screening tool responses by tool type",
+			args: args{
+				ctx:      context.Background(),
+				clientID: uuid.New().String(),
+				toolType: "SCREENING_TOOLS",
+				active:   true,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			if tt.name == "Sad case:  failed to get client screening tool responses by tool type" {
+				fakeGorm.MockGetClientScreeningToolResponsesByToolTypeFn = func(ctx context.Context, clientID string, toolType string, active bool) ([]*gorm.ScreeningToolsResponse, error) {
+					return nil, fmt.Errorf("failed to get client screening tool responses by tool type")
+				}
+			}
+			got, err := d.GetClientScreeningToolResponsesByToolType(tt.args.ctx, tt.args.clientID, tt.args.toolType, tt.args.active)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.GetClientScreeningToolResponsesByToolType() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected a response but got: %v", got)
+			}
+		})
+	}
+}
+
+func TestMyCareHubDb_GetClientScreeningToolServiceRequestByToolType(t *testing.T) {
+	var fakeGorm = gormMock.NewGormMock()
+	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+	type args struct {
+		ctx        context.Context
+		clientID   string
+		questionID string
+		status     string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case:  get client screening tool service request",
+			args: args{
+				ctx:        context.Background(),
+				clientID:   uuid.New().String(),
+				questionID: uuid.New().String(),
+				status:     "PENDING",
+			},
+		},
+		{
+			name: "Sad case:  failed to get client screening tool service request",
+			args: args{
+				ctx:        context.Background(),
+				clientID:   uuid.New().String(),
+				questionID: uuid.New().String(),
+				status:     "PENDING",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "Sad case:  failed to get client screening tool service request" {
+				fakeGorm.MockGetClientScreeningToolServiceRequestByToolTypeFn = func(ctx context.Context, clientID string, toolType string, status string) (*gorm.ClientServiceRequest, error) {
+					return nil, fmt.Errorf("failed to get client screening tool service request")
+				}
+			}
+			got, err := d.GetClientScreeningToolServiceRequestByToolType(tt.args.ctx, tt.args.clientID, tt.args.questionID, tt.args.status)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.GetClientScreeningToolServiceRequestByToolType() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected a response but got: %v", got)
 			}
 		})
 	}

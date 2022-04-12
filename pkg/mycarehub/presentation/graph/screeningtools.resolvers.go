@@ -7,6 +7,7 @@ import (
 	"context"
 
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 )
 
@@ -26,6 +27,10 @@ func (r *queryResolver) GetAvailableFacilityScreeningTools(ctx context.Context, 
 	return r.mycarehub.ScreeningTools.GetAvailableFacilityScreeningTools(ctx, facilityID)
 }
 
-func (r *queryResolver) GetAssessmentResponsesByToolType(ctx context.Context, facilityID string, toolType string) ([]*domain.ScreeningToolAssesmentResponse, error) {
+func (r *queryResolver) GetAssessmentResponsesByToolType(ctx context.Context, facilityID string, toolType string) ([]*domain.ScreeningToolAssessmentResponse, error) {
 	return r.mycarehub.ScreeningTools.GetAssessmentResponses(ctx, facilityID, toolType)
+}
+
+func (r *queryResolver) GetScreeningToolServiceRequestResponses(ctx context.Context, clientID *string, toolType *enums.ScreeningToolType) ([]*domain.ScreeningToolResponse, error) {
+	return r.mycarehub.ScreeningTools.GetScreeningToolServiceRequestResponses(ctx, *clientID, *toolType)
 }

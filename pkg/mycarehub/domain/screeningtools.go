@@ -93,9 +93,17 @@ type AvailableScreeningTools struct {
 	ToolType enums.ScreeningToolType `json:"toolType"`
 }
 
-// ScreeningToolAssesmentResponse defines the response of a screening tool assessment
-type ScreeningToolAssesmentResponse struct {
+// ScreeningToolAssessmentResponse defines the response of a screening tool assessment
+type ScreeningToolAssessmentResponse struct {
 	ClientName   string    `json:"clientName"`
 	DateAnswered time.Time `json:"dateAnswered"`
 	ClientID     string    `json:"clientID"`
+}
+
+// ScreeningToolResponse defines a screening tool response
+type ScreeningToolResponse struct {
+	ToolIndex        int    `json:"toolIndex"`
+	Tool             string `json:"tool"`
+	Response         string `json:"response"`
+	ServiceRequestID string `json:"serviceRequest"`
 }

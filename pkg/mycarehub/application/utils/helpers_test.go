@@ -163,8 +163,8 @@ func TestConvertJsonStringToMap(t *testing.T) {
 			args: args{
 				jsonString: ``,
 			},
-			want:    nil,
-			wantErr: true,
+			want:    map[string]interface{}{},
+			wantErr: false,
 		},
 		{
 			name: "non map json",

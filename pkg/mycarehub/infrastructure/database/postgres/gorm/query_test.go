@@ -4071,3 +4071,79 @@ func TestPGInstance_GetSharedHealthDiaryEntry(t *testing.T) {
 		})
 	}
 }
+
+func TestPGInstance_GetClientScreeningToolResponsesByToolType(t *testing.T) {
+	type args struct {
+		ctx      context.Context
+		clientID string
+		toolType string
+		active   bool
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:      context.Background(),
+				clientID: clientID,
+				toolType: string(enums.ScreeningToolTypeGBV),
+				active:   true,
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := testingDB.GetClientScreeningToolResponsesByToolType(tt.args.ctx, tt.args.clientID, tt.args.toolType, tt.args.active)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.GetClientScreeningToolResponsesByToolType() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected value, got %v", got)
+				return
+			}
+		})
+	}
+}
+
+func TestPGInstance_GetClientScreeningToolServiceRequestByToolType(t *testing.T) {
+	type args struct {
+		ctx      context.Context
+		clientID string
+		toolType string
+		status   string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:      context.Background(),
+				clientID: clientID,
+				toolType: enums.ScreeningToolTypeGBV.String(),
+				status:   string(enums.ServiceRequestStatusPending),
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := testingDB.GetClientScreeningToolServiceRequestByToolType(tt.args.ctx, tt.args.clientID, tt.args.toolType, tt.args.status)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.GetClientScreeningToolServiceRequestByToolType() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected value, got %v", got)
+				return
+			}
+		})
+	}
+}

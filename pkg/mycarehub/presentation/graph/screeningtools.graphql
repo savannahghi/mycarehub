@@ -3,7 +3,8 @@ extend type Query {
     getScreeningToolQuestions(toolType: String) : [ScreeningToolQuestion!]!
     getAvailableScreeningToolQuestions(clientID: String!) : [AvailableScreeningTools!]!
     getAvailableFacilityScreeningTools(facilityID: String!): [AvailableScreeningTools!]!
-    getAssessmentResponsesByToolType(facilityID: String!, toolType: String!) : [ScreeningToolAssesmentResponse!]
+    getAssessmentResponsesByToolType(facilityID: String!, toolType: String!) : [ScreeningToolAssessmentResponse!]
+    getScreeningToolServiceRequestResponses(clientID: String, toolType:ScreeningToolType ): [ScreeningToolResponse!]!
 }
 
 extend type Mutation {

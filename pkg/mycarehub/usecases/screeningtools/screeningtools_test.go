@@ -428,7 +428,7 @@ func TestServiceScreeningToolsImpl_GetAssessmentResponses(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    []*domain.ScreeningToolAssesmentResponse
+		want    []*domain.ScreeningToolAssessmentResponse
 		wantErr bool
 	}{
 		{
@@ -463,12 +463,12 @@ func TestServiceScreeningToolsImpl_GetAssessmentResponses(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.name == "Sad case:  unable to get assessment responses" {
-				fakeDB.MockGetAssessmentResponsesFn = func(ctx context.Context, facilityID, toolType string) ([]*domain.ScreeningToolAssesmentResponse, error) {
+				fakeDB.MockGetAssessmentResponsesFn = func(ctx context.Context, facilityID, toolType string) ([]*domain.ScreeningToolAssessmentResponse, error) {
 					return nil, fmt.Errorf("failed to get assessment responses")
 				}
 			}
 			if tt.name == "Sad case:  empty facility" {
-				fakeDB.MockGetAssessmentResponsesFn = func(ctx context.Context, facilityID, toolType string) ([]*domain.ScreeningToolAssesmentResponse, error) {
+				fakeDB.MockGetAssessmentResponsesFn = func(ctx context.Context, facilityID, toolType string) ([]*domain.ScreeningToolAssessmentResponse, error) {
 					return nil, fmt.Errorf("failed to get assessment responses")
 				}
 			}
@@ -485,6 +485,118 @@ func TestServiceScreeningToolsImpl_GetAssessmentResponses(t *testing.T) {
 			if !tt.wantErr && got == nil {
 				t.Errorf("expected response not to be nil for %v", tt.name)
 				return
+			}
+		})
+	}
+}
+
+func TestServiceScreeningToolsImpl_GetScreeningToolServiceRequestResponses(t *testing.T) {
+	fakeDB := pgMock.NewPostgresMock()
+	fakeExtension := extensionMock.NewFakeExtension()
+	tr := NewUseCasesScreeningTools(fakeDB, fakeDB, fakeDB, fakeExtension)
+	type args struct {
+		ctx      context.Context
+		clientID string
+		toolType enums.ScreeningToolType
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "happy case: get screening tool responses",
+			args: args{
+				ctx:      context.Background(),
+				clientID: uuid.New().String(),
+				toolType: enums.ScreeningToolTypeGBV,
+			},
+		},
+		{
+			name: "sad case: empty client ID",
+			args: args{
+				ctx:      context.Background(),
+				toolType: enums.ScreeningToolTypeGBV,
+			},
+			wantErr: true,
+		},
+		{
+			name: "sad case: invalid tool type",
+			args: args{
+				ctx:      context.Background(),
+				clientID: uuid.New().String(),
+				toolType: enums.ScreeningToolType("invalid"),
+			},
+			wantErr: true,
+		},
+		{
+			name: "sad case: failed to get screening tool responses by tool type",
+			args: args{
+				ctx:      context.Background(),
+				clientID: uuid.New().String(),
+				toolType: enums.ScreeningToolTypeGBV,
+			},
+			wantErr: true,
+		},
+		{
+			name: "sad case: failed to get screening tool question by id",
+			args: args{
+				ctx:      context.Background(),
+				clientID: uuid.New().String(),
+				toolType: enums.ScreeningToolTypeGBV,
+			},
+			wantErr: true,
+		},
+		{
+			name: "sad case: failed to get user profile by client ID",
+			args: args{
+				ctx:      context.Background(),
+				clientID: uuid.New().String(),
+				toolType: enums.ScreeningToolTypeGBV,
+			},
+			wantErr: true,
+		},
+		{
+			name: "sad case: failed to get client service request by question id",
+			args: args{
+				ctx:      context.Background(),
+				clientID: uuid.New().String(),
+				toolType: enums.ScreeningToolTypeGBV,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "sad case: failed to get screening tool responses by tool type" {
+				fakeDB.MockGetClientScreeningToolResponsesByToolTypeFn = func(ctx context.Context, clientID string, toolType string, active bool) ([]*domain.ScreeningToolQuestionResponse, error) {
+					return nil, fmt.Errorf("failed to get active screening tool responses")
+				}
+			}
+
+			if tt.name == "sad case: failed to get screening tool question by id" {
+				fakeDB.MockGetScreeningToolQuestionByQuestionIDFn = func(ctx context.Context, id string) (*domain.ScreeningToolQuestion, error) {
+					return nil, fmt.Errorf("failed to get screening tool question by id")
+				}
+			}
+
+			if tt.name == "sad case: failed to get user profile by client ID" {
+				fakeDB.MockGetClientProfileByClientIDFn = func(ctx context.Context, clientID string) (*domain.ClientProfile, error) {
+					return nil, fmt.Errorf("failed to get client by id")
+				}
+			}
+			if tt.name == "sad case: failed to get client service request by question id" {
+				fakeDB.MockGetClientScreeningToolServiceRequestByToolTypeFn = func(ctx context.Context, clientID string, toolType string, status string) (*domain.ServiceRequest, error) {
+					return nil, fmt.Errorf("failed to get client service request by question id")
+				}
+			}
+			got, err := tr.GetScreeningToolServiceRequestResponses(tt.args.ctx, tt.args.clientID, tt.args.toolType)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ServiceScreeningToolsImpl.GetScreeningToolServiceRequestResponses() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected to get responses: %v", got)
 			}
 		})
 	}
