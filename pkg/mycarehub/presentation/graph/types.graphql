@@ -1,0 +1,497 @@
+type Facility {
+  ID: String!
+  name: String!
+  code: Int!
+  phone: String!
+  active: Boolean!
+  county: String!
+  description: String!
+  fhirOrganisationID: String!
+}
+
+type Pagination {
+  Limit: Int!
+  CurrentPage: Int!
+  Count: Int
+  TotalPages: Int
+  NextPage: Int
+  PreviousPage: Int
+}
+
+type FacilityPage {
+  Pagination: Pagination!
+  Facilities: [Facility]!
+}
+
+type FiltersParam {
+  Name: String
+  DataType: FilterSortDataType
+  Value: String
+}
+
+type TermsOfService {
+  termsID: Int!
+  text: String!
+}
+
+type SecurityQuestion {
+  SecurityQuestionID: String!
+  QuestionStem: String!
+  Description: String
+  Active: Boolean!
+  ResponseType: SecurityQuestionResponseType!
+}
+
+type RecordSecurityQuestionResponse {
+  securityQuestionID: String!
+  isCorrect: Boolean!
+}
+
+type Content {
+  items: [ContentItem!]!
+  meta: Meta!
+}
+
+type Meta {
+  totalCount: Int!
+}
+
+type ContentItem {
+  ID: Int!
+  title: String!
+  date: String!
+  meta: ContentMeta!
+  intro: String!
+  authorName: String!
+  itemType: String!
+  timeEstimateSeconds: Int
+  body: String!
+  heroImage: HeroImage
+  heroImageRendition: HeroImageRendition
+  likeCount: Int!
+  bookmarkCount: Int!
+  viewCount: Int!
+  tagNames: [String!]!
+  shareCount: Int!
+  documents: [Document]
+  author: Author!
+  categoryDetails: [CategoryDetail]
+  featuredMedia: [FeaturedMedia]
+  galleryImages: [GalleryImage]
+}
+
+type HeroImage {
+  ID: Int!
+  meta: ImageMeta!
+  title: String!
+}
+
+type HeroImageRendition {
+  url: String!
+  width: Int!
+  height: Int!
+  alt: String!
+}
+
+type ContentMeta {
+  contentType: String!
+  contentDetailURL: String!
+  contentHTMLURL: String!
+  slug: String!
+  showInMenus: Boolean
+  seoTitle: String
+  searchDescription: String
+  firstPublishedAt: String!
+  locale: String
+}
+
+type CategoryDetail {
+  ID: Int!
+  categoryName: String!
+  categoryIcon: String!
+}
+
+type Author {
+  ID: String!
+}
+
+type Document {
+  ID: Int!
+  Document: DocumentData!
+  meta: DocumentMeta!
+}
+
+type DocumentMeta {
+  type: String!
+  documentDetailUrl: String!
+  documentDownloadUrl: String!
+}
+
+type DocumentData {
+  ID: Int!
+  title: String!
+  meta: DocumentMeta!
+}
+
+type ContentItemCategory {
+  id: Int!
+  name: String!
+  iconUrl: String!
+}
+
+type FeaturedMedia {
+  ID: Int!
+  url: String!
+  title: String!
+  type: String!
+  duration: Float
+  width: Int
+  height: Int
+  thumbnail: String
+}
+
+type GalleryImage {
+  ID: Int!
+  image: ImageDetail!
+}
+
+type ImageDetail {
+  ID: Int!
+  title: String!
+  meta: ImageMeta!
+}
+
+type ImageMeta {
+  type: String!
+  imageDetailUrl: String!
+  imageDownloadUrl: String!
+}
+
+type ClientHealthDiaryQuote {
+  author: String!
+  quote: String!
+}
+
+type ClientHealthDiaryEntry {
+  id: String!
+  active: Boolean!
+  mood: String!
+  note: String!
+  entryType: String!
+  shareWithHealthWorker: Boolean
+  sharedAt: Time
+  clientID: String!
+  createdAt: Time
+  phoneNumber: String
+  clientName: String
+}
+
+type FAQ {
+  ID: String!
+  Active: Boolean!
+  Title: String!
+  Description: String!
+  Body: String!
+  Flavour: Flavour!
+}
+
+type Caregiver {
+  firstName: String!
+  lastName: String!
+  phoneNumber: String!
+  caregiverType: CaregiverType!
+}
+
+type ServiceRequest {
+  ID: String!
+  RequestType: String!
+  Request: String!
+  Status: String!
+  ClientID: String
+  StaffID: String
+  CreatedAt: Time
+  InProgressAt: Time
+  InProgressBy: String
+  ResolvedAt: Time
+  ResolvedBy: String
+  ResolvedByName: String
+  FacilityID: String
+  ClientName: String
+  StaffName: String
+  StaffContact: String
+  ClientContact: String
+  Meta: Map
+}
+
+type ClientRegistrationOutput {
+  ID: String!
+  active: Boolean!
+  clientType: ClientType!
+  enrollmentDate: Time
+  fhirPatientID: String
+  emrHealthRecordID: String
+  treatmentBuddy: String
+  counselled: Boolean!
+  organisation: String!
+  userID: String!
+  currentFacilityID: String!
+  chv: String!
+  caregiver: String!
+}
+
+type RequestTypeCount {
+  requestType: ServiceRequestType!
+  total: Int!
+}
+
+type ServiceRequestsCount {
+  requestsTypeCount: [RequestTypeCount!]!
+}
+
+type ServiceRequestsCountResponse {
+  clientsServiceRequestCount: ServiceRequestsCount!
+  staffServiceRequestCount: ServiceRequestsCount!
+}
+
+type Community {
+  id: String!
+  cid: String
+  name: String!
+  disabled: Boolean
+  frozen: Boolean
+  memberCount: Int
+  createdAt: Time
+  updatedAt: Time
+  # Custom defined fields
+  ageRange: AgeRange
+  gender: [Gender!]!
+  clientType: [ClientType!]
+  inviteOnly: Boolean!
+  description: String!
+  members: [CommunityMember]
+  createdBy: Member
+}
+
+type AgeRange {
+  lowerBound: Int!
+  upperBound: Int!
+}
+
+type PostingHours {
+  start: Time!
+  end: Time!
+}
+
+"""
+Member represents a user and is specific to use in the context of communities
+"""
+type Member {
+  ID: ID!
+  userID: ID!
+  name: String!
+  role: String!
+  username: String!
+  gender: Gender!
+  userType: String
+  extraData: Map
+}
+
+"""
+CommunityMember represents a user in a community and their associated additional details.
+"""
+type CommunityMember {
+  UserID: ID!
+  user: Member!
+  isModerator: Boolean!
+  invited: Boolean
+  inviteAcceptedAt: Time
+  inviteRejectedAt: Time
+  role: String
+  userType: String!
+}
+
+type Appointment {
+  ID: ID!
+  reason: String!
+  date: Date!
+  HasRescheduledAppointment: Boolean!
+}
+
+type AppointmentsPage {
+  appointments: [Appointment]!
+  pagination: Pagination!
+}
+
+type ScreeningToolQuestion {
+  id: String
+  question: String
+  toolType: ScreeningToolType
+  responseChoices: Map
+  responseType: ScreeningToolResponseType
+  responseCategory: ScreeningToolResponseCategory
+  sequence: Int
+  active: Boolean
+  meta: Map
+}
+
+type StaffRegistrationOutput {
+  ID: String!
+  active: Boolean!
+  staffNumber: String!
+  userID: String!
+  defaultFacility: String!
+}
+
+type ClientProfile {
+  ID: String!
+  User: User!
+  Active: Boolean
+  ClientType: String
+  TreatmentEnrollmentDate: Time
+  FHIRPatientID: String
+  HealthRecordID: String
+  TreatmentBuddy: String
+  ClientCounselled: Boolean
+  FacilityID: String
+  CHVUserID: String
+  CHVUserName: String
+  CaregiverID: String
+  CCCNumber: String!
+}
+
+type StaffProfile {
+  ID: String!
+  User: User!
+  UserID: String!
+  Active: Boolean!
+  StaffNumber: String!
+  DefaultFacilityID: String!
+}
+
+type ScreeningToolAssesmentResponse {
+ clientName: String!
+ dateAnswered: Time!
+ clientID: String!
+}
+
+
+type User {
+  ID: String!
+  Username: String!
+  Name: String!
+  Gender: Gender
+  Active: Boolean
+  Contacts: Contact!
+  IsPhoneVerified: Boolean
+  TermsAccepted: Boolean
+  AcceptedTermsID: Int
+  Flavour: Flavour
+  Suspended: Boolean
+  DateOfBirth: Time
+}
+
+type Contact {
+  ID: String
+  ContactType: String
+  ContactValue: String
+  Active: Boolean
+  OptedIn: Boolean
+}
+
+type AuthorityRole {
+  roleID: String
+  name: UserRoleType
+  active: Boolean
+}
+
+type Attachment {
+  type: String
+  authorName: String
+  title: String
+  titleLink: String
+  text: String
+  imageUrl: String
+  thumbUrl: String
+  assetUrl: String
+  ogScrapeUrl: String
+}
+
+type Reaction {
+  messageID: String
+  userID: String
+  type: String
+}
+
+type GetstreamMessage {
+  id: String
+  text: String
+  html: String
+  type: MessageType
+  silent: Boolean
+  user: Member
+  attachments: [Attachment]
+  latestReactions: [Reaction]
+  ownReactions: [Reaction]
+  # reaction_counts:  Map
+  parentID: String
+  showInChannel: Boolean
+  replyCount: Int
+  mentionedUsers: [Member]
+  shadowed: Boolean
+  pinnedAt: Time
+  pinnedBy: Member
+  createdAt: Time
+  updatedAt: Time
+  deletedAt: Time
+}
+
+# message Fag response
+type MessageFlag {
+  user: Member
+  message: GetstreamMessage
+}
+
+type ModerationResult {
+  messageID: String
+  action: String
+  moderatedBy: String
+  blockedWord: String
+  blocklistName: String
+  moderationThresholds: ModerationThresholds
+  AIModerationResponse: AIModerationResponse
+  userKarma: Float
+  userBadKarma: Boolean
+  createdAt: Time
+  updatedAt: Time
+}
+
+type ModerationThresholds {
+  explicit: Explicit
+  spam: Spam
+  toxic: Toxic
+}
+
+type AIModerationResponse {
+  toxic: Float
+  explicit: Float
+  spam: Float
+}
+
+type Explicit {
+  flag: Float
+  block: Float
+}
+
+type Spam {
+  flag: Float
+  block: Float
+}
+
+type Toxic {
+  flag: Float
+  block: Float
+}
+
+type AvailableScreeningTools {
+  toolType: ScreeningToolType!
+}

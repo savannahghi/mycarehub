@@ -1,0 +1,206 @@
+name: Test
+
+on: [push]
+
+env:
+  DOCKER_BUILDKIT: 1 # Enable Buildkit and let compose use it to speed up image building
+  COMPOSE_DOCKER_CLI_BUILD: 1
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+  GOOGLE_CLOUD_PROJECT: ${{ secrets.GOOGLE_CLOUD_PROJECT }}
+  FIREBASE_WEB_API_KEY: ${{ secrets.FIREBASE_WEB_API_KEY }}
+  ENVIRONMENT: ${{ secrets.ENVIRONMENT }}
+  ROOT_COLLECTION_SUFFIX: ${{ secrets.ROOT_COLLECTION_SUFFIX }}
+  PORT: ${{ secrets.PORT }}
+  REPOSITORY: ${{ secrets.REPOSITORY }}
+  SERVICE_HOST: ${{ secrets.SERVICE_HOST }}
+  GOOGLE_PROJECT_NUMBER: ${{ secrets.GOOGLE_PROJECT_NUMBER }}
+  JWT_KEY: ${{ secrets.JWT_KEY }}
+  # Schema Registry CLI command version
+  CLI_VERSION: v0.0.1
+  #Schema Registry URL
+  REGISTRY_URL: ${{ secrets.STAGING_SCHEMA_REGISTRY_URL }}
+  GCR_NAME: ${{ secrets.GCR_NAME }}
+  DATABASE_REGION: ${{ secrets.PROD_DATABASE_REGION }}
+  DATABASE_INSTANCE: ${{ secrets.PROD_DATABASE_INSTANCE }}
+  DEFAULT_ORG_ID: ${{ secrets.DEFAULT_ORG_ID }}
+  PRO_INVITE_LINK: ${{ secrets.PRO_INVITE_LINK }}
+  CONSUMER_INVITE_LINK: ${{ secrets.CONSUMER_INVITE_LINK }}
+  GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}
+  GOOGLE_CLOUD_STORAGE_URL: ${{ secrets.GOOGLE_CLOUD_STORAGE_URL }}
+  SAVANNAH_ADMIN_EMAIL: ${{ secrets.SAVANNAH_ADMIN_EMAIL }}
+  CLOUDSDK_PYTHON: python2
+  POSTGRES_HOST: 127.0.0.1
+  POSTGRES_PORT: 5432
+  POSTGRES_DB: postgres
+  POSTGRES_USER: postgres
+  POSTGRES_PASSWORD: postgres
+  GHOST_CMS_API_ENDPOINT: ${{ secrets.GHOST_CMS_API_ENDPOINT }}
+  GHOST_CMS_API_KEY: ${{ secrets.GHOST_CMS_API_KEY }}
+  MAILGUN_API_KEY: ${{ secrets.MAILGUN_API_KEY }}
+  MAILGUN_DOMAIN: ${{ secrets.MAILGUN_DOMAIN }}
+  MAILGUN_FROM: ${{ secrets.MAILGUN_FROM }}
+  SEND_IN_BLUE_API_KEY: ${{ secrets.SEND_IN_BLUE_API_KEY }}
+  SEND_IN_BLUE_ENABLED: ${{ secrets.SEND_IN_BLUE_ENABLED }}
+  TWILIO_VIDEO_SID: ${{ secrets.TWILIO_VIDEO_SID }}
+  TWILIO_VIDEO_SECRET: ${{ secrets.TWILIO_VIDEO_SECRET }}
+  TWILIO_ACCOUNT_SID: ${{ secrets.TWILIO_ACCOUNT_SID }}
+  TWILIO_ACCOUNT_AUTH_TOKEN: ${{ secrets.TWILIO_ACCOUNT_AUTH_TOKEN }}
+  TWILIO_SMS_NUMBER: ${{ secrets.TWILIO_SMS_NUMBER }}
+  SERVER_PUBLIC_DOMAIN: ${{ secrets.SERVER_PUBLIC_DOMAIN }}
+  AIT_API_KEY: ${{ secrets.AIT_API_KEY }}
+  AIT_USERNAME: ${{ secrets.AIT_USERNAME }}
+  AIT_SENDER_ID: ${{ secrets.AIT_SENDER_ID }}
+  AIT_ENVIRONMENT: ${{ secrets.AIT_ENVIRONMENT }}
+  TWILIO_WHATSAPP_SID: ${{ secrets.TWILIO_WHATSAPP_SID }}
+  TWILIO_WHATSAPP_AUTH_TOKEN: ${{ secrets.TWILIO_WHATSAPP_AUTH_TOKEN }}
+  TWILIO_WHATSAPP_SENDER: ${{ secrets.TWILIO_WHATSAPP_SENDER }}
+  TWILIO_REGION: ${{ secrets.TWILIO_REGION }}
+  TWILIO_VIDEO_API_URL: ${{ secrets.TWILIO_VIDEO_API_URL }}
+  AIT_BEWELL_API_KEY: ${{ secrets.AIT_BEWELL_API_KEY }}
+  AIT_BEWELL_USERNAME: ${{ secrets.AIT_BEWELL_USERNAME }}
+  AIT_BEWELL_SENDER_ID: ${{ secrets.AIT_BEWELL_SENDER_ID }}
+  TESTING_TWILIO_ACCOUNT_AUTH_TOKEN: ${{ secrets.TESTING_TWILIO_ACCOUNT_AUTH_TOKEN }}
+  TESTING_TWILIO_ACCOUNT_SID: ${{ secrets.TESTING_TWILIO_ACCOUNT_SID }}
+  TEST_TWILIO_SMS_NUMBER: ${{ secrets.TEST_TWILIO_SMS_NUMBER }}
+  SENSITIVE_CONTENT_SECRET_KEY: ${{ secrets.SENSITIVE_CONTENT_SECRET_KEY }}
+  CONTENT_API_URL: ${{ secrets.CONTENT_API_URL }}
+  DJANGO_AUTHORIZATION_TOKEN: ${{ secrets.DJANGO_AUTHORIZATION_TOKEN }}
+  PIN_EXPIRY_DAYS: ${{ secrets.PIN_EXPIRY_DAYS }}
+  INVITE_PIN_EXPIRY_DAYS: ${{ secrets.INVITE_PIN_EXPIRY_DAYS }}
+  CLIENT_REGISTRATION_URL: ${{ secrets.CLIENT_REGISTRATION_URL }}
+  STAFF_REGISTRATION_URL: ${{ secrets.STAFF_REGISTRATION_URL }}
+  GET_STREAM_KEY: ${{ secrets.GET_STREAM_KEY }}
+  GET_STREAM_SECRET: ${{ secrets.GET_STREAM_SECRET }}
+  GET_STREAM_TOKEN_EXPIRY_DAYS: ${{ secrets.GET_STREAM_TOKEN_EXPIRY_DAYS }}
+
+concurrency:
+  group: lint-and-test
+jobs:
+  lint_and_test:
+    strategy:
+      matrix:
+        go-version: [1.17.x]
+        os: [ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    services:
+      postgres:
+        image: postgis/postgis:14-3.1
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+          POSTGRES_HOST_AUTH_METHOD: trust
+          POSTGRES_PORT: ${{ job.services.postgres.ports[5432] }}
+        # Set health checks to wait until postgres has started
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          # Maps tcp port 5432 on service container to the host
+          - 5432:5432
+          
+    steps:
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v3.1.0
+        with:
+          python-version: 3.10.0
+
+      - name: Install latest mycarehub django project
+        uses: actions/checkout@main
+        with:
+          repository: savannahghi/mycarehub-backend
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Google Application Credentials
+        uses: google-github-actions/auth@v0.4.3
+        with:
+          project_id: ${{ secrets.GOOGLE_CLOUD_PROJECT }}
+          credentials_json: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}
+
+      - name: Access cloned repository contents
+        run: |
+          sudo apt-get clean
+          sudo apt-get update && sudo apt-get upgrade
+          sudo apt-get install postgis gdal-bin libgdal-dev
+          pip install -r requirements/local.txt && pip install -r requirements/production.txt
+          npm ci
+          npm install -g mjml
+
+      - name: run migrations
+        run: |
+          python manage.py migrate
+          python manage.py createcachetable
+
+      - uses: actions/checkout@v2
+      - uses: google-github-actions/setup-gcloud@v0
+        with:
+          project_id: ${{ secrets.GOOGLE_CLOUD_PROJECT }}
+          service_account_key: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}
+          export_default_credentials: true
+      - name: Install Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: ${{ matrix.go-version }}
+
+      - name: Install Go dependencies
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.37.1
+          go get -u github.com/kisielk/errcheck
+          go get -u golang.org/x/lint/golint
+          go get -u honnef.co/go/tools/cmd/staticcheck
+          go get -u github.com/axw/gocov/gocov
+          go get -u github.com/securego/gosec/cmd/gosec
+          go get -u github.com/ory/go-acc
+          go get -u github.com/client9/misspell/cmd/misspell
+          go get -u github.com/gordonklaus/ineffassign
+          go get github.com/fzipp/gocyclo
+          go get github.com/stretchr/testify/assert@v1.7.0
+          go get github.com/ory/go-acc
+          go install github.com/savannahghi/bewellcli@$CLI_VERSION
+          go get golang.org/x/oauth2/internal
+          go get gorm.io/driver/postgres
+          go get go.opentelemetry.io/contrib/instrumentation/github.com/gorilla/mux/otelmux@v0.21.0
+
+      - name: Run lint and tests
+        env:
+          # These are the expected  database envs
+          IS_LOCAL_DB: True
+          POSTGRES_HOST: localhost
+          POSTGRES_PORT: 5432
+          POSTGRES_DB: postgres
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+
+        run: |
+          staticcheck ./...
+          bewellcli service validate-schema --name mycarehub --version $GITHUB_SHA --url ${{ secrets.SERVICE_GRAPHQL_URL }}
+          go fmt $(go list ./... | grep -v /vendor/)
+          go vet $(go list ./... | grep -v /vendor/)
+          golint -set_exit_status $(go list ./... | grep -v /vendor/)
+          errcheck -ignore 'os:.*,' $(go list ./... | grep -v /vendor/)
+          misspell -error .
+          gosec -exclude=G304,G101 ./...
+          go-acc -o coverage.txt --ignore generated,cmd  ./... -- -timeout 60m
+          grep -v "generated.go" coverage.txt | grep -v "_gen.go" | grep -v "mocks.go" | grep -v "*mocks.go" | grep -v "mock.go" | grep -v "*mock.go" | grep -v "*resolvers*go" | grep -v "*.resolvers.go" | grep -v "server.go" > coverage.out
+          go tool cover -html=coverage.out -o coverage.html
+          gocov convert coverage.out > coverage.json
+          gocov report coverage.json > coverage_report.txt
+          tail coverage_report.txt
+
+      - name: Install goveralls
+        env:
+          GO111MODULE: off
+        run: go get github.com/mattn/goveralls
+      - name: Send coverage
+        env:
+          COVERALLS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: goveralls -coverprofile=coverage.out  -service=github
+
+      - name: Quality Gate - Test coverage shall be above threshold
+        env:
+          TESTCOVERAGE_THRESHOLD: 80.0
+        run: |
+          bash scripts/coverage.sh

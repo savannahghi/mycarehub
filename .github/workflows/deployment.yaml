@@ -1,0 +1,404 @@
+name: Deployment
+
+on: push
+
+env:
+  # Schema Registry CLI command version
+  CLI_VERSION: v0.0.2
+  
+  
+concurrency:
+  group: build_and_push_image
+
+jobs:
+  build_and_push_image:
+    runs-on: ubuntu-latest
+    environment:
+      name: test # run this only in test environment for now
+    steps:
+      - uses: actions/checkout@v2
+
+      # Setup gcloud CLI
+      - uses: google-github-actions/setup-gcloud@v0
+        with:
+          service_account_key: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}
+          project_id: ${{ secrets.GOOGLE_CLOUD_PROJECT }}
+          export_default_credentials: true
+
+      # Build docker image
+      - name: Build
+        run: |-
+          docker build -t eu.gcr.io/${{ secrets.GOOGLE_CLOUD_PROJECT }}/${{ secrets.GCR_NAME }}:$GITHUB_SHA .
+      # Configure docker to use the gcloud command-line tool as a credential helper
+      - run: |
+          gcloud auth configure-docker -q
+
+      # Push image to Google Container Registry
+      - name: Push
+        run: |-
+          docker push eu.gcr.io/${{ secrets.GOOGLE_CLOUD_PROJECT }}/${{ secrets.GCR_NAME }}:$GITHUB_SHA
+
+  deploy_to_staging:
+    name: Deploy Staging Server to Google Cloud Run
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/develop'
+    environment:
+      name: staging
+    needs: [build_and_push_image]
+    steps:
+      - name: Checkout working branches
+        uses: actions/checkout@v2
+
+      # Deploy to Google Cloud Run Serverless
+      - name: Get GCP project credential 
+        uses: google-github-actions/setup-gcloud@v0
+        with:
+          service_account_key: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}
+          project_id: ${{ secrets.GOOGLE_CLOUD_PROJECT }}
+          export_default_credentials: true
+      
+      # Build docker image
+      - name: Build
+        run: |-
+          docker build -t eu.gcr.io/${{ secrets.GOOGLE_CLOUD_PROJECT }}/${{ secrets.GCR_NAME }}:$GITHUB_SHA .
+      # Configure docker to use the gcloud command-line tool as a credential helper
+      - run: |
+          gcloud auth configure-docker -q
+
+      # Push image to Google Container Registry
+      - name: Push
+        run: |-
+          docker push eu.gcr.io/${{ secrets.GOOGLE_CLOUD_PROJECT }}/${{ secrets.GCR_NAME }}:$GITHUB_SHA
+
+      # Deploy to Google Cloud Run Serverless
+      - name: Deploy to Google Cloud Run
+        run: |
+          gcloud components install beta --quiet
+          gcloud beta run deploy ${{ secrets.SERVICE_NAME }} --image eu.gcr.io/${{ secrets.GOOGLE_CLOUD_PROJECT }}/${{ secrets.GCR_NAME }}:$GITHUB_SHA \
+          --region europe-west1 \
+          --platform managed \
+          --allow-unauthenticated \
+          --min-instances=${{ secrets.MIN_INST }} \
+          --max-instances=${{ secrets.MAX_INST }} \
+          --memory=${{ secrets.MEMORY_LIMIT}} \
+          --cpu=${{ secrets.CPU }} \
+          --set-env-vars "GOOGLE_CLOUD_PROJECT=${{ secrets.GOOGLE_CLOUD_PROJECT }}" \
+          --set-env-vars "FIREBASE_WEB_API_KEY=${{ secrets.FIREBASE_WEB_API_KEY }}" \
+          --set-env-vars "JWT_KEY=${{ secrets.JWT_KEY }}" \
+          --set-env-vars "ENVIRONMENT=${{ secrets.ENVIRONMENT }}" \
+          --set-env-vars "REPOSITORY=${{ secrets.REPOSITORY }}" \
+          --set-env-vars "SERVICE_HOST=${{ secrets.SERVICE_HOST }}" \
+          --set-env-vars "GOOGLE_PROJECT_NUMBER=${{ secrets.GOOGLE_PROJECT_NUMBER }}" \
+          --set-env-vars "JAEGER_URL=${{ secrets.JAEGER_URL }}" \
+          --set-env-vars "SENTRY_DSN=${{ secrets.SENTRY_DSN }}" \
+          --set-env-vars "POSTGRES_USER=${{ secrets.MYCAREHUB_DB_USER }}" \
+          --set-env-vars "POSTGRES_PASSWORD=${{ secrets.MYCAREHUB_DB_PASS }}" \
+          --set-env-vars "POSTGRES_DB=${{ secrets.STAGING_MYCAREHUB_DB_NAME }}" \
+          --set-env-vars "DATABASE_REGION=${{ secrets.PROD_DATABASE_REGION }}" \
+          --set-env-vars "DATABASE_INSTANCE=${{ secrets.PROD_DATABASE_INSTANCE }}" \
+          --set-env-vars "DEFAULT_ORG_ID=${{ secrets.DEFAULT_ORG_ID }}" \
+          --set-env-vars "PRO_INVITE_LINK=${{ secrets.PRO_INVITE_LINK }}" \
+          --set-env-vars "CONSUMER_INVITE_LINK=${{ secrets.CONSUMER_INVITE_LINK }}" \
+          --set-env-vars "SENSITIVE_CONTENT_SECRET_KEY=${{ secrets.SENSITIVE_CONTENT_SECRET_KEY }}" \
+          --set-env-vars "GHOST_CMS_API_ENDPOINT=${{ secrets.GHOST_CMS_API_ENDPOINT }}" \
+          --set-env-vars "GHOST_CMS_API_KEY=${{ secrets.GHOST_CMS_API_KEY }}" \
+          --set-env-vars "MAILGUN_API_KEY=${{ secrets.MAILGUN_API_KEY }}" \
+          --set-env-vars "MAILGUN_DOMAIN=${{ secrets.MAILGUN_DOMAIN }}" \
+          --set-env-vars "MAILGUN_FROM=${{ secrets.MAILGUN_FROM }}" \
+          --set-env-vars "SEND_IN_BLUE_API_KEY=${{ secrets.SEND_IN_BLUE_API_KEY }}" \
+          --set-env-vars "SEND_IN_BLUE_ENABLED=${{ secrets.SEND_IN_BLUE_ENABLED }}" \
+          --set-env-vars "TWILIO_VIDEO_SID=${{ secrets.TWILIO_VIDEO_SID }}" \
+          --set-env-vars "TWILIO_VIDEO_SECRET=${{ secrets.TWILIO_VIDEO_SECRET }}" \
+          --set-env-vars "TWILIO_ACCOUNT_SID=${{ secrets.TWILIO_ACCOUNT_SID }}" \
+          --set-env-vars "TWILIO_ACCOUNT_AUTH_TOKEN=${{ secrets.TWILIO_ACCOUNT_AUTH_TOKEN }}" \
+          --set-env-vars "TWILIO_SMS_NUMBER=${{ secrets.TWILIO_SMS_NUMBER }}" \
+          --set-env-vars "SERVER_PUBLIC_DOMAIN=${{ secrets.SERVER_PUBLIC_DOMAIN }}" \
+          --set-env-vars "AIT_API_KEY=${{ secrets.AIT_API_KEY }}" \
+          --set-env-vars "AIT_USERNAME=${{ secrets.AIT_USERNAME }}" \
+          --set-env-vars "AIT_SENDER_ID=${{ secrets.AIT_SENDER_ID }}" \
+          --set-env-vars "AIT_ENVIRONMENT=${{ secrets.AIT_ENVIRONMENT }}" \
+          --set-env-vars "TWILIO_WHATSAPP_SID=${{ secrets.TWILIO_WHATSAPP_SID }}" \
+          --set-env-vars "TWILIO_WHATSAPP_AUTH_TOKEN=${{ secrets.TWILIO_WHATSAPP_AUTH_TOKEN }}" \
+          --set-env-vars "TWILIO_WHATSAPP_SENDER=${{ secrets.TWILIO_WHATSAPP_SENDER }}" \
+          --set-env-vars "TWILIO_REGION=${{ secrets.TWILIO_REGION }}" \
+          --set-env-vars "TWILIO_VIDEO_API_URL=${{ secrets.TWILIO_VIDEO_API_URL }}" \
+          --set-env-vars "AIT_BEWELL_API_KEY=${{ secrets.AIT_BEWELL_API_KEY }}" \
+          --set-env-vars "AIT_BEWELL_USERNAME=${{ secrets.AIT_BEWELL_USERNAME }}" \
+          --set-env-vars "AIT_BEWELL_SENDER_ID=${{ secrets.AIT_BEWELL_SENDER_ID }}" \
+          --set-env-vars "TESTING_TWILIO_ACCOUNT_AUTH_TOKEN=${{ secrets.TESTING_TWILIO_ACCOUNT_AUTH_TOKEN }}" \
+          --set-env-vars "TESTING_TWILIO_ACCOUNT_SID=${{ secrets.TESTING_TWILIO_ACCOUNT_SID }}" \
+          --set-env-vars "TEST_TWILIO_SMS_NUMBER=${{ secrets.TEST_TWILIO_SMS_NUMBER }}" \
+          --set-env-vars "DJANGO_AUTHORIZATION_TOKEN=${{ secrets.DJANGO_AUTHORIZATION_TOKEN }}" \
+          --set-env-vars "CONTENT_API_URL=${{ secrets.CONTENT_API_URL }}" \
+          --set-env-vars "ROOT_COLLECTION_SUFFIX=${{ secrets.ROOT_COLLECTION_SUFFIX }}" \
+          --set-env-vars "GOOGLE_CLOUD_STORAGE_URL=${{ secrets.GOOGLE_CLOUD_STORAGE_URL }}" \
+          --set-env-vars "INVITE_PIN_EXPIRY_DAYS=${{ secrets.INVITE_PIN_EXPIRY_DAYS }}" \
+          --set-env-vars "CLIENT_REGISTRATION_URL=${{ secrets.CLIENT_REGISTRATION_URL }}" \
+          --set-env-vars "STAFF_REGISTRATION_URL=${{ secrets.STAFF_REGISTRATION_URL }}" \
+          --set-env-vars "PIN_EXPIRY_DAYS=${{ secrets.PIN_EXPIRY_DAYS }}" \
+          --set-env-vars "GET_STREAM_KEY=${{ secrets.GET_STREAM_KEY }}" \
+          --set-env-vars "GET_STREAM_SECRET=${{ secrets.GET_STREAM_SECRET }}" \
+          --set-env-vars "GET_STREAM_TOKEN_EXPIRY_DAYS=${{ secrets.GET_STREAM_TOKEN_EXPIRY_DAYS }}" \
+          --set-env-vars "SAVANNAH_ADMIN_EMAIL=${{ secrets.SAVANNAH_ADMIN_EMAIL }}"
+
+          gcloud run services update-traffic ${{ secrets.SERVICE_NAME }} --region europe-west1 --to-latest
+
+  deploy_to_test:
+    name: Deploy Test Server to Google Cloud Run
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/alpha'
+    environment:
+      name: test
+    needs: [build_and_push_image]
+    env:
+      REGISTRY_URL: ${{ secrets.TEST_SCHEMA_REGISTRY_URL }}
+    steps:
+      - name: Checkout working branches
+        uses: actions/checkout@v2
+
+      # Deploy to Google Cloud Run Serverless
+      - name: Get GCP project credential 
+        uses: google-github-actions/setup-gcloud@v0
+        with:
+          service_account_key: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}
+          project_id: ${{ secrets.GOOGLE_CLOUD_PROJECT }}
+          export_default_credentials: true
+      
+      # Deploy to Google Cloud Run Serverless
+      - name: Deploy to Google Cloud Run
+        run: |
+          gcloud components install beta --quiet
+          gcloud beta run deploy ${{ secrets.SERVICE_NAME }} --image eu.gcr.io/${{ secrets.GOOGLE_CLOUD_PROJECT }}/${{ secrets.GCR_NAME }}:$GITHUB_SHA \
+          --region europe-west1 \
+          --platform managed \
+          --allow-unauthenticated \
+          --min-instances=${{ secrets.MIN_INST }} \
+          --max-instances=${{ secrets.MAX_INST }} \
+          --memory=${{ secrets.MEMORY_LIMIT}} \
+          --cpu=${{ secrets.CPU }} \
+          --set-env-vars "GOOGLE_CLOUD_PROJECT=${{ secrets.GOOGLE_CLOUD_PROJECT }}" \
+          --set-env-vars "FIREBASE_WEB_API_KEY=${{ secrets.FIREBASE_WEB_API_KEY }}" \
+          --set-env-vars "JWT_KEY=${{ secrets.JWT_KEY }}" \
+          --set-env-vars "ENVIRONMENT=${{ secrets.ENVIRONMENT }}" \
+          --set-env-vars "REPOSITORY=${{ secrets.REPOSITORY }}" \
+          --set-env-vars "SERVICE_HOST=${{ secrets.SERVICE_HOST }}" \
+          --set-env-vars "GOOGLE_PROJECT_NUMBER=${{ secrets.GOOGLE_PROJECT_NUMBER }}" \
+          --set-env-vars "JAEGER_URL=${{ secrets.JAEGER_URL }}" \
+          --set-env-vars "SENTRY_DSN=${{ secrets.SENTRY_DSN }}" \
+          --set-env-vars "POSTGRES_USER=${{ secrets.MYCAREHUB_DB_USER }}" \
+          --set-env-vars "POSTGRES_PASSWORD=${{ secrets.MYCAREHUB_DB_PASS }}" \
+          --set-env-vars "POSTGRES_DB=${{ secrets.TESTING_MYCAREHUB_DB_NAME }}" \
+          --set-env-vars "DATABASE_REGION=${{ secrets.PROD_DATABASE_REGION }}" \
+          --set-env-vars "DATABASE_INSTANCE=${{ secrets.PROD_DATABASE_INSTANCE }}" \
+          --set-env-vars "DEFAULT_ORG_ID=${{ secrets.DEFAULT_ORG_ID }}" \
+          --set-env-vars "PRO_INVITE_LINK=${{ secrets.PRO_INVITE_LINK }}" \
+          --set-env-vars "CONSUMER_INVITE_LINK=${{ secrets.CONSUMER_INVITE_LINK }}" \
+          --set-env-vars "SENSITIVE_CONTENT_SECRET_KEY=${{ secrets.SENSITIVE_CONTENT_SECRET_KEY }}" \
+          --set-env-vars "GHOST_CMS_API_ENDPOINT=${{ secrets.GHOST_CMS_API_ENDPOINT }}" \
+          --set-env-vars "GHOST_CMS_API_KEY=${{ secrets.GHOST_CMS_API_KEY }}" \
+          --set-env-vars "MAILGUN_API_KEY=${{ secrets.MAILGUN_API_KEY }}" \
+          --set-env-vars "MAILGUN_DOMAIN=${{ secrets.MAILGUN_DOMAIN }}" \
+          --set-env-vars "MAILGUN_FROM=${{ secrets.MAILGUN_FROM }}" \
+          --set-env-vars "SEND_IN_BLUE_API_KEY=${{ secrets.SEND_IN_BLUE_API_KEY }}" \
+          --set-env-vars "SEND_IN_BLUE_ENABLED=${{ secrets.SEND_IN_BLUE_ENABLED }}" \
+          --set-env-vars "TWILIO_VIDEO_SID=${{ secrets.TWILIO_VIDEO_SID }}" \
+          --set-env-vars "TWILIO_VIDEO_SECRET=${{ secrets.TWILIO_VIDEO_SECRET }}" \
+          --set-env-vars "TWILIO_ACCOUNT_SID=${{ secrets.TWILIO_ACCOUNT_SID }}" \
+          --set-env-vars "TWILIO_ACCOUNT_AUTH_TOKEN=${{ secrets.TWILIO_ACCOUNT_AUTH_TOKEN }}" \
+          --set-env-vars "TWILIO_SMS_NUMBER=${{ secrets.TWILIO_SMS_NUMBER }}" \
+          --set-env-vars "SERVER_PUBLIC_DOMAIN=${{ secrets.SERVER_PUBLIC_DOMAIN }}" \
+          --set-env-vars "AIT_API_KEY=${{ secrets.AIT_API_KEY }}" \
+          --set-env-vars "AIT_USERNAME=${{ secrets.AIT_USERNAME }}" \
+          --set-env-vars "AIT_SENDER_ID=${{ secrets.AIT_SENDER_ID }}" \
+          --set-env-vars "AIT_ENVIRONMENT=${{ secrets.AIT_ENVIRONMENT }}" \
+          --set-env-vars "TWILIO_WHATSAPP_SID=${{ secrets.TWILIO_WHATSAPP_SID }}" \
+          --set-env-vars "TWILIO_WHATSAPP_AUTH_TOKEN=${{ secrets.TWILIO_WHATSAPP_AUTH_TOKEN }}" \
+          --set-env-vars "TWILIO_WHATSAPP_SENDER=${{ secrets.TWILIO_WHATSAPP_SENDER }}" \
+          --set-env-vars "TWILIO_REGION=${{ secrets.TWILIO_REGION }}" \
+          --set-env-vars "TWILIO_VIDEO_API_URL=${{ secrets.TWILIO_VIDEO_API_URL }}" \
+          --set-env-vars "AIT_BEWELL_API_KEY=${{ secrets.AIT_BEWELL_API_KEY }}" \
+          --set-env-vars "AIT_BEWELL_USERNAME=${{ secrets.AIT_BEWELL_USERNAME }}" \
+          --set-env-vars "AIT_BEWELL_SENDER_ID=${{ secrets.AIT_BEWELL_SENDER_ID }}" \
+          --set-env-vars "TESTING_TWILIO_ACCOUNT_AUTH_TOKEN=${{ secrets.TESTING_TWILIO_ACCOUNT_AUTH_TOKEN }}" \
+          --set-env-vars "TESTING_TWILIO_ACCOUNT_SID=${{ secrets.TESTING_TWILIO_ACCOUNT_SID }}" \
+          --set-env-vars "TEST_TWILIO_SMS_NUMBER=${{ secrets.TEST_TWILIO_SMS_NUMBER }}" \
+          --set-env-vars "DJANGO_AUTHORIZATION_TOKEN=${{ secrets.DJANGO_AUTHORIZATION_TOKEN }}" \
+          --set-env-vars "CONTENT_API_URL=${{ secrets.CONTENT_API_URL }}" \
+          --set-env-vars "ROOT_COLLECTION_SUFFIX=${{ secrets.ROOT_COLLECTION_SUFFIX }}" \
+          --set-env-vars "GOOGLE_CLOUD_STORAGE_URL=${{ secrets.GOOGLE_CLOUD_STORAGE_URL }}" \
+          --set-env-vars "INVITE_PIN_EXPIRY_DAYS=${{ secrets.INVITE_PIN_EXPIRY_DAYS }}" \
+          --set-env-vars "PIN_EXPIRY_DAYS=${{ secrets.PIN_EXPIRY_DAYS }}" \
+          --set-env-vars "CLIENT_REGISTRATION_URL=${{ secrets.CLIENT_REGISTRATION_URL }}" \
+          --set-env-vars "STAFF_REGISTRATION_URL=${{ secrets.STAFF_REGISTRATION_URL }}" \
+          --set-env-vars "GET_STREAM_KEY=${{ secrets.GET_STREAM_KEY }}" \
+          --set-env-vars "GET_STREAM_SECRET=${{ secrets.GET_STREAM_SECRET }}" \
+          --set-env-vars "GET_STREAM_TOKEN_EXPIRY_DAYS=${{ secrets.GET_STREAM_TOKEN_EXPIRY_DAYS }}" \
+          --set-env-vars "SAVANNAH_ADMIN_EMAIL=${{ secrets.SAVANNAH_ADMIN_EMAIL }}" 
+
+          gcloud run services update-traffic ${{ secrets.SERVICE_NAME }} --region europe-west1 --to-latest
+
+  deploy_to_prod:
+    name: Deploy Prod Server to Google Cloud Run
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    environment:
+      name: production
+    needs: [build_and_push_image]
+    env:
+      REGISTRY_URL: ${{ secrets.PROD_SCHEMA_REGISTRY_URL }}
+    steps:
+      - name: Checkout working branches
+        uses: actions/checkout@v2
+
+      # Get Google Cloud Credentials
+      - name: Get GCP project credential 
+        uses: google-github-actions/setup-gcloud@v0
+        with:
+          service_account_key: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}
+          project_id: ${{ secrets.GOOGLE_CLOUD_PROJECT }}
+          export_default_credentials: true
+          
+      # Build docker image
+      - name: Build
+        run: |-
+          docker build -t eu.gcr.io/${{ secrets.GOOGLE_CLOUD_PROJECT }}/${{ secrets.GCR_NAME }}:$GITHUB_SHA .
+      # Configure docker to use the gcloud command-line tool as a credential helper
+      - run: |
+          gcloud auth configure-docker -q
+
+      # Push image to Google Container Registry
+      - name: Push
+        run: |-
+          docker push eu.gcr.io/${{ secrets.GOOGLE_CLOUD_PROJECT }}/${{ secrets.GCR_NAME }}:$GITHUB_SHA
+
+       # Deploy to Google Cloud Run Serverless
+      - name: Deploy to Google Cloud Run
+        run: |
+          gcloud components install beta --quiet
+          gcloud beta run deploy ${{ secrets.SERVICE_NAME }} --image eu.gcr.io/${{ secrets.GOOGLE_CLOUD_PROJECT }}/${{ secrets.GCR_NAME }}:$GITHUB_SHA \
+          --region europe-west1 \
+          --platform managed \
+          --allow-unauthenticated \
+          --min-instances=${{ secrets.MIN_INST }} \
+          --max-instances=${{ secrets.MAX_INST }} \
+          --memory=${{ secrets.MEMORY_LIMIT}} \
+          --cpu=${{ secrets.CPU }} \
+          --set-env-vars "GOOGLE_CLOUD_PROJECT=${{ secrets.GOOGLE_CLOUD_PROJECT }}" \
+          --set-env-vars "FIREBASE_WEB_API_KEY=${{ secrets.FIREBASE_WEB_API_KEY }}" \
+          --set-env-vars "JWT_KEY=${{ secrets.JWT_KEY }}" \
+          --set-env-vars "ENVIRONMENT=${{ secrets.ENVIRONMENT }}" \
+          --set-env-vars "REPOSITORY=${{ secrets.REPOSITORY }}" \
+          --set-env-vars "SERVICE_HOST=${{ secrets.SERVICE_HOST }}" \
+          --set-env-vars "GOOGLE_PROJECT_NUMBER=${{ secrets.GOOGLE_PROJECT_NUMBER }}" \
+          --set-env-vars "JAEGER_URL=${{ secrets.JAEGER_URL }}" \
+          --set-env-vars "SENTRY_DSN=${{ secrets.SENTRY_DSN }}" \
+          --set-env-vars "POSTGRES_USER=${{ secrets.MYCAREHUB_DB_USER }}" \
+          --set-env-vars "POSTGRES_PASSWORD=${{ secrets.MYCAREHUB_DB_PASS }}" \
+          --set-env-vars "POSTGRES_DB=${{ secrets.PROD_MYCAREHUB_DB_NAME }}" \
+          --set-env-vars "DATABASE_REGION=${{ secrets.PROD_DATABASE_REGION }}" \
+          --set-env-vars "DATABASE_INSTANCE=${{ secrets.PROD_DATABASE_INSTANCE }}" \
+          --set-env-vars "DEFAULT_ORG_ID=${{ secrets.DEFAULT_ORG_ID }}" \
+          --set-env-vars "PRO_INVITE_LINK=${{ secrets.PRO_INVITE_LINK }}" \
+          --set-env-vars "CONSUMER_INVITE_LINK=${{ secrets.CONSUMER_INVITE_LINK }}" \
+          --set-env-vars "GHOST_CMS_API_ENDPOINT=${{ secrets.GHOST_CMS_API_ENDPOINT }}" \
+          --set-env-vars "GHOST_CMS_API_KEY=${{ secrets.GHOST_CMS_API_KEY }}" \
+          --set-env-vars "MAILGUN_API_KEY=${{ secrets.MAILGUN_API_KEY }}" \
+          --set-env-vars "MAILGUN_DOMAIN=${{ secrets.MAILGUN_DOMAIN }}" \
+          --set-env-vars "MAILGUN_FROM=${{ secrets.MAILGUN_FROM }}" \
+          --set-env-vars "SEND_IN_BLUE_API_KEY=${{ secrets.SEND_IN_BLUE_API_KEY }}" \
+          --set-env-vars "SEND_IN_BLUE_ENABLED=${{ secrets.SEND_IN_BLUE_ENABLED }}" \
+          --set-env-vars "TWILIO_VIDEO_SID=${{ secrets.TWILIO_VIDEO_SID }}" \
+          --set-env-vars "TWILIO_VIDEO_SECRET=${{ secrets.TWILIO_VIDEO_SECRET }}" \
+          --set-env-vars "TWILIO_ACCOUNT_SID=${{ secrets.TWILIO_ACCOUNT_SID }}" \
+          --set-env-vars "TWILIO_ACCOUNT_AUTH_TOKEN=${{ secrets.TWILIO_ACCOUNT_AUTH_TOKEN }}" \
+          --set-env-vars "TWILIO_SMS_NUMBER=${{ secrets.TWILIO_SMS_NUMBER }}" \
+          --set-env-vars "SERVER_PUBLIC_DOMAIN=${{ secrets.SERVER_PUBLIC_DOMAIN }}" \
+          --set-env-vars "AIT_API_KEY=${{ secrets.AIT_API_KEY }}" \
+          --set-env-vars "AIT_USERNAME=${{ secrets.AIT_USERNAME }}" \
+          --set-env-vars "AIT_SENDER_ID=${{ secrets.AIT_SENDER_ID }}" \
+          --set-env-vars "AIT_ENVIRONMENT=${{ secrets.AIT_ENVIRONMENT }}" \
+          --set-env-vars "TWILIO_WHATSAPP_SID=${{ secrets.TWILIO_WHATSAPP_SID }}" \
+          --set-env-vars "TWILIO_WHATSAPP_AUTH_TOKEN=${{ secrets.TWILIO_WHATSAPP_AUTH_TOKEN }}" \
+          --set-env-vars "TWILIO_WHATSAPP_SENDER=${{ secrets.TWILIO_WHATSAPP_SENDER }}" \
+          --set-env-vars "TWILIO_REGION=${{ secrets.TWILIO_REGION }}" \
+          --set-env-vars "TWILIO_VIDEO_API_URL=${{ secrets.TWILIO_VIDEO_API_URL }}" \
+          --set-env-vars "AIT_BEWELL_API_KEY=${{ secrets.AIT_BEWELL_API_KEY }}" \
+          --set-env-vars "AIT_BEWELL_USERNAME=${{ secrets.AIT_BEWELL_USERNAME }}" \
+          --set-env-vars "AIT_BEWELL_SENDER_ID=${{ secrets.AIT_BEWELL_SENDER_ID }}" \
+          --set-env-vars "TESTING_TWILIO_ACCOUNT_AUTH_TOKEN=${{ secrets.TESTING_TWILIO_ACCOUNT_AUTH_TOKEN }}" \
+          --set-env-vars "TESTING_TWILIO_ACCOUNT_SID=${{ secrets.TESTING_TWILIO_ACCOUNT_SID }}" \
+          --set-env-vars "TEST_TWILIO_SMS_NUMBER=${{ secrets.TEST_TWILIO_SMS_NUMBER }}" \
+          --set-env-vars "SENSITIVE_CONTENT_SECRET_KEY=${{ secrets.SENSITIVE_CONTENT_SECRET_KEY }}" \
+          --set-env-vars "DJANGO_AUTHORIZATION_TOKEN=${{ secrets.DJANGO_AUTHORIZATION_TOKEN }}" \
+          --set-env-vars "CONTENT_API_URL=${{ secrets.CONTENT_API_URL }}" \
+          --set-env-vars "ROOT_COLLECTION_SUFFIX=${{ secrets.ROOT_COLLECTION_SUFFIX }}" \
+          --set-env-vars "INVITE_PIN_EXPIRY_DAYS=${{ secrets.INVITE_PIN_EXPIRY_DAYS }}" \
+          --set-env-vars "PIN_EXPIRY_DAYS=${{ secrets.PIN_EXPIRY_DAYS }}" \
+          --set-env-vars "GOOGLE_CLOUD_STORAGE_URL=${{ secrets.GOOGLE_CLOUD_STORAGE_URL }}" \
+          --set-env-vars "GET_STREAM_KEY=${{ secrets.GET_STREAM_KEY }}" \
+          --set-env-vars "GET_STREAM_SECRET=${{ secrets.GET_STREAM_SECRET }}" \
+          --set-env-vars "CLIENT_REGISTRATION_URL=${{ secrets.CLIENT_REGISTRATION_URL }}" \
+          --set-env-vars "STAFF_REGISTRATION_URL=${{ secrets.STAFF_REGISTRATION_URL }}" \
+          --set-env-vars "GET_STREAM_TOKEN_EXPIRY_DAYS=${{ secrets.GET_STREAM_TOKEN_EXPIRY_DAYS }}" \
+          --set-env-vars "SAVANNAH_ADMIN_EMAIL=${{ secrets.SAVANNAH_ADMIN_EMAIL }}" 
+
+          gcloud run services update-traffic ${{ secrets.SERVICE_NAME }} --region europe-west1 --to-latest
+
+  push_schema_test_registry:
+    name: Publish schema to schema registry
+    strategy:
+      matrix:
+        go-version: [1.16.x]
+    runs-on: ubuntu-latest
+    needs: [deploy_to_test]
+    environment:
+      name: test
+    env:
+      REGISTRY_URL: ${{ secrets.TEST_SCHEMA_REGISTRY_URL }}
+    steps:
+      - name: Checkout working branches
+        uses: actions/checkout@v2
+
+      # Install Go
+      - name: Install Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: ${{ matrix.go-version }}
+
+       # install CLI command and push schema to registry
+       # just to be sure, we re-validate the schema against schema registry
+      - name: Install CLI command and push schema to registry
+        run: |
+          go install github.com/savannahghi/bewellcli@$CLI_VERSION
+          bewellcli service validate-schema --name mycarehub --version $GITHUB_SHA --url https://mycarehub-testing.savannahghi.org/graphql
+          bewellcli service push-schema --name mycarehub --version $GITHUB_SHA --url https://mycarehub-testing.savannahghi.org/graphql
+
+  push_schema_prod_registry:
+    name: Publish schema to prod schema registry
+    strategy:
+      matrix:
+        go-version: [1.16.x]
+    runs-on: ubuntu-latest
+    needs: [deploy_to_prod]
+    environment:
+      name: production
+    env:
+      REGISTRY_URL: ${{ secrets.PROD_SCHEMA_REGISTRY_URL }}
+    steps:
+      - name: Checkout working branches
+        uses: actions/checkout@v2
+
+      # Install Go
+      - name: Install Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: ${{ matrix.go-version }}
+
+       # install CLI command and push schema to registry
+       # just to be sure, we re-validate the schema against schema registry
+      - name: Install CLI command and push schema to registry
+        run: |
+          go install github.com/savannahghi/bewellcli@$CLI_VERSION
+          bewellcli service validate-schema --name mycarehub --version $GITHUB_SHA --url https://mycarehub-prod.savannahghi.org/graphql
+          bewellcli service push-schema --name mycarehub --version $GITHUB_SHA --url https://mycarehub-prod.savannahghi.org/graphql
+

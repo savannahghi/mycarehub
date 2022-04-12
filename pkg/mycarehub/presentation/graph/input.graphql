@@ -1,0 +1,148 @@
+scalar Date
+scalar Map
+scalar Any
+
+input FacilityInput {
+  name: String!
+  code: Int!
+  phone: String!
+  active: Boolean!
+  county: String!
+  description: String!
+}
+
+input PaginationsInput {
+  Limit: Int
+  CurrentPage: Int!
+  Sort: SortsInput
+}
+
+input FiltersInput {
+  DataType: FilterSortDataType
+  Value: String
+}
+
+input SortsInput {
+  Direction: SortDataType
+  Field: FilterSortDataType
+}
+
+input PINInput {
+  userID: String!
+  pin: String!
+  confirmPIN: String!
+  flavour: Flavour!
+}
+
+input SecurityQuestionResponseInput {
+  userID: String!
+  securityQuestionID: String!
+  response: String!
+}
+
+input ShareContentInput {
+  UserID: String!
+  ContentID: Int!
+  Channel: String!
+}
+
+input FeedbackResponseInput {
+  userID: String!
+  message: String!
+  requiresFollowUp: Boolean!
+}
+
+input CaregiverInput {
+  clientID: String!
+  firstName: String!
+  lastName: String!
+  phoneNumber: String!
+  caregiverType: CaregiverType!
+}
+
+input ClientRegistrationInput {
+  facility: String!
+  clientType: ClientType!
+  clientName: String!
+  gender: Gender!
+  dateOfBirth: Date!
+  phoneNumber: String!
+  enrollmentDate: Date!
+  cccNumber: String!
+  counselled: Boolean!
+  inviteClient: Boolean!
+}
+
+input QueryOption {
+  filter: Map
+  sort: [SortOption!]
+  userID: String
+  limit: Int!
+  offset: Int
+  messageLimit: Int
+  memberLimit: Int
+}
+
+input SortOption {
+  field: String!
+  direction: Int!
+}
+
+input CommunityInput {
+  name: String!
+  description: String!
+  ageRange: AgeRangeInput
+  gender: [Gender!]!
+  clientType: [ClientType!]
+  inviteOnly: Boolean!
+}
+
+input AgeRangeInput {
+  lowerBound: Int!
+  upperBound: Int!
+}
+
+input ScreeningToolQuestionResponseInput {
+  clientID: String!
+  questionID: String!
+  response: String!
+}
+
+input StaffRegistrationInput {
+  facility: String!
+  staffName: String!
+  gender: Gender!
+  dateOfBirth: Date!
+  phoneNumber: String!
+  idNumber: String!
+  staffNumber: String!
+  staffRoles: String
+  inviteStaff: Boolean!
+}
+
+
+input ServiceRequestInput {
+	Active:       Boolean                  
+	RequestType:  String!
+	Status:       String 
+	Request:      String! 
+	ClientID:     String! 
+	InProgressBy: String
+	ResolvedBy:   String
+	FacilityID:   String 
+	ClientName:   String
+  Flavour: Flavour!
+	Meta:         Map
+}
+
+input FilterParam {
+  fieldName: String!
+  fieldType: FieldType!
+  comparisonOperation: Operation!
+  fieldValue: Any!
+}
+
+input RescheduleAppointmentInput {
+  appointmentID: String!
+  clientID: String!
+}

@@ -1,0 +1,17 @@
+# authority_authorityrole.yml
+
+- id: {{.system_admin_role_id}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  active: true
+  organisation_id: {{.test_organisation_id}}
+  name: {{.system_admin_role}}
+
+- id: {{.content_management_role_id}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  active: true
+  organisation_id: {{.test_organisation_id}}
+  name: {{.content_management_role}}
+
+

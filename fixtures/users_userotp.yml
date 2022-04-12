@@ -1,0 +1,12 @@
+# users_userotp.yml
+- id: 1
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  user_id: {{.test_user_id}}
+  is_valid: true
+  generated_at: RAW=NOW() 
+  valid_until: RAW=NOW() + INTERVAL '1 hour'
+  channel: sms
+  flavour: {{.test_flavour}}
+  phonenumber: {{.test_phone}}
+  otp: {{.test_otp}}

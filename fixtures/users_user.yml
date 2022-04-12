@@ -1,0 +1,507 @@
+# users_user.yml
+- id: 6ecbbc80-24c8-421a-9f1a-e14e12678ef0
+  username: test user@
+  name: test user@
+  first_name: first name@
+  middle_name: middle name@
+  last_name: last name@
+  user_type: client
+  gender: male
+  last_successful_login: RAW=NOW()
+  last_failed_login: null
+  failed_login_count: 0
+  failed_security_count: 0
+  next_allowed_login: RAW=NOW()
+  accepted_terms_of_service_id: {{.test_terms_id}}
+  terms_accepted: true
+  flavour: CONSUMER
+  avatar: null
+  is_suspended: false
+  pin_change_required: false
+  has_set_pin: true
+  has_set_security_questions: true
+  is_phone_verified: true
+  organisation_id: {{.test_organisation_id}}
+  password: {{.test_password}}
+  is_superuser: false
+  is_staff: false
+  email: test@example.co
+  date_joined: RAW=NOW()
+  is_approved: true
+  is_active: true
+  approval_notified: false
+  handle: "@us"
+
+- id: 6ecbbc80-24c8-421a-9f1a-e14e12678ee0
+  username: test user
+  name: test user
+  first_name: first name
+  middle_name: middle name
+  last_name: last name
+  user_type: client
+  gender: male
+  last_successful_login: RAW=NOW()
+  last_failed_login: null
+  failed_login_count: 0
+  failed_security_count: 0
+  next_allowed_login: RAW=NOW()
+  accepted_terms_of_service_id: {{.test_terms_id}}
+  terms_accepted: true
+  flavour: CONSUMER
+  avatar: null
+  is_suspended: false
+  pin_change_required: false
+  has_set_pin: true
+  has_set_security_questions: true
+  is_phone_verified: true
+  organisation_id: {{.test_organisation_id}}
+  password: {{.test_password}}
+  is_superuser: false
+  is_staff: false
+  email: test@example.com
+  date_joined: RAW=NOW()
+  is_approved: true
+  is_active: true
+  approval_notified: false
+  handle: "@user"
+
+# treatment buddy
+- id: 5ecbbc80-24c8-421a-9f1a-e14e12678ee1
+  username: test user0
+  name: test user0
+  first_name: first name
+  middle_name: middle name0
+  last_name: last name0
+  user_type: client
+  gender: male
+  last_successful_login: RAW=NOW()
+  last_failed_login: null
+  failed_login_count: 0
+  failed_security_count: 0
+  next_allowed_login: RAW=NOW()
+  accepted_terms_of_service_id: {{.test_terms_id}}
+  terms_accepted: true
+  flavour: CONSUMER
+  avatar: null
+  is_suspended: false
+  pin_change_required: false
+  has_set_pin: true
+  has_set_security_questions: true
+  is_phone_verified: true
+  organisation_id: {{.test_organisation_id}}
+  password: {{.test_password}}
+  is_superuser: false
+  is_staff: false
+  email: test@example.com0
+  date_joined: RAW=NOW()
+  is_approved: true
+  is_active: true
+  approval_notified: false
+  handle: "@user0"
+
+  # Test user to invalidate
+- id: 5ecbbc80-24c8-421a-9f1a-e14e12678ee0
+  username: test user1
+  name: test user1
+  first_name: first name1
+  middle_name: middle name1
+  last_name: last name1
+  user_type: client
+  gender: male
+  last_successful_login: RAW=NOW()
+  last_failed_login: null
+  failed_login_count: 0
+  failed_security_count: 0
+  next_allowed_login: RAW=NOW()
+  accepted_terms_of_service_id: {{.test_terms_id}}
+  terms_accepted: true
+  flavour: CONSUMER
+  avatar: null
+  is_suspended: false
+  pin_change_required: false
+  has_set_pin: true
+  has_set_security_questions: true
+  is_phone_verified: true
+  organisation_id: {{.test_organisation_id}}
+  password: {{.test_password}}
+  is_superuser: false
+  is_staff: false
+  email: test1@example.com
+  date_joined: RAW=NOW()
+  is_approved: true
+  is_active: true
+  approval_notified: false
+  handle: "@user1"
+
+# user to accept terms of service
+- id: 4ecbbc80-24c8-421a-9f1a-e14e12678ee0
+  username: test user2
+  name: test user2
+  first_name: first name2
+  middle_name: middle name2
+  last_name: last name2
+  user_type: client
+  gender: male
+  last_successful_login: RAW=NOW()
+  last_failed_login: null
+  failed_login_count: 0
+  failed_security_count: 0
+  next_allowed_login: RAW=NOW()
+  accepted_terms_of_service_id: null
+  terms_accepted: false
+  flavour: CONSUMER
+  avatar: null
+  is_suspended: false
+  pin_change_required: false
+  has_set_pin: true
+  has_set_security_questions: true
+  is_phone_verified: true
+  organisation_id: {{.test_organisation_id}}
+  password: {{.test_password}}
+  is_superuser: false
+  is_staff: false
+  email: test2@example.com
+  date_joined: RAW=NOW()
+  is_approved: true
+  is_active: true
+  approval_notified: false
+  handle: "@user2"
+
+# user to increase failed login count
+- id: 7ecbbc80-24c8-421a-9f1a-e14e12678ee0
+  username: test user3
+  name: test user3
+  first_name: first name3
+  middle_name: middle name3
+  last_name: last name3
+  user_type: client
+  gender: male
+  last_successful_login: RAW=NOW()
+  last_failed_login: null
+  failed_login_count: 0
+  failed_security_count: 0
+  next_allowed_login: RAW=NOW()
+  accepted_terms_of_service_id: {{.test_terms_id}}
+  terms_accepted: true
+  flavour: CONSUMER
+  avatar: null
+  is_suspended: true
+  pin_change_required: false
+  has_set_pin: true
+  has_set_security_questions: true
+  is_phone_verified: true
+  organisation_id: {{.test_organisation_id}}
+  password: {{.test_password}}
+  is_superuser: false
+  is_staff: false
+  email: test3@example.com
+  date_joined: RAW=NOW()
+  is_approved: true
+  is_active: true
+  approval_notified: false
+  handle: "@user3"
+
+# user to increase failed login time
+- id: 8ecbbc80-24c8-421a-9f1a-e14e12678ee0
+  username: test user4
+  name: test user4
+  first_name: first name4
+  middle_name: middle name4
+  last_name: last name4
+  user_type: client
+  gender: male
+  last_successful_login: RAW=NOW()
+  last_failed_login: null
+  failed_login_count: 0
+  failed_security_count: 0
+  next_allowed_login: RAW=NOW()
+  accepted_terms_of_service_id: {{.test_terms_id}}
+  terms_accepted: true
+  flavour: CONSUMER
+  avatar: null
+  is_suspended: true
+  pin_change_required: false
+  has_set_pin: true
+  has_set_security_questions: true
+  is_phone_verified: true
+  organisation_id: {{.test_organisation_id}}
+  password: {{.test_password}}
+  is_superuser: false
+  is_staff: false
+  email: test4@example.com
+  date_joined: RAW=NOW()
+  is_approved: true
+  is_active: true
+  approval_notified: false
+  handle: "@user4"
+
+  # user to update next allowed login time
+- id: 9ecbbc80-24c8-421a-9f1a-e14e12678ee0
+  username: test user5
+  name: test user5
+  first_name: first name5
+  middle_name: middle name5
+  last_name: last name5
+  user_type: client
+  gender: male
+  last_successful_login: RAW=NOW()
+  last_failed_login: null
+  failed_login_count: 0
+  failed_security_count: 0
+  next_allowed_login: RAW=NOW()
+  accepted_terms_of_service_id: {{.test_terms_id}}
+  terms_accepted: true
+  flavour: CONSUMER
+  avatar: null
+  is_suspended: true
+  pin_change_required: false
+  has_set_pin: true
+  has_set_security_questions: true
+  is_phone_verified: true
+  organisation_id: {{.test_organisation_id}}
+  password: {{.test_password}}
+  is_superuser: false
+  is_staff: false
+  email: test5@example.com
+  date_joined: RAW=NOW()
+  is_approved: true
+  is_active: true
+  approval_notified: false
+  handle: "@user5"
+
+   # user update pin change required status
+- id: 5ecbbc80-24b8-421a-9f1a-e14e12678ee0
+  username: test user6
+  name: test user6
+  first_name: first name6
+  middle_name: middle name6
+  last_name: last name6
+  user_type: client
+  gender: male
+  last_successful_login: RAW=NOW()
+  last_failed_login: null
+  failed_login_count: 0
+  failed_security_count: 0
+  next_allowed_login: RAW=NOW()
+  accepted_terms_of_service_id: {{.test_terms_id}}
+  terms_accepted: true
+  flavour: CONSUMER
+  avatar: null
+  is_suspended: false
+  pin_change_required: false
+  has_set_pin: true
+  has_set_security_questions: true
+  is_phone_verified: true
+  organisation_id: {{.test_organisation_id}}
+  password: {{.test_password}}
+  is_superuser: false
+  is_staff: false
+  email: test6@example.com
+  date_joined: RAW=NOW()
+  is_approved: true
+  is_active: false
+  approval_notified: false
+  handle: "@user6"
+
+  # test user to save pin
+- id: 8ecbbc80-24c8-421a-9f1a-e14e12678ef0
+  username: test user7
+  name: test user7
+  first_name: first name7
+  middle_name: middle name7
+  last_name: last name7
+  user_type: client
+  gender: male
+  last_successful_login: RAW=NOW()
+  last_failed_login: null
+  failed_login_count: 0
+  failed_security_count: 0
+  next_allowed_login: RAW=NOW()
+  accepted_terms_of_service_id: {{.test_terms_id}}
+  terms_accepted: true
+  flavour: CONSUMER
+  avatar: null
+  is_suspended: false
+  pin_change_required: false
+  has_set_pin: true
+  has_set_security_questions: true
+  is_phone_verified: true
+  organisation_id: {{.test_organisation_id}}
+  password: {{.test_password}}
+  is_superuser: false
+  is_staff: false
+  email: test7@example.com
+  date_joined: RAW=NOW()
+  is_approved: true
+  is_active: true
+  approval_notified: false
+  handle: "@user7"
+
+  # test user to add caregiver
+- id: 8ecbbc80-24c8-421a-9f1a-e14e12678ef1
+  username: test user8
+  name: test user8
+  first_name: first name8
+  middle_name: middle name8
+  last_name: last name8
+  user_type: client
+  gender: male
+  last_successful_login: RAW=NOW()
+  last_failed_login: null
+  failed_login_count: 0
+  failed_security_count: 0
+  next_allowed_login: RAW=NOW()
+  accepted_terms_of_service_id: {{.test_terms_id}}
+  terms_accepted: true
+  flavour: CONSUMER
+  avatar: null
+  is_suspended: false
+  pin_change_required: false
+  has_set_pin: true
+  has_set_security_questions: true
+  is_phone_verified: true
+  organisation_id: {{.test_organisation_id}}
+  password: {{.test_password}}
+  is_superuser: false
+  is_staff: false
+  email: test@example8.co
+  date_joined: RAW=NOW()
+  is_approved: true
+  is_active: true
+  approval_notified: false
+  handle: "@us8"
+
+  # test user to add staff
+- id: {{.staff_user_id}}
+  username: test staff user
+  name: test staff
+  first_name: first name8
+  middle_name: middle name8
+  last_name: last name8
+  user_type: client
+  gender: male
+  last_successful_login: RAW=NOW()
+  last_failed_login: null
+  failed_login_count: 0
+  failed_security_count: 0
+  next_allowed_login: RAW=NOW()
+  accepted_terms_of_service_id: {{.test_terms_id}}
+  terms_accepted: true
+  flavour: PRO
+  avatar: null
+  is_suspended: false
+  pin_change_required: false
+  has_set_pin: true
+  has_set_security_questions: true
+  is_phone_verified: true
+  organisation_id: {{.test_organisation_id}}
+  password: {{.test_password}}
+  is_superuser: false
+  is_staff: false
+  email: test@example8.co
+  date_joined: RAW=NOW()
+  is_approved: true
+  is_active: true
+  approval_notified: false
+  handle: "@usstaff"
+
+  # test test user client  with unresolved service requests
+- id: {{.client_user_unresolved_request_id}}
+  username: test client user10
+  name: test client10
+  first_name: first name10
+  middle_name: middle name10
+  last_name: last name10
+  user_type: client
+  gender: male
+  last_successful_login: RAW=NOW()
+  last_failed_login: null
+  failed_login_count: 0
+  failed_security_count: 0
+  next_allowed_login: RAW=NOW()
+  accepted_terms_of_service_id: {{.test_terms_id}}
+  terms_accepted: true
+  flavour:  CONSUMER
+  avatar: null
+  is_suspended: false
+  pin_change_required: false
+  has_set_pin: true
+  has_set_security_questions: true
+  is_phone_verified: true
+  organisation_id: {{.test_organisation_id}}
+  password: {{.test_password}}
+  is_superuser: false
+  is_staff: false
+  email: test@example10.co
+  date_joined: RAW=NOW()
+  is_approved: true
+  is_active: true
+  approval_notified: false
+  handle: "@client10"
+
+  # test user to add failed security count
+- id: {{.user_failed_security_count_id}}
+  username: test staff user11
+  name: test staff11
+  first_name: first name11
+  middle_name: middle name11
+  last_name: last name11
+  user_type: client
+  gender: male
+  last_successful_login: RAW=NOW()
+  last_failed_login: null
+  failed_login_count: 0
+  failed_security_count: 0
+  next_allowed_login: RAW=NOW()
+  accepted_terms_of_service_id: {{.test_terms_id}}
+  terms_accepted: true
+  flavour: PRO
+  avatar: null
+  is_suspended: false
+  pin_change_required: false
+  has_set_pin: true
+  has_set_security_questions: true
+  is_phone_verified: true
+  organisation_id: {{.test_organisation_id}}
+  password: {{.test_password}}
+  is_superuser: false
+  is_staff: false
+  email: test@example11.co
+  date_joined: RAW=NOW()
+  is_approved: true
+  is_active: true
+  approval_notified: false
+  handle: "@usstaff11"
+
+- id: 4181df12-ca96-4f28-b78b-8e8ad88b25df
+  username: test client
+  name: test client
+  first_name: first name
+  middle_name: middle name
+  last_name: last name
+  user_type: client
+  gender: male
+  last_successful_login: RAW=NOW()
+  last_failed_login: null
+  failed_login_count: 0
+  failed_security_count: 0
+  next_allowed_login: RAW=NOW()
+  accepted_terms_of_service_id: {{.test_terms_id}}
+  terms_accepted: true
+  flavour: CONSUMER
+  avatar: null
+  is_suspended: false
+  pin_change_required: false
+  has_set_pin: true
+  has_set_security_questions: true
+  is_phone_verified: true
+  organisation_id: {{.test_organisation_id}}
+  password: {{.test_password}}
+  is_superuser: false
+  is_staff: false
+  email: test@example.com
+  date_joined: RAW=NOW()
+  is_approved: true
+  is_active: true
+  approval_notified: false
+  handle: "userIDtoAssignClient"

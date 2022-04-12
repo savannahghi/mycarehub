@@ -1,0 +1,8 @@
+extend type Mutation {
+  assignOrRevokeRoles(userID: String!, roles: [UserRoleType]): Boolean!
+}
+
+extend type Query{
+  getUserRoles(userID: String!): [AuthorityRole!]
+  getAllAuthorityRoles: [AuthorityRole!]
+}

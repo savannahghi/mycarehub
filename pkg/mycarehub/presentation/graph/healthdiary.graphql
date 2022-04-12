@@ -1,0 +1,14 @@
+extend type Mutation {
+  createHealthDiaryEntry(
+    clientID: String!
+    note: String
+    mood: String!
+    reportToStaff: Boolean!
+  ): Boolean!
+  shareHealthDiaryEntry(healthDiaryEntryID: String!): Boolean!
+}
+extend type Query {
+  canRecordMood(clientID: String!): Boolean!
+  getHealthDiaryQuote: ClientHealthDiaryQuote!
+  getClientHealthDiaryEntries(clientID: String!): [ClientHealthDiaryEntry!]!
+}

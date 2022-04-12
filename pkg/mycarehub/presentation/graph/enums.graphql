@@ -1,0 +1,168 @@
+scalar Time
+
+enum CountryType {
+  KENYA
+  # other countries
+}
+
+enum CountyType {
+  Mombasa
+  Kwale
+  Kilifi
+  Tana_River
+  Lamu
+  Taita_Taveta
+  Garissa
+  Wajir
+  Mandera
+  Marsabit
+  Isiolo
+  Meru
+  Tharaka_Nithi
+  Embu
+  Kitui
+  Machakos
+  Makueni
+  Nyandarua
+  Nyeri
+  Kirinyaga
+  Muranga
+  Kiambu
+  Turkana
+  West_Pokot
+  Samburu
+  Trans_Nzoia
+  Uasin_Gishu
+  Elgeyo_Marakwet
+  Nandi
+  Baringo
+  Laikipia
+  Nakuru
+  Narok
+  Kajiado
+  Kericho
+  Bomet
+  Kakamega
+  Vihiga
+  Bungoma
+  Busia
+  Siaya
+  Kisumu
+  Homa_Bay
+  Migori
+  Kisii
+  Nyamira
+  Nairobi
+  # other counties
+}
+
+enum FilterSortDataType {
+  created_at
+  updated_at
+  name
+  mfl_code
+  active
+  county
+}
+
+enum SortDataType {
+  asc
+  desc
+}
+
+enum Flavour {
+  CONSUMER
+  PRO
+}
+
+enum SecurityQuestionResponseType {
+  TEXT
+  NUMBER
+  DATE
+  BOOLEAN
+}
+
+enum CaregiverType {
+  FATHER
+  MOTHER
+  SIBLING
+  HEALTHCARE_PROFESSIONAL
+}
+
+enum Gender {
+  male
+  female
+  other
+  unknown
+}
+
+enum ClientType {
+  PMTCT
+  OVC
+  OTZ
+  OTZ_PLUS
+  HVL
+  DREAMS
+  HIGH_RISK
+  SPOUSES
+  YOUTH
+  KenyaEMR
+}
+
+enum ServiceRequestType {
+  RED_FLAG
+  PIN_RESET
+  PROFILE_UPDATE
+}
+
+enum UserRoleType {
+  SYSTEM_ADMINISTRATOR
+  COMMUNITY_MANAGEMENT
+  CONTENT_MANAGEMENT
+  CLIENT_MANAGEMENT
+}
+
+enum ScreeningToolResponseCategory {
+  SINGLE_CHOICE
+  MULTI_CHOICE
+  OPEN_ENDED
+}
+
+enum ScreeningToolResponseType {
+  INTEGER
+  TEXT
+  DATE
+}
+
+enum ScreeningToolType {
+  TB_ASSESSMENT
+  VIOLENCE_ASSESSMENT
+  CONTRACEPTIVE_ASSESSMENT
+  ALCOHOL_SUBSTANCE_ASSESSMENT
+}
+
+enum MessageType {
+  regular
+  error
+  reply
+  system
+  ephemeral
+}
+
+enum FieldType {
+  BOOLEAN
+  TIMESTAMP
+  NUMBER
+  INTEGER
+  STRING
+}
+
+enum Operation {
+  LESS_THAN
+  LESS_THAN_OR_EQUAL_TO
+  EQUAL
+  GREATER_THAN
+  GREATER_THAN_OR_EQUAL_TO
+  IN
+  CONTAINS
+}

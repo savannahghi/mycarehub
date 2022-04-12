@@ -1,0 +1,18 @@
+extend type Query {
+  getCurrentTerms(flavour: Flavour!): TermsOfService!
+  verifyPIN(userID: String!, flavour: Flavour!, pin: String!): Boolean!
+  getClientCaregiver(clientID: String!): Caregiver!
+  searchClientsByCCCNumber(CCCNumber: String!): [ClientProfile!]
+  searchStaffByStaffNumber(staffNumber: String!): [StaffProfile!]
+}
+
+extend type Mutation {
+  acceptTerms(userID: String!, termsID: Int!): Boolean!
+  setNickName(userID: String!, nickname: String!): Boolean!
+  completeOnboardingTour(userID: String!, flavour: Flavour!): Boolean!
+  createOrUpdateClientCaregiver(caregiverInput: CaregiverInput): Boolean!
+  registerClient(input: ClientRegistrationInput): ClientRegistrationOutput!
+  registerStaff(input: StaffRegistrationInput!): StaffRegistrationOutput!
+  optOut(phoneNumber: String!, flavour: Flavour!): Boolean!
+  setPushToken(token: String!): Boolean!
+}

@@ -1,0 +1,26 @@
+extend type Mutation {
+  setInProgressBy(serviceRequestID: String!, staffID: String!): Boolean!
+  createServiceRequest(input: ServiceRequestInput!): Boolean!
+  resolveServiceRequest(staffID: String!, requestID: String!): Boolean!
+
+  verifyClientPinResetServiceRequest(
+    clientID: String!
+    serviceRequestID: String!
+    cccNumber: String!
+    phoneNumber: String!
+    physicalIdentityVerified: Boolean!
+    state: String!
+  ): Boolean!
+
+  verifyStaffPinResetServiceRequest(phoneNumber: String!, serviceRequestID: String!, verificationStatus: String!): Boolean!
+}
+
+extend type Query {
+  getServiceRequests(
+    requestType: String
+    requestStatus: String
+    facilityID: String!
+    flavour: Flavour!
+  ): [ServiceRequest]
+  getPendingServiceRequestsCount(facilityID: String!): ServiceRequestsCountResponse!
+}

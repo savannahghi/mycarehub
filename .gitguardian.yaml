@@ -1,0 +1,14 @@
+all-policies: false
+api-url: https://api.gitguardian.com
+exit-zero: false
+matches-ignore:
+  - name: token
+    match: QP18DqWVyuOcPG8CcDUNcEDzU3A2
+paths-ignore:
+  - '**/README.md'
+  - doc/*
+  - LICENSE
+  - .dockerignore
+  - .gitignore
+show-secrets: false
+verbose: false

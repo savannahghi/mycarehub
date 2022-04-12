@@ -1,0 +1,16 @@
+extend type Query {
+  getContent(categoryID: Int, Limit: String!): Content!
+  listContentCategories: [ContentItemCategory!]!
+  getUserBookmarkedContent(userID: String!): Content
+  checkIfUserHasLikedContent(userID: String!, contentID: Int!): Boolean!
+  checkIfUserBookmarkedContent(userID: String!, contentID: Int!): Boolean!
+}
+
+extend type Mutation {
+  shareContent(input: ShareContentInput!): Boolean!
+  bookmarkContent(userID: String!, contentItemID: Int!): Boolean!
+  UnBookmarkContent(userID: String!, contentItemID: Int!): Boolean!
+  likeContent(userID: String!, contentID: Int!): Boolean!
+  unlikeContent(userID: String!, contentID: Int!): Boolean!
+  viewContent(userID: String!, contentID: Int!): Boolean!
+}

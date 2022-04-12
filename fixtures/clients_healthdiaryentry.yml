@@ -1,0 +1,12 @@
+# clients_healthdiaryentry
+- id: {{.clients_healthdiaryentry_id}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  active: true
+  mood: RED_FLAG
+  note: TEST NOTE
+  entry_type: HEALTH_DIARY_ENTRY
+  share_with_health_worker: false
+  shared_at: RAW=NOW()
+  client_id: {{.test_client_id}}
+  organisation_id: {{.test_organisation_id}}

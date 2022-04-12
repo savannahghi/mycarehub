@@ -1,0 +1,35 @@
+# users_userpin.yml
+- id: 1000
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  user_id: 6ecbbc80-24c8-421a-9f1a-e14e12678ee0
+  hashed_pin: {{.hash}}
+  valid_from: 2021-11-22 21:16:29.23639+03
+  valid_to: RAW=NOW() + INTERVAL '1 hour'
+  active: true
+  flavour: CONSUMER
+  salt: {{.salt}}
+
+  # user pin to invalidate
+- id: 2000
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  user_id: 5ecbbc80-24c8-421a-9f1a-e14e12678ee0
+  hashed_pin: {{.hash}}
+  valid_from: 2021-11-22 21:16:29.23639+03
+  valid_to: RAW=NOW() + INTERVAL '1 hour'
+  active: true
+  flavour: CONSUMER
+  salt: {{.salt}}
+
+   # user pin to update active status
+- id: 3000
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  user_id: 5ecbbc80-24b8-421a-9f1a-e14e12678ee0
+  hashed_pin: {{.hash}}
+  valid_from: 2021-11-22 21:16:29.23639+03
+  valid_to: RAW=NOW() + INTERVAL '1 hour'
+  active: false
+  flavour: CONSUMER
+  salt: {{.salt}}

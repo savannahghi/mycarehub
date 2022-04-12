@@ -1,0 +1,49 @@
+# clients_seciurityquestion.yml
+- id: 26b20a42-cbb8-4553-aedb-c539602d04fb
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  stem: which year were you born?
+  description: birthday year
+  response_type: NUMBER
+  flavour: CONSUMER
+  active: true
+  sequence: 1
+  organisation_id: {{.test_organisation_id}}
+
+- id: fada0b8a-4f3c-4df2-82be-35b82753f66c
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  stem: when is your birthday?
+  description: birthday date
+  response_type: DATE # the date format is DD-MM-YYYY
+  flavour: CONSUMER
+  active: true
+  sequence: 2
+  organisation_id: {{.test_organisation_id}}
+
+- id: bdc22436-e314-43f2-bb39-ba1ab332f9b6
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  stem: Do you have children?
+  description: children
+  response_type: BOOLEAN
+  flavour: CONSUMER
+  active: true
+  sequence: 3
+  organisation_id: {{.test_organisation_id}}
+
+- id: e7f0e561-40fc-46db-84c2-18c6f26db40e
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  stem: which is your favorite movie?
+  description: movie
+  response_type: TEXT
+  flavour: CONSUMER
+  active: true
+  sequence: 4
+  organisation_id: {{.test_organisation_id}}
+
+
+
+
+  

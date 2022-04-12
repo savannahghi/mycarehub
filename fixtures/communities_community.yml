@@ -1,0 +1,15 @@
+# communities.yml
+
+- id: {{.community_id}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  name: "test"
+  description: "test"
+  active: true
+  min_age: 10
+  max_age: 100
+  gender: '{MALE}'
+  client_types: '{PMTCT}'
+  invite_only: true
+  discoverable: true
+  organisation_id: {{.test_organisation_id}}

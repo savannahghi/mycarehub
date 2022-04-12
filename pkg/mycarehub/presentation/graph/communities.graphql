@@ -1,0 +1,24 @@
+extend type Query {
+  listMembers(input: QueryOption): [Member]
+  listCommunityBannedMembers(communityID: String!): [Member]
+  inviteMembersToCommunity(communityID: String!, memberIDs: [String!]!): Boolean!
+  listCommunities(input: QueryOption): [Community]
+  listCommunityMembers(communityID: ID!): [CommunityMember]
+  listPendingInvites(memberID: String!, input: QueryOption): [Community]
+  recommendedCommunities(clientID: String!, limit: Int!): [Community]
+  listFlaggedMessages(communityCID: String, memberIDs: [String]): [MessageFlag]
+}
+
+extend type Mutation {
+  createCommunity(input: CommunityInput!): Community!
+  deleteCommunities(communityIDs: [String!]!, hardDelete: Boolean!): Boolean!
+  rejectInvitation(memberID: String!, communityID: String!): Boolean!
+  acceptInvitation(memberID: String!, communityID: String!): Boolean!
+  addMembersToCommunity(memberIDs: [String!]!, communityID: String!): Boolean!
+  removeMembersFromCommunity(communityID: String!, memberIDs: [String!]): Boolean!
+  addModerators(memberIDs: [String!]!, communityID: String!): Boolean!
+  demoteModerators(communityID: String!, memberIDs: [String!]!): Boolean!
+  banUser(MemberID: String!, bannedBy: String!, communityID: String!): Boolean!
+  unBanUser(memberID: String!, communityID: String!): Boolean!
+  deleteCommunityMessage(messageID: String!): Boolean!
+}

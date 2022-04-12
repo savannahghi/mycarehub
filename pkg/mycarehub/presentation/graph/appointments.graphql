@@ -1,0 +1,11 @@
+extend type Query {
+  fetchClientAppointments(
+    clientID: ID!
+    paginationInput: PaginationsInput!
+    filters: [FilterParam!]
+  ): AppointmentsPage
+}
+
+extend type Mutation {
+  rescheduleAppointment(appointmentID: String!, date: Date!): Boolean!
+}

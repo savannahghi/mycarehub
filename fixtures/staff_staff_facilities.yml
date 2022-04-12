@@ -1,0 +1,4 @@
+# staff_staff_facilities.yml
+- id: 4
+  staff_id: {{.staff_id}}
+  facility_id: {{.staff_default_facility}}

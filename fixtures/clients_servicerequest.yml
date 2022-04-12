@@ -1,0 +1,85 @@
+# clients_servicerequest
+- id: {{.clients_service_request_id}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  active: true
+  request_type: RED_FLAG
+  request: TEST REQUEST
+  status: INPROGRESS
+  in_progress_at: RAW=NOW()
+  resolved_at: null
+  client_id: 26b20a42-cbb8-4553-aedb-c539602d04fc
+  in_progress_by_id: null
+  organisation_id: {{.test_organisation_id}}
+  resolved_by_id: null
+  facility_id: {{.test_facility_id}}
+  meta: null
+
+
+# Service Request to resolve
+- id: {{.test_service_request_id}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  active: true
+  request_type: RED_FLAG
+  request: test red flag request
+  status: IN PROGRESS
+  in_progress_at: 2021-11-22 21:16:29.23639+03
+  in_progress_by_id: {{.staff_id}}
+  resolved_at: null
+  resolved_by_id: null
+  client_id: {{.test_client_id}}
+  organisation_id: {{.test_organisation_id}}
+  facility_id: {{.test_facility_id}}
+  meta: null
+
+
+  # client with pending service requests
+- id: {{.pending_service_request_id}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  active: true
+  request_type: PIN_RESET
+  request: test red flag request
+  status: PENDING
+  in_progress_at: 2021-11-22 21:16:29.23639+03
+  in_progress_by_id: {{.staff_id}}
+  resolved_at: null
+  resolved_by_id: null
+  client_id: {{.test_client_id_with_unresolved_request}}
+  organisation_id: {{.test_organisation_id}}
+  facility_id: {{.test_facility_id}}
+  meta: null
+
+  # client with in progress service requests
+- id: {{.in_progress_service_request_id}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  active: true
+  request_type: PIN_RESET
+  request: test red flag request
+  status: IN PROGRESS
+  in_progress_at: 2021-11-22 21:16:29.23639+03
+  in_progress_by_id: {{.staff_id}}
+  resolved_at: null
+  resolved_by_id: null
+  client_id: {{.test_client_id_with_unresolved_request}}
+  organisation_id: {{.test_organisation_id}}
+  facility_id: {{.test_facility_id}}
+  meta: null
+
+- id: {{.resolved_service_request_id}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  active: true
+  request_type: SCREENING_TOOLS_RED_FLAG
+  request: TEST REQUEST
+  status: RESOLVED
+  in_progress_at: RAW=NOW()
+  resolved_at: null
+  client_id: 26b20a42-cbb8-4553-aedb-c539602d04fc
+  in_progress_by_id: null
+  organisation_id: {{.test_organisation_id}}
+  resolved_by_id: null
+  facility_id: {{.test_facility_id}}
+  

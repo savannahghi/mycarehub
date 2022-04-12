@@ -1,0 +1,38 @@
+# wagtailcore_page.yml
+- id: {{.content_id}}
+  path: /test/path
+  depth: 0
+  numchild: 0
+  title: test title
+  slug: test-slug
+  live: true
+  has_unpublished_changes: false
+  url_path: https://www.example.com/test-slug/
+  seo_title: test seo title
+  show_in_menus: true
+  search_description: test search description
+  expired: false
+  content_type_id: 1 # default to 1 => wagtailcore page
+  locked: false
+  draft_title: test draft title
+  translation_key: f5b8b8f8-c8e0-4c1a-b9e9-e9b0b8b8f8c5
+  locale_id: 1 # default to 1 => en
+
+- id: {{.content_id2}}
+  path: /test/path2
+  depth: 0
+  numchild: 0
+  title: test title2
+  slug: test-slug2
+  live: true
+  has_unpublished_changes: false
+  url_path: https://www.example.com/test-slug2/
+  seo_title: test seo title2
+  show_in_menus: true
+  search_description: test search description2
+  expired: false
+  content_type_id: 1 # default to 1 => wagtailcore page
+  locked: false
+  draft_title: test draft title2
+  translation_key: f5b8b8f8-c8e0-4c1a-b9e9-e9b0b8b8f8c4
+  locale_id: 1 # default to 1 => en

@@ -1,0 +1,11 @@
+- id: 2fc2b603-05ef-40f1-987a-3259eab87aef
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  active: true
+  organisation_id: {{.test_organisation_id}}
+  external_id: '5'
+  client_id: {{.test_client_id}}
+  staff_id: {{.staff_id}}
+  facility_id: {{.test_facility_id}}
+  date: 2022-03-13
+  has_rescheduled_appointment: true
