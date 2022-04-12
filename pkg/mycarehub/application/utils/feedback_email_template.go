@@ -22,11 +22,7 @@ const FeedbackNotificationEmail = `
   <table style="width: 100%;">
     <!--      header start-->
     <tr>
-      <td><img style="width: 100px;" src="https://storage.googleapis.com/mycarehub-test/media/original_images/MyAfyaHubDevLogo.png" alt=""></td>
-    </tr>
-    <tr style="width: 100%;">
-      <td style="width: 100%;height: 200px;background: rgba(102,51,153,0.02);padding: 15px;text-align: center;"><img
-        style="width: 80%;" src="https://bewell.co.ke/image/converse.png" alt=""></td>
+      <td><img style="width: 100px;" src="https://storage.googleapis.com/mycarehub-test/media/original_images/MyCareHub.png" alt=""></td>
     </tr>
     <!--      header end-->
 
@@ -53,7 +49,7 @@ const FeedbackNotificationEmail = `
       </td>
     </tr>
     <tr>
-      <td><p style="font-size: 18px;margin: 0;line-height: 1.7;"><strong>Below is the feedback:</strong></p></td>
+      <td><p style="font-size: 18px;margin: 0;line-height: 1.7;"><strong>Below is the feedback information:</strong></p></td>
     </tr>
     <!--      content area end-->
     <tr>
@@ -66,16 +62,38 @@ const FeedbackNotificationEmail = `
       <td>
         <div>
           <div style="width: 50%;margin-bottom: 30px;">
-            <strong style="display: block;margin-bottom: 5px;">Feedback Message</strong>
-            <span>{{.Message}}</span>
+            <strong style="display: block;margin-bottom: 5px;">Feedback Type</strong>
+            <span>{{.FeedbackType}}</span>
+          </div>
+        </div>
+        {{if .ServiceName }}
+          <div>
+            <div style="width: 50%;margin-bottom: 30px;">
+              <strong style="display: block;margin-bottom: 5px;">Service Name</strong>
+              <span>{{.ServiceName}}</span>
+            </div>
+          </div>
+        {{end}}
+        <div>
+          <div style="width: 50%;margin-bottom: 30px;">
+            <strong style="display: block;margin-bottom: 5px;">Satisfaction Level</strong>
+            <span>{{.SatisfactionLevel}}</span>
           </div>
         </div>
         <div>
-            <div style="width: 50%;margin-bottom: 30px;">
-                <strong style="display: block;margin-bottom: 5px;">Requires Follow Up</strong>
-            <span>{{.RequiresFollowUp}}</span>
+          <div style="width: 50%;margin-bottom: 30px;">
+            <strong style="display: block;margin-bottom: 5px;">Feedback</strong>
+            <span>{{.Feedback}}</span>
+          </div>
         </div>
+        {{if .PhoneNumber }}
+        <div>
+          <div style="width: 50%;margin-bottom: 30px;">
+                <strong style="display: block;margin-bottom: 5px;">Contact Information</strong>
+            <span>{{.PhoneNumber}}</span>
+          </div>
         </div>
+        {{end}}
       </td>
     </tr>
 

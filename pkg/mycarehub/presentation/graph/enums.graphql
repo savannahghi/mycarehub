@@ -157,6 +157,11 @@ enum FieldType {
   STRING
 }
 
+enum FeedbackType {
+  GENERAL_FEEDBACK
+  SERVICES_OFFERED
+}
+
 enum Operation {
   LESS_THAN
   LESS_THAN_OR_EQUAL_TO

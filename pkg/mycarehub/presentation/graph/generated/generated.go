@@ -4304,6 +4304,11 @@ enum FieldType {
   STRING
 }
 
+enum FeedbackType {
+  GENERAL_FEEDBACK
+  SERVICES_OFFERED
+}
+
 enum Operation {
   LESS_THAN
   LESS_THAN_OR_EQUAL_TO
@@ -4404,7 +4409,10 @@ input ShareContentInput {
 
 input FeedbackResponseInput {
   userID: String!
-  message: String!
+  feedbackType: FeedbackType!
+  satisfactionLevel: Int!
+  serviceName: String
+  feedback: String!
   requiresFollowUp: Boolean!
 }
 
@@ -22769,11 +22777,35 @@ func (ec *executionContext) unmarshalInputFeedbackResponseInput(ctx context.Cont
 			if err != nil {
 				return it, err
 			}
-		case "message":
+		case "feedbackType":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("message"))
-			it.Message, err = ec.unmarshalNString2string(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("feedbackType"))
+			it.FeedbackType, err = ec.unmarshalNFeedbackType2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐFeedbackType(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "satisfactionLevel":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("satisfactionLevel"))
+			it.SatisfactionLevel, err = ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "serviceName":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("serviceName"))
+			it.ServiceName, err = ec.unmarshalOString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "feedback":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("feedback"))
+			it.Feedback, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -27527,6 +27559,16 @@ func (ec *executionContext) unmarshalNFacilityInput2githubᚗcomᚋsavannahghi�
 func (ec *executionContext) unmarshalNFeedbackResponseInput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐFeedbackResponseInput(ctx context.Context, v interface{}) (dto.FeedbackResponseInput, error) {
 	res, err := ec.unmarshalInputFeedbackResponseInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNFeedbackType2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐFeedbackType(ctx context.Context, v interface{}) (enums.FeedbackType, error) {
+	var res enums.FeedbackType
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNFeedbackType2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐFeedbackType(ctx context.Context, sel ast.SelectionSet, v enums.FeedbackType) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) unmarshalNFieldType2githubᚗcomᚋsavannahghiᚋenumutilsᚐFieldType(ctx context.Context, v interface{}) (enumutils.FieldType, error) {
