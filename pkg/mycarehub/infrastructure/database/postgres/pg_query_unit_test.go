@@ -5306,12 +5306,12 @@ func TestMyCareHubDb_GetSharedHealthDiaryEntry(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.name == "Sad case - invalid facility" {
-				fakeGorm.MockGetSharedHealthDiaryEntryFn = func(ctx context.Context, clientID string, facilityID string) (*gorm.ClientHealthDiaryEntry, error) {
+				fakeGorm.MockGetSharedHealthDiaryEntriesFn = func(ctx context.Context, clientID string, facilityID string) ([]*gorm.ClientHealthDiaryEntry, error) {
 					return nil, fmt.Errorf("failed to get shared health diary entries")
 				}
 			}
 			if tt.name == "Sad case - empty facility" {
-				fakeGorm.MockGetSharedHealthDiaryEntryFn = func(ctx context.Context, clientID string, facilityID string) (*gorm.ClientHealthDiaryEntry, error) {
+				fakeGorm.MockGetSharedHealthDiaryEntriesFn = func(ctx context.Context, clientID string, facilityID string) ([]*gorm.ClientHealthDiaryEntry, error) {
 					return nil, fmt.Errorf("failed to get shared health diary entries")
 				}
 			}
@@ -5321,9 +5321,9 @@ func TestMyCareHubDb_GetSharedHealthDiaryEntry(t *testing.T) {
 				}
 			}
 
-			got, err := d.GetSharedHealthDiaryEntry(tt.args.ctx, tt.args.clientID, tt.args.facilityID)
+			got, err := d.GetSharedHealthDiaryEntries(tt.args.ctx, tt.args.clientID, tt.args.facilityID)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("MyCareHubDb.GetSharedHealthDiaryEntry() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("MyCareHubDb.GetSharedHealthDiaryEntries() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if tt.wantErr && got != nil {

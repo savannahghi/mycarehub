@@ -46,7 +46,7 @@ type IGetClientHealthDiaryEntry interface {
 	GetClientHealthDiaryEntries(ctx context.Context, clientID string) ([]*domain.ClientHealthDiaryEntry, error)
 	GetFacilityHealthDiaryEntries(ctx context.Context, input dto.FetchHealthDiaryEntries) (*dto.HealthDiaryEntriesResponse, error)
 	GetRecentHealthDiaryEntries(ctx context.Context, lastSyncTime time.Time, clientID string) ([]*domain.ClientHealthDiaryEntry, error)
-	GetSharedHealthDiaryEntry(ctx context.Context, clientID string, facilityID string) (*domain.ClientHealthDiaryEntry, error)
+	GetSharedHealthDiaryEntries(ctx context.Context, clientID string, facilityID string) ([]*domain.ClientHealthDiaryEntry, error)
 }
 
 // IShareHealthDiaryEntry contains the methods to share the health diary with the health care worker
@@ -254,11 +254,11 @@ func (h UseCasesHealthDiaryImpl) ShareHealthDiaryEntry(ctx context.Context, heal
 	return h.ServiceRequest.CreateServiceRequest(ctx, serviceRequestInput)
 }
 
-// GetSharedHealthDiaryEntry fetches the most recent health diary shared by the client
-func (h UseCasesHealthDiaryImpl) GetSharedHealthDiaryEntry(ctx context.Context, clientID string, facilityID string) (*domain.ClientHealthDiaryEntry, error) {
+// GetSharedHealthDiaryEntries fetches the most recent health diary(ies) shared by the client with the health worker
+func (h UseCasesHealthDiaryImpl) GetSharedHealthDiaryEntries(ctx context.Context, clientID string, facilityID string) ([]*domain.ClientHealthDiaryEntry, error) {
 	if facilityID == "" || clientID == "" {
 		return nil, fmt.Errorf("neither facility id nor client id can be empty")
 	}
 
-	return h.Query.GetSharedHealthDiaryEntry(ctx, clientID, facilityID)
+	return h.Query.GetSharedHealthDiaryEntries(ctx, clientID, facilityID)
 }

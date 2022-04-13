@@ -125,7 +125,7 @@ type PostgresMock struct {
 	MockUpdateClientFn                                   func(ctx context.Context, client *domain.ClientProfile, updates map[string]interface{}) (*domain.ClientProfile, error)
 	MockUpdateFailedSecurityQuestionsAnsweringAttemptsFn func(ctx context.Context, userID string, failCount int) error
 	MockGetFacilitiesWithoutFHIRIDFn                     func(ctx context.Context) ([]*domain.Facility, error)
-	MockGetSharedHealthDiaryEntryFn                      func(ctx context.Context, clientID string, facilityID string) (*domain.ClientHealthDiaryEntry, error)
+	MockGetSharedHealthDiaryEntriesFn                    func(ctx context.Context, clientID string, facilityID string) ([]*domain.ClientHealthDiaryEntry, error)
 	MockGetServiceRequestByIDFn                          func(ctx context.Context, id string) (*domain.ServiceRequest, error)
 	MockUpdateUserFn                                     func(ctx context.Context, user *domain.User, updateData map[string]interface{}) error
 	MockGetStaffProfileByStaffIDFn                       func(ctx context.Context, staffID string) (*domain.StaffProfile, error)
@@ -360,8 +360,8 @@ func NewPostgresMock() *PostgresMock {
 		MockUpdateServiceRequestsFn: func(ctx context.Context, payload *domain.UpdateServiceRequestsPayload) (bool, error) {
 			return true, nil
 		},
-		MockGetSharedHealthDiaryEntryFn: func(ctx context.Context, clientID string, facilityID string) (*domain.ClientHealthDiaryEntry, error) {
-			return healthDiaryEntry, nil
+		MockGetSharedHealthDiaryEntriesFn: func(ctx context.Context, clientID string, facilityID string) ([]*domain.ClientHealthDiaryEntry, error) {
+			return []*domain.ClientHealthDiaryEntry{healthDiaryEntry}, nil
 		},
 		MockSaveTemporaryUserPinFn: func(ctx context.Context, pinData *domain.UserPIN) (bool, error) {
 			return true, nil
@@ -1602,9 +1602,9 @@ func (gm *PostgresMock) SaveNotification(ctx context.Context, payload *domain.No
 	return gm.MockSaveNotificationFn(ctx, payload)
 }
 
-// GetSharedHealthDiaryEntry mocks the implementation of getting the most recently shared health diary entires by the client to a health care worker
-func (gm *PostgresMock) GetSharedHealthDiaryEntry(ctx context.Context, clientID string, facilityID string) (*domain.ClientHealthDiaryEntry, error) {
-	return gm.MockGetSharedHealthDiaryEntryFn(ctx, clientID, facilityID)
+// GetSharedHealthDiaryEntries mocks the implementation of getting the most recently shared health diary entires by the client to a health care worker
+func (gm *PostgresMock) GetSharedHealthDiaryEntries(ctx context.Context, clientID string, facilityID string) ([]*domain.ClientHealthDiaryEntry, error) {
+	return gm.MockGetSharedHealthDiaryEntriesFn(ctx, clientID, facilityID)
 }
 
 // GetClientScreeningToolResponsesByToolType mocks the implementation of getting client screening tool responses by tool type

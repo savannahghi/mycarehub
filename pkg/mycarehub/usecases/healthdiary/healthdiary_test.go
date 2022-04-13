@@ -565,18 +565,18 @@ func TestUseCasesHealthDiaryImpl_GetSharedHealthDiaryEntry(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.name == "Sad case" {
-				fakeDB.MockGetSharedHealthDiaryEntryFn = func(ctx context.Context, clientID string, facilityID string) (*domain.ClientHealthDiaryEntry, error) {
+				fakeDB.MockGetSharedHealthDiaryEntriesFn = func(ctx context.Context, clientID string, facilityID string) ([]*domain.ClientHealthDiaryEntry, error) {
 					return nil, fmt.Errorf("an error occurred")
 				}
 			}
 			if tt.name == "Sad case - empty client ID" {
-				fakeDB.MockGetSharedHealthDiaryEntryFn = func(ctx context.Context, clientID string, facilityID string) (*domain.ClientHealthDiaryEntry, error) {
+				fakeDB.MockGetSharedHealthDiaryEntriesFn = func(ctx context.Context, clientID string, facilityID string) ([]*domain.ClientHealthDiaryEntry, error) {
 					return nil, fmt.Errorf("an error occurred")
 				}
 			}
-			got, err := healthdiary.GetSharedHealthDiaryEntry(tt.args.ctx, tt.args.clientID, tt.args.facilityID)
+			got, err := healthdiary.GetSharedHealthDiaryEntries(tt.args.ctx, tt.args.clientID, tt.args.facilityID)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("UseCasesHealthDiaryImpl.GetSharedHealthDiaryEntry() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("UseCasesHealthDiaryImpl.GetSharedHealthDiaryEntries() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if tt.wantErr && got != nil {
