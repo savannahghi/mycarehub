@@ -5446,3 +5446,40 @@ func TestMyCareHubDb_GetClientScreeningToolServiceRequestByToolType(t *testing.T
 		})
 	}
 }
+
+func TestMyCareHubDb_CheckIfStaffHasUnresolvedServiceRequests(t *testing.T) {
+	var fakeGorm = gormMock.NewGormMock()
+	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+	type args struct {
+		ctx                context.Context
+		staffID            string
+		serviceRequestType string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy case:  check if staff has no unresolved service requests",
+			args: args{
+				ctx:                context.Background(),
+				staffID:            uuid.New().String(),
+				serviceRequestType: string(enums.ServiceRequestTypePinReset),
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := d.CheckIfStaffHasUnresolvedServiceRequests(tt.args.ctx, tt.args.staffID, tt.args.serviceRequestType)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.CheckIfStaffHasUnresolvedServiceRequests() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("MyCareHubDb.CheckIfStaffHasUnresolvedServiceRequests() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

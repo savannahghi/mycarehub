@@ -411,7 +411,7 @@ type Contact {
 }
 
 type AuthorityRole {
-  roleID: String
+  authorityRoleID: String
   name: UserRoleType
   active: Boolean
 }
@@ -422,10 +422,10 @@ type Attachment {
   title: String
   title_link: String
   text: String
-  image_URL: String
-  thumb_URL: String
-  asset_URL: String
-  og_scrape_URL: String
+  image_url: String
+  thumb_url: String
+  asset_url: String
+  og_scrape_url: String
 }
 
 type Reaction {

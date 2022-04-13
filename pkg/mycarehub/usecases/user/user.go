@@ -475,6 +475,22 @@ func (us *UseCasesUserImpl) ReturnLoginResponse(ctx context.Context, flavour fee
 				Code:    int(exceptions.ProfileNotFound),
 			}, exceptions.StaffProfileNotFoundErr(err)
 		}
+		exists, err := us.Query.CheckIfStaffHasUnresolvedServiceRequests(ctx, *staffProfile.ID, string(enums.ServiceRequestTypeStaffPinReset))
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return &domain.LoginResponse{
+				Message: "failed to check if staff has unresolved pin reset request",
+				Code:    int(exceptions.Internal),
+			}, exceptions.InternalErr(err)
+		}
+		if exists {
+			err := fmt.Errorf("staff has unresolved pin reset request")
+			helpers.ReportErrorToSentry(err)
+			return &domain.LoginResponse{
+				Message: err.Error(),
+				Code:    int(exceptions.ClientHasUnresolvedPinResetRequestError),
+			}, exceptions.StaffHasUnresolvedPinResetRequestErr(err)
+		}
 		// Create/update a staff's getstream user
 		getStreamUser := &getStreamClient.User{
 			ID:   *staffProfile.ID,

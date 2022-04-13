@@ -4,9 +4,9 @@ import "github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 
 // AuthorityRole defines user roles
 type AuthorityRole struct {
-	RoleID string             `json:"authorityRoleID"`
-	Name   enums.UserRoleType `json:"name"`
-	Active bool               `json:"active"`
+	AuthorityRoleID string             `json:"authorityRoleID"`
+	Name            enums.UserRoleType `json:"name"`
+	Active          bool               `json:"active"`
 }
 
 // AuthorityPermission defines user permissions

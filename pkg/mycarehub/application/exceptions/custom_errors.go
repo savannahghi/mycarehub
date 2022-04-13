@@ -531,3 +531,12 @@ func UpdateProfileErr(err error) error {
 		Code:    int(UpdateProfileError),
 	}
 }
+
+// StaffHasUnresolvedPinResetRequestErr returns an error message when the staff has an unresolved pin reset request
+func StaffHasUnresolvedPinResetRequestErr(err error) error {
+	return &CustomError{
+		Err:     err,
+		Message: StaffHasUnresolvedPinResetRequestErrorMsg,
+		Code:    int(StaffHasUnresolvedPinResetRequestError),
+	}
+}

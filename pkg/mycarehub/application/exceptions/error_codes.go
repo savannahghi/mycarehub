@@ -401,4 +401,8 @@ const (
 	// CCCIdentifierNotFoundError implies that the clients identifier was not found
 	// Its error code is 81
 	CCCIdentifierNotFoundError
+
+	// StaffHasUnresolvedPinResetRequestError implies that the staff has an unresolved pin reset request
+	// Its error code is 82
+	StaffHasUnresolvedPinResetRequestError
 )

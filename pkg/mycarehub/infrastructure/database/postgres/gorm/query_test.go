@@ -4198,3 +4198,60 @@ func TestPGInstance_GetClientScreeningToolServiceRequestByToolType(t *testing.T)
 		})
 	}
 }
+
+func TestPGInstance_CheckIfStaffHasUnresolvedServiceRequests(t *testing.T) {
+	type args struct {
+		ctx                context.Context
+		staffID            string
+		serviceRequestType string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "happy case: check pending pin reset",
+			args: args{
+				ctx:                context.Background(),
+				staffID:            staffUnresolvedRequestID,
+				serviceRequestType: string(enums.ServiceRequestTypeStaffPinReset),
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "happy case: check pending pin reset, no pending pin reset request",
+			args: args{
+				ctx:                context.Background(),
+				staffID:            staffID,
+				serviceRequestType: string(enums.ServiceRequestTypeStaffPinReset),
+			},
+			want:    false,
+			wantErr: false,
+		},
+		{
+			name: "sad case: invalid client id",
+			args: args{
+				ctx:                context.Background(),
+				staffID:            "123Q4",
+				serviceRequestType: string(enums.ServiceRequestTypeStaffPinReset),
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := testingDB.CheckIfStaffHasUnresolvedServiceRequests(tt.args.ctx, tt.args.staffID, tt.args.serviceRequestType)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.CheckIfStaffHasUnresolvedServiceRequests() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("PGInstance.CheckIfStaffHasUnresolvedServiceRequests() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

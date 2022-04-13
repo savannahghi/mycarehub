@@ -91,6 +91,7 @@ type Query interface {
 	GetClientScreeningToolResponsesByToolType(ctx context.Context, clientID, toolType string, active bool) ([]*ScreeningToolsResponse, error)
 	GetClientScreeningToolServiceRequestByToolType(ctx context.Context, clientID, toolType, status string) (*ClientServiceRequest, error)
 	GetAppointment(ctx context.Context, params *Appointment) (*Appointment, error)
+	CheckIfStaffHasUnresolvedServiceRequests(ctx context.Context, staffID string, serviceRequestType string) (bool, error)
 }
 
 // CheckWhetherUserHasLikedContent performs a operation to check whether user has liked the content
@@ -1372,4 +1373,22 @@ func (db *PGInstance) GetClientScreeningToolServiceRequestByToolType(ctx context
 		return nil, fmt.Errorf("failed to get client service request by question ID: %v", err)
 	}
 	return &serviceRequest, nil
+}
+
+// CheckIfStaffHasUnresolvedServiceRequests returns true if the staff has unresolved service requests
+func (db *PGInstance) CheckIfStaffHasUnresolvedServiceRequests(ctx context.Context, staffID string, serviceRequestType string) (bool, error) {
+	var unresolvedServiceRequests []*StaffServiceRequest
+	err := db.DB.Where(&StaffServiceRequest{StaffID: staffID, RequestType: serviceRequestType}).
+		Not(&StaffServiceRequest{Status: enums.ServiceRequestStatusResolved.String()}).
+		Find(&unresolvedServiceRequests).Error
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, fmt.Errorf("failed to check for unresolved service requests: %v", err)
+	}
+
+	if len(unresolvedServiceRequests) > 0 {
+		return true, nil
+	}
+
+	return false, nil
 }

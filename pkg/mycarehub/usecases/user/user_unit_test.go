@@ -247,6 +247,26 @@ func TestUseCasesUserImpl_Login_Unittest(t *testing.T) {
 			wantErr: true,
 		},
 		{
+			name: "Sad Case - failed to check if staff has pending pin reset request",
+			args: args{
+				ctx:         ctx,
+				phoneNumber: interserviceclient.TestUserPhoneNumber,
+				pin:         PIN,
+				flavour:     feedlib.FlavourPro,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - staff has pending pin reset request",
+			args: args{
+				ctx:         ctx,
+				phoneNumber: interserviceclient.TestUserPhoneNumber,
+				pin:         PIN,
+				flavour:     feedlib.FlavourPro,
+			},
+			wantErr: true,
+		},
+		{
 			name: "Happy Case - should not fail when CCC number is not found",
 			args: args{
 				ctx:         ctx,
@@ -378,6 +398,18 @@ func TestUseCasesUserImpl_Login_Unittest(t *testing.T) {
 
 			if tt.name == "Sad Case - client has pending pin reset request" {
 				fakeDB.MockCheckIfClientHasUnresolvedServiceRequestsFn = func(ctx context.Context, clientID string, serviceRequestType string) (bool, error) {
+					return true, nil
+				}
+			}
+
+			if tt.name == "Sad Case - failed to check if staff has pending pin reset request" {
+				fakeDB.MockCheckIfStaffHasUnresolvedServiceRequestsFn = func(ctx context.Context, staffID string, serviceRequestType string) (bool, error) {
+					return false, fmt.Errorf("failed to check if staff has pending pin reset request")
+				}
+			}
+
+			if tt.name == "Sad Case - staff has pending pin reset request" {
+				fakeDB.MockCheckIfStaffHasUnresolvedServiceRequestsFn = func(ctx context.Context, staffID string, serviceRequestType string) (bool, error) {
 					return true, nil
 				}
 			}

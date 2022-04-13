@@ -145,6 +145,7 @@ type PostgresMock struct {
 	MockGetClientScreeningToolResponsesByToolTypeFn      func(ctx context.Context, clientID, toolType string, active bool) ([]*domain.ScreeningToolQuestionResponse, error)
 	MockGetClientScreeningToolServiceRequestByToolTypeFn func(ctx context.Context, clientID, toolType, status string) (*domain.ServiceRequest, error)
 	MockGetAppointmentFn                                 func(ctx context.Context, params domain.Appointment) (*domain.Appointment, error)
+	MockCheckIfStaffHasUnresolvedServiceRequestsFn       func(ctx context.Context, staffID string, serviceRequestType string) (bool, error)
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -663,8 +664,8 @@ func NewPostgresMock() *PostgresMock {
 		MockGetUserRolesFn: func(ctx context.Context, userID string) ([]*domain.AuthorityRole, error) {
 			return []*domain.AuthorityRole{
 				{
-					RoleID: uuid.New().String(),
-					Name:   enums.UserRoleTypeClientManagement,
+					AuthorityRoleID: uuid.New().String(),
+					Name:            enums.UserRoleTypeClientManagement,
 				},
 			}, nil
 		},
@@ -847,9 +848,9 @@ func NewPostgresMock() *PostgresMock {
 		MockGetAllRolesFn: func(ctx context.Context) ([]*domain.AuthorityRole, error) {
 			return []*domain.AuthorityRole{
 				{
-					RoleID: ID,
-					Name:   enums.UserRoleTypeClientManagement,
-					Active: true,
+					AuthorityRoleID: ID,
+					Name:            enums.UserRoleTypeClientManagement,
+					Active:          true,
 				},
 			}, nil
 		},
@@ -988,6 +989,9 @@ func NewPostgresMock() *PostgresMock {
 				ResolvedBy:   &name,
 				FacilityID:   uuid.New().String(),
 			}, nil
+		},
+		MockCheckIfStaffHasUnresolvedServiceRequestsFn: func(ctx context.Context, staffID string, serviceRequestType string) (bool, error) {
+			return false, nil
 		},
 	}
 }
@@ -1611,4 +1615,9 @@ func (gm *PostgresMock) GetClientScreeningToolResponsesByToolType(ctx context.Co
 // GetClientScreeningToolServiceRequestByToolType mocks the implementation of getting client screening tool service request by question ID
 func (gm *PostgresMock) GetClientScreeningToolServiceRequestByToolType(ctx context.Context, clientID string, questionID string, status string) (*domain.ServiceRequest, error) {
 	return gm.MockGetClientScreeningToolServiceRequestByToolTypeFn(ctx, clientID, questionID, status)
+}
+
+// CheckIfStaffHasUnresolvedServiceRequests mocks the implementation of checking if a staff has unresolved service requests
+func (gm *PostgresMock) CheckIfStaffHasUnresolvedServiceRequests(ctx context.Context, staffID string, serviceRequestType string) (bool, error) {
+	return gm.MockCheckIfStaffHasUnresolvedServiceRequestsFn(ctx, staffID, serviceRequestType)
 }
