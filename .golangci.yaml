@@ -1,0 +1,4 @@
+# Options for analysis running.
+run:
+  skip-dirs:
+    - pkg/mycarehub/presentation/graph/

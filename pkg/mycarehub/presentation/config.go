@@ -48,7 +48,6 @@ import (
 )
 
 const (
-	mbBytes              = 1048576
 	serverTimeoutSeconds = 120
 )
 
