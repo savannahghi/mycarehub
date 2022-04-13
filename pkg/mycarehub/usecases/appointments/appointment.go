@@ -422,7 +422,7 @@ func (a *UseCasesAppointmentsImpl) RescheduleClientAppointment(ctx context.Conte
 	serviceRequest := &dto.ServiceRequestInput{
 		Active:      true,
 		RequestType: enums.ServiceRequestTypeAppointments.String(),
-		Request:     fmt.Sprintf(`%s has requested to reschedule appointment: %s from %s to %s`, userProfile.Name, appointment.Reason, currentDate, requestedDate),
+		Request:     fmt.Sprintf(`%s has requested to reschedule %s appointment from %s to %s`, userProfile.Name, appointment.Reason, currentDate, requestedDate),
 		Status:      enums.ServiceRequestStatusPending.String(),
 		ClientID:    appointment.ClientID,
 		FacilityID:  appointment.FacilityID,

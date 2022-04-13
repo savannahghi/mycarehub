@@ -1,6 +1,10 @@
 repos:
   - repo: https://github.com/gitguardian/ggshield
-    rev: main
+    rev: v1.11.0
     hooks:
       - id: ggshield
         stages: [commit]
+  - repo: https://github.com/dnephin/pre-commit-golang
+    rev: v0.5.0
+    hooks:
+      - id: golangci-lint # install https://golangci-lint.run/usage/install/#local-installation

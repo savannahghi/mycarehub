@@ -35,16 +35,6 @@ func main() {
 	}
 	defer deferFunc()
 
-	// initialize the tracing provider in prod and testing env only
-	env := serverutils.GetRunningEnvironment()
-	if env == serverutils.ProdEnv || env == serverutils.TestingEnv {
-		tp, err := serverutils.InitOtelSDK(ctx, "onboarding")
-		if err != nil {
-			serverutils.LogStartupError(ctx, err)
-		}
-		defer tp.Shutdown(ctx)
-	}
-
 	port, err := strconv.Atoi(serverutils.MustGetEnvVar(serverutils.PortEnvVarName))
 	if err != nil {
 		serverutils.LogStartupError(ctx, err)
