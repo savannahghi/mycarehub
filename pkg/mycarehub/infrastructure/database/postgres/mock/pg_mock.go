@@ -144,6 +144,7 @@ type PostgresMock struct {
 	MockSaveNotificationFn                               func(ctx context.Context, payload *domain.Notification) error
 	MockGetClientScreeningToolResponsesByToolTypeFn      func(ctx context.Context, clientID, toolType string, active bool) ([]*domain.ScreeningToolQuestionResponse, error)
 	MockGetClientScreeningToolServiceRequestByToolTypeFn func(ctx context.Context, clientID, toolType, status string) (*domain.ServiceRequest, error)
+	MockGetAppointmentFn                                 func(ctx context.Context, params domain.Appointment) (*domain.Appointment, error)
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -273,6 +274,18 @@ func NewPostgresMock() *PostgresMock {
 		},
 		MockRetrieveFacilityByMFLCodeFn: func(ctx context.Context, MFLCode int, isActive bool) (*domain.Facility, error) {
 			return facilityInput, nil
+		},
+		MockGetAppointmentFn: func(ctx context.Context, params domain.Appointment) (*domain.Appointment, error) {
+			return &domain.Appointment{
+				ID:       ID,
+				Reason:   "Bad tooth",
+				Provider: "X",
+				Date: scalarutils.Date{
+					Year:  2023,
+					Month: 1,
+					Day:   1,
+				},
+			}, nil
 		},
 		MockGetUserPINByUserIDFn: func(ctx context.Context, userID string, flavour feedlib.Flavour) (*domain.UserPIN, error) {
 			return &domain.UserPIN{
@@ -1573,6 +1586,11 @@ func (gm *PostgresMock) CreateIdentifier(ctx context.Context, identifier domain.
 // ListNotifications lists notifications based on the provided parameters
 func (gm *PostgresMock) ListNotifications(ctx context.Context, params *domain.Notification, pagination *domain.Pagination) ([]*domain.Notification, *domain.Pagination, error) {
 	return gm.MockListNotificationsFn(ctx, params, pagination)
+}
+
+// GetAppointment fetches an appointment by the external ID
+func (gm *PostgresMock) GetAppointment(ctx context.Context, params domain.Appointment) (*domain.Appointment, error) {
+	return gm.MockGetAppointmentFn(ctx, params)
 }
 
 // SaveNotification saves the notifications to the database

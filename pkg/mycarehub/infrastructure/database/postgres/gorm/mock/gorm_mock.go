@@ -145,6 +145,7 @@ type GormMock struct {
 	MockListNotificationsFn                              func(ctx context.Context, params *gorm.Notification, pagination *domain.Pagination) ([]*gorm.Notification, *domain.Pagination, error)
 	MockGetClientScreeningToolResponsesByToolTypeFn      func(ctx context.Context, clientID, toolType string, active bool) ([]*gorm.ScreeningToolsResponse, error)
 	MockGetClientScreeningToolServiceRequestByToolTypeFn func(ctx context.Context, clientID, toolType, status string) (*gorm.ClientServiceRequest, error)
+	MockGetAppointmentFn                                 func(ctx context.Context, params *gorm.Appointment) (*gorm.Appointment, error)
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -399,6 +400,20 @@ func NewGormMock() *GormMock {
 					Active:         true,
 					OrganisationID: uuid.New().String(),
 				},
+			}, nil
+		},
+		MockGetAppointmentFn: func(ctx context.Context, params *gorm.Appointment) (*gorm.Appointment, error) {
+			date := time.Now().Add(time.Duration(100))
+
+			return &gorm.Appointment{
+				ID:             gofakeit.UUID(),
+				OrganisationID: gofakeit.UUID(),
+				Active:         true,
+				ExternalID:     strconv.Itoa(gofakeit.Number(0, 1000)),
+				ClientID:       gofakeit.UUID(),
+				FacilityID:     gofakeit.UUID(),
+				Reason:         "Knocked up",
+				Date:           date,
 			}, nil
 		},
 		MockUpdateFacilityFn: func(ctx context.Context, facility *gorm.Facility, updateData map[string]interface{}) error {
@@ -1493,7 +1508,7 @@ func (gm *GormMock) GetClientCCCIdentifier(ctx context.Context, clientID string)
 	return gm.MockGetClientCCCIdentifier(ctx, clientID)
 }
 
-// GetServiceRequestsForKenyaEMR mocks the getting of service requests attched to a specific facility for use by KenyaEMR
+// GetServiceRequestsForKenyaEMR mocks the getting of service requests attached to a specific facility for use by KenyaEMR
 func (gm *GormMock) GetServiceRequestsForKenyaEMR(ctx context.Context, facilityID string, lastSyncTime time.Time) ([]*gorm.ClientServiceRequest, error) {
 	return gm.MockGetServiceRequestsForKenyaEMRFn(ctx, facilityID, lastSyncTime)
 }
@@ -1727,4 +1742,9 @@ func (gm *GormMock) GetClientScreeningToolResponsesByToolType(ctx context.Contex
 // GetClientScreeningToolServiceRequestByToolType mocks the implementation of getting client screening tool service request
 func (gm *GormMock) GetClientScreeningToolServiceRequestByToolType(ctx context.Context, clientID, toolType, status string) (*gorm.ClientServiceRequest, error) {
 	return gm.MockGetClientScreeningToolServiceRequestByToolTypeFn(ctx, clientID, toolType, status)
+}
+
+// GetAppointment returns an appointment by provided params
+func (gm *GormMock) GetAppointment(ctx context.Context, params *gorm.Appointment) (*gorm.Appointment, error) {
+	return gm.MockGetAppointmentFn(ctx, params)
 }

@@ -90,6 +90,7 @@ type Query interface {
 	GetAnsweredScreeningToolQuestions(ctx context.Context, facilityID string, toolType string) ([]*ScreeningToolsResponse, error)
 	GetClientScreeningToolResponsesByToolType(ctx context.Context, clientID, toolType string, active bool) ([]*ScreeningToolsResponse, error)
 	GetClientScreeningToolServiceRequestByToolType(ctx context.Context, clientID, toolType, status string) (*ClientServiceRequest, error)
+	GetAppointment(ctx context.Context, params *Appointment) (*Appointment, error)
 }
 
 // CheckWhetherUserHasLikedContent performs a operation to check whether user has liked the content
@@ -691,7 +692,7 @@ func (db *PGInstance) GetFAQContent(ctx context.Context, flavour feedlib.Flavour
 
 }
 
-// GetStaffPendingServiceRequestsCount gets the number of staffs pending pin reser service requests
+// GetStaffPendingServiceRequestsCount gets the number of staffs pending pin reset service requests
 func (db *PGInstance) GetStaffPendingServiceRequestsCount(ctx context.Context, facilityID string) (*domain.ServiceRequestsCount, error) {
 	var staffServiceRequest []*StaffServiceRequest
 
@@ -1259,6 +1260,17 @@ func (db *PGInstance) GetAppointmentByClientID(ctx context.Context, appointmentI
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed to get client appointment by ID: %v", err)
+	}
+	return &appointment, nil
+}
+
+// GetAppointment returns an appointment by provided params
+func (db *PGInstance) GetAppointment(ctx context.Context, params *Appointment) (*Appointment, error) {
+	var appointment Appointment
+	err := db.DB.Where(params).Order(clause.OrderByColumn{Column: clause.Column{Name: "updated"}, Desc: true}).First(&appointment).Error
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, fmt.Errorf("failed to get appointment by ID: %w", err)
 	}
 	return &appointment, nil
 }

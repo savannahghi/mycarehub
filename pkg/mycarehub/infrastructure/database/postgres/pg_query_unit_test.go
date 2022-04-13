@@ -5152,6 +5152,66 @@ func TestMyCareHubDb_GetClientServiceRequests(t *testing.T) {
 	}
 }
 
+func TestMyCareHubDb_GetAppointment(t *testing.T) {
+	var fakeGorm = gormMock.NewGormMock()
+	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+	type args struct {
+		ctx    context.Context
+		params domain.Appointment
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *domain.Appointment
+		wantErr bool
+	}{
+		{
+			name: "Happy case: retrieve an appointment",
+			args: args{
+				ctx: context.Background(),
+				params: domain.Appointment{
+					ClientID: gofakeit.UUID(),
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: invalid param to retrieve an appointment",
+			args: args{
+				ctx: context.Background(),
+				params: domain.Appointment{
+					ClientID: "-",
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "Sad case: invalid param to retrieve an appointment" {
+				fakeGorm.MockGetAppointmentFn = func(ctx context.Context, params *gorm.Appointment) (*gorm.Appointment, error) {
+					return nil, fmt.Errorf("cannot retrieve appointment")
+				}
+			}
+
+			got, err := d.GetAppointment(tt.args.ctx, tt.args.params)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.GetAppointment() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if tt.wantErr && got != nil {
+				t.Errorf("expected appointment to be nil for %v", tt.name)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected appointment not to be nil for %v", tt.name)
+				return
+			}
+		})
+	}
+}
+
 func TestMyCareHubDb_GetActiveScreeningToolResponses(t *testing.T) {
 	var fakeGorm = gormMock.NewGormMock()
 	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)

@@ -2,6 +2,7 @@ package appointment
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"strconv"
@@ -17,6 +18,11 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
 	pubsubmessaging "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/pubsub"
 	"github.com/savannahghi/scalarutils"
+	"gorm.io/gorm"
+)
+
+const (
+	refillReasonText = "Pharmacy Visit"
 )
 
 // ICreateAppointments defines method signatures for creating appointments
@@ -41,6 +47,7 @@ type IUpdateAppointments interface {
 type IListAppointments interface {
 	FetchClientAppointments(ctx context.Context, clientID string, paginationInput dto.PaginationsInput, filters []*firebasetools.FilterParam) (*domain.AppointmentsPage, error)
 	GetAppointmentServiceRequests(ctx context.Context, payload dto.AppointmentServiceRequestInput) (*dto.AppointmentServiceRequestsOutput, error)
+	NextRefill(ctx context.Context, clientID string) (*scalarutils.Date, error)
 }
 
 // UseCasesAppointments holds all interfaces required to implement the appointments features
@@ -432,4 +439,26 @@ func (a *UseCasesAppointmentsImpl) RescheduleClientAppointment(ctx context.Conte
 	}
 
 	return true, nil
+}
+
+// NextRefill indicates the next time a user is supposed to visit the pharmacy to refill drugs
+// It is stored as an appointment with reason "Pharmacy Visit" as obtained from Kenya EMR
+func (a *UseCasesAppointmentsImpl) NextRefill(ctx context.Context, clientID string) (*scalarutils.Date, error) {
+	_, err := a.Query.GetClientProfileByClientID(ctx, clientID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
+	appointment, err := a.Query.GetAppointment(ctx, domain.Appointment{ClientID: clientID, Reason: refillReasonText})
+	if err != nil {
+		// If a record does not exist return nil
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
+	return &appointment.Date, nil
 }

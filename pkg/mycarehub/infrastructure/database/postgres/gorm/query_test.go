@@ -4110,6 +4110,57 @@ func TestPGInstance_GetClientScreeningToolResponsesByToolType(t *testing.T) {
 	}
 }
 
+func TestPGInstance_GetAppointment(t *testing.T) {
+	type args struct {
+		ctx    context.Context
+		params *gorm.Appointment
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *gorm.Appointment
+		wantErr bool
+	}{
+		{
+			name: "Happy case: retrieve an appointment",
+			args: args{
+				ctx: context.Background(),
+				params: &gorm.Appointment{
+					ClientID: clientID,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: invalid param to retrieve an appointment",
+			args: args{
+				ctx: context.Background(),
+				params: &gorm.Appointment{
+					ClientID: "-",
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := testingDB.GetAppointment(tt.args.ctx, tt.args.params)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.GetAppointment() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if tt.wantErr && got != nil {
+				t.Errorf("expected appointment to be nil for %v", tt.name)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected appointment not to be nil for %v", tt.name)
+				return
+			}
+		})
+	}
+}
+
 func TestPGInstance_GetClientScreeningToolServiceRequestByToolType(t *testing.T) {
 	type args struct {
 		ctx      context.Context

@@ -21,6 +21,10 @@ func (r *queryResolver) FetchClientAppointments(ctx context.Context, clientID st
 	return r.mycarehub.Appointment.FetchClientAppointments(ctx, clientID, paginationInput, filters)
 }
 
+func (r *queryResolver) NextRefill(ctx context.Context, clientID string) (*scalarutils.Date, error) {
+	return r.mycarehub.Appointment.NextRefill(ctx, clientID)
+}
+
 // Mutation returns generated.MutationResolver implementation.
 func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
 
