@@ -874,8 +874,8 @@ func (d *MyCareHubDb) GetUserRoles(ctx context.Context, userID string) ([]*domai
 
 	for _, role := range rolesList {
 		role := &domain.AuthorityRole{
-			RoleID: *role.AuthorityRoleID,
-			Name:   enums.UserRoleType(role.Name),
+			AuthorityRoleID: *role.AuthorityRoleID,
+			Name:            enums.UserRoleType(role.Name),
 		}
 		roles = append(roles, role)
 	}
@@ -1446,9 +1446,9 @@ func (d *MyCareHubDb) GetAllRoles(ctx context.Context) ([]*domain.AuthorityRole,
 	mapped := []*domain.AuthorityRole{}
 	for _, r := range roles {
 		m := &domain.AuthorityRole{
-			RoleID: *r.AuthorityRoleID,
-			Name:   enums.UserRoleType(r.Name),
-			Active: r.Active,
+			AuthorityRoleID: *r.AuthorityRoleID,
+			Name:            enums.UserRoleType(r.Name),
+			Active:          r.Active,
 		}
 
 		mapped = append(mapped, m)
@@ -1880,4 +1880,9 @@ func (d *MyCareHubDb) GetClientScreeningToolServiceRequestByToolType(ctx context
 		Meta:        meta,
 	}, nil
 
+}
+
+// CheckIfStaffHasUnresolvedServiceRequests checks if a staff has unresolved service requests
+func (d *MyCareHubDb) CheckIfStaffHasUnresolvedServiceRequests(ctx context.Context, staffID string, serviceRequestType string) (bool, error) {
+	return d.query.CheckIfStaffHasUnresolvedServiceRequests(ctx, staffID, serviceRequestType)
 }

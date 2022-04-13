@@ -126,6 +126,8 @@ var (
 	userFailedSecurityCountID     = "07ee2012-18c7-4cc7-8fd8-27249afb091d"
 	resolvedServiceRequestID      = "8ecbbc80-24c8-421a-9f1a-e14e12678ef9"
 	screeningToolServiceRequestID = "8ecbbc80-24c8-421a-9f1a-e14e12678efa"
+	staffUnresolvedRequestID      = "8ecbbc80-24c8-421a-9f1a-e14e12678efb"
+	staffUserUnresolvedRequestID  = "8ecbbc80-24c8-421a-9f1a-e14e12678efc"
 )
 
 func TestMain(m *testing.M) {
@@ -222,6 +224,8 @@ func TestMain(m *testing.M) {
 			"user_failed_security_count_id":          userFailedSecurityCountID,
 			"resolved_service_request_id":            resolvedServiceRequestID,
 			"screening_tool_service_request_id":      screeningToolServiceRequestID,
+			"staff_unresolved_request_id":            staffUnresolvedRequestID,
+			"staff_user_unresolved_request_id":       staffUserUnresolvedRequestID,
 		}),
 		// this is the directory containing the YAML files.
 		// The file name should be the same as the table name
@@ -244,6 +248,7 @@ func TestMain(m *testing.M) {
 			"../../../../../../fixtures/staff_staff.yml",
 			"../../../../../../fixtures/clients_servicerequest.yml",
 			"../../../../../../fixtures/staff_staff_facilities.yml",
+			"../../../../../../fixtures/staff_servicerequest.yml",
 			"../../../../../../fixtures/authority_authoritypermission.yml",
 			"../../../../../../fixtures/authority_authorityrole.yml",
 			"../../../../../../fixtures/authority_authorityrole_permissions.yml",

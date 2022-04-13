@@ -92,9 +92,9 @@ type ComplexityRoot struct {
 	}
 
 	AuthorityRole struct {
-		Active func(childComplexity int) int
-		Name   func(childComplexity int) int
-		RoleID func(childComplexity int) int
+		Active          func(childComplexity int) int
+		AuthorityRoleID func(childComplexity int) int
+		Name            func(childComplexity int) int
 	}
 
 	AvailableScreeningTools struct {
@@ -832,7 +832,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.AppointmentsPage.Pagination(childComplexity), true
 
-	case "Attachment.asset_URL":
+	case "Attachment.asset_url":
 		if e.complexity.Attachment.AssetURL == nil {
 			break
 		}
@@ -846,14 +846,14 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Attachment.AuthorName(childComplexity), true
 
-	case "Attachment.image_URL":
+	case "Attachment.image_url":
 		if e.complexity.Attachment.ImageURL == nil {
 			break
 		}
 
 		return e.complexity.Attachment.ImageURL(childComplexity), true
 
-	case "Attachment.og_scrape_URL":
+	case "Attachment.og_scrape_url":
 		if e.complexity.Attachment.OgScrapeURL == nil {
 			break
 		}
@@ -867,7 +867,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Attachment.Text(childComplexity), true
 
-	case "Attachment.thumb_URL":
+	case "Attachment.thumb_url":
 		if e.complexity.Attachment.ThumbURL == nil {
 			break
 		}
@@ -909,19 +909,19 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.AuthorityRole.Active(childComplexity), true
 
+	case "AuthorityRole.authorityRoleID":
+		if e.complexity.AuthorityRole.AuthorityRoleID == nil {
+			break
+		}
+
+		return e.complexity.AuthorityRole.AuthorityRoleID(childComplexity), true
+
 	case "AuthorityRole.name":
 		if e.complexity.AuthorityRole.Name == nil {
 			break
 		}
 
 		return e.complexity.AuthorityRole.Name(childComplexity), true
-
-	case "AuthorityRole.roleID":
-		if e.complexity.AuthorityRole.RoleID == nil {
-			break
-		}
-
-		return e.complexity.AuthorityRole.RoleID(childComplexity), true
 
 	case "AvailableScreeningTools.toolType":
 		if e.complexity.AvailableScreeningTools.ToolType == nil {
@@ -4987,7 +4987,7 @@ type Contact {
 }
 
 type AuthorityRole {
-  roleID: String
+  authorityRoleID: String
   name: UserRoleType
   active: Boolean
 }
@@ -4998,10 +4998,10 @@ type Attachment {
   title: String
   title_link: String
   text: String
-  image_URL: String
-  thumb_URL: String
-  asset_URL: String
-  og_scrape_URL: String
+  image_url: String
+  thumb_url: String
+  asset_url: String
+  og_scrape_url: String
 }
 
 type Reaction {
@@ -7455,7 +7455,7 @@ func (ec *executionContext) _Attachment_text(ctx context.Context, field graphql.
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Attachment_image_URL(ctx context.Context, field graphql.CollectedField, obj *domain.Attachment) (ret graphql.Marshaler) {
+func (ec *executionContext) _Attachment_image_url(ctx context.Context, field graphql.CollectedField, obj *domain.Attachment) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -7487,7 +7487,7 @@ func (ec *executionContext) _Attachment_image_URL(ctx context.Context, field gra
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Attachment_thumb_URL(ctx context.Context, field graphql.CollectedField, obj *domain.Attachment) (ret graphql.Marshaler) {
+func (ec *executionContext) _Attachment_thumb_url(ctx context.Context, field graphql.CollectedField, obj *domain.Attachment) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -7519,7 +7519,7 @@ func (ec *executionContext) _Attachment_thumb_URL(ctx context.Context, field gra
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Attachment_asset_URL(ctx context.Context, field graphql.CollectedField, obj *domain.Attachment) (ret graphql.Marshaler) {
+func (ec *executionContext) _Attachment_asset_url(ctx context.Context, field graphql.CollectedField, obj *domain.Attachment) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -7551,7 +7551,7 @@ func (ec *executionContext) _Attachment_asset_URL(ctx context.Context, field gra
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Attachment_og_scrape_URL(ctx context.Context, field graphql.CollectedField, obj *domain.Attachment) (ret graphql.Marshaler) {
+func (ec *executionContext) _Attachment_og_scrape_url(ctx context.Context, field graphql.CollectedField, obj *domain.Attachment) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -7618,7 +7618,7 @@ func (ec *executionContext) _Author_ID(ctx context.Context, field graphql.Collec
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _AuthorityRole_roleID(ctx context.Context, field graphql.CollectedField, obj *domain.AuthorityRole) (ret graphql.Marshaler) {
+func (ec *executionContext) _AuthorityRole_authorityRoleID(ctx context.Context, field graphql.CollectedField, obj *domain.AuthorityRole) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -7636,7 +7636,7 @@ func (ec *executionContext) _AuthorityRole_roleID(ctx context.Context, field gra
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.RoleID, nil
+		return obj.AuthorityRoleID, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -23621,14 +23621,14 @@ func (ec *executionContext) _Attachment(ctx context.Context, sel ast.SelectionSe
 			out.Values[i] = ec._Attachment_title_link(ctx, field, obj)
 		case "text":
 			out.Values[i] = ec._Attachment_text(ctx, field, obj)
-		case "image_URL":
-			out.Values[i] = ec._Attachment_image_URL(ctx, field, obj)
-		case "thumb_URL":
-			out.Values[i] = ec._Attachment_thumb_URL(ctx, field, obj)
-		case "asset_URL":
-			out.Values[i] = ec._Attachment_asset_URL(ctx, field, obj)
-		case "og_scrape_URL":
-			out.Values[i] = ec._Attachment_og_scrape_URL(ctx, field, obj)
+		case "image_url":
+			out.Values[i] = ec._Attachment_image_url(ctx, field, obj)
+		case "thumb_url":
+			out.Values[i] = ec._Attachment_thumb_url(ctx, field, obj)
+		case "asset_url":
+			out.Values[i] = ec._Attachment_asset_url(ctx, field, obj)
+		case "og_scrape_url":
+			out.Values[i] = ec._Attachment_og_scrape_url(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -23678,8 +23678,8 @@ func (ec *executionContext) _AuthorityRole(ctx context.Context, sel ast.Selectio
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("AuthorityRole")
-		case "roleID":
-			out.Values[i] = ec._AuthorityRole_roleID(ctx, field, obj)
+		case "authorityRoleID":
+			out.Values[i] = ec._AuthorityRole_authorityRoleID(ctx, field, obj)
 		case "name":
 			out.Values[i] = ec._AuthorityRole_name(ctx, field, obj)
 		case "active":

@@ -177,4 +177,7 @@ const (
 
 	// UpdateProfileErrorMsg is the error message displayed when a user's profile is not updated
 	UpdateProfileErrorMsg = "unable to update profile"
+
+	// StaffHasUnresolvedPinResetRequestErrorMsg is the error message displayed when a staff has an unresolved pin reset request
+	StaffHasUnresolvedPinResetRequestErrorMsg = "staff has unresolved pin reset request"
 )

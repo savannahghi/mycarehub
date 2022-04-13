@@ -37,8 +37,8 @@ func NewAuthorityUseCaseMock() *AuthorityUseCaseMock {
 		MockGetUserRolesFn: func(ctx context.Context, userID string) ([]*domain.AuthorityRole, error) {
 			return []*domain.AuthorityRole{
 				{
-					RoleID: uuid.New().String(),
-					Name:   enums.UserRoleTypeClientManagement,
+					AuthorityRoleID: uuid.New().String(),
+					Name:            enums.UserRoleTypeClientManagement,
 				},
 			}, nil
 		},
@@ -56,8 +56,8 @@ func NewAuthorityUseCaseMock() *AuthorityUseCaseMock {
 		MockGetAllRolesFn: func(ctx context.Context) ([]*domain.AuthorityRole, error) {
 			return []*domain.AuthorityRole{
 				{
-					RoleID: uuid.New().String(),
-					Name:   enums.UserRoleTypeClientManagement,
+					AuthorityRoleID: uuid.New().String(),
+					Name:            enums.UserRoleTypeClientManagement,
 				},
 			}, nil
 		},

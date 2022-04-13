@@ -405,11 +405,6 @@ func (a *UseCasesAppointmentsImpl) RescheduleClientAppointment(ctx context.Conte
 		return false, fmt.Errorf("error getting client profile")
 	}
 
-	userProfile, err := a.Query.GetUserProfileByUserID(ctx, client.UserID)
-	if err != nil {
-		return false, fmt.Errorf("error getting user profile")
-	}
-
 	// update appointment has rescheduled field to true
 	_, err = a.Update.UpdateAppointment(ctx, &domain.Appointment{ID: appointment.ID}, map[string]interface{}{"has_rescheduled_appointment": true})
 	if err != nil {
@@ -422,7 +417,7 @@ func (a *UseCasesAppointmentsImpl) RescheduleClientAppointment(ctx context.Conte
 	serviceRequest := &dto.ServiceRequestInput{
 		Active:      true,
 		RequestType: enums.ServiceRequestTypeAppointments.String(),
-		Request:     fmt.Sprintf(`%s has requested to reschedule %s appointment from %s to %s`, userProfile.Name, appointment.Reason, currentDate, requestedDate),
+		Request:     fmt.Sprintf(`%s has requested to reschedule %s appointment from %s to %s`, client.User.Name, appointment.Reason, currentDate, requestedDate),
 		Status:      enums.ServiceRequestStatusPending.String(),
 		ClientID:    appointment.ClientID,
 		FacilityID:  appointment.FacilityID,

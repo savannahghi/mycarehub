@@ -1109,16 +1109,6 @@ func TestUseCasesAppointmentsImpl_RescheduleClientAppointment(t *testing.T) {
 			want:    false,
 		},
 		{
-			name: "sad case: failed to get user profile by id",
-			args: args{
-				ctx:           context.Background(),
-				appointmentID: uuid.New().String(),
-				date:          *futureDate,
-			},
-			wantErr: true,
-			want:    false,
-		},
-		{
 			name: "sad case: failed to get appointment by id",
 			args: args{
 				ctx:           context.Background(),
@@ -1154,12 +1144,6 @@ func TestUseCasesAppointmentsImpl_RescheduleClientAppointment(t *testing.T) {
 			if tt.name == "sad case: failed to get client by id" {
 				fakeDB.MockGetClientProfileByClientIDFn = func(ctx context.Context, clientID string) (*domain.ClientProfile, error) {
 					return nil, fmt.Errorf("error retrieving client by id")
-				}
-			}
-
-			if tt.name == "sad case: failed to get user profile by id" {
-				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
-					return nil, fmt.Errorf("error retrieving user profile by id")
 				}
 			}
 
