@@ -1644,8 +1644,9 @@ func TestPGInstance_UpdateHealthDiary(t *testing.T) {
 	ctx := context.Background()
 
 	type args struct {
-		ctx     context.Context
-		payload *gorm.ClientHealthDiaryEntry
+		ctx              context.Context
+		healthDairyEntry *gorm.ClientHealthDiaryEntry
+		updateData       map[string]interface{}
 	}
 	tests := []struct {
 		name    string
@@ -1657,9 +1658,28 @@ func TestPGInstance_UpdateHealthDiary(t *testing.T) {
 			name: "Happy case",
 			args: args{
 				ctx: ctx,
-				payload: &gorm.ClientHealthDiaryEntry{
+				healthDairyEntry: &gorm.ClientHealthDiaryEntry{
 					ClientHealthDiaryEntryID: &clientsHealthDiaryEntryID,
 					ClientID:                 clientID,
+				},
+				updateData: map[string]interface{}{
+					"share_with_health_worker": true,
+					"shared_at":                time.Now(),
+				},
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Happy case - nil health diary entry ID",
+			args: args{
+				ctx: ctx,
+				healthDairyEntry: &gorm.ClientHealthDiaryEntry{
+					ClientID: clientID,
+				},
+				updateData: map[string]interface{}{
+					"share_with_health_worker": true,
+					"shared_at":                time.Now(),
 				},
 			},
 			want:    true,
@@ -1669,7 +1689,7 @@ func TestPGInstance_UpdateHealthDiary(t *testing.T) {
 			name: "Sad case",
 			args: args{
 				ctx: ctx,
-				payload: &gorm.ClientHealthDiaryEntry{
+				healthDairyEntry: &gorm.ClientHealthDiaryEntry{
 					ClientHealthDiaryEntryID: &clientsHealthDiaryEntryID,
 					ClientID:                 "clientID",
 				},
@@ -1680,7 +1700,7 @@ func TestPGInstance_UpdateHealthDiary(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := testingDB.UpdateHealthDiary(tt.args.ctx, tt.args.payload)
+			got, err := testingDB.UpdateHealthDiary(tt.args.ctx, tt.args.healthDairyEntry, tt.args.updateData)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("PGInstance.UpdateHealthDiary() error = %v, wantErr %v", err, tt.wantErr)
 				return

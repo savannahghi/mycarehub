@@ -116,7 +116,7 @@ type GormMock struct {
 	MockUpdateUserPinChangeRequiredStatusFn              func(ctx context.Context, userID string, flavour feedlib.Flavour, status bool) error
 	MockCheckIfClientHasUnresolvedServiceRequestsFn      func(ctx context.Context, clientID string, serviceRequestType string) (bool, error)
 	MockGetAllRolesFn                                    func(ctx context.Context) ([]*gorm.AuthorityRole, error)
-	MockUpdateHealthDiaryFn                              func(ctx context.Context, payload *gorm.ClientHealthDiaryEntry) (bool, error)
+	MockUpdateHealthDiaryFn                              func(ctx context.Context, clientHealthDiaryEntry *gorm.ClientHealthDiaryEntry, updateData map[string]interface{}) (bool, error)
 	MockUpdateUserActiveStatusFn                         func(ctx context.Context, userID string, flavour feedlib.Flavour, active bool) error
 	MockUpdateUserPinUpdateRequiredStatusFn              func(ctx context.Context, userID string, flavour feedlib.Flavour, status bool) error
 	MockUpdateClientFn                                   func(ctx context.Context, client *gorm.Client, updates map[string]interface{}) (*gorm.Client, error)
@@ -546,7 +546,7 @@ func NewGormMock() *GormMock {
 		MockUpdateUserProfileAfterLoginSuccessFn: func(ctx context.Context, userID string) error {
 			return nil
 		},
-		MockUpdateHealthDiaryFn: func(ctx context.Context, payload *gorm.ClientHealthDiaryEntry) (bool, error) {
+		MockUpdateHealthDiaryFn: func(ctx context.Context, clientHealthDiaryEntry *gorm.ClientHealthDiaryEntry, updateData map[string]interface{}) (bool, error) {
 			return true, nil
 		},
 		MockGetSecurityQuestionsFn: func(ctx context.Context, flavour feedlib.Flavour) ([]*gorm.SecurityQuestion, error) {
@@ -1611,8 +1611,8 @@ func (gm *GormMock) GetUserProfileByStaffID(ctx context.Context, staffID string)
 }
 
 // UpdateHealthDiary mocks the implementation of updating the share status of a health diary entry when the client opts for the sharing
-func (gm *GormMock) UpdateHealthDiary(ctx context.Context, payload *gorm.ClientHealthDiaryEntry) (bool, error) {
-	return gm.MockUpdateHealthDiaryFn(ctx, payload)
+func (gm *GormMock) UpdateHealthDiary(ctx context.Context, clientHealthDiaryEntry *gorm.ClientHealthDiaryEntry, updateData map[string]interface{}) (bool, error) {
+	return gm.MockUpdateHealthDiaryFn(ctx, clientHealthDiaryEntry, updateData)
 }
 
 // GetHealthDiaryEntryByID mocks the implementation of getting health diary entry bu a given ID

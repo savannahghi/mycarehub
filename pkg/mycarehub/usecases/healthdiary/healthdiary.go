@@ -51,7 +51,7 @@ type IGetClientHealthDiaryEntry interface {
 
 // IShareHealthDiaryEntry contains the methods to share the health diary with the health care worker
 type IShareHealthDiaryEntry interface {
-	ShareHealthDiaryEntry(ctx context.Context, healthDiaryEntryID string) (bool, error)
+	ShareHealthDiaryEntry(ctx context.Context, healthDiaryEntryID string, shareEntireHealthDiary bool) (bool, error)
 }
 
 // UseCasesHealthDiary holds all the interfaces that represents the business logic to implement the health diary
@@ -217,7 +217,7 @@ func (h UseCasesHealthDiaryImpl) GetRecentHealthDiaryEntries(ctx context.Context
 }
 
 // ShareHealthDiaryEntry create a service request when the client opts to share their service request
-func (h UseCasesHealthDiaryImpl) ShareHealthDiaryEntry(ctx context.Context, healthDiaryEntryID string) (bool, error) {
+func (h UseCasesHealthDiaryImpl) ShareHealthDiaryEntry(ctx context.Context, healthDiaryEntryID string, shareEntireHealthDiary bool) (bool, error) {
 	if healthDiaryEntryID == "" {
 		return false, fmt.Errorf("healthDiary entry id cannot be empty")
 	}
@@ -229,12 +229,19 @@ func (h UseCasesHealthDiaryImpl) ShareHealthDiaryEntry(ctx context.Context, heal
 	}
 
 	payload := &gorm.ClientHealthDiaryEntry{
-		ClientHealthDiaryEntryID: healthDiaryEntry.ID,
-		ShareWithHealthWorker:    true,
-		SharedAt:                 time.Now(),
-		ClientID:                 healthDiaryEntry.ClientID,
+		ClientID: healthDiaryEntry.ClientID,
 	}
-	ok, err := h.Update.UpdateHealthDiary(ctx, payload)
+
+	if !shareEntireHealthDiary {
+		payload.ClientHealthDiaryEntryID = healthDiaryEntry.ID
+	}
+
+	updateData := map[string]interface{}{
+		"share_with_health_worker": true,
+		"shared_at":                time.Now(),
+	}
+
+	ok, err := h.Update.UpdateHealthDiary(ctx, payload, updateData)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return false, err
@@ -243,15 +250,26 @@ func (h UseCasesHealthDiaryImpl) ShareHealthDiaryEntry(ctx context.Context, heal
 		return false, nil
 	}
 
-	serviceRequestInput := &dto.ServiceRequestInput{
-		RequestType: healthDiaryEntry.EntryType,
-		Status:      "PENDING",
-		Request:     healthDiaryEntry.Note,
-		ClientID:    healthDiaryEntry.ClientID,
-		Flavour:     feedlib.FlavourConsumer,
+	if healthDiaryEntry.Mood == enums.MoodVerySad.String() || healthDiaryEntry.Mood == enums.MoodSad.String() {
+		serviceRequestInput := &dto.ServiceRequestInput{
+			RequestType: healthDiaryEntry.EntryType,
+			Status:      "PENDING",
+			Request:     healthDiaryEntry.Note,
+			ClientID:    healthDiaryEntry.ClientID,
+			Flavour:     feedlib.FlavourConsumer,
+		}
+
+		ok, err := h.ServiceRequest.CreateServiceRequest(ctx, serviceRequestInput)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return false, fmt.Errorf("failed to create service request: %v", err)
+		}
+		if !ok {
+			return false, nil
+		}
 	}
 
-	return h.ServiceRequest.CreateServiceRequest(ctx, serviceRequestInput)
+	return true, nil
 }
 
 // GetSharedHealthDiaryEntries fetches the most recent health diary(ies) shared by the client with the health worker

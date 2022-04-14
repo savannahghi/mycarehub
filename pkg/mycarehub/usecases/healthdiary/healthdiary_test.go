@@ -427,8 +427,9 @@ func TestUseCasesHealthDiaryImpl_ShareHealthDiaryEntry(t *testing.T) {
 	healthdiary := healthdiary.NewUseCaseHealthDiaryImpl(fakeDB, fakeDB, fakeDB, fakeServiceRequest)
 
 	type args struct {
-		ctx                context.Context
-		healthDiaryEntryID string
+		ctx                    context.Context
+		healthDiaryEntryID     string
+		shareEntireHealthDiary bool
 	}
 	tests := []struct {
 		name    string
@@ -485,12 +486,12 @@ func TestUseCasesHealthDiaryImpl_ShareHealthDiaryEntry(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.name == "Sad case" {
-				fakeDB.MockUpdateHealthDiaryFn = func(ctx context.Context, payload *gorm.ClientHealthDiaryEntry) (bool, error) {
+				fakeDB.MockUpdateHealthDiaryFn = func(ctx context.Context, clientHealthDiaryEntry *gorm.ClientHealthDiaryEntry, updateData map[string]interface{}) (bool, error) {
 					return false, fmt.Errorf("an error occurred")
 				}
 			}
 			if tt.name == "Sad case - empty ids" {
-				fakeDB.MockUpdateHealthDiaryFn = func(ctx context.Context, payload *gorm.ClientHealthDiaryEntry) (bool, error) {
+				fakeDB.MockUpdateHealthDiaryFn = func(ctx context.Context, clientHealthDiaryEntry *gorm.ClientHealthDiaryEntry, updateData map[string]interface{}) (bool, error) {
 					return false, fmt.Errorf("an error occurred")
 				}
 			}
@@ -504,7 +505,7 @@ func TestUseCasesHealthDiaryImpl_ShareHealthDiaryEntry(t *testing.T) {
 					return nil, fmt.Errorf("an error occurred")
 				}
 			}
-			got, err := healthdiary.ShareHealthDiaryEntry(tt.args.ctx, tt.args.healthDiaryEntryID)
+			got, err := healthdiary.ShareHealthDiaryEntry(tt.args.ctx, tt.args.healthDiaryEntryID, tt.args.shareEntireHealthDiary)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCasesHealthDiaryImpl.ShareHealthDiaryEntry() error = %v, wantErr %v", err, tt.wantErr)
 				return

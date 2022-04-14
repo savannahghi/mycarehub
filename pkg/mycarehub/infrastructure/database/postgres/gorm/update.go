@@ -45,7 +45,7 @@ type Update interface {
 	UpdateUserActiveStatus(ctx context.Context, userID string, flavour feedlib.Flavour, active bool) error
 	UpdateClient(ctx context.Context, client *Client, updates map[string]interface{}) (*Client, error)
 	UpdateUserPinUpdateRequiredStatus(ctx context.Context, userID string, flavour feedlib.Flavour, status bool) error
-	UpdateHealthDiary(ctx context.Context, payload *ClientHealthDiaryEntry) (bool, error)
+	UpdateHealthDiary(ctx context.Context, clientHealthDiaryEntry *ClientHealthDiaryEntry, updateData map[string]interface{}) (bool, error)
 	UpdateFailedSecurityQuestionsAnsweringAttempts(ctx context.Context, userID string, failCount int) error
 	UpdateUser(ctx context.Context, user *User, updateData map[string]interface{}) error
 }
@@ -999,8 +999,8 @@ func (db *PGInstance) UpdateUserPinUpdateRequiredStatus(ctx context.Context, use
 }
 
 // UpdateHealthDiary updates the status of the specified health diary entry
-func (db *PGInstance) UpdateHealthDiary(ctx context.Context, payload *ClientHealthDiaryEntry) (bool, error) {
-	err := db.DB.Model(&ClientHealthDiaryEntry{}).Where(&ClientHealthDiaryEntry{ClientID: payload.ClientID, ClientHealthDiaryEntryID: payload.ClientHealthDiaryEntryID}).Updates(&payload).Error
+func (db *PGInstance) UpdateHealthDiary(ctx context.Context, clientHealthDiaryEntry *ClientHealthDiaryEntry, updateData map[string]interface{}) (bool, error) {
+	err := db.DB.Model(&ClientHealthDiaryEntry{}).Where(&clientHealthDiaryEntry).Updates(updateData).Error
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return false, fmt.Errorf("unable to update health diary shares status for client: %v", err)

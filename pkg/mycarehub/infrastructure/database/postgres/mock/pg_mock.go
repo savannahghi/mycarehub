@@ -110,7 +110,7 @@ type PostgresMock struct {
 	MockAnswerScreeningToolQuestionsFn                   func(ctx context.Context, screeningToolResponses []*dto.ScreeningToolQuestionResponseInput) error
 	MockGetScreeningToolQuestionByQuestionIDFn           func(ctx context.Context, questionID string) (*domain.ScreeningToolQuestion, error)
 	MockSearchStaffProfileByStaffNumberFn                func(ctx context.Context, staffNumber string) ([]*domain.StaffProfile, error)
-	MockUpdateHealthDiaryFn                              func(ctx context.Context, payload *gorm.ClientHealthDiaryEntry) (bool, error)
+	MockUpdateHealthDiaryFn                              func(ctx context.Context, clientHealthDiaryEntry *gorm.ClientHealthDiaryEntry, updateData map[string]interface{}) (bool, error)
 	MockInvalidateScreeningToolResponseFn                func(ctx context.Context, clientID string, questionID string) error
 	MockUpdateServiceRequestsFn                          func(ctx context.Context, payload *domain.UpdateServiceRequestsPayload) (bool, error)
 	MockListAppointments                                 func(ctx context.Context, params *domain.Appointment, filters []*firebasetools.FilterParam, pagination *domain.Pagination) ([]*domain.Appointment, *domain.Pagination, error)
@@ -802,7 +802,7 @@ func NewPostgresMock() *PostgresMock {
 		MockAnswerScreeningToolQuestionsFn: func(ctx context.Context, screeningToolResponses []*dto.ScreeningToolQuestionResponseInput) error {
 			return nil
 		},
-		MockUpdateHealthDiaryFn: func(ctx context.Context, payload *gorm.ClientHealthDiaryEntry) (bool, error) {
+		MockUpdateHealthDiaryFn: func(ctx context.Context, clientHealthDiaryEntry *gorm.ClientHealthDiaryEntry, updateData map[string]interface{}) (bool, error) {
 			return true, nil
 		},
 		MockGetScreeningToolQuestionByQuestionIDFn: func(ctx context.Context, questionID string) (*domain.ScreeningToolQuestion, error) {
@@ -1488,8 +1488,8 @@ func (gm *PostgresMock) UpdateUserPinUpdateRequiredStatus(ctx context.Context, u
 }
 
 // UpdateHealthDiary mocks the implementation of updating the share status a health diary entry when the client opts for the sharing
-func (gm *PostgresMock) UpdateHealthDiary(ctx context.Context, payload *gorm.ClientHealthDiaryEntry) (bool, error) {
-	return gm.MockUpdateHealthDiaryFn(ctx, payload)
+func (gm *PostgresMock) UpdateHealthDiary(ctx context.Context, clientHealthDiaryEntry *gorm.ClientHealthDiaryEntry, updateData map[string]interface{}) (bool, error) {
+	return gm.MockUpdateHealthDiaryFn(ctx, clientHealthDiaryEntry, updateData)
 }
 
 // GetHealthDiaryEntryByID mocks the implementation of getting health diary entry bu a given ID
