@@ -899,11 +899,21 @@ func (us *UseCasesUserImpl) VerifyPIN(ctx context.Context, userID string, flavou
 		return false, exceptions.PinNotFoundError(err)
 	}
 
+	// Check if the pin has expired
+	// If pin `ValidTo` field is in the past (expired), throw an error. This means the user has to
+	// change their pin on the next login
+	currentTime := time.Now()
+	expired := currentTime.After(pinData.ValidTo)
+	if expired {
+		return false, exceptions.ExpiredPinErr(fmt.Errorf("the provided pin has expired"))
+	}
+
 	// If pin data does not match, this means the user cant access the data
 	matched := us.ExternalExt.ComparePIN(pin, pinData.Salt, pinData.HashedPIN, nil)
 	if !matched {
 		return false, exceptions.PinMismatchError(err)
 	}
+
 	return true, nil
 }
 
