@@ -1243,6 +1243,7 @@ func (us *UseCasesUserImpl) RegisteredFacilityPatients(ctx context.Context, inpu
 		return nil, fmt.Errorf("facility with provided MFL code doesn't exist, code: %v", input.MFLCode)
 	}
 
+	var errs error
 	facility, err := us.Query.RetrieveFacilityByMFLCode(ctx, input.MFLCode, true)
 	if err != nil {
 		return nil, fmt.Errorf("error retrieving facility: %v", err)
@@ -1253,14 +1254,17 @@ func (us *UseCasesUserImpl) RegisteredFacilityPatients(ctx context.Context, inpu
 	if input.SyncTime == nil {
 		clients, err = us.Query.GetClientsByParams(ctx, gorm.Client{FacilityID: *facility.ID}, nil)
 		if err != nil {
-			return nil, err
+			// accumulate errors rather than failing early for each client/patient
+			errs = multierror.Append(errs, fmt.Errorf("error fetching client:%s", err))
+			helpers.ReportErrorToSentry(errs)
 		}
 	} else {
 		clients, err = us.Query.GetClientsByParams(ctx, gorm.Client{
 			FacilityID: *facility.ID,
 		}, input.SyncTime)
 		if err != nil {
-			return nil, err
+			errs = multierror.Append(errs, fmt.Errorf("error fetching client:%s", err))
+			helpers.ReportErrorToSentry(errs)
 		}
 	}
 
@@ -1272,7 +1276,9 @@ func (us *UseCasesUserImpl) RegisteredFacilityPatients(ctx context.Context, inpu
 	for _, client := range clients {
 		identifier, err := us.Query.GetClientCCCIdentifier(ctx, *client.ID)
 		if err != nil {
-			return nil, err
+			errs = multierror.Append(errs, fmt.Errorf("failed to find client identifiers:%s", err))
+			helpers.ReportErrorToSentry(errs)
+			continue
 		}
 
 		output.Patients = append(output.Patients, identifier.IdentifierValue)
