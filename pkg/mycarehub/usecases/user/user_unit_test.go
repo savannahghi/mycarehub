@@ -3252,8 +3252,9 @@ func TestUseCasesUserImpl_RegisteredFacilityPatients(t *testing.T) {
 					SyncTime: &syncTime,
 				},
 			},
-			want:    nil,
-			wantErr: true,
+			want: nil,
+			// Shouldnt throw an error, it will accumulate errors and report them to sentry
+			wantErr: false,
 		},
 		{
 			name: "sad case: error retrieving clients without sync time",
@@ -3265,7 +3266,7 @@ func TestUseCasesUserImpl_RegisteredFacilityPatients(t *testing.T) {
 				},
 			},
 			want:    nil,
-			wantErr: true,
+			wantErr: false,
 		},
 		{
 			name: "sad case: error retrieving client identifier",
@@ -3277,7 +3278,7 @@ func TestUseCasesUserImpl_RegisteredFacilityPatients(t *testing.T) {
 				},
 			},
 			want:    nil,
-			wantErr: true,
+			wantErr: false,
 		},
 		{
 			name: "happy case: success retrieving new clients without sync time",
