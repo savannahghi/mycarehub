@@ -3884,3 +3884,59 @@ func TestUseCasesUserImpl_RegisterPushToken(t *testing.T) {
 		})
 	}
 }
+
+func TestUseCasesUserImpl_GetClientProfileByCCCNumber(t *testing.T) {
+	fakeDB := pgMock.NewPostgresMock()
+	fakeExtension := extensionMock.NewFakeExtension()
+	otp := otp.NewOTPUseCase(fakeDB, fakeDB, fakeExtension)
+	fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
+	fakeGetStream := getStreamMock.NewGetStreamServiceMock()
+	fakePubsub := pubsubMock.NewPubsubServiceMock()
+	us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, otp, fakeAuthority, fakeGetStream, fakePubsub)
+
+	type args struct {
+		ctx       context.Context
+		cccNumber string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Successfully get client profile by ccc number",
+			args: args{
+				ctx:       context.Background(),
+				cccNumber: "123456789",
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad Case - Fail to get client profile by ccc number",
+			args: args{
+				ctx:       context.Background(),
+				cccNumber: "123456789",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			if tt.name == "Sad Case - Fail to get client profile by ccc number" {
+				fakeDB.MockGetClientProfileByCCCNumberFn = func(ctx context.Context, cccNumber string) (*domain.ClientProfile, error) {
+					return nil, fmt.Errorf("failed to get client profile by ccc number")
+				}
+			}
+
+			got, err := us.GetClientProfileByCCCNumber(tt.args.ctx, tt.args.cccNumber)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCasesUserImpl.GetClientProfileByCCCNumber() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("UseCasesUserImpl.GetClientProfileByCCCNumber() = %v", got)
+			}
+		})
+	}
+}

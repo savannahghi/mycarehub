@@ -1364,6 +1364,12 @@ func (d *MyCareHubDb) GetClientProfileByCCCNumber(ctx context.Context, CCCNumber
 		return nil, err
 	}
 
+	cccIdentifier, err := d.query.GetClientCCCIdentifier(ctx, *clientProfile.ID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
 	user := createMapUser(userProfile)
 	return &domain.ClientProfile{
 		ID:                      clientProfile.ID,
@@ -1379,6 +1385,7 @@ func (d *MyCareHubDb) GetClientProfileByCCCNumber(ctx context.Context, CCCNumber
 		OrganisationID:          clientProfile.OrganisationID,
 		FacilityID:              clientProfile.FacilityID,
 		CHVUserID:               clientProfile.CHVUserID,
+		CCCNumber:               cccIdentifier.IdentifierValue,
 	}, nil
 }
 

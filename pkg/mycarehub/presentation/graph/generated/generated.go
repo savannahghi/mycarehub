@@ -493,6 +493,7 @@ type ComplexityRoot struct {
 		GetAvailableScreeningToolQuestions      func(childComplexity int, clientID string) int
 		GetClientCaregiver                      func(childComplexity int, clientID string) int
 		GetClientHealthDiaryEntries             func(childComplexity int, clientID string) int
+		GetClientProfileByCCCNumber             func(childComplexity int, cCCNumber string) int
 		GetContent                              func(childComplexity int, categoryID *int, limit string) int
 		GetCurrentTerms                         func(childComplexity int, flavour feedlib.Flavour) int
 		GetFAQContent                           func(childComplexity int, flavour feedlib.Flavour, limit *int) int
@@ -738,6 +739,7 @@ type QueryResolver interface {
 	GetClientCaregiver(ctx context.Context, clientID string) (*domain.Caregiver, error)
 	SearchClientsByCCCNumber(ctx context.Context, cCCNumber string) ([]*domain.ClientProfile, error)
 	SearchStaffByStaffNumber(ctx context.Context, staffNumber string) ([]*domain.StaffProfile, error)
+	GetClientProfileByCCCNumber(ctx context.Context, cCCNumber string) (*domain.ClientProfile, error)
 }
 
 type executableSchema struct {
@@ -3134,6 +3136,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.GetClientHealthDiaryEntries(childComplexity, args["clientID"].(string)), true
 
+	case "Query.getClientProfileByCCCNumber":
+		if e.complexity.Query.GetClientProfileByCCCNumber == nil {
+			break
+		}
+
+		args, err := ec.field_Query_getClientProfileByCCCNumber_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetClientProfileByCCCNumber(childComplexity, args["CCCNumber"].(string)), true
+
 	case "Query.getContent":
 		if e.complexity.Query.GetContent == nil {
 			break
@@ -5096,6 +5110,7 @@ type ScreeningToolResponse {
   getClientCaregiver(clientID: String!): Caregiver!
   searchClientsByCCCNumber(CCCNumber: String!): [ClientProfile!]
   searchStaffByStaffNumber(staffNumber: String!): [StaffProfile!]
+  getClientProfileByCCCNumber(CCCNumber: String!): ClientProfile!
 }
 
 extend type Mutation {
@@ -6320,6 +6335,21 @@ func (ec *executionContext) field_Query_getClientHealthDiaryEntries_args(ctx con
 		}
 	}
 	args["clientID"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_getClientProfileByCCCNumber_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["CCCNumber"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("CCCNumber"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["CCCNumber"] = arg0
 	return args, nil
 }
 
@@ -18659,6 +18689,48 @@ func (ec *executionContext) _Query_searchStaffByStaffNumber(ctx context.Context,
 	return ec.marshalOStaffProfile2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐStaffProfileᚄ(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Query_getClientProfileByCCCNumber(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_getClientProfileByCCCNumber_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GetClientProfileByCCCNumber(rctx, args["CCCNumber"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*domain.ClientProfile)
+	fc.Result = res
+	return ec.marshalNClientProfile2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐClientProfile(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -26119,6 +26191,20 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				res = ec._Query_searchStaffByStaffNumber(ctx, field)
 				return res
 			})
+		case "getClientProfileByCCCNumber":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_getClientProfileByCCCNumber(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "__type":
 			out.Values[i] = ec._Query___type(ctx, field)
 		case "__schema":
@@ -27279,6 +27365,10 @@ func (ec *executionContext) marshalNClientHealthDiaryQuote2ᚖgithubᚗcomᚋsav
 		return graphql.Null
 	}
 	return ec._ClientHealthDiaryQuote(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNClientProfile2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐClientProfile(ctx context.Context, sel ast.SelectionSet, v domain.ClientProfile) graphql.Marshaler {
+	return ec._ClientProfile(ctx, sel, &v)
 }
 
 func (ec *executionContext) marshalNClientProfile2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐClientProfile(ctx context.Context, sel ast.SelectionSet, v *domain.ClientProfile) graphql.Marshaler {

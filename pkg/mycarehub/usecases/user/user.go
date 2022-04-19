@@ -125,6 +125,7 @@ type IConsent interface {
 // IUserProfile interface contains the methods to retrieve a user profile
 type IUserProfile interface {
 	GetUserProfile(ctx context.Context, userID string) (*domain.User, error)
+	GetClientProfileByCCCNumber(ctx context.Context, cccNumber string) (*domain.ClientProfile, error)
 }
 
 // IClientProfile interface contains method signatures related to a client profile
@@ -1404,4 +1405,15 @@ func (us *UseCasesUserImpl) RegisterPushToken(ctx context.Context, token string)
 	}
 
 	return true, nil
+}
+
+// GetClientProfileByCCCNumber is used to get a client profile by their CCC number
+func (us *UseCasesUserImpl) GetClientProfileByCCCNumber(ctx context.Context, cccNumber string) (*domain.ClientProfile, error) {
+	clientProfile, err := us.Query.GetClientProfileByCCCNumber(ctx, cccNumber)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, exceptions.ProfileNotFoundErr(err)
+	}
+
+	return clientProfile, nil
 }
