@@ -4169,6 +4169,22 @@ func TestMyCareHubDb_GetClientProfileByCCCNumber(t *testing.T) {
 			wantErr: false,
 		},
 		{
+			name: "Sad Case - Fail to get user profile",
+			args: args{
+				ctx:       ctx,
+				CCCNumber: "111111",
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - Fail to get client ccc identifier",
+			args: args{
+				ctx:       ctx,
+				CCCNumber: "111111",
+			},
+			wantErr: true,
+		},
+		{
 			name: "Sad Case - Fail to get client profile by CCC number",
 			args: args{
 				ctx:       ctx,
@@ -4185,6 +4201,18 @@ func TestMyCareHubDb_GetClientProfileByCCCNumber(t *testing.T) {
 			if tt.name == "Sad Case - Fail to get client profile by CCC number" {
 				fakeGorm.MockGetClientProfileByCCCNumberFn = func(ctx context.Context, CCCNumber string) (*gorm.Client, error) {
 					return nil, fmt.Errorf("failed to get client profile by CCC number")
+				}
+			}
+
+			if tt.name == "Sad Case - Fail to get user profile" {
+				fakeGorm.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID *string) (*gorm.User, error) {
+					return nil, fmt.Errorf("failed to get user profile")
+				}
+			}
+
+			if tt.name == "Sad Case - Fail to get client ccc identifier" {
+				fakeGorm.MockGetClientCCCIdentifier = func(ctx context.Context, clientID string) (*gorm.Identifier, error) {
+					return nil, fmt.Errorf("failed to get client ccc identifier")
 				}
 			}
 

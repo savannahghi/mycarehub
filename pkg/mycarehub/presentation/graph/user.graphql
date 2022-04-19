@@ -4,6 +4,7 @@ extend type Query {
   getClientCaregiver(clientID: String!): Caregiver!
   searchClientsByCCCNumber(CCCNumber: String!): [ClientProfile!]
   searchStaffByStaffNumber(staffNumber: String!): [StaffProfile!]
+  getClientProfileByCCCNumber(CCCNumber: String!): ClientProfile!
 }
 
 extend type Mutation {

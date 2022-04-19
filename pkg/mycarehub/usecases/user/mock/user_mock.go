@@ -41,6 +41,7 @@ type UserUseCaseMock struct {
 	MockAddClientFHIRIDFn               func(ctx context.Context, input dto.ClientFHIRPayload) error
 	MockGenerateTemporaryPinFn          func(ctx context.Context, userID string, flavour feedlib.Flavour) (string, error)
 	MockRegisterPushTokenFn             func(ctx context.Context, token string) (bool, error)
+	MockGetClientProfileByCCCNumberFn   func(ctx context.Context, cccNumber string) (*domain.ClientProfile, error)
 }
 
 // NewUserUseCaseMock creates in initializes create type mocks
@@ -212,6 +213,20 @@ func NewUserUseCaseMock() *UserUseCaseMock {
 		MockRegisterPushTokenFn: func(ctx context.Context, token string) (bool, error) {
 			return true, nil
 		},
+		MockGetClientProfileByCCCNumberFn: func(ctx context.Context, cccNumber string) (*domain.ClientProfile, error) {
+			id := gofakeit.UUID()
+			return &domain.ClientProfile{
+				ID:                      &id,
+				User:                    &domain.User{},
+				Active:                  true,
+				ClientType:              "PMTCT",
+				UserID:                  id,
+				TreatmentEnrollmentDate: &time.Time{},
+				HealthRecordID:          &id,
+				ClientCounselled:        false,
+				CaregiverID:             &id,
+			}, nil
+		},
 	}
 }
 
@@ -338,4 +353,9 @@ func (f *UserUseCaseMock) GenerateTemporaryPin(ctx context.Context, userID strin
 // RegisterPushToken mocks the implementation for adding a push token to a user's profile
 func (f *UserUseCaseMock) RegisterPushToken(ctx context.Context, token string) (bool, error) {
 	return f.MockRegisterPushTokenFn(ctx, token)
+}
+
+// GetClientProfileByCCCNumber mocks the implementation for getting a client profile by CCC number
+func (f *UserUseCaseMock) GetClientProfileByCCCNumber(ctx context.Context, CCCNumber string) (*domain.ClientProfile, error) {
+	return f.MockGetClientProfileByCCCNumberFn(ctx, CCCNumber)
 }
