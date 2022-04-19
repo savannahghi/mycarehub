@@ -444,7 +444,7 @@ type ComplexityRoot struct {
 		SetPushToken                       func(childComplexity int, token string) int
 		SetUserPin                         func(childComplexity int, input *dto.PINInput) int
 		ShareContent                       func(childComplexity int, input dto.ShareContentInput) int
-		ShareHealthDiaryEntry              func(childComplexity int, healthDiaryEntryID string) int
+		ShareHealthDiaryEntry              func(childComplexity int, healthDiaryEntryID string, shareEntireHealthDiary bool) int
 		UnBanUser                          func(childComplexity int, memberID string, communityID string) int
 		UnBookmarkContent                  func(childComplexity int, userID string, contentItemID int) int
 		UnlikeContent                      func(childComplexity int, userID string, contentID int) int
@@ -677,7 +677,7 @@ type MutationResolver interface {
 	InactivateFacility(ctx context.Context, mflCode int) (bool, error)
 	SendFeedback(ctx context.Context, input dto.FeedbackResponseInput) (bool, error)
 	CreateHealthDiaryEntry(ctx context.Context, clientID string, note *string, mood string, reportToStaff bool) (bool, error)
-	ShareHealthDiaryEntry(ctx context.Context, healthDiaryEntryID string) (bool, error)
+	ShareHealthDiaryEntry(ctx context.Context, healthDiaryEntryID string, shareEntireHealthDiary bool) (bool, error)
 	InviteUser(ctx context.Context, userID string, phoneNumber string, flavour feedlib.Flavour) (bool, error)
 	SetUserPin(ctx context.Context, input *dto.PINInput) (bool, error)
 	AnswerScreeningToolQuestion(ctx context.Context, screeningToolResponses []*dto.ScreeningToolQuestionResponseInput) (bool, error)
@@ -2821,7 +2821,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.ShareHealthDiaryEntry(childComplexity, args["healthDiaryEntryID"].(string)), true
+		return e.complexity.Mutation.ShareHealthDiaryEntry(childComplexity, args["healthDiaryEntryID"].(string), args["shareEntireHealthDiary"].(bool)), true
 
 	case "Mutation.unBanUser":
 		if e.complexity.Mutation.UnBanUser == nil {
@@ -4350,7 +4350,7 @@ extend type Query {
     mood: String!
     reportToStaff: Boolean!
   ): Boolean!
-  shareHealthDiaryEntry(healthDiaryEntryID: String!): Boolean!
+  shareHealthDiaryEntry(healthDiaryEntryID: String!, shareEntireHealthDiary: Boolean!): Boolean!
 }
 extend type Query {
   canRecordMood(clientID: String!): Boolean!
@@ -5918,6 +5918,15 @@ func (ec *executionContext) field_Mutation_shareHealthDiaryEntry_args(ctx contex
 		}
 	}
 	args["healthDiaryEntryID"] = arg0
+	var arg1 bool
+	if tmp, ok := rawArgs["shareEntireHealthDiary"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("shareEntireHealthDiary"))
+		arg1, err = ec.unmarshalNBoolean2bool(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["shareEntireHealthDiary"] = arg1
 	return args, nil
 }
 
@@ -15781,7 +15790,7 @@ func (ec *executionContext) _Mutation_shareHealthDiaryEntry(ctx context.Context,
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().ShareHealthDiaryEntry(rctx, args["healthDiaryEntryID"].(string))
+		return ec.resolvers.Mutation().ShareHealthDiaryEntry(rctx, args["healthDiaryEntryID"].(string), args["shareEntireHealthDiary"].(bool))
 	})
 	if err != nil {
 		ec.Error(ctx, err)

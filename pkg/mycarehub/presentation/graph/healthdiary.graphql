@@ -5,7 +5,7 @@ extend type Mutation {
     mood: String!
     reportToStaff: Boolean!
   ): Boolean!
-  shareHealthDiaryEntry(healthDiaryEntryID: String!): Boolean!
+  shareHealthDiaryEntry(healthDiaryEntryID: String!, shareEntireHealthDiary: Boolean!): Boolean!
 }
 extend type Query {
   canRecordMood(clientID: String!): Boolean!
