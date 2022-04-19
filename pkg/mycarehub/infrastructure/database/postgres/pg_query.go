@@ -1803,33 +1803,38 @@ func (d *MyCareHubDb) CheckAppointmentExistsByExternalID(ctx context.Context, ex
 	return d.query.CheckAppointmentExistsByExternalID(ctx, externalID)
 }
 
-// GetSharedHealthDiaryEntry fetches the mostg recent shared health diary entry
-func (d *MyCareHubDb) GetSharedHealthDiaryEntry(ctx context.Context, clientID string, facilityID string) (*domain.ClientHealthDiaryEntry, error) {
-	entries, err := d.query.GetSharedHealthDiaryEntry(ctx, clientID, facilityID)
+// GetSharedHealthDiaryEntries fetches the most recent shared health diary entry
+func (d *MyCareHubDb) GetSharedHealthDiaryEntries(ctx context.Context, clientID string, facilityID string) ([]*domain.ClientHealthDiaryEntry, error) {
+	clientProfile, err := d.query.GetClientProfileByClientID(ctx, clientID)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, err
 	}
 
-	clientProfile, err := d.query.GetClientProfileByClientID(ctx, entries.ClientID)
+	var healthDiaryEntries []*domain.ClientHealthDiaryEntry
+	entries, err := d.query.GetSharedHealthDiaryEntries(ctx, clientID, facilityID)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, err
 	}
 
-	return &domain.ClientHealthDiaryEntry{
-		ID:                    entries.ClientHealthDiaryEntryID,
-		Active:                entries.Active,
-		Mood:                  entries.Mood,
-		Note:                  entries.Note,
-		EntryType:             entries.EntryType,
-		ShareWithHealthWorker: entries.ShareWithHealthWorker,
-		SharedAt:              entries.SharedAt,
-		ClientID:              entries.ClientID,
-		CreatedAt:             entries.CreatedAt,
-		PhoneNumber:           clientProfile.User.Contacts.ContactValue,
-		ClientName:            clientProfile.User.Name,
-	}, nil
+	for _, k := range entries {
+		healthDiaryEntries = append(healthDiaryEntries, &domain.ClientHealthDiaryEntry{
+			ID:                    k.ClientHealthDiaryEntryID,
+			Active:                k.Active,
+			Mood:                  k.Mood,
+			Note:                  k.Note,
+			EntryType:             k.EntryType,
+			ShareWithHealthWorker: k.ShareWithHealthWorker,
+			SharedAt:              k.SharedAt,
+			ClientID:              k.ClientID,
+			CreatedAt:             k.CreatedAt,
+			PhoneNumber:           clientProfile.User.Contacts.ContactValue,
+			ClientName:            clientProfile.User.Name,
+		})
+	}
+
+	return healthDiaryEntries, nil
 }
 
 // GetClientScreeningToolResponsesByToolType fetches all screening tool responses

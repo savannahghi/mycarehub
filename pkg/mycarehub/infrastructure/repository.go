@@ -100,7 +100,7 @@ type Query interface {
 	GetStaffProfileByStaffID(ctx context.Context, staffID string) (*domain.StaffProfile, error)
 	GetHealthDiaryEntryByID(ctx context.Context, healthDiaryEntryID string) (*domain.ClientHealthDiaryEntry, error)
 	GetServiceRequestByID(ctx context.Context, serviceRequestID string) (*domain.ServiceRequest, error)
-	GetSharedHealthDiaryEntry(ctx context.Context, clientID string, facilityID string) (*domain.ClientHealthDiaryEntry, error)
+	GetSharedHealthDiaryEntries(ctx context.Context, clientID string, facilityID string) ([]*domain.ClientHealthDiaryEntry, error)
 	GetAppointmentServiceRequests(ctx context.Context, lastSyncTime time.Time, facilityID string) ([]domain.AppointmentServiceRequests, error)
 	GetClientServiceRequests(ctx context.Context, requestType, status, clientID string) ([]*domain.ServiceRequest, error)
 	GetActiveScreeningToolResponses(ctx context.Context, clientID string) ([]*domain.ScreeningToolQuestionResponse, error)

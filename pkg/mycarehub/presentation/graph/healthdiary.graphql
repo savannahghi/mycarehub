@@ -11,5 +11,5 @@ extend type Query {
   canRecordMood(clientID: String!): Boolean!
   getHealthDiaryQuote: ClientHealthDiaryQuote!
   getClientHealthDiaryEntries(clientID: String!): [ClientHealthDiaryEntry!]!
-  getSharedHealthDiaryEntry(clientID: String!, facilityID: String!): ClientHealthDiaryEntry
+  getSharedHealthDiaryEntries(clientID: String!, facilityID: String!): [ClientHealthDiaryEntry]!
 }

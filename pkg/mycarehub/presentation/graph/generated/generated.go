@@ -502,7 +502,7 @@ type ComplexityRoot struct {
 		GetScreeningToolServiceRequestResponses func(childComplexity int, clientID *string, toolType *enums.ScreeningToolType) int
 		GetSecurityQuestions                    func(childComplexity int, flavour feedlib.Flavour) int
 		GetServiceRequests                      func(childComplexity int, requestType *string, requestStatus *string, facilityID string, flavour feedlib.Flavour) int
-		GetSharedHealthDiaryEntry               func(childComplexity int, clientID string, facilityID string) int
+		GetSharedHealthDiaryEntries             func(childComplexity int, clientID string, facilityID string) int
 		GetUserBookmarkedContent                func(childComplexity int, userID string) int
 		GetUserRoles                            func(childComplexity int, userID string) int
 		InviteMembersToCommunity                func(childComplexity int, communityID string, memberIDs []string) int
@@ -722,7 +722,7 @@ type QueryResolver interface {
 	CanRecordMood(ctx context.Context, clientID string) (bool, error)
 	GetHealthDiaryQuote(ctx context.Context) (*domain.ClientHealthDiaryQuote, error)
 	GetClientHealthDiaryEntries(ctx context.Context, clientID string) ([]*domain.ClientHealthDiaryEntry, error)
-	GetSharedHealthDiaryEntry(ctx context.Context, clientID string, facilityID string) (*domain.ClientHealthDiaryEntry, error)
+	GetSharedHealthDiaryEntries(ctx context.Context, clientID string, facilityID string) ([]*domain.ClientHealthDiaryEntry, error)
 	FetchNotifications(ctx context.Context, userID string, flavour feedlib.Flavour, paginationInput dto.PaginationsInput) (*domain.NotificationsPage, error)
 	SendOtp(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (string, error)
 	GetScreeningToolQuestions(ctx context.Context, toolType *string) ([]*domain.ScreeningToolQuestion, error)
@@ -3237,17 +3237,17 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.GetServiceRequests(childComplexity, args["requestType"].(*string), args["requestStatus"].(*string), args["facilityID"].(string), args["flavour"].(feedlib.Flavour)), true
 
-	case "Query.getSharedHealthDiaryEntry":
-		if e.complexity.Query.GetSharedHealthDiaryEntry == nil {
+	case "Query.getSharedHealthDiaryEntries":
+		if e.complexity.Query.GetSharedHealthDiaryEntries == nil {
 			break
 		}
 
-		args, err := ec.field_Query_getSharedHealthDiaryEntry_args(context.TODO(), rawArgs)
+		args, err := ec.field_Query_getSharedHealthDiaryEntries_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Query.GetSharedHealthDiaryEntry(childComplexity, args["clientID"].(string), args["facilityID"].(string)), true
+		return e.complexity.Query.GetSharedHealthDiaryEntries(childComplexity, args["clientID"].(string), args["facilityID"].(string)), true
 
 	case "Query.getUserBookmarkedContent":
 		if e.complexity.Query.GetUserBookmarkedContent == nil {
@@ -4356,7 +4356,7 @@ extend type Query {
   canRecordMood(clientID: String!): Boolean!
   getHealthDiaryQuote: ClientHealthDiaryQuote!
   getClientHealthDiaryEntries(clientID: String!): [ClientHealthDiaryEntry!]!
-  getSharedHealthDiaryEntry(clientID: String!, facilityID: String!): ClientHealthDiaryEntry
+  getSharedHealthDiaryEntries(clientID: String!, facilityID: String!): [ClientHealthDiaryEntry]!
 }
 `, BuiltIn: false},
 	{Name: "pkg/mycarehub/presentation/graph/input.graphql", Input: `scalar Date
@@ -6488,7 +6488,7 @@ func (ec *executionContext) field_Query_getServiceRequests_args(ctx context.Cont
 	return args, nil
 }
 
-func (ec *executionContext) field_Query_getSharedHealthDiaryEntry_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Query_getSharedHealthDiaryEntries_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
@@ -17993,7 +17993,7 @@ func (ec *executionContext) _Query_getClientHealthDiaryEntries(ctx context.Conte
 	return ec.marshalNClientHealthDiaryEntry2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐClientHealthDiaryEntryᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Query_getSharedHealthDiaryEntry(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _Query_getSharedHealthDiaryEntries(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -18010,7 +18010,7 @@ func (ec *executionContext) _Query_getSharedHealthDiaryEntry(ctx context.Context
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Query_getSharedHealthDiaryEntry_args(ctx, rawArgs)
+	args, err := ec.field_Query_getSharedHealthDiaryEntries_args(ctx, rawArgs)
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
@@ -18018,18 +18018,21 @@ func (ec *executionContext) _Query_getSharedHealthDiaryEntry(ctx context.Context
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().GetSharedHealthDiaryEntry(rctx, args["clientID"].(string), args["facilityID"].(string))
+		return ec.resolvers.Query().GetSharedHealthDiaryEntries(rctx, args["clientID"].(string), args["facilityID"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.(*domain.ClientHealthDiaryEntry)
+	res := resTmp.([]*domain.ClientHealthDiaryEntry)
 	fc.Result = res
-	return ec.marshalOClientHealthDiaryEntry2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐClientHealthDiaryEntry(ctx, field.Selections, res)
+	return ec.marshalNClientHealthDiaryEntry2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐClientHealthDiaryEntry(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_fetchNotifications(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -25898,7 +25901,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				}
 				return res
 			})
-		case "getSharedHealthDiaryEntry":
+		case "getSharedHealthDiaryEntries":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
 				defer func() {
@@ -25906,7 +25909,10 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Query_getSharedHealthDiaryEntry(ctx, field)
+				res = ec._Query_getSharedHealthDiaryEntries(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
 				return res
 			})
 		case "fetchNotifications":
@@ -27158,6 +27164,44 @@ func (ec *executionContext) unmarshalNCaregiverType2githubᚗcomᚋsavannahghi�
 
 func (ec *executionContext) marshalNCaregiverType2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐCaregiverType(ctx context.Context, sel ast.SelectionSet, v enums.CaregiverType) graphql.Marshaler {
 	return v
+}
+
+func (ec *executionContext) marshalNClientHealthDiaryEntry2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐClientHealthDiaryEntry(ctx context.Context, sel ast.SelectionSet, v []*domain.ClientHealthDiaryEntry) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOClientHealthDiaryEntry2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐClientHealthDiaryEntry(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	return ret
 }
 
 func (ec *executionContext) marshalNClientHealthDiaryEntry2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐClientHealthDiaryEntryᚄ(ctx context.Context, sel ast.SelectionSet, v []*domain.ClientHealthDiaryEntry) graphql.Marshaler {

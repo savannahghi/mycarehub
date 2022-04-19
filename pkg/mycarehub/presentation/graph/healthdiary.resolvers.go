@@ -32,6 +32,6 @@ func (r *queryResolver) GetClientHealthDiaryEntries(ctx context.Context, clientI
 	return r.mycarehub.HealthDiary.GetClientHealthDiaryEntries(ctx, clientID)
 }
 
-func (r *queryResolver) GetSharedHealthDiaryEntry(ctx context.Context, clientID string, facilityID string) (*domain.ClientHealthDiaryEntry, error) {
-	return r.mycarehub.HealthDiary.GetSharedHealthDiaryEntry(ctx, clientID, facilityID)
+func (r *queryResolver) GetSharedHealthDiaryEntries(ctx context.Context, clientID string, facilityID string) ([]*domain.ClientHealthDiaryEntry, error) {
+	return r.mycarehub.HealthDiary.GetSharedHealthDiaryEntries(ctx, clientID, facilityID)
 }

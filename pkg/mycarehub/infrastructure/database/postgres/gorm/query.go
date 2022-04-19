@@ -75,7 +75,7 @@ type Query interface {
 	GetScreeningToolQuestionByQuestionID(ctx context.Context, questionID string) (*ScreeningToolQuestion, error)
 	CheckIfClientHasUnresolvedServiceRequests(ctx context.Context, clientID string, serviceRequestType string) (bool, error)
 	GetAllRoles(ctx context.Context) ([]*AuthorityRole, error)
-	GetSharedHealthDiaryEntry(ctx context.Context, clientID string, facilityID string) (*ClientHealthDiaryEntry, error)
+	GetSharedHealthDiaryEntries(ctx context.Context, clientID string, facilityID string) ([]*ClientHealthDiaryEntry, error)
 	GetUserProfileByStaffID(ctx context.Context, staffID string) (*User, error)
 	GetHealthDiaryEntryByID(ctx context.Context, healthDiaryEntryID string) (*ClientHealthDiaryEntry, error)
 	GetServiceRequestByID(ctx context.Context, serviceRequestID string) (*ClientServiceRequest, error)
@@ -1206,15 +1206,15 @@ func (db *PGInstance) GetHealthDiaryEntryByID(ctx context.Context, healthDiaryEn
 	return healthDiaryEntry, nil
 }
 
-// GetSharedHealthDiaryEntry gets the recently shared health diary entry shared by the client to a health care worker
+// GetSharedHealthDiaryEntries gets the recently shared health diary entry shared by the client to a health care worker
 // and returns the the entry.
 // The health care worker will only see the entry as long as they share the same facility with the health care worker
-func (db *PGInstance) GetSharedHealthDiaryEntry(ctx context.Context, clientID string, facilityID string) (*ClientHealthDiaryEntry, error) {
-	var healthDiaryEntry *ClientHealthDiaryEntry
+func (db *PGInstance) GetSharedHealthDiaryEntries(ctx context.Context, clientID string, facilityID string) ([]*ClientHealthDiaryEntry, error) {
+	var healthDiaryEntry []*ClientHealthDiaryEntry
 
 	err := db.DB.Joins("JOIN clients_clientfacility on clients_healthdiaryentry.client_id = clients_clientfacility.client_id").
 		Where("clients_healthdiaryentry.share_with_health_worker = ? AND clients_healthdiaryentry.client_id = ? AND clients_clientfacility.facility_id = ? ", true, clientID, facilityID).
-		Order(clause.OrderByColumn{Column: clause.Column{Name: "shared_at"}, Desc: true}).Limit(1).Find(&healthDiaryEntry).Error
+		Order(clause.OrderByColumn{Column: clause.Column{Name: "shared_at"}, Desc: true}).Find(&healthDiaryEntry).Error
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed to get shared health diary entry: %v", err)

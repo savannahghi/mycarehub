@@ -114,7 +114,7 @@ func (h *HealthDiaryUseCaseMock) ShareHealthDiaryEntry(ctx context.Context, clie
 	return h.MockShareHealthDiaryEntryFn(ctx, clientID, shareWithStaff)
 }
 
-// GetSharedHealthDiaryEntry mocks the implementation of getting the most recently shared health diary entires by the client to a health care worker
-func (h *HealthDiaryUseCaseMock) GetSharedHealthDiaryEntry(ctx context.Context, clientID string, facilityID string) (*domain.ClientHealthDiaryEntry, error) {
+// GetSharedHealthDiaryEntries mocks the implementation of getting the most recently shared health diary entires by the client to a health care worker
+func (h *HealthDiaryUseCaseMock) GetSharedHealthDiaryEntries(ctx context.Context, clientID string, facilityID string) (*domain.ClientHealthDiaryEntry, error) {
 	return h.MockGetSharedHealthDiaryEntryFn(ctx, clientID, facilityID)
 }

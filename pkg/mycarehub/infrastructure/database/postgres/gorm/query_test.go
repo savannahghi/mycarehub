@@ -4055,9 +4055,9 @@ func TestPGInstance_GetSharedHealthDiaryEntry(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := testingDB.GetSharedHealthDiaryEntry(tt.args.ctx, tt.args.clientID, tt.args.facilityID)
+			got, err := testingDB.GetSharedHealthDiaryEntries(tt.args.ctx, tt.args.clientID, tt.args.facilityID)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("PGInstance.GetSharedHealthDiaryEntry() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("PGInstance.GetSharedHealthDiaryEntries() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if tt.wantErr && got != nil {
