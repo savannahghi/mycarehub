@@ -1176,12 +1176,18 @@ func (d *MyCareHubDb) GetServiceRequestsForKenyaEMR(ctx context.Context, payload
 func (d *MyCareHubDb) GetAssessmentResponses(ctx context.Context, facilityID string, toolType string) ([]*domain.ScreeningToolAssessmentResponse, error) {
 	var responses []*domain.ScreeningToolAssessmentResponse
 	answeredQuestions, err := d.query.GetAnsweredScreeningToolQuestions(ctx, facilityID, toolType)
+	responsesMap := make(map[string]bool)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, err
 	}
 
 	for _, answeredQuestion := range answeredQuestions {
+		if _, ok := responsesMap[answeredQuestion.ClientID]; ok {
+			continue
+		}
+		responsesMap[answeredQuestion.ClientID] = true
+
 		clientProfile, err := d.query.GetClientProfileByClientID(ctx, answeredQuestion.ClientID)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)

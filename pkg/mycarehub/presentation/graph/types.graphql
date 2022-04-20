@@ -511,5 +511,10 @@ type ScreeningToolResponse {
     toolIndex: Int!
     tool: String!
     response: String!
-    serviceRequestID: String!
+}
+
+
+type ScreeningToolResponsePayload {
+	serviceRequestID:       String!
+	screeningToolResponses: [ScreeningToolResponse!]!
 }

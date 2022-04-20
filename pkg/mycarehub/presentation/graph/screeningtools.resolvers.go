@@ -31,6 +31,6 @@ func (r *queryResolver) GetAssessmentResponsesByToolType(ctx context.Context, fa
 	return r.mycarehub.ScreeningTools.GetAssessmentResponses(ctx, facilityID, toolType)
 }
 
-func (r *queryResolver) GetScreeningToolServiceRequestResponses(ctx context.Context, clientID *string, toolType *enums.ScreeningToolType) ([]*domain.ScreeningToolResponse, error) {
+func (r *queryResolver) GetScreeningToolServiceRequestResponses(ctx context.Context, clientID *string, toolType *enums.ScreeningToolType) (*domain.ScreeningToolResponsePayload, error) {
 	return r.mycarehub.ScreeningTools.GetScreeningToolServiceRequestResponses(ctx, *clientID, *toolType)
 }

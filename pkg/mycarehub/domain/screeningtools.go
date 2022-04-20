@@ -102,8 +102,14 @@ type ScreeningToolAssessmentResponse struct {
 
 // ScreeningToolResponse defines a screening tool response
 type ScreeningToolResponse struct {
-	ToolIndex        int    `json:"toolIndex"`
-	Tool             string `json:"tool"`
-	Response         string `json:"response"`
-	ServiceRequestID string `json:"serviceRequest"`
+	ToolIndex int    `json:"toolIndex"`
+	Tool      string `json:"tool"`
+	Response  string `json:"response"`
+}
+
+// ScreeningToolResponsePayload defines the payload for screening tool responses for a given service request
+// The service request is generated when a client answers screening tool questions
+type ScreeningToolResponsePayload struct {
+	ServiceRequestID       string                   `json:"serviceRequestID"`
+	ScreeningToolResponses []*ScreeningToolResponse `json:"screeningToolResponses"`
 }
