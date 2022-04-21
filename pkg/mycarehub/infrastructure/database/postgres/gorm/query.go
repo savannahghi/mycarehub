@@ -456,13 +456,21 @@ func (db *PGInstance) GetSecurityQuestionByID(ctx context.Context, securityQuest
 func (db *PGInstance) GetAnsweredScreeningToolQuestions(ctx context.Context, facilityID string, toolType string) ([]*ScreeningToolsResponse, error) {
 	var screeningToolResponse []*ScreeningToolsResponse
 
-	err := db.DB.Raw(`SELECT * FROM screeningtools_screeningtoolsquestion
-	JOIN screeningtools_screeningtoolsresponse
-	ON screeningtools_screeningtoolsquestion.id = screeningtools_screeningtoolsresponse.question_id
-	JOIN clients_clientfacility
-	ON clients_clientfacility.client_id = screeningtools_screeningtoolsresponse.client_id
-	WHERE screeningtools_screeningtoolsresponse.active = ?
-	AND tool_type = ? AND clients_clientfacility.facility_id = ? `, true, toolType, facilityID).
+	err := db.DB.Raw(
+		`
+		SELECT * FROM screeningtools_screeningtoolsquestion
+		JOIN screeningtools_screeningtoolsresponse
+		ON screeningtools_screeningtoolsquestion.id = screeningtools_screeningtoolsresponse.question_id
+		JOIN clients_client
+		ON clients_client.id = screeningtools_screeningtoolsresponse.client_id
+		JOIN clients_servicerequest
+		ON clients_client.id = clients_servicerequest.client_id
+		WHERE clients_servicerequest.status = 'PENDING'
+		AND screeningtools_screeningtoolsresponse.active = ?
+		AND tool_type = ? 
+		AND clients_servicerequest.meta->>'question_type'  = ?
+		AND clients_client.current_facility_id = ?
+		`, true, toolType, toolType, facilityID).
 		Scan(&screeningToolResponse).Error
 
 	if err != nil {

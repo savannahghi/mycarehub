@@ -31,12 +31,11 @@ type IAnswerScreeningToolQuestion interface {
 // IGetAssessmentResponses is used to get the screening tools assessment responses
 type IGetAssessmentResponses interface {
 	GetAssessmentResponses(ctx context.Context, facilityID string, toolType string) ([]*domain.ScreeningToolAssessmentResponse, error)
-	GetScreeningToolServiceRequestResponses(ctx context.Context, clientID string, toolType enums.ScreeningToolType) ([]*domain.ScreeningToolResponse, error)
 }
 
 // IGetScreeningToolServiceRequestResponses represents the interface to get screening tool responses
 type IGetScreeningToolServiceRequestResponses interface {
-	GetScreeningToolServiceRequestResponses(ctx context.Context, clientID string, toolType enums.ScreeningToolType) ([]*domain.ScreeningToolResponse, error)
+	GetScreeningToolServiceRequestResponses(ctx context.Context, clientID string, toolType enums.ScreeningToolType) (*domain.ScreeningToolResponsePayload, error)
 }
 
 // UseCasesScreeningTools represents the usecases for screening tools
@@ -334,8 +333,9 @@ func (t *ServiceScreeningToolsImpl) GetAssessmentResponses(ctx context.Context, 
 }
 
 // GetScreeningToolServiceRequestResponses returns all screening tool responses for a client who has a service request of the specified tool type in param
-func (t *ServiceScreeningToolsImpl) GetScreeningToolServiceRequestResponses(ctx context.Context, clientID string, toolType enums.ScreeningToolType) ([]*domain.ScreeningToolResponse, error) {
+func (t *ServiceScreeningToolsImpl) GetScreeningToolServiceRequestResponses(ctx context.Context, clientID string, toolType enums.ScreeningToolType) (*domain.ScreeningToolResponsePayload, error) {
 	screeningToolResponses := []*domain.ScreeningToolResponse{}
+	ScreeningToolResponsePayload := &domain.ScreeningToolResponsePayload{}
 	if clientID == "" {
 		return nil, fmt.Errorf("client id is required")
 	}
@@ -351,24 +351,27 @@ func (t *ServiceScreeningToolsImpl) GetScreeningToolServiceRequestResponses(ctx 
 		return nil, fmt.Errorf("failed to get client screening tool responses: %v", err)
 	}
 
+	serviceRequest, err := t.Query.GetClientScreeningToolServiceRequestByToolType(ctx, clientID, string(toolType), enums.ServiceRequestStatusPending.String())
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, fmt.Errorf("failed to get client screening tool service request: %v", err)
+	}
+
 	for _, clientResponse := range clientResponses {
 		screeningToolQuestion, err := t.Query.GetScreeningToolQuestionByQuestionID(ctx, clientResponse.QuestionID)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
 			return nil, fmt.Errorf("failed to get screening tool question: %v", err)
 		}
-		serviceRequest, err := t.Query.GetClientScreeningToolServiceRequestByToolType(ctx, clientID, string(screeningToolQuestion.ToolType), enums.ServiceRequestStatusPending.String())
-		if err != nil {
-			helpers.ReportErrorToSentry(err)
-			return nil, fmt.Errorf("failed to get client screening tool service request: %v", err)
-		}
+
 		screeningToolResponses = append(screeningToolResponses, &domain.ScreeningToolResponse{
-			ToolIndex:        screeningToolQuestion.Sequence,
-			Tool:             screeningToolQuestion.Question,
-			Response:         utils.InterfaceToString(screeningToolQuestion.ResponseChoices[clientResponse.Answer]),
-			ServiceRequestID: serviceRequest.ID,
+			ToolIndex: screeningToolQuestion.Sequence,
+			Tool:      screeningToolQuestion.Question,
+			Response:  utils.InterfaceToString(screeningToolQuestion.ResponseChoices[clientResponse.Answer]),
 		})
 	}
-	return screeningToolResponses, nil
+	ScreeningToolResponsePayload.ScreeningToolResponses = screeningToolResponses
+	ScreeningToolResponsePayload.ServiceRequestID = serviceRequest.ID
+	return ScreeningToolResponsePayload, nil
 
 }

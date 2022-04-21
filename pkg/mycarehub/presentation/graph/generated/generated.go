@@ -560,10 +560,14 @@ type ComplexityRoot struct {
 	}
 
 	ScreeningToolResponse struct {
-		Response         func(childComplexity int) int
-		ServiceRequestID func(childComplexity int) int
-		Tool             func(childComplexity int) int
-		ToolIndex        func(childComplexity int) int
+		Response  func(childComplexity int) int
+		Tool      func(childComplexity int) int
+		ToolIndex func(childComplexity int) int
+	}
+
+	ScreeningToolResponsePayload struct {
+		ScreeningToolResponses func(childComplexity int) int
+		ServiceRequestID       func(childComplexity int) int
 	}
 
 	SecurityQuestion struct {
@@ -730,7 +734,7 @@ type QueryResolver interface {
 	GetAvailableScreeningToolQuestions(ctx context.Context, clientID string) ([]*domain.AvailableScreeningTools, error)
 	GetAvailableFacilityScreeningTools(ctx context.Context, facilityID string) ([]*domain.AvailableScreeningTools, error)
 	GetAssessmentResponsesByToolType(ctx context.Context, facilityID string, toolType string) ([]*domain.ScreeningToolAssessmentResponse, error)
-	GetScreeningToolServiceRequestResponses(ctx context.Context, clientID *string, toolType *enums.ScreeningToolType) ([]*domain.ScreeningToolResponse, error)
+	GetScreeningToolServiceRequestResponses(ctx context.Context, clientID *string, toolType *enums.ScreeningToolType) (*domain.ScreeningToolResponsePayload, error)
 	GetSecurityQuestions(ctx context.Context, flavour feedlib.Flavour) ([]*domain.SecurityQuestion, error)
 	GetServiceRequests(ctx context.Context, requestType *string, requestStatus *string, facilityID string, flavour feedlib.Flavour) ([]*domain.ServiceRequest, error)
 	GetPendingServiceRequestsCount(ctx context.Context, facilityID string) (*domain.ServiceRequestsCountResponse, error)
@@ -3626,13 +3630,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ScreeningToolResponse.Response(childComplexity), true
 
-	case "ScreeningToolResponse.serviceRequestID":
-		if e.complexity.ScreeningToolResponse.ServiceRequestID == nil {
-			break
-		}
-
-		return e.complexity.ScreeningToolResponse.ServiceRequestID(childComplexity), true
-
 	case "ScreeningToolResponse.tool":
 		if e.complexity.ScreeningToolResponse.Tool == nil {
 			break
@@ -3646,6 +3643,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ScreeningToolResponse.ToolIndex(childComplexity), true
+
+	case "ScreeningToolResponsePayload.screeningToolResponses":
+		if e.complexity.ScreeningToolResponsePayload.ScreeningToolResponses == nil {
+			break
+		}
+
+		return e.complexity.ScreeningToolResponsePayload.ScreeningToolResponses(childComplexity), true
+
+	case "ScreeningToolResponsePayload.serviceRequestID":
+		if e.complexity.ScreeningToolResponsePayload.ServiceRequestID == nil {
+			break
+		}
+
+		return e.complexity.ScreeningToolResponsePayload.ServiceRequestID(childComplexity), true
 
 	case "SecurityQuestion.Active":
 		if e.complexity.SecurityQuestion.Active == nil {
@@ -4545,7 +4556,7 @@ extend type Query {
     getAvailableScreeningToolQuestions(clientID: String!) : [AvailableScreeningTools!]!
     getAvailableFacilityScreeningTools(facilityID: String!): [AvailableScreeningTools!]!
     getAssessmentResponsesByToolType(facilityID: String!, toolType: String!) : [ScreeningToolAssessmentResponse!]
-    getScreeningToolServiceRequestResponses(clientID: String, toolType:ScreeningToolType ): [ScreeningToolResponse!]!
+    getScreeningToolServiceRequestResponses(clientID: String, toolType:ScreeningToolType ): ScreeningToolResponsePayload!
 }
 
 extend type Mutation {
@@ -5101,7 +5112,12 @@ type ScreeningToolResponse {
     toolIndex: Int!
     tool: String!
     response: String!
-    serviceRequestID: String!
+}
+
+
+type ScreeningToolResponsePayload {
+	serviceRequestID:       String!
+	screeningToolResponses: [ScreeningToolResponse!]!
 }
 `, BuiltIn: false},
 	{Name: "pkg/mycarehub/presentation/graph/user.graphql", Input: `extend type Query {
@@ -18357,9 +18373,9 @@ func (ec *executionContext) _Query_getScreeningToolServiceRequestResponses(ctx c
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]*domain.ScreeningToolResponse)
+	res := resTmp.(*domain.ScreeningToolResponsePayload)
 	fc.Result = res
-	return ec.marshalNScreeningToolResponse2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐScreeningToolResponseᚄ(ctx, field.Selections, res)
+	return ec.marshalNScreeningToolResponsePayload2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐScreeningToolResponsePayload(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_getSecurityQuestions(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -19536,7 +19552,7 @@ func (ec *executionContext) _ScreeningToolResponse_response(ctx context.Context,
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _ScreeningToolResponse_serviceRequestID(ctx context.Context, field graphql.CollectedField, obj *domain.ScreeningToolResponse) (ret graphql.Marshaler) {
+func (ec *executionContext) _ScreeningToolResponsePayload_serviceRequestID(ctx context.Context, field graphql.CollectedField, obj *domain.ScreeningToolResponsePayload) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -19544,7 +19560,7 @@ func (ec *executionContext) _ScreeningToolResponse_serviceRequestID(ctx context.
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:     "ScreeningToolResponse",
+		Object:     "ScreeningToolResponsePayload",
 		Field:      field,
 		Args:       nil,
 		IsMethod:   false,
@@ -19569,6 +19585,41 @@ func (ec *executionContext) _ScreeningToolResponse_serviceRequestID(ctx context.
 	res := resTmp.(string)
 	fc.Result = res
 	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ScreeningToolResponsePayload_screeningToolResponses(ctx context.Context, field graphql.CollectedField, obj *domain.ScreeningToolResponsePayload) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ScreeningToolResponsePayload",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ScreeningToolResponses, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*domain.ScreeningToolResponse)
+	fc.Result = res
+	return ec.marshalNScreeningToolResponse2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐScreeningToolResponseᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _SecurityQuestion_SecurityQuestionID(ctx context.Context, field graphql.CollectedField, obj *domain.SecurityQuestion) (ret graphql.Marshaler) {
@@ -26415,8 +26466,35 @@ func (ec *executionContext) _ScreeningToolResponse(ctx context.Context, sel ast.
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var screeningToolResponsePayloadImplementors = []string{"ScreeningToolResponsePayload"}
+
+func (ec *executionContext) _ScreeningToolResponsePayload(ctx context.Context, sel ast.SelectionSet, obj *domain.ScreeningToolResponsePayload) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, screeningToolResponsePayloadImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ScreeningToolResponsePayload")
 		case "serviceRequestID":
-			out.Values[i] = ec._ScreeningToolResponse_serviceRequestID(ctx, field, obj)
+			out.Values[i] = ec._ScreeningToolResponsePayload_serviceRequestID(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "screeningToolResponses":
+			out.Values[i] = ec._ScreeningToolResponsePayload_screeningToolResponses(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -28248,6 +28326,20 @@ func (ec *executionContext) marshalNScreeningToolResponse2ᚖgithubᚗcomᚋsava
 		return graphql.Null
 	}
 	return ec._ScreeningToolResponse(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNScreeningToolResponsePayload2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐScreeningToolResponsePayload(ctx context.Context, sel ast.SelectionSet, v domain.ScreeningToolResponsePayload) graphql.Marshaler {
+	return ec._ScreeningToolResponsePayload(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNScreeningToolResponsePayload2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐScreeningToolResponsePayload(ctx context.Context, sel ast.SelectionSet, v *domain.ScreeningToolResponsePayload) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._ScreeningToolResponsePayload(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNScreeningToolType2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐScreeningToolType(ctx context.Context, v interface{}) (enums.ScreeningToolType, error) {
