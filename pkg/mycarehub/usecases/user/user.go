@@ -1083,7 +1083,7 @@ func (us *UseCasesUserImpl) RefreshGetStreamToken(ctx context.Context, userID st
 
 func (us *UseCasesUserImpl) createClient(ctx context.Context, patient dto.PatientRegistrationPayload, facility domain.Facility) (*domain.ClientProfile, error) {
 	// Adding ccc number makes it unique
-	username := patient.Name + patient.CCCNumber
+	username := fmt.Sprintf("%s-%s", patient.Name, patient.CCCNumber)
 	dob := patient.DateOfBirth.AsTime()
 	usr := domain.User{
 		Username:    username,
