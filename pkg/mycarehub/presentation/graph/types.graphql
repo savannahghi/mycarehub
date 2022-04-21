@@ -403,11 +403,11 @@ type User {
 }
 
 type Contact {
-  ID: String
-  ContactType: String
-  ContactValue: String
-  Active: Boolean
-  OptedIn: Boolean
+  id: String
+  contactType: String
+  contactValue: String
+  active: Boolean
+  optedIn: Boolean
 }
 
 type AuthorityRole {

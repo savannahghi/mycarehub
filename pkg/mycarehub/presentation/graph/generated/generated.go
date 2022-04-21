@@ -1426,35 +1426,35 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.CommunityMember.UserType(childComplexity), true
 
-	case "Contact.Active":
+	case "Contact.active":
 		if e.complexity.Contact.Active == nil {
 			break
 		}
 
 		return e.complexity.Contact.Active(childComplexity), true
 
-	case "Contact.ContactType":
+	case "Contact.contactType":
 		if e.complexity.Contact.ContactType == nil {
 			break
 		}
 
 		return e.complexity.Contact.ContactType(childComplexity), true
 
-	case "Contact.ContactValue":
+	case "Contact.contactValue":
 		if e.complexity.Contact.ContactValue == nil {
 			break
 		}
 
 		return e.complexity.Contact.ContactValue(childComplexity), true
 
-	case "Contact.ID":
+	case "Contact.id":
 		if e.complexity.Contact.ID == nil {
 			break
 		}
 
 		return e.complexity.Contact.ID(childComplexity), true
 
-	case "Contact.OptedIn":
+	case "Contact.optedIn":
 		if e.complexity.Contact.OptedIn == nil {
 			break
 		}
@@ -5004,11 +5004,11 @@ type User {
 }
 
 type Contact {
-  ID: String
-  ContactType: String
-  ContactValue: String
-  Active: Boolean
-  OptedIn: Boolean
+  id: String
+  contactType: String
+  contactValue: String
+  active: Boolean
+  optedIn: Boolean
 }
 
 type AuthorityRole {
@@ -10152,7 +10152,7 @@ func (ec *executionContext) _CommunityMember_userType(ctx context.Context, field
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Contact_ID(ctx context.Context, field graphql.CollectedField, obj *domain.Contact) (ret graphql.Marshaler) {
+func (ec *executionContext) _Contact_id(ctx context.Context, field graphql.CollectedField, obj *domain.Contact) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -10184,7 +10184,7 @@ func (ec *executionContext) _Contact_ID(ctx context.Context, field graphql.Colle
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Contact_ContactType(ctx context.Context, field graphql.CollectedField, obj *domain.Contact) (ret graphql.Marshaler) {
+func (ec *executionContext) _Contact_contactType(ctx context.Context, field graphql.CollectedField, obj *domain.Contact) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -10216,7 +10216,7 @@ func (ec *executionContext) _Contact_ContactType(ctx context.Context, field grap
 	return ec.marshalOString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Contact_ContactValue(ctx context.Context, field graphql.CollectedField, obj *domain.Contact) (ret graphql.Marshaler) {
+func (ec *executionContext) _Contact_contactValue(ctx context.Context, field graphql.CollectedField, obj *domain.Contact) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -10248,7 +10248,7 @@ func (ec *executionContext) _Contact_ContactValue(ctx context.Context, field gra
 	return ec.marshalOString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Contact_Active(ctx context.Context, field graphql.CollectedField, obj *domain.Contact) (ret graphql.Marshaler) {
+func (ec *executionContext) _Contact_active(ctx context.Context, field graphql.CollectedField, obj *domain.Contact) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -10280,7 +10280,7 @@ func (ec *executionContext) _Contact_Active(ctx context.Context, field graphql.C
 	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Contact_OptedIn(ctx context.Context, field graphql.CollectedField, obj *domain.Contact) (ret graphql.Marshaler) {
+func (ec *executionContext) _Contact_optedIn(ctx context.Context, field graphql.CollectedField, obj *domain.Contact) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -24292,16 +24292,16 @@ func (ec *executionContext) _Contact(ctx context.Context, sel ast.SelectionSet, 
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Contact")
-		case "ID":
-			out.Values[i] = ec._Contact_ID(ctx, field, obj)
-		case "ContactType":
-			out.Values[i] = ec._Contact_ContactType(ctx, field, obj)
-		case "ContactValue":
-			out.Values[i] = ec._Contact_ContactValue(ctx, field, obj)
-		case "Active":
-			out.Values[i] = ec._Contact_Active(ctx, field, obj)
-		case "OptedIn":
-			out.Values[i] = ec._Contact_OptedIn(ctx, field, obj)
+		case "id":
+			out.Values[i] = ec._Contact_id(ctx, field, obj)
+		case "contactType":
+			out.Values[i] = ec._Contact_contactType(ctx, field, obj)
+		case "contactValue":
+			out.Values[i] = ec._Contact_contactValue(ctx, field, obj)
+		case "active":
+			out.Values[i] = ec._Contact_active(ctx, field, obj)
+		case "optedIn":
+			out.Values[i] = ec._Contact_optedIn(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
