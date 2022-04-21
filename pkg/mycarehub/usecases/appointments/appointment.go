@@ -105,34 +105,37 @@ func (a *UseCasesAppointmentsImpl) CreateOrUpdateKenyaEMRAppointments(ctx contex
 	}
 
 	response := &dto.FacilityAppointmentsResponse{MFLCode: input.MFLCode}
-
+	var errs error
 	for _, ap := range input.Appointments {
 
 		exists, err := a.Query.CheckAppointmentExistsByExternalID(ctx, ap.ExternalID)
 		if err != nil {
-			return nil, err
+			errs = multierror.Append(errs, err)
+			continue
 		}
 
 		if exists {
-
 			_, err := a.UpdateKenyaEMRAppointments(ctx, facility, ap)
 			if err != nil {
-				return nil, err
+				errs = multierror.Append(errs, fmt.Errorf("failed to update appointment: %w", err))
+				continue
 			}
-
 		} else {
-
 			_, err := a.CreateKenyaEMRAppointments(ctx, facility, ap)
 			if err != nil {
-				return nil, err
+				errs = multierror.Append(errs, fmt.Errorf("failed to create appointment: %w", err))
+				continue
 			}
-
 		}
 
 		response.Appointments = append(response.Appointments, dto.AppointmentResponse(ap))
 	}
 
-	return response, nil
+	if errs != nil {
+		helpers.ReportErrorToSentry(errs)
+	}
+
+	return response, errs
 }
 
 // CreateKenyaEMRAppointments creates appointments from Kenya EMR

@@ -58,6 +58,28 @@ func TestUseCasesAppointmentsImpl_CreateKenyaEMRAppointments(t *testing.T) {
 			wantErr: true,
 		},
 		{
+			name: "sad case: invalid MFL code format",
+			args: args{
+				ctx: context.Background(),
+				input: dto.FacilityAppointmentsPayload{
+					MFLCode: "ABD1234",
+					Appointments: []dto.AppointmentPayload{
+						{
+							CCCNumber:         "1234",
+							ExternalID:        gofakeit.UUID(),
+							AppointmentReason: "Dental",
+							AppointmentDate: scalarutils.Date{
+								Year:  2020,
+								Month: 12,
+								Day:   12,
+							},
+						},
+					},
+				},
+			},
+			wantErr: true,
+		},
+		{
 			name: "sad case: facility doesn't exist",
 			args: args{
 				ctx: context.Background(),
@@ -211,10 +233,6 @@ func TestUseCasesAppointmentsImpl_CreateKenyaEMRAppointments(t *testing.T) {
 			got, err := a.CreateOrUpdateKenyaEMRAppointments(tt.args.ctx, tt.args.input)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCasesAppointmentsImpl.CreateKenyaEMRAppointments() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if tt.wantErr && got != nil {
-				t.Errorf("expected appointments to be nil for %v", tt.name)
 				return
 			}
 			if !tt.wantErr && got == nil {
@@ -460,10 +478,6 @@ func TestUseCasesAppointmentsImpl_UpdateKenyaEMRAppointments(t *testing.T) {
 			got, err := a.CreateOrUpdateKenyaEMRAppointments(tt.args.ctx, tt.args.input)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCasesAppointmentsImpl.UpdateKenyaEMRAppointments() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if tt.wantErr && got != nil {
-				t.Errorf("expected appointments to be nil for %v", tt.name)
 				return
 			}
 			if !tt.wantErr && got == nil {
