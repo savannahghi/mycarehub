@@ -764,10 +764,6 @@ func (db *PGInstance) GetClientsPendingServiceRequestsCount(ctx context.Context,
 				Total:       0,
 			},
 			{
-				RequestType: enums.ServiceRequestTypeProfileUpdate,
-				Total:       0,
-			},
-			{
 				RequestType: enums.ServiceRequestTypeScreeningToolsRedFlag,
 				Total:       0,
 			},
@@ -781,11 +777,8 @@ func (db *PGInstance) GetClientsPendingServiceRequestsCount(ctx context.Context,
 		if request.RequestType == enums.ServiceRequestTypePinReset.String() {
 			serviceRequestsCount.RequestsTypeCount[1].Total++
 		}
-		if request.RequestType == enums.ServiceRequestTypeProfileUpdate.String() {
-			serviceRequestsCount.RequestsTypeCount[2].Total++
-		}
 		if request.RequestType == enums.ServiceRequestTypeScreeningToolsRedFlag.String() {
-			serviceRequestsCount.RequestsTypeCount[3].Total++
+			serviceRequestsCount.RequestsTypeCount[2].Total++
 		}
 	}
 
