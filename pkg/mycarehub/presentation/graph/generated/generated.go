@@ -4300,7 +4300,6 @@ enum ClientType {
 enum ServiceRequestType {
   RED_FLAG
   PIN_RESET
-  PROFILE_UPDATE
 }
 
 enum UserRoleType {
