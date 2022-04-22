@@ -62,7 +62,7 @@ func TestCreateInviteMessage(t *testing.T) {
 	inviteLink := "https://example.com"
 	pin := "99033"
 
-	consumerMessage := fmt.Sprintf("You have been invited to My Afya Hub. Download the app on %v. Your single use pin is %v",
+	consumerMessage := fmt.Sprintf("You have been invited to myCareHub. Download the app on %v. Your single use pin is %v",
 		inviteLink, pin)
 	proMessage := fmt.Sprintf("You have been invited to myCareHub Professional. Download the app on %v. Your single use pin is %v",
 		inviteLink, pin)
