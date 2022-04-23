@@ -969,7 +969,7 @@ func (db *PGInstance) GetUserPermissions(ctx context.Context, userID string) ([]
 	var permissions []*AuthorityPermission
 	err := db.DB.Raw(
 		`
-		SELECT * 
+		SELECT authority_authoritypermission.created, authority_authoritypermission.updated, authority_authoritypermission.id, authority_authoritypermission.name, authority_authoritypermission.organisation_id
 		FROM authority_authorityrole_users 
 		JOIN authority_authorityrole_permissions ON authority_authorityrole_users.authorityrole_id = authority_authorityrole_permissions.authorityrole_id
 		JOIN authority_authoritypermission ON authority_authorityrole_permissions.authoritypermission_id = authority_authoritypermission.id

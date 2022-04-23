@@ -65,7 +65,7 @@ input CaregiverInput {
 
 input ClientRegistrationInput {
   facility: String!
-  clientType: ClientType!
+  clientTypes: [ClientType!]!
   clientName: String!
   gender: Gender!
   dateOfBirth: Date!
@@ -96,7 +96,7 @@ input CommunityInput {
   description: String!
   ageRange: AgeRangeInput
   gender: [Gender!]!
-  clientType: [ClientType!]
+  clientType: [ClientType!]!
   inviteOnly: Boolean!
 }
 

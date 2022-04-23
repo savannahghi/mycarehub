@@ -295,12 +295,17 @@ func (d *MyCareHubDb) GetClientProfileByUserID(ctx context.Context, userID strin
 		return nil, err
 	}
 
+	var clientList []enums.ClientType
+	for _, k := range response.ClientTypes {
+		clientList = append(clientList, enums.ClientType(k))
+	}
+
 	user := createMapUser(&response.User)
 	return &domain.ClientProfile{
 		ID:                      response.ID,
 		User:                    user,
 		Active:                  response.Active,
-		ClientType:              response.ClientType,
+		ClientTypes:             clientList,
 		TreatmentEnrollmentDate: response.TreatmentEnrollmentDate,
 		FHIRPatientID:           response.FHIRPatientID,
 		HealthRecordID:          response.HealthRecordID,
@@ -729,12 +734,16 @@ func (d *MyCareHubDb) GetClientProfileByClientID(ctx context.Context, clientID s
 	if err != nil {
 		return nil, err
 	}
+	var clientList []enums.ClientType
+	for _, k := range response.ClientTypes {
+		clientList = append(clientList, enums.ClientType(k))
+	}
 	user := createMapUser(&response.User)
 	return &domain.ClientProfile{
 		ID:                      response.ID,
 		User:                    user,
 		Active:                  response.Active,
-		ClientType:              response.ClientType,
+		ClientTypes:             clientList,
 		TreatmentEnrollmentDate: response.TreatmentEnrollmentDate,
 		FHIRPatientID:           response.FHIRPatientID,
 		HealthRecordID:          response.HealthRecordID,
@@ -990,12 +999,16 @@ func (d *MyCareHubDb) GetClientsInAFacility(ctx context.Context, facilityID stri
 	var clients []*domain.ClientProfile
 
 	for _, cli := range clientProfiles {
+		var clientList []enums.ClientType
+		for _, k := range cli.ClientTypes {
+			clientList = append(clientList, enums.ClientType(k))
+		}
 		user := createMapUser(&cli.User)
 		client := &domain.ClientProfile{
 			ID:                      cli.ID,
 			User:                    user,
 			Active:                  cli.Active,
-			ClientType:              cli.ClientType,
+			ClientTypes:             clientList,
 			TreatmentEnrollmentDate: cli.TreatmentEnrollmentDate,
 			FHIRPatientID:           cli.FHIRPatientID,
 			HealthRecordID:          cli.HealthRecordID,
@@ -1064,10 +1077,14 @@ func (d *MyCareHubDb) GetClientsByParams(ctx context.Context, params gorm.Client
 
 	profiles := []*domain.ClientProfile{}
 	for _, c := range clients {
+		var clientList []enums.ClientType
+		for _, k := range c.ClientTypes {
+			clientList = append(clientList, enums.ClientType(k))
+		}
 		profiles = append(profiles, &domain.ClientProfile{
 			ID:                      c.ID,
 			Active:                  c.Active,
-			ClientType:              c.ClientType,
+			ClientTypes:             clientList,
 			UserID:                  *c.UserID,
 			TreatmentEnrollmentDate: c.TreatmentEnrollmentDate,
 			FHIRPatientID:           c.FHIRPatientID,
@@ -1413,12 +1430,17 @@ func (d *MyCareHubDb) GetClientProfileByCCCNumber(ctx context.Context, CCCNumber
 		return nil, err
 	}
 
+	var clientList []enums.ClientType
+	for _, k := range clientProfile.ClientTypes {
+		clientList = append(clientList, enums.ClientType(k))
+	}
+
 	user := createMapUser(userProfile)
 	return &domain.ClientProfile{
 		ID:                      clientProfile.ID,
 		User:                    user,
 		Active:                  clientProfile.Active,
-		ClientType:              clientProfile.ClientType,
+		ClientTypes:             clientList,
 		UserID:                  *clientProfile.UserID,
 		TreatmentEnrollmentDate: clientProfile.TreatmentEnrollmentDate,
 		FHIRPatientID:           clientProfile.FHIRPatientID,
@@ -1456,12 +1478,16 @@ func (d *MyCareHubDb) SearchClientProfilesByCCCNumber(ctx context.Context, CCCNu
 			helpers.ReportErrorToSentry(err)
 			return nil, err
 		}
+		var clientList []enums.ClientType
+		for _, k := range c.ClientTypes {
+			clientList = append(clientList, enums.ClientType(k))
+		}
 
 		client := &domain.ClientProfile{
 			ID:                      c.ID,
 			User:                    user,
 			Active:                  c.Active,
-			ClientType:              c.ClientType,
+			ClientTypes:             clientList,
 			UserID:                  *c.UserID,
 			TreatmentEnrollmentDate: c.TreatmentEnrollmentDate,
 			FHIRPatientID:           c.FHIRPatientID,

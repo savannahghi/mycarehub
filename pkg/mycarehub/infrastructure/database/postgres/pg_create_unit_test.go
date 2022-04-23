@@ -838,6 +838,8 @@ func TestMyCareHubDb_CreateClient(t *testing.T) {
 	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
 	enrollment := time.Now()
 	userID := gofakeit.UUID()
+	var clientTypeList []enums.ClientType
+	clientTypeList = append(clientTypeList, enums.AllClientType...)
 
 	type args struct {
 		ctx          context.Context
@@ -860,7 +862,7 @@ func TestMyCareHubDb_CreateClient(t *testing.T) {
 					UserID:                  userID,
 					FacilityID:              gofakeit.UUID(),
 					ClientCounselled:        true,
-					ClientType:              enums.ClientTypePmtct.String(),
+					ClientTypes:             clientTypeList,
 					TreatmentEnrollmentDate: &enrollment,
 				},
 				contactID:    gofakeit.UUID(),

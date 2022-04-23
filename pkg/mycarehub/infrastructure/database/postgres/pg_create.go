@@ -377,12 +377,16 @@ func (d *MyCareHubDb) CreateUser(ctx context.Context, user domain.User) (*domain
 
 // CreateClient creates a new client
 func (d *MyCareHubDb) CreateClient(ctx context.Context, client domain.ClientProfile, contactID, identifierID string) (*domain.ClientProfile, error) {
+	var clientTypes pq.StringArray
+	for _, c := range client.ClientTypes {
+		clientTypes = append(clientTypes, c.String())
+	}
 	c := &gorm.Client{
 		Active:                  true,
 		UserID:                  &client.UserID,
 		FacilityID:              client.FacilityID,
 		ClientCounselled:        client.ClientCounselled,
-		ClientType:              client.ClientType,
+		ClientTypes:             clientTypes,
 		TreatmentEnrollmentDate: client.TreatmentEnrollmentDate,
 	}
 
@@ -393,11 +397,16 @@ func (d *MyCareHubDb) CreateClient(ctx context.Context, client domain.ClientProf
 
 	user := createMapUser(&c.User)
 
+	var clientList []enums.ClientType
+	for _, k := range c.ClientTypes {
+		clientList = append(clientList, enums.ClientType(k))
+	}
+
 	return &domain.ClientProfile{
 		ID:                      c.ID,
 		User:                    user,
 		Active:                  c.Active,
-		ClientType:              c.ClientType,
+		ClientTypes:             clientList,
 		TreatmentEnrollmentDate: c.TreatmentEnrollmentDate,
 		FHIRPatientID:           c.FHIRPatientID,
 		HealthRecordID:          c.HealthRecordID,

@@ -265,16 +265,23 @@ func (f *CaregiverInput) Validate() error {
 
 // ClientRegistrationInput defines the fields passed as a payload to the client registration API
 type ClientRegistrationInput struct {
-	Facility       string           `json:"facility"`
-	ClientType     enums.ClientType `json:"client_type"`
-	ClientName     string           `json:"name"`
-	Gender         enumutils.Gender `json:"gender"`
-	DateOfBirth    scalarutils.Date `json:"date_of_birth"`
-	PhoneNumber    string           `json:"phone_number"`
-	EnrollmentDate scalarutils.Date `json:"enrollment_date"`
-	CCCNumber      string           `json:"ccc_number"`
-	Counselled     bool             `json:"counselled"`
-	InviteClient   bool             `json:"inviteClient"`
+	Facility       string             `json:"facility" validate:"required"`
+	ClientTypes    []enums.ClientType `json:"client_types" validate:"required"`
+	ClientName     string             `json:"name" validate:"required"`
+	Gender         enumutils.Gender   `json:"gender" validate:"required"`
+	DateOfBirth    scalarutils.Date   `json:"date_of_birth" validate:"required"`
+	PhoneNumber    string             `json:"phone_number" validate:"required"`
+	EnrollmentDate scalarutils.Date   `json:"enrollment_date" validate:"required"`
+	CCCNumber      string             `json:"ccc_number" validate:"required"`
+	Counselled     bool               `json:"counselled" validate:"required"`
+	InviteClient   bool               `json:"inviteClient"`
+}
+
+// Validate helps with validation of ClientRegistrationInput fields
+func (f *ClientRegistrationInput) Validate() error {
+	v := validator.New()
+	err := v.Struct(f)
+	return err
 }
 
 // CommunityInput defines the payload to create a channel
@@ -304,17 +311,17 @@ type NextOfKinPayload struct {
 // PatientRegistrationPayload defines the payload from KenyaEMR
 // used for client registration
 type PatientRegistrationPayload struct {
-	MFLCode            string           `json:"MFLCODE"`
-	CCCNumber          string           `json:"cccNumber"`
-	Name               string           `json:"name"`
-	DateOfBirth        scalarutils.Date `json:"dateOfBirth"`
-	ClientType         string           `json:"clientType"`
-	PhoneNumber        string           `json:"phoneNumber"`
-	EnrollmentDate     scalarutils.Date `json:"enrollmentDate"`
-	BirthDateEstimated bool             `json:"birthDateEstimated"`
-	Gender             string           `json:"gender"`
-	Counselled         bool             `json:"counselled"`
-	NextOfKin          NextOfKinPayload `json:"nextOfKin"`
+	MFLCode            string             `json:"MFLCODE"`
+	CCCNumber          string             `json:"cccNumber"`
+	Name               string             `json:"name"`
+	DateOfBirth        scalarutils.Date   `json:"dateOfBirth"`
+	ClientTypes        []enums.ClientType `json:"clientTypes"`
+	PhoneNumber        string             `json:"phoneNumber"`
+	EnrollmentDate     scalarutils.Date   `json:"enrollmentDate"`
+	BirthDateEstimated bool               `json:"birthDateEstimated"`
+	Gender             string             `json:"gender"`
+	Counselled         bool               `json:"counselled"`
+	NextOfKin          NextOfKinPayload   `json:"nextOfKin"`
 }
 
 // FetchHealthDiaryEntries models the payload that is passed when

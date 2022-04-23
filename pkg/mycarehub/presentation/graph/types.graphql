@@ -226,7 +226,7 @@ type ServiceRequest {
 type ClientRegistrationOutput {
   ID: String!
   active: Boolean!
-  clientType: ClientType!
+  clientTypes: [ClientType!]
   enrollmentDate: Time
   fhirPatientID: String
   emrHealthRecordID: String
@@ -360,7 +360,7 @@ type ClientProfile {
   ID: String!
   User: User!
   Active: Boolean
-  ClientType: String
+  ClientTypes: [ClientType!]
   TreatmentEnrollmentDate: Time
   FHIRPatientID: String
   HealthRecordID: String

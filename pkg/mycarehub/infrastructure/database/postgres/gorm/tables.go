@@ -355,7 +355,7 @@ type Client struct {
 
 	Active bool `gorm:"column:active"`
 
-	ClientType string `gorm:"column:client_type"`
+	ClientTypes pq.StringArray `gorm:"type:text[];column:client_types"`
 
 	UserID *string `gorm:"column:user_id;not null"`
 

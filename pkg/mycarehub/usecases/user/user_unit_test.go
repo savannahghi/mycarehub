@@ -2396,7 +2396,7 @@ func TestUseCasesUserImpl_RegisterClient(t *testing.T) {
 						Month: 3,
 						Day:   12,
 					},
-					ClientType:   enums.ClientTypeDreams,
+					ClientTypes:  []enums.ClientType{enums.ClientTypeKenyaEMR},
 					InviteClient: true,
 				},
 			},
@@ -2690,7 +2690,7 @@ func TestUseCasesUserImpl_RegisterKenyaEMRPatients(t *testing.T) {
 				Month: 12,
 				Day:   25,
 			},
-			ClientType:  "KenyaEMR",
+			ClientTypes: []enums.ClientType{enums.ClientTypeKenyaEMR},
 			PhoneNumber: gofakeit.Phone(),
 			EnrollmentDate: scalarutils.Date{
 				Year:  2020,

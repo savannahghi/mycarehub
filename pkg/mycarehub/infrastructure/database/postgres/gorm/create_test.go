@@ -1119,6 +1119,10 @@ func TestPGInstance_CreateUser(t *testing.T) {
 
 func TestPGInstance_CreateClient(t *testing.T) {
 	enrollment := time.Now()
+	var clientTypeList pq.StringArray
+	for _, c := range enums.AllClientType {
+		clientTypeList = append(clientTypeList, string(c))
+	}
 
 	type args struct {
 		ctx          context.Context
@@ -1140,7 +1144,7 @@ func TestPGInstance_CreateClient(t *testing.T) {
 					UserID:                  &userIDtoAssignClient,
 					FacilityID:              facilityID,
 					ClientCounselled:        true,
-					ClientType:              enums.ClientTypePmtct.String(),
+					ClientTypes:             clientTypeList,
 					TreatmentEnrollmentDate: &enrollment,
 				},
 				contactID:    contactID,

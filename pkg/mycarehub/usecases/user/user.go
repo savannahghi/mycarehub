@@ -1005,6 +1005,11 @@ func (us *UseCasesUserImpl) RegisterClient(
 ) (*dto.ClientRegistrationOutput, error) {
 	var registrationOutput *dto.ClientRegistrationOutput
 
+	err := input.Validate()
+	if err != nil {
+		return registrationOutput, exceptions.InputValidationErr(err)
+	}
+
 	// TODO: Restore after aligning with frontend
 	// check if logged in user can register client
 	// err := us.Authority.CheckUserPermission(ctx, enums.PermissionTypeCanInviteClient)
@@ -1125,13 +1130,16 @@ func (us *UseCasesUserImpl) createClient(ctx context.Context, patient dto.Patien
 	if err != nil {
 		return nil, err
 	}
-
+	var clientList []enums.ClientType
+	for _, k := range patient.ClientTypes {
+		clientList = append(clientList, enums.ClientType(k))
+	}
 	enrollment := patient.EnrollmentDate.AsTime()
 	newClient := domain.ClientProfile{
 		UserID:                  *user.ID,
 		FacilityID:              *facility.ID,
 		ClientCounselled:        patient.Counselled,
-		ClientType:              patient.ClientType,
+		ClientTypes:             clientList,
 		TreatmentEnrollmentDate: &enrollment,
 	}
 	client, err := us.Create.CreateClient(ctx, newClient, *contact.ID, identifier.ID)

@@ -3,7 +3,7 @@
   created: 2021-11-22 21:16:29.23639+03
   updated: 2021-11-22 21:16:29.23639+03
   active: true
-  client_type: client
+  client_types: '{PMTCT}'
   enrollment_date: 2021-11-22 21:16:29.23639+03
   fhir_patient_id: {{.test_fhir_patient_id}}
   emr_health_record_id: {{.test_emr_health_record_id}}
@@ -21,7 +21,7 @@
   created: 2021-11-22 21:16:29.23639+03
   updated: 2021-11-22 21:16:29.23639+03
   active: true
-  client_type: client
+  client_types: '{PMTCT}'
   enrollment_date: 2021-11-22 21:16:29.23639+03
   fhir_patient_id: {{.test_fhir_patient_id2}}
   emr_health_record_id: {{.test_emr_health_record_id2}}
@@ -37,7 +37,7 @@
   created: 2021-11-22 21:16:29.23639+03
   updated: 2021-11-22 21:16:29.23639+03
   active: true
-  client_type: client
+  client_types: '{PMTCT}'
   enrollment_date: 2021-11-22 21:16:29.23639+03
   fhir_patient_id: {{.user_id_to_add_caregiver}}
   emr_health_record_id: {{.user_id_to_add_caregiver}}
@@ -53,7 +53,7 @@
   created: 2021-11-22 21:16:29.23639+03
   updated: 2021-11-22 21:16:29.23639+03
   active: true
-  client_type: client
+  client_types: '{PMTCT}'
   enrollment_date: 2021-11-22 21:16:29.23639+03
   fhir_patient_id: {{.client_user_unresolved_request_id}}
   emr_health_record_id: {{.client_user_unresolved_request_id}}
