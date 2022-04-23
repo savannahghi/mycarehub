@@ -207,9 +207,9 @@ func NewGormMock() *GormMock {
 
 	fhirID := uuid.New().String()
 	clientProfile := &gorm.Client{
-		ID:         &UUID,
-		Active:     true,
-		ClientType: "",
+		ID:          &UUID,
+		Active:      true,
+		ClientTypes: []string{"PMTCT"},
 		User: gorm.User{
 			UserID:                 &UUID,
 			Username:               gofakeit.Name(),

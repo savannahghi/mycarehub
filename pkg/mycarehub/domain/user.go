@@ -67,11 +67,11 @@ type User struct {
 // It is a linkage model e.g to tie together all of a person's identifiers
 // and their health record ID
 type ClientProfile struct {
-	ID         *string `json:"id"`
-	User       *User   `json:"user"`
-	Active     bool    `json:"active"`
-	ClientType string  `json:"clientType"`
-	UserID     string  `json:"userID"`
+	ID          *string            `json:"id"`
+	User        *User              `json:"user"`
+	Active      bool               `json:"active"`
+	ClientTypes []enums.ClientType `json:"clientTypes"`
+	UserID      string             `json:"userID"`
 
 	TreatmentEnrollmentDate *time.Time `json:"treatmentEnrollmentDate"`
 

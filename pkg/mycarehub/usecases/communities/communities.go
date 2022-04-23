@@ -611,7 +611,10 @@ func (us *UseCasesCommunitiesImpl) RecommendedCommunities(ctx context.Context, c
 		helpers.ReportErrorToSentry(err)
 		return nil, err
 	}
-	clientType := clientProfile.ClientType
+	var clientTypes []string
+	for _, k := range clientProfile.ClientTypes {
+		clientTypes = append(clientTypes, k.String())
+	}
 
 	joinedChannels, err := us.GetstreamService.ListGetStreamChannels(ctx, &stream.QueryOption{
 		Filter: map[string]interface{}{
@@ -639,7 +642,7 @@ func (us *UseCasesCommunitiesImpl) RecommendedCommunities(ctx context.Context, c
 
 	query := &stream.QueryOption{
 		Filter: map[string]interface{}{
-			"clientType": []string{clientType},
+			"clientType": clientTypes,
 			"gender":     []string{clientGender},
 			"minimumAge": map[string]interface{}{"$lte": age},
 			"maximumAge": map[string]interface{}{"$gte": age},

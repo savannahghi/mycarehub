@@ -140,7 +140,7 @@ type ComplexityRoot struct {
 		CHVUserName             func(childComplexity int) int
 		CaregiverID             func(childComplexity int) int
 		ClientCounselled        func(childComplexity int) int
-		ClientType              func(childComplexity int) int
+		ClientTypes             func(childComplexity int) int
 		FHIRPatientID           func(childComplexity int) int
 		FacilityID              func(childComplexity int) int
 		HealthRecordID          func(childComplexity int) int
@@ -154,7 +154,7 @@ type ComplexityRoot struct {
 		Active            func(childComplexity int) int
 		CHV               func(childComplexity int) int
 		Caregiver         func(childComplexity int) int
-		ClientType        func(childComplexity int) int
+		ClientTypes       func(childComplexity int) int
 		Counselled        func(childComplexity int) int
 		CurrentFacilityID func(childComplexity int) int
 		EMRHealthRecordID func(childComplexity int) int
@@ -1119,12 +1119,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ClientProfile.ClientCounselled(childComplexity), true
 
-	case "ClientProfile.ClientType":
-		if e.complexity.ClientProfile.ClientType == nil {
+	case "ClientProfile.ClientTypes":
+		if e.complexity.ClientProfile.ClientTypes == nil {
 			break
 		}
 
-		return e.complexity.ClientProfile.ClientType(childComplexity), true
+		return e.complexity.ClientProfile.ClientTypes(childComplexity), true
 
 	case "ClientProfile.FHIRPatientID":
 		if e.complexity.ClientProfile.FHIRPatientID == nil {
@@ -1196,12 +1196,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ClientRegistrationOutput.Caregiver(childComplexity), true
 
-	case "ClientRegistrationOutput.clientType":
-		if e.complexity.ClientRegistrationOutput.ClientType == nil {
+	case "ClientRegistrationOutput.clientTypes":
+		if e.complexity.ClientRegistrationOutput.ClientTypes == nil {
 			break
 		}
 
-		return e.complexity.ClientRegistrationOutput.ClientType(childComplexity), true
+		return e.complexity.ClientRegistrationOutput.ClientTypes(childComplexity), true
 
 	case "ClientRegistrationOutput.counselled":
 		if e.complexity.ClientRegistrationOutput.Counselled == nil {
@@ -4465,7 +4465,7 @@ input CaregiverInput {
 
 input ClientRegistrationInput {
   facility: String!
-  clientType: ClientType!
+  clientTypes: [ClientType!]!
   clientName: String!
   gender: Gender!
   dateOfBirth: Date!
@@ -4496,7 +4496,7 @@ input CommunityInput {
   description: String!
   ageRange: AgeRangeInput
   gender: [Gender!]!
-  clientType: [ClientType!]
+  clientType: [ClientType!]!
   inviteOnly: Boolean!
 }
 
@@ -4841,7 +4841,7 @@ type ServiceRequest {
 type ClientRegistrationOutput {
   ID: String!
   active: Boolean!
-  clientType: ClientType!
+  clientTypes: [ClientType!]
   enrollmentDate: Time
   fhirPatientID: String
   emrHealthRecordID: String
@@ -4975,7 +4975,7 @@ type ClientProfile {
   ID: String!
   User: User!
   Active: Boolean
-  ClientType: String
+  ClientTypes: [ClientType!]
   TreatmentEnrollmentDate: Time
   FHIRPatientID: String
   HealthRecordID: String
@@ -8605,7 +8605,7 @@ func (ec *executionContext) _ClientProfile_Active(ctx context.Context, field gra
 	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _ClientProfile_ClientType(ctx context.Context, field graphql.CollectedField, obj *domain.ClientProfile) (ret graphql.Marshaler) {
+func (ec *executionContext) _ClientProfile_ClientTypes(ctx context.Context, field graphql.CollectedField, obj *domain.ClientProfile) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -8623,7 +8623,7 @@ func (ec *executionContext) _ClientProfile_ClientType(ctx context.Context, field
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.ClientType, nil
+		return obj.ClientTypes, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -8632,9 +8632,9 @@ func (ec *executionContext) _ClientProfile_ClientType(ctx context.Context, field
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.([]enums.ClientType)
 	fc.Result = res
-	return ec.marshalOString2string(ctx, field.Selections, res)
+	return ec.marshalOClientType2ᚕgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐClientTypeᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ClientProfile_TreatmentEnrollmentDate(ctx context.Context, field graphql.CollectedField, obj *domain.ClientProfile) (ret graphql.Marshaler) {
@@ -9030,7 +9030,7 @@ func (ec *executionContext) _ClientRegistrationOutput_active(ctx context.Context
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _ClientRegistrationOutput_clientType(ctx context.Context, field graphql.CollectedField, obj *dto.ClientRegistrationOutput) (ret graphql.Marshaler) {
+func (ec *executionContext) _ClientRegistrationOutput_clientTypes(ctx context.Context, field graphql.CollectedField, obj *dto.ClientRegistrationOutput) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -9048,21 +9048,18 @@ func (ec *executionContext) _ClientRegistrationOutput_clientType(ctx context.Con
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.ClientType, nil
+		return obj.ClientTypes, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(enums.ClientType)
+	res := resTmp.([]enums.ClientType)
 	fc.Result = res
-	return ec.marshalNClientType2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐClientType(ctx, field.Selections, res)
+	return ec.marshalOClientType2ᚕgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐClientTypeᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ClientRegistrationOutput_enrollmentDate(ctx context.Context, field graphql.CollectedField, obj *dto.ClientRegistrationOutput) (ret graphql.Marshaler) {
@@ -22740,11 +22737,11 @@ func (ec *executionContext) unmarshalInputClientRegistrationInput(ctx context.Co
 			if err != nil {
 				return it, err
 			}
-		case "clientType":
+		case "clientTypes":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clientType"))
-			it.ClientType, err = ec.unmarshalNClientType2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐClientType(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clientTypes"))
+			it.ClientTypes, err = ec.unmarshalNClientType2ᚕgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐClientTypeᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -22863,7 +22860,7 @@ func (ec *executionContext) unmarshalInputCommunityInput(ctx context.Context, ob
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clientType"))
-			it.ClientType, err = ec.unmarshalOClientType2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐClientTypeᚄ(ctx, v)
+			it.ClientType, err = ec.unmarshalNClientType2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐClientTypeᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -24102,8 +24099,8 @@ func (ec *executionContext) _ClientProfile(ctx context.Context, sel ast.Selectio
 			}
 		case "Active":
 			out.Values[i] = ec._ClientProfile_Active(ctx, field, obj)
-		case "ClientType":
-			out.Values[i] = ec._ClientProfile_ClientType(ctx, field, obj)
+		case "ClientTypes":
+			out.Values[i] = ec._ClientProfile_ClientTypes(ctx, field, obj)
 		case "TreatmentEnrollmentDate":
 			out.Values[i] = ec._ClientProfile_TreatmentEnrollmentDate(ctx, field, obj)
 		case "FHIRPatientID":
@@ -24159,11 +24156,8 @@ func (ec *executionContext) _ClientRegistrationOutput(ctx context.Context, sel a
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "clientType":
-			out.Values[i] = ec._ClientRegistrationOutput_clientType(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
+		case "clientTypes":
+			out.Values[i] = ec._ClientRegistrationOutput_clientTypes(ctx, field, obj)
 		case "enrollmentDate":
 			out.Values[i] = ec._ClientRegistrationOutput_enrollmentDate(ctx, field, obj)
 		case "fhirPatientID":
@@ -27537,6 +27531,136 @@ func (ec *executionContext) marshalNClientType2githubᚗcomᚋsavannahghiᚋmyca
 	return v
 }
 
+func (ec *executionContext) unmarshalNClientType2ᚕgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐClientTypeᚄ(ctx context.Context, v interface{}) ([]enums.ClientType, error) {
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]enums.ClientType, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNClientType2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐClientType(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalNClientType2ᚕgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐClientTypeᚄ(ctx context.Context, sel ast.SelectionSet, v []enums.ClientType) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNClientType2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐClientType(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) unmarshalNClientType2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐClientTypeᚄ(ctx context.Context, v interface{}) ([]*enums.ClientType, error) {
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]*enums.ClientType, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNClientType2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐClientType(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalNClientType2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐClientTypeᚄ(ctx context.Context, sel ast.SelectionSet, v []*enums.ClientType) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNClientType2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐClientType(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
 func (ec *executionContext) unmarshalNClientType2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐClientType(ctx context.Context, v interface{}) (*enums.ClientType, error) {
 	var res = new(enums.ClientType)
 	err := res.UnmarshalGQL(v)
@@ -29289,77 +29413,6 @@ func (ec *executionContext) marshalOClientType2ᚕgithubᚗcomᚋsavannahghiᚋm
 				defer wg.Done()
 			}
 			ret[i] = ec.marshalNClientType2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐClientType(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-
-	for _, e := range ret {
-		if e == graphql.Null {
-			return graphql.Null
-		}
-	}
-
-	return ret
-}
-
-func (ec *executionContext) unmarshalOClientType2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐClientTypeᚄ(ctx context.Context, v interface{}) ([]*enums.ClientType, error) {
-	if v == nil {
-		return nil, nil
-	}
-	var vSlice []interface{}
-	if v != nil {
-		if tmp1, ok := v.([]interface{}); ok {
-			vSlice = tmp1
-		} else {
-			vSlice = []interface{}{v}
-		}
-	}
-	var err error
-	res := make([]*enums.ClientType, len(vSlice))
-	for i := range vSlice {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalNClientType2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐClientType(ctx, vSlice[i])
-		if err != nil {
-			return nil, err
-		}
-	}
-	return res, nil
-}
-
-func (ec *executionContext) marshalOClientType2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐClientTypeᚄ(ctx context.Context, sel ast.SelectionSet, v []*enums.ClientType) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalNClientType2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐClientType(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)

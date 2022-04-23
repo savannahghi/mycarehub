@@ -266,11 +266,15 @@ func (d *MyCareHubDb) UpdateClient(ctx context.Context, client *domain.ClientPro
 	if err != nil {
 		return nil, err
 	}
+	var clientList []enums.ClientType
+	for _, k := range c.ClientTypes {
+		clientList = append(clientList, enums.ClientType(k))
+	}
 
 	return &domain.ClientProfile{
 		ID:                      c.ID,
 		Active:                  c.Active,
-		ClientType:              c.ClientType,
+		ClientTypes:             clientList,
 		UserID:                  *c.UserID,
 		TreatmentEnrollmentDate: c.TreatmentEnrollmentDate,
 		FHIRPatientID:           c.FHIRPatientID,
