@@ -565,6 +565,15 @@ func TestServiceScreeningToolsImpl_GetScreeningToolServiceRequestResponses(t *te
 			},
 			wantErr: true,
 		},
+		{
+			name: "sad case: client profile by client id",
+			args: args{
+				ctx:      context.Background(),
+				clientID: uuid.New().String(),
+				toolType: enums.ScreeningToolTypeGBV,
+			},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -588,6 +597,12 @@ func TestServiceScreeningToolsImpl_GetScreeningToolServiceRequestResponses(t *te
 			if tt.name == "sad case: failed to get client service request by question id" {
 				fakeDB.MockGetClientScreeningToolServiceRequestByToolTypeFn = func(ctx context.Context, clientID string, toolType string, status string) (*domain.ServiceRequest, error) {
 					return nil, fmt.Errorf("failed to get client service request by question id")
+				}
+			}
+
+			if tt.name == "sad case: client profile by client id" {
+				fakeDB.MockGetClientProfileByClientIDFn = func(ctx context.Context, clientID string) (*domain.ClientProfile, error) {
+					return nil, fmt.Errorf("failed to get client by id")
 				}
 			}
 			got, err := tr.GetScreeningToolServiceRequestResponses(tt.args.ctx, tt.args.clientID, tt.args.toolType)

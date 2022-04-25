@@ -345,6 +345,11 @@ func (t *ServiceScreeningToolsImpl) GetScreeningToolServiceRequestResponses(ctx 
 		helpers.ReportErrorToSentry(err)
 		return nil, err
 	}
+	client, err := t.Query.GetClientProfileByClientID(ctx, clientID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, exceptions.ProfileNotFoundErr(fmt.Errorf("failed to get client profile: %v", err))
+	}
 	clientResponses, err := t.Query.GetClientScreeningToolResponsesByToolType(ctx, clientID, toolType.String(), true)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
@@ -372,6 +377,7 @@ func (t *ServiceScreeningToolsImpl) GetScreeningToolServiceRequestResponses(ctx 
 	}
 	ScreeningToolResponsePayload.ScreeningToolResponses = screeningToolResponses
 	ScreeningToolResponsePayload.ServiceRequestID = serviceRequest.ID
+	ScreeningToolResponsePayload.ClientContact = client.User.Contacts.ContactValue
 	return ScreeningToolResponsePayload, nil
 
 }
