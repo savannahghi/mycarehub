@@ -567,6 +567,7 @@ type ComplexityRoot struct {
 	}
 
 	ScreeningToolResponsePayload struct {
+		ClientContact          func(childComplexity int) int
 		ScreeningToolResponses func(childComplexity int) int
 		ServiceRequestID       func(childComplexity int) int
 	}
@@ -3652,6 +3653,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ScreeningToolResponse.ToolIndex(childComplexity), true
 
+	case "ScreeningToolResponsePayload.clientContact":
+		if e.complexity.ScreeningToolResponsePayload.ClientContact == nil {
+			break
+		}
+
+		return e.complexity.ScreeningToolResponsePayload.ClientContact(childComplexity), true
+
 	case "ScreeningToolResponsePayload.screeningToolResponses":
 		if e.complexity.ScreeningToolResponsePayload.ScreeningToolResponses == nil {
 			break
@@ -5130,8 +5138,9 @@ type ScreeningToolResponse {
 }
 
 type ScreeningToolResponsePayload {
-  serviceRequestID: String!
-  screeningToolResponses: [ScreeningToolResponse!]!
+	serviceRequestID:       String!
+  clientContact: String!
+	screeningToolResponses: [ScreeningToolResponse!]!
 }
 `, BuiltIn: false},
 	{Name: "pkg/mycarehub/presentation/graph/user.graphql", Input: `extend type Query {
@@ -19633,6 +19642,41 @@ func (ec *executionContext) _ScreeningToolResponsePayload_serviceRequestID(ctx c
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _ScreeningToolResponsePayload_clientContact(ctx context.Context, field graphql.CollectedField, obj *domain.ScreeningToolResponsePayload) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ScreeningToolResponsePayload",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ClientContact, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _ScreeningToolResponsePayload_screeningToolResponses(ctx context.Context, field graphql.CollectedField, obj *domain.ScreeningToolResponsePayload) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -26538,6 +26582,11 @@ func (ec *executionContext) _ScreeningToolResponsePayload(ctx context.Context, s
 			out.Values[i] = graphql.MarshalString("ScreeningToolResponsePayload")
 		case "serviceRequestID":
 			out.Values[i] = ec._ScreeningToolResponsePayload_serviceRequestID(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "clientContact":
+			out.Values[i] = ec._ScreeningToolResponsePayload_clientContact(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}

@@ -111,5 +111,6 @@ type ScreeningToolResponse struct {
 // The service request is generated when a client answers screening tool questions
 type ScreeningToolResponsePayload struct {
 	ServiceRequestID       string                   `json:"serviceRequestID"`
+	ClientContact          string                   `json:"clientContact"`
 	ScreeningToolResponses []*ScreeningToolResponse `json:"screeningToolResponses"`
 }

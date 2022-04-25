@@ -2079,7 +2079,7 @@ func TestPGInstance_CheckUserRole(t *testing.T) {
 			name: "happy case: user has role",
 			args: args{
 				ctx:    ctx,
-				userID: userID,
+				userID: userWithRolesID,
 				role:   systemAdminRole,
 			},
 			wantErr: false,
@@ -2148,7 +2148,7 @@ func TestPGInstance_CheckUserPermission(t *testing.T) {
 			name: "happy case: user has permission",
 			args: args{
 				ctx:        context.Background(),
-				userID:     userID,
+				userID:     userWithRolesID,
 				permission: string(enums.PermissionTypeCanEditOwnRole),
 			},
 			wantErr: false,
@@ -2214,7 +2214,7 @@ func TestPGInstance_GetUserRoles(t *testing.T) {
 			name: "happy case: user has roles",
 			args: args{
 				ctx:    context.Background(),
-				userID: userID,
+				userID: userWithRolesID,
 			},
 			wantErr: false,
 		},
@@ -2264,7 +2264,7 @@ func TestPGInstance_GetUserPermissions(t *testing.T) {
 			name: "happy case: user has permissions",
 			args: args{
 				ctx:    context.Background(),
-				userID: userID,
+				userID: userWithRolesID,
 			},
 			wantErr: false,
 		},

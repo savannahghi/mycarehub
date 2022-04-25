@@ -128,6 +128,8 @@ var (
 	screeningToolServiceRequestID = "8ecbbc80-24c8-421a-9f1a-e14e12678efa"
 	staffUnresolvedRequestID      = "8ecbbc80-24c8-421a-9f1a-e14e12678efb"
 	staffUserUnresolvedRequestID  = "8ecbbc80-24c8-421a-9f1a-e14e12678efc"
+	userWithRolesID               = "8ecbbc80-24c8-421a-9f1a-e14e12678efd"
+	staffWithRolesID              = "8ecbbc80-24c8-421a-9f1a-e14e12678efe"
 )
 
 func TestMain(m *testing.M) {
@@ -159,6 +161,7 @@ func TestMain(m *testing.M) {
 			"valid_to":                   time.Now().Add(500).String(),
 			"test_phone":                 "\"" + testPhone + "\"",
 			"test_user_id":               userID,
+			"user_with_roles_id":         userWithRolesID,
 			"test_user_id2":              userID2,
 			"staff_user_id":              userIDtoAssignStaff,
 			"test_flavour":               testFlavour,
@@ -198,6 +201,7 @@ func TestMain(m *testing.M) {
 			"clients_healthdiaryentry_id":    clientsHealthDiaryEntryID,
 			"staff_default_facility":         facilityID,
 			"staff_id":                       staffID,
+			"staff_with_roles_id":            staffWithRolesID,
 
 			"test_service_request_id": serviceRequestID,
 			"test_client_id":          clientID,
