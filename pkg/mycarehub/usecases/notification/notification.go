@@ -16,6 +16,7 @@ import (
 // IServiceNotify specifies a set of method signatures that are used to send notifications to client, staffs or facilities
 type IServiceNotify interface {
 	NotifyUser(ctx context.Context, userProfile *domain.User, notificationPayload *domain.Notification) error
+	NotifyFacilityStaffs(ctx context.Context, facility *domain.Facility, notificationPayload *domain.Notification) error
 	FetchNotifications(ctx context.Context, userID string, flavour feedlib.Flavour, paginationInput dto.PaginationsInput) (*domain.NotificationsPage, error)
 }
 
@@ -24,7 +25,7 @@ type UseCaseNotification interface {
 	IServiceNotify
 }
 
-// UseCaseNotificationImpl embes the notifications logic
+// UseCaseNotificationImpl embeds the notifications logic
 type UseCaseNotificationImpl struct {
 	FCM    fcm.ServiceFCM
 	Query  infrastructure.Query
@@ -44,13 +45,15 @@ func NewNotificationUseCaseImpl(
 	}
 }
 
-// NotifyUser is used to send a FCM notification to a user
+// NotifyUser is used to save and send a FCM notification to a user
 func (n UseCaseNotificationImpl) NotifyUser(ctx context.Context, userProfile *domain.User, notificationPayload *domain.Notification) error {
 	notificationPayload.UserID = userProfile.ID
-	err := n.Create.SaveNotification(ctx, notificationPayload)
-	if err != nil {
-		helpers.ReportErrorToSentry(err)
-		return err
+	if notificationPayload.Body != "" {
+		err := n.Create.SaveNotification(ctx, notificationPayload)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return err
+		}
 	}
 
 	notificationData := &dto.FCMNotificationMessage{
@@ -59,11 +62,45 @@ func (n UseCaseNotificationImpl) NotifyUser(ctx context.Context, userProfile *do
 	}
 
 	payload := helpers.ComposeNotificationPayload(userProfile, *notificationData)
-	_, err = n.FCM.SendNotification(ctx, payload)
+	_, err := n.FCM.SendNotification(ctx, payload)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		log.Printf("failed to send notification: %v", err)
 	}
+	return nil
+}
+
+// NotifyFacilityStaffs is used to save and send a FCM notification to a user/ staff at a facility
+func (n UseCaseNotificationImpl) NotifyFacilityStaffs(ctx context.Context, facility *domain.Facility, notificationPayload *domain.Notification) error {
+	notificationPayload.FacilityID = facility.ID
+	if notificationPayload.Body != "" {
+		err := n.Create.SaveNotification(ctx, notificationPayload)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return err
+		}
+	}
+
+	notificationData := &dto.FCMNotificationMessage{
+		Title: notificationPayload.Title,
+		Body:  notificationPayload.Body,
+	}
+
+	staffs, err := n.Query.GetFacilityStaffs(ctx, *facility.ID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return err
+	}
+
+	for _, staff := range staffs {
+		payload := helpers.ComposeNotificationPayload(staff.User, *notificationData)
+		_, err = n.FCM.SendNotification(ctx, payload)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			log.Printf("failed to send notification: %v", err)
+		}
+	}
+
 	return nil
 }
 

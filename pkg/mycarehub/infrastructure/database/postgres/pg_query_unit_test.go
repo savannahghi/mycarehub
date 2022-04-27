@@ -5511,3 +5511,54 @@ func TestMyCareHubDb_CheckIfStaffHasUnresolvedServiceRequests(t *testing.T) {
 		})
 	}
 }
+
+func TestMyCareHubDb_GetFacilityStaffs(t *testing.T) {
+	type args struct {
+		ctx        context.Context
+		facilityID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    []*domain.StaffProfile
+		wantErr bool
+	}{
+		{
+			name: "Happy case: retrieve facility staff",
+			args: args{
+				ctx:        context.Background(),
+				facilityID: gofakeit.UUID(),
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: invalid facility id",
+			args: args{
+				ctx:        context.Background(),
+				facilityID: "-",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var fakeGorm = gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+			if tt.name == "Sad case: invalid facility id" {
+				fakeGorm.MockGetFacilityStaffsFn = func(ctx context.Context, facilityID string) ([]*gorm.StaffProfile, error) {
+					return nil, fmt.Errorf("cannot retrieve facilities")
+				}
+			}
+
+			got, err := d.GetFacilityStaffs(tt.args.ctx, tt.args.facilityID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.GetFacilityStaffs() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected value, got %v", got)
+				return
+			}
+		})
+	}
+}

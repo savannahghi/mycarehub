@@ -1,14 +1,20 @@
 package domain
 
-import "github.com/savannahghi/feedlib"
+import (
+	"time"
+
+	"github.com/savannahghi/feedlib"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
+)
 
 // Notification represents a notification
 type Notification struct {
-	ID     string `json:"id"`
-	Title  string `json:"title"`
-	Body   string `json:"body"`
-	Type   string `json:"type"`
-	IsRead bool   `json:"isRead"`
+	ID        string                 `json:"id"`
+	Title     string                 `json:"title"`
+	Body      string                 `json:"body"`
+	Type      enums.NotificationType `json:"type"`
+	IsRead    bool                   `json:"isRead"`
+	CreatedAt time.Time              `json:"createdAt"`
 
 	UserID     *string
 	FacilityID *string

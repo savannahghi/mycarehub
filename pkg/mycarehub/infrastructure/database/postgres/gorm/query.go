@@ -92,6 +92,7 @@ type Query interface {
 	GetClientScreeningToolServiceRequestByToolType(ctx context.Context, clientID, toolType, status string) (*ClientServiceRequest, error)
 	GetAppointment(ctx context.Context, params *Appointment) (*Appointment, error)
 	CheckIfStaffHasUnresolvedServiceRequests(ctx context.Context, staffID string, serviceRequestType string) (bool, error)
+	GetFacilityStaffs(ctx context.Context, facilityID string) ([]*StaffProfile, error)
 }
 
 // CheckWhetherUserHasLikedContent performs a operation to check whether user has liked the content
@@ -106,6 +107,17 @@ func (db *PGInstance) CheckWhetherUserHasLikedContent(ctx context.Context, userI
 	}
 
 	return true, nil
+}
+
+// GetFacilityStaffs returns a list of staff at a particular facility
+func (db PGInstance) GetFacilityStaffs(ctx context.Context, facilityID string) ([]*StaffProfile, error) {
+	var staffs []*StaffProfile
+	if err := db.DB.Where(StaffProfile{Active: true, DefaultFacilityID: facilityID}).Find(&staffs).Error; err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, fmt.Errorf("error retrieving staffs: %v", err)
+	}
+
+	return staffs, nil
 }
 
 //ListContentCategories performs the actual database query to get the list of content categories

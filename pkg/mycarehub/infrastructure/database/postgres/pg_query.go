@@ -354,6 +354,37 @@ func (d *MyCareHubDb) GetStaffProfileByUserID(ctx context.Context, userID string
 	}, nil
 }
 
+// GetFacilityStaffs returns a list of staff at a particular facility
+func (d *MyCareHubDb) GetFacilityStaffs(ctx context.Context, facilityID string) ([]*domain.StaffProfile, error) {
+	staffs, err := d.query.GetFacilityStaffs(ctx, facilityID)
+	if err != nil {
+		return nil, err
+	}
+
+	staffProfiles := []*domain.StaffProfile{}
+	for _, s := range staffs {
+		userProfile, err := d.query.GetUserProfileByUserID(ctx, &s.UserID)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return nil, err
+		}
+		user := createMapUser(userProfile)
+
+		staffProfile := &domain.StaffProfile{
+			ID:                s.ID,
+			User:              user,
+			UserID:            s.UserID,
+			Active:            s.Active,
+			StaffNumber:       s.StaffNumber,
+			DefaultFacilityID: s.DefaultFacilityID,
+		}
+
+		staffProfiles = append(staffProfiles, staffProfile)
+	}
+
+	return staffProfiles, nil
+}
+
 // SearchStaffProfileByStaffNumber searches for the staff profile(s) of a given staff.
 // It may also return other staffs whose staff number may match at a given time.
 func (d *MyCareHubDb) SearchStaffProfileByStaffNumber(ctx context.Context, staffNumber string) ([]*domain.StaffProfile, error) {
@@ -1304,12 +1335,18 @@ func (d *MyCareHubDb) ListNotifications(ctx context.Context, params *domain.Noti
 
 	mapped := []*domain.Notification{}
 	for _, a := range notifications {
+		notificationType := enums.NotificationType(a.Type)
+		if !notificationType.IsValid() {
+			continue
+		}
+
 		m := &domain.Notification{
-			ID:     a.ID,
-			Title:  a.Title,
-			Body:   a.Body,
-			Type:   a.Type,
-			IsRead: a.IsRead,
+			ID:        a.ID,
+			Title:     a.Title,
+			Body:      a.Body,
+			Type:      notificationType,
+			IsRead:    a.IsRead,
+			CreatedAt: a.CreatedAt,
 		}
 
 		mapped = append(mapped, m)

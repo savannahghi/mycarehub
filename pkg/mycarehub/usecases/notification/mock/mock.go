@@ -11,14 +11,18 @@ import (
 
 // NotificationUseCaseMock mocks the notifications usecase methods
 type NotificationUseCaseMock struct {
-	MockNotifyUserFn         func(ctx context.Context, userProfile *domain.User, notificationPayload *domain.Notification) error
-	MockFetchNotificationsFn func(ctx context.Context, userID string, flavour feedlib.Flavour, paginationInput dto.PaginationsInput) (*domain.NotificationsPage, error)
+	MockNotifyUserFn           func(ctx context.Context, userProfile *domain.User, notificationPayload *domain.Notification) error
+	MockNotifyFacilityStaffsFn func(ctx context.Context, facility *domain.Facility, notificationPayload *domain.Notification) error
+	MockFetchNotificationsFn   func(ctx context.Context, userID string, flavour feedlib.Flavour, paginationInput dto.PaginationsInput) (*domain.NotificationsPage, error)
 }
 
 // NewServiceNotificationMock initializes a new notification mock instance
 func NewServiceNotificationMock() *NotificationUseCaseMock {
 	return &NotificationUseCaseMock{
 		MockNotifyUserFn: func(ctx context.Context, userProfile *domain.User, notificationPayload *domain.Notification) error {
+			return nil
+		},
+		MockNotifyFacilityStaffsFn: func(ctx context.Context, facility *domain.Facility, notificationPayload *domain.Notification) error {
 			return nil
 		},
 		MockFetchNotificationsFn: func(ctx context.Context, userID string, flavour feedlib.Flavour, paginationInput dto.PaginationsInput) (*domain.NotificationsPage, error) {
@@ -50,4 +54,9 @@ func (n NotificationUseCaseMock) NotifyUser(ctx context.Context, userProfile *do
 // FetchNotifications mocks the implementation of fetching notifications from the database
 func (n NotificationUseCaseMock) FetchNotifications(ctx context.Context, userID string, flavour feedlib.Flavour, paginationInput dto.PaginationsInput) (*domain.NotificationsPage, error) {
 	return n.MockFetchNotificationsFn(ctx, userID, flavour, paginationInput)
+}
+
+// NotifyFacilityStaffs is used to save and send a FCM notification to a user/ staff at a facility
+func (n NotificationUseCaseMock) NotifyFacilityStaffs(ctx context.Context, facility *domain.Facility, notificationPayload *domain.Notification) error {
+	return n.MockNotifyFacilityStaffsFn(ctx, facility, notificationPayload)
 }

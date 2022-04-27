@@ -2266,7 +2266,7 @@ func TestPGInstance_GetUserPermissions(t *testing.T) {
 				ctx:    context.Background(),
 				userID: userID,
 			},
-			wantErr: false,
+			wantErr: true,
 		},
 		{
 			name: "happy case: user does not have permissions",
@@ -4251,6 +4251,49 @@ func TestPGInstance_CheckIfStaffHasUnresolvedServiceRequests(t *testing.T) {
 			}
 			if got != tt.want {
 				t.Errorf("PGInstance.CheckIfStaffHasUnresolvedServiceRequests() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestPGInstance_GetFacilityStaffs(t *testing.T) {
+	type args struct {
+		ctx        context.Context
+		facilityID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    []*gorm.StaffProfile
+		wantErr bool
+	}{
+		{
+			name: "Happy case: retrieve facility staff",
+			args: args{
+				ctx:        context.Background(),
+				facilityID: facilityID,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: invalid facility id",
+			args: args{
+				ctx:        context.Background(),
+				facilityID: "-",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := testingDB.GetFacilityStaffs(tt.args.ctx, tt.args.facilityID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.GetFacilityStaffs() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected value, got %v", got)
+				return
 			}
 		})
 	}

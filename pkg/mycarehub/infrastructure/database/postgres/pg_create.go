@@ -443,7 +443,7 @@ func (d *MyCareHubDb) SaveNotification(ctx context.Context, payload *domain.Noti
 		Active:     true,
 		Title:      payload.Title,
 		Body:       payload.Body,
-		Type:       payload.Type,
+		Type:       payload.Type.String(),
 		Flavour:    payload.Flavour,
 		IsRead:     false,
 		UserID:     payload.UserID,
