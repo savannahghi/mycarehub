@@ -145,6 +145,7 @@ type PostgresMock struct {
 	MockGetClientScreeningToolResponsesByToolTypeFn      func(ctx context.Context, clientID, toolType string, active bool) ([]*domain.ScreeningToolQuestionResponse, error)
 	MockGetClientScreeningToolServiceRequestByToolTypeFn func(ctx context.Context, clientID, toolType, status string) (*domain.ServiceRequest, error)
 	MockGetAppointmentFn                                 func(ctx context.Context, params domain.Appointment) (*domain.Appointment, error)
+	MockGetFacilityStaffsFn                              func(ctx context.Context, facilityID string) ([]*domain.StaffProfile, error)
 	MockCheckIfStaffHasUnresolvedServiceRequestsFn       func(ctx context.Context, staffID string, serviceRequestType string) (bool, error)
 }
 
@@ -260,6 +261,9 @@ func NewPostgresMock() *PostgresMock {
 	return &PostgresMock{
 		MockGetOrCreateFacilityFn: func(ctx context.Context, facility *dto.FacilityInput) (*domain.Facility, error) {
 			return facilityInput, nil
+		},
+		MockGetFacilityStaffsFn: func(ctx context.Context, facilityID string) ([]*domain.StaffProfile, error) {
+			return []*domain.StaffProfile{staff}, nil
 		},
 		MockGetFacilitiesFn: func(ctx context.Context) ([]*domain.Facility, error) {
 			return facilitiesList, nil
@@ -1620,4 +1624,9 @@ func (gm *PostgresMock) GetClientScreeningToolServiceRequestByToolType(ctx conte
 // CheckIfStaffHasUnresolvedServiceRequests mocks the implementation of checking if a staff has unresolved service requests
 func (gm *PostgresMock) CheckIfStaffHasUnresolvedServiceRequests(ctx context.Context, staffID string, serviceRequestType string) (bool, error) {
 	return gm.MockCheckIfStaffHasUnresolvedServiceRequestsFn(ctx, staffID, serviceRequestType)
+}
+
+// GetFacilityStaffs returns a list of staff at a particular facility
+func (gm *PostgresMock) GetFacilityStaffs(ctx context.Context, facilityID string) ([]*domain.StaffProfile, error) {
+	return gm.MockGetFacilityStaffsFn(ctx, facilityID)
 }

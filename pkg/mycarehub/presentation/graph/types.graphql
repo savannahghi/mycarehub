@@ -326,8 +326,9 @@ type Notification {
   id: ID!
   title: String
   body: String!
-  type: String
+  type: NotificationType!
   isRead: Boolean
+  createdAt: Time
 }
 
 type NotificationsPage {
@@ -382,9 +383,9 @@ type StaffProfile {
 }
 
 type ScreeningToolAssessmentResponse {
- clientName: String!
- dateAnswered: Time!
- clientID: String!
+  clientName: String!
+  dateAnswered: Time!
+  clientID: String!
 }
 
 type User {
@@ -508,13 +509,12 @@ type AvailableScreeningTools {
   toolType: ScreeningToolType!
 }
 type ScreeningToolResponse {
-    toolIndex: Int!
-    tool: String!
-    response: String!
+  toolIndex: Int!
+  tool: String!
+  response: String!
 }
 
-
 type ScreeningToolResponsePayload {
-	serviceRequestID:       String!
-	screeningToolResponses: [ScreeningToolResponse!]!
+  serviceRequestID: String!
+  screeningToolResponses: [ScreeningToolResponse!]!
 }

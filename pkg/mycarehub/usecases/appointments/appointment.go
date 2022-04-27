@@ -25,6 +25,15 @@ const (
 	refillReasonText = "Pharmacy Visit"
 )
 
+// These are concept IDs of the various appointments types on KenyaEMR
+const (
+	labTestConceptID        = "1283"
+	counsellingConceptID    = "159382"
+	pharmacyRefillConceptID = "160521"
+	otherConceptID          = "5622"
+	followUpConceptID       = "160523"
+)
+
 // ICreateAppointments defines method signatures for creating appointments
 type ICreateAppointments interface {
 	CreateKenyaEMRAppointments(ctx context.Context, facility *domain.Facility, payload dto.AppointmentPayload) (*dto.AppointmentPayload, error)
@@ -267,7 +276,23 @@ func (a *UseCasesAppointmentsImpl) AddPatientRecord(ctx context.Context, input d
 		return fmt.Errorf("error retrieving client with ccc number: %v", input.CCCNumber)
 	}
 
+	if client.FHIRPatientID == nil {
+		return fmt.Errorf("client number lacks a patient id: %v", client)
+	}
+
+Vitals:
 	for _, vital := range input.VitalSigns {
+		// some appointments are synced as vital signs from kenya EMR and should not
+		// be stored as vital signs on our end hence should be ignored.
+		switch *vital.ConceptID {
+		case labTestConceptID,
+			counsellingConceptID,
+			pharmacyRefillConceptID,
+			otherConceptID,
+			followUpConceptID:
+			continue Vitals
+		}
+
 		payload := dto.PatientVitalSignOutput{
 			PatientID:      *client.FHIRPatientID,
 			OrganizationID: facility.FHIROrganisationID,
@@ -282,6 +307,7 @@ func (a *UseCasesAppointmentsImpl) AddPatientRecord(ctx context.Context, input d
 			log.Printf("failed to publish to create patient topic: %v", err)
 		}
 	}
+
 	for _, allergy := range input.Allergies {
 		payload := dto.PatientAllergyOutput{
 			PatientID:      *client.FHIRPatientID,
@@ -304,6 +330,7 @@ func (a *UseCasesAppointmentsImpl) AddPatientRecord(ctx context.Context, input d
 			log.Printf("failed to publish to create allergy topic: %v", err)
 		}
 	}
+
 	for _, medication := range input.Medications {
 		payload := dto.PatientMedicationOutput{
 			PatientID:      *client.FHIRPatientID,
@@ -326,6 +353,7 @@ func (a *UseCasesAppointmentsImpl) AddPatientRecord(ctx context.Context, input d
 			log.Printf("failed to publish to create medication topic: %v", err)
 		}
 	}
+
 	for _, result := range input.TestResults {
 		payload := dto.PatientTestResultOutput{
 			PatientID:      *client.FHIRPatientID,
@@ -344,6 +372,7 @@ func (a *UseCasesAppointmentsImpl) AddPatientRecord(ctx context.Context, input d
 			log.Printf("failed to publish to create test result topic: %v", err)
 		}
 	}
+
 	for _, order := range input.TestOrders {
 		payload := dto.PatientTestOrderOutput{
 			PatientID:      *client.FHIRPatientID,

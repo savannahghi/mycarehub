@@ -171,3 +171,9 @@ enum Operation {
   IN
   CONTAINS
 }
+
+enum NotificationType {
+  APPOINTMENT
+  SERVICE_REQUEST
+  COMMUNITIES
+}

@@ -139,13 +139,29 @@ func (u *UseCasesServiceRequestImpl) CreateServiceRequest(ctx context.Context, i
 			return false, fmt.Errorf("failed to create client's service request: %v", err)
 		}
 
-		notificationData := &domain.Notification{
+		clientNotification := &domain.Notification{
 			Title:   "Your service request has been created",
 			Body:    "",
 			Flavour: feedlib.FlavourConsumer,
-			Type:    "SERVICE_REQUEST",
+			Type:    enums.NotificationTypeServiceRequest,
 		}
-		err = u.Notification.NotifyUser(ctx, clientProfile.User, notificationData)
+		err = u.Notification.NotifyUser(ctx, clientProfile.User, clientNotification)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+		}
+
+		facility, err := u.Query.RetrieveFacility(ctx, &clientProfile.FacilityID, true)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+		}
+
+		staffNotification := &domain.Notification{
+			Title:   "A service request has been created",
+			Body:    fmt.Sprintf("%s for %s", input.RequestType, clientProfile.User.Name),
+			Flavour: feedlib.FlavourPro,
+			Type:    enums.NotificationTypeServiceRequest,
+		}
+		err = u.Notification.NotifyFacilityStaffs(ctx, facility, staffNotification)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
 		}

@@ -111,6 +111,7 @@ type Query interface {
 	GetClientScreeningToolResponsesByToolType(ctx context.Context, clientID, toolType string, active bool) ([]*domain.ScreeningToolQuestionResponse, error)
 	GetClientScreeningToolServiceRequestByToolType(ctx context.Context, clientID, toolType, status string) (*domain.ServiceRequest, error)
 	GetAppointment(ctx context.Context, params domain.Appointment) (*domain.Appointment, error)
+	GetFacilityStaffs(ctx context.Context, facilityID string) ([]*domain.StaffProfile, error)
 	CheckIfStaffHasUnresolvedServiceRequests(ctx context.Context, staffID string, serviceRequestType string) (bool, error)
 }
 

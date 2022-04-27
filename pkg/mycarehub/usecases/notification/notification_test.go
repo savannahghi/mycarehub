@@ -57,7 +57,10 @@ func TestUseCaseNotificationImpl_NotifyUser(t *testing.T) {
 				userProfile: &domain.User{
 					Name: gofakeit.Name(),
 				},
-				notificationPayload: &domain.Notification{},
+				notificationPayload: &domain.Notification{
+					Title: "Test title",
+					Body:  "Test Body",
+				},
 			},
 			wantErr: true,
 		},
@@ -66,7 +69,6 @@ func TestUseCaseNotificationImpl_NotifyUser(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			fakeFCM := fakeFCM.NewFCMServiceMock()
 			fakeDB := pgMock.NewPostgresMock()
-			// fakeNotification := fakeNotification.NewServiceNotificationMock()
 			notificationService := notification.NewNotificationUseCaseImpl(fakeFCM, fakeDB, fakeDB)
 
 			if tt.name == "Sad Case - Fail to notify user" {
@@ -192,6 +194,93 @@ func TestUseCaseNotificationImpl_FetchNotifications(t *testing.T) {
 			if !tt.wantErr && got == nil {
 				t.Errorf("expected a response but got = %v", got)
 				return
+			}
+		})
+	}
+}
+
+func TestUseCaseNotificationImpl_NotifyFacilityStaffs(t *testing.T) {
+	id := gofakeit.UUID()
+
+	type args struct {
+		ctx                 context.Context
+		facility            *domain.Facility
+		notificationPayload *domain.Notification
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "sad case: cannot save notification",
+			args: args{
+				ctx: context.Background(),
+				facility: &domain.Facility{
+					ID: &id,
+				},
+				notificationPayload: &domain.Notification{
+					Title: "Test notification title",
+					Body:  "Test notification body",
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "sad case: cannot retrieve facility staff",
+			args: args{
+				ctx: context.Background(),
+				facility: &domain.Facility{
+					ID: &id,
+				},
+				notificationPayload: &domain.Notification{
+					Title: "Test notification title",
+					Body:  "Test notification body",
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "sad case: cannot send notification",
+			args: args{
+				ctx: context.Background(),
+				facility: &domain.Facility{
+					ID: &id,
+				},
+				notificationPayload: &domain.Notification{
+					Title: "Test notification title",
+					Body:  "Test notification body",
+				},
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeFCM := fakeFCM.NewFCMServiceMock()
+			fakeDB := pgMock.NewPostgresMock()
+			n := notification.NewNotificationUseCaseImpl(fakeFCM, fakeDB, fakeDB)
+
+			if tt.name == "sad case: cannot save notification" {
+				fakeDB.MockSaveNotificationFn = func(ctx context.Context, payload *domain.Notification) error {
+					return fmt.Errorf("cannot save notification")
+				}
+			}
+
+			if tt.name == "sad case: cannot retrieve facility staff" {
+				fakeDB.MockGetFacilityStaffsFn = func(ctx context.Context, facilityID string) ([]*domain.StaffProfile, error) {
+					return nil, fmt.Errorf("cannot get facility staffs")
+				}
+			}
+
+			if tt.name == "sad case: cannot send notification" {
+				fakeFCM.MockSendNotificationFn = func(ctx context.Context, payload *firebasetools.SendNotificationPayload) (bool, error) {
+					return false, fmt.Errorf("cannot send notification")
+				}
+			}
+
+			if err := n.NotifyFacilityStaffs(tt.args.ctx, tt.args.facility, tt.args.notificationPayload); (err != nil) != tt.wantErr {
+				t.Errorf("UseCaseNotificationImpl.NotifyFacilityStaffs() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}

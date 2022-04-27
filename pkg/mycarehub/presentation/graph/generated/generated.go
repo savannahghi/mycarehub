@@ -454,11 +454,12 @@ type ComplexityRoot struct {
 	}
 
 	Notification struct {
-		Body   func(childComplexity int) int
-		ID     func(childComplexity int) int
-		IsRead func(childComplexity int) int
-		Title  func(childComplexity int) int
-		Type   func(childComplexity int) int
+		Body      func(childComplexity int) int
+		CreatedAt func(childComplexity int) int
+		ID        func(childComplexity int) int
+		IsRead    func(childComplexity int) int
+		Title     func(childComplexity int) int
+		Type      func(childComplexity int) int
 	}
 
 	NotificationsPage struct {
@@ -2908,6 +2909,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Notification.Body(childComplexity), true
 
+	case "Notification.createdAt":
+		if e.complexity.Notification.CreatedAt == nil {
+			break
+		}
+
+		return e.complexity.Notification.CreatedAt(childComplexity), true
+
 	case "Notification.id":
 		if e.complexity.Notification.ID == nil {
 			break
@@ -4343,6 +4351,12 @@ enum Operation {
   IN
   CONTAINS
 }
+
+enum NotificationType {
+  APPOINTMENT
+  SERVICE_REQUEST
+  COMMUNITIES
+}
 `, BuiltIn: false},
 	{Name: "pkg/mycarehub/presentation/graph/facility.graphql", Input: `extend type Mutation {
   createFacility(input: FacilityInput!): Facility!
@@ -4927,8 +4941,9 @@ type Notification {
   id: ID!
   title: String
   body: String!
-  type: String
+  type: NotificationType!
   isRead: Boolean
+  createdAt: Time
 }
 
 type NotificationsPage {
@@ -4983,9 +4998,9 @@ type StaffProfile {
 }
 
 type ScreeningToolAssessmentResponse {
- clientName: String!
- dateAnswered: Time!
- clientID: String!
+  clientName: String!
+  dateAnswered: Time!
+  clientID: String!
 }
 
 type User {
@@ -5109,15 +5124,14 @@ type AvailableScreeningTools {
   toolType: ScreeningToolType!
 }
 type ScreeningToolResponse {
-    toolIndex: Int!
-    tool: String!
-    response: String!
+  toolIndex: Int!
+  tool: String!
+  response: String!
 }
 
-
 type ScreeningToolResponsePayload {
-	serviceRequestID:       String!
-	screeningToolResponses: [ScreeningToolResponse!]!
+  serviceRequestID: String!
+  screeningToolResponses: [ScreeningToolResponse!]!
 }
 `, BuiltIn: false},
 	{Name: "pkg/mycarehub/presentation/graph/user.graphql", Input: `extend type Query {
@@ -16694,11 +16708,14 @@ func (ec *executionContext) _Notification_type(ctx context.Context, field graphq
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(enums.NotificationType)
 	fc.Result = res
-	return ec.marshalOString2string(ctx, field.Selections, res)
+	return ec.marshalNNotificationType2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐNotificationType(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Notification_isRead(ctx context.Context, field graphql.CollectedField, obj *domain.Notification) (ret graphql.Marshaler) {
@@ -16731,6 +16748,38 @@ func (ec *executionContext) _Notification_isRead(ctx context.Context, field grap
 	res := resTmp.(bool)
 	fc.Result = res
 	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Notification_createdAt(ctx context.Context, field graphql.CollectedField, obj *domain.Notification) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Notification",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CreatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalOTime2timeᚐTime(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _NotificationsPage_notifications(ctx context.Context, field graphql.CollectedField, obj *domain.NotificationsPage) (ret graphql.Marshaler) {
@@ -25596,8 +25645,13 @@ func (ec *executionContext) _Notification(ctx context.Context, sel ast.Selection
 			}
 		case "type":
 			out.Values[i] = ec._Notification_type(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "isRead":
 			out.Values[i] = ec._Notification_isRead(ctx, field, obj)
+		case "createdAt":
+			out.Values[i] = ec._Notification_createdAt(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -28055,6 +28109,16 @@ func (ec *executionContext) marshalNNotification2ᚕᚖgithubᚗcomᚋsavannahgh
 	wg.Wait()
 
 	return ret
+}
+
+func (ec *executionContext) unmarshalNNotificationType2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐNotificationType(ctx context.Context, v interface{}) (enums.NotificationType, error) {
+	var res enums.NotificationType
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNNotificationType2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐNotificationType(ctx context.Context, sel ast.SelectionSet, v enums.NotificationType) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) unmarshalNOperation2githubᚗcomᚋsavannahghiᚋenumutilsᚐOperation(ctx context.Context, v interface{}) (enumutils.Operation, error) {

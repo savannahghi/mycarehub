@@ -147,6 +147,7 @@ type GormMock struct {
 	MockGetClientScreeningToolServiceRequestByToolTypeFn func(ctx context.Context, clientID, toolType, status string) (*gorm.ClientServiceRequest, error)
 	MockGetAppointmentFn                                 func(ctx context.Context, params *gorm.Appointment) (*gorm.Appointment, error)
 	MockCheckIfStaffHasUnresolvedServiceRequestsFn       func(ctx context.Context, staffID string, serviceRequestType string) (bool, error)
+	MockGetFacilityStaffsFn                              func(ctx context.Context, facilityID string) ([]*gorm.StaffProfile, error)
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -339,6 +340,11 @@ func NewGormMock() *GormMock {
 	return &GormMock{
 		MockCreateNotificationFn: func(ctx context.Context, notification *gorm.Notification) error {
 			return nil
+		},
+		MockGetFacilityStaffsFn: func(ctx context.Context, facilityID string) ([]*gorm.StaffProfile, error) {
+			return []*gorm.StaffProfile{
+				staff,
+			}, nil
 		},
 		MockCreateUserFn: func(ctx context.Context, user *gorm.User) error {
 			return nil
@@ -1758,4 +1764,9 @@ func (gm *GormMock) GetAppointment(ctx context.Context, params *gorm.Appointment
 // CheckIfStaffHasUnresolvedServiceRequests mocks the implementation of checking if a staff has unresolved service requests
 func (gm *GormMock) CheckIfStaffHasUnresolvedServiceRequests(ctx context.Context, staffID string, serviceRequestType string) (bool, error) {
 	return gm.MockCheckIfStaffHasUnresolvedServiceRequestsFn(ctx, staffID, serviceRequestType)
+}
+
+// GetFacilityStaffs returns a list of staff at a particular facility
+func (gm *GormMock) GetFacilityStaffs(ctx context.Context, facilityID string) ([]*gorm.StaffProfile, error) {
+	return gm.MockGetFacilityStaffsFn(ctx, facilityID)
 }
