@@ -306,6 +306,61 @@ func (us *UseCasesUserImpl) Login(ctx context.Context, phoneNumber string, pin s
 		}, fmt.Errorf("user is not active")
 	}
 
+	switch flavour {
+	case feedlib.FlavourConsumer:
+		clientProfile, err := us.Query.GetClientProfileByUserID(ctx, *userProfile.ID)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return &domain.LoginResponse{
+				Message: "failed to get client profile",
+				Code:    int(exceptions.ProfileNotFound),
+			}, exceptions.ClientProfileNotFoundErr(err)
+		}
+		exists, err := us.Query.CheckIfClientHasUnresolvedServiceRequests(ctx, *clientProfile.ID, string(enums.ServiceRequestTypePinReset))
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return &domain.LoginResponse{
+				Message: "failed to check if client has unresolved pin reset request",
+				Code:    int(exceptions.Internal),
+			}, exceptions.InternalErr(err)
+		}
+		if exists {
+			err := fmt.Errorf("client has unresolved pin reset request")
+			helpers.ReportErrorToSentry(err)
+			return &domain.LoginResponse{
+				Message: err.Error(),
+				Code:    int(exceptions.ClientHasUnresolvedPinResetRequestError),
+			}, exceptions.ClientHasUnresolvedPinResetRequestErr(err)
+		}
+
+	case feedlib.FlavourPro:
+		staffProfile, err := us.Query.GetStaffProfileByUserID(ctx, *userProfile.ID)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return &domain.LoginResponse{
+				Message: "failed to get staff profile",
+				Code:    int(exceptions.ProfileNotFound),
+			}, exceptions.StaffProfileNotFoundErr(err)
+		}
+		exists, err := us.Query.CheckIfStaffHasUnresolvedServiceRequests(ctx, *staffProfile.ID, string(enums.ServiceRequestTypeStaffPinReset))
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return &domain.LoginResponse{
+				Message: "failed to check if staff has unresolved pin reset request",
+				Code:    int(exceptions.Internal),
+			}, exceptions.InternalErr(err)
+		}
+		if exists {
+			err := fmt.Errorf("staff has unresolved pin reset request")
+			helpers.ReportErrorToSentry(err)
+			return &domain.LoginResponse{
+				Message: err.Error(),
+				Code:    int(exceptions.ClientHasUnresolvedPinResetRequestError),
+			}, exceptions.StaffHasUnresolvedPinResetRequestErr(err)
+		}
+
+	}
+
 	// If the next allowed login time is after the current time, don't log in the user
 	// The user has to retry after some time. We check whether time out (the current time being greater than
 	// the next allowed login time) has happened. If not, the user will have to wait before trying to log in.
@@ -398,23 +453,6 @@ func (us *UseCasesUserImpl) ReturnLoginResponse(ctx context.Context, flavour fee
 			clientProfile.CCCNumber = clientCCCIdentifier.IdentifierValue
 		}
 
-		// check if client has unresolved pin reset request
-		exists, err := us.Query.CheckIfClientHasUnresolvedServiceRequests(ctx, *clientProfile.ID, string(enums.ServiceRequestTypePinReset))
-		if err != nil {
-			helpers.ReportErrorToSentry(err)
-			return &domain.LoginResponse{
-				Message: "failed to check if client has unresolved pin reset request",
-				Code:    int(exceptions.Internal),
-			}, exceptions.InternalErr(err)
-		}
-		if exists {
-			err := fmt.Errorf("client has unresolved pin reset request")
-			helpers.ReportErrorToSentry(err)
-			return &domain.LoginResponse{
-				Message: err.Error(),
-				Code:    int(exceptions.ClientHasUnresolvedPinResetRequestError),
-			}, exceptions.ClientHasUnresolvedPinResetRequestErr(err)
-		}
 		if clientProfile.CHVUserID != nil {
 			CHVProfile, err := us.Query.GetUserProfileByUserID(ctx, *clientProfile.CHVUserID)
 			if err != nil {
@@ -458,23 +496,6 @@ func (us *UseCasesUserImpl) ReturnLoginResponse(ctx context.Context, flavour fee
 				Code:    int(exceptions.ProfileNotFound),
 			}, exceptions.StaffProfileNotFoundErr(err)
 		}
-		exists, err := us.Query.CheckIfStaffHasUnresolvedServiceRequests(ctx, *staffProfile.ID, string(enums.ServiceRequestTypeStaffPinReset))
-		if err != nil {
-			helpers.ReportErrorToSentry(err)
-			return &domain.LoginResponse{
-				Message: "failed to check if staff has unresolved pin reset request",
-				Code:    int(exceptions.Internal),
-			}, exceptions.InternalErr(err)
-		}
-		if exists {
-			err := fmt.Errorf("staff has unresolved pin reset request")
-			helpers.ReportErrorToSentry(err)
-			return &domain.LoginResponse{
-				Message: err.Error(),
-				Code:    int(exceptions.ClientHasUnresolvedPinResetRequestError),
-			}, exceptions.StaffHasUnresolvedPinResetRequestErr(err)
-		}
-
 		getStreamToken, err := us.GetStream.CreateGetStreamUserToken(ctx, *staffProfile.ID)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
