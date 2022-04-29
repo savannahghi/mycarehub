@@ -11,7 +11,6 @@ import (
 	"strings"
 	"time"
 
-	getStreamClient "github.com/GetStream/stream-chat-go/v5"
 	"github.com/hashicorp/go-multierror"
 	"github.com/lib/pq"
 	"github.com/savannahghi/converterandformatter"
@@ -428,23 +427,6 @@ func (us *UseCasesUserImpl) ReturnLoginResponse(ctx context.Context, flavour fee
 			clientProfile.CHVUserName = CHVProfile.Name
 		}
 
-		// Create/update a client's getstream user
-		getStreamUser := &getStreamClient.User{
-			ID:   *clientProfile.ID,
-			Role: "user",
-			Name: userProfile.Name,
-			ExtraData: map[string]interface{}{
-				"userType": "CLIENT",
-				"userID":   userProfile.ID,
-				"nickName": userProfile.Username,
-			},
-		}
-
-		_, err = us.GetStream.CreateGetStreamUser(ctx, getStreamUser)
-		if err != nil {
-			helpers.ReportErrorToSentry(err)
-		}
-
 		getStreamToken, err := us.GetStream.CreateGetStreamUserToken(ctx, *clientProfile.ID)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
@@ -491,22 +473,6 @@ func (us *UseCasesUserImpl) ReturnLoginResponse(ctx context.Context, flavour fee
 				Message: err.Error(),
 				Code:    int(exceptions.ClientHasUnresolvedPinResetRequestError),
 			}, exceptions.StaffHasUnresolvedPinResetRequestErr(err)
-		}
-		// Create/update a staff's getstream user
-		getStreamUser := &getStreamClient.User{
-			ID:   *staffProfile.ID,
-			Role: "user",
-			Name: userProfile.Name,
-			ExtraData: map[string]interface{}{
-				"userType": "STAFF",
-				"userID":   userProfile.ID,
-				"nickName": userProfile.Username,
-			},
-		}
-
-		_, err = us.GetStream.CreateGetStreamUser(ctx, getStreamUser)
-		if err != nil {
-			helpers.ReportErrorToSentry(err)
 		}
 
 		getStreamToken, err := us.GetStream.CreateGetStreamUserToken(ctx, *staffProfile.ID)

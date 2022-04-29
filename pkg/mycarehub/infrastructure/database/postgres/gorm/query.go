@@ -822,25 +822,33 @@ func (db *PGInstance) GetStaffProfileByStaffID(ctx context.Context, staffID stri
 func (db *PGInstance) GetServiceRequests(ctx context.Context, requestType, requestStatus *string, facilityID string) ([]*ClientServiceRequest, error) {
 	var serviceRequests []*ClientServiceRequest
 	if requestType != nil && requestStatus == nil {
-		err := db.DB.Where(&ClientServiceRequest{RequestType: *requestType, FacilityID: facilityID}).Find(&serviceRequests).Error
+		err := db.DB.Where(&ClientServiceRequest{RequestType: *requestType, FacilityID: facilityID}).
+			Order(clause.OrderByColumn{Column: clause.Column{Name: "updated"}, Desc: true}).
+			Find(&serviceRequests).Error
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
 			return nil, fmt.Errorf("failed to get service requests: %v", err)
 		}
 	} else if requestType == nil && requestStatus != nil {
-		err := db.DB.Where(&ClientServiceRequest{Status: *requestStatus, FacilityID: facilityID}).Find(&serviceRequests).Error
+		err := db.DB.Where(&ClientServiceRequest{Status: *requestStatus, FacilityID: facilityID}).
+			Order(clause.OrderByColumn{Column: clause.Column{Name: "updated"}, Desc: true}).
+			Find(&serviceRequests).Error
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
 			return nil, fmt.Errorf("failed to get service requests: %v", err)
 		}
 	} else if requestType != nil && requestStatus != nil {
-		err := db.DB.Where(&ClientServiceRequest{RequestType: *requestType, Status: *requestStatus, FacilityID: facilityID}).Find(&serviceRequests).Error
+		err := db.DB.Where(&ClientServiceRequest{RequestType: *requestType, Status: *requestStatus, FacilityID: facilityID}).
+			Order(clause.OrderByColumn{Column: clause.Column{Name: "updated"}, Desc: true}).
+			Find(&serviceRequests).Error
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
 			return nil, fmt.Errorf("failed to get service requests: %v", err)
 		}
 	} else {
-		err := db.DB.Where(&ClientServiceRequest{FacilityID: facilityID}).Find(&serviceRequests).Error
+		err := db.DB.Where(&ClientServiceRequest{FacilityID: facilityID}).
+			Order(clause.OrderByColumn{Column: clause.Column{Name: "updated"}, Desc: true}).
+			Find(&serviceRequests).Error
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
 			return nil, fmt.Errorf("failed to get service requests: %v", err)
@@ -854,25 +862,33 @@ func (db *PGInstance) GetServiceRequests(ctx context.Context, requestType, reque
 func (db *PGInstance) GetStaffServiceRequests(ctx context.Context, requestType, requestStatus *string, facilityID string) ([]*StaffServiceRequest, error) {
 	var staffServiceRequests []*StaffServiceRequest
 	if requestType != nil && requestStatus != nil {
-		err := db.DB.Where(&StaffServiceRequest{RequestType: *requestType, Status: *requestStatus, DefaultFacilityID: &facilityID}).Find(&staffServiceRequests).Error
+		err := db.DB.Where(&StaffServiceRequest{RequestType: *requestType, Status: *requestStatus, DefaultFacilityID: &facilityID}).
+			Order(clause.OrderByColumn{Column: clause.Column{Name: "updated"}, Desc: true}).
+			Find(&staffServiceRequests).Error
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
 			return nil, fmt.Errorf("failed to get staff service requests: %v", err)
 		}
 	} else if requestType == nil && requestStatus != nil {
-		err := db.DB.Where(&StaffServiceRequest{Status: *requestStatus, DefaultFacilityID: &facilityID}).Find(&staffServiceRequests).Error
+		err := db.DB.Where(&StaffServiceRequest{Status: *requestStatus, DefaultFacilityID: &facilityID}).
+			Order(clause.OrderByColumn{Column: clause.Column{Name: "updated"}, Desc: true}).
+			Find(&staffServiceRequests).Error
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
 			return nil, fmt.Errorf("failed to get staff service requests: %v", err)
 		}
 	} else if requestType != nil && requestStatus == nil {
-		err := db.DB.Where(&StaffServiceRequest{RequestType: *requestType, DefaultFacilityID: &facilityID}).Find(&staffServiceRequests).Error
+		err := db.DB.Where(&StaffServiceRequest{RequestType: *requestType, DefaultFacilityID: &facilityID}).
+			Order(clause.OrderByColumn{Column: clause.Column{Name: "updated"}, Desc: true}).
+			Find(&staffServiceRequests).Error
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
 			return nil, fmt.Errorf("failed to get staff service requests: %v", err)
 		}
 	} else {
-		err := db.DB.Where(&StaffServiceRequest{DefaultFacilityID: &facilityID}).Find(&staffServiceRequests).Error
+		err := db.DB.Where(&StaffServiceRequest{DefaultFacilityID: &facilityID}).
+			Order(clause.OrderByColumn{Column: clause.Column{Name: "updated"}, Desc: true}).
+			Find(&staffServiceRequests).Error
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
 			return nil, fmt.Errorf("failed to get staff service requests: %v", err)
