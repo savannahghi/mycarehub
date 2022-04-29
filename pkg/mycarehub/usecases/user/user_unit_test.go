@@ -66,6 +66,16 @@ func TestUseCasesUserImpl_Login_Unittest(t *testing.T) {
 			wantErr: false,
 		},
 		{
+			name: "Happy case: Login pro",
+			args: args{
+				ctx:         ctx,
+				phoneNumber: phoneNumber,
+				pin:         PIN,
+				flavour:     feedlib.FlavourPro,
+			},
+			wantErr: false,
+		},
+		{
 			name: "Sad case - no phone",
 			args: args{
 				ctx:         ctx,
