@@ -61,3 +61,9 @@ func (ps ServicePubSubMessaging) NotifyCreateTestResult(ctx context.Context, tes
 func (ps ServicePubSubMessaging) NotifyCreateOrganization(ctx context.Context, facility *domain.Facility) error {
 	return ps.newPublish(ctx, facility, common.CreateOrganizationTopicName, ClinicalServiceName)
 }
+
+// NotifyGetStreamEvent publishes to the events topic. All events are sent from getstream to this topic. The subscriber
+// will the be responsible for the processing of the events
+func (ps ServicePubSubMessaging) NotifyGetStreamEvent(ctx context.Context, event *dto.GetStreamEvent) error {
+	return ps.newPublish(ctx, event, common.CreateGetstreamEventTopicName, MyCareHubServiceName)
+}

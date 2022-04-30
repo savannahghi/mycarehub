@@ -25,7 +25,7 @@ type ServiceGetStream interface {
 	CreateChannel(ctx context.Context, chanType, chanID, userID string, data map[string]interface{}) (*stream.CreateChannelResponse, error)
 	DeleteChannels(ctx context.Context, chanIDs []string, hardDelete bool) (*stream.AsyncTaskResponse, error)
 	InviteMembers(ctx context.Context, memberIDs []string, channelID string, message *stream.Message) (*stream.Response, error)
-	ListGetStreamChannels(ctr context.Context, input *stream.QueryOption) (*stream.QueryChannelsResponse, error)
+	ListGetStreamChannels(ctx context.Context, input *stream.QueryOption) (*stream.QueryChannelsResponse, error)
 	GetChannel(ctx context.Context, channelID string) (*stream.Channel, error)
 	AddMembersToCommunity(ctx context.Context, memberIDs []string, channelID string) (*stream.Response, error)
 	RejectInvite(ctx context.Context, userID string, channelID string, message *stream.Message) (*stream.Response, error)
@@ -40,6 +40,7 @@ type ServiceGetStream interface {
 	UpsertUser(ctx context.Context, user *stream.User) (*stream.UpsertUserResponse, error)
 	ListFlaggedMessages(ctx context.Context, input *stream.QueryOption) (*stream.QueryMessageFlagsResponse, error)
 	DeleteMessage(ctx context.Context, messageID string) (*stream.Response, error)
+	ValidateGetStreamRequest(ctx context.Context, body []byte, signature string) bool
 }
 
 // ChatClient is the service's struct implementation
@@ -252,4 +253,9 @@ func (c *ChatClient) ListFlaggedMessages(ctx context.Context, input *stream.Quer
 // DeleteMessage deletes messages from the platform with the specified options.
 func (c *ChatClient) DeleteMessage(ctx context.Context, messageID string) (*stream.Response, error) {
 	return c.client.DeleteMessage(ctx, messageID)
+}
+
+// ValidateGetStreamRequest verifies the request as coming from getstream and not tampered by a 3rd party
+func (c *ChatClient) ValidateGetStreamRequest(ctx context.Context, body []byte, signature string) bool {
+	return c.client.VerifyWebhook(body, []byte(signature))
 }

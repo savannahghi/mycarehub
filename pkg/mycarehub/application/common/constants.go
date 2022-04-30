@@ -28,4 +28,7 @@ const (
 
 	// CreateOrganizationTopicName is the topic for publishing a organization
 	CreateOrganizationTopicName = "organization.create"
+
+	// CreateGetstreamEventTopicName is the topic where getstream events are published to
+	CreateGetstreamEventTopicName = "getstream.event"
 )

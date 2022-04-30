@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/savannahghi/firebasetools"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 )
@@ -32,7 +31,7 @@ type FakeServicePubSub struct {
 	MockNotifyCreateTestOrderFn    func(ctx context.Context, testOrder *dto.PatientTestOrderOutput) error
 	MockNotifyCreateTestResultFn   func(ctx context.Context, testResult *dto.PatientTestResultOutput) error
 	MockNotifyCreateOrganizationFn func(ctx context.Context, facility *domain.Facility) error
-	MockSendPushNotificationFn     func(ctx context.Context, notificationPayload *firebasetools.SendNotificationPayload) error
+	MockNotifyGetStreamEventFn     func(ctx context.Context, event *dto.GetStreamEvent) error
 }
 
 // NewPubsubServiceMock mocks the pubsub service implementation
@@ -67,7 +66,7 @@ func NewPubsubServiceMock() *FakeServicePubSub {
 		MockNotifyCreateOrganizationFn: func(ctx context.Context, facility *domain.Facility) error {
 			return nil
 		},
-		MockSendPushNotificationFn: func(ctx context.Context, notificationPayload *firebasetools.SendNotificationPayload) error {
+		MockNotifyGetStreamEventFn: func(ctx context.Context, event *dto.GetStreamEvent) error {
 			return nil
 		},
 	}
@@ -126,7 +125,7 @@ func (m *FakeServicePubSub) NotifyCreateOrganization(ctx context.Context, facili
 	return m.MockNotifyCreateOrganizationFn(ctx, facility)
 }
 
-// SendPushNotification mocks the implementation for sending a push notification
-func (m *FakeServicePubSub) SendPushNotification(ctx context.Context, notificationPayload *firebasetools.SendNotificationPayload) error {
-	return m.MockSendPushNotificationFn(ctx, notificationPayload)
+// NotifyGetStreamEvent mocks the implementation of publishing getstream events to a pubsub topic
+func (m *FakeServicePubSub) NotifyGetStreamEvent(ctx context.Context, event *dto.GetStreamEvent) error {
+	return m.MockNotifyGetStreamEventFn(ctx, event)
 }

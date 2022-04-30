@@ -13,13 +13,15 @@ import (
 
 // CommunityUsecaseMock contains the community usecase mock methods
 type CommunityUsecaseMock struct {
-	MockListMembersFn            func(ctx context.Context, input *stream.QueryOption) ([]*domain.Member, error)
-	MockCreateCommunityFn        func(ctx context.Context, input dto.CommunityInput) (*domain.Community, error)
-	MockListCommunityMembers     func(ctx context.Context, communityID string) ([]*domain.CommunityMember, error)
-	MockRejectInviteFn           func(ctx context.Context, userID string, channelID string) (bool, error)
-	MockAddMembersToCommunityFn  func(ctx context.Context, memberIDs []string, communityID string) (*stream.Response, error)
-	MockBanUserFn                func(ctx context.Context, targetMemberID string, bannedBy string, communityID string) (bool, error)
-	MockDeleteCommunityMessageFn func(ctx context.Context, messageID string) (bool, error)
+	MockListMembersFn              func(ctx context.Context, input *stream.QueryOption) ([]*domain.Member, error)
+	MockCreateCommunityFn          func(ctx context.Context, input dto.CommunityInput) (*domain.Community, error)
+	MockListCommunityMembers       func(ctx context.Context, communityID string) ([]*domain.CommunityMember, error)
+	MockRejectInviteFn             func(ctx context.Context, userID string, channelID string) (bool, error)
+	MockAddMembersToCommunityFn    func(ctx context.Context, memberIDs []string, communityID string) (*stream.Response, error)
+	MockBanUserFn                  func(ctx context.Context, targetMemberID string, bannedBy string, communityID string) (bool, error)
+	MockDeleteCommunityMessageFn   func(ctx context.Context, messageID string) (bool, error)
+	MockValidateGetStreamRequestFn func(ctx context.Context, body []byte, signature string) bool
+	MockProcessGetstreamEventsFn   func(ctx context.Context, event *dto.GetStreamEvent) error
 }
 
 // NewCommunityUsecaseMock initializes a new instance of the Community usecase happy cases
@@ -76,6 +78,12 @@ func NewCommunityUsecaseMock() *CommunityUsecaseMock {
 		MockDeleteCommunityMessageFn: func(ctx context.Context, messageID string) (bool, error) {
 			return true, nil
 		},
+		MockValidateGetStreamRequestFn: func(ctx context.Context, body []byte, signature string) bool {
+			return true
+		},
+		MockProcessGetstreamEventsFn: func(ctx context.Context, event *dto.GetStreamEvent) error {
+			return nil
+		},
 	}
 }
 
@@ -112,4 +120,14 @@ func (c CommunityUsecaseMock) BanUser(ctx context.Context, targetMemberID string
 // DeleteCommunityMessage mocks the implementation of deleting messages
 func (c CommunityUsecaseMock) DeleteCommunityMessage(ctx context.Context, messageID string) (bool, error) {
 	return c.MockDeleteCommunityMessageFn(ctx, messageID)
+}
+
+// ValidateGetStreamRequest mocks the implementation of verifying a stream webhook http request
+func (c CommunityUsecaseMock) ValidateGetStreamRequest(ctx context.Context, body []byte, signature string) bool {
+	return c.MockValidateGetStreamRequestFn(ctx, body, signature)
+}
+
+// ProcessGetstreamEvents mocks the implementation of a getstream event that has been published to our endpoint
+func (c CommunityUsecaseMock) ProcessGetstreamEvents(ctx context.Context, event *dto.GetStreamEvent) error {
+	return c.MockProcessGetstreamEventsFn(ctx, event)
 }
