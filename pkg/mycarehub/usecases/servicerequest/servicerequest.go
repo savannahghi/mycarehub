@@ -155,12 +155,15 @@ func (u *UseCasesServiceRequestImpl) CreateServiceRequest(ctx context.Context, i
 			helpers.ReportErrorToSentry(err)
 		}
 
-		staffNotification := &domain.Notification{
-			Title:   "A service request has been created",
-			Body:    fmt.Sprintf("%s for %s", input.RequestType, clientProfile.User.Name),
-			Flavour: feedlib.FlavourPro,
-			Type:    enums.NotificationTypeServiceRequest,
+		requestType := enums.ServiceRequestType(input.RequestType)
+		notificationArgs := notification.StaffNotificationArgs{
+			Subject:            clientProfile.User,
+			ServiceRequestType: &requestType,
 		}
+		staffNotification := notification.ComposeStaffNotification(
+			enums.NotificationTypeServiceRequest,
+			notificationArgs,
+		)
 		err = u.Notification.NotifyFacilityStaffs(ctx, facility, staffNotification)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
@@ -362,7 +365,7 @@ func (u *UseCasesServiceRequestImpl) CreatePinResetServiceRequest(ctx context.Co
 
 		serviceRequestInput := &dto.ServiceRequestInput{
 			Active:      true,
-			RequestType: string(enums.ServiceRequestTypePinReset),
+			RequestType: enums.ServiceRequestTypePinReset.String(),
 			Request:     "Change PIN Request",
 			ClientID:    *clientProfile.ID,
 			FacilityID:  clientProfile.FacilityID,
@@ -393,7 +396,7 @@ func (u *UseCasesServiceRequestImpl) CreatePinResetServiceRequest(ctx context.Co
 
 		serviceRequestInput := &dto.ServiceRequestInput{
 			Active:      true,
-			RequestType: string(enums.ServiceRequestTypeStaffPinReset),
+			RequestType: enums.ServiceRequestTypeStaffPinReset.String(),
 			Request:     "Change PIN Request",
 			StaffID:     *staffProfile.ID,
 			FacilityID:  staffProfile.DefaultFacilityID,

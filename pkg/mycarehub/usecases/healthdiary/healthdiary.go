@@ -96,13 +96,13 @@ func (h UseCasesHealthDiaryImpl) CreateHealthDiaryEntry(
 	reportToStaff bool,
 ) (bool, error) {
 	switch mood {
-	case string(enums.MoodVerySad):
+	case enums.MoodVerySad.String():
 		currentTime := time.Now()
 		healthDiaryEntry := &domain.ClientHealthDiaryEntry{
 			Active:                true,
 			Mood:                  mood,
 			Note:                  *note,
-			EntryType:             string(enums.ServiceRequestTypeHomePageHealthDiary),
+			EntryType:             enums.ServiceRequestTypeHomePageHealthDiary.String(),
 			ShareWithHealthWorker: reportToStaff,
 			ClientID:              clientID,
 			CreatedAt:             currentTime,
@@ -121,7 +121,7 @@ func (h UseCasesHealthDiaryImpl) CreateHealthDiaryEntry(
 		serviceRequestInput := &dto.ServiceRequestInput{
 			ClientID:    clientID,
 			Flavour:     feedlib.FlavourConsumer,
-			RequestType: string(enums.ServiceRequestTypeRedFlag),
+			RequestType: enums.ServiceRequestTypeRedFlag.String(),
 		}
 
 		_, err = h.ServiceRequest.CreateServiceRequest(
@@ -138,7 +138,7 @@ func (h UseCasesHealthDiaryImpl) CreateHealthDiaryEntry(
 			Active:                true,
 			Mood:                  mood,
 			Note:                  *note,
-			EntryType:             string(enums.ServiceRequestTypeHomePageHealthDiary),
+			EntryType:             enums.ServiceRequestTypeHomePageHealthDiary.String(),
 			ShareWithHealthWorker: false,
 			ClientID:              clientID,
 			SharedAt:              time.Now(),

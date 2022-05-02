@@ -316,7 +316,7 @@ func (us *UseCasesUserImpl) Login(ctx context.Context, phoneNumber string, pin s
 				Code:    int(exceptions.ProfileNotFound),
 			}, exceptions.ClientProfileNotFoundErr(err)
 		}
-		exists, err := us.Query.CheckIfClientHasUnresolvedServiceRequests(ctx, *clientProfile.ID, string(enums.ServiceRequestTypePinReset))
+		exists, err := us.Query.CheckIfClientHasUnresolvedServiceRequests(ctx, *clientProfile.ID, enums.ServiceRequestTypePinReset.String())
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
 			return &domain.LoginResponse{
@@ -342,7 +342,7 @@ func (us *UseCasesUserImpl) Login(ctx context.Context, phoneNumber string, pin s
 				Code:    int(exceptions.ProfileNotFound),
 			}, exceptions.StaffProfileNotFoundErr(err)
 		}
-		exists, err := us.Query.CheckIfStaffHasUnresolvedServiceRequests(ctx, *staffProfile.ID, string(enums.ServiceRequestTypeStaffPinReset))
+		exists, err := us.Query.CheckIfStaffHasUnresolvedServiceRequests(ctx, *staffProfile.ID, enums.ServiceRequestTypeStaffPinReset.String())
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
 			return &domain.LoginResponse{
