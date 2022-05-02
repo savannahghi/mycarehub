@@ -183,7 +183,7 @@ func (t *ServiceScreeningToolsImpl) AnswerScreeningToolQuestions(ctx context.Con
 				"score":               score,
 				"screening_tool_name": utils.InterfaceToString(condition[screeningToolQuestion.ToolType.String()+"_screening_tool_name"]),
 			}
-			// delete(toolTypeCategory, string(enums.ScreeningToolTypeGBV))
+			// delete(toolTypeCategory, ScreeningToolTypeGBV)
 			if _, ok := toolTypeCategory[screeningToolQuestion.ToolType.String()]; ok {
 				continue
 			}
