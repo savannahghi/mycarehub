@@ -311,17 +311,17 @@ type NextOfKinPayload struct {
 // PatientRegistrationPayload defines the payload from KenyaEMR
 // used for client registration
 type PatientRegistrationPayload struct {
-	MFLCode            string             `json:"MFLCODE"`
-	CCCNumber          string             `json:"cccNumber"`
-	Name               string             `json:"name"`
-	DateOfBirth        scalarutils.Date   `json:"dateOfBirth"`
-	ClientTypes        []enums.ClientType `json:"clientTypes"`
-	PhoneNumber        string             `json:"phoneNumber"`
-	EnrollmentDate     scalarutils.Date   `json:"enrollmentDate"`
-	BirthDateEstimated bool               `json:"birthDateEstimated"`
-	Gender             string             `json:"gender"`
-	Counselled         bool               `json:"counselled"`
-	NextOfKin          NextOfKinPayload   `json:"nextOfKin"`
+	MFLCode            string           `json:"MFLCODE"`
+	CCCNumber          string           `json:"cccNumber"`
+	Name               string           `json:"name"`
+	DateOfBirth        scalarutils.Date `json:"dateOfBirth"`
+	ClientType         enums.ClientType `json:"clientType"`
+	PhoneNumber        string           `json:"phoneNumber"`
+	EnrollmentDate     scalarutils.Date `json:"enrollmentDate"`
+	BirthDateEstimated bool             `json:"birthDateEstimated"`
+	Gender             string           `json:"gender"`
+	Counselled         bool             `json:"counselled"`
+	NextOfKin          NextOfKinPayload `json:"nextOfKin"`
 }
 
 // FetchHealthDiaryEntries models the payload that is passed when

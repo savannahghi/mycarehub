@@ -1137,10 +1137,9 @@ func (us *UseCasesUserImpl) createClient(ctx context.Context, patient dto.Patien
 	if err != nil {
 		return nil, err
 	}
+
 	var clientList []enums.ClientType
-	for _, k := range patient.ClientTypes {
-		clientList = append(clientList, enums.ClientType(k))
-	}
+	clientList = append(clientList, patient.ClientType)
 	enrollment := patient.EnrollmentDate.AsTime()
 	newClient := domain.ClientProfile{
 		UserID:                  *user.ID,

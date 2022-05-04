@@ -164,7 +164,7 @@ func NewUserUseCaseMock() *UserUseCaseMock {
 						Month: 12,
 						Day:   12,
 					},
-					ClientTypes: []enums.ClientType{enums.ClientTypeKenyaEMR},
+					ClientType:  enums.ClientTypeKenyaEMR,
 					PhoneNumber: gofakeit.Phone(),
 					EnrollmentDate: scalarutils.Date{
 						Year:  2000,
