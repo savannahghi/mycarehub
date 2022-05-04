@@ -85,7 +85,8 @@ type ClientProfile struct {
 
 	OrganisationID string `json:"organisationID"`
 
-	FacilityID string `json:"facilityID"`
+	FacilityID   string `json:"facilityID"`
+	FacilityName string `json:"facilityName"`
 
 	CHVUserID   *string `json:"chvUserID"`
 	CHVUserName string  `json:"chvUserName"`
@@ -109,7 +110,8 @@ type StaffProfile struct {
 
 	// A UI switcher optionally toggles the default
 	// TODO: the list of facilities to switch between is strictly those that the user is assigned to
-	DefaultFacilityID string `json:"default_facility"` // TODO: required, FK to facility
+	DefaultFacilityID   string `json:"default_facility"` // TODO: required, FK to facility
+	DefaultFacilityName string `json:"defaultFacilityName"`
 }
 
 // AuthCredentials is the authentication credentials for a given user

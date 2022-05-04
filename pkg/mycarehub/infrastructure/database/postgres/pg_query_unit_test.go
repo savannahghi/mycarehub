@@ -1693,6 +1693,14 @@ func TestMyCareHubDb_GetClientProfileByUserID(t *testing.T) {
 			wantErr: true,
 		},
 		{
+			name: "Sad Case - Fail to get facility by id",
+			args: args{
+				ctx:    ctx,
+				userID: "1234",
+			},
+			wantErr: true,
+		},
+		{
 			name: "Sad Case - Missing user ID",
 			args: args{
 				ctx: ctx,
@@ -1714,6 +1722,11 @@ func TestMyCareHubDb_GetClientProfileByUserID(t *testing.T) {
 			if tt.name == "Sad Case - Missing user ID" {
 				fakeGorm.MockGetClientProfileByUserIDFn = func(ctx context.Context, userID string) (*gorm.Client, error) {
 					return nil, fmt.Errorf("failed to get client profile by user ID")
+				}
+			}
+			if tt.name == "Sad Case - Fail to get facility by id" {
+				fakeGorm.MockRetrieveFacilityFn = func(ctx context.Context, id *string, isActive bool) (*gorm.Facility, error) {
+					return nil, fmt.Errorf("failed to get facility by id")
 				}
 			}
 

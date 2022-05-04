@@ -13,6 +13,7 @@ import (
 	"testing"
 	"time"
 
+	stream_chat "github.com/GetStream/stream-chat-go/v5"
 	"github.com/brianvoe/gofakeit"
 	"github.com/google/uuid"
 	openSourceDto "github.com/savannahghi/engagementcore/pkg/engagement/application/common/dto"
@@ -275,6 +276,26 @@ func TestUseCasesUserImpl_Login_Unittest(t *testing.T) {
 			},
 			wantErr: false,
 		},
+		{
+			name: "Sad Case - Unable to create getstream user PRO",
+			args: args{
+				ctx:         ctx,
+				phoneNumber: interserviceclient.TestUserPhoneNumber,
+				pin:         PIN,
+				flavour:     feedlib.FlavourPro,
+			},
+			wantErr: false, // a user should still be able to log in
+		},
+		{
+			name: "Sad Case - Unable to create getstream user CONSUMER",
+			args: args{
+				ctx:         ctx,
+				phoneNumber: interserviceclient.TestUserPhoneNumber,
+				pin:         PIN,
+				flavour:     feedlib.FlavourConsumer,
+			},
+			wantErr: false, // a user should still be able to log in
+		},
 	}
 
 	for _, tt := range tests {
@@ -410,6 +431,18 @@ func TestUseCasesUserImpl_Login_Unittest(t *testing.T) {
 			if tt.name == "Happy Case - should not fail when CCC number is not found" {
 				fakeDB.MockGetClientCCCIdentifier = func(ctx context.Context, clientID string) (*domain.Identifier, error) {
 					return nil, fmt.Errorf("failed to get client ccc number identifier value")
+				}
+			}
+
+			if tt.name == "Sad Case - Unable to create getstream user PRO" {
+				fakeGetStream.MockCreateGetStreamUserFn = func(ctx context.Context, user *stream_chat.User) (*stream_chat.UpsertUserResponse, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+
+			if tt.name == "Sad Case - Unable to create getstream user CONSUMER" {
+				fakeGetStream.MockCreateGetStreamUserFn = func(ctx context.Context, user *stream_chat.User) (*stream_chat.UpsertUserResponse, error) {
+					return nil, fmt.Errorf("an error occurred")
 				}
 			}
 
