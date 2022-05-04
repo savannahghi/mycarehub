@@ -300,6 +300,12 @@ func (d *MyCareHubDb) GetClientProfileByUserID(ctx context.Context, userID strin
 		clientList = append(clientList, enums.ClientType(k))
 	}
 
+	facility, err := d.query.RetrieveFacility(ctx, &response.FacilityID, true)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
 	user := createMapUser(&response.User)
 	return &domain.ClientProfile{
 		ID:                      response.ID,
@@ -313,6 +319,7 @@ func (d *MyCareHubDb) GetClientProfileByUserID(ctx context.Context, userID strin
 		ClientCounselled:        response.ClientCounselled,
 		OrganisationID:          response.OrganisationID,
 		FacilityID:              response.FacilityID,
+		FacilityName:            facility.Name,
 		CHVUserID:               response.CHVUserID,
 	}, nil
 }
@@ -349,13 +356,14 @@ func (d *MyCareHubDb) GetStaffProfileByUserID(ctx context.Context, userID string
 
 	user := createMapUser(&staff.UserProfile)
 	return &domain.StaffProfile{
-		ID:                staff.ID,
-		User:              user,
-		UserID:            staff.UserID,
-		Active:            staff.Active,
-		StaffNumber:       staff.StaffNumber,
-		Facilities:        facility,
-		DefaultFacilityID: staff.DefaultFacilityID,
+		ID:                  staff.ID,
+		User:                user,
+		UserID:              staff.UserID,
+		Active:              staff.Active,
+		StaffNumber:         staff.StaffNumber,
+		Facilities:          facility,
+		DefaultFacilityID:   staff.DefaultFacilityID,
+		DefaultFacilityName: staffDefaultFacility.Name,
 	}, nil
 }
 

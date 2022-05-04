@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	getStreamClient "github.com/GetStream/stream-chat-go/v5"
 	"github.com/hashicorp/go-multierror"
 	"github.com/lib/pq"
 	"github.com/savannahghi/converterandformatter"
@@ -464,6 +465,15 @@ func (us *UseCasesUserImpl) ReturnLoginResponse(ctx context.Context, flavour fee
 			}
 			clientProfile.CHVUserName = CHVProfile.Name
 		}
+		// Create/update a client's getstream user
+		getStreamUser := &getStreamClient.User{
+			ID: *clientProfile.ID,
+		}
+
+		_, err = us.GetStream.CreateGetStreamUser(ctx, getStreamUser)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+		}
 
 		getStreamToken, err := us.GetStream.CreateGetStreamUserToken(ctx, *clientProfile.ID)
 		if err != nil {
@@ -497,6 +507,16 @@ func (us *UseCasesUserImpl) ReturnLoginResponse(ctx context.Context, flavour fee
 			}, exceptions.StaffProfileNotFoundErr(err)
 		}
 		getStreamToken, err := us.GetStream.CreateGetStreamUserToken(ctx, *staffProfile.ID)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+		}
+
+		// Create/update a staff's getstream user
+		getStreamUser := &getStreamClient.User{
+			ID: *staffProfile.ID,
+		}
+
+		_, err = us.GetStream.CreateGetStreamUser(ctx, getStreamUser)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
 		}
