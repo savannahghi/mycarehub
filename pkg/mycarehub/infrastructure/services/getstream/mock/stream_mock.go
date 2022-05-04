@@ -58,6 +58,7 @@ type GetStreamServiceMock struct {
 	MockUpsertUserFn                 func(ctx context.Context, user *stream.User) (*stream.UpsertUserResponse, error)
 	MockListFlaggedMessagesFn        func(ctx context.Context, input *stream.QueryOption) (*stream.QueryMessageFlagsResponse, error)
 	MockDeleteMessageFn              func(ctx context.Context, messageID string) (*stream.Response, error)
+	MockValidateGetStreamRequestFn   func(ctx context.Context, body []byte, signature string) bool
 }
 
 // NewGetStreamServiceMock initializes the mock service
@@ -306,6 +307,9 @@ func NewGetStreamServiceMock() *GetStreamServiceMock {
 				},
 			}, nil
 		},
+		MockValidateGetStreamRequestFn: func(ctx context.Context, body []byte, signature string) bool {
+			return true
+		},
 	}
 }
 
@@ -417,4 +421,9 @@ func (g GetStreamServiceMock) ListFlaggedMessages(ctx context.Context, input *st
 // DeleteMessage mocks the implementation for deleting messages
 func (g GetStreamServiceMock) DeleteMessage(ctx context.Context, messageID string) (*stream.Response, error) {
 	return g.MockDeleteMessageFn(ctx, messageID)
+}
+
+// ValidateGetStreamRequest mocks the implementation of verifying the webhook request
+func (g GetStreamServiceMock) ValidateGetStreamRequest(ctx context.Context, body []byte, signature string) bool {
+	return g.MockValidateGetStreamRequestFn(ctx, body, signature)
 }

@@ -86,24 +86,26 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	loginsvc := loginservice.NewServiceLoginImpl(externalExt)
 	db := postgres.NewMyCareHubDb(pg, pg, pg, pg)
 
-	pubSub, err := pubsubmessaging.NewServicePubSubMessaging(externalExt)
-	if err != nil {
-		return nil, fmt.Errorf("failed to initialize pubsub messaging service: %w", err)
-	}
 	fcm := fcm.NewService()
 	streamClient, err := stream.NewClient(getStreamAPIKey, getStreamAPISecret)
 	if err != nil {
 		log.Fatalf("failed to start getstream client: %v", err)
 	}
 
-	// Initialize facility usecase
-	facilityUseCase := facility.NewFacilityUsecase(db, db, db, db, pubSub)
-
 	otpUseCase := otp.NewOTPUseCase(db, db, externalExt)
 
 	authorityUseCase := authority.NewUsecaseAuthority(db, db, externalExt)
 
 	getStream := streamService.NewServiceGetStream(streamClient)
+
+	pubSub, err := pubsubmessaging.NewServicePubSubMessaging(externalExt, getStream, db, fcm)
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialize pubsub messaging service: %w", err)
+	}
+
+	// Initialize facility usecase
+	facilityUseCase := facility.NewFacilityUsecase(db, db, db, db, pubSub)
+
 	// Initialize user usecase
 	userUsecase := user.NewUseCasesUserImpl(db, db, db, db, externalExt, otpUseCase, authorityUseCase, getStream, pubSub)
 
@@ -121,7 +123,7 @@ func Router(ctx context.Context) (*mux.Router, error) {
 
 	serviceRequestUseCase := servicerequest.NewUseCaseServiceRequestImpl(db, db, db, externalExt, userUsecase, notificationUseCase)
 
-	communitiesUseCase := communities.NewUseCaseCommunitiesImpl(getStream, externalExt, db, db)
+	communitiesUseCase := communities.NewUseCaseCommunitiesImpl(getStream, externalExt, db, db, pubSub)
 
 	appointmentUsecase := appointment.NewUseCaseAppointmentsImpl(externalExt, db, db, db, pubSub)
 
@@ -235,6 +237,12 @@ func Router(ctx context.Context) (*mux.Router, error) {
 		http.MethodOptions,
 		http.MethodPost,
 	).HandlerFunc(loginsvc.Login(ctx))
+
+	// This endpoint is a webhook listener. Getstream events --> `Push events` will be published
+	// to this endpoint. It is mainly used for implementing a notification system for myCareHub professional app
+	r.Path("/getstream_webhook").Methods(
+		http.MethodPost,
+	).HandlerFunc(internalHandlers.ReceiveGetstreamEvents())
 
 	// KenyaEMR routes. These endpoints are authenticated and are used for integrations
 	// between myCareHub and KenyaEMR

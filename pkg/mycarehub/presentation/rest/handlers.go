@@ -3,6 +3,7 @@ package rest
 import (
 	"context"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"strconv"
 	"time"
@@ -43,6 +44,7 @@ type MyCareHubHandlersInterfaces interface {
 	SyncFacilities() http.HandlerFunc
 	AddFacilityFHIRID() http.HandlerFunc
 	AppointmentsServiceRequests() http.HandlerFunc
+	ReceiveGetstreamEvents() http.HandlerFunc
 }
 
 type okResp struct {
@@ -1003,4 +1005,43 @@ func (h *MyCareHubHandlersInterfacesImpl) GetAppointmentServiceRequests(ctx cont
 		return
 	}
 	serverutils.WriteJSONResponse(w, response, http.StatusOK)
+}
+
+// ReceiveGetstreamEvents is used to handle getstream events. When an event is triggered e.g A new message is sent to a group, Getstream will
+// POST that data to this endpoint. The requests will be verified as coming from Stream (and not tampered by a 3rd party) by analyzing the signature
+// attached to the request on the HTTP header called "X-Signature"
+func (h *MyCareHubHandlersInterfacesImpl) ReceiveGetstreamEvents() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+
+		// This is the signature that is attached to the request and will be used to verify the
+		// HTTP request i.e verified as coming from getstream
+		signature := r.Header.Get("X-SIGNATURE")
+		r.Close = true
+		requestBody, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			serverutils.WriteJSONResponse(w, serverutils.ErrorMap(err), http.StatusBadRequest)
+			return
+		}
+
+		payload := &dto.GetStreamEvent{}
+		serverutils.DecodeJSONToTargetStruct(w, r, payload)
+
+		isValid := h.usecase.Community.ValidateGetStreamRequest(ctx, requestBody, signature)
+		if !isValid {
+			err := fmt.Errorf("invalid request")
+			helpers.ReportErrorToSentry(err)
+			serverutils.WriteJSONResponse(w, serverutils.ErrorMap(err), http.StatusBadRequest)
+			return
+		}
+
+		err = h.usecase.Community.ProcessGetstreamEvents(ctx, payload)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			serverutils.WriteJSONResponse(w, serverutils.ErrorMap(err), http.StatusInternalServerError)
+			return
+		}
+		serverutils.WriteJSONResponse(w, okResp{Status: true}, http.StatusOK)
+	}
 }

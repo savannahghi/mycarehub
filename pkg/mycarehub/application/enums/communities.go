@@ -6,7 +6,7 @@ import (
 	"strconv"
 )
 
-// MessageType is the type of message of a given getsream message
+// MessageType is the type of message of a given getstream message
 type MessageType string
 
 const (

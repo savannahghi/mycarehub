@@ -48,21 +48,21 @@ func InitializeTestService(ctx context.Context) (*usecases.MyCareHub, error) {
 	// createOrganization(pg)
 
 	externalExt := externalExtension.NewExternalMethodsImpl()
-	pubsub, err := pubsubmessaging.NewServicePubSubMessaging(externalExt)
-	if err != nil {
-		return nil, fmt.Errorf("can't instantiate pubsub service: %v", err)
-	}
 
 	fcm := fcm.NewService()
 
 	db := postgres.NewMyCareHubDb(pg, pg, pg, pg)
 
-	// Initialize facility usecase
-	facilityUseCase := facility.NewFacilityUsecase(db, db, db, db, pubsub)
-
 	otpUseCase := otp.NewOTPUseCase(db, db, externalExt)
 	getStream := streamService.NewServiceGetStream(&stream.Client{})
 	authorityUseCase := authority.NewUsecaseAuthority(db, db, externalExt)
+
+	pubsub, err := pubsubmessaging.NewServicePubSubMessaging(externalExt, getStream, db, fcm)
+	if err != nil {
+		return nil, fmt.Errorf("can't instantiate pubsub service: %v", err)
+	}
+
+	facilityUseCase := facility.NewFacilityUsecase(db, db, db, db, pubsub)
 
 	userUsecase := user.NewUseCasesUserImpl(db, db, db, db, externalExt, otpUseCase, authorityUseCase, getStream, pubsub)
 
@@ -77,7 +77,7 @@ func InitializeTestService(ctx context.Context) (*usecases.MyCareHub, error) {
 	serviceRequestUseCase := servicerequest.NewUseCaseServiceRequestImpl(db, db, db, externalExt, userUsecase, notificationUseCase)
 	healthDiaryUseCase := healthdiary.NewUseCaseHealthDiaryImpl(db, db, db, serviceRequestUseCase)
 	appointmentUsecase := appointment.NewUseCaseAppointmentsImpl(externalExt, db, db, db, pubsub)
-	communityUsecase := communities.NewUseCaseCommunitiesImpl(getStream, externalExt, db, db)
+	communityUsecase := communities.NewUseCaseCommunitiesImpl(getStream, externalExt, db, db, pubsub)
 
 	screeningToolsUsecases := screeningtools.NewUseCasesScreeningTools(db, db, db, externalExt)
 

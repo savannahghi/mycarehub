@@ -17,6 +17,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
 	streamService "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/getstream"
+	pubsubmessaging "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/pubsub"
 )
 
 const (
@@ -83,6 +84,16 @@ type IMessage interface {
 	DeleteCommunityMessage(ctx context.Context, messageID string) (bool, error)
 }
 
+// IValidateRequest specifies a method that is used to verify a webhook request
+type IValidateRequest interface {
+	ValidateGetStreamRequest(ctx context.Context, body []byte, signature string) bool
+}
+
+// IEvents specifies the methods that revolve around getstream events. Events allow the client to stay up to date with changes to the chat
+type IEvents interface {
+	ProcessGetstreamEvents(ctx context.Context, data *dto.GetStreamEvent) error
+}
+
 // UseCasesCommunities holds all interfaces required to implement the communities feature
 type UseCasesCommunities interface {
 	ICreateCommunity
@@ -95,6 +106,8 @@ type UseCasesCommunities interface {
 	IModeration
 	IRecommendations
 	IMessage
+	IValidateRequest
+	IEvents
 }
 
 // UseCasesCommunitiesImpl represents communities implementation
@@ -103,6 +116,7 @@ type UseCasesCommunitiesImpl struct {
 	Create           infrastructure.Create
 	ExternalExt      extension.ExternalMethodsExtension
 	Query            infrastructure.Query
+	Pubsub           pubsubmessaging.ServicePubsub
 }
 
 // NewUseCaseCommunitiesImpl initializes a new communities service
@@ -111,12 +125,14 @@ func NewUseCaseCommunitiesImpl(
 	ext extension.ExternalMethodsExtension,
 	create infrastructure.Create,
 	query infrastructure.Query,
+	pubsub pubsubmessaging.ServicePubsub,
 ) *UseCasesCommunitiesImpl {
 	return &UseCasesCommunitiesImpl{
 		GetstreamService: getstream,
 		Create:           create,
 		ExternalExt:      ext,
 		Query:            query,
+		Pubsub:           pubsub,
 	}
 }
 
@@ -794,4 +810,16 @@ func (us *UseCasesCommunitiesImpl) DeleteCommunityMessage(ctx context.Context, m
 		return false, fmt.Errorf("failed to delete message: %v", err)
 	}
 	return true, nil
+}
+
+// ValidateGetStreamRequest verifies that a request is coming from Stream and has not been tampered by a 3rd party
+// The requests are made on an unauthenticated endpoint hence it can easily be tampered with.
+func (us *UseCasesCommunitiesImpl) ValidateGetStreamRequest(ctx context.Context, body []byte, signature string) bool {
+	return us.GetstreamService.ValidateGetStreamRequest(ctx, body, signature)
+}
+
+// ProcessGetstreamEvents published the event payload to a pubsub topic where it will be processed. This makes it
+// easy to leverage asynchronicity
+func (us *UseCasesCommunitiesImpl) ProcessGetstreamEvents(ctx context.Context, event *dto.GetStreamEvent) error {
+	return us.Pubsub.NotifyGetStreamEvent(ctx, event)
 }
