@@ -139,9 +139,11 @@ func (h UseCasesHealthDiaryImpl) CreateHealthDiaryEntry(
 			Mood:                  mood,
 			Note:                  *note,
 			EntryType:             enums.ServiceRequestTypeHomePageHealthDiary.String(),
-			ShareWithHealthWorker: false,
 			ClientID:              clientID,
-			SharedAt:              time.Now(),
+			ShareWithHealthWorker: reportToStaff,
+		}
+		if reportToStaff {
+			healthDiaryEntry.SharedAt = time.Now()
 		}
 		err := h.Create.CreateHealthDiaryEntry(ctx, healthDiaryEntry)
 		if err != nil {
