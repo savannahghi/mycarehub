@@ -67,7 +67,6 @@ func (n UseCaseNotificationImpl) NotifyUser(ctx context.Context, userProfile *do
 
 	notificationData := &dto.FCMNotificationMessage{
 		Title: notificationPayload.Title,
-		Body:  notificationPayload.Body,
 	}
 
 	payload := helpers.ComposeNotificationPayload(userProfile, *notificationData)

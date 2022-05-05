@@ -59,12 +59,24 @@ type GetStreamServiceMock struct {
 	MockListFlaggedMessagesFn        func(ctx context.Context, input *stream.QueryOption) (*stream.QueryMessageFlagsResponse, error)
 	MockDeleteMessageFn              func(ctx context.Context, messageID string) (*stream.Response, error)
 	MockValidateGetStreamRequestFn   func(ctx context.Context, body []byte, signature string) bool
+	MockGetStreamUserFn              func(ctx context.Context, id string) (*stream.User, error)
 }
 
 // NewGetStreamServiceMock initializes the mock service
 func NewGetStreamServiceMock() *GetStreamServiceMock {
 	var now = time.Now()
 	return &GetStreamServiceMock{
+		MockGetStreamUserFn: func(ctx context.Context, id string) (*stream.User, error) {
+			return &stream.User{
+				ID:   uuid.NewString(),
+				Name: gofakeit.Name(),
+				ExtraData: map[string]interface{}{
+					"userID":   gofakeit.UUID(),
+					"userType": "STAFF",
+					"nickName": gofakeit.Name(),
+				},
+			}, nil
+		},
 		MockCreateGetStreamUserTokenFn: func(ctx context.Context, userID string) (string, error) {
 			return uuid.New().String(), nil
 		},
@@ -426,4 +438,9 @@ func (g GetStreamServiceMock) DeleteMessage(ctx context.Context, messageID strin
 // ValidateGetStreamRequest mocks the implementation of verifying the webhook request
 func (g GetStreamServiceMock) ValidateGetStreamRequest(ctx context.Context, body []byte, signature string) bool {
 	return g.MockValidateGetStreamRequestFn(ctx, body, signature)
+}
+
+// GetStreamUser retrieves a getstream user given the ID
+func (g GetStreamServiceMock) GetStreamUser(ctx context.Context, id string) (*stream.User, error) {
+	return g.MockGetStreamUserFn(ctx, id)
 }

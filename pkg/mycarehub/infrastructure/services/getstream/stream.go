@@ -41,6 +41,7 @@ type ServiceGetStream interface {
 	ListFlaggedMessages(ctx context.Context, input *stream.QueryOption) (*stream.QueryMessageFlagsResponse, error)
 	DeleteMessage(ctx context.Context, messageID string) (*stream.Response, error)
 	ValidateGetStreamRequest(ctx context.Context, body []byte, signature string) bool
+	GetStreamUser(ctx context.Context, id string) (*stream.User, error)
 }
 
 // ChatClient is the service's struct implementation
@@ -258,4 +259,21 @@ func (c *ChatClient) DeleteMessage(ctx context.Context, messageID string) (*stre
 // ValidateGetStreamRequest verifies the request as coming from getstream and not tampered by a 3rd party
 func (c *ChatClient) ValidateGetStreamRequest(ctx context.Context, body []byte, signature string) bool {
 	return c.client.VerifyWebhook(body, []byte(signature))
+}
+
+// GetStreamUser retrieves a getstream user given the ID
+func (c *ChatClient) GetStreamUser(ctx context.Context, id string) (*stream.User, error) {
+	query := &stream.QueryOption{
+		UserID: id,
+	}
+	response, err := c.client.QueryUsers(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(response.Users) != 1 {
+		return nil, fmt.Errorf("expected a single user got: %v", len(response.Users))
+	}
+
+	return response.Users[0], nil
 }

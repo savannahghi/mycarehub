@@ -17,6 +17,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
 	pubsubmessaging "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/pubsub"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/notification"
 	"github.com/savannahghi/scalarutils"
 	"gorm.io/gorm"
 )
@@ -69,11 +70,12 @@ type UseCasesAppointments interface {
 
 // UseCasesAppointmentsImpl represents appointments implementation
 type UseCasesAppointmentsImpl struct {
-	Create      infrastructure.Create
-	ExternalExt extension.ExternalMethodsExtension
-	Query       infrastructure.Query
-	Update      infrastructure.Update
-	Pubsub      pubsubmessaging.ServicePubsub
+	Create       infrastructure.Create
+	ExternalExt  extension.ExternalMethodsExtension
+	Query        infrastructure.Query
+	Update       infrastructure.Update
+	Pubsub       pubsubmessaging.ServicePubsub
+	Notification notification.UseCaseNotification
 }
 
 // NewUseCaseAppointmentsImpl initializes a new appointments usecase
@@ -83,13 +85,15 @@ func NewUseCaseAppointmentsImpl(
 	query infrastructure.Query,
 	update infrastructure.Update,
 	pubsub pubsubmessaging.ServicePubsub,
+	notification notification.UseCaseNotification,
 ) *UseCasesAppointmentsImpl {
 	return &UseCasesAppointmentsImpl{
-		Create:      create,
-		ExternalExt: ext,
-		Query:       query,
-		Update:      update,
-		Pubsub:      pubsub,
+		Create:       create,
+		ExternalExt:  ext,
+		Query:        query,
+		Update:       update,
+		Pubsub:       pubsub,
+		Notification: notification,
 	}
 }
 
@@ -168,21 +172,26 @@ func (a *UseCasesAppointmentsImpl) CreateKenyaEMRAppointments(ctx context.Contex
 		return nil, err
 	}
 
+	notificationArgs := notification.ClientNotificationArgs{
+		Appointment:   &appointment,
+		IsRescheduled: false,
+	}
+	notification := notification.ComposeClientNotification(
+		enums.NotificationTypeAppointment,
+		notificationArgs,
+	)
+	err = a.Notification.NotifyUser(ctx, clientProfile.User, notification)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+	}
+
 	return &input, nil
 }
 
 // UpdateKenyaEMRAppointments updates an appointment with changes from Kenya EMR
 func (a *UseCasesAppointmentsImpl) UpdateKenyaEMRAppointments(ctx context.Context, facility *domain.Facility, input dto.AppointmentPayload) (*dto.AppointmentPayload, error) {
-
-	updates := map[string]interface{}{
-		"date":                        input.AppointmentDate.AsTime(),
-		"reason":                      input.AppointmentReason,
-		"facility_id":                 *facility.ID,
-		"has_rescheduled_appointment": false,
-	}
-
 	// get client profile using the ccc number
-	_, err := a.Query.GetClientProfileByCCCNumber(ctx, input.CCCNumber)
+	clientProfile, err := a.Query.GetClientProfileByCCCNumber(ctx, input.CCCNumber)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get client profile by CCC number")
 	}
@@ -192,9 +201,29 @@ func (a *UseCasesAppointmentsImpl) UpdateKenyaEMRAppointments(ctx context.Contex
 		return nil, fmt.Errorf("failed to get appointment by UUID")
 	}
 
-	_, err = a.Update.UpdateAppointment(ctx, appointment, updates)
+	updates := map[string]interface{}{
+		"date":                        input.AppointmentDate.AsTime(),
+		"reason":                      input.AppointmentReason,
+		"facility_id":                 *facility.ID,
+		"has_rescheduled_appointment": false,
+	}
+
+	updatedAppointment, err := a.Update.UpdateAppointment(ctx, appointment, updates)
 	if err != nil {
 		return nil, err
+	}
+
+	notificationArgs := notification.ClientNotificationArgs{
+		Appointment:   updatedAppointment,
+		IsRescheduled: true,
+	}
+	notification := notification.ComposeClientNotification(
+		enums.NotificationTypeAppointment,
+		notificationArgs,
+	)
+	err = a.Notification.NotifyUser(ctx, clientProfile.User, notification)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
 	}
 
 	return &input, nil

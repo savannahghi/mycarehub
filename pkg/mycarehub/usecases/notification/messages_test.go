@@ -8,6 +8,7 @@ import (
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
+	"github.com/savannahghi/scalarutils"
 )
 
 func TestServiceRequestMessage(t *testing.T) {
@@ -82,7 +83,7 @@ func TestComposeStaffNotification(t *testing.T) {
 			},
 		},
 		{
-			name: "service request notification",
+			name: "unknown notification type",
 			args: args{
 				notificationType: "UNKNOWN",
 				args: StaffNotificationArgs{
@@ -98,6 +99,103 @@ func TestComposeStaffNotification(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := ComposeStaffNotification(tt.args.notificationType, tt.args.args); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("ComposeStaffNotification() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestComposeClientNotification(t *testing.T) {
+	type args struct {
+		notificationType enums.NotificationType
+		args             ClientNotificationArgs
+	}
+	tests := []struct {
+		name string
+		args args
+		want *domain.Notification
+	}{
+		{
+			name: "community invite notification",
+			args: args{
+				notificationType: enums.NotificationTypeCommunities,
+				args: ClientNotificationArgs{
+					Community: &domain.Community{
+						Name: "Good Life",
+					},
+					Inviter: &domain.User{
+						Name: "John Doe",
+					},
+				},
+			},
+			want: &domain.Notification{
+				Title:   "You have been invited to join a community",
+				Body:    "Invitation to join Good Life community by John Doe. To join, accept the invite.",
+				Type:    enums.NotificationTypeCommunities,
+				Flavour: feedlib.FlavourConsumer,
+			},
+		},
+		{
+			name: "new appointment notification",
+			args: args{
+				notificationType: enums.NotificationTypeAppointment,
+				args: ClientNotificationArgs{
+					Appointment: &domain.Appointment{
+						Reason: "Dental Check",
+						Date: scalarutils.Date{
+							Year:  2022,
+							Month: 1,
+							Day:   1,
+						},
+					},
+				},
+			},
+			want: &domain.Notification{
+				Title:   "You have a new scheduled appointment",
+				Body:    "You have a new dental check appointment scheduled for January 01, 2022.",
+				Type:    enums.NotificationTypeAppointment,
+				Flavour: feedlib.FlavourConsumer,
+			},
+		},
+		{
+			name: "appointment reschedule notification",
+			args: args{
+				notificationType: enums.NotificationTypeAppointment,
+				args: ClientNotificationArgs{
+					Appointment: &domain.Appointment{
+						Reason: "Dental Check",
+						Date: scalarutils.Date{
+							Year:  2022,
+							Month: 2,
+							Day:   1,
+						},
+					},
+					IsRescheduled: true,
+				},
+			},
+			want: &domain.Notification{
+				Title:   "An appointment has been rescheduled",
+				Body:    "Your dental check appointment has been rescheduled to February 01, 2022.",
+				Type:    enums.NotificationTypeAppointment,
+				Flavour: feedlib.FlavourConsumer,
+			},
+		},
+		{
+			name: "unknown notification type",
+			args: args{
+				notificationType: "UNKNOWN",
+				args: ClientNotificationArgs{
+					Inviter: &domain.User{
+						Name: "John Doe",
+					},
+				},
+			},
+			want: nil,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := ComposeClientNotification(tt.args.notificationType, tt.args.args); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("ComposeClientNotification() = %v, want %v", got, tt.want)
 			}
 		})
 	}

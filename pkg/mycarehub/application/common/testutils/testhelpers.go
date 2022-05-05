@@ -76,8 +76,8 @@ func InitializeTestService(ctx context.Context) (*usecases.MyCareHub, error) {
 	notificationUseCase := notification.NewNotificationUseCaseImpl(fcm, db, db)
 	serviceRequestUseCase := servicerequest.NewUseCaseServiceRequestImpl(db, db, db, externalExt, userUsecase, notificationUseCase)
 	healthDiaryUseCase := healthdiary.NewUseCaseHealthDiaryImpl(db, db, db, serviceRequestUseCase)
-	appointmentUsecase := appointment.NewUseCaseAppointmentsImpl(externalExt, db, db, db, pubsub)
-	communityUsecase := communities.NewUseCaseCommunitiesImpl(getStream, externalExt, db, db, pubsub)
+	appointmentUsecase := appointment.NewUseCaseAppointmentsImpl(externalExt, db, db, db, pubsub, notificationUseCase)
+	communityUsecase := communities.NewUseCaseCommunitiesImpl(getStream, externalExt, db, db, pubsub, notificationUseCase)
 
 	screeningToolsUsecases := screeningtools.NewUseCasesScreeningTools(db, db, db, externalExt)
 
