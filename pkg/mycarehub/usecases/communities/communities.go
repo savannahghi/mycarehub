@@ -177,7 +177,7 @@ func (us *UseCasesCommunitiesImpl) ListMembers(ctx context.Context, input *strea
 			Role:     user.Role,
 			UserID:   metadata.UserID,
 			UserType: metadata.UserType,
-			Username: metadata.NickName,
+			Username: metadata.Username,
 		}
 		userResponse = append(userResponse, &Users)
 	}
@@ -375,7 +375,7 @@ func (us *UseCasesCommunitiesImpl) ListCommunityMembers(ctx context.Context, com
 			Name:      member.User.Name,
 			Role:      member.User.Role,
 			UserID:    metaData.UserID,
-			Username:  metaData.NickName,
+			Username:  metaData.Username,
 			ExtraData: extraData,
 		}
 
