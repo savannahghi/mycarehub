@@ -5,3 +5,11 @@ extend type Query {
     paginationInput: PaginationsInput!
   ): NotificationsPage
 }
+
+extend type Mutation {
+  sendFCMNotification(
+    registrationTokens: [String!]!
+    data: Map!
+    notification: FirebaseSimpleNotificationInput!
+  ): Boolean!
+}

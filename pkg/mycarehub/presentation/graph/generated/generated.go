@@ -438,6 +438,7 @@ type ComplexityRoot struct {
 		RemoveMembersFromCommunity         func(childComplexity int, communityID string, memberIDs []string) int
 		RescheduleAppointment              func(childComplexity int, appointmentID string, date scalarutils.Date) int
 		ResolveServiceRequest              func(childComplexity int, staffID string, requestID string) int
+		SendFCMNotification                func(childComplexity int, registrationTokens []string, data map[string]interface{}, notification firebasetools.FirebaseSimpleNotificationInput) int
 		SendFeedback                       func(childComplexity int, input dto.FeedbackResponseInput) int
 		SetInProgressBy                    func(childComplexity int, serviceRequestID string, staffID string) int
 		SetNickName                        func(childComplexity int, userID string, nickname string) int
@@ -685,6 +686,7 @@ type MutationResolver interface {
 	SendFeedback(ctx context.Context, input dto.FeedbackResponseInput) (bool, error)
 	CreateHealthDiaryEntry(ctx context.Context, clientID string, note *string, mood string, reportToStaff bool) (bool, error)
 	ShareHealthDiaryEntry(ctx context.Context, healthDiaryEntryID string, shareEntireHealthDiary bool) (bool, error)
+	SendFCMNotification(ctx context.Context, registrationTokens []string, data map[string]interface{}, notification firebasetools.FirebaseSimpleNotificationInput) (bool, error)
 	InviteUser(ctx context.Context, userID string, phoneNumber string, flavour feedlib.Flavour) (bool, error)
 	SetUserPin(ctx context.Context, input *dto.PINInput) (bool, error)
 	AnswerScreeningToolQuestion(ctx context.Context, screeningToolResponses []*dto.ScreeningToolQuestionResponseInput) (bool, error)
@@ -2747,6 +2749,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.ResolveServiceRequest(childComplexity, args["staffID"].(string), args["requestID"].(string)), true
 
+	case "Mutation.sendFCMNotification":
+		if e.complexity.Mutation.SendFCMNotification == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_sendFCMNotification_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.SendFCMNotification(childComplexity, args["registrationTokens"].([]string), args["data"].(map[string]interface{}), args["notification"].(firebasetools.FirebaseSimpleNotificationInput)), true
+
 	case "Mutation.sendFeedback":
 		if e.complexity.Mutation.SendFeedback == nil {
 			break
@@ -4555,6 +4569,13 @@ input RescheduleAppointmentInput {
   appointmentID: String!
   clientID: String!
 }
+
+input FirebaseSimpleNotificationInput {
+  title: String!
+  body: String!
+  imageURL: String!
+  data: Map
+}
 `, BuiltIn: false},
 	{Name: "pkg/mycarehub/presentation/graph/notifications.graphql", Input: `extend type Query {
   fetchNotifications(
@@ -4562,6 +4583,14 @@ input RescheduleAppointmentInput {
     flavour: Flavour!
     paginationInput: PaginationsInput!
   ): NotificationsPage
+}
+
+extend type Mutation {
+  sendFCMNotification(
+    registrationTokens: [String!]!
+    data: Map!
+    notification: FirebaseSimpleNotificationInput!
+  ): Boolean!
 }
 `, BuiltIn: false},
 	{Name: "pkg/mycarehub/presentation/graph/otp.graphql", Input: `extend type Query {
@@ -5848,6 +5877,39 @@ func (ec *executionContext) field_Mutation_resolveServiceRequest_args(ctx contex
 		}
 	}
 	args["requestID"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_sendFCMNotification_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 []string
+	if tmp, ok := rawArgs["registrationTokens"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("registrationTokens"))
+		arg0, err = ec.unmarshalNString2ᚕstringᚄ(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["registrationTokens"] = arg0
+	var arg1 map[string]interface{}
+	if tmp, ok := rawArgs["data"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("data"))
+		arg1, err = ec.unmarshalNMap2map(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["data"] = arg1
+	var arg2 firebasetools.FirebaseSimpleNotificationInput
+	if tmp, ok := rawArgs["notification"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("notification"))
+		arg2, err = ec.unmarshalNFirebaseSimpleNotificationInput2githubᚗcomᚋsavannahghiᚋfirebasetoolsᚐFirebaseSimpleNotificationInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["notification"] = arg2
 	return args, nil
 }
 
@@ -15872,6 +15934,48 @@ func (ec *executionContext) _Mutation_shareHealthDiaryEntry(ctx context.Context,
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Mutation_sendFCMNotification(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_sendFCMNotification_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().SendFCMNotification(rctx, args["registrationTokens"].([]string), args["data"].(map[string]interface{}), args["notification"].(firebasetools.FirebaseSimpleNotificationInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Mutation_inviteUser(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -23125,6 +23229,53 @@ func (ec *executionContext) unmarshalInputFiltersInput(ctx context.Context, obj 
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputFirebaseSimpleNotificationInput(ctx context.Context, obj interface{}) (firebasetools.FirebaseSimpleNotificationInput, error) {
+	var it firebasetools.FirebaseSimpleNotificationInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	for k, v := range asMap {
+		switch k {
+		case "title":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("title"))
+			it.Title, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "body":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("body"))
+			it.Body, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "imageURL":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("imageURL"))
+			it.ImageURL, err = ec.unmarshalNString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "data":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("data"))
+			it.Data, err = ec.unmarshalOMap2map(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputPINInput(ctx context.Context, obj interface{}) (dto.PINInput, error) {
 	var it dto.PINInput
 	asMap := map[string]interface{}{}
@@ -25558,6 +25709,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			}
 		case "shareHealthDiaryEntry":
 			out.Values[i] = ec._Mutation_shareHealthDiaryEntry(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "sendFCMNotification":
+			out.Values[i] = ec._Mutation_sendFCMNotification(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -28033,6 +28189,11 @@ func (ec *executionContext) unmarshalNFilterParam2ᚖgithubᚗcomᚋsavannahghi�
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) unmarshalNFirebaseSimpleNotificationInput2githubᚗcomᚋsavannahghiᚋfirebasetoolsᚐFirebaseSimpleNotificationInput(ctx context.Context, v interface{}) (firebasetools.FirebaseSimpleNotificationInput, error) {
+	res, err := ec.unmarshalInputFirebaseSimpleNotificationInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalNFlavour2githubᚗcomᚋsavannahghiᚋfeedlibᚐFlavour(ctx context.Context, v interface{}) (feedlib.Flavour, error) {
 	var res feedlib.Flavour
 	err := res.UnmarshalGQL(v)
@@ -28229,6 +28390,27 @@ func (ec *executionContext) unmarshalNInt2int(ctx context.Context, v interface{}
 
 func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.SelectionSet, v int) graphql.Marshaler {
 	res := graphql.MarshalInt(v)
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+	}
+	return res
+}
+
+func (ec *executionContext) unmarshalNMap2map(ctx context.Context, v interface{}) (map[string]interface{}, error) {
+	res, err := graphql.UnmarshalMap(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNMap2map(ctx context.Context, sel ast.SelectionSet, v map[string]interface{}) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := graphql.MarshalMap(v)
 	if res == graphql.Null {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")

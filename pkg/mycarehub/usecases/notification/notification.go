@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/savannahghi/converterandformatter"
 	"github.com/savannahghi/feedlib"
+	"github.com/savannahghi/firebasetools"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
@@ -18,6 +20,13 @@ type IServiceNotify interface {
 	NotifyUser(ctx context.Context, userProfile *domain.User, notificationPayload *domain.Notification) error
 	NotifyFacilityStaffs(ctx context.Context, facility *domain.Facility, notificationPayload *domain.Notification) error
 	FetchNotifications(ctx context.Context, userID string, flavour feedlib.Flavour, paginationInput dto.PaginationsInput) (*domain.NotificationsPage, error)
+
+	SendNotification(
+		ctx context.Context,
+		registrationTokens []string,
+		data map[string]interface{},
+		notification *firebasetools.FirebaseSimpleNotificationInput,
+	) (bool, error)
 }
 
 // UseCaseNotification holds the method signatures that are implemented in the notification usecase
@@ -139,4 +148,25 @@ func (n UseCaseNotificationImpl) FetchNotifications(ctx context.Context, userID 
 	}
 
 	return response, nil
+}
+
+// SendNotification is used to send a FCM notification to a registered push token. This API will mainly
+// be used for test purposes i.e to check whether FCMs are being sent to the passed pushtoken
+func (n UseCaseNotificationImpl) SendNotification(
+	ctx context.Context,
+	registrationTokens []string,
+	data map[string]interface{},
+	notification *firebasetools.FirebaseSimpleNotificationInput,
+) (bool, error) {
+	notificationData, err := converterandformatter.MapInterfaceToMapString(data)
+	if err != nil {
+		return false, err
+	}
+
+	payload := &firebasetools.SendNotificationPayload{
+		RegistrationTokens: registrationTokens,
+		Data:               notificationData,
+		Notification:       notification,
+	}
+	return n.FCM.SendNotification(ctx, payload)
 }

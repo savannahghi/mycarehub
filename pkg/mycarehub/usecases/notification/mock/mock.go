@@ -5,6 +5,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/savannahghi/feedlib"
+	"github.com/savannahghi/firebasetools"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 )
@@ -14,6 +15,12 @@ type NotificationUseCaseMock struct {
 	MockNotifyUserFn           func(ctx context.Context, userProfile *domain.User, notificationPayload *domain.Notification) error
 	MockNotifyFacilityStaffsFn func(ctx context.Context, facility *domain.Facility, notificationPayload *domain.Notification) error
 	MockFetchNotificationsFn   func(ctx context.Context, userID string, flavour feedlib.Flavour, paginationInput dto.PaginationsInput) (*domain.NotificationsPage, error)
+	MockSendNotificationFn     func(
+		ctx context.Context,
+		registrationTokens []string,
+		data map[string]interface{},
+		notification *firebasetools.FirebaseSimpleNotificationInput,
+	) (bool, error)
 }
 
 // NewServiceNotificationMock initializes a new notification mock instance
@@ -43,6 +50,14 @@ func NewServiceNotificationMock() *NotificationUseCaseMock {
 				Pagination: domain.Pagination{},
 			}, nil
 		},
+		MockSendNotificationFn: func(
+			ctx context.Context,
+			registrationTokens []string,
+			data map[string]interface{},
+			notification *firebasetools.FirebaseSimpleNotificationInput,
+		) (bool, error) {
+			return true, nil
+		},
 	}
 }
 
@@ -59,4 +74,14 @@ func (n NotificationUseCaseMock) FetchNotifications(ctx context.Context, userID 
 // NotifyFacilityStaffs is used to save and send a FCM notification to a user/ staff at a facility
 func (n NotificationUseCaseMock) NotifyFacilityStaffs(ctx context.Context, facility *domain.Facility, notificationPayload *domain.Notification) error {
 	return n.MockNotifyFacilityStaffsFn(ctx, facility, notificationPayload)
+}
+
+// SendNotification is used to send a FCM notification
+func (n NotificationUseCaseMock) SendNotification(
+	ctx context.Context,
+	registrationTokens []string,
+	data map[string]interface{},
+	notification *firebasetools.FirebaseSimpleNotificationInput,
+) (bool, error) {
+	return n.MockSendNotificationFn(ctx, registrationTokens, data, notification)
 }
