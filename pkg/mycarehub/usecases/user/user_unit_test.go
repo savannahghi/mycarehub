@@ -3967,3 +3967,226 @@ func TestUseCasesUserImpl_GetClientProfileByCCCNumber(t *testing.T) {
 		})
 	}
 }
+
+func TestUseCasesUserImpl_DeleteUser(t *testing.T) {
+	ctx := context.Background()
+
+	fakeDB := pgMock.NewPostgresMock()
+	fakeExtension := extensionMock.NewFakeExtension()
+	otp := otp.NewOTPUseCase(fakeDB, fakeDB, fakeExtension)
+	fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
+	fakeGetStream := getStreamMock.NewGetStreamServiceMock()
+	fakePubsub := pubsubMock.NewPubsubServiceMock()
+	us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, otp, fakeAuthority, fakeGetStream, fakePubsub)
+
+	type args struct {
+		ctx     context.Context
+		payload *dto.Payload
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Successfully delete client",
+			args: args{
+				ctx: ctx,
+				payload: &dto.Payload{
+					PhoneNumber: interserviceclient.TestUserPhoneNumber,
+					Flavour:     feedlib.FlavourConsumer,
+				},
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Happy Case - Successfully delete staff",
+			args: args{
+				ctx: ctx,
+				payload: &dto.Payload{
+					PhoneNumber: interserviceclient.TestUserPhoneNumber,
+					Flavour:     feedlib.FlavourPro,
+				},
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Sad Case - unable to get user profile by phone number",
+			args: args{
+				ctx: ctx,
+				payload: &dto.Payload{
+					PhoneNumber: "",
+					Flavour:     feedlib.FlavourConsumer,
+				},
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - unable to get client profile",
+			args: args{
+				ctx: ctx,
+				payload: &dto.Payload{
+					PhoneNumber: "",
+					Flavour:     feedlib.FlavourConsumer,
+				},
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - unable to delete client profile",
+			args: args{
+				ctx: ctx,
+				payload: &dto.Payload{
+					PhoneNumber: "",
+					Flavour:     feedlib.FlavourConsumer,
+				},
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - unable to delete user",
+			args: args{
+				ctx: ctx,
+				payload: &dto.Payload{
+					PhoneNumber: "",
+					Flavour:     feedlib.FlavourConsumer,
+				},
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - unable to get staff profile",
+			args: args{
+				ctx: ctx,
+				payload: &dto.Payload{
+					PhoneNumber: "",
+					Flavour:     feedlib.FlavourPro,
+				},
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - unable to delete staff profile",
+			args: args{
+				ctx: ctx,
+				payload: &dto.Payload{
+					PhoneNumber: "",
+					Flavour:     feedlib.FlavourPro,
+				},
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - unable to delete staff user",
+			args: args{
+				ctx: ctx,
+				payload: &dto.Payload{
+					PhoneNumber: "",
+					Flavour:     feedlib.FlavourPro,
+				},
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - unable to delete getstream user",
+			args: args{
+				ctx: ctx,
+				payload: &dto.Payload{
+					PhoneNumber: "",
+					Flavour:     feedlib.FlavourPro,
+				},
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "Happy Case - Successfully delete client" {
+				fakeExtension.MockMakeRequestFn = func(ctx context.Context, method string, path string, body interface{}) (*http.Response, error) {
+					input := dto.Payload{
+						PhoneNumber: interserviceclient.TestUserPhoneNumber,
+					}
+
+					payload, err := json.Marshal(input)
+					if err != nil {
+						t.Errorf("unable to marshal test item: %s", err)
+					}
+
+					return &http.Response{
+						StatusCode: http.StatusOK,
+						Status:     "OK",
+						Body:       ioutil.NopCloser(bytes.NewBuffer(payload)),
+					}, nil
+				}
+			}
+
+			if tt.name == "Sad Case - unable to get user profile by phone number" {
+				fakeDB.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*domain.User, error) {
+					return nil, fmt.Errorf("failed to get user profile by phone number")
+				}
+			}
+
+			if tt.name == "Sad Case - unable to get client profile" {
+				fakeDB.MockGetClientProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.ClientProfile, error) {
+					return nil, fmt.Errorf("failed to get client profile")
+				}
+			}
+
+			if tt.name == "Sad Case - unable to delete client profile" {
+				fakeDB.MockDeleteClientProfileFn = func(ctx context.Context, clientID string) (bool, error) {
+					return false, fmt.Errorf("failed to delete client profile")
+				}
+			}
+
+			if tt.name == "Sad Case - unable to delete user" {
+				fakeDB.MockDeleteUserFn = func(ctx context.Context, userID string) (bool, error) {
+					return false, fmt.Errorf("failed to delete user")
+				}
+			}
+
+			if tt.name == "Sad Case - unable to get staff profile" {
+				fakeDB.MockGetStaffProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.StaffProfile, error) {
+					return nil, fmt.Errorf("failed to get staff profile")
+				}
+			}
+
+			if tt.name == "Sad Case - unable to delete staff profile" {
+				fakeDB.MockDeleteStaffProfileFn = func(ctx context.Context, staffID string) (bool, error) {
+					return false, fmt.Errorf("failed to delete staff profile")
+				}
+			}
+
+			if tt.name == "Sad Case - unable to delete staff user" {
+				fakeDB.MockDeleteUserFn = func(ctx context.Context, userID string) (bool, error) {
+					return false, fmt.Errorf("failed to delete user")
+				}
+			}
+
+			if tt.name == "Sad Case - unable to delete getstream user" {
+				fakeGetStream.MockDeleteUsersFn = func(ctx context.Context, userIDs []string, options stream_chat.DeleteUserOptions) (*stream_chat.AsyncTaskResponse, error) {
+					return nil, fmt.Errorf("failed to delete getstream user")
+				}
+			}
+
+			got, err := us.DeleteUser(tt.args.ctx, tt.args.payload)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCasesUserImpl.DeleteUser() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("UseCasesUserImpl.DeleteUser() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

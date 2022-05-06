@@ -5575,3 +5575,56 @@ func TestMyCareHubDb_GetFacilityStaffs(t *testing.T) {
 		})
 	}
 }
+
+func TestMyCareHubDb_GetClientIdentifier(t *testing.T) {
+	ctx := context.Background()
+
+	var fakeGorm = gormMock.NewGormMock()
+	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+	type args struct {
+		ctx      context.Context
+		clientID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *domain.Identifier
+		wantErr bool
+	}{
+		{
+			name: "Happy case: retrieve client identifier",
+			args: args{
+				ctx:      ctx,
+				clientID: gofakeit.UUID(),
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: unable to retrieve client identifier",
+			args: args{
+				ctx:      ctx,
+				clientID: gofakeit.UUID(),
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "Sad case: unable to retrieve client identifier" {
+				fakeGorm.MockGetClientIdentifierFn = func(ctx context.Context, clientID string) (*gorm.Identifier, error) {
+					return nil, fmt.Errorf("cannot retrieve client identifier")
+				}
+			}
+			got, err := d.GetClientIdentifier(tt.args.ctx, tt.args.clientID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.GetClientIdentifier() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected value, got %v", got)
+				return
+			}
+		})
+	}
+}

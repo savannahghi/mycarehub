@@ -1,0 +1,4 @@
+# staff_staff_contacts.yml
+- id: 6ecbbc80-24c8-421a-9f7a-e14e21678ef0
+  staff_id: {{.staff_id_to_delete}}
+  contact_id: {{.staff_contact_id_to_delete}}

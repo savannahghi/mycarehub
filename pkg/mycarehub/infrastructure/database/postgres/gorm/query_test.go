@@ -4298,3 +4298,48 @@ func TestPGInstance_GetFacilityStaffs(t *testing.T) {
 		})
 	}
 }
+
+func TestPGInstance_GetClientIdentifier(t *testing.T) {
+	ctx := context.Background()
+
+	type args struct {
+		ctx      context.Context
+		clientID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *gorm.Identifier
+		wantErr bool
+	}{
+		{
+			name: "Happy case: retrieve client identifier",
+			args: args{
+				ctx:      ctx,
+				clientID: clientID3,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: unable to retrieve client identifier",
+			args: args{
+				ctx:      ctx,
+				clientID: uuid.New().String(),
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := testingDB.GetClientIdentifier(tt.args.ctx, tt.args.clientID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.GetClientIdentifier() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected value, got %v", got)
+				return
+			}
+		})
+	}
+}

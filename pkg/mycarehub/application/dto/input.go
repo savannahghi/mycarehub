@@ -113,6 +113,12 @@ type SendRetryOTPPayload struct {
 	Flavour feedlib.Flavour `json:"flavour" validate:"required"`
 }
 
+// Payload is used to define the inputs needed carrying out an activity that requires a phone number and flavour.
+type Payload struct {
+	PhoneNumber string          `json:"phoneNumber" validate:"required"`
+	Flavour     feedlib.Flavour `json:"flavour" validate:"required"`
+}
+
 // Validate helps with validation of PINInput fields
 func (f *PINInput) Validate() error {
 	v := validator.New()

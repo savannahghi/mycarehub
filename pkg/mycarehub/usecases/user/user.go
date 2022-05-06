@@ -38,6 +38,7 @@ import (
 var (
 	registerClientAPIEndpoint = serverutils.MustGetEnvVar("CLIENT_REGISTRATION_URL")
 	registerStaffAPIEndpoint  = serverutils.MustGetEnvVar("STAFF_REGISTRATION_URL")
+	deletFHIRPatientEndpoint  = serverutils.MustGetEnvVar("DELETE_FHIR_PATIENT")
 )
 
 // ILogin is an interface that contans login related methods
@@ -102,6 +103,11 @@ type IRegisterUser interface {
 	RegisterStaff(ctx context.Context, input dto.StaffRegistrationInput) (*dto.StaffRegistrationOutput, error)
 }
 
+// IDeleteUser interface define the method signature that is used to delete user
+type IDeleteUser interface {
+	DeleteUser(ctx context.Context, payload *dto.Payload) (bool, error)
+}
+
 // IClientMedicalHistory interface defines method signature for dealing with medical history
 type IClientMedicalHistory interface {
 	RegisteredFacilityPatients(ctx context.Context, input dto.PatientSyncPayload) (*dto.PatientSyncResponse, error)
@@ -152,6 +158,7 @@ type UseCasesUser interface {
 	IConsent
 	IUserProfile
 	IClientProfile
+	IDeleteUser
 }
 
 // UseCasesUserImpl represents user implementation object
@@ -210,6 +217,90 @@ func (us *UseCasesUserImpl) AddClientFHIRID(ctx context.Context, input dto.Clien
 	}
 
 	return nil
+}
+
+// DeleteUser method is used to searach for a user with a given phone number and flavour and deleted them.
+// If the flavour is CONSUMER, their respective client profile as well as their user's profile.
+// If flavour is PRO, their respective staff profile as well as their user's profile.
+func (us *UseCasesUserImpl) DeleteUser(ctx context.Context, payload *dto.Payload) (bool, error) {
+	user, err := us.Query.GetUserProfileByPhoneNumber(ctx, payload.PhoneNumber, payload.Flavour)
+	if err != nil {
+		return false, fmt.Errorf("error retrieving user: %v", err)
+	}
+
+	_, err = us.GetStream.DeleteUsers(
+		ctx,
+		[]string{*user.ID}, getStreamClient.DeleteUserOptions{
+			User:     getStreamClient.HardDelete,
+			Messages: getStreamClient.HardDelete,
+		},
+	)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, fmt.Errorf("error deleting stream user: %v", err)
+	}
+
+	switch payload.Flavour {
+	case feedlib.FlavourConsumer:
+		resp, err := us.ExternalExt.MakeRequest(ctx, http.MethodDelete, deletFHIRPatientEndpoint, payload.PhoneNumber)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return false, fmt.Errorf("failed to make request: %v", err)
+		}
+
+		dataResponse, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return false, fmt.Errorf("failed to read response body: %v", err)
+		}
+
+		statusOK := resp.StatusCode >= 200 && resp.StatusCode < 300
+		if !statusOK {
+			return false, fmt.Errorf("failed to delete fhir patient: %v", string(dataResponse))
+		}
+
+		client, err := us.Query.GetClientProfileByUserID(ctx, *user.ID)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return false, fmt.Errorf("error retrieving client profile: %v", err)
+		}
+
+		_, err = us.Delete.DeleteClientProfile(ctx, *client.ID)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return false, fmt.Errorf("error delete client profile: %v", err)
+		}
+
+		_, err = us.Delete.DeleteUser(ctx, *user.ID)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return false, fmt.Errorf("error deleting user profile: %v", err)
+		}
+
+	case feedlib.FlavourPro:
+		staff, err := us.Query.GetStaffProfileByUserID(ctx, *user.ID)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return false, fmt.Errorf("error retrieving staff profile: %v", err)
+		}
+
+		_, err = us.Delete.DeleteStaffProfile(ctx, *staff.ID)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return false, fmt.Errorf("error deleting staff profile: %v", err)
+		}
+
+		_, err = us.Delete.DeleteUser(ctx, *user.ID)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return false, fmt.Errorf("error deleting user profile: %v", err)
+		}
+
+	default:
+		return false, fmt.Errorf("unknown flavour: %v", user.Flavour)
+	}
+
+	return true, nil
 }
 
 // VerifyLoginPIN checks whether a pin is valid. If a pin is invalid, it will prompt

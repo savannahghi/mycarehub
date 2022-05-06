@@ -6,6 +6,8 @@ import (
 	"testing"
 
 	"github.com/brianvoe/gofakeit"
+	"github.com/google/uuid"
+	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/interserviceclient"
 	helpers_mock "github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers/mock"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
@@ -132,6 +134,180 @@ func TestMyCareHubDb_DeleteFacility_Unittest(t *testing.T) {
 			if (err != nil) != tt.wantErr {
 				t.Errorf("MyCareHubDb.DeleteFacility() error = %v, wantErr %v", err, tt.wantErr)
 				return
+			}
+		})
+	}
+}
+
+func TestMyCareHubDb_DeleteClientProfile(t *testing.T) {
+	ctx := context.Background()
+
+	var fakeGorm = gormMock.NewGormMock()
+	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+	type args struct {
+		ctx          context.Context
+		clientID     string
+		identifierID string
+		contactID    string
+		flavour      feedlib.Flavour
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:          ctx,
+				clientID:     "123456789",
+				identifierID: "123456789",
+				contactID:    "123456789",
+				flavour:      feedlib.FlavourConsumer,
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Sad case",
+			args: args{
+				ctx:      ctx,
+				clientID: "123456789",
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "Sad case" {
+				fakeGorm.MockDeleteClientProfileFn = func(ctx context.Context, clientID string) (bool, error) {
+					return false, fmt.Errorf("an error occurred while deleting")
+				}
+			}
+			got, err := d.DeleteClientProfile(tt.args.ctx, tt.args.clientID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.DeleteClientProfile() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("MyCareHubDb.DeleteClientProfile() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestMyCareHubDb_DeleteUser(t *testing.T) {
+	ctx := context.Background()
+
+	var fakeGorm = gormMock.NewGormMock()
+	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+	type args struct {
+		ctx    context.Context
+		userID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:    ctx,
+				userID: "123456789",
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Sad case",
+			args: args{
+				ctx:    ctx,
+				userID: "123456789",
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "Sad case" {
+				fakeGorm.MockDeleteUserFn = func(ctx context.Context, userID string) (bool, error) {
+					return false, fmt.Errorf("an error occurred while deleting")
+				}
+			}
+			got, err := d.DeleteUser(tt.args.ctx, tt.args.userID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.DeleteUser() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("MyCareHubDb.DeleteUser() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestMyCareHubDb_DeleteStaffProfile(t *testing.T) {
+	ctx := context.Background()
+
+	var fakeGorm = gormMock.NewGormMock()
+	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+	type args struct {
+		ctx       context.Context
+		staffID   string
+		ContactID string
+		Flavour   feedlib.Flavour
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:       ctx,
+				staffID:   "123456789",
+				ContactID: uuid.New().String(),
+				Flavour:   feedlib.FlavourPro,
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Sad case",
+			args: args{
+				ctx:       ctx,
+				staffID:   "123456789",
+				ContactID: uuid.New().String(),
+				Flavour:   feedlib.FlavourPro,
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "Sad case" {
+				fakeGorm.MockDeleteStaffProfileFn = func(ctx context.Context, staffID string) (bool, error) {
+					return false, fmt.Errorf("an error occurred while deleting")
+				}
+			}
+			got, err := d.DeleteStaffProfile(tt.args.ctx, tt.args.staffID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.DeleteStaffProfile() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("MyCareHubDb.DeleteStaffProfile() = %v, want %v", got, tt.want)
 			}
 		})
 	}

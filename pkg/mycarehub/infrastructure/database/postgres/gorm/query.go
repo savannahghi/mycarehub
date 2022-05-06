@@ -93,6 +93,7 @@ type Query interface {
 	GetAppointment(ctx context.Context, params *Appointment) (*Appointment, error)
 	CheckIfStaffHasUnresolvedServiceRequests(ctx context.Context, staffID string, serviceRequestType string) (bool, error)
 	GetFacilityStaffs(ctx context.Context, facilityID string) ([]*StaffProfile, error)
+	GetClientIdentifier(ctx context.Context, clientID string) (*Identifier, error)
 }
 
 // CheckWhetherUserHasLikedContent performs a operation to check whether user has liked the content
@@ -1250,6 +1251,19 @@ func (db *PGInstance) GetSharedHealthDiaryEntries(ctx context.Context, clientID 
 	}
 
 	return healthDiaryEntry, nil
+}
+
+// GetClientIdentifier fetches the client identifier with the given cliennt ID
+func (db *PGInstance) GetClientIdentifier(ctx context.Context, clientID string) (*Identifier, error) {
+	var identifier *Identifier
+	err := db.DB.Joins("JOIN clients_client_identifiers ON clients_identifier.id = clients_client_identifiers.identifier_id").
+		Where("clients_client_identifiers.client_id = ?", clientID).First(&identifier).Error
+
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, fmt.Errorf("failed to get client identifier: %v", err)
+	}
+	return identifier, nil
 }
 
 // GetServiceRequestByID returns a service request by ID

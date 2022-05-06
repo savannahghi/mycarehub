@@ -1975,3 +1975,23 @@ func (d *MyCareHubDb) GetClientScreeningToolServiceRequestByToolType(ctx context
 func (d *MyCareHubDb) CheckIfStaffHasUnresolvedServiceRequests(ctx context.Context, staffID string, serviceRequestType string) (bool, error) {
 	return d.query.CheckIfStaffHasUnresolvedServiceRequests(ctx, staffID, serviceRequestType)
 }
+
+// GetClientIdentifier retrives cliebt identifier by their client ID
+func (d *MyCareHubDb) GetClientIdentifier(ctx context.Context, clientID string) (*domain.Identifier, error) {
+	identifier, err := d.query.GetClientIdentifier(ctx, clientID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
+	return &domain.Identifier{
+		ID:                  identifier.ID,
+		IdentifierType:      identifier.IdentifierType,
+		IdentifierValue:     identifier.IdentifierValue,
+		IdentifierUse:       identifier.IdentifierUse,
+		Description:         identifier.Description,
+		ValidFrom:           identifier.ValidFrom,
+		ValidTo:             identifier.ValidTo,
+		IsPrimaryIdentifier: identifier.IsPrimaryIdentifier,
+	}, nil
+}

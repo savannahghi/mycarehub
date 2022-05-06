@@ -142,6 +142,10 @@ type PostgresMock struct {
 	MockGetAppointmentByExternalIDFn                     func(ctx context.Context, externalID string) (*domain.Appointment, error)
 	MockListNotificationsFn                              func(ctx context.Context, params *domain.Notification, pagination *domain.Pagination) ([]*domain.Notification, *domain.Pagination, error)
 	MockSaveNotificationFn                               func(ctx context.Context, payload *domain.Notification) error
+	MockDeleteClientProfileFn                            func(ctx context.Context, clientID string) (bool, error)
+	MockDeleteUserFn                                     func(ctx context.Context, userID string) (bool, error)
+	MockDeleteStaffProfileFn                             func(ctx context.Context, staffID string) (bool, error)
+	MockGetClientIdentifierFn                            func(ctx context.Context, clientID string) (*domain.Identifier, error)
 	MockGetClientScreeningToolResponsesByToolTypeFn      func(ctx context.Context, clientID, toolType string, active bool) ([]*domain.ScreeningToolQuestionResponse, error)
 	MockGetClientScreeningToolServiceRequestByToolTypeFn func(ctx context.Context, clientID, toolType, status string) (*domain.ServiceRequest, error)
 	MockGetAppointmentFn                                 func(ctx context.Context, params domain.Appointment) (*domain.Appointment, error)
@@ -288,6 +292,15 @@ func NewPostgresMock() *PostgresMock {
 		},
 		MockRetrieveFacilityByMFLCodeFn: func(ctx context.Context, MFLCode int, isActive bool) (*domain.Facility, error) {
 			return facilityInput, nil
+		},
+		MockDeleteClientProfileFn: func(ctx context.Context, clientID string) (bool, error) {
+			return true, nil
+		},
+		MockDeleteStaffProfileFn: func(ctx context.Context, staffID string) (bool, error) {
+			return true, nil
+		},
+		MockDeleteUserFn: func(ctx context.Context, userID string) (bool, error) {
+			return true, nil
 		},
 		MockGetAppointmentFn: func(ctx context.Context, params domain.Appointment) (*domain.Appointment, error) {
 			return &domain.Appointment{
@@ -481,6 +494,18 @@ func NewPostgresMock() *PostgresMock {
 		},
 		MockCheckUserHasPinFn: func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
 			return true, nil
+		},
+		MockGetClientIdentifierFn: func(ctx context.Context, clientID string) (*domain.Identifier, error) {
+			return &domain.Identifier{
+				ID:                  ID,
+				IdentifierType:      ID,
+				IdentifierValue:     ID,
+				IdentifierUse:       ID,
+				Description:         description,
+				ValidFrom:           time.Time{},
+				ValidTo:             time.Time{},
+				IsPrimaryIdentifier: false,
+			}, nil
 		},
 		MockGenerateRetryOTPFn: func(ctx context.Context, payload *dto.SendRetryOTPPayload) (string, error) {
 			return "test-OTP", nil
@@ -1064,6 +1089,21 @@ func (gm *PostgresMock) InactivateFacility(ctx context.Context, mflCode *int) (b
 	return gm.MockInactivateFacilityFn(ctx, mflCode)
 }
 
+// DeleteClientProfile mocks the implementation of deleting a client
+func (gm *PostgresMock) DeleteClientProfile(ctx context.Context, clientID string) (bool, error) {
+	return gm.MockDeleteClientProfileFn(ctx, clientID)
+}
+
+// DeleteStaffProfile mocks the implementation of deleting a staff
+func (gm *PostgresMock) DeleteStaffProfile(ctx context.Context, staffID string) (bool, error) {
+	return gm.MockDeleteStaffProfileFn(ctx, staffID)
+}
+
+// DeleteUser mocks the implementation of deleting a user
+func (gm *PostgresMock) DeleteUser(ctx context.Context, userID string) (bool, error) {
+	return gm.MockDeleteUserFn(ctx, userID)
+}
+
 // ReactivateFacility mocks the implementation of re-activating the active status of a particular facility
 func (gm *PostgresMock) ReactivateFacility(ctx context.Context, mflCode *int) (bool, error) {
 	return gm.MockReactivateFacilityFn(ctx, mflCode)
@@ -1332,6 +1372,11 @@ func (gm *PostgresMock) ResolveServiceRequest(ctx context.Context, staffID *stri
 // CheckUserRole mocks the implementation of checking if a user has a role
 func (gm *PostgresMock) CheckUserRole(ctx context.Context, userID string, role string) (bool, error) {
 	return gm.MockCheckUserRoleFn(ctx, userID, role)
+}
+
+// GetClientIdentifier mocks the implementation of getting a client's identifier
+func (gm *PostgresMock) GetClientIdentifier(ctx context.Context, clientID string) (*domain.Identifier, error) {
+	return gm.MockGetClientIdentifierFn(ctx, clientID)
 }
 
 // CheckUserPermission mocks the implementation of checking if a user has a permission

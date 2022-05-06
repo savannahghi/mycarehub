@@ -148,6 +148,11 @@ type GormMock struct {
 	MockGetAppointmentFn                                 func(ctx context.Context, params *gorm.Appointment) (*gorm.Appointment, error)
 	MockCheckIfStaffHasUnresolvedServiceRequestsFn       func(ctx context.Context, staffID string, serviceRequestType string) (bool, error)
 	MockGetFacilityStaffsFn                              func(ctx context.Context, facilityID string) ([]*gorm.StaffProfile, error)
+	MockGetClientIdentifierFn                            func(ctx context.Context, clientID string) (*gorm.Identifier, error)
+	MockDeleteClientProfileFn                            func(ctx context.Context, clientID string) (bool, error)
+	MockDeleteUserFn                                     func(ctx context.Context, userID string) (bool, error)
+	MockDeleteStaffProfileFn                             func(ctx context.Context, staffID string) (bool, error)
+	MockDeleteContactByIDFn                              func(ctx context.Context, contactID string, flavour feedlib.Flavour) (bool, error)
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -454,6 +459,32 @@ func NewGormMock() *GormMock {
 
 		MockGetUserPINByUserIDFn: func(ctx context.Context, userID string, flavour feedlib.Flavour) (*gorm.PINData, error) {
 			return pinData, nil
+		},
+		MockGetClientIdentifierFn: func(ctx context.Context, clientID string) (*gorm.Identifier, error) {
+			return &gorm.Identifier{
+				ID:                  UUID,
+				OrganisationID:      "",
+				Active:              false,
+				IdentifierType:      "",
+				IdentifierValue:     "",
+				IdentifierUse:       "",
+				Description:         description,
+				ValidFrom:           time.Time{},
+				ValidTo:             time.Time{},
+				IsPrimaryIdentifier: false,
+			}, nil
+		},
+		MockDeleteContactByIDFn: func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
+			return true, nil
+		},
+		MockDeleteClientProfileFn: func(ctx context.Context, clientID string) (bool, error) {
+			return true, nil
+		},
+		MockDeleteStaffProfileFn: func(ctx context.Context, staffID string) (bool, error) {
+			return true, nil
+		},
+		MockDeleteUserFn: func(ctx context.Context, userID string) (bool, error) {
+			return true, nil
 		},
 
 		MockInactivateFacilityFn: func(ctx context.Context, mflCode *int) (bool, error) {
@@ -1223,6 +1254,31 @@ func (gm *GormMock) UpdateUserFailedLoginCount(ctx context.Context, userID strin
 // UpdateUserLastFailedLoginTime mocks the implementation of updating a user's last failed login time
 func (gm *GormMock) UpdateUserLastFailedLoginTime(ctx context.Context, userID string) error {
 	return gm.MockUpdateUserLastFailedLoginTimeFn(ctx, userID)
+}
+
+// GetClientIdentifier mocks the implementation of getting a client's identifier
+func (gm *GormMock) GetClientIdentifier(ctx context.Context, clientID string) (*gorm.Identifier, error) {
+	return gm.MockGetClientIdentifierFn(ctx, clientID)
+}
+
+// DeleteClientProfile mocks the implementation of deleting a client
+func (gm *GormMock) DeleteClientProfile(ctx context.Context, clientID string) (bool, error) {
+	return gm.MockDeleteClientProfileFn(ctx, clientID)
+}
+
+// DeleteStaffProfile mocks the implementation of deleting a staff
+func (gm *GormMock) DeleteStaffProfile(ctx context.Context, staffID string) (bool, error) {
+	return gm.MockDeleteStaffProfileFn(ctx, staffID)
+}
+
+// DeleteUser mocks the implementation of deleting a user
+func (gm *GormMock) DeleteUser(ctx context.Context, userID string) (bool, error) {
+	return gm.MockDeleteUserFn(ctx, userID)
+}
+
+// DeleteContactByID mocks the implementation of deleting a contact by ID
+func (gm *GormMock) DeleteContactByID(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
+	return gm.MockDeleteContactByIDFn(ctx, userID, flavour)
 }
 
 // UpdateUserNextAllowedLoginTime mocks the implementation of updating a user's next allowed login time

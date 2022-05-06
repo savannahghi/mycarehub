@@ -950,6 +950,42 @@ func (c *ClientIdentifiers) TableName() string {
 	return "clients_client_identifiers"
 }
 
+// StaffIdentifiers links a staff with their identifiers
+type StaffIdentifiers struct {
+	ID           int     `gorm:"primaryKey;column:id;autoincrement"`
+	StaffID      *string `gorm:"column:staff_id"`
+	IdentifierID *string `gorm:"column:identifier_id"`
+}
+
+// TableName references the table that we map data from
+func (s *StaffIdentifiers) TableName() string {
+	return "staff_staff_identifiers"
+}
+
+// UserGroups links a user to their user groups in the django model
+type UserGroups struct {
+	ID      int     `gorm:"primaryKey;column:id;autoincrement"`
+	UserID  *string `gorm:"column:user_id"`
+	GroupID int     `gorm:"column:identifier_id"`
+}
+
+// TableName references the table that we map data from
+func (s *UserGroups) TableName() string {
+	return "users_user_groups"
+}
+
+// UserPermisssions links a user to their user permissions in the django model
+type UserPermisssions struct {
+	ID           int     `gorm:"primaryKey;column:id;autoincrement"`
+	UserID       *string `gorm:"column:user_id"`
+	PermissionID int     `gorm:"column:permission_id"`
+}
+
+// TableName references the table that we map data from
+func (u *UserPermisssions) TableName() string {
+	return "users_user_user_permissions"
+}
+
 // ClientRelatedPerson links a client with their related person e.g next of kin
 type ClientRelatedPerson struct {
 	ID              int     `gorm:"primaryKey;column:id;autoincrement"`
@@ -972,6 +1008,42 @@ type ClientContacts struct {
 // TableName references the table that we map data from
 func (c *ClientContacts) TableName() string {
 	return "clients_client_contacts"
+}
+
+// StaffContacts links a staff with their contacts
+type StaffContacts struct {
+	ID        int     `gorm:"primaryKey;column:id;autoincrement"`
+	StaffID   *string `gorm:"column:staff_id"`
+	ContactID *string `gorm:"column:contact_id"`
+}
+
+// TableName references the table that we map data from
+func (c *StaffContacts) TableName() string {
+	return "staff_staff_contacts"
+}
+
+// StaffFacilities links a staff with their facilities
+type StaffFacilities struct {
+	ID         int     `gorm:"primaryKey;column:id;autoincrement"`
+	StaffID    *string `gorm:"column:staff_id"`
+	FacilityID *string `gorm:"column:facility_id"`
+}
+
+// TableName references the table that we map data from
+func (s *StaffFacilities) TableName() string {
+	return "staff_staff_facilities"
+}
+
+// UserAuthToken links a user with their authtokens in the django model
+type UserAuthToken struct {
+	Key     string    `gorm:"primaryKey;column:key;autoincrement"`
+	Created time.Time `gorm:"column:created"`
+	UserID  *string   `gorm:"column:user_id"`
+}
+
+// TableName references the table that we map data from
+func (a *UserAuthToken) TableName() string {
+	return "authtoken_token"
 }
 
 // RelatedPerson represents information for a person related to another user

@@ -38,6 +38,7 @@ type UserUseCaseMock struct {
 	MockSearchStaffByStaffNumberFn      func(ctx context.Context, staffNumber string) ([]*domain.StaffProfile, error)
 	MockConsentFn                       func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour, active bool) (bool, error)
 	MockGetUserProfileFn                func(ctx context.Context, userID string) (*domain.User, error)
+	MockDeleteUserFn                    func(ctx context.Context, payload *dto.Payload) (bool, error)
 	MockAddClientFHIRIDFn               func(ctx context.Context, input dto.ClientFHIRPayload) error
 	MockGenerateTemporaryPinFn          func(ctx context.Context, userID string, flavour feedlib.Flavour) (string, error)
 	MockRegisterPushTokenFn             func(ctx context.Context, token string) (bool, error)
@@ -84,6 +85,9 @@ func NewUserUseCaseMock() *UserUseCaseMock {
 			}, nil
 		},
 		MockInviteUserFn: func(ctx context.Context, userID string, phoneNumber string, flavour feedlib.Flavour) (bool, error) {
+			return true, nil
+		},
+		MockDeleteUserFn: func(ctx context.Context, payload *dto.Payload) (bool, error) {
 			return true, nil
 		},
 		MockSavePinFn: func(ctx context.Context, input dto.PINInput) (bool, error) {
@@ -243,6 +247,11 @@ func (f *UserUseCaseMock) InviteUser(ctx context.Context, userID string, phoneNu
 // SavePin mocks the save pin functionality
 func (f *UserUseCaseMock) SavePin(ctx context.Context, input dto.PINInput) (bool, error) {
 	return f.MockSavePinFn(ctx, input)
+}
+
+// DeleteUser mocks the implementation of deleting a user
+func (f *UserUseCaseMock) DeleteUser(ctx context.Context, payload *dto.Payload) (bool, error) {
+	return f.MockDeleteUserFn(ctx, payload)
 }
 
 // VerifyLoginPIN mocks the verify pin functionality

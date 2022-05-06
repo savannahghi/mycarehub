@@ -26,11 +26,15 @@ var (
 
 	newExtension extension.ExternalMethodsExtension
 
-	testPhone   = gofakeit.Phone()
-	testFlavour = feedlib.FlavourConsumer
-	futureTime  = time.Now().Add(time.Hour * 24 * 365 * 10)
-	testOTP     = "1234"
+	testPhone      = gofakeit.Phone()
+	testPhone2     = gofakeit.Phone()
+	testFlavour    = feedlib.FlavourConsumer
+	testFlavourPRO = feedlib.FlavourPro
+	futureTime     = time.Now().Add(time.Hour * 24 * 365 * 10)
+	testOTP        = "1234"
 	// user variables
+	userIDToDelete                             = "6ecbbc80-24c8-421a-9f7a-e14e12678ef0"
+	staffUserIDToDelete                        = "6ecbbc80-24c8-421a-9f7a-e14e21678ef0"
 	userID                                     = "6ecbbc80-24c8-421a-9f1a-e14e12678ee0"
 	userID2                                    = "6ecbbc80-24c8-421a-9f1a-e14e12678ef0"
 	userIDtoAddCaregiver                       = "8ecbbc80-24c8-421a-9f1a-e14e12678ef1"
@@ -48,6 +52,7 @@ var (
 	treatmentBuddyID2                          = "5ecbbc80-24c8-421a-9f1a-e14e12678ef1"
 	fhirPatientID                              = "5ecbbc80-24c8-421a-9f1a-e14e12678ee2"
 	fhirPatientID2                             = "f933fd4b-1e3c-4ecd-9d7a-82b2790c0543"
+	fhirPatientID3                             = "f933fd4b-1e3c-4ecd-9d7a-82b2790c0544"
 	testEmrHealthRecordID                      = "5ecbbc80-24c8-421a-9f1a-e14e12678ee3"
 	testEmrHealthRecordID2                     = "5ecbbc80-24c8-421a-9f1a-e14e12678ef3"
 	testChvID                                  = "5ecbbc80-24c8-421a-9f1a-e14e12678ee4"
@@ -55,9 +60,15 @@ var (
 	userNickname                               = "test user"
 	clientID                                   = "26b20a42-cbb8-4553-aedb-c539602d04fc"
 	clientID2                                  = "00a6a0cd-42ac-417b-97d9-e939a1232de1"
+	clientID3                                  = "11a6a0cd-42ac-714b-97d9-e939a1232de2"
 	contactID                                  = "bdc22436-e314-43f2-bb39-ba1ab332f9b0"
 	identifierID                               = "bcbdaf68-3d36-4365-b575-4182d6749af5"
+	identifierIDToDelete                       = "bcbdaf68-3d36-4365-b575-4392d6749af6"
+	staffIdentifierIDToDelete                  = "bcbdaf89-3d36-4365-b575-4392d6749af7"
+	randomIdentifierValue                      = "test-identifier-value"
 	ClientToAddCaregiver                       = "00a6a0cd-42ac-417b-97d9-e939a1232de2"
+	contactIDToDelete                          = "bdc36422-e314-43f2-bb39-ba1ab332f9b0"
+	staffContactIDToDelete                     = "bdc36422-e314-43f2-bb39-ba1ab332f9c2"
 	// Facility variables
 	facilityID          = "4181df12-ca96-4f28-b78b-8e8ad88b25df"
 	mflCode             = 324459
@@ -89,8 +100,9 @@ var (
 	termsText = "Test terms"
 
 	// Staff
-	staffNumber = "test-Staff-101"
-	staffID     = "8ecbbc80-24c8-421a-9f1a-e14e12678ef1"
+	staffNumber     = "test-Staff-101"
+	staffID         = "8ecbbc80-24c8-421a-9f1a-e14e12678ef1"
+	staffIDToDelete = "8ecbbc80-24c8-124a-9f1a-e14e12678ef2"
 
 	clientsServiceRequestID   = "8ecbbc10-24c8-421a-9f1a-e17f12678ef1"
 	staffServiceRequestID     = "8ecbbc10-24c8-421a-9f1a-e17f12678ef1"
@@ -156,38 +168,46 @@ func TestMain(m *testing.M) {
 		testfixtures.Dialect("postgres"),
 		testfixtures.Template(),
 		testfixtures.TemplateData(template.FuncMap{
-			"salt":                       salt,
-			"hash":                       encryptedPin,
-			"valid_to":                   time.Now().Add(500).String(),
-			"test_phone":                 "\"" + testPhone + "\"",
-			"test_user_id":               userID,
-			"user_with_roles_id":         userWithRolesID,
-			"test_user_id2":              userID2,
-			"staff_user_id":              userIDtoAssignStaff,
-			"test_flavour":               testFlavour,
-			"test_organisation_id":       orgID,
-			"future_time":                futureTime.String(),
-			"test_otp":                   "\"" + testOTP + "\"",
-			"treatment_buddy_id":         treatmentBuddyID,
-			"treatment_buddy_id2":        treatmentBuddyID2,
-			"test_fhir_patient_id":       fhirPatientID,
-			"test_fhir_patient_id2":      fhirPatientID2,
-			"test_emr_health_record_id":  testEmrHealthRecordID,
-			"test_emr_health_record_id2": testEmrHealthRecordID2,
-			"test_facility_id":           facilityID,
-			"test_chv_id":                testChvID,
-			"test_chv_id2":               testChvID2,
-			"test_password":              gofakeit.Password(false, false, true, true, false, 10),
-			"test_terms_id":              termsID,
-			"test_terms_text":            termsText,
-			"content_id":                 contentID,
-			"content_id2":                contentID2,
-			"author_id":                  authorID,
-			"author_id2":                 authorID2,
-			"security_question_id":       securityQuestionID,
-			"security_question_id2":      securityQuestionID2,
-			"security_question_id3":      securityQuestionID3,
-			"security_question_id4":      securityQuestionID4,
+			"salt":                            salt,
+			"hash":                            encryptedPin,
+			"valid_to":                        time.Now().Add(500).String(),
+			"test_phone":                      "\"" + testPhone + "\"",
+			"test_staff_phone":                "\"" + testPhone2 + "\"",
+			"test_user_id":                    userID,
+			"test_user_id_to_delete":          userIDToDelete,
+			"test_staff_user_id_to_delete":    staffUserIDToDelete,
+			"user_with_roles_id":              userWithRolesID,
+			"test_user_id2":                   userID2,
+			"staff_user_id":                   userIDtoAssignStaff,
+			"test_flavour":                    testFlavour,
+			"test_flavour_pro":                testFlavourPRO,
+			"test_organisation_id":            orgID,
+			"future_time":                     futureTime.String(),
+			"test_otp":                        "\"" + testOTP + "\"",
+			"treatment_buddy_id":              treatmentBuddyID,
+			"treatment_buddy_id2":             treatmentBuddyID2,
+			"test_fhir_patient_id":            fhirPatientID,
+			"test_fhir_patient_id2":           fhirPatientID2,
+			"test_fhir_patient_id3":           fhirPatientID3,
+			"test_identifier_to_delete":       identifierIDToDelete,
+			"test_staff_identifier_to_delete": staffIdentifierIDToDelete,
+			"test_emr_health_record_id":       testEmrHealthRecordID,
+			"test_emr_health_record_id2":      testEmrHealthRecordID2,
+			"test_facility_id":                facilityID,
+			"test_chv_id":                     testChvID,
+			"test_chv_id2":                    testChvID2,
+			"test_password":                   gofakeit.Password(false, false, true, true, false, 10),
+			"test_terms_id":                   termsID,
+			"test_terms_text":                 termsText,
+			"content_id":                      contentID,
+			"content_id2":                     contentID2,
+			"author_id":                       authorID,
+			"author_id2":                      authorID2,
+			"security_question_id":            securityQuestionID,
+			"security_question_id2":           securityQuestionID2,
+			"security_question_id3":           securityQuestionID3,
+			"security_question_id4":           securityQuestionID4,
+			"test_ransdom_identifier_value":   randomIdentifierValue,
 
 			"security_question_response_id":  securityQuestionResponseID,
 			"security_question_response_id2": securityQuestionResponseID2,
@@ -201,10 +221,14 @@ func TestMain(m *testing.M) {
 			"clients_healthdiaryentry_id":    clientsHealthDiaryEntryID,
 			"staff_default_facility":         facilityID,
 			"staff_id":                       staffID,
+			"staff_id_to_delete":             staffIDToDelete,
 			"staff_with_roles_id":            staffWithRolesID,
+			"contact_id_to_delete":           contactIDToDelete,
+			"staff_contact_id_to_delete":     staffContactIDToDelete,
 
-			"test_service_request_id": serviceRequestID,
-			"test_client_id":          clientID,
+			"test_service_request_id":  serviceRequestID,
+			"test_client_id":           clientID,
+			"test_client_id_to_delete": clientID3,
 
 			"can_invite_user_permission":    canInviteUserPermissionID,
 			"can_edit_own_role_permission":  canEditOwnRolePermissionID,
@@ -237,18 +261,24 @@ func TestMain(m *testing.M) {
 		testfixtures.Paths(
 			"../../../../../../fixtures/common_organisation.yml",
 			"../../../../../../fixtures/users_termsofservice.yml",
+			"../../../../../../fixtures/authtoken_token.yml",
 			"../../../../../../fixtures/clients_securityquestion.yml",
 			"../../../../../../fixtures/content_author.yml",
 			"../../../../../../fixtures/wagtailcore_page.yml",
 			"../../../../../../fixtures/content_contentitem.yml",
 			"../../../../../../fixtures/users_user.yml",
+			"../../../../../../fixtures/users_user_user_permissions.yml",
+			"../../../../../../fixtures/users_user_groups.yml",
 			"../../../../../../fixtures/clients_securityquestionresponse.yml",
 			"../../../../../../fixtures/common_contact.yml",
 			"../../../../../../fixtures/users_userotp.yml",
+			"../../../../../../fixtures/clients_client_contacts.yml",
 			"../../../../../../fixtures/common_facility.yml",
 			"../../../../../../fixtures/users_userpin.yml",
 			"../../../../../../fixtures/clients_caregiver.yml",
 			"../../../../../../fixtures/clients_client.yml",
+			"../../../../../../fixtures/staff_staff_contacts.yml",
+			"../../../../../../fixtures/staff_staff_identifiers.yml",
 			"../../../../../../fixtures/staff_staff.yml",
 			"../../../../../../fixtures/clients_servicerequest.yml",
 			"../../../../../../fixtures/staff_staff_facilities.yml",
