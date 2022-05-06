@@ -285,3 +285,47 @@ func TestUseCaseNotificationImpl_NotifyFacilityStaffs(t *testing.T) {
 		})
 	}
 }
+
+func TestUseCaseNotificationImpl_SendNotification(t *testing.T) {
+	ctx := context.Background()
+	type args struct {
+		ctx                context.Context
+		registrationTokens []string
+		data               map[string]interface{}
+		notification       *firebasetools.FirebaseSimpleNotificationInput
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Successfully send a notification",
+			args: args{
+				ctx:                ctx,
+				registrationTokens: []string{},
+				data:               map[string]interface{}{},
+				notification:       &firebasetools.FirebaseSimpleNotificationInput{},
+			},
+			want:    true,
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeFCM := fakeFCM.NewFCMServiceMock()
+			fakeDB := pgMock.NewPostgresMock()
+			notification := notification.NewNotificationUseCaseImpl(fakeFCM, fakeDB, fakeDB)
+
+			got, err := notification.SendNotification(tt.args.ctx, tt.args.registrationTokens, tt.args.data, tt.args.notification)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCaseNotificationImpl.SendNotification() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("UseCaseNotificationImpl.SendNotification() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
