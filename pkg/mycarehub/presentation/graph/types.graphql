@@ -519,3 +519,8 @@ type ScreeningToolResponsePayload {
   clientContact: String!
 	screeningToolResponses: [ScreeningToolResponse!]!
 }
+
+type SurveyForm {
+	projectId:    Int       
+	name:         String    
+}

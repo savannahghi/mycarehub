@@ -17,12 +17,14 @@ import (
 	"github.com/savannahghi/firebasetools"
 	"github.com/savannahghi/interserviceclient"
 	externalExtension "github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/fcm"
 	streamService "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/getstream"
 	loginservice "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/login"
 	pubsubmessaging "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/pubsub"
+	surveyInstance "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/surveys"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/presentation/graph"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/presentation/graph/generated"
 	internalRest "github.com/savannahghi/mycarehub/pkg/mycarehub/presentation/rest"
@@ -40,6 +42,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/screeningtools"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/securityquestions"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/servicerequest"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/surveys"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/terms"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/user"
 	"github.com/savannahghi/serverutils"
@@ -67,6 +70,9 @@ var allowedHeaders = []string{
 var (
 	getStreamAPIKey    = serverutils.MustGetEnvVar("GET_STREAM_KEY")
 	getStreamAPISecret = serverutils.MustGetEnvVar("GET_STREAM_SECRET")
+
+	// surveys
+	surveysBaseURL = os.Getenv("SURVEYS_BASE_URL")
 )
 
 // Router sets up the ginContext router
@@ -131,11 +137,18 @@ func Router(ctx context.Context) (*mux.Router, error) {
 
 	screeningToolsUsecases := screeningtools.NewUseCasesScreeningTools(db, db, db, externalExt)
 
+	surveysClient := domain.SurveysClient{
+		BaseURL:    surveysBaseURL,
+		HTTPClient: &http.Client{},
+	}
+	survey := surveyInstance.NewSurveysImpl(surveysClient)
+	surveysUsecase := surveys.NewUsecaseSurveys(survey)
+
 	useCase := usecases.NewMyCareHubUseCase(
 		userUsecase, termsUsecase, facilityUseCase,
 		securityQuestionsUsecase, otpUseCase, contentUseCase, feedbackUsecase, healthDiaryUseCase,
 		faq, serviceRequestUseCase, authorityUseCase, communitiesUseCase, screeningToolsUsecases,
-		appointmentUsecase, notificationUseCase,
+		appointmentUsecase, notificationUseCase, surveysUsecase,
 	)
 
 	internalHandlers := internalRest.NewMyCareHubHandlersInterfaces(*useCase)
