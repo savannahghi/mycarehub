@@ -211,3 +211,22 @@ type GetStreamEvent struct {
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	ChannelID string    `json:"channel_id,omitempty"`
 }
+
+// SurveyForm is contains the information about a survey form
+type SurveyForm struct {
+	ProjectID    int       `json:"projectId"`
+	XMLFormID    string    `json:"xmlFormId"`
+	State        string    `json:"state"`
+	EnketoID     string    `json:"enketoId"`
+	EnketoOnceID string    `json:"enketoOnceId"`
+	CreatedAt    time.Time `json:"createdAt"`
+	UpdatedAt    time.Time `json:"updatedAt"`
+	KeyID        string    `json:"keyId"`
+	Version      string    `json:"version"`
+	Hash         string    `json:"hash"`
+	SHA          string    `json:"sha"`
+	SHA256       string    `json:"sha256"`
+	DraftToken   string    `json:"draftToken"`
+	PublishedAt  time.Time `json:"publishedAt"`
+	Name         string    `json:"name"`
+}

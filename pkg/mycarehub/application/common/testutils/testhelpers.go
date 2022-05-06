@@ -3,15 +3,18 @@ package testutils
 import (
 	"context"
 	"fmt"
+	"net/http"
 
 	stream "github.com/GetStream/stream-chat-go/v5"
 	"github.com/savannahghi/firebasetools"
 	externalExtension "github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/fcm"
 	streamService "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/getstream"
 	pubsubmessaging "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/pubsub"
+	surveyInstance "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/surveys"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases"
 	appointment "github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/appointments"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/authority"
@@ -26,8 +29,14 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/screeningtools"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/securityquestions"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/servicerequest"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/surveys"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/terms"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/user"
+	"github.com/savannahghi/serverutils"
+)
+
+var (
+	surveysBaseURL = serverutils.MustGetEnvVar("SURVEYS_BASE_URL")
 )
 
 // InitializeTestService sets up the structure that will be used by the usecase layer for
@@ -81,11 +90,18 @@ func InitializeTestService(ctx context.Context) (*usecases.MyCareHub, error) {
 
 	screeningToolsUsecases := screeningtools.NewUseCasesScreeningTools(db, db, db, externalExt)
 
+	surveysClient := domain.SurveysClient{
+		BaseURL:    surveysBaseURL,
+		HTTPClient: &http.Client{},
+	}
+	survey := surveyInstance.NewSurveysImpl(surveysClient)
+	surveysUsecase := surveys.NewUsecaseSurveys(survey)
+
 	i := usecases.NewMyCareHubUseCase(
 		userUsecase, termsUsecase, facilityUseCase,
 		securityQuestionsUsecase, otpUseCase, contentUseCase, feedbackUsecase, healthDiaryUseCase,
 		faq, serviceRequestUseCase, authorityUseCase, communityUsecase, screeningToolsUsecases,
-		appointmentUsecase, notificationUseCase,
+		appointmentUsecase, notificationUseCase, surveysUsecase,
 	)
 	return i, nil
 }
