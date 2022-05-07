@@ -11,6 +11,7 @@ import (
 	"github.com/mitchellh/mapstructure"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/utils"
@@ -18,6 +19,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
 	streamService "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/getstream"
 	pubsubmessaging "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/pubsub"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/notification"
 )
 
 const (
@@ -117,6 +119,7 @@ type UseCasesCommunitiesImpl struct {
 	ExternalExt      extension.ExternalMethodsExtension
 	Query            infrastructure.Query
 	Pubsub           pubsubmessaging.ServicePubsub
+	Notification     notification.UseCaseNotification
 }
 
 // NewUseCaseCommunitiesImpl initializes a new communities service
@@ -126,6 +129,7 @@ func NewUseCaseCommunitiesImpl(
 	create infrastructure.Create,
 	query infrastructure.Query,
 	pubsub pubsubmessaging.ServicePubsub,
+	notification notification.UseCaseNotification,
 ) *UseCasesCommunitiesImpl {
 	return &UseCasesCommunitiesImpl{
 		GetstreamService: getstream,
@@ -133,6 +137,7 @@ func NewUseCaseCommunitiesImpl(
 		ExternalExt:      ext,
 		Query:            query,
 		Pubsub:           pubsub,
+		Notification:     notification,
 	}
 }
 
@@ -250,6 +255,12 @@ func (us *UseCasesCommunitiesImpl) CreateCommunity(ctx context.Context, input dt
 
 // InviteMembers invites specified members to a community
 func (us *UseCasesCommunitiesImpl) InviteMembers(ctx context.Context, communityID string, memberIDs []string) (bool, error) {
+	community, err := us.Query.GetCommunityByID(ctx, communityID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, fmt.Errorf("failed to retrieve community with provided id: %w", err)
+	}
+
 	loggedInUserID, err := us.ExternalExt.GetLoggedInUserUID(ctx)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
@@ -261,7 +272,31 @@ func (us *UseCasesCommunitiesImpl) InviteMembers(ctx context.Context, communityI
 		return false, fmt.Errorf("failed to get staff profile")
 	}
 
-	// TODO: Fetch the channel to get the channel name and pass it as part of the message
+	var invitees []domain.User
+	for _, memberID := range memberIDs {
+		user, err := us.GetstreamService.GetStreamUser(ctx, memberID)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return false, fmt.Errorf("failed to retrieve getstream user: %w", err)
+		}
+
+		var metadata domain.MemberMetadata
+		err = mapstructure.Decode(user.ExtraData, &metadata)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return false, err
+		}
+
+		userProfile, err := us.Query.GetUserProfileByUserID(ctx, metadata.UserID)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return false, fmt.Errorf("failed to retrieve getstream user's user profile: %w", err)
+		}
+
+		invitees = append(invitees, *userProfile)
+
+	}
+
 	message := &stream.Message{
 		ID:   uuid.New().String(),
 		Text: fmt.Sprintf(inviteMessage, staffProfile.User.Name),
@@ -274,6 +309,22 @@ func (us *UseCasesCommunitiesImpl) InviteMembers(ctx context.Context, communityI
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return false, fmt.Errorf("failed to invite members to a community: %v", err)
+	}
+
+	notificationArgs := notification.ClientNotificationArgs{
+		Community: community,
+		Inviter:   staffProfile.User,
+	}
+	notification := notification.ComposeClientNotification(
+		enums.NotificationTypeCommunities,
+		notificationArgs,
+	)
+
+	for _, invitee := range invitees {
+		err = us.Notification.NotifyUser(ctx, &invitee, notification)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+		}
 	}
 
 	return true, nil

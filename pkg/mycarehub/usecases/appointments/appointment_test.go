@@ -14,6 +14,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	pgMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/mock"
 	pubsubMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/pubsub/mock"
+	notificationMock "github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/notification/mock"
 	"github.com/savannahghi/scalarutils"
 	"gorm.io/gorm"
 )
@@ -22,8 +23,9 @@ func TestUseCasesAppointmentsImpl_CreateKenyaEMRAppointments(t *testing.T) {
 	fakeDB := pgMock.NewPostgresMock()
 	fakeExtension := extensionMock.NewFakeExtension()
 	fakePubsub := pubsubMock.NewPubsubServiceMock()
+	fakeNotification := notificationMock.NewServiceNotificationMock()
 
-	a := NewUseCaseAppointmentsImpl(fakeExtension, fakeDB, fakeDB, fakeDB, fakePubsub)
+	a := NewUseCaseAppointmentsImpl(fakeExtension, fakeDB, fakeDB, fakeDB, fakePubsub, fakeNotification)
 
 	type args struct {
 		ctx   context.Context
@@ -124,6 +126,28 @@ func TestUseCasesAppointmentsImpl_CreateKenyaEMRAppointments(t *testing.T) {
 			wantErr: true,
 		},
 		{
+			name: "sad case: error retrieving client profile",
+			args: args{
+				ctx: context.Background(),
+				input: dto.FacilityAppointmentsPayload{
+					MFLCode: "1234",
+					Appointments: []dto.AppointmentPayload{
+						{
+							CCCNumber:         "1234",
+							ExternalID:        gofakeit.UUID(),
+							AppointmentReason: "Dental",
+							AppointmentDate: scalarutils.Date{
+								Year:  2020,
+								Month: 12,
+								Day:   12,
+							},
+						},
+					},
+				},
+			},
+			wantErr: true,
+		},
+		{
 			name: "sad case: error creating appointment",
 			args: args{
 				ctx: context.Background(),
@@ -147,6 +171,28 @@ func TestUseCasesAppointmentsImpl_CreateKenyaEMRAppointments(t *testing.T) {
 		},
 		{
 			name: "happy case: success creating appointment",
+			args: args{
+				ctx: context.Background(),
+				input: dto.FacilityAppointmentsPayload{
+					MFLCode: "1234",
+					Appointments: []dto.AppointmentPayload{
+						{
+							CCCNumber:         "1234",
+							ExternalID:        gofakeit.UUID(),
+							AppointmentReason: "Dental",
+							AppointmentDate: scalarutils.Date{
+								Year:  2020,
+								Month: 12,
+								Day:   12,
+							},
+						},
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "sad case: fail to notify user",
 			args: args{
 				ctx: context.Background(),
 				input: dto.FacilityAppointmentsPayload{
@@ -192,6 +238,20 @@ func TestUseCasesAppointmentsImpl_CreateKenyaEMRAppointments(t *testing.T) {
 				}
 			}
 
+			if tt.name == "sad case: error retrieving client profile" {
+				fakeDB.MockCheckAppointmentExistsByExternalIDFn = func(ctx context.Context, externalID string) (bool, error) {
+					return false, nil
+				}
+
+				fakeDB.MockCheckFacilityExistsByMFLCode = func(ctx context.Context, MFLCode int) (bool, error) {
+					return true, nil
+				}
+
+				fakeDB.MockGetClientProfileByCCCNumberFn = func(ctx context.Context, CCCNumber string) (*domain.ClientProfile, error) {
+					return nil, fmt.Errorf("failed to retrieve client profile")
+				}
+			}
+
 			if tt.name == "sad case: error creating appointment" {
 				fakeDB.MockCheckAppointmentExistsByExternalIDFn = func(ctx context.Context, externalID string) (bool, error) {
 					return false, nil
@@ -199,6 +259,13 @@ func TestUseCasesAppointmentsImpl_CreateKenyaEMRAppointments(t *testing.T) {
 
 				fakeDB.MockCheckFacilityExistsByMFLCode = func(ctx context.Context, MFLCode int) (bool, error) {
 					return true, nil
+				}
+
+				fakeDB.MockGetClientProfileByCCCNumberFn = func(ctx context.Context, CCCNumber string) (*domain.ClientProfile, error) {
+					id := gofakeit.UUID()
+					return &domain.ClientProfile{
+						ID: &id,
+					}, nil
 				}
 
 				fakeDB.MockRetrieveFacilityByMFLCodeFn = func(ctx context.Context, MFLCode int, isActive bool) (*domain.Facility, error) {
@@ -220,6 +287,13 @@ func TestUseCasesAppointmentsImpl_CreateKenyaEMRAppointments(t *testing.T) {
 					return true, nil
 				}
 
+				fakeDB.MockGetClientProfileByCCCNumberFn = func(ctx context.Context, CCCNumber string) (*domain.ClientProfile, error) {
+					id := gofakeit.UUID()
+					return &domain.ClientProfile{
+						ID: &id,
+					}, nil
+				}
+
 				fakeDB.MockRetrieveFacilityByMFLCodeFn = func(ctx context.Context, MFLCode int, isActive bool) (*domain.Facility, error) {
 					id := gofakeit.UUID()
 					return &domain.Facility{ID: &id}, nil
@@ -227,6 +301,36 @@ func TestUseCasesAppointmentsImpl_CreateKenyaEMRAppointments(t *testing.T) {
 
 				fakeDB.MockCreateAppointment = func(ctx context.Context, appointment domain.Appointment) error {
 					return nil
+				}
+			}
+
+			if tt.name == "sad case: fail to notify user" {
+				fakeDB.MockCheckAppointmentExistsByExternalIDFn = func(ctx context.Context, externalID string) (bool, error) {
+					return false, nil
+				}
+
+				fakeDB.MockCheckFacilityExistsByMFLCode = func(ctx context.Context, MFLCode int) (bool, error) {
+					return true, nil
+				}
+
+				fakeDB.MockGetClientProfileByCCCNumberFn = func(ctx context.Context, CCCNumber string) (*domain.ClientProfile, error) {
+					id := gofakeit.UUID()
+					return &domain.ClientProfile{
+						ID: &id,
+					}, nil
+				}
+
+				fakeDB.MockRetrieveFacilityByMFLCodeFn = func(ctx context.Context, MFLCode int, isActive bool) (*domain.Facility, error) {
+					id := gofakeit.UUID()
+					return &domain.Facility{ID: &id}, nil
+				}
+
+				fakeDB.MockCreateAppointment = func(ctx context.Context, appointment domain.Appointment) error {
+					return nil
+				}
+
+				fakeNotification.MockNotifyUserFn = func(ctx context.Context, userProfile *domain.User, notificationPayload *domain.Notification) error {
+					return fmt.Errorf("failed to notify patient")
 				}
 			}
 
@@ -247,8 +351,9 @@ func TestUseCasesAppointmentsImpl_UpdateKenyaEMRAppointments(t *testing.T) {
 	fakeDB := pgMock.NewPostgresMock()
 	fakeExtension := extensionMock.NewFakeExtension()
 	fakePubsub := pubsubMock.NewPubsubServiceMock()
+	fakeNotification := notificationMock.NewServiceNotificationMock()
 
-	a := NewUseCaseAppointmentsImpl(fakeExtension, fakeDB, fakeDB, fakeDB, fakePubsub)
+	a := NewUseCaseAppointmentsImpl(fakeExtension, fakeDB, fakeDB, fakeDB, fakePubsub, fakeNotification)
 
 	type args struct {
 		ctx   context.Context
@@ -327,6 +432,28 @@ func TestUseCasesAppointmentsImpl_UpdateKenyaEMRAppointments(t *testing.T) {
 			wantErr: true,
 		},
 		{
+			name: "sad case: error retrieving client profile",
+			args: args{
+				ctx: context.Background(),
+				input: dto.FacilityAppointmentsPayload{
+					MFLCode: "1234",
+					Appointments: []dto.AppointmentPayload{
+						{
+							CCCNumber:         "1234",
+							ExternalID:        gofakeit.UUID(),
+							AppointmentReason: "Dental",
+							AppointmentDate: scalarutils.Date{
+								Year:  2020,
+								Month: 12,
+								Day:   12,
+							},
+						},
+					},
+				},
+			},
+			wantErr: true,
+		},
+		{
 			name: "sad case: error updating appointment",
 			args: args{
 				ctx: context.Background(),
@@ -350,6 +477,28 @@ func TestUseCasesAppointmentsImpl_UpdateKenyaEMRAppointments(t *testing.T) {
 		},
 		{
 			name: "happy case: success updating appointment",
+			args: args{
+				ctx: context.Background(),
+				input: dto.FacilityAppointmentsPayload{
+					MFLCode: "1234",
+					Appointments: []dto.AppointmentPayload{
+						{
+							CCCNumber:         "1234",
+							ExternalID:        gofakeit.UUID(),
+							AppointmentReason: "Dental",
+							AppointmentDate: scalarutils.Date{
+								Year:  2020,
+								Month: 12,
+								Day:   12,
+							},
+						},
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "sad case: fail to notify user",
 			args: args{
 				ctx: context.Background(),
 				input: dto.FacilityAppointmentsPayload{
@@ -417,6 +566,19 @@ func TestUseCasesAppointmentsImpl_UpdateKenyaEMRAppointments(t *testing.T) {
 				}
 			}
 
+			if tt.name == "sad case: error retrieving client profile" {
+				fakeDB.MockCheckFacilityExistsByMFLCode = func(ctx context.Context, MFLCode int) (bool, error) {
+					return true, nil
+				}
+				fakeDB.MockRetrieveFacilityByMFLCodeFn = func(ctx context.Context, MFLCode int, isActive bool) (*domain.Facility, error) {
+					id := gofakeit.UUID()
+					return &domain.Facility{ID: &id}, nil
+				}
+				fakeDB.MockGetClientProfileByCCCNumberFn = func(ctx context.Context, CCCNumber string) (*domain.ClientProfile, error) {
+					return nil, fmt.Errorf("cannot retrieve client profile")
+				}
+			}
+
 			if tt.name == "sad case: error updating appointment" {
 				fakeDB.MockCheckFacilityExistsByMFLCode = func(ctx context.Context, MFLCode int) (bool, error) {
 					return true, nil
@@ -425,6 +587,10 @@ func TestUseCasesAppointmentsImpl_UpdateKenyaEMRAppointments(t *testing.T) {
 				fakeDB.MockRetrieveFacilityByMFLCodeFn = func(ctx context.Context, MFLCode int, isActive bool) (*domain.Facility, error) {
 					id := gofakeit.UUID()
 					return &domain.Facility{ID: &id}, nil
+				}
+
+				fakeDB.MockGetClientProfileByCCCNumberFn = func(ctx context.Context, CCCNumber string) (*domain.ClientProfile, error) {
+					return &domain.ClientProfile{}, nil
 				}
 
 				fakeDB.MockUpdateAppointmentFn = func(ctx context.Context, appointment *domain.Appointment, updateData map[string]interface{}) (*domain.Appointment, error) {
@@ -442,10 +608,37 @@ func TestUseCasesAppointmentsImpl_UpdateKenyaEMRAppointments(t *testing.T) {
 					return &domain.Facility{ID: &id}, nil
 				}
 
+				fakeDB.MockGetClientProfileByCCCNumberFn = func(ctx context.Context, CCCNumber string) (*domain.ClientProfile, error) {
+					return &domain.ClientProfile{}, nil
+				}
+
 				fakeDB.MockUpdateAppointmentFn = func(ctx context.Context, appointment *domain.Appointment, updateData map[string]interface{}) (*domain.Appointment, error) {
 					return appointment, nil
 				}
 
+			}
+
+			if tt.name == "sad case: fail to notify user" {
+				fakeDB.MockCheckFacilityExistsByMFLCode = func(ctx context.Context, MFLCode int) (bool, error) {
+					return true, nil
+				}
+
+				fakeDB.MockRetrieveFacilityByMFLCodeFn = func(ctx context.Context, MFLCode int, isActive bool) (*domain.Facility, error) {
+					id := gofakeit.UUID()
+					return &domain.Facility{ID: &id}, nil
+				}
+
+				fakeDB.MockGetClientProfileByCCCNumberFn = func(ctx context.Context, CCCNumber string) (*domain.ClientProfile, error) {
+					return &domain.ClientProfile{}, nil
+				}
+
+				fakeDB.MockUpdateAppointmentFn = func(ctx context.Context, appointment *domain.Appointment, updateData map[string]interface{}) (*domain.Appointment, error) {
+					return appointment, nil
+				}
+
+				fakeNotification.MockNotifyUserFn = func(ctx context.Context, userProfile *domain.User, notificationPayload *domain.Notification) error {
+					return fmt.Errorf("failed to notify user")
+				}
 			}
 			if tt.name == "sad case: failed to get appointment by UUID" {
 				fakeDB.MockCheckFacilityExistsByMFLCode = func(ctx context.Context, MFLCode int) (bool, error) {
@@ -455,6 +648,10 @@ func TestUseCasesAppointmentsImpl_UpdateKenyaEMRAppointments(t *testing.T) {
 				fakeDB.MockRetrieveFacilityByMFLCodeFn = func(ctx context.Context, MFLCode int, isActive bool) (*domain.Facility, error) {
 					id := gofakeit.UUID()
 					return &domain.Facility{ID: &id}, nil
+				}
+
+				fakeDB.MockGetClientProfileByCCCNumberFn = func(ctx context.Context, CCCNumber string) (*domain.ClientProfile, error) {
+					return &domain.ClientProfile{}, nil
 				}
 
 				fakeDB.MockUpdateAppointmentFn = func(ctx context.Context, appointment *domain.Appointment, updateData map[string]interface{}) (*domain.Appointment, error) {
@@ -493,7 +690,9 @@ func TestUseCasesAppointmentsImpl_FetchClientAppointments(t *testing.T) {
 	fakeExtension := extensionMock.NewFakeExtension()
 	fakePubsub := pubsubMock.NewPubsubServiceMock()
 
-	a := NewUseCaseAppointmentsImpl(fakeExtension, fakeDB, fakeDB, fakeDB, fakePubsub)
+	fakeNotification := notificationMock.NewServiceNotificationMock()
+
+	a := NewUseCaseAppointmentsImpl(fakeExtension, fakeDB, fakeDB, fakeDB, fakePubsub, fakeNotification)
 
 	type args struct {
 		ctx             context.Context
@@ -699,7 +898,9 @@ func TestUseCasesAppointmentsImpl_AddPatientsRecords(t *testing.T) {
 			fakeExtension := extensionMock.NewFakeExtension()
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
 
-			a := NewUseCaseAppointmentsImpl(fakeExtension, fakeDB, fakeDB, fakeDB, fakePubsub)
+			fakeNotification := notificationMock.NewServiceNotificationMock()
+
+			a := NewUseCaseAppointmentsImpl(fakeExtension, fakeDB, fakeDB, fakeDB, fakePubsub, fakeNotification)
 
 			if tt.name == "sad case: error checking facility exist" {
 				fakeDB.MockCheckFacilityExistsByMFLCode = func(ctx context.Context, MFLCode int) (bool, error) {
@@ -923,7 +1124,9 @@ func TestUseCasesAppointmentsImpl_AddPatientRecord(t *testing.T) {
 			fakeExtension := extensionMock.NewFakeExtension()
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
 
-			a := NewUseCaseAppointmentsImpl(fakeExtension, fakeDB, fakeDB, fakeDB, fakePubsub)
+			fakeNotification := notificationMock.NewServiceNotificationMock()
+
+			a := NewUseCaseAppointmentsImpl(fakeExtension, fakeDB, fakeDB, fakeDB, fakePubsub, fakeNotification)
 
 			if tt.name == "sad case: error retrieving mfl code" {
 				fakeDB.MockRetrieveFacilityByMFLCodeFn = func(ctx context.Context, MFLCode int, isActive bool) (*domain.Facility, error) {
@@ -979,7 +1182,9 @@ func TestUseCasesAppointmentsImpl_GetAppointmentServiceRequests(t *testing.T) {
 	fakeExtension := extensionMock.NewFakeExtension()
 	fakePubsub := pubsubMock.NewPubsubServiceMock()
 
-	a := NewUseCaseAppointmentsImpl(fakeExtension, fakeDB, fakeDB, fakeDB, fakePubsub)
+	fakeNotification := notificationMock.NewServiceNotificationMock()
+
+	a := NewUseCaseAppointmentsImpl(fakeExtension, fakeDB, fakeDB, fakeDB, fakePubsub, fakeNotification)
 
 	now := time.Now()
 	type args struct {
@@ -1080,7 +1285,9 @@ func TestUseCasesAppointmentsImpl_RescheduleClientAppointment(t *testing.T) {
 		return
 	}
 
-	a := NewUseCaseAppointmentsImpl(fakeExtension, fakeDB, fakeDB, fakeDB, fakePubsub)
+	fakeNotification := notificationMock.NewServiceNotificationMock()
+
+	a := NewUseCaseAppointmentsImpl(fakeExtension, fakeDB, fakeDB, fakeDB, fakePubsub, fakeNotification)
 	type args struct {
 		ctx           context.Context
 		appointmentID string
@@ -1263,7 +1470,9 @@ func TestUseCasesAppointmentsImpl_NextRefill(t *testing.T) {
 				}
 			}
 
-			a := NewUseCaseAppointmentsImpl(fakeExtension, fakeDB, fakeDB, fakeDB, fakePubsub)
+			fakeNotification := notificationMock.NewServiceNotificationMock()
+
+			a := NewUseCaseAppointmentsImpl(fakeExtension, fakeDB, fakeDB, fakeDB, fakePubsub, fakeNotification)
 			got, err := a.NextRefill(tt.args.ctx, tt.args.clientID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCasesAppointmentsImpl.NextRefill() error = %v, wantErr %v", err, tt.wantErr)
