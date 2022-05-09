@@ -139,7 +139,7 @@ jobs:
           --set-env-vars "GET_STREAM_KEY=${{ secrets.GET_STREAM_KEY }}" \
           --set-env-vars "GET_STREAM_SECRET=${{ secrets.GET_STREAM_SECRET }}" \
           --set-env-vars "GET_STREAM_TOKEN_EXPIRY_DAYS=${{ secrets.GET_STREAM_TOKEN_EXPIRY_DAYS }}" \
-          --set-env-vars "SAVANNAH_ADMIN_EMAIL=${{ secrets.SAVANNAH_ADMIN_EMAIL }}"\
+          --set-env-vars "SAVANNAH_ADMIN_EMAIL=${{ secrets.SAVANNAH_ADMIN_EMAIL }}" \
           --set-env-vars "SURVEYS_SYSTEM_EMAIL=${{ secrets.SURVEYS_SYSTEM_EMAIL }}" \
           --set-env-vars "SURVEYS_SYSTEM_PASSWORD=${{ secrets.SURVEYS_SYSTEM_PASSWORD }}" \
           --set-env-vars "SURVEYS_BASE_URL=${{ secrets.SURVEYS_BASE_URL }}" 
@@ -240,6 +240,7 @@ jobs:
           --set-env-vars "SURVEYS_SYSTEM_EMAIL=${{ secrets.SURVEYS_SYSTEM_EMAIL }}" \
           --set-env-vars "SURVEYS_SYSTEM_PASSWORD=${{ secrets.SURVEYS_SYSTEM_PASSWORD }}" \
           --set-env-vars "SURVEYS_BASE_URL=${{ secrets.SURVEYS_BASE_URL }}" 
+          
           gcloud run services update-traffic ${{ secrets.SERVICE_NAME }} --region europe-west1 --to-latest
 
   deploy_to_prod:

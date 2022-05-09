@@ -264,7 +264,11 @@ func (c *ChatClient) ValidateGetStreamRequest(ctx context.Context, body []byte, 
 // GetStreamUser retrieves a getstream user given the ID
 func (c *ChatClient) GetStreamUser(ctx context.Context, id string) (*stream.User, error) {
 	query := &stream.QueryOption{
-		UserID: id,
+		Filter: map[string]interface{}{
+			"id": map[string]interface{}{
+				"$eq": id,
+			},
+		},
 	}
 	response, err := c.client.QueryUsers(ctx, query)
 	if err != nil {
