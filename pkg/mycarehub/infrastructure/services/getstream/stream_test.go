@@ -864,3 +864,45 @@ func TestChatClient_DeleteMessage(t *testing.T) {
 		})
 	}
 }
+
+func TestChatClient_GetStreamUser(t *testing.T) {
+	type args struct {
+		ctx context.Context
+		id  string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *stream.User
+		wantErr bool
+	}{
+		{
+			name: "happy case: get user by id",
+			args: args{
+				ctx: context.Background(),
+				id:  userToAcceptInviteID,
+			},
+			wantErr: false,
+		},
+		{
+			name: "sad case: non existent user",
+			args: args{
+				ctx: context.Background(),
+				id:  "user-no-exist",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := c.GetStreamUser(tt.args.ctx, tt.args.id)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ChatClient.GetStreamUser() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("ChatClient.GetStreamUser() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
