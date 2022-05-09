@@ -1975,3 +1975,23 @@ func (d *MyCareHubDb) GetClientScreeningToolServiceRequestByToolType(ctx context
 func (d *MyCareHubDb) CheckIfStaffHasUnresolvedServiceRequests(ctx context.Context, staffID string, serviceRequestType string) (bool, error) {
 	return d.query.CheckIfStaffHasUnresolvedServiceRequests(ctx, staffID, serviceRequestType)
 }
+
+// GetNotification retrieve a notification using the provided ID
+func (d *MyCareHubDb) GetNotification(ctx context.Context, notificationID string) (*domain.Notification, error) {
+	n, err := d.query.GetNotification(ctx, notificationID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
+	notification := &domain.Notification{
+		ID:        n.ID,
+		Title:     n.Title,
+		Body:      n.Body,
+		Type:      enums.NotificationType(n.Type),
+		IsRead:    n.IsRead,
+		CreatedAt: n.CreatedAt,
+	}
+
+	return notification, nil
+}

@@ -116,6 +116,7 @@ type Query interface {
 	GetAppointment(ctx context.Context, params domain.Appointment) (*domain.Appointment, error)
 	GetFacilityStaffs(ctx context.Context, facilityID string) ([]*domain.StaffProfile, error)
 	CheckIfStaffHasUnresolvedServiceRequests(ctx context.Context, staffID string, serviceRequestType string) (bool, error)
+	GetNotification(ctx context.Context, notificationID string) (*domain.Notification, error)
 }
 
 // Update represents all the update action interfaces
@@ -155,4 +156,5 @@ type Update interface {
 	UpdateFailedSecurityQuestionsAnsweringAttempts(ctx context.Context, userID string, failCount int) error
 	UpdateUser(ctx context.Context, user *domain.User, updateData map[string]interface{}) error
 	CheckAppointmentExistsByExternalID(ctx context.Context, externalID string) (bool, error)
+	UpdateNotification(ctx context.Context, notification *domain.Notification, updateData map[string]interface{}) error
 }

@@ -48,9 +48,10 @@ type Update interface {
 	UpdateHealthDiary(ctx context.Context, clientHealthDiaryEntry *ClientHealthDiaryEntry, updateData map[string]interface{}) (bool, error)
 	UpdateFailedSecurityQuestionsAnsweringAttempts(ctx context.Context, userID string, failCount int) error
 	UpdateUser(ctx context.Context, user *User, updateData map[string]interface{}) error
+	UpdateNotification(ctx context.Context, notification *Notification, updateData map[string]interface{}) error
 }
 
-// LikeContent perfoms the actual database operation to update content like. The operation
+// LikeContent performs the actual database operation to update content like. The operation
 // is carried out in a transaction.
 func (db *PGInstance) LikeContent(context context.Context, userID string, contentID int) (bool, error) {
 	if userID == "" || contentID == 0 {
@@ -1026,6 +1027,17 @@ func (db *PGInstance) UpdateFacility(ctx context.Context, facility *Facility, up
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return fmt.Errorf("unable to update facility: %v", err)
+	}
+
+	return nil
+}
+
+//UpdateNotification updates a notification with the new data
+func (db *PGInstance) UpdateNotification(ctx context.Context, notification *Notification, updateData map[string]interface{}) error {
+	err := db.DB.Model(&Notification{}).Where(&Notification{ID: notification.ID}).Updates(updateData).Error
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return fmt.Errorf("unable to update notification: %w", err)
 	}
 
 	return nil

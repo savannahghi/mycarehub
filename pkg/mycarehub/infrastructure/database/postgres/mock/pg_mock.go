@@ -150,6 +150,8 @@ type PostgresMock struct {
 	MockDeleteClientProfileFn                            func(ctx context.Context, clientID string) (bool, error)
 	MockDeleteUserFn                                     func(ctx context.Context, userID string) (bool, error)
 	MockDeleteStaffProfileFn                             func(ctx context.Context, staffID string) (bool, error)
+	MockUpdateNotificationFn                             func(ctx context.Context, notification *domain.Notification, updateData map[string]interface{}) error
+	MockGetNotificationFn                                func(ctx context.Context, notificationID string) (*domain.Notification, error)
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -271,6 +273,18 @@ func NewPostgresMock() *PostgresMock {
 	}
 
 	return &PostgresMock{
+		MockUpdateNotificationFn: func(ctx context.Context, notification *domain.Notification, updateData map[string]interface{}) error {
+			return nil
+		},
+		MockGetNotificationFn: func(ctx context.Context, notificationID string) (*domain.Notification, error) {
+			return &domain.Notification{
+				ID:     ID,
+				Title:  "A notification",
+				Body:   "The notification is about this",
+				Type:   "Teleconsult",
+				IsRead: false,
+			}, nil
+		},
 		MockGetOrCreateFacilityFn: func(ctx context.Context, facility *dto.FacilityInput) (*domain.Facility, error) {
 			return facilityInput, nil
 		},
@@ -1665,4 +1679,14 @@ func (gm *PostgresMock) CheckIfStaffHasUnresolvedServiceRequests(ctx context.Con
 // GetFacilityStaffs returns a list of staff at a particular facility
 func (gm *PostgresMock) GetFacilityStaffs(ctx context.Context, facilityID string) ([]*domain.StaffProfile, error) {
 	return gm.MockGetFacilityStaffsFn(ctx, facilityID)
+}
+
+// UpdateNotification updates the notification with the provided notification details
+func (gm *PostgresMock) UpdateNotification(ctx context.Context, notification *domain.Notification, updateData map[string]interface{}) error {
+	return gm.MockUpdateNotificationFn(ctx, notification, updateData)
+}
+
+// GetNotification retrieve a notification using the provided ID
+func (gm *PostgresMock) GetNotification(ctx context.Context, notificationID string) (*domain.Notification, error) {
+	return gm.MockGetNotificationFn(ctx, notificationID)
 }

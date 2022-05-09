@@ -93,6 +93,7 @@ type Query interface {
 	GetAppointment(ctx context.Context, params *Appointment) (*Appointment, error)
 	CheckIfStaffHasUnresolvedServiceRequests(ctx context.Context, staffID string, serviceRequestType string) (bool, error)
 	GetFacilityStaffs(ctx context.Context, facilityID string) ([]*StaffProfile, error)
+	GetNotification(ctx context.Context, notificationID string) (*Notification, error)
 }
 
 // CheckWhetherUserHasLikedContent performs a operation to check whether user has liked the content
@@ -459,9 +460,20 @@ func (db *PGInstance) GetSecurityQuestionByID(ctx context.Context, securityQuest
 	var securityQuestion SecurityQuestion
 	if err := db.DB.Where(&SecurityQuestion{SecurityQuestionID: securityQuestionID}).First(&securityQuestion).Error; err != nil {
 		helpers.ReportErrorToSentry(err)
-		return nil, fmt.Errorf("failed to get security question by ID %v: %v", securityQuestionID, err)
+		return nil, fmt.Errorf("failed to get security question by ID %v: %w", securityQuestionID, err)
 	}
 	return &securityQuestion, nil
+}
+
+// GetNotification retrieve a notification using the provided ID
+func (db *PGInstance) GetNotification(ctx context.Context, notificationID string) (*Notification, error) {
+	var notification Notification
+	if err := db.DB.Where(&Notification{ID: notificationID}).First((&notification)).Error; err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, fmt.Errorf("failed to get notification: %w", err)
+	}
+
+	return &notification, nil
 }
 
 //GetAnsweredScreeningToolQuestions returns the answered screening tool questions

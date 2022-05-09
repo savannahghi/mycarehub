@@ -1950,3 +1950,52 @@ func TestPGInstance_UpdateFacility(t *testing.T) {
 		})
 	}
 }
+
+func TestPGInstance_UpdateNotification(t *testing.T) {
+	ctx := context.Background()
+
+	type args struct {
+		ctx          context.Context
+		notification *gorm.Notification
+		updateData   map[string]interface{}
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx: ctx,
+				notification: &gorm.Notification{
+					ID: notificationID,
+				},
+				updateData: map[string]interface{}{
+					"is_read": true,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case",
+			args: args{
+				ctx: ctx,
+				notification: &gorm.Notification{
+					ID: "invalid notification id",
+				},
+				updateData: map[string]interface{}{
+					"is_read": true,
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := testingDB.UpdateNotification(tt.args.ctx, tt.args.notification, tt.args.updateData); (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.UpdateNotification() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}

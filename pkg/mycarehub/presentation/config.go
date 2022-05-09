@@ -125,7 +125,7 @@ func Router(ctx context.Context) (*mux.Router, error) {
 
 	faq := faq.NewUsecaseFAQ(db)
 
-	notificationUseCase := notification.NewNotificationUseCaseImpl(fcm, db, db)
+	notificationUseCase := notification.NewNotificationUseCaseImpl(fcm, db, db, db)
 
 	serviceRequestUseCase := servicerequest.NewUseCaseServiceRequestImpl(db, db, db, externalExt, userUsecase, notificationUseCase)
 
