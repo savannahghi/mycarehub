@@ -22,7 +22,7 @@
   flavour: CONSUMER
   salt: {{.salt}}
 
-   # user pin to update active status
+  # user pin to update active status
 - id: 3000
   created: 2021-11-22 21:16:29.23639+03
   updated: 2021-11-22 21:16:29.23639+03

@@ -5,3 +5,7 @@
 - id: 11
   client_id: 26b20a42-cbb8-4553-aedb-c539602d04fc
   identifier_id: c40b09a8-44b1-409c-bc5b-7e7623fcd7d2
+
+- id: 12
+  client_id: {{.test_client_id_to_delete}}
+  identifier_id: {{.test_identifier_to_delete}}

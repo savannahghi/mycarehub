@@ -106,6 +106,12 @@ type SendOTPInput struct {
 	Flavour     feedlib.Flavour `json:"flavour" validate:"required"`
 }
 
+// PhoneInput is used to define the inputs needed carrying out an activity that requires a phone number and flavour.
+type PhoneInput struct {
+	PhoneNumber string          `json:"phoneNumber" validate:"required"`
+	Flavour     feedlib.Flavour `json:"flavour" validate:"required"`
+}
+
 // SendRetryOTPPayload is used to define the inputs passed when calling the endpoint
 // that resends an otp
 type SendRetryOTPPayload struct {

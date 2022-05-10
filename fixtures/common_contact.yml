@@ -9,3 +9,25 @@
   user_id: {{.test_user_id}}
   flavour: {{.test_flavour}}
   organisation_id: {{.test_organisation_id}}
+
+- id: {{.contact_id_to_delete}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  contact_type: EMAIL
+  contact_value: client@client.com
+  active: true
+  opted_in: true
+  user_id: {{.test_user_id_to_delete}}
+  flavour: {{.test_flavour}}
+  organisation_id: {{.test_organisation_id}}
+
+- id: {{.staff_contact_id_to_delete}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  contact_type: EMAIL
+  contact_value: {{.test_staff_contact}}
+  active: true
+  opted_in: true
+  user_id: {{.test_staff_user_id_to_delete}}
+  flavour: {{.test_flavour_pro}}
+  organisation_id: {{.test_organisation_id}}

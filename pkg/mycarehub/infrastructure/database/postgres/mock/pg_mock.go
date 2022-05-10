@@ -147,6 +147,9 @@ type PostgresMock struct {
 	MockGetAppointmentFn                                 func(ctx context.Context, params domain.Appointment) (*domain.Appointment, error)
 	MockGetFacilityStaffsFn                              func(ctx context.Context, facilityID string) ([]*domain.StaffProfile, error)
 	MockCheckIfStaffHasUnresolvedServiceRequestsFn       func(ctx context.Context, staffID string, serviceRequestType string) (bool, error)
+	MockDeleteClientProfileFn                            func(ctx context.Context, clientID string) (bool, error)
+	MockDeleteUserFn                                     func(ctx context.Context, userID string) (bool, error)
+	MockDeleteStaffProfileFn                             func(ctx context.Context, staffID string) (bool, error)
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -1006,7 +1009,31 @@ func NewPostgresMock() *PostgresMock {
 		MockCheckIfStaffHasUnresolvedServiceRequestsFn: func(ctx context.Context, staffID string, serviceRequestType string) (bool, error) {
 			return false, nil
 		},
+		MockDeleteClientProfileFn: func(ctx context.Context, clientID string) (bool, error) {
+			return true, nil
+		},
+		MockDeleteStaffProfileFn: func(ctx context.Context, staffID string) (bool, error) {
+			return true, nil
+		},
+		MockDeleteUserFn: func(ctx context.Context, userID string) (bool, error) {
+			return true, nil
+		},
 	}
+}
+
+// DeleteClientProfile mocks the implementation of deleting a client
+func (gm *PostgresMock) DeleteClientProfile(ctx context.Context, clientID string) (bool, error) {
+	return gm.MockDeleteClientProfileFn(ctx, clientID)
+}
+
+// DeleteStaffProfile mocks the implementation of deleting a staff
+func (gm *PostgresMock) DeleteStaffProfile(ctx context.Context, staffID string) (bool, error) {
+	return gm.MockDeleteStaffProfileFn(ctx, staffID)
+}
+
+// DeleteUser mocks the implementation of deleting a user
+func (gm *PostgresMock) DeleteUser(ctx context.Context, userID string) (bool, error) {
+	return gm.MockDeleteUserFn(ctx, userID)
 }
 
 // GetOrCreateFacility mocks the implementation of `gorm's` GetOrCreateFacility method.

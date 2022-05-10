@@ -242,6 +242,12 @@ func Router(ctx context.Context) (*mux.Router, error) {
 		http.MethodGet,
 	).HandlerFunc(internalHandlers.SyncFacilities())
 
+	// This path is used for deleting users detail from the system
+	r.Path("/delete-user").Methods(
+		http.MethodOptions,
+		http.MethodDelete,
+	).HandlerFunc(internalHandlers.DeleteUser())
+
 	r.Path("/pubsub").Methods(http.MethodPost).HandlerFunc(pubSub.ReceivePubSubPushMessages)
 
 	// This endpoint will be used by external services to get a token that will be used to
