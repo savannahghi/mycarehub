@@ -1,4 +1,8 @@
 extend type Query {
     listSurveys(projectID: Int!): [SurveyForm!]
-    getUserSurveyForms(userID: String!): [UserSurveys!]
+    getUserSurveyForms(userID: String!): [UserSurvey!]
+}
+
+extend type Mutation {
+    sendClientSurveyLinks(facilityID: String! formID: String!, projectID: Int!, filterParams:  ClientFilterParamsInput): Boolean!
 }

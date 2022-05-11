@@ -21,11 +21,13 @@ type RequestHelperPayload struct {
 // SurveyForm is contains the information about a survey form
 type SurveyForm struct {
 	ProjectID int    `json:"projectId"`
+	XMLFormID string `json:"xmlFormId"`
 	Name      string `json:"name"`
+	EnketoID  string `json:"enketoId"`
 }
 
-// UserSurveys represents a user's surveys domain model
-type UserSurveys struct {
+// UserSurvey represents a user's surveys domain model
+type UserSurvey struct {
 	ID           string    `json:"id"`
 	Active       bool      `json:"active"`
 	Created      time.Time `json:"created"`

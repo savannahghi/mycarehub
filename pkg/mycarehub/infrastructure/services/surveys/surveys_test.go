@@ -15,7 +15,7 @@ func TestSurveysImpl_ListSurveyForms(t *testing.T) {
 	projectID := 2
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
-	httpmock.RegisterResponder("GET", "/projects/2/forms",
+	httpmock.RegisterResponder("GET", "/v1/projects/2/forms",
 		func(req *http.Request) (*http.Response, error) {
 			resp, err := httpmock.NewJsonResponse(200, []map[string]interface{}{
 				{

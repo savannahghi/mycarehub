@@ -139,7 +139,7 @@ type PostgresMock struct {
 	MockGetActiveScreeningToolResponsesFn                func(ctx context.Context, clientID string) ([]*domain.ScreeningToolQuestionResponse, error)
 	MockGetAppointmentByClientIDFn                       func(ctx context.Context, clientID string) (*domain.Appointment, error)
 	MockCheckAppointmentExistsByExternalIDFn             func(ctx context.Context, externalID string) (bool, error)
-	MockGetUserSurveyFormsFn                             func(ctx context.Context, userID string) ([]*domain.UserSurveys, error)
+	MockGetUserSurveyFormsFn                             func(ctx context.Context, userID string) ([]*domain.UserSurvey, error)
 	MockGetAppointmentByExternalIDFn                     func(ctx context.Context, externalID string) (*domain.Appointment, error)
 	MockListNotificationsFn                              func(ctx context.Context, params *domain.Notification, pagination *domain.Pagination) ([]*domain.Notification, *domain.Pagination, error)
 	MockSaveNotificationFn                               func(ctx context.Context, payload *domain.Notification) error
@@ -153,6 +153,8 @@ type PostgresMock struct {
 	MockDeleteStaffProfileFn                             func(ctx context.Context, staffID string) (bool, error)
 	MockUpdateNotificationFn                             func(ctx context.Context, notification *domain.Notification, updateData map[string]interface{}) error
 	MockGetNotificationFn                                func(ctx context.Context, notificationID string) (*domain.Notification, error)
+	MockGetClientsByFilterParamsFn                       func(ctx context.Context, facilityID *string, filterParams *dto.ClientFilterParamsInput) ([]*domain.ClientProfile, error)
+	MockCreateUserSurveyFn                               func(ctx context.Context, userSurvey []*dto.UserSurveyInput) error
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -1007,8 +1009,8 @@ func NewPostgresMock() *PostgresMock {
 				},
 			}, nil
 		},
-		MockGetUserSurveyFormsFn: func(ctx context.Context, userID string) ([]*domain.UserSurveys, error) {
-			return []*domain.UserSurveys{
+		MockGetUserSurveyFormsFn: func(ctx context.Context, userID string) ([]*domain.UserSurvey, error) {
+			return []*domain.UserSurvey{
 				{
 					ID:           uuid.New().String(),
 					Active:       false,
@@ -1045,6 +1047,14 @@ func NewPostgresMock() *PostgresMock {
 		},
 		MockDeleteUserFn: func(ctx context.Context, userID string) (bool, error) {
 			return true, nil
+		},
+		MockGetClientsByFilterParamsFn: func(ctx context.Context, facilityID *string, filterParams *dto.ClientFilterParamsInput) ([]*domain.ClientProfile, error) {
+			return []*domain.ClientProfile{
+				client,
+			}, nil
+		},
+		MockCreateUserSurveyFn: func(ctx context.Context, userSurvey []*dto.UserSurveyInput) error {
+			return nil
 		},
 	}
 }
@@ -1591,7 +1601,7 @@ func (gm *PostgresMock) CreateStaffServiceRequest(ctx context.Context, serviceRe
 }
 
 // GetUserSurveyForms mocks the implementation of getting user survey forms
-func (gm *PostgresMock) GetUserSurveyForms(ctx context.Context, userID string) ([]*domain.UserSurveys, error) {
+func (gm *PostgresMock) GetUserSurveyForms(ctx context.Context, userID string) ([]*domain.UserSurvey, error) {
 	return gm.MockGetUserSurveyFormsFn(ctx, userID)
 }
 
@@ -1708,4 +1718,14 @@ func (gm *PostgresMock) UpdateNotification(ctx context.Context, notification *do
 // GetNotification retrieve a notification using the provided ID
 func (gm *PostgresMock) GetNotification(ctx context.Context, notificationID string) (*domain.Notification, error) {
 	return gm.MockGetNotificationFn(ctx, notificationID)
+}
+
+// GetClientsByFilterParams mocks the implementation of getting clients by filter params
+func (gm *PostgresMock) GetClientsByFilterParams(ctx context.Context, facilityID *string, filterParams *dto.ClientFilterParamsInput) ([]*domain.ClientProfile, error) {
+	return gm.MockGetClientsByFilterParamsFn(ctx, facilityID, filterParams)
+}
+
+// CreateUserSurveys mocks the implementation of creating a user survey
+func (gm *PostgresMock) CreateUserSurveys(ctx context.Context, survey []*dto.UserSurveyInput) error {
+	return gm.MockCreateUserSurveyFn(ctx, survey)
 }

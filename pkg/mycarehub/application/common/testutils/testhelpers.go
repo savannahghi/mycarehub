@@ -95,7 +95,7 @@ func InitializeTestService(ctx context.Context) (*usecases.MyCareHub, error) {
 		HTTPClient: &http.Client{},
 	}
 	survey := surveyInstance.NewSurveysImpl(surveysClient)
-	surveysUsecase := surveys.NewUsecaseSurveys(survey, db)
+	surveysUsecase := surveys.NewUsecaseSurveys(survey, db, db, notificationUseCase)
 
 	i := usecases.NewMyCareHubUseCase(
 		userUsecase, termsUsecase, facilityUseCase,

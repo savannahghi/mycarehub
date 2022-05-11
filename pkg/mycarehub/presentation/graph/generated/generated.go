@@ -439,6 +439,7 @@ type ComplexityRoot struct {
 		RemoveMembersFromCommunity         func(childComplexity int, communityID string, memberIDs []string) int
 		RescheduleAppointment              func(childComplexity int, appointmentID string, date scalarutils.Date) int
 		ResolveServiceRequest              func(childComplexity int, staffID string, requestID string) int
+		SendClientSurveyLinks              func(childComplexity int, facilityID string, formID string, projectID int, filterParams *dto.ClientFilterParamsInput) int
 		SendFCMNotification                func(childComplexity int, registrationTokens []string, data map[string]interface{}, notification firebasetools.FirebaseSimpleNotificationInput) int
 		SendFeedback                       func(childComplexity int, input dto.FeedbackResponseInput) int
 		SetInProgressBy                    func(childComplexity int, serviceRequestID string, staffID string) int
@@ -639,6 +640,7 @@ type ComplexityRoot struct {
 	SurveyForm struct {
 		Name      func(childComplexity int) int
 		ProjectID func(childComplexity int) int
+		XMLFormID func(childComplexity int) int
 	}
 
 	TermsOfService struct {
@@ -666,7 +668,7 @@ type ComplexityRoot struct {
 		Username        func(childComplexity int) int
 	}
 
-	UserSurveys struct {
+	UserSurvey struct {
 		Active       func(childComplexity int) int
 		Created      func(childComplexity int) int
 		Description  func(childComplexity int) int
@@ -716,6 +718,7 @@ type MutationResolver interface {
 	ResolveServiceRequest(ctx context.Context, staffID string, requestID string) (bool, error)
 	VerifyClientPinResetServiceRequest(ctx context.Context, clientID string, serviceRequestID string, cccNumber string, phoneNumber string, physicalIdentityVerified bool, state string) (bool, error)
 	VerifyStaffPinResetServiceRequest(ctx context.Context, phoneNumber string, serviceRequestID string, verificationStatus string) (bool, error)
+	SendClientSurveyLinks(ctx context.Context, facilityID string, formID string, projectID int, filterParams *dto.ClientFilterParamsInput) (bool, error)
 	AcceptTerms(ctx context.Context, userID string, termsID int) (bool, error)
 	SetNickName(ctx context.Context, userID string, nickname string) (bool, error)
 	CompleteOnboardingTour(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
@@ -763,7 +766,7 @@ type QueryResolver interface {
 	GetServiceRequests(ctx context.Context, requestType *string, requestStatus *string, facilityID string, flavour feedlib.Flavour) ([]*domain.ServiceRequest, error)
 	GetPendingServiceRequestsCount(ctx context.Context, facilityID string) (*domain.ServiceRequestsCountResponse, error)
 	ListSurveys(ctx context.Context, projectID int) ([]*domain.SurveyForm, error)
-	GetUserSurveyForms(ctx context.Context, userID string) ([]*domain.UserSurveys, error)
+	GetUserSurveyForms(ctx context.Context, userID string) ([]*domain.UserSurvey, error)
 	GetCurrentTerms(ctx context.Context, flavour feedlib.Flavour) (*domain.TermsOfService, error)
 	VerifyPin(ctx context.Context, userID string, flavour feedlib.Flavour, pin string) (bool, error)
 	GetClientCaregiver(ctx context.Context, clientID string) (*domain.Caregiver, error)
@@ -2783,6 +2786,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.ResolveServiceRequest(childComplexity, args["staffID"].(string), args["requestID"].(string)), true
 
+	case "Mutation.sendClientSurveyLinks":
+		if e.complexity.Mutation.SendClientSurveyLinks == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_sendClientSurveyLinks_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.SendClientSurveyLinks(childComplexity, args["facilityID"].(string), args["formID"].(string), args["projectID"].(int), args["filterParams"].(*dto.ClientFilterParamsInput)), true
+
 	case "Mutation.sendFCMNotification":
 		if e.complexity.Mutation.SendFCMNotification == nil {
 			break
@@ -4033,6 +4048,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.SurveyForm.ProjectID(childComplexity), true
 
+	case "SurveyForm.xmlFormId":
+		if e.complexity.SurveyForm.XMLFormID == nil {
+			break
+		}
+
+		return e.complexity.SurveyForm.XMLFormID(childComplexity), true
+
 	case "TermsOfService.termsID":
 		if e.complexity.TermsOfService.TermsID == nil {
 			break
@@ -4145,61 +4167,61 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.User.Username(childComplexity), true
 
-	case "UserSurveys.active":
-		if e.complexity.UserSurveys.Active == nil {
+	case "UserSurvey.active":
+		if e.complexity.UserSurvey.Active == nil {
 			break
 		}
 
-		return e.complexity.UserSurveys.Active(childComplexity), true
+		return e.complexity.UserSurvey.Active(childComplexity), true
 
-	case "UserSurveys.created":
-		if e.complexity.UserSurveys.Created == nil {
+	case "UserSurvey.created":
+		if e.complexity.UserSurvey.Created == nil {
 			break
 		}
 
-		return e.complexity.UserSurveys.Created(childComplexity), true
+		return e.complexity.UserSurvey.Created(childComplexity), true
 
-	case "UserSurveys.description":
-		if e.complexity.UserSurveys.Description == nil {
+	case "UserSurvey.description":
+		if e.complexity.UserSurvey.Description == nil {
 			break
 		}
 
-		return e.complexity.UserSurveys.Description(childComplexity), true
+		return e.complexity.UserSurvey.Description(childComplexity), true
 
-	case "UserSurveys.hasSubmitted":
-		if e.complexity.UserSurveys.HasSubmitted == nil {
+	case "UserSurvey.hasSubmitted":
+		if e.complexity.UserSurvey.HasSubmitted == nil {
 			break
 		}
 
-		return e.complexity.UserSurveys.HasSubmitted(childComplexity), true
+		return e.complexity.UserSurvey.HasSubmitted(childComplexity), true
 
-	case "UserSurveys.id":
-		if e.complexity.UserSurveys.ID == nil {
+	case "UserSurvey.id":
+		if e.complexity.UserSurvey.ID == nil {
 			break
 		}
 
-		return e.complexity.UserSurveys.ID(childComplexity), true
+		return e.complexity.UserSurvey.ID(childComplexity), true
 
-	case "UserSurveys.link":
-		if e.complexity.UserSurveys.Link == nil {
+	case "UserSurvey.link":
+		if e.complexity.UserSurvey.Link == nil {
 			break
 		}
 
-		return e.complexity.UserSurveys.Link(childComplexity), true
+		return e.complexity.UserSurvey.Link(childComplexity), true
 
-	case "UserSurveys.title":
-		if e.complexity.UserSurveys.Title == nil {
+	case "UserSurvey.title":
+		if e.complexity.UserSurvey.Title == nil {
 			break
 		}
 
-		return e.complexity.UserSurveys.Title(childComplexity), true
+		return e.complexity.UserSurvey.Title(childComplexity), true
 
-	case "UserSurveys.userID":
-		if e.complexity.UserSurveys.UserID == nil {
+	case "UserSurvey.userID":
+		if e.complexity.UserSurvey.UserID == nil {
 			break
 		}
 
-		return e.complexity.UserSurveys.UserID(childComplexity), true
+		return e.complexity.UserSurvey.UserID(childComplexity), true
 
 	}
 	return 0, false
@@ -4704,7 +4726,12 @@ input FirebaseSimpleNotificationInput {
   imageURL: String!
   data: Map
 }
-`, BuiltIn: false},
+
+input ClientFilterParamsInput{
+  clientTypes: [ClientType]
+	ageRange:    AgeRangeInput
+	gender:      [Gender]
+}`, BuiltIn: false},
 	{Name: "pkg/mycarehub/presentation/graph/notifications.graphql", Input: `extend type Query {
   fetchNotifications(
     userID: ID!
@@ -4781,7 +4808,11 @@ extend type Query {
 `, BuiltIn: false},
 	{Name: "pkg/mycarehub/presentation/graph/surveys.graphql", Input: `extend type Query {
     listSurveys(projectID: Int!): [SurveyForm!]
-    getUserSurveyForms(userID: String!): [UserSurveys!]
+    getUserSurveyForms(userID: String!): [UserSurvey!]
+}
+
+extend type Mutation {
+    sendClientSurveyLinks(facilityID: String! formID: String!, projectID: Int!, filterParams:  ClientFilterParamsInput): Boolean!
 }`, BuiltIn: false},
 	{Name: "pkg/mycarehub/presentation/graph/types.graphql", Input: `type Facility {
   ID: String!
@@ -5306,11 +5337,12 @@ type ScreeningToolResponsePayload {
 }
 
 type SurveyForm {
-	projectId:    Int       
+	projectId:    Int
+  xmlFormId:    String       
 	name:         String    
 }
 
-type UserSurveys {
+type UserSurvey {
 	id: String!
 	active: Boolean!
 	created: Time!
@@ -6041,6 +6073,48 @@ func (ec *executionContext) field_Mutation_resolveServiceRequest_args(ctx contex
 		}
 	}
 	args["requestID"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_sendClientSurveyLinks_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["facilityID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("facilityID"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["facilityID"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["formID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("formID"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["formID"] = arg1
+	var arg2 int
+	if tmp, ok := rawArgs["projectID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("projectID"))
+		arg2, err = ec.unmarshalNInt2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["projectID"] = arg2
+	var arg3 *dto.ClientFilterParamsInput
+	if tmp, ok := rawArgs["filterParams"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filterParams"))
+		arg3, err = ec.unmarshalOClientFilterParamsInput2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐClientFilterParamsInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["filterParams"] = arg3
 	return args, nil
 }
 
@@ -16590,6 +16664,48 @@ func (ec *executionContext) _Mutation_verifyStaffPinResetServiceRequest(ctx cont
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Mutation_sendClientSurveyLinks(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_sendClientSurveyLinks_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().SendClientSurveyLinks(rctx, args["facilityID"].(string), args["formID"].(string), args["projectID"].(int), args["filterParams"].(*dto.ClientFilterParamsInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Mutation_acceptTerms(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -18968,9 +19084,9 @@ func (ec *executionContext) _Query_getUserSurveyForms(ctx context.Context, field
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.([]*domain.UserSurveys)
+	res := resTmp.([]*domain.UserSurvey)
 	fc.Result = res
-	return ec.marshalOUserSurveys2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐUserSurveysᚄ(ctx, field.Selections, res)
+	return ec.marshalOUserSurvey2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐUserSurveyᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_getCurrentTerms(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -21475,6 +21591,38 @@ func (ec *executionContext) _SurveyForm_projectId(ctx context.Context, field gra
 	return ec.marshalOInt2int(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _SurveyForm_xmlFormId(ctx context.Context, field graphql.CollectedField, obj *domain.SurveyForm) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "SurveyForm",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.XMLFormID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _SurveyForm_name(ctx context.Context, field graphql.CollectedField, obj *domain.SurveyForm) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -22037,7 +22185,7 @@ func (ec *executionContext) _User_DateOfBirth(ctx context.Context, field graphql
 	return ec.marshalOTime2ᚖtimeᚐTime(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _UserSurveys_id(ctx context.Context, field graphql.CollectedField, obj *domain.UserSurveys) (ret graphql.Marshaler) {
+func (ec *executionContext) _UserSurvey_id(ctx context.Context, field graphql.CollectedField, obj *domain.UserSurvey) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -22045,7 +22193,7 @@ func (ec *executionContext) _UserSurveys_id(ctx context.Context, field graphql.C
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:     "UserSurveys",
+		Object:     "UserSurvey",
 		Field:      field,
 		Args:       nil,
 		IsMethod:   false,
@@ -22072,7 +22220,7 @@ func (ec *executionContext) _UserSurveys_id(ctx context.Context, field graphql.C
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _UserSurveys_active(ctx context.Context, field graphql.CollectedField, obj *domain.UserSurveys) (ret graphql.Marshaler) {
+func (ec *executionContext) _UserSurvey_active(ctx context.Context, field graphql.CollectedField, obj *domain.UserSurvey) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -22080,7 +22228,7 @@ func (ec *executionContext) _UserSurveys_active(ctx context.Context, field graph
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:     "UserSurveys",
+		Object:     "UserSurvey",
 		Field:      field,
 		Args:       nil,
 		IsMethod:   false,
@@ -22107,7 +22255,7 @@ func (ec *executionContext) _UserSurveys_active(ctx context.Context, field graph
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _UserSurveys_created(ctx context.Context, field graphql.CollectedField, obj *domain.UserSurveys) (ret graphql.Marshaler) {
+func (ec *executionContext) _UserSurvey_created(ctx context.Context, field graphql.CollectedField, obj *domain.UserSurvey) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -22115,7 +22263,7 @@ func (ec *executionContext) _UserSurveys_created(ctx context.Context, field grap
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:     "UserSurveys",
+		Object:     "UserSurvey",
 		Field:      field,
 		Args:       nil,
 		IsMethod:   false,
@@ -22142,7 +22290,7 @@ func (ec *executionContext) _UserSurveys_created(ctx context.Context, field grap
 	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _UserSurveys_link(ctx context.Context, field graphql.CollectedField, obj *domain.UserSurveys) (ret graphql.Marshaler) {
+func (ec *executionContext) _UserSurvey_link(ctx context.Context, field graphql.CollectedField, obj *domain.UserSurvey) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -22150,7 +22298,7 @@ func (ec *executionContext) _UserSurveys_link(ctx context.Context, field graphql
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:     "UserSurveys",
+		Object:     "UserSurvey",
 		Field:      field,
 		Args:       nil,
 		IsMethod:   false,
@@ -22177,7 +22325,7 @@ func (ec *executionContext) _UserSurveys_link(ctx context.Context, field graphql
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _UserSurveys_title(ctx context.Context, field graphql.CollectedField, obj *domain.UserSurveys) (ret graphql.Marshaler) {
+func (ec *executionContext) _UserSurvey_title(ctx context.Context, field graphql.CollectedField, obj *domain.UserSurvey) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -22185,7 +22333,7 @@ func (ec *executionContext) _UserSurveys_title(ctx context.Context, field graphq
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:     "UserSurveys",
+		Object:     "UserSurvey",
 		Field:      field,
 		Args:       nil,
 		IsMethod:   false,
@@ -22212,7 +22360,7 @@ func (ec *executionContext) _UserSurveys_title(ctx context.Context, field graphq
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _UserSurveys_description(ctx context.Context, field graphql.CollectedField, obj *domain.UserSurveys) (ret graphql.Marshaler) {
+func (ec *executionContext) _UserSurvey_description(ctx context.Context, field graphql.CollectedField, obj *domain.UserSurvey) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -22220,7 +22368,7 @@ func (ec *executionContext) _UserSurveys_description(ctx context.Context, field 
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:     "UserSurveys",
+		Object:     "UserSurvey",
 		Field:      field,
 		Args:       nil,
 		IsMethod:   false,
@@ -22247,7 +22395,7 @@ func (ec *executionContext) _UserSurveys_description(ctx context.Context, field 
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _UserSurveys_hasSubmitted(ctx context.Context, field graphql.CollectedField, obj *domain.UserSurveys) (ret graphql.Marshaler) {
+func (ec *executionContext) _UserSurvey_hasSubmitted(ctx context.Context, field graphql.CollectedField, obj *domain.UserSurvey) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -22255,7 +22403,7 @@ func (ec *executionContext) _UserSurveys_hasSubmitted(ctx context.Context, field
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:     "UserSurveys",
+		Object:     "UserSurvey",
 		Field:      field,
 		Args:       nil,
 		IsMethod:   false,
@@ -22282,7 +22430,7 @@ func (ec *executionContext) _UserSurveys_hasSubmitted(ctx context.Context, field
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _UserSurveys_userID(ctx context.Context, field graphql.CollectedField, obj *domain.UserSurveys) (ret graphql.Marshaler) {
+func (ec *executionContext) _UserSurvey_userID(ctx context.Context, field graphql.CollectedField, obj *domain.UserSurvey) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -22290,7 +22438,7 @@ func (ec *executionContext) _UserSurveys_userID(ctx context.Context, field graph
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:     "UserSurveys",
+		Object:     "UserSurvey",
 		Field:      field,
 		Args:       nil,
 		IsMethod:   false,
@@ -23516,6 +23664,45 @@ func (ec *executionContext) unmarshalInputCaregiverInput(ctx context.Context, ob
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("caregiverType"))
 			it.CaregiverType, err = ec.unmarshalNCaregiverType2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐCaregiverType(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputClientFilterParamsInput(ctx context.Context, obj interface{}) (dto.ClientFilterParamsInput, error) {
+	var it dto.ClientFilterParamsInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	for k, v := range asMap {
+		switch k {
+		case "clientTypes":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clientTypes"))
+			it.ClientTypes, err = ec.unmarshalOClientType2ᚕgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐClientType(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "ageRange":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("ageRange"))
+			it.AgeRange, err = ec.unmarshalOAgeRangeInput2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐAgeRangeInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "gender":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("gender"))
+			it.Gender, err = ec.unmarshalOGender2ᚕgithubᚗcomᚋsavannahghiᚋenumutilsᚐGender(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -26425,6 +26612,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "sendClientSurveyLinks":
+			out.Values[i] = ec._Mutation_sendClientSurveyLinks(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "acceptTerms":
 			out.Values[i] = ec._Mutation_acceptTerms(ctx, field)
 			if out.Values[i] == graphql.Null {
@@ -27757,6 +27949,8 @@ func (ec *executionContext) _SurveyForm(ctx context.Context, sel ast.SelectionSe
 			out.Values[i] = graphql.MarshalString("SurveyForm")
 		case "projectId":
 			out.Values[i] = ec._SurveyForm_projectId(ctx, field, obj)
+		case "xmlFormId":
+			out.Values[i] = ec._SurveyForm_xmlFormId(ctx, field, obj)
 		case "name":
 			out.Values[i] = ec._SurveyForm_name(ctx, field, obj)
 		default:
@@ -27886,54 +28080,54 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 	return out
 }
 
-var userSurveysImplementors = []string{"UserSurveys"}
+var userSurveyImplementors = []string{"UserSurvey"}
 
-func (ec *executionContext) _UserSurveys(ctx context.Context, sel ast.SelectionSet, obj *domain.UserSurveys) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, userSurveysImplementors)
+func (ec *executionContext) _UserSurvey(ctx context.Context, sel ast.SelectionSet, obj *domain.UserSurvey) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, userSurveyImplementors)
 
 	out := graphql.NewFieldSet(fields)
 	var invalids uint32
 	for i, field := range fields {
 		switch field.Name {
 		case "__typename":
-			out.Values[i] = graphql.MarshalString("UserSurveys")
+			out.Values[i] = graphql.MarshalString("UserSurvey")
 		case "id":
-			out.Values[i] = ec._UserSurveys_id(ctx, field, obj)
+			out.Values[i] = ec._UserSurvey_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
 		case "active":
-			out.Values[i] = ec._UserSurveys_active(ctx, field, obj)
+			out.Values[i] = ec._UserSurvey_active(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
 		case "created":
-			out.Values[i] = ec._UserSurveys_created(ctx, field, obj)
+			out.Values[i] = ec._UserSurvey_created(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
 		case "link":
-			out.Values[i] = ec._UserSurveys_link(ctx, field, obj)
+			out.Values[i] = ec._UserSurvey_link(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
 		case "title":
-			out.Values[i] = ec._UserSurveys_title(ctx, field, obj)
+			out.Values[i] = ec._UserSurvey_title(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
 		case "description":
-			out.Values[i] = ec._UserSurveys_description(ctx, field, obj)
+			out.Values[i] = ec._UserSurvey_description(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
 		case "hasSubmitted":
-			out.Values[i] = ec._UserSurveys_hasSubmitted(ctx, field, obj)
+			out.Values[i] = ec._UserSurvey_hasSubmitted(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
 		case "userID":
-			out.Values[i] = ec._UserSurveys_userID(ctx, field, obj)
+			out.Values[i] = ec._UserSurvey_userID(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -29868,14 +30062,14 @@ func (ec *executionContext) marshalNUser2ᚖgithubᚗcomᚋsavannahghiᚋmycareh
 	return ec._User(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNUserSurveys2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐUserSurveys(ctx context.Context, sel ast.SelectionSet, v *domain.UserSurveys) graphql.Marshaler {
+func (ec *executionContext) marshalNUserSurvey2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐUserSurvey(ctx context.Context, sel ast.SelectionSet, v *domain.UserSurvey) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
 		}
 		return graphql.Null
 	}
-	return ec._UserSurveys(ctx, sel, v)
+	return ec._UserSurvey(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalN_FieldSet2string(ctx context.Context, v interface{}) (string, error) {
@@ -30358,6 +30552,14 @@ func (ec *executionContext) marshalOCategoryDetail2ᚕgithubᚗcomᚋsavannahghi
 	return ret
 }
 
+func (ec *executionContext) unmarshalOClientFilterParamsInput2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐClientFilterParamsInput(ctx context.Context, v interface{}) (*dto.ClientFilterParamsInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputClientFilterParamsInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) marshalOClientHealthDiaryEntry2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐClientHealthDiaryEntry(ctx context.Context, sel ast.SelectionSet, v *domain.ClientHealthDiaryEntry) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
@@ -30418,6 +30620,81 @@ func (ec *executionContext) unmarshalOClientRegistrationInput2ᚖgithubᚗcomᚋ
 	}
 	res, err := ec.unmarshalInputClientRegistrationInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOClientType2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐClientType(ctx context.Context, v interface{}) (enums.ClientType, error) {
+	var res enums.ClientType
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOClientType2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐClientType(ctx context.Context, sel ast.SelectionSet, v enums.ClientType) graphql.Marshaler {
+	return v
+}
+
+func (ec *executionContext) unmarshalOClientType2ᚕgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐClientType(ctx context.Context, v interface{}) ([]enums.ClientType, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]enums.ClientType, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalOClientType2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐClientType(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalOClientType2ᚕgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐClientType(ctx context.Context, sel ast.SelectionSet, v []enums.ClientType) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOClientType2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐClientType(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	return ret
 }
 
 func (ec *executionContext) unmarshalOClientType2ᚕgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐClientTypeᚄ(ctx context.Context, v interface{}) ([]enums.ClientType, error) {
@@ -30964,6 +31241,71 @@ func (ec *executionContext) unmarshalOGender2githubᚗcomᚋsavannahghiᚋenumut
 
 func (ec *executionContext) marshalOGender2githubᚗcomᚋsavannahghiᚋenumutilsᚐGender(ctx context.Context, sel ast.SelectionSet, v enumutils.Gender) graphql.Marshaler {
 	return v
+}
+
+func (ec *executionContext) unmarshalOGender2ᚕgithubᚗcomᚋsavannahghiᚋenumutilsᚐGender(ctx context.Context, v interface{}) ([]enumutils.Gender, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]enumutils.Gender, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalOGender2githubᚗcomᚋsavannahghiᚋenumutilsᚐGender(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalOGender2ᚕgithubᚗcomᚋsavannahghiᚋenumutilsᚐGender(ctx context.Context, sel ast.SelectionSet, v []enumutils.Gender) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOGender2githubᚗcomᚋsavannahghiᚋenumutilsᚐGender(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	return ret
 }
 
 func (ec *executionContext) marshalOGetstreamMessage2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐGetstreamMessage(ctx context.Context, sel ast.SelectionSet, v *domain.GetstreamMessage) graphql.Marshaler {
@@ -31725,7 +32067,7 @@ func (ec *executionContext) marshalOUserRoleType2ᚖgithubᚗcomᚋsavannahghi�
 	return v
 }
 
-func (ec *executionContext) marshalOUserSurveys2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐUserSurveysᚄ(ctx context.Context, sel ast.SelectionSet, v []*domain.UserSurveys) graphql.Marshaler {
+func (ec *executionContext) marshalOUserSurvey2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐUserSurveyᚄ(ctx context.Context, sel ast.SelectionSet, v []*domain.UserSurvey) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -31752,7 +32094,7 @@ func (ec *executionContext) marshalOUserSurveys2ᚕᚖgithubᚗcomᚋsavannahghi
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNUserSurveys2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐUserSurveys(ctx, sel, v[i])
+			ret[i] = ec.marshalNUserSurvey2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐUserSurvey(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)

@@ -28,6 +28,7 @@ type Create interface {
 	CreateClient(ctx context.Context, client *Client, contactID, identifierID string) error
 	CreateIdentifier(ctx context.Context, identifier *Identifier) error
 	CreateNotification(ctx context.Context, notification *Notification) error
+	CreateUserSurveys(ctx context.Context, userSurvey []*UserSurvey) error
 }
 
 // GetOrCreateFacility is used to get or create a facility
@@ -458,5 +459,15 @@ func (db *PGInstance) CreateNotification(ctx context.Context, notification *Noti
 		return fmt.Errorf("failed to commit create notification transaction: %w", err)
 	}
 
+	return nil
+}
+
+// CreateUserSurveys saves a user survey details including the survey link
+func (db *PGInstance) CreateUserSurveys(ctx context.Context, userSurvey []*UserSurvey) error {
+	err := db.DB.Create(userSurvey).Error
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return fmt.Errorf("failed to create user survey: %w", err)
+	}
 	return nil
 }

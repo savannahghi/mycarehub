@@ -228,3 +228,16 @@ type SurveyForm struct {
 	PublishedAt  time.Time `json:"publishedAt"`
 	Name         string    `json:"name"`
 }
+
+// SurveyPublicLink is contains the information about a survey public link
+type SurveyPublicLink struct {
+	Once        bool       `json:"once"`
+	ID          int        `json:"id"`
+	DisplayName string     `json:"displayName"`
+	CreatedAt   time.Time  `json:"createdAt"`
+	UpdatedAt   time.Time  `json:"updatedAt"`
+	DeletedAt   *time.Time `json:"deletedAt"`
+	Token       string     `json:"token"`
+	CSRF        string     `json:"csrf"`
+	ExpiresAt   time.Time  `json:"expiresAt"`
+}

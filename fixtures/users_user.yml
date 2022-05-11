@@ -27,6 +27,7 @@
   is_staff: false
   email: test@example.co
   date_joined: RAW=NOW()
+  date_of_birth: RAW=NOW() + INTERVAL '-20 year'
   is_approved: true
   is_active: true
   approval_notified: false
@@ -60,6 +61,7 @@
   is_staff: false
   email: test@example.com
   date_joined: RAW=NOW()
+  date_of_birth: RAW=NOW() + INTERVAL '-20 year'
   is_approved: true
   is_active: true
   approval_notified: false
@@ -94,6 +96,7 @@
   is_staff: false
   email: test@example.com0
   date_joined: RAW=NOW()
+  date_of_birth: RAW=NOW() + INTERVAL '-20 year'
   is_approved: true
   is_active: true
   approval_notified: false
@@ -128,6 +131,7 @@
   is_staff: false
   email: test1@example.com
   date_joined: RAW=NOW()
+  date_of_birth: RAW=NOW() + INTERVAL '-20 year'
   is_approved: true
   is_active: true
   approval_notified: false
@@ -162,6 +166,7 @@
   is_staff: false
   email: test2@example.com
   date_joined: RAW=NOW()
+  date_of_birth: RAW=NOW() + INTERVAL '-20 year'
   is_approved: true
   is_active: true
   approval_notified: false
@@ -196,6 +201,7 @@
   is_staff: false
   email: test3@example.com
   date_joined: RAW=NOW()
+  date_of_birth: RAW=NOW() + INTERVAL '-20 year'
   is_approved: true
   is_active: true
   approval_notified: false
@@ -230,6 +236,7 @@
   is_staff: false
   email: test4@example.com
   date_joined: RAW=NOW()
+  date_of_birth: RAW=NOW() + INTERVAL '-21 year'
   is_approved: true
   is_active: true
   approval_notified: false
@@ -264,6 +271,7 @@
   is_staff: false
   email: test5@example.com
   date_joined: RAW=NOW()
+  date_of_birth: RAW=NOW() + INTERVAL '-21 year'
   is_approved: true
   is_active: true
   approval_notified: false
@@ -298,6 +306,7 @@
   is_staff: false
   email: test6@example.com
   date_joined: RAW=NOW()
+  date_of_birth: RAW=NOW() + INTERVAL '-21 year'
   is_approved: true
   is_active: false
   approval_notified: false
@@ -332,6 +341,7 @@
   is_staff: false
   email: test7@example.com
   date_joined: RAW=NOW()
+  date_of_birth: RAW=NOW() + INTERVAL '-21 year'
   is_approved: true
   is_active: true
   approval_notified: false
@@ -366,6 +376,7 @@
   is_staff: false
   email: test@example8.co
   date_joined: RAW=NOW()
+  date_of_birth: RAW=NOW() + INTERVAL '-21 year'
   is_approved: true
   is_active: true
   approval_notified: false
@@ -400,6 +411,7 @@
   is_staff: false
   email: test@example8.co
   date_joined: RAW=NOW()
+  date_of_birth: RAW=NOW() + INTERVAL '-21 year'
   is_approved: true
   is_active: true
   approval_notified: false
@@ -434,6 +446,7 @@
   is_staff: false
   email: test@example10.co
   date_joined: RAW=NOW()
+  date_of_birth: RAW=NOW() + INTERVAL '-21 year'
   is_approved: true
   is_active: true
   approval_notified: false
@@ -468,6 +481,7 @@
   is_staff: false
   email: test@example11.co
   date_joined: RAW=NOW()
+  date_of_birth: RAW=NOW() + INTERVAL '-21 year'
   is_approved: true
   is_active: true
   approval_notified: false
@@ -501,6 +515,7 @@
   is_staff: false
   email: test@example.com
   date_joined: RAW=NOW()
+  date_of_birth: RAW=NOW() + INTERVAL '-21 year'
   is_approved: true
   is_active: true
   approval_notified: false
@@ -536,6 +551,7 @@
   is_staff: false
   email: test@example13.co
   date_joined: RAW=NOW()
+  date_of_birth: RAW=NOW() + INTERVAL '-21 year'
   is_approved: true
   is_active: true
   approval_notified: false
@@ -570,6 +586,7 @@
   is_staff: false
   email: test@example14.co
   date_joined: RAW=NOW()
+  date_of_birth: RAW=NOW() + INTERVAL '-21 year'
   is_approved: true
   is_active: true
   approval_notified: false

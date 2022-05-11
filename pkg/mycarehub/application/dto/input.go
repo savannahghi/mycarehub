@@ -542,3 +542,30 @@ type UpdateFacilityPayload struct {
 	FacilityID         string `json:"facilityID"`
 	FHIROrganisationID string `json:"fhirOrganisationID"`
 }
+
+// SurveyLinkInput is the payload for creating a survey public access link
+type SurveyLinkInput struct {
+	ProjectID   int    `json:"projectID"`
+	FormID      string `json:"formID"`
+	DisplayName string `json:"displayName"`
+	OnceOnly    bool   `json:"onceOnly"`
+}
+
+// ClientFilterParamsInput is the payload for filtering clients
+type ClientFilterParamsInput struct {
+	ClientTypes []enums.ClientType `json:"clientTypes"`
+	AgeRange    *AgeRangeInput     `json:"ageRange"`
+	Gender      []enumutils.Gender `json:"gender"`
+}
+
+// UserSurveyInput represents a user survey input data structure
+type UserSurveyInput struct {
+	UserID      string `json:"userID"`
+	FormID      string `json:"formID"`
+	ProjectID   int    `json:"projectID"`
+	LinkID      int    `json:"linkID"`
+	Title       string `json:"title"`
+	Description string `json:"description"`
+	Link        string `json:"link"`
+	Token       string `json:"token"`
+}

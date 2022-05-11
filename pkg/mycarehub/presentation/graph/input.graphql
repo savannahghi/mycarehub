@@ -155,3 +155,9 @@ input FirebaseSimpleNotificationInput {
   imageURL: String!
   data: Map
 }
+
+input ClientFilterParamsInput{
+  clientTypes: [ClientType]
+	ageRange:    AgeRangeInput
+	gender:      [Gender]
+}
