@@ -823,7 +823,7 @@ func (db *PGInstance) GetClientProfileByClientID(ctx context.Context, clientID s
 	var client Client
 	err := db.DB.Where(&Client{ID: &clientID}).Preload("User.Contacts").Preload(clause.Associations).First(&client).Error
 	if err != nil {
-		return nil, fmt.Errorf("failed to get client: %v", err)
+		return nil, fmt.Errorf("failed to get client: %w", err)
 	}
 	return &client, nil
 }
@@ -833,7 +833,7 @@ func (db *PGInstance) GetStaffProfileByStaffID(ctx context.Context, staffID stri
 	var staff StaffProfile
 	err := db.DB.Where(&StaffProfile{ID: &staffID}).Preload(clause.Associations).First(&staff).Error
 	if err != nil {
-		return nil, fmt.Errorf("failed to get staff: %v", err)
+		return nil, fmt.Errorf("failed to get staff: %w", err)
 	}
 	return &staff, nil
 }
