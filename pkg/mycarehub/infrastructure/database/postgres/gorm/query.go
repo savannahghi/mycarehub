@@ -91,6 +91,7 @@ type Query interface {
 	GetClientScreeningToolResponsesByToolType(ctx context.Context, clientID, toolType string, active bool) ([]*ScreeningToolsResponse, error)
 	GetClientScreeningToolServiceRequestByToolType(ctx context.Context, clientID, toolType, status string) (*ClientServiceRequest, error)
 	GetAppointment(ctx context.Context, params *Appointment) (*Appointment, error)
+	GetUserSurveyForms(ctx context.Context, userID string) ([]*UserSurveys, error)
 	CheckIfStaffHasUnresolvedServiceRequests(ctx context.Context, staffID string, serviceRequestType string) (bool, error)
 	GetFacilityStaffs(ctx context.Context, facilityID string) ([]*StaffProfile, error)
 	GetNotification(ctx context.Context, notificationID string) (*Notification, error)
@@ -1394,6 +1395,19 @@ func (db *PGInstance) GetClientScreeningToolResponsesByToolType(ctx context.Cont
 		return nil, fmt.Errorf("failed to get responses for client: %v", err)
 	}
 	return responses, nil
+}
+
+// GetUserSurveyForms retrives all user survey forms
+func (db *PGInstance) GetUserSurveyForms(ctx context.Context, userID string) ([]*UserSurveys, error) {
+	var userSurveys []*UserSurveys
+
+	err := db.DB.Where("has_submitted = ? AND user_id = ?", false, userID).Find(&userSurveys).Error
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, fmt.Errorf("failed to get user surveys: %v", err)
+	}
+
+	return userSurveys, nil
 }
 
 // GetClientScreeningToolServiceRequestByToolType returns a screening tool of type service request by based on tool type

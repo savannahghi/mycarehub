@@ -524,3 +524,14 @@ type SurveyForm {
 	projectId:    Int       
 	name:         String    
 }
+
+type UserSurveys {
+	id: String!
+	active: Boolean!
+	created: Time!
+	link: String!
+	title: String!
+	description: String!
+	hasSubmitted: Boolean!
+	userID: String! 
+}

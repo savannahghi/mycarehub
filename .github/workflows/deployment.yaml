@@ -413,4 +413,3 @@ jobs:
           go install github.com/savannahghi/bewellcli@$CLI_VERSION
           bewellcli service validate-schema --name mycarehub --version $GITHUB_SHA --url https://mycarehub-prod.savannahghi.org/graphql
           bewellcli service push-schema --name mycarehub --version $GITHUB_SHA --url https://mycarehub-prod.savannahghi.org/graphql
-

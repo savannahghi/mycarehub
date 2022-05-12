@@ -139,6 +139,7 @@ type PostgresMock struct {
 	MockGetActiveScreeningToolResponsesFn                func(ctx context.Context, clientID string) ([]*domain.ScreeningToolQuestionResponse, error)
 	MockGetAppointmentByClientIDFn                       func(ctx context.Context, clientID string) (*domain.Appointment, error)
 	MockCheckAppointmentExistsByExternalIDFn             func(ctx context.Context, externalID string) (bool, error)
+	MockGetUserSurveyFormsFn                             func(ctx context.Context, userID string) ([]*domain.UserSurveys, error)
 	MockGetAppointmentByExternalIDFn                     func(ctx context.Context, externalID string) (*domain.Appointment, error)
 	MockListNotificationsFn                              func(ctx context.Context, params *domain.Notification, pagination *domain.Pagination) ([]*domain.Notification, *domain.Pagination, error)
 	MockSaveNotificationFn                               func(ctx context.Context, payload *domain.Notification) error
@@ -1006,6 +1007,19 @@ func NewPostgresMock() *PostgresMock {
 				},
 			}, nil
 		},
+		MockGetUserSurveyFormsFn: func(ctx context.Context, userID string) ([]*domain.UserSurveys, error) {
+			return []*domain.UserSurveys{
+				{
+					ID:           uuid.New().String(),
+					Active:       false,
+					Link:         uuid.New().String(),
+					Title:        "SurveyTitle",
+					Description:  description,
+					HasSubmitted: false,
+					UserID:       uuid.New().String(),
+				},
+			}, nil
+		},
 		MockGetClientScreeningToolServiceRequestByToolTypeFn: func(ctx context.Context, clientID, toolType, status string) (*domain.ServiceRequest, error) {
 			return &domain.ServiceRequest{
 				ID:           ID,
@@ -1574,6 +1588,11 @@ func (gm *PostgresMock) GetStaffProfileByStaffID(ctx context.Context, staffID st
 // CreateStaffServiceRequest mocks the implementation creating a staff's service request
 func (gm *PostgresMock) CreateStaffServiceRequest(ctx context.Context, serviceRequestInput *dto.ServiceRequestInput) error {
 	return gm.MockCreateStaffServiceRequestFn(ctx, serviceRequestInput)
+}
+
+// GetUserSurveyForms mocks the implementation of getting user survey forms
+func (gm *PostgresMock) GetUserSurveyForms(ctx context.Context, userID string) ([]*domain.UserSurveys, error) {
+	return gm.MockGetUserSurveyFormsFn(ctx, userID)
 }
 
 // ResolveStaffServiceRequest mocks the implementation resolving staff service requests

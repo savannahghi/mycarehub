@@ -142,7 +142,7 @@ func Router(ctx context.Context) (*mux.Router, error) {
 		HTTPClient: &http.Client{},
 	}
 	survey := surveyInstance.NewSurveysImpl(surveysClient)
-	surveysUsecase := surveys.NewUsecaseSurveys(survey)
+	surveysUsecase := surveys.NewUsecaseSurveys(survey, db)
 
 	useCase := usecases.NewMyCareHubUseCase(
 		userUsecase, termsUsecase, facilityUseCase,

@@ -5488,6 +5488,57 @@ func TestMyCareHubDb_GetClientScreeningToolServiceRequestByToolType(t *testing.T
 	}
 }
 
+func TestMyCareHubDb_GetUserSurveyForms(t *testing.T) {
+	ctx := context.Background()
+
+	var fakeGorm = gormMock.NewGormMock()
+	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+	type args struct {
+		ctx    context.Context
+		userID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case:  get user survey forms",
+			args: args{
+				ctx:    ctx,
+				userID: uuid.New().String(),
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case:  unable to get user survey forms",
+			args: args{
+				ctx: ctx,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "Sad case:  unable to get user survey forms" {
+				fakeGorm.MockGetUserSurveyFormsFn = func(ctx context.Context, userID string) ([]*gorm.UserSurveys, error) {
+					return nil, fmt.Errorf("failed to get user survey forms")
+				}
+			}
+
+			got, err := d.GetUserSurveyForms(tt.args.ctx, tt.args.userID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.GetUserSurveyForms() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected a response but got: %v", got)
+			}
+		})
+	}
+}
+
 func TestMyCareHubDb_CheckIfStaffHasUnresolvedServiceRequests(t *testing.T) {
 	var fakeGorm = gormMock.NewGormMock()
 	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)

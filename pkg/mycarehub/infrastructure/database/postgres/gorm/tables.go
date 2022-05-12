@@ -1209,3 +1209,30 @@ type UserAuthToken struct {
 func (a *UserAuthToken) TableName() string {
 	return "authtoken_token"
 }
+
+// UserSurveys represents a user's surveys database model
+type UserSurveys struct {
+	Base
+
+	ID             string `gorm:"id"`
+	Active         bool   `gorm:"active"`
+	Link           string `gorm:"survey_link"`
+	Title          string `gorm:"survey_title"`
+	Description    string `gorm:"survey_description"`
+	HasSubmitted   bool   `gorm:"has_submitted"`
+	OrganisationID string `gorm:"organisation_id"`
+	UserID         string `gorm:"user_id"`
+}
+
+// BeforeCreate is a hook run before creating a user survey model
+func (u *UserSurveys) BeforeCreate(tx *gorm.DB) (err error) {
+	id := uuid.New().String()
+	u.ID = id
+	u.OrganisationID = OrganizationID
+	return
+}
+
+// TableName references the table that we map data from
+func (UserSurveys) TableName() string {
+	return "common_usersurveys"
+}
