@@ -1,3 +1,4 @@
 extend type Query {
     listSurveys(projectID: Int!): [SurveyForm!]
+    getUserSurveyForms(userID: String!): [UserSurveys!]
 }

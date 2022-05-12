@@ -12,3 +12,7 @@ import (
 func (r *queryResolver) ListSurveys(ctx context.Context, projectID int) ([]*domain.SurveyForm, error) {
 	return r.mycarehub.Surveys.ListSurveys(ctx, &projectID)
 }
+
+func (r *queryResolver) GetUserSurveyForms(ctx context.Context, userID string) ([]*domain.UserSurveys, error) {
+	return r.mycarehub.Surveys.GetUserSurveyForms(ctx, userID)
+}

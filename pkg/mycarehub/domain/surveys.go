@@ -2,6 +2,7 @@ package domain
 
 import (
 	"net/http"
+	"time"
 )
 
 // SurveysClient defines the fields required to access the surveys client
@@ -21,4 +22,16 @@ type RequestHelperPayload struct {
 type SurveyForm struct {
 	ProjectID int    `json:"projectId"`
 	Name      string `json:"name"`
+}
+
+// UserSurveys represents a user's surveys domain model
+type UserSurveys struct {
+	ID           string    `json:"id"`
+	Active       bool      `json:"active"`
+	Created      time.Time `json:"created"`
+	Link         string    `json:"link"`
+	Title        string    `json:"title"`
+	Description  string    `json:"description"`
+	HasSubmitted bool      `json:"hasSubmitted"`
+	UserID       string    `json:"userID"`
 }

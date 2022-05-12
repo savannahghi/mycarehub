@@ -144,6 +144,7 @@ var (
 	staffContactIDToDelete    = "bdc36422-e314-43f2-bb39-ba1ab332f9c2"
 	staffIDToDelete           = "8ecbbc80-24c8-124a-9f1a-e14e12678ef2"
 	notificationID            = "bf33ba36-30bc-487e-9a7b-bcb54da0bdfe"
+	userSurveyID                  = "4181df12-ca96-4f28-b78b-8e8ad88b25df"
 )
 
 func TestMain(m *testing.M) {
@@ -235,6 +236,8 @@ func TestMain(m *testing.M) {
 			"screenintoolsquestion_id": screeningToolsQuestionID,
 			"screenintoolsresponse_id": screeningToolsResponseID,
 
+			"user_survey_id": userSurveyID,
+
 			"client_user_unresolved_request_id":      clientUserUnresolvedRequestID,
 			"test_client_id_with_unresolved_request": clientUnresolvedRequestID,
 			"pending_service_request_id":             pendingServiceRequestID,
@@ -298,6 +301,7 @@ func TestMain(m *testing.M) {
 			"../../../../../../fixtures/screeningtools_screeningtoolsquestion.yml",
 			"../../../../../../fixtures/screeningtools_screeningtoolsresponse.yml",
 			"../../../../../../fixtures/clients_healthdiaryentry.yml",
+			"../../../../../../fixtures/common_usersurveys.yml",
 		),
 		// uncomment when running tests locally, if your db is not a test db
 		// Ensure the testing db in the ci is named `test`

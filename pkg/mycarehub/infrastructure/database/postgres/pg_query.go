@@ -1887,6 +1887,32 @@ func (d *MyCareHubDb) CheckAppointmentExistsByExternalID(ctx context.Context, ex
 	return d.query.CheckAppointmentExistsByExternalID(ctx, externalID)
 }
 
+// GetUserSurveyForms retrives all user survey forms
+func (d *MyCareHubDb) GetUserSurveyForms(ctx context.Context, userID string) ([]*domain.UserSurveys, error) {
+	var userSurveys []*domain.UserSurveys
+
+	surveys, err := d.query.GetUserSurveyForms(ctx, userID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
+	for _, s := range surveys {
+		userSurveys = append(userSurveys, &domain.UserSurveys{
+			ID:           s.ID,
+			Active:       s.Active,
+			Created:      s.CreatedAt,
+			Link:         s.Link,
+			Title:        s.Title,
+			Description:  s.Description,
+			HasSubmitted: s.HasSubmitted,
+			UserID:       s.UserID,
+		})
+	}
+
+	return userSurveys, nil
+}
+
 // GetSharedHealthDiaryEntries fetches the most recent shared health diary entry
 func (d *MyCareHubDb) GetSharedHealthDiaryEntries(ctx context.Context, clientID string, facilityID string) ([]*domain.ClientHealthDiaryEntry, error) {
 	clientProfile, err := d.query.GetClientProfileByClientID(ctx, clientID)
