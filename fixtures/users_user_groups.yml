@@ -1,0 +1,8 @@
+# users_user_groups.yml
+- id: 1
+  user_id: {{.test_user_id_to_delete}}
+  group_id: 1
+
+- id: 2
+  user_id: {{.test_staff_user_id_to_delete}}
+  group_id: 2

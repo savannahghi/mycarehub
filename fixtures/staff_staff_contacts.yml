@@ -1,0 +1,4 @@
+# staff_staff_contacts.yml
+- id: 1
+  staff_id: {{.staff_id_to_delete}}
+  contact_id: {{.staff_contact_id_to_delete}}

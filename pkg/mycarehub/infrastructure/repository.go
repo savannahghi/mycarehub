@@ -39,6 +39,9 @@ type Create interface {
 // Delete represents all the deletion action interfaces
 type Delete interface {
 	DeleteFacility(ctx context.Context, id int) (bool, error)
+	DeleteClientProfile(ctx context.Context, clientID string) (bool, error)
+	DeleteStaffProfile(ctx context.Context, staffID string) (bool, error)
+	DeleteUser(ctx context.Context, userID string) (bool, error)
 }
 
 // Query contains all query methods

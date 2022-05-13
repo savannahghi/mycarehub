@@ -1,0 +1,4 @@
+# staff_staff_identifiers.yml
+- id: 1
+  staff_id: {{.staff_id_to_delete}}
+  identifier_id: {{.test_staff_identifier_to_delete}}

@@ -45,6 +45,7 @@ type MyCareHubHandlersInterfaces interface {
 	AddFacilityFHIRID() http.HandlerFunc
 	AppointmentsServiceRequests() http.HandlerFunc
 	ReceiveGetstreamEvents() http.HandlerFunc
+	DeleteUser() http.HandlerFunc
 }
 
 type okResp struct {
@@ -668,6 +669,36 @@ func (h *MyCareHubHandlersInterfacesImpl) ServiceRequests() http.HandlerFunc {
 				return
 			}
 		}
+	}
+}
+
+// DeleteUser is an unauthenticated endpoint that deletes a user from the system.
+func (h *MyCareHubHandlersInterfacesImpl) DeleteUser() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+
+		payload := &dto.PhoneInput{}
+		serverutils.DecodeJSONToTargetStruct(w, r, payload)
+		if payload.PhoneNumber == "" || !payload.Flavour.IsValid() {
+			err := fmt.Errorf("expected phone number and/or flavour to be defined")
+			helpers.ReportErrorToSentry(err)
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusBadRequest)
+			return
+		}
+
+		resp, err := h.usecase.User.DeleteUser(ctx, payload)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
+				Message: err.Error(),
+			}, http.StatusBadRequest)
+			return
+		}
+		response := helpers.RestAPIResponseHelper("deleteUser", resp)
+		serverutils.WriteJSONResponse(w, response, http.StatusOK)
 	}
 }
 

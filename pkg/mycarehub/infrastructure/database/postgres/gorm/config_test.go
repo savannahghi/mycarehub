@@ -130,6 +130,19 @@ var (
 	staffUserUnresolvedRequestID  = "8ecbbc80-24c8-421a-9f1a-e14e12678efc"
 	userWithRolesID               = "8ecbbc80-24c8-421a-9f1a-e14e12678efd"
 	staffWithRolesID              = "8ecbbc80-24c8-421a-9f1a-e14e12678efe"
+
+	userIDToDelete            = "6ecbbc80-24c8-421a-9f7a-e14e12678ef0"
+	staffUserIDToDelete       = "6ecbbc80-24c8-421a-9f7a-e14e21678ef0"
+	testStaffContact          = "teststaff@staff.com"
+	testFlavourPRO            = feedlib.FlavourPro
+	fhirPatientID3            = "f933fd4b-1e3c-4ecd-9d7a-82b2790c0544"
+	clientID3                 = "11a6a0cd-42ac-714b-97d9-e939a1232de2"
+	identifierIDToDelete      = "bcbdaf68-3d36-4365-b575-4392d6749af6"
+	staffIdentifierIDToDelete = "bcbdaf89-3d36-4365-b575-4392d6749af7"
+	randomIdentifierValue     = "test-identifier-value"
+	contactIDToDelete         = "bdc36422-e314-43f2-bb39-ba1ab332f9b0"
+	staffContactIDToDelete    = "bdc36422-e314-43f2-bb39-ba1ab332f9c2"
+	staffIDToDelete           = "8ecbbc80-24c8-124a-9f1a-e14e12678ef2"
 )
 
 func TestMain(m *testing.M) {
@@ -230,18 +243,34 @@ func TestMain(m *testing.M) {
 			"screening_tool_service_request_id":      screeningToolServiceRequestID,
 			"staff_unresolved_request_id":            staffUnresolvedRequestID,
 			"staff_user_unresolved_request_id":       staffUserUnresolvedRequestID,
+
+			"test_client_id_to_delete":        clientID3,
+			"contact_id_to_delete":            contactIDToDelete,
+			"staff_contact_id_to_delete":      staffContactIDToDelete,
+			"staff_id_to_delete":              staffIDToDelete,
+			"test_ransdom_identifier_value":   randomIdentifierValue,
+			"test_staff_identifier_to_delete": staffIdentifierIDToDelete,
+			"test_fhir_patient_id3":           fhirPatientID3,
+			"test_identifier_to_delete":       identifierIDToDelete,
+			"test_flavour_pro":                testFlavourPRO,
+			"test_staff_user_id_to_delete":    staffUserIDToDelete,
+			"test_user_id_to_delete":          userIDToDelete,
+			"test_staff_contact":              testStaffContact,
 		}),
 		// this is the directory containing the YAML files.
 		// The file name should be the same as the table name
 		// order of inserting values matter to avoid foreign key constraint errors
 		testfixtures.Paths(
 			"../../../../../../fixtures/common_organisation.yml",
+			"../../../../../../fixtures/users_user.yml",
 			"../../../../../../fixtures/users_termsofservice.yml",
 			"../../../../../../fixtures/clients_securityquestion.yml",
 			"../../../../../../fixtures/content_author.yml",
 			"../../../../../../fixtures/wagtailcore_page.yml",
 			"../../../../../../fixtures/content_contentitem.yml",
-			"../../../../../../fixtures/users_user.yml",
+			"../../../../../../fixtures/users_user_user_permissions.yml",
+			"../../../../../../fixtures/users_user_groups.yml",
+			"../../../../../../fixtures/authtoken_token.yml",
 			"../../../../../../fixtures/clients_securityquestionresponse.yml",
 			"../../../../../../fixtures/common_contact.yml",
 			"../../../../../../fixtures/users_userotp.yml",
@@ -249,7 +278,10 @@ func TestMain(m *testing.M) {
 			"../../../../../../fixtures/users_userpin.yml",
 			"../../../../../../fixtures/clients_caregiver.yml",
 			"../../../../../../fixtures/clients_client.yml",
+			"../../../../../../fixtures/clients_client_contacts.yml",
 			"../../../../../../fixtures/staff_staff.yml",
+			"../../../../../../fixtures/staff_staff_contacts.yml",
+			"../../../../../../fixtures/staff_staff_identifiers.yml",
 			"../../../../../../fixtures/clients_servicerequest.yml",
 			"../../../../../../fixtures/staff_staff_facilities.yml",
 			"../../../../../../fixtures/staff_servicerequest.yml",

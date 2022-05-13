@@ -42,6 +42,7 @@ type UserUseCaseMock struct {
 	MockGenerateTemporaryPinFn          func(ctx context.Context, userID string, flavour feedlib.Flavour) (string, error)
 	MockRegisterPushTokenFn             func(ctx context.Context, token string) (bool, error)
 	MockGetClientProfileByCCCNumberFn   func(ctx context.Context, cccNumber string) (*domain.ClientProfile, error)
+	MockDeleteUserFn                    func(ctx context.Context, payload *dto.PhoneInput) (bool, error)
 }
 
 // NewUserUseCaseMock creates in initializes create type mocks
@@ -109,6 +110,9 @@ func NewUserUseCaseMock() *UserUseCaseMock {
 			}, nil
 		},
 		MockVerifyPINFn: func(ctx context.Context, userID string, flavour feedlib.Flavour, pin string) (bool, error) {
+			return true, nil
+		},
+		MockDeleteUserFn: func(ctx context.Context, payload *dto.PhoneInput) (bool, error) {
 			return true, nil
 		},
 		MockSearchStaffByStaffNumberFn: func(ctx context.Context, staffNumber string) ([]*domain.StaffProfile, error) {
@@ -358,4 +362,9 @@ func (f *UserUseCaseMock) RegisterPushToken(ctx context.Context, token string) (
 // GetClientProfileByCCCNumber mocks the implementation for getting a client profile by CCC number
 func (f *UserUseCaseMock) GetClientProfileByCCCNumber(ctx context.Context, CCCNumber string) (*domain.ClientProfile, error) {
 	return f.MockGetClientProfileByCCCNumberFn(ctx, CCCNumber)
+}
+
+// DeleteUser mocks the implementation of deleting a user
+func (f *UserUseCaseMock) DeleteUser(ctx context.Context, payload *dto.PhoneInput) (bool, error) {
+	return f.MockDeleteUserFn(ctx, payload)
 }
