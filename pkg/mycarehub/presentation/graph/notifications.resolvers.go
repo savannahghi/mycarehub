@@ -16,6 +16,10 @@ func (r *mutationResolver) SendFCMNotification(ctx context.Context, registration
 	return r.mycarehub.Notification.SendNotification(ctx, registrationTokens, data, &notification)
 }
 
+func (r *mutationResolver) ReadNotifications(ctx context.Context, ids []string) (bool, error) {
+	return r.mycarehub.Notification.ReadNotifications(ctx, ids)
+}
+
 func (r *queryResolver) FetchNotifications(ctx context.Context, userID string, flavour feedlib.Flavour, paginationInput dto.PaginationsInput) (*domain.NotificationsPage, error) {
 	return r.mycarehub.Notification.FetchNotifications(ctx, userID, flavour, paginationInput)
 }

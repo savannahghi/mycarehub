@@ -21,6 +21,7 @@ type NotificationUseCaseMock struct {
 		data map[string]interface{},
 		notification *firebasetools.FirebaseSimpleNotificationInput,
 	) (bool, error)
+	MockReadNotificationsFn func(ctx context.Context, ids []string) (bool, error)
 }
 
 // NewServiceNotificationMock initializes a new notification mock instance
@@ -28,6 +29,9 @@ func NewServiceNotificationMock() *NotificationUseCaseMock {
 	return &NotificationUseCaseMock{
 		MockNotifyUserFn: func(ctx context.Context, userProfile *domain.User, notificationPayload *domain.Notification) error {
 			return nil
+		},
+		MockReadNotificationsFn: func(ctx context.Context, ids []string) (bool, error) {
+			return true, nil
 		},
 		MockNotifyFacilityStaffsFn: func(ctx context.Context, facility *domain.Facility, notificationPayload *domain.Notification) error {
 			return nil
@@ -84,4 +88,9 @@ func (n NotificationUseCaseMock) SendNotification(
 	notification *firebasetools.FirebaseSimpleNotificationInput,
 ) (bool, error) {
 	return n.MockSendNotificationFn(ctx, registrationTokens, data, notification)
+}
+
+//ReadNotifications indicates that the notification as bee
+func (n NotificationUseCaseMock) ReadNotifications(ctx context.Context, ids []string) (bool, error) {
+	return n.MockReadNotificationsFn(ctx, ids)
 }

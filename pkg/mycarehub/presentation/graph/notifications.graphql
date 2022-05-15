@@ -12,4 +12,6 @@ extend type Mutation {
     data: Map!
     notification: FirebaseSimpleNotificationInput!
   ): Boolean!
+
+  readNotifications(ids:[ID!]!): Boolean!
 }

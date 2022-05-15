@@ -5575,3 +5575,55 @@ func TestMyCareHubDb_GetFacilityStaffs(t *testing.T) {
 		})
 	}
 }
+
+func TestMyCareHubDb_GetNotification(t *testing.T) {
+
+	type args struct {
+		ctx            context.Context
+		notificationID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *domain.Notification
+		wantErr bool
+	}{
+		{
+			name: "happy case: retrieve a facility",
+			args: args{
+				ctx:            context.Background(),
+				notificationID: gofakeit.UUID(),
+			},
+			wantErr: false,
+		},
+		{
+			name: "sad case: invalid facility id",
+			args: args{
+				ctx:            context.Background(),
+				notificationID: gofakeit.UUID(),
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var fakeGorm = gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			if tt.name == "sad case: invalid facility id" {
+				fakeGorm.MockGetNotificationFn = func(ctx context.Context, notificationID string) (*gorm.Notification, error) {
+					return nil, fmt.Errorf("failed to retrieve facility")
+				}
+			}
+
+			got, err := d.GetNotification(tt.args.ctx, tt.args.notificationID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.GetNotification() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected value, got %v", got)
+			}
+		})
+	}
+}

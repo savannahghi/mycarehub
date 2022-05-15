@@ -151,6 +151,8 @@ type GormMock struct {
 	MockDeleteClientProfileFn                            func(ctx context.Context, clientID string) (bool, error)
 	MockDeleteUserFn                                     func(ctx context.Context, userID string) (bool, error)
 	MockDeleteStaffProfileFn                             func(ctx context.Context, staffID string) (bool, error)
+	MockUpdateNotificationFn                             func(ctx context.Context, notification *gorm.Notification, updateData map[string]interface{}) error
+	MockGetNotificationFn                                func(ctx context.Context, notificationID string) (*gorm.Notification, error)
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -342,6 +344,20 @@ func NewGormMock() *GormMock {
 
 	return &GormMock{
 		MockCreateNotificationFn: func(ctx context.Context, notification *gorm.Notification) error {
+			return nil
+		},
+		MockGetNotificationFn: func(ctx context.Context, notificationID string) (*gorm.Notification, error) {
+			return &gorm.Notification{
+				Title:      "A notification",
+				Body:       "This is what it's about",
+				Type:       "TELECONSULT",
+				Flavour:    "PRO",
+				IsRead:     false,
+				UserID:     &UUID,
+				FacilityID: &UUID,
+			}, nil
+		},
+		MockUpdateNotificationFn: func(ctx context.Context, notification *gorm.Notification, updateData map[string]interface{}) error {
 			return nil
 		},
 		MockGetFacilityStaffsFn: func(ctx context.Context, facilityID string) ([]*gorm.StaffProfile, error) {
@@ -1796,4 +1812,14 @@ func (gm *GormMock) CheckIfStaffHasUnresolvedServiceRequests(ctx context.Context
 // GetFacilityStaffs returns a list of staff at a particular facility
 func (gm *GormMock) GetFacilityStaffs(ctx context.Context, facilityID string) ([]*gorm.StaffProfile, error) {
 	return gm.MockGetFacilityStaffsFn(ctx, facilityID)
+}
+
+//UpdateNotification updates a notification with the new data
+func (gm *GormMock) UpdateNotification(ctx context.Context, notification *gorm.Notification, updateData map[string]interface{}) error {
+	return gm.MockUpdateNotificationFn(ctx, notification, updateData)
+}
+
+// GetNotification retrieve a notification using the provided ID
+func (gm *GormMock) GetNotification(ctx context.Context, notificationID string) (*gorm.Notification, error) {
+	return gm.MockGetNotificationFn(ctx, notificationID)
 }

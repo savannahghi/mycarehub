@@ -69,7 +69,7 @@ func TestUseCaseNotificationImpl_NotifyUser(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			fakeFCM := fakeFCM.NewFCMServiceMock()
 			fakeDB := pgMock.NewPostgresMock()
-			notificationService := notification.NewNotificationUseCaseImpl(fakeFCM, fakeDB, fakeDB)
+			notificationService := notification.NewNotificationUseCaseImpl(fakeFCM, fakeDB, fakeDB, fakeDB)
 
 			if tt.name == "Sad Case - Fail to notify user" {
 				fakeFCM.MockSendNotificationFn = func(ctx context.Context, payload *firebasetools.SendNotificationPayload) (bool, error) {
@@ -172,7 +172,7 @@ func TestUseCaseNotificationImpl_FetchNotifications(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			fakeFCM := fakeFCM.NewFCMServiceMock()
 			fakeDB := pgMock.NewPostgresMock()
-			notificationService := notification.NewNotificationUseCaseImpl(fakeFCM, fakeDB, fakeDB)
+			notificationService := notification.NewNotificationUseCaseImpl(fakeFCM, fakeDB, fakeDB, fakeDB)
 
 			if tt.name == "sad case: cannot list notifications" {
 				fakeDB.MockListNotificationsFn = func(ctx context.Context, params *domain.Notification, pagination *domain.Pagination) ([]*domain.Notification, *domain.Pagination, error) {
@@ -259,7 +259,7 @@ func TestUseCaseNotificationImpl_NotifyFacilityStaffs(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			fakeFCM := fakeFCM.NewFCMServiceMock()
 			fakeDB := pgMock.NewPostgresMock()
-			n := notification.NewNotificationUseCaseImpl(fakeFCM, fakeDB, fakeDB)
+			n := notification.NewNotificationUseCaseImpl(fakeFCM, fakeDB, fakeDB, fakeDB)
 
 			if tt.name == "sad case: cannot save notification" {
 				fakeDB.MockSaveNotificationFn = func(ctx context.Context, payload *domain.Notification) error {
@@ -316,7 +316,7 @@ func TestUseCaseNotificationImpl_SendNotification(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			fakeFCM := fakeFCM.NewFCMServiceMock()
 			fakeDB := pgMock.NewPostgresMock()
-			notification := notification.NewNotificationUseCaseImpl(fakeFCM, fakeDB, fakeDB)
+			notification := notification.NewNotificationUseCaseImpl(fakeFCM, fakeDB, fakeDB, fakeDB)
 
 			got, err := notification.SendNotification(tt.args.ctx, tt.args.registrationTokens, tt.args.data, tt.args.notification)
 			if (err != nil) != tt.wantErr {
@@ -325,6 +325,76 @@ func TestUseCaseNotificationImpl_SendNotification(t *testing.T) {
 			}
 			if got != tt.want {
 				t.Errorf("UseCaseNotificationImpl.SendNotification() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestUseCaseNotificationImpl_ReadNotifications(t *testing.T) {
+
+	type args struct {
+		ctx context.Context
+		ids []string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "happy case: mark notification as read",
+			args: args{
+				ctx: context.Background(),
+				ids: []string{gofakeit.UUID()},
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "sad case: non existent notification",
+			args: args{
+				ctx: context.Background(),
+				ids: []string{gofakeit.UUID()},
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "sad case: error updating notification",
+			args: args{
+				ctx: context.Background(),
+				ids: []string{gofakeit.UUID()},
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeFCM := fakeFCM.NewFCMServiceMock()
+			fakeDB := pgMock.NewPostgresMock()
+			n := notification.NewNotificationUseCaseImpl(fakeFCM, fakeDB, fakeDB, fakeDB)
+
+			if tt.name == "sad case: non existent notification" {
+				fakeDB.MockGetNotificationFn = func(ctx context.Context, notificationID string) (*domain.Notification, error) {
+					return nil, fmt.Errorf("fail to update a notification")
+				}
+			}
+
+			if tt.name == "sad case: error updating notification" {
+				fakeDB.MockUpdateNotificationFn = func(ctx context.Context, notification *domain.Notification, updateData map[string]interface{}) error {
+					return fmt.Errorf("failed to update notification")
+				}
+			}
+
+			got, err := n.ReadNotifications(tt.args.ctx, tt.args.ids)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCaseNotificationImpl.ReadNotifications() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("UseCaseNotificationImpl.ReadNotifications() = %v, want %v", got, tt.want)
 			}
 		})
 	}

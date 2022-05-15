@@ -143,6 +143,7 @@ var (
 	contactIDToDelete         = "bdc36422-e314-43f2-bb39-ba1ab332f9b0"
 	staffContactIDToDelete    = "bdc36422-e314-43f2-bb39-ba1ab332f9c2"
 	staffIDToDelete           = "8ecbbc80-24c8-124a-9f1a-e14e12678ef2"
+	notificationID            = "bf33ba36-30bc-487e-9a7b-bcb54da0bdfe"
 )
 
 func TestMain(m *testing.M) {
@@ -273,6 +274,7 @@ func TestMain(m *testing.M) {
 			"../../../../../../fixtures/authtoken_token.yml",
 			"../../../../../../fixtures/clients_securityquestionresponse.yml",
 			"../../../../../../fixtures/common_contact.yml",
+			"../../../../../../fixtures/common_notification.yml",
 			"../../../../../../fixtures/users_userotp.yml",
 			"../../../../../../fixtures/common_facility.yml",
 			"../../../../../../fixtures/users_userpin.yml",

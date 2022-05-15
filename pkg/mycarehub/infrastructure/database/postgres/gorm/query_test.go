@@ -4298,3 +4298,47 @@ func TestPGInstance_GetFacilityStaffs(t *testing.T) {
 		})
 	}
 }
+
+func TestPGInstance_GetNotification(t *testing.T) {
+
+	type args struct {
+		ctx            context.Context
+		notificationID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *gorm.Notification
+		wantErr bool
+	}{
+		{
+			name: "happy case: retrieve notification",
+			args: args{
+				ctx:            context.Background(),
+				notificationID: notificationID,
+			},
+			wantErr: false,
+		},
+		{
+			name: "sad case: invalid notification id",
+			args: args{
+				ctx:            context.Background(),
+				notificationID: "non-existent-id",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := testingDB.GetNotification(tt.args.ctx, tt.args.notificationID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.GetNotification() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected value, got %v", got)
+				return
+			}
+		})
+	}
+}

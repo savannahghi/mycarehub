@@ -20,6 +20,7 @@ type IServiceNotify interface {
 	NotifyUser(ctx context.Context, userProfile *domain.User, notificationPayload *domain.Notification) error
 	NotifyFacilityStaffs(ctx context.Context, facility *domain.Facility, notificationPayload *domain.Notification) error
 	FetchNotifications(ctx context.Context, userID string, flavour feedlib.Flavour, paginationInput dto.PaginationsInput) (*domain.NotificationsPage, error)
+	ReadNotifications(ctx context.Context, ids []string) (bool, error)
 
 	SendNotification(
 		ctx context.Context,
@@ -39,6 +40,7 @@ type UseCaseNotificationImpl struct {
 	FCM    fcm.ServiceFCM
 	Query  infrastructure.Query
 	Create infrastructure.Create
+	Update infrastructure.Update
 }
 
 // NewNotificationUseCaseImpl initialized a new notifications service implementation
@@ -46,11 +48,13 @@ func NewNotificationUseCaseImpl(
 	fcm fcm.ServiceFCM,
 	query infrastructure.Query,
 	create infrastructure.Create,
+	update infrastructure.Update,
 ) UseCaseNotification {
 	return &UseCaseNotificationImpl{
 		FCM:    fcm,
 		Query:  query,
 		Create: create,
+		Update: update,
 	}
 }
 
@@ -149,8 +153,8 @@ func (n UseCaseNotificationImpl) FetchNotifications(ctx context.Context, userID 
 	return response, nil
 }
 
-// SendNotification is used to send a FCM notification to a registered push token. This API will mainly
-// be used for test purposes i.e to check whether FCMs are being sent to the passed pushtoken
+// SendNotification is used to send an FCM notification to a registered push token. This API will mainly
+// be used for test purposes i.e. to check whether FCMs are being sent to the passed push token
 func (n UseCaseNotificationImpl) SendNotification(
 	ctx context.Context,
 	registrationTokens []string,
@@ -168,4 +172,25 @@ func (n UseCaseNotificationImpl) SendNotification(
 		Notification:       notification,
 	}
 	return n.FCM.SendNotification(ctx, payload)
+}
+
+//ReadNotifications indicates that the notification as bee
+func (n UseCaseNotificationImpl) ReadNotifications(ctx context.Context, ids []string) (bool, error) {
+
+	for _, id := range ids {
+		notification, err := n.Query.GetNotification(ctx, id)
+		if err != nil {
+			return false, err
+		}
+
+		update := map[string]interface{}{
+			"is_read": true,
+		}
+		err = n.Update.UpdateNotification(ctx, notification, update)
+		if err != nil {
+			return false, err
+		}
+	}
+
+	return true, nil
 }

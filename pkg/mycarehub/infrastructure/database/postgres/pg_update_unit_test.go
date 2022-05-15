@@ -2356,3 +2356,39 @@ func TestMyCareHubDb_CheckAppointmentExistsByExternalID(t *testing.T) {
 		})
 	}
 }
+
+func TestMyCareHubDb_UpdateNotification(t *testing.T) {
+	var fakeGorm = gormMock.NewGormMock()
+	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+	type args struct {
+		ctx          context.Context
+		notification *domain.Notification
+		updateData   map[string]interface{}
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "happy case: update a notification",
+			args: args{
+				ctx: context.Background(),
+				notification: &domain.Notification{
+					ID: gofakeit.UUID(),
+				},
+				updateData: map[string]interface{}{
+					"is_read": true,
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := d.UpdateNotification(tt.args.ctx, tt.args.notification, tt.args.updateData); (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.UpdateNotification() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}

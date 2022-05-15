@@ -309,3 +309,12 @@ func (d *MyCareHubDb) UpdateFacility(ctx context.Context, facility *domain.Facil
 
 	return d.update.UpdateFacility(ctx, gormFacility, updateData)
 }
+
+// UpdateNotification updates the notification with the provided notification details
+func (d *MyCareHubDb) UpdateNotification(ctx context.Context, notification *domain.Notification, updateData map[string]interface{}) error {
+	gormNotification := &gorm.Notification{
+		ID: notification.ID,
+	}
+
+	return d.update.UpdateNotification(ctx, gormNotification, updateData)
+}
