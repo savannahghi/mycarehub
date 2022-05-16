@@ -13,18 +13,20 @@ type UsersType string
 const (
 	HealthcareWorkerUser UsersType = "HEALTHCAREWORKER"
 	ClientUser           UsersType = "CLIENT"
+	StaffUser            UsersType = "STAFF"
 )
 
 // AllUsers is a set of a  valid and known user types.
 var AllUsers = []UsersType{
 	HealthcareWorkerUser,
 	ClientUser,
+	StaffUser,
 }
 
 // IsValid returns true if a user is valid
 func (m UsersType) IsValid() bool {
 	switch m {
-	case HealthcareWorkerUser, ClientUser:
+	case HealthcareWorkerUser, ClientUser, StaffUser:
 		return true
 	}
 	return false
