@@ -5,4 +5,5 @@ extend type Query {
 
 extend type Mutation {
     sendClientSurveyLinks(facilityID: String! formID: String!, projectID: Int!, filterParams:  ClientFilterParamsInput): Boolean!
+    verifySurveySubmission(input: VerifySurveySubmissionInput!): Boolean!
 }

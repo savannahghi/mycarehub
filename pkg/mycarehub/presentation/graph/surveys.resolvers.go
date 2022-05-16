@@ -14,6 +14,10 @@ func (r *mutationResolver) SendClientSurveyLinks(ctx context.Context, facilityID
 	return r.mycarehub.Surveys.SendClientSurveyLinks(ctx, &facilityID, &formID, &projectID, filterParams)
 }
 
+func (r *mutationResolver) VerifySurveySubmission(ctx context.Context, input dto.VerifySurveySubmissionInput) (bool, error) {
+	return r.mycarehub.Surveys.VerifySurveySubmission(ctx, input)
+}
+
 func (r *queryResolver) ListSurveys(ctx context.Context, projectID int) ([]*domain.SurveyForm, error) {
 	return r.mycarehub.Surveys.ListSurveys(ctx, &projectID)
 }

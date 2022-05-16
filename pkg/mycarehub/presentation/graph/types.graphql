@@ -535,4 +535,8 @@ type UserSurvey {
 	description: String!
 	hasSubmitted: Boolean!
 	userID: String! 
+  token: String!
+	projectID: Int!
+	formID: String!
+	linkID: Int
 }

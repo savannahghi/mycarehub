@@ -118,6 +118,7 @@ type PostgresMock struct {
 	MockUpdateUserPinChangeRequiredStatusFn              func(ctx context.Context, userID string, flavour feedlib.Flavour, status bool) error
 	MockSearchClientProfilesByCCCNumberFn                func(ctx context.Context, CCCNumber string) ([]*domain.ClientProfile, error)
 	MockCheckIfClientHasUnresolvedServiceRequestsFn      func(ctx context.Context, clientID string, serviceRequestType string) (bool, error)
+	MockUpdateUserSurveysFn                              func(ctx context.Context, survey *domain.UserSurvey, updateData map[string]interface{}) error
 	MockGetAllRolesFn                                    func(ctx context.Context) ([]*domain.AuthorityRole, error)
 	MockUpdateUserActiveStatusFn                         func(ctx context.Context, userID string, flavour feedlib.Flavour, active bool) error
 	MockUpdateUserPinUpdateRequiredStatusFn              func(ctx context.Context, userID string, flavour feedlib.Flavour, status bool) error
@@ -501,6 +502,9 @@ func NewPostgresMock() *PostgresMock {
 		},
 		MockGetStaffProfileByUserIDFn: func(ctx context.Context, userID string) (*domain.StaffProfile, error) {
 			return staff, nil
+		},
+		MockUpdateUserSurveysFn: func(ctx context.Context, survey *domain.UserSurvey, updateData map[string]interface{}) error {
+			return nil
 		},
 		MockCheckUserHasPinFn: func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
 			return true, nil
@@ -1169,6 +1173,11 @@ func (gm *PostgresMock) UpdateUserNextAllowedLoginTime(ctx context.Context, user
 // UpdateUserProfileAfterLoginSuccess mocks the implementation of updating a user's last successful login time
 func (gm *PostgresMock) UpdateUserProfileAfterLoginSuccess(ctx context.Context, userID string) error {
 	return gm.MockUpdateUserProfileAfterLoginSuccessFn(ctx, userID)
+}
+
+// UpdateUserSurveys mocks the implementation of `gorm's` UpdateUserSurveys method.
+func (gm *PostgresMock) UpdateUserSurveys(ctx context.Context, survey *domain.UserSurvey, updateData map[string]interface{}) error {
+	return gm.MockUpdateUserSurveysFn(ctx, survey, updateData)
 }
 
 //GetSecurityQuestions mocks the implementation of getting all the security questions.

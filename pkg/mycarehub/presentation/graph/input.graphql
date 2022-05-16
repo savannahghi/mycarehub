@@ -167,3 +167,9 @@ input MetricInput {
   type: MetricType!
   event: Map!
 }
+
+input VerifySurveySubmissionInput {
+  projectID: Int!
+  formID: String!
+  submitterID: Int! #also termed as linkID
+}

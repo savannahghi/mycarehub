@@ -1999,3 +1999,54 @@ func TestPGInstance_UpdateNotification(t *testing.T) {
 		})
 	}
 }
+
+func TestPGInstance_UpdateUserSurveys(t *testing.T) {
+	ctx := context.Background()
+
+	type args struct {
+		ctx        context.Context
+		survey     *gorm.UserSurvey
+		updateData map[string]interface{}
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "happy case: update a user survey",
+			args: args{
+				ctx: ctx,
+				survey: &gorm.UserSurvey{
+					FormID:    "fe3b9c8e-f8e3-4f0f-b8b1-f8b8b8b8b8b8",
+					ProjectID: 2,
+					LinkID:    1,
+				},
+				updateData: map[string]interface{}{
+					"has_submitted": true,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: unable to update a user survey",
+			args: args{
+				ctx: ctx,
+				survey: &gorm.UserSurvey{
+					UserID: gofakeit.BeerName(),
+				},
+				updateData: map[string]interface{}{
+					"has_submitted": true,
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := testingDB.UpdateUserSurveys(tt.args.ctx, tt.args.survey, tt.args.updateData); (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.UpdateUserSurveys() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}

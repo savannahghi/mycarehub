@@ -19,7 +19,7 @@ func TestUsecaseSurveysImpl_ListSurveys(t *testing.T) {
 	fakeDB := pgMock.NewPostgresMock()
 	fakeSurveys := mockSurveys.NewSurveysMock()
 	fakeNotification := mockNotification.NewServiceNotificationMock()
-	u := NewUsecaseSurveys(fakeSurveys, fakeDB, fakeDB, fakeNotification)
+	u := NewUsecaseSurveys(fakeSurveys, fakeDB, fakeDB, fakeDB, fakeNotification)
 	projectID := 2
 
 	type args struct {
@@ -73,7 +73,7 @@ func TestUsecaseSurveysImpl_GetUserSurveyForms(t *testing.T) {
 	fakeSurveys := mockSurveys.NewSurveysMock()
 	fakeDB := pgMock.NewPostgresMock()
 	fakeNotification := mockNotification.NewServiceNotificationMock()
-	u := NewUsecaseSurveys(fakeSurveys, fakeDB, fakeDB, fakeNotification)
+	u := NewUsecaseSurveys(fakeSurveys, fakeDB, fakeDB, fakeDB, fakeNotification)
 
 	type args struct {
 		ctx    context.Context
@@ -123,7 +123,7 @@ func TestUsecaseSurveysImpl_SendClientSurveyLinks(t *testing.T) {
 	fakeSurveys := mockSurveys.NewSurveysMock()
 	fakeDB := pgMock.NewPostgresMock()
 	fakeNotification := mockNotification.NewServiceNotificationMock()
-	u := NewUsecaseSurveys(fakeSurveys, fakeDB, fakeDB, fakeNotification)
+	u := NewUsecaseSurveys(fakeSurveys, fakeDB, fakeDB, fakeDB, fakeNotification)
 
 	facilityID := uuid.New().String()
 	formID := uuid.New().String()
@@ -274,7 +274,7 @@ func TestUsecaseSurveysImpl_SendClientSurveyLinks(t *testing.T) {
 				}
 			}
 			if tt.name == "sad case: failed to generate survey access link" {
-				fakeSurveys.MockGeneratePublickAccessLinkFn = func(ctx context.Context, input dto.SurveyLinkInput) (*dto.SurveyPublicLink, error) {
+				fakeSurveys.MockGeneratePublicAccessLinkFn = func(ctx context.Context, input dto.SurveyLinkInput) (*dto.SurveyPublicLink, error) {
 					return nil, fmt.Errorf("failed to generate survey access link")
 				}
 			}
@@ -298,6 +298,88 @@ func TestUsecaseSurveysImpl_SendClientSurveyLinks(t *testing.T) {
 			}
 			if got != tt.want {
 				t.Errorf("UsecaseSurveysImpl.SendClientSurveyLinks() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestUsecaseSurveysImpl_VerifySurveySubmission(t *testing.T) {
+	ctx := context.Background()
+
+	fakeSurveys := mockSurveys.NewSurveysMock()
+	fakeDB := pgMock.NewPostgresMock()
+	fakeNotification := mockNotification.NewServiceNotificationMock()
+	u := NewUsecaseSurveys(fakeSurveys, fakeDB, fakeDB, fakeDB, fakeNotification)
+
+	type args struct {
+		ctx   context.Context
+		input dto.VerifySurveySubmissionInput
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "happy case - successfully-verify-survey-submission",
+			args: args{
+				ctx: ctx,
+				input: dto.VerifySurveySubmissionInput{
+					ProjectID:   10000000000000,
+					FormID:      uuid.New().String(),
+					SubmitterID: 10,
+				},
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Sad case - fail to verify survey submission",
+			args: args{
+				ctx: ctx,
+				input: dto.VerifySurveySubmissionInput{
+					ProjectID:   10000000000000,
+					FormID:      uuid.New().String(),
+					SubmitterID: 10,
+				},
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case - unable to update survey",
+			args: args{
+				ctx: ctx,
+				input: dto.VerifySurveySubmissionInput{
+					ProjectID:   10000000000000,
+					FormID:      uuid.New().String(),
+					SubmitterID: 100000000000,
+				},
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "Sad case - fail to verify survey submission" {
+				fakeSurveys.MockListSubmittersFn = func(ctx context.Context, projectID int, formID string) ([]domain.Submitter, error) {
+					return nil, fmt.Errorf("failed to get submitters")
+				}
+			}
+			if tt.name == "Sad case - unable to update survey" {
+				fakeDB.MockUpdateUserSurveysFn = func(ctx context.Context, survey *domain.UserSurvey, updateData map[string]interface{}) error {
+					return fmt.Errorf("failed to update survey")
+				}
+			}
+			got, err := u.VerifySurveySubmission(tt.args.ctx, tt.args.input)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UsecaseSurveysImpl.VerifySurveySubmission() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("UsecaseSurveysImpl.VerifySurveySubmission() = %v, want %v", got, tt.want)
 			}
 		})
 	}

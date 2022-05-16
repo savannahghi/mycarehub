@@ -49,6 +49,7 @@ type Update interface {
 	UpdateUserPinUpdateRequiredStatus(ctx context.Context, userID string, flavour feedlib.Flavour, status bool) error
 	UpdateHealthDiary(ctx context.Context, clientHealthDiaryEntry *ClientHealthDiaryEntry, updateData map[string]interface{}) (bool, error)
 	UpdateFailedSecurityQuestionsAnsweringAttempts(ctx context.Context, userID string, failCount int) error
+	UpdateUserSurveys(ctx context.Context, survey *UserSurvey, updateData map[string]interface{}) error
 	UpdateUser(ctx context.Context, user *User, updateData map[string]interface{}) error
 	UpdateNotification(ctx context.Context, notification *Notification, updateData map[string]interface{}) error
 }
@@ -177,7 +178,7 @@ func (db *PGInstance) UnlikeContent(context context.Context, userID string, cont
 	return true, nil
 }
 
-// ReactivateFacility perfoms the actual re-activation of the facility in the database
+// ReactivateFacility performs the actual re-activation of the facility in the database
 func (db *PGInstance) ReactivateFacility(ctx context.Context, mflCode *int) (bool, error) {
 	if mflCode == nil {
 		return false, fmt.Errorf("mflCode cannot be empty")
@@ -209,7 +210,7 @@ func (db *PGInstance) InactivateFacility(ctx context.Context, mflCode *int) (boo
 	return true, nil
 }
 
-// AcceptTerms perfoms the actual modification of the users data for the terms accepted as well as the id of the terms accepted
+// AcceptTerms performs the actual modification of the users data for the terms accepted as well as the id of the terms accepted
 func (db *PGInstance) AcceptTerms(ctx context.Context, userID *string, termsID *int) (bool, error) {
 	if userID == nil || termsID == nil {
 		return false, fmt.Errorf("userID or termsID cannot be nil")
@@ -307,7 +308,7 @@ func (db *PGInstance) SetInProgressBy(ctx context.Context, requestID string, sta
 		"in_progress_at":    time.Now(),
 	}).Error; err != nil {
 		helpers.ReportErrorToSentry(err)
-		return false, fmt.Errorf("failed to update the assi")
+		return false, fmt.Errorf("failed to update the service request: %v", err)
 	}
 	return true, nil
 }
@@ -1010,6 +1011,16 @@ func (db *PGInstance) UpdateHealthDiary(ctx context.Context, clientHealthDiaryEn
 	}
 
 	return true, nil
+}
+
+// UpdateUserSurveys updates the user surveys. The update is performed with regard to the data passed in the survey model.
+func (db *PGInstance) UpdateUserSurveys(ctx context.Context, survey *UserSurvey, updateData map[string]interface{}) error {
+	if err := db.DB.Model(&UserSurvey{}).Where(&survey).Updates(updateData).Error; err != nil {
+		helpers.ReportErrorToSentry(err)
+		return fmt.Errorf("an error occurred while updating the user surveys: %w", err)
+	}
+
+	return nil
 }
 
 // UpdateUser updates the user model

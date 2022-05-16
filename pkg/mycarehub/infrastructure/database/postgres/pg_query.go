@@ -1870,6 +1870,10 @@ func (d *MyCareHubDb) GetUserSurveyForms(ctx context.Context, userID string) ([]
 			Description:  s.Description,
 			HasSubmitted: s.HasSubmitted,
 			UserID:       s.UserID,
+			Token:        s.Token,
+			ProjectID:    s.ProjectID,
+			FormID:       s.FormID,
+			LinkID:       s.LinkID,
 		})
 	}
 
