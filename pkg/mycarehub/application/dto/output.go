@@ -206,8 +206,6 @@ type GetStreamEvent struct {
 	OwnUser      *stream.User            `json:"me,omitempty"`
 	WatcherCount int                     `json:"watcher_count,omitempty"`
 
-	ExtraData map[string]interface{} `json:"-"`
-
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	ChannelID string    `json:"channel_id,omitempty"`
 }

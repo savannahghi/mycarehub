@@ -33,6 +33,7 @@ const (
 	pharmacyRefillConceptID = "160521"
 	otherConceptID          = "5622"
 	followUpConceptID       = "160523"
+	returnVisitConceptID    = "5096"
 )
 
 // ICreateAppointments defines method signatures for creating appointments
@@ -156,6 +157,9 @@ func (a *UseCasesAppointmentsImpl) CreateKenyaEMRAppointments(ctx context.Contex
 	// get client profile using the ccc number
 	clientProfile, err := a.Query.GetClientProfileByCCCNumber(ctx, input.CCCNumber)
 	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
 		return nil, fmt.Errorf("failed to get client profile by CCC number")
 	}
 
@@ -193,6 +197,9 @@ func (a *UseCasesAppointmentsImpl) UpdateKenyaEMRAppointments(ctx context.Contex
 	// get client profile using the ccc number
 	clientProfile, err := a.Query.GetClientProfileByCCCNumber(ctx, input.CCCNumber)
 	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
 		return nil, fmt.Errorf("failed to get client profile by CCC number")
 	}
 
@@ -318,6 +325,7 @@ Vitals:
 			counsellingConceptID,
 			pharmacyRefillConceptID,
 			otherConceptID,
+			returnVisitConceptID,
 			followUpConceptID:
 			continue Vitals
 		}

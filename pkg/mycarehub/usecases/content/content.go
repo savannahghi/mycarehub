@@ -45,46 +45,27 @@ type IContentCategoryList interface {
 
 // IShareContent is the interface for the ShareContent
 type IShareContent interface {
-	// TODO: update share count (increment)
-	// TODO: add / check entry in ContentShares table
-	// TODO: metrics
 	ShareContent(ctx context.Context, input dto.ShareContentInput) (bool, error)
 }
 
 // IBookmarkContent is used to bookmark content
 type IBookmarkContent interface {
-	// TODO: update bookmark count (increment)
-	// TODO: idempotence, with user ID i.e a user can only bookmark once
-	// TODO: add / check entry in ContentBookmarks table
-	// TODO: metrics
 	BookmarkContent(ctx context.Context, userID string, contentID int) (bool, error)
 }
 
 // IUnBookmarkContent is used to unbookmark content
 type IUnBookmarkContent interface {
-	// TODO: update bookmark count (decrement)
-	// TODO: idempotence, with user ID i.e a user can only remove something they bookmarked
-	// TODO: remove entry from ContentBookmarks table if it exists...be forgiving (idempotence)
-	// TODO: metrics
 	UnBookmarkContent(ctx context.Context, userID string, contentID int) (bool, error)
 }
 
 // ILikeContent groups the like feature methods
 type ILikeContent interface {
-	// TODO: update like count (increment)
-	// TODO: idempotence, with user ID i.e a user can only like once
-	// TODO: add / check entry in ContentLikes table
-	// TODO: metrics
 	LikeContent(ctx context.Context, userID string, contentID int) (bool, error)
 	CheckWhetherUserHasLikedContent(ctx context.Context, userID string, contentID int) (bool, error)
 }
 
 // IUnlikeContent groups the unllike feature methods
 type IUnlikeContent interface {
-	// TODO: update like count (decrement)
-	// TODO: idempotence, with user ID i.e a user can only unlike something they liked
-	// TODO: remove entry from ContentLikes table if it exists...be forgiving (idempotence)
-	// TODO: metrics
 	UnlikeContent(ctx context.Context, userID string, contentID int) (bool, error)
 }
 
@@ -104,8 +85,6 @@ type UseCasesContent interface {
 
 // IViewContent gets a content ite and updates the view count
 type IViewContent interface {
-	// TODO Update view metrics each time a user views a piece
-	// TODO Increment view count, idempotent
 	ViewContent(ctx context.Context, userID string, contentID int) (bool, error)
 }
 

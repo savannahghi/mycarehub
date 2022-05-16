@@ -1754,7 +1754,6 @@ func TestUseCasesCommunitiesImpl_ProcessGetstreamEvents(t *testing.T) {
 					UserID:       "",
 					OwnUser:      &stream.User{},
 					WatcherCount: 0,
-					ExtraData:    map[string]interface{}{},
 					ChannelID:    "12345",
 				},
 			},
