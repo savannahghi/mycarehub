@@ -1213,14 +1213,14 @@ func (a *UserAuthToken) TableName() string {
 type UserSurveys struct {
 	Base
 
-	ID             string `gorm:"id"`
-	Active         bool   `gorm:"active"`
-	Link           string `gorm:"survey_link"`
-	Title          string `gorm:"survey_title"`
-	Description    string `gorm:"survey_description"`
-	HasSubmitted   bool   `gorm:"has_submitted"`
-	OrganisationID string `gorm:"organisation_id"`
-	UserID         string `gorm:"user_id"`
+	ID                string `gorm:"id"`
+	Active            bool   `gorm:"active"`
+	SurveyLink        string `gorm:"survey_link"`
+	SurveyTitle       string `gorm:"survey_title"`
+	SurveyDescription string `gorm:"survey_description"`
+	HasSubmitted      bool   `gorm:"has_submitted"`
+	OrganisationID    string `gorm:"organisation_id"`
+	UserID            string `gorm:"user_id"`
 }
 
 // BeforeCreate is a hook run before creating a user survey model

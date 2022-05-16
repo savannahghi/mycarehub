@@ -454,15 +454,15 @@ func NewGormMock() *GormMock {
 		MockGetUserSurveyFormsFn: func(ctx context.Context, userID string) ([]*gorm.UserSurveys, error) {
 			return []*gorm.UserSurveys{
 				{
-					Base:           gorm.Base{},
-					ID:             fhirID,
-					Active:         false,
-					Link:           uuid.New().String(),
-					Title:          "SurveyTitle",
-					Description:    description,
-					HasSubmitted:   false,
-					OrganisationID: uuid.New().String(),
-					UserID:         uuid.New().String(),
+					Base:              gorm.Base{},
+					ID:                fhirID,
+					Active:            false,
+					SurveyLink:        uuid.New().String(),
+					SurveyTitle:       "SurveyTitle",
+					SurveyDescription: description,
+					HasSubmitted:      false,
+					OrganisationID:    uuid.New().String(),
+					UserID:            uuid.New().String(),
 				},
 			}, nil
 		},
