@@ -2,6 +2,7 @@ package rest
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -1049,6 +1050,7 @@ func (h *MyCareHubHandlersInterfacesImpl) ReceiveGetstreamEvents() http.HandlerF
 		// HTTP request i.e verified as coming from getstream
 		signature := r.Header.Get("X-SIGNATURE")
 		r.Close = true
+
 		requestBody, err := ioutil.ReadAll(r.Body)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
@@ -1057,7 +1059,12 @@ func (h *MyCareHubHandlersInterfacesImpl) ReceiveGetstreamEvents() http.HandlerF
 		}
 
 		payload := &dto.GetStreamEvent{}
-		serverutils.DecodeJSONToTargetStruct(w, r, payload)
+		err = json.Unmarshal(requestBody, payload)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			serverutils.WriteJSONResponse(w, serverutils.ErrorMap(err), http.StatusInternalServerError)
+			return
+		}
 
 		isValid := h.usecase.Community.ValidateGetStreamRequest(ctx, requestBody, signature)
 		if !isValid {

@@ -27,8 +27,6 @@ const (
 
 // IGenerateOTP specifies the method signature for generating an OTP
 type IGenerateOTP interface {
-	// TODO: ensure generated OTP is valid e.g valid until > generated at
-	// metrics
 	GenerateOTP(ctx context.Context) (string, error)
 }
 

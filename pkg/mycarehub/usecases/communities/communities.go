@@ -23,7 +23,7 @@ import (
 )
 
 const (
-	inviteMessage             = "%v has invited you to join this community"
+	inviteMessage             = "%v invited %v to this community"
 	promoteToModeratorMessage = "You have been promoted to be a moderator in %v community"
 )
 
@@ -294,15 +294,17 @@ func (us *UseCasesCommunitiesImpl) InviteMembers(ctx context.Context, communityI
 		}
 
 		invitees = append(invitees, *userProfile)
-
 	}
 
-	message := &stream.Message{
-		ID:   uuid.New().String(),
-		Text: fmt.Sprintf(inviteMessage, staffProfile.User.Name),
-		User: &stream.User{
-			ID: *staffProfile.ID,
-		},
+	var message *stream.Message
+	for _, invitedUser := range invitees {
+		message = &stream.Message{
+			ID:   uuid.New().String(),
+			Text: fmt.Sprintf(inviteMessage, staffProfile.User.Name, invitedUser.Username),
+			User: &stream.User{
+				ID: *staffProfile.ID,
+			},
+		}
 	}
 
 	_, err = us.GetstreamService.InviteMembers(ctx, memberIDs, communityID, message)

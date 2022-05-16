@@ -66,14 +66,13 @@ type User struct {
 
 	// DisplayName string `gorm:"column:display_name"` // user's preferred display name
 
-	// TODO Consider making the names optional in DB; validation in frontends
 	FirstName  string `gorm:"column:first_name;not null"` // given name
 	MiddleName string `gorm:"column:middle_name"`
 	LastName   string `gorm:"column:last_name;not null"`
 
-	UserType enums.UsersType `gorm:"column:user_type;not null"` // TODO enum; e.g client, health care worker
+	UserType enums.UsersType `gorm:"column:user_type;not null"`
 
-	Gender enumutils.Gender `gorm:"column:gender;not null"` // TODO enum; genders; keep it simple
+	Gender enumutils.Gender `gorm:"column:gender;not null"`
 
 	Active bool `gorm:"column:is_active;not null"`
 
@@ -266,9 +265,9 @@ type SecurityQuestion struct {
 
 	SecurityQuestionID *string                            `gorm:"column:id"`
 	QuestionStem       string                             `gorm:"column:stem"`
-	Description        string                             `gorm:"column:description"`   // help text
-	ResponseType       enums.SecurityQuestionResponseType `gorm:"column:response_type"` // TODO: Enum
-	Flavour            feedlib.Flavour                    `gorm:"column:flavour"`       // TODO: Enum
+	Description        string                             `gorm:"column:description"` // help text
+	ResponseType       enums.SecurityQuestionResponseType `gorm:"column:response_type"`
+	Flavour            feedlib.Flavour                    `gorm:"column:flavour"`
 	Active             bool                               `gorm:"column:active"`
 	Sequence           *int                               `gorm:"column:sequence"` // for sorting
 

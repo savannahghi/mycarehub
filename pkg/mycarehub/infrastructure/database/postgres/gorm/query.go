@@ -701,8 +701,8 @@ func (db *PGInstance) GetServiceRequestsForKenyaEMR(ctx context.Context, facilit
 	var serviceRequests []*ClientServiceRequest
 
 	err := db.DB.Where(&ClientServiceRequest{FacilityID: facilityID}).Where("created > ?", lastSyncTime).
-		Where(&ClientServiceRequest{RequestType: string(enums.ServiceRequestTypeScreeningToolsRedFlag)}).
-		Or(&ClientServiceRequest{RequestType: string(enums.ServiceRequestTypeRedFlag)}).
+		Where(db.DB.Where(&ClientServiceRequest{RequestType: string(enums.ServiceRequestTypeScreeningToolsRedFlag)}).
+			Or(&ClientServiceRequest{RequestType: string(enums.ServiceRequestTypeRedFlag)})).
 		Find(&serviceRequests).
 		Order(clause.OrderByColumn{Column: clause.Column{Name: "created"}, Desc: true}).Error
 	if err != nil {
