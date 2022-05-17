@@ -176,3 +176,9 @@ enum NotificationType {
   SERVICE_REQUEST
   COMMUNITIES
 }
+
+enum MetricType {
+  CONTENT
+  ENGAGEMENT
+  SYSTEM
+}

@@ -35,6 +35,7 @@ type Create interface {
 	CreateStaffServiceRequest(ctx context.Context, serviceRequestInput *dto.ServiceRequestInput) error
 	SaveNotification(ctx context.Context, payload *domain.Notification) error
 	CreateUserSurveys(ctx context.Context, userSurvey []*dto.UserSurveyInput) error
+	CreateMetric(ctx context.Context, payload *domain.Metric) error
 }
 
 // Delete represents all the deletion action interfaces
