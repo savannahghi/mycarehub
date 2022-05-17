@@ -4,7 +4,7 @@
   active: true
   assigned: RAW=NOW()
   transferred_out: RAW=NOW()
-  client_id: {{.test_client_id}}
+  client_id: {{.test_client_id_to_delete}}
   facility_id: {{.test_facility_id}}
   organisation_id: {{.test_organisation_id}}
   notes: notes

@@ -7,4 +7,10 @@
   authorityrole_id: {{.content_management_role_id}}
   user_id: {{.user_with_roles_id}}
 
+- id: 3
+  authorityrole_id: {{.content_management_role_id}}
+  user_id: {{.test_user_id_to_delete}}
 
+- id: 4
+  authorityrole_id: {{.content_management_role_id}}
+  user_id: {{.test_staff_user_id_to_delete}}

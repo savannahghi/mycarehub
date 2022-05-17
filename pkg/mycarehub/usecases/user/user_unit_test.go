@@ -27,6 +27,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
 	pgMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/mock"
+	clinicalMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/clinical/mock"
 	getStreamMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/getstream/mock"
 	pubsubMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/pubsub/mock"
 	authorityMock "github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/authority/mock"
@@ -996,6 +997,7 @@ func TestUseCasesUserImpl_SetUserPIN(t *testing.T) {
 			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
 			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
+
 			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, otp, fakeAuthority, fakeGetStream, fakePubsub)
 
 			if tt.name == "invalid: user not found" {
@@ -1396,6 +1398,7 @@ func TestUseCasesUserImpl_SetNickName(t *testing.T) {
 			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
 			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
+
 			u := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, otp, fakeAuthority, fakeGetStream, fakePubsub)
 
 			if tt.name == "Happy case" {
@@ -1527,6 +1530,7 @@ func TestUseCasesUserImpl_RequestPINReset(t *testing.T) {
 			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
 			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
+
 			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, otp, fakeAuthority, fakeGetStream, fakePubsub)
 
 			if tt.name == "Sad Case - Invalid phonenumber" {
@@ -1733,6 +1737,7 @@ func TestUseCasesUserImpl_ResetPIN(t *testing.T) {
 			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
 			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
+
 			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, otp, fakeAuthority, fakeGetStream, fakePubsub)
 
 			if tt.name == "Happy Case - Successfully reset pin" {
@@ -1878,6 +1883,7 @@ func TestUseCasesUserImpl_RefreshToken(t *testing.T) {
 			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
 			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
+
 			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, otp, fakeAuthority, fakeGetStream, fakePubsub)
 
 			if tt.name == "Sad Case - Fail to create firebase custom token" {
@@ -2013,6 +2019,7 @@ func TestUseCasesUserImpl_VerifyPIN(t *testing.T) {
 			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
 			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
+
 			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, otp, fakeAuthority, fakeGetStream, fakePubsub)
 
 			if tt.name == "invalid: failed to get user pin by user id" {
@@ -2108,6 +2115,7 @@ func TestUseCasesUserImpl_GetClientCaregiver(t *testing.T) {
 			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
 			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
+
 			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, otp, fakeAuthority, fakeGetStream, fakePubsub)
 
 			if tt.name == "valid: no caregiver assigned" {
@@ -2274,6 +2282,7 @@ func TestUseCasesUserImpl_CreateOrUpdateClientCaregiver(t *testing.T) {
 			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
 			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
+
 			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, otp, fakeAuthority, fakeGetStream, fakePubsub)
 
 			if tt.name == "invalid: failed to get client by id" {
@@ -2365,6 +2374,7 @@ func TestUseCasesUserImpl_CompleteOnboardingTour(t *testing.T) {
 			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
 			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
+
 			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, otp, fakeAuthority, fakeGetStream, fakePubsub)
 
 			if tt.name == "Sad case - no userID" {
@@ -2475,6 +2485,7 @@ func TestUseCasesUserImpl_RegisterClient(t *testing.T) {
 			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
 			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
+
 			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, otp, fakeAuthority, fakeGetStream, fakePubsub)
 
 			if tt.name == "Happy Case - Successfully register client" {
@@ -2528,6 +2539,7 @@ func TestUseCasesUserImpl_AddClientFHIRID(t *testing.T) {
 	fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
 	fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 	fakePubsub := pubsubMock.NewPubsubServiceMock()
+
 	us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, otp, fakeAuthority, fakeGetStream, fakePubsub)
 
 	type args struct {
@@ -2601,6 +2613,7 @@ func TestUseCasesUserImpl_GetUserProfile(t *testing.T) {
 	fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
 	fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 	fakePubsub := pubsubMock.NewPubsubServiceMock()
+
 	us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, otp, fakeAuthority, fakeGetStream, fakePubsub)
 
 	type args struct {
@@ -2676,6 +2689,7 @@ func TestUseCasesUserImpl_RefreshGetStreamToken(t *testing.T) {
 			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
 			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
+
 			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, otp, fakeAuthority, fakeGetStream, fakePubsub)
 
 			if tt.name == "Sad Case - Fail to refresh token" {
@@ -3219,6 +3233,7 @@ func TestUseCasesUserImpl_RegisteredFacilityPatients(t *testing.T) {
 	fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
 	fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 	fakePubsub := pubsubMock.NewPubsubServiceMock()
+
 	us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, otp, fakeAuthority, fakeGetStream, fakePubsub)
 
 	ctx := context.Background()
@@ -3550,6 +3565,7 @@ func TestUseCasesUserImpl_RegisterStaff(t *testing.T) {
 			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
 			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
+
 			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, otp, fakeAuthority, fakeGetStream, fakePubsub)
 
 			if tt.name == "Happy Case - Successfully register staff" {
@@ -3599,6 +3615,7 @@ func TestUseCasesUserImpl_SearchStaffByStaffNumber(t *testing.T) {
 	fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
 	fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 	fakePubsub := pubsubMock.NewPubsubServiceMock()
+
 	us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, otp, fakeAuthority, fakeGetStream, fakePubsub)
 
 	type args struct {
@@ -3674,6 +3691,7 @@ func TestUseCasesUserImpl_SearchClientByCCCNumber(t *testing.T) {
 	fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
 	fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 	fakePubsub := pubsubMock.NewPubsubServiceMock()
+
 	us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, otp, fakeAuthority, fakeGetStream, fakePubsub)
 
 	type args struct {
@@ -3803,6 +3821,7 @@ func TestUseCasesUserImpl_Consent(t *testing.T) {
 			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
 			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
+
 			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, otp, fakeAuthority, fakeGetStream, fakePubsub)
 
 			if tt.name == "Sad Case - Fail to get user profile by phone" {
@@ -3886,6 +3905,7 @@ func TestUseCasesUserImpl_RegisterPushToken(t *testing.T) {
 			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
 			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
+
 			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, otp, fakeAuthority, fakeGetStream, fakePubsub)
 
 			if tt.name == "Sad Case - Fail to get logged in user" {
@@ -3919,6 +3939,7 @@ func TestUseCasesUserImpl_GetClientProfileByCCCNumber(t *testing.T) {
 	fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
 	fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 	fakePubsub := pubsubMock.NewPubsubServiceMock()
+
 	us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, otp, fakeAuthority, fakeGetStream, fakePubsub)
 
 	type args struct {
@@ -3977,6 +3998,8 @@ func TestUseCasesUserImpl_DeleteUser(t *testing.T) {
 	fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
 	fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 	fakePubsub := pubsubMock.NewPubsubServiceMock()
+	fakeClinicalService := clinicalMock.NewClinicalMock()
+
 	us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, otp, fakeAuthority, fakeGetStream, fakePubsub)
 
 	type args struct {
@@ -3989,18 +4012,6 @@ func TestUseCasesUserImpl_DeleteUser(t *testing.T) {
 		want    bool
 		wantErr bool
 	}{
-		{
-			name: "Happy Case - Successfully delete client",
-			args: args{
-				ctx: ctx,
-				payload: &dto.PhoneInput{
-					PhoneNumber: interserviceclient.TestUserPhoneNumber,
-					Flavour:     feedlib.FlavourConsumer,
-				},
-			},
-			want:    true,
-			wantErr: false,
-		},
 		{
 			name: "Happy Case - Successfully delete staff",
 			args: args{
@@ -4124,24 +4135,6 @@ func TestUseCasesUserImpl_DeleteUser(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if tt.name == "Happy Case - Successfully delete client" {
-				fakeExtension.MockMakeRequestFn = func(ctx context.Context, method string, path string, body interface{}) (*http.Response, error) {
-					input := dto.PhoneInput{
-						PhoneNumber: interserviceclient.TestUserPhoneNumber,
-					}
-
-					payload, err := json.Marshal(input)
-					if err != nil {
-						t.Errorf("unable to marshal test item: %s", err)
-					}
-
-					return &http.Response{
-						StatusCode: http.StatusOK,
-						Status:     "OK",
-						Body:       ioutil.NopCloser(bytes.NewBuffer(payload)),
-					}, nil
-				}
-			}
 
 			if tt.name == "Sad Case - unable to get user profile by phone number" {
 				fakeDB.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*domain.User, error) {
@@ -4192,8 +4185,8 @@ func TestUseCasesUserImpl_DeleteUser(t *testing.T) {
 			}
 
 			if tt.name == "Sad Case - unable to delete fhir patient" {
-				fakeExtension.MockMakeRequestFn = func(ctx context.Context, method string, path string, body interface{}) (*http.Response, error) {
-					return nil, fmt.Errorf("failed to delete fhir patient")
+				fakeClinicalService.MockDeleteFHIRPatientByPhoneFn = func(ctx context.Context, phoneNumber string) (bool, error) {
+					return false, fmt.Errorf("failed to delete fhir patient")
 				}
 			}
 
@@ -4209,90 +4202,6 @@ func TestUseCasesUserImpl_DeleteUser(t *testing.T) {
 	}
 }
 
-func TestUseCasesUserImpl_DeleteFHIRPatient(t *testing.T) {
-	ctx := context.Background()
-
-	fakeDB := pgMock.NewPostgresMock()
-	fakeExtension := extensionMock.NewFakeExtension()
-	otp := otp.NewOTPUseCase(fakeDB, fakeDB, fakeExtension)
-	fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
-	fakeGetStream := getStreamMock.NewGetStreamServiceMock()
-	fakePubsub := pubsubMock.NewPubsubServiceMock()
-	us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, otp, fakeAuthority, fakeGetStream, fakePubsub)
-
-	type args struct {
-		ctx     context.Context
-		payload *dto.PhoneInput
-	}
-	tests := []struct {
-		name    string
-		args    args
-		want    bool
-		wantErr bool
-	}{
-		{
-			name: "Happy Case - Successfully delete fhir patient",
-			args: args{
-				ctx: ctx,
-				payload: &dto.PhoneInput{
-					PhoneNumber: interserviceclient.TestUserPhoneNumber,
-					Flavour:     feedlib.FlavourPro,
-				},
-			},
-			want:    true,
-			wantErr: false,
-		},
-		{
-			name: "Sad Case - Unable delete fhir patient",
-			args: args{
-				ctx: ctx,
-				payload: &dto.PhoneInput{
-					PhoneNumber: "",
-				},
-			},
-			want:    false,
-			wantErr: true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if tt.name == "Happy Case - Successfully delete fhir patient" {
-				fakeExtension.MockMakeRequestFn = func(ctx context.Context, method string, path string, body interface{}) (*http.Response, error) {
-					input := dto.PhoneInput{
-						PhoneNumber: interserviceclient.TestUserPhoneNumber,
-					}
-
-					payload, err := json.Marshal(input)
-					if err != nil {
-						t.Errorf("unable to marshal test item: %s", err)
-					}
-
-					return &http.Response{
-						StatusCode: http.StatusOK,
-						Status:     "OK",
-						Body:       ioutil.NopCloser(bytes.NewBuffer(payload)),
-					}, nil
-				}
-			}
-
-			if tt.name == "Sad Case - Unable delete fhir patient" {
-				fakeExtension.MockMakeRequestFn = func(ctx context.Context, method string, path string, body interface{}) (*http.Response, error) {
-					return nil, fmt.Errorf("failed to delete fhir patient")
-				}
-			}
-
-			got, err := us.DeleteFHIRPatient(tt.args.ctx, tt.args.payload)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("UseCasesUserImpl.DeleteFHIRPatient() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if got != tt.want {
-				t.Errorf("UseCasesUserImpl.DeleteFHIRPatient() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
 func TestUseCasesUserImpl_DeleteStreamUser(t *testing.T) {
 	ctx := context.Background()
 
@@ -4302,6 +4211,7 @@ func TestUseCasesUserImpl_DeleteStreamUser(t *testing.T) {
 	fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
 	fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 	fakePubsub := pubsubMock.NewPubsubServiceMock()
+
 	us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, otp, fakeAuthority, fakeGetStream, fakePubsub)
 
 	type args struct {

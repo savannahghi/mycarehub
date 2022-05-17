@@ -1256,3 +1256,68 @@ type Metric struct {
 func (Metric) TableName() string {
 	return "users_metric"
 }
+
+// ClientFacility represents a client's facilities database model
+type ClientFacility struct {
+	Base
+
+	ID             string    `gorm:"id"`
+	Active         bool      `gorm:"active"`
+	Assigned       time.Time `gorm:"assigned"`
+	TransferredOut time.Time `gorm:"transferred_out"`
+	ClientID       string    `gorm:"client_id"`
+	FacilityID     string    `gorm:"facility_id"`
+	OrganisationID string    `gorm:"organisation_id"`
+	Notes          string    `gorm:"notes"`
+}
+
+// BeforeCreate is a hook run before creating a user survey model
+func (c *ClientFacility) BeforeCreate(tx *gorm.DB) (err error) {
+	id := uuid.New().String()
+	c.ID = id
+	c.OrganisationID = OrganizationID
+	return
+}
+
+// TableName references the table that we map data from
+func (ClientFacility) TableName() string {
+	return "clients_clientfacility"
+}
+
+// ClientAddresses represents a client's addresses database model
+type ClientAddresses struct {
+	ID        string `gorm:"id"`
+	ClientID  string `gorm:"client_id"`
+	AddressID string `gorm:"address_id"`
+}
+
+// BeforeCreate is a hook run before creating a user survey model
+func (c *ClientAddresses) BeforeCreate(tx *gorm.DB) (err error) {
+	id := uuid.New().String()
+	c.ID = id
+	return
+}
+
+// TableName references the table that we map data from
+func (ClientAddresses) TableName() string {
+	return "clients_client_addresses"
+}
+
+// StaffAddresses represents a staff's addresses database model
+type StaffAddresses struct {
+	ID        string `gorm:"id"`
+	StaffID   string `gorm:"staff_id"`
+	AddressID string `gorm:"address_id"`
+}
+
+// BeforeCreate is a hook run before creating a user survey model
+func (c *StaffAddresses) BeforeCreate(tx *gorm.DB) (err error) {
+	id := uuid.New().String()
+	c.ID = id
+	return
+}
+
+// TableName references the table that we map data from
+func (StaffAddresses) TableName() string {
+	return "staff_staff_addresses"
+}

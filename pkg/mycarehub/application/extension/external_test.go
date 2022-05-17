@@ -10,6 +10,7 @@ import (
 	openSourceDto "github.com/savannahghi/engagementcore/pkg/engagement/application/common/dto"
 	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/firebasetools"
+	"github.com/savannahghi/interserviceclient"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension/mock"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/extension"
@@ -398,6 +399,102 @@ func TestMakeRequest(t *testing.T) {
 			}
 			if !tt.wantErr && got == nil {
 				t.Errorf("expected facility not to be nil for %v", tt.name)
+				return
+			}
+		})
+	}
+}
+
+func TestExternal_LoadDepsFromYAML(t *testing.T) {
+	tests := []struct {
+		name    string
+		wantErr bool
+	}{
+		{
+			name:    "Happy case",
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := ext.LoadDepsFromYAML()
+			if (err != nil) != tt.wantErr {
+				t.Errorf("External.LoadDepsFromYAML() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}
+
+func TestExternal_SetupISCclient(t *testing.T) {
+	type args struct {
+		config      interserviceclient.DepsConfig
+		serviceName string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				config: interserviceclient.DepsConfig{
+					Staging: []interserviceclient.Dep{
+						{
+							DepName:       "clinical",
+							DepRootDomain: "https://clinical-testing.savannahghi.org",
+						},
+					},
+					Testing:    []interserviceclient.Dep{},
+					Demo:       []interserviceclient.Dep{},
+					Production: []interserviceclient.Dep{},
+					E2E:        []interserviceclient.Dep{},
+				},
+				serviceName: "clinical",
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := ext.SetupISCclient(tt.args.config, tt.args.serviceName)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("External.SetupISCclient() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}
+
+func TestISCExtensionImpl_MakeRequest(t *testing.T) {
+	type args struct {
+		ctx    context.Context
+		method string
+		path   string
+		body   interface{}
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:    context.Background(),
+				method: "GET",
+				path:   "https://google.com/",
+				body:   nil,
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := ext.MakeRequest(tt.args.ctx, tt.args.method, tt.args.path, tt.args.body)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ISCExtensionImpl.MakeRequest() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 		})

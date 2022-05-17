@@ -42,3 +42,14 @@
   organisation_id: {{.test_organisation_id}}
   timestamp: RAW=NOW()
   is_correct: true
+
+- id: 7225e76b-7780-46a9-a217-8e869789a869 
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  question_id: {{.security_question_id4}}
+  user_id: {{.test_user_id_to_delete}}
+  active: true
+  response: Rango
+  organisation_id: {{.test_organisation_id}}
+  timestamp: RAW=NOW()
+  is_correct: true
