@@ -84,6 +84,10 @@ func (u *UsecaseSurveysImpl) SendClientSurveyLinks(ctx context.Context, facility
 		return false, fmt.Errorf("error getting clients: %w", err)
 	}
 
+	if len(clients) == 0 {
+		return true, nil
+	}
+
 	surveyForm, err := u.Surveys.GetSurveyForm(ctx, *projectID, *formID)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
