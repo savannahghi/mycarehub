@@ -73,6 +73,9 @@ type ClientNotificationArgs struct {
 	// Arguments to an appointment notification
 	Appointment   *domain.Appointment
 	IsRescheduled bool
+
+	// Args to a survey notification
+	Survey *domain.UserSurvey
 }
 
 // ComposeClientNotification composes a client notification which will be sent to the client at a facility
@@ -118,6 +121,12 @@ func ComposeClientNotification(notificationType enums.NotificationType, args Cli
 			notification.Title = "You have a new scheduled appointment"
 			notification.Body = notificationBody
 		}
+
+		return notification
+
+	case enums.NotificationTypeSurveys:
+		notification.Title = "You have a new survey"
+		notification.Body = fmt.Sprintf("You have a new %s survey. Please navigate to the homepage and fill it.", args.Survey.Title)
 
 		return notification
 

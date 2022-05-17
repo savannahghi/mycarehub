@@ -34,6 +34,7 @@ type Create interface {
 	AnswerScreeningToolQuestions(ctx context.Context, screeningToolResponses []*dto.ScreeningToolQuestionResponseInput) error
 	CreateStaffServiceRequest(ctx context.Context, serviceRequestInput *dto.ServiceRequestInput) error
 	SaveNotification(ctx context.Context, payload *domain.Notification) error
+	CreateUserSurveys(ctx context.Context, userSurvey []*dto.UserSurveyInput) error
 }
 
 // Delete represents all the deletion action interfaces
@@ -110,7 +111,7 @@ type Query interface {
 	GetAppointmentByClientID(ctx context.Context, clientID string) (*domain.Appointment, error)
 	GetAppointmentByExternalID(ctx context.Context, externalID string) (*domain.Appointment, error)
 	CheckAppointmentExistsByExternalID(ctx context.Context, externalID string) (bool, error)
-	GetUserSurveyForms(ctx context.Context, userID string) ([]*domain.UserSurveys, error)
+	GetUserSurveyForms(ctx context.Context, userID string) ([]*domain.UserSurvey, error)
 	GetAssessmentResponses(ctx context.Context, facilityID string, toolType string) ([]*domain.ScreeningToolAssessmentResponse, error)
 	GetClientScreeningToolResponsesByToolType(ctx context.Context, clientID, toolType string, active bool) ([]*domain.ScreeningToolQuestionResponse, error)
 	GetClientScreeningToolServiceRequestByToolType(ctx context.Context, clientID, toolType, status string) (*domain.ServiceRequest, error)
@@ -118,6 +119,7 @@ type Query interface {
 	GetFacilityStaffs(ctx context.Context, facilityID string) ([]*domain.StaffProfile, error)
 	CheckIfStaffHasUnresolvedServiceRequests(ctx context.Context, staffID string, serviceRequestType string) (bool, error)
 	GetNotification(ctx context.Context, notificationID string) (*domain.Notification, error)
+	GetClientsByFilterParams(ctx context.Context, facilityID *string, filterParams *dto.ClientFilterParamsInput) ([]*domain.ClientProfile, error)
 }
 
 // Update represents all the update action interfaces

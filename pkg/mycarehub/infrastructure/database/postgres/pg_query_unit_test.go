@@ -10,6 +10,7 @@ import (
 
 	"github.com/brianvoe/gofakeit"
 	"github.com/google/uuid"
+	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/firebasetools"
 	"github.com/savannahghi/interserviceclient"
@@ -5522,7 +5523,7 @@ func TestMyCareHubDb_GetUserSurveyForms(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.name == "Sad case:  unable to get user survey forms" {
-				fakeGorm.MockGetUserSurveyFormsFn = func(ctx context.Context, userID string) ([]*gorm.UserSurveys, error) {
+				fakeGorm.MockGetUserSurveyFormsFn = func(ctx context.Context, userID string) ([]*gorm.UserSurvey, error) {
 					return nil, fmt.Errorf("failed to get user survey forms")
 				}
 			}
@@ -5674,6 +5675,106 @@ func TestMyCareHubDb_GetNotification(t *testing.T) {
 			}
 			if !tt.wantErr && got == nil {
 				t.Errorf("expected value, got %v", got)
+			}
+		})
+	}
+}
+
+func TestMyCareHubDb_GetClientsByFilterParams(t *testing.T) {
+	facilityID := gofakeit.UUID()
+	type args struct {
+		ctx          context.Context
+		facilityID   *string
+		filterParams *dto.ClientFilterParamsInput
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    []*domain.ClientProfile
+		wantErr bool
+	}{
+		{
+			name: "Happy case: retrieve clients",
+			args: args{
+				ctx:          context.Background(),
+				facilityID:   &facilityID,
+				filterParams: &dto.ClientFilterParamsInput{},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Happy case: retrieve clients with filters",
+			args: args{
+				ctx:        context.Background(),
+				facilityID: &facilityID,
+				filterParams: &dto.ClientFilterParamsInput{
+					ClientTypes: []enums.ClientType{enums.ClientTypePmtct},
+					AgeRange: &dto.AgeRangeInput{
+						LowerBound: 20,
+						UpperBound: 25,
+					},
+					Gender: []enumutils.Gender{enumutils.GenderMale},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: failed to filter clients",
+			args: args{
+				ctx:        context.Background(),
+				facilityID: &facilityID,
+				filterParams: &dto.ClientFilterParamsInput{
+					ClientTypes: []enums.ClientType{enums.ClientTypePmtct},
+					AgeRange: &dto.AgeRangeInput{
+						LowerBound: 20,
+						UpperBound: 25,
+					},
+					Gender: []enumutils.Gender{enumutils.GenderMale},
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: failed to get user profile by user id",
+			args: args{
+				ctx:        context.Background(),
+				facilityID: &facilityID,
+				filterParams: &dto.ClientFilterParamsInput{
+					ClientTypes: []enums.ClientType{enums.ClientTypePmtct},
+					AgeRange: &dto.AgeRangeInput{
+						LowerBound: 20,
+						UpperBound: 25,
+					},
+					Gender: []enumutils.Gender{enumutils.GenderMale},
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var fakeGorm = gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			if tt.name == "Sad case: failed to filter clients" {
+				fakeGorm.MockGetClientsByFilterParamsFn = func(ctx context.Context, facilityID string, filterParams *dto.ClientFilterParamsInput) ([]*gorm.Client, error) {
+					return nil, fmt.Errorf("cannot filter clients")
+				}
+			}
+
+			if tt.name == "Sad case: failed to get user profile by user id" {
+				fakeGorm.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID *string) (*gorm.User, error) {
+					return nil, fmt.Errorf("cannot get user profile")
+				}
+			}
+			got, err := d.GetClientsByFilterParams(tt.args.ctx, tt.args.facilityID, tt.args.filterParams)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.GetClientsByFilterParams() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected value, got %v", got)
+				return
 			}
 		})
 	}

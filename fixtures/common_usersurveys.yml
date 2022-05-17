@@ -2,9 +2,13 @@
   created: 2021-11-22 21:16:29.23639+03
   updated: 2021-11-22 21:16:29.23639+03
   active: true
-  survey_link: https://survey.com/survey/survey-link
-  survey_title: Survey title
-  survey_description: Survey description
+  link: https://survey.com/survey/survey-link
+  title: Survey title
+  description: Survey description
+  link_id: 1
+  form_id: "fe3b9c8e-f8e3-4f0f-b8b1-f8b8b8b8b8b8"
+  project_id: 2
+  token: "fe3b9c8e-f8e3-4f0f-b8b1-f8b8b8b8b8b8"
   has_submitted: true
   organisation_id: {{.test_organisation_id}}
   user_id: {{.user_with_roles_id}}

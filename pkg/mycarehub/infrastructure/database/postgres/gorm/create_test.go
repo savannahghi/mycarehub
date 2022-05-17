@@ -1243,3 +1243,54 @@ func TestPGInstance_CreateNotification(t *testing.T) {
 		})
 	}
 }
+
+func TestPGInstance_CreateUserSurvey(t *testing.T) {
+	type args struct {
+		ctx         context.Context
+		userSurveys []*gorm.UserSurvey
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: create user survey",
+			args: args{
+				ctx: context.Background(),
+				userSurveys: []*gorm.UserSurvey{
+					{
+						UserID:      userID,
+						Title:       gofakeit.Name(),
+						Description: gofakeit.Sentence(1),
+						Link:        gofakeit.URL(),
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: create user survey, invalid user ID",
+			args: args{
+				ctx: context.Background(),
+				userSurveys: []*gorm.UserSurvey{
+					{
+						UserID:      "userID",
+						Title:       gofakeit.Name(),
+						Description: gofakeit.Sentence(1),
+						Link:        gofakeit.URL(),
+					},
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			if err := testingDB.CreateUserSurveys(tt.args.ctx, tt.args.userSurveys); (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.CreateUserSurveys() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}

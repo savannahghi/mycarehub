@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/mitchellh/mapstructure"
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/firebasetools"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
@@ -91,10 +92,11 @@ type Query interface {
 	GetClientScreeningToolResponsesByToolType(ctx context.Context, clientID, toolType string, active bool) ([]*ScreeningToolsResponse, error)
 	GetClientScreeningToolServiceRequestByToolType(ctx context.Context, clientID, toolType, status string) (*ClientServiceRequest, error)
 	GetAppointment(ctx context.Context, params *Appointment) (*Appointment, error)
-	GetUserSurveyForms(ctx context.Context, userID string) ([]*UserSurveys, error)
+	GetUserSurveyForms(ctx context.Context, userID string) ([]*UserSurvey, error)
 	CheckIfStaffHasUnresolvedServiceRequests(ctx context.Context, staffID string, serviceRequestType string) (bool, error)
 	GetFacilityStaffs(ctx context.Context, facilityID string) ([]*StaffProfile, error)
 	GetNotification(ctx context.Context, notificationID string) (*Notification, error)
+	GetClientsByFilterParams(ctx context.Context, facilityID string, filterParams *dto.ClientFilterParamsInput) ([]*Client, error)
 }
 
 // CheckWhetherUserHasLikedContent performs a operation to check whether user has liked the content
@@ -1398,8 +1400,8 @@ func (db *PGInstance) GetClientScreeningToolResponsesByToolType(ctx context.Cont
 }
 
 // GetUserSurveyForms retrives all user survey forms
-func (db *PGInstance) GetUserSurveyForms(ctx context.Context, userID string) ([]*UserSurveys, error) {
-	var userSurveys []*UserSurveys
+func (db *PGInstance) GetUserSurveyForms(ctx context.Context, userID string) ([]*UserSurvey, error) {
+	var userSurveys []*UserSurvey
 
 	err := db.DB.Where("has_submitted = ? AND user_id = ?", false, userID).Find(&userSurveys).Error
 	if err != nil {
@@ -1446,4 +1448,68 @@ func (db *PGInstance) CheckIfStaffHasUnresolvedServiceRequests(ctx context.Conte
 	}
 
 	return false, nil
+}
+
+// GetClientsByFilterParams returns clients based on the filter params
+// The query is constructed dynamically  based on the filterparams passed; empty filters are allowed
+// facility ID is required hence it will be the first query passed, then the rest are optional
+// For filter params, each check will compound to the final query that is being performed on the DB
+func (db *PGInstance) GetClientsByFilterParams(ctx context.Context, facilityID string, params *dto.ClientFilterParamsInput) ([]*Client, error) {
+	var (
+		clients      []*Client
+		filterParams dto.ClientFilterParamsInput
+	)
+
+	tx := db.DB.Where(&Client{FacilityID: facilityID})
+
+	if params != nil {
+		tx = tx.Joins("JOIN users_user on users_user.id = clients_client.user_id")
+	}
+
+	err := mapstructure.Decode(params, &filterParams)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, fmt.Errorf("failed to decode filter params: %v", err)
+	}
+
+	if len(filterParams.ClientTypes) > 0 {
+		clientTypesString := fmt.Sprintf("%s", filterParams.ClientTypes)
+		clientTypesString = strings.ReplaceAll(clientTypesString, "[", "{")
+		clientTypesString = strings.ReplaceAll(clientTypesString, "]", "}")
+		clientTypesString = strings.ReplaceAll(clientTypesString, " ", ",")
+
+		tx = tx.Where("clients_client.client_types && ?", clientTypesString)
+	}
+
+	if filterParams.AgeRange != nil {
+		lowerBoundDate := time.Now().AddDate(-filterParams.AgeRange.LowerBound, 0, 0).Format("2006-01-02")
+		upperBoundDate := time.Now().AddDate(-filterParams.AgeRange.UpperBound, 0, 0).Format("2006-01-02")
+
+		tx = tx.Where("(? > users_user.date_of_birth  AND ? < users_user.date_of_birth)", lowerBoundDate, upperBoundDate)
+	}
+
+	if len(filterParams.Gender) > 0 {
+		var (
+			genderString string
+			genders      = filterParams.Gender
+		)
+
+		for i, gender := range genders {
+			genderString += fmt.Sprintf("'%s'", strings.ToUpper(gender.String()))
+
+			if len(genders) > 1 && i < len(genders)-1 {
+				genderString += ", "
+			}
+		}
+
+		tx = tx.Where(fmt.Sprintf("users_user.gender IN (%s)", genderString))
+	}
+
+	err = tx.Find(&clients).Error
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, fmt.Errorf("failed to get clients by filter params: %w", err)
+	}
+
+	return clients, err
 }

@@ -4386,3 +4386,106 @@ func TestPGInstance_GetNotification(t *testing.T) {
 		})
 	}
 }
+
+func TestPGInstance_GetClientsByFilterParams(t *testing.T) {
+	type args struct {
+		ctx          context.Context
+		facilityID   string
+		filterParams *dto.ClientFilterParamsInput
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: retrieve facility clients",
+			args: args{
+				ctx:        context.Background(),
+				facilityID: facilityID,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Happy case: retrieve facility clients by client type and age range, gender",
+			args: args{
+				ctx:        context.Background(),
+				facilityID: facilityID,
+				filterParams: &dto.ClientFilterParamsInput{
+					ClientTypes: []enums.ClientType{enums.ClientTypePmtct},
+					AgeRange: &dto.AgeRangeInput{
+						LowerBound: 20,
+						UpperBound: 25,
+					},
+					Gender: []enumutils.Gender{enumutils.GenderMale},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Happy case: retrieve facility clients by client type",
+			args: args{
+				ctx:        context.Background(),
+				facilityID: facilityID,
+				filterParams: &dto.ClientFilterParamsInput{
+					ClientTypes: []enums.ClientType{enums.ClientTypePmtct},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Happy case: retrieve facility clients by age range",
+			args: args{
+				ctx:        context.Background(),
+				facilityID: facilityID,
+				filterParams: &dto.ClientFilterParamsInput{
+					AgeRange: &dto.AgeRangeInput{
+						LowerBound: 20,
+						UpperBound: 25,
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Happy case: retrieve facility clients by gender",
+			args: args{
+				ctx:        context.Background(),
+				facilityID: facilityID,
+				filterParams: &dto.ClientFilterParamsInput{
+					Gender: []enumutils.Gender{enumutils.GenderMale, enumutils.GenderFemale, enumutils.GenderOther},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: retrieve facility clients by client type and age range, gender, invalid facility id",
+			args: args{
+				ctx:        context.Background(),
+				facilityID: "facilityID",
+				filterParams: &dto.ClientFilterParamsInput{
+					ClientTypes: []enums.ClientType{enums.ClientTypePmtct},
+					AgeRange: &dto.AgeRangeInput{
+						LowerBound: 20,
+						UpperBound: 25,
+					},
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			got, err := testingDB.GetClientsByFilterParams(tt.args.ctx, tt.args.facilityID, tt.args.filterParams)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.GetClientsByFilterParams() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected value, got %v", got)
+				return
+			}
+		})
+	}
+}

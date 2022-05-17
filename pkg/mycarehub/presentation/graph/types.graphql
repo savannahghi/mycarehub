@@ -521,11 +521,12 @@ type ScreeningToolResponsePayload {
 }
 
 type SurveyForm {
-	projectId:    Int       
+	projectId:    Int
+  xmlFormId:    String       
 	name:         String    
 }
 
-type UserSurveys {
+type UserSurvey {
 	id: String!
 	active: Boolean!
 	created: Time!

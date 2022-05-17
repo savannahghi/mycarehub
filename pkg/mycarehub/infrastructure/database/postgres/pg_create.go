@@ -460,3 +460,19 @@ func (d *MyCareHubDb) SaveNotification(ctx context.Context, payload *domain.Noti
 	}
 	return d.create.CreateNotification(ctx, notification)
 }
+
+// CreateUserSurveys creates a new user survey
+func (d *MyCareHubDb) CreateUserSurveys(ctx context.Context, userSurvey []*dto.UserSurveyInput) error {
+	var userSurveyObj []*gorm.UserSurvey
+	for _, us := range userSurvey {
+		userSurveyObj = append(userSurveyObj, &gorm.UserSurvey{
+			Active:      true,
+			Link:        us.Link,
+			Title:       us.Title,
+			Description: us.Description,
+			UserID:      us.UserID,
+		})
+	}
+
+	return d.create.CreateUserSurveys(ctx, userSurveyObj)
+}

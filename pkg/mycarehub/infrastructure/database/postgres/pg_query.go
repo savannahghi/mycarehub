@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/mitchellh/mapstructure"
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/firebasetools"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
@@ -1888,8 +1889,8 @@ func (d *MyCareHubDb) CheckAppointmentExistsByExternalID(ctx context.Context, ex
 }
 
 // GetUserSurveyForms retrives all user survey forms
-func (d *MyCareHubDb) GetUserSurveyForms(ctx context.Context, userID string) ([]*domain.UserSurveys, error) {
-	var userSurveys []*domain.UserSurveys
+func (d *MyCareHubDb) GetUserSurveyForms(ctx context.Context, userID string) ([]*domain.UserSurvey, error) {
+	var userSurveys []*domain.UserSurvey
 
 	surveys, err := d.query.GetUserSurveyForms(ctx, userID)
 	if err != nil {
@@ -1898,7 +1899,7 @@ func (d *MyCareHubDb) GetUserSurveyForms(ctx context.Context, userID string) ([]
 	}
 
 	for _, s := range surveys {
-		userSurveys = append(userSurveys, &domain.UserSurveys{
+		userSurveys = append(userSurveys, &domain.UserSurvey{
 			ID:           s.ID,
 			Active:       s.Active,
 			Created:      s.CreatedAt,
@@ -2020,4 +2021,50 @@ func (d *MyCareHubDb) GetNotification(ctx context.Context, notificationID string
 	}
 
 	return notification, nil
+}
+
+// GetClientsByFilterParams fetches clients by filter params
+func (d *MyCareHubDb) GetClientsByFilterParams(ctx context.Context, facilityID *string, filterParams *dto.ClientFilterParamsInput) ([]*domain.ClientProfile, error) {
+	clients, err := d.query.GetClientsByFilterParams(ctx, *facilityID, filterParams)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
+	var clientList []*domain.ClientProfile
+	for _, c := range clients {
+		var clientTypes []enums.ClientType
+		for _, k := range c.ClientTypes {
+			clientTypes = append(clientTypes, enums.ClientType(k))
+		}
+		user, err := d.query.GetUserProfileByUserID(ctx, c.UserID)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return nil, err
+		}
+		domainUser := &domain.User{}
+		err = mapstructure.Decode(user, domainUser)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return nil, err
+		}
+		clientList = append(clientList, &domain.ClientProfile{
+			ID:                      c.ID,
+			Active:                  c.Active,
+			ClientTypes:             clientTypes,
+			UserID:                  *c.UserID,
+			User:                    domainUser,
+			TreatmentEnrollmentDate: c.TreatmentEnrollmentDate,
+			FHIRPatientID:           c.FHIRPatientID,
+			HealthRecordID:          c.HealthRecordID,
+			TreatmentBuddy:          c.TreatmentBuddy,
+			ClientCounselled:        c.ClientCounselled,
+			OrganisationID:          c.OrganisationID,
+			FacilityID:              c.FacilityID,
+			CHVUserID:               c.CHVUserID,
+			CaregiverID:             c.CaregiverID,
+		})
+	}
+
+	return clientList, nil
 }

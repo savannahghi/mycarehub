@@ -1149,3 +1149,41 @@ func TestMyCareHubDb_SaveNotification(t *testing.T) {
 		})
 	}
 }
+
+func TestMyCareHubDb_CreateUserSurvey(t *testing.T) {
+	var fakeGorm = gormMock.NewGormMock()
+	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+	type args struct {
+		ctx         context.Context
+		userSurveys []*dto.UserSurveyInput
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy Case",
+			args: args{
+				ctx: context.Background(),
+				userSurveys: []*dto.UserSurveyInput{
+					{
+						UserID:      uuid.New().String(),
+						Title:       "Test Survey",
+						Description: "This is a test survey",
+						Link:        gofakeit.URL(),
+					},
+				},
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			if err := d.CreateUserSurveys(tt.args.ctx, tt.args.userSurveys); (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.CreateUserSurveys() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}

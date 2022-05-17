@@ -18,6 +18,9 @@ const (
 
 	// NotificationTypeCommunities represents notifications from communities
 	NotificationTypeCommunities NotificationType = "COMMUNITIES"
+
+	// NotificationTypeSurveys represents notifications from surveys
+	NotificationTypeSurveys NotificationType = "SURVEYS"
 )
 
 // AllNotificationTypes represents a slice of all possible `NotificationType` values
@@ -25,6 +28,7 @@ var AllNotificationTypes = []NotificationType{
 	NotificationTypeAppointment,
 	NotificationTypeServiceRequest,
 	NotificationTypeCommunities,
+	NotificationTypeSurveys,
 }
 
 // IsValid returns true if a notification type is valid
@@ -33,7 +37,8 @@ func (n NotificationType) IsValid() bool {
 	case
 		NotificationTypeAppointment,
 		NotificationTypeServiceRequest,
-		NotificationTypeCommunities:
+		NotificationTypeCommunities,
+		NotificationTypeSurveys:
 		return true
 	}
 	return false
