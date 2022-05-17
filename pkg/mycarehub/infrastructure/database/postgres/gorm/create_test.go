@@ -1167,6 +1167,56 @@ func TestPGInstance_CreateClient(t *testing.T) {
 	}
 }
 
+func TestPGInstance_CreateMetric(t *testing.T) {
+	inv := "invalid-id"
+
+	type args struct {
+		ctx    context.Context
+		metric *gorm.Metric
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "happy case: create a metric",
+			args: args{
+				ctx: context.Background(),
+				metric: &gorm.Metric{
+					Active:    true,
+					UserID:    &userID,
+					Timestamp: time.Now(),
+					Type:      enums.MetricTypeContent,
+					Payload:   `{"contentID":"","duration":32}`,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "sad case: invalid metric data",
+			args: args{
+				ctx: context.Background(),
+				metric: &gorm.Metric{
+					Active:    true,
+					UserID:    &inv,
+					Timestamp: time.Now(),
+					Type:      enums.MetricTypeContent,
+					Payload:   `{"contentID":"","duration":32}`,
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := testingDB.CreateMetric(tt.args.ctx, tt.args.metric); (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.CreateMetric() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
 func TestPGInstance_CreateIdentifier(t *testing.T) {
 	type args struct {
 		ctx        context.Context

@@ -156,8 +156,14 @@ input FirebaseSimpleNotificationInput {
   data: Map
 }
 
-input ClientFilterParamsInput{
+input ClientFilterParamsInput {
   clientTypes: [ClientType]
-	ageRange:    AgeRangeInput
-	gender:      [Gender]
+  ageRange: AgeRangeInput
+  gender: [Gender]
+}
+
+input MetricInput {
+  userID: ID
+  type: MetricType!
+  event: Map!
 }

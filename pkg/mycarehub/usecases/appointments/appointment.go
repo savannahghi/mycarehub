@@ -195,7 +195,7 @@ func (a *UseCasesAppointmentsImpl) CreateKenyaEMRAppointments(ctx context.Contex
 // UpdateKenyaEMRAppointments updates an appointment with changes from Kenya EMR
 func (a *UseCasesAppointmentsImpl) UpdateKenyaEMRAppointments(ctx context.Context, facility *domain.Facility, input dto.AppointmentPayload) (*dto.AppointmentPayload, error) {
 	// get client profile using the ccc number
-	clientProfile, err := a.Query.GetClientProfileByCCCNumber(ctx, input.CCCNumber)
+	_, err := a.Query.GetClientProfileByCCCNumber(ctx, input.CCCNumber)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil
@@ -209,28 +209,14 @@ func (a *UseCasesAppointmentsImpl) UpdateKenyaEMRAppointments(ctx context.Contex
 	}
 
 	updates := map[string]interface{}{
-		"date":                        input.AppointmentDate.AsTime(),
-		"reason":                      input.AppointmentReason,
-		"facility_id":                 *facility.ID,
-		"has_rescheduled_appointment": false,
+		"date":        input.AppointmentDate.AsTime(),
+		"reason":      input.AppointmentReason,
+		"facility_id": *facility.ID,
 	}
 
-	updatedAppointment, err := a.Update.UpdateAppointment(ctx, appointment, updates)
+	_, err = a.Update.UpdateAppointment(ctx, appointment, updates)
 	if err != nil {
 		return nil, err
-	}
-
-	notificationArgs := notification.ClientNotificationArgs{
-		Appointment:   updatedAppointment,
-		IsRescheduled: true,
-	}
-	notification := notification.ComposeClientNotification(
-		enums.NotificationTypeAppointment,
-		notificationArgs,
-	)
-	err = a.Notification.NotifyUser(ctx, clientProfile.User, notification)
-	if err != nil {
-		helpers.ReportErrorToSentry(err)
 	}
 
 	return &input, nil

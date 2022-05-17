@@ -1239,3 +1239,20 @@ func (u *UserSurvey) BeforeCreate(tx *gorm.DB) (err error) {
 func (UserSurvey) TableName() string {
 	return "common_usersurveys"
 }
+
+// Metric is a recording of an event that occurs within the platform
+type Metric struct {
+	Base
+
+	ID        int              `gorm:"primaryKey;column:id;autoincrement"`
+	Active    bool             `gorm:"column:active"`
+	UserID    *string          `gorm:"column:user_id"`
+	Type      enums.MetricType `gorm:"column:metric_type"`
+	Payload   string           `gorm:"column:payload"`
+	Timestamp time.Time        `gorm:"column:timestamp"`
+}
+
+// TableName references the table that we map data from
+func (Metric) TableName() string {
+	return "users_metric"
+}

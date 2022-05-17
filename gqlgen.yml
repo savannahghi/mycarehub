@@ -85,3 +85,6 @@ models:
   SortOption:
     model:
       - github.com/GetStream/stream-chat-go/v5.SortOption
+  MetricInput:
+    model:
+      - github.com/savannahghi/mycarehub/pkg/mycarehub/domain.Metric

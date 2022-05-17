@@ -416,6 +416,7 @@ type ComplexityRoot struct {
 		AssignOrRevokeRoles                func(childComplexity int, userID string, roles []*enums.UserRoleType) int
 		BanUser                            func(childComplexity int, memberID string, bannedBy string, communityID string) int
 		BookmarkContent                    func(childComplexity int, userID string, contentItemID int) int
+		CollectMetric                      func(childComplexity int, input domain.Metric) int
 		CompleteOnboardingTour             func(childComplexity int, userID string, flavour feedlib.Flavour) int
 		CreateCommunity                    func(childComplexity int, input dto.CommunityInput) int
 		CreateFacility                     func(childComplexity int, input dto.FacilityInput) int
@@ -707,6 +708,7 @@ type MutationResolver interface {
 	SendFeedback(ctx context.Context, input dto.FeedbackResponseInput) (bool, error)
 	CreateHealthDiaryEntry(ctx context.Context, clientID string, note *string, mood string, reportToStaff bool) (bool, error)
 	ShareHealthDiaryEntry(ctx context.Context, healthDiaryEntryID string, shareEntireHealthDiary bool) (bool, error)
+	CollectMetric(ctx context.Context, input domain.Metric) (bool, error)
 	SendFCMNotification(ctx context.Context, registrationTokens []string, data map[string]interface{}, notification firebasetools.FirebaseSimpleNotificationInput) (bool, error)
 	ReadNotifications(ctx context.Context, ids []string) (bool, error)
 	InviteUser(ctx context.Context, userID string, phoneNumber string, flavour feedlib.Flavour) (bool, error)
@@ -2509,6 +2511,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.BookmarkContent(childComplexity, args["userID"].(string), args["contentItemID"].(int)), true
+
+	case "Mutation.collectMetric":
+		if e.complexity.Mutation.CollectMetric == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_collectMetric_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CollectMetric(childComplexity, args["input"].(domain.Metric)), true
 
 	case "Mutation.completeOnboardingTour":
 		if e.complexity.Mutation.CompleteOnboardingTour == nil {
@@ -4528,6 +4542,12 @@ enum NotificationType {
   SERVICE_REQUEST
   COMMUNITIES
 }
+
+enum MetricType {
+  CONTENT
+  ENGAGEMENT
+  SYSTEM
+}
 `, BuiltIn: false},
 	{Name: "pkg/mycarehub/presentation/graph/facility.graphql", Input: `extend type Mutation {
   createFacility(input: FacilityInput!): Facility!
@@ -4727,11 +4747,22 @@ input FirebaseSimpleNotificationInput {
   data: Map
 }
 
-input ClientFilterParamsInput{
+input ClientFilterParamsInput {
   clientTypes: [ClientType]
-	ageRange:    AgeRangeInput
-	gender:      [Gender]
-}`, BuiltIn: false},
+  ageRange: AgeRangeInput
+  gender: [Gender]
+}
+
+input MetricInput {
+  userID: ID
+  type: MetricType!
+  event: Map!
+}
+`, BuiltIn: false},
+	{Name: "pkg/mycarehub/presentation/graph/metrics.graphql", Input: `extend type Mutation {
+  collectMetric(input: MetricInput!): Boolean!
+}
+`, BuiltIn: false},
 	{Name: "pkg/mycarehub/presentation/graph/notifications.graphql", Input: `extend type Query {
   fetchNotifications(
     userID: ID!
@@ -5602,6 +5633,21 @@ func (ec *executionContext) field_Mutation_bookmarkContent_args(ctx context.Cont
 		}
 	}
 	args["contentItemID"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_collectMetric_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 domain.Metric
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNMetricInput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐMetric(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
 	return args, nil
 }
 
@@ -16202,6 +16248,48 @@ func (ec *executionContext) _Mutation_shareHealthDiaryEntry(ctx context.Context,
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Mutation_collectMetric(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_collectMetric_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CollectMetric(rctx, args["input"].(domain.Metric))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Mutation_sendFCMNotification(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -24121,6 +24209,45 @@ func (ec *executionContext) unmarshalInputFirebaseSimpleNotificationInput(ctx co
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputMetricInput(ctx context.Context, obj interface{}) (domain.Metric, error) {
+	var it domain.Metric
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	for k, v := range asMap {
+		switch k {
+		case "userID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userID"))
+			it.UserID, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "type":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("type"))
+			it.Type, err = ec.unmarshalNMetricType2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐMetricType(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "event":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("event"))
+			it.Event, err = ec.unmarshalNMap2map(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputPINInput(ctx context.Context, obj interface{}) (dto.PINInput, error) {
 	var it dto.PINInput
 	asMap := map[string]interface{}{}
@@ -26554,6 +26681,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			}
 		case "shareHealthDiaryEntry":
 			out.Values[i] = ec._Mutation_shareHealthDiaryEntry(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "collectMetric":
+			out.Values[i] = ec._Mutation_collectMetric(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -29430,6 +29562,21 @@ func (ec *executionContext) marshalNMeta2githubᚗcomᚋsavannahghiᚋmycarehub�
 	return ec._Meta(ctx, sel, &v)
 }
 
+func (ec *executionContext) unmarshalNMetricInput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐMetric(ctx context.Context, v interface{}) (domain.Metric, error) {
+	res, err := ec.unmarshalInputMetricInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNMetricType2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐMetricType(ctx context.Context, v interface{}) (enums.MetricType, error) {
+	var res enums.MetricType
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNMetricType2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐMetricType(ctx context.Context, sel ast.SelectionSet, v enums.MetricType) graphql.Marshaler {
+	return v
+}
+
 func (ec *executionContext) marshalNNotification2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐNotification(ctx context.Context, sel ast.SelectionSet, v []*domain.Notification) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
@@ -31321,6 +31468,21 @@ func (ec *executionContext) marshalOHeroImage2githubᚗcomᚋsavannahghiᚋmycar
 
 func (ec *executionContext) marshalOHeroImageRendition2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐHeroImageRendition(ctx context.Context, sel ast.SelectionSet, v domain.HeroImageRendition) graphql.Marshaler {
 	return ec._HeroImageRendition(ctx, sel, &v)
+}
+
+func (ec *executionContext) unmarshalOID2ᚖstring(ctx context.Context, v interface{}) (*string, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := graphql.UnmarshalID(v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOID2ᚖstring(ctx context.Context, sel ast.SelectionSet, v *string) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return graphql.MarshalID(*v)
 }
 
 func (ec *executionContext) unmarshalOInt2int(ctx context.Context, v interface{}) (int, error) {

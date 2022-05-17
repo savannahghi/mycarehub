@@ -29,6 +29,7 @@ type Create interface {
 	CreateIdentifier(ctx context.Context, identifier *Identifier) error
 	CreateNotification(ctx context.Context, notification *Notification) error
 	CreateUserSurveys(ctx context.Context, userSurvey []*UserSurvey) error
+	CreateMetric(ctx context.Context, metric *Metric) error
 }
 
 // GetOrCreateFacility is used to get or create a facility
@@ -469,5 +470,17 @@ func (db *PGInstance) CreateUserSurveys(ctx context.Context, userSurvey []*UserS
 		helpers.ReportErrorToSentry(err)
 		return fmt.Errorf("failed to create user survey: %w", err)
 	}
+
+	return nil
+}
+
+// CreateMetric saves a metric to the database
+func (db *PGInstance) CreateMetric(ctx context.Context, metric *Metric) error {
+	err := db.DB.Create(metric).Error
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return fmt.Errorf("failed to create metric: %w", err)
+	}
+
 	return nil
 }

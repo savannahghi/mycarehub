@@ -480,3 +480,22 @@ func (d *MyCareHubDb) CreateUserSurveys(ctx context.Context, userSurvey []*dto.U
 
 	return d.create.CreateUserSurveys(ctx, userSurveyObj)
 }
+
+// CreateMetric saves a metric to the database
+func (d *MyCareHubDb) CreateMetric(ctx context.Context, payload *domain.Metric) error {
+	event, err := json.Marshal(payload.Event)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return fmt.Errorf("failed to marshal meta data: %v", err)
+	}
+
+	metric := &gorm.Metric{
+		Active:    true,
+		UserID:    payload.UserID,
+		Timestamp: payload.Timestamp,
+		Type:      payload.Type,
+		Payload:   string(event),
+	}
+
+	return d.create.CreateMetric(ctx, metric)
+}

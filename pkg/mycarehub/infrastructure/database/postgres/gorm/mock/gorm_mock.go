@@ -156,6 +156,7 @@ type GormMock struct {
 	MockGetNotificationFn                                func(ctx context.Context, notificationID string) (*gorm.Notification, error)
 	MockGetClientsByFilterParamsFn                       func(ctx context.Context, facilityID string, filterParams *dto.ClientFilterParamsInput) ([]*gorm.Client, error)
 	MockCreateUserSurveyFn                               func(ctx context.Context, userSurvey []*gorm.UserSurvey) error
+	MockCreateMetricFn                                   func(ctx context.Context, metric *gorm.Metric) error
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -346,6 +347,9 @@ func NewGormMock() *GormMock {
 	}
 
 	return &GormMock{
+		MockCreateMetricFn: func(ctx context.Context, metric *gorm.Metric) error {
+			return nil
+		},
 		MockCreateNotificationFn: func(ctx context.Context, notification *gorm.Notification) error {
 			return nil
 		},
@@ -1863,4 +1867,9 @@ func (gm *GormMock) GetClientsByFilterParams(ctx context.Context, facilityID str
 // CreateUserSurveys creates a new user survey
 func (gm *GormMock) CreateUserSurveys(ctx context.Context, survey []*gorm.UserSurvey) error {
 	return gm.MockCreateUserSurveyFn(ctx, survey)
+}
+
+// CreateMetric saves a metric to the database
+func (gm *GormMock) CreateMetric(ctx context.Context, metric *gorm.Metric) error {
+	return gm.MockCreateMetricFn(ctx, metric)
 }

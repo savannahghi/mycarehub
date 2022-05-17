@@ -1150,6 +1150,69 @@ func TestMyCareHubDb_SaveNotification(t *testing.T) {
 	}
 }
 
+func TestMyCareHubDb_CreateMetric(t *testing.T) {
+	userID := gofakeit.UUID()
+
+	type args struct {
+		ctx     context.Context
+		payload *domain.Metric
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "happy case: create a metric",
+			args: args{
+				ctx: context.Background(),
+				payload: &domain.Metric{
+					UserID:    &userID,
+					Timestamp: time.Now(),
+					Type:      enums.MetricTypeContent,
+					Event: map[string]interface{}{
+						"contentID": 20,
+						"duration":  time.Since(time.Now()),
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "sad case: error creating metric",
+			args: args{
+				ctx: context.Background(),
+				payload: &domain.Metric{
+					UserID:    &userID,
+					Timestamp: time.Now(),
+					Type:      enums.MetricTypeContent,
+					Event: map[string]interface{}{
+						"contentID": 10,
+						"duration":  time.Since(time.Now()),
+					},
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var fakeGorm = gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			if tt.name == "sad case: error creating metric" {
+				fakeGorm.MockCreateMetricFn = func(ctx context.Context, metric *gorm.Metric) error {
+					return fmt.Errorf("cannot create metric")
+				}
+			}
+
+			if err := d.CreateMetric(tt.args.ctx, tt.args.payload); (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.CreateMetric() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
 func TestMyCareHubDb_CreateUserSurvey(t *testing.T) {
 	var fakeGorm = gormMock.NewGormMock()
 	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
