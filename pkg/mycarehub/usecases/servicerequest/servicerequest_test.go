@@ -777,29 +777,6 @@ func TestUseCasesServiceRequestImpl_GetServiceRequestsForKenyaEMR(t *testing.T) 
 }
 
 func TestUseCasesServiceRequestImpl_UpdateServiceRequestsFromKenyaEMR(t *testing.T) {
-	ctx := context.Background()
-	fakeDB := pgMock.NewPostgresMock()
-	fakeExtension := extensionMock.NewFakeExtension()
-	fakeUser := userMock.NewUserUseCaseMock()
-	fakeNotification := notificationMock.NewServiceNotificationMock()
-	u := servicerequest.NewUseCaseServiceRequestImpl(fakeDB, fakeDB, fakeDB, fakeExtension, fakeUser, fakeNotification)
-
-	payload := dto.UpdateServiceRequestPayload{
-		ID:           uuid.New().String(),
-		RequestType:  gofakeit.BeerName(),
-		Status:       "STATUS",
-		InProgressAt: time.Time{},
-		InProgressBy: uuid.New().String(),
-		ResolvedAt:   time.Time{},
-		ResolvedBy:   uuid.New().String(),
-	}
-
-	serviceReq := &dto.UpdateServiceRequestsPayload{
-		ServiceRequests: []dto.UpdateServiceRequestPayload{
-			payload,
-		},
-	}
-
 	type args struct {
 		ctx     context.Context
 		payload *dto.UpdateServiceRequestsPayload
@@ -811,19 +788,148 @@ func TestUseCasesServiceRequestImpl_UpdateServiceRequestsFromKenyaEMR(t *testing
 		wantErr bool
 	}{
 		{
-			name: "Happy case",
+			name: "happy case: appointment service request",
 			args: args{
-				ctx:     ctx,
-				payload: serviceReq,
+				ctx: context.Background(),
+				payload: &dto.UpdateServiceRequestsPayload{
+					ServiceRequests: []dto.UpdateServiceRequestPayload{
+						{
+							ID:           uuid.New().String(),
+							RequestType:  enums.ServiceRequestTypeAppointments.String(),
+							Status:       enums.ServiceRequestStatusResolved.String(),
+							InProgressAt: time.Now(),
+							InProgressBy: uuid.New().String(),
+							ResolvedAt:   time.Now(),
+							ResolvedBy:   uuid.New().String(),
+						},
+					},
+				},
 			},
 			want:    true,
 			wantErr: false,
 		},
 		{
-			name: "Sad case",
+			name: "happy case: screening tool red flag service request",
 			args: args{
-				ctx:     ctx,
-				payload: serviceReq,
+				ctx: context.Background(),
+				payload: &dto.UpdateServiceRequestsPayload{
+					ServiceRequests: []dto.UpdateServiceRequestPayload{
+						{
+							ID:           uuid.New().String(),
+							RequestType:  enums.ServiceRequestTypeScreeningToolsRedFlag.String(),
+							Status:       enums.ServiceRequestStatusResolved.String(),
+							InProgressAt: time.Now(),
+							InProgressBy: uuid.New().String(),
+							ResolvedAt:   time.Now(),
+							ResolvedBy:   uuid.New().String(),
+						},
+					},
+				},
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "sad case: fail to get service request",
+			args: args{
+				ctx: context.Background(),
+				payload: &dto.UpdateServiceRequestsPayload{
+					ServiceRequests: []dto.UpdateServiceRequestPayload{
+						{
+							ID:           uuid.New().String(),
+							RequestType:  enums.ServiceRequestTypeAppointments.String(),
+							Status:       enums.ServiceRequestStatusResolved.String(),
+							InProgressAt: time.Now(),
+							InProgressBy: uuid.New().String(),
+							ResolvedAt:   time.Now(),
+							ResolvedBy:   uuid.New().String(),
+						},
+					},
+				},
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "sad case: fail to get client",
+			args: args{
+				ctx: context.Background(),
+				payload: &dto.UpdateServiceRequestsPayload{
+					ServiceRequests: []dto.UpdateServiceRequestPayload{
+						{
+							ID:           uuid.New().String(),
+							RequestType:  enums.ServiceRequestTypeAppointments.String(),
+							Status:       enums.ServiceRequestStatusResolved.String(),
+							InProgressAt: time.Now(),
+							InProgressBy: uuid.New().String(),
+							ResolvedAt:   time.Now(),
+							ResolvedBy:   uuid.New().String(),
+						},
+					},
+				},
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "sad case: fail to get appointment",
+			args: args{
+				ctx: context.Background(),
+				payload: &dto.UpdateServiceRequestsPayload{
+					ServiceRequests: []dto.UpdateServiceRequestPayload{
+						{
+							ID:           uuid.New().String(),
+							RequestType:  enums.ServiceRequestTypeAppointments.String(),
+							Status:       enums.ServiceRequestStatusResolved.String(),
+							InProgressAt: time.Now(),
+							InProgressBy: uuid.New().String(),
+							ResolvedAt:   time.Now(),
+							ResolvedBy:   uuid.New().String(),
+						},
+					},
+				},
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "sad case: fail to update appointment",
+			args: args{
+				ctx: context.Background(),
+				payload: &dto.UpdateServiceRequestsPayload{
+					ServiceRequests: []dto.UpdateServiceRequestPayload{
+						{
+							ID:           uuid.New().String(),
+							RequestType:  enums.ServiceRequestTypeAppointments.String(),
+							Status:       enums.ServiceRequestStatusResolved.String(),
+							InProgressAt: time.Now(),
+							InProgressBy: uuid.New().String(),
+							ResolvedAt:   time.Now(),
+							ResolvedBy:   uuid.New().String(),
+						},
+					},
+				},
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "sad case: fail to notify update appointment",
+			args: args{
+				ctx: context.Background(),
+				payload: &dto.UpdateServiceRequestsPayload{
+					ServiceRequests: []dto.UpdateServiceRequestPayload{
+						{
+							ID:           uuid.New().String(),
+							RequestType:  enums.ServiceRequestTypeAppointments.String(),
+							Status:       enums.ServiceRequestStatusResolved.String(),
+							InProgressAt: time.Now(),
+							InProgressBy: uuid.New().String(),
+							ResolvedAt:   time.Now(),
+							ResolvedBy:   uuid.New().String(),
+						},
+					},
+				},
 			},
 			want:    true,
 			wantErr: false,
@@ -831,6 +937,81 @@ func TestUseCasesServiceRequestImpl_UpdateServiceRequestsFromKenyaEMR(t *testing
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			fakeExtension := extensionMock.NewFakeExtension()
+			fakeUser := userMock.NewUserUseCaseMock()
+			fakeNotification := notificationMock.NewServiceNotificationMock()
+			u := servicerequest.NewUseCaseServiceRequestImpl(fakeDB, fakeDB, fakeDB, fakeExtension, fakeUser, fakeNotification)
+
+			if tt.name == "happy case: appointment service request" {
+				fakeDB.MockGetServiceRequestByIDFn = func(ctx context.Context, id string) (*domain.ServiceRequest, error) {
+					return &domain.ServiceRequest{
+						ClientID: gofakeit.UUID(),
+						Meta: map[string]interface{}{
+							"appointmentID": gofakeit.UUID(),
+						},
+					}, nil
+				}
+			}
+
+			if tt.name == "sad case: fail to get service request" {
+				fakeDB.MockGetServiceRequestByIDFn = func(ctx context.Context, id string) (*domain.ServiceRequest, error) {
+					return nil, fmt.Errorf("fail to retrieve service request")
+				}
+			}
+
+			if tt.name == "sad case: fail to get client" {
+				fakeDB.MockGetClientProfileByClientIDFn = func(ctx context.Context, clientID string) (*domain.ClientProfile, error) {
+					return nil, fmt.Errorf("client profile not found")
+				}
+			}
+
+			if tt.name == "sad case: fail to get appointment" {
+				fakeDB.MockGetServiceRequestByIDFn = func(ctx context.Context, id string) (*domain.ServiceRequest, error) {
+					return &domain.ServiceRequest{
+						ClientID: gofakeit.UUID(),
+						Meta: map[string]interface{}{
+							"appointmentID": gofakeit.UUID(),
+						},
+					}, nil
+				}
+
+				fakeDB.MockGetAppointmentFn = func(ctx context.Context, params domain.Appointment) (*domain.Appointment, error) {
+					return nil, fmt.Errorf("failed to get appointment")
+				}
+			}
+
+			if tt.name == "sad case: fail to update appointment" {
+				fakeDB.MockGetServiceRequestByIDFn = func(ctx context.Context, id string) (*domain.ServiceRequest, error) {
+					return &domain.ServiceRequest{
+						ClientID: gofakeit.UUID(),
+						Meta: map[string]interface{}{
+							"appointmentID": gofakeit.UUID(),
+						},
+					}, nil
+				}
+
+				fakeDB.MockUpdateAppointmentFn = func(ctx context.Context, appointment *domain.Appointment, updateData map[string]interface{}) (*domain.Appointment, error) {
+					return nil, fmt.Errorf("failed to update appointment")
+				}
+			}
+
+			if tt.name == "sad case: fail to notify update appointment" {
+				fakeDB.MockGetServiceRequestByIDFn = func(ctx context.Context, id string) (*domain.ServiceRequest, error) {
+					return &domain.ServiceRequest{
+						ClientID: gofakeit.UUID(),
+						Meta: map[string]interface{}{
+							"appointmentID": gofakeit.UUID(),
+						},
+					}, nil
+				}
+
+				fakeNotification.MockNotifyUserFn = func(ctx context.Context, userProfile *domain.User, notificationPayload *domain.Notification) error {
+					return fmt.Errorf("failed to send notification")
+				}
+
+			}
+
 			got, err := u.UpdateServiceRequestsFromKenyaEMR(tt.args.ctx, tt.args.payload)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCasesServiceRequestImpl.UpdateServiceRequestsFromKenyaEMR() error = %v, wantErr %v", err, tt.wantErr)

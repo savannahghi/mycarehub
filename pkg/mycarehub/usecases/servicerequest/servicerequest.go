@@ -304,23 +304,76 @@ func (u *UseCasesServiceRequestImpl) ResolveServiceRequest(ctx context.Context, 
 // UpdateServiceRequestsFromKenyaEMR is used to update service requests from KenyaEMR to MyCareHub service.
 func (u *UseCasesServiceRequestImpl) UpdateServiceRequestsFromKenyaEMR(ctx context.Context, payload *dto.UpdateServiceRequestsPayload) (bool, error) {
 	var serviceRequests []domain.ServiceRequest
-	for _, v := range payload.ServiceRequests {
-		serviceRequest := &domain.ServiceRequest{
-			ID:           v.ID,
-			RequestType:  v.RequestType,
-			Status:       v.Status,
-			InProgressAt: &v.InProgressAt,
-			InProgressBy: &v.InProgressBy,
-			ResolvedAt:   &v.ResolvedAt,
-			ResolvedBy:   &v.ResolvedBy,
+
+	for _, request := range payload.ServiceRequests {
+		serviceRequest, err := u.Query.GetServiceRequestByID(ctx, request.ID)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return false, err
 		}
 
-		serviceRequests = append(serviceRequests, *serviceRequest)
+		if request.RequestType == enums.ServiceRequestTypeAppointments.String() &&
+			request.Status == enums.ServiceRequestStatusResolved.String() {
+			client, err := u.Query.GetClientProfileByClientID(ctx, serviceRequest.ClientID)
+			if err != nil {
+				helpers.ReportErrorToSentry(err)
+				return false, err
+			}
+
+			// the appointment service request is not valid
+			appointmentID, exists := serviceRequest.Meta["appointmentID"]
+			if !exists {
+				continue
+			}
+
+			filter := domain.Appointment{ID: appointmentID.(string)}
+			appointment, err := u.Query.GetAppointment(ctx, filter)
+			if err != nil {
+				helpers.ReportErrorToSentry(err)
+				return false, err
+			}
+
+			updates := map[string]interface{}{
+				"has_rescheduled_appointment": false,
+			}
+			updatedAppointment, err := u.Update.UpdateAppointment(ctx, appointment, updates)
+			if err != nil {
+				helpers.ReportErrorToSentry(err)
+				return false, err
+			}
+
+			notification := notification.ComposeClientNotification(
+				enums.NotificationTypeAppointment,
+				notification.ClientNotificationArgs{
+					Appointment:   updatedAppointment,
+					IsRescheduled: true,
+				},
+			)
+
+			err = u.Notification.NotifyUser(ctx, client.User, notification)
+			if err != nil {
+				helpers.ReportErrorToSentry(err)
+			}
+
+		}
+
+		mapped := &domain.ServiceRequest{
+			ID:           request.ID,
+			RequestType:  request.RequestType,
+			Status:       request.Status,
+			InProgressAt: &request.InProgressAt,
+			InProgressBy: &request.InProgressBy,
+			ResolvedAt:   &request.ResolvedAt,
+			ResolvedBy:   &request.ResolvedBy,
+		}
+
+		serviceRequests = append(serviceRequests, *mapped)
 	}
 
 	serviceReq := &domain.UpdateServiceRequestsPayload{
 		ServiceRequests: serviceRequests,
 	}
+
 	return u.Update.UpdateServiceRequests(ctx, serviceReq)
 }
 

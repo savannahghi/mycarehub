@@ -140,7 +140,6 @@ type PostgresMock struct {
 	MockGetAppointmentByClientIDFn                       func(ctx context.Context, clientID string) (*domain.Appointment, error)
 	MockCheckAppointmentExistsByExternalIDFn             func(ctx context.Context, externalID string) (bool, error)
 	MockGetUserSurveyFormsFn                             func(ctx context.Context, userID string) ([]*domain.UserSurvey, error)
-	MockGetAppointmentByExternalIDFn                     func(ctx context.Context, externalID string) (*domain.Appointment, error)
 	MockListNotificationsFn                              func(ctx context.Context, params *domain.Notification, pagination *domain.Pagination) ([]*domain.Notification, *domain.Pagination, error)
 	MockSaveNotificationFn                               func(ctx context.Context, payload *domain.Notification) error
 	MockGetClientScreeningToolResponsesByToolTypeFn      func(ctx context.Context, clientID, toolType string, active bool) ([]*domain.ScreeningToolQuestionResponse, error)
@@ -964,17 +963,6 @@ func NewPostgresMock() *PostgresMock {
 		MockCheckAppointmentExistsByExternalIDFn: func(ctx context.Context, externalID string) (bool, error) {
 			return true, nil
 		},
-		MockGetAppointmentByExternalIDFn: func(ctx context.Context, externalID string) (*domain.Appointment, error) {
-			return &domain.Appointment{
-				ID:         ID,
-				ExternalID: "uuid",
-				Reason:     "reason",
-				Date:       scalarutils.Date{},
-				ClientID:   ID,
-				FacilityID: ID,
-				Provider:   "provider",
-			}, nil
-		},
 		MockGetClientServiceRequestsFn: func(ctx context.Context, requestType, status, clientID string) ([]*domain.ServiceRequest, error) {
 			return []*domain.ServiceRequest{
 				{
@@ -1637,11 +1625,6 @@ func (gm *PostgresMock) GetAppointmentByClientID(ctx context.Context, clientID s
 // CheckAppointmentExistsByExternalID checks if an appointment with the external id exists
 func (gm *PostgresMock) CheckAppointmentExistsByExternalID(ctx context.Context, externalID string) (bool, error) {
 	return gm.MockCheckAppointmentExistsByExternalIDFn(ctx, externalID)
-}
-
-// GetAppointmentByExternalID mocks the implementation of getting an appointment by appointment UUID
-func (gm *PostgresMock) GetAppointmentByExternalID(ctx context.Context, externalID string) (*domain.Appointment, error) {
-	return gm.MockGetAppointmentByExternalIDFn(ctx, externalID)
 }
 
 // GetClientServiceRequests mocks the implementation of getting system generated client service requests

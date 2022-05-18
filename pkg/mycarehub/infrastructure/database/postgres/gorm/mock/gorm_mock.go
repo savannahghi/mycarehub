@@ -130,17 +130,14 @@ type GormMock struct {
 	MockGetStaffPendingServiceRequestsCountFn            func(ctx context.Context, facilityID string) (*domain.ServiceRequestsCount, error)
 	MockGetStaffServiceRequestsFn                        func(ctx context.Context, requestType, requestStatus *string, facilityID string) ([]*gorm.StaffServiceRequest, error)
 	MockResolveStaffServiceRequestFn                     func(ctx context.Context, staffID *string, serviceRequestID *string, verificationStatus string) (bool, error)
-	MockGetAppointmentServiceRequestsFn                  func(ctx context.Context, lastSyncTime time.Time) ([]*gorm.ClientServiceRequest, error)
-	MockGetAppointmentByIDFn                             func(ctx context.Context, appointmentID string) (*gorm.Appointment, error)
+	MockGetAppointmentServiceRequestsFn                  func(ctx context.Context, lastSyncTime time.Time, facilityID string) ([]*gorm.ClientServiceRequest, error)
 	MockUpdateFacilityFn                                 func(ctx context.Context, facility *gorm.Facility, updateData map[string]interface{}) error
 	MockGetFacilitiesWithoutFHIRIDFn                     func(ctx context.Context) ([]*gorm.Facility, error)
 	MockGetSharedHealthDiaryEntriesFn                    func(ctx context.Context, clientID string, facilityID string) ([]*gorm.ClientHealthDiaryEntry, error)
 	MockGetClientServiceRequestsFn                       func(ctx context.Context, requestType, status, clientID string) ([]*gorm.ClientServiceRequest, error)
 	MockGetActiveScreeningToolResponsesFn                func(ctx context.Context, clientID string) ([]*gorm.ScreeningToolsResponse, error)
-	MockGetAppointmentByClientIDFn                       func(ctx context.Context, appointmentID, clientID string) (*gorm.Appointment, error)
 	MockCheckAppointmentExistsByExternalIDFn             func(ctx context.Context, externalID string) (bool, error)
 	MockGetUserSurveyFormsFn                             func(ctx context.Context, userID string) ([]*gorm.UserSurvey, error)
-	MockGetAppointmentByExternalIDFn                     func(ctx context.Context, externalID string) (*gorm.Appointment, error)
 	MockGetAnsweredScreeningToolQuestionsFn              func(ctx context.Context, facilityID string, toolType string) ([]*gorm.ScreeningToolsResponse, error)
 	MockCreateNotificationFn                             func(ctx context.Context, notification *gorm.Notification) error
 	MockListNotificationsFn                              func(ctx context.Context, params *gorm.Notification, pagination *domain.Pagination) ([]*gorm.Notification, *domain.Pagination, error)
@@ -1039,7 +1036,7 @@ func NewGormMock() *GormMock {
 			}
 			return serviceReq, nil
 		},
-		MockGetAppointmentServiceRequestsFn: func(ctx context.Context, lastSyncTime time.Time) ([]*gorm.ClientServiceRequest, error) {
+		MockGetAppointmentServiceRequestsFn: func(ctx context.Context, lastSyncTime time.Time, facilityID string) ([]*gorm.ClientServiceRequest, error) {
 			meta := map[string]interface{}{
 				"appointmentID":  uuid.New().String(),
 				"rescheduleTime": time.Now().Add(1 * time.Hour).Format(time.RFC3339),
@@ -1067,45 +1064,8 @@ func NewGormMock() *GormMock {
 				},
 			}, nil
 		},
-		MockGetAppointmentByIDFn: func(ctx context.Context, appointmentID string) (*gorm.Appointment, error) {
-			date := time.Now().Add(time.Duration(100))
-			return &gorm.Appointment{
-				ID:             gofakeit.UUID(),
-				OrganisationID: gofakeit.UUID(),
-				Active:         true,
-				ExternalID:     strconv.Itoa(gofakeit.Number(0, 1000)),
-				ClientID:       gofakeit.UUID(),
-				FacilityID:     gofakeit.UUID(),
-				Reason:         "Knocked up",
-				Date:           date,
-			}, nil
-		},
-		MockGetAppointmentByClientIDFn: func(ctx context.Context, appointmentID, clientID string) (*gorm.Appointment, error) {
-			return &gorm.Appointment{
-				ID:         UUID,
-				Active:     true,
-				ExternalID: strconv.Itoa(gofakeit.Number(0, 1000)),
-				ClientID:   clientID,
-				FacilityID: UUID,
-				Reason:     "reason",
-				Provider:   "provider",
-				Date:       time.Now(),
-			}, nil
-		},
 		MockCheckAppointmentExistsByExternalIDFn: func(ctx context.Context, externalID string) (bool, error) {
 			return true, nil
-		},
-		MockGetAppointmentByExternalIDFn: func(ctx context.Context, externalID string) (*gorm.Appointment, error) {
-			return &gorm.Appointment{
-				ID:         UUID,
-				Active:     true,
-				ExternalID: strconv.Itoa(gofakeit.Number(0, 1000)),
-				ClientID:   UUID,
-				FacilityID: UUID,
-				Reason:     "reason",
-				Provider:   "provider",
-				Date:       time.Now(),
-			}, nil
 		},
 		MockGetClientServiceRequestsFn: func(ctx context.Context, requestType, status, clientID string) ([]*gorm.ClientServiceRequest, error) {
 			return []*gorm.ClientServiceRequest{
@@ -1740,13 +1700,8 @@ func (gm *GormMock) ResolveStaffServiceRequest(ctx context.Context, staffID *str
 }
 
 // GetAppointmentServiceRequests mocks the implementation of getting appointments service requests
-func (gm *GormMock) GetAppointmentServiceRequests(ctx context.Context, lastSyncTime time.Time) ([]*gorm.ClientServiceRequest, error) {
-	return gm.MockGetAppointmentServiceRequestsFn(ctx, lastSyncTime)
-}
-
-// GetAppointmentByID mocks the implementation of getting appointment by ID
-func (gm *GormMock) GetAppointmentByID(ctx context.Context, appointmentID string) (*gorm.Appointment, error) {
-	return gm.MockGetAppointmentByIDFn(ctx, appointmentID)
+func (gm *GormMock) GetAppointmentServiceRequests(ctx context.Context, lastSyncTime time.Time, facilityID string) ([]*gorm.ClientServiceRequest, error) {
+	return gm.MockGetAppointmentServiceRequestsFn(ctx, lastSyncTime, facilityID)
 }
 
 // UpdateFacility mocks the implementation of updating a facility
@@ -1757,16 +1712,6 @@ func (gm *GormMock) UpdateFacility(ctx context.Context, facility *gorm.Facility,
 // GetFacilitiesWithoutFHIRID mocks the implementation of getting a facility without FHIR Organisation
 func (gm *GormMock) GetFacilitiesWithoutFHIRID(ctx context.Context) ([]*gorm.Facility, error) {
 	return gm.MockGetFacilitiesWithoutFHIRIDFn(ctx)
-}
-
-// GetAppointmentByClientID mocks the implementation of rescheduling an appointment
-func (gm *GormMock) GetAppointmentByClientID(ctx context.Context, appointmentID, clientID string) (*gorm.Appointment, error) {
-	return gm.MockGetAppointmentByClientIDFn(ctx, appointmentID, clientID)
-}
-
-// GetAppointmentByExternalID mocks the implementation of getting an appointment by external
-func (gm *GormMock) GetAppointmentByExternalID(ctx context.Context, externalID string) (*gorm.Appointment, error) {
-	return gm.MockGetAppointmentByExternalIDFn(ctx, externalID)
 }
 
 // CheckAppointmentExistsByExternalID checks if an appointment with the external id exists

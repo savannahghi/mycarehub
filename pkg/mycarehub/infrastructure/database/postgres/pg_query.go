@@ -1561,6 +1561,13 @@ func (d *MyCareHubDb) GetServiceRequestByID(ctx context.Context, serviceRequestI
 		helpers.ReportErrorToSentry(err)
 		return nil, err
 	}
+
+	metadata, err := utils.ConvertJSONStringToMap(serviceRequest.Meta)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
 	return &domain.ServiceRequest{
 		ID:           *serviceRequest.ID,
 		RequestType:  serviceRequest.RequestType,
@@ -1573,6 +1580,7 @@ func (d *MyCareHubDb) GetServiceRequestByID(ctx context.Context, serviceRequestI
 		ResolvedAt:   serviceRequest.ResolvedAt,
 		ResolvedBy:   serviceRequest.ResolvedByID,
 		FacilityID:   serviceRequest.FacilityID,
+		Meta:         metadata,
 	}, nil
 }
 
@@ -1597,42 +1605,52 @@ func (d *MyCareHubDb) GetStaffProfileByStaffID(ctx context.Context, staffID stri
 
 // GetAppointmentServiceRequests fetches all service requests of request type appointment given the last sync time
 func (d *MyCareHubDb) GetAppointmentServiceRequests(ctx context.Context, lastSyncTime time.Time, mflCode string) ([]domain.AppointmentServiceRequests, error) {
-
-	serviceRequests, err := d.query.GetAppointmentServiceRequests(ctx, lastSyncTime)
+	MFLCode, err := strconv.Atoi(mflCode)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, err
 	}
 
-	var appointmentServiceRequests []domain.AppointmentServiceRequests
-	for _, r := range serviceRequests {
+	facility, err := d.query.RetrieveFacilityByMFLCode(ctx, MFLCode, true)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
 
-		var (
-			appointmentID    string
-			inProgressByName *string
-			resolvedByName   *string
-		)
-		metaMap, err := utils.ConvertJSONStringToMap(r.Meta)
+	serviceRequests, err := d.query.GetAppointmentServiceRequests(ctx, lastSyncTime, *facility.FacilityID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
+	appointmentServiceRequests := []domain.AppointmentServiceRequests{}
+	for _, request := range serviceRequests {
+		metaMap, err := utils.ConvertJSONStringToMap(request.Meta)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
 			return nil, err
 		}
 
-		if _, ok := metaMap["appointmentID"]; ok {
-			appointmentID = metaMap["appointmentID"].(string)
+		var appointmentID string
+		valueID, exists := metaMap["appointmentID"]
+		if !exists {
+			continue
+		}
+		appointmentID = valueID.(string)
+
+		param := gorm.Appointment{ID: appointmentID}
+		appointment, err := d.query.GetAppointment(ctx, &param)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return nil, err
 		}
 
 		var rescheduleTime time.Time
-		if _, ok := metaMap["rescheduleTime"]; ok {
-			reschedule := metaMap["rescheduleTime"].(string)
-			rescheduleTime, err = time.Parse(time.RFC3339, reschedule)
-			if err != nil {
-				helpers.ReportErrorToSentry(err)
-				return nil, err
-			}
+		valueRescheduleTime, exists := metaMap["rescheduleTime"]
+		if !exists {
+			continue
 		}
-
-		appointment, err := d.query.GetAppointmentByID(ctx, appointmentID)
+		rescheduleTime, err = time.Parse(time.RFC3339, valueRescheduleTime.(string))
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
 			return nil, err
@@ -1644,67 +1662,53 @@ func (d *MyCareHubDb) GetAppointmentServiceRequests(ctx context.Context, lastSyn
 			return nil, err
 		}
 
-		if r.InProgressByID != nil {
-			inProgressBy, err := d.GetUserProfileByStaffID(ctx, *r.InProgressByID)
+		var inProgressByName string
+		if request.InProgressByID != nil {
+			inProgressBy, err := d.GetUserProfileByStaffID(ctx, *request.InProgressByID)
 			if err != nil {
 				helpers.ReportErrorToSentry(err)
 				return nil, err
 			}
-			inProgressByName = &inProgressBy.Name
+			inProgressByName = inProgressBy.Name
 		}
 
-		if r.ResolvedByID != nil {
-			resolvedBy, err := d.GetUserProfileByStaffID(ctx, *r.ResolvedByID)
+		var resolvedByName string
+		if request.ResolvedByID != nil {
+			resolvedBy, err := d.GetUserProfileByStaffID(ctx, *request.ResolvedByID)
 			if err != nil {
 				helpers.ReportErrorToSentry(err)
 				return nil, err
 			}
-			resolvedByName = &resolvedBy.Name
+			resolvedByName = resolvedBy.Name
 		}
 
-		clientProfile, err := d.query.GetClientProfileByClientID(ctx, r.ClientID)
-		if err != nil {
-			helpers.ReportErrorToSentry(err)
-			return nil, err
-		}
-		userProfile, err := d.query.GetUserProfileByUserID(ctx, clientProfile.UserID)
+		clientProfile, err := d.query.GetClientProfileByClientID(ctx, request.ClientID)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
 			return nil, err
 		}
 
-		identifier, err := d.GetClientCCCIdentifier(ctx, r.ClientID)
+		identifier, err := d.GetClientCCCIdentifier(ctx, request.ClientID)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
-			continue
-		}
-
-		facility, err := d.query.RetrieveFacility(ctx, &r.FacilityID, true)
-		if err != nil {
-			helpers.ReportErrorToSentry(err)
-			return nil, err
-		}
-		appointmentMFLCode := strconv.Itoa(facility.Code)
-
-		if appointmentMFLCode != mflCode {
 			continue
 		}
 
 		m := domain.AppointmentServiceRequests{
-			ID:         appointmentID,
+			ID:         *request.ID,
 			ExternalID: appointment.ExternalID,
 			Reason:     appointment.Reason,
 			Date:       suggestedDate,
 
-			Status:        r.Status,
-			InProgressAt:  r.InProgressAt,
-			InProgressBy:  inProgressByName,
-			ResolvedAt:    r.ResolvedAt,
-			ResolvedBy:    resolvedByName,
-			ClientName:    &userProfile.Name,
-			ClientContact: &userProfile.Contacts.ContactValue,
+			Status:        request.Status,
+			InProgressAt:  request.InProgressAt,
+			InProgressBy:  &inProgressByName,
+			ResolvedAt:    request.ResolvedAt,
+			ResolvedBy:    &resolvedByName,
+			ClientName:    &clientProfile.User.Name,
+			ClientContact: &clientProfile.User.Contacts.ContactValue,
 			CCCNumber:     identifier.IdentifierValue,
-			MFLCODE:       appointmentMFLCode,
+			MFLCODE:       strconv.Itoa(facility.Code),
 		}
 
 		appointmentServiceRequests = append(appointmentServiceRequests, m)
@@ -1738,61 +1742,10 @@ func (d *MyCareHubDb) GetFacilitiesWithoutFHIRID(ctx context.Context) ([]*domain
 	return facilities, nil
 }
 
-// GetAppointmentByClientID reschedules an appointment
-func (d *MyCareHubDb) GetAppointmentByClientID(ctx context.Context, appointmentID string) (*domain.Appointment, error) {
-	appointment, err := d.query.GetAppointmentByID(ctx, appointmentID)
-	if err != nil {
-		helpers.ReportErrorToSentry(err)
-		return nil, err
-	}
-
-	appointmentDate, err := utils.ConvertTimeToScalarDate(appointment.Date)
-	if err != nil {
-		helpers.ReportErrorToSentry(err)
-		return nil, err
-	}
-	newAppointment := &domain.Appointment{
-		ID:         appointment.ID,
-		ExternalID: appointment.ExternalID,
-		Date:       appointmentDate,
-		Reason:     appointment.Reason,
-		ClientID:   appointment.ClientID,
-		FacilityID: appointment.FacilityID,
-		Provider:   appointment.Provider,
-	}
-
-	return newAppointment, nil
-}
-
-// GetAppointmentByExternalID fetches an appointment by the external ID
-func (d *MyCareHubDb) GetAppointmentByExternalID(ctx context.Context, externalID string) (*domain.Appointment, error) {
-	appointment, err := d.query.GetAppointmentByExternalID(ctx, externalID)
-	if err != nil {
-		helpers.ReportErrorToSentry(err)
-		return nil, err
-	}
-
-	appointmentDate, err := utils.ConvertTimeToScalarDate(appointment.Date)
-	if err != nil {
-		helpers.ReportErrorToSentry(err)
-		return nil, err
-	}
-	newAppointment := &domain.Appointment{
-		ID:         appointment.ID,
-		ExternalID: appointment.ExternalID,
-		Date:       appointmentDate,
-		Reason:     appointment.Reason,
-		ClientID:   appointment.ClientID,
-		FacilityID: appointment.FacilityID,
-		Provider:   appointment.Provider,
-	}
-
-	return newAppointment, nil
-}
-
-// GetAppointment fetches an appointment by the external ID
+// GetAppointment fetches an appointment given the provided parameters
 func (d *MyCareHubDb) GetAppointment(ctx context.Context, params domain.Appointment) (*domain.Appointment, error) {
 	parameters := &gorm.Appointment{
+		ID:         params.ID,
 		Active:     true,
 		ClientID:   params.ClientID,
 		Reason:     params.Reason,
