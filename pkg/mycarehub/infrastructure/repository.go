@@ -109,8 +109,6 @@ type Query interface {
 	GetAppointmentServiceRequests(ctx context.Context, lastSyncTime time.Time, facilityID string) ([]domain.AppointmentServiceRequests, error)
 	GetClientServiceRequests(ctx context.Context, requestType, status, clientID string) ([]*domain.ServiceRequest, error)
 	GetActiveScreeningToolResponses(ctx context.Context, clientID string) ([]*domain.ScreeningToolQuestionResponse, error)
-	GetAppointmentByClientID(ctx context.Context, clientID string) (*domain.Appointment, error)
-	GetAppointmentByExternalID(ctx context.Context, externalID string) (*domain.Appointment, error)
 	CheckAppointmentExistsByExternalID(ctx context.Context, externalID string) (bool, error)
 	GetUserSurveyForms(ctx context.Context, userID string) ([]*domain.UserSurvey, error)
 	GetAssessmentResponses(ctx context.Context, facilityID string, toolType string) ([]*domain.ScreeningToolAssessmentResponse, error)

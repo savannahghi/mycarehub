@@ -2,6 +2,7 @@ package gorm
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -10,6 +11,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
+	"gorm.io/gorm"
 )
 
 // Update represents all `update` operations to the database
@@ -134,7 +136,7 @@ func (db *PGInstance) UnlikeContent(context context.Context, userID string, cont
 
 	var contentLike ContentLike
 	if err := tx.Model(&ContentLike{}).Where(&ContentLike{UserID: userID, ContentID: contentID}).First(&contentLike).Error; err != nil {
-		if strings.Contains(err.Error(), "record not found") {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return true, nil
 		}
 		helpers.ReportErrorToSentry(err)
@@ -943,7 +945,7 @@ func (db *PGInstance) UpdateServiceRequests(ctx context.Context, payload []*Clie
 	}
 
 	for _, k := range payload {
-		err := db.DB.Model(&ClientServiceRequest{}).Where(&ClientServiceRequest{ID: k.ID, RequestType: k.RequestType}).Updates(map[string]interface{}{
+		err := db.DB.Model(&ClientServiceRequest{}).Where(&ClientServiceRequest{ID: k.ID}).Updates(map[string]interface{}{
 			"status":         k.Status,
 			"in_progress_at": k.InProgressAt,
 			"resolved_at":    k.ResolvedAt,

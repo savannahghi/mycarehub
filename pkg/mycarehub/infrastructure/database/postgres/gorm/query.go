@@ -2,6 +2,7 @@ package gorm
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -81,12 +82,9 @@ type Query interface {
 	GetHealthDiaryEntryByID(ctx context.Context, healthDiaryEntryID string) (*ClientHealthDiaryEntry, error)
 	GetServiceRequestByID(ctx context.Context, serviceRequestID string) (*ClientServiceRequest, error)
 	GetStaffProfileByStaffID(ctx context.Context, staffID string) (*StaffProfile, error)
-	GetAppointmentServiceRequests(ctx context.Context, lastSyncTime time.Time) ([]*ClientServiceRequest, error)
-	GetAppointmentByID(ctx context.Context, appointmentID string) (*Appointment, error)
+	GetAppointmentServiceRequests(ctx context.Context, lastSyncTime time.Time, facilityID string) ([]*ClientServiceRequest, error)
 	GetClientServiceRequests(ctx context.Context, requestType, status, clientID string) ([]*ClientServiceRequest, error)
 	GetActiveScreeningToolResponses(ctx context.Context, clientID string) ([]*ScreeningToolsResponse, error)
-	GetAppointmentByExternalID(ctx context.Context, externalID string) (*Appointment, error)
-	GetAppointmentByClientID(ctx context.Context, appointmentID, clientID string) (*Appointment, error)
 	CheckAppointmentExistsByExternalID(ctx context.Context, externalID string) (bool, error)
 	GetAnsweredScreeningToolQuestions(ctx context.Context, facilityID string, toolType string) ([]*ScreeningToolsResponse, error)
 	GetClientScreeningToolResponsesByToolType(ctx context.Context, clientID, toolType string, active bool) ([]*ScreeningToolsResponse, error)
@@ -103,7 +101,7 @@ type Query interface {
 func (db *PGInstance) CheckWhetherUserHasLikedContent(ctx context.Context, userID string, contentID int) (bool, error) {
 	var contentItemLike ContentLike
 	if err := db.DB.Where(&ContentLike{UserID: userID, ContentID: contentID}).First(&contentItemLike).Error; err != nil {
-		if strings.Contains(err.Error(), "record not found") {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return false, nil
 		}
 		helpers.ReportErrorToSentry(err)
@@ -175,7 +173,7 @@ func (db *PGInstance) CheckIfPhoneNumberExists(ctx context.Context, phone string
 	}
 	err := db.DB.Model(&Contact{}).Where(&Contact{ContactValue: phone, OptedIn: isOptedIn, Flavour: flavour}).First(&contact).Error
 	if err != nil {
-		if strings.Contains(err.Error(), "record not found") {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return false, nil
 		}
 		helpers.ReportErrorToSentry(err)
@@ -530,7 +528,7 @@ func (db *PGInstance) VerifyOTP(ctx context.Context, payload *dto.VerifyOTPInput
 
 	err := db.DB.Model(&UserOTP{}).Where(&UserOTP{PhoneNumber: payload.PhoneNumber, Valid: true, OTP: payload.OTP, Flavour: payload.Flavour}).First(&userOTP).Error
 	if err != nil {
-		if strings.Contains(err.Error(), "record not found") {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return false, nil
 		}
 		helpers.ReportErrorToSentry(err)
@@ -677,7 +675,7 @@ func (db *PGInstance) CheckIfUserBookmarkedContent(ctx context.Context, userID s
 	var contentBookmark ContentBookmark
 	err := db.DB.Where(&ContentBookmark{ContentID: contentID, UserID: userID}).First(&contentBookmark).Error
 	if err != nil {
-		if strings.Contains(err.Error(), "record not found") {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return false, nil
 		}
 		helpers.ReportErrorToSentry(err)
@@ -1014,7 +1012,7 @@ func (db *PGInstance) CheckIfUsernameExists(ctx context.Context, username string
 	var user User
 	err := db.DB.Where(&User{Username: username}).First(&user).Error
 	if err != nil {
-		if strings.Contains(err.Error(), gorm.ErrRecordNotFound.Error()) {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return false, nil
 		}
 		return false, fmt.Errorf("failed to check if username exists: %v", err)
@@ -1043,7 +1041,7 @@ func (db *PGInstance) CheckIdentifierExists(ctx context.Context, identifierType 
 
 	err := db.DB.Where(&Identifier{IdentifierType: identifierType, IdentifierValue: identifierValue, Active: true}).First(&identifier).Error
 	if err != nil {
-		if strings.Contains(err.Error(), gorm.ErrRecordNotFound.Error()) {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return false, nil
 		}
 		helpers.ReportErrorToSentry(err)
@@ -1058,7 +1056,7 @@ func (db *PGInstance) CheckIdentifierExists(ctx context.Context, identifierType 
 func (db *PGInstance) CheckFacilityExistsByMFLCode(ctx context.Context, MFLCode int) (bool, error) {
 	_, err := db.RetrieveFacilityByMFLCode(ctx, MFLCode, true)
 	if err != nil {
-		if strings.Contains(err.Error(), gorm.ErrRecordNotFound.Error()) {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return false, nil
 		}
 		helpers.ReportErrorToSentry(err)
@@ -1279,12 +1277,13 @@ func (db *PGInstance) GetServiceRequestByID(ctx context.Context, serviceRequestI
 }
 
 // GetAppointmentServiceRequests returns all appointments service requests that have been updated since the last sync time
-func (db *PGInstance) GetAppointmentServiceRequests(ctx context.Context, lastSyncTime time.Time) ([]*ClientServiceRequest, error) {
+func (db *PGInstance) GetAppointmentServiceRequests(ctx context.Context, lastSyncTime time.Time, facilityID string) ([]*ClientServiceRequest, error) {
 	var serviceRequests []*ClientServiceRequest
 	err := db.DB.Where("created > ?", lastSyncTime).
 		Where(&ClientServiceRequest{
 			RequestType: enums.ServiceRequestTypeAppointments.String(),
 			Status:      enums.ServiceRequestStatusPending.String(),
+			FacilityID:  facilityID,
 		}).
 		Find(&serviceRequests).Error
 	if err != nil {
@@ -1294,28 +1293,6 @@ func (db *PGInstance) GetAppointmentServiceRequests(ctx context.Context, lastSyn
 	return serviceRequests, nil
 }
 
-// GetAppointmentByID returns an appointment by ID
-func (db *PGInstance) GetAppointmentByID(ctx context.Context, appointmentID string) (*Appointment, error) {
-	var appointment Appointment
-	err := db.DB.Where(&Appointment{ID: appointmentID}).First(&appointment).Error
-	if err != nil {
-		helpers.ReportErrorToSentry(err)
-		return nil, fmt.Errorf("failed to get appointment by ID: %v", err)
-	}
-	return &appointment, nil
-}
-
-// GetAppointmentByClientID returns a client appointment by ID
-func (db *PGInstance) GetAppointmentByClientID(ctx context.Context, appointmentID, clientID string) (*Appointment, error) {
-	var appointment Appointment
-	err := db.DB.Where(&Appointment{ID: appointmentID, ClientID: clientID}).First(&appointment).Error
-	if err != nil {
-		helpers.ReportErrorToSentry(err)
-		return nil, fmt.Errorf("failed to get client appointment by ID: %v", err)
-	}
-	return &appointment, nil
-}
-
 // GetAppointment returns an appointment by provided params
 func (db *PGInstance) GetAppointment(ctx context.Context, params *Appointment) (*Appointment, error) {
 	var appointment Appointment
@@ -1323,17 +1300,6 @@ func (db *PGInstance) GetAppointment(ctx context.Context, params *Appointment) (
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed to get appointment by ID: %w", err)
-	}
-	return &appointment, nil
-}
-
-// GetAppointmentByExternalID returns an appointment by shared external appointment id
-func (db *PGInstance) GetAppointmentByExternalID(ctx context.Context, externalID string) (*Appointment, error) {
-	var appointment Appointment
-	err := db.DB.Where(&Appointment{ExternalID: externalID}).First(&appointment).Error
-	if err != nil {
-		helpers.ReportErrorToSentry(err)
-		return nil, fmt.Errorf("failed to get appointment by appointment UUID: %v", err)
 	}
 	return &appointment, nil
 }
@@ -1372,7 +1338,7 @@ func (db *PGInstance) CheckAppointmentExistsByExternalID(ctx context.Context, ex
 	var appointment Appointment
 	err := db.DB.Where(&Appointment{ExternalID: externalID}).First(&appointment).Error
 	if err != nil {
-		if strings.Contains(err.Error(), gorm.ErrRecordNotFound.Error()) {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return false, nil
 		}
 		helpers.ReportErrorToSentry(err)

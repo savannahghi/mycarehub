@@ -203,9 +203,10 @@ func (a *UseCasesAppointmentsImpl) UpdateKenyaEMRAppointments(ctx context.Contex
 		return nil, fmt.Errorf("failed to get client profile by CCC number")
 	}
 
-	appointment, err := a.Query.GetAppointmentByExternalID(ctx, input.ExternalID)
+	filter := domain.Appointment{ExternalID: input.ExternalID}
+	appointment, err := a.Query.GetAppointment(ctx, filter)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get appointment by UUID")
+		return nil, fmt.Errorf("failed to get appointment using external id")
 	}
 
 	updates := map[string]interface{}{
@@ -428,20 +429,18 @@ func (a *UseCasesAppointmentsImpl) GetAppointmentServiceRequests(ctx context.Con
 
 	mflCode := strconv.Itoa(payload.MFLCode)
 
+	response := &dto.AppointmentServiceRequestsOutput{
+		AppointmentServiceRequests: []domain.AppointmentServiceRequests{},
+	}
+
 	appointmentServiceRequests, err := a.Query.GetAppointmentServiceRequests(ctx, *payload.LastSyncTime, mflCode)
 	if err != nil {
 		return nil, fmt.Errorf("error getting appointment service requests: %v", err)
 	}
 
-	if appointmentServiceRequests == nil {
-		return &dto.AppointmentServiceRequestsOutput{
-			AppointmentServiceRequests: []domain.AppointmentServiceRequests{},
-		}, nil
-	}
+	response.AppointmentServiceRequests = appointmentServiceRequests
 
-	return &dto.AppointmentServiceRequestsOutput{
-		AppointmentServiceRequests: appointmentServiceRequests,
-	}, nil
+	return response, nil
 }
 
 // RescheduleClientAppointment creates a service request to reschedule a client appointment
@@ -450,9 +449,10 @@ func (a *UseCasesAppointmentsImpl) RescheduleClientAppointment(ctx context.Conte
 		return false, fmt.Errorf("invalid input provided")
 	}
 
-	appointment, err := a.Query.GetAppointmentByClientID(ctx, appointmentID)
+	filter := domain.Appointment{ID: appointmentID}
+	appointment, err := a.Query.GetAppointment(ctx, filter)
 	if err != nil {
-		return false, fmt.Errorf("error getting client appointment: %v", err)
+		return false, fmt.Errorf("error getting client appointment: %w", err)
 	}
 
 	client, err := a.Query.GetClientProfileByClientID(ctx, appointment.ClientID)

@@ -52,6 +52,18 @@ func TestMain(m *testing.M) {
 	ctx := context.Background()
 	c = getstream.NewServiceGetStream(streamClient)
 
+	// create origin test user
+	testChanneMember := stream.User{
+		ID:        testChannelOwner,
+		Name:      "testChannelOwner",
+		Invisible: false,
+	}
+	_, err := c.CreateGetStreamUser(ctx, &testChanneMember)
+	if err != nil {
+		fmt.Printf("ChatClient.CreateGetStreamUser() error = %v", err)
+		return
+	}
+
 	// Create a test channel
 	ch, err = c.CreateChannel(ctx, channelType, channelID, testChannelOwner, nil)
 	if err != nil {
