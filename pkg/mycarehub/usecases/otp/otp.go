@@ -15,14 +15,20 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
+	"github.com/savannahghi/serverutils"
 
 	"github.com/savannahghi/profileutils"
 )
 
 const (
-	otpMessage      = "%s is your %v verification code"
+	otpMessage      = "%s is your %v verification code %v"
 	consumerAppName = "myAfyaHub"
 	proAppName      = "myCareHub Professional"
+)
+
+var (
+	consumerAppIdentifier = serverutils.MustGetEnvVar("CONSUMER_APP_IDENTIFIER")
+	proAppIdentifier      = serverutils.MustGetEnvVar("PRO_APP_IDENTIFIER")
 )
 
 // IGenerateOTP specifies the method signature for generating an OTP
@@ -125,9 +131,9 @@ func (o *UseCaseOTPImpl) GenerateAndSendOTP(
 	var message string
 	switch flavour {
 	case feedlib.FlavourConsumer:
-		message = fmt.Sprintf(otpMessage, otp, consumerAppName)
+		message = fmt.Sprintf(otpMessage, otp, consumerAppName, consumerAppIdentifier)
 	case feedlib.FlavourPro:
-		message = fmt.Sprintf(otpMessage, otp, proAppName)
+		message = fmt.Sprintf(otpMessage, otp, proAppName, proAppIdentifier)
 	}
 
 	otp, err = o.SendOTP(ctx, *phone, otp, message)
@@ -177,7 +183,7 @@ func (o *UseCaseOTPImpl) VerifyPhoneNumber(ctx context.Context, phone string, fl
 	exists, err := o.Query.CheckIfPhoneNumberExists(ctx, *phoneNumber, true, flavour)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return nil, fmt.Errorf("failed to check if phone exists: %v", err)
+		return nil, fmt.Errorf("failed to check if phone exists: %w", err)
 	}
 	if !exists {
 		return nil, fmt.Errorf("the provided phone number does not exist")
@@ -198,9 +204,9 @@ func (o *UseCaseOTPImpl) VerifyPhoneNumber(ctx context.Context, phone string, fl
 	var message string
 	switch flavour {
 	case feedlib.FlavourConsumer:
-		message = fmt.Sprintf(otpMessage, otp, consumerAppName)
+		message = fmt.Sprintf(otpMessage, otp, consumerAppName, consumerAppIdentifier)
 	case feedlib.FlavourPro:
-		message = fmt.Sprintf(otpMessage, otp, proAppName)
+		message = fmt.Sprintf(otpMessage, otp, proAppName, proAppIdentifier)
 	}
 
 	otp, err = o.SendOTP(ctx, phone, otp, message)
@@ -223,7 +229,7 @@ func (o *UseCaseOTPImpl) VerifyPhoneNumber(ctx context.Context, phone string, fl
 	err = o.Create.SaveOTP(ctx, otpDataPayload)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return nil, fmt.Errorf("failed to save otp: %v", err)
+		return nil, fmt.Errorf("failed to save otp: %w", err)
 	}
 
 	return &profileutils.OtpResponse{
@@ -270,7 +276,7 @@ func (o *UseCaseOTPImpl) GenerateRetryOTP(ctx context.Context, payload *dto.Send
 	err = o.Create.SaveOTP(ctx, otpResponsePayload)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return "", fmt.Errorf("failed to save otp: %v", err)
+		return "", fmt.Errorf("failed to save otp: %w", err)
 	}
 
 	return retryResponseOTP, nil
@@ -296,7 +302,7 @@ func (o *UseCaseOTPImpl) SendOTP(
 		err := o.ExternalExt.SendSMSViaTwilio(ctx, phoneNumber, message)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
-			return "", fmt.Errorf("sms not sent via twilio: %v", err)
+			return "", fmt.Errorf("sms not sent via twilio: %w", err)
 		}
 	}
 	return code, nil
