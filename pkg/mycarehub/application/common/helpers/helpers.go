@@ -11,10 +11,13 @@ import (
 	sentry "github.com/getsentry/sentry-go"
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/firebasetools"
+	"github.com/savannahghi/interserviceclient"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/serverutils"
+	"github.com/sirupsen/logrus"
 )
 
 const (
@@ -136,4 +139,20 @@ func ComposeNotificationPayload(userProfile *domain.User, notificationData dto.F
 			Body:  notificationData.Body,
 		},
 	}
+}
+
+// NewInterServiceClient initializes an external service in the correct environment given its name
+func NewInterServiceClient(serviceName string, ext extension.ExternalMethodsExtension) *interserviceclient.InterServiceClient {
+	config, err := ext.LoadDepsFromYAML()
+	if err != nil {
+		logrus.Panicf("occurred while opening deps file %v", err)
+		return nil
+	}
+
+	client, err := ext.SetupISCclient(*config, serviceName)
+	if err != nil {
+		logrus.Panicf("unable to initialize inter service client for %v service: %s", err, serviceName)
+		return nil
+	}
+	return client
 }

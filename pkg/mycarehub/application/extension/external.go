@@ -29,6 +29,25 @@ const (
 	DjangoAuthorizationToken = "DJANGO_AUTHORIZATION_TOKEN"
 )
 
+// ISCClientExtension represents the base ISC client
+type ISCClientExtension interface {
+	MakeRequest(ctx context.Context, method string, path string, body interface{}) (*http.Response, error)
+}
+
+// ISCExtensionImpl ...
+type ISCExtensionImpl struct{}
+
+// NewISCExtension initializes an ISC extension
+func NewISCExtension() ISCClientExtension {
+	return &ISCExtensionImpl{}
+}
+
+// MakeRequest performs an inter service http request and returns a response
+func (i *ISCExtensionImpl) MakeRequest(ctx context.Context, method string, path string, body interface{}) (*http.Response, error) {
+	var isc interserviceclient.InterServiceClient
+	return isc.MakeRequest(ctx, method, path, body)
+}
+
 // ExternalMethodsExtension is an interface that represents methods that are
 // called from external libraries. Adding this layer will help write unit tests
 type ExternalMethodsExtension interface {
@@ -55,6 +74,8 @@ type ExternalMethodsExtension interface {
 	EnsureTopicsExist(ctx context.Context, pubsubClient *pubsub.Client, topicIDs []string) error
 	EnsureSubscriptionsExist(ctx context.Context, pubsubClient *pubsub.Client, topicSubscriptionMap map[string]string, callbackURL string) error
 	VerifyPubSubJWTAndDecodePayload(w http.ResponseWriter, r *http.Request) (*pubsubtools.PubSubPayload, error)
+	LoadDepsFromYAML() (*interserviceclient.DepsConfig, error)
+	SetupISCclient(config interserviceclient.DepsConfig, serviceName string) (*interserviceclient.InterServiceClient, error)
 }
 
 // External type implements external methods
@@ -259,4 +280,14 @@ func (e *External) EnsureSubscriptionsExist(ctx context.Context, pubsubClient *p
 // push notifications.
 func (e *External) VerifyPubSubJWTAndDecodePayload(w http.ResponseWriter, r *http.Request) (*pubsubtools.PubSubPayload, error) {
 	return pubsubtools.VerifyPubSubJWTAndDecodePayload(w, r)
+}
+
+// LoadDepsFromYAML loads the dependencies from the supplied YAML file
+func (e *External) LoadDepsFromYAML() (*interserviceclient.DepsConfig, error) {
+	return interserviceclient.LoadDepsFromYAML()
+}
+
+// SetupISCclient sets up an interservice client
+func (e *External) SetupISCclient(config interserviceclient.DepsConfig, serviceName string) (*interserviceclient.InterServiceClient, error) {
+	return interserviceclient.SetupISCclient(config, serviceName)
 }

@@ -1,7 +1,10 @@
 package mock
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
+	"io/ioutil"
 	"net/http"
 
 	"cloud.google.com/go/pubsub"
@@ -37,6 +40,8 @@ type FakeExtensionImpl struct {
 	MockEnsureTopicsExistFn               func(ctx context.Context, pubsubClient *pubsub.Client, topicIDs []string) error
 	MockEnsureSubscriptionsExistFn        func(ctx context.Context, pubsubClient *pubsub.Client, topicSubscriptionMap map[string]string, callbackURL string) error
 	MockVerifyPubSubJWTAndDecodePayloadFn func(w http.ResponseWriter, r *http.Request) (*pubsubtools.PubSubPayload, error)
+	MockLoadDepsFromYAMLFn                func() (*interserviceclient.DepsConfig, error)
+	MockSetupISCclientFn                  func(config interserviceclient.DepsConfig, serviceName string) (*interserviceclient.InterServiceClient, error)
 }
 
 // NewFakeExtension initializes a new instance of the external calls mock
@@ -117,6 +122,22 @@ func NewFakeExtension() *FakeExtensionImpl {
 					},
 				},
 				Subscription: "test-subscription",
+			}, nil
+		},
+		MockLoadDepsFromYAMLFn: func() (*interserviceclient.DepsConfig, error) {
+			return &interserviceclient.DepsConfig{
+				Staging: []interserviceclient.Dep{
+					{
+						DepName:       "staging",
+						DepRootDomain: "https://clinical-staging.savannahghi.org",
+					},
+				},
+			}, nil
+		},
+		MockSetupISCclientFn: func(config interserviceclient.DepsConfig, serviceName string) (*interserviceclient.InterServiceClient, error) {
+			return &interserviceclient.InterServiceClient{
+				Name:              "clinical",
+				RequestRootDomain: "https://clinical-staging.savannahghi.org",
 			}, nil
 		},
 	}
@@ -234,4 +255,46 @@ func (f *FakeExtensionImpl) EnsureSubscriptionsExist(ctx context.Context, pubsub
 // push notifications.
 func (f *FakeExtensionImpl) VerifyPubSubJWTAndDecodePayload(w http.ResponseWriter, r *http.Request) (*pubsubtools.PubSubPayload, error) {
 	return f.MockVerifyPubSubJWTAndDecodePayloadFn(w, r)
+}
+
+// LoadDepsFromYAML mocks the load deps from yaml method
+func (f *FakeExtensionImpl) LoadDepsFromYAML() (*interserviceclient.DepsConfig, error) {
+	return f.MockLoadDepsFromYAMLFn()
+}
+
+// SetupISCclient mocks the setup isc client method
+func (f *FakeExtensionImpl) SetupISCclient(config interserviceclient.DepsConfig, serviceName string) (*interserviceclient.InterServiceClient, error) {
+	return f.MockSetupISCclientFn(config, serviceName)
+}
+
+// FakeISCClientExtensionImpl mocks ISC calls logic
+type FakeISCClientExtensionImpl struct {
+	MockMakeRequestFn func(ctx context.Context, method string, path string, body interface{}) (*http.Response, error)
+}
+
+// NewFakeISCClientExtension initializes a new instance of the isc calls mock
+func NewFakeISCClientExtension() *FakeISCClientExtensionImpl {
+	return &FakeISCClientExtensionImpl{
+		MockMakeRequestFn: func(ctx context.Context, method string, path string, body interface{}) (*http.Response, error) {
+			input := dto.PhoneInput{
+				PhoneNumber: interserviceclient.TestUserPhoneNumber,
+			}
+
+			payload, err := json.Marshal(input)
+			if err != nil {
+				return nil, err
+			}
+
+			return &http.Response{
+				StatusCode: http.StatusOK,
+				Status:     "OK",
+				Body:       ioutil.NopCloser(bytes.NewBuffer(payload)),
+			}, nil
+		},
+	}
+}
+
+// MakeRequest mocks the make request method
+func (f *FakeISCClientExtensionImpl) MakeRequest(ctx context.Context, method string, path string, body interface{}) (*http.Response, error) {
+	return f.MockMakeRequestFn(ctx, method, path, body)
 }

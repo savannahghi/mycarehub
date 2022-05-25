@@ -27,6 +27,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
+	clinicalservice "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/clinical"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/getstream"
 	pubsubmessaging "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/pubsub"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/authority"
@@ -38,7 +39,6 @@ import (
 var (
 	registerClientAPIEndpoint = serverutils.MustGetEnvVar("CLIENT_REGISTRATION_URL")
 	registerStaffAPIEndpoint  = serverutils.MustGetEnvVar("STAFF_REGISTRATION_URL")
-	deleteFHIRPatientEndpoint = serverutils.MustGetEnvVar("DELETE_FHIR_PATIENT_URL")
 )
 
 // ILogin is an interface that contans login related methods
@@ -172,6 +172,7 @@ type UseCasesUserImpl struct {
 	Authority   authority.UsecaseAuthority
 	GetStream   getstream.ServiceGetStream
 	Pubsub      pubsubmessaging.ServicePubsub
+	Clinical    clinicalservice.ServiceClinical
 }
 
 // NewUseCasesUserImpl returns a new user service
@@ -186,6 +187,9 @@ func NewUseCasesUserImpl(
 	getstream getstream.ServiceGetStream,
 	pubsub pubsubmessaging.ServicePubsub,
 ) *UseCasesUserImpl {
+	clinicalClient := helpers.NewInterServiceClient("clinical", externalExt)
+	clinical := clinicalservice.NewServiceClinical(clinicalClient, externalExt)
+
 	return &UseCasesUserImpl{
 		Create:      create,
 		Query:       query,
@@ -196,6 +200,7 @@ func NewUseCasesUserImpl(
 		Authority:   authority,
 		GetStream:   getstream,
 		Pubsub:      pubsub,
+		Clinical:    clinical,
 	}
 }
 
@@ -1445,7 +1450,7 @@ func (us *UseCasesUserImpl) GetClientProfileByCCCNumber(ctx context.Context, ccc
 func (us *UseCasesUserImpl) DeleteUser(ctx context.Context, payload *dto.PhoneInput) (bool, error) {
 	user, err := us.Query.GetUserProfileByPhoneNumber(ctx, payload.PhoneNumber, payload.Flavour)
 	if err != nil {
-		return false, fmt.Errorf("error retrieving user: %v", err)
+		return false, fmt.Errorf("error retrieving user: %w", err)
 	}
 
 	switch payload.Flavour {
@@ -1453,58 +1458,58 @@ func (us *UseCasesUserImpl) DeleteUser(ctx context.Context, payload *dto.PhoneIn
 		client, err := us.Query.GetClientProfileByUserID(ctx, *user.ID)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
-			return false, fmt.Errorf("error retrieving client profile: %v", err)
+			return false, fmt.Errorf("error retrieving client profile: %w", err)
 		}
 
 		if client.FHIRPatientID != nil {
-			_, err := us.DeleteFHIRPatient(ctx, payload)
+			_, err := us.Clinical.DeleteFHIRPatientByPhone(ctx, payload.PhoneNumber)
 			if err != nil {
 				helpers.ReportErrorToSentry(err)
-				return false, fmt.Errorf("error retrieving client profile: %v", err)
+				return false, fmt.Errorf("unable to delete fhir patient: %w", err)
 			}
 		}
 
 		_, err = us.DeleteStreamUser(ctx, *client.ID)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
-			return false, fmt.Errorf("error deleting stream user: %v", err)
+			return false, fmt.Errorf("error deleting stream user: %w", err)
 		}
 
 		_, err = us.Delete.DeleteClientProfile(ctx, *client.ID)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
-			return false, fmt.Errorf("error delete client profile: %v", err)
+			return false, fmt.Errorf("error delete client profile: %w", err)
 		}
 
 		_, err = us.Delete.DeleteUser(ctx, *user.ID)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
-			return false, fmt.Errorf("error deleting user profile: %v", err)
+			return false, fmt.Errorf("error deleting user profile: %w", err)
 		}
 
 	case feedlib.FlavourPro:
 		staff, err := us.Query.GetStaffProfileByUserID(ctx, *user.ID)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
-			return false, fmt.Errorf("error retrieving staff profile: %v", err)
+			return false, fmt.Errorf("error retrieving staff profile: %w", err)
 		}
 
 		_, err = us.DeleteStreamUser(ctx, *staff.ID)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
-			return false, fmt.Errorf("error deleting stream user: %v", err)
+			return false, fmt.Errorf("error deleting stream user: %w", err)
 		}
 
 		_, err = us.Delete.DeleteStaffProfile(ctx, *staff.ID)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
-			return false, fmt.Errorf("error deleting staff profile: %v", err)
+			return false, fmt.Errorf("error deleting staff profile: %w", err)
 		}
 
 		_, err = us.Delete.DeleteUser(ctx, *user.ID)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
-			return false, fmt.Errorf("error deleting user profile: %v", err)
+			return false, fmt.Errorf("error deleting user profile: %w", err)
 		}
 
 	default:
@@ -1526,27 +1531,6 @@ func (us *UseCasesUserImpl) DeleteStreamUser(ctx context.Context, id string) (bo
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return false, fmt.Errorf("error deleting stream user: %v", err)
-	}
-	return true, nil
-}
-
-// DeleteFHIRPatient is a helper used to make an ISC call to the delete a FHIR patient endpoint using their phone number
-// to delete a patient from FHIR
-func (us *UseCasesUserImpl) DeleteFHIRPatient(ctx context.Context, payload *dto.PhoneInput) (bool, error) {
-	resp, err := us.ExternalExt.MakeRequest(ctx, http.MethodDelete, deleteFHIRPatientEndpoint, payload.PhoneNumber)
-	if err != nil {
-		helpers.ReportErrorToSentry(err)
-		return false, fmt.Errorf("failed to make request: %v", err)
-	}
-
-	dataResponse, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		helpers.ReportErrorToSentry(err)
-		return false, fmt.Errorf("failed to read response body: %v", err)
-	}
-
-	if resp.StatusCode != 200 {
-		return false, fmt.Errorf("failed to delete fhir patient: %v", string(dataResponse))
 	}
 	return true, nil
 }
