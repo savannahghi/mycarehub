@@ -1039,16 +1039,23 @@ func (d *MyCareHubDb) GetClientsInAFacility(ctx context.Context, facilityID stri
 func (d *MyCareHubDb) GetRecentHealthDiaryEntries(
 	ctx context.Context,
 	lastSyncTime time.Time,
-	clientID string,
+	client *domain.ClientProfile,
 ) ([]*domain.ClientHealthDiaryEntry, error) {
 	var healthDiaryEntries []*domain.ClientHealthDiaryEntry
-	clientHealthDiaryEntry, err := d.query.GetRecentHealthDiaryEntries(ctx, lastSyncTime, clientID)
+	clientHealthDiaryEntry, err := d.query.GetRecentHealthDiaryEntries(ctx, lastSyncTime, *client.ID)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, err
 	}
 
-	clientIdentifier, err := d.GetClientCCCIdentifier(ctx, clientID)
+	clientIdentifier, err := d.GetClientCCCIdentifier(ctx, *client.ID)
+	if err != nil {
+		// This should not be blocking. In an event where an identifier value is not found, is should not
+		// fail and return
+		helpers.ReportErrorToSentry(err)
+	}
+
+	contact, err := d.query.GetContactByUserID(ctx, &client.UserID, "PHONE")
 	if err != nil {
 		// This should not be blocking. In an event where an identifier value is not found, is should not
 		// fail and return
@@ -1056,7 +1063,7 @@ func (d *MyCareHubDb) GetRecentHealthDiaryEntries(
 	}
 
 	for _, healthdiary := range clientHealthDiaryEntry {
-		if clientIdentifier == nil {
+		if clientIdentifier == nil || contact == nil {
 			continue
 		}
 		healthDiaryEntry := &domain.ClientHealthDiaryEntry{
@@ -1070,6 +1077,8 @@ func (d *MyCareHubDb) GetRecentHealthDiaryEntries(
 			ClientID:              healthdiary.ClientID,
 			CreatedAt:             healthdiary.CreatedAt,
 			CCCNumber:             clientIdentifier.IdentifierValue,
+			PhoneNumber:           contact.ContactValue,
+			ClientName:            client.User.Name,
 		}
 		healthDiaryEntries = append(healthDiaryEntries, healthDiaryEntry)
 	}

@@ -100,7 +100,7 @@ type PostgresMock struct {
 	MockGetOrCreateNextOfKin                             func(ctx context.Context, person *dto.NextOfKinPayload, clientID, contactID string) error
 	MockGetOrCreateContact                               func(ctx context.Context, contact *domain.Contact) (*domain.Contact, error)
 	MockGetClientsInAFacilityFn                          func(ctx context.Context, facilityID string) ([]*domain.ClientProfile, error)
-	MockGetRecentHealthDiaryEntriesFn                    func(ctx context.Context, lastSyncTime time.Time, clientID string) ([]*domain.ClientHealthDiaryEntry, error)
+	MockGetRecentHealthDiaryEntriesFn                    func(ctx context.Context, lastSyncTime time.Time, client *domain.ClientProfile) ([]*domain.ClientHealthDiaryEntry, error)
 	MockGetClientsByParams                               func(ctx context.Context, params gorm.Client, lastSyncTime *time.Time) ([]*domain.ClientProfile, error)
 	MockGetClientCCCIdentifier                           func(ctx context.Context, clientID string) (*domain.Identifier, error)
 	MockGetServiceRequestsForKenyaEMRFn                  func(ctx context.Context, payload *dto.ServiceRequestPayload) ([]*domain.ServiceRequest, error)
@@ -268,9 +268,9 @@ func NewPostgresMock() *PostgresMock {
 		Note:                  "test",
 		EntryType:             "test",
 		ShareWithHealthWorker: false,
-		SharedAt:              time.Time{},
+		SharedAt:              time.Now(),
 		ClientID:              ID,
-		CreatedAt:             time.Time{},
+		CreatedAt:             time.Now(),
 		PhoneNumber:           phone,
 		ClientName:            name,
 	}
@@ -410,9 +410,9 @@ func NewPostgresMock() *PostgresMock {
 				Note:                  "",
 				EntryType:             "",
 				ShareWithHealthWorker: false,
-				SharedAt:              time.Time{},
+				SharedAt:              time.Now(),
 				ClientID:              ID,
-				CreatedAt:             time.Time{},
+				CreatedAt:             time.Now(),
 				PhoneNumber:           phone,
 				ClientName:            name,
 			}, nil
@@ -749,7 +749,7 @@ func NewPostgresMock() *PostgresMock {
 		MockGetFacilitiesWithoutFHIRIDFn: func(ctx context.Context) ([]*domain.Facility, error) {
 			return []*domain.Facility{facilityInput}, nil
 		},
-		MockGetRecentHealthDiaryEntriesFn: func(ctx context.Context, lastSyncTime time.Time, clientID string) ([]*domain.ClientHealthDiaryEntry, error) {
+		MockGetRecentHealthDiaryEntriesFn: func(ctx context.Context, lastSyncTime time.Time, client *domain.ClientProfile) ([]*domain.ClientHealthDiaryEntry, error) {
 			return []*domain.ClientHealthDiaryEntry{
 				{
 					Active: true,
@@ -766,8 +766,8 @@ func NewPostgresMock() *PostgresMock {
 				IdentifierValue:     "123456",
 				IdentifierUse:       "OFFICIAL",
 				Description:         description,
-				ValidFrom:           time.Time{},
-				ValidTo:             time.Time{},
+				ValidFrom:           time.Now(),
+				ValidTo:             time.Now(),
 				IsPrimaryIdentifier: false,
 			}, nil
 		},
@@ -1457,8 +1457,8 @@ func (gm *PostgresMock) GetClientsInAFacility(ctx context.Context, facilityID st
 }
 
 // GetRecentHealthDiaryEntries mocks getting the most recent health diary entry
-func (gm *PostgresMock) GetRecentHealthDiaryEntries(ctx context.Context, lastSyncTime time.Time, clientID string) ([]*domain.ClientHealthDiaryEntry, error) {
-	return gm.MockGetRecentHealthDiaryEntriesFn(ctx, lastSyncTime, clientID)
+func (gm *PostgresMock) GetRecentHealthDiaryEntries(ctx context.Context, lastSyncTime time.Time, client *domain.ClientProfile) ([]*domain.ClientHealthDiaryEntry, error) {
+	return gm.MockGetRecentHealthDiaryEntriesFn(ctx, lastSyncTime, client)
 }
 
 // GetClientsByParams retrieves client profiles matching the provided parameters

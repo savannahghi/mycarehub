@@ -89,7 +89,7 @@ type Query interface {
 	CheckIdentifierExists(ctx context.Context, identifierType string, identifierValue string) (bool, error)
 	CheckFacilityExistsByMFLCode(ctx context.Context, MFLCode int) (bool, error)
 	GetClientsInAFacility(ctx context.Context, facilityID string) ([]*domain.ClientProfile, error)
-	GetRecentHealthDiaryEntries(ctx context.Context, lastSyncTime time.Time, clientID string) ([]*domain.ClientHealthDiaryEntry, error)
+	GetRecentHealthDiaryEntries(ctx context.Context, lastSyncTime time.Time, client *domain.ClientProfile) ([]*domain.ClientHealthDiaryEntry, error)
 	GetClientsByParams(ctx context.Context, params gorm.Client, lastSyncTime *time.Time) ([]*domain.ClientProfile, error)
 	GetClientCCCIdentifier(ctx context.Context, clientID string) (*domain.Identifier, error)
 	GetServiceRequestsForKenyaEMR(ctx context.Context, payload *dto.ServiceRequestPayload) ([]*domain.ServiceRequest, error)
