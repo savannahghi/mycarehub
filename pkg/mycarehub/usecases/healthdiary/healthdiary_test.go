@@ -401,7 +401,7 @@ func TestUseCasesHealthDiaryImpl_GetFacilityHealthDiaryEntries(t *testing.T) {
 			}
 
 			if tt.name == "Sad Case - Fail to get recent health diary entries" {
-				fakeDB.MockGetRecentHealthDiaryEntriesFn = func(ctx context.Context, lastSyncTime time.Time, clientID string) ([]*domain.ClientHealthDiaryEntry, error) {
+				fakeDB.MockGetRecentHealthDiaryEntriesFn = func(ctx context.Context, lastSyncTime time.Time, client *domain.ClientProfile) ([]*domain.ClientHealthDiaryEntry, error) {
 					return nil, fmt.Errorf("failed to get recent health diary entries")
 				}
 			}

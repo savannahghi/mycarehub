@@ -252,7 +252,7 @@ func NewGetStreamServiceMock() *GetStreamServiceMock {
 						Reason:    "",
 						Shadow:    false,
 						BannedBy:  &stream.User{},
-						CreatedAt: time.Time{},
+						CreatedAt: time.Now(),
 					},
 				},
 				Response: stream.Response{

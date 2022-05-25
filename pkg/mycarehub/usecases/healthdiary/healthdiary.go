@@ -45,7 +45,7 @@ type IGetRandomQuote interface {
 type IGetClientHealthDiaryEntry interface {
 	GetClientHealthDiaryEntries(ctx context.Context, clientID string) ([]*domain.ClientHealthDiaryEntry, error)
 	GetFacilityHealthDiaryEntries(ctx context.Context, input dto.FetchHealthDiaryEntries) (*dto.HealthDiaryEntriesResponse, error)
-	GetRecentHealthDiaryEntries(ctx context.Context, lastSyncTime time.Time, clientID string) ([]*domain.ClientHealthDiaryEntry, error)
+	GetRecentHealthDiaryEntries(ctx context.Context, lastSyncTime time.Time, client *domain.ClientProfile) ([]*domain.ClientHealthDiaryEntry, error)
 	GetSharedHealthDiaryEntries(ctx context.Context, clientID string, facilityID string) ([]*domain.ClientHealthDiaryEntry, error)
 }
 
@@ -205,7 +205,7 @@ func (h UseCasesHealthDiaryImpl) GetFacilityHealthDiaryEntries(ctx context.Conte
 	}
 
 	for _, client := range clients {
-		healthDiaryEntry, err := h.GetRecentHealthDiaryEntries(ctx, *input.LastSyncTime, *client.ID)
+		healthDiaryEntry, err := h.GetRecentHealthDiaryEntries(ctx, *input.LastSyncTime, client)
 		if err != nil {
 			return nil, fmt.Errorf("failed to fetch client health diary entries: %v", err)
 		}
@@ -217,8 +217,8 @@ func (h UseCasesHealthDiaryImpl) GetFacilityHealthDiaryEntries(ctx context.Conte
 
 // GetRecentHealthDiaryEntries fetches the most recent health diary entries. It returns the new entries
 // that were added after the last synced time. This will help KenyEMR module fetch for new health diary entries
-func (h UseCasesHealthDiaryImpl) GetRecentHealthDiaryEntries(ctx context.Context, lastSyncTime time.Time, clientID string) ([]*domain.ClientHealthDiaryEntry, error) {
-	return h.Query.GetRecentHealthDiaryEntries(ctx, lastSyncTime, clientID)
+func (h UseCasesHealthDiaryImpl) GetRecentHealthDiaryEntries(ctx context.Context, lastSyncTime time.Time, client *domain.ClientProfile) ([]*domain.ClientHealthDiaryEntry, error) {
+	return h.Query.GetRecentHealthDiaryEntries(ctx, lastSyncTime, client)
 }
 
 // ShareHealthDiaryEntry create a service request when the client opts to share their service request

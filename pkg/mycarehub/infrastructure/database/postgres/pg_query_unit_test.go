@@ -3427,10 +3427,12 @@ func TestMyCareHubDb_GetClientsInAFacility(t *testing.T) {
 
 func TestMyCareHubDb_GetRecentHealthDiaryEntries(t *testing.T) {
 	ctx := context.Background()
+	id := gofakeit.UUID()
+
 	type args struct {
 		ctx          context.Context
 		lastSyncTime time.Time
-		clientID     string
+		client       *domain.ClientProfile
 	}
 	tests := []struct {
 		name    string
@@ -3441,8 +3443,14 @@ func TestMyCareHubDb_GetRecentHealthDiaryEntries(t *testing.T) {
 			name: "Happy Case - Successfully get recent health diary entries",
 			args: args{
 				ctx:          ctx,
-				lastSyncTime: time.Time{},
-				clientID:     "1234",
+				lastSyncTime: time.Now(),
+				client: &domain.ClientProfile{
+					ID:     &id,
+					UserID: id,
+					User: &domain.User{
+						Name: gofakeit.Name(),
+					},
+				},
 			},
 			wantErr: false,
 		},
@@ -3450,8 +3458,14 @@ func TestMyCareHubDb_GetRecentHealthDiaryEntries(t *testing.T) {
 			name: "Sad Case - Fail to get recent entries",
 			args: args{
 				ctx:          ctx,
-				lastSyncTime: time.Time{},
-				clientID:     "1234",
+				lastSyncTime: time.Now(),
+				client: &domain.ClientProfile{
+					ID:     &id,
+					UserID: id,
+					User: &domain.User{
+						Name: gofakeit.Name(),
+					},
+				},
 			},
 			wantErr: true,
 		},
@@ -3467,7 +3481,7 @@ func TestMyCareHubDb_GetRecentHealthDiaryEntries(t *testing.T) {
 				}
 			}
 
-			got, err := d.GetRecentHealthDiaryEntries(tt.args.ctx, tt.args.lastSyncTime, tt.args.clientID)
+			got, err := d.GetRecentHealthDiaryEntries(tt.args.ctx, tt.args.lastSyncTime, tt.args.client)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("MyCareHubDb.GetRecentHealthDiaryEntries() error = %v, wantErr %v", err, tt.wantErr)
 				return
