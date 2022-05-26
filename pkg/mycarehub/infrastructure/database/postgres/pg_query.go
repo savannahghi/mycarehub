@@ -290,38 +290,38 @@ func (d *MyCareHubDb) GetClientProfileByUserID(ctx context.Context, userID strin
 		return nil, fmt.Errorf("user ID must be defined")
 	}
 
-	response, err := d.query.GetClientProfileByUserID(ctx, userID)
+	client, err := d.query.GetClientProfileByUserID(ctx, userID)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, err
 	}
 
 	var clientList []enums.ClientType
-	for _, k := range response.ClientTypes {
+	for _, k := range client.ClientTypes {
 		clientList = append(clientList, enums.ClientType(k))
 	}
 
-	facility, err := d.query.RetrieveFacility(ctx, &response.FacilityID, true)
+	facility, err := d.query.RetrieveFacility(ctx, &client.FacilityID, true)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, err
 	}
 
-	user := createMapUser(&response.User)
+	user := createMapUser(&client.User)
 	return &domain.ClientProfile{
-		ID:                      response.ID,
+		ID:                      client.ID,
 		User:                    user,
-		Active:                  response.Active,
+		Active:                  client.Active,
 		ClientTypes:             clientList,
-		TreatmentEnrollmentDate: response.TreatmentEnrollmentDate,
-		FHIRPatientID:           response.FHIRPatientID,
-		HealthRecordID:          response.HealthRecordID,
-		TreatmentBuddy:          response.TreatmentBuddy,
-		ClientCounselled:        response.ClientCounselled,
-		OrganisationID:          response.OrganisationID,
-		FacilityID:              response.FacilityID,
+		TreatmentEnrollmentDate: client.TreatmentEnrollmentDate,
+		FHIRPatientID:           client.FHIRPatientID,
+		HealthRecordID:          client.HealthRecordID,
+		TreatmentBuddy:          client.TreatmentBuddy,
+		ClientCounselled:        client.ClientCounselled,
+		OrganisationID:          client.OrganisationID,
+		FacilityID:              client.FacilityID,
 		FacilityName:            facility.Name,
-		CHVUserID:               response.CHVUserID,
+		CHVUserID:               client.CHVUserID,
 	}, nil
 }
 

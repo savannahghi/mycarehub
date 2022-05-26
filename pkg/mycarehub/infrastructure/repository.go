@@ -127,10 +127,6 @@ type Update interface {
 	ReactivateFacility(ctx context.Context, mflCode *int) (bool, error)
 	UpdateFacility(ctx context.Context, facility *domain.Facility, updateData map[string]interface{}) error
 	AcceptTerms(ctx context.Context, userID *string, termsID *int) (bool, error)
-	UpdateUserFailedLoginCount(ctx context.Context, userID string, failedLoginAttempts int) error
-	UpdateUserLastFailedLoginTime(ctx context.Context, userID string) error
-	UpdateUserNextAllowedLoginTime(ctx context.Context, userID string, nextAllowedLoginTime time.Time) error
-	UpdateUserProfileAfterLoginSuccess(ctx context.Context, userID string) error
 	SetNickName(ctx context.Context, userID *string, nickname *string) (bool, error)
 	CompleteOnboardingTour(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
 	InvalidatePIN(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)

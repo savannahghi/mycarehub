@@ -18,12 +18,6 @@ const (
 	// Other Filter category Types
 )
 
-// FacilityFilterCategoryTypes represents a slice of all possible `FilterCategoryTypes` values
-var FacilityFilterCategoryTypes = []FilterSortCategoryType{
-	FilterSortCategoryTypeFacility,
-	FilterSortCategoryTypeSortFacility,
-}
-
 // IsValid returns true if an Filter category type is valid
 func (e FilterSortCategoryType) IsValid() bool {
 	switch e {

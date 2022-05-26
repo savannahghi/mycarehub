@@ -23,14 +23,6 @@ const (
 	CaregiverTypeHealthCareProfessional CaregiverType = "HEALTHCARE_PROFESSIONAL"
 )
 
-// AllCaregivers is a set of a  valid and known sort types.
-var AllCaregivers = []CaregiverType{
-	CaregiverTypeFather,
-	CaregiverTypeMother,
-	CaregiverTypeSibling,
-	CaregiverTypeHealthCareProfessional,
-}
-
 // IsValid returns true if a sort is valid
 func (m CaregiverType) IsValid() bool {
 	switch m {

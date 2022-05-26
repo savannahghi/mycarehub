@@ -97,7 +97,7 @@ type Query interface {
 	GetClientsByFilterParams(ctx context.Context, facilityID string, filterParams *dto.ClientFilterParamsInput) ([]*Client, error)
 }
 
-// CheckWhetherUserHasLikedContent performs a operation to check whether user has liked the content
+// CheckWhetherUserHasLikedContent performs an operation to check whether user has liked the content
 func (db *PGInstance) CheckWhetherUserHasLikedContent(ctx context.Context, userID string, contentID int) (bool, error) {
 	var contentItemLike ContentLike
 	if err := db.DB.Where(&ContentLike{UserID: userID, ContentID: contentID}).First(&contentItemLike).Error; err != nil {
@@ -431,7 +431,7 @@ func (db *PGInstance) GetUserPINByUserID(ctx context.Context, userID string, fla
 	return &pin, nil
 }
 
-// GetCurrentTerms fetches the most most recent terms of service depending on the flavour
+// GetCurrentTerms fetches the most recent terms of service depending on the flavour
 func (db *PGInstance) GetCurrentTerms(ctx context.Context, flavour feedlib.Flavour) (*TermsOfService, error) {
 	var termsOfService TermsOfService
 	validTo := time.Now()
@@ -469,7 +469,7 @@ func (db *PGInstance) GetSecurityQuestionByID(ctx context.Context, securityQuest
 // GetNotification retrieve a notification using the provided ID
 func (db *PGInstance) GetNotification(ctx context.Context, notificationID string) (*Notification, error) {
 	var notification Notification
-	if err := db.DB.Where(&Notification{ID: notificationID}).First((&notification)).Error; err != nil {
+	if err := db.DB.Where(&Notification{ID: notificationID}).First(&notification).Error; err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed to get notification: %w", err)
 	}
@@ -573,7 +573,7 @@ func (db *PGInstance) SearchStaffProfileByStaffNumber(ctx context.Context, staff
 	return staff, nil
 }
 
-// CheckUserHasPin performs a look up on the pins table to check whether a user has a pin
+// CheckUserHasPin performs a look-up on the pins' table to check whether a user has a pin
 func (db *PGInstance) CheckUserHasPin(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
 	if !flavour.IsValid() {
 		return false, fmt.Errorf("invalid flavour defined")
@@ -1249,7 +1249,7 @@ func (db *PGInstance) GetHealthDiaryEntryByID(ctx context.Context, healthDiaryEn
 }
 
 // GetSharedHealthDiaryEntries gets the recently shared health diary entry shared by the client to a health care worker
-// and returns the the entry.
+// and returns the entry.
 // The health care worker will only see the entry as long as they share the same facility with the health care worker
 func (db *PGInstance) GetSharedHealthDiaryEntries(ctx context.Context, clientID string, facilityID string) ([]*ClientHealthDiaryEntry, error) {
 	var healthDiaryEntry []*ClientHealthDiaryEntry

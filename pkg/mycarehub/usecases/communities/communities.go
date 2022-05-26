@@ -81,7 +81,7 @@ type IRecommendations interface {
 	RecommendedCommunities(ctx context.Context, clientID string, limit int) ([]*domain.Community, error)
 }
 
-// IMessage interface is used to contains all the message related methods
+// IMessage interface is used to contain all the message related methods
 type IMessage interface {
 	DeleteCommunityMessage(ctx context.Context, messageID string) (bool, error)
 }
@@ -317,13 +317,13 @@ func (us *UseCasesCommunitiesImpl) InviteMembers(ctx context.Context, communityI
 		Community: community,
 		Inviter:   staffProfile.User,
 	}
-	notification := notification.ComposeClientNotification(
+	notificationMessage := notification.ComposeClientNotification(
 		enums.NotificationTypeCommunities,
 		notificationArgs,
 	)
 
 	for _, invitee := range invitees {
-		err = us.Notification.NotifyUser(ctx, &invitee, notification)
+		err = us.Notification.NotifyUser(ctx, &invitee, notificationMessage)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
 		}
@@ -490,7 +490,7 @@ func (us *UseCasesCommunitiesImpl) AddMembersToCommunity(ctx context.Context, me
 	return true, nil
 }
 
-// RejectInvite rejects an invite into a community
+// RejectInvite rejects an invitation into a community
 func (us *UseCasesCommunitiesImpl) RejectInvite(ctx context.Context, userID string, channelID string) (bool, error) {
 	message := &stream.Message{
 		ID: uuid.New().String(),
@@ -657,7 +657,7 @@ func (us *UseCasesCommunitiesImpl) UnBanUser(ctx context.Context, targetID strin
 }
 
 // RecommendedCommunities returns a list of communities that have been recommended to the user
-//the recomendations are based on the channel meta data and the client data; client type, age range, gender
+//the recommendations are based on the channel metadata and the client data; client type, age range, gender
 // e.g. if a channel's age range value is 25-30, and the client's age is between this range,
 // this channel will be recommended to the user if they have not joined
 func (us *UseCasesCommunitiesImpl) RecommendedCommunities(ctx context.Context, clientID string, limit int) ([]*domain.Community, error) {

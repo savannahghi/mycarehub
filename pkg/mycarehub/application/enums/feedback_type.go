@@ -16,12 +16,6 @@ const (
 	ServiceFeedbackType FeedbackType = "SERVICES_OFFERED"
 )
 
-// AllFeedbackTypes is a set of a  valid and known feedback types.
-var AllFeedbackTypes = []FeedbackType{
-	GeneralFeedbackType,
-	ServiceFeedbackType,
-}
-
 //IsValid returns true if a feedback type is valid
 func (f FeedbackType) IsValid() bool {
 	switch f {

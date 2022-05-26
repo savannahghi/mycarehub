@@ -20,14 +20,6 @@ const (
 	SecurityQuestionResponseTypeBoolean SecurityQuestionResponseType = "BOOLEAN"
 )
 
-// AllSecurityQuestionResponseType is a set of a  valid and known security question types.
-var AllSecurityQuestionResponseType = []SecurityQuestionResponseType{
-	SecurityQuestionResponseTypeText,
-	SecurityQuestionResponseTypeNumber,
-	SecurityQuestionResponseTypeDate,
-	SecurityQuestionResponseTypeBoolean,
-}
-
 // IsValid returns true if a sort is valid
 func (m SecurityQuestionResponseType) IsValid() bool {
 	switch m {

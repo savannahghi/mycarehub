@@ -32,12 +32,6 @@ func (f FiltersParam) Validate() error {
 			return fmt.Errorf("failed to convert to bool %v: %v", f.Value, err)
 		}
 	}
-	if f.DataType == enums.FilterSortDataTypeCounty {
-		ok := enums.CountyType(f.Value).IsValid()
-		if !ok {
-			return fmt.Errorf("invalid county passed: %v", f.Value)
-		}
-	}
 	// Validate enums
 	// TODO: Very strict validation of data <-> data type
 	// 	     this is a good candidate for TDD with unit tests

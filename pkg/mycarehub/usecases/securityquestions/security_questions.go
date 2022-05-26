@@ -198,7 +198,7 @@ func (s *UseCaseSecurityQuestionsImpl) VerifySecurityQuestionResponses(
 		}
 	}
 
-	if failCountInstance[responses.SecurityQuestionsInput[0].PhoneNumber] <= 3 && err == nil {
+	if failCountInstance[responses.SecurityQuestionsInput[0].PhoneNumber] <= 3 {
 		err := s.Update.UpdateFailedSecurityQuestionsAnsweringAttempts(ctx, *userProfile.ID, 0)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)

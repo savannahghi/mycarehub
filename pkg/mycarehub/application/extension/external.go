@@ -47,10 +47,8 @@ type ExternalMethodsExtension interface {
 	GetLoggedInUserUID(ctx context.Context) (string, error)
 	MakeRequest(ctx context.Context, method string, path string, body interface{}) (*http.Response, error)
 
-	// Login
 	Login(ctx context.Context) http.HandlerFunc
 
-	//Pubsub
 	PublishToPubsub(ctx context.Context, pubsubClient *pubsub.Client, topicID string, environment string, serviceName string, version string, payload []byte) error
 	EnsureTopicsExist(ctx context.Context, pubsubClient *pubsub.Client, topicIDs []string) error
 	EnsureSubscriptionsExist(ctx context.Context, pubsubClient *pubsub.Client, topicSubscriptionMap map[string]string, callbackURL string) error

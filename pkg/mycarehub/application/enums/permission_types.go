@@ -59,38 +59,6 @@ const (
 	PermissionTypeCanViewClientHealthRecords PermissionType = "CAN_VIEW_CLIENT_HEALTH_RECORDS"
 )
 
-// SystemAdminPermissions is a set of a  valid and known staff admin permissions.
-var SystemAdminPermissions = []PermissionType{
-	PermissionTypeCanInviteUser,
-	PermissionTypeCanResetUserPassword,
-	PermissionTypeCanEditUserRole,
-	PermissionTypeCanEditOwnRole,
-	PermissionTypeCanTriggerAnalyticsJobs,
-	PermissionTypeCanManageOpenMRSIntegration,
-}
-
-// CommunityManagementPermissions is a set of a  valid and known community management permissions.
-var CommunityManagementPermissions = []PermissionType{
-	PermissionTypeCanCreateGroup,
-	PermissionTypeCanUpdateGroup,
-	PermissionTypeCanModerateGroup,
-	PermissionTypeCanInviteClientToGroup,
-}
-
-//ContentManagementPermissions is a set of a  valid and known content management permissions.
-var ContentManagementPermissions = []PermissionType{
-	PermissionTypeCanCreateContentInCMS,
-	PermissionTypeCanManageContent,
-}
-
-//ClientManagementPermissions is a set of a  valid and known client management permissions.
-var ClientManagementPermissions = []PermissionType{
-	PermissionTypeCanInviteClient,
-	PermissionTypeCanManageClient,
-	PermissionTypeCanManageServiceRequest,
-	PermissionTypeCanViewClientHealthRecords,
-}
-
 // IsValid returns true if a permission is valid
 func (m PermissionType) IsValid() bool {
 	switch m {

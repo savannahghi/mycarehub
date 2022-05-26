@@ -93,7 +93,7 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	loginsvc := loginservice.NewServiceLoginImpl(externalExt)
 	db := postgres.NewMyCareHubDb(pg, pg, pg, pg)
 
-	fcm := fcm.NewService()
+	fcmService := fcm.NewService()
 	streamClient, err := stream.NewClient(getStreamAPIKey, getStreamAPISecret)
 	if err != nil {
 		log.Fatalf("failed to start getstream client: %v", err)
@@ -103,7 +103,7 @@ func Router(ctx context.Context) (*mux.Router, error) {
 
 	getStream := streamService.NewServiceGetStream(streamClient)
 
-	pubSub, err := pubsubmessaging.NewServicePubSubMessaging(externalExt, getStream, db, fcm)
+	pubSub, err := pubsubmessaging.NewServicePubSubMessaging(externalExt, getStream, db, fcmService)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize pubsub messaging service: %w", err)
 	}
@@ -112,7 +112,7 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	facilityUseCase := facility.NewFacilityUsecase(db, db, db, db, pubSub)
 
 	// Initialize user usecase
-	notificationUseCase := notification.NewNotificationUseCaseImpl(fcm, db, db, db)
+	notificationUseCase := notification.NewNotificationUseCaseImpl(fcmService, db, db, db)
 
 	authorityUseCase := authority.NewUsecaseAuthority(db, db, externalExt, notificationUseCase)
 
@@ -126,7 +126,7 @@ func Router(ctx context.Context) (*mux.Router, error) {
 
 	feedbackUsecase := feedback.NewUsecaseFeedback(db, externalExt)
 
-	faq := faq.NewUsecaseFAQ(db)
+	faqs := faq.NewUsecaseFAQ(db)
 
 	serviceRequestUseCase := servicerequest.NewUseCaseServiceRequestImpl(db, db, db, externalExt, userUsecase, notificationUseCase)
 
@@ -145,13 +145,13 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	survey := surveyInstance.NewSurveysImpl(surveysClient)
 	surveysUsecase := surveys.NewUsecaseSurveys(survey, db, db, db, notificationUseCase)
 
-	metrics := metrics.NewUsecaseMetricsImpl(db)
+	metricsUsecase := metrics.NewUsecaseMetricsImpl(db)
 
 	useCase := usecases.NewMyCareHubUseCase(
 		userUsecase, termsUsecase, facilityUseCase,
 		securityQuestionsUsecase, otpUseCase, contentUseCase, feedbackUsecase, healthDiaryUseCase,
-		faq, serviceRequestUseCase, authorityUseCase, communitiesUseCase, screeningToolsUsecases,
-		appointmentUsecase, notificationUseCase, surveysUsecase, metrics,
+		faqs, serviceRequestUseCase, authorityUseCase, communitiesUseCase, screeningToolsUsecases,
+		appointmentUsecase, notificationUseCase, surveysUsecase, metricsUsecase,
 	)
 
 	internalHandlers := internalRest.NewMyCareHubHandlersInterfaces(*useCase)
@@ -307,7 +307,7 @@ func Router(ctx context.Context) (*mux.Router, error) {
 		http.MethodPost,
 	).HandlerFunc(internalHandlers.AppointmentsServiceRequests())
 
-	// ISC routes. These are inter service route
+	// ISC routes. These are inter-service route
 	isc := r.PathPrefix("/internal").Subrouter()
 	isc.Use(interserviceclient.InterServiceAuthenticationMiddleware())
 	isc.Path("/user-profile/{id}").Methods(

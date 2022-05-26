@@ -180,11 +180,11 @@ func (a *UseCasesAppointmentsImpl) CreateKenyaEMRAppointments(ctx context.Contex
 		Appointment:   &appointment,
 		IsRescheduled: false,
 	}
-	notification := notification.ComposeClientNotification(
+	message := notification.ComposeClientNotification(
 		enums.NotificationTypeAppointment,
 		notificationArgs,
 	)
-	err = a.Notification.NotifyUser(ctx, clientProfile.User, notification)
+	err = a.Notification.NotifyUser(ctx, clientProfile.User, message)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 	}

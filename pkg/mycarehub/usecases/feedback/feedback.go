@@ -70,8 +70,8 @@ func (f *UsecaseFeedbackImpl) SendFeedback(ctx context.Context, payload *dto.Fee
 	}
 
 	var writer bytes.Buffer
-	template := template.Must(template.New("FeedbackNotificationEmail").Parse(utils.FeedbackNotificationEmail))
-	err = template.Execute(&writer, feedbackInput)
+	tmpl := template.Must(template.New("FeedbackNotificationEmail").Parse(utils.FeedbackNotificationEmail))
+	err = tmpl.Execute(&writer, feedbackInput)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return false, fmt.Errorf("unable to create feedback email: %v", err)

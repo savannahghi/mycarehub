@@ -153,14 +153,14 @@ func TestUseCaseFacilityImpl_RetrieveFacility_Unittest(t *testing.T) {
 
 			fakeDB := pgMock.NewPostgresMock()
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
-			facility := facility.NewFacilityUsecase(fakeDB, fakeDB, fakeDB, fakeDB, fakePubsub)
+			f := facility.NewFacilityUsecase(fakeDB, fakeDB, fakeDB, fakeDB, fakePubsub)
 
 			if tt.name == "Sad case - no id" {
 				fakeFacility.MockRetrieveFacilityFn = func(ctx context.Context, id *string, isActive bool) (*domain.Facility, error) {
 					return nil, fmt.Errorf("an error occurred while retrieving facility")
 				}
 			}
-			got, err := facility.RetrieveFacility(tt.args.ctx, tt.args.id, tt.args.isActive)
+			got, err := f.RetrieveFacility(tt.args.ctx, tt.args.id, tt.args.isActive)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCaseFacilityImpl.RetrieveFacility() error = %v, wantErr %v", err, tt.wantErr)
 				return

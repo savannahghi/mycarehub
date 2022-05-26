@@ -20,14 +20,6 @@ const (
 	ServiceRequestStatusRejected ServiceRequestStatus = "REJECTED"
 )
 
-// AllServiceRequestStatus is a set of a  valid and known service request status.
-var AllServiceRequestStatus = []ServiceRequestStatus{
-	ServiceRequestStatusPending,
-	ServiceRequestStatusInProgress,
-	ServiceRequestStatusResolved,
-	ServiceRequestStatusRejected,
-}
-
 // IsValid returns true if a request type is valid
 func (m ServiceRequestStatus) IsValid() bool {
 	switch m {
@@ -71,12 +63,6 @@ const (
 	VerifyServiceRequestStateApproved VerifyServiceRequestState = "APPROVED"
 	VerifyServiceRequestStateRejected VerifyServiceRequestState = "REJECTED"
 )
-
-// AllVerifyServiceRequestState is a set of valid and known states
-var AllVerifyServiceRequestState = []VerifyServiceRequestState{
-	VerifyServiceRequestStateApproved,
-	VerifyServiceRequestStateRejected,
-}
 
 // IsValid checks if the VerifyServiceRequestState is valid
 func (e VerifyServiceRequestState) IsValid() bool {

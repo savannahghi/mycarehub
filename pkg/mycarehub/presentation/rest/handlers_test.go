@@ -50,7 +50,7 @@ func TestMyCareHubHandlersInterfacesImpl_SendOTP(t *testing.T) {
 		t.Errorf("failed to get GraphQL headers: %v", err)
 		return
 	}
-	invalidPayload := createSendOTPPayload(interserviceclient.TestUserPhoneNumber, feedlib.Flavour("invalid flavour"))
+	invalidPayload := createSendOTPPayload(interserviceclient.TestUserPhoneNumber, "invalid flavour")
 	invalidPayload1 := createSendOTPPayload("", feedlib.FlavourConsumer)
 	type args struct {
 		url        string
@@ -174,7 +174,7 @@ func TestMyCareHubHandlersInterfacesImpl_SendRetryOTP(t *testing.T) {
 		t.Errorf("failed to get GraphQL headers: %v", err)
 		return
 	}
-	invalidPayload := createSendOTPPayload(interserviceclient.TestUserPhoneNumber, feedlib.Flavour("invalid flavour"))
+	invalidPayload := createSendOTPPayload(interserviceclient.TestUserPhoneNumber, "invalid flavour")
 	invalidPayload1 := createSendOTPPayload("", feedlib.FlavourConsumer)
 
 	type args struct {
@@ -299,7 +299,7 @@ func TestMyCareHubHandlersInterfacesImpl_RequestPINReset(t *testing.T) {
 		t.Errorf("failed to get GraphQL headers: %v", err)
 		return
 	}
-	invalidPayload := createSendOTPPayload(interserviceclient.TestUserPhoneNumber, feedlib.Flavour("invalid flavour"))
+	invalidPayload := createSendOTPPayload(interserviceclient.TestUserPhoneNumber, "invalid flavour")
 	invalidPayload1 := createSendOTPPayload("", feedlib.FlavourConsumer)
 	type args struct {
 		url        string
@@ -420,7 +420,7 @@ func TestMyCareHubHandlersInterfacesImpl_LoginByPhone(t *testing.T) {
 		return
 	}
 	phoneNumber := interserviceclient.TestUserPhoneNumber
-	invalidPayload := createLoginPayload(&phoneNumber, "1234", feedlib.Flavour("invalid flavour"))
+	invalidPayload := createLoginPayload(&phoneNumber, "1234", "invalid flavour")
 	invalidPayload1 := createLoginPayload(nil, "1234", feedlib.FlavourConsumer)
 	type args struct {
 		url        string
@@ -541,7 +541,7 @@ func TestMyCareHubHandlersInterfacesImpl_VerifyPhone(t *testing.T) {
 		return
 	}
 
-	invalidPayload := createSendOTPPayload(interserviceclient.TestUserPhoneNumber, feedlib.Flavour("invalid flavour"))
+	invalidPayload := createSendOTPPayload(interserviceclient.TestUserPhoneNumber, "invalid flavour")
 	invalidPayload1 := createSendOTPPayload("", feedlib.FlavourConsumer)
 
 	type args struct {
@@ -663,7 +663,7 @@ func TestMyCareHubHandlersInterfacesImpl_VerifyOTP(t *testing.T) {
 		return
 	}
 
-	invalidPayload := createSendOTPPayload(interserviceclient.TestUserPhoneNumber, feedlib.Flavour("invalid flavour"))
+	invalidPayload := createSendOTPPayload(interserviceclient.TestUserPhoneNumber, "invalid flavour")
 	invalidPayload1 := createSendOTPPayload("", feedlib.FlavourConsumer)
 
 	type args struct {
@@ -2335,7 +2335,7 @@ func TestMyCareHubHandlersInterfacesImpl_OptIn(t *testing.T) {
 		return
 	}
 
-	invalidPayload1, err := json.Marshal(&dto.OptInPayload{Flavour: feedlib.Flavour("invalid"), PhoneNumber: "+254"})
+	invalidPayload1, err := json.Marshal(&dto.OptInPayload{Flavour: "invalid flavour", PhoneNumber: "+254"})
 	if err != nil {
 		t.Errorf("failed to marshal payload")
 		return

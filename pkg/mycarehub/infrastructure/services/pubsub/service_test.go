@@ -21,7 +21,7 @@ func InitializeTestPubSub(t *testing.T) (*pubsubmessaging.ServicePubSubMessaging
 	// Initialize base (common) extension
 	baseExt := extension.NewExternalMethodsImpl()
 	getStream := streamService.NewServiceGetStream(&stream.Client{})
-	fcm := fcm.NewService()
+	fcmService := fcm.NewService()
 
 	pg, err := gorm.NewPGInstance()
 	if err != nil {
@@ -30,7 +30,7 @@ func InitializeTestPubSub(t *testing.T) (*pubsubmessaging.ServicePubSubMessaging
 
 	db := postgres.NewMyCareHubDb(pg, pg, pg, pg)
 
-	pubSub, err := pubsubmessaging.NewServicePubSubMessaging(baseExt, getStream, db, fcm)
+	pubSub, err := pubsubmessaging.NewServicePubSubMessaging(baseExt, getStream, db, fcmService)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize pubsub messaging service: %w", err)
 	}

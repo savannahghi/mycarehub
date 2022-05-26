@@ -16,7 +16,7 @@ func TestCustomErrors(t *testing.T) {
 	assert.NotNil(t, err)
 	err = exceptions.PinNotFoundError(fmt.Errorf("error"))
 	assert.NotNil(t, err)
-	err = exceptions.PinMismatchError(fmt.Errorf("error"))
+	err = exceptions.PinMismatchError()
 	assert.NotNil(t, err)
 	err = exceptions.InvalidFlavourDefinedErr(fmt.Errorf("error"))
 	assert.NotNil(t, err)
@@ -51,7 +51,7 @@ func TestCustomErrors(t *testing.T) {
 	err = exceptions.InvalidResetPinPayloadErr(fmt.Errorf("error"))
 	assert.NotNil(t, err)
 
-	err = exceptions.ExpiredPinErr(fmt.Errorf("error"))
+	err = exceptions.ExpiredPinErr()
 	assert.NotNil(t, err)
 	err = exceptions.LoginCountUpdateErr(fmt.Errorf("error"))
 	assert.NotNil(t, err)
@@ -114,7 +114,7 @@ func TestCustomErrors(t *testing.T) {
 	err = exceptions.RevokeRolesErr(fmt.Errorf("error"))
 	assert.NotNil(t, err)
 
-	err = exceptions.ClientHasUnresolvedPinResetRequestErr(fmt.Errorf("error"))
+	err = exceptions.ClientHasUnresolvedPinResetRequestErr()
 	assert.NotNil(t, err)
 
 	err = exceptions.UserNameExistsErr(fmt.Errorf("error"))
