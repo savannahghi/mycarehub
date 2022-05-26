@@ -205,7 +205,7 @@ func TestUseCasesCommunitiesImpl_ListMembers(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
 			fakeNotification := notificationMock.NewServiceNotificationMock()
-			communities := communities.NewUseCaseCommunitiesImpl(fakeGetStream, fakeExtension, fakeDB, fakeDB, fakePubsub, fakeNotification)
+			c := communities.NewUseCaseCommunitiesImpl(fakeGetStream, fakeExtension, fakeDB, fakeDB, fakePubsub, fakeNotification)
 
 			if tt.name == "Sad Case - Fail to list stream users" {
 				fakeGetStream.MockListGetStreamUsersFn = func(ctx context.Context, queryOptions *stream.QueryOption) (*stream.QueryUsersResponse, error) {
@@ -213,7 +213,7 @@ func TestUseCasesCommunitiesImpl_ListMembers(t *testing.T) {
 				}
 			}
 
-			got, err := communities.ListMembers(tt.args.ctx, tt.args.input)
+			got, err := c.ListMembers(tt.args.ctx, tt.args.input)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCasesCommunitiesImpl.ListGetStreamUsers() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -350,7 +350,7 @@ func TestUseCasesCommunitiesImpl_InviteMembers(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
 			fakeNotification := notificationMock.NewServiceNotificationMock()
-			communities := communities.NewUseCaseCommunitiesImpl(fakeGetStream, fakeExtension, fakeDB, fakeDB, fakePubsub, fakeNotification)
+			c := communities.NewUseCaseCommunitiesImpl(fakeGetStream, fakeExtension, fakeDB, fakeDB, fakePubsub, fakeNotification)
 
 			if tt.name == "sad case: fail to get community" {
 				fakeDB.MockGetCommunityByIDFn = func(ctx context.Context, communityID string) (*domain.Community, error) {
@@ -394,7 +394,7 @@ func TestUseCasesCommunitiesImpl_InviteMembers(t *testing.T) {
 				}
 			}
 
-			got, err := communities.InviteMembers(tt.args.ctx, tt.args.communityID, tt.args.memberIDs)
+			got, err := c.InviteMembers(tt.args.ctx, tt.args.communityID, tt.args.memberIDs)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCasesCommunitiesImpl.InviteMembers() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -462,7 +462,7 @@ func TestUseCasesCommunitiesImpl_ListCommunities(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
 			fakeNotification := notificationMock.NewServiceNotificationMock()
-			communities := communities.NewUseCaseCommunitiesImpl(fakeGetStream, fakeExtension, fakeDB, fakeDB, fakePubsub, fakeNotification)
+			c := communities.NewUseCaseCommunitiesImpl(fakeGetStream, fakeExtension, fakeDB, fakeDB, fakePubsub, fakeNotification)
 
 			if tt.name == "Sad Case - Fail to list stream channels" {
 				fakeGetStream.MockListGetStreamChannelsFn = func(ctx context.Context, queryOptions *stream.QueryOption) (*stream.QueryChannelsResponse, error) {
@@ -470,7 +470,7 @@ func TestUseCasesCommunitiesImpl_ListCommunities(t *testing.T) {
 				}
 			}
 
-			got, err := communities.ListCommunities(tt.args.ctx, tt.args.input)
+			got, err := c.ListCommunities(tt.args.ctx, tt.args.input)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCasesCommunitiesImpl.ListGetStreamChannels() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -489,7 +489,7 @@ func TestUseCasesCommunitiesImpl_ListCommunityMembers(t *testing.T) {
 	fakeDB := pgMock.NewPostgresMock()
 	fakePubsub := pubsubMock.NewPubsubServiceMock()
 	fakeNotification := notificationMock.NewServiceNotificationMock()
-	communities := communities.NewUseCaseCommunitiesImpl(fakeGetStream, fakeExtension, fakeDB, fakeDB, fakePubsub, fakeNotification)
+	c := communities.NewUseCaseCommunitiesImpl(fakeGetStream, fakeExtension, fakeDB, fakeDB, fakePubsub, fakeNotification)
 
 	type args struct {
 		ctx         context.Context
@@ -551,7 +551,7 @@ func TestUseCasesCommunitiesImpl_ListCommunityMembers(t *testing.T) {
 				}
 			}
 
-			_, err := communities.ListCommunityMembers(tt.args.ctx, tt.args.communityID)
+			_, err := c.ListCommunityMembers(tt.args.ctx, tt.args.communityID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCasesCommunitiesImpl.ListCommunityMembers() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -629,7 +629,7 @@ func TestUseCasesCommunitiesImpl_DeleteChannels(t *testing.T) {
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
 
 			fakeNotification := notificationMock.NewServiceNotificationMock()
-			communities := communities.NewUseCaseCommunitiesImpl(fakeGetStream, fakeExtension, fakeDB, fakeDB, fakePubsub, fakeNotification)
+			c := communities.NewUseCaseCommunitiesImpl(fakeGetStream, fakeExtension, fakeDB, fakeDB, fakePubsub, fakeNotification)
 
 			if tt.name == "Sad Case - Fail to delete channels" {
 
@@ -641,7 +641,7 @@ func TestUseCasesCommunitiesImpl_DeleteChannels(t *testing.T) {
 
 			}
 
-			got, err := communities.DeleteCommunities(tt.args.ctx, tt.args.communityIDs, tt.args.hardDelete)
+			got, err := c.DeleteCommunities(tt.args.ctx, tt.args.communityIDs, tt.args.hardDelete)
 
 			if (err != nil) != tt.wantErr {
 
@@ -706,7 +706,7 @@ func TestUseCasesCommunitiesImpl_RejectInvite(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
 			fakeNotification := notificationMock.NewServiceNotificationMock()
-			communities := communities.NewUseCaseCommunitiesImpl(fakeGetStream, fakeExtension, fakeDB, fakeDB, fakePubsub, fakeNotification)
+			c := communities.NewUseCaseCommunitiesImpl(fakeGetStream, fakeExtension, fakeDB, fakeDB, fakePubsub, fakeNotification)
 
 			if tt.name == "Sad case" {
 				fakeGetStream.MockRejectInviteFn = func(ctx context.Context, userID, channelID string, message *stream.Message) (*stream.Response, error) {
@@ -714,7 +714,7 @@ func TestUseCasesCommunitiesImpl_RejectInvite(t *testing.T) {
 				}
 			}
 
-			got, err := communities.RejectInvite(tt.args.ctx, tt.args.userID, tt.args.channelID)
+			got, err := c.RejectInvite(tt.args.ctx, tt.args.userID, tt.args.channelID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCasesCommunitiesImpl.RejectInvite() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -785,7 +785,7 @@ func TestUseCasesCommunitiesImpl_AcceptInvite(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
 			fakeNotification := notificationMock.NewServiceNotificationMock()
-			communities := communities.NewUseCaseCommunitiesImpl(fakeGetStream, fakeExtension, fakeDB, fakeDB, fakePubsub, fakeNotification)
+			c := communities.NewUseCaseCommunitiesImpl(fakeGetStream, fakeExtension, fakeDB, fakeDB, fakePubsub, fakeNotification)
 
 			if tt.name == "Sad case: failed to accept invite" {
 				fakeGetStream.MockAcceptInviteFn = func(ctx context.Context, userID string, channelID string, message *stream.Message) (*stream.Response, error) {
@@ -793,7 +793,7 @@ func TestUseCasesCommunitiesImpl_AcceptInvite(t *testing.T) {
 				}
 			}
 
-			got, err := communities.AcceptInvite(tt.args.ctx, tt.args.userID, tt.args.channelID)
+			got, err := c.AcceptInvite(tt.args.ctx, tt.args.userID, tt.args.channelID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCasesCommunitiesImpl.AcceptInvite() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -870,7 +870,7 @@ func TestUseCasesCommunitiesImpl_AddMembersToCommunity(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
 			fakeNotification := notificationMock.NewServiceNotificationMock()
-			communities := communities.NewUseCaseCommunitiesImpl(fakeGetStream, fakeExtension, fakeDB, fakeDB, fakePubsub, fakeNotification)
+			c := communities.NewUseCaseCommunitiesImpl(fakeGetStream, fakeExtension, fakeDB, fakeDB, fakePubsub, fakeNotification)
 
 			if tt.name == "Sad case" {
 				fakeGetStream.MockAddMembersToCommunityFn = func(ctx context.Context, memberIDs []string, channelID string) (*stream.Response, error) {
@@ -888,7 +888,7 @@ func TestUseCasesCommunitiesImpl_AddMembersToCommunity(t *testing.T) {
 				}
 			}
 
-			got, err := communities.AddMembersToCommunity(tt.args.ctx, tt.args.memberIDs, tt.args.communityID)
+			got, err := c.AddMembersToCommunity(tt.args.ctx, tt.args.memberIDs, tt.args.communityID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCasesCommunitiesImpl.AddMembersToCommunity() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -958,7 +958,7 @@ func TestUseCasesCommunitiesImpl_RemoveMembers(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
 			fakeNotification := notificationMock.NewServiceNotificationMock()
-			communities := communities.NewUseCaseCommunitiesImpl(fakeGetStream, fakeExtension, fakeDB, fakeDB, fakePubsub, fakeNotification)
+			c := communities.NewUseCaseCommunitiesImpl(fakeGetStream, fakeExtension, fakeDB, fakeDB, fakePubsub, fakeNotification)
 
 			if tt.name == "Sad case: failed to remove members" {
 				fakeGetStream.MockRemoveMembersFn = func(ctx context.Context, channelID string, memberIDs []string, message *stream.Message) (*stream.Response, error) {
@@ -966,7 +966,7 @@ func TestUseCasesCommunitiesImpl_RemoveMembers(t *testing.T) {
 				}
 			}
 
-			got, err := communities.RemoveMembersFromCommunity(tt.args.ctx, tt.args.channelID, tt.args.memberIDs)
+			got, err := c.RemoveMembersFromCommunity(tt.args.ctx, tt.args.channelID, tt.args.memberIDs)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCasesCommunitiesImpl.RemoveMembersFromCommunity() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -1031,7 +1031,7 @@ func TestUseCasesCommunitiesImpl_AddModeratorsWithMessage(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
 			fakeNotification := notificationMock.NewServiceNotificationMock()
-			communities := communities.NewUseCaseCommunitiesImpl(fakeGetStream, fakeExtension, fakeDB, fakeDB, fakePubsub, fakeNotification)
+			c := communities.NewUseCaseCommunitiesImpl(fakeGetStream, fakeExtension, fakeDB, fakeDB, fakePubsub, fakeNotification)
 
 			if tt.name == "Sad case" {
 				fakeGetStream.MockAddModeratorsWithMessageFn = func(ctx context.Context, userIDs []string, communityID string, message *stream.Message) (*stream.Response, error) {
@@ -1043,7 +1043,7 @@ func TestUseCasesCommunitiesImpl_AddModeratorsWithMessage(t *testing.T) {
 					return nil, fmt.Errorf("an error occurred")
 				}
 			}
-			got, err := communities.AddModeratorsWithMessage(tt.args.ctx, tt.args.userIDs, tt.args.communityID)
+			got, err := c.AddModeratorsWithMessage(tt.args.ctx, tt.args.userIDs, tt.args.communityID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCasesCommunitiesImpl.AddModeratorsWithMessage() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -1113,7 +1113,7 @@ func TestUseCasesCommunitiesImpl_DemoteModerators(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
 			fakeNotification := notificationMock.NewServiceNotificationMock()
-			communities := communities.NewUseCaseCommunitiesImpl(fakeGetStream, fakeExtension, fakeDB, fakeDB, fakePubsub, fakeNotification)
+			c := communities.NewUseCaseCommunitiesImpl(fakeGetStream, fakeExtension, fakeDB, fakeDB, fakePubsub, fakeNotification)
 
 			if tt.name == "Sad case: failed to demote moderators" {
 				fakeGetStream.MockDemoteModeratorsFn = func(ctx context.Context, channelID string, memberIDs []string) (*stream.Response, error) {
@@ -1121,7 +1121,7 @@ func TestUseCasesCommunitiesImpl_DemoteModerators(t *testing.T) {
 				}
 			}
 
-			got, err := communities.DemoteModerators(tt.args.ctx, tt.args.communityID, tt.args.memberIDs)
+			got, err := c.DemoteModerators(tt.args.ctx, tt.args.communityID, tt.args.memberIDs)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCasesCommunitiesImpl.DemoteModerators() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -1181,9 +1181,9 @@ func TestUseCasesCommunitiesImpl_ListPendingInvites(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
 			fakeNotification := notificationMock.NewServiceNotificationMock()
-			communities := communities.NewUseCaseCommunitiesImpl(fakeGetStream, fakeExtension, fakeDB, fakeDB, fakePubsub, fakeNotification)
+			c := communities.NewUseCaseCommunitiesImpl(fakeGetStream, fakeExtension, fakeDB, fakeDB, fakePubsub, fakeNotification)
 
-			_, err := communities.ListPendingInvites(tt.args.ctx, tt.args.memberID, tt.args.input)
+			_, err := c.ListPendingInvites(tt.args.ctx, tt.args.memberID, tt.args.input)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCasesCommunitiesImpl.ListPendingInvites() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -1258,7 +1258,7 @@ func TestUseCasesCommunitiesImpl_RecommendedCommunities(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
 			fakeNotification := notificationMock.NewServiceNotificationMock()
-			communities := communities.NewUseCaseCommunitiesImpl(fakeGetStream, fakeExtension, fakeDB, fakeDB, fakePubsub, fakeNotification)
+			c := communities.NewUseCaseCommunitiesImpl(fakeGetStream, fakeExtension, fakeDB, fakeDB, fakePubsub, fakeNotification)
 
 			if tt.name == "sad case: failed client profile by client ID" {
 				fakeDB.MockGetClientProfileByClientIDFn = func(ctx context.Context, clientID string) (*domain.ClientProfile, error) {
@@ -1278,7 +1278,7 @@ func TestUseCasesCommunitiesImpl_RecommendedCommunities(t *testing.T) {
 				}
 			}
 
-			got, err := communities.RecommendedCommunities(tt.args.ctx, tt.args.clientID, tt.args.limit)
+			got, err := c.RecommendedCommunities(tt.args.ctx, tt.args.clientID, tt.args.limit)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCasesCommunitiesImpl.RecommendedCommunities() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -1298,7 +1298,7 @@ func TestUseCasesCommunitiesImpl_ListCommunityBannedMembers(t *testing.T) {
 	fakeDB := pgMock.NewPostgresMock()
 	fakePubsub := pubsubMock.NewPubsubServiceMock()
 	fakeNotification := notificationMock.NewServiceNotificationMock()
-	communities := communities.NewUseCaseCommunitiesImpl(fakeGetStream, fakeExtension, fakeDB, fakeDB, fakePubsub, fakeNotification)
+	c := communities.NewUseCaseCommunitiesImpl(fakeGetStream, fakeExtension, fakeDB, fakeDB, fakePubsub, fakeNotification)
 
 	type args struct {
 		ctx         context.Context
@@ -1347,7 +1347,7 @@ func TestUseCasesCommunitiesImpl_ListCommunityBannedMembers(t *testing.T) {
 					return nil, fmt.Errorf("an error occurred")
 				}
 			}
-			_, err := communities.ListCommunityBannedMembers(tt.args.ctx, tt.args.communityID)
+			_, err := c.ListCommunityBannedMembers(tt.args.ctx, tt.args.communityID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCasesCommunitiesImpl.ListCommunityBannedMembers() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -1364,7 +1364,7 @@ func TestUseCasesCommunitiesImpl_BanUser(t *testing.T) {
 	fakeDB := pgMock.NewPostgresMock()
 	fakePubsub := pubsubMock.NewPubsubServiceMock()
 	fakeNotification := notificationMock.NewServiceNotificationMock()
-	communities := communities.NewUseCaseCommunitiesImpl(fakeGetStream, fakeExtension, fakeDB, fakeDB, fakePubsub, fakeNotification)
+	c := communities.NewUseCaseCommunitiesImpl(fakeGetStream, fakeExtension, fakeDB, fakeDB, fakePubsub, fakeNotification)
 
 	type args struct {
 		ctx            context.Context
@@ -1435,7 +1435,7 @@ func TestUseCasesCommunitiesImpl_BanUser(t *testing.T) {
 					return false, fmt.Errorf("an error occurred")
 				}
 			}
-			got, err := communities.BanUser(tt.args.ctx, tt.args.targetMemberID, tt.args.bannedBy, tt.args.communityID)
+			got, err := c.BanUser(tt.args.ctx, tt.args.targetMemberID, tt.args.bannedBy, tt.args.communityID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCasesCommunitiesImpl.BanUser() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -1455,7 +1455,7 @@ func TestUseCasesCommunitiesImpl_UnBanUser(t *testing.T) {
 	fakeDB := pgMock.NewPostgresMock()
 	fakePubsub := pubsubMock.NewPubsubServiceMock()
 	fakeNotification := notificationMock.NewServiceNotificationMock()
-	communities := communities.NewUseCaseCommunitiesImpl(fakeGetStream, fakeExtension, fakeDB, fakeDB, fakePubsub, fakeNotification)
+	c := communities.NewUseCaseCommunitiesImpl(fakeGetStream, fakeExtension, fakeDB, fakeDB, fakePubsub, fakeNotification)
 
 	type args struct {
 		ctx         context.Context
@@ -1521,7 +1521,7 @@ func TestUseCasesCommunitiesImpl_UnBanUser(t *testing.T) {
 					return false, fmt.Errorf("an error occurred")
 				}
 			}
-			got, err := communities.UnBanUser(tt.args.ctx, tt.args.targetID, tt.args.communityID)
+			got, err := c.UnBanUser(tt.args.ctx, tt.args.targetID, tt.args.communityID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCasesCommunitiesImpl.UnBanUser() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -1539,7 +1539,7 @@ func TestUseCasesCommunitiesImpl_ListFlaggedMessages(t *testing.T) {
 	fakeDB := pgMock.NewPostgresMock()
 	fakePubsub := pubsubMock.NewPubsubServiceMock()
 	fakeNotification := notificationMock.NewServiceNotificationMock()
-	communities := communities.NewUseCaseCommunitiesImpl(fakeGetStream, fakeExtension, fakeDB, fakeDB, fakePubsub, fakeNotification)
+	c := communities.NewUseCaseCommunitiesImpl(fakeGetStream, fakeExtension, fakeDB, fakeDB, fakePubsub, fakeNotification)
 
 	ctx := context.Background()
 	communityID := uuid.New().String()
@@ -1610,7 +1610,7 @@ func TestUseCasesCommunitiesImpl_ListFlaggedMessages(t *testing.T) {
 				}
 			}
 
-			got, err := communities.ListFlaggedMessages(tt.args.ctx, tt.args.communityCID, tt.args.memberIDs)
+			got, err := c.ListFlaggedMessages(tt.args.ctx, tt.args.communityCID, tt.args.memberIDs)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCasesCommunitiesImpl.ListFlaggedMessages() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -1628,7 +1628,7 @@ func TestUseCasesCommunitiesImpl_DeleteCommunityMessage(t *testing.T) {
 	fakeDB := pgMock.NewPostgresMock()
 	fakePubsub := pubsubMock.NewPubsubServiceMock()
 	fakeNotification := notificationMock.NewServiceNotificationMock()
-	communities := communities.NewUseCaseCommunitiesImpl(fakeGetStream, fakeExtension, fakeDB, fakeDB, fakePubsub, fakeNotification)
+	c := communities.NewUseCaseCommunitiesImpl(fakeGetStream, fakeExtension, fakeDB, fakeDB, fakePubsub, fakeNotification)
 	type args struct {
 		ctx       context.Context
 		messageID string
@@ -1665,7 +1665,7 @@ func TestUseCasesCommunitiesImpl_DeleteCommunityMessage(t *testing.T) {
 				}
 			}
 
-			got, err := communities.DeleteCommunityMessage(tt.args.ctx, tt.args.messageID)
+			got, err := c.DeleteCommunityMessage(tt.args.ctx, tt.args.messageID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCasesCommunitiesImpl.DeleteCommunityMessage() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -1713,7 +1713,7 @@ func TestUseCasesCommunitiesImpl_VerifyWebhook(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
 			fakeNotification := notificationMock.NewServiceNotificationMock()
-			communities := communities.NewUseCaseCommunitiesImpl(fakeGetStream, fakeExtension, fakeDB, fakeDB, fakePubsub, fakeNotification)
+			c := communities.NewUseCaseCommunitiesImpl(fakeGetStream, fakeExtension, fakeDB, fakeDB, fakePubsub, fakeNotification)
 
 			if tt.name == "Sad Case - Fail to verify webhook" {
 				fakeGetStream.MockValidateGetStreamRequestFn = func(ctx context.Context, body []byte, signature string) bool {
@@ -1721,7 +1721,7 @@ func TestUseCasesCommunitiesImpl_VerifyWebhook(t *testing.T) {
 				}
 			}
 
-			if got := communities.ValidateGetStreamRequest(tt.args.ctx, tt.args.body, tt.args.signature); got != tt.want {
+			if got := c.ValidateGetStreamRequest(tt.args.ctx, tt.args.body, tt.args.signature); got != tt.want {
 				t.Errorf("UseCasesCommunitiesImpl.ValidateGetStreamRequest() = %v, want %v", got, tt.want)
 			}
 		})
@@ -1774,7 +1774,7 @@ func TestUseCasesCommunitiesImpl_ProcessGetstreamEvents(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
 			fakeNotification := notificationMock.NewServiceNotificationMock()
-			communities := communities.NewUseCaseCommunitiesImpl(fakeGetStream, fakeExtension, fakeDB, fakeDB, fakePubsub, fakeNotification)
+			c := communities.NewUseCaseCommunitiesImpl(fakeGetStream, fakeExtension, fakeDB, fakeDB, fakePubsub, fakeNotification)
 
 			if tt.name == "Sad Case - Fail to process getstream event" {
 				fakePubsub.MockNotifyGetStreamEventFn = func(ctx context.Context, event *dto.GetStreamEvent) error {
@@ -1782,7 +1782,7 @@ func TestUseCasesCommunitiesImpl_ProcessGetstreamEvents(t *testing.T) {
 				}
 			}
 
-			if err := communities.ProcessGetstreamEvents(tt.args.ctx, tt.args.event); (err != nil) != tt.wantErr {
+			if err := c.ProcessGetstreamEvents(tt.args.ctx, tt.args.event); (err != nil) != tt.wantErr {
 				t.Errorf("UseCasesCommunitiesImpl.ProcessGetstreamEvents() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})

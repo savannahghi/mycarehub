@@ -70,8 +70,8 @@ type FeaturedMedia struct {
 	Duration  float64 `json:"duration"`
 }
 
-// HeroImage contains details about the hero image i.e The title
-// This is the oversized image displayed at the top of a content
+// HeroImage contains details about the hero image i.e. The title
+// This is the oversize image displayed at the top of a content
 type HeroImage struct {
 	ID    int       `json:"id"`
 	Meta  ImageMeta `json:"meta"`

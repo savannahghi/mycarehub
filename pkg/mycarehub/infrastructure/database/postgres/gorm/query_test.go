@@ -159,35 +159,8 @@ func TestPGInstance_ListFacilities(t *testing.T) {
 			DataType: enums.FilterSortDataTypeActive,
 			Value:    formatBool,
 		},
-		{
-			Name:     enums.FilterSortDataTypeCounty.String(),
-			DataType: enums.FilterSortDataTypeCounty,
-			Value:    enums.CountyTypeNairobi.String(),
-		},
 	}
 
-	filterEmptyName := []*domain.FiltersParam{
-		{
-			Name:     enums.FilterSortDataTypeName.String(),
-			DataType: enums.FilterSortDataTypeCounty,
-			Value:    "",
-		},
-		{
-			Name:     enums.FilterSortDataTypeMFLCode.String(),
-			DataType: enums.FilterSortDataTypeMFLCode,
-			Value:    strconv.Itoa(mflCode),
-		},
-		{
-			Name:     enums.FilterSortDataTypeActive.String(),
-			DataType: enums.FilterSortDataTypeActive,
-			Value:    formatBool,
-		},
-		{
-			Name:     enums.FilterSortDataTypeCounty.String(),
-			DataType: enums.FilterSortDataTypeCounty,
-			Value:    enums.CountyTypeNairobi.String(),
-		},
-	}
 	filterEmptyMFLCode := []*domain.FiltersParam{
 		{
 			Name:     enums.FilterSortDataTypeName.String(),
@@ -203,11 +176,6 @@ func TestPGInstance_ListFacilities(t *testing.T) {
 			Name:     enums.FilterSortDataTypeActive.String(),
 			DataType: enums.FilterSortDataTypeActive,
 			Value:    formatBool,
-		},
-		{
-			Name:     enums.FilterSortDataTypeCounty.String(),
-			DataType: enums.FilterSortDataTypeCounty,
-			Value:    enums.CountyTypeNairobi.String(),
 		},
 	}
 
@@ -226,34 +194,6 @@ func TestPGInstance_ListFacilities(t *testing.T) {
 			Name:     enums.FilterSortDataTypeActive.String(),
 			DataType: enums.FilterSortDataTypeActive,
 			Value:    "invalid",
-		},
-		{
-			Name:     enums.FilterSortDataTypeCounty.String(),
-			DataType: enums.FilterSortDataTypeCounty,
-			Value:    enums.CountyTypeNairobi.String(),
-		},
-	}
-
-	filterInvalidCounty := []*domain.FiltersParam{
-		{
-			Name:     enums.FilterSortDataTypeName.String(),
-			DataType: enums.FilterSortDataTypeName,
-			Value:    "Nairobi",
-		},
-		{
-			Name:     enums.FilterSortDataTypeMFLCode.String(),
-			DataType: enums.FilterSortDataTypeMFLCode,
-			Value:    strconv.Itoa(mflCode),
-		},
-		{
-			Name:     enums.FilterSortDataTypeActive.String(),
-			DataType: enums.FilterSortDataTypeActive,
-			Value:    formatBool,
-		},
-		{
-			Name:     enums.FilterSortDataTypeCounty.String(),
-			DataType: enums.FilterSortDataTypeCounty,
-			Value:    "Kanairo",
 		},
 	}
 
@@ -409,16 +349,6 @@ func TestPGInstance_ListFacilities(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "invalid: empty name passed",
-			args: args{
-				ctx:              ctx,
-				searchTerm:       &searchTerm,
-				filterInput:      filterEmptyName,
-				PaginationsInput: paginationInput,
-			},
-			wantErr: true,
-		},
-		{
 			name: "invalid: empty MFL code",
 			args: args{
 				ctx:              ctx,
@@ -434,17 +364,6 @@ func TestPGInstance_ListFacilities(t *testing.T) {
 				ctx:              ctx,
 				searchTerm:       &searchTerm,
 				filterInput:      filterInvalidBool,
-				PaginationsInput: paginationInput,
-			},
-			wantErr: true,
-		},
-
-		{
-			name: "invalid: invalid county",
-			args: args{
-				ctx:              ctx,
-				searchTerm:       &searchTerm,
-				filterInput:      filterInvalidCounty,
 				PaginationsInput: paginationInput,
 			},
 			wantErr: true,

@@ -14,7 +14,6 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases"
 	"github.com/savannahghi/serverutils"
 )
@@ -92,23 +91,9 @@ func (h *MyCareHubHandlersInterfacesImpl) LoginByPhone() http.HandlerFunc {
 			return
 		}
 
-		response, err := h.usecase.User.Login(ctx, *payload.PhoneNumber, *payload.PIN, payload.Flavour)
-		if err != nil {
-			resp := &domain.CustomResponse{
-				Message: err.Error(),
-				Code:    response.Code,
-			}
-
-			if response.RetryTime != 0 {
-				resp.RetryTime = response.RetryTime
-			}
-
-			if response.Attempts != 0 {
-				resp.FailedLoginCount = response.Attempts
-			}
-
-			helpers.ReportErrorToSentry(err)
-			serverutils.WriteJSONResponse(w, resp, http.StatusBadRequest)
+		response, successful := h.usecase.User.Login(ctx, payload)
+		if !successful {
+			serverutils.WriteJSONResponse(w, response, http.StatusBadRequest)
 			return
 		}
 

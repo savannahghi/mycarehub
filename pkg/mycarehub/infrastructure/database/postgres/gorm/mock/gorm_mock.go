@@ -39,10 +39,6 @@ type GormMock struct {
 	MockGetCurrentTermsFn                                func(ctx context.Context, flavour feedlib.Flavour) (*gorm.TermsOfService, error)
 	MockAcceptTermsFn                                    func(ctx context.Context, userID *string, termsID *int) (bool, error)
 	MockSavePinFn                                        func(ctx context.Context, pinData *gorm.PINData) (bool, error)
-	MockUpdateUserFailedLoginCountFn                     func(ctx context.Context, userID string, failedLoginAttempts int) error
-	MockUpdateUserLastFailedLoginTimeFn                  func(ctx context.Context, userID string) error
-	MockUpdateUserNextAllowedLoginTimeFn                 func(ctx context.Context, userID string, nextAllowedLoginTime time.Time) error
-	MockUpdateUserProfileAfterLoginSuccessFn             func(ctx context.Context, userID string) error
 	MockSetNickNameFn                                    func(ctx context.Context, userID *string, nickname *string) (bool, error)
 	MockGetSecurityQuestionsFn                           func(ctx context.Context, flavour feedlib.Flavour) ([]*gorm.SecurityQuestion, error)
 	MockSaveOTPFn                                        func(ctx context.Context, otpInput *gorm.UserOTP) error
@@ -578,18 +574,6 @@ func NewGormMock() *GormMock {
 		},
 		MockResolveStaffServiceRequestFn: func(ctx context.Context, staffID, serviceRequestID *string, verificationStatus string) (bool, error) {
 			return true, nil
-		},
-		MockUpdateUserFailedLoginCountFn: func(ctx context.Context, userID string, failedLoginAttempts int) error {
-			return nil
-		},
-		MockUpdateUserLastFailedLoginTimeFn: func(ctx context.Context, userID string) error {
-			return nil
-		},
-		MockUpdateUserNextAllowedLoginTimeFn: func(ctx context.Context, userID string, nextAllowedLoginTime time.Time) error {
-			return nil
-		},
-		MockUpdateUserProfileAfterLoginSuccessFn: func(ctx context.Context, userID string) error {
-			return nil
 		},
 		MockUpdateHealthDiaryFn: func(ctx context.Context, clientHealthDiaryEntry *gorm.ClientHealthDiaryEntry, updateData map[string]interface{}) (bool, error) {
 			return true, nil
@@ -1255,26 +1239,6 @@ func (gm *GormMock) AcceptTerms(ctx context.Context, userID *string, termsID *in
 // SavePin mocks the implementation of saving the pin to the database
 func (gm *GormMock) SavePin(ctx context.Context, pinData *gorm.PINData) (bool, error) {
 	return gm.MockSavePinFn(ctx, pinData)
-}
-
-// UpdateUserFailedLoginCount mocks the implementation of updating a user failed login count
-func (gm *GormMock) UpdateUserFailedLoginCount(ctx context.Context, userID string, failedLoginAttempts int) error {
-	return gm.MockUpdateUserFailedLoginCountFn(ctx, userID, failedLoginAttempts)
-}
-
-// UpdateUserLastFailedLoginTime mocks the implementation of updating a user's last failed login time
-func (gm *GormMock) UpdateUserLastFailedLoginTime(ctx context.Context, userID string) error {
-	return gm.MockUpdateUserLastFailedLoginTimeFn(ctx, userID)
-}
-
-// UpdateUserNextAllowedLoginTime mocks the implementation of updating a user's next allowed login time
-func (gm *GormMock) UpdateUserNextAllowedLoginTime(ctx context.Context, userID string, nextAllowedLoginTime time.Time) error {
-	return gm.MockUpdateUserNextAllowedLoginTimeFn(ctx, userID, nextAllowedLoginTime)
-}
-
-// UpdateUserProfileAfterLoginSuccess mocks the implementation of updating a user's last successful login time
-func (gm *GormMock) UpdateUserProfileAfterLoginSuccess(ctx context.Context, userID string) error {
-	return gm.MockUpdateUserProfileAfterLoginSuccessFn(ctx, userID)
 }
 
 //GetSecurityQuestions mocks the implementation of getting all the security questions.

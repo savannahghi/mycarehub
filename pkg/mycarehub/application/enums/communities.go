@@ -10,26 +10,17 @@ import (
 type MessageType string
 
 const (
-	// MessageTypeRegular is the type of a regular message
+	// MessageTypeRegular is a regular message
 	MessageTypeRegular MessageType = "regular"
-	// MessageTypeError is the type of an error message
+	// MessageTypeError is an error message
 	MessageTypeError MessageType = "error"
-	// MessageTypeReply is the type of a reply message
+	// MessageTypeReply is a reply message
 	MessageTypeReply MessageType = "reply"
-	// MessageTypeSystem is the type of a system message
+	// MessageTypeSystem is a system message
 	MessageTypeSystem MessageType = "system"
-	// MessageTypeEphemeral is the type of an ephemeral message
+	// MessageTypeEphemeral is an ephemeral message
 	MessageTypeEphemeral MessageType = "ephemeral"
 )
-
-// AllMessageType is a valid list of message types
-var AllMessageType = []MessageType{
-	MessageTypeRegular,
-	MessageTypeError,
-	MessageTypeReply,
-	MessageTypeSystem,
-	MessageTypeEphemeral,
-}
 
 // IsValid returns true if the MessageType is a valid value
 func (e MessageType) IsValid() bool {

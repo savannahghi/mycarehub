@@ -21,13 +21,6 @@ const (
 	ScreeningToolResponseTypeDate ScreeningToolResponseType = "DATE"
 )
 
-//ScreeningToolResponseTypes is a set of a  valid and known screening tools response types.
-var ScreeningToolResponseTypes = []ScreeningToolResponseType{
-	ScreeningToolResponseTypeInteger,
-	ScreeningToolResponseTypeText,
-	ScreeningToolResponseTypeDate,
-}
-
 // IsValid returns true if a screening tool response type is valid
 func (m ScreeningToolResponseType) IsValid() bool {
 	switch m {

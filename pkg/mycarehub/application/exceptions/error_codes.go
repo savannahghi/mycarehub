@@ -4,6 +4,11 @@ package exceptions
 // both the frontend and backend should be aware of these codes
 type ErrorCode int
 
+// Code int value for an error code
+func (e ErrorCode) Code() int {
+	return int(e)
+}
+
 const (
 	// OK is returned on success.
 	OK ErrorCode = iota + 1
@@ -39,7 +44,7 @@ const (
 	UsernameInUse
 
 	// ProfileNotFound errors means a user profile does not exist with the provided parameters
-	// This occures when fetching a user profile either by UID, ID , PHONE NUMBER or EMAIL and no
+	// This occurs when fetching a user profile either by UID, ID , PHONE NUMBER or EMAIL and no
 	// matching record is found
 	// it's value is 7
 	ProfileNotFound
@@ -71,7 +76,7 @@ const (
 	PINError
 
 	// InvalidPushTokenLength means that an invalid push token was given.
-	// This may occur when the lenth of the issued token is of less then the minimum character(1250)
+	// This may occur when the length of the issued token is of less then the minimum character(1250)
 	// It's error code is 13
 	InvalidPushTokenLength
 
@@ -85,12 +90,12 @@ const (
 	// It's error code is 15
 	OTPVerificationFailed
 
-	// MissingInput means that no OTP was submiited
+	// MissingInput means that no OTP was submitted
 	// This may occur when a user fails to provide an OTP but makes a submission
 	// It's error code id 16
 	MissingInput
 
-	// InvalidFlavour means that the provide falvour is invalid
+	// InvalidFlavour means that the provide flavour is invalid
 	// This may happen when the provided flavour is not consumer or pro
 	// It's error code is 17
 	InvalidFlavour
@@ -170,7 +175,7 @@ const (
 	UnknownStateProvided
 
 	//NavigationActionsError means that
-	//the system is not able to update or retrive a users navigation actions
+	//the system is not able to update or retrieve a users navigation actions
 	//Its error code is 33
 	NavigationActionsError
 

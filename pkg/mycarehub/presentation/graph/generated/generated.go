@@ -4412,69 +4412,12 @@ extend type Mutation {
 `, BuiltIn: false},
 	{Name: "pkg/mycarehub/presentation/graph/enums.graphql", Input: `scalar Time
 
-enum CountryType {
-  KENYA
-  # other countries
-}
-
-enum CountyType {
-  Mombasa
-  Kwale
-  Kilifi
-  Tana_River
-  Lamu
-  Taita_Taveta
-  Garissa
-  Wajir
-  Mandera
-  Marsabit
-  Isiolo
-  Meru
-  Tharaka_Nithi
-  Embu
-  Kitui
-  Machakos
-  Makueni
-  Nyandarua
-  Nyeri
-  Kirinyaga
-  Muranga
-  Kiambu
-  Turkana
-  West_Pokot
-  Samburu
-  Trans_Nzoia
-  Uasin_Gishu
-  Elgeyo_Marakwet
-  Nandi
-  Baringo
-  Laikipia
-  Nakuru
-  Narok
-  Kajiado
-  Kericho
-  Bomet
-  Kakamega
-  Vihiga
-  Bungoma
-  Busia
-  Siaya
-  Kisumu
-  Homa_Bay
-  Migori
-  Kisii
-  Nyamira
-  Nairobi
-  # other counties
-}
-
 enum FilterSortDataType {
   created_at
   updated_at
   name
   mfl_code
   active
-  county
 }
 
 enum SortDataType {

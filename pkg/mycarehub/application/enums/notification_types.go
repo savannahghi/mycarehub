@@ -26,14 +26,6 @@ const (
 	NotificationTypeRoleAssignment NotificationType = "ROLE_ASSIGNMENT"
 )
 
-// AllNotificationTypes represents a slice of all possible `NotificationType` values
-var AllNotificationTypes = []NotificationType{
-	NotificationTypeAppointment,
-	NotificationTypeServiceRequest,
-	NotificationTypeCommunities,
-	NotificationTypeSurveys,
-}
-
 // IsValid returns true if a notification type is valid
 func (n NotificationType) IsValid() bool {
 	switch n {

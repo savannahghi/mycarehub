@@ -40,7 +40,7 @@ func (q *ScreeningToolQuestion) ValidateResponseQuestionCategory(response string
 		responses := strings.Split(response, ",")
 
 		for _, responseChoice := range responses {
-			_, ok := q.ResponseChoices[string(responseChoice)]
+			_, ok := q.ResponseChoices[responseChoice]
 			if !ok {
 				return fmt.Errorf("invalid response: %s for category: %s", response, category)
 			}

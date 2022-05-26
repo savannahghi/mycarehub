@@ -3,7 +3,6 @@ package postgres
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
@@ -35,41 +34,6 @@ func (d *MyCareHubDb) AcceptTerms(ctx context.Context, userID *string, termsID *
 		return false, fmt.Errorf("userID or termsID cannot be nil")
 	}
 	return d.update.AcceptTerms(ctx, userID, termsID)
-}
-
-// UpdateUserFailedLoginCount increments a user's failed login count in the event where they fail to
-// log into the app e.g when an invalid pin is passed
-func (d *MyCareHubDb) UpdateUserFailedLoginCount(ctx context.Context, userID string, failedLoginAttempts int) error {
-	if userID == "" {
-		return fmt.Errorf("userID must be defined")
-	}
-	return d.update.UpdateUserFailedLoginCount(ctx, userID, failedLoginAttempts)
-}
-
-// UpdateUserLastFailedLoginTime updates the failed login time for a user in case an error occurs while logging in
-func (d *MyCareHubDb) UpdateUserLastFailedLoginTime(ctx context.Context, userID string) error {
-	if userID == "" {
-		return fmt.Errorf("userID must be defined")
-	}
-	return d.update.UpdateUserLastFailedLoginTime(ctx, userID)
-}
-
-// UpdateUserNextAllowedLoginTime updates the user's next allowed login time. This field is used to check whether we can
-// allow a user to log in immediately or wait for some time before retrying the login process.
-func (d *MyCareHubDb) UpdateUserNextAllowedLoginTime(ctx context.Context, userID string, nextAllowedLoginTime time.Time) error {
-	if userID == "" {
-		return fmt.Errorf("userID must be defined")
-	}
-	return d.update.UpdateUserNextAllowedLoginTime(ctx, userID, nextAllowedLoginTime)
-}
-
-// UpdateUserProfileAfterLoginSuccess updates the user's last successful login time to the current time in case a user
-// successfully logs into the app
-func (d *MyCareHubDb) UpdateUserProfileAfterLoginSuccess(ctx context.Context, userID string) error {
-	if userID == "" {
-		return fmt.Errorf("userID must be defined")
-	}
-	return d.update.UpdateUserProfileAfterLoginSuccess(ctx, userID)
 }
 
 // SetNickName is used to set the user's nickname

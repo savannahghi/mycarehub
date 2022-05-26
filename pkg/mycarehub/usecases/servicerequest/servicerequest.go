@@ -267,7 +267,7 @@ func (u *UseCasesServiceRequestImpl) ResolveServiceRequest(ctx context.Context, 
 		return false, fmt.Errorf("failed to get client profile: %v", err)
 	}
 	if serviceRequest.RequestType == enums.ServiceRequestTypePinReset.String() {
-		user := &domain.User{
+		userProfile := &domain.User{
 			ID: &clientProfile.UserID,
 		}
 		updatePayload := map[string]interface{}{
@@ -275,7 +275,7 @@ func (u *UseCasesServiceRequestImpl) ResolveServiceRequest(ctx context.Context, 
 			"failed_login_count":    0,
 			"failed_security_count": 0,
 		}
-		err := u.Update.UpdateUser(ctx, user, updatePayload)
+		err := u.Update.UpdateUser(ctx, userProfile, updatePayload)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
 			return false, fmt.Errorf("failed to update user: %v", err)
@@ -342,7 +342,7 @@ func (u *UseCasesServiceRequestImpl) UpdateServiceRequestsFromKenyaEMR(ctx conte
 				return false, err
 			}
 
-			notification := notification.ComposeClientNotification(
+			notificationMessage := notification.ComposeClientNotification(
 				enums.NotificationTypeAppointment,
 				notification.ClientNotificationArgs{
 					Appointment:   updatedAppointment,
@@ -350,7 +350,7 @@ func (u *UseCasesServiceRequestImpl) UpdateServiceRequestsFromKenyaEMR(ctx conte
 				},
 			)
 
-			err = u.Notification.NotifyUser(ctx, client.User, notification)
+			err = u.Notification.NotifyUser(ctx, client.User, notificationMessage)
 			if err != nil {
 				helpers.ReportErrorToSentry(err)
 			}
@@ -542,7 +542,7 @@ func (u *UseCasesServiceRequestImpl) VerifyClientPinResetServiceRequest(
 		return false, exceptions.StaffProfileNotFoundErr(err)
 	}
 
-	user, err := u.Query.GetUserProfileByPhoneNumber(ctx, phoneNumber, feedlib.FlavourConsumer)
+	userProfile, err := u.Query.GetUserProfileByPhoneNumber(ctx, phoneNumber, feedlib.FlavourConsumer)
 	if err != nil {
 		return false, err
 	}
@@ -551,7 +551,7 @@ func (u *UseCasesServiceRequestImpl) VerifyClientPinResetServiceRequest(
 		return false, fmt.Errorf("the patient has not been physically verified by the healthcare worker")
 	}
 
-	err = u.Update.UpdateUser(ctx, &domain.User{ID: user.ID}, map[string]interface{}{
+	err = u.Update.UpdateUser(ctx, &domain.User{ID: userProfile.ID}, map[string]interface{}{
 		"pin_update_required": true,
 	})
 	if err != nil {
@@ -559,7 +559,7 @@ func (u *UseCasesServiceRequestImpl) VerifyClientPinResetServiceRequest(
 		return false, exceptions.UpdateProfileErr(err)
 	}
 
-	return u.VerifyServiceRequestResponse(ctx, state, phoneNumber, serviceRequestID, user, staff, feedlib.FlavourConsumer)
+	return u.VerifyServiceRequestResponse(ctx, state, phoneNumber, serviceRequestID, userProfile, staff, feedlib.FlavourConsumer)
 
 }
 

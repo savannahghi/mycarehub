@@ -60,13 +60,13 @@ func NewUsecaseSurveys(
 
 // GetUserSurveyForms lists the surveys available for a given project
 func (u *UsecaseSurveysImpl) GetUserSurveyForms(ctx context.Context, userID string) ([]*domain.UserSurvey, error) {
-	surveys, err := u.Query.GetUserSurveyForms(ctx, userID)
+	userSurveys, err := u.Query.GetUserSurveyForms(ctx, userID)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, err
 	}
 
-	return surveys, nil
+	return userSurveys, nil
 }
 
 // VerifySurveySubmission method is used to verify whether a user has filled a survey.
@@ -104,12 +104,12 @@ func (u *UsecaseSurveysImpl) VerifySurveySubmission(ctx context.Context, input d
 
 // ListSurveys lists the surveys available for a given project
 func (u *UsecaseSurveysImpl) ListSurveys(ctx context.Context, projectID *int) ([]*domain.SurveyForm, error) {
-	surveys, err := u.Surveys.ListSurveyForms(ctx, *projectID)
+	allSurveys, err := u.Surveys.ListSurveyForms(ctx, *projectID)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, err
 	}
-	return surveys, nil
+	return allSurveys, nil
 }
 
 // SendClientSurveyLinks sends survey links to clients

@@ -26,11 +26,6 @@ const (
 	MoodNeutral Mood = "NEUTRAL"
 )
 
-// AllMoods represents a slice of all available moods
-var AllMoods = []Mood{
-	MoodHappy, MoodNeutral, MoodSad, MoodVeryHappy, MoodVerySad,
-}
-
 // IsValid returns true if a mood type is valid
 func (m Mood) IsValid() bool {
 	switch m {

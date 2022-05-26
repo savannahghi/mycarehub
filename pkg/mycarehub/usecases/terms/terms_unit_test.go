@@ -45,7 +45,7 @@ func TestTermsOfServiceImpl_GetCurrentTerms_Unittest(t *testing.T) {
 		{
 			name: "Sad case - bad context",
 			args: args{
-				ctx:     context.TODO(),
+				ctx:     context.Background(),
 				flavour: feedlib.FlavourConsumer,
 			},
 			wantErr: true,

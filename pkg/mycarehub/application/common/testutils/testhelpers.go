@@ -59,14 +59,14 @@ func InitializeTestService(ctx context.Context) (*usecases.MyCareHub, error) {
 
 	externalExt := externalExtension.NewExternalMethodsImpl()
 
-	fcm := fcm.NewService()
+	fcmService := fcm.NewService()
 
 	db := postgres.NewMyCareHubDb(pg, pg, pg, pg)
 
 	otpUseCase := otp.NewOTPUseCase(db, db, externalExt)
 	getStream := streamService.NewServiceGetStream(&stream.Client{})
 
-	pubsub, err := pubsubmessaging.NewServicePubSubMessaging(externalExt, getStream, db, fcm)
+	pubsub, err := pubsubmessaging.NewServicePubSubMessaging(externalExt, getStream, db, fcmService)
 	if err != nil {
 		return nil, fmt.Errorf("can't instantiate pubsub service: %v", err)
 	}
@@ -79,8 +79,8 @@ func InitializeTestService(ctx context.Context) (*usecases.MyCareHub, error) {
 	contentUseCase := content.NewUseCasesContentImplementation(db, db, externalExt)
 	feedbackUsecase := feedback.NewUsecaseFeedback(db, externalExt)
 
-	faq := faq.NewUsecaseFAQ(db)
-	notificationUseCase := notification.NewNotificationUseCaseImpl(fcm, db, db, db)
+	faqUsecase := faq.NewUsecaseFAQ(db)
+	notificationUseCase := notification.NewNotificationUseCaseImpl(fcmService, db, db, db)
 	appointmentUsecase := appointment.NewUseCaseAppointmentsImpl(externalExt, db, db, db, pubsub, notificationUseCase)
 	communityUsecase := communities.NewUseCaseCommunitiesImpl(getStream, externalExt, db, db, pubsub, notificationUseCase)
 	authorityUseCase := authority.NewUsecaseAuthority(db, db, externalExt, notificationUseCase)
@@ -94,14 +94,14 @@ func InitializeTestService(ctx context.Context) (*usecases.MyCareHub, error) {
 		HTTPClient: &http.Client{},
 	}
 	survey := surveyInstance.NewSurveysImpl(surveysClient)
-	surveysUsecase := surveys.NewUsecaseSurveys(survey, db, db, db, notificationUseCase)
-	metrics := metrics.NewUsecaseMetricsImpl(db)
+	surveysUsecase := surveys.NewUsecaseSurveys(survey, db, db, db,notificationUseCase)
+	metricsUsecase := metrics.NewUsecaseMetricsImpl(db)
 
 	i := usecases.NewMyCareHubUseCase(
 		userUsecase, termsUsecase, facilityUseCase,
 		securityQuestionsUsecase, otpUseCase, contentUseCase, feedbackUsecase, healthDiaryUseCase,
-		faq, serviceRequestUseCase, authorityUseCase, communityUsecase, screeningToolsUsecases,
-		appointmentUsecase, notificationUseCase, surveysUsecase, metrics,
+		faqUsecase, serviceRequestUseCase, authorityUseCase, communityUsecase, screeningToolsUsecases,
+		appointmentUsecase, notificationUseCase, surveysUsecase, metricsUsecase,
 	)
 	return i, nil
 }

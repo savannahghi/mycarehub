@@ -20,10 +20,6 @@ type Update interface {
 	ReactivateFacility(ctx context.Context, mflCode *int) (bool, error)
 	UpdateFacility(ctx context.Context, facility *Facility, updateData map[string]interface{}) error
 	AcceptTerms(ctx context.Context, userID *string, termsID *int) (bool, error)
-	UpdateUserFailedLoginCount(ctx context.Context, userID string, failedLoginAttempts int) error
-	UpdateUserLastFailedLoginTime(ctx context.Context, userID string) error
-	UpdateUserNextAllowedLoginTime(ctx context.Context, userID string, nextAllowedLoginTime time.Time) error
-	UpdateUserProfileAfterLoginSuccess(ctx context.Context, userID string) error
 	SetNickName(ctx context.Context, userID *string, nickname *string) (bool, error)
 	CompleteOnboardingTour(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
 	InvalidatePIN(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
@@ -223,64 +219,6 @@ func (db *PGInstance) AcceptTerms(ctx context.Context, userID *string, termsID *
 	}
 
 	return true, nil
-}
-
-// UpdateUserFailedLoginCount updates the user's failed login count field in an event where a user fails to
-// log into the app
-func (db *PGInstance) UpdateUserFailedLoginCount(ctx context.Context, userID string, failedLoginAttempts int) error {
-	// get user profile and update the count in transaction
-	err := db.DB.Model(&User{}).Where(&User{UserID: &userID}).
-		Updates(map[string]interface{}{
-			"failed_login_count": failedLoginAttempts,
-		}).Error
-	if err != nil {
-		helpers.ReportErrorToSentry(err)
-		return fmt.Errorf("an error occurred while updating the user failed login count: %v", err)
-	}
-	return nil
-}
-
-// UpdateUserLastFailedLoginTime updates the user's last failed login time
-func (db *PGInstance) UpdateUserLastFailedLoginTime(ctx context.Context, userID string) error {
-	currentTime := time.Now()
-	err := db.DB.Model(&User{}).Where(&User{UserID: &userID}).Updates(&User{LastFailedLogin: &currentTime}).Error
-	if err != nil {
-		helpers.ReportErrorToSentry(err)
-		return err
-	}
-	return nil
-}
-
-// UpdateUserNextAllowedLoginTime updates the user's next allowed login time. This field is used to check whether we can
-// allow a user to log in immediately or wait for some time before retrying the login process.
-func (db *PGInstance) UpdateUserNextAllowedLoginTime(ctx context.Context, userID string, nextAllowedLoginTime time.Time) error {
-	err := db.DB.Model(&User{}).Where(&User{UserID: &userID}).Updates(&User{NextAllowedLogin: &nextAllowedLoginTime}).Error
-	if err != nil {
-		helpers.ReportErrorToSentry(err)
-		return err
-	}
-	return nil
-}
-
-// UpdateUserProfileAfterLoginSuccess updates the `lastSuccessfulLogin` field in the event where a user
-// successfully logs into the app
-func (db *PGInstance) UpdateUserProfileAfterLoginSuccess(ctx context.Context, userID string) error {
-	currentTime := time.Now()
-	failedLoginCount := 0
-
-	err := db.DB.Model(&User{}).Where(&User{UserID: &userID}).
-		Updates(map[string]interface{}{
-			"last_successful_login": &currentTime,
-			"failed_login_count":    failedLoginCount,
-			"next_allowed_login":    currentTime,
-		}).Error
-	if err != nil {
-		helpers.ReportErrorToSentry(err)
-		return fmt.Errorf("an error occurred while updating the user profile: %v", err)
-	}
-
-	return nil
-
 }
 
 // SetNickName is used to set the user's nickname in the database

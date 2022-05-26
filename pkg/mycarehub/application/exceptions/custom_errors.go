@@ -35,9 +35,9 @@ func PinNotFoundError(err error) error {
 
 // PinMismatchError displays an error when the supplied PIN
 // does not match the PIN stored
-func PinMismatchError(err error) error {
+func PinMismatchError() error {
 	return &CustomError{
-		Err:     err,
+		Err:     nil,
 		Message: PINMismatchErrMsg,
 		Code:    int(PINMismatch),
 	}
@@ -216,9 +216,9 @@ func GenerateTempPINErr(err error) error {
 }
 
 // ExpiredPinErr returns an error message when the pin is expired
-func ExpiredPinErr(err error) error {
+func ExpiredPinErr() error {
 	return &CustomError{
-		Err:     err,
+		Err:     nil,
 		Message: ExpiredPinErrorMsg,
 		Code:    int(ExpiredPinError),
 	}
@@ -461,9 +461,9 @@ func UserNameExistsErr(err error) error {
 }
 
 // ClientHasUnresolvedPinResetRequestErr returns an error message when the client has an unresolved pin reset request
-func ClientHasUnresolvedPinResetRequestErr(err error) error {
+func ClientHasUnresolvedPinResetRequestErr() error {
 	return &CustomError{
-		Err:     err,
+		Err:     nil,
 		Message: ClientHasUnresolvedPinResetRequestErrorMsg,
 		Code:    int(ClientHasUnresolvedPinResetRequestError),
 	}
@@ -484,15 +484,6 @@ func GetAllRolesErr(err error) error {
 		Err:     err,
 		Message: GetAllRolesErrorMsg,
 		Code:    int(GetAllRolesError),
-	}
-}
-
-// RecordNotFoundErr returns an error message when a record is not found when querying the database
-func RecordNotFoundErr(err error) error {
-	return &CustomError{
-		Err:     err,
-		Message: RecordNotFoundErrorMsg,
-		Code:    int(RecordNotFoundError),
 	}
 }
 
@@ -533,9 +524,9 @@ func UpdateProfileErr(err error) error {
 }
 
 // StaffHasUnresolvedPinResetRequestErr returns an error message when the staff has an unresolved pin reset request
-func StaffHasUnresolvedPinResetRequestErr(err error) error {
+func StaffHasUnresolvedPinResetRequestErr() error {
 	return &CustomError{
-		Err:     err,
+		Err:     nil,
 		Message: StaffHasUnresolvedPinResetRequestErrorMsg,
 		Code:    int(StaffHasUnresolvedPinResetRequestError),
 	}

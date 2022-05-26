@@ -104,7 +104,7 @@ func TestUseCaseOTPImpl_GenerateAndSendOTP(t *testing.T) {
 			fakeOTP := mock.NewOTPUseCaseMock()
 			fakeDB := pgMock.NewPostgresMock()
 			fakeExtension := extensionMock.NewFakeExtension()
-			otp := otp.NewOTPUseCase(fakeDB, fakeDB, fakeExtension)
+			o := otp.NewOTPUseCase(fakeDB, fakeDB, fakeExtension)
 
 			if tt.name == "Sad Case - Fail to generate otp" {
 				fakeExtension.MockGenerateOTPFn = func(ctx context.Context) (string, error) {
@@ -150,7 +150,7 @@ func TestUseCaseOTPImpl_GenerateAndSendOTP(t *testing.T) {
 				}
 			}
 
-			got, err := otp.GenerateAndSendOTP(tt.args.ctx, tt.args.phoneNumber, tt.args.flavour)
+			got, err := o.GenerateAndSendOTP(tt.args.ctx, tt.args.phoneNumber, tt.args.flavour)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCaseOTPImpl.GenerateAndSendOTP() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -191,7 +191,7 @@ func TestUseCaseOTPImpl_GenerateOTP(t *testing.T) {
 			fakeOTP := mock.NewOTPUseCaseMock()
 			fakeDB := pgMock.NewPostgresMock()
 			fakeExtension := extensionMock.NewFakeExtension()
-			otp := otp.NewOTPUseCase(fakeDB, fakeDB, fakeExtension)
+			o := otp.NewOTPUseCase(fakeDB, fakeDB, fakeExtension)
 
 			if tt.name == "Sad Case - Fail to generate otp" {
 				fakeOTP.MockGenerateAndSendOTPFn = func(
@@ -203,7 +203,7 @@ func TestUseCaseOTPImpl_GenerateOTP(t *testing.T) {
 				}
 			}
 
-			got, err := otp.GenerateOTP(tt.args.ctx)
+			got, err := o.GenerateOTP(tt.args.ctx)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCaseOTPImpl.GenerateOTP() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -382,7 +382,7 @@ func TestUseCaseOTPImpl_VerifyPhoneNumber(t *testing.T) {
 			_ = mock.NewOTPUseCaseMock()
 			fakeDB := pgMock.NewPostgresMock()
 			fakeExtension := extensionMock.NewFakeExtension()
-			otp := otp.NewOTPUseCase(fakeDB, fakeDB, fakeExtension)
+			o := otp.NewOTPUseCase(fakeDB, fakeDB, fakeExtension)
 
 			if tt.name == "Sad Case - Fail to save otp" {
 				fakeDB.MockSaveOTPFn = func(ctx context.Context, otpInput *domain.OTP) error {
@@ -464,7 +464,7 @@ func TestUseCaseOTPImpl_VerifyPhoneNumber(t *testing.T) {
 					return "", fmt.Errorf("failed to generate and send otp")
 				}
 			}
-			_, err := otp.VerifyPhoneNumber(tt.args.ctx, tt.args.phone, tt.args.flavour)
+			_, err := o.VerifyPhoneNumber(tt.args.ctx, tt.args.phone, tt.args.flavour)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCaseOTPImpl.VerifyPhoneNumber() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -579,7 +579,7 @@ func TestMyCareHubDb_VerifyOTP_Unittest(t *testing.T) {
 			_ = mock.NewOTPUseCaseMock()
 			fakeDB := pgMock.NewPostgresMock()
 			fakeExtension := extensionMock.NewFakeExtension()
-			otp := otp.NewOTPUseCase(fakeDB, fakeDB, fakeExtension)
+			o := otp.NewOTPUseCase(fakeDB, fakeDB, fakeExtension)
 
 			if tt.name == "Sad case - no user ID" {
 				fakeDB.MockVerifyOTPFn = func(ctx context.Context, payload *dto.VerifyOTPInput) (bool, error) {
@@ -612,7 +612,7 @@ func TestMyCareHubDb_VerifyOTP_Unittest(t *testing.T) {
 				}
 			}
 
-			got, err := otp.VerifyOTP(tt.args.ctx, tt.args.payload)
+			got, err := o.VerifyOTP(tt.args.ctx, tt.args.payload)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("MyCareHubDb.VerifyOTP() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -692,7 +692,7 @@ func TestUseCaseOTPImpl_GenerateRetryOTP(t *testing.T) {
 			_ = mock.NewOTPUseCaseMock()
 			fakeDB := pgMock.NewPostgresMock()
 			fakeExtension := extensionMock.NewFakeExtension()
-			otp := otp.NewOTPUseCase(fakeDB, fakeDB, fakeExtension)
+			o := otp.NewOTPUseCase(fakeDB, fakeDB, fakeExtension)
 
 			if tt.name == "Sad case - failed to generate and retry to send otp" {
 				fakeExtension.MockGenerateRetryOTPFn = func(ctx context.Context, payload *dto.SendRetryOTPPayload) (string, error) {
@@ -716,7 +716,7 @@ func TestUseCaseOTPImpl_GenerateRetryOTP(t *testing.T) {
 				}
 			}
 
-			_, err := otp.GenerateRetryOTP(tt.args.ctx, tt.args.payload)
+			_, err := o.GenerateRetryOTP(tt.args.ctx, tt.args.payload)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCaseOTPImpl.GenerateRetryOTP() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -787,7 +787,7 @@ func TestUseCaseOTPImpl_SendOTP(t *testing.T) {
 			_ = mock.NewOTPUseCaseMock()
 			fakeDB := pgMock.NewPostgresMock()
 			fakeExtension := extensionMock.NewFakeExtension()
-			otp := otp.NewOTPUseCase(fakeDB, fakeDB, fakeExtension)
+			o := otp.NewOTPUseCase(fakeDB, fakeDB, fakeExtension)
 
 			if tt.name == "Sad Case - Fail to send an otp to kenyan number" {
 				fakeExtension.MockSendSMSFn = func(ctx context.Context, phoneNumbers string, message string, from enumutils.SenderID) (*openSourceDto.SendMessageResponse, error) {
@@ -801,7 +801,7 @@ func TestUseCaseOTPImpl_SendOTP(t *testing.T) {
 				}
 			}
 
-			got, err := otp.SendOTP(tt.args.ctx, tt.args.phoneNumber, tt.args.code, tt.args.message)
+			got, err := o.SendOTP(tt.args.ctx, tt.args.phoneNumber, tt.args.code, tt.args.message)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCaseOTPImpl.SendOTP() error = %v, wantErr %v", err, tt.wantErr)
 				return

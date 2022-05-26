@@ -67,12 +67,12 @@ func TestUseCaseNotificationImpl_NotifyUser(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			fakeFCM := fakeFCM.NewFCMServiceMock()
+			fakeFCMService := fakeFCM.NewFCMServiceMock()
 			fakeDB := pgMock.NewPostgresMock()
-			notificationService := notification.NewNotificationUseCaseImpl(fakeFCM, fakeDB, fakeDB, fakeDB)
+			notificationService := notification.NewNotificationUseCaseImpl(fakeFCMService, fakeDB, fakeDB, fakeDB)
 
 			if tt.name == "Sad Case - Fail to notify user" {
-				fakeFCM.MockSendNotificationFn = func(ctx context.Context, payload *firebasetools.SendNotificationPayload) (bool, error) {
+				fakeFCMService.MockSendNotificationFn = func(ctx context.Context, payload *firebasetools.SendNotificationPayload) (bool, error) {
 					return false, fmt.Errorf("failed to send notification")
 				}
 			}
@@ -170,9 +170,9 @@ func TestUseCaseNotificationImpl_FetchNotifications(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			fakeFCM := fakeFCM.NewFCMServiceMock()
+			fakeFCMService := fakeFCM.NewFCMServiceMock()
 			fakeDB := pgMock.NewPostgresMock()
-			notificationService := notification.NewNotificationUseCaseImpl(fakeFCM, fakeDB, fakeDB, fakeDB)
+			notificationService := notification.NewNotificationUseCaseImpl(fakeFCMService, fakeDB, fakeDB, fakeDB)
 
 			if tt.name == "sad case: cannot list notifications" {
 				fakeDB.MockListNotificationsFn = func(ctx context.Context, params *domain.Notification, pagination *domain.Pagination) ([]*domain.Notification, *domain.Pagination, error) {
@@ -257,9 +257,9 @@ func TestUseCaseNotificationImpl_NotifyFacilityStaffs(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			fakeFCM := fakeFCM.NewFCMServiceMock()
+			fakeFCMService := fakeFCM.NewFCMServiceMock()
 			fakeDB := pgMock.NewPostgresMock()
-			n := notification.NewNotificationUseCaseImpl(fakeFCM, fakeDB, fakeDB, fakeDB)
+			n := notification.NewNotificationUseCaseImpl(fakeFCMService, fakeDB, fakeDB, fakeDB)
 
 			if tt.name == "sad case: cannot save notification" {
 				fakeDB.MockSaveNotificationFn = func(ctx context.Context, payload *domain.Notification) error {
@@ -274,7 +274,7 @@ func TestUseCaseNotificationImpl_NotifyFacilityStaffs(t *testing.T) {
 			}
 
 			if tt.name == "sad case: cannot send notification" {
-				fakeFCM.MockSendNotificationFn = func(ctx context.Context, payload *firebasetools.SendNotificationPayload) (bool, error) {
+				fakeFCMService.MockSendNotificationFn = func(ctx context.Context, payload *firebasetools.SendNotificationPayload) (bool, error) {
 					return false, fmt.Errorf("cannot send notification")
 				}
 			}
@@ -314,11 +314,11 @@ func TestUseCaseNotificationImpl_SendNotification(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			fakeFCM := fakeFCM.NewFCMServiceMock()
+			fakeFCMService := fakeFCM.NewFCMServiceMock()
 			fakeDB := pgMock.NewPostgresMock()
-			notification := notification.NewNotificationUseCaseImpl(fakeFCM, fakeDB, fakeDB, fakeDB)
+			n := notification.NewNotificationUseCaseImpl(fakeFCMService, fakeDB, fakeDB, fakeDB)
 
-			got, err := notification.SendNotification(tt.args.ctx, tt.args.registrationTokens, tt.args.data, tt.args.notification)
+			got, err := n.SendNotification(tt.args.ctx, tt.args.registrationTokens, tt.args.data, tt.args.notification)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCaseNotificationImpl.SendNotification() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -372,9 +372,9 @@ func TestUseCaseNotificationImpl_ReadNotifications(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			fakeFCM := fakeFCM.NewFCMServiceMock()
+			fakeFCMService := fakeFCM.NewFCMServiceMock()
 			fakeDB := pgMock.NewPostgresMock()
-			n := notification.NewNotificationUseCaseImpl(fakeFCM, fakeDB, fakeDB, fakeDB)
+			n := notification.NewNotificationUseCaseImpl(fakeFCMService, fakeDB, fakeDB, fakeDB)
 
 			if tt.name == "sad case: non existent notification" {
 				fakeDB.MockGetNotificationFn = func(ctx context.Context, notificationID string) (*domain.Notification, error) {

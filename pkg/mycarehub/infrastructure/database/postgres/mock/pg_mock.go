@@ -38,11 +38,7 @@ type PostgresMock struct {
 	MockGetCurrentTermsFn                                func(ctx context.Context, flavour feedlib.Flavour) (*domain.TermsOfService, error)
 	MockAcceptTermsFn                                    func(ctx context.Context, userID *string, termsID *int) (bool, error)
 	MockSavePinFn                                        func(ctx context.Context, pin *domain.UserPIN) (bool, error)
-	MockUpdateUserFailedLoginCountFn                     func(ctx context.Context, userID string, failedLoginAttempts int) error
-	MockUpdateUserLastFailedLoginTimeFn                  func(ctx context.Context, userID string) error
-	MockUpdateUserNextAllowedLoginTimeFn                 func(ctx context.Context, userID string, nextAllowedLoginTime time.Time) error
 	MockSetNickNameFn                                    func(ctx context.Context, userID *string, nickname *string) (bool, error)
-	MockUpdateUserProfileAfterLoginSuccessFn             func(ctx context.Context, userID string) error
 	MockGetSecurityQuestionsFn                           func(ctx context.Context, flavour feedlib.Flavour) ([]*domain.SecurityQuestion, error)
 	MockSaveOTPFn                                        func(ctx context.Context, otpInput *domain.OTP) error
 	MockGetSecurityQuestionByIDFn                        func(ctx context.Context, securityQuestionID *string) (*domain.SecurityQuestion, error)
@@ -445,18 +441,6 @@ func NewPostgresMock() *PostgresMock {
 		},
 		MockSavePinFn: func(ctx context.Context, pin *domain.UserPIN) (bool, error) {
 			return true, nil
-		},
-		MockUpdateUserFailedLoginCountFn: func(ctx context.Context, userID string, failedLoginAttempts int) error {
-			return nil
-		},
-		MockUpdateUserLastFailedLoginTimeFn: func(ctx context.Context, userID string) error {
-			return nil
-		},
-		MockUpdateUserNextAllowedLoginTimeFn: func(ctx context.Context, userID string, nextAllowedLoginTime time.Time) error {
-			return nil
-		},
-		MockUpdateUserProfileAfterLoginSuccessFn: func(ctx context.Context, userID string) error {
-			return nil
 		},
 		MockGetSecurityQuestionsFn: func(ctx context.Context, flavour feedlib.Flavour) ([]*domain.SecurityQuestion, error) {
 			securityQuestion := &domain.SecurityQuestion{
@@ -1153,26 +1137,6 @@ func (gm *PostgresMock) AcceptTerms(ctx context.Context, userID *string, termsID
 // SavePin mocks the implementation of saving a user pin
 func (gm *PostgresMock) SavePin(ctx context.Context, pin *domain.UserPIN) (bool, error) {
 	return gm.MockSavePinFn(ctx, pin)
-}
-
-// UpdateUserFailedLoginCount mocks the implementation of updating a user failed login count
-func (gm *PostgresMock) UpdateUserFailedLoginCount(ctx context.Context, userID string, failedLoginAttempts int) error {
-	return gm.MockUpdateUserFailedLoginCountFn(ctx, userID, failedLoginAttempts)
-}
-
-// UpdateUserLastFailedLoginTime mocks the implementation of updating a user's last failed login time
-func (gm *PostgresMock) UpdateUserLastFailedLoginTime(ctx context.Context, userID string) error {
-	return gm.MockUpdateUserLastFailedLoginTimeFn(ctx, userID)
-}
-
-// UpdateUserNextAllowedLoginTime mocks the implementation of updating a user's next allowed login time
-func (gm *PostgresMock) UpdateUserNextAllowedLoginTime(ctx context.Context, userID string, nextAllowedLoginTime time.Time) error {
-	return gm.MockUpdateUserNextAllowedLoginTimeFn(ctx, userID, nextAllowedLoginTime)
-}
-
-// UpdateUserProfileAfterLoginSuccess mocks the implementation of updating a user's last successful login time
-func (gm *PostgresMock) UpdateUserProfileAfterLoginSuccess(ctx context.Context, userID string) error {
-	return gm.MockUpdateUserProfileAfterLoginSuccessFn(ctx, userID)
 }
 
 // UpdateUserSurveys mocks the implementation of `gorm's` UpdateUserSurveys method.

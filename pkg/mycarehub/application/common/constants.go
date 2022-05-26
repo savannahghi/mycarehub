@@ -26,7 +26,7 @@ const (
 	// CreateTestOrderTopicName is the topic for publishing a patient's test order
 	CreateTestOrderTopicName = "test.order.create"
 
-	// CreateOrganizationTopicName is the topic for publishing a organization
+	// CreateOrganizationTopicName is the topic for publishing an organization
 	CreateOrganizationTopicName = "organization.create"
 
 	// CreateGetstreamEventTopicName is the topic where getstream events are published to

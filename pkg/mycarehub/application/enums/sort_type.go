@@ -17,12 +17,6 @@ const (
 	SortDataTypeDesc SortDataType = "desc"
 )
 
-// AllSorts is a set of a  valid and known sort types.
-var AllSorts = []SortDataType{
-	SortDataTypeAsc,
-	SortDataTypeDesc,
-}
-
 // IsValid returns true if a sort is valid
 func (m SortDataType) IsValid() bool {
 	switch m {

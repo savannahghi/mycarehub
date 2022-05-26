@@ -365,10 +365,6 @@ func TestOnboardingDb_ListFacilities(t *testing.T) {
 			DataType: enums.FilterSortDataTypeActive,
 			Value:    formatBool,
 		},
-		{
-			DataType: enums.FilterSortDataTypeCounty,
-			Value:    enums.CountyTypeNairobi.String(),
-		},
 	}
 
 	filterEmptyName := []*dto.FiltersInput{
@@ -384,10 +380,6 @@ func TestOnboardingDb_ListFacilities(t *testing.T) {
 			DataType: enums.FilterSortDataTypeActive,
 			Value:    formatBool,
 		},
-		{
-			DataType: enums.FilterSortDataTypeCounty,
-			Value:    enums.CountyTypeNairobi.String(),
-		},
 	}
 	filterEmptyMFLCode := []*dto.FiltersInput{
 		{
@@ -401,10 +393,6 @@ func TestOnboardingDb_ListFacilities(t *testing.T) {
 		{
 			DataType: enums.FilterSortDataTypeActive,
 			Value:    formatBool,
-		},
-		{
-			DataType: enums.FilterSortDataTypeCounty,
-			Value:    enums.CountyTypeNairobi.String(),
 		},
 	}
 
@@ -420,10 +408,6 @@ func TestOnboardingDb_ListFacilities(t *testing.T) {
 		{
 			DataType: enums.FilterSortDataTypeActive,
 			Value:    "invalid",
-		},
-		{
-			DataType: enums.FilterSortDataTypeCounty,
-			Value:    enums.CountyTypeNairobi.String(),
 		},
 	}
 

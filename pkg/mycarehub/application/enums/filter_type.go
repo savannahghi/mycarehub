@@ -29,7 +29,7 @@ const (
 	// FilterSortDataTypeCounty represents the County Filter data type
 	FilterSortDataTypeCounty FilterSortDataType = "county"
 
-	// Other Filter data Types
+	// FilterSortDataTypeAppointmentStatus Other Filter data Types
 	// FilterSortDataTypeCounty represents the Status Filter data type
 	FilterSortDataTypeAppointmentStatus FilterSortDataType = "status"
 )

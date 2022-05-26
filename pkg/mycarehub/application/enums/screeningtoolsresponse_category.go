@@ -19,13 +19,6 @@ const (
 	ScreeningToolResponseCategoryOpenEnded ScreeningToolResponseCategory = "OPEN_ENDED"
 )
 
-//ScreeningToolResponseCategories is a set of a  valid and known screening tools response types.
-var ScreeningToolResponseCategories = []ScreeningToolResponseCategory{
-	ScreeningToolResponseCategorySingleChoice,
-	ScreeningToolResponseCategoryMultiChoice,
-	ScreeningToolResponseCategoryOpenEnded,
-}
-
 // IsValid returns true if a screening tool response type is valid
 func (m ScreeningToolResponseCategory) IsValid() bool {
 	switch m {

@@ -102,7 +102,7 @@ func (c CommunityUsecaseMock) ListCommunityMembers(ctx context.Context, communit
 	return c.MockListCommunityMembers(ctx, communityID)
 }
 
-// RejectInvite mocks the implementation of rejecting an invite into a community
+// RejectInvite mocks the implementation of rejecting an invitation into a community
 func (c CommunityUsecaseMock) RejectInvite(ctx context.Context, userID string, channelID string, message string) (bool, error) {
 	return c.MockRejectInviteFn(ctx, userID, channelID)
 }

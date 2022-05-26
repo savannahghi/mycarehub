@@ -414,7 +414,7 @@ func TestUseCasesContentImpl_GetUserBookmarkedContent(t *testing.T) {
 			if tt.name == "Happy Case - Successfully get user bookmarked content" {
 				fakeExt.MockMakeRequestFn = func(ctx context.Context, method string, path string, body interface{}) (*http.Response, error) {
 
-					content := domain.Content{
+					cntnt := domain.Content{
 						Items: []domain.ContentItem{
 							{
 								ID: 10,
@@ -422,7 +422,7 @@ func TestUseCasesContentImpl_GetUserBookmarkedContent(t *testing.T) {
 						},
 					}
 
-					payload, err := json.Marshal(content)
+					payload, err := json.Marshal(cntnt)
 					if err != nil {
 						t.Errorf("unable to marshal test item: %s", err)
 					}
@@ -503,7 +503,7 @@ func TestUseCasesContentImpl_GetContent(t *testing.T) {
 			if tt.name == "Happy Case - Successfully get content" {
 				fakeExt.MockMakeRequestFn = func(ctx context.Context, method string, path string, body interface{}) (*http.Response, error) {
 
-					content := domain.Content{
+					cntnt := domain.Content{
 						Items: []domain.ContentItem{
 							{
 								ID: 10,
@@ -511,7 +511,7 @@ func TestUseCasesContentImpl_GetContent(t *testing.T) {
 						},
 					}
 
-					payload, err := json.Marshal(content)
+					payload, err := json.Marshal(cntnt)
 					if err != nil {
 						t.Errorf("unable to marshal test item: %s", err)
 					}
@@ -580,7 +580,7 @@ func TestUseCasesContentImpl_GetContentByContentItemID(t *testing.T) {
 			if tt.name == "Happy Case - Successfully get content" {
 				fakeExt.MockMakeRequestFn = func(ctx context.Context, method string, path string, body interface{}) (*http.Response, error) {
 
-					content := domain.Content{
+					cntnt := domain.Content{
 						Items: []domain.ContentItem{
 							{
 								ID: 10,
@@ -588,7 +588,7 @@ func TestUseCasesContentImpl_GetContentByContentItemID(t *testing.T) {
 						},
 					}
 
-					payload, err := json.Marshal(content)
+					payload, err := json.Marshal(cntnt)
 					if err != nil {
 						t.Errorf("unable to marshal test item: %s", err)
 					}

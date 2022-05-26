@@ -23,14 +23,6 @@ const (
 	UserRoleTypeClientManagement UserRoleType = "CLIENT_MANAGEMENT"
 )
 
-// AllRoles is a set of a  valid and known user roles.
-var AllRoles = []UserRoleType{
-	UserRoleTypeSystemAdministrator,
-	UserRoleTypeCommunityManagement,
-	UserRoleTypeContentManagement,
-	UserRoleTypeClientManagement,
-}
-
 // IsValid returns true if a role is valid
 func (m UserRoleType) IsValid() bool {
 	switch m {
