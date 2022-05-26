@@ -13,8 +13,6 @@ import (
 
 	"github.com/imroc/req"
 	"github.com/savannahghi/firebasetools"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/testutils"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/presentation"
 	"github.com/savannahghi/serverutils"
 )
@@ -56,16 +54,6 @@ func TestMain(m *testing.M) {
 		log.Printf("unable to start test server: %s", serverErr)
 	}
 
-	_, err := gorm.NewPGInstance()
-	if err != nil {
-		log.Printf("can't instantiate test repository: %v", err)
-	}
-
-	_, err = testutils.InitializeTestService(ctx)
-	if err != nil {
-		log.Printf("Error initializing test service: %v", err)
-	}
-
 	// run tests
 	log.Printf("Running tests ...")
 	code := m.Run()
@@ -77,7 +65,7 @@ func TestMain(m *testing.M) {
 
 	// cleanup here
 	defer func() {
-		err = srv.Shutdown(ctx)
+		err := srv.Shutdown(ctx)
 		if err != nil {
 			log.Printf("test server shutdown error: %s", err)
 		}
