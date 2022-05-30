@@ -8,8 +8,10 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/utils"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/notification"
 )
 
 // ICheckUserRole contains methods to check if a user has a given role
@@ -51,9 +53,10 @@ type UsecaseAuthority interface {
 
 // UsecaseAuthorityImpl represents the Authority implementation
 type UsecaseAuthorityImpl struct {
-	Query       infrastructure.Query
-	Update      infrastructure.Update
-	ExternalExt extension.ExternalMethodsExtension
+	Query        infrastructure.Query
+	Update       infrastructure.Update
+	ExternalExt  extension.ExternalMethodsExtension
+	Notification notification.UseCaseNotification
 }
 
 // NewUsecaseAuthority is the controller function for the Authority usecase
@@ -61,11 +64,13 @@ func NewUsecaseAuthority(
 	query infrastructure.Query,
 	update infrastructure.Update,
 	externalExt extension.ExternalMethodsExtension,
+	notification notification.UseCaseNotification,
 ) *UsecaseAuthorityImpl {
 	return &UsecaseAuthorityImpl{
-		Query:       query,
-		Update:      update,
-		ExternalExt: externalExt,
+		Query:        query,
+		Update:       update,
+		ExternalExt:  externalExt,
+		Notification: notification,
 	}
 }
 
@@ -227,11 +232,9 @@ func (u *UsecaseAuthorityImpl) AssignOrRevokeRoles(ctx context.Context, userID s
 		return false, exceptions.EmptyInputErr(err)
 	}
 
-	newRoles := []enums.UserRoleType{}
+	assignedRoles := []enums.UserRoleType{}
 	for _, role := range roles {
-		if role != nil {
-			newRoles = append(newRoles, *role)
-		}
+		assignedRoles = append(assignedRoles, *role)
 	}
 
 	err := u.CheckUserPermission(ctx, enums.PermissionTypeCanEditUserRole)
@@ -248,20 +251,42 @@ func (u *UsecaseAuthorityImpl) AssignOrRevokeRoles(ctx context.Context, userID s
 
 	currentRoleList := []enums.UserRoleType{}
 	for _, role := range currentRoles {
-		if role != nil {
-			currentRoleList = append(currentRoleList, role.Name)
-		}
+		currentRoleList = append(currentRoleList, role.Name)
 	}
+
+	user, err := u.Query.GetUserProfileByUserID(ctx, userID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, err
+	}
+
 	_, err = u.Update.RevokeRoles(ctx, userID, currentRoleList)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return false, exceptions.RevokeRolesErr(err)
 	}
 
-	_, err = u.Update.AssignRoles(ctx, userID, newRoles)
+	_, err = u.Update.AssignRoles(ctx, userID, assignedRoles)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return false, exceptions.AssignRolesErr(err)
 	}
+
+	_, newRoles := utils.CheckNewAndRemovedRoleTypes(currentRoleList, assignedRoles)
+
+	if len(newRoles) > 0 {
+		notificationArgs := notification.StaffNotificationArgs{
+			RoleTypes: newRoles,
+		}
+		notification := notification.ComposeStaffNotification(
+			enums.NotificationTypeRoleAssignment,
+			notificationArgs,
+		)
+		err = u.Notification.NotifyUser(ctx, user, notification)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+		}
+	}
+
 	return true, nil
 }

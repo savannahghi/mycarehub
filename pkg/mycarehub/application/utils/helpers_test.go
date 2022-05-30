@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/scalarutils"
 	"github.com/tj/assert"
 )
@@ -291,6 +292,52 @@ func Test_interfaceToString(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := InterfaceToString(tt.args.n); got != tt.want {
 				t.Errorf("InterfaceToString() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestCheckNewAndRemovedRoleTypes(t *testing.T) {
+	type args struct {
+		original []enums.UserRoleType
+		new      []enums.UserRoleType
+	}
+	tests := []struct {
+		name  string
+		args  args
+		want  []enums.UserRoleType
+		want1 []enums.UserRoleType
+	}{
+		{
+			name: "happy case: new roles",
+			args: args{
+				original: []enums.UserRoleType{
+					enums.UserRoleTypeClientManagement,
+					enums.UserRoleTypeCommunityManagement,
+				},
+				new: []enums.UserRoleType{
+					enums.UserRoleTypeClientManagement,
+					enums.UserRoleTypeContentManagement,
+					enums.UserRoleTypeSystemAdministrator,
+				},
+			},
+			want: []enums.UserRoleType{
+				enums.UserRoleTypeCommunityManagement,
+			},
+			want1: []enums.UserRoleType{
+				enums.UserRoleTypeContentManagement,
+				enums.UserRoleTypeSystemAdministrator,
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, got1 := CheckNewAndRemovedRoleTypes(tt.args.original, tt.args.new)
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("CheckNewAndRemovedRoleTypes() got = %v, want %v", got, tt.want)
+			}
+			if !reflect.DeepEqual(got1, tt.want1) {
+				t.Errorf("CheckNewAndRemovedRoleTypes() got1 = %v, want %v", got1, tt.want1)
 			}
 		})
 	}

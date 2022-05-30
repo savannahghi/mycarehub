@@ -11,6 +11,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
 	pgMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/mock"
+	notificationMock "github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/notification/mock"
 )
 
 func TestUsecaseAuthorityImpl_CheckUserRole(t *testing.T) {
@@ -77,7 +78,9 @@ func TestUsecaseAuthorityImpl_CheckUserRole(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
 			fakeExtension := extensionMock.NewFakeExtension()
-			u := NewUsecaseAuthority(fakeDB, fakeDB, fakeExtension)
+			fakeNotification := notificationMock.NewServiceNotificationMock()
+
+			u := NewUsecaseAuthority(fakeDB, fakeDB, fakeExtension, fakeNotification)
 
 			if tt.name == "sad case: failed to check if use has role" {
 				fakeDB.MockCheckUserRoleFn = func(ctx context.Context, userID string, role string) (bool, error) {
@@ -161,7 +164,9 @@ func TestUsecaseAuthorityImpl_CheckUserPermission(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
 			fakeExtension := extensionMock.NewFakeExtension()
-			u := NewUsecaseAuthority(fakeDB, fakeDB, fakeExtension)
+			fakeNotification := notificationMock.NewServiceNotificationMock()
+
+			u := NewUsecaseAuthority(fakeDB, fakeDB, fakeExtension, fakeNotification)
 
 			if tt.name == "sad case: failed to check if use has permission" {
 				fakeDB.MockCheckUserPermissionFn = func(ctx context.Context, userID string, permission string) (bool, error) {
@@ -257,7 +262,9 @@ func TestUsecaseAuthorityImpl_AssignRoles(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
 			fakeExtension := extensionMock.NewFakeExtension()
-			u := NewUsecaseAuthority(fakeDB, fakeDB, fakeExtension)
+			fakeNotification := notificationMock.NewServiceNotificationMock()
+
+			u := NewUsecaseAuthority(fakeDB, fakeDB, fakeExtension, fakeNotification)
 
 			if tt.name == "sad case: user not authorized" {
 				fakeDB.MockCheckUserPermissionFn = func(ctx context.Context, userID string, permission string) (bool, error) {
@@ -323,7 +330,9 @@ func TestUsecaseAuthorityImpl_GetUserRoles(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
 			fakeExtension := extensionMock.NewFakeExtension()
-			u := NewUsecaseAuthority(fakeDB, fakeDB, fakeExtension)
+			fakeNotification := notificationMock.NewServiceNotificationMock()
+
+			u := NewUsecaseAuthority(fakeDB, fakeDB, fakeExtension, fakeNotification)
 
 			if tt.name == "sad case: failed to get user roles" {
 				fakeDB.MockGetUserRolesFn = func(ctx context.Context, userID string) ([]*domain.AuthorityRole, error) {
@@ -383,7 +392,9 @@ func TestUsecaseAuthorityImpl_GetUserPermissions(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
 			fakeExtension := extensionMock.NewFakeExtension()
-			u := NewUsecaseAuthority(fakeDB, fakeDB, fakeExtension)
+			fakeNotification := notificationMock.NewServiceNotificationMock()
+
+			u := NewUsecaseAuthority(fakeDB, fakeDB, fakeExtension, fakeNotification)
 
 			if tt.name == "sad case: failed to get user permissions" {
 				fakeDB.MockGetUserPermissionsFn = func(ctx context.Context, userID string) ([]*domain.AuthorityPermission, error) {
@@ -470,7 +481,9 @@ func TestUsecaseAuthorityImpl_RevokeRoles(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
 			fakeExtension := extensionMock.NewFakeExtension()
-			u := NewUsecaseAuthority(fakeDB, fakeDB, fakeExtension)
+			fakeNotification := notificationMock.NewServiceNotificationMock()
+
+			u := NewUsecaseAuthority(fakeDB, fakeDB, fakeExtension, fakeNotification)
 			if tt.name == "sad case: user not authorized" {
 				fakeDB.MockCheckUserPermissionFn = func(ctx context.Context, userID string, permission string) (bool, error) {
 					return false, nil
@@ -496,9 +509,7 @@ func TestUsecaseAuthorityImpl_RevokeRoles(t *testing.T) {
 }
 
 func TestUsecaseAuthorityImpl_AssignOrRevokeRoles(t *testing.T) {
-	fakeDB := pgMock.NewPostgresMock()
-	fakeExtension := extensionMock.NewFakeExtension()
-	u := NewUsecaseAuthority(fakeDB, fakeDB, fakeExtension)
+
 	adminRole := enums.UserRoleTypeSystemAdministrator
 	type args struct {
 		ctx    context.Context
@@ -535,7 +546,7 @@ func TestUsecaseAuthorityImpl_AssignOrRevokeRoles(t *testing.T) {
 			name: "sad case: failed to get current roles",
 			args: args{
 				ctx:    context.Background(),
-				userID: "",
+				userID: uuid.New().String(),
 				roles:  []*enums.UserRoleType{&adminRole},
 			},
 			want:    false,
@@ -545,7 +556,7 @@ func TestUsecaseAuthorityImpl_AssignOrRevokeRoles(t *testing.T) {
 			name: "sad case: failed to revoke current roles",
 			args: args{
 				ctx:    context.Background(),
-				userID: "",
+				userID: uuid.New().String(),
 				roles:  []*enums.UserRoleType{&adminRole},
 			},
 			want:    false,
@@ -571,9 +582,46 @@ func TestUsecaseAuthorityImpl_AssignOrRevokeRoles(t *testing.T) {
 			want:    false,
 			wantErr: true,
 		},
+		{
+			name: "sad case: failed to get user profile",
+			args: args{
+				ctx:    context.Background(),
+				userID: uuid.New().String(),
+				roles:  []*enums.UserRoleType{&adminRole},
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "sad case: failed to notify user",
+			args: args{
+				ctx:    context.Background(),
+				userID: uuid.New().String(),
+				roles:  []*enums.UserRoleType{&adminRole},
+			},
+			want:    true,
+			wantErr: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			fakeExtension := extensionMock.NewFakeExtension()
+			fakeNotification := notificationMock.NewServiceNotificationMock()
+			u := NewUsecaseAuthority(fakeDB, fakeDB, fakeExtension, fakeNotification)
+
+			if tt.name == "sad case: failed to get user profile" {
+				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
+					return nil, fmt.Errorf("failed to get user profile")
+				}
+			}
+
+			if tt.name == "sad case: failed to notify user" {
+				fakeNotification.MockNotifyUserFn = func(ctx context.Context, userProfile *domain.User, notificationPayload *domain.Notification) error {
+					return fmt.Errorf("failed to notify user")
+				}
+			}
+
 			if tt.name == "sad case: failed to get current roles" {
 				fakeDB.MockGetUserRolesFn = func(ctx context.Context, userID string) ([]*domain.AuthorityRole, error) {
 					return nil, fmt.Errorf("failed to get current roles")

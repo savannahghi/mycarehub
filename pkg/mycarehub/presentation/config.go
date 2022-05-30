@@ -101,8 +101,6 @@ func Router(ctx context.Context) (*mux.Router, error) {
 
 	otpUseCase := otp.NewOTPUseCase(db, db, externalExt)
 
-	authorityUseCase := authority.NewUsecaseAuthority(db, db, externalExt)
-
 	getStream := streamService.NewServiceGetStream(streamClient)
 
 	pubSub, err := pubsubmessaging.NewServicePubSubMessaging(externalExt, getStream, db, fcm)
@@ -114,6 +112,10 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	facilityUseCase := facility.NewFacilityUsecase(db, db, db, db, pubSub)
 
 	// Initialize user usecase
+	notificationUseCase := notification.NewNotificationUseCaseImpl(fcm, db, db, db)
+
+	authorityUseCase := authority.NewUsecaseAuthority(db, db, externalExt, notificationUseCase)
+
 	userUsecase := user.NewUseCasesUserImpl(db, db, db, db, externalExt, otpUseCase, authorityUseCase, getStream, pubSub)
 
 	termsUsecase := terms.NewUseCasesTermsOfService(db, db)
@@ -125,8 +127,6 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	feedbackUsecase := feedback.NewUsecaseFeedback(db, externalExt)
 
 	faq := faq.NewUsecaseFAQ(db)
-
-	notificationUseCase := notification.NewNotificationUseCaseImpl(fcm, db, db, db)
 
 	serviceRequestUseCase := servicerequest.NewUseCaseServiceRequestImpl(db, db, db, externalExt, userUsecase, notificationUseCase)
 

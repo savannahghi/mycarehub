@@ -6,6 +6,7 @@ import (
 	"math"
 	"time"
 
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/scalarutils"
 )
 
@@ -115,4 +116,29 @@ func InterfaceToString(n interface{}) string {
 		return ""
 	}
 	return n.(string)
+}
+
+// CheckNewAndRemovedRoleTypes returns additional and/or removed roles
+func CheckNewAndRemovedRoleTypes(original, new []enums.UserRoleType) ([]enums.UserRoleType, []enums.UserRoleType) {
+	var removed, additional []enums.UserRoleType
+
+	originalMap := make(map[enums.UserRoleType]enums.UserRoleType)
+	newMap := make(map[enums.UserRoleType]enums.UserRoleType)
+
+	for _, v := range original {
+		originalMap[v] = v
+	}
+
+	for _, v := range new {
+		newMap[v] = v
+		if _, ok := originalMap[v]; !ok {
+			additional = append(additional, v)
+		}
+	}
+	for _, v := range original {
+		if _, ok := newMap[v]; !ok {
+			removed = append(removed, v)
+		}
+	}
+	return removed, additional
 }

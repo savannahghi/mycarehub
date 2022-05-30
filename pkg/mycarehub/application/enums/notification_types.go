@@ -21,6 +21,9 @@ const (
 
 	// NotificationTypeSurveys represents notifications from surveys
 	NotificationTypeSurveys NotificationType = "SURVEYS"
+
+	// NotificationTypeRoleAssignment represents a role assignment notification
+	NotificationTypeRoleAssignment NotificationType = "ROLE_ASSIGNMENT"
 )
 
 // AllNotificationTypes represents a slice of all possible `NotificationType` values
@@ -38,6 +41,7 @@ func (n NotificationType) IsValid() bool {
 		NotificationTypeAppointment,
 		NotificationTypeServiceRequest,
 		NotificationTypeCommunities,
+		NotificationTypeRoleAssignment,
 		NotificationTypeSurveys:
 		return true
 	}
