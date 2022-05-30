@@ -96,6 +96,11 @@ func (h UseCasesHealthDiaryImpl) CreateHealthDiaryEntry(
 	reportToStaff bool,
 ) (bool, error) {
 	currentTime := time.Now()
+	clientProfile, err := h.Query.GetClientProfileByClientID(ctx, clientID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, fmt.Errorf("error querying client profile: %w", err)
+	}
 	switch mood {
 	case enums.MoodVerySad.String():
 		healthDiaryEntry := &domain.ClientHealthDiaryEntry{
@@ -122,6 +127,9 @@ func (h UseCasesHealthDiaryImpl) CreateHealthDiaryEntry(
 			ClientID:    clientID,
 			Flavour:     feedlib.FlavourConsumer,
 			RequestType: enums.ServiceRequestTypeRedFlag.String(),
+			Request:     fmt.Sprintf("%s is feeling very sad. Please reach out and help them to feel better.", clientProfile.User.Name),
+			FacilityID:  clientProfile.FacilityID,
+			ClientName:  &clientProfile.User.Name,
 		}
 
 		_, err = h.ServiceRequest.CreateServiceRequest(
