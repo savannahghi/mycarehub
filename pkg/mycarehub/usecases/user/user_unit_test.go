@@ -480,6 +480,7 @@ func TestUnit_InviteUser(t *testing.T) {
 		userID      string
 		phoneNumber string
 		flavour     feedlib.Flavour
+		reinvite    bool
 	}
 	tests := []struct {
 		name    string
@@ -494,9 +495,34 @@ func TestUnit_InviteUser(t *testing.T) {
 				userID:      userID,
 				phoneNumber: validPhone,
 				flavour:     validFlavour,
+				reinvite:    false,
 			},
 			wantErr: false,
 			want:    true,
+		},
+		{
+			name: "Happy case - Send invite via twilio",
+			args: args{
+				ctx:         ctx,
+				userID:      userID,
+				phoneNumber: validPhone,
+				flavour:     validFlavour,
+				reinvite:    true,
+			},
+			wantErr: false,
+			want:    true,
+		},
+		{
+			name: "Sad case - Fail to Send invite via twilio",
+			args: args{
+				ctx:         ctx,
+				userID:      userID,
+				phoneNumber: validPhone,
+				flavour:     validFlavour,
+				reinvite:    true,
+			},
+			wantErr: true,
+			want:    false,
 		},
 		{
 			name: "valid: valid phone number without country code prefix",
@@ -690,31 +716,43 @@ func TestUnit_InviteUser(t *testing.T) {
 			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, otp, fakeAuthority, fakeGetStream, fakePubsub)
 
 			if tt.name == "valid: valid phone number" {
-				fakeUserMock.MockInviteUserFn = func(ctx context.Context, userID string, phoneNumber string, flavour feedlib.Flavour) (bool, error) {
+				fakeUserMock.MockInviteUserFn = func(ctx context.Context, userID string, phoneNumber string, flavour feedlib.Flavour, reinvite bool) (bool, error) {
 					return true, nil
 				}
 			}
 
+			if tt.name == "Happy case - Send invite via twilio" {
+				fakeUserMock.MockInviteUserFn = func(ctx context.Context, userID string, phoneNumber string, flavour feedlib.Flavour, reinvite bool) (bool, error) {
+					return true, nil
+				}
+			}
+
+			if tt.name == "Sad case - Fail to Send invite via twilio" {
+				fakeExtension.MockSendSMSViaTwilioFn = func(ctx context.Context, phonenumber, message string) error {
+					return fmt.Errorf("failed to send sms")
+				}
+			}
+
 			if tt.name == "valid: valid phone number without country code prefix" {
-				fakeUserMock.MockInviteUserFn = func(ctx context.Context, userID string, phoneNumber string, flavour feedlib.Flavour) (bool, error) {
+				fakeUserMock.MockInviteUserFn = func(ctx context.Context, userID string, phoneNumber string, flavour feedlib.Flavour, reinvite bool) (bool, error) {
 					return true, nil
 				}
 			}
 
 			if tt.name == "valid: valid flavour" {
-				fakeUserMock.MockInviteUserFn = func(ctx context.Context, userID string, phoneNumber string, flavour feedlib.Flavour) (bool, error) {
+				fakeUserMock.MockInviteUserFn = func(ctx context.Context, userID string, phoneNumber string, flavour feedlib.Flavour, reinvite bool) (bool, error) {
 					return false, fmt.Errorf("phone number is invalid")
 				}
 			}
 
 			if tt.name == "valid: valid phone number without country code prefix" {
-				fakeUserMock.MockInviteUserFn = func(ctx context.Context, userID string, phoneNumber string, flavour feedlib.Flavour) (bool, error) {
+				fakeUserMock.MockInviteUserFn = func(ctx context.Context, userID string, phoneNumber string, flavour feedlib.Flavour, reinvite bool) (bool, error) {
 					return true, nil
 				}
 			}
 
 			if tt.name == "invalid: invalid flavour" {
-				fakeUserMock.MockInviteUserFn = func(ctx context.Context, userID string, phoneNumber string, flavour feedlib.Flavour) (bool, error) {
+				fakeUserMock.MockInviteUserFn = func(ctx context.Context, userID string, phoneNumber string, flavour feedlib.Flavour, reinvite bool) (bool, error) {
 					return false, fmt.Errorf("flavour is invalid")
 				}
 			}
@@ -760,12 +798,12 @@ func TestUnit_InviteUser(t *testing.T) {
 			}
 
 			if tt.name == "valid: get invite link success" {
-				fakeUserMock.MockInviteUserFn = func(ctx context.Context, userID string, phoneNumber string, flavour feedlib.Flavour) (bool, error) {
+				fakeUserMock.MockInviteUserFn = func(ctx context.Context, userID string, phoneNumber string, flavour feedlib.Flavour, reinvite bool) (bool, error) {
 					return true, nil
 				}
 			}
 			if tt.name == "invalid: get invite link error" {
-				fakeUserMock.MockInviteUserFn = func(ctx context.Context, userID string, phoneNumber string, flavour feedlib.Flavour) (bool, error) {
+				fakeUserMock.MockInviteUserFn = func(ctx context.Context, userID string, phoneNumber string, flavour feedlib.Flavour, reinvite bool) (bool, error) {
 					return false, fmt.Errorf("failed to get invite link")
 				}
 			}
@@ -794,7 +832,7 @@ func TestUnit_InviteUser(t *testing.T) {
 				}
 			}
 
-			got, err := us.InviteUser(tt.args.ctx, tt.args.userID, tt.args.phoneNumber, tt.args.flavour)
+			got, err := us.InviteUser(tt.args.ctx, tt.args.userID, tt.args.phoneNumber, tt.args.flavour, tt.args.reinvite)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCasesUserImpl.InviteUser() error = %v, wantErr %v", err, tt.wantErr)
 				return
