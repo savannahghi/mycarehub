@@ -95,9 +95,9 @@ func (h UseCasesHealthDiaryImpl) CreateHealthDiaryEntry(
 	mood string,
 	reportToStaff bool,
 ) (bool, error) {
+	currentTime := time.Now()
 	switch mood {
 	case enums.MoodVerySad.String():
-		currentTime := time.Now()
 		healthDiaryEntry := &domain.ClientHealthDiaryEntry{
 			Active:                true,
 			Mood:                  mood,
@@ -109,7 +109,7 @@ func (h UseCasesHealthDiaryImpl) CreateHealthDiaryEntry(
 		}
 
 		if reportToStaff {
-			healthDiaryEntry.SharedAt = currentTime
+			healthDiaryEntry.SharedAt = &currentTime
 		}
 
 		err := h.Create.CreateHealthDiaryEntry(ctx, healthDiaryEntry)
@@ -143,7 +143,7 @@ func (h UseCasesHealthDiaryImpl) CreateHealthDiaryEntry(
 			ShareWithHealthWorker: reportToStaff,
 		}
 		if reportToStaff {
-			healthDiaryEntry.SharedAt = time.Now()
+			healthDiaryEntry.SharedAt = &currentTime
 		}
 		err := h.Create.CreateHealthDiaryEntry(ctx, healthDiaryEntry)
 		if err != nil {
@@ -234,7 +234,8 @@ func (h UseCasesHealthDiaryImpl) ShareHealthDiaryEntry(ctx context.Context, heal
 	}
 
 	payload := &gorm.ClientHealthDiaryEntry{
-		ClientID: healthDiaryEntry.ClientID,
+		ClientID:                 healthDiaryEntry.ClientID,
+		ClientHealthDiaryEntryID: &healthDiaryEntryID,
 	}
 
 	if !shareEntireHealthDiary {

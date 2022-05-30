@@ -1294,6 +1294,7 @@ func TestPGInstance_GetClientHealthDiaryQuote(t *testing.T) {
 func TestPGInstance_CanRecordHeathDiary(t *testing.T) {
 	ctx := context.Background()
 
+	sharedAt := time.Now().Add(time.Hour * -25)
 	pg, err := gorm.NewPGInstance()
 	if err != nil {
 		t.Errorf("pgInstance.Teardown() = %v", err)
@@ -1309,7 +1310,7 @@ func TestPGInstance_CanRecordHeathDiary(t *testing.T) {
 		Note:                  "test note",
 		EntryType:             "HOME_PAGE_HEALTH_DIARY_ENTRY",
 		ShareWithHealthWorker: false,
-		SharedAt:              time.Now().Add(time.Hour * -25),
+		SharedAt:              &sharedAt,
 		ClientID:              clientID2,
 		OrganisationID:        orgID,
 	}
@@ -1328,7 +1329,7 @@ func TestPGInstance_CanRecordHeathDiary(t *testing.T) {
 		Note:                  "test note",
 		EntryType:             "HOME_PAGE_HEALTH_DIARY_ENTRY",
 		ShareWithHealthWorker: false,
-		SharedAt:              time.Now().Add(time.Hour * -20),
+		SharedAt:              &sharedAt,
 		ClientID:              clientID2,
 		OrganisationID:        orgID,
 	}

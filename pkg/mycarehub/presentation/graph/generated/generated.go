@@ -8681,9 +8681,9 @@ func (ec *executionContext) _ClientHealthDiaryEntry_sharedAt(ctx context.Context
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(time.Time)
+	res := resTmp.(*time.Time)
 	fc.Result = res
-	return ec.marshalOTime2timeᚐTime(ctx, field.Selections, res)
+	return ec.marshalOTime2ᚖtimeᚐTime(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ClientHealthDiaryEntry_clientID(ctx context.Context, field graphql.CollectedField, obj *domain.ClientHealthDiaryEntry) (ret graphql.Marshaler) {

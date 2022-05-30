@@ -416,7 +416,7 @@ func NewGormMock() *GormMock {
 					Note:                     "Note",
 					EntryType:                "EntryType",
 					ShareWithHealthWorker:    true,
-					SharedAt:                 time.Now(),
+					SharedAt:                 &currentTime,
 					ClientID:                 UUID,
 					OrganisationID:           UUID,
 				},
@@ -477,7 +477,7 @@ func NewGormMock() *GormMock {
 				Note:                     "",
 				EntryType:                "",
 				ShareWithHealthWorker:    false,
-				SharedAt:                 time.Now(),
+				SharedAt:                 &currentTime,
 				ClientID:                 "",
 				OrganisationID:           "",
 			}, nil
