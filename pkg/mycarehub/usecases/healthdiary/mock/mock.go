@@ -23,6 +23,7 @@ type HealthDiaryUseCaseMock struct {
 
 // NewHealthDiaryUseCaseMock initializes a new instance mock of the HealthDiary usecase
 func NewHealthDiaryUseCaseMock() *HealthDiaryUseCaseMock {
+	currentTime := time.Now()
 	return &HealthDiaryUseCaseMock{
 		MockCreateHealthDiaryEntryFn: func(ctx context.Context, clientID string, note *string, mood string, reportToStaff bool) (bool, error) {
 			return true, nil
@@ -68,7 +69,7 @@ func NewHealthDiaryUseCaseMock() *HealthDiaryUseCaseMock {
 				Note:                  "test",
 				EntryType:             "test",
 				ShareWithHealthWorker: true,
-				SharedAt:              time.Now(),
+				SharedAt:              &currentTime,
 				ClientID:              "test",
 				CreatedAt:             time.Now(),
 				PhoneNumber:           "test",

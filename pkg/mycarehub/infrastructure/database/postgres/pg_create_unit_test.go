@@ -421,7 +421,7 @@ func TestMyCareHubDb_CreateHealthDiaryEntry(t *testing.T) {
 				healthDiaryInput: &domain.ClientHealthDiaryEntry{
 					Active:   true,
 					Mood:     enums.MoodHappy.String(),
-					SharedAt: currentTime,
+					SharedAt: &currentTime,
 				},
 			},
 			wantErr: false,
@@ -433,7 +433,7 @@ func TestMyCareHubDb_CreateHealthDiaryEntry(t *testing.T) {
 				healthDiaryInput: &domain.ClientHealthDiaryEntry{
 					Active:   true,
 					Mood:     enums.MoodHappy.String(),
-					SharedAt: currentTime,
+					SharedAt: &currentTime,
 				},
 			},
 			wantErr: true,

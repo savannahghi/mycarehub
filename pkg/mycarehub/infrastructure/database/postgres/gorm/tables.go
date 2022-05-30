@@ -628,15 +628,15 @@ func (WagtailImages) TableName() string {
 // ClientHealthDiaryEntry models a client's health diary entry
 type ClientHealthDiaryEntry struct {
 	Base
-	ClientHealthDiaryEntryID *string   `gorm:"column:id"`
-	Active                   bool      `gorm:"column:active"`
-	Mood                     string    `gorm:"column:mood"`
-	Note                     string    `gorm:"column:note"`
-	EntryType                string    `gorm:"column:entry_type"`
-	ShareWithHealthWorker    bool      `gorm:"column:share_with_health_worker"`
-	SharedAt                 time.Time `gorm:"column:shared_at"`
-	ClientID                 string    `gorm:"column:client_id"`
-	OrganisationID           string    `gorm:"column:organisation_id"`
+	ClientHealthDiaryEntryID *string    `gorm:"column:id"`
+	Active                   bool       `gorm:"column:active"`
+	Mood                     string     `gorm:"column:mood"`
+	Note                     string     `gorm:"column:note"`
+	EntryType                string     `gorm:"column:entry_type"`
+	ShareWithHealthWorker    bool       `gorm:"column:share_with_health_worker"`
+	SharedAt                 *time.Time `gorm:"column:shared_at"`
+	ClientID                 string     `gorm:"column:client_id"`
+	OrganisationID           string     `gorm:"column:organisation_id"`
 }
 
 // BeforeCreate is a hook run before creating a client Health Diary Entry

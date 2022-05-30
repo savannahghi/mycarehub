@@ -674,6 +674,7 @@ func TestPGInstance_CreateHealthDiaryEntry(t *testing.T) {
 	ctx := context.Background()
 
 	clientHealthDiaryEntryID := uuid.New().String()
+	currentTime := time.Now()
 
 	type args struct {
 		ctx              context.Context
@@ -695,7 +696,7 @@ func TestPGInstance_CreateHealthDiaryEntry(t *testing.T) {
 					Note:                     "I'm happy",
 					EntryType:                "HOME_PAGE_HEALTH_DIARY_ENTRY",
 					ShareWithHealthWorker:    true,
-					SharedAt:                 time.Now(),
+					SharedAt:                 &currentTime,
 					ClientID:                 clientID,
 					OrganisationID:           uuid.New().String(),
 				},
@@ -712,7 +713,7 @@ func TestPGInstance_CreateHealthDiaryEntry(t *testing.T) {
 					Note:                  "test",
 					EntryType:             "HOME_PAGE_HEALTH_DIARY_ENTRY",
 					ShareWithHealthWorker: false,
-					SharedAt:              time.Now(),
+					SharedAt:              &currentTime,
 					ClientID:              clientID,
 					OrganisationID:        orgID,
 				},
@@ -730,7 +731,7 @@ func TestPGInstance_CreateHealthDiaryEntry(t *testing.T) {
 					Note:                     "I'm happy",
 					EntryType:                "Test",
 					ShareWithHealthWorker:    true,
-					SharedAt:                 time.Now(),
+					SharedAt:                 &currentTime,
 					OrganisationID:           uuid.New().String(),
 				},
 			},
