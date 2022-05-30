@@ -44,7 +44,7 @@ var (
 // ILogin is an interface that contans login related methods
 type ILogin interface {
 	Login(ctx context.Context, phoneNumber string, pin string, flavour feedlib.Flavour) (*domain.LoginResponse, error)
-	InviteUser(ctx context.Context, userID string, phoneNumber string, flavour feedlib.Flavour) (bool, error)
+	InviteUser(ctx context.Context, userID string, phoneNumber string, flavour feedlib.Flavour, reinvite bool) (bool, error)
 }
 
 // IRefreshToken contains the method refreshing a token
@@ -555,7 +555,7 @@ func (us *UseCasesUserImpl) ReturnLoginResponse(ctx context.Context, flavour fee
 
 // InviteUser is used to invite a user to the application. The invite link that is sent to the
 // user will open the app if installed OR goes to the store if not installed.
-func (us *UseCasesUserImpl) InviteUser(ctx context.Context, userID string, phoneNumber string, flavour feedlib.Flavour) (bool, error) {
+func (us *UseCasesUserImpl) InviteUser(ctx context.Context, userID string, phoneNumber string, flavour feedlib.Flavour, reinvite bool) (bool, error) {
 	phone, err := converterandformatter.NormalizeMSISDN(phoneNumber)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
@@ -585,16 +585,24 @@ func (us *UseCasesUserImpl) InviteUser(ctx context.Context, userID string, phone
 	}
 
 	message := helpers.CreateInviteMessage(userProfile, inviteLink, tempPin, flavour)
-
-	err = us.ExternalExt.SendInviteSMS(ctx, *phone, message)
-	if err != nil {
-		helpers.ReportErrorToSentry(err)
-		return false, exceptions.SendSMSErr(fmt.Errorf("failed to send invite SMS: %v", err))
+	if reinvite {
+		err = us.ExternalExt.SendSMSViaTwilio(ctx, *phone, message)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return false, exceptions.SendSMSErr(fmt.Errorf("failed to send invite SMS: %w", err))
+		}
+	} else {
+		err = us.ExternalExt.SendInviteSMS(ctx, *phone, message)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return false, exceptions.SendSMSErr(fmt.Errorf("failed to send invite SMS: %w", err))
+		}
 	}
+
 	err = us.Update.UpdateUser(ctx, userProfile, map[string]interface{}{"pin_change_required": true})
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return false, fmt.Errorf("failed to update user: %v", err)
+		return false, fmt.Errorf("failed to update user: %w", err)
 	}
 
 	return true, nil
@@ -1036,13 +1044,13 @@ func (us *UseCasesUserImpl) RegisterClient(
 	resp, err := us.ExternalExt.MakeRequest(ctx, http.MethodPost, registerClientAPIEndpoint, input)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return nil, fmt.Errorf("failed to make request: %v", err)
+		return nil, fmt.Errorf("failed to make request: %w", err)
 	}
 
 	dataResponse, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return nil, fmt.Errorf("failed to read request body: %v", err)
+		return nil, fmt.Errorf("failed to read request body: %w", err)
 	}
 
 	// Success is indicated with 2xx status codes
@@ -1059,13 +1067,13 @@ func (us *UseCasesUserImpl) RegisterClient(
 	err = json.Unmarshal(dataResponse, &registrationOutput)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return nil, fmt.Errorf("failed to unmarshal response: %v", err)
+		return nil, fmt.Errorf("failed to unmarshal response: %w", err)
 	}
 
 	if input.InviteClient {
-		_, err := us.InviteUser(ctx, registrationOutput.UserID, input.PhoneNumber, feedlib.FlavourConsumer)
+		_, err := us.InviteUser(ctx, registrationOutput.UserID, input.PhoneNumber, feedlib.FlavourConsumer, false)
 		if err != nil {
-			return nil, fmt.Errorf("failed to invite client: %v", err)
+			return nil, fmt.Errorf("failed to invite client: %w", err)
 		}
 	}
 
@@ -1347,7 +1355,7 @@ func (us *UseCasesUserImpl) RegisterStaff(ctx context.Context, input dto.StaffRe
 	}
 
 	if input.InviteStaff {
-		_, err := us.InviteUser(ctx, registrationOutput.UserID, input.PhoneNumber, feedlib.FlavourPro)
+		_, err := us.InviteUser(ctx, registrationOutput.UserID, input.PhoneNumber, feedlib.FlavourPro, false)
 		if err != nil {
 			return nil, fmt.Errorf("failed to invite staff user: %v", err)
 		}

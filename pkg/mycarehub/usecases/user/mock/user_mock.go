@@ -17,7 +17,7 @@ import (
 // UserUseCaseMock mocks the implementation of usecase methods.
 type UserUseCaseMock struct {
 	MockLoginFn                         func(ctx context.Context, phoneNumber string, pin string, flavour feedlib.Flavour) (*domain.LoginResponse, error)
-	MockInviteUserFn                    func(ctx context.Context, userID string, phoneNumber string, flavour feedlib.Flavour) (bool, error)
+	MockInviteUserFn                    func(ctx context.Context, userID string, phoneNumber string, flavour feedlib.Flavour, reinvite bool) (bool, error)
 	MockSavePinFn                       func(ctx context.Context, input dto.PINInput) (bool, error)
 	MockVerifyLoginPINFn                func(ctx context.Context, userProfile *domain.User, pin string, flavour feedlib.Flavour) (bool, error)
 	MockSetNickNameFn                   func(ctx context.Context, userID string, nickname string) (bool, error)
@@ -84,7 +84,7 @@ func NewUserUseCaseMock() *UserUseCaseMock {
 				Code:     10,
 			}, nil
 		},
-		MockInviteUserFn: func(ctx context.Context, userID string, phoneNumber string, flavour feedlib.Flavour) (bool, error) {
+		MockInviteUserFn: func(ctx context.Context, userID string, phoneNumber string, flavour feedlib.Flavour, reinvite bool) (bool, error) {
 			return true, nil
 		},
 		MockSavePinFn: func(ctx context.Context, input dto.PINInput) (bool, error) {
@@ -240,8 +240,8 @@ func (f *UserUseCaseMock) Login(ctx context.Context, phoneNumber string, pin str
 }
 
 // InviteUser mocks the invite functionality
-func (f *UserUseCaseMock) InviteUser(ctx context.Context, userID string, phoneNumber string, flavour feedlib.Flavour) (bool, error) {
-	return f.MockInviteUserFn(ctx, userID, phoneNumber, flavour)
+func (f *UserUseCaseMock) InviteUser(ctx context.Context, userID string, phoneNumber string, flavour feedlib.Flavour, reinvite bool) (bool, error) {
+	return f.MockInviteUserFn(ctx, userID, phoneNumber, flavour, reinvite)
 }
 
 // SavePin mocks the save pin functionality

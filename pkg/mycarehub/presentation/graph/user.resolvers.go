@@ -46,6 +46,14 @@ func (r *mutationResolver) SetPushToken(ctx context.Context, token string) (bool
 	return r.mycarehub.User.RegisterPushToken(ctx, token)
 }
 
+func (r *mutationResolver) InviteUser(ctx context.Context, userID string, phoneNumber string, flavour feedlib.Flavour, reinvite *bool) (bool, error) {
+	return r.mycarehub.User.InviteUser(ctx, userID, phoneNumber, flavour, *reinvite)
+}
+
+func (r *mutationResolver) SetUserPin(ctx context.Context, input *dto.PINInput) (bool, error) {
+	return r.mycarehub.User.SetUserPIN(ctx, *input)
+}
+
 func (r *queryResolver) GetCurrentTerms(ctx context.Context, flavour feedlib.Flavour) (*domain.TermsOfService, error) {
 	r.checkPreconditions()
 	return r.mycarehub.Terms.GetCurrentTerms(ctx, flavour)

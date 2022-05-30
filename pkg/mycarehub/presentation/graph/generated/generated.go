@@ -428,7 +428,7 @@ type ComplexityRoot struct {
 		DeleteFacility                     func(childComplexity int, mflCode int) int
 		DemoteModerators                   func(childComplexity int, communityID string, memberIDs []string) int
 		InactivateFacility                 func(childComplexity int, mflCode int) int
-		InviteUser                         func(childComplexity int, userID string, phoneNumber string, flavour feedlib.Flavour) int
+		InviteUser                         func(childComplexity int, userID string, phoneNumber string, flavour feedlib.Flavour, reinvite *bool) int
 		LikeContent                        func(childComplexity int, userID string, contentID int) int
 		OptOut                             func(childComplexity int, phoneNumber string, flavour feedlib.Flavour) int
 		ReactivateFacility                 func(childComplexity int, mflCode int) int
@@ -711,8 +711,6 @@ type MutationResolver interface {
 	CollectMetric(ctx context.Context, input domain.Metric) (bool, error)
 	SendFCMNotification(ctx context.Context, registrationTokens []string, data map[string]interface{}, notification firebasetools.FirebaseSimpleNotificationInput) (bool, error)
 	ReadNotifications(ctx context.Context, ids []string) (bool, error)
-	InviteUser(ctx context.Context, userID string, phoneNumber string, flavour feedlib.Flavour) (bool, error)
-	SetUserPin(ctx context.Context, input *dto.PINInput) (bool, error)
 	AnswerScreeningToolQuestion(ctx context.Context, screeningToolResponses []*dto.ScreeningToolQuestionResponseInput) (bool, error)
 	RecordSecurityQuestionResponses(ctx context.Context, input []*dto.SecurityQuestionResponseInput) ([]*domain.RecordSecurityQuestionResponse, error)
 	SetInProgressBy(ctx context.Context, serviceRequestID string, staffID string) (bool, error)
@@ -729,6 +727,8 @@ type MutationResolver interface {
 	RegisterStaff(ctx context.Context, input dto.StaffRegistrationInput) (*dto.StaffRegistrationOutput, error)
 	OptOut(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (bool, error)
 	SetPushToken(ctx context.Context, token string) (bool, error)
+	InviteUser(ctx context.Context, userID string, phoneNumber string, flavour feedlib.Flavour, reinvite *bool) (bool, error)
+	SetUserPin(ctx context.Context, input *dto.PINInput) (bool, error)
 }
 type QueryResolver interface {
 	FetchClientAppointments(ctx context.Context, clientID string, paginationInput dto.PaginationsInput, filters []*firebasetools.FilterParam) (*domain.AppointmentsPage, error)
@@ -2666,7 +2666,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.InviteUser(childComplexity, args["userID"].(string), args["phoneNumber"].(string), args["flavour"].(feedlib.Flavour)), true
+		return e.complexity.Mutation.InviteUser(childComplexity, args["userID"].(string), args["phoneNumber"].(string), args["flavour"].(feedlib.Flavour), args["reinvite"].(*bool)), true
 
 	case "Mutation.likeContent":
 		if e.complexity.Mutation.LikeContent == nil {
@@ -4784,10 +4784,6 @@ extend type Mutation {
 	{Name: "pkg/mycarehub/presentation/graph/otp.graphql", Input: `extend type Query {
   sendOTP(phoneNumber: String!, flavour: Flavour!): String!
 }`, BuiltIn: false},
-	{Name: "pkg/mycarehub/presentation/graph/profile.graphql", Input: `extend type Mutation {
-  inviteUser(userID: String!,phoneNumber: String!, flavour:Flavour! ): Boolean!
-  setUserPIN(input: PINInput): Boolean!
-}`, BuiltIn: false},
 	{Name: "pkg/mycarehub/presentation/graph/screeningtools.graphql", Input: `
 extend type Query {
     getScreeningToolQuestions(toolType: String) : [ScreeningToolQuestion!]!
@@ -5401,6 +5397,13 @@ extend type Mutation {
   registerStaff(input: StaffRegistrationInput!): StaffRegistrationOutput!
   optOut(phoneNumber: String!, flavour: Flavour!): Boolean!
   setPushToken(token: String!): Boolean!
+  inviteUser(
+    userID: String!
+    phoneNumber: String!
+    flavour: Flavour!
+    reinvite: Boolean
+  ): Boolean!
+  setUserPIN(input: PINInput): Boolean!
 }
 `, BuiltIn: false},
 	{Name: "federation/directives.graphql", Input: `
@@ -5900,6 +5903,15 @@ func (ec *executionContext) field_Mutation_inviteUser_args(ctx context.Context, 
 		}
 	}
 	args["flavour"] = arg2
+	var arg3 *bool
+	if tmp, ok := rawArgs["reinvite"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("reinvite"))
+		arg3, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["reinvite"] = arg3
 	return args, nil
 }
 
@@ -16374,90 +16386,6 @@ func (ec *executionContext) _Mutation_readNotifications(ctx context.Context, fie
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Mutation_inviteUser(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_inviteUser_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().InviteUser(rctx, args["userID"].(string), args["phoneNumber"].(string), args["flavour"].(feedlib.Flavour))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(bool)
-	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Mutation_setUserPIN(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_setUserPIN_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().SetUserPin(rctx, args["input"].(*dto.PINInput))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(bool)
-	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) _Mutation_answerScreeningToolQuestion(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -17114,6 +17042,90 @@ func (ec *executionContext) _Mutation_setPushToken(ctx context.Context, field gr
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Mutation().SetPushToken(rctx, args["token"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_inviteUser(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_inviteUser_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().InviteUser(rctx, args["userID"].(string), args["phoneNumber"].(string), args["flavour"].(feedlib.Flavour), args["reinvite"].(*bool))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_setUserPIN(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_setUserPIN_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().SetUserPin(rctx, args["input"].(*dto.PINInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -26699,16 +26711,6 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "inviteUser":
-			out.Values[i] = ec._Mutation_inviteUser(ctx, field)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "setUserPIN":
-			out.Values[i] = ec._Mutation_setUserPIN(ctx, field)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "answerScreeningToolQuestion":
 			out.Values[i] = ec._Mutation_answerScreeningToolQuestion(ctx, field)
 			if out.Values[i] == graphql.Null {
@@ -26786,6 +26788,16 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			}
 		case "setPushToken":
 			out.Values[i] = ec._Mutation_setPushToken(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "inviteUser":
+			out.Values[i] = ec._Mutation_inviteUser(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "setUserPIN":
+			out.Values[i] = ec._Mutation_setUserPIN(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
