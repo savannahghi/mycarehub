@@ -122,6 +122,7 @@ func (h UseCasesHealthDiaryImpl) CreateHealthDiaryEntry(
 			ClientID:    clientID,
 			Flavour:     feedlib.FlavourConsumer,
 			RequestType: enums.ServiceRequestTypeRedFlag.String(),
+			Request:     "The client has indicated that they are feeling very sad. Please help them to feel better.",
 		}
 
 		_, err = h.ServiceRequest.CreateServiceRequest(
