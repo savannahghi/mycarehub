@@ -95,6 +95,18 @@ func TestUseCasesHealthDiaryImpl_CreateHealthDiaryEntry(t *testing.T) {
 			want:    false,
 			wantErr: true,
 		},
+		{
+			name: "Sad Case - Failed to get client profile by client id",
+			args: args{
+				ctx:           ctx,
+				clientID:      uuid.New().String(),
+				note:          &note,
+				mood:          enums.MoodHappy.String(),
+				reportToStaff: false,
+			},
+			want:    false,
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -117,6 +129,12 @@ func TestUseCasesHealthDiaryImpl_CreateHealthDiaryEntry(t *testing.T) {
 			if tt.name == "Sad Case - Fail to create service request for very sad mood" {
 				fakeServiceRequest.MockCreateServiceRequestFn = func(ctx context.Context, input *dto.ServiceRequestInput) (bool, error) {
 					return false, fmt.Errorf("failed to create service request")
+				}
+			}
+
+			if tt.name == "Sad Case - Failed to get client profile by client id" {
+				fakeDB.MockGetClientProfileByClientIDFn = func(ctx context.Context, clientID string) (*domain.ClientProfile, error) {
+					return nil, fmt.Errorf("failed to get client profile")
 				}
 			}
 
