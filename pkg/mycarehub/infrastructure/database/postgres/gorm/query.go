@@ -225,7 +225,7 @@ func (db *PGInstance) GetSecurityQuestions(ctx context.Context, flavour feedlib.
 		return nil, fmt.Errorf("bad flavor specified: %v", flavour)
 	}
 	var securityQuestion []*SecurityQuestion
-	err := db.DB.Where(&SecurityQuestion{Flavour: flavour}).Find(&securityQuestion).Error
+	err := db.DB.Where(&SecurityQuestion{Flavour: flavour, Active: true}).Find(&securityQuestion).Error
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed to query all security questions %v", err)
