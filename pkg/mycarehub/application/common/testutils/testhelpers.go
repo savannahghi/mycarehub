@@ -65,7 +65,6 @@ func InitializeTestService(ctx context.Context) (*usecases.MyCareHub, error) {
 
 	otpUseCase := otp.NewOTPUseCase(db, db, externalExt)
 	getStream := streamService.NewServiceGetStream(&stream.Client{})
-	authorityUseCase := authority.NewUsecaseAuthority(db, db, externalExt)
 
 	pubsub, err := pubsubmessaging.NewServicePubSubMessaging(externalExt, getStream, db, fcm)
 	if err != nil {
@@ -73,8 +72,6 @@ func InitializeTestService(ctx context.Context) (*usecases.MyCareHub, error) {
 	}
 
 	facilityUseCase := facility.NewFacilityUsecase(db, db, db, db, pubsub)
-
-	userUsecase := user.NewUseCasesUserImpl(db, db, db, db, externalExt, otpUseCase, authorityUseCase, getStream, pubsub)
 
 	termsUsecase := terms.NewUseCasesTermsOfService(db, db)
 
@@ -84,11 +81,12 @@ func InitializeTestService(ctx context.Context) (*usecases.MyCareHub, error) {
 
 	faq := faq.NewUsecaseFAQ(db)
 	notificationUseCase := notification.NewNotificationUseCaseImpl(fcm, db, db, db)
-	serviceRequestUseCase := servicerequest.NewUseCaseServiceRequestImpl(db, db, db, externalExt, userUsecase, notificationUseCase)
-	healthDiaryUseCase := healthdiary.NewUseCaseHealthDiaryImpl(db, db, db, serviceRequestUseCase)
 	appointmentUsecase := appointment.NewUseCaseAppointmentsImpl(externalExt, db, db, db, pubsub, notificationUseCase)
 	communityUsecase := communities.NewUseCaseCommunitiesImpl(getStream, externalExt, db, db, pubsub, notificationUseCase)
-
+	authorityUseCase := authority.NewUsecaseAuthority(db, db, externalExt, notificationUseCase)
+	userUsecase := user.NewUseCasesUserImpl(db, db, db, db, externalExt, otpUseCase, authorityUseCase, getStream, pubsub)
+	serviceRequestUseCase := servicerequest.NewUseCaseServiceRequestImpl(db, db, db, externalExt, userUsecase, notificationUseCase)
+	healthDiaryUseCase := healthdiary.NewUseCaseHealthDiaryImpl(db, db, db, serviceRequestUseCase)
 	screeningToolsUsecases := screeningtools.NewUseCasesScreeningTools(db, db, db, externalExt)
 
 	surveysClient := domain.SurveysClient{

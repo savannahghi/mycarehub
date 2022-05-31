@@ -48,6 +48,22 @@ func (m UserRoleType) String() string {
 	return string(m)
 }
 
+// Name is the human readable role name
+func (m UserRoleType) Name() string {
+	switch m {
+	case UserRoleTypeSystemAdministrator:
+		return "System Administrator"
+	case UserRoleTypeCommunityManagement:
+		return "Community Management"
+	case UserRoleTypeContentManagement:
+		return "Content Management"
+	case UserRoleTypeClientManagement:
+		return "Client Management"
+	default:
+		return m.String()
+	}
+}
+
 // UnmarshalGQL converts the supplied value to a sort type.
 func (m *UserRoleType) UnmarshalGQL(v interface{}) error {
 	str, ok := v.(string)
