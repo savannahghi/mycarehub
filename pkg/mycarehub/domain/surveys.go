@@ -36,4 +36,29 @@ type UserSurvey struct {
 	Description  string    `json:"description"`
 	HasSubmitted bool      `json:"hasSubmitted"`
 	UserID       string    `json:"userID"`
+	Token        string    `json:"token"`
+	ProjectID    int       `json:"projectID"`
+	FormID       string    `json:"formID"`
+	LinkID       int       `json:"linkID"`
+}
+
+// Submission represents a survey's submission domain model
+type Submission struct {
+	InstanceID  string    `json:"instanceId"`
+	SubmitterID int       `json:"submitterId"`
+	DeviceID    string    `json:"deviceId"`
+	CreatedAt   time.Time `json:"createdAt"`
+	UpdatedAt   time.Time `json:"updatedAt"`
+	ReviewState string    `json:"reviewState"`
+	Submitter   Submitter `json:"submitter"`
+}
+
+// Submitter represents a survey's submitter domain model
+type Submitter struct {
+	ID          int       `json:"id"`
+	Type        string    `json:"type"`
+	DisplayName string    `json:"displayName"`
+	CreatedAt   time.Time `json:"createdAt"`
+	UpdatedAt   time.Time `json:"updatedAt"`
+	DeletedAt   time.Time `json:"deletedAt"`
 }

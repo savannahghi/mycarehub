@@ -301,6 +301,16 @@ func (d *MyCareHubDb) UpdateUser(ctx context.Context, user *domain.User, updateD
 	return d.update.UpdateUser(ctx, userPayload, updateData)
 }
 
+// UpdateUserSurveys updates the user surveys. The update is performed with regard to the data passed in the survey model.
+func (d *MyCareHubDb) UpdateUserSurveys(ctx context.Context, survey *domain.UserSurvey, updateData map[string]interface{}) error {
+	surveyPayload := &gorm.UserSurvey{
+		LinkID:    survey.LinkID,
+		ProjectID: survey.ProjectID,
+		FormID:    survey.FormID,
+	}
+	return d.update.UpdateUserSurveys(ctx, surveyPayload, updateData)
+}
+
 // UpdateFacility updates the facility with the provided facility details
 func (d *MyCareHubDb) UpdateFacility(ctx context.Context, facility *domain.Facility, updateData map[string]interface{}) error {
 	gormFacility := &gorm.Facility{

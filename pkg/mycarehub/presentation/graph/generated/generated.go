@@ -454,6 +454,7 @@ type ComplexityRoot struct {
 		UnlikeContent                      func(childComplexity int, userID string, contentID int) int
 		VerifyClientPinResetServiceRequest func(childComplexity int, clientID string, serviceRequestID string, cccNumber string, phoneNumber string, physicalIdentityVerified bool, state string) int
 		VerifyStaffPinResetServiceRequest  func(childComplexity int, phoneNumber string, serviceRequestID string, verificationStatus string) int
+		VerifySurveySubmission             func(childComplexity int, input dto.VerifySurveySubmissionInput) int
 		ViewContent                        func(childComplexity int, userID string, contentID int) int
 	}
 
@@ -673,10 +674,14 @@ type ComplexityRoot struct {
 		Active       func(childComplexity int) int
 		Created      func(childComplexity int) int
 		Description  func(childComplexity int) int
+		FormID       func(childComplexity int) int
 		HasSubmitted func(childComplexity int) int
 		ID           func(childComplexity int) int
 		Link         func(childComplexity int) int
+		LinkID       func(childComplexity int) int
+		ProjectID    func(childComplexity int) int
 		Title        func(childComplexity int) int
+		Token        func(childComplexity int) int
 		UserID       func(childComplexity int) int
 	}
 }
@@ -719,6 +724,7 @@ type MutationResolver interface {
 	VerifyClientPinResetServiceRequest(ctx context.Context, clientID string, serviceRequestID string, cccNumber string, phoneNumber string, physicalIdentityVerified bool, state string) (bool, error)
 	VerifyStaffPinResetServiceRequest(ctx context.Context, phoneNumber string, serviceRequestID string, verificationStatus string) (bool, error)
 	SendClientSurveyLinks(ctx context.Context, facilityID string, formID string, projectID int, filterParams *dto.ClientFilterParamsInput) (bool, error)
+	VerifySurveySubmission(ctx context.Context, input dto.VerifySurveySubmissionInput) (bool, error)
 	AcceptTerms(ctx context.Context, userID string, termsID int) (bool, error)
 	SetNickName(ctx context.Context, userID string, nickname string) (bool, error)
 	CompleteOnboardingTour(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
@@ -2968,6 +2974,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.VerifyStaffPinResetServiceRequest(childComplexity, args["phoneNumber"].(string), args["serviceRequestID"].(string), args["verificationStatus"].(string)), true
 
+	case "Mutation.verifySurveySubmission":
+		if e.complexity.Mutation.VerifySurveySubmission == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_verifySurveySubmission_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.VerifySurveySubmission(childComplexity, args["input"].(dto.VerifySurveySubmissionInput)), true
+
 	case "Mutation.viewContent":
 		if e.complexity.Mutation.ViewContent == nil {
 			break
@@ -4202,6 +4220,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.UserSurvey.Description(childComplexity), true
 
+	case "UserSurvey.formID":
+		if e.complexity.UserSurvey.FormID == nil {
+			break
+		}
+
+		return e.complexity.UserSurvey.FormID(childComplexity), true
+
 	case "UserSurvey.hasSubmitted":
 		if e.complexity.UserSurvey.HasSubmitted == nil {
 			break
@@ -4223,12 +4248,33 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.UserSurvey.Link(childComplexity), true
 
+	case "UserSurvey.linkID":
+		if e.complexity.UserSurvey.LinkID == nil {
+			break
+		}
+
+		return e.complexity.UserSurvey.LinkID(childComplexity), true
+
+	case "UserSurvey.projectID":
+		if e.complexity.UserSurvey.ProjectID == nil {
+			break
+		}
+
+		return e.complexity.UserSurvey.ProjectID(childComplexity), true
+
 	case "UserSurvey.title":
 		if e.complexity.UserSurvey.Title == nil {
 			break
 		}
 
 		return e.complexity.UserSurvey.Title(childComplexity), true
+
+	case "UserSurvey.token":
+		if e.complexity.UserSurvey.Token == nil {
+			break
+		}
+
+		return e.complexity.UserSurvey.Token(childComplexity), true
 
 	case "UserSurvey.userID":
 		if e.complexity.UserSurvey.UserID == nil {
@@ -4758,7 +4804,12 @@ input MetricInput {
   type: MetricType!
   event: Map!
 }
-`, BuiltIn: false},
+
+input VerifySurveySubmissionInput {
+  projectID: Int!
+  formID: String!
+  submitterID: Int! #also termed as linkID
+}`, BuiltIn: false},
 	{Name: "pkg/mycarehub/presentation/graph/metrics.graphql", Input: `extend type Mutation {
   collectMetric(input: MetricInput!): Boolean!
 }
@@ -4840,6 +4891,7 @@ extend type Query {
 
 extend type Mutation {
     sendClientSurveyLinks(facilityID: String! formID: String!, projectID: Int!, filterParams:  ClientFilterParamsInput): Boolean!
+    verifySurveySubmission(input: VerifySurveySubmissionInput!): Boolean!
 }`, BuiltIn: false},
 	{Name: "pkg/mycarehub/presentation/graph/types.graphql", Input: `type Facility {
   ID: String!
@@ -5378,6 +5430,10 @@ type UserSurvey {
 	description: String!
 	hasSubmitted: Boolean!
 	userID: String! 
+  token: String!
+	projectID: Int!
+	formID: String!
+	linkID: Int
 }`, BuiltIn: false},
 	{Name: "pkg/mycarehub/presentation/graph/user.graphql", Input: `extend type Query {
   getCurrentTerms(flavour: Flavour!): TermsOfService!
@@ -6479,6 +6535,21 @@ func (ec *executionContext) field_Mutation_verifyStaffPinResetServiceRequest_arg
 		}
 	}
 	args["verificationStatus"] = arg2
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_verifySurveySubmission_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 dto.VerifySurveySubmissionInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNVerifySurveySubmissionInput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐVerifySurveySubmissionInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
 	return args, nil
 }
 
@@ -16722,6 +16793,48 @@ func (ec *executionContext) _Mutation_sendClientSurveyLinks(ctx context.Context,
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Mutation_verifySurveySubmission(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_verifySurveySubmission_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().VerifySurveySubmission(rctx, args["input"].(dto.VerifySurveySubmissionInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Mutation_acceptTerms(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -22565,6 +22678,143 @@ func (ec *executionContext) _UserSurvey_userID(ctx context.Context, field graphq
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _UserSurvey_token(ctx context.Context, field graphql.CollectedField, obj *domain.UserSurvey) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "UserSurvey",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Token, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UserSurvey_projectID(ctx context.Context, field graphql.CollectedField, obj *domain.UserSurvey) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "UserSurvey",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ProjectID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UserSurvey_formID(ctx context.Context, field graphql.CollectedField, obj *domain.UserSurvey) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "UserSurvey",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.FormID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UserSurvey_linkID(ctx context.Context, field graphql.CollectedField, obj *domain.UserSurvey) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "UserSurvey",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.LinkID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalOInt2int(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) ___Directive_name(ctx context.Context, field graphql.CollectedField, obj *introspection.Directive) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -24817,6 +25067,45 @@ func (ec *executionContext) unmarshalInputStaffRegistrationInput(ctx context.Con
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputVerifySurveySubmissionInput(ctx context.Context, obj interface{}) (dto.VerifySurveySubmissionInput, error) {
+	var it dto.VerifySurveySubmissionInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	for k, v := range asMap {
+		switch k {
+		case "projectID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("projectID"))
+			it.ProjectID, err = ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "formID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("formID"))
+			it.FormID, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "submitterID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("submitterID"))
+			it.SubmitterID, err = ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 // endregion **************************** input.gotpl *****************************
 
 // region    ************************** interface.gotpl ***************************
@@ -26751,6 +27040,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "verifySurveySubmission":
+			out.Values[i] = ec._Mutation_verifySurveySubmission(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "acceptTerms":
 			out.Values[i] = ec._Mutation_acceptTerms(ctx, field)
 			if out.Values[i] == graphql.Null {
@@ -28275,6 +28569,23 @@ func (ec *executionContext) _UserSurvey(ctx context.Context, sel ast.SelectionSe
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "token":
+			out.Values[i] = ec._UserSurvey_token(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "projectID":
+			out.Values[i] = ec._UserSurvey_projectID(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "formID":
+			out.Values[i] = ec._UserSurvey_formID(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "linkID":
+			out.Values[i] = ec._UserSurvey_linkID(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -30229,6 +30540,11 @@ func (ec *executionContext) marshalNUserSurvey2ᚖgithubᚗcomᚋsavannahghiᚋm
 		return graphql.Null
 	}
 	return ec._UserSurvey(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNVerifySurveySubmissionInput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐVerifySurveySubmissionInput(ctx context.Context, v interface{}) (dto.VerifySurveySubmissionInput, error) {
+	res, err := ec.unmarshalInputVerifySurveySubmissionInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalN_FieldSet2string(ctx context.Context, v interface{}) (string, error) {

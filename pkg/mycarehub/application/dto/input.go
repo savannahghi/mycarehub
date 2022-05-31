@@ -569,3 +569,10 @@ type UserSurveyInput struct {
 	Link        string `json:"link"`
 	Token       string `json:"token"`
 }
+
+// VerifySurveySubmissionInput represents the payload that is to be sent when a user has filled a survey.
+type VerifySurveySubmissionInput struct {
+	ProjectID   int
+	FormID      string
+	SubmitterID int
+}

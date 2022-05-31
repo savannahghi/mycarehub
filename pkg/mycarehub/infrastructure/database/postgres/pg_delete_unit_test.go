@@ -96,7 +96,7 @@ func TestMyCareHubDb_DeleteFacility_Unittest(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			var fakeGorm = gormMock.NewGormMock()
 			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
-			fakeHelpers := helpers_mock.NewHelper()
+			fakeHelpers := helpers_mock.NewFakeHelper()
 
 			if tt.name == "Happy case" {
 				fakeGorm.MockDeleteFacilityFn = func(ctx context.Context, mflCode int) (bool, error) {

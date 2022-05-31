@@ -5,8 +5,8 @@ type FakeReportErrorToSentryImpl struct {
 	MockFakeReportErrorToSentryFn func(err error)
 }
 
-// NewHelper initializes a new instance of helper mock
-func NewHelper() *FakeReportErrorToSentryImpl {
+// NewFakeHelper initializes a new instance of helper mock
+func NewFakeHelper() *FakeReportErrorToSentryImpl {
 	return &FakeReportErrorToSentryImpl{
 		MockFakeReportErrorToSentryFn: func(err error) {},
 	}

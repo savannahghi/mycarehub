@@ -2392,3 +2392,62 @@ func TestMyCareHubDb_UpdateNotification(t *testing.T) {
 		})
 	}
 }
+
+func TestMyCareHubDb_UpdateUserSurveys(t *testing.T) {
+	ctx := context.Background()
+
+	var fakeGorm = gormMock.NewGormMock()
+	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+	type args struct {
+		ctx        context.Context
+		survey     *domain.UserSurvey
+		updateData map[string]interface{}
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "happy case: update a user survey",
+			args: args{
+				ctx: ctx,
+				survey: &domain.UserSurvey{
+					ID:     uuid.New().String(),
+					UserID: uuid.New().String(),
+				},
+				updateData: map[string]interface{}{
+					"has_submitted": true,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: unable to update a user survey",
+			args: args{
+				ctx: ctx,
+				survey: &domain.UserSurvey{
+					ID:     uuid.New().String(),
+					UserID: uuid.New().String(),
+				},
+				updateData: map[string]interface{}{
+					"has_submitted": true,
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "Sad case: unable to update a user survey" {
+				fakeGorm.MockUpdateUserSurveysFn = func(ctx context.Context, survey *gorm.UserSurvey, updateData map[string]interface{}) error {
+					return fmt.Errorf("failed to update user survey")
+				}
+			}
+			if err := d.UpdateUserSurveys(tt.args.ctx, tt.args.survey, tt.args.updateData); (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.UpdateUserSurveys() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}

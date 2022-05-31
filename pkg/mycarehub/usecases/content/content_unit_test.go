@@ -409,7 +409,7 @@ func TestUseCasesContentImpl_GetUserBookmarkedContent(t *testing.T) {
 			fakeContent := mock.NewContentUsecaseMock()
 			fakeExt := extensionMock.NewFakeExtension()
 			c := content.NewUseCasesContentImplementation(fakeDB, fakeDB, fakeExt)
-			fakeHelpers := helpers_mock.NewHelper()
+			fakeHelpers := helpers_mock.NewFakeHelper()
 
 			if tt.name == "Happy Case - Successfully get user bookmarked content" {
 				fakeExt.MockMakeRequestFn = func(ctx context.Context, method string, path string, body interface{}) (*http.Response, error) {

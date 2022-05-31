@@ -12,10 +12,13 @@ import (
 
 // SurveysMock mocks the surveys service
 type SurveysMock struct {
-	MockMakeRequestFn               func(ctx context.Context, payload domain.RequestHelperPayload) (*http.Response, error)
-	MockListSurveyFormsFn           func(ctx context.Context, projectID int) ([]*domain.SurveyForm, error)
-	MockGetSurveyFormFn             func(ctx context.Context, projectID int, formID string) (*domain.SurveyForm, error)
-	MockGeneratePublickAccessLinkFn func(ctx context.Context, input dto.SurveyLinkInput) (*dto.SurveyPublicLink, error)
+	MockMakeRequestFn              func(ctx context.Context, payload domain.RequestHelperPayload) (*http.Response, error)
+	MockListSurveyFormsFn          func(ctx context.Context, projectID int) ([]*domain.SurveyForm, error)
+	MockGetSurveyFormFn            func(ctx context.Context, projectID int, formID string) (*domain.SurveyForm, error)
+	MockGeneratePublicAccessLinkFn func(ctx context.Context, input dto.SurveyLinkInput) (*dto.SurveyPublicLink, error)
+	MockGetSubmissionsFn           func(ctx context.Context, input dto.VerifySurveySubmissionInput) ([]domain.Submission, error)
+	MockDeletePublicAccessLinkFn   func(ctx context.Context, input dto.VerifySurveySubmissionInput) error
+	MockListSubmittersFn           func(ctx context.Context, projectID int, formID string) ([]domain.Submitter, error)
 }
 
 // NewSurveysMock initializes the surveys mock service
@@ -44,7 +47,7 @@ func NewSurveysMock() *SurveysMock {
 				EnketoID:  gofakeit.UUID(),
 			}, nil
 		},
-		MockGeneratePublickAccessLinkFn: func(ctx context.Context, input dto.SurveyLinkInput) (*dto.SurveyPublicLink, error) {
+		MockGeneratePublicAccessLinkFn: func(ctx context.Context, input dto.SurveyLinkInput) (*dto.SurveyPublicLink, error) {
 			return &dto.SurveyPublicLink{
 				Once:        true,
 				ID:          2,
@@ -55,6 +58,41 @@ func NewSurveysMock() *SurveysMock {
 				Token:       gofakeit.UUID(),
 				CSRF:        gofakeit.UUID(),
 				ExpiresAt:   time.Now().Add(time.Hour * 24),
+			}, nil
+		},
+		MockGetSubmissionsFn: func(ctx context.Context, input dto.VerifySurveySubmissionInput) ([]domain.Submission, error) {
+			return []domain.Submission{
+				{
+					InstanceID:  gofakeit.UUID(),
+					SubmitterID: 10,
+					DeviceID:    gofakeit.UUID(),
+					CreatedAt:   time.Time{},
+					UpdatedAt:   time.Time{},
+					ReviewState: gofakeit.UUID(),
+					Submitter: domain.Submitter{
+						ID:          10,
+						Type:        gofakeit.BeerAlcohol(),
+						DisplayName: gofakeit.BeerBlg(),
+						CreatedAt:   time.Time{},
+						UpdatedAt:   time.Time{},
+						DeletedAt:   time.Time{},
+					},
+				},
+			}, nil
+		},
+		MockDeletePublicAccessLinkFn: func(ctx context.Context, input dto.VerifySurveySubmissionInput) error {
+			return nil
+		},
+		MockListSubmittersFn: func(ctx context.Context, projectID int, formID string) ([]domain.Submitter, error) {
+			return []domain.Submitter{
+				{
+					ID:          10,
+					Type:        "test",
+					DisplayName: "test",
+					CreatedAt:   time.Time{},
+					UpdatedAt:   time.Time{},
+					DeletedAt:   time.Time{},
+				},
 			}, nil
 		},
 	}
@@ -75,7 +113,22 @@ func (s *SurveysMock) GetSurveyForm(ctx context.Context, projectID int, formID s
 	return s.MockGetSurveyFormFn(ctx, projectID, formID)
 }
 
-// GeneratePublickAccessLink generates a public access link for the given survey
-func (s *SurveysMock) GeneratePublickAccessLink(ctx context.Context, input dto.SurveyLinkInput) (*dto.SurveyPublicLink, error) {
-	return s.MockGeneratePublickAccessLinkFn(ctx, input)
+// GeneratePublicAccessLink generates a public access link for the given survey
+func (s *SurveysMock) GeneratePublicAccessLink(ctx context.Context, input dto.SurveyLinkInput) (*dto.SurveyPublicLink, error) {
+	return s.MockGeneratePublicAccessLinkFn(ctx, input)
+}
+
+// GetSubmissions mocks the action of getting the submissions for the given survey
+func (s *SurveysMock) GetSubmissions(ctx context.Context, input dto.VerifySurveySubmissionInput) ([]domain.Submission, error) {
+	return s.MockGetSubmissionsFn(ctx, input)
+}
+
+// DeletePublicAccessLink mocks the implementation of deleting the public access link for the given survey
+func (s *SurveysMock) DeletePublicAccessLink(ctx context.Context, input dto.VerifySurveySubmissionInput) error {
+	return s.MockDeletePublicAccessLinkFn(ctx, input)
+}
+
+// ListSubmitters mocks the action of listing all the submitters of a given survey
+func (s *SurveysMock) ListSubmitters(ctx context.Context, projectID int, formID string) ([]domain.Submitter, error) {
+	return s.MockListSubmittersFn(ctx, projectID, formID)
 }

@@ -21,9 +21,15 @@ type IListSurveys interface {
 	SendClientSurveyLinks(ctx context.Context, facilityID *string, formID *string, projectID *int, filterParams *dto.ClientFilterParamsInput) (bool, error)
 }
 
+// IVerifySurveySubmission contains all the methods that can be used to update a survey
+type IVerifySurveySubmission interface {
+	VerifySurveySubmission(ctx context.Context, input dto.VerifySurveySubmissionInput) (bool, error)
+}
+
 // UsecaseSurveys groups al the interfaces for the Surveys usecase
 type UsecaseSurveys interface {
 	IListSurveys
+	IVerifySurveySubmission
 }
 
 // UsecaseSurveysImpl represents the Surveys implementation
@@ -31,6 +37,7 @@ type UsecaseSurveysImpl struct {
 	Surveys      surveys.Surveys
 	Query        infrastructure.Query
 	Create       infrastructure.Create
+	Update       infrastructure.Update
 	Notification notification.UseCaseNotification
 }
 
@@ -39,12 +46,14 @@ func NewUsecaseSurveys(
 	surveys surveys.Surveys,
 	query infrastructure.Query,
 	create infrastructure.Create,
+	update infrastructure.Update,
 	notification notification.UseCaseNotification,
 ) *UsecaseSurveysImpl {
 	return &UsecaseSurveysImpl{
 		Surveys:      surveys,
 		Query:        query,
 		Create:       create,
+		Update:       update,
 		Notification: notification,
 	}
 }
@@ -58,6 +67,39 @@ func (u *UsecaseSurveysImpl) GetUserSurveyForms(ctx context.Context, userID stri
 	}
 
 	return surveys, nil
+}
+
+// VerifySurveySubmission method is used to verify whether a user has filled a survey.
+// If the user has filled the survey and submitted their data, the method marks (in the database), that the survey has been  submitted.
+// This method is called when the user goes back from the page that used to fill surveys.
+func (u *UsecaseSurveysImpl) VerifySurveySubmission(ctx context.Context, input dto.VerifySurveySubmissionInput) (bool, error) {
+	submitters, err := u.Surveys.ListSubmitters(ctx, input.ProjectID, input.FormID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, err
+	}
+
+	for _, submitter := range submitters {
+		if submitter.ID == input.SubmitterID {
+			survey := &domain.UserSurvey{
+				LinkID:    input.SubmitterID,
+				ProjectID: input.ProjectID,
+				FormID:    input.FormID,
+			}
+
+			updateData := map[string]interface{}{
+				"has_submitted": true,
+			}
+			err := u.Update.UpdateUserSurveys(ctx, survey, updateData)
+			if err != nil {
+				helpers.ReportErrorToSentry(err)
+				return false, err
+			}
+			break
+		}
+	}
+
+	return true, nil
 }
 
 // ListSurveys lists the surveys available for a given project
@@ -102,7 +144,7 @@ func (u *UsecaseSurveysImpl) SendClientSurveyLinks(ctx context.Context, facility
 			OnceOnly:    true,
 		}
 
-		odkUserPublicAccessToken, err := u.Surveys.GeneratePublickAccessLink(ctx, odkUserAccessTokenInput)
+		odkUserPublicAccessToken, err := u.Surveys.GeneratePublicAccessLink(ctx, odkUserAccessTokenInput)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
 			return false, fmt.Errorf("error generating public access link for user: %w", err)

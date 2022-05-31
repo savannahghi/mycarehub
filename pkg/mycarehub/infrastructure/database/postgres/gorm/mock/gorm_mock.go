@@ -140,6 +140,7 @@ type GormMock struct {
 	MockGetUserSurveyFormsFn                             func(ctx context.Context, userID string) ([]*gorm.UserSurvey, error)
 	MockGetAnsweredScreeningToolQuestionsFn              func(ctx context.Context, facilityID string, toolType string) ([]*gorm.ScreeningToolsResponse, error)
 	MockCreateNotificationFn                             func(ctx context.Context, notification *gorm.Notification) error
+	MockUpdateUserSurveysFn                              func(ctx context.Context, survey *gorm.UserSurvey, updateData map[string]interface{}) error
 	MockListNotificationsFn                              func(ctx context.Context, params *gorm.Notification, pagination *domain.Pagination) ([]*gorm.Notification, *domain.Pagination, error)
 	MockGetClientScreeningToolResponsesByToolTypeFn      func(ctx context.Context, clientID, toolType string, active bool) ([]*gorm.ScreeningToolsResponse, error)
 	MockGetClientScreeningToolServiceRequestByToolTypeFn func(ctx context.Context, clientID, toolType, status string) (*gorm.ClientServiceRequest, error)
@@ -461,7 +462,7 @@ func NewGormMock() *GormMock {
 					ID:             fhirID,
 					Active:         false,
 					Link:           uuid.New().String(),
-					Title:          "SurveyTitle",
+					Title:          "Title",
 					Description:    description,
 					HasSubmitted:   false,
 					OrganisationID: uuid.New().String(),
@@ -1149,6 +1150,9 @@ func NewGormMock() *GormMock {
 		MockCreateUserSurveyFn: func(ctx context.Context, userSurvey []*gorm.UserSurvey) error {
 			return nil
 		},
+		MockUpdateUserSurveysFn: func(ctx context.Context, survey *gorm.UserSurvey, updateData map[string]interface{}) error {
+			return nil
+		},
 	}
 }
 
@@ -1186,6 +1190,11 @@ func (gm *GormMock) CheckWhetherUserHasLikedContent(ctx context.Context, userID 
 // RetrieveFacilityByMFLCode mocks the implementation of `gorm's` RetrieveFacility method.
 func (gm *GormMock) RetrieveFacilityByMFLCode(ctx context.Context, MFLCode int, isActive bool) (*gorm.Facility, error) {
 	return gm.MockRetrieveFacilityByMFLCodeFn(ctx, MFLCode, isActive)
+}
+
+// UpdateUserSurveys mocks the implementation of `gorm's` UpdateUserSurveys method.
+func (gm *GormMock) UpdateUserSurveys(ctx context.Context, survey *gorm.UserSurvey, updateData map[string]interface{}) error {
+	return gm.MockUpdateUserSurveysFn(ctx, survey, updateData)
 }
 
 // GetFacilities mocks the implementation of `gorm's` GetFacilities method.
