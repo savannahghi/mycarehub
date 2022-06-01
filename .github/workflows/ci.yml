@@ -76,7 +76,6 @@ env:
   SURVEYS_SYSTEM_EMAIL: ${{ secrets.SURVEYS_SYSTEM_EMAIL }}
   SURVEYS_SYSTEM_PASSWORD: ${{ secrets.SURVEYS_SYSTEM_PASSWORD }}
   SURVEYS_BASE_URL: ${{ secrets.SURVEYS_BASE_URL }}
-  DELETE_FHIR_PATIENT_URL: ${{ secrets.DELETE_FHIR_PATIENT_URL }}
   CONSUMER_APP_IDENTIFIER: ${{ secrets.CONSUMER_APP_IDENTIFIER }}
   PRO_APP_IDENTIFIER: ${{ secrets.PRO_APP_IDENTIFIER }}
 
@@ -91,12 +90,13 @@ jobs:
     runs-on: ${{ matrix.os }}
     services:
       postgres:
-        image: postgres:12
+        image: postgis/postgis:14-3.1
         env:
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: postgres
           POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres                   
+          POSTGRES_DB: postgres
           POSTGRES_HOST_AUTH_METHOD: trust
+          POSTGRES_PORT: ${{ job.services.postgres.ports[5432] }}
         # Set health checks to wait until postgres has started
         options: >-
           --health-cmd pg_isready
@@ -125,53 +125,14 @@ jobs:
           project_id: ${{ secrets.GOOGLE_CLOUD_PROJECT }}
           credentials_json: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}
 
-      - name: Purge postgres
-        run: |
-          sudo apt-get --purge remove postgresql postgresql-*
-
-      - name: Upgrade Packages
+      - name: Access cloned repository contents
         run: |
           sudo apt-get update && sudo apt-get upgrade
-
-      - name: Install Postgres / PostGIS 12
-        run: |
-          sudo apt-get install postgresql-12 postgresql-12-postgis-3
-      
-      - name: Install Requirements
-        run: |
-          sudo apt-get install gdal-bin libgdal-dev libtbb2 libtbb-dev
-          sudo apt install python3-testresources
+          sudo apt-get install postgis gdal-bin libgdal-dev
           pip install -r requirements/local.txt && pip install -r requirements/production.txt
           npm ci
           npm install -g mjml
-
-      - name: Setup and enable postgres service
-        run: |
-          sudo systemctl enable postgresql.service
-          sudo systemctl start postgresql.service
-          sudo pg_ctlcluster 12 main start
-          echo ${POSTGRES_HOST}:${POSTGRES_PORT}:${POSTGRES_DB}:${POSTGRES_USER}:${POSTGRES_PASSWORD}  > ~/.pgpass
-          sudo chmod 600 ~/.pgpass
-          PGPASSFILE='~/.pgpass'
-          sudo -u ${POSTGRES_USER} psql -p ${POSTGRES_PORT} -c "ALTER USER ${POSTGRES_USER} WITH PASSWORD '${POSTGRES_PASSWORD}';"
-
-      - name: Check if postgres instance has started running before running migrations
-        run: |
-          wget https://github.com/mxssl/wait-for-pg/releases/download/v0.0.7/wait-for-pg-linux-amd64.tar.gz
-          tar xvzf wait-for-pg-linux-amd64.tar.gz
-          cp wait-for-pg /usr/local/bin/wait-for-pg
-          chmod +x /usr/local/bin/wait-for-pg
-
-          wait-for-pg check \
-          --host ${POSTGRES_HOST} \
-          --user ${POSTGRES_USER} \
-          --port ${POSTGRES_PORT} \
-          --password ${POSTGRES_PASSWORD} \
-          --dbname ${POSTGRES_DB} \
-          --sslmode disable \
-          --retry 2 \
-          --sleep 10
-
+          
       - name: run migrations
         run: |
           python manage.py migrate

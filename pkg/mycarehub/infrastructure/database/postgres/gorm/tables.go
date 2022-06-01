@@ -11,6 +11,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/serverutils"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 // OrganizationID assign a default organisation to a type
@@ -150,6 +151,23 @@ func (u *User) BeforeCreate(tx *gorm.DB) (err error) {
 	u.IsPhoneVerified = false
 	u.HasSetSecurityQuestion = false
 	u.PinUpdateRequired = false
+
+	return
+}
+
+// BeforeDelete hook is run before deleting a user profile
+func (u *User) BeforeDelete(tx *gorm.DB) (err error) {
+	tx.Unscoped().Where(&UserGroups{UserID: u.UserID}).Delete(&UserGroups{})
+	tx.Unscoped().Where(&UserAuthToken{UserID: u.UserID}).Delete(&UserAuthToken{})
+	tx.Unscoped().Where(&UserPermissions{UserID: u.UserID}).Delete(&UserPermissions{})
+	tx.Unscoped().Where(&PINData{UserID: *u.UserID}).Delete(&PINData{})
+	tx.Unscoped().Where(&SecurityQuestionResponse{UserID: *u.UserID}).Delete(&SecurityQuestionResponse{})
+	tx.Unscoped().Where(&UserOTP{UserID: *u.UserID}).Delete(&UserOTP{})
+	tx.Unscoped().Where(&ContentBookmark{UserID: *u.UserID}).Delete(&ContentBookmark{})
+	tx.Unscoped().Where(&ContentShare{UserID: *u.UserID}).Delete(&ContentShare{})
+	tx.Unscoped().Where(&ContentLike{UserID: *u.UserID}).Delete(&ContentLike{})
+	tx.Unscoped().Where(&Notification{UserID: u.UserID}).Delete(&Notification{})
+	tx.Unscoped().Where(&UserSurvey{UserID: *u.UserID}).Delete(&UserSurvey{})
 
 	return
 }
@@ -366,7 +384,7 @@ type Client struct {
 
 	HealthRecordID *string `gorm:"column:emr_health_record_id"`
 
-	TreatmentBuddy string `gorm:"column:treatment_buddy"` // TODO: optional, free text OR FK to user?
+	TreatmentBuddy string `gorm:"column:treatment_buddy"`
 
 	ClientCounselled bool `gorm:"column:counselled"`
 
@@ -387,9 +405,50 @@ func (c *Client) BeforeCreate(tx *gorm.DB) (err error) {
 	return
 }
 
+// BeforeDelete hook is called when deleting a record
+func (c *Client) BeforeDelete(tx *gorm.DB) (err error) {
+	clientID := *c.ID
+
+	var clientProfile Client
+	tx.Model(&Client{}).Preload(clause.Associations).Where(&Client{ID: &clientID}).Find(&clientProfile)
+	userID := clientProfile.User.UserID
+
+	tx.Model(&Contact{}).Unscoped().Select(clause.Associations).Where(&Contact{UserID: userID}).Delete(&Contact{})
+	tx.Model(&ClientContacts{}).Unscoped().Where(&ClientContacts{ClientID: &clientID}).Delete(&ClientContacts{})
+
+	var clientIdentifiers ClientIdentifiers
+	tx.Model(&ClientIdentifiers{}).Where(&ClientIdentifiers{ClientID: &clientID}).Find(&clientIdentifiers)
+	tx.Model(&ClientFacility{}).Unscoped().Where(&ClientFacility{ClientID: clientID}).Delete(&ClientFacility{})
+	tx.Model(&ClientIdentifiers{}).Unscoped().Where("identifier_id", clientIdentifiers.IdentifierID).Delete(&ClientIdentifiers{})
+	tx.Model(&Identifier{}).Unscoped().Where("id", clientIdentifiers.IdentifierID).Delete(&Identifier{})
+	tx.Model(&ClientRelatedPerson{}).Unscoped().Where(&ClientRelatedPerson{ClientID: &clientID}).Delete(&ClientRelatedPerson{})
+	tx.Model(&ClientHealthDiaryEntry{}).Unscoped().Where(&ClientHealthDiaryEntry{ClientID: clientID}).Delete(&ClientHealthDiaryEntry{})
+	tx.Model(&ClientServiceRequest{}).Unscoped().Where(&ClientServiceRequest{ClientID: clientID}).Delete(&ClientServiceRequest{})
+	tx.Model(&Appointment{}).Unscoped().Where(&Appointment{ClientID: clientID}).Delete(&Appointment{})
+	tx.Model(&ScreeningToolsResponse{}).Unscoped().Where(&ScreeningToolsResponse{ClientID: clientID}).Delete(&ScreeningToolsResponse{})
+
+	return
+}
+
 // TableName references the table that we map data from
 func (Client) TableName() string {
 	return "clients_client"
+}
+
+// ClientFacility represents the client facility table
+type ClientFacility struct {
+	Base
+
+	ID             *string `gorm:"column:id"`
+	Active         bool    `gorm:"column:active"`
+	OrganisationID string  `gorm:"column:organisation_id"`
+	ClientID       string  `gorm:"column:client_id"`
+	FacilityID     string  `gorm:"column:facility_id"`
+}
+
+// TableName represents the client facility table name
+func (ClientFacility) TableName() string {
+	return "clients_clientfacility"
 }
 
 // StaffProfile represents the staff profile model

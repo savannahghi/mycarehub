@@ -144,9 +144,8 @@ type PostgresMock struct {
 	MockGetAppointmentFn                                 func(ctx context.Context, params domain.Appointment) (*domain.Appointment, error)
 	MockGetFacilityStaffsFn                              func(ctx context.Context, facilityID string) ([]*domain.StaffProfile, error)
 	MockCheckIfStaffHasUnresolvedServiceRequestsFn       func(ctx context.Context, staffID string, serviceRequestType string) (bool, error)
-	MockDeleteClientProfileFn                            func(ctx context.Context, clientID string) (bool, error)
-	MockDeleteUserFn                                     func(ctx context.Context, userID string) (bool, error)
-	MockDeleteStaffProfileFn                             func(ctx context.Context, staffID string) (bool, error)
+	MockDeleteUserFn                                     func(ctx context.Context, userID string, clientID *string, staffID *string, flavour feedlib.Flavour) error
+	MockDeleteStaffProfileFn                             func(ctx context.Context, staffID string) error
 	MockUpdateNotificationFn                             func(ctx context.Context, notification *domain.Notification, updateData map[string]interface{}) error
 	MockGetNotificationFn                                func(ctx context.Context, notificationID string) (*domain.Notification, error)
 	MockGetClientsByFilterParamsFn                       func(ctx context.Context, facilityID *string, filterParams *dto.ClientFilterParamsInput) ([]*domain.ClientProfile, error)
@@ -1019,14 +1018,11 @@ func NewPostgresMock() *PostgresMock {
 		MockCheckIfStaffHasUnresolvedServiceRequestsFn: func(ctx context.Context, staffID string, serviceRequestType string) (bool, error) {
 			return false, nil
 		},
-		MockDeleteClientProfileFn: func(ctx context.Context, clientID string) (bool, error) {
-			return true, nil
+		MockDeleteStaffProfileFn: func(ctx context.Context, staffID string) error {
+			return nil
 		},
-		MockDeleteStaffProfileFn: func(ctx context.Context, staffID string) (bool, error) {
-			return true, nil
-		},
-		MockDeleteUserFn: func(ctx context.Context, userID string) (bool, error) {
-			return true, nil
+		MockDeleteUserFn: func(ctx context.Context, userID string, clientID *string, staffID *string, flavour feedlib.Flavour) error {
+			return nil
 		},
 		MockGetClientsByFilterParamsFn: func(ctx context.Context, facilityID *string, filterParams *dto.ClientFilterParamsInput) ([]*domain.ClientProfile, error) {
 			return []*domain.ClientProfile{
@@ -1039,19 +1035,14 @@ func NewPostgresMock() *PostgresMock {
 	}
 }
 
-// DeleteClientProfile mocks the implementation of deleting a client
-func (gm *PostgresMock) DeleteClientProfile(ctx context.Context, clientID string) (bool, error) {
-	return gm.MockDeleteClientProfileFn(ctx, clientID)
-}
-
 // DeleteStaffProfile mocks the implementation of deleting a staff
-func (gm *PostgresMock) DeleteStaffProfile(ctx context.Context, staffID string) (bool, error) {
+func (gm *PostgresMock) DeleteStaffProfile(ctx context.Context, staffID string) error {
 	return gm.MockDeleteStaffProfileFn(ctx, staffID)
 }
 
 // DeleteUser mocks the implementation of deleting a user
-func (gm *PostgresMock) DeleteUser(ctx context.Context, userID string) (bool, error) {
-	return gm.MockDeleteUserFn(ctx, userID)
+func (gm *PostgresMock) DeleteUser(ctx context.Context, userID string, clientID *string, staffID *string, flavour feedlib.Flavour) error {
+	return gm.MockDeleteUserFn(ctx, userID, clientID, staffID, flavour)
 }
 
 // GetOrCreateFacility mocks the implementation of `gorm's` GetOrCreateFacility method.
