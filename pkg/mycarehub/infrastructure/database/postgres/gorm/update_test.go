@@ -1699,50 +1699,6 @@ func TestPGInstance_UpdateUser(t *testing.T) {
 	}
 }
 
-func TestPGInstance_UpdateUserActiveStatus(t *testing.T) {
-	ctx := context.Background()
-
-	type args struct {
-		ctx     context.Context
-		userID  string
-		flavour feedlib.Flavour
-		active  bool
-	}
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		{
-			name: "Happy case",
-			args: args{
-				ctx:     ctx,
-				userID:  userID,
-				flavour: feedlib.FlavourConsumer,
-				active:  true,
-			},
-			wantErr: false,
-		},
-		{
-			name: "Sad case",
-			args: args{
-				ctx:     ctx,
-				userID:  "userID",
-				flavour: feedlib.FlavourConsumer,
-				active:  true,
-			},
-			wantErr: true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if err := testingDB.UpdateUserActiveStatus(tt.args.ctx, tt.args.userID, tt.args.flavour, tt.args.active); (err != nil) != tt.wantErr {
-				t.Errorf("PGInstance.UpdateUserActiveStatus() error = %v, wantErr %v", err, tt.wantErr)
-			}
-		})
-	}
-}
-
 func TestPGInstance_UpdateFacility(t *testing.T) {
 	ctx := context.Background()
 

@@ -235,11 +235,6 @@ func Router(ctx context.Context) (*mux.Router, error) {
 		http.MethodPost,
 	).HandlerFunc(internalHandlers.CreatePinResetServiceRequest())
 
-	r.Path("/opt-in").Methods(
-		http.MethodOptions,
-		http.MethodPost,
-	).HandlerFunc(internalHandlers.OptIn())
-
 	r.Path("/facilities").Methods(
 		http.MethodOptions,
 		http.MethodGet,

@@ -113,7 +113,6 @@ type GormMock struct {
 	MockCheckIfClientHasUnresolvedServiceRequestsFn      func(ctx context.Context, clientID string, serviceRequestType string) (bool, error)
 	MockGetAllRolesFn                                    func(ctx context.Context) ([]*gorm.AuthorityRole, error)
 	MockUpdateHealthDiaryFn                              func(ctx context.Context, clientHealthDiaryEntry *gorm.ClientHealthDiaryEntry, updateData map[string]interface{}) (bool, error)
-	MockUpdateUserActiveStatusFn                         func(ctx context.Context, userID string, flavour feedlib.Flavour, active bool) error
 	MockUpdateUserPinUpdateRequiredStatusFn              func(ctx context.Context, userID string, flavour feedlib.Flavour, status bool) error
 	MockUpdateClientFn                                   func(ctx context.Context, client *gorm.Client, updates map[string]interface{}) (*gorm.Client, error)
 	MockGetUserProfileByStaffIDFn                        func(ctx context.Context, staffID string) (*gorm.User, error)
@@ -984,9 +983,6 @@ func NewGormMock() *GormMock {
 				},
 			}, nil
 		},
-		MockUpdateUserActiveStatusFn: func(ctx context.Context, userID string, flavour feedlib.Flavour, active bool) error {
-			return nil
-		},
 		MockUpdateUserPinUpdateRequiredStatusFn: func(ctx context.Context, userID string, flavour feedlib.Flavour, status bool) error {
 			return nil
 		},
@@ -1591,11 +1587,6 @@ func (gm *GormMock) SearchClientProfilesByCCCNumber(ctx context.Context, CCCNumb
 // SearchStaffProfileByStaffNumber mocks the implementation of getting staff profile using their staff number.
 func (gm *GormMock) SearchStaffProfileByStaffNumber(ctx context.Context, staffNumber string) ([]*gorm.StaffProfile, error) {
 	return gm.MockSearchStaffProfileByStaffNumberFn(ctx, staffNumber)
-}
-
-// UpdateUserActiveStatus mocks updating a user `active status`
-func (gm *GormMock) UpdateUserActiveStatus(ctx context.Context, userID string, flavour feedlib.Flavour, active bool) error {
-	return gm.MockUpdateUserActiveStatusFn(ctx, userID, flavour, active)
 }
 
 // UpdateUserPinUpdateRequiredStatus mocks updating a user `pin update required status`

@@ -116,7 +116,6 @@ type PostgresMock struct {
 	MockCheckIfClientHasUnresolvedServiceRequestsFn      func(ctx context.Context, clientID string, serviceRequestType string) (bool, error)
 	MockUpdateUserSurveysFn                              func(ctx context.Context, survey *domain.UserSurvey, updateData map[string]interface{}) error
 	MockGetAllRolesFn                                    func(ctx context.Context) ([]*domain.AuthorityRole, error)
-	MockUpdateUserActiveStatusFn                         func(ctx context.Context, userID string, flavour feedlib.Flavour, active bool) error
 	MockUpdateUserPinUpdateRequiredStatusFn              func(ctx context.Context, userID string, flavour feedlib.Flavour, status bool) error
 	MockGetHealthDiaryEntryByIDFn                        func(ctx context.Context, healthDiaryEntryID string) (*domain.ClientHealthDiaryEntry, error)
 	MockUpdateClientFn                                   func(ctx context.Context, client *domain.ClientProfile, updates map[string]interface{}) (*domain.ClientProfile, error)
@@ -877,9 +876,6 @@ func NewPostgresMock() *PostgresMock {
 				},
 			}, nil
 		},
-		MockUpdateUserActiveStatusFn: func(ctx context.Context, userID string, flavour feedlib.Flavour, active bool) error {
-			return nil
-		},
 		MockUpdateUserPinUpdateRequiredStatusFn: func(ctx context.Context, userID string, flavour feedlib.Flavour, status bool) error {
 			return nil
 		},
@@ -1504,11 +1500,6 @@ func (gm *PostgresMock) GetAllRoles(ctx context.Context) ([]*domain.AuthorityRol
 // It returns clients profiles whose parts of the CCC number matches
 func (gm *PostgresMock) SearchClientProfilesByCCCNumber(ctx context.Context, CCCNumber string) ([]*domain.ClientProfile, error) {
 	return gm.MockSearchClientProfilesByCCCNumberFn(ctx, CCCNumber)
-}
-
-// UpdateUserActiveStatus mocks updating a user `active status`
-func (gm *PostgresMock) UpdateUserActiveStatus(ctx context.Context, userID string, flavour feedlib.Flavour, active bool) error {
-	return gm.MockUpdateUserActiveStatusFn(ctx, userID, flavour, active)
 }
 
 // UpdateClient updates the client details for a particular client

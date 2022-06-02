@@ -40,7 +40,6 @@ type Update interface {
 	InvalidateScreeningToolResponse(ctx context.Context, clientID string, questionID string) error
 	UpdateServiceRequests(ctx context.Context, payload []*ClientServiceRequest) (bool, error)
 	UpdateUserPinChangeRequiredStatus(ctx context.Context, userID string, flavour feedlib.Flavour, status bool) error
-	UpdateUserActiveStatus(ctx context.Context, userID string, flavour feedlib.Flavour, active bool) error
 	UpdateClient(ctx context.Context, client *Client, updates map[string]interface{}) (*Client, error)
 	UpdateUserPinUpdateRequiredStatus(ctx context.Context, userID string, flavour feedlib.Flavour, status bool) error
 	UpdateHealthDiary(ctx context.Context, clientHealthDiaryEntry *ClientHealthDiaryEntry, updateData map[string]interface{}) (bool, error)
@@ -908,18 +907,6 @@ func (db *PGInstance) UpdateServiceRequests(ctx context.Context, payload []*Clie
 func (db *PGInstance) UpdateUserPinChangeRequiredStatus(ctx context.Context, userID string, flavour feedlib.Flavour, status bool) error {
 	err := db.DB.Model(&User{}).Where(&User{UserID: &userID, Flavour: flavour}).Updates(map[string]interface{}{
 		"pin_change_required": status,
-	}).Error
-	if err != nil {
-		helpers.ReportErrorToSentry(err)
-		return err
-	}
-	return nil
-}
-
-// UpdateUserActiveStatus updates a user's active status
-func (db *PGInstance) UpdateUserActiveStatus(ctx context.Context, userID string, flavour feedlib.Flavour, active bool) error {
-	err := db.DB.Model(&User{}).Where(&User{UserID: &userID, Flavour: flavour}).Updates(map[string]interface{}{
-		"is_active": active,
 	}).Error
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
