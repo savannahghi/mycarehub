@@ -35,7 +35,7 @@ type UserUseCaseMock struct {
 	MockRegisteredFacilityPatientsFn    func(ctx context.Context, input dto.PatientSyncPayload) (*dto.PatientSyncResponse, error)
 	MockSetUserPINFn                    func(ctx context.Context, input dto.PINInput) (bool, error)
 	MockSearchStaffByStaffNumberFn      func(ctx context.Context, staffNumber string) ([]*domain.StaffProfile, error)
-	MockConsentFn                       func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour, active bool) (bool, error)
+	MockConsentFn                       func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (bool, error)
 	MockGetUserProfileFn                func(ctx context.Context, userID string) (*domain.User, error)
 	MockAddClientFHIRIDFn               func(ctx context.Context, input dto.ClientFHIRPayload) error
 	MockGenerateTemporaryPinFn          func(ctx context.Context, userID string, flavour feedlib.Flavour) (string, error)
@@ -191,7 +191,7 @@ func NewUserUseCaseMock() *UserUseCaseMock {
 		MockSetUserPINFn: func(ctx context.Context, input dto.PINInput) (bool, error) {
 			return true, nil
 		},
-		MockConsentFn: func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour, active bool) (bool, error) {
+		MockConsentFn: func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (bool, error) {
 			return true, nil
 		},
 		MockGetUserProfileFn: func(ctx context.Context, userID string) (*domain.User, error) {
@@ -326,8 +326,8 @@ func (f *UserUseCaseMock) SearchStaffByStaffNumber(ctx context.Context, staffNum
 }
 
 // Consent mocks the implementation of a user withdrawing or offering their consent to the app
-func (f *UserUseCaseMock) Consent(ctx context.Context, phoneNumber string, flavour feedlib.Flavour, active bool) (bool, error) {
-	return f.MockConsentFn(ctx, phoneNumber, flavour, active)
+func (f *UserUseCaseMock) Consent(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (bool, error) {
+	return f.MockConsentFn(ctx, phoneNumber, flavour)
 }
 
 // GetUserProfile returns a user profile given the user ID

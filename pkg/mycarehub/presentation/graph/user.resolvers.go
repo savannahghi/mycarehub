@@ -39,7 +39,7 @@ func (r *mutationResolver) RegisterStaff(ctx context.Context, input dto.StaffReg
 }
 
 func (r *mutationResolver) OptOut(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (bool, error) {
-	return r.mycarehub.User.Consent(ctx, phoneNumber, flavour, false)
+	return r.mycarehub.User.Consent(ctx, phoneNumber, flavour)
 }
 
 func (r *mutationResolver) SetPushToken(ctx context.Context, token string) (bool, error) {

@@ -37,7 +37,6 @@ type MyCareHubHandlersInterfaces interface {
 	ServiceRequests() http.HandlerFunc
 	CreateOrUpdateKenyaEMRAppointments() http.HandlerFunc
 	CreatePinResetServiceRequest() http.HandlerFunc
-	OptIn() http.HandlerFunc
 	GetUserProfile() http.HandlerFunc
 	AddClientFHIRID() http.HandlerFunc
 	AddPatientsRecords() http.HandlerFunc
@@ -822,38 +821,6 @@ func (h *MyCareHubHandlersInterfacesImpl) CreatePinResetServiceRequest() http.Ha
 		}
 
 		response, err := h.usecase.ServiceRequest.CreatePinResetServiceRequest(ctx, payload.PhoneNumber, payload.CCCNumber, payload.Flavour)
-		if err != nil {
-			helpers.ReportErrorToSentry(err)
-			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
-				Err:     err,
-				Message: err.Error(),
-			}, http.StatusBadRequest)
-			return
-		}
-
-		serverutils.WriteJSONResponse(w, okResp{Status: response}, http.StatusOK)
-	}
-}
-
-// OptIn will be used by users to take an affirmative action to offer their consent to the app
-func (h *MyCareHubHandlersInterfacesImpl) OptIn() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		ctx := r.Context()
-
-		payload := &dto.OptInPayload{}
-		serverutils.DecodeJSONToTargetStruct(w, r, payload)
-
-		if payload.Flavour == "" || payload.PhoneNumber == "" {
-			err := fmt.Errorf("expected both `flavour` and `phoneNumber` to be defined")
-			helpers.ReportErrorToSentry(err)
-			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
-				Err:     err,
-				Message: err.Error(),
-			}, http.StatusBadRequest)
-			return
-		}
-
-		response, err := h.usecase.User.Consent(ctx, payload.PhoneNumber, payload.Flavour, true)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
 			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{

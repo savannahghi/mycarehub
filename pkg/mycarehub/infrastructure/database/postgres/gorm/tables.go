@@ -168,6 +168,7 @@ func (u *User) BeforeDelete(tx *gorm.DB) (err error) {
 	tx.Unscoped().Where(&ContentLike{UserID: *u.UserID}).Delete(&ContentLike{})
 	tx.Unscoped().Where(&Notification{UserID: u.UserID}).Delete(&Notification{})
 	tx.Unscoped().Where(&UserSurvey{UserID: *u.UserID}).Delete(&UserSurvey{})
+	tx.Unscoped().Where(&AuthorityRoleUser{UserID: u.UserID}).Delete(&AuthorityRoleUser{})
 
 	return
 }
@@ -410,22 +411,26 @@ func (c *Client) BeforeDelete(tx *gorm.DB) (err error) {
 	clientID := *c.ID
 
 	var clientProfile Client
+	var clientIdentifiers ClientIdentifiers
+	var clientRelatedPerson ClientRelatedPerson
+	tx.Model(&ClientIdentifiers{}).Where(&ClientIdentifiers{ClientID: &clientID}).Find(&clientIdentifiers)
 	tx.Model(&Client{}).Preload(clause.Associations).Where(&Client{ID: &clientID}).Find(&clientProfile)
+	tx.Model(&ClientRelatedPerson{}).Where(&ClientRelatedPerson{ClientID: &clientID}).Find(&clientRelatedPerson)
 	userID := clientProfile.User.UserID
 
-	tx.Model(&Contact{}).Unscoped().Select(clause.Associations).Where(&Contact{UserID: userID}).Delete(&Contact{})
-	tx.Model(&ClientContacts{}).Unscoped().Where(&ClientContacts{ClientID: &clientID}).Delete(&ClientContacts{})
-
-	var clientIdentifiers ClientIdentifiers
-	tx.Model(&ClientIdentifiers{}).Where(&ClientIdentifiers{ClientID: &clientID}).Find(&clientIdentifiers)
-	tx.Model(&ClientFacility{}).Unscoped().Where(&ClientFacility{ClientID: clientID}).Delete(&ClientFacility{})
-	tx.Model(&ClientIdentifiers{}).Unscoped().Where("identifier_id", clientIdentifiers.IdentifierID).Delete(&ClientIdentifiers{})
-	tx.Model(&Identifier{}).Unscoped().Where("id", clientIdentifiers.IdentifierID).Delete(&Identifier{})
-	tx.Model(&ClientRelatedPerson{}).Unscoped().Where(&ClientRelatedPerson{ClientID: &clientID}).Delete(&ClientRelatedPerson{})
-	tx.Model(&ClientHealthDiaryEntry{}).Unscoped().Where(&ClientHealthDiaryEntry{ClientID: clientID}).Delete(&ClientHealthDiaryEntry{})
-	tx.Model(&ClientServiceRequest{}).Unscoped().Where(&ClientServiceRequest{ClientID: clientID}).Delete(&ClientServiceRequest{})
-	tx.Model(&Appointment{}).Unscoped().Where(&Appointment{ClientID: clientID}).Delete(&Appointment{})
-	tx.Model(&ScreeningToolsResponse{}).Unscoped().Where(&ScreeningToolsResponse{ClientID: clientID}).Delete(&ScreeningToolsResponse{})
+	tx.Unscoped().Select(clause.Associations).Where(&Contact{UserID: userID}).Delete(&Contact{})
+	tx.Unscoped().Where(&ClientContacts{ClientID: &clientID}).Delete(&ClientContacts{})
+	tx.Unscoped().Where(&ClientFacility{ClientID: clientID}).Delete(&ClientFacility{})
+	tx.Unscoped().Where("identifier_id", clientIdentifiers.IdentifierID).Delete(&ClientIdentifiers{})
+	tx.Unscoped().Where("id", clientIdentifiers.IdentifierID).Delete(&Identifier{})
+	tx.Unscoped().Where(&ClientRelatedPerson{ClientID: &clientID}).Delete(&ClientRelatedPerson{})
+	tx.Unscoped().Where(&RelatedPersonAddresses{RelatedPersonID: clientRelatedPerson.RelatedPersonID}).Delete(&RelatedPersonAddresses{})
+	tx.Unscoped().Where(&RelatedPersonContacts{RelatedPersonID: clientRelatedPerson.RelatedPersonID}).Delete(&RelatedPersonContacts{})
+	tx.Unscoped().Where(&ClientAddress{ClientID: clientID}).Delete(&ClientAddress{})
+	tx.Unscoped().Where(&ClientHealthDiaryEntry{ClientID: clientID}).Delete(&ClientHealthDiaryEntry{})
+	tx.Unscoped().Where(&ClientServiceRequest{ClientID: clientID}).Delete(&ClientServiceRequest{})
+	tx.Unscoped().Where(&Appointment{ClientID: clientID}).Delete(&Appointment{})
+	tx.Unscoped().Where(&ScreeningToolsResponse{ClientID: clientID}).Delete(&ScreeningToolsResponse{})
 
 	return
 }
@@ -449,6 +454,18 @@ type ClientFacility struct {
 // TableName represents the client facility table name
 func (ClientFacility) TableName() string {
 	return "clients_clientfacility"
+}
+
+// ClientAddress represents a through table that holds addresses that belong to a client
+type ClientAddress struct {
+	ID        *string `gorm:"column:id"`
+	ClientID  string  `gorm:"column:client_id"`
+	AddressID string  `gorm:"column:address_id"`
+}
+
+// TableName composes the table's name
+func (ClientAddress) TableName() string {
+	return "clients_client_addresses"
 }
 
 // StaffProfile represents the staff profile model

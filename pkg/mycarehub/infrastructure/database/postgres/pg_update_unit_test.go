@@ -1564,55 +1564,6 @@ func TestMyCareHubDb_UpdateServiceRequests(t *testing.T) {
 	}
 }
 
-func TestMyCareHubDb_UpdateUserActiveStatus(t *testing.T) {
-	ctx := context.Background()
-	type args struct {
-		ctx     context.Context
-		userID  string
-		flavour feedlib.Flavour
-		active  bool
-	}
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		{
-			name: "Happy Case - Successfully update user active status",
-			args: args{
-				ctx:     ctx,
-				userID:  uuid.New().String(),
-				flavour: feedlib.FlavourConsumer,
-				active:  true,
-			},
-			wantErr: false,
-		},
-		{
-			name: "Sad Case - Fail to update user active status",
-			args: args{
-				ctx: ctx,
-			},
-			wantErr: true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			var fakeGorm = gormMock.NewGormMock()
-			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
-
-			if tt.name == "Sad Case - Fail to update user active status" {
-				fakeGorm.MockUpdateUserActiveStatusFn = func(ctx context.Context, userID string, flavour feedlib.Flavour, active bool) error {
-					return fmt.Errorf("failed to update user active status")
-				}
-			}
-
-			if err := d.UpdateUserActiveStatus(tt.args.ctx, tt.args.userID, tt.args.flavour, tt.args.active); (err != nil) != tt.wantErr {
-				t.Errorf("MyCareHubDb.UpdateUserActiveStatus() error = %v, wantErr %v", err, tt.wantErr)
-			}
-		})
-	}
-}
-
 func TestMyCareHubDb_UpdateUserPinUpdateRequiredStatus(t *testing.T) {
 	var fakeGorm = gormMock.NewGormMock()
 	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)

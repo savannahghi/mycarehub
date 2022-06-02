@@ -3528,7 +3528,6 @@ func TestUseCasesUserImpl_Consent(t *testing.T) {
 		ctx         context.Context
 		phoneNumber string
 		flavour     feedlib.Flavour
-		active      bool
 	}
 	tests := []struct {
 		name    string
@@ -3537,45 +3536,21 @@ func TestUseCasesUserImpl_Consent(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "Happy Case - Successfully offer consent",
-			args: args{
-				ctx:         ctx,
-				phoneNumber: gofakeit.Phone(),
-				flavour:     feedlib.FlavourConsumer,
-				active:      true,
-			},
-			want:    true,
-			wantErr: false,
-		},
-		{
 			name: "Happy Case - Successfully withdraw consent",
 			args: args{
 				ctx:         ctx,
 				phoneNumber: gofakeit.Phone(),
 				flavour:     feedlib.FlavourConsumer,
-				active:      false,
 			},
 			want:    true,
 			wantErr: false,
 		},
 		{
-			name: "Sad Case - Fail to get user profile by phone",
+			name: "Sad Case - Fail to purge user details",
 			args: args{
 				ctx:         ctx,
 				phoneNumber: "",
-				flavour:     "",
-				active:      true,
-			},
-			want:    false,
-			wantErr: true,
-		},
-		{
-			name: "Sad Case - Fail to update user status",
-			args: args{
-				ctx:         ctx,
-				phoneNumber: "",
-				flavour:     "",
-				active:      true,
+				flavour:     feedlib.FlavourConsumer,
 			},
 			want:    false,
 			wantErr: true,
@@ -3591,19 +3566,13 @@ func TestUseCasesUserImpl_Consent(t *testing.T) {
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
 			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakeGetStream, fakePubsub)
 
-			if tt.name == "Sad Case - Fail to get user profile by phone" {
-				fakeDB.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*domain.User, error) {
-					return nil, fmt.Errorf("failed to get user profile by phonenumber")
+			if tt.name == "Sad Case - Fail to purge user details" {
+				fakeDB.MockDeleteUserFn = func(ctx context.Context, userID string, clientID *string, staffID *string, flavour feedlib.Flavour) error {
+					return fmt.Errorf("failed to purge user details")
 				}
 			}
 
-			if tt.name == "Sad Case - Fail to update user status" {
-				fakeDB.MockUpdateUserActiveStatusFn = func(ctx context.Context, userID string, flavour feedlib.Flavour, active bool) error {
-					return fmt.Errorf("failed to update user active status")
-				}
-			}
-
-			got, err := us.Consent(tt.args.ctx, tt.args.phoneNumber, tt.args.flavour, tt.args.active)
+			got, err := us.Consent(tt.args.ctx, tt.args.phoneNumber, tt.args.flavour)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCasesUserImpl.Consent() error = %v, wantErr %v", err, tt.wantErr)
 				return

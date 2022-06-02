@@ -438,12 +438,6 @@ type PinResetServiceRequestPayload struct {
 	Flavour     feedlib.Flavour `json:"flavour"`
 }
 
-// OptInPayload models the details passed when opting a user in
-type OptInPayload struct {
-	PhoneNumber string          `json:"phoneNumber"`
-	Flavour     feedlib.Flavour `json:"flavour"`
-}
-
 // ServiceRequestInput is a domain entity that represents a service request.
 type ServiceRequestInput struct {
 	Active       bool                   `json:"active"`
