@@ -143,9 +143,8 @@ type GormMock struct {
 	MockGetAppointmentFn                                 func(ctx context.Context, params *gorm.Appointment) (*gorm.Appointment, error)
 	MockCheckIfStaffHasUnresolvedServiceRequestsFn       func(ctx context.Context, staffID string, serviceRequestType string) (bool, error)
 	MockGetFacilityStaffsFn                              func(ctx context.Context, facilityID string) ([]*gorm.StaffProfile, error)
-	MockDeleteClientProfileFn                            func(ctx context.Context, clientID string) (bool, error)
-	MockDeleteUserFn                                     func(ctx context.Context, userID string) (bool, error)
-	MockDeleteStaffProfileFn                             func(ctx context.Context, staffID string) (bool, error)
+	MockDeleteUserFn                                     func(ctx context.Context, userID string, clientID *string, staffID *string, flavour feedlib.Flavour) error
+	MockDeleteStaffProfileFn                             func(ctx context.Context, staffID string) error
 	MockUpdateNotificationFn                             func(ctx context.Context, notification *gorm.Notification, updateData map[string]interface{}) error
 	MockGetNotificationFn                                func(ctx context.Context, notificationID string) (*gorm.Notification, error)
 	MockGetClientsByFilterParamsFn                       func(ctx context.Context, facilityID string, filterParams *dto.ClientFilterParamsInput) ([]*gorm.Client, error)
@@ -1117,14 +1116,11 @@ func NewGormMock() *GormMock {
 		MockCheckIfStaffHasUnresolvedServiceRequestsFn: func(ctx context.Context, staffID string, serviceRequestType string) (bool, error) {
 			return false, nil
 		},
-		MockDeleteClientProfileFn: func(ctx context.Context, clientID string) (bool, error) {
-			return true, nil
+		MockDeleteStaffProfileFn: func(ctx context.Context, staffID string) error {
+			return nil
 		},
-		MockDeleteStaffProfileFn: func(ctx context.Context, staffID string) (bool, error) {
-			return true, nil
-		},
-		MockDeleteUserFn: func(ctx context.Context, userID string) (bool, error) {
-			return true, nil
+		MockDeleteUserFn: func(ctx context.Context, userID string, clientID *string, staffID *string, flavour feedlib.Flavour) error {
+			return nil
 		},
 		MockGetClientsByFilterParamsFn: func(ctx context.Context, facilityID string, filterParams *dto.ClientFilterParamsInput) ([]*gorm.Client, error) {
 			return []*gorm.Client{
@@ -1140,19 +1136,14 @@ func NewGormMock() *GormMock {
 	}
 }
 
-// DeleteClientProfile mocks the implementation of deleting a client
-func (gm *GormMock) DeleteClientProfile(ctx context.Context, clientID string) (bool, error) {
-	return gm.MockDeleteClientProfileFn(ctx, clientID)
-}
-
 // DeleteStaffProfile mocks the implementation of deleting a staff
-func (gm *GormMock) DeleteStaffProfile(ctx context.Context, staffID string) (bool, error) {
+func (gm *GormMock) DeleteStaffProfile(ctx context.Context, staffID string) error {
 	return gm.MockDeleteStaffProfileFn(ctx, staffID)
 }
 
 // DeleteUser mocks the implementation of deleting a user
-func (gm *GormMock) DeleteUser(ctx context.Context, userID string) (bool, error) {
-	return gm.MockDeleteUserFn(ctx, userID)
+func (gm *GormMock) DeleteUser(ctx context.Context, userID string, clientID *string, staffID *string, flavour feedlib.Flavour) error {
+	return gm.MockDeleteUserFn(ctx, userID, clientID, staffID, flavour)
 }
 
 // GetOrCreateFacility mocks the implementation of `gorm's` GetOrCreateFacility method.

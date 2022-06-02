@@ -144,8 +144,7 @@ jobs:
           --set-env-vars "SURVEYS_SYSTEM_PASSWORD=${{ secrets.SURVEYS_SYSTEM_PASSWORD }}" \
           --set-env-vars "SURVEYS_BASE_URL=${{ secrets.SURVEYS_BASE_URL }}" \
           --set-env-vars "CONSUMER_APP_IDENTIFIER=${{ secrets.CONSUMER_APP_IDENTIFIER }}" \
-          --set-env-vars "PRO_APP_IDENTIFIER=${{ secrets.PRO_APP_IDENTIFIER }}" \
-          --set-env-vars "DELETE_FHIR_PATIENT_URL=${{ secrets.DELETE_FHIR_PATIENT_URL }}" 
+          --set-env-vars "PRO_APP_IDENTIFIER=${{ secrets.PRO_APP_IDENTIFIER }}"
 
           gcloud run services update-traffic ${{ secrets.SERVICE_NAME }} --region europe-west1 --to-latest
 
@@ -244,8 +243,7 @@ jobs:
           --set-env-vars "SURVEYS_SYSTEM_PASSWORD=${{ secrets.SURVEYS_SYSTEM_PASSWORD }}" \
           --set-env-vars "SURVEYS_BASE_URL=${{ secrets.SURVEYS_BASE_URL }}" \
           --set-env-vars "CONSUMER_APP_IDENTIFIER=${{ secrets.CONSUMER_APP_IDENTIFIER }}" \
-          --set-env-vars "PRO_APP_IDENTIFIER=${{ secrets.PRO_APP_IDENTIFIER }}" \
-          --set-env-vars "DELETE_FHIR_PATIENT_URL=${{ secrets.DELETE_FHIR_PATIENT_URL }}" 
+          --set-env-vars "PRO_APP_IDENTIFIER=${{ secrets.PRO_APP_IDENTIFIER }}"
           
           gcloud run services update-traffic ${{ secrets.SERVICE_NAME }} --region europe-west1 --to-latest
 
@@ -357,8 +355,7 @@ jobs:
           --set-env-vars "SURVEYS_SYSTEM_PASSWORD=${{ secrets.SURVEYS_SYSTEM_PASSWORD }}" \
           --set-env-vars "SURVEYS_BASE_URL=${{ secrets.SURVEYS_BASE_URL }}" \
           --set-env-vars "CONSUMER_APP_IDENTIFIER=${{ secrets.CONSUMER_APP_IDENTIFIER }}" \
-          --set-env-vars "PRO_APP_IDENTIFIER=${{ secrets.PRO_APP_IDENTIFIER }}" \
-          --set-env-vars "DELETE_FHIR_PATIENT_URL=${{ secrets.DELETE_FHIR_PATIENT_URL }}" 
+          --set-env-vars "PRO_APP_IDENTIFIER=${{ secrets.PRO_APP_IDENTIFIER }}"
 
           gcloud run services update-traffic ${{ secrets.SERVICE_NAME }} --region europe-west1 --to-latest
 

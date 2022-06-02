@@ -665,8 +665,18 @@ func (h *MyCareHubHandlersInterfacesImpl) DeleteUser() http.HandlerFunc {
 
 		payload := &dto.PhoneInput{}
 		serverutils.DecodeJSONToTargetStruct(w, r, payload)
-		if payload.PhoneNumber == "" || !payload.Flavour.IsValid() {
-			err := fmt.Errorf("expected phone number and/or flavour to be defined")
+		if payload.PhoneNumber == "" || payload.Flavour == "" {
+			err := fmt.Errorf("expected `phoneNumber` and `flavour` to be defined")
+			helpers.ReportErrorToSentry(err)
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusBadRequest)
+			return
+		}
+
+		if !payload.Flavour.IsValid() {
+			err := fmt.Errorf("an invalid `flavour` defined")
 			helpers.ReportErrorToSentry(err)
 			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
 				Err:     err,
