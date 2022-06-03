@@ -25,6 +25,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/clinical"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/getstream"
 	pubsubmessaging "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/pubsub"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/authority"
@@ -163,6 +164,7 @@ type UseCasesUserImpl struct {
 	Authority   authority.UsecaseAuthority
 	GetStream   getstream.ServiceGetStream
 	Pubsub      pubsubmessaging.ServicePubsub
+	Clinical    clinical.IServiceClinical
 }
 
 // NewUseCasesUserImpl returns a new user service
@@ -176,6 +178,7 @@ func NewUseCasesUserImpl(
 	authority authority.UsecaseAuthority,
 	getstream getstream.ServiceGetStream,
 	pubsub pubsubmessaging.ServicePubsub,
+	clinical clinical.IServiceClinical,
 ) *UseCasesUserImpl {
 	return &UseCasesUserImpl{
 		Create:      create,
@@ -187,6 +190,7 @@ func NewUseCasesUserImpl(
 		Authority:   authority,
 		GetStream:   getstream,
 		Pubsub:      pubsub,
+		Clinical:    clinical,
 	}
 }
 
@@ -1149,7 +1153,12 @@ func (us *UseCasesUserImpl) DeleteUser(ctx context.Context, payload *dto.PhoneIn
 			return false, fmt.Errorf("failed to get a client profile: %w", err)
 		}
 
-		// TODO: Delete FHIR patient profile (isc)
+		err = us.Clinical.DeleteFHIRPatientByPhone(ctx, payload.PhoneNumber)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return false, fmt.Errorf("error deleting stream user: %w", err)
+		}
+
 		err = us.DeleteStreamUser(ctx, *client.ID)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)

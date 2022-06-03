@@ -37,11 +37,41 @@ type FakeExtensionImpl struct {
 	MockEnsureTopicsExistFn               func(ctx context.Context, pubsubClient *pubsub.Client, topicIDs []string) error
 	MockEnsureSubscriptionsExistFn        func(ctx context.Context, pubsubClient *pubsub.Client, topicSubscriptionMap map[string]string, callbackURL string) error
 	MockVerifyPubSubJWTAndDecodePayloadFn func(w http.ResponseWriter, r *http.Request) (*pubsubtools.PubSubPayload, error)
+	MockLoadDepsFromYAMLFn                func() (*interserviceclient.DepsConfig, error)
+	MockSetupISCclientFn                  func(config interserviceclient.DepsConfig, serviceName string) (*interserviceclient.InterServiceClient, error)
 }
 
 // NewFakeExtension initializes a new instance of the external calls mock
 func NewFakeExtension() *FakeExtensionImpl {
 	return &FakeExtensionImpl{
+		MockLoadDepsFromYAMLFn: func() (*interserviceclient.DepsConfig, error) {
+			return &interserviceclient.DepsConfig{
+				Staging: []interserviceclient.Dep{
+					{
+						DepName:       "clinical",
+						DepRootDomain: "https://clinical",
+					},
+				},
+				Testing: []interserviceclient.Dep{
+					{
+						DepName:       "clinical",
+						DepRootDomain: "https://clinical",
+					},
+				},
+				Production: []interserviceclient.Dep{
+					{
+						DepName:       "clinical",
+						DepRootDomain: "https://clinical",
+					},
+				},
+			}, nil
+		},
+		MockSetupISCclientFn: func(config interserviceclient.DepsConfig, serviceName string) (*interserviceclient.InterServiceClient, error) {
+			return &interserviceclient.InterServiceClient{
+				Name:              serviceName,
+				RequestRootDomain: "https://clinical",
+			}, nil
+		},
 		MockComparePINFn: func(rawPwd, salt, encodedPwd string, options *extension.Options) bool {
 			return true
 		},
@@ -234,4 +264,14 @@ func (f *FakeExtensionImpl) EnsureSubscriptionsExist(ctx context.Context, pubsub
 // push notifications.
 func (f *FakeExtensionImpl) VerifyPubSubJWTAndDecodePayload(w http.ResponseWriter, r *http.Request) (*pubsubtools.PubSubPayload, error) {
 	return f.MockVerifyPubSubJWTAndDecodePayloadFn(w, r)
+}
+
+// LoadDepsFromYAML loads the dependency config
+func (f *FakeExtensionImpl) LoadDepsFromYAML() (*interserviceclient.DepsConfig, error) {
+	return f.MockLoadDepsFromYAMLFn()
+}
+
+// SetupISCclient creates an isc client
+func (f *FakeExtensionImpl) SetupISCclient(config interserviceclient.DepsConfig, serviceName string) (*interserviceclient.InterServiceClient, error) {
+	return f.MockSetupISCclientFn(config, serviceName)
 }

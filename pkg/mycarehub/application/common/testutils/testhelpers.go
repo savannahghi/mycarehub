@@ -11,6 +11,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/clinical"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/fcm"
 	streamService "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/getstream"
 	pubsubmessaging "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/pubsub"
@@ -71,6 +72,9 @@ func InitializeTestService(ctx context.Context) (*usecases.MyCareHub, error) {
 		return nil, fmt.Errorf("can't instantiate pubsub service: %v", err)
 	}
 
+	clinicalClient := externalExtension.NewInterServiceClient("clinical", externalExt)
+	clinicalService := clinical.NewServiceClinical(clinicalClient)
+
 	facilityUseCase := facility.NewFacilityUsecase(db, db, db, db, pubsub)
 
 	termsUsecase := terms.NewUseCasesTermsOfService(db, db)
@@ -84,7 +88,7 @@ func InitializeTestService(ctx context.Context) (*usecases.MyCareHub, error) {
 	appointmentUsecase := appointment.NewUseCaseAppointmentsImpl(externalExt, db, db, db, pubsub, notificationUseCase)
 	communityUsecase := communities.NewUseCaseCommunitiesImpl(getStream, externalExt, db, db, pubsub, notificationUseCase)
 	authorityUseCase := authority.NewUsecaseAuthority(db, db, externalExt, notificationUseCase)
-	userUsecase := user.NewUseCasesUserImpl(db, db, db, db, externalExt, otpUseCase, authorityUseCase, getStream, pubsub)
+	userUsecase := user.NewUseCasesUserImpl(db, db, db, db, externalExt, otpUseCase, authorityUseCase, getStream, pubsub, clinicalService)
 	serviceRequestUseCase := servicerequest.NewUseCaseServiceRequestImpl(db, db, db, externalExt, userUsecase, notificationUseCase)
 	healthDiaryUseCase := healthdiary.NewUseCaseHealthDiaryImpl(db, db, db, serviceRequestUseCase)
 	screeningToolsUsecases := screeningtools.NewUseCasesScreeningTools(db, db, db, externalExt)
@@ -94,7 +98,7 @@ func InitializeTestService(ctx context.Context) (*usecases.MyCareHub, error) {
 		HTTPClient: &http.Client{},
 	}
 	survey := surveyInstance.NewSurveysImpl(surveysClient)
-	surveysUsecase := surveys.NewUsecaseSurveys(survey, db, db, db,notificationUseCase)
+	surveysUsecase := surveys.NewUsecaseSurveys(survey, db, db, db, notificationUseCase)
 	metricsUsecase := metrics.NewUsecaseMetricsImpl(db)
 
 	i := usecases.NewMyCareHubUseCase(

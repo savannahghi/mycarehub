@@ -21,6 +21,7 @@ import (
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/extension"
 	"github.com/savannahghi/pubsubtools"
 	"github.com/savannahghi/serverutils"
+	"github.com/sirupsen/logrus"
 )
 
 const (
@@ -28,6 +29,11 @@ const (
 	// django backend service
 	DjangoAuthorizationToken = "DJANGO_AUTHORIZATION_TOKEN"
 )
+
+// ISCClientExtension represents the base ISC client
+type ISCClientExtension interface {
+	MakeRequest(ctx context.Context, method string, path string, body interface{}) (*http.Response, error)
+}
 
 // ExternalMethodsExtension is an interface that represents methods that are
 // called from external libraries. Adding this layer will help write unit tests
@@ -53,6 +59,9 @@ type ExternalMethodsExtension interface {
 	EnsureTopicsExist(ctx context.Context, pubsubClient *pubsub.Client, topicIDs []string) error
 	EnsureSubscriptionsExist(ctx context.Context, pubsubClient *pubsub.Client, topicSubscriptionMap map[string]string, callbackURL string) error
 	VerifyPubSubJWTAndDecodePayload(w http.ResponseWriter, r *http.Request) (*pubsubtools.PubSubPayload, error)
+
+	LoadDepsFromYAML() (*interserviceclient.DepsConfig, error)
+	SetupISCclient(config interserviceclient.DepsConfig, serviceName string) (*interserviceclient.InterServiceClient, error)
 }
 
 // External type implements external methods
@@ -62,7 +71,6 @@ type External struct {
 	twilioExtension engagementTwilio.ImplTwilio
 	smsExtension    engagementSMS.UsecaseSMS
 	emailExtension  engagementEmail.UsecaseMail
-	iscClient       interserviceclient.InterServiceClient
 }
 
 // NewExternalMethodsImpl creates a new instance of the external methods
@@ -72,17 +80,13 @@ func NewExternalMethodsImpl() ExternalMethodsExtension {
 	twilioExt := engagementTwilio.NewImplTwilio(engagementInfra.NewInteractor())
 	smsExt := engagementSMS.NewSMS(engagementInfra.NewInteractor())
 	emailExt := engagementEmail.NewMail(engagementInfra.NewInteractor())
-	interserviceClient, err := interserviceclient.NewInterserviceClient(interserviceclient.ISCService{})
-	if err != nil {
-		return nil
-	}
+
 	return &External{
 		pinExt:          pinExtension,
 		otpExtension:    *otpExt,
 		twilioExtension: *twilioExt,
 		smsExtension:    smsExt,
 		emailExtension:  emailExt,
-		iscClient:       *interserviceClient,
 	}
 }
 
@@ -250,6 +254,16 @@ func (e *External) EnsureSubscriptionsExist(ctx context.Context, pubsubClient *p
 	)
 }
 
+// LoadDepsFromYAML loads the dependency config
+func (*External) LoadDepsFromYAML() (*interserviceclient.DepsConfig, error) {
+	return interserviceclient.LoadDepsFromYAML()
+}
+
+// SetupISCclient creates an isc client
+func (*External) SetupISCclient(config interserviceclient.DepsConfig, serviceName string) (*interserviceclient.InterServiceClient, error) {
+	return interserviceclient.SetupISCclient(config, serviceName)
+}
+
 // VerifyPubSubJWTAndDecodePayload confirms that there is a valid Google signed
 // JWT and decodes the pubsub message payload into a struct.
 //
@@ -257,4 +271,20 @@ func (e *External) EnsureSubscriptionsExist(ctx context.Context, pubsubClient *p
 // push notifications.
 func (e *External) VerifyPubSubJWTAndDecodePayload(w http.ResponseWriter, r *http.Request) (*pubsubtools.PubSubPayload, error) {
 	return pubsubtools.VerifyPubSubJWTAndDecodePayload(w, r)
+}
+
+// NewInterServiceClient initializes an external service in the correct environment given its name
+func NewInterServiceClient(serviceName string, ext ExternalMethodsExtension) *interserviceclient.InterServiceClient {
+	config, err := ext.LoadDepsFromYAML()
+	if err != nil {
+		logrus.Panicf("occurred while opening deps file %v", err)
+		return nil
+	}
+
+	client, err := ext.SetupISCclient(*config, serviceName)
+	if err != nil {
+		logrus.Panicf("unable to initialize inter service client for %v service: %s", err, serviceName)
+		return nil
+	}
+	return client
 }
