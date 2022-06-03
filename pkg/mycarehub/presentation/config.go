@@ -20,6 +20,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/clinical"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/fcm"
 	streamService "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/getstream"
 	loginservice "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/login"
@@ -74,6 +75,8 @@ var (
 
 	// surveys
 	surveysBaseURL = serverutils.MustGetEnvVar("SURVEYS_BASE_URL")
+
+	clinicalDepsName = "clinical"
 )
 
 // Router sets up the ginContext router
@@ -116,7 +119,10 @@ func Router(ctx context.Context) (*mux.Router, error) {
 
 	authorityUseCase := authority.NewUsecaseAuthority(db, db, externalExt, notificationUseCase)
 
-	userUsecase := user.NewUseCasesUserImpl(db, db, db, db, externalExt, otpUseCase, authorityUseCase, getStream, pubSub)
+	clinicalClient := externalExtension.NewInterServiceClient(clinicalDepsName, externalExt)
+	clinicalService := clinical.NewServiceClinical(clinicalClient)
+
+	userUsecase := user.NewUseCasesUserImpl(db, db, db, db, externalExt, otpUseCase, authorityUseCase, getStream, pubSub, clinicalService)
 
 	termsUsecase := terms.NewUseCasesTermsOfService(db, db)
 
