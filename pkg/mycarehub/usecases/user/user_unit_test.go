@@ -3464,16 +3464,16 @@ func TestUseCasesUserImpl_SearchStaffByStaffNumber(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.name == "Sad case" {
-				fakeDB.MockSearchStaffProfileByStaffNumberFn = func(ctx context.Context, staffNumber string) ([]*domain.StaffProfile, error) {
+				fakeDB.MockSearchStaffProfileFn = func(ctx context.Context, staffNumber string) ([]*domain.StaffProfile, error) {
 					return nil, fmt.Errorf("an error occurred")
 				}
 			}
 			if tt.name == "Sad case - no staffID" {
-				fakeDB.MockSearchStaffProfileByStaffNumberFn = func(ctx context.Context, staffNumber string) ([]*domain.StaffProfile, error) {
+				fakeDB.MockSearchStaffProfileFn = func(ctx context.Context, staffNumber string) ([]*domain.StaffProfile, error) {
 					return nil, fmt.Errorf("an error occurred")
 				}
 			}
-			got, err := us.SearchStaffByStaffNumber(tt.args.ctx, tt.args.staffNumber)
+			got, err := us.SearchStaffUser(tt.args.ctx, tt.args.staffNumber)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCasesUserImpl.SearchStaffByStaffNumber() error = %v, wantErr %v", err, tt.wantErr)
 				return

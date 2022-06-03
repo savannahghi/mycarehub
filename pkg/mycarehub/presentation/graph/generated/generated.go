@@ -528,7 +528,7 @@ type ComplexityRoot struct {
 		RetrieveFacility                        func(childComplexity int, id string, active bool) int
 		RetrieveFacilityByMFLCode               func(childComplexity int, mflCode int, isActive bool) int
 		SearchClientsByCCCNumber                func(childComplexity int, cCCNumber string) int
-		SearchStaffByStaffNumber                func(childComplexity int, staffNumber string) int
+		SearchStaffUser                         func(childComplexity int, searchParameter string) int
 		SendOtp                                 func(childComplexity int, phoneNumber string, flavour feedlib.Flavour) int
 		VerifyPin                               func(childComplexity int, userID string, flavour feedlib.Flavour, pin string) int
 	}
@@ -779,7 +779,7 @@ type QueryResolver interface {
 	VerifyPin(ctx context.Context, userID string, flavour feedlib.Flavour, pin string) (bool, error)
 	GetClientCaregiver(ctx context.Context, clientID string) (*domain.Caregiver, error)
 	SearchClientsByCCCNumber(ctx context.Context, cCCNumber string) ([]*domain.ClientProfile, error)
-	SearchStaffByStaffNumber(ctx context.Context, staffNumber string) ([]*domain.StaffProfile, error)
+	SearchStaffUser(ctx context.Context, searchParameter string) ([]*domain.StaffProfile, error)
 	GetClientProfileByCCCNumber(ctx context.Context, cCCNumber string) (*domain.ClientProfile, error)
 }
 
@@ -3582,17 +3582,17 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.SearchClientsByCCCNumber(childComplexity, args["CCCNumber"].(string)), true
 
-	case "Query.searchStaffByStaffNumber":
-		if e.complexity.Query.SearchStaffByStaffNumber == nil {
+	case "Query.searchStaffUser":
+		if e.complexity.Query.SearchStaffUser == nil {
 			break
 		}
 
-		args, err := ec.field_Query_searchStaffByStaffNumber_args(context.TODO(), rawArgs)
+		args, err := ec.field_Query_searchStaffUser_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Query.SearchStaffByStaffNumber(childComplexity, args["staffNumber"].(string)), true
+		return e.complexity.Query.SearchStaffUser(childComplexity, args["searchParameter"].(string)), true
 
 	case "Query.sendOTP":
 		if e.complexity.Query.SendOtp == nil {
@@ -5383,7 +5383,7 @@ type UserSurvey {
   verifyPIN(userID: String!, flavour: Flavour!, pin: String!): Boolean!
   getClientCaregiver(clientID: String!): Caregiver!
   searchClientsByCCCNumber(CCCNumber: String!): [ClientProfile!]
-  searchStaffByStaffNumber(staffNumber: String!): [StaffProfile!]
+  searchStaffUser(searchParameter: String!): [StaffProfile!]
   getClientProfileByCCCNumber(CCCNumber: String!): ClientProfile!
 }
 
@@ -7288,18 +7288,18 @@ func (ec *executionContext) field_Query_searchClientsByCCCNumber_args(ctx contex
 	return args, nil
 }
 
-func (ec *executionContext) field_Query_searchStaffByStaffNumber_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Query_searchStaffUser_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
-	if tmp, ok := rawArgs["staffNumber"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("staffNumber"))
+	if tmp, ok := rawArgs["searchParameter"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("searchParameter"))
 		arg0, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["staffNumber"] = arg0
+	args["searchParameter"] = arg0
 	return args, nil
 }
 
@@ -19410,7 +19410,7 @@ func (ec *executionContext) _Query_searchClientsByCCCNumber(ctx context.Context,
 	return ec.marshalOClientProfile2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐClientProfileᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Query_searchStaffByStaffNumber(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _Query_searchStaffUser(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -19427,7 +19427,7 @@ func (ec *executionContext) _Query_searchStaffByStaffNumber(ctx context.Context,
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Query_searchStaffByStaffNumber_args(ctx, rawArgs)
+	args, err := ec.field_Query_searchStaffUser_args(ctx, rawArgs)
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
@@ -19435,7 +19435,7 @@ func (ec *executionContext) _Query_searchStaffByStaffNumber(ctx context.Context,
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().SearchStaffByStaffNumber(rctx, args["staffNumber"].(string))
+		return ec.resolvers.Query().SearchStaffUser(rctx, args["searchParameter"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -27736,7 +27736,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				res = ec._Query_searchClientsByCCCNumber(ctx, field)
 				return res
 			})
-		case "searchStaffByStaffNumber":
+		case "searchStaffUser":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
 				defer func() {
@@ -27744,7 +27744,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Query_searchStaffByStaffNumber(ctx, field)
+				res = ec._Query_searchStaffUser(ctx, field)
 				return res
 			})
 		case "getClientProfileByCCCNumber":

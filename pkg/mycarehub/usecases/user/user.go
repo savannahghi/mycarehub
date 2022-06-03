@@ -106,9 +106,9 @@ type ISearchClientByCCCNumber interface {
 	SearchClientsByCCCNumber(ctx context.Context, CCCNumber string) ([]*domain.ClientProfile, error)
 }
 
-// ISearchStaffByStaffNumber interface contain the method used to get a client using his/her CCC number
-type ISearchStaffByStaffNumber interface {
-	SearchStaffByStaffNumber(ctx context.Context, staffNumber string) ([]*domain.StaffProfile, error)
+// ISearchStaffUser interface contain the method used to retrieve staff(s) from the database
+type ISearchStaffUser interface {
+	SearchStaffUser(ctx context.Context, searchParameter string) ([]*domain.StaffProfile, error)
 }
 
 // IConsent interface contains the method used to opt out a client
@@ -146,7 +146,7 @@ type UseCasesUser interface {
 	IRegisterUser
 	IClientMedicalHistory
 	ISearchClientByCCCNumber
-	ISearchStaffByStaffNumber
+	ISearchStaffUser
 	IConsent
 	IUserProfile
 	IClientProfile
@@ -1071,13 +1071,13 @@ func (us *UseCasesUserImpl) SearchClientsByCCCNumber(ctx context.Context, CCCNum
 	return clientProfile, nil
 }
 
-// SearchStaffByStaffNumber is used to search for a staff using their staff number.
-// The method may also return a list of staffs at a given time depending on the value of staff number provided
-func (us *UseCasesUserImpl) SearchStaffByStaffNumber(ctx context.Context, staffNumber string) ([]*domain.StaffProfile, error) {
-	if staffNumber == "" {
-		return nil, fmt.Errorf("staff number must not be empty")
+// SearchStaffUser is used to search for staff member(s) using either their phonenumber, username
+// or staff number. It does this by matching of the strings based on comparison with the search Parameter
+func (us *UseCasesUserImpl) SearchStaffUser(ctx context.Context, searchParameter string) ([]*domain.StaffProfile, error) {
+	if searchParameter == "" {
+		return nil, fmt.Errorf("search parameter cannot be empty")
 	}
-	staffProfile, err := us.Query.SearchStaffProfileByStaffNumber(ctx, staffNumber)
+	staffProfile, err := us.Query.SearchStaffProfile(ctx, searchParameter)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, err
@@ -1156,7 +1156,7 @@ func (us *UseCasesUserImpl) DeleteUser(ctx context.Context, payload *dto.PhoneIn
 		err = us.Clinical.DeleteFHIRPatientByPhone(ctx, payload.PhoneNumber)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
-			return false, fmt.Errorf("error deleting stream user: %w", err)
+			return false, fmt.Errorf("error deleting FHIR patient profile: %w", err)
 		}
 
 		err = us.DeleteStreamUser(ctx, *client.ID)

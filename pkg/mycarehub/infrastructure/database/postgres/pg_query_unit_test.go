@@ -1844,7 +1844,7 @@ func TestMyCareHubDb_SearchStaffProfileByStaffNumber(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.name == "Sad case - fail to get staff profile(s)" {
-				fakeGorm.MockSearchStaffProfileByStaffNumberFn = func(ctx context.Context, staffNumber string) ([]*gorm.StaffProfile, error) {
+				fakeGorm.MockSearchStaffProfileFn = func(ctx context.Context, staffNumber string) ([]*gorm.StaffProfile, error) {
 					return nil, fmt.Errorf("failed to get staff profile")
 				}
 			}
@@ -1853,7 +1853,7 @@ func TestMyCareHubDb_SearchStaffProfileByStaffNumber(t *testing.T) {
 					return nil, fmt.Errorf("an error occurred")
 				}
 			}
-			got, err := d.SearchStaffProfileByStaffNumber(tt.args.ctx, tt.args.staffNumber)
+			got, err := d.SearchStaffProfile(tt.args.ctx, tt.args.staffNumber)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("MyCareHubDb.SearchStaffProfileByStaffNumber() error = %v, wantErr %v", err, tt.wantErr)
 				return
