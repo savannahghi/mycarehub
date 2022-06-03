@@ -108,7 +108,7 @@ type GormMock struct {
 	MockUpdateServiceRequestsFn                          func(ctx context.Context, payload []*gorm.ClientServiceRequest) (bool, error)
 	MockGetClientProfileByCCCNumberFn                    func(ctx context.Context, CCCNumber string) (*gorm.Client, error)
 	MockSearchClientProfilesByCCCNumberFn                func(ctx context.Context, CCCNumber string) ([]*gorm.Client, error)
-	MockSearchStaffProfileByStaffNumberFn                func(ctx context.Context, staffNumber string) ([]*gorm.StaffProfile, error)
+	MockSearchStaffProfileFn                             func(ctx context.Context, searchParameter string) ([]*gorm.StaffProfile, error)
 	MockUpdateUserPinChangeRequiredStatusFn              func(ctx context.Context, userID string, flavour feedlib.Flavour, status bool) error
 	MockCheckIfClientHasUnresolvedServiceRequestsFn      func(ctx context.Context, clientID string, serviceRequestType string) (bool, error)
 	MockGetAllRolesFn                                    func(ctx context.Context) ([]*gorm.AuthorityRole, error)
@@ -627,7 +627,7 @@ func NewGormMock() *GormMock {
 		MockGetStaffProfileByUserIDFn: func(ctx context.Context, userID string) (*gorm.StaffProfile, error) {
 			return staff, nil
 		},
-		MockSearchStaffProfileByStaffNumberFn: func(ctx context.Context, staffNumber string) ([]*gorm.StaffProfile, error) {
+		MockSearchStaffProfileFn: func(ctx context.Context, staffNumber string) ([]*gorm.StaffProfile, error) {
 			return []*gorm.StaffProfile{staff}, nil
 		},
 		MockCheckUserHasPinFn: func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
@@ -1584,9 +1584,9 @@ func (gm *GormMock) SearchClientProfilesByCCCNumber(ctx context.Context, CCCNumb
 	return gm.MockSearchClientProfilesByCCCNumberFn(ctx, CCCNumber)
 }
 
-// SearchStaffProfileByStaffNumber mocks the implementation of getting staff profile using their staff number.
-func (gm *GormMock) SearchStaffProfileByStaffNumber(ctx context.Context, staffNumber string) ([]*gorm.StaffProfile, error) {
-	return gm.MockSearchStaffProfileByStaffNumberFn(ctx, staffNumber)
+// SearchStaffProfile mocks the implementation of getting staff profile using their staff number.
+func (gm *GormMock) SearchStaffProfile(ctx context.Context, searchParameter string) ([]*gorm.StaffProfile, error) {
+	return gm.MockSearchStaffProfileFn(ctx, searchParameter)
 }
 
 // UpdateUserPinUpdateRequiredStatus mocks updating a user `pin update required status`

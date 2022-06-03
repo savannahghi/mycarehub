@@ -71,8 +71,8 @@ func (r *queryResolver) SearchClientsByCCCNumber(ctx context.Context, cCCNumber 
 	return r.mycarehub.User.SearchClientsByCCCNumber(ctx, cCCNumber)
 }
 
-func (r *queryResolver) SearchStaffByStaffNumber(ctx context.Context, staffNumber string) ([]*domain.StaffProfile, error) {
-	return r.mycarehub.User.SearchStaffByStaffNumber(ctx, staffNumber)
+func (r *queryResolver) SearchStaffUser(ctx context.Context, searchParameter string) ([]*domain.StaffProfile, error) {
+	return r.mycarehub.User.SearchStaffUser(ctx, searchParameter)
 }
 
 func (r *queryResolver) GetClientProfileByCCCNumber(ctx context.Context, cCCNumber string) (*domain.ClientProfile, error) {

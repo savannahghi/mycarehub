@@ -820,7 +820,7 @@ func TestPGInstance_SearchStaffProfileByStaffNumber(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := testingDB.SearchStaffProfileByStaffNumber(tt.args.ctx, tt.args.staffNumber)
+			got, err := testingDB.SearchStaffProfile(tt.args.ctx, tt.args.staffNumber)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("PGInstance.SearchStaffProfileByStaffNumber() error = %v, wantErr %v", err, tt.wantErr)
 				return

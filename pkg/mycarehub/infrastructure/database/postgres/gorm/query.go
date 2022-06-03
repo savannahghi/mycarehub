@@ -71,7 +71,7 @@ type Query interface {
 	GetClientsByParams(ctx context.Context, query Client, lastSyncTime *time.Time) ([]*Client, error)
 	GetClientCCCIdentifier(ctx context.Context, clientID string) (*Identifier, error)
 	SearchClientProfilesByCCCNumber(ctx context.Context, CCCNumber string) ([]*Client, error)
-	SearchStaffProfileByStaffNumber(ctx context.Context, staffNumber string) ([]*StaffProfile, error)
+	SearchStaffProfile(ctx context.Context, searchParameter string) ([]*StaffProfile, error)
 	GetServiceRequestsForKenyaEMR(ctx context.Context, facilityID string, lastSyncTime time.Time) ([]*ClientServiceRequest, error)
 	GetScreeningToolQuestions(ctx context.Context, toolType string) ([]ScreeningToolQuestion, error)
 	GetScreeningToolQuestionByQuestionID(ctx context.Context, questionID string) (*ScreeningToolQuestion, error)
@@ -560,14 +560,21 @@ func (db *PGInstance) GetStaffProfileByUserID(ctx context.Context, userID string
 	return &staff, nil
 }
 
-// SearchStaffProfileByStaffNumber searches for the staff profile(s) of a given staff.
-// It may also return other staffs whose staff number may match at a given time.
-func (db *PGInstance) SearchStaffProfileByStaffNumber(ctx context.Context, staffNumber string) ([]*StaffProfile, error) {
+// SearchStaffProfile searches retrieves staff profile(s) based on pattern matching against the username, staff number
+// or the phonenumber.
+func (db *PGInstance) SearchStaffProfile(ctx context.Context, searchParameter string) ([]*StaffProfile, error) {
 	var staff []*StaffProfile
 
-	if err := db.DB.Where("staff_number ~~* ? ", "%"+staffNumber+"%").Preload(clause.Associations).Find(&staff).Error; err != nil {
+	if err := db.DB.Joins("JOIN users_user ON users_user.id = staff_staff.user_id").
+		Joins("JOIN common_contact on users_user.id = common_contact.user_id").
+		Where(
+			db.DB.Where("staff_staff.staff_number ILIKE ? ", "%"+searchParameter+"%").
+				Or("users_user.username ILIKE ? ", "%"+searchParameter+"%").
+				Or("common_contact.contact_value ILIKE ?", "%"+searchParameter+"%"),
+		).
+		Find(&staff).Error; err != nil {
 		helpers.ReportErrorToSentry(err)
-		return nil, fmt.Errorf("unable to ge staff %v", err)
+		return nil, fmt.Errorf("unable to get staff user %w", err)
 	}
 
 	return staff, nil

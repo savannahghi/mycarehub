@@ -399,12 +399,13 @@ func (d *MyCareHubDb) GetFacilityStaffs(ctx context.Context, facilityID string) 
 	return staffProfiles, nil
 }
 
-// SearchStaffProfileByStaffNumber searches for the staff profile(s) of a given staff.
-// It may also return other staffs whose staff number may match at a given time.
-func (d *MyCareHubDb) SearchStaffProfileByStaffNumber(ctx context.Context, staffNumber string) ([]*domain.StaffProfile, error) {
+// SearchStaffProfile searches for the staff profile(s) based on the passed parameter. It might be
+// a username, phonenumber or staff number. It uses pattern matching and returns all values that match
+// the parameter passed
+func (d *MyCareHubDb) SearchStaffProfile(ctx context.Context, searchParameter string) ([]*domain.StaffProfile, error) {
 	var staffProfiles []*domain.StaffProfile
 
-	staffs, err := d.query.SearchStaffProfileByStaffNumber(ctx, staffNumber)
+	staffs, err := d.query.SearchStaffProfile(ctx, searchParameter)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, err

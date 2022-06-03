@@ -34,7 +34,7 @@ type UserUseCaseMock struct {
 	MockRegisterKenyaEMRPatientsFn      func(ctx context.Context, input []*dto.PatientRegistrationPayload) ([]*dto.PatientRegistrationPayload, error)
 	MockRegisteredFacilityPatientsFn    func(ctx context.Context, input dto.PatientSyncPayload) (*dto.PatientSyncResponse, error)
 	MockSetUserPINFn                    func(ctx context.Context, input dto.PINInput) (bool, error)
-	MockSearchStaffByStaffNumberFn      func(ctx context.Context, staffNumber string) ([]*domain.StaffProfile, error)
+	MockSearchStaffUserFn               func(ctx context.Context, searchParameter string) ([]*domain.StaffProfile, error)
 	MockConsentFn                       func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (bool, error)
 	MockGetUserProfileFn                func(ctx context.Context, userID string) (*domain.User, error)
 	MockAddClientFHIRIDFn               func(ctx context.Context, input dto.ClientFHIRPayload) error
@@ -111,7 +111,7 @@ func NewUserUseCaseMock() *UserUseCaseMock {
 		MockDeleteUserFn: func(ctx context.Context, payload *dto.PhoneInput) (bool, error) {
 			return true, nil
 		},
-		MockSearchStaffByStaffNumberFn: func(ctx context.Context, staffNumber string) ([]*domain.StaffProfile, error) {
+		MockSearchStaffUserFn: func(ctx context.Context, searchParameter string) ([]*domain.StaffProfile, error) {
 			return []*domain.StaffProfile{staff}, nil
 		},
 		MockGetClientCaregiverFn: func(ctx context.Context, clientID string) (*domain.Caregiver, error) {
@@ -320,9 +320,9 @@ func (f *UserUseCaseMock) SetUserPIN(ctx context.Context, input dto.PINInput) (b
 	return f.MockSetUserPINFn(ctx, input)
 }
 
-// SearchStaffByStaffNumber mocks the implementation of getting staff profile using their staff number.
-func (f *UserUseCaseMock) SearchStaffByStaffNumber(ctx context.Context, staffNumber string) ([]*domain.StaffProfile, error) {
-	return f.MockSearchStaffByStaffNumberFn(ctx, staffNumber)
+// SearchStaffUser mocks the implementation of getting staff profile using their staff number.
+func (f *UserUseCaseMock) SearchStaffUser(ctx context.Context, searchParameter string) ([]*domain.StaffProfile, error) {
+	return f.MockSearchStaffUserFn(ctx, searchParameter)
 }
 
 // Consent mocks the implementation of a user withdrawing or offering their consent to the app
