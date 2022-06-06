@@ -39,8 +39,8 @@ func TestGetStreamClient_CreateUserGetStreamToken(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			getStream := getstream.NewServiceGetStream(streamClient)
-			got, err := getStream.CreateGetStreamUserToken(tt.args.ctx, tt.args.userID)
+			g := getstream.NewServiceGetStream(streamClient)
+			got, err := g.CreateGetStreamUserToken(tt.args.ctx, tt.args.userID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GetStreamClient.CreateGetStreamUserToken() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -87,9 +87,9 @@ func TestChatClient_ListGetStreamUsers(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			getStream := getstream.NewServiceGetStream(streamClient)
+			g := getstream.NewServiceGetStream(streamClient)
 
-			got, err := getStream.ListGetStreamUsers(tt.args.ctx, tt.args.input)
+			got, err := g.ListGetStreamUsers(tt.args.ctx, tt.args.input)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ChatClient.ListGetStreamUsers() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -163,7 +163,7 @@ func TestChatClient_CreateChannel(t *testing.T) {
 		})
 	}
 
-	_, err := c.RemoveMembersFromCommunity(ctx, testChannelID, []string{userToAddToNewChannelID}, nil)
+	_, err := g.RemoveMembersFromCommunity(ctx, testChannelID, []string{userToAddToNewChannelID}, nil)
 	if err != nil {
 		t.Errorf("ChatClient.DeleteUsers() error = %v", err)
 	}
@@ -198,9 +198,9 @@ func TestChatClient_ListGetStreamChannels(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			getStream := getstream.NewServiceGetStream(streamClient)
+			g := getstream.NewServiceGetStream(streamClient)
 
-			got, err := getStream.ListGetStreamChannels(tt.args.ctx, tt.args.input)
+			got, err := g.ListGetStreamChannels(tt.args.ctx, tt.args.input)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ChatClient.ListGetStreamChannels() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -214,6 +214,7 @@ func TestChatClient_ListGetStreamChannels(t *testing.T) {
 }
 
 func TestChatClient_GetChannel(t *testing.T) {
+	g := getstream.NewServiceGetStream(streamClient)
 	type args struct {
 		ctx       context.Context
 		channelID string
@@ -252,7 +253,7 @@ func TestChatClient_GetChannel(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			_, err := c.GetChannel(tt.args.ctx, tt.args.channelID)
+			_, err := g.GetChannel(tt.args.ctx, tt.args.channelID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ChatClient.GetChannel() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -264,6 +265,7 @@ func TestChatClient_GetChannel(t *testing.T) {
 
 func TestChatClient_RejectInvite(t *testing.T) {
 	ctx := context.Background()
+	g := getstream.NewServiceGetStream(streamClient)
 
 	type args struct {
 		ctx       context.Context
@@ -310,7 +312,7 @@ func TestChatClient_RejectInvite(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := c.RejectInvite(tt.args.ctx, tt.args.userID, tt.args.channelID, tt.args.message)
+			got, err := g.RejectInvite(tt.args.ctx, tt.args.userID, tt.args.channelID, tt.args.message)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ChatClient.RejectInvite() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -323,6 +325,7 @@ func TestChatClient_RejectInvite(t *testing.T) {
 }
 
 func TestChatClient_AcceptInvite(t *testing.T) {
+	g := getstream.NewServiceGetStream(streamClient)
 	ctx := context.Background()
 	customInviteMessage := "the user " + userToAcceptInviteName + "accepted the invite"
 	type args struct {
@@ -376,7 +379,7 @@ func TestChatClient_AcceptInvite(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := c.AcceptInvite(tt.args.ctx, tt.args.userID, tt.args.channelID, tt.args.message)
+			got, err := g.AcceptInvite(tt.args.ctx, tt.args.userID, tt.args.channelID, tt.args.message)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ChatClient.AcceptInvite() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -390,6 +393,7 @@ func TestChatClient_AcceptInvite(t *testing.T) {
 
 func TestChatClient_RemoveMembers(t *testing.T) {
 	ctx := context.Background()
+	g := getstream.NewServiceGetStream(streamClient)
 	type args struct {
 		ctx       context.Context
 		channelID string
@@ -435,7 +439,7 @@ func TestChatClient_RemoveMembers(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := c.RemoveMembersFromCommunity(tt.args.ctx, tt.args.channelID, tt.args.memberIDs, tt.args.message)
+			got, err := g.RemoveMembersFromCommunity(tt.args.ctx, tt.args.channelID, tt.args.memberIDs, tt.args.message)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ChatClient.RemoveMembersFromCommunity() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -449,6 +453,7 @@ func TestChatClient_RemoveMembers(t *testing.T) {
 
 func TestChatClient_DemoteModerators(t *testing.T) {
 	ctx := context.Background()
+	g := getstream.NewServiceGetStream(streamClient)
 
 	type args struct {
 		ctx       context.Context
@@ -491,7 +496,7 @@ func TestChatClient_DemoteModerators(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := c.DemoteModerators(tt.args.ctx, tt.args.channelID, tt.args.memberIDs)
+			got, err := g.DemoteModerators(tt.args.ctx, tt.args.channelID, tt.args.memberIDs)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ChatClient.DemoteModerators() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -505,6 +510,7 @@ func TestChatClient_DemoteModerators(t *testing.T) {
 
 func TestChatClient_RevokeGetStreamUserToken(t *testing.T) {
 	ctx := context.Background()
+	g := getstream.NewServiceGetStream(streamClient)
 
 	type args struct {
 		ctx    context.Context
@@ -535,7 +541,7 @@ func TestChatClient_RevokeGetStreamUserToken(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := c.RevokeGetStreamUserToken(tt.args.ctx, tt.args.userID)
+			got, err := g.RevokeGetStreamUserToken(tt.args.ctx, tt.args.userID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ChatClient.RevokeGetStreamUserToken() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -549,6 +555,7 @@ func TestChatClient_RevokeGetStreamUserToken(t *testing.T) {
 
 func TestChatClient_BanUser(t *testing.T) {
 	ctx := context.Background()
+	g := getstream.NewServiceGetStream(streamClient)
 	type args struct {
 		ctx            context.Context
 		targetMemberID string
@@ -597,7 +604,7 @@ func TestChatClient_BanUser(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := c.BanUser(tt.args.ctx, tt.args.targetMemberID, tt.args.bannedBy, tt.args.communityID)
+			got, err := g.BanUser(tt.args.ctx, tt.args.targetMemberID, tt.args.bannedBy, tt.args.communityID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ChatClient.BanUser() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -611,6 +618,7 @@ func TestChatClient_BanUser(t *testing.T) {
 
 func TestChatClient_UnBanUser(t *testing.T) {
 	ctx := context.Background()
+	g := getstream.NewServiceGetStream(streamClient)
 
 	type args struct {
 		ctx         context.Context
@@ -646,7 +654,7 @@ func TestChatClient_UnBanUser(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := c.UnBanUser(tt.args.ctx, tt.args.targetID, tt.args.communityID)
+			got, err := g.UnBanUser(tt.args.ctx, tt.args.targetID, tt.args.communityID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ChatClient.UnBanUser() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -665,7 +673,7 @@ func TestChatClient_UnBanUser(t *testing.T) {
 
 func TestChatClient_ListCommunityBannedMembers(t *testing.T) {
 	ctx := context.Background()
-
+	g := getstream.NewServiceGetStream(streamClient)
 	type args struct {
 		ctx         context.Context
 		communityID string
@@ -687,7 +695,7 @@ func TestChatClient_ListCommunityBannedMembers(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := c.ListCommunityBannedMembers(tt.args.ctx, tt.args.communityID)
+			_, err := g.ListCommunityBannedMembers(tt.args.ctx, tt.args.communityID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ChatClient.ListCommunityBannedMembers() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -697,6 +705,7 @@ func TestChatClient_ListCommunityBannedMembers(t *testing.T) {
 }
 
 func TestChatClient_UpsertUser(t *testing.T) {
+	g := getstream.NewServiceGetStream(streamClient)
 	type args struct {
 		ctx  context.Context
 		user *stream.User
@@ -722,7 +731,7 @@ func TestChatClient_UpsertUser(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := c.UpsertUser(tt.args.ctx, tt.args.user)
+			got, err := g.UpsertUser(tt.args.ctx, tt.args.user)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ChatClient.UpsertUser() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -736,7 +745,7 @@ func TestChatClient_UpsertUser(t *testing.T) {
 
 func TestChatClient_DeleteUsers(t *testing.T) {
 	ctx := context.Background()
-
+	g := getstream.NewServiceGetStream(streamClient)
 	type args struct {
 		ctx     context.Context
 		userIDs []string
@@ -763,7 +772,7 @@ func TestChatClient_DeleteUsers(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := c.DeleteUsers(tt.args.ctx, tt.args.userIDs, tt.args.options)
+			got, err := g.DeleteUsers(tt.args.ctx, tt.args.userIDs, tt.args.options)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ChatClient.DeleteUsers() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -777,6 +786,7 @@ func TestChatClient_DeleteUsers(t *testing.T) {
 
 func TestChatClient_ListFlaggedMessages(t *testing.T) {
 	ctx := context.Background()
+	g := getstream.NewServiceGetStream(streamClient)
 
 	type args struct {
 		ctx   context.Context
@@ -815,7 +825,7 @@ func TestChatClient_ListFlaggedMessages(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := c.ListFlaggedMessages(tt.args.ctx, tt.args.input)
+			got, err := g.ListFlaggedMessages(tt.args.ctx, tt.args.input)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ChatClient.ListFlaggedMessages() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -830,6 +840,7 @@ func TestChatClient_ListFlaggedMessages(t *testing.T) {
 
 func TestChatClient_DeleteMessage(t *testing.T) {
 	ctx := context.Background()
+	g := getstream.NewServiceGetStream(streamClient)
 
 	type args struct {
 		ctx       context.Context
@@ -852,7 +863,7 @@ func TestChatClient_DeleteMessage(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := c.DeleteMessage(tt.args.ctx, tt.args.messageID)
+			got, err := g.DeleteMessage(tt.args.ctx, tt.args.messageID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ChatClient.DeleteMessage() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -866,6 +877,7 @@ func TestChatClient_DeleteMessage(t *testing.T) {
 }
 
 func TestChatClient_GetStreamUser(t *testing.T) {
+	g := getstream.NewServiceGetStream(streamClient)
 	type args struct {
 		ctx context.Context
 		id  string
@@ -895,7 +907,7 @@ func TestChatClient_GetStreamUser(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := c.GetStreamUser(tt.args.ctx, tt.args.id)
+			got, err := g.GetStreamUser(tt.args.ctx, tt.args.id)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ChatClient.GetStreamUser() error = %v, wantErr %v", err, tt.wantErr)
 				return

@@ -16,14 +16,14 @@ var (
 	channelID        = "testChannelJnJ"
 	channelType      = "messaging"
 	channelCID       = channelType + ":" + channelID
-	testChannelOwner = "256b9f95-c53e-44c3-81f7-4c37cf4e6510"
+	testChannelOwner = "256b9f95-c53e-44c3-81f7-4c37cf4e651d"
 
 	// Channel members
 	defaultMemberID              = "422a6d86-7f01-4c63-8ebd-51a343775f1b"
 	defaultModeratorID           = "3cad8cad-7623-4e78-b46e-06c150552aa3"
 	userToAcceptInviteID         = "f3926591-27f8-4756-90d9-fa88e228c582"
 	userToAcceptInviteName       string
-	userToAddToNewChannelID      = "62605ecd-5136-446c-876b-89ffa17335fe"
+	userToAddToNewChannelID      = "62605ecd-5136-446c-876b-89ffa17335f8"
 	userToRejectInviteID         = "f3926591-27f8-4756-90d9-fa88e228c583"
 	userToBanID                  = "19d7d30d-6cc2-483c-98cb-c261fb2cae54"
 	userToUnbanID                = "114b857c-4365-4a68-9299-ed33975d9ddc"

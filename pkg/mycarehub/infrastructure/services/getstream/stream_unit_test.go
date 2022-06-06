@@ -19,8 +19,8 @@ var (
 )
 
 func TestChatClient_UnitTest_CreateUserGetStreamToken(t *testing.T) {
-	streamClient := &stream.Client{}
-	g := getstream.NewServiceGetStream(streamClient)
+	client := &stream.Client{}
+	g := getstream.NewServiceGetStream(client)
 
 	type args struct {
 		ctx    context.Context
@@ -83,11 +83,11 @@ func TestChatClient_UnitTest_ListGetStreamUsers(t *testing.T) {
 		},
 	)
 
-	streamClient := &stream.Client{
+	client := &stream.Client{
 		BaseURL: "https://example.com",
 		HTTP:    &http.Client{},
 	}
-	g := getstream.NewServiceGetStream(streamClient)
+	g := getstream.NewServiceGetStream(client)
 
 	type args struct {
 		ctx   context.Context
@@ -152,11 +152,11 @@ func TestChatClient_UnitTest_CreateChannel(t *testing.T) {
 		},
 	)
 
-	streamClient := &stream.Client{
+	client := &stream.Client{
 		BaseURL: "https://example.com",
 		HTTP:    &http.Client{},
 	}
-	g := getstream.NewServiceGetStream(streamClient)
+	g := getstream.NewServiceGetStream(client)
 
 	ctx := context.Background()
 
@@ -218,11 +218,11 @@ func TestChatClient_UnitTest_ListGetStreamChannels(t *testing.T) {
 		},
 	)
 
-	streamClient := &stream.Client{
+	client := &stream.Client{
 		BaseURL: "https://example.com",
 		HTTP:    &http.Client{},
 	}
-	g := getstream.NewServiceGetStream(streamClient)
+	g := getstream.NewServiceGetStream(client)
 
 	type args struct {
 		ctx   context.Context
@@ -274,11 +274,11 @@ func TestChatClient_UnitTest_GetChannel(t *testing.T) {
 		},
 	)
 
-	streamClient := &stream.Client{
+	client := &stream.Client{
 		BaseURL: "https://example.com",
 		HTTP:    &http.Client{},
 	}
-	g := getstream.NewServiceGetStream(streamClient)
+	g := getstream.NewServiceGetStream(client)
 
 	type args struct {
 		ctx       context.Context
@@ -329,11 +329,11 @@ func TestChatClient_UnitTest_RejectInvite(t *testing.T) {
 		},
 	)
 
-	streamClient := &stream.Client{
+	client := &stream.Client{
 		BaseURL: "https://example.com",
 		HTTP:    &http.Client{},
 	}
-	g := getstream.NewServiceGetStream(streamClient)
+	g := getstream.NewServiceGetStream(client)
 	ctx := context.Background()
 
 	type args struct {
@@ -395,11 +395,11 @@ func TestChatClient_UnitTest_AcceptInvite(t *testing.T) {
 		},
 	)
 
-	streamClient := &stream.Client{
+	client := &stream.Client{
 		BaseURL: "https://example.com",
 		HTTP:    &http.Client{},
 	}
-	g := getstream.NewServiceGetStream(streamClient)
+	g := getstream.NewServiceGetStream(client)
 	ctx := context.Background()
 	customInviteMessage := "the user " + userToAcceptInviteName + "accepted the invite"
 	type args struct {
@@ -467,11 +467,11 @@ func TestChatClient_UnitTest_RemoveMembers(t *testing.T) {
 		},
 	)
 
-	streamClient := &stream.Client{
+	client := &stream.Client{
 		BaseURL: "https://example.com",
 		HTTP:    &http.Client{},
 	}
-	g := getstream.NewServiceGetStream(streamClient)
+	g := getstream.NewServiceGetStream(client)
 	ctx := context.Background()
 	type args struct {
 		ctx       context.Context
@@ -532,11 +532,11 @@ func TestChatClient_UnitTest_DemoteModerators(t *testing.T) {
 		},
 	)
 
-	streamClient := &stream.Client{
+	client := &stream.Client{
 		BaseURL: "https://example.com",
 		HTTP:    &http.Client{},
 	}
-	g := getstream.NewServiceGetStream(streamClient)
+	g := getstream.NewServiceGetStream(client)
 	ctx := context.Background()
 
 	type args struct {
@@ -595,11 +595,11 @@ func TestChatClient_UnitTest_RevokeGetStreamUserToken(t *testing.T) {
 		},
 	)
 
-	streamClient := &stream.Client{
+	client := &stream.Client{
 		BaseURL: "https://example.com",
 		HTTP:    &http.Client{},
 	}
-	g := getstream.NewServiceGetStream(streamClient)
+	g := getstream.NewServiceGetStream(client)
 	ctx := context.Background()
 
 	type args struct {
@@ -665,11 +665,11 @@ func TestChatClient_UnitTest_BanUser(t *testing.T) {
 		},
 	)
 
-	streamClient := &stream.Client{
+	client := &stream.Client{
 		BaseURL: "https://example.com",
 		HTTP:    &http.Client{},
 	}
-	g := getstream.NewServiceGetStream(streamClient)
+	g := getstream.NewServiceGetStream(client)
 	ctx := context.Background()
 	type args struct {
 		ctx            context.Context
@@ -732,11 +732,11 @@ func TestChatClient_UnitTest_UnBanUser(t *testing.T) {
 		},
 	)
 
-	streamClient := &stream.Client{
+	client := &stream.Client{
 		BaseURL: "https://example.com",
 		HTTP:    &http.Client{},
 	}
-	g := getstream.NewServiceGetStream(streamClient)
+	g := getstream.NewServiceGetStream(client)
 	ctx := context.Background()
 
 	type args struct {
@@ -798,11 +798,11 @@ func TestChatClient_UnitTest_ListCommunityBannedMembers(t *testing.T) {
 		},
 	)
 
-	streamClient := &stream.Client{
+	client := &stream.Client{
 		BaseURL: "https://example.com",
 		HTTP:    &http.Client{},
 	}
-	g := getstream.NewServiceGetStream(streamClient)
+	g := getstream.NewServiceGetStream(client)
 	ctx := context.Background()
 
 	type args struct {
@@ -847,11 +847,11 @@ func TestChatClient_UnitTest_UpsertUser(t *testing.T) {
 		},
 	)
 
-	streamClient := &stream.Client{
+	client := &stream.Client{
 		BaseURL: "https://example.com",
 		HTTP:    &http.Client{},
 	}
-	g := getstream.NewServiceGetStream(streamClient)
+	g := getstream.NewServiceGetStream(client)
 	type args struct {
 		ctx  context.Context
 		user *stream.User
@@ -901,11 +901,11 @@ func TestChatClient_UnitTest_DeleteUsers(t *testing.T) {
 		},
 	)
 
-	streamClient := &stream.Client{
+	client := &stream.Client{
 		BaseURL: "https://example.com",
 		HTTP:    &http.Client{},
 	}
-	g := getstream.NewServiceGetStream(streamClient)
+	g := getstream.NewServiceGetStream(client)
 	ctx := context.Background()
 
 	type args struct {
@@ -958,11 +958,11 @@ func TestChatClient_UnitTest_ListFlaggedMessages(t *testing.T) {
 		},
 	)
 
-	streamClient := &stream.Client{
+	client := &stream.Client{
 		BaseURL: "https://example.com",
 		HTTP:    &http.Client{},
 	}
-	g := getstream.NewServiceGetStream(streamClient)
+	g := getstream.NewServiceGetStream(client)
 	ctx := context.Background()
 
 	type args struct {
@@ -1033,11 +1033,11 @@ func TestChatClient_UnitTest_DeleteMessage(t *testing.T) {
 		},
 	)
 
-	streamClient := &stream.Client{
+	client := &stream.Client{
 		BaseURL: "https://example.com",
 		HTTP:    &http.Client{},
 	}
-	g := getstream.NewServiceGetStream(streamClient)
+	g := getstream.NewServiceGetStream(client)
 	ctx := context.Background()
 
 	type args struct {
@@ -1098,11 +1098,11 @@ func TestChatClient_UnitTest_CreateGetStreamUser(t *testing.T) {
 			return resp, err
 		},
 	)
-	streamClient := &stream.Client{
+	client := &stream.Client{
 		BaseURL: "https://example.com",
 		HTTP:    &http.Client{},
 	}
-	g := getstream.NewServiceGetStream(streamClient)
+	g := getstream.NewServiceGetStream(client)
 	type args struct {
 		ctx  context.Context
 		user *stream.User
@@ -1152,11 +1152,11 @@ func TestChatClient_UnitTest_AddModeratorsWithMessage(t *testing.T) {
 			return resp, err
 		},
 	)
-	streamClient := &stream.Client{
+	client := &stream.Client{
 		BaseURL: "https://example.com",
 		HTTP:    &http.Client{},
 	}
-	g := getstream.NewServiceGetStream(streamClient)
+	g := getstream.NewServiceGetStream(client)
 	type args struct {
 		ctx         context.Context
 		userIDs     []string
