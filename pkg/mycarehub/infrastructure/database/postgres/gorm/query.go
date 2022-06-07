@@ -399,7 +399,7 @@ func (db *PGInstance) ListNotifications(ctx context.Context, params *Notificatio
 		paginateQuery(tx, pagination)
 	}
 
-	if err := tx.Find(&notifications).Error; err != nil {
+	if err := tx.Order(clause.OrderByColumn{Column: clause.Column{Name: "created"}, Desc: true}).Find(&notifications).Error; err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, pagination, fmt.Errorf("failed to execute paginated query: %v", err)
 	}
