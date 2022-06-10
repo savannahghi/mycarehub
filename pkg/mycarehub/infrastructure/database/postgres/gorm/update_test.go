@@ -1510,7 +1510,6 @@ func TestPGInstance_UpdateHealthDiary(t *testing.T) {
 					"shared_at":                time.Now(),
 				},
 			},
-			want:    true,
 			wantErr: false,
 		},
 		{
@@ -1525,7 +1524,6 @@ func TestPGInstance_UpdateHealthDiary(t *testing.T) {
 					"shared_at":                time.Now(),
 				},
 			},
-			want:    true,
 			wantErr: false,
 		},
 		{
@@ -1537,19 +1535,15 @@ func TestPGInstance_UpdateHealthDiary(t *testing.T) {
 					ClientID:                 "clientID",
 				},
 			},
-			want:    false,
 			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := testingDB.UpdateHealthDiary(tt.args.ctx, tt.args.healthDairyEntry, tt.args.updateData)
+			err := testingDB.UpdateHealthDiary(tt.args.ctx, tt.args.healthDairyEntry, tt.args.updateData)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("PGInstance.UpdateHealthDiary() error = %v, wantErr %v", err, tt.wantErr)
 				return
-			}
-			if got != tt.want {
-				t.Errorf("PGInstance.UpdateHealthDiary() = %v, want %v", got, tt.want)
 			}
 		})
 	}

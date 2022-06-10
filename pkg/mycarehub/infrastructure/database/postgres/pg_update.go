@@ -215,8 +215,13 @@ func (d *MyCareHubDb) UpdateUserPinUpdateRequiredStatus(ctx context.Context, use
 }
 
 // UpdateHealthDiary updates the status of the specified health diary
-func (d *MyCareHubDb) UpdateHealthDiary(ctx context.Context, clientHealthDiaryEntry *gorm.ClientHealthDiaryEntry, updateData map[string]interface{}) (bool, error) {
-	return d.update.UpdateHealthDiary(ctx, clientHealthDiaryEntry, updateData)
+func (d *MyCareHubDb) UpdateHealthDiary(ctx context.Context, clientHealthDiaryEntry *domain.ClientHealthDiaryEntry, updateData map[string]interface{}) error {
+	healthDiaryEntry := &gorm.ClientHealthDiaryEntry{
+		ClientHealthDiaryEntryID: clientHealthDiaryEntry.ID,
+		ClientID:                 clientHealthDiaryEntry.ClientID,
+	}
+
+	return d.update.UpdateHealthDiary(ctx, healthDiaryEntry, updateData)
 }
 
 // UpdateClient updates the client details for a particular client

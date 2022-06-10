@@ -112,7 +112,7 @@ type GormMock struct {
 	MockUpdateUserPinChangeRequiredStatusFn              func(ctx context.Context, userID string, flavour feedlib.Flavour, status bool) error
 	MockCheckIfClientHasUnresolvedServiceRequestsFn      func(ctx context.Context, clientID string, serviceRequestType string) (bool, error)
 	MockGetAllRolesFn                                    func(ctx context.Context) ([]*gorm.AuthorityRole, error)
-	MockUpdateHealthDiaryFn                              func(ctx context.Context, clientHealthDiaryEntry *gorm.ClientHealthDiaryEntry, updateData map[string]interface{}) (bool, error)
+	MockUpdateHealthDiaryFn                              func(ctx context.Context, clientHealthDiaryEntry *gorm.ClientHealthDiaryEntry, updateData map[string]interface{}) error
 	MockUpdateUserPinUpdateRequiredStatusFn              func(ctx context.Context, userID string, flavour feedlib.Flavour, status bool) error
 	MockUpdateClientFn                                   func(ctx context.Context, client *gorm.Client, updates map[string]interface{}) (*gorm.Client, error)
 	MockGetUserProfileByStaffIDFn                        func(ctx context.Context, staffID string) (*gorm.User, error)
@@ -573,8 +573,8 @@ func NewGormMock() *GormMock {
 		MockResolveStaffServiceRequestFn: func(ctx context.Context, staffID, serviceRequestID *string, verificationStatus string) (bool, error) {
 			return true, nil
 		},
-		MockUpdateHealthDiaryFn: func(ctx context.Context, clientHealthDiaryEntry *gorm.ClientHealthDiaryEntry, updateData map[string]interface{}) (bool, error) {
-			return true, nil
+		MockUpdateHealthDiaryFn: func(ctx context.Context, clientHealthDiaryEntry *gorm.ClientHealthDiaryEntry, updateData map[string]interface{}) error {
+			return nil
 		},
 		MockGetSecurityQuestionsFn: func(ctx context.Context, flavour feedlib.Flavour) ([]*gorm.SecurityQuestion, error) {
 			sq := ksuid.New().String()
@@ -1605,7 +1605,7 @@ func (gm *GormMock) GetUserProfileByStaffID(ctx context.Context, staffID string)
 }
 
 // UpdateHealthDiary mocks the implementation of updating the share status of a health diary entry when the client opts for the sharing
-func (gm *GormMock) UpdateHealthDiary(ctx context.Context, clientHealthDiaryEntry *gorm.ClientHealthDiaryEntry, updateData map[string]interface{}) (bool, error) {
+func (gm *GormMock) UpdateHealthDiary(ctx context.Context, clientHealthDiaryEntry *gorm.ClientHealthDiaryEntry, updateData map[string]interface{}) error {
 	return gm.MockUpdateHealthDiaryFn(ctx, clientHealthDiaryEntry, updateData)
 }
 
