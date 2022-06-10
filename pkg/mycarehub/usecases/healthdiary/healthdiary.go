@@ -12,7 +12,6 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/servicerequest"
 )
 
@@ -234,23 +233,19 @@ func (h UseCasesHealthDiaryImpl) GetRecentHealthDiaryEntries(ctx context.Context
 
 // ShareHealthDiaryEntry create a service request when the client opts to share their service request
 func (h UseCasesHealthDiaryImpl) ShareHealthDiaryEntry(ctx context.Context, healthDiaryEntryID string, shareEntireHealthDiary bool) (bool, error) {
-	if healthDiaryEntryID == "" {
-		return false, fmt.Errorf("healthDiary entry id cannot be empty")
-	}
-
 	healthDiaryEntry, err := h.Query.GetHealthDiaryEntryByID(ctx, healthDiaryEntryID)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return false, err
 	}
 
-	payload := &gorm.ClientHealthDiaryEntry{
-		ClientID:                 healthDiaryEntry.ClientID,
-		ClientHealthDiaryEntryID: &healthDiaryEntryID,
+	payload := &domain.ClientHealthDiaryEntry{
+		ClientID: healthDiaryEntry.ClientID,
+		ID:       &healthDiaryEntryID,
 	}
 
 	if !shareEntireHealthDiary {
-		payload.ClientHealthDiaryEntryID = healthDiaryEntry.ID
+		payload.ID = healthDiaryEntry.ID
 	}
 
 	updateData := map[string]interface{}{
@@ -258,13 +253,10 @@ func (h UseCasesHealthDiaryImpl) ShareHealthDiaryEntry(ctx context.Context, heal
 		"shared_at":                time.Now(),
 	}
 
-	ok, err := h.Update.UpdateHealthDiary(ctx, payload, updateData)
+	err = h.Update.UpdateHealthDiary(ctx, payload, updateData)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return false, err
-	}
-	if !ok {
-		return false, nil
 	}
 
 	if healthDiaryEntry.Mood == enums.MoodVerySad.String() || healthDiaryEntry.Mood == enums.MoodSad.String() {

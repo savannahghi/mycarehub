@@ -12,7 +12,6 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
 	pgMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/mock"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/healthdiary"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/healthdiary/mock"
@@ -464,15 +463,6 @@ func TestUseCasesHealthDiaryImpl_ShareHealthDiaryEntry(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "Sad case",
-			args: args{
-				ctx:                ctx,
-				healthDiaryEntryID: uuid.New().String(),
-			},
-			want:    false,
-			wantErr: true,
-		},
-		{
 			name: "Sad case - empty ids",
 			args: args{
 				ctx:                ctx,
@@ -502,14 +492,9 @@ func TestUseCasesHealthDiaryImpl_ShareHealthDiaryEntry(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if tt.name == "Sad case" {
-				fakeDB.MockUpdateHealthDiaryFn = func(ctx context.Context, clientHealthDiaryEntry *gorm.ClientHealthDiaryEntry, updateData map[string]interface{}) (bool, error) {
-					return false, fmt.Errorf("an error occurred")
-				}
-			}
 			if tt.name == "Sad case - empty ids" {
-				fakeDB.MockUpdateHealthDiaryFn = func(ctx context.Context, clientHealthDiaryEntry *gorm.ClientHealthDiaryEntry, updateData map[string]interface{}) (bool, error) {
-					return false, fmt.Errorf("an error occurred")
+				fakeDB.MockUpdateHealthDiaryFn = func(ctx context.Context, clientHealthDiaryEntry *domain.ClientHealthDiaryEntry, updateData map[string]interface{}) error {
+					return fmt.Errorf("an error occurred")
 				}
 			}
 			if tt.name == "Sad case - unable to create service request" {

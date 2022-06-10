@@ -1676,7 +1676,7 @@ func TestMyCareHubDb_UpdateHealthDiary(t *testing.T) {
 
 	type args struct {
 		ctx              context.Context
-		healthDairyEntry *gorm.ClientHealthDiaryEntry
+		healthDairyEntry *domain.ClientHealthDiaryEntry
 		updateData       map[string]interface{}
 	}
 	tests := []struct {
@@ -1689,66 +1689,60 @@ func TestMyCareHubDb_UpdateHealthDiary(t *testing.T) {
 			name: "Happy case",
 			args: args{
 				ctx: ctx,
-				healthDairyEntry: &gorm.ClientHealthDiaryEntry{
-					ClientHealthDiaryEntryID: &UUID,
-					ClientID:                 uuid.New().String(),
+				healthDairyEntry: &domain.ClientHealthDiaryEntry{
+					ID:       &UUID,
+					ClientID: uuid.New().String(),
 				},
 				updateData: map[string]interface{}{
 					"share_with_health_worker": true,
 				},
 			},
-			want:    true,
 			wantErr: false,
 		},
 		{
 			name: "Sad case",
 			args: args{
 				ctx: ctx,
-				healthDairyEntry: &gorm.ClientHealthDiaryEntry{
-					ClientHealthDiaryEntryID: &UUID,
-					ClientID:                 uuid.New().String(),
+				healthDairyEntry: &domain.ClientHealthDiaryEntry{
+					ID:       &UUID,
+					ClientID: uuid.New().String(),
 				},
 				updateData: map[string]interface{}{
 					"share_with_health_worker": true,
 				},
 			},
-			want:    false,
 			wantErr: true,
 		},
 		{
 			name: "Sad case - empty ids",
 			args: args{
 				ctx: ctx,
-				healthDairyEntry: &gorm.ClientHealthDiaryEntry{
+				healthDairyEntry: &domain.ClientHealthDiaryEntry{
 					ClientID: "",
 				},
 				updateData: map[string]interface{}{
 					"share_with_health_worker": true,
 				},
 			},
-			want:    false,
 			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.name == "Sad case" {
-				fakeGorm.MockUpdateHealthDiaryFn = func(ctx context.Context, clientHealthDiaryEntry *gorm.ClientHealthDiaryEntry, updateData map[string]interface{}) (bool, error) {
-					return false, fmt.Errorf("an error occurred")
+				fakeGorm.MockUpdateHealthDiaryFn = func(ctx context.Context, clientHealthDiaryEntry *gorm.ClientHealthDiaryEntry, updateData map[string]interface{}) error {
+					return fmt.Errorf("an error occurred")
 				}
 			}
 			if tt.name == "Sad case - empty ids" {
-				fakeGorm.MockUpdateHealthDiaryFn = func(ctx context.Context, clientHealthDiaryEntry *gorm.ClientHealthDiaryEntry, updateData map[string]interface{}) (bool, error) {
-					return false, fmt.Errorf("an error occurred")
+				fakeGorm.MockUpdateHealthDiaryFn = func(ctx context.Context, clientHealthDiaryEntry *gorm.ClientHealthDiaryEntry, updateData map[string]interface{}) error {
+					return fmt.Errorf("an error occurred")
 				}
 			}
-			got, err := d.UpdateHealthDiary(tt.args.ctx, tt.args.healthDairyEntry, tt.args.updateData)
+			err := d.UpdateHealthDiary(tt.args.ctx, tt.args.healthDairyEntry, tt.args.updateData)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("MyCareHubDb.UpdateHealthDiary() error = %v, wantErr %v", err, tt.wantErr)
 				return
-			}
-			if got != tt.want {
-				t.Errorf("MyCareHubDb.UpdateHealthDiary() = %v, want %v", got, tt.want)
 			}
 		})
 	}
