@@ -61,11 +61,13 @@ func (ps ServicePubSubMessaging) ProcessGetStreamEvent(
 
 			notification.Title = channelMetadata.Name
 
-			payload := helpers.ComposeNotificationPayload(staffProfile.User, *notification)
-			_, err = ps.FCM.SendNotification(ctx, payload)
-			if err != nil {
-				helpers.ReportErrorToSentry(err)
-				log.Printf("failed to send notification: %v", err)
+			if staffProfile != nil {
+				payload := helpers.ComposeNotificationPayload(staffProfile.User, *notification)
+				_, err = ps.FCM.SendNotification(ctx, payload)
+				if err != nil {
+					helpers.ReportErrorToSentry(err)
+					log.Printf("failed to send notification: %v", err)
+				}
 			}
 		}
 	}

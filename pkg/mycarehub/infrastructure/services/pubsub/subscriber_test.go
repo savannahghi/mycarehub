@@ -88,6 +88,11 @@ func createStreamChannel(streamSvc getstream.ServiceGetStream) {
 	if err != nil {
 		fmt.Printf("ChatClient.CreateCommunity() error = %v", err)
 	}
+
+	_, err = streamSvc.AddMembersToCommunity(ctx, []string{testChannelOwner}, channelID)
+	if err != nil {
+		fmt.Printf("ChatClient.AddMembersToCommunity() error = %v", err)
+	}
 }
 
 func deleteTestData(streamSvc getstream.ServiceGetStream) {
@@ -133,15 +138,33 @@ func composeInvalidPubsubTestPayload(t *testing.T, topic string) (*bytes.Buffer,
 	return bs, nil
 }
 
-func composeGetStreamEventPayload(t *testing.T, eventType stream.EventType, topic string) *bytes.Buffer {
+func composeGetStreamEventPayload(
+	t *testing.T,
+	eventType stream.EventType,
+	topic string,
+	channelID string,
+) *bytes.Buffer {
 	eventPayload := &dto.GetStreamEvent{
-		CID:          channelCID,
-		Type:         eventType,
-		Message:      &stream.Message{},
-		Reaction:     &stream.Reaction{},
-		Channel:      &stream.Channel{},
-		Member:       &stream.ChannelMember{},
-		Members:      []*stream.ChannelMember{},
+		CID:      channelCID,
+		Type:     eventType,
+		Message:  &stream.Message{},
+		Reaction: &stream.Reaction{},
+		Channel:  &stream.Channel{},
+		Member:   &stream.ChannelMember{},
+		Members: []*stream.ChannelMember{
+			{
+				UserID: testChannelOwner,
+				User: &stream.User{
+					ID:        testChannelOwner,
+					Name:      "testChannelOwner",
+					Invisible: false,
+					ExtraData: map[string]interface{}{
+						"userType": "STAFF",
+					},
+				},
+				IsModerator: true,
+			},
+		},
 		User:         &stream.User{},
 		UserID:       "",
 		OwnUser:      &stream.User{},
@@ -199,12 +222,23 @@ func TestPubsub(t *testing.T) {
 		t.Errorf("failed to compose invalid payload")
 		return
 	}
-	newMessageEventPayload := composeGetStreamEventPayload(t, stream.EventMessageNew, common.CreateGetstreamEventTopicName)
-	newMessageFlaggedPayload := composeGetStreamEventPayload(t, "message.flagged", common.CreateGetstreamEventTopicName)
-	newMemberAddedPayload := composeGetStreamEventPayload(t, stream.EventMemberAdded, common.CreateGetstreamEventTopicName)
-	memberRemovedPayload := composeGetStreamEventPayload(t, stream.EventMemberRemoved, common.CreateGetstreamEventTopicName)
-	userBannedPayload := composeGetStreamEventPayload(t, "user.banned", common.CreateGetstreamEventTopicName)
-	userUnbannedPayload := composeGetStreamEventPayload(t, "user.unbanned", common.CreateGetstreamEventTopicName)
+	newMessageEventPayload := composeGetStreamEventPayload(t, stream.EventMessageNew, common.CreateGetstreamEventTopicName, channelID)
+	invalidMessagePayload := composeGetStreamEventPayload(t, stream.EventMessageNew, common.CreateGetstreamEventTopicName, "invalidChannelID")
+
+	newMessageFlaggedPayload := composeGetStreamEventPayload(t, "message.flagged", common.CreateGetstreamEventTopicName, channelID)
+	invalidMessageFlaggedPayload := composeGetStreamEventPayload(t, "message.flagged", common.CreateGetstreamEventTopicName, "invalidChannelID")
+
+	newMemberAddedPayload := composeGetStreamEventPayload(t, stream.EventMemberAdded, common.CreateGetstreamEventTopicName, channelID)
+	invalidMemberAddedPayload := composeGetStreamEventPayload(t, stream.EventMemberAdded, common.CreateGetstreamEventTopicName, "invalidChannelID")
+
+	memberRemovedPayload := composeGetStreamEventPayload(t, stream.EventMemberRemoved, common.CreateGetstreamEventTopicName, channelID)
+	invalidMemberRemovedPayload := composeGetStreamEventPayload(t, stream.EventMemberRemoved, common.CreateGetstreamEventTopicName, "invalidChannelID")
+
+	userBannedPayload := composeGetStreamEventPayload(t, "user.banned", common.CreateGetstreamEventTopicName, channelID)
+	invalidUserBannedPayload := composeGetStreamEventPayload(t, "user.banned", common.CreateGetstreamEventTopicName, "invalidChannelID")
+
+	userUnbannedPayload := composeGetStreamEventPayload(t, "user.unbanned", common.CreateGetstreamEventTopicName, channelID)
+	invalidChannelPayload := composeGetStreamEventPayload(t, "user.unbanned", common.CreateGetstreamEventTopicName, "invalidChannelID")
 
 	header := req.Header{
 		"Content-Type": "application/json",
@@ -298,7 +332,74 @@ func TestPubsub(t *testing.T) {
 			wantStatus: http.StatusOK,
 			wantErr:    false,
 		},
+		{
+			name: "Sad Case - Use an invalid channel ID - user unbanned event",
+			args: args{
+				url:        fmt.Sprintf("%v/pubsub", baseURL),
+				httpMethod: http.MethodPost,
+				body:       invalidChannelPayload,
+				headers:    header,
+			},
+			wantStatus: http.StatusBadRequest,
+			wantErr:    true,
+		},
+		{
+			name: "Sad Case - Use an invalid channel ID - new message event",
+			args: args{
+				url:        fmt.Sprintf("%v/pubsub", baseURL),
+				httpMethod: http.MethodPost,
+				body:       invalidMessagePayload,
+				headers:    header,
+			},
+			wantStatus: http.StatusBadRequest,
+			wantErr:    true,
+		},
+		{
+			name: "Sad Case - Use an invalid channel ID - flagged message event",
+			args: args{
+				url:        fmt.Sprintf("%v/pubsub", baseURL),
+				httpMethod: http.MethodPost,
+				body:       invalidMessageFlaggedPayload,
+				headers:    header,
+			},
+			wantStatus: http.StatusBadRequest,
+			wantErr:    true,
+		},
+		{
+			name: "Sad Case - Use an invalid channel ID - new member added event",
+			args: args{
+				url:        fmt.Sprintf("%v/pubsub", baseURL),
+				httpMethod: http.MethodPost,
+				body:       invalidMemberAddedPayload,
+				headers:    header,
+			},
+			wantStatus: http.StatusBadRequest,
+			wantErr:    true,
+		},
+		{
+			name: "Sad Case - Use an invalid channel ID - member removed event",
+			args: args{
+				url:        fmt.Sprintf("%v/pubsub", baseURL),
+				httpMethod: http.MethodPost,
+				body:       invalidMemberRemovedPayload,
+				headers:    header,
+			},
+			wantStatus: http.StatusBadRequest,
+			wantErr:    true,
+		},
+		{
+			name: "Sad Case - Use an invalid channel ID - user banned event",
+			args: args{
+				url:        fmt.Sprintf("%v/pubsub", baseURL),
+				httpMethod: http.MethodPost,
+				body:       invalidUserBannedPayload,
+				headers:    header,
+			},
+			wantStatus: http.StatusBadRequest,
+			wantErr:    true,
+		},
 	}
+	t.Parallel()
 	for _, tt := range tests {
 		r, err := http.NewRequest(
 			tt.args.httpMethod,

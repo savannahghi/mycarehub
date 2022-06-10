@@ -128,7 +128,7 @@ func TestComposeClientNotification(t *testing.T) {
 				},
 			},
 			want: &domain.Notification{
-				Title:   "You have been invited to join a community",
+				Title:   "You have been invited to join a conversation",
 				Body:    "Invitation to join Good Life community by John Doe. To join, accept the invite.",
 				Type:    enums.NotificationTypeCommunities,
 				Flavour: feedlib.FlavourConsumer,

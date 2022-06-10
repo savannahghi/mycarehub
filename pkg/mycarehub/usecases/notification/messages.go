@@ -109,7 +109,7 @@ func ComposeClientNotification(notificationType enums.NotificationType, args Cli
 			args.Inviter.Name,
 		)
 
-		notification.Title = "You have been invited to join a community"
+		notification.Title = "You have been invited to join a conversation"
 		notification.Body = notificationBody
 
 		return notification
