@@ -131,7 +131,7 @@ type PostgresMock struct {
 	MockGetClientAppointmentByIDFn                       func(ctx context.Context, appointmentID string) (*domain.Appointment, error)
 	MockGetAssessmentResponsesFn                         func(ctx context.Context, facilityID string, toolType string) ([]*domain.ScreeningToolAssessmentResponse, error)
 	MockGetAppointmentByAppointmentUUIDFn                func(ctx context.Context, appointmentUUID string) (*domain.Appointment, error)
-	MockGetClientServiceRequestsFn                       func(ctx context.Context, requestType, status, clientID string) ([]*domain.ServiceRequest, error)
+	MockGetClientServiceRequestsFn                       func(ctx context.Context, requestType, status, clientID, facilityID string) ([]*domain.ServiceRequest, error)
 	MockGetActiveScreeningToolResponsesFn                func(ctx context.Context, clientID string) ([]*domain.ScreeningToolQuestionResponse, error)
 	MockGetAppointmentByClientIDFn                       func(ctx context.Context, clientID string) (*domain.Appointment, error)
 	MockCheckAppointmentExistsByExternalIDFn             func(ctx context.Context, externalID string) (bool, error)
@@ -946,7 +946,7 @@ func NewPostgresMock() *PostgresMock {
 		MockCheckAppointmentExistsByExternalIDFn: func(ctx context.Context, externalID string) (bool, error) {
 			return true, nil
 		},
-		MockGetClientServiceRequestsFn: func(ctx context.Context, requestType, status, clientID string) ([]*domain.ServiceRequest, error) {
+		MockGetClientServiceRequestsFn: func(ctx context.Context, requestType, status, clientID, facilityID string) ([]*domain.ServiceRequest, error) {
 			return []*domain.ServiceRequest{
 				{
 					ID:           ID,
@@ -1583,8 +1583,8 @@ func (gm *PostgresMock) CheckAppointmentExistsByExternalID(ctx context.Context, 
 }
 
 // GetClientServiceRequests mocks the implementation of getting system generated client service requests
-func (gm *PostgresMock) GetClientServiceRequests(ctx context.Context, requestType, status, clientID string) ([]*domain.ServiceRequest, error) {
-	return gm.MockGetClientServiceRequestsFn(ctx, requestType, status, clientID)
+func (gm *PostgresMock) GetClientServiceRequests(ctx context.Context, requestType, status, clientID, facilityID string) ([]*domain.ServiceRequest, error) {
+	return gm.MockGetClientServiceRequestsFn(ctx, requestType, status, clientID, facilityID)
 }
 
 // GetActiveScreeningToolResponses mocks the implementation of getting active screening tool responses

@@ -83,7 +83,7 @@ type Query interface {
 	GetServiceRequestByID(ctx context.Context, serviceRequestID string) (*ClientServiceRequest, error)
 	GetStaffProfileByStaffID(ctx context.Context, staffID string) (*StaffProfile, error)
 	GetAppointmentServiceRequests(ctx context.Context, lastSyncTime time.Time, facilityID string) ([]*ClientServiceRequest, error)
-	GetClientServiceRequests(ctx context.Context, requestType, status, clientID string) ([]*ClientServiceRequest, error)
+	GetClientServiceRequests(ctx context.Context, requestType, status, clientID, facilityID string) ([]*ClientServiceRequest, error)
 	GetActiveScreeningToolResponses(ctx context.Context, clientID string) ([]*ScreeningToolsResponse, error)
 	CheckAppointmentExistsByExternalID(ctx context.Context, externalID string) (bool, error)
 	GetAnsweredScreeningToolQuestions(ctx context.Context, facilityID string, toolType string) ([]*ScreeningToolsResponse, error)
@@ -1312,7 +1312,7 @@ func (db *PGInstance) GetAppointment(ctx context.Context, params *Appointment) (
 }
 
 // GetClientServiceRequests returns all system generated service requests by status passed in param
-func (db *PGInstance) GetClientServiceRequests(ctx context.Context, requestType, status, clientID string) ([]*ClientServiceRequest, error) {
+func (db *PGInstance) GetClientServiceRequests(ctx context.Context, requestType, status, clientID, facilityID string) ([]*ClientServiceRequest, error) {
 	var serviceRequests []*ClientServiceRequest
 	err := db.DB.Where(&ClientServiceRequest{
 		RequestType: requestType,
