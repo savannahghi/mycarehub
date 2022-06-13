@@ -3625,6 +3625,7 @@ func TestPGInstance_GetClientServiceRequests(t *testing.T) {
 		requestType string
 		status      string
 		clientID    string
+		FacilityID  string
 	}
 	tests := []struct {
 		name    string
@@ -3638,13 +3639,14 @@ func TestPGInstance_GetClientServiceRequests(t *testing.T) {
 				requestType: string(enums.ServiceRequestTypeScreeningToolsRedFlag),
 				status:      string(enums.ServiceRequestStatusResolved),
 				clientID:    clientID,
+				FacilityID:  facilityID,
 			},
 			wantErr: false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := testingDB.GetClientServiceRequests(tt.args.ctx, tt.args.requestType, tt.args.status, tt.args.clientID)
+			got, err := testingDB.GetClientServiceRequests(tt.args.ctx, tt.args.requestType, tt.args.status, tt.args.clientID, tt.args.FacilityID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("PGInstance.GetClientServiceRequests() error = %v, wantErr %v", err, tt.wantErr)
 				return

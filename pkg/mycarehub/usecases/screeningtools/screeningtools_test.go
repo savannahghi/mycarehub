@@ -323,6 +323,14 @@ func TestServiceScreeningToolsImpl_GetAvailableScreeningToolQuestions(t *testing
 			},
 			wantErr: true,
 		},
+		{
+			name: "sad case: Failed to get client profile by client id",
+			args: args{
+				ctx:      context.Background(),
+				clientID: uuid.New().String(),
+			},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -339,7 +347,7 @@ func TestServiceScreeningToolsImpl_GetAvailableScreeningToolQuestions(t *testing
 			}
 
 			if tt.name == "sad case: failed to get system generated service request" {
-				fakeDB.MockGetClientServiceRequestsFn = func(ctx context.Context, toolType string, status string, clientID string) ([]*domain.ServiceRequest, error) {
+				fakeDB.MockGetClientServiceRequestsFn = func(ctx context.Context, toolType string, status string, clientID string, facilityID string) ([]*domain.ServiceRequest, error) {
 					return nil, fmt.Errorf("failed to get system generated service request")
 				}
 			}
@@ -347,6 +355,12 @@ func TestServiceScreeningToolsImpl_GetAvailableScreeningToolQuestions(t *testing
 			if tt.name == "sad case: failed to get screening tool question by id" {
 				fakeDB.MockGetScreeningToolQuestionByQuestionIDFn = func(ctx context.Context, id string) (*domain.ScreeningToolQuestion, error) {
 					return nil, fmt.Errorf("failed to get screening tool question by id")
+				}
+			}
+
+			if tt.name == "sad case: Failed to get client profile by client id" {
+				fakeDB.MockGetClientProfileByClientIDFn = func(ctx context.Context, clientID string) (*domain.ClientProfile, error) {
+					return nil, fmt.Errorf("failed to get client profile by client id")
 				}
 			}
 

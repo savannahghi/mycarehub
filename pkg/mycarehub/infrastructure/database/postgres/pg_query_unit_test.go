@@ -5172,10 +5172,11 @@ func TestMyCareHubDb_GetClientServiceRequests(t *testing.T) {
 	var fakeGorm = gormMock.NewGormMock()
 	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
 	type args struct {
-		ctx      context.Context
-		toolType string
-		status   string
-		clientID string
+		ctx        context.Context
+		toolType   string
+		status     string
+		clientID   string
+		facilityID string
 	}
 	tests := []struct {
 		name    string
@@ -5185,17 +5186,18 @@ func TestMyCareHubDb_GetClientServiceRequests(t *testing.T) {
 		{
 			name: "Happy case:  get system generated client service requests",
 			args: args{
-				ctx:      context.Background(),
-				toolType: "SCREENING_TOOLS_RED_FLAG",
-				status:   enums.ServiceRequestStatusPending.String(),
-				clientID: uuid.New().String(),
+				ctx:        context.Background(),
+				toolType:   "SCREENING_TOOLS_RED_FLAG",
+				status:     enums.ServiceRequestStatusPending.String(),
+				clientID:   uuid.New().String(),
+				facilityID: uuid.New().String(),
 			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			got, err := d.GetClientServiceRequests(tt.args.ctx, tt.args.toolType, tt.args.status, tt.args.clientID)
+			got, err := d.GetClientServiceRequests(tt.args.ctx, tt.args.toolType, tt.args.status, tt.args.clientID, tt.args.facilityID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("MyCareHubDb.GetClientServiceRequests() error = %v, wantErr %v", err, tt.wantErr)
 				return

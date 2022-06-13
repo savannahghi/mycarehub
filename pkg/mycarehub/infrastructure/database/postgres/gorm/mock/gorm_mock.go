@@ -129,7 +129,7 @@ type GormMock struct {
 	MockUpdateFacilityFn                                 func(ctx context.Context, facility *gorm.Facility, updateData map[string]interface{}) error
 	MockGetFacilitiesWithoutFHIRIDFn                     func(ctx context.Context) ([]*gorm.Facility, error)
 	MockGetSharedHealthDiaryEntriesFn                    func(ctx context.Context, clientID string, facilityID string) ([]*gorm.ClientHealthDiaryEntry, error)
-	MockGetClientServiceRequestsFn                       func(ctx context.Context, requestType, status, clientID string) ([]*gorm.ClientServiceRequest, error)
+	MockGetClientServiceRequestsFn                       func(ctx context.Context, requestType, status, clientID, facilityID string) ([]*gorm.ClientServiceRequest, error)
 	MockGetActiveScreeningToolResponsesFn                func(ctx context.Context, clientID string) ([]*gorm.ScreeningToolsResponse, error)
 	MockCheckAppointmentExistsByExternalIDFn             func(ctx context.Context, externalID string) (bool, error)
 	MockGetUserSurveyFormsFn                             func(ctx context.Context, userID string) ([]*gorm.UserSurvey, error)
@@ -1047,7 +1047,7 @@ func NewGormMock() *GormMock {
 		MockCheckAppointmentExistsByExternalIDFn: func(ctx context.Context, externalID string) (bool, error) {
 			return true, nil
 		},
-		MockGetClientServiceRequestsFn: func(ctx context.Context, requestType, status, clientID string) ([]*gorm.ClientServiceRequest, error) {
+		MockGetClientServiceRequestsFn: func(ctx context.Context, requestType, status, clientID, facilityID string) ([]*gorm.ClientServiceRequest, error) {
 			return []*gorm.ClientServiceRequest{
 				{
 					ID:             &UUID,
@@ -1675,8 +1675,8 @@ func (gm *GormMock) CheckAppointmentExistsByExternalID(ctx context.Context, exte
 }
 
 // GetClientServiceRequests mocks the implementation of getting system generated client service requests
-func (gm *GormMock) GetClientServiceRequests(ctx context.Context, requestType, status, clientID string) ([]*gorm.ClientServiceRequest, error) {
-	return gm.MockGetClientServiceRequestsFn(ctx, requestType, status, clientID)
+func (gm *GormMock) GetClientServiceRequests(ctx context.Context, requestType, status, clientID, facilityID string) ([]*gorm.ClientServiceRequest, error) {
+	return gm.MockGetClientServiceRequestsFn(ctx, requestType, status, clientID, facilityID)
 }
 
 // GetActiveScreeningToolResponses mocks the implementation of getting active screening tool responses

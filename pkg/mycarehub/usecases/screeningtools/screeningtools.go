@@ -257,6 +257,12 @@ func (t *ServiceScreeningToolsImpl) GetAvailableScreeningToolQuestions(ctx conte
 
 	}
 
+	clientProfile, err := t.Query.GetClientProfileByClientID(ctx, clientID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, exceptions.ProfileNotFoundErr(fmt.Errorf("failed to get client profile: %v", err))
+	}
+
 	activeScreeningResponses, err := t.Query.GetActiveScreeningToolResponses(ctx, clientID)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
@@ -276,6 +282,7 @@ func (t *ServiceScreeningToolsImpl) GetAvailableScreeningToolQuestions(ctx conte
 		enums.ServiceRequestTypeScreeningToolsRedFlag.String(),
 		enums.ServiceRequestStatusPending.String(),
 		clientID,
+		clientProfile.FacilityID,
 	)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
