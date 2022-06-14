@@ -24,6 +24,12 @@ const (
 
 	// NotificationTypeRoleAssignment represents a role assignment notification
 	NotificationTypeRoleAssignment NotificationType = "ROLE_ASSIGNMENT"
+
+	// NotificationTypeDemoteModerator represents a demote moderator notification
+	NotificationTypeDemoteModerator NotificationType = "DEMOTE_MODERATOR"
+
+	// NotificationTypePromoteToModerator represents a promote to moderator notification
+	NotificationTypePromoteToModerator NotificationType = "PROMOTE_TO_MODERATOR"
 )
 
 // IsValid returns true if a notification type is valid
@@ -34,7 +40,9 @@ func (n NotificationType) IsValid() bool {
 		NotificationTypeServiceRequest,
 		NotificationTypeCommunities,
 		NotificationTypeRoleAssignment,
-		NotificationTypeSurveys:
+		NotificationTypeSurveys,
+		NotificationTypeDemoteModerator,
+		NotificationTypePromoteToModerator:
 		return true
 	}
 	return false

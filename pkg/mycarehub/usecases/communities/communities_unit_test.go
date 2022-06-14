@@ -1023,6 +1023,46 @@ func TestUseCasesCommunitiesImpl_AddModeratorsWithMessage(t *testing.T) {
 			want:    false,
 			wantErr: true,
 		},
+		{
+			name: "Sad case - Unable to get logged in user",
+			args: args{
+				ctx:         ctx,
+				userIDs:     []string{userID},
+				communityID: uuid.New().String(),
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case - Unable to get staff profile by user ID",
+			args: args{
+				ctx:         ctx,
+				userIDs:     []string{userID},
+				communityID: uuid.New().String(),
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case - Fail to notify users",
+			args: args{
+				ctx:         context.Background(),
+				userIDs:     []string{uuid.NewString(), uuid.NewString()},
+				communityID: uuid.New().String(),
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Sad case - Unable to get user profile by member ID",
+			args: args{
+				ctx:         context.Background(),
+				communityID: uuid.New().String(),
+				userIDs:     []string{uuid.New().String()},
+			},
+			want:    false,
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -1043,6 +1083,30 @@ func TestUseCasesCommunitiesImpl_AddModeratorsWithMessage(t *testing.T) {
 					return nil, fmt.Errorf("an error occurred")
 				}
 			}
+			if tt.name == "Sad case - Unable to get logged in user" {
+				fakeExtension.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "", fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - Unable to get staff profile by user ID" {
+				fakeDB.MockGetStaffProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.StaffProfile, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - Fail to notify users" {
+				fakeNotification.MockNotifyUserFn = func(ctx context.Context, userProfile *domain.User, notificationPayload *domain.Notification) error {
+					return fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - Unable to get user profile by member ID" {
+				fakeGetStream.MockGetStreamUserFn = func(ctx context.Context, id string) (*stream.User, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+
 			got, err := c.AddModeratorsWithMessage(tt.args.ctx, tt.args.userIDs, tt.args.communityID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCasesCommunitiesImpl.AddModeratorsWithMessage() error = %v, wantErr %v", err, tt.wantErr)
@@ -1078,24 +1142,6 @@ func TestUseCasesCommunitiesImpl_DemoteModerators(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "Sad case: communityID is empty",
-			args: args{
-				ctx:       context.Background(),
-				memberIDs: []string{uuid.New().String()},
-			},
-			want:    false,
-			wantErr: true,
-		},
-		{
-			name: "Sad case: memberIDs is empty",
-			args: args{
-				ctx:         context.Background(),
-				communityID: uuid.New().String(),
-			},
-			want:    false,
-			wantErr: true,
-		},
-		{
 			name: "Sad case: failed to demote moderators",
 			args: args{
 				ctx:         context.Background(),
@@ -1104,6 +1150,56 @@ func TestUseCasesCommunitiesImpl_DemoteModerators(t *testing.T) {
 			},
 			want:    false,
 			wantErr: true,
+		},
+		{
+			name: "Sad case - Unable to get logged in user",
+			args: args{
+				ctx:         context.Background(),
+				communityID: uuid.New().String(),
+				memberIDs:   []string{uuid.New().String()},
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case - Unable to get staff profile by user ID",
+			args: args{
+				ctx:         context.Background(),
+				communityID: uuid.New().String(),
+				memberIDs:   []string{uuid.New().String()},
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case - Unable to get community",
+			args: args{
+				ctx:         context.Background(),
+				communityID: uuid.New().String(),
+				memberIDs:   []string{uuid.New().String()},
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case - Unable to get user profile by member ID",
+			args: args{
+				ctx:         context.Background(),
+				communityID: uuid.New().String(),
+				memberIDs:   []string{uuid.New().String()},
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case - Fail to notify users",
+			args: args{
+				ctx:         context.Background(),
+				memberIDs:   []string{uuid.NewString(), uuid.NewString()},
+				communityID: uuid.New().String(),
+			},
+			want:    true,
+			wantErr: false,
 		},
 	}
 	for _, tt := range tests {
@@ -1118,6 +1214,34 @@ func TestUseCasesCommunitiesImpl_DemoteModerators(t *testing.T) {
 			if tt.name == "Sad case: failed to demote moderators" {
 				fakeGetStream.MockDemoteModeratorsFn = func(ctx context.Context, channelID string, memberIDs []string) (*stream.Response, error) {
 					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - Unable to get logged in user" {
+				fakeExtension.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "", fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - Unable to get staff profile by user ID" {
+				fakeDB.MockGetStaffProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.StaffProfile, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - Unable to get community" {
+				fakeDB.MockGetCommunityByIDFn = func(ctx context.Context, communityID string) (*domain.Community, error) {
+					return nil, fmt.Errorf("unable to get community")
+				}
+			}
+			if tt.name == "Sad case - Unable to get user profile by member ID" {
+				fakeGetStream.MockGetStreamUserFn = func(ctx context.Context, id string) (*stream.User, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - Fail to notify users" {
+				fakeNotification.MockNotifyUserFn = func(ctx context.Context, userProfile *domain.User, notificationPayload *domain.Notification) error {
+					return fmt.Errorf("an error occurred")
 				}
 			}
 
@@ -1784,6 +1908,68 @@ func TestUseCasesCommunitiesImpl_ProcessGetstreamEvents(t *testing.T) {
 
 			if err := c.ProcessGetstreamEvents(tt.args.ctx, tt.args.event); (err != nil) != tt.wantErr {
 				t.Errorf("UseCasesCommunitiesImpl.ProcessGetstreamEvents() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestUseCasesCommunitiesImpl_GetUserProfileByMemberID(t *testing.T) {
+	fakeGetStream := getStreamMock.NewGetStreamServiceMock()
+	fakeExtension := extensionMock.NewFakeExtension()
+	fakeDB := pgMock.NewPostgresMock()
+	fakePubsub := pubsubMock.NewPubsubServiceMock()
+	fakeNotification := notificationMock.NewServiceNotificationMock()
+	c := communities.NewUseCaseCommunitiesImpl(fakeGetStream, fakeExtension, fakeDB, fakeDB, fakePubsub, fakeNotification)
+
+	type args struct {
+		ctx      context.Context
+		memberID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Successfully get user profile by member ID",
+			args: args{
+				ctx:      context.Background(),
+				memberID: "12345",
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad Case - Fail to get stream user",
+			args: args{
+				ctx:      context.Background(),
+				memberID: "",
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - Fail to get user profile by user ID",
+			args: args{
+				ctx: context.Background(),
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "Sad Case - Fail to get stream user" {
+				fakeGetStream.MockGetStreamUserFn = func(ctx context.Context, id string) (*stream.User, error) {
+					return nil, fmt.Errorf("failed to get stream user")
+				}
+			}
+			if tt.name == "Sad Case - Fail to get user profile by user ID" {
+				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
+					return nil, fmt.Errorf("failed to get user profile by user ID")
+				}
+			}
+			_, err := c.GetUserProfileByMemberID(tt.args.ctx, tt.args.memberID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCasesCommunitiesImpl.GetUserProfileByMemberID() error = %v, wantErr %v", err, tt.wantErr)
+				return
 			}
 		})
 	}

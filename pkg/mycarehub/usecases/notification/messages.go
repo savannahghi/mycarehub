@@ -85,6 +85,8 @@ type ClientNotificationArgs struct {
 	// Arguments to a community invite notification
 	Community *domain.Community
 	Inviter   *domain.User
+	Demoter   *domain.User
+	Promoter  *domain.User
 
 	// Arguments to an appointment notification
 	Appointment   *domain.Appointment
@@ -143,6 +145,18 @@ func ComposeClientNotification(notificationType enums.NotificationType, args Cli
 	case enums.NotificationTypeSurveys:
 		notification.Title = "You have a new survey"
 		notification.Body = fmt.Sprintf("You have a new %s survey. Please navigate to the homepage and fill it.", args.Survey.Title)
+
+		return notification
+
+	case enums.NotificationTypeDemoteModerator:
+		notification.Title = "You have been demoted to a regular user"
+		notification.Body = fmt.Sprintf("You have been demoted to a regular user by %s in %s community.", args.Demoter.Username, args.Community.Name)
+
+		return notification
+
+	case enums.NotificationTypePromoteToModerator:
+		notification.Title = "You have been promoted to a moderator"
+		notification.Body = fmt.Sprintf("You have been promoted to a moderator by %s in %s community.", args.Promoter.Username, args.Community.Name)
 
 		return notification
 

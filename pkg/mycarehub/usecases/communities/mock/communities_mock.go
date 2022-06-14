@@ -22,6 +22,7 @@ type CommunityUsecaseMock struct {
 	MockDeleteCommunityMessageFn   func(ctx context.Context, messageID string) (bool, error)
 	MockValidateGetStreamRequestFn func(ctx context.Context, body []byte, signature string) bool
 	MockProcessGetstreamEventsFn   func(ctx context.Context, event *dto.GetStreamEvent) error
+	MockGetUserProfileByMemberIDFn func(ctx context.Context, memberID string) (*domain.User, error)
 }
 
 // NewCommunityUsecaseMock initializes a new instance of the Community usecase happy cases
@@ -84,6 +85,13 @@ func NewCommunityUsecaseMock() *CommunityUsecaseMock {
 		MockProcessGetstreamEventsFn: func(ctx context.Context, event *dto.GetStreamEvent) error {
 			return nil
 		},
+		MockGetUserProfileByMemberIDFn: func(ctx context.Context, memberID string) (*domain.User, error) {
+			ID := uuid.New().String()
+			return &domain.User{
+				ID:       &ID,
+				Username: "test",
+			}, nil
+		},
 	}
 }
 
@@ -130,4 +138,9 @@ func (c CommunityUsecaseMock) ValidateGetStreamRequest(ctx context.Context, body
 // ProcessGetstreamEvents mocks the implementation of a getstream event that has been published to our endpoint
 func (c CommunityUsecaseMock) ProcessGetstreamEvents(ctx context.Context, event *dto.GetStreamEvent) error {
 	return c.MockProcessGetstreamEventsFn(ctx, event)
+}
+
+// GetUserProfileByMemberID mocks the implementation of getting a user profile by member ID
+func (c CommunityUsecaseMock) GetUserProfileByMemberID(ctx context.Context, memberID string) (*domain.User, error) {
+	return c.MockGetUserProfileByMemberIDFn(ctx, memberID)
 }

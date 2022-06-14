@@ -564,6 +564,18 @@ func (us *UseCasesCommunitiesImpl) AddModeratorsWithMessage(ctx context.Context,
 		return false, err
 	}
 
+	loggedInUserID, err := us.ExternalExt.GetLoggedInUserUID(ctx)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, exceptions.GetLoggedInUserUIDErr(err)
+	}
+
+	staffProfile, err := us.Query.GetStaffProfileByUserID(ctx, loggedInUserID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, fmt.Errorf("failed to get staff profile %w", err)
+	}
+
 	for _, v := range memberIDs {
 		message := &stream.Message{
 			ID:   uuid.New().String(),
@@ -573,11 +585,33 @@ func (us *UseCasesCommunitiesImpl) AddModeratorsWithMessage(ctx context.Context,
 			},
 		}
 
-		_, err = us.GetstreamService.AddModeratorsWithMessage(ctx, memberIDs, communityID, message)
+		_, err = us.GetstreamService.AddModeratorsWithMessage(ctx, []string{v}, communityID, message)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
 			return false, fmt.Errorf("failed to add moderator(s)")
 		}
+
+		userProfile, err := us.GetUserProfileByMemberID(ctx, v)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return false, err
+		}
+
+		notificationArgs := notification.ClientNotificationArgs{
+			Community: community,
+			Promoter:  staffProfile.User,
+		}
+
+		clientNotification := notification.ComposeClientNotification(
+			enums.NotificationTypePromoteToModerator,
+			notificationArgs,
+		)
+
+		err = us.Notification.NotifyUser(ctx, userProfile, clientNotification)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+		}
+
 	}
 	return true, nil
 }
@@ -585,20 +619,80 @@ func (us *UseCasesCommunitiesImpl) AddModeratorsWithMessage(ctx context.Context,
 // DemoteModerators demotes moderators in a community
 // memberID can either be a Client or a Staff ID
 func (us *UseCasesCommunitiesImpl) DemoteModerators(ctx context.Context, communityID string, memberIDs []string) (bool, error) {
-	if len(memberIDs) == 0 {
-		return false, fmt.Errorf("member id cannot be empty")
-	}
-	if communityID == "" {
-		return false, fmt.Errorf("community id cannot be empty")
-	}
-
 	_, err := us.GetstreamService.DemoteModerators(ctx, communityID, memberIDs)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return false, fmt.Errorf("failed to demote moderators in a community: %v", err)
 	}
 
+	loggedInUserID, err := us.ExternalExt.GetLoggedInUserUID(ctx)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, exceptions.GetLoggedInUserUIDErr(err)
+	}
+
+	staffProfile, err := us.Query.GetStaffProfileByUserID(ctx, loggedInUserID)
+	if err != nil {
+		return false, fmt.Errorf("failed to get staff profile %w", err)
+	}
+
+	community, err := us.Query.GetCommunityByID(ctx, communityID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, fmt.Errorf("failed to retrieve community with provided id: %w", err)
+	}
+
+	var communityMembers []domain.User
+	for _, memberID := range memberIDs {
+		userProfile, err := us.GetUserProfileByMemberID(ctx, memberID)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return false, err
+		}
+
+		communityMembers = append(communityMembers, *userProfile)
+	}
+
+	notificationArgs := notification.ClientNotificationArgs{
+		Community: community,
+		Demoter:   staffProfile.User,
+	}
+
+	clientNotificationMessage := notification.ComposeClientNotification(
+		enums.NotificationTypeDemoteModerator,
+		notificationArgs,
+	)
+
+	for _, member := range communityMembers {
+		err = us.Notification.NotifyUser(ctx, &member, clientNotificationMessage)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+		}
+	}
+
 	return true, nil
+}
+
+// GetUserProfileByMemberID retrieves the user profile of a community member
+func (us *UseCasesCommunitiesImpl) GetUserProfileByMemberID(ctx context.Context, memberID string) (*domain.User, error) {
+	streamUser, err := us.GetstreamService.GetStreamUser(ctx, memberID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, fmt.Errorf("failed to get user: %v", err)
+	}
+
+	var memberMetadata domain.MemberMetadata
+	err = mapstructure.Decode(streamUser.ExtraData, &memberMetadata)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+	userProfile, err := us.Query.GetUserProfileByUserID(ctx, memberMetadata.UserID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, fmt.Errorf("failed to get user profile: %w", err)
+	}
+	return userProfile, nil
 }
 
 // ListPendingInvites lists all communities that a user has been invited into
