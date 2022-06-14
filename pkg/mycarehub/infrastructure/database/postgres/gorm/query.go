@@ -1318,6 +1318,7 @@ func (db *PGInstance) GetClientServiceRequests(ctx context.Context, requestType,
 		RequestType: requestType,
 		Status:      status,
 		ClientID:    clientID,
+		FacilityID:  facilityID,
 	}).Find(&serviceRequests).Error
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
