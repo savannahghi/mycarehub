@@ -328,18 +328,31 @@ func (us *UseCasesUserImpl) addAuthCredentials(ctx context.Context, credentials 
 
 func (us *UseCasesUserImpl) addGetStreamToken(ctx context.Context, credentials *dto.LoginInput, response domain.ILoginResponse) bool {
 	var user *stream.User
+	userProfile := response.GetUserProfile()
 
 	switch credentials.Flavour {
 	case feedlib.FlavourConsumer:
 		client := response.GetClientProfile()
 		user = &stream.User{
-			ID: *client.ID,
+			ID:   *client.ID,
+			Name: userProfile.Name,
+			ExtraData: map[string]interface{}{
+				"userID":   userProfile.ID,
+				"userType": enums.ClientUser.String(),
+				"username": userProfile.Username,
+			},
 		}
 
 	case feedlib.FlavourPro:
 		staff := response.GetStaffProfile()
 		user = &stream.User{
-			ID: *staff.ID,
+			ID:   *staff.ID,
+			Name: userProfile.Name,
+			ExtraData: map[string]interface{}{
+				"userID":   userProfile.ID,
+				"userType": enums.StaffUser.String(),
+				"username": userProfile.Username,
+			},
 		}
 
 	}
