@@ -23,4 +23,5 @@ extend type Mutation {
     reinvite: Boolean
   ): Boolean!
   setUserPIN(input: PINInput): Boolean!
+  transferClientToFacility(clientId: ID! facilityId: ID!): Boolean!
 }

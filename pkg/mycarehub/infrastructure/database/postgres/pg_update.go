@@ -292,3 +292,12 @@ func (d *MyCareHubDb) UpdateNotification(ctx context.Context, notification *doma
 
 	return d.update.UpdateNotification(ctx, gormNotification, updateData)
 }
+
+// UpdateClientServiceRequest updates the service request with the provided service request details
+func (d *MyCareHubDb) UpdateClientServiceRequest(ctx context.Context, clientServiceRequest *domain.ServiceRequest, updateData map[string]interface{}) error {
+	gormServiceRequest := &gorm.ClientServiceRequest{
+		ID: &clientServiceRequest.ID,
+	}
+
+	return d.update.UpdateClientServiceRequest(ctx, gormServiceRequest, updateData)
+}

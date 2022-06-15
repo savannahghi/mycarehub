@@ -449,6 +449,7 @@ type ComplexityRoot struct {
 		SetUserPin                         func(childComplexity int, input *dto.PINInput) int
 		ShareContent                       func(childComplexity int, input dto.ShareContentInput) int
 		ShareHealthDiaryEntry              func(childComplexity int, healthDiaryEntryID string, shareEntireHealthDiary bool) int
+		TransferClientToFacility           func(childComplexity int, clientID string, facilityID string) int
 		UnBanUser                          func(childComplexity int, memberID string, communityID string) int
 		UnBookmarkContent                  func(childComplexity int, userID string, contentItemID int) int
 		UnlikeContent                      func(childComplexity int, userID string, contentID int) int
@@ -735,6 +736,7 @@ type MutationResolver interface {
 	SetPushToken(ctx context.Context, token string) (bool, error)
 	InviteUser(ctx context.Context, userID string, phoneNumber string, flavour feedlib.Flavour, reinvite *bool) (bool, error)
 	SetUserPin(ctx context.Context, input *dto.PINInput) (bool, error)
+	TransferClientToFacility(ctx context.Context, clientID string, facilityID string) (bool, error)
 }
 type QueryResolver interface {
 	FetchClientAppointments(ctx context.Context, clientID string, paginationInput dto.PaginationsInput, filters []*firebasetools.FilterParam) (*domain.AppointmentsPage, error)
@@ -2913,6 +2915,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.ShareHealthDiaryEntry(childComplexity, args["healthDiaryEntryID"].(string), args["shareEntireHealthDiary"].(bool)), true
+
+	case "Mutation.transferClientToFacility":
+		if e.complexity.Mutation.TransferClientToFacility == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_transferClientToFacility_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.TransferClientToFacility(childComplexity, args["clientId"].(string), args["facilityId"].(string)), true
 
 	case "Mutation.unBanUser":
 		if e.complexity.Mutation.UnBanUser == nil {
@@ -5404,7 +5418,11 @@ extend type Mutation {
   ): Boolean!
   setUserPIN(input: PINInput): Boolean!
 }
-`, BuiltIn: false},
+
+
+extend type Mutation{
+    transferClientToFacility(clientId: ID! facilityId: ID!): Boolean!
+}`, BuiltIn: false},
 	{Name: "federation/directives.graphql", Input: `
 scalar _Any
 scalar _FieldSet
@@ -6337,6 +6355,30 @@ func (ec *executionContext) field_Mutation_shareHealthDiaryEntry_args(ctx contex
 		}
 	}
 	args["shareEntireHealthDiary"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_transferClientToFacility_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["clientId"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clientId"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["clientId"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["facilityId"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("facilityId"))
+		arg1, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["facilityId"] = arg1
 	return args, nil
 }
 
@@ -17198,6 +17240,48 @@ func (ec *executionContext) _Mutation_setUserPIN(ctx context.Context, field grap
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Mutation_transferClientToFacility(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_transferClientToFacility_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().TransferClientToFacility(rctx, args["clientId"].(string), args["facilityId"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Notification_id(ctx context.Context, field graphql.CollectedField, obj *domain.Notification) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -27035,6 +27119,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			}
 		case "setUserPIN":
 			out.Values[i] = ec._Mutation_setUserPIN(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "transferClientToFacility":
+			out.Values[i] = ec._Mutation_transferClientToFacility(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}

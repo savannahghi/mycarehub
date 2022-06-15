@@ -154,4 +154,5 @@ type Update interface {
 	CheckAppointmentExistsByExternalID(ctx context.Context, externalID string) (bool, error)
 	UpdateNotification(ctx context.Context, notification *domain.Notification, updateData map[string]interface{}) error
 	UpdateUserSurveys(ctx context.Context, survey *domain.UserSurvey, updateData map[string]interface{}) error
+	UpdateClientServiceRequest(ctx context.Context, serviceRequest *domain.ServiceRequest, updateData map[string]interface{}) error
 }

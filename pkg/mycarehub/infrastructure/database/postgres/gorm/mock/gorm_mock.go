@@ -149,6 +149,7 @@ type GormMock struct {
 	MockGetClientsByFilterParamsFn                       func(ctx context.Context, facilityID string, filterParams *dto.ClientFilterParamsInput) ([]*gorm.Client, error)
 	MockCreateUserSurveyFn                               func(ctx context.Context, userSurvey []*gorm.UserSurvey) error
 	MockCreateMetricFn                                   func(ctx context.Context, metric *gorm.Metric) error
+	MockUpdateClientServiceRequestFn                     func(ctx context.Context, clientServiceRequest *gorm.ClientServiceRequest, updateData map[string]interface{}) error
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -1129,6 +1130,9 @@ func NewGormMock() *GormMock {
 		MockUpdateUserSurveysFn: func(ctx context.Context, survey *gorm.UserSurvey, updateData map[string]interface{}) error {
 			return nil
 		},
+		MockUpdateClientServiceRequestFn: func(ctx context.Context, clientServiceRequest *gorm.ClientServiceRequest, updateData map[string]interface{}) error {
+			return nil
+		},
 	}
 }
 
@@ -1772,4 +1776,9 @@ func (gm *GormMock) CreateUserSurveys(ctx context.Context, survey []*gorm.UserSu
 // CreateMetric saves a metric to the database
 func (gm *GormMock) CreateMetric(ctx context.Context, metric *gorm.Metric) error {
 	return gm.MockCreateMetricFn(ctx, metric)
+}
+
+// UpdateClientServiceRequest updates a client service request
+func (gm *GormMock) UpdateClientServiceRequest(ctx context.Context, serviceRequest *gorm.ClientServiceRequest, updateData map[string]interface{}) error {
+	return gm.MockUpdateClientServiceRequestFn(ctx, serviceRequest, updateData)
 }

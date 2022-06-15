@@ -150,6 +150,7 @@ type PostgresMock struct {
 	MockGetClientsByFilterParamsFn                       func(ctx context.Context, facilityID *string, filterParams *dto.ClientFilterParamsInput) ([]*domain.ClientProfile, error)
 	MockCreateUserSurveyFn                               func(ctx context.Context, userSurvey []*dto.UserSurveyInput) error
 	MockCreateMetricFn                                   func(ctx context.Context, payload *domain.Metric) error
+	MockUpdateClientServiceRequestFn                     func(ctx context.Context, clientServiceRequest *domain.ServiceRequest, updateData map[string]interface{}) error
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -1028,6 +1029,9 @@ func NewPostgresMock() *PostgresMock {
 		MockCreateUserSurveyFn: func(ctx context.Context, userSurvey []*dto.UserSurveyInput) error {
 			return nil
 		},
+		MockUpdateClientServiceRequestFn: func(ctx context.Context, clientServiceRequest *domain.ServiceRequest, updateData map[string]interface{}) error {
+			return nil
+		},
 	}
 }
 
@@ -1675,4 +1679,9 @@ func (gm *PostgresMock) CreateUserSurveys(ctx context.Context, survey []*dto.Use
 // CreateMetric saves a metric to the database
 func (gm *PostgresMock) CreateMetric(ctx context.Context, payload *domain.Metric) error {
 	return gm.MockCreateMetricFn(ctx, payload)
+}
+
+// UpdateClientServiceRequest updates a service request
+func (gm *PostgresMock) UpdateClientServiceRequest(ctx context.Context, clientServiceRequest *domain.ServiceRequest, updateData map[string]interface{}) error {
+	return gm.MockUpdateClientServiceRequestFn(ctx, clientServiceRequest, updateData)
 }

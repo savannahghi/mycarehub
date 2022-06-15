@@ -47,6 +47,7 @@ type Update interface {
 	UpdateUserSurveys(ctx context.Context, survey *UserSurvey, updateData map[string]interface{}) error
 	UpdateUser(ctx context.Context, user *User, updateData map[string]interface{}) error
 	UpdateNotification(ctx context.Context, notification *Notification, updateData map[string]interface{}) error
+	UpdateClientServiceRequest(ctx context.Context, clientServiceRequest *ClientServiceRequest, updateData map[string]interface{}) error
 }
 
 // LikeContent performs the actual database operation to update content like. The operation
@@ -1021,5 +1022,16 @@ func (db *PGInstance) UpdateFailedSecurityQuestionsAnsweringAttempts(ctx context
 		tx.Rollback()
 		return fmt.Errorf("transaction commit to update user failed: %v", err)
 	}
+	return nil
+}
+
+// UpdateClientServiceRequest updates the client service request
+func (db *PGInstance) UpdateClientServiceRequest(ctx context.Context, clientServiceRequest *ClientServiceRequest, updateData map[string]interface{}) error {
+	err := db.DB.Model(&ClientServiceRequest{}).Where(&ClientServiceRequest{ID: clientServiceRequest.ID}).Updates(updateData).Error
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return fmt.Errorf("unable to update client service request: %v", err)
+	}
+
 	return nil
 }

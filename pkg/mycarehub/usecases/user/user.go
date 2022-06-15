@@ -88,6 +88,7 @@ type IPIN interface {
 type IClientCaregiver interface {
 	GetClientCaregiver(ctx context.Context, clientID string) (*domain.Caregiver, error)
 	CreateOrUpdateClientCaregiver(ctx context.Context, clientCaregiver *dto.CaregiverInput) (bool, error)
+	TransferClientToFacility(ctx context.Context, clientID *string, facilityID *string) (bool, error)
 }
 
 // IRegisterUser interface defines a method signature that is used to register users
@@ -1225,4 +1226,57 @@ func (us *UseCasesUserImpl) DeleteStreamUser(ctx context.Context, id string) err
 		return fmt.Errorf("error deleting stream user: %w", err)
 	}
 	return nil
+}
+
+// TransferClientToFacility moves a client to a new facility
+// A staff member should search for a client by their id and then transfer them to a facility
+// The client profile is updated with the new facility
+// The dependencies that relate to facility are updated with the current facility information
+// The dependencies include:
+// - All pending service requests (they should be updated to the new facility)
+func (us *UseCasesUserImpl) TransferClientToFacility(ctx context.Context, clientID *string, facilityID *string) (bool, error) {
+	var currentClientFacilityID string
+
+	if clientID == nil || facilityID == nil {
+		err := fmt.Errorf("clientID or facilityID is nil")
+		helpers.ReportErrorToSentry(err)
+		return false, exceptions.EmptyInputErr(err)
+
+	}
+	clientProfile, err := us.Query.GetClientProfileByClientID(ctx, *clientID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, err
+	}
+
+	currentClientFacilityID = clientProfile.FacilityID
+
+	_, err = us.Update.UpdateClient(
+		ctx,
+		&domain.ClientProfile{ID: clientID},
+		map[string]interface{}{"current_facility_id": facilityID},
+	)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, exceptions.UpdateProfileErr(err)
+	}
+
+	serviceRequests, err := us.Query.GetClientServiceRequests(ctx, "", enums.ServiceRequestStatusPending.String(), *clientID, currentClientFacilityID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, err
+	}
+
+	for _, serviceRequest := range serviceRequests {
+		err = us.Update.UpdateClientServiceRequest(
+			ctx,
+			&domain.ServiceRequest{ID: serviceRequest.ID, Status: enums.ServiceRequestStatusPending.String()},
+			map[string]interface{}{"facility_id": facilityID},
+		)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return false, exceptions.InternalErr(err)
+		}
+	}
+	return true, nil
 }
