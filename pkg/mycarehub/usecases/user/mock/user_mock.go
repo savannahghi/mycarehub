@@ -42,6 +42,7 @@ type UserUseCaseMock struct {
 	MockRegisterPushTokenFn             func(ctx context.Context, token string) (bool, error)
 	MockGetClientProfileByCCCNumberFn   func(ctx context.Context, cccNumber string) (*domain.ClientProfile, error)
 	MockDeleteUserFn                    func(ctx context.Context, payload *dto.PhoneInput) (bool, error)
+	MockTransferClientToFacilityFn      func(ctx context.Context, clientID *string, facilityID *string) (bool, error)
 }
 
 // NewUserUseCaseMock creates in initializes create type mocks
@@ -227,6 +228,9 @@ func NewUserUseCaseMock() *UserUseCaseMock {
 				CaregiverID:             &id,
 			}, nil
 		},
+		MockTransferClientToFacilityFn: func(ctx context.Context, clientID *string, facilityID *string) (bool, error) {
+			return true, nil
+		},
 	}
 }
 
@@ -358,4 +362,9 @@ func (f *UserUseCaseMock) GetClientProfileByCCCNumber(ctx context.Context, CCCNu
 // DeleteUser mocks the implementation of deleting a user
 func (f *UserUseCaseMock) DeleteUser(ctx context.Context, payload *dto.PhoneInput) (bool, error) {
 	return f.MockDeleteUserFn(ctx, payload)
+}
+
+// TransferClientToFacility mocks the implementation of transferring a client to a facility
+func (f *UserUseCaseMock) TransferClientToFacility(ctx context.Context, clientID *string, facilityID *string) (bool, error) {
+	return f.MockTransferClientToFacilityFn(ctx, clientID, facilityID)
 }

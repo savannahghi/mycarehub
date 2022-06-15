@@ -1843,3 +1843,54 @@ func TestPGInstance_UpdateUserSurveys(t *testing.T) {
 		})
 	}
 }
+
+func TestPGInstance_UpdateClientServiceRequest(t *testing.T) {
+	ctx := context.Background()
+	invalidClientServiceRequestID := "invalid client service request"
+	type args struct {
+		ctx                  context.Context
+		clientServiceRequest *gorm.ClientServiceRequest
+		updateData           map[string]interface{}
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx: ctx,
+				clientServiceRequest: &gorm.ClientServiceRequest{
+					ID: &clientsServiceRequestID,
+				},
+				updateData: map[string]interface{}{
+					"active": true,
+				},
+			},
+			wantErr: false,
+		},
+		{
+
+			name: "Sad case",
+			args: args{
+				ctx: ctx,
+				clientServiceRequest: &gorm.ClientServiceRequest{
+					ID: &invalidClientServiceRequestID,
+				},
+				updateData: map[string]interface{}{
+					"active": true,
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			if err := testingDB.UpdateClientServiceRequest(tt.args.ctx, tt.args.clientServiceRequest, tt.args.updateData); (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.UpdateClientServiceRequest() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}

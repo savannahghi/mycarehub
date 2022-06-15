@@ -4052,3 +4052,161 @@ func TestUseCasesUserImpl_DeleteStreamUser(t *testing.T) {
 		})
 	}
 }
+
+func TestUseCasesUserImpl_TransferClientToFacility(t *testing.T) {
+	ctx := context.Background()
+	ID := uuid.New().String()
+
+	fakeDB := pgMock.NewPostgresMock()
+	fakeExtension := extensionMock.NewFakeExtension()
+	fakeOTP := otp.NewOTPUseCase(fakeDB, fakeDB, fakeExtension)
+	fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
+	fakeGetStream := getStreamMock.NewGetStreamServiceMock()
+	fakePubsub := pubsubMock.NewPubsubServiceMock()
+	fakeClinical := clinicalMock.NewClinicalServiceMock()
+
+	us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakeGetStream, fakePubsub, fakeClinical)
+
+	type args struct {
+		ctx        context.Context
+		clientID   *string
+		facilityID *string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Successfully transfer client to facility",
+			args: args{
+				ctx:        ctx,
+				clientID:   &ID,
+				facilityID: &ID,
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Sad Case - Missing client ID or facility ID",
+			args: args{
+				ctx: ctx,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - Failed to get client profile by clientID",
+			args: args{
+				ctx:        ctx,
+				clientID:   &ID,
+				facilityID: &ID,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - Failed to update client",
+			args: args{
+				ctx:        ctx,
+				clientID:   &ID,
+				facilityID: &ID,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - Failed to get client service requests",
+			args: args{
+				ctx:        ctx,
+				clientID:   &ID,
+				facilityID: &ID,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - Failed to update client service requests",
+			args: args{
+				ctx:        ctx,
+				clientID:   &ID,
+				facilityID: &ID,
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			if tt.name == "Sad Case - Failed to get client profile by clientID" {
+				fakeDB.MockGetClientProfileByClientIDFn = func(ctx context.Context, clientID string) (*domain.ClientProfile, error) {
+					return nil, fmt.Errorf("failed to get client profile by clientID")
+				}
+			}
+			if tt.name == "Sad Case - Failed to update client" {
+				// get the client profile
+				fakeDB.MockGetClientProfileByClientIDFn = func(ctx context.Context, clientID string) (*domain.ClientProfile, error) {
+					return &domain.ClientProfile{
+						ID: &ID,
+					}, nil
+				}
+				fakeDB.MockUpdateClientFn = func(ctx context.Context, client *domain.ClientProfile, updates map[string]interface{}) (*domain.ClientProfile, error) {
+					return nil, fmt.Errorf("failed to update client")
+				}
+			}
+
+			if tt.name == "Sad Case - Failed to get client service requests" {
+				// get the client profile
+				fakeDB.MockGetClientProfileByClientIDFn = func(ctx context.Context, clientID string) (*domain.ClientProfile, error) {
+					return &domain.ClientProfile{
+						ID: &ID,
+					}, nil
+				}
+				// update the client profile
+				fakeDB.MockUpdateClientFn = func(ctx context.Context, client *domain.ClientProfile, updates map[string]interface{}) (*domain.ClientProfile, error) {
+					return &domain.ClientProfile{
+						ID: &ID,
+					}, nil
+				}
+
+				fakeDB.MockGetClientServiceRequestsFn = func(ctx context.Context, requestType string, status string, clientID string, facilityID string) ([]*domain.ServiceRequest, error) {
+					return nil, fmt.Errorf("failed to get client service requests")
+				}
+			}
+
+			if tt.name == "Sad Case - Failed to update client service requests" {
+				// get the client profile
+				fakeDB.MockGetClientProfileByClientIDFn = func(ctx context.Context, clientID string) (*domain.ClientProfile, error) {
+					return &domain.ClientProfile{
+						ID: &ID,
+					}, nil
+				}
+				// update the client profile
+				fakeDB.MockUpdateClientFn = func(ctx context.Context, client *domain.ClientProfile, updates map[string]interface{}) (*domain.ClientProfile, error) {
+					return &domain.ClientProfile{
+						ID: &ID,
+					}, nil
+				}
+				// get Service Requests
+				fakeDB.MockGetClientServiceRequestsFn = func(ctx context.Context, requestType string, status string, clientID string, facilityID string) ([]*domain.ServiceRequest, error) {
+					return []*domain.ServiceRequest{{ID: ID}}, nil
+				}
+
+				fakeDB.MockUpdateClientServiceRequestFn = func(ctx context.Context, clientServiceRequest *domain.ServiceRequest, updateData map[string]interface{}) error {
+					return fmt.Errorf("failed to update client service requests")
+				}
+			}
+
+			got, err := us.TransferClientToFacility(tt.args.ctx, tt.args.clientID, tt.args.facilityID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCasesUserImpl.TransferClientToFacility() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("UseCasesUserImpl.TransferClientToFacility() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

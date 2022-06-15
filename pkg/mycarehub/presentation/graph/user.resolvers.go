@@ -54,6 +54,10 @@ func (r *mutationResolver) SetUserPin(ctx context.Context, input *dto.PINInput) 
 	return r.mycarehub.User.SetUserPIN(ctx, *input)
 }
 
+func (r *mutationResolver) TransferClientToFacility(ctx context.Context, clientID string, facilityID string) (bool, error) {
+	return r.mycarehub.User.TransferClientToFacility(ctx, &clientID, &facilityID)
+}
+
 func (r *queryResolver) GetCurrentTerms(ctx context.Context, flavour feedlib.Flavour) (*domain.TermsOfService, error) {
 	r.checkPreconditions()
 	return r.mycarehub.Terms.GetCurrentTerms(ctx, flavour)

@@ -2150,3 +2150,42 @@ func TestMyCareHubDb_UpdateUserSurveys(t *testing.T) {
 		})
 	}
 }
+
+func TestMyCareHubDb_UpdateClientServiceRequest(t *testing.T) {
+	ctx := context.Background()
+
+	var fakeGorm = gormMock.NewGormMock()
+	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+	type args struct {
+		ctx                  context.Context
+		clientServiceRequest *domain.ServiceRequest
+		updateData           map[string]interface{}
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "happy case: update a client service request",
+			args: args{
+				ctx: ctx,
+				clientServiceRequest: &domain.ServiceRequest{
+					ID: uuid.New().String(),
+				},
+				updateData: map[string]interface{}{
+					"active": true,
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			if err := d.UpdateClientServiceRequest(tt.args.ctx, tt.args.clientServiceRequest, tt.args.updateData); (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.UpdateClientServiceRequest() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
