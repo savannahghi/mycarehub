@@ -3890,6 +3890,18 @@ func TestUseCasesUserImpl_DeleteUser(t *testing.T) {
 			want:    false,
 			wantErr: true,
 		},
+		{
+			name: "Sad Case - unable to delete FHIR patient profile",
+			args: args{
+				ctx: ctx,
+				payload: &dto.PhoneInput{
+					PhoneNumber: "",
+					Flavour:     feedlib.FlavourConsumer,
+				},
+			},
+			want:    true,
+			wantErr: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -3961,6 +3973,12 @@ func TestUseCasesUserImpl_DeleteUser(t *testing.T) {
 			if tt.name == "Sad Case - unable to delete getstream user - Consumer" {
 				fakeGetStream.MockDeleteUsersFn = func(ctx context.Context, userIDs []string, options stream_chat.DeleteUserOptions) (*stream_chat.AsyncTaskResponse, error) {
 					return nil, fmt.Errorf("failed to delete getstream user")
+				}
+			}
+
+			if tt.name == "Sad Case - unable to delete FHIR patient profile" {
+				fakeClinical.MockDeleteFHIRPatientByPhoneFn = func(ctx context.Context, phoneNumber string) error {
+					return fmt.Errorf("failed to delete FHIR patient profile")
 				}
 			}
 

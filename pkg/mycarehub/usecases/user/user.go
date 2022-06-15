@@ -12,6 +12,7 @@ import (
 	"time"
 
 	getStreamClient "github.com/GetStream/stream-chat-go/v5"
+	"github.com/cenkalti/backoff/v4"
 	"github.com/hashicorp/go-multierror"
 	"github.com/lib/pq"
 	"github.com/savannahghi/converterandformatter"
@@ -1153,11 +1154,27 @@ func (us *UseCasesUserImpl) DeleteUser(ctx context.Context, payload *dto.PhoneIn
 			return false, fmt.Errorf("failed to get a client profile: %w", err)
 		}
 
-		err = us.Clinical.DeleteFHIRPatientByPhone(ctx, payload.PhoneNumber)
-		if err != nil {
-			helpers.ReportErrorToSentry(err)
-			return false, fmt.Errorf("error deleting FHIR patient profile: %w", err)
-		}
+		go func() {
+			ctx, cancel := context.WithTimeout(ctx, time.Duration(time.Minute*10))
+			defer cancel()
+
+			backOff := backoff.WithContext(backoff.NewExponentialBackOff(), ctx)
+			deletePatientProfile := func() error {
+				err = us.Clinical.DeleteFHIRPatientByPhone(ctx, payload.PhoneNumber)
+				if err != nil {
+					helpers.ReportErrorToSentry(err)
+					return fmt.Errorf("error deleting FHIR patient profile: %w", err)
+				}
+				return nil
+			}
+			if err := backoff.Retry(
+				deletePatientProfile,
+				backOff,
+			); err != nil {
+				helpers.ReportErrorToSentry(err)
+				return
+			}
+		}()
 
 		err = us.DeleteStreamUser(ctx, *client.ID)
 		if err != nil {
