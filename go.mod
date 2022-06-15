@@ -9,6 +9,7 @@ require (
 	github.com/GetStream/stream-chat-go/v5 v5.0.0
 	github.com/GoogleCloudPlatform/cloudsql-proxy v1.27.0
 	github.com/brianvoe/gofakeit v3.18.0+incompatible
+	github.com/cenkalti/backoff/v4 v4.1.3
 	github.com/getsentry/sentry-go v0.12.0
 	github.com/go-testfixtures/testfixtures/v3 v3.6.1
 	github.com/google/uuid v1.3.0
@@ -34,6 +35,7 @@ require (
 	github.com/vektah/gqlparser/v2 v2.2.0
 	go.opencensus.io v0.23.0
 	go.opentelemetry.io/contrib/instrumentation/github.com/gorilla/mux/otelmux v0.21.0
+	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
 	google.golang.org/api v0.71.0
 	gopkg.in/go-playground/validator.v9 v9.31.0
 	gorm.io/driver/postgres v1.2.1
@@ -120,7 +122,6 @@ require (
 	golang.org/x/mod v0.5.1 // indirect
 	golang.org/x/net v0.0.0-20220225172249-27dd8689420f // indirect
 	golang.org/x/oauth2 v0.0.0-20220223155221-ee480838109b // indirect
-	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c // indirect
 	golang.org/x/sys v0.0.0-20220227234510-4e6760a101f9 // indirect
 	golang.org/x/text v0.3.7 // indirect
 	golang.org/x/time v0.0.0-20210723032227-1f47c861a9ac // indirect
