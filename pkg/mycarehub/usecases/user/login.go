@@ -330,16 +330,23 @@ func (us *UseCasesUserImpl) addGetStreamToken(ctx context.Context, credentials *
 	var user *stream.User
 	userProfile := response.GetUserProfile()
 
+	userAge := utils.CalculateAge(*userProfile.DateOfBirth)
+
 	switch credentials.Flavour {
 	case feedlib.FlavourConsumer:
 		client := response.GetClientProfile()
+
 		user = &stream.User{
 			ID:   *client.ID,
 			Name: userProfile.Name,
 			ExtraData: map[string]interface{}{
-				"userID":   userProfile.ID,
-				"userType": enums.ClientUser.String(),
-				"username": userProfile.Username,
+				"userID":        userProfile.ID,
+				"userType":      enums.ClientUser.String(),
+				"username":      userProfile.Username,
+				"ageUpperBound": userAge,
+				"ageLowerBound": userAge,
+				"clientTypes":   client.ClientTypes,
+				"gender":        userProfile.Gender,
 			},
 		}
 

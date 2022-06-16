@@ -368,14 +368,17 @@ type ComplexityRoot struct {
 	}
 
 	Member struct {
-		ExtraData func(childComplexity int) int
-		Gender    func(childComplexity int) int
-		ID        func(childComplexity int) int
-		Name      func(childComplexity int) int
-		Role      func(childComplexity int) int
-		UserID    func(childComplexity int) int
-		UserType  func(childComplexity int) int
-		Username  func(childComplexity int) int
+		AgeLowerBound func(childComplexity int) int
+		AgeUpperBound func(childComplexity int) int
+		ClientTypes   func(childComplexity int) int
+		ExtraData     func(childComplexity int) int
+		Gender        func(childComplexity int) int
+		ID            func(childComplexity int) int
+		Name          func(childComplexity int) int
+		Role          func(childComplexity int) int
+		UserID        func(childComplexity int) int
+		UserType      func(childComplexity int) int
+		Username      func(childComplexity int) int
 	}
 
 	MessageFlag struct {
@@ -2248,6 +2251,27 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ImageMeta.Type(childComplexity), true
+
+	case "Member.ageLowerBound":
+		if e.complexity.Member.AgeLowerBound == nil {
+			break
+		}
+
+		return e.complexity.Member.AgeLowerBound(childComplexity), true
+
+	case "Member.ageUpperBound":
+		if e.complexity.Member.AgeUpperBound == nil {
+			break
+		}
+
+		return e.complexity.Member.AgeUpperBound(childComplexity), true
+
+	case "Member.clientTypes":
+		if e.complexity.Member.ClientTypes == nil {
+			break
+		}
+
+		return e.complexity.Member.ClientTypes(childComplexity), true
 
 	case "Member.extraData":
 		if e.complexity.Member.ExtraData == nil {
@@ -5146,6 +5170,9 @@ type Member {
   gender: Gender!
   userType: String
   extraData: Map
+  ageUpperBound: Int
+  ageLowerBound: Int
+  clientTypes: [String]
 }
 
 """
@@ -5417,12 +5444,9 @@ extend type Mutation {
     reinvite: Boolean
   ): Boolean!
   setUserPIN(input: PINInput): Boolean!
+  transferClientToFacility(clientId: ID! facilityId: ID!): Boolean!
 }
-
-
-extend type Mutation{
-    transferClientToFacility(clientId: ID! facilityId: ID!): Boolean!
-}`, BuiltIn: false},
+`, BuiltIn: false},
 	{Name: "federation/directives.graphql", Input: `
 scalar _Any
 scalar _FieldSet
@@ -14675,6 +14699,102 @@ func (ec *executionContext) _Member_extraData(ctx context.Context, field graphql
 	res := resTmp.(map[string]interface{})
 	fc.Result = res
 	return ec.marshalOMap2map(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Member_ageUpperBound(ctx context.Context, field graphql.CollectedField, obj *domain.Member) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Member",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.AgeUpperBound, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalOInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Member_ageLowerBound(ctx context.Context, field graphql.CollectedField, obj *domain.Member) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Member",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.AgeLowerBound, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalOInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Member_clientTypes(ctx context.Context, field graphql.CollectedField, obj *domain.Member) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Member",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ClientTypes, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]string)
+	fc.Result = res
+	return ec.marshalOString2ᚕstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _MessageFlag_user(ctx context.Context, field graphql.CollectedField, obj *domain.MessageFlag) (ret graphql.Marshaler) {
@@ -26731,6 +26851,12 @@ func (ec *executionContext) _Member(ctx context.Context, sel ast.SelectionSet, o
 			out.Values[i] = ec._Member_userType(ctx, field, obj)
 		case "extraData":
 			out.Values[i] = ec._Member_extraData(ctx, field, obj)
+		case "ageUpperBound":
+			out.Values[i] = ec._Member_ageUpperBound(ctx, field, obj)
+		case "ageLowerBound":
+			out.Values[i] = ec._Member_ageLowerBound(ctx, field, obj)
+		case "clientTypes":
+			out.Values[i] = ec._Member_clientTypes(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -32325,6 +32451,42 @@ func (ec *executionContext) unmarshalOString2string(ctx context.Context, v inter
 
 func (ec *executionContext) marshalOString2string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
 	return graphql.MarshalString(v)
+}
+
+func (ec *executionContext) unmarshalOString2ᚕstring(ctx context.Context, v interface{}) ([]string, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]string, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalOString2string(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalOString2ᚕstring(ctx context.Context, sel ast.SelectionSet, v []string) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	for i := range v {
+		ret[i] = ec.marshalOString2string(ctx, sel, v[i])
+	}
+
+	return ret
 }
 
 func (ec *executionContext) unmarshalOString2ᚕstringᚄ(ctx context.Context, v interface{}) ([]string, error) {
