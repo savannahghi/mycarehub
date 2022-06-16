@@ -167,7 +167,7 @@ func (e *External) SendInviteSMS(ctx context.Context, phoneNumber, message strin
 
 // SendFeedback sends the clients feed email
 func (e *External) SendFeedback(ctx context.Context, subject, feedbackMessage string) (bool, error) {
-	_, err := e.emailExtension.SimpleEmail(ctx, subject, feedbackMessage, nil, serverutils.MustGetEnvVar("SAVANNAH_ADMIN_EMAIL"))
+	_, err := e.emailExtension.SimpleEmail(ctx, subject, feedbackMessage, nil, serverutils.MustGetEnvVar("MYCAREHUB_ADMIN_EMAIL"))
 	if err != nil {
 		return false, fmt.Errorf("an erro occurred while sending the feedback: %v", err)
 	}
