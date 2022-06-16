@@ -9,6 +9,7 @@ import (
 	stream "github.com/GetStream/stream-chat-go/v5"
 	"github.com/google/uuid"
 	"github.com/mitchellh/mapstructure"
+	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
@@ -177,12 +178,16 @@ func (us *UseCasesCommunitiesImpl) ListMembers(ctx context.Context, input *strea
 		}
 
 		Users := domain.Member{
-			ID:       user.ID,
-			Name:     user.Name,
-			Role:     user.Role,
-			UserID:   metadata.UserID,
-			UserType: metadata.UserType,
-			Username: metadata.Username,
+			ID:            user.ID,
+			Name:          user.Name,
+			Role:          user.Role,
+			UserID:        metadata.UserID,
+			UserType:      metadata.UserType,
+			Username:      metadata.Username,
+			Gender:        enumutils.Gender(metadata.Gender),
+			AgeUpperBound: metadata.AgeUpperBound,
+			AgeLowerBound: metadata.AgeLowerBound,
+			ClientTypes:   metadata.ClientTypes,
 		}
 		userResponse = append(userResponse, &Users)
 	}

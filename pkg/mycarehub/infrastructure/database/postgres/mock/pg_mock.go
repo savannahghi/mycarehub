@@ -164,6 +164,8 @@ func NewPostgresMock() *PostgresMock {
 	description := gofakeit.HipsterSentence(15)
 	currentTime := time.Now()
 
+	pastYear := time.Now().AddDate(-3, 0, 0)
+
 	facilityInput := &domain.Facility{
 		ID:          &ID,
 		Name:        name,
@@ -219,6 +221,7 @@ func NewPostgresMock() *PostgresMock {
 			UserID:       &ID,
 			Flavour:      "CONSUMER",
 		},
+		DateOfBirth: &pastYear,
 	}
 
 	client := &domain.ClientProfile{

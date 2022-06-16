@@ -43,7 +43,9 @@ func FormatFilterParamsHelper(a map[string]interface{}) map[string]interface{} {
 		"eq":           "$eq",
 		"ne":           "$ne",
 		"in":           "$in",
+		"nin":          "$nin",
 		"autocomplete": "$autocomplete",
+		"q":            "$q",
 	}
 
 	newMap := map[string]interface{}{}

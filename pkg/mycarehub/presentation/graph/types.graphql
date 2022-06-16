@@ -294,6 +294,9 @@ type Member {
   gender: Gender!
   userType: String
   extraData: Map
+  ageUpperBound: Int
+  ageLowerBound: Int
+  clientTypes: [String]
 }
 
 """

@@ -47,10 +47,13 @@ type Member struct {
 	Name   string `json:"name"`
 	Role   string `json:"role"`
 
-	Username  string                 `json:"username"`
-	Gender    enumutils.Gender       `json:"gender"`
-	UserType  string                 `json:"userType"`
-	ExtraData map[string]interface{} `json:"extraData"`
+	Username      string                 `json:"username"`
+	Gender        enumutils.Gender       `json:"gender"`
+	UserType      string                 `json:"userType"`
+	ExtraData     map[string]interface{} `json:"extraData"`
+	AgeUpperBound int                    `json:"ageUpperBound"`
+	AgeLowerBound int                    `json:"ageLowerBound"`
+	ClientTypes   []string               `json:"clientTypes"`
 }
 
 // CommunityMember represents a user in a community and their associated additional details.
@@ -78,10 +81,21 @@ type CommunityMetadata struct {
 }
 
 // MemberMetadata is extra data that is associated with a getstream user.
+// AgeLowerBound is used to help with the filtering of community members
+// Currently, Getstream does not allow the multiple queries in one field
+// E.g. { filter: {age: {$lte: 25, $gt: 18}} }
+// This is a workaround to allow for the multiple queries in one field
+// E.g. { filter: {age: {$lte: 18}, ageLowerBound{$gte: 25}}} }
+// AgeUpperBound and AgeLowerBound will contain the same value; AgeUpperBound represents the
+// upper bound and AgeLowerBound represents the lower bound
 type MemberMetadata struct {
-	UserID   string `json:"userID"`
-	UserType string `json:"userType"`
-	Username string `json:"username"`
+	UserID        string   `json:"userID"`
+	UserType      string   `json:"userType"`
+	Username      string   `json:"username"`
+	Gender        string   `json:"gender"`
+	AgeUpperBound int      `json:"ageUpperBound"`
+	AgeLowerBound int      `json:"ageLowerBound"`
+	ClientTypes   []string `json:"clientTypes"`
 }
 
 // AIModerationResponse is the response from the AIModeration service
