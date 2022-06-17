@@ -25,6 +25,9 @@ const (
 	// NotificationTypeRoleAssignment represents a role assignment notification
 	NotificationTypeRoleAssignment NotificationType = "ROLE_ASSIGNMENT"
 
+	// NotificationTypeRoleRevocation represents a role assignment notification
+	NotificationTypeRoleRevocation NotificationType = "ROLE_REVOCATION"
+
 	// NotificationTypeDemoteModerator represents a demote moderator notification
 	NotificationTypeDemoteModerator NotificationType = "DEMOTE_MODERATOR"
 
@@ -39,6 +42,7 @@ func (n NotificationType) IsValid() bool {
 		NotificationTypeAppointment,
 		NotificationTypeServiceRequest,
 		NotificationTypeCommunities,
+		NotificationTypeRoleRevocation,
 		NotificationTypeRoleAssignment,
 		NotificationTypeSurveys,
 		NotificationTypeDemoteModerator,
