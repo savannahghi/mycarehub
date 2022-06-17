@@ -1473,10 +1473,10 @@ func (d *MyCareHubDb) GetClientProfileByCCCNumber(ctx context.Context, CCCNumber
 	}, nil
 }
 
-// SearchClientProfilesByCCCNumber searches for client profiles with the specified CCC number.
-// It returns a list of profiles whose CCC number may match at a given time
-func (d *MyCareHubDb) SearchClientProfilesByCCCNumber(ctx context.Context, CCCNumber string) ([]*domain.ClientProfile, error) {
-	clientProfile, err := d.query.SearchClientProfilesByCCCNumber(ctx, CCCNumber)
+// SearchClientProfile searches for client profiles with the specified CCC number, phonenumber or username
+// It returns a list of profiles that match the passed parameter
+func (d *MyCareHubDb) SearchClientProfile(ctx context.Context, searchParameter string) ([]*domain.ClientProfile, error) {
+	clientProfile, err := d.query.SearchClientProfile(ctx, searchParameter)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, err

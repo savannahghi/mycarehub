@@ -3504,8 +3504,8 @@ func TestUseCasesUserImpl_SearchClientByCCCNumber(t *testing.T) {
 	us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakeGetStream, fakePubsub, fakeClinical)
 
 	type args struct {
-		ctx       context.Context
-		CCCNumber string
+		ctx             context.Context
+		searchParameter string
 	}
 	tests := []struct {
 		name    string
@@ -3516,16 +3516,16 @@ func TestUseCasesUserImpl_SearchClientByCCCNumber(t *testing.T) {
 		{
 			name: "Happy case",
 			args: args{
-				ctx:       ctx,
-				CCCNumber: uuid.New().String(),
+				ctx:             ctx,
+				searchParameter: uuid.New().String(),
 			},
 			wantErr: false,
 		},
 		{
 			name: "Sad case",
 			args: args{
-				ctx:       ctx,
-				CCCNumber: uuid.New().String(),
+				ctx:             ctx,
+				searchParameter: uuid.New().String(),
 			},
 			wantErr: true,
 		},
@@ -3540,16 +3540,16 @@ func TestUseCasesUserImpl_SearchClientByCCCNumber(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.name == "Sad case" {
-				fakeDB.MockSearchClientProfilesByCCCNumberFn = func(ctx context.Context, CCCNumber string) ([]*domain.ClientProfile, error) {
+				fakeDB.MockSearchClientProfileFn = func(ctx context.Context, CCCNumber string) ([]*domain.ClientProfile, error) {
 					return nil, fmt.Errorf("an error occurred")
 				}
 			}
 			if tt.name == "Sad case - empty CCC number" {
-				fakeDB.MockSearchClientProfilesByCCCNumberFn = func(ctx context.Context, CCCNumber string) ([]*domain.ClientProfile, error) {
+				fakeDB.MockSearchClientProfileFn = func(ctx context.Context, CCCNumber string) ([]*domain.ClientProfile, error) {
 					return nil, fmt.Errorf("an error occurred")
 				}
 			}
-			got, err := us.SearchClientsByCCCNumber(tt.args.ctx, tt.args.CCCNumber)
+			got, err := us.SearchClientUser(tt.args.ctx, tt.args.searchParameter)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCasesUserImpl.GetClientByCCCNumber() error = %v, wantErr %v", err, tt.wantErr)
 				return

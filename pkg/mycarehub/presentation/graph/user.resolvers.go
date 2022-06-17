@@ -71,8 +71,8 @@ func (r *queryResolver) GetClientCaregiver(ctx context.Context, clientID string)
 	return r.mycarehub.User.GetClientCaregiver(ctx, clientID)
 }
 
-func (r *queryResolver) SearchClientsByCCCNumber(ctx context.Context, cCCNumber string) ([]*domain.ClientProfile, error) {
-	return r.mycarehub.User.SearchClientsByCCCNumber(ctx, cCCNumber)
+func (r *queryResolver) SearchClientUser(ctx context.Context, searchParameter string) ([]*domain.ClientProfile, error) {
+	return r.mycarehub.User.SearchClientUser(ctx, searchParameter)
 }
 
 func (r *queryResolver) SearchStaffUser(ctx context.Context, searchParameter string) ([]*domain.StaffProfile, error) {

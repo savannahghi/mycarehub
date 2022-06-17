@@ -103,9 +103,9 @@ type IClientMedicalHistory interface {
 	RegisteredFacilityPatients(ctx context.Context, input dto.PatientSyncPayload) (*dto.PatientSyncResponse, error)
 }
 
-// ISearchClientByCCCNumber interface contain the method used to get a client using his/her CCC number
-type ISearchClientByCCCNumber interface {
-	SearchClientsByCCCNumber(ctx context.Context, CCCNumber string) ([]*domain.ClientProfile, error)
+// ISearchClientUser interface contain the method used to retrieve client(s) from the database
+type ISearchClientUser interface {
+	SearchClientUser(ctx context.Context, searchParameter string) ([]*domain.ClientProfile, error)
 }
 
 // ISearchStaffUser interface contain the method used to retrieve staff(s) from the database
@@ -147,7 +147,7 @@ type UseCasesUser interface {
 	IClientCaregiver
 	IRegisterUser
 	IClientMedicalHistory
-	ISearchClientByCCCNumber
+	ISearchClientUser
 	ISearchStaffUser
 	IConsent
 	IUserProfile
@@ -1059,15 +1059,15 @@ func (us *UseCasesUserImpl) RegisterStaff(ctx context.Context, input dto.StaffRe
 	return registrationOutput, nil
 }
 
-// SearchClientsByCCCNumber is used to search for a client using their CCC number.
-func (us *UseCasesUserImpl) SearchClientsByCCCNumber(ctx context.Context, CCCNumber string) ([]*domain.ClientProfile, error) {
-	if CCCNumber == "" {
-		return nil, fmt.Errorf("ccc number must not be empty")
+// SearchClientUser is used to search for a client member(s) using either of their phonenumber, username or CCC number.
+func (us *UseCasesUserImpl) SearchClientUser(ctx context.Context, searchParameter string) ([]*domain.ClientProfile, error) {
+	if searchParameter == "" {
+		return nil, fmt.Errorf("search parameter cannot be empty")
 	}
-	clientProfile, err := us.Query.SearchClientProfilesByCCCNumber(ctx, CCCNumber)
+	clientProfile, err := us.Query.SearchClientProfile(ctx, searchParameter)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return nil, fmt.Errorf("unable to get client profile: %v", err)
+		return nil, fmt.Errorf("unable to get client profile: %w", err)
 	}
 
 	return clientProfile, nil
@@ -1156,10 +1156,10 @@ func (us *UseCasesUserImpl) DeleteUser(ctx context.Context, payload *dto.PhoneIn
 		}
 
 		go func() {
-			ctx, cancel := context.WithTimeout(ctx, time.Duration(time.Minute*10))
+			timeoutContext, cancel := context.WithTimeout(context.Background(), time.Duration(time.Minute*10))
 			defer cancel()
 
-			backOff := backoff.WithContext(backoff.NewExponentialBackOff(), ctx)
+			backOff := backoff.WithContext(backoff.NewExponentialBackOff(), timeoutContext)
 			deletePatientProfile := func() error {
 				err = us.Clinical.DeleteFHIRPatientByPhone(ctx, payload.PhoneNumber)
 				if err != nil {

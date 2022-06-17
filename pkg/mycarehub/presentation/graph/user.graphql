@@ -2,7 +2,7 @@ extend type Query {
   getCurrentTerms(flavour: Flavour!): TermsOfService!
   verifyPIN(userID: String!, flavour: Flavour!, pin: String!): Boolean!
   getClientCaregiver(clientID: String!): Caregiver!
-  searchClientsByCCCNumber(CCCNumber: String!): [ClientProfile!]
+  searchClientUser(searchParameter: String!): [ClientProfile!]
   searchStaffUser(searchParameter: String!): [StaffProfile!]
   getClientProfileByCCCNumber(CCCNumber: String!): ClientProfile!
 }

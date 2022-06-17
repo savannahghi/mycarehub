@@ -112,7 +112,7 @@ type PostgresMock struct {
 	MockListAppointments                                 func(ctx context.Context, params *domain.Appointment, filters []*firebasetools.FilterParam, pagination *domain.Pagination) ([]*domain.Appointment, *domain.Pagination, error)
 	MockGetClientProfileByCCCNumberFn                    func(ctx context.Context, CCCNumber string) (*domain.ClientProfile, error)
 	MockUpdateUserPinChangeRequiredStatusFn              func(ctx context.Context, userID string, flavour feedlib.Flavour, status bool) error
-	MockSearchClientProfilesByCCCNumberFn                func(ctx context.Context, CCCNumber string) ([]*domain.ClientProfile, error)
+	MockSearchClientProfileFn                            func(ctx context.Context, searchParameter string) ([]*domain.ClientProfile, error)
 	MockCheckIfClientHasUnresolvedServiceRequestsFn      func(ctx context.Context, clientID string, serviceRequestType string) (bool, error)
 	MockUpdateUserSurveysFn                              func(ctx context.Context, survey *domain.UserSurvey, updateData map[string]interface{}) error
 	MockGetAllRolesFn                                    func(ctx context.Context) ([]*domain.AuthorityRole, error)
@@ -603,7 +603,7 @@ func NewPostgresMock() *PostgresMock {
 				},
 			}, &domain.Pagination{}, nil
 		},
-		MockSearchClientProfilesByCCCNumberFn: func(ctx context.Context, CCCNumber string) ([]*domain.ClientProfile, error) {
+		MockSearchClientProfileFn: func(ctx context.Context, searchParameter string) ([]*domain.ClientProfile, error) {
 			return []*domain.ClientProfile{client}, nil
 		},
 		MockCheckIfUserBookmarkedContentFn: func(ctx context.Context, userID string, contentID int) (bool, error) {
@@ -1503,10 +1503,10 @@ func (gm *PostgresMock) GetAllRoles(ctx context.Context) ([]*domain.AuthorityRol
 	return gm.MockGetAllRolesFn(ctx)
 }
 
-// SearchClientProfilesByCCCNumber mocks the implementation of searching for client profiles.
+// SearchClientProfile mocks the implementation of searching for client profiles.
 // It returns clients profiles whose parts of the CCC number matches
-func (gm *PostgresMock) SearchClientProfilesByCCCNumber(ctx context.Context, CCCNumber string) ([]*domain.ClientProfile, error) {
-	return gm.MockSearchClientProfilesByCCCNumberFn(ctx, CCCNumber)
+func (gm *PostgresMock) SearchClientProfile(ctx context.Context, CCCNumber string) ([]*domain.ClientProfile, error) {
+	return gm.MockSearchClientProfileFn(ctx, CCCNumber)
 }
 
 // UpdateClient updates the client details for a particular client

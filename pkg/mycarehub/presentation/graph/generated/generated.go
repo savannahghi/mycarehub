@@ -531,7 +531,7 @@ type ComplexityRoot struct {
 		RecommendedCommunities                  func(childComplexity int, clientID string, limit int) int
 		RetrieveFacility                        func(childComplexity int, id string, active bool) int
 		RetrieveFacilityByMFLCode               func(childComplexity int, mflCode int, isActive bool) int
-		SearchClientsByCCCNumber                func(childComplexity int, cCCNumber string) int
+		SearchClientUser                        func(childComplexity int, searchParameter string) int
 		SearchStaffUser                         func(childComplexity int, searchParameter string) int
 		SendOtp                                 func(childComplexity int, phoneNumber string, flavour feedlib.Flavour) int
 		VerifyPin                               func(childComplexity int, userID string, flavour feedlib.Flavour, pin string) int
@@ -783,7 +783,7 @@ type QueryResolver interface {
 	GetCurrentTerms(ctx context.Context, flavour feedlib.Flavour) (*domain.TermsOfService, error)
 	VerifyPin(ctx context.Context, userID string, flavour feedlib.Flavour, pin string) (bool, error)
 	GetClientCaregiver(ctx context.Context, clientID string) (*domain.Caregiver, error)
-	SearchClientsByCCCNumber(ctx context.Context, cCCNumber string) ([]*domain.ClientProfile, error)
+	SearchClientUser(ctx context.Context, searchParameter string) ([]*domain.ClientProfile, error)
 	SearchStaffUser(ctx context.Context, searchParameter string) ([]*domain.StaffProfile, error)
 	GetClientProfileByCCCNumber(ctx context.Context, cCCNumber string) (*domain.ClientProfile, error)
 }
@@ -3608,17 +3608,17 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.RetrieveFacilityByMFLCode(childComplexity, args["mflCode"].(int), args["isActive"].(bool)), true
 
-	case "Query.searchClientsByCCCNumber":
-		if e.complexity.Query.SearchClientsByCCCNumber == nil {
+	case "Query.searchClientUser":
+		if e.complexity.Query.SearchClientUser == nil {
 			break
 		}
 
-		args, err := ec.field_Query_searchClientsByCCCNumber_args(context.TODO(), rawArgs)
+		args, err := ec.field_Query_searchClientUser_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Query.SearchClientsByCCCNumber(childComplexity, args["CCCNumber"].(string)), true
+		return e.complexity.Query.SearchClientUser(childComplexity, args["searchParameter"].(string)), true
 
 	case "Query.searchStaffUser":
 		if e.complexity.Query.SearchStaffUser == nil {
@@ -5423,7 +5423,7 @@ type UserSurvey {
   getCurrentTerms(flavour: Flavour!): TermsOfService!
   verifyPIN(userID: String!, flavour: Flavour!, pin: String!): Boolean!
   getClientCaregiver(clientID: String!): Caregiver!
-  searchClientsByCCCNumber(CCCNumber: String!): [ClientProfile!]
+  searchClientUser(searchParameter: String!): [ClientProfile!]
   searchStaffUser(searchParameter: String!): [StaffProfile!]
   getClientProfileByCCCNumber(CCCNumber: String!): ClientProfile!
 }
@@ -7339,18 +7339,18 @@ func (ec *executionContext) field_Query_retrieveFacility_args(ctx context.Contex
 	return args, nil
 }
 
-func (ec *executionContext) field_Query_searchClientsByCCCNumber_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Query_searchClientUser_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
-	if tmp, ok := rawArgs["CCCNumber"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("CCCNumber"))
+	if tmp, ok := rawArgs["searchParameter"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("searchParameter"))
 		arg0, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["CCCNumber"] = arg0
+	args["searchParameter"] = arg0
 	return args, nil
 }
 
@@ -19575,7 +19575,7 @@ func (ec *executionContext) _Query_getClientCaregiver(ctx context.Context, field
 	return ec.marshalNCaregiver2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐCaregiver(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Query_searchClientsByCCCNumber(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _Query_searchClientUser(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -19592,7 +19592,7 @@ func (ec *executionContext) _Query_searchClientsByCCCNumber(ctx context.Context,
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Query_searchClientsByCCCNumber_args(ctx, rawArgs)
+	args, err := ec.field_Query_searchClientUser_args(ctx, rawArgs)
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
@@ -19600,7 +19600,7 @@ func (ec *executionContext) _Query_searchClientsByCCCNumber(ctx context.Context,
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().SearchClientsByCCCNumber(rctx, args["CCCNumber"].(string))
+		return ec.resolvers.Query().SearchClientUser(rctx, args["searchParameter"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -27940,7 +27940,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				}
 				return res
 			})
-		case "searchClientsByCCCNumber":
+		case "searchClientUser":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
 				defer func() {
@@ -27948,7 +27948,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Query_searchClientsByCCCNumber(ctx, field)
+				res = ec._Query_searchClientUser(ctx, field)
 				return res
 			})
 		case "searchStaffUser":
