@@ -70,7 +70,7 @@ type Query interface {
 	GetRecentHealthDiaryEntries(ctx context.Context, lastSyncTime time.Time, clientID string) ([]*ClientHealthDiaryEntry, error)
 	GetClientsByParams(ctx context.Context, query Client, lastSyncTime *time.Time) ([]*Client, error)
 	GetClientCCCIdentifier(ctx context.Context, clientID string) (*Identifier, error)
-	SearchClientProfilesByCCCNumber(ctx context.Context, CCCNumber string) ([]*Client, error)
+	SearchClientProfile(ctx context.Context, searchParameter string) ([]*Client, error)
 	SearchStaffProfile(ctx context.Context, searchParameter string) ([]*StaffProfile, error)
 	GetServiceRequestsForKenyaEMR(ctx context.Context, facilityID string, lastSyncTime time.Time) ([]*ClientServiceRequest, error)
 	GetScreeningToolQuestions(ctx context.Context, toolType string) ([]ScreeningToolQuestion, error)
@@ -1140,7 +1140,7 @@ func (db *PGInstance) GetClientCCCIdentifier(ctx context.Context, clientID strin
 	}
 
 	var identifier Identifier
-	err = db.DB.Where(ids).Where("identifier_type = ?", "CCC").Where("active = ?", true).First(&identifier).Error
+	err = db.DB.Where(ids).First(&identifier).Error
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed to find client identifiers: %v", err)
@@ -1214,16 +1214,21 @@ func (db *PGInstance) GetAllRoles(ctx context.Context) ([]*AuthorityRole, error)
 	return roles, nil
 }
 
-// SearchClientProfilesByCCCNumber is used to search for client profiles
-// It returns clients profiles whose parts of the CCC number matches
-func (db *PGInstance) SearchClientProfilesByCCCNumber(ctx context.Context, CCCNumber string) ([]*Client, error) {
+// SearchClientProfile is used to query for a client profile. It uses pattern matching against the ccc number, phonenumber or username
+func (db *PGInstance) SearchClientProfile(ctx context.Context, searchParameter string) ([]*Client, error) {
 	var client []*Client
-	if err := db.DB.Joins("JOIN clients_client_identifiers on clients_client.id = clients_client_identifiers.client_id").
+	if err := db.DB.Joins("JOIN users_user on users_user.id = clients_client.user_id").
+		Joins("JOIN clients_client_identifiers on clients_client.id = clients_client_identifiers.client_id").
 		Joins("JOIN clients_identifier on clients_identifier.id = clients_client_identifiers.identifier_id").
-		Where("clients_identifier.identifier_type = ? AND clients_identifier.identifier_value ~~* ? ", "CCC", "%"+CCCNumber+"%").
-		Preload(clause.Associations).Find(&client).Error; err != nil {
-		return nil, fmt.Errorf("failed to get client profile by CCC number: %v", err)
+		Joins("JOIN common_contact on users_user.id = common_contact.user_id").
+		Where(db.DB.Where("clients_identifier.identifier_value ILIKE ? AND clients_identifier.identifier_type = ?", "%"+searchParameter+"%", "CCC").
+			Or("users_user.username ILIKE ? ", "%"+searchParameter+"%").
+			Or("common_contact.contact_value ILIKE ?", "%"+searchParameter+"%"),
+		).Preload(clause.Associations).Find(&client).Error; err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, fmt.Errorf("failed to get client profile: %w", err)
 	}
+
 	return client, nil
 }
 

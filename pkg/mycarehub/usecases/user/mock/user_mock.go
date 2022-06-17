@@ -29,7 +29,7 @@ type UserUseCaseMock struct {
 	MockRegisterClientFn                func(ctx context.Context, input *dto.ClientRegistrationInput) (*dto.ClientRegistrationOutput, error)
 	MockRefreshGetStreamTokenFn         func(ctx context.Context, userID string) (*domain.GetStreamToken, error)
 	MockRegisterStaffFn                 func(ctx context.Context, input dto.StaffRegistrationInput) (*dto.StaffRegistrationOutput, error)
-	MockSearchClientsByCCCNumberFn      func(ctx context.Context, CCCNumber string) ([]*domain.ClientProfile, error)
+	MockSearchClientUserFn              func(ctx context.Context, searchParameter string) ([]*domain.ClientProfile, error)
 	MockCompleteOnboardingTourFn        func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
 	MockRegisterKenyaEMRPatientsFn      func(ctx context.Context, input []*dto.PatientRegistrationPayload) ([]*dto.PatientRegistrationPayload, error)
 	MockRegisteredFacilityPatientsFn    func(ctx context.Context, input dto.PatientSyncPayload) (*dto.PatientSyncResponse, error)
@@ -136,7 +136,7 @@ func NewUserUseCaseMock() *UserUseCaseMock {
 				ID: uuid.New().String(),
 			}, nil
 		},
-		MockSearchClientsByCCCNumberFn: func(ctx context.Context, CCCNumber string) ([]*domain.ClientProfile, error) {
+		MockSearchClientUserFn: func(ctx context.Context, searchParameter string) ([]*domain.ClientProfile, error) {
 			clientID := uuid.New().String()
 			client := &domain.ClientProfile{
 				ID:                      &clientID,
@@ -299,9 +299,9 @@ func (f *UserUseCaseMock) RegisterStaff(ctx context.Context, input dto.StaffRegi
 	return f.MockRegisterStaffFn(ctx, input)
 }
 
-// SearchClientsByCCCNumber mocks the implementation getting the client by CCC number
-func (f *UserUseCaseMock) SearchClientsByCCCNumber(ctx context.Context, CCCNumber string) ([]*domain.ClientProfile, error) {
-	return f.MockSearchClientsByCCCNumberFn(ctx, CCCNumber)
+// SearchClientUser mocks the implementation getting the client by CCC number, username or phonenumber
+func (f *UserUseCaseMock) SearchClientUser(ctx context.Context, CCCNumber string) ([]*domain.ClientProfile, error) {
+	return f.MockSearchClientUserFn(ctx, CCCNumber)
 }
 
 // CompleteOnboardingTour mocks the implementation of completing an onboarding tour
