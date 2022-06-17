@@ -2,6 +2,7 @@ package getstream_test
 
 import (
 	"context"
+	"reflect"
 	"testing"
 
 	stream "github.com/GetStream/stream-chat-go/v5"
@@ -902,6 +903,46 @@ func TestChatClient_GetStreamUser(t *testing.T) {
 			}
 			if !tt.wantErr && got == nil {
 				t.Errorf("ChatClient.GetStreamUser() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestChatClient_QueryChannelMembers(t *testing.T) {
+	type args struct {
+		ctx       context.Context
+		channelID string
+		input     *stream.QueryOption
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *stream.QueryMembersResponse
+		wantErr bool
+	}{
+		{
+			name: "happy case",
+			args: args{
+				ctx:       context.Background(),
+				channelID: channelID,
+				input: &stream.QueryOption{
+					Filter: map[string]interface{}{
+						"channel_cid": channelID,
+					},
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			got, err := c.QueryChannelMembers(tt.args.ctx, tt.args.channelID, tt.args.input)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ChatClient.QueryChannelMembers() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("ChatClient.QueryChannelMembers() = %v, want %v", got, tt.want)
 			}
 		})
 	}

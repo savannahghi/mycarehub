@@ -80,7 +80,7 @@ input QueryOption {
   filter: Map
   sort: [SortOption!]
   userID: String
-  limit: Int!
+  limit: Int
   offset: Int
   messageLimit: Int
   memberLimit: Int

@@ -35,7 +35,7 @@ type ICreateCommunity interface {
 
 // IListUsers is an interface that is used to list getstream users
 type IListUsers interface {
-	ListCommunityMembers(ctx context.Context, communityID string) ([]*domain.CommunityMember, error)
+	ListCommunityMembers(ctx context.Context, communityID string, input *stream.QueryOption) ([]*domain.CommunityMember, error)
 	ListMembers(ctx context.Context, input *stream.QueryOption) ([]*domain.Member, error)
 }
 
@@ -394,62 +394,60 @@ func (us *UseCasesCommunitiesImpl) ListCommunities(ctx context.Context, input *s
 }
 
 // ListCommunityMembers retrieves the members of a community
-func (us *UseCasesCommunitiesImpl) ListCommunityMembers(ctx context.Context, communityID string) ([]*domain.CommunityMember, error) {
+func (us *UseCasesCommunitiesImpl) ListCommunityMembers(ctx context.Context, communityID string, input *stream.QueryOption) ([]*domain.CommunityMember, error) {
 	members := []*domain.CommunityMember{}
+	var query *stream.QueryOption
 
-	channel, err := us.GetstreamService.GetChannel(ctx, communityID)
-	if err != nil {
-		return nil, err
-	}
-
-	bannedMembersHashmap := make(map[string]string)
-	bannedCommunityMembers, err := us.ListCommunityBannedMembers(ctx, communityID)
-	if err != nil {
-		return nil, err
-	}
-
-	for _, bannedMember := range bannedCommunityMembers {
-		bannedMembersHashmap[bannedMember.UserID] = bannedMember.UserID
-	}
-
-	for _, member := range channel.Members {
-		extraData := map[string]interface{}{
-			"bannedInCommunity": false,
+	if input == nil {
+		query = &stream.QueryOption{
+			Filter: map[string]interface{}{
+				"role": "user",
+			},
 		}
+	} else {
+		query = &stream.QueryOption{
+			Filter:       utils.FormatFilterParamsHelper(input.Filter),
+			UserID:       input.UserID,
+			Limit:        input.Limit,
+			Offset:       input.Offset,
+			MessageLimit: input.MessageLimit,
+			MemberLimit:  input.MemberLimit,
+		}
+	}
 
-		var metaData domain.MemberMetadata
-		err := mapstructure.Decode(member.User.ExtraData, &metaData)
+	channelMembersResponse, err := us.GetstreamService.QueryChannelMembers(ctx, communityID, query)
+	if err != nil {
+		return nil, fmt.Errorf("failed to retrieve members of a community: %v", err)
+	}
+
+	for _, member := range channelMembersResponse.Members {
+		var metadata domain.MemberMetadata
+		err := mapstructure.Decode(member.User.ExtraData, &metadata)
 		if err != nil {
 			return nil, fmt.Errorf("failed to decode payload: %v", err)
-		}
-
-		_, ok := bannedMembersHashmap[metaData.UserID]
-		if ok {
-			extraData["bannedInCommunity"] = true
 		}
 
 		user := domain.Member{
 			ID:        member.User.ID,
 			Name:      member.User.Name,
 			Role:      member.User.Role,
-			UserID:    metaData.UserID,
-			Username:  metaData.Username,
-			ExtraData: extraData,
+			UserID:    metadata.UserID,
+			Username:  metadata.Username,
+			ExtraData: member.User.ExtraData,
 		}
 
 		commMem := &domain.CommunityMember{
-			UserID:           metaData.UserID,
+			UserID:           metadata.UserID,
 			User:             user,
 			Role:             member.Role,
 			IsModerator:      member.IsModerator,
-			UserType:         metaData.UserType,
+			UserType:         metadata.UserType,
 			Invited:          member.Invited,
 			InviteAcceptedAt: member.InviteAcceptedAt,
 			InviteRejectedAt: member.InviteRejectedAt,
 		}
 
 		members = append(members, commMem)
-
 	}
 
 	return members, nil

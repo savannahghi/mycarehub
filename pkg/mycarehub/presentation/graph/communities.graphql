@@ -3,7 +3,7 @@ extend type Query {
   listCommunityBannedMembers(communityID: String!): [Member]
   inviteMembersToCommunity(communityID: String!, memberIDs: [String!]!): Boolean!
   listCommunities(input: QueryOption): [Community]
-  listCommunityMembers(communityID: ID!): [CommunityMember]
+  listCommunityMembers(communityID: ID!, input: QueryOption): [CommunityMember]
   listPendingInvites(memberID: String!, input: QueryOption): [Community]
   recommendedCommunities(clientID: String!, limit: Int!): [Community]
   listFlaggedMessages(communityCID: String, memberIDs: [String]): [MessageFlag]

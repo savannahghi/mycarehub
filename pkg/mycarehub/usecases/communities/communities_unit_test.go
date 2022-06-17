@@ -494,6 +494,7 @@ func TestUseCasesCommunitiesImpl_ListCommunityMembers(t *testing.T) {
 	type args struct {
 		ctx         context.Context
 		communityID string
+		input       *stream.QueryOption
 	}
 	tests := []struct {
 		name    string
@@ -505,14 +506,34 @@ func TestUseCasesCommunitiesImpl_ListCommunityMembers(t *testing.T) {
 			args: args{
 				ctx:         context.Background(),
 				communityID: "test-community",
+				input: &stream.QueryOption{
+					Limit: 10,
+					Filter: map[string]interface{}{
+						"role": "user",
+					},
+				},
 			},
 			wantErr: false,
 		},
 		{
-			name: "Sad case - fail invalid community id",
+			name: "Happy case - success list community members, no input",
 			args: args{
 				ctx:         context.Background(),
 				communityID: "test-community",
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case - fail to list community members",
+			args: args{
+				ctx:         context.Background(),
+				communityID: "test-community",
+				input: &stream.QueryOption{
+					Limit: 10,
+					Filter: map[string]interface{}{
+						"role": "user",
+					},
+				},
 			},
 			wantErr: true,
 		},
@@ -545,13 +566,13 @@ func TestUseCasesCommunitiesImpl_ListCommunityMembers(t *testing.T) {
 				}
 			}
 
-			if tt.name == "Sad case - fail invalid community id" {
-				fakeGetStream.MockGetChannel = func(ctx context.Context, channelID string) (*stream.Channel, error) {
-					return nil, fmt.Errorf("channel does not exist")
+			if tt.name == "Sad case - fail to list community members" {
+				fakeGetStream.MockQueryChannelMembersFn = func(ctx context.Context, channelID string, input *stream.QueryOption) (*stream.QueryMembersResponse, error) {
+					return nil, fmt.Errorf("failed to get members")
 				}
 			}
 
-			_, err := c.ListCommunityMembers(tt.args.ctx, tt.args.communityID)
+			_, err := c.ListCommunityMembers(tt.args.ctx, tt.args.communityID, tt.args.input)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCasesCommunitiesImpl.ListCommunityMembers() error = %v, wantErr %v", err, tt.wantErr)
 				return
