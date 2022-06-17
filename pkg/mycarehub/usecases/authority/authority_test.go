@@ -656,3 +656,101 @@ func TestUsecaseAuthorityImpl_AssignOrRevokeRoles(t *testing.T) {
 		})
 	}
 }
+
+func TestUsecaseAuthorityImpl_ComposeAndSendNotification(t *testing.T) {
+	fakeDB := pgMock.NewPostgresMock()
+	fakeExtension := extensionMock.NewFakeExtension()
+	fakeNotification := notificationMock.NewServiceNotificationMock()
+	u := NewUsecaseAuthority(fakeDB, fakeDB, fakeExtension, fakeNotification)
+
+	type args struct {
+		newRoles         []enums.UserRoleType
+		ctx              context.Context
+		user             *domain.User
+		notificationType enums.NotificationType
+	}
+	tests := []struct {
+		name string
+		args args
+	}{
+		{
+			name: "happy case: compose and send notification",
+			args: args{
+				newRoles: []enums.UserRoleType{enums.UserRoleType(enums.NotificationTypeRoleAssignment)},
+				ctx:      context.Background(),
+				user: &domain.User{
+					Username: "test",
+				},
+				notificationType: enums.NotificationTypeRoleAssignment,
+			},
+		},
+		{
+			name: "sad case: unable to compose and send notification",
+			args: args{
+				newRoles: []enums.UserRoleType{enums.UserRoleType(enums.NotificationTypeRoleAssignment)},
+				ctx:      context.Background(),
+				user: &domain.User{
+					Username: "test",
+				},
+				notificationType: enums.NotificationTypeRoleRevocation,
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "sad case: unable to compose and send notification" {
+				fakeNotification.MockNotifyUserFn = func(ctx context.Context, userProfile *domain.User, notificationPayload *domain.Notification) error {
+					return fmt.Errorf("failed to notify user")
+				}
+			}
+			u.ComposeAndSendNotification(tt.args.ctx, tt.args.newRoles, tt.args.notificationType, tt.args.user)
+		})
+	}
+}
+
+func TestUsecaseAuthorityImpl_GetAllRoles(t *testing.T) {
+	ctx := context.Background()
+
+	fakeDB := pgMock.NewPostgresMock()
+	fakeExtension := extensionMock.NewFakeExtension()
+	fakeNotification := notificationMock.NewServiceNotificationMock()
+	u := NewUsecaseAuthority(fakeDB, fakeDB, fakeExtension, fakeNotification)
+
+	type args struct {
+		ctx context.Context
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx: ctx,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: failed to get all roles",
+			args: args{
+				ctx: ctx,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "Sad case: failed to get all roles" {
+				fakeDB.MockGetAllRolesFn = func(ctx context.Context) ([]*domain.AuthorityRole, error) {
+					return nil, fmt.Errorf("failed to get all roles")
+				}
+			}
+			_, err := u.GetAllRoles(tt.args.ctx)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UsecaseAuthorityImpl.GetAllRoles() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}

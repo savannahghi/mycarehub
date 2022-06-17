@@ -41,6 +41,7 @@ func ComposeStaffNotification(notificationType enums.NotificationType, args Staf
 		notification.Body = notificationBody
 
 		return notification
+
 	case enums.NotificationTypeRoleAssignment:
 		notificationBody := "You have been assigned the following role(s): "
 		for i, role := range args.RoleTypes {
@@ -55,6 +56,23 @@ func ComposeStaffNotification(notificationType enums.NotificationType, args Staf
 		notification.Body = notificationBody
 
 		return notification
+
+	case enums.NotificationTypeRoleRevocation:
+		notificationBody := "You have been revoked the following role(s): "
+		for i, role := range args.RoleTypes {
+			if i == 0 {
+				notificationBody += role.Name()
+				notification.Title = "One of your role has been revoked"
+			} else {
+				notificationBody += fmt.Sprintf(", %s", role.Name())
+				notification.Title = "Some of your roles have been revoked"
+			}
+		}
+
+		notification.Body = notificationBody
+
+		return notification
+
 	default:
 		return nil
 	}

@@ -272,21 +272,30 @@ func (u *UsecaseAuthorityImpl) AssignOrRevokeRoles(ctx context.Context, userID s
 		return false, exceptions.AssignRolesErr(err)
 	}
 
-	_, newRoles := utils.CheckNewAndRemovedRoleTypes(currentRoleList, assignedRoles)
+	revokedRoles, newRoles := utils.CheckNewAndRemovedRoleTypes(currentRoleList, assignedRoles)
+
+	if len(revokedRoles) > 0 {
+		u.ComposeAndSendNotification(ctx, revokedRoles, enums.NotificationTypeRoleRevocation, user)
+	}
 
 	if len(newRoles) > 0 {
-		notificationArgs := notification.StaffNotificationArgs{
-			RoleTypes: newRoles,
-		}
-		notification := notification.ComposeStaffNotification(
-			enums.NotificationTypeRoleAssignment,
-			notificationArgs,
-		)
-		err = u.Notification.NotifyUser(ctx, user, notification)
-		if err != nil {
-			helpers.ReportErrorToSentry(err)
-		}
+		u.ComposeAndSendNotification(ctx, newRoles, enums.NotificationTypeRoleAssignment, user)
 	}
 
 	return true, nil
+}
+
+// ComposeAndSendNotification composes a notification and sends it to the user
+func (u *UsecaseAuthorityImpl) ComposeAndSendNotification(ctx context.Context, roles []enums.UserRoleType, notificationType enums.NotificationType, user *domain.User) {
+	notificationArgs := notification.StaffNotificationArgs{
+		RoleTypes: roles,
+	}
+	notification := notification.ComposeStaffNotification(
+		notificationType,
+		notificationArgs,
+	)
+	err := u.Notification.NotifyUser(ctx, user, notification)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+	}
 }
