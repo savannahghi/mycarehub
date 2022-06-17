@@ -35,6 +35,7 @@ type GetStreamServiceMock struct {
 	MockDeleteMessageFn              func(ctx context.Context, messageID string) (*stream.Response, error)
 	MockValidateGetStreamRequestFn   func(ctx context.Context, body []byte, signature string) bool
 	MockGetStreamUserFn              func(ctx context.Context, id string) (*stream.User, error)
+	MockQueryChannelMembersFn        func(ctx context.Context, channelID string, input *stream.QueryOption) (*stream.QueryMembersResponse, error)
 }
 
 // NewGetStreamServiceMock initializes the mock service
@@ -297,6 +298,30 @@ func NewGetStreamServiceMock() *GetStreamServiceMock {
 		MockValidateGetStreamRequestFn: func(ctx context.Context, body []byte, signature string) bool {
 			return true
 		},
+		MockQueryChannelMembersFn: func(ctx context.Context, channelID string, input *stream.QueryOption) (*stream.QueryMembersResponse, error) {
+			return &stream.QueryMembersResponse{
+				Members: []*stream.ChannelMember{
+					{
+						UserID:           uuid.NewString(),
+						User:             &stream.User{},
+						IsModerator:      false,
+						Invited:          false,
+						InviteAcceptedAt: &time.Time{},
+						InviteRejectedAt: &time.Time{},
+						Role:             "",
+						CreatedAt:        time.Time{},
+						UpdatedAt:        time.Time{},
+					},
+				},
+				Response: stream.Response{
+					RateLimitInfo: &stream.RateLimitInfo{
+						Limit:     0,
+						Remaining: 0,
+						Reset:     0,
+					},
+				},
+			}, nil
+		},
 	}
 }
 
@@ -418,4 +443,9 @@ func (g GetStreamServiceMock) ValidateGetStreamRequest(ctx context.Context, body
 // GetStreamUser retrieves a getstream user given the ID
 func (g GetStreamServiceMock) GetStreamUser(ctx context.Context, id string) (*stream.User, error) {
 	return g.MockGetStreamUserFn(ctx, id)
+}
+
+// QueryChannelMembers mocks the implementation for querying members
+func (g GetStreamServiceMock) QueryChannelMembers(ctx context.Context, channelID string, input *stream.QueryOption) (*stream.QueryMembersResponse, error) {
+	return g.MockQueryChannelMembersFn(ctx, channelID, input)
 }

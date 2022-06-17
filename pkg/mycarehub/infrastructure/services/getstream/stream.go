@@ -42,6 +42,7 @@ type ServiceGetStream interface {
 	DeleteMessage(ctx context.Context, messageID string) (*stream.Response, error)
 	ValidateGetStreamRequest(ctx context.Context, body []byte, signature string) bool
 	GetStreamUser(ctx context.Context, id string) (*stream.User, error)
+	QueryChannelMembers(ctx context.Context, channelID string, input *stream.QueryOption) (*stream.QueryMembersResponse, error)
 }
 
 // ChatClient is the service's struct implementation
@@ -280,4 +281,9 @@ func (c *ChatClient) GetStreamUser(ctx context.Context, id string) (*stream.User
 	}
 
 	return response.Users[0], nil
+}
+
+// QueryChannelMembers returns a list of members for the given community
+func (c *ChatClient) QueryChannelMembers(ctx context.Context, channelID string, input *stream.QueryOption) (*stream.QueryMembersResponse, error) {
+	return c.client.Channel("messaging", channelID).QueryMembers(ctx, input)
 }

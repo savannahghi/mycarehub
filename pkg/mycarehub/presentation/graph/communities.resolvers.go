@@ -71,8 +71,8 @@ func (r *queryResolver) ListCommunities(ctx context.Context, input *stream_chat.
 	return r.mycarehub.Community.ListCommunities(ctx, input)
 }
 
-func (r *queryResolver) ListCommunityMembers(ctx context.Context, communityID string) ([]*domain.CommunityMember, error) {
-	return r.mycarehub.Community.ListCommunityMembers(ctx, communityID)
+func (r *queryResolver) ListCommunityMembers(ctx context.Context, communityID string, input *stream_chat.QueryOption) ([]*domain.CommunityMember, error) {
+	return r.mycarehub.Community.ListCommunityMembers(ctx, communityID, input)
 }
 
 func (r *queryResolver) ListPendingInvites(ctx context.Context, memberID string, input *stream_chat.QueryOption) ([]*domain.Community, error) {

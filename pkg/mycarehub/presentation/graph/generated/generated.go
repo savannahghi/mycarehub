@@ -520,7 +520,7 @@ type ComplexityRoot struct {
 		InviteMembersToCommunity                func(childComplexity int, communityID string, memberIDs []string) int
 		ListCommunities                         func(childComplexity int, input *stream_chat.QueryOption) int
 		ListCommunityBannedMembers              func(childComplexity int, communityID string) int
-		ListCommunityMembers                    func(childComplexity int, communityID string) int
+		ListCommunityMembers                    func(childComplexity int, communityID string, input *stream_chat.QueryOption) int
 		ListContentCategories                   func(childComplexity int) int
 		ListFacilities                          func(childComplexity int, searchTerm *string, filterInput []*dto.FiltersInput, paginationInput dto.PaginationsInput) int
 		ListFlaggedMessages                     func(childComplexity int, communityCid *string, memberIDs []*string) int
@@ -750,7 +750,7 @@ type QueryResolver interface {
 	ListCommunityBannedMembers(ctx context.Context, communityID string) ([]*domain.Member, error)
 	InviteMembersToCommunity(ctx context.Context, communityID string, memberIDs []string) (bool, error)
 	ListCommunities(ctx context.Context, input *stream_chat.QueryOption) ([]*domain.Community, error)
-	ListCommunityMembers(ctx context.Context, communityID string) ([]*domain.CommunityMember, error)
+	ListCommunityMembers(ctx context.Context, communityID string, input *stream_chat.QueryOption) ([]*domain.CommunityMember, error)
 	ListPendingInvites(ctx context.Context, memberID string, input *stream_chat.QueryOption) ([]*domain.Community, error)
 	RecommendedCommunities(ctx context.Context, clientID string, limit int) ([]*domain.Community, error)
 	ListFlaggedMessages(ctx context.Context, communityCid *string, memberIDs []*string) ([]*domain.MessageFlag, error)
@@ -3491,7 +3491,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.ListCommunityMembers(childComplexity, args["communityID"].(string)), true
+		return e.complexity.Query.ListCommunityMembers(childComplexity, args["communityID"].(string), args["input"].(*stream_chat.QueryOption)), true
 
 	case "Query.listContentCategories":
 		if e.complexity.Query.ListContentCategories == nil {
@@ -4411,7 +4411,7 @@ extend type Query{
   listCommunityBannedMembers(communityID: String!): [Member]
   inviteMembersToCommunity(communityID: String!, memberIDs: [String!]!): Boolean!
   listCommunities(input: QueryOption): [Community]
-  listCommunityMembers(communityID: ID!): [CommunityMember]
+  listCommunityMembers(communityID: ID!, input: QueryOption): [CommunityMember]
   listPendingInvites(memberID: String!, input: QueryOption): [Community]
   recommendedCommunities(clientID: String!, limit: Int!): [Community]
   listFlaggedMessages(communityCID: String, memberIDs: [String]): [MessageFlag]
@@ -4698,7 +4698,7 @@ input QueryOption {
   filter: Map
   sort: [SortOption!]
   userID: String
-  limit: Int!
+  limit: Int
   offset: Int
   messageLimit: Int
   memberLimit: Int
@@ -7138,6 +7138,15 @@ func (ec *executionContext) field_Query_listCommunityMembers_args(ctx context.Co
 		}
 	}
 	args["communityID"] = arg0
+	var arg1 *stream_chat.QueryOption
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg1, err = ec.unmarshalOQueryOption2ᚖgithubᚗcomᚋGetStreamᚋstreamᚑchatᚑgoᚋv5ᚐQueryOption(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg1
 	return args, nil
 }
 
@@ -18274,7 +18283,7 @@ func (ec *executionContext) _Query_listCommunityMembers(ctx context.Context, fie
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().ListCommunityMembers(rctx, args["communityID"].(string))
+		return ec.resolvers.Query().ListCommunityMembers(rctx, args["communityID"].(string), args["input"].(*stream_chat.QueryOption))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -24780,7 +24789,7 @@ func (ec *executionContext) unmarshalInputQueryOption(ctx context.Context, obj i
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit"))
-			it.Limit, err = ec.unmarshalNInt2int(ctx, v)
+			it.Limit, err = ec.unmarshalOInt2int(ctx, v)
 			if err != nil {
 				return it, err
 			}
