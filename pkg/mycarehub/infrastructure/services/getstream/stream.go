@@ -45,13 +45,30 @@ type ServiceGetStream interface {
 	QueryChannelMembers(ctx context.Context, channelID string, input *stream.QueryOption) (*stream.QueryMembersResponse, error)
 }
 
+// IStreamClient defines the methods we consume from getstream library
+type IStreamClient interface {
+	CreateToken(userID string, expire time.Time, issuedAt ...time.Time) (string, error)
+	RevokeUserToken(ctx context.Context, userID string, before *time.Time) (*stream.Response, error)
+	UpsertUser(ctx context.Context, user *stream.User) (*stream.UpsertUserResponse, error)
+	QueryUsers(ctx context.Context, q *stream.QueryOption, sorters ...*stream.SortOption) (*stream.QueryUsersResponse, error)
+	CreateChannel(ctx context.Context, chanType, chanID, userID string, data map[string]interface{}) (*stream.CreateChannelResponse, error)
+	DeleteChannels(ctx context.Context, cids []string, hardDelete bool) (*stream.AsyncTaskResponse, error)
+	QueryChannels(ctx context.Context, q *stream.QueryOption, sort ...*stream.SortOption) (*stream.QueryChannelsResponse, error)
+	Channel(channelType, channelID string) *stream.Channel
+	DeleteUsers(ctx context.Context, userIDs []string, options stream.DeleteUserOptions) (*stream.AsyncTaskResponse, error)
+	QueryMessageFlags(ctx context.Context, q *stream.QueryOption) (*stream.QueryMessageFlagsResponse, error)
+	DeleteMessage(ctx context.Context, msgID string) (*stream.Response, error)
+	VerifyWebhook(body, signature []byte) (valid bool)
+	QueryBannedUsers(ctx context.Context, q *stream.QueryBannedUsersOptions, sorters ...*stream.SortOption) (*stream.QueryBannedUsersResponse, error)
+}
+
 // ChatClient is the service's struct implementation
 type ChatClient struct {
-	client *stream.Client
+	client IStreamClient
 }
 
 // NewServiceGetStream initializes a new getstream service
-func NewServiceGetStream(client *stream.Client) ServiceGetStream {
+func NewServiceGetStream(client IStreamClient) *ChatClient {
 	return &ChatClient{
 		client: client,
 	}
@@ -116,7 +133,10 @@ func (c *ChatClient) DeleteChannels(ctx context.Context, chanIDs []string, hardD
 
 // InviteMembers invites users with given IDs to the channel while at the same time composing a message to show the users
 func (c *ChatClient) InviteMembers(ctx context.Context, memberIDs []string, channelID string, message *stream.Message) (*stream.Response, error) {
-	return c.client.Channel("messaging", channelID).InviteMembersWithMessage(ctx, memberIDs, message)
+
+	channel := c.client.Channel("messaging", channelID)
+
+	return channel.InviteMembersWithMessage(ctx, memberIDs, message)
 }
 
 // ListGetStreamChannels returns list of channels that match QueryOption.
@@ -150,32 +170,50 @@ func (c *ChatClient) GetChannel(ctx context.Context, channelID string) (*stream.
 
 // AddMembersToCommunity adds the specified clients/staffs to a community
 func (c *ChatClient) AddMembersToCommunity(ctx context.Context, memberIDs []string, channelID string) (*stream.Response, error) {
-	return c.client.Channel("messaging", channelID).AddMembers(ctx, memberIDs)
+
+	channel := c.client.Channel("messaging", channelID)
+
+	return channel.AddMembers(ctx, memberIDs)
 }
 
 // RejectInvite rejects invitation to a getstream channel
 func (c *ChatClient) RejectInvite(ctx context.Context, userID string, channelID string, message *stream.Message) (*stream.Response, error) {
-	return c.client.Channel("messaging", channelID).RejectInvite(ctx, userID, message)
+
+	channel := c.client.Channel("messaging", channelID)
+
+	return channel.RejectInvite(ctx, userID, message)
 }
 
 // AcceptInvite accepts invitation to a getstream channel
 func (c *ChatClient) AcceptInvite(ctx context.Context, userID string, channelID string, message *stream.Message) (*stream.Response, error) {
-	return c.client.Channel("messaging", channelID).AcceptInvite(ctx, userID, message)
+
+	channel := c.client.Channel("messaging", channelID)
+
+	return channel.AcceptInvite(ctx, userID, message)
 }
 
 // RemoveMembersFromCommunity deletes members from a community
 func (c *ChatClient) RemoveMembersFromCommunity(ctx context.Context, channelID string, memberIDs []string, message *stream.Message) (*stream.Response, error) {
-	return c.client.Channel("messaging", channelID).RemoveMembers(ctx, memberIDs, message)
+
+	channel := c.client.Channel("messaging", channelID)
+
+	return channel.RemoveMembers(ctx, memberIDs, message)
 }
 
 // AddModeratorsWithMessage adds moderators with given IDs to the channel and produces a message.
 func (c *ChatClient) AddModeratorsWithMessage(ctx context.Context, userIDs []string, communityID string, message *stream.Message) (*stream.Response, error) {
-	return c.client.Channel("messaging", communityID).AddModeratorsWithMessage(ctx, userIDs, message)
+
+	channel := c.client.Channel("messaging", communityID)
+
+	return channel.AddModeratorsWithMessage(ctx, userIDs, message)
 }
 
 // DemoteModerators demotes moderators to members
 func (c *ChatClient) DemoteModerators(ctx context.Context, channelID string, memberIDs []string) (*stream.Response, error) {
-	return c.client.Channel("messaging", channelID).DemoteModerators(ctx, memberIDs...)
+
+	channel := c.client.Channel("messaging", channelID)
+
+	return channel.DemoteModerators(ctx, memberIDs...)
 }
 
 // DeleteUsers deletes users from the platform with the specified options.
@@ -186,13 +224,15 @@ func (c *ChatClient) DeleteUsers(ctx context.Context, userIDs []string, options 
 
 // ListCommunityBannedMembers is used to list members banned from a channel.
 func (c *ChatClient) ListCommunityBannedMembers(ctx context.Context, communityID string) (*stream.QueryBannedUsersResponse, error) {
-	response, err := c.client.QueryBannedUsers(ctx, &stream.QueryBannedUsersOptions{
+	options := &stream.QueryBannedUsersOptions{
 		QueryOption: &stream.QueryOption{Filter: map[string]interface{}{
 			"channel_cid": "messaging:" + communityID,
 		}},
-	})
+	}
+
+	response, err := c.client.QueryBannedUsers(ctx, options)
 	if err != nil {
-		return nil, fmt.Errorf("an error occurred: %v", err)
+		return nil, fmt.Errorf("an error occurred: %w", err)
 	}
 
 	return response, nil
@@ -205,10 +245,12 @@ func (c *ChatClient) BanUser(ctx context.Context, targetMemberID string, bannedB
 		return false, fmt.Errorf("users cannot ban themselves from a channel")
 	}
 
-	_, err := c.client.Channel("messaging", communityID).BanUser(ctx, targetMemberID, bannedBy)
+	channel := c.client.Channel("messaging", communityID)
+
+	_, err := channel.BanUser(ctx, targetMemberID, bannedBy)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return false, fmt.Errorf("failed to ban user %v from channel %v: %v", targetMemberID, communityID, err)
+		return false, fmt.Errorf("failed to ban user %s from channel %s: %w", targetMemberID, communityID, err)
 	}
 
 	return true, nil
@@ -216,25 +258,31 @@ func (c *ChatClient) BanUser(ctx context.Context, targetMemberID string, bannedB
 
 // UnBanUser unbans a user who was banned in the specified channel
 func (c *ChatClient) UnBanUser(ctx context.Context, targetID string, communityID string) (bool, error) {
+
+	channel := c.client.Channel("messaging", communityID)
+
 	if targetID == "" || communityID == "" {
 		return false, fmt.Errorf("neither targetID nor communityID can be empty")
 	}
 
-	response, err := c.client.QueryBannedUsers(ctx, &stream.QueryBannedUsersOptions{
+	options := &stream.QueryBannedUsersOptions{
 		QueryOption: &stream.QueryOption{Filter: map[string]interface{}{
 			"channel_cid": "messaging:" + communityID,
 		}},
-	})
-	if err != nil {
-		return false, fmt.Errorf("an error occurred: %v", err)
 	}
+	response, err := c.client.QueryBannedUsers(ctx, options)
+	if err != nil {
+		return false, fmt.Errorf("an error occurred: %w", err)
+	}
+
 	for _, v := range response.Bans {
 		if v.User.ID == targetID {
-			_, err = c.client.Channel("messaging", communityID).UnBanUser(ctx, targetID)
+			_, err = channel.UnBanUser(ctx, targetID)
 			if err != nil {
 				helpers.ReportErrorToSentry(err)
-				return false, fmt.Errorf("unable to unban user: %v", err)
+				return false, fmt.Errorf("unable to unban user: %w", err)
 			}
+
 			return true, nil
 		}
 	}
@@ -285,5 +333,7 @@ func (c *ChatClient) GetStreamUser(ctx context.Context, id string) (*stream.User
 
 // QueryChannelMembers returns a list of members for the given community
 func (c *ChatClient) QueryChannelMembers(ctx context.Context, channelID string, input *stream.QueryOption) (*stream.QueryMembersResponse, error) {
-	return c.client.Channel("messaging", channelID).QueryMembers(ctx, input)
+	channel := c.client.Channel("messaging", channelID)
+
+	return channel.QueryMembers(ctx, input)
 }
