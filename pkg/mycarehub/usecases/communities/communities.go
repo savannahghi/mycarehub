@@ -401,7 +401,8 @@ func (us *UseCasesCommunitiesImpl) ListCommunityMembers(ctx context.Context, com
 	if input == nil {
 		query = &stream.QueryOption{
 			Filter: map[string]interface{}{
-				"role": "user",
+				"banned": false,
+				"joined": true,
 			},
 		}
 	} else {
@@ -417,14 +418,14 @@ func (us *UseCasesCommunitiesImpl) ListCommunityMembers(ctx context.Context, com
 
 	channelMembersResponse, err := us.GetstreamService.QueryChannelMembers(ctx, communityID, query)
 	if err != nil {
-		return nil, fmt.Errorf("failed to retrieve members of a community: %v", err)
+		return nil, fmt.Errorf("failed to retrieve members of a community: %w", err)
 	}
 
 	for _, member := range channelMembersResponse.Members {
 		var metadata domain.MemberMetadata
 		err := mapstructure.Decode(member.User.ExtraData, &metadata)
 		if err != nil {
-			return nil, fmt.Errorf("failed to decode payload: %v", err)
+			return nil, fmt.Errorf("failed to decode payload: %w", err)
 		}
 
 		user := domain.Member{
