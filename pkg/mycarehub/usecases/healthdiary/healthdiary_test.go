@@ -456,26 +456,18 @@ func TestUseCasesHealthDiaryImpl_ShareHealthDiaryEntry(t *testing.T) {
 		{
 			name: "Happy case",
 			args: args{
-				ctx:                ctx,
-				healthDiaryEntryID: uuid.New().String(),
+				ctx:                    ctx,
+				healthDiaryEntryID:     uuid.New().String(),
+				shareEntireHealthDiary: true,
 			},
 			want:    true,
 			wantErr: false,
 		},
 		{
-			name: "Sad case - empty ids",
-			args: args{
-				ctx:                ctx,
-				healthDiaryEntryID: "",
-			},
-			want:    false,
-			wantErr: true,
-		},
-		{
 			name: "Sad case - unable to create service request",
 			args: args{
 				ctx:                ctx,
-				healthDiaryEntryID: "",
+				healthDiaryEntryID: uuid.New().String(),
 			},
 			want:    false,
 			wantErr: true,
@@ -489,22 +481,37 @@ func TestUseCasesHealthDiaryImpl_ShareHealthDiaryEntry(t *testing.T) {
 			want:    false,
 			wantErr: true,
 		},
+		{
+			name: "Sad case - unable to update health diary",
+			args: args{
+				ctx:                ctx,
+				healthDiaryEntryID: uuid.New().String(),
+			},
+			want:    false,
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if tt.name == "Sad case - empty ids" {
-				fakeDB.MockUpdateHealthDiaryFn = func(ctx context.Context, clientHealthDiaryEntry *domain.ClientHealthDiaryEntry, updateData map[string]interface{}) error {
-					return fmt.Errorf("an error occurred")
-				}
-			}
 			if tt.name == "Sad case - unable to create service request" {
-				fakeDB.MockCreateServiceRequestFn = func(ctx context.Context, serviceRequestInput *dto.ServiceRequestInput) error {
-					return fmt.Errorf("failed to create service request")
+				fakeServiceRequest.MockCreateServiceRequestFn = func(ctx context.Context, input *dto.ServiceRequestInput) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
 				}
 			}
 			if tt.name == "Sad case - unable to get health diary by id" {
 				fakeDB.MockGetHealthDiaryEntryByIDFn = func(ctx context.Context, healthDiaryEntryID string) (*domain.ClientHealthDiaryEntry, error) {
 					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - unable to update health diary" {
+				fakeDB.MockGetHealthDiaryEntryByIDFn = func(ctx context.Context, healthDiaryEntryID string) (*domain.ClientHealthDiaryEntry, error) {
+					ID := uuid.New().String()
+					return &domain.ClientHealthDiaryEntry{
+						ID: &ID,
+					}, nil
+				}
+				fakeDB.MockUpdateHealthDiaryFn = func(ctx context.Context, clientHealthDiaryEntry *domain.ClientHealthDiaryEntry, updateData map[string]interface{}) error {
+					return fmt.Errorf("an error occurred")
 				}
 			}
 			got, err := h.ShareHealthDiaryEntry(tt.args.ctx, tt.args.healthDiaryEntryID, tt.args.shareEntireHealthDiary)

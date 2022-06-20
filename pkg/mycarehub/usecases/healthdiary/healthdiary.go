@@ -239,13 +239,18 @@ func (h UseCasesHealthDiaryImpl) ShareHealthDiaryEntry(ctx context.Context, heal
 		return false, err
 	}
 
-	payload := &domain.ClientHealthDiaryEntry{
-		ClientID: healthDiaryEntry.ClientID,
-		ID:       &healthDiaryEntryID,
-	}
-
-	if !shareEntireHealthDiary {
-		payload.ID = healthDiaryEntry.ID
+	var payload *domain.ClientHealthDiaryEntry
+	// If shareEntireHealthDiary is true, update the health diary records with the client's ID.
+	// Else, update the record whose records match both the client's ID and the health diary entry ID.
+	if shareEntireHealthDiary {
+		payload = &domain.ClientHealthDiaryEntry{
+			ClientID: healthDiaryEntry.ClientID,
+		}
+	} else {
+		payload = &domain.ClientHealthDiaryEntry{
+			ID:       healthDiaryEntry.ID,
+			ClientID: healthDiaryEntry.ClientID,
+		}
 	}
 
 	updateData := map[string]interface{}{
@@ -262,19 +267,16 @@ func (h UseCasesHealthDiaryImpl) ShareHealthDiaryEntry(ctx context.Context, heal
 	if healthDiaryEntry.Mood == enums.MoodVerySad.String() || healthDiaryEntry.Mood == enums.MoodSad.String() {
 		serviceRequestInput := &dto.ServiceRequestInput{
 			RequestType: healthDiaryEntry.EntryType,
-			Status:      "PENDING",
+			Status:      enums.ServiceRequestStatusPending.String(),
 			Request:     healthDiaryEntry.Note,
 			ClientID:    healthDiaryEntry.ClientID,
 			Flavour:     feedlib.FlavourConsumer,
 		}
 
-		ok, err := h.ServiceRequest.CreateServiceRequest(ctx, serviceRequestInput)
+		_, err := h.ServiceRequest.CreateServiceRequest(ctx, serviceRequestInput)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
 			return false, fmt.Errorf("failed to create service request: %v", err)
-		}
-		if !ok {
-			return false, nil
 		}
 	}
 
