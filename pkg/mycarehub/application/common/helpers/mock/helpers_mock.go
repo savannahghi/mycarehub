@@ -1,4 +1,4 @@
-package mocks
+package mock
 
 // FakeReportErrorToSentryImpl mocks the sentry logic
 type FakeReportErrorToSentryImpl struct {

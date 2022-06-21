@@ -864,7 +864,7 @@ func TestUseCasesCommunitiesImpl_AddMembersToCommunity(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "Sad case - no community ID",
+			name: "Sad case - cannot add members to invite only community",
 			args: args{
 				ctx:         ctx,
 				memberIDs:   []string{userID},
@@ -874,11 +874,11 @@ func TestUseCasesCommunitiesImpl_AddMembersToCommunity(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "Sad case - no user ID(s)",
+			name: "Sad case - no community ID",
 			args: args{
 				ctx:         ctx,
-				memberIDs:   nil,
-				communityID: communityID,
+				memberIDs:   []string{userID},
+				communityID: "",
 			},
 			want:    false,
 			wantErr: true,
@@ -894,16 +894,18 @@ func TestUseCasesCommunitiesImpl_AddMembersToCommunity(t *testing.T) {
 			c := communities.NewUseCaseCommunitiesImpl(fakeGetStream, fakeExtension, fakeDB, fakeDB, fakePubsub, fakeNotification)
 
 			if tt.name == "Sad case" {
-				fakeGetStream.MockAddMembersToCommunityFn = func(ctx context.Context, memberIDs []string, channelID string) (*stream.Response, error) {
+				fakeDB.MockGetCommunityByIDFn = func(ctx context.Context, communityID string) (*domain.Community, error) {
 					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - cannot add members to invite only community" {
+				fakeDB.MockGetCommunityByIDFn = func(ctx context.Context, communityID string) (*domain.Community, error) {
+					return &domain.Community{
+						InviteOnly: true,
+					}, nil
 				}
 			}
 			if tt.name == "Sad case - no community ID" {
-				fakeGetStream.MockAddMembersToCommunityFn = func(ctx context.Context, memberIDs []string, channelID string) (*stream.Response, error) {
-					return nil, fmt.Errorf("an error occurred")
-				}
-			}
-			if tt.name == "Sad case - no user ID" {
 				fakeGetStream.MockAddMembersToCommunityFn = func(ctx context.Context, memberIDs []string, channelID string) (*stream.Response, error) {
 					return nil, fmt.Errorf("an error occurred")
 				}

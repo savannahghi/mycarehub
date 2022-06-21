@@ -664,8 +664,9 @@ func NewPostgresMock() *PostgresMock {
 		},
 		MockGetClientProfileByClientIDFn: func(ctx context.Context, clientID string) (*domain.ClientProfile, error) {
 			client := &domain.ClientProfile{
-				ID:   &ID,
-				User: userProfile,
+				ID:          &ID,
+				User:        userProfile,
+				CaregiverID: &ID,
 			}
 			return client, nil
 		},

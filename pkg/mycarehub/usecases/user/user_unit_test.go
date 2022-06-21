@@ -31,7 +31,7 @@ import (
 	getStreamMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/getstream/mock"
 	pubsubMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/pubsub/mock"
 	authorityMock "github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/authority/mock"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/otp"
+	otpMock "github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/otp/mock"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/user"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/user/mock"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/extension"
@@ -314,7 +314,7 @@ func TestUseCasesUserImpl_Login_Unittest(t *testing.T) {
 
 			fakeDB := pgMock.NewPostgresMock()
 			fakeExtension := extensionMock.NewFakeExtension()
-			fakeOTP := otp.NewOTPUseCase(fakeDB, fakeDB, fakeExtension)
+			fakeOTP := otpMock.NewOTPUseCaseMock()
 			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
 			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
@@ -700,7 +700,7 @@ func TestUnit_InviteUser(t *testing.T) {
 			fakeExtension := extensionMock.NewFakeExtension()
 
 			fakeUserMock := mock.NewUserUseCaseMock()
-			fakeOTP := otp.NewOTPUseCase(fakeDB, fakeDB, fakeExtension)
+			fakeOTP := otpMock.NewOTPUseCaseMock()
 			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
 			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
@@ -1024,7 +1024,7 @@ func TestUseCasesUserImpl_SetUserPIN(t *testing.T) {
 			_ = mock.NewUserUseCaseMock()
 			fakeExtension := extensionMock.NewFakeExtension()
 
-			fakeOTP := otp.NewOTPUseCase(fakeDB, fakeDB, fakeExtension)
+			fakeOTP := otpMock.NewOTPUseCaseMock()
 			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
 			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
@@ -1121,7 +1121,7 @@ func TestUseCasesUserImpl_SetNickName(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "Happy case",
+			name: "Happy case: Successfully set nickname",
 			args: args{
 				ctx:      ctx,
 				userID:   userID,
@@ -1131,7 +1131,7 @@ func TestUseCasesUserImpl_SetNickName(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "Sad case",
+			name: "Sad case: unable to set nickname",
 			args: args{
 				ctx:      ctx,
 				userID:   userID,
@@ -1186,7 +1186,7 @@ func TestUseCasesUserImpl_SetNickName(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
 			_ = mock.NewUserUseCaseMock()
 			fakeExtension := extensionMock.NewFakeExtension()
-			fakeOTP := otp.NewOTPUseCase(fakeDB, fakeDB, fakeExtension)
+			fakeOTP := otpMock.NewOTPUseCaseMock()
 			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
 			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
@@ -1194,7 +1194,7 @@ func TestUseCasesUserImpl_SetNickName(t *testing.T) {
 
 			u := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakeGetStream, fakePubsub, fakeClinical)
 
-			if tt.name == "Happy case" {
+			if tt.name == "Happy case: Successfully set nickname" {
 				fakeDB.MockCheckIfUsernameExistsFn = func(ctx context.Context, username string) (bool, error) {
 					return false, nil
 				}
@@ -1204,7 +1204,10 @@ func TestUseCasesUserImpl_SetNickName(t *testing.T) {
 				}
 			}
 
-			if tt.name == "Sad case" {
+			if tt.name == "Sad case: unable to set nickname" {
+				fakeDB.MockCheckIfUsernameExistsFn = func(ctx context.Context, username string) (bool, error) {
+					return false, nil
+				}
 				fakeDB.MockSetNickNameFn = func(ctx context.Context, userID, nickname *string) (bool, error) {
 					return false, fmt.Errorf("an error occurred")
 				}
@@ -1305,6 +1308,15 @@ func TestUseCasesUserImpl_RequestPINReset(t *testing.T) {
 			wantErr: true,
 		},
 		{
+			name: "Sad Case - Fail to generate and send OTP",
+			args: args{
+				ctx:         ctx,
+				phoneNumber: interserviceclient.TestUserPhoneNumber,
+				flavour:     feedlib.FlavourConsumer,
+			},
+			wantErr: true,
+		},
+		{
 			name: "Sad Case - Fail to save otp",
 			args: args{
 				ctx:         ctx,
@@ -1319,7 +1331,7 @@ func TestUseCasesUserImpl_RequestPINReset(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
 			fakeUser := mock.NewUserUseCaseMock()
 			fakeExtension := extensionMock.NewFakeExtension()
-			fakeOTP := otp.NewOTPUseCase(fakeDB, fakeDB, fakeExtension)
+			fakeOTP := otpMock.NewOTPUseCaseMock()
 			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
 			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
@@ -1350,8 +1362,16 @@ func TestUseCasesUserImpl_RequestPINReset(t *testing.T) {
 					return false, fmt.Errorf("failed to check if user has pin")
 				}
 			}
+			if tt.name == "Sad Case - Fail to generate and send OTP" {
+				fakeOTP.MockGenerateAndSendOTPFn = func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (string, error) {
+					return "", fmt.Errorf("failed to generate and send OTP")
+				}
+			}
 
 			if tt.name == "Sad Case - Fail to save otp" {
+				fakeOTP.MockGenerateAndSendOTPFn = func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (string, error) {
+					return "111222", nil
+				}
 				fakeDB.MockSaveOTPFn = func(ctx context.Context, otpInput *domain.OTP) error {
 					return fmt.Errorf("failed to save otp")
 				}
@@ -1527,7 +1547,7 @@ func TestUseCasesUserImpl_ResetPIN(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
 			fakeUser := mock.NewUserUseCaseMock()
 			fakeExtension := extensionMock.NewFakeExtension()
-			fakeOTP := otp.NewOTPUseCase(fakeDB, fakeDB, fakeExtension)
+			fakeOTP := otpMock.NewOTPUseCaseMock()
 			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
 			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
@@ -1674,7 +1694,7 @@ func TestUseCasesUserImpl_RefreshToken(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
 			fakeExtension := extensionMock.NewFakeExtension()
-			fakeOTP := otp.NewOTPUseCase(fakeDB, fakeDB, fakeExtension)
+			fakeOTP := otpMock.NewOTPUseCaseMock()
 			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
 			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
@@ -1811,7 +1831,7 @@ func TestUseCasesUserImpl_VerifyPIN(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
 			fakeExtension := extensionMock.NewFakeExtension()
-			fakeOTP := otp.NewOTPUseCase(fakeDB, fakeDB, fakeExtension)
+			fakeOTP := otpMock.NewOTPUseCaseMock()
 			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
 			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
@@ -1873,7 +1893,7 @@ func TestUseCasesUserImpl_GetClientCaregiver(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "valid",
+			name: "valid: Get client caregiver",
 			args: args{
 				ctx:      ctx,
 				clientID: uuid.New().String(),
@@ -1889,7 +1909,7 @@ func TestUseCasesUserImpl_GetClientCaregiver(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "invalid: missing client id",
+			name: "invalid: failed to get client caregiver",
 			args: args{
 				ctx: ctx,
 			},
@@ -1903,12 +1923,20 @@ func TestUseCasesUserImpl_GetClientCaregiver(t *testing.T) {
 			},
 			wantErr: true,
 		},
+		{
+			name: "invalid: failed to get client caregiver",
+			args: args{
+				ctx:      ctx,
+				clientID: uuid.New().String(),
+			},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
 			fakeExtension := extensionMock.NewFakeExtension()
-			fakeOTP := otp.NewOTPUseCase(fakeDB, fakeDB, fakeExtension)
+			fakeOTP := otpMock.NewOTPUseCaseMock()
 			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
 			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
@@ -1917,6 +1945,12 @@ func TestUseCasesUserImpl_GetClientCaregiver(t *testing.T) {
 			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakeGetStream, fakePubsub, fakeClinical)
 
 			if tt.name == "valid: no caregiver assigned" {
+				fakeDB.MockGetClientProfileByClientIDFn = func(ctx context.Context, clientID string) (*domain.ClientProfile, error) {
+					ID := uuid.New().String()
+					return &domain.ClientProfile{
+						ID: &ID,
+					}, nil
+				}
 				fakeDB.MockGetClientCaregiverFn = func(ctx context.Context, clientID string) (*domain.Caregiver, error) {
 					return &domain.Caregiver{}, nil
 				}
@@ -1930,6 +1964,21 @@ func TestUseCasesUserImpl_GetClientCaregiver(t *testing.T) {
 			if tt.name == "invalid: failed to get client by id" {
 				fakeDB.MockGetClientProfileByClientIDFn = func(ctx context.Context, clientID string) (*domain.ClientProfile, error) {
 					return nil, fmt.Errorf("failed to get client by id")
+				}
+			}
+			if tt.name == "invalid: failed to get client caregiver" {
+				fakeDB.MockGetClientProfileByClientIDFn = func(ctx context.Context, clientID string) (*domain.ClientProfile, error) {
+					ID := uuid.New().String()
+					return &domain.ClientProfile{
+						ID:                      &ID,
+						UserID:                  uuid.New().String(),
+						TreatmentEnrollmentDate: &time.Time{},
+						CaregiverID:             &ID,
+					}, nil
+				}
+
+				fakeDB.MockGetClientCaregiverFn = func(ctx context.Context, clientID string) (*domain.Caregiver, error) {
+					return nil, fmt.Errorf("failed to get client caregiver")
 				}
 			}
 			_, err := us.GetClientCaregiver(tt.args.ctx, tt.args.clientID)
@@ -2076,7 +2125,7 @@ func TestUseCasesUserImpl_CreateOrUpdateClientCaregiver(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
 			fakeExtension := extensionMock.NewFakeExtension()
-			fakeOTP := otp.NewOTPUseCase(fakeDB, fakeDB, fakeExtension)
+			fakeOTP := otpMock.NewOTPUseCaseMock()
 			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
 			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
@@ -2106,6 +2155,11 @@ func TestUseCasesUserImpl_CreateOrUpdateClientCaregiver(t *testing.T) {
 			}
 
 			if tt.name == "invalid: failed to create caregiver" {
+				fakeDB.MockGetClientProfileByClientIDFn = func(ctx context.Context, clientID string) (*domain.ClientProfile, error) {
+					return &domain.ClientProfile{
+						CaregiverID: nil,
+					}, nil
+				}
 				fakeDB.MockCreateClientCaregiverFn = func(ctx context.Context, caregiverInput *dto.CaregiverInput) error {
 					return fmt.Errorf("failed to create caregiver")
 				}
@@ -2169,7 +2223,7 @@ func TestUseCasesUserImpl_CompleteOnboardingTour(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
 			fakeExtension := extensionMock.NewFakeExtension()
-			fakeOTP := otp.NewOTPUseCase(fakeDB, fakeDB, fakeExtension)
+			fakeOTP := otpMock.NewOTPUseCaseMock()
 			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
 			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
@@ -2281,7 +2335,7 @@ func TestUseCasesUserImpl_RegisterClient(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
 			fakeExtension := extensionMock.NewFakeExtension()
-			fakeOTP := otp.NewOTPUseCase(fakeDB, fakeDB, fakeExtension)
+			fakeOTP := otpMock.NewOTPUseCaseMock()
 			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
 			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
@@ -2336,7 +2390,7 @@ func TestUseCasesUserImpl_RegisterClient(t *testing.T) {
 func TestUseCasesUserImpl_AddClientFHIRID(t *testing.T) {
 	fakeDB := pgMock.NewPostgresMock()
 	fakeExtension := extensionMock.NewFakeExtension()
-	fakeOTP := otp.NewOTPUseCase(fakeDB, fakeDB, fakeExtension)
+	fakeOTP := otpMock.NewOTPUseCaseMock()
 	fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
 	fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 	fakePubsub := pubsubMock.NewPubsubServiceMock()
@@ -2411,7 +2465,7 @@ func TestUseCasesUserImpl_AddClientFHIRID(t *testing.T) {
 func TestUseCasesUserImpl_GetUserProfile(t *testing.T) {
 	fakeDB := pgMock.NewPostgresMock()
 	fakeExtension := extensionMock.NewFakeExtension()
-	fakeOTP := otp.NewOTPUseCase(fakeDB, fakeDB, fakeExtension)
+	fakeOTP := otpMock.NewOTPUseCaseMock()
 	fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
 	fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 	fakePubsub := pubsubMock.NewPubsubServiceMock()
@@ -2488,7 +2542,7 @@ func TestUseCasesUserImpl_RefreshGetStreamToken(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
 			fakeExtension := extensionMock.NewFakeExtension()
-			fakeOTP := otp.NewOTPUseCase(fakeDB, fakeDB, fakeExtension)
+			fakeOTP := otpMock.NewOTPUseCaseMock()
 			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
 			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
@@ -2517,7 +2571,7 @@ func TestUseCasesUserImpl_RefreshGetStreamToken(t *testing.T) {
 func TestUseCasesUserImpl_RegisterKenyaEMRPatients(t *testing.T) {
 	fakeDB := pgMock.NewPostgresMock()
 	fakeExtension := extensionMock.NewFakeExtension()
-	fakeOTP := otp.NewOTPUseCase(fakeDB, fakeDB, fakeExtension)
+	fakeOTP := otpMock.NewOTPUseCaseMock()
 	fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
 	fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 	fakePubsub := pubsubMock.NewPubsubServiceMock()
@@ -3035,7 +3089,7 @@ func TestUseCasesUserImpl_RegisterKenyaEMRPatients(t *testing.T) {
 func TestUseCasesUserImpl_RegisteredFacilityPatients(t *testing.T) {
 	fakeDB := pgMock.NewPostgresMock()
 	fakeExtension := extensionMock.NewFakeExtension()
-	fakeOTP := otp.NewOTPUseCase(fakeDB, fakeDB, fakeExtension)
+	fakeOTP := otpMock.NewOTPUseCaseMock()
 	fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
 	fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 	fakePubsub := pubsubMock.NewPubsubServiceMock()
@@ -3368,7 +3422,7 @@ func TestUseCasesUserImpl_RegisterStaff(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
 			fakeExtension := extensionMock.NewFakeExtension()
-			fakeOTP := otp.NewOTPUseCase(fakeDB, fakeDB, fakeExtension)
+			fakeOTP := otpMock.NewOTPUseCaseMock()
 			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
 			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
@@ -3419,7 +3473,7 @@ func TestUseCasesUserImpl_SearchStaffByStaffNumber(t *testing.T) {
 
 	fakeDB := pgMock.NewPostgresMock()
 	fakeExtension := extensionMock.NewFakeExtension()
-	fakeOTP := otp.NewOTPUseCase(fakeDB, fakeDB, fakeExtension)
+	fakeOTP := otpMock.NewOTPUseCaseMock()
 	fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
 	fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 	fakePubsub := pubsubMock.NewPubsubServiceMock()
@@ -3495,7 +3549,7 @@ func TestUseCasesUserImpl_SearchClientByCCCNumber(t *testing.T) {
 
 	fakeDB := pgMock.NewPostgresMock()
 	fakeExtension := extensionMock.NewFakeExtension()
-	fakeOTP := otp.NewOTPUseCase(fakeDB, fakeDB, fakeExtension)
+	fakeOTP := otpMock.NewOTPUseCaseMock()
 	fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
 	fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 	fakePubsub := pubsubMock.NewPubsubServiceMock()
@@ -3600,7 +3654,7 @@ func TestUseCasesUserImpl_Consent(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
 			fakeExtension := extensionMock.NewFakeExtension()
-			fakeOTP := otp.NewOTPUseCase(fakeDB, fakeDB, fakeExtension)
+			fakeOTP := otpMock.NewOTPUseCaseMock()
 			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
 			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
@@ -3679,7 +3733,7 @@ func TestUseCasesUserImpl_RegisterPushToken(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
 			fakeExtension := extensionMock.NewFakeExtension()
-			fakeOTP := otp.NewOTPUseCase(fakeDB, fakeDB, fakeExtension)
+			fakeOTP := otpMock.NewOTPUseCaseMock()
 			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
 			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
@@ -3714,7 +3768,7 @@ func TestUseCasesUserImpl_RegisterPushToken(t *testing.T) {
 func TestUseCasesUserImpl_GetClientProfileByCCCNumber(t *testing.T) {
 	fakeDB := pgMock.NewPostgresMock()
 	fakeExtension := extensionMock.NewFakeExtension()
-	fakeOTP := otp.NewOTPUseCase(fakeDB, fakeDB, fakeExtension)
+	fakeOTP := otpMock.NewOTPUseCaseMock()
 	fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
 	fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 	fakePubsub := pubsubMock.NewPubsubServiceMock()
@@ -3907,7 +3961,7 @@ func TestUseCasesUserImpl_DeleteUser(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
 			fakeExtension := extensionMock.NewFakeExtension()
-			otp := otp.NewOTPUseCase(fakeDB, fakeDB, fakeExtension)
+			otp := otpMock.NewOTPUseCaseMock()
 			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
 			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
@@ -3999,7 +4053,7 @@ func TestUseCasesUserImpl_DeleteStreamUser(t *testing.T) {
 
 	fakeDB := pgMock.NewPostgresMock()
 	fakeExtension := extensionMock.NewFakeExtension()
-	fakeOTP := otp.NewOTPUseCase(fakeDB, fakeDB, fakeExtension)
+	fakeOTP := otpMock.NewOTPUseCaseMock()
 	fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
 	fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 	fakePubsub := pubsubMock.NewPubsubServiceMock()
@@ -4059,7 +4113,7 @@ func TestUseCasesUserImpl_TransferClientToFacility(t *testing.T) {
 
 	fakeDB := pgMock.NewPostgresMock()
 	fakeExtension := extensionMock.NewFakeExtension()
-	fakeOTP := otp.NewOTPUseCase(fakeDB, fakeDB, fakeExtension)
+	fakeOTP := otpMock.NewOTPUseCaseMock()
 	fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
 	fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 	fakePubsub := pubsubMock.NewPubsubServiceMock()
