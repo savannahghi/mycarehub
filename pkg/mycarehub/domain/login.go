@@ -4,7 +4,7 @@ import "github.com/sirupsen/logrus"
 
 // Response models the response that will be returned after a user logs in
 type Response struct {
-	User            *User           `json:"user"`
+	User            *User           `json:"-"`
 	Client          *ClientProfile  `json:"clientProfile"`
 	Staff           *StaffProfile   `json:"staffProfile"`
 	AuthCredentials AuthCredentials `json:"credentials"`

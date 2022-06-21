@@ -1,7 +1,10 @@
 package mock
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
+	"io/ioutil"
 	"net/http"
 
 	"cloud.google.com/go/pubsub"
@@ -126,8 +129,18 @@ func NewFakeExtension() *FakeExtensionImpl {
 			return uuid.New().String(), nil
 		},
 		MockMakeRequestFn: func(ctx context.Context, method, path string, body interface{}) (*http.Response, error) {
+			msg := struct {
+				Message string `json:"message"`
+			}{
+				Message: "success",
+			}
+
+			payload, _ := json.Marshal(msg)
+
 			return &http.Response{
 				StatusCode: http.StatusOK,
+				Status:     "200 OK",
+				Body:       ioutil.NopCloser(bytes.NewBuffer(payload)),
 			}, nil
 		},
 		MockPublishToPubsubFn: func(ctx context.Context, pubsubClient *pubsub.Client, topicID string, environment string, serviceName string, version string, payload []byte) error {
