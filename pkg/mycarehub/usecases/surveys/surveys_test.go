@@ -4,7 +4,9 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
+	"github.com/brianvoe/gofakeit"
 	"github.com/google/uuid"
 	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
@@ -269,11 +271,31 @@ func TestUsecaseSurveysImpl_SendClientSurveyLinks(t *testing.T) {
 
 			}
 			if tt.name == "sad case: failed to get survey form" {
+				fakeDB.MockGetClientsByFilterParamsFn = func(ctx context.Context, facilityID *string, filterParams *dto.ClientFilterParamsInput) ([]*domain.ClientProfile, error) {
+					ID := uuid.NewString()
+					return []*domain.ClientProfile{
+						{
+							ID: &ID,
+							User: &domain.User{
+								ID: &ID,
+							},
+							Active: false,
+						},
+					}, nil
+				}
 				fakeSurveys.MockGetSurveyFormFn = func(ctx context.Context, projectID int, formID string) (*domain.SurveyForm, error) {
 					return nil, fmt.Errorf("failed to get survey form")
 				}
 			}
 			if tt.name == "sad case: failed to generate survey access link" {
+				fakeSurveys.MockGetSurveyFormFn = func(ctx context.Context, projectID int, formID string) (*domain.SurveyForm, error) {
+					return &domain.SurveyForm{
+						ProjectID: 4,
+						XMLFormID: uuid.New().String(),
+						Name:      gofakeit.BeerName(),
+						EnketoID:  uuid.New().String(),
+					}, nil
+				}
 				fakeSurveys.MockGeneratePublicAccessLinkFn = func(ctx context.Context, input dto.SurveyLinkInput) (*dto.SurveyPublicLink, error) {
 					return nil, fmt.Errorf("failed to generate survey access link")
 				}
@@ -286,8 +308,24 @@ func TestUsecaseSurveysImpl_SendClientSurveyLinks(t *testing.T) {
 			}
 
 			if tt.name == "sad case: failed to notify user" {
+				fakeSurveys.MockGeneratePublicAccessLinkFn = func(ctx context.Context, input dto.SurveyLinkInput) (*dto.SurveyPublicLink, error) {
+					return &dto.SurveyPublicLink{
+						Once:        true,
+						ID:          projectID,
+						DisplayName: "Test",
+						CreatedAt:   time.Time{},
+						UpdatedAt:   time.Time{},
+						DeletedAt:   &time.Time{},
+						Token:       "",
+						CSRF:        "",
+						ExpiresAt:   time.Time{},
+					}, nil
+				}
 				fakeNotification.MockNotifyUserFn = func(ctx context.Context, userProfile *domain.User, notificationPayload *domain.Notification) error {
 					return fmt.Errorf("failed to notify user")
+				}
+				fakeDB.MockCreateUserSurveyFn = func(ctx context.Context, userSurvey []*dto.UserSurveyInput) error {
+					return fmt.Errorf("failed to create survey")
 				}
 			}
 
@@ -369,6 +407,18 @@ func TestUsecaseSurveysImpl_VerifySurveySubmission(t *testing.T) {
 				}
 			}
 			if tt.name == "Sad case - unable to update survey" {
+				fakeSurveys.MockListSubmittersFn = func(ctx context.Context, projectID int, formID string) ([]domain.Submitter, error) {
+					return []domain.Submitter{
+						{
+							ID:          100000000000,
+							Type:        gofakeit.BeerName(),
+							DisplayName: gofakeit.BeerName(),
+							CreatedAt:   time.Now(),
+							UpdatedAt:   time.Time{},
+							DeletedAt:   time.Time{},
+						},
+					}, nil
+				}
 				fakeDB.MockUpdateUserSurveysFn = func(ctx context.Context, survey *domain.UserSurvey, updateData map[string]interface{}) error {
 					return fmt.Errorf("failed to update survey")
 				}

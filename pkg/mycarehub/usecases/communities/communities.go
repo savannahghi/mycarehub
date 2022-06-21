@@ -468,13 +468,6 @@ func (us *UseCasesCommunitiesImpl) DeleteCommunities(ctx context.Context, commun
 // AddMembersToCommunity adds a user (staff/client) to a community
 // memberID can either be a Client or a Staff ID
 func (us *UseCasesCommunitiesImpl) AddMembersToCommunity(ctx context.Context, memberIDs []string, communityID string) (bool, error) {
-	if len(memberIDs) == 0 {
-		return false, fmt.Errorf("memberIDs cannot be empty")
-	}
-	if communityID == "" {
-		return false, fmt.Errorf("communityID cannot be empty")
-	}
-
 	community, err := us.Query.GetCommunityByID(ctx, communityID)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
