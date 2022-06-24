@@ -1321,6 +1321,14 @@ func TestPGInstance_CreateUserSurvey(t *testing.T) {
 			wantErr: false,
 		},
 		{
+			name: "Happy case: empty slice of user surveys",
+			args: args{
+				ctx:         context.Background(),
+				userSurveys: []*gorm.UserSurvey{},
+			},
+			wantErr: false,
+		},
+		{
 			name: "Sad case: create user survey, invalid user ID",
 			args: args{
 				ctx: context.Background(),

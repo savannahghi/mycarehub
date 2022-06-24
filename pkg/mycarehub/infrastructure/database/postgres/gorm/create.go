@@ -465,6 +465,10 @@ func (db *PGInstance) CreateNotification(ctx context.Context, notification *Noti
 
 // CreateUserSurveys saves a user survey details including the survey link
 func (db *PGInstance) CreateUserSurveys(ctx context.Context, userSurveys []*UserSurvey) error {
+	if len(userSurveys) == 0 {
+		return nil
+	}
+
 	err := db.DB.Create(userSurveys).Error
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
