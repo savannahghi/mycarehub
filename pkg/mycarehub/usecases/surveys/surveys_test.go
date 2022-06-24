@@ -122,11 +122,6 @@ func TestUsecaseSurveysImpl_GetUserSurveyForms(t *testing.T) {
 }
 
 func TestUsecaseSurveysImpl_SendClientSurveyLinks(t *testing.T) {
-	fakeSurveys := mockSurveys.NewSurveysMock()
-	fakeDB := pgMock.NewPostgresMock()
-	fakeNotification := mockNotification.NewServiceNotificationMock()
-	u := NewUsecaseSurveys(fakeSurveys, fakeDB, fakeDB, fakeDB, fakeNotification)
-
 	facilityID := uuid.New().String()
 	formID := uuid.New().String()
 	projectID := 2
@@ -146,6 +141,25 @@ func TestUsecaseSurveysImpl_SendClientSurveyLinks(t *testing.T) {
 	}{
 		{
 			name: "happy case: send client survey links",
+			args: args{
+				ctx:        context.Background(),
+				facilityID: &facilityID,
+				formID:     &formID,
+				projectID:  &projectID,
+				filterParams: &dto.ClientFilterParamsInput{
+					ClientTypes: []enums.ClientType{enums.ClientTypePmtct},
+					AgeRange: &dto.AgeRangeInput{
+						LowerBound: 20,
+						UpperBound: 25,
+					},
+					Gender: []enumutils.Gender{enumutils.GenderMale},
+				},
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "happy case: skip client duplicate link",
 			args: args{
 				ctx:        context.Background(),
 				facilityID: &facilityID,
@@ -220,7 +234,6 @@ func TestUsecaseSurveysImpl_SendClientSurveyLinks(t *testing.T) {
 			want:    false,
 			wantErr: true,
 		},
-
 		{
 			name: "sad case: failed to create survey",
 			args: args{
@@ -240,7 +253,25 @@ func TestUsecaseSurveysImpl_SendClientSurveyLinks(t *testing.T) {
 			want:    false,
 			wantErr: true,
 		},
-
+		{
+			name: "sad case: failed to list public access link",
+			args: args{
+				ctx:        context.Background(),
+				facilityID: &facilityID,
+				formID:     &formID,
+				projectID:  &projectID,
+				filterParams: &dto.ClientFilterParamsInput{
+					ClientTypes: []enums.ClientType{enums.ClientTypePmtct},
+					AgeRange: &dto.AgeRangeInput{
+						LowerBound: 20,
+						UpperBound: 25,
+					},
+					Gender: []enumutils.Gender{enumutils.GenderMale},
+				},
+			},
+			want:    false,
+			wantErr: true,
+		},
 		{
 			name: "sad case: failed to notify user",
 			args: args{
@@ -257,12 +288,36 @@ func TestUsecaseSurveysImpl_SendClientSurveyLinks(t *testing.T) {
 					Gender: []enumutils.Gender{enumutils.GenderMale},
 				},
 			},
-			want:    false, // only report the error to sentry
-			wantErr: true,
+			want:    true, // only report the error to sentry
+			wantErr: false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			fakeSurveys := mockSurveys.NewSurveysMock()
+			fakeDB := pgMock.NewPostgresMock()
+			fakeNotification := mockNotification.NewServiceNotificationMock()
+			u := NewUsecaseSurveys(fakeSurveys, fakeDB, fakeDB, fakeDB, fakeNotification)
+
+			if tt.name == "happy case: skip client duplicate link" {
+				id := gofakeit.UUID()
+
+				fakeDB.MockGetClientsByFilterParamsFn = func(ctx context.Context, facilityID *string, filterParams *dto.ClientFilterParamsInput) ([]*domain.ClientProfile, error) {
+					return []*domain.ClientProfile{
+						{
+							UserID: id,
+						},
+					}, nil
+				}
+
+				fakeSurveys.MockListPublicAccessLinksFn = func(ctx context.Context, projectID int, formID string) ([]*dto.SurveyPublicLink, error) {
+					return []*dto.SurveyPublicLink{
+						{
+							DisplayName: id,
+						},
+					}, nil
+				}
+			}
 
 			if tt.name == "sad case: failed to get filtered clients" {
 				fakeDB.MockGetClientsByFilterParamsFn = func(ctx context.Context, facilityID *string, filterParams *dto.ClientFilterParamsInput) ([]*domain.ClientProfile, error) {
@@ -317,15 +372,16 @@ func TestUsecaseSurveysImpl_SendClientSurveyLinks(t *testing.T) {
 						UpdatedAt:   time.Time{},
 						DeletedAt:   &time.Time{},
 						Token:       "",
-						CSRF:        "",
-						ExpiresAt:   time.Time{},
 					}, nil
 				}
 				fakeNotification.MockNotifyUserFn = func(ctx context.Context, userProfile *domain.User, notificationPayload *domain.Notification) error {
 					return fmt.Errorf("failed to notify user")
 				}
-				fakeDB.MockCreateUserSurveyFn = func(ctx context.Context, userSurvey []*dto.UserSurveyInput) error {
-					return fmt.Errorf("failed to create survey")
+			}
+
+			if tt.name == "sad case: failed to list public access link" {
+				fakeSurveys.MockListPublicAccessLinksFn = func(ctx context.Context, projectID int, formID string) ([]*dto.SurveyPublicLink, error) {
+					return nil, fmt.Errorf("error listing public access link")
 				}
 			}
 

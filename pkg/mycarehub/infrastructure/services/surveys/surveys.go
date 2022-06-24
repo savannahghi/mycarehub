@@ -20,31 +20,46 @@ var (
 	surveysSystemPassword = serverutils.MustGetEnvVar("SURVEYS_SYSTEM_PASSWORD")
 )
 
+// ODKClient defines the fields required to access the surveys client
+type ODKClient struct {
+	BaseURL    string
+	HTTPClient *http.Client
+}
+
+// RequestHelperPayload is the payload that is sent to the surveys client
+type RequestHelperPayload struct {
+	Method string
+	Path   string
+	Body   interface{}
+}
+
 // Surveys is the interface that defines the methods that are required to access the surveys client
 type Surveys interface {
-	MakeRequest(ctx context.Context, payload domain.RequestHelperPayload) (*http.Response, error)
 	ListSurveyForms(ctx context.Context, projectID int) ([]*domain.SurveyForm, error)
 	GetSurveyForm(ctx context.Context, projectID int, formID string) (*domain.SurveyForm, error)
+
 	GeneratePublicAccessLink(ctx context.Context, input dto.SurveyLinkInput) (*dto.SurveyPublicLink, error)
-	GetSubmissions(ctx context.Context, input dto.VerifySurveySubmissionInput) ([]domain.Submission, error)
 	DeletePublicAccessLink(ctx context.Context, input dto.VerifySurveySubmissionInput) error
+	ListPublicAccessLinks(ctx context.Context, projectID int, formID string) ([]*dto.SurveyPublicLink, error)
+
+	GetSubmissions(ctx context.Context, input dto.VerifySurveySubmissionInput) ([]domain.Submission, error)
 	ListSubmitters(ctx context.Context, projectID int, formID string) ([]domain.Submitter, error)
 }
 
 // Impl implements the Surveys interface
 type Impl struct {
-	client domain.SurveysClient
+	client ODKClient
 }
 
 // NewSurveysImpl returns a new Impl
-func NewSurveysImpl(client domain.SurveysClient) Surveys {
+func NewSurveysImpl(client ODKClient) Surveys {
 	return &Impl{
 		client: client,
 	}
 }
 
 // MakeRequest performs a http request and returns a response
-func (s *Impl) MakeRequest(ctx context.Context, payload domain.RequestHelperPayload) (*http.Response, error) {
+func (s *Impl) MakeRequest(ctx context.Context, payload RequestHelperPayload) (*http.Response, error) {
 	client := s.client.HTTPClient
 
 	// A GET or DELETE request should not send data when doing a request. We should use query parameters
@@ -52,9 +67,9 @@ func (s *Impl) MakeRequest(ctx context.Context, payload domain.RequestHelperPayl
 	// it might result in status code 400 with the error:
 	//  `Your client has issued a malformed or illegal request. That’s all we know.`
 	if payload.Method == http.MethodGet || payload.Method == http.MethodDelete {
-		req, reqErr := http.NewRequestWithContext(ctx, payload.Method, payload.Path, nil)
-		if reqErr != nil {
-			return nil, reqErr
+		req, err := http.NewRequestWithContext(ctx, payload.Method, payload.Path, nil)
+		if err != nil {
+			return nil, err
 		}
 
 		req.SetBasicAuth(surveysSystemEmail, surveysSystemPassword)
@@ -70,9 +85,9 @@ func (s *Impl) MakeRequest(ctx context.Context, payload domain.RequestHelperPayl
 	}
 
 	p := bytes.NewBuffer(encoded)
-	req, reqErr := http.NewRequestWithContext(ctx, payload.Method, payload.Path, p)
-	if reqErr != nil {
-		return nil, reqErr
+	req, err := http.NewRequestWithContext(ctx, payload.Method, payload.Path, p)
+	if err != nil {
+		return nil, err
 	}
 
 	req.SetBasicAuth(surveysSystemEmail, surveysSystemPassword)
@@ -85,7 +100,7 @@ func (s *Impl) MakeRequest(ctx context.Context, payload domain.RequestHelperPayl
 // ListSurveyForms returns a list of survey forms
 func (s *Impl) ListSurveyForms(ctx context.Context, projectID int) ([]*domain.SurveyForm, error) {
 
-	payload := domain.RequestHelperPayload{
+	payload := RequestHelperPayload{
 		Method: http.MethodGet,
 		Path:   fmt.Sprintf("%s/v1/projects/%s/forms", s.client.BaseURL, strconv.Itoa(projectID)),
 	}
@@ -121,7 +136,7 @@ func (s *Impl) ListSurveyForms(ctx context.Context, projectID int) ([]*domain.Su
 // GetSurveyForm returns a survey form
 func (s *Impl) GetSurveyForm(ctx context.Context, projectID int, formID string) (*domain.SurveyForm, error) {
 
-	payload := domain.RequestHelperPayload{
+	payload := RequestHelperPayload{
 		Method: http.MethodGet,
 		Path:   fmt.Sprintf("%s/v1/projects/%s/forms/%s", s.client.BaseURL, strconv.Itoa(projectID), formID),
 	}
@@ -152,7 +167,7 @@ func (s *Impl) GetSurveyForm(ctx context.Context, projectID int, formID string) 
 
 // GeneratePublicAccessLink returns a survey public link
 func (s *Impl) GeneratePublicAccessLink(ctx context.Context, input dto.SurveyLinkInput) (*dto.SurveyPublicLink, error) {
-	payload := domain.RequestHelperPayload{
+	payload := RequestHelperPayload{
 		Method: http.MethodPost,
 		Path:   fmt.Sprintf("%s/v1/projects/%s/forms/%s/public-links", s.client.BaseURL, strconv.Itoa(input.ProjectID), input.FormID),
 		Body:   map[string]interface{}{"once": input.OnceOnly, "displayName": input.DisplayName},
@@ -178,25 +193,25 @@ func (s *Impl) GeneratePublicAccessLink(ctx context.Context, input dto.SurveyLin
 
 // GetSubmissions returns a list of all survey submissions
 func (s *Impl) GetSubmissions(ctx context.Context, input dto.VerifySurveySubmissionInput) ([]domain.Submission, error) {
-	url := fmt.Sprintf("%s/v1/projects/%v/forms/%s/submissions", serverutils.MustGetEnvVar("SURVEYS_BASE_URL"), input.ProjectID, input.FormID)
-	payload := domain.RequestHelperPayload{
+	url := fmt.Sprintf("%s/v1/projects/%v/forms/%s/submissions", s.client.BaseURL, input.ProjectID, input.FormID)
+	payload := RequestHelperPayload{
 		Method: http.MethodGet,
 		Path:   url,
 	}
-	resp, reqErr := s.MakeRequest(ctx, payload)
-	if reqErr != nil {
-		helpers.ReportErrorToSentry(reqErr)
-		return nil, reqErr
+	resp, err := s.MakeRequest(ctx, payload)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
 	}
 	defer resp.Body.Close()
-	respBody, respErr := ioutil.ReadAll(resp.Body)
-	if respErr != nil {
-		helpers.ReportErrorToSentry(respErr)
-		return nil, respErr
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
 	}
 
 	var submissions []domain.Submission
-	err := json.Unmarshal(respBody, &submissions)
+	err = json.Unmarshal(body, &submissions)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("unable to unmarshal submissions: %w", err)
@@ -207,15 +222,15 @@ func (s *Impl) GetSubmissions(ctx context.Context, input dto.VerifySurveySubmiss
 
 // DeletePublicAccessLink deletes the survey public link
 func (s *Impl) DeletePublicAccessLink(ctx context.Context, input dto.VerifySurveySubmissionInput) error {
-	url := fmt.Sprintf("%s/v1/projects/%v/forms/%s/public-links/%v", serverutils.MustGetEnvVar("SURVEYS_BASE_URL"), input.ProjectID, input.FormID, input.SubmitterID)
-	payload := domain.RequestHelperPayload{
+	url := fmt.Sprintf("%s/v1/projects/%v/forms/%s/public-links/%v", s.client.BaseURL, input.ProjectID, input.FormID, input.SubmitterID)
+	payload := RequestHelperPayload{
 		Method: http.MethodDelete,
 		Path:   url,
 	}
-	_, reqErr := s.MakeRequest(ctx, payload)
-	if reqErr != nil {
-		helpers.ReportErrorToSentry(reqErr)
-		return reqErr
+	_, err := s.MakeRequest(ctx, payload)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return err
 	}
 
 	return nil
@@ -223,29 +238,61 @@ func (s *Impl) DeletePublicAccessLink(ctx context.Context, input dto.VerifySurve
 
 // ListSubmitters returns a a listing of all known submitting actors to a given Form. Each Actor that has submitted to the given Form will be returned once.
 func (s *Impl) ListSubmitters(ctx context.Context, projectID int, formID string) ([]domain.Submitter, error) {
-	url := fmt.Sprintf("%s/v1/projects/%v/forms/%s/submissions/submitters", serverutils.MustGetEnvVar("SURVEYS_BASE_URL"), projectID, formID)
-	payload := domain.RequestHelperPayload{
+	url := fmt.Sprintf("%s/v1/projects/%v/forms/%s/submissions/submitters", s.client.BaseURL, projectID, formID)
+	payload := RequestHelperPayload{
 		Method: http.MethodGet,
 		Path:   url,
 	}
-	resp, reqErr := s.MakeRequest(ctx, payload)
-	if reqErr != nil {
-		helpers.ReportErrorToSentry(reqErr)
-		return nil, reqErr
+	resp, err := s.MakeRequest(ctx, payload)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
 	}
 	defer resp.Body.Close()
-	respBody, respErr := ioutil.ReadAll(resp.Body)
-	if respErr != nil {
-		helpers.ReportErrorToSentry(respErr)
-		return nil, respErr
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
 	}
 
 	var submitters []domain.Submitter
-	err := json.Unmarshal(respBody, &submitters)
+	err = json.Unmarshal(body, &submitters)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("unable to unmarshal submitters: %w", err)
 	}
 
 	return submitters, nil
+}
+
+// ListPublicAccessLinks returns a list of all public access links created for a particular form
+func (s *Impl) ListPublicAccessLinks(ctx context.Context, projectID int, formID string) ([]*dto.SurveyPublicLink, error) {
+	// {ODK Base URL}/v1/projects/{projectId}/forms/{xmlFormId}/public-links
+	url := fmt.Sprintf("%s/v1/projects/%v/forms/%s/public-links", s.client.BaseURL, projectID, formID)
+	payload := RequestHelperPayload{
+		Method: http.MethodGet,
+		Path:   url,
+	}
+	resp, err := s.MakeRequest(ctx, payload)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
+	var links []*dto.SurveyPublicLink
+	err = json.Unmarshal(body, &links)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, fmt.Errorf("unable to unmarshal submitters: %w", err)
+	}
+
+	return links, nil
 }

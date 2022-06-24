@@ -23,7 +23,7 @@ type StaffNotificationArgs struct {
 }
 
 // ComposeStaffNotification composes a staff notification which will be sent to the staff at a facility
-func ComposeStaffNotification(notificationType enums.NotificationType, args StaffNotificationArgs) *domain.Notification {
+func ComposeStaffNotification(notificationType enums.NotificationType, input StaffNotificationArgs) *domain.Notification {
 	notification := &domain.Notification{
 		Flavour: feedlib.FlavourPro,
 		Type:    notificationType,
@@ -33,8 +33,8 @@ func ComposeStaffNotification(notificationType enums.NotificationType, args Staf
 	case enums.NotificationTypeServiceRequest:
 		notificationBody := fmt.Sprintf(
 			"%s from %s requires your attention. Please follow up and resolve it.",
-			ServiceRequestMessage(*args.ServiceRequestType),
-			args.Subject.Name,
+			ServiceRequestMessage(*input.ServiceRequestType),
+			input.Subject.Name,
 		)
 
 		notification.Title = "A service request has been created"
@@ -44,7 +44,7 @@ func ComposeStaffNotification(notificationType enums.NotificationType, args Staf
 
 	case enums.NotificationTypeRoleAssignment:
 		notificationBody := "You have been assigned the following role(s): "
-		for i, role := range args.RoleTypes {
+		for i, role := range input.RoleTypes {
 			if i == 0 {
 				notificationBody += role.Name()
 			} else {
@@ -59,7 +59,7 @@ func ComposeStaffNotification(notificationType enums.NotificationType, args Staf
 
 	case enums.NotificationTypeRoleRevocation:
 		notificationBody := "You have been revoked the following role(s): "
-		for i, role := range args.RoleTypes {
+		for i, role := range input.RoleTypes {
 			if i == 0 {
 				notificationBody += role.Name()
 				notification.Title = "One of your role has been revoked"
@@ -98,8 +98,8 @@ func ServiceRequestMessage(request enums.ServiceRequestType) string {
 	}
 }
 
-// ClientNotificationArgs is a collection of arguments required to compose a notification and the associated message
-type ClientNotificationArgs struct {
+// ClientNotificationInput is a collection of arguments required to compose a notification and the associated message
+type ClientNotificationInput struct {
 	// Arguments to a community invite notification
 	Community *domain.Community
 	Inviter   *domain.User
@@ -115,7 +115,7 @@ type ClientNotificationArgs struct {
 }
 
 // ComposeClientNotification composes a client notification which will be sent to the client at a facility
-func ComposeClientNotification(notificationType enums.NotificationType, args ClientNotificationArgs) *domain.Notification {
+func ComposeClientNotification(notificationType enums.NotificationType, input ClientNotificationInput) *domain.Notification {
 	notification := &domain.Notification{
 		Flavour: feedlib.FlavourConsumer,
 		Type:    notificationType,
@@ -125,8 +125,8 @@ func ComposeClientNotification(notificationType enums.NotificationType, args Cli
 	case enums.NotificationTypeCommunities:
 		notificationBody := fmt.Sprintf(
 			"Invitation to join %s community by %s. To join, accept the invite.",
-			args.Community.Name,
-			args.Inviter.Name,
+			input.Community.Name,
+			input.Inviter.Name,
 		)
 
 		notification.Title = "You have been invited to join a conversation"
@@ -135,10 +135,10 @@ func ComposeClientNotification(notificationType enums.NotificationType, args Cli
 		return notification
 
 	case enums.NotificationTypeAppointment:
-		reason := strings.ToLower(args.Appointment.Reason)
-		date := args.Appointment.Date.AsTime().Format("January 02, 2006")
+		reason := strings.ToLower(input.Appointment.Reason)
+		date := input.Appointment.Date.AsTime().Format("January 02, 2006")
 
-		if args.IsRescheduled {
+		if input.IsRescheduled {
 			notificationBody := fmt.Sprintf(
 				"Your %s appointment has been rescheduled to %s.",
 				reason,
@@ -162,19 +162,19 @@ func ComposeClientNotification(notificationType enums.NotificationType, args Cli
 
 	case enums.NotificationTypeSurveys:
 		notification.Title = "You have a new survey"
-		notification.Body = fmt.Sprintf("You have a new %s survey. Please navigate to the homepage and fill it.", args.Survey.Title)
+		notification.Body = fmt.Sprintf("You have a new %s survey. Please navigate to the homepage and fill it.", input.Survey.Title)
 
 		return notification
 
 	case enums.NotificationTypeDemoteModerator:
 		notification.Title = "You have been demoted to a regular user"
-		notification.Body = fmt.Sprintf("You have been demoted to a regular user by %s in %s community.", args.Demoter.Username, args.Community.Name)
+		notification.Body = fmt.Sprintf("You have been demoted to a regular user by %s in %s community.", input.Demoter.Username, input.Community.Name)
 
 		return notification
 
 	case enums.NotificationTypePromoteToModerator:
 		notification.Title = "You have been promoted to a moderator"
-		notification.Body = fmt.Sprintf("You have been promoted to a moderator by %s in %s community.", args.Promoter.Username, args.Community.Name)
+		notification.Body = fmt.Sprintf("You have been promoted to a moderator by %s in %s community.", input.Promoter.Username, input.Community.Name)
 
 		return notification
 

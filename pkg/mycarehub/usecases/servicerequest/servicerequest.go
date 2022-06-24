@@ -156,13 +156,13 @@ func (u *UseCasesServiceRequestImpl) CreateServiceRequest(ctx context.Context, i
 		}
 
 		requestType := enums.ServiceRequestType(input.RequestType)
-		notificationArgs := notification.StaffNotificationArgs{
+		notificationInput := notification.StaffNotificationArgs{
 			Subject:            clientProfile.User,
 			ServiceRequestType: &requestType,
 		}
 		staffNotification := notification.ComposeStaffNotification(
 			enums.NotificationTypeServiceRequest,
-			notificationArgs,
+			notificationInput,
 		)
 		err = u.Notification.NotifyFacilityStaffs(ctx, facility, staffNotification)
 		if err != nil {
@@ -344,7 +344,7 @@ func (u *UseCasesServiceRequestImpl) UpdateServiceRequestsFromKenyaEMR(ctx conte
 
 			notificationMessage := notification.ComposeClientNotification(
 				enums.NotificationTypeAppointment,
-				notification.ClientNotificationArgs{
+				notification.ClientNotificationInput{
 					Appointment:   updatedAppointment,
 					IsRescheduled: true,
 				},

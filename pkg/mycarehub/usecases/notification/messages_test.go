@@ -143,7 +143,7 @@ func TestComposeStaffNotification(t *testing.T) {
 func TestComposeClientNotification(t *testing.T) {
 	type args struct {
 		notificationType enums.NotificationType
-		args             ClientNotificationArgs
+		args             ClientNotificationInput
 	}
 	tests := []struct {
 		name string
@@ -154,7 +154,7 @@ func TestComposeClientNotification(t *testing.T) {
 			name: "community invite notification",
 			args: args{
 				notificationType: enums.NotificationTypeCommunities,
-				args: ClientNotificationArgs{
+				args: ClientNotificationInput{
 					Community: &domain.Community{
 						Name: "Good Life",
 					},
@@ -174,7 +174,7 @@ func TestComposeClientNotification(t *testing.T) {
 			name: "new appointment notification",
 			args: args{
 				notificationType: enums.NotificationTypeAppointment,
-				args: ClientNotificationArgs{
+				args: ClientNotificationInput{
 					Appointment: &domain.Appointment{
 						Reason: "Dental Check",
 						Date: scalarutils.Date{
@@ -196,7 +196,7 @@ func TestComposeClientNotification(t *testing.T) {
 			name: "appointment reschedule notification",
 			args: args{
 				notificationType: enums.NotificationTypeAppointment,
-				args: ClientNotificationArgs{
+				args: ClientNotificationInput{
 					Appointment: &domain.Appointment{
 						Reason: "Dental Check",
 						Date: scalarutils.Date{
@@ -219,7 +219,7 @@ func TestComposeClientNotification(t *testing.T) {
 			name: "unknown notification type",
 			args: args{
 				notificationType: "UNKNOWN",
-				args: ClientNotificationArgs{
+				args: ClientNotificationInput{
 					Inviter: &domain.User{
 						Name: "John Doe",
 					},

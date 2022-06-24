@@ -464,8 +464,8 @@ func (db *PGInstance) CreateNotification(ctx context.Context, notification *Noti
 }
 
 // CreateUserSurveys saves a user survey details including the survey link
-func (db *PGInstance) CreateUserSurveys(ctx context.Context, userSurvey []*UserSurvey) error {
-	err := db.DB.Create(userSurvey).Error
+func (db *PGInstance) CreateUserSurveys(ctx context.Context, userSurveys []*UserSurvey) error {
+	err := db.DB.Create(userSurveys).Error
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return fmt.Errorf("failed to create user survey: %w", err)

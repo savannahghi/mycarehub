@@ -8,7 +8,6 @@ import (
 	"github.com/brianvoe/gofakeit"
 	"github.com/jarcoal/httpmock"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/surveys"
 )
 
@@ -41,7 +40,7 @@ func TestSurveysImpl_ListSurveyForms(t *testing.T) {
 		},
 	)
 
-	surveysClient := domain.SurveysClient{
+	surveysClient := surveys.ODKClient{
 		BaseURL:    "https://example.com",
 		HTTPClient: &http.Client{},
 	}
@@ -91,7 +90,7 @@ func TestImpl_GetSubmissions(t *testing.T) {
 		},
 	)
 
-	surveysClient := domain.SurveysClient{
+	surveysClient := surveys.ODKClient{
 		BaseURL:    "https://example.com",
 		HTTPClient: &http.Client{},
 	}
@@ -145,7 +144,7 @@ func TestImpl_DeletePublicAccessLink(t *testing.T) {
 		},
 	)
 
-	surveysClient := domain.SurveysClient{
+	surveysClient := surveys.ODKClient{
 		BaseURL:    "https://example.com",
 		HTTPClient: &http.Client{},
 	}
@@ -194,7 +193,7 @@ func TestImpl_ListSubmitters(t *testing.T) {
 		},
 	)
 
-	surveysClient := domain.SurveysClient{
+	surveysClient := surveys.ODKClient{
 		BaseURL:    "https://example.com",
 		HTTPClient: &http.Client{},
 	}
@@ -246,7 +245,7 @@ func TestImpl_GeneratePublicAccessLink(t *testing.T) {
 		},
 	)
 
-	surveysClient := domain.SurveysClient{
+	surveysClient := surveys.ODKClient{
 		BaseURL:    "https://example.com",
 		HTTPClient: &http.Client{},
 	}
@@ -299,7 +298,7 @@ func TestImpl_GetSurveyForm(t *testing.T) {
 		},
 	)
 
-	surveysClient := domain.SurveysClient{
+	surveysClient := surveys.ODKClient{
 		BaseURL:    "https://example.com",
 		HTTPClient: &http.Client{},
 	}

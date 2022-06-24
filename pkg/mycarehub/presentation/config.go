@@ -17,7 +17,6 @@ import (
 	"github.com/savannahghi/firebasetools"
 	"github.com/savannahghi/interserviceclient"
 	externalExtension "github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/clinical"
@@ -144,7 +143,7 @@ func Router(ctx context.Context) (*mux.Router, error) {
 
 	screeningToolsUsecases := screeningtools.NewUseCasesScreeningTools(db, db, db, externalExt)
 
-	surveysClient := domain.SurveysClient{
+	surveysClient := surveyInstance.ODKClient{
 		BaseURL:    surveysBaseURL,
 		HTTPClient: &http.Client{},
 	}

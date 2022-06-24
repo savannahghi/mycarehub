@@ -8,7 +8,6 @@ import (
 	stream "github.com/GetStream/stream-chat-go/v5"
 	"github.com/savannahghi/firebasetools"
 	externalExtension "github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/clinical"
@@ -93,7 +92,7 @@ func InitializeTestService(ctx context.Context) (*usecases.MyCareHub, error) {
 	healthDiaryUseCase := healthdiary.NewUseCaseHealthDiaryImpl(db, db, db, serviceRequestUseCase)
 	screeningToolsUsecases := screeningtools.NewUseCasesScreeningTools(db, db, db, externalExt)
 
-	surveysClient := domain.SurveysClient{
+	surveysClient := surveyInstance.ODKClient{
 		BaseURL:    surveysBaseURL,
 		HTTPClient: &http.Client{},
 	}
