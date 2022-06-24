@@ -318,13 +318,13 @@ func (us *UseCasesCommunitiesImpl) InviteMembers(ctx context.Context, communityI
 		return false, fmt.Errorf("failed to invite members to a community: %v", err)
 	}
 
-	notificationArgs := notification.ClientNotificationArgs{
+	notificationInput := notification.ClientNotificationInput{
 		Community: community,
 		Inviter:   staffProfile.User,
 	}
 	notificationMessage := notification.ComposeClientNotification(
 		enums.NotificationTypeCommunities,
-		notificationArgs,
+		notificationInput,
 	)
 
 	for _, invitee := range invitees {
@@ -594,14 +594,14 @@ func (us *UseCasesCommunitiesImpl) AddModeratorsWithMessage(ctx context.Context,
 			return false, err
 		}
 
-		notificationArgs := notification.ClientNotificationArgs{
+		notificationInput := notification.ClientNotificationInput{
 			Community: community,
 			Promoter:  staffProfile.User,
 		}
 
 		clientNotification := notification.ComposeClientNotification(
 			enums.NotificationTypePromoteToModerator,
-			notificationArgs,
+			notificationInput,
 		)
 
 		err = us.Notification.NotifyUser(ctx, userProfile, clientNotification)
@@ -650,14 +650,14 @@ func (us *UseCasesCommunitiesImpl) DemoteModerators(ctx context.Context, communi
 		communityMembers = append(communityMembers, *userProfile)
 	}
 
-	notificationArgs := notification.ClientNotificationArgs{
+	notificationInput := notification.ClientNotificationInput{
 		Community: community,
 		Demoter:   staffProfile.User,
 	}
 
 	clientNotificationMessage := notification.ComposeClientNotification(
 		enums.NotificationTypeDemoteModerator,
-		notificationArgs,
+		notificationInput,
 	)
 
 	for _, member := range communityMembers {

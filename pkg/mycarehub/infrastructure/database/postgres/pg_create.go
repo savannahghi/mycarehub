@@ -462,23 +462,24 @@ func (d *MyCareHubDb) SaveNotification(ctx context.Context, payload *domain.Noti
 }
 
 // CreateUserSurveys creates a new user survey
-func (d *MyCareHubDb) CreateUserSurveys(ctx context.Context, userSurvey []*dto.UserSurveyInput) error {
-	var userSurveyObj []*gorm.UserSurvey
-	for _, us := range userSurvey {
-		userSurveyObj = append(userSurveyObj, &gorm.UserSurvey{
+func (d *MyCareHubDb) CreateUserSurveys(ctx context.Context, surveys []*dto.UserSurveyInput) error {
+	var userSurveys []*gorm.UserSurvey
+
+	for _, survey := range surveys {
+		userSurveys = append(userSurveys, &gorm.UserSurvey{
 			Active:      true,
-			Link:        us.Link,
-			Title:       us.Title,
-			Description: us.Description,
-			UserID:      us.UserID,
-			FormID:      us.FormID,
-			ProjectID:   us.ProjectID,
-			LinkID:      us.LinkID,
-			Token:       us.Token,
+			Link:        survey.Link,
+			Title:       survey.Title,
+			Description: survey.Description,
+			UserID:      survey.UserID,
+			FormID:      survey.FormID,
+			ProjectID:   survey.ProjectID,
+			LinkID:      survey.LinkID,
+			Token:       survey.Token,
 		})
 	}
 
-	return d.create.CreateUserSurveys(ctx, userSurveyObj)
+	return d.create.CreateUserSurveys(ctx, userSurveys)
 }
 
 // CreateMetric saves a metric to the database

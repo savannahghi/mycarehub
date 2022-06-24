@@ -14,6 +14,8 @@ import (
 	"github.com/savannahghi/serverutils"
 )
 
+var surveyBaseURL = serverutils.MustGetEnvVar("SURVEYS_BASE_URL")
+
 // IListSurveys lists the surveys available for a given project
 type IListSurveys interface {
 	ListSurveys(ctx context.Context, projectID *int) ([]*domain.SurveyForm, error)
@@ -114,12 +116,6 @@ func (u *UsecaseSurveysImpl) ListSurveys(ctx context.Context, projectID *int) ([
 
 // SendClientSurveyLinks sends survey links to clients
 func (u *UsecaseSurveysImpl) SendClientSurveyLinks(ctx context.Context, facilityID *string, formID *string, projectID *int, filterParams *dto.ClientFilterParamsInput) (bool, error) {
-
-	var (
-		surveyBaseURL    = serverutils.MustGetEnvVar("SURVEYS_BASE_URL")
-		userSurveyInputs = []*dto.UserSurveyInput{}
-	)
-
 	clients, err := u.Query.GetClientsByFilterParams(ctx, facilityID, filterParams)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
@@ -130,27 +126,51 @@ func (u *UsecaseSurveysImpl) SendClientSurveyLinks(ctx context.Context, facility
 		return true, nil
 	}
 
+	accessLinks, err := u.Surveys.ListPublicAccessLinks(ctx, *projectID, *formID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, fmt.Errorf("error getting survey form: %w", err)
+	}
+
 	surveyForm, err := u.Surveys.GetSurveyForm(ctx, *projectID, *formID)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return false, fmt.Errorf("error getting survey form: %w", err)
 	}
 
+	// alert is a temporary type that holds survey notification input
+	// the notifications should be sent out after successful survey creation
+	type alert struct {
+		client domain.ClientProfile
+		survey dto.UserSurveyInput
+	}
+	clientsNotifications := []alert{}
+
+	userSurveyInputs := []*dto.UserSurveyInput{}
+Clients:
 	for _, client := range clients {
-		odkUserAccessTokenInput := dto.SurveyLinkInput{
+		// validate if they have an existing survey that has been sent
+		// If a survey exists for a client, continue to the next client
+		for _, link := range accessLinks {
+			if link.DisplayName == client.UserID {
+				continue Clients
+			}
+		}
+
+		accessTokenInput := dto.SurveyLinkInput{
 			ProjectID:   *projectID,
 			FormID:      *formID,
 			DisplayName: client.UserID,
 			OnceOnly:    true,
 		}
 
-		odkUserPublicAccessToken, err := u.Surveys.GeneratePublicAccessLink(ctx, odkUserAccessTokenInput)
+		publicAccessToken, err := u.Surveys.GeneratePublicAccessLink(ctx, accessTokenInput)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
 			return false, fmt.Errorf("error generating public access link for user: %w", err)
 		}
 
-		link := fmt.Sprintf("%s/-/single/%s?st=%s", surveyBaseURL, surveyForm.EnketoID, odkUserPublicAccessToken.Token)
+		link := fmt.Sprintf("%s/-/single/%s?st=%s", surveyBaseURL, surveyForm.EnketoID, publicAccessToken.Token)
 
 		userSurveyInput := &dto.UserSurveyInput{
 			UserID:    client.UserID,
@@ -158,26 +178,12 @@ func (u *UsecaseSurveysImpl) SendClientSurveyLinks(ctx context.Context, facility
 			FormID:    *formID,
 			Title:     surveyForm.Name,
 			Link:      link,
-			LinkID:    odkUserPublicAccessToken.ID,
-			Token:     odkUserPublicAccessToken.Token,
+			LinkID:    publicAccessToken.ID,
+			Token:     publicAccessToken.Token,
 		}
 		userSurveyInputs = append(userSurveyInputs, userSurveyInput)
 
-		notificationArgs := notification.ClientNotificationArgs{
-			Survey: &domain.UserSurvey{
-				Link:   link,
-				Title:  surveyForm.Name,
-				UserID: client.UserID,
-			},
-		}
-
-		// TODO:  implement batch notifications after saving the surveys
-		composedNotification := notification.ComposeClientNotification(enums.NotificationTypeSurveys, notificationArgs)
-
-		notificationErr := u.Notification.NotifyUser(ctx, client.User, composedNotification)
-		if notificationErr != nil {
-			helpers.ReportErrorToSentry(notificationErr)
-		}
+		clientsNotifications = append(clientsNotifications, alert{client: *client, survey: *userSurveyInput})
 
 	}
 
@@ -185,6 +191,23 @@ func (u *UsecaseSurveysImpl) SendClientSurveyLinks(ctx context.Context, facility
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return false, fmt.Errorf("error creating user survey: %w", err)
+	}
+
+	for _, alert := range clientsNotifications {
+		notificationInput := notification.ClientNotificationInput{
+			Survey: &domain.UserSurvey{
+				Link:   alert.survey.Link,
+				Title:  surveyForm.Name,
+				UserID: alert.client.UserID,
+			},
+		}
+
+		composedNotification := notification.ComposeClientNotification(enums.NotificationTypeSurveys, notificationInput)
+
+		err := u.Notification.NotifyUser(ctx, alert.client.User, composedNotification)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+		}
 	}
 
 	return true, nil

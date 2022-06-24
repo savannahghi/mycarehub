@@ -287,12 +287,12 @@ func (u *UsecaseAuthorityImpl) AssignOrRevokeRoles(ctx context.Context, userID s
 
 // ComposeAndSendNotification composes a notification and sends it to the user
 func (u *UsecaseAuthorityImpl) ComposeAndSendNotification(ctx context.Context, roles []enums.UserRoleType, notificationType enums.NotificationType, user *domain.User) {
-	notificationArgs := notification.StaffNotificationArgs{
+	notificationInput := notification.StaffNotificationArgs{
 		RoleTypes: roles,
 	}
 	notification := notification.ComposeStaffNotification(
 		notificationType,
-		notificationArgs,
+		notificationInput,
 	)
 	err := u.Notification.NotifyUser(ctx, user, notification)
 	if err != nil {

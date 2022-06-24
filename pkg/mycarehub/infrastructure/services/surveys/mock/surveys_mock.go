@@ -8,24 +8,26 @@ import (
 	"github.com/brianvoe/gofakeit"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/surveys"
 )
 
 // SurveysMock mocks the surveys service
 type SurveysMock struct {
-	MockMakeRequestFn              func(ctx context.Context, payload domain.RequestHelperPayload) (*http.Response, error)
+	MockMakeRequestFn              func(ctx context.Context, payload surveys.RequestHelperPayload) (*http.Response, error)
 	MockListSurveyFormsFn          func(ctx context.Context, projectID int) ([]*domain.SurveyForm, error)
 	MockGetSurveyFormFn            func(ctx context.Context, projectID int, formID string) (*domain.SurveyForm, error)
 	MockGeneratePublicAccessLinkFn func(ctx context.Context, input dto.SurveyLinkInput) (*dto.SurveyPublicLink, error)
 	MockGetSubmissionsFn           func(ctx context.Context, input dto.VerifySurveySubmissionInput) ([]domain.Submission, error)
 	MockDeletePublicAccessLinkFn   func(ctx context.Context, input dto.VerifySurveySubmissionInput) error
 	MockListSubmittersFn           func(ctx context.Context, projectID int, formID string) ([]domain.Submitter, error)
+	MockListPublicAccessLinksFn    func(ctx context.Context, projectID int, formID string) ([]*dto.SurveyPublicLink, error)
 }
 
 // NewSurveysMock initializes the surveys mock service
 func NewSurveysMock() *SurveysMock {
 	return &SurveysMock{
 
-		MockMakeRequestFn: func(ctx context.Context, payload domain.RequestHelperPayload) (*http.Response, error) {
+		MockMakeRequestFn: func(ctx context.Context, payload surveys.RequestHelperPayload) (*http.Response, error) {
 			return &http.Response{
 				StatusCode: 200,
 				Body:       nil,
@@ -56,8 +58,19 @@ func NewSurveysMock() *SurveysMock {
 				UpdatedAt:   time.Now(),
 				DeletedAt:   nil,
 				Token:       gofakeit.UUID(),
-				CSRF:        gofakeit.UUID(),
-				ExpiresAt:   time.Now().Add(time.Hour * 24),
+			}, nil
+		},
+		MockListPublicAccessLinksFn: func(ctx context.Context, projectID int, formID string) ([]*dto.SurveyPublicLink, error) {
+			return []*dto.SurveyPublicLink{
+				{
+					Once:        true,
+					ID:          2,
+					DisplayName: gofakeit.Name(),
+					CreatedAt:   time.Now(),
+					UpdatedAt:   time.Now(),
+					DeletedAt:   nil,
+					Token:       gofakeit.UUID(),
+				},
 			}, nil
 		},
 		MockGetSubmissionsFn: func(ctx context.Context, input dto.VerifySurveySubmissionInput) ([]domain.Submission, error) {
@@ -104,7 +117,7 @@ func (s *SurveysMock) ListSurveyForms(ctx context.Context, projectID int) ([]*do
 }
 
 // MakeRequest makes a request to the surveys service
-func (s *SurveysMock) MakeRequest(ctx context.Context, payload domain.RequestHelperPayload) (*http.Response, error) {
+func (s *SurveysMock) MakeRequest(ctx context.Context, payload surveys.RequestHelperPayload) (*http.Response, error) {
 	return s.MockMakeRequestFn(ctx, payload)
 }
 
@@ -131,4 +144,9 @@ func (s *SurveysMock) DeletePublicAccessLink(ctx context.Context, input dto.Veri
 // ListSubmitters mocks the action of listing all the submitters of a given survey
 func (s *SurveysMock) ListSubmitters(ctx context.Context, projectID int, formID string) ([]domain.Submitter, error) {
 	return s.MockListSubmittersFn(ctx, projectID, formID)
+}
+
+// ListPublicAccessLinks returns a list of all public access links created for a particular form
+func (s *SurveysMock) ListPublicAccessLinks(ctx context.Context, projectID int, formID string) ([]*dto.SurveyPublicLink, error) {
+	return s.MockListPublicAccessLinksFn(ctx, projectID, formID)
 }
