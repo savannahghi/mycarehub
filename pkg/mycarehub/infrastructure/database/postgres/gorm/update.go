@@ -32,7 +32,7 @@ type Update interface {
 	ViewContent(ctx context.Context, userID string, contentID int) (bool, error)
 	SetInProgressBy(ctx context.Context, requestID string, staffID string) (bool, error)
 	UpdateClientCaregiver(ctx context.Context, caregiverInput *dto.CaregiverInput) error
-	ResolveServiceRequest(ctx context.Context, staffID *string, serviceRequestID *string, status string) (bool, error)
+	ResolveServiceRequest(ctx context.Context, serviceRequestID *string, updateData map[string]interface{}) error
 	ResolveStaffServiceRequest(ctx context.Context, staffID *string, serviceRequestID *string, verificattionStatus string) (bool, error)
 	AssignRoles(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error)
 	RevokeRoles(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error)
@@ -635,12 +635,7 @@ func (db *PGInstance) ResolveStaffServiceRequest(ctx context.Context, staffID *s
 }
 
 // ResolveServiceRequest resolves a service request for a given client
-func (db *PGInstance) ResolveServiceRequest(ctx context.Context, staffID *string, serviceRequestID *string, status string) (bool, error) {
-	var (
-		serviceRequest ClientServiceRequest
-	)
-
-	currentTime := time.Now()
+func (db *PGInstance) ResolveServiceRequest(ctx context.Context, serviceRequestID *string, updateData map[string]interface{}) error {
 
 	tx := db.DB.Begin()
 	defer func() {
@@ -650,33 +645,23 @@ func (db *PGInstance) ResolveServiceRequest(ctx context.Context, staffID *string
 	}()
 	if err := tx.Error; err != nil {
 		helpers.ReportErrorToSentry(err)
-		return false, fmt.Errorf("failed to initialize database transaction %v", err)
+		return fmt.Errorf("failed to initialize database transaction %v", err)
 	}
 
-	if err := tx.Model(&ClientServiceRequest{}).Where(&ClientServiceRequest{ID: serviceRequestID}).First(&serviceRequest).Error; err != nil {
-		helpers.ReportErrorToSentry(err)
-		tx.Rollback()
-		return false, fmt.Errorf("failed to get service request: %v", err)
-	}
-
-	err := tx.Model(&ClientServiceRequest{}).Where(&ClientServiceRequest{ID: serviceRequestID}).Updates(ClientServiceRequest{
-		Status:       status,
-		ResolvedByID: staffID,
-		ResolvedAt:   &currentTime,
-	}).Error
+	err := tx.Model(&ClientServiceRequest{}).Where(&ClientServiceRequest{ID: serviceRequestID}).Updates(&updateData).Error
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		tx.Rollback()
-		return false, fmt.Errorf("failed to update service request: %v", err)
+		return fmt.Errorf("failed to update service request: %v", err)
 	}
 
 	if err := tx.Commit().Error; err != nil {
 		helpers.ReportErrorToSentry(err)
 		tx.Rollback()
-		return false, fmt.Errorf("transaction commit to update service request failed: %v", err)
+		return fmt.Errorf("transaction commit to update service request failed: %v", err)
 	}
 
-	return true, nil
+	return nil
 }
 
 // AssignRoles assigns roles to a user

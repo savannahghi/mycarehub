@@ -904,13 +904,12 @@ func TestPGInstance_InProgressBy(t *testing.T) {
 func TestPGInstance_ResolveServiceRequest(t *testing.T) {
 	ctx := context.Background()
 	longWord := gofakeit.HipsterSentence(10)
-	nonExistentUUID := uuid.New().String()
 
 	type args struct {
 		ctx              context.Context
 		staffID          *string
 		serviceRequestID *string
-		status           string
+		updateData       map[string]interface{}
 	}
 	tests := []struct {
 		name    string
@@ -924,48 +923,37 @@ func TestPGInstance_ResolveServiceRequest(t *testing.T) {
 				ctx:              ctx,
 				staffID:          &staffID,
 				serviceRequestID: &serviceRequestID,
-				status:           enums.ServiceRequestStatusResolved.String(),
+				updateData: map[string]interface{}{
+					"status":         enums.ServiceRequestStatusResolved.String(),
+					"resolved_by_id": staffID,
+					"resolved_at":    time.Now(),
+				},
 			},
 			wantErr: false,
-			want:    true,
-		},
-		{
-			name: "Sad case: invalid staff id",
-			args: args{
-				ctx:              ctx,
-				staffID:          &longWord,
-				serviceRequestID: &serviceRequestID,
-				status:           enums.ServiceRequestStatusResolved.String(),
-			},
-			wantErr: true,
-		},
-		{
-			name: "Sad case: non-existent staff",
-			args: args{
-				ctx:              ctx,
-				staffID:          &nonExistentUUID,
-				serviceRequestID: &serviceRequestID,
-				status:           enums.ServiceRequestStatusResolved.String(),
-			},
-			wantErr: true,
 		},
 		{
 			name: "Sad case: invalid service request id",
 			args: args{
 				ctx:              ctx,
-				staffID:          &staffID,
 				serviceRequestID: &longWord,
-				status:           enums.ServiceRequestStatusResolved.String(),
+				updateData: map[string]interface{}{
+					"status":         enums.ServiceRequestStatusResolved.String(),
+					"resolved_by_id": staffID,
+					"resolved_at":    time.Now(),
+				},
 			},
 			wantErr: true,
 		},
 		{
-			name: "Sad case: non existent service request",
+			name: "Sad case: empty service request id",
 			args: args{
 				ctx:              ctx,
-				staffID:          &staffID,
-				serviceRequestID: &nonExistentUUID,
-				status:           enums.ServiceRequestStatusResolved.String(),
+				serviceRequestID: &longWord,
+				updateData: map[string]interface{}{
+					"status":         enums.ServiceRequestStatusResolved.String(),
+					"resolved_by_id": staffID,
+					"resolved_at":    time.Now(),
+				},
 			},
 			wantErr: true,
 		},
@@ -973,13 +961,10 @@ func TestPGInstance_ResolveServiceRequest(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			got, err := testingDB.ResolveServiceRequest(tt.args.ctx, tt.args.staffID, tt.args.serviceRequestID, tt.args.status)
+			err := testingDB.ResolveServiceRequest(tt.args.ctx, tt.args.serviceRequestID, tt.args.updateData)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("PGInstance.ResolveServiceRequest() error = %v, wantErr %v", err, tt.wantErr)
 				return
-			}
-			if got != tt.want {
-				t.Errorf("PGInstance.ResolveServiceRequest() = %v, want %v", got, tt.want)
 			}
 		})
 	}

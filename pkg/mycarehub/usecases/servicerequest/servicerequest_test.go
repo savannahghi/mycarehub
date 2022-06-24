@@ -407,6 +407,7 @@ func TestUseCasesServiceRequestImpl_ResolveServiceRequest(t *testing.T) {
 		ctx              context.Context
 		staffID          *string
 		serviceRequestID *string
+		comment          string
 	}
 	tests := []struct {
 		name    string
@@ -420,6 +421,7 @@ func TestUseCasesServiceRequestImpl_ResolveServiceRequest(t *testing.T) {
 				ctx:              context.Background(),
 				staffID:          &testID,
 				serviceRequestID: &testID,
+				comment:          "test comment",
 			},
 			want:    true,
 			wantErr: false,
@@ -485,16 +487,6 @@ func TestUseCasesServiceRequestImpl_ResolveServiceRequest(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "Sad Case - Fail to resolve service request, return false",
-			args: args{
-				ctx:              context.Background(),
-				staffID:          &testID,
-				serviceRequestID: &testID,
-			},
-			want:    false,
-			wantErr: true,
-		},
-		{
 			name: "Sad Case - Fail to update user",
 			args: args{
 				ctx:              context.Background(),
@@ -514,13 +506,8 @@ func TestUseCasesServiceRequestImpl_ResolveServiceRequest(t *testing.T) {
 			u := servicerequest.NewUseCaseServiceRequestImpl(fakeDB, fakeDB, fakeDB, fakeExtension, fakeUser, fakeNotification)
 
 			if tt.name == "Sad Case - Fail to resolve service request" {
-				fakeDB.MockResolveServiceRequestFn = func(ctx context.Context, staffID *string, serviceRequestID *string, status string) (bool, error) {
-					return false, fmt.Errorf("failed to resolve service request")
-				}
-			}
-			if tt.name == "Sad Case - Fail to resolve service request, return false" {
-				fakeDB.MockResolveServiceRequestFn = func(ctx context.Context, staffID *string, serviceRequestID *string, status string) (bool, error) {
-					return false, nil
+				fakeDB.MockResolveServiceRequestFn = func(ctx context.Context, staffID, serviceRequestID *string, status string, comment *string) error {
+					return fmt.Errorf("failed to resolve service request")
 				}
 			}
 
@@ -590,7 +577,7 @@ func TestUseCasesServiceRequestImpl_ResolveServiceRequest(t *testing.T) {
 				}
 			}
 
-			got, err := u.ResolveServiceRequest(tt.args.ctx, tt.args.staffID, tt.args.serviceRequestID)
+			got, err := u.ResolveServiceRequest(tt.args.ctx, tt.args.staffID, tt.args.serviceRequestID, &tt.args.comment)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCasesServiceRequestImpl.ResolveServiceRequest() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -1465,8 +1452,8 @@ func TestUseCasesServiceRequestImpl_VerifyPinResetServiceRequest(t *testing.T) {
 			}
 
 			if tt.name == "Sad Case - Fail to resolve service request" {
-				fakeDB.MockResolveServiceRequestFn = func(ctx context.Context, staffID *string, serviceRequestID *string, status string) (bool, error) {
-					return false, fmt.Errorf("failed to resolve service request")
+				fakeDB.MockResolveServiceRequestFn = func(ctx context.Context, staffID, serviceRequestID *string, status string, comment *string) error {
+					return fmt.Errorf("failed to resolve service request")
 				}
 			}
 
