@@ -2,7 +2,9 @@ package postgres
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"time"
 
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
@@ -129,8 +131,38 @@ func (d *MyCareHubDb) UpdateClientCaregiver(ctx context.Context, caregiverInput 
 }
 
 // ResolveServiceRequest resolves a service request
-func (d *MyCareHubDb) ResolveServiceRequest(ctx context.Context, staffID *string, serviceRequestID *string, status string) (bool, error) {
-	return d.update.ResolveServiceRequest(ctx, staffID, serviceRequestID, status)
+func (d *MyCareHubDb) ResolveServiceRequest(ctx context.Context, staffID *string, serviceRequestID *string, status string, comment *string) error {
+	serviceRequest, err := d.query.GetServiceRequestByID(ctx, *serviceRequestID)
+	if err != nil {
+		return err
+	}
+
+	metadata, err := utils.ConvertJSONStringToMap(serviceRequest.Meta)
+	if err != nil {
+		return err
+	}
+
+	if metadata == nil {
+		metadata = map[string]interface{}{
+			"comment": comment,
+		}
+	} else {
+		metadata["comment"] = comment
+	}
+
+	newMetaData, err := json.Marshal(metadata)
+	if err != nil {
+		return err
+	}
+
+	serviceRequestUpdatePayload := map[string]interface{}{
+		"status":         status,
+		"resolved_by_id": staffID,
+		"resolved_at":    time.Now(),
+		"meta":           string(newMetaData),
+	}
+
+	return d.update.ResolveServiceRequest(ctx, serviceRequestID, serviceRequestUpdatePayload)
 }
 
 // ResolveStaffServiceRequest resolves a staff's service request

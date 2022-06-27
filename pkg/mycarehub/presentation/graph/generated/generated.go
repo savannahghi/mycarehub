@@ -442,7 +442,7 @@ type ComplexityRoot struct {
 		RejectInvitation                   func(childComplexity int, memberID string, communityID string) int
 		RemoveMembersFromCommunity         func(childComplexity int, communityID string, memberIDs []string) int
 		RescheduleAppointment              func(childComplexity int, appointmentID string, date scalarutils.Date) int
-		ResolveServiceRequest              func(childComplexity int, staffID string, requestID string) int
+		ResolveServiceRequest              func(childComplexity int, staffID string, requestID string, comment *string) int
 		SendClientSurveyLinks              func(childComplexity int, facilityID string, formID string, projectID int, filterParams *dto.ClientFilterParamsInput) int
 		SendFCMNotification                func(childComplexity int, registrationTokens []string, data map[string]interface{}, notification firebasetools.FirebaseSimpleNotificationInput) int
 		SendFeedback                       func(childComplexity int, input dto.FeedbackResponseInput) int
@@ -724,7 +724,7 @@ type MutationResolver interface {
 	RecordSecurityQuestionResponses(ctx context.Context, input []*dto.SecurityQuestionResponseInput) ([]*domain.RecordSecurityQuestionResponse, error)
 	SetInProgressBy(ctx context.Context, serviceRequestID string, staffID string) (bool, error)
 	CreateServiceRequest(ctx context.Context, input dto.ServiceRequestInput) (bool, error)
-	ResolveServiceRequest(ctx context.Context, staffID string, requestID string) (bool, error)
+	ResolveServiceRequest(ctx context.Context, staffID string, requestID string, comment *string) (bool, error)
 	VerifyClientPinResetServiceRequest(ctx context.Context, clientID string, serviceRequestID string, cccNumber string, phoneNumber string, physicalIdentityVerified bool, state string) (bool, error)
 	VerifyStaffPinResetServiceRequest(ctx context.Context, phoneNumber string, serviceRequestID string, verificationStatus string) (bool, error)
 	SendClientSurveyLinks(ctx context.Context, facilityID string, formID string, projectID int, filterParams *dto.ClientFilterParamsInput) (bool, error)
@@ -2830,7 +2830,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.ResolveServiceRequest(childComplexity, args["staffID"].(string), args["requestID"].(string)), true
+		return e.complexity.Mutation.ResolveServiceRequest(childComplexity, args["staffID"].(string), args["requestID"].(string), args["comment"].(*string)), true
 
 	case "Mutation.sendClientSurveyLinks":
 		if e.complexity.Mutation.SendClientSurveyLinks == nil {
@@ -4846,7 +4846,7 @@ extend type Mutation {
 	{Name: "pkg/mycarehub/presentation/graph/servicerequest.graphql", Input: `extend type Mutation {
   setInProgressBy(serviceRequestID: String!, staffID: String!): Boolean!
   createServiceRequest(input: ServiceRequestInput!): Boolean!
-  resolveServiceRequest(staffID: String!, requestID: String!): Boolean!
+  resolveServiceRequest(staffID: String!, requestID: String!, comment: String): Boolean!
 
   verifyClientPinResetServiceRequest(
     clientID: String!
@@ -6177,6 +6177,15 @@ func (ec *executionContext) field_Mutation_resolveServiceRequest_args(ctx contex
 		}
 	}
 	args["requestID"] = arg1
+	var arg2 *string
+	if tmp, ok := rawArgs["comment"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("comment"))
+		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["comment"] = arg2
 	return args, nil
 }
 
@@ -16769,7 +16778,7 @@ func (ec *executionContext) _Mutation_resolveServiceRequest(ctx context.Context,
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().ResolveServiceRequest(rctx, args["staffID"].(string), args["requestID"].(string))
+		return ec.resolvers.Mutation().ResolveServiceRequest(rctx, args["staffID"].(string), args["requestID"].(string), args["comment"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)

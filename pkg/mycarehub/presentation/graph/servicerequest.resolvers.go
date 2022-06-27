@@ -21,8 +21,8 @@ func (r *mutationResolver) CreateServiceRequest(ctx context.Context, input dto.S
 	return r.mycarehub.ServiceRequest.CreateServiceRequest(ctx, &input)
 }
 
-func (r *mutationResolver) ResolveServiceRequest(ctx context.Context, staffID string, requestID string) (bool, error) {
-	return r.mycarehub.ServiceRequest.ResolveServiceRequest(ctx, &staffID, &requestID)
+func (r *mutationResolver) ResolveServiceRequest(ctx context.Context, staffID string, requestID string, comment *string) (bool, error) {
+	return r.mycarehub.ServiceRequest.ResolveServiceRequest(ctx, &staffID, &requestID, comment)
 }
 
 func (r *mutationResolver) VerifyClientPinResetServiceRequest(ctx context.Context, clientID string, serviceRequestID string, cccNumber string, phoneNumber string, physicalIdentityVerified bool, state string) (bool, error) {
