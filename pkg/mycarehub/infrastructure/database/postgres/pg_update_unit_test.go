@@ -1353,6 +1353,17 @@ func TestMyCareHubDb_ResolveServiceRequest(t *testing.T) {
 			},
 			wantErr: true,
 		},
+		{
+			name: "Sad case: unable to update client service request",
+			args: args{
+				ctx:              context.Background(),
+				staffID:          &testUUD,
+				serviceRequestID: &testUUD,
+				status:           enums.ServiceRequestStatusResolved.String(),
+				comment:          &comment,
+			},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -1376,6 +1387,16 @@ func TestMyCareHubDb_ResolveServiceRequest(t *testing.T) {
 					return &gorm.ClientServiceRequest{
 						Meta: `["yes","no"]`,
 					}, nil
+				}
+			}
+			if tt.name == "Sad case: unable to update client service request" {
+				fakeGorm.MockGetServiceRequestByIDFn = func(ctx context.Context, serviceRequestID string) (*gorm.ClientServiceRequest, error) {
+					return &gorm.ClientServiceRequest{
+						Meta: ``,
+					}, nil
+				}
+				fakeGorm.MockUpdateClientServiceRequestFn = func(ctx context.Context, clientServiceRequest *gorm.ClientServiceRequest, updateData map[string]interface{}) error {
+					return fmt.Errorf("an error occurred")
 				}
 			}
 

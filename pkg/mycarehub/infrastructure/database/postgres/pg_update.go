@@ -162,7 +162,11 @@ func (d *MyCareHubDb) ResolveServiceRequest(ctx context.Context, staffID *string
 		"meta":           string(newMetaData),
 	}
 
-	return d.update.ResolveServiceRequest(ctx, serviceRequestID, serviceRequestUpdatePayload)
+	clientServiceRequest := &gorm.ClientServiceRequest{
+		ID: serviceRequestID,
+	}
+
+	return d.update.UpdateClientServiceRequest(ctx, clientServiceRequest, serviceRequestUpdatePayload)
 }
 
 // ResolveStaffServiceRequest resolves a staff's service request

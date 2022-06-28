@@ -767,7 +767,7 @@ func (h *MyCareHubHandlersInterfacesImpl) UpdateServiceRequests(ctx context.Cont
 	return nil
 }
 
-// CreateOrUpdateKenyaEMRAppointments is tha handler used to sync appointmens from Kenya EMR
+// CreateOrUpdateKenyaEMRAppointments is tha handler used to sync appointments from Kenya EMR
 // The appointment can be a POST, handled as a create or PUT handled as an update to existing appointment
 func (h *MyCareHubHandlersInterfacesImpl) CreateOrUpdateKenyaEMRAppointments() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
