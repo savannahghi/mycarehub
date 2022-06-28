@@ -32,7 +32,6 @@ type Update interface {
 	ViewContent(ctx context.Context, userID string, contentID int) (bool, error)
 	SetInProgressBy(ctx context.Context, requestID string, staffID string) (bool, error)
 	UpdateClientCaregiver(ctx context.Context, caregiverInput *dto.CaregiverInput) error
-	ResolveServiceRequest(ctx context.Context, serviceRequestID *string, updateData map[string]interface{}) error
 	ResolveStaffServiceRequest(ctx context.Context, staffID *string, serviceRequestID *string, verificattionStatus string) (bool, error)
 	AssignRoles(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error)
 	RevokeRoles(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error)
@@ -634,36 +633,6 @@ func (db *PGInstance) ResolveStaffServiceRequest(ctx context.Context, staffID *s
 	return true, nil
 }
 
-// ResolveServiceRequest resolves a service request for a given client
-func (db *PGInstance) ResolveServiceRequest(ctx context.Context, serviceRequestID *string, updateData map[string]interface{}) error {
-
-	tx := db.DB.Begin()
-	defer func() {
-		if r := recover(); r != nil {
-			tx.Rollback()
-		}
-	}()
-	if err := tx.Error; err != nil {
-		helpers.ReportErrorToSentry(err)
-		return fmt.Errorf("failed to initialize database transaction %v", err)
-	}
-
-	err := tx.Model(&ClientServiceRequest{}).Where(&ClientServiceRequest{ID: serviceRequestID}).Updates(&updateData).Error
-	if err != nil {
-		helpers.ReportErrorToSentry(err)
-		tx.Rollback()
-		return fmt.Errorf("failed to update service request: %v", err)
-	}
-
-	if err := tx.Commit().Error; err != nil {
-		helpers.ReportErrorToSentry(err)
-		tx.Rollback()
-		return fmt.Errorf("transaction commit to update service request failed: %v", err)
-	}
-
-	return nil
-}
-
 // AssignRoles assigns roles to a user
 func (db *PGInstance) AssignRoles(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error) {
 	var (
@@ -1012,7 +981,7 @@ func (db *PGInstance) UpdateFailedSecurityQuestionsAnsweringAttempts(ctx context
 
 // UpdateClientServiceRequest updates the client service request
 func (db *PGInstance) UpdateClientServiceRequest(ctx context.Context, clientServiceRequest *ClientServiceRequest, updateData map[string]interface{}) error {
-	err := db.DB.Model(&ClientServiceRequest{}).Where(&ClientServiceRequest{ID: clientServiceRequest.ID}).Updates(updateData).Error
+	err := db.DB.Model(&ClientServiceRequest{}).Where(&ClientServiceRequest{ID: clientServiceRequest.ID}).Updates(&updateData).Error
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return fmt.Errorf("unable to update client service request: %v", err)
