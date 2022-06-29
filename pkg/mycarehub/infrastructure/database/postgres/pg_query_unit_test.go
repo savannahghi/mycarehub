@@ -155,7 +155,8 @@ func TestMyCareHubDb_GetFacilities(t *testing.T) {
 	invalidFacilityData = append(invalidFacilityData, invalidFacility)
 
 	type args struct {
-		ctx context.Context
+		ctx             context.Context
+		searchParameter *string
 	}
 	tests := []struct {
 		name    string
@@ -180,6 +181,13 @@ func TestMyCareHubDb_GetFacilities(t *testing.T) {
 			args:    args{ctx: ctx},
 			wantErr: true,
 		},
+		{
+			name: "Happy Case - return empty facility list",
+			args: args{
+				ctx: ctx,
+			},
+			wantErr: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -187,28 +195,30 @@ func TestMyCareHubDb_GetFacilities(t *testing.T) {
 			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
 
 			if tt.name == "sad case - facility want data not given" {
-				fakeGorm.MockGetFacilitiesFn = func(ctx context.Context) ([]gorm.Facility, error) {
-					return nil, fmt.Errorf("failed to get facilities")
-				}
-			}
-			if tt.name == "sad case - invalid payload" {
-				fakeGorm.MockGetFacilitiesFn = func(ctx context.Context) ([]gorm.Facility, error) {
+				fakeGorm.MockSearchFacilityFn = func(ctx context.Context, searchParameter *string) ([]gorm.Facility, error) {
 					return nil, fmt.Errorf("failed to get facilities")
 				}
 			}
 
-			got, err := d.GetFacilities(tt.args.ctx)
+			if tt.name == "sad case - invalid payload" {
+				fakeGorm.MockSearchFacilityFn = func(ctx context.Context, searchParameter *string) ([]gorm.Facility, error) {
+					return nil, fmt.Errorf("failed to get facilities")
+				}
+			}
+
+			if tt.name == "Happy Case - return empty facility list" {
+				fakeGorm.MockSearchFacilityFn = func(ctx context.Context, searchParameter *string) ([]gorm.Facility, error) {
+					return []gorm.Facility{}, nil
+				}
+			}
+
+			got, err := d.SearchFacility(tt.args.ctx, tt.args.searchParameter)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("MyCareHubDb.GetFacilities() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if tt.wantErr && got != nil {
 				t.Errorf("expected facilities to be nil for %v", tt.name)
-				return
-			}
-
-			if !tt.wantErr && got == nil {
-				t.Errorf("expected facilities not to be nil for %v", tt.name)
 				return
 			}
 		})
@@ -2749,7 +2759,8 @@ func TestMyCareHubDb_GetPendingServiceRequestsCount(t *testing.T) {
 		{
 			name: "Sad case - fail to get staff service requests count",
 			args: args{
-				ctx: ctx,
+				ctx:        ctx,
+				facilityID: facilityID,
 			},
 			wantErr: true,
 		},
@@ -2844,9 +2855,9 @@ func TestMyCareHubDb_GetClientByClientID(t *testing.T) {
 }
 
 func TestMyCareHubDb_GetServiceRequests(t *testing.T) {
-	var requeststatus = enums.ServiceRequestStatusPending.String()
 	var requesttype = enums.ServiceRequestTypeRedFlag.String()
 	facilityID := uuid.New().String()
+
 	type args struct {
 		ctx           context.Context
 		requestType   *string
@@ -2854,6 +2865,7 @@ func TestMyCareHubDb_GetServiceRequests(t *testing.T) {
 		facilityID    string
 		flavour       feedlib.Flavour
 	}
+
 	tests := []struct {
 		name    string
 		args    args
@@ -2861,7 +2873,7 @@ func TestMyCareHubDb_GetServiceRequests(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "Happy Case - Successfully get service requests by type",
+			name: "Happy Case - Successfully get service requests - Consumer",
 			args: args{
 				ctx:           context.Background(),
 				requestType:   &requesttype,
@@ -2872,79 +2884,111 @@ func TestMyCareHubDb_GetServiceRequests(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "Happy Case - Successfully get service requests by status",
+			name: "Happy Case - Successfully get service requests - Pro",
 			args: args{
 				ctx:           context.Background(),
-				requestStatus: &requeststatus,
-				facilityID:    facilityID,
-				flavour:       feedlib.FlavourConsumer,
-			},
-			wantErr: false,
-		},
-		{
-			name: "Happy Case - Successfully get service requests by status and type",
-			args: args{
-				ctx:           context.Background(),
-				requestStatus: &requeststatus,
 				requestType:   &requesttype,
+				requestStatus: new(string),
 				facilityID:    facilityID,
-				flavour:       feedlib.FlavourConsumer,
+				flavour:       feedlib.FlavourPro,
 			},
 			wantErr: false,
 		},
 		{
-			name: "Happy Case - Successfully get service requests",
-			args: args{
-				ctx:        context.Background(),
-				facilityID: facilityID,
-				flavour:    feedlib.FlavourConsumer,
-			},
-			wantErr: false,
-		},
-		{
-			name: "Happy Case - Successfully get unresolved service requests",
+			name: "Sad Case - Invalid Flavour",
 			args: args{
 				ctx:           context.Background(),
-				requestStatus: &requeststatus,
 				requestType:   &requesttype,
+				requestStatus: new(string),
 				facilityID:    facilityID,
-				flavour:       feedlib.FlavourConsumer,
-			},
-			wantErr: false,
-		},
-		{
-			name: "Sad Case - Fail to get service requests",
-			args: args{
-				ctx:        context.Background(),
-				facilityID: facilityID,
-				flavour:    feedlib.FlavourConsumer,
+				flavour:       "invalid flavour",
 			},
 			wantErr: true,
 		},
 		{
-			name: "Sad Case - Fail to get staff service requests",
+			name: "Sad Case - Fail to get service requests - Consumer",
 			args: args{
-				ctx:        context.Background(),
-				facilityID: "",
-				flavour:    feedlib.FlavourPro,
+				ctx:           context.Background(),
+				requestType:   &requesttype,
+				requestStatus: new(string),
+				facilityID:    facilityID,
+				flavour:       feedlib.FlavourConsumer,
 			},
 			wantErr: true,
 		},
 		{
-			name: "Sad Case - Fail to get staff profile by staff ID",
+			name: "Sad Case - Fail to get client profile by client ID",
 			args: args{
-				ctx:        context.Background(),
-				facilityID: facilityID,
-				flavour:    feedlib.FlavourPro,
+				ctx:           context.Background(),
+				requestType:   &requesttype,
+				requestStatus: new(string),
+				facilityID:    facilityID,
+				flavour:       feedlib.FlavourConsumer,
 			},
 			wantErr: true,
 		},
 		{
 			name: "Sad Case - Fail to get user profile by staff ID",
 			args: args{
-				ctx:        context.Background(),
-				facilityID: "facilityID",
-				flavour:    feedlib.FlavourPro,
+				ctx:           context.Background(),
+				requestType:   &requesttype,
+				requestStatus: new(string),
+				facilityID:    facilityID,
+				flavour:       feedlib.FlavourConsumer,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - Missing facility ID",
+			args: args{
+				ctx:           context.Background(),
+				requestType:   &requesttype,
+				requestStatus: new(string),
+				flavour:       feedlib.FlavourPro,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - Fail to get staff service requests",
+			args: args{
+				ctx:           context.Background(),
+				requestType:   &requesttype,
+				requestStatus: new(string),
+				facilityID:    facilityID,
+				flavour:       feedlib.FlavourPro,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - Fail to get staff profile",
+			args: args{
+				ctx:           context.Background(),
+				requestType:   &requesttype,
+				requestStatus: new(string),
+				facilityID:    facilityID,
+				flavour:       feedlib.FlavourPro,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - Fail to get user profile",
+			args: args{
+				ctx:           context.Background(),
+				requestType:   &requesttype,
+				requestStatus: new(string),
+				facilityID:    facilityID,
+				flavour:       feedlib.FlavourPro,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - Fail to get user profile by staff ID",
+			args: args{
+				ctx:           context.Background(),
+				requestType:   &requesttype,
+				requestStatus: new(string),
+				facilityID:    facilityID,
+				flavour:       feedlib.FlavourPro,
 			},
 			wantErr: true,
 		},
@@ -2953,13 +2997,20 @@ func TestMyCareHubDb_GetServiceRequests(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			var fakeGorm = gormMock.NewGormMock()
 			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
-			if tt.name == "Sad Case - Fail to get service requests" {
+
+			if tt.name == "Sad Case - Fail to get service requests - Consumer" {
 				fakeGorm.MockGetServiceRequestsFn = func(ctx context.Context, requestType, requestStatus *string, facilityID string) ([]*gorm.ClientServiceRequest, error) {
 					return nil, fmt.Errorf("failed to get service requests by type")
 				}
 			}
 
-			if tt.name == "Happy Case - Successfully get unresolved service requests" {
+			if tt.name == "Sad Case - Fail to get client profile by client ID" {
+				fakeGorm.MockGetClientProfileByClientIDFn = func(ctx context.Context, clientID string) (*gorm.Client, error) {
+					return nil, fmt.Errorf("failed to get client profile by client ID")
+				}
+			}
+
+			if tt.name == "Happy Case - Successfully get service requests - Consumer" {
 				UUID := uuid.New().String()
 				nowTime := time.Now()
 
@@ -2973,7 +3024,8 @@ func TestMyCareHubDb_GetServiceRequests(t *testing.T) {
 						InProgressAt:   &nowTime,
 						InProgressByID: &UUID,
 						ResolvedAt:     nil,
-						ResolvedByID:   nil,
+						ResolvedByID:   &UUID,
+						Meta:           "{}",
 					},
 				}
 				fakeGorm.MockGetServiceRequestsFn = func(ctx context.Context, requestType, requestStatus *string, facilityID string) ([]*gorm.ClientServiceRequest, error) {
@@ -2981,21 +3033,36 @@ func TestMyCareHubDb_GetServiceRequests(t *testing.T) {
 				}
 			}
 
-			if tt.name == "Sad Case - Fail to get staff service requests" {
-				fakeGorm.MockGetStaffServiceRequestsFn = func(ctx context.Context, requestType, requestStatus *string, facilityID string) ([]*gorm.StaffServiceRequest, error) {
-					return nil, fmt.Errorf("an error occurred while getting staff service requests")
-				}
-			}
-			if tt.name == "Sad Case - Fail to get staff profile by staff ID" {
-				fakeGorm.MockGetStaffProfileByStaffIDFn = func(ctx context.Context, staffID string) (*gorm.StaffProfile, error) {
-					return nil, fmt.Errorf("failed to get staff profile")
-				}
-			}
 			if tt.name == "Sad Case - Fail to get user profile by staff ID" {
 				fakeGorm.MockGetUserProfileByStaffIDFn = func(ctx context.Context, staffID string) (*gorm.User, error) {
-					return nil, fmt.Errorf("an error occurred")
+					return nil, fmt.Errorf("failed to get user profile")
 				}
 			}
+
+			if tt.name == "Sad Case - Fail to get staff service requests" {
+				fakeGorm.MockGetStaffServiceRequestsFn = func(ctx context.Context, requestType, requestStatus *string, facilityID string) ([]*gorm.StaffServiceRequest, error) {
+					return nil, fmt.Errorf("failed to get staff service request")
+				}
+			}
+
+			if tt.name == "Sad Case - Fail to get staff profile" {
+				fakeGorm.MockGetStaffProfileByStaffIDFn = func(ctx context.Context, staffID string) (*gorm.StaffProfile, error) {
+					return nil, fmt.Errorf("failed to get staff profile by staff ID")
+				}
+			}
+
+			if tt.name == "Sad Case - Fail to get user profile" {
+				fakeGorm.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID *string) (*gorm.User, error) {
+					return nil, fmt.Errorf("failed to get user profile")
+				}
+			}
+
+			if tt.name == "Sad Case - Fail to get user profile by staff ID" {
+				fakeGorm.MockGetUserProfileByStaffIDFn = func(ctx context.Context, staffID string) (*gorm.User, error) {
+					return nil, fmt.Errorf("failed to get user profile by staff ID")
+				}
+			}
+
 			got, err := d.GetServiceRequests(tt.args.ctx, tt.args.requestType, tt.args.requestStatus, tt.args.facilityID, tt.args.flavour)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("MyCareHubDb.GetServiceRequests() error = %v, wantErr %v", err, tt.wantErr)

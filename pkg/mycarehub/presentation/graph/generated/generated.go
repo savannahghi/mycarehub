@@ -495,7 +495,6 @@ type ComplexityRoot struct {
 		CheckIfUserBookmarkedContent            func(childComplexity int, userID string, contentID int) int
 		CheckIfUserHasLikedContent              func(childComplexity int, userID string, contentID int) int
 		FetchClientAppointments                 func(childComplexity int, clientID string, paginationInput dto.PaginationsInput, filters []*firebasetools.FilterParam) int
-		FetchFacilities                         func(childComplexity int) int
 		FetchNotifications                      func(childComplexity int, userID string, flavour feedlib.Flavour, paginationInput dto.PaginationsInput) int
 		GetAllAuthorityRoles                    func(childComplexity int) int
 		GetAssessmentResponsesByToolType        func(childComplexity int, facilityID string, toolType string) int
@@ -532,6 +531,7 @@ type ComplexityRoot struct {
 		RetrieveFacility                        func(childComplexity int, id string, active bool) int
 		RetrieveFacilityByMFLCode               func(childComplexity int, mflCode int, isActive bool) int
 		SearchClientUser                        func(childComplexity int, searchParameter string) int
+		SearchFacility                          func(childComplexity int, searchParameter *string) int
 		SearchStaffUser                         func(childComplexity int, searchParameter string) int
 		SendOtp                                 func(childComplexity int, phoneNumber string, flavour feedlib.Flavour) int
 		VerifyPin                               func(childComplexity int, userID string, flavour feedlib.Flavour, pin string) int
@@ -759,7 +759,7 @@ type QueryResolver interface {
 	GetUserBookmarkedContent(ctx context.Context, userID string) (*domain.Content, error)
 	CheckIfUserHasLikedContent(ctx context.Context, userID string, contentID int) (bool, error)
 	CheckIfUserBookmarkedContent(ctx context.Context, userID string, contentID int) (bool, error)
-	FetchFacilities(ctx context.Context) ([]*domain.Facility, error)
+	SearchFacility(ctx context.Context, searchParameter *string) ([]*domain.Facility, error)
 	RetrieveFacility(ctx context.Context, id string, active bool) (*domain.Facility, error)
 	RetrieveFacilityByMFLCode(ctx context.Context, mflCode int, isActive bool) (*domain.Facility, error)
 	ListFacilities(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationInput dto.PaginationsInput) (*domain.FacilityPage, error)
@@ -3196,13 +3196,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.FetchClientAppointments(childComplexity, args["clientID"].(string), args["paginationInput"].(dto.PaginationsInput), args["filters"].([]*firebasetools.FilterParam)), true
 
-	case "Query.fetchFacilities":
-		if e.complexity.Query.FetchFacilities == nil {
-			break
-		}
-
-		return e.complexity.Query.FetchFacilities(childComplexity), true
-
 	case "Query.fetchNotifications":
 		if e.complexity.Query.FetchNotifications == nil {
 			break
@@ -3619,6 +3612,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.SearchClientUser(childComplexity, args["searchParameter"].(string)), true
+
+	case "Query.searchFacility":
+		if e.complexity.Query.SearchFacility == nil {
+			break
+		}
+
+		args, err := ec.field_Query_searchFacility_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.SearchFacility(childComplexity, args["searchParameter"].(*string)), true
 
 	case "Query.searchStaffUser":
 		if e.complexity.Query.SearchStaffUser == nil {
@@ -4589,7 +4594,7 @@ enum MetricType {
 }
 
 extend type Query {
-  fetchFacilities: [Facility]
+  searchFacility(searchParameter: String): [Facility]
   retrieveFacility(id: String!, active: Boolean!): Facility
   retrieveFacilityByMFLCode(mflCode: Int!, isActive: Boolean!): Facility!
   listFacilities(
@@ -7369,6 +7374,21 @@ func (ec *executionContext) field_Query_searchClientUser_args(ctx context.Contex
 	if tmp, ok := rawArgs["searchParameter"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("searchParameter"))
 		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["searchParameter"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_searchFacility_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *string
+	if tmp, ok := rawArgs["searchParameter"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("searchParameter"))
+		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -18628,7 +18648,7 @@ func (ec *executionContext) _Query_checkIfUserBookmarkedContent(ctx context.Cont
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Query_fetchFacilities(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _Query_searchFacility(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -18644,9 +18664,16 @@ func (ec *executionContext) _Query_fetchFacilities(ctx context.Context, field gr
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_searchFacility_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().FetchFacilities(rctx)
+		return ec.resolvers.Query().SearchFacility(rctx, args["searchParameter"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -27651,7 +27678,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				}
 				return res
 			})
-		case "fetchFacilities":
+		case "searchFacility":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
 				defer func() {
@@ -27659,7 +27686,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Query_fetchFacilities(ctx, field)
+				res = ec._Query_searchFacility(ctx, field)
 				return res
 			})
 		case "retrieveFacility":

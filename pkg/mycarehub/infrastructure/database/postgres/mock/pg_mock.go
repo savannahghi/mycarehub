@@ -24,7 +24,7 @@ type PostgresMock struct {
 	MockCreateClientFn                                   func(ctx context.Context, client domain.ClientProfile, contactID, identifierID string) (*domain.ClientProfile, error)
 	MockCreateIdentifierFn                               func(ctx context.Context, identifier domain.Identifier) (*domain.Identifier, error)
 	MockGetOrCreateFacilityFn                            func(ctx context.Context, facility *dto.FacilityInput) (*domain.Facility, error)
-	MockGetFacilitiesFn                                  func(ctx context.Context) ([]*domain.Facility, error)
+	MockSearchFacilityFn                                 func(ctx context.Context, searchParameter *string) ([]*domain.Facility, error)
 	MockRetrieveFacilityFn                               func(ctx context.Context, id *string, isActive bool) (*domain.Facility, error)
 	ListFacilitiesFn                                     func(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationsInput *dto.PaginationsInput) (*domain.FacilityPage, error)
 	MockDeleteFacilityFn                                 func(ctx context.Context, id int) (bool, error)
@@ -296,7 +296,7 @@ func NewPostgresMock() *PostgresMock {
 		MockGetFacilityStaffsFn: func(ctx context.Context, facilityID string) ([]*domain.StaffProfile, error) {
 			return []*domain.StaffProfile{staff}, nil
 		},
-		MockGetFacilitiesFn: func(ctx context.Context) ([]*domain.Facility, error) {
+		MockSearchFacilityFn: func(ctx context.Context, searchParameter *string) ([]*domain.Facility, error) {
 			return facilitiesList, nil
 		},
 		MockRetrieveFacilityFn: func(ctx context.Context, id *string, isActive bool) (*domain.Facility, error) {
@@ -1074,9 +1074,9 @@ func (gm *PostgresMock) ListFacilities(
 	return gm.ListFacilitiesFn(ctx, searchTerm, filterInput, paginationsInput)
 }
 
-// GetFacilities mocks the implementation of `gorm's` GetFacilities method
-func (gm *PostgresMock) GetFacilities(ctx context.Context) ([]*domain.Facility, error) {
-	return gm.MockGetFacilitiesFn(ctx)
+// SearchFacility mocks the implementation of `gorm's` GetFacilities method
+func (gm *PostgresMock) SearchFacility(ctx context.Context, searchParameter *string) ([]*domain.Facility, error) {
+	return gm.MockSearchFacilityFn(ctx, searchParameter)
 }
 
 // DeleteFacility mocks the implementation of deleting a facility by ID

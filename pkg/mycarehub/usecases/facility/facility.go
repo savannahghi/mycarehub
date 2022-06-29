@@ -51,7 +51,7 @@ type IFacilityReactivate interface {
 type IFacilityList interface {
 	// TODO Document: callers should specify active
 	ListFacilities(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationsInput *dto.PaginationsInput) (*domain.FacilityPage, error)
-	FetchFacilities(ctx context.Context) ([]*domain.Facility, error)
+	SearchFacility(ctx context.Context, searchParameter *string) ([]*domain.Facility, error)
 	SyncFacilities(ctx context.Context) error
 }
 
@@ -121,16 +121,6 @@ func (f *UseCaseFacilityImpl) ReactivateFacility(ctx context.Context, mflCode *i
 	return f.Update.ReactivateFacility(ctx, mflCode)
 }
 
-// // List returns a list if health facility
-// // TODO Document: callers should specify active
-// func (f *UseCaseFacilityImpl) List(
-// 	pagination *firebasetools.PaginationsInput,
-// 	filter []*dto.FacilityFilterInput,
-// 	sort []*dto.FacilitySortInput,
-// ) (*dto.FacilityConnection, error) {
-// 	return nil, nil
-// }
-
 // RetrieveFacility find the health facility by ID
 func (f *UseCaseFacilityImpl) RetrieveFacility(ctx context.Context, id *string, isActive bool) (*domain.Facility, error) {
 	if id == nil {
@@ -139,9 +129,10 @@ func (f *UseCaseFacilityImpl) RetrieveFacility(ctx context.Context, id *string, 
 	return f.Query.RetrieveFacility(ctx, id, isActive)
 }
 
-// FetchFacilities fetches healthcare facilities in platform
-func (f *UseCaseFacilityImpl) FetchFacilities(ctx context.Context) ([]*domain.Facility, error) {
-	return f.Query.GetFacilities(ctx)
+// SearchFacility retrieves one or more facilities from the database based on a search parameter that can be either the
+// facility name or the facility mflcode
+func (f *UseCaseFacilityImpl) SearchFacility(ctx context.Context, searchParameter *string) ([]*domain.Facility, error) {
+	return f.Query.SearchFacility(ctx, searchParameter)
 }
 
 // SyncFacilities gets a list of facilities without a fhir organisation ID from the database

@@ -27,7 +27,7 @@ type GormMock struct {
 	MockGetOrCreateFacilityFn                            func(ctx context.Context, facility *gorm.Facility) (*gorm.Facility, error)
 	MockRetrieveFacilityFn                               func(ctx context.Context, id *string, isActive bool) (*gorm.Facility, error)
 	MockRetrieveFacilityByMFLCodeFn                      func(ctx context.Context, MFLCode int, isActive bool) (*gorm.Facility, error)
-	MockGetFacilitiesFn                                  func(ctx context.Context) ([]gorm.Facility, error)
+	MockSearchFacilityFn                                 func(ctx context.Context, searchParameter *string) ([]gorm.Facility, error)
 	MockDeleteFacilityFn                                 func(ctx context.Context, mflCode int) (bool, error)
 	MockListFacilitiesFn                                 func(ctx context.Context, searchTerm *string, filter []*domain.FiltersParam, pagination *domain.FacilityPage) (*domain.FacilityPage, error)
 	MockGetUserProfileByPhoneNumberFn                    func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*gorm.User, error)
@@ -391,7 +391,7 @@ func NewGormMock() *GormMock {
 				},
 			}, nil
 		},
-		MockGetFacilitiesFn: func(ctx context.Context) ([]gorm.Facility, error) {
+		MockSearchFacilityFn: func(ctx context.Context, searchParameter *string) ([]gorm.Facility, error) {
 			return facilities, nil
 		},
 
@@ -1169,9 +1169,9 @@ func (gm *GormMock) UpdateUserSurveys(ctx context.Context, survey *gorm.UserSurv
 	return gm.MockUpdateUserSurveysFn(ctx, survey, updateData)
 }
 
-// GetFacilities mocks the implementation of `gorm's` GetFacilities method.
-func (gm *GormMock) GetFacilities(ctx context.Context) ([]gorm.Facility, error) {
-	return gm.MockGetFacilitiesFn(ctx)
+// SearchFacility mocks the implementation of `gorm's` SearchFacility method.
+func (gm *GormMock) SearchFacility(ctx context.Context, searchParameter *string) ([]gorm.Facility, error) {
+	return gm.MockSearchFacilityFn(ctx, searchParameter)
 }
 
 // DeleteFacility mocks the implementation of  DeleteFacility method.

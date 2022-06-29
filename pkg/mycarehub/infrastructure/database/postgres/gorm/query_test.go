@@ -386,9 +386,10 @@ func TestPGInstance_ListFacilities(t *testing.T) {
 
 func TestPGInstance_GetFacilities(t *testing.T) {
 	ctx := context.Background()
-
+	searchParameter := "Nairobi"
 	type args struct {
-		ctx context.Context
+		ctx             context.Context
+		searchParameter *string
 	}
 	tests := []struct {
 		name    string
@@ -397,13 +398,13 @@ func TestPGInstance_GetFacilities(t *testing.T) {
 	}{
 		{
 			name:    "Happy Case - List all facilities",
-			args:    args{ctx: ctx},
+			args:    args{ctx: ctx, searchParameter: &searchParameter},
 			wantErr: false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := testingDB.GetFacilities(tt.args.ctx)
+			got, err := testingDB.SearchFacility(tt.args.ctx, tt.args.searchParameter)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("PGInstance.GetFacilities() error = %v, wantErr %v", err, tt.wantErr)
 				return

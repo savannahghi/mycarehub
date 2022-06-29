@@ -48,7 +48,7 @@ type Delete interface {
 // Query contains all query methods
 type Query interface {
 	RetrieveFacility(ctx context.Context, id *string, isActive bool) (*domain.Facility, error)
-	GetFacilities(ctx context.Context) ([]*domain.Facility, error)
+	SearchFacility(ctx context.Context, searchParameter *string) ([]*domain.Facility, error)
 	GetFacilitiesWithoutFHIRID(ctx context.Context) ([]*domain.Facility, error)
 	RetrieveFacilityByMFLCode(ctx context.Context, MFLCode int, isActive bool) (*domain.Facility, error)
 	ListFacilities(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationsInput *dto.PaginationsInput) (*domain.FacilityPage, error)

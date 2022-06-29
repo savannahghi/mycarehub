@@ -6,7 +6,7 @@ extend type Mutation {
 }
 
 extend type Query {
-  fetchFacilities: [Facility]
+  searchFacility(searchParameter: String): [Facility]
   retrieveFacility(id: String!, active: Boolean!): Facility
   retrieveFacilityByMFLCode(mflCode: Int!, isActive: Boolean!): Facility!
   listFacilities(

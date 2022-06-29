@@ -30,9 +30,9 @@ func (r *mutationResolver) InactivateFacility(ctx context.Context, mflCode int) 
 	return r.mycarehub.Facility.InactivateFacility(ctx, &mflCode)
 }
 
-func (r *queryResolver) FetchFacilities(ctx context.Context) ([]*domain.Facility, error) {
+func (r *queryResolver) SearchFacility(ctx context.Context, searchParameter *string) ([]*domain.Facility, error) {
 	r.checkPreconditions()
-	return r.mycarehub.Facility.FetchFacilities(ctx)
+	return r.mycarehub.Facility.SearchFacility(ctx, searchParameter)
 }
 
 func (r *queryResolver) RetrieveFacility(ctx context.Context, id string, active bool) (*domain.Facility, error) {
