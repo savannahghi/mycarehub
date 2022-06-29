@@ -18,7 +18,7 @@ type StreamClientMock struct {
 	MockRevokeUserTokenFn   func(ctx context.Context, userID string, before *time.Time) (*stream.Response, error)
 	MockUpsertUserFn        func(ctx context.Context, user *stream.User) (*stream.UpsertUserResponse, error)
 	MockQueryUsersFn        func(ctx context.Context, q *stream.QueryOption, sorters ...*stream.SortOption) (*stream.QueryUsersResponse, error)
-	MockCreateChannelFn     func(ctx context.Context, chanType, chanID, userID string, data map[string]interface{}) (*stream.CreateChannelResponse, error)
+	MockCreateChannelFn     func(ctx context.Context, chanType, chanID, userID string, data *stream.ChannelRequest) (*stream.CreateChannelResponse, error)
 	MockDeleteChannelsFn    func(ctx context.Context, cids []string, hardDelete bool) (*stream.AsyncTaskResponse, error)
 	MockQueryChannelsFn     func(ctx context.Context, q *stream.QueryOption, sort ...*stream.SortOption) (*stream.QueryChannelsResponse, error)
 	MockChannelFn           func(channelType, channelID string) *stream.Channel
@@ -50,7 +50,7 @@ func (c StreamClientMock) QueryUsers(ctx context.Context, q *stream.QueryOption,
 }
 
 // CreateChannel ...
-func (c StreamClientMock) CreateChannel(ctx context.Context, chanType, chanID, userID string, data map[string]interface{}) (*stream.CreateChannelResponse, error) {
+func (c StreamClientMock) CreateChannel(ctx context.Context, chanType, chanID, userID string, data *stream.ChannelRequest) (*stream.CreateChannelResponse, error) {
 	return c.MockCreateChannelFn(ctx, chanType, chanID, userID, data)
 }
 

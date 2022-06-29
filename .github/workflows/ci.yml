@@ -161,12 +161,11 @@ jobs:
           go get -u github.com/client9/misspell/cmd/misspell
           go get -u github.com/gordonklaus/ineffassign
           go get github.com/fzipp/gocyclo
-          go get github.com/stretchr/testify/assert@v1.7.0
+          go get github.com/stretchr/testify/assert
           go get github.com/ory/go-acc
           go install github.com/savannahghi/bewellcli@$CLI_VERSION
           go get golang.org/x/oauth2/internal
           go get gorm.io/driver/postgres
-          go get go.opentelemetry.io/contrib/instrumentation/github.com/gorilla/mux/otelmux@v0.21.0
 
       - name: Run lint and tests
         env:

@@ -1,7 +1,5 @@
 package domain
 
-import "github.com/sirupsen/logrus"
-
 // Response models the response that will be returned after a user logs in
 type Response struct {
 	User            *User           `json:"-"`
@@ -126,7 +124,6 @@ func (l *LoginResponse) SetRetryTime(seconds float64) {
 
 // SetFailedLoginCount sets the failed login count
 func (l *LoginResponse) SetFailedLoginCount(count int) {
-	logrus.Println("setting failed login Count: ", count)
 	l.FailedLoginCount = count
 }
 

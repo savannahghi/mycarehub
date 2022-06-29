@@ -219,8 +219,8 @@ func (us *UseCasesCommunitiesImpl) CreateCommunity(ctx context.Context, input dt
 		Description: channelResponse.Description,
 	}
 
-	var data map[string]interface{}
-	err = mapstructure.Decode(channelMetadata, &data)
+	var extraData map[string]interface{}
+	err = mapstructure.Decode(channelMetadata, &extraData)
 	if err != nil {
 		return nil, fmt.Errorf("failed to decode payload: %v", err)
 	}
@@ -231,7 +231,7 @@ func (us *UseCasesCommunitiesImpl) CreateCommunity(ctx context.Context, input dt
 		return nil, exceptions.GetLoggedInUserUIDErr(err)
 	}
 
-	channel, err := us.GetstreamService.CreateChannel(ctx, "messaging", channelResponse.ID, *staff.ID, data)
+	channel, err := us.GetstreamService.CreateChannel(ctx, "messaging", channelResponse.ID, *staff.ID, &stream.ChannelRequest{ExtraData: extraData})
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("unable to create channel: %v", err)

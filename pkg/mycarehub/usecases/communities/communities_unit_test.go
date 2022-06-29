@@ -139,7 +139,7 @@ func TestUseCaseStreamImpl_CreateCommunity(t *testing.T) {
 				}
 			}
 			if tt.name == "Sad case - fail to create streams channel" {
-				fakeGetStream.MockCreateChannelFn = func(ctx context.Context, chanType, chanID, userID string, data map[string]interface{}) (*stream.CreateChannelResponse, error) {
+				fakeGetStream.MockCreateChannelFn = func(ctx context.Context, chanType, chanID, userID string, data *stream.ChannelRequest) (*stream.CreateChannelResponse, error) {
 					return nil, fmt.Errorf("an error occurred")
 				}
 			}

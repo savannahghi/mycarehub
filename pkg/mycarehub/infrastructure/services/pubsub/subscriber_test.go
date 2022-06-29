@@ -81,10 +81,11 @@ func createStreamChannel(streamSvc getstream.ServiceGetStream) {
 	}
 
 	// Create a test channel
-	_, err = streamSvc.CreateChannel(ctx, channelType, channelID, testChannelOwner, map[string]interface{}{
+	extraData := map[string]interface{}{
 		"description": "This is just a test channel",
 		"inviteOnly":  true,
-	})
+	}
+	_, err = streamSvc.CreateChannel(ctx, channelType, channelID, testChannelOwner, &stream.ChannelRequest{ExtraData: extraData})
 	if err != nil {
 		fmt.Printf("ChatClient.CreateCommunity() error = %v", err)
 	}

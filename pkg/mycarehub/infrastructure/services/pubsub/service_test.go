@@ -14,7 +14,6 @@ import (
 	streamService "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/getstream"
 	pubsubmessaging "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/pubsub"
 	"github.com/savannahghi/serverutils"
-	"github.com/sirupsen/logrus"
 )
 
 func InitializeTestPubSub(t *testing.T) (*pubsubmessaging.ServicePubSubMessaging, error) {
@@ -75,7 +74,6 @@ func TestServicePubSubMessaging_AddPubSubNamespace(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got := ps.AddPubSubNamespace(tt.args.topicName, tt.args.serviceName)
-			logrus.Printf("we got %v", got)
 			if got != tt.want {
 				t.Errorf("ServicePubSubMessaging.AddPubSubNamespace() = %v, want %v", got, tt.want)
 			}
