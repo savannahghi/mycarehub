@@ -22,7 +22,7 @@ type ServiceGetStream interface {
 	RevokeGetStreamUserToken(ctx context.Context, userID string) (*stream.Response, error)
 	CreateGetStreamUser(ctx context.Context, user *stream.User) (*stream.UpsertUserResponse, error)
 	ListGetStreamUsers(ctx context.Context, input *stream.QueryOption) (*stream.QueryUsersResponse, error)
-	CreateChannel(ctx context.Context, chanType, chanID, userID string, data map[string]interface{}) (*stream.CreateChannelResponse, error)
+	CreateChannel(ctx context.Context, chanType, chanID, userID string, data *stream.ChannelRequest) (*stream.CreateChannelResponse, error)
 	DeleteChannels(ctx context.Context, chanIDs []string, hardDelete bool) (*stream.AsyncTaskResponse, error)
 	InviteMembers(ctx context.Context, memberIDs []string, channelID string, message *stream.Message) (*stream.Response, error)
 	ListGetStreamChannels(ctx context.Context, input *stream.QueryOption) (*stream.QueryChannelsResponse, error)
@@ -51,7 +51,7 @@ type IStreamClient interface {
 	RevokeUserToken(ctx context.Context, userID string, before *time.Time) (*stream.Response, error)
 	UpsertUser(ctx context.Context, user *stream.User) (*stream.UpsertUserResponse, error)
 	QueryUsers(ctx context.Context, q *stream.QueryOption, sorters ...*stream.SortOption) (*stream.QueryUsersResponse, error)
-	CreateChannel(ctx context.Context, chanType, chanID, userID string, data map[string]interface{}) (*stream.CreateChannelResponse, error)
+	CreateChannel(ctx context.Context, chanType, chanID, userID string, data *stream.ChannelRequest) (*stream.CreateChannelResponse, error)
 	DeleteChannels(ctx context.Context, cids []string, hardDelete bool) (*stream.AsyncTaskResponse, error)
 	QueryChannels(ctx context.Context, q *stream.QueryOption, sort ...*stream.SortOption) (*stream.QueryChannelsResponse, error)
 	Channel(channelType, channelID string) *stream.Channel
@@ -110,7 +110,7 @@ func (c *ChatClient) ListGetStreamUsers(ctx context.Context, input *stream.Query
 }
 
 // CreateChannel creates new channel of given type and id or returns already created one.
-func (c *ChatClient) CreateChannel(ctx context.Context, chanType, chanID, userID string, data map[string]interface{}) (*stream.CreateChannelResponse, error) {
+func (c *ChatClient) CreateChannel(ctx context.Context, chanType, chanID, userID string, data *stream.ChannelRequest) (*stream.CreateChannelResponse, error) {
 	response, err := c.client.CreateChannel(ctx, chanType, chanID, userID, data)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create channel: %v", err)

@@ -14,7 +14,7 @@ type GetStreamServiceMock struct {
 	MockCreateGetStreamUserTokenFn   func(ctx context.Context, userID string) (string, error)
 	MockCreateGetStreamUserFn        func(ctx context.Context, user *stream.User) (*stream.UpsertUserResponse, error)
 	MockListGetStreamUsersFn         func(ctx context.Context, queryOptions *stream.QueryOption) (*stream.QueryUsersResponse, error)
-	MockCreateChannelFn              func(ctx context.Context, chanType, chanID, userID string, data map[string]interface{}) (*stream.CreateChannelResponse, error)
+	MockCreateChannelFn              func(ctx context.Context, chanType, chanID, userID string, data *stream.ChannelRequest) (*stream.CreateChannelResponse, error)
 	MockDeleteChannelsFn             func(ctx context.Context, chanIDs []string, hardDelete bool) (*stream.AsyncTaskResponse, error)
 	MockInviteMembersFn              func(ctx context.Context, memberIDs []string, channelID string, message *stream.Message) (*stream.Response, error)
 	MockListGetStreamChannelsFn      func(ctx context.Context, input *stream.QueryOption) (*stream.QueryChannelsResponse, error)
@@ -92,7 +92,7 @@ func NewGetStreamServiceMock() *GetStreamServiceMock {
 				},
 			}, nil
 		},
-		MockCreateChannelFn: func(ctx context.Context, chanType, chanID, userID string, data map[string]interface{}) (*stream.CreateChannelResponse, error) {
+		MockCreateChannelFn: func(ctx context.Context, chanType, chanID, userID string, data *stream.ChannelRequest) (*stream.CreateChannelResponse, error) {
 			return &stream.CreateChannelResponse{
 				Channel: &stream.Channel{
 					CreatedBy: &stream.User{
@@ -335,7 +335,7 @@ func (g GetStreamServiceMock) ListGetStreamUsers(ctx context.Context, queryOptio
 }
 
 // CreateChannel mocks the implementation of creating a channel
-func (g GetStreamServiceMock) CreateChannel(ctx context.Context, chanType, chanID, userID string, data map[string]interface{}) (*stream.CreateChannelResponse, error) {
+func (g GetStreamServiceMock) CreateChannel(ctx context.Context, chanType, chanID, userID string, data *stream.ChannelRequest) (*stream.CreateChannelResponse, error) {
 	return g.MockCreateChannelFn(ctx, chanType, chanID, userID, data)
 }
 
