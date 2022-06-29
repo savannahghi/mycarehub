@@ -23,7 +23,7 @@ import (
 type Query interface {
 	RetrieveFacility(ctx context.Context, id *string, isActive bool) (*Facility, error)
 	RetrieveFacilityByMFLCode(ctx context.Context, MFLCode int, isActive bool) (*Facility, error)
-	GetFacilities(ctx context.Context) ([]Facility, error)
+	SearchFacility(ctx context.Context, searchParameter *string) ([]Facility, error)
 	GetFacilitiesWithoutFHIRID(ctx context.Context) ([]*Facility, error)
 	ListFacilities(ctx context.Context, searchTerm *string, filter []*domain.FiltersParam, pagination *domain.FacilityPage) (*domain.FacilityPage, error)
 	ListNotifications(ctx context.Context, params *Notification, pagination *domain.Pagination) ([]*Notification, *domain.Pagination, error)
@@ -195,13 +195,15 @@ func (db *PGInstance) RetrieveFacilityByMFLCode(ctx context.Context, MFLCode int
 	return &facility, nil
 }
 
-// GetFacilities fetches all the healthcare facilities in the platform.
-func (db *PGInstance) GetFacilities(ctx context.Context) ([]Facility, error) {
+// SearchFacility fetches facilities by pattern matching against the facility name or mflcode
+func (db *PGInstance) SearchFacility(ctx context.Context, searchParameter *string) ([]Facility, error) {
 	var facility []Facility
-	err := db.DB.Find(&facility).Error
+	err := db.DB.Where(
+		db.DB.Where("common_facility.name ILIKE ?", "%"+*searchParameter+"%").
+			Or("CAST(common_facility.mfl_code as text) ILIKE ?", "%"+*searchParameter+"%")).Find(&facility).Error
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return nil, fmt.Errorf("failed to query all facilities %v", err)
+		return nil, fmt.Errorf("failed to query facilities %w", err)
 	}
 	return facility, nil
 }

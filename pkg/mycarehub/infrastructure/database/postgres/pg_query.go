@@ -28,18 +28,19 @@ func (d *MyCareHubDb) CheckWhetherUserHasLikedContent(ctx context.Context, userI
 	return d.query.CheckWhetherUserHasLikedContent(ctx, userID, contentID)
 }
 
-//GetFacilities returns a slice of healthcare facilities in the platform.
-func (d *MyCareHubDb) GetFacilities(ctx context.Context) ([]*domain.Facility, error) {
+// SearchFacility returns a slice of healthcare facilities in the platform.
+func (d *MyCareHubDb) SearchFacility(ctx context.Context, searchParameter *string) ([]*domain.Facility, error) {
 	var facility []*domain.Facility
-	facilities, err := d.query.GetFacilities(ctx)
+	facilities, err := d.query.SearchFacility(ctx, searchParameter)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return nil, fmt.Errorf("failed to get facilities: %v", err)
+		return nil, fmt.Errorf("failed to get facilities: %w", err)
 	}
 
 	if len(facilities) == 0 {
 		return facility, nil
 	}
+
 	for _, m := range facilities {
 		singleFacility := domain.Facility{
 			ID:                 m.FacilityID,
@@ -791,12 +792,6 @@ func (d *MyCareHubDb) GetServiceRequests(ctx context.Context, requestType, reque
 				return nil, err
 			}
 
-			userProfile, err := d.query.GetUserProfileByUserID(ctx, clientProfile.UserID)
-			if err != nil {
-				helpers.ReportErrorToSentry(err)
-				return nil, err
-			}
-
 			if serviceRequest.Meta != "" {
 				meta, err = utils.ConvertJSONStringToMap(serviceRequest.Meta)
 				if err != nil {
@@ -806,7 +801,6 @@ func (d *MyCareHubDb) GetServiceRequests(ctx context.Context, requestType, reque
 			}
 
 			if serviceRequest.ResolvedByID != nil {
-
 				resolvedBy, err := d.query.GetUserProfileByStaffID(ctx, *serviceRequest.ResolvedByID)
 				if err != nil {
 					helpers.ReportErrorToSentry(err)
@@ -828,8 +822,8 @@ func (d *MyCareHubDb) GetServiceRequests(ctx context.Context, requestType, reque
 				ResolvedBy:     serviceRequest.ResolvedByID,
 				ResolvedByName: &resolvedByName,
 				FacilityID:     facilityID,
-				ClientName:     &userProfile.Name,
-				ClientContact:  &userProfile.Contacts.ContactValue,
+				ClientName:     &clientProfile.User.Name,
+				ClientContact:  &clientProfile.User.Contacts.ContactValue,
 				Meta:           meta,
 			}
 			serviceRequests = append(serviceRequests, serviceRequest)
@@ -868,7 +862,6 @@ func (d *MyCareHubDb) GetServiceRequests(ctx context.Context, requestType, reque
 			}
 
 			if serviceReq.ResolvedByID != nil {
-
 				resolvedBy, err := d.query.GetUserProfileByStaffID(ctx, *serviceReq.ResolvedByID)
 				if err != nil {
 					helpers.ReportErrorToSentry(err)
