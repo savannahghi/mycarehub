@@ -30,6 +30,11 @@ func (r *mutationResolver) InactivateFacility(ctx context.Context, mflCode int) 
 	return r.mycarehub.Facility.InactivateFacility(ctx, &mflCode)
 }
 
+func (r *mutationResolver) AddFacilityContact(ctx context.Context, facilityID string, contact string) (bool, error) {
+	r.checkPreconditions()
+	return r.mycarehub.Facility.AddFacilityContact(ctx, facilityID, contact)
+}
+
 func (r *queryResolver) SearchFacility(ctx context.Context, searchParameter *string) ([]*domain.Facility, error) {
 	r.checkPreconditions()
 	return r.mycarehub.Facility.SearchFacility(ctx, searchParameter)

@@ -3,6 +3,7 @@ extend type Mutation {
   deleteFacility(mflCode: Int!): Boolean!
   reactivateFacility(mflCode: Int!): Boolean!
   inactivateFacility(mflCode: Int!): Boolean!
+  addFacilityContact(facilityID: ID!, contact: String!): Boolean!
 }
 
 extend type Query {
