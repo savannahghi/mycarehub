@@ -5,8 +5,10 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/savannahghi/converterandformatter"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
 	pubsubmessaging "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/pubsub"
@@ -64,6 +66,7 @@ type IFacilityRetrieve interface {
 // IUpdateFacility contains the methods for updating a facility
 type IUpdateFacility interface {
 	UpdateFacility(ctx context.Context, updatePayload *dto.UpdateFacilityPayload) error
+	AddFacilityContact(ctx context.Context, facilityID string, contact string) (bool, error)
 }
 
 // UseCaseFacilityImpl represents facility implementation object
@@ -198,4 +201,29 @@ func (f *UseCaseFacilityImpl) ListFacilities(ctx context.Context, searchTerm *st
 	}
 
 	return f.Query.ListFacilities(ctx, searchTerm, filterInput, paginationsInput)
+}
+
+// AddFacilityContact adds/updates a facilities contact
+func (f *UseCaseFacilityImpl) AddFacilityContact(ctx context.Context, facilityID string, contact string) (bool, error) {
+	phoneNumber, err := converterandformatter.NormalizeMSISDN(contact)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, exceptions.NormalizeMSISDNError(err)
+	}
+
+	update := map[string]interface{}{
+		"phone": *phoneNumber,
+	}
+
+	facility := &domain.Facility{
+		ID: &facilityID,
+	}
+
+	err = f.Update.UpdateFacility(ctx, facility, update)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, err
+	}
+
+	return true, nil
 }
