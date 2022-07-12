@@ -1250,3 +1250,57 @@ func TestMyCareHubDb_CreateUserSurvey(t *testing.T) {
 		})
 	}
 }
+
+func TestMyCareHubDb_SaveFeedback(t *testing.T) {
+	var fakeGorm = gormMock.NewGormMock()
+	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+	feedback := &domain.FeedbackResponse{
+		UserID:            uuid.New().String(),
+		FeedbackType:      "TEST",
+		SatisfactionLevel: 1,
+		ServiceName:       "TEST",
+		Feedback:          "TEST",
+		RequiresFollowUp:  true,
+		PhoneNumber:       interserviceclient.TestUserPhoneNumber,
+	}
+
+	type args struct {
+		ctx     context.Context
+		payload *domain.FeedbackResponse
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy Case: Successfully save feedback",
+			args: args{
+				ctx:     context.Background(),
+				payload: feedback,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sade Case: Unable to save feedback",
+			args: args{
+				ctx:     context.Background(),
+				payload: feedback,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "Sade Case: Unable to save feedback" {
+				fakeGorm.MockSaveFeedbackFn = func(ctx context.Context, feedback *gorm.Feedback) error {
+					return fmt.Errorf("cannot save feedback")
+				}
+			}
+			if err := d.SaveFeedback(tt.args.ctx, tt.args.payload); (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.SaveFeedback() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}

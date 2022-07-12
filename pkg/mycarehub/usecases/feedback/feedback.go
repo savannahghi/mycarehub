@@ -11,6 +11,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/utils"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
 )
 
@@ -27,16 +28,19 @@ type UsecaseFeedback interface {
 // UsecaseFeedbackImpl represents the feedback implementation
 type UsecaseFeedbackImpl struct {
 	Query       infrastructure.Query
+	Create      infrastructure.Create
 	ExternalExt extension.ExternalMethodsExtension
 }
 
 // NewUsecaseFeedback is the controller function for the feedback usecase
 func NewUsecaseFeedback(
 	query infrastructure.Query,
+	create infrastructure.Create,
 	externalExt extension.ExternalMethodsExtension,
 ) *UsecaseFeedbackImpl {
 	return &UsecaseFeedbackImpl{
 		Query:       query,
+		Create:      create,
 		ExternalExt: externalExt,
 	}
 }
@@ -67,6 +71,23 @@ func (f *UsecaseFeedbackImpl) SendFeedback(ctx context.Context, payload *dto.Fee
 	if payload.RequiresFollowUp {
 		phoneNumber := fmt.Sprintf("Phone Number: %s", userProfile.Contacts.ContactValue)
 		feedbackInput.PhoneNumber = phoneNumber
+	}
+
+	// Save feedback into the database before sending the email
+	feedbackData := &domain.FeedbackResponse{
+		UserID:            payload.UserID,
+		FeedbackType:      payload.FeedbackType,
+		SatisfactionLevel: payload.SatisfactionLevel,
+		ServiceName:       payload.ServiceName,
+		Feedback:          payload.Feedback,
+		RequiresFollowUp:  payload.RequiresFollowUp,
+		PhoneNumber:       userProfile.Contacts.ContactValue,
+	}
+
+	err = f.Create.SaveFeedback(ctx, feedbackData)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, fmt.Errorf("unable to save feedback: %w", err)
 	}
 
 	var writer bytes.Buffer

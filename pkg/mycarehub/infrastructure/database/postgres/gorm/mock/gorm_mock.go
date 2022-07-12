@@ -143,6 +143,7 @@ type GormMock struct {
 	MockGetFacilityStaffsFn                              func(ctx context.Context, facilityID string) ([]*gorm.StaffProfile, error)
 	MockDeleteUserFn                                     func(ctx context.Context, userID string, clientID *string, staffID *string, flavour feedlib.Flavour) error
 	MockDeleteStaffProfileFn                             func(ctx context.Context, staffID string) error
+	MockSaveFeedbackFn                                   func(ctx context.Context, feedback *gorm.Feedback) error
 	MockUpdateNotificationFn                             func(ctx context.Context, notification *gorm.Notification, updateData map[string]interface{}) error
 	MockGetNotificationFn                                func(ctx context.Context, notificationID string) (*gorm.Notification, error)
 	MockGetClientsByFilterParamsFn                       func(ctx context.Context, facilityID string, filterParams *dto.ClientFilterParamsInput) ([]*gorm.Client, error)
@@ -365,6 +366,9 @@ func NewGormMock() *GormMock {
 			}, nil
 		},
 		MockCreateUserFn: func(ctx context.Context, user *gorm.User) error {
+			return nil
+		},
+		MockSaveFeedbackFn: func(ctx context.Context, feedback *gorm.Feedback) error {
 			return nil
 		},
 		MockCreateClientFn: func(ctx context.Context, client *gorm.Client, contactID, identifierID string) error {
@@ -1772,4 +1776,9 @@ func (gm *GormMock) CreateMetric(ctx context.Context, metric *gorm.Metric) error
 // UpdateClientServiceRequest updates a client service request
 func (gm *GormMock) UpdateClientServiceRequest(ctx context.Context, serviceRequest *gorm.ClientServiceRequest, updateData map[string]interface{}) error {
 	return gm.MockUpdateClientServiceRequestFn(ctx, serviceRequest, updateData)
+}
+
+// SaveFeedback mocks the implementation of saving feedback into the database
+func (gm *GormMock) SaveFeedback(ctx context.Context, feedback *gorm.Feedback) error {
+	return gm.MockSaveFeedbackFn(ctx, feedback)
 }

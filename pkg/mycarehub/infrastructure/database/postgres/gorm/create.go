@@ -30,6 +30,7 @@ type Create interface {
 	CreateNotification(ctx context.Context, notification *Notification) error
 	CreateUserSurveys(ctx context.Context, userSurvey []*UserSurvey) error
 	CreateMetric(ctx context.Context, metric *Metric) error
+	SaveFeedback(ctx context.Context, feedback *Feedback) error
 }
 
 // GetOrCreateFacility is used to get or create a facility
@@ -67,6 +68,16 @@ func (db *PGInstance) SavePin(ctx context.Context, pinData *PINData) (bool, erro
 	}
 
 	return true, nil
+}
+
+// SaveFeedback saves the feedback to the database
+func (db *PGInstance) SaveFeedback(ctx context.Context, feedback *Feedback) error {
+	err := db.DB.Create(feedback).Error
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return fmt.Errorf("failed to save feedback: %v", err)
+	}
+	return nil
 }
 
 // SaveOTP saves the generated otp to the database
