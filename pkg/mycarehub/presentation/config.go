@@ -129,7 +129,7 @@ func Router(ctx context.Context) (*mux.Router, error) {
 
 	contentUseCase := content.NewUseCasesContentImplementation(db, db, externalExt)
 
-	feedbackUsecase := feedback.NewUsecaseFeedback(db, externalExt)
+	feedbackUsecase := feedback.NewUsecaseFeedback(db, db, externalExt)
 
 	faqs := faq.NewUsecaseFAQ(db)
 

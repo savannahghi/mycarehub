@@ -500,3 +500,18 @@ func (d *MyCareHubDb) CreateMetric(ctx context.Context, payload *domain.Metric) 
 
 	return d.create.CreateMetric(ctx, metric)
 }
+
+// SaveFeedback saves a feedback to the database
+func (d *MyCareHubDb) SaveFeedback(ctx context.Context, payload *domain.FeedbackResponse) error {
+	feedback := &gorm.Feedback{
+		UserID:            payload.UserID,
+		FeedbackType:      payload.FeedbackType.String(),
+		SatisfactionLevel: payload.SatisfactionLevel,
+		ServiceName:       payload.ServiceName,
+		Feedback:          payload.Feedback,
+		RequiresFollowUp:  payload.RequiresFollowUp,
+		PhoneNumber:       payload.PhoneNumber,
+	}
+
+	return d.create.SaveFeedback(ctx, feedback)
+}

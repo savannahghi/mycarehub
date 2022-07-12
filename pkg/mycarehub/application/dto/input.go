@@ -241,6 +241,7 @@ type FeedbackResponseInput struct {
 	ServiceName       string
 	Feedback          string
 	RequiresFollowUp  bool
+	PhoneNumber       string
 }
 
 // FeedbackEmail defines the field to be parsed when sending feedback emails

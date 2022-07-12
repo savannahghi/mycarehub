@@ -109,6 +109,15 @@ func TestUsecaseFeedbackImpl_SendFeedback(t *testing.T) {
 			want:    false,
 			wantErr: true,
 		},
+		{
+			name: "Sad case - unable to persist feedback",
+			args: args{
+				ctx:     ctx,
+				payload: invalidFeedbackType,
+			},
+			want:    false,
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -116,7 +125,7 @@ func TestUsecaseFeedbackImpl_SendFeedback(t *testing.T) {
 			fakeFeedback := mock.NewFeedbackUsecaseMock()
 			fakeExtension := extensionMock.NewFakeExtension()
 
-			f := feedback.NewUsecaseFeedback(fakeDB, fakeExtension)
+			f := feedback.NewUsecaseFeedback(fakeDB, fakeDB, fakeExtension)
 
 			if tt.name == "Sad case" {
 				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
@@ -141,6 +150,11 @@ func TestUsecaseFeedbackImpl_SendFeedback(t *testing.T) {
 			if tt.name == "Sad case - invalid feedback type" {
 				fakeExtension.MockSendFeedbackFn = func(ctx context.Context, subject, feedbackMessage string) (bool, error) {
 					return false, fmt.Errorf("an error occurred while sending feedback")
+				}
+			}
+			if tt.name == "Sad case - unable to persist feedback" {
+				fakeDB.MockSaveFeedbackFn = func(ctx context.Context, feedback *domain.FeedbackResponse) error {
+					return fmt.Errorf("an error occurred while saving feedback")
 				}
 			}
 			got, err := f.SendFeedback(tt.args.ctx, tt.args.payload)

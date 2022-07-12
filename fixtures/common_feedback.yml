@@ -1,0 +1,13 @@
+# feedback data model
+- id: {{.test_feedback_id}}
+  created: 2022-07-11 21:16:29.23639+03
+  updated: 2022-11-11 21:16:29.23639+03
+  active: true
+  user_id: {{.test_user_id}}
+  feedback_type: "GENERAL_TYPE"
+  feedback: "I'm a feedback"
+  satisfaction_level: 5
+  service_name: "Test"
+  requires_followup: false
+  phone_number: "+79998887766"
+  organisation_id: {{.test_organisation_id}}

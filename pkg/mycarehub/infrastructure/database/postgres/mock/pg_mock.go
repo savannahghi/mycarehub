@@ -151,6 +151,7 @@ type PostgresMock struct {
 	MockCreateUserSurveyFn                               func(ctx context.Context, userSurvey []*dto.UserSurveyInput) error
 	MockCreateMetricFn                                   func(ctx context.Context, payload *domain.Metric) error
 	MockUpdateClientServiceRequestFn                     func(ctx context.Context, clientServiceRequest *domain.ServiceRequest, updateData map[string]interface{}) error
+	MockSaveFeedbackFn                                   func(ctx context.Context, feedback *domain.FeedbackResponse) error
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -951,6 +952,9 @@ func NewPostgresMock() *PostgresMock {
 		MockCheckAppointmentExistsByExternalIDFn: func(ctx context.Context, externalID string) (bool, error) {
 			return true, nil
 		},
+		MockSaveFeedbackFn: func(ctx context.Context, feedback *domain.FeedbackResponse) error {
+			return nil
+		},
 		MockGetClientServiceRequestsFn: func(ctx context.Context, requestType, status, clientID, facilityID string) ([]*domain.ServiceRequest, error) {
 			return []*domain.ServiceRequest{
 				{
@@ -1688,4 +1692,9 @@ func (gm *PostgresMock) CreateMetric(ctx context.Context, payload *domain.Metric
 // UpdateClientServiceRequest updates a service request
 func (gm *PostgresMock) UpdateClientServiceRequest(ctx context.Context, clientServiceRequest *domain.ServiceRequest, updateData map[string]interface{}) error {
 	return gm.MockUpdateClientServiceRequestFn(ctx, clientServiceRequest, updateData)
+}
+
+// SaveFeedback mocks the implementation of saving feedback into the database
+func (gm *PostgresMock) SaveFeedback(ctx context.Context, feedback *domain.FeedbackResponse) error {
+	return gm.MockSaveFeedbackFn(ctx, feedback)
 }

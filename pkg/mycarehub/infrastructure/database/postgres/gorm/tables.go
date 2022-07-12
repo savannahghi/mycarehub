@@ -1333,3 +1333,32 @@ type Metric struct {
 func (Metric) TableName() string {
 	return "users_metric"
 }
+
+// Feedback defines the feedback database model
+type Feedback struct {
+	Base
+
+	ID                string `gorm:"primaryKey;column:id"`
+	Active            bool   `gorm:"column:active"`
+	UserID            string `gorm:"column:user_id"`
+	FeedbackType      string `gorm:"column:feedback_type"`
+	SatisfactionLevel int    `gorm:"column:satisfaction_level"`
+	ServiceName       string `gorm:"column:service_name"`
+	Feedback          string `gorm:"column:feedback"`
+	RequiresFollowUp  bool   `gorm:"column:requires_followup"`
+	PhoneNumber       string `gorm:"column:phone_number"`
+	OrganisationID    string `gorm:"column:organisation_id"`
+}
+
+// BeforeCreate is a hook run before creating an appointment
+func (f *Feedback) BeforeCreate(tx *gorm.DB) (err error) {
+	id := uuid.New().String()
+	f.ID = id
+	f.OrganisationID = OrganizationID
+	return
+}
+
+// TableName references the table that we map data from
+func (Feedback) TableName() string {
+	return "common_feedback"
+}

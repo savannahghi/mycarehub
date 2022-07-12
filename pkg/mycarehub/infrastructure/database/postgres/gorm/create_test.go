@@ -12,6 +12,7 @@ import (
 	"github.com/lib/pq"
 	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/feedlib"
+	"github.com/savannahghi/interserviceclient"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
@@ -1349,6 +1350,68 @@ func TestPGInstance_CreateUserSurvey(t *testing.T) {
 
 			if err := testingDB.CreateUserSurveys(tt.args.ctx, tt.args.userSurveys); (err != nil) != tt.wantErr {
 				t.Errorf("PGInstance.CreateUserSurveys() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestPGInstance_SaveFeedback(t *testing.T) {
+	ctx := context.Background()
+
+	feedback := &gorm.Feedback{
+		ID:                feedbackID,
+		UserID:            userID,
+		FeedbackType:      "GENERAL_TYPE",
+		SatisfactionLevel: 5,
+		ServiceName:       "TEST",
+		Feedback:          "I am a test feedback",
+		RequiresFollowUp:  true,
+		PhoneNumber:       interserviceclient.TestUserPhoneNumber,
+		OrganisationID:    orgID,
+	}
+
+	invalidFeedback := &gorm.Feedback{
+		ID:                "invalidFeedbackID",
+		UserID:            userID,
+		FeedbackType:      "GENERAL_TYPE",
+		SatisfactionLevel: 5,
+		ServiceName:       "TEST",
+		Feedback:          "I am a test feedback",
+		RequiresFollowUp:  true,
+		PhoneNumber:       interserviceclient.TestUserPhoneNumber,
+		OrganisationID:    orgID,
+	}
+
+	type args struct {
+		ctx      context.Context
+		feedback *gorm.Feedback
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: save feedback",
+			args: args{
+				ctx:      ctx,
+				feedback: feedback,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: fail to save feedback",
+			args: args{
+				ctx:      ctx,
+				feedback: invalidFeedback,
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := testingDB.SaveFeedback(tt.args.ctx, tt.args.feedback); (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.SaveFeedback() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}

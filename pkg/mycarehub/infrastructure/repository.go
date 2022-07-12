@@ -36,6 +36,7 @@ type Create interface {
 	SaveNotification(ctx context.Context, payload *domain.Notification) error
 	CreateUserSurveys(ctx context.Context, userSurvey []*dto.UserSurveyInput) error
 	CreateMetric(ctx context.Context, payload *domain.Metric) error
+	SaveFeedback(ctx context.Context, payload *domain.FeedbackResponse) error
 }
 
 // Delete represents all the deletion action interfaces

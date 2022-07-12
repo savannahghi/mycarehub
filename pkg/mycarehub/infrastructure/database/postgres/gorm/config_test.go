@@ -141,6 +141,7 @@ var (
 	staffIDToDelete           = "8ecbbc80-24c8-124a-9f1a-e14e12678ef2"
 	notificationID            = "bf33ba36-30bc-487e-9a7b-bcb54da0bdfe"
 	userSurveyID              = "4181df12-ca96-4f28-b78b-8e8ad88b25df"
+	feedbackID                = "7281df12-ca96-4f28-b78b-8e8ad88b52df"
 )
 
 func TestMain(m *testing.M) {
@@ -256,6 +257,7 @@ func TestMain(m *testing.M) {
 			"test_staff_user_id_to_delete":    staffUserIDToDelete,
 			"test_user_id_to_delete":          userIDToDelete,
 			"test_staff_contact":              testStaffContact,
+			"test_feedback_id":                feedbackID,
 		}),
 		// this is the directory containing the YAML files.
 		// The file name should be the same as the table name
@@ -298,6 +300,7 @@ func TestMain(m *testing.M) {
 			"../../../../../../fixtures/screeningtools_screeningtoolsresponse.yml",
 			"../../../../../../fixtures/clients_healthdiaryentry.yml",
 			"../../../../../../fixtures/common_usersurveys.yml",
+			"../../../../../../fixtures/common_feedback.yml",
 		),
 		// uncomment when running tests locally, if your db is not a test db
 		// Ensure the testing db in the ci is named `test`
