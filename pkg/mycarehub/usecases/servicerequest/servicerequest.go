@@ -56,7 +56,7 @@ type IGetServiceRequests interface {
 
 // IResolveServiceRequest is an interface that holds the method signature for resolving a service request
 type IResolveServiceRequest interface {
-	ResolveServiceRequest(ctx context.Context, staffID *string, serviceRequestID *string, comment *string) (bool, error)
+	ResolveServiceRequest(ctx context.Context, staffID *string, serviceRequestID *string, action string, comment *string) (bool, error)
 	VerifyClientPinResetServiceRequest(
 		ctx context.Context,
 		clientID string,
@@ -249,7 +249,7 @@ func (u *UseCasesServiceRequestImpl) GetPendingServiceRequestsCount(ctx context.
 }
 
 // ResolveServiceRequest resolves a service request
-func (u *UseCasesServiceRequestImpl) ResolveServiceRequest(ctx context.Context, staffID *string, serviceRequestID *string, comment *string) (bool, error) {
+func (u *UseCasesServiceRequestImpl) ResolveServiceRequest(ctx context.Context, staffID *string, serviceRequestID *string, action string, comment *string) (bool, error) {
 	if staffID == nil {
 		return false, fmt.Errorf("staff ID is required")
 	}
@@ -288,7 +288,7 @@ func (u *UseCasesServiceRequestImpl) ResolveServiceRequest(ctx context.Context, 
 		}
 	}
 
-	resolveErr := u.Update.ResolveServiceRequest(ctx, staffID, serviceRequestID, enums.ServiceRequestStatusResolved.String(), comment)
+	resolveErr := u.Update.ResolveServiceRequest(ctx, staffID, serviceRequestID, enums.ServiceRequestStatusResolved.String(), action, comment)
 	if resolveErr != nil {
 		helpers.ReportErrorToSentry(err)
 		return false, fmt.Errorf("failed to update service request: %v", err)
@@ -586,7 +586,7 @@ func (u *UseCasesServiceRequestImpl) VerifyServiceRequestResponse(
 				return false, err
 			}
 		case feedlib.FlavourConsumer:
-			err := u.Update.ResolveServiceRequest(ctx, staff.ID, &serviceRequestID, enums.ServiceRequestStatusRejected.String(), nil)
+			err := u.Update.ResolveServiceRequest(ctx, staff.ID, &serviceRequestID, enums.ServiceRequestStatusRejected.String(), "", nil)
 			if err != nil {
 				helpers.ReportErrorToSentry(err)
 				return false, err
@@ -636,7 +636,7 @@ func (u *UseCasesServiceRequestImpl) VerifyServiceRequestResponse(
 				return false, err
 			}
 		case feedlib.FlavourConsumer:
-			err := u.Update.ResolveServiceRequest(ctx, staff.ID, &serviceRequestID, enums.ServiceRequestStatusResolved.String(), nil)
+			err := u.Update.ResolveServiceRequest(ctx, staff.ID, &serviceRequestID, enums.ServiceRequestStatusResolved.String(), "", nil)
 			if err != nil {
 				return false, err
 			}

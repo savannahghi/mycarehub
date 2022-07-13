@@ -1302,6 +1302,7 @@ func TestMyCareHubDb_ResolveServiceRequest(t *testing.T) {
 		staffID          *string
 		serviceRequestID *string
 		status           string
+		action           string
 		comment          *string
 	}
 	tests := []struct {
@@ -1317,6 +1318,7 @@ func TestMyCareHubDb_ResolveServiceRequest(t *testing.T) {
 				staffID:          &testUUD,
 				serviceRequestID: &testUUD,
 				status:           enums.ServiceRequestStatusResolved.String(),
+				action:           "resolve",
 			},
 			wantErr: false,
 		},
@@ -1400,7 +1402,7 @@ func TestMyCareHubDb_ResolveServiceRequest(t *testing.T) {
 				}
 			}
 
-			err := d.ResolveServiceRequest(tt.args.ctx, tt.args.staffID, tt.args.serviceRequestID, tt.args.status, tt.args.comment)
+			err := d.ResolveServiceRequest(tt.args.ctx, tt.args.staffID, tt.args.serviceRequestID, tt.args.status, tt.args.action, tt.args.comment)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("MyCareHubDb.ResolveServiceRequest() error = %v, wantErr %v", err, tt.wantErr)
 				return

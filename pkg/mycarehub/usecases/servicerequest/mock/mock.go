@@ -24,7 +24,7 @@ type ServiceRequestUseCaseMock struct {
 	) (bool, error)
 	MockGetPendingServiceRequestsCountFn    func(ctx context.Context, facilityID string) (*domain.ServiceRequestsCountResponse, error)
 	MockGetServiceRequestsFn                func(ctx context.Context, requestType, requestStatus *string, facilityID string, flavour feedlib.Flavour) ([]*domain.ServiceRequest, error)
-	MockResolveServiceRequestFn             func(ctx context.Context, staffID *string, serviceRequestID *string, comment *string) (bool, error)
+	MockResolveServiceRequestFn             func(ctx context.Context, staffID *string, serviceRequestID *string, action string, comment *string) (bool, error)
 	MockSetInProgressByFn                   func(ctx context.Context, requestID string, staffID string) (bool, error)
 	MockGetServiceRequestsForKenyaEMRFn     func(ctx context.Context, payload *dto.ServiceRequestPayload) (*dto.RedFlagServiceRequestResponse, error)
 	MockUpdateServiceRequestsFromKenyaEMRFn func(ctx context.Context, payload *dto.UpdateServiceRequestsPayload) (bool, error)
@@ -67,7 +67,7 @@ func NewServiceRequestUseCaseMock() *ServiceRequestUseCaseMock {
 				},
 			}, nil
 		},
-		MockResolveServiceRequestFn: func(ctx context.Context, staffID *string, serviceRequestID *string, comment *string) (bool, error) {
+		MockResolveServiceRequestFn: func(ctx context.Context, staffID *string, serviceRequestID *string, action string, comment *string) (bool, error) {
 			return true, nil
 		},
 		MockSetInProgressByFn: func(ctx context.Context, requestID string, staffID string) (bool, error) {
@@ -141,8 +141,8 @@ func (s *ServiceRequestUseCaseMock) GetServiceRequests(ctx context.Context, requ
 }
 
 // ResolveServiceRequest mocks resolving a service request
-func (s *ServiceRequestUseCaseMock) ResolveServiceRequest(ctx context.Context, staffID *string, serviceRequestID *string, comment *string) (bool, error) {
-	return s.MockResolveServiceRequestFn(ctx, staffID, serviceRequestID, comment)
+func (s *ServiceRequestUseCaseMock) ResolveServiceRequest(ctx context.Context, staffID *string, serviceRequestID *string, action string, comment *string) (bool, error) {
+	return s.MockResolveServiceRequestFn(ctx, staffID, serviceRequestID, action, comment)
 }
 
 // SetInProgressBy mocks the implementation of marking a service request as in progress
