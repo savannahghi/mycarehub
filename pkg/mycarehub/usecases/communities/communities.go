@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"strings"
-	"time"
 
 	stream "github.com/GetStream/stream-chat-go/v5"
 	"github.com/google/uuid"
@@ -790,12 +789,7 @@ func (us *UseCasesCommunitiesImpl) RecommendedCommunities(ctx context.Context, c
 		joinedChannelsMap[channel.ID] = true
 	}
 
-	var dob = time.Now()
-	if clientUserProfile.DateOfBirth != nil {
-		dob = *clientUserProfile.DateOfBirth
-	}
-
-	age := utils.CalculateAge(dob)
+	age := utils.CalculateAge(clientUserProfile.DateOfBirth)
 
 	clientGender := clientUserProfile.Gender.String()
 	clientGender = strings.ToLower(clientGender)

@@ -330,7 +330,7 @@ func (us *UseCasesUserImpl) addGetStreamToken(ctx context.Context, credentials *
 	var user *stream.User
 	userProfile := response.GetUserProfile()
 
-	userAge := utils.CalculateAge(*userProfile.DateOfBirth)
+	userAge := utils.CalculateAge(userProfile.DateOfBirth)
 
 	switch credentials.Flavour {
 	case feedlib.FlavourConsumer:

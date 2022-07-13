@@ -106,8 +106,9 @@ func TestFormatFilterParamsHelper(t *testing.T) {
 }
 
 func TestCalculateAge(t *testing.T) {
+	dateOfBirth := time.Now().Add(time.Hour * -24 * 365 * -30)
 	type args struct {
-		birthday time.Time
+		birthday *time.Time
 	}
 	tests := []struct {
 		name string
@@ -117,7 +118,7 @@ func TestCalculateAge(t *testing.T) {
 		{
 			name: "Happy case",
 			args: args{
-				birthday: time.Now(),
+				birthday: &dateOfBirth,
 			},
 			want: 0,
 		},
