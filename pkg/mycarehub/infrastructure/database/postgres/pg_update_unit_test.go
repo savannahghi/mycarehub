@@ -1302,7 +1302,7 @@ func TestMyCareHubDb_ResolveServiceRequest(t *testing.T) {
 		staffID          *string
 		serviceRequestID *string
 		status           string
-		action           string
+		action           []string
 		comment          *string
 	}
 	tests := []struct {
@@ -1318,7 +1318,7 @@ func TestMyCareHubDb_ResolveServiceRequest(t *testing.T) {
 				staffID:          &testUUD,
 				serviceRequestID: &testUUD,
 				status:           enums.ServiceRequestStatusResolved.String(),
-				action:           "resolve",
+				action:           []string{"resolve"},
 			},
 			wantErr: false,
 		},
