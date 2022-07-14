@@ -131,7 +131,7 @@ func (d *MyCareHubDb) UpdateClientCaregiver(ctx context.Context, caregiverInput 
 }
 
 // ResolveServiceRequest resolves a service request
-func (d *MyCareHubDb) ResolveServiceRequest(ctx context.Context, staffID *string, serviceRequestID *string, status string, action string, comment *string) error {
+func (d *MyCareHubDb) ResolveServiceRequest(ctx context.Context, staffID *string, serviceRequestID *string, status string, action []string, comment *string) error {
 	serviceRequest, err := d.query.GetServiceRequestByID(ctx, *serviceRequestID)
 	if err != nil {
 		return err

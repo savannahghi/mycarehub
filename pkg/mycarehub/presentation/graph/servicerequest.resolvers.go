@@ -21,7 +21,7 @@ func (r *mutationResolver) CreateServiceRequest(ctx context.Context, input dto.S
 	return r.mycarehub.ServiceRequest.CreateServiceRequest(ctx, &input)
 }
 
-func (r *mutationResolver) ResolveServiceRequest(ctx context.Context, staffID string, requestID string, action string, comment *string) (bool, error) {
+func (r *mutationResolver) ResolveServiceRequest(ctx context.Context, staffID string, requestID string, action []string, comment *string) (bool, error) {
 	return r.mycarehub.ServiceRequest.ResolveServiceRequest(ctx, &staffID, &requestID, action, comment)
 }
 

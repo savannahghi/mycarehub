@@ -56,7 +56,7 @@ type IGetServiceRequests interface {
 
 // IResolveServiceRequest is an interface that holds the method signature for resolving a service request
 type IResolveServiceRequest interface {
-	ResolveServiceRequest(ctx context.Context, staffID *string, serviceRequestID *string, action string, comment *string) (bool, error)
+	ResolveServiceRequest(ctx context.Context, staffID *string, serviceRequestID *string, action []string, comment *string) (bool, error)
 	VerifyClientPinResetServiceRequest(
 		ctx context.Context,
 		clientID string,
@@ -249,7 +249,7 @@ func (u *UseCasesServiceRequestImpl) GetPendingServiceRequestsCount(ctx context.
 }
 
 // ResolveServiceRequest resolves a service request
-func (u *UseCasesServiceRequestImpl) ResolveServiceRequest(ctx context.Context, staffID *string, serviceRequestID *string, action string, comment *string) (bool, error) {
+func (u *UseCasesServiceRequestImpl) ResolveServiceRequest(ctx context.Context, staffID *string, serviceRequestID *string, action []string, comment *string) (bool, error) {
 	if staffID == nil {
 		return false, fmt.Errorf("staff ID is required")
 	}
@@ -586,7 +586,7 @@ func (u *UseCasesServiceRequestImpl) VerifyServiceRequestResponse(
 				return false, err
 			}
 		case feedlib.FlavourConsumer:
-			err := u.Update.ResolveServiceRequest(ctx, staff.ID, &serviceRequestID, enums.ServiceRequestStatusRejected.String(), "", nil)
+			err := u.Update.ResolveServiceRequest(ctx, staff.ID, &serviceRequestID, enums.ServiceRequestStatusRejected.String(), []string{}, nil)
 			if err != nil {
 				helpers.ReportErrorToSentry(err)
 				return false, err
@@ -636,7 +636,7 @@ func (u *UseCasesServiceRequestImpl) VerifyServiceRequestResponse(
 				return false, err
 			}
 		case feedlib.FlavourConsumer:
-			err := u.Update.ResolveServiceRequest(ctx, staff.ID, &serviceRequestID, enums.ServiceRequestStatusResolved.String(), "", nil)
+			err := u.Update.ResolveServiceRequest(ctx, staff.ID, &serviceRequestID, enums.ServiceRequestStatusResolved.String(), []string{}, nil)
 			if err != nil {
 				return false, err
 			}
