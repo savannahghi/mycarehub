@@ -1088,6 +1088,65 @@ func TestPGInstance_CheckWhetherUserHasLikedContent(t *testing.T) {
 	}
 }
 
+func TestPGInstance_CheckIfUserHasViewedContent(t *testing.T) {
+	ctx := context.Background()
+
+	type args struct {
+		ctx       context.Context
+		userID    string
+		contentID int
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy case: check that user has viewed content",
+			args: args{
+				ctx:       ctx,
+				userID:    userID,
+				contentID: contentID,
+			},
+			want:    false,
+			wantErr: false,
+		},
+		{
+			name: "Sad case: invalid user ID",
+			args: args{
+				ctx:       ctx,
+				userID:    "userID",
+				contentID: contentID,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case: invalid content ID",
+			args: args{
+				ctx:       ctx,
+				userID:    userID,
+				contentID: -101,
+			},
+			want:    false,
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := testingDB.CheckIfUserHasViewedContent(tt.args.ctx, tt.args.userID, tt.args.contentID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.CheckIfUserHasViewedContent() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("PGInstance.CheckIfUserHasViewedContent() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
 func TestPGInstance_GetUserProfileByUserID(t *testing.T) {
 	ctx := context.Background()
 	UUID := uuid.New().String()

@@ -28,6 +28,12 @@ func (d *MyCareHubDb) CheckWhetherUserHasLikedContent(ctx context.Context, userI
 	return d.query.CheckWhetherUserHasLikedContent(ctx, userID, contentID)
 }
 
+// CheckIfUserHasViewedContent checks if user has viewed the content
+func (d *MyCareHubDb) CheckIfUserHasViewedContent(ctx context.Context, userID string, contentID int) (bool, error) {
+
+	return d.query.CheckIfUserHasViewedContent(ctx, userID, contentID)
+}
+
 // SearchFacility returns a slice of healthcare facilities in the platform.
 func (d *MyCareHubDb) SearchFacility(ctx context.Context, searchParameter *string) ([]*domain.Facility, error) {
 	var facility []*domain.Facility

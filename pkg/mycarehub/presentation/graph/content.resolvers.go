@@ -61,3 +61,7 @@ func (r *queryResolver) CheckIfUserHasLikedContent(ctx context.Context, userID s
 func (r *queryResolver) CheckIfUserBookmarkedContent(ctx context.Context, userID string, contentID int) (bool, error) {
 	return r.mycarehub.Content.CheckIfUserBookmarkedContent(ctx, userID, contentID)
 }
+
+func (r *queryResolver) CheckIfUserHasReadContent(ctx context.Context, userID string, contentID int) (bool, error) {
+	return r.mycarehub.Content.CheckIfUserHasViewedContent(ctx, userID, contentID)
+}

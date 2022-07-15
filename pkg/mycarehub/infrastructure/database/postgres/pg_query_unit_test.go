@@ -5888,3 +5888,58 @@ func TestMyCareHubDb_GetClientsByFilterParams(t *testing.T) {
 		})
 	}
 }
+
+func TestMyCareHubDb_CheckIfUserHasViewedContent(t *testing.T) {
+	var fakeGorm = gormMock.NewGormMock()
+	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+	type args struct {
+		ctx       context.Context
+		userID    string
+		contentID int
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy case: user has viewed content",
+			args: args{
+				ctx:       context.Background(),
+				userID:    uuid.New().String(),
+				contentID: 1,
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Sad case: user has not viewed content",
+			args: args{
+				ctx:       context.Background(),
+				userID:    "",
+				contentID: 10,
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "Sad case: user has not viewed content" {
+				fakeGorm.MockCheckIfUserHasViewedContentFn = func(ctx context.Context, userID string, contentID int) (bool, error) {
+					return false, fmt.Errorf("cannot check if user has viewed content")
+				}
+			}
+			got, err := d.CheckIfUserHasViewedContent(tt.args.ctx, tt.args.userID, tt.args.contentID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.CheckIfUserHasViewedContent() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("MyCareHubDb.CheckIfUserHasViewedContent() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

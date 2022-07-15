@@ -497,6 +497,7 @@ type ComplexityRoot struct {
 		CanRecordMood                           func(childComplexity int, clientID string) int
 		CheckIfUserBookmarkedContent            func(childComplexity int, userID string, contentID int) int
 		CheckIfUserHasLikedContent              func(childComplexity int, userID string, contentID int) int
+		CheckIfUserHasReadContent               func(childComplexity int, userID string, contentID int) int
 		FetchClientAppointments                 func(childComplexity int, clientID string, paginationInput dto.PaginationsInput, filters []*firebasetools.FilterParam) int
 		FetchNotifications                      func(childComplexity int, userID string, flavour feedlib.Flavour, paginationInput dto.PaginationsInput) int
 		GetAllAuthorityRoles                    func(childComplexity int) int
@@ -768,6 +769,7 @@ type QueryResolver interface {
 	GetUserBookmarkedContent(ctx context.Context, userID string) (*domain.Content, error)
 	CheckIfUserHasLikedContent(ctx context.Context, userID string, contentID int) (bool, error)
 	CheckIfUserBookmarkedContent(ctx context.Context, userID string, contentID int) (bool, error)
+	CheckIfUserHasReadContent(ctx context.Context, userID string, contentID int) (bool, error)
 	SearchFacility(ctx context.Context, searchParameter *string) ([]*domain.Facility, error)
 	RetrieveFacility(ctx context.Context, id string, active bool) (*domain.Facility, error)
 	RetrieveFacilityByMFLCode(ctx context.Context, mflCode int, isActive bool) (*domain.Facility, error)
@@ -3205,6 +3207,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.CheckIfUserHasLikedContent(childComplexity, args["userID"].(string), args["contentID"].(int)), true
 
+	case "Query.checkIfUserHasReadContent":
+		if e.complexity.Query.CheckIfUserHasReadContent == nil {
+			break
+		}
+
+		args, err := ec.field_Query_checkIfUserHasReadContent_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.CheckIfUserHasReadContent(childComplexity, args["userID"].(string), args["contentID"].(int)), true
+
 	case "Query.fetchClientAppointments":
 		if e.complexity.Query.FetchClientAppointments == nil {
 			break
@@ -4504,6 +4518,7 @@ extend type Mutation {
   getUserBookmarkedContent(userID: String!): Content
   checkIfUserHasLikedContent(userID: String!, contentID: Int!): Boolean!
   checkIfUserBookmarkedContent(userID: String!, contentID: Int!): Boolean!
+  checkIfUserHasReadContent(userID: String!, contentID: Int!): Boolean!
 }
 
 extend type Mutation {
@@ -6766,6 +6781,30 @@ func (ec *executionContext) field_Query_checkIfUserBookmarkedContent_args(ctx co
 }
 
 func (ec *executionContext) field_Query_checkIfUserHasLikedContent_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["userID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userID"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["userID"] = arg0
+	var arg1 int
+	if tmp, ok := rawArgs["contentID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("contentID"))
+		arg1, err = ec.unmarshalNInt2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["contentID"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_checkIfUserHasReadContent_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
@@ -22790,6 +22829,61 @@ func (ec *executionContext) fieldContext_Query_checkIfUserBookmarkedContent(ctx 
 	return fc, nil
 }
 
+func (ec *executionContext) _Query_checkIfUserHasReadContent(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_checkIfUserHasReadContent(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().CheckIfUserHasReadContent(rctx, fc.Args["userID"].(string), fc.Args["contentID"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_checkIfUserHasReadContent(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_checkIfUserHasReadContent_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query_searchFacility(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query_searchFacility(ctx, field)
 	if err != nil {
@@ -35048,6 +35142,29 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_checkIfUserBookmarkedContent(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "checkIfUserHasReadContent":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_checkIfUserHasReadContent(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}

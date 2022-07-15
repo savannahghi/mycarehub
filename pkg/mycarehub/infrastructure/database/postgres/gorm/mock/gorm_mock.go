@@ -150,6 +150,7 @@ type GormMock struct {
 	MockCreateUserSurveyFn                               func(ctx context.Context, userSurvey []*gorm.UserSurvey) error
 	MockCreateMetricFn                                   func(ctx context.Context, metric *gorm.Metric) error
 	MockUpdateClientServiceRequestFn                     func(ctx context.Context, clientServiceRequest *gorm.ClientServiceRequest, updateData map[string]interface{}) error
+	MockCheckIfUserHasViewedContentFn                    func(ctx context.Context, userID string, contentID int) (bool, error)
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -638,6 +639,9 @@ func NewGormMock() *GormMock {
 			return true, nil
 		},
 		MockCompleteOnboardingTourFn: func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
+			return true, nil
+		},
+		MockCheckIfUserHasViewedContentFn: func(ctx context.Context, userID string, contentID int) (bool, error) {
 			return true, nil
 		},
 		MockGetOTPFn: func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*gorm.UserOTP, error) {
@@ -1781,4 +1785,9 @@ func (gm *GormMock) UpdateClientServiceRequest(ctx context.Context, serviceReque
 // SaveFeedback mocks the implementation of saving feedback into the database
 func (gm *GormMock) SaveFeedback(ctx context.Context, feedback *gorm.Feedback) error {
 	return gm.MockSaveFeedbackFn(ctx, feedback)
+}
+
+// CheckIfUserHasViewedContent mocks the implementation of checking if a user has viewed content
+func (gm *GormMock) CheckIfUserHasViewedContent(ctx context.Context, userID string, contentID int) (bool, error) {
+	return gm.MockCheckIfUserHasViewedContentFn(ctx, userID, contentID)
 }

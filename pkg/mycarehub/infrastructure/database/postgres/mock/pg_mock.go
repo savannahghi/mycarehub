@@ -152,6 +152,7 @@ type PostgresMock struct {
 	MockCreateMetricFn                                   func(ctx context.Context, payload *domain.Metric) error
 	MockUpdateClientServiceRequestFn                     func(ctx context.Context, clientServiceRequest *domain.ServiceRequest, updateData map[string]interface{}) error
 	MockSaveFeedbackFn                                   func(ctx context.Context, feedback *domain.FeedbackResponse) error
+	MockCheckIfUserHasViewedContentFn                    func(ctx context.Context, userID string, contentID int) (bool, error)
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -352,6 +353,9 @@ func NewPostgresMock() *PostgresMock {
 				Facilities:        []domain.Facility{},
 				DefaultFacilityID: ID,
 			}, nil
+		},
+		MockCheckIfUserHasViewedContentFn: func(ctx context.Context, userID string, contentID int) (bool, error) {
+			return true, nil
 		},
 		MockGetCurrentTermsFn: func(ctx context.Context, flavour feedlib.Flavour) (*domain.TermsOfService, error) {
 			termsID := gofakeit.Number(1, 1000)
@@ -1697,4 +1701,9 @@ func (gm *PostgresMock) UpdateClientServiceRequest(ctx context.Context, clientSe
 // SaveFeedback mocks the implementation of saving feedback into the database
 func (gm *PostgresMock) SaveFeedback(ctx context.Context, feedback *domain.FeedbackResponse) error {
 	return gm.MockSaveFeedbackFn(ctx, feedback)
+}
+
+// CheckIfUserHasViewedContent mocks the implementation of checking if a user has viewed content
+func (gm *PostgresMock) CheckIfUserHasViewedContent(ctx context.Context, userID string, contentID int) (bool, error) {
+	return gm.MockCheckIfUserHasViewedContentFn(ctx, userID, contentID)
 }

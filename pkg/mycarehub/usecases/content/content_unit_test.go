@@ -1163,3 +1163,75 @@ func TestUseCasesContentImpl_ShareContent(t *testing.T) {
 		})
 	}
 }
+
+func TestUseCasesContentImpl_CheckIfUserHasViewedContent(t *testing.T) {
+	ctx := context.Background()
+	fakeDB := pgMock.NewPostgresMock()
+	fakeExt := extensionMock.NewFakeExtension()
+	c := content.NewUseCasesContentImplementation(fakeDB, fakeDB, fakeExt)
+
+	type args struct {
+		ctx       context.Context
+		userID    string
+		contentID int
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy case: user has viewed content",
+			args: args{
+				ctx:       ctx,
+				userID:    uuid.New().String(),
+				contentID: 20,
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Sad case: unable to check that user viewed content",
+			args: args{
+				ctx:       ctx,
+				userID:    uuid.New().String(),
+				contentID: 20,
+			},
+			want:    false,
+			wantErr: false,
+		},
+		{
+			name: "Sad case: empty userID",
+			args: args{
+				ctx:       ctx,
+				userID:    "",
+				contentID: 20,
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "Sad case: unable to check that user viewed content" {
+				fakeDB.MockCheckIfUserHasViewedContentFn = func(ctx context.Context, userID string, contentID int) (bool, error) {
+					return false, nil
+				}
+			}
+			if tt.name == "Sad case: empty userID" {
+				fakeDB.MockCheckIfUserHasViewedContentFn = func(ctx context.Context, userID string, contentID int) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+			got, err := c.CheckIfUserHasViewedContent(tt.args.ctx, tt.args.userID, tt.args.contentID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCasesContentImpl.CheckIfUserHasViewedContent() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("UseCasesContentImpl.CheckIfUserHasViewedContent() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

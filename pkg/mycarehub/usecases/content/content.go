@@ -69,6 +69,12 @@ type IUnlikeContent interface {
 	UnlikeContent(ctx context.Context, userID string, contentID int) (bool, error)
 }
 
+// IViewContent gets a content ite and updates the view count
+type IViewContent interface {
+	ViewContent(ctx context.Context, userID string, contentID int) (bool, error)
+	CheckIfUserHasViewedContent(ctx context.Context, userID string, contentID int) (bool, error)
+}
+
 // UseCasesContent holds the interfaces that are implemented within the content service
 type UseCasesContent interface {
 	IGetContent
@@ -81,11 +87,6 @@ type UseCasesContent interface {
 	IUnlikeContent
 	IViewContent
 	ICheckIfUserBookmarkedContent
-}
-
-// IViewContent gets a content ite and updates the view count
-type IViewContent interface {
-	ViewContent(ctx context.Context, userID string, contentID int) (bool, error)
 }
 
 // UseCasesContentImpl represents content implementation
@@ -284,4 +285,13 @@ func (u *UseCasesContentImpl) CheckIfUserBookmarkedContent(ctx context.Context, 
 		return false, fmt.Errorf("userID and contentID cannot be empty")
 	}
 	return u.Query.CheckIfUserBookmarkedContent(ctx, userID, contentID)
+}
+
+// CheckIfUserHasViewedContent checks if a user has viewed a specific content item
+func (u *UseCasesContentImpl) CheckIfUserHasViewedContent(ctx context.Context, userID string, contentID int) (bool, error) {
+	if userID == "" {
+		return false, fmt.Errorf("userID cannot be empty")
+	}
+
+	return u.Query.CheckIfUserHasViewedContent(ctx, userID, contentID)
 }

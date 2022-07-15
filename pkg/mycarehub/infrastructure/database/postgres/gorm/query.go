@@ -99,6 +99,7 @@ type Query interface {
 	CheckIfStaffHasUnresolvedServiceRequests(ctx context.Context, staffID string, serviceRequestType string) (bool, error)
 	GetFacilityStaffs(ctx context.Context, facilityID string) ([]*StaffProfile, error)
 	GetNotification(ctx context.Context, notificationID string) (*Notification, error)
+	CheckIfUserHasViewedContent(ctx context.Context, userID string, contentID int) (bool, error)
 	GetClientsByFilterParams(ctx context.Context, facilityID string, filterParams *dto.ClientFilterParamsInput) ([]*Client, error)
 }
 
@@ -111,6 +112,20 @@ func (db *PGInstance) CheckWhetherUserHasLikedContent(ctx context.Context, userI
 		}
 		helpers.ReportErrorToSentry(err)
 		return false, fmt.Errorf("an error occurred: %v", err)
+	}
+
+	return true, nil
+}
+
+// CheckIfUserHasViewedContent performs an operation to check whether user has viewed the content
+func (db *PGInstance) CheckIfUserHasViewedContent(ctx context.Context, userID string, contentID int) (bool, error) {
+	var contentItemView ContentView
+	if err := db.DB.Where(&ContentView{UserID: userID, ContentID: contentID}).First(&contentItemView).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return false, nil
+		}
+		helpers.ReportErrorToSentry(err)
+		return false, fmt.Errorf("an error occurred: %w", err)
 	}
 
 	return true, nil

@@ -1,0 +1,7 @@
+- id: 7ecbbc80-24c8-421a-9f1a-e14e12678ee0
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  active: true
+  content_item_id: {{.content_id}}
+  user_id: {{.test_user_id}}
+  organisation_id: {{.test_organisation_id}}

@@ -4,6 +4,7 @@ extend type Query {
   getUserBookmarkedContent(userID: String!): Content
   checkIfUserHasLikedContent(userID: String!, contentID: Int!): Boolean!
   checkIfUserBookmarkedContent(userID: String!, contentID: Int!): Boolean!
+  checkIfUserHasReadContent(userID: String!, contentID: Int!): Boolean!
 }
 
 extend type Mutation {

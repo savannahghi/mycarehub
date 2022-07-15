@@ -65,6 +65,7 @@ type Query interface {
 	GetClientProfileByUserID(ctx context.Context, userID string) (*domain.ClientProfile, error)
 	GetStaffProfileByUserID(ctx context.Context, userID string) (*domain.StaffProfile, error)
 	CheckWhetherUserHasLikedContent(ctx context.Context, userID string, contentID int) (bool, error)
+	CheckIfUserHasViewedContent(ctx context.Context, userID string, contentID int) (bool, error)
 	CheckUserHasPin(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
 	GetOTP(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*domain.OTP, error)
 	GetUserSecurityQuestionsResponses(ctx context.Context, userID string) ([]*domain.SecurityQuestionResponse, error)
