@@ -11,7 +11,6 @@ import (
 	"github.com/savannahghi/firebasetools"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/exceptions"
 	"github.com/savannahghi/scalarutils"
-	"github.com/savannahghi/serverutils"
 
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
@@ -540,31 +539,13 @@ func (d *MyCareHubDb) GetContactByUserID(ctx context.Context, userID *string, co
 
 //ListContentCategories retrieves the list of all content categories
 func (d *MyCareHubDb) ListContentCategories(ctx context.Context) ([]*domain.ContentItemCategory, error) {
-	var contentItemCategory []*domain.ContentItemCategory
-
-	allContentCategories, err := d.query.ListContentCategories(ctx)
+	contentCategories, err := d.query.ListContentCategories(ctx)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, err
 	}
 
-	if len(allContentCategories) == 0 {
-		return contentItemCategory, nil
-	}
-
-	for _, contentCategories := range allContentCategories {
-		iconURL := fmt.Sprintf(serverutils.MustGetEnvVar(helpers.GoogleCloudStorageURL) + contentCategories.IconURL)
-
-		contentCategoryItem := &domain.ContentItemCategory{
-			ID:      contentCategories.ID,
-			Name:    contentCategories.Name,
-			IconURL: iconURL,
-		}
-
-		contentItemCategory = append(contentItemCategory, contentCategoryItem)
-	}
-
-	return contentItemCategory, nil
+	return contentCategories, nil
 }
 
 // GetUserBookmarkedContent is used to retrieve a user's bookmarked/pinned content
