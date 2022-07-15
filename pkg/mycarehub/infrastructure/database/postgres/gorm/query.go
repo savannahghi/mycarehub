@@ -10,13 +10,14 @@ import (
 	"github.com/mitchellh/mapstructure"
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/firebasetools"
+	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
+
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
-	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 )
 
 // Query contains all the db query methods
@@ -200,7 +201,10 @@ func (db *PGInstance) SearchFacility(ctx context.Context, searchParameter *strin
 	var facility []Facility
 	err := db.DB.Where(
 		db.DB.Where("common_facility.name ILIKE ?", "%"+*searchParameter+"%").
-			Or("CAST(common_facility.mfl_code as text) ILIKE ?", "%"+*searchParameter+"%")).Find(&facility).Error
+			Or("CAST(common_facility.mfl_code as text) ILIKE ?", "%"+*searchParameter+"%")).
+		Order(clause.OrderByColumn{Column: clause.Column{Name: "name"}, Desc: false}).
+		Find(&facility).
+		Error
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed to query facilities %w", err)

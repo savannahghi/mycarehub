@@ -9,15 +9,16 @@ import (
 	"github.com/mitchellh/mapstructure"
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/firebasetools"
+	"github.com/savannahghi/onboarding/pkg/onboarding/application/exceptions"
+	"github.com/savannahghi/scalarutils"
+	"github.com/savannahghi/serverutils"
+
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/utils"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
-	"github.com/savannahghi/onboarding/pkg/onboarding/application/exceptions"
-	"github.com/savannahghi/scalarutils"
-	"github.com/savannahghi/serverutils"
 )
 
 // CheckWhetherUserHasLikedContent performs a operation to check whether user has liked the content
