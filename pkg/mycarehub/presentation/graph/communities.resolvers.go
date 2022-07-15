@@ -7,6 +7,7 @@ import (
 	"context"
 
 	stream_chat "github.com/GetStream/stream-chat-go/v5"
+
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 )
