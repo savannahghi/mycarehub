@@ -24,7 +24,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/faq"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/feedback"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/healthdiary"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/metrics.go"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/metrics"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/notification"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/otp"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/screeningtools"

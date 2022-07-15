@@ -161,7 +161,32 @@ func (u UseCasesContentImpl) GetContent(ctx context.Context, categoryID *int, li
 
 // ListContentCategories gets the list of all content categories
 func (u *UseCasesContentImpl) ListContentCategories(ctx context.Context) ([]*domain.ContentItemCategory, error) {
-	return u.Query.ListContentCategories(ctx)
+	categories, err := u.Query.ListContentCategories(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	// contented holds categories with content :-)
+	// only categories with content should be shown
+	var contented []*domain.ContentItemCategory
+
+	for _, category := range categories {
+		// check if category has content
+		content, err := u.GetContent(ctx, &category.ID, "1")
+		if err != nil {
+			return nil, fmt.Errorf("error fetching categories for %s: %w", category.Name, err)
+		}
+
+		// if no content skip/continue
+		if content.Meta.TotalCount == 0 {
+			continue
+		}
+
+		contented = append(contented, category)
+
+	}
+
+	return contented, nil
 }
 
 // ShareContent enables a user to share a content

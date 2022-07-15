@@ -18,7 +18,11 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
+	"github.com/savannahghi/serverutils"
 )
+
+// GCSBaseURL is the Google Cloud Storage URL
+var GCSBaseURL = serverutils.MustGetEnvVar(helpers.GoogleCloudStorageURL)
 
 // Query contains all the db query methods
 type Query interface {
@@ -136,16 +140,21 @@ func (db *PGInstance) ListContentCategories(ctx context.Context) ([]*domain.Cont
 	var domainContentItemCategory []*domain.ContentItemCategory
 	for _, contentCategory := range contentItemCategories {
 		var wagtailImage *WagtailImages
+
 		err := db.DB.Model(&WagtailImages{}).Where(&WagtailImages{ID: contentCategory.IconID}).Find(&wagtailImage).Error
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
 			return nil, fmt.Errorf("failed to fetch wagtail images %v", err)
 		}
+
+		iconURL := fmt.Sprintf(GCSBaseURL + wagtailImage.File)
+
 		contentItemCategory := &domain.ContentItemCategory{
 			ID:      contentCategory.ID,
 			Name:    contentCategory.Name,
-			IconURL: wagtailImage.File,
+			IconURL: iconURL,
 		}
+
 		domainContentItemCategory = append(domainContentItemCategory, contentItemCategory)
 	}
 

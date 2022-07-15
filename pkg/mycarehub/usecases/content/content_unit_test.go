@@ -33,14 +33,14 @@ func TestUsecaseContentImpl_ListContentCategories(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "Happy case",
+			name: "happy case: list categories with content",
 			args: args{
 				ctx: ctx,
 			},
 			wantErr: false,
 		},
 		{
-			name: "Sad case",
+			name: "sad case: fail to list content categories",
 			args: args{
 				ctx: ctx,
 			},
@@ -50,11 +50,37 @@ func TestUsecaseContentImpl_ListContentCategories(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
-			_ = mock.NewContentUsecaseMock()
 			fakeExt := extensionMock.NewFakeExtension()
 			c := content.NewUseCasesContentImplementation(fakeDB, fakeDB, fakeExt)
 
-			if tt.name == "Sad case" {
+			if tt.name == "happy case: list categories with content" {
+				fakeExt.MockMakeRequestFn = func(ctx context.Context, method string, path string, body interface{}) (*http.Response, error) {
+
+					cntnt := domain.Content{
+						Meta: domain.Meta{
+							TotalCount: 1,
+						},
+						Items: []domain.ContentItem{
+							{
+								ID: 10,
+							},
+						},
+					}
+
+					payload, err := json.Marshal(cntnt)
+					if err != nil {
+						t.Errorf("unable to marshal test item: %s", err)
+					}
+
+					return &http.Response{
+						StatusCode: http.StatusOK,
+						Status:     "OK",
+						Body:       ioutil.NopCloser(bytes.NewBuffer(payload)),
+					}, nil
+				}
+			}
+
+			if tt.name == "sad case: fail to list content categories" {
 				fakeDB.MockListContentCategoriesFn = func(ctx context.Context) ([]*domain.ContentItemCategory, error) {
 					return nil, fmt.Errorf("an error occurred")
 				}
@@ -144,7 +170,6 @@ func TestUseCasesContentImpl_LikeContent(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_ = mock.NewContentUsecaseMock()
 			fakeDB := pgMock.NewPostgresMock()
 			fakeExt := extensionMock.NewFakeExtension()
 			c := content.NewUseCasesContentImplementation(fakeDB, fakeDB, fakeExt)
@@ -314,7 +339,6 @@ func TestUseCasesContentImpl_UnlikeContent(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_ = mock.NewContentUsecaseMock()
 			fakeDB := pgMock.NewPostgresMock()
 			fakeExt := extensionMock.NewFakeExtension()
 			c := content.NewUseCasesContentImplementation(fakeDB, fakeDB, fakeExt)
