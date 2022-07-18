@@ -35,14 +35,14 @@ type GetStreamServiceMock struct {
 	MockDeleteMessageFn              func(ctx context.Context, messageID string) (*stream.Response, error)
 	MockValidateGetStreamRequestFn   func(ctx context.Context, body []byte, signature string) bool
 	MockGetStreamUserFn              func(ctx context.Context, id string) (*stream.User, error)
-	MockQueryChannelMembersFn        func(ctx context.Context, channelID string, input *stream.QueryOption) (*stream.QueryMembersResponse, error)
+	MockQueryChannelMembersFn        func(ctx context.Context, channelID string, input *stream.QueryOption, sorters ...*stream.SortOption) (*stream.QueryMembersResponse, error)
 }
 
 // NewGetStreamServiceMock initializes the mock service
 func NewGetStreamServiceMock() *GetStreamServiceMock {
 	var now = time.Now()
 	return &GetStreamServiceMock{
-		MockQueryChannelMembersFn: func(ctx context.Context, channelID string, input *stream.QueryOption) (*stream.QueryMembersResponse, error) {
+		MockQueryChannelMembersFn: func(ctx context.Context, channelID string, input *stream.QueryOption, sorters ...*stream.SortOption) (*stream.QueryMembersResponse, error) {
 			return &stream.QueryMembersResponse{
 				Members: []*stream.ChannelMember{
 					{
@@ -440,6 +440,6 @@ func (g GetStreamServiceMock) GetStreamUser(ctx context.Context, id string) (*st
 }
 
 // QueryChannelMembers mocks the implementation for querying members
-func (g GetStreamServiceMock) QueryChannelMembers(ctx context.Context, channelID string, input *stream.QueryOption) (*stream.QueryMembersResponse, error) {
-	return g.MockQueryChannelMembersFn(ctx, channelID, input)
+func (g GetStreamServiceMock) QueryChannelMembers(ctx context.Context, channelID string, input *stream.QueryOption, sorters ...*stream.SortOption) (*stream.QueryMembersResponse, error) {
+	return g.MockQueryChannelMembersFn(ctx, channelID, input, sorters...)
 }

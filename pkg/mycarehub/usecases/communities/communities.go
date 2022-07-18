@@ -398,8 +398,10 @@ func (us *UseCasesCommunitiesImpl) ListCommunities(ctx context.Context, input *s
 func (us *UseCasesCommunitiesImpl) ListCommunityMembers(ctx context.Context, communityID string, input *stream.QueryOption) ([]*domain.CommunityMember, error) {
 	members := []*domain.CommunityMember{}
 	var query *stream.QueryOption
+	var sorters []*stream.SortOption
 
 	if input == nil {
+		sorters = []*stream.SortOption{{Field: "name", Direction: 1}}
 		query = &stream.QueryOption{
 			Filter: map[string]interface{}{
 				"banned": false,
@@ -407,6 +409,7 @@ func (us *UseCasesCommunitiesImpl) ListCommunityMembers(ctx context.Context, com
 			},
 		}
 	} else {
+		sorters = input.Sort
 		query = &stream.QueryOption{
 			Filter:       utils.FormatFilterParamsHelper(input.Filter),
 			UserID:       input.UserID,
@@ -417,7 +420,7 @@ func (us *UseCasesCommunitiesImpl) ListCommunityMembers(ctx context.Context, com
 		}
 	}
 
-	channelMembersResponse, err := us.GetstreamService.QueryChannelMembers(ctx, communityID, query)
+	channelMembersResponse, err := us.GetstreamService.QueryChannelMembers(ctx, communityID, query, sorters...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to retrieve members of a community: %w", err)
 	}
