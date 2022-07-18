@@ -8,7 +8,9 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 
+	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions"
@@ -26,6 +28,7 @@ var (
 type IGetContent interface {
 	GetContent(ctx context.Context, categoryID *int, limit string) (*domain.Content, error)
 	GetContentByContentItemID(ctx context.Context, contentID int) (*domain.Content, error)
+	GetFAQs(ctx context.Context, flavour feedlib.Flavour) (*domain.Content, error)
 }
 
 // IGetBookmarkedContent holds the method signature used to return a user's bookmarked content
@@ -284,4 +287,44 @@ func (u *UseCasesContentImpl) CheckIfUserBookmarkedContent(ctx context.Context, 
 		return false, fmt.Errorf("userID and contentID cannot be empty")
 	}
 	return u.Query.CheckIfUserBookmarkedContent(ctx, userID, contentID)
+}
+
+// GetFAQs retrieves the faqs depending on the provided flavour
+func (u *UseCasesContentImpl) GetFAQs(ctx context.Context, flavour feedlib.Flavour) (*domain.Content, error) {
+	//Get content categories
+	contentCategories, err := u.Query.ListContentCategories(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	// 'consumer-faqs' and 'pro-faqs' are CMS category names for FAQs contents
+	var (
+		consumerFAQs = "consumer-faqs"
+		proFAQs      = "pro-faqs"
+	)
+
+	switch flavour {
+	case feedlib.FlavourConsumer:
+		var consumerFAQCategoryID *int
+		for _, category := range contentCategories {
+			if strings.EqualFold(category.Name, consumerFAQs) {
+				consumerFAQCategoryID = &category.ID
+			}
+		}
+
+		return u.GetContent(ctx, consumerFAQCategoryID, "20")
+
+	case feedlib.FlavourPro:
+		var proFAQCategoryID *int
+		for _, category := range contentCategories {
+			if strings.EqualFold(category.Name, proFAQs) {
+				proFAQCategoryID = &category.ID
+			}
+		}
+
+		return u.GetContent(ctx, proFAQCategoryID, "20")
+
+	default:
+		return nil, fmt.Errorf("invalid flavour provided")
+	}
 }

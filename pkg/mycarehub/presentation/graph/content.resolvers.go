@@ -6,6 +6,7 @@ package graph
 import (
 	"context"
 
+	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 )
@@ -60,4 +61,8 @@ func (r *queryResolver) CheckIfUserHasLikedContent(ctx context.Context, userID s
 
 func (r *queryResolver) CheckIfUserBookmarkedContent(ctx context.Context, userID string, contentID int) (bool, error) {
 	return r.mycarehub.Content.CheckIfUserBookmarkedContent(ctx, userID, contentID)
+}
+
+func (r *queryResolver) GetFAQs(ctx context.Context, flavour feedlib.Flavour) (*domain.Content, error) {
+	return r.mycarehub.Content.GetFAQs(ctx, flavour)
 }
