@@ -567,7 +567,7 @@ func TestUseCasesCommunitiesImpl_ListCommunityMembers(t *testing.T) {
 			}
 
 			if tt.name == "Sad case - fail to list community members" {
-				fakeGetStream.MockQueryChannelMembersFn = func(ctx context.Context, channelID string, input *stream.QueryOption) (*stream.QueryMembersResponse, error) {
+				fakeGetStream.MockQueryChannelMembersFn = func(ctx context.Context, channelID string, input *stream.QueryOption, sorters ...*stream.SortOption) (*stream.QueryMembersResponse, error) {
 					return nil, fmt.Errorf("failed to get members")
 				}
 			}
