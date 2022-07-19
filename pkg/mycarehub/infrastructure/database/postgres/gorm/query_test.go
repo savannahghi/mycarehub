@@ -1144,36 +1144,9 @@ func TestPGInstance_GetUserProfileByUserID(t *testing.T) {
 func TestPGInstance_GetClientHealthDiaryQuote(t *testing.T) {
 	ctx := context.Background()
 
-	pg, err := gorm.NewPGInstance()
-	if err != nil {
-		t.Errorf("pgInstance.Teardown() = %v", err)
-	}
-	quoteInput := &gorm.ClientHealthDiaryQuote{
-		Author:         gofakeit.FirstName() + " " + gofakeit.LastName(),
-		Quote:          gofakeit.Sentence(10),
-		Active:         true,
-		OrganisationID: orgID,
-	}
-
-	err = pg.DB.Create(&quoteInput).Error
-	if err != nil {
-		t.Errorf("failed to create quote: %v", err)
-	}
-
-	quoteInput2 := &gorm.ClientHealthDiaryQuote{
-		Author:         gofakeit.FirstName() + " " + gofakeit.LastName(),
-		Quote:          gofakeit.Sentence(10),
-		Active:         true,
-		OrganisationID: orgID,
-	}
-
-	err = pg.DB.Create(&quoteInput2).Error
-	if err != nil {
-		t.Errorf("failed to create quote: %v", err)
-	}
-
 	type args struct {
-		ctx context.Context
+		ctx   context.Context
+		limit int
 	}
 	tests := []struct {
 		name    string
@@ -1181,9 +1154,10 @@ func TestPGInstance_GetClientHealthDiaryQuote(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "Happy case",
+			name: "Happy case: Get a random quote",
 			args: args{
-				ctx: ctx,
+				ctx:   ctx,
+				limit: 1,
 			},
 			wantErr: false,
 		},
@@ -1191,7 +1165,7 @@ func TestPGInstance_GetClientHealthDiaryQuote(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			got, err := testingDB.GetClientHealthDiaryQuote(tt.args.ctx)
+			got, err := testingDB.GetClientHealthDiaryQuote(tt.args.ctx, tt.args.limit)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("PGInstance.GetClientHealthDiaryQuote() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -1201,13 +1175,6 @@ func TestPGInstance_GetClientHealthDiaryQuote(t *testing.T) {
 				return
 			}
 		})
-	}
-	// tear down
-	if err = pg.DB.Where("id", quoteInput.ClientHealthDiaryQuoteID).Unscoped().Delete(&gorm.ClientHealthDiaryQuote{}).Error; err != nil {
-		t.Errorf("failed to delete record = %v", err)
-	}
-	if err = pg.DB.Where("id", quoteInput2.ClientHealthDiaryQuoteID).Unscoped().Delete(&gorm.ClientHealthDiaryQuote{}).Error; err != nil {
-		t.Errorf("failed to delete record = %v", err)
 	}
 }
 

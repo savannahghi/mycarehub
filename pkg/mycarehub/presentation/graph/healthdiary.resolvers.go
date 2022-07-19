@@ -22,9 +22,9 @@ func (r *queryResolver) CanRecordMood(ctx context.Context, clientID string) (boo
 	return r.mycarehub.HealthDiary.CanRecordHeathDiary(ctx, clientID)
 }
 
-func (r *queryResolver) GetHealthDiaryQuote(ctx context.Context) (*domain.ClientHealthDiaryQuote, error) {
+func (r *queryResolver) GetHealthDiaryQuote(ctx context.Context, limit int) ([]*domain.ClientHealthDiaryQuote, error) {
 	r.checkPreconditions()
-	return r.mycarehub.HealthDiary.GetClientHealthDiaryQuote(ctx)
+	return r.mycarehub.HealthDiary.GetClientHealthDiaryQuote(ctx, limit)
 }
 
 func (r *queryResolver) GetClientHealthDiaryEntries(ctx context.Context, clientID string) ([]*domain.ClientHealthDiaryEntry, error) {

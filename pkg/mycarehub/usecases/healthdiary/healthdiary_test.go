@@ -153,29 +153,34 @@ func TestUseCasesHealthDiaryImpl_CreateHealthDiaryEntry(t *testing.T) {
 func TestUseCasesHealthDiaryImpl_GetClientHealthDiaryQuote(t *testing.T) {
 	ctx := context.Background()
 	type args struct {
-		ctx context.Context
+		ctx   context.Context
+		limit int
 	}
 	tests := []struct {
 		name    string
 		args    args
-		want    *domain.ClientHealthDiaryQuote
+		want    []*domain.ClientHealthDiaryQuote
 		wantErr bool
 	}{
 		{
 			name: "Happy Case - successfully get client health diary quote",
 			args: args{
-				ctx: ctx,
+				ctx:   ctx,
+				limit: 10,
 			},
-			want: &domain.ClientHealthDiaryQuote{
-				Quote:  "test",
-				Author: "test",
+			want: []*domain.ClientHealthDiaryQuote{
+				{
+					Quote:  "test",
+					Author: "test",
+				},
 			},
 			wantErr: false,
 		},
 		{
 			name: "Sad Case - Fail to get quote",
 			args: args{
-				ctx: ctx,
+				ctx:   ctx,
+				limit: 10,
 			},
 			wantErr: true,
 		},
@@ -188,11 +193,11 @@ func TestUseCasesHealthDiaryImpl_GetClientHealthDiaryQuote(t *testing.T) {
 			h := healthdiary.NewUseCaseHealthDiaryImpl(fakeDB, fakeDB, fakeDB, fakeServiceRequest)
 
 			if tt.name == "Sad Case - Fail to get quote" {
-				fakeDB.MockGetClientHealthDiaryQuoteFn = func(ctx context.Context) (*domain.ClientHealthDiaryQuote, error) {
+				fakeDB.MockGetClientHealthDiaryQuoteFn = func(ctx context.Context, limit int) ([]*domain.ClientHealthDiaryQuote, error) {
 					return nil, fmt.Errorf("failed to get quote")
 				}
 			}
-			got, err := h.GetClientHealthDiaryQuote(tt.args.ctx)
+			got, err := h.GetClientHealthDiaryQuote(tt.args.ctx, tt.args.limit)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCasesHealthDiaryImpl.GetClientHealthDiaryQuote() error = %v, wantErr %v", err, tt.wantErr)
 				return

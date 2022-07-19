@@ -37,7 +37,7 @@ type ICanRecordHealthDiary interface {
 // IGetRandomQuote defines a method signature that returns a single quote to the frontend. This will be used in place
 // of the healthdiary (after it has been filled)
 type IGetRandomQuote interface {
-	GetClientHealthDiaryQuote(ctx context.Context) (*domain.ClientHealthDiaryQuote, error)
+	GetClientHealthDiaryQuote(ctx context.Context, limit int) ([]*domain.ClientHealthDiaryQuote, error)
 }
 
 // IGetClientHealthDiaryEntry defines a method signature that is used to fetch a client's health diary records
@@ -174,8 +174,8 @@ func (h UseCasesHealthDiaryImpl) CanRecordHeathDiary(ctx context.Context, client
 
 // GetClientHealthDiaryQuote gets a quote from the database to display on the UI. This happens after a client has already
 // filled in their health diary.
-func (h UseCasesHealthDiaryImpl) GetClientHealthDiaryQuote(ctx context.Context) (*domain.ClientHealthDiaryQuote, error) {
-	return h.Query.GetClientHealthDiaryQuote(ctx)
+func (h UseCasesHealthDiaryImpl) GetClientHealthDiaryQuote(ctx context.Context, limit int) ([]*domain.ClientHealthDiaryQuote, error) {
+	return h.Query.GetClientHealthDiaryQuote(ctx, limit)
 }
 
 // GetClientHealthDiaryEntries retrieves all health diary entries that belong to a specific user/client
