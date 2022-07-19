@@ -72,7 +72,7 @@ type Query interface {
 	ListContentCategories(ctx context.Context) ([]*domain.ContentItemCategory, error)
 	GetUserBookmarkedContent(ctx context.Context, userID string) ([]*domain.ContentItem, error)
 	CanRecordHeathDiary(ctx context.Context, clientID string) (bool, error)
-	GetClientHealthDiaryQuote(ctx context.Context) (*domain.ClientHealthDiaryQuote, error)
+	GetClientHealthDiaryQuote(ctx context.Context, limit int) ([]*domain.ClientHealthDiaryQuote, error)
 	CheckIfUserBookmarkedContent(ctx context.Context, userID string, contentID int) (bool, error)
 	GetClientHealthDiaryEntries(ctx context.Context, clientID string) ([]*domain.ClientHealthDiaryEntry, error)
 	GetFAQContent(ctx context.Context, flavour feedlib.Flavour, limit *int) ([]*domain.FAQ, error)

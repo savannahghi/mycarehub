@@ -592,16 +592,21 @@ func (d *MyCareHubDb) CanRecordHeathDiary(ctx context.Context, userID string) (b
 }
 
 // GetClientHealthDiaryQuote fetches the health diary quote for the specified user
-func (d *MyCareHubDb) GetClientHealthDiaryQuote(ctx context.Context) (*domain.ClientHealthDiaryQuote, error) {
-	clientHealthDiaryQuote, err := d.query.GetClientHealthDiaryQuote(ctx)
+func (d *MyCareHubDb) GetClientHealthDiaryQuote(ctx context.Context, limit int) ([]*domain.ClientHealthDiaryQuote, error) {
+	var clientHealthDiaryQuotes []*domain.ClientHealthDiaryQuote
+	clientHealthDiaryQuote, err := d.query.GetClientHealthDiaryQuote(ctx, limit)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed to fetch client health diary quote: %v", err)
 	}
-	return &domain.ClientHealthDiaryQuote{
-		Author: clientHealthDiaryQuote.Author,
-		Quote:  clientHealthDiaryQuote.Quote,
-	}, nil
+	for _, quote := range clientHealthDiaryQuote {
+		clientHealthDiaryQuotes = append(clientHealthDiaryQuotes, &domain.ClientHealthDiaryQuote{
+			Author: quote.Author,
+			Quote:  quote.Quote,
+		})
+	}
+
+	return clientHealthDiaryQuotes, nil
 }
 
 // CheckIfUserBookmarkedContent is used to check if the user has bookmarked the content

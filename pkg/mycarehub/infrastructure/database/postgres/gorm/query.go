@@ -55,7 +55,7 @@ type Query interface {
 	ListContentCategories(ctx context.Context) ([]*domain.ContentItemCategory, error)
 	GetUserBookmarkedContent(ctx context.Context, userID string) ([]*ContentItem, error)
 	CanRecordHeathDiary(ctx context.Context, clientID string) (bool, error)
-	GetClientHealthDiaryQuote(ctx context.Context) (*ClientHealthDiaryQuote, error)
+	GetClientHealthDiaryQuote(ctx context.Context, limit int) ([]*ClientHealthDiaryQuote, error)
 	CheckIfUserBookmarkedContent(ctx context.Context, userID string, contentID int) (bool, error)
 	GetClientHealthDiaryEntries(ctx context.Context, clientID string) ([]*ClientHealthDiaryEntry, error)
 	GetFAQContent(ctx context.Context, flavour feedlib.Flavour, limit *int) ([]*FAQ, error)
@@ -682,14 +682,14 @@ func (db *PGInstance) CanRecordHeathDiary(ctx context.Context, clientID string) 
 
 // GetClientHealthDiaryQuote fetches a client's health diary quote.
 // it should be a random quote from the health diary
-func (db *PGInstance) GetClientHealthDiaryQuote(ctx context.Context) (*ClientHealthDiaryQuote, error) {
-	var healthDiaryQuote ClientHealthDiaryQuote
-	err := db.DB.Where("active = true").Order("RANDOM()").First(&healthDiaryQuote).Error
+func (db *PGInstance) GetClientHealthDiaryQuote(ctx context.Context, limit int) ([]*ClientHealthDiaryQuote, error) {
+	var healthDiaryQuote []*ClientHealthDiaryQuote
+	err := db.DB.Where("active = true").Limit(limit).Order("RANDOM()").Find(&healthDiaryQuote).Error
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, err
 	}
-	return &healthDiaryQuote, nil
+	return healthDiaryQuote, nil
 }
 
 // CheckIfUserBookmarkedContent fetches a user's pinned content from the database

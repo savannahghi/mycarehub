@@ -68,7 +68,7 @@ type GormMock struct {
 	MockCreateHealthDiaryEntryFn                         func(ctx context.Context, healthDiaryInput *gorm.ClientHealthDiaryEntry) error
 	MockCreateServiceRequestFn                           func(ctx context.Context, serviceRequestInput *gorm.ClientServiceRequest) error
 	MockCanRecordHeathDiaryFn                            func(ctx context.Context, clientID string) (bool, error)
-	MockGetClientHealthDiaryQuoteFn                      func(ctx context.Context) (*gorm.ClientHealthDiaryQuote, error)
+	MockGetClientHealthDiaryQuoteFn                      func(ctx context.Context, limit int) ([]*gorm.ClientHealthDiaryQuote, error)
 	MockCheckIfUserBookmarkedContentFn                   func(ctx context.Context, userID string, contentID int) (bool, error)
 	MockGetClientHealthDiaryEntriesFn                    func(ctx context.Context, clientID string) ([]*gorm.ClientHealthDiaryEntry, error)
 	MockGetFAQContentFn                                  func(ctx context.Context, flavour feedlib.Flavour, limit *int) ([]*gorm.FAQ, error)
@@ -708,10 +708,12 @@ func NewGormMock() *GormMock {
 		MockCanRecordHeathDiaryFn: func(ctx context.Context, clientID string) (bool, error) {
 			return true, nil
 		},
-		MockGetClientHealthDiaryQuoteFn: func(ctx context.Context) (*gorm.ClientHealthDiaryQuote, error) {
-			return &gorm.ClientHealthDiaryQuote{
-				Quote:  "test",
-				Author: "test",
+		MockGetClientHealthDiaryQuoteFn: func(ctx context.Context, limit int) ([]*gorm.ClientHealthDiaryQuote, error) {
+			return []*gorm.ClientHealthDiaryQuote{
+				{
+					Quote:  "Quote",
+					Author: "Author",
+				},
 			}, nil
 		},
 		MockCheckWhetherUserHasLikedContentFn: func(ctx context.Context, userID string, contentID int) (bool, error) {
@@ -1374,8 +1376,8 @@ func (gm *GormMock) CanRecordHeathDiary(ctx context.Context, userID string) (boo
 }
 
 // GetClientHealthDiaryQuote mocks the implementation of getting a client's health diary quote
-func (gm *GormMock) GetClientHealthDiaryQuote(ctx context.Context) (*gorm.ClientHealthDiaryQuote, error) {
-	return gm.MockGetClientHealthDiaryQuoteFn(ctx)
+func (gm *GormMock) GetClientHealthDiaryQuote(ctx context.Context, limit int) ([]*gorm.ClientHealthDiaryQuote, error) {
+	return gm.MockGetClientHealthDiaryQuoteFn(ctx, limit)
 }
 
 // CheckIfUserBookmarkedContent mocks the implementation of checking if a user bookmarked a content

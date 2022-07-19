@@ -69,7 +69,7 @@ type PostgresMock struct {
 	MockCreateHealthDiaryEntryFn                         func(ctx context.Context, healthDiaryInput *domain.ClientHealthDiaryEntry) error
 	MockCreateServiceRequestFn                           func(ctx context.Context, serviceRequestInput *dto.ServiceRequestInput) error
 	MockCanRecordHeathDiaryFn                            func(ctx context.Context, userID string) (bool, error)
-	MockGetClientHealthDiaryQuoteFn                      func(ctx context.Context) (*domain.ClientHealthDiaryQuote, error)
+	MockGetClientHealthDiaryQuoteFn                      func(ctx context.Context, limit int) ([]*domain.ClientHealthDiaryQuote, error)
 	MockCheckIfUserBookmarkedContentFn                   func(ctx context.Context, userID string, contentID int) (bool, error)
 	MockGetClientHealthDiaryEntriesFn                    func(ctx context.Context, clientID string) ([]*domain.ClientHealthDiaryEntry, error)
 	MockGetFAQContentFn                                  func(ctx context.Context, flavour feedlib.Flavour, limit *int) ([]*domain.FAQ, error)
@@ -587,10 +587,12 @@ func NewPostgresMock() *PostgresMock {
 		MockCanRecordHeathDiaryFn: func(ctx context.Context, userID string) (bool, error) {
 			return true, nil
 		},
-		MockGetClientHealthDiaryQuoteFn: func(ctx context.Context) (*domain.ClientHealthDiaryQuote, error) {
-			return &domain.ClientHealthDiaryQuote{
-				Quote:  "test",
-				Author: "test",
+		MockGetClientHealthDiaryQuoteFn: func(ctx context.Context, limit int) ([]*domain.ClientHealthDiaryQuote, error) {
+			return []*domain.ClientHealthDiaryQuote{
+				{
+					Quote:  "test",
+					Author: "test",
+				},
 			}, nil
 		},
 		MockListNotificationsFn: func(ctx context.Context, params *domain.Notification, pagination *domain.Pagination) ([]*domain.Notification, *domain.Pagination, error) {
@@ -1299,8 +1301,8 @@ func (gm *PostgresMock) CanRecordHeathDiary(ctx context.Context, userID string) 
 }
 
 // GetClientHealthDiaryQuote mocks the implementation of fetching client health diary quote
-func (gm *PostgresMock) GetClientHealthDiaryQuote(ctx context.Context) (*domain.ClientHealthDiaryQuote, error) {
-	return gm.MockGetClientHealthDiaryQuoteFn(ctx)
+func (gm *PostgresMock) GetClientHealthDiaryQuote(ctx context.Context, limit int) ([]*domain.ClientHealthDiaryQuote, error) {
+	return gm.MockGetClientHealthDiaryQuoteFn(ctx, limit)
 }
 
 // CheckIfUserBookmarkedContent mocks the implementation of checking if a user has bookmarked a content
