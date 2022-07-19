@@ -6,7 +6,6 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/communities"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/content"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/facility"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/faq"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/feedback"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/healthdiary"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/metrics"
@@ -30,7 +29,6 @@ type MyCareHub struct {
 	Content           content.UseCasesContent
 	Feedback          feedback.UsecaseFeedback
 	HealthDiary       healthdiary.UseCasesHealthDiary
-	FAQ               faq.UsecaseFAQ
 	ServiceRequest    servicerequest.UseCaseServiceRequest
 	Authority         authority.UsecaseAuthority
 	Community         communities.UseCasesCommunities
@@ -51,7 +49,6 @@ func NewMyCareHubUseCase(
 	content content.UseCasesContent,
 	feedback feedback.UsecaseFeedback,
 	healthDiary healthdiary.UseCasesHealthDiary,
-	faq faq.UsecaseFAQ,
 	servicerequest servicerequest.UseCaseServiceRequest,
 	authority authority.UsecaseAuthority,
 	community communities.UseCasesCommunities,
@@ -70,7 +67,6 @@ func NewMyCareHubUseCase(
 		Content:           content,
 		Feedback:          feedback,
 		HealthDiary:       healthDiary,
-		FAQ:               faq,
 		ServiceRequest:    servicerequest,
 		Authority:         authority,
 		Community:         community,

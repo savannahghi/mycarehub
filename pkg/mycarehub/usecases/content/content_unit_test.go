@@ -11,6 +11,7 @@ import (
 
 	"github.com/brianvoe/gofakeit"
 	"github.com/google/uuid"
+	"github.com/savannahghi/feedlib"
 	helpers_mock "github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers/mock"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	extensionMock "github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension/mock"
@@ -1159,6 +1160,76 @@ func TestUseCasesContentImpl_ShareContent(t *testing.T) {
 			}
 			if got != tt.want {
 				t.Errorf("UseCasesContentImpl.ShareContent() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestUseCasesContentImpl_GetFAQs(t *testing.T) {
+	ctx := context.Background()
+	fakeDB := pgMock.NewPostgresMock()
+	fakeExt := extensionMock.NewFakeExtension()
+	cm := mock.NewContentUsecaseMock()
+	c := content.NewUseCasesContentImplementation(fakeDB, fakeDB, fakeExt)
+
+	type args struct {
+		ctx     context.Context
+		flavour feedlib.Flavour
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Sad case: invalid flavour",
+			args: args{
+				ctx:     ctx,
+				flavour: feedlib.Flavour("invalid flavour"),
+			},
+			wantErr: true,
+		},
+		{
+			name: "Happy case: get content by consumer flavour",
+			args: args{
+				ctx:     ctx,
+				flavour: feedlib.FlavourConsumer,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Happy case: get content by flavour pro",
+			args: args{
+				ctx:     ctx,
+				flavour: feedlib.FlavourPro,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: unable to list content categories",
+			args: args{
+				ctx:     ctx,
+				flavour: feedlib.FlavourConsumer,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "Sad case: unable to list content categories" {
+				fakeDB.MockListContentCategoriesFn = func(ctx context.Context) ([]*domain.ContentItemCategory, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case: invalid flavour" {
+				cm.MockGetFAQsFn = func(ctx context.Context, flavor feedlib.Flavour) (*domain.Content, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+			_, err := c.GetFAQs(tt.args.ctx, tt.args.flavour)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCasesContentImpl.GetFAQs() error = %v, wantErr %v", err, tt.wantErr)
+				return
 			}
 		})
 	}

@@ -508,7 +508,7 @@ type ComplexityRoot struct {
 		GetClientProfileByCCCNumber             func(childComplexity int, cCCNumber string) int
 		GetContent                              func(childComplexity int, categoryID *int, limit string) int
 		GetCurrentTerms                         func(childComplexity int, flavour feedlib.Flavour) int
-		GetFAQContent                           func(childComplexity int, flavour feedlib.Flavour, limit *int) int
+		GetFAQs                                 func(childComplexity int, flavour feedlib.Flavour) int
 		GetHealthDiaryQuote                     func(childComplexity int) int
 		GetPendingServiceRequestsCount          func(childComplexity int, facilityID string) int
 		GetScreeningToolQuestions               func(childComplexity int, toolType *string) int
@@ -768,11 +768,11 @@ type QueryResolver interface {
 	GetUserBookmarkedContent(ctx context.Context, userID string) (*domain.Content, error)
 	CheckIfUserHasLikedContent(ctx context.Context, userID string, contentID int) (bool, error)
 	CheckIfUserBookmarkedContent(ctx context.Context, userID string, contentID int) (bool, error)
+	GetFAQs(ctx context.Context, flavour feedlib.Flavour) (*domain.Content, error)
 	SearchFacility(ctx context.Context, searchParameter *string) ([]*domain.Facility, error)
 	RetrieveFacility(ctx context.Context, id string, active bool) (*domain.Facility, error)
 	RetrieveFacilityByMFLCode(ctx context.Context, mflCode int, isActive bool) (*domain.Facility, error)
 	ListFacilities(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationInput dto.PaginationsInput) (*domain.FacilityPage, error)
-	GetFAQContent(ctx context.Context, flavour feedlib.Flavour, limit *int) ([]*domain.FAQ, error)
 	CanRecordMood(ctx context.Context, clientID string) (bool, error)
 	GetHealthDiaryQuote(ctx context.Context) (*domain.ClientHealthDiaryQuote, error)
 	GetClientHealthDiaryEntries(ctx context.Context, clientID string) ([]*domain.ClientHealthDiaryEntry, error)
@@ -3332,17 +3332,17 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.GetCurrentTerms(childComplexity, args["flavour"].(feedlib.Flavour)), true
 
-	case "Query.getFAQContent":
-		if e.complexity.Query.GetFAQContent == nil {
+	case "Query.getFAQs":
+		if e.complexity.Query.GetFAQs == nil {
 			break
 		}
 
-		args, err := ec.field_Query_getFAQContent_args(context.TODO(), rawArgs)
+		args, err := ec.field_Query_getFAQs_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Query.GetFAQContent(childComplexity, args["flavour"].(feedlib.Flavour), args["limit"].(*int)), true
+		return e.complexity.Query.GetFAQs(childComplexity, args["flavour"].(feedlib.Flavour)), true
 
 	case "Query.getHealthDiaryQuote":
 		if e.complexity.Query.GetHealthDiaryQuote == nil {
@@ -4504,6 +4504,7 @@ extend type Mutation {
   getUserBookmarkedContent(userID: String!): Content
   checkIfUserHasLikedContent(userID: String!, contentID: Int!): Boolean!
   checkIfUserBookmarkedContent(userID: String!, contentID: Int!): Boolean!
+  getFAQs(flavour: Flavour!): Content!
 }
 
 extend type Mutation {
@@ -4667,9 +4668,6 @@ extend type Query {
   ): FacilityPage
 }
 `, BuiltIn: false},
-	{Name: "../faq.graphql", Input: `extend type Query {
-    getFAQContent(flavour: Flavour!, limit: Int): [FAQ!]!
-}`, BuiltIn: false},
 	{Name: "../feedback.graphql", Input: `extend type Mutation{
     sendFeedback(input: FeedbackResponseInput!): Boolean!
 }`, BuiltIn: false},
@@ -6993,7 +6991,7 @@ func (ec *executionContext) field_Query_getCurrentTerms_args(ctx context.Context
 	return args, nil
 }
 
-func (ec *executionContext) field_Query_getFAQContent_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Query_getFAQs_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 feedlib.Flavour
@@ -7005,15 +7003,6 @@ func (ec *executionContext) field_Query_getFAQContent_args(ctx context.Context, 
 		}
 	}
 	args["flavour"] = arg0
-	var arg1 *int
-	if tmp, ok := rawArgs["limit"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit"))
-		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["limit"] = arg1
 	return args, nil
 }
 
@@ -22790,6 +22779,67 @@ func (ec *executionContext) fieldContext_Query_checkIfUserBookmarkedContent(ctx 
 	return fc, nil
 }
 
+func (ec *executionContext) _Query_getFAQs(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_getFAQs(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GetFAQs(rctx, fc.Args["flavour"].(feedlib.Flavour))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*domain.Content)
+	fc.Result = res
+	return ec.marshalNContent2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐContent(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_getFAQs(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "items":
+				return ec.fieldContext_Content_items(ctx, field)
+			case "meta":
+				return ec.fieldContext_Content_meta(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Content", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_getFAQs_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query_searchFacility(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query_searchFacility(ctx, field)
 	if err != nil {
@@ -23055,75 +23105,6 @@ func (ec *executionContext) fieldContext_Query_listFacilities(ctx context.Contex
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_listFacilities_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Query_getFAQContent(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Query_getFAQContent(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().GetFAQContent(rctx, fc.Args["flavour"].(feedlib.Flavour), fc.Args["limit"].(*int))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.([]*domain.FAQ)
-	fc.Result = res
-	return ec.marshalNFAQ2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐFAQᚄ(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Query_getFAQContent(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "ID":
-				return ec.fieldContext_FAQ_ID(ctx, field)
-			case "Active":
-				return ec.fieldContext_FAQ_Active(ctx, field)
-			case "Title":
-				return ec.fieldContext_FAQ_Title(ctx, field)
-			case "Description":
-				return ec.fieldContext_FAQ_Description(ctx, field)
-			case "Body":
-				return ec.fieldContext_FAQ_Body(ctx, field)
-			case "Flavour":
-				return ec.fieldContext_FAQ_Flavour(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type FAQ", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Query_getFAQContent_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -35061,6 +35042,29 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Concurrently(i, func() graphql.Marshaler {
 				return rrm(innerCtx)
 			})
+		case "getFAQs":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_getFAQs(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
 		case "searchFacility":
 			field := field
 
@@ -35134,29 +35138,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_listFacilities(ctx, field)
-				return res
-			}
-
-			rrm := func(ctx context.Context) graphql.Marshaler {
-				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
-			}
-
-			out.Concurrently(i, func() graphql.Marshaler {
-				return rrm(innerCtx)
-			})
-		case "getFAQContent":
-			field := field
-
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_getFAQContent(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			}
 
@@ -37589,60 +37570,6 @@ func (ec *executionContext) marshalNDocumentData2githubᚗcomᚋsavannahghiᚋmy
 
 func (ec *executionContext) marshalNDocumentMeta2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐDocumentMeta(ctx context.Context, sel ast.SelectionSet, v domain.DocumentMeta) graphql.Marshaler {
 	return ec._DocumentMeta(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalNFAQ2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐFAQᚄ(ctx context.Context, sel ast.SelectionSet, v []*domain.FAQ) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalNFAQ2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐFAQ(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-
-	for _, e := range ret {
-		if e == graphql.Null {
-			return graphql.Null
-		}
-	}
-
-	return ret
-}
-
-func (ec *executionContext) marshalNFAQ2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐFAQ(ctx context.Context, sel ast.SelectionSet, v *domain.FAQ) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
-		}
-		return graphql.Null
-	}
-	return ec._FAQ(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNFacility2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐFacility(ctx context.Context, sel ast.SelectionSet, v domain.Facility) graphql.Marshaler {

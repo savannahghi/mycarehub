@@ -6,6 +6,7 @@ import (
 
 	"github.com/brianvoe/gofakeit"
 	"github.com/google/uuid"
+	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 )
@@ -20,6 +21,7 @@ type ContentUsecaseMock struct {
 	MockLikeContentFn                     func(ctx context.Context, userID string, contentID string) (bool, error)
 	MockCheckWhetherUserHasLikedContentFn func(ctx context.Context, userID string, contentID int) (bool, error)
 	MockUnlikeContentFn                   func(ctx context.Context, userID string, contentID int) (bool, error)
+	MockGetFAQsFn                         func(ctx context.Context, flavor feedlib.Flavour) (*domain.Content, error)
 }
 
 // NewContentUsecaseMock instantiates all the content usecase mock methods
@@ -97,6 +99,9 @@ func NewContentUsecaseMock() *ContentUsecaseMock {
 		MockUnlikeContentFn: func(ctx context.Context, userID string, contentID int) (bool, error) {
 			return true, nil
 		},
+		MockGetFAQsFn: func(ctx context.Context, flavor feedlib.Flavour) (*domain.Content, error) {
+			return content, nil
+		},
 	}
 }
 
@@ -139,4 +144,9 @@ func (cm *ContentUsecaseMock) CheckWhetherUserHasLikedContent(ctx context.Contex
 //UnlikeContent mocks the implementation liking a feed content
 func (cm *ContentUsecaseMock) UnlikeContent(ctx context.Context, userID string, contentID int) (bool, error) {
 	return cm.MockUnlikeContentFn(ctx, userID, contentID)
+}
+
+// GetFAQs mocks the implementation of getting FAQs
+func (cm *ContentUsecaseMock) GetFAQs(ctx context.Context, flavor feedlib.Flavour) (*domain.Content, error) {
+	return cm.MockGetFAQsFn(ctx, flavor)
 }

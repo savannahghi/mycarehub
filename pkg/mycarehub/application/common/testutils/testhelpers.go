@@ -21,7 +21,6 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/communities"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/content"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/facility"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/faq"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/feedback"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/healthdiary"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/metrics"
@@ -82,7 +81,6 @@ func InitializeTestService(ctx context.Context) (*usecases.MyCareHub, error) {
 	contentUseCase := content.NewUseCasesContentImplementation(db, db, externalExt)
 	feedbackUsecase := feedback.NewUsecaseFeedback(db, db, externalExt)
 
-	faqUsecase := faq.NewUsecaseFAQ(db)
 	notificationUseCase := notification.NewNotificationUseCaseImpl(fcmService, db, db, db)
 	appointmentUsecase := appointment.NewUseCaseAppointmentsImpl(externalExt, db, db, db, pubsub, notificationUseCase)
 	communityUsecase := communities.NewUseCaseCommunitiesImpl(getStream, externalExt, db, db, pubsub, notificationUseCase)
@@ -103,7 +101,7 @@ func InitializeTestService(ctx context.Context) (*usecases.MyCareHub, error) {
 	i := usecases.NewMyCareHubUseCase(
 		userUsecase, termsUsecase, facilityUseCase,
 		securityQuestionsUsecase, otpUseCase, contentUseCase, feedbackUsecase, healthDiaryUseCase,
-		faqUsecase, serviceRequestUseCase, authorityUseCase, communityUsecase, screeningToolsUsecases,
+		serviceRequestUseCase, authorityUseCase, communityUsecase, screeningToolsUsecases,
 		appointmentUsecase, notificationUseCase, surveysUsecase, metricsUsecase,
 	)
 	return i, nil

@@ -1,3 +1,0 @@
-extend type Query {
-    getFAQContent(flavour: Flavour!, limit: Int): [FAQ!]!
-}
