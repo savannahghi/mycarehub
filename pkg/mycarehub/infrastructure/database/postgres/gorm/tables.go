@@ -54,7 +54,7 @@ func (f *Facility) BeforeCreate(tx *gorm.DB) (err error) {
 
 // TableName customizes how the table name is generated
 func (Facility) TableName() string {
-	return common.FacilityTableName
+	return "common_facility"
 }
 
 // User represents the table data structure for a user
