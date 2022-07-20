@@ -120,9 +120,6 @@ const (
 	// InternalErrorMsg is the error message displayed when an internal server error occurs
 	InternalErrorMsg = "internal error"
 
-	// GetFAQContentErrorMsg is the error message displayed when a faq content is not found
-	GetFAQContentErrorMsg = "faq content not found"
-
 	// UpdateClientCaregiverErrorMsg is the error message displayed when a caregiver is not updated
 	UpdateClientCaregiverErrorMsg = "unable to update caregiver"
 

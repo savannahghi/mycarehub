@@ -75,7 +75,6 @@ type Query interface {
 	GetClientHealthDiaryQuote(ctx context.Context, limit int) ([]*domain.ClientHealthDiaryQuote, error)
 	CheckIfUserBookmarkedContent(ctx context.Context, userID string, contentID int) (bool, error)
 	GetClientHealthDiaryEntries(ctx context.Context, clientID string) ([]*domain.ClientHealthDiaryEntry, error)
-	GetFAQContent(ctx context.Context, flavour feedlib.Flavour, limit *int) ([]*domain.FAQ, error)
 	GetPendingServiceRequestsCount(ctx context.Context, facilityID string) (*domain.ServiceRequestsCountResponse, error)
 	GetClientCaregiver(ctx context.Context, caregiverID string) (*domain.Caregiver, error)
 	GetClientProfileByClientID(ctx context.Context, clientID string) (*domain.ClientProfile, error)

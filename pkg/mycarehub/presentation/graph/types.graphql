@@ -186,15 +186,6 @@ type ClientHealthDiaryEntry {
   clientName: String
 }
 
-type FAQ {
-  ID: String!
-  Active: Boolean!
-  Title: String!
-  Description: String!
-  Body: String!
-  Flavour: Flavour!
-}
-
 type Caregiver {
   firstName: String!
   lastName: String!
@@ -518,28 +509,28 @@ type ScreeningToolResponse {
 }
 
 type ScreeningToolResponsePayload {
-	serviceRequestID:       String!
+  serviceRequestID: String!
   clientContact: String!
-	screeningToolResponses: [ScreeningToolResponse!]!
+  screeningToolResponses: [ScreeningToolResponse!]!
 }
 
 type SurveyForm {
-	projectId:    Int
-  xmlFormId:    String       
-	name:         String    
+  projectId: Int
+  xmlFormId: String
+  name: String
 }
 
 type UserSurvey {
-	id: String!
-	active: Boolean!
-	created: Time!
-	link: String!
-	title: String!
-	description: String!
-	hasSubmitted: Boolean!
-	userID: String! 
+  id: String!
+  active: Boolean!
+  created: Time!
+  link: String!
+  title: String!
+  description: String!
+  hasSubmitted: Boolean!
+  userID: String!
   token: String!
-	projectID: Int!
-	formID: String!
-	linkID: Int
+  projectID: Int!
+  formID: String!
+  linkID: Int
 }

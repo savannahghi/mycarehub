@@ -58,7 +58,6 @@ type Query interface {
 	GetClientHealthDiaryQuote(ctx context.Context, limit int) ([]*ClientHealthDiaryQuote, error)
 	CheckIfUserBookmarkedContent(ctx context.Context, userID string, contentID int) (bool, error)
 	GetClientHealthDiaryEntries(ctx context.Context, clientID string) ([]*ClientHealthDiaryEntry, error)
-	GetFAQContent(ctx context.Context, flavour feedlib.Flavour, limit *int) ([]*FAQ, error)
 	GetClientCaregiver(ctx context.Context, caregiverID string) (*Caregiver, error)
 	GetClientProfileByClientID(ctx context.Context, clientID string) (*Client, error)
 	GetServiceRequests(ctx context.Context, requestType, requestStatus *string, facilityID string) ([]*ClientServiceRequest, error)
@@ -732,20 +731,6 @@ func (db *PGInstance) GetServiceRequestsForKenyaEMR(ctx context.Context, facilit
 		return nil, fmt.Errorf("failed to get service requests: %v", err)
 	}
 	return serviceRequests, nil
-}
-
-// GetFAQContent fetches the FAQ content from the database
-// when the limit is not provided, it defaults to 10
-func (db *PGInstance) GetFAQContent(ctx context.Context, flavour feedlib.Flavour, limit *int) ([]*FAQ, error) {
-	var faq []*FAQ
-	err := db.DB.Where(&FAQ{Flavour: flavour, Active: true}).
-		Order(clause.OrderByColumn{Column: clause.Column{Name: "created"}, Desc: true}).Limit(*limit).Find(&faq).Error
-	if err != nil {
-		helpers.ReportErrorToSentry(err)
-		return nil, fmt.Errorf("failed to get FAQ content: %v", err)
-	}
-	return faq, nil
-
 }
 
 // GetStaffPendingServiceRequestsCount gets the number of staffs pending pin reset service requests
