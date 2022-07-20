@@ -30,6 +30,7 @@ env:
   GOOGLE_CLOUD_STORAGE_URL: ${{ secrets.GOOGLE_CLOUD_STORAGE_URL }}
   MYCAREHUB_ADMIN_EMAIL: ${{ secrets.MYCAREHUB_ADMIN_EMAIL }}
   CLOUDSDK_PYTHON: python2
+  IS_LOCAL_DB: True
   POSTGRES_HOST: 127.0.0.1
   POSTGRES_PORT: 5432
   POSTGRES_DB: postgres
@@ -91,7 +92,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     services:
       postgres:
-        image: postgis/postgis:14-3.1
+        image: postgres:13
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres                   
@@ -107,38 +108,7 @@ jobs:
         ports:
           # Maps tcp port 5432 on service container to the host
           - 5432:5432
-        
-    steps:
-      - name: Set up Python 3.10
-        uses: actions/setup-python@v4.1.0
-        with:
-          python-version: 3.10.0
-
-      - name: Install latest mycarehub django project
-        uses: actions/checkout@main
-        with:
-          repository: savannahghi/mycarehub-backend
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Setup Google Application Credentials
-        uses: google-github-actions/auth@v0.8.0
-        with:
-          project_id: ${{ secrets.GOOGLE_CLOUD_PROJECT }}
-          credentials_json: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}
-
-      - name: Access cloned repository contents
-        run: |
-          sudo apt-get update
-          sudo apt-get install postgis gdal-bin libgdal-dev
-          pip install -r requirements/local.txt && pip install -r requirements/production.txt
-          npm ci
-          npm install -g mjml
-          
-      - name: run migrations
-        run: |
-          python manage.py migrate
-          python manage.py createcachetable
-
+    steps:       
       - uses: actions/checkout@v2
       - uses: google-github-actions/setup-gcloud@v0
         with:
@@ -167,17 +137,14 @@ jobs:
           go install github.com/savannahghi/bewellcli@$CLI_VERSION
           go get golang.org/x/oauth2/internal
           go get gorm.io/driver/postgres
+          go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@v4.15.2
+      
+      - name: Run migrations
+        run: |
+          export POSTGRESQL_URL="postgres://$POSTGRES_USER:$POSTGRES_PASSWORD@$POSTGRES_HOST:$POSTGRES_PORT/$POSTGRES_DB?sslmode=disable"
+          migrate -database ${POSTGRESQL_URL} -path db/migrations up
 
       - name: Run lint and tests
-        env:
-          # These are the expected  database envs
-          IS_LOCAL_DB: True
-          POSTGRES_HOST: localhost
-          POSTGRES_PORT: 5432
-          POSTGRES_DB: postgres
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-
         run: |
           staticcheck ./...
           bewellcli service validate-schema --name mycarehub --version $GITHUB_SHA --url ${{ secrets.SERVICE_GRAPHQL_URL }}
@@ -185,7 +152,7 @@ jobs:
           go vet $(go list ./... | grep -v /vendor/)
           golint -set_exit_status $(go list ./... | grep -v /vendor/)
           errcheck -ignore 'os:.*,' $(go list ./... | grep -v /vendor/)
-          misspell -error .
+          misspell -error ./pkg/
           gosec -exclude=G304,G101 ./...
           go-acc -o coverage.txt --ignore generated,cmd,graph  ./... -- -timeout 60m
           grep -v "generated.go" coverage.txt | grep -v "_gen.go" | grep -v "mocks.go" | grep -v "*mocks.go" | grep -v "mock.go" | grep -v "*mock.go" | grep -v "*resolvers*go" | grep -v "*.resolvers.go" | grep -v "server.go" > coverage.out

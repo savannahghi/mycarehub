@@ -1,8 +1,0 @@
-# authtoken_token.yml
-- key: 07b99c3f9e3f2c8bace05318e066dfefd6d152a8
-  created: RAW=NOW()
-  user_id: {{.test_user_id_to_delete}}
-
-- key: f6b838256f038e807f4498be62b6afaaf47f332c
-  created: RAW=NOW()
-  user_id: {{.test_staff_user_id_to_delete}}

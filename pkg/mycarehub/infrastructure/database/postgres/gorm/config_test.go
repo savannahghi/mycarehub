@@ -72,12 +72,6 @@ var (
 	securityQuestionResponseID3 = "f4cf3ffa-8d4e-45fa-ad19-c5cac7701e61"
 	securityQuestionResponseID4 = "7225e76b-7780-46a9-a217-8e858789a869"
 
-	// Content
-	contentID  = 10000
-	contentID2 = 20000
-	authorID   = "4181df12-ca96-4f28-b78b-8e8ad88b25df"
-	authorID2  = "4181df12-ca96-4f28-b78b-8e8ad88b25de"
-
 	// Caregiver
 	testCaregiverID = "26b20a42-cbb8-4553-aedb-c539602d04fc"
 
@@ -197,10 +191,6 @@ func TestMain(m *testing.M) {
 			"test_password":              gofakeit.Password(false, false, true, true, false, 10),
 			"test_terms_id":              termsID,
 			"test_terms_text":            termsText,
-			"content_id":                 contentID,
-			"content_id2":                contentID2,
-			"author_id":                  authorID,
-			"author_id2":                 authorID2,
 			"security_question_id":       securityQuestionID,
 			"security_question_id2":      securityQuestionID2,
 			"security_question_id3":      securityQuestionID3,
@@ -277,10 +267,6 @@ func TestMain(m *testing.M) {
 			"../../../../../../fixtures/users_user.yml",
 			"../../../../../../fixtures/users_termsofservice.yml",
 			"../../../../../../fixtures/clients_securityquestion.yml",
-			"../../../../../../fixtures/content_contentitem.yml",
-			"../../../../../../fixtures/users_user_user_permissions.yml",
-			"../../../../../../fixtures/users_user_groups.yml",
-			"../../../../../../fixtures/authtoken_token.yml",
 			"../../../../../../fixtures/clients_securityquestionresponse.yml",
 			"../../../../../../fixtures/common_contact.yml",
 			"../../../../../../fixtures/common_notification.yml",

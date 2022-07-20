@@ -5,7 +5,7 @@ import (
 
 	_ "github.com/GoogleCloudPlatform/cloudsql-proxy/proxy/dialers/postgres"
 	"github.com/savannahghi/serverutils"
-	"github.com/stretchr/testify/assert"
+	"github.com/tj/assert"
 	"gorm.io/gorm"
 )
 
