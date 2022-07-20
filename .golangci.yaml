@@ -2,3 +2,23 @@
 run:
   skip-dirs:
     - pkg/mycarehub/presentation/graph/
+  linters:
+    enable:
+      - deadcode
+      - errcheck
+      - gosimple
+      - govet
+      - ineffassign
+      - staticcheck
+      - structcheck
+      - typecheck
+      - unused
+      - varcheck
+      - golint
+      - gosec
+      - misspell
+      - gocyclo
+
+  linters-settings:
+    staticcheck:
+      checks: ["all"]

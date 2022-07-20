@@ -1,8 +1,0 @@
-# users_user_user_permissions.yml
-- id: 1
-  user_id: {{.test_user_id_to_delete}}
-  permission_id: 22
-
-- id: 2
-  user_id: {{.test_staff_user_id_to_delete}}
-  permission_id: 25
