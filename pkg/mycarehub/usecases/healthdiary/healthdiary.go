@@ -42,7 +42,7 @@ type IGetRandomQuote interface {
 
 // IGetClientHealthDiaryEntry defines a method signature that is used to fetch a client's health diary records
 type IGetClientHealthDiaryEntry interface {
-	GetClientHealthDiaryEntries(ctx context.Context, clientID string) ([]*domain.ClientHealthDiaryEntry, error)
+	GetClientHealthDiaryEntries(ctx context.Context, clientID string, moodType *enums.Mood, shared *bool) ([]*domain.ClientHealthDiaryEntry, error)
 	GetFacilityHealthDiaryEntries(ctx context.Context, input dto.FetchHealthDiaryEntries) (*dto.HealthDiaryEntriesResponse, error)
 	GetRecentHealthDiaryEntries(ctx context.Context, lastSyncTime time.Time, client *domain.ClientProfile) ([]*domain.ClientHealthDiaryEntry, error)
 	GetSharedHealthDiaryEntries(ctx context.Context, clientID string, facilityID string) ([]*domain.ClientHealthDiaryEntry, error)
@@ -179,11 +179,11 @@ func (h UseCasesHealthDiaryImpl) GetClientHealthDiaryQuote(ctx context.Context, 
 }
 
 // GetClientHealthDiaryEntries retrieves all health diary entries that belong to a specific user/client
-func (h UseCasesHealthDiaryImpl) GetClientHealthDiaryEntries(ctx context.Context, clientID string) ([]*domain.ClientHealthDiaryEntry, error) {
+func (h UseCasesHealthDiaryImpl) GetClientHealthDiaryEntries(ctx context.Context, clientID string, moodType *enums.Mood, shared *bool) ([]*domain.ClientHealthDiaryEntry, error) {
 	if clientID == "" {
 		return nil, exceptions.EmptyInputErr(fmt.Errorf("missing client ID"))
 	}
-	return h.Query.GetClientHealthDiaryEntries(ctx, clientID)
+	return h.Query.GetClientHealthDiaryEntries(ctx, clientID, moodType, shared)
 }
 
 // GetFacilityHealthDiaryEntries retrieves all the health diary entries that have been recorded by clients

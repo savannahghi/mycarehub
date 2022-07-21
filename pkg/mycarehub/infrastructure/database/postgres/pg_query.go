@@ -644,9 +644,20 @@ func (d *MyCareHubDb) GetPendingServiceRequestsCount(ctx context.Context, facili
 }
 
 // GetClientHealthDiaryEntries queries the database to return a clients all health diary records
-func (d *MyCareHubDb) GetClientHealthDiaryEntries(ctx context.Context, clientID string) ([]*domain.ClientHealthDiaryEntry, error) {
+func (d *MyCareHubDb) GetClientHealthDiaryEntries(ctx context.Context, clientID string, moodType *enums.Mood, shared *bool) ([]*domain.ClientHealthDiaryEntry, error) {
 	var healthDiaryEntries []*domain.ClientHealthDiaryEntry
-	clientHealthDiaryEntry, err := d.query.GetClientHealthDiaryEntries(ctx, clientID)
+
+	queryParams := map[string]interface{}{
+		"client_id": clientID,
+	}
+	if moodType != nil {
+		queryParams["mood"] = moodType.String()
+	}
+	if shared != nil {
+		queryParams["share_with_health_worker"] = shared
+	}
+
+	clientHealthDiaryEntry, err := d.query.GetClientHealthDiaryEntries(ctx, queryParams)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, err
@@ -654,12 +665,6 @@ func (d *MyCareHubDb) GetClientHealthDiaryEntries(ctx context.Context, clientID 
 
 	//Get user profile information using the client ID
 	clientProfile, err := d.query.GetClientProfileByClientID(ctx, clientID)
-	if err != nil {
-		helpers.ReportErrorToSentry(err)
-		return nil, err
-	}
-
-	userProfile, err := d.query.GetUserProfileByUserID(ctx, clientProfile.UserID)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, err
@@ -676,8 +681,8 @@ func (d *MyCareHubDb) GetClientHealthDiaryEntries(ctx context.Context, clientID 
 			SharedAt:              healthdiary.SharedAt,
 			ClientID:              healthdiary.ClientID,
 			CreatedAt:             healthdiary.CreatedAt,
-			PhoneNumber:           userProfile.Contacts.ContactValue,
-			ClientName:            userProfile.Name,
+			PhoneNumber:           clientProfile.User.Contacts.ContactValue,
+			ClientName:            clientProfile.User.Name,
 		}
 		healthDiaryEntries = append(healthDiaryEntries, healthDiaryEntry)
 	}

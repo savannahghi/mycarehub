@@ -2531,6 +2531,8 @@ func TestMyCareHubDb_GetClientHealthDiaryEntries(t *testing.T) {
 	type args struct {
 		ctx      context.Context
 		clientID string
+		moodType enums.Mood
+		shared   bool
 	}
 	tests := []struct {
 		name    string
@@ -2542,6 +2544,8 @@ func TestMyCareHubDb_GetClientHealthDiaryEntries(t *testing.T) {
 			args: args{
 				ctx:      ctx,
 				clientID: uuid.New().String(),
+				moodType: enums.MoodSad,
+				shared:   true,
 			},
 			wantErr: false,
 		},
@@ -2550,6 +2554,8 @@ func TestMyCareHubDb_GetClientHealthDiaryEntries(t *testing.T) {
 			args: args{
 				ctx:      ctx,
 				clientID: uuid.New().String(),
+				moodType: enums.MoodSad,
+				shared:   true,
 			},
 			wantErr: true,
 		},
@@ -2558,14 +2564,8 @@ func TestMyCareHubDb_GetClientHealthDiaryEntries(t *testing.T) {
 			args: args{
 				ctx:      ctx,
 				clientID: uuid.New().String(),
-			},
-			wantErr: true,
-		},
-		{
-			name: "Sad Case - Fail to get user profile",
-			args: args{
-				ctx:      ctx,
-				clientID: uuid.New().String(),
+				moodType: enums.MoodSad,
+				shared:   false,
 			},
 			wantErr: true,
 		},
@@ -2576,8 +2576,8 @@ func TestMyCareHubDb_GetClientHealthDiaryEntries(t *testing.T) {
 			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
 
 			if tt.name == "Sad Case - Fail to get client health diary entries" {
-				fakeGorm.MockGetClientHealthDiaryEntriesFn = func(ctx context.Context, clientID string) ([]*gorm.ClientHealthDiaryEntry, error) {
-					return nil, fmt.Errorf("failed to get client health diary entries")
+				fakeGorm.MockGetClientHealthDiaryEntriesFn = func(ctx context.Context, params map[string]interface{}) ([]*gorm.ClientHealthDiaryEntry, error) {
+					return nil, fmt.Errorf("an error occurred")
 				}
 			}
 			if tt.name == "Sad Case - Fail to get client profile" {
@@ -2585,13 +2585,8 @@ func TestMyCareHubDb_GetClientHealthDiaryEntries(t *testing.T) {
 					return nil, fmt.Errorf("failed to get client profile")
 				}
 			}
-			if tt.name == "Sad Case - Fail to get user profile" {
-				fakeGorm.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID *string) (*gorm.User, error) {
-					return nil, fmt.Errorf("an error occurred")
-				}
-			}
 
-			got, err := d.GetClientHealthDiaryEntries(tt.args.ctx, tt.args.clientID)
+			got, err := d.GetClientHealthDiaryEntries(tt.args.ctx, tt.args.clientID, &tt.args.moodType, &tt.args.shared)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("MyCareHubDb.GetClientHealthDiaryEntries() error = %v, wantErr %v", err, tt.wantErr)
 				return

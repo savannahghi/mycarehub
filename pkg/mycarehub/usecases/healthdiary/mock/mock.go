@@ -6,6 +6,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 )
 
@@ -14,7 +15,7 @@ type HealthDiaryUseCaseMock struct {
 	MockCreateHealthDiaryEntryFn        func(ctx context.Context, clientID string, note *string, mood string, reportToStaff bool) (bool, error)
 	MockCanRecordHeathDiaryFn           func(ctx context.Context, clientID string) (bool, error)
 	MockGetClientHealthDiaryQuoteFn     func(ctx context.Context) (*domain.ClientHealthDiaryQuote, error)
-	MockGetClientHealthDiaryEntriesFn   func(ctx context.Context, clientID string) ([]*domain.ClientHealthDiaryEntry, error)
+	MockGetClientHealthDiaryEntriesFn   func(ctx context.Context, clientID string, moodType *enums.Mood, shared *bool) ([]*domain.ClientHealthDiaryEntry, error)
 	MockGetFacilityHealthDiaryEntriesFn func(ctx context.Context, input dto.FetchHealthDiaryEntries) (*dto.HealthDiaryEntriesResponse, error)
 	MockGetRecentHealthDiaryEntriesFn   func(ctx context.Context, lastSyncTime time.Time, client *domain.ClientProfile) ([]*domain.ClientHealthDiaryEntry, error)
 	MockShareHealthDiaryEntryFn         func(ctx context.Context, clientID string, shareWithStaff bool) (bool, error)
@@ -37,7 +38,7 @@ func NewHealthDiaryUseCaseMock() *HealthDiaryUseCaseMock {
 				Quote:  "test",
 			}, nil
 		},
-		MockGetClientHealthDiaryEntriesFn: func(ctx context.Context, clientID string) ([]*domain.ClientHealthDiaryEntry, error) {
+		MockGetClientHealthDiaryEntriesFn: func(ctx context.Context, clientID string, moodType *enums.Mood, shared *bool) ([]*domain.ClientHealthDiaryEntry, error) {
 			return []*domain.ClientHealthDiaryEntry{
 				{
 					Active: true,
@@ -96,8 +97,8 @@ func (h *HealthDiaryUseCaseMock) GetClientHealthDiaryQuote(ctx context.Context) 
 }
 
 // GetClientHealthDiaryEntries mocks the method for fetching a client's health record entries
-func (h *HealthDiaryUseCaseMock) GetClientHealthDiaryEntries(ctx context.Context, clientID string) ([]*domain.ClientHealthDiaryEntry, error) {
-	return h.MockGetClientHealthDiaryEntriesFn(ctx, clientID)
+func (h *HealthDiaryUseCaseMock) GetClientHealthDiaryEntries(ctx context.Context, clientID string, moodType *enums.Mood, shared *bool) ([]*domain.ClientHealthDiaryEntry, error) {
+	return h.MockGetClientHealthDiaryEntriesFn(ctx, clientID, moodType, shared)
 }
 
 // GetFacilityHealthDiaryEntries mocks getting health diary entries per facility

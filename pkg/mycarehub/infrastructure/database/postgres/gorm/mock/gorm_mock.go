@@ -70,7 +70,7 @@ type GormMock struct {
 	MockCanRecordHeathDiaryFn                            func(ctx context.Context, clientID string) (bool, error)
 	MockGetClientHealthDiaryQuoteFn                      func(ctx context.Context, limit int) ([]*gorm.ClientHealthDiaryQuote, error)
 	MockCheckIfUserBookmarkedContentFn                   func(ctx context.Context, userID string, contentID int) (bool, error)
-	MockGetClientHealthDiaryEntriesFn                    func(ctx context.Context, clientID string) ([]*gorm.ClientHealthDiaryEntry, error)
+	MockGetClientHealthDiaryEntriesFn                    func(ctx context.Context, params map[string]interface{}) ([]*gorm.ClientHealthDiaryEntry, error)
 	MockCreateClientCaregiverFn                          func(ctx context.Context, clientID string, clientCaregiver *gorm.Caregiver) error
 	MockGetClientCaregiverFn                             func(ctx context.Context, caregiverID string) (*gorm.Caregiver, error)
 	MockUpdateClientCaregiverFn                          func(ctx context.Context, caregiverInput *dto.CaregiverInput) error
@@ -721,7 +721,7 @@ func NewGormMock() *GormMock {
 		MockCheckIfUserBookmarkedContentFn: func(ctx context.Context, userID string, contentID int) (bool, error) {
 			return true, nil
 		},
-		MockGetClientHealthDiaryEntriesFn: func(ctx context.Context, clientID string) ([]*gorm.ClientHealthDiaryEntry, error) {
+		MockGetClientHealthDiaryEntriesFn: func(ctx context.Context, params map[string]interface{}) ([]*gorm.ClientHealthDiaryEntry, error) {
 			return []*gorm.ClientHealthDiaryEntry{
 				{
 					Active: true,
@@ -1372,8 +1372,8 @@ func (gm *GormMock) CheckIfUserBookmarkedContent(ctx context.Context, userID str
 }
 
 // GetClientHealthDiaryEntries mocks the implementation of getting all health diary entries that belong to a specific user
-func (gm *GormMock) GetClientHealthDiaryEntries(ctx context.Context, clientID string) ([]*gorm.ClientHealthDiaryEntry, error) {
-	return gm.MockGetClientHealthDiaryEntriesFn(ctx, clientID)
+func (gm *GormMock) GetClientHealthDiaryEntries(ctx context.Context, params map[string]interface{}) ([]*gorm.ClientHealthDiaryEntry, error) {
+	return gm.MockGetClientHealthDiaryEntriesFn(ctx, params)
 }
 
 // CreateClientCaregiver mocks the implementation of creating a caregiver

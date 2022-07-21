@@ -495,7 +495,7 @@ type ComplexityRoot struct {
 		GetAvailableFacilityScreeningTools      func(childComplexity int, facilityID string) int
 		GetAvailableScreeningToolQuestions      func(childComplexity int, clientID string) int
 		GetClientCaregiver                      func(childComplexity int, clientID string) int
-		GetClientHealthDiaryEntries             func(childComplexity int, clientID string) int
+		GetClientHealthDiaryEntries             func(childComplexity int, clientID string, moodType *enums.Mood, shared *bool) int
 		GetClientProfileByCCCNumber             func(childComplexity int, cCCNumber string) int
 		GetContent                              func(childComplexity int, categoryID *int, limit string) int
 		GetCurrentTerms                         func(childComplexity int, flavour feedlib.Flavour) int
@@ -766,7 +766,7 @@ type QueryResolver interface {
 	ListFacilities(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationInput dto.PaginationsInput) (*domain.FacilityPage, error)
 	CanRecordMood(ctx context.Context, clientID string) (bool, error)
 	GetHealthDiaryQuote(ctx context.Context, limit int) ([]*domain.ClientHealthDiaryQuote, error)
-	GetClientHealthDiaryEntries(ctx context.Context, clientID string) ([]*domain.ClientHealthDiaryEntry, error)
+	GetClientHealthDiaryEntries(ctx context.Context, clientID string, moodType *enums.Mood, shared *bool) ([]*domain.ClientHealthDiaryEntry, error)
 	GetSharedHealthDiaryEntries(ctx context.Context, clientID string, facilityID string) ([]*domain.ClientHealthDiaryEntry, error)
 	FetchNotifications(ctx context.Context, userID string, flavour feedlib.Flavour, paginationInput dto.PaginationsInput) (*domain.NotificationsPage, error)
 	SendOtp(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (string, error)
@@ -3243,7 +3243,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.GetClientHealthDiaryEntries(childComplexity, args["clientID"].(string)), true
+		return e.complexity.Query.GetClientHealthDiaryEntries(childComplexity, args["clientID"].(string), args["moodType"].(*enums.Mood), args["shared"].(*bool)), true
 
 	case "Query.getClientProfileByCCCNumber":
 		if e.complexity.Query.GetClientProfileByCCCNumber == nil {
@@ -4602,7 +4602,14 @@ enum MetricType {
   ENGAGEMENT
   SYSTEM
 }
-`, BuiltIn: false},
+
+enum Mood {
+  VERY_SAD
+  SAD
+  HAPPY
+  VERY_HAPPY
+  NEUTRAL
+}`, BuiltIn: false},
 	{Name: "../facility.graphql", Input: `extend type Mutation {
   createFacility(input: FacilityInput!): Facility!
   deleteFacility(mflCode: Int!): Boolean!
@@ -4637,7 +4644,7 @@ extend type Query {
 extend type Query {
   canRecordMood(clientID: String!): Boolean!
   getHealthDiaryQuote(limit: Int!): [ClientHealthDiaryQuote!]!
-  getClientHealthDiaryEntries(clientID: String!): [ClientHealthDiaryEntry!]!
+  getClientHealthDiaryEntries(clientID: String!, moodType: Mood, shared: Boolean): [ClientHealthDiaryEntry!]!
   getSharedHealthDiaryEntries(clientID: String!, facilityID: String!): [ClientHealthDiaryEntry]!
 }
 `, BuiltIn: false},
@@ -6880,6 +6887,24 @@ func (ec *executionContext) field_Query_getClientHealthDiaryEntries_args(ctx con
 		}
 	}
 	args["clientID"] = arg0
+	var arg1 *enums.Mood
+	if tmp, ok := rawArgs["moodType"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("moodType"))
+		arg1, err = ec.unmarshalOMood2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐMood(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["moodType"] = arg1
+	var arg2 *bool
+	if tmp, ok := rawArgs["shared"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("shared"))
+		arg2, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["shared"] = arg2
 	return args, nil
 }
 
@@ -22938,7 +22963,7 @@ func (ec *executionContext) _Query_getClientHealthDiaryEntries(ctx context.Conte
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().GetClientHealthDiaryEntries(rctx, fc.Args["clientID"].(string))
+		return ec.resolvers.Query().GetClientHealthDiaryEntries(rctx, fc.Args["clientID"].(string), fc.Args["moodType"].(*enums.Mood), fc.Args["shared"].(*bool))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -39670,6 +39695,22 @@ func (ec *executionContext) marshalOModerationThresholds2ᚖgithubᚗcomᚋsavan
 		return graphql.Null
 	}
 	return ec._ModerationThresholds(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOMood2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐMood(ctx context.Context, v interface{}) (*enums.Mood, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(enums.Mood)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOMood2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐMood(ctx context.Context, sel ast.SelectionSet, v *enums.Mood) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
 }
 
 func (ec *executionContext) marshalONotification2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐNotification(ctx context.Context, sel ast.SelectionSet, v *domain.Notification) graphql.Marshaler {

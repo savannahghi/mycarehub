@@ -261,6 +261,8 @@ func TestUseCasesHealthDiaryImpl_GetClientHealthDiaryEntries(t *testing.T) {
 	type args struct {
 		ctx      context.Context
 		clientID string
+		moodType enums.Mood
+		shared   bool
 	}
 	tests := []struct {
 		name    string
@@ -272,11 +274,13 @@ func TestUseCasesHealthDiaryImpl_GetClientHealthDiaryEntries(t *testing.T) {
 			args: args{
 				ctx:      ctx,
 				clientID: uuid.New().String(),
+				moodType: enums.MoodSad,
+				shared:   true,
 			},
 			wantErr: false,
 		},
 		{
-			name: "Sad Case - Missing user ID",
+			name: "Sad Case - Missing client ID",
 			args: args{
 				ctx: ctx,
 			},
@@ -291,12 +295,12 @@ func TestUseCasesHealthDiaryImpl_GetClientHealthDiaryEntries(t *testing.T) {
 			h := healthdiary.NewUseCaseHealthDiaryImpl(fakeDB, fakeDB, fakeDB, fakeServiceRequest)
 
 			if tt.name == "Sad Case - Missing user ID" {
-				fakeHealthDiary.MockGetClientHealthDiaryEntriesFn = func(ctx context.Context, clientID string) ([]*domain.ClientHealthDiaryEntry, error) {
+				fakeHealthDiary.MockGetClientHealthDiaryEntriesFn = func(ctx context.Context, clientID string, moodType *enums.Mood, shared *bool) ([]*domain.ClientHealthDiaryEntry, error) {
 					return nil, fmt.Errorf("failed to get client health diary entries")
 				}
 			}
 
-			got, err := h.GetClientHealthDiaryEntries(tt.args.ctx, tt.args.clientID)
+			got, err := h.GetClientHealthDiaryEntries(tt.args.ctx, tt.args.clientID, &tt.args.moodType, &tt.args.shared)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCasesHealthDiaryImpl.GetClientHealthDiaryEntries() error = %v, wantErr %v", err, tt.wantErr)
 				return
