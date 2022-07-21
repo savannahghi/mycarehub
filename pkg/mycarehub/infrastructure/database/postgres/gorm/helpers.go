@@ -53,52 +53,57 @@ func filterParamsToMap(mapString []*domain.FiltersParam) map[string]interface{} 
 	return res
 }
 
-func addFilters(transaction *gorm.DB, filters []*firebasetools.FilterParam) (*gorm.DB, error) {
+func addFilters(transaction *gorm.DB, filters []*firebasetools.FilterParam) error {
 	for _, filter := range filters {
 		op, err := firebasetools.OpString(filter.ComparisonOperation)
 		if err != nil {
-			return nil, err
+			return err
 		}
 		// convert firebase equal to postgres equal
 		if op == "==" {
 			op = "="
 		}
 
+		if filter.ComparisonOperation == enumutils.OperationIn {
+			transaction.Where(fmt.Sprintf("%s %s ?", filter.FieldName, op), filter.FieldValue)
+			continue
+		}
+
 		switch filter.FieldType {
 		case enumutils.FieldTypeBoolean:
 			value, ok := filter.FieldValue.(bool)
 			if !ok {
-				return nil, fmt.Errorf("expected filter value to be true or false")
+				return fmt.Errorf("expected filter value to be true or false")
 			}
 			transaction.Where(fmt.Sprintf("%s %s ?", filter.FieldName, op), value)
 
 		case enumutils.FieldTypeInteger:
 			value, ok := filter.FieldValue.(int)
 			if !ok {
-				return nil, fmt.Errorf("expected filter value to be an int")
+				return fmt.Errorf("expected filter value to be an int")
 			}
 			transaction.Where(fmt.Sprintf("%s %s ?", filter.FieldName, op), value)
 
 		case enumutils.FieldTypeTimestamp:
 			value, ok := filter.FieldValue.(string)
 			if !ok {
-				return nil, fmt.Errorf("expected filter value to be a timestamp")
+				return fmt.Errorf("expected filter value to be a timestamp")
 			}
 			transaction.Where(fmt.Sprintf("%s %s ?", filter.FieldName, op), value)
 
 		case enumutils.FieldTypeString:
 			value, ok := filter.FieldValue.(string)
 			if !ok {
-				return nil, fmt.Errorf("expected filter value to be a string")
+				return fmt.Errorf("expected filter value to be a string")
 			}
 			transaction.Where(fmt.Sprintf("%s %s ?", filter.FieldName, op), value)
 		default:
-			return nil, fmt.Errorf("unexpected field type '%s'", filter.FieldType.String())
+			return fmt.Errorf("unexpected field type '%s'", filter.FieldType.String())
 		}
 
 	}
 
-	return transaction, nil
+	return nil
 }
 
 // paginateQuery adds offset and limit conditions to a database query

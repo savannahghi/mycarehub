@@ -10,6 +10,8 @@ import (
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/firebasetools"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
+	extensionMock "github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension/mock"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	pgMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/mock"
 	fakeFCM "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/fcm/mock"
@@ -69,7 +71,8 @@ func TestUseCaseNotificationImpl_NotifyUser(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			fakeFCMService := fakeFCM.NewFCMServiceMock()
 			fakeDB := pgMock.NewPostgresMock()
-			notificationService := notification.NewNotificationUseCaseImpl(fakeFCMService, fakeDB, fakeDB, fakeDB)
+			fakeExtension := extensionMock.NewFakeExtension()
+			n := notification.NewNotificationUseCaseImpl(fakeFCMService, fakeDB, fakeDB, fakeDB, fakeExtension)
 
 			if tt.name == "Sad Case - Fail to notify user" {
 				fakeFCMService.MockSendNotificationFn = func(ctx context.Context, payload *firebasetools.SendNotificationPayload) (bool, error) {
@@ -83,7 +86,7 @@ func TestUseCaseNotificationImpl_NotifyUser(t *testing.T) {
 				}
 			}
 
-			if err := notificationService.NotifyUser(tt.args.ctx, tt.args.userProfile, tt.args.notificationPayload); (err != nil) != tt.wantErr {
+			if err := n.NotifyUser(tt.args.ctx, tt.args.userProfile, tt.args.notificationPayload); (err != nil) != tt.wantErr {
 				t.Errorf("UseCaseNotificationImpl.NotifyUser() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -96,6 +99,7 @@ func TestUseCaseNotificationImpl_FetchNotifications(t *testing.T) {
 		userID          string
 		flavour         feedlib.Flavour
 		paginationInput dto.PaginationsInput
+		filters         *domain.NotificationFilters
 	}
 	tests := []struct {
 		name    string
@@ -172,10 +176,11 @@ func TestUseCaseNotificationImpl_FetchNotifications(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			fakeFCMService := fakeFCM.NewFCMServiceMock()
 			fakeDB := pgMock.NewPostgresMock()
-			notificationService := notification.NewNotificationUseCaseImpl(fakeFCMService, fakeDB, fakeDB, fakeDB)
+			fakeExtension := extensionMock.NewFakeExtension()
+			n := notification.NewNotificationUseCaseImpl(fakeFCMService, fakeDB, fakeDB, fakeDB, fakeExtension)
 
 			if tt.name == "sad case: cannot list notifications" {
-				fakeDB.MockListNotificationsFn = func(ctx context.Context, params *domain.Notification, pagination *domain.Pagination) ([]*domain.Notification, *domain.Pagination, error) {
+				fakeDB.MockListNotificationsFn = func(ctx context.Context, params *domain.Notification, filters []*firebasetools.FilterParam, pagination *domain.Pagination) ([]*domain.Notification, *domain.Pagination, error) {
 					return nil, nil, fmt.Errorf("cannot list notifications")
 				}
 			}
@@ -186,7 +191,7 @@ func TestUseCaseNotificationImpl_FetchNotifications(t *testing.T) {
 				}
 			}
 
-			got, err := notificationService.FetchNotifications(tt.args.ctx, tt.args.userID, tt.args.flavour, tt.args.paginationInput)
+			got, err := n.FetchNotifications(tt.args.ctx, tt.args.userID, tt.args.flavour, tt.args.paginationInput, tt.args.filters)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCaseNotificationImpl.FetchNotifications() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -259,7 +264,8 @@ func TestUseCaseNotificationImpl_NotifyFacilityStaffs(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			fakeFCMService := fakeFCM.NewFCMServiceMock()
 			fakeDB := pgMock.NewPostgresMock()
-			n := notification.NewNotificationUseCaseImpl(fakeFCMService, fakeDB, fakeDB, fakeDB)
+			fakeExtension := extensionMock.NewFakeExtension()
+			n := notification.NewNotificationUseCaseImpl(fakeFCMService, fakeDB, fakeDB, fakeDB, fakeExtension)
 
 			if tt.name == "sad case: cannot save notification" {
 				fakeDB.MockSaveNotificationFn = func(ctx context.Context, payload *domain.Notification) error {
@@ -316,7 +322,8 @@ func TestUseCaseNotificationImpl_SendNotification(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			fakeFCMService := fakeFCM.NewFCMServiceMock()
 			fakeDB := pgMock.NewPostgresMock()
-			n := notification.NewNotificationUseCaseImpl(fakeFCMService, fakeDB, fakeDB, fakeDB)
+			fakeExtension := extensionMock.NewFakeExtension()
+			n := notification.NewNotificationUseCaseImpl(fakeFCMService, fakeDB, fakeDB, fakeDB, fakeExtension)
 
 			got, err := n.SendNotification(tt.args.ctx, tt.args.registrationTokens, tt.args.data, tt.args.notification)
 			if (err != nil) != tt.wantErr {
@@ -374,7 +381,8 @@ func TestUseCaseNotificationImpl_ReadNotifications(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			fakeFCMService := fakeFCM.NewFCMServiceMock()
 			fakeDB := pgMock.NewPostgresMock()
-			n := notification.NewNotificationUseCaseImpl(fakeFCMService, fakeDB, fakeDB, fakeDB)
+			fakeExtension := extensionMock.NewFakeExtension()
+			n := notification.NewNotificationUseCaseImpl(fakeFCMService, fakeDB, fakeDB, fakeDB, fakeExtension)
 
 			if tt.name == "sad case: non existent notification" {
 				fakeDB.MockGetNotificationFn = func(ctx context.Context, notificationID string) (*domain.Notification, error) {
@@ -395,6 +403,98 @@ func TestUseCaseNotificationImpl_ReadNotifications(t *testing.T) {
 			}
 			if got != tt.want {
 				t.Errorf("UseCaseNotificationImpl.ReadNotifications() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestUseCaseNotificationImpl_FetchNotificationTypeFilters(t *testing.T) {
+
+	type args struct {
+		ctx     context.Context
+		flavour feedlib.Flavour
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    []*domain.NotificationTypeFilter
+		wantErr bool
+	}{
+		{
+			name: "happy case: list available filters",
+			args: args{
+				ctx:     context.Background(),
+				flavour: feedlib.FlavourPro,
+			},
+			want: []*domain.NotificationTypeFilter{
+				{
+					Enum: enums.NotificationTypeAppointment,
+					Name: enums.NotificationTypeAppointment.String(),
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "sad case: fail to get logged in user",
+			args: args{
+				ctx:     context.Background(),
+				flavour: feedlib.FlavourPro,
+			},
+			want:    nil,
+			wantErr: true,
+		},
+		{
+			name: "sad case: fail to get staff profile",
+			args: args{
+				ctx:     context.Background(),
+				flavour: feedlib.FlavourPro,
+			},
+			want:    nil,
+			wantErr: true,
+		},
+		{
+			name: "sad case: fail to list available notifications",
+			args: args{
+				ctx:     context.Background(),
+				flavour: feedlib.FlavourPro,
+			},
+			want:    nil,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeFCMService := fakeFCM.NewFCMServiceMock()
+			fakeDB := pgMock.NewPostgresMock()
+			fakeExtension := extensionMock.NewFakeExtension()
+			n := notification.NewNotificationUseCaseImpl(fakeFCMService, fakeDB, fakeDB, fakeDB, fakeExtension)
+
+			if tt.name == "sad case: fail to get logged in user" {
+				fakeExtension.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "", fmt.Errorf("failed to get logged in user")
+				}
+			}
+
+			if tt.name == "sad case: fail to get staff profile" {
+				fakeDB.MockGetStaffProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.StaffProfile, error) {
+					return nil, fmt.Errorf("failed to get staff profile")
+				}
+			}
+
+			if tt.name == "sad case: fail to list available notifications" {
+				fakeDB.MockListAvailableNotificationTypesFn = func(ctx context.Context, params *domain.Notification) ([]enums.NotificationType, error) {
+					return []enums.NotificationType{}, fmt.Errorf("fail to fetch notification types")
+				}
+			}
+
+			got, err := n.FetchNotificationTypeFilters(tt.args.ctx, tt.args.flavour)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCaseNotificationImpl.FetchNotificationTypeFilters() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("UseCaseNotificationImpl.FetchNotificationTypeFilters() expected a response but got = %v", got)
+				return
 			}
 		})
 	}

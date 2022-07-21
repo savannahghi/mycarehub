@@ -3,7 +3,9 @@ extend type Query {
     userID: ID!
     flavour: Flavour!
     paginationInput: PaginationsInput!
+    filters: NotificationFilters
   ): NotificationsPage
+  fetchNotificationTypeFilters(flavour: Flavour!): [NotificationTypeFilter]
 }
 
 extend type Mutation {

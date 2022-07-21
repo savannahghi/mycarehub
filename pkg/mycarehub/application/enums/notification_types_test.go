@@ -124,3 +124,33 @@ func TestNotificationType_MarshalGQL(t *testing.T) {
 		})
 	}
 }
+
+func TestNotificationType_HasName(t *testing.T) {
+	for _, notificationType := range AllNotificationTypes {
+		got := notificationType.Name()
+		if got == "UNKNOWN" {
+			t.Errorf("NotificationType.Name() = %v, should have a human readable name", got)
+		}
+	}
+}
+
+func TestNotificationType_Name(t *testing.T) {
+	tests := []struct {
+		name string
+		n    NotificationType
+		want string
+	}{
+		{
+			name: "unknown notification type",
+			n:    "UNKNOWN",
+			want: "UNKNOWN",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := tt.n.Name(); got != tt.want {
+				t.Errorf("NotificationType.Name() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

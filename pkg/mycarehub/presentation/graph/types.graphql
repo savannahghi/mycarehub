@@ -330,6 +330,11 @@ type NotificationsPage {
   pagination: Pagination!
 }
 
+type NotificationTypeFilter {
+  enum: NotificationType!
+  name: String!
+}
+
 type ScreeningToolQuestion {
   id: String
   question: String

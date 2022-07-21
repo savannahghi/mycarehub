@@ -173,3 +173,9 @@ input VerifySurveySubmissionInput {
   formID: String!
   submitterID: Int! #also termed as linkID
 }
+
+
+input NotificationFilters {
+  isRead: Boolean
+  notificationTypes: [NotificationType!]
+}

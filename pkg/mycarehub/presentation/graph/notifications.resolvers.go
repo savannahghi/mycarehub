@@ -20,6 +20,10 @@ func (r *mutationResolver) ReadNotifications(ctx context.Context, ids []string) 
 	return r.mycarehub.Notification.ReadNotifications(ctx, ids)
 }
 
-func (r *queryResolver) FetchNotifications(ctx context.Context, userID string, flavour feedlib.Flavour, paginationInput dto.PaginationsInput) (*domain.NotificationsPage, error) {
-	return r.mycarehub.Notification.FetchNotifications(ctx, userID, flavour, paginationInput)
+func (r *queryResolver) FetchNotifications(ctx context.Context, userID string, flavour feedlib.Flavour, paginationInput dto.PaginationsInput, filters *domain.NotificationFilters) (*domain.NotificationsPage, error) {
+	return r.mycarehub.Notification.FetchNotifications(ctx, userID, flavour, paginationInput, filters)
+}
+
+func (r *queryResolver) FetchNotificationTypeFilters(ctx context.Context, flavour feedlib.Flavour) ([]*domain.NotificationTypeFilter, error) {
+	return r.mycarehub.Notification.FetchNotificationTypeFilters(ctx, flavour)
 }
