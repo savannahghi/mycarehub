@@ -6,6 +6,7 @@ package graph
 import (
 	"context"
 
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 )
 
@@ -27,9 +28,9 @@ func (r *queryResolver) GetHealthDiaryQuote(ctx context.Context, limit int) ([]*
 	return r.mycarehub.HealthDiary.GetClientHealthDiaryQuote(ctx, limit)
 }
 
-func (r *queryResolver) GetClientHealthDiaryEntries(ctx context.Context, clientID string) ([]*domain.ClientHealthDiaryEntry, error) {
+func (r *queryResolver) GetClientHealthDiaryEntries(ctx context.Context, clientID string, moodType *enums.Mood, shared *bool) ([]*domain.ClientHealthDiaryEntry, error) {
 	r.checkPreconditions()
-	return r.mycarehub.HealthDiary.GetClientHealthDiaryEntries(ctx, clientID)
+	return r.mycarehub.HealthDiary.GetClientHealthDiaryEntries(ctx, clientID, moodType, shared)
 }
 
 func (r *queryResolver) GetSharedHealthDiaryEntries(ctx context.Context, clientID string, facilityID string) ([]*domain.ClientHealthDiaryEntry, error) {

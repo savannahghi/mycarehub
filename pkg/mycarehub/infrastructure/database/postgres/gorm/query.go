@@ -57,7 +57,7 @@ type Query interface {
 	CanRecordHeathDiary(ctx context.Context, clientID string) (bool, error)
 	GetClientHealthDiaryQuote(ctx context.Context, limit int) ([]*ClientHealthDiaryQuote, error)
 	CheckIfUserBookmarkedContent(ctx context.Context, userID string, contentID int) (bool, error)
-	GetClientHealthDiaryEntries(ctx context.Context, clientID string) ([]*ClientHealthDiaryEntry, error)
+	GetClientHealthDiaryEntries(ctx context.Context, params map[string]interface{}) ([]*ClientHealthDiaryEntry, error)
 	GetClientCaregiver(ctx context.Context, caregiverID string) (*Caregiver, error)
 	GetClientProfileByClientID(ctx context.Context, clientID string) (*Client, error)
 	GetServiceRequests(ctx context.Context, requestType, requestStatus *string, facilityID string) ([]*ClientServiceRequest, error)
@@ -706,10 +706,9 @@ func (db *PGInstance) CheckIfUserBookmarkedContent(ctx context.Context, userID s
 }
 
 // GetClientHealthDiaryEntries gets all health diary entries that belong to a specific client
-func (db *PGInstance) GetClientHealthDiaryEntries(ctx context.Context, clientID string) ([]*ClientHealthDiaryEntry, error) {
+func (db *PGInstance) GetClientHealthDiaryEntries(ctx context.Context, params map[string]interface{}) ([]*ClientHealthDiaryEntry, error) {
 	var healthDiaryEntry []*ClientHealthDiaryEntry
-	err := db.DB.Where(&ClientHealthDiaryEntry{ClientID: clientID, Active: true}).
-		Order(clause.OrderByColumn{Column: clause.Column{Name: "created"}, Desc: true}).Find(&healthDiaryEntry).Error
+	err := db.DB.Where(params).Order(clause.OrderByColumn{Column: clause.Column{Name: "created"}, Desc: true}).Find(&healthDiaryEntry).Error
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed to get all client health diary entries: %v", err)

@@ -130,3 +130,11 @@ enum MetricType {
   ENGAGEMENT
   SYSTEM
 }
+
+enum Mood {
+  VERY_SAD
+  SAD
+  HAPPY
+  VERY_HAPPY
+  NEUTRAL
+}

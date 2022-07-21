@@ -1595,9 +1595,12 @@ func TestPGInstance_GetUserBookmarkedContent(t *testing.T) {
 }
 
 func TestPGInstance_GetClientHealthDiaryEntries(t *testing.T) {
+	params := map[string]interface{}{
+		"client_id": clientID,
+	}
 	type args struct {
-		ctx      context.Context
-		clientID string
+		ctx    context.Context
+		params map[string]interface{}
 	}
 	tests := []struct {
 		name    string
@@ -1607,15 +1610,15 @@ func TestPGInstance_GetClientHealthDiaryEntries(t *testing.T) {
 		{
 			name: "happy case: get client health diary entries",
 			args: args{
-				ctx:      context.Background(),
-				clientID: clientID,
+				ctx:    context.Background(),
+				params: params,
 			},
 			wantErr: false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := testingDB.GetClientHealthDiaryEntries(tt.args.ctx, tt.args.clientID)
+			got, err := testingDB.GetClientHealthDiaryEntries(tt.args.ctx, tt.args.params)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("PGInstance.GetClientHealthDiaryEntries() error = %v, wantErr %v", err, tt.wantErr)
 				return

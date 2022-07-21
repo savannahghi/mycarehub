@@ -71,7 +71,7 @@ type PostgresMock struct {
 	MockCanRecordHeathDiaryFn                            func(ctx context.Context, userID string) (bool, error)
 	MockGetClientHealthDiaryQuoteFn                      func(ctx context.Context, limit int) ([]*domain.ClientHealthDiaryQuote, error)
 	MockCheckIfUserBookmarkedContentFn                   func(ctx context.Context, userID string, contentID int) (bool, error)
-	MockGetClientHealthDiaryEntriesFn                    func(ctx context.Context, clientID string) ([]*domain.ClientHealthDiaryEntry, error)
+	MockGetClientHealthDiaryEntriesFn                    func(ctx context.Context, clientID string, moodType *enums.Mood, shared *bool) ([]*domain.ClientHealthDiaryEntry, error)
 	MockCreateClientCaregiverFn                          func(ctx context.Context, caregiverInput *dto.CaregiverInput) error
 	MockGetClientCaregiverFn                             func(ctx context.Context, caregiverID string) (*domain.Caregiver, error)
 	MockUpdateClientCaregiverFn                          func(ctx context.Context, caregiverInput *dto.CaregiverInput) error
@@ -611,10 +611,9 @@ func NewPostgresMock() *PostgresMock {
 		MockCheckIfUserBookmarkedContentFn: func(ctx context.Context, userID string, contentID int) (bool, error) {
 			return true, nil
 		},
-		MockGetClientHealthDiaryEntriesFn: func(ctx context.Context, clientID string) ([]*domain.ClientHealthDiaryEntry, error) {
+		MockGetClientHealthDiaryEntriesFn: func(ctx context.Context, clientID string, moodType *enums.Mood, shared *bool) ([]*domain.ClientHealthDiaryEntry, error) {
 			return []*domain.ClientHealthDiaryEntry{healthDiaryEntry}, nil
 		},
-
 		MockCreateClientCaregiverFn: func(ctx context.Context, caregiverInput *dto.CaregiverInput) error {
 			return nil
 		},
@@ -1299,8 +1298,8 @@ func (gm *PostgresMock) CheckIfUserBookmarkedContent(ctx context.Context, userID
 }
 
 // GetClientHealthDiaryEntries mocks the implementation of getting all health diary entries that belong to a specific user
-func (gm *PostgresMock) GetClientHealthDiaryEntries(ctx context.Context, clientID string) ([]*domain.ClientHealthDiaryEntry, error) {
-	return gm.MockGetClientHealthDiaryEntriesFn(ctx, clientID)
+func (gm *PostgresMock) GetClientHealthDiaryEntries(ctx context.Context, clientID string, moodType *enums.Mood, shared *bool) ([]*domain.ClientHealthDiaryEntry, error) {
+	return gm.MockGetClientHealthDiaryEntriesFn(ctx, clientID, moodType, shared)
 }
 
 // CreateClientCaregiver mocks the implementation of creating a caregiver
