@@ -275,15 +275,6 @@ type ComplexityRoot struct {
 		Flag  func(childComplexity int) int
 	}
 
-	FAQ struct {
-		Active      func(childComplexity int) int
-		Body        func(childComplexity int) int
-		Description func(childComplexity int) int
-		Flavour     func(childComplexity int) int
-		ID          func(childComplexity int) int
-		Title       func(childComplexity int) int
-	}
-
 	Facility struct {
 		Active             func(childComplexity int) int
 		Code               func(childComplexity int) int
@@ -1833,48 +1824,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Explicit.Flag(childComplexity), true
-
-	case "FAQ.Active":
-		if e.complexity.FAQ.Active == nil {
-			break
-		}
-
-		return e.complexity.FAQ.Active(childComplexity), true
-
-	case "FAQ.Body":
-		if e.complexity.FAQ.Body == nil {
-			break
-		}
-
-		return e.complexity.FAQ.Body(childComplexity), true
-
-	case "FAQ.Description":
-		if e.complexity.FAQ.Description == nil {
-			break
-		}
-
-		return e.complexity.FAQ.Description(childComplexity), true
-
-	case "FAQ.Flavour":
-		if e.complexity.FAQ.Flavour == nil {
-			break
-		}
-
-		return e.complexity.FAQ.Flavour(childComplexity), true
-
-	case "FAQ.ID":
-		if e.complexity.FAQ.ID == nil {
-			break
-		}
-
-		return e.complexity.FAQ.ID(childComplexity), true
-
-	case "FAQ.Title":
-		if e.complexity.FAQ.Title == nil {
-			break
-		}
-
-		return e.complexity.FAQ.Title(childComplexity), true
 
 	case "Facility.active":
 		if e.complexity.Facility.Active == nil {
@@ -5138,15 +5087,6 @@ type ClientHealthDiaryEntry {
   clientName: String
 }
 
-type FAQ {
-  ID: String!
-  Active: Boolean!
-  Title: String!
-  Description: String!
-  Body: String!
-  Flavour: Flavour!
-}
-
 type Caregiver {
   firstName: String!
   lastName: String!
@@ -5470,31 +5410,32 @@ type ScreeningToolResponse {
 }
 
 type ScreeningToolResponsePayload {
-	serviceRequestID:       String!
+  serviceRequestID: String!
   clientContact: String!
-	screeningToolResponses: [ScreeningToolResponse!]!
+  screeningToolResponses: [ScreeningToolResponse!]!
 }
 
 type SurveyForm {
-	projectId:    Int
-  xmlFormId:    String       
-	name:         String    
+  projectId: Int
+  xmlFormId: String
+  name: String
 }
 
 type UserSurvey {
-	id: String!
-	active: Boolean!
-	created: Time!
-	link: String!
-	title: String!
-	description: String!
-	hasSubmitted: Boolean!
-	userID: String! 
+  id: String!
+  active: Boolean!
+  created: Time!
+  link: String!
+  title: String!
+  description: String!
+  hasSubmitted: Boolean!
+  userID: String!
   token: String!
-	projectID: Int!
-	formID: String!
-	linkID: Int
-}`, BuiltIn: false},
+  projectID: Int!
+  formID: String!
+  linkID: Int
+}
+`, BuiltIn: false},
 	{Name: "../user.graphql", Input: `extend type Query {
   getCurrentTerms(flavour: Flavour!): TermsOfService!
   verifyPIN(userID: String!, flavour: Flavour!, pin: String!): Boolean!
@@ -14113,270 +14054,6 @@ func (ec *executionContext) fieldContext_Explicit_block(ctx context.Context, fie
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Float does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _FAQ_ID(ctx context.Context, field graphql.CollectedField, obj *domain.FAQ) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_FAQ_ID(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.ID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	fc.Result = res
-	return ec.marshalNString2ᚖstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_FAQ_ID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "FAQ",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _FAQ_Active(ctx context.Context, field graphql.CollectedField, obj *domain.FAQ) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_FAQ_Active(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Active, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(bool)
-	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_FAQ_Active(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "FAQ",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Boolean does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _FAQ_Title(ctx context.Context, field graphql.CollectedField, obj *domain.FAQ) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_FAQ_Title(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Title, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_FAQ_Title(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "FAQ",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _FAQ_Description(ctx context.Context, field graphql.CollectedField, obj *domain.FAQ) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_FAQ_Description(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Description, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_FAQ_Description(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "FAQ",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _FAQ_Body(ctx context.Context, field graphql.CollectedField, obj *domain.FAQ) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_FAQ_Body(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Body, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_FAQ_Body(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "FAQ",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _FAQ_Flavour(ctx context.Context, field graphql.CollectedField, obj *domain.FAQ) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_FAQ_Flavour(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Flavour, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(feedlib.Flavour)
-	fc.Result = res
-	return ec.marshalNFlavour2githubᚗcomᚋsavannahghiᚋfeedlibᚐFlavour(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_FAQ_Flavour(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "FAQ",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Flavour does not have child fields")
 		},
 	}
 	return fc, nil
@@ -33215,69 +32892,6 @@ func (ec *executionContext) _Explicit(ctx context.Context, sel ast.SelectionSet,
 
 			out.Values[i] = ec._Explicit_block(ctx, field, obj)
 
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch()
-	if invalids > 0 {
-		return graphql.Null
-	}
-	return out
-}
-
-var fAQImplementors = []string{"FAQ"}
-
-func (ec *executionContext) _FAQ(ctx context.Context, sel ast.SelectionSet, obj *domain.FAQ) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, fAQImplementors)
-	out := graphql.NewFieldSet(fields)
-	var invalids uint32
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("FAQ")
-		case "ID":
-
-			out.Values[i] = ec._FAQ_ID(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "Active":
-
-			out.Values[i] = ec._FAQ_Active(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "Title":
-
-			out.Values[i] = ec._FAQ_Title(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "Description":
-
-			out.Values[i] = ec._FAQ_Description(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "Body":
-
-			out.Values[i] = ec._FAQ_Body(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "Flavour":
-
-			out.Values[i] = ec._FAQ_Flavour(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

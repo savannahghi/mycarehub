@@ -72,7 +72,6 @@ type PostgresMock struct {
 	MockGetClientHealthDiaryQuoteFn                      func(ctx context.Context, limit int) ([]*domain.ClientHealthDiaryQuote, error)
 	MockCheckIfUserBookmarkedContentFn                   func(ctx context.Context, userID string, contentID int) (bool, error)
 	MockGetClientHealthDiaryEntriesFn                    func(ctx context.Context, clientID string) ([]*domain.ClientHealthDiaryEntry, error)
-	MockGetFAQContentFn                                  func(ctx context.Context, flavour feedlib.Flavour, limit *int) ([]*domain.FAQ, error)
 	MockCreateClientCaregiverFn                          func(ctx context.Context, caregiverInput *dto.CaregiverInput) error
 	MockGetClientCaregiverFn                             func(ctx context.Context, caregiverID string) (*domain.Caregiver, error)
 	MockUpdateClientCaregiverFn                          func(ctx context.Context, caregiverInput *dto.CaregiverInput) error
@@ -614,17 +613,6 @@ func NewPostgresMock() *PostgresMock {
 		},
 		MockGetClientHealthDiaryEntriesFn: func(ctx context.Context, clientID string) ([]*domain.ClientHealthDiaryEntry, error) {
 			return []*domain.ClientHealthDiaryEntry{healthDiaryEntry}, nil
-		},
-		MockGetFAQContentFn: func(ctx context.Context, flavour feedlib.Flavour, limit *int) ([]*domain.FAQ, error) {
-			return []*domain.FAQ{
-				{
-					ID:          &ID,
-					Active:      true,
-					Title:       gofakeit.Name(),
-					Description: gofakeit.Name(),
-					Body:        gofakeit.Name(),
-				},
-			}, nil
 		},
 
 		MockCreateClientCaregiverFn: func(ctx context.Context, caregiverInput *dto.CaregiverInput) error {
@@ -1313,11 +1301,6 @@ func (gm *PostgresMock) CheckIfUserBookmarkedContent(ctx context.Context, userID
 // GetClientHealthDiaryEntries mocks the implementation of getting all health diary entries that belong to a specific user
 func (gm *PostgresMock) GetClientHealthDiaryEntries(ctx context.Context, clientID string) ([]*domain.ClientHealthDiaryEntry, error) {
 	return gm.MockGetClientHealthDiaryEntriesFn(ctx, clientID)
-}
-
-// GetFAQContent mocks the implementation of getting FAQ content
-func (gm *PostgresMock) GetFAQContent(ctx context.Context, flavour feedlib.Flavour, limit *int) ([]*domain.FAQ, error) {
-	return gm.MockGetFAQContentFn(ctx, flavour, limit)
 }
 
 // CreateClientCaregiver mocks the implementation of creating a caregiver

@@ -352,15 +352,6 @@ func InternalErr(err error) error {
 	}
 }
 
-// GetFAQContentErr returns an error message when the faq content fails
-func GetFAQContentErr(err error) error {
-	return &CustomError{
-		Err:     err,
-		Message: GetFAQContentErrorMsg,
-		Code:    int(GetFAQContentError),
-	}
-}
-
 // UpdateClientCaregiverErr returns an error message when client caregiver update fails
 func UpdateClientCaregiverErr(err error) error {
 	return &CustomError{
