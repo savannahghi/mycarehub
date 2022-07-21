@@ -1,0 +1,11 @@
+# common_facility.yml
+- id: {{.test_facility_id}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  name: 'Acceptance Test Facility'
+  mfl_code: {{.mfl_code}}
+  active: true
+  county: Nairobi
+  description: Operates from Monday to Friday
+  organisation_id: {{.test_organisation_id}}
+

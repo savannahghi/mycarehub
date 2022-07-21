@@ -1,4 +1,4 @@
-package tests
+package acceptancetests
 
 import (
 	"bytes"
@@ -11,7 +11,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/imroc/req"
 	"github.com/savannahghi/firebasetools"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/presentation"
 	"github.com/savannahghi/serverutils"
@@ -44,6 +43,9 @@ func TestMain(m *testing.M) {
 	initialEnv = os.Getenv("ENVIRONMENT")
 	os.Setenv("ENVIRONMENT", "staging")
 
+	// Setup database fixtures
+	setupFixtures()
+
 	ctx := context.Background()
 
 	srv, baseURL, serverErr = serverutils.StartTestServer(
@@ -73,19 +75,6 @@ func TestMain(m *testing.M) {
 	}()
 
 	os.Exit(code)
-}
-
-// GetGraphQLHeaders gets relevant GraphQLHeaders
-func GetGraphQLHeaders(ctx context.Context) (map[string]string, error) {
-	authorization, err := GetBearerTokenHeader(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("can't Generate Bearer Token: %s", err)
-	}
-	return req.Header{
-		"Accept":        "application/json",
-		"Content-Type":  "application/json",
-		"Authorization": authorization,
-	}, nil
 }
 
 // GetBearerTokenHeader gets bearer Token Header

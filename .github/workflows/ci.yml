@@ -186,12 +186,28 @@ jobs:
           errcheck -ignore 'os:.*,' $(go list ./... | grep -v /vendor/)
           misspell -error .
           gosec -exclude=G304,G101 ./...
-          go-acc -o coverage.txt --ignore generated,cmd,graph  ./... -- -timeout 60m
+          go-acc -o coverage.txt --ignore generated,cmd,graph,acceptancetests  ./... -- -timeout 60m
           grep -v "generated.go" coverage.txt | grep -v "_gen.go" | grep -v "mocks.go" | grep -v "*mocks.go" | grep -v "mock.go" | grep -v "*mock.go" | grep -v "*resolvers*go" | grep -v "*.resolvers.go" | grep -v "server.go" > coverage.out
           go tool cover -html=coverage.out -o coverage.html
           gocov convert coverage.out > coverage.json
           gocov report coverage.json > coverage_report.txt
           tail coverage_report.txt
+      
+      - name: Run acceptance tests
+        env:
+          # These are the expected  database envs
+          IS_LOCAL_DB: True
+          POSTGRES_HOST: localhost
+          POSTGRES_PORT: 5432
+          POSTGRES_DB: postgres
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        run: |
+          sudo -u ${POSTGRES_USER} psql -p ${POSTGRES_PORT} -c "DROP DATABASE ${POSTGRES_DB}';"
+          sudo -u ${POSTGRES_USER} psql -p ${POSTGRES_PORT} -c "CREATE DATABASE ${POSTGRES_DB} WITH OWNER '${POSTGRES_USER}';"
+          python manage.py migrate
+          python manage.py createcachetable
+          go test -v ./acceptancetests -timeout 60m
 
       - name: Install goveralls
         env:
