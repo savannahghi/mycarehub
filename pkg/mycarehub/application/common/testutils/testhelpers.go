@@ -81,7 +81,7 @@ func InitializeTestService(ctx context.Context) (*usecases.MyCareHub, error) {
 	contentUseCase := content.NewUseCasesContentImplementation(db, db, externalExt)
 	feedbackUsecase := feedback.NewUsecaseFeedback(db, db, externalExt)
 
-	notificationUseCase := notification.NewNotificationUseCaseImpl(fcmService, db, db, db)
+	notificationUseCase := notification.NewNotificationUseCaseImpl(fcmService, db, db, db, externalExt)
 	appointmentUsecase := appointment.NewUseCaseAppointmentsImpl(externalExt, db, db, db, pubsub, notificationUseCase)
 	communityUsecase := communities.NewUseCaseCommunitiesImpl(getStream, externalExt, db, db, pubsub, notificationUseCase)
 	authorityUseCase := authority.NewUsecaseAuthority(db, db, externalExt, notificationUseCase)

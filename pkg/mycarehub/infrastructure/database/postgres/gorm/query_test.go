@@ -2870,6 +2870,7 @@ func TestPGInstance_ListNotifications(t *testing.T) {
 	type args struct {
 		ctx        context.Context
 		params     *gorm.Notification
+		filters    []*firebasetools.FilterParam
 		pagination *domain.Pagination
 	}
 	tests := []struct {
@@ -2886,6 +2887,7 @@ func TestPGInstance_ListNotifications(t *testing.T) {
 					UserID:  &userID,
 					Flavour: feedlib.FlavourConsumer,
 				},
+				filters:    nil,
 				pagination: nil,
 			},
 			wantErr: false,
@@ -2899,6 +2901,7 @@ func TestPGInstance_ListNotifications(t *testing.T) {
 					FacilityID: &facilityID,
 					Flavour:    feedlib.FlavourPro,
 				},
+				filters:    nil,
 				pagination: nil,
 			},
 			wantErr: false,
@@ -2911,6 +2914,7 @@ func TestPGInstance_ListNotifications(t *testing.T) {
 					UserID:  &userID,
 					Flavour: feedlib.FlavourConsumer,
 				},
+				filters: nil,
 				pagination: &domain.Pagination{
 					Limit:       1,
 					CurrentPage: 1,
@@ -2921,7 +2925,7 @@ func TestPGInstance_ListNotifications(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, _, err := testingDB.ListNotifications(tt.args.ctx, tt.args.params, tt.args.pagination)
+			got, _, err := testingDB.ListNotifications(tt.args.ctx, tt.args.params, tt.args.filters, tt.args.pagination)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("PGInstance.ListNotifications() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -2934,6 +2938,57 @@ func TestPGInstance_ListNotifications(t *testing.T) {
 			if !tt.wantErr && got == nil {
 				t.Errorf("expected notifications not to be nil for %v", tt.name)
 				return
+			}
+		})
+	}
+}
+
+func TestPGInstance_ListAvailableNotificationTypes(t *testing.T) {
+	type args struct {
+		ctx    context.Context
+		params *gorm.Notification
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    []enums.NotificationType
+		wantErr bool
+	}{
+		{
+			name: "happy case: list user notifications",
+			args: args{
+				ctx: context.Background(),
+				params: &gorm.Notification{
+					UserID:  &userID2,
+					Flavour: feedlib.FlavourConsumer,
+				},
+			},
+			want:    []enums.NotificationType{enums.NotificationTypeAppointment},
+			wantErr: false,
+		},
+		{
+			name: "happy case: list facility notifications",
+			args: args{
+				ctx: context.Background(),
+				params: &gorm.Notification{
+					UserID:     &userIDtoAssignStaff,
+					FacilityID: &facilityID,
+					Flavour:    feedlib.FlavourPro,
+				},
+			},
+			want:    []enums.NotificationType{enums.NotificationTypeServiceRequest},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := testingDB.ListAvailableNotificationTypes(tt.args.ctx, tt.args.params)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.ListAvailableNotificationTypes() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("PGInstance.ListAvailableNotificationTypes() = %v, want %v", got, tt.want)
 			}
 		})
 	}

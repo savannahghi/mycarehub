@@ -1315,7 +1315,7 @@ func (d *MyCareHubDb) ListAppointments(ctx context.Context, params *domain.Appoi
 }
 
 // ListNotifications lists notifications based on the provided parameters
-func (d *MyCareHubDb) ListNotifications(ctx context.Context, params *domain.Notification, pagination *domain.Pagination) ([]*domain.Notification, *domain.Pagination, error) {
+func (d *MyCareHubDb) ListNotifications(ctx context.Context, params *domain.Notification, filters []*firebasetools.FilterParam, pagination *domain.Pagination) ([]*domain.Notification, *domain.Pagination, error) {
 
 	parameters := &gorm.Notification{
 		Active:     true,
@@ -1324,7 +1324,7 @@ func (d *MyCareHubDb) ListNotifications(ctx context.Context, params *domain.Noti
 		Flavour:    params.Flavour,
 	}
 
-	notifications, pageInfo, err := d.query.ListNotifications(ctx, parameters, pagination)
+	notifications, pageInfo, err := d.query.ListNotifications(ctx, parameters, filters, pagination)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -1349,6 +1349,23 @@ func (d *MyCareHubDb) ListNotifications(ctx context.Context, params *domain.Noti
 	}
 
 	return mapped, pageInfo, nil
+}
+
+//ListAvailableNotificationTypes retrieves the distinct notification types available for a user
+func (d *MyCareHubDb) ListAvailableNotificationTypes(ctx context.Context, params *domain.Notification) ([]enums.NotificationType, error) {
+	parameters := &gorm.Notification{
+		Active:     true,
+		UserID:     params.UserID,
+		FacilityID: params.FacilityID,
+		Flavour:    params.Flavour,
+	}
+
+	notificationTypes, err := d.query.ListAvailableNotificationTypes(ctx, parameters)
+	if err != nil {
+		return nil, err
+	}
+
+	return notificationTypes, nil
 }
 
 // GetScreeningToolQuestionByQuestionID fetches a screening tool question by question id

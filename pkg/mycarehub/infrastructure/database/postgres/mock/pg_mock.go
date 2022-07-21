@@ -135,7 +135,8 @@ type PostgresMock struct {
 	MockGetAppointmentByClientIDFn                       func(ctx context.Context, clientID string) (*domain.Appointment, error)
 	MockCheckAppointmentExistsByExternalIDFn             func(ctx context.Context, externalID string) (bool, error)
 	MockGetUserSurveyFormsFn                             func(ctx context.Context, userID string) ([]*domain.UserSurvey, error)
-	MockListNotificationsFn                              func(ctx context.Context, params *domain.Notification, pagination *domain.Pagination) ([]*domain.Notification, *domain.Pagination, error)
+	MockListNotificationsFn                              func(ctx context.Context, params *domain.Notification, filters []*firebasetools.FilterParam, pagination *domain.Pagination) ([]*domain.Notification, *domain.Pagination, error)
+	MockListAvailableNotificationTypesFn                 func(ctx context.Context, params *domain.Notification) ([]enums.NotificationType, error)
 	MockSaveNotificationFn                               func(ctx context.Context, payload *domain.Notification) error
 	MockGetClientScreeningToolResponsesByToolTypeFn      func(ctx context.Context, clientID, toolType string, active bool) ([]*domain.ScreeningToolQuestionResponse, error)
 	MockGetClientScreeningToolServiceRequestByToolTypeFn func(ctx context.Context, clientID, toolType, status string) (*domain.ServiceRequest, error)
@@ -594,7 +595,7 @@ func NewPostgresMock() *PostgresMock {
 				},
 			}, nil
 		},
-		MockListNotificationsFn: func(ctx context.Context, params *domain.Notification, pagination *domain.Pagination) ([]*domain.Notification, *domain.Pagination, error) {
+		MockListNotificationsFn: func(ctx context.Context, params *domain.Notification, filters []*firebasetools.FilterParam, pagination *domain.Pagination) ([]*domain.Notification, *domain.Pagination, error) {
 			return []*domain.Notification{
 				{
 					ID:     ID,
@@ -604,6 +605,9 @@ func NewPostgresMock() *PostgresMock {
 					IsRead: false,
 				},
 			}, &domain.Pagination{}, nil
+		},
+		MockListAvailableNotificationTypesFn: func(ctx context.Context, params *domain.Notification) ([]enums.NotificationType, error) {
+			return []enums.NotificationType{enums.NotificationTypeAppointment}, nil
 		},
 		MockSearchClientProfileFn: func(ctx context.Context, searchParameter string) ([]*domain.ClientProfile, error) {
 			return []*domain.ClientProfile{client}, nil
@@ -1609,8 +1613,13 @@ func (gm *PostgresMock) CreateIdentifier(ctx context.Context, identifier domain.
 }
 
 // ListNotifications lists notifications based on the provided parameters
-func (gm *PostgresMock) ListNotifications(ctx context.Context, params *domain.Notification, pagination *domain.Pagination) ([]*domain.Notification, *domain.Pagination, error) {
-	return gm.MockListNotificationsFn(ctx, params, pagination)
+func (gm *PostgresMock) ListNotifications(ctx context.Context, params *domain.Notification, filters []*firebasetools.FilterParam, pagination *domain.Pagination) ([]*domain.Notification, *domain.Pagination, error) {
+	return gm.MockListNotificationsFn(ctx, params, filters, pagination)
+}
+
+//ListAvailableNotificationTypes retrieves the distinct notification types available for a user
+func (gm *PostgresMock) ListAvailableNotificationTypes(ctx context.Context, params *domain.Notification) ([]enums.NotificationType, error) {
+	return gm.MockListAvailableNotificationTypesFn(ctx, params)
 }
 
 // GetAppointment fetches an appointment by the external ID

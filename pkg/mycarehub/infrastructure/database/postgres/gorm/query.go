@@ -31,7 +31,8 @@ type Query interface {
 	SearchFacility(ctx context.Context, searchParameter *string) ([]Facility, error)
 	GetFacilitiesWithoutFHIRID(ctx context.Context) ([]*Facility, error)
 	ListFacilities(ctx context.Context, searchTerm *string, filter []*domain.FiltersParam, pagination *domain.FacilityPage) (*domain.FacilityPage, error)
-	ListNotifications(ctx context.Context, params *Notification, pagination *domain.Pagination) ([]*Notification, *domain.Pagination, error)
+	ListNotifications(ctx context.Context, params *Notification, filters []*firebasetools.FilterParam, pagination *domain.Pagination) ([]*Notification, *domain.Pagination, error)
+	ListAvailableNotificationTypes(ctx context.Context, params *Notification) ([]enums.NotificationType, error)
 	ListAppointments(ctx context.Context, params *Appointment, filters []*firebasetools.FilterParam, pagination *domain.Pagination) ([]*Appointment, *domain.Pagination, error)
 	GetUserProfileByPhoneNumber(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*User, error)
 	GetUserPINByUserID(ctx context.Context, userID string, flavour feedlib.Flavour) (*PINData, error)
@@ -360,8 +361,7 @@ func (db *PGInstance) ListAppointments(ctx context.Context, params *Appointment,
 
 	transaction := tx.Where(params)
 
-	transaction, err := addFilters(transaction, filters)
-	if err != nil {
+	if err := addFilters(transaction, filters); err != nil {
 		return nil, pageInfo, fmt.Errorf("failed to add filters: %v", err)
 	}
 
@@ -374,8 +374,7 @@ func (db *PGInstance) ListAppointments(ctx context.Context, params *Appointment,
 			paginate(appointments, pagination, resultCount, db.DB),
 		).Where(params)
 
-		transaction, err := addFilters(transaction, filters)
-		if err != nil {
+		if err := addFilters(transaction, filters); err != nil {
 			return nil, pageInfo, fmt.Errorf("failed to add filters: %v", err)
 		}
 
@@ -392,15 +391,25 @@ func (db *PGInstance) ListAppointments(ctx context.Context, params *Appointment,
 }
 
 // ListNotifications retrieves notifications using the provided parameters and filters
-func (db *PGInstance) ListNotifications(ctx context.Context, params *Notification, pagination *domain.Pagination) ([]*Notification, *domain.Pagination, error) {
+func (db *PGInstance) ListNotifications(ctx context.Context, params *Notification, filters []*firebasetools.FilterParam, pagination *domain.Pagination) ([]*Notification, *domain.Pagination, error) {
 	var count int64
 	var notifications []*Notification
 
-	tx := db.DB.Model(&Notification{}).Or(Notification{UserID: params.UserID, Flavour: params.Flavour, Active: params.Active})
+	userNotificationsQuery := db.DB.Where(Notification{UserID: params.UserID, Flavour: params.Flavour, Active: params.Active})
+	if err := addFilters(userNotificationsQuery, filters); err != nil {
+		return nil, pagination, fmt.Errorf("failed to add filters to transaction: %v", err)
+	}
 
-	// add filter for facility notifications
+	tx := db.DB.Model(&Notification{}).Or(userNotificationsQuery)
+
+	// include facility notifications
 	if params.FacilityID != nil {
-		tx.Or(Notification{FacilityID: params.FacilityID, Flavour: params.Flavour, Active: params.Active})
+		facilityNotificationsQuery := db.DB.Where(Notification{FacilityID: params.FacilityID, Flavour: params.Flavour, Active: params.Active})
+		if err := addFilters(facilityNotificationsQuery, filters); err != nil {
+			return nil, pagination, fmt.Errorf("failed to add filters to transaction: %v", err)
+		}
+
+		tx.Or(facilityNotificationsQuery)
 	}
 
 	if pagination != nil {
@@ -421,7 +430,26 @@ func (db *PGInstance) ListNotifications(ctx context.Context, params *Notificatio
 	return notifications, pagination, nil
 }
 
-// GetUserProfileByPhoneNumber retrieves a user profile using their phonenumber
+// ListAvailableNotificationTypes retrieves the distinct notification types available for a user
+func (db *PGInstance) ListAvailableNotificationTypes(ctx context.Context, params *Notification) ([]enums.NotificationType, error) {
+	var notificationTypes []enums.NotificationType
+
+	tx := db.DB.Model(&Notification{}).Or(Notification{UserID: params.UserID, Flavour: params.Flavour, Active: params.Active})
+
+	// include facility notification types
+	if params.FacilityID != nil {
+		tx.Or(Notification{FacilityID: params.FacilityID, Flavour: params.Flavour, Active: params.Active})
+	}
+
+	if err := tx.Distinct("notification_type").Find(&notificationTypes).Error; err != nil {
+		helpers.ReportErrorToSentry(err)
+		return notificationTypes, fmt.Errorf("failed to execute query: %v", err)
+	}
+
+	return notificationTypes, nil
+}
+
+// GetUserProfileByPhoneNumber retrieves a user profile using their phone number
 func (db *PGInstance) GetUserProfileByPhoneNumber(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*User, error) {
 	var user User
 	if err := db.DB.Joins("JOIN common_contact on users_user.id = common_contact.user_id").Where("common_contact.contact_value = ? AND common_contact.flavour = ?", phoneNumber, flavour).
@@ -1377,7 +1405,7 @@ func (db *PGInstance) GetClientScreeningToolResponsesByToolType(ctx context.Cont
 	return responses, nil
 }
 
-// GetUserSurveyForms retrives all user survey forms
+// GetUserSurveyForms retrieves all user survey forms
 func (db *PGInstance) GetUserSurveyForms(ctx context.Context, userID string) ([]*UserSurvey, error) {
 	var userSurveys []*UserSurvey
 

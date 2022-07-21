@@ -113,7 +113,7 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	facilityUseCase := facility.NewFacilityUsecase(db, db, db, db, pubSub)
 
 	// Initialize user usecase
-	notificationUseCase := notification.NewNotificationUseCaseImpl(fcmService, db, db, db)
+	notificationUseCase := notification.NewNotificationUseCaseImpl(fcmService, db, db, db, externalExt)
 
 	authorityUseCase := authority.NewUsecaseAuthority(db, db, externalExt, notificationUseCase)
 

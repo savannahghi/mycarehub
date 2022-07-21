@@ -26,3 +26,15 @@ type NotificationsPage struct {
 	Notifications []*Notification `json:"notifications"`
 	Pagination    Pagination      `json:"pagination"`
 }
+
+// NotificationTypeFilter represents an enum and its name value
+type NotificationTypeFilter struct {
+	Enum enums.NotificationType
+	Name string
+}
+
+// NotificationFilters represents the filters used to fetch notifications
+type NotificationFilters struct {
+	IsRead            *bool
+	NotificationTypes []*enums.NotificationType
+}

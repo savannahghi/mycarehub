@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"reflect"
 	"strconv"
 	"testing"
 	"time"
@@ -3994,6 +3995,7 @@ func TestMyCareHubDb_ListNotifications(t *testing.T) {
 	type args struct {
 		ctx        context.Context
 		params     *domain.Notification
+		filters    []*firebasetools.FilterParam
 		pagination *domain.Pagination
 	}
 	tests := []struct {
@@ -4037,12 +4039,12 @@ func TestMyCareHubDb_ListNotifications(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.name == "sad case: error listing notifications" {
-				fakeGorm.MockListNotificationsFn = func(ctx context.Context, params *gorm.Notification, pagination *domain.Pagination) ([]*gorm.Notification, *domain.Pagination, error) {
+				fakeGorm.MockListNotificationsFn = func(ctx context.Context, params *gorm.Notification, filters []*firebasetools.FilterParam, pagination *domain.Pagination) ([]*gorm.Notification, *domain.Pagination, error) {
 					return nil, nil, fmt.Errorf("error listing notifications")
 				}
 			}
 
-			got, got1, err := d.ListNotifications(tt.args.ctx, tt.args.params, tt.args.pagination)
+			got, got1, err := d.ListNotifications(tt.args.ctx, tt.args.params, tt.args.filters, tt.args.pagination)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("MyCareHubDb.ListNotifications() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -4066,6 +4068,64 @@ func TestMyCareHubDb_ListNotifications(t *testing.T) {
 				return
 			}
 
+		})
+	}
+}
+
+func TestMyCareHubDb_ListAvailableNotificationTypes(t *testing.T) {
+	id := gofakeit.UUID()
+
+	type args struct {
+		ctx    context.Context
+		params *domain.Notification
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    []enums.NotificationType
+		wantErr bool
+	}{
+		{
+			name: "happy case: available notification types for a user",
+			args: args{
+				ctx: context.Background(),
+				params: &domain.Notification{
+					UserID: &id,
+				},
+			},
+			want:    []enums.NotificationType{enums.NotificationTypeAppointment},
+			wantErr: false,
+		},
+		{
+			name: "sad case: fail to fetch available notification types",
+			args: args{
+				ctx: context.Background(),
+				params: &domain.Notification{
+					UserID: &id,
+				},
+			},
+			want:    nil,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var fakeGorm = gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			if tt.name == "sad case: fail to fetch available notification types" {
+				fakeGorm.MockListAvailableNotificationTypesFn = func(ctx context.Context, params *gorm.Notification) ([]enums.NotificationType, error) {
+					return []enums.NotificationType{}, fmt.Errorf("failed to fetch notification appointments")
+				}
+			}
+			got, err := d.ListAvailableNotificationTypes(tt.args.ctx, tt.args.params)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.ListAvailableNotificationTypes() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("MyCareHubDb.ListAvailableNotificationTypes() = %v, want %v", got, tt.want)
+			}
 		})
 	}
 }

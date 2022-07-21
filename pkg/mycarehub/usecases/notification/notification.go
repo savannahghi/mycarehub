@@ -6,10 +6,12 @@ import (
 	"log"
 
 	"github.com/savannahghi/converterandformatter"
+	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/firebasetools"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/fcm"
@@ -19,7 +21,8 @@ import (
 type IServiceNotify interface {
 	NotifyUser(ctx context.Context, userProfile *domain.User, notificationPayload *domain.Notification) error
 	NotifyFacilityStaffs(ctx context.Context, facility *domain.Facility, notificationPayload *domain.Notification) error
-	FetchNotifications(ctx context.Context, userID string, flavour feedlib.Flavour, paginationInput dto.PaginationsInput) (*domain.NotificationsPage, error)
+	FetchNotifications(ctx context.Context, userID string, flavour feedlib.Flavour, paginationInput dto.PaginationsInput, filters *domain.NotificationFilters) (*domain.NotificationsPage, error)
+	FetchNotificationTypeFilters(ctx context.Context, flavour feedlib.Flavour) ([]*domain.NotificationTypeFilter, error)
 	ReadNotifications(ctx context.Context, ids []string) (bool, error)
 
 	SendNotification(
@@ -37,10 +40,11 @@ type UseCaseNotification interface {
 
 // UseCaseNotificationImpl embeds the notifications logic
 type UseCaseNotificationImpl struct {
-	FCM    fcm.ServiceFCM
-	Query  infrastructure.Query
-	Create infrastructure.Create
-	Update infrastructure.Update
+	FCM         fcm.ServiceFCM
+	ExternalExt extension.ExternalMethodsExtension
+	Query       infrastructure.Query
+	Create      infrastructure.Create
+	Update      infrastructure.Update
 }
 
 // NewNotificationUseCaseImpl initialized a new notifications service implementation
@@ -49,12 +53,14 @@ func NewNotificationUseCaseImpl(
 	query infrastructure.Query,
 	create infrastructure.Create,
 	update infrastructure.Update,
+	ext extension.ExternalMethodsExtension,
 ) UseCaseNotification {
 	return &UseCaseNotificationImpl{
-		FCM:    fcm,
-		Query:  query,
-		Create: create,
-		Update: update,
+		FCM:         fcm,
+		Query:       query,
+		Create:      create,
+		Update:      update,
+		ExternalExt: ext,
 	}
 }
 
@@ -117,7 +123,7 @@ func (n UseCaseNotificationImpl) NotifyFacilityStaffs(ctx context.Context, facil
 }
 
 // FetchNotifications retrieves a users notifications
-func (n UseCaseNotificationImpl) FetchNotifications(ctx context.Context, userID string, flavour feedlib.Flavour, paginationInput dto.PaginationsInput) (*domain.NotificationsPage, error) {
+func (n UseCaseNotificationImpl) FetchNotifications(ctx context.Context, userID string, flavour feedlib.Flavour, paginationInput dto.PaginationsInput, filters *domain.NotificationFilters) (*domain.NotificationsPage, error) {
 	// if user did not provide current page, throw an error
 	if err := paginationInput.Validate(); err != nil {
 		helpers.ReportErrorToSentry(err)
@@ -140,7 +146,30 @@ func (n UseCaseNotificationImpl) FetchNotifications(ctx context.Context, userID 
 		parameters.FacilityID = &staff.DefaultFacilityID
 	}
 
-	notifications, pageInfo, err := n.Query.ListNotifications(ctx, parameters, page)
+	var notificationFilters []*firebasetools.FilterParam
+	if filters != nil {
+		if filters.IsRead != nil {
+			filter := &firebasetools.FilterParam{
+				FieldName:           "is_read",
+				FieldType:           enumutils.FieldTypeBoolean,
+				ComparisonOperation: enumutils.OperationEqual,
+				FieldValue:          *filters.IsRead,
+			}
+			notificationFilters = append(notificationFilters, filter)
+		}
+
+		if filters.NotificationTypes != nil && len(filters.NotificationTypes) > 0 {
+			filter := &firebasetools.FilterParam{
+				FieldName:           "notification_type",
+				FieldType:           enumutils.FieldTypeString,
+				ComparisonOperation: enumutils.OperationIn,
+				FieldValue:          filters.NotificationTypes,
+			}
+			notificationFilters = append(notificationFilters, filter)
+		}
+	}
+
+	notifications, pageInfo, err := n.Query.ListNotifications(ctx, parameters, notificationFilters, page)
 	if err != nil {
 		return nil, err
 	}
@@ -193,4 +222,41 @@ func (n UseCaseNotificationImpl) ReadNotifications(ctx context.Context, ids []st
 	}
 
 	return true, nil
+}
+
+//FetchNotificationTypeFilters fetches the available notification types for a user
+func (n UseCaseNotificationImpl) FetchNotificationTypeFilters(ctx context.Context, flavour feedlib.Flavour) ([]*domain.NotificationTypeFilter, error) {
+	userID, err := n.ExternalExt.GetLoggedInUserUID(ctx)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
+	parameters := &domain.Notification{UserID: &userID, Flavour: flavour}
+
+	switch flavour {
+	case feedlib.FlavourPro:
+		staff, err := n.Query.GetStaffProfileByUserID(ctx, userID)
+		if err != nil {
+			return nil, err
+		}
+		parameters.FacilityID = &staff.DefaultFacilityID
+	}
+
+	notificationTypes, err := n.Query.ListAvailableNotificationTypes(ctx, parameters)
+	if err != nil {
+		return nil, err
+	}
+
+	var filters []*domain.NotificationTypeFilter
+
+	for _, notificationType := range notificationTypes {
+		filter := &domain.NotificationTypeFilter{
+			Enum: notificationType,
+			Name: notificationType.Name(),
+		}
+		filters = append(filters, filter)
+	}
+
+	return filters, nil
 }

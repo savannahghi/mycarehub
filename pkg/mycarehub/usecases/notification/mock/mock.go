@@ -7,15 +7,17 @@ import (
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/firebasetools"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 )
 
 // NotificationUseCaseMock mocks the notifications usecase methods
 type NotificationUseCaseMock struct {
-	MockNotifyUserFn           func(ctx context.Context, userProfile *domain.User, notificationPayload *domain.Notification) error
-	MockNotifyFacilityStaffsFn func(ctx context.Context, facility *domain.Facility, notificationPayload *domain.Notification) error
-	MockFetchNotificationsFn   func(ctx context.Context, userID string, flavour feedlib.Flavour, paginationInput dto.PaginationsInput) (*domain.NotificationsPage, error)
-	MockSendNotificationFn     func(
+	MockNotifyUserFn                 func(ctx context.Context, userProfile *domain.User, notificationPayload *domain.Notification) error
+	MockNotifyFacilityStaffsFn       func(ctx context.Context, facility *domain.Facility, notificationPayload *domain.Notification) error
+	MockFetchNotificationsFn         func(ctx context.Context, userID string, flavour feedlib.Flavour, paginationInput dto.PaginationsInput, filters *domain.NotificationFilters) (*domain.NotificationsPage, error)
+	MockFetchNotificationTypeFilters func(ctx context.Context, flavour feedlib.Flavour) ([]*domain.NotificationTypeFilter, error)
+	MockSendNotificationFn           func(
 		ctx context.Context,
 		registrationTokens []string,
 		data map[string]interface{},
@@ -27,6 +29,9 @@ type NotificationUseCaseMock struct {
 // NewServiceNotificationMock initializes a new notification mock instance
 func NewServiceNotificationMock() *NotificationUseCaseMock {
 	return &NotificationUseCaseMock{
+		MockFetchNotificationTypeFilters: func(ctx context.Context, flavour feedlib.Flavour) ([]*domain.NotificationTypeFilter, error) {
+			return []*domain.NotificationTypeFilter{{Enum: enums.NotificationTypeAppointment, Name: enums.NotificationTypeAppointment.String()}}, nil
+		},
 		MockNotifyUserFn: func(ctx context.Context, userProfile *domain.User, notificationPayload *domain.Notification) error {
 			return nil
 		},
@@ -36,7 +41,7 @@ func NewServiceNotificationMock() *NotificationUseCaseMock {
 		MockNotifyFacilityStaffsFn: func(ctx context.Context, facility *domain.Facility, notificationPayload *domain.Notification) error {
 			return nil
 		},
-		MockFetchNotificationsFn: func(ctx context.Context, userID string, flavour feedlib.Flavour, paginationInput dto.PaginationsInput) (*domain.NotificationsPage, error) {
+		MockFetchNotificationsFn: func(ctx context.Context, userID string, flavour feedlib.Flavour, paginationInput dto.PaginationsInput, filters *domain.NotificationFilters) (*domain.NotificationsPage, error) {
 			UUID := uuid.New().String()
 			return &domain.NotificationsPage{
 				Notifications: []*domain.Notification{
@@ -71,8 +76,8 @@ func (n NotificationUseCaseMock) NotifyUser(ctx context.Context, userProfile *do
 }
 
 // FetchNotifications mocks the implementation of fetching notifications from the database
-func (n NotificationUseCaseMock) FetchNotifications(ctx context.Context, userID string, flavour feedlib.Flavour, paginationInput dto.PaginationsInput) (*domain.NotificationsPage, error) {
-	return n.MockFetchNotificationsFn(ctx, userID, flavour, paginationInput)
+func (n NotificationUseCaseMock) FetchNotifications(ctx context.Context, userID string, flavour feedlib.Flavour, paginationInput dto.PaginationsInput, filters *domain.NotificationFilters) (*domain.NotificationsPage, error) {
+	return n.MockFetchNotificationsFn(ctx, userID, flavour, paginationInput, filters)
 }
 
 // NotifyFacilityStaffs is used to save and send a FCM notification to a user/ staff at a facility
@@ -93,4 +98,9 @@ func (n NotificationUseCaseMock) SendNotification(
 //ReadNotifications indicates that the notification as bee
 func (n NotificationUseCaseMock) ReadNotifications(ctx context.Context, ids []string) (bool, error) {
 	return n.MockReadNotificationsFn(ctx, ids)
+}
+
+//FetchNotificationTypeFilters fetches the available notification types for a user
+func (n NotificationUseCaseMock) FetchNotificationTypeFilters(ctx context.Context, flavour feedlib.Flavour) ([]*domain.NotificationTypeFilter, error) {
+	return n.MockFetchNotificationTypeFilters(ctx, flavour)
 }

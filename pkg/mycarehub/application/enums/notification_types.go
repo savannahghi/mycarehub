@@ -35,6 +35,18 @@ const (
 	NotificationTypePromoteToModerator NotificationType = "PROMOTE_TO_MODERATOR"
 )
 
+// AllNotificationTypes holds all types of notification
+var AllNotificationTypes = []NotificationType{
+	NotificationTypeAppointment,
+	NotificationTypeServiceRequest,
+	NotificationTypeCommunities,
+	NotificationTypeRoleRevocation,
+	NotificationTypeRoleAssignment,
+	NotificationTypeSurveys,
+	NotificationTypeDemoteModerator,
+	NotificationTypePromoteToModerator,
+}
+
 // IsValid returns true if a notification type is valid
 func (n NotificationType) IsValid() bool {
 	switch n {
@@ -74,4 +86,27 @@ func (n *NotificationType) UnmarshalGQL(v interface{}) error {
 // MarshalGQL writes the metric type to the supplied writer
 func (n NotificationType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(n.String()))
+}
+
+// Name returns a human readable format for an enum
+func (n NotificationType) Name() string {
+	switch n {
+	case NotificationTypeAppointment:
+		return "Appointments"
+	case NotificationTypeServiceRequest:
+		return "Service Requests"
+	case NotificationTypeCommunities:
+		return "Communities"
+	case NotificationTypeRoleRevocation:
+		return "Role Addition"
+	case NotificationTypeRoleAssignment:
+		return "Role Removal"
+	case NotificationTypeSurveys:
+		return "Surveys"
+	case NotificationTypeDemoteModerator:
+		return "Moderator Demotion"
+	case NotificationTypePromoteToModerator:
+		return "Moderator Promotion"
+	}
+	return "UNKNOWN"
 }

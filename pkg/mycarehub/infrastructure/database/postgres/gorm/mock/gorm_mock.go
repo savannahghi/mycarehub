@@ -134,7 +134,8 @@ type GormMock struct {
 	MockGetAnsweredScreeningToolQuestionsFn              func(ctx context.Context, facilityID string, toolType string) ([]*gorm.ScreeningToolsResponse, error)
 	MockCreateNotificationFn                             func(ctx context.Context, notification *gorm.Notification) error
 	MockUpdateUserSurveysFn                              func(ctx context.Context, survey *gorm.UserSurvey, updateData map[string]interface{}) error
-	MockListNotificationsFn                              func(ctx context.Context, params *gorm.Notification, pagination *domain.Pagination) ([]*gorm.Notification, *domain.Pagination, error)
+	MockListNotificationsFn                              func(ctx context.Context, params *gorm.Notification, filters []*firebasetools.FilterParam, pagination *domain.Pagination) ([]*gorm.Notification, *domain.Pagination, error)
+	MockListAvailableNotificationTypesFn                 func(ctx context.Context, params *gorm.Notification) ([]enums.NotificationType, error)
 	MockGetClientScreeningToolResponsesByToolTypeFn      func(ctx context.Context, clientID, toolType string, active bool) ([]*gorm.ScreeningToolsResponse, error)
 	MockGetClientScreeningToolServiceRequestByToolTypeFn func(ctx context.Context, clientID, toolType, status string) (*gorm.ClientServiceRequest, error)
 	MockGetAppointmentFn                                 func(ctx context.Context, params *gorm.Appointment) (*gorm.Appointment, error)
@@ -899,7 +900,7 @@ func NewGormMock() *GormMock {
 				},
 			}, &domain.Pagination{Limit: 10, CurrentPage: 1}, nil
 		},
-		MockListNotificationsFn: func(ctx context.Context, params *gorm.Notification, pagination *domain.Pagination) ([]*gorm.Notification, *domain.Pagination, error) {
+		MockListNotificationsFn: func(ctx context.Context, params *gorm.Notification, filters []*firebasetools.FilterParam, pagination *domain.Pagination) ([]*gorm.Notification, *domain.Pagination, error) {
 			return []*gorm.Notification{
 				{
 					Title:      "A notification",
@@ -911,6 +912,9 @@ func NewGormMock() *GormMock {
 					FacilityID: &UUID,
 				},
 			}, &domain.Pagination{Limit: 10, CurrentPage: 1}, nil
+		},
+		MockListAvailableNotificationTypesFn: func(ctx context.Context, params *gorm.Notification) ([]enums.NotificationType, error) {
+			return []enums.NotificationType{enums.NotificationTypeAppointment}, nil
 		},
 		MockUpdateAppointmentFn: func(ctx context.Context, appointment *gorm.Appointment, updateData map[string]interface{}) (*gorm.Appointment, error) {
 			return appointment, nil
@@ -1697,8 +1701,13 @@ func (gm *GormMock) CreateNotification(ctx context.Context, notification *gorm.N
 }
 
 // ListNotifications Retrieves notifications using the provided parameters and filters
-func (gm *GormMock) ListNotifications(ctx context.Context, params *gorm.Notification, pagination *domain.Pagination) ([]*gorm.Notification, *domain.Pagination, error) {
-	return gm.MockListNotificationsFn(ctx, params, pagination)
+func (gm *GormMock) ListNotifications(ctx context.Context, params *gorm.Notification, filters []*firebasetools.FilterParam, pagination *domain.Pagination) ([]*gorm.Notification, *domain.Pagination, error) {
+	return gm.MockListNotificationsFn(ctx, params, filters, pagination)
+}
+
+// ListAvailableNotificationTypes retrieves the distinct notification types available for a user
+func (gm *GormMock) ListAvailableNotificationTypes(ctx context.Context, params *gorm.Notification) ([]enums.NotificationType, error) {
+	return gm.MockListAvailableNotificationTypesFn(ctx, params)
 }
 
 // GetSharedHealthDiaryEntries mocks the implementation of getting the most recently shared health diary entires by the client to a health care worker
