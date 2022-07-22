@@ -119,6 +119,8 @@ type Query interface {
 	CheckIfStaffHasUnresolvedServiceRequests(ctx context.Context, staffID string, serviceRequestType string) (bool, error)
 	GetNotification(ctx context.Context, notificationID string) (*domain.Notification, error)
 	GetClientsByFilterParams(ctx context.Context, facilityID *string, filterParams *dto.ClientFilterParamsInput) ([]*domain.ClientProfile, error)
+	SearchClientServiceRequests(ctx context.Context, searchParameter string, requestType string) ([]*domain.ServiceRequest, error)
+	SearchStaffServiceRequests(ctx context.Context, searchParameter string, requestType string) ([]*domain.ServiceRequest, error)
 }
 
 // Update represents all the update action interfaces
