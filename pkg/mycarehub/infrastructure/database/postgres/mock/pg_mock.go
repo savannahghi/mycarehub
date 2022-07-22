@@ -152,6 +152,8 @@ type PostgresMock struct {
 	MockCreateMetricFn                                   func(ctx context.Context, payload *domain.Metric) error
 	MockUpdateClientServiceRequestFn                     func(ctx context.Context, clientServiceRequest *domain.ServiceRequest, updateData map[string]interface{}) error
 	MockSaveFeedbackFn                                   func(ctx context.Context, feedback *domain.FeedbackResponse) error
+	MockSearchClientServiceRequestsFn                    func(ctx context.Context, searchParameter string, requestType string) ([]*domain.ServiceRequest, error)
+	MockSearchStaffServiceRequestsFn                     func(ctx context.Context, searchParameter string, requestType string) ([]*domain.ServiceRequest, error)
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -1030,6 +1032,46 @@ func NewPostgresMock() *PostgresMock {
 		MockCreateUserSurveyFn: func(ctx context.Context, userSurvey []*dto.UserSurveyInput) error {
 			return nil
 		},
+		MockSearchClientServiceRequestsFn: func(ctx context.Context, searchParameter string, requestType string) ([]*domain.ServiceRequest, error) {
+			UUID := uuid.New().String()
+			return []*domain.ServiceRequest{
+				{
+					ID:           uuid.NewString(),
+					Active:       true,
+					RequestType:  "TYPE",
+					Request:      "REQUEST",
+					Status:       "PENDING",
+					InProgressAt: nil,
+					ResolvedAt:   nil,
+					ClientID:     uuid.New().String(),
+					InProgressBy: &UUID,
+					ResolvedBy:   &UUID,
+					FacilityID:   uuid.New().String(),
+					Meta: map[string]interface{}{
+						"meta": "meta",
+					},
+				},
+			}, nil
+		},
+		MockSearchStaffServiceRequestsFn: func(ctx context.Context, searchParameter string, requestType string) ([]*domain.ServiceRequest, error) {
+			UUID := uuid.New().String()
+			return []*domain.ServiceRequest{
+				{
+					ID:           UUID,
+					Active:       true,
+					RequestType:  "TYPE",
+					Request:      "REQUEST",
+					Status:       "PENDING",
+					ResolvedAt:   nil,
+					StaffID:      uuid.New().String(),
+					InProgressBy: &UUID,
+					ResolvedBy:   &UUID,
+					Meta: map[string]interface{}{
+						"meta": "meta",
+					},
+				},
+			}, nil
+		},
 		MockUpdateClientServiceRequestFn: func(ctx context.Context, clientServiceRequest *domain.ServiceRequest, updateData map[string]interface{}) error {
 			return nil
 		},
@@ -1690,4 +1732,14 @@ func (gm *PostgresMock) UpdateClientServiceRequest(ctx context.Context, clientSe
 // SaveFeedback mocks the implementation of saving feedback into the database
 func (gm *PostgresMock) SaveFeedback(ctx context.Context, feedback *domain.FeedbackResponse) error {
 	return gm.MockSaveFeedbackFn(ctx, feedback)
+}
+
+// SearchClientServiceRequests mocks the implementation of searching client service requests
+func (gm *PostgresMock) SearchClientServiceRequests(ctx context.Context, searchParameter string, requestType string) ([]*domain.ServiceRequest, error) {
+	return gm.MockSearchClientServiceRequestsFn(ctx, searchParameter, requestType)
+}
+
+// SearchStaffServiceRequests mocks the implementation of searching client service requests
+func (gm *PostgresMock) SearchStaffServiceRequests(ctx context.Context, searchParameter string, requesType string) ([]*domain.ServiceRequest, error) {
+	return gm.MockSearchStaffServiceRequestsFn(ctx, searchParameter, requesType)
 }

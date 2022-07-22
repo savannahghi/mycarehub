@@ -1664,3 +1664,89 @@ func TestUseCasesServiceRequestImpl_VerifyStaffPinResetServiceRequest(t *testing
 		})
 	}
 }
+
+func TestUseCasesServiceRequestImpl_SearchServiceRequests(t *testing.T) {
+	ctx := context.Background()
+
+	fakeDB := pgMock.NewPostgresMock()
+	fakeExtension := extensionMock.NewFakeExtension()
+	fakeUser := userMock.NewUserUseCaseMock()
+	_ = mock.NewServiceRequestUseCaseMock()
+	fakeNotification := notificationMock.NewServiceNotificationMock()
+	u := servicerequest.NewUseCaseServiceRequestImpl(fakeDB, fakeDB, fakeDB, fakeExtension, fakeUser, fakeNotification)
+
+	type args struct {
+		ctx         context.Context
+		searchTerm  string
+		flavour     feedlib.Flavour
+		requestType string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    []*domain.ServiceRequest
+		wantErr bool
+	}{
+		{
+			name: "Happy Case: Search client service requests",
+			args: args{
+				ctx:         ctx,
+				flavour:     feedlib.FlavourConsumer,
+				searchTerm:  "PENDING",
+				requestType: "RED_FLAG",
+			},
+			wantErr: false,
+		},
+		{
+			name: "Happy Case: Search staff service requests",
+			args: args{
+				ctx:         ctx,
+				flavour:     feedlib.FlavourPro,
+				searchTerm:  "PENDING",
+				requestType: "RED_FLAG",
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad Case: Unable to search service requests",
+			args: args{
+				ctx:        ctx,
+				flavour:    feedlib.FlavourConsumer,
+				searchTerm: "PENDING",
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad Case: Invalid flavour",
+			args: args{
+				ctx:        ctx,
+				flavour:    "test",
+				searchTerm: "PENDING",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "Sad Case: Unable to search service requests" {
+				fakeDB.MockSearchClientServiceRequestsFn = func(ctx context.Context, searchParameter string, requestType string) ([]*domain.ServiceRequest, error) {
+					return nil, fmt.Errorf("failed to search service requests")
+				}
+			}
+			if tt.name == "Sad Case: Invalid flavour" {
+				fakeDB.MockSearchClientServiceRequestsFn = func(ctx context.Context, searchParameter string, requestType string) ([]*domain.ServiceRequest, error) {
+					return nil, fmt.Errorf("failed to search service requests")
+				}
+			}
+			got, err := u.SearchServiceRequests(tt.args.ctx, tt.args.searchTerm, tt.args.flavour, tt.args.requestType)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCasesServiceRequestImpl.SearchServiceRequests() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected value, got %v", got)
+				return
+			}
+		})
+	}
+}

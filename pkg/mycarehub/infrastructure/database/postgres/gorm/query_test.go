@@ -4258,3 +4258,99 @@ func TestPGInstance_GetClientsByFilterParams(t *testing.T) {
 		})
 	}
 }
+
+func TestPGInstance_SearchClientServiceRequests(t *testing.T) {
+	ctx := context.Background()
+
+	type args struct {
+		ctx             context.Context
+		searchParameter string
+		requestType     string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    []*gorm.ClientServiceRequest
+		wantErr bool
+	}{
+		{
+			name: "Happy case: search client service requests",
+			args: args{
+				ctx:             ctx,
+				searchParameter: "PENDING",
+				requestType:     "RED_FLAG",
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: invalid search client service requests",
+			args: args{
+				ctx:             ctx,
+				searchParameter: "PENDING",
+				requestType:     gofakeit.HipsterParagraph(1, 10, 200, ""),
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := testingDB.SearchClientServiceRequests(tt.args.ctx, tt.args.searchParameter, tt.args.requestType)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.SearchClientServiceRequests() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected value, got %v", got)
+				return
+			}
+		})
+	}
+}
+
+func TestPGInstance_SearchStaffServiceRequests(t *testing.T) {
+	ctx := context.Background()
+
+	type args struct {
+		ctx             context.Context
+		searchParameter string
+		requestType     string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    []*gorm.StaffServiceRequest
+		wantErr bool
+	}{
+		{
+			name: "Happy case: search staff service requests",
+			args: args{
+				ctx:             ctx,
+				searchParameter: "PENDING",
+				requestType:     "STAFF_PIN_RESET",
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: invalid search staff service requests",
+			args: args{
+				ctx:             ctx,
+				searchParameter: "PENDING",
+				requestType:     gofakeit.HipsterParagraph(1, 10, 200, ""),
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := testingDB.SearchStaffServiceRequests(tt.args.ctx, tt.args.searchParameter, tt.args.requestType)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.SearchStaffServiceRequests() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected value, got %v", got)
+				return
+			}
+		})
+	}
+}

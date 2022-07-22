@@ -2914,17 +2914,6 @@ func TestMyCareHubDb_GetServiceRequests(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "Sad Case - Fail to get user profile",
-			args: args{
-				ctx:           context.Background(),
-				requestType:   &requesttype,
-				requestStatus: new(string),
-				facilityID:    facilityID,
-				flavour:       feedlib.FlavourPro,
-			},
-			wantErr: true,
-		},
-		{
 			name: "Sad Case - Fail to get user profile by staff ID",
 			args: args{
 				ctx:           context.Background(),
@@ -2991,12 +2980,6 @@ func TestMyCareHubDb_GetServiceRequests(t *testing.T) {
 			if tt.name == "Sad Case - Fail to get staff profile" {
 				fakeGorm.MockGetStaffProfileByStaffIDFn = func(ctx context.Context, staffID string) (*gorm.StaffProfile, error) {
 					return nil, fmt.Errorf("failed to get staff profile by staff ID")
-				}
-			}
-
-			if tt.name == "Sad Case - Fail to get user profile" {
-				fakeGorm.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID *string) (*gorm.User, error) {
-					return nil, fmt.Errorf("failed to get user profile")
 				}
 			}
 
@@ -5881,6 +5864,371 @@ func TestMyCareHubDb_GetClientsByFilterParams(t *testing.T) {
 			got, err := d.GetClientsByFilterParams(tt.args.ctx, tt.args.facilityID, tt.args.filterParams)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("MyCareHubDb.GetClientsByFilterParams() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected value, got %v", got)
+				return
+			}
+		})
+	}
+}
+
+func TestMyCareHubDb_SearchStaffServiceRequests(t *testing.T) {
+	ctx := context.Background()
+	var fakeGorm = gormMock.NewGormMock()
+	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+	type args struct {
+		ctx             context.Context
+		searchParameter string
+		requestType     string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    []*domain.ServiceRequest
+		wantErr bool
+	}{
+		{
+			name: "Happy case: search staff service requests",
+			args: args{
+				ctx:             ctx,
+				searchParameter: "PENDING",
+				requestType:     "PIN_RESET",
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: unable to search staff service requests",
+			args: args{
+				ctx:             ctx,
+				searchParameter: "PENDING",
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: unable to get staff profile by staff ID",
+			args: args{
+				ctx:             ctx,
+				searchParameter: "PENDING",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "Sad case: unable to search staff service requests" {
+				fakeGorm.MockSearchStaffServiceRequestsFn = func(ctx context.Context, searchParameter string, requestType string) ([]*gorm.StaffServiceRequest, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case: unable to get staff profile by staff ID" {
+				fakeGorm.MockSearchStaffServiceRequestsFn = func(ctx context.Context, searchParameter, requestType string) ([]*gorm.StaffServiceRequest, error) {
+					ID := uuid.New().String()
+					return []*gorm.StaffServiceRequest{
+						{
+							ID:          &ID,
+							Active:      true,
+							RequestType: "TEST",
+							Request:     "STAFF_PIN_RESET",
+							Status:      "PENDING",
+							ResolvedAt:  &time.Time{},
+							StaffID:     ID,
+						},
+					}, nil
+				}
+				fakeGorm.MockGetStaffProfileByStaffIDFn = func(ctx context.Context, staffID string) (*gorm.StaffProfile, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+			got, err := d.SearchStaffServiceRequests(tt.args.ctx, tt.args.searchParameter, tt.args.requestType)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.SearchStaffServiceRequests() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected value, got %v", got)
+				return
+			}
+		})
+	}
+}
+
+func TestMyCareHubDb_SearchClientServiceRequests(t *testing.T) {
+	ctx := context.Background()
+	var fakeGorm = gormMock.NewGormMock()
+	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+	type args struct {
+		ctx             context.Context
+		searchParameter string
+		requestType     string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    []*domain.ServiceRequest
+		wantErr bool
+	}{
+		{
+			name: "Happy case: search client service requests",
+			args: args{
+				ctx:             ctx,
+				searchParameter: "PENDING",
+				requestType:     "RED_FLAG",
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: unable to search client service requests",
+			args: args{
+				ctx:             ctx,
+				searchParameter: "PENDING",
+				requestType:     "RED_FLAG",
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: unable to get client profile by client id",
+			args: args{
+				ctx:             ctx,
+				searchParameter: "PENDING",
+				requestType:     "RED_FLAG",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "Sad case: unable to search client service requests" {
+				fakeGorm.MockSearchClientServiceRequestsFn = func(ctx context.Context, searchParameter string, requestType string) ([]*gorm.ClientServiceRequest, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case: unable to get client profile by client id" {
+				fakeGorm.MockSearchClientServiceRequestsFn = func(ctx context.Context, searchParameter, requestType string) ([]*gorm.ClientServiceRequest, error) {
+					ID := uuid.New().String()
+					return []*gorm.ClientServiceRequest{
+						{
+							ID:          &ID,
+							Active:      true,
+							RequestType: "RED_FLAG",
+							Request:     "test",
+							Status:      "PENDING",
+							ClientID:    ID,
+						},
+					}, nil
+				}
+				fakeGorm.MockGetClientProfileByClientIDFn = func(ctx context.Context, clientID string) (*gorm.Client, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+			got, err := d.SearchClientServiceRequests(tt.args.ctx, tt.args.searchParameter, tt.args.requestType)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.SearchClientServiceRequests() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected value, got %v", got)
+				return
+			}
+		})
+	}
+}
+
+func TestMyCareHubDb_ReturnClientsServiceRequests(t *testing.T) {
+	ctx := context.Background()
+
+	var fakeGorm = gormMock.NewGormMock()
+	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+	ID := uuid.New().String()
+	meta := map[string]interface{}{
+		"test": "test",
+	}
+	validjsonMeta, err := json.Marshal(meta)
+	if err != nil {
+		t.Errorf("an error occurred: %v", err)
+		return
+	}
+
+	type args struct {
+		ctx                   context.Context
+		clientServiceRequests []*gorm.ClientServiceRequest
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    []*domain.ServiceRequest
+		wantErr bool
+	}{
+		{
+			name: "Happy case: return clients service requests",
+			args: args{
+				ctx: ctx,
+				clientServiceRequests: []*gorm.ClientServiceRequest{
+					{
+						ID:           &ID,
+						Active:       true,
+						RequestType:  "RED_FLAG",
+						Request:      "test",
+						Status:       "PENDING",
+						Meta:         string(validjsonMeta),
+						ResolvedByID: &ID,
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: unable to get client profile by client id",
+			args: args{
+				ctx: ctx,
+				clientServiceRequests: []*gorm.ClientServiceRequest{
+					{
+						ID:          &ID,
+						Active:      true,
+						RequestType: "RED_FLAG",
+						Request:     "test",
+						Status:      "PENDING",
+						Meta:        string(validjsonMeta),
+					},
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "Sad case: unable to get client profile by client id" {
+				fakeGorm.MockGetClientProfileByClientIDFn = func(ctx context.Context, clientID string) (*gorm.Client, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+			got, err := d.ReturnClientsServiceRequests(tt.args.ctx, tt.args.clientServiceRequests)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.ReturnClientsServiceRequests() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected value, got %v", got)
+				return
+			}
+		})
+	}
+}
+
+func TestMyCareHubDb_ReturnStaffServiceRequests(t *testing.T) {
+	ctx := context.Background()
+
+	var fakeGorm = gormMock.NewGormMock()
+	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+	ID := uuid.New().String()
+	meta := map[string]interface{}{
+		"test": "test",
+	}
+	validjsonMeta, err := json.Marshal(meta)
+	if err != nil {
+		t.Errorf("an error occurred: %v", err)
+		return
+	}
+
+	invalidjsonMeta, err := json.Marshal("invalid json")
+	if err != nil {
+		t.Errorf("an error occurred: %v", err)
+		return
+	}
+
+	type args struct {
+		ctx                  context.Context
+		staffServiceRequests []*gorm.StaffServiceRequest
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    []*domain.ServiceRequest
+		wantErr bool
+	}{
+		{
+			name: "Happy case: return staff service requests",
+			args: args{
+				ctx: ctx,
+				staffServiceRequests: []*gorm.StaffServiceRequest{
+					{
+						ID:           &ID,
+						Active:       true,
+						RequestType:  "RED_FLAG",
+						Request:      "test",
+						Status:       "PENDING",
+						Meta:         string(validjsonMeta),
+						ResolvedByID: &ID,
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: unable to get staff profile by staff ID",
+			args: args{
+				ctx: ctx,
+				staffServiceRequests: []*gorm.StaffServiceRequest{
+					{
+						ID:          &ID,
+						Active:      true,
+						RequestType: "RED_FLAG",
+						Request:     "test",
+						Status:      "PENDING",
+						Meta:        string(invalidjsonMeta),
+					},
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: unable to get user profile by staff ID",
+			args: args{
+				ctx: ctx,
+				staffServiceRequests: []*gorm.StaffServiceRequest{
+					{
+						ID:           &ID,
+						Active:       true,
+						RequestType:  "RED_FLAG",
+						Request:      "test",
+						Status:       "PENDING",
+						ResolvedByID: &ID,
+						Meta:         string(validjsonMeta),
+					},
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "Sad case: unable to get staff profile by staff ID" {
+				fakeGorm.MockGetStaffProfileByStaffIDFn = func(ctx context.Context, staffID string) (*gorm.StaffProfile, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case: unable to get user profile by staff ID" {
+				fakeGorm.MockGetStaffServiceRequestsFn = func(ctx context.Context, requestType, requestStatus *string, facilityID string) ([]*gorm.StaffServiceRequest, error) {
+					return []*gorm.StaffServiceRequest{
+						{
+							ID:           &ID,
+							Active:       true,
+							ResolvedByID: &ID,
+						},
+					}, fmt.Errorf("an error occurred")
+				}
+				fakeGorm.MockGetUserProfileByStaffIDFn = func(ctx context.Context, staffID string) (*gorm.User, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+			got, err := d.ReturnStaffServiceRequests(tt.args.ctx, tt.args.staffServiceRequests)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.ReturnStaffServiceRequests() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !tt.wantErr && got == nil {

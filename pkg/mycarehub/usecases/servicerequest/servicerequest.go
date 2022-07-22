@@ -52,6 +52,7 @@ type IGetServiceRequests interface {
 	GetServiceRequests(ctx context.Context, requestType, requestStatus *string, facilityID string, flavour feedlib.Flavour) ([]*domain.ServiceRequest, error)
 	GetServiceRequestsForKenyaEMR(ctx context.Context, payload *dto.ServiceRequestPayload) (*dto.RedFlagServiceRequestResponse, error)
 	GetPendingServiceRequestsCount(ctx context.Context, facilityID string) (*domain.ServiceRequestsCountResponse, error)
+	SearchServiceRequests(ctx context.Context, searchTerm string, flavour feedlib.Flavour, requestType string) ([]*domain.ServiceRequest, error)
 }
 
 // IResolveServiceRequest is an interface that holds the method signature for resolving a service request
@@ -646,5 +647,19 @@ func (u *UseCasesServiceRequestImpl) VerifyServiceRequestResponse(
 
 	default:
 		return false, fmt.Errorf("unknown state provided")
+	}
+}
+
+// SearchServiceRequests searches for service requests based on the provided search term. Can be username, phone or request type.
+func (u *UseCasesServiceRequestImpl) SearchServiceRequests(ctx context.Context, searchTerm string, flavour feedlib.Flavour, requestType string) ([]*domain.ServiceRequest, error) {
+	switch flavour {
+	case feedlib.FlavourConsumer:
+		return u.Query.SearchClientServiceRequests(ctx, searchTerm, requestType)
+
+	case feedlib.FlavourPro:
+		return u.Query.SearchStaffServiceRequests(ctx, searchTerm, requestType)
+
+	default:
+		return nil, fmt.Errorf("unknown flavour provided")
 	}
 }
