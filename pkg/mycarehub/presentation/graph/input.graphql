@@ -109,6 +109,10 @@ input ScreeningToolQuestionResponseInput {
   clientID: String!
   questionID: String!
   response: String!
+	toolType: ScreeningToolType!
+	responseType: ScreeningToolResponseType!
+	responseCategory: ScreeningToolResponseCategory!
+	questionSequence: Int!      
 }
 
 input StaffRegistrationInput {
