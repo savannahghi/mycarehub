@@ -4807,6 +4807,10 @@ input ScreeningToolQuestionResponseInput {
   clientID: String!
   questionID: String!
   response: String!
+	toolType: ScreeningToolType!
+	responseType: ScreeningToolResponseType!
+	responseCategory: ScreeningToolResponseCategory!
+	questionSequence: Int!      
 }
 
 input StaffRegistrationInput {
@@ -31588,6 +31592,38 @@ func (ec *executionContext) unmarshalInputScreeningToolQuestionResponseInput(ctx
 			if err != nil {
 				return it, err
 			}
+		case "toolType":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("toolType"))
+			it.ToolType, err = ec.unmarshalNScreeningToolType2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐScreeningToolType(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "responseType":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("responseType"))
+			it.ResponseType, err = ec.unmarshalNScreeningToolResponseType2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐScreeningToolResponseType(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "responseCategory":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("responseCategory"))
+			it.ResponseCategory, err = ec.unmarshalNScreeningToolResponseCategory2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐScreeningToolResponseCategory(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "questionSequence":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("questionSequence"))
+			it.QuestionSequence, err = ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		}
 	}
 
@@ -38438,6 +38474,16 @@ func (ec *executionContext) marshalNScreeningToolResponse2ᚖgithubᚗcomᚋsava
 	return ec._ScreeningToolResponse(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalNScreeningToolResponseCategory2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐScreeningToolResponseCategory(ctx context.Context, v interface{}) (enums.ScreeningToolResponseCategory, error) {
+	var res enums.ScreeningToolResponseCategory
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNScreeningToolResponseCategory2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐScreeningToolResponseCategory(ctx context.Context, sel ast.SelectionSet, v enums.ScreeningToolResponseCategory) graphql.Marshaler {
+	return v
+}
+
 func (ec *executionContext) marshalNScreeningToolResponsePayload2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐScreeningToolResponsePayload(ctx context.Context, sel ast.SelectionSet, v domain.ScreeningToolResponsePayload) graphql.Marshaler {
 	return ec._ScreeningToolResponsePayload(ctx, sel, &v)
 }
@@ -38450,6 +38496,16 @@ func (ec *executionContext) marshalNScreeningToolResponsePayload2ᚖgithubᚗcom
 		return graphql.Null
 	}
 	return ec._ScreeningToolResponsePayload(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNScreeningToolResponseType2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐScreeningToolResponseType(ctx context.Context, v interface{}) (enums.ScreeningToolResponseType, error) {
+	var res enums.ScreeningToolResponseType
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNScreeningToolResponseType2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐScreeningToolResponseType(ctx context.Context, sel ast.SelectionSet, v enums.ScreeningToolResponseType) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) unmarshalNScreeningToolType2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐScreeningToolType(ctx context.Context, v interface{}) (enums.ScreeningToolType, error) {

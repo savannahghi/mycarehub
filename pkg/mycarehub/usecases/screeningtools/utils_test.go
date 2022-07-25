@@ -1,358 +1,410 @@
 package screeningtools
 
 import (
-	"reflect"
-	"strconv"
+	"context"
 	"testing"
 
 	"github.com/brianvoe/gofakeit"
 	"github.com/google/uuid"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 )
 
-var (
-	questionMeta = map[string]interface{}{
-		"violence_code": "GBV-EV",
-	}
-	gbvMetaTemplate = "The GBV code is " + questionMeta["violence_code"].(string) + ". "
-
-	callClientString                    = "Consider calling Client for further discussion."
-	repeatScreeningString               = "Repeat screening for client on subsequent visits."
-	wantPositiveTBassessment            = "TB assessment: greater than or equal to 3 yes responses indicates positive TB cases. " + callClientString
-	wantNegativeTBassessment            = "TB assessment: all no responses indicates no TB cases. " + repeatScreeningString
-	wantPositiveGBVassessment           = "Violence assessment: greater than or equal to 1 yes responses indicates positive Violence cases. " + gbvMetaTemplate + callClientString
-	wantNegativeGBVassessment           = "Violence assessment: all no responses indicates no GBV cases. " + repeatScreeningString
-	wantPositiveContraceptiveAssessment = "Contraceptive assessment: " + "yes response to question number 4. " + callClientString
-	wantPositiveAlcoholAssessment       = "Alcohol/Substance Assessment: greater than or equal to 3 yes responses indicates positive alcohol/substance cases. " + callClientString
-	wantNegativeAlcoholAssessment       = "Alcohol/Substance Assessment: all no responses indicates no alcohol/substance cases. " + repeatScreeningString
-)
-
-func Test_serviceRequestTemplate(t *testing.T) {
-	sequence := 1
-
-	gbvQuestionMeta := enums.ScreeningToolTypeGBV.String() + "_question_number_" + strconv.Itoa(sequence) + "_question_meta"
+func Test_validateResponses(t *testing.T) {
 	type args struct {
-		question  *domain.ScreeningToolQuestion
-		response  string
-		condition map[string]interface{}
+		ctx          context.Context
+		questions    []*domain.ScreeningToolQuestion
+		answersInput []*dto.ScreeningToolQuestionResponseInput
 	}
 	tests := []struct {
-		name string
-		args args
-		want string
+		name    string
+		args    args
+		wantErr bool
 	}{
 		{
-			name: "Test_serviceRequestTemplate:  yes count greater than or equal to 3 for TB_ASSESSMENT",
+			name: "happy case: valid input",
 			args: args{
-				question: &domain.ScreeningToolQuestion{
-					ToolType: enums.ScreeningToolTypeTB,
-					Sequence: sequence,
+				ctx: context.Background(),
+				questions: []*domain.ScreeningToolQuestion{
+					{
+						ID:       "1",
+						Question: "question",
+						ToolType: enums.ScreeningToolTypeTB,
+						ResponseChoices: map[string]interface{}{
+							"1": "response1",
+							"2": "response2",
+						},
+						ResponseType:     enums.ScreeningToolResponseTypeInteger,
+						ResponseCategory: enums.ScreeningToolResponseCategorySingleChoice,
+						Sequence:         0,
+						Meta:             map[string]interface{}{},
+						Active:           true,
+					},
 				},
-				response: "0",
-				condition: map[string]interface{}{
-					enums.ScreeningToolTypeTB.String() + "_yes_count": 3,
-					enums.ScreeningToolTypeTB.String() + "_no_count":  1,
-				},
-			},
-			want: wantPositiveTBassessment,
-		},
-		{
-			name: "Test_serviceRequestTemplate:  no count equal to len questions for TB_ASSESSMENT",
-			args: args{
-				question: &domain.ScreeningToolQuestion{
-					ToolType: enums.ScreeningToolTypeTB,
-					Sequence: sequence,
-				},
-				response: "1",
-				condition: map[string]interface{}{
-					enums.ScreeningToolTypeTB.String() + "_yes_count": 0,
-					enums.ScreeningToolTypeTB.String() + "_no_count":  4,
-				},
-			},
-			want: wantNegativeTBassessment,
-		},
-		{
-			name: "Test_serviceRequestTemplate:  yes count greater than 1 or equal to len questions for GBV_ASSESSMENT",
-			args: args{
-				question: &domain.ScreeningToolQuestion{
-					ToolType: enums.ScreeningToolTypeGBV,
-					Sequence: sequence,
-				},
-				response: "0",
-				condition: map[string]interface{}{
-					enums.ScreeningToolTypeGBV.String() + "_yes_count": 1,
-					enums.ScreeningToolTypeGBV.String() + "_no_count":  3,
-					gbvQuestionMeta: map[string]interface{}{
-						"violence_code": "GBV-EV",
+				answersInput: []*dto.ScreeningToolQuestionResponseInput{
+					{
+						ClientID:         uuid.NewString(),
+						QuestionID:       "1",
+						Response:         "1",
+						ToolType:         enums.ScreeningToolTypeTB,
+						ResponseType:     enums.ScreeningToolResponseTypeInteger,
+						ResponseCategory: enums.ScreeningToolResponseCategorySingleChoice,
+						QuestionSequence: 0,
 					},
 				},
 			},
-			want: wantPositiveGBVassessment,
+			wantErr: false,
 		},
 		{
-			name: "Test_serviceRequestTemplate:  no count equal to len questions for for GBV_ASSESSMENT",
+			name: "sad case: response out of range",
 			args: args{
-				question: &domain.ScreeningToolQuestion{
-					ToolType: enums.ScreeningToolTypeGBV,
-					Sequence: sequence,
+				ctx: context.Background(),
+				questions: []*domain.ScreeningToolQuestion{
+					{
+						ID:       "1",
+						Question: "question",
+						ToolType: enums.ScreeningToolTypeTB,
+						ResponseChoices: map[string]interface{}{
+							"1": "response1",
+							"2": "response2",
+						},
+						ResponseType:     enums.ScreeningToolResponseTypeInteger,
+						ResponseCategory: enums.ScreeningToolResponseCategorySingleChoice,
+						Sequence:         0,
+						Meta:             map[string]interface{}{},
+						Active:           true,
+					},
 				},
-				response: "1",
-				condition: map[string]interface{}{
-					enums.ScreeningToolTypeGBV.String() + "_yes_count": 0,
-					enums.ScreeningToolTypeGBV.String() + "_no_count":  4,
+				answersInput: []*dto.ScreeningToolQuestionResponseInput{
+					{
+						ClientID:         uuid.NewString(),
+						QuestionID:       "1",
+						Response:         "4",
+						ToolType:         enums.ScreeningToolTypeTB,
+						ResponseType:     enums.ScreeningToolResponseTypeInteger,
+						ResponseCategory: enums.ScreeningToolResponseCategorySingleChoice,
+						QuestionSequence: 0,
+					},
 				},
 			},
-			want: wantNegativeGBVassessment,
+			wantErr: true,
 		},
 		{
-			name: "Test_serviceRequestTemplate:  yes for question 4 in  CONTRACEPTIVE_ASSESSMENT",
+			name: "sad case: response type is invalid",
 			args: args{
-				question: &domain.ScreeningToolQuestion{
-					ToolType: enums.ScreeningToolTypeCUI,
-					Sequence: 3,
+				ctx: context.Background(),
+				questions: []*domain.ScreeningToolQuestion{
+					{
+						ID:       "1",
+						Question: "question",
+						ToolType: enums.ScreeningToolTypeTB,
+						ResponseChoices: map[string]interface{}{
+							"1": "response1",
+							"2": "response2",
+						},
+						ResponseType:     enums.ScreeningToolResponseTypeInteger,
+						ResponseCategory: enums.ScreeningToolResponseCategorySingleChoice,
+						Sequence:         0,
+						Meta:             map[string]interface{}{},
+						Active:           true,
+					},
 				},
-				response: "0",
-				condition: map[string]interface{}{
-					enums.ScreeningToolTypeCUI.String() + "_yes_count":              1,
-					enums.ScreeningToolTypeCUI.String() + "_no_count":               3,
-					enums.ScreeningToolTypeCUI.String() + "_question_number_" + "3": "yes",
+				answersInput: []*dto.ScreeningToolQuestionResponseInput{
+					{
+						ClientID:         uuid.NewString(),
+						QuestionID:       "1",
+						Response:         "invalid",
+						ToolType:         enums.ScreeningToolTypeTB,
+						ResponseType:     enums.ScreeningToolResponseTypeInteger,
+						ResponseCategory: enums.ScreeningToolResponseCategorySingleChoice,
+						QuestionSequence: 0,
+					},
 				},
 			},
-			want: wantPositiveContraceptiveAssessment,
-		},
-		{
-			name: "Test_serviceRequestTemplate:  yes count >=3  ALCOHOL_SUBSTANCE_ASSESSMENT",
-			args: args{
-				question: &domain.ScreeningToolQuestion{
-					ToolType: enums.ScreeningToolTypeAlcoholSubstanceAssessment,
-					Sequence: sequence,
-				},
-				response: "1",
-				condition: map[string]interface{}{
-					enums.ScreeningToolTypeAlcoholSubstanceAssessment.String() + "_yes_count": 3,
-					enums.ScreeningToolTypeAlcoholSubstanceAssessment.String() + "_no_count":  1,
-				},
-			},
-			want: wantPositiveAlcoholAssessment,
-		},
-		{
-			name: "Test_serviceRequestTemplate:  no count ==4 ALCOHOL_SUBSTANCE_ASSESSMENT",
-			args: args{
-				question: &domain.ScreeningToolQuestion{
-					ToolType: enums.ScreeningToolTypeAlcoholSubstanceAssessment,
-					Sequence: sequence,
-				},
-				response: "1",
-				condition: map[string]interface{}{
-					enums.ScreeningToolTypeAlcoholSubstanceAssessment.String() + "_yes_count": 0,
-					enums.ScreeningToolTypeAlcoholSubstanceAssessment.String() + "_no_count":  4,
-				},
-			},
-			want: wantNegativeAlcoholAssessment,
+			wantErr: true,
 		},
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := serviceRequestTemplate(tt.args.question, tt.args.response, tt.args.condition); got != tt.want {
-				t.Errorf("serviceRequestTemplate() = %v, want %v", got, tt.want)
+			if err := validateResponses(tt.args.ctx, tt.args.questions, tt.args.answersInput); (err != nil) != tt.wantErr {
+				t.Errorf("validateResponses() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
 }
 
-func Test_createServiceRequest(t *testing.T) {
-	sequence := 1
-	gbvQuestionMeta := enums.ScreeningToolTypeGBV.String() + "_question_number_" + strconv.Itoa(sequence) + "_question_meta"
-
-	wantRedFlagTBRequest := &domain.ServiceRequest{
-		RequestType: enums.ServiceRequestTypeScreeningToolsRedFlag.String(),
-		Request:     wantPositiveTBassessment,
-	}
-
-	wantRedFlagGBVAssessment := &domain.ServiceRequest{
-		RequestType: enums.ServiceRequestTypeScreeningToolsRedFlag.String(),
-		Request:     wantPositiveGBVassessment,
-	}
-
-	wantRedFlagAlcoholAssessment := &domain.ServiceRequest{
-		RequestType: enums.ServiceRequestTypeScreeningToolsRedFlag.String(),
-		Request:     wantPositiveAlcoholAssessment,
-	}
-
+func Test_generateServiceRequest(t *testing.T) {
+	id := uuid.NewString()
 	type args struct {
-		question      *domain.ScreeningToolQuestion
-		responseValue string
-		condition     map[string]interface{}
+		ctx           context.Context
+		clientProfile *domain.ClientProfile
+		answersInput  []*dto.ScreeningToolQuestionResponseInput
 	}
 	tests := []struct {
-		name string
-		args args
-		want *domain.ServiceRequest
+		name    string
+		args    args
+		wantErr bool
+		wantNil bool
 	}{
 		{
-			name: "Test_createServiceRequest:  yes count greater than or equal to 3 for TB_ASSESSMENT",
+			name: "happy case: generate tb service request",
 			args: args{
-				question: &domain.ScreeningToolQuestion{
-					ToolType: enums.ScreeningToolTypeTB,
-					Sequence: sequence,
+				ctx: context.Background(),
+				clientProfile: &domain.ClientProfile{
+					ID: &id,
+					User: &domain.User{
+						ID: &id, Name: gofakeit.Name(),
+					},
+					FacilityID: uuid.NewString(),
 				},
-				responseValue: "yes",
-				condition: map[string]interface{}{
-					enums.ScreeningToolTypeTB.String() + "_yes_count": 3,
-					enums.ScreeningToolTypeTB.String() + "_no_count":  1,
-				},
-			},
-			want: wantRedFlagTBRequest,
-		},
-		{
-			name: "Test_createServiceRequest:  no count equal to len questions for TB_ASSESSMENT",
-			args: args{
-				question: &domain.ScreeningToolQuestion{
-					ToolType: enums.ScreeningToolTypeTB,
-					Sequence: sequence,
-				},
-				responseValue: "no",
-				condition: map[string]interface{}{
-					enums.ScreeningToolTypeTB.String() + "_yes_count": 0,
-					enums.ScreeningToolTypeTB.String() + "_no_count":  4,
-				},
-			},
-			want: nil,
-		},
-		{
-			name: "Test_createServiceRequest:  yes count greater than or equal to 1 for GBV_ASSESSMENT",
-			args: args{
-				question: &domain.ScreeningToolQuestion{
-					ToolType: enums.ScreeningToolTypeGBV,
-					Sequence: sequence,
-				},
-				responseValue: "yes",
-				condition: map[string]interface{}{
-					enums.ScreeningToolTypeGBV.String() + "_yes_count": 1,
-					enums.ScreeningToolTypeGBV.String() + "_no_count":  3,
-					gbvQuestionMeta: map[string]interface{}{
-						"violence_code": "GBV-EV",
+				answersInput: []*dto.ScreeningToolQuestionResponseInput{
+					{
+						ClientID:         id,
+						QuestionID:       uuid.NewString(),
+						Response:         "1",
+						ToolType:         enums.ScreeningToolTypeTB,
+						ResponseType:     enums.ScreeningToolResponseTypeInteger,
+						ResponseCategory: enums.ScreeningToolResponseCategorySingleChoice,
+						QuestionSequence: 0,
+					},
+					{
+						ClientID:         id,
+						QuestionID:       uuid.NewString(),
+						Response:         "1",
+						ToolType:         enums.ScreeningToolTypeTB,
+						ResponseType:     enums.ScreeningToolResponseTypeInteger,
+						ResponseCategory: enums.ScreeningToolResponseCategorySingleChoice,
+						QuestionSequence: 1,
+					},
+					{
+						ClientID:         id,
+						QuestionID:       uuid.NewString(),
+						Response:         "1",
+						ToolType:         enums.ScreeningToolTypeTB,
+						ResponseType:     enums.ScreeningToolResponseTypeInteger,
+						ResponseCategory: enums.ScreeningToolResponseCategorySingleChoice,
+						QuestionSequence: 2,
 					},
 				},
 			},
-			want: wantRedFlagGBVAssessment,
+			wantErr: false,
+			wantNil: false,
 		},
 		{
-			name: "Test_createServiceRequest:  yes for question 4 in  CONTRACEPTIVE_ASSESSMENT",
+			name: "happy case: generate gbv service request",
 			args: args{
-				question: &domain.ScreeningToolQuestion{
-					ToolType: enums.ScreeningToolTypeCUI,
-					Sequence: sequence,
+				ctx: context.Background(),
+				clientProfile: &domain.ClientProfile{
+					ID: &id,
+					User: &domain.User{
+						ID: &id, Name: gofakeit.Name(),
+					},
+					FacilityID: uuid.NewString(),
 				},
-				responseValue: "yes",
-				condition: map[string]interface{}{
-					enums.ScreeningToolTypeCUI.String() + "_yes_count":              1,
-					enums.ScreeningToolTypeCUI.String() + "_no_count":               3,
-					enums.ScreeningToolTypeCUI.String() + "_question_number_" + "4": "yes",
+				answersInput: []*dto.ScreeningToolQuestionResponseInput{
+					{
+						ClientID:         id,
+						QuestionID:       uuid.NewString(),
+						Response:         "1",
+						ToolType:         enums.ScreeningToolTypeGBV,
+						ResponseType:     enums.ScreeningToolResponseTypeInteger,
+						ResponseCategory: enums.ScreeningToolResponseCategorySingleChoice,
+						QuestionSequence: 0,
+					},
 				},
 			},
-			want: nil,
+			wantErr: false,
+			wantNil: false,
 		},
 		{
-			name: "Test_createServiceRequest:  yes count >=3  ALCOHOL_SUBSTANCE_ASSESSMENT",
+			name: "happy case: generate alcohol and substance service request",
 			args: args{
-				question: &domain.ScreeningToolQuestion{
-					ToolType: enums.ScreeningToolTypeAlcoholSubstanceAssessment,
-					Sequence: sequence,
+				ctx: context.Background(),
+				clientProfile: &domain.ClientProfile{
+					ID: &id,
+					User: &domain.User{
+						ID: &id, Name: gofakeit.Name(),
+					},
+					FacilityID: uuid.NewString(),
 				},
-				responseValue: "yes",
-				condition: map[string]interface{}{
-					enums.ScreeningToolTypeAlcoholSubstanceAssessment.String() + "_yes_count": 3,
-					enums.ScreeningToolTypeAlcoholSubstanceAssessment.String() + "_no_count":  1,
+				answersInput: []*dto.ScreeningToolQuestionResponseInput{
+					{
+						ClientID:         id,
+						QuestionID:       uuid.NewString(),
+						Response:         "1",
+						ToolType:         enums.ScreeningToolTypeAlcoholSubstanceAssessment,
+						ResponseType:     enums.ScreeningToolResponseTypeInteger,
+						ResponseCategory: enums.ScreeningToolResponseCategorySingleChoice,
+						QuestionSequence: 0,
+					},
+					{
+						ClientID:         id,
+						QuestionID:       uuid.NewString(),
+						Response:         "1",
+						ToolType:         enums.ScreeningToolTypeAlcoholSubstanceAssessment,
+						ResponseType:     enums.ScreeningToolResponseTypeInteger,
+						ResponseCategory: enums.ScreeningToolResponseCategorySingleChoice,
+						QuestionSequence: 1,
+					},
+					{
+						ClientID:         id,
+						QuestionID:       uuid.NewString(),
+						Response:         "1",
+						ToolType:         enums.ScreeningToolTypeAlcoholSubstanceAssessment,
+						ResponseType:     enums.ScreeningToolResponseTypeInteger,
+						ResponseCategory: enums.ScreeningToolResponseCategorySingleChoice,
+						QuestionSequence: 2,
+					},
 				},
 			},
-			want: wantRedFlagAlcoholAssessment,
+			wantErr: false,
+			wantNil: false,
+		},
+		{
+			name: "happy case: generate contraceptive use service request",
+			args: args{
+				ctx: context.Background(),
+				clientProfile: &domain.ClientProfile{
+					ID: &id,
+					User: &domain.User{
+						ID: &id, Name: gofakeit.Name(),
+					},
+					FacilityID: uuid.NewString(),
+				},
+				answersInput: []*dto.ScreeningToolQuestionResponseInput{
+					{
+						ClientID:         id,
+						QuestionID:       uuid.NewString(),
+						Response:         "yes",
+						ToolType:         enums.ScreeningToolTypeCUI,
+						ResponseType:     enums.ScreeningToolResponseTypeText,
+						ResponseCategory: enums.ScreeningToolResponseCategorySingleChoice,
+						QuestionSequence: 3,
+					},
+				},
+			},
+			wantErr: false,
+			wantNil: false,
+		},
+		{
+			name: "sad case: invalid tool type",
+			args: args{
+				ctx: context.Background(),
+				clientProfile: &domain.ClientProfile{
+					ID: &id,
+					User: &domain.User{
+						ID: &id, Name: gofakeit.Name(),
+					},
+					FacilityID: uuid.NewString(),
+				},
+				answersInput: []*dto.ScreeningToolQuestionResponseInput{
+					{
+						ClientID:         id,
+						QuestionID:       uuid.NewString(),
+						Response:         "yes",
+						ToolType:         enums.ScreeningToolType(enums.ScreeningToolResponseType.String("invalid")),
+						ResponseType:     enums.ScreeningToolResponseTypeInteger,
+						ResponseCategory: enums.ScreeningToolResponseCategorySingleChoice,
+						QuestionSequence: 3,
+					},
+				},
+			},
+			wantErr: true,
+			wantNil: true,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := createServiceRequest(tt.args.question, tt.args.responseValue, tt.args.condition)
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("createServiceRequest() = %v, want %v", got, tt.want)
+			got, err := generateServiceRequest(tt.args.ctx, tt.args.clientProfile, tt.args.answersInput)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("generateServiceRequest() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if (got == nil) != tt.wantNil {
+				t.Errorf("generateServiceRequest() = %v, wantNil %v", got, tt.wantNil)
 			}
 		})
 	}
 }
 
-func Test_addServiceRequestCreateConditions(t *testing.T) {
-	question := &domain.ScreeningToolQuestion{
-		ID:       uuid.New().String(),
-		Question: gofakeit.Sentence(1),
-		ToolType: enums.ScreeningToolTypeTB,
-		ResponseChoices: map[string]interface{}{
-			"0": "Yes",
-			"1": "No",
-		},
-		ResponseType:     enums.ScreeningToolResponseTypeInteger,
-		ResponseCategory: enums.ScreeningToolResponseCategorySingleChoice,
-		Sequence:         3,
-		Meta:             map[string]interface{}{},
-		Active:           false,
-	}
-
-	singleChoiceQuestionKey := question.ToolType.String() + "_question_number_" + strconv.Itoa(question.Sequence)
-
-	sequence := question.Sequence
-	tbQuestionMeta := enums.ScreeningToolTypeTB.String() + "_question_number_" + strconv.Itoa(sequence) + "_question_meta"
-
-	wantYesCount := map[string]interface{}{
-		enums.ScreeningToolTypeTB.String() + "_yes_count": 1,
-		enums.ScreeningToolTypeTB.String() + "_no_count":  nil,
-		singleChoiceQuestionKey:                           "0",
-		tbQuestionMeta:                                    map[string]interface{}{},
-	}
-	wantNoCount := map[string]interface{}{
-		enums.ScreeningToolTypeTB.String() + "_yes_count": nil,
-		enums.ScreeningToolTypeTB.String() + "_no_count":  1,
-		singleChoiceQuestionKey:                           "1",
-		tbQuestionMeta:                                    map[string]interface{}{},
-	}
-
+func Test_calculateToolScore(t *testing.T) {
+	id := uuid.NewString()
 	type args struct {
-		question  *domain.ScreeningToolQuestion
-		response  string
-		condition map[string]interface{}
+		ctx          context.Context
+		answersInput []*dto.ScreeningToolQuestionResponseInput
 	}
 	tests := []struct {
-		name string
-		args args
-		want map[string]interface{}
+		name    string
+		args    args
+		want    int
+		wantErr bool
 	}{
 		{
-			name: "Test_addServiceRequestCreateConditions:  add yes counts",
+			name: "happy case",
 			args: args{
-				question: question,
-				response: "0",
-				condition: map[string]interface{}{
-					enums.ScreeningToolTypeTB.String() + "_yes_count": nil,
-					enums.ScreeningToolTypeTB.String() + "_no_count":  nil,
+				ctx: context.Background(),
+				answersInput: []*dto.ScreeningToolQuestionResponseInput{
+					{
+						ClientID:         id,
+						QuestionID:       uuid.NewString(),
+						Response:         "1",
+						ToolType:         enums.ScreeningToolTypeAlcoholSubstanceAssessment,
+						ResponseType:     enums.ScreeningToolResponseTypeInteger,
+						ResponseCategory: enums.ScreeningToolResponseCategorySingleChoice,
+						QuestionSequence: 0,
+					},
+					{
+						ClientID:         id,
+						QuestionID:       uuid.NewString(),
+						Response:         "1",
+						ToolType:         enums.ScreeningToolTypeAlcoholSubstanceAssessment,
+						ResponseType:     enums.ScreeningToolResponseTypeInteger,
+						ResponseCategory: enums.ScreeningToolResponseCategorySingleChoice,
+						QuestionSequence: 1,
+					},
+					{
+						ClientID:         id,
+						QuestionID:       uuid.NewString(),
+						Response:         "1",
+						ToolType:         enums.ScreeningToolTypeAlcoholSubstanceAssessment,
+						ResponseType:     enums.ScreeningToolResponseTypeInteger,
+						ResponseCategory: enums.ScreeningToolResponseCategorySingleChoice,
+						QuestionSequence: 2,
+					},
 				},
 			},
-			want: wantYesCount,
+			want:    3,
+			wantErr: false,
 		},
 		{
-			name: "Test_addServiceRequestCreateConditions:  add no counts",
+			name: "sad case: non response type integer passed",
 			args: args{
-				question: question,
-				response: "1",
-				condition: map[string]interface{}{
-					enums.ScreeningToolTypeTB.String() + "_yes_count": nil,
-					enums.ScreeningToolTypeTB.String() + "_no_count":  nil,
+				answersInput: []*dto.ScreeningToolQuestionResponseInput{
+					{
+						ClientID:         id,
+						QuestionID:       uuid.NewString(),
+						Response:         "yes",
+						ToolType:         enums.ScreeningToolTypeCUI,
+						ResponseType:     enums.ScreeningToolResponseTypeText,
+						ResponseCategory: enums.ScreeningToolResponseCategorySingleChoice,
+						QuestionSequence: 3,
+					},
 				},
 			},
-			want: wantNoCount,
+			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := addCondition(tt.args.question, tt.args.response, tt.args.condition); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("addServiceRequestCreateConditions() = %v, want %v", got, tt.want)
+			got, err := calculateToolScore(tt.args.ctx, tt.args.answersInput)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("calculateToolScore() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("calculateToolScore() = %v, want %v", got, tt.want)
 			}
 		})
 	}

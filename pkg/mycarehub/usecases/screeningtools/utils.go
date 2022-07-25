@@ -1,159 +1,112 @@
 package screeningtools
 
 import (
+	"context"
+	"fmt"
 	"strconv"
 	"strings"
 
+	"github.com/savannahghi/feedlib"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/utils"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 )
 
-func addCondition(question *domain.ScreeningToolQuestion, response string, condition map[string]interface{}) map[string]interface{} {
-	var (
-		responseValue string
-	)
+func validateResponses(ctx context.Context, questions []*domain.ScreeningToolQuestion, answersInput []*dto.ScreeningToolQuestionResponseInput) error {
+	questionMap := make(map[string]*domain.ScreeningToolQuestion)
 
-	// saves the response value for a given question in the condition
-	responseKey := question.ToolType.String() + "_question_number_" + strconv.Itoa(question.Sequence)
-
-	condition[responseKey] = response
-
-	// saves extra meta data for a given question
-	condition[responseKey+"_question_meta"] = question.Meta
-
-	switch question.ResponseCategory {
-	case enums.ScreeningToolResponseCategorySingleChoice:
-		responseValue = question.ResponseChoices[response].(string)
-		responseTrimmedValue := strings.TrimSpace(strings.ToLower(responseValue))
-		// saves the count of responses for a given question
-		// this is for  `ResponseCategory` `SINGLE_CHOICE`
-		// a user is expected to select only one response from `ResponseChoices`
-		// for each set of question answered for a given `ToolType`
-		// the count is incremented for each response give,
-		// eg. we record how many yes responses were given for a given question
-		// of tool type `VIOLENCE_ASSESSMENT`
-		//
-		// the key will be `VIOLENCE_ASSESSMENT_yes_count`
-		responseCountKey := question.ToolType.String() + "_" + responseTrimmedValue + "_count"
-		condition[responseCountKey] = utils.InterfaceToInt(condition[responseCountKey]) + 1
+	for _, question := range questions {
+		questionMap[question.ID] = question
 	}
-	/*
-				The condition would resemble this:
-				{
-						"VIOLENCE_ASSESSMENT_question_number_0": "yes", // response value
-						"VIOLENCE_ASSESSMENT_question_number_0_question_meta": {
-							"helper_text": "Emotional violence Assessment",
-							"violence_type": "EMOTIONAL",
-							"violence_code": "GBV-EV",
-						},// meta data of question number 0
-						"VIOLENCE_ASSESSMENT_yes_count": 1, // number of times question of tool type VIOLENCE_ASSESSMENT has been answered yes
-		             	"VIOLENCE_ASSESSMENT_no_count": 0, // number of times question of tool type VIOLENCE_ASSESSMENT has been answered no
-					}
-	*/
-	return condition
-}
 
-func createServiceRequest(question *domain.ScreeningToolQuestion, response string, condition map[string]interface{}) *domain.ServiceRequest {
-	serviceRequestTemplate := serviceRequestTemplate(question, response, condition)
-
-	yesCount := utils.InterfaceToInt(condition[question.ToolType.String()+"_"+"yes"+"_count"])
-	noCount := utils.InterfaceToInt(condition[question.ToolType.String()+"_"+"no"+"_count"])
-
-	switch question.ToolType {
-	case enums.ScreeningToolTypeTB:
-		if yesCount >= 3 {
-			condition[question.ToolType.String()+"_score"] = yesCount
-			condition[question.ToolType.String()+"_screening_tool_name"] = "TB"
-			return &domain.ServiceRequest{
-				RequestType: enums.ServiceRequestTypeScreeningToolsRedFlag.String(),
-				Request:     serviceRequestTemplate,
-			}
+	for _, v := range answersInput {
+		if err := questionMap[v.QuestionID].ValidateResponseQUestionType(v.Response, v.ResponseType); err != nil {
+			return err
 		}
-		if noCount == 4 {
-			// 	//TODO:  TPT and repeat screening on subsequent visits
-			return nil
-		}
-	case enums.ScreeningToolTypeGBV:
-		if yesCount >= 1 {
-			condition[question.ToolType.String()+"_score"] = yesCount
-			condition[question.ToolType.String()+"_screening_tool_name"] = "GBV"
-			return &domain.ServiceRequest{
-				RequestType: enums.ServiceRequestTypeScreeningToolsRedFlag.String(),
-				Request:     serviceRequestTemplate,
-			}
-		}
-	case enums.ScreeningToolTypeCUI:
-		toolTypeResponse := enums.ScreeningToolTypeCUI.String() + "_question_number_" + "3"
-		// TODO:  send a notification to HCW in the client’s facility for discussion with the clinician during the next visit
-		if condition[toolTypeResponse] == "yes" {
-			return nil
-		}
-	case enums.ScreeningToolTypeAlcoholSubstanceAssessment:
-		if yesCount >= 3 {
-			condition[question.ToolType.String()+"_score"] = yesCount
-			condition[question.ToolType.String()+"_screening_tool_name"] = "Alcohol and Substance"
-			return &domain.ServiceRequest{
-				RequestType: enums.ServiceRequestTypeScreeningToolsRedFlag.String(),
-				Request:     serviceRequestTemplate,
-			}
+		if err := questionMap[v.QuestionID].ValidateResponseQuestionCategory(v.Response, v.ResponseCategory); err != nil {
+			return err
 		}
 	}
+
 	return nil
 }
 
-func serviceRequestTemplate(question *domain.ScreeningToolQuestion, response string, condition map[string]interface{}) string {
+func generateServiceRequest(ctx context.Context, clientProfile *domain.ClientProfile, answersInput []*dto.ScreeningToolQuestionResponseInput) (*dto.ServiceRequestInput, error) {
 	var (
-		requestTemplate string
-		gbvMetaTemplate string
+		score   int
+		request string
 	)
+	toolType := answersInput[0].ToolType
 
-	questionMeta := getQuestionMeta(question, condition)
+	serviceRequest := &dto.ServiceRequestInput{
+		Active:      true,
+		RequestType: enums.ServiceRequestTypeScreeningToolsRedFlag.String(),
+		Status:      enums.ServiceRequestStatusPending.String(),
+		Request:     request,
+		ClientID:    *clientProfile.ID,
+		FacilityID:  clientProfile.FacilityID,
+		ClientName:  &clientProfile.User.Name,
+		Flavour:     feedlib.FlavourConsumer,
+		Meta: map[string]interface{}{
+			"question_id":   answersInput[0].QuestionID,
+			"question_type": toolType,
+			"score":         score,
+		},
+	}
 
-	callClientString := "Consider calling Client for further discussion."
-	repeatScreeningString := "Repeat screening for client on subsequent visits."
-
-	yesCount := utils.InterfaceToInt(condition[question.ToolType.String()+"_"+"yes"+"_count"])
-	noCount := utils.InterfaceToInt(condition[question.ToolType.String()+"_"+"no"+"_count"])
-
-	switch question.ToolType {
+	switch toolType {
 	case enums.ScreeningToolTypeTB:
-		if yesCount >= 3 {
-			requestTemplate = "TB assessment: greater than or equal to 3 yes responses indicates positive TB cases. " + callClientString
+		score, err := calculateToolScore(ctx, answersInput)
+		if err != nil {
+			return nil, err
 		}
-		if noCount == 4 {
-			requestTemplate = "TB assessment: all no responses indicates no TB cases. " + repeatScreeningString
+		if score >= 3 {
+			serviceRequest.Request = fmt.Sprintf("%s has a score of %v in  the TB Assessment Tool. Consider reaching out to them", clientProfile.User.Name, score)
+			serviceRequest.Meta["score"] = score
+			return serviceRequest, nil
 		}
 	case enums.ScreeningToolTypeGBV:
-		gbvMetaTemplate = "The GBV code is " + utils.InterfaceToString(questionMeta["violence_code"]) + ". "
-		if yesCount >= 1 {
-			requestTemplate = "Violence assessment: greater than or equal to 1 yes responses indicates positive Violence cases. " + gbvMetaTemplate + callClientString
+		score, err := calculateToolScore(ctx, answersInput)
+		if err != nil {
+			return nil, err
 		}
-		if noCount == 4 {
-			requestTemplate = "Violence assessment: all no responses indicates no GBV cases. " + repeatScreeningString
-		}
-	case enums.ScreeningToolTypeCUI:
-		// the sequence is zero in
-		toolTypeResponse := enums.ScreeningToolTypeCUI.String() + "_question_number_" + "3"
-		if condition[toolTypeResponse] == "yes" {
-			requestTemplate = "Contraceptive assessment: yes response to question number 4. " + callClientString
+		if score >= 1 {
+			serviceRequest.Request = fmt.Sprintf("%s has a score of %v in  the Gender Based Violence Assessment Tool. Consider reaching out to them", clientProfile.User.Name, score)
+			serviceRequest.Meta["score"] = score
+			return serviceRequest, nil
 		}
 	case enums.ScreeningToolTypeAlcoholSubstanceAssessment:
-		if yesCount >= 3 {
-			requestTemplate = "Alcohol/Substance Assessment: greater than or equal to 3 yes responses indicates positive alcohol/substance cases. " + callClientString
+		score, err := calculateToolScore(ctx, answersInput)
+		if err != nil {
+			return nil, err
 		}
-		if noCount == 4 {
-			requestTemplate = "Alcohol/Substance Assessment: all no responses indicates no alcohol/substance cases. " + repeatScreeningString
+		if score >= 3 {
+			serviceRequest.Request = fmt.Sprintf("%s has a score of %v in  the Alcohol and Substance Assessment Tool. Consider reaching out to them", clientProfile.User.Name, score)
+			serviceRequest.Meta["score"] = score
+			return serviceRequest, nil
 		}
+	case enums.ScreeningToolTypeCUI:
+		questionSequence := answersInput[0].QuestionSequence
+		// if yes to question 4, trigger a service request to schedule a visit with the healthcare worker
+		if questionSequence == 3 && strings.ToLower(answersInput[0].Response) == "yes" {
+			serviceRequest.Request = fmt.Sprintf("%s has answered yes to question 4 in the Contraceptive Use Assessment Tool. Consider reaching out to them", clientProfile.User.Name)
+			return serviceRequest, nil
+		}
+	default:
+		return nil, fmt.Errorf("unsupported tool type: %s", toolType)
 	}
-	return requestTemplate
+	return nil, nil
 }
 
-func getQuestionMeta(question *domain.ScreeningToolQuestion, condition map[string]interface{}) map[string]interface{} {
-	questionMetaKey := question.ToolType.String() + "_question_number_" + strconv.Itoa(question.Sequence) + "_question_meta"
+func calculateToolScore(ctx context.Context, answersInput []*dto.ScreeningToolQuestionResponseInput) (int, error) {
+	var score int
+	for _, v := range answersInput {
 
-	if condition[questionMetaKey] != nil {
-		return condition[questionMetaKey].(map[string]interface{})
+		s, err := strconv.Atoi(v.Response)
+		if err != nil {
+			return 0, err
+		}
+		score += s
 	}
-	return nil
+	return score, nil
 }

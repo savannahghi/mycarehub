@@ -374,9 +374,13 @@ type AppointmentPayload struct {
 
 // ScreeningToolQuestionResponseInput defines the field passed when answering screening tools questions
 type ScreeningToolQuestionResponseInput struct {
-	ClientID   string `json:"clientID" validate:"required"`
-	QuestionID string `json:"questionID" validate:"required"`
-	Response   string `json:"response" validate:"required"`
+	ClientID         string                              `json:"clientID" validate:"required"`
+	QuestionID       string                              `json:"questionID" validate:"required"`
+	Response         string                              `json:"response" validate:"required"`
+	ToolType         enums.ScreeningToolType             `json:"toolType" validate:"required"`
+	ResponseType     enums.ScreeningToolResponseType     `json:"responseType" validate:"required"`
+	ResponseCategory enums.ScreeningToolResponseCategory `json:"responseCategory" validate:"required"`
+	QuestionSequence int                                 `json:"questionSequence" validate:"required"`
 }
 
 // Validate helps with validation of ScreeningToolQuestionResponseInput fields

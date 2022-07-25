@@ -84,6 +84,7 @@ func TestServiceScreeningToolsImpl_GetScreeningToolsQuestions(t *testing.T) {
 }
 
 func TestServiceScreeningToolsImpl_AnswerScreeningToolQuestions(t *testing.T) {
+	questionID := uuid.NewString()
 	type args struct {
 		ctx                    context.Context
 		screeningToolResponses []*dto.ScreeningToolQuestionResponseInput
@@ -100,9 +101,13 @@ func TestServiceScreeningToolsImpl_AnswerScreeningToolQuestions(t *testing.T) {
 				ctx: context.Background(),
 				screeningToolResponses: []*dto.ScreeningToolQuestionResponseInput{
 					{
-						ClientID:   uuid.New().String(),
-						QuestionID: uuid.New().String(),
-						Response:   "0",
+						ClientID:         uuid.New().String(),
+						QuestionID:       questionID,
+						Response:         "1",
+						ToolType:         enums.ScreeningToolTypeTB,
+						ResponseType:     enums.ScreeningToolResponseTypeInteger,
+						ResponseCategory: enums.ScreeningToolResponseCategorySingleChoice,
+						QuestionSequence: 0,
 					},
 				},
 			},
@@ -143,7 +148,8 @@ func TestServiceScreeningToolsImpl_AnswerScreeningToolQuestions(t *testing.T) {
 			args: args{
 				ctx: context.Background(),
 			},
-			wantErr: true,
+			wantErr: false,
+			want:    false,
 		},
 		{
 			name: "sad case: failed to get screening tools question by id",
@@ -235,6 +241,27 @@ func TestServiceScreeningToolsImpl_AnswerScreeningToolQuestions(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
 			fakeExtension := extensionMock.NewFakeExtension()
 			tr := NewUseCasesScreeningTools(fakeDB, fakeDB, fakeDB, fakeExtension)
+
+			if tt.name == "happy case: answer screening tool questions" {
+				fakeDB.MockGetScreeningToolsQuestionsFn = func(ctx context.Context, toolType string) ([]*domain.ScreeningToolQuestion, error) {
+					return []*domain.ScreeningToolQuestion{
+						{
+							ID:       questionID,
+							Question: "tb",
+							ToolType: enums.ScreeningToolTypeTB,
+							ResponseChoices: map[string]interface{}{
+								"1": "yes",
+								"2": "no",
+							},
+							ResponseCategory: enums.ScreeningToolResponseCategorySingleChoice,
+							ResponseType:     enums.ScreeningToolResponseTypeInteger,
+							Sequence:         1,
+							Meta:             nil,
+							Active:           true,
+						},
+					}, nil
+				}
+			}
 
 			if tt.name == "sad case: failed to get screening tools question by id" {
 				fakeDB.MockGetScreeningToolQuestionByQuestionIDFn = func(ctx context.Context, id string) (*domain.ScreeningToolQuestion, error) {
