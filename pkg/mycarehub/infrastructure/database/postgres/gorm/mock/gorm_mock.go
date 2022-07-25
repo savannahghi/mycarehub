@@ -56,20 +56,10 @@ type GormMock struct {
 	MockInvalidatePINFn                                  func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
 	MockGetContactByUserIDFn                             func(ctx context.Context, userID *string, contactType string) (*gorm.Contact, error)
 	MockUpdateIsCorrectSecurityQuestionResponseFn        func(ctx context.Context, userID string, isCorrectSecurityQuestionResponse bool) (bool, error)
-	MockListContentCategoriesFn                          func(ctx context.Context) ([]*domain.ContentItemCategory, error)
-	MockShareContentFn                                   func(ctx context.Context, input dto.ShareContentInput) (bool, error)
-	MockBookmarkContentFn                                func(ctx context.Context, userID string, contentID int) (bool, error)
-	MockUnBookmarkContentFn                              func(ctx context.Context, userID string, contentID int) (bool, error)
-	MockCheckWhetherUserHasLikedContentFn                func(ctx context.Context, userID string, contentID int) (bool, error)
-	MockGetUserBookmarkedContentFn                       func(ctx context.Context, userID string) ([]*gorm.ContentItem, error)
-	MockLikeContentFn                                    func(ctx context.Context, userID string, contentID int) (bool, error)
-	MockUnlikeContentFn                                  func(ctx context.Context, userID string, contentID int) (bool, error)
-	MockViewContentFn                                    func(ctx context.Context, userID string, contentID int) (bool, error)
 	MockCreateHealthDiaryEntryFn                         func(ctx context.Context, healthDiaryInput *gorm.ClientHealthDiaryEntry) error
 	MockCreateServiceRequestFn                           func(ctx context.Context, serviceRequestInput *gorm.ClientServiceRequest) error
 	MockCanRecordHeathDiaryFn                            func(ctx context.Context, clientID string) (bool, error)
 	MockGetClientHealthDiaryQuoteFn                      func(ctx context.Context, limit int) ([]*gorm.ClientHealthDiaryQuote, error)
-	MockCheckIfUserBookmarkedContentFn                   func(ctx context.Context, userID string, contentID int) (bool, error)
 	MockGetClientHealthDiaryEntriesFn                    func(ctx context.Context, params map[string]interface{}) ([]*gorm.ClientHealthDiaryEntry, error)
 	MockCreateClientCaregiverFn                          func(ctx context.Context, clientID string, clientCaregiver *gorm.Caregiver) error
 	MockGetClientCaregiverFn                             func(ctx context.Context, caregiverID string) (*gorm.Caregiver, error)
@@ -320,11 +310,6 @@ func NewGormMock() *GormMock {
 		Flavour:   feedlib.FlavourConsumer,
 	}
 
-	contentItemCategory := &domain.ContentItemCategory{
-		ID:      ID,
-		Name:    name,
-		IconURL: "https://test-icon-url/test.png",
-	}
 	nowTime := time.Now()
 	laterTime := nowTime.Add(time.Hour * 24)
 	serviceRequests := []*gorm.ClientServiceRequest{
@@ -674,33 +659,6 @@ func NewGormMock() *GormMock {
 		MockUpdateIsCorrectSecurityQuestionResponseFn: func(ctx context.Context, userID string, isCorrectSecurityQuestionResponse bool) (bool, error) {
 			return true, nil
 		},
-		MockListContentCategoriesFn: func(ctx context.Context) ([]*domain.ContentItemCategory, error) {
-			return []*domain.ContentItemCategory{contentItemCategory}, nil
-		},
-		MockShareContentFn: func(ctx context.Context, input dto.ShareContentInput) (bool, error) {
-			return true, nil
-		}, MockGetUserBookmarkedContentFn: func(ctx context.Context, userID string) ([]*gorm.ContentItem, error) {
-			return []*gorm.ContentItem{
-				{
-					PagePtrID: int(uuid.New()[9]),
-				},
-			}, nil
-		},
-		MockBookmarkContentFn: func(ctx context.Context, userID string, contentID int) (bool, error) {
-			return true, nil
-		},
-		MockUnBookmarkContentFn: func(ctx context.Context, userID string, contentID int) (bool, error) {
-			return true, nil
-		},
-		MockLikeContentFn: func(ctx context.Context, userID string, contentID int) (bool, error) {
-			return true, nil
-		},
-		MockUnlikeContentFn: func(ctx context.Context, userID string, contentID int) (bool, error) {
-			return true, nil
-		},
-		MockViewContentFn: func(ctx context.Context, userID string, contentID int) (bool, error) {
-			return true, nil
-		},
 		MockCreateHealthDiaryEntryFn: func(ctx context.Context, healthDiaryInput *gorm.ClientHealthDiaryEntry) error {
 			return nil
 		},
@@ -717,12 +675,6 @@ func NewGormMock() *GormMock {
 					Author: "Author",
 				},
 			}, nil
-		},
-		MockCheckWhetherUserHasLikedContentFn: func(ctx context.Context, userID string, contentID int) (bool, error) {
-			return true, nil
-		},
-		MockCheckIfUserBookmarkedContentFn: func(ctx context.Context, userID string, contentID int) (bool, error) {
-			return true, nil
 		},
 		MockGetClientHealthDiaryEntriesFn: func(ctx context.Context, params map[string]interface{}) ([]*gorm.ClientHealthDiaryEntry, error) {
 			return []*gorm.ClientHealthDiaryEntry{
@@ -1186,12 +1138,6 @@ func (gm *GormMock) RetrieveFacility(ctx context.Context, id *string, isActive b
 	return gm.MockRetrieveFacilityFn(ctx, id, isActive)
 }
 
-// CheckWhetherUserHasLikedContent mocks the implementation of `gorm's` CheckWhetherUserHasLikedContent method.
-func (gm *GormMock) CheckWhetherUserHasLikedContent(ctx context.Context, userID string, contentID int) (bool, error) {
-
-	return gm.MockCheckWhetherUserHasLikedContentFn(ctx, userID, contentID)
-}
-
 // RetrieveFacilityByMFLCode mocks the implementation of `gorm's` RetrieveFacility method.
 func (gm *GormMock) RetrieveFacilityByMFLCode(ctx context.Context, MFLCode int, isActive bool) (*gorm.Facility, error) {
 	return gm.MockRetrieveFacilityByMFLCodeFn(ctx, MFLCode, isActive)
@@ -1347,46 +1293,6 @@ func (gm *GormMock) UpdateIsCorrectSecurityQuestionResponse(ctx context.Context,
 	return gm.MockUpdateIsCorrectSecurityQuestionResponseFn(ctx, userID, isCorrectSecurityQuestionResponse)
 }
 
-//ListContentCategories mocks the implementation listing content categories
-func (gm *GormMock) ListContentCategories(ctx context.Context) ([]*domain.ContentItemCategory, error) {
-	return gm.MockListContentCategoriesFn(ctx)
-}
-
-// ShareContent mocks the implementation of sharing the content
-func (gm *GormMock) ShareContent(ctx context.Context, input dto.ShareContentInput) (bool, error) {
-	return gm.MockShareContentFn(ctx, input)
-}
-
-// BookmarkContent bookmarks a content
-func (gm *GormMock) BookmarkContent(ctx context.Context, userID string, contentID int) (bool, error) {
-	return gm.MockBookmarkContentFn(ctx, userID, contentID)
-}
-
-// UnBookmarkContent unbookmarks a content
-func (gm *GormMock) UnBookmarkContent(ctx context.Context, userID string, contentID int) (bool, error) {
-	return gm.MockUnBookmarkContentFn(ctx, userID, contentID)
-}
-
-// GetUserBookmarkedContent mocks the implementation of retrieving a user bookmarked content
-func (gm *GormMock) GetUserBookmarkedContent(ctx context.Context, userID string) ([]*gorm.ContentItem, error) {
-	return gm.MockGetUserBookmarkedContentFn(ctx, userID)
-}
-
-//LikeContent mocks the implementation liking a feed content
-func (gm *GormMock) LikeContent(ctx context.Context, userID string, contentID int) (bool, error) {
-	return gm.MockLikeContentFn(ctx, userID, contentID)
-}
-
-//UnlikeContent mocks the implementation liking a feed content
-func (gm *GormMock) UnlikeContent(ctx context.Context, userID string, contentID int) (bool, error) {
-	return gm.MockUnlikeContentFn(ctx, userID, contentID)
-}
-
-// ViewContent gets a content and updates the view count
-func (gm *GormMock) ViewContent(ctx context.Context, userID string, contentID int) (bool, error) {
-	return gm.MockViewContentFn(ctx, userID, contentID)
-}
-
 // CreateHealthDiaryEntry mocks the method for creating a health diary entry
 func (gm *GormMock) CreateHealthDiaryEntry(ctx context.Context, healthDiaryInput *gorm.ClientHealthDiaryEntry) error {
 	return gm.MockCreateHealthDiaryEntryFn(ctx, healthDiaryInput)
@@ -1405,11 +1311,6 @@ func (gm *GormMock) CanRecordHeathDiary(ctx context.Context, userID string) (boo
 // GetClientHealthDiaryQuote mocks the implementation of getting a client's health diary quote
 func (gm *GormMock) GetClientHealthDiaryQuote(ctx context.Context, limit int) ([]*gorm.ClientHealthDiaryQuote, error) {
 	return gm.MockGetClientHealthDiaryQuoteFn(ctx, limit)
-}
-
-// CheckIfUserBookmarkedContent mocks the implementation of checking if a user bookmarked a content
-func (gm *GormMock) CheckIfUserBookmarkedContent(ctx context.Context, userID string, contentID int) (bool, error) {
-	return gm.MockCheckIfUserBookmarkedContentFn(ctx, userID, contentID)
 }
 
 // GetClientHealthDiaryEntries mocks the implementation of getting all health diary entries that belong to a specific user

@@ -17,7 +17,7 @@ import (
 // OrganizationID assign a default organisation to a type
 var OrganizationID = serverutils.MustGetEnvVar(common.OrganizationID)
 
-// Base model contains defines commin fields across tables
+// Base model contains defines common fields across tables
 type Base struct {
 	CreatedAt time.Time `gorm:"column:created"`
 	UpdatedAt time.Time `gorm:"column:updated"`
@@ -163,9 +163,6 @@ func (u *User) BeforeDelete(tx *gorm.DB) (err error) {
 	tx.Unscoped().Where(&PINData{UserID: *u.UserID}).Delete(&PINData{})
 	tx.Unscoped().Where(&SecurityQuestionResponse{UserID: *u.UserID}).Delete(&SecurityQuestionResponse{})
 	tx.Unscoped().Where(&UserOTP{UserID: *u.UserID}).Delete(&UserOTP{})
-	tx.Unscoped().Where(&ContentBookmark{UserID: *u.UserID}).Delete(&ContentBookmark{})
-	tx.Unscoped().Where(&ContentShare{UserID: *u.UserID}).Delete(&ContentShare{})
-	tx.Unscoped().Where(&ContentLike{UserID: *u.UserID}).Delete(&ContentLike{})
 	tx.Unscoped().Where(&Notification{UserID: u.UserID}).Delete(&Notification{})
 	tx.Unscoped().Where(&UserSurvey{UserID: *u.UserID}).Delete(&UserSurvey{})
 	tx.Unscoped().Where(&AuthorityRoleUser{UserID: u.UserID}).Delete(&AuthorityRoleUser{})
@@ -505,40 +502,6 @@ func (StaffProfile) TableName() string {
 	return "staff_staff"
 }
 
-// ContentItemCategory maps the schema for the table that stores the content item category
-type ContentItemCategory struct {
-	ID     int    `gorm:"unique;column:id;autoincrement"`
-	Name   string `gorm:"column:name"`
-	IconID int    `gorm:"column:icon_id"`
-}
-
-// TableName customizes how the table name is generated
-func (ContentItemCategory) TableName() string {
-	return "content_contentitemcategory"
-}
-
-// ContentAuthor is the gorms content author model
-type ContentAuthor struct {
-	Base
-	ContentAuthorID *string `gorm:"column:id"`
-	Active          bool    `gorm:"column:active"`
-	Name            string  `gorm:"column:name"`
-	OrganisationID  string  `gorm:"column:organisation_id"`
-}
-
-// BeforeCreate is a hook run before creating an author
-func (c *ContentAuthor) BeforeCreate(tx *gorm.DB) (err error) {
-	id := uuid.New().String()
-	c.ContentAuthorID = &id
-	c.OrganisationID = OrganizationID
-	return
-}
-
-// TableName references the table that we map data from
-func (ContentAuthor) TableName() string {
-	return "content_author"
-}
-
 // ContentItem is the gorms content item model
 type ContentItem struct {
 	PagePtrID           int       `gorm:"column:page_ptr_id"`
@@ -558,148 +521,6 @@ type ContentItem struct {
 // TableName references the table that we map data from
 func (ContentItem) TableName() string {
 	return "content_contentitem"
-}
-
-// ContentShare is the gorms content contentshare model
-type ContentShare struct {
-	Base
-	ContentShareID *string `gorm:"column:id"`
-	Active         bool    `gorm:"column:active"`
-	ContentID      int     `gorm:"column:content_item_id"`
-	UserID         string  `gorm:"column:user_id"`
-	OrganisationID string  `gorm:"column:organisation_id"`
-}
-
-// BeforeCreate is a hook run before creating count share
-func (c *ContentShare) BeforeCreate(tx *gorm.DB) (err error) {
-	id := uuid.New().String()
-	c.ContentShareID = &id
-	c.OrganisationID = OrganizationID
-	return
-}
-
-// TableName references the table that we map data from
-func (ContentShare) TableName() string {
-	return "content_contentshare"
-}
-
-// ContentBookmark is the gorms ContentBookmark model
-type ContentBookmark struct {
-	Base
-	ContentBookmarkID *string `gorm:"column:id"`
-	Active            bool    `gorm:"column:active"`
-	ContentID         int     `gorm:"column:content_item_id"`
-	UserID            string  `gorm:"column:user_id"`
-	OrganisationID    string  `gorm:"column:organisation_id"`
-}
-
-// BeforeCreate is a hook run before creating content bookmark
-func (c *ContentBookmark) BeforeCreate(tx *gorm.DB) (err error) {
-	id := uuid.New().String()
-	c.ContentBookmarkID = &id
-	c.OrganisationID = OrganizationID
-	return
-}
-
-// TableName references the table that we map data from
-func (ContentBookmark) TableName() string {
-	return "public.content_contentbookmark"
-}
-
-// WagtailCorePage models the details of core wagtail fields
-type WagtailCorePage struct {
-	WagtailCorePageID     int    `gorm:"unique;column:id;autoincrement"`
-	Path                  string `gorm:"column:path"`
-	Depth                 int    `gorm:"column:depth"`
-	Numchild              int    `gorm:"column:numchild"`
-	Title                 string `gorm:"column:title"`
-	Slug                  string `gorm:"column:slug"`
-	Live                  bool   `gorm:"column:live"`
-	HasUnpublishedChanges bool   `gorm:"column:has_unpublished_changes"`
-	URLPath               string `gorm:"column:url_path"`
-	SEOTitle              string `gorm:"column:seo_title"`
-	ShowInMenus           bool   `gorm:"column:show_in_menus"`
-	SearchDescription     string `gorm:"column:search_description"`
-	Expired               bool   `gorm:"column:expired"`
-	ContentTypeID         int    `gorm:"column:content_type_id"` // default to 1 => wagtailcore page
-	Locked                bool   `gorm:"column:locked"`
-	DraftTitle            string `gorm:"column:draft_title"`
-	TranslationKey        string `gorm:"column:translation_key"`
-	LocaleID              int    `gorm:"column:locale_id"` // default to 1 => en
-}
-
-// TableName references the table that we map data from
-func (WagtailCorePage) TableName() string {
-	return "wagtailcore_page"
-}
-
-// ContentLike maps the schema to the table that stores content likes.
-type ContentLike struct {
-	Base
-	ContentLikeID  string `gorm:"column:id"`
-	Active         bool   `gorm:"column:active"`
-	ContentID      int    `gorm:"column:content_item_id"`
-	UserID         string `gorm:"column:user_id"`
-	OrganisationID string `gorm:"column:organisation_id"`
-}
-
-// BeforeCreate is a hook run before creating a client profile
-func (c *ContentLike) BeforeCreate(tx *gorm.DB) (err error) {
-	id := uuid.New().String()
-	c.ContentLikeID = id
-	c.OrganisationID = OrganizationID
-	return
-}
-
-// TableName customizes how the table name is generated
-func (ContentLike) TableName() string {
-	return "content_contentlike"
-}
-
-// ContentView is the gorms content contentview model
-type ContentView struct {
-	Base
-	ContentViewID  *string `gorm:"column:id"`
-	Active         bool    `gorm:"column:active"`
-	ContentID      int     `gorm:"column:content_item_id"`
-	UserID         string  `gorm:"column:user_id"`
-	OrganisationID string  `gorm:"column:organisation_id"`
-}
-
-// BeforeCreate is a hook run before creating view count
-func (c *ContentView) BeforeCreate(tx *gorm.DB) (err error) {
-	id := uuid.New().String()
-	c.ContentViewID = &id
-	c.OrganisationID = OrganizationID
-	return
-}
-
-// TableName references the table that we map data from
-func (ContentView) TableName() string {
-	return "content_contentview"
-}
-
-// WagtailImages models the details of core wagtail image table
-type WagtailImages struct {
-	ID               int       `gorm:"primaryKey;column:id;autoincrement"`
-	Title            string    `gorm:"column:title"`
-	File             string    `gorm:"column:file"`
-	Width            int       `gorm:"column:width"`
-	Height           int       `gorm:"column:height"`
-	CreatedAt        time.Time `gorm:"column:created_at"`
-	FocalPointX      int       `gorm:"column:focal_point_x"`
-	FocalPointY      int       `gorm:"column:focal_point_y"`
-	FocalPointWidth  int       `gorm:"column:focal_point_width"`
-	FocalPointHeight int       `gorm:"column:focal_point_height"`
-	UploadedByUserID string    `gorm:"column:uploaded_by_user_id"`
-	FileSize         int       `gorm:"column:file_size"`
-	CollectionID     int       `gorm:"column:collection_id"`
-	FileHash         string    `gorm:"column:file_hash"`
-}
-
-// TableName references the table that we map data from
-func (WagtailImages) TableName() string {
-	return "wagtailimages_image"
 }
 
 // ClientHealthDiaryEntry models a client's health diary entry

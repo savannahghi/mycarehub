@@ -20,14 +20,6 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
 )
 
-// CheckWhetherUserHasLikedContent performs a operation to check whether user has liked the content
-func (d *MyCareHubDb) CheckWhetherUserHasLikedContent(ctx context.Context, userID string, contentID int) (bool, error) {
-	if userID == "" || contentID < 1 {
-		return false, fmt.Errorf("invalid userID or contentID")
-	}
-	return d.query.CheckWhetherUserHasLikedContent(ctx, userID, contentID)
-}
-
 // SearchFacility returns a slice of healthcare facilities in the platform.
 func (d *MyCareHubDb) SearchFacility(ctx context.Context, searchParameter *string) ([]*domain.Facility, error) {
 	var facility []*domain.Facility
@@ -537,49 +529,6 @@ func (d *MyCareHubDb) GetContactByUserID(ctx context.Context, userID *string, co
 	}, nil
 }
 
-//ListContentCategories retrieves the list of all content categories
-func (d *MyCareHubDb) ListContentCategories(ctx context.Context) ([]*domain.ContentItemCategory, error) {
-	contentCategories, err := d.query.ListContentCategories(ctx)
-	if err != nil {
-		helpers.ReportErrorToSentry(err)
-		return nil, err
-	}
-
-	return contentCategories, nil
-}
-
-// GetUserBookmarkedContent is used to retrieve a user's bookmarked/pinned content
-func (d *MyCareHubDb) GetUserBookmarkedContent(ctx context.Context, userID string) ([]*domain.ContentItem, error) {
-	var domainContent []*domain.ContentItem
-	bookmarkedContent, err := d.query.GetUserBookmarkedContent(ctx, userID)
-	if err != nil {
-		helpers.ReportErrorToSentry(err)
-		return nil, fmt.Errorf("failed to fetch user's bookmarked content: %v", err)
-	}
-
-	if len(bookmarkedContent) == 0 {
-		return []*domain.ContentItem{}, nil
-	}
-
-	for _, content := range bookmarkedContent {
-		contentItem := &domain.ContentItem{
-			ID:                  content.PagePtrID,
-			LikeCount:           content.LikeCount,
-			BookmarkCount:       content.BookmarkCount,
-			Body:                content.Body,
-			ShareCount:          content.ShareCount,
-			ViewCount:           content.ViewCount,
-			Intro:               content.Intro,
-			ItemType:            content.ItemType,
-			TimeEstimateSeconds: content.TimeEstimateSeconds,
-			Date:                content.Date.Format("2006-01-02"),
-		}
-		domainContent = append(domainContent, contentItem)
-	}
-
-	return domainContent, nil
-}
-
 // CanRecordHeathDiary is used to check if the user can record their health diary
 func (d *MyCareHubDb) CanRecordHeathDiary(ctx context.Context, userID string) (bool, error) {
 	canRecord, err := d.query.CanRecordHeathDiary(ctx, userID)
@@ -607,16 +556,6 @@ func (d *MyCareHubDb) GetClientHealthDiaryQuote(ctx context.Context, limit int) 
 	}
 
 	return clientHealthDiaryQuotes, nil
-}
-
-// CheckIfUserBookmarkedContent is used to check if the user has bookmarked the content
-func (d *MyCareHubDb) CheckIfUserBookmarkedContent(ctx context.Context, userID string, contentID int) (bool, error) {
-	bookmarked, err := d.query.CheckIfUserBookmarkedContent(ctx, userID, contentID)
-	if err != nil {
-		helpers.ReportErrorToSentry(err)
-		return false, fmt.Errorf("failed to check if user bookmarked content: %v", err)
-	}
-	return bookmarked, nil
 }
 
 // GetPendingServiceRequestsCount gets the total number of service requests

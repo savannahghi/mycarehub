@@ -17,7 +17,7 @@ type ContentUsecaseMock struct {
 	MockShareContentFn                    func(ctx context.Context, input dto.ShareContentInput) (bool, error)
 	MockGetContentFn                      func(ctx context.Context, categoryID *int, limit string) (*domain.Content, error)
 	MockGetUserBookmarkedContentFn        func(ctx context.Context, userID string) (*domain.Content, error)
-	MockGetContentByContentItemIDFn       func(ctx context.Context, contentID int) (*domain.Content, error)
+	MockGetContentItemByIDFn              func(ctx context.Context, contentID int) (*domain.ContentItem, error)
 	MockLikeContentFn                     func(ctx context.Context, userID string, contentID string) (bool, error)
 	MockCheckWhetherUserHasLikedContentFn func(ctx context.Context, userID string, contentID int) (bool, error)
 	MockUnlikeContentFn                   func(ctx context.Context, userID string, contentID int) (bool, error)
@@ -87,8 +87,8 @@ func NewContentUsecaseMock() *ContentUsecaseMock {
 		MockGetUserBookmarkedContentFn: func(ctx context.Context, userID string) (*domain.Content, error) {
 			return content, nil
 		},
-		MockGetContentByContentItemIDFn: func(ctx context.Context, contentID int) (*domain.Content, error) {
-			return content, nil
+		MockGetContentItemByIDFn: func(ctx context.Context, contentID int) (*domain.ContentItem, error) {
+			return &content.Items[0], nil
 		},
 		MockLikeContentFn: func(ctx context.Context, userID, contentID string) (bool, error) {
 			return true, nil
@@ -125,9 +125,9 @@ func (cm *ContentUsecaseMock) GetUserBookmarkedContent(ctx context.Context, user
 	return cm.MockGetUserBookmarkedContentFn(ctx, userID)
 }
 
-// GetContentByContentItemID mocks fetching content using it's item ID
-func (cm *ContentUsecaseMock) GetContentByContentItemID(ctx context.Context, contentID int) (*domain.Content, error) {
-	return cm.MockGetContentByContentItemIDFn(ctx, contentID)
+// GetContentItemByID mocks fetching content using it's item ID
+func (cm *ContentUsecaseMock) GetContentItemByID(ctx context.Context, contentID int) (*domain.ContentItem, error) {
+	return cm.MockGetContentItemByIDFn(ctx, contentID)
 }
 
 //LikeContent mocks the implementation liking a feed content
