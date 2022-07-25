@@ -56,21 +56,11 @@ type PostgresMock struct {
 	MockInvalidatePINFn                                  func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
 	MockGetContactByUserIDFn                             func(ctx context.Context, userID *string, contactType string) (*domain.Contact, error)
 	MockUpdateIsCorrectSecurityQuestionResponseFn        func(ctx context.Context, userID string, isCorrectSecurityQuestionResponse bool) (bool, error)
-	MockListContentCategoriesFn                          func(ctx context.Context) ([]*domain.ContentItemCategory, error)
-	MockShareContentFn                                   func(ctx context.Context, input dto.ShareContentInput) (bool, error)
-	MockBookmarkContentFn                                func(ctx context.Context, userID string, contentID int) (bool, error)
-	MockUnBookmarkContentFn                              func(ctx context.Context, userID string, contentID int) (bool, error)
-	MockGetUserBookmarkedContentFn                       func(ctx context.Context, userID string) ([]*domain.ContentItem, error)
-	MockLikeContentFn                                    func(ctx context.Context, userID string, contentID int) (bool, error)
-	MockCheckWhetherUserHasLikedContentFn                func(ctx context.Context, userID string, contentID int) (bool, error)
-	MockUnlikeContentFn                                  func(ctx context.Context, userID string, contentID int) (bool, error)
 	MockFetchFacilitiesFn                                func(ctx context.Context) ([]*domain.Facility, error)
-	MockViewContentFn                                    func(ctx context.Context, userID string, contentID int) (bool, error)
 	MockCreateHealthDiaryEntryFn                         func(ctx context.Context, healthDiaryInput *domain.ClientHealthDiaryEntry) error
 	MockCreateServiceRequestFn                           func(ctx context.Context, serviceRequestInput *dto.ServiceRequestInput) error
 	MockCanRecordHeathDiaryFn                            func(ctx context.Context, userID string) (bool, error)
 	MockGetClientHealthDiaryQuoteFn                      func(ctx context.Context, limit int) ([]*domain.ClientHealthDiaryQuote, error)
-	MockCheckIfUserBookmarkedContentFn                   func(ctx context.Context, userID string, contentID int) (bool, error)
 	MockGetClientHealthDiaryEntriesFn                    func(ctx context.Context, clientID string, moodType *enums.Mood, shared *bool) ([]*domain.ClientHealthDiaryEntry, error)
 	MockCreateClientCaregiverFn                          func(ctx context.Context, caregiverInput *dto.CaregiverInput) error
 	MockGetClientCaregiverFn                             func(ctx context.Context, caregiverID string) (*domain.Caregiver, error)
@@ -243,12 +233,6 @@ func NewPostgresMock() *PostgresMock {
 		DefaultFacilityID: gofakeit.BeerAlcohol(),
 	}
 
-	contentItemCategoryID := 1
-	contentItemCategory := &domain.ContentItemCategory{
-		ID:      contentItemCategoryID,
-		Name:    name,
-		IconURL: "test",
-	}
 	serviceRequests := []*domain.ServiceRequest{
 
 		{
@@ -546,40 +530,6 @@ func NewPostgresMock() *PostgresMock {
 		MockUpdateIsCorrectSecurityQuestionResponseFn: func(ctx context.Context, userID string, isCorrect bool) (bool, error) {
 			return true, nil
 		},
-		MockListContentCategoriesFn: func(ctx context.Context) ([]*domain.ContentItemCategory, error) {
-			return []*domain.ContentItemCategory{contentItemCategory}, nil
-		},
-		MockShareContentFn: func(ctx context.Context, input dto.ShareContentInput) (bool, error) {
-			return true, nil
-		},
-		MockBookmarkContentFn: func(ctx context.Context, userID string, contentID int) (bool, error) {
-			return true, nil
-		},
-		MockUnBookmarkContentFn: func(ctx context.Context, userID string, contentID int) (bool, error) {
-			return true, nil
-		},
-		MockGetUserBookmarkedContentFn: func(ctx context.Context, userID string) ([]*domain.ContentItem, error) {
-			return []*domain.ContentItem{
-				{
-					ID: int(uuid.New()[8]),
-				},
-			}, nil
-		},
-		MockLikeContentFn: func(ctx context.Context, userID string, contentID int) (bool, error) {
-			return true, nil
-		},
-		MockUnlikeContentFn: func(ctx context.Context, userID string, contentID int) (bool, error) {
-			return true, nil
-		},
-		MockFetchFacilitiesFn: func(ctx context.Context) ([]*domain.Facility, error) {
-			return []*domain.Facility{facilityInput}, nil
-		},
-		MockViewContentFn: func(ctx context.Context, userID string, contentID int) (bool, error) {
-			return true, nil
-		},
-		MockCheckWhetherUserHasLikedContentFn: func(ctx context.Context, userID string, contentID int) (bool, error) {
-			return true, nil
-		},
 		MockCreateHealthDiaryEntryFn: func(ctx context.Context, healthDiaryInput *domain.ClientHealthDiaryEntry) error {
 			return nil
 		},
@@ -613,9 +563,6 @@ func NewPostgresMock() *PostgresMock {
 		},
 		MockSearchClientProfileFn: func(ctx context.Context, searchParameter string) ([]*domain.ClientProfile, error) {
 			return []*domain.ClientProfile{client}, nil
-		},
-		MockCheckIfUserBookmarkedContentFn: func(ctx context.Context, userID string, contentID int) (bool, error) {
-			return true, nil
 		},
 		MockGetClientHealthDiaryEntriesFn: func(ctx context.Context, clientID string, moodType *enums.Mood, shared *bool) ([]*domain.ClientHealthDiaryEntry, error) {
 			return []*domain.ClientHealthDiaryEntry{healthDiaryEntry}, nil
@@ -1098,11 +1045,6 @@ func (gm *PostgresMock) RetrieveFacility(ctx context.Context, id *string, isActi
 	return gm.MockRetrieveFacilityFn(ctx, id, isActive)
 }
 
-// CheckWhetherUserHasLikedContent mocks the implementation of `gorm's` CheckWhetherUserHasLikedContent method.
-func (gm *PostgresMock) CheckWhetherUserHasLikedContent(ctx context.Context, userID string, contentID int) (bool, error) {
-	return gm.MockCheckWhetherUserHasLikedContentFn(ctx, userID, contentID)
-}
-
 // ListFacilities mocks the implementation of  ListFacilities method.
 func (gm *PostgresMock) ListFacilities(
 	ctx context.Context,
@@ -1273,49 +1215,9 @@ func (gm *PostgresMock) UpdateIsCorrectSecurityQuestionResponse(ctx context.Cont
 	return gm.MockUpdateIsCorrectSecurityQuestionResponseFn(ctx, userID, isCorrectSecurityQuestionResponse)
 }
 
-//ListContentCategories mocks the implementation listing content categories
-func (gm *PostgresMock) ListContentCategories(ctx context.Context) ([]*domain.ContentItemCategory, error) {
-	return gm.MockListContentCategoriesFn(ctx)
-}
-
-// ShareContent mock the implementation share content
-func (gm *PostgresMock) ShareContent(ctx context.Context, input dto.ShareContentInput) (bool, error) {
-	return gm.MockShareContentFn(ctx, input)
-}
-
-// BookmarkContent bookmarks a content
-func (gm *PostgresMock) BookmarkContent(ctx context.Context, userID string, contentID int) (bool, error) {
-	return gm.MockBookmarkContentFn(ctx, userID, contentID)
-}
-
-// UnBookmarkContent remove bookmark from content
-func (gm *PostgresMock) UnBookmarkContent(ctx context.Context, userID string, contentID int) (bool, error) {
-	return gm.MockUnBookmarkContentFn(ctx, userID, contentID)
-}
-
-// GetUserBookmarkedContent mocks the implementation of retrieving a user bookmarked content
-func (gm *PostgresMock) GetUserBookmarkedContent(ctx context.Context, userID string) ([]*domain.ContentItem, error) {
-	return gm.MockGetUserBookmarkedContentFn(ctx, userID)
-}
-
-//LikeContent mocks the implementation liking a feed content
-func (gm *PostgresMock) LikeContent(ctx context.Context, userID string, contentID int) (bool, error) {
-	return gm.MockLikeContentFn(ctx, userID, contentID)
-}
-
-//UnlikeContent mocks the implementation liking a feed content
-func (gm *PostgresMock) UnlikeContent(ctx context.Context, userID string, contentID int) (bool, error) {
-	return gm.MockUnlikeContentFn(ctx, userID, contentID)
-}
-
 //FetchFacilities mocks the implementation of fetching facility
 func (gm *PostgresMock) FetchFacilities(ctx context.Context) ([]*domain.Facility, error) {
 	return gm.MockFetchFacilitiesFn(ctx)
-}
-
-// ViewContent gets a content and updates the view count
-func (gm *PostgresMock) ViewContent(ctx context.Context, userID string, contentID int) (bool, error) {
-	return gm.MockViewContentFn(ctx, userID, contentID)
 }
 
 // CreateHealthDiaryEntry mocks the method for creating a health diary entry
@@ -1336,11 +1238,6 @@ func (gm *PostgresMock) CanRecordHeathDiary(ctx context.Context, userID string) 
 // GetClientHealthDiaryQuote mocks the implementation of fetching client health diary quote
 func (gm *PostgresMock) GetClientHealthDiaryQuote(ctx context.Context, limit int) ([]*domain.ClientHealthDiaryQuote, error) {
 	return gm.MockGetClientHealthDiaryQuoteFn(ctx, limit)
-}
-
-// CheckIfUserBookmarkedContent mocks the implementation of checking if a user has bookmarked a content
-func (gm *PostgresMock) CheckIfUserBookmarkedContent(ctx context.Context, userID string, contentID int) (bool, error) {
-	return gm.MockCheckIfUserBookmarkedContentFn(ctx, userID, contentID)
 }
 
 // GetClientHealthDiaryEntries mocks the implementation of getting all health diary entries that belong to a specific user

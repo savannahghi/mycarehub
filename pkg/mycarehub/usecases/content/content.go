@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
-	"strings"
 
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
@@ -22,12 +21,13 @@ import (
 
 var (
 	contentAPIEndpoint = serverutils.MustGetEnvVar("CONTENT_API_URL")
+	contentBaseURL     = serverutils.MustGetEnvVar("CONTENT_BASE_URL")
 )
 
 // IGetContent is used to fetch content from the CMS
 type IGetContent interface {
 	GetContent(ctx context.Context, categoryID *int, limit string) (*domain.Content, error)
-	GetContentByContentItemID(ctx context.Context, contentID int) (*domain.Content, error)
+	GetContentItemByID(ctx context.Context, contentID int) (*domain.ContentItem, error)
 	GetFAQs(ctx context.Context, flavour feedlib.Flavour) (*domain.Content, error)
 }
 
@@ -114,17 +114,133 @@ func NewUseCasesContentImplementation(
 
 // LikeContent implements the content liking api
 func (u UseCasesContentImpl) LikeContent(ctx context.Context, userID string, contentID int) (bool, error) {
-	return u.Update.LikeContent(ctx, userID, contentID)
+	if userID == "" || contentID == 0 {
+		return false, fmt.Errorf("user id an content id are required")
+	}
+
+	contentLikeAPI := fmt.Sprintf("%s/api/content_like/", contentBaseURL)
+
+	payload := struct {
+		Active      bool   `json:"active"`
+		User        string `json:"user"`
+		ContentItem int    `json:"content_item"`
+	}{
+		Active:      true,
+		User:        userID,
+		ContentItem: contentID,
+	}
+
+	response, err := u.ExternalExt.MakeRequest(ctx, http.MethodPost, contentLikeAPI, payload)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, fmt.Errorf("failed to make request")
+	}
+
+	if response.StatusCode != http.StatusCreated {
+		return false, fmt.Errorf("failed to like content")
+	}
+
+	return true, nil
 }
 
 // CheckWhetherUserHasLikedContent implements action of checking whether a user has liked a particular content
 func (u UseCasesContentImpl) CheckWhetherUserHasLikedContent(ctx context.Context, userID string, contentID int) (bool, error) {
-	return u.Query.CheckWhetherUserHasLikedContent(ctx, userID, contentID)
+	if userID == "" || contentID <= 0 {
+		return false, fmt.Errorf("user id and content id are required")
+	}
+
+	params := url.Values{}
+	params.Add("user", userID)
+	params.Add("content_item", strconv.Itoa(contentID))
+	params.Add("active", "True")
+
+	contentLikeAPI := fmt.Sprintf("%s/api/content_like/?%s", contentBaseURL, params.Encode())
+
+	response, err := u.ExternalExt.MakeRequest(ctx, http.MethodGet, contentLikeAPI, nil)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, fmt.Errorf("failed to make request")
+	}
+
+	if response.StatusCode != http.StatusOK {
+		return false, fmt.Errorf("failed to check if user liked content")
+	}
+
+	body, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return false, fmt.Errorf("failed to read request body: %v", err)
+	}
+
+	count := struct {
+		Count int `json:"count"`
+	}{}
+
+	err = json.Unmarshal(body, &count)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, fmt.Errorf("failed to unmarshal response: %v", err)
+	}
+
+	if count.Count == 0 {
+		return false, nil
+	}
+
+	return true, nil
 }
 
 // UnlikeContent implements the content liking api
 func (u UseCasesContentImpl) UnlikeContent(ctx context.Context, userID string, contentID int) (bool, error) {
-	return u.Update.UnlikeContent(ctx, userID, contentID)
+	if userID == "" || contentID == 0 {
+		return false, fmt.Errorf("user id and content id are required")
+	}
+	params := url.Values{}
+	params.Add("user", userID)
+	params.Add("content_item", strconv.Itoa(contentID))
+	params.Add("active", "True")
+
+	contentLikeAPI := fmt.Sprintf("%s/api/content_like/?%s", contentBaseURL, params.Encode())
+
+	response, err := u.ExternalExt.MakeRequest(ctx, http.MethodGet, contentLikeAPI, nil)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, fmt.Errorf("failed to make request")
+	}
+
+	body, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return false, fmt.Errorf("failed to read request body: %v", err)
+	}
+
+	result := struct {
+		Count   int `json:"count"`
+		Results []struct {
+			ID string `json:"id"`
+		} `json:"results"`
+	}{}
+
+	err = json.Unmarshal(body, &result)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, fmt.Errorf("failed to unmarshal response: %v", err)
+	}
+
+	if result.Count == 0 {
+		return false, nil
+	}
+
+	deleteContentLikeAPI := fmt.Sprintf("%s/api/content_like/%s/", contentBaseURL, result.Results[0].ID)
+
+	resp, err := u.ExternalExt.MakeRequest(ctx, http.MethodDelete, deleteContentLikeAPI, nil)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, fmt.Errorf("failed to make request")
+	}
+
+	if resp.StatusCode != http.StatusNoContent {
+		return false, fmt.Errorf("failed to unlike content")
+	}
+
+	return true, nil
 }
 
 // GetContent fetches content from wagtail CMS. The category ID is optional and it is used to return content based
@@ -164,47 +280,148 @@ func (u UseCasesContentImpl) GetContent(ctx context.Context, categoryID *int, li
 
 // ListContentCategories gets the list of all content categories
 func (u *UseCasesContentImpl) ListContentCategories(ctx context.Context) ([]*domain.ContentItemCategory, error) {
-	categories, err := u.Query.ListContentCategories(ctx)
+	params := url.Values{}
+	params.Add("has_content", "True")
+	categoryAPI := fmt.Sprintf("%s/api/content_item_category/?%s", contentBaseURL, params.Encode())
+
+	resp, err := u.ExternalExt.MakeRequest(ctx, http.MethodGet, categoryAPI, nil)
 	if err != nil {
-		return nil, err
+		helpers.ReportErrorToSentry(err)
+		return nil, fmt.Errorf("failed to make request")
 	}
 
-	// contented holds categories with content :-)
-	// only categories with content should be shown
-	var contented []*domain.ContentItemCategory
-
-	for _, category := range categories {
-		// check if category has content
-		content, err := u.GetContent(ctx, &category.ID, "1")
-		if err != nil {
-			return nil, fmt.Errorf("error fetching categories for %s: %w", category.Name, err)
-		}
-
-		// if no content skip/continue
-		if content.Meta.TotalCount == 0 {
-			continue
-		}
-
-		contented = append(contented, category)
-
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("failed to make request")
 	}
 
-	return contented, nil
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read request body: %v", err)
+	}
+
+	results := struct {
+		Results []*domain.ContentItemCategory
+	}{}
+	err = json.Unmarshal(body, &results)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, fmt.Errorf("failed to unmarshal response: %v", err)
+	}
+
+	return results.Results, nil
 }
 
 // ShareContent enables a user to share a content
 func (u *UseCasesContentImpl) ShareContent(ctx context.Context, input dto.ShareContentInput) (bool, error) {
-	return u.Update.ShareContent(ctx, input)
+	if input.UserID == "" || input.ContentID <= 0 {
+		return false, fmt.Errorf("user id and content id are required")
+	}
+	contentShareAPI := fmt.Sprintf("%s/api/content_share/", contentBaseURL)
+
+	payload := struct {
+		Active      bool   `json:"active"`
+		User        string `json:"user"`
+		ContentItem int    `json:"content_item"`
+	}{
+		Active:      true,
+		User:        input.UserID,
+		ContentItem: input.ContentID,
+	}
+
+	response, err := u.ExternalExt.MakeRequest(ctx, http.MethodPost, contentShareAPI, payload)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, fmt.Errorf("failed to make request")
+	}
+
+	if response.StatusCode != http.StatusCreated {
+		return false, fmt.Errorf("failed to share content")
+	}
+
+	return true, nil
 }
 
 // BookmarkContent increments the bookmark count for a content item
 func (u UseCasesContentImpl) BookmarkContent(ctx context.Context, userID string, contentID int) (bool, error) {
-	return u.Update.BookmarkContent(ctx, userID, contentID)
+	contentBookmarkAPI := fmt.Sprintf("%s/api/content_bookmark/", contentBaseURL)
+
+	payload := struct {
+		Active      bool   `json:"active"`
+		User        string `json:"user"`
+		ContentItem int    `json:"content_item"`
+	}{
+		Active:      true,
+		User:        userID,
+		ContentItem: contentID,
+	}
+
+	response, err := u.ExternalExt.MakeRequest(ctx, http.MethodPost, contentBookmarkAPI, payload)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, fmt.Errorf("failed to make request")
+	}
+
+	if response.StatusCode != http.StatusCreated {
+		return false, fmt.Errorf("failed to bookmark content")
+	}
+
+	return true, nil
 }
 
 // UnBookmarkContent decrements the bookmark count for a content item
 func (u UseCasesContentImpl) UnBookmarkContent(ctx context.Context, userID string, contentID int) (bool, error) {
-	return u.Update.UnBookmarkContent(ctx, userID, contentID)
+	if userID == "" || contentID == 0 {
+		return false, fmt.Errorf("user id and content id are required")
+	}
+
+	params := url.Values{}
+	params.Add("user", userID)
+	params.Add("content_item", strconv.Itoa(contentID))
+	params.Add("active", "True")
+
+	contentBookmarkAPI := fmt.Sprintf("%s/api/content_bookmark/?%s", contentBaseURL, params.Encode())
+
+	response, err := u.ExternalExt.MakeRequest(ctx, http.MethodGet, contentBookmarkAPI, nil)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, fmt.Errorf("failed to make request")
+	}
+
+	body, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return false, fmt.Errorf("failed to read request body: %v", err)
+	}
+
+	result := struct {
+		Count   int `json:"count"`
+		Results []struct {
+			ID string `json:"id"`
+		} `json:"results"`
+	}{}
+
+	err = json.Unmarshal(body, &result)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, fmt.Errorf("failed to unmarshal response: %v", err)
+	}
+
+	if result.Count == 0 {
+		return false, nil
+	}
+
+	deleteContentBookmarkAPI := fmt.Sprintf("%s/api/content_bookmark/%s/", contentBaseURL, result.Results[0].ID)
+
+	resp, err := u.ExternalExt.MakeRequest(ctx, http.MethodDelete, deleteContentBookmarkAPI, nil)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, fmt.Errorf("failed to make request")
+	}
+
+	if resp.StatusCode != http.StatusNoContent {
+		return false, fmt.Errorf("failed to remove bookmark")
+	}
+
+	return true, nil
 }
 
 // GetUserBookmarkedContent gets the user's pinned/bookmarked content and displays it on their profile
@@ -213,45 +430,64 @@ func (u *UseCasesContentImpl) GetUserBookmarkedContent(ctx context.Context, user
 		return nil, exceptions.EmptyInputErr(fmt.Errorf("user ID must be defined"))
 	}
 
-	user, err := u.Query.GetUserProfileByUserID(ctx, userID)
+	params := url.Values{}
+	params.Add("user", userID)
+	params.Add("active", "True")
+
+	contentBookmarkAPI := fmt.Sprintf("%s/api/content_bookmark/?%s", contentBaseURL, params.Encode())
+
+	response, err := u.ExternalExt.MakeRequest(ctx, http.MethodGet, contentBookmarkAPI, nil)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return nil, exceptions.ProfileNotFoundErr(err)
+		return nil, fmt.Errorf("failed to make request")
 	}
 
-	content, err := u.Query.GetUserBookmarkedContent(ctx, *user.ID)
+	body, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read request body: %v", err)
+	}
+
+	result := struct {
+		Count   int `json:"count"`
+		Results []struct {
+			ID          string `json:"id"`
+			User        string `json:"user"`
+			ContentItem int    `json:"content_item"`
+		} `json:"results"`
+	}{}
+
+	err = json.Unmarshal(body, &result)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return nil, fmt.Errorf("failed to get bookmarked content")
+		return nil, fmt.Errorf("failed to unmarshal response: %v", err)
 	}
 
-	userBookmarkedContent := &domain.Content{}
+	content := &domain.Content{
+		Meta: domain.Meta{
+			TotalCount: 0,
+		},
+		Items: []domain.ContentItem{},
+	}
 
-	for _, contentItem := range content {
-		bookmarkedContent, err := u.GetContentByContentItemID(ctx, contentItem.ID)
+	for _, item := range result.Results {
+		contentItem, err := u.GetContentItemByID(ctx, item.ContentItem)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
-			return nil, fmt.Errorf("failed to fetch bookmarked content")
+			return nil, fmt.Errorf("failed to fetch bookmarked content item")
 		}
-		userBookmarkedContent.Items = append(userBookmarkedContent.Items, bookmarkedContent.Items...)
+		content.Items = append(content.Items, *contentItem)
+		content.Meta.TotalCount++
 	}
-	userBookmarkedContent.Meta.TotalCount = len(userBookmarkedContent.Items)
 
-	return userBookmarkedContent, nil
+	return content, nil
 }
 
-// GetContentByContentItemID fetches a specific content using the specific content item ID. This will be important
+// GetContentItemByID fetches a specific content using the specific content item ID. This will be important
 // when fetching content that a user bookmarked. The data returned directly from the database does not contain all the
 // information regarding a content item hence why this method has been chosen.
-func (u *UseCasesContentImpl) GetContentByContentItemID(ctx context.Context, contentID int) (*domain.Content, error) {
-	params := url.Values{}
-	params.Add("type", "content.ContentItem")
-	params.Add("id", strconv.Itoa(contentID))
-	params.Add("order", "-first_published_at")
-	params.Add("fields", "'*")
-
-	getContentEndpoint := fmt.Sprintf(contentAPIEndpoint + "/?" + params.Encode())
-	var contentItems *domain.Content
+func (u *UseCasesContentImpl) GetContentItemByID(ctx context.Context, contentID int) (*domain.ContentItem, error) {
+	getContentEndpoint := fmt.Sprintf(contentAPIEndpoint+"/%s/", strconv.Itoa(contentID))
+	var contentItem *domain.ContentItem
 	resp, err := u.ExternalExt.MakeRequest(ctx, http.MethodGet, getContentEndpoint, nil)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
@@ -264,67 +500,130 @@ func (u *UseCasesContentImpl) GetContentByContentItemID(ctx context.Context, con
 		return nil, fmt.Errorf("failed to read request body: %v", err)
 	}
 
-	err = json.Unmarshal(dataResponse, &contentItems)
+	err = json.Unmarshal(dataResponse, &contentItem)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed to unmarshal response: %v", err)
 	}
 
-	return contentItems, nil
+	return contentItem, nil
 }
 
 // ViewContent gets a content item and updates the view count
 func (u *UseCasesContentImpl) ViewContent(ctx context.Context, userID string, contentID int) (bool, error) {
-	if userID == "" || contentID == 0 {
-		return false, fmt.Errorf("userID and contentID cannot be empty")
+	contentViewAPI := fmt.Sprintf("%s/api/content_view/", contentBaseURL)
+
+	payload := struct {
+		Active      bool   `json:"active"`
+		User        string `json:"user"`
+		ContentItem int    `json:"content_item"`
+	}{
+		Active:      true,
+		User:        userID,
+		ContentItem: contentID,
 	}
-	return u.Update.ViewContent(ctx, userID, contentID)
+
+	response, err := u.ExternalExt.MakeRequest(ctx, http.MethodPost, contentViewAPI, payload)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, fmt.Errorf("failed to make request")
+	}
+
+	if response.StatusCode != http.StatusCreated {
+		return false, fmt.Errorf("failed to view content")
+	}
+
+	return true, nil
 }
 
 // CheckIfUserBookmarkedContent checks if a user has bookmarked a specific content item
 func (u *UseCasesContentImpl) CheckIfUserBookmarkedContent(ctx context.Context, userID string, contentID int) (bool, error) {
-	if userID == "" || contentID == 0 {
+	if userID == "" || contentID <= 0 {
 		return false, fmt.Errorf("userID and contentID cannot be empty")
 	}
-	return u.Query.CheckIfUserBookmarkedContent(ctx, userID, contentID)
+
+	params := url.Values{}
+	params.Add("user", userID)
+	params.Add("content_item", strconv.Itoa(contentID))
+	params.Add("active", "True")
+
+	contentBookmarkAPI := fmt.Sprintf("%s/api/content_bookmark/?%s", contentBaseURL, params.Encode())
+
+	response, err := u.ExternalExt.MakeRequest(ctx, http.MethodGet, contentBookmarkAPI, nil)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, fmt.Errorf("failed to make request")
+	}
+
+	if response.StatusCode != http.StatusOK {
+		return false, fmt.Errorf("failed to check bookmarked content")
+	}
+
+	body, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return false, fmt.Errorf("failed to read request body: %v", err)
+	}
+
+	count := struct {
+		Count int `json:"count"`
+	}{}
+
+	err = json.Unmarshal(body, &count)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, fmt.Errorf("failed to unmarshal response: %v", err)
+	}
+
+	if count.Count == 0 {
+		return false, nil
+	}
+
+	return true, nil
 }
 
 // GetFAQs retrieves the faqs depending on the provided flavour
 func (u *UseCasesContentImpl) GetFAQs(ctx context.Context, flavour feedlib.Flavour) (*domain.Content, error) {
-	//Get content categories
-	contentCategories, err := u.Query.ListContentCategories(ctx)
-	if err != nil {
-		return nil, err
-	}
-
 	// 'consumer-faqs' and 'pro-faqs' are CMS category names for FAQs contents
 	var (
 		consumerFAQs = "consumer-faqs"
 		proFAQs      = "pro-faqs"
 	)
 
+	params := url.Values{}
+
 	switch flavour {
 	case feedlib.FlavourConsumer:
-		var consumerFAQCategoryID *int
-		for _, category := range contentCategories {
-			if strings.EqualFold(category.Name, consumerFAQs) {
-				consumerFAQCategoryID = &category.ID
-			}
-		}
-
-		return u.GetContent(ctx, consumerFAQCategoryID, "20")
+		params.Add("category_name", consumerFAQs)
 
 	case feedlib.FlavourPro:
-		var proFAQCategoryID *int
-		for _, category := range contentCategories {
-			if strings.EqualFold(category.Name, proFAQs) {
-				proFAQCategoryID = &category.ID
-			}
-		}
-
-		return u.GetContent(ctx, proFAQCategoryID, "20")
-
-	default:
-		return nil, fmt.Errorf("invalid flavour provided")
+		params.Add("category_name", proFAQs)
 	}
+
+	params.Add("type", "content.ContentItem")
+	params.Add("limit", "20")
+	params.Add("order", "-first_published_at")
+	params.Add("fields", "'*")
+
+	contentURL := fmt.Sprintf(contentAPIEndpoint + "/?" + params.Encode())
+
+	response, err := u.ExternalExt.MakeRequest(ctx, http.MethodGet, contentURL, nil)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, fmt.Errorf("failed to make request")
+	}
+
+	data, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, fmt.Errorf("failed to read request body: %v", err)
+	}
+
+	var contentItems *domain.Content
+	err = json.Unmarshal(data, &contentItems)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, fmt.Errorf("failed to unmarshal response: %v", err)
+	}
+
+	return contentItems, nil
 }

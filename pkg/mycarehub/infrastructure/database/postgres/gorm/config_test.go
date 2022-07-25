@@ -267,8 +267,6 @@ func TestMain(m *testing.M) {
 			"../../../../../../fixtures/users_user.yml",
 			"../../../../../../fixtures/users_termsofservice.yml",
 			"../../../../../../fixtures/clients_securityquestion.yml",
-			"../../../../../../fixtures/content_author.yml",
-			"../../../../../../fixtures/wagtailcore_page.yml",
 			"../../../../../../fixtures/content_contentitem.yml",
 			"../../../../../../fixtures/users_user_user_permissions.yml",
 			"../../../../../../fixtures/users_user_groups.yml",

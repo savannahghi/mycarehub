@@ -12,98 +12,13 @@ import (
 	"github.com/brianvoe/gofakeit"
 	"github.com/google/uuid"
 	"github.com/savannahghi/feedlib"
-	helpers_mock "github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers/mock"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	extensionMock "github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension/mock"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	pgMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/mock"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/content"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/content/mock"
 )
 
-func TestUsecaseContentImpl_ListContentCategories(t *testing.T) {
-	ctx := context.Background()
-
-	type args struct {
-		ctx context.Context
-	}
-	tests := []struct {
-		name    string
-		args    args
-		want    []*domain.ContentItemCategory
-		wantErr bool
-	}{
-		{
-			name: "happy case: list categories with content",
-			args: args{
-				ctx: ctx,
-			},
-			wantErr: false,
-		},
-		{
-			name: "sad case: fail to list content categories",
-			args: args{
-				ctx: ctx,
-			},
-			wantErr: true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			fakeDB := pgMock.NewPostgresMock()
-			fakeExt := extensionMock.NewFakeExtension()
-			c := content.NewUseCasesContentImplementation(fakeDB, fakeDB, fakeExt)
-
-			if tt.name == "happy case: list categories with content" {
-				fakeExt.MockMakeRequestFn = func(ctx context.Context, method string, path string, body interface{}) (*http.Response, error) {
-
-					cntnt := domain.Content{
-						Meta: domain.Meta{
-							TotalCount: 1,
-						},
-						Items: []domain.ContentItem{
-							{
-								ID: 10,
-							},
-						},
-					}
-
-					payload, err := json.Marshal(cntnt)
-					if err != nil {
-						t.Errorf("unable to marshal test item: %s", err)
-					}
-
-					return &http.Response{
-						StatusCode: http.StatusOK,
-						Status:     "OK",
-						Body:       ioutil.NopCloser(bytes.NewBuffer(payload)),
-					}, nil
-				}
-			}
-
-			if tt.name == "sad case: fail to list content categories" {
-				fakeDB.MockListContentCategoriesFn = func(ctx context.Context) ([]*domain.ContentItemCategory, error) {
-					return nil, fmt.Errorf("an error occurred")
-				}
-			}
-
-			got, err := c.ListContentCategories(tt.args.ctx)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("UsecaseContentImpl.ListContentCategories() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if tt.wantErr && got != nil {
-				t.Errorf("expected content to be nil for %v", tt.name)
-				return
-			}
-
-			if !tt.wantErr && got == nil {
-				t.Errorf("expected content not to be nil for %v", tt.name)
-				return
-			}
-		})
-	}
-}
 func TestUseCasesContentImpl_LikeContent(t *testing.T) {
 	ctx := context.Background()
 
@@ -127,16 +42,6 @@ func TestUseCasesContentImpl_LikeContent(t *testing.T) {
 			},
 			want:    true,
 			wantErr: false,
-		},
-		{
-			name: "Sad case",
-			args: args{
-				ctx:       ctx,
-				userID:    uuid.New().String(),
-				contentID: 1,
-			},
-			want:    false,
-			wantErr: true,
 		},
 		{
 			name: "Sad case - no userID",
@@ -168,6 +73,26 @@ func TestUseCasesContentImpl_LikeContent(t *testing.T) {
 			want:    false,
 			wantErr: true,
 		},
+		{
+			name: "sad case: make request error",
+			args: args{
+				ctx:       ctx,
+				userID:    uuid.New().String(),
+				contentID: 1,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "sad case: invalid status code",
+			args: args{
+				ctx:       ctx,
+				userID:    uuid.New().String(),
+				contentID: 1,
+			},
+			want:    false,
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -175,24 +100,39 @@ func TestUseCasesContentImpl_LikeContent(t *testing.T) {
 			fakeExt := extensionMock.NewFakeExtension()
 			c := content.NewUseCasesContentImplementation(fakeDB, fakeDB, fakeExt)
 
-			if tt.name == "Sad case" {
-				fakeDB.MockLikeContentFn = func(ctx context.Context, userID string, contentID int) (bool, error) {
-					return false, fmt.Errorf("an error occurred")
+			if tt.name == "sad case: make request error" {
+				fakeExt.MockMakeRequestFn = func(ctx context.Context, method, path string, body interface{}) (*http.Response, error) {
+					return nil, fmt.Errorf("failed to make a request")
 				}
 			}
-			if tt.name == "Sad case - no userID" {
-				fakeDB.MockLikeContentFn = func(ctx context.Context, userID string, contentID int) (bool, error) {
-					return false, fmt.Errorf("an error occurred")
+
+			if tt.name == "sad case: invalid status code" {
+				fakeExt.MockMakeRequestFn = func(ctx context.Context, method, path string, body interface{}) (*http.Response, error) {
+					payload, err := json.Marshal([]byte{})
+					if err != nil {
+						t.Errorf("unable to marshal test item: %s", err)
+					}
+
+					return &http.Response{
+						StatusCode: http.StatusInternalServerError,
+						Status:     "OK",
+						Body:       ioutil.NopCloser(bytes.NewBuffer(payload)),
+					}, nil
 				}
 			}
-			if tt.name == "Sad case - no contentID" {
-				fakeDB.MockLikeContentFn = func(ctx context.Context, userID string, contentID int) (bool, error) {
-					return false, fmt.Errorf("an error occurred")
-				}
-			}
-			if tt.name == "Sad case - no userID and contentID" {
-				fakeDB.MockLikeContentFn = func(ctx context.Context, userID string, contentID int) (bool, error) {
-					return false, fmt.Errorf("an error occurred")
+
+			if tt.name == "Happy case" {
+				fakeExt.MockMakeRequestFn = func(ctx context.Context, method, path string, body interface{}) (*http.Response, error) {
+					payload, err := json.Marshal([]byte{})
+					if err != nil {
+						t.Errorf("unable to marshal test item: %s", err)
+					}
+
+					return &http.Response{
+						StatusCode: http.StatusCreated,
+						Status:     "OK",
+						Body:       ioutil.NopCloser(bytes.NewBuffer(payload)),
+					}, nil
 				}
 			}
 
@@ -223,7 +163,7 @@ func TestUseCaseContentImpl_ShareContent(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "Happy Case",
+			name: "Happy case",
 			args: args{
 				ctx: ctx,
 				input: dto.ShareContentInput{
@@ -247,6 +187,32 @@ func TestUseCaseContentImpl_ShareContent(t *testing.T) {
 			want:    false,
 			wantErr: true,
 		},
+		{
+			name: "sad case: make request error",
+			args: args{
+				ctx: ctx,
+				input: dto.ShareContentInput{
+					UserID:    gofakeit.UUID(),
+					ContentID: gofakeit.Number(1, 100),
+					Channel:   "SMS",
+				},
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "sad case: invalid status code",
+			args: args{
+				ctx: ctx,
+				input: dto.ShareContentInput{
+					UserID:    gofakeit.UUID(),
+					ContentID: gofakeit.Number(1, 100),
+					Channel:   "SMS",
+				},
+			},
+			want:    false,
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -255,13 +221,43 @@ func TestUseCaseContentImpl_ShareContent(t *testing.T) {
 			fakeExt := extensionMock.NewFakeExtension()
 			c := content.NewUseCasesContentImplementation(fakeDB, fakeDB, fakeExt)
 
-			if tt.name == "Sad Case - no userID" {
-				fakeDB.MockShareContentFn = func(ctx context.Context, input dto.ShareContentInput) (bool, error) {
-					return false, fmt.Errorf("an error occurred")
+			if tt.name == "sad case: make request error" {
+				fakeExt.MockMakeRequestFn = func(ctx context.Context, method, path string, body interface{}) (*http.Response, error) {
+					return nil, fmt.Errorf("failed to make a request")
 				}
 			}
 
-			got, err := c.Update.ShareContent(tt.args.ctx, tt.args.input)
+			if tt.name == "sad case: invalid status code" {
+				fakeExt.MockMakeRequestFn = func(ctx context.Context, method, path string, body interface{}) (*http.Response, error) {
+					payload, err := json.Marshal([]byte{})
+					if err != nil {
+						t.Errorf("unable to marshal test item: %s", err)
+					}
+
+					return &http.Response{
+						StatusCode: http.StatusInternalServerError,
+						Status:     "OK",
+						Body:       ioutil.NopCloser(bytes.NewBuffer(payload)),
+					}, nil
+				}
+			}
+
+			if tt.name == "Happy case" {
+				fakeExt.MockMakeRequestFn = func(ctx context.Context, method, path string, body interface{}) (*http.Response, error) {
+					payload, err := json.Marshal([]byte{})
+					if err != nil {
+						t.Errorf("unable to marshal test item: %s", err)
+					}
+
+					return &http.Response{
+						StatusCode: http.StatusCreated,
+						Status:     "OK",
+						Body:       ioutil.NopCloser(bytes.NewBuffer(payload)),
+					}, nil
+				}
+			}
+
+			got, err := c.ShareContent(tt.args.ctx, tt.args.input)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCaseContentImpl.ShareContent() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -298,7 +294,7 @@ func TestUseCasesContentImpl_UnlikeContent(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "Sad case",
+			name: "sad case: invalid status code",
 			args: args{
 				ctx:       ctx,
 				userID:    uuid.New().String(),
@@ -337,6 +333,16 @@ func TestUseCasesContentImpl_UnlikeContent(t *testing.T) {
 			want:    false,
 			wantErr: true,
 		},
+		{
+			name: "sad case: make request error",
+			args: args{
+				ctx:       ctx,
+				userID:    uuid.New().String(),
+				contentID: 1,
+			},
+			want:    false,
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -344,24 +350,71 @@ func TestUseCasesContentImpl_UnlikeContent(t *testing.T) {
 			fakeExt := extensionMock.NewFakeExtension()
 			c := content.NewUseCasesContentImplementation(fakeDB, fakeDB, fakeExt)
 
-			if tt.name == "Sad case" {
-				fakeDB.MockUnlikeContentFn = func(ctx context.Context, userID string, contentID int) (bool, error) {
-					return false, fmt.Errorf("an error occurred")
+			if tt.name == "sad case: make request error" {
+				fakeExt.MockMakeRequestFn = func(ctx context.Context, method, path string, body interface{}) (*http.Response, error) {
+					return nil, fmt.Errorf("failed to make a request")
 				}
 			}
-			if tt.name == "Sad case - no userID" {
-				fakeDB.MockUnlikeContentFn = func(ctx context.Context, userID string, contentID int) (bool, error) {
-					return false, fmt.Errorf("an error occurred")
+
+			if tt.name == "sad case: invalid status code" {
+				fakeExt.MockMakeRequestFn = func(ctx context.Context, method, path string, body interface{}) (*http.Response, error) {
+					result := struct {
+						Count   int `json:"count"`
+						Results []struct {
+							ID string `json:"id"`
+						} `json:"results"`
+					}{
+						Count: 1,
+						Results: []struct {
+							ID string "json:\"id\""
+						}{
+							{
+								ID: gofakeit.UUID(),
+							},
+						},
+					}
+
+					payload, err := json.Marshal(result)
+					if err != nil {
+						t.Errorf("unable to marshal test item: %s", err)
+					}
+
+					return &http.Response{
+						StatusCode: http.StatusInternalServerError,
+						Status:     "OK",
+						Body:       ioutil.NopCloser(bytes.NewBuffer(payload)),
+					}, nil
 				}
 			}
-			if tt.name == "Sad case - no contentID" {
-				fakeDB.MockUnlikeContentFn = func(ctx context.Context, userID string, contentID int) (bool, error) {
-					return false, fmt.Errorf("an error occurred")
-				}
-			}
-			if tt.name == "Sad case - no userID and contentID" {
-				fakeDB.MockUnlikeContentFn = func(ctx context.Context, userID string, contentID int) (bool, error) {
-					return false, fmt.Errorf("an error occurred")
+
+			if tt.name == "Happy case" {
+				fakeExt.MockMakeRequestFn = func(ctx context.Context, method, path string, body interface{}) (*http.Response, error) {
+					result := struct {
+						Count   int `json:"count"`
+						Results []struct {
+							ID string `json:"id"`
+						} `json:"results"`
+					}{
+						Count: 1,
+						Results: []struct {
+							ID string "json:\"id\""
+						}{
+							{
+								ID: gofakeit.UUID(),
+							},
+						},
+					}
+
+					payload, err := json.Marshal(result)
+					if err != nil {
+						t.Errorf("unable to marshal test item: %s", err)
+					}
+
+					return &http.Response{
+						StatusCode: http.StatusNoContent,
+						Status:     "OK",
+						Body:       ioutil.NopCloser(bytes.NewBuffer(payload)),
+					}, nil
 				}
 			}
 
@@ -412,15 +465,7 @@ func TestUseCasesContentImpl_GetUserBookmarkedContent(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "Sad Case - Fail to get content",
-			args: args{
-				ctx:    ctx,
-				userID: uuid.New().String(),
-			},
-			wantErr: true,
-		},
-		{
-			name: "Sad Case - user not found",
+			name: "sad case: make request error",
 			args: args{
 				ctx:    ctx,
 				userID: uuid.New().String(),
@@ -431,10 +476,8 @@ func TestUseCasesContentImpl_GetUserBookmarkedContent(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
-			fakeContent := mock.NewContentUsecaseMock()
 			fakeExt := extensionMock.NewFakeExtension()
 			c := content.NewUseCasesContentImplementation(fakeDB, fakeDB, fakeExt)
-			fakeHelpers := helpers_mock.NewFakeHelper()
 
 			if tt.name == "Happy Case - Successfully get user bookmarked content" {
 				fakeExt.MockMakeRequestFn = func(ctx context.Context, method string, path string, body interface{}) (*http.Response, error) {
@@ -460,29 +503,12 @@ func TestUseCasesContentImpl_GetUserBookmarkedContent(t *testing.T) {
 				}
 			}
 
-			if tt.name == "Sad Case - Missing user ID" {
-				fakeContent.MockGetUserBookmarkedContentFn = func(ctx context.Context, userID string) (*domain.Content, error) {
-					fakeHelpers.MockFakeReportErrorToSentryFn = func(err error) {}
-					return nil, fmt.Errorf("user ID is required")
+			if tt.name == "sad case: make request error" {
+				fakeExt.MockMakeRequestFn = func(ctx context.Context, method, path string, body interface{}) (*http.Response, error) {
+					return nil, fmt.Errorf("failed to make a request")
 				}
 			}
 
-			if tt.name == "Sad Case - Fail to get content" {
-				fakeDB.MockGetUserBookmarkedContentFn = func(ctx context.Context, userID string) ([]*domain.ContentItem, error) {
-					return nil, fmt.Errorf("failed to get bookmarked content")
-				}
-			}
-			if tt.name == "Happy Case - Successfully get user bookmarked content, no content" {
-				fakeDB.MockGetUserBookmarkedContentFn = func(ctx context.Context, userID string) ([]*domain.ContentItem, error) {
-					return []*domain.ContentItem{}, nil
-				}
-			}
-
-			if tt.name == "Sad Case - user not found" {
-				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
-					return nil, fmt.Errorf("user not found")
-				}
-			}
 			got, err := c.GetUserBookmarkedContent(tt.args.ctx, tt.args.userID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCasesContentImpl.GetUserBookmarkedContent() error = %v, wantErr %v", err, tt.wantErr)
@@ -562,7 +588,7 @@ func TestUseCasesContentImpl_GetContent(t *testing.T) {
 	}
 }
 
-func TestUseCasesContentImpl_GetContentByContentItemID(t *testing.T) {
+func TestUseCasesContentImpl_GetContentItemByID(t *testing.T) {
 	ctx := context.Background()
 	type args struct {
 		ctx       context.Context
@@ -605,12 +631,8 @@ func TestUseCasesContentImpl_GetContentByContentItemID(t *testing.T) {
 			if tt.name == "Happy Case - Successfully get content" {
 				fakeExt.MockMakeRequestFn = func(ctx context.Context, method string, path string, body interface{}) (*http.Response, error) {
 
-					cntnt := domain.Content{
-						Items: []domain.ContentItem{
-							{
-								ID: 10,
-							},
-						},
+					cntnt := domain.ContentItem{
+						ID: 10,
 					}
 
 					payload, err := json.Marshal(cntnt)
@@ -626,9 +648,9 @@ func TestUseCasesContentImpl_GetContentByContentItemID(t *testing.T) {
 				}
 			}
 
-			got, err := c.GetContentByContentItemID(tt.args.ctx, tt.args.contentID)
+			got, err := c.GetContentItemByID(tt.args.ctx, tt.args.contentID)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("UseCasesContentImpl.GetContentByContentItemID() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("UseCasesContentImpl.GetContentItemByID() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !tt.wantErr && got == nil {
@@ -653,7 +675,7 @@ func TestUseCasesContentImpl_ViewContent(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "Happy case - Successfully update view count",
+			name: "Happy case",
 			args: args{
 				ctx:       ctx,
 				userID:    uuid.New().String(),
@@ -663,7 +685,17 @@ func TestUseCasesContentImpl_ViewContent(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "Sad Case - Fail to update view count",
+			name: "sad case: make request error",
+			args: args{
+				ctx:       ctx,
+				userID:    uuid.New().String(),
+				contentID: 12,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "sad case: invalid status code",
 			args: args{
 				ctx:       ctx,
 				userID:    uuid.New().String(),
@@ -685,15 +717,39 @@ func TestUseCasesContentImpl_ViewContent(t *testing.T) {
 			fakeExt := extensionMock.NewFakeExtension()
 			c := content.NewUseCasesContentImplementation(fakeDB, fakeDB, fakeExt)
 
-			if tt.name == "Sad Case - Fail to update view count" {
-				fakeDB.MockViewContentFn = func(ctx context.Context, userID string, contentID int) (bool, error) {
-					return false, fmt.Errorf("failed to update view count")
+			if tt.name == "sad case: make request error" {
+				fakeExt.MockMakeRequestFn = func(ctx context.Context, method, path string, body interface{}) (*http.Response, error) {
+					return nil, fmt.Errorf("failed to make a request")
 				}
 			}
 
-			if tt.name == "Sad Case - Missing user ID" {
-				fakeDB.MockViewContentFn = func(ctx context.Context, userID string, contentID int) (bool, error) {
-					return false, fmt.Errorf("failed to update view count")
+			if tt.name == "sad case: invalid status code" {
+				fakeExt.MockMakeRequestFn = func(ctx context.Context, method, path string, body interface{}) (*http.Response, error) {
+					payload, err := json.Marshal([]byte{})
+					if err != nil {
+						t.Errorf("unable to marshal test item: %s", err)
+					}
+
+					return &http.Response{
+						StatusCode: http.StatusInternalServerError,
+						Status:     "OK",
+						Body:       ioutil.NopCloser(bytes.NewBuffer(payload)),
+					}, nil
+				}
+			}
+
+			if tt.name == "Happy case" {
+				fakeExt.MockMakeRequestFn = func(ctx context.Context, method, path string, body interface{}) (*http.Response, error) {
+					payload, err := json.Marshal([]byte{})
+					if err != nil {
+						t.Errorf("unable to marshal test item: %s", err)
+					}
+
+					return &http.Response{
+						StatusCode: http.StatusCreated,
+						Status:     "OK",
+						Body:       ioutil.NopCloser(bytes.NewBuffer(payload)),
+					}, nil
 				}
 			}
 
@@ -733,7 +789,17 @@ func TestUseCasesContentImpl_BookmarkContent(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "Sad Case - Fail to bookmark content",
+			name: "sad case: invalid status code",
+			args: args{
+				ctx:       ctx,
+				userID:    uuid.New().String(),
+				contentID: 12,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "sad case: make request error",
 			args: args{
 				ctx:       ctx,
 				userID:    uuid.New().String(),
@@ -775,24 +841,39 @@ func TestUseCasesContentImpl_BookmarkContent(t *testing.T) {
 			fakeExt := extensionMock.NewFakeExtension()
 			c := content.NewUseCasesContentImplementation(fakeDB, fakeDB, fakeExt)
 
-			if tt.name == "Sad Case - Fail to bookmark content" {
-				fakeDB.MockBookmarkContentFn = func(ctx context.Context, userID string, contentID int) (bool, error) {
-					return false, fmt.Errorf("failed to bookmark content")
+			if tt.name == "sad case: make request error" {
+				fakeExt.MockMakeRequestFn = func(ctx context.Context, method, path string, body interface{}) (*http.Response, error) {
+					return nil, fmt.Errorf("failed to make a request")
 				}
 			}
-			if tt.name == "Sad case - no userID" {
-				fakeDB.MockBookmarkContentFn = func(ctx context.Context, userID string, contentID int) (bool, error) {
-					return false, fmt.Errorf("an error occurred")
+
+			if tt.name == "sad case: invalid status code" {
+				fakeExt.MockMakeRequestFn = func(ctx context.Context, method, path string, body interface{}) (*http.Response, error) {
+					payload, err := json.Marshal([]byte{})
+					if err != nil {
+						t.Errorf("unable to marshal test item: %s", err)
+					}
+
+					return &http.Response{
+						StatusCode: http.StatusInternalServerError,
+						Status:     "OK",
+						Body:       ioutil.NopCloser(bytes.NewBuffer(payload)),
+					}, nil
 				}
 			}
-			if tt.name == "Sad case - no contentID" {
-				fakeDB.MockBookmarkContentFn = func(ctx context.Context, userID string, contentID int) (bool, error) {
-					return false, fmt.Errorf("an error occurred")
-				}
-			}
-			if tt.name == "Sad case - no userID and contentID" {
-				fakeDB.MockBookmarkContentFn = func(ctx context.Context, userID string, contentID int) (bool, error) {
-					return false, fmt.Errorf("an error occurred")
+
+			if tt.name == "Happy Case - Successfully bookmark content" {
+				fakeExt.MockMakeRequestFn = func(ctx context.Context, method, path string, body interface{}) (*http.Response, error) {
+					payload, err := json.Marshal([]byte{})
+					if err != nil {
+						t.Errorf("unable to marshal test item: %s", err)
+					}
+
+					return &http.Response{
+						StatusCode: http.StatusCreated,
+						Status:     "OK",
+						Body:       ioutil.NopCloser(bytes.NewBuffer(payload)),
+					}, nil
 				}
 			}
 
@@ -823,7 +904,7 @@ func TestUseCasesContentImpl_CheckWhetherUserHasLikedContent(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "Happy case",
+			name: "happy case: has liked content",
 			args: args{
 				ctx:       ctx,
 				userID:    uuid.New().String(),
@@ -833,7 +914,17 @@ func TestUseCasesContentImpl_CheckWhetherUserHasLikedContent(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "Sad case",
+			name: "happy case: has not liked content",
+			args: args{
+				ctx:       ctx,
+				userID:    uuid.New().String(),
+				contentID: gofakeit.Number(1, 1001),
+			},
+			want:    false,
+			wantErr: false,
+		},
+		{
+			name: "sad case: make request error",
 			args: args{
 				ctx:       ctx,
 				userID:    uuid.New().String(),
@@ -872,6 +963,16 @@ func TestUseCasesContentImpl_CheckWhetherUserHasLikedContent(t *testing.T) {
 			want:    false,
 			wantErr: true,
 		},
+		{
+			name: "sad case: invalid status code",
+			args: args{
+				ctx:       ctx,
+				userID:    uuid.New().String(),
+				contentID: gofakeit.Number(1, 1001),
+			},
+			want:    false,
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -879,24 +980,72 @@ func TestUseCasesContentImpl_CheckWhetherUserHasLikedContent(t *testing.T) {
 			fakeExt := extensionMock.NewFakeExtension()
 			c := content.NewUseCasesContentImplementation(fakeDB, fakeDB, fakeExt)
 
-			if tt.name == "Sad case" {
-				fakeDB.MockCheckWhetherUserHasLikedContentFn = func(ctx context.Context, userID string, contentID int) (bool, error) {
-					return false, fmt.Errorf("an error occurred")
+			if tt.name == "sad case: make request error" {
+				fakeExt.MockMakeRequestFn = func(ctx context.Context, method, path string, body interface{}) (*http.Response, error) {
+					return nil, fmt.Errorf("failed to make a request")
 				}
 			}
-			if tt.name == "Sad case - empty userID" {
-				fakeDB.MockCheckWhetherUserHasLikedContentFn = func(ctx context.Context, userID string, contentID int) (bool, error) {
-					return false, fmt.Errorf("an error occurred")
+
+			if tt.name == "sad case: invalid status code" {
+				fakeExt.MockMakeRequestFn = func(ctx context.Context, method, path string, body interface{}) (*http.Response, error) {
+					count := struct {
+						Count int `json:"count"`
+					}{
+						Count: 1,
+					}
+
+					payload, err := json.Marshal(count)
+					if err != nil {
+						t.Errorf("unable to marshal test item: %s", err)
+					}
+
+					return &http.Response{
+						StatusCode: http.StatusInternalServerError,
+						Status:     "OK",
+						Body:       ioutil.NopCloser(bytes.NewBuffer(payload)),
+					}, nil
 				}
 			}
-			if tt.name == "Sad case - empty contentID" {
-				fakeDB.MockCheckWhetherUserHasLikedContentFn = func(ctx context.Context, userID string, contentID int) (bool, error) {
-					return false, fmt.Errorf("an error occurred")
+
+			if tt.name == "happy case: has liked content" {
+				fakeExt.MockMakeRequestFn = func(ctx context.Context, method, path string, body interface{}) (*http.Response, error) {
+					count := struct {
+						Count int `json:"count"`
+					}{
+						Count: 1,
+					}
+
+					payload, err := json.Marshal(count)
+					if err != nil {
+						t.Errorf("unable to marshal test item: %s", err)
+					}
+
+					return &http.Response{
+						StatusCode: http.StatusOK,
+						Status:     "OK",
+						Body:       ioutil.NopCloser(bytes.NewBuffer(payload)),
+					}, nil
 				}
 			}
-			if tt.name == "Sad case - invalid contentID" {
-				fakeDB.MockCheckWhetherUserHasLikedContentFn = func(ctx context.Context, userID string, contentID int) (bool, error) {
-					return false, fmt.Errorf("an error occurred")
+
+			if tt.name == "happy case: has not liked content" {
+				fakeExt.MockMakeRequestFn = func(ctx context.Context, method, path string, body interface{}) (*http.Response, error) {
+					count := struct {
+						Count int `json:"count"`
+					}{
+						Count: 0,
+					}
+
+					payload, err := json.Marshal(count)
+					if err != nil {
+						t.Errorf("unable to marshal test item: %s", err)
+					}
+
+					return &http.Response{
+						StatusCode: http.StatusOK,
+						Status:     "OK",
+						Body:       ioutil.NopCloser(bytes.NewBuffer(payload)),
+					}, nil
 				}
 			}
 
@@ -926,7 +1075,7 @@ func TestUseCasesContentImpl_CheckIfUserBookmarkedContent(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "Happy Case - Successfully check if user bookmarked content",
+			name: "happy case: has bookmarked content",
 			args: args{
 				ctx:       ctx,
 				userID:    uuid.New().String(),
@@ -936,7 +1085,7 @@ func TestUseCasesContentImpl_CheckIfUserBookmarkedContent(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "Happy Case - Successfully check if user bookmarked content, but user has not bookmarked content",
+			name: "happy case: has not bookmarked content",
 			args: args{
 				ctx:       ctx,
 				userID:    uuid.New().String(),
@@ -946,7 +1095,7 @@ func TestUseCasesContentImpl_CheckIfUserBookmarkedContent(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "Sad Case - Fail to check if user bookmarked content",
+			name: "sad case: make request error",
 			args: args{
 				ctx:       ctx,
 				userID:    uuid.New().String(),
@@ -973,6 +1122,16 @@ func TestUseCasesContentImpl_CheckIfUserBookmarkedContent(t *testing.T) {
 			want:    false,
 			wantErr: true,
 		},
+		{
+			name: "sad case: invalid status code",
+			args: args{
+				ctx:       ctx,
+				userID:    uuid.New().String(),
+				contentID: 12,
+			},
+			want:    false,
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -980,14 +1139,72 @@ func TestUseCasesContentImpl_CheckIfUserBookmarkedContent(t *testing.T) {
 			fakeExt := extensionMock.NewFakeExtension()
 			c := content.NewUseCasesContentImplementation(fakeDB, fakeDB, fakeExt)
 
-			if tt.name == "Happy Case - Successfully check if user bookmarked content, but user has not bookmarked content" {
-				fakeDB.MockCheckIfUserBookmarkedContentFn = func(ctx context.Context, userID string, contentID int) (bool, error) {
-					return false, nil
+			if tt.name == "sad case: make request error" {
+				fakeExt.MockMakeRequestFn = func(ctx context.Context, method, path string, body interface{}) (*http.Response, error) {
+					return nil, fmt.Errorf("failed to make a request")
 				}
 			}
-			if tt.name == "Sad Case - Fail to check if user bookmarked content" {
-				fakeDB.MockCheckIfUserBookmarkedContentFn = func(ctx context.Context, userID string, contentID int) (bool, error) {
-					return false, fmt.Errorf("failed to check if user bookmarked content")
+
+			if tt.name == "sad case: invalid status code" {
+				fakeExt.MockMakeRequestFn = func(ctx context.Context, method, path string, body interface{}) (*http.Response, error) {
+					count := struct {
+						Count int `json:"count"`
+					}{
+						Count: 1,
+					}
+
+					payload, err := json.Marshal(count)
+					if err != nil {
+						t.Errorf("unable to marshal test item: %s", err)
+					}
+
+					return &http.Response{
+						StatusCode: http.StatusInternalServerError,
+						Status:     "OK",
+						Body:       ioutil.NopCloser(bytes.NewBuffer(payload)),
+					}, nil
+				}
+			}
+
+			if tt.name == "happy case: has bookmarked content" {
+				fakeExt.MockMakeRequestFn = func(ctx context.Context, method, path string, body interface{}) (*http.Response, error) {
+					count := struct {
+						Count int `json:"count"`
+					}{
+						Count: 1,
+					}
+
+					payload, err := json.Marshal(count)
+					if err != nil {
+						t.Errorf("unable to marshal test item: %s", err)
+					}
+
+					return &http.Response{
+						StatusCode: http.StatusOK,
+						Status:     "OK",
+						Body:       ioutil.NopCloser(bytes.NewBuffer(payload)),
+					}, nil
+				}
+			}
+
+			if tt.name == "happy case: has not bookmarked content" {
+				fakeExt.MockMakeRequestFn = func(ctx context.Context, method, path string, body interface{}) (*http.Response, error) {
+					count := struct {
+						Count int `json:"count"`
+					}{
+						Count: 0,
+					}
+
+					payload, err := json.Marshal(count)
+					if err != nil {
+						t.Errorf("unable to marshal test item: %s", err)
+					}
+
+					return &http.Response{
+						StatusCode: http.StatusOK,
+						Status:     "OK",
+						Body:       ioutil.NopCloser(bytes.NewBuffer(payload)),
+					}, nil
 				}
 			}
 
@@ -1028,7 +1245,7 @@ func TestUseCasesContentImpl_UnBookmarkContent(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "Sad case",
+			name: "sad case: make request error",
 			args: args{
 				ctx:       ctx,
 				userID:    uuid.New().String(),
@@ -1063,6 +1280,16 @@ func TestUseCasesContentImpl_UnBookmarkContent(t *testing.T) {
 			want:    false,
 			wantErr: true,
 		},
+		{
+			name: "sad case: invalid status code",
+			args: args{
+				ctx:       ctx,
+				userID:    uuid.New().String(),
+				contentID: 1,
+			},
+			want:    false,
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -1070,24 +1297,71 @@ func TestUseCasesContentImpl_UnBookmarkContent(t *testing.T) {
 			fakeExt := extensionMock.NewFakeExtension()
 			c := content.NewUseCasesContentImplementation(fakeDB, fakeDB, fakeExt)
 
-			if tt.name == "Sad case" {
-				fakeDB.MockUnBookmarkContentFn = func(ctx context.Context, userID string, contentID int) (bool, error) {
-					return false, fmt.Errorf("an error occurred")
+			if tt.name == "sad case: make request error" {
+				fakeExt.MockMakeRequestFn = func(ctx context.Context, method, path string, body interface{}) (*http.Response, error) {
+					return nil, fmt.Errorf("failed to make a request")
 				}
 			}
-			if tt.name == "Sad case - no userID" {
-				fakeDB.MockUnBookmarkContentFn = func(ctx context.Context, userID string, contentID int) (bool, error) {
-					return false, fmt.Errorf("an error occurred")
+
+			if tt.name == "sad case: invalid status code" {
+				fakeExt.MockMakeRequestFn = func(ctx context.Context, method, path string, body interface{}) (*http.Response, error) {
+					result := struct {
+						Count   int `json:"count"`
+						Results []struct {
+							ID string `json:"id"`
+						} `json:"results"`
+					}{
+						Count: 1,
+						Results: []struct {
+							ID string "json:\"id\""
+						}{
+							{
+								ID: gofakeit.UUID(),
+							},
+						},
+					}
+
+					payload, err := json.Marshal(result)
+					if err != nil {
+						t.Errorf("unable to marshal test item: %s", err)
+					}
+
+					return &http.Response{
+						StatusCode: http.StatusInternalServerError,
+						Status:     "OK",
+						Body:       ioutil.NopCloser(bytes.NewBuffer(payload)),
+					}, nil
 				}
 			}
-			if tt.name == "Sad case - no contentID" {
-				fakeDB.MockUnBookmarkContentFn = func(ctx context.Context, userID string, contentID int) (bool, error) {
-					return false, fmt.Errorf("an error occurred")
-				}
-			}
-			if tt.name == "Sad case - no userID and contentID" {
-				fakeDB.MockUnBookmarkContentFn = func(ctx context.Context, userID string, contentID int) (bool, error) {
-					return false, fmt.Errorf("an error occurred")
+
+			if tt.name == "Happy case" {
+				fakeExt.MockMakeRequestFn = func(ctx context.Context, method, path string, body interface{}) (*http.Response, error) {
+					result := struct {
+						Count   int `json:"count"`
+						Results []struct {
+							ID string `json:"id"`
+						} `json:"results"`
+					}{
+						Count: 1,
+						Results: []struct {
+							ID string "json:\"id\""
+						}{
+							{
+								ID: gofakeit.UUID(),
+							},
+						},
+					}
+
+					payload, err := json.Marshal(result)
+					if err != nil {
+						t.Errorf("unable to marshal test item: %s", err)
+					}
+
+					return &http.Response{
+						StatusCode: http.StatusNoContent,
+						Status:     "OK",
+						Body:       ioutil.NopCloser(bytes.NewBuffer(payload)),
+					}, nil
 				}
 			}
 
@@ -1133,7 +1407,44 @@ func TestUseCasesContentImpl_ShareContent(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "Sad case",
+			name: "sad case: user id not provided",
+			args: args{
+				ctx: ctx,
+				input: dto.ShareContentInput{
+					ContentID: 20,
+					Channel:   "test",
+				},
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "sad case: content id not provided",
+			args: args{
+				ctx: ctx,
+				input: dto.ShareContentInput{
+					UserID:  uuid.New().String(),
+					Channel: "test",
+				},
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "sad case: make request error",
+			args: args{
+				ctx: ctx,
+				input: dto.ShareContentInput{
+					UserID:    uuid.New().String(),
+					ContentID: 20,
+					Channel:   "test",
+				},
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "sad case: invalid status code",
 			args: args{
 				ctx: ctx,
 				input: dto.ShareContentInput{
@@ -1148,11 +1459,42 @@ func TestUseCasesContentImpl_ShareContent(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if tt.name == "Sad case" {
-				fakeDB.MockShareContentFn = func(ctx context.Context, input dto.ShareContentInput) (bool, error) {
-					return false, fmt.Errorf("an error occurred")
+			if tt.name == "sad case: make request error" {
+				fakeExt.MockMakeRequestFn = func(ctx context.Context, method, path string, body interface{}) (*http.Response, error) {
+					return nil, fmt.Errorf("failed to make a request")
 				}
 			}
+
+			if tt.name == "sad case: invalid status code" {
+				fakeExt.MockMakeRequestFn = func(ctx context.Context, method, path string, body interface{}) (*http.Response, error) {
+					payload, err := json.Marshal([]byte{})
+					if err != nil {
+						t.Errorf("unable to marshal test item: %s", err)
+					}
+
+					return &http.Response{
+						StatusCode: http.StatusInternalServerError,
+						Status:     "OK",
+						Body:       ioutil.NopCloser(bytes.NewBuffer(payload)),
+					}, nil
+				}
+			}
+
+			if tt.name == "Happy case" {
+				fakeExt.MockMakeRequestFn = func(ctx context.Context, method, path string, body interface{}) (*http.Response, error) {
+					payload, err := json.Marshal([]byte{})
+					if err != nil {
+						t.Errorf("unable to marshal test item: %s", err)
+					}
+
+					return &http.Response{
+						StatusCode: http.StatusCreated,
+						Status:     "OK",
+						Body:       ioutil.NopCloser(bytes.NewBuffer(payload)),
+					}, nil
+				}
+			}
+
 			got, err := c.ShareContent(tt.args.ctx, tt.args.input)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCasesContentImpl.ShareContent() error = %v, wantErr %v", err, tt.wantErr)
@@ -1167,10 +1509,6 @@ func TestUseCasesContentImpl_ShareContent(t *testing.T) {
 
 func TestUseCasesContentImpl_GetFAQs(t *testing.T) {
 	ctx := context.Background()
-	fakeDB := pgMock.NewPostgresMock()
-	fakeExt := extensionMock.NewFakeExtension()
-	cm := mock.NewContentUsecaseMock()
-	c := content.NewUseCasesContentImplementation(fakeDB, fakeDB, fakeExt)
 
 	type args struct {
 		ctx     context.Context
@@ -1182,15 +1520,7 @@ func TestUseCasesContentImpl_GetFAQs(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "Sad case: invalid flavour",
-			args: args{
-				ctx:     ctx,
-				flavour: feedlib.Flavour("invalid flavour"),
-			},
-			wantErr: true,
-		},
-		{
-			name: "Happy case: get content by consumer flavour",
+			name: "Happy case: get consumer faqs",
 			args: args{
 				ctx:     ctx,
 				flavour: feedlib.FlavourConsumer,
@@ -1198,7 +1528,7 @@ func TestUseCasesContentImpl_GetFAQs(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "Happy case: get content by flavour pro",
+			name: "Happy case: get pro faqs",
 			args: args{
 				ctx:     ctx,
 				flavour: feedlib.FlavourPro,
@@ -1206,29 +1536,63 @@ func TestUseCasesContentImpl_GetFAQs(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "Sad case: unable to list content categories",
+			name: "sad case: make request error",
 			args: args{
 				ctx:     ctx,
-				flavour: feedlib.FlavourConsumer,
+				flavour: feedlib.FlavourPro,
 			},
 			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if tt.name == "Sad case: unable to list content categories" {
-				fakeDB.MockListContentCategoriesFn = func(ctx context.Context) ([]*domain.ContentItemCategory, error) {
-					return nil, fmt.Errorf("an error occurred")
+			fakeDB := pgMock.NewPostgresMock()
+			fakeExt := extensionMock.NewFakeExtension()
+			c := content.NewUseCasesContentImplementation(fakeDB, fakeDB, fakeExt)
+
+			if tt.name == "sad case: make request error" {
+				fakeExt.MockMakeRequestFn = func(ctx context.Context, method, path string, body interface{}) (*http.Response, error) {
+					return nil, fmt.Errorf("failed to make a request")
 				}
 			}
-			if tt.name == "Sad case: invalid flavour" {
-				cm.MockGetFAQsFn = func(ctx context.Context, flavor feedlib.Flavour) (*domain.Content, error) {
-					return nil, fmt.Errorf("an error occurred")
-				}
-			}
+
 			_, err := c.GetFAQs(tt.args.ctx, tt.args.flavour)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCasesContentImpl.GetFAQs() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}
+
+func TestUseCasesContentImpl_ListContentCategories(t *testing.T) {
+
+	type args struct {
+		ctx context.Context
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    []*domain.ContentItemCategory
+		wantErr bool
+	}{
+		{
+			name: "happy case: fetch content categories",
+			args: args{
+				ctx: context.Background(),
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			fakeExt := extensionMock.NewFakeExtension()
+			c := content.NewUseCasesContentImplementation(fakeDB, fakeDB, fakeExt)
+
+			_, err := c.ListContentCategories(tt.args.ctx)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCasesContentImpl.ListContentCategories() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 		})

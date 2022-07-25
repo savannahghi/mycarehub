@@ -38,7 +38,6 @@ type Query interface {
 	GetUserPINByUserID(ctx context.Context, userID string, flavour feedlib.Flavour) (*PINData, error)
 	GetUserProfileByUserID(ctx context.Context, userID *string) (*User, error)
 	GetCurrentTerms(ctx context.Context, flavour feedlib.Flavour) (*TermsOfService, error)
-	CheckWhetherUserHasLikedContent(ctx context.Context, userID string, contentID int) (bool, error)
 	GetSecurityQuestions(ctx context.Context, flavour feedlib.Flavour) ([]*SecurityQuestion, error)
 	GetSecurityQuestionByID(ctx context.Context, securityQuestionID *string) (*SecurityQuestion, error)
 	GetSecurityQuestionResponse(ctx context.Context, questionID string, userID string) (*SecurityQuestionResponse, error)
@@ -53,11 +52,8 @@ type Query interface {
 	GetStaffPendingServiceRequestsCount(ctx context.Context, facilityID string) (*domain.ServiceRequestsCount, error)
 	GetUserSecurityQuestionsResponses(ctx context.Context, userID string) ([]*SecurityQuestionResponse, error)
 	GetContactByUserID(ctx context.Context, userID *string, contactType string) (*Contact, error)
-	ListContentCategories(ctx context.Context) ([]*domain.ContentItemCategory, error)
-	GetUserBookmarkedContent(ctx context.Context, userID string) ([]*ContentItem, error)
 	CanRecordHeathDiary(ctx context.Context, clientID string) (bool, error)
 	GetClientHealthDiaryQuote(ctx context.Context, limit int) ([]*ClientHealthDiaryQuote, error)
-	CheckIfUserBookmarkedContent(ctx context.Context, userID string, contentID int) (bool, error)
 	GetClientHealthDiaryEntries(ctx context.Context, params map[string]interface{}) ([]*ClientHealthDiaryEntry, error)
 	GetClientCaregiver(ctx context.Context, caregiverID string) (*Caregiver, error)
 	GetClientProfileByClientID(ctx context.Context, clientID string) (*Client, error)
@@ -104,20 +100,6 @@ type Query interface {
 	SearchStaffServiceRequests(ctx context.Context, searchParameter string, requestType string) ([]*StaffServiceRequest, error)
 }
 
-// CheckWhetherUserHasLikedContent performs an operation to check whether user has liked the content
-func (db *PGInstance) CheckWhetherUserHasLikedContent(ctx context.Context, userID string, contentID int) (bool, error) {
-	var contentItemLike ContentLike
-	if err := db.DB.Where(&ContentLike{UserID: userID, ContentID: contentID}).First(&contentItemLike).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return false, nil
-		}
-		helpers.ReportErrorToSentry(err)
-		return false, fmt.Errorf("an error occurred: %v", err)
-	}
-
-	return true, nil
-}
-
 // GetFacilityStaffs returns a list of staff at a particular facility
 func (db PGInstance) GetFacilityStaffs(ctx context.Context, facilityID string) ([]*StaffProfile, error) {
 	var staffs []*StaffProfile
@@ -127,40 +109,6 @@ func (db PGInstance) GetFacilityStaffs(ctx context.Context, facilityID string) (
 	}
 
 	return staffs, nil
-}
-
-//ListContentCategories performs the actual database query to get the list of content categories
-func (db *PGInstance) ListContentCategories(ctx context.Context) ([]*domain.ContentItemCategory, error) {
-	var contentItemCategories []*ContentItemCategory
-
-	err := db.DB.Find(&contentItemCategories).Error
-	if err != nil {
-		helpers.ReportErrorToSentry(err)
-		return nil, fmt.Errorf("failed to query all content categories %v", err)
-	}
-
-	var domainContentItemCategory []*domain.ContentItemCategory
-	for _, contentCategory := range contentItemCategories {
-		var wagtailImage *WagtailImages
-
-		err := db.DB.Model(&WagtailImages{}).Where(&WagtailImages{ID: contentCategory.IconID}).Find(&wagtailImage).Error
-		if err != nil {
-			helpers.ReportErrorToSentry(err)
-			return nil, fmt.Errorf("failed to fetch wagtail images %v", err)
-		}
-
-		iconURL := fmt.Sprintf(GCSBaseURL + wagtailImage.File)
-
-		contentItemCategory := &domain.ContentItemCategory{
-			ID:      contentCategory.ID,
-			Name:    contentCategory.Name,
-			IconURL: iconURL,
-		}
-
-		domainContentItemCategory = append(domainContentItemCategory, contentItemCategory)
-	}
-
-	return domainContentItemCategory, nil
 }
 
 // RetrieveFacility fetches a single facility
@@ -678,18 +626,6 @@ func (db *PGInstance) GetContactByUserID(ctx context.Context, userID *string, co
 	return &contact, nil
 }
 
-// GetUserBookmarkedContent retrieves a user's pinned content from the database
-func (db *PGInstance) GetUserBookmarkedContent(ctx context.Context, userID string) ([]*ContentItem, error) {
-	var contentItem []*ContentItem
-	err := db.DB.Joins("JOIN content_contentbookmark ON content_contentitem.page_ptr_id = content_contentbookmark.content_item_id").
-		Where("content_contentbookmark.user_id = ?", userID).Preload(clause.Associations).Find(&contentItem).Error
-	if err != nil {
-		helpers.ReportErrorToSentry(err)
-		return nil, err
-	}
-	return contentItem, nil
-}
-
 // CanRecordHeathDiary checks whether a user can record a health diary
 // if the last record is less than 24 hours ago, the user cannot record a new entry
 // if the last record is more than 24 hours ago, the user can record a new entry
@@ -719,20 +655,6 @@ func (db *PGInstance) GetClientHealthDiaryQuote(ctx context.Context, limit int) 
 		return nil, err
 	}
 	return healthDiaryQuote, nil
-}
-
-// CheckIfUserBookmarkedContent fetches a user's pinned content from the database
-func (db *PGInstance) CheckIfUserBookmarkedContent(ctx context.Context, userID string, contentID int) (bool, error) {
-	var contentBookmark ContentBookmark
-	err := db.DB.Where(&ContentBookmark{ContentID: contentID, UserID: userID}).First(&contentBookmark).Error
-	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return false, nil
-		}
-		helpers.ReportErrorToSentry(err)
-		return false, fmt.Errorf("failed to get content bookmark: %v", err)
-	}
-	return true, nil
 }
 
 // GetClientHealthDiaryEntries gets all health diary entries that belong to a specific client

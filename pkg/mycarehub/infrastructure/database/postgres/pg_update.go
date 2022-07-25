@@ -73,56 +73,9 @@ func (d *MyCareHubDb) UpdateIsCorrectSecurityQuestionResponse(ctx context.Contex
 	return d.update.UpdateIsCorrectSecurityQuestionResponse(ctx, userID, isCorrectSecurityQuestionResponse)
 }
 
-// ShareContent updates content share count
-func (d *MyCareHubDb) ShareContent(ctx context.Context, input dto.ShareContentInput) (bool, error) {
-	if input.Validate() != nil {
-		return false, fmt.Errorf("input cannot be empty")
-	}
-	return d.update.ShareContent(ctx, input)
-}
-
-//BookmarkContent updates the user's bookmark status for a content
-func (d *MyCareHubDb) BookmarkContent(ctx context.Context, userID string, contentID int) (bool, error) {
-	if contentID == 0 || userID == "" {
-		return false, fmt.Errorf("contentID or userID cannot be nil")
-	}
-	return d.update.BookmarkContent(ctx, userID, contentID)
-}
-
-// UnBookmarkContent removes the bookmark for a given user
-func (d *MyCareHubDb) UnBookmarkContent(ctx context.Context, userID string, contentID int) (bool, error) {
-	if contentID == 0 || userID == "" {
-		return false, fmt.Errorf("contentID or userID cannot be nil")
-	}
-	return d.update.UnBookmarkContent(ctx, userID, contentID)
-}
-
-// LikeContent increments the number of likes for a particular content
-func (d *MyCareHubDb) LikeContent(ctx context.Context, userID string, contentID int) (bool, error) {
-	if userID == "" || contentID == 0 {
-		return false, fmt.Errorf("userID or contentID cannot be empty")
-	}
-
-	return d.update.LikeContent(ctx, userID, contentID)
-}
-
-// UnlikeContent decrements the number of likes for a particular content
-func (d *MyCareHubDb) UnlikeContent(ctx context.Context, userID string, contentID int) (bool, error) {
-	if userID == "" || contentID == 0 {
-		return false, fmt.Errorf("userID or contentID cannot be empty")
-	}
-
-	return d.update.UnlikeContent(ctx, userID, contentID)
-}
-
 // SetInProgressBy updates the the value of the staff assigned to a service request
 func (d *MyCareHubDb) SetInProgressBy(ctx context.Context, requestID string, staffID string) (bool, error) {
 	return d.update.SetInProgressBy(ctx, requestID, staffID)
-}
-
-// ViewContent gets a content item and updates the view count
-func (d *MyCareHubDb) ViewContent(ctx context.Context, userID string, contentID int) (bool, error) {
-	return d.update.ViewContent(ctx, userID, contentID)
 }
 
 // UpdateClientCaregiver updates the caregiver for a client
