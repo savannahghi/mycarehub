@@ -418,6 +418,61 @@ func (d *MyCareHubDb) CreateClient(ctx context.Context, client domain.ClientProf
 	}, nil
 }
 
+// RegisterClient registers a client in the database
+func (d *MyCareHubDb) RegisterClient(ctx context.Context, payload *domain.ClientRegistrationPayload) (*domain.ClientProfile, error) {
+	contact := &gorm.Contact{
+		ContactType:  payload.Phone.ContactType,
+		ContactValue: payload.Phone.ContactValue,
+		Active:       payload.Phone.Active,
+		OptedIn:      payload.Phone.Active,
+		UserID:       payload.Phone.UserID,
+		Flavour:      payload.Phone.Flavour,
+	}
+
+	identifier := &gorm.Identifier{
+		IdentifierType:      payload.ClientIdentifier.IdentifierType,
+		IdentifierValue:     payload.ClientIdentifier.IdentifierValue,
+		IdentifierUse:       payload.ClientIdentifier.IdentifierUse,
+		Description:         payload.ClientIdentifier.Description,
+		IsPrimaryIdentifier: payload.ClientIdentifier.IsPrimaryIdentifier,
+		Active:              payload.ClientIdentifier.Active,
+	}
+
+	var pgClientTypes pq.StringArray
+	for _, clientType := range payload.Client.ClientTypes {
+		pgClientTypes = append(pgClientTypes, clientType.String())
+	}
+	clientProfile := &gorm.Client{
+		UserID:                  &payload.Client.UserID,
+		ClientTypes:             pgClientTypes,
+		TreatmentEnrollmentDate: payload.Client.TreatmentEnrollmentDate,
+		FacilityID:              payload.Client.FacilityID,
+		ClientCounselled:        payload.Client.ClientCounselled,
+		Active:                  payload.Client.Active,
+	}
+
+	err := d.create.RegisterClient(ctx, contact, identifier, clientProfile)
+	if err != nil {
+		return nil, err
+	}
+
+	var clientTypes []enums.ClientType
+	for _, k := range clientProfile.ClientTypes {
+		clientTypes = append(clientTypes, enums.ClientType(k))
+	}
+
+	return &domain.ClientProfile{
+		ID:                      clientProfile.ID,
+		Active:                  clientProfile.Active,
+		ClientTypes:             clientTypes,
+		UserID:                  *clientProfile.UserID,
+		TreatmentEnrollmentDate: clientProfile.TreatmentEnrollmentDate,
+		TreatmentBuddy:          clientProfile.TreatmentBuddy,
+		ClientCounselled:        clientProfile.ClientCounselled,
+		FacilityID:              clientProfile.FacilityID,
+	}, nil
+}
+
 // CreateIdentifier creates a new identifier
 func (d *MyCareHubDb) CreateIdentifier(ctx context.Context, identifier domain.Identifier) (*domain.Identifier, error) {
 	i := &gorm.Identifier{

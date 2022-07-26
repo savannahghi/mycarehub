@@ -36,8 +36,7 @@ import (
 )
 
 var (
-	registerClientAPIEndpoint = serverutils.MustGetEnvVar("CLIENT_REGISTRATION_URL")
-	registerStaffAPIEndpoint  = serverutils.MustGetEnvVar("STAFF_REGISTRATION_URL")
+	registerStaffAPIEndpoint = serverutils.MustGetEnvVar("STAFF_REGISTRATION_URL")
 )
 
 // ILogin is an interface that contans login related methods
@@ -720,61 +719,117 @@ func (us *UseCasesUserImpl) RegisterClient(
 	ctx context.Context,
 	input *dto.ClientRegistrationInput,
 ) (*dto.ClientRegistrationOutput, error) {
-	var registrationOutput *dto.ClientRegistrationOutput
+	// ---- Sanity checks ----
 
-	err := input.Validate()
-	if err != nil {
-		return registrationOutput, exceptions.InputValidationErr(err)
-	}
-
-	// TODO: Restore after aligning with frontend
-	// check if logged in user can register client
-	// err := us.Authority.CheckUserPermission(ctx, enums.PermissionTypeCanInviteClient)
-	// if err != nil {
-	// 	helpers.ReportErrorToSentry(err)
-	// 	return nil, exceptions.UserNotAuthorizedErr(err)
-	// }
-
-	input.Gender = enumutils.Gender(strings.ToUpper(input.Gender.String()))
-	resp, err := us.ExternalExt.MakeRequest(ctx, http.MethodPost, registerClientAPIEndpoint, input)
+	identifierExists, err := us.Query.CheckIdentifierExists(ctx, "CCC", input.CCCNumber)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return nil, fmt.Errorf("failed to make request: %w", err)
+		return nil, err
+	}
+	if identifierExists {
+		return nil, fmt.Errorf("an identifier with this CCC number %v already exists", input.CCCNumber)
 	}
 
-	dataResponse, err := ioutil.ReadAll(resp.Body)
+	normalized, err := converterandformatter.NormalizeMSISDN(input.PhoneNumber)
+	if err != nil {
+		return nil, err
+	}
+
+	phoneExists, err := us.Query.CheckIfPhoneNumberExists(ctx, *normalized, false, feedlib.FlavourConsumer)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return nil, fmt.Errorf("failed to read request body: %w", err)
+		return nil, err
+	}
+	if phoneExists {
+		return nil, fmt.Errorf("a user registered with this phone number %v already exists", *normalized)
 	}
 
-	// Success is indicated with 2xx status codes
-	statusOK := resp.StatusCode >= 200 && resp.StatusCode < 300
-	if !statusOK {
-		if strings.Contains(string(dataResponse), "Identifier with this Identifier") {
-			return nil, fmt.Errorf("a client with this identifier type and value already exists")
-		} else if strings.Contains(string(dataResponse), "Contact with this Contact value and Flavour already exists") {
-			return nil, fmt.Errorf("a contact with this value and flavour already exists")
-		}
-		return nil, fmt.Errorf("%v", string(dataResponse))
+	// -- End of sanity checks --
+
+	username := fmt.Sprintf("%v-%v", input.ClientName, input.CCCNumber)
+	dob := input.DateOfBirth.AsTime()
+	usr := &domain.User{
+		Username:    username,
+		Name:        input.ClientName,
+		Gender:      enumutils.Gender(strings.ToUpper(input.Gender.String())),
+		DateOfBirth: &dob,
+		UserType:    enums.ClientUser,
+		Flavour:     feedlib.FlavourConsumer,
 	}
 
-	err = json.Unmarshal(dataResponse, &registrationOutput)
+	user, err := us.Create.CreateUser(ctx, *usr)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return nil, fmt.Errorf("failed to unmarshal response: %w", err)
+		return nil, err
 	}
 
-	if input.InviteClient {
-		_, err := us.InviteUser(ctx, registrationOutput.UserID, input.PhoneNumber, feedlib.FlavourConsumer, false)
-		if err != nil {
-			return nil, fmt.Errorf("failed to invite client: %w", err)
-		}
+	phone := &domain.Contact{
+		ContactType:  "PHONE",
+		ContactValue: *normalized,
+		Active:       true,
+		OptedIn:      false,
+		UserID:       user.ID,
+		Flavour:      feedlib.FlavourConsumer,
+	}
+
+	ccc := domain.Identifier{
+		IdentifierType:      "CCC",
+		IdentifierValue:     input.CCCNumber,
+		IdentifierUse:       "OFFICIAL",
+		Description:         "CCC Number, Primary Identifier",
+		IsPrimaryIdentifier: true,
+		Active:              true,
+	}
+
+	MFLCode, err := strconv.Atoi(input.Facility)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+	exists, err := us.Query.CheckFacilityExistsByMFLCode(ctx, MFLCode)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
+	if !exists {
+		return nil, fmt.Errorf("facility with MFLCode %d does not exist", MFLCode)
+	}
+
+	facility, err := us.Query.RetrieveFacilityByMFLCode(ctx, MFLCode, true)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
+	var clientTypes []enums.ClientType
+	clientTypes = append(clientTypes, input.ClientTypes...)
+	clientEnrollmentDate := input.EnrollmentDate.AsTime()
+	client := &domain.ClientProfile{
+		UserID:                  *user.ID,
+		ClientTypes:             clientTypes,
+		TreatmentEnrollmentDate: &clientEnrollmentDate,
+		FacilityID:              *facility.ID,
+		ClientCounselled:        input.Counselled,
+		Active:                  true,
+	}
+
+	registrationPayload := &domain.ClientRegistrationPayload{
+		UserProfile:      *usr,
+		Phone:            *phone,
+		ClientIdentifier: ccc,
+		Client:           *client,
+	}
+	// RegisterClient
+	registeredClient, err := us.Create.RegisterClient(ctx, registrationPayload)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
 	}
 
 	payload := &dto.PatientCreationOutput{
-		ID:     registrationOutput.ID,
-		UserID: registrationOutput.UserID,
+		ID:     *registeredClient.ID,
+		UserID: registeredClient.UserID,
 	}
 	err = us.Pubsub.NotifyCreatePatient(ctx, payload)
 	if err != nil {
@@ -782,7 +837,24 @@ func (us *UseCasesUserImpl) RegisterClient(
 		log.Printf("failed to publish to create patient topic: %v", err)
 	}
 
-	return registrationOutput, nil
+	if input.InviteClient {
+		_, err := us.InviteUser(ctx, *user.ID, input.PhoneNumber, feedlib.FlavourConsumer, false)
+		if err != nil {
+			return nil, fmt.Errorf("failed to invite client: %w", err)
+		}
+	}
+
+	return &dto.ClientRegistrationOutput{
+		ID:                *registeredClient.ID,
+		Active:            registeredClient.Active,
+		ClientTypes:       registeredClient.ClientTypes,
+		EnrollmentDate:    registeredClient.TreatmentEnrollmentDate,
+		TreatmentBuddy:    registeredClient.TreatmentBuddy,
+		Counselled:        registeredClient.ClientCounselled,
+		UserID:            registeredClient.UserID,
+		CurrentFacilityID: registeredClient.FacilityID,
+		Organisation:      registeredClient.OrganisationID,
+	}, nil
 }
 
 // RefreshGetStreamToken update a getstream token as soon as a token exception occurs. The implementation

@@ -78,3 +78,19 @@
   current_facility_id: {{.test_facility_id}}
   chv_id: {{.client_user_unresolved_request_id}}
   user_id: {{.test_user_id_to_delete}}
+
+- id: 26b30a42-cbb8-4773-aedb-c539602d04fc
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  active: true
+  client_types: '{PMTCT}'
+  enrollment_date: 2021-11-22 21:16:29.23639+03
+  fhir_patient_id: 26b30a42-cbb8-4773-aedb-c539602d04fc
+  emr_health_record_id: 29b30a42-cbb8-4573-aedb-c539602d04fc
+  treatment_buddy: {{.test_treatment_buddy_id}}
+  counselled: true
+  organisation_id: {{.test_organisation_id}}
+  current_facility_id: {{.test_facility_id}}
+  chv_id: {{.user_with_roles_id}}
+  user_id: {{.user_with_roles_id}}
+  caregiver_id: 28b20a42-cbb8-4553-aedb-c593602d04fc

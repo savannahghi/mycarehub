@@ -1304,3 +1304,96 @@ func TestMyCareHubDb_SaveFeedback(t *testing.T) {
 		})
 	}
 }
+
+func TestMyCareHubDb_RegisterClient(t *testing.T) {
+	var fakeGorm = gormMock.NewGormMock()
+	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+	UID := uuid.New().String()
+
+	type args struct {
+		ctx     context.Context
+		payload *domain.ClientRegistrationPayload
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *domain.ClientProfile
+		wantErr bool
+	}{
+		{
+			name: "Happy Case: Successfully register client",
+			args: args{
+				ctx: context.Background(),
+				payload: &domain.ClientRegistrationPayload{
+					UserProfile: domain.User{
+						ID:       &UID,
+						Username: "test",
+					},
+					Phone: domain.Contact{
+						ID:           &UID,
+						ContactType:  "PHONE",
+						ContactValue: interserviceclient.TestUserPhoneNumber,
+						Active:       true,
+						OptedIn:      true,
+						UserID:       &UID,
+						Flavour:      feedlib.FlavourConsumer,
+					},
+					ClientIdentifier: domain.Identifier{
+						IdentifierType:  "CCC",
+						IdentifierValue: "123456789",
+					},
+					Client: domain.ClientProfile{
+						ID:          &UID,
+						ClientTypes: []enums.ClientType{"PMTCT"},
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad Case: unable register client",
+			args: args{
+				ctx: context.Background(),
+				payload: &domain.ClientRegistrationPayload{
+					UserProfile: domain.User{
+						ID:       &UID,
+						Username: "test",
+					},
+					Phone: domain.Contact{
+						ID:           &UID,
+						ContactType:  "PHONE",
+						ContactValue: interserviceclient.TestUserPhoneNumber,
+						Active:       true,
+						OptedIn:      true,
+						UserID:       &UID,
+						Flavour:      feedlib.FlavourConsumer,
+					},
+					ClientIdentifier: domain.Identifier{
+						IdentifierType:  "CCC",
+						IdentifierValue: "123456789",
+					},
+					Client: domain.ClientProfile{
+						ID:          &UID,
+						ClientTypes: []enums.ClientType{"PMTCT"},
+					},
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "Sad Case: unable register client" {
+				fakeGorm.MockRegisterClientFn = func(ctx context.Context, contact *gorm.Contact, identifier *gorm.Identifier, client *gorm.Client) error {
+					return fmt.Errorf("cannot register client")
+				}
+			}
+			_, err := d.RegisterClient(tt.args.ctx, tt.args.payload)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.RegisterClient() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}
