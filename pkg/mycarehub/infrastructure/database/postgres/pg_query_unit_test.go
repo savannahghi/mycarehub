@@ -5617,6 +5617,7 @@ func TestMyCareHubDb_SearchStaffServiceRequests(t *testing.T) {
 		ctx             context.Context
 		searchParameter string
 		requestType     string
+		facilityID      string
 	}
 	tests := []struct {
 		name    string
@@ -5630,6 +5631,7 @@ func TestMyCareHubDb_SearchStaffServiceRequests(t *testing.T) {
 				ctx:             ctx,
 				searchParameter: "PENDING",
 				requestType:     "PIN_RESET",
+				facilityID:      uuid.New().String(),
 			},
 			wantErr: false,
 		},
@@ -5653,12 +5655,12 @@ func TestMyCareHubDb_SearchStaffServiceRequests(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.name == "Sad case: unable to search staff service requests" {
-				fakeGorm.MockSearchStaffServiceRequestsFn = func(ctx context.Context, searchParameter string, requestType string) ([]*gorm.StaffServiceRequest, error) {
+				fakeGorm.MockSearchStaffServiceRequestsFn = func(ctx context.Context, searchParameter string, requestType string, facilityID string) ([]*gorm.StaffServiceRequest, error) {
 					return nil, fmt.Errorf("an error occurred")
 				}
 			}
 			if tt.name == "Sad case: unable to get staff profile by staff ID" {
-				fakeGorm.MockSearchStaffServiceRequestsFn = func(ctx context.Context, searchParameter, requestType string) ([]*gorm.StaffServiceRequest, error) {
+				fakeGorm.MockSearchStaffServiceRequestsFn = func(ctx context.Context, searchParameter, requestType string, facilityID string) ([]*gorm.StaffServiceRequest, error) {
 					ID := uuid.New().String()
 					return []*gorm.StaffServiceRequest{
 						{
@@ -5676,7 +5678,7 @@ func TestMyCareHubDb_SearchStaffServiceRequests(t *testing.T) {
 					return nil, fmt.Errorf("an error occurred")
 				}
 			}
-			got, err := d.SearchStaffServiceRequests(tt.args.ctx, tt.args.searchParameter, tt.args.requestType)
+			got, err := d.SearchStaffServiceRequests(tt.args.ctx, tt.args.searchParameter, tt.args.requestType, tt.args.facilityID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("MyCareHubDb.SearchStaffServiceRequests() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -5698,6 +5700,7 @@ func TestMyCareHubDb_SearchClientServiceRequests(t *testing.T) {
 		ctx             context.Context
 		searchParameter string
 		requestType     string
+		facilityID      string
 	}
 	tests := []struct {
 		name    string
@@ -5711,6 +5714,7 @@ func TestMyCareHubDb_SearchClientServiceRequests(t *testing.T) {
 				ctx:             ctx,
 				searchParameter: "PENDING",
 				requestType:     "RED_FLAG",
+				facilityID:      uuid.New().String(),
 			},
 			wantErr: false,
 		},
@@ -5736,12 +5740,12 @@ func TestMyCareHubDb_SearchClientServiceRequests(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.name == "Sad case: unable to search client service requests" {
-				fakeGorm.MockSearchClientServiceRequestsFn = func(ctx context.Context, searchParameter string, requestType string) ([]*gorm.ClientServiceRequest, error) {
+				fakeGorm.MockSearchClientServiceRequestsFn = func(ctx context.Context, searchParameter string, requestType string, facilityID string) ([]*gorm.ClientServiceRequest, error) {
 					return nil, fmt.Errorf("an error occurred")
 				}
 			}
 			if tt.name == "Sad case: unable to get client profile by client id" {
-				fakeGorm.MockSearchClientServiceRequestsFn = func(ctx context.Context, searchParameter, requestType string) ([]*gorm.ClientServiceRequest, error) {
+				fakeGorm.MockSearchClientServiceRequestsFn = func(ctx context.Context, searchParameter, requestType string, facilityID string) ([]*gorm.ClientServiceRequest, error) {
 					ID := uuid.New().String()
 					return []*gorm.ClientServiceRequest{
 						{
@@ -5758,7 +5762,7 @@ func TestMyCareHubDb_SearchClientServiceRequests(t *testing.T) {
 					return nil, fmt.Errorf("an error occurred")
 				}
 			}
-			got, err := d.SearchClientServiceRequests(tt.args.ctx, tt.args.searchParameter, tt.args.requestType)
+			got, err := d.SearchClientServiceRequests(tt.args.ctx, tt.args.searchParameter, tt.args.requestType, tt.args.facilityID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("MyCareHubDb.SearchClientServiceRequests() error = %v, wantErr %v", err, tt.wantErr)
 				return

@@ -96,8 +96,8 @@ type Query interface {
 	GetFacilityStaffs(ctx context.Context, facilityID string) ([]*StaffProfile, error)
 	GetNotification(ctx context.Context, notificationID string) (*Notification, error)
 	GetClientsByFilterParams(ctx context.Context, facilityID string, filterParams *dto.ClientFilterParamsInput) ([]*Client, error)
-	SearchClientServiceRequests(ctx context.Context, searchParameter string, requestType string) ([]*ClientServiceRequest, error)
-	SearchStaffServiceRequests(ctx context.Context, searchParameter string, requestType string) ([]*StaffServiceRequest, error)
+	SearchClientServiceRequests(ctx context.Context, searchParameter string, requestType string, facilityID string) ([]*ClientServiceRequest, error)
+	SearchStaffServiceRequests(ctx context.Context, searchParameter string, requestType string, facilityID string) ([]*StaffServiceRequest, error)
 }
 
 // GetFacilityStaffs returns a list of staff at a particular facility
@@ -1445,7 +1445,7 @@ func (db *PGInstance) GetClientsByFilterParams(ctx context.Context, facilityID s
 }
 
 // SearchClientServiceRequests is used to query(search) for client service requests depending on the search parameter and the type of service request passed
-func (db *PGInstance) SearchClientServiceRequests(ctx context.Context, searchParameter string, requestType string) ([]*ClientServiceRequest, error) {
+func (db *PGInstance) SearchClientServiceRequests(ctx context.Context, searchParameter string, requestType string, facilityID string) ([]*ClientServiceRequest, error) {
 	var clientServiceRequests []*ClientServiceRequest
 	if err := db.DB.Joins("JOIN clients_client on clients_servicerequest.client_id=clients_client.id").
 		Joins("JOIN users_user on clients_client.user_id=users_user.id").
@@ -1453,6 +1453,7 @@ func (db *PGInstance) SearchClientServiceRequests(ctx context.Context, searchPar
 		Where(db.DB.Or("users_user.username ILIKE ? ", "%"+searchParameter+"%").Or("common_contact.contact_value ILIKE ?", "%"+searchParameter+"%")).
 		Where("clients_servicerequest.status = ?", enums.ServiceRequestStatusPending.String()).
 		Where("clients_servicerequest.request_type = ?", requestType).
+		Where("clients_servicerequest.facility_id = ?", facilityID).
 		Preload(clause.Associations).Find(&clientServiceRequests).Error; err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed to get client service requests: %w", err)
@@ -1462,7 +1463,7 @@ func (db *PGInstance) SearchClientServiceRequests(ctx context.Context, searchPar
 }
 
 // SearchStaffServiceRequests is used to query(search) for staff's service requests depending on the search parameter and the type of service request
-func (db *PGInstance) SearchStaffServiceRequests(ctx context.Context, searchParameter string, requestType string) ([]*StaffServiceRequest, error) {
+func (db *PGInstance) SearchStaffServiceRequests(ctx context.Context, searchParameter string, requestType string, facilityID string) ([]*StaffServiceRequest, error) {
 	var staffServiceRequests []*StaffServiceRequest
 	if err := db.DB.Joins("JOIN staff_staff on staff_servicerequest.staff_id=staff_staff.id").
 		Joins("JOIN users_user on staff_staff.user_id=users_user.id").
@@ -1470,6 +1471,7 @@ func (db *PGInstance) SearchStaffServiceRequests(ctx context.Context, searchPara
 		Where(db.DB.Or("users_user.username ILIKE ? ", "%"+searchParameter+"%").Or("common_contact.contact_value ILIKE ?", "%"+searchParameter+"%")).
 		Where("staff_servicerequest.status = ? ", enums.ServiceRequestStatusPending.String()).
 		Where("staff_servicerequest.request_type = ?", requestType).
+		Where("staff_servicerequest.facility_id = ?", facilityID).
 		Preload(clause.Associations).Find(&staffServiceRequests).Error; err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed to get staff service requests: %w", err)

@@ -1974,8 +1974,8 @@ func (d *MyCareHubDb) GetClientsByFilterParams(ctx context.Context, facilityID *
 }
 
 // SearchClientServiceRequests is used to query(search) for client service requests depending on the search parameter
-func (d *MyCareHubDb) SearchClientServiceRequests(ctx context.Context, searchParameter string, requestType string) ([]*domain.ServiceRequest, error) {
-	serviceRequests, err := d.query.SearchClientServiceRequests(ctx, searchParameter, requestType)
+func (d *MyCareHubDb) SearchClientServiceRequests(ctx context.Context, searchParameter string, requestType string, facilityID string) ([]*domain.ServiceRequest, error) {
+	serviceRequests, err := d.query.SearchClientServiceRequests(ctx, searchParameter, requestType, facilityID)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, err
@@ -1985,8 +1985,8 @@ func (d *MyCareHubDb) SearchClientServiceRequests(ctx context.Context, searchPar
 }
 
 // SearchStaffServiceRequests is used to query(search) for staff's service requests depending on the search parameter
-func (d *MyCareHubDb) SearchStaffServiceRequests(ctx context.Context, searchParameter string, requestType string) ([]*domain.ServiceRequest, error) {
-	serviceRequests, err := d.query.SearchStaffServiceRequests(ctx, searchParameter, requestType)
+func (d *MyCareHubDb) SearchStaffServiceRequests(ctx context.Context, searchParameter string, requestType string, facilityID string) ([]*domain.ServiceRequest, error) {
+	serviceRequests, err := d.query.SearchStaffServiceRequests(ctx, searchParameter, requestType, facilityID)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, err

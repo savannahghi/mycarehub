@@ -4062,6 +4062,7 @@ func TestPGInstance_SearchClientServiceRequests(t *testing.T) {
 		ctx             context.Context
 		searchParameter string
 		requestType     string
+		facilityID      string
 	}
 	tests := []struct {
 		name    string
@@ -4075,6 +4076,7 @@ func TestPGInstance_SearchClientServiceRequests(t *testing.T) {
 				ctx:             ctx,
 				searchParameter: "PENDING",
 				requestType:     "RED_FLAG",
+				facilityID:      facilityID,
 			},
 			wantErr: false,
 		},
@@ -4085,12 +4087,12 @@ func TestPGInstance_SearchClientServiceRequests(t *testing.T) {
 				searchParameter: "PENDING",
 				requestType:     gofakeit.HipsterParagraph(1, 10, 200, ""),
 			},
-			wantErr: false,
+			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := testingDB.SearchClientServiceRequests(tt.args.ctx, tt.args.searchParameter, tt.args.requestType)
+			got, err := testingDB.SearchClientServiceRequests(tt.args.ctx, tt.args.searchParameter, tt.args.requestType, tt.args.facilityID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("PGInstance.SearchClientServiceRequests() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -4110,6 +4112,7 @@ func TestPGInstance_SearchStaffServiceRequests(t *testing.T) {
 		ctx             context.Context
 		searchParameter string
 		requestType     string
+		facilityID      string
 	}
 	tests := []struct {
 		name    string
@@ -4123,6 +4126,7 @@ func TestPGInstance_SearchStaffServiceRequests(t *testing.T) {
 				ctx:             ctx,
 				searchParameter: "PENDING",
 				requestType:     "STAFF_PIN_RESET",
+				facilityID:      facilityID,
 			},
 			wantErr: false,
 		},
@@ -4133,12 +4137,12 @@ func TestPGInstance_SearchStaffServiceRequests(t *testing.T) {
 				searchParameter: "PENDING",
 				requestType:     gofakeit.HipsterParagraph(1, 10, 200, ""),
 			},
-			wantErr: false,
+			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := testingDB.SearchStaffServiceRequests(tt.args.ctx, tt.args.searchParameter, tt.args.requestType)
+			got, err := testingDB.SearchStaffServiceRequests(tt.args.ctx, tt.args.searchParameter, tt.args.requestType, tt.args.facilityID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("PGInstance.SearchStaffServiceRequests() error = %v, wantErr %v", err, tt.wantErr)
 				return

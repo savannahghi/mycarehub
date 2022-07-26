@@ -532,7 +532,7 @@ type ComplexityRoot struct {
 		RetrieveFacilityByMFLCode               func(childComplexity int, mflCode int, isActive bool) int
 		SearchClientUser                        func(childComplexity int, searchParameter string) int
 		SearchFacility                          func(childComplexity int, searchParameter *string) int
-		SearchServiceRequests                   func(childComplexity int, searchTerm string, flavour feedlib.Flavour, requestType string) int
+		SearchServiceRequests                   func(childComplexity int, searchTerm string, flavour feedlib.Flavour, requestType string, facilityID string) int
 		SearchStaffUser                         func(childComplexity int, searchParameter string) int
 		SendOtp                                 func(childComplexity int, phoneNumber string, flavour feedlib.Flavour) int
 		VerifyPin                               func(childComplexity int, userID string, flavour feedlib.Flavour, pin string) int
@@ -786,7 +786,7 @@ type QueryResolver interface {
 	GetSecurityQuestions(ctx context.Context, flavour feedlib.Flavour) ([]*domain.SecurityQuestion, error)
 	GetServiceRequests(ctx context.Context, requestType *string, requestStatus *string, facilityID string, flavour feedlib.Flavour) ([]*domain.ServiceRequest, error)
 	GetPendingServiceRequestsCount(ctx context.Context, facilityID string) (*domain.ServiceRequestsCountResponse, error)
-	SearchServiceRequests(ctx context.Context, searchTerm string, flavour feedlib.Flavour, requestType string) ([]*domain.ServiceRequest, error)
+	SearchServiceRequests(ctx context.Context, searchTerm string, flavour feedlib.Flavour, requestType string, facilityID string) ([]*domain.ServiceRequest, error)
 	ListSurveys(ctx context.Context, projectID int) ([]*domain.SurveyForm, error)
 	GetUserSurveyForms(ctx context.Context, userID string) ([]*domain.UserSurvey, error)
 	GetCurrentTerms(ctx context.Context, flavour feedlib.Flavour) (*domain.TermsOfService, error)
@@ -3645,7 +3645,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.SearchServiceRequests(childComplexity, args["searchTerm"].(string), args["flavour"].(feedlib.Flavour), args["requestType"].(string)), true
+		return e.complexity.Query.SearchServiceRequests(childComplexity, args["searchTerm"].(string), args["flavour"].(feedlib.Flavour), args["requestType"].(string), args["facilityID"].(string)), true
 
 	case "Query.searchStaffUser":
 		if e.complexity.Query.SearchStaffUser == nil {
@@ -4951,7 +4951,7 @@ extend type Query {
     flavour: Flavour!
   ): [ServiceRequest]
   getPendingServiceRequestsCount(facilityID: String!): ServiceRequestsCountResponse!
-  searchServiceRequests(searchTerm: String!, flavour: Flavour!, requestType: String!): [ServiceRequest]
+  searchServiceRequests(searchTerm: String!, flavour: Flavour!, requestType: String!, facilityID: String!): [ServiceRequest]
 }
 `, BuiltIn: false},
 	{Name: "../surveys.graphql", Input: `extend type Query {
@@ -7594,6 +7594,15 @@ func (ec *executionContext) field_Query_searchServiceRequests_args(ctx context.C
 		}
 	}
 	args["requestType"] = arg2
+	var arg3 string
+	if tmp, ok := rawArgs["facilityID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("facilityID"))
+		arg3, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["facilityID"] = arg3
 	return args, nil
 }
 
@@ -24033,7 +24042,7 @@ func (ec *executionContext) _Query_searchServiceRequests(ctx context.Context, fi
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().SearchServiceRequests(rctx, fc.Args["searchTerm"].(string), fc.Args["flavour"].(feedlib.Flavour), fc.Args["requestType"].(string))
+		return ec.resolvers.Query().SearchServiceRequests(rctx, fc.Args["searchTerm"].(string), fc.Args["flavour"].(feedlib.Flavour), fc.Args["requestType"].(string), fc.Args["facilityID"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)

@@ -30,7 +30,7 @@ type ServiceRequestUseCaseMock struct {
 	MockUpdateServiceRequestsFromKenyaEMRFn func(ctx context.Context, payload *dto.UpdateServiceRequestsPayload) (bool, error)
 	MockCreatePinResetServiceRequestFn      func(ctx context.Context, phoneNumber string, cccNumber string, flavour feedlib.Flavour) (bool, error)
 	MockVerifyStaffPinResetServiceRequestFn func(ctx context.Context, phoneNumber string, serviceRequestID string, verificationStatus string) (bool, error)
-	MockSearchServiceRequestsFn             func(ctx context.Context, searchTerm string, flavour feedlib.Flavour, requestType string) ([]*domain.ServiceRequest, error)
+	MockSearchServiceRequestsFn             func(ctx context.Context, searchTerm string, flavour feedlib.Flavour, requestType string, facilityID string) ([]*domain.ServiceRequest, error)
 }
 
 // NewServiceRequestUseCaseMock initializes a new service request instance mock
@@ -118,7 +118,7 @@ func NewServiceRequestUseCaseMock() *ServiceRequestUseCaseMock {
 		) (bool, error) {
 			return true, nil
 		},
-		MockSearchServiceRequestsFn: func(ctx context.Context, searchTerm string, flavour feedlib.Flavour, requestType string) ([]*domain.ServiceRequest, error) {
+		MockSearchServiceRequestsFn: func(ctx context.Context, searchTerm string, flavour feedlib.Flavour, requestType string, facilityID string) ([]*domain.ServiceRequest, error) {
 			return []*domain.ServiceRequest{
 				{
 					ID:          uuid.New().String(),
@@ -197,6 +197,6 @@ func (s *ServiceRequestUseCaseMock) VerifyClientPinResetServiceRequest(
 }
 
 // SearchServiceRequests mocks the implementation of searching service requests
-func (s *ServiceRequestUseCaseMock) SearchServiceRequests(ctx context.Context, searchTerm string, flavour feedlib.Flavour, requestType string) ([]*domain.ServiceRequest, error) {
-	return s.MockSearchServiceRequestsFn(ctx, searchTerm, flavour, requestType)
+func (s *ServiceRequestUseCaseMock) SearchServiceRequests(ctx context.Context, searchTerm string, flavour feedlib.Flavour, requestType string, facilityID string) ([]*domain.ServiceRequest, error) {
+	return s.MockSearchServiceRequestsFn(ctx, searchTerm, flavour, requestType, facilityID)
 }

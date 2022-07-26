@@ -124,8 +124,8 @@ type GormMock struct {
 	MockGetAnsweredScreeningToolQuestionsFn              func(ctx context.Context, facilityID string, toolType string) ([]*gorm.ScreeningToolsResponse, error)
 	MockCreateNotificationFn                             func(ctx context.Context, notification *gorm.Notification) error
 	MockUpdateUserSurveysFn                              func(ctx context.Context, survey *gorm.UserSurvey, updateData map[string]interface{}) error
-	MockSearchClientServiceRequestsFn                    func(ctx context.Context, searchParameter string, requestType string) ([]*gorm.ClientServiceRequest, error)
-	MockSearchStaffServiceRequestsFn                     func(ctx context.Context, searchParameter string, requestType string) ([]*gorm.StaffServiceRequest, error)
+	MockSearchClientServiceRequestsFn                    func(ctx context.Context, searchParameter string, requestType string, facilityID string) ([]*gorm.ClientServiceRequest, error)
+	MockSearchStaffServiceRequestsFn                     func(ctx context.Context, searchParameter string, requestType string, facilityID string) ([]*gorm.StaffServiceRequest, error)
 	MockListNotificationsFn                              func(ctx context.Context, params *gorm.Notification, filters []*firebasetools.FilterParam, pagination *domain.Pagination) ([]*gorm.Notification, *domain.Pagination, error)
 	MockListAvailableNotificationTypesFn                 func(ctx context.Context, params *gorm.Notification) ([]enums.NotificationType, error)
 	MockGetClientScreeningToolResponsesByToolTypeFn      func(ctx context.Context, clientID, toolType string, active bool) ([]*gorm.ScreeningToolsResponse, error)
@@ -995,7 +995,7 @@ func NewGormMock() *GormMock {
 		MockCheckAppointmentExistsByExternalIDFn: func(ctx context.Context, externalID string) (bool, error) {
 			return true, nil
 		},
-		MockSearchClientServiceRequestsFn: func(ctx context.Context, searchParameter string, requestType string) ([]*gorm.ClientServiceRequest, error) {
+		MockSearchClientServiceRequestsFn: func(ctx context.Context, searchParameter string, requestType string, facilityID string) ([]*gorm.ClientServiceRequest, error) {
 			return []*gorm.ClientServiceRequest{
 				{
 					ID:             &UUID,
@@ -1014,7 +1014,7 @@ func NewGormMock() *GormMock {
 				},
 			}, nil
 		},
-		MockSearchStaffServiceRequestsFn: func(ctx context.Context, searchParameter string, requestType string) ([]*gorm.StaffServiceRequest, error) {
+		MockSearchStaffServiceRequestsFn: func(ctx context.Context, searchParameter string, requestType string, facilityID string) ([]*gorm.StaffServiceRequest, error) {
 			return []*gorm.StaffServiceRequest{
 				{
 					ID:             &UUID,
@@ -1714,11 +1714,11 @@ func (gm *GormMock) SaveFeedback(ctx context.Context, feedback *gorm.Feedback) e
 }
 
 // SearchClientServiceRequests mocks the implementation of searching client service requests
-func (gm *GormMock) SearchClientServiceRequests(ctx context.Context, searchParameter string, requestType string) ([]*gorm.ClientServiceRequest, error) {
-	return gm.MockSearchClientServiceRequestsFn(ctx, searchParameter, requestType)
+func (gm *GormMock) SearchClientServiceRequests(ctx context.Context, searchParameter string, requestType string, facilityID string) ([]*gorm.ClientServiceRequest, error) {
+	return gm.MockSearchClientServiceRequestsFn(ctx, searchParameter, requestType, facilityID)
 }
 
 // SearchStaffServiceRequests mocks the implementation of searching client service requests
-func (gm *GormMock) SearchStaffServiceRequests(ctx context.Context, searchParameter string, requestType string) ([]*gorm.StaffServiceRequest, error) {
-	return gm.MockSearchStaffServiceRequestsFn(ctx, searchParameter, requestType)
+func (gm *GormMock) SearchStaffServiceRequests(ctx context.Context, searchParameter string, requestType string, facilityID string) ([]*gorm.StaffServiceRequest, error) {
+	return gm.MockSearchStaffServiceRequestsFn(ctx, searchParameter, requestType, facilityID)
 }

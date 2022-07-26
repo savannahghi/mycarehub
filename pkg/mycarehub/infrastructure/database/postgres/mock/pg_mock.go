@@ -142,8 +142,8 @@ type PostgresMock struct {
 	MockCreateMetricFn                                   func(ctx context.Context, payload *domain.Metric) error
 	MockUpdateClientServiceRequestFn                     func(ctx context.Context, clientServiceRequest *domain.ServiceRequest, updateData map[string]interface{}) error
 	MockSaveFeedbackFn                                   func(ctx context.Context, feedback *domain.FeedbackResponse) error
-	MockSearchClientServiceRequestsFn                    func(ctx context.Context, searchParameter string, requestType string) ([]*domain.ServiceRequest, error)
-	MockSearchStaffServiceRequestsFn                     func(ctx context.Context, searchParameter string, requestType string) ([]*domain.ServiceRequest, error)
+	MockSearchClientServiceRequestsFn                    func(ctx context.Context, searchParameter string, requestType string, facilityID string) ([]*domain.ServiceRequest, error)
+	MockSearchStaffServiceRequestsFn                     func(ctx context.Context, searchParameter string, requestType string, facilityID string) ([]*domain.ServiceRequest, error)
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -979,7 +979,7 @@ func NewPostgresMock() *PostgresMock {
 		MockCreateUserSurveyFn: func(ctx context.Context, userSurvey []*dto.UserSurveyInput) error {
 			return nil
 		},
-		MockSearchClientServiceRequestsFn: func(ctx context.Context, searchParameter string, requestType string) ([]*domain.ServiceRequest, error) {
+		MockSearchClientServiceRequestsFn: func(ctx context.Context, searchParameter string, requestType string, facilityID string) ([]*domain.ServiceRequest, error) {
 			UUID := uuid.New().String()
 			return []*domain.ServiceRequest{
 				{
@@ -1000,7 +1000,7 @@ func NewPostgresMock() *PostgresMock {
 				},
 			}, nil
 		},
-		MockSearchStaffServiceRequestsFn: func(ctx context.Context, searchParameter string, requestType string) ([]*domain.ServiceRequest, error) {
+		MockSearchStaffServiceRequestsFn: func(ctx context.Context, searchParameter string, requestType string, facilityID string) ([]*domain.ServiceRequest, error) {
 			UUID := uuid.New().String()
 			return []*domain.ServiceRequest{
 				{
@@ -1632,11 +1632,11 @@ func (gm *PostgresMock) SaveFeedback(ctx context.Context, feedback *domain.Feedb
 }
 
 // SearchClientServiceRequests mocks the implementation of searching client service requests
-func (gm *PostgresMock) SearchClientServiceRequests(ctx context.Context, searchParameter string, requestType string) ([]*domain.ServiceRequest, error) {
-	return gm.MockSearchClientServiceRequestsFn(ctx, searchParameter, requestType)
+func (gm *PostgresMock) SearchClientServiceRequests(ctx context.Context, searchParameter string, requestType string, facilityID string) ([]*domain.ServiceRequest, error) {
+	return gm.MockSearchClientServiceRequestsFn(ctx, searchParameter, requestType, facilityID)
 }
 
 // SearchStaffServiceRequests mocks the implementation of searching client service requests
-func (gm *PostgresMock) SearchStaffServiceRequests(ctx context.Context, searchParameter string, requesType string) ([]*domain.ServiceRequest, error) {
-	return gm.MockSearchStaffServiceRequestsFn(ctx, searchParameter, requesType)
+func (gm *PostgresMock) SearchStaffServiceRequests(ctx context.Context, searchParameter string, requestType string, facilityID string) ([]*domain.ServiceRequest, error) {
+	return gm.MockSearchStaffServiceRequestsFn(ctx, searchParameter, requestType, facilityID)
 }
