@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - demo
-      - demo-environment-setup
 
 env:
   # Schema Registry CLI command version
