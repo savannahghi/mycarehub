@@ -1,6 +1,9 @@
 staging:
   - depName: clinical
     depRootDomain: https://clinical-staging.savannahghi.org
+demo:
+  - depName: clinical
+    depRootDomain: https://clinical-demo.savannahghi.org
 testing:
   - depName: clinical
     depRootDomain: https://clinical-testing.savannahghi.org

@@ -1,6 +1,5 @@
 name: Staging Deployment
 
-
 on: 
   push:
     branches:
