@@ -122,6 +122,7 @@ type UseCasesCommunitiesImpl struct {
 	Query            infrastructure.Query
 	Pubsub           pubsubmessaging.ServicePubsub
 	Notification     notification.UseCaseNotification
+	Delete           infrastructure.Delete
 }
 
 // NewUseCaseCommunitiesImpl initializes a new communities service
@@ -132,6 +133,7 @@ func NewUseCaseCommunitiesImpl(
 	query infrastructure.Query,
 	pubsub pubsubmessaging.ServicePubsub,
 	notification notification.UseCaseNotification,
+	delete infrastructure.Delete,
 ) *UseCasesCommunitiesImpl {
 	return &UseCasesCommunitiesImpl{
 		GetstreamService: getstream,
@@ -140,6 +142,7 @@ func NewUseCaseCommunitiesImpl(
 		Query:            query,
 		Pubsub:           pubsub,
 		Notification:     notification,
+		Delete:           delete,
 	}
 }
 
@@ -464,6 +467,14 @@ func (us *UseCasesCommunitiesImpl) DeleteCommunities(ctx context.Context, commun
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return false, fmt.Errorf("failed to delete channels: %v", err)
+	}
+
+	for _, communityID := range communityIDs {
+		err = us.Delete.DeleteCommunity(ctx, communityID)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return false, fmt.Errorf("failed to delete community: %v", err)
+		}
 	}
 
 	return true, nil
@@ -833,8 +844,14 @@ func (us *UseCasesCommunitiesImpl) RecommendedCommunities(ctx context.Context, c
 			return nil, fmt.Errorf("failed to decode payload: %v", err)
 		}
 
-		// TODO:check if user has joined the community
 		// TODO: nullable filters for client type and age
+
+		// only include communities saved in the db
+		_, err = us.Query.GetCommunityByID(ctx, channel.ID)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			continue
+		}
 
 		community := &domain.Community{
 			ID:          channel.ID,
