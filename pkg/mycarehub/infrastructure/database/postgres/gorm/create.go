@@ -30,6 +30,7 @@ type Create interface {
 	CreateNotification(ctx context.Context, notification *Notification) error
 	CreateUserSurveys(ctx context.Context, userSurvey []*UserSurvey) error
 	CreateMetric(ctx context.Context, metric *Metric) error
+	RegisterStaff(ctx context.Context, contact *Contact, identifier *Identifier, staffProfile *StaffProfile) error
 	SaveFeedback(ctx context.Context, feedback *Feedback) error
 	RegisterClient(ctx context.Context, contact *Contact, identifier *Identifier, client *Client) error
 }
@@ -556,6 +557,65 @@ func (db *PGInstance) CreateMetric(ctx context.Context, metric *Metric) error {
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return fmt.Errorf("failed to create metric: %w", err)
+	}
+
+	return nil
+}
+
+// RegisterStaff registers a staff member to the database
+func (db *PGInstance) RegisterStaff(ctx context.Context, contact *Contact, identifier *Identifier, staffProfile *StaffProfile) error {
+	tx := db.DB.Begin()
+
+	// create contact
+	err := tx.Where(Contact{ContactValue: contact.ContactValue, Flavour: contact.Flavour}).FirstOrCreate(contact).Error
+	if err != nil {
+		tx.Rollback()
+		return fmt.Errorf("failed to get or create contact: %v", err)
+	}
+
+	// create identifier
+	err = tx.Where(identifier).FirstOrCreate(identifier).Error
+	if err != nil {
+		tx.Rollback()
+		return fmt.Errorf("failed to create identifier: %v", err)
+	}
+
+	// create staff profile
+	err = tx.Where(staffProfile).FirstOrCreate(staffProfile).Error
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		tx.Rollback()
+		return fmt.Errorf("failed to create staff profile: %w", err)
+	}
+
+	// link contact
+	contactLink := StaffContacts{
+		StaffID:   staffProfile.ID,
+		ContactID: contact.ContactID,
+	}
+	err = tx.Where(contactLink).FirstOrCreate(&contactLink).Error
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		tx.Rollback()
+		return fmt.Errorf("failed to get or create staff contact: %w", err)
+	}
+
+	// link identifier
+	identifierLink := StaffIdentifiers{
+		StaffID:      staffProfile.ID,
+		IdentifierID: &identifier.ID,
+	}
+	err = tx.Where(identifierLink).FirstOrCreate(&identifierLink).Error
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		tx.Rollback()
+		return fmt.Errorf("failed to get or create staff identifier: %w", err)
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		helpers.ReportErrorToSentry(err)
+		tx.Rollback()
+		return fmt.Errorf("failed to commit create staff profile transaction: %w", err)
 	}
 
 	return nil

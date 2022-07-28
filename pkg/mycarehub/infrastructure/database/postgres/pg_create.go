@@ -570,3 +570,44 @@ func (d *MyCareHubDb) SaveFeedback(ctx context.Context, payload *domain.Feedback
 
 	return d.create.SaveFeedback(ctx, feedback)
 }
+
+// RegisterStaff registers a new staff member into the portal
+func (d *MyCareHubDb) RegisterStaff(ctx context.Context, payload *domain.StaffRegistrationPayload) (*domain.StaffProfile, error) {
+	contact := &gorm.Contact{
+		ContactType:  payload.Phone.ContactType,
+		ContactValue: payload.Phone.ContactValue,
+		Active:       payload.Phone.Active,
+		OptedIn:      payload.Phone.Active,
+		UserID:       payload.Phone.UserID,
+		Flavour:      payload.Phone.Flavour,
+	}
+
+	identifier := &gorm.Identifier{
+		IdentifierType:      payload.StaffIdentifier.IdentifierType,
+		IdentifierValue:     payload.StaffIdentifier.IdentifierValue,
+		IdentifierUse:       payload.StaffIdentifier.IdentifierUse,
+		Description:         payload.StaffIdentifier.Description,
+		IsPrimaryIdentifier: payload.StaffIdentifier.IsPrimaryIdentifier,
+		Active:              payload.StaffIdentifier.Active,
+	}
+
+	staffProfile := &gorm.StaffProfile{
+		UserID:            *payload.UserProfile.ID,
+		Active:            payload.UserProfile.Active,
+		StaffNumber:       payload.Staff.StaffNumber,
+		DefaultFacilityID: payload.Staff.DefaultFacilityID,
+	}
+
+	err := d.create.RegisterStaff(ctx, contact, identifier, staffProfile)
+	if err != nil {
+		return nil, err
+	}
+
+	return &domain.StaffProfile{
+		ID:                staffProfile.ID,
+		UserID:            staffProfile.UserID,
+		Active:            staffProfile.Active,
+		StaffNumber:       staffProfile.StaffNumber,
+		DefaultFacilityID: staffProfile.DefaultFacilityID,
+	}, nil
+}

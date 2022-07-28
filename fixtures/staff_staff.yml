@@ -36,3 +36,12 @@
   staff_number: "1234567890"
   default_facility_id: {{.staff_default_facility}}
   organisation_id: {{.test_organisation_id}}
+
+- id: {{.staff_id_to_register}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  user_id: {{.test_user_id_to_register_staff}}
+  active: true
+  staff_number: "123445679890"
+  default_facility_id: {{.staff_default_facility}}
+  organisation_id: {{.test_organisation_id}}

@@ -1251,6 +1251,117 @@ func TestMyCareHubDb_CreateUserSurvey(t *testing.T) {
 	}
 }
 
+func TestMyCareHubDb_RegisterStaff(t *testing.T) {
+	var fakeGorm = gormMock.NewGormMock()
+	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+	currentTime := time.Now()
+
+	pastYear := time.Now().AddDate(-3, 0, 0)
+	ID := uuid.New().String()
+
+	userProfile := &domain.User{
+		ID:                  &ID,
+		Username:            gofakeit.Name(),
+		Name:                gofakeit.Name(),
+		Active:              true,
+		TermsAccepted:       true,
+		Gender:              enumutils.GenderMale,
+		LastSuccessfulLogin: &currentTime,
+		NextAllowedLogin:    &currentTime,
+		LastFailedLogin:     &currentTime,
+		FailedLoginCount:    3,
+		Contacts: &domain.Contact{
+			ID:           &ID,
+			ContactType:  "PHONE",
+			ContactValue: "+254711223344",
+			Active:       true,
+			OptedIn:      true,
+			UserID:       &ID,
+			Flavour:      "CONSUMER",
+		},
+		DateOfBirth: &pastYear,
+	}
+
+	staff := &domain.StaffProfile{
+		ID:                &ID,
+		User:              userProfile,
+		UserID:            uuid.New().String(),
+		Active:            false,
+		StaffNumber:       gofakeit.BeerAlcohol(),
+		DefaultFacilityID: gofakeit.BeerAlcohol(),
+	}
+
+	contact := &domain.Contact{
+		ID:           &ID,
+		ContactType:  "PHONE",
+		ContactValue: interserviceclient.TestUserPhoneNumber,
+		Active:       true,
+		OptedIn:      true,
+		UserID:       &staff.UserID,
+		Flavour:      feedlib.FlavourPro,
+	}
+
+	identifierData := &domain.Identifier{
+		ID:                  ID,
+		IdentifierType:      ID,
+		IdentifierValue:     ID,
+		IdentifierUse:       ID,
+		Description:         "Valid Identifier",
+		ValidFrom:           time.Now(),
+		ValidTo:             time.Now(),
+		IsPrimaryIdentifier: true,
+		Active:              true,
+	}
+
+	payload := &domain.StaffRegistrationPayload{
+		UserProfile:     *userProfile,
+		Phone:           *contact,
+		StaffIdentifier: *identifierData,
+		Staff:           *staff,
+	}
+	type args struct {
+		ctx     context.Context
+		payload *domain.StaffRegistrationPayload
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *domain.StaffProfile
+		wantErr bool
+	}{
+		{
+			name: "Happy Case: Register staff",
+			args: args{
+				ctx:     context.Background(),
+				payload: payload,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad Case: Unable to register staff",
+			args: args{
+				ctx:     context.Background(),
+				payload: payload,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "Sad Case: Unable to register staff" {
+				fakeGorm.MockRegisterStaffFn = func(ctx context.Context, contact *gorm.Contact, identifier *gorm.Identifier, staffProfile *gorm.StaffProfile) error {
+					return fmt.Errorf("cannot register staff")
+				}
+			}
+			_, err := d.RegisterStaff(tt.args.ctx, tt.args.payload)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.RegisterStaff() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}
+
 func TestMyCareHubDb_SaveFeedback(t *testing.T) {
 	var fakeGorm = gormMock.NewGormMock()
 	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)

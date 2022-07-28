@@ -174,3 +174,11 @@ type ClientRegistrationPayload struct {
 	ClientIdentifier Identifier
 	Client           ClientProfile
 }
+
+// StaffRegistrationPayload carries with it the staff registration details
+type StaffRegistrationPayload struct {
+	UserProfile     User
+	Phone           Contact
+	StaffIdentifier Identifier
+	Staff           StaffProfile
+}

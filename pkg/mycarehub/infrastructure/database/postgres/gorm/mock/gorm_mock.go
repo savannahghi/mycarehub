@@ -141,6 +141,7 @@ type GormMock struct {
 	MockGetClientsByFilterParamsFn                       func(ctx context.Context, facilityID string, filterParams *dto.ClientFilterParamsInput) ([]*gorm.Client, error)
 	MockCreateUserSurveyFn                               func(ctx context.Context, userSurvey []*gorm.UserSurvey) error
 	MockCreateMetricFn                                   func(ctx context.Context, metric *gorm.Metric) error
+	MockRegisterStaffFn                                  func(ctx context.Context, contact *gorm.Contact, identifier *gorm.Identifier, staffProfile *gorm.StaffProfile) error
 	MockUpdateClientServiceRequestFn                     func(ctx context.Context, clientServiceRequest *gorm.ClientServiceRequest, updateData map[string]interface{}) error
 	MockRegisterClientFn                                 func(ctx context.Context, contact *gorm.Contact, identifier *gorm.Identifier, client *gorm.Client) error
 }
@@ -393,6 +394,9 @@ func NewGormMock() *GormMock {
 
 		MockRetrieveFacilityByMFLCodeFn: func(ctx context.Context, MFLCode int, isActive bool) (*gorm.Facility, error) {
 			return facility, nil
+		},
+		MockRegisterStaffFn: func(ctx context.Context, contact *gorm.Contact, identifier *gorm.Identifier, staffProfile *gorm.StaffProfile) error {
+			return nil
 		},
 		MockGetSharedHealthDiaryEntriesFn: func(ctx context.Context, clientID string, facilityID string) ([]*gorm.ClientHealthDiaryEntry, error) {
 			return []*gorm.ClientHealthDiaryEntry{
@@ -1715,6 +1719,11 @@ func (gm *GormMock) UpdateClientServiceRequest(ctx context.Context, serviceReque
 // SaveFeedback mocks the implementation of saving feedback into the database
 func (gm *GormMock) SaveFeedback(ctx context.Context, feedback *gorm.Feedback) error {
 	return gm.MockSaveFeedbackFn(ctx, feedback)
+}
+
+// RegisterStaff mocks the implementation of registering a staff
+func (gm *GormMock) RegisterStaff(ctx context.Context, contact *gorm.Contact, identifier *gorm.Identifier, staffProfile *gorm.StaffProfile) error {
+	return gm.MockRegisterStaffFn(ctx, contact, identifier, staffProfile)
 }
 
 // SearchClientServiceRequests mocks the implementation of searching client service requests

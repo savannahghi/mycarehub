@@ -690,3 +690,36 @@
   is_active: true
   approval_notified: false
   handle: "@test_user_id_to_register_client"
+
+- id: {{.test_user_id_to_register_staff}}
+  username: test_user_id_to_register_staff
+  name: test staff staff
+  first_name: first staff
+  middle_name: middle staff
+  last_name: last staff
+  user_type: staff
+  gender: male
+  last_successful_login: RAW=NOW()
+  last_failed_login: null
+  failed_login_count: 0
+  failed_security_count: 0
+  next_allowed_login: RAW=NOW()
+  accepted_terms_of_service_id: {{.test_terms_id}}
+  terms_accepted: true
+  flavour: PRO
+  avatar: null
+  is_suspended: false
+  pin_change_required: false
+  has_set_pin: true
+  has_set_security_questions: true
+  is_phone_verified: true
+  organisation_id: {{.test_organisation_id}}
+  password: a-consumer-test-password
+  is_superuser: false
+  is_staff: false
+  email: test@example270.com
+  date_joined: RAW=NOW()
+  is_approved: true
+  is_active: true
+  approval_notified: false
+  handle: "@test_user_id_to_register_staff"
