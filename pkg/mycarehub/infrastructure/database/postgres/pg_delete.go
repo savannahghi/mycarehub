@@ -24,3 +24,8 @@ func (d *MyCareHubDb) DeleteUser(ctx context.Context, userID string, clientID *s
 func (d *MyCareHubDb) DeleteStaffProfile(ctx context.Context, staffID string) error {
 	return d.delete.DeleteStaffProfile(ctx, staffID)
 }
+
+// DeleteCommunity deletes the specified community from the database
+func (d *MyCareHubDb) DeleteCommunity(ctx context.Context, communityID string) error {
+	return d.delete.DeleteCommunity(ctx, communityID)
+}
