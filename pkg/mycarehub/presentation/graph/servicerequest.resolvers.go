@@ -41,6 +41,6 @@ func (r *queryResolver) GetPendingServiceRequestsCount(ctx context.Context, faci
 	return r.mycarehub.ServiceRequest.GetPendingServiceRequestsCount(ctx, facilityID)
 }
 
-func (r *queryResolver) SearchServiceRequests(ctx context.Context, searchTerm string, flavour feedlib.Flavour, requestType string) ([]*domain.ServiceRequest, error) {
-	return r.mycarehub.ServiceRequest.SearchServiceRequests(ctx, searchTerm, flavour, requestType)
+func (r *queryResolver) SearchServiceRequests(ctx context.Context, searchTerm string, flavour feedlib.Flavour, requestType string, facilityID string) ([]*domain.ServiceRequest, error) {
+	return r.mycarehub.ServiceRequest.SearchServiceRequests(ctx, searchTerm, flavour, requestType, facilityID)
 }

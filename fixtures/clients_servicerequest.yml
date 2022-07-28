@@ -5,7 +5,7 @@
   active: true
   request_type: RED_FLAG
   request: TEST REQUEST
-  status: INPROGRESS
+  status: PENDING
   in_progress_at: RAW=NOW()
   resolved_at: null
   client_id: 26b20a42-cbb8-4553-aedb-c539602d04fc

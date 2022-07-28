@@ -1680,6 +1680,7 @@ func TestUseCasesServiceRequestImpl_SearchServiceRequests(t *testing.T) {
 		searchTerm  string
 		flavour     feedlib.Flavour
 		requestType string
+		facilityID  string
 	}
 	tests := []struct {
 		name    string
@@ -1694,6 +1695,7 @@ func TestUseCasesServiceRequestImpl_SearchServiceRequests(t *testing.T) {
 				flavour:     feedlib.FlavourConsumer,
 				searchTerm:  "PENDING",
 				requestType: "RED_FLAG",
+				facilityID:  uuid.New().String(),
 			},
 			wantErr: false,
 		},
@@ -1704,6 +1706,7 @@ func TestUseCasesServiceRequestImpl_SearchServiceRequests(t *testing.T) {
 				flavour:     feedlib.FlavourPro,
 				searchTerm:  "PENDING",
 				requestType: "RED_FLAG",
+				facilityID:  uuid.New().String(),
 			},
 			wantErr: false,
 		},
@@ -1729,16 +1732,16 @@ func TestUseCasesServiceRequestImpl_SearchServiceRequests(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.name == "Sad Case: Unable to search service requests" {
-				fakeDB.MockSearchClientServiceRequestsFn = func(ctx context.Context, searchParameter string, requestType string) ([]*domain.ServiceRequest, error) {
+				fakeDB.MockSearchClientServiceRequestsFn = func(ctx context.Context, searchParameter string, requestType string, facilityID string) ([]*domain.ServiceRequest, error) {
 					return nil, fmt.Errorf("failed to search service requests")
 				}
 			}
 			if tt.name == "Sad Case: Invalid flavour" {
-				fakeDB.MockSearchClientServiceRequestsFn = func(ctx context.Context, searchParameter string, requestType string) ([]*domain.ServiceRequest, error) {
+				fakeDB.MockSearchClientServiceRequestsFn = func(ctx context.Context, searchParameter string, requestType string, facilityID string) ([]*domain.ServiceRequest, error) {
 					return nil, fmt.Errorf("failed to search service requests")
 				}
 			}
-			got, err := u.SearchServiceRequests(tt.args.ctx, tt.args.searchTerm, tt.args.flavour, tt.args.requestType)
+			got, err := u.SearchServiceRequests(tt.args.ctx, tt.args.searchTerm, tt.args.flavour, tt.args.requestType, tt.args.facilityID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCasesServiceRequestImpl.SearchServiceRequests() error = %v, wantErr %v", err, tt.wantErr)
 				return
