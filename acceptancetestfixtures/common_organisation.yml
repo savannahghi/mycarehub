@@ -1,0 +1,16 @@
+# common_organisation.yml
+- id: {{.test_organisation_id}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  active: true
+  org_code: "36263626232"
+  code: 123
+  organisation_name: test acceptance test org
+  email_address: testacceptance@email.com
+  phone_number: "+2547777777777"
+  postal_address: 123 test acceptance
+  physical_address: test acceptance address
+  default_country: KEN
+  
+
+
