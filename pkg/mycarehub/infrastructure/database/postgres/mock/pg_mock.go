@@ -145,6 +145,7 @@ type PostgresMock struct {
 	MockSearchClientServiceRequestsFn                    func(ctx context.Context, searchParameter string, requestType string, facilityID string) ([]*domain.ServiceRequest, error)
 	MockSearchStaffServiceRequestsFn                     func(ctx context.Context, searchParameter string, requestType string, facilityID string) ([]*domain.ServiceRequest, error)
 	MockRegisterClientFn                                 func(ctx context.Context, payload *domain.ClientRegistrationPayload) (*domain.ClientProfile, error)
+	MockRegisterStaffFn                                  func(ctx context.Context, staffRegistrationPayload *domain.StaffRegistrationPayload) (*domain.StaffProfile, error)
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -319,6 +320,9 @@ func NewPostgresMock() *PostgresMock {
 		},
 		MockRegisterClientFn: func(ctx context.Context, payload *domain.ClientRegistrationPayload) (*domain.ClientProfile, error) {
 			return clientProfile, nil
+		},
+		MockRegisterStaffFn: func(ctx context.Context, staffRegistrationPayload *domain.StaffRegistrationPayload) (*domain.StaffProfile, error) {
+			return staff, nil
 		},
 		MockGetAppointmentFn: func(ctx context.Context, params domain.Appointment) (*domain.Appointment, error) {
 			return &domain.Appointment{
@@ -1002,11 +1006,11 @@ func NewPostgresMock() *PostgresMock {
 		MockDeleteStaffProfileFn: func(ctx context.Context, staffID string) error {
 			return nil
 		},
-		MockDeleteUserFn: func(ctx context.Context, userID string, clientID *string, staffID *string, flavour feedlib.Flavour) error {
-			return nil
-		},
 		MockCreateUserFn: func(ctx context.Context, user domain.User) (*domain.User, error) {
 			return userProfile, nil
+		},
+		MockDeleteUserFn: func(ctx context.Context, userID string, clientID *string, staffID *string, flavour feedlib.Flavour) error {
+			return nil
 		},
 		MockGetClientsByFilterParamsFn: func(ctx context.Context, facilityID *string, filterParams *dto.ClientFilterParamsInput) ([]*domain.ClientProfile, error) {
 			return []*domain.ClientProfile{
@@ -1664,6 +1668,11 @@ func (gm *PostgresMock) CreateMetric(ctx context.Context, payload *domain.Metric
 // UpdateClientServiceRequest updates a service request
 func (gm *PostgresMock) UpdateClientServiceRequest(ctx context.Context, clientServiceRequest *domain.ServiceRequest, updateData map[string]interface{}) error {
 	return gm.MockUpdateClientServiceRequestFn(ctx, clientServiceRequest, updateData)
+}
+
+// RegisterStaff mocks the implementation of registering a staff
+func (gm *PostgresMock) RegisterStaff(ctx context.Context, staff *domain.StaffRegistrationPayload) (*domain.StaffProfile, error) {
+	return gm.MockRegisterStaffFn(ctx, staff)
 }
 
 // SaveFeedback mocks the implementation of saving feedback into the database

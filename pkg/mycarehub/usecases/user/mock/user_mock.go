@@ -28,7 +28,6 @@ type UserUseCaseMock struct {
 	MockCreateOrUpdateClientCaregiverFn func(ctx context.Context, caregiverInput *dto.CaregiverInput) (bool, error)
 	MockRegisterClientFn                func(ctx context.Context, input *dto.ClientRegistrationInput) (*dto.ClientRegistrationOutput, error)
 	MockRefreshGetStreamTokenFn         func(ctx context.Context, userID string) (*domain.GetStreamToken, error)
-	MockRegisterStaffFn                 func(ctx context.Context, input dto.StaffRegistrationInput) (*dto.StaffRegistrationOutput, error)
 	MockSearchClientUserFn              func(ctx context.Context, searchParameter string) ([]*domain.ClientProfile, error)
 	MockCompleteOnboardingTourFn        func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
 	MockRegisterKenyaEMRPatientsFn      func(ctx context.Context, input []*dto.PatientRegistrationPayload) ([]*dto.PatientRegistrationPayload, error)
@@ -41,6 +40,7 @@ type UserUseCaseMock struct {
 	MockGenerateTemporaryPinFn          func(ctx context.Context, userID string, flavour feedlib.Flavour) (string, error)
 	MockRegisterPushTokenFn             func(ctx context.Context, token string) (bool, error)
 	MockGetClientProfileByCCCNumberFn   func(ctx context.Context, cccNumber string) (*domain.ClientProfile, error)
+	MockRegisterStaffFn                 func(ctx context.Context, input dto.StaffRegistrationInput) (*dto.StaffRegistrationOutput, error)
 	MockDeleteUserFn                    func(ctx context.Context, payload *dto.PhoneInput) (bool, error)
 	MockTransferClientToFacilityFn      func(ctx context.Context, clientID *string, facilityID *string) (bool, error)
 }
@@ -133,7 +133,11 @@ func NewUserUseCaseMock() *UserUseCaseMock {
 		},
 		MockRegisterStaffFn: func(ctx context.Context, input dto.StaffRegistrationInput) (*dto.StaffRegistrationOutput, error) {
 			return &dto.StaffRegistrationOutput{
-				ID: uuid.New().String(),
+				ID:              uuid.New().String(),
+				Active:          true,
+				StaffNumber:     staff.StaffNumber,
+				UserID:          staff.UserID,
+				DefaultFacility: staff.DefaultFacilityID,
 			}, nil
 		},
 		MockSearchClientUserFn: func(ctx context.Context, searchParameter string) ([]*domain.ClientProfile, error) {

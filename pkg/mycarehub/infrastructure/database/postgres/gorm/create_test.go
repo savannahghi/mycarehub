@@ -1521,3 +1521,87 @@ func TestPGInstance_RegisterClient(t *testing.T) {
 		})
 	}
 }
+
+func TestPGInstance_RegisterStaff(t *testing.T) {
+	identifierID := "c40b09a8-44b1-409c-bc5b-7e7623fcd7d5"
+	staffID := staffIDToRegister
+	userStaff := userToRegisterStaff
+	contactData := &gorm.Contact{
+		ContactID:      &contactIDToRegisterStaff,
+		ContactType:    "PHONE",
+		ContactValue:   "+123445679890",
+		Active:         true,
+		OptedIn:        true,
+		UserID:         &userToRegisterStaff,
+		Flavour:        feedlib.FlavourPro,
+		OrganisationID: orgID,
+	}
+	identifierData := &gorm.Identifier{
+		ID:                  identifierID,
+		Active:              true,
+		IdentifierType:      "NATIONAL_ID",
+		IdentifierValue:     "95454545",
+		IdentifierUse:       "OFFICIAL",
+		Description:         "A national ID number",
+		ValidFrom:           time.Now(),
+		ValidTo:             time.Now(),
+		IsPrimaryIdentifier: true,
+		OrganisationID:      orgID,
+	}
+	staff := &gorm.StaffProfile{
+		ID:                &staffID,
+		UserID:            userStaff,
+		Active:            true,
+		StaffNumber:       "123445679890",
+		DefaultFacilityID: facilityID,
+		OrganisationID:    orgID,
+	}
+
+	invalidStaff := &gorm.StaffProfile{
+		ID:                &staffID,
+		UserID:            "userStaff",
+		Active:            true,
+		StaffNumber:       "123445679890",
+		DefaultFacilityID: facilityID,
+		OrganisationID:    orgID,
+	}
+	type args struct {
+		ctx          context.Context
+		contact      *gorm.Contact
+		identifier   *gorm.Identifier
+		staffProfile *gorm.StaffProfile
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: register staff",
+			args: args{
+				ctx:          context.Background(),
+				contact:      contactData,
+				identifier:   identifierData,
+				staffProfile: staff,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: unable to register staff",
+			args: args{
+				ctx:          context.Background(),
+				contact:      contactData,
+				identifier:   identifierData,
+				staffProfile: invalidStaff,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := testingDB.RegisterStaff(tt.args.ctx, tt.args.contact, tt.args.identifier, tt.args.staffProfile); (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.RegisterStaff() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}

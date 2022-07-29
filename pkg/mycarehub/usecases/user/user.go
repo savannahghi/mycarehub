@@ -2,11 +2,8 @@ package user
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"log"
-	"net/http"
 	"strconv"
 	"strings"
 	"time"
@@ -33,10 +30,6 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/otp"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/utils"
 	"github.com/savannahghi/serverutils"
-)
-
-var (
-	registerStaffAPIEndpoint = serverutils.MustGetEnvVar("STAFF_REGISTRATION_URL")
 )
 
 // ILogin is an interface that contans login related methods
@@ -1086,49 +1079,130 @@ func (us *UseCasesUserImpl) RegisteredFacilityPatients(ctx context.Context, inpu
 
 // RegisterStaff is used to register a staff user on our application
 func (us *UseCasesUserImpl) RegisterStaff(ctx context.Context, input dto.StaffRegistrationInput) (*dto.StaffRegistrationOutput, error) {
-	var registrationOutput *dto.StaffRegistrationOutput
-
-	err := input.Validate()
+	identifierExists, err := us.Query.CheckIdentifierExists(ctx, "NATIONAL_ID", input.IDNumber)
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, fmt.Errorf("unable to check the existece of the identifier: %w", err)
+	}
+	if identifierExists {
+		return nil, fmt.Errorf("identifier %v of identifier already exists", input.IDNumber)
+	}
+
+	normalized, err := converterandformatter.NormalizeMSISDN(input.PhoneNumber)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, fmt.Errorf("unable to normalize phone number: %w", err)
+	}
+
+	phoneExists, err := us.Query.CheckIfPhoneNumberExists(ctx, *normalized, false, feedlib.FlavourPro)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, fmt.Errorf("unable to check if phone number exists: %w", err)
+	}
+	if phoneExists {
+		return nil, fmt.Errorf("phone number %v already exists", normalized)
+	}
+
+	username := fmt.Sprintf("%v-%v", input.StaffName, input.StaffName)
+	dob := input.DateOfBirth.AsTime()
+	usr := &domain.User{
+		Username:    username,
+		Name:        input.StaffName,
+		Gender:      enumutils.Gender(strings.ToUpper(input.Gender.String())),
+		DateOfBirth: &dob,
+		UserType:    enums.StaffUser,
+		Flavour:     feedlib.FlavourPro,
+	}
+
+	staffUser, err := us.Create.CreateUser(ctx, *usr)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, fmt.Errorf("unable to create user: %w", err)
+	}
+
+	contactData := &domain.Contact{
+		ContactType:  "PHONE",
+		ContactValue: *normalized,
+		Active:       true,
+		OptedIn:      false,
+		UserID:       staffUser.ID,
+		Flavour:      feedlib.FlavourPro,
+	}
+
+	identifierData := &domain.Identifier{
+		IdentifierType:      "NATIONAL_ID",
+		IdentifierValue:     input.IDNumber,
+		IdentifierUse:       "OFFICIAL",
+		Description:         "NATIONAL ID, Official Identifier",
+		IsPrimaryIdentifier: true,
+		Active:              true,
+	}
+
+	MFLCode, err := strconv.Atoi(input.Facility)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+	exists, err := us.Query.CheckFacilityExistsByMFLCode(ctx, MFLCode)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return nil, err
 	}
 
-	input.Gender = enumutils.Gender(strings.ToUpper(input.Gender.String()))
-	resp, err := us.ExternalExt.MakeRequest(ctx, http.MethodPost, registerStaffAPIEndpoint, input)
+	if !exists {
+		return nil, fmt.Errorf("facility with MFLCode %d does not exist", MFLCode)
+	}
+
+	facility, err := us.Query.RetrieveFacilityByMFLCode(ctx, MFLCode, true)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return nil, fmt.Errorf("failed to make request: %v", err)
+		return nil, err
 	}
 
-	dataResponse, err := ioutil.ReadAll(resp.Body)
+	staffData := &domain.StaffProfile{
+		UserID:              *staffUser.ID,
+		Active:              true,
+		StaffNumber:         input.StaffNumber,
+		DefaultFacilityID:   *facility.ID,
+		DefaultFacilityName: facility.Name,
+	}
+
+	staffRegistrationPayload := &domain.StaffRegistrationPayload{
+		UserProfile:     *staffUser,
+		Phone:           *contactData,
+		StaffIdentifier: *identifierData,
+		Staff:           *staffData,
+	}
+	staff, err := us.Create.RegisterStaff(ctx, staffRegistrationPayload)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return nil, fmt.Errorf("failed to read request body: %v", err)
+		return nil, fmt.Errorf("unable to register staff: %w", err)
 	}
 
-	// Success is indicated with 2xx status codes
-	statusOK := resp.StatusCode >= 200 && resp.StatusCode < 300
-	if !statusOK {
-		if strings.Contains(string(dataResponse), "Contact with this Contact value and Flavour already exists") {
-			return nil, fmt.Errorf("a contact with this value and flavour already exists")
-		}
-		return nil, fmt.Errorf("%v", string(dataResponse))
-	}
-
-	err = json.Unmarshal(dataResponse, &registrationOutput)
+	// UpdateRoles is used to update the roles of a user
+	var staffRoles []enums.UserRoleType
+	staffRoles = append(staffRoles, enums.UserRoleType(input.StaffRoles))
+	_, err = us.Update.AssignRoles(ctx, *staffUser.ID, staffRoles)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return nil, fmt.Errorf("failed to unmarshal response: %v", err)
+		return nil, fmt.Errorf("unable to assign roles: %w", err)
 	}
 
+	// 12. Invite them into the platform
 	if input.InviteStaff {
-		_, err := us.InviteUser(ctx, registrationOutput.UserID, input.PhoneNumber, feedlib.FlavourPro, false)
+		_, err := us.InviteUser(ctx, staff.UserID, input.PhoneNumber, feedlib.FlavourPro, false)
 		if err != nil {
 			return nil, fmt.Errorf("failed to invite staff user: %v", err)
 		}
 	}
 
-	return registrationOutput, nil
+	return &dto.StaffRegistrationOutput{
+		ID:              *staff.ID,
+		Active:          staff.Active,
+		StaffNumber:     input.StaffNumber,
+		UserID:          staff.UserID,
+		DefaultFacility: staff.DefaultFacilityID,
+	}, nil
 }
 
 // SearchClientUser is used to search for a client member(s) using either of their phonenumber, username or CCC number.

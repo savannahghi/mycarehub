@@ -2,3 +2,7 @@
 - id: 1
   staff_id: {{.staff_id_to_delete}}
   identifier_id: {{.test_staff_identifier_to_delete}}
+
+- id: 2
+  staff_id: {{.staff_id_to_register}}
+  identifier_id: c40b09a8-44b1-409c-bc5b-7e7623fcd7d5

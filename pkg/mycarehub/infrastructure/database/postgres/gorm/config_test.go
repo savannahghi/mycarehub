@@ -129,6 +129,7 @@ var (
 
 	userIDToDelete            = "6ecbbc80-24c8-421a-9f7a-e14e12678ef0"
 	userIDToRegisterClient    = "6ecbbc80-24c8-421a-9f1a-e14e12678ef1"
+	userToRegisterStaff       = "6ecbbc90-24c8-431a-9f7a-e14e12678ef1"
 	staffUserIDToDelete       = "6ecbbc80-24c8-421a-9f7a-e14e21678ef0"
 	testStaffContact          = "teststaff@staff.com"
 	testFlavourPRO            = feedlib.FlavourPro
@@ -138,8 +139,10 @@ var (
 	staffIdentifierIDToDelete = "bcbdaf89-3d36-4365-b575-4392d6749af7"
 	randomIdentifierValue     = "test-identifier-value"
 	contactIDToDelete         = "bdc36422-e314-43f2-bb39-ba1ab332f9b0"
+	contactIDToRegisterStaff  = "bdc36422-e314-43f2-bb39-ba1ab332f9b1"
 	staffContactIDToDelete    = "bdc36422-e314-43f2-bb39-ba1ab332f9c2"
 	staffIDToDelete           = "8ecbbc80-24c8-124a-9f1a-e14e12678ef2"
+	staffIDToRegister         = "8ecbbc70-24c8-154a-9f1a-e14e13678ef3"
 	notificationID            = "bf33ba36-30bc-487e-9a7b-bcb54da0bdfe"
 	userSurveyID              = "4181df12-ca96-4f28-b78b-8e8ad88b25df"
 	feedbackID                = "7281df12-ca96-4f28-b78b-8e8ad88b52df"
@@ -248,8 +251,10 @@ func TestMain(m *testing.M) {
 
 			"test_client_id_to_delete":        clientID3,
 			"contact_id_to_delete":            contactIDToDelete,
+			"contact_id_to_register_staff":    contactIDToRegisterStaff,
 			"staff_contact_id_to_delete":      staffContactIDToDelete,
 			"staff_id_to_delete":              staffIDToDelete,
+			"staff_id_to_register":            staffIDToRegister,
 			"test_ransdom_identifier_value":   randomIdentifierValue,
 			"test_staff_identifier_to_delete": staffIdentifierIDToDelete,
 			"test_fhir_patient_id3":           fhirPatientID3,
@@ -258,6 +263,7 @@ func TestMain(m *testing.M) {
 			"test_staff_user_id_to_delete":    staffUserIDToDelete,
 			"test_user_id_to_delete":          userIDToDelete,
 			"test_user_id_to_register_client": userIDToRegisterClient,
+			"test_user_id_to_register_staff":  userToRegisterStaff,
 			"test_staff_contact":              testStaffContact,
 			"test_feedback_id":                feedbackID,
 		}),
