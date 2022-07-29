@@ -1416,3 +1416,108 @@ func TestPGInstance_SaveFeedback(t *testing.T) {
 		})
 	}
 }
+
+func TestPGInstance_RegisterClient(t *testing.T) {
+	contactID := "bdc22436-e314-43f2-bb39-ba1ab332f9b0"
+	identifierID := "bcbdaf68-3d36-4365-b575-4182d6759ad9"
+	clientID := "26b30a42-cbb8-4773-aedb-c539602d04fc"
+	userID := userIDToRegisterClient
+	currentTime := time.Now()
+	FHIRPatientID := "26b30a43-cbb8-4773-aedb-c539602d04fc"
+	HealthPatientID := "29b30a42-cbb8-4553-aedb-c539602d04fc"
+	chvID := userIDToRegisterClient
+	caregiverID := "28b20a42-cbb8-4553-aedb-c575602d04fc"
+
+	invalidID := "invalidID"
+	contactData := &gorm.Contact{
+		ContactID:      &contactID,
+		ContactType:    "PHONE",
+		ContactValue:   testPhone,
+		Active:         true,
+		OptedIn:        true,
+		UserID:         &userID,
+		Flavour:        testFlavour,
+		OrganisationID: orgID,
+	}
+	identifierData := &gorm.Identifier{
+		ID:                  identifierID,
+		OrganisationID:      orgID,
+		Active:              true,
+		IdentifierType:      "CCC",
+		IdentifierValue:     "123456789",
+		IdentifierUse:       "OFFICIAL",
+		Description:         "A CCC Number",
+		ValidFrom:           time.Now(),
+		ValidTo:             time.Now(),
+		IsPrimaryIdentifier: true,
+	}
+	clientData := &gorm.Client{
+		ID:                      &clientID,
+		Active:                  true,
+		ClientTypes:             []string{"PMTCT"},
+		UserID:                  &userID,
+		TreatmentEnrollmentDate: &currentTime,
+		FHIRPatientID:           &FHIRPatientID,
+		HealthRecordID:          &HealthPatientID,
+		TreatmentBuddy:          uuid.New().String(),
+		ClientCounselled:        true,
+		OrganisationID:          orgID,
+		FacilityID:              facilityID,
+		CHVUserID:               &chvID,
+		CaregiverID:             &caregiverID,
+	}
+	InvalidClientData := &gorm.Client{
+		ID:                      &invalidID,
+		Active:                  true,
+		ClientTypes:             []string{"PMTCT"},
+		UserID:                  &userID,
+		TreatmentEnrollmentDate: &currentTime,
+		FHIRPatientID:           &FHIRPatientID,
+		HealthRecordID:          &HealthPatientID,
+		TreatmentBuddy:          uuid.New().String(),
+		ClientCounselled:        true,
+		OrganisationID:          orgID,
+		FacilityID:              facilityID,
+		CHVUserID:               &chvID,
+		CaregiverID:             &caregiverID,
+	}
+	type args struct {
+		ctx        context.Context
+		contact    *gorm.Contact
+		identifier *gorm.Identifier
+		client     *gorm.Client
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: register client",
+			args: args{
+				ctx:        context.Background(),
+				contact:    contactData,
+				identifier: identifierData,
+				client:     clientData,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: unable to register client",
+			args: args{
+				ctx:        context.Background(),
+				contact:    contactData,
+				identifier: identifierData,
+				client:     InvalidClientData,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := testingDB.RegisterClient(tt.args.ctx, tt.args.contact, tt.args.identifier, tt.args.client); (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.RegisterClient() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}

@@ -164,4 +164,13 @@ type Identifier struct {
 	ValidFrom           time.Time `json:"validFrom"`
 	ValidTo             time.Time `json:"validTo"`
 	IsPrimaryIdentifier bool      `json:"isPrimaryIdentifier"`
+	Active              bool      `json:"active"`
+}
+
+// ClientRegistrationPayload is the payload for a client registration
+type ClientRegistrationPayload struct {
+	UserProfile      User
+	Phone            Contact
+	ClientIdentifier Identifier
+	Client           ClientProfile
 }

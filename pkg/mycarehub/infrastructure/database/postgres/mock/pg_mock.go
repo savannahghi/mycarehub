@@ -83,7 +83,7 @@ type PostgresMock struct {
 	MockCheckIdentifierExists                            func(ctx context.Context, identifierType string, identifierValue string) (bool, error)
 	MockCheckFacilityExistsByMFLCode                     func(ctx context.Context, MFLCode int) (bool, error)
 	MockGetOrCreateNextOfKin                             func(ctx context.Context, person *dto.NextOfKinPayload, clientID, contactID string) error
-	MockGetOrCreateContact                               func(ctx context.Context, contact *domain.Contact) (*domain.Contact, error)
+	MockGetOrCreateContactFn                             func(ctx context.Context, contact *domain.Contact) (*domain.Contact, error)
 	MockGetClientsInAFacilityFn                          func(ctx context.Context, facilityID string) ([]*domain.ClientProfile, error)
 	MockGetRecentHealthDiaryEntriesFn                    func(ctx context.Context, lastSyncTime time.Time, client *domain.ClientProfile) ([]*domain.ClientHealthDiaryEntry, error)
 	MockGetClientsByParams                               func(ctx context.Context, params gorm.Client, lastSyncTime *time.Time) ([]*domain.ClientProfile, error)
@@ -144,6 +144,7 @@ type PostgresMock struct {
 	MockSaveFeedbackFn                                   func(ctx context.Context, feedback *domain.FeedbackResponse) error
 	MockSearchClientServiceRequestsFn                    func(ctx context.Context, searchParameter string, requestType string, facilityID string) ([]*domain.ServiceRequest, error)
 	MockSearchStaffServiceRequestsFn                     func(ctx context.Context, searchParameter string, requestType string, facilityID string) ([]*domain.ServiceRequest, error)
+	MockRegisterClientFn                                 func(ctx context.Context, payload *domain.ClientRegistrationPayload) (*domain.ClientProfile, error)
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -158,6 +159,16 @@ func NewPostgresMock() *PostgresMock {
 	currentTime := time.Now()
 
 	pastYear := time.Now().AddDate(-3, 0, 0)
+
+	contactData := &domain.Contact{
+		ID:           &ID,
+		ContactType:  "PHONE",
+		ContactValue: "+254711223344",
+		Active:       true,
+		OptedIn:      true,
+		UserID:       &ID,
+		Flavour:      "CONSUMER",
+	}
 
 	facilityInput := &domain.Facility{
 		ID:          &ID,
@@ -205,23 +216,28 @@ func NewPostgresMock() *PostgresMock {
 		NextAllowedLogin:    &currentTime,
 		LastFailedLogin:     &currentTime,
 		FailedLoginCount:    3,
-		Contacts: &domain.Contact{
-			ID:           &ID,
-			ContactType:  "PHONE",
-			ContactValue: "+254711223344",
-			Active:       true,
-			OptedIn:      true,
-			UserID:       &ID,
-			Flavour:      "CONSUMER",
-		},
-		DateOfBirth: &pastYear,
+		Contacts:            contactData,
+		DateOfBirth:         &pastYear,
 	}
 
-	client := &domain.ClientProfile{
-		ID:            &ID,
-		CHVUserID:     &ID,
-		UserID:        ID,
-		FHIRPatientID: &ID,
+	clientProfile := &domain.ClientProfile{
+		ID:                      &ID,
+		User:                    userProfile,
+		Active:                  false,
+		ClientTypes:             []enums.ClientType{},
+		UserID:                  ID,
+		TreatmentEnrollmentDate: &time.Time{},
+		FHIRPatientID:           &ID,
+		HealthRecordID:          &ID,
+		TreatmentBuddy:          "",
+		ClientCounselled:        true,
+		OrganisationID:          ID,
+		FacilityID:              ID,
+		FacilityName:            name,
+		CHVUserID:               &ID,
+		CHVUserName:             name,
+		CaregiverID:             &ID,
+		CCCNumber:               "123456789",
 	}
 	staff := &domain.StaffProfile{
 		ID:                &ID,
@@ -295,8 +311,14 @@ func NewPostgresMock() *PostgresMock {
 		MockDeleteFacilityFn: func(ctx context.Context, id int) (bool, error) {
 			return true, nil
 		},
+		MockGetOrCreateContactFn: func(ctx context.Context, contact *domain.Contact) (*domain.Contact, error) {
+			return contactData, nil
+		},
 		MockRetrieveFacilityByMFLCodeFn: func(ctx context.Context, MFLCode int, isActive bool) (*domain.Facility, error) {
 			return facilityInput, nil
+		},
+		MockRegisterClientFn: func(ctx context.Context, payload *domain.ClientRegistrationPayload) (*domain.ClientProfile, error) {
+			return clientProfile, nil
 		},
 		MockGetAppointmentFn: func(ctx context.Context, params domain.Appointment) (*domain.Appointment, error) {
 			return &domain.Appointment{
@@ -372,6 +394,18 @@ func NewPostgresMock() *PostgresMock {
 		},
 		MockSetNickNameFn: func(ctx context.Context, userID, nickname *string) (bool, error) {
 			return true, nil
+		},
+		MockCreateIdentifierFn: func(ctx context.Context, identifier domain.Identifier) (*domain.Identifier, error) {
+			return &domain.Identifier{
+				ID:                  ID,
+				IdentifierType:      "CCC",
+				IdentifierValue:     "123456789",
+				IdentifierUse:       "OFFICIAL",
+				Description:         "CCC Number, Primary Identifier",
+				ValidFrom:           time.Now(),
+				ValidTo:             time.Now(),
+				IsPrimaryIdentifier: true,
+			}, nil
 		},
 		MockSaveNotificationFn: func(ctx context.Context, payload *domain.Notification) error {
 			return nil
@@ -471,7 +505,7 @@ func NewPostgresMock() *PostgresMock {
 			return true, nil
 		},
 		MockGetClientProfileByUserIDFn: func(ctx context.Context, userID string) (*domain.ClientProfile, error) {
-			return client, nil
+			return clientProfile, nil
 		},
 		MockGetStaffProfileByUserIDFn: func(ctx context.Context, userID string) (*domain.StaffProfile, error) {
 			return staff, nil
@@ -562,7 +596,7 @@ func NewPostgresMock() *PostgresMock {
 			return []enums.NotificationType{enums.NotificationTypeAppointment}, nil
 		},
 		MockSearchClientProfileFn: func(ctx context.Context, searchParameter string) ([]*domain.ClientProfile, error) {
-			return []*domain.ClientProfile{client}, nil
+			return []*domain.ClientProfile{clientProfile}, nil
 		},
 		MockGetClientHealthDiaryEntriesFn: func(ctx context.Context, clientID string, moodType *enums.Mood, shared *bool) ([]*domain.ClientHealthDiaryEntry, error) {
 			return []*domain.ClientHealthDiaryEntry{healthDiaryEntry}, nil
@@ -677,7 +711,7 @@ func NewPostgresMock() *PostgresMock {
 		},
 		MockGetClientsInAFacilityFn: func(ctx context.Context, facilityID string) ([]*domain.ClientProfile, error) {
 			return []*domain.ClientProfile{
-				client,
+				clientProfile,
 			}, nil
 		},
 		MockGetFacilitiesWithoutFHIRIDFn: func(ctx context.Context) ([]*domain.Facility, error) {
@@ -807,7 +841,7 @@ func NewPostgresMock() *PostgresMock {
 			return nil
 		},
 		MockGetClientProfileByCCCNumberFn: func(ctx context.Context, CCCNumber string) (*domain.ClientProfile, error) {
-			return client, nil
+			return clientProfile, nil
 		},
 		MockCheckIfClientHasUnresolvedServiceRequestsFn: func(ctx context.Context, clientID string, serviceRequestType string) (bool, error) {
 			return false, nil
@@ -971,9 +1005,12 @@ func NewPostgresMock() *PostgresMock {
 		MockDeleteUserFn: func(ctx context.Context, userID string, clientID *string, staffID *string, flavour feedlib.Flavour) error {
 			return nil
 		},
+		MockCreateUserFn: func(ctx context.Context, user domain.User) (*domain.User, error) {
+			return userProfile, nil
+		},
 		MockGetClientsByFilterParamsFn: func(ctx context.Context, facilityID *string, filterParams *dto.ClientFilterParamsInput) ([]*domain.ClientProfile, error) {
 			return []*domain.ClientProfile{
-				client,
+				clientProfile,
 			}, nil
 		},
 		MockCreateUserSurveyFn: func(ctx context.Context, userSurvey []*dto.UserSurveyInput) error {
@@ -1021,6 +1058,9 @@ func NewPostgresMock() *PostgresMock {
 		},
 		MockUpdateClientServiceRequestFn: func(ctx context.Context, clientServiceRequest *domain.ServiceRequest, updateData map[string]interface{}) error {
 			return nil
+		},
+		MockCreateClientFn: func(ctx context.Context, client domain.ClientProfile, contactID, identifierID string) (*domain.ClientProfile, error) {
+			return clientProfile, nil
 		},
 	}
 }
@@ -1347,7 +1387,7 @@ func (gm *PostgresMock) GetOrCreateNextOfKin(ctx context.Context, person *dto.Ne
 
 // GetOrCreateContact mocks creating a contact
 func (gm *PostgresMock) GetOrCreateContact(ctx context.Context, contact *domain.Contact) (*domain.Contact, error) {
-	return gm.MockGetOrCreateContact(ctx, contact)
+	return gm.MockGetOrCreateContactFn(ctx, contact)
 }
 
 // GetClientsInAFacility mocks getting all the clients in a facility
@@ -1639,4 +1679,9 @@ func (gm *PostgresMock) SearchClientServiceRequests(ctx context.Context, searchP
 // SearchStaffServiceRequests mocks the implementation of searching client service requests
 func (gm *PostgresMock) SearchStaffServiceRequests(ctx context.Context, searchParameter string, requestType string, facilityID string) ([]*domain.ServiceRequest, error) {
 	return gm.MockSearchStaffServiceRequestsFn(ctx, searchParameter, requestType, facilityID)
+}
+
+// RegisterClient mocks the implementation of registering a client
+func (gm *PostgresMock) RegisterClient(ctx context.Context, payload *domain.ClientRegistrationPayload) (*domain.ClientProfile, error) {
+	return gm.MockRegisterClientFn(ctx, payload)
 }
