@@ -1,0 +1,5 @@
+- id: 1
+  choice: "1"
+  value: "YES"
+  score: 10
+  question_id: {{.test_questionnaire_question_id}}
