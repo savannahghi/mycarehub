@@ -4154,3 +4154,76 @@ func TestPGInstance_SearchStaffServiceRequests(t *testing.T) {
 		})
 	}
 }
+
+func TestPGInstance_ListQuestionnaires(t *testing.T) {
+	type args struct {
+		ctx context.Context
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    []*gorm.Questionnaire
+		wantErr bool
+	}{
+		{
+			name: "Happy case: list questionnaires",
+			args: args{
+				ctx: context.Background(),
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := testingDB.ListQuestionnaires(tt.args.ctx)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.ListQuestionnaires() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}
+
+func TestPGInstance_ListQuestionnaireQuestions(t *testing.T) {
+	type args struct {
+		ctx             context.Context
+		questionnaireID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    []*gorm.QuestionnaireQuestion
+		wantErr bool
+	}{
+		{
+			name: "Happy case: list questionnaire questions",
+			args: args{
+				ctx:             context.Background(),
+				questionnaireID: questionnaireID,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: invalid id",
+			args: args{
+				ctx:             context.Background(),
+				questionnaireID: "questionnaireID",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := testingDB.ListQuestionnaireQuestions(tt.args.ctx, tt.args.questionnaireID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.ListQuestionnaireQuestions() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected value, got %v", got)
+				return
+			}
+		})
+	}
+}

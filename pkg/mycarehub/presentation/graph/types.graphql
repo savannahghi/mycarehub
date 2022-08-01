@@ -539,3 +539,12 @@ type UserSurvey {
   formID: String!
   linkID: Int
 }
+
+type Questionnaire {
+  id: String!
+  name: String!
+  description: String!
+  startDate: Time!
+  endDate: Time!
+  active: Boolean!
+}

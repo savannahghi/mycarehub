@@ -120,6 +120,7 @@ type Query interface {
 	GetClientsByFilterParams(ctx context.Context, facilityID *string, filterParams *dto.ClientFilterParamsInput) ([]*domain.ClientProfile, error)
 	SearchClientServiceRequests(ctx context.Context, searchParameter string, requestType string, facilityID string) ([]*domain.ServiceRequest, error)
 	SearchStaffServiceRequests(ctx context.Context, searchParameter string, requestType string, facilityID string) ([]*domain.ServiceRequest, error)
+	ListQuestionnaires(ctx context.Context) ([]*domain.Questionnaire, error)
 }
 
 // Update represents all the update action interfaces

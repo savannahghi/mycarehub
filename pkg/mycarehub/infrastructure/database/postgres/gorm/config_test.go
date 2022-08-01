@@ -128,25 +128,29 @@ var (
 	userWithRolesID               = "8ecbbc80-24c8-421a-9f1a-e14e12678efd"
 	staffWithRolesID              = "8ecbbc80-24c8-421a-9f1a-e14e12678efe"
 
-	userIDToDelete            = "6ecbbc80-24c8-421a-9f7a-e14e12678ef0"
-	userIDToRegisterClient    = "6ecbbc80-24c8-421a-9f1a-e14e12678ef1"
-	userToRegisterStaff       = "6ecbbc90-24c8-431a-9f7a-e14e12678ef1"
-	staffUserIDToDelete       = "6ecbbc80-24c8-421a-9f7a-e14e21678ef0"
-	testStaffContact          = "teststaff@staff.com"
-	testFlavourPRO            = feedlib.FlavourPro
-	fhirPatientID3            = "f933fd4b-1e3c-4ecd-9d7a-82b2790c0544"
-	clientID3                 = "11a6a0cd-42ac-714b-97d9-e939a1232de2"
-	identifierIDToDelete      = "bcbdaf68-3d36-4365-b575-4392d6749af6"
-	staffIdentifierIDToDelete = "bcbdaf89-3d36-4365-b575-4392d6749af7"
-	randomIdentifierValue     = "test-identifier-value"
-	contactIDToDelete         = "bdc36422-e314-43f2-bb39-ba1ab332f9b0"
-	contactIDToRegisterStaff  = "bdc36422-e314-43f2-bb39-ba1ab332f9b1"
-	staffContactIDToDelete    = "bdc36422-e314-43f2-bb39-ba1ab332f9c2"
-	staffIDToDelete           = "8ecbbc80-24c8-124a-9f1a-e14e12678ef2"
-	staffIDToRegister         = "8ecbbc70-24c8-154a-9f1a-e14e13678ef3"
-	notificationID            = "bf33ba36-30bc-487e-9a7b-bcb54da0bdfe"
-	userSurveyID              = "4181df12-ca96-4f28-b78b-8e8ad88b25df"
-	feedbackID                = "7281df12-ca96-4f28-b78b-8e8ad88b52df"
+	userIDToDelete                = "6ecbbc80-24c8-421a-9f7a-e14e12678ef0"
+	userIDToRegisterClient        = "6ecbbc80-24c8-421a-9f1a-e14e12678ef1"
+	userToRegisterStaff           = "6ecbbc90-24c8-431a-9f7a-e14e12678ef1"
+	staffUserIDToDelete           = "6ecbbc80-24c8-421a-9f7a-e14e21678ef0"
+	testStaffContact              = "teststaff@staff.com"
+	testFlavourPRO                = feedlib.FlavourPro
+	fhirPatientID3                = "f933fd4b-1e3c-4ecd-9d7a-82b2790c0544"
+	clientID3                     = "11a6a0cd-42ac-714b-97d9-e939a1232de2"
+	identifierIDToDelete          = "bcbdaf68-3d36-4365-b575-4392d6749af6"
+	staffIdentifierIDToDelete     = "bcbdaf89-3d36-4365-b575-4392d6749af7"
+	randomIdentifierValue         = "test-identifier-value"
+	contactIDToDelete             = "bdc36422-e314-43f2-bb39-ba1ab332f9b0"
+	contactIDToRegisterStaff      = "bdc36422-e314-43f2-bb39-ba1ab332f9b1"
+	staffContactIDToDelete        = "bdc36422-e314-43f2-bb39-ba1ab332f9c2"
+	staffIDToDelete               = "8ecbbc80-24c8-124a-9f1a-e14e12678ef2"
+	staffIDToRegister             = "8ecbbc70-24c8-154a-9f1a-e14e13678ef3"
+	notificationID                = "bf33ba36-30bc-487e-9a7b-bcb54da0bdfe"
+	userSurveyID                  = "4181df12-ca96-4f28-b78b-8e8ad88b25df"
+	feedbackID                    = "7281df12-ca96-4f28-b78b-8e8ad88b52df"
+	questionnaireQuestionID       = 55
+	questionnaireID               = "8ecbbc80-24c8-421a-9f1a-e14e12678ef5"
+	questionnaireResponseID       = "8ecbbc80-24c8-421a-9f1a-e14e12678ef6"
+	questionnaireScreeningToolsID = "8ecbbc80-24c8-421a-9f1a-e14e12678ef7"
 )
 
 func TestMain(m *testing.M) {
@@ -251,23 +255,27 @@ func TestMain(m *testing.M) {
 			"staff_unresolved_request_id":            staffUnresolvedRequestID,
 			"staff_user_unresolved_request_id":       staffUserUnresolvedRequestID,
 
-			"test_client_id_to_delete":        clientID3,
-			"contact_id_to_delete":            contactIDToDelete,
-			"contact_id_to_register_staff":    contactIDToRegisterStaff,
-			"staff_contact_id_to_delete":      staffContactIDToDelete,
-			"staff_id_to_delete":              staffIDToDelete,
-			"staff_id_to_register":            staffIDToRegister,
-			"test_ransdom_identifier_value":   randomIdentifierValue,
-			"test_staff_identifier_to_delete": staffIdentifierIDToDelete,
-			"test_fhir_patient_id3":           fhirPatientID3,
-			"test_identifier_to_delete":       identifierIDToDelete,
-			"test_flavour_pro":                testFlavourPRO,
-			"test_staff_user_id_to_delete":    staffUserIDToDelete,
-			"test_user_id_to_delete":          userIDToDelete,
-			"test_user_id_to_register_client": userIDToRegisterClient,
-			"test_user_id_to_register_staff":  userToRegisterStaff,
-			"test_staff_contact":              testStaffContact,
-			"test_feedback_id":                feedbackID,
+			"test_client_id_to_delete":              clientID3,
+			"contact_id_to_delete":                  contactIDToDelete,
+			"contact_id_to_register_staff":          contactIDToRegisterStaff,
+			"staff_contact_id_to_delete":            staffContactIDToDelete,
+			"staff_id_to_delete":                    staffIDToDelete,
+			"staff_id_to_register":                  staffIDToRegister,
+			"test_ransdom_identifier_value":         randomIdentifierValue,
+			"test_staff_identifier_to_delete":       staffIdentifierIDToDelete,
+			"test_fhir_patient_id3":                 fhirPatientID3,
+			"test_identifier_to_delete":             identifierIDToDelete,
+			"test_flavour_pro":                      testFlavourPRO,
+			"test_staff_user_id_to_delete":          staffUserIDToDelete,
+			"test_user_id_to_delete":                userIDToDelete,
+			"test_user_id_to_register_client":       userIDToRegisterClient,
+			"test_user_id_to_register_staff":        userToRegisterStaff,
+			"test_staff_contact":                    testStaffContact,
+			"test_feedback_id":                      feedbackID,
+			"test_questionnaire_question_id":        questionnaireQuestionID,
+			"test_questionnaire_id":                 questionnaireID,
+			"test_questionnaire_response_id":        questionnaireResponseID,
+			"test_questionnaire_screening_tools_id": questionnaireScreeningToolsID,
 		}),
 		// this is the directory containing the YAML files.
 		// The file name should be the same as the table name
@@ -310,6 +318,12 @@ func TestMain(m *testing.M) {
 			"../../../../../../fixtures/common_usersurveys.yml",
 			"../../../../../../fixtures/common_feedback.yml",
 			"../../../../../../fixtures/clients_healthdiaryquote.yml",
+			"../../../../../../fixtures/questionnaires_question.yml",
+			"../../../../../../fixtures/questionnaires_questioninputchoice.yml",
+			"../../../../../../fixtures/questionnaires_questionnaire.yml",
+			"../../../../../../fixtures/questionnaires_questionnaireresponse.yml",
+			"../../../../../../fixtures/questionnaires_responseinstance.yml",
+			"../../../../../../fixtures/questionnaires_screeningtool.yml",
 		),
 		// uncomment when running tests locally, if your db is not a test db
 		// Ensure the testing db in the ci is named `test`

@@ -1,0 +1,8 @@
+- id: {{.test_questionnaire_question_id}}
+  text: "Test"
+  question_type: "Open Ended"
+  response_value_type: STRING
+  select_multiple: true
+  required: true
+  sequence: 1
+  questionnaire_id: {{.test_questionnaire_id}}

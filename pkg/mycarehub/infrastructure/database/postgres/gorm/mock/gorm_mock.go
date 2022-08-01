@@ -145,6 +145,8 @@ type GormMock struct {
 	MockUpdateClientServiceRequestFn                     func(ctx context.Context, clientServiceRequest *gorm.ClientServiceRequest, updateData map[string]interface{}) error
 	MockRegisterClientFn                                 func(ctx context.Context, contact *gorm.Contact, identifier *gorm.Identifier, client *gorm.Client) error
 	MockDeleteCommunityFn                                func(ctx context.Context, communityID string) error
+	MockListQuestionnairesFn                             func(ctx context.Context) ([]*gorm.Questionnaire, error)
+	MockListQuestionnaireQuestionsFn                     func(ctx context.Context, questionnaireID string) ([]*gorm.QuestionnaireQuestion, error)
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -327,6 +329,34 @@ func NewGormMock() *GormMock {
 			ResolvedAt:     &laterTime,
 			ResolvedByID:   &UUID,
 		},
+	}
+
+	questionnaire := &gorm.Questionnaire{
+		ID:              UUID,
+		Active:          true,
+		Name:            name,
+		Description:     description,
+		ValidFrom:       time.Time{},
+		ValidDays:       0,
+		ValidWeeks:      0,
+		ValidMonths:     0,
+		ValidTo:         time.Time{},
+		FrequencyDays:   0,
+		FrequencyWeeks:  0,
+		FrequencyMonths: 0,
+		NextSurveyDate:  time.Time{},
+		OrganisationID:  "",
+	}
+
+	questionnaireQuestion := &gorm.QuestionnaireQuestion{
+		ID:                UUID,
+		Text:              "test question",
+		QuestionType:      "CLOSE_ENDED",
+		ResponseValueType: "STRING",
+		SelectMultiple:    true,
+		Required:          false,
+		Sequence:          0,
+		QuestionnaireID:   questionnaire.ID,
 	}
 
 	return &GormMock{
@@ -941,6 +971,16 @@ func NewGormMock() *GormMock {
 		},
 		MockUpdateUserPinUpdateRequiredStatusFn: func(ctx context.Context, userID string, flavour feedlib.Flavour, status bool) error {
 			return nil
+		},
+		MockListQuestionnairesFn: func(ctx context.Context) ([]*gorm.Questionnaire, error) {
+			return []*gorm.Questionnaire{
+				questionnaire,
+			}, nil
+		},
+		MockListQuestionnaireQuestionsFn: func(ctx context.Context, questionnaireID string) ([]*gorm.QuestionnaireQuestion, error) {
+			return []*gorm.QuestionnaireQuestion{
+				questionnaireQuestion,
+			}, nil
 		},
 		MockUpdateClientFn: func(ctx context.Context, client *gorm.Client, updates map[string]interface{}) (*gorm.Client, error) {
 			return clientProfile, nil
@@ -1748,4 +1788,14 @@ func (gm *GormMock) RegisterClient(ctx context.Context, contact *gorm.Contact, i
 // DeleteCommunity deletes the specified community from the database
 func (gm *GormMock) DeleteCommunity(ctx context.Context, communityID string) error {
 	return gm.MockDeleteCommunityFn(ctx, communityID)
+}
+
+// ListQuestionnaires mocks the implementation of listing questionnaires
+func (gm *GormMock) ListQuestionnaires(ctx context.Context) ([]*gorm.Questionnaire, error) {
+	return gm.MockListQuestionnairesFn(ctx)
+}
+
+// ListQuestionnaireQuestions mocks the implementation of listing questionnaire questions
+func (gm *GormMock) ListQuestionnaireQuestions(ctx context.Context, questionnaireID string) ([]*gorm.QuestionnaireQuestion, error) {
+	return gm.MockListQuestionnaireQuestionsFn(ctx, questionnaireID)
 }

@@ -5976,3 +5976,54 @@ func TestMyCareHubDb_ReturnStaffServiceRequests(t *testing.T) {
 		})
 	}
 }
+
+func TestMyCareHubDb_ListQuestionnaires(t *testing.T) {
+	ctx := context.Background()
+
+	var fakeGorm = gormMock.NewGormMock()
+	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+	type args struct {
+		ctx context.Context
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    []*domain.Questionnaire
+		wantErr bool
+	}{
+		{
+			name: "Happy case: return questionnaires",
+			args: args{
+				ctx: ctx,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: unable to return questionnaires",
+			args: args{
+				ctx: ctx,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "Sad case: unable to return questionnaires" {
+				fakeGorm.MockListQuestionnairesFn = func(ctx context.Context) ([]*gorm.Questionnaire, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+			got, err := d.ListQuestionnaires(tt.args.ctx)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.ListQuestionnaires() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected value, got %v", got)
+				return
+			}
+		})
+	}
+}

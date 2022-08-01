@@ -147,6 +147,8 @@ type PostgresMock struct {
 	MockRegisterClientFn                                 func(ctx context.Context, payload *domain.ClientRegistrationPayload) (*domain.ClientProfile, error)
 	MockRegisterStaffFn                                  func(ctx context.Context, staffRegistrationPayload *domain.StaffRegistrationPayload) (*domain.StaffProfile, error)
 	MockDeleteCommunityFn                                func(ctx context.Context, communityID string) error
+	MockListQuestionnairesFn                             func(ctx context.Context) ([]*domain.Questionnaire, error)
+	MockListQuestionnaireQuestionsFn                     func(ctx context.Context, questionnaireID string) ([]*domain.QuestionnaireQuestion, error)
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -279,6 +281,27 @@ func NewPostgresMock() *PostgresMock {
 		ClientName:            name,
 	}
 
+	questionnaire := &domain.Questionnaire{
+		ID:          ID,
+		Name:        name,
+		Description: description,
+		StartDate:   time.Time{},
+		EndDate:     time.Time{},
+		Active:      true,
+		Questions:   []domain.QuestionnaireQuestion{},
+	}
+
+	questionnaireQuestion := &domain.QuestionnaireQuestion{
+		ID:             ID,
+		Text:           "test question",
+		SelectMultiple: true,
+		ValueType:      "STRING",
+		QuestionType:   "CLOSE_ENDED",
+		Sequence:       0,
+		HasCondition:   false,
+		Choices:        []domain.QuestionnaireQuestionChoice{},
+	}
+
 	return &PostgresMock{
 		MockCreateMetricFn: func(ctx context.Context, payload *domain.Metric) error {
 			return nil
@@ -399,6 +422,16 @@ func NewPostgresMock() *PostgresMock {
 		},
 		MockSetNickNameFn: func(ctx context.Context, userID, nickname *string) (bool, error) {
 			return true, nil
+		},
+		MockListQuestionnairesFn: func(ctx context.Context) ([]*domain.Questionnaire, error) {
+			return []*domain.Questionnaire{
+				questionnaire,
+			}, nil
+		},
+		MockListQuestionnaireQuestionsFn: func(ctx context.Context, questionnaireID string) ([]*domain.QuestionnaireQuestion, error) {
+			return []*domain.QuestionnaireQuestion{
+				questionnaireQuestion,
+			}, nil
 		},
 		MockCreateIdentifierFn: func(ctx context.Context, identifier domain.Identifier) (*domain.Identifier, error) {
 			return &domain.Identifier{
@@ -1702,4 +1735,14 @@ func (gm *PostgresMock) RegisterClient(ctx context.Context, payload *domain.Clie
 // DeleteCommunity deletes the specified community from the database
 func (gm *PostgresMock) DeleteCommunity(ctx context.Context, communityID string) error {
 	return gm.MockDeleteCommunityFn(ctx, communityID)
+}
+
+// ListQuestionnaires mocks the implementation of listing questionnaires
+func (gm *PostgresMock) ListQuestionnaires(ctx context.Context) ([]*domain.Questionnaire, error) {
+	return gm.MockListQuestionnairesFn(ctx)
+}
+
+// ListQuestionnaireQuestions mocks the implementation of listing questionnaire questions
+func (gm *PostgresMock) ListQuestionnaireQuestions(ctx context.Context, questionnaireID string) ([]*domain.QuestionnaireQuestion, error) {
+	return gm.MockListQuestionnaireQuestionsFn(ctx, questionnaireID)
 }

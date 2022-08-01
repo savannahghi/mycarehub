@@ -98,6 +98,8 @@ type Query interface {
 	GetClientsByFilterParams(ctx context.Context, facilityID string, filterParams *dto.ClientFilterParamsInput) ([]*Client, error)
 	SearchClientServiceRequests(ctx context.Context, searchParameter string, requestType string, facilityID string) ([]*ClientServiceRequest, error)
 	SearchStaffServiceRequests(ctx context.Context, searchParameter string, requestType string, facilityID string) ([]*StaffServiceRequest, error)
+	ListQuestionnaires(ctx context.Context) ([]*Questionnaire, error)
+	ListQuestionnaireQuestions(ctx context.Context, questionnaireID string) ([]*QuestionnaireQuestion, error)
 }
 
 // GetFacilityStaffs returns a list of staff at a particular facility
@@ -1482,4 +1484,26 @@ func (db *PGInstance) SearchStaffServiceRequests(ctx context.Context, searchPara
 	}
 
 	return staffServiceRequests, nil
+}
+
+// ListQuestionnaires is used to find and return a list of all available questionnaires
+func (db *PGInstance) ListQuestionnaires(ctx context.Context) ([]*Questionnaire, error) {
+	var questionnaires []*Questionnaire
+	if err := db.DB.Where("active = ?", true).Find(&questionnaires).Error; err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, fmt.Errorf("failed to get questionnaires: %w", err)
+	}
+
+	return questionnaires, nil
+}
+
+// ListQuestionnaireQuestions is used to find and return a list of all available questions for a given questionnaire
+func (db *PGInstance) ListQuestionnaireQuestions(ctx context.Context, questionnaireID string) ([]*QuestionnaireQuestion, error) {
+	var questionnaireQuestions []*QuestionnaireQuestion
+	if err := db.DB.Where("questionnaire_id = ?", questionnaireID).Find(&questionnaireQuestions).Error; err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, fmt.Errorf("failed to get questionnaire questions: %w", err)
+	}
+
+	return questionnaireQuestions, nil
 }

@@ -1994,3 +1994,26 @@ func (d *MyCareHubDb) SearchStaffServiceRequests(ctx context.Context, searchPara
 
 	return d.ReturnStaffServiceRequests(ctx, serviceRequests)
 }
+
+// ListQuestionnaires returns a list of questionnaires and their associated questions
+func (d *MyCareHubDb) ListQuestionnaires(ctx context.Context) ([]*domain.Questionnaire, error) {
+	questionnaires, err := d.query.ListQuestionnaires(ctx)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
+	var questionnaireList []*domain.Questionnaire
+	for _, q := range questionnaires {
+		questionnaireList = append(questionnaireList, &domain.Questionnaire{
+			ID:          q.ID,
+			Name:        q.Name,
+			Description: q.Description,
+			StartDate:   q.ValidFrom,
+			EndDate:     q.ValidTo,
+			Active:      q.Active,
+		})
+	}
+
+	return questionnaireList, nil
+}
