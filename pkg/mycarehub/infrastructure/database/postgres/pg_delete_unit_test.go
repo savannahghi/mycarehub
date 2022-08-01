@@ -242,3 +242,49 @@ func TestMyCareHubDb_DeleteStaffProfile(t *testing.T) {
 		})
 	}
 }
+
+func TestMyCareHubDb_DeleteCommunity(t *testing.T) {
+	ctx := context.Background()
+
+	var fakeGorm = gormMock.NewGormMock()
+	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+	type args struct {
+		ctx         context.Context
+		communityID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:         ctx,
+				communityID: "123456789",
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case",
+			args: args{
+				ctx:         ctx,
+				communityID: "123456789",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "Sad case" {
+				fakeGorm.MockDeleteCommunityFn = func(ctx context.Context, communityID string) error {
+					return fmt.Errorf("an error occurred while deleting")
+				}
+			}
+			if err := d.DeleteCommunity(tt.args.ctx, tt.args.communityID); (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.DeleteCommunity() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}

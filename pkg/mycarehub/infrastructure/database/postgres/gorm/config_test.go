@@ -105,7 +105,8 @@ var (
 	systemAdminRole         = enums.UserRoleTypeSystemAdministrator.String()
 	contentManagementRole   = enums.UserRoleTypeContentManagement.String()
 
-	communityID = "043f12aa-6f51-434f-8e96-35030306f161"
+	communityID         = "043f12aa-6f51-434f-8e96-35030306f161"
+	communityIDToDelete = "043f12aa-6f51-434f-8e96-35030306f162"
 
 	// Appointments
 	appointmentID         = "2fc2b603-05ef-40f1-987a-3259eab87aef"
@@ -232,7 +233,8 @@ func TestMain(m *testing.M) {
 			"system_admin_role":          systemAdminRole,
 			"content_management_role":    contentManagementRole,
 
-			"community_id": communityID,
+			"community_id":           communityID,
+			"community_id_to_delete": communityIDToDelete,
 
 			"screenintoolsquestion_id": screeningToolsQuestionID,
 			"screenintoolsresponse_id": screeningToolsResponseID,
