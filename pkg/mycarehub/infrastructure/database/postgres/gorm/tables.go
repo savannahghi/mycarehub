@@ -1158,3 +1158,136 @@ func (f *Feedback) BeforeCreate(tx *gorm.DB) (err error) {
 func (Feedback) TableName() string {
 	return "common_feedback"
 }
+
+// ---- New Screening Tools models ----//
+
+// QuestionnaireQuestion defines the questionnaire question database model
+type QuestionnaireQuestion struct {
+	ID                int    `gorm:"primaryKey;column:id"`
+	Text              string `gorm:"column:text"`
+	QuestionType      string `gorm:"column:question_type"`
+	ResponseValueType string `gorm:"column:response_value_type"`
+	SelectMultiple    bool   `gorm:"column:select_multiple"`
+	Required          bool   `gorm:"column:required"`
+	Sequence          int    `gorm:"column:sequence"`
+	QuestionnaireID   int    `gorm:"column:questionnaire_id"`
+}
+
+// TableName references the table that we map data from
+func (QuestionnaireQuestion) TableName() string {
+	return "questionnaires_question"
+}
+
+// QuestionInputChoice defines the questionnaire question input choice database model
+type QuestionInputChoice struct {
+	ID         int    `gorm:"primaryKey;column:id"`
+	Choice     string `gorm:"column:choice"`
+	Value      string `gorm:"column:value"`
+	Score      int    `gorm:"column:score"`
+	QuestionID int    `gorm:"column:question_id"`
+}
+
+// TableName references the table that we map data from
+func (QuestionInputChoice) TableName() string {
+	return "questionnaires_questioninputchoice"
+}
+
+// Questionnaire defines the questionnaire database model
+type Questionnaire struct {
+	Base
+
+	ID              string    `gorm:"primaryKey;column:id"`
+	Active          bool      `gorm:"column:active"`
+	Name            string    `gorm:"column:name"`
+	Description     string    `gorm:"column:description"`
+	ValidFrom       time.Time `gorm:"column:valid_from"`
+	ValidDays       int       `gorm:"column:valid_days"`
+	ValidWeeks      int       `gorm:"column:valid_weeks"`
+	ValidMonths     int       `gorm:"column:valid_months"`
+	ValidTo         time.Time `gorm:"column:valid_to"`
+	FrequencyDays   int       `gorm:"column:frequency_days"`
+	FrequencyWeeks  int       `gorm:"column:frequency_weeks"`
+	FrequencyMonths int       `gorm:"column:frequency_months"`
+	NextSurveyDate  time.Time `gorm:"column:next_survey_date"`
+	OrganisationID  string    `gorm:"column:organisation_id"`
+}
+
+// BeforeCreate is a hook run before creating an appointment
+func (q *Questionnaire) BeforeCreate(tx *gorm.DB) (err error) {
+	id := uuid.New().String()
+	q.ID = id
+	q.OrganisationID = OrganizationID
+	return
+}
+
+// TableName references the table that we map data from
+func (Questionnaire) TableName() string {
+	return "questionnaires_questionnaire"
+}
+
+// QuestionnaireResponse defines the questionnaire response database model
+type QuestionnaireResponse struct {
+	Base
+
+	ID              string          `gorm:"primaryKey;column:id"`
+	Active          bool            `gorm:"column:active"`
+	Flavour         feedlib.Flavour `gorm:"column:flavour"`
+	FacilityID      string          `gorm:"column:facility_id"`
+	QuestionnaireID string          `gorm:"column:questionnaire_id"`
+	UserID          string          `gorm:"column:user_id"`
+	OrganisationID  string          `gorm:"column:organisation_id"`
+}
+
+// BeforeCreate is a hook run before creating an questionnaire response
+func (q *QuestionnaireResponse) BeforeCreate(tx *gorm.DB) (err error) {
+	id := uuid.New().String()
+	q.ID = id
+	q.OrganisationID = OrganizationID
+	return
+}
+
+// TableName references the table that we map data from
+func (QuestionnaireResponse) TableName() string {
+	return "questionnaires_questionnaireresponse"
+}
+
+// QuestionnaireResponseInstance defines the questionnaire response instance database model
+type QuestionnaireResponseInstance struct {
+	ID              int    `gorm:"primaryKey;column:id"`
+	Answer          string `gorm:"column:answer"`
+	QuestionID      int    `gorm:"column:question_id"`
+	QuestionnaireID string `gorm:"column:questionnaire_id"`
+}
+
+// TableName references the table that we map data from
+func (QuestionnaireResponseInstance) TableName() string {
+	return "questionnaires_responseinstance"
+}
+
+// QuestionnaireScreeningTool defines the questionnaire screening tool database model
+type QuestionnaireScreeningTool struct {
+	Base
+
+	ID              string         `gorm:"primaryKey;column:id"`
+	Active          bool           `gorm:"column:active"`
+	Threshold       int            `gorm:"column:threshold"`
+	ClientTypes     pq.StringArray `gorm:"column:client_types"`
+	Genders         pq.StringArray `gorm:"column:genders"`
+	MinimumAge      int            `gorm:"column:min_age"`
+	MaximumAge      int            `gorm:"column:max_age"`
+	QuestionnaireID string         `gorm:"column:questionnaire_id"`
+	OrganisationID  string         `gorm:"column:organisation_id"`
+}
+
+// BeforeCreate is a hook run before creating an questionnaire screening tool
+func (q *QuestionnaireScreeningTool) BeforeCreate(tx *gorm.DB) (err error) {
+	id := uuid.New().String()
+	q.ID = id
+	q.OrganisationID = OrganizationID
+	return
+}
+
+// TableName references the table that we map data from
+func (QuestionnaireScreeningTool) TableName() string {
+	return "questionnaires_screeningtool"
+}
