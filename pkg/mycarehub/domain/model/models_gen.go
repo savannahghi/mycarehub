@@ -2,7 +2,121 @@
 
 package model
 
+import (
+	"fmt"
+	"io"
+	"strconv"
+
+	"github.com/savannahghi/enumutils"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
+)
+
+type QuestionnaireQuestionInputChoiceInput struct {
+	Choice     *string `json:"choice"`
+	Value      *string `json:"value"`
+	Score      *int    `json:"score"`
+	QuestionID int     `json:"questionID"`
+}
+
+type QuestionnaireScreeningToolsInput struct {
+	Threshold   *int                `json:"threshold"`
+	ClientTypes []*enums.ClientType `json:"clientTypes"`
+	Genders     []*enumutils.Gender `json:"genders"`
+	AgeRange    *dto.AgeRangeInput  `json:"ageRange"`
+}
+
 type RescheduleAppointmentInput struct {
 	AppointmentID string `json:"appointmentID"`
 	ClientID      string `json:"clientID"`
+}
+
+type QuestionnaireQuestionType string
+
+const (
+	QuestionnaireQuestionTypeOpenEnded  QuestionnaireQuestionType = "OPEN_ENDED"
+	QuestionnaireQuestionTypeCloseEnded QuestionnaireQuestionType = "CLOSE_ENDED"
+)
+
+var AllQuestionnaireQuestionType = []QuestionnaireQuestionType{
+	QuestionnaireQuestionTypeOpenEnded,
+	QuestionnaireQuestionTypeCloseEnded,
+}
+
+func (e QuestionnaireQuestionType) IsValid() bool {
+	switch e {
+	case QuestionnaireQuestionTypeOpenEnded, QuestionnaireQuestionTypeCloseEnded:
+		return true
+	}
+	return false
+}
+
+func (e QuestionnaireQuestionType) String() string {
+	return string(e)
+}
+
+func (e *QuestionnaireQuestionType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = QuestionnaireQuestionType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid QuestionnaireQuestionType", str)
+	}
+	return nil
+}
+
+func (e QuestionnaireQuestionType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type QuestionnaireResponseValueTypes string
+
+const (
+	QuestionnaireResponseValueTypesString   QuestionnaireResponseValueTypes = "STRING"
+	QuestionnaireResponseValueTypesNumber   QuestionnaireResponseValueTypes = "NUMBER"
+	QuestionnaireResponseValueTypesBoolean  QuestionnaireResponseValueTypes = "BOOLEAN"
+	QuestionnaireResponseValueTypesTime     QuestionnaireResponseValueTypes = "TIME"
+	QuestionnaireResponseValueTypesDate     QuestionnaireResponseValueTypes = "DATE"
+	QuestionnaireResponseValueTypesDateTime QuestionnaireResponseValueTypes = "DATE_TIME"
+)
+
+var AllQuestionnaireResponseValueTypes = []QuestionnaireResponseValueTypes{
+	QuestionnaireResponseValueTypesString,
+	QuestionnaireResponseValueTypesNumber,
+	QuestionnaireResponseValueTypesBoolean,
+	QuestionnaireResponseValueTypesTime,
+	QuestionnaireResponseValueTypesDate,
+	QuestionnaireResponseValueTypesDateTime,
+}
+
+func (e QuestionnaireResponseValueTypes) IsValid() bool {
+	switch e {
+	case QuestionnaireResponseValueTypesString, QuestionnaireResponseValueTypesNumber, QuestionnaireResponseValueTypesBoolean, QuestionnaireResponseValueTypesTime, QuestionnaireResponseValueTypesDate, QuestionnaireResponseValueTypesDateTime:
+		return true
+	}
+	return false
+}
+
+func (e QuestionnaireResponseValueTypes) String() string {
+	return string(e)
+}
+
+func (e *QuestionnaireResponseValueTypes) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = QuestionnaireResponseValueTypes(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid QuestionnaireResponseValueTypes", str)
+	}
+	return nil
+}
+
+func (e QuestionnaireResponseValueTypes) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
 }

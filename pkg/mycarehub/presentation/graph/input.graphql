@@ -179,3 +179,42 @@ input NotificationFilters {
   isRead: Boolean
   notificationTypes: [NotificationType!]
 }
+
+input QuestionnaireInput {
+  name: String!
+  description: String!
+  validFrom: Date!
+  validDays: Int
+  validWeeks: Int
+  validMonths: Int
+  validTo: Date
+  frequencyDays: Int
+  frequencyWeeks: Int
+  frequencyMonths: Int
+  nextSurveyDate: Date
+  questionnaireScreeningTool: QuestionnaireScreeningToolsInput!
+  questions: [QuestionnaireQuestionInput!]!
+}
+
+input QuestionnaireScreeningToolsInput {
+  threshold: Int
+  clientTypes: [ClientType]
+  genders: [Gender]
+  ageRange: AgeRangeInput
+}
+
+input QuestionnaireQuestionInput {
+  text: String!
+  questionType: QuestionnaireQuestionType!
+  selectMultiple: Boolean
+  required: Boolean
+  sequence: Int!
+  choices: [QuestionnaireQuestionInputChoiceInput]
+}
+
+input QuestionnaireQuestionInputChoiceInput {
+	choice:     String
+	value:      String
+	score: Int
+	questionID: Int!
+}

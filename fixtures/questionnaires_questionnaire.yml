@@ -1,0 +1,16 @@
+- id: {{.test_questionnaire_id}}
+  created: 2022-08-22 21:16:29.23639+03
+  updated: 2022-08-22 21:16:29.23639+03
+  active: true
+  name: Test Questionnaire
+  description: Test Questionnaire Description
+  valid_from: 2022-09-01 10:16:29.23639+03
+  valid_days: 7
+  valid_weeks: 1
+  valid_months: 1
+  valid_to: 2022-12-01 10:16:29.23639+03
+  frequency_days: 1
+  frequency_weeks: 1
+  frequency_months: 1
+  next_survey_date: 2023-01-01 10:16:29.23639+03
+  organisation_id: {{.test_organisation_id}}

@@ -1,0 +1,8 @@
+- id: {{.test_questionnaire_response_id}}
+  created: 2022-08-22 21:16:29.23639+03
+  updated: 2022-08-22 21:16:29.23639+03
+  active: true
+  flavour: CONSUMER
+  facility_id: {{.test_facility_id}}
+  user_id: {{.test_user_id}}
+  organisation_id: {{.test_organisation_id}}

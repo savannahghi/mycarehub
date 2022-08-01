@@ -138,3 +138,17 @@ enum Mood {
   VERY_HAPPY
   NEUTRAL
 }
+
+enum QuestionnaireQuestionType {
+  OPEN_ENDED
+  CLOSE_ENDED
+}
+
+enum QuestionnaireResponseValueTypes {
+  STRING
+  NUMBER
+  BOOLEAN
+  TIME
+  DATE
+  DATE_TIME
+}

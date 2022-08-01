@@ -571,3 +571,47 @@ type VerifySurveySubmissionInput struct {
 	FormID      string
 	SubmitterID int
 }
+
+// QuestionnaireInput represents the payload that is to be sent when a user is creating a questionnaire.
+type QuestionnaireInput struct {
+	Name                       string                          `json:"name"`
+	Description                string                          `json:"description"`
+	ValidFrom                  scalarutils.Date                `json:"start_date"`       // Nullable, default todays date
+	ValidDays                  int                             `json:"valid_days"`       // nullable
+	ValidWeeks                 int                             `json:"valid_weeks"`      // nullable
+	ValidMonths                int                             `json:"valid_month"`      // nullable
+	ValidTo                    scalarutils.Date                `json:"end_date"`         // Nullable, should have a value if any validity has been set
+	FrequencyDays              int                             `json:"frequency_days"`   //If null, then it is a one time survey, applies to all other frequencies
+	FrequencyWeeks             int                             `json:"frequency_weeks"`  //If null, then it is a one time survey, applies to all other frequencies
+	FrequencyMonths            int                             `json:"frequency_months"` //If null, then it is a one time survey, applies to all other frequencies
+	NextSurveyDate             scalarutils.Date                `json:"next_survey_date"` //Null for a one time survey, otherwise this should be automatically updated in the background based on the frequency
+	QuestionnaireScreeningTool QuestionnaireScreeningToolInput `json:"questionnaireScreeningTool"`
+	Questions                  []QuestionnaireQuestionInput    `json:"questions"`
+}
+
+// QuestionnaireScreeningToolInput represents the payload that is to be sent when a user is creating a survey.
+type QuestionnaireScreeningToolInput struct {
+	Threshold   int                `json:"threshold"`    // Nullable,  if it is set, the responses have to be analyzed
+	ClientTypes []enums.ClientType `json:"client_types"` // Targets clients of the types provided, if empty, then send to all types
+	Genders     []enumutils.Gender `json:"genders"`      // Targets clients of the genders provided, if empty, then send to all genders
+	AgeRange    AgeRangeInput      `json:"age_range"`    // Targets clients of the age ranges provided, if empty, then send to all ages
+}
+
+// QuestionnaireQuestionInput represents the questionnaires questions input data structure
+type QuestionnaireQuestionInput struct {
+	Text              string                                  `json:"text"`                // the actual question
+	QuestionType      enums.QuestionnaireQuestionTypeChoices  `json:"question_type"`       // the type of question, enum: Open ended or close ended
+	ResponseTypeValue enums.QuestionnaireResponseValueChoices `json:"response_type_value"` // the type of response expected for the question, enum: String, bool, number...
+	SelectMultiple    bool                                    `json:"select_multiple"`     // if the close ended question is a select multiple, then this should be true, otherwise, for single selections false
+	Required          bool                                    `json:"required"`            // if the question is required, then this should be true, otherwise false
+	Sequence          int                                     `json:"sequence_id"`         // this sets the ordering of the questions, should be unique for each question
+	Choices           []QuestionnaireQuestionInputChoice      `json:"choices"`             //nullable for open ended questions, not null for closed questions. used by closed-ended questions
+}
+
+// QuestionnaireQuestionInputChoice represents the questionnaires questions input data structure
+type QuestionnaireQuestionInputChoice struct {
+	Choice     string `json:"choice"`      // the actual choice to be selected
+	Value      string `json:"value"`       // the value of the choice
+	Score      int    `json:"score"`       // the score of the choice. this will come into play when comparing the responses with the threshold
+	QuestionID int    `json:"question_id"` // the question id of the question
+}

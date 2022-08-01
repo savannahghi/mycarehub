@@ -48,6 +48,8 @@ type Config struct {
 type ResolverRoot interface {
 	Mutation() MutationResolver
 	Query() QueryResolver
+	QuestionnaireInput() QuestionnaireInputResolver
+	QuestionnaireQuestionInput() QuestionnaireQuestionInputResolver
 }
 
 type DirectiveRoot struct {
@@ -419,6 +421,7 @@ type ComplexityRoot struct {
 		CreateFacility                     func(childComplexity int, input dto.FacilityInput) int
 		CreateHealthDiaryEntry             func(childComplexity int, clientID string, note *string, mood string, reportToStaff bool) int
 		CreateOrUpdateClientCaregiver      func(childComplexity int, caregiverInput *dto.CaregiverInput) int
+		CreateQuestionnaire                func(childComplexity int, input *dto.QuestionnaireInput) int
 		CreateServiceRequest               func(childComplexity int, input dto.ServiceRequestInput) int
 		DeleteCommunities                  func(childComplexity int, communityIDs []string, hardDelete bool) int
 		DeleteCommunityMessage             func(childComplexity int, messageID string) int
@@ -727,6 +730,7 @@ type MutationResolver interface {
 	CollectMetric(ctx context.Context, input domain.Metric) (bool, error)
 	SendFCMNotification(ctx context.Context, registrationTokens []string, data map[string]interface{}, notification firebasetools.FirebaseSimpleNotificationInput) (bool, error)
 	ReadNotifications(ctx context.Context, ids []string) (bool, error)
+	CreateQuestionnaire(ctx context.Context, input *dto.QuestionnaireInput) (bool, error)
 	AnswerScreeningToolQuestion(ctx context.Context, screeningToolResponses []*dto.ScreeningToolQuestionResponseInput) (bool, error)
 	RecordSecurityQuestionResponses(ctx context.Context, input []*dto.SecurityQuestionResponseInput) ([]*domain.RecordSecurityQuestionResponse, error)
 	SetInProgressBy(ctx context.Context, serviceRequestID string, staffID string) (bool, error)
@@ -795,6 +799,15 @@ type QueryResolver interface {
 	SearchClientUser(ctx context.Context, searchParameter string) ([]*domain.ClientProfile, error)
 	SearchStaffUser(ctx context.Context, searchParameter string) ([]*domain.StaffProfile, error)
 	GetClientProfileByCCCNumber(ctx context.Context, cCCNumber string) (*domain.ClientProfile, error)
+}
+
+type QuestionnaireInputResolver interface {
+	QuestionnaireScreeningTool(ctx context.Context, obj *dto.QuestionnaireInput, data *model.QuestionnaireScreeningToolsInput) error
+}
+type QuestionnaireQuestionInputResolver interface {
+	QuestionType(ctx context.Context, obj *dto.QuestionnaireQuestionInput, data model.QuestionnaireQuestionType) error
+
+	Choices(ctx context.Context, obj *dto.QuestionnaireQuestionInput, data []*model.QuestionnaireQuestionInputChoiceInput) error
 }
 
 type executableSchema struct {
@@ -2595,6 +2608,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.CreateOrUpdateClientCaregiver(childComplexity, args["caregiverInput"].(*dto.CaregiverInput)), true
 
+	case "Mutation.createQuestionnaire":
+		if e.complexity.Mutation.CreateQuestionnaire == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createQuestionnaire_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateQuestionnaire(childComplexity, args["input"].(*dto.QuestionnaireInput)), true
+
 	case "Mutation.createServiceRequest":
 		if e.complexity.Mutation.CreateServiceRequest == nil {
 			break
@@ -4385,6 +4410,10 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputPINInput,
 		ec.unmarshalInputPaginationsInput,
 		ec.unmarshalInputQueryOption,
+		ec.unmarshalInputQuestionnaireInput,
+		ec.unmarshalInputQuestionnaireQuestionInput,
+		ec.unmarshalInputQuestionnaireQuestionInputChoiceInput,
+		ec.unmarshalInputQuestionnaireScreeningToolsInput,
 		ec.unmarshalInputRescheduleAppointmentInput,
 		ec.unmarshalInputScreeningToolQuestionResponseInput,
 		ec.unmarshalInputSecurityQuestionResponseInput,
@@ -4657,6 +4686,20 @@ enum Mood {
   HAPPY
   VERY_HAPPY
   NEUTRAL
+}
+
+enum QuestionnaireQuestionType {
+  OPEN_ENDED
+  CLOSE_ENDED
+}
+
+enum QuestionnaireResponseValueTypes {
+  STRING
+  NUMBER
+  BOOLEAN
+  TIME
+  DATE
+  DATE_TIME
 }`, BuiltIn: false},
 	{Name: "../facility.graphql", Input: `extend type Mutation {
   createFacility(input: FacilityInput!): Facility!
@@ -4876,6 +4919,45 @@ input VerifySurveySubmissionInput {
 input NotificationFilters {
   isRead: Boolean
   notificationTypes: [NotificationType!]
+}
+
+input QuestionnaireInput {
+  name: String!
+  description: String!
+  validFrom: Date!
+  validDays: Int
+  validWeeks: Int
+  validMonths: Int
+  validTo: Date
+  frequencyDays: Int
+  frequencyWeeks: Int
+  frequencyMonths: Int
+  nextSurveyDate: Date
+  questionnaireScreeningTool: QuestionnaireScreeningToolsInput!
+  questions: [QuestionnaireQuestionInput!]!
+}
+
+input QuestionnaireScreeningToolsInput {
+  threshold: Int
+  clientTypes: [ClientType]
+  genders: [Gender]
+  ageRange: AgeRangeInput
+}
+
+input QuestionnaireQuestionInput {
+  text: String!
+  questionType: QuestionnaireQuestionType!
+  selectMultiple: Boolean
+  required: Boolean
+  sequence: Int!
+  choices: [QuestionnaireQuestionInputChoiceInput]
+}
+
+input QuestionnaireQuestionInputChoiceInput {
+	choice:     String
+	value:      String
+	score: Int
+	questionID: Int!
 }`, BuiltIn: false},
 	{Name: "../metrics.graphql", Input: `extend type Mutation {
   collectMetric(input: MetricInput!): Boolean!
@@ -4903,6 +4985,9 @@ extend type Mutation {
 `, BuiltIn: false},
 	{Name: "../otp.graphql", Input: `extend type Query {
   sendOTP(phoneNumber: String!, flavour: Flavour!): String!
+}`, BuiltIn: false},
+	{Name: "../questionnaire.graphql", Input: `extend type Mutation {
+    createQuestionnaire(input: QuestionnaireInput): Boolean!
 }`, BuiltIn: false},
 	{Name: "../screeningtools.graphql", Input: `
 extend type Query {
@@ -5923,6 +6008,21 @@ func (ec *executionContext) field_Mutation_createOrUpdateClientCaregiver_args(ct
 		}
 	}
 	args["caregiverInput"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_createQuestionnaire_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *dto.QuestionnaireInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalOQuestionnaireInput2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐQuestionnaireInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
 	return args, nil
 }
 
@@ -19685,6 +19785,61 @@ func (ec *executionContext) fieldContext_Mutation_readNotifications(ctx context.
 	return fc, nil
 }
 
+func (ec *executionContext) _Mutation_createQuestionnaire(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_createQuestionnaire(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CreateQuestionnaire(rctx, fc.Args["input"].(*dto.QuestionnaireInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_createQuestionnaire(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_createQuestionnaire_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Mutation_answerScreeningToolQuestion(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Mutation_answerScreeningToolQuestion(ctx, field)
 	if err != nil {
@@ -31533,6 +31688,291 @@ func (ec *executionContext) unmarshalInputQueryOption(ctx context.Context, obj i
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputQuestionnaireInput(ctx context.Context, obj interface{}) (dto.QuestionnaireInput, error) {
+	var it dto.QuestionnaireInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	for k, v := range asMap {
+		switch k {
+		case "name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			it.Name, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "description":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("description"))
+			it.Description, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "validFrom":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("validFrom"))
+			it.ValidFrom, err = ec.unmarshalNDate2githubᚗcomᚋsavannahghiᚋscalarutilsᚐDate(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "validDays":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("validDays"))
+			it.ValidDays, err = ec.unmarshalOInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "validWeeks":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("validWeeks"))
+			it.ValidWeeks, err = ec.unmarshalOInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "validMonths":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("validMonths"))
+			it.ValidMonths, err = ec.unmarshalOInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "validTo":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("validTo"))
+			it.ValidTo, err = ec.unmarshalODate2githubᚗcomᚋsavannahghiᚋscalarutilsᚐDate(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "frequencyDays":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("frequencyDays"))
+			it.FrequencyDays, err = ec.unmarshalOInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "frequencyWeeks":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("frequencyWeeks"))
+			it.FrequencyWeeks, err = ec.unmarshalOInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "frequencyMonths":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("frequencyMonths"))
+			it.FrequencyMonths, err = ec.unmarshalOInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "nextSurveyDate":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nextSurveyDate"))
+			it.NextSurveyDate, err = ec.unmarshalODate2githubᚗcomᚋsavannahghiᚋscalarutilsᚐDate(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "questionnaireScreeningTool":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("questionnaireScreeningTool"))
+			data, err := ec.unmarshalNQuestionnaireScreeningToolsInput2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚋmodelᚐQuestionnaireScreeningToolsInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.QuestionnaireInput().QuestionnaireScreeningTool(ctx, &it, data); err != nil {
+				return it, err
+			}
+		case "questions":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("questions"))
+			it.Questions, err = ec.unmarshalNQuestionnaireQuestionInput2ᚕgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐQuestionnaireQuestionInputᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputQuestionnaireQuestionInput(ctx context.Context, obj interface{}) (dto.QuestionnaireQuestionInput, error) {
+	var it dto.QuestionnaireQuestionInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	for k, v := range asMap {
+		switch k {
+		case "text":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("text"))
+			it.Text, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "questionType":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("questionType"))
+			data, err := ec.unmarshalNQuestionnaireQuestionType2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚋmodelᚐQuestionnaireQuestionType(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.QuestionnaireQuestionInput().QuestionType(ctx, &it, data); err != nil {
+				return it, err
+			}
+		case "selectMultiple":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("selectMultiple"))
+			it.SelectMultiple, err = ec.unmarshalOBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "required":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("required"))
+			it.Required, err = ec.unmarshalOBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "sequence":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sequence"))
+			it.Sequence, err = ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "choices":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("choices"))
+			data, err := ec.unmarshalOQuestionnaireQuestionInputChoiceInput2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚋmodelᚐQuestionnaireQuestionInputChoiceInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.QuestionnaireQuestionInput().Choices(ctx, &it, data); err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputQuestionnaireQuestionInputChoiceInput(ctx context.Context, obj interface{}) (model.QuestionnaireQuestionInputChoiceInput, error) {
+	var it model.QuestionnaireQuestionInputChoiceInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	for k, v := range asMap {
+		switch k {
+		case "choice":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("choice"))
+			it.Choice, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "value":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("value"))
+			it.Value, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "score":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("score"))
+			it.Score, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "questionID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("questionID"))
+			it.QuestionID, err = ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputQuestionnaireScreeningToolsInput(ctx context.Context, obj interface{}) (model.QuestionnaireScreeningToolsInput, error) {
+	var it model.QuestionnaireScreeningToolsInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	for k, v := range asMap {
+		switch k {
+		case "threshold":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("threshold"))
+			it.Threshold, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "clientTypes":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clientTypes"))
+			it.ClientTypes, err = ec.unmarshalOClientType2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐClientType(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "genders":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("genders"))
+			it.Genders, err = ec.unmarshalOGender2ᚕᚖgithubᚗcomᚋsavannahghiᚋenumutilsᚐGender(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "ageRange":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("ageRange"))
+			it.AgeRange, err = ec.unmarshalOAgeRangeInput2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐAgeRangeInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputRescheduleAppointmentInput(ctx context.Context, obj interface{}) (model.RescheduleAppointmentInput, error) {
 	var it model.RescheduleAppointmentInput
 	asMap := map[string]interface{}{}
@@ -34362,6 +34802,15 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_readNotifications(ctx, field)
+			})
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "createQuestionnaire":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_createQuestionnaire(ctx, field)
 			})
 
 			if out.Values[i] == graphql.Null {
@@ -38199,6 +38648,48 @@ func (ec *executionContext) unmarshalNPaginationsInput2githubᚗcomᚋsavannahgh
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) unmarshalNQuestionnaireQuestionInput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐQuestionnaireQuestionInput(ctx context.Context, v interface{}) (dto.QuestionnaireQuestionInput, error) {
+	res, err := ec.unmarshalInputQuestionnaireQuestionInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNQuestionnaireQuestionInput2ᚕgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐQuestionnaireQuestionInputᚄ(ctx context.Context, v interface{}) ([]dto.QuestionnaireQuestionInput, error) {
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]dto.QuestionnaireQuestionInput, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNQuestionnaireQuestionInput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐQuestionnaireQuestionInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalNQuestionnaireQuestionType2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚋmodelᚐQuestionnaireQuestionType(ctx context.Context, v interface{}) (model.QuestionnaireQuestionType, error) {
+	var res model.QuestionnaireQuestionType
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNQuestionnaireQuestionType2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚋmodelᚐQuestionnaireQuestionType(ctx context.Context, sel ast.SelectionSet, v model.QuestionnaireQuestionType) graphql.Marshaler {
+	return v
+}
+
+func (ec *executionContext) unmarshalNQuestionnaireScreeningToolsInput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚋmodelᚐQuestionnaireScreeningToolsInput(ctx context.Context, v interface{}) (model.QuestionnaireScreeningToolsInput, error) {
+	res, err := ec.unmarshalInputQuestionnaireScreeningToolsInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNQuestionnaireScreeningToolsInput2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚋmodelᚐQuestionnaireScreeningToolsInput(ctx context.Context, v interface{}) (*model.QuestionnaireScreeningToolsInput, error) {
+	res, err := ec.unmarshalInputQuestionnaireScreeningToolsInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) marshalNRecordSecurityQuestionResponse2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐRecordSecurityQuestionResponseᚄ(ctx context.Context, sel ast.SelectionSet, v []*domain.RecordSecurityQuestionResponse) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
@@ -39457,6 +39948,83 @@ func (ec *executionContext) marshalOClientType2ᚕgithubᚗcomᚋsavannahghiᚋm
 	return ret
 }
 
+func (ec *executionContext) unmarshalOClientType2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐClientType(ctx context.Context, v interface{}) ([]*enums.ClientType, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]*enums.ClientType, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalOClientType2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐClientType(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalOClientType2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐClientType(ctx context.Context, sel ast.SelectionSet, v []*enums.ClientType) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOClientType2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐClientType(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	return ret
+}
+
+func (ec *executionContext) unmarshalOClientType2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐClientType(ctx context.Context, v interface{}) (*enums.ClientType, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(enums.ClientType)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOClientType2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐClientType(ctx context.Context, sel ast.SelectionSet, v *enums.ClientType) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
+}
+
 func (ec *executionContext) marshalOCommunity2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐCommunity(ctx context.Context, sel ast.SelectionSet, v []*domain.Community) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
@@ -39603,6 +40171,16 @@ func (ec *executionContext) marshalOContent2ᚖgithubᚗcomᚋsavannahghiᚋmyca
 		return graphql.Null
 	}
 	return ec._Content(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalODate2githubᚗcomᚋsavannahghiᚋscalarutilsᚐDate(ctx context.Context, v interface{}) (scalarutils.Date, error) {
+	var res scalarutils.Date
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalODate2githubᚗcomᚋsavannahghiᚋscalarutilsᚐDate(ctx context.Context, sel ast.SelectionSet, v scalarutils.Date) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) unmarshalODate2ᚖgithubᚗcomᚋsavannahghiᚋscalarutilsᚐDate(ctx context.Context, v interface{}) (*scalarutils.Date, error) {
@@ -39987,6 +40565,83 @@ func (ec *executionContext) marshalOGender2ᚕgithubᚗcomᚋsavannahghiᚋenumu
 	return ret
 }
 
+func (ec *executionContext) unmarshalOGender2ᚕᚖgithubᚗcomᚋsavannahghiᚋenumutilsᚐGender(ctx context.Context, v interface{}) ([]*enumutils.Gender, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]*enumutils.Gender, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalOGender2ᚖgithubᚗcomᚋsavannahghiᚋenumutilsᚐGender(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalOGender2ᚕᚖgithubᚗcomᚋsavannahghiᚋenumutilsᚐGender(ctx context.Context, sel ast.SelectionSet, v []*enumutils.Gender) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOGender2ᚖgithubᚗcomᚋsavannahghiᚋenumutilsᚐGender(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	return ret
+}
+
+func (ec *executionContext) unmarshalOGender2ᚖgithubᚗcomᚋsavannahghiᚋenumutilsᚐGender(ctx context.Context, v interface{}) (*enumutils.Gender, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(enumutils.Gender)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOGender2ᚖgithubᚗcomᚋsavannahghiᚋenumutilsᚐGender(ctx context.Context, sel ast.SelectionSet, v *enumutils.Gender) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
+}
+
 func (ec *executionContext) marshalOGetstreamMessage2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐGetstreamMessage(ctx context.Context, sel ast.SelectionSet, v *domain.GetstreamMessage) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
@@ -40349,6 +41004,42 @@ func (ec *executionContext) unmarshalOQueryOption2ᚖgithubᚗcomᚋGetStreamᚋ
 		return nil, nil
 	}
 	res, err := ec.unmarshalInputQueryOption(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOQuestionnaireInput2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐQuestionnaireInput(ctx context.Context, v interface{}) (*dto.QuestionnaireInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputQuestionnaireInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOQuestionnaireQuestionInputChoiceInput2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚋmodelᚐQuestionnaireQuestionInputChoiceInput(ctx context.Context, v interface{}) ([]*model.QuestionnaireQuestionInputChoiceInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]*model.QuestionnaireQuestionInputChoiceInput, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalOQuestionnaireQuestionInputChoiceInput2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚋmodelᚐQuestionnaireQuestionInputChoiceInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalOQuestionnaireQuestionInputChoiceInput2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚋmodelᚐQuestionnaireQuestionInputChoiceInput(ctx context.Context, v interface{}) (*model.QuestionnaireQuestionInputChoiceInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputQuestionnaireQuestionInputChoiceInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
