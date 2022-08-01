@@ -132,7 +132,7 @@ func Router(ctx context.Context) (*mux.Router, error) {
 
 	serviceRequestUseCase := servicerequest.NewUseCaseServiceRequestImpl(db, db, db, externalExt, userUsecase, notificationUseCase)
 
-	communitiesUseCase := communities.NewUseCaseCommunitiesImpl(getStream, externalExt, db, db, pubSub, notificationUseCase)
+	communitiesUseCase := communities.NewUseCaseCommunitiesImpl(getStream, externalExt, db, db, pubSub, notificationUseCase, db)
 
 	appointmentUsecase := appointment.NewUseCaseAppointmentsImpl(externalExt, db, db, db, pubSub, notificationUseCase)
 

@@ -144,6 +144,7 @@ type GormMock struct {
 	MockRegisterStaffFn                                  func(ctx context.Context, contact *gorm.Contact, identifier *gorm.Identifier, staffProfile *gorm.StaffProfile) error
 	MockUpdateClientServiceRequestFn                     func(ctx context.Context, clientServiceRequest *gorm.ClientServiceRequest, updateData map[string]interface{}) error
 	MockRegisterClientFn                                 func(ctx context.Context, contact *gorm.Contact, identifier *gorm.Identifier, client *gorm.Client) error
+	MockDeleteCommunityFn                                func(ctx context.Context, communityID string) error
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -1123,6 +1124,9 @@ func NewGormMock() *GormMock {
 		MockUpdateClientServiceRequestFn: func(ctx context.Context, clientServiceRequest *gorm.ClientServiceRequest, updateData map[string]interface{}) error {
 			return nil
 		},
+		MockDeleteCommunityFn: func(ctx context.Context, communityID string) error {
+			return nil
+		},
 	}
 }
 
@@ -1739,4 +1743,9 @@ func (gm *GormMock) SearchStaffServiceRequests(ctx context.Context, searchParame
 // RegisterClient mocks the implementation of registering a client
 func (gm *GormMock) RegisterClient(ctx context.Context, contact *gorm.Contact, identifier *gorm.Identifier, client *gorm.Client) error {
 	return gm.MockRegisterClientFn(ctx, contact, identifier, client)
+}
+
+// DeleteCommunity deletes the specified community from the database
+func (gm *GormMock) DeleteCommunity(ctx context.Context, communityID string) error {
+	return gm.MockDeleteCommunityFn(ctx, communityID)
 }

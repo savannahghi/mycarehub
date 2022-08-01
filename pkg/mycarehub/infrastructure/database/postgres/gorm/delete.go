@@ -6,6 +6,7 @@ import (
 
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
+	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
 
@@ -14,6 +15,7 @@ type Delete interface {
 	DeleteFacility(ctx context.Context, mflcode int) (bool, error)
 	DeleteUser(ctx context.Context, userID string, clientID *string, staffID *string, flavour feedlib.Flavour) error
 	DeleteStaffProfile(ctx context.Context, staffID string) error
+	DeleteCommunity(ctx context.Context, communityID string) error
 }
 
 // DeleteFacility will do the actual deletion of a facility from the database
@@ -164,5 +166,19 @@ func (db *PGInstance) DeleteUser(
 		return fmt.Errorf("transaction commit to delete user profile failed: %w", err)
 	}
 
+	return nil
+}
+
+// DeleteCommunity deletes the specified community from the database
+func (db *PGInstance) DeleteCommunity(ctx context.Context, communityID string) error {
+	err := db.DB.Where("id = ?", communityID).Delete(&Community{}).Error
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		// skip error if not found
+		if err == gorm.ErrRecordNotFound {
+			return nil
+		}
+		return fmt.Errorf("an error occurred while deleting community: %v", err)
+	}
 	return nil
 }

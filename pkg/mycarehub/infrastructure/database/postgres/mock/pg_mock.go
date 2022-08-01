@@ -146,6 +146,7 @@ type PostgresMock struct {
 	MockSearchStaffServiceRequestsFn                     func(ctx context.Context, searchParameter string, requestType string, facilityID string) ([]*domain.ServiceRequest, error)
 	MockRegisterClientFn                                 func(ctx context.Context, payload *domain.ClientRegistrationPayload) (*domain.ClientProfile, error)
 	MockRegisterStaffFn                                  func(ctx context.Context, staffRegistrationPayload *domain.StaffRegistrationPayload) (*domain.StaffProfile, error)
+	MockDeleteCommunityFn                                func(ctx context.Context, communityID string) error
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -1066,6 +1067,9 @@ func NewPostgresMock() *PostgresMock {
 		MockCreateClientFn: func(ctx context.Context, client domain.ClientProfile, contactID, identifierID string) (*domain.ClientProfile, error) {
 			return clientProfile, nil
 		},
+		MockDeleteCommunityFn: func(ctx context.Context, communityID string) error {
+			return nil
+		},
 	}
 }
 
@@ -1693,4 +1697,9 @@ func (gm *PostgresMock) SearchStaffServiceRequests(ctx context.Context, searchPa
 // RegisterClient mocks the implementation of registering a client
 func (gm *PostgresMock) RegisterClient(ctx context.Context, payload *domain.ClientRegistrationPayload) (*domain.ClientProfile, error) {
 	return gm.MockRegisterClientFn(ctx, payload)
+}
+
+// DeleteCommunity deletes the specified community from the database
+func (gm *PostgresMock) DeleteCommunity(ctx context.Context, communityID string) error {
+	return gm.MockDeleteCommunityFn(ctx, communityID)
 }

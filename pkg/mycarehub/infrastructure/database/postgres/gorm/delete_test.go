@@ -130,3 +130,48 @@ func TestPGInstance_DeleteStaffProfile(t *testing.T) {
 		})
 	}
 }
+
+func TestPGInstance_DeleteCommunity(t *testing.T) {
+	ctx := context.Background()
+	type args struct {
+		ctx         context.Context
+		communityID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Successfully delete community",
+			args: args{
+				ctx:         ctx,
+				communityID: communityIDToDelete,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad Case - Unable delete community, not found",
+			args: args{
+				ctx:         ctx,
+				communityID: uuid.New().String(),
+			},
+			wantErr: false, // skip error checking for this case
+		},
+		{
+			name: "Sad Case - Unable delete community, invalid id",
+			args: args{
+				ctx:         ctx,
+				communityID: "invalid id",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := testingDB.DeleteCommunity(tt.args.ctx, tt.args.communityID); (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.DeleteCommunity() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
