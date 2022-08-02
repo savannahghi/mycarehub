@@ -12,6 +12,9 @@ env:
 jobs:
   deploy_to_demo:
     name: Deploy demo server to google cloud run
+    strategy:
+      matrix:
+        go-version: [1.17.x]
     runs-on: ubuntu-latest
     environment:
       name: demo
@@ -30,11 +33,35 @@ jobs:
       # helper for authentication
       - run: |-
          gcloud --quiet auth configure-docker
+
       - name: Build and Push Image
         run: |-
           docker build -t eu.gcr.io/${{ secrets.GOOGLE_CLOUD_PROJECT }}/${{ secrets.GCR_NAME }}:$GITHUB_SHA .
           docker push eu.gcr.io/${{ secrets.GOOGLE_CLOUD_PROJECT }}/${{ secrets.GCR_NAME }}:$GITHUB_SHA
       
+      - name: Install Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: ${{ matrix.go-version }}
+      
+      - name: Install migrate cli
+        run: |
+          go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@v4.15.2
+      
+      - name: Install cloudsql proxy
+        uses: mattes/gce-cloudsql-proxy-action@v1
+        with:
+          creds: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}
+          instance: ${{ secrets.GOOGLE_CLOUD_PROJECT }}:${{ secrets.PROD_DATABASE_REGION }}:${{ secrets.PROD_DATABASE_INSTANCE }}
+
+      - name: Run migrations
+        env:
+          POSTGRES_HOST: 127.0.0.1
+          POSTGRES_PORT: 5432
+        run: |
+          export POSTGRESQL_URL="postgres://${{ secrets.MYCAREHUB_DB_USER }}:${{ secrets.MYCAREHUB_DB_PASS }}@$POSTGRES_HOST:$POSTGRES_PORT/${{ secrets.DEMO_MYCAREHUB_DB_NAME }}?sslmode=disable"
+          migrate -database ${POSTGRESQL_URL} -path db/migrations up
+
       - name: Deploy to Google Cloud Run
         uses: 'google-github-actions/deploy-cloudrun@v0'
         with:
