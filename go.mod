@@ -28,7 +28,7 @@ require (
 	github.com/savannahghi/profileutils v0.0.27
 	github.com/savannahghi/pubsubtools v0.0.3
 	github.com/savannahghi/scalarutils v0.0.4
-	github.com/savannahghi/serverutils v0.0.6
+	github.com/savannahghi/serverutils v0.0.7
 	github.com/segmentio/ksuid v1.0.4
 	github.com/sirupsen/logrus v1.8.1
 	github.com/stretchr/testify v1.7.5
