@@ -141,7 +141,7 @@ jobs:
       matrix:
         go-version: [1.16.x]
     runs-on: ubuntu-latest
-    needs: [deploy_to_test]
+    needs: [deploy_to_testing]
     environment:
       name: test
     env:
