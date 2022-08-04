@@ -33,6 +33,10 @@ type Create interface {
 	RegisterStaff(ctx context.Context, contact *Contact, identifier *Identifier, staffProfile *StaffProfile) error
 	SaveFeedback(ctx context.Context, feedback *Feedback) error
 	RegisterClient(ctx context.Context, contact *Contact, identifier *Identifier, client *Client) error
+	CreateQuestionnaire(ctx context.Context, input *Questionnaire) error
+	CreateScreeningTool(ctx context.Context, input *ScreeningTool) error
+	CreateQuestion(ctx context.Context, input *Question) error
+	CreateQuestionChoice(ctx context.Context, input *QuestionInputChoice) error
 }
 
 // GetOrCreateFacility is used to get or create a facility
@@ -618,5 +622,37 @@ func (db *PGInstance) RegisterStaff(ctx context.Context, contact *Contact, ident
 		return fmt.Errorf("failed to commit create staff profile transaction: %w", err)
 	}
 
+	return nil
+}
+
+// CreateQuestionnaire saves a questionnaire to the database
+func (db *PGInstance) CreateQuestionnaire(ctx context.Context, input *Questionnaire) error {
+	if err := db.DB.Create(&input).Error; err != nil {
+		return fmt.Errorf("failed to create questionnaire: %w", err)
+	}
+	return nil
+}
+
+// CreateScreeningTool saves a screening tool to the database
+func (db *PGInstance) CreateScreeningTool(ctx context.Context, input *ScreeningTool) error {
+	if err := db.DB.Create(&input).Error; err != nil {
+		return fmt.Errorf("failed to create screening tool: %w", err)
+	}
+	return nil
+}
+
+// CreateQuestion saves a question to the database
+func (db *PGInstance) CreateQuestion(ctx context.Context, input *Question) error {
+	if err := db.DB.Create(&input).Error; err != nil {
+		return fmt.Errorf("failed to create question: %w", err)
+	}
+	return nil
+}
+
+// CreateQuestionChoice saves a question choice to the database
+func (db *PGInstance) CreateQuestionChoice(ctx context.Context, input *QuestionInputChoice) error {
+	if err := db.DB.Create(&input).Error; err != nil {
+		return fmt.Errorf("failed to create question choice: %w", err)
+	}
 	return nil
 }

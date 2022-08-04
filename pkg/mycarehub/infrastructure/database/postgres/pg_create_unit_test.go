@@ -1508,3 +1508,148 @@ func TestMyCareHubDb_RegisterClient(t *testing.T) {
 		})
 	}
 }
+
+func TestMyCareHubDb_CreateScreeningTool(t *testing.T) {
+	var fakeGorm = gormMock.NewGormMock()
+	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+	UID := uuid.New().String()
+
+	screeningTool := &domain.ScreeningTool{
+		ID:              UID,
+		Active:          true,
+		QuestionnaireID: uuid.New().String(),
+		Threshold:       3,
+		ClientTypes:     []enums.ClientType{"PMTCT"},
+		Genders:         []enumutils.Gender{enumutils.GenderFemale},
+		AgeRange: domain.AgeRange{
+			LowerBound: 10,
+			UpperBound: 20,
+		},
+		Questionnaire: domain.Questionnaire{
+			ID:          UID,
+			Active:      true,
+			Name:        gofakeit.BeerName(),
+			Description: "Test Description",
+			Questions: []domain.Question{
+				{
+					ID:                UID,
+					Active:            true,
+					QuestionnaireID:   UID,
+					Text:              gofakeit.Sentence(50),
+					QuestionType:      enums.QuestionTypeCloseEnded,
+					ResponseValueType: enums.QuestionResponseValueTypeNumber,
+					Required:          true,
+					SelectMultiple:    true,
+					Sequence:          1,
+					Choices: []domain.QuestionInputChoice{
+						{
+							ID:         UID,
+							Active:     true,
+							QuestionID: UID,
+							Choice:     "YES",
+							Value:      "yes",
+							Score:      1,
+						},
+					},
+				},
+			},
+		},
+	}
+
+	type args struct {
+		ctx   context.Context
+		input *domain.ScreeningTool
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy Case: Successfully create screening tool",
+			args: args{
+				ctx:   context.Background(),
+				input: screeningTool,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad Case: Unable to create questionnaire",
+			args: args{
+				ctx:   context.Background(),
+				input: screeningTool,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad Case: Unable to create screening tool",
+			args: args{
+				ctx:   context.Background(),
+				input: screeningTool,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad Case: Unable to create question",
+			args: args{
+				ctx:   context.Background(),
+				input: screeningTool,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad Case: Unable to create question input choice",
+			args: args{
+				ctx:   context.Background(),
+				input: screeningTool,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "Sad Case: Unable to create questionnaire" {
+				fakeGorm.MockCreateQuestionnaireFn = func(ctx context.Context, questionnaire *gorm.Questionnaire) error {
+					return fmt.Errorf("cannot create questionnaire")
+				}
+			}
+			if tt.name == "Sad Case: Unable to create screening tool" {
+				fakeGorm.MockCreateQuestionnaireFn = func(ctx context.Context, input *gorm.Questionnaire) error {
+					return nil
+				}
+				fakeGorm.MockCreateScreeningToolFn = func(ctx context.Context, screeningTool *gorm.ScreeningTool) error {
+					return fmt.Errorf("cannot create screening tool")
+				}
+			}
+			if tt.name == "Sad Case: Unable to create question" {
+				fakeGorm.MockCreateQuestionnaireFn = func(ctx context.Context, input *gorm.Questionnaire) error {
+					return nil
+				}
+				fakeGorm.MockCreateScreeningToolFn = func(ctx context.Context, screeningTool *gorm.ScreeningTool) error {
+					return nil
+				}
+				fakeGorm.MockCreateQuestionFn = func(ctx context.Context, question *gorm.Question) error {
+					return fmt.Errorf("cannot create question")
+				}
+			}
+			if tt.name == "Sad Case: Unable to create question input choice" {
+				fakeGorm.MockCreateQuestionnaireFn = func(ctx context.Context, input *gorm.Questionnaire) error {
+					return nil
+				}
+				fakeGorm.MockCreateScreeningToolFn = func(ctx context.Context, screeningTool *gorm.ScreeningTool) error {
+					return nil
+				}
+				fakeGorm.MockCreateQuestionFn = func(ctx context.Context, question *gorm.Question) error {
+					return nil
+				}
+				fakeGorm.MockCreateQuestionChoiceFn = func(ctx context.Context, input *gorm.QuestionInputChoice) error {
+					return fmt.Errorf("cannot create question input choice")
+				}
+			}
+			if err := d.CreateScreeningTool(tt.args.ctx, tt.args.input); (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.CreateScreeningTool() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}

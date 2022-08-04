@@ -145,6 +145,10 @@ type GormMock struct {
 	MockUpdateClientServiceRequestFn                     func(ctx context.Context, clientServiceRequest *gorm.ClientServiceRequest, updateData map[string]interface{}) error
 	MockRegisterClientFn                                 func(ctx context.Context, contact *gorm.Contact, identifier *gorm.Identifier, client *gorm.Client) error
 	MockDeleteCommunityFn                                func(ctx context.Context, communityID string) error
+	MockCreateQuestionnaireFn                            func(ctx context.Context, input *gorm.Questionnaire) error
+	MockCreateScreeningToolFn                            func(ctx context.Context, input *gorm.ScreeningTool) error
+	MockCreateQuestionFn                                 func(ctx context.Context, input *gorm.Question) error
+	MockCreateQuestionChoiceFn                           func(ctx context.Context, input *gorm.QuestionInputChoice) error
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -1127,6 +1131,18 @@ func NewGormMock() *GormMock {
 		MockDeleteCommunityFn: func(ctx context.Context, communityID string) error {
 			return nil
 		},
+		MockCreateQuestionnaireFn: func(ctx context.Context, input *gorm.Questionnaire) error {
+			return nil
+		},
+		MockCreateScreeningToolFn: func(ctx context.Context, input *gorm.ScreeningTool) error {
+			return nil
+		},
+		MockCreateQuestionFn: func(ctx context.Context, input *gorm.Question) error {
+			return nil
+		},
+		MockCreateQuestionChoiceFn: func(ctx context.Context, input *gorm.QuestionInputChoice) error {
+			return nil
+		},
 	}
 }
 
@@ -1748,4 +1764,24 @@ func (gm *GormMock) RegisterClient(ctx context.Context, contact *gorm.Contact, i
 // DeleteCommunity deletes the specified community from the database
 func (gm *GormMock) DeleteCommunity(ctx context.Context, communityID string) error {
 	return gm.MockDeleteCommunityFn(ctx, communityID)
+}
+
+// CreateQuestionnaire mocks the implementation of creating a questionnaire
+func (gm *GormMock) CreateQuestionnaire(ctx context.Context, questionnaire *gorm.Questionnaire) error {
+	return gm.MockCreateQuestionnaireFn(ctx, questionnaire)
+}
+
+// CreateScreeningTool mocks the implementation of creating a screening tool
+func (gm *GormMock) CreateScreeningTool(ctx context.Context, screeningTool *gorm.ScreeningTool) error {
+	return gm.MockCreateScreeningToolFn(ctx, screeningTool)
+}
+
+// CreateQuestion mocks the implementation of creating a question
+func (gm *GormMock) CreateQuestion(ctx context.Context, question *gorm.Question) error {
+	return gm.MockCreateQuestionFn(ctx, question)
+}
+
+// CreateQuestionChoice mocks the implementation of creating a question input choice
+func (gm *GormMock) CreateQuestionChoice(ctx context.Context, questionChoice *gorm.QuestionInputChoice) error {
+	return gm.MockCreateQuestionChoiceFn(ctx, questionChoice)
 }

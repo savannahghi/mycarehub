@@ -147,6 +147,7 @@ type PostgresMock struct {
 	MockRegisterClientFn                                 func(ctx context.Context, payload *domain.ClientRegistrationPayload) (*domain.ClientProfile, error)
 	MockRegisterStaffFn                                  func(ctx context.Context, staffRegistrationPayload *domain.StaffRegistrationPayload) (*domain.StaffProfile, error)
 	MockDeleteCommunityFn                                func(ctx context.Context, communityID string) error
+	MockCreateScreeningToolFn                            func(ctx context.Context, input *domain.ScreeningTool) error
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -1070,6 +1071,9 @@ func NewPostgresMock() *PostgresMock {
 		MockDeleteCommunityFn: func(ctx context.Context, communityID string) error {
 			return nil
 		},
+		MockCreateScreeningToolFn: func(ctx context.Context, input *domain.ScreeningTool) error {
+			return nil
+		},
 	}
 }
 
@@ -1702,4 +1706,9 @@ func (gm *PostgresMock) RegisterClient(ctx context.Context, payload *domain.Clie
 // DeleteCommunity deletes the specified community from the database
 func (gm *PostgresMock) DeleteCommunity(ctx context.Context, communityID string) error {
 	return gm.MockDeleteCommunityFn(ctx, communityID)
+}
+
+// CreateScreeningTool mocks the implementation of creating a screening tool
+func (gm *PostgresMock) CreateScreeningTool(ctx context.Context, payload *domain.ScreeningTool) error {
+	return gm.MockCreateScreeningToolFn(ctx, payload)
 }

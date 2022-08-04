@@ -1,0 +1,11 @@
+- id: {{.test_screeningtool_id}}
+  organisation_id: {{.test_organisation_id}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  active: true
+  questionnaire_id: {{.test_questionnaire_id}}
+  threshold: 3
+  client_types: '{PMTCT}'
+  genders: '{male}'
+  min_age: 14
+  max_age: 25

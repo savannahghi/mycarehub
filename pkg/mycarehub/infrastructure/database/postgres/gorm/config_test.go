@@ -141,6 +141,13 @@ var (
 	notificationID            = "bf33ba36-30bc-487e-9a7b-bcb54da0bdfe"
 	userSurveyID              = "4181df12-ca96-4f28-b78b-8e8ad88b25df"
 	feedbackID                = "7281df12-ca96-4f28-b78b-8e8ad88b52df"
+
+	// Questionnaires
+	questionnaireID = "8ecbbc80-24c8-421a-9f1a-e14e12678ef3"
+	screeningToolID = "8ecbbc80-24c8-421a-9f1a-e14e12678ee0"
+	questionID      = "8ecbbc80-24c8-421a-9f7a-e14e12678ef4"
+	firstChoiceID   = "8ecbbc80-24c8-421a-9f7a-e14e12678ef0"
+	secondChoiceID  = "8ecbbc80-24c8-421a-9f7a-e14e12678ef1"
 )
 
 func TestMain(m *testing.M) {
@@ -258,6 +265,12 @@ func TestMain(m *testing.M) {
 			"test_user_id_to_register_staff":  userToRegisterStaff,
 			"test_staff_contact":              testStaffContact,
 			"test_feedback_id":                feedbackID,
+
+			"test_questionnaire_id": questionnaireID,
+			"test_screeningtool_id": screeningToolID,
+			"test_question_id":      questionID,
+			"test_first_choice_id":  firstChoiceID,
+			"test_second_choice_id": secondChoiceID,
 		}),
 		// this is the directory containing the YAML files.
 		// The file name should be the same as the table name
@@ -296,6 +309,10 @@ func TestMain(m *testing.M) {
 			"../../../../../../fixtures/common_usersurveys.yml",
 			"../../../../../../fixtures/common_feedback.yml",
 			"../../../../../../fixtures/clients_healthdiaryquote.yml",
+			"../../../../../../fixtures/questionnaires_questionnaire.yml",
+			"../../../../../../fixtures/questionnaires_screeningtool.yml",
+			"../../../../../../fixtures/questionnaires_question.yml",
+			"../../../../../../fixtures/questionnaires_questioninputchoice.yml",
 		),
 		// uncomment when running tests locally, if your db is not a test db
 		// Ensure the testing db in the ci is named `test`

@@ -1605,3 +1605,202 @@ func TestPGInstance_RegisterStaff(t *testing.T) {
 		})
 	}
 }
+
+func TestPGInstance_CreateQuestionnaire(t *testing.T) {
+	name := gofakeit.BeerIbu()
+	type args struct {
+		ctx   context.Context
+		input *gorm.Questionnaire
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: create questionnaire",
+			args: args{
+				ctx: context.Background(),
+				input: &gorm.Questionnaire{
+					ID:          uuid.NewString(),
+					Active:      true,
+					Name:        name,
+					Description: gofakeit.Sentence(1),
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: create questionnaire, duplicate name",
+			args: args{
+				ctx: context.Background(),
+				input: &gorm.Questionnaire{
+					ID:          uuid.NewString(),
+					Active:      true,
+					Name:        name,
+					Description: gofakeit.Sentence(1),
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := testingDB.CreateQuestionnaire(tt.args.ctx, tt.args.input); (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.CreateQuestionnaire() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestPGInstance_CreateScreeningTool(t *testing.T) {
+	type args struct {
+		ctx   context.Context
+		input *gorm.ScreeningTool
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: create screening tool",
+			args: args{
+				input: &gorm.ScreeningTool{
+					ID:              uuid.NewString(),
+					Active:          true,
+					QuestionnaireID: questionnaireID,
+					Threshold:       3,
+					ClientTypes:     []string{string(enums.ClientTypeOtz)},
+					Genders:         []string{enumutils.GenderFemale.String()},
+					MinimumAge:      14,
+					MaximumAge:      25,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: create screening tool, questionnaire does not exist",
+			args: args{
+				input: &gorm.ScreeningTool{
+					ID:              uuid.NewString(),
+					Active:          true,
+					QuestionnaireID: uuid.NewString(),
+					Threshold:       3,
+					ClientTypes:     []string{string(enums.ClientTypeOtz)},
+					Genders:         []string{enumutils.GenderFemale.String()},
+					MinimumAge:      14,
+					MaximumAge:      25,
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := testingDB.CreateScreeningTool(tt.args.ctx, tt.args.input); (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.CreateScreeningTool() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestPGInstance_CreateQuestion(t *testing.T) {
+	type args struct {
+		ctx   context.Context
+		input *gorm.Question
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: create question",
+			args: args{
+				input: &gorm.Question{
+					ID:                uuid.NewString(),
+					Active:            true,
+					QuestionnaireID:   questionnaireID,
+					Text:              gofakeit.Sentence(1),
+					QuestionType:      string(enums.QuestionTypeCloseEnded),
+					ResponseValueType: string(enums.QuestionResponseValueTypeNumber),
+					SelectMultiple:    false,
+					Required:          true,
+					Sequence:          1,
+				},
+			},
+		},
+		{
+			name: "Sad case: create question, questionnaire does not exist",
+			args: args{
+				input: &gorm.Question{
+					ID:                uuid.NewString(),
+					Active:            true,
+					QuestionnaireID:   uuid.NewString(),
+					Text:              gofakeit.Sentence(1),
+					QuestionType:      string(enums.QuestionTypeCloseEnded),
+					ResponseValueType: string(enums.QuestionResponseValueTypeNumber),
+					SelectMultiple:    false,
+					Required:          true,
+					Sequence:          1,
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := testingDB.CreateQuestion(tt.args.ctx, tt.args.input); (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.CreateQuestion() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestPGInstance_CreateQuestionChoice(t *testing.T) {
+	type args struct {
+		ctx   context.Context
+		input *gorm.QuestionInputChoice
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: create question choice",
+			args: args{
+				input: &gorm.QuestionInputChoice{
+					ID:         uuid.NewString(),
+					Active:     true,
+					QuestionID: questionID,
+					Choice:     gofakeit.Sentence(1),
+					Value:      "1",
+					Score:      1,
+				},
+			},
+		},
+		{
+			name: "Sad case: create question choice, question does not exist",
+			args: args{
+				input: &gorm.QuestionInputChoice{
+					ID:         uuid.NewString(),
+					Active:     true,
+					QuestionID: uuid.NewString(),
+					Choice:     gofakeit.Sentence(1),
+					Value:      "1",
+					Score:      1,
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := testingDB.CreateQuestionChoice(tt.args.ctx, tt.args.input); (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.CreateQuestionChoice() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
