@@ -438,6 +438,7 @@ type ComplexityRoot struct {
 		RemoveMembersFromCommunity         func(childComplexity int, communityID string, memberIDs []string) int
 		RescheduleAppointment              func(childComplexity int, appointmentID string, date scalarutils.Date) int
 		ResolveServiceRequest              func(childComplexity int, staffID string, requestID string, action []string, comment *string) int
+		RespondToScreeningTool             func(childComplexity int, input dto.QuestionnaireScreeningToolResponseInput) int
 		SendClientSurveyLinks              func(childComplexity int, facilityID string, formID string, projectID int, filterParams *dto.ClientFilterParamsInput) int
 		SendFCMNotification                func(childComplexity int, registrationTokens []string, data map[string]interface{}, notification firebasetools.FirebaseSimpleNotificationInput) int
 		SendFeedback                       func(childComplexity int, input dto.FeedbackResponseInput) int
@@ -789,6 +790,7 @@ type MutationResolver interface {
 	SendFCMNotification(ctx context.Context, registrationTokens []string, data map[string]interface{}, notification firebasetools.FirebaseSimpleNotificationInput) (bool, error)
 	ReadNotifications(ctx context.Context, ids []string) (bool, error)
 	CreateScreeningTool(ctx context.Context, input dto.ScreeningToolInput) (bool, error)
+	RespondToScreeningTool(ctx context.Context, input dto.QuestionnaireScreeningToolResponseInput) (bool, error)
 	AnswerScreeningToolQuestion(ctx context.Context, screeningToolResponses []*dto.ScreeningToolQuestionResponseInput) (bool, error)
 	RecordSecurityQuestionResponses(ctx context.Context, input []*dto.SecurityQuestionResponseInput) ([]*domain.RecordSecurityQuestionResponse, error)
 	SetInProgressBy(ctx context.Context, serviceRequestID string, staffID string) (bool, error)
@@ -2884,6 +2886,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.ResolveServiceRequest(childComplexity, args["staffID"].(string), args["requestID"].(string), args["action"].([]string), args["comment"].(*string)), true
+
+	case "Mutation.respondToScreeningTool":
+		if e.complexity.Mutation.RespondToScreeningTool == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_respondToScreeningTool_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.RespondToScreeningTool(childComplexity, args["input"].(dto.QuestionnaireScreeningToolResponseInput)), true
 
 	case "Mutation.sendClientSurveyLinks":
 		if e.complexity.Mutation.SendClientSurveyLinks == nil {
@@ -5299,16 +5313,13 @@ input QuestionInputChoiceInput {
 
 input QuestionnaireScreeningToolResponseInput {
 	screeningToolID:   String!                                            
-	facilityID:        String!                                            
 	clientID:          String!                                            
-	aggregateScore:    Int                                               
 	questionResponses: [QuestionnaireScreeningToolQuestionResponseInput!]!
 }
 
 input QuestionnaireScreeningToolQuestionResponseInput {
 	questionID: String! 
 	response:   String! 
-	score:      Int    
 }
 `, BuiltIn: false},
 	{Name: "../metrics.graphql", Input: `extend type Mutation {
@@ -5340,6 +5351,7 @@ extend type Mutation {
 }`, BuiltIn: false},
 	{Name: "../questionnaire.graphql", Input: `extend type Mutation{
     createScreeningTool(input: ScreeningToolInput!): Boolean!
+    respondToScreeningTool(input: QuestionnaireScreeningToolResponseInput!): Boolean!
 }`, BuiltIn: false},
 	{Name: "../screeningtools.graphql", Input: `
 extend type Query {
@@ -6823,6 +6835,21 @@ func (ec *executionContext) field_Mutation_resolveServiceRequest_args(ctx contex
 		}
 	}
 	args["comment"] = arg3
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_respondToScreeningTool_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 dto.QuestionnaireScreeningToolResponseInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNQuestionnaireScreeningToolResponseInput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐQuestionnaireScreeningToolResponseInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
 	return args, nil
 }
 
@@ -20247,6 +20274,61 @@ func (ec *executionContext) fieldContext_Mutation_createScreeningTool(ctx contex
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_createScreeningTool_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_respondToScreeningTool(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_respondToScreeningTool(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().RespondToScreeningTool(rctx, fc.Args["input"].(dto.QuestionnaireScreeningToolResponseInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_respondToScreeningTool(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_respondToScreeningTool_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -34161,14 +34243,6 @@ func (ec *executionContext) unmarshalInputQuestionnaireScreeningToolQuestionResp
 			if err != nil {
 				return it, err
 			}
-		case "score":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("score"))
-			it.Score, err = ec.unmarshalOInt2int(ctx, v)
-			if err != nil {
-				return it, err
-			}
 		}
 	}
 
@@ -34192,27 +34266,11 @@ func (ec *executionContext) unmarshalInputQuestionnaireScreeningToolResponseInpu
 			if err != nil {
 				return it, err
 			}
-		case "facilityID":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("facilityID"))
-			it.FacilityID, err = ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
 		case "clientID":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clientID"))
 			it.ClientID, err = ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "aggregateScore":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("aggregateScore"))
-			it.AggregateScore, err = ec.unmarshalOInt2int(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -37123,6 +37181,15 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_createScreeningTool(ctx, field)
+			})
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "respondToScreeningTool":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_respondToScreeningTool(ctx, field)
 			})
 
 			if out.Values[i] == graphql.Null {
@@ -41513,6 +41580,11 @@ func (ec *executionContext) unmarshalNQuestionnaireScreeningToolQuestionResponse
 func (ec *executionContext) unmarshalNQuestionnaireScreeningToolQuestionResponseInput2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐQuestionnaireScreeningToolQuestionResponseInput(ctx context.Context, v interface{}) (*dto.QuestionnaireScreeningToolQuestionResponseInput, error) {
 	res, err := ec.unmarshalInputQuestionnaireScreeningToolQuestionResponseInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNQuestionnaireScreeningToolResponseInput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐQuestionnaireScreeningToolResponseInput(ctx context.Context, v interface{}) (dto.QuestionnaireScreeningToolResponseInput, error) {
+	res, err := ec.unmarshalInputQuestionnaireScreeningToolResponseInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalNRecordSecurityQuestionResponse2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐRecordSecurityQuestionResponseᚄ(ctx context.Context, sel ast.SelectionSet, v []*domain.RecordSecurityQuestionResponse) graphql.Marshaler {

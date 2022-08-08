@@ -148,11 +148,14 @@ type PostgresMock struct {
 	MockRegisterStaffFn                                  func(ctx context.Context, staffRegistrationPayload *domain.StaffRegistrationPayload) (*domain.StaffProfile, error)
 	MockDeleteCommunityFn                                func(ctx context.Context, communityID string) error
 	MockCreateScreeningToolFn                            func(ctx context.Context, input *domain.ScreeningTool) error
+	MockCreateScreeningToolResponseFn                    func(ctx context.Context, input *domain.QuestionnaireScreeningToolResponse) (*string, error)
+	MockGetScreeningToolByIDFn                           func(ctx context.Context, toolID string) (*domain.ScreeningTool, error)
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
 func NewPostgresMock() *PostgresMock {
 	ID := uuid.New().String()
+	screeningUUID := "f3f8f8f8-f3f8-f3f8-f3f8-f3f8f8f8f8f8"
 
 	name := gofakeit.Name()
 	code := gofakeit.Number(0, 100)
@@ -1074,6 +1077,60 @@ func NewPostgresMock() *PostgresMock {
 		MockCreateScreeningToolFn: func(ctx context.Context, input *domain.ScreeningTool) error {
 			return nil
 		},
+		MockCreateScreeningToolResponseFn: func(ctx context.Context, input *domain.QuestionnaireScreeningToolResponse) (*string, error) {
+			return &ID, nil
+		},
+		MockGetScreeningToolByIDFn: func(ctx context.Context, toolID string) (*domain.ScreeningTool, error) {
+			return &domain.ScreeningTool{
+				ID:              screeningUUID,
+				Active:          true,
+				QuestionnaireID: screeningUUID,
+				Threshold:       0,
+				ClientTypes:     []enums.ClientType{enums.ClientTypeDreams},
+				Genders:         []enumutils.Gender{enumutils.GenderMale},
+				AgeRange: domain.AgeRange{
+					LowerBound: 21,
+					UpperBound: 30,
+				},
+				Questionnaire: domain.Questionnaire{
+					ID:          screeningUUID,
+					Active:      true,
+					Name:        name,
+					Description: description,
+					Questions: []domain.Question{
+						{
+							ID:                screeningUUID,
+							Active:            false,
+							QuestionnaireID:   screeningUUID,
+							Text:              gofakeit.Sentence(10),
+							QuestionType:      enums.QuestionTypeCloseEnded,
+							ResponseValueType: enums.QuestionResponseValueTypeString,
+							Required:          true,
+							SelectMultiple:    false,
+							Sequence:          0,
+							Choices: []domain.QuestionInputChoice{
+								{
+									ID:         uuid.NewString(),
+									Active:     true,
+									QuestionID: screeningUUID,
+									Choice:     "0",
+									Value:      gofakeit.Sentence(10),
+									Score:      0,
+								},
+								{
+									ID:         uuid.NewString(),
+									Active:     true,
+									QuestionID: screeningUUID,
+									Choice:     "1",
+									Value:      gofakeit.Sentence(10),
+									Score:      0,
+								},
+							},
+						},
+					},
+				},
+			}, nil
+		},
 	}
 }
 
@@ -1711,4 +1768,14 @@ func (gm *PostgresMock) DeleteCommunity(ctx context.Context, communityID string)
 // CreateScreeningTool mocks the implementation of creating a screening tool
 func (gm *PostgresMock) CreateScreeningTool(ctx context.Context, payload *domain.ScreeningTool) error {
 	return gm.MockCreateScreeningToolFn(ctx, payload)
+}
+
+// CreateScreeningToolResponse mocks the implementation of creating a screening tool response
+func (gm *PostgresMock) CreateScreeningToolResponse(ctx context.Context, input *domain.QuestionnaireScreeningToolResponse) (*string, error) {
+	return gm.MockCreateScreeningToolResponseFn(ctx, input)
+}
+
+// GetScreeningToolByID mocks the implementation of getting a screening tool by ID
+func (gm *PostgresMock) GetScreeningToolByID(ctx context.Context, toolID string) (*domain.ScreeningTool, error) {
+	return gm.MockGetScreeningToolByIDFn(ctx, toolID)
 }

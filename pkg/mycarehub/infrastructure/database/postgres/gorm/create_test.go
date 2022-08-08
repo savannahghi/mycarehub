@@ -1804,3 +1804,106 @@ func TestPGInstance_CreateQuestionChoice(t *testing.T) {
 		})
 	}
 }
+
+func TestPGInstance_CreateScreeningToolResponse(t *testing.T) {
+	screeningToolsResponseID := uuid.NewString()
+
+	type args struct {
+		ctx                            context.Context
+		screeningToolResponse          *gorm.ScreeningToolResponse
+		screeningToolQuestionResponses []*gorm.ScreeningToolQuestionResponse
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: create screening tool response",
+			args: args{
+				ctx: context.Background(),
+				screeningToolResponse: &gorm.ScreeningToolResponse{
+					ID:              screeningToolsResponseID,
+					Active:          true,
+					ScreeningToolID: screeningToolID,
+					FacilityID:      facilityID,
+					ClientID:        clientID,
+					AggregateScore:  1,
+				},
+				screeningToolQuestionResponses: []*gorm.ScreeningToolQuestionResponse{
+					{
+						ID:                      uuid.NewString(),
+						Active:                  true,
+						ScreeningToolResponseID: screeningToolsResponseID,
+						QuestionID:              questionID,
+						Response:                "0",
+						Score:                   1,
+					},
+				},
+			},
+		},
+		{
+			name: "Sad case: create screening tool response, screening tool does not exist",
+			args: args{
+				ctx: context.Background(),
+				screeningToolResponse: &gorm.ScreeningToolResponse{
+					ID:              screeningToolsResponseID,
+					Active:          true,
+					ScreeningToolID: uuid.NewString(),
+					FacilityID:      facilityID,
+					ClientID:        clientID,
+					AggregateScore:  1,
+				},
+				screeningToolQuestionResponses: []*gorm.ScreeningToolQuestionResponse{
+					{
+						ID:                      uuid.NewString(),
+						Active:                  true,
+						ScreeningToolResponseID: screeningToolsResponseID,
+						QuestionID:              questionID,
+						Response:                "0",
+						Score:                   1,
+					},
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: screening tool response, question does not exist",
+			args: args{
+				ctx: context.Background(),
+				screeningToolResponse: &gorm.ScreeningToolResponse{
+					ID:              screeningToolsResponseID,
+					Active:          true,
+					ScreeningToolID: screeningToolID,
+					FacilityID:      facilityID,
+					ClientID:        clientID,
+					AggregateScore:  1,
+				},
+				screeningToolQuestionResponses: []*gorm.ScreeningToolQuestionResponse{
+					{
+						ID:                      uuid.NewString(),
+						Active:                  true,
+						ScreeningToolResponseID: screeningToolsResponseID,
+						QuestionID:              uuid.NewString(),
+						Response:                "0",
+						Score:                   1,
+					},
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := testingDB.CreateScreeningToolResponse(tt.args.ctx, tt.args.screeningToolResponse, tt.args.screeningToolQuestionResponses)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.CreateScreeningToolResponse() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected a response but got: %v", got)
+				return
+			}
+		})
+	}
+}

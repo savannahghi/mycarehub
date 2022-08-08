@@ -638,8 +638,8 @@ func (s QuestionInput) Validate() error {
 				return fmt.Errorf("choice value must be a number")
 			}
 		case enums.QuestionResponseValueTypeBoolean:
-			if c.Value != "true" && c.Value != "false" {
-				return fmt.Errorf("choice value must be a boolean")
+			if _, err := strconv.ParseBool(c.Value); err != nil {
+				return fmt.Errorf("response value must be a boolean")
 			}
 		}
 	}
@@ -655,16 +655,32 @@ type QuestionInputChoiceInput struct {
 
 // QuestionnaireScreeningToolResponseInput represents the payload that is to be used when creating a questionnaire screening tool response.
 type QuestionnaireScreeningToolResponseInput struct {
-	ScreeningToolID   string                                             `json:"screeningToolID"`
-	FacilityID        string                                             `json:"facilityID"`
-	ClientID          string                                             `json:"clientID"`
-	AggregateScore    int                                                `json:"aggregateScore"`
-	QuestionResponses []*QuestionnaireScreeningToolQuestionResponseInput `json:"questionResponses"`
+	ScreeningToolID   string                                             `json:"screeningToolID" validate:"required"`
+	ClientID          string                                             `json:"clientID" validate:"required"`
+	QuestionResponses []*QuestionnaireScreeningToolQuestionResponseInput `json:"questionResponses" validate:"required"`
+}
+
+// Validate helps with validation of a QuestionnaireScreeningToolResponseInput
+func (s QuestionnaireScreeningToolResponseInput) Validate() error {
+	v := validator.New()
+	err := v.Struct(s)
+	for _, qr := range s.QuestionResponses {
+		if err := qr.Validate(); err != nil {
+			return err
+		}
+	}
+	return err
 }
 
 // QuestionnaireScreeningToolQuestionResponseInput represents the payload that is to be used when creating a questionnaire screening tool question response.
 type QuestionnaireScreeningToolQuestionResponseInput struct {
-	QuestionID string `json:"questionID"`
+	QuestionID string `json:"questionID"  validate:"required"`
 	Response   string `json:"response"`
-	Score      int    `json:"score"`
+}
+
+// Validate helps with validation of a question response input
+func (s QuestionnaireScreeningToolQuestionResponseInput) Validate() error {
+	v := validator.New()
+	err := v.Struct(s)
+	return err
 }

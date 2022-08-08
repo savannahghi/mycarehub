@@ -1653,3 +1653,102 @@ func TestMyCareHubDb_CreateScreeningTool(t *testing.T) {
 		})
 	}
 }
+
+func TestMyCareHubDb_CreateScreeningToolResponse(t *testing.T) {
+	var fakeGorm = gormMock.NewGormMock()
+	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+	type args struct {
+		ctx   context.Context
+		input *domain.QuestionnaireScreeningToolResponse
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy Case: Successfully create screening tool response",
+			args: args{
+				ctx: context.Background(),
+				input: &domain.QuestionnaireScreeningToolResponse{
+					ID:              uuid.NewString(),
+					Active:          true,
+					ScreeningToolID: uuid.NewString(),
+					FacilityID:      uuid.NewString(),
+					ClientID:        uuid.NewString(),
+					AggregateScore:  3,
+					QuestionResponses: []domain.QuestionnaireScreeningToolQuestionResponse{
+						{
+							ID:                      uuid.NewString(),
+							Active:                  true,
+							ScreeningToolResponseID: uuid.NewString(),
+							QuestionID:              uuid.NewString(),
+							Response:                "response",
+							Score:                   0,
+						},
+						{
+							ID:                      uuid.NewString(),
+							Active:                  true,
+							ScreeningToolResponseID: uuid.NewString(),
+							QuestionID:              uuid.NewString(),
+							Response:                "response",
+							Score:                   0,
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "Sad Case: failed to create screening tool response",
+			args: args{
+				ctx: context.Background(),
+				input: &domain.QuestionnaireScreeningToolResponse{
+					ID:              uuid.NewString(),
+					Active:          true,
+					ScreeningToolID: uuid.NewString(),
+					FacilityID:      uuid.NewString(),
+					ClientID:        uuid.NewString(),
+					AggregateScore:  3,
+					QuestionResponses: []domain.QuestionnaireScreeningToolQuestionResponse{
+						{
+							ID:                      uuid.NewString(),
+							Active:                  true,
+							ScreeningToolResponseID: uuid.NewString(),
+							QuestionID:              uuid.NewString(),
+							Response:                "response",
+							Score:                   0,
+						},
+						{
+							ID:                      uuid.NewString(),
+							Active:                  true,
+							ScreeningToolResponseID: uuid.NewString(),
+							QuestionID:              uuid.NewString(),
+							Response:                "response",
+							Score:                   0,
+						},
+					},
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "Sad Case: failed to create screening tool response" {
+				fakeGorm.MockCreateScreeningToolResponseFn = func(ctx context.Context, screeningToolResponse *gorm.ScreeningToolResponse, screeningToolQuestionResponses []*gorm.ScreeningToolQuestionResponse) (*string, error) {
+					return nil, fmt.Errorf("cannot create screening tool response")
+				}
+			}
+
+			got, err := d.CreateScreeningToolResponse(tt.args.ctx, tt.args.input)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.CreateScreeningToolResponse() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected a response but got: %v", got)
+				return
+			}
+		})
+	}
+}

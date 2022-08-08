@@ -4,7 +4,7 @@
   updated: 2021-11-22 21:16:29.23639+03
   active: true
   question_id: {{.test_question_id}}
-  choice: "Yes"
+  choice: "0"
   value: "yes"
   score: 1
 
@@ -14,6 +14,6 @@
   updated: 2021-11-22 21:16:29.23639+03
   active: true
   question_id: {{.test_question_id}}
-  choice: "No"
+  choice: "1"
   value: "no"
   score: 0

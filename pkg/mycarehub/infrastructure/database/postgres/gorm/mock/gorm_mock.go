@@ -149,6 +149,11 @@ type GormMock struct {
 	MockCreateScreeningToolFn                            func(ctx context.Context, input *gorm.ScreeningTool) error
 	MockCreateQuestionFn                                 func(ctx context.Context, input *gorm.Question) error
 	MockCreateQuestionChoiceFn                           func(ctx context.Context, input *gorm.QuestionInputChoice) error
+	MockGetScreeningToolByIDFn                           func(ctx context.Context, toolID string) (*gorm.ScreeningTool, error)
+	MockGetQuestionnaireByIDFn                           func(ctx context.Context, questionnaireID string) (*gorm.Questionnaire, error)
+	MockGetQuestionsByQuestionnaireIDFn                  func(ctx context.Context, questionnaireID string) ([]*gorm.Question, error)
+	MockGetQuestionInputChoicesByQuestionIDFn            func(ctx context.Context, questionID string) ([]*gorm.QuestionInputChoice, error)
+	MockCreateScreeningToolResponseFn                    func(ctx context.Context, screeningToolResponse *gorm.ScreeningToolResponse, screeningToolQuestionResponses []*gorm.ScreeningToolQuestionResponse) (*string, error)
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -1143,6 +1148,58 @@ func NewGormMock() *GormMock {
 		MockCreateQuestionChoiceFn: func(ctx context.Context, input *gorm.QuestionInputChoice) error {
 			return nil
 		},
+		MockGetScreeningToolByIDFn: func(ctx context.Context, toolID string) (*gorm.ScreeningTool, error) {
+			return &gorm.ScreeningTool{
+				ID:              UUID,
+				Active:          true,
+				QuestionnaireID: UUID,
+				Threshold:       1,
+				ClientTypes:     []string{enums.ClientTypeHighRisk.String()},
+				Genders:         []string{enumutils.GenderMale.String()},
+				MinimumAge:      18,
+				MaximumAge:      25,
+			}, nil
+		},
+		MockGetQuestionnaireByIDFn: func(ctx context.Context, questionnaireID string) (*gorm.Questionnaire, error) {
+			return &gorm.Questionnaire{
+				ID:          UUID,
+				Active:      true,
+				Name:        name,
+				Description: description,
+			}, nil
+
+		},
+		MockGetQuestionsByQuestionnaireIDFn: func(ctx context.Context, questionnaireID string) ([]*gorm.Question, error) {
+			return []*gorm.Question{
+				{
+					ID:                UUID,
+					Active:            true,
+					QuestionnaireID:   UUID,
+					Text:              gofakeit.BS(),
+					QuestionType:      string(enums.QuestionTypeOpenEnded),
+					ResponseValueType: string(enums.QuestionResponseValueTypeString),
+					SelectMultiple:    false,
+					Required:          true,
+					Sequence:          0,
+				},
+			}, nil
+		},
+		MockGetQuestionInputChoicesByQuestionIDFn: func(ctx context.Context, questionID string) ([]*gorm.QuestionInputChoice, error) {
+			return []*gorm.QuestionInputChoice{
+				{
+					ID:         UUID,
+					Active:     false,
+					QuestionID: UUID,
+					Choice:     "0",
+					Value:      "yes",
+					Score:      0,
+				},
+			}, nil
+
+		},
+		MockCreateScreeningToolResponseFn: func(ctx context.Context, screeningToolResponse *gorm.ScreeningToolResponse, screeningToolQuestionResponses []*gorm.ScreeningToolQuestionResponse) (*string, error) {
+			return &UUID, nil
+		},
 	}
 }
 
@@ -1784,4 +1841,29 @@ func (gm *GormMock) CreateQuestion(ctx context.Context, question *gorm.Question)
 // CreateQuestionChoice mocks the implementation of creating a question input choice
 func (gm *GormMock) CreateQuestionChoice(ctx context.Context, questionChoice *gorm.QuestionInputChoice) error {
 	return gm.MockCreateQuestionChoiceFn(ctx, questionChoice)
+}
+
+// GetScreeningToolByID mocks the implementation of getting a screening tool by ID
+func (gm *GormMock) GetScreeningToolByID(ctx context.Context, screeningToolID string) (*gorm.ScreeningTool, error) {
+	return gm.MockGetScreeningToolByIDFn(ctx, screeningToolID)
+}
+
+// GetQuestionnaireByID mocks the implementation of getting a questionnaire by ID
+func (gm *GormMock) GetQuestionnaireByID(ctx context.Context, questionnaireID string) (*gorm.Questionnaire, error) {
+	return gm.MockGetQuestionnaireByIDFn(ctx, questionnaireID)
+}
+
+// GetQuestionsByQuestionnaireID mocks the implementation of getting questions by questionnaire ID
+func (gm *GormMock) GetQuestionsByQuestionnaireID(ctx context.Context, questionnaireID string) ([]*gorm.Question, error) {
+	return gm.MockGetQuestionsByQuestionnaireIDFn(ctx, questionnaireID)
+}
+
+// GetQuestionInputChoicesByQuestionID mocks the implementation of getting question input choices by question ID
+func (gm *GormMock) GetQuestionInputChoicesByQuestionID(ctx context.Context, questionID string) ([]*gorm.QuestionInputChoice, error) {
+	return gm.MockGetQuestionInputChoicesByQuestionIDFn(ctx, questionID)
+}
+
+// CreateScreeningToolResponse mocks the implementation of creating a screening tool response
+func (gm *GormMock) CreateScreeningToolResponse(ctx context.Context, screeningToolResponse *gorm.ScreeningToolResponse, screeningToolQuestionResponses []*gorm.ScreeningToolQuestionResponse) (*string, error) {
+	return gm.MockCreateScreeningToolResponseFn(ctx, screeningToolResponse, screeningToolQuestionResponses)
 }

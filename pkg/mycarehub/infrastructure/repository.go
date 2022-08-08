@@ -40,6 +40,7 @@ type Create interface {
 	SaveFeedback(ctx context.Context, payload *domain.FeedbackResponse) error
 	RegisterClient(ctx context.Context, payload *domain.ClientRegistrationPayload) (*domain.ClientProfile, error)
 	CreateScreeningTool(ctx context.Context, input *domain.ScreeningTool) error
+	CreateScreeningToolResponse(ctx context.Context, input *domain.QuestionnaireScreeningToolResponse) (*string, error)
 }
 
 // Delete represents all the deletion action interfaces
@@ -121,6 +122,7 @@ type Query interface {
 	GetClientsByFilterParams(ctx context.Context, facilityID *string, filterParams *dto.ClientFilterParamsInput) ([]*domain.ClientProfile, error)
 	SearchClientServiceRequests(ctx context.Context, searchParameter string, requestType string, facilityID string) ([]*domain.ServiceRequest, error)
 	SearchStaffServiceRequests(ctx context.Context, searchParameter string, requestType string, facilityID string) ([]*domain.ServiceRequest, error)
+	GetScreeningToolByID(ctx context.Context, screeningToolID string) (*domain.ScreeningTool, error)
 }
 
 // Update represents all the update action interfaces

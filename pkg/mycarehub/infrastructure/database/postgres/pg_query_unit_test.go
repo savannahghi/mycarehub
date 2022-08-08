@@ -335,8 +335,8 @@ func TestOnboardingDb_ListFacilities(t *testing.T) {
 	var fakeGorm = gormMock.NewGormMock()
 	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
 
-	code := gofakeit.Number(0, 100)
-	code2 := gofakeit.Number(200, 300)
+	code := 12345678
+	code2 := 987654321
 
 	facilityInput := &dto.FacilityInput{
 		Name:        "Kanairo One",
@@ -5967,6 +5967,97 @@ func TestMyCareHubDb_ReturnStaffServiceRequests(t *testing.T) {
 			got, err := d.ReturnStaffServiceRequests(tt.args.ctx, tt.args.staffServiceRequests)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("MyCareHubDb.ReturnStaffServiceRequests() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected value, got %v", got)
+				return
+			}
+		})
+	}
+}
+
+func TestMyCareHubDb_GetScreeningToolByID(t *testing.T) {
+	var fakeGorm = gormMock.NewGormMock()
+	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+	type args struct {
+		ctx    context.Context
+		toolID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: get screening tool by ID",
+			args: args{
+				ctx:    context.Background(),
+				toolID: uuid.NewString(),
+			},
+		},
+		{
+			name: "Sad case: failed to get screenig tool by id",
+			args: args{
+				ctx:    context.Background(),
+				toolID: uuid.NewString(),
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: failed to get questionnaire by id",
+			args: args{
+				ctx:    context.Background(),
+				toolID: uuid.NewString(),
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: failed to get questions by questionnaire id",
+			args: args{
+				ctx:    context.Background(),
+				toolID: uuid.NewString(),
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: failed to get question input choice by question id",
+			args: args{
+				ctx:    context.Background(),
+				toolID: uuid.NewString(),
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "Sad case: failed to get screenig tool by id" {
+				fakeGorm.MockGetScreeningToolByIDFn = func(ctx context.Context, toolID string) (*gorm.ScreeningTool, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case: failed to get questionnaire by id" {
+				fakeGorm.MockGetQuestionnaireByIDFn = func(ctx context.Context, questionnaireID string) (*gorm.Questionnaire, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+
+			if tt.name == "Sad case: failed to get questions by questionnaire id" {
+				fakeGorm.MockGetQuestionsByQuestionnaireIDFn = func(ctx context.Context, questionnaireID string) ([]*gorm.Question, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+
+			if tt.name == "Sad case: failed to get question input choice by question id" {
+				fakeGorm.MockGetQuestionInputChoicesByQuestionIDFn = func(ctx context.Context, questionID string) ([]*gorm.QuestionInputChoice, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+
+			got, err := d.GetScreeningToolByID(tt.args.ctx, tt.args.toolID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.GetScreeningToolByID() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !tt.wantErr && got == nil {

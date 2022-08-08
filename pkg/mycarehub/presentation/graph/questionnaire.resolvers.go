@@ -12,3 +12,7 @@ import (
 func (r *mutationResolver) CreateScreeningTool(ctx context.Context, input dto.ScreeningToolInput) (bool, error) {
 	return r.mycarehub.Questionnaires.CreateScreeningTool(ctx, input)
 }
+
+func (r *mutationResolver) RespondToScreeningTool(ctx context.Context, input dto.QuestionnaireScreeningToolResponseInput) (bool, error) {
+	return r.mycarehub.Questionnaires.RespondToScreeningTool(ctx, input)
+}

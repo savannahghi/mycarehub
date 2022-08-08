@@ -4154,3 +4154,171 @@ func TestPGInstance_SearchStaffServiceRequests(t *testing.T) {
 		})
 	}
 }
+
+func TestPGInstance_GetQuestionnaireByID(t *testing.T) {
+	type args struct {
+		ctx context.Context
+		id  string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: get questionnaire by id",
+			args: args{
+				ctx: context.Background(),
+				id:  questionnaireID,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: invalid get questionnaire by id",
+			args: args{
+				ctx: context.Background(),
+				id:  "INVALID_ID",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := testingDB.GetQuestionnaireByID(tt.args.ctx, tt.args.id)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.GetQuestionnaireByID() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected value, got %v", got)
+				return
+			}
+		})
+	}
+}
+
+func TestPGInstance_GetScreeningToolByID(t *testing.T) {
+	type args struct {
+		ctx context.Context
+		id  string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: get screening tool by id",
+			args: args{
+				ctx: context.Background(),
+				id:  screeningToolID,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: get screening tool by id",
+			args: args{
+				ctx: context.Background(),
+				id:  "INVALID_ID",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := testingDB.GetScreeningToolByID(tt.args.ctx, tt.args.id)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.GetScreeningToolByID() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected value, got %v", got)
+				return
+			}
+		})
+	}
+}
+
+func TestPGInstance_GetQuestionsByQuestionnaireID(t *testing.T) {
+	type args struct {
+		ctx             context.Context
+		questionnaireID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: get questions by questionnaire id",
+			args: args{
+				ctx:             context.Background(),
+				questionnaireID: questionnaireID,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: get questions by questionnaire id",
+			args: args{
+				ctx:             context.Background(),
+				questionnaireID: "INVALID_ID",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := testingDB.GetQuestionsByQuestionnaireID(tt.args.ctx, tt.args.questionnaireID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.GetQuestionsByQuestionnaireID() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected value, got %v", got)
+				return
+			}
+		})
+	}
+}
+
+func TestPGInstance_GetQuestionInputChoicesByQuestionID(t *testing.T) {
+	type args struct {
+		ctx        context.Context
+		questionID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: get question input choices by question id",
+			args: args{
+				ctx:        context.Background(),
+				questionID: questionID,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: get question input choices by question id",
+			args: args{
+				ctx:        context.Background(),
+				questionID: "INVALID_ID",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := testingDB.GetQuestionInputChoicesByQuestionID(tt.args.ctx, tt.args.questionID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.GetQuestionInputChoicesByQuestionID() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected value, got %v", got)
+				return
+			}
+		})
+	}
+}

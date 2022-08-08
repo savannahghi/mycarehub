@@ -1,8 +1,13 @@
 package domain
 
 import (
+	"fmt"
+	"strconv"
+	"strings"
+
 	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
+	"gopkg.in/go-playground/validator.v9"
 )
 
 // Questionnaire defines the structure of a questionnaire
@@ -12,6 +17,16 @@ type Questionnaire struct {
 	Name        string     `json:"name"`
 	Description string     `json:"description"`
 	Questions   []Question `json:"questions"`
+}
+
+// GetQuestionByID returns a question by ID
+func (q Questionnaire) GetQuestionByID(id string) (Question, error) {
+	for _, q := range q.Questions {
+		if q.ID == id {
+			return q, nil
+		}
+	}
+	return Question{}, fmt.Errorf("question not found")
 }
 
 // ScreeningTool defines the structure of a screening tool that belongs to the questionnaire
@@ -38,6 +53,91 @@ type Question struct {
 	SelectMultiple    bool                            `json:"selectMultiple"`
 	Sequence          int                             `json:"sequence"`
 	Choices           []QuestionInputChoice           `json:"choices"`
+}
+
+// ValidateResponse helps with validation of a question response input
+func (s Question) ValidateResponse(response string) error {
+	v := validator.New()
+	err := v.Struct(s)
+	switch s.ResponseValueType {
+	case enums.QuestionResponseValueTypeNumber:
+		_, err := strconv.Atoi(response)
+		if err != nil {
+			return fmt.Errorf("response value must be a number")
+		}
+	case enums.QuestionResponseValueTypeBoolean:
+		if _, err := strconv.ParseBool(response); err != nil {
+			return fmt.Errorf("response value must be a boolean")
+		}
+	}
+
+	choicesMap := make(map[string]bool)
+	for _, c := range s.Choices {
+		choicesMap[c.Choice] = true
+	}
+
+	multiChoiceMap := make(map[string]string)
+	for _, c := range strings.Split(response, ",") {
+		if c == "" {
+			continue
+		}
+		multiChoiceMap[c] = c
+	}
+
+	switch s.QuestionType {
+	case enums.QuestionTypeCloseEnded:
+		if s.SelectMultiple {
+			for _, c := range multiChoiceMap {
+				if !choicesMap[c] {
+					return fmt.Errorf("response value must be one of the choices")
+				}
+			}
+		} else {
+			if !choicesMap[response] {
+				return fmt.Errorf("response value must be one of the choices")
+			}
+		}
+
+	}
+
+	if s.Required && response == "" {
+		return fmt.Errorf("response is required")
+	}
+
+	return err
+}
+
+// GetScore returns the score for a given question response
+func (s Question) GetScore(response string) int {
+	switch s.QuestionType {
+	case enums.QuestionTypeCloseEnded:
+		if s.SelectMultiple {
+			return s.GetScoreForMultipleChoice(response)
+		}
+		return s.GetScoreForSingleChoice(response)
+	}
+	return 0
+}
+
+// GetScoreForSingleChoice returns the score for a single choice question response
+func (s Question) GetScoreForSingleChoice(response string) int {
+	for _, c := range s.Choices {
+		if c.Choice == response {
+			return c.Score
+		}
+	}
+	return 0
+}
+
+// GetScoreForMultipleChoice returns the score for a multiple choice question response
+func (s Question) GetScoreForMultipleChoice(response string) int {
+	var score int
+	for _, c := range s.Choices {
+		if strings.Contains(response, c.Choice) {
+			score += c.Score
+		}
+	}
+	return score
 }
 
 // QuestionInputChoice defines the structure of choices for the Question

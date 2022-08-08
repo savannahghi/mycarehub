@@ -1,3 +1,4 @@
 extend type Mutation{
     createScreeningTool(input: ScreeningToolInput!): Boolean!
+    respondToScreeningTool(input: QuestionnaireScreeningToolResponseInput!): Boolean!
 }
