@@ -4,8 +4,10 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
 )
@@ -13,6 +15,7 @@ import (
 // IScreeningTools contains methods related to the screening tools
 type IScreeningTools interface {
 	CreateScreeningTool(ctx context.Context, input dto.ScreeningToolInput) (bool, error)
+	RespondToScreeningTool(ctx context.Context, input dto.QuestionnaireScreeningToolResponseInput) (bool, error)
 }
 
 // UseCaseQuestionnaire contains questionnaire interfaces
@@ -94,6 +97,93 @@ func (q *UseCaseQuestionnaireImpl) CreateScreeningTool(ctx context.Context, inpu
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return false, fmt.Errorf("failed to create screening tool questionnaire: %w", err)
+	}
+	return true, nil
+}
+
+// RespondToScreeningTool responds to the screening tool questionnaire
+func (q *UseCaseQuestionnaireImpl) RespondToScreeningTool(ctx context.Context, input dto.QuestionnaireScreeningToolResponseInput) (bool, error) {
+	err := input.Validate()
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, err
+	}
+
+	clientProfile, err := q.Query.GetClientProfileByClientID(ctx, input.ClientID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, fmt.Errorf("failed to get client profile: %w", err)
+	}
+
+	screeningTool, err := q.Query.GetScreeningToolByID(ctx, input.ScreeningToolID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, fmt.Errorf("failed to get screening tool: %w", err)
+	}
+
+	payload := &domain.QuestionnaireScreeningToolResponse{
+		Active:          true,
+		ScreeningToolID: input.ScreeningToolID,
+		FacilityID:      clientProfile.FacilityID,
+		ClientID:        input.ClientID,
+	}
+
+	var aggregateScore int
+
+	responses := []domain.QuestionnaireScreeningToolQuestionResponse{}
+	for _, qr := range input.QuestionResponses {
+		question, err := screeningTool.Questionnaire.GetQuestionByID(qr.QuestionID)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return false, fmt.Errorf("failed to find question with id: %s", qr.QuestionID)
+		}
+
+		err = question.ValidateResponse(qr.Response)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return false, fmt.Errorf("failed to validate response: %w", err)
+		}
+
+		score := question.GetScore(qr.Response)
+		aggregateScore += score
+
+		responses = append(responses, domain.QuestionnaireScreeningToolQuestionResponse{
+			Active:                  true,
+			ScreeningToolResponseID: screeningTool.ID,
+			QuestionID:              qr.QuestionID,
+			Response:                qr.Response,
+			Score:                   score,
+		})
+	}
+
+	payload.AggregateScore = aggregateScore
+	payload.QuestionResponses = responses
+
+	responseID, err := q.Create.CreateScreeningToolResponse(ctx, payload)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, fmt.Errorf("failed to create screening tool response: %w", err)
+	}
+
+	if aggregateScore >= screeningTool.Threshold {
+		serviceRequest := fmt.Sprintf("%s has a score of %d for %s. They require your attention", clientProfile.User.Name, aggregateScore, screeningTool.Questionnaire.Name)
+		err = q.Create.CreateServiceRequest(ctx, &dto.ServiceRequestInput{
+			Active:      true,
+			RequestType: enums.ServiceRequestTypeScreeningToolsRedFlag.String(),
+			Status:      enums.ServiceRequestStatusPending.String(),
+			Request:     serviceRequest,
+			ClientID:    input.ClientID,
+			FacilityID:  clientProfile.FacilityID,
+			ClientName:  &clientProfile.User.Name,
+			Flavour:     feedlib.FlavourConsumer,
+			Meta: map[string]interface{}{
+				"response_id": *responseID,
+			},
+		})
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return false, fmt.Errorf("failed to create service request: %w", err)
+		}
 	}
 	return true, nil
 }

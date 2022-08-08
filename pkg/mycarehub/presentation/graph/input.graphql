@@ -213,14 +213,11 @@ input QuestionInputChoiceInput {
 
 input QuestionnaireScreeningToolResponseInput {
 	screeningToolID:   String!                                            
-	facilityID:        String!                                            
 	clientID:          String!                                            
-	aggregateScore:    Int                                               
 	questionResponses: [QuestionnaireScreeningToolQuestionResponseInput!]!
 }
 
 input QuestionnaireScreeningToolQuestionResponseInput {
 	questionID: String! 
 	response:   String! 
-	score:      Int    
 }

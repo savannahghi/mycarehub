@@ -37,6 +37,7 @@ type Create interface {
 	CreateScreeningTool(ctx context.Context, input *ScreeningTool) error
 	CreateQuestion(ctx context.Context, input *Question) error
 	CreateQuestionChoice(ctx context.Context, input *QuestionInputChoice) error
+	CreateScreeningToolResponse(ctx context.Context, screeningToolResponse *ScreeningToolResponse, screeningToolQuestionResponses []*ScreeningToolQuestionResponse) (*string, error)
 }
 
 // GetOrCreateFacility is used to get or create a facility
@@ -655,4 +656,32 @@ func (db *PGInstance) CreateQuestionChoice(ctx context.Context, input *QuestionI
 		return fmt.Errorf("failed to create question choice: %w", err)
 	}
 	return nil
+}
+
+// CreateScreeningToolResponse saves a screening tool response to the database and returns the response ID
+func (db *PGInstance) CreateScreeningToolResponse(ctx context.Context, screeningToolResponse *ScreeningToolResponse, screeningToolQuestionResponses []*ScreeningToolQuestionResponse) (*string, error) {
+	tx := db.DB.Begin()
+
+	if err := tx.Create(screeningToolResponse).Error; err != nil {
+		helpers.ReportErrorToSentry(err)
+		tx.Rollback()
+		return nil, fmt.Errorf("failed to create screening tool response: %w", err)
+	}
+
+	for _, questionResponse := range screeningToolQuestionResponses {
+		questionResponse.ScreeningToolResponseID = screeningToolResponse.ID
+		if err := tx.Create(questionResponse).Error; err != nil {
+			helpers.ReportErrorToSentry(err)
+			tx.Rollback()
+			return nil, fmt.Errorf("failed to create screening tool question response: %w", err)
+		}
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		helpers.ReportErrorToSentry(err)
+		tx.Rollback()
+		return nil, fmt.Errorf("failed to commit create screening tool response transaction: %w", err)
+	}
+
+	return &screeningToolResponse.ID, nil
 }

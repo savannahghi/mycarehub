@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/mitchellh/mapstructure"
+	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/firebasetools"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/exceptions"
@@ -1993,4 +1994,89 @@ func (d *MyCareHubDb) SearchStaffServiceRequests(ctx context.Context, searchPara
 	}
 
 	return d.ReturnStaffServiceRequests(ctx, serviceRequests)
+}
+
+// GetScreeningToolByID fetches a screening tool by ID including the whole questions payload
+func (d *MyCareHubDb) GetScreeningToolByID(ctx context.Context, toolID string) (*domain.ScreeningTool, error) {
+	tool, err := d.query.GetScreeningToolByID(ctx, toolID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
+	questionnaire, err := d.query.GetQuestionnaireByID(ctx, tool.QuestionnaireID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
+	questionsPayload, err := d.query.GetQuestionsByQuestionnaireID(ctx, questionnaire.ID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
+	questions := []domain.Question{}
+
+	for _, q := range questionsPayload {
+		choices := []domain.QuestionInputChoice{}
+		choicesPayload, err := d.query.GetQuestionInputChoicesByQuestionID(ctx, q.ID)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return nil, err
+		}
+		for _, c := range choicesPayload {
+			choices = append(choices, domain.QuestionInputChoice{
+				ID:         c.ID,
+				Active:     c.Active,
+				QuestionID: c.QuestionID,
+				Choice:     c.Choice,
+				Value:      c.Value,
+				Score:      c.Score,
+			})
+		}
+
+		questions = append(questions, domain.Question{
+			ID:                q.ID,
+			Active:            q.Active,
+			QuestionnaireID:   q.QuestionnaireID,
+			Text:              q.Text,
+			QuestionType:      enums.QuestionType(q.QuestionType),
+			ResponseValueType: enums.QuestionResponseValueType(q.ResponseValueType),
+			Required:          q.Required,
+			SelectMultiple:    q.SelectMultiple,
+			Sequence:          q.Sequence,
+			Choices:           choices,
+		})
+	}
+
+	clientTypes := []enums.ClientType{}
+	for _, k := range tool.ClientTypes {
+		clientTypes = append(clientTypes, enums.ClientType(k))
+	}
+
+	genders := []enumutils.Gender{}
+	for _, k := range tool.Genders {
+		genders = append(genders, enumutils.Gender(k))
+	}
+
+	return &domain.ScreeningTool{
+		ID:              tool.ID,
+		Active:          tool.Active,
+		QuestionnaireID: tool.QuestionnaireID,
+		Threshold:       tool.Threshold,
+		ClientTypes:     clientTypes,
+		Genders:         genders,
+		AgeRange: domain.AgeRange{
+			LowerBound: tool.MinimumAge,
+			UpperBound: tool.MaximumAge,
+		},
+		Questionnaire: domain.Questionnaire{
+			ID:          questionnaire.ID,
+			Active:      questionnaire.Active,
+			Name:        questionnaire.Name,
+			Description: questionnaire.Description,
+			Questions:   questions,
+		},
+	}, nil
 }

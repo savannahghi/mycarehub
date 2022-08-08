@@ -98,6 +98,10 @@ type Query interface {
 	GetClientsByFilterParams(ctx context.Context, facilityID string, filterParams *dto.ClientFilterParamsInput) ([]*Client, error)
 	SearchClientServiceRequests(ctx context.Context, searchParameter string, requestType string, facilityID string) ([]*ClientServiceRequest, error)
 	SearchStaffServiceRequests(ctx context.Context, searchParameter string, requestType string, facilityID string) ([]*StaffServiceRequest, error)
+	GetScreeningToolByID(ctx context.Context, toolID string) (*ScreeningTool, error)
+	GetQuestionnaireByID(ctx context.Context, questionnaireID string) (*Questionnaire, error)
+	GetQuestionsByQuestionnaireID(ctx context.Context, questionnaireID string) ([]*Question, error)
+	GetQuestionInputChoicesByQuestionID(ctx context.Context, questionID string) ([]*QuestionInputChoice, error)
 }
 
 // GetFacilityStaffs returns a list of staff at a particular facility
@@ -1482,4 +1486,48 @@ func (db *PGInstance) SearchStaffServiceRequests(ctx context.Context, searchPara
 	}
 
 	return staffServiceRequests, nil
+}
+
+// GetScreeningToolByID is used to get a screening tool by its ID
+func (db *PGInstance) GetScreeningToolByID(ctx context.Context, id string) (*ScreeningTool, error) {
+	var screeningTool ScreeningTool
+	if err := db.DB.Where(&ScreeningTool{ID: id}).First(&screeningTool).Error; err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, fmt.Errorf("failed to get screening tool: %w", err)
+	}
+
+	return &screeningTool, nil
+}
+
+// GetQuestionnaireByID is used to get a questionnaire by its ID
+func (db *PGInstance) GetQuestionnaireByID(ctx context.Context, id string) (*Questionnaire, error) {
+	var questionnaire Questionnaire
+	if err := db.DB.Where(&Questionnaire{ID: id}).First(&questionnaire).Error; err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, fmt.Errorf("failed to get questionnaire: %w", err)
+	}
+
+	return &questionnaire, nil
+}
+
+// GetQuestionsByQuestionnaireID is used to get questions by questionnaire ID
+func (db *PGInstance) GetQuestionsByQuestionnaireID(ctx context.Context, questionnaireID string) ([]*Question, error) {
+	var questions []*Question
+	if err := db.DB.Where(&Question{QuestionnaireID: questionnaireID}).Find(&questions).Error; err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, fmt.Errorf("failed to get questions: %w", err)
+	}
+
+	return questions, nil
+}
+
+// GetQuestionInputChoicesByQuestionID is used to get question input choices by question ID
+func (db *PGInstance) GetQuestionInputChoicesByQuestionID(ctx context.Context, questionID string) ([]*QuestionInputChoice, error) {
+	var questionInputChoices []*QuestionInputChoice
+	if err := db.DB.Where(&QuestionInputChoice{QuestionID: questionID}).Find(&questionInputChoices).Error; err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, fmt.Errorf("failed to get question input choices: %w", err)
+	}
+
+	return questionInputChoices, nil
 }

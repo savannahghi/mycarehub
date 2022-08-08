@@ -682,3 +682,28 @@ func (d *MyCareHubDb) CreateScreeningTool(ctx context.Context, input *domain.Scr
 	return nil
 
 }
+
+// CreateScreeningToolResponse saves a screening tool response to the database
+func (d *MyCareHubDb) CreateScreeningToolResponse(ctx context.Context, input *domain.QuestionnaireScreeningToolResponse) (*string, error) {
+	screeningToolResponse := &gorm.ScreeningToolResponse{
+		Active:          input.Active,
+		ScreeningToolID: input.ScreeningToolID,
+		FacilityID:      input.FacilityID,
+		ClientID:        input.ClientID,
+		AggregateScore:  input.AggregateScore,
+	}
+
+	screeningToolQuestionResponses := []*gorm.ScreeningToolQuestionResponse{}
+	for _, q := range input.QuestionResponses {
+		screeningToolQuestionResponses = append(screeningToolQuestionResponses, &gorm.ScreeningToolQuestionResponse{
+			Active:                  q.Active,
+			ScreeningToolResponseID: screeningToolResponse.ID,
+			QuestionID:              q.QuestionID,
+			Response:                q.Response,
+			Score:                   q.Score,
+		})
+	}
+
+	return d.create.CreateScreeningToolResponse(ctx, screeningToolResponse, screeningToolQuestionResponses)
+
+}
