@@ -469,7 +469,7 @@ func (db *PGInstance) GetNotification(ctx context.Context, notificationID string
 	return &notification, nil
 }
 
-//GetAnsweredScreeningToolQuestions returns the answered screening tool questions
+// GetAnsweredScreeningToolQuestions returns the answered screening tool questions
 func (db *PGInstance) GetAnsweredScreeningToolQuestions(ctx context.Context, facilityID string, toolType string) ([]*ScreeningToolsResponse, error) {
 	var screeningToolResponse []*ScreeningToolsResponse
 
@@ -508,7 +508,7 @@ func (db *PGInstance) GetSecurityQuestionResponse(ctx context.Context, questionI
 	return &questionResponse, nil
 }
 
-//VerifyOTP checks from the database for the validity of the provided OTP
+// VerifyOTP checks from the database for the validity of the provided OTP
 func (db *PGInstance) VerifyOTP(ctx context.Context, payload *dto.VerifyOTPInput) (bool, error) {
 	var userOTP UserOTP
 	if payload.PhoneNumber == "" || payload.OTP == "" {
@@ -782,7 +782,7 @@ func (db *PGInstance) GetClientProfileByClientID(ctx context.Context, clientID s
 // GetStaffProfileByStaffID fetches a staff from the database
 func (db *PGInstance) GetStaffProfileByStaffID(ctx context.Context, staffID string) (*StaffProfile, error) {
 	var staff StaffProfile
-	err := db.DB.Where(&StaffProfile{ID: &staffID}).Preload(clause.Associations).First(&staff).Error
+	err := db.DB.Where(&StaffProfile{ID: &staffID}).Preload("UserProfile.Contacts").Preload(clause.Associations).First(&staff).Error
 	if err != nil {
 		return nil, fmt.Errorf("failed to get staff: %v", err)
 	}
