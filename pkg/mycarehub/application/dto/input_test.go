@@ -717,3 +717,270 @@ func TestStaffRegistrationInput_Validate(t *testing.T) {
 		})
 	}
 }
+
+func TestQuestionnaireInput_Validate(t *testing.T) {
+	choice1 := "yes"
+	choice2 := "no"
+	type fields struct {
+		Name        string
+		Description string
+		Questions   []*QuestionInput
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		wantErr bool
+	}{
+		{
+			name: "Happy case: valid questionnaire",
+			fields: fields{
+				Name:        gofakeit.BeerBlg(),
+				Description: gofakeit.BeerBlg(),
+				Questions: []*QuestionInput{
+					{
+						Text:              gofakeit.BeerBlg(),
+						QuestionType:      enums.QuestionTypeCloseEnded,
+						ResponseValueType: enums.QuestionResponseValueTypeBoolean,
+						Required:          true,
+						SelectMultiple:    false,
+						Sequence:          1,
+						Choices: []QuestionInputChoiceInput{
+							{
+								Choice: &choice1,
+								Value:  "true",
+								Score:  1,
+							},
+							{
+								Choice: &choice2,
+								Value:  "false",
+								Score:  0,
+							},
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "Sad case: open ended question with select multiple",
+			fields: fields{
+				Name:        gofakeit.BeerBlg(),
+				Description: gofakeit.BeerBlg(),
+				Questions: []*QuestionInput{
+					{
+						Text:              gofakeit.BeerBlg(),
+						QuestionType:      enums.QuestionTypeOpenEnded,
+						ResponseValueType: enums.QuestionResponseValueTypeString,
+						Required:          true,
+						SelectMultiple:    true,
+						Sequence:          1,
+					},
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: open ended question with choices",
+			fields: fields{
+				Name:        gofakeit.BeerBlg(),
+				Description: gofakeit.BeerBlg(),
+				Questions: []*QuestionInput{
+					{
+						Text:              gofakeit.BeerBlg(),
+						QuestionType:      enums.QuestionTypeOpenEnded,
+						ResponseValueType: enums.QuestionResponseValueTypeString,
+						Required:          true,
+						Sequence:          1,
+						Choices: []QuestionInputChoiceInput{
+							{
+								Choice: &choice1,
+								Value:  "true",
+								Score:  1,
+							},
+							{
+								Choice: &choice2,
+								Value:  "false",
+								Score:  0,
+							},
+						},
+					},
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: close ended question with less than 2 choices",
+			fields: fields{
+				Name:        gofakeit.BeerBlg(),
+				Description: gofakeit.BeerBlg(),
+				Questions: []*QuestionInput{
+					{
+						Text:              gofakeit.BeerBlg(),
+						QuestionType:      enums.QuestionTypeCloseEnded,
+						ResponseValueType: enums.QuestionResponseValueTypeString,
+						Required:          true,
+						SelectMultiple:    false,
+						Sequence:          1,
+						Choices: []QuestionInputChoiceInput{
+							{
+								Choice: &choice1,
+								Value:  gofakeit.BeerAlcohol(),
+								Score:  1,
+							},
+						},
+					},
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: invalid choice value for boolean",
+			fields: fields{
+				Name:        gofakeit.BeerBlg(),
+				Description: gofakeit.BeerBlg(),
+				Questions: []*QuestionInput{
+					{
+						Text:              gofakeit.BeerBlg(),
+						QuestionType:      enums.QuestionTypeCloseEnded,
+						ResponseValueType: enums.QuestionResponseValueTypeBoolean,
+						Required:          true,
+						SelectMultiple:    false,
+						Sequence:          1,
+						Choices: []QuestionInputChoiceInput{
+							{
+								Choice: &choice1,
+								Value:  "invalid",
+								Score:  1,
+							},
+							{
+								Choice: &choice2,
+								Value:  "false",
+								Score:  0,
+							},
+						},
+					},
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			q := QuestionnaireInput{
+				Name:        tt.fields.Name,
+				Description: tt.fields.Description,
+				Questions:   tt.fields.Questions,
+			}
+			if err := q.Validate(); (err != nil) != tt.wantErr {
+				t.Errorf("QuestionnaireInput.Validate() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestQuestionInput_Validate(t *testing.T) {
+	choice1 := "yes"
+	choice2 := "no"
+	type fields struct {
+		Text              string
+		QuestionType      enums.QuestionType
+		ResponseValueType enums.QuestionResponseValueType
+		Required          bool
+		SelectMultiple    bool
+		Sequence          int
+		Choices           []QuestionInputChoiceInput
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		wantErr bool
+	}{
+		{
+			name: "Happy case: valid question",
+			fields: fields{
+				Text:              gofakeit.BeerBlg(),
+				QuestionType:      enums.QuestionTypeCloseEnded,
+				ResponseValueType: enums.QuestionResponseValueTypeString,
+				Required:          true,
+				SelectMultiple:    false,
+				Sequence:          1,
+				Choices: []QuestionInputChoiceInput{
+					{
+						Choice: &choice1,
+						Value:  gofakeit.BeerBlg(),
+						Score:  1,
+					},
+					{
+						Choice: &choice2,
+						Value:  gofakeit.BeerBlg(),
+						Score:  0,
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: close ended question expecting a number",
+			fields: fields{
+				Text:              gofakeit.BeerBlg(),
+				QuestionType:      enums.QuestionTypeCloseEnded,
+				ResponseValueType: enums.QuestionResponseValueTypeNumber,
+				Required:          true,
+				SelectMultiple:    false,
+				Sequence:          2,
+				Choices: []QuestionInputChoiceInput{
+					{
+						Choice: &choice1,
+						Value:  "true",
+						Score:  1,
+					},
+					{
+						Choice: &choice2,
+						Value:  "false",
+						Score:  0,
+					},
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: close ended question expecting a boolean",
+			fields: fields{
+				Text:              gofakeit.BeerBlg(),
+				QuestionType:      enums.QuestionTypeCloseEnded,
+				ResponseValueType: enums.QuestionResponseValueTypeBoolean,
+				Required:          true,
+				SelectMultiple:    false,
+				Sequence:          3,
+				Choices: []QuestionInputChoiceInput{
+					{
+						Choice: &choice1,
+						Value:  "1",
+						Score:  1,
+					},
+					{
+						Choice: &choice2,
+						Value:  "2",
+						Score:  0,
+					},
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := QuestionInput{
+				Text:              tt.fields.Text,
+				QuestionType:      tt.fields.QuestionType,
+				ResponseValueType: tt.fields.ResponseValueType,
+				Required:          tt.fields.Required,
+				SelectMultiple:    tt.fields.SelectMultiple,
+				Sequence:          tt.fields.Sequence,
+				Choices:           tt.fields.Choices,
+			}
+			if err := s.Validate(); (err != nil) != tt.wantErr {
+				t.Errorf("QuestionInput.Validate() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}

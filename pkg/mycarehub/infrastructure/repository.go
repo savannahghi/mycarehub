@@ -39,6 +39,7 @@ type Create interface {
 	RegisterStaff(ctx context.Context, staffRegistrationPayload *domain.StaffRegistrationPayload) (*domain.StaffProfile, error)
 	SaveFeedback(ctx context.Context, payload *domain.FeedbackResponse) error
 	RegisterClient(ctx context.Context, payload *domain.ClientRegistrationPayload) (*domain.ClientProfile, error)
+	CreateScreeningTool(ctx context.Context, input *domain.ScreeningTool) error
 }
 
 // Delete represents all the deletion action interfaces

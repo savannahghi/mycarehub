@@ -539,3 +539,64 @@ type UserSurvey {
   formID: String!
   linkID: Int
 }
+
+
+type Questionnaire {
+  id:  String!
+  active: Boolean!
+	name:          String!             
+	description:   String!            
+	questions:     [Question!]!
+}
+
+type ScreeningTool { 
+  id:  String!
+  active: Boolean!
+  questionnaireID: String!
+	threshold:   Int                
+	clientTypes: [ClientType] 
+	genders:     [Gender] 
+	ageRange:    AgeRange
+  questionnaire: Questionnaire   
+}
+
+type Question {
+  id:  String!
+  active: Boolean!
+  questionnaireID: String!
+	text:              String!                                  
+	questionType:      QuestionType!
+	responseValueType: QuestionResponseValueType! 
+	required:          Boolean! 
+  selectMultiple:    Boolean                                
+	sequence:          Int!                                   
+	choices:           [QuestionInputChoice]              
+}
+
+type QuestionInputChoice {
+  id:  String!
+  active: Boolean!
+  questionID: String!
+	choice: String!
+	value:  String! 
+	score:  Int    
+}
+
+type QuestionnaireScreeningToolResponse {
+  id:  String!
+  active: Boolean!
+	screeningToolID: String!                                            
+	facilityID: String!                                            
+	clientID: String!
+	aggregateScore: Int                                               
+	questionResponses: [QuestionnaireScreeningToolQuestionResponse!]!
+}
+
+type QuestionnaireScreeningToolQuestionResponse {
+  id:  String!
+  active: Boolean!
+  screeningToolResponseID: String!
+	questionID: String! 
+	response:   String! 
+	score:      Int    
+}

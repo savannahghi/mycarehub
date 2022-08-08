@@ -1171,3 +1171,162 @@ func (f *Feedback) BeforeCreate(tx *gorm.DB) (err error) {
 func (Feedback) TableName() string {
 	return "common_feedback"
 }
+
+// Questionnaire defines the questionnaire database models
+type Questionnaire struct {
+	Base
+	OrganisationID string `gorm:"column:organisation_id"`
+
+	ID          string `gorm:"primaryKey;column:id"`
+	Active      bool   `gorm:"column:active"`
+	Name        string `gorm:"column:name"`
+	Description string `gorm:"column:description"`
+}
+
+// BeforeCreate is a hook run before creating a questionnaire
+func (q *Questionnaire) BeforeCreate(tx *gorm.DB) (err error) {
+	id := uuid.New().String()
+	q.ID = id
+	q.OrganisationID = OrganizationID
+	return
+}
+
+// TableName references the table that we map data from
+func (Questionnaire) TableName() string {
+	return "questionnaires_questionnaire"
+}
+
+// ScreeningTool defines the screening tool database models
+type ScreeningTool struct {
+	Base
+	OrganisationID string `gorm:"column:organisation_id"`
+
+	ID              string         `gorm:"primaryKey;column:id"`
+	Active          bool           `gorm:"column:active"`
+	QuestionnaireID string         `gorm:"column:questionnaire_id"`
+	Threshold       int            `gorm:"column:threshold"`
+	ClientTypes     pq.StringArray `gorm:"type:text[];column:client_types"`
+	Genders         pq.StringArray `gorm:"type:text[];column:genders"`
+	MinimumAge      int            `gorm:"column:min_age"`
+	MaximumAge      int            `gorm:"column:max_age"`
+}
+
+// BeforeCreate is a hook run before creating a screening tool
+func (f *ScreeningTool) BeforeCreate(tx *gorm.DB) (err error) {
+	id := uuid.New().String()
+	f.ID = id
+	f.OrganisationID = OrganizationID
+	return
+}
+
+// TableName references the table that we map data from
+func (ScreeningTool) TableName() string {
+	return "questionnaires_screeningtool"
+}
+
+// Question defines the question database models
+type Question struct {
+	Base
+	OrganisationID string `gorm:"column:organisation_id"`
+
+	ID                string `gorm:"primaryKey;column:id"`
+	Active            bool   `gorm:"column:active"`
+	QuestionnaireID   string `gorm:"column:questionnaire_id"`
+	Text              string `gorm:"column:text"`
+	QuestionType      string `gorm:"column:question_type"`
+	ResponseValueType string `gorm:"column:response_value_type"`
+	SelectMultiple    bool   `gorm:"column:select_multiple"`
+	Required          bool   `gorm:"column:required"`
+	Sequence          int    `gorm:"column:sequence"`
+}
+
+// BeforeCreate is a hook run before creating a question
+func (q *Question) BeforeCreate(tx *gorm.DB) (err error) {
+	id := uuid.New().String()
+	q.ID = id
+	q.OrganisationID = OrganizationID
+	return
+}
+
+// TableName references the table that we map data from
+func (Question) TableName() string {
+	return "questionnaires_question"
+}
+
+// QuestionInputChoice defines the question input choice database models
+type QuestionInputChoice struct {
+	Base
+	OrganisationID string `gorm:"column:organisation_id"`
+
+	ID         string `gorm:"primaryKey;column:id"`
+	Active     bool   `gorm:"column:active"`
+	QuestionID string `gorm:"column:question_id"`
+	Choice     string `gorm:"column:choice"`
+	Value      string `gorm:"column:value"`
+	Score      int    `gorm:"column:score"`
+}
+
+// BeforeCreate is a hook run before creating a question input choice
+func (q *QuestionInputChoice) BeforeCreate(tx *gorm.DB) (err error) {
+	id := uuid.New().String()
+	q.ID = id
+	q.OrganisationID = OrganizationID
+	return
+}
+
+// TableName references the table that we map data from
+func (QuestionInputChoice) TableName() string {
+	return "questionnaires_questioninputchoice"
+}
+
+// ScreeningToolResponse defines the screening tool response database models
+type ScreeningToolResponse struct {
+	Base
+	OrganisationID string `gorm:"column:organisation_id"`
+
+	ID              string `gorm:"primaryKey;column:id"`
+	Active          bool   `gorm:"column:active"`
+	ScreeningToolID string `gorm:"column:screeningtool_id"`
+	FacilityID      string `gorm:"column:facility_id"`
+	ClientID        string `gorm:"column:client_id"`
+	AggregateScore  int    `gorm:"column:aggregate_score"`
+}
+
+// BeforeCreate is a hook run before creating a screening tool response
+func (s *ScreeningToolResponse) BeforeCreate(tx *gorm.DB) (err error) {
+	id := uuid.New().String()
+	s.ID = id
+	s.OrganisationID = OrganizationID
+	return
+}
+
+// TableName references the table that we map data from
+func (ScreeningToolResponse) TableName() string {
+	return "questionnaires_screeningtoolresponse"
+}
+
+// ScreeningToolQuestionResponse defines the screening tool question response database models
+type ScreeningToolQuestionResponse struct {
+	Base
+	OrganisationID string `gorm:"column:organisation_id"`
+
+	ID                      string `gorm:"primaryKey;column:id"`
+	Active                  bool   `gorm:"column:active"`
+	ScreeningToolResponseID string `gorm:"column:screeningtoolresponse_id"`
+	QuestionID              string `gorm:"column:question_id"`
+	Response                string `gorm:"column:response"`
+	Score                   int    `gorm:"column:score"`
+}
+
+// BeforeCreate is a hook run before creating a screening tool question response
+func (s *ScreeningToolQuestionResponse) BeforeCreate(tx *gorm.DB) (err error) {
+	id := uuid.New().String()
+	s.ID = id
+	s.OrganisationID = OrganizationID
+	return
+}
+
+// TableName references the table that we map data from
+func (ScreeningToolQuestionResponse) TableName() string {
+	return "questionnaires_screeningtoolquestionresponse"
+}

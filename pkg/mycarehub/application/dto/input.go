@@ -571,3 +571,100 @@ type VerifySurveySubmissionInput struct {
 	FormID      string
 	SubmitterID int
 }
+
+// QuestionnaireInput represents the payload that is to be used when creating a questionnaire.
+type QuestionnaireInput struct {
+	Name        string           `json:"name"`
+	Description string           `json:"description"`
+	Questions   []*QuestionInput `json:"questions"`
+}
+
+// Validate helps with validation of the QuestionnaireInput
+func (q QuestionnaireInput) Validate() error {
+	v := validator.New()
+	err := v.Struct(q)
+	for _, question := range q.Questions {
+		if err := question.Validate(); err != nil {
+			return err
+		}
+		switch question.QuestionType {
+		case enums.QuestionTypeOpenEnded:
+			if question.SelectMultiple {
+				return fmt.Errorf("select multiple is not supported for open ended questions")
+			}
+			if len(question.Choices) > 0 {
+				return fmt.Errorf("choices are not supported for open ended questions")
+			}
+		case enums.QuestionTypeCloseEnded:
+			if len(question.Choices) < 2 {
+				return fmt.Errorf("at least two choices are required for close ended questions")
+			}
+		}
+	}
+	return err
+}
+
+// ScreeningToolInput represents the payload that is to be used when creating a questionnaire
+type ScreeningToolInput struct {
+	Questionnaire QuestionnaireInput `json:"questionnaire"`
+	Threshold     int                `json:"threshold"`
+	ClientTypes   []enums.ClientType `json:"clientTypes"`
+	Genders       []enumutils.Gender `json:"genders"`
+	AgeRange      AgeRangeInput      `json:"ageRange"`
+}
+
+// QuestionInput represents the input for a Question for a given screening tool in a questionnaire
+type QuestionInput struct {
+	Text              string                          `json:"text" validate:"required"`
+	QuestionType      enums.QuestionType              `json:"questionType" validate:"required"`
+	ResponseValueType enums.QuestionResponseValueType `json:"responseValue" validate:"required"`
+	Required          bool                            `json:"required" validate:"required"`
+	SelectMultiple    bool                            `json:"selectMultiple"`
+	Sequence          int                             `json:"sequence" validate:"required"`
+	Choices           []QuestionInputChoiceInput      `json:"choices"`
+}
+
+// Validate helps with validation of a question input
+func (s QuestionInput) Validate() error {
+	v := validator.New()
+	err := v.Struct(s)
+
+	// validate response value type against the the choice provided
+	for _, c := range s.Choices {
+		switch s.ResponseValueType {
+		case enums.QuestionResponseValueTypeNumber:
+			_, err := strconv.Atoi(c.Value)
+			if err != nil {
+				return fmt.Errorf("choice value must be a number")
+			}
+		case enums.QuestionResponseValueTypeBoolean:
+			if c.Value != "true" && c.Value != "false" {
+				return fmt.Errorf("choice value must be a boolean")
+			}
+		}
+	}
+	return err
+}
+
+// QuestionInputChoiceInput represents choices for a given question
+type QuestionInputChoiceInput struct {
+	Choice *string `json:"choice" validate:"required"`
+	Value  string  `json:"value" validate:"required"`
+	Score  int     `json:"score"`
+}
+
+// QuestionnaireScreeningToolResponseInput represents the payload that is to be used when creating a questionnaire screening tool response.
+type QuestionnaireScreeningToolResponseInput struct {
+	ScreeningToolID   string                                             `json:"screeningToolID"`
+	FacilityID        string                                             `json:"facilityID"`
+	ClientID          string                                             `json:"clientID"`
+	AggregateScore    int                                                `json:"aggregateScore"`
+	QuestionResponses []*QuestionnaireScreeningToolQuestionResponseInput `json:"questionResponses"`
+}
+
+// QuestionnaireScreeningToolQuestionResponseInput represents the payload that is to be used when creating a questionnaire screening tool question response.
+type QuestionnaireScreeningToolQuestionResponseInput struct {
+	QuestionID string `json:"questionID"`
+	Response   string `json:"response"`
+	Score      int    `json:"score"`
+}

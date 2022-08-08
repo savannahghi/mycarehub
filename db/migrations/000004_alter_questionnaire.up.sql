@@ -1,0 +1,4 @@
+BEGIN;
+ALTER TABLE questionnaires_questioninputchoice DROP CONSTRAINT IF EXISTS questionnaires_questioninputchoice_choice_key;
+ALTER TABLE questionnaires_question DROP CONSTRAINT IF EXISTS questionnaires_question_text_key;
+COMMIT;

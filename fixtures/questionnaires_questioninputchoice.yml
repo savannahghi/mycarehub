@@ -1,0 +1,19 @@
+- id: {{.test_first_choice_id}}
+  organisation_id: {{.test_organisation_id}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  active: true
+  question_id: {{.test_question_id}}
+  choice: "Yes"
+  value: "yes"
+  score: 1
+
+- id: {{.test_second_choice_id}}
+  organisation_id: {{.test_organisation_id}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  active: true
+  question_id: {{.test_question_id}}
+  choice: "No"
+  value: "no"
+  score: 0

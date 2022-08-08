@@ -611,3 +611,74 @@ func (d *MyCareHubDb) RegisterStaff(ctx context.Context, payload *domain.StaffRe
 		DefaultFacilityID: staffProfile.DefaultFacilityID,
 	}, nil
 }
+
+// CreateScreeningTool maps the screening tool domain model to database model to create screening tools
+func (d *MyCareHubDb) CreateScreeningTool(ctx context.Context, input *domain.ScreeningTool) error {
+	questionnaire := &gorm.Questionnaire{
+		Active:      input.Questionnaire.Active,
+		Name:        input.Questionnaire.Name,
+		Description: input.Questionnaire.Description,
+	}
+
+	err := d.create.CreateQuestionnaire(ctx, questionnaire)
+	if err != nil {
+		return err
+	}
+
+	clientTypes := pq.StringArray{}
+	for _, t := range input.ClientTypes {
+		clientTypes = append(clientTypes, t.String())
+	}
+	genders := pq.StringArray{}
+	for _, g := range input.Genders {
+		genders = append(genders, g.String())
+	}
+	screeningtool := &gorm.ScreeningTool{
+		Active:          input.Active,
+		QuestionnaireID: questionnaire.ID,
+		Threshold:       input.Threshold,
+		ClientTypes:     clientTypes,
+		Genders:         genders,
+		MinimumAge:      input.AgeRange.LowerBound,
+		MaximumAge:      input.AgeRange.UpperBound,
+	}
+
+	err = d.create.CreateScreeningTool(ctx, screeningtool)
+	if err != nil {
+		return err
+	}
+
+	for _, q := range input.Questionnaire.Questions {
+		question := &gorm.Question{
+			Active:            q.Active,
+			QuestionnaireID:   questionnaire.ID,
+			Text:              q.Text,
+			QuestionType:      q.QuestionType.String(),
+			ResponseValueType: q.ResponseValueType.String(),
+			SelectMultiple:    q.SelectMultiple,
+			Required:          q.Required,
+			Sequence:          q.Sequence,
+		}
+		err := d.create.CreateQuestion(ctx, question)
+		if err != nil {
+			return err
+		}
+		for _, c := range q.Choices {
+			choice := &gorm.QuestionInputChoice{
+				Active:     c.Active,
+				QuestionID: question.ID,
+				Choice:     c.Choice,
+				Value:      c.Value,
+				Score:      c.Score,
+			}
+			err := d.create.CreateQuestionChoice(ctx, choice)
+			if err != nil {
+				return err
+			}
+		}
+
+	}
+
+	return nil
+
+}

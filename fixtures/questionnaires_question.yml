@@ -1,0 +1,12 @@
+- id: {{.test_question_id}}
+  organisation_id: {{.test_organisation_id}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  active: true
+  questionnaire_id: {{.test_questionnaire_id}}
+  text: "Do you have a fever?"
+  question_type: "CLOSE_ENDED"
+  response_value_type: "STRING"
+  select_multiple: false
+  required: true
+  sequence: 1
