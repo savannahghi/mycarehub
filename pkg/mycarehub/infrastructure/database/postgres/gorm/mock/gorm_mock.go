@@ -9,6 +9,7 @@ import (
 
 	"github.com/brianvoe/gofakeit"
 	"github.com/google/uuid"
+	"github.com/lib/pq"
 	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/firebasetools"
@@ -154,6 +155,7 @@ type GormMock struct {
 	MockGetQuestionsByQuestionnaireIDFn                  func(ctx context.Context, questionnaireID string) ([]*gorm.Question, error)
 	MockGetQuestionInputChoicesByQuestionIDFn            func(ctx context.Context, questionID string) ([]*gorm.QuestionInputChoice, error)
 	MockCreateScreeningToolResponseFn                    func(ctx context.Context, screeningToolResponse *gorm.ScreeningToolResponse, screeningToolQuestionResponses []*gorm.ScreeningToolQuestionResponse) (*string, error)
+	MockGetAvailableScreeningToolsFn                     func(ctx context.Context, clientID string, facilityID string) ([]*gorm.ScreeningTool, error)
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -166,7 +168,7 @@ func NewGormMock() *GormMock {
 	*/
 
 	ID := gofakeit.Number(300, 400)
-	UUID := ksuid.New().String()
+	UUID := uuid.New().String()
 	name := gofakeit.Name()
 	code := 1234567890
 	county := "Nairobi"
@@ -407,6 +409,21 @@ func NewGormMock() *GormMock {
 		},
 		MockRegisterStaffFn: func(ctx context.Context, contact *gorm.Contact, identifier *gorm.Identifier, staffProfile *gorm.StaffProfile) error {
 			return nil
+		},
+		MockGetAvailableScreeningToolsFn: func(ctx context.Context, clientID, facilityID string) ([]*gorm.ScreeningTool, error) {
+			return []*gorm.ScreeningTool{
+				{
+					OrganisationID:  uuid.New().String(),
+					ID:              UUID,
+					Active:          true,
+					QuestionnaireID: uuid.New().String(),
+					Threshold:       4,
+					ClientTypes:     pq.StringArray{"PMTCT"},
+					Genders:         pq.StringArray{"MALE"},
+					MinimumAge:      14,
+					MaximumAge:      24,
+				},
+			}, nil
 		},
 		MockGetSharedHealthDiaryEntriesFn: func(ctx context.Context, clientID string, facilityID string) ([]*gorm.ClientHealthDiaryEntry, error) {
 			return []*gorm.ClientHealthDiaryEntry{
@@ -1268,7 +1285,7 @@ func (gm *GormMock) ReactivateFacility(ctx context.Context, mflCode *int) (bool,
 	return gm.MockReactivateFacilityFn(ctx, mflCode)
 }
 
-//GetCurrentTerms mocks the implementation of getting all the current terms of service.
+// GetCurrentTerms mocks the implementation of getting all the current terms of service.
 func (gm *GormMock) GetCurrentTerms(ctx context.Context, flavour feedlib.Flavour) (*gorm.TermsOfService, error) {
 	return gm.MockGetCurrentTermsFn(ctx, flavour)
 }
@@ -1293,7 +1310,7 @@ func (gm *GormMock) SavePin(ctx context.Context, pinData *gorm.PINData) (bool, e
 	return gm.MockSavePinFn(ctx, pinData)
 }
 
-//GetSecurityQuestions mocks the implementation of getting all the security questions.
+// GetSecurityQuestions mocks the implementation of getting all the security questions.
 func (gm *GormMock) GetSecurityQuestions(ctx context.Context, flavour feedlib.Flavour) ([]*gorm.SecurityQuestion, error) {
 	return gm.MockGetSecurityQuestionsFn(ctx, flavour)
 }
@@ -1763,7 +1780,7 @@ func (gm *GormMock) GetFacilityStaffs(ctx context.Context, facilityID string) ([
 	return gm.MockGetFacilityStaffsFn(ctx, facilityID)
 }
 
-//UpdateNotification updates a notification with the new data
+// UpdateNotification updates a notification with the new data
 func (gm *GormMock) UpdateNotification(ctx context.Context, notification *gorm.Notification, updateData map[string]interface{}) error {
 	return gm.MockUpdateNotificationFn(ctx, notification, updateData)
 }
@@ -1866,4 +1883,9 @@ func (gm *GormMock) GetQuestionInputChoicesByQuestionID(ctx context.Context, que
 // CreateScreeningToolResponse mocks the implementation of creating a screening tool response
 func (gm *GormMock) CreateScreeningToolResponse(ctx context.Context, screeningToolResponse *gorm.ScreeningToolResponse, screeningToolQuestionResponses []*gorm.ScreeningToolQuestionResponse) (*string, error) {
 	return gm.MockCreateScreeningToolResponseFn(ctx, screeningToolResponse, screeningToolQuestionResponses)
+}
+
+// GetAvailableScreeningTools mocks the implementation of getting available screening tools
+func (gm *GormMock) GetAvailableScreeningTools(ctx context.Context, clientID string, facilityID string) ([]*gorm.ScreeningTool, error) {
+	return gm.MockGetAvailableScreeningToolsFn(ctx, clientID, facilityID)
 }

@@ -12,15 +12,21 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
 )
 
-// IScreeningTools contains methods related to the screening tools
-type IScreeningTools interface {
+// ICreateScreeningTools contains methods related to the screening tools
+type ICreateScreeningTools interface {
 	CreateScreeningTool(ctx context.Context, input dto.ScreeningToolInput) (bool, error)
 	RespondToScreeningTool(ctx context.Context, input dto.QuestionnaireScreeningToolResponseInput) (bool, error)
 }
 
+// IGetScreeningTools contains methods related to the screening tools
+type IGetScreeningTools interface {
+	GetAvailableScreeningTools(ctx context.Context, clientID string, facilityID string) ([]*domain.ScreeningTool, error)
+}
+
 // UseCaseQuestionnaire contains questionnaire interfaces
 type UseCaseQuestionnaire interface {
-	IScreeningTools
+	ICreateScreeningTools
+	IGetScreeningTools
 }
 
 // UseCaseQuestionnaireImpl represents the questionnaire implementations
@@ -37,7 +43,7 @@ func NewUseCaseQuestionnaire(
 	create infrastructure.Create,
 	update infrastructure.Update,
 	delete infrastructure.Delete,
-) *UseCaseQuestionnaireImpl {
+) UseCaseQuestionnaire {
 	return &UseCaseQuestionnaireImpl{
 		Query:  query,
 		Create: create,
@@ -186,4 +192,15 @@ func (q *UseCaseQuestionnaireImpl) RespondToScreeningTool(ctx context.Context, i
 		}
 	}
 	return true, nil
+}
+
+// GetAvailableScreeningTools returns the available screening tools
+func (q *UseCaseQuestionnaireImpl) GetAvailableScreeningTools(ctx context.Context, clientID string, facilityID string) ([]*domain.ScreeningTool, error) {
+	screeningTools, err := q.Query.GetAvailableScreeningTools(ctx, clientID, facilityID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, fmt.Errorf("failed to get screening tools: %w", err)
+	}
+
+	return screeningTools, nil
 }

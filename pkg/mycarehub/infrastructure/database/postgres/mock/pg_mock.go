@@ -150,6 +150,7 @@ type PostgresMock struct {
 	MockCreateScreeningToolFn                            func(ctx context.Context, input *domain.ScreeningTool) error
 	MockCreateScreeningToolResponseFn                    func(ctx context.Context, input *domain.QuestionnaireScreeningToolResponse) (*string, error)
 	MockGetScreeningToolByIDFn                           func(ctx context.Context, toolID string) (*domain.ScreeningTool, error)
+	MockGetAvailableScreeningToolsFn                     func(ctx context.Context, clientID string, facilityID string) ([]*domain.ScreeningTool, error)
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -1068,6 +1069,23 @@ func NewPostgresMock() *PostgresMock {
 		MockUpdateClientServiceRequestFn: func(ctx context.Context, clientServiceRequest *domain.ServiceRequest, updateData map[string]interface{}) error {
 			return nil
 		},
+		MockGetAvailableScreeningToolsFn: func(ctx context.Context, clientID, facilityID string) ([]*domain.ScreeningTool, error) {
+			return []*domain.ScreeningTool{
+				{
+					ID:              ID,
+					Active:          true,
+					QuestionnaireID: ID,
+					Threshold:       4,
+					ClientTypes:     []enums.ClientType{"PMTCT"},
+					Genders:         []enumutils.Gender{"MALE"},
+					AgeRange: domain.AgeRange{
+						LowerBound: 14,
+						UpperBound: 20,
+					},
+					Questionnaire: domain.Questionnaire{},
+				},
+			}, nil
+		},
 		MockCreateClientFn: func(ctx context.Context, client domain.ClientProfile, contactID, identifierID string) (*domain.ClientProfile, error) {
 			return clientProfile, nil
 		},
@@ -1199,7 +1217,7 @@ func (gm *PostgresMock) ReactivateFacility(ctx context.Context, mflCode *int) (b
 	return gm.MockReactivateFacilityFn(ctx, mflCode)
 }
 
-//GetCurrentTerms mocks the implementation of getting all the current terms of service.
+// GetCurrentTerms mocks the implementation of getting all the current terms of service.
 func (gm *PostgresMock) GetCurrentTerms(ctx context.Context, flavour feedlib.Flavour) (*domain.TermsOfService, error) {
 	return gm.MockGetCurrentTermsFn(ctx, flavour)
 }
@@ -1229,7 +1247,7 @@ func (gm *PostgresMock) UpdateUserSurveys(ctx context.Context, survey *domain.Us
 	return gm.MockUpdateUserSurveysFn(ctx, survey, updateData)
 }
 
-//GetSecurityQuestions mocks the implementation of getting all the security questions.
+// GetSecurityQuestions mocks the implementation of getting all the security questions.
 func (gm *PostgresMock) GetSecurityQuestions(ctx context.Context, flavour feedlib.Flavour) ([]*domain.SecurityQuestion, error) {
 	return gm.MockGetSecurityQuestionsFn(ctx, flavour)
 }
@@ -1324,7 +1342,7 @@ func (gm *PostgresMock) UpdateIsCorrectSecurityQuestionResponse(ctx context.Cont
 	return gm.MockUpdateIsCorrectSecurityQuestionResponseFn(ctx, userID, isCorrectSecurityQuestionResponse)
 }
 
-//FetchFacilities mocks the implementation of fetching facility
+// FetchFacilities mocks the implementation of fetching facility
 func (gm *PostgresMock) FetchFacilities(ctx context.Context) ([]*domain.Facility, error) {
 	return gm.MockFetchFacilitiesFn(ctx)
 }
@@ -1665,7 +1683,7 @@ func (gm *PostgresMock) ListNotifications(ctx context.Context, params *domain.No
 	return gm.MockListNotificationsFn(ctx, params, filters, pagination)
 }
 
-//ListAvailableNotificationTypes retrieves the distinct notification types available for a user
+// ListAvailableNotificationTypes retrieves the distinct notification types available for a user
 func (gm *PostgresMock) ListAvailableNotificationTypes(ctx context.Context, params *domain.Notification) ([]enums.NotificationType, error) {
 	return gm.MockListAvailableNotificationTypesFn(ctx, params)
 }
@@ -1778,4 +1796,9 @@ func (gm *PostgresMock) CreateScreeningToolResponse(ctx context.Context, input *
 // GetScreeningToolByID mocks the implementation of getting a screening tool by ID
 func (gm *PostgresMock) GetScreeningToolByID(ctx context.Context, toolID string) (*domain.ScreeningTool, error) {
 	return gm.MockGetScreeningToolByIDFn(ctx, toolID)
+}
+
+// GetAvailableScreeningTools mocks the implementation of getting available screening tools
+func (gm *PostgresMock) GetAvailableScreeningTools(ctx context.Context, clientID string, facilityID string) ([]*domain.ScreeningTool, error) {
+	return gm.MockGetAvailableScreeningToolsFn(ctx, clientID, facilityID)
 }

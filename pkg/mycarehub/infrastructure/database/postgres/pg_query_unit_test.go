@@ -6067,3 +6067,82 @@ func TestMyCareHubDb_GetScreeningToolByID(t *testing.T) {
 		})
 	}
 }
+
+func TestMyCareHubDb_GetAvailableScreeningTools(t *testing.T) {
+	ctx := context.Background()
+
+	var fakeGorm = gormMock.NewGormMock()
+	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+	type args struct {
+		ctx        context.Context
+		clientID   string
+		facilityID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    []*domain.ScreeningTool
+		wantErr bool
+	}{
+		{
+			name: "Happy case: return available screening tools",
+			args: args{
+				ctx:        ctx,
+				clientID:   uuid.New().String(),
+				facilityID: uuid.New().String(),
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: unable to get available screening tools",
+			args: args{
+				ctx:        ctx,
+				clientID:   uuid.New().String(),
+				facilityID: uuid.New().String(),
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: unable to get questionnaire by id",
+			args: args{
+				ctx:        ctx,
+				clientID:   uuid.New().String(),
+				facilityID: uuid.New().String(),
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "Sad case: unable to get available screening tools" {
+				fakeGorm.MockGetAvailableScreeningToolsFn = func(ctx context.Context, clientID, facilityID string) ([]*gorm.ScreeningTool, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case: unable to get questionnaire by id" {
+				fakeGorm.MockGetAvailableScreeningToolsFn = func(ctx context.Context, clientID, facilityID string) ([]*gorm.ScreeningTool, error) {
+					return []*gorm.ScreeningTool{
+						{
+							OrganisationID:  uuid.New().String(),
+							ID:              uuid.New().String(),
+							Active:          true,
+							QuestionnaireID: uuid.New().String(),
+							Threshold:       10,
+							MinimumAge:      0,
+							MaximumAge:      0,
+						},
+					}, nil
+				}
+				fakeGorm.MockGetQuestionnaireByIDFn = func(ctx context.Context, questionnaireID string) (*gorm.Questionnaire, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+			_, err := d.GetAvailableScreeningTools(tt.args.ctx, tt.args.clientID, tt.args.facilityID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.GetAvailableScreeningTools() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}

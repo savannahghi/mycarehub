@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
@@ -158,6 +159,7 @@ type QuestionnaireScreeningToolResponse struct {
 	ScreeningToolID   string                                       `json:"screeningToolID"`
 	FacilityID        string                                       `json:"facilityID"`
 	ClientID          string                                       `json:"clientID"`
+	DateOfResponse    time.Time                                    `json:"dateOfResponse"`
 	AggregateScore    int                                          `json:"aggregateScore"`
 	QuestionResponses []QuestionnaireScreeningToolQuestionResponse `json:"questionResponses"`
 }

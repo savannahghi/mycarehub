@@ -453,3 +453,53 @@ func TestUseCaseQuestionnaireImpl_RespondToScreeningTool(t *testing.T) {
 		})
 	}
 }
+
+func TestUseCaseQuestionnaireImpl_GetAvailableScreeningTools(t *testing.T) {
+	fakeDB := pgMock.NewPostgresMock()
+	q := questionnaires.NewUseCaseQuestionnaire(fakeDB, fakeDB, fakeDB, fakeDB)
+
+	type args struct {
+		ctx        context.Context
+		clientID   string
+		facilityID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    []*domain.ScreeningTool
+		wantErr bool
+	}{
+		{
+			name: "Happy case: Get available screening tools",
+			args: args{
+				ctx:        context.Background(),
+				clientID:   uuid.New().String(),
+				facilityID: uuid.New().String(),
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: unable to get available screening tools",
+			args: args{
+				ctx:        context.Background(),
+				clientID:   uuid.New().String(),
+				facilityID: uuid.New().String(),
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "Sad case: unable to get available screening tools" {
+				fakeDB.MockGetAvailableScreeningToolsFn = func(ctx context.Context, clientID string, facilityID string) ([]*domain.ScreeningTool, error) {
+					return nil, errors.New("unable to get available screening tools")
+				}
+			}
+			_, err := q.GetAvailableScreeningTools(tt.args.ctx, tt.args.clientID, tt.args.facilityID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCaseQuestionnaireImpl.GetAvailableScreeningTools() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}
