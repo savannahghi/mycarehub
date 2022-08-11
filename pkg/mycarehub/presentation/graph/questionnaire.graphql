@@ -2,3 +2,7 @@ extend type Mutation{
     createScreeningTool(input: ScreeningToolInput!): Boolean!
     respondToScreeningTool(input: QuestionnaireScreeningToolResponseInput!): Boolean!
 }
+
+extend type Query{
+    getAvailableScreeningTools(clientID: String!, facilityID: String!): [ScreeningTool!]!
+}

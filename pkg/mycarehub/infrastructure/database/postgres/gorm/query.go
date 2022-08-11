@@ -102,6 +102,7 @@ type Query interface {
 	GetQuestionnaireByID(ctx context.Context, questionnaireID string) (*Questionnaire, error)
 	GetQuestionsByQuestionnaireID(ctx context.Context, questionnaireID string) ([]*Question, error)
 	GetQuestionInputChoicesByQuestionID(ctx context.Context, questionID string) ([]*QuestionInputChoice, error)
+	GetAvailableScreeningTools(ctx context.Context, clientID string, facilityID string) ([]*ScreeningTool, error)
 }
 
 // GetFacilityStaffs returns a list of staff at a particular facility
@@ -1382,6 +1383,40 @@ func (db *PGInstance) CheckIfStaffHasUnresolvedServiceRequests(ctx context.Conte
 	}
 
 	return false, nil
+}
+
+// GetAvailableScreeningTools returns all the available screening tools following the set criteria
+func (db *PGInstance) GetAvailableScreeningTools(ctx context.Context, clientID string, facilityID string) ([]*ScreeningTool, error) {
+	var screeningTools []*ScreeningTool
+	t := time.Now().Add(time.Hour * -24)
+	err := db.DB.Raw(
+		`
+		SELECT * FROM questionnaires_screeningtool
+			JOIN questionnaires_screeningtoolresponse
+			ON questionnaires_screeningtool.id=questionnaires_screeningtoolresponse.screeningtool_id
+			JOIN clients_servicerequest
+			ON (questionnaires_screeningtoolresponse.id)::text=(clients_servicerequest.meta->>'response_id')::text
+			JOIN clients_client
+			ON clients_servicerequest.client_id = clients_client.id
+			JOIN users_user
+			ON clients_client.user_id = users_user.id 
+			WHERE clients_servicerequest.client_id = ?
+			AND clients_servicerequest.request_type = ?
+			AND clients_servicerequest.facility_id = ?
+			AND clients_servicerequest.status = ?
+			AND questionnaires_screeningtoolresponse.created > ?
+			AND questionnaires_screeningtool.client_types && clients_client.client_types
+			AND users_user.gender =  ANY (questionnaires_screeningtool.genders)
+			AND DATE_PART( 'year', AGE(CURRENT_DATE, users_user.date_of_birth))::int >=  questionnaires_screeningtool.min_age
+			AND DATE_PART( 'year', AGE(CURRENT_DATE, users_user.date_of_birth))::int <=  questionnaires_screeningtool.max_age
+			`, clientID, enums.ServiceRequestTypeScreeningToolsRedFlag.String(), facilityID, enums.ServiceRequestStatusResolved.String(), t).
+		Scan(&screeningTools).Error
+
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, fmt.Errorf("failed to get service requests for client: %w", err)
+	}
+	return screeningTools, nil
 }
 
 // GetClientsByFilterParams returns clients based on the filter params

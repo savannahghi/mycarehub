@@ -4322,3 +4322,45 @@ func TestPGInstance_GetQuestionInputChoicesByQuestionID(t *testing.T) {
 		})
 	}
 }
+
+func TestPGInstance_GetAvailableScreeningTools(t *testing.T) {
+	type args struct {
+		ctx        context.Context
+		clientID   string
+		facilityID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    []*gorm.ScreeningTool
+		wantErr bool
+	}{
+		{
+			name: "Happy case: get available screening tools",
+			args: args{
+				ctx:        context.Background(),
+				clientID:   clientID,
+				facilityID: facilityID,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: invalid get available screening tools",
+			args: args{
+				ctx:        context.Background(),
+				clientID:   gofakeit.HipsterParagraph(1, 10, 200, ""),
+				facilityID: gofakeit.HipsterParagraph(1, 10, 200, ""),
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := testingDB.GetAvailableScreeningTools(tt.args.ctx, tt.args.clientID, tt.args.facilityID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.GetAvailableScreeningTools() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}

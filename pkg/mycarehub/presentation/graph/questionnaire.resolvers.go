@@ -7,6 +7,7 @@ import (
 	"context"
 
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 )
 
 func (r *mutationResolver) CreateScreeningTool(ctx context.Context, input dto.ScreeningToolInput) (bool, error) {
@@ -15,4 +16,8 @@ func (r *mutationResolver) CreateScreeningTool(ctx context.Context, input dto.Sc
 
 func (r *mutationResolver) RespondToScreeningTool(ctx context.Context, input dto.QuestionnaireScreeningToolResponseInput) (bool, error) {
 	return r.mycarehub.Questionnaires.RespondToScreeningTool(ctx, input)
+}
+
+func (r *queryResolver) GetAvailableScreeningTools(ctx context.Context, clientID string, facilityID string) ([]*domain.ScreeningTool, error) {
+	return r.mycarehub.Questionnaires.GetAvailableScreeningTools(ctx, clientID, facilityID)
 }

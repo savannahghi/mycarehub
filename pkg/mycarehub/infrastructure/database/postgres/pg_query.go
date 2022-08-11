@@ -265,7 +265,7 @@ func (d *MyCareHubDb) CheckIfPhoneNumberExists(ctx context.Context, phone string
 	return exists, nil
 }
 
-//VerifyOTP performs the checking of OTP's existence for the specified user.
+// VerifyOTP performs the checking of OTP's existence for the specified user.
 func (d *MyCareHubDb) VerifyOTP(ctx context.Context, payload *dto.VerifyOTPInput) (bool, error) {
 	if payload.PhoneNumber == "" || payload.OTP == "" {
 		return false, fmt.Errorf("user ID or phone number or OTP cannot be empty")
@@ -319,7 +319,7 @@ func (d *MyCareHubDb) GetClientProfileByUserID(ctx context.Context, userID strin
 	}, nil
 }
 
-//GetStaffProfileByUserID fetches the staff's profile using the user's ID and returns the staff's profile in the login response.
+// GetStaffProfileByUserID fetches the staff's profile using the user's ID and returns the staff's profile in the login response.
 func (d *MyCareHubDb) GetStaffProfileByUserID(ctx context.Context, userID string) (*domain.StaffProfile, error) {
 	if userID == "" {
 		return nil, fmt.Errorf("staff's user ID must be defined")
@@ -1312,7 +1312,7 @@ func (d *MyCareHubDb) ListNotifications(ctx context.Context, params *domain.Noti
 	return mapped, pageInfo, nil
 }
 
-//ListAvailableNotificationTypes retrieves the distinct notification types available for a user
+// ListAvailableNotificationTypes retrieves the distinct notification types available for a user
 func (d *MyCareHubDb) ListAvailableNotificationTypes(ctx context.Context, params *domain.Notification) ([]enums.NotificationType, error) {
 	parameters := &gorm.Notification{
 		Active:     true,
@@ -2079,4 +2079,51 @@ func (d *MyCareHubDb) GetScreeningToolByID(ctx context.Context, toolID string) (
 			Questions:   questions,
 		},
 	}, nil
+}
+
+// GetAvailableScreeningTools fetches available screening tools for a client based on set criteria settings
+func (d *MyCareHubDb) GetAvailableScreeningTools(ctx context.Context, clientID string, facilityID string) ([]*domain.ScreeningTool, error) {
+	screeningTools, err := d.query.GetAvailableScreeningTools(ctx, clientID, facilityID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
+	var screeningToolList []*domain.ScreeningTool
+	for _, s := range screeningTools {
+		var clientTypes []enums.ClientType
+		for _, k := range s.ClientTypes {
+			clientTypes = append(clientTypes, enums.ClientType(k))
+		}
+		var genders []enumutils.Gender
+		for _, g := range s.Genders {
+			genders = append(genders, enumutils.Gender(g))
+		}
+
+		questionnaire, err := d.query.GetQuestionnaireByID(ctx, s.QuestionnaireID)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return nil, err
+		}
+
+		screeningToolList = append(screeningToolList, &domain.ScreeningTool{
+			ID:              s.ID,
+			Active:          s.Active,
+			QuestionnaireID: s.QuestionnaireID,
+			Threshold:       s.Threshold,
+			ClientTypes:     clientTypes,
+			Genders:         genders,
+			AgeRange: domain.AgeRange{
+				LowerBound: s.MinimumAge,
+				UpperBound: s.MaximumAge,
+			},
+			Questionnaire: domain.Questionnaire{
+				ID:          questionnaire.ID,
+				Active:      questionnaire.Active,
+				Name:        questionnaire.Name,
+				Description: questionnaire.Description,
+			},
+		})
+	}
+	return screeningToolList, nil
 }
