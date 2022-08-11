@@ -1790,10 +1790,10 @@ func (d *MyCareHubDb) CheckAppointmentExistsByExternalID(ctx context.Context, ex
 }
 
 // GetUserSurveyForms retrives all user survey forms
-func (d *MyCareHubDb) GetUserSurveyForms(ctx context.Context, userID string) ([]*domain.UserSurvey, error) {
+func (d *MyCareHubDb) GetUserSurveyForms(ctx context.Context, userID string, projectID *int, formID *string, hasSubmitted *bool) ([]*domain.UserSurvey, error) {
 	var userSurveys []*domain.UserSurvey
 
-	surveys, err := d.query.GetUserSurveyForms(ctx, userID)
+	surveys, err := d.query.GetUserSurveyForms(ctx, userID, projectID, formID, hasSubmitted)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, err

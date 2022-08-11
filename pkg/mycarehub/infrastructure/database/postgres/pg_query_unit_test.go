@@ -5324,8 +5324,11 @@ func TestMyCareHubDb_GetUserSurveyForms(t *testing.T) {
 	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
 
 	type args struct {
-		ctx    context.Context
-		userID string
+		ctx          context.Context
+		userID       string
+		projectID    *int
+		formID       *string
+		hasSubmitted *bool
 	}
 	tests := []struct {
 		name    string
@@ -5351,12 +5354,12 @@ func TestMyCareHubDb_GetUserSurveyForms(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.name == "Sad case:  unable to get user survey forms" {
-				fakeGorm.MockGetUserSurveyFormsFn = func(ctx context.Context, userID string) ([]*gorm.UserSurvey, error) {
+				fakeGorm.MockGetUserSurveyFormsFn = func(ctx context.Context, userID string, projectID *int, formID *string, hasSubmitted *bool) ([]*gorm.UserSurvey, error) {
 					return nil, fmt.Errorf("failed to get user survey forms")
 				}
 			}
 
-			got, err := d.GetUserSurveyForms(tt.args.ctx, tt.args.userID)
+			got, err := d.GetUserSurveyForms(tt.args.ctx, tt.args.userID, tt.args.projectID, tt.args.formID, tt.args.hasSubmitted)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("MyCareHubDb.GetUserSurveyForms() error = %v, wantErr %v", err, tt.wantErr)
 				return

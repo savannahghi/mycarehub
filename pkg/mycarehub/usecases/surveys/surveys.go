@@ -62,7 +62,7 @@ func NewUsecaseSurveys(
 
 // GetUserSurveyForms lists the surveys available for a given project
 func (u *UsecaseSurveysImpl) GetUserSurveyForms(ctx context.Context, userID string) ([]*domain.UserSurvey, error) {
-	userSurveys, err := u.Query.GetUserSurveyForms(ctx, userID)
+	userSurveys, err := u.Query.GetUserSurveyForms(ctx, userID, nil, nil, nil)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, err
@@ -126,12 +126,6 @@ func (u *UsecaseSurveysImpl) SendClientSurveyLinks(ctx context.Context, facility
 		return true, nil
 	}
 
-	accessLinks, err := u.Surveys.ListPublicAccessLinks(ctx, *projectID, *formID)
-	if err != nil {
-		helpers.ReportErrorToSentry(err)
-		return false, fmt.Errorf("error getting survey form: %w", err)
-	}
-
 	surveyForm, err := u.Surveys.GetSurveyForm(ctx, *projectID, *formID)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
@@ -147,14 +141,18 @@ func (u *UsecaseSurveysImpl) SendClientSurveyLinks(ctx context.Context, facility
 	clientsNotifications := []alert{}
 
 	userSurveyInputs := []*dto.UserSurveyInput{}
-Clients:
+
 	for _, client := range clients {
 		// validate if they have an existing survey that has been sent
 		// If a survey exists for a client, continue to the next client
-		for _, link := range accessLinks {
-			if link.DisplayName == client.UserID {
-				continue Clients
-			}
+		hasSubmitted := false
+		userSurveys, err := u.Query.GetUserSurveyForms(ctx, client.UserID, projectID, formID, &hasSubmitted)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+		}
+
+		if len(userSurveys) > 0 {
+			continue
 		}
 
 		accessTokenInput := dto.SurveyLinkInput{

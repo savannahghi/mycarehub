@@ -148,6 +148,10 @@ var (
 	questionID      = "8ecbbc80-24c8-421a-9f7a-e14e12678ef4"
 	firstChoiceID   = "8ecbbc80-24c8-421a-9f7a-e14e12678ef0"
 	secondChoiceID  = "8ecbbc80-24c8-421a-9f7a-e14e12678ef1"
+
+	// surveys
+	projectID = 1
+	formID    = "8ecbbc80-24c8-421a-9f1a-e14e12678ef4"
 )
 
 func TestMain(m *testing.M) {
@@ -271,6 +275,9 @@ func TestMain(m *testing.M) {
 			"test_question_id":      questionID,
 			"test_first_choice_id":  firstChoiceID,
 			"test_second_choice_id": secondChoiceID,
+
+			"test_project_id": projectID,
+			"test_form_id":    formID,
 		}),
 		// this is the directory containing the YAML files.
 		// The file name should be the same as the table name

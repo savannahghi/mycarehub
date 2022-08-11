@@ -6,9 +6,9 @@
   title: Survey title
   description: Survey description
   link_id: 1
-  form_id: "fe3b9c8e-f8e3-4f0f-b8b1-f8b8b8b8b8b8"
-  project_id: 2
+  form_id: {{.test_form_id}}
+  project_id: {{.test_project_id}}
   token: "fe3b9c8e-f8e3-4f0f-b8b1-f8b8b8b8b8b8"
-  has_submitted: true
+  has_submitted: false
   organisation_id: {{.test_organisation_id}}
   user_id: {{.user_with_roles_id}}
