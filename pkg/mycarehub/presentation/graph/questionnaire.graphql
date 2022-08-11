@@ -5,4 +5,5 @@ extend type Mutation{
 
 extend type Query{
     getAvailableScreeningTools(clientID: String!, facilityID: String!): [ScreeningTool!]!
+    getScreeningToolByID(id: ID!): ScreeningTool
 }
