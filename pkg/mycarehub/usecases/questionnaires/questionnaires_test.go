@@ -549,3 +549,52 @@ func TestUseCaseQuestionnaireImpl_GetScreeningToolByID(t *testing.T) {
 		})
 	}
 }
+
+func TestUseCaseQuestionnaireImpl_GetFacilityRespondedScreeningTools(t *testing.T) {
+	fakeDB := pgMock.NewPostgresMock()
+	q := questionnaires.NewUseCaseQuestionnaire(fakeDB, fakeDB, fakeDB, fakeDB)
+
+	type args struct {
+		ctx        context.Context
+		facilityID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: Get facility responded screening tools",
+			args: args{
+				ctx:        context.Background(),
+				facilityID: uuid.New().String(),
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: unable to get facility responded screening tools",
+			args: args{
+				ctx:        context.Background(),
+				facilityID: uuid.New().String(),
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "Sad case: unable to get facility responded screening tools" {
+				fakeDB.MockGetFacilityRespondedScreeningToolsFn = func(ctx context.Context, facilityID string) ([]*domain.ScreeningTool, error) {
+					return nil, errors.New("unable to get facility responded screening tools")
+				}
+			}
+			got, err := q.GetFacilityRespondedScreeningTools(tt.args.ctx, tt.args.facilityID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCaseQuestionnaireImpl.GetFacilityRespondedScreeningTools() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected %v", got)
+			}
+		})
+	}
+}

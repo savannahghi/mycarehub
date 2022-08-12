@@ -2125,3 +2125,34 @@ func (d *MyCareHubDb) GetAvailableScreeningTools(ctx context.Context, clientID s
 	}
 	return screeningToolList, nil
 }
+
+// GetFacilityRespondedScreeningTools fetches responded screening tools for a given facility
+func (d *MyCareHubDb) GetFacilityRespondedScreeningTools(ctx context.Context, facilityID string) ([]*domain.ScreeningTool, error) {
+	screeningTools, err := d.query.GetFacilityRespondedScreeningTools(ctx, facilityID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
+	var screeningToolList []*domain.ScreeningTool
+	for _, s := range screeningTools {
+		questionnaire, err := d.query.GetQuestionnaireByID(ctx, s.QuestionnaireID)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return nil, err
+		}
+		screeningToolList = append(screeningToolList, &domain.ScreeningTool{
+			ID:              s.ID,
+			Active:          s.Active,
+			QuestionnaireID: s.QuestionnaireID,
+			Questionnaire: domain.Questionnaire{
+				ID:          questionnaire.ID,
+				Active:      questionnaire.Active,
+				Name:        questionnaire.Name,
+				Description: questionnaire.Description,
+			},
+		})
+	}
+	return screeningToolList, nil
+
+}

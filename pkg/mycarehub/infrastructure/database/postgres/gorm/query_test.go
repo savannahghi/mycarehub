@@ -4375,3 +4375,45 @@ func TestPGInstance_GetAvailableScreeningTools(t *testing.T) {
 		})
 	}
 }
+
+func TestPGInstance_GetFacilityRespondedScreeningTools(t *testing.T) {
+	type args struct {
+		ctx        context.Context
+		facilityID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: get facility responded screening tools",
+			args: args{
+				ctx:        context.Background(),
+				facilityID: facilityID,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: invalid get facility responded screening tools",
+			args: args{
+				ctx:        context.Background(),
+				facilityID: gofakeit.HipsterParagraph(1, 10, 200, ""),
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := testingDB.GetFacilityRespondedScreeningTools(tt.args.ctx, tt.args.facilityID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.GetFacilityRespondedScreeningTools() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected value, got %v", got)
+				return
+			}
+		})
+	}
+}

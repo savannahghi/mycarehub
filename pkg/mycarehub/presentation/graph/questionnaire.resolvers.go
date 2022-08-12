@@ -25,3 +25,7 @@ func (r *queryResolver) GetAvailableScreeningTools(ctx context.Context, clientID
 func (r *queryResolver) GetScreeningToolByID(ctx context.Context, id string) (*domain.ScreeningTool, error) {
 	return r.mycarehub.Questionnaires.GetScreeningToolByID(ctx, id)
 }
+
+func (r *queryResolver) GetFacilityRespondedScreeningTools(ctx context.Context, facilityID string) ([]*domain.ScreeningTool, error) {
+	return r.mycarehub.Questionnaires.GetFacilityRespondedScreeningTools(ctx, facilityID)
+}

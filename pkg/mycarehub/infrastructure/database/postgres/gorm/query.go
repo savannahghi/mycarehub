@@ -103,6 +103,7 @@ type Query interface {
 	GetQuestionsByQuestionnaireID(ctx context.Context, questionnaireID string) ([]*Question, error)
 	GetQuestionInputChoicesByQuestionID(ctx context.Context, questionID string) ([]*QuestionInputChoice, error)
 	GetAvailableScreeningTools(ctx context.Context, clientID string, facilityID string) ([]*ScreeningTool, error)
+	GetFacilityRespondedScreeningTools(ctx context.Context, facilityID string) ([]*ScreeningTool, error)
 }
 
 // GetFacilityStaffs returns a list of staff at a particular facility
@@ -1391,24 +1392,26 @@ func (db *PGInstance) GetAvailableScreeningTools(ctx context.Context, clientID s
 	err := db.DB.Raw(
 		`
 		SELECT * FROM questionnaires_screeningtool
+		JOIN clients_client
+		ON clients_client.client_types && questionnaires_screeningtool.client_types
+		JOIN users_user
+		ON clients_client.user_id = users_user.id
+		WHERE clients_client.id = ?
+		AND clients_client.current_facility_id = ?
+		AND users_user.gender =  ANY (questionnaires_screeningtool.genders)
+		AND DATE_PART( 'year', AGE(CURRENT_DATE, users_user.date_of_birth))::int >=  questionnaires_screeningtool.min_age
+		AND DATE_PART( 'year', AGE(CURRENT_DATE, users_user.date_of_birth))::int <=  questionnaires_screeningtool.max_age
+		AND questionnaires_screeningtool.id NOT IN
+		(
+			SELECT questionnaires_screeningtoolresponse.screeningtool_id FROM clients_servicerequest
 			JOIN questionnaires_screeningtoolresponse
-			ON questionnaires_screeningtool.id=questionnaires_screeningtoolresponse.screeningtool_id
-			JOIN clients_servicerequest
 			ON (questionnaires_screeningtoolresponse.id)::text=(clients_servicerequest.meta->>'response_id')::text
-			JOIN clients_client
-			ON clients_servicerequest.client_id = clients_client.id
-			JOIN users_user
-			ON clients_client.user_id = users_user.id 
-			WHERE clients_servicerequest.client_id = ?
+			WHERE  clients_servicerequest.client_id = ?
 			AND clients_servicerequest.request_type = ?
-			AND clients_servicerequest.facility_id = ?
 			AND clients_servicerequest.status = ?
-			AND questionnaires_screeningtoolresponse.created > ?
-			AND questionnaires_screeningtool.client_types && clients_client.client_types
-			AND users_user.gender =  ANY (questionnaires_screeningtool.genders)
-			AND DATE_PART( 'year', AGE(CURRENT_DATE, users_user.date_of_birth))::int >=  questionnaires_screeningtool.min_age
-			AND DATE_PART( 'year', AGE(CURRENT_DATE, users_user.date_of_birth))::int <=  questionnaires_screeningtool.max_age
-			`, clientID, enums.ServiceRequestTypeScreeningToolsRedFlag.String(), facilityID, enums.ServiceRequestStatusResolved.String(), t).
+			OR questionnaires_screeningtoolresponse.created > ?
+		)
+		`, clientID, facilityID, clientID, enums.ServiceRequestTypeScreeningToolsRedFlag.String(), enums.ServiceRequestStatusPending.String(), t).
 		Scan(&screeningTools).Error
 
 	if err != nil {
@@ -1564,4 +1567,22 @@ func (db *PGInstance) GetQuestionInputChoicesByQuestionID(ctx context.Context, q
 	}
 
 	return questionInputChoices, nil
+}
+
+// GetFacilityRespondedScreeningTools is used to get facility's responded screening tools questions
+// These are screening tools that have red flag service requests and have been resolved
+func (db *PGInstance) GetFacilityRespondedScreeningTools(ctx context.Context, facilityID string) ([]*ScreeningTool, error) {
+	var screeningTools []*ScreeningTool
+	if err := db.DB.Joins("JOIN questionnaires_questionnaire ON questionnaires_screeningtool.questionnaire_id = questionnaires_questionnaire.id").
+		Joins("JOIN questionnaires_screeningtoolresponse ON questionnaires_screeningtoolresponse.screeningtool_id = questionnaires_screeningtool.id").
+		Joins("JOIN clients_servicerequest ON (questionnaires_screeningtoolresponse.id)::text=(clients_servicerequest.meta->>'response_id')::text").
+		Where("questionnaires_screeningtoolresponse.facility_id = ?", facilityID).
+		Where("clients_servicerequest.status = ?", enums.ServiceRequestStatusPending.String()).
+		Where("clients_servicerequest.request_type = ?", enums.ServiceRequestTypeScreeningToolsRedFlag.String()).
+		Find(&screeningTools).Error; err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, fmt.Errorf("failed to get facility's responded screening tools: %w", err)
+	}
+
+	return screeningTools, nil
 }

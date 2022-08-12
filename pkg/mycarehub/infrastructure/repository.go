@@ -124,6 +124,7 @@ type Query interface {
 	SearchStaffServiceRequests(ctx context.Context, searchParameter string, requestType string, facilityID string) ([]*domain.ServiceRequest, error)
 	GetScreeningToolByID(ctx context.Context, screeningToolID string) (*domain.ScreeningTool, error)
 	GetAvailableScreeningTools(ctx context.Context, clientID string, facilityID string) ([]*domain.ScreeningTool, error)
+	GetFacilityRespondedScreeningTools(ctx context.Context, facilityID string) ([]*domain.ScreeningTool, error)
 }
 
 // Update represents all the update action interfaces

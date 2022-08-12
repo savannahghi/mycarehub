@@ -151,6 +151,7 @@ type PostgresMock struct {
 	MockCreateScreeningToolResponseFn                    func(ctx context.Context, input *domain.QuestionnaireScreeningToolResponse) (*string, error)
 	MockGetScreeningToolByIDFn                           func(ctx context.Context, toolID string) (*domain.ScreeningTool, error)
 	MockGetAvailableScreeningToolsFn                     func(ctx context.Context, clientID string, facilityID string) ([]*domain.ScreeningTool, error)
+	MockGetFacilityRespondedScreeningToolsFn             func(ctx context.Context, facilityID string) ([]*domain.ScreeningTool, error)
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -1149,6 +1150,21 @@ func NewPostgresMock() *PostgresMock {
 				},
 			}, nil
 		},
+		MockGetFacilityRespondedScreeningToolsFn: func(ctx context.Context, facilityID string) ([]*domain.ScreeningTool, error) {
+			return []*domain.ScreeningTool{
+				{
+					ID:              screeningUUID,
+					Active:          true,
+					QuestionnaireID: screeningUUID,
+					Questionnaire: domain.Questionnaire{
+						ID:          screeningUUID,
+						Active:      true,
+						Name:        name,
+						Description: description,
+					},
+				},
+			}, nil
+		},
 	}
 }
 
@@ -1801,4 +1817,9 @@ func (gm *PostgresMock) GetScreeningToolByID(ctx context.Context, toolID string)
 // GetAvailableScreeningTools mocks the implementation of getting available screening tools
 func (gm *PostgresMock) GetAvailableScreeningTools(ctx context.Context, clientID string, facilityID string) ([]*domain.ScreeningTool, error) {
 	return gm.MockGetAvailableScreeningToolsFn(ctx, clientID, facilityID)
+}
+
+// GetFacilityRespondedScreeningTools mocks the implementation of getting responded screening tools
+func (gm *PostgresMock) GetFacilityRespondedScreeningTools(ctx context.Context, facilityID string) ([]*domain.ScreeningTool, error) {
+	return gm.MockGetFacilityRespondedScreeningToolsFn(ctx, facilityID)
 }
