@@ -62,7 +62,11 @@ func NewUsecaseSurveys(
 
 // GetUserSurveyForms lists the surveys available for a given project
 func (u *UsecaseSurveysImpl) GetUserSurveyForms(ctx context.Context, userID string) ([]*domain.UserSurvey, error) {
-	userSurveys, err := u.Query.GetUserSurveyForms(ctx, userID, nil, nil, nil)
+	params := map[string]interface{}{
+		"user_id":       userID,
+		"has_submitted": false,
+	}
+	userSurveys, err := u.Query.GetUserSurveyForms(ctx, params)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, err
@@ -145,12 +149,18 @@ func (u *UsecaseSurveysImpl) SendClientSurveyLinks(ctx context.Context, facility
 	for _, client := range clients {
 		// validate if they have an existing survey that has been sent
 		// If a survey exists for a client, continue to the next client
-		hasSubmitted := false
-		userSurveys, err := u.Query.GetUserSurveyForms(ctx, client.UserID, projectID, formID, &hasSubmitted)
+		params := map[string]interface{}{
+			"user_id":       client.UserID,
+			"project_id":    *projectID,
+			"form_id":       *formID,
+			"has_submitted": false,
+		}
+		userSurveys, err := u.Query.GetUserSurveyForms(ctx, params)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
 		}
 
+		fmt.Println(userSurveys)
 		if len(userSurveys) > 0 {
 			continue
 		}

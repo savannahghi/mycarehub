@@ -91,7 +91,7 @@ type Query interface {
 	GetClientScreeningToolResponsesByToolType(ctx context.Context, clientID, toolType string, active bool) ([]*ScreeningToolsResponse, error)
 	GetClientScreeningToolServiceRequestByToolType(ctx context.Context, clientID, toolType, status string) (*ClientServiceRequest, error)
 	GetAppointment(ctx context.Context, params *Appointment) (*Appointment, error)
-	GetUserSurveyForms(ctx context.Context, userID string, projectID *int, formID *string, hasSubmitted *bool) ([]*UserSurvey, error)
+	GetUserSurveyForms(ctx context.Context, params map[string]interface{}) ([]*UserSurvey, error)
 	CheckIfStaffHasUnresolvedServiceRequests(ctx context.Context, staffID string, serviceRequestType string) (bool, error)
 	GetFacilityStaffs(ctx context.Context, facilityID string) ([]*StaffProfile, error)
 	GetNotification(ctx context.Context, notificationID string) (*Notification, error)
@@ -1335,17 +1335,9 @@ func (db *PGInstance) GetClientScreeningToolResponsesByToolType(ctx context.Cont
 }
 
 // GetUserSurveyForms retrieves all user survey forms
-func (db *PGInstance) GetUserSurveyForms(ctx context.Context, userID string, projectID *int, formID *string, hasSubmitted *bool) ([]*UserSurvey, error) {
+func (db *PGInstance) GetUserSurveyForms(ctx context.Context, params map[string]interface{}) ([]*UserSurvey, error) {
 	var userSurveys []*UserSurvey
-
-	queryParams := map[string]interface{}{
-		"user_id":       userID,
-		"project_id":    projectID,
-		"form_id":       formID,
-		"has_submitted": hasSubmitted,
-	}
-
-	err := db.DB.Where(queryParams).Find(&userSurveys).Error
+	err := db.DB.Where(params).Find(&userSurveys).Error
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed to get user surveys: %v", err)

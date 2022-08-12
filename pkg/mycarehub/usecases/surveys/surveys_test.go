@@ -105,7 +105,7 @@ func TestUsecaseSurveysImpl_GetUserSurveyForms(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.name == "Sad case: unable to get user survey forms" {
-				fakeDB.MockGetUserSurveyFormsFn = func(ctx context.Context, userID string, projectID *int, formID *string, hasSubmitted *bool) ([]*domain.UserSurvey, error) {
+				fakeDB.MockGetUserSurveyFormsFn = func(ctx context.Context, params map[string]interface{}) ([]*domain.UserSurvey, error) {
 					return nil, fmt.Errorf("failed to get user survey forms")
 				}
 			}
@@ -314,7 +314,7 @@ func TestUsecaseSurveysImpl_SendClientSurveyLinks(t *testing.T) {
 						},
 					}, nil
 				}
-				fakeDB.MockGetUserSurveyFormsFn = func(ctx context.Context, userID string, projectID *int, formID *string, hasSubmitted *bool) ([]*domain.UserSurvey, error) {
+				fakeDB.MockGetUserSurveyFormsFn = func(ctx context.Context, params map[string]interface{}) ([]*domain.UserSurvey, error) {
 					return nil, fmt.Errorf("failed to get user survey forms")
 				}
 			}

@@ -111,7 +111,7 @@ type Query interface {
 	GetClientServiceRequests(ctx context.Context, requestType, status, clientID, facilityID string) ([]*domain.ServiceRequest, error)
 	GetActiveScreeningToolResponses(ctx context.Context, clientID string) ([]*domain.ScreeningToolQuestionResponse, error)
 	CheckAppointmentExistsByExternalID(ctx context.Context, externalID string) (bool, error)
-	GetUserSurveyForms(ctx context.Context, userID string, projectID *int, formID *string, hasSubmitted *bool) ([]*domain.UserSurvey, error)
+	GetUserSurveyForms(ctx context.Context, params map[string]interface{}) ([]*domain.UserSurvey, error)
 	GetAssessmentResponses(ctx context.Context, facilityID string, toolType string) ([]*domain.ScreeningToolAssessmentResponse, error)
 	GetClientScreeningToolResponsesByToolType(ctx context.Context, clientID, toolType string, active bool) ([]*domain.ScreeningToolQuestionResponse, error)
 	GetClientScreeningToolServiceRequestByToolType(ctx context.Context, clientID, toolType, status string) (*domain.ServiceRequest, error)
