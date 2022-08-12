@@ -124,7 +124,7 @@ type PostgresMock struct {
 	MockGetActiveScreeningToolResponsesFn                func(ctx context.Context, clientID string) ([]*domain.ScreeningToolQuestionResponse, error)
 	MockGetAppointmentByClientIDFn                       func(ctx context.Context, clientID string) (*domain.Appointment, error)
 	MockCheckAppointmentExistsByExternalIDFn             func(ctx context.Context, externalID string) (bool, error)
-	MockGetUserSurveyFormsFn                             func(ctx context.Context, userID string, projectID *int, formID *string, hasSubmitted *bool) ([]*domain.UserSurvey, error)
+	MockGetUserSurveyFormsFn                             func(ctx context.Context, params map[string]interface{}) ([]*domain.UserSurvey, error)
 	MockListNotificationsFn                              func(ctx context.Context, params *domain.Notification, filters []*firebasetools.FilterParam, pagination *domain.Pagination) ([]*domain.Notification, *domain.Pagination, error)
 	MockListAvailableNotificationTypesFn                 func(ctx context.Context, params *domain.Notification) ([]enums.NotificationType, error)
 	MockSaveNotificationFn                               func(ctx context.Context, payload *domain.Notification) error
@@ -979,7 +979,7 @@ func NewPostgresMock() *PostgresMock {
 				},
 			}, nil
 		},
-		MockGetUserSurveyFormsFn: func(ctx context.Context, userID string, projectID *int, formID *string, hasSubmitted *bool) ([]*domain.UserSurvey, error) {
+		MockGetUserSurveyFormsFn: func(ctx context.Context, params map[string]interface{}) ([]*domain.UserSurvey, error) {
 			return []*domain.UserSurvey{
 				{
 					ID:           uuid.New().String(),
@@ -1614,8 +1614,8 @@ func (gm *PostgresMock) CreateStaffServiceRequest(ctx context.Context, serviceRe
 }
 
 // GetUserSurveyForms mocks the implementation of getting user survey forms
-func (gm *PostgresMock) GetUserSurveyForms(ctx context.Context, userID string, projectID *int, formID *string, hasSubmitted *bool) ([]*domain.UserSurvey, error) {
-	return gm.MockGetUserSurveyFormsFn(ctx, userID, projectID, formID, hasSubmitted)
+func (gm *PostgresMock) GetUserSurveyForms(ctx context.Context, params map[string]interface{}) ([]*domain.UserSurvey, error) {
+	return gm.MockGetUserSurveyFormsFn(ctx, params)
 }
 
 // ResolveStaffServiceRequest mocks the implementation resolving staff service requests

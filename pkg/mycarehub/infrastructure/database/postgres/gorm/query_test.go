@@ -3869,11 +3869,8 @@ func TestPGInstance_GetUserSurveyForms(t *testing.T) {
 	hasSubmitted := false
 
 	type args struct {
-		ctx          context.Context
-		userID       string
-		projectID    *int
-		formID       *string
-		hasSubmitted *bool
+		ctx    context.Context
+		params map[string]interface{}
 	}
 	tests := []struct {
 		name    string
@@ -3883,56 +3880,33 @@ func TestPGInstance_GetUserSurveyForms(t *testing.T) {
 		{
 			name: "Happy case",
 			args: args{
-				ctx:          ctx,
-				userID:       userWithRolesID,
-				projectID:    &projectID,
-				formID:       &formID,
-				hasSubmitted: &hasSubmitted,
-			},
-			wantErr: false,
-		},
-		{
-			name: "Happy case: missing project id",
-			args: args{
-				ctx:          ctx,
-				userID:       userWithRolesID,
-				formID:       &formID,
-				hasSubmitted: &hasSubmitted,
-			},
-			wantErr: false,
-		},
-		{
-			name: "Happy case: missing form id",
-			args: args{
-				ctx:          ctx,
-				userID:       userWithRolesID,
-				projectID:    &projectID,
-				hasSubmitted: &hasSubmitted,
-			},
-			wantErr: false,
-		},
-		{
-			name: "Happy case: missing hasSubmitted",
-			args: args{
-				ctx:       ctx,
-				userID:    userWithRolesID,
-				projectID: &projectID,
-				formID:    &formID,
+				ctx: ctx,
+				params: map[string]interface{}{
+					"user_id":       userID,
+					"project_id":    projectID,
+					"form_id":       formID,
+					"has_submitted": hasSubmitted,
+				},
 			},
 			wantErr: false,
 		},
 		{
 			name: "Sad case",
 			args: args{
-				ctx:    ctx,
-				userID: gofakeit.BeerAlcohol(),
+				ctx: ctx,
+				params: map[string]interface{}{
+					"user_id":       gofakeit.BeerAlcohol(),
+					"project_id":    projectID,
+					"form_id":       formID,
+					"has_submitted": hasSubmitted,
+				},
 			},
 			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := testingDB.GetUserSurveyForms(tt.args.ctx, tt.args.userID, tt.args.projectID, tt.args.formID, tt.args.hasSubmitted)
+			got, err := testingDB.GetUserSurveyForms(tt.args.ctx, tt.args.params)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("PGInstance.GetUserSurveyForms() error = %v, wantErr %v", err, tt.wantErr)
 				return
