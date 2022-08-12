@@ -156,6 +156,7 @@ type GormMock struct {
 	MockGetQuestionInputChoicesByQuestionIDFn            func(ctx context.Context, questionID string) ([]*gorm.QuestionInputChoice, error)
 	MockCreateScreeningToolResponseFn                    func(ctx context.Context, screeningToolResponse *gorm.ScreeningToolResponse, screeningToolQuestionResponses []*gorm.ScreeningToolQuestionResponse) (*string, error)
 	MockGetAvailableScreeningToolsFn                     func(ctx context.Context, clientID string, facilityID string) ([]*gorm.ScreeningTool, error)
+	MockGetFacilityRespondedScreeningToolsFn             func(ctx context.Context, facilityID string) ([]*gorm.ScreeningTool, error)
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -1217,6 +1218,20 @@ func NewGormMock() *GormMock {
 		MockCreateScreeningToolResponseFn: func(ctx context.Context, screeningToolResponse *gorm.ScreeningToolResponse, screeningToolQuestionResponses []*gorm.ScreeningToolQuestionResponse) (*string, error) {
 			return &UUID, nil
 		},
+		MockGetFacilityRespondedScreeningToolsFn: func(ctx context.Context, facilityID string) ([]*gorm.ScreeningTool, error) {
+			return []*gorm.ScreeningTool{
+				{
+					ID:              UUID,
+					Active:          true,
+					QuestionnaireID: UUID,
+					Threshold:       1,
+					ClientTypes:     []string{enums.ClientTypeHighRisk.String()},
+					Genders:         []string{enumutils.GenderMale.String()},
+					MinimumAge:      18,
+					MaximumAge:      25,
+				},
+			}, nil
+		},
 	}
 }
 
@@ -1888,4 +1903,9 @@ func (gm *GormMock) CreateScreeningToolResponse(ctx context.Context, screeningTo
 // GetAvailableScreeningTools mocks the implementation of getting available screening tools
 func (gm *GormMock) GetAvailableScreeningTools(ctx context.Context, clientID string, facilityID string) ([]*gorm.ScreeningTool, error) {
 	return gm.MockGetAvailableScreeningToolsFn(ctx, clientID, facilityID)
+}
+
+// GetFacilityRespondedScreeningTools mocks the response returned by getting facility responded screening tools
+func (gm *GormMock) GetFacilityRespondedScreeningTools(ctx context.Context, facilityID string) ([]*gorm.ScreeningTool, error) {
+	return gm.MockGetFacilityRespondedScreeningToolsFn(ctx, facilityID)
 }

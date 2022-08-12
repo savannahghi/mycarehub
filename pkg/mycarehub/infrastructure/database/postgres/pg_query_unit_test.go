@@ -6164,3 +6164,54 @@ func TestMyCareHubDb_GetAvailableScreeningTools(t *testing.T) {
 		})
 	}
 }
+
+func TestMyCareHubDb_GetFacilityRespondedScreeningTools(t *testing.T) {
+	ctx := context.Background()
+
+	var fakeGorm = gormMock.NewGormMock()
+	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+	type args struct {
+		ctx        context.Context
+		facilityID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: return facility responded screening tools",
+			args: args{
+				ctx:        ctx,
+				facilityID: uuid.New().String(),
+			},
+		},
+		{
+			name: "Sad case: unable to get facility responded screening tools",
+			args: args{
+				ctx:        ctx,
+				facilityID: uuid.New().String(),
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "Sad case: unable to get facility responded screening tools" {
+				fakeGorm.MockGetFacilityRespondedScreeningToolsFn = func(ctx context.Context, facilityID string) ([]*gorm.ScreeningTool, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+			got, err := d.GetFacilityRespondedScreeningTools(tt.args.ctx, tt.args.facilityID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.GetFacilityRespondedScreeningTools() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected value, got %v", got)
+				return
+			}
+		})
+	}
+}

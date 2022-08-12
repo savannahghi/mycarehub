@@ -22,6 +22,7 @@ type ICreateScreeningTools interface {
 type IGetScreeningTools interface {
 	GetAvailableScreeningTools(ctx context.Context, clientID string, facilityID string) ([]*domain.ScreeningTool, error)
 	GetScreeningToolByID(ctx context.Context, id string) (*domain.ScreeningTool, error)
+	GetFacilityRespondedScreeningTools(ctx context.Context, facilityID string) ([]*domain.ScreeningTool, error)
 }
 
 // UseCaseQuestionnaire contains questionnaire interfaces
@@ -214,4 +215,15 @@ func (q *UseCaseQuestionnaireImpl) GetScreeningToolByID(ctx context.Context, id 
 		return nil, fmt.Errorf("failed to get screening tool: %w", err)
 	}
 	return screeningTool, nil
+}
+
+// GetFacilityRespondedScreeningTools gets a list of  screening tools that have been responded to for a given facility
+// These screening tools have a service request that has not been resolved yet
+func (q *UseCaseQuestionnaireImpl) GetFacilityRespondedScreeningTools(ctx context.Context, facilityID string) ([]*domain.ScreeningTool, error) {
+	screeningTools, err := q.Query.GetFacilityRespondedScreeningTools(ctx, facilityID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, fmt.Errorf("failed to get screening tools: %w", err)
+	}
+	return screeningTools, nil
 }
