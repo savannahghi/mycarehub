@@ -21,6 +21,7 @@ type ICreateScreeningTools interface {
 // IGetScreeningTools contains methods related to the screening tools
 type IGetScreeningTools interface {
 	GetAvailableScreeningTools(ctx context.Context, clientID string, facilityID string) ([]*domain.ScreeningTool, error)
+	GetScreeningToolByID(ctx context.Context, id string) (*domain.ScreeningTool, error)
 }
 
 // UseCaseQuestionnaire contains questionnaire interfaces
@@ -203,4 +204,14 @@ func (q *UseCaseQuestionnaireImpl) GetAvailableScreeningTools(ctx context.Contex
 	}
 
 	return screeningTools, nil
+}
+
+// GetScreeningToolByID looks for a screening tool using the provided ID and returns the screening tool
+func (q *UseCaseQuestionnaireImpl) GetScreeningToolByID(ctx context.Context, id string) (*domain.ScreeningTool, error) {
+	screeningTool, err := q.Query.GetScreeningToolByID(ctx, id)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, fmt.Errorf("failed to get screening tool: %w", err)
+	}
+	return screeningTool, nil
 }
