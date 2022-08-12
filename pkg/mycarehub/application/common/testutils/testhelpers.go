@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"os"
+	"strconv"
 
 	stream "github.com/GetStream/stream-chat-go/v5"
 	"github.com/savannahghi/firebasetools"
@@ -107,4 +109,14 @@ func InitializeTestService(ctx context.Context) (*usecases.MyCareHub, error) {
 		appointmentUsecase, notificationUseCase, surveysUsecase, metricsUsecase, questionnaireUsecase,
 	)
 	return i, nil
+}
+
+// CheckIfCurrentDBIsLocal checks whether the database used to run the test is a test/local database. If not, the setup exits
+func CheckIfCurrentDBIsLocal() bool {
+	isLocal, err := strconv.ParseBool(os.Getenv("IS_LOCAL_DB"))
+	if err != nil {
+		return false
+	}
+
+	return isLocal
 }
