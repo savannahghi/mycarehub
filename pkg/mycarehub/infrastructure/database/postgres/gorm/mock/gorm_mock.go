@@ -121,7 +121,7 @@ type GormMock struct {
 	MockGetClientServiceRequestsFn                       func(ctx context.Context, requestType, status, clientID, facilityID string) ([]*gorm.ClientServiceRequest, error)
 	MockGetActiveScreeningToolResponsesFn                func(ctx context.Context, clientID string) ([]*gorm.ScreeningToolsResponse, error)
 	MockCheckAppointmentExistsByExternalIDFn             func(ctx context.Context, externalID string) (bool, error)
-	MockGetUserSurveyFormsFn                             func(ctx context.Context, userID string) ([]*gorm.UserSurvey, error)
+	MockGetUserSurveyFormsFn                             func(ctx context.Context, userID string, projectID *int, formID *string, hasSubmitted *bool) ([]*gorm.UserSurvey, error)
 	MockGetAnsweredScreeningToolQuestionsFn              func(ctx context.Context, facilityID string, toolType string) ([]*gorm.ScreeningToolsResponse, error)
 	MockCreateNotificationFn                             func(ctx context.Context, notification *gorm.Notification) error
 	MockUpdateUserSurveysFn                              func(ctx context.Context, survey *gorm.UserSurvey, updateData map[string]interface{}) error
@@ -475,7 +475,7 @@ func NewGormMock() *GormMock {
 		MockListFacilitiesFn: func(ctx context.Context, searchTerm *string, filter []*domain.FiltersParam, pagination *domain.FacilityPage) (*domain.FacilityPage, error) {
 			return facilitiesPage, nil
 		},
-		MockGetUserSurveyFormsFn: func(ctx context.Context, userID string) ([]*gorm.UserSurvey, error) {
+		MockGetUserSurveyFormsFn: func(ctx context.Context, userID string, projectID *int, formID *string, hasSubmitted *bool) ([]*gorm.UserSurvey, error) {
 			return []*gorm.UserSurvey{
 				{
 					Base:           gorm.Base{},
@@ -1726,8 +1726,8 @@ func (gm *GormMock) CreateClient(ctx context.Context, client *gorm.Client, conta
 }
 
 // GetUserSurveyForms mocks the implementation of getting user survey forms
-func (gm *GormMock) GetUserSurveyForms(ctx context.Context, userID string) ([]*gorm.UserSurvey, error) {
-	return gm.MockGetUserSurveyFormsFn(ctx, userID)
+func (gm *GormMock) GetUserSurveyForms(ctx context.Context, userID string, projectID *int, formID *string, hasSubmitted *bool) ([]*gorm.UserSurvey, error) {
+	return gm.MockGetUserSurveyFormsFn(ctx, userID, projectID, formID, hasSubmitted)
 }
 
 // CreateIdentifier creates a new identifier

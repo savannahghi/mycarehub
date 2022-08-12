@@ -3866,10 +3866,14 @@ func TestPGInstance_GetFacilityStaffs(t *testing.T) {
 
 func TestPGInstance_GetUserSurveyForms(t *testing.T) {
 	ctx := context.Background()
+	hasSubmitted := false
 
 	type args struct {
-		ctx    context.Context
-		userID string
+		ctx          context.Context
+		userID       string
+		projectID    *int
+		formID       *string
+		hasSubmitted *bool
 	}
 	tests := []struct {
 		name    string
@@ -3879,8 +3883,41 @@ func TestPGInstance_GetUserSurveyForms(t *testing.T) {
 		{
 			name: "Happy case",
 			args: args{
-				ctx:    ctx,
-				userID: userWithRolesID,
+				ctx:          ctx,
+				userID:       userWithRolesID,
+				projectID:    &projectID,
+				formID:       &formID,
+				hasSubmitted: &hasSubmitted,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Happy case: missing project id",
+			args: args{
+				ctx:          ctx,
+				userID:       userWithRolesID,
+				formID:       &formID,
+				hasSubmitted: &hasSubmitted,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Happy case: missing form id",
+			args: args{
+				ctx:          ctx,
+				userID:       userWithRolesID,
+				projectID:    &projectID,
+				hasSubmitted: &hasSubmitted,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Happy case: missing hasSubmitted",
+			args: args{
+				ctx:       ctx,
+				userID:    userWithRolesID,
+				projectID: &projectID,
+				formID:    &formID,
 			},
 			wantErr: false,
 		},
@@ -3895,7 +3932,7 @@ func TestPGInstance_GetUserSurveyForms(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := testingDB.GetUserSurveyForms(tt.args.ctx, tt.args.userID)
+			got, err := testingDB.GetUserSurveyForms(tt.args.ctx, tt.args.userID, tt.args.projectID, tt.args.formID, tt.args.hasSubmitted)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("PGInstance.GetUserSurveyForms() error = %v, wantErr %v", err, tt.wantErr)
 				return
