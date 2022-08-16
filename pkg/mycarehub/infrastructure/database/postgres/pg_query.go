@@ -6,7 +6,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/mitchellh/mapstructure"
 	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/firebasetools"
@@ -656,7 +655,11 @@ func (d *MyCareHubDb) GetClientProfileByClientID(ctx context.Context, clientID s
 	for _, k := range response.ClientTypes {
 		clientList = append(clientList, enums.ClientType(k))
 	}
-	user := createMapUser(&response.User)
+	userProfile, err := d.query.GetUserProfileByUserID(ctx, response.UserID)
+	if err != nil {
+		return nil, err
+	}
+	user := createMapUser(userProfile)
 	return &domain.ClientProfile{
 		ID:                      response.ID,
 		User:                    user,
@@ -1947,12 +1950,7 @@ func (d *MyCareHubDb) GetClientsByFilterParams(ctx context.Context, facilityID *
 			helpers.ReportErrorToSentry(err)
 			return nil, err
 		}
-		domainUser := &domain.User{}
-		err = mapstructure.Decode(user, domainUser)
-		if err != nil {
-			helpers.ReportErrorToSentry(err)
-			return nil, err
-		}
+		domainUser := createMapUser(user)
 		clientList = append(clientList, &domain.ClientProfile{
 			ID:                      c.ID,
 			Active:                  c.Active,
