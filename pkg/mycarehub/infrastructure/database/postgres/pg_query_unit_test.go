@@ -2507,6 +2507,14 @@ func TestMyCareHubDb_GetClientByClientID(t *testing.T) {
 			},
 			wantErr: true,
 		},
+		{
+			name: "Sad Case - Fail to get user profile by user ID",
+			args: args{
+				ctx:      context.Background(),
+				clientID: uuid.New().String(),
+			},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -2516,6 +2524,11 @@ func TestMyCareHubDb_GetClientByClientID(t *testing.T) {
 			if tt.name == "Sad Case - Fail to get client by client ID" {
 				fakeGorm.MockGetClientProfileByClientIDFn = func(ctx context.Context, clientID string) (*gorm.Client, error) {
 					return nil, fmt.Errorf("failed to get client by client ID")
+				}
+			}
+			if tt.name == "Sad Case - Fail to get user profile by user ID" {
+				fakeGorm.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID *string) (*gorm.User, error) {
+					return nil, fmt.Errorf("failed to get user profile")
 				}
 			}
 			got, err := d.GetClientProfileByClientID(tt.args.ctx, tt.args.clientID)
