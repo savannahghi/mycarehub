@@ -635,7 +635,7 @@ func TestPGInstance_CreateClientCaregiver(t *testing.T) {
 			name: "Happy case",
 			args: args{
 				ctx:      ctx,
-				clientID: ClientToAddCaregiver,
+				clientID: clientToAddCaregiver,
 				clientCaregiver: &gorm.Caregiver{
 					FirstName:     gofakeit.Name(),
 					LastName:      gofakeit.Name(),
@@ -650,7 +650,7 @@ func TestPGInstance_CreateClientCaregiver(t *testing.T) {
 			name: "invalid: invalid input",
 			args: args{
 				ctx:      ctx,
-				clientID: ClientToAddCaregiver,
+				clientID: clientToAddCaregiver,
 				clientCaregiver: &gorm.Caregiver{
 					FirstName:     gofakeit.Name(),
 					LastName:      gofakeit.Name(),

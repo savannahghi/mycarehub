@@ -1,11 +1,10 @@
-package gorm_test
+package tests
 
 import (
 	"database/sql"
 	"fmt"
 	"log"
 	"os"
-	"testing"
 	"text/template"
 	"time"
 
@@ -32,34 +31,24 @@ var (
 	futureTime  = time.Now().Add(time.Hour * 24 * 365 * 10)
 	testOTP     = "1234"
 	// user variables
-	userID                             = "6ecbbc80-24c8-421a-9f1a-e14e12678ee0"
-	userID2                            = "6ecbbc80-24c8-421a-9f1a-e14e12678ef0"
-	userIDtoAddCaregiver               = "8ecbbc80-24c8-421a-9f1a-e14e12678ef1"
-	userIDtoAssignClient               = "4181df12-ca96-4f28-b78b-8e8ad88b25df"
-	userIDtoAssignStaff                = "6ecccc80-24c8-421a-9f1a-e14e13678ef0"
-	userIDToInvalidate                 = "5ecbbc80-24c8-421a-9f1a-e14e12678ee0"
-	userIDToAcceptTerms                = "4ecbbc80-24c8-421a-9f1a-e14e12678ee0"
-	userIDUpdatePinRequireChangeStatus = "5ecbbc80-24b8-421a-9f1a-e14e12678ee0"
-	userIDToSavePin                    = "8ecbbc80-24c8-421a-9f1a-e14e12678ef0"
-	treatmentBuddyID                   = "5ecbbc80-24c8-421a-9f1a-e14e12678ee1"
-	treatmentBuddyID2                  = "5ecbbc80-24c8-421a-9f1a-e14e12678ef1"
-	fhirPatientID                      = "5ecbbc80-24c8-421a-9f1a-e14e12678ee2"
-	fhirPatientID2                     = "f933fd4b-1e3c-4ecd-9d7a-82b2790c0543"
-	testEmrHealthRecordID              = "5ecbbc80-24c8-421a-9f1a-e14e12678ee3"
-	testEmrHealthRecordID2             = "5ecbbc80-24c8-421a-9f1a-e14e12678ef3"
-	testChvID                          = "5ecbbc80-24c8-421a-9f1a-e14e12678ee4"
-	testChvID2                         = "5ecbbc80-24c8-421a-9f1a-e14e12678ef4"
-	userNickname                       = "test user"
-	clientID                           = "26b20a42-cbb8-4553-aedb-c539602d04fc"
-	clientID2                          = "00a6a0cd-42ac-417b-97d9-e939a1232de1"
-	contactID                          = "bdc22436-e314-43f2-bb39-ba1ab332f9b0"
-	identifierID                       = "bcbdaf68-3d36-4365-b575-4182d6749af5"
-	clientToAddCaregiver               = "00a6a0cd-42ac-417b-97d9-e939a1232de2"
+	userID                 = "6ecbbc80-24c8-421a-9f1a-e14e12678ee0"
+	userID2                = "6ecbbc80-24c8-421a-9f1a-e14e12678ef0"
+	userIDtoAddCaregiver   = "8ecbbc80-24c8-421a-9f1a-e14e12678ef1"
+	userIDtoAssignStaff    = "6ecccc80-24c8-421a-9f1a-e14e13678ef0"
+	treatmentBuddyID       = "5ecbbc80-24c8-421a-9f1a-e14e12678ee1"
+	treatmentBuddyID2      = "5ecbbc80-24c8-421a-9f1a-e14e12678ef1"
+	fhirPatientID          = "5ecbbc80-24c8-421a-9f1a-e14e12678ee2"
+	fhirPatientID2         = "f933fd4b-1e3c-4ecd-9d7a-82b2790c0543"
+	testEmrHealthRecordID  = "5ecbbc80-24c8-421a-9f1a-e14e12678ee3"
+	testEmrHealthRecordID2 = "5ecbbc80-24c8-421a-9f1a-e14e12678ef3"
+	testChvID              = "5ecbbc80-24c8-421a-9f1a-e14e12678ee4"
+	testChvID2             = "5ecbbc80-24c8-421a-9f1a-e14e12678ef4"
+	clientID               = "26b20a42-cbb8-4553-aedb-c539602d04fc"
 	// Facility variables
-	facilityID          = "4181df12-ca96-4f28-b78b-8e8ad88b25df"
-	mflCode             = 324459
-	inactiveMflCode     = 229900
-	mflCodeToInactivate = 223900
+	facilityID    = "4181df12-ca96-4f28-b78b-8e8ad88b25df"
+	mflCode       = 324459
+	cccNumber     = "123456"
+	appointmentID = "2fc2b603-05ef-40f1-987a-3259eab87aef"
 	// Pin variables
 	salt, encryptedPin string
 	// Securityquestions variables
@@ -103,10 +92,6 @@ var (
 	communityID         = "043f12aa-6f51-434f-8e96-35030306f161"
 	communityIDToDelete = "043f12aa-6f51-434f-8e96-35030306f162"
 
-	// Appointments
-	appointmentID         = "2fc2b603-05ef-40f1-987a-3259eab87aef"
-	externalAppointmentID = "5"
-
 	// screeningtools
 	screeningToolsQuestionID = "8ecbbc80-24c8-421a-9f1a-e14e12678ef4"
 	screeningToolsResponseID = "8ecbbc80-24c8-421a-9f1a-e14e12678ef5"
@@ -139,7 +124,6 @@ var (
 	staffContactIDToDelete    = "bdc36422-e314-43f2-bb39-ba1ab332f9c2"
 	staffIDToDelete           = "8ecbbc80-24c8-124a-9f1a-e14e12678ef2"
 	staffIDToRegister         = "8ecbbc70-24c8-154a-9f1a-e14e13678ef3"
-	notificationID            = "bf33ba36-30bc-487e-9a7b-bcb54da0bdfe"
 	userSurveyID              = "4181df12-ca96-4f28-b78b-8e8ad88b25df"
 	feedbackID                = "7281df12-ca96-4f28-b78b-8e8ad88b52df"
 
@@ -155,7 +139,7 @@ var (
 	formID    = "8ecbbc80-24c8-421a-9f1a-e14e12678ef4"
 )
 
-func TestMain(m *testing.M) {
+func setupFixtures() {
 	isLocalDB := testutils.CheckIfCurrentDBIsLocal()
 	if !isLocalDB {
 		fmt.Println("Cannot run tests. The current database is not a local database.")
@@ -230,6 +214,7 @@ func TestMain(m *testing.M) {
 
 			"test_service_request_id": serviceRequestID,
 			"test_client_id":          clientID,
+			"test_client_ccc_number":  cccNumber,
 
 			"can_invite_user_permission":    canInviteUserPermissionID,
 			"can_edit_own_role_permission":  canEditOwnRolePermissionID,
@@ -291,43 +276,43 @@ func TestMain(m *testing.M) {
 		// The file name should be the same as the table name
 		// order of inserting values matter to avoid foreign key constraint errors
 		testfixtures.Paths(
-			"../../../../../../fixtures/common_organisation.yml",
-			"../../../../../../fixtures/users_user.yml",
-			"../../../../../../fixtures/users_termsofservice.yml",
-			"../../../../../../fixtures/clients_securityquestion.yml",
-			"../../../../../../fixtures/clients_securityquestionresponse.yml",
-			"../../../../../../fixtures/common_contact.yml",
-			"../../../../../../fixtures/common_notification.yml",
-			"../../../../../../fixtures/users_userotp.yml",
-			"../../../../../../fixtures/common_facility.yml",
-			"../../../../../../fixtures/users_userpin.yml",
-			"../../../../../../fixtures/clients_caregiver.yml",
-			"../../../../../../fixtures/clients_client.yml",
-			"../../../../../../fixtures/clients_client_contacts.yml",
-			"../../../../../../fixtures/staff_staff.yml",
-			"../../../../../../fixtures/staff_staff_contacts.yml",
-			"../../../../../../fixtures/staff_staff_identifiers.yml",
-			"../../../../../../fixtures/clients_servicerequest.yml",
-			"../../../../../../fixtures/staff_staff_facilities.yml",
-			"../../../../../../fixtures/staff_servicerequest.yml",
-			"../../../../../../fixtures/authority_authoritypermission.yml",
-			"../../../../../../fixtures/authority_authorityrole.yml",
-			"../../../../../../fixtures/authority_authorityrole_permissions.yml",
-			"../../../../../../fixtures/authority_authorityrole_users.yml",
-			"../../../../../../fixtures/communities_community.yml",
-			"../../../../../../fixtures/clients_identifier.yml",
-			"../../../../../../fixtures/clients_client_identifiers.yml",
-			"../../../../../../fixtures/appointments_appointment.yml",
-			"../../../../../../fixtures/screeningtools_screeningtoolsquestion.yml",
-			"../../../../../../fixtures/screeningtools_screeningtoolsresponse.yml",
-			"../../../../../../fixtures/clients_healthdiaryentry.yml",
-			"../../../../../../fixtures/common_usersurveys.yml",
-			"../../../../../../fixtures/common_feedback.yml",
-			"../../../../../../fixtures/clients_healthdiaryquote.yml",
-			"../../../../../../fixtures/questionnaires_questionnaire.yml",
-			"../../../../../../fixtures/questionnaires_screeningtool.yml",
-			"../../../../../../fixtures/questionnaires_question.yml",
-			"../../../../../../fixtures/questionnaires_questioninputchoice.yml",
+			"../fixtures/common_organisation.yml",
+			"../fixtures/users_user.yml",
+			"../fixtures/users_termsofservice.yml",
+			"../fixtures/clients_securityquestion.yml",
+			"../fixtures/clients_securityquestionresponse.yml",
+			"../fixtures/common_contact.yml",
+			"../fixtures/common_notification.yml",
+			"../fixtures/users_userotp.yml",
+			"../fixtures/common_facility.yml",
+			"../fixtures/users_userpin.yml",
+			"../fixtures/clients_caregiver.yml",
+			"../fixtures/clients_client.yml",
+			"../fixtures/clients_client_contacts.yml",
+			"../fixtures/staff_staff.yml",
+			"../fixtures/staff_staff_contacts.yml",
+			"../fixtures/staff_staff_identifiers.yml",
+			"../fixtures/clients_servicerequest.yml",
+			"../fixtures/staff_staff_facilities.yml",
+			"../fixtures/staff_servicerequest.yml",
+			"../fixtures/authority_authoritypermission.yml",
+			"../fixtures/authority_authorityrole.yml",
+			"../fixtures/authority_authorityrole_permissions.yml",
+			"../fixtures/authority_authorityrole_users.yml",
+			"../fixtures/communities_community.yml",
+			"../fixtures/clients_identifier.yml",
+			"../fixtures/clients_client_identifiers.yml",
+			"../fixtures/appointments_appointment.yml",
+			"../fixtures/screeningtools_screeningtoolsquestion.yml",
+			"../fixtures/screeningtools_screeningtoolsresponse.yml",
+			"../fixtures/clients_healthdiaryentry.yml",
+			"../fixtures/common_usersurveys.yml",
+			"../fixtures/common_feedback.yml",
+			"../fixtures/clients_healthdiaryquote.yml",
+			"../fixtures/questionnaires_questionnaire.yml",
+			"../fixtures/questionnaires_screeningtool.yml",
+			"../fixtures/questionnaires_question.yml",
+			"../fixtures/questionnaires_questioninputchoice.yml",
 		),
 		// uncomment when running tests locally, if your db is not a test db
 		// Ensure the testing db in the ci is named `test`
@@ -346,8 +331,6 @@ func TestMain(m *testing.M) {
 		os.Exit(1)
 	}
 
-	log.Printf("Running tests ...")
-	os.Exit(m.Run())
 }
 
 func prepareTestDatabase() error {

@@ -1,4 +1,4 @@
-- id: 2fc2b603-05ef-40f1-987a-3259eab87aef
+- id: {{.appointment_id}}
   created: 2021-11-22 21:16:29.23639+03
   updated: 2021-11-22 21:16:29.23639+03
   active: true

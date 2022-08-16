@@ -43,6 +43,8 @@ func TestMain(m *testing.M) {
 	initialEnv := os.Getenv("ENVIRONMENT")
 	os.Setenv("ENVIRONMENT", "staging")
 
+	setupFixtures()
+
 	ctx := context.Background()
 
 	srv, baseURL, serverErr = serverutils.StartTestServer(
