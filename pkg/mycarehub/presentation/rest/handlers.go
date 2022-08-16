@@ -639,20 +639,16 @@ func (h *MyCareHubHandlersInterfacesImpl) ServiceRequests() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 
-		if r.Method == http.MethodGet {
-			err := h.GetServiceRequestsForKenyaEMR(ctx, r, w)
-			if err != nil {
-				helpers.ReportErrorToSentry(err)
-				return
-			}
-		}
-
-		if r.Method == http.MethodPost {
-			err := h.UpdateServiceRequests(ctx, w, r)
-			if err != nil {
-				helpers.ReportErrorToSentry(err)
-				return
-			}
+		switch r.Method {
+		case http.MethodGet:
+			h.GetServiceRequestsForKenyaEMR(ctx, r, w)
+		case http.MethodPost:
+			h.UpdateServiceRequests(ctx, w, r)
+		default:
+			serverutils.WriteJSONResponse(w,
+				serverutils.ErrorMap(fmt.Errorf("unsupported method")),
+				http.StatusMethodNotAllowed,
+			)
 		}
 	}
 }
@@ -698,7 +694,7 @@ func (h *MyCareHubHandlersInterfacesImpl) DeleteUser() http.HandlerFunc {
 }
 
 // GetServiceRequestsForKenyaEMR gets all the service requests from MyCareHub
-func (h *MyCareHubHandlersInterfacesImpl) GetServiceRequestsForKenyaEMR(ctx context.Context, r *http.Request, w http.ResponseWriter) error {
+func (h *MyCareHubHandlersInterfacesImpl) GetServiceRequestsForKenyaEMR(ctx context.Context, r *http.Request, w http.ResponseWriter) {
 	MFLCode, err := strconv.Atoi(r.URL.Query().Get("MFLCODE"))
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
@@ -706,7 +702,7 @@ func (h *MyCareHubHandlersInterfacesImpl) GetServiceRequestsForKenyaEMR(ctx cont
 			Err:     err,
 			Message: err.Error(),
 		}, http.StatusBadRequest)
-		return err
+		return
 	}
 	syncTime, err := time.Parse(time.RFC3339, r.URL.Query().Get("lastSyncTime"))
 	if err != nil {
@@ -715,7 +711,7 @@ func (h *MyCareHubHandlersInterfacesImpl) GetServiceRequestsForKenyaEMR(ctx cont
 			Err:     err,
 			Message: err.Error(),
 		}, http.StatusBadRequest)
-		return err
+		return
 	}
 	payload := &dto.ServiceRequestPayload{
 		MFLCode:      MFLCode,
@@ -728,22 +724,21 @@ func (h *MyCareHubHandlersInterfacesImpl) GetServiceRequestsForKenyaEMR(ctx cont
 			Err:     err,
 			Message: err.Error(),
 		}, http.StatusBadRequest)
-		return err
+		return
 	}
 
 	serviceRequests, err := h.usecase.ServiceRequest.GetServiceRequestsForKenyaEMR(ctx, payload)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		serverutils.WriteJSONResponse(w, serverutils.ErrorMap(err), http.StatusBadRequest)
-		return err
+		return
 	}
 
 	serverutils.WriteJSONResponse(w, serviceRequests, http.StatusOK)
-	return nil
 }
 
 //UpdateServiceRequests is an endpoint used to update service requests from KenyaEMR to MyCareHub
-func (h *MyCareHubHandlersInterfacesImpl) UpdateServiceRequests(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+func (h *MyCareHubHandlersInterfacesImpl) UpdateServiceRequests(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	payload := &dto.UpdateServiceRequestsPayload{}
 	serverutils.DecodeJSONToTargetStruct(w, r, payload)
 
@@ -754,17 +749,17 @@ func (h *MyCareHubHandlersInterfacesImpl) UpdateServiceRequests(ctx context.Cont
 			Err:     err,
 			Message: err.Error(),
 		}, http.StatusBadRequest)
-		return err
+		return
 	}
 
-	serviceRequests, err := h.usecase.ServiceRequest.UpdateServiceRequestsFromKenyaEMR(ctx, payload)
+	_, err := h.usecase.ServiceRequest.UpdateServiceRequestsFromKenyaEMR(ctx, payload)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		serverutils.WriteJSONResponse(w, serverutils.ErrorMap(err), http.StatusBadRequest)
+		return
 	}
 
-	serverutils.WriteJSONResponse(w, okResp{Status: serviceRequests}, http.StatusOK)
-	return nil
+	serverutils.WriteJSONResponse(w, okResp{Status: true}, http.StatusOK)
 }
 
 // CreateOrUpdateKenyaEMRAppointments is tha handler used to sync appointments from Kenya EMR
@@ -939,15 +934,7 @@ func (h *MyCareHubHandlersInterfacesImpl) AppointmentsServiceRequests() http.Han
 		case http.MethodGet:
 			h.GetAppointmentServiceRequests(ctx, w, r)
 		case http.MethodPost:
-			err := h.UpdateServiceRequests(ctx, w, r)
-			if err != nil {
-				helpers.ReportErrorToSentry(err)
-				serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
-					Err:     err,
-					Message: err.Error(),
-				}, http.StatusBadRequest)
-				return
-			}
+			h.UpdateServiceRequests(ctx, w, r)
 		default:
 			err := fmt.Errorf("wrong method passed")
 			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
