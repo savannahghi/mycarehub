@@ -1,0 +1,10 @@
+
+- id: {{.screenintoolsresponse_id}}
+  organisation_id: {{.test_organisation_id}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  active: true
+  screeningtool_id: {{.test_screeningtool_id}}
+  facility_id: {{.test_facility_id}}
+  client_id: {{.test_client_id}}
+  aggregate_score: 1

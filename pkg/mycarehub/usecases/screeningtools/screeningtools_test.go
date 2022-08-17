@@ -409,6 +409,19 @@ func TestServiceScreeningToolsImpl_GetAvailableFacilityScreeningTools(t *testing
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
+			if tt.name == "happy case: get available facility screening tools" {
+				fakeDB.MockGetServiceRequestsFn = func(ctx context.Context, requestType *string, requestStatus *string, facilityID string, flavour feedlib.Flavour) ([]*domain.ServiceRequest, error) {
+					return []*domain.ServiceRequest{
+						{
+							ID: uuid.New().String(),
+							Meta: map[string]interface{}{
+								"question_type": enums.ScreeningToolTypeAlcoholSubstanceAssessment.String(),
+							},
+						},
+					}, nil
+				}
+			}
+
 			if tt.name == "Sad case: failed to get service requests" {
 				fakeDB.MockGetServiceRequestsFn = func(ctx context.Context, requestType *string, requestStatus *string, facilityID string, flavour feedlib.Flavour) ([]*domain.ServiceRequest, error) {
 					return nil, fmt.Errorf("failed to get service requests")

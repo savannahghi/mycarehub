@@ -619,3 +619,12 @@ type QuestionnaireScreeningToolQuestionResponse {
   response: String!
   score: Int
 }
+
+type ScreeningToolRespondent {
+  clientID: String!
+  screeningToolResponseID: String!
+  serviceRequestID: String!
+  name: String!
+  phoneNumber: String!
+  serviceRequest: String!
+}

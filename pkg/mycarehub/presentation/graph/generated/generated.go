@@ -514,6 +514,7 @@ type ComplexityRoot struct {
 		GetPendingServiceRequestsCount          func(childComplexity int, facilityID string) int
 		GetScreeningToolByID                    func(childComplexity int, id string) int
 		GetScreeningToolQuestions               func(childComplexity int, toolType *string) int
+		GetScreeningToolRespondents             func(childComplexity int, facilityID string, screeningToolID string, searchTerm *string) int
 		GetScreeningToolServiceRequestResponses func(childComplexity int, clientID *string, toolType *enums.ScreeningToolType) int
 		GetSecurityQuestions                    func(childComplexity int, flavour feedlib.Flavour) int
 		GetServiceRequests                      func(childComplexity int, requestType *string, requestStatus *string, facilityID string, flavour feedlib.Flavour) int
@@ -638,6 +639,15 @@ type ComplexityRoot struct {
 		ResponseType     func(childComplexity int) int
 		Sequence         func(childComplexity int) int
 		ToolType         func(childComplexity int) int
+	}
+
+	ScreeningToolRespondent struct {
+		ClientID                func(childComplexity int) int
+		Name                    func(childComplexity int) int
+		PhoneNumber             func(childComplexity int) int
+		ScreeningToolResponseID func(childComplexity int) int
+		ServiceRequest          func(childComplexity int) int
+		ServiceRequestID        func(childComplexity int) int
 	}
 
 	ScreeningToolResponse struct {
@@ -870,6 +880,7 @@ type QueryResolver interface {
 	GetAvailableScreeningTools(ctx context.Context, clientID string, facilityID string) ([]*domain.ScreeningTool, error)
 	GetScreeningToolByID(ctx context.Context, id string) (*domain.ScreeningTool, error)
 	GetFacilityRespondedScreeningTools(ctx context.Context, facilityID string) ([]*domain.ScreeningTool, error)
+	GetScreeningToolRespondents(ctx context.Context, facilityID string, screeningToolID string, searchTerm *string) ([]*domain.ScreeningToolRespondent, error)
 	GetScreeningToolQuestions(ctx context.Context, toolType *string) ([]*domain.ScreeningToolQuestion, error)
 	GetAvailableScreeningToolQuestions(ctx context.Context, clientID string) ([]*domain.AvailableScreeningTools, error)
 	GetAvailableFacilityScreeningTools(ctx context.Context, facilityID string) ([]*domain.AvailableScreeningTools, error)
@@ -3518,6 +3529,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.GetScreeningToolQuestions(childComplexity, args["toolType"].(*string)), true
 
+	case "Query.getScreeningToolRespondents":
+		if e.complexity.Query.GetScreeningToolRespondents == nil {
+			break
+		}
+
+		args, err := ec.field_Query_getScreeningToolRespondents_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetScreeningToolRespondents(childComplexity, args["facilityID"].(string), args["screeningToolID"].(string), args["searchTerm"].(*string)), true
+
 	case "Query.getScreeningToolServiceRequestResponses":
 		if e.complexity.Query.GetScreeningToolServiceRequestResponses == nil {
 			break
@@ -4294,6 +4317,48 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ScreeningToolQuestion.ToolType(childComplexity), true
+
+	case "ScreeningToolRespondent.clientID":
+		if e.complexity.ScreeningToolRespondent.ClientID == nil {
+			break
+		}
+
+		return e.complexity.ScreeningToolRespondent.ClientID(childComplexity), true
+
+	case "ScreeningToolRespondent.name":
+		if e.complexity.ScreeningToolRespondent.Name == nil {
+			break
+		}
+
+		return e.complexity.ScreeningToolRespondent.Name(childComplexity), true
+
+	case "ScreeningToolRespondent.phoneNumber":
+		if e.complexity.ScreeningToolRespondent.PhoneNumber == nil {
+			break
+		}
+
+		return e.complexity.ScreeningToolRespondent.PhoneNumber(childComplexity), true
+
+	case "ScreeningToolRespondent.screeningToolResponseID":
+		if e.complexity.ScreeningToolRespondent.ScreeningToolResponseID == nil {
+			break
+		}
+
+		return e.complexity.ScreeningToolRespondent.ScreeningToolResponseID(childComplexity), true
+
+	case "ScreeningToolRespondent.serviceRequest":
+		if e.complexity.ScreeningToolRespondent.ServiceRequest == nil {
+			break
+		}
+
+		return e.complexity.ScreeningToolRespondent.ServiceRequest(childComplexity), true
+
+	case "ScreeningToolRespondent.serviceRequestID":
+		if e.complexity.ScreeningToolRespondent.ServiceRequestID == nil {
+			break
+		}
+
+		return e.complexity.ScreeningToolRespondent.ServiceRequestID(childComplexity), true
 
 	case "ScreeningToolResponse.response":
 		if e.complexity.ScreeningToolResponse.Response == nil {
@@ -5530,6 +5595,7 @@ extend type Query{
     getAvailableScreeningTools(clientID: String!, facilityID: String!): [ScreeningTool!]!
     getScreeningToolByID(id: ID!): ScreeningTool
     getFacilityRespondedScreeningTools(facilityID: String!): [ScreeningTool!]!
+    getScreeningToolRespondents(facilityID: String!, screeningToolID: String!,  searchTerm: String): [ScreeningToolRespondent!]!
 }`, BuiltIn: false},
 	{Name: "../screeningtools.graphql", Input: `
 extend type Query {
@@ -6223,7 +6289,15 @@ type QuestionnaireScreeningToolQuestionResponse {
   response: String!
   score: Int
 }
-`, BuiltIn: false},
+
+type ScreeningToolRespondent {
+  clientID: String!
+  screeningToolResponseID: String!
+  serviceRequestID: String!
+  name: String!
+  phoneNumber: String!
+  serviceRequest: String!
+}`, BuiltIn: false},
 	{Name: "../user.graphql", Input: `extend type Query {
   getCurrentTerms(flavour: Flavour!): TermsOfService!
   verifyPIN(userID: String!, flavour: Flavour!, pin: String!): Boolean!
@@ -7908,6 +7982,39 @@ func (ec *executionContext) field_Query_getScreeningToolQuestions_args(ctx conte
 		}
 	}
 	args["toolType"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_getScreeningToolRespondents_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["facilityID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("facilityID"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["facilityID"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["screeningToolID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("screeningToolID"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["screeningToolID"] = arg1
+	var arg2 *string
+	if tmp, ok := rawArgs["searchTerm"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("searchTerm"))
+		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["searchTerm"] = arg2
 	return args, nil
 }
 
@@ -24671,6 +24778,75 @@ func (ec *executionContext) fieldContext_Query_getFacilityRespondedScreeningTool
 	return fc, nil
 }
 
+func (ec *executionContext) _Query_getScreeningToolRespondents(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_getScreeningToolRespondents(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GetScreeningToolRespondents(rctx, fc.Args["facilityID"].(string), fc.Args["screeningToolID"].(string), fc.Args["searchTerm"].(*string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*domain.ScreeningToolRespondent)
+	fc.Result = res
+	return ec.marshalNScreeningToolRespondent2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐScreeningToolRespondentᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_getScreeningToolRespondents(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "clientID":
+				return ec.fieldContext_ScreeningToolRespondent_clientID(ctx, field)
+			case "screeningToolResponseID":
+				return ec.fieldContext_ScreeningToolRespondent_screeningToolResponseID(ctx, field)
+			case "serviceRequestID":
+				return ec.fieldContext_ScreeningToolRespondent_serviceRequestID(ctx, field)
+			case "name":
+				return ec.fieldContext_ScreeningToolRespondent_name(ctx, field)
+			case "phoneNumber":
+				return ec.fieldContext_ScreeningToolRespondent_phoneNumber(ctx, field)
+			case "serviceRequest":
+				return ec.fieldContext_ScreeningToolRespondent_serviceRequest(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ScreeningToolRespondent", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_getScreeningToolRespondents_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query_getScreeningToolQuestions(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query_getScreeningToolQuestions(ctx, field)
 	if err != nil {
@@ -28823,6 +28999,270 @@ func (ec *executionContext) fieldContext_ScreeningToolQuestion_meta(ctx context.
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Map does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ScreeningToolRespondent_clientID(ctx context.Context, field graphql.CollectedField, obj *domain.ScreeningToolRespondent) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ScreeningToolRespondent_clientID(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ClientID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ScreeningToolRespondent_clientID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ScreeningToolRespondent",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ScreeningToolRespondent_screeningToolResponseID(ctx context.Context, field graphql.CollectedField, obj *domain.ScreeningToolRespondent) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ScreeningToolRespondent_screeningToolResponseID(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ScreeningToolResponseID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ScreeningToolRespondent_screeningToolResponseID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ScreeningToolRespondent",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ScreeningToolRespondent_serviceRequestID(ctx context.Context, field graphql.CollectedField, obj *domain.ScreeningToolRespondent) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ScreeningToolRespondent_serviceRequestID(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ServiceRequestID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ScreeningToolRespondent_serviceRequestID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ScreeningToolRespondent",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ScreeningToolRespondent_name(ctx context.Context, field graphql.CollectedField, obj *domain.ScreeningToolRespondent) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ScreeningToolRespondent_name(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ScreeningToolRespondent_name(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ScreeningToolRespondent",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ScreeningToolRespondent_phoneNumber(ctx context.Context, field graphql.CollectedField, obj *domain.ScreeningToolRespondent) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ScreeningToolRespondent_phoneNumber(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PhoneNumber, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ScreeningToolRespondent_phoneNumber(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ScreeningToolRespondent",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ScreeningToolRespondent_serviceRequest(ctx context.Context, field graphql.CollectedField, obj *domain.ScreeningToolRespondent) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ScreeningToolRespondent_serviceRequest(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ServiceRequest, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ScreeningToolRespondent_serviceRequest(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ScreeningToolRespondent",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -39493,6 +39933,29 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Concurrently(i, func() graphql.Marshaler {
 				return rrm(innerCtx)
 			})
+		case "getScreeningToolRespondents":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_getScreeningToolRespondents(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
 		case "getScreeningToolQuestions":
 			field := field
 
@@ -40530,6 +40993,69 @@ func (ec *executionContext) _ScreeningToolQuestion(ctx context.Context, sel ast.
 
 			out.Values[i] = ec._ScreeningToolQuestion_meta(ctx, field, obj)
 
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var screeningToolRespondentImplementors = []string{"ScreeningToolRespondent"}
+
+func (ec *executionContext) _ScreeningToolRespondent(ctx context.Context, sel ast.SelectionSet, obj *domain.ScreeningToolRespondent) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, screeningToolRespondentImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ScreeningToolRespondent")
+		case "clientID":
+
+			out.Values[i] = ec._ScreeningToolRespondent_clientID(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "screeningToolResponseID":
+
+			out.Values[i] = ec._ScreeningToolRespondent_screeningToolResponseID(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "serviceRequestID":
+
+			out.Values[i] = ec._ScreeningToolRespondent_serviceRequestID(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "name":
+
+			out.Values[i] = ec._ScreeningToolRespondent_name(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "phoneNumber":
+
+			out.Values[i] = ec._ScreeningToolRespondent_phoneNumber(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "serviceRequest":
+
+			out.Values[i] = ec._ScreeningToolRespondent_serviceRequest(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -43280,6 +43806,60 @@ func (ec *executionContext) unmarshalNScreeningToolQuestionResponseInput2ᚕᚖg
 func (ec *executionContext) unmarshalNScreeningToolQuestionResponseInput2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐScreeningToolQuestionResponseInput(ctx context.Context, v interface{}) (*dto.ScreeningToolQuestionResponseInput, error) {
 	res, err := ec.unmarshalInputScreeningToolQuestionResponseInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNScreeningToolRespondent2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐScreeningToolRespondentᚄ(ctx context.Context, sel ast.SelectionSet, v []*domain.ScreeningToolRespondent) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNScreeningToolRespondent2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐScreeningToolRespondent(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNScreeningToolRespondent2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐScreeningToolRespondent(ctx context.Context, sel ast.SelectionSet, v *domain.ScreeningToolRespondent) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._ScreeningToolRespondent(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNScreeningToolResponse2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐScreeningToolResponseᚄ(ctx context.Context, sel ast.SelectionSet, v []*domain.ScreeningToolResponse) graphql.Marshaler {

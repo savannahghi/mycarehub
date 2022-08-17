@@ -23,6 +23,7 @@ type IGetScreeningTools interface {
 	GetAvailableScreeningTools(ctx context.Context, clientID string, facilityID string) ([]*domain.ScreeningTool, error)
 	GetScreeningToolByID(ctx context.Context, id string) (*domain.ScreeningTool, error)
 	GetFacilityRespondedScreeningTools(ctx context.Context, facilityID string) ([]*domain.ScreeningTool, error)
+	GetScreeningToolRespondents(ctx context.Context, facilityID string, screeningToolID string, searchTerm *string) ([]*domain.ScreeningToolRespondent, error)
 }
 
 // UseCaseQuestionnaire contains questionnaire interfaces
@@ -185,7 +186,9 @@ func (q *UseCaseQuestionnaireImpl) RespondToScreeningTool(ctx context.Context, i
 			ClientName:  &clientProfile.User.Name,
 			Flavour:     feedlib.FlavourConsumer,
 			Meta: map[string]interface{}{
-				"response_id": *responseID,
+				"response_id":         *responseID,
+				"screening_tool_name": screeningTool.Questionnaire.Name,
+				"score":               aggregateScore,
 			},
 		})
 		if err != nil {
@@ -226,4 +229,20 @@ func (q *UseCaseQuestionnaireImpl) GetFacilityRespondedScreeningTools(ctx contex
 		return nil, fmt.Errorf("failed to get screening tools: %w", err)
 	}
 	return screeningTools, nil
+}
+
+// GetScreeningToolRespondents returns the respondents for the screening tool
+// the respondents belong to a given facility and they must have answered
+// a given screening tool which has an unresolved service request
+func (q *UseCaseQuestionnaireImpl) GetScreeningToolRespondents(ctx context.Context, facilityID string, screeningToolID string, searchTerm *string) ([]*domain.ScreeningToolRespondent, error) {
+	emptyString := ""
+	if searchTerm == nil {
+		searchTerm = &emptyString
+	}
+	respondents, err := q.Query.GetScreeningToolRespondents(ctx, facilityID, screeningToolID, *searchTerm)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, fmt.Errorf("failed to get screening tool respondents: %w", err)
+	}
+	return respondents, nil
 }

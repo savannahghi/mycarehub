@@ -4470,3 +4470,92 @@ func TestPGInstance_ListSurveyRespondents(t *testing.T) {
 		})
 	}
 }
+
+func TestPGInstance_GetScreeningToolServiceRequestOfRespondents(t *testing.T) {
+	type args struct {
+		ctx             context.Context
+		facilityID      string
+		screeningToolID string
+		searchTerm      string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: get screening tool service request by respondents",
+			args: args{
+				ctx:             context.Background(),
+				facilityID:      facilityID,
+				screeningToolID: screeningToolID,
+				searchTerm:      "",
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: get screening tool service request by respondents",
+			args: args{
+				ctx:             context.Background(),
+				facilityID:      "INVALID_ID",
+				screeningToolID: "INVALID_ID",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := testingDB.GetScreeningToolServiceRequestOfRespondents(tt.args.ctx, tt.args.facilityID, tt.args.screeningToolID, tt.args.searchTerm)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.GetScreeningToolServiceRequestOfRespondents() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected value, got %v", got)
+				return
+			}
+		})
+	}
+}
+
+func TestPGInstance_GetScreeningToolResponseByID(t *testing.T) {
+	type args struct {
+		ctx context.Context
+		id  string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: get screening tool response by id",
+			args: args{
+				ctx: context.Background(),
+				id:  screeningToolsResponseID,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: get screening tool response by id",
+			args: args{
+				ctx: context.Background(),
+				id:  "INVALID_ID",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := testingDB.GetScreeningToolResponseByID(tt.args.ctx, tt.args.id)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.GetScreeningToolResponseByID() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected value, got %v", got)
+				return
+			}
+		})
+	}
+}

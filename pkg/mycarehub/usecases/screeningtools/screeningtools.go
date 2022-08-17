@@ -293,6 +293,11 @@ func (t *ServiceScreeningToolsImpl) GetAvailableScreeningToolQuestions(ctx conte
 	}
 
 	for _, v := range validToolTypes {
+		// backward compatibility for old screening tool service requests
+		// the new service requests for screening tools do not save question_type
+		if !v.ToolType.IsValid() {
+			continue
+		}
 		availableScreeningTools = append(availableScreeningTools, v)
 	}
 
@@ -326,6 +331,11 @@ func (t *ServiceScreeningToolsImpl) GetAvailableFacilityScreeningTools(ctx conte
 	}
 
 	for _, v := range validToolTypes {
+		// backward compatibility for old screening tool service requests
+		// the new service requests for screening tools do not save question_type
+		if !v.ToolType.IsValid() {
+			continue
+		}
 		availableScreeningTools = append(availableScreeningTools, v)
 	}
 	return availableScreeningTools, nil

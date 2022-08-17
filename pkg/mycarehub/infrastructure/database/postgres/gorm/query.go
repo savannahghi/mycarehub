@@ -105,6 +105,8 @@ type Query interface {
 	GetQuestionInputChoicesByQuestionID(ctx context.Context, questionID string) ([]*QuestionInputChoice, error)
 	GetAvailableScreeningTools(ctx context.Context, clientID string, facilityID string) ([]*ScreeningTool, error)
 	GetFacilityRespondedScreeningTools(ctx context.Context, facilityID string) ([]*ScreeningTool, error)
+	GetScreeningToolServiceRequestOfRespondents(ctx context.Context, facilityID string, screeningToolID string, searchTerm string) ([]*ClientServiceRequest, error)
+	GetScreeningToolResponseByID(ctx context.Context, id string) (*ScreeningToolResponse, error)
 }
 
 // GetFacilityStaffs returns a list of staff at a particular facility
@@ -1611,4 +1613,46 @@ func (db *PGInstance) GetFacilityRespondedScreeningTools(ctx context.Context, fa
 	}
 
 	return screeningTools, nil
+}
+
+// GetScreeningToolServiceRequestOfRespondents is used to get screening tool service request by respondents
+// the clients who have a pending screening tool service request for the given facility are returned
+func (db *PGInstance) GetScreeningToolServiceRequestOfRespondents(ctx context.Context, facilityID string, screeningToolID string, searchTerm string) ([]*ClientServiceRequest, error) {
+	var serviceReqests []*ClientServiceRequest
+
+	if err := db.DB.Raw(
+		`
+		SELECT * from clients_servicerequest
+		JOIN questionnaires_screeningtoolresponse
+		ON questionnaires_screeningtoolresponse.id::TEXT = clients_servicerequest.meta ->> 'response_id'::TEXT
+		JOIN clients_client
+		ON clients_client.id = questionnaires_screeningtoolresponse.client_id
+		JOIN users_user
+		ON clients_client.user_id = users_user.id
+		WHERE clients_servicerequest.request_type = ?
+		AND clients_servicerequest.status = ?
+		AND questionnaires_screeningtoolresponse.facility_id = ?
+		AND questionnaires_screeningtoolresponse.screeningtool_id = ?
+		AND users_user.id IN (
+			SELECT user_id from common_contact
+			WHERE contact_value ILIKE ?
+		)
+		OR users_user.name ILIKE ?
+			`, enums.ServiceRequestTypeScreeningToolsRedFlag.String(), enums.ServiceRequestStatusPending.String(), facilityID, screeningToolID, "%"+searchTerm+"%", "%"+searchTerm+"%").
+		Scan(&serviceReqests).Error; err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, fmt.Errorf("failed to get screening tool serviceReqests: %w", err)
+	}
+	return serviceReqests, nil
+}
+
+// GetScreeningToolResponseByID is used to get screening tool response by ID
+func (db *PGInstance) GetScreeningToolResponseByID(ctx context.Context, id string) (*ScreeningToolResponse, error) {
+	var screeningToolResponse ScreeningToolResponse
+	if err := db.DB.Where(&ScreeningToolResponse{ID: id}).First(&screeningToolResponse).Error; err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, fmt.Errorf("failed to get screening tool response: %w", err)
+	}
+
+	return &screeningToolResponse, nil
 }

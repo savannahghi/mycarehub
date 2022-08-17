@@ -598,3 +598,67 @@ func TestUseCaseQuestionnaireImpl_GetFacilityRespondedScreeningTools(t *testing.
 		})
 	}
 }
+
+func TestUseCaseQuestionnaireImpl_GetScreeningToolRespondents(t *testing.T) {
+	fakeDB := pgMock.NewPostgresMock()
+	q := questionnaires.NewUseCaseQuestionnaire(fakeDB, fakeDB, fakeDB, fakeDB)
+	term := "term"
+	type args struct {
+		ctx             context.Context
+		facilityID      string
+		screeningToolID string
+		searchTerm      *string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    []*domain.ClientProfile
+		wantErr bool
+	}{
+		{
+			name: "Happy case: get screening tool respondents",
+			args: args{
+				ctx:             context.Background(),
+				facilityID:      uuid.New().String(),
+				screeningToolID: uuid.New().String(),
+				searchTerm:      &term,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Happy case: get screening tool respondents",
+			args: args{
+				ctx:             context.Background(),
+				facilityID:      uuid.New().String(),
+				screeningToolID: uuid.New().String(),
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: unable to get screening tool respondents",
+			args: args{
+				ctx:             context.Background(),
+				facilityID:      uuid.New().String(),
+				screeningToolID: uuid.New().String(),
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "Sad case: unable to get screening tool respondents" {
+				fakeDB.MockGetScreeningToolRespondentsFn = func(ctx context.Context, facilityID string, screeningToolID string, searchTerm string) ([]*domain.ScreeningToolRespondent, error) {
+					return nil, errors.New("failed to get screening tool respondents")
+				}
+			}
+			got, err := q.GetScreeningToolRespondents(tt.args.ctx, tt.args.facilityID, tt.args.screeningToolID, tt.args.searchTerm)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCaseQuestionnaireImpl.GetScreeningToolRespondents() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("UseCaseQuestionnaireImpl.GetScreeningToolRespondents() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

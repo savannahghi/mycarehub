@@ -158,6 +158,8 @@ type GormMock struct {
 	MockGetAvailableScreeningToolsFn                     func(ctx context.Context, clientID string, facilityID string) ([]*gorm.ScreeningTool, error)
 	MockGetFacilityRespondedScreeningToolsFn             func(ctx context.Context, facilityID string) ([]*gorm.ScreeningTool, error)
 	MockListSurveyRespondentsFn                          func(ctx context.Context, params map[string]interface{}, pagination *domain.Pagination) ([]*gorm.UserSurvey, *domain.Pagination, error)
+	MockGetScreeningToolServiceRequestOfRespondentsFn    func(ctx context.Context, facilityID string, screeningToolID string, searchTerm string) ([]*gorm.ClientServiceRequest, error)
+	MockGetScreeningToolResponseByIDFn                   func(ctx context.Context, id string) (*gorm.ScreeningToolResponse, error)
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -1259,6 +1261,35 @@ func NewGormMock() *GormMock {
 				},
 			}, nil
 		},
+		MockGetScreeningToolServiceRequestOfRespondentsFn: func(ctx context.Context, facilityID string, screeningToolID string, searchTerm string) ([]*gorm.ClientServiceRequest, error) {
+			return []*gorm.ClientServiceRequest{
+				{
+					ID:             &UUID,
+					Active:         true,
+					RequestType:    enums.ServiceRequestTypeScreeningToolsRedFlag.String(),
+					Request:        "REQUEST",
+					Status:         string(enums.ServiceRequestStatusPending),
+					InProgressAt:   nil,
+					ResolvedAt:     nil,
+					ClientID:       uuid.New().String(),
+					InProgressByID: &UUID,
+					OrganisationID: "",
+					ResolvedByID:   &UUID,
+					FacilityID:     uuid.New().String(),
+					Meta:           fmt.Sprintf(`{"response_id":"%s"}`, "screening_tool_response_id"),
+				},
+			}, nil
+		},
+		MockGetScreeningToolResponseByIDFn: func(ctx context.Context, id string) (*gorm.ScreeningToolResponse, error) {
+			return &gorm.ScreeningToolResponse{
+				ID:              UUID,
+				Active:          true,
+				ScreeningToolID: UUID,
+				FacilityID:      id,
+				ClientID:        uuid.New().String(),
+				AggregateScore:  3,
+			}, nil
+		},
 	}
 }
 
@@ -1940,4 +1971,14 @@ func (gm *GormMock) GetFacilityRespondedScreeningTools(ctx context.Context, faci
 // ListSurveyRespondents mocks the implementation of listing survey respondents
 func (gm *GormMock) ListSurveyRespondents(ctx context.Context, params map[string]interface{}, pagination *domain.Pagination) ([]*gorm.UserSurvey, *domain.Pagination, error) {
 	return gm.MockListSurveyRespondentsFn(ctx, params, pagination)
+}
+
+// GetScreeningToolServiceRequestOfRespondents mocks the implementation of getting screening tool service requests by respondents
+func (gm *GormMock) GetScreeningToolServiceRequestOfRespondents(ctx context.Context, facilityID string, screeningToolID string, searchTerm string) ([]*gorm.ClientServiceRequest, error) {
+	return gm.MockGetScreeningToolServiceRequestOfRespondentsFn(ctx, facilityID, screeningToolID, searchTerm)
+}
+
+// GetScreeningToolResponseByID mocks the implementation of getting a screening tool response by ID
+func (gm *GormMock) GetScreeningToolResponseByID(ctx context.Context, id string) (*gorm.ScreeningToolResponse, error) {
+	return gm.MockGetScreeningToolResponseByIDFn(ctx, id)
 }

@@ -174,3 +174,14 @@ type QuestionnaireScreeningToolQuestionResponse struct {
 	Response                string `json:"response"`
 	Score                   int    `json:"score"`
 }
+
+// ScreeningToolRespondent defines the structure of a screening tool respondent
+// the respondent is the client who has a service request for the screening tool
+type ScreeningToolRespondent struct {
+	ClientID                string `json:"clientID"`
+	ScreeningToolResponseID string `json:"screeningToolResponseID"`
+	ServiceRequestID        string `json:"serviceRequestID"`
+	Name                    string `json:"name"`
+	PhoneNumber             string `json:"phoneNumber"`
+	ServiceRequest          string `json:"serviceRequest"`
+}
