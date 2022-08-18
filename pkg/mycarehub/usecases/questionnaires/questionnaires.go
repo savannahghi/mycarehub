@@ -24,6 +24,7 @@ type IGetScreeningTools interface {
 	GetScreeningToolByID(ctx context.Context, id string) (*domain.ScreeningTool, error)
 	GetFacilityRespondedScreeningTools(ctx context.Context, facilityID string, paginationInput *dto.PaginationsInput) (*domain.ScreeningToolPage, error)
 	GetScreeningToolRespondents(ctx context.Context, facilityID string, screeningToolID string, searchTerm *string) ([]*domain.ScreeningToolRespondent, error)
+	GetScreeningToolResponse(ctx context.Context, id string) (*domain.QuestionnaireScreeningToolResponse, error)
 }
 
 // UseCaseQuestionnaire contains questionnaire interfaces
@@ -152,7 +153,7 @@ func (q *UseCaseQuestionnaireImpl) RespondToScreeningTool(ctx context.Context, i
 
 	var aggregateScore int
 
-	responses := []domain.QuestionnaireScreeningToolQuestionResponse{}
+	responses := []*domain.QuestionnaireScreeningToolQuestionResponse{}
 	for _, qr := range input.QuestionResponses {
 		question, err := screeningTool.Questionnaire.GetQuestionByID(qr.QuestionID)
 		if err != nil {
@@ -169,7 +170,7 @@ func (q *UseCaseQuestionnaireImpl) RespondToScreeningTool(ctx context.Context, i
 		score := question.GetScore(qr.Response)
 		aggregateScore += score
 
-		responses = append(responses, domain.QuestionnaireScreeningToolQuestionResponse{
+		responses = append(responses, &domain.QuestionnaireScreeningToolQuestionResponse{
 			Active:                  true,
 			ScreeningToolResponseID: screeningTool.ID,
 			QuestionID:              qr.QuestionID,
@@ -270,4 +271,15 @@ func (q *UseCaseQuestionnaireImpl) GetScreeningToolRespondents(ctx context.Conte
 		return nil, fmt.Errorf("failed to get screening tool respondents: %w", err)
 	}
 	return respondents, nil
+}
+
+// GetScreeningToolResponse returns the screening tool response for the provided screening tool and client
+// the response is in a human-readable format
+func (q *UseCaseQuestionnaireImpl) GetScreeningToolResponse(ctx context.Context, id string) (*domain.QuestionnaireScreeningToolResponse, error) {
+	response, err := q.Query.GetScreeningToolResponseByID(ctx, id)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, fmt.Errorf("failed to get screening tool response: %w", err)
+	}
+	return response, nil
 }

@@ -107,6 +107,7 @@ type Query interface {
 	GetFacilityRespondedScreeningTools(ctx context.Context, facilityID string, pagination *domain.Pagination) ([]*ScreeningTool, *domain.Pagination, error)
 	GetScreeningToolServiceRequestOfRespondents(ctx context.Context, facilityID string, screeningToolID string, searchTerm string) ([]*ClientServiceRequest, error)
 	GetScreeningToolResponseByID(ctx context.Context, id string) (*ScreeningToolResponse, error)
+	GetScreeningToolQuestionResponsesByResponseID(ctx context.Context, responseID string) ([]*ScreeningToolQuestionResponse, error)
 }
 
 // GetFacilityStaffs returns a list of staff at a particular facility
@@ -1443,7 +1444,12 @@ func (db *PGInstance) GetAvailableScreeningTools(ctx context.Context, clientID s
 	t := time.Now().Add(time.Hour * -24)
 	err := db.DB.Raw(
 		`
-		SELECT * FROM questionnaires_screeningtool
+		SELECT 
+			questionnaires_screeningtool.id,  questionnaires_screeningtool.active, 
+			questionnaires_screeningtool.questionnaire_id, questionnaires_screeningtool.threshold, 
+			questionnaires_screeningtool.min_age, questionnaires_screeningtool.max_age,
+			questionnaires_screeningtool.client_types,  questionnaires_screeningtool.genders
+		FROM questionnaires_screeningtool
 		JOIN clients_client
 		ON clients_client.client_types && questionnaires_screeningtool.client_types
 		JOIN users_user
@@ -1659,7 +1665,9 @@ func (db *PGInstance) GetScreeningToolServiceRequestOfRespondents(ctx context.Co
 
 	if err := db.DB.Raw(
 		`
-		SELECT * from clients_servicerequest
+		SELECT 
+			clients_servicerequest.id, clients_servicerequest.client_id, clients_servicerequest.request, clients_servicerequest.meta 
+		from clients_servicerequest
 		JOIN questionnaires_screeningtoolresponse
 		ON questionnaires_screeningtoolresponse.id::TEXT = clients_servicerequest.meta ->> 'response_id'::TEXT
 		JOIN clients_client
@@ -1683,7 +1691,7 @@ func (db *PGInstance) GetScreeningToolServiceRequestOfRespondents(ctx context.Co
 	return serviceReqests, nil
 }
 
-// GetScreeningToolResponseByID is used to get screening tool response by ID
+// GetScreeningToolResponseByID is used to get a screening tool response by its ID
 func (db *PGInstance) GetScreeningToolResponseByID(ctx context.Context, id string) (*ScreeningToolResponse, error) {
 	var screeningToolResponse ScreeningToolResponse
 	if err := db.DB.Where(&ScreeningToolResponse{ID: id}).First(&screeningToolResponse).Error; err != nil {
@@ -1692,4 +1700,15 @@ func (db *PGInstance) GetScreeningToolResponseByID(ctx context.Context, id strin
 	}
 
 	return &screeningToolResponse, nil
+}
+
+// GetScreeningToolQuestionResponsesByResponseID is used to get screening tool question responses by screening tool response ID
+func (db *PGInstance) GetScreeningToolQuestionResponsesByResponseID(ctx context.Context, responseID string) ([]*ScreeningToolQuestionResponse, error) {
+	var screeningToolQuestionResponses []*ScreeningToolQuestionResponse
+	if err := db.DB.Where(&ScreeningToolQuestionResponse{ScreeningToolResponseID: responseID}).Find(&screeningToolQuestionResponses).Error; err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, fmt.Errorf("failed to get screening tool question responses: %w", err)
+	}
+
+	return screeningToolQuestionResponses, nil
 }

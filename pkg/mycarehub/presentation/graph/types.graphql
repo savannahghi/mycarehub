@@ -615,9 +615,15 @@ type QuestionnaireScreeningToolQuestionResponse {
   id: String!
   active: Boolean!
   screeningToolResponseID: String!
-  questionID: String!
-  response: String!
-  score: Int
+	questionID: String! 
+  questionType: QuestionType
+  selectMultiple: Boolean
+  responseValueType: QuestionResponseValueType
+  sequence: Int
+  questionText: String
+	response:   String! 
+  normalizedResponse: Map
+	score:      Int    
 }
 
 type ScreeningToolRespondent {

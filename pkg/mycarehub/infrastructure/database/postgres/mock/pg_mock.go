@@ -154,6 +154,7 @@ type PostgresMock struct {
 	MockGetFacilityRespondedScreeningToolsFn             func(ctx context.Context, facilityID string, pagination *domain.Pagination) ([]*domain.ScreeningTool, *domain.Pagination, error)
 	MockListSurveyRespondentsFn                          func(ctx context.Context, projectID int, formID string, pagination *domain.Pagination) ([]*domain.SurveyRespondent, *domain.Pagination, error)
 	MockGetScreeningToolRespondentsFn                    func(ctx context.Context, facilityID string, screeningToolID string, searchTerm string) ([]*domain.ScreeningToolRespondent, error)
+	MockGetScreeningToolResponseByIDFn                   func(ctx context.Context, id string) (*domain.QuestionnaireScreeningToolResponse, error)
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -1197,6 +1198,31 @@ func NewPostgresMock() *PostgresMock {
 				},
 			}, nil
 		},
+		MockGetScreeningToolResponseByIDFn: func(ctx context.Context, id string) (*domain.QuestionnaireScreeningToolResponse, error) {
+			return &domain.QuestionnaireScreeningToolResponse{
+				ID:              ID,
+				Active:          true,
+				ScreeningToolID: ID,
+				FacilityID:      ID,
+				ClientID:        ID,
+				DateOfResponse:  time.Now(),
+				AggregateScore:  3,
+				QuestionResponses: []*domain.QuestionnaireScreeningToolQuestionResponse{
+					{
+						ID:                      ID,
+						Active:                  true,
+						ScreeningToolResponseID: ID,
+						QuestionID:              ID,
+						QuestionText:            gofakeit.Sentence(1),
+						Response:                "0",
+						NormalizedResponse: map[string]interface{}{
+							"0": gofakeit.Sentence(1),
+						},
+						Score: 2,
+					},
+				},
+			}, nil
+		},
 	}
 }
 
@@ -1864,4 +1890,9 @@ func (gm *PostgresMock) ListSurveyRespondents(ctx context.Context, projectID int
 // GetScreeningToolRespondents mocks the implementation of getting screening tool respondents
 func (gm *PostgresMock) GetScreeningToolRespondents(ctx context.Context, facilityID string, screeningToolID string, searchTerm string) ([]*domain.ScreeningToolRespondent, error) {
 	return gm.MockGetScreeningToolRespondentsFn(ctx, facilityID, screeningToolID, searchTerm)
+}
+
+// GetScreeningToolResponseByID mocks the implementation of getting a screening tool response by ID
+func (gm *PostgresMock) GetScreeningToolResponseByID(ctx context.Context, id string) (*domain.QuestionnaireScreeningToolResponse, error) {
+	return gm.MockGetScreeningToolResponseByIDFn(ctx, id)
 }

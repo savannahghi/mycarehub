@@ -6389,3 +6389,81 @@ func TestMyCareHubDb_GetScreeningToolRespondents(t *testing.T) {
 		})
 	}
 }
+
+func TestMyCareHubDb_GetScreeningToolResponseByID(t *testing.T) {
+	ctx := context.Background()
+
+	var fakeGorm = gormMock.NewGormMock()
+	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+	type args struct {
+		ctx context.Context
+		id  string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: return screening tool response",
+			args: args{
+				ctx: ctx,
+				id:  uuid.New().String(),
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: unable to get screening tool response",
+			args: args{
+				ctx: ctx,
+				id:  uuid.New().String(),
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: unable to get screening tool question responses",
+			args: args{
+				ctx: ctx,
+				id:  uuid.New().String(),
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: unable to get screening tool",
+			args: args{
+				ctx: ctx,
+				id:  uuid.New().String(),
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "Sad case: unable to get screening tool response" {
+				fakeGorm.MockGetScreeningToolResponseByIDFn = func(ctx context.Context, id string) (*gorm.ScreeningToolResponse, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case: unable to get screening tool question responses" {
+				fakeGorm.MockGetScreeningToolQuestionResponsesByResponseIDFn = func(ctx context.Context, id string) ([]*gorm.ScreeningToolQuestionResponse, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case: unable to get screening tool" {
+				fakeGorm.MockGetQuestionsByQuestionnaireIDFn = func(ctx context.Context, questionnaireID string) ([]*gorm.Question, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+			got, err := d.GetScreeningToolResponseByID(tt.args.ctx, tt.args.id)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.GetScreeningToolResponseByID() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected value, got %v", got)
+				return
+			}
+		})
+	}
+}
