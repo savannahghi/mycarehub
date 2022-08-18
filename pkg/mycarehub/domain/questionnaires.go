@@ -42,6 +42,35 @@ type ScreeningTool struct {
 	Questionnaire   Questionnaire      `json:"questionnaire"`
 }
 
+// GetQuestion returns the question details for a given screening tool question
+func (s ScreeningTool) GetQuestion(questionID string) *Question {
+	question, err := s.Questionnaire.GetQuestionByID(questionID)
+	if err != nil {
+		return nil
+	}
+	return &question
+}
+
+// GetNormalizedResponse returns the human readable response for a given question response
+func (s ScreeningTool) GetNormalizedResponse(questionID, response string) map[string]interface{} {
+	question, err := s.Questionnaire.GetQuestionByID(questionID)
+	if err != nil {
+		return nil
+	}
+	switch question.QuestionType {
+	case enums.QuestionTypeCloseEnded:
+		if question.SelectMultiple {
+			return question.GetNormalizedResponseForMultipleChoice(response)
+		}
+		return question.GetNormalizedResponseForSingleChoice(response)
+	case enums.QuestionTypeOpenEnded:
+		return map[string]interface{}{
+			"0": response,
+		}
+	}
+	return nil
+}
+
 // Question represents a question within a questionnaire.
 type Question struct {
 	ID                string                          `json:"id"`
@@ -141,6 +170,29 @@ func (s Question) GetScoreForMultipleChoice(response string) int {
 	return score
 }
 
+// GetNormalizedResponseForSingleChoice returns the human readable response for a single choice question response
+func (s Question) GetNormalizedResponseForSingleChoice(response string) map[string]interface{} {
+	for _, c := range s.Choices {
+		if c.Choice == response {
+			return map[string]interface{}{
+				c.Choice: c.Value,
+			}
+		}
+	}
+	return nil
+}
+
+// GetNormalizedResponseForMultipleChoice returns the human readable response for a multiple choice question response
+func (s Question) GetNormalizedResponseForMultipleChoice(response string) map[string]interface{} {
+	choices := map[string]interface{}{}
+	for _, c := range s.Choices {
+		if strings.Contains(response, c.Choice) {
+			choices[c.Choice] = c.Value
+		}
+	}
+	return choices
+}
+
 // QuestionInputChoice defines the structure of choices for the Question
 type QuestionInputChoice struct {
 	ID         string `json:"id"`
@@ -154,25 +206,31 @@ type QuestionInputChoice struct {
 // QuestionnaireScreeningToolResponse defines the response to the ScreeningTool question
 // TODO: Rename to ScreeningToolResponse after removing old screening tool implementation
 type QuestionnaireScreeningToolResponse struct {
-	ID                string                                       `json:"id"`
-	Active            bool                                         `json:"active"`
-	ScreeningToolID   string                                       `json:"screeningToolID"`
-	FacilityID        string                                       `json:"facilityID"`
-	ClientID          string                                       `json:"clientID"`
-	DateOfResponse    time.Time                                    `json:"dateOfResponse"`
-	AggregateScore    int                                          `json:"aggregateScore"`
-	QuestionResponses []QuestionnaireScreeningToolQuestionResponse `json:"questionResponses"`
+	ID                string                                        `json:"id"`
+	Active            bool                                          `json:"active"`
+	ScreeningToolID   string                                        `json:"screeningToolID"`
+	FacilityID        string                                        `json:"facilityID"`
+	ClientID          string                                        `json:"clientID"`
+	DateOfResponse    time.Time                                     `json:"dateOfResponse"`
+	AggregateScore    int                                           `json:"aggregateScore"`
+	QuestionResponses []*QuestionnaireScreeningToolQuestionResponse `json:"questionResponses"`
 }
 
 // QuestionnaireScreeningToolQuestionResponse defines the structure of a screening tool question response
 // TODO: Rename to ScreeningToolQuestionResponse after removing old screening tool implementation
 type QuestionnaireScreeningToolQuestionResponse struct {
-	ID                      string `json:"id"`
-	Active                  bool   `json:"active"`
-	ScreeningToolResponseID string `json:"screeningToolResponseID"`
-	QuestionID              string `json:"questionID"`
-	Response                string `json:"response"`
-	Score                   int    `json:"score"`
+	ID                      string                          `json:"id"`
+	Active                  bool                            `json:"active"`
+	ScreeningToolResponseID string                          `json:"screeningToolResponseID"`
+	QuestionID              string                          `json:"questionID"`
+	QuestionType            enums.QuestionType              `json:"questionType"`
+	SelectMultiple          bool                            `json:"selectMultiple"`
+	ResponseValueType       enums.QuestionResponseValueType `json:"responseValueType"`
+	Sequence                int                             `json:"sequence"`
+	QuestionText            string                          `json:"questionText"`
+	Response                string                          `json:"response"`
+	NormalizedResponse      map[string]interface{}          `json:"normalizedResponse"`
+	Score                   int                             `json:"score"`
 }
 
 // ScreeningToolRespondent defines the structure of a screening tool respondent

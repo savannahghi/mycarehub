@@ -160,6 +160,7 @@ type GormMock struct {
 	MockListSurveyRespondentsFn                          func(ctx context.Context, params map[string]interface{}, pagination *domain.Pagination) ([]*gorm.UserSurvey, *domain.Pagination, error)
 	MockGetScreeningToolServiceRequestOfRespondentsFn    func(ctx context.Context, facilityID string, screeningToolID string, searchTerm string) ([]*gorm.ClientServiceRequest, error)
 	MockGetScreeningToolResponseByIDFn                   func(ctx context.Context, id string) (*gorm.ScreeningToolResponse, error)
+	MockGetScreeningToolQuestionResponsesByResponseIDFn  func(ctx context.Context, responseID string) ([]*gorm.ScreeningToolQuestionResponse, error)
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -1294,6 +1295,18 @@ func NewGormMock() *GormMock {
 				AggregateScore:  3,
 			}, nil
 		},
+		MockGetScreeningToolQuestionResponsesByResponseIDFn: func(ctx context.Context, responseID string) ([]*gorm.ScreeningToolQuestionResponse, error) {
+			return []*gorm.ScreeningToolQuestionResponse{
+				{
+					ID:                      UUID,
+					Active:                  true,
+					ScreeningToolResponseID: UUID,
+					QuestionID:              UUID,
+					Response:                responseID,
+					Score:                   3,
+				},
+			}, nil
+		},
 	}
 }
 
@@ -1985,4 +1998,9 @@ func (gm *GormMock) GetScreeningToolServiceRequestOfRespondents(ctx context.Cont
 // GetScreeningToolResponseByID mocks the implementation of getting a screening tool response by ID
 func (gm *GormMock) GetScreeningToolResponseByID(ctx context.Context, id string) (*gorm.ScreeningToolResponse, error) {
 	return gm.MockGetScreeningToolResponseByIDFn(ctx, id)
+}
+
+// GetScreeningToolQuestionResponsesByResponseID mocks the implementation of getting screening tool question responses by response ID
+func (gm *GormMock) GetScreeningToolQuestionResponsesByResponseID(ctx context.Context, responseID string) ([]*gorm.ScreeningToolQuestionResponse, error) {
+	return gm.MockGetScreeningToolQuestionResponsesByResponseIDFn(ctx, responseID)
 }

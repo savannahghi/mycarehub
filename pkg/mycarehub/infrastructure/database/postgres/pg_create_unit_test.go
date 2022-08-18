@@ -1677,7 +1677,7 @@ func TestMyCareHubDb_CreateScreeningToolResponse(t *testing.T) {
 					FacilityID:      uuid.NewString(),
 					ClientID:        uuid.NewString(),
 					AggregateScore:  3,
-					QuestionResponses: []domain.QuestionnaireScreeningToolQuestionResponse{
+					QuestionResponses: []*domain.QuestionnaireScreeningToolQuestionResponse{
 						{
 							ID:                      uuid.NewString(),
 							Active:                  true,
@@ -1709,7 +1709,7 @@ func TestMyCareHubDb_CreateScreeningToolResponse(t *testing.T) {
 					FacilityID:      uuid.NewString(),
 					ClientID:        uuid.NewString(),
 					AggregateScore:  3,
-					QuestionResponses: []domain.QuestionnaireScreeningToolQuestionResponse{
+					QuestionResponses: []*domain.QuestionnaireScreeningToolQuestionResponse{
 						{
 							ID:                      uuid.NewString(),
 							Active:                  true,

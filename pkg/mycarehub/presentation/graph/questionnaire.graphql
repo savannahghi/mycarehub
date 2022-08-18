@@ -8,4 +8,5 @@ extend type Query{
     getScreeningToolByID(id: ID!): ScreeningTool
     getFacilityRespondedScreeningTools(facilityID: String!, paginationInput: PaginationsInput!): ScreeningToolPage
     getScreeningToolRespondents(facilityID: String!, screeningToolID: String!,  searchTerm: String): [ScreeningToolRespondent!]!
+    getScreeningToolResponse(id: String!): QuestionnaireScreeningToolResponse!
 }

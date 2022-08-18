@@ -4564,3 +4564,45 @@ func TestPGInstance_GetScreeningToolResponseByID(t *testing.T) {
 		})
 	}
 }
+
+func TestPGInstance_GetScreeningToolQuestionResponsesByResponseID(t *testing.T) {
+	type args struct {
+		ctx        context.Context
+		responseID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: get screening tool question responses by response id",
+			args: args{
+				ctx:        context.Background(),
+				responseID: screeningToolsResponseID,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: get screening tool question responses by response id",
+			args: args{
+				ctx:        context.Background(),
+				responseID: "INVALID_ID",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := testingDB.GetScreeningToolQuestionResponsesByResponseID(tt.args.ctx, tt.args.responseID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.GetScreeningToolQuestionResponsesByResponseID() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected value, got %v", got)
+				return
+			}
+		})
+	}
+}

@@ -515,6 +515,7 @@ type ComplexityRoot struct {
 		GetScreeningToolByID                    func(childComplexity int, id string) int
 		GetScreeningToolQuestions               func(childComplexity int, toolType *string) int
 		GetScreeningToolRespondents             func(childComplexity int, facilityID string, screeningToolID string, searchTerm *string) int
+		GetScreeningToolResponse                func(childComplexity int, id string) int
 		GetScreeningToolServiceRequestResponses func(childComplexity int, clientID *string, toolType *enums.ScreeningToolType) int
 		GetSecurityQuestions                    func(childComplexity int, flavour feedlib.Flavour) int
 		GetServiceRequests                      func(childComplexity int, requestType *string, requestStatus *string, facilityID string, flavour feedlib.Flavour) int
@@ -580,10 +581,16 @@ type ComplexityRoot struct {
 	QuestionnaireScreeningToolQuestionResponse struct {
 		Active                  func(childComplexity int) int
 		ID                      func(childComplexity int) int
+		NormalizedResponse      func(childComplexity int) int
 		QuestionID              func(childComplexity int) int
+		QuestionText            func(childComplexity int) int
+		QuestionType            func(childComplexity int) int
 		Response                func(childComplexity int) int
+		ResponseValueType       func(childComplexity int) int
 		Score                   func(childComplexity int) int
 		ScreeningToolResponseID func(childComplexity int) int
+		SelectMultiple          func(childComplexity int) int
+		Sequence                func(childComplexity int) int
 	}
 
 	QuestionnaireScreeningToolResponse struct {
@@ -886,6 +893,7 @@ type QueryResolver interface {
 	GetScreeningToolByID(ctx context.Context, id string) (*domain.ScreeningTool, error)
 	GetFacilityRespondedScreeningTools(ctx context.Context, facilityID string, paginationInput dto.PaginationsInput) (*domain.ScreeningToolPage, error)
 	GetScreeningToolRespondents(ctx context.Context, facilityID string, screeningToolID string, searchTerm *string) ([]*domain.ScreeningToolRespondent, error)
+	GetScreeningToolResponse(ctx context.Context, id string) (*domain.QuestionnaireScreeningToolResponse, error)
 	GetScreeningToolQuestions(ctx context.Context, toolType *string) ([]*domain.ScreeningToolQuestion, error)
 	GetAvailableScreeningToolQuestions(ctx context.Context, clientID string) ([]*domain.AvailableScreeningTools, error)
 	GetAvailableFacilityScreeningTools(ctx context.Context, facilityID string) ([]*domain.AvailableScreeningTools, error)
@@ -3546,6 +3554,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.GetScreeningToolRespondents(childComplexity, args["facilityID"].(string), args["screeningToolID"].(string), args["searchTerm"].(*string)), true
 
+	case "Query.getScreeningToolResponse":
+		if e.complexity.Query.GetScreeningToolResponse == nil {
+			break
+		}
+
+		args, err := ec.field_Query_getScreeningToolResponse_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetScreeningToolResponse(childComplexity, args["id"].(string)), true
+
 	case "Query.getScreeningToolServiceRequestResponses":
 		if e.complexity.Query.GetScreeningToolServiceRequestResponses == nil {
 			break
@@ -4057,6 +4077,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.QuestionnaireScreeningToolQuestionResponse.ID(childComplexity), true
 
+	case "QuestionnaireScreeningToolQuestionResponse.normalizedResponse":
+		if e.complexity.QuestionnaireScreeningToolQuestionResponse.NormalizedResponse == nil {
+			break
+		}
+
+		return e.complexity.QuestionnaireScreeningToolQuestionResponse.NormalizedResponse(childComplexity), true
+
 	case "QuestionnaireScreeningToolQuestionResponse.questionID":
 		if e.complexity.QuestionnaireScreeningToolQuestionResponse.QuestionID == nil {
 			break
@@ -4064,12 +4091,33 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.QuestionnaireScreeningToolQuestionResponse.QuestionID(childComplexity), true
 
+	case "QuestionnaireScreeningToolQuestionResponse.questionText":
+		if e.complexity.QuestionnaireScreeningToolQuestionResponse.QuestionText == nil {
+			break
+		}
+
+		return e.complexity.QuestionnaireScreeningToolQuestionResponse.QuestionText(childComplexity), true
+
+	case "QuestionnaireScreeningToolQuestionResponse.questionType":
+		if e.complexity.QuestionnaireScreeningToolQuestionResponse.QuestionType == nil {
+			break
+		}
+
+		return e.complexity.QuestionnaireScreeningToolQuestionResponse.QuestionType(childComplexity), true
+
 	case "QuestionnaireScreeningToolQuestionResponse.response":
 		if e.complexity.QuestionnaireScreeningToolQuestionResponse.Response == nil {
 			break
 		}
 
 		return e.complexity.QuestionnaireScreeningToolQuestionResponse.Response(childComplexity), true
+
+	case "QuestionnaireScreeningToolQuestionResponse.responseValueType":
+		if e.complexity.QuestionnaireScreeningToolQuestionResponse.ResponseValueType == nil {
+			break
+		}
+
+		return e.complexity.QuestionnaireScreeningToolQuestionResponse.ResponseValueType(childComplexity), true
 
 	case "QuestionnaireScreeningToolQuestionResponse.score":
 		if e.complexity.QuestionnaireScreeningToolQuestionResponse.Score == nil {
@@ -4084,6 +4132,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.QuestionnaireScreeningToolQuestionResponse.ScreeningToolResponseID(childComplexity), true
+
+	case "QuestionnaireScreeningToolQuestionResponse.selectMultiple":
+		if e.complexity.QuestionnaireScreeningToolQuestionResponse.SelectMultiple == nil {
+			break
+		}
+
+		return e.complexity.QuestionnaireScreeningToolQuestionResponse.SelectMultiple(childComplexity), true
+
+	case "QuestionnaireScreeningToolQuestionResponse.sequence":
+		if e.complexity.QuestionnaireScreeningToolQuestionResponse.Sequence == nil {
+			break
+		}
+
+		return e.complexity.QuestionnaireScreeningToolQuestionResponse.Sequence(childComplexity), true
 
 	case "QuestionnaireScreeningToolResponse.active":
 		if e.complexity.QuestionnaireScreeningToolResponse.Active == nil {
@@ -5621,6 +5683,7 @@ extend type Query{
     getScreeningToolByID(id: ID!): ScreeningTool
     getFacilityRespondedScreeningTools(facilityID: String!, paginationInput: PaginationsInput!): ScreeningToolPage
     getScreeningToolRespondents(facilityID: String!, screeningToolID: String!,  searchTerm: String): [ScreeningToolRespondent!]!
+    getScreeningToolResponse(id: String!): QuestionnaireScreeningToolResponse!
 }`, BuiltIn: false},
 	{Name: "../screeningtools.graphql", Input: `extend type Query {
   getScreeningToolQuestions(toolType: String): [ScreeningToolQuestion!]!
@@ -6338,9 +6401,15 @@ type QuestionnaireScreeningToolQuestionResponse {
   id: String!
   active: Boolean!
   screeningToolResponseID: String!
-  questionID: String!
-  response: String!
-  score: Int
+	questionID: String! 
+  questionType: QuestionType
+  selectMultiple: Boolean
+  responseValueType: QuestionResponseValueType
+  sequence: Int
+  questionText: String
+	response:   String! 
+  normalizedResponse: Map
+	score:      Int    
 }
 
 type ScreeningToolRespondent {
@@ -8082,6 +8151,21 @@ func (ec *executionContext) field_Query_getScreeningToolRespondents_args(ctx con
 		}
 	}
 	args["searchTerm"] = arg2
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_getScreeningToolResponse_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
 	return args, nil
 }
 
@@ -24899,6 +24983,77 @@ func (ec *executionContext) fieldContext_Query_getScreeningToolRespondents(ctx c
 	return fc, nil
 }
 
+func (ec *executionContext) _Query_getScreeningToolResponse(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_getScreeningToolResponse(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GetScreeningToolResponse(rctx, fc.Args["id"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*domain.QuestionnaireScreeningToolResponse)
+	fc.Result = res
+	return ec.marshalNQuestionnaireScreeningToolResponse2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐQuestionnaireScreeningToolResponse(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_getScreeningToolResponse(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_QuestionnaireScreeningToolResponse_id(ctx, field)
+			case "active":
+				return ec.fieldContext_QuestionnaireScreeningToolResponse_active(ctx, field)
+			case "screeningToolID":
+				return ec.fieldContext_QuestionnaireScreeningToolResponse_screeningToolID(ctx, field)
+			case "facilityID":
+				return ec.fieldContext_QuestionnaireScreeningToolResponse_facilityID(ctx, field)
+			case "clientID":
+				return ec.fieldContext_QuestionnaireScreeningToolResponse_clientID(ctx, field)
+			case "aggregateScore":
+				return ec.fieldContext_QuestionnaireScreeningToolResponse_aggregateScore(ctx, field)
+			case "questionResponses":
+				return ec.fieldContext_QuestionnaireScreeningToolResponse_questionResponses(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type QuestionnaireScreeningToolResponse", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_getScreeningToolResponse_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query_getScreeningToolQuestions(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query_getScreeningToolQuestions(ctx, field)
 	if err != nil {
@@ -27497,6 +27652,211 @@ func (ec *executionContext) fieldContext_QuestionnaireScreeningToolQuestionRespo
 	return fc, nil
 }
 
+func (ec *executionContext) _QuestionnaireScreeningToolQuestionResponse_questionType(ctx context.Context, field graphql.CollectedField, obj *domain.QuestionnaireScreeningToolQuestionResponse) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_QuestionnaireScreeningToolQuestionResponse_questionType(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.QuestionType, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(enums.QuestionType)
+	fc.Result = res
+	return ec.marshalOQuestionType2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐQuestionType(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_QuestionnaireScreeningToolQuestionResponse_questionType(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "QuestionnaireScreeningToolQuestionResponse",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type QuestionType does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _QuestionnaireScreeningToolQuestionResponse_selectMultiple(ctx context.Context, field graphql.CollectedField, obj *domain.QuestionnaireScreeningToolQuestionResponse) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_QuestionnaireScreeningToolQuestionResponse_selectMultiple(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SelectMultiple, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_QuestionnaireScreeningToolQuestionResponse_selectMultiple(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "QuestionnaireScreeningToolQuestionResponse",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _QuestionnaireScreeningToolQuestionResponse_responseValueType(ctx context.Context, field graphql.CollectedField, obj *domain.QuestionnaireScreeningToolQuestionResponse) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_QuestionnaireScreeningToolQuestionResponse_responseValueType(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ResponseValueType, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(enums.QuestionResponseValueType)
+	fc.Result = res
+	return ec.marshalOQuestionResponseValueType2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐQuestionResponseValueType(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_QuestionnaireScreeningToolQuestionResponse_responseValueType(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "QuestionnaireScreeningToolQuestionResponse",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type QuestionResponseValueType does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _QuestionnaireScreeningToolQuestionResponse_sequence(ctx context.Context, field graphql.CollectedField, obj *domain.QuestionnaireScreeningToolQuestionResponse) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_QuestionnaireScreeningToolQuestionResponse_sequence(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Sequence, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalOInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_QuestionnaireScreeningToolQuestionResponse_sequence(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "QuestionnaireScreeningToolQuestionResponse",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _QuestionnaireScreeningToolQuestionResponse_questionText(ctx context.Context, field graphql.CollectedField, obj *domain.QuestionnaireScreeningToolQuestionResponse) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_QuestionnaireScreeningToolQuestionResponse_questionText(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.QuestionText, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_QuestionnaireScreeningToolQuestionResponse_questionText(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "QuestionnaireScreeningToolQuestionResponse",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _QuestionnaireScreeningToolQuestionResponse_response(ctx context.Context, field graphql.CollectedField, obj *domain.QuestionnaireScreeningToolQuestionResponse) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_QuestionnaireScreeningToolQuestionResponse_response(ctx, field)
 	if err != nil {
@@ -27536,6 +27896,47 @@ func (ec *executionContext) fieldContext_QuestionnaireScreeningToolQuestionRespo
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _QuestionnaireScreeningToolQuestionResponse_normalizedResponse(ctx context.Context, field graphql.CollectedField, obj *domain.QuestionnaireScreeningToolQuestionResponse) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_QuestionnaireScreeningToolQuestionResponse_normalizedResponse(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.NormalizedResponse, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(map[string]interface{})
+	fc.Result = res
+	return ec.marshalOMap2map(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_QuestionnaireScreeningToolQuestionResponse_normalizedResponse(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "QuestionnaireScreeningToolQuestionResponse",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Map does not have child fields")
 		},
 	}
 	return fc, nil
@@ -27869,9 +28270,9 @@ func (ec *executionContext) _QuestionnaireScreeningToolResponse_questionResponse
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]domain.QuestionnaireScreeningToolQuestionResponse)
+	res := resTmp.([]*domain.QuestionnaireScreeningToolQuestionResponse)
 	fc.Result = res
-	return ec.marshalNQuestionnaireScreeningToolQuestionResponse2ᚕgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐQuestionnaireScreeningToolQuestionResponseᚄ(ctx, field.Selections, res)
+	return ec.marshalNQuestionnaireScreeningToolQuestionResponse2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐQuestionnaireScreeningToolQuestionResponseᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_QuestionnaireScreeningToolResponse_questionResponses(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -27890,8 +28291,20 @@ func (ec *executionContext) fieldContext_QuestionnaireScreeningToolResponse_ques
 				return ec.fieldContext_QuestionnaireScreeningToolQuestionResponse_screeningToolResponseID(ctx, field)
 			case "questionID":
 				return ec.fieldContext_QuestionnaireScreeningToolQuestionResponse_questionID(ctx, field)
+			case "questionType":
+				return ec.fieldContext_QuestionnaireScreeningToolQuestionResponse_questionType(ctx, field)
+			case "selectMultiple":
+				return ec.fieldContext_QuestionnaireScreeningToolQuestionResponse_selectMultiple(ctx, field)
+			case "responseValueType":
+				return ec.fieldContext_QuestionnaireScreeningToolQuestionResponse_responseValueType(ctx, field)
+			case "sequence":
+				return ec.fieldContext_QuestionnaireScreeningToolQuestionResponse_sequence(ctx, field)
+			case "questionText":
+				return ec.fieldContext_QuestionnaireScreeningToolQuestionResponse_questionText(ctx, field)
 			case "response":
 				return ec.fieldContext_QuestionnaireScreeningToolQuestionResponse_response(ctx, field)
+			case "normalizedResponse":
+				return ec.fieldContext_QuestionnaireScreeningToolQuestionResponse_normalizedResponse(ctx, field)
 			case "score":
 				return ec.fieldContext_QuestionnaireScreeningToolQuestionResponse_score(ctx, field)
 			}
@@ -40122,6 +40535,29 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Concurrently(i, func() graphql.Marshaler {
 				return rrm(innerCtx)
 			})
+		case "getScreeningToolResponse":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_getScreeningToolResponse(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
 		case "getScreeningToolQuestions":
 			field := field
 
@@ -40817,6 +41253,26 @@ func (ec *executionContext) _QuestionnaireScreeningToolQuestionResponse(ctx cont
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "questionType":
+
+			out.Values[i] = ec._QuestionnaireScreeningToolQuestionResponse_questionType(ctx, field, obj)
+
+		case "selectMultiple":
+
+			out.Values[i] = ec._QuestionnaireScreeningToolQuestionResponse_selectMultiple(ctx, field, obj)
+
+		case "responseValueType":
+
+			out.Values[i] = ec._QuestionnaireScreeningToolQuestionResponse_responseValueType(ctx, field, obj)
+
+		case "sequence":
+
+			out.Values[i] = ec._QuestionnaireScreeningToolQuestionResponse_sequence(ctx, field, obj)
+
+		case "questionText":
+
+			out.Values[i] = ec._QuestionnaireScreeningToolQuestionResponse_questionText(ctx, field, obj)
+
 		case "response":
 
 			out.Values[i] = ec._QuestionnaireScreeningToolQuestionResponse_response(ctx, field, obj)
@@ -40824,6 +41280,10 @@ func (ec *executionContext) _QuestionnaireScreeningToolQuestionResponse(ctx cont
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "normalizedResponse":
+
+			out.Values[i] = ec._QuestionnaireScreeningToolQuestionResponse_normalizedResponse(ctx, field, obj)
+
 		case "score":
 
 			out.Values[i] = ec._QuestionnaireScreeningToolQuestionResponse_score(ctx, field, obj)
@@ -43678,11 +44138,7 @@ func (ec *executionContext) unmarshalNQuestionnaireInput2githubᚗcomᚋsavannah
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNQuestionnaireScreeningToolQuestionResponse2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐQuestionnaireScreeningToolQuestionResponse(ctx context.Context, sel ast.SelectionSet, v domain.QuestionnaireScreeningToolQuestionResponse) graphql.Marshaler {
-	return ec._QuestionnaireScreeningToolQuestionResponse(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalNQuestionnaireScreeningToolQuestionResponse2ᚕgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐQuestionnaireScreeningToolQuestionResponseᚄ(ctx context.Context, sel ast.SelectionSet, v []domain.QuestionnaireScreeningToolQuestionResponse) graphql.Marshaler {
+func (ec *executionContext) marshalNQuestionnaireScreeningToolQuestionResponse2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐQuestionnaireScreeningToolQuestionResponseᚄ(ctx context.Context, sel ast.SelectionSet, v []*domain.QuestionnaireScreeningToolQuestionResponse) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -43706,7 +44162,7 @@ func (ec *executionContext) marshalNQuestionnaireScreeningToolQuestionResponse2�
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNQuestionnaireScreeningToolQuestionResponse2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐQuestionnaireScreeningToolQuestionResponse(ctx, sel, v[i])
+			ret[i] = ec.marshalNQuestionnaireScreeningToolQuestionResponse2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐQuestionnaireScreeningToolQuestionResponse(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -43724,6 +44180,16 @@ func (ec *executionContext) marshalNQuestionnaireScreeningToolQuestionResponse2�
 	}
 
 	return ret
+}
+
+func (ec *executionContext) marshalNQuestionnaireScreeningToolQuestionResponse2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐQuestionnaireScreeningToolQuestionResponse(ctx context.Context, sel ast.SelectionSet, v *domain.QuestionnaireScreeningToolQuestionResponse) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._QuestionnaireScreeningToolQuestionResponse(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNQuestionnaireScreeningToolQuestionResponseInput2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐQuestionnaireScreeningToolQuestionResponseInputᚄ(ctx context.Context, v interface{}) ([]*dto.QuestionnaireScreeningToolQuestionResponseInput, error) {
@@ -43746,6 +44212,20 @@ func (ec *executionContext) unmarshalNQuestionnaireScreeningToolQuestionResponse
 func (ec *executionContext) unmarshalNQuestionnaireScreeningToolQuestionResponseInput2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐQuestionnaireScreeningToolQuestionResponseInput(ctx context.Context, v interface{}) (*dto.QuestionnaireScreeningToolQuestionResponseInput, error) {
 	res, err := ec.unmarshalInputQuestionnaireScreeningToolQuestionResponseInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNQuestionnaireScreeningToolResponse2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐQuestionnaireScreeningToolResponse(ctx context.Context, sel ast.SelectionSet, v domain.QuestionnaireScreeningToolResponse) graphql.Marshaler {
+	return ec._QuestionnaireScreeningToolResponse(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNQuestionnaireScreeningToolResponse2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐQuestionnaireScreeningToolResponse(ctx context.Context, sel ast.SelectionSet, v *domain.QuestionnaireScreeningToolResponse) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._QuestionnaireScreeningToolResponse(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNQuestionnaireScreeningToolResponseInput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐQuestionnaireScreeningToolResponseInput(ctx context.Context, v interface{}) (dto.QuestionnaireScreeningToolResponseInput, error) {
@@ -46187,6 +46667,26 @@ func (ec *executionContext) unmarshalOQuestionInputChoiceInput2ᚕgithubᚗcom�
 		}
 	}
 	return res, nil
+}
+
+func (ec *executionContext) unmarshalOQuestionResponseValueType2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐQuestionResponseValueType(ctx context.Context, v interface{}) (enums.QuestionResponseValueType, error) {
+	var res enums.QuestionResponseValueType
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOQuestionResponseValueType2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐQuestionResponseValueType(ctx context.Context, sel ast.SelectionSet, v enums.QuestionResponseValueType) graphql.Marshaler {
+	return v
+}
+
+func (ec *executionContext) unmarshalOQuestionType2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐQuestionType(ctx context.Context, v interface{}) (enums.QuestionType, error) {
+	var res enums.QuestionType
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOQuestionType2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐQuestionType(ctx context.Context, sel ast.SelectionSet, v enums.QuestionType) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) marshalOQuestionnaire2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐQuestionnaire(ctx context.Context, sel ast.SelectionSet, v domain.Questionnaire) graphql.Marshaler {

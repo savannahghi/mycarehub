@@ -2242,3 +2242,50 @@ func (d *MyCareHubDb) GetScreeningToolRespondents(ctx context.Context, facilityI
 
 	return respondents, nil
 }
+
+// GetScreeningToolResponseByID fetches a screening tool response by ID
+func (d *MyCareHubDb) GetScreeningToolResponseByID(ctx context.Context, id string) (*domain.QuestionnaireScreeningToolResponse, error) {
+	response, err := d.query.GetScreeningToolResponseByID(ctx, id)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+	screeningToolResponses, err := d.query.GetScreeningToolQuestionResponsesByResponseID(ctx, response.ID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+	screeningTool, err := d.GetScreeningToolByID(ctx, response.ScreeningToolID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+	questionResponsesPayload := []*domain.QuestionnaireScreeningToolQuestionResponse{}
+	for _, s := range screeningToolResponses {
+		question := screeningTool.GetQuestion(s.QuestionID)
+		questionResponsesPayload = append(questionResponsesPayload, &domain.QuestionnaireScreeningToolQuestionResponse{
+			ID:                      s.ID,
+			Active:                  s.Active,
+			ScreeningToolResponseID: id,
+			QuestionID:              s.QuestionID,
+			QuestionType:            question.QuestionType,
+			SelectMultiple:          question.SelectMultiple,
+			ResponseValueType:       question.ResponseValueType,
+			Sequence:                question.Sequence,
+			QuestionText:            question.Text,
+			Response:                s.Response,
+			NormalizedResponse:      screeningTool.GetNormalizedResponse(s.QuestionID, s.Response),
+			Score:                   s.Score,
+		})
+	}
+	return &domain.QuestionnaireScreeningToolResponse{
+		ID:                response.ID,
+		Active:            response.Active,
+		ScreeningToolID:   response.ScreeningToolID,
+		FacilityID:        response.FacilityID,
+		ClientID:          response.ClientID,
+		DateOfResponse:    response.CreatedAt,
+		AggregateScore:    response.AggregateScore,
+		QuestionResponses: questionResponsesPayload,
+	}, nil
+}
