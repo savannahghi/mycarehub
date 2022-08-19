@@ -63,9 +63,21 @@ func (q *UseCaseQuestionnaireImpl) CreateScreeningTool(ctx context.Context, inpu
 	}
 
 	questions := []domain.Question{}
+	sequenceMap := make(map[int]int)
 	for _, q := range input.Questionnaire.Questions {
+		if _, ok := sequenceMap[q.Sequence]; ok {
+			return false, fmt.Errorf("duplicate sequence found: %w", err)
+		}
+		sequenceMap[q.Sequence] = q.Sequence
+
 		choices := []domain.QuestionInputChoice{}
+		choiceMap := make(map[string]string)
 		for _, c := range q.Choices {
+			if _, ok := choiceMap[*c.Choice]; ok {
+				return false, fmt.Errorf("duplicate choice found: %w", err)
+			}
+			choiceMap[*c.Choice] = *c.Choice
+
 			choices = append(choices, domain.QuestionInputChoice{
 				Active: true,
 				Choice: *c.Choice,
@@ -73,6 +85,7 @@ func (q *UseCaseQuestionnaireImpl) CreateScreeningTool(ctx context.Context, inpu
 				Score:  c.Score,
 			})
 		}
+
 		questions = append(questions, domain.Question{
 			Active:            true,
 			Text:              q.Text,
