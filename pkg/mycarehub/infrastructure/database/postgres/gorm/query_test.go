@@ -4417,3 +4417,56 @@ func TestPGInstance_GetFacilityRespondedScreeningTools(t *testing.T) {
 		})
 	}
 }
+
+func TestPGInstance_ListSurveyRespondents(t *testing.T) {
+	type args struct {
+		ctx        context.Context
+		params     map[string]interface{}
+		pagination *domain.Pagination
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: list survey respondents",
+			args: args{
+				ctx: context.Background(),
+				params: map[string]interface{}{
+					"project_id":    projectID,
+					"has_submitted": true,
+				},
+				pagination: &domain.Pagination{
+					Limit:       10,
+					CurrentPage: 1,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: unable to list survey respondents",
+			args: args{
+				ctx: context.Background(),
+				params: map[string]interface{}{
+					"project_id":    gofakeit.HipsterParagraph(1, 10, 200, ""),
+					"has_submitted": true,
+				},
+				pagination: &domain.Pagination{
+					Limit:       10,
+					CurrentPage: 1,
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, _, err := testingDB.ListSurveyRespondents(tt.args.ctx, tt.args.params, tt.args.pagination)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.ListSurveyRespondents() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}

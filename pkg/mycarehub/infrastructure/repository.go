@@ -125,6 +125,7 @@ type Query interface {
 	GetScreeningToolByID(ctx context.Context, screeningToolID string) (*domain.ScreeningTool, error)
 	GetAvailableScreeningTools(ctx context.Context, clientID string, facilityID string) ([]*domain.ScreeningTool, error)
 	GetFacilityRespondedScreeningTools(ctx context.Context, facilityID string) ([]*domain.ScreeningTool, error)
+	ListSurveyRespondents(ctx context.Context, projectID int, formID string, pagination *domain.Pagination) ([]*domain.SurveyRespondent, *domain.Pagination, error)
 }
 
 // Update represents all the update action interfaces

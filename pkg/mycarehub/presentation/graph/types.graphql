@@ -540,6 +540,20 @@ type UserSurvey {
   linkID: Int
 }
 
+type SurveyRespondent {
+  id: String!
+  name: String!
+  submittedAt: Time!
+  projectID: Int!
+  submitterID: Int!
+  formID: String!
+}
+
+type SurveyRespondentPage {
+  surveyRespondents: [SurveyRespondent]!
+  pagination: Pagination!
+}
+
 
 type Questionnaire {
   id:  String!

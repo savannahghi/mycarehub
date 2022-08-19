@@ -1096,16 +1096,17 @@ func (s *StaffFacilities) TableName() string {
 type UserSurvey struct {
 	Base
 
-	ID           string `gorm:"id"`
-	Active       bool   `gorm:"active"`
-	Link         string `gorm:"link"`
-	Title        string `gorm:"title"`
-	Description  string `gorm:"description"`
-	HasSubmitted bool   `gorm:"submitted"`
-	FormID       string `gorm:"form_id"`
-	ProjectID    int    `gorm:"project_id"`
-	LinkID       int    `gorm:"link_id"`
-	Token        string `gorm:"token"`
+	ID           string     `gorm:"id"`
+	Active       bool       `gorm:"active"`
+	Link         string     `gorm:"link"`
+	Title        string     `gorm:"title"`
+	Description  string     `gorm:"description"`
+	HasSubmitted bool       `gorm:"submitted"`
+	FormID       string     `gorm:"form_id"`
+	ProjectID    int        `gorm:"project_id"`
+	LinkID       int        `gorm:"link_id"`
+	Token        string     `gorm:"token"`
+	SubmittedAt  *time.Time `gorm:"submitted_at"`
 
 	UserID         string `gorm:"user_id"`
 	OrganisationID string `gorm:"organisation_id"`
