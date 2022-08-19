@@ -6,9 +6,15 @@ extend type Query {
         formID: String!,
         paginationInput: PaginationsInput!,
     ): SurveyRespondentPage
+    getSurveyResponse(input: SurveyResponseInput!): [SurveyResponse!]
 }
 
 extend type Mutation {
-    sendClientSurveyLinks(facilityID: String! formID: String!, projectID: Int!, filterParams:  ClientFilterParamsInput): Boolean!
-    verifySurveySubmission(input: VerifySurveySubmissionInput!): Boolean!
+  sendClientSurveyLinks(
+    facilityID: String!
+    formID: String!
+    projectID: Int!
+    filterParams: ClientFilterParamsInput
+  ): Boolean!
+  verifySurveySubmission(input: VerifySurveySubmissionInput!): Boolean!
 }

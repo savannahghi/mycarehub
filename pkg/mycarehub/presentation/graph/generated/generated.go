@@ -518,6 +518,7 @@ type ComplexityRoot struct {
 		GetSecurityQuestions                    func(childComplexity int, flavour feedlib.Flavour) int
 		GetServiceRequests                      func(childComplexity int, requestType *string, requestStatus *string, facilityID string, flavour feedlib.Flavour) int
 		GetSharedHealthDiaryEntries             func(childComplexity int, clientID string, facilityID string) int
+		GetSurveyResponse                       func(childComplexity int, input dto.SurveyResponseInput) int
 		GetUserBookmarkedContent                func(childComplexity int, userID string) int
 		GetUserRoles                            func(childComplexity int, userID string) int
 		GetUserSurveyForms                      func(childComplexity int, userID string) int
@@ -731,6 +732,12 @@ type ComplexityRoot struct {
 		SurveyRespondents func(childComplexity int) int
 	}
 
+	SurveyResponse struct {
+		Answer       func(childComplexity int) int
+		Question     func(childComplexity int) int
+		QuestionType func(childComplexity int) int
+	}
+
 	TermsOfService struct {
 		TermsID func(childComplexity int) int
 		Text    func(childComplexity int) int
@@ -875,6 +882,7 @@ type QueryResolver interface {
 	ListSurveys(ctx context.Context, projectID int) ([]*domain.SurveyForm, error)
 	GetUserSurveyForms(ctx context.Context, userID string) ([]*domain.UserSurvey, error)
 	ListSurveyRespondents(ctx context.Context, projectID int, formID string, paginationInput dto.PaginationsInput) (*domain.SurveyRespondentPage, error)
+	GetSurveyResponse(ctx context.Context, input dto.SurveyResponseInput) ([]*domain.SurveyResponse, error)
 	GetCurrentTerms(ctx context.Context, flavour feedlib.Flavour) (*domain.TermsOfService, error)
 	VerifyPin(ctx context.Context, userID string, flavour feedlib.Flavour, pin string) (bool, error)
 	GetClientCaregiver(ctx context.Context, clientID string) (*domain.Caregiver, error)
@@ -3558,6 +3566,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.GetSharedHealthDiaryEntries(childComplexity, args["clientID"].(string), args["facilityID"].(string)), true
 
+	case "Query.getSurveyResponse":
+		if e.complexity.Query.GetSurveyResponse == nil {
+			break
+		}
+
+		args, err := ec.field_Query_getSurveyResponse_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetSurveyResponse(childComplexity, args["input"].(dto.SurveyResponseInput)), true
+
 	case "Query.getUserBookmarkedContent":
 		if e.complexity.Query.GetUserBookmarkedContent == nil {
 			break
@@ -4667,6 +4687,27 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.SurveyRespondentPage.SurveyRespondents(childComplexity), true
 
+	case "SurveyResponse.answer":
+		if e.complexity.SurveyResponse.Answer == nil {
+			break
+		}
+
+		return e.complexity.SurveyResponse.Answer(childComplexity), true
+
+	case "SurveyResponse.question":
+		if e.complexity.SurveyResponse.Question == nil {
+			break
+		}
+
+		return e.complexity.SurveyResponse.Question(childComplexity), true
+
+	case "SurveyResponse.questionType":
+		if e.complexity.SurveyResponse.QuestionType == nil {
+			break
+		}
+
+		return e.complexity.SurveyResponse.QuestionType(childComplexity), true
+
 	case "TermsOfService.termsID":
 		if e.complexity.TermsOfService.TermsID == nil {
 			break
@@ -4907,6 +4948,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputSortOption,
 		ec.unmarshalInputSortsInput,
 		ec.unmarshalInputStaffRegistrationInput,
+		ec.unmarshalInputSurveyResponseInput,
 		ec.unmarshalInputVerifySurveySubmissionInput,
 	)
 	first := true
@@ -5400,52 +5442,56 @@ input VerifySurveySubmissionInput {
   submitterID: Int! #also termed as linkID
 }
 
-
 input NotificationFilters {
   isRead: Boolean
   notificationTypes: [NotificationType!]
 }
 
-
 input QuestionnaireInput {
-	name:          String!             
-	description:   String!             
-	questions:     [QuestionInput!]!
+  name: String!
+  description: String!
+  questions: [QuestionInput!]!
 }
 
 input ScreeningToolInput {
   questionnaire: QuestionnaireInput!
-	threshold:   Int!              
-	clientTypes: [ClientType] 
-	genders:     [Gender] 
-	ageRange:    AgeRangeInput      
+  threshold: Int!
+  clientTypes: [ClientType]
+  genders: [Gender]
+  ageRange: AgeRangeInput
 }
 
-input QuestionInput  {
-	text:              String!                                  
-	questionType:      QuestionType!
-	responseValueType: QuestionResponseValueType! 
-	required:          Boolean! 
-  selectMultiple:    Boolean                                
-	sequence:          Int!
-  choices:           [QuestionInputChoiceInput]                                  
+input QuestionInput {
+  text: String!
+  questionType: QuestionType!
+  responseValueType: QuestionResponseValueType!
+  required: Boolean!
+  selectMultiple: Boolean
+  sequence: Int!
+  choices: [QuestionInputChoiceInput]
 }
 
 input QuestionInputChoiceInput {
-	choice: String!
-	value:  String! 
-	score:  Int   
+  choice: String!
+  value: String!
+  score: Int
 }
 
 input QuestionnaireScreeningToolResponseInput {
-	screeningToolID:   String!                                            
-	clientID:          String!                                            
-	questionResponses: [QuestionnaireScreeningToolQuestionResponseInput!]!
+  screeningToolID: String!
+  clientID: String!
+  questionResponses: [QuestionnaireScreeningToolQuestionResponseInput!]!
 }
 
 input QuestionnaireScreeningToolQuestionResponseInput {
-	questionID: String! 
-	response:   String! 
+  questionID: String!
+  response: String!
+}
+
+input SurveyResponseInput {
+  projectID: Int!
+  formID: String!
+  SubmitterID: Int!
 }
 `, BuiltIn: false},
 	{Name: "../metrics.graphql", Input: `extend type Mutation {
@@ -5469,7 +5515,7 @@ extend type Mutation {
     notification: FirebaseSimpleNotificationInput!
   ): Boolean!
 
-  readNotifications(ids:[ID!]!): Boolean!
+  readNotifications(ids: [ID!]!): Boolean!
 }
 `, BuiltIn: false},
 	{Name: "../otp.graphql", Input: `extend type Query {
@@ -5543,12 +5589,19 @@ extend type Query {
         formID: String!,
         paginationInput: PaginationsInput!,
     ): SurveyRespondentPage
+    getSurveyResponse(input: SurveyResponseInput!): [SurveyResponse!]
 }
 
 extend type Mutation {
-    sendClientSurveyLinks(facilityID: String! formID: String!, projectID: Int!, filterParams:  ClientFilterParamsInput): Boolean!
-    verifySurveySubmission(input: VerifySurveySubmissionInput!): Boolean!
-}`, BuiltIn: false},
+  sendClientSurveyLinks(
+    facilityID: String!
+    formID: String!
+    projectID: Int!
+    filterParams: ClientFilterParamsInput
+  ): Boolean!
+  verifySurveySubmission(input: VerifySurveySubmissionInput!): Boolean!
+}
+`, BuiltIn: false},
 	{Name: "../types.graphql", Input: `type Facility {
   ID: String!
   name: String!
@@ -6105,65 +6158,70 @@ type SurveyRespondentPage {
   pagination: Pagination!
 }
 
-
-type Questionnaire {
-  id:  String!
-  active: Boolean!
-	name:          String!             
-	description:   String!            
-	questions:     [Question!]!
+type SurveyResponse {
+  question: String!
+  answer: String!
+  questionType: String!
 }
 
-type ScreeningTool { 
-  id:  String!
+type Questionnaire {
+  id: String!
+  active: Boolean!
+  name: String!
+  description: String!
+  questions: [Question!]!
+}
+
+type ScreeningTool {
+  id: String!
   active: Boolean!
   questionnaireID: String!
-	threshold:   Int                
-	clientTypes: [ClientType] 
-	genders:     [Gender] 
-	ageRange:    AgeRange
-  questionnaire: Questionnaire   
+  threshold: Int
+  clientTypes: [ClientType]
+  genders: [Gender]
+  ageRange: AgeRange
+  questionnaire: Questionnaire
 }
 
 type Question {
-  id:  String!
+  id: String!
   active: Boolean!
   questionnaireID: String!
-	text:              String!                                  
-	questionType:      QuestionType!
-	responseValueType: QuestionResponseValueType! 
-	required:          Boolean! 
-  selectMultiple:    Boolean                                
-	sequence:          Int!                                   
-	choices:           [QuestionInputChoice]              
+  text: String!
+  questionType: QuestionType!
+  responseValueType: QuestionResponseValueType!
+  required: Boolean!
+  selectMultiple: Boolean
+  sequence: Int!
+  choices: [QuestionInputChoice]
 }
 
 type QuestionInputChoice {
-  id:  String!
+  id: String!
   active: Boolean!
   questionID: String!
-	choice: String!
-	value:  String! 
-	score:  Int    
+  choice: String!
+  value: String!
+  score: Int
 }
 
 type QuestionnaireScreeningToolResponse {
-  id:  String!
+  id: String!
   active: Boolean!
-	screeningToolID: String!                                            
-	facilityID: String!                                            
-	clientID: String!
-	aggregateScore: Int                                               
-	questionResponses: [QuestionnaireScreeningToolQuestionResponse!]!
+  screeningToolID: String!
+  facilityID: String!
+  clientID: String!
+  aggregateScore: Int
+  questionResponses: [QuestionnaireScreeningToolQuestionResponse!]!
 }
 
 type QuestionnaireScreeningToolQuestionResponse {
-  id:  String!
+  id: String!
   active: Boolean!
   screeningToolResponseID: String!
-	questionID: String! 
-	response:   String! 
-	score:      Int    
+  questionID: String!
+  response: String!
+  score: Int
 }
 `, BuiltIn: false},
 	{Name: "../user.graphql", Input: `extend type Query {
@@ -7955,6 +8013,21 @@ func (ec *executionContext) field_Query_getSharedHealthDiaryEntries_args(ctx con
 		}
 	}
 	args["facilityID"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_getSurveyResponse_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 dto.SurveyResponseInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNSurveyResponseInput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐSurveyResponseInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
 	return args, nil
 }
 
@@ -25418,6 +25491,66 @@ func (ec *executionContext) fieldContext_Query_listSurveyRespondents(ctx context
 	return fc, nil
 }
 
+func (ec *executionContext) _Query_getSurveyResponse(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_getSurveyResponse(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GetSurveyResponse(rctx, fc.Args["input"].(dto.SurveyResponseInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*domain.SurveyResponse)
+	fc.Result = res
+	return ec.marshalOSurveyResponse2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐSurveyResponseᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_getSurveyResponse(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "question":
+				return ec.fieldContext_SurveyResponse_question(ctx, field)
+			case "answer":
+				return ec.fieldContext_SurveyResponse_answer(ctx, field)
+			case "questionType":
+				return ec.fieldContext_SurveyResponse_questionType(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type SurveyResponse", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_getSurveyResponse_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query_getCurrentTerms(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query_getCurrentTerms(ctx, field)
 	if err != nil {
@@ -31175,6 +31308,138 @@ func (ec *executionContext) fieldContext_SurveyRespondentPage_pagination(ctx con
 	return fc, nil
 }
 
+func (ec *executionContext) _SurveyResponse_question(ctx context.Context, field graphql.CollectedField, obj *domain.SurveyResponse) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SurveyResponse_question(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Question, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SurveyResponse_question(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SurveyResponse",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SurveyResponse_answer(ctx context.Context, field graphql.CollectedField, obj *domain.SurveyResponse) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SurveyResponse_answer(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Answer, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SurveyResponse_answer(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SurveyResponse",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SurveyResponse_questionType(ctx context.Context, field graphql.CollectedField, obj *domain.SurveyResponse) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SurveyResponse_questionType(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.QuestionType, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SurveyResponse_questionType(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SurveyResponse",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _TermsOfService_termsID(ctx context.Context, field graphql.CollectedField, obj *domain.TermsOfService) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_TermsOfService_termsID(ctx, field)
 	if err != nil {
@@ -35635,6 +35900,45 @@ func (ec *executionContext) unmarshalInputStaffRegistrationInput(ctx context.Con
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputSurveyResponseInput(ctx context.Context, obj interface{}) (dto.SurveyResponseInput, error) {
+	var it dto.SurveyResponseInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	for k, v := range asMap {
+		switch k {
+		case "projectID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("projectID"))
+			it.ProjectID, err = ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "formID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("formID"))
+			it.FormID, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "SubmitterID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("SubmitterID"))
+			it.SubmitterID, err = ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputVerifySurveySubmissionInput(ctx context.Context, obj interface{}) (dto.VerifySurveySubmissionInput, error) {
 	var it dto.VerifySurveySubmissionInput
 	asMap := map[string]interface{}{}
@@ -39447,6 +39751,26 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Concurrently(i, func() graphql.Marshaler {
 				return rrm(innerCtx)
 			})
+		case "getSurveyResponse":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_getSurveyResponse(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
 		case "getCurrentTerms":
 			field := field
 
@@ -40786,6 +41110,48 @@ func (ec *executionContext) _SurveyRespondentPage(ctx context.Context, sel ast.S
 		case "pagination":
 
 			out.Values[i] = ec._SurveyRespondentPage_pagination(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var surveyResponseImplementors = []string{"SurveyResponse"}
+
+func (ec *executionContext) _SurveyResponse(ctx context.Context, sel ast.SelectionSet, obj *domain.SurveyResponse) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, surveyResponseImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("SurveyResponse")
+		case "question":
+
+			out.Values[i] = ec._SurveyResponse_question(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "answer":
+
+			out.Values[i] = ec._SurveyResponse_answer(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "questionType":
+
+			out.Values[i] = ec._SurveyResponse_questionType(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
@@ -43274,6 +43640,21 @@ func (ec *executionContext) marshalNSurveyRespondent2ᚕᚖgithubᚗcomᚋsavann
 	return ret
 }
 
+func (ec *executionContext) marshalNSurveyResponse2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐSurveyResponse(ctx context.Context, sel ast.SelectionSet, v *domain.SurveyResponse) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._SurveyResponse(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNSurveyResponseInput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐSurveyResponseInput(ctx context.Context, v interface{}) (dto.SurveyResponseInput, error) {
+	res, err := ec.unmarshalInputSurveyResponseInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) marshalNTermsOfService2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐTermsOfService(ctx context.Context, sel ast.SelectionSet, v domain.TermsOfService) graphql.Marshaler {
 	return ec._TermsOfService(ctx, sel, &v)
 }
@@ -45468,6 +45849,53 @@ func (ec *executionContext) marshalOSurveyRespondentPage2ᚖgithubᚗcomᚋsavan
 		return graphql.Null
 	}
 	return ec._SurveyRespondentPage(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOSurveyResponse2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐSurveyResponseᚄ(ctx context.Context, sel ast.SelectionSet, v []*domain.SurveyResponse) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNSurveyResponse2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐSurveyResponse(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
 }
 
 func (ec *executionContext) unmarshalOTime2timeᚐTime(ctx context.Context, v interface{}) (time.Time, error) {

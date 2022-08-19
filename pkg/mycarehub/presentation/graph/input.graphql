@@ -174,50 +174,54 @@ input VerifySurveySubmissionInput {
   submitterID: Int! #also termed as linkID
 }
 
-
 input NotificationFilters {
   isRead: Boolean
   notificationTypes: [NotificationType!]
 }
 
-
 input QuestionnaireInput {
-	name:          String!             
-	description:   String!             
-	questions:     [QuestionInput!]!
+  name: String!
+  description: String!
+  questions: [QuestionInput!]!
 }
 
 input ScreeningToolInput {
   questionnaire: QuestionnaireInput!
-	threshold:   Int!              
-	clientTypes: [ClientType] 
-	genders:     [Gender] 
-	ageRange:    AgeRangeInput      
+  threshold: Int!
+  clientTypes: [ClientType]
+  genders: [Gender]
+  ageRange: AgeRangeInput
 }
 
-input QuestionInput  {
-	text:              String!                                  
-	questionType:      QuestionType!
-	responseValueType: QuestionResponseValueType! 
-	required:          Boolean! 
-  selectMultiple:    Boolean                                
-	sequence:          Int!
-  choices:           [QuestionInputChoiceInput]                                  
+input QuestionInput {
+  text: String!
+  questionType: QuestionType!
+  responseValueType: QuestionResponseValueType!
+  required: Boolean!
+  selectMultiple: Boolean
+  sequence: Int!
+  choices: [QuestionInputChoiceInput]
 }
 
 input QuestionInputChoiceInput {
-	choice: String!
-	value:  String! 
-	score:  Int   
+  choice: String!
+  value: String!
+  score: Int
 }
 
 input QuestionnaireScreeningToolResponseInput {
-	screeningToolID:   String!                                            
-	clientID:          String!                                            
-	questionResponses: [QuestionnaireScreeningToolQuestionResponseInput!]!
+  screeningToolID: String!
+  clientID: String!
+  questionResponses: [QuestionnaireScreeningToolQuestionResponseInput!]!
 }
 
 input QuestionnaireScreeningToolQuestionResponseInput {
-	questionID: String! 
-	response:   String! 
+  questionID: String!
+  response: String!
+}
+
+input SurveyResponseInput {
+  projectID: Int!
+  formID: String!
+  SubmitterID: Int!
 }

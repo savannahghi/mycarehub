@@ -23,6 +23,7 @@ type IListSurveys interface {
 	GetUserSurveyForms(ctx context.Context, userID string) ([]*domain.UserSurvey, error)
 	SendClientSurveyLinks(ctx context.Context, facilityID *string, formID *string, projectID *int, filterParams *dto.ClientFilterParamsInput) (bool, error)
 	ListSurveyRespondents(ctx context.Context, projectID int, formID string, paginationInput dto.PaginationsInput) (*domain.SurveyRespondentPage, error)
+	GetSurveyResponse(ctx context.Context, input dto.SurveyResponseInput) ([]*domain.SurveyResponse, error)
 }
 
 // IVerifySurveySubmission contains all the methods that can be used to update a survey
@@ -109,6 +110,57 @@ func (u *UsecaseSurveysImpl) VerifySurveySubmission(ctx context.Context, input d
 	}
 
 	return true, nil
+}
+
+// GetSurveyResponse fetches a users submission from ODK and serializes it to a human readable format
+func (u *UsecaseSurveysImpl) GetSurveyResponse(ctx context.Context, input dto.SurveyResponseInput) ([]*domain.SurveyResponse, error) {
+	submissions, err := u.Surveys.GetSubmissions(ctx, dto.VerifySurveySubmissionInput{ProjectID: input.ProjectID, FormID: input.FormID})
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
+	var instanceID string
+	for _, submission := range submissions {
+		if submission.SubmitterID == input.SubmitterID {
+			instanceID = submission.InstanceID
+			break
+		}
+	}
+
+	if instanceID == "" {
+		return nil, fmt.Errorf("survey response not found")
+	}
+
+	submission, err := u.Surveys.GetSubmissionXML(ctx, input.ProjectID, input.FormID, instanceID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
+	submissionData, ok := submission["data"].(map[string]interface{})
+	if !ok {
+		return nil, fmt.Errorf("invalid submission, expected a 'data' key form: %d.%s.%s", input.ProjectID, input.FormID, instanceID)
+	}
+
+	formVersion, ok := submissionData["-version"].(string)
+	if !ok {
+		return nil, fmt.Errorf("invalid submission, expected a form version: %d.%s.%s", input.ProjectID, input.FormID, instanceID)
+	}
+
+	form, err := u.Surveys.GetFormXML(ctx, input.ProjectID, input.FormID, formVersion)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
+	response, err := getFormResponse(ctx, form, submissionData)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, fmt.Errorf("failed to get responses for submission %s, form %d-%s-%s: %w", instanceID, input.ProjectID, input.FormID, formVersion, err)
+	}
+
+	return response, nil
 }
 
 // ListSurveys lists the surveys available for a given project
