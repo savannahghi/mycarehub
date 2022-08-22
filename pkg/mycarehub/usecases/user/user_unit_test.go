@@ -4510,14 +4510,6 @@ func TestUseCasesUserImpl_RegisterStaff(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "Sad Case - unable to create user",
-			args: args{
-				ctx:   ctx,
-				input: *payload,
-			},
-			wantErr: true,
-		},
-		{
 			name: "Sad Case - unable to check facility exists",
 			args: args{
 				ctx:   ctx,
@@ -4612,17 +4604,6 @@ func TestUseCasesUserImpl_RegisterStaff(t *testing.T) {
 				}
 				fakeDB.MockAssignRolesFn = func(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error) {
 					return true, nil
-				}
-			}
-			if tt.name == "Sad Case - unable to create user" {
-				fakeDB.MockCheckIdentifierExists = func(ctx context.Context, identifierType, identifierValue string) (bool, error) {
-					return false, nil
-				}
-				fakeDB.MockCheckIfPhoneNumberExistsFn = func(ctx context.Context, phone string, isOptedIn bool, flavour feedlib.Flavour) (bool, error) {
-					return false, nil
-				}
-				fakeDB.MockCreateUserFn = func(ctx context.Context, user domain.User) (*domain.User, error) {
-					return nil, fmt.Errorf("failed to create user")
 				}
 			}
 			if tt.name == "Sad Case - unable to check facility exists" {
