@@ -26,6 +26,7 @@ type UserSurvey struct {
 	ProjectID    int       `json:"projectID"`
 	FormID       string    `json:"formID"`
 	LinkID       int       `json:"linkID"`
+	SubmittedAt  time.Time `json:"submittedAt"`
 }
 
 // Submission represents a survey's submission domain model
@@ -47,4 +48,20 @@ type Submitter struct {
 	CreatedAt   time.Time `json:"createdAt"`
 	UpdatedAt   time.Time `json:"updatedAt"`
 	DeletedAt   time.Time `json:"deletedAt"`
+}
+
+// SurveyRespondent represents a survey's respondent domain model
+type SurveyRespondent struct {
+	ID          string    `json:"id"`
+	Name        string    `json:"name"`
+	SubmittedAt time.Time `json:"submittedAt"`
+	ProjectID   int       `json:"projectID"`
+	SubmitterID int       `json:"submitterID"`
+	FormID      string    `json:"formID"`
+}
+
+// SurveyRespondentPage represents a survey's respondent domain model
+type SurveyRespondentPage struct {
+	SurveyRespondents []*SurveyRespondent `json:"surveyRespondents"`
+	Pagination        Pagination          `json:"pagination"`
 }

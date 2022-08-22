@@ -477,3 +477,65 @@ func TestUsecaseSurveysImpl_VerifySurveySubmission(t *testing.T) {
 		})
 	}
 }
+
+func TestUsecaseSurveysImpl_ListSurveyRespondents(t *testing.T) {
+	ctx := context.Background()
+
+	fakeSurveys := mockSurveys.NewSurveysMock()
+	fakeDB := pgMock.NewPostgresMock()
+	fakeNotification := mockNotification.NewServiceNotificationMock()
+	u := NewUsecaseSurveys(fakeSurveys, fakeDB, fakeDB, fakeDB, fakeNotification)
+	type args struct {
+		ctx             context.Context
+		projectID       int
+		paginationInput dto.PaginationsInput
+		formID          string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *domain.SurveyRespondentPage
+		wantErr bool
+	}{
+		{
+			name: "happy case - list survey respondents",
+			args: args{
+				ctx:       ctx,
+				projectID: 10000000000000,
+				formID:    uuid.New().String(),
+				paginationInput: dto.PaginationsInput{
+					Limit:       10,
+					CurrentPage: 1,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case - unable to list survey respondents",
+			args: args{
+				ctx:       ctx,
+				projectID: 10000000000000,
+				formID:    uuid.New().String(),
+				paginationInput: dto.PaginationsInput{
+					Limit:       10,
+					CurrentPage: 1,
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "Sad case - unable to list survey respondents" {
+				fakeDB.MockListSurveyRespondentsFn = func(ctx context.Context, projectID int, formID string, pagination *domain.Pagination) ([]*domain.SurveyRespondent, *domain.Pagination, error) {
+					return nil, nil, fmt.Errorf("failed to list survey respondents")
+				}
+			}
+			_, err := u.ListSurveyRespondents(tt.args.ctx, tt.args.projectID, tt.args.formID, tt.args.paginationInput)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UsecaseSurveysImpl.ListSurveyRespondents() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}

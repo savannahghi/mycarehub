@@ -3,6 +3,7 @@ package surveys
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
@@ -21,6 +22,7 @@ type IListSurveys interface {
 	ListSurveys(ctx context.Context, projectID *int) ([]*domain.SurveyForm, error)
 	GetUserSurveyForms(ctx context.Context, userID string) ([]*domain.UserSurvey, error)
 	SendClientSurveyLinks(ctx context.Context, facilityID *string, formID *string, projectID *int, filterParams *dto.ClientFilterParamsInput) (bool, error)
+	ListSurveyRespondents(ctx context.Context, projectID int, formID string, paginationInput dto.PaginationsInput) (*domain.SurveyRespondentPage, error)
 }
 
 // IVerifySurveySubmission contains all the methods that can be used to update a survey
@@ -95,6 +97,7 @@ func (u *UsecaseSurveysImpl) VerifySurveySubmission(ctx context.Context, input d
 
 			updateData := map[string]interface{}{
 				"has_submitted": true,
+				"submitted_at":  time.Now(),
 			}
 			err := u.Update.UpdateUserSurveys(ctx, survey, updateData)
 			if err != nil {
@@ -219,4 +222,27 @@ func (u *UsecaseSurveysImpl) SendClientSurveyLinks(ctx context.Context, facility
 	}
 
 	return true, nil
+}
+
+// ListSurveyRespondents lists the respondents for a given survey
+func (u *UsecaseSurveysImpl) ListSurveyRespondents(ctx context.Context, projectID int, formID string, paginationInput dto.PaginationsInput) (*domain.SurveyRespondentPage, error) {
+	if err := paginationInput.Validate(); err != nil {
+		return nil, err
+	}
+
+	page := &domain.Pagination{
+		Limit:       paginationInput.Limit,
+		CurrentPage: paginationInput.CurrentPage,
+	}
+
+	surveyRespondents, pageInfo, err := u.Query.ListSurveyRespondents(ctx, projectID, formID, page)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
+	return &domain.SurveyRespondentPage{
+		SurveyRespondents: surveyRespondents,
+		Pagination:        *pageInfo,
+	}, nil
 }

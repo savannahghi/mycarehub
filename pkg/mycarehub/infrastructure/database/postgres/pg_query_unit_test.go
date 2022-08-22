@@ -6215,3 +6215,90 @@ func TestMyCareHubDb_GetFacilityRespondedScreeningTools(t *testing.T) {
 		})
 	}
 }
+
+func TestMyCareHubDb_ListSurveyRespondents(t *testing.T) {
+	ctx := context.Background()
+
+	var fakeGorm = gormMock.NewGormMock()
+	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+	type args struct {
+		ctx        context.Context
+		projectID  int
+		pagination *domain.Pagination
+		formID     string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    []*domain.SurveyRespondent
+		want1   *domain.Pagination
+		wantErr bool
+	}{
+		{
+			name: "Happy case: return survey respondents",
+			args: args{
+				ctx:       ctx,
+				projectID: 1,
+				formID:    uuid.New().String(),
+				pagination: &domain.Pagination{
+					Limit:       10,
+					CurrentPage: 1,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: unable to get survey respondents",
+			args: args{
+				ctx:       ctx,
+				projectID: 1,
+				formID:    uuid.New().String(),
+				pagination: &domain.Pagination{
+					Limit:       10,
+					CurrentPage: 1,
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: unable to get user profile",
+			args: args{
+				ctx:       ctx,
+				projectID: 1,
+				pagination: &domain.Pagination{
+					Limit:       10,
+					CurrentPage: 1,
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "Sad case: unable to get survey respondents" {
+				fakeGorm.MockListSurveyRespondentsFn = func(ctx context.Context, params map[string]interface{}, pagination *domain.Pagination) ([]*gorm.UserSurvey, *domain.Pagination, error) {
+					return nil, nil, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case: unable to get user profile" {
+				fakeGorm.MockListSurveyRespondentsFn = func(ctx context.Context, params map[string]interface{}, pagination *domain.Pagination) ([]*gorm.UserSurvey, *domain.Pagination, error) {
+					return []*gorm.UserSurvey{
+						{
+							ID:     "1",
+							UserID: uuid.New().String(),
+						},
+					}, nil, nil
+				}
+				fakeGorm.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID *string) (*gorm.User, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+			_, _, err := d.ListSurveyRespondents(tt.args.ctx, tt.args.projectID, tt.args.formID, tt.args.pagination)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.ListSurveyRespondents() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}

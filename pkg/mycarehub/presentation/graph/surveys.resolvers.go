@@ -25,3 +25,7 @@ func (r *queryResolver) ListSurveys(ctx context.Context, projectID int) ([]*doma
 func (r *queryResolver) GetUserSurveyForms(ctx context.Context, userID string) ([]*domain.UserSurvey, error) {
 	return r.mycarehub.Surveys.GetUserSurveyForms(ctx, userID)
 }
+
+func (r *queryResolver) ListSurveyRespondents(ctx context.Context, projectID int, formID string, paginationInput dto.PaginationsInput) (*domain.SurveyRespondentPage, error) {
+	return r.mycarehub.Surveys.ListSurveyRespondents(ctx, projectID, formID, paginationInput)
+}

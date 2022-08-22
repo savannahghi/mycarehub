@@ -1315,6 +1315,48 @@ func (d *MyCareHubDb) ListNotifications(ctx context.Context, params *domain.Noti
 	return mapped, pageInfo, nil
 }
 
+// ListSurveyRespondents lists survey respondents based on the provided parameters
+func (d *MyCareHubDb) ListSurveyRespondents(ctx context.Context, projectID int, formID string, pagination *domain.Pagination) ([]*domain.SurveyRespondent, *domain.Pagination, error) {
+	params := map[string]interface{}{
+		"project_id":    projectID,
+		"has_submitted": true,
+		"form_id":       formID,
+	}
+
+	respondents, pageInfo, err := d.query.ListSurveyRespondents(ctx, params, pagination)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	mapped := []*domain.SurveyRespondent{}
+	for _, a := range respondents {
+		userProfile, err := d.query.GetUserProfileByUserID(ctx, &a.ID)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		var submittedAt *time.Time
+		if a.SubmittedAt == nil {
+			submittedAt = &a.Base.UpdatedAt
+		} else {
+			submittedAt = a.SubmittedAt
+		}
+
+		m := &domain.SurveyRespondent{
+			ID:          a.ID,
+			Name:        userProfile.Name,
+			SubmittedAt: *submittedAt,
+			ProjectID:   a.ProjectID,
+			SubmitterID: a.LinkID,
+			FormID:      a.FormID,
+		}
+
+		mapped = append(mapped, m)
+	}
+
+	return mapped, pageInfo, nil
+}
+
 // ListAvailableNotificationTypes retrieves the distinct notification types available for a user
 func (d *MyCareHubDb) ListAvailableNotificationTypes(ctx context.Context, params *domain.Notification) ([]enums.NotificationType, error) {
 	parameters := &gorm.Notification{

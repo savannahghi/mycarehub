@@ -530,6 +530,7 @@ type ComplexityRoot struct {
 		ListFlaggedMessages                     func(childComplexity int, communityCid *string, memberIDs []*string) int
 		ListMembers                             func(childComplexity int, input *stream_chat.QueryOption) int
 		ListPendingInvites                      func(childComplexity int, memberID string, input *stream_chat.QueryOption) int
+		ListSurveyRespondents                   func(childComplexity int, projectID int, formID string, paginationInput dto.PaginationsInput) int
 		ListSurveys                             func(childComplexity int, projectID int) int
 		NextRefill                              func(childComplexity int, clientID string) int
 		RecommendedCommunities                  func(childComplexity int, clientID string, limit int) int
@@ -716,6 +717,20 @@ type ComplexityRoot struct {
 		XMLFormID func(childComplexity int) int
 	}
 
+	SurveyRespondent struct {
+		FormID      func(childComplexity int) int
+		ID          func(childComplexity int) int
+		Name        func(childComplexity int) int
+		ProjectID   func(childComplexity int) int
+		SubmittedAt func(childComplexity int) int
+		SubmitterID func(childComplexity int) int
+	}
+
+	SurveyRespondentPage struct {
+		Pagination        func(childComplexity int) int
+		SurveyRespondents func(childComplexity int) int
+	}
+
 	TermsOfService struct {
 		TermsID func(childComplexity int) int
 		Text    func(childComplexity int) int
@@ -859,6 +874,7 @@ type QueryResolver interface {
 	SearchServiceRequests(ctx context.Context, searchTerm string, flavour feedlib.Flavour, requestType string, facilityID string) ([]*domain.ServiceRequest, error)
 	ListSurveys(ctx context.Context, projectID int) ([]*domain.SurveyForm, error)
 	GetUserSurveyForms(ctx context.Context, userID string) ([]*domain.UserSurvey, error)
+	ListSurveyRespondents(ctx context.Context, projectID int, formID string, paginationInput dto.PaginationsInput) (*domain.SurveyRespondentPage, error)
 	GetCurrentTerms(ctx context.Context, flavour feedlib.Flavour) (*domain.TermsOfService, error)
 	VerifyPin(ctx context.Context, userID string, flavour feedlib.Flavour, pin string) (bool, error)
 	GetClientCaregiver(ctx context.Context, clientID string) (*domain.Caregiver, error)
@@ -3681,6 +3697,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.ListPendingInvites(childComplexity, args["memberID"].(string), args["input"].(*stream_chat.QueryOption)), true
 
+	case "Query.listSurveyRespondents":
+		if e.complexity.Query.ListSurveyRespondents == nil {
+			break
+		}
+
+		args, err := ec.field_Query_listSurveyRespondents_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.ListSurveyRespondents(childComplexity, args["projectID"].(int), args["formID"].(string), args["paginationInput"].(dto.PaginationsInput)), true
+
 	case "Query.listSurveys":
 		if e.complexity.Query.ListSurveys == nil {
 			break
@@ -4583,6 +4611,62 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.SurveyForm.XMLFormID(childComplexity), true
 
+	case "SurveyRespondent.formID":
+		if e.complexity.SurveyRespondent.FormID == nil {
+			break
+		}
+
+		return e.complexity.SurveyRespondent.FormID(childComplexity), true
+
+	case "SurveyRespondent.id":
+		if e.complexity.SurveyRespondent.ID == nil {
+			break
+		}
+
+		return e.complexity.SurveyRespondent.ID(childComplexity), true
+
+	case "SurveyRespondent.name":
+		if e.complexity.SurveyRespondent.Name == nil {
+			break
+		}
+
+		return e.complexity.SurveyRespondent.Name(childComplexity), true
+
+	case "SurveyRespondent.projectID":
+		if e.complexity.SurveyRespondent.ProjectID == nil {
+			break
+		}
+
+		return e.complexity.SurveyRespondent.ProjectID(childComplexity), true
+
+	case "SurveyRespondent.submittedAt":
+		if e.complexity.SurveyRespondent.SubmittedAt == nil {
+			break
+		}
+
+		return e.complexity.SurveyRespondent.SubmittedAt(childComplexity), true
+
+	case "SurveyRespondent.submitterID":
+		if e.complexity.SurveyRespondent.SubmitterID == nil {
+			break
+		}
+
+		return e.complexity.SurveyRespondent.SubmitterID(childComplexity), true
+
+	case "SurveyRespondentPage.pagination":
+		if e.complexity.SurveyRespondentPage.Pagination == nil {
+			break
+		}
+
+		return e.complexity.SurveyRespondentPage.Pagination(childComplexity), true
+
+	case "SurveyRespondentPage.surveyRespondents":
+		if e.complexity.SurveyRespondentPage.SurveyRespondents == nil {
+			break
+		}
+
+		return e.complexity.SurveyRespondentPage.SurveyRespondents(childComplexity), true
+
 	case "TermsOfService.termsID":
 		if e.complexity.TermsOfService.TermsID == nil {
 			break
@@ -5454,6 +5538,11 @@ extend type Query {
 	{Name: "../surveys.graphql", Input: `extend type Query {
     listSurveys(projectID: Int!): [SurveyForm!]
     getUserSurveyForms(userID: String!): [UserSurvey!]
+    listSurveyRespondents(
+        projectID: Int!,
+        formID: String!,
+        paginationInput: PaginationsInput!,
+    ): SurveyRespondentPage
 }
 
 extend type Mutation {
@@ -6000,6 +6089,20 @@ type UserSurvey {
   projectID: Int!
   formID: String!
   linkID: Int
+}
+
+type SurveyRespondent {
+  id: String!
+  name: String!
+  submittedAt: Time!
+  projectID: Int!
+  submitterID: Int!
+  formID: String!
+}
+
+type SurveyRespondentPage {
+  surveyRespondents: [SurveyRespondent]!
+  pagination: Pagination!
 }
 
 
@@ -8071,6 +8174,39 @@ func (ec *executionContext) field_Query_listPendingInvites_args(ctx context.Cont
 		}
 	}
 	args["input"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_listSurveyRespondents_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["projectID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("projectID"))
+		arg0, err = ec.unmarshalNInt2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["projectID"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["formID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("formID"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["formID"] = arg1
+	var arg2 dto.PaginationsInput
+	if tmp, ok := rawArgs["paginationInput"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("paginationInput"))
+		arg2, err = ec.unmarshalNPaginationsInput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐPaginationsInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["paginationInput"] = arg2
 	return args, nil
 }
 
@@ -25224,6 +25360,64 @@ func (ec *executionContext) fieldContext_Query_getUserSurveyForms(ctx context.Co
 	return fc, nil
 }
 
+func (ec *executionContext) _Query_listSurveyRespondents(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_listSurveyRespondents(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().ListSurveyRespondents(rctx, fc.Args["projectID"].(int), fc.Args["formID"].(string), fc.Args["paginationInput"].(dto.PaginationsInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*domain.SurveyRespondentPage)
+	fc.Result = res
+	return ec.marshalOSurveyRespondentPage2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐSurveyRespondentPage(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_listSurveyRespondents(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "surveyRespondents":
+				return ec.fieldContext_SurveyRespondentPage_surveyRespondents(ctx, field)
+			case "pagination":
+				return ec.fieldContext_SurveyRespondentPage_pagination(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type SurveyRespondentPage", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_listSurveyRespondents_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query_getCurrentTerms(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query_getCurrentTerms(ctx, field)
 	if err != nil {
@@ -30596,6 +30790,386 @@ func (ec *executionContext) fieldContext_SurveyForm_name(ctx context.Context, fi
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SurveyRespondent_id(ctx context.Context, field graphql.CollectedField, obj *domain.SurveyRespondent) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SurveyRespondent_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SurveyRespondent_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SurveyRespondent",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SurveyRespondent_name(ctx context.Context, field graphql.CollectedField, obj *domain.SurveyRespondent) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SurveyRespondent_name(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SurveyRespondent_name(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SurveyRespondent",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SurveyRespondent_submittedAt(ctx context.Context, field graphql.CollectedField, obj *domain.SurveyRespondent) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SurveyRespondent_submittedAt(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SubmittedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SurveyRespondent_submittedAt(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SurveyRespondent",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SurveyRespondent_projectID(ctx context.Context, field graphql.CollectedField, obj *domain.SurveyRespondent) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SurveyRespondent_projectID(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ProjectID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SurveyRespondent_projectID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SurveyRespondent",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SurveyRespondent_submitterID(ctx context.Context, field graphql.CollectedField, obj *domain.SurveyRespondent) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SurveyRespondent_submitterID(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SubmitterID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SurveyRespondent_submitterID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SurveyRespondent",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SurveyRespondent_formID(ctx context.Context, field graphql.CollectedField, obj *domain.SurveyRespondent) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SurveyRespondent_formID(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.FormID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SurveyRespondent_formID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SurveyRespondent",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SurveyRespondentPage_surveyRespondents(ctx context.Context, field graphql.CollectedField, obj *domain.SurveyRespondentPage) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SurveyRespondentPage_surveyRespondents(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SurveyRespondents, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*domain.SurveyRespondent)
+	fc.Result = res
+	return ec.marshalNSurveyRespondent2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐSurveyRespondent(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SurveyRespondentPage_surveyRespondents(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SurveyRespondentPage",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_SurveyRespondent_id(ctx, field)
+			case "name":
+				return ec.fieldContext_SurveyRespondent_name(ctx, field)
+			case "submittedAt":
+				return ec.fieldContext_SurveyRespondent_submittedAt(ctx, field)
+			case "projectID":
+				return ec.fieldContext_SurveyRespondent_projectID(ctx, field)
+			case "submitterID":
+				return ec.fieldContext_SurveyRespondent_submitterID(ctx, field)
+			case "formID":
+				return ec.fieldContext_SurveyRespondent_formID(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type SurveyRespondent", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SurveyRespondentPage_pagination(ctx context.Context, field graphql.CollectedField, obj *domain.SurveyRespondentPage) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SurveyRespondentPage_pagination(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Pagination, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(domain.Pagination)
+	fc.Result = res
+	return ec.marshalNPagination2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐPagination(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SurveyRespondentPage_pagination(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SurveyRespondentPage",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "Limit":
+				return ec.fieldContext_Pagination_Limit(ctx, field)
+			case "CurrentPage":
+				return ec.fieldContext_Pagination_CurrentPage(ctx, field)
+			case "Count":
+				return ec.fieldContext_Pagination_Count(ctx, field)
+			case "TotalPages":
+				return ec.fieldContext_Pagination_TotalPages(ctx, field)
+			case "NextPage":
+				return ec.fieldContext_Pagination_NextPage(ctx, field)
+			case "PreviousPage":
+				return ec.fieldContext_Pagination_PreviousPage(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Pagination", field.Name)
 		},
 	}
 	return fc, nil
@@ -38853,6 +39427,26 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Concurrently(i, func() graphql.Marshaler {
 				return rrm(innerCtx)
 			})
+		case "listSurveyRespondents":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_listSurveyRespondents(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
 		case "getCurrentTerms":
 			field := field
 
@@ -40098,6 +40692,104 @@ func (ec *executionContext) _SurveyForm(ctx context.Context, sel ast.SelectionSe
 
 			out.Values[i] = ec._SurveyForm_name(ctx, field, obj)
 
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var surveyRespondentImplementors = []string{"SurveyRespondent"}
+
+func (ec *executionContext) _SurveyRespondent(ctx context.Context, sel ast.SelectionSet, obj *domain.SurveyRespondent) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, surveyRespondentImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("SurveyRespondent")
+		case "id":
+
+			out.Values[i] = ec._SurveyRespondent_id(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "name":
+
+			out.Values[i] = ec._SurveyRespondent_name(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "submittedAt":
+
+			out.Values[i] = ec._SurveyRespondent_submittedAt(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "projectID":
+
+			out.Values[i] = ec._SurveyRespondent_projectID(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "submitterID":
+
+			out.Values[i] = ec._SurveyRespondent_submitterID(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "formID":
+
+			out.Values[i] = ec._SurveyRespondent_formID(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var surveyRespondentPageImplementors = []string{"SurveyRespondentPage"}
+
+func (ec *executionContext) _SurveyRespondentPage(ctx context.Context, sel ast.SelectionSet, obj *domain.SurveyRespondentPage) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, surveyRespondentPageImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("SurveyRespondentPage")
+		case "surveyRespondents":
+
+			out.Values[i] = ec._SurveyRespondentPage_surveyRespondents(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "pagination":
+
+			out.Values[i] = ec._SurveyRespondentPage_pagination(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -42544,6 +43236,44 @@ func (ec *executionContext) marshalNSurveyForm2ᚖgithubᚗcomᚋsavannahghiᚋm
 	return ec._SurveyForm(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNSurveyRespondent2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐSurveyRespondent(ctx context.Context, sel ast.SelectionSet, v []*domain.SurveyRespondent) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOSurveyRespondent2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐSurveyRespondent(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	return ret
+}
+
 func (ec *executionContext) marshalNTermsOfService2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐTermsOfService(ctx context.Context, sel ast.SelectionSet, v domain.TermsOfService) graphql.Marshaler {
 	return ec._TermsOfService(ctx, sel, &v)
 }
@@ -44724,6 +45454,20 @@ func (ec *executionContext) marshalOSurveyForm2ᚕᚖgithubᚗcomᚋsavannahghi�
 	}
 
 	return ret
+}
+
+func (ec *executionContext) marshalOSurveyRespondent2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐSurveyRespondent(ctx context.Context, sel ast.SelectionSet, v *domain.SurveyRespondent) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._SurveyRespondent(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOSurveyRespondentPage2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐSurveyRespondentPage(ctx context.Context, sel ast.SelectionSet, v *domain.SurveyRespondentPage) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._SurveyRespondentPage(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOTime2timeᚐTime(ctx context.Context, v interface{}) (time.Time, error) {

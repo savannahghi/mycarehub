@@ -32,6 +32,7 @@ type Query interface {
 	GetFacilitiesWithoutFHIRID(ctx context.Context) ([]*Facility, error)
 	ListFacilities(ctx context.Context, searchTerm *string, filter []*domain.FiltersParam, pagination *domain.FacilityPage) (*domain.FacilityPage, error)
 	ListNotifications(ctx context.Context, params *Notification, filters []*firebasetools.FilterParam, pagination *domain.Pagination) ([]*Notification, *domain.Pagination, error)
+	ListSurveyRespondents(ctx context.Context, params map[string]interface{}, pagination *domain.Pagination) ([]*UserSurvey, *domain.Pagination, error)
 	ListAvailableNotificationTypes(ctx context.Context, params *Notification) ([]enums.NotificationType, error)
 	ListAppointments(ctx context.Context, params *Appointment, filters []*firebasetools.FilterParam, pagination *domain.Pagination) ([]*Appointment, *domain.Pagination, error)
 	GetUserProfileByPhoneNumber(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*User, error)
@@ -384,6 +385,31 @@ func (db *PGInstance) ListNotifications(ctx context.Context, params *Notificatio
 	}
 
 	return notifications, pagination, nil
+}
+
+// ListSurveyRespondents retrieves survey respondents using the provided parameters. It also paginates the results
+func (db *PGInstance) ListSurveyRespondents(ctx context.Context, params map[string]interface{}, pagination *domain.Pagination) ([]*UserSurvey, *domain.Pagination, error) {
+	var count int64
+	var userSurveys []*UserSurvey
+
+	tx := db.DB.Model(&UserSurvey{}).Where(params)
+
+	if pagination != nil {
+		if err := tx.Count(&count).Error; err != nil {
+			helpers.ReportErrorToSentry(err)
+			return nil, nil, fmt.Errorf("failed to execute count query: %v", err)
+		}
+
+		pagination.Count = count
+		paginateQuery(tx, pagination)
+	}
+
+	if err := tx.Order(clause.OrderByColumn{Column: clause.Column{Name: "created"}, Desc: true}).Find(&userSurveys).Error; err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, nil, fmt.Errorf("failed to execute paginated query: %v", err)
+	}
+
+	return userSurveys, pagination, nil
 }
 
 // ListAvailableNotificationTypes retrieves the distinct notification types available for a user
