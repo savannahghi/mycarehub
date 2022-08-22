@@ -29,3 +29,7 @@ func (r *queryResolver) GetScreeningToolByID(ctx context.Context, id string) (*d
 func (r *queryResolver) GetFacilityRespondedScreeningTools(ctx context.Context, facilityID string) ([]*domain.ScreeningTool, error) {
 	return r.mycarehub.Questionnaires.GetFacilityRespondedScreeningTools(ctx, facilityID)
 }
+
+func (r *queryResolver) GetScreeningToolRespondents(ctx context.Context, facilityID string, screeningToolID string, searchTerm *string) ([]*domain.ScreeningToolRespondent, error) {
+	return r.mycarehub.Questionnaires.GetScreeningToolRespondents(ctx, facilityID, screeningToolID, searchTerm)
+}

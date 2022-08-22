@@ -153,6 +153,7 @@ type PostgresMock struct {
 	MockGetAvailableScreeningToolsFn                     func(ctx context.Context, clientID string, facilityID string) ([]*domain.ScreeningTool, error)
 	MockGetFacilityRespondedScreeningToolsFn             func(ctx context.Context, facilityID string) ([]*domain.ScreeningTool, error)
 	MockListSurveyRespondentsFn                          func(ctx context.Context, projectID int, formID string, pagination *domain.Pagination) ([]*domain.SurveyRespondent, *domain.Pagination, error)
+	MockGetScreeningToolRespondentsFn                    func(ctx context.Context, facilityID string, screeningToolID string, searchTerm string) ([]*domain.ScreeningToolRespondent, error)
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -1181,6 +1182,18 @@ func NewPostgresMock() *PostgresMock {
 				},
 			}, nil
 		},
+		MockGetScreeningToolRespondentsFn: func(ctx context.Context, facilityID string, screeningToolID string, searchTerm string) ([]*domain.ScreeningToolRespondent, error) {
+			return []*domain.ScreeningToolRespondent{
+				{
+					ClientID:                ID,
+					ScreeningToolResponseID: screeningToolID,
+					ServiceRequestID:        ID,
+					Name:                    name,
+					PhoneNumber:             phone,
+					ServiceRequest:          gofakeit.Sentence(10),
+				},
+			}, nil
+		},
 	}
 }
 
@@ -1843,4 +1856,9 @@ func (gm *PostgresMock) GetFacilityRespondedScreeningTools(ctx context.Context, 
 // ListSurveyRespondents mocks the implementation of listing survey respondents
 func (gm *PostgresMock) ListSurveyRespondents(ctx context.Context, projectID int, formID string, pagination *domain.Pagination) ([]*domain.SurveyRespondent, *domain.Pagination, error) {
 	return gm.MockListSurveyRespondentsFn(ctx, projectID, formID, pagination)
+}
+
+// GetScreeningToolRespondents mocks the implementation of getting screening tool respondents
+func (gm *PostgresMock) GetScreeningToolRespondents(ctx context.Context, facilityID string, screeningToolID string, searchTerm string) ([]*domain.ScreeningToolRespondent, error) {
+	return gm.MockGetScreeningToolRespondentsFn(ctx, facilityID, screeningToolID, searchTerm)
 }

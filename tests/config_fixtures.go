@@ -128,11 +128,13 @@ var (
 	feedbackID                = "7281df12-ca96-4f28-b78b-8e8ad88b52df"
 
 	// Questionnaires
-	questionnaireID = "8ecbbc80-24c8-421a-9f1a-e14e12678ef3"
-	screeningToolID = "8ecbbc80-24c8-421a-9f1a-e14e12678ee0"
-	questionID      = "8ecbbc80-24c8-421a-9f7a-e14e12678ef4"
-	firstChoiceID   = "8ecbbc80-24c8-421a-9f7a-e14e12678ef0"
-	secondChoiceID  = "8ecbbc80-24c8-421a-9f7a-e14e12678ef1"
+	questionnaireID                 = "8ecbbc80-24c8-421a-9f1a-e14e12678ef3"
+	screeningToolID                 = "8ecbbc80-24c8-421a-9f1a-e14e12678ee0"
+	questionID                      = "8ecbbc80-24c8-421a-9f7a-e14e12678ef4"
+	firstChoiceID                   = "8ecbbc80-24c8-421a-9f7a-e14e12678ef0"
+	secondChoiceID                  = "8ecbbc80-24c8-421a-9f7a-e14e12678ef1"
+	screeningToolQuestionResponseID = "8ecbbc80-24c8-421a-9f7a-e14e12678ef5"
+	screeningToolServiceRequestID2  = "8ecbbc80-24c8-421a-9f7a-e14e12678ef6"
 
 	// surveys
 	projectID = 1
@@ -263,11 +265,13 @@ func setupFixtures() {
 			"test_staff_contact":              testStaffContact,
 			"test_feedback_id":                feedbackID,
 
-			"test_questionnaire_id": questionnaireID,
-			"test_screeningtool_id": screeningToolID,
-			"test_question_id":      questionID,
-			"test_first_choice_id":  firstChoiceID,
-			"test_second_choice_id": secondChoiceID,
+			"test_questionnaire_id":                                questionnaireID,
+			"test_screeningtool_id":                                screeningToolID,
+			"test_question_id":                                     questionID,
+			"test_first_choice_id":                                 firstChoiceID,
+			"test_second_choice_id":                                secondChoiceID,
+			"test_questionnaires_screeningtoolquestionresponse_id": screeningToolQuestionResponseID,
+			"screening_tool_service_request_id2":                   screeningToolServiceRequestID2,
 
 			"test_project_id": projectID,
 			"test_form_id":    formID,
@@ -313,6 +317,8 @@ func setupFixtures() {
 			"../fixtures/questionnaires_screeningtool.yml",
 			"../fixtures/questionnaires_question.yml",
 			"../fixtures/questionnaires_questioninputchoice.yml",
+			"../fixtures/questionnaires_screeningtoolresponse.yml",
+			"../fixtures/questionnaires_screeningtoolquestionresponse.yml",
 		),
 		// uncomment when running tests locally, if your db is not a test db
 		// Ensure the testing db in the ci is named `test`

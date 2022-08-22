@@ -7,4 +7,5 @@ extend type Query{
     getAvailableScreeningTools(clientID: String!, facilityID: String!): [ScreeningTool!]!
     getScreeningToolByID(id: ID!): ScreeningTool
     getFacilityRespondedScreeningTools(facilityID: String!): [ScreeningTool!]!
+    getScreeningToolRespondents(facilityID: String!, screeningToolID: String!,  searchTerm: String): [ScreeningToolRespondent!]!
 }

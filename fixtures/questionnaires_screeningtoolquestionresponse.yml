@@ -1,0 +1,9 @@
+- id: {{.test_questionnaires_screeningtoolquestionresponse_id}}
+  organisation_id: {{.test_organisation_id}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  active: true
+  screeningtoolresponse_id: {{.screenintoolsresponse_id}}
+  question_id: {{.test_question_id}}
+  response: "0"
+  score: 1

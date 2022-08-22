@@ -2198,3 +2198,45 @@ func (d *MyCareHubDb) GetFacilityRespondedScreeningTools(ctx context.Context, fa
 	return screeningToolList, nil
 
 }
+
+// GetScreeningToolRespondents fetches the respondents for a screening tool
+func (d *MyCareHubDb) GetScreeningToolRespondents(ctx context.Context, facilityID string, screeningToolID string, searchTerm string) ([]*domain.ScreeningToolRespondent, error) {
+	serviceRequests, err := d.query.GetScreeningToolServiceRequestOfRespondents(ctx, facilityID, screeningToolID, searchTerm)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
+	var respondents []*domain.ScreeningToolRespondent
+
+	for _, s := range serviceRequests {
+		meta, err := utils.ConvertJSONStringToMap(s.Meta)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return nil, err
+		}
+		responseID := meta["response_id"].(string)
+		response, err := d.query.GetScreeningToolResponseByID(ctx, responseID)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return nil, err
+		}
+		client, err := d.query.GetClientProfileByClientID(ctx, s.ClientID)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return nil, err
+		}
+		respondent := &domain.ScreeningToolRespondent{
+			ClientID:                s.ClientID,
+			ScreeningToolResponseID: response.ID,
+			ServiceRequestID:        *s.ID,
+			ServiceRequest:          s.Request,
+			Name:                    client.User.Name,
+			PhoneNumber:             client.User.Contacts.ContactValue,
+		}
+
+		respondents = append(respondents, respondent)
+	}
+
+	return respondents, nil
+}
