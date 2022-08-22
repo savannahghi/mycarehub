@@ -684,3 +684,10 @@ func (s QuestionnaireScreeningToolQuestionResponseInput) Validate() error {
 	err := v.Struct(s)
 	return err
 }
+
+// SurveyResponseInput is the input for getting a survey response
+type SurveyResponseInput struct {
+	ProjectID   int
+	FormID      string
+	SubmitterID int
+}

@@ -15,5 +15,5 @@ extend type Mutation {
     notification: FirebaseSimpleNotificationInput!
   ): Boolean!
 
-  readNotifications(ids:[ID!]!): Boolean!
+  readNotifications(ids: [ID!]!): Boolean!
 }

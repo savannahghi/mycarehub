@@ -65,3 +65,10 @@ type SurveyRespondentPage struct {
 	SurveyRespondents []*SurveyRespondent `json:"surveyRespondents"`
 	Pagination        Pagination          `json:"pagination"`
 }
+
+// SurveyResponse represents a single survey submission
+type SurveyResponse struct {
+	Question     string
+	QuestionType string
+	Answer       string
+}

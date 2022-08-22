@@ -17,6 +17,141 @@ import (
 	mockNotification "github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/notification/mock"
 )
 
+func TestUsecaseSurveysImpl_GetSurveyResponse(t *testing.T) {
+
+	type args struct {
+		ctx   context.Context
+		input dto.SurveyResponseInput
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    []*domain.SurveyResponse
+		wantErr bool
+	}{
+		{
+			name: "happy case: get survey response",
+			args: args{
+				ctx: context.Background(),
+				input: dto.SurveyResponseInput{
+					ProjectID:   2,
+					FormID:      "akmCQQxf4LaFjAWDbg29pj (1)",
+					SubmitterID: 1096,
+				},
+			},
+			want:    []*domain.SurveyResponse{},
+			wantErr: false,
+		},
+		{
+			name: "sad case: fail to get submissions",
+			args: args{
+				ctx: context.Background(),
+				input: dto.SurveyResponseInput{
+					ProjectID:   2,
+					FormID:      "akmCQQxf4LaFjAWDbg29pj (1)",
+					SubmitterID: 1096,
+				},
+			},
+			want:    []*domain.SurveyResponse{},
+			wantErr: true,
+		},
+		{
+			name: "sad case: fail to get submission instanceID",
+			args: args{
+				ctx: context.Background(),
+				input: dto.SurveyResponseInput{
+					ProjectID:   2,
+					FormID:      "akmCQQxf4LaFjAWDbg29pj (1)",
+					SubmitterID: 1096,
+				},
+			},
+			want:    []*domain.SurveyResponse{},
+			wantErr: true,
+		},
+		{
+			name: "sad case: fail to get submission xml",
+			args: args{
+				ctx: context.Background(),
+				input: dto.SurveyResponseInput{
+					ProjectID:   2,
+					FormID:      "akmCQQxf4LaFjAWDbg29pj (1)",
+					SubmitterID: 1096,
+				},
+			},
+			want:    []*domain.SurveyResponse{},
+			wantErr: true,
+		},
+		{
+			name: "sad case: fail to get form xml",
+			args: args{
+				ctx: context.Background(),
+				input: dto.SurveyResponseInput{
+					ProjectID:   2,
+					FormID:      "akmCQQxf4LaFjAWDbg29pj (1)",
+					SubmitterID: 1096,
+				},
+			},
+			want:    []*domain.SurveyResponse{},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeSurveys := mockSurveys.NewSurveysMock()
+			fakeDB := pgMock.NewPostgresMock()
+			fakeNotification := mockNotification.NewServiceNotificationMock()
+			u := NewUsecaseSurveys(fakeSurveys, fakeDB, fakeDB, fakeDB, fakeNotification)
+
+			if tt.name == "sad case: fail to get submissions" {
+				fakeSurveys.MockGetSubmissionsFn = func(ctx context.Context, input dto.VerifySurveySubmissionInput) ([]domain.Submission, error) {
+					return []domain.Submission{}, fmt.Errorf("failed to get submissions")
+				}
+			}
+
+			if tt.name == "sad case: fail to get submission instanceID" {
+				fakeSurveys.MockGetSubmissionsFn = func(ctx context.Context, input dto.VerifySurveySubmissionInput) ([]domain.Submission, error) {
+					return []domain.Submission{
+						{
+							InstanceID:  "test",
+							SubmitterID: 1,
+							DeviceID:    "artghjkl",
+							CreatedAt:   time.Now(),
+							UpdatedAt:   time.Now(),
+							ReviewState: "good",
+							Submitter: domain.Submitter{
+								ID:          1,
+								Type:        "test",
+								DisplayName: gofakeit.Name(),
+								CreatedAt:   time.Now(),
+								UpdatedAt:   time.Now(),
+								DeletedAt:   time.Now(),
+							},
+						},
+					}, nil
+				}
+			}
+
+			if tt.name == "sad case: fail to get submission xml" {
+				fakeSurveys.MockGetSubmissionXMLFn = func(ctx context.Context, projectID int, formID, instanceID string) (map[string]interface{}, error) {
+					return nil, fmt.Errorf("failed to get submission xml")
+				}
+			}
+
+			if tt.name == "sad case: fail to get form xml" {
+				fakeSurveys.MockGetFormXMLFn = func(ctx context.Context, projectID int, formID, version string) (map[string]interface{}, error) {
+					return nil, fmt.Errorf("failed to get form xml")
+				}
+			}
+
+			_, err := u.GetSurveyResponse(tt.args.ctx, tt.args.input)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UsecaseSurveysImpl.GetSurveyResponse() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}
+
 func TestUsecaseSurveysImpl_ListSurveys(t *testing.T) {
 	fakeDB := pgMock.NewPostgresMock()
 	fakeSurveys := mockSurveys.NewSurveysMock()

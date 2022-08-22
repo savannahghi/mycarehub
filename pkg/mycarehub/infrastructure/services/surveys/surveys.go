@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"strconv"
 
+	xj "github.com/basgys/goxml2json"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
@@ -44,6 +45,9 @@ type Surveys interface {
 
 	GetSubmissions(ctx context.Context, input dto.VerifySurveySubmissionInput) ([]domain.Submission, error)
 	ListSubmitters(ctx context.Context, projectID int, formID string) ([]domain.Submitter, error)
+
+	GetFormXML(ctx context.Context, projectID int, formID, version string) (map[string]interface{}, error)
+	GetSubmissionXML(ctx context.Context, projectID int, formID, instanceID string) (map[string]interface{}, error)
 }
 
 // Impl implements the Surveys interface
@@ -295,4 +299,70 @@ func (s *Impl) ListPublicAccessLinks(ctx context.Context, projectID int, formID 
 	}
 
 	return links, nil
+}
+
+//GetSubmissionXML retrieves a submission's XML definition using the instance id
+func (s *Impl) GetSubmissionXML(ctx context.Context, projectID int, formID, instanceID string) (map[string]interface{}, error) {
+	// {ODK Base URL}/v1/projects/projectId/forms/xmlFormId/submissions/instanceId.xml
+	url := fmt.Sprintf("%s/v1/projects/%v/forms/%s/submissions/%s.xml", s.client.BaseURL, projectID, formID, instanceID)
+	payload := RequestHelperPayload{
+		Method: http.MethodGet,
+		Path:   url,
+	}
+
+	resp, err := s.MakeRequest(ctx, payload)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("getSubmissionXML: invalid http response, got: %s", resp.Status)
+	}
+
+	parsed, err := xj.Convert(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to convert submission xml: %w", err)
+	}
+
+	submission := make(map[string]interface{})
+	if err := json.Unmarshal(parsed.Bytes(), &submission); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal submission: %w", err)
+	}
+
+	return submission, nil
+}
+
+//GetFormXML retrieves a form's XML definition
+func (s *Impl) GetFormXML(ctx context.Context, projectID int, formID, version string) (map[string]interface{}, error) {
+	// {ODK Base URL}/v1/projects/projectId/forms/xmlFormId/versions/version.xml
+	url := fmt.Sprintf("%s/v1/projects/%v/forms/%s/versions/%s.xml", s.client.BaseURL, projectID, formID, version)
+	payload := RequestHelperPayload{
+		Method: http.MethodGet,
+		Path:   url,
+	}
+
+	resp, err := s.MakeRequest(ctx, payload)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("getFormXML: invalid http response, got: %s", resp.Status)
+	}
+
+	parsed, err := xj.Convert(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to convert form xml: %w", err)
+	}
+
+	form := make(map[string]interface{})
+	if err := json.Unmarshal(parsed.Bytes(), &form); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal form: %w", err)
+	}
+
+	return form, nil
 }
