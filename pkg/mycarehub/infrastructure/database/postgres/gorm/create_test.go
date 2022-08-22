@@ -1481,8 +1481,45 @@ func TestPGInstance_RegisterClient(t *testing.T) {
 		CHVUserID:               &chvID,
 		CaregiverID:             &caregiverID,
 	}
+	userProfile := &gorm.User{
+		UserID:                 &userIDToRegisterClient,
+		Username:               gofakeit.Name(),
+		FirstName:              gofakeit.Name(),
+		MiddleName:             gofakeit.BeerAlcohol(),
+		LastName:               gofakeit.Name(),
+		UserType:               enums.HealthcareWorkerUser,
+		Gender:                 enumutils.GenderMale,
+		Active:                 true,
+		Contacts:               gorm.Contact{},
+		PushTokens:             []string{},
+		LastSuccessfulLogin:    &currentTime,
+		LastFailedLogin:        &currentTime,
+		FailedLoginCount:       3,
+		NextAllowedLogin:       &currentTime,
+		TermsAccepted:          true,
+		AcceptedTermsID:        &termsID,
+		Flavour:                feedlib.FlavourPro,
+		Avatar:                 "test",
+		IsSuspended:            true,
+		PinChangeRequired:      true,
+		HasSetPin:              true,
+		HasSetSecurityQuestion: true,
+		IsPhoneVerified:        true,
+		OrganisationID:         uuid.New().String(),
+		Password:               "test",
+		IsSuperuser:            true,
+		IsStaff:                true,
+		Email:                  gofakeit.Email(),
+		DateJoined:             gofakeit.BeerIbu(),
+		Name:                   gofakeit.BeerBlg(),
+		IsApproved:             true,
+		ApprovalNotified:       true,
+		Handle:                 "@test",
+		DateOfBirth:            &currentTime,
+	}
 	type args struct {
 		ctx        context.Context
+		user       *gorm.User
 		contact    *gorm.Contact
 		identifier *gorm.Identifier
 		client     *gorm.Client
@@ -1496,6 +1533,7 @@ func TestPGInstance_RegisterClient(t *testing.T) {
 			name: "Happy case: register client",
 			args: args{
 				ctx:        context.Background(),
+				user:       userProfile,
 				contact:    contactData,
 				identifier: identifierData,
 				client:     clientData,
@@ -1515,9 +1553,11 @@ func TestPGInstance_RegisterClient(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := testingDB.RegisterClient(tt.args.ctx, tt.args.contact, tt.args.identifier, tt.args.client); (err != nil) != tt.wantErr {
+			_, err := testingDB.RegisterClient(tt.args.ctx, tt.args.user, tt.args.contact, tt.args.identifier, tt.args.client)
+			if (err != nil) != tt.wantErr {
 				t.Errorf("PGInstance.RegisterClient() error = %v, wantErr %v", err, tt.wantErr)
 			}
+
 		})
 	}
 }

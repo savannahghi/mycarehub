@@ -32,7 +32,7 @@ type Create interface {
 	CreateMetric(ctx context.Context, metric *Metric) error
 	RegisterStaff(ctx context.Context, user *User, contact *Contact, identifier *Identifier, staffProfile *StaffProfile) (*StaffProfile, error)
 	SaveFeedback(ctx context.Context, feedback *Feedback) error
-	RegisterClient(ctx context.Context, contact *Contact, identifier *Identifier, client *Client) error
+	RegisterClient(ctx context.Context, user *User, contact *Contact, identifier *Identifier, client *Client) (*Client, error)
 	CreateQuestionnaire(ctx context.Context, input *Questionnaire) error
 	CreateScreeningTool(ctx context.Context, input *ScreeningTool) error
 	CreateQuestion(ctx context.Context, input *Question) error
@@ -442,7 +442,7 @@ func (db *PGInstance) CreateClient(ctx context.Context, client *Client, contactI
 }
 
 // RegisterClient registers a client with the system
-func (db *PGInstance) RegisterClient(ctx context.Context, contact *Contact, identifier *Identifier, client *Client) error {
+func (db *PGInstance) RegisterClient(ctx context.Context, user *User, contact *Contact, identifier *Identifier, client *Client) (*Client, error) {
 	tx := db.DB.Begin()
 	defer func() {
 		if r := recover(); r != nil {
@@ -450,25 +450,33 @@ func (db *PGInstance) RegisterClient(ctx context.Context, contact *Contact, iden
 		}
 	}()
 
-	// create contact
-	err := tx.Where(Contact{ContactValue: contact.ContactValue, Flavour: contact.Flavour}).FirstOrCreate(contact).Error
+	err := tx.Create(user).First(&user).Error
 	if err != nil {
 		tx.Rollback()
-		return fmt.Errorf("failed to get or create contact: %v", err)
+		return nil, fmt.Errorf("failed to get or create user: %v", err)
+	}
+
+	// create contact
+	contact.UserID = user.UserID
+	err = tx.Where(Contact{ContactValue: contact.ContactValue, Flavour: contact.Flavour}).FirstOrCreate(contact).Error
+	if err != nil {
+		tx.Rollback()
+		return nil, fmt.Errorf("failed to get or create contact: %v", err)
 	}
 
 	// create identifier
 	err = tx.Where(identifier).FirstOrCreate(identifier).Error
 	if err != nil {
 		tx.Rollback()
-		return fmt.Errorf("failed to create identifier: %v", err)
+		return nil, fmt.Errorf("failed to create identifier: %v", err)
 	}
 
 	// create client
-	err = tx.Where(client).FirstOrCreate(client).Error
+	client.UserID = user.UserID
+	err = tx.Create(client).First(&client).Error
 	if err != nil {
 		tx.Rollback()
-		return fmt.Errorf("failed to create client: %v", err)
+		return nil, fmt.Errorf("failed to create client: %v", err)
 	}
 
 	// link contact
@@ -479,7 +487,7 @@ func (db *PGInstance) RegisterClient(ctx context.Context, contact *Contact, iden
 	err = tx.Where(clientContact).FirstOrCreate(&clientContact).Error
 	if err != nil {
 		tx.Rollback()
-		return fmt.Errorf("failed to get or create client contact: %v", err)
+		return nil, fmt.Errorf("failed to get or create client contact: %v", err)
 	}
 
 	// link identifiers
@@ -490,15 +498,15 @@ func (db *PGInstance) RegisterClient(ctx context.Context, contact *Contact, iden
 	err = tx.Where(clientIdentifier).FirstOrCreate(&clientIdentifier).Error
 	if err != nil {
 		tx.Rollback()
-		return fmt.Errorf("failed to get or create client identifier: %v", err)
+		return nil, fmt.Errorf("failed to get or create client identifier: %v", err)
 	}
 
 	if err := tx.Commit().Error; err != nil {
 		tx.Rollback()
-		return fmt.Errorf("failed to commit register client transaction: %v", err)
+		return nil, fmt.Errorf("failed to commit register client transaction: %v", err)
 	}
 
-	return nil
+	return client, nil
 }
 
 // CreateIdentifier creates a new identifier

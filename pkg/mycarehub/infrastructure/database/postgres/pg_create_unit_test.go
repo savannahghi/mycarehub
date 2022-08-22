@@ -1496,8 +1496,8 @@ func TestMyCareHubDb_RegisterClient(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.name == "Sad Case: unable register client" {
-				fakeGorm.MockRegisterClientFn = func(ctx context.Context, contact *gorm.Contact, identifier *gorm.Identifier, client *gorm.Client) error {
-					return fmt.Errorf("cannot register client")
+				fakeGorm.MockRegisterClientFn = func(ctx context.Context, user *gorm.User, contact *gorm.Contact, identifier *gorm.Identifier, client *gorm.Client) (*gorm.Client, error) {
+					return nil, fmt.Errorf("cannot register client")
 				}
 			}
 			_, err := d.RegisterClient(tt.args.ctx, tt.args.payload)
