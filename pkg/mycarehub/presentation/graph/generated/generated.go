@@ -5556,7 +5556,7 @@ input QuestionnaireScreeningToolQuestionResponseInput {
 input SurveyResponseInput {
   projectID: Int!
   formID: String!
-  SubmitterID: Int!
+  submitterID: Int!
 }
 `, BuiltIn: false},
 	{Name: "../metrics.graphql", Input: `extend type Mutation {
@@ -36365,10 +36365,10 @@ func (ec *executionContext) unmarshalInputSurveyResponseInput(ctx context.Contex
 			if err != nil {
 				return it, err
 			}
-		case "SubmitterID":
+		case "submitterID":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("SubmitterID"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("submitterID"))
 			it.SubmitterID, err = ec.unmarshalNInt2int(ctx, v)
 			if err != nil {
 				return it, err

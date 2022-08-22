@@ -592,6 +592,7 @@ func NewGormMock() *GormMock {
 			ID := uuid.New().String()
 			return &gorm.User{
 				UserID: &ID,
+				Name:   "test",
 			}, nil
 		},
 		MockSaveTemporaryUserPinFn: func(ctx context.Context, pinData *gorm.PINData) (bool, error) {

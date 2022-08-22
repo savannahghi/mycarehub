@@ -223,5 +223,5 @@ input QuestionnaireScreeningToolQuestionResponseInput {
 input SurveyResponseInput {
   projectID: Int!
   formID: String!
-  SubmitterID: Int!
+  submitterID: Int!
 }

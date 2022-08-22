@@ -48,7 +48,7 @@ func getSingleChoiceResponses(ctx context.Context, questions []interface{}, subm
 	for key, value := range submissionData {
 		v, ok := value.(string)
 		if ok {
-			submissionData[key] = v
+			submissions[key] = v
 		}
 	}
 
