@@ -420,12 +420,20 @@ func (d *MyCareHubDb) CreateClient(ctx context.Context, client domain.ClientProf
 
 // RegisterClient registers a client in the database
 func (d *MyCareHubDb) RegisterClient(ctx context.Context, payload *domain.ClientRegistrationPayload) (*domain.ClientProfile, error) {
+	usr := &gorm.User{
+		Username:    payload.UserProfile.Username,
+		Name:        payload.UserProfile.Name,
+		Gender:      payload.UserProfile.Gender,
+		DateOfBirth: payload.UserProfile.DateOfBirth,
+		UserType:    payload.UserProfile.UserType,
+		Flavour:     payload.UserProfile.Flavour,
+	}
+
 	contact := &gorm.Contact{
 		ContactType:  payload.Phone.ContactType,
 		ContactValue: payload.Phone.ContactValue,
 		Active:       payload.Phone.Active,
 		OptedIn:      payload.Phone.Active,
-		UserID:       payload.Phone.UserID,
 		Flavour:      payload.Phone.Flavour,
 	}
 
@@ -443,7 +451,6 @@ func (d *MyCareHubDb) RegisterClient(ctx context.Context, payload *domain.Client
 		pgClientTypes = append(pgClientTypes, clientType.String())
 	}
 	clientProfile := &gorm.Client{
-		UserID:                  &payload.Client.UserID,
 		ClientTypes:             pgClientTypes,
 		TreatmentEnrollmentDate: payload.Client.TreatmentEnrollmentDate,
 		FacilityID:              payload.Client.FacilityID,
@@ -451,7 +458,7 @@ func (d *MyCareHubDb) RegisterClient(ctx context.Context, payload *domain.Client
 		Active:                  payload.Client.Active,
 	}
 
-	err := d.create.RegisterClient(ctx, contact, identifier, clientProfile)
+	client, err := d.create.RegisterClient(ctx, usr, contact, identifier, clientProfile)
 	if err != nil {
 		return nil, err
 	}
@@ -465,8 +472,8 @@ func (d *MyCareHubDb) RegisterClient(ctx context.Context, payload *domain.Client
 		ID:                      clientProfile.ID,
 		Active:                  clientProfile.Active,
 		ClientTypes:             clientTypes,
-		UserID:                  *clientProfile.UserID,
 		TreatmentEnrollmentDate: clientProfile.TreatmentEnrollmentDate,
+		UserID:                  *client.UserID,
 		TreatmentBuddy:          clientProfile.TreatmentBuddy,
 		ClientCounselled:        clientProfile.ClientCounselled,
 		FacilityID:              clientProfile.FacilityID,

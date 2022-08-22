@@ -750,18 +750,11 @@ func (us *UseCasesUserImpl) RegisterClient(
 		Flavour:     feedlib.FlavourConsumer,
 	}
 
-	user, err := us.Create.CreateUser(ctx, *usr)
-	if err != nil {
-		helpers.ReportErrorToSentry(err)
-		return nil, err
-	}
-
 	phone := &domain.Contact{
 		ContactType:  "PHONE",
 		ContactValue: *normalized,
 		Active:       true,
 		OptedIn:      false,
-		UserID:       user.ID,
 		Flavour:      feedlib.FlavourConsumer,
 	}
 
@@ -799,7 +792,6 @@ func (us *UseCasesUserImpl) RegisterClient(
 	clientTypes = append(clientTypes, input.ClientTypes...)
 	clientEnrollmentDate := input.EnrollmentDate.AsTime()
 	client := &domain.ClientProfile{
-		UserID:                  *user.ID,
 		ClientTypes:             clientTypes,
 		TreatmentEnrollmentDate: &clientEnrollmentDate,
 		FacilityID:              *facility.ID,
@@ -831,7 +823,7 @@ func (us *UseCasesUserImpl) RegisterClient(
 	}
 
 	if input.InviteClient {
-		_, err := us.InviteUser(ctx, *user.ID, input.PhoneNumber, feedlib.FlavourConsumer, false)
+		_, err := us.InviteUser(ctx, registeredClient.UserID, input.PhoneNumber, feedlib.FlavourConsumer, false)
 		if err != nil {
 			return nil, fmt.Errorf("failed to invite client: %w", err)
 		}
