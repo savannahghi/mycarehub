@@ -1330,8 +1330,9 @@ func (d *MyCareHubDb) ListSurveyRespondents(ctx context.Context, projectID int, 
 
 	mapped := []*domain.SurveyRespondent{}
 	for _, a := range respondents {
-		userProfile, err := d.query.GetUserProfileByUserID(ctx, &a.ID)
+		userProfile, err := d.query.GetUserProfileByUserID(ctx, &a.UserID)
 		if err != nil {
+			helpers.ReportErrorToSentry(err)
 			return nil, nil, err
 		}
 
