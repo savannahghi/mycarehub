@@ -772,6 +772,18 @@ func (db *PGInstance) GetClientsPendingServiceRequestsCount(ctx context.Context,
 				RequestType: enums.ServiceRequestTypeScreeningToolsRedFlag,
 				Total:       0,
 			},
+			{
+				RequestType: enums.ServiceRequestTypeSurveyRedFlag,
+			},
+			{
+				RequestType: enums.ServiceRequestTypeHomePageHealthDiary,
+			},
+			{
+				RequestType: enums.ServiceRequestTypeStaffPinReset,
+			},
+			{
+				RequestType: enums.ServiceRequestTypeAppointments,
+			},
 		},
 	}
 
@@ -784,6 +796,18 @@ func (db *PGInstance) GetClientsPendingServiceRequestsCount(ctx context.Context,
 		}
 		if request.RequestType == enums.ServiceRequestTypeScreeningToolsRedFlag.String() {
 			serviceRequestsCount.RequestsTypeCount[2].Total++
+		}
+		if request.RequestType == enums.ServiceRequestTypeSurveyRedFlag.String() {
+			serviceRequestsCount.RequestsTypeCount[3].Total++
+		}
+		if request.RequestType == enums.ServiceRequestTypeHomePageHealthDiary.String() {
+			serviceRequestsCount.RequestsTypeCount[4].Total++
+		}
+		if request.RequestType == enums.ServiceRequestTypeStaffPinReset.String() {
+			serviceRequestsCount.RequestsTypeCount[5].Total++
+		}
+		if request.RequestType == enums.ServiceRequestTypeAppointments.String() {
+			serviceRequestsCount.RequestsTypeCount[6].Total++
 		}
 	}
 
