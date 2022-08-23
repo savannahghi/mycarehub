@@ -30,7 +30,7 @@ type Create interface {
 	CreateNotification(ctx context.Context, notification *Notification) error
 	CreateUserSurveys(ctx context.Context, userSurvey []*UserSurvey) error
 	CreateMetric(ctx context.Context, metric *Metric) error
-	RegisterStaff(ctx context.Context, contact *Contact, identifier *Identifier, staffProfile *StaffProfile) error
+	RegisterStaff(ctx context.Context, user *User, contact *Contact, identifier *Identifier, staffProfile *StaffProfile) (*StaffProfile, error)
 	SaveFeedback(ctx context.Context, feedback *Feedback) error
 	RegisterClient(ctx context.Context, contact *Contact, identifier *Identifier, client *Client) error
 	CreateQuestionnaire(ctx context.Context, input *Questionnaire) error
@@ -568,29 +568,38 @@ func (db *PGInstance) CreateMetric(ctx context.Context, metric *Metric) error {
 }
 
 // RegisterStaff registers a staff member to the database
-func (db *PGInstance) RegisterStaff(ctx context.Context, contact *Contact, identifier *Identifier, staffProfile *StaffProfile) error {
+func (db *PGInstance) RegisterStaff(ctx context.Context, user *User, contact *Contact, identifier *Identifier, staffProfile *StaffProfile) (*StaffProfile, error) {
 	tx := db.DB.Begin()
 
-	// create contact
-	err := tx.Where(Contact{ContactValue: contact.ContactValue, Flavour: contact.Flavour}).FirstOrCreate(contact).Error
+	// create user
+	err := tx.Create(user).First(&user).Error
 	if err != nil {
 		tx.Rollback()
-		return fmt.Errorf("failed to get or create contact: %v", err)
+		return nil, fmt.Errorf("failed to create user: %w", err)
+	}
+
+	// create contact
+	contact.UserID = user.UserID
+	err = tx.Where(Contact{ContactValue: contact.ContactValue, Flavour: contact.Flavour}).FirstOrCreate(contact).Error
+	if err != nil {
+		tx.Rollback()
+		return nil, fmt.Errorf("failed to get or create contact: %v", err)
 	}
 
 	// create identifier
 	err = tx.Where(identifier).FirstOrCreate(identifier).Error
 	if err != nil {
 		tx.Rollback()
-		return fmt.Errorf("failed to create identifier: %v", err)
+		return nil, fmt.Errorf("failed to create identifier: %v", err)
 	}
 
 	// create staff profile
-	err = tx.Where(staffProfile).FirstOrCreate(staffProfile).Error
+	staffProfile.UserID = *user.UserID
+	err = tx.Create(staffProfile).First(&staffProfile).Error
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		tx.Rollback()
-		return fmt.Errorf("failed to create staff profile: %w", err)
+		return nil, fmt.Errorf("failed to create staff profile: %w", err)
 	}
 
 	// link contact
@@ -602,7 +611,7 @@ func (db *PGInstance) RegisterStaff(ctx context.Context, contact *Contact, ident
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		tx.Rollback()
-		return fmt.Errorf("failed to get or create staff contact: %w", err)
+		return nil, fmt.Errorf("failed to get or create staff contact: %w", err)
 	}
 
 	// link identifier
@@ -614,16 +623,16 @@ func (db *PGInstance) RegisterStaff(ctx context.Context, contact *Contact, ident
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		tx.Rollback()
-		return fmt.Errorf("failed to get or create staff identifier: %w", err)
+		return nil, fmt.Errorf("failed to get or create staff identifier: %w", err)
 	}
 
 	if err := tx.Commit().Error; err != nil {
 		helpers.ReportErrorToSentry(err)
 		tx.Rollback()
-		return fmt.Errorf("failed to commit create staff profile transaction: %w", err)
+		return nil, fmt.Errorf("failed to commit create staff profile transaction: %w", err)
 	}
 
-	return nil
+	return staffProfile, nil
 }
 
 // CreateQuestionnaire saves a questionnaire to the database

@@ -1112,12 +1112,7 @@ func (us *UseCasesUserImpl) RegisterStaff(ctx context.Context, input dto.StaffRe
 		DateOfBirth: &dob,
 		UserType:    enums.StaffUser,
 		Flavour:     feedlib.FlavourPro,
-	}
-
-	staffUser, err := us.Create.CreateUser(ctx, *usr)
-	if err != nil {
-		helpers.ReportErrorToSentry(err)
-		return nil, fmt.Errorf("unable to create user: %w", err)
+		Active:      true,
 	}
 
 	contactData := &domain.Contact{
@@ -1125,7 +1120,6 @@ func (us *UseCasesUserImpl) RegisterStaff(ctx context.Context, input dto.StaffRe
 		ContactValue: *normalized,
 		Active:       true,
 		OptedIn:      false,
-		UserID:       staffUser.ID,
 		Flavour:      feedlib.FlavourPro,
 	}
 
@@ -1160,7 +1154,6 @@ func (us *UseCasesUserImpl) RegisterStaff(ctx context.Context, input dto.StaffRe
 	}
 
 	staffData := &domain.StaffProfile{
-		UserID:              *staffUser.ID,
 		Active:              true,
 		StaffNumber:         input.StaffNumber,
 		DefaultFacilityID:   *facility.ID,
@@ -1168,11 +1161,12 @@ func (us *UseCasesUserImpl) RegisterStaff(ctx context.Context, input dto.StaffRe
 	}
 
 	staffRegistrationPayload := &domain.StaffRegistrationPayload{
-		UserProfile:     *staffUser,
+		UserProfile:     *usr,
 		Phone:           *contactData,
 		StaffIdentifier: *identifierData,
 		Staff:           *staffData,
 	}
+
 	staff, err := us.Create.RegisterStaff(ctx, staffRegistrationPayload)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
@@ -1182,7 +1176,7 @@ func (us *UseCasesUserImpl) RegisterStaff(ctx context.Context, input dto.StaffRe
 	// UpdateRoles is used to update the roles of a user
 	var staffRoles []enums.UserRoleType
 	staffRoles = append(staffRoles, enums.UserRoleType(input.StaffRoles))
-	_, err = us.Update.AssignRoles(ctx, *staffUser.ID, staffRoles)
+	_, err = us.Update.AssignRoles(ctx, staff.UserID, staffRoles)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("unable to assign roles: %w", err)

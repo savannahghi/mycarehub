@@ -1349,8 +1349,8 @@ func TestMyCareHubDb_RegisterStaff(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.name == "Sad Case: Unable to register staff" {
-				fakeGorm.MockRegisterStaffFn = func(ctx context.Context, contact *gorm.Contact, identifier *gorm.Identifier, staffProfile *gorm.StaffProfile) error {
-					return fmt.Errorf("cannot register staff")
+				fakeGorm.MockRegisterStaffFn = func(ctx context.Context, user *gorm.User, contact *gorm.Contact, identifier *gorm.Identifier, staffProfile *gorm.StaffProfile) (*gorm.StaffProfile, error) {
+					return nil, fmt.Errorf("cannot register staff")
 				}
 			}
 			_, err := d.RegisterStaff(tt.args.ctx, tt.args.payload)

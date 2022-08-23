@@ -1526,6 +1526,45 @@ func TestPGInstance_RegisterStaff(t *testing.T) {
 	identifierID := "c40b09a8-44b1-409c-bc5b-7e7623fcd7d5"
 	staffID := staffIDToRegister
 	userStaff := userToRegisterStaff
+	currentTime := time.Now()
+
+	userProfile := &gorm.User{
+		UserID:                 &userToRegisterStaff,
+		Username:               gofakeit.Name(),
+		FirstName:              gofakeit.Name(),
+		MiddleName:             gofakeit.BeerAlcohol(),
+		LastName:               gofakeit.Name(),
+		UserType:               enums.HealthcareWorkerUser,
+		Gender:                 enumutils.GenderMale,
+		Active:                 true,
+		Contacts:               gorm.Contact{},
+		PushTokens:             []string{},
+		LastSuccessfulLogin:    &currentTime,
+		LastFailedLogin:        &currentTime,
+		FailedLoginCount:       3,
+		NextAllowedLogin:       &currentTime,
+		TermsAccepted:          true,
+		AcceptedTermsID:        &termsID,
+		Flavour:                feedlib.FlavourPro,
+		Avatar:                 "test",
+		IsSuspended:            true,
+		PinChangeRequired:      true,
+		HasSetPin:              true,
+		HasSetSecurityQuestion: true,
+		IsPhoneVerified:        true,
+		OrganisationID:         uuid.New().String(),
+		Password:               "test",
+		IsSuperuser:            true,
+		IsStaff:                true,
+		Email:                  gofakeit.Email(),
+		DateJoined:             gofakeit.BeerIbu(),
+		Name:                   gofakeit.BeerBlg(),
+		IsApproved:             true,
+		ApprovalNotified:       true,
+		Handle:                 "@test",
+		DateOfBirth:            &currentTime,
+	}
+
 	contactData := &gorm.Contact{
 		ContactID:      &contactIDToRegisterStaff,
 		ContactType:    "PHONE",
@@ -1567,6 +1606,7 @@ func TestPGInstance_RegisterStaff(t *testing.T) {
 	}
 	type args struct {
 		ctx          context.Context
+		usr          *gorm.User
 		contact      *gorm.Contact
 		identifier   *gorm.Identifier
 		staffProfile *gorm.StaffProfile
@@ -1580,6 +1620,7 @@ func TestPGInstance_RegisterStaff(t *testing.T) {
 			name: "Happy case: register staff",
 			args: args{
 				ctx:          context.Background(),
+				usr:          userProfile,
 				contact:      contactData,
 				identifier:   identifierData,
 				staffProfile: staff,
@@ -1599,7 +1640,8 @@ func TestPGInstance_RegisterStaff(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := testingDB.RegisterStaff(tt.args.ctx, tt.args.contact, tt.args.identifier, tt.args.staffProfile); (err != nil) != tt.wantErr {
+			_, err := testingDB.RegisterStaff(tt.args.ctx, tt.args.usr, tt.args.contact, tt.args.identifier, tt.args.staffProfile)
+			if (err != nil) != tt.wantErr {
 				t.Errorf("PGInstance.RegisterStaff() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
