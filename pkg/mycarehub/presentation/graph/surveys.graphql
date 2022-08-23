@@ -1,12 +1,12 @@
 extend type Query {
-    listSurveys(projectID: Int!): [SurveyForm!]
-    getUserSurveyForms(userID: String!): [UserSurvey!]
-    listSurveyRespondents(
-        projectID: Int!,
-        formID: String!,
-        paginationInput: PaginationsInput!,
-    ): SurveyRespondentPage
-    getSurveyResponse(input: SurveyResponseInput!): [SurveyResponse!]
+  listSurveys(projectID: Int!): [SurveyForm!]
+  getUserSurveyForms(userID: String!): [UserSurvey!]
+  listSurveyRespondents(
+    projectID: Int!
+    formID: String!
+    paginationInput: PaginationsInput!
+  ): SurveyRespondentPage
+  getSurveyResponse(input: SurveyResponseInput!): [SurveyResponse!]
 }
 
 extend type Mutation {

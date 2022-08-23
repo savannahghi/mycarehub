@@ -70,5 +70,5 @@ type SurveyRespondentPage struct {
 type SurveyResponse struct {
 	Question     string
 	QuestionType string
-	Answer       string
+	Answer       []string
 }
