@@ -427,6 +427,7 @@ func (d *MyCareHubDb) RegisterClient(ctx context.Context, payload *domain.Client
 		DateOfBirth: payload.UserProfile.DateOfBirth,
 		UserType:    payload.UserProfile.UserType,
 		Flavour:     payload.UserProfile.Flavour,
+		Active:      payload.UserProfile.Active,
 	}
 
 	contact := &gorm.Contact{

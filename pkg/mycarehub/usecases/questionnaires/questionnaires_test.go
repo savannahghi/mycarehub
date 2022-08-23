@@ -18,7 +18,10 @@ import (
 func TestUseCaseQuestionnaireImpl_CreateScreeningTool(t *testing.T) {
 	fakeDB := pgMock.NewPostgresMock()
 	q := questionnaires.NewUseCaseQuestionnaire(fakeDB, fakeDB, fakeDB, fakeDB)
-	choice := "YES"
+	closedEndedChoice := "1"
+	closedEndedChoice2 := "2"
+	openEndedEndedChoice := "YES"
+
 	questionnare := &dto.ScreeningToolInput{
 		Questionnaire: dto.QuestionnaireInput{
 			Name:        gofakeit.BeerName(),
@@ -33,12 +36,32 @@ func TestUseCaseQuestionnaireImpl_CreateScreeningTool(t *testing.T) {
 					Sequence:          1,
 					Choices: []dto.QuestionInputChoiceInput{
 						{
-							Choice: &choice,
+							Choice: &closedEndedChoice,
 							Value:  "YES",
 							Score:  1,
 						},
 						{
-							Choice: &choice,
+							Choice: &closedEndedChoice2,
+							Value:  "YES",
+							Score:  1,
+						},
+					},
+				},
+				{
+					Text:              gofakeit.BeerAlcohol(),
+					QuestionType:      enums.QuestionTypeCloseEnded,
+					ResponseValueType: enums.QuestionResponseValueTypeString,
+					Required:          true,
+					SelectMultiple:    true,
+					Sequence:          2,
+					Choices: []dto.QuestionInputChoiceInput{
+						{
+							Choice: &closedEndedChoice,
+							Value:  "YES",
+							Score:  1,
+						},
+						{
+							Choice: &closedEndedChoice2,
 							Value:  "YES",
 							Score:  1,
 						},
@@ -68,12 +91,122 @@ func TestUseCaseQuestionnaireImpl_CreateScreeningTool(t *testing.T) {
 					Sequence:          1,
 					Choices: []dto.QuestionInputChoiceInput{
 						{
-							Choice: &choice,
+							Choice: &openEndedEndedChoice,
 							Value:  "YES",
 							Score:  1,
 						},
 						{
-							Choice: &choice,
+							Choice: &openEndedEndedChoice,
+							Value:  "YES",
+							Score:  1,
+						},
+					},
+				},
+			},
+		},
+		Threshold:   3,
+		ClientTypes: []enums.ClientType{enums.ClientTypePmtct, enums.ClientTypePmtct},
+		Genders:     []enumutils.Gender{enumutils.GenderFemale},
+		AgeRange: dto.AgeRangeInput{
+			LowerBound: 10,
+			UpperBound: 20,
+		},
+	}
+	duplicateSequenceQuestionnaire := &dto.ScreeningToolInput{
+		Questionnaire: dto.QuestionnaireInput{
+			Name:        gofakeit.BeerName(),
+			Description: gofakeit.Sentence(20),
+			Questions: []*dto.QuestionInput{
+				{
+					Text:              gofakeit.BeerAlcohol(),
+					QuestionType:      enums.QuestionTypeCloseEnded,
+					ResponseValueType: enums.QuestionResponseValueTypeString,
+					Required:          true,
+					SelectMultiple:    true,
+					Sequence:          1,
+					Choices: []dto.QuestionInputChoiceInput{
+						{
+							Choice: &closedEndedChoice,
+							Value:  "YES",
+							Score:  1,
+						},
+						{
+							Choice: &closedEndedChoice2,
+							Value:  "YES",
+							Score:  1,
+						},
+					},
+				},
+				{
+					Text:              gofakeit.BeerAlcohol(),
+					QuestionType:      enums.QuestionTypeCloseEnded,
+					ResponseValueType: enums.QuestionResponseValueTypeString,
+					Required:          true,
+					SelectMultiple:    true,
+					Sequence:          1,
+					Choices: []dto.QuestionInputChoiceInput{
+						{
+							Choice: &closedEndedChoice,
+							Value:  "YES",
+							Score:  1,
+						},
+						{
+							Choice: &closedEndedChoice2,
+							Value:  "YES",
+							Score:  1,
+						},
+					},
+				},
+			},
+		},
+		Threshold:   3,
+		ClientTypes: []enums.ClientType{enums.ClientTypePmtct, enums.ClientTypePmtct},
+		Genders:     []enumutils.Gender{enumutils.GenderFemale},
+		AgeRange: dto.AgeRangeInput{
+			LowerBound: 10,
+			UpperBound: 20,
+		},
+	}
+	duplicateChoiceQuestionnaire := &dto.ScreeningToolInput{
+		Questionnaire: dto.QuestionnaireInput{
+			Name:        gofakeit.BeerName(),
+			Description: gofakeit.Sentence(20),
+			Questions: []*dto.QuestionInput{
+				{
+					Text:              gofakeit.BeerAlcohol(),
+					QuestionType:      enums.QuestionTypeCloseEnded,
+					ResponseValueType: enums.QuestionResponseValueTypeString,
+					Required:          true,
+					SelectMultiple:    true,
+					Sequence:          1,
+					Choices: []dto.QuestionInputChoiceInput{
+						{
+							Choice: &closedEndedChoice,
+							Value:  "YES",
+							Score:  1,
+						},
+						{
+							Choice: &closedEndedChoice,
+							Value:  "YES",
+							Score:  1,
+						},
+					},
+				},
+				{
+					Text:              gofakeit.BeerAlcohol(),
+					QuestionType:      enums.QuestionTypeCloseEnded,
+					ResponseValueType: enums.QuestionResponseValueTypeString,
+					Required:          true,
+					SelectMultiple:    true,
+					Sequence:          2,
+					Choices: []dto.QuestionInputChoiceInput{
+						{
+							Choice: &closedEndedChoice,
+							Value:  "YES",
+							Score:  1,
+						},
+						{
+							Choice: &closedEndedChoice,
 							Value:  "YES",
 							Score:  1,
 						},
@@ -122,6 +255,24 @@ func TestUseCaseQuestionnaireImpl_CreateScreeningTool(t *testing.T) {
 			args: args{
 				ctx:   context.Background(),
 				input: *invalidQuestionnare,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case: duplicate sequence",
+			args: args{
+				ctx:   context.Background(),
+				input: *duplicateSequenceQuestionnaire,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case: duplicate closed ended choice",
+			args: args{
+				ctx:   context.Background(),
+				input: *duplicateChoiceQuestionnaire,
 			},
 			want:    false,
 			wantErr: true,
