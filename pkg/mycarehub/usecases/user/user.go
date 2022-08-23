@@ -748,6 +748,7 @@ func (us *UseCasesUserImpl) RegisterClient(
 		DateOfBirth: &dob,
 		UserType:    enums.ClientUser,
 		Flavour:     feedlib.FlavourConsumer,
+		Active:      true,
 	}
 
 	phone := &domain.Contact{
