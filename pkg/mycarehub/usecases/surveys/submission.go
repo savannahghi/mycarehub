@@ -92,10 +92,12 @@ func getSingleChoiceResponses(ctx context.Context, questions []interface{}, subm
 			choices[value] = label
 		}
 
+		choice := choices[submissions[questionID]]
+
 		response := &domain.SurveyResponse{
 			Question:     questionText,
 			QuestionType: "SINGLE_CHOICE",
-			Answer:       choices[submissions[questionID]],
+			Answer:       []string{choice},
 		}
 
 		responses = append(responses, response)

@@ -556,7 +556,7 @@ type SurveyRespondentPage {
 
 type SurveyResponse {
   question: String!
-  answer: String!
+  answer: [String!]
   questionType: String!
 }
 

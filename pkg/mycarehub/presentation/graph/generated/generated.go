@@ -5585,7 +5585,8 @@ extend type Mutation {
 `, BuiltIn: false},
 	{Name: "../otp.graphql", Input: `extend type Query {
   sendOTP(phoneNumber: String!, flavour: Flavour!): String!
-}`, BuiltIn: false},
+}
+`, BuiltIn: false},
 	{Name: "../questionnaire.graphql", Input: `extend type Mutation{
     createScreeningTool(input: ScreeningToolInput!): Boolean!
     respondToScreeningTool(input: QuestionnaireScreeningToolResponseInput!): Boolean!
@@ -5597,18 +5598,30 @@ extend type Query{
     getFacilityRespondedScreeningTools(facilityID: String!): [ScreeningTool!]!
     getScreeningToolRespondents(facilityID: String!, screeningToolID: String!,  searchTerm: String): [ScreeningToolRespondent!]!
 }`, BuiltIn: false},
-	{Name: "../screeningtools.graphql", Input: `
-extend type Query {
-    getScreeningToolQuestions(toolType: String) : [ScreeningToolQuestion!]!
-    getAvailableScreeningToolQuestions(clientID: String!) : [AvailableScreeningTools!]!
-    getAvailableFacilityScreeningTools(facilityID: String!): [AvailableScreeningTools!]!
-    getAssessmentResponsesByToolType(facilityID: String!, toolType: String!) : [ScreeningToolAssessmentResponse!]
-    getScreeningToolServiceRequestResponses(clientID: String, toolType:ScreeningToolType ): ScreeningToolResponsePayload!
+	{Name: "../screeningtools.graphql", Input: `extend type Query {
+  getScreeningToolQuestions(toolType: String): [ScreeningToolQuestion!]!
+  getAvailableScreeningToolQuestions(
+    clientID: String!
+  ): [AvailableScreeningTools!]!
+  getAvailableFacilityScreeningTools(
+    facilityID: String!
+  ): [AvailableScreeningTools!]!
+  getAssessmentResponsesByToolType(
+    facilityID: String!
+    toolType: String!
+  ): [ScreeningToolAssessmentResponse!]
+  getScreeningToolServiceRequestResponses(
+    clientID: String
+    toolType: ScreeningToolType
+  ): ScreeningToolResponsePayload!
 }
 
 extend type Mutation {
-    answerScreeningToolQuestion(screeningToolResponses: [ScreeningToolQuestionResponseInput!]!): Boolean!
-}`, BuiltIn: false},
+  answerScreeningToolQuestion(
+    screeningToolResponses: [ScreeningToolQuestionResponseInput!]!
+  ): Boolean!
+}
+`, BuiltIn: false},
 	{Name: "../securityquestion.graphql", Input: `extend type Query {
   getSecurityQuestions(flavour: Flavour!): [SecurityQuestion!]!
 }
@@ -5622,7 +5635,12 @@ extend type Mutation {
 	{Name: "../servicerequest.graphql", Input: `extend type Mutation {
   setInProgressBy(serviceRequestID: String!, staffID: String!): Boolean!
   createServiceRequest(input: ServiceRequestInput!): Boolean!
-  resolveServiceRequest(staffID: String!, requestID: String!, action: [String!]!, comment: String): Boolean!
+  resolveServiceRequest(
+    staffID: String!
+    requestID: String!
+    action: [String!]!
+    comment: String
+  ): Boolean!
 
   verifyClientPinResetServiceRequest(
     clientID: String!
@@ -5633,7 +5651,11 @@ extend type Mutation {
     state: String!
   ): Boolean!
 
-  verifyStaffPinResetServiceRequest(phoneNumber: String!, serviceRequestID: String!, verificationStatus: String!): Boolean!
+  verifyStaffPinResetServiceRequest(
+    phoneNumber: String!
+    serviceRequestID: String!
+    verificationStatus: String!
+  ): Boolean!
 }
 
 extend type Query {
@@ -5643,19 +5665,26 @@ extend type Query {
     facilityID: String!
     flavour: Flavour!
   ): [ServiceRequest]
-  getPendingServiceRequestsCount(facilityID: String!): ServiceRequestsCountResponse!
-  searchServiceRequests(searchTerm: String!, flavour: Flavour!, requestType: String!, facilityID: String!): [ServiceRequest]
+  getPendingServiceRequestsCount(
+    facilityID: String!
+  ): ServiceRequestsCountResponse!
+  searchServiceRequests(
+    searchTerm: String!
+    flavour: Flavour!
+    requestType: String!
+    facilityID: String!
+  ): [ServiceRequest]
 }
 `, BuiltIn: false},
 	{Name: "../surveys.graphql", Input: `extend type Query {
-    listSurveys(projectID: Int!): [SurveyForm!]
-    getUserSurveyForms(userID: String!): [UserSurvey!]
-    listSurveyRespondents(
-        projectID: Int!,
-        formID: String!,
-        paginationInput: PaginationsInput!,
-    ): SurveyRespondentPage
-    getSurveyResponse(input: SurveyResponseInput!): [SurveyResponse!]
+  listSurveys(projectID: Int!): [SurveyForm!]
+  getUserSurveyForms(userID: String!): [UserSurvey!]
+  listSurveyRespondents(
+    projectID: Int!
+    formID: String!
+    paginationInput: PaginationsInput!
+  ): SurveyRespondentPage
+  getSurveyResponse(input: SurveyResponseInput!): [SurveyResponse!]
 }
 
 extend type Mutation {
@@ -6226,7 +6255,7 @@ type SurveyRespondentPage {
 
 type SurveyResponse {
   question: String!
-  answer: String!
+  answer: [String!]
   questionType: String!
 }
 
@@ -6297,7 +6326,8 @@ type ScreeningToolRespondent {
   name: String!
   phoneNumber: String!
   serviceRequest: String!
-}`, BuiltIn: false},
+}
+`, BuiltIn: false},
 	{Name: "../user.graphql", Input: `extend type Query {
   getCurrentTerms(flavour: Flavour!): TermsOfService!
   verifyPIN(userID: String!, flavour: Flavour!, pin: String!): Boolean!
@@ -6323,7 +6353,7 @@ extend type Mutation {
     reinvite: Boolean
   ): Boolean!
   setUserPIN(input: PINInput): Boolean!
-  transferClientToFacility(clientId: ID! facilityId: ID!): Boolean!
+  transferClientToFacility(clientId: ID!, facilityId: ID!): Boolean!
 }
 `, BuiltIn: false},
 	{Name: "../../../../../federation/directives.graphql", Input: `
@@ -31813,14 +31843,11 @@ func (ec *executionContext) _SurveyResponse_answer(ctx context.Context, field gr
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.([]string)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalOString2ᚕstringᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_SurveyResponse_answer(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -41672,9 +41699,6 @@ func (ec *executionContext) _SurveyResponse(ctx context.Context, sel ast.Selecti
 
 			out.Values[i] = ec._SurveyResponse_answer(ctx, field, obj)
 
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "questionType":
 
 			out.Values[i] = ec._SurveyResponse_questionType(ctx, field, obj)

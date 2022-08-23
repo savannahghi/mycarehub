@@ -1,12 +1,23 @@
-
 extend type Query {
-    getScreeningToolQuestions(toolType: String) : [ScreeningToolQuestion!]!
-    getAvailableScreeningToolQuestions(clientID: String!) : [AvailableScreeningTools!]!
-    getAvailableFacilityScreeningTools(facilityID: String!): [AvailableScreeningTools!]!
-    getAssessmentResponsesByToolType(facilityID: String!, toolType: String!) : [ScreeningToolAssessmentResponse!]
-    getScreeningToolServiceRequestResponses(clientID: String, toolType:ScreeningToolType ): ScreeningToolResponsePayload!
+  getScreeningToolQuestions(toolType: String): [ScreeningToolQuestion!]!
+  getAvailableScreeningToolQuestions(
+    clientID: String!
+  ): [AvailableScreeningTools!]!
+  getAvailableFacilityScreeningTools(
+    facilityID: String!
+  ): [AvailableScreeningTools!]!
+  getAssessmentResponsesByToolType(
+    facilityID: String!
+    toolType: String!
+  ): [ScreeningToolAssessmentResponse!]
+  getScreeningToolServiceRequestResponses(
+    clientID: String
+    toolType: ScreeningToolType
+  ): ScreeningToolResponsePayload!
 }
 
 extend type Mutation {
-    answerScreeningToolQuestion(screeningToolResponses: [ScreeningToolQuestionResponseInput!]!): Boolean!
+  answerScreeningToolQuestion(
+    screeningToolResponses: [ScreeningToolQuestionResponseInput!]!
+  ): Boolean!
 }
