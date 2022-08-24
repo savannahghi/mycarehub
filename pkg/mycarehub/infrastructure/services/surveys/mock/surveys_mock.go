@@ -58,7 +58,28 @@ func NewSurveysMock() *SurveysMock {
 		},
 		MockGetSubmissionXMLFn: func(ctx context.Context, projectID int, formID, instanceID string) (map[string]interface{}, error) {
 			parsedSubmission := make(map[string]interface{})
-			submission := `<data xmlns:jr="http://openrosa.org/javarosa" xmlns:orx="http://openrosa.org/xforms" id="akmCQQxf4LaFjAWDbg29pj (1)" version="2 (2022-05-11 06:59:42)"><start>2022-08-12T13:11:23.965+03:00</start><end>2022-08-12T13:12:01.646+03:00</end><Over_the_last_2_week_sure_in_doing_things>0</Over_the_last_2_week_sure_in_doing_things><Over_the_last_2_week_epressed_or_hopeless>0</Over_the_last_2_week_epressed_or_hopeless><Over_the_last_2_week_or_sleeping_too_much>0</Over_the_last_2_week_or_sleeping_too_much><Over_the_last_2_week_having_little_energy>0</Over_the_last_2_week_having_little_energy><Over_the_last_2_week_petite_or_overeating>0</Over_the_last_2_week_petite_or_overeating><Over_the_last_2_week_rself_or_family_down>0</Over_the_last_2_week_rself_or_family_down><Over_the_last_2_week_watching_television>0</Over_the_last_2_week_watching_television><Over_the_last_2_week_lot_more_than_usual>0</Over_the_last_2_week_lot_more_than_usual><Over_the_last_2_week_yourself_in_some_way>0</Over_the_last_2_week_yourself_in_some_way><If_you_checked_off_a_ng_with_other_people>not_difficult_at_all</If_you_checked_off_a_ng_with_other_people><__version__>vesMF8UKLW5gnZgBnBmzd9</__version__><meta><instanceID>uuid:808431e7-e2ed-4065-b19d-9fd780ce7f9c</instanceID></meta></data>`
+			submission := `
+				<?xml version="1.0" encoding="UTF-8"?>
+				<data xmlns:jr="http://openrosa.org/javarosa" xmlns:orx="http://openrosa.org/xforms" id="akmCQQxf4LaFjAWDbg29pj (1)" version="2 (2022-05-11 06:59:42)">
+					<start>2022-08-12T13:11:23.965+03:00</start>
+					<end>2022-08-12T13:12:01.646+03:00</end>
+					<Over_the_last_2_week_sure_in_doing_things>0</Over_the_last_2_week_sure_in_doing_things>
+					<Over_the_last_2_week_epressed_or_hopeless>0</Over_the_last_2_week_epressed_or_hopeless>
+					<Over_the_last_2_week_or_sleeping_too_much>0</Over_the_last_2_week_or_sleeping_too_much>
+					<Over_the_last_2_week_having_little_energy>0</Over_the_last_2_week_having_little_energy>
+					<Over_the_last_2_week_petite_or_overeating>0</Over_the_last_2_week_petite_or_overeating>
+					<Over_the_last_2_week_rself_or_family_down>0</Over_the_last_2_week_rself_or_family_down>
+					<Over_the_last_2_week_watching_television>0</Over_the_last_2_week_watching_television>
+					<Over_the_last_2_week_lot_more_than_usual>0</Over_the_last_2_week_lot_more_than_usual>
+					<Over_the_last_2_week_yourself_in_some_way>0</Over_the_last_2_week_yourself_in_some_way>
+					<If_you_checked_off_a_ng_with_other_people>not_difficult_at_all</If_you_checked_off_a_ng_with_other_people>
+					<__version__>vesMF8UKLW5gnZgBnBmzd9</__version__>
+					<meta>
+						<instanceID>uuid:808431e7-e2ed-4065-b19d-9fd780ce7f9c</instanceID>
+					</meta>
+					<send_alert>true</send_alert>
+				</data>
+			`
 
 			j, err := xj.Convert(strings.NewReader(submission))
 			if err != nil {

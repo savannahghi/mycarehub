@@ -15,6 +15,7 @@ import (
 	pgMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/mock"
 	mockSurveys "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/surveys/mock"
 	mockNotification "github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/notification/mock"
+	fakeServiceRequest "github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/servicerequest/mock"
 )
 
 func TestUsecaseSurveysImpl_GetSurveyResponse(t *testing.T) {
@@ -100,7 +101,8 @@ func TestUsecaseSurveysImpl_GetSurveyResponse(t *testing.T) {
 			fakeSurveys := mockSurveys.NewSurveysMock()
 			fakeDB := pgMock.NewPostgresMock()
 			fakeNotification := mockNotification.NewServiceNotificationMock()
-			u := NewUsecaseSurveys(fakeSurveys, fakeDB, fakeDB, fakeDB, fakeNotification)
+			fakeServiceRequest := fakeServiceRequest.NewServiceRequestUseCaseMock()
+			u := NewUsecaseSurveys(fakeSurveys, fakeDB, fakeDB, fakeDB, fakeNotification, fakeServiceRequest)
 
 			if tt.name == "sad case: fail to get submissions" {
 				fakeSurveys.MockGetSubmissionsFn = func(ctx context.Context, input dto.VerifySurveySubmissionInput) ([]domain.Submission, error) {
@@ -156,7 +158,8 @@ func TestUsecaseSurveysImpl_ListSurveys(t *testing.T) {
 	fakeDB := pgMock.NewPostgresMock()
 	fakeSurveys := mockSurveys.NewSurveysMock()
 	fakeNotification := mockNotification.NewServiceNotificationMock()
-	u := NewUsecaseSurveys(fakeSurveys, fakeDB, fakeDB, fakeDB, fakeNotification)
+	fakeServiceRequest := fakeServiceRequest.NewServiceRequestUseCaseMock()
+	u := NewUsecaseSurveys(fakeSurveys, fakeDB, fakeDB, fakeDB, fakeNotification, fakeServiceRequest)
 	projectID := 2
 
 	type args struct {
@@ -210,7 +213,8 @@ func TestUsecaseSurveysImpl_GetUserSurveyForms(t *testing.T) {
 	fakeSurveys := mockSurveys.NewSurveysMock()
 	fakeDB := pgMock.NewPostgresMock()
 	fakeNotification := mockNotification.NewServiceNotificationMock()
-	u := NewUsecaseSurveys(fakeSurveys, fakeDB, fakeDB, fakeDB, fakeNotification)
+	fakeServiceRequest := fakeServiceRequest.NewServiceRequestUseCaseMock()
+	u := NewUsecaseSurveys(fakeSurveys, fakeDB, fakeDB, fakeDB, fakeNotification, fakeServiceRequest)
 
 	type args struct {
 		ctx    context.Context
@@ -432,7 +436,8 @@ func TestUsecaseSurveysImpl_SendClientSurveyLinks(t *testing.T) {
 			fakeSurveys := mockSurveys.NewSurveysMock()
 			fakeDB := pgMock.NewPostgresMock()
 			fakeNotification := mockNotification.NewServiceNotificationMock()
-			u := NewUsecaseSurveys(fakeSurveys, fakeDB, fakeDB, fakeDB, fakeNotification)
+			fakeServiceRequest := fakeServiceRequest.NewServiceRequestUseCaseMock()
+			u := NewUsecaseSurveys(fakeSurveys, fakeDB, fakeDB, fakeDB, fakeNotification, fakeServiceRequest)
 			if tt.name == "happy case: no clients to send surveys to" {
 				fakeDB.MockGetClientsByFilterParamsFn = func(ctx context.Context, facilityID *string, filterParams *dto.ClientFilterParamsInput) ([]*domain.ClientProfile, error) {
 					return []*domain.ClientProfile{}, nil
@@ -520,13 +525,6 @@ func TestUsecaseSurveysImpl_SendClientSurveyLinks(t *testing.T) {
 }
 
 func TestUsecaseSurveysImpl_VerifySurveySubmission(t *testing.T) {
-	ctx := context.Background()
-
-	fakeSurveys := mockSurveys.NewSurveysMock()
-	fakeDB := pgMock.NewPostgresMock()
-	fakeNotification := mockNotification.NewServiceNotificationMock()
-	u := NewUsecaseSurveys(fakeSurveys, fakeDB, fakeDB, fakeDB, fakeNotification)
-
 	type args struct {
 		ctx   context.Context
 		input dto.VerifySurveySubmissionInput
@@ -540,37 +538,154 @@ func TestUsecaseSurveysImpl_VerifySurveySubmission(t *testing.T) {
 		{
 			name: "happy case - successfully-verify-survey-submission",
 			args: args{
-				ctx: ctx,
+				ctx: context.Background(),
 				input: dto.VerifySurveySubmissionInput{
-					ProjectID:   10000000000000,
-					FormID:      uuid.New().String(),
-					SubmitterID: 10,
+					ProjectID:   1,
+					FormID:      "aFTnsgXB85pUR2XCeaWZ9N",
+					SubmitterID: 1096,
 				},
 			},
 			want:    true,
 			wantErr: false,
 		},
 		{
-			name: "Sad case - fail to verify survey submission",
+			name: "happy case - no submission made",
 			args: args{
-				ctx: ctx,
+				ctx: context.Background(),
 				input: dto.VerifySurveySubmissionInput{
 					ProjectID:   10000000000000,
 					FormID:      uuid.New().String(),
-					SubmitterID: 10,
+					SubmitterID: 1097,
+				},
+			},
+			want:    false,
+			wantErr: false,
+		},
+		{
+			name: "happy case - no 'send_alert' key in submission",
+			args: args{
+				ctx: context.Background(),
+				input: dto.VerifySurveySubmissionInput{
+					ProjectID:   10000000000000,
+					FormID:      uuid.New().String(),
+					SubmitterID: 1096,
+				},
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Sad case - unable to update survey",
+			args: args{
+				ctx: context.Background(),
+				input: dto.VerifySurveySubmissionInput{
+					ProjectID:   10000000000000,
+					FormID:      uuid.New().String(),
+					SubmitterID: 1096,
 				},
 			},
 			want:    false,
 			wantErr: true,
 		},
 		{
-			name: "Sad case - unable to update survey",
+			name: "Sad case - fail to retrieve submissions",
 			args: args{
-				ctx: ctx,
+				ctx: context.Background(),
 				input: dto.VerifySurveySubmissionInput{
 					ProjectID:   10000000000000,
 					FormID:      uuid.New().String(),
-					SubmitterID: 100000000000,
+					SubmitterID: 1096,
+				},
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case - unable to get submission xml",
+			args: args{
+				ctx: context.Background(),
+				input: dto.VerifySurveySubmissionInput{
+					ProjectID:   10000000000000,
+					FormID:      uuid.New().String(),
+					SubmitterID: 1096,
+				},
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case - unable to get submission xml key data",
+			args: args{
+				ctx: context.Background(),
+				input: dto.VerifySurveySubmissionInput{
+					ProjectID:   10000000000000,
+					FormID:      uuid.New().String(),
+					SubmitterID: 1096,
+				},
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case - invalid send alert value",
+			args: args{
+				ctx: context.Background(),
+				input: dto.VerifySurveySubmissionInput{
+					ProjectID:   10000000000000,
+					FormID:      uuid.New().String(),
+					SubmitterID: 1096,
+				},
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case - unable to get user survey form",
+			args: args{
+				ctx: context.Background(),
+				input: dto.VerifySurveySubmissionInput{
+					ProjectID:   10000000000000,
+					FormID:      uuid.New().String(),
+					SubmitterID: 1096,
+				},
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case - get more than one user survey form",
+			args: args{
+				ctx: context.Background(),
+				input: dto.VerifySurveySubmissionInput{
+					ProjectID:   10000000000000,
+					FormID:      uuid.New().String(),
+					SubmitterID: 1096,
+				},
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case - unable to get get client profile",
+			args: args{
+				ctx: context.Background(),
+				input: dto.VerifySurveySubmissionInput{
+					ProjectID:   10000000000000,
+					FormID:      uuid.New().String(),
+					SubmitterID: 1096,
+				},
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case - unable to create service request",
+			args: args{
+				ctx: context.Background(),
+				input: dto.VerifySurveySubmissionInput{
+					ProjectID:   10000000000000,
+					FormID:      uuid.New().String(),
+					SubmitterID: 1096,
 				},
 			},
 			want:    false,
@@ -579,28 +694,80 @@ func TestUsecaseSurveysImpl_VerifySurveySubmission(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if tt.name == "Sad case - fail to verify survey submission" {
-				fakeSurveys.MockListSubmittersFn = func(ctx context.Context, projectID int, formID string) ([]domain.Submitter, error) {
+			fakeSurveys := mockSurveys.NewSurveysMock()
+			fakeDB := pgMock.NewPostgresMock()
+			fakeNotification := mockNotification.NewServiceNotificationMock()
+			fakeServiceRequest := fakeServiceRequest.NewServiceRequestUseCaseMock()
+			u := NewUsecaseSurveys(fakeSurveys, fakeDB, fakeDB, fakeDB, fakeNotification, fakeServiceRequest)
+
+			if tt.name == "happy case - no 'send_alert' key in submission" {
+				fakeSurveys.MockGetSubmissionXMLFn = func(ctx context.Context, projectID int, formID, instanceID string) (map[string]interface{}, error) {
+					return map[string]interface{}{
+						"data": map[string]interface{}{},
+					}, nil
+				}
+			}
+
+			if tt.name == "Sad case - fail to retrieve submissions" {
+				fakeSurveys.MockGetSubmissionsFn = func(ctx context.Context, input dto.VerifySurveySubmissionInput) ([]domain.Submission, error) {
 					return nil, fmt.Errorf("failed to get submitters")
 				}
 			}
+
 			if tt.name == "Sad case - unable to update survey" {
-				fakeSurveys.MockListSubmittersFn = func(ctx context.Context, projectID int, formID string) ([]domain.Submitter, error) {
-					return []domain.Submitter{
-						{
-							ID:          100000000000,
-							Type:        gofakeit.BeerName(),
-							DisplayName: gofakeit.BeerName(),
-							CreatedAt:   time.Now(),
-							UpdatedAt:   time.Time{},
-							DeletedAt:   time.Time{},
-						},
-					}, nil
-				}
 				fakeDB.MockUpdateUserSurveysFn = func(ctx context.Context, survey *domain.UserSurvey, updateData map[string]interface{}) error {
 					return fmt.Errorf("failed to update survey")
 				}
 			}
+			if tt.name == "Sad case - unable to get submission xml" {
+				fakeSurveys.MockGetSubmissionXMLFn = func(ctx context.Context, projectID int, formID, instanceID string) (map[string]interface{}, error) {
+					return nil, fmt.Errorf("failed to get submission xml")
+				}
+			}
+			if tt.name == "Sad case - unable to get submission xml key data" {
+				fakeSurveys.MockGetSubmissionXMLFn = func(ctx context.Context, projectID int, formID, instanceID string) (map[string]interface{}, error) {
+					return map[string]interface{}{
+						"test": map[string]interface{}{},
+					}, nil
+				}
+			}
+			if tt.name == "Sad case - invalid send alert value" {
+				fakeSurveys.MockGetSubmissionXMLFn = func(ctx context.Context, projectID int, formID, instanceID string) (map[string]interface{}, error) {
+					return map[string]interface{}{
+						"data": map[string]interface{}{
+							"send_alert": "invalid",
+						},
+					}, nil
+				}
+			}
+			if tt.name == "Sad case - unable to get user survey form" {
+				fakeDB.MockGetUserSurveyFormsFn = func(ctx context.Context, params map[string]interface{}) ([]*domain.UserSurvey, error) {
+					return nil, fmt.Errorf("failed to get user survey form")
+				}
+			}
+			if tt.name == "Sad case - get more than one user survey form" {
+				fakeDB.MockGetUserSurveyFormsFn = func(ctx context.Context, params map[string]interface{}) ([]*domain.UserSurvey, error) {
+					return []*domain.UserSurvey{
+						{
+							ID: uuid.New().String(),
+						},
+						{
+							ID: uuid.New().String(),
+						},
+					}, nil
+				}
+			}
+			if tt.name == "Sad case - unable to get get client profile" {
+				fakeDB.MockGetClientProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.ClientProfile, error) {
+					return nil, fmt.Errorf("failed to get client profile")
+				}
+			}
+			if tt.name == "Sad case - unable to create service request" {
+				fakeServiceRequest.MockCreateServiceRequestFn = func(ctx context.Context, input *dto.ServiceRequestInput) (bool, error) {
+					return false, fmt.Errorf("failed to create service request")
+				}
+			}
+
 			got, err := u.VerifySurveySubmission(tt.args.ctx, tt.args.input)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UsecaseSurveysImpl.VerifySurveySubmission() error = %v, wantErr %v", err, tt.wantErr)
@@ -619,7 +786,8 @@ func TestUsecaseSurveysImpl_ListSurveyRespondents(t *testing.T) {
 	fakeSurveys := mockSurveys.NewSurveysMock()
 	fakeDB := pgMock.NewPostgresMock()
 	fakeNotification := mockNotification.NewServiceNotificationMock()
-	u := NewUsecaseSurveys(fakeSurveys, fakeDB, fakeDB, fakeDB, fakeNotification)
+	fakeServiceRequest := fakeServiceRequest.NewServiceRequestUseCaseMock()
+	u := NewUsecaseSurveys(fakeSurveys, fakeDB, fakeDB, fakeDB, fakeNotification, fakeServiceRequest)
 	type args struct {
 		ctx             context.Context
 		projectID       int

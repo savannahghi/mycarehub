@@ -22,6 +22,8 @@ const (
 	ServiceRequestTypeAppointments ServiceRequestType = "APPOINTMENTS"
 	// ServiceRequestTypeScreeningToolsRedFlag represents the screening tools service request
 	ServiceRequestTypeScreeningToolsRedFlag ServiceRequestType = "SCREENING_TOOLS_RED_FLAG"
+	// ServiceRequestTypeSurveyRedFlag represents the survey service request
+	ServiceRequestTypeSurveyRedFlag ServiceRequestType = "SURVEY_RED_FLAG"
 )
 
 // AllServiceRequestType is a set of a  valid and known service request types.
@@ -32,6 +34,7 @@ var AllServiceRequestType = []ServiceRequestType{
 	ServiceRequestTypeHomePageHealthDiary,
 	ServiceRequestTypeAppointments,
 	ServiceRequestTypeScreeningToolsRedFlag,
+	ServiceRequestTypeSurveyRedFlag,
 }
 
 // IsValid returns true if a request type is valid
@@ -42,7 +45,8 @@ func (m ServiceRequestType) IsValid() bool {
 		ServiceRequestTypeStaffPinReset,
 		ServiceRequestTypeHomePageHealthDiary,
 		ServiceRequestTypeAppointments,
-		ServiceRequestTypeScreeningToolsRedFlag:
+		ServiceRequestTypeScreeningToolsRedFlag,
+		ServiceRequestTypeSurveyRedFlag:
 		return true
 	}
 	return false

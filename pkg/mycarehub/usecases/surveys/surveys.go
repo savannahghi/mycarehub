@@ -3,8 +3,10 @@ package surveys
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"time"
 
+	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
@@ -12,6 +14,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/surveys"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/notification"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/servicerequest"
 	"github.com/savannahghi/serverutils"
 )
 
@@ -39,11 +42,12 @@ type UsecaseSurveys interface {
 
 // UsecaseSurveysImpl represents the Surveys implementation
 type UsecaseSurveysImpl struct {
-	Surveys      surveys.Surveys
-	Query        infrastructure.Query
-	Create       infrastructure.Create
-	Update       infrastructure.Update
-	Notification notification.UseCaseNotification
+	Surveys        surveys.Surveys
+	Query          infrastructure.Query
+	Create         infrastructure.Create
+	Update         infrastructure.Update
+	Notification   notification.UseCaseNotification
+	ServiceRequest servicerequest.UseCaseServiceRequest
 }
 
 // NewUsecaseSurveys is the controller function for the Surveys usecase
@@ -53,13 +57,15 @@ func NewUsecaseSurveys(
 	create infrastructure.Create,
 	update infrastructure.Update,
 	notification notification.UseCaseNotification,
+	serviceRequest servicerequest.UseCaseServiceRequest,
 ) *UsecaseSurveysImpl {
 	return &UsecaseSurveysImpl{
-		Surveys:      surveys,
-		Query:        query,
-		Create:       create,
-		Update:       update,
-		Notification: notification,
+		Surveys:        surveys,
+		Query:          query,
+		Create:         create,
+		Update:         update,
+		Notification:   notification,
+		ServiceRequest: serviceRequest,
 	}
 }
 
@@ -81,32 +87,110 @@ func (u *UsecaseSurveysImpl) GetUserSurveyForms(ctx context.Context, userID stri
 // VerifySurveySubmission method is used to verify whether a user has filled a survey.
 // If the user has filled the survey and submitted their data, the method marks (in the database), that the survey has been  submitted.
 // This method is called when the user goes back from the page that used to fill surveys.
+// It also check from the responses whether the scoring requires creation of a service request. If it does, it creates the service request.
 func (u *UsecaseSurveysImpl) VerifySurveySubmission(ctx context.Context, input dto.VerifySurveySubmissionInput) (bool, error) {
-	submitters, err := u.Surveys.ListSubmitters(ctx, input.ProjectID, input.FormID)
+	submissions, err := u.Surveys.GetSubmissions(ctx, dto.VerifySurveySubmissionInput{ProjectID: input.ProjectID, FormID: input.FormID})
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return false, err
 	}
 
-	for _, submitter := range submitters {
-		if submitter.ID == input.SubmitterID {
-			survey := &domain.UserSurvey{
-				LinkID:    input.SubmitterID,
-				ProjectID: input.ProjectID,
-				FormID:    input.FormID,
-			}
-
-			updateData := map[string]interface{}{
-				"has_submitted": true,
-				"submitted_at":  time.Now(),
-			}
-			err := u.Update.UpdateUserSurveys(ctx, survey, updateData)
-			if err != nil {
-				helpers.ReportErrorToSentry(err)
-				return false, err
-			}
+	hasSubmitted := false
+	var instanceID string
+	for _, submission := range submissions {
+		if submission.SubmitterID == input.SubmitterID {
+			hasSubmitted = true
+			instanceID = submission.InstanceID
 			break
 		}
+	}
+
+	if !hasSubmitted || instanceID == "" {
+		return false, nil
+	}
+
+	survey := &domain.UserSurvey{
+		LinkID:    input.SubmitterID,
+		ProjectID: input.ProjectID,
+		FormID:    input.FormID,
+	}
+
+	updateData := map[string]interface{}{
+		"has_submitted": true,
+		"submitted_at":  time.Now(),
+	}
+
+	err = u.Update.UpdateUserSurveys(ctx, survey, updateData)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, err
+	}
+
+	submission, err := u.Surveys.GetSubmissionXML(ctx, input.ProjectID, input.FormID, instanceID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, err
+	}
+
+	submissonData, ok := submission["data"].(map[string]interface{})
+	if !ok {
+		return false, fmt.Errorf("key 'data' not found in submission")
+	}
+
+	sendAlert, ok := submissonData["send_alert"].(string)
+	if !ok {
+		return true, nil
+	}
+
+	createServiceRequest, err := strconv.ParseBool(sendAlert)
+	if err != nil {
+		return false, err
+	}
+
+	if createServiceRequest {
+		params := map[string]interface{}{
+			"project_id": input.ProjectID,
+			"form_id":    input.FormID,
+			"link_id":    input.SubmitterID,
+		}
+		surveys, err := u.Query.GetUserSurveyForms(ctx, params)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return false, err
+		}
+
+		// should be only one survey
+		if len(surveys) != 1 {
+			return false, fmt.Errorf("expected 1 survey, got %d", len(surveys))
+		}
+
+		client, err := u.Query.GetClientProfileByUserID(ctx, surveys[0].UserID)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return false, err
+		}
+
+		serviceRequestInput := &dto.ServiceRequestInput{
+			ClientID:    *client.ID,
+			Flavour:     feedlib.FlavourConsumer,
+			RequestType: enums.ServiceRequestTypeSurveyRedFlag.String(),
+			Request:     fmt.Sprintf("%s survey response from %s.", surveys[0].Title, client.User.Name),
+			FacilityID:  client.FacilityID,
+			ClientName:  &client.User.Name,
+			Meta: map[string]interface{}{
+				"projectID":   input.ProjectID,
+				"formID":      input.FormID,
+				"submitterID": input.SubmitterID,
+				"surveyName":  surveys[0].Title,
+			},
+		}
+
+		_, err = u.ServiceRequest.CreateServiceRequest(ctx, serviceRequestInput)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return false, err
+		}
+
 	}
 
 	return true, nil
