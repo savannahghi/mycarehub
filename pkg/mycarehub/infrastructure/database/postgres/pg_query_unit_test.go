@@ -6174,6 +6174,7 @@ func TestMyCareHubDb_GetFacilityRespondedScreeningTools(t *testing.T) {
 	type args struct {
 		ctx        context.Context
 		facilityID string
+		pagination *domain.Pagination
 	}
 	tests := []struct {
 		name    string
@@ -6185,7 +6186,19 @@ func TestMyCareHubDb_GetFacilityRespondedScreeningTools(t *testing.T) {
 			args: args{
 				ctx:        ctx,
 				facilityID: uuid.New().String(),
+				pagination: &domain.Pagination{
+					Limit:       10,
+					CurrentPage: 1,
+				},
 			},
+		},
+		{
+			name: "Sad case: unable to get questionnaire by ID",
+			args: args{
+				ctx:        ctx,
+				facilityID: uuid.New().String(),
+			},
+			wantErr: true,
 		},
 		{
 			name: "Sad case: unable to get facility responded screening tools",
@@ -6199,11 +6212,16 @@ func TestMyCareHubDb_GetFacilityRespondedScreeningTools(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.name == "Sad case: unable to get facility responded screening tools" {
-				fakeGorm.MockGetFacilityRespondedScreeningToolsFn = func(ctx context.Context, facilityID string) ([]*gorm.ScreeningTool, error) {
+				fakeGorm.MockGetFacilityRespondedScreeningToolsFn = func(ctx context.Context, facilityID string, pagination *domain.Pagination) ([]*gorm.ScreeningTool, *domain.Pagination, error) {
+					return nil, nil, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case: unable to get questionnaire by ID" {
+				fakeGorm.MockGetQuestionnaireByIDFn = func(ctx context.Context, questionnaireID string) (*gorm.Questionnaire, error) {
 					return nil, fmt.Errorf("an error occurred")
 				}
 			}
-			got, err := d.GetFacilityRespondedScreeningTools(tt.args.ctx, tt.args.facilityID)
+			got, _, err := d.GetFacilityRespondedScreeningTools(tt.args.ctx, tt.args.facilityID, tt.args.pagination)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("MyCareHubDb.GetFacilityRespondedScreeningTools() error = %v, wantErr %v", err, tt.wantErr)
 				return

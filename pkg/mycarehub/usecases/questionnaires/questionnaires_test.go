@@ -706,8 +706,9 @@ func TestUseCaseQuestionnaireImpl_GetFacilityRespondedScreeningTools(t *testing.
 	q := questionnaires.NewUseCaseQuestionnaire(fakeDB, fakeDB, fakeDB, fakeDB)
 
 	type args struct {
-		ctx        context.Context
-		facilityID string
+		ctx             context.Context
+		facilityID      string
+		paginationInput *dto.PaginationsInput
 	}
 	tests := []struct {
 		name    string
@@ -719,6 +720,10 @@ func TestUseCaseQuestionnaireImpl_GetFacilityRespondedScreeningTools(t *testing.
 			args: args{
 				ctx:        context.Background(),
 				facilityID: uuid.New().String(),
+				paginationInput: &dto.PaginationsInput{
+					CurrentPage: 1,
+					Limit:       10,
+				},
 			},
 			wantErr: false,
 		},
@@ -727,6 +732,9 @@ func TestUseCaseQuestionnaireImpl_GetFacilityRespondedScreeningTools(t *testing.
 			args: args{
 				ctx:        context.Background(),
 				facilityID: uuid.New().String(),
+				paginationInput: &dto.PaginationsInput{
+					CurrentPage: 1,
+				},
 			},
 			wantErr: true,
 		},
@@ -734,11 +742,11 @@ func TestUseCaseQuestionnaireImpl_GetFacilityRespondedScreeningTools(t *testing.
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.name == "Sad case: unable to get facility responded screening tools" {
-				fakeDB.MockGetFacilityRespondedScreeningToolsFn = func(ctx context.Context, facilityID string) ([]*domain.ScreeningTool, error) {
-					return nil, errors.New("unable to get facility responded screening tools")
+				fakeDB.MockGetFacilityRespondedScreeningToolsFn = func(ctx context.Context, facilityID string, pagination *domain.Pagination) ([]*domain.ScreeningTool, *domain.Pagination, error) {
+					return nil, nil, errors.New("unable to get facility responded screening tools")
 				}
 			}
-			got, err := q.GetFacilityRespondedScreeningTools(tt.args.ctx, tt.args.facilityID)
+			got, err := q.GetFacilityRespondedScreeningTools(tt.args.ctx, tt.args.facilityID, tt.args.paginationInput)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCaseQuestionnaireImpl.GetFacilityRespondedScreeningTools() error = %v, wantErr %v", err, tt.wantErr)
 				return

@@ -156,7 +156,7 @@ type GormMock struct {
 	MockGetQuestionInputChoicesByQuestionIDFn            func(ctx context.Context, questionID string) ([]*gorm.QuestionInputChoice, error)
 	MockCreateScreeningToolResponseFn                    func(ctx context.Context, screeningToolResponse *gorm.ScreeningToolResponse, screeningToolQuestionResponses []*gorm.ScreeningToolQuestionResponse) (*string, error)
 	MockGetAvailableScreeningToolsFn                     func(ctx context.Context, clientID string, facilityID string) ([]*gorm.ScreeningTool, error)
-	MockGetFacilityRespondedScreeningToolsFn             func(ctx context.Context, facilityID string) ([]*gorm.ScreeningTool, error)
+	MockGetFacilityRespondedScreeningToolsFn             func(ctx context.Context, facilityID string, pagination *domain.Pagination) ([]*gorm.ScreeningTool, *domain.Pagination, error)
 	MockListSurveyRespondentsFn                          func(ctx context.Context, params map[string]interface{}, pagination *domain.Pagination) ([]*gorm.UserSurvey, *domain.Pagination, error)
 	MockGetScreeningToolServiceRequestOfRespondentsFn    func(ctx context.Context, facilityID string, screeningToolID string, searchTerm string) ([]*gorm.ClientServiceRequest, error)
 	MockGetScreeningToolResponseByIDFn                   func(ctx context.Context, id string) (*gorm.ScreeningToolResponse, error)
@@ -1248,19 +1248,22 @@ func NewGormMock() *GormMock {
 		MockCreateScreeningToolResponseFn: func(ctx context.Context, screeningToolResponse *gorm.ScreeningToolResponse, screeningToolQuestionResponses []*gorm.ScreeningToolQuestionResponse) (*string, error) {
 			return &UUID, nil
 		},
-		MockGetFacilityRespondedScreeningToolsFn: func(ctx context.Context, facilityID string) ([]*gorm.ScreeningTool, error) {
+		MockGetFacilityRespondedScreeningToolsFn: func(ctx context.Context, facilityID string, pagination *domain.Pagination) ([]*gorm.ScreeningTool, *domain.Pagination, error) {
 			return []*gorm.ScreeningTool{
-				{
-					ID:              UUID,
-					Active:          true,
-					QuestionnaireID: UUID,
-					Threshold:       1,
-					ClientTypes:     []string{enums.ClientTypeHighRisk.String()},
-					Genders:         []string{enumutils.GenderMale.String()},
-					MinimumAge:      18,
-					MaximumAge:      25,
-				},
-			}, nil
+					{
+						ID:              UUID,
+						Active:          true,
+						QuestionnaireID: UUID,
+						Threshold:       1,
+						ClientTypes:     []string{enums.ClientTypeHighRisk.String()},
+						Genders:         []string{enumutils.GenderMale.String()},
+						MinimumAge:      18,
+						MaximumAge:      25,
+					},
+				}, &domain.Pagination{
+					Limit:       10,
+					CurrentPage: 1,
+				}, nil
 		},
 		MockGetScreeningToolServiceRequestOfRespondentsFn: func(ctx context.Context, facilityID string, screeningToolID string, searchTerm string) ([]*gorm.ClientServiceRequest, error) {
 			return []*gorm.ClientServiceRequest{
@@ -1965,8 +1968,8 @@ func (gm *GormMock) GetAvailableScreeningTools(ctx context.Context, clientID str
 }
 
 // GetFacilityRespondedScreeningTools mocks the response returned by getting facility responded screening tools
-func (gm *GormMock) GetFacilityRespondedScreeningTools(ctx context.Context, facilityID string) ([]*gorm.ScreeningTool, error) {
-	return gm.MockGetFacilityRespondedScreeningToolsFn(ctx, facilityID)
+func (gm *GormMock) GetFacilityRespondedScreeningTools(ctx context.Context, facilityID string, pagination *domain.Pagination) ([]*gorm.ScreeningTool, *domain.Pagination, error) {
+	return gm.MockGetFacilityRespondedScreeningToolsFn(ctx, facilityID, pagination)
 }
 
 // ListSurveyRespondents mocks the implementation of listing survey respondents

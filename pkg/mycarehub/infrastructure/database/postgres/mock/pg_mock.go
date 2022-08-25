@@ -151,7 +151,7 @@ type PostgresMock struct {
 	MockCreateScreeningToolResponseFn                    func(ctx context.Context, input *domain.QuestionnaireScreeningToolResponse) (*string, error)
 	MockGetScreeningToolByIDFn                           func(ctx context.Context, toolID string) (*domain.ScreeningTool, error)
 	MockGetAvailableScreeningToolsFn                     func(ctx context.Context, clientID string, facilityID string) ([]*domain.ScreeningTool, error)
-	MockGetFacilityRespondedScreeningToolsFn             func(ctx context.Context, facilityID string) ([]*domain.ScreeningTool, error)
+	MockGetFacilityRespondedScreeningToolsFn             func(ctx context.Context, facilityID string, pagination *domain.Pagination) ([]*domain.ScreeningTool, *domain.Pagination, error)
 	MockListSurveyRespondentsFn                          func(ctx context.Context, projectID int, formID string, pagination *domain.Pagination) ([]*domain.SurveyRespondent, *domain.Pagination, error)
 	MockGetScreeningToolRespondentsFn                    func(ctx context.Context, facilityID string, screeningToolID string, searchTerm string) ([]*domain.ScreeningToolRespondent, error)
 }
@@ -1167,20 +1167,23 @@ func NewPostgresMock() *PostgresMock {
 				},
 			}, nil
 		},
-		MockGetFacilityRespondedScreeningToolsFn: func(ctx context.Context, facilityID string) ([]*domain.ScreeningTool, error) {
+		MockGetFacilityRespondedScreeningToolsFn: func(ctx context.Context, facilityID string, pagination *domain.Pagination) ([]*domain.ScreeningTool, *domain.Pagination, error) {
 			return []*domain.ScreeningTool{
-				{
-					ID:              screeningUUID,
-					Active:          true,
-					QuestionnaireID: screeningUUID,
-					Questionnaire: domain.Questionnaire{
-						ID:          screeningUUID,
-						Active:      true,
-						Name:        name,
-						Description: description,
+					{
+						ID:              screeningUUID,
+						Active:          true,
+						QuestionnaireID: screeningUUID,
+						Questionnaire: domain.Questionnaire{
+							ID:          screeningUUID,
+							Active:      true,
+							Name:        name,
+							Description: description,
+						},
 					},
-				},
-			}, nil
+				}, &domain.Pagination{
+					CurrentPage: 1,
+					Limit:       10,
+				}, nil
 		},
 		MockGetScreeningToolRespondentsFn: func(ctx context.Context, facilityID string, screeningToolID string, searchTerm string) ([]*domain.ScreeningToolRespondent, error) {
 			return []*domain.ScreeningToolRespondent{
@@ -1849,8 +1852,8 @@ func (gm *PostgresMock) GetAvailableScreeningTools(ctx context.Context, clientID
 }
 
 // GetFacilityRespondedScreeningTools mocks the implementation of getting responded screening tools
-func (gm *PostgresMock) GetFacilityRespondedScreeningTools(ctx context.Context, facilityID string) ([]*domain.ScreeningTool, error) {
-	return gm.MockGetFacilityRespondedScreeningToolsFn(ctx, facilityID)
+func (gm *PostgresMock) GetFacilityRespondedScreeningTools(ctx context.Context, facilityID string, pagination *domain.Pagination) ([]*domain.ScreeningTool, *domain.Pagination, error) {
+	return gm.MockGetFacilityRespondedScreeningToolsFn(ctx, facilityID, pagination)
 }
 
 // ListSurveyRespondents mocks the implementation of listing survey respondents

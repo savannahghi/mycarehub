@@ -2170,11 +2170,11 @@ func (d *MyCareHubDb) GetAvailableScreeningTools(ctx context.Context, clientID s
 }
 
 // GetFacilityRespondedScreeningTools fetches responded screening tools for a given facility
-func (d *MyCareHubDb) GetFacilityRespondedScreeningTools(ctx context.Context, facilityID string) ([]*domain.ScreeningTool, error) {
-	screeningTools, err := d.query.GetFacilityRespondedScreeningTools(ctx, facilityID)
+func (d *MyCareHubDb) GetFacilityRespondedScreeningTools(ctx context.Context, facilityID string, pagination *domain.Pagination) ([]*domain.ScreeningTool, *domain.Pagination, error) {
+	screeningTools, pageInfo, err := d.query.GetFacilityRespondedScreeningTools(ctx, facilityID, pagination)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return nil, err
+		return nil, nil, err
 	}
 
 	var screeningToolList []*domain.ScreeningTool
@@ -2182,8 +2182,9 @@ func (d *MyCareHubDb) GetFacilityRespondedScreeningTools(ctx context.Context, fa
 		questionnaire, err := d.query.GetQuestionnaireByID(ctx, s.QuestionnaireID)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
-			return nil, err
+			return nil, nil, err
 		}
+
 		screeningToolList = append(screeningToolList, &domain.ScreeningTool{
 			ID:              s.ID,
 			Active:          s.Active,
@@ -2196,8 +2197,8 @@ func (d *MyCareHubDb) GetFacilityRespondedScreeningTools(ctx context.Context, fa
 			},
 		})
 	}
-	return screeningToolList, nil
 
+	return screeningToolList, pageInfo, nil
 }
 
 // GetScreeningToolRespondents fetches the respondents for a screening tool

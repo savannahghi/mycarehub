@@ -185,3 +185,9 @@ type ScreeningToolRespondent struct {
 	PhoneNumber             string `json:"phoneNumber"`
 	ServiceRequest          string `json:"serviceRequest"`
 }
+
+// ScreeningToolPage represents the screening tool pagination mode
+type ScreeningToolPage struct {
+	ScreeningTools []*ScreeningTool `json:"screeningTools"`
+	Pagination     Pagination       `json:"pagination"`
+}
