@@ -105,7 +105,7 @@ type Query interface {
 	GetQuestionInputChoicesByQuestionID(ctx context.Context, questionID string) ([]*QuestionInputChoice, error)
 	GetAvailableScreeningTools(ctx context.Context, clientID string, facilityID string) ([]*ScreeningTool, error)
 	GetFacilityRespondedScreeningTools(ctx context.Context, facilityID string, pagination *domain.Pagination) ([]*ScreeningTool, *domain.Pagination, error)
-	GetScreeningToolServiceRequestOfRespondents(ctx context.Context, facilityID string, screeningToolID string, searchTerm string) ([]*ClientServiceRequest, error)
+	GetScreeningToolServiceRequestOfRespondents(ctx context.Context, facilityID string, screeningToolID string, searchTerm string, pagination *domain.Pagination) ([]*ClientServiceRequest, *domain.Pagination, error)
 	GetScreeningToolResponseByID(ctx context.Context, id string) (*ScreeningToolResponse, error)
 	GetScreeningToolQuestionResponsesByResponseID(ctx context.Context, responseID string) ([]*ScreeningToolQuestionResponse, error)
 }
@@ -1660,35 +1660,37 @@ func (db *PGInstance) GetFacilityRespondedScreeningTools(ctx context.Context, fa
 
 // GetScreeningToolServiceRequestOfRespondents is used to get screening tool service request by respondents
 // the clients who have a pending screening tool service request for the given facility are returned
-func (db *PGInstance) GetScreeningToolServiceRequestOfRespondents(ctx context.Context, facilityID string, screeningToolID string, searchTerm string) ([]*ClientServiceRequest, error) {
-	var serviceReqests []*ClientServiceRequest
+func (db *PGInstance) GetScreeningToolServiceRequestOfRespondents(ctx context.Context, facilityID string, screeningToolID string, searchTerm string, pagination *domain.Pagination) ([]*ClientServiceRequest, *domain.Pagination, error) {
+	var serviceRequests []*ClientServiceRequest
+	var count int64
 
-	if err := db.DB.Raw(
-		`
-		SELECT 
-			clients_servicerequest.id, clients_servicerequest.client_id, clients_servicerequest.request, clients_servicerequest.meta 
-		from clients_servicerequest
-		JOIN questionnaires_screeningtoolresponse
-		ON questionnaires_screeningtoolresponse.id::TEXT = clients_servicerequest.meta ->> 'response_id'::TEXT
-		JOIN clients_client
-		ON clients_client.id = questionnaires_screeningtoolresponse.client_id
-		JOIN users_user
-		ON clients_client.user_id = users_user.id
-		WHERE clients_servicerequest.request_type = ?
-		AND clients_servicerequest.status = ?
-		AND questionnaires_screeningtoolresponse.facility_id = ?
-		AND questionnaires_screeningtoolresponse.screeningtool_id = ?
-		AND users_user.id IN (
-			SELECT user_id from common_contact
-			WHERE contact_value ILIKE ?
-		)
-		OR users_user.name ILIKE ?
-			`, enums.ServiceRequestTypeScreeningToolsRedFlag.String(), enums.ServiceRequestStatusPending.String(), facilityID, screeningToolID, "%"+searchTerm+"%", "%"+searchTerm+"%").
-		Scan(&serviceReqests).Error; err != nil {
-		helpers.ReportErrorToSentry(err)
-		return nil, fmt.Errorf("failed to get screening tool serviceReqests: %w", err)
+	tx := db.DB.Model(&ClientServiceRequest{}).Joins("JOIN questionnaires_screeningtoolresponse ON questionnaires_screeningtoolresponse.id::TEXT = clients_servicerequest.meta ->> 'response_id'::TEXT").
+		Joins("JOIN clients_client ON clients_client.id = questionnaires_screeningtoolresponse.client_id").
+		Joins("JOIN users_user ON clients_client.user_id = users_user.id").
+		Joins("JOIN common_contact ON common_contact.user_id = users_user.id").
+		Where("clients_servicerequest.request_type = ?", enums.ServiceRequestTypeScreeningToolsRedFlag.String()).
+		Where("clients_servicerequest.status = ?", enums.ServiceRequestStatusPending.String()).
+		Where("questionnaires_screeningtoolresponse.facility_id = ?", facilityID).
+		Where("questionnaires_screeningtoolresponse.screeningtool_id = ?", screeningToolID).
+		Or("common_contact.contact_value ILIKE ?", "%"+searchTerm+"%").
+		Or("users_user.name ILIKE ?", "%"+searchTerm+"%")
+
+	if pagination != nil {
+		if err := tx.Count(&count).Error; err != nil {
+			helpers.ReportErrorToSentry(err)
+			return nil, nil, err
+		}
+
+		pagination.Count = count
+		paginateQuery(tx, pagination)
 	}
-	return serviceReqests, nil
+
+	if err := tx.Find(&serviceRequests).Error; err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, nil, fmt.Errorf("failed to get screening tool serviceRequests: %w", err)
+	}
+	return serviceRequests, pagination, nil
+
 }
 
 // GetScreeningToolResponseByID is used to get a screening tool response by its ID

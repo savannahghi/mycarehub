@@ -30,8 +30,8 @@ func (r *queryResolver) GetFacilityRespondedScreeningTools(ctx context.Context, 
 	return r.mycarehub.Questionnaires.GetFacilityRespondedScreeningTools(ctx, facilityID, &paginationInput)
 }
 
-func (r *queryResolver) GetScreeningToolRespondents(ctx context.Context, facilityID string, screeningToolID string, searchTerm *string) ([]*domain.ScreeningToolRespondent, error) {
-	return r.mycarehub.Questionnaires.GetScreeningToolRespondents(ctx, facilityID, screeningToolID, searchTerm)
+func (r *queryResolver) GetScreeningToolRespondents(ctx context.Context, facilityID string, screeningToolID string, searchTerm *string, paginationInput dto.PaginationsInput) (*domain.ScreeningToolRespondentsPage, error) {
+	return r.mycarehub.Questionnaires.GetScreeningToolRespondents(ctx, facilityID, screeningToolID, searchTerm, &paginationInput)
 }
 
 func (r *queryResolver) GetScreeningToolResponse(ctx context.Context, id string) (*domain.QuestionnaireScreeningToolResponse, error) {

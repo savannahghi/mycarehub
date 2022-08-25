@@ -767,6 +767,7 @@ func TestUseCaseQuestionnaireImpl_GetScreeningToolRespondents(t *testing.T) {
 		facilityID      string
 		screeningToolID string
 		searchTerm      *string
+		paginationInput *dto.PaginationsInput
 	}
 	tests := []struct {
 		name    string
@@ -781,6 +782,10 @@ func TestUseCaseQuestionnaireImpl_GetScreeningToolRespondents(t *testing.T) {
 				facilityID:      uuid.New().String(),
 				screeningToolID: uuid.New().String(),
 				searchTerm:      &term,
+				paginationInput: &dto.PaginationsInput{
+					Limit:       1,
+					CurrentPage: 1,
+				},
 			},
 			wantErr: false,
 		},
@@ -790,6 +795,10 @@ func TestUseCaseQuestionnaireImpl_GetScreeningToolRespondents(t *testing.T) {
 				ctx:             context.Background(),
 				facilityID:      uuid.New().String(),
 				screeningToolID: uuid.New().String(),
+				paginationInput: &dto.PaginationsInput{
+					Limit:       1,
+					CurrentPage: 1,
+				},
 			},
 			wantErr: false,
 		},
@@ -806,11 +815,11 @@ func TestUseCaseQuestionnaireImpl_GetScreeningToolRespondents(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.name == "Sad case: unable to get screening tool respondents" {
-				fakeDB.MockGetScreeningToolRespondentsFn = func(ctx context.Context, facilityID string, screeningToolID string, searchTerm string) ([]*domain.ScreeningToolRespondent, error) {
-					return nil, errors.New("failed to get screening tool respondents")
+				fakeDB.MockGetScreeningToolRespondentsFn = func(ctx context.Context, facilityID string, screeningToolID string, searchTerm string, paginationInput *dto.PaginationsInput) ([]*domain.ScreeningToolRespondent, *domain.Pagination, error) {
+					return nil, nil, errors.New("failed to get screening tool respondents")
 				}
 			}
-			got, err := q.GetScreeningToolRespondents(tt.args.ctx, tt.args.facilityID, tt.args.screeningToolID, tt.args.searchTerm)
+			got, err := q.GetScreeningToolRespondents(tt.args.ctx, tt.args.facilityID, tt.args.screeningToolID, tt.args.searchTerm, tt.args.paginationInput)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCaseQuestionnaireImpl.GetScreeningToolRespondents() error = %v, wantErr %v", err, tt.wantErr)
 				return

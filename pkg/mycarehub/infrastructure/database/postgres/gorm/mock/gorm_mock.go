@@ -158,7 +158,7 @@ type GormMock struct {
 	MockGetAvailableScreeningToolsFn                     func(ctx context.Context, clientID string, facilityID string) ([]*gorm.ScreeningTool, error)
 	MockGetFacilityRespondedScreeningToolsFn             func(ctx context.Context, facilityID string, pagination *domain.Pagination) ([]*gorm.ScreeningTool, *domain.Pagination, error)
 	MockListSurveyRespondentsFn                          func(ctx context.Context, params map[string]interface{}, pagination *domain.Pagination) ([]*gorm.UserSurvey, *domain.Pagination, error)
-	MockGetScreeningToolServiceRequestOfRespondentsFn    func(ctx context.Context, facilityID string, screeningToolID string, searchTerm string) ([]*gorm.ClientServiceRequest, error)
+	MockGetScreeningToolServiceRequestOfRespondentsFn    func(ctx context.Context, facilityID string, screeningToolID string, searchTerm string, pagination *domain.Pagination) ([]*gorm.ClientServiceRequest, *domain.Pagination, error)
 	MockGetScreeningToolResponseByIDFn                   func(ctx context.Context, id string) (*gorm.ScreeningToolResponse, error)
 	MockGetScreeningToolQuestionResponsesByResponseIDFn  func(ctx context.Context, responseID string) ([]*gorm.ScreeningToolQuestionResponse, error)
 }
@@ -1266,24 +1266,34 @@ func NewGormMock() *GormMock {
 					CurrentPage: 1,
 				}, nil
 		},
-		MockGetScreeningToolServiceRequestOfRespondentsFn: func(ctx context.Context, facilityID string, screeningToolID string, searchTerm string) ([]*gorm.ClientServiceRequest, error) {
+		MockGetScreeningToolServiceRequestOfRespondentsFn: func(ctx context.Context, facilityID string, screeningToolID string, searchTerm string, pagination *domain.Pagination) ([]*gorm.ClientServiceRequest, *domain.Pagination, error) {
+			nextPage := 2
 			return []*gorm.ClientServiceRequest{
-				{
-					ID:             &UUID,
-					Active:         true,
-					RequestType:    enums.ServiceRequestTypeScreeningToolsRedFlag.String(),
-					Request:        "REQUEST",
-					Status:         string(enums.ServiceRequestStatusPending),
-					InProgressAt:   nil,
-					ResolvedAt:     nil,
-					ClientID:       uuid.New().String(),
-					InProgressByID: &UUID,
-					OrganisationID: "",
-					ResolvedByID:   &UUID,
-					FacilityID:     uuid.New().String(),
-					Meta:           fmt.Sprintf(`{"response_id":"%s"}`, "screening_tool_response_id"),
+					{
+						ID:             &UUID,
+						Active:         true,
+						RequestType:    enums.ServiceRequestTypeScreeningToolsRedFlag.String(),
+						Request:        "REQUEST",
+						Status:         string(enums.ServiceRequestStatusPending),
+						InProgressAt:   nil,
+						ResolvedAt:     nil,
+						ClientID:       uuid.New().String(),
+						InProgressByID: &UUID,
+						OrganisationID: "",
+						ResolvedByID:   &UUID,
+						FacilityID:     uuid.New().String(),
+						Meta:           fmt.Sprintf(`{"response_id":"%s"}`, "screening_tool_response_id"),
+					},
 				},
-			}, nil
+				&domain.Pagination{
+					Limit:        1,
+					CurrentPage:  1,
+					Count:        2,
+					TotalPages:   2,
+					NextPage:     &nextPage,
+					PreviousPage: nil,
+				},
+				nil
 		},
 		MockGetScreeningToolResponseByIDFn: func(ctx context.Context, id string) (*gorm.ScreeningToolResponse, error) {
 			return &gorm.ScreeningToolResponse{
@@ -1991,8 +2001,8 @@ func (gm *GormMock) ListSurveyRespondents(ctx context.Context, params map[string
 }
 
 // GetScreeningToolServiceRequestOfRespondents mocks the implementation of getting screening tool service requests by respondents
-func (gm *GormMock) GetScreeningToolServiceRequestOfRespondents(ctx context.Context, facilityID string, screeningToolID string, searchTerm string) ([]*gorm.ClientServiceRequest, error) {
-	return gm.MockGetScreeningToolServiceRequestOfRespondentsFn(ctx, facilityID, screeningToolID, searchTerm)
+func (gm *GormMock) GetScreeningToolServiceRequestOfRespondents(ctx context.Context, facilityID string, screeningToolID string, searchTerm string, pagination *domain.Pagination) ([]*gorm.ClientServiceRequest, *domain.Pagination, error) {
+	return gm.MockGetScreeningToolServiceRequestOfRespondentsFn(ctx, facilityID, screeningToolID, searchTerm, pagination)
 }
 
 // GetScreeningToolResponseByID mocks the implementation of getting a screening tool response by ID

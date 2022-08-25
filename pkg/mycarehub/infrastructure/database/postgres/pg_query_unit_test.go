@@ -6331,6 +6331,7 @@ func TestMyCareHubDb_GetScreeningToolRespondents(t *testing.T) {
 		facilityID      string
 		screeningToolID string
 		searchTerm      string
+		paginationInput *dto.PaginationsInput
 	}
 	tests := []struct {
 		name    string
@@ -6343,6 +6344,10 @@ func TestMyCareHubDb_GetScreeningToolRespondents(t *testing.T) {
 				ctx:             ctx,
 				facilityID:      uuid.New().String(),
 				screeningToolID: uuid.New().String(),
+				paginationInput: &dto.PaginationsInput{
+					Limit:       1,
+					CurrentPage: 1,
+				},
 			},
 			wantErr: false,
 		},
@@ -6352,6 +6357,10 @@ func TestMyCareHubDb_GetScreeningToolRespondents(t *testing.T) {
 				ctx:             ctx,
 				facilityID:      uuid.New().String(),
 				screeningToolID: uuid.New().String(),
+				paginationInput: &dto.PaginationsInput{
+					Limit:       1,
+					CurrentPage: 1,
+				},
 			},
 			wantErr: true,
 		},
@@ -6361,6 +6370,10 @@ func TestMyCareHubDb_GetScreeningToolRespondents(t *testing.T) {
 				ctx:             ctx,
 				facilityID:      uuid.New().String(),
 				screeningToolID: uuid.New().String(),
+				paginationInput: &dto.PaginationsInput{
+					Limit:       1,
+					CurrentPage: 1,
+				},
 			},
 			wantErr: true,
 		},
@@ -6368,8 +6381,8 @@ func TestMyCareHubDb_GetScreeningToolRespondents(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.name == "Sad case: unable to get screening tool service requests of respondent" {
-				fakeGorm.MockGetScreeningToolServiceRequestOfRespondentsFn = func(ctx context.Context, facilityID string, screeningToolID string, searchTerm string) ([]*gorm.ClientServiceRequest, error) {
-					return nil, fmt.Errorf("an error occurred")
+				fakeGorm.MockGetScreeningToolServiceRequestOfRespondentsFn = func(ctx context.Context, facilityID string, screeningToolID string, searchTerm string, pagination *domain.Pagination) ([]*gorm.ClientServiceRequest, *domain.Pagination, error) {
+					return nil, nil, fmt.Errorf("an error occurred")
 				}
 			}
 			if tt.name == "Sad case: unable to get client profile by user id" {
@@ -6377,7 +6390,7 @@ func TestMyCareHubDb_GetScreeningToolRespondents(t *testing.T) {
 					return nil, fmt.Errorf("an error occurred")
 				}
 			}
-			got, err := d.GetScreeningToolRespondents(tt.args.ctx, tt.args.facilityID, tt.args.screeningToolID, tt.args.searchTerm)
+			got, _, err := d.GetScreeningToolRespondents(tt.args.ctx, tt.args.facilityID, tt.args.screeningToolID, tt.args.searchTerm, tt.args.paginationInput)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("MyCareHubDb.GetScreeningToolRespondents() error = %v, wantErr %v", err, tt.wantErr)
 				return

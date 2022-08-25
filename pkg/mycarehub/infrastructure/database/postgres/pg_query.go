@@ -2202,11 +2202,17 @@ func (d *MyCareHubDb) GetFacilityRespondedScreeningTools(ctx context.Context, fa
 }
 
 // GetScreeningToolRespondents fetches the respondents for a screening tool
-func (d *MyCareHubDb) GetScreeningToolRespondents(ctx context.Context, facilityID string, screeningToolID string, searchTerm string) ([]*domain.ScreeningToolRespondent, error) {
-	serviceRequests, err := d.query.GetScreeningToolServiceRequestOfRespondents(ctx, facilityID, screeningToolID, searchTerm)
+func (d *MyCareHubDb) GetScreeningToolRespondents(ctx context.Context, facilityID string, screeningToolID string, searchTerm string, paginationInput *dto.PaginationsInput) ([]*domain.ScreeningToolRespondent, *domain.Pagination, error) {
+
+	page := &domain.Pagination{
+		Limit:       paginationInput.Limit,
+		CurrentPage: paginationInput.CurrentPage,
+	}
+
+	serviceRequests, pageInfo, err := d.query.GetScreeningToolServiceRequestOfRespondents(ctx, facilityID, screeningToolID, searchTerm, page)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return nil, err
+		return nil, nil, err
 	}
 
 	var respondents []*domain.ScreeningToolRespondent
@@ -2215,18 +2221,18 @@ func (d *MyCareHubDb) GetScreeningToolRespondents(ctx context.Context, facilityI
 		meta, err := utils.ConvertJSONStringToMap(s.Meta)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
-			return nil, err
+			return nil, nil, err
 		}
 		responseID := meta["response_id"].(string)
 		response, err := d.query.GetScreeningToolResponseByID(ctx, responseID)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
-			return nil, err
+			return nil, nil, err
 		}
 		client, err := d.query.GetClientProfileByClientID(ctx, s.ClientID)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
-			return nil, err
+			return nil, nil, err
 		}
 		respondent := &domain.ScreeningToolRespondent{
 			ClientID:                s.ClientID,
@@ -2240,7 +2246,7 @@ func (d *MyCareHubDb) GetScreeningToolRespondents(ctx context.Context, facilityI
 		respondents = append(respondents, respondent)
 	}
 
-	return respondents, nil
+	return respondents, pageInfo, nil
 }
 
 // GetScreeningToolResponseByID fetches a screening tool response by ID

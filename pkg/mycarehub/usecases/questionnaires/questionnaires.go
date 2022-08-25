@@ -23,7 +23,7 @@ type IGetScreeningTools interface {
 	GetAvailableScreeningTools(ctx context.Context, clientID string, facilityID string) ([]*domain.ScreeningTool, error)
 	GetScreeningToolByID(ctx context.Context, id string) (*domain.ScreeningTool, error)
 	GetFacilityRespondedScreeningTools(ctx context.Context, facilityID string, paginationInput *dto.PaginationsInput) (*domain.ScreeningToolPage, error)
-	GetScreeningToolRespondents(ctx context.Context, facilityID string, screeningToolID string, searchTerm *string) ([]*domain.ScreeningToolRespondent, error)
+	GetScreeningToolRespondents(ctx context.Context, facilityID string, screeningToolID string, searchTerm *string, paginationInput *dto.PaginationsInput) (*domain.ScreeningToolRespondentsPage, error)
 	GetScreeningToolResponse(ctx context.Context, id string) (*domain.QuestionnaireScreeningToolResponse, error)
 }
 
@@ -260,17 +260,25 @@ func (q *UseCaseQuestionnaireImpl) GetFacilityRespondedScreeningTools(ctx contex
 // GetScreeningToolRespondents returns the respondents for the screening tool
 // the respondents belong to a given facility and they must have answered
 // a given screening tool which has an unresolved service request
-func (q *UseCaseQuestionnaireImpl) GetScreeningToolRespondents(ctx context.Context, facilityID string, screeningToolID string, searchTerm *string) ([]*domain.ScreeningToolRespondent, error) {
+func (q *UseCaseQuestionnaireImpl) GetScreeningToolRespondents(ctx context.Context, facilityID string, screeningToolID string, searchTerm *string, paginationInput *dto.PaginationsInput) (*domain.ScreeningToolRespondentsPage, error) {
 	emptyString := ""
 	if searchTerm == nil {
 		searchTerm = &emptyString
 	}
-	respondents, err := q.Query.GetScreeningToolRespondents(ctx, facilityID, screeningToolID, *searchTerm)
+	if err := paginationInput.Validate(); err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
+	respondents, pageInfo, err := q.Query.GetScreeningToolRespondents(ctx, facilityID, screeningToolID, *searchTerm, paginationInput)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed to get screening tool respondents: %w", err)
 	}
-	return respondents, nil
+	return &domain.ScreeningToolRespondentsPage{
+		ScreeningToolRespondents: respondents,
+		Pagination:               *pageInfo,
+	}, nil
 }
 
 // GetScreeningToolResponse returns the screening tool response for the provided screening tool and client

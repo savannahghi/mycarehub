@@ -249,3 +249,10 @@ type ScreeningToolPage struct {
 	ScreeningTools []*ScreeningTool `json:"screeningTools"`
 	Pagination     Pagination       `json:"pagination"`
 }
+
+// ScreeningToolRespondentsPage represents a list of respondents
+// Pagination is included
+type ScreeningToolRespondentsPage struct {
+	ScreeningToolRespondents []*ScreeningToolRespondent `json:"screeningToolRespondents"`
+	Pagination               Pagination                 `json:"pagination"`
+}
