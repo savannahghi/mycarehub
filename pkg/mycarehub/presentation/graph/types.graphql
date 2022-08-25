@@ -639,3 +639,7 @@ type ScreeningToolPage {
   screeningTools: [ScreeningTool]!
   pagination: Pagination!
 }
+type ScreeningToolRespondentsPage {
+  screeningToolRespondents: [ScreeningToolRespondent]!
+  pagination: Pagination!
+}

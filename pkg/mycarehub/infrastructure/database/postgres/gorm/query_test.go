@@ -4482,6 +4482,7 @@ func TestPGInstance_GetScreeningToolServiceRequestOfRespondents(t *testing.T) {
 		facilityID      string
 		screeningToolID string
 		searchTerm      string
+		pagination      *domain.Pagination
 	}
 	tests := []struct {
 		name    string
@@ -4495,6 +4496,10 @@ func TestPGInstance_GetScreeningToolServiceRequestOfRespondents(t *testing.T) {
 				facilityID:      facilityID,
 				screeningToolID: screeningToolID,
 				searchTerm:      "",
+				pagination: &domain.Pagination{
+					Limit:       1,
+					CurrentPage: 1,
+				},
 			},
 			wantErr: false,
 		},
@@ -4504,13 +4509,17 @@ func TestPGInstance_GetScreeningToolServiceRequestOfRespondents(t *testing.T) {
 				ctx:             context.Background(),
 				facilityID:      "INVALID_ID",
 				screeningToolID: "INVALID_ID",
+				pagination: &domain.Pagination{
+					Limit:       1,
+					CurrentPage: 1,
+				},
 			},
 			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := testingDB.GetScreeningToolServiceRequestOfRespondents(tt.args.ctx, tt.args.facilityID, tt.args.screeningToolID, tt.args.searchTerm)
+			got, _, err := testingDB.GetScreeningToolServiceRequestOfRespondents(tt.args.ctx, tt.args.facilityID, tt.args.screeningToolID, tt.args.searchTerm, tt.args.pagination)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("PGInstance.GetScreeningToolServiceRequestOfRespondents() error = %v, wantErr %v", err, tt.wantErr)
 				return

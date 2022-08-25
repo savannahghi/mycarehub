@@ -153,7 +153,7 @@ type PostgresMock struct {
 	MockGetAvailableScreeningToolsFn                     func(ctx context.Context, clientID string, facilityID string) ([]*domain.ScreeningTool, error)
 	MockGetFacilityRespondedScreeningToolsFn             func(ctx context.Context, facilityID string, pagination *domain.Pagination) ([]*domain.ScreeningTool, *domain.Pagination, error)
 	MockListSurveyRespondentsFn                          func(ctx context.Context, projectID int, formID string, pagination *domain.Pagination) ([]*domain.SurveyRespondent, *domain.Pagination, error)
-	MockGetScreeningToolRespondentsFn                    func(ctx context.Context, facilityID string, screeningToolID string, searchTerm string) ([]*domain.ScreeningToolRespondent, error)
+	MockGetScreeningToolRespondentsFn                    func(ctx context.Context, facilityID string, screeningToolID string, searchTerm string, paginationInput *dto.PaginationsInput) ([]*domain.ScreeningToolRespondent, *domain.Pagination, error)
 	MockGetScreeningToolResponseByIDFn                   func(ctx context.Context, id string) (*domain.QuestionnaireScreeningToolResponse, error)
 }
 
@@ -1186,17 +1186,26 @@ func NewPostgresMock() *PostgresMock {
 					Limit:       10,
 				}, nil
 		},
-		MockGetScreeningToolRespondentsFn: func(ctx context.Context, facilityID string, screeningToolID string, searchTerm string) ([]*domain.ScreeningToolRespondent, error) {
+		MockGetScreeningToolRespondentsFn: func(ctx context.Context, facilityID string, screeningToolID string, searchTerm string, paginationInput *dto.PaginationsInput) ([]*domain.ScreeningToolRespondent, *domain.Pagination, error) {
 			return []*domain.ScreeningToolRespondent{
-				{
-					ClientID:                ID,
-					ScreeningToolResponseID: screeningToolID,
-					ServiceRequestID:        ID,
-					Name:                    name,
-					PhoneNumber:             phone,
-					ServiceRequest:          gofakeit.Sentence(10),
+					{
+						ClientID:                ID,
+						ScreeningToolResponseID: screeningToolID,
+						ServiceRequestID:        ID,
+						Name:                    name,
+						PhoneNumber:             phone,
+						ServiceRequest:          gofakeit.Sentence(10),
+					},
 				},
-			}, nil
+				&domain.Pagination{
+					Limit:        1,
+					CurrentPage:  1,
+					Count:        2,
+					TotalPages:   2,
+					NextPage:     &nextPage,
+					PreviousPage: nil,
+				},
+				nil
 		},
 		MockGetScreeningToolResponseByIDFn: func(ctx context.Context, id string) (*domain.QuestionnaireScreeningToolResponse, error) {
 			return &domain.QuestionnaireScreeningToolResponse{
@@ -1888,8 +1897,8 @@ func (gm *PostgresMock) ListSurveyRespondents(ctx context.Context, projectID int
 }
 
 // GetScreeningToolRespondents mocks the implementation of getting screening tool respondents
-func (gm *PostgresMock) GetScreeningToolRespondents(ctx context.Context, facilityID string, screeningToolID string, searchTerm string) ([]*domain.ScreeningToolRespondent, error) {
-	return gm.MockGetScreeningToolRespondentsFn(ctx, facilityID, screeningToolID, searchTerm)
+func (gm *PostgresMock) GetScreeningToolRespondents(ctx context.Context, facilityID string, screeningToolID string, searchTerm string, paginationInput *dto.PaginationsInput) ([]*domain.ScreeningToolRespondent, *domain.Pagination, error) {
+	return gm.MockGetScreeningToolRespondentsFn(ctx, facilityID, screeningToolID, searchTerm, paginationInput)
 }
 
 // GetScreeningToolResponseByID mocks the implementation of getting a screening tool response by ID
