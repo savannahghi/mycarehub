@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"testing"
@@ -126,7 +125,7 @@ func TestMyCareHubHandlersInterfacesImpl_SendOTP(t *testing.T) {
 
 			defer resp.Body.Close()
 
-			dataResponse, err := ioutil.ReadAll(resp.Body)
+			dataResponse, err := io.ReadAll(resp.Body)
 			if err != nil {
 				t.Errorf("can't read request body: %s", err)
 				return
@@ -251,7 +250,7 @@ func TestMyCareHubHandlersInterfacesImpl_SendRetryOTP(t *testing.T) {
 
 			defer resp.Body.Close()
 
-			dataResponse, err := ioutil.ReadAll(resp.Body)
+			dataResponse, err := io.ReadAll(resp.Body)
 			if err != nil {
 				t.Errorf("can't read request body: %s", err)
 				return
@@ -371,7 +370,7 @@ func TestMyCareHubHandlersInterfacesImpl_RequestPINReset(t *testing.T) {
 				return
 			}
 
-			dataResponse, err := ioutil.ReadAll(resp.Body)
+			dataResponse, err := io.ReadAll(resp.Body)
 			if err != nil {
 				t.Errorf("can't read request body: %s", err)
 				return
@@ -492,7 +491,7 @@ func TestMyCareHubHandlersInterfacesImpl_LoginByPhone(t *testing.T) {
 				return
 			}
 
-			dataResponse, err := ioutil.ReadAll(resp.Body)
+			dataResponse, err := io.ReadAll(resp.Body)
 			if err != nil {
 				t.Errorf("can't read request body: %s", err)
 				return
@@ -614,7 +613,7 @@ func TestMyCareHubHandlersInterfacesImpl_VerifyPhone(t *testing.T) {
 				return
 			}
 
-			dataResponse, err := ioutil.ReadAll(resp.Body)
+			dataResponse, err := io.ReadAll(resp.Body)
 			if err != nil {
 				t.Errorf("can't read request body: %s", err)
 				return
@@ -736,7 +735,7 @@ func TestMyCareHubHandlersInterfacesImpl_VerifyOTP(t *testing.T) {
 				return
 			}
 
-			dataResponse, err := ioutil.ReadAll(resp.Body)
+			dataResponse, err := io.ReadAll(resp.Body)
 			if err != nil {
 				t.Errorf("can't read request body: %s", err)
 				return
@@ -843,7 +842,7 @@ func TestMyCareHubHandlersInterfacesImpl_GetUserRespondedSecurityQuestions(t *te
 				return
 			}
 
-			dataResponse, err := ioutil.ReadAll(resp.Body)
+			dataResponse, err := io.ReadAll(resp.Body)
 			if err != nil {
 				t.Errorf("can't read request body: %s", err)
 				return
@@ -958,7 +957,7 @@ func TestMyCareHubHandlersInterfacesImpl_RefreshToken(t *testing.T) {
 				return
 			}
 
-			dataResponse, err := ioutil.ReadAll(resp.Body)
+			dataResponse, err := io.ReadAll(resp.Body)
 			if err != nil {
 				t.Errorf("can't read request body: %s", err)
 				return
@@ -1074,7 +1073,7 @@ func TestMyCareHubHandlersInterfacesImpl_RefreshGetStreamToken(t *testing.T) {
 				return
 			}
 
-			dataResponse, err := ioutil.ReadAll(resp.Body)
+			dataResponse, err := io.ReadAll(resp.Body)
 			if err != nil {
 				t.Errorf("can't read request body: %s", err)
 				return
@@ -1189,7 +1188,7 @@ func TestMyCareHubHandlersInterfacesImpl_RegisterKenyaEMRPatients(t *testing.T) 
 				return
 			}
 
-			dataResponse, err := ioutil.ReadAll(resp.Body)
+			dataResponse, err := io.ReadAll(resp.Body)
 			if err != nil {
 				t.Errorf("can't read request body: %s", err)
 				return
@@ -1329,7 +1328,7 @@ func TestMyCareHubHandlersInterfacesImpl_CreateOrUpdateKenyaEMRAppointment(t *te
 				return
 			}
 
-			dataResponse, err := ioutil.ReadAll(resp.Body)
+			dataResponse, err := io.ReadAll(resp.Body)
 			if err != nil {
 				t.Errorf("can't read request body: %s", err)
 				return
@@ -1456,7 +1455,7 @@ func TestMyCareHubHandlersInterfacesImpl_AddFacilityFHIRID(t *testing.T) {
 				return
 			}
 
-			dataResponse, err := ioutil.ReadAll(resp.Body)
+			dataResponse, err := io.ReadAll(resp.Body)
 			if err != nil {
 				t.Errorf("can't read request body: %s", err)
 				return
@@ -1562,7 +1561,7 @@ func TestMyCareHubHandlersInterfacesImpl_GetClientHealthDiaryEntries(t *testing.
 				return
 			}
 
-			dataResponse, err := ioutil.ReadAll(resp.Body)
+			dataResponse, err := io.ReadAll(resp.Body)
 			if err != nil {
 				t.Errorf("can't read request body: %s", err)
 				return
@@ -1667,7 +1666,7 @@ func TestMyCareHubHandlersInterfacesImpl_RegisteredFacilityPatients(t *testing.T
 				return
 			}
 
-			dataResponse, err := ioutil.ReadAll(resp.Body)
+			dataResponse, err := io.ReadAll(resp.Body)
 			if err != nil {
 				t.Errorf("can't read request body: %s", err)
 				return
@@ -1773,7 +1772,7 @@ func TestMyCareHubHandlersInterfacesImpl_GetServiceRequests(t *testing.T) {
 				return
 			}
 
-			dataResponse, err := ioutil.ReadAll(resp.Body)
+			dataResponse, err := io.ReadAll(resp.Body)
 			if err != nil {
 				t.Errorf("can't read request body: %s", err)
 				return
@@ -1899,7 +1898,7 @@ func TestMyCareHubHandlersInterfacesImpl_CreatePinResetServiceRequest(t *testing
 				return
 			}
 
-			dataResponse, err := ioutil.ReadAll(resp.Body)
+			dataResponse, err := io.ReadAll(resp.Body)
 			if err != nil {
 				t.Errorf("can't read request body: %s", err)
 				return
@@ -2049,7 +2048,7 @@ func TestMyCareHubHandlersInterfacesImpl_AddPatientsRecords(t *testing.T) {
 				return
 			}
 
-			dataResponse, err := ioutil.ReadAll(resp.Body)
+			dataResponse, err := io.ReadAll(resp.Body)
 			if err != nil {
 				t.Errorf("can't read request body: %s", err)
 				return
@@ -2145,7 +2144,7 @@ func TestMyCareHubHandlersInterfacesImpl_GetUserProfile(t *testing.T) {
 				return
 			}
 
-			dataResponse, err := ioutil.ReadAll(resp.Body)
+			dataResponse, err := io.ReadAll(resp.Body)
 			if err != nil {
 				t.Errorf("can't read request body: %s", err)
 				return
@@ -2279,7 +2278,7 @@ func TestMyCareHubHandlersInterfacesImpl_AddClientFHIRID(t *testing.T) {
 				return
 			}
 
-			dataResponse, err := ioutil.ReadAll(resp.Body)
+			dataResponse, err := io.ReadAll(resp.Body)
 			if err != nil {
 				t.Errorf("can't read request body: %s", err)
 				return
@@ -2422,7 +2421,7 @@ func TestMyCareHubHandlersInterfacesImpl_GetAppointmentServiceRequests(t *testin
 				return
 			}
 
-			dataResponse, err := ioutil.ReadAll(resp.Body)
+			dataResponse, err := io.ReadAll(resp.Body)
 			if err != nil {
 				t.Errorf("can't read request body: %s", err)
 				return
@@ -2550,7 +2549,7 @@ func TestMyCareHubHandlersInterfacesImpl_DeleteUser(t *testing.T) {
 				return
 			}
 
-			dataResponse, err := ioutil.ReadAll(resp.Body)
+			dataResponse, err := io.ReadAll(resp.Body)
 			if err != nil {
 				t.Errorf("can't read request body: %s", err)
 				return

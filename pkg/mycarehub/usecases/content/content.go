@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -166,7 +166,7 @@ func (u UseCasesContentImpl) CheckWhetherUserHasLikedContent(ctx context.Context
 		return false, fmt.Errorf("failed to check if user liked content")
 	}
 
-	body, err := ioutil.ReadAll(response.Body)
+	body, err := io.ReadAll(response.Body)
 	if err != nil {
 		return false, fmt.Errorf("failed to read request body: %v", err)
 	}
@@ -206,7 +206,7 @@ func (u UseCasesContentImpl) UnlikeContent(ctx context.Context, userID string, c
 		return false, fmt.Errorf("failed to make request")
 	}
 
-	body, err := ioutil.ReadAll(response.Body)
+	body, err := io.ReadAll(response.Body)
 	if err != nil {
 		return false, fmt.Errorf("failed to read request body: %v", err)
 	}
@@ -263,7 +263,7 @@ func (u UseCasesContentImpl) GetContent(ctx context.Context, categoryID *int, li
 		return nil, fmt.Errorf("failed to make request")
 	}
 
-	dataResponse, err := ioutil.ReadAll(resp.Body)
+	dataResponse, err := io.ReadAll(resp.Body)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed to read request body: %v", err)
@@ -294,7 +294,7 @@ func (u *UseCasesContentImpl) ListContentCategories(ctx context.Context) ([]*dom
 		return nil, fmt.Errorf("failed to make request")
 	}
 
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read request body: %v", err)
 	}
@@ -387,7 +387,7 @@ func (u UseCasesContentImpl) UnBookmarkContent(ctx context.Context, userID strin
 		return false, fmt.Errorf("failed to make request")
 	}
 
-	body, err := ioutil.ReadAll(response.Body)
+	body, err := io.ReadAll(response.Body)
 	if err != nil {
 		return false, fmt.Errorf("failed to read request body: %v", err)
 	}
@@ -442,7 +442,7 @@ func (u *UseCasesContentImpl) GetUserBookmarkedContent(ctx context.Context, user
 		return nil, fmt.Errorf("failed to make request")
 	}
 
-	body, err := ioutil.ReadAll(response.Body)
+	body, err := io.ReadAll(response.Body)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read request body: %v", err)
 	}
@@ -494,7 +494,7 @@ func (u *UseCasesContentImpl) GetContentItemByID(ctx context.Context, contentID 
 		return nil, fmt.Errorf("failed to make request")
 	}
 
-	dataResponse, err := ioutil.ReadAll(resp.Body)
+	dataResponse, err := io.ReadAll(resp.Body)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed to read request body: %v", err)
@@ -559,7 +559,7 @@ func (u *UseCasesContentImpl) CheckIfUserBookmarkedContent(ctx context.Context, 
 		return false, fmt.Errorf("failed to check bookmarked content")
 	}
 
-	body, err := ioutil.ReadAll(response.Body)
+	body, err := io.ReadAll(response.Body)
 	if err != nil {
 		return false, fmt.Errorf("failed to read request body: %v", err)
 	}
@@ -612,7 +612,7 @@ func (u *UseCasesContentImpl) GetFAQs(ctx context.Context, flavour feedlib.Flavo
 		return nil, fmt.Errorf("failed to make request")
 	}
 
-	data, err := ioutil.ReadAll(response.Body)
+	data, err := io.ReadAll(response.Body)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed to read request body: %v", err)

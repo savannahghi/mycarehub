@@ -5,7 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"testing"
 
@@ -70,7 +70,7 @@ func TestServiceClinical_DeleteFHIRPatientByPhone(t *testing.T) {
 
 					payload, _ := json.Marshal(msg)
 
-					return &http.Response{StatusCode: http.StatusBadRequest, Body: ioutil.NopCloser(bytes.NewBuffer(payload))}, nil
+					return &http.Response{StatusCode: http.StatusBadRequest, Body: io.NopCloser(bytes.NewBuffer(payload))}, nil
 				}
 			}
 			if err := c.DeleteFHIRPatientByPhone(tt.args.ctx, tt.args.phoneNumber); (err != nil) != tt.wantErr {

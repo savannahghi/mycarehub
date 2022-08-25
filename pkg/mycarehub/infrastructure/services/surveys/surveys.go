@@ -5,7 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strconv"
 
@@ -208,7 +208,7 @@ func (s *Impl) GetSubmissions(ctx context.Context, input dto.VerifySurveySubmiss
 		return nil, err
 	}
 	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, err
@@ -254,7 +254,7 @@ func (s *Impl) ListSubmitters(ctx context.Context, projectID int, formID string)
 	}
 	defer resp.Body.Close()
 
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, err
@@ -285,7 +285,7 @@ func (s *Impl) ListPublicAccessLinks(ctx context.Context, projectID int, formID 
 	}
 	defer resp.Body.Close()
 
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, err
