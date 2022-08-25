@@ -22,7 +22,7 @@ type ICreateScreeningTools interface {
 type IGetScreeningTools interface {
 	GetAvailableScreeningTools(ctx context.Context, clientID string, facilityID string) ([]*domain.ScreeningTool, error)
 	GetScreeningToolByID(ctx context.Context, id string) (*domain.ScreeningTool, error)
-	GetFacilityRespondedScreeningTools(ctx context.Context, facilityID string) ([]*domain.ScreeningTool, error)
+	GetFacilityRespondedScreeningTools(ctx context.Context, facilityID string, paginationInput *dto.PaginationsInput) (*domain.ScreeningToolPage, error)
 	GetScreeningToolRespondents(ctx context.Context, facilityID string, screeningToolID string, searchTerm *string) ([]*domain.ScreeningToolRespondent, error)
 }
 
@@ -235,13 +235,25 @@ func (q *UseCaseQuestionnaireImpl) GetScreeningToolByID(ctx context.Context, id 
 
 // GetFacilityRespondedScreeningTools gets a list of  screening tools that have been responded to for a given facility
 // These screening tools have a service request that has not been resolved yet
-func (q *UseCaseQuestionnaireImpl) GetFacilityRespondedScreeningTools(ctx context.Context, facilityID string) ([]*domain.ScreeningTool, error) {
-	screeningTools, err := q.Query.GetFacilityRespondedScreeningTools(ctx, facilityID)
+func (q *UseCaseQuestionnaireImpl) GetFacilityRespondedScreeningTools(ctx context.Context, facilityID string, paginationInput *dto.PaginationsInput) (*domain.ScreeningToolPage, error) {
+	if err := paginationInput.Validate(); err != nil {
+		return nil, err
+	}
+
+	page := &domain.Pagination{
+		Limit:       paginationInput.Limit,
+		CurrentPage: paginationInput.CurrentPage,
+	}
+
+	screeningTools, pageInfo, err := q.Query.GetFacilityRespondedScreeningTools(ctx, facilityID, page)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed to get screening tools: %w", err)
 	}
-	return screeningTools, nil
+	return &domain.ScreeningToolPage{
+		ScreeningTools: screeningTools,
+		Pagination:     *pageInfo,
+	}, nil
 }
 
 // GetScreeningToolRespondents returns the respondents for the screening tool

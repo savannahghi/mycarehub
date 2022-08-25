@@ -104,7 +104,7 @@ type Query interface {
 	GetQuestionsByQuestionnaireID(ctx context.Context, questionnaireID string) ([]*Question, error)
 	GetQuestionInputChoicesByQuestionID(ctx context.Context, questionID string) ([]*QuestionInputChoice, error)
 	GetAvailableScreeningTools(ctx context.Context, clientID string, facilityID string) ([]*ScreeningTool, error)
-	GetFacilityRespondedScreeningTools(ctx context.Context, facilityID string) ([]*ScreeningTool, error)
+	GetFacilityRespondedScreeningTools(ctx context.Context, facilityID string, pagination *domain.Pagination) ([]*ScreeningTool, *domain.Pagination, error)
 	GetScreeningToolServiceRequestOfRespondents(ctx context.Context, facilityID string, screeningToolID string, searchTerm string) ([]*ClientServiceRequest, error)
 	GetScreeningToolResponseByID(ctx context.Context, id string) (*ScreeningToolResponse, error)
 }
@@ -1623,20 +1623,33 @@ func (db *PGInstance) GetQuestionInputChoicesByQuestionID(ctx context.Context, q
 
 // GetFacilityRespondedScreeningTools is used to get facility's responded screening tools questions
 // These are screening tools that have red flag service requests and have been resolved
-func (db *PGInstance) GetFacilityRespondedScreeningTools(ctx context.Context, facilityID string) ([]*ScreeningTool, error) {
+func (db *PGInstance) GetFacilityRespondedScreeningTools(ctx context.Context, facilityID string, pagination *domain.Pagination) ([]*ScreeningTool, *domain.Pagination, error) {
+	var count int64
 	var screeningTools []*ScreeningTool
-	if err := db.DB.Joins("JOIN questionnaires_questionnaire ON questionnaires_screeningtool.questionnaire_id = questionnaires_questionnaire.id").
+
+	tx := db.DB.Model(&ScreeningTool{}).Joins("JOIN questionnaires_questionnaire ON questionnaires_screeningtool.questionnaire_id = questionnaires_questionnaire.id").
 		Joins("JOIN questionnaires_screeningtoolresponse ON questionnaires_screeningtoolresponse.screeningtool_id = questionnaires_screeningtool.id").
 		Joins("JOIN clients_servicerequest ON (questionnaires_screeningtoolresponse.id)::text=(clients_servicerequest.meta->>'response_id')::text").
 		Where("questionnaires_screeningtoolresponse.facility_id = ?", facilityID).
 		Where("clients_servicerequest.status = ?", enums.ServiceRequestStatusPending.String()).
-		Where("clients_servicerequest.request_type = ?", enums.ServiceRequestTypeScreeningToolsRedFlag.String()).
-		Find(&screeningTools).Error; err != nil {
-		helpers.ReportErrorToSentry(err)
-		return nil, fmt.Errorf("failed to get facility's responded screening tools: %w", err)
+		Where("clients_servicerequest.request_type = ?", enums.ServiceRequestTypeScreeningToolsRedFlag.String())
+
+	if pagination != nil {
+		if err := tx.Count(&count).Error; err != nil {
+			helpers.ReportErrorToSentry(err)
+			return nil, nil, fmt.Errorf("failed to get screening tools count: %w", err)
+		}
+
+		pagination.Count = count
+		paginateQuery(tx, pagination)
 	}
 
-	return screeningTools, nil
+	if err := tx.Order(clause.OrderByColumn{Column: clause.Column{Name: "questionnaires_questionnaire.name"}, Desc: true}).Find(&screeningTools).Error; err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, nil, fmt.Errorf("failed to get screening tools: %w", err)
+	}
+
+	return screeningTools, pagination, nil
 }
 
 // GetScreeningToolServiceRequestOfRespondents is used to get screening tool service request by respondents

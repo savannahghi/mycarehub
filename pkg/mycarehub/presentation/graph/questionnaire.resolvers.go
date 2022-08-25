@@ -26,8 +26,8 @@ func (r *queryResolver) GetScreeningToolByID(ctx context.Context, id string) (*d
 	return r.mycarehub.Questionnaires.GetScreeningToolByID(ctx, id)
 }
 
-func (r *queryResolver) GetFacilityRespondedScreeningTools(ctx context.Context, facilityID string) ([]*domain.ScreeningTool, error) {
-	return r.mycarehub.Questionnaires.GetFacilityRespondedScreeningTools(ctx, facilityID)
+func (r *queryResolver) GetFacilityRespondedScreeningTools(ctx context.Context, facilityID string, paginationInput dto.PaginationsInput) (*domain.ScreeningToolPage, error) {
+	return r.mycarehub.Questionnaires.GetFacilityRespondedScreeningTools(ctx, facilityID, &paginationInput)
 }
 
 func (r *queryResolver) GetScreeningToolRespondents(ctx context.Context, facilityID string, screeningToolID string, searchTerm *string) ([]*domain.ScreeningToolRespondent, error) {

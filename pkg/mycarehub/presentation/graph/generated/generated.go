@@ -509,7 +509,7 @@ type ComplexityRoot struct {
 		GetContent                              func(childComplexity int, categoryID *int, limit string) int
 		GetCurrentTerms                         func(childComplexity int, flavour feedlib.Flavour) int
 		GetFAQs                                 func(childComplexity int, flavour feedlib.Flavour) int
-		GetFacilityRespondedScreeningTools      func(childComplexity int, facilityID string) int
+		GetFacilityRespondedScreeningTools      func(childComplexity int, facilityID string, paginationInput dto.PaginationsInput) int
 		GetHealthDiaryQuote                     func(childComplexity int, limit int) int
 		GetPendingServiceRequestsCount          func(childComplexity int, facilityID string) int
 		GetScreeningToolByID                    func(childComplexity int, id string) int
@@ -627,6 +627,11 @@ type ComplexityRoot struct {
 		ClientID     func(childComplexity int) int
 		ClientName   func(childComplexity int) int
 		DateAnswered func(childComplexity int) int
+	}
+
+	ScreeningToolPage struct {
+		Pagination     func(childComplexity int) int
+		ScreeningTools func(childComplexity int) int
 	}
 
 	ScreeningToolQuestion struct {
@@ -879,7 +884,7 @@ type QueryResolver interface {
 	SendOtp(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (string, error)
 	GetAvailableScreeningTools(ctx context.Context, clientID string, facilityID string) ([]*domain.ScreeningTool, error)
 	GetScreeningToolByID(ctx context.Context, id string) (*domain.ScreeningTool, error)
-	GetFacilityRespondedScreeningTools(ctx context.Context, facilityID string) ([]*domain.ScreeningTool, error)
+	GetFacilityRespondedScreeningTools(ctx context.Context, facilityID string, paginationInput dto.PaginationsInput) (*domain.ScreeningToolPage, error)
 	GetScreeningToolRespondents(ctx context.Context, facilityID string, screeningToolID string, searchTerm *string) ([]*domain.ScreeningToolRespondent, error)
 	GetScreeningToolQuestions(ctx context.Context, toolType *string) ([]*domain.ScreeningToolQuestion, error)
 	GetAvailableScreeningToolQuestions(ctx context.Context, clientID string) ([]*domain.AvailableScreeningTools, error)
@@ -3479,7 +3484,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.GetFacilityRespondedScreeningTools(childComplexity, args["facilityID"].(string)), true
+		return e.complexity.Query.GetFacilityRespondedScreeningTools(childComplexity, args["facilityID"].(string), args["paginationInput"].(dto.PaginationsInput)), true
 
 	case "Query.getHealthDiaryQuote":
 		if e.complexity.Query.GetHealthDiaryQuote == nil {
@@ -4254,6 +4259,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ScreeningToolAssessmentResponse.DateAnswered(childComplexity), true
+
+	case "ScreeningToolPage.pagination":
+		if e.complexity.ScreeningToolPage.Pagination == nil {
+			break
+		}
+
+		return e.complexity.ScreeningToolPage.Pagination(childComplexity), true
+
+	case "ScreeningToolPage.screeningTools":
+		if e.complexity.ScreeningToolPage.ScreeningTools == nil {
+			break
+		}
+
+		return e.complexity.ScreeningToolPage.ScreeningTools(childComplexity), true
 
 	case "ScreeningToolQuestion.active":
 		if e.complexity.ScreeningToolQuestion.Active == nil {
@@ -5600,7 +5619,7 @@ extend type Mutation {
 extend type Query{
     getAvailableScreeningTools(clientID: String!, facilityID: String!): [ScreeningTool!]!
     getScreeningToolByID(id: ID!): ScreeningTool
-    getFacilityRespondedScreeningTools(facilityID: String!): [ScreeningTool!]!
+    getFacilityRespondedScreeningTools(facilityID: String!, paginationInput: PaginationsInput!): ScreeningToolPage
     getScreeningToolRespondents(facilityID: String!, screeningToolID: String!,  searchTerm: String): [ScreeningToolRespondent!]!
 }`, BuiltIn: false},
 	{Name: "../screeningtools.graphql", Input: `extend type Query {
@@ -6332,7 +6351,11 @@ type ScreeningToolRespondent {
   phoneNumber: String!
   serviceRequest: String!
 }
-`, BuiltIn: false},
+
+type ScreeningToolPage {
+  screeningTools: [ScreeningTool]!
+  pagination: Pagination!
+}`, BuiltIn: false},
 	{Name: "../user.graphql", Input: `extend type Query {
   getCurrentTerms(flavour: Flavour!): TermsOfService!
   verifyPIN(userID: String!, flavour: Flavour!, pin: String!): Boolean!
@@ -7957,6 +7980,15 @@ func (ec *executionContext) field_Query_getFacilityRespondedScreeningTools_args(
 		}
 	}
 	args["facilityID"] = arg0
+	var arg1 dto.PaginationsInput
+	if tmp, ok := rawArgs["paginationInput"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("paginationInput"))
+		arg1, err = ec.unmarshalNPaginationsInput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐPaginationsInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["paginationInput"] = arg1
 	return args, nil
 }
 
@@ -24754,21 +24786,18 @@ func (ec *executionContext) _Query_getFacilityRespondedScreeningTools(ctx contex
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().GetFacilityRespondedScreeningTools(rctx, fc.Args["facilityID"].(string))
+		return ec.resolvers.Query().GetFacilityRespondedScreeningTools(rctx, fc.Args["facilityID"].(string), fc.Args["paginationInput"].(dto.PaginationsInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.([]*domain.ScreeningTool)
+	res := resTmp.(*domain.ScreeningToolPage)
 	fc.Result = res
-	return ec.marshalNScreeningTool2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐScreeningToolᚄ(ctx, field.Selections, res)
+	return ec.marshalOScreeningToolPage2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐScreeningToolPage(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_getFacilityRespondedScreeningTools(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -24779,24 +24808,12 @@ func (ec *executionContext) fieldContext_Query_getFacilityRespondedScreeningTool
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "id":
-				return ec.fieldContext_ScreeningTool_id(ctx, field)
-			case "active":
-				return ec.fieldContext_ScreeningTool_active(ctx, field)
-			case "questionnaireID":
-				return ec.fieldContext_ScreeningTool_questionnaireID(ctx, field)
-			case "threshold":
-				return ec.fieldContext_ScreeningTool_threshold(ctx, field)
-			case "clientTypes":
-				return ec.fieldContext_ScreeningTool_clientTypes(ctx, field)
-			case "genders":
-				return ec.fieldContext_ScreeningTool_genders(ctx, field)
-			case "ageRange":
-				return ec.fieldContext_ScreeningTool_ageRange(ctx, field)
-			case "questionnaire":
-				return ec.fieldContext_ScreeningTool_questionnaire(ctx, field)
+			case "screeningTools":
+				return ec.fieldContext_ScreeningToolPage_screeningTools(ctx, field)
+			case "pagination":
+				return ec.fieldContext_ScreeningToolPage_pagination(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type ScreeningTool", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type ScreeningToolPage", field.Name)
 		},
 	}
 	defer func() {
@@ -28665,6 +28682,126 @@ func (ec *executionContext) fieldContext_ScreeningToolAssessmentResponse_clientI
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ScreeningToolPage_screeningTools(ctx context.Context, field graphql.CollectedField, obj *domain.ScreeningToolPage) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ScreeningToolPage_screeningTools(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ScreeningTools, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*domain.ScreeningTool)
+	fc.Result = res
+	return ec.marshalNScreeningTool2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐScreeningTool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ScreeningToolPage_screeningTools(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ScreeningToolPage",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_ScreeningTool_id(ctx, field)
+			case "active":
+				return ec.fieldContext_ScreeningTool_active(ctx, field)
+			case "questionnaireID":
+				return ec.fieldContext_ScreeningTool_questionnaireID(ctx, field)
+			case "threshold":
+				return ec.fieldContext_ScreeningTool_threshold(ctx, field)
+			case "clientTypes":
+				return ec.fieldContext_ScreeningTool_clientTypes(ctx, field)
+			case "genders":
+				return ec.fieldContext_ScreeningTool_genders(ctx, field)
+			case "ageRange":
+				return ec.fieldContext_ScreeningTool_ageRange(ctx, field)
+			case "questionnaire":
+				return ec.fieldContext_ScreeningTool_questionnaire(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ScreeningTool", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ScreeningToolPage_pagination(ctx context.Context, field graphql.CollectedField, obj *domain.ScreeningToolPage) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ScreeningToolPage_pagination(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Pagination, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(domain.Pagination)
+	fc.Result = res
+	return ec.marshalNPagination2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐPagination(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ScreeningToolPage_pagination(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ScreeningToolPage",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "Limit":
+				return ec.fieldContext_Pagination_Limit(ctx, field)
+			case "CurrentPage":
+				return ec.fieldContext_Pagination_CurrentPage(ctx, field)
+			case "Count":
+				return ec.fieldContext_Pagination_Count(ctx, field)
+			case "TotalPages":
+				return ec.fieldContext_Pagination_TotalPages(ctx, field)
+			case "NextPage":
+				return ec.fieldContext_Pagination_NextPage(ctx, field)
+			case "PreviousPage":
+				return ec.fieldContext_Pagination_PreviousPage(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Pagination", field.Name)
 		},
 	}
 	return fc, nil
@@ -39952,9 +40089,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_getFacilityRespondedScreeningTools(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			}
 
@@ -40964,6 +41098,41 @@ func (ec *executionContext) _ScreeningToolAssessmentResponse(ctx context.Context
 		case "clientID":
 
 			out.Values[i] = ec._ScreeningToolAssessmentResponse_clientID(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var screeningToolPageImplementors = []string{"ScreeningToolPage"}
+
+func (ec *executionContext) _ScreeningToolPage(ctx context.Context, sel ast.SelectionSet, obj *domain.ScreeningToolPage) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, screeningToolPageImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ScreeningToolPage")
+		case "screeningTools":
+
+			out.Values[i] = ec._ScreeningToolPage_screeningTools(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "pagination":
+
+			out.Values[i] = ec._ScreeningToolPage_pagination(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
@@ -43692,6 +43861,44 @@ func (ec *executionContext) marshalNRequestTypeCount2ᚖgithubᚗcomᚋsavannahg
 	return ec._RequestTypeCount(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNScreeningTool2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐScreeningTool(ctx context.Context, sel ast.SelectionSet, v []*domain.ScreeningTool) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOScreeningTool2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐScreeningTool(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	return ret
+}
+
 func (ec *executionContext) marshalNScreeningTool2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐScreeningToolᚄ(ctx context.Context, sel ast.SelectionSet, v []*domain.ScreeningTool) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
@@ -46086,6 +46293,13 @@ func (ec *executionContext) marshalOScreeningToolAssessmentResponse2ᚕᚖgithub
 	}
 
 	return ret
+}
+
+func (ec *executionContext) marshalOScreeningToolPage2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐScreeningToolPage(ctx context.Context, sel ast.SelectionSet, v *domain.ScreeningToolPage) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._ScreeningToolPage(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOScreeningToolResponseCategory2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐScreeningToolResponseCategory(ctx context.Context, v interface{}) (enums.ScreeningToolResponseCategory, error) {

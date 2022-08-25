@@ -628,3 +628,8 @@ type ScreeningToolRespondent {
   phoneNumber: String!
   serviceRequest: String!
 }
+
+type ScreeningToolPage {
+  screeningTools: [ScreeningTool]!
+  pagination: Pagination!
+}
