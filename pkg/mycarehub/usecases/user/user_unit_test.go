@@ -6,7 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"math"
 	"net/http"
 	"strconv"
@@ -4103,7 +4103,7 @@ func TestUseCasesUserImpl_DeleteUser(t *testing.T) {
 					return &http.Response{
 						StatusCode: http.StatusOK,
 						Status:     "OK",
-						Body:       ioutil.NopCloser(bytes.NewBuffer(payload)),
+						Body:       io.NopCloser(bytes.NewBuffer(payload)),
 					}, nil
 				}
 			}

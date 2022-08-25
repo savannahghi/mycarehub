@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -432,7 +431,7 @@ func TestPubsub(t *testing.T) {
 			return
 		}
 
-		dataResponse, err := ioutil.ReadAll(resp.Body)
+		dataResponse, err := io.ReadAll(resp.Body)
 		if err != nil {
 			t.Errorf("can't read request body: %s", err)
 			return

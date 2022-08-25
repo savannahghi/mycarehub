@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"math/rand"
 	"net/http"
 	"testing"
@@ -220,7 +220,7 @@ func TestCreateFacility(t *testing.T) {
 				return
 			}
 
-			dataResponse, err := ioutil.ReadAll(resp.Body)
+			dataResponse, err := io.ReadAll(resp.Body)
 			if err != nil {
 				t.Errorf("can't read request body: %s", err)
 				return
@@ -373,7 +373,7 @@ func TestInactivateFacility(t *testing.T) {
 				t.Errorf("request error: %s", err)
 				return
 			}
-			dataResponse, err := ioutil.ReadAll(resp.Body)
+			dataResponse, err := io.ReadAll(resp.Body)
 			if err != nil {
 				t.Errorf("can't read request body: %s", err)
 				return
@@ -526,7 +526,7 @@ func TestReactivateFacility(t *testing.T) {
 				t.Errorf("request error: %s", err)
 				return
 			}
-			dataResponse, err := ioutil.ReadAll(resp.Body)
+			dataResponse, err := io.ReadAll(resp.Body)
 			if err != nil {
 				t.Errorf("can't read request body: %s", err)
 				return

@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strconv"
 	"time"
@@ -1000,7 +1000,7 @@ func (h *MyCareHubHandlersInterfacesImpl) ReceiveGetstreamEvents() http.HandlerF
 		signature := r.Header.Get("X-SIGNATURE")
 		r.Close = true
 
-		requestBody, err := ioutil.ReadAll(r.Body)
+		requestBody, err := io.ReadAll(r.Body)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
 			serverutils.WriteJSONResponse(w, serverutils.ErrorMap(err), http.StatusBadRequest)

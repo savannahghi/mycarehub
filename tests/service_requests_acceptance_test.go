@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"testing"
 	"time"
@@ -126,7 +126,7 @@ func Test_CreateServiceRequest(t *testing.T) {
 				return
 			}
 
-			dataResp, err := ioutil.ReadAll(resp.Body)
+			dataResp, err := io.ReadAll(resp.Body)
 			if err != nil {
 				t.Errorf("unable to read response body: %s", err)
 				return
@@ -249,7 +249,7 @@ func Test_ResolveServiceRequest(t *testing.T) {
 				return
 			}
 
-			dataResp, err := ioutil.ReadAll(resp.Body)
+			dataResp, err := io.ReadAll(resp.Body)
 			if err != nil {
 				t.Errorf("unable to read response body: %s", err)
 				return
@@ -385,7 +385,7 @@ func Test_GetServiceRequests(t *testing.T) {
 				return
 			}
 
-			dataResp, err := ioutil.ReadAll(resp.Body)
+			dataResp, err := io.ReadAll(resp.Body)
 			if err != nil {
 				t.Errorf("unable to read response body: %s", err)
 				return
@@ -503,7 +503,7 @@ func Test_GetPendingServiceRequestsCount(t *testing.T) {
 				return
 			}
 
-			dataResp, err := ioutil.ReadAll(resp.Body)
+			dataResp, err := io.ReadAll(resp.Body)
 			if err != nil {
 				t.Errorf("unable to read response body: %s", err)
 				return
@@ -628,7 +628,7 @@ func Test_SearchServiceRequests(t *testing.T) {
 				return
 			}
 
-			dataResp, err := ioutil.ReadAll(resp.Body)
+			dataResp, err := io.ReadAll(resp.Body)
 			if err != nil {
 				t.Errorf("unable to read response body: %s", err)
 				return

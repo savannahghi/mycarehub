@@ -3,7 +3,7 @@ package clinical
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
@@ -47,7 +47,7 @@ func (c *ServiceClinical) DeleteFHIRPatientByPhone(ctx context.Context, phoneNum
 		return fmt.Errorf("failed to make request: %w", err)
 	}
 
-	data, err := ioutil.ReadAll(resp.Body)
+	data, err := io.ReadAll(resp.Body)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return fmt.Errorf("failed to read response body: %w", err)

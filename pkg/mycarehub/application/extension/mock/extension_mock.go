@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"net/http"
 
 	"cloud.google.com/go/pubsub"
@@ -140,7 +140,7 @@ func NewFakeExtension() *FakeExtensionImpl {
 			return &http.Response{
 				StatusCode: http.StatusOK,
 				Status:     "200 OK",
-				Body:       ioutil.NopCloser(bytes.NewBuffer(payload)),
+				Body:       io.NopCloser(bytes.NewBuffer(payload)),
 			}, nil
 		},
 		MockPublishToPubsubFn: func(ctx context.Context, pubsubClient *pubsub.Client, topicID string, environment string, serviceName string, version string, payload []byte) error {

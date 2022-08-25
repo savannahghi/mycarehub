@@ -5,7 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"testing"
 
@@ -116,7 +116,7 @@ func TestUseCasesContentImpl_LikeContent(t *testing.T) {
 					return &http.Response{
 						StatusCode: http.StatusInternalServerError,
 						Status:     "OK",
-						Body:       ioutil.NopCloser(bytes.NewBuffer(payload)),
+						Body:       io.NopCloser(bytes.NewBuffer(payload)),
 					}, nil
 				}
 			}
@@ -131,7 +131,7 @@ func TestUseCasesContentImpl_LikeContent(t *testing.T) {
 					return &http.Response{
 						StatusCode: http.StatusCreated,
 						Status:     "OK",
-						Body:       ioutil.NopCloser(bytes.NewBuffer(payload)),
+						Body:       io.NopCloser(bytes.NewBuffer(payload)),
 					}, nil
 				}
 			}
@@ -237,7 +237,7 @@ func TestUseCaseContentImpl_ShareContent(t *testing.T) {
 					return &http.Response{
 						StatusCode: http.StatusInternalServerError,
 						Status:     "OK",
-						Body:       ioutil.NopCloser(bytes.NewBuffer(payload)),
+						Body:       io.NopCloser(bytes.NewBuffer(payload)),
 					}, nil
 				}
 			}
@@ -252,7 +252,7 @@ func TestUseCaseContentImpl_ShareContent(t *testing.T) {
 					return &http.Response{
 						StatusCode: http.StatusCreated,
 						Status:     "OK",
-						Body:       ioutil.NopCloser(bytes.NewBuffer(payload)),
+						Body:       io.NopCloser(bytes.NewBuffer(payload)),
 					}, nil
 				}
 			}
@@ -382,7 +382,7 @@ func TestUseCasesContentImpl_UnlikeContent(t *testing.T) {
 					return &http.Response{
 						StatusCode: http.StatusInternalServerError,
 						Status:     "OK",
-						Body:       ioutil.NopCloser(bytes.NewBuffer(payload)),
+						Body:       io.NopCloser(bytes.NewBuffer(payload)),
 					}, nil
 				}
 			}
@@ -413,7 +413,7 @@ func TestUseCasesContentImpl_UnlikeContent(t *testing.T) {
 					return &http.Response{
 						StatusCode: http.StatusNoContent,
 						Status:     "OK",
-						Body:       ioutil.NopCloser(bytes.NewBuffer(payload)),
+						Body:       io.NopCloser(bytes.NewBuffer(payload)),
 					}, nil
 				}
 			}
@@ -498,7 +498,7 @@ func TestUseCasesContentImpl_GetUserBookmarkedContent(t *testing.T) {
 					return &http.Response{
 						StatusCode: http.StatusOK,
 						Status:     "OK",
-						Body:       ioutil.NopCloser(bytes.NewBuffer(payload)),
+						Body:       io.NopCloser(bytes.NewBuffer(payload)),
 					}, nil
 				}
 			}
@@ -570,7 +570,7 @@ func TestUseCasesContentImpl_GetContent(t *testing.T) {
 					return &http.Response{
 						StatusCode: http.StatusOK,
 						Status:     "OK",
-						Body:       ioutil.NopCloser(bytes.NewBuffer(payload)),
+						Body:       io.NopCloser(bytes.NewBuffer(payload)),
 					}, nil
 				}
 			}
@@ -643,7 +643,7 @@ func TestUseCasesContentImpl_GetContentItemByID(t *testing.T) {
 					return &http.Response{
 						StatusCode: http.StatusOK,
 						Status:     "OK",
-						Body:       ioutil.NopCloser(bytes.NewBuffer(payload)),
+						Body:       io.NopCloser(bytes.NewBuffer(payload)),
 					}, nil
 				}
 			}
@@ -733,7 +733,7 @@ func TestUseCasesContentImpl_ViewContent(t *testing.T) {
 					return &http.Response{
 						StatusCode: http.StatusInternalServerError,
 						Status:     "OK",
-						Body:       ioutil.NopCloser(bytes.NewBuffer(payload)),
+						Body:       io.NopCloser(bytes.NewBuffer(payload)),
 					}, nil
 				}
 			}
@@ -748,7 +748,7 @@ func TestUseCasesContentImpl_ViewContent(t *testing.T) {
 					return &http.Response{
 						StatusCode: http.StatusCreated,
 						Status:     "OK",
-						Body:       ioutil.NopCloser(bytes.NewBuffer(payload)),
+						Body:       io.NopCloser(bytes.NewBuffer(payload)),
 					}, nil
 				}
 			}
@@ -857,7 +857,7 @@ func TestUseCasesContentImpl_BookmarkContent(t *testing.T) {
 					return &http.Response{
 						StatusCode: http.StatusInternalServerError,
 						Status:     "OK",
-						Body:       ioutil.NopCloser(bytes.NewBuffer(payload)),
+						Body:       io.NopCloser(bytes.NewBuffer(payload)),
 					}, nil
 				}
 			}
@@ -872,7 +872,7 @@ func TestUseCasesContentImpl_BookmarkContent(t *testing.T) {
 					return &http.Response{
 						StatusCode: http.StatusCreated,
 						Status:     "OK",
-						Body:       ioutil.NopCloser(bytes.NewBuffer(payload)),
+						Body:       io.NopCloser(bytes.NewBuffer(payload)),
 					}, nil
 				}
 			}
@@ -1002,7 +1002,7 @@ func TestUseCasesContentImpl_CheckWhetherUserHasLikedContent(t *testing.T) {
 					return &http.Response{
 						StatusCode: http.StatusInternalServerError,
 						Status:     "OK",
-						Body:       ioutil.NopCloser(bytes.NewBuffer(payload)),
+						Body:       io.NopCloser(bytes.NewBuffer(payload)),
 					}, nil
 				}
 			}
@@ -1023,7 +1023,7 @@ func TestUseCasesContentImpl_CheckWhetherUserHasLikedContent(t *testing.T) {
 					return &http.Response{
 						StatusCode: http.StatusOK,
 						Status:     "OK",
-						Body:       ioutil.NopCloser(bytes.NewBuffer(payload)),
+						Body:       io.NopCloser(bytes.NewBuffer(payload)),
 					}, nil
 				}
 			}
@@ -1044,7 +1044,7 @@ func TestUseCasesContentImpl_CheckWhetherUserHasLikedContent(t *testing.T) {
 					return &http.Response{
 						StatusCode: http.StatusOK,
 						Status:     "OK",
-						Body:       ioutil.NopCloser(bytes.NewBuffer(payload)),
+						Body:       io.NopCloser(bytes.NewBuffer(payload)),
 					}, nil
 				}
 			}
@@ -1161,7 +1161,7 @@ func TestUseCasesContentImpl_CheckIfUserBookmarkedContent(t *testing.T) {
 					return &http.Response{
 						StatusCode: http.StatusInternalServerError,
 						Status:     "OK",
-						Body:       ioutil.NopCloser(bytes.NewBuffer(payload)),
+						Body:       io.NopCloser(bytes.NewBuffer(payload)),
 					}, nil
 				}
 			}
@@ -1182,7 +1182,7 @@ func TestUseCasesContentImpl_CheckIfUserBookmarkedContent(t *testing.T) {
 					return &http.Response{
 						StatusCode: http.StatusOK,
 						Status:     "OK",
-						Body:       ioutil.NopCloser(bytes.NewBuffer(payload)),
+						Body:       io.NopCloser(bytes.NewBuffer(payload)),
 					}, nil
 				}
 			}
@@ -1203,7 +1203,7 @@ func TestUseCasesContentImpl_CheckIfUserBookmarkedContent(t *testing.T) {
 					return &http.Response{
 						StatusCode: http.StatusOK,
 						Status:     "OK",
-						Body:       ioutil.NopCloser(bytes.NewBuffer(payload)),
+						Body:       io.NopCloser(bytes.NewBuffer(payload)),
 					}, nil
 				}
 			}
@@ -1329,7 +1329,7 @@ func TestUseCasesContentImpl_UnBookmarkContent(t *testing.T) {
 					return &http.Response{
 						StatusCode: http.StatusInternalServerError,
 						Status:     "OK",
-						Body:       ioutil.NopCloser(bytes.NewBuffer(payload)),
+						Body:       io.NopCloser(bytes.NewBuffer(payload)),
 					}, nil
 				}
 			}
@@ -1360,7 +1360,7 @@ func TestUseCasesContentImpl_UnBookmarkContent(t *testing.T) {
 					return &http.Response{
 						StatusCode: http.StatusNoContent,
 						Status:     "OK",
-						Body:       ioutil.NopCloser(bytes.NewBuffer(payload)),
+						Body:       io.NopCloser(bytes.NewBuffer(payload)),
 					}, nil
 				}
 			}
@@ -1475,7 +1475,7 @@ func TestUseCasesContentImpl_ShareContent(t *testing.T) {
 					return &http.Response{
 						StatusCode: http.StatusInternalServerError,
 						Status:     "OK",
-						Body:       ioutil.NopCloser(bytes.NewBuffer(payload)),
+						Body:       io.NopCloser(bytes.NewBuffer(payload)),
 					}, nil
 				}
 			}
@@ -1490,7 +1490,7 @@ func TestUseCasesContentImpl_ShareContent(t *testing.T) {
 					return &http.Response{
 						StatusCode: http.StatusCreated,
 						Status:     "OK",
-						Body:       ioutil.NopCloser(bytes.NewBuffer(payload)),
+						Body:       io.NopCloser(bytes.NewBuffer(payload)),
 					}, nil
 				}
 			}
