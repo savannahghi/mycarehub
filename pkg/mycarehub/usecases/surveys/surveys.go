@@ -27,6 +27,7 @@ type IListSurveys interface {
 	SendClientSurveyLinks(ctx context.Context, facilityID *string, formID *string, projectID *int, filterParams *dto.ClientFilterParamsInput) (bool, error)
 	ListSurveyRespondents(ctx context.Context, projectID int, formID string, paginationInput dto.PaginationsInput) (*domain.SurveyRespondentPage, error)
 	GetSurveyResponse(ctx context.Context, input dto.SurveyResponseInput) ([]*domain.SurveyResponse, error)
+	GetSurveysWithServiceRequests(ctx context.Context, facilityID string) ([]*domain.SurveysWithServiceRequest, error)
 }
 
 // IVerifySurveySubmission contains all the methods that can be used to update a survey
@@ -58,7 +59,7 @@ func NewUsecaseSurveys(
 	update infrastructure.Update,
 	notification notification.UseCaseNotification,
 	serviceRequest servicerequest.UseCaseServiceRequest,
-) *UsecaseSurveysImpl {
+) UsecaseSurveys {
 	return &UsecaseSurveysImpl{
 		Surveys:        surveys,
 		Query:          query,
@@ -381,4 +382,15 @@ func (u *UsecaseSurveysImpl) ListSurveyRespondents(ctx context.Context, projectI
 		SurveyRespondents: surveyRespondents,
 		Pagination:        *pageInfo,
 	}, nil
+}
+
+// GetSurveysWithServiceRequests gets a list of surveys with service requests from a given facility
+func (u *UsecaseSurveysImpl) GetSurveysWithServiceRequests(ctx context.Context, facilityID string) ([]*domain.SurveysWithServiceRequest, error) {
+	surveys, err := u.Query.GetSurveysWithServiceRequests(ctx, facilityID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
+	return surveys, nil
 }

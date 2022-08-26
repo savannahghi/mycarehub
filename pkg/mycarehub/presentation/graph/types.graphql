@@ -507,6 +507,7 @@ type Toxic {
 type AvailableScreeningTools {
   toolType: ScreeningToolType!
 }
+
 type ScreeningToolResponse {
   toolIndex: Int!
   tool: String!
@@ -632,4 +633,11 @@ type ScreeningToolRespondent {
 type ScreeningToolPage {
   screeningTools: [ScreeningTool]!
   pagination: Pagination!
+}
+
+type SurveysWithServiceRequest {
+  title: String!
+  projectID: Int!
+  formID: String!
+  linkID: Int!
 }

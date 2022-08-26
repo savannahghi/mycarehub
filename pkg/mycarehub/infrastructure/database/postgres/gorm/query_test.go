@@ -4564,3 +4564,45 @@ func TestPGInstance_GetScreeningToolResponseByID(t *testing.T) {
 		})
 	}
 }
+
+func TestPGInstance_GetSurveysWithServiceRequests(t *testing.T) {
+	type args struct {
+		ctx        context.Context
+		facilityID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    []*gorm.UserSurvey
+		wantErr bool
+	}{
+		{
+			name: "Happy case: get surveys with service requests",
+			args: args{
+				ctx:        context.Background(),
+				facilityID: facilityID,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: get surveys with service requests",
+			args: args{
+				ctx:        context.Background(),
+				facilityID: gofakeit.HipsterSentence(100),
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := testingDB.GetSurveysWithServiceRequests(tt.args.ctx, tt.args.facilityID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.GetSurveysWithServiceRequests() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("PGInstance.GetSurveysWithServiceRequests() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

@@ -2242,3 +2242,35 @@ func (d *MyCareHubDb) GetScreeningToolRespondents(ctx context.Context, facilityI
 
 	return respondents, nil
 }
+
+// GetSurveysWithServiceRequests fetches all the surveys with a service request for a given facility
+func (d *MyCareHubDb) GetSurveysWithServiceRequests(ctx context.Context, facilityID string) ([]*domain.SurveysWithServiceRequest, error) {
+	surveys, err := d.query.GetSurveysWithServiceRequests(ctx, facilityID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
+	var surveyList []*domain.SurveysWithServiceRequest
+	for _, s := range surveys {
+		surveyList = append(surveyList, &domain.SurveysWithServiceRequest{
+			Title:     s.Title,
+			ProjectID: s.ProjectID,
+			LinkID:    s.LinkID,
+			FormID:    s.FormID,
+		})
+	}
+
+	// If we have similar title names from surveyList, only show one from the list
+	var uniqueSurveyList []*domain.SurveysWithServiceRequest
+	surveyMap := make(map[string]string)
+	for _, sl := range surveyList {
+		// If we have not seen this title before, add it to the unique list
+		if _, ok := surveyMap[sl.Title]; !ok {
+			uniqueSurveyList = append(uniqueSurveyList, sl)
+			surveyMap[sl.Title] = sl.Title
+		}
+	}
+
+	return uniqueSurveyList, nil
+}

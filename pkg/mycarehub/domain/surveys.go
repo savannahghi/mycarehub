@@ -72,3 +72,11 @@ type SurveyResponse struct {
 	QuestionType string
 	Answer       []string
 }
+
+// SurveysWithServiceRequest is the domain model used to list surveys with a service request
+type SurveysWithServiceRequest struct {
+	Title     string `json:"name"`
+	ProjectID int    `json:"projectID"`
+	LinkID    int    `json:"linkID"`
+	FormID    string `json:"formID"`
+}

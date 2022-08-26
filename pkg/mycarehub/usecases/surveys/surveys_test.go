@@ -842,3 +842,55 @@ func TestUsecaseSurveysImpl_ListSurveyRespondents(t *testing.T) {
 		})
 	}
 }
+
+func TestUsecaseSurveysImpl_GetSurveysWithServiceRequests(t *testing.T) {
+	ctx := context.Background()
+
+	fakeSurveys := mockSurveys.NewSurveysMock()
+	fakeDB := pgMock.NewPostgresMock()
+	fakeNotification := mockNotification.NewServiceNotificationMock()
+	fakeServiceRequest := fakeServiceRequest.NewServiceRequestUseCaseMock()
+	u := NewUsecaseSurveys(fakeSurveys, fakeDB, fakeDB, fakeDB, fakeNotification, fakeServiceRequest)
+
+	type args struct {
+		ctx        context.Context
+		facilityID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    []*domain.SurveysWithServiceRequest
+		wantErr bool
+	}{
+		{
+			name: "happy case - get surveys with service requests",
+			args: args{
+				ctx:        ctx,
+				facilityID: uuid.New().String(),
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case - unable to get surveys with service requests",
+			args: args{
+				ctx:        ctx,
+				facilityID: uuid.New().String(),
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "Sad case - unable to get surveys with service requests" {
+				fakeDB.MockGetSurveysWithServiceRequestsFn = func(ctx context.Context, facilityID string) ([]*domain.SurveysWithServiceRequest, error) {
+					return nil, fmt.Errorf("failed to get surveys with service requests")
+				}
+			}
+			_, err := u.GetSurveysWithServiceRequests(tt.args.ctx, tt.args.facilityID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UsecaseSurveysImpl.GetSurveysWithServiceRequests() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}
