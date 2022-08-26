@@ -155,6 +155,7 @@ type PostgresMock struct {
 	MockListSurveyRespondentsFn                          func(ctx context.Context, projectID int, formID string, pagination *domain.Pagination) ([]*domain.SurveyRespondent, *domain.Pagination, error)
 	MockGetScreeningToolRespondentsFn                    func(ctx context.Context, facilityID string, screeningToolID string, searchTerm string, paginationInput *dto.PaginationsInput) ([]*domain.ScreeningToolRespondent, *domain.Pagination, error)
 	MockGetScreeningToolResponseByIDFn                   func(ctx context.Context, id string) (*domain.QuestionnaireScreeningToolResponse, error)
+	MockGetSurveysWithServiceRequestsFn                  func(ctx context.Context, facilityID string) ([]*dto.SurveysWithServiceRequest, error)
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -357,6 +358,16 @@ func NewPostgresMock() *PostgresMock {
 		},
 		MockGetUserProfileByPhoneNumberFn: func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*domain.User, error) {
 			return userProfile, nil
+		},
+		MockGetSurveysWithServiceRequestsFn: func(ctx context.Context, facilityID string) ([]*dto.SurveysWithServiceRequest, error) {
+			return []*dto.SurveysWithServiceRequest{
+				{
+					Title:     "Test survey",
+					ProjectID: 10,
+					LinkID:    10,
+					FormID:    ID,
+				},
+			}, nil
 		},
 		MockInactivateFacilityFn: func(ctx context.Context, mflCode *int) (bool, error) {
 			return true, nil
@@ -1904,4 +1915,9 @@ func (gm *PostgresMock) GetScreeningToolRespondents(ctx context.Context, facilit
 // GetScreeningToolResponseByID mocks the implementation of getting a screening tool response by ID
 func (gm *PostgresMock) GetScreeningToolResponseByID(ctx context.Context, id string) (*domain.QuestionnaireScreeningToolResponse, error) {
 	return gm.MockGetScreeningToolResponseByIDFn(ctx, id)
+}
+
+// GetSurveysWithServiceRequests mocks the implementation of getting surveys with service requests
+func (gm *PostgresMock) GetSurveysWithServiceRequests(ctx context.Context, facilityID string) ([]*dto.SurveysWithServiceRequest, error) {
+	return gm.MockGetSurveysWithServiceRequestsFn(ctx, facilityID)
 }

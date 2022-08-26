@@ -643,3 +643,10 @@ type ScreeningToolRespondentsPage {
   screeningToolRespondents: [ScreeningToolRespondent]!
   pagination: Pagination!
 }
+
+type SurveysWithServiceRequest {
+  title: String!
+  projectID: Int!
+  formID: String!
+  linkID: Int!
+}
