@@ -554,6 +554,19 @@ type SurveyRespondentPage {
   pagination: Pagination!
 }
 
+type SurveyServiceRequestUser {
+  name: String!
+  formID: String!
+  projectID: Float!
+  submitterID: Float!
+  surveyName: String
+}
+
+type SurveyServiceRequestUserPage {
+  users: [SurveyServiceRequestUser]!
+  pagination: Pagination!
+}
+
 type SurveyResponse {
   question: String!
   answer: [String!]

@@ -72,3 +72,18 @@ type SurveyResponse struct {
 	QuestionType string
 	Answer       []string
 }
+
+// SurveyServiceRequestUser is the models for a user(client) who has a survey service request
+type SurveyServiceRequestUser struct {
+	Name        string  `json:"name"`
+	FormID      string  `json:"formID"`
+	ProjectID   float64 `json:"projectID"`
+	SubmitterID float64 `json:"submitterID"`
+	SurveyName  string  `json:"surveyName"`
+}
+
+// SurveyServiceRequestUserPage models the user's(client) survey service request page
+type SurveyServiceRequestUserPage struct {
+	Users      []*SurveyServiceRequestUser `json:"users"`
+	Pagination Pagination                  `json:"pagination"`
+}

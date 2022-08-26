@@ -1358,6 +1358,43 @@ func (d *MyCareHubDb) ListSurveyRespondents(ctx context.Context, projectID int, 
 	return mapped, pageInfo, nil
 }
 
+// GetSurveyServiceRequestUser returns a list of users who have a survey service request
+func (d *MyCareHubDb) GetSurveyServiceRequestUser(ctx context.Context, facilityID string, projectID int, formID string, pagination *domain.Pagination) ([]*domain.SurveyServiceRequestUser, *domain.Pagination, error) {
+
+	serviceReq, pageInfo, err := d.query.GetClientsSurveyServiceRequest(ctx, facilityID, projectID, formID, pagination)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	mapped := []*domain.SurveyServiceRequestUser{}
+	for _, s := range serviceReq {
+		clientProfile, err := d.query.GetClientProfileByClientID(ctx, s.ClientID)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		var metaMap map[string]interface{}
+		if s.Meta != "" {
+			metaMap, err = utils.ConvertJSONStringToMap(s.Meta)
+			if err != nil {
+				return nil, nil, fmt.Errorf("error converting meta json string to map: %v", err)
+			}
+		}
+
+		m := &domain.SurveyServiceRequestUser{
+			Name:        clientProfile.User.Name,
+			FormID:      metaMap["formID"].(string),
+			ProjectID:   metaMap["projectID"].(float64),
+			SubmitterID: metaMap["submitterID"].(float64),
+			SurveyName:  metaMap["surveyName"].(string),
+		}
+
+		mapped = append(mapped, m)
+	}
+
+	return mapped, pageInfo, nil
+}
+
 // ListAvailableNotificationTypes retrieves the distinct notification types available for a user
 func (d *MyCareHubDb) ListAvailableNotificationTypes(ctx context.Context, params *domain.Notification) ([]enums.NotificationType, error) {
 	parameters := &gorm.Notification{

@@ -160,6 +160,7 @@ type GormMock struct {
 	MockListSurveyRespondentsFn                          func(ctx context.Context, params map[string]interface{}, pagination *domain.Pagination) ([]*gorm.UserSurvey, *domain.Pagination, error)
 	MockGetScreeningToolServiceRequestOfRespondentsFn    func(ctx context.Context, facilityID string, screeningToolID string, searchTerm string, pagination *domain.Pagination) ([]*gorm.ClientServiceRequest, *domain.Pagination, error)
 	MockGetScreeningToolResponseByIDFn                   func(ctx context.Context, id string) (*gorm.ScreeningToolResponse, error)
+	MockGetClientsSurveyServiceRequestFn                 func(ctx context.Context, facilityID string, projectID int, formID string, pagination *domain.Pagination) ([]*gorm.ClientServiceRequest, *domain.Pagination, error)
 	MockGetScreeningToolQuestionResponsesByResponseIDFn  func(ctx context.Context, responseID string) ([]*gorm.ScreeningToolQuestionResponse, error)
 }
 
@@ -342,6 +343,8 @@ func NewGormMock() *GormMock {
 			InProgressByID: &UUID,
 			ResolvedAt:     &laterTime,
 			ResolvedByID:   &UUID,
+			Meta: `{
+				"formID": "test", "projectID": 1, "submitterID": 1, "surveyName": "test"}`,
 		},
 	}
 
@@ -434,7 +437,12 @@ func NewGormMock() *GormMock {
 		MockDeleteFacilityFn: func(ctx context.Context, mflCode int) (bool, error) {
 			return true, nil
 		},
-
+		MockGetClientsSurveyServiceRequestFn: func(ctx context.Context, facilityID string, projectID int, formID string, pagination *domain.Pagination) ([]*gorm.ClientServiceRequest, *domain.Pagination, error) {
+			return serviceRequests, &domain.Pagination{
+				Limit:       10,
+				CurrentPage: 1,
+			}, nil
+		},
 		MockRetrieveFacilityByMFLCodeFn: func(ctx context.Context, MFLCode int, isActive bool) (*gorm.Facility, error) {
 			return facility, nil
 		},
@@ -2013,4 +2021,9 @@ func (gm *GormMock) GetScreeningToolResponseByID(ctx context.Context, id string)
 // GetScreeningToolQuestionResponsesByResponseID mocks the implementation of getting screening tool question responses by response ID
 func (gm *GormMock) GetScreeningToolQuestionResponsesByResponseID(ctx context.Context, responseID string) ([]*gorm.ScreeningToolQuestionResponse, error) {
 	return gm.MockGetScreeningToolQuestionResponsesByResponseIDFn(ctx, responseID)
+}
+
+// GetClientsSurveyServiceRequest mocks the implementation of getting clients with survey service request
+func (gm *GormMock) GetClientsSurveyServiceRequest(ctx context.Context, facilityID string, projectID int, formID string, pagination *domain.Pagination) ([]*gorm.ClientServiceRequest, *domain.Pagination, error) {
+	return gm.MockGetClientsSurveyServiceRequestFn(ctx, facilityID, projectID, formID, pagination)
 }

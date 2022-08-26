@@ -6,6 +6,12 @@ extend type Query {
     formID: String!
     paginationInput: PaginationsInput!
   ): SurveyRespondentPage
+  getSurveyServiceRequestUser(
+    facilityID: String!
+    projectID: Int!
+    formID: String!
+    paginationInput: PaginationsInput!
+  ): SurveyServiceRequestUserPage
   getSurveyResponse(input: SurveyResponseInput!): [SurveyResponse!]
 }
 

@@ -842,3 +842,83 @@ func TestUsecaseSurveysImpl_ListSurveyRespondents(t *testing.T) {
 		})
 	}
 }
+
+func TestUsecaseSurveysImpl_GetUsersWithSurveyServiceRequest(t *testing.T) {
+	ctx := context.Background()
+
+	fakeSurveys := mockSurveys.NewSurveysMock()
+	fakeDB := pgMock.NewPostgresMock()
+	fakeNotification := mockNotification.NewServiceNotificationMock()
+	fakeServiceRequest := fakeServiceRequest.NewServiceRequestUseCaseMock()
+	u := NewUsecaseSurveys(fakeSurveys, fakeDB, fakeDB, fakeDB, fakeNotification, fakeServiceRequest)
+
+	type args struct {
+		ctx             context.Context
+		facilityID      string
+		projectID       int
+		formID          string
+		paginationInput dto.PaginationsInput
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *domain.SurveyServiceRequestUserPage
+		wantErr bool
+	}{
+		{
+			name: "Happy case - get users with survey service request",
+			args: args{
+				ctx:        ctx,
+				facilityID: uuid.New().String(),
+				projectID:  1,
+				formID:     "test",
+				paginationInput: dto.PaginationsInput{
+					Limit:       10,
+					CurrentPage: 1,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case - unable to get users with survey service request",
+			args: args{
+				ctx:        ctx,
+				facilityID: uuid.New().String(),
+				projectID:  1,
+				formID:     "test",
+				paginationInput: dto.PaginationsInput{
+					Limit:       10,
+					CurrentPage: 1,
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case - invalid pagination input",
+			args: args{
+				ctx:        ctx,
+				facilityID: uuid.New().String(),
+				projectID:  1,
+				formID:     "test",
+				paginationInput: dto.PaginationsInput{
+					Limit: 10,
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "Sad case - unable to get users with survey service request" {
+				fakeDB.MockGetUsersWithSurveyServiceRequestFn = func(ctx context.Context, facilityID string, projectID int, formID string, pagination *domain.Pagination) ([]*domain.SurveyServiceRequestUser, *domain.Pagination, error) {
+					return nil, nil, fmt.Errorf("failed to get users with survey service request")
+				}
+			}
+			_, err := u.GetSurveyServiceRequestUser(tt.args.ctx, tt.args.facilityID, tt.args.projectID, tt.args.formID, tt.args.paginationInput)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UsecaseSurveysImpl.GetSurveyServiceRequestUser() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}

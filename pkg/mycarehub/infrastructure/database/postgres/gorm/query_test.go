@@ -4615,3 +4615,58 @@ func TestPGInstance_GetScreeningToolQuestionResponsesByResponseID(t *testing.T) 
 		})
 	}
 }
+
+func TestPGInstance_GetClientsSurveyServiceRequest(t *testing.T) {
+	ctx := context.Background()
+
+	type args struct {
+		ctx        context.Context
+		facilityID string
+		projectID  int
+		formID     string
+		pagination *domain.Pagination
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: get clients service requests",
+			args: args{
+				ctx:        ctx,
+				facilityID: facilityID,
+				projectID:  projectID,
+				formID:     formID,
+				pagination: &domain.Pagination{
+					Limit:       5,
+					CurrentPage: 1,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: unable to get clients service requests by facility ID",
+			args: args{
+				ctx:        ctx,
+				facilityID: gofakeit.HipsterSentence(100),
+				projectID:  projectID,
+				formID:     formID,
+				pagination: &domain.Pagination{
+					Limit:       5,
+					CurrentPage: 1,
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, _, err := testingDB.GetClientsSurveyServiceRequest(tt.args.ctx, tt.args.facilityID, tt.args.projectID, tt.args.formID, tt.args.pagination)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.GetClientsSurveyServiceRequest() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}

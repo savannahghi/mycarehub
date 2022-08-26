@@ -34,10 +34,16 @@ type IVerifySurveySubmission interface {
 	VerifySurveySubmission(ctx context.Context, input dto.VerifySurveySubmissionInput) (bool, error)
 }
 
+// IListUsersWithSurveyWithServiceRequest lists the users with a survey with a service request
+type IListUsersWithSurveyWithServiceRequest interface {
+	GetSurveyServiceRequestUser(ctx context.Context, facilityID string, projectID int, formID string, paginationInput dto.PaginationsInput) (*domain.SurveyServiceRequestUserPage, error)
+}
+
 // UsecaseSurveys groups al the interfaces for the Surveys usecase
 type UsecaseSurveys interface {
 	IListSurveys
 	IVerifySurveySubmission
+	IListUsersWithSurveyWithServiceRequest
 }
 
 // UsecaseSurveysImpl represents the Surveys implementation
@@ -58,7 +64,7 @@ func NewUsecaseSurveys(
 	update infrastructure.Update,
 	notification notification.UseCaseNotification,
 	serviceRequest servicerequest.UseCaseServiceRequest,
-) *UsecaseSurveysImpl {
+) UsecaseSurveys {
 	return &UsecaseSurveysImpl{
 		Surveys:        surveys,
 		Query:          query,
@@ -380,5 +386,28 @@ func (u *UsecaseSurveysImpl) ListSurveyRespondents(ctx context.Context, projectI
 	return &domain.SurveyRespondentPage{
 		SurveyRespondents: surveyRespondents,
 		Pagination:        *pageInfo,
+	}, nil
+}
+
+// GetSurveyServiceRequestUser gets the users with a survey service request
+func (u *UsecaseSurveysImpl) GetSurveyServiceRequestUser(ctx context.Context, facilityID string, projectID int, formID string, paginationInput dto.PaginationsInput) (*domain.SurveyServiceRequestUserPage, error) {
+	if err := paginationInput.Validate(); err != nil {
+		return nil, err
+	}
+
+	page := &domain.Pagination{
+		Limit:       paginationInput.Limit,
+		CurrentPage: paginationInput.CurrentPage,
+	}
+
+	usersWithServiceRequest, pageInfo, err := u.Query.GetSurveyServiceRequestUser(ctx, facilityID, projectID, formID, page)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
+	return &domain.SurveyServiceRequestUserPage{
+		Users:      usersWithServiceRequest,
+		Pagination: *pageInfo,
 	}, nil
 }

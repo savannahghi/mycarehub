@@ -33,6 +33,7 @@ type Query interface {
 	ListFacilities(ctx context.Context, searchTerm *string, filter []*domain.FiltersParam, pagination *domain.FacilityPage) (*domain.FacilityPage, error)
 	ListNotifications(ctx context.Context, params *Notification, filters []*firebasetools.FilterParam, pagination *domain.Pagination) ([]*Notification, *domain.Pagination, error)
 	ListSurveyRespondents(ctx context.Context, params map[string]interface{}, pagination *domain.Pagination) ([]*UserSurvey, *domain.Pagination, error)
+	GetClientsSurveyServiceRequest(ctx context.Context, facilityID string, projectID int, formID string, pagination *domain.Pagination) ([]*ClientServiceRequest, *domain.Pagination, error)
 	ListAvailableNotificationTypes(ctx context.Context, params *Notification) ([]enums.NotificationType, error)
 	ListAppointments(ctx context.Context, params *Appointment, filters []*firebasetools.FilterParam, pagination *domain.Pagination) ([]*Appointment, *domain.Pagination, error)
 	GetUserProfileByPhoneNumber(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*User, error)
@@ -413,6 +414,31 @@ func (db *PGInstance) ListSurveyRespondents(ctx context.Context, params map[stri
 	}
 
 	return userSurveys, pagination, nil
+}
+
+// GetClientsSurveyServiceRequest retrieves a list of clients with a surveys service request
+func (db *PGInstance) GetClientsSurveyServiceRequest(ctx context.Context, facilityID string, projectID int, formID string, pagination *domain.Pagination) ([]*ClientServiceRequest, *domain.Pagination, error) {
+	var clientsServiceRequest []*ClientServiceRequest
+	var count int64
+
+	tx := db.DB.Model(&ClientServiceRequest{}).Joins("JOIN clients_client ON clients_client.id=clients_servicerequest.client_id").
+		Where("(clients_servicerequest.meta->>'projectID')::int = ? AND (clients_servicerequest.meta->>'formID')::text = ? AND clients_servicerequest.request_type = ? AND clients_servicerequest.status = ? AND clients_client.current_facility_id = ?", projectID, formID, enums.ServiceRequestTypeSurveyRedFlag, enums.ServiceRequestStatusPending, facilityID)
+
+	if pagination != nil {
+		if err := tx.Count(&count).Error; err != nil {
+			return nil, nil, fmt.Errorf("failed to execute count query: %v", err)
+		}
+
+		pagination.Count = count
+		paginateQuery(tx, pagination)
+	}
+
+	if err := tx.Order(clause.OrderByColumn{Column: clause.Column{Name: "created"}, Desc: true}).Find(&clientsServiceRequest).Error; err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, nil, fmt.Errorf("failed to execute paginated query: %v", err)
+	}
+
+	return clientsServiceRequest, pagination, nil
 }
 
 // ListAvailableNotificationTypes retrieves the distinct notification types available for a user
