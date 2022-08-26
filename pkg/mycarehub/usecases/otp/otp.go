@@ -22,8 +22,8 @@ import (
 
 const (
 	otpMessage      = "%s is your %v verification code %v"
-	consumerAppName = "ProHealth360"
-	proAppName      = "ProHealth360Daktari"
+	consumerAppName = "UoNAfyaApp360"
+	proAppName      = "UoNAfyaApp360 Daktari"
 )
 
 var (
