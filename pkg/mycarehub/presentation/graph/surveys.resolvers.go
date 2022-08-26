@@ -33,3 +33,7 @@ func (r *queryResolver) ListSurveyRespondents(ctx context.Context, projectID int
 func (r *queryResolver) GetSurveyResponse(ctx context.Context, input dto.SurveyResponseInput) ([]*domain.SurveyResponse, error) {
 	return r.mycarehub.Surveys.GetSurveyResponse(ctx, input)
 }
+
+func (r *queryResolver) GetSurveyWithServiceRequest(ctx context.Context, facilityID string) ([]*dto.SurveysWithServiceRequest, error) {
+	return r.mycarehub.Surveys.GetSurveysWithServiceRequests(ctx, facilityID)
+}

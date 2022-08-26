@@ -108,6 +108,7 @@ type Query interface {
 	GetScreeningToolServiceRequestOfRespondents(ctx context.Context, facilityID string, screeningToolID string, searchTerm string, pagination *domain.Pagination) ([]*ClientServiceRequest, *domain.Pagination, error)
 	GetScreeningToolResponseByID(ctx context.Context, id string) (*ScreeningToolResponse, error)
 	GetScreeningToolQuestionResponsesByResponseID(ctx context.Context, responseID string) ([]*ScreeningToolQuestionResponse, error)
+	GetSurveysWithServiceRequests(ctx context.Context, facilityID string) ([]*UserSurvey, error)
 }
 
 // GetFacilityStaffs returns a list of staff at a particular facility
@@ -1713,4 +1714,27 @@ func (db *PGInstance) GetScreeningToolQuestionResponsesByResponseID(ctx context.
 	}
 
 	return screeningToolQuestionResponses, nil
+}
+
+// GetSurveysWithServiceRequests is used to retrieve surveys with service requests for a particular facility
+func (db *PGInstance) GetSurveysWithServiceRequests(ctx context.Context, facilityID string) ([]*UserSurvey, error) {
+	var surveys []*UserSurvey
+
+	if err := db.DB.Raw(
+		`
+		SELECT * FROM common_usersurveys
+		JOIN clients_servicerequest
+		ON (common_usersurveys.project_id)::int=(clients_servicerequest.meta->>'projectID')::int
+		AND (common_usersurveys.link_id)::int=(clients_servicerequest.meta->>'submitterID')::int
+		AND (common_usersurveys.form_id)::text=(clients_servicerequest.meta->>'formID')::text
+		WHERE clients_servicerequest.request_type= ? 
+		AND clients_servicerequest.status= ? 
+		AND clients_servicerequest.facility_id= ?
+		`, enums.ServiceRequestTypeSurveyRedFlag.String(), enums.ServiceRequestStatusPending, facilityID).
+		Order(clause.OrderByColumn{Column: clause.Column{Name: "clients_servicerequest.created"}, Desc: true}).
+		Scan(&surveys).Error; err != nil {
+		return nil, fmt.Errorf("failed to get surveys with service requests: %w", err)
+	}
+
+	return surveys, nil
 }
