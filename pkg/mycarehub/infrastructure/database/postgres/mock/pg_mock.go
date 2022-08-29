@@ -79,6 +79,7 @@ type PostgresMock struct {
 	MockGetUserPermissionsFn                             func(ctx context.Context, userID string) ([]*domain.AuthorityPermission, error)
 	MockCheckIfUsernameExistsFn                          func(ctx context.Context, username string) (bool, error)
 	MockRevokeRolesFn                                    func(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error)
+	MockGetUsersWithSurveyServiceRequestFn               func(ctx context.Context, facilityID string, projectID int, formID string, pagination *domain.Pagination) ([]*domain.SurveyServiceRequestUser, *domain.Pagination, error)
 	MockGetCommunityByIDFn                               func(ctx context.Context, communityID string) (*domain.Community, error)
 	MockCheckIdentifierExists                            func(ctx context.Context, identifierType string, identifierValue string) (bool, error)
 	MockCheckFacilityExistsByMFLCode                     func(ctx context.Context, MFLCode int) (bool, error)
@@ -1197,6 +1198,21 @@ func NewPostgresMock() *PostgresMock {
 					Limit:       10,
 				}, nil
 		},
+		MockGetUsersWithSurveyServiceRequestFn: func(ctx context.Context, facilityID string, projectID int, formID string, pagination *domain.Pagination) ([]*domain.SurveyServiceRequestUser, *domain.Pagination, error) {
+			return []*domain.SurveyServiceRequestUser{
+					{
+						Name:        name,
+						FormID:      "test",
+						ProjectID:   1,
+						SubmitterID: 1,
+						SurveyName:  "test",
+					},
+				}, &domain.Pagination{
+					Limit:       10,
+					CurrentPage: 1,
+					TotalPages:  20,
+				}, nil
+		},
 		MockGetScreeningToolRespondentsFn: func(ctx context.Context, facilityID string, screeningToolID string, searchTerm string, paginationInput *dto.PaginationsInput) ([]*domain.ScreeningToolRespondent, *domain.Pagination, error) {
 			return []*domain.ScreeningToolRespondent{
 					{
@@ -1920,4 +1936,9 @@ func (gm *PostgresMock) GetScreeningToolResponseByID(ctx context.Context, id str
 // GetSurveysWithServiceRequests mocks the implementation of getting surveys with service requests
 func (gm *PostgresMock) GetSurveysWithServiceRequests(ctx context.Context, facilityID string) ([]*dto.SurveysWithServiceRequest, error) {
 	return gm.MockGetSurveysWithServiceRequestsFn(ctx, facilityID)
+}
+
+// GetSurveyServiceRequestUser mocks the implementation of getting users with survey service request
+func (gm *PostgresMock) GetSurveyServiceRequestUser(ctx context.Context, facilityID string, projectID int, formID string, pagination *domain.Pagination) ([]*domain.SurveyServiceRequestUser, *domain.Pagination, error) {
+	return gm.MockGetUsersWithSurveyServiceRequestFn(ctx, facilityID, projectID, formID, pagination)
 }

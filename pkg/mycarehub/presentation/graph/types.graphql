@@ -650,3 +650,16 @@ type SurveysWithServiceRequest {
   formID: String!
   linkID: Int!
 }
+
+type SurveyServiceRequestUser {
+  name: String!
+  formID: String!
+  projectID: Int!
+  submitterID: Int!
+  surveyName: String
+}
+
+type SurveyServiceRequestUserPage {
+  users: [SurveyServiceRequestUser]!
+  pagination: Pagination!
+}
