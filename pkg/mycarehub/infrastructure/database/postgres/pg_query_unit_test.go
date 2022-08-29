@@ -6536,3 +6536,120 @@ func TestMyCareHubDb_GetSurveysWithServiceRequests(t *testing.T) {
 		})
 	}
 }
+
+func TestMyCareHubDb_GetSurveyServiceRequestUser(t *testing.T) {
+	ctx := context.Background()
+
+	var fakeGorm = gormMock.NewGormMock()
+	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+	type args struct {
+		ctx        context.Context
+		facilityID string
+		projectID  int
+		formID     string
+		pagination *domain.Pagination
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: successfully get users with survey service request",
+			args: args{
+				ctx:        ctx,
+				facilityID: uuid.New().String(),
+				projectID:  1,
+				formID:     "test",
+				pagination: &domain.Pagination{
+					Limit:       5,
+					CurrentPage: 1,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: unable to get clients survey service requests",
+			args: args{
+				ctx:        ctx,
+				facilityID: uuid.New().String(),
+				projectID:  1,
+				formID:     "test",
+				pagination: &domain.Pagination{
+					Limit:       5,
+					CurrentPage: 1,
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: unable to get clients profile by client ID",
+			args: args{
+				ctx:        ctx,
+				facilityID: uuid.New().String(),
+				projectID:  1,
+				formID:     "test",
+				pagination: &domain.Pagination{
+					Limit:       5,
+					CurrentPage: 1,
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: unable to convert form ID to string",
+			args: args{
+				ctx:        ctx,
+				facilityID: uuid.New().String(),
+				projectID:  1,
+				formID:     "test",
+				pagination: &domain.Pagination{
+					Limit:       5,
+					CurrentPage: 1,
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "Sad case: unable to get clients survey service requests" {
+				fakeGorm.MockGetClientsSurveyServiceRequestFn = func(ctx context.Context, facilityID string, projectID int, formID string, pagination *domain.Pagination) ([]*gorm.ClientServiceRequest, *domain.Pagination, error) {
+					return nil, nil, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case: unable to get clients profile by client ID" {
+				fakeGorm.MockGetClientsSurveyServiceRequestFn = func(ctx context.Context, facilityID string, projectID int, formID string, pagination *domain.Pagination) ([]*gorm.ClientServiceRequest, *domain.Pagination, error) {
+					ID := uuid.New().String()
+					return []*gorm.ClientServiceRequest{
+							{
+								ID:         &ID,
+								Active:     true,
+								FacilityID: uuid.New().String(),
+								ClientID:   uuid.New().String(),
+							},
+						}, &domain.Pagination{
+							Limit:       5,
+							CurrentPage: 1,
+						}, nil
+				}
+
+				fakeGorm.MockGetClientProfileByClientIDFn = func(ctx context.Context, clientID string) (*gorm.Client, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+
+			got, _, err := d.GetSurveyServiceRequestUser(tt.args.ctx, tt.args.facilityID, tt.args.projectID, tt.args.formID, tt.args.pagination)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.GetSurveyServiceRequestUser() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected value, got %v", got)
+				return
+			}
+		})
+	}
+}

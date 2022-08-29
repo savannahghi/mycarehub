@@ -50,6 +50,7 @@ type GormMock struct {
 	MockVerifyOTPFn                                      func(ctx context.Context, payload *dto.VerifyOTPInput) (bool, error)
 	MockGetClientProfileByUserIDFn                       func(ctx context.Context, userID string) (*gorm.Client, error)
 	MockGetStaffProfileByUserIDFn                        func(ctx context.Context, userID string) (*gorm.StaffProfile, error)
+	MockGetClientsSurveyServiceRequestFn                 func(ctx context.Context, facilityID string, projectID int, formID string, pagination *domain.Pagination) ([]*gorm.ClientServiceRequest, *domain.Pagination, error)
 	MockCheckUserHasPinFn                                func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
 	MockCompleteOnboardingTourFn                         func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
 	MockGetOTPFn                                         func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*gorm.UserOTP, error)
@@ -343,6 +344,7 @@ func NewGormMock() *GormMock {
 			InProgressByID: &UUID,
 			ResolvedAt:     &laterTime,
 			ResolvedByID:   &UUID,
+			Meta:           `{"formID": "test", "projectID": 1, "submitterID": 1, "surveyName": "test"}`,
 		},
 	}
 
@@ -452,7 +454,12 @@ func NewGormMock() *GormMock {
 		MockDeleteFacilityFn: func(ctx context.Context, mflCode int) (bool, error) {
 			return true, nil
 		},
-
+		MockGetClientsSurveyServiceRequestFn: func(ctx context.Context, facilityID string, projectID int, formID string, pagination *domain.Pagination) ([]*gorm.ClientServiceRequest, *domain.Pagination, error) {
+			return serviceRequests, &domain.Pagination{
+				Limit:       10,
+				CurrentPage: 1,
+			}, nil
+		},
 		MockRetrieveFacilityByMFLCodeFn: func(ctx context.Context, MFLCode int, isActive bool) (*gorm.Facility, error) {
 			return facility, nil
 		},
@@ -2042,4 +2049,9 @@ func (gm *GormMock) GetScreeningToolQuestionResponsesByResponseID(ctx context.Co
 // GetSurveysWithServiceRequests mocks the implementation of getting surveys with service requests
 func (gm *GormMock) GetSurveysWithServiceRequests(ctx context.Context, facilityID string) ([]*gorm.UserSurvey, error) {
 	return gm.MockGetSurveysWithServiceRequestsFn(ctx, facilityID)
+}
+
+// GetClientsSurveyServiceRequest mocks the implementation of getting clients with survey service request
+func (gm *GormMock) GetClientsSurveyServiceRequest(ctx context.Context, facilityID string, projectID int, formID string, pagination *domain.Pagination) ([]*gorm.ClientServiceRequest, *domain.Pagination, error) {
+	return gm.MockGetClientsSurveyServiceRequestFn(ctx, facilityID, projectID, formID, pagination)
 }

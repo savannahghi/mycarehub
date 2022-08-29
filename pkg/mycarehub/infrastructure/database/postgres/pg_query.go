@@ -2327,3 +2327,64 @@ func (d *MyCareHubDb) GetSurveysWithServiceRequests(ctx context.Context, facilit
 
 	return uniqueSurveyList, nil
 }
+
+// GetSurveyServiceRequestUser returns a list of users who have a survey service request
+func (d *MyCareHubDb) GetSurveyServiceRequestUser(ctx context.Context, facilityID string, projectID int, formID string, pagination *domain.Pagination) ([]*domain.SurveyServiceRequestUser, *domain.Pagination, error) {
+
+	serviceReq, pageInfo, err := d.query.GetClientsSurveyServiceRequest(ctx, facilityID, projectID, formID, pagination)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	mapped := []*domain.SurveyServiceRequestUser{}
+	for _, s := range serviceReq {
+		clientProfile, err := d.query.GetClientProfileByClientID(ctx, s.ClientID)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		var metaMap map[string]interface{}
+		if s.Meta != "" {
+			metaMap, err = utils.ConvertJSONStringToMap(s.Meta)
+			if err != nil {
+				return nil, nil, fmt.Errorf("error converting meta json string to map: %v", err)
+			}
+		}
+
+		formID, ok := metaMap["formID"].(string)
+		if !ok {
+			return nil, nil, fmt.Errorf("error converting meta json %T to string", metaMap["formID"])
+		}
+
+		var projectID int
+		project, ok := metaMap["projectID"].(float64)
+		if !ok {
+			return nil, nil, fmt.Errorf("error converting meta json %T to float64", metaMap["projectID"])
+		}
+		projectID = int(project)
+
+		var submitterID int
+		submitter, ok := metaMap["submitterID"].(float64)
+		if !ok {
+			return nil, nil, fmt.Errorf("error converting meta json %T to float64", metaMap["submitterID"])
+		}
+		submitterID = int(submitter)
+
+		surveyName, ok := metaMap["surveyName"].(string)
+		if !ok {
+			return nil, nil, fmt.Errorf("error converting meta json %T to string", metaMap["surveyName"])
+		}
+
+		m := &domain.SurveyServiceRequestUser{
+			Name:        clientProfile.User.Name,
+			FormID:      formID,
+			ProjectID:   projectID,
+			SubmitterID: submitterID,
+			SurveyName:  surveyName,
+		}
+
+		mapped = append(mapped, m)
+	}
+
+	return mapped, pageInfo, nil
+}
