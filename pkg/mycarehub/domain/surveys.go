@@ -75,11 +75,13 @@ type SurveyResponse struct {
 
 // SurveyServiceRequestUser is the models for a user(client) who has a survey service request
 type SurveyServiceRequestUser struct {
-	Name        string `json:"name"`
-	FormID      string `json:"formID"`
-	ProjectID   int    `json:"projectID"`
-	SubmitterID int    `json:"submitterID"`
-	SurveyName  string `json:"surveyName"`
+	Name             string `json:"name"`
+	FormID           string `json:"formID"`
+	ProjectID        int    `json:"projectID"`
+	SubmitterID      int    `json:"submitterID"`
+	SurveyName       string `json:"surveyName"`
+	ServiceRequestID string `json:"serviceRequestID"`
+	PhoneNumber      string `json:"phoneNumber"`
 }
 
 // SurveyServiceRequestUserPage models the user's(client) survey service request page
