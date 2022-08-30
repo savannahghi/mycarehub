@@ -32,6 +32,7 @@ type FakeServicePubSub struct {
 	MockNotifyCreateTestResultFn   func(ctx context.Context, testResult *dto.PatientTestResultOutput) error
 	MockNotifyCreateOrganizationFn func(ctx context.Context, facility *domain.Facility) error
 	MockNotifyGetStreamEventFn     func(ctx context.Context, event *dto.GetStreamEvent) error
+	MockNotifyCreateCMSUserFn      func(ctx context.Context, user *dto.CMSClientOutput) error
 }
 
 // NewPubsubServiceMock mocks the pubsub service implementation
@@ -67,6 +68,9 @@ func NewPubsubServiceMock() *FakeServicePubSub {
 			return nil
 		},
 		MockNotifyGetStreamEventFn: func(ctx context.Context, event *dto.GetStreamEvent) error {
+			return nil
+		},
+		MockNotifyCreateCMSUserFn: func(ctx context.Context, user *dto.CMSClientOutput) error {
 			return nil
 		},
 	}
@@ -128,4 +132,9 @@ func (m *FakeServicePubSub) NotifyCreateOrganization(ctx context.Context, facili
 // NotifyGetStreamEvent mocks the implementation of publishing getstream events to a pubsub topic
 func (m *FakeServicePubSub) NotifyGetStreamEvent(ctx context.Context, event *dto.GetStreamEvent) error {
 	return m.MockNotifyGetStreamEventFn(ctx, event)
+}
+
+// NotifyCreateCMSClient mocks the implementation of publishing create cms user events to a pubsub topic
+func (m *FakeServicePubSub) NotifyCreateCMSClient(ctx context.Context, user *dto.CMSClientOutput) error {
+	return m.MockNotifyCreateCMSUserFn(ctx, user)
 }

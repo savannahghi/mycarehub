@@ -67,3 +67,8 @@ func (ps ServicePubSubMessaging) NotifyCreateOrganization(ctx context.Context, f
 func (ps ServicePubSubMessaging) NotifyGetStreamEvent(ctx context.Context, event *dto.GetStreamEvent) error {
 	return ps.newPublish(ctx, event, common.CreateGetstreamEventTopicName, MyCareHubServiceName)
 }
+
+// NotifyCreateCMSClient publishes to the create cms user topic and the user will be created in the CMS system
+func (ps ServicePubSubMessaging) NotifyCreateCMSClient(ctx context.Context, user *dto.CMSClientOutput) error {
+	return ps.newPublish(ctx, user, common.CreateCMSClientTopicName, MyCareHubServiceName)
+}

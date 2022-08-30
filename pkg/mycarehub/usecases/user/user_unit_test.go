@@ -2318,6 +2318,7 @@ func TestUseCasesUserImpl_RegisterClient(t *testing.T) {
 		FHIROrganisationID: ID,
 	}
 
+	currentTime := time.Now()
 	userProfile := &domain.User{
 		ID:               &ID,
 		Username:         gofakeit.Name(),
@@ -2327,6 +2328,7 @@ func TestUseCasesUserImpl_RegisterClient(t *testing.T) {
 		Gender:           enumutils.GenderMale,
 		FailedLoginCount: 3,
 		Contacts:         phone,
+		DateOfBirth:      &currentTime,
 	}
 
 	clientProfile := &domain.ClientProfile{
@@ -2461,6 +2463,14 @@ func TestUseCasesUserImpl_RegisterClient(t *testing.T) {
 				input: payload,
 			},
 			wantErr: true,
+		},
+		{
+			name: "Sad case: unable to publish cms user to pubsub",
+			args: args{
+				ctx:   context.Background(),
+				input: payload,
+			},
+			wantErr: false,
 		},
 	}
 	for _, tt := range tests {
@@ -2607,6 +2617,36 @@ func TestUseCasesUserImpl_RegisterClient(t *testing.T) {
 				}
 				fakeDB.MockCheckFacilityExistsByMFLCode = func(ctx context.Context, MFLCode int) (bool, error) {
 					return false, nil
+				}
+			}
+			if tt.name == "Sad case: unable to publish cms user to pubsub" {
+				fakeDB.MockCheckIfPhoneNumberExistsFn = func(ctx context.Context, phone string, isOptedIn bool, flavour feedlib.Flavour) (bool, error) {
+					return false, nil
+				}
+				fakeDB.MockCheckFacilityExistsByMFLCode = func(ctx context.Context, MFLCode int) (bool, error) {
+					return true, nil
+				}
+				fakeDB.MockRetrieveFacilityByMFLCodeFn = func(ctx context.Context, MFLCode int, isActive bool) (*domain.Facility, error) {
+					id := gofakeit.UUID()
+					return &domain.Facility{ID: &id}, nil
+				}
+				fakeDB.MockCreateUserFn = func(ctx context.Context, user domain.User) (*domain.User, error) {
+					return userProfile, nil
+				}
+				fakeDB.MockCreateIdentifierFn = func(ctx context.Context, identifier domain.Identifier) (*domain.Identifier, error) {
+					return &ccc, nil
+				}
+				fakeDB.MockCreateClientFn = func(ctx context.Context, client domain.ClientProfile, contactID, identifierID string) (*domain.ClientProfile, error) {
+					return clientProfile, nil
+				}
+				fakeDB.MockRegisterClientFn = func(ctx context.Context, payload *domain.ClientRegistrationPayload) (*domain.ClientProfile, error) {
+					return clientProfile, nil
+				}
+				fakePubsub.MockNotifyCreatePatientFn = func(ctx context.Context, client *dto.PatientCreationOutput) error {
+					return nil
+				}
+				fakePubsub.MockNotifyCreateCMSUserFn = func(ctx context.Context, user *dto.CMSClientOutput) error {
+					return fmt.Errorf("unable to publish cms user to pubsub")
 				}
 			}
 			got, err := us.RegisterClient(tt.args.ctx, tt.args.input)
