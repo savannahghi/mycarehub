@@ -768,11 +768,13 @@ type ComplexityRoot struct {
 	}
 
 	SurveyServiceRequestUser struct {
-		FormID      func(childComplexity int) int
-		Name        func(childComplexity int) int
-		ProjectID   func(childComplexity int) int
-		SubmitterID func(childComplexity int) int
-		SurveyName  func(childComplexity int) int
+		FormID           func(childComplexity int) int
+		Name             func(childComplexity int) int
+		PhoneNumber      func(childComplexity int) int
+		ProjectID        func(childComplexity int) int
+		ServiceRequestID func(childComplexity int) int
+		SubmitterID      func(childComplexity int) int
+		SurveyName       func(childComplexity int) int
 	}
 
 	SurveyServiceRequestUserPage struct {
@@ -4935,12 +4937,26 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.SurveyServiceRequestUser.Name(childComplexity), true
 
+	case "SurveyServiceRequestUser.phoneNumber":
+		if e.complexity.SurveyServiceRequestUser.PhoneNumber == nil {
+			break
+		}
+
+		return e.complexity.SurveyServiceRequestUser.PhoneNumber(childComplexity), true
+
 	case "SurveyServiceRequestUser.projectID":
 		if e.complexity.SurveyServiceRequestUser.ProjectID == nil {
 			break
 		}
 
 		return e.complexity.SurveyServiceRequestUser.ProjectID(childComplexity), true
+
+	case "SurveyServiceRequestUser.serviceRequestID":
+		if e.complexity.SurveyServiceRequestUser.ServiceRequestID == nil {
+			break
+		}
+
+		return e.complexity.SurveyServiceRequestUser.ServiceRequestID(childComplexity), true
 
 	case "SurveyServiceRequestUser.submitterID":
 		if e.complexity.SurveyServiceRequestUser.SubmitterID == nil {
@@ -6594,6 +6610,8 @@ type SurveyServiceRequestUser {
   projectID: Int!
   submitterID: Int!
   surveyName: String
+  serviceRequestID: String!
+  phoneNumber: String!
 }
 
 type SurveyServiceRequestUserPage {
@@ -33145,6 +33163,94 @@ func (ec *executionContext) fieldContext_SurveyServiceRequestUser_surveyName(ctx
 	return fc, nil
 }
 
+func (ec *executionContext) _SurveyServiceRequestUser_serviceRequestID(ctx context.Context, field graphql.CollectedField, obj *domain.SurveyServiceRequestUser) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SurveyServiceRequestUser_serviceRequestID(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ServiceRequestID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SurveyServiceRequestUser_serviceRequestID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SurveyServiceRequestUser",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SurveyServiceRequestUser_phoneNumber(ctx context.Context, field graphql.CollectedField, obj *domain.SurveyServiceRequestUser) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SurveyServiceRequestUser_phoneNumber(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PhoneNumber, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SurveyServiceRequestUser_phoneNumber(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SurveyServiceRequestUser",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _SurveyServiceRequestUserPage_users(ctx context.Context, field graphql.CollectedField, obj *domain.SurveyServiceRequestUserPage) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_SurveyServiceRequestUserPage_users(ctx, field)
 	if err != nil {
@@ -33194,6 +33300,10 @@ func (ec *executionContext) fieldContext_SurveyServiceRequestUserPage_users(ctx 
 				return ec.fieldContext_SurveyServiceRequestUser_submitterID(ctx, field)
 			case "surveyName":
 				return ec.fieldContext_SurveyServiceRequestUser_surveyName(ctx, field)
+			case "serviceRequestID":
+				return ec.fieldContext_SurveyServiceRequestUser_serviceRequestID(ctx, field)
+			case "phoneNumber":
+				return ec.fieldContext_SurveyServiceRequestUser_phoneNumber(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type SurveyServiceRequestUser", field.Name)
 		},
@@ -43438,6 +43548,20 @@ func (ec *executionContext) _SurveyServiceRequestUser(ctx context.Context, sel a
 
 			out.Values[i] = ec._SurveyServiceRequestUser_surveyName(ctx, field, obj)
 
+		case "serviceRequestID":
+
+			out.Values[i] = ec._SurveyServiceRequestUser_serviceRequestID(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "phoneNumber":
+
+			out.Values[i] = ec._SurveyServiceRequestUser_phoneNumber(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

@@ -2376,11 +2376,13 @@ func (d *MyCareHubDb) GetSurveyServiceRequestUser(ctx context.Context, facilityI
 		}
 
 		m := &domain.SurveyServiceRequestUser{
-			Name:        clientProfile.User.Name,
-			FormID:      formID,
-			ProjectID:   projectID,
-			SubmitterID: submitterID,
-			SurveyName:  surveyName,
+			Name:             clientProfile.User.Name,
+			FormID:           formID,
+			ProjectID:        projectID,
+			SubmitterID:      submitterID,
+			SurveyName:       surveyName,
+			ServiceRequestID: *s.ID,
+			PhoneNumber:      clientProfile.User.Contacts.ContactValue,
 		}
 
 		mapped = append(mapped, m)
