@@ -11,6 +11,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/cms"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/fcm"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/getstream"
 	"github.com/savannahghi/pubsubtools"
@@ -67,6 +68,7 @@ type ServicePubSubMessaging struct {
 	GetStream getstream.ServiceGetStream
 	Query     infrastructure.Query
 	FCM       fcm.ServiceFCM
+	CMS       cms.IServiceCMS
 }
 
 // NewServicePubSubMessaging returns a new instance of pubsub

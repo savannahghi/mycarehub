@@ -136,6 +136,43 @@ func (ps ServicePubSubMessaging) ReceivePubSubPushMessages(
 				return
 			}
 		}
+
+	case ps.AddPubSubNamespace(common.CreateCMSClientTopicName, MyCareHubServiceName):
+		var data dto.CMSClientOutput
+		err := json.Unmarshal(message.Message.Data, &data)
+		if err != nil {
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusBadRequest)
+			return
+		}
+
+		clientInput := &dto.PubSubCMSClientInput{
+			UserID:         data.UserID,
+			Name:           data.Name,
+			Gender:         data.Gender,
+			UserType:       data.UserType,
+			PhoneNumber:    data.PhoneNumber,
+			Handle:         data.Handle,
+			Flavour:        data.Flavour,
+			DateOfBirth:    data.DateOfBirth,
+			ClientID:       data.ClientID,
+			ClientTypes:    data.ClientTypes,
+			EnrollmentDate: data.EnrollmentDate,
+			FacilityID:     data.FacilityID,
+			FacilityName:   data.FacilityName,
+			OrganisationID: data.OrganisationID,
+		}
+
+		err = ps.CMS.RegisterClient(ctx, clientInput)
+		if err != nil {
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusBadRequest)
+			return
+		}
 	}
 
 	resp := map[string]string{"Status": "Success"}
