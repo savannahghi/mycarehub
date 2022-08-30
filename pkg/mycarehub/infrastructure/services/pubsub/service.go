@@ -56,6 +56,8 @@ type ServicePubsub interface {
 	NotifyCreateOrganization(ctx context.Context, facility *domain.Facility) error
 
 	NotifyGetStreamEvent(ctx context.Context, event *dto.GetStreamEvent) error
+
+	NotifyCreateCMSClient(ctx context.Context, user *dto.CMSClientOutput) error
 }
 
 // ServicePubSubMessaging is used to send and receive pubsub notifications
@@ -127,6 +129,7 @@ func (ps ServicePubSubMessaging) TopicIDs() []string {
 	return []string{
 		ps.AddPubSubNamespace(TestTopicName, MyCareHubServiceName),
 		ps.AddPubSubNamespace(common.CreateGetstreamEventTopicName, MyCareHubServiceName),
+		ps.AddPubSubNamespace(common.CreateCMSClientTopicName, MyCareHubServiceName),
 	}
 }
 

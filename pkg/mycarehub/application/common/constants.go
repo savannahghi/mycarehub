@@ -27,4 +27,7 @@ const (
 
 	// CreateGetstreamEventTopicName is the topic where getstream events are published to
 	CreateGetstreamEventTopicName = "getstream.event"
+
+	// CreateCMSClientTopicName is the topic where cms user who is to be created, is published to.
+	CreateCMSClientTopicName = "cms.client.create"
 )

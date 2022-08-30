@@ -2,10 +2,17 @@ package pubsubmessaging_test
 
 import (
 	"context"
+	"fmt"
 	"testing"
+	"time"
 
+	"github.com/brianvoe/gofakeit"
 	"github.com/google/uuid"
+	"github.com/savannahghi/enumutils"
+	"github.com/savannahghi/feedlib"
+	"github.com/savannahghi/interserviceclient"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	extensionMock "github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension/mock"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	pgMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/mock"
@@ -334,6 +341,56 @@ func TestServicePubSubMessaging_NotifyGetStreamEvent(t *testing.T) {
 			ps, _ := pubsubmessaging.NewServicePubSubMessaging(fakeExtension, fakeGetStream, fakeDB, fakeFCMService)
 			if err := ps.NotifyGetStreamEvent(tt.args.ctx, tt.args.event); (err != nil) != tt.wantErr {
 				t.Errorf("ServicePubSubMessaging.NotifyGetStreamEvent() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestServicePubSubMessaging_NotifyCreateCMSUser(t *testing.T) {
+	fakeExtension := extensionMock.NewFakeExtension()
+	fakeGetStream := getStreamMock.NewGetStreamServiceMock()
+	fakeDB := pgMock.NewPostgresMock()
+	fakeFCMService := fakeFCM.NewFCMServiceMock()
+
+	ps, _ := pubsubmessaging.NewServicePubSubMessaging(fakeExtension, fakeGetStream, fakeDB, fakeFCMService)
+
+	type args struct {
+		ctx  context.Context
+		user *dto.CMSClientOutput
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Successfully publish to create cms user topic",
+			args: args{
+				ctx: context.Background(),
+				user: &dto.CMSClientOutput{
+					UserID:         uuid.New().String(),
+					Name:           gofakeit.BeerAlcohol(),
+					Gender:         enumutils.GenderFemale,
+					UserType:       enums.ClientUser,
+					PhoneNumber:    interserviceclient.TestUserPhoneNumber,
+					Handle:         fmt.Sprintf("@%v", gofakeit.Username()),
+					Flavour:        feedlib.FlavourConsumer,
+					DateOfBirth:    time.Now(),
+					ClientID:       uuid.New().String(),
+					ClientTypes:    []enums.ClientType{"PMTCT"},
+					EnrollmentDate: time.Now(),
+					FacilityID:     uuid.New().String(),
+					FacilityName:   "test",
+					OrganisationID: uuid.New().String(),
+				},
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := ps.NotifyCreateCMSClient(tt.args.ctx, tt.args.user); (err != nil) != tt.wantErr {
+				t.Errorf("ServicePubSubMessaging.NotifyCreateCMSClient() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
