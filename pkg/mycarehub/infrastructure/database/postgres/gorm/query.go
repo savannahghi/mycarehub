@@ -600,8 +600,7 @@ func (db *PGInstance) SearchStaffProfile(ctx context.Context, searchParameter st
 			db.DB.Where("staff_staff.staff_number ILIKE ? ", "%"+searchParameter+"%").
 				Or("users_user.username ILIKE ? ", "%"+searchParameter+"%").
 				Or("common_contact.contact_value ILIKE ?", "%"+searchParameter+"%"),
-		).
-		Find(&staff).Error; err != nil {
+		).Where("users_user.is_active = ?", true).Find(&staff).Error; err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("unable to get staff user %w", err)
 	}
@@ -1236,7 +1235,7 @@ func (db *PGInstance) SearchClientProfile(ctx context.Context, searchParameter s
 		Where(db.DB.Where("clients_identifier.identifier_value ILIKE ? AND clients_identifier.identifier_type = ?", "%"+searchParameter+"%", "CCC").
 			Or("users_user.username ILIKE ? ", "%"+searchParameter+"%").
 			Or("common_contact.contact_value ILIKE ?", "%"+searchParameter+"%"),
-		).Preload(clause.Associations).Find(&client).Error; err != nil {
+		).Where("users_user.is_active = ?", true).Preload(clause.Associations).Find(&client).Error; err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed to get client profile: %w", err)
 	}
