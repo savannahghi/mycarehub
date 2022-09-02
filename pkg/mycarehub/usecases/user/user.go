@@ -29,6 +29,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/authority"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/otp"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/utils"
+	"github.com/savannahghi/scalarutils"
 	"github.com/savannahghi/serverutils"
 )
 
@@ -712,8 +713,6 @@ func (us *UseCasesUserImpl) RegisterClient(
 	ctx context.Context,
 	input *dto.ClientRegistrationInput,
 ) (*dto.ClientRegistrationOutput, error) {
-	// ---- Sanity checks ----
-
 	identifierExists, err := us.Query.CheckIdentifierExists(ctx, "CCC", input.CCCNumber)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
@@ -736,8 +735,6 @@ func (us *UseCasesUserImpl) RegisterClient(
 	if phoneExists {
 		return nil, fmt.Errorf("a user registered with this phone number %v already exists", *normalized)
 	}
-
-	// -- End of sanity checks --
 
 	username := fmt.Sprintf("%v-%v", input.ClientName, input.CCCNumber)
 	dob := input.DateOfBirth.AsTime()
@@ -806,7 +803,7 @@ func (us *UseCasesUserImpl) RegisterClient(
 		ClientIdentifier: ccc,
 		Client:           *client,
 	}
-	// RegisterClient
+
 	registeredClient, err := us.Create.RegisterClient(ctx, registrationPayload)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
@@ -825,17 +822,25 @@ func (us *UseCasesUserImpl) RegisterClient(
 
 	handle := fmt.Sprintf("@%v", registeredClient.User.Username)
 	cmsUserPayload := &dto.CMSClientOutput{
-		UserID:         registeredClient.UserID,
-		Name:           registeredClient.User.Name,
-		Gender:         registeredClient.User.Gender,
-		UserType:       registeredClient.User.UserType,
-		PhoneNumber:    registeredClient.User.Contacts.ContactValue,
-		Handle:         handle,
-		Flavour:        registeredClient.User.Flavour,
-		DateOfBirth:    *registeredClient.User.DateOfBirth,
-		ClientID:       *registeredClient.ID,
-		ClientTypes:    clientTypes,
-		EnrollmentDate: *registeredClient.TreatmentEnrollmentDate,
+		UserID:      registeredClient.UserID,
+		Name:        registeredClient.User.Name,
+		Gender:      registeredClient.User.Gender,
+		UserType:    registeredClient.User.UserType,
+		PhoneNumber: *normalized,
+		Handle:      handle,
+		Flavour:     registeredClient.User.Flavour,
+		DateOfBirth: scalarutils.Date{
+			Year:  registeredClient.User.DateOfBirth.Year(),
+			Month: int(registeredClient.User.DateOfBirth.Month()),
+			Day:   registeredClient.User.DateOfBirth.Day(),
+		},
+		ClientID:    *registeredClient.ID,
+		ClientTypes: clientTypes,
+		EnrollmentDate: scalarutils.Date{
+			Year:  registeredClient.TreatmentEnrollmentDate.Year(),
+			Month: int(registeredClient.TreatmentEnrollmentDate.Month()),
+			Day:   registeredClient.TreatmentEnrollmentDate.Day(),
+		},
 		FacilityID:     registeredClient.FacilityID,
 		FacilityName:   facility.Name,
 		OrganisationID: registeredClient.OrganisationID,

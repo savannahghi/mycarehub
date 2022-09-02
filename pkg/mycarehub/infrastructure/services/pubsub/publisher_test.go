@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"testing"
-	"time"
 
 	"github.com/brianvoe/gofakeit"
 	"github.com/google/uuid"
@@ -19,6 +18,7 @@ import (
 	fakeFCM "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/fcm/mock"
 	getStreamMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/getstream/mock"
 	pubsubmessaging "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/pubsub"
+	"github.com/savannahghi/scalarutils"
 )
 
 func TestServicePubSubMessaging_NotifyCreatePatient(t *testing.T) {
@@ -368,17 +368,25 @@ func TestServicePubSubMessaging_NotifyCreateCMSUser(t *testing.T) {
 			args: args{
 				ctx: context.Background(),
 				user: &dto.CMSClientOutput{
-					UserID:         uuid.New().String(),
-					Name:           gofakeit.BeerAlcohol(),
-					Gender:         enumutils.GenderFemale,
-					UserType:       enums.ClientUser,
-					PhoneNumber:    interserviceclient.TestUserPhoneNumber,
-					Handle:         fmt.Sprintf("@%v", gofakeit.Username()),
-					Flavour:        feedlib.FlavourConsumer,
-					DateOfBirth:    time.Now(),
-					ClientID:       uuid.New().String(),
-					ClientTypes:    []enums.ClientType{"PMTCT"},
-					EnrollmentDate: time.Now(),
+					UserID:      uuid.New().String(),
+					Name:        gofakeit.BeerAlcohol(),
+					Gender:      enumutils.GenderFemale,
+					UserType:    enums.ClientUser,
+					PhoneNumber: interserviceclient.TestUserPhoneNumber,
+					Handle:      fmt.Sprintf("@%v", gofakeit.Username()),
+					Flavour:     feedlib.FlavourConsumer,
+					DateOfBirth: scalarutils.Date{
+						Year:  2000,
+						Month: 3,
+						Day:   13,
+					},
+					ClientID:    uuid.New().String(),
+					ClientTypes: []enums.ClientType{"PMTCT"},
+					EnrollmentDate: scalarutils.Date{
+						Year:  2000,
+						Month: 3,
+						Day:   13,
+					},
 					FacilityID:     uuid.New().String(),
 					FacilityName:   "test",
 					OrganisationID: uuid.New().String(),

@@ -21,6 +21,10 @@ const (
 	unbanUserNotificationBody      = "%v has been unbanned and can rejoin the community"
 )
 
+var (
+	registerClientAPIEndpoint = serverutils.MustGetEnvVar("CLIENT_REGISTRATION_URL")
+)
+
 // ReceivePubSubPushMessages receives and processes a pubsub message
 func (ps ServicePubSubMessaging) ReceivePubSubPushMessages(
 	w http.ResponseWriter,
@@ -165,7 +169,7 @@ func (ps ServicePubSubMessaging) ReceivePubSubPushMessages(
 			OrganisationID: data.OrganisationID,
 		}
 
-		err = ps.CMS.RegisterClient(ctx, clientInput)
+		resp, err := ps.baseExt.MakeRequest(ctx, http.MethodPost, registerClientAPIEndpoint, clientInput)
 		if err != nil {
 			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
 				Err:     err,
@@ -173,6 +177,22 @@ func (ps ServicePubSubMessaging) ReceivePubSubPushMessages(
 			}, http.StatusBadRequest)
 			return
 		}
+		if resp.StatusCode != http.StatusCreated {
+			err := fmt.Errorf("invalid status code :%v", resp.StatusCode)
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusBadRequest)
+			return
+		}
+
+	default:
+		err := fmt.Errorf("unknown topic ID: %v", topicID)
+		serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
+			Err:     err,
+			Message: err.Error(),
+		}, http.StatusBadRequest)
+		return
 	}
 
 	resp := map[string]string{"Status": "Success"}

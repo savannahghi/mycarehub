@@ -479,6 +479,7 @@ func (d *MyCareHubDb) RegisterClient(ctx context.Context, payload *domain.Client
 		ClientCounselled:        clientProfile.ClientCounselled,
 		FacilityID:              clientProfile.FacilityID,
 		User:                    createMapUser(usr),
+		OrganisationID:          clientProfile.OrganisationID,
 	}, nil
 }
 
