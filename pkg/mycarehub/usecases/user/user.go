@@ -823,6 +823,30 @@ func (us *UseCasesUserImpl) RegisterClient(
 		log.Printf("failed to publish to create patient topic: %v", err)
 	}
 
+	handle := fmt.Sprintf("@%v", registeredClient.User.Username)
+	cmsUserPayload := &dto.CMSClientOutput{
+		UserID:         registeredClient.UserID,
+		Name:           registeredClient.User.Name,
+		Gender:         registeredClient.User.Gender,
+		UserType:       registeredClient.User.UserType,
+		PhoneNumber:    registeredClient.User.Contacts.ContactValue,
+		Handle:         handle,
+		Flavour:        registeredClient.User.Flavour,
+		DateOfBirth:    *registeredClient.User.DateOfBirth,
+		ClientID:       *registeredClient.ID,
+		ClientTypes:    clientTypes,
+		EnrollmentDate: *registeredClient.TreatmentEnrollmentDate,
+		FacilityID:     registeredClient.FacilityID,
+		FacilityName:   facility.Name,
+		OrganisationID: registeredClient.OrganisationID,
+	}
+
+	err = us.Pubsub.NotifyCreateCMSClient(ctx, cmsUserPayload)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		log.Printf("failed to publish to create cms user topic: %v", err)
+	}
+
 	if input.InviteClient {
 		_, err := us.InviteUser(ctx, registeredClient.UserID, input.PhoneNumber, feedlib.FlavourConsumer, false)
 		if err != nil {

@@ -11,6 +11,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/cms"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/fcm"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/getstream"
 	"github.com/savannahghi/pubsubtools"
@@ -56,6 +57,8 @@ type ServicePubsub interface {
 	NotifyCreateOrganization(ctx context.Context, facility *domain.Facility) error
 
 	NotifyGetStreamEvent(ctx context.Context, event *dto.GetStreamEvent) error
+
+	NotifyCreateCMSClient(ctx context.Context, user *dto.CMSClientOutput) error
 }
 
 // ServicePubSubMessaging is used to send and receive pubsub notifications
@@ -65,6 +68,7 @@ type ServicePubSubMessaging struct {
 	GetStream getstream.ServiceGetStream
 	Query     infrastructure.Query
 	FCM       fcm.ServiceFCM
+	CMS       cms.IServiceCMS
 }
 
 // NewServicePubSubMessaging returns a new instance of pubsub
@@ -127,6 +131,7 @@ func (ps ServicePubSubMessaging) TopicIDs() []string {
 	return []string{
 		ps.AddPubSubNamespace(TestTopicName, MyCareHubServiceName),
 		ps.AddPubSubNamespace(common.CreateGetstreamEventTopicName, MyCareHubServiceName),
+		ps.AddPubSubNamespace(common.CreateCMSClientTopicName, MyCareHubServiceName),
 	}
 }
 
