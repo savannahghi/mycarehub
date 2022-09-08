@@ -9,6 +9,7 @@ import (
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
+	"github.com/savannahghi/serverutils"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -61,11 +62,14 @@ func TestCreateInviteMessage(t *testing.T) {
 	name := "John Doe"
 	inviteLink := "https://example.com"
 	pin := "99033"
+	consumerAppName := serverutils.MustGetEnvVar("CONSUMER_APP_NAME")
+	proAppName := serverutils.MustGetEnvVar("PRO_APP_NAME")
 
-	consumerMessage := fmt.Sprintf("You have been invited to UoNAfyaApp360. Download the app on %v. Your single use pin is %v",
-		inviteLink, pin)
-	proMessage := fmt.Sprintf("You have been invited to UoNAfyaApp360 Daktari. Download the app on %v. Your single use pin is %v",
-		inviteLink, pin)
+	consumerMessage := fmt.Sprintf("You have been invited to %s. Download the app on %v. Your single use pin is %v",
+		consumerAppName, inviteLink, pin)
+	proMessage := fmt.Sprintf("You have been invited to %s. Download the app on %v. Your single use pin is %v",
+		proAppName, inviteLink, pin)
+
 	type args struct {
 		user       *domain.User
 		inviteLink string
