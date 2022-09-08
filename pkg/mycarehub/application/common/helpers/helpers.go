@@ -47,14 +47,16 @@ func GetInviteLink(flavour feedlib.Flavour) (string, error) {
 
 // CreateInviteMessage creates a new invite message
 func CreateInviteMessage(user *domain.User, inviteLink string, pin string, flavour feedlib.Flavour) string {
+	consumerAppName := serverutils.MustGetEnvVar("CONSUMER_APP_NAME")
+	proAppName := serverutils.MustGetEnvVar("PRO_APP_NAME")
 	switch flavour {
 	case feedlib.FlavourConsumer:
-		message := fmt.Sprintf("You have been invited to UoNAfyaApp360. Download the app on %v. Your single use pin is %v",
-			inviteLink, pin)
+		message := fmt.Sprintf("You have been invited to %s. Download the app on %v. Your single use pin is %v",
+			consumerAppName, inviteLink, pin)
 		return message
 	case feedlib.FlavourPro:
-		message := fmt.Sprintf("You have been invited to UoNAfyaApp360 Daktari. Download the app on %v. Your single use pin is %v",
-			inviteLink, pin)
+		message := fmt.Sprintf("You have been invited to %s. Download the app on %v. Your single use pin is %v",
+			proAppName, inviteLink, pin)
 		return message
 	default:
 		return ""

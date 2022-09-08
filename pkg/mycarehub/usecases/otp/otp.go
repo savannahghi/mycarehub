@@ -21,14 +21,14 @@ import (
 )
 
 const (
-	otpMessage      = "%s is your %v verification code %v"
-	consumerAppName = "UoNAfyaApp360"
-	proAppName      = "UoNAfyaApp360 Daktari"
+	otpMessage = "%s is your %v verification code %v"
 )
 
 var (
 	consumerAppIdentifier = serverutils.MustGetEnvVar("CONSUMER_APP_IDENTIFIER")
 	proAppIdentifier      = serverutils.MustGetEnvVar("PRO_APP_IDENTIFIER")
+	consumerAppName       = serverutils.MustGetEnvVar("CONSUMER_APP_NAME")
+	proAppName            = serverutils.MustGetEnvVar("PRO_APP_NAME")
 )
 
 // IGenerateOTP specifies the method signature for generating an OTP
