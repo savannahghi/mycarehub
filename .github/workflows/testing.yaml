@@ -134,8 +134,8 @@ jobs:
             SURVEYS_BASE_URL=${{ secrets.SURVEYS_BASE_URL }}
             CONSUMER_APP_IDENTIFIER=${{ secrets.CONSUMER_APP_IDENTIFIER }}
             PRO_APP_IDENTIFIER=${{ secrets.PRO_APP_IDENTIFIER }}
-            CONSUMER_APP_NAME: ${{ secrets.CONSUMER_APP_NAME }}
-            PRO_APP_NAME: ${{ secrets.PRO_APP_NAME }}
+            CONSUMER_APP_NAME=${{ secrets.CONSUMER_APP_NAME }}
+            PRO_APP_NAME=${{ secrets.PRO_APP_NAME }}
   
   push_schema_test_registry:
     name: Publish schema to schema registry
