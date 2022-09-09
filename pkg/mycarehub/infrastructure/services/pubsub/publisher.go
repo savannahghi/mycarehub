@@ -72,3 +72,13 @@ func (ps ServicePubSubMessaging) NotifyGetStreamEvent(ctx context.Context, event
 func (ps ServicePubSubMessaging) NotifyCreateCMSClient(ctx context.Context, user *dto.CMSClientOutput) error {
 	return ps.newPublish(ctx, user, common.CreateCMSClientTopicName, MyCareHubServiceName)
 }
+
+// NotifyDeleteCMSClient publishes to the delete cms user topic and the user will be deleted in the CMS.
+func (ps ServicePubSubMessaging) NotifyDeleteCMSClient(ctx context.Context, user *dto.DeleteCMSUserPayload) error {
+	return ps.newPublish(ctx, user, common.DeleteCMSClientTopicName, MyCareHubServiceName)
+}
+
+// NotifyDeleteCMSStaff publishes to the delete cms staff topic and the staff will be deleted in the CMS.
+func (ps ServicePubSubMessaging) NotifyDeleteCMSStaff(ctx context.Context, staff *dto.DeleteCMSUserPayload) error {
+	return ps.newPublish(ctx, staff, common.DeleteCMSStaffTopicName, MyCareHubServiceName)
+}

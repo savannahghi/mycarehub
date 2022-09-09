@@ -1345,6 +1345,16 @@ func (us *UseCasesUserImpl) DeleteUser(ctx context.Context, payload *dto.PhoneIn
 			return false, fmt.Errorf("error deleting stream user: %w", err)
 		}
 
+		deleteCMSClientPayload := &dto.DeleteCMSUserPayload{
+			UserID: client.UserID,
+		}
+
+		err = us.Pubsub.NotifyDeleteCMSClient(ctx, deleteCMSClientPayload)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			log.Printf("error notifying delete cms client: %v", err)
+		}
+
 		err = us.Delete.DeleteUser(ctx, *user.ID, client.ID, nil, feedlib.FlavourConsumer)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
@@ -1362,6 +1372,16 @@ func (us *UseCasesUserImpl) DeleteUser(ctx context.Context, payload *dto.PhoneIn
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
 			return false, fmt.Errorf("error deleting stream user: %v", err)
+		}
+
+		deleteCMSStaffPayload := &dto.DeleteCMSUserPayload{
+			UserID: staff.UserID,
+		}
+
+		err = us.Pubsub.NotifyDeleteCMSStaff(ctx, deleteCMSStaffPayload)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			log.Printf("error notifying delete cms staff: %v", err)
 		}
 
 		err = us.Delete.DeleteUser(ctx, *user.ID, nil, staff.ID, feedlib.FlavourPro)

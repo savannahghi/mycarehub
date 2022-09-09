@@ -33,6 +33,8 @@ type FakeServicePubSub struct {
 	MockNotifyCreateOrganizationFn func(ctx context.Context, facility *domain.Facility) error
 	MockNotifyGetStreamEventFn     func(ctx context.Context, event *dto.GetStreamEvent) error
 	MockNotifyCreateCMSUserFn      func(ctx context.Context, user *dto.CMSClientOutput) error
+	MockNotifyDeleteCMSClientFn    func(ctx context.Context, user *dto.DeleteCMSUserPayload) error
+	MockNotifyDeleteCMSStaffFn     func(ctx context.Context, user *dto.DeleteCMSUserPayload) error
 }
 
 // NewPubsubServiceMock mocks the pubsub service implementation
@@ -71,6 +73,12 @@ func NewPubsubServiceMock() *FakeServicePubSub {
 			return nil
 		},
 		MockNotifyCreateCMSUserFn: func(ctx context.Context, user *dto.CMSClientOutput) error {
+			return nil
+		},
+		MockNotifyDeleteCMSClientFn: func(ctx context.Context, user *dto.DeleteCMSUserPayload) error {
+			return nil
+		},
+		MockNotifyDeleteCMSStaffFn: func(ctx context.Context, user *dto.DeleteCMSUserPayload) error {
 			return nil
 		},
 	}
@@ -137,4 +145,14 @@ func (m *FakeServicePubSub) NotifyGetStreamEvent(ctx context.Context, event *dto
 // NotifyCreateCMSClient mocks the implementation of publishing create cms user events to a pubsub topic
 func (m *FakeServicePubSub) NotifyCreateCMSClient(ctx context.Context, user *dto.CMSClientOutput) error {
 	return m.MockNotifyCreateCMSUserFn(ctx, user)
+}
+
+// NotifyDeleteCMSClient mocks the implementation of publishing delete cms user events to a pubsub topic
+func (m *FakeServicePubSub) NotifyDeleteCMSClient(ctx context.Context, user *dto.DeleteCMSUserPayload) error {
+	return m.MockNotifyDeleteCMSClientFn(ctx, user)
+}
+
+// NotifyDeleteCMSStaff mocks the implementation of publishing delete cms staff events to a pubsub topic
+func (m *FakeServicePubSub) NotifyDeleteCMSStaff(ctx context.Context, user *dto.DeleteCMSUserPayload) error {
+	return m.MockNotifyDeleteCMSStaffFn(ctx, user)
 }

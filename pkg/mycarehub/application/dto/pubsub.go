@@ -31,3 +31,8 @@ type PubSubCMSClientInput struct {
 	// organisation details
 	OrganisationID string `json:"organisation_id"`
 }
+
+// DeleteCMSUserPayload contains the ID of the user that is to be deleted from the CMS service database
+type DeleteCMSUserPayload struct {
+	UserID string `json:"user_id"`
+}

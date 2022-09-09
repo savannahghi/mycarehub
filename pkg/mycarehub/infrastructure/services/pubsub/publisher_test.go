@@ -403,3 +403,77 @@ func TestServicePubSubMessaging_NotifyCreateCMSUser(t *testing.T) {
 		})
 	}
 }
+
+func TestServicePubSubMessaging_NotifyDeleteCMSClient(t *testing.T) {
+	fakeExtension := extensionMock.NewFakeExtension()
+	fakeGetStream := getStreamMock.NewGetStreamServiceMock()
+	fakeDB := pgMock.NewPostgresMock()
+	fakeFCMService := fakeFCM.NewFCMServiceMock()
+
+	ps, _ := pubsubmessaging.NewServicePubSubMessaging(fakeExtension, fakeGetStream, fakeDB, fakeFCMService)
+
+	type args struct {
+		ctx  context.Context
+		user *dto.DeleteCMSUserPayload
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Successfully publish to delete cms user topic",
+			args: args{
+				ctx: context.Background(),
+				user: &dto.DeleteCMSUserPayload{
+					UserID: uuid.New().String(),
+				},
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := ps.NotifyDeleteCMSClient(tt.args.ctx, tt.args.user); (err != nil) != tt.wantErr {
+				t.Errorf("ServicePubSubMessaging.NotifyDeleteCMSClient() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestServicePubSubMessaging_NotifyDeleteCMSStaff(t *testing.T) {
+	fakeExtension := extensionMock.NewFakeExtension()
+	fakeGetStream := getStreamMock.NewGetStreamServiceMock()
+	fakeDB := pgMock.NewPostgresMock()
+	fakeFCMService := fakeFCM.NewFCMServiceMock()
+
+	ps, _ := pubsubmessaging.NewServicePubSubMessaging(fakeExtension, fakeGetStream, fakeDB, fakeFCMService)
+
+	type args struct {
+		ctx   context.Context
+		staff *dto.DeleteCMSUserPayload
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Successfully publish to delete cms staff topic",
+			args: args{
+				ctx: context.Background(),
+				staff: &dto.DeleteCMSUserPayload{
+					UserID: uuid.New().String(),
+				},
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := ps.NotifyDeleteCMSStaff(tt.args.ctx, tt.args.staff); (err != nil) != tt.wantErr {
+				t.Errorf("ServicePubSubMessaging.NotifyDeleteCMSStaff() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
