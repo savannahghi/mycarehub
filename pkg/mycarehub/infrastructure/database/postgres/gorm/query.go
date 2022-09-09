@@ -110,6 +110,8 @@ type Query interface {
 	GetScreeningToolQuestionResponsesByResponseID(ctx context.Context, responseID string) ([]*ScreeningToolQuestionResponse, error)
 	GetSurveysWithServiceRequests(ctx context.Context, facilityID string) ([]*UserSurvey, error)
 	GetClientsSurveyServiceRequest(ctx context.Context, facilityID string, projectID int, formID string, pagination *domain.Pagination) ([]*ClientServiceRequest, *domain.Pagination, error)
+	GetStaffFacilities(ctx context.Context, staffFacility StaffFacilities) ([]StaffFacilities, error)
+	GetClientFacilities(ctx context.Context, clientFacility ClientFacilities) ([]ClientFacilities, error)
 }
 
 // GetFacilityStaffs returns a list of staff at a particular facility
@@ -1762,4 +1764,36 @@ func (db *PGInstance) GetClientsSurveyServiceRequest(ctx context.Context, facili
 	}
 
 	return clientsServiceRequest, pagination, nil
+}
+
+// GetStaffFacilities gets facilities belonging to a given staff
+func (db *PGInstance) GetStaffFacilities(ctx context.Context, staffFacility StaffFacilities) ([]StaffFacilities, error) {
+	var staffFacilities []StaffFacilities
+
+	if err := db.DB.Where(&StaffFacilities{
+		StaffID:    staffFacility.StaffID,
+		FacilityID: staffFacility.FacilityID,
+	}).Find(&staffFacilities).Error; err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, fmt.Errorf("failed to get staff facilities: %w", err)
+	}
+
+	return staffFacilities, nil
+
+}
+
+// GetClientFacilities gets facilities belonging to a given client
+func (db *PGInstance) GetClientFacilities(ctx context.Context, clientFacility ClientFacilities) ([]ClientFacilities, error) {
+	var clientFacilities []ClientFacilities
+
+	if err := db.DB.Where(&ClientFacilities{
+		ClientID:   clientFacility.ClientID,
+		FacilityID: clientFacility.FacilityID,
+	}).Find(&clientFacilities).Error; err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, fmt.Errorf("failed to get client facilities: %w", err)
+	}
+
+	return clientFacilities, nil
+
 }

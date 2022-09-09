@@ -1701,3 +1701,63 @@ func TestMyCareHubDb_UpdateClientServiceRequest(t *testing.T) {
 		})
 	}
 }
+
+func TestMyCareHubDb_UpdateStaff(t *testing.T) {
+	staffID := uuid.NewString()
+
+	type args struct {
+		ctx     context.Context
+		staff   *domain.StaffProfile
+		updates map[string]interface{}
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: update staff details",
+			args: args{
+				ctx: context.Background(),
+				staff: &domain.StaffProfile{
+					ID: &staffID,
+				},
+				updates: map[string]interface{}{
+					"active": true,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: Failed to update staff, update error occurred",
+			args: args{
+				ctx: context.Background(),
+				staff: &domain.StaffProfile{
+					ID: &staffID,
+				},
+				updates: map[string]interface{}{
+					"active": true,
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeGorm := gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			if tt.name == "Sad case: Failed to update staff, update error occurred" {
+				fakeGorm.MockUpdateStaffFn = func(ctx context.Context, staff *gorm.StaffProfile, updates map[string]interface{}) (*gorm.StaffProfile, error) {
+					return nil, fmt.Errorf("error cannot update staff")
+				}
+			}
+
+			err := d.UpdateStaff(tt.args.ctx, tt.args.staff, tt.args.updates)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.UpdateStaff() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}

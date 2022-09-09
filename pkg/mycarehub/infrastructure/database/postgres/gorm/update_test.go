@@ -1445,3 +1445,48 @@ func TestPGInstance_UpdateClientServiceRequest(t *testing.T) {
 		})
 	}
 }
+
+func TestPGInstance_UpdateStaff(t *testing.T) {
+	invalidID := "invalid"
+	type args struct {
+		ctx     context.Context
+		staff   *gorm.StaffProfile
+		updates map[string]interface{}
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *gorm.StaffProfile
+		wantErr bool
+	}{
+		{
+			name: "Happy case: update staff profile",
+			args: args{
+				ctx:     context.Background(),
+				staff:   &gorm.StaffProfile{ID: &staffID},
+				updates: map[string]interface{}{"active": true},
+			},
+			want:    &gorm.StaffProfile{},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: update staff profile",
+			args: args{
+				ctx:     context.Background(),
+				staff:   &gorm.StaffProfile{ID: &invalidID},
+				updates: map[string]interface{}{"active": true},
+			},
+			want:    &gorm.StaffProfile{},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := testingDB.UpdateStaff(tt.args.ctx, tt.args.staff, tt.args.updates)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.UpdateStaff() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}

@@ -157,11 +157,14 @@ type PostgresMock struct {
 	MockGetScreeningToolRespondentsFn                    func(ctx context.Context, facilityID string, screeningToolID string, searchTerm string, paginationInput *dto.PaginationsInput) ([]*domain.ScreeningToolRespondent, *domain.Pagination, error)
 	MockGetScreeningToolResponseByIDFn                   func(ctx context.Context, id string) (*domain.QuestionnaireScreeningToolResponse, error)
 	MockGetSurveysWithServiceRequestsFn                  func(ctx context.Context, facilityID string) ([]*dto.SurveysWithServiceRequest, error)
+	MockGetStaffFacilitiesFn                             func(ctx context.Context, input dto.StaffFacilityInput) ([]domain.Facility, error)
+	MockGetClientFacilitiesFn                            func(ctx context.Context, input dto.ClientFacilityInput) ([]domain.Facility, error)
+	MockUpdateStaffFn                                    func(ctx context.Context, staff *domain.StaffProfile, updates map[string]interface{}) error
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
 func NewPostgresMock() *PostgresMock {
-	ID := uuid.New().String()
+	ID := "f3f8f8f8-f3f8-f3f8-f3f8-f3f8f8f8f8f8"
 	screeningUUID := "f3f8f8f8-f3f8-f3f8-f3f8-f3f8f8f8f8f8"
 
 	name := gofakeit.Name()
@@ -251,6 +254,7 @@ func NewPostgresMock() *PostgresMock {
 		CHVUserName:             name,
 		CaregiverID:             &ID,
 		CCCNumber:               "123456789",
+		Facilities:              []domain.Facility{*facilityInput},
 	}
 	staff := &domain.StaffProfile{
 		ID:                &ID,
@@ -1259,6 +1263,37 @@ func NewPostgresMock() *PostgresMock {
 				},
 			}, nil
 		},
+		MockGetStaffFacilitiesFn: func(ctx context.Context, input dto.StaffFacilityInput) ([]domain.Facility, error) {
+			return []domain.Facility{
+				{
+					ID:                 &ID,
+					Name:               name,
+					Code:               code,
+					Phone:              phone,
+					Active:             true,
+					County:             county,
+					Description:        description,
+					FHIROrganisationID: ID,
+				},
+			}, nil
+		},
+		MockGetClientFacilitiesFn: func(ctx context.Context, input dto.ClientFacilityInput) ([]domain.Facility, error) {
+			return []domain.Facility{
+				{
+					ID:                 &ID,
+					Name:               name,
+					Code:               code,
+					Phone:              phone,
+					Active:             true,
+					County:             county,
+					Description:        description,
+					FHIROrganisationID: ID,
+				},
+			}, nil
+		},
+		MockUpdateStaffFn: func(ctx context.Context, st *domain.StaffProfile, updates map[string]interface{}) error {
+			return nil
+		},
 	}
 }
 
@@ -1941,4 +1976,19 @@ func (gm *PostgresMock) GetSurveysWithServiceRequests(ctx context.Context, facil
 // GetSurveyServiceRequestUser mocks the implementation of getting users with survey service request
 func (gm *PostgresMock) GetSurveyServiceRequestUser(ctx context.Context, facilityID string, projectID int, formID string, pagination *domain.Pagination) ([]*domain.SurveyServiceRequestUser, *domain.Pagination, error) {
 	return gm.MockGetUsersWithSurveyServiceRequestFn(ctx, facilityID, projectID, formID, pagination)
+}
+
+// GetStaffFacilities mocks the implementation of getting staff facilities
+func (gm *PostgresMock) GetStaffFacilities(ctx context.Context, input dto.StaffFacilityInput) ([]domain.Facility, error) {
+	return gm.MockGetStaffFacilitiesFn(ctx, input)
+}
+
+// GetClientFacilities mocks the implementation of getting client facilities
+func (gm *PostgresMock) GetClientFacilities(ctx context.Context, input dto.ClientFacilityInput) ([]domain.Facility, error) {
+	return gm.MockGetClientFacilitiesFn(ctx, input)
+}
+
+// UpdateStaff mocks the implementation of updating the staff profile
+func (gm *PostgresMock) UpdateStaff(ctx context.Context, staff *domain.StaffProfile, updates map[string]interface{}) error {
+	return gm.MockUpdateStaffFn(ctx, staff, updates)
 }

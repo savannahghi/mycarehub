@@ -1331,3 +1331,16 @@ func (s *ScreeningToolQuestionResponse) BeforeCreate(tx *gorm.DB) (err error) {
 func (ScreeningToolQuestionResponse) TableName() string {
 	return "questionnaires_screeningtoolquestionresponse"
 }
+
+// ClientFacilities links a client with their facilities
+// it is a through table
+type ClientFacilities struct {
+	ID         int     `gorm:"primaryKey;column:id;autoincrement"`
+	ClientID   *string `gorm:"column:client_id"`
+	FacilityID *string `gorm:"column:facility_id"`
+}
+
+// TableName references the table that we map data from
+func (s *ClientFacilities) TableName() string {
+	return "clients_client_facilities"
+}

@@ -130,6 +130,8 @@ type Query interface {
 	GetScreeningToolResponseByID(ctx context.Context, id string) (*domain.QuestionnaireScreeningToolResponse, error)
 	GetSurveyServiceRequestUser(ctx context.Context, facilityID string, projectID int, formID string, pagination *domain.Pagination) ([]*domain.SurveyServiceRequestUser, *domain.Pagination, error)
 	GetSurveysWithServiceRequests(ctx context.Context, facilityID string) ([]*dto.SurveysWithServiceRequest, error)
+	GetStaffFacilities(ctx context.Context, input dto.StaffFacilityInput) ([]domain.Facility, error)
+	GetClientFacilities(ctx context.Context, input dto.ClientFacilityInput) ([]domain.Facility, error)
 }
 
 // Update represents all the update action interfaces
@@ -161,4 +163,5 @@ type Update interface {
 	UpdateNotification(ctx context.Context, notification *domain.Notification, updateData map[string]interface{}) error
 	UpdateUserSurveys(ctx context.Context, survey *domain.UserSurvey, updateData map[string]interface{}) error
 	UpdateClientServiceRequest(ctx context.Context, serviceRequest *domain.ServiceRequest, updateData map[string]interface{}) error
+	UpdateStaff(ctx context.Context, staff *domain.StaffProfile, updates map[string]interface{}) error
 }

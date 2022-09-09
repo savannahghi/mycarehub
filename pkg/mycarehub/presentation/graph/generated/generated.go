@@ -442,9 +442,11 @@ type ComplexityRoot struct {
 		SendClientSurveyLinks              func(childComplexity int, facilityID string, formID string, projectID int, filterParams *dto.ClientFilterParamsInput) int
 		SendFCMNotification                func(childComplexity int, registrationTokens []string, data map[string]interface{}, notification firebasetools.FirebaseSimpleNotificationInput) int
 		SendFeedback                       func(childComplexity int, input dto.FeedbackResponseInput) int
+		SetClientDefaultFacility           func(childComplexity int, userID string, facilityID string) int
 		SetInProgressBy                    func(childComplexity int, serviceRequestID string, staffID string) int
 		SetNickName                        func(childComplexity int, userID string, nickname string) int
 		SetPushToken                       func(childComplexity int, token string) int
+		SetStaffDefaultFacility            func(childComplexity int, userID string, facilityID string) int
 		SetUserPin                         func(childComplexity int, input *dto.PINInput) int
 		ShareContent                       func(childComplexity int, input dto.ShareContentInput) int
 		ShareHealthDiaryEntry              func(childComplexity int, healthDiaryEntryID string, shareEntireHealthDiary bool) int
@@ -887,6 +889,8 @@ type MutationResolver interface {
 	InviteUser(ctx context.Context, userID string, phoneNumber string, flavour feedlib.Flavour, reinvite *bool) (bool, error)
 	SetUserPin(ctx context.Context, input *dto.PINInput) (bool, error)
 	TransferClientToFacility(ctx context.Context, clientID string, facilityID string) (bool, error)
+	SetStaffDefaultFacility(ctx context.Context, userID string, facilityID string) (bool, error)
+	SetClientDefaultFacility(ctx context.Context, userID string, facilityID string) (bool, error)
 }
 type QueryResolver interface {
 	FetchClientAppointments(ctx context.Context, clientID string, paginationInput dto.PaginationsInput, filters []*firebasetools.FilterParam) (*domain.AppointmentsPage, error)
@@ -3020,6 +3024,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.SendFeedback(childComplexity, args["input"].(dto.FeedbackResponseInput)), true
 
+	case "Mutation.setClientDefaultFacility":
+		if e.complexity.Mutation.SetClientDefaultFacility == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_setClientDefaultFacility_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.SetClientDefaultFacility(childComplexity, args["userID"].(string), args["facilityID"].(string)), true
+
 	case "Mutation.setInProgressBy":
 		if e.complexity.Mutation.SetInProgressBy == nil {
 			break
@@ -3055,6 +3071,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.SetPushToken(childComplexity, args["token"].(string)), true
+
+	case "Mutation.setStaffDefaultFacility":
+		if e.complexity.Mutation.SetStaffDefaultFacility == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_setStaffDefaultFacility_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.SetStaffDefaultFacility(childComplexity, args["userID"].(string), args["facilityID"].(string)), true
 
 	case "Mutation.setUserPIN":
 		if e.complexity.Mutation.SetUserPin == nil {
@@ -3102,7 +3130,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.TransferClientToFacility(childComplexity, args["clientId"].(string), args["facilityId"].(string)), true
+		return e.complexity.Mutation.TransferClientToFacility(childComplexity, args["clientId"].(string), args["facilityID"].(string)), true
 
 	case "Mutation.unBanUser":
 		if e.complexity.Mutation.UnBanUser == nil {
@@ -6643,7 +6671,9 @@ extend type Mutation {
     reinvite: Boolean
   ): Boolean!
   setUserPIN(input: PINInput): Boolean!
-  transferClientToFacility(clientId: ID!, facilityId: ID!): Boolean!
+  transferClientToFacility(clientId: ID!, facilityID: ID!): Boolean!
+  setStaffDefaultFacility(userID: ID!, facilityID: ID!) : Boolean!
+  setClientDefaultFacility(userID: ID!, facilityID: ID!) : Boolean!
 }
 `, BuiltIn: false},
 	{Name: "../../../../../federation/directives.graphql", Input: `
@@ -7546,6 +7576,30 @@ func (ec *executionContext) field_Mutation_sendFeedback_args(ctx context.Context
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_setClientDefaultFacility_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["userID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userID"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["userID"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["facilityID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("facilityID"))
+		arg1, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["facilityID"] = arg1
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_setInProgressBy_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -7606,6 +7660,30 @@ func (ec *executionContext) field_Mutation_setPushToken_args(ctx context.Context
 		}
 	}
 	args["token"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_setStaffDefaultFacility_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["userID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userID"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["userID"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["facilityID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("facilityID"))
+		arg1, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["facilityID"] = arg1
 	return args, nil
 }
 
@@ -7676,14 +7754,14 @@ func (ec *executionContext) field_Mutation_transferClientToFacility_args(ctx con
 	}
 	args["clientId"] = arg0
 	var arg1 string
-	if tmp, ok := rawArgs["facilityId"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("facilityId"))
+	if tmp, ok := rawArgs["facilityID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("facilityID"))
 		arg1, err = ec.unmarshalNID2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["facilityId"] = arg1
+	args["facilityID"] = arg1
 	return args, nil
 }
 
@@ -22268,7 +22346,7 @@ func (ec *executionContext) _Mutation_transferClientToFacility(ctx context.Conte
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().TransferClientToFacility(rctx, fc.Args["clientId"].(string), fc.Args["facilityId"].(string))
+		return ec.resolvers.Mutation().TransferClientToFacility(rctx, fc.Args["clientId"].(string), fc.Args["facilityID"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -22303,6 +22381,116 @@ func (ec *executionContext) fieldContext_Mutation_transferClientToFacility(ctx c
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_transferClientToFacility_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_setStaffDefaultFacility(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_setStaffDefaultFacility(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().SetStaffDefaultFacility(rctx, fc.Args["userID"].(string), fc.Args["facilityID"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_setStaffDefaultFacility(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_setStaffDefaultFacility_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_setClientDefaultFacility(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_setClientDefaultFacility(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().SetClientDefaultFacility(rctx, fc.Args["userID"].(string), fc.Args["facilityID"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_setClientDefaultFacility(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_setClientDefaultFacility_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -40671,6 +40859,24 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_transferClientToFacility(ctx, field)
+			})
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "setStaffDefaultFacility":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_setStaffDefaultFacility(ctx, field)
+			})
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "setClientDefaultFacility":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_setClientDefaultFacility(ctx, field)
 			})
 
 			if out.Values[i] == graphql.Null {

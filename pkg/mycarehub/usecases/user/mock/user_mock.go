@@ -43,6 +43,8 @@ type UserUseCaseMock struct {
 	MockRegisterStaffFn                 func(ctx context.Context, input dto.StaffRegistrationInput) (*dto.StaffRegistrationOutput, error)
 	MockDeleteUserFn                    func(ctx context.Context, payload *dto.PhoneInput) (bool, error)
 	MockTransferClientToFacilityFn      func(ctx context.Context, clientID *string, facilityID *string) (bool, error)
+	MockSetStaffDefaultFacilityFn       func(ctx context.Context, userID string, facilityID string) (bool, error)
+	MockSetClientDefaultFacilityFn      func(ctx context.Context, userID string, facilityID string) (bool, error)
 }
 
 // NewUserUseCaseMock creates in initializes create type mocks
@@ -235,6 +237,12 @@ func NewUserUseCaseMock() *UserUseCaseMock {
 		MockTransferClientToFacilityFn: func(ctx context.Context, clientID *string, facilityID *string) (bool, error) {
 			return true, nil
 		},
+		MockSetStaffDefaultFacilityFn: func(ctx context.Context, userID string, facilityID string) (bool, error) {
+			return true, nil
+		},
+		MockSetClientDefaultFacilityFn: func(ctx context.Context, userID string, facilityID string) (bool, error) {
+			return true, nil
+		},
 	}
 }
 
@@ -371,4 +379,14 @@ func (f *UserUseCaseMock) DeleteUser(ctx context.Context, payload *dto.PhoneInpu
 // TransferClientToFacility mocks the implementation of transferring a client to a facility
 func (f *UserUseCaseMock) TransferClientToFacility(ctx context.Context, clientID *string, facilityID *string) (bool, error) {
 	return f.MockTransferClientToFacilityFn(ctx, clientID, facilityID)
+}
+
+// SetStaffDefaultFacility mocks the implementation of setting a default facility for a staff
+func (f *UserUseCaseMock) SetStaffDefaultFacility(ctx context.Context, userID string, facilityID string) (bool, error) {
+	return f.MockSetStaffDefaultFacilityFn(ctx, userID, facilityID)
+}
+
+// SetClientDefaultFacility mocks the implementation of setting a default facility for a client
+func (f *UserUseCaseMock) SetClientDefaultFacility(ctx context.Context, userID string, facilityID string) (bool, error) {
+	return f.MockSetClientDefaultFacilityFn(ctx, userID, facilityID)
 }
