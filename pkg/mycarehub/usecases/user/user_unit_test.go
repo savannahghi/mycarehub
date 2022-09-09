@@ -2646,7 +2646,7 @@ func TestUseCasesUserImpl_RegisterClient(t *testing.T) {
 				fakePubsub.MockNotifyCreatePatientFn = func(ctx context.Context, client *dto.PatientCreationOutput) error {
 					return nil
 				}
-				fakePubsub.MockNotifyCreateCMSUserFn = func(ctx context.Context, user *dto.CMSClientOutput) error {
+				fakePubsub.MockNotifyCreateCMSUserFn = func(ctx context.Context, user *dto.PubsubCreateCMSClientPayload) error {
 					return fmt.Errorf("unable to publish cms user to pubsub")
 				}
 			}
@@ -4503,6 +4503,7 @@ func TestUseCasesUserImpl_RegisterStaff(t *testing.T) {
 		Flavour:      feedlib.FlavourConsumer,
 	}
 
+	dob := time.Now()
 	userProfile := &domain.User{
 		ID:               &ID,
 		Username:         gofakeit.Name(),
@@ -4512,6 +4513,7 @@ func TestUseCasesUserImpl_RegisterStaff(t *testing.T) {
 		Gender:           enumutils.GenderMale,
 		FailedLoginCount: 3,
 		Contacts:         phone,
+		DateOfBirth:      &dob,
 	}
 
 	facility := &domain.Facility{
@@ -4633,6 +4635,14 @@ func TestUseCasesUserImpl_RegisterStaff(t *testing.T) {
 			},
 			wantErr: false,
 		},
+		{
+			name: "Sad case: unable to publish cms staff to pubsub",
+			args: args{
+				ctx:   context.Background(),
+				input: *payload,
+			},
+			wantErr: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -4680,6 +4690,9 @@ func TestUseCasesUserImpl_RegisterStaff(t *testing.T) {
 				}
 				fakeDB.MockAssignRolesFn = func(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error) {
 					return true, nil
+				}
+				fakePubsub.MockNotifyCreateCMSStaffFn = func(ctx context.Context, user *dto.PubsubCreateCMSStaffPayload) error {
+					return nil
 				}
 			}
 			if tt.name == "Sad Case - unable to check facility exists" {
@@ -4796,6 +4809,12 @@ func TestUseCasesUserImpl_RegisterStaff(t *testing.T) {
 					return false, fmt.Errorf("failed to invite user")
 				}
 			}
+			if tt.name == "Sad case: unable to publish cms staff to pubsub" {
+				fakePubsub.MockNotifyCreateCMSStaffFn = func(ctx context.Context, user *dto.PubsubCreateCMSStaffPayload) error {
+					return fmt.Errorf("failed to publish cms staff to pubsub")
+				}
+			}
+
 			_, err := us.RegisterStaff(tt.args.ctx, tt.args.input)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCasesUserImpl.RegisterStaff() error = %v, wantErr %v", err, tt.wantErr)
