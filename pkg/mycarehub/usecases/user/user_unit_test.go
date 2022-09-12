@@ -4116,6 +4116,30 @@ func TestUseCasesUserImpl_DeleteUser(t *testing.T) {
 			want:    true,
 			wantErr: false,
 		},
+		{
+			name: "Sad Case - unable to delete cms client via pub sub",
+			args: args{
+				ctx: ctx,
+				payload: &dto.PhoneInput{
+					PhoneNumber: "",
+					Flavour:     feedlib.FlavourConsumer,
+				},
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Sad Case - unable to delete cms staff via pub sub",
+			args: args{
+				ctx: ctx,
+				payload: &dto.PhoneInput{
+					PhoneNumber: "",
+					Flavour:     feedlib.FlavourPro,
+				},
+			},
+			want:    true,
+			wantErr: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -4193,6 +4217,17 @@ func TestUseCasesUserImpl_DeleteUser(t *testing.T) {
 			if tt.name == "Sad Case - unable to delete FHIR patient profile" {
 				fakeClinical.MockDeleteFHIRPatientByPhoneFn = func(ctx context.Context, phoneNumber string) error {
 					return fmt.Errorf("failed to delete FHIR patient profile")
+				}
+			}
+			if tt.name == "Sad Case - unable to delete cms client via pub sub" {
+				fakePubsub.MockNotifyDeleteCMSClientFn = func(ctx context.Context, user *dto.DeleteCMSUserPayload) error {
+					return fmt.Errorf("failed to delete cms client")
+				}
+			}
+
+			if tt.name == "Sad Case - unable to delete cms staff via pub sub" {
+				fakePubsub.MockNotifyDeleteCMSStaffFn = func(ctx context.Context, user *dto.DeleteCMSUserPayload) error {
+					return fmt.Errorf("failed to delete cms staff")
 				}
 			}
 

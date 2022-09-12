@@ -30,4 +30,10 @@ const (
 
 	// CreateCMSClientTopicName is the topic where cms user who is to be created, is published to.
 	CreateCMSClientTopicName = "cms.client.create"
+
+	// DeleteCMSClientTopicName is the topic where cms user who is to be deleted, is published to.
+	DeleteCMSClientTopicName = "cms.client.delete"
+
+	// DeleteCMSStaffTopicName is the topic where cms staff who is to be deleted, is published to.
+	DeleteCMSStaffTopicName = "cms.staff.delete"
 )

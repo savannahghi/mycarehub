@@ -22,7 +22,10 @@ const (
 )
 
 var (
-	registerClientAPIEndpoint = serverutils.MustGetEnvVar("CLIENT_REGISTRATION_URL")
+	registerClientPath = "client_registration"
+	cmsServiceBaseURL  = serverutils.MustGetEnvVar("CONTENT_SERVICE_BASE_URL")
+	removeClientPath   = "client_remove"
+	removeStaffPath    = "staff_remove"
 )
 
 // ReceivePubSubPushMessages receives and processes a pubsub message
@@ -169,6 +172,7 @@ func (ps ServicePubSubMessaging) ReceivePubSubPushMessages(
 			OrganisationID: data.OrganisationID,
 		}
 
+		registerClientAPIEndpoint := fmt.Sprintf("%s/%s", cmsServiceBaseURL, registerClientPath)
 		resp, err := ps.baseExt.MakeRequest(ctx, http.MethodPost, registerClientAPIEndpoint, clientInput)
 		if err != nil {
 			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
@@ -178,6 +182,66 @@ func (ps ServicePubSubMessaging) ReceivePubSubPushMessages(
 			return
 		}
 		if resp.StatusCode != http.StatusCreated {
+			err := fmt.Errorf("invalid status code :%v", resp.StatusCode)
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusBadRequest)
+			return
+		}
+
+	case ps.AddPubSubNamespace(common.DeleteCMSClientTopicName, MyCareHubServiceName):
+		var data dto.DeleteCMSUserPayload
+		err := json.Unmarshal(message.Message.Data, &data)
+		if err != nil {
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusBadRequest)
+			return
+		}
+
+		deleteClientAPIEndpoint := fmt.Sprintf("%s/%s/%s", cmsServiceBaseURL, removeClientPath, data.UserID)
+		resp, err := ps.baseExt.MakeRequest(ctx, http.MethodDelete, deleteClientAPIEndpoint, nil)
+		if err != nil {
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusBadRequest)
+			return
+		}
+
+		if resp.StatusCode != http.StatusOK {
+			err := fmt.Errorf("invalid status code :%v", resp.StatusCode)
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusBadRequest)
+			return
+		}
+
+	case ps.AddPubSubNamespace(common.DeleteCMSStaffTopicName, MyCareHubServiceName):
+		var data dto.DeleteCMSUserPayload
+		err := json.Unmarshal(message.Message.Data, &data)
+		if err != nil {
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusBadRequest)
+			return
+		}
+
+		deleteStaffAPIEndpoint := fmt.Sprintf("%s/%s/%s", cmsServiceBaseURL, removeStaffPath, data.UserID)
+		resp, err := ps.baseExt.MakeRequest(ctx, http.MethodDelete, deleteStaffAPIEndpoint, nil)
+		if err != nil {
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusBadRequest)
+			return
+		}
+
+		if resp.StatusCode != http.StatusOK {
 			err := fmt.Errorf("invalid status code :%v", resp.StatusCode)
 			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
 				Err:     err,

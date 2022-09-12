@@ -21,7 +21,7 @@ import (
 
 var (
 	contentAPIEndpoint = serverutils.MustGetEnvVar("CONTENT_API_URL")
-	contentBaseURL     = serverutils.MustGetEnvVar("CONTENT_BASE_URL")
+	contentBaseURL     = serverutils.MustGetEnvVar("CONTENT_SERVICE_BASE_URL")
 )
 
 // IGetContent is used to fetch content from the CMS
