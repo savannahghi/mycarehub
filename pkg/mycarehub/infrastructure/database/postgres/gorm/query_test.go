@@ -4712,3 +4712,163 @@ func TestPGInstance_GetClientsSurveyServiceRequest(t *testing.T) {
 		})
 	}
 }
+
+func TestPGInstance_GetStaffFacilities(t *testing.T) {
+	invalidID := "invalid"
+	type args struct {
+		ctx           context.Context
+		staffFacility gorm.StaffFacilities
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "happy case: get staff facilities by staff ID",
+			args: args{
+				ctx: context.Background(),
+				staffFacility: gorm.StaffFacilities{
+					StaffID: &staffID,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "happy case: get staff facilities by facility ID",
+			args: args{
+				ctx: context.Background(),
+				staffFacility: gorm.StaffFacilities{
+					FacilityID: &facilityID,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "happy case: get staff facilities by facility ID and staff ID",
+			args: args{
+				ctx: context.Background(),
+				staffFacility: gorm.StaffFacilities{
+					StaffID:    &staffID,
+					FacilityID: &facilityID,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "sad case: failed to get staff facilities, invalid staff ID",
+			args: args{
+				ctx: context.Background(),
+				staffFacility: gorm.StaffFacilities{
+					StaffID:    &invalidID,
+					FacilityID: &facilityID,
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "sad case: failed to get staff facilities, invalid facility ID",
+			args: args{
+				ctx: context.Background(),
+				staffFacility: gorm.StaffFacilities{
+					StaffID:    &staffID,
+					FacilityID: &invalidID,
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := testingDB.GetStaffFacilities(tt.args.ctx, tt.args.staffFacility)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.GetStaffFacilities() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("did not expect error, got: %v", err)
+			}
+		})
+	}
+}
+
+func TestPGInstance_GetClientFacilities(t *testing.T) {
+	invalidID := "invalid"
+	type args struct {
+		ctx            context.Context
+		clientFacility gorm.ClientFacilities
+	}
+	tests := []struct {
+		name string
+		args args
+
+		wantErr bool
+	}{
+		{
+			name: "happy case: get client facilities by client ID",
+			args: args{
+				ctx: context.Background(),
+				clientFacility: gorm.ClientFacilities{
+					ClientID: &clientID,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "happy case: get client facilities by facility ID",
+			args: args{
+				ctx: context.Background(),
+				clientFacility: gorm.ClientFacilities{
+					FacilityID: &facilityID,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "happy case: get client facilities by facility ID and client ID",
+			args: args{
+				ctx: context.Background(),
+				clientFacility: gorm.ClientFacilities{
+					ClientID:   &clientID,
+					FacilityID: &facilityID,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "sad case: failed to get client facilities, invalid client ID",
+			args: args{
+				ctx: context.Background(),
+				clientFacility: gorm.ClientFacilities{
+					ClientID:   &invalidID,
+					FacilityID: &facilityID,
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "sad case: failed to get client facilities, invalid facility ID",
+			args: args{
+				ctx: context.Background(),
+				clientFacility: gorm.ClientFacilities{
+					ClientID:   &clientID,
+					FacilityID: &invalidID,
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			got, err := testingDB.GetClientFacilities(tt.args.ctx, tt.args.clientFacility)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.GetClientFacilities() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("did not expect error, got: %v", err)
+			}
+		})
+	}
+}

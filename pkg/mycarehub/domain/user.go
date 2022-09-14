@@ -88,10 +88,11 @@ type ClientProfile struct {
 	FacilityID   string `json:"facilityID"`
 	FacilityName string `json:"facilityName"`
 
-	CHVUserID   *string `json:"chvUserID"`
-	CHVUserName string  `json:"chvUserName"`
-	CaregiverID *string `json:"caregiverID"`
-	CCCNumber   string  `json:"CCCNumber"`
+	CHVUserID   *string    `json:"chvUserID"`
+	CHVUserName string     `json:"chvUserName"`
+	CaregiverID *string    `json:"caregiverID"`
+	CCCNumber   string     `json:"CCCNumber"`
+	Facilities  []Facility `json:"facilities"` // TODO: needs at least one
 }
 
 // StaffProfile represents the staff profile model

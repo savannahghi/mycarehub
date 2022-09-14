@@ -691,3 +691,15 @@ type SurveyResponseInput struct {
 	FormID      string
 	SubmitterID int
 }
+
+// StaffFacilityInput is the input for getting a staff facility from the through table
+type StaffFacilityInput struct {
+	StaffID    string `json:"staffID"`
+	FacilityID string `json:"facilityID"`
+}
+
+// ClientFacilityInput is the input for getting a client facility from the through table
+type ClientFacilityInput struct {
+	ClientID   string `json:"clientID"`
+	FacilityID string `json:"facilityID"`
+}

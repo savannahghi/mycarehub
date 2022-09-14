@@ -2,6 +2,7 @@ package user
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"strconv"
@@ -31,6 +32,7 @@ import (
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/utils"
 	"github.com/savannahghi/scalarutils"
 	"github.com/savannahghi/serverutils"
+	pkgGorm "gorm.io/gorm"
 )
 
 // ILogin is an interface that contans login related methods
@@ -127,6 +129,14 @@ type IDeleteUser interface {
 	DeleteUser(ctx context.Context, payload *dto.PhoneInput) (bool, error)
 }
 
+// IUserFacility interface represents the user facility usecases
+type IUserFacility interface {
+	// SetDefaultFacility enables a client or a staff user to set their default facility from
+	// a list of their assigned facilities
+	SetStaffDefaultFacility(ctx context.Context, userID string, facilityID string) (bool, error)
+	SetClientDefaultFacility(ctx context.Context, userID string, facilityID string) (bool, error)
+}
+
 // UseCasesUser group all business logic usecases related to user
 type UseCasesUser interface {
 	ILogin
@@ -146,6 +156,7 @@ type UseCasesUser interface {
 	IUserProfile
 	IClientProfile
 	IDeleteUser
+	IUserFacility
 }
 
 // UseCasesUserImpl represents user implementation object
@@ -1460,5 +1471,61 @@ func (us *UseCasesUserImpl) TransferClientToFacility(ctx context.Context, client
 			return false, exceptions.InternalErr(err)
 		}
 	}
+	return true, nil
+}
+
+// SetStaffDefaultFacility enables a staff to set the default facility
+func (us *UseCasesUserImpl) SetStaffDefaultFacility(ctx context.Context, userID string, facilityID string) (bool, error) {
+	staff, err := us.Query.GetStaffProfileByUserID(ctx, userID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, err
+	}
+
+	_, err = us.Query.GetStaffFacilities(ctx, dto.StaffFacilityInput{StaffID: *staff.ID, FacilityID: facilityID})
+	if err != nil {
+		if errors.Is(err, pkgGorm.ErrRecordNotFound) {
+			return false, fmt.Errorf("staff user does not have  facility ID %s", facilityID)
+		}
+		return false, fmt.Errorf("failed to get staff facilities %w", err)
+	}
+
+	update := map[string]interface{}{
+		"default_facility_id": facilityID,
+	}
+	err = us.Update.UpdateStaff(ctx, staff, update)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, err
+	}
+	return true, nil
+}
+
+// SetClientDefaultFacility enables a client to set the default facility
+func (us *UseCasesUserImpl) SetClientDefaultFacility(ctx context.Context, userID string, facilityID string) (bool, error) {
+
+	client, err := us.Query.GetClientProfileByUserID(ctx, userID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, err
+	}
+
+	_, err = us.Query.GetClientFacilities(ctx, dto.ClientFacilityInput{ClientID: *client.ID, FacilityID: facilityID})
+	if err != nil {
+		if errors.Is(err, pkgGorm.ErrRecordNotFound) {
+			return false, fmt.Errorf("client user does not have  facility ID %s", facilityID)
+		}
+		return false, fmt.Errorf("failed to get client facilities %w", err)
+	}
+
+	update := map[string]interface{}{
+		"current_facility_id": facilityID,
+	}
+	_, err = us.Update.UpdateClient(ctx, client, update)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, err
+	}
+
 	return true, nil
 }

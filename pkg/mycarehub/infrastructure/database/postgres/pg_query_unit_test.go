@@ -6653,3 +6653,150 @@ func TestMyCareHubDb_GetSurveyServiceRequestUser(t *testing.T) {
 		})
 	}
 }
+
+func TestMyCareHubDb_GetStaffFacilities(t *testing.T) {
+	ctx := context.Background()
+	type args struct {
+		ctx   context.Context
+		input dto.StaffFacilityInput
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "happy case: get staff facilities",
+			args: args{
+				ctx: ctx,
+				input: dto.StaffFacilityInput{
+					StaffID:    uuid.NewString(),
+					FacilityID: uuid.NewString(),
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "sad case: failed to get staff facilities",
+			args: args{
+				ctx: ctx,
+				input: dto.StaffFacilityInput{
+					StaffID:    uuid.NewString(),
+					FacilityID: uuid.NewString(),
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "sad case: failed to retrieve facility",
+			args: args{
+				ctx: ctx,
+				input: dto.StaffFacilityInput{
+					StaffID:    uuid.NewString(),
+					FacilityID: uuid.NewString(),
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeGorm := gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+			if tt.name == "sad case: failed to get staff facilities" {
+				fakeGorm.MockGetStaffFacilitiesFn = func(ctx context.Context, staffFacility gorm.StaffFacilities) ([]gorm.StaffFacilities, error) {
+					return nil, fmt.Errorf("failed to get staff facilities")
+				}
+			}
+			if tt.name == "sad case: failed to retrieve facility" {
+				fakeGorm.MockRetrieveFacilityFn = func(ctx context.Context, id *string, isActive bool) (*gorm.Facility, error) {
+					return nil, fmt.Errorf("failed to retrieve facility")
+				}
+			}
+
+			got, err := d.GetStaffFacilities(tt.args.ctx, tt.args.input)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.GetStaffFacilities() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("did not expect error, got: %v", err)
+			}
+		})
+	}
+}
+
+func TestMyCareHubDb_GetClientFacilities(t *testing.T) {
+	ctx := context.Background()
+
+	type args struct {
+		ctx   context.Context
+		input dto.ClientFacilityInput
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "happy case: get client facilities",
+			args: args{
+				ctx: ctx,
+				input: dto.ClientFacilityInput{
+					ClientID:   uuid.NewString(),
+					FacilityID: uuid.NewString(),
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "sad case: failed to get client facilities",
+			args: args{
+				ctx: ctx,
+				input: dto.ClientFacilityInput{
+					ClientID:   uuid.NewString(),
+					FacilityID: uuid.NewString(),
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "sad case: failed to retrieve facility",
+			args: args{
+				ctx: ctx,
+				input: dto.ClientFacilityInput{
+					ClientID:   uuid.NewString(),
+					FacilityID: uuid.NewString(),
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			fakeGorm := gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			if tt.name == "sad case: failed to get client facilities" {
+				fakeGorm.MockGetClientFacilitiesFn = func(ctx context.Context, clientFacility gorm.ClientFacilities) ([]gorm.ClientFacilities, error) {
+					return nil, fmt.Errorf("failed to get client facilities")
+				}
+			}
+			if tt.name == "sad case: failed to retrieve facility" {
+				fakeGorm.MockRetrieveFacilityFn = func(ctx context.Context, id *string, isActive bool) (*gorm.Facility, error) {
+					return nil, fmt.Errorf("failed to retrieve facility")
+				}
+			}
+
+			got, err := d.GetClientFacilities(tt.args.ctx, tt.args.input)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.GetClientFacilities() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("did not expect error, got: %v", err)
+			}
+		})
+	}
+}

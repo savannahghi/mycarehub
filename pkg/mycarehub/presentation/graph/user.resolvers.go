@@ -58,6 +58,14 @@ func (r *mutationResolver) TransferClientToFacility(ctx context.Context, clientI
 	return r.mycarehub.User.TransferClientToFacility(ctx, &clientID, &facilityID)
 }
 
+func (r *mutationResolver) SetStaffDefaultFacility(ctx context.Context, userID string, facilityID string) (bool, error) {
+	return r.mycarehub.User.SetStaffDefaultFacility(ctx, userID, facilityID)
+}
+
+func (r *mutationResolver) SetClientDefaultFacility(ctx context.Context, userID string, facilityID string) (bool, error) {
+	return r.mycarehub.User.SetClientDefaultFacility(ctx, userID, facilityID)
+}
+
 func (r *queryResolver) GetCurrentTerms(ctx context.Context, flavour feedlib.Flavour) (*domain.TermsOfService, error) {
 	r.checkPreconditions()
 	return r.mycarehub.Terms.GetCurrentTerms(ctx, flavour)

@@ -38,6 +38,7 @@ type Update interface {
 	UpdateUser(ctx context.Context, user *User, updateData map[string]interface{}) error
 	UpdateNotification(ctx context.Context, notification *Notification, updateData map[string]interface{}) error
 	UpdateClientServiceRequest(ctx context.Context, clientServiceRequest *ClientServiceRequest, updateData map[string]interface{}) error
+	UpdateStaff(ctx context.Context, staff *StaffProfile, updates map[string]interface{}) (*StaffProfile, error)
 }
 
 // ReactivateFacility performs the actual re-activation of the facility in the database
@@ -622,4 +623,46 @@ func (db *PGInstance) UpdateClientServiceRequest(ctx context.Context, clientServ
 	}
 
 	return nil
+}
+
+// UpdateStaff updates staff profile information
+func (db *PGInstance) UpdateStaff(ctx context.Context, staff *StaffProfile, updates map[string]interface{}) (*StaffProfile, error) {
+	updateStaff := &StaffProfile{}
+
+	if staff.ID == nil {
+		return nil, fmt.Errorf("staff id is required")
+	}
+
+	tx := db.DB.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+	if err := tx.Error; err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, fmt.Errorf("failed to initialize database transaction %v", err)
+	}
+
+	err := tx.Model(updateStaff).Where(staff).Updates(updates).Error
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		tx.Rollback()
+		return nil, fmt.Errorf("failed to update staff profile: %v", err)
+	}
+
+	err = tx.First(updateStaff, staff.ID).Error
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		tx.Rollback()
+		return nil, fmt.Errorf("failed to retrieve staff profile: %v", err)
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		helpers.ReportErrorToSentry(err)
+		tx.Rollback()
+		return nil, fmt.Errorf("failed transaction commit to update staff profile: %v", err)
+	}
+
+	return updateStaff, nil
 }

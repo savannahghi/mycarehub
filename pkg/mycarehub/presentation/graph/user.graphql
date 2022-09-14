@@ -23,5 +23,7 @@ extend type Mutation {
     reinvite: Boolean
   ): Boolean!
   setUserPIN(input: PINInput): Boolean!
-  transferClientToFacility(clientId: ID!, facilityId: ID!): Boolean!
+  transferClientToFacility(clientId: ID!, facilityID: ID!): Boolean!
+  setStaffDefaultFacility(userID: ID!, facilityID: ID!) : Boolean!
+  setClientDefaultFacility(userID: ID!, facilityID: ID!) : Boolean!
 }

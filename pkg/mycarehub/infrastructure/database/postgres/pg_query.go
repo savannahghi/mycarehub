@@ -300,6 +300,11 @@ func (d *MyCareHubDb) GetClientProfileByUserID(ctx context.Context, userID strin
 		return nil, err
 	}
 
+	facilities, err := d.GetClientFacilities(ctx, dto.ClientFacilityInput{ClientID: *client.ID})
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+	}
+
 	user := createMapUser(&client.User)
 	return &domain.ClientProfile{
 		ID:                      client.ID,
@@ -314,6 +319,7 @@ func (d *MyCareHubDb) GetClientProfileByUserID(ctx context.Context, userID strin
 		OrganisationID:          client.OrganisationID,
 		FacilityID:              client.FacilityID,
 		FacilityName:            facility.Name,
+		Facilities:              facilities,
 		CHVUserID:               client.CHVUserID,
 	}, nil
 }
@@ -336,17 +342,10 @@ func (d *MyCareHubDb) GetStaffProfileByUserID(ctx context.Context, userID string
 		return nil, fmt.Errorf("unable to get the staff facility: %v", err)
 	}
 
-	var facility []domain.Facility
-	domainFacility := &domain.Facility{
-		ID:          staffDefaultFacility.FacilityID,
-		Name:        staffDefaultFacility.Name,
-		Code:        staffDefaultFacility.Code,
-		Phone:       staffDefaultFacility.Phone,
-		Active:      staffDefaultFacility.Active,
-		County:      staffDefaultFacility.County,
-		Description: staffDefaultFacility.Description,
+	facilities, err := d.GetStaffFacilities(ctx, dto.StaffFacilityInput{StaffID: *staff.ID})
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
 	}
-	facility = append(facility, *domainFacility)
 
 	user := createMapUser(&staff.UserProfile)
 	return &domain.StaffProfile{
@@ -355,7 +354,7 @@ func (d *MyCareHubDb) GetStaffProfileByUserID(ctx context.Context, userID string
 		UserID:              staff.UserID,
 		Active:              staff.Active,
 		StaffNumber:         staff.StaffNumber,
-		Facilities:          facility,
+		Facilities:          facilities,
 		DefaultFacilityID:   staff.DefaultFacilityID,
 		DefaultFacilityName: staffDefaultFacility.Name,
 	}, nil
@@ -2389,4 +2388,91 @@ func (d *MyCareHubDb) GetSurveyServiceRequestUser(ctx context.Context, facilityI
 	}
 
 	return mapped, pageInfo, nil
+}
+
+// GetStaffFacilities gets a list of staff facilities
+func (d *MyCareHubDb) GetStaffFacilities(ctx context.Context, input dto.StaffFacilityInput) ([]domain.Facility, error) {
+	facilities := []domain.Facility{}
+
+	staffFacility := gorm.StaffFacilities{}
+
+	if input.StaffID != "" {
+		staffFacility = gorm.StaffFacilities{
+			StaffID: &input.StaffID,
+		}
+	}
+	if input.FacilityID != "" {
+		staffFacility = gorm.StaffFacilities{
+			FacilityID: &input.FacilityID,
+		}
+	}
+
+	staffFacilities, err := d.query.GetStaffFacilities(ctx, staffFacility)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, f := range staffFacilities {
+		facility, err := d.query.RetrieveFacility(ctx, f.FacilityID, true)
+		if err != nil {
+			return nil, err
+		}
+
+		facilities = append(facilities, domain.Facility{
+			ID:                 facility.FacilityID,
+			Name:               facility.Name,
+			Code:               facility.Code,
+			Phone:              facility.Phone,
+			Active:             facility.Active,
+			County:             facility.County,
+			Description:        facility.Description,
+			FHIROrganisationID: facility.FHIROrganisationID,
+		})
+	}
+
+	return facilities, nil
+
+}
+
+// GetClientFacilities gets a list of client facilities
+func (d *MyCareHubDb) GetClientFacilities(ctx context.Context, input dto.ClientFacilityInput) ([]domain.Facility, error) {
+	facilities := []domain.Facility{}
+
+	clientFacility := gorm.ClientFacilities{}
+
+	if input.ClientID != "" {
+		clientFacility = gorm.ClientFacilities{
+			ClientID: &input.ClientID,
+		}
+	}
+	if input.FacilityID != "" {
+		clientFacility = gorm.ClientFacilities{
+			FacilityID: &input.FacilityID,
+		}
+	}
+
+	clientFacilities, err := d.query.GetClientFacilities(ctx, clientFacility)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, f := range clientFacilities {
+		facility, err := d.query.RetrieveFacility(ctx, f.FacilityID, true)
+		if err != nil {
+			return nil, err
+		}
+
+		facilities = append(facilities, domain.Facility{
+			ID:                 facility.FacilityID,
+			Name:               facility.Name,
+			Code:               facility.Code,
+			Phone:              facility.Phone,
+			Active:             facility.Active,
+			County:             facility.County,
+			Description:        facility.Description,
+			FHIROrganisationID: facility.FHIROrganisationID,
+		})
+	}
+
+	return facilities, nil
 }
