@@ -1547,3 +1547,60 @@ func TestPGInstance_AddFacilitiesToStaffProfile(t *testing.T) {
 		})
 	}
 }
+
+func TestPGInstance_AddFacilitiesToClientProfile(t *testing.T) {
+	type args struct {
+		ctx        context.Context
+		clientID   string
+		facilities []string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: add new facility",
+			args: args{
+				ctx:        context.Background(),
+				clientID:   clientID,
+				facilities: []string{facilityToAddToUserProfile},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Happy case: should not error when user has existing facility",
+			args: args{
+				ctx:        context.Background(),
+				clientID:   clientID,
+				facilities: []string{facilityToAddToUserProfile, facilityID},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: Invalid Client ID",
+			args: args{
+				ctx:        context.Background(),
+				clientID:   "invalid",
+				facilities: []string{facilityToAddToUserProfile},
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: Invalid facility ID",
+			args: args{
+				ctx:        context.Background(),
+				clientID:   clientID,
+				facilities: []string{facilityToAddToUserProfile, "Invalid"},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := testingDB.AddFacilitiesToClientProfile(tt.args.ctx, tt.args.clientID, tt.args.facilities); (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.AddFacilitiesToClientProfile() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}

@@ -5301,3 +5301,83 @@ func TestUseCasesUserImpl_GetUserLinkedFacilities(t *testing.T) {
 		})
 	}
 }
+
+func TestUseCasesUserImpl_AddFacilitiesToClientProfile(t *testing.T) {
+	type args struct {
+		ctx        context.Context
+		clientID   string
+		facilities []string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy case: assign facilities to clients",
+			args: args{
+				ctx:        context.Background(),
+				clientID:   uuid.NewString(),
+				facilities: []string{uuid.NewString()},
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Sad case: missing client id",
+			args: args{
+				ctx:        context.Background(),
+				facilities: []string{uuid.NewString()},
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case: missing facility id",
+			args: args{
+				ctx:      context.Background(),
+				clientID: uuid.NewString(),
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case: failed to assign facilities to clients",
+			args: args{
+				ctx:        context.Background(),
+				clientID:   uuid.NewString(),
+				facilities: []string{uuid.NewString()},
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			fakeExtension := extensionMock.NewFakeExtension()
+			fakeOTP := otpMock.NewOTPUseCaseMock()
+			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
+			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
+			fakePubsub := pubsubMock.NewPubsubServiceMock()
+			fakeClinical := clinicalMock.NewClinicalServiceMock()
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakeGetStream, fakePubsub, fakeClinical)
+
+			if tt.name == "Sad case: failed to assign facilities to clients" {
+				fakeDB.MockAddFacilitiesToClientProfileFn = func(ctx context.Context, clientID string, facilities []string) error {
+					return fmt.Errorf("error adding facilities to client profile")
+				}
+			}
+
+			got, err := us.AddFacilitiesToClientProfile(tt.args.ctx, tt.args.clientID, tt.args.facilities)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCasesUserImpl.AddFacilitiesToClientProfile() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("UseCasesUserImpl.AddFacilitiesToClientProfile() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

@@ -164,5 +164,6 @@ type Update interface {
 	UpdateUserSurveys(ctx context.Context, survey *domain.UserSurvey, updateData map[string]interface{}) error
 	UpdateClientServiceRequest(ctx context.Context, serviceRequest *domain.ServiceRequest, updateData map[string]interface{}) error
 	UpdateStaff(ctx context.Context, staff *domain.StaffProfile, updates map[string]interface{}) error
+	AddFacilitiesToClientProfile(ctx context.Context, clientID string, facilities []string) error
 	AddFacilitiesToStaffProfile(ctx context.Context, staffID string, facilities []string) error
 }
