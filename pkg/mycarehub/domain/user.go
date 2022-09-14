@@ -113,6 +113,7 @@ type StaffProfile struct {
 	// TODO: the list of facilities to switch between is strictly those that the user is assigned to
 	DefaultFacilityID   string `json:"default_facility"` // TODO: required, FK to facility
 	DefaultFacilityName string `json:"defaultFacilityName"`
+	OrganisationID      string `json:"organisationID"`
 }
 
 // AuthCredentials is the authentication credentials for a given user
