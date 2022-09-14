@@ -36,4 +36,7 @@ const (
 
 	// DeleteCMSStaffTopicName is the topic where cms staff who is to be deleted, is published to.
 	DeleteCMSStaffTopicName = "cms.staff.delete"
+
+	// CreateCMSStaffTopicName is the topic where cms user(staff in this case) is to be created, is published to.
+	CreateCMSStaffTopicName = "cms.staff.create"
 )

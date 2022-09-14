@@ -568,7 +568,7 @@ func (d *MyCareHubDb) SaveFeedback(ctx context.Context, payload *domain.Feedback
 
 // RegisterStaff registers a new staff member into the portal
 func (d *MyCareHubDb) RegisterStaff(ctx context.Context, payload *domain.StaffRegistrationPayload) (*domain.StaffProfile, error) {
-	usr := &gorm.User{
+	user := &gorm.User{
 		Username:    payload.UserProfile.Username,
 		Name:        payload.UserProfile.Name,
 		Gender:      payload.UserProfile.Gender,
@@ -601,7 +601,7 @@ func (d *MyCareHubDb) RegisterStaff(ctx context.Context, payload *domain.StaffRe
 		DefaultFacilityID: payload.Staff.DefaultFacilityID,
 	}
 
-	staff, err := d.create.RegisterStaff(ctx, usr, contact, identifier, staffProfile)
+	staff, err := d.create.RegisterStaff(ctx, user, contact, identifier, staffProfile)
 	if err != nil {
 		return nil, err
 	}
@@ -612,6 +612,8 @@ func (d *MyCareHubDb) RegisterStaff(ctx context.Context, payload *domain.StaffRe
 		Active:            staff.Active,
 		StaffNumber:       staff.StaffNumber,
 		DefaultFacilityID: staff.DefaultFacilityID,
+		User:              createMapUser(user),
+		OrganisationID:    staff.OrganisationID,
 	}, nil
 }
 
