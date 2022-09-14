@@ -39,6 +39,7 @@ type Update interface {
 	UpdateNotification(ctx context.Context, notification *Notification, updateData map[string]interface{}) error
 	UpdateClientServiceRequest(ctx context.Context, clientServiceRequest *ClientServiceRequest, updateData map[string]interface{}) error
 	UpdateStaff(ctx context.Context, staff *StaffProfile, updates map[string]interface{}) (*StaffProfile, error)
+	AddFacilitiesToStaffProfile(ctx context.Context, staffID string, facilities []string) error
 }
 
 // ReactivateFacility performs the actual re-activation of the facility in the database
@@ -665,4 +666,35 @@ func (db *PGInstance) UpdateStaff(ctx context.Context, staff *StaffProfile, upda
 	}
 
 	return updateStaff, nil
+}
+
+// AddFacilitiesToStaffProfile enables facilities to be added to the staff profile
+func (db *PGInstance) AddFacilitiesToStaffProfile(ctx context.Context, staffID string, facilities []string) error {
+	tx := db.DB.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	for _, facilityID := range facilities {
+		staffFacilities := StaffFacilities{
+			StaffID:    &staffID,
+			FacilityID: &facilityID,
+		}
+		err := tx.Where(staffFacilities).FirstOrCreate(&staffFacilities).Error
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			tx.Rollback()
+			return fmt.Errorf("failed to create staff facilities: %w", err)
+		}
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		helpers.ReportErrorToSentry(err)
+		tx.Rollback()
+		return fmt.Errorf("failed to commit add clients to facilities transaction: %w", err)
+	}
+
+	return nil
 }

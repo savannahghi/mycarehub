@@ -133,6 +133,7 @@ type IUserFacility interface {
 	// a list of their assigned facilities
 	SetStaffDefaultFacility(ctx context.Context, userID string, facilityID string) (bool, error)
 	SetClientDefaultFacility(ctx context.Context, userID string, facilityID string) (bool, error)
+	AddFacilitiesToStaffProfile(ctx context.Context, staffID string, facilities []string) (bool, error)
 }
 
 // UseCasesUser group all business logic usecases related to user
@@ -1553,5 +1554,25 @@ func (us *UseCasesUserImpl) SetClientDefaultFacility(ctx context.Context, userID
 		return false, err
 	}
 
+	return true, nil
+}
+
+// AddFacilitiesToStaffProfile updates the staff facility list
+func (us *UseCasesUserImpl) AddFacilitiesToStaffProfile(ctx context.Context, staffID string, facilities []string) (bool, error) {
+	if staffID == "" {
+		err := fmt.Errorf("staff ID cannot be empty")
+		helpers.ReportErrorToSentry(err)
+		return false, err
+	}
+	if len(facilities) < 1 {
+		err := fmt.Errorf("facilities cannot be empty")
+		helpers.ReportErrorToSentry(err)
+		return false, err
+	}
+	err := us.Update.AddFacilitiesToStaffProfile(ctx, staffID, facilities)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, fmt.Errorf("failed to update staff facilities: %w", err)
+	}
 	return true, nil
 }

@@ -45,10 +45,11 @@ var (
 	testChvID2             = "5ecbbc80-24c8-421a-9f1a-e14e12678ef4"
 	clientID               = "26b20a42-cbb8-4553-aedb-c539602d04fc"
 	// Facility variables
-	facilityID    = "4181df12-ca96-4f28-b78b-8e8ad88b25df"
-	mflCode       = 324459
-	cccNumber     = "123456"
-	appointmentID = "2fc2b603-05ef-40f1-987a-3259eab87aef"
+	facilityID                 = "4181df12-ca96-4f28-b78b-8e8ad88b25df"
+	facilityToAddToUserProfile = "5181df12-ca96-4f28-b78b-8e8ad88b25de"
+	mflCode                    = 324459
+	cccNumber                  = "123456"
+	appointmentID              = "2fc2b603-05ef-40f1-987a-3259eab87aef"
 	// Pin variables
 	salt, encryptedPin string
 	// Securityquestions variables
@@ -171,34 +172,35 @@ func setupFixtures() {
 		testfixtures.Dialect("postgres"),
 		testfixtures.Template(),
 		testfixtures.TemplateData(template.FuncMap{
-			"salt":                       salt,
-			"hash":                       encryptedPin,
-			"valid_to":                   time.Now().Add(500).String(),
-			"test_phone":                 "\"" + testPhone + "\"",
-			"test_user_id":               userID,
-			"user_with_roles_id":         userWithRolesID,
-			"test_user_id2":              userID2,
-			"staff_user_id":              userIDtoAssignStaff,
-			"test_flavour":               testFlavour,
-			"test_organisation_id":       orgID,
-			"future_time":                futureTime.String(),
-			"test_otp":                   "\"" + testOTP + "\"",
-			"treatment_buddy_id":         treatmentBuddyID,
-			"treatment_buddy_id2":        treatmentBuddyID2,
-			"test_fhir_patient_id":       fhirPatientID,
-			"test_fhir_patient_id2":      fhirPatientID2,
-			"test_emr_health_record_id":  testEmrHealthRecordID,
-			"test_emr_health_record_id2": testEmrHealthRecordID2,
-			"test_facility_id":           facilityID,
-			"test_chv_id":                testChvID,
-			"test_chv_id2":               testChvID2,
-			"test_password":              gofakeit.Password(false, false, true, true, false, 10),
-			"test_terms_id":              termsID,
-			"test_terms_text":            termsText,
-			"security_question_id":       securityQuestionID,
-			"security_question_id2":      securityQuestionID2,
-			"security_question_id3":      securityQuestionID3,
-			"security_question_id4":      securityQuestionID4,
+			"salt":                            salt,
+			"hash":                            encryptedPin,
+			"valid_to":                        time.Now().Add(500).String(),
+			"test_phone":                      "\"" + testPhone + "\"",
+			"test_user_id":                    userID,
+			"user_with_roles_id":              userWithRolesID,
+			"test_user_id2":                   userID2,
+			"staff_user_id":                   userIDtoAssignStaff,
+			"test_flavour":                    testFlavour,
+			"test_organisation_id":            orgID,
+			"future_time":                     futureTime.String(),
+			"test_otp":                        "\"" + testOTP + "\"",
+			"treatment_buddy_id":              treatmentBuddyID,
+			"treatment_buddy_id2":             treatmentBuddyID2,
+			"test_fhir_patient_id":            fhirPatientID,
+			"test_fhir_patient_id2":           fhirPatientID2,
+			"test_emr_health_record_id":       testEmrHealthRecordID,
+			"test_emr_health_record_id2":      testEmrHealthRecordID2,
+			"test_facility_id":                facilityID,
+			"facility_to_add_to_user_profile": facilityToAddToUserProfile,
+			"test_chv_id":                     testChvID,
+			"test_chv_id2":                    testChvID2,
+			"test_password":                   gofakeit.Password(false, false, true, true, false, 10),
+			"test_terms_id":                   termsID,
+			"test_terms_text":                 termsText,
+			"security_question_id":            securityQuestionID,
+			"security_question_id2":           securityQuestionID2,
+			"security_question_id3":           securityQuestionID3,
+			"security_question_id4":           securityQuestionID4,
 
 			"security_question_response_id":  securityQuestionResponseID,
 			"security_question_response_id2": securityQuestionResponseID2,

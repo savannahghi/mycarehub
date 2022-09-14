@@ -45,6 +45,7 @@ type UserUseCaseMock struct {
 	MockTransferClientToFacilityFn      func(ctx context.Context, clientID *string, facilityID *string) (bool, error)
 	MockSetStaffDefaultFacilityFn       func(ctx context.Context, userID string, facilityID string) (bool, error)
 	MockSetClientDefaultFacilityFn      func(ctx context.Context, userID string, facilityID string) (bool, error)
+	MockAddFacilitiesToStaffProfileFn   func(ctx context.Context, staffID string, facilities []string) (bool, error)
 }
 
 // NewUserUseCaseMock creates in initializes create type mocks
@@ -243,6 +244,9 @@ func NewUserUseCaseMock() *UserUseCaseMock {
 		MockSetClientDefaultFacilityFn: func(ctx context.Context, userID string, facilityID string) (bool, error) {
 			return true, nil
 		},
+		MockAddFacilitiesToStaffProfileFn: func(ctx context.Context, staffID string, facilities []string) (bool, error) {
+			return true, nil
+		},
 	}
 }
 
@@ -389,4 +393,9 @@ func (f *UserUseCaseMock) SetStaffDefaultFacility(ctx context.Context, userID st
 // SetClientDefaultFacility mocks the implementation of setting a default facility for a client
 func (f *UserUseCaseMock) SetClientDefaultFacility(ctx context.Context, userID string, facilityID string) (bool, error) {
 	return f.MockSetClientDefaultFacilityFn(ctx, userID, facilityID)
+}
+
+// AddFacilitiesToStaffProfile mocks the implementation of adding facilities to a staff profile
+func (f *UserUseCaseMock) AddFacilitiesToStaffProfile(ctx context.Context, staffID string, facilities []string) (bool, error) {
+	return f.MockAddFacilitiesToStaffProfileFn(ctx, staffID, facilities)
 }
