@@ -501,6 +501,18 @@ func (db *PGInstance) RegisterClient(ctx context.Context, user *User, contact *C
 		return nil, fmt.Errorf("failed to get or create client identifier: %v", err)
 	}
 
+	// Append client facilities
+	clientFacilities := ClientFacilities{
+		ClientID:   client.ID,
+		FacilityID: &client.FacilityID,
+	}
+	err = tx.Where(clientFacilities).Create(&clientFacilities).Error
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		tx.Rollback()
+		return nil, fmt.Errorf("failed to get client facilities: %w", err)
+	}
+
 	if err := tx.Commit().Error; err != nil {
 		tx.Rollback()
 		return nil, fmt.Errorf("failed to commit register client transaction: %v", err)
@@ -603,7 +615,7 @@ func (db *PGInstance) RegisterStaff(ctx context.Context, user *User, contact *Co
 
 	// create staff profile
 	staffProfile.UserID = *user.UserID
-	err = tx.Create(staffProfile).First(&staffProfile).Error
+	err = tx.Create(staffProfile).FirstOrCreate(&staffProfile).Error
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		tx.Rollback()
@@ -632,6 +644,18 @@ func (db *PGInstance) RegisterStaff(ctx context.Context, user *User, contact *Co
 		helpers.ReportErrorToSentry(err)
 		tx.Rollback()
 		return nil, fmt.Errorf("failed to get or create staff identifier: %w", err)
+	}
+
+	// Append staff facilities
+	staffFacilities := StaffFacilities{
+		StaffID:    staffProfile.ID,
+		FacilityID: &staffProfile.DefaultFacilityID,
+	}
+	err = tx.Where(staffFacilities).Create(&staffFacilities).Error
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		tx.Rollback()
+		return nil, fmt.Errorf("failed to get staff facilities: %w", err)
 	}
 
 	if err := tx.Commit().Error; err != nil {
