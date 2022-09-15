@@ -50,6 +50,7 @@ type Delete interface {
 	DeleteStaffProfile(ctx context.Context, staffID string) error
 	DeleteUser(ctx context.Context, userID string, clientID *string, staffID *string, flavour feedlib.Flavour) error
 	DeleteCommunity(ctx context.Context, communityID string) error
+	RemoveFacilitiesFromClientProfile(ctx context.Context, clientID string, facilities []string) error
 }
 
 // Query contains all query methods
