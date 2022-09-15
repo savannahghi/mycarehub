@@ -4718,6 +4718,7 @@ func TestPGInstance_GetStaffFacilities(t *testing.T) {
 	type args struct {
 		ctx           context.Context
 		staffFacility gorm.StaffFacilities
+		pagination    *domain.Pagination
 	}
 	tests := []struct {
 		name    string
@@ -4731,6 +4732,10 @@ func TestPGInstance_GetStaffFacilities(t *testing.T) {
 				staffFacility: gorm.StaffFacilities{
 					StaffID: &staffID,
 				},
+				pagination: &domain.Pagination{
+					Limit:       5,
+					CurrentPage: 1,
+				},
 			},
 			wantErr: false,
 		},
@@ -4740,6 +4745,10 @@ func TestPGInstance_GetStaffFacilities(t *testing.T) {
 				ctx: context.Background(),
 				staffFacility: gorm.StaffFacilities{
 					FacilityID: &facilityID,
+				},
+				pagination: &domain.Pagination{
+					Limit:       5,
+					CurrentPage: 1,
 				},
 			},
 			wantErr: false,
@@ -4751,6 +4760,10 @@ func TestPGInstance_GetStaffFacilities(t *testing.T) {
 				staffFacility: gorm.StaffFacilities{
 					StaffID:    &staffID,
 					FacilityID: &facilityID,
+				},
+				pagination: &domain.Pagination{
+					Limit:       5,
+					CurrentPage: 1,
 				},
 			},
 			wantErr: false,
@@ -4780,7 +4793,7 @@ func TestPGInstance_GetStaffFacilities(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := testingDB.GetStaffFacilities(tt.args.ctx, tt.args.staffFacility)
+			got, _, err := testingDB.GetStaffFacilities(tt.args.ctx, tt.args.staffFacility, tt.args.pagination)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("PGInstance.GetStaffFacilities() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -4797,6 +4810,7 @@ func TestPGInstance_GetClientFacilities(t *testing.T) {
 	type args struct {
 		ctx            context.Context
 		clientFacility gorm.ClientFacilities
+		pagination     *domain.Pagination
 	}
 	tests := []struct {
 		name string
@@ -4811,6 +4825,10 @@ func TestPGInstance_GetClientFacilities(t *testing.T) {
 				clientFacility: gorm.ClientFacilities{
 					ClientID: &clientID,
 				},
+				pagination: &domain.Pagination{
+					Limit:       5,
+					CurrentPage: 1,
+				},
 			},
 			wantErr: false,
 		},
@@ -4820,6 +4838,10 @@ func TestPGInstance_GetClientFacilities(t *testing.T) {
 				ctx: context.Background(),
 				clientFacility: gorm.ClientFacilities{
 					FacilityID: &facilityID,
+				},
+				pagination: &domain.Pagination{
+					Limit:       5,
+					CurrentPage: 1,
 				},
 			},
 			wantErr: false,
@@ -4831,6 +4853,10 @@ func TestPGInstance_GetClientFacilities(t *testing.T) {
 				clientFacility: gorm.ClientFacilities{
 					ClientID:   &clientID,
 					FacilityID: &facilityID,
+				},
+				pagination: &domain.Pagination{
+					Limit:       5,
+					CurrentPage: 1,
 				},
 			},
 			wantErr: false,
@@ -4861,7 +4887,7 @@ func TestPGInstance_GetClientFacilities(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			got, err := testingDB.GetClientFacilities(tt.args.ctx, tt.args.clientFacility)
+			got, _, err := testingDB.GetClientFacilities(tt.args.ctx, tt.args.clientFacility, tt.args.pagination)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("PGInstance.GetClientFacilities() error = %v, wantErr %v", err, tt.wantErr)
 				return

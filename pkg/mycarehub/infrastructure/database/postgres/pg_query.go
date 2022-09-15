@@ -300,7 +300,7 @@ func (d *MyCareHubDb) GetClientProfileByUserID(ctx context.Context, userID strin
 		return nil, err
 	}
 
-	facilities, err := d.GetClientFacilities(ctx, dto.ClientFacilityInput{ClientID: client.ID})
+	facilities, _, err := d.GetClientFacilities(ctx, dto.ClientFacilityInput{ClientID: client.ID}, nil)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 	}
@@ -342,7 +342,7 @@ func (d *MyCareHubDb) GetStaffProfileByUserID(ctx context.Context, userID string
 		return nil, fmt.Errorf("unable to get the staff facility: %v", err)
 	}
 
-	facilities, err := d.GetStaffFacilities(ctx, dto.StaffFacilityInput{StaffID: staff.ID})
+	facilities, _, err := d.GetStaffFacilities(ctx, dto.StaffFacilityInput{StaffID: staff.ID}, nil)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 	}
@@ -2391,7 +2391,7 @@ func (d *MyCareHubDb) GetSurveyServiceRequestUser(ctx context.Context, facilityI
 }
 
 // GetStaffFacilities gets a list of staff facilities
-func (d *MyCareHubDb) GetStaffFacilities(ctx context.Context, input dto.StaffFacilityInput) ([]*domain.Facility, error) {
+func (d *MyCareHubDb) GetStaffFacilities(ctx context.Context, input dto.StaffFacilityInput, pagination *domain.Pagination) ([]*domain.Facility, *domain.Pagination, error) {
 	facilities := []*domain.Facility{}
 
 	staffFacility := gorm.StaffFacilities{
@@ -2399,15 +2399,25 @@ func (d *MyCareHubDb) GetStaffFacilities(ctx context.Context, input dto.StaffFac
 		FacilityID: input.FacilityID,
 	}
 
-	staffFacilities, err := d.query.GetStaffFacilities(ctx, staffFacility)
+	staffFacilities, pageInfo, err := d.query.GetStaffFacilities(ctx, staffFacility, pagination)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	for _, f := range staffFacilities {
 		facility, err := d.query.RetrieveFacility(ctx, f.FacilityID, true)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
+		}
+
+		notification := &gorm.Notification{
+			FacilityID: facility.FacilityID,
+			Flavour:    feedlib.FlavourPro,
+		}
+
+		notificationCount, err := d.query.GetNotificationsCount(ctx, *notification)
+		if err != nil {
+			return nil, nil, err
 		}
 
 		facilities = append(facilities, &domain.Facility{
@@ -2419,15 +2429,18 @@ func (d *MyCareHubDb) GetStaffFacilities(ctx context.Context, input dto.StaffFac
 			County:             facility.County,
 			Description:        facility.Description,
 			FHIROrganisationID: facility.FHIROrganisationID,
+			WorkStationDetails: domain.WorkStationDetails{
+				Notifications: notificationCount,
+			},
 		})
 	}
 
-	return facilities, nil
+	return facilities, pageInfo, nil
 
 }
 
 // GetClientFacilities gets a list of client facilities
-func (d *MyCareHubDb) GetClientFacilities(ctx context.Context, input dto.ClientFacilityInput) ([]*domain.Facility, error) {
+func (d *MyCareHubDb) GetClientFacilities(ctx context.Context, input dto.ClientFacilityInput, pagination *domain.Pagination) ([]*domain.Facility, *domain.Pagination, error) {
 	facilities := []*domain.Facility{}
 
 	clientFacility := gorm.ClientFacilities{
@@ -2435,15 +2448,25 @@ func (d *MyCareHubDb) GetClientFacilities(ctx context.Context, input dto.ClientF
 		FacilityID: input.FacilityID,
 	}
 
-	clientFacilities, err := d.query.GetClientFacilities(ctx, clientFacility)
+	clientFacilities, pageInfo, err := d.query.GetClientFacilities(ctx, clientFacility, pagination)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	for _, f := range clientFacilities {
 		facility, err := d.query.RetrieveFacility(ctx, f.FacilityID, true)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
+		}
+
+		notification := &gorm.Notification{
+			FacilityID: facility.FacilityID,
+			Flavour:    feedlib.FlavourPro,
+		}
+
+		notificationCount, err := d.query.GetNotificationsCount(ctx, *notification)
+		if err != nil {
+			return nil, nil, err
 		}
 
 		facilities = append(facilities, &domain.Facility{
@@ -2455,8 +2478,11 @@ func (d *MyCareHubDb) GetClientFacilities(ctx context.Context, input dto.ClientF
 			County:             facility.County,
 			Description:        facility.Description,
 			FHIROrganisationID: facility.FHIROrganisationID,
+			WorkStationDetails: domain.WorkStationDetails{
+				Notifications: notificationCount,
+			},
 		})
 	}
 
-	return facilities, nil
+	return facilities, pageInfo, nil
 }

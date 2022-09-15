@@ -135,7 +135,7 @@ type IUserFacility interface {
 	SetStaffDefaultFacility(ctx context.Context, userID string, facilityID string) (bool, error)
 	SetClientDefaultFacility(ctx context.Context, userID string, facilityID string) (bool, error)
 	AddFacilitiesToStaffProfile(ctx context.Context, staffID string, facilities []string) (bool, error)
-	GetUserLinkedFacilities(ctx context.Context) ([]*domain.Facility, error)
+	GetUserLinkedFacilities(ctx context.Context, paginationInput dto.PaginationsInput) (*dto.FacilityOutputPage, error)
 }
 
 // UseCasesUser group all business logic usecases related to user
@@ -1509,7 +1509,7 @@ func (us *UseCasesUserImpl) SetStaffDefaultFacility(ctx context.Context, userID 
 		return false, err
 	}
 
-	facilities, err := us.Query.GetStaffFacilities(ctx, dto.StaffFacilityInput{StaffID: staff.ID, FacilityID: &facilityID})
+	facilities, _, err := us.Query.GetStaffFacilities(ctx, dto.StaffFacilityInput{StaffID: staff.ID, FacilityID: &facilityID}, nil)
 	if err != nil {
 		return false, fmt.Errorf("failed to get staff facilities %w", err)
 	}
@@ -1538,7 +1538,7 @@ func (us *UseCasesUserImpl) SetClientDefaultFacility(ctx context.Context, userID
 		return false, err
 	}
 
-	facilities, err := us.Query.GetClientFacilities(ctx, dto.ClientFacilityInput{ClientID: client.ID, FacilityID: &facilityID})
+	facilities, _, err := us.Query.GetClientFacilities(ctx, dto.ClientFacilityInput{ClientID: client.ID, FacilityID: &facilityID}, nil)
 	if err != nil {
 		return false, fmt.Errorf("failed to get client facilities %w", err)
 	}
@@ -1600,7 +1600,16 @@ func (us *UseCasesUserImpl) AddFacilitiesToStaffProfile(ctx context.Context, sta
 }
 
 // GetUserLinkedFacilities returns all the facilities that are linked to a user
-func (us *UseCasesUserImpl) GetUserLinkedFacilities(ctx context.Context) ([]*domain.Facility, error) {
+func (us *UseCasesUserImpl) GetUserLinkedFacilities(ctx context.Context, paginationInput dto.PaginationsInput) (*dto.FacilityOutputPage, error) {
+	if err := paginationInput.Validate(); err != nil {
+		return nil, err
+	}
+
+	page := &domain.Pagination{
+		Limit:       paginationInput.Limit,
+		CurrentPage: paginationInput.CurrentPage,
+	}
+
 	userID, err := us.ExternalExt.GetLoggedInUserUID(ctx)
 	if err != nil {
 		return nil, exceptions.GetLoggedInUserUIDErr(err)
@@ -1618,22 +1627,66 @@ func (us *UseCasesUserImpl) GetUserLinkedFacilities(ctx context.Context) ([]*dom
 			return nil, exceptions.ClientProfileNotFoundErr(err)
 		}
 
-		facilities, err := us.Query.GetClientFacilities(ctx, dto.ClientFacilityInput{ClientID: clientProfile.ID})
+		facilities, pageInfo, err := us.Query.GetClientFacilities(ctx, dto.ClientFacilityInput{ClientID: clientProfile.ID}, page)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get client facilities")
 		}
-		return facilities, nil
+
+		facilityOutput := []*dto.FacilityOutput{}
+		for _, facility := range facilities {
+			facilityOutput = append(facilityOutput, &dto.FacilityOutput{
+				ID:                 *facility.ID,
+				Name:               facility.Name,
+				Code:               facility.Code,
+				Phone:              facility.Phone,
+				Active:             facility.Active,
+				County:             facility.County,
+				Description:        facility.Description,
+				FHIROrganisationID: facility.FHIROrganisationID,
+				WorkStationDetails: dto.WorkStationDetailsOutput{
+					Notifications: facility.WorkStationDetails.Notifications,
+					Surveys:       facility.WorkStationDetails.Surveys,
+				},
+			})
+		}
+
+		return &dto.FacilityOutputPage{
+			Pagination: pageInfo,
+			Facilities: facilityOutput,
+		}, nil
 	case enums.StaffUser:
 		staffProfile, err := us.Query.GetStaffProfileByUserID(ctx, userID)
 		if err != nil {
 			return nil, exceptions.ClientProfileNotFoundErr(err)
 		}
 
-		facilities, err := us.Query.GetStaffFacilities(ctx, dto.StaffFacilityInput{StaffID: staffProfile.ID})
+		facilities, pageInfo, err := us.Query.GetStaffFacilities(ctx, dto.StaffFacilityInput{StaffID: staffProfile.ID}, page)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get client facilities")
 		}
-		return facilities, nil
+		facilityOutput := []*dto.FacilityOutput{}
+		for _, facility := range facilities {
+			facilityOutput = append(facilityOutput, &dto.FacilityOutput{
+				ID:                 *facility.ID,
+				Name:               facility.Name,
+				Code:               facility.Code,
+				Phone:              facility.Phone,
+				Active:             facility.Active,
+				County:             facility.County,
+				Description:        facility.Description,
+				FHIROrganisationID: facility.FHIROrganisationID,
+				WorkStationDetails: dto.WorkStationDetailsOutput{
+					Notifications: facility.WorkStationDetails.Notifications,
+					Surveys:       facility.WorkStationDetails.Surveys,
+				},
+			})
+		}
+
+		return &dto.FacilityOutputPage{
+			Pagination: pageInfo,
+			Facilities: facilityOutput,
+		}, nil
+
 	default:
 		return nil, fmt.Errorf("the user has an invalid user type")
 	}

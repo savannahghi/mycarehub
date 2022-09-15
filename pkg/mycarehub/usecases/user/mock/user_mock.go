@@ -46,8 +46,8 @@ type UserUseCaseMock struct {
 	MockSetStaffDefaultFacilityFn       func(ctx context.Context, userID string, facilityID string) (bool, error)
 	MockSetClientDefaultFacilityFn      func(ctx context.Context, userID string, facilityID string) (bool, error)
 	MockAddFacilitiesToStaffProfileFn   func(ctx context.Context, staffID string, facilities []string) (bool, error)
-	MockGetUserLinkedFacilitiesFn       func(ctx context.Context) ([]*domain.Facility, error)
 	MockAddFacilitiesToClientProfileFn  func(ctx context.Context, clientID string, facilities []string) (bool, error)
+	MockGetUserLinkedFacilitiesFn       func(ctx context.Context, paginationInput dto.PaginationsInput) (*dto.FacilityOutputPage, error)
 }
 
 // NewUserUseCaseMock creates in initializes create type mocks
@@ -249,18 +249,24 @@ func NewUserUseCaseMock() *UserUseCaseMock {
 		MockAddFacilitiesToStaffProfileFn: func(ctx context.Context, staffID string, facilities []string) (bool, error) {
 			return true, nil
 		},
-		MockGetUserLinkedFacilitiesFn: func(ctx context.Context) ([]*domain.Facility, error) {
+		MockGetUserLinkedFacilitiesFn: func(ctx context.Context, paginationInput dto.PaginationsInput) (*dto.FacilityOutputPage, error) {
 			id := gofakeit.UUID()
-			return []*domain.Facility{
-				{
-					ID:                 &id,
-					Name:               "Test Facility",
-					Code:               0,
-					Phone:              "",
-					Active:             false,
-					County:             "",
-					Description:        "",
-					FHIROrganisationID: "",
+			return &dto.FacilityOutputPage{
+				Pagination: &domain.Pagination{
+					Limit:       10,
+					CurrentPage: 1,
+				},
+				Facilities: []*dto.FacilityOutput{
+					{
+						ID:                 id,
+						Name:               "Test Facility",
+						Code:               0,
+						Phone:              "",
+						Active:             false,
+						County:             "",
+						Description:        "",
+						FHIROrganisationID: "",
+					},
 				},
 			}, nil
 		},
@@ -421,8 +427,8 @@ func (f *UserUseCaseMock) AddFacilitiesToStaffProfile(ctx context.Context, staff
 }
 
 // GetUserLinkedFacilities mocks the implementation of getting a user's linked facilities
-func (f *UserUseCaseMock) GetUserLinkedFacilities(ctx context.Context) ([]*domain.Facility, error) {
-	return f.MockGetUserLinkedFacilitiesFn(ctx)
+func (f *UserUseCaseMock) GetUserLinkedFacilities(ctx context.Context, paginationInput dto.PaginationsInput) (*dto.FacilityOutputPage, error) {
+	return f.MockGetUserLinkedFacilitiesFn(ctx, paginationInput)
 }
 
 // AddFacilitiesToClientProfile mocks the implementation of adding facilities to a client profile

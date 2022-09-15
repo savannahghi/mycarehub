@@ -6659,8 +6659,9 @@ func TestMyCareHubDb_GetStaffFacilities(t *testing.T) {
 	staffID := uuid.New().String()
 	facilityID := uuid.New().String()
 	type args struct {
-		ctx   context.Context
-		input dto.StaffFacilityInput
+		ctx        context.Context
+		input      dto.StaffFacilityInput
+		pagination *domain.Pagination
 	}
 	tests := []struct {
 		name    string
@@ -6675,6 +6676,10 @@ func TestMyCareHubDb_GetStaffFacilities(t *testing.T) {
 					StaffID:    &staffID,
 					FacilityID: &facilityID,
 				},
+				pagination: &domain.Pagination{
+					Limit:       5,
+					CurrentPage: 1,
+				},
 			},
 			wantErr: false,
 		},
@@ -6685,6 +6690,10 @@ func TestMyCareHubDb_GetStaffFacilities(t *testing.T) {
 				input: dto.StaffFacilityInput{
 					StaffID:    &staffID,
 					FacilityID: &facilityID,
+				},
+				pagination: &domain.Pagination{
+					Limit:       5,
+					CurrentPage: 1,
 				},
 			},
 			wantErr: true,
@@ -6697,6 +6706,10 @@ func TestMyCareHubDb_GetStaffFacilities(t *testing.T) {
 					StaffID:    &staffID,
 					FacilityID: &facilityID,
 				},
+				pagination: &domain.Pagination{
+					Limit:       5,
+					CurrentPage: 1,
+				},
 			},
 			wantErr: true,
 		},
@@ -6706,8 +6719,8 @@ func TestMyCareHubDb_GetStaffFacilities(t *testing.T) {
 			fakeGorm := gormMock.NewGormMock()
 			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
 			if tt.name == "sad case: failed to get staff facilities" {
-				fakeGorm.MockGetStaffFacilitiesFn = func(ctx context.Context, staffFacility gorm.StaffFacilities) ([]*gorm.StaffFacilities, error) {
-					return nil, fmt.Errorf("failed to get staff facilities")
+				fakeGorm.MockGetStaffFacilitiesFn = func(ctx context.Context, staffFacility gorm.StaffFacilities, pagination *domain.Pagination) ([]*gorm.StaffFacilities, *domain.Pagination, error) {
+					return nil, nil, fmt.Errorf("an error occurred")
 				}
 			}
 			if tt.name == "sad case: failed to retrieve facility" {
@@ -6716,7 +6729,7 @@ func TestMyCareHubDb_GetStaffFacilities(t *testing.T) {
 				}
 			}
 
-			got, err := d.GetStaffFacilities(tt.args.ctx, tt.args.input)
+			got, _, err := d.GetStaffFacilities(tt.args.ctx, tt.args.input, tt.args.pagination)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("MyCareHubDb.GetStaffFacilities() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -6733,8 +6746,9 @@ func TestMyCareHubDb_GetClientFacilities(t *testing.T) {
 	clientID := uuid.New().String()
 	facilityID := uuid.New().String()
 	type args struct {
-		ctx   context.Context
-		input dto.ClientFacilityInput
+		ctx        context.Context
+		input      dto.ClientFacilityInput
+		pagination *domain.Pagination
 	}
 	tests := []struct {
 		name    string
@@ -6749,6 +6763,10 @@ func TestMyCareHubDb_GetClientFacilities(t *testing.T) {
 					ClientID:   &clientID,
 					FacilityID: &facilityID,
 				},
+				pagination: &domain.Pagination{
+					Limit:       5,
+					CurrentPage: 1,
+				},
 			},
 			wantErr: false,
 		},
@@ -6759,6 +6777,10 @@ func TestMyCareHubDb_GetClientFacilities(t *testing.T) {
 				input: dto.ClientFacilityInput{
 					ClientID:   &clientID,
 					FacilityID: &facilityID,
+				},
+				pagination: &domain.Pagination{
+					Limit:       5,
+					CurrentPage: 1,
 				},
 			},
 			wantErr: true,
@@ -6771,6 +6793,10 @@ func TestMyCareHubDb_GetClientFacilities(t *testing.T) {
 					ClientID:   &clientID,
 					FacilityID: &facilityID,
 				},
+				pagination: &domain.Pagination{
+					Limit:       5,
+					CurrentPage: 1,
+				},
 			},
 			wantErr: true,
 		},
@@ -6782,8 +6808,8 @@ func TestMyCareHubDb_GetClientFacilities(t *testing.T) {
 			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
 
 			if tt.name == "sad case: failed to get client facilities" {
-				fakeGorm.MockGetClientFacilitiesFn = func(ctx context.Context, clientFacility gorm.ClientFacilities) ([]*gorm.ClientFacilities, error) {
-					return nil, fmt.Errorf("failed to get client facilities")
+				fakeGorm.MockGetClientFacilitiesFn = func(ctx context.Context, clientFacility gorm.ClientFacilities, pagination *domain.Pagination) ([]*gorm.ClientFacilities, *domain.Pagination, error) {
+					return nil, nil, fmt.Errorf("an error occurred")
 				}
 			}
 			if tt.name == "sad case: failed to retrieve facility" {
@@ -6792,7 +6818,7 @@ func TestMyCareHubDb_GetClientFacilities(t *testing.T) {
 				}
 			}
 
-			got, err := d.GetClientFacilities(tt.args.ctx, tt.args.input)
+			got, _, err := d.GetClientFacilities(tt.args.ctx, tt.args.input, tt.args.pagination)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("MyCareHubDb.GetClientFacilities() error = %v, wantErr %v", err, tt.wantErr)
 				return
