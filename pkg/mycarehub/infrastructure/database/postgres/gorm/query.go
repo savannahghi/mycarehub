@@ -1770,10 +1770,16 @@ func (db *PGInstance) GetClientsSurveyServiceRequest(ctx context.Context, facili
 func (db *PGInstance) GetStaffFacilities(ctx context.Context, staffFacility StaffFacilities) ([]StaffFacilities, error) {
 	var staffFacilities []StaffFacilities
 
-	if err := db.DB.Where(&StaffFacilities{
-		StaffID:    staffFacility.StaffID,
-		FacilityID: staffFacility.FacilityID,
-	}).Find(&staffFacilities).Error; err != nil {
+	tx := db.DB.Model(&staffFacilities)
+
+	if staffFacility.StaffID != nil {
+		tx = tx.Where("staff_id = ?", staffFacility.StaffID)
+	}
+	if staffFacility.FacilityID != nil {
+		tx = tx.Where("facility_id = ?", staffFacility.FacilityID)
+	}
+
+	if err := tx.Find(&staffFacilities).Error; err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed to get staff facilities: %w", err)
 	}
@@ -1786,10 +1792,16 @@ func (db *PGInstance) GetStaffFacilities(ctx context.Context, staffFacility Staf
 func (db *PGInstance) GetClientFacilities(ctx context.Context, clientFacility ClientFacilities) ([]ClientFacilities, error) {
 	var clientFacilities []ClientFacilities
 
-	if err := db.DB.Where(&ClientFacilities{
-		ClientID:   clientFacility.ClientID,
-		FacilityID: clientFacility.FacilityID,
-	}).Find(&clientFacilities).Error; err != nil {
+	tx := db.DB.Model(&clientFacilities)
+
+	if clientFacility.ClientID != nil {
+		tx = tx.Where("client_id = ?", clientFacility.ClientID)
+	}
+	if clientFacility.FacilityID != nil {
+		tx = tx.Where("facility_id = ?", clientFacility.FacilityID)
+	}
+
+	if err := tx.Find(&clientFacilities).Error; err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed to get client facilities: %w", err)
 	}

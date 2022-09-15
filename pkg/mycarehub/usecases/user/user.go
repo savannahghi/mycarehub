@@ -2,7 +2,6 @@ package user
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log"
 	"strconv"
@@ -32,7 +31,6 @@ import (
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/utils"
 	"github.com/savannahghi/scalarutils"
 	"github.com/savannahghi/serverutils"
-	pkgGorm "gorm.io/gorm"
 )
 
 // ILogin is an interface that contans login related methods
@@ -1508,12 +1506,13 @@ func (us *UseCasesUserImpl) SetStaffDefaultFacility(ctx context.Context, userID 
 		return false, err
 	}
 
-	_, err = us.Query.GetStaffFacilities(ctx, dto.StaffFacilityInput{StaffID: *staff.ID, FacilityID: facilityID})
+	facilities, err := us.Query.GetStaffFacilities(ctx, dto.StaffFacilityInput{StaffID: *staff.ID, FacilityID: facilityID})
 	if err != nil {
-		if errors.Is(err, pkgGorm.ErrRecordNotFound) {
-			return false, fmt.Errorf("staff user does not have  facility ID %s", facilityID)
-		}
 		return false, fmt.Errorf("failed to get staff facilities %w", err)
+	}
+
+	if len(facilities) != 1 {
+		return false, fmt.Errorf("staff user does not have  facility ID %s", facilityID)
 	}
 
 	update := map[string]interface{}{
@@ -1536,12 +1535,13 @@ func (us *UseCasesUserImpl) SetClientDefaultFacility(ctx context.Context, userID
 		return false, err
 	}
 
-	_, err = us.Query.GetClientFacilities(ctx, dto.ClientFacilityInput{ClientID: *client.ID, FacilityID: facilityID})
+	facilities, err := us.Query.GetClientFacilities(ctx, dto.ClientFacilityInput{ClientID: *client.ID, FacilityID: facilityID})
 	if err != nil {
-		if errors.Is(err, pkgGorm.ErrRecordNotFound) {
-			return false, fmt.Errorf("client user does not have  facility ID %s", facilityID)
-		}
 		return false, fmt.Errorf("failed to get client facilities %w", err)
+	}
+
+	if len(facilities) != 1 {
+		return false, fmt.Errorf("client user does not have  facility ID %s", facilityID)
 	}
 
 	update := map[string]interface{}{
