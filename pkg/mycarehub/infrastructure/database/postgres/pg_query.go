@@ -2394,17 +2394,9 @@ func (d *MyCareHubDb) GetSurveyServiceRequestUser(ctx context.Context, facilityI
 func (d *MyCareHubDb) GetStaffFacilities(ctx context.Context, input dto.StaffFacilityInput) ([]domain.Facility, error) {
 	facilities := []domain.Facility{}
 
-	staffFacility := gorm.StaffFacilities{}
-
-	if input.StaffID != "" {
-		staffFacility = gorm.StaffFacilities{
-			StaffID: &input.StaffID,
-		}
-	}
-	if input.FacilityID != "" {
-		staffFacility = gorm.StaffFacilities{
-			FacilityID: &input.FacilityID,
-		}
+	staffFacility := gorm.StaffFacilities{
+		StaffID:    &input.StaffID,
+		FacilityID: &input.FacilityID,
 	}
 
 	staffFacilities, err := d.query.GetStaffFacilities(ctx, staffFacility)
@@ -2438,17 +2430,9 @@ func (d *MyCareHubDb) GetStaffFacilities(ctx context.Context, input dto.StaffFac
 func (d *MyCareHubDb) GetClientFacilities(ctx context.Context, input dto.ClientFacilityInput) ([]domain.Facility, error) {
 	facilities := []domain.Facility{}
 
-	clientFacility := gorm.ClientFacilities{}
-
-	if input.ClientID != "" {
-		clientFacility = gorm.ClientFacilities{
-			ClientID: &input.ClientID,
-		}
-	}
-	if input.FacilityID != "" {
-		clientFacility = gorm.ClientFacilities{
-			FacilityID: &input.FacilityID,
-		}
+	clientFacility := gorm.ClientFacilities{
+		ClientID:   &input.ClientID,
+		FacilityID: &input.FacilityID,
 	}
 
 	clientFacilities, err := d.query.GetClientFacilities(ctx, clientFacility)
