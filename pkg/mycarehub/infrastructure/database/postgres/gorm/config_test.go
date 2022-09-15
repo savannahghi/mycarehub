@@ -127,6 +127,7 @@ var (
 	userIDToDelete            = "6ecbbc80-24c8-421a-9f7a-e14e12678ef0"
 	userIDToRegisterClient    = "6ecbbc80-24c8-421a-9f1a-e14e12678ef1"
 	userToRegisterStaff       = "6ecbbc90-24c8-431a-9f7a-e14e12678ef1"
+	userToGetNotifications    = "6ecbbc90-24c8-431a-9f7a-e14e12678ef2"
 	staffUserIDToDelete       = "6ecbbc80-24c8-421a-9f7a-e14e21678ef0"
 	testStaffContact          = "teststaff@staff.com"
 	testFlavourPRO            = feedlib.FlavourPro
@@ -279,6 +280,7 @@ func TestMain(m *testing.M) {
 			"test_user_id_to_delete":          userIDToDelete,
 			"test_user_id_to_register_client": userIDToRegisterClient,
 			"test_user_id_to_register_staff":  userToRegisterStaff,
+			"test_user_to_get_notifications":  userToGetNotifications,
 			"test_staff_contact":              testStaffContact,
 			"test_feedback_id":                feedbackID,
 
