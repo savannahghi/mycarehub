@@ -527,6 +527,7 @@ type ComplexityRoot struct {
 		GetSurveyServiceRequestUser             func(childComplexity int, facilityID string, projectID int, formID string, paginationInput dto.PaginationsInput) int
 		GetSurveyWithServiceRequest             func(childComplexity int, facilityID string) int
 		GetUserBookmarkedContent                func(childComplexity int, userID string) int
+		GetUserLinkedFacilities                 func(childComplexity int) int
 		GetUserRoles                            func(childComplexity int, userID string) int
 		GetUserSurveyForms                      func(childComplexity int, userID string) int
 		InviteMembersToCommunity                func(childComplexity int, communityID string, memberIDs []string) int
@@ -950,6 +951,7 @@ type QueryResolver interface {
 	SearchClientUser(ctx context.Context, searchParameter string) ([]*domain.ClientProfile, error)
 	SearchStaffUser(ctx context.Context, searchParameter string) ([]*domain.StaffProfile, error)
 	GetClientProfileByCCCNumber(ctx context.Context, cCCNumber string) (*domain.ClientProfile, error)
+	GetUserLinkedFacilities(ctx context.Context) ([]*domain.Facility, error)
 }
 
 type executableSchema struct {
@@ -3734,6 +3736,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.GetUserBookmarkedContent(childComplexity, args["userID"].(string)), true
+
+	case "Query.getUserLinkedFacilities":
+		if e.complexity.Query.GetUserLinkedFacilities == nil {
+			break
+		}
+
+		return e.complexity.Query.GetUserLinkedFacilities(childComplexity), true
 
 	case "Query.getUserRoles":
 		if e.complexity.Query.GetUserRoles == nil {
@@ -6667,6 +6676,7 @@ type SurveyServiceRequestUserPage {
   searchClientUser(searchParameter: String!): [ClientProfile!]
   searchStaffUser(searchParameter: String!): [StaffProfile!]
   getClientProfileByCCCNumber(CCCNumber: String!): ClientProfile!
+  getUserLinkedFacilities: [Facility!]!
 }
 
 extend type Mutation {
@@ -6686,8 +6696,8 @@ extend type Mutation {
   ): Boolean!
   setUserPIN(input: PINInput): Boolean!
   transferClientToFacility(clientId: ID!, facilityID: ID!): Boolean!
-  setStaffDefaultFacility(userID: ID!, facilityID: ID!) : Boolean!
-  setClientDefaultFacility(userID: ID!, facilityID: ID!) : Boolean!
+  setStaffDefaultFacility(userID: ID!, facilityID: ID!): Boolean!
+  setClientDefaultFacility(userID: ID!, facilityID: ID!): Boolean!
   addFacilitiesToStaffProfile(staffID: ID!, facilities: [ID!]!): Boolean!
 }
 `, BuiltIn: false},
@@ -26998,6 +27008,68 @@ func (ec *executionContext) fieldContext_Query_getClientProfileByCCCNumber(ctx c
 	return fc, nil
 }
 
+func (ec *executionContext) _Query_getUserLinkedFacilities(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_getUserLinkedFacilities(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GetUserLinkedFacilities(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*domain.Facility)
+	fc.Result = res
+	return ec.marshalNFacility2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐFacilityᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_getUserLinkedFacilities(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "ID":
+				return ec.fieldContext_Facility_ID(ctx, field)
+			case "name":
+				return ec.fieldContext_Facility_name(ctx, field)
+			case "code":
+				return ec.fieldContext_Facility_code(ctx, field)
+			case "phone":
+				return ec.fieldContext_Facility_phone(ctx, field)
+			case "active":
+				return ec.fieldContext_Facility_active(ctx, field)
+			case "county":
+				return ec.fieldContext_Facility_county(ctx, field)
+			case "description":
+				return ec.fieldContext_Facility_description(ctx, field)
+			case "fhirOrganisationID":
+				return ec.fieldContext_Facility_fhirOrganisationID(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Facility", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query__service(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query__service(ctx, field)
 	if err != nil {
@@ -42397,6 +42469,29 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Concurrently(i, func() graphql.Marshaler {
 				return rrm(innerCtx)
 			})
+		case "getUserLinkedFacilities":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_getUserLinkedFacilities(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
 		case "_service":
 			field := field
 
@@ -45249,6 +45344,50 @@ func (ec *executionContext) marshalNFacility2ᚕgithubᚗcomᚋsavannahghiᚋmyc
 
 	}
 	wg.Wait()
+
+	return ret
+}
+
+func (ec *executionContext) marshalNFacility2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐFacilityᚄ(ctx context.Context, sel ast.SelectionSet, v []*domain.Facility) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNFacility2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐFacility(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
 
 	return ret
 }

@@ -134,6 +134,7 @@ type IUserFacility interface {
 	SetStaffDefaultFacility(ctx context.Context, userID string, facilityID string) (bool, error)
 	SetClientDefaultFacility(ctx context.Context, userID string, facilityID string) (bool, error)
 	AddFacilitiesToStaffProfile(ctx context.Context, staffID string, facilities []string) (bool, error)
+	GetUserLinkedFacilities(ctx context.Context) ([]*domain.Facility, error)
 }
 
 // UseCasesUser group all business logic usecases related to user
@@ -1507,7 +1508,7 @@ func (us *UseCasesUserImpl) SetStaffDefaultFacility(ctx context.Context, userID 
 		return false, err
 	}
 
-	facilities, err := us.Query.GetStaffFacilities(ctx, dto.StaffFacilityInput{StaffID: *staff.ID, FacilityID: facilityID})
+	facilities, err := us.Query.GetStaffFacilities(ctx, dto.StaffFacilityInput{StaffID: staff.ID, FacilityID: &facilityID})
 	if err != nil {
 		return false, fmt.Errorf("failed to get staff facilities %w", err)
 	}
@@ -1536,7 +1537,7 @@ func (us *UseCasesUserImpl) SetClientDefaultFacility(ctx context.Context, userID
 		return false, err
 	}
 
-	facilities, err := us.Query.GetClientFacilities(ctx, dto.ClientFacilityInput{ClientID: *client.ID, FacilityID: facilityID})
+	facilities, err := us.Query.GetClientFacilities(ctx, dto.ClientFacilityInput{ClientID: client.ID, FacilityID: &facilityID})
 	if err != nil {
 		return false, fmt.Errorf("failed to get client facilities %w", err)
 	}
@@ -1575,4 +1576,44 @@ func (us *UseCasesUserImpl) AddFacilitiesToStaffProfile(ctx context.Context, sta
 		return false, fmt.Errorf("failed to update staff facilities: %w", err)
 	}
 	return true, nil
+}
+
+// GetUserLinkedFacilities returns all the facilities that are linked to a user
+func (us *UseCasesUserImpl) GetUserLinkedFacilities(ctx context.Context) ([]*domain.Facility, error) {
+	userID, err := us.ExternalExt.GetLoggedInUserUID(ctx)
+	if err != nil {
+		return nil, exceptions.GetLoggedInUserUIDErr(err)
+	}
+
+	userProfile, err := us.Query.GetUserProfileByUserID(ctx, userID)
+	if err != nil {
+		return nil, exceptions.UserNotFoundError(err)
+	}
+
+	switch userProfile.UserType {
+	case enums.ClientUser:
+		clientProfile, err := us.Query.GetClientProfileByUserID(ctx, userID)
+		if err != nil {
+			return nil, exceptions.ClientProfileNotFoundErr(err)
+		}
+
+		facilities, err := us.Query.GetClientFacilities(ctx, dto.ClientFacilityInput{ClientID: clientProfile.ID})
+		if err != nil {
+			return nil, fmt.Errorf("failed to get client facilities")
+		}
+		return facilities, nil
+	case enums.StaffUser:
+		staffProfile, err := us.Query.GetStaffProfileByUserID(ctx, userID)
+		if err != nil {
+			return nil, exceptions.ClientProfileNotFoundErr(err)
+		}
+
+		facilities, err := us.Query.GetStaffFacilities(ctx, dto.StaffFacilityInput{StaffID: staffProfile.ID})
+		if err != nil {
+			return nil, fmt.Errorf("failed to get client facilities")
+		}
+		return facilities, nil
+	default:
+		return nil, fmt.Errorf("the user has an invalid user type")
+	}
 }

@@ -5,6 +5,7 @@ extend type Query {
   searchClientUser(searchParameter: String!): [ClientProfile!]
   searchStaffUser(searchParameter: String!): [StaffProfile!]
   getClientProfileByCCCNumber(CCCNumber: String!): ClientProfile!
+  getUserLinkedFacilities: [Facility!]!
 }
 
 extend type Mutation {
@@ -24,7 +25,7 @@ extend type Mutation {
   ): Boolean!
   setUserPIN(input: PINInput): Boolean!
   transferClientToFacility(clientId: ID!, facilityID: ID!): Boolean!
-  setStaffDefaultFacility(userID: ID!, facilityID: ID!) : Boolean!
-  setClientDefaultFacility(userID: ID!, facilityID: ID!) : Boolean!
+  setStaffDefaultFacility(userID: ID!, facilityID: ID!): Boolean!
+  setClientDefaultFacility(userID: ID!, facilityID: ID!): Boolean!
   addFacilitiesToStaffProfile(staffID: ID!, facilities: [ID!]!): Boolean!
 }

@@ -46,6 +46,7 @@ type UserUseCaseMock struct {
 	MockSetStaffDefaultFacilityFn       func(ctx context.Context, userID string, facilityID string) (bool, error)
 	MockSetClientDefaultFacilityFn      func(ctx context.Context, userID string, facilityID string) (bool, error)
 	MockAddFacilitiesToStaffProfileFn   func(ctx context.Context, staffID string, facilities []string) (bool, error)
+	MockGetUserLinkedFacilitiesFn       func(ctx context.Context) ([]*domain.Facility, error)
 }
 
 // NewUserUseCaseMock creates in initializes create type mocks
@@ -65,7 +66,7 @@ func NewUserUseCaseMock() *UserUseCaseMock {
 		UserID:            uuid.New().String(),
 		Active:            true,
 		StaffNumber:       "test-staff-101",
-		Facilities:        []domain.Facility{},
+		Facilities:        []*domain.Facility{},
 		DefaultFacilityID: uuid.New().String(),
 	}
 
@@ -247,6 +248,21 @@ func NewUserUseCaseMock() *UserUseCaseMock {
 		MockAddFacilitiesToStaffProfileFn: func(ctx context.Context, staffID string, facilities []string) (bool, error) {
 			return true, nil
 		},
+		MockGetUserLinkedFacilitiesFn: func(ctx context.Context) ([]*domain.Facility, error) {
+			id := gofakeit.UUID()
+			return []*domain.Facility{
+				{
+					ID:                 &id,
+					Name:               "Test Facility",
+					Code:               0,
+					Phone:              "",
+					Active:             false,
+					County:             "",
+					Description:        "",
+					FHIROrganisationID: "",
+				},
+			}, nil
+		},
 	}
 }
 
@@ -398,4 +414,9 @@ func (f *UserUseCaseMock) SetClientDefaultFacility(ctx context.Context, userID s
 // AddFacilitiesToStaffProfile mocks the implementation of adding facilities to a staff profile
 func (f *UserUseCaseMock) AddFacilitiesToStaffProfile(ctx context.Context, staffID string, facilities []string) (bool, error) {
 	return f.MockAddFacilitiesToStaffProfileFn(ctx, staffID, facilities)
+}
+
+// GetUserLinkedFacilities mocks the implementation of getting a user's linked facilities
+func (f *UserUseCaseMock) GetUserLinkedFacilities(ctx context.Context) ([]*domain.Facility, error) {
+	return f.MockGetUserLinkedFacilitiesFn(ctx)
 }

@@ -88,11 +88,11 @@ type ClientProfile struct {
 	FacilityID   string `json:"facilityID"`
 	FacilityName string `json:"facilityName"`
 
-	CHVUserID   *string    `json:"chvUserID"`
-	CHVUserName string     `json:"chvUserName"`
-	CaregiverID *string    `json:"caregiverID"`
-	CCCNumber   string     `json:"CCCNumber"`
-	Facilities  []Facility `json:"facilities"` // TODO: needs at least one
+	CHVUserID   *string     `json:"chvUserID"`
+	CHVUserName string      `json:"chvUserName"`
+	CaregiverID *string     `json:"caregiverID"`
+	CCCNumber   string      `json:"CCCNumber"`
+	Facilities  []*Facility `json:"facilities"` // TODO: needs at least one
 }
 
 // StaffProfile represents the staff profile model
@@ -107,7 +107,7 @@ type StaffProfile struct {
 
 	StaffNumber string `json:"staff_number"`
 
-	Facilities []Facility `json:"facilities"` // TODO: needs at least one
+	Facilities []*Facility `json:"facilities"` // TODO: needs at least one
 
 	// A UI switcher optionally toggles the default
 	// TODO: the list of facilities to switch between is strictly those that the user is assigned to

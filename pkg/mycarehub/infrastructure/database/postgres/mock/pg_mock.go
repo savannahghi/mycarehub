@@ -157,8 +157,8 @@ type PostgresMock struct {
 	MockGetScreeningToolRespondentsFn                    func(ctx context.Context, facilityID string, screeningToolID string, searchTerm string, paginationInput *dto.PaginationsInput) ([]*domain.ScreeningToolRespondent, *domain.Pagination, error)
 	MockGetScreeningToolResponseByIDFn                   func(ctx context.Context, id string) (*domain.QuestionnaireScreeningToolResponse, error)
 	MockGetSurveysWithServiceRequestsFn                  func(ctx context.Context, facilityID string) ([]*dto.SurveysWithServiceRequest, error)
-	MockGetStaffFacilitiesFn                             func(ctx context.Context, input dto.StaffFacilityInput) ([]domain.Facility, error)
-	MockGetClientFacilitiesFn                            func(ctx context.Context, input dto.ClientFacilityInput) ([]domain.Facility, error)
+	MockGetStaffFacilitiesFn                             func(ctx context.Context, input dto.StaffFacilityInput) ([]*domain.Facility, error)
+	MockGetClientFacilitiesFn                            func(ctx context.Context, input dto.ClientFacilityInput) ([]*domain.Facility, error)
 	MockUpdateStaffFn                                    func(ctx context.Context, staff *domain.StaffProfile, updates map[string]interface{}) error
 	MockAddFacilitiesToStaffProfileFn                    func(ctx context.Context, staffID string, facilities []string) error
 }
@@ -255,7 +255,7 @@ func NewPostgresMock() *PostgresMock {
 		CHVUserName:             name,
 		CaregiverID:             &ID,
 		CCCNumber:               "123456789",
-		Facilities:              []domain.Facility{*facilityInput},
+		Facilities:              []*domain.Facility{facilityInput},
 	}
 	staff := &domain.StaffProfile{
 		ID:                &ID,
@@ -263,7 +263,7 @@ func NewPostgresMock() *PostgresMock {
 		UserID:            uuid.New().String(),
 		Active:            false,
 		StaffNumber:       gofakeit.BeerAlcohol(),
-		Facilities:        []domain.Facility{*facilityInput},
+		Facilities:        []*domain.Facility{facilityInput},
 		DefaultFacilityID: gofakeit.BeerAlcohol(),
 	}
 
@@ -388,7 +388,7 @@ func NewPostgresMock() *PostgresMock {
 				UserID:            ID,
 				Active:            false,
 				StaffNumber:       "TEST-00",
-				Facilities:        []domain.Facility{},
+				Facilities:        []*domain.Facility{},
 				DefaultFacilityID: ID,
 			}, nil
 		},
@@ -1264,8 +1264,8 @@ func NewPostgresMock() *PostgresMock {
 				},
 			}, nil
 		},
-		MockGetStaffFacilitiesFn: func(ctx context.Context, input dto.StaffFacilityInput) ([]domain.Facility, error) {
-			return []domain.Facility{
+		MockGetStaffFacilitiesFn: func(ctx context.Context, input dto.StaffFacilityInput) ([]*domain.Facility, error) {
+			return []*domain.Facility{
 				{
 					ID:                 &ID,
 					Name:               name,
@@ -1278,8 +1278,8 @@ func NewPostgresMock() *PostgresMock {
 				},
 			}, nil
 		},
-		MockGetClientFacilitiesFn: func(ctx context.Context, input dto.ClientFacilityInput) ([]domain.Facility, error) {
-			return []domain.Facility{
+		MockGetClientFacilitiesFn: func(ctx context.Context, input dto.ClientFacilityInput) ([]*domain.Facility, error) {
+			return []*domain.Facility{
 				{
 					ID:                 &ID,
 					Name:               name,
@@ -1983,12 +1983,12 @@ func (gm *PostgresMock) GetSurveyServiceRequestUser(ctx context.Context, facilit
 }
 
 // GetStaffFacilities mocks the implementation of getting staff facilities
-func (gm *PostgresMock) GetStaffFacilities(ctx context.Context, input dto.StaffFacilityInput) ([]domain.Facility, error) {
+func (gm *PostgresMock) GetStaffFacilities(ctx context.Context, input dto.StaffFacilityInput) ([]*domain.Facility, error) {
 	return gm.MockGetStaffFacilitiesFn(ctx, input)
 }
 
 // GetClientFacilities mocks the implementation of getting client facilities
-func (gm *PostgresMock) GetClientFacilities(ctx context.Context, input dto.ClientFacilityInput) ([]domain.Facility, error) {
+func (gm *PostgresMock) GetClientFacilities(ctx context.Context, input dto.ClientFacilityInput) ([]*domain.Facility, error) {
 	return gm.MockGetClientFacilitiesFn(ctx, input)
 }
 
