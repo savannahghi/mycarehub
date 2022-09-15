@@ -4910,12 +4910,12 @@ func TestUseCasesUserImpl_SetStaffDefaultFacility(t *testing.T) {
 			}
 
 			if tt.name == "Sad case: failed to update default facility, invalid facility id" {
-				fakeDB.MockGetStaffFacilitiesFn = func(ctx context.Context, input dto.StaffFacilityInput) ([]domain.Facility, error) {
+				fakeDB.MockGetStaffFacilitiesFn = func(ctx context.Context, input dto.StaffFacilityInput) ([]*domain.Facility, error) {
 					return nil, fmt.Errorf("an error occurred")
 				}
 			}
 			if tt.name == "Sad case: staff not assigned to facility" {
-				fakeDB.MockGetStaffFacilitiesFn = func(ctx context.Context, input dto.StaffFacilityInput) ([]domain.Facility, error) {
+				fakeDB.MockGetStaffFacilitiesFn = func(ctx context.Context, input dto.StaffFacilityInput) ([]*domain.Facility, error) {
 					return nil, pkgGorm.ErrRecordNotFound
 				}
 			}
@@ -5019,13 +5019,13 @@ func TestUseCasesUserImpl_SetClientDefaultFacility(t *testing.T) {
 			}
 
 			if tt.name == "Sad case: failed to update default facility, invalid facility id" {
-				fakeDB.MockGetClientFacilitiesFn = func(ctx context.Context, input dto.ClientFacilityInput) ([]domain.Facility, error) {
+				fakeDB.MockGetClientFacilitiesFn = func(ctx context.Context, input dto.ClientFacilityInput) ([]*domain.Facility, error) {
 					return nil, fmt.Errorf("an error occurred")
 				}
 			}
 
 			if tt.name == "Sad case: client not assigned to facility" {
-				fakeDB.MockGetClientFacilitiesFn = func(ctx context.Context, input dto.ClientFacilityInput) ([]domain.Facility, error) {
+				fakeDB.MockGetClientFacilitiesFn = func(ctx context.Context, input dto.ClientFacilityInput) ([]*domain.Facility, error) {
 					return nil, pkgGorm.ErrRecordNotFound
 				}
 			}
@@ -5116,6 +5116,187 @@ func TestUseCasesUserImpl_AddFacilitiesToStaffProfile(t *testing.T) {
 			}
 			if got != tt.want {
 				t.Errorf("UseCasesUserImpl.AddFacilitiesToStaffProfile() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestUseCasesUserImpl_GetUserLinkedFacilities(t *testing.T) {
+	type args struct {
+		ctx context.Context
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    []*domain.Facility
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Successfully get client linked facilities",
+			args: args{
+				ctx: context.Background(),
+			},
+			wantErr: false,
+		},
+		{
+			name: "Happy Case - Successfully get staff linked facilities",
+			args: args{
+				ctx: context.Background(),
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad Case - Fail to get logged in user",
+			args: args{
+				ctx: context.Background(),
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - Fail to get user profile by user id",
+			args: args{
+				ctx: context.Background(),
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - Fail to get client profile by user id",
+			args: args{
+				ctx: context.Background(),
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - Fail to get client facilities",
+			args: args{
+				ctx: context.Background(),
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - Fail to get staff profile by user id",
+			args: args{
+				ctx: context.Background(),
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - Fail to get staff facilities",
+			args: args{
+				ctx: context.Background(),
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - Invalid user type",
+			args: args{
+				ctx: context.Background(),
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			fakeExtension := extensionMock.NewFakeExtension()
+			fakeOTP := otpMock.NewOTPUseCaseMock()
+			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
+			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
+			fakePubsub := pubsubMock.NewPubsubServiceMock()
+			fakeClinical := clinicalMock.NewClinicalServiceMock()
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakeGetStream, fakePubsub, fakeClinical)
+
+			if tt.name == "Happy Case - Successfully get client linked facilities" {
+				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
+					return &domain.User{
+						UserType: "CLIENT",
+					}, nil
+				}
+			}
+
+			if tt.name == "Happy Case - Successfully get staff linked facilities" {
+				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
+					return &domain.User{
+						UserType: "STAFF",
+					}, nil
+				}
+			}
+
+			if tt.name == "Sad Case - Fail to get logged in user" {
+				fakeExtension.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "", fmt.Errorf("failed to get logged in user ID")
+				}
+			}
+
+			if tt.name == "Sad Case - Fail to get user profile by user id" {
+				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
+					return nil, fmt.Errorf("failed to get user profile by user ID")
+				}
+			}
+
+			if tt.name == "Sad Case - Fail to get client profile by user id" {
+				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
+					return &domain.User{
+						UserType: "CLIENT",
+					}, nil
+				}
+
+				fakeDB.MockGetClientProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.ClientProfile, error) {
+					return nil, fmt.Errorf("failed to get client profile by user ID")
+				}
+			}
+
+			if tt.name == "Sad Case - Fail to get client facilities" {
+				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
+					return &domain.User{
+						UserType: "CLIENT",
+					}, nil
+				}
+
+				fakeDB.MockGetClientFacilitiesFn = func(ctx context.Context, input dto.ClientFacilityInput) ([]*domain.Facility, error) {
+					return nil, fmt.Errorf("failed to get client facilities")
+				}
+			}
+
+			if tt.name == "Sad Case - Fail to get staff profile by user id" {
+				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
+					return &domain.User{
+						UserType: "STAFF",
+					}, nil
+				}
+
+				fakeDB.MockGetStaffProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.StaffProfile, error) {
+					return nil, fmt.Errorf("failed to get staff profile by user ID")
+				}
+			}
+
+			if tt.name == "Sad Case - Fail to get staff facilities" {
+				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
+					return &domain.User{
+						UserType: "STAFF",
+					}, nil
+				}
+
+				fakeDB.MockGetStaffFacilitiesFn = func(ctx context.Context, input dto.StaffFacilityInput) ([]*domain.Facility, error) {
+					return nil, fmt.Errorf("failed to get staff facilities")
+				}
+			}
+
+			if tt.name == "Sad Case - Invalid user type" {
+				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
+					return &domain.User{
+						UserType: "invalid type",
+					}, nil
+				}
+			}
+
+			got, err := us.GetUserLinkedFacilities(tt.args.ctx)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCasesUserImpl.GetUserLinkedFacilities() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got == nil && !tt.wantErr {
+				t.Errorf("expected a response but got %v", got)
 			}
 		})
 	}

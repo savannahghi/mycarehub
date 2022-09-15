@@ -94,3 +94,7 @@ func (r *queryResolver) SearchStaffUser(ctx context.Context, searchParameter str
 func (r *queryResolver) GetClientProfileByCCCNumber(ctx context.Context, cCCNumber string) (*domain.ClientProfile, error) {
 	return r.mycarehub.User.GetClientProfileByCCCNumber(ctx, cCCNumber)
 }
+
+func (r *queryResolver) GetUserLinkedFacilities(ctx context.Context) ([]*domain.Facility, error) {
+	return r.mycarehub.User.GetUserLinkedFacilities(ctx)
+}

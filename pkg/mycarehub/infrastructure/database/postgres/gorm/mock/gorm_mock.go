@@ -163,8 +163,8 @@ type GormMock struct {
 	MockGetScreeningToolResponseByIDFn                   func(ctx context.Context, id string) (*gorm.ScreeningToolResponse, error)
 	MockGetScreeningToolQuestionResponsesByResponseIDFn  func(ctx context.Context, responseID string) ([]*gorm.ScreeningToolQuestionResponse, error)
 	MockGetSurveysWithServiceRequestsFn                  func(ctx context.Context, facilityID string) ([]*gorm.UserSurvey, error)
-	MockGetStaffFacilitiesFn                             func(ctx context.Context, staffFacility gorm.StaffFacilities) ([]gorm.StaffFacilities, error)
-	MockGetClientFacilitiesFn                            func(ctx context.Context, clientFacility gorm.ClientFacilities) ([]gorm.ClientFacilities, error)
+	MockGetStaffFacilitiesFn                             func(ctx context.Context, staffFacility gorm.StaffFacilities) ([]*gorm.StaffFacilities, error)
+	MockGetClientFacilitiesFn                            func(ctx context.Context, clientFacility gorm.ClientFacilities) ([]*gorm.ClientFacilities, error)
 	MockUpdateStaffFn                                    func(ctx context.Context, staff *gorm.StaffProfile, updates map[string]interface{}) (*gorm.StaffProfile, error)
 	MockAddFacilitiesToStaffProfileFn                    func(ctx context.Context, staffID string, facilities []string) error
 }
@@ -1352,8 +1352,8 @@ func NewGormMock() *GormMock {
 				},
 			}, nil
 		},
-		MockGetStaffFacilitiesFn: func(ctx context.Context, staffFacility gorm.StaffFacilities) ([]gorm.StaffFacilities, error) {
-			return []gorm.StaffFacilities{
+		MockGetStaffFacilitiesFn: func(ctx context.Context, staffFacility gorm.StaffFacilities) ([]*gorm.StaffFacilities, error) {
+			return []*gorm.StaffFacilities{
 				{
 					ID:         ID,
 					StaffID:    &UUID,
@@ -1361,8 +1361,8 @@ func NewGormMock() *GormMock {
 				},
 			}, nil
 		},
-		MockGetClientFacilitiesFn: func(ctx context.Context, clientFacility gorm.ClientFacilities) ([]gorm.ClientFacilities, error) {
-			return []gorm.ClientFacilities{
+		MockGetClientFacilitiesFn: func(ctx context.Context, clientFacility gorm.ClientFacilities) ([]*gorm.ClientFacilities, error) {
+			return []*gorm.ClientFacilities{
 				{
 					ID:         ID,
 					ClientID:   &UUID,
@@ -2085,12 +2085,12 @@ func (gm *GormMock) GetClientsSurveyServiceRequest(ctx context.Context, facility
 }
 
 // GetStaffFacilities mocks the implementation of getting a list of staff facilities
-func (gm *GormMock) GetStaffFacilities(ctx context.Context, staffFacility gorm.StaffFacilities) ([]gorm.StaffFacilities, error) {
+func (gm *GormMock) GetStaffFacilities(ctx context.Context, staffFacility gorm.StaffFacilities) ([]*gorm.StaffFacilities, error) {
 	return gm.MockGetStaffFacilitiesFn(ctx, staffFacility)
 }
 
 // GetClientFacilities mocks the implementation of getting a list of client facilities
-func (gm *GormMock) GetClientFacilities(ctx context.Context, clientFacility gorm.ClientFacilities) ([]gorm.ClientFacilities, error) {
+func (gm *GormMock) GetClientFacilities(ctx context.Context, clientFacility gorm.ClientFacilities) ([]*gorm.ClientFacilities, error) {
 	return gm.MockGetClientFacilitiesFn(ctx, clientFacility)
 }
 

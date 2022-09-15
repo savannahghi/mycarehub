@@ -110,8 +110,8 @@ type Query interface {
 	GetScreeningToolQuestionResponsesByResponseID(ctx context.Context, responseID string) ([]*ScreeningToolQuestionResponse, error)
 	GetSurveysWithServiceRequests(ctx context.Context, facilityID string) ([]*UserSurvey, error)
 	GetClientsSurveyServiceRequest(ctx context.Context, facilityID string, projectID int, formID string, pagination *domain.Pagination) ([]*ClientServiceRequest, *domain.Pagination, error)
-	GetStaffFacilities(ctx context.Context, staffFacility StaffFacilities) ([]StaffFacilities, error)
-	GetClientFacilities(ctx context.Context, clientFacility ClientFacilities) ([]ClientFacilities, error)
+	GetStaffFacilities(ctx context.Context, staffFacility StaffFacilities) ([]*StaffFacilities, error)
+	GetClientFacilities(ctx context.Context, clientFacility ClientFacilities) ([]*ClientFacilities, error)
 }
 
 // GetFacilityStaffs returns a list of staff at a particular facility
@@ -1767,8 +1767,8 @@ func (db *PGInstance) GetClientsSurveyServiceRequest(ctx context.Context, facili
 }
 
 // GetStaffFacilities gets facilities belonging to a given staff
-func (db *PGInstance) GetStaffFacilities(ctx context.Context, staffFacility StaffFacilities) ([]StaffFacilities, error) {
-	var staffFacilities []StaffFacilities
+func (db *PGInstance) GetStaffFacilities(ctx context.Context, staffFacility StaffFacilities) ([]*StaffFacilities, error) {
+	var staffFacilities []*StaffFacilities
 
 	tx := db.DB.Model(&staffFacilities)
 
@@ -1789,8 +1789,8 @@ func (db *PGInstance) GetStaffFacilities(ctx context.Context, staffFacility Staf
 }
 
 // GetClientFacilities gets facilities belonging to a given client
-func (db *PGInstance) GetClientFacilities(ctx context.Context, clientFacility ClientFacilities) ([]ClientFacilities, error) {
-	var clientFacilities []ClientFacilities
+func (db *PGInstance) GetClientFacilities(ctx context.Context, clientFacility ClientFacilities) ([]*ClientFacilities, error) {
+	var clientFacilities []*ClientFacilities
 
 	tx := db.DB.Model(&clientFacilities)
 

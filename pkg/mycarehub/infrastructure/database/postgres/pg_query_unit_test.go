@@ -6656,6 +6656,8 @@ func TestMyCareHubDb_GetSurveyServiceRequestUser(t *testing.T) {
 
 func TestMyCareHubDb_GetStaffFacilities(t *testing.T) {
 	ctx := context.Background()
+	staffID := uuid.New().String()
+	facilityID := uuid.New().String()
 	type args struct {
 		ctx   context.Context
 		input dto.StaffFacilityInput
@@ -6670,8 +6672,8 @@ func TestMyCareHubDb_GetStaffFacilities(t *testing.T) {
 			args: args{
 				ctx: ctx,
 				input: dto.StaffFacilityInput{
-					StaffID:    uuid.NewString(),
-					FacilityID: uuid.NewString(),
+					StaffID:    &staffID,
+					FacilityID: &facilityID,
 				},
 			},
 			wantErr: false,
@@ -6681,8 +6683,8 @@ func TestMyCareHubDb_GetStaffFacilities(t *testing.T) {
 			args: args{
 				ctx: ctx,
 				input: dto.StaffFacilityInput{
-					StaffID:    uuid.NewString(),
-					FacilityID: uuid.NewString(),
+					StaffID:    &staffID,
+					FacilityID: &facilityID,
 				},
 			},
 			wantErr: true,
@@ -6692,8 +6694,8 @@ func TestMyCareHubDb_GetStaffFacilities(t *testing.T) {
 			args: args{
 				ctx: ctx,
 				input: dto.StaffFacilityInput{
-					StaffID:    uuid.NewString(),
-					FacilityID: uuid.NewString(),
+					StaffID:    &staffID,
+					FacilityID: &facilityID,
 				},
 			},
 			wantErr: true,
@@ -6704,7 +6706,7 @@ func TestMyCareHubDb_GetStaffFacilities(t *testing.T) {
 			fakeGorm := gormMock.NewGormMock()
 			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
 			if tt.name == "sad case: failed to get staff facilities" {
-				fakeGorm.MockGetStaffFacilitiesFn = func(ctx context.Context, staffFacility gorm.StaffFacilities) ([]gorm.StaffFacilities, error) {
+				fakeGorm.MockGetStaffFacilitiesFn = func(ctx context.Context, staffFacility gorm.StaffFacilities) ([]*gorm.StaffFacilities, error) {
 					return nil, fmt.Errorf("failed to get staff facilities")
 				}
 			}
@@ -6728,7 +6730,8 @@ func TestMyCareHubDb_GetStaffFacilities(t *testing.T) {
 
 func TestMyCareHubDb_GetClientFacilities(t *testing.T) {
 	ctx := context.Background()
-
+	clientID := uuid.New().String()
+	facilityID := uuid.New().String()
 	type args struct {
 		ctx   context.Context
 		input dto.ClientFacilityInput
@@ -6743,8 +6746,8 @@ func TestMyCareHubDb_GetClientFacilities(t *testing.T) {
 			args: args{
 				ctx: ctx,
 				input: dto.ClientFacilityInput{
-					ClientID:   uuid.NewString(),
-					FacilityID: uuid.NewString(),
+					ClientID:   &clientID,
+					FacilityID: &facilityID,
 				},
 			},
 			wantErr: false,
@@ -6754,8 +6757,8 @@ func TestMyCareHubDb_GetClientFacilities(t *testing.T) {
 			args: args{
 				ctx: ctx,
 				input: dto.ClientFacilityInput{
-					ClientID:   uuid.NewString(),
-					FacilityID: uuid.NewString(),
+					ClientID:   &clientID,
+					FacilityID: &facilityID,
 				},
 			},
 			wantErr: true,
@@ -6765,8 +6768,8 @@ func TestMyCareHubDb_GetClientFacilities(t *testing.T) {
 			args: args{
 				ctx: ctx,
 				input: dto.ClientFacilityInput{
-					ClientID:   uuid.NewString(),
-					FacilityID: uuid.NewString(),
+					ClientID:   &clientID,
+					FacilityID: &facilityID,
 				},
 			},
 			wantErr: true,
@@ -6779,7 +6782,7 @@ func TestMyCareHubDb_GetClientFacilities(t *testing.T) {
 			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
 
 			if tt.name == "sad case: failed to get client facilities" {
-				fakeGorm.MockGetClientFacilitiesFn = func(ctx context.Context, clientFacility gorm.ClientFacilities) ([]gorm.ClientFacilities, error) {
+				fakeGorm.MockGetClientFacilitiesFn = func(ctx context.Context, clientFacility gorm.ClientFacilities) ([]*gorm.ClientFacilities, error) {
 					return nil, fmt.Errorf("failed to get client facilities")
 				}
 			}

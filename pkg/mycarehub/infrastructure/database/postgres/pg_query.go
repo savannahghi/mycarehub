@@ -300,7 +300,7 @@ func (d *MyCareHubDb) GetClientProfileByUserID(ctx context.Context, userID strin
 		return nil, err
 	}
 
-	facilities, err := d.GetClientFacilities(ctx, dto.ClientFacilityInput{ClientID: *client.ID})
+	facilities, err := d.GetClientFacilities(ctx, dto.ClientFacilityInput{ClientID: client.ID})
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 	}
@@ -342,7 +342,7 @@ func (d *MyCareHubDb) GetStaffProfileByUserID(ctx context.Context, userID string
 		return nil, fmt.Errorf("unable to get the staff facility: %v", err)
 	}
 
-	facilities, err := d.GetStaffFacilities(ctx, dto.StaffFacilityInput{StaffID: *staff.ID})
+	facilities, err := d.GetStaffFacilities(ctx, dto.StaffFacilityInput{StaffID: staff.ID})
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 	}
@@ -2391,12 +2391,12 @@ func (d *MyCareHubDb) GetSurveyServiceRequestUser(ctx context.Context, facilityI
 }
 
 // GetStaffFacilities gets a list of staff facilities
-func (d *MyCareHubDb) GetStaffFacilities(ctx context.Context, input dto.StaffFacilityInput) ([]domain.Facility, error) {
-	facilities := []domain.Facility{}
+func (d *MyCareHubDb) GetStaffFacilities(ctx context.Context, input dto.StaffFacilityInput) ([]*domain.Facility, error) {
+	facilities := []*domain.Facility{}
 
 	staffFacility := gorm.StaffFacilities{
-		StaffID:    &input.StaffID,
-		FacilityID: &input.FacilityID,
+		StaffID:    input.StaffID,
+		FacilityID: input.FacilityID,
 	}
 
 	staffFacilities, err := d.query.GetStaffFacilities(ctx, staffFacility)
@@ -2410,7 +2410,7 @@ func (d *MyCareHubDb) GetStaffFacilities(ctx context.Context, input dto.StaffFac
 			return nil, err
 		}
 
-		facilities = append(facilities, domain.Facility{
+		facilities = append(facilities, &domain.Facility{
 			ID:                 facility.FacilityID,
 			Name:               facility.Name,
 			Code:               facility.Code,
@@ -2427,12 +2427,12 @@ func (d *MyCareHubDb) GetStaffFacilities(ctx context.Context, input dto.StaffFac
 }
 
 // GetClientFacilities gets a list of client facilities
-func (d *MyCareHubDb) GetClientFacilities(ctx context.Context, input dto.ClientFacilityInput) ([]domain.Facility, error) {
-	facilities := []domain.Facility{}
+func (d *MyCareHubDb) GetClientFacilities(ctx context.Context, input dto.ClientFacilityInput) ([]*domain.Facility, error) {
+	facilities := []*domain.Facility{}
 
 	clientFacility := gorm.ClientFacilities{
-		ClientID:   &input.ClientID,
-		FacilityID: &input.FacilityID,
+		ClientID:   input.ClientID,
+		FacilityID: input.FacilityID,
 	}
 
 	clientFacilities, err := d.query.GetClientFacilities(ctx, clientFacility)
@@ -2446,7 +2446,7 @@ func (d *MyCareHubDb) GetClientFacilities(ctx context.Context, input dto.ClientF
 			return nil, err
 		}
 
-		facilities = append(facilities, domain.Facility{
+		facilities = append(facilities, &domain.Facility{
 			ID:                 facility.FacilityID,
 			Name:               facility.Name,
 			Code:               facility.Code,
