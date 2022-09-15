@@ -6800,6 +6800,51 @@ func TestMyCareHubDb_GetClientFacilities(t *testing.T) {
 			},
 			wantErr: true,
 		},
+		{
+			name: "sad case: failed to get client profile",
+			args: args{
+				ctx: ctx,
+				input: dto.ClientFacilityInput{
+					ClientID:   &clientID,
+					FacilityID: &facilityID,
+				},
+				pagination: &domain.Pagination{
+					Limit:       5,
+					CurrentPage: 1,
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "sad case: failed to get notification count",
+			args: args{
+				ctx: ctx,
+				input: dto.ClientFacilityInput{
+					ClientID:   &clientID,
+					FacilityID: &facilityID,
+				},
+				pagination: &domain.Pagination{
+					Limit:       5,
+					CurrentPage: 1,
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "sad case: failed to get surveys count",
+			args: args{
+				ctx: ctx,
+				input: dto.ClientFacilityInput{
+					ClientID:   &clientID,
+					FacilityID: &facilityID,
+				},
+				pagination: &domain.Pagination{
+					Limit:       5,
+					CurrentPage: 1,
+				},
+			},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -6807,6 +6852,11 @@ func TestMyCareHubDb_GetClientFacilities(t *testing.T) {
 			fakeGorm := gormMock.NewGormMock()
 			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
 
+			if tt.name == "sad case: failed to get client profile" {
+				fakeGorm.MockGetClientProfileByClientIDFn = func(ctx context.Context, clientID string) (*gorm.Client, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
 			if tt.name == "sad case: failed to get client facilities" {
 				fakeGorm.MockGetClientFacilitiesFn = func(ctx context.Context, clientFacility gorm.ClientFacilities, pagination *domain.Pagination) ([]*gorm.ClientFacilities, *domain.Pagination, error) {
 					return nil, nil, fmt.Errorf("an error occurred")
@@ -6815,6 +6865,16 @@ func TestMyCareHubDb_GetClientFacilities(t *testing.T) {
 			if tt.name == "sad case: failed to retrieve facility" {
 				fakeGorm.MockRetrieveFacilityFn = func(ctx context.Context, id *string, isActive bool) (*gorm.Facility, error) {
 					return nil, fmt.Errorf("failed to retrieve facility")
+				}
+			}
+			if tt.name == "sad case: failed to get notification count" {
+				fakeGorm.MockGetNotificationsCountFn = func(ctx context.Context, notification gorm.Notification) (int, error) {
+					return 0, fmt.Errorf("failed to get notification count")
+				}
+			}
+			if tt.name == "sad case: failed to get surveys count" {
+				fakeGorm.MockGetClientsSurveyCountFn = func(ctx context.Context, userID string) (int, error) {
+					return 0, fmt.Errorf("failed to get surveys count")
 				}
 			}
 

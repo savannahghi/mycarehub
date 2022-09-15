@@ -294,22 +294,8 @@ type PubsubCreateCMSStaffPayload struct {
 	OrganisationID string           `json:"organisation_id"`
 }
 
-// FacilityOutput contains the information about a certain facility
-type FacilityOutput struct {
-	ID                 string `json:"id"`
-	Name               string `json:"name"`
-	Code               int    `json:"code"`
-	Phone              string `json:"phone"`
-	Active             bool   `json:"active"`
-	County             string `json:"county"`
-	Description        string `json:"description"`
-	FHIROrganisationID string `json:"fhirOrganisationId"`
-
-	WorkStationDetails WorkStationDetailsOutput `json:"workStationDetails"`
-}
-
 //FacilityOutputPage returns a paginated list of users facility
 type FacilityOutputPage struct {
 	Pagination *domain.Pagination
-	Facilities []*FacilityOutput
+	Facilities []*domain.Facility
 }

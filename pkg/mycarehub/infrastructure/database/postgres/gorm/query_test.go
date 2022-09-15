@@ -4954,3 +4954,47 @@ func TestPGInstance_GetNotificationsCount(t *testing.T) {
 		})
 	}
 }
+
+func TestPGInstance_GetClientsSurveyCount(t *testing.T) {
+	ctx := context.Background()
+
+	type args struct {
+		ctx    context.Context
+		userID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    int
+		wantErr bool
+	}{
+		{
+			name: "Happy case: get clients survey count",
+			args: args{
+				ctx:    ctx,
+				userID: clientID,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: unable to get clients survey count",
+			args: args{
+				ctx:    ctx,
+				userID: clientID,
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := testingDB.GetClientsSurveyCount(tt.args.ctx, tt.args.userID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.GetClientsSurveyCount() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("PGInstance.GetClientsSurveyCount() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

@@ -266,9 +266,9 @@ func NewUserUseCaseMock() *UserUseCaseMock {
 					Limit:       10,
 					CurrentPage: 1,
 				},
-				Facilities: []*dto.FacilityOutput{
+				Facilities: []*domain.Facility{
 					{
-						ID:                 id,
+						ID:                 &id,
 						Name:               "Test Facility",
 						Code:               0,
 						Phone:              "",

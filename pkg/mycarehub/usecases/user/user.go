@@ -1689,28 +1689,11 @@ func (us *UseCasesUserImpl) GetUserLinkedFacilities(ctx context.Context, paginat
 			return nil, fmt.Errorf("failed to get client facilities")
 		}
 
-		facilityOutput := []*dto.FacilityOutput{}
-		for _, facility := range facilities {
-			facilityOutput = append(facilityOutput, &dto.FacilityOutput{
-				ID:                 *facility.ID,
-				Name:               facility.Name,
-				Code:               facility.Code,
-				Phone:              facility.Phone,
-				Active:             facility.Active,
-				County:             facility.County,
-				Description:        facility.Description,
-				FHIROrganisationID: facility.FHIROrganisationID,
-				WorkStationDetails: dto.WorkStationDetailsOutput{
-					Notifications: facility.WorkStationDetails.Notifications,
-					Surveys:       facility.WorkStationDetails.Surveys,
-				},
-			})
-		}
-
 		return &dto.FacilityOutputPage{
 			Pagination: pageInfo,
-			Facilities: facilityOutput,
+			Facilities: facilities,
 		}, nil
+
 	case enums.StaffUser:
 		staffProfile, err := us.Query.GetStaffProfileByUserID(ctx, userID)
 		if err != nil {
@@ -1721,27 +1704,10 @@ func (us *UseCasesUserImpl) GetUserLinkedFacilities(ctx context.Context, paginat
 		if err != nil {
 			return nil, fmt.Errorf("failed to get client facilities")
 		}
-		facilityOutput := []*dto.FacilityOutput{}
-		for _, facility := range facilities {
-			facilityOutput = append(facilityOutput, &dto.FacilityOutput{
-				ID:                 *facility.ID,
-				Name:               facility.Name,
-				Code:               facility.Code,
-				Phone:              facility.Phone,
-				Active:             facility.Active,
-				County:             facility.County,
-				Description:        facility.Description,
-				FHIROrganisationID: facility.FHIROrganisationID,
-				WorkStationDetails: dto.WorkStationDetailsOutput{
-					Notifications: facility.WorkStationDetails.Notifications,
-					Surveys:       facility.WorkStationDetails.Surveys,
-				},
-			})
-		}
 
 		return &dto.FacilityOutputPage{
 			Pagination: pageInfo,
-			Facilities: facilityOutput,
+			Facilities: facilities,
 		}, nil
 
 	default:
