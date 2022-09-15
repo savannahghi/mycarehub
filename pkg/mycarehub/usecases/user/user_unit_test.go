@@ -5418,3 +5418,158 @@ func TestUseCasesUserImpl_AddFacilitiesToClientProfile(t *testing.T) {
 		})
 	}
 }
+
+func TestUseCasesUserImpl_RegisterCaregiver(t *testing.T) {
+
+	type args struct {
+		ctx   context.Context
+		input dto.CaregiverInput
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "happy case: register caregiver",
+			args: args{
+				ctx: context.Background(),
+				input: dto.CaregiverInput{
+					Name:   gofakeit.Name(),
+					Gender: enumutils.GenderMale,
+					DateOfBirth: scalarutils.Date{
+						Year:  10,
+						Month: 10,
+						Day:   10,
+					},
+					PhoneNumber:     gofakeit.Phone(),
+					CaregiverNumber: gofakeit.SSN(),
+					SendInvite:      false,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "sad case: phone number exists",
+			args: args{
+				ctx: context.Background(),
+				input: dto.CaregiverInput{
+					Name:   gofakeit.Name(),
+					Gender: enumutils.GenderMale,
+					DateOfBirth: scalarutils.Date{
+						Year:  10,
+						Month: 10,
+						Day:   10,
+					},
+					PhoneNumber:     gofakeit.Phone(),
+					CaregiverNumber: gofakeit.SSN(),
+					SendInvite:      false,
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "sad case: phone number check error",
+			args: args{
+				ctx: context.Background(),
+				input: dto.CaregiverInput{
+					Name:   gofakeit.Name(),
+					Gender: enumutils.GenderMale,
+					DateOfBirth: scalarutils.Date{
+						Year:  10,
+						Month: 10,
+						Day:   10,
+					},
+					PhoneNumber:     gofakeit.Phone(),
+					CaregiverNumber: gofakeit.SSN(),
+					SendInvite:      false,
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "sad case: invalid phone number",
+			args: args{
+				ctx: context.Background(),
+				input: dto.CaregiverInput{
+					Name:   gofakeit.Name(),
+					Gender: enumutils.GenderMale,
+					DateOfBirth: scalarutils.Date{
+						Year:  10,
+						Month: 10,
+						Day:   10,
+					},
+					PhoneNumber:     "+2547",
+					CaregiverNumber: gofakeit.SSN(),
+					SendInvite:      false,
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "sad case: register caregiver error",
+			args: args{
+				ctx: context.Background(),
+				input: dto.CaregiverInput{
+					Name:   gofakeit.Name(),
+					Gender: enumutils.GenderMale,
+					DateOfBirth: scalarutils.Date{
+						Year:  10,
+						Month: 10,
+						Day:   10,
+					},
+					PhoneNumber:     gofakeit.Phone(),
+					CaregiverNumber: gofakeit.SSN(),
+					SendInvite:      false,
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			fakeExtension := extensionMock.NewFakeExtension()
+			fakeOTP := otpMock.NewOTPUseCaseMock()
+			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
+			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
+			fakePubsub := pubsubMock.NewPubsubServiceMock()
+			fakeClinical := clinicalMock.NewClinicalServiceMock()
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakeGetStream, fakePubsub, fakeClinical)
+
+			if tt.name == "happy case: register caregiver" {
+				fakeDB.MockCheckIfPhoneNumberExistsFn = func(ctx context.Context, phone string, isOptedIn bool, flavour feedlib.Flavour) (bool, error) {
+					return false, nil
+				}
+			}
+
+			if tt.name == "sad case: phone number check error" {
+				fakeDB.MockCheckIfPhoneNumberExistsFn = func(ctx context.Context, phone string, isOptedIn bool, flavour feedlib.Flavour) (bool, error) {
+					return false, fmt.Errorf("failed to check phone number")
+				}
+			}
+
+			if tt.name == "sad case: register caregiver error" {
+				fakeDB.MockCheckIfPhoneNumberExistsFn = func(ctx context.Context, phone string, isOptedIn bool, flavour feedlib.Flavour) (bool, error) {
+					return false, nil
+				}
+
+				fakeDB.MockRegisterCaregiverFn = func(ctx context.Context, input *domain.CaregiverRegistration) (*domain.CaregiverProfile, error) {
+					return nil, fmt.Errorf("failed to register caregiver")
+				}
+			}
+
+			got, err := us.RegisterCaregiver(tt.args.ctx, tt.args.input)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCasesUserImpl.RegisterCaregiver() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected a response but got %v", got)
+				return
+			}
+
+		})
+	}
+}

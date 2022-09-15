@@ -15,6 +15,7 @@ extend type Mutation {
   createOrUpdateClientCaregiver(caregiverInput: CaregiverInput): Boolean!
   registerClient(input: ClientRegistrationInput): ClientRegistrationOutput!
   registerStaff(input: StaffRegistrationInput!): StaffRegistrationOutput!
+  registerCaregiver(input: CaregiverInput!): CaregiverProfile!
   optOut(phoneNumber: String!, flavour: Flavour!): Boolean!
   setPushToken(token: String!): Boolean!
   inviteUser(

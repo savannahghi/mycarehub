@@ -381,6 +381,12 @@ type StaffProfile {
   DefaultFacilityID: String!
 }
 
+type CaregiverProfile {
+  id: ID!
+  user: User!
+  caregiverNumber: String!
+}
+
 type ScreeningToolAssessmentResponse {
   clientName: String!
   dateAnswered: Time!
@@ -615,15 +621,15 @@ type QuestionnaireScreeningToolQuestionResponse {
   id: String!
   active: Boolean!
   screeningToolResponseID: String!
-	questionID: String! 
+  questionID: String!
   questionType: QuestionType
   selectMultiple: Boolean
   responseValueType: QuestionResponseValueType
   sequence: Int
   questionText: String
-	response:   String! 
+  response: String!
   normalizedResponse: Map
-	score:      Int    
+  score: Int
 }
 
 type ScreeningToolRespondent {

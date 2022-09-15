@@ -79,6 +79,7 @@ type IPIN interface {
 
 // IClientCaregiver is an interface that contains all the client caregiver use cases
 type IClientCaregiver interface {
+	RegisterCaregiver(ctx context.Context, input dto.CaregiverInput) (*domain.CaregiverProfile, error)
 	GetClientCaregiver(ctx context.Context, clientID string) (*domain.Caregiver, error)
 	CreateOrUpdateClientCaregiver(ctx context.Context, clientCaregiver *dto.CaregiverInput) (bool, error)
 	TransferClientToFacility(ctx context.Context, clientID *string, facilityID *string) (bool, error)
@@ -882,6 +883,62 @@ func (us *UseCasesUserImpl) RegisterClient(
 		CurrentFacilityID: registeredClient.FacilityID,
 		Organisation:      registeredClient.OrganisationID,
 	}, nil
+}
+
+// RegisterCaregiver is used to register a caregiver
+func (us *UseCasesUserImpl) RegisterCaregiver(ctx context.Context, input dto.CaregiverInput) (*domain.CaregiverProfile, error) {
+	normalized, err := converterandformatter.NormalizeMSISDN(input.PhoneNumber)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, fmt.Errorf("unable to normalize phone number: %w", err)
+	}
+
+	phoneExists, err := us.Query.CheckIfPhoneNumberExists(ctx, *normalized, false, feedlib.FlavourConsumer)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, fmt.Errorf("unable to check if phone number exists: %w", err)
+	}
+	if phoneExists {
+		return nil, fmt.Errorf("phone number %v already exists", normalized)
+	}
+
+	username := fmt.Sprintf("%v-%v", input.Name, input.CaregiverNumber)
+	dob := input.DateOfBirth.AsTime()
+	user := &domain.User{
+		Username:    username,
+		Name:        input.Name,
+		Gender:      enumutils.Gender(strings.ToUpper(input.Gender.String())),
+		DateOfBirth: &dob,
+		UserType:    enums.CaregiverUser,
+		Flavour:     feedlib.FlavourConsumer,
+		Active:      true,
+	}
+
+	contact := &domain.Contact{
+		ContactType:  "PHONE",
+		ContactValue: *normalized,
+		Active:       true,
+		OptedIn:      false,
+		Flavour:      feedlib.FlavourConsumer,
+	}
+
+	caregiver := &domain.Caregiver{
+		CaregiverNumber: input.CaregiverNumber,
+		Active:          true,
+	}
+
+	payload := &domain.CaregiverRegistration{
+		User:      user,
+		Contact:   contact,
+		Caregiver: caregiver,
+	}
+
+	profile, err := us.Create.RegisterCaregiver(ctx, payload)
+	if err != nil {
+		return nil, err
+	}
+
+	return profile, nil
 }
 
 // RefreshGetStreamToken update a getstream token as soon as a token exception occurs. The implementation
