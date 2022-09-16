@@ -175,6 +175,7 @@ type GormMock struct {
 	MockSearchCaregiverUserFn                            func(ctx context.Context, searchParameter string) ([]*gorm.NCaregiver, error)
 	MockRemoveFacilitiesFromClientProfileFn              func(ctx context.Context, clientID string, facilities []string) error
 	MockAddCaregiverToClientFn                           func(ctx context.Context, clientCaregiver *gorm.CaregiverClient) error
+	MockRemoveFacilitiesFromStaffProfileFn               func(ctx context.Context, staffID string, facilities []string) error
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -1428,6 +1429,9 @@ func NewGormMock() *GormMock {
 		MockRemoveFacilitiesFromClientProfileFn: func(ctx context.Context, clientID string, facilities []string) error {
 			return nil
 		},
+		MockRemoveFacilitiesFromStaffProfileFn: func(ctx context.Context, staffID string, facilities []string) error {
+			return nil
+		},
 	}
 }
 
@@ -2194,4 +2198,9 @@ func (gm *GormMock) RemoveFacilitiesFromClientProfile(ctx context.Context, clien
 // AddCaregiverToClient mocks the implementation of adding a caregiver to a client
 func (gm *GormMock) AddCaregiverToClient(ctx context.Context, clientCaregiver *gorm.CaregiverClient) error {
 	return gm.MockAddCaregiverToClientFn(ctx, clientCaregiver)
+}
+
+// RemoveFacilitiesFromStaffProfile mocks the implementation of removing facilities from a staff profile
+func (gm *GormMock) RemoveFacilitiesFromStaffProfile(ctx context.Context, staffID string, facilities []string) error {
+	return gm.MockRemoveFacilitiesFromStaffProfileFn(ctx, staffID, facilities)
 }

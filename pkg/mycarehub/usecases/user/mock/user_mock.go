@@ -53,6 +53,7 @@ type UserUseCaseMock struct {
 	MockRegisterCaregiver                   func(ctx context.Context, input dto.CaregiverInput) (*domain.CaregiverProfile, error)
 	MockSearchCaregiverUserFn               func(ctx context.Context, searchParameter string) ([]*domain.CaregiverProfile, error)
 	MockAssignCaregiverFn                   func(ctx context.Context, input dto.ClientCaregiverInput) (bool, error)
+	MockRemoveFacilitiesFromStaffProfileFn  func(ctx context.Context, staffID string, facilities []string) (bool, error)
 }
 
 // NewUserUseCaseMock creates in initializes create type mocks
@@ -340,6 +341,9 @@ func NewUserUseCaseMock() *UserUseCaseMock {
 		MockRemoveFacilitiesFromClientProfileFn: func(ctx context.Context, clientID string, facilities []string) (bool, error) {
 			return true, nil
 		},
+		MockRemoveFacilitiesFromStaffProfileFn: func(ctx context.Context, staffID string, facilities []string) (bool, error) {
+			return true, nil
+		},
 	}
 }
 
@@ -521,4 +525,9 @@ func (f *UserUseCaseMock) RemoveFacilitiesFromClientProfile(ctx context.Context,
 // AssignCaregiver mocks the implementation of adding a caregiver to a client
 func (f *UserUseCaseMock) AssignCaregiver(ctx context.Context, input dto.ClientCaregiverInput) (bool, error) {
 	return f.MockAssignCaregiverFn(ctx, input)
+}
+
+// RemoveFacilitiesFromStaffProfile mocks the implementation of removing facilities from a staff profile
+func (f *UserUseCaseMock) RemoveFacilitiesFromStaffProfile(ctx context.Context, staffID string, facilities []string) (bool, error) {
+	return f.MockRemoveFacilitiesFromStaffProfileFn(ctx, staffID, facilities)
 }

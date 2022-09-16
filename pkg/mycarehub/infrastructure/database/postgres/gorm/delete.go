@@ -17,6 +17,7 @@ type Delete interface {
 	DeleteStaffProfile(ctx context.Context, staffID string) error
 	DeleteCommunity(ctx context.Context, communityID string) error
 	RemoveFacilitiesFromClientProfile(ctx context.Context, clientID string, facilities []string) error
+	RemoveFacilitiesFromStaffProfile(ctx context.Context, staffID string, facilities []string) error
 }
 
 // DeleteFacility will do the actual deletion of a facility from the database
@@ -209,6 +210,35 @@ func (db *PGInstance) RemoveFacilitiesFromClientProfile(ctx context.Context, cli
 		helpers.ReportErrorToSentry(err)
 		tx.Rollback()
 		return fmt.Errorf("failed transaction commit to update client profile: %w", err)
+	}
+	return nil
+}
+
+// RemoveFacilitiesFromStaffProfile updates the client profile and removes the specified facilities
+func (db *PGInstance) RemoveFacilitiesFromStaffProfile(ctx context.Context, staffID string, facilities []string) error {
+	staffFacilities := StaffFacilities{}
+
+	tx := db.DB.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	for _, facilityID := range facilities {
+		err := tx.Where(&StaffFacilities{
+			StaffID:    &staffID,
+			FacilityID: &facilityID,
+		}).Delete(&staffFacilities).Error
+		if err != nil {
+			return err
+		}
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		helpers.ReportErrorToSentry(err)
+		tx.Rollback()
+		return fmt.Errorf("failed transaction commit to update staff profile: %w", err)
 	}
 	return nil
 }

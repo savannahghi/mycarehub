@@ -34,3 +34,8 @@ func (d *MyCareHubDb) DeleteCommunity(ctx context.Context, communityID string) e
 func (d *MyCareHubDb) RemoveFacilitiesFromClientProfile(ctx context.Context, clientID string, facilities []string) error {
 	return d.delete.RemoveFacilitiesFromClientProfile(ctx, clientID, facilities)
 }
+
+// RemoveFacilitiesFromStaffProfile updates the staff profile and removes the specified facilities in their assigned facilities
+func (d *MyCareHubDb) RemoveFacilitiesFromStaffProfile(ctx context.Context, staffID string, facilities []string) error {
+	return d.delete.RemoveFacilitiesFromStaffProfile(ctx, staffID, facilities)
+}

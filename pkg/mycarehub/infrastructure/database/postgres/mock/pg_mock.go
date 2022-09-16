@@ -168,6 +168,7 @@ type PostgresMock struct {
 	MockSearchCaregiverUserFn                            func(ctx context.Context, searchParameter string) ([]*domain.CaregiverProfile, error)
 	MockRemoveFacilitiesFromClientProfileFn              func(ctx context.Context, clientID string, facilities []string) error
 	MockAddCaregiverToClientFn                           func(ctx context.Context, clientCaregiver *domain.CaregiverClient) error
+	MockRemoveFacilitiesFromStaffProfileFn               func(ctx context.Context, staffID string, facilities []string) error
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -1354,6 +1355,9 @@ func NewPostgresMock() *PostgresMock {
 		MockRemoveFacilitiesFromClientProfileFn: func(ctx context.Context, clientID string, facilities []string) error {
 			return nil
 		},
+		MockRemoveFacilitiesFromStaffProfileFn: func(ctx context.Context, staffID string, facilities []string) error {
+			return nil
+		},
 	}
 }
 
@@ -2091,4 +2095,9 @@ func (gm *PostgresMock) RemoveFacilitiesFromClientProfile(ctx context.Context, c
 // AddCaregiverToClient mocks the implementation of adding a caregiver to a client
 func (gm *PostgresMock) AddCaregiverToClient(ctx context.Context, clientCaregiver *domain.CaregiverClient) error {
 	return gm.MockAddCaregiverToClientFn(ctx, clientCaregiver)
+}
+
+// RemoveFacilitiesFromStaffProfile mocks the implementation of removing facilities from a staff profile
+func (gm *PostgresMock) RemoveFacilitiesFromStaffProfile(ctx context.Context, staffID string, facilities []string) error {
+	return gm.MockRemoveFacilitiesFromStaffProfileFn(ctx, staffID, facilities)
 }
