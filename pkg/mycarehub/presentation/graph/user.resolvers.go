@@ -70,6 +70,10 @@ func (r *mutationResolver) AddFacilitiesToStaffProfile(ctx context.Context, staf
 	return r.mycarehub.User.AddFacilitiesToStaffProfile(ctx, staffID, facilities)
 }
 
+func (r *mutationResolver) AddFacilitiesToClientProfile(ctx context.Context, clientID string, facilities []string) (bool, error) {
+	return r.mycarehub.User.AddFacilitiesToClientProfile(ctx, clientID, facilities)
+}
+
 func (r *queryResolver) GetCurrentTerms(ctx context.Context, flavour feedlib.Flavour) (*domain.TermsOfService, error) {
 	r.checkPreconditions()
 	return r.mycarehub.Terms.GetCurrentTerms(ctx, flavour)

@@ -310,6 +310,7 @@ func TestMain(m *testing.M) {
 			"../../../../../../fixtures/clients_caregiver.yml",
 			"../../../../../../fixtures/clients_client.yml",
 			"../../../../../../fixtures/clients_client_contacts.yml",
+			"../../../../../../fixtures/clients_client_facilities.yml",
 			"../../../../../../fixtures/staff_staff.yml",
 			"../../../../../../fixtures/staff_staff_contacts.yml",
 			"../../../../../../fixtures/staff_staff_identifiers.yml",

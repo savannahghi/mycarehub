@@ -1808,3 +1808,51 @@ func TestMyCareHubDb_AddFacilitiesToStaffProfile(t *testing.T) {
 		})
 	}
 }
+
+func TestMyCareHubDb_AddFacilitiesToClientProfile(t *testing.T) {
+	type args struct {
+		ctx        context.Context
+		clientID   string
+		facilities []string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: add facilities to client profile",
+			args: args{
+				ctx:        context.Background(),
+				clientID:   uuid.NewString(),
+				facilities: []string{uuid.NewString()},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: failed to add facilities to client profile",
+			args: args{
+				ctx:        context.Background(),
+				clientID:   uuid.NewString(),
+				facilities: []string{uuid.NewString()},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeGorm := gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			if tt.name == "Sad case: failed to add facilities to client profile" {
+				fakeGorm.MockAddFacilitiesToClientProfileFn = func(ctx context.Context, clientID string, facilities []string) error {
+					return fmt.Errorf("failed to add facilities to client profile")
+				}
+			}
+
+			if err := d.AddFacilitiesToClientProfile(tt.args.ctx, tt.args.clientID, tt.args.facilities); (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.AddFacilitiesToClientProfile() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}

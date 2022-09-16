@@ -161,6 +161,7 @@ type PostgresMock struct {
 	MockGetClientFacilitiesFn                            func(ctx context.Context, input dto.ClientFacilityInput) ([]*domain.Facility, error)
 	MockUpdateStaffFn                                    func(ctx context.Context, staff *domain.StaffProfile, updates map[string]interface{}) error
 	MockAddFacilitiesToStaffProfileFn                    func(ctx context.Context, staffID string, facilities []string) error
+	MockAddFacilitiesToClientProfileFn                   func(ctx context.Context, clientID string, facilities []string) error
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -1298,6 +1299,9 @@ func NewPostgresMock() *PostgresMock {
 		MockAddFacilitiesToStaffProfileFn: func(ctx context.Context, staffID string, facilities []string) error {
 			return nil
 		},
+		MockAddFacilitiesToClientProfileFn: func(ctx context.Context, clientID string, facilities []string) error {
+			return nil
+		},
 	}
 }
 
@@ -2000,4 +2004,9 @@ func (gm *PostgresMock) UpdateStaff(ctx context.Context, staff *domain.StaffProf
 // AddFacilitiesToStaffProfile mocks the implementation of adding facilities to a staff profile
 func (gm *PostgresMock) AddFacilitiesToStaffProfile(ctx context.Context, staffID string, facilities []string) error {
 	return gm.MockAddFacilitiesToStaffProfileFn(ctx, staffID, facilities)
+}
+
+// AddFacilitiesToClientProfile mocks the implementation of adding facilities to a client profile
+func (gm *PostgresMock) AddFacilitiesToClientProfile(ctx context.Context, clientID string, facilities []string) error {
+	return gm.MockAddFacilitiesToClientProfileFn(ctx, clientID, facilities)
 }

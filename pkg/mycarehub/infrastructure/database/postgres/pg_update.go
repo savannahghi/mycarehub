@@ -318,3 +318,8 @@ func (d *MyCareHubDb) UpdateStaff(ctx context.Context, staff *domain.StaffProfil
 func (d *MyCareHubDb) AddFacilitiesToStaffProfile(ctx context.Context, staffID string, facilities []string) error {
 	return d.update.AddFacilitiesToStaffProfile(ctx, staffID, facilities)
 }
+
+// AddFacilitiesToClientProfile updates the current facility list of a client
+func (d *MyCareHubDb) AddFacilitiesToClientProfile(ctx context.Context, clientID string, facilities []string) error {
+	return d.update.AddFacilitiesToClientProfile(ctx, clientID, facilities)
+}

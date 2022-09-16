@@ -167,6 +167,7 @@ type GormMock struct {
 	MockGetClientFacilitiesFn                            func(ctx context.Context, clientFacility gorm.ClientFacilities) ([]*gorm.ClientFacilities, error)
 	MockUpdateStaffFn                                    func(ctx context.Context, staff *gorm.StaffProfile, updates map[string]interface{}) (*gorm.StaffProfile, error)
 	MockAddFacilitiesToStaffProfileFn                    func(ctx context.Context, staffID string, facilities []string) error
+	MockAddFacilitiesToClientProfileFn                   func(ctx context.Context, clientID string, facilities []string) error
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -1376,6 +1377,9 @@ func NewGormMock() *GormMock {
 		MockAddFacilitiesToStaffProfileFn: func(ctx context.Context, staffID string, facilities []string) error {
 			return nil
 		},
+		MockAddFacilitiesToClientProfileFn: func(ctx context.Context, clientID string, facilities []string) error {
+			return nil
+		},
 	}
 }
 
@@ -2102,4 +2106,9 @@ func (gm *GormMock) UpdateStaff(ctx context.Context, staff *gorm.StaffProfile, u
 // AddFacilitiesToStaffProfile mocks the implementation of adding facilities to a staff profile
 func (gm *GormMock) AddFacilitiesToStaffProfile(ctx context.Context, staffID string, facilities []string) error {
 	return gm.MockAddFacilitiesToStaffProfileFn(ctx, staffID, facilities)
+}
+
+// AddFacilitiesToClientProfile mocks the implementation of adding facilities to a client profile
+func (gm *GormMock) AddFacilitiesToClientProfile(ctx context.Context, clientID string, facilities []string) error {
+	return gm.MockAddFacilitiesToClientProfileFn(ctx, clientID, facilities)
 }

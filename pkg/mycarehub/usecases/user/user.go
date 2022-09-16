@@ -120,6 +120,7 @@ type IUserProfile interface {
 // IClientProfile interface contains method signatures related to a client profile
 type IClientProfile interface {
 	AddClientFHIRID(ctx context.Context, input dto.ClientFHIRPayload) error
+	AddFacilitiesToClientProfile(ctx context.Context, clientID string, facilities []string) (bool, error)
 }
 
 // IDeleteUser interface define the method signature that is used to delete user
@@ -1555,6 +1556,26 @@ func (us *UseCasesUserImpl) SetClientDefaultFacility(ctx context.Context, userID
 		return false, err
 	}
 
+	return true, nil
+}
+
+// AddFacilitiesToClientProfile updates the client facility list
+func (us *UseCasesUserImpl) AddFacilitiesToClientProfile(ctx context.Context, clientID string, facilities []string) (bool, error) {
+	if clientID == "" {
+		err := fmt.Errorf("client ID cannot be empty")
+		helpers.ReportErrorToSentry(err)
+		return false, err
+	}
+	if len(facilities) < 1 {
+		err := fmt.Errorf("facilities cannot be empty")
+		helpers.ReportErrorToSentry(err)
+		return false, err
+	}
+	err := us.Update.AddFacilitiesToClientProfile(ctx, clientID, facilities)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, fmt.Errorf("failed to update client facilities: %w", err)
+	}
 	return true, nil
 }
 
