@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/mitchellh/mapstructure"
+	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/firebasetools"
 	"gorm.io/gorm"
@@ -112,6 +113,7 @@ type Query interface {
 	GetClientsSurveyServiceRequest(ctx context.Context, facilityID string, projectID int, formID string, pagination *domain.Pagination) ([]*ClientServiceRequest, *domain.Pagination, error)
 	GetStaffFacilities(ctx context.Context, staffFacility StaffFacilities) ([]*StaffFacilities, error)
 	GetClientFacilities(ctx context.Context, clientFacility ClientFacilities) ([]*ClientFacilities, error)
+	GetNotificationsCount(ctx context.Context, notification Notification) (int, error)
 }
 
 // GetFacilityStaffs returns a list of staff at a particular facility
@@ -1808,4 +1810,36 @@ func (db *PGInstance) GetClientFacilities(ctx context.Context, clientFacility Cl
 
 	return clientFacilities, nil
 
+}
+
+// GetNotificationsCount fetches the total number of user's notifications in a given facility
+func (db *PGInstance) GetNotificationsCount(ctx context.Context, notification Notification) (int, error) {
+	var count int64
+	filters := []*firebasetools.FilterParam{
+		{
+			FieldName:           "is_read",
+			FieldType:           enumutils.FieldTypeBoolean,
+			ComparisonOperation: enumutils.OperationEqual,
+			FieldValue:          notification.IsRead,
+		},
+	}
+
+	facilityNotificationsQuery := db.DB.Where(&Notification{Flavour: notification.Flavour, FacilityID: notification.FacilityID})
+	if err := addFilters(facilityNotificationsQuery, filters); err != nil {
+		return 0, fmt.Errorf("failed to get notifications count: %w", err)
+	}
+
+	tx := db.DB.Model(&Notification{}).Or(facilityNotificationsQuery)
+
+	if notification.UserID != nil {
+		userNotificationsQuery := db.DB.Where(&Notification{UserID: notification.UserID})
+		tx.Or(userNotificationsQuery)
+	}
+
+	if err := tx.Find(&notification).Count(&count).Error; err != nil {
+		helpers.ReportErrorToSentry(err)
+		return 0, fmt.Errorf("failed to get notifications count: %w", err)
+	}
+
+	return int(count), nil
 }

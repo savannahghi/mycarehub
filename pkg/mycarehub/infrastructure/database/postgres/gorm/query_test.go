@@ -4872,3 +4872,59 @@ func TestPGInstance_GetClientFacilities(t *testing.T) {
 		})
 	}
 }
+
+func TestPGInstance_GetNotificationsCount(t *testing.T) {
+	ctx := context.Background()
+
+	invalidID := "invalid"
+	type args struct {
+		ctx          context.Context
+		notification gorm.Notification
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    int
+		wantErr bool
+	}{
+		{
+			name: "happy case: get staffs notifications count",
+			args: args{
+				ctx: ctx,
+				notification: gorm.Notification{
+					UserID:     &userToRegisterStaff,
+					IsRead:     false,
+					FacilityID: &facilityID,
+					Flavour:    feedlib.FlavourPro,
+				},
+			},
+			want:    3,
+			wantErr: false,
+		},
+		{
+			name: "sad case: get notifications count",
+			args: args{
+				ctx: ctx,
+				notification: gorm.Notification{
+					UserID:     &invalidID,
+					IsRead:     false,
+					FacilityID: &facilityID,
+					Flavour:    feedlib.FlavourPro,
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := testingDB.GetNotificationsCount(tt.args.ctx, tt.args.notification)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.GetNotificationsCount() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("PGInstance.GetNotificationsCount() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

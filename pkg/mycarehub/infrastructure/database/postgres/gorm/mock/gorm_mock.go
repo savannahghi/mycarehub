@@ -168,6 +168,7 @@ type GormMock struct {
 	MockUpdateStaffFn                                    func(ctx context.Context, staff *gorm.StaffProfile, updates map[string]interface{}) (*gorm.StaffProfile, error)
 	MockAddFacilitiesToStaffProfileFn                    func(ctx context.Context, staffID string, facilities []string) error
 	MockAddFacilitiesToClientProfileFn                   func(ctx context.Context, clientID string, facilities []string) error
+	MockGetNotificationsCountFn                          func(ctx context.Context, notification gorm.Notification) (int, error)
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -1380,6 +1381,9 @@ func NewGormMock() *GormMock {
 		MockAddFacilitiesToClientProfileFn: func(ctx context.Context, clientID string, facilities []string) error {
 			return nil
 		},
+		MockGetNotificationsCountFn: func(ctx context.Context, notification gorm.Notification) (int, error) {
+			return 1, nil
+		},
 	}
 }
 
@@ -2111,4 +2115,9 @@ func (gm *GormMock) AddFacilitiesToStaffProfile(ctx context.Context, staffID str
 // AddFacilitiesToClientProfile mocks the implementation of adding facilities to a client profile
 func (gm *GormMock) AddFacilitiesToClientProfile(ctx context.Context, clientID string, facilities []string) error {
 	return gm.MockAddFacilitiesToClientProfileFn(ctx, clientID, facilities)
+}
+
+// GetNotificationsCount mocks the implementation of getting notification count
+func (gm *GormMock) GetNotificationsCount(ctx context.Context, notification gorm.Notification) (int, error) {
+	return gm.MockGetNotificationsCountFn(ctx, notification)
 }
