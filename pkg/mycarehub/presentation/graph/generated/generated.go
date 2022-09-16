@@ -436,6 +436,7 @@ type ComplexityRoot struct {
 		RegisterClient                     func(childComplexity int, input *dto.ClientRegistrationInput) int
 		RegisterStaff                      func(childComplexity int, input dto.StaffRegistrationInput) int
 		RejectInvitation                   func(childComplexity int, memberID string, communityID string) int
+		RemoveFacilitiesFromStaffProfile   func(childComplexity int, staffID string, facilities []string) int
 		RemoveMembersFromCommunity         func(childComplexity int, communityID string, memberIDs []string) int
 		RescheduleAppointment              func(childComplexity int, appointmentID string, date scalarutils.Date) int
 		ResolveServiceRequest              func(childComplexity int, staffID string, requestID string, action []string, comment *string) int
@@ -894,6 +895,7 @@ type MutationResolver interface {
 	SetStaffDefaultFacility(ctx context.Context, userID string, facilityID string) (bool, error)
 	SetClientDefaultFacility(ctx context.Context, userID string, facilityID string) (bool, error)
 	AddFacilitiesToStaffProfile(ctx context.Context, staffID string, facilities []string) (bool, error)
+	RemoveFacilitiesFromStaffProfile(ctx context.Context, staffID string, facilities []string) (bool, error)
 }
 type QueryResolver interface {
 	FetchClientAppointments(ctx context.Context, clientID string, paginationInput dto.PaginationsInput, filters []*firebasetools.FilterParam) (*domain.AppointmentsPage, error)
@@ -2955,6 +2957,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.RejectInvitation(childComplexity, args["memberID"].(string), args["communityID"].(string)), true
+
+	case "Mutation.removeFacilitiesFromStaffProfile":
+		if e.complexity.Mutation.RemoveFacilitiesFromStaffProfile == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_removeFacilitiesFromStaffProfile_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.RemoveFacilitiesFromStaffProfile(childComplexity, args["staffID"].(string), args["facilities"].([]string)), true
 
 	case "Mutation.removeMembersFromCommunity":
 		if e.complexity.Mutation.RemoveMembersFromCommunity == nil {
@@ -6699,6 +6713,7 @@ extend type Mutation {
   setStaffDefaultFacility(userID: ID!, facilityID: ID!): Boolean!
   setClientDefaultFacility(userID: ID!, facilityID: ID!): Boolean!
   addFacilitiesToStaffProfile(staffID: ID!, facilities: [ID!]!): Boolean!
+  removeFacilitiesFromStaffProfile(staffID: ID!, facilities: [ID!]!): Boolean!
 }
 `, BuiltIn: false},
 	{Name: "../../../../../federation/directives.graphql", Input: `
@@ -7427,6 +7442,30 @@ func (ec *executionContext) field_Mutation_rejectInvitation_args(ctx context.Con
 		}
 	}
 	args["communityID"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_removeFacilitiesFromStaffProfile_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["staffID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("staffID"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["staffID"] = arg0
+	var arg1 []string
+	if tmp, ok := rawArgs["facilities"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("facilities"))
+		arg1, err = ec.unmarshalNID2ᚕstringᚄ(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["facilities"] = arg1
 	return args, nil
 }
 
@@ -22595,6 +22634,61 @@ func (ec *executionContext) fieldContext_Mutation_addFacilitiesToStaffProfile(ct
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_addFacilitiesToStaffProfile_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_removeFacilitiesFromStaffProfile(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_removeFacilitiesFromStaffProfile(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().RemoveFacilitiesFromStaffProfile(rctx, fc.Args["staffID"].(string), fc.Args["facilities"].([]string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_removeFacilitiesFromStaffProfile(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_removeFacilitiesFromStaffProfile_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -41052,6 +41146,15 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_addFacilitiesToStaffProfile(ctx, field)
+			})
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "removeFacilitiesFromStaffProfile":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_removeFacilitiesFromStaffProfile(ctx, field)
 			})
 
 			if out.Values[i] == graphql.Null {

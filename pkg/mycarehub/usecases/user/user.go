@@ -135,6 +135,7 @@ type IUserFacility interface {
 	SetClientDefaultFacility(ctx context.Context, userID string, facilityID string) (bool, error)
 	AddFacilitiesToStaffProfile(ctx context.Context, staffID string, facilities []string) (bool, error)
 	GetUserLinkedFacilities(ctx context.Context) ([]*domain.Facility, error)
+	RemoveFacilitiesFromStaffProfile(ctx context.Context, staffID string, facilities []string) (bool, error)
 }
 
 // UseCasesUser group all business logic usecases related to user
@@ -1616,4 +1617,61 @@ func (us *UseCasesUserImpl) GetUserLinkedFacilities(ctx context.Context) ([]*dom
 	default:
 		return nil, fmt.Errorf("the user has an invalid user type")
 	}
+}
+
+// RemoveFacilitiesFromStaffProfile updates the staff facility list to remove assigned facilities except the default facility
+func (us *UseCasesUserImpl) RemoveFacilitiesFromStaffProfile(ctx context.Context, staffID string, facilities []string) (bool, error) {
+
+	if staffID == "" {
+
+		err := fmt.Errorf("staff ID cannot be empty")
+
+		helpers.ReportErrorToSentry(err)
+
+		return false, err
+
+	}
+
+	if len(facilities) < 1 {
+
+		err := fmt.Errorf("facilities cannot be empty")
+
+		helpers.ReportErrorToSentry(err)
+
+		return false, err
+
+	}
+
+	staff, err := us.Query.GetStaffProfileByStaffID(ctx, staffID)
+
+	if err != nil {
+
+		helpers.ReportErrorToSentry(err)
+
+		return false, fmt.Errorf("failed to get staff profile %w", err)
+
+	}
+
+	for _, facilityID := range facilities {
+
+		if staff.DefaultFacilityID == facilityID {
+
+			return false, fmt.Errorf("cannot delete default facility ID: %s, please select another facility", facilityID)
+
+		}
+
+	}
+
+	err = us.Update.RemoveFacilitiesFromStaffProfile(ctx, staffID, facilities)
+
+	if err != nil {
+
+		helpers.ReportErrorToSentry(err)
+
+		return false, fmt.Errorf("failed to update staff facilities: %w", err)
+
+	}
+
+	return true, nil
+
 }

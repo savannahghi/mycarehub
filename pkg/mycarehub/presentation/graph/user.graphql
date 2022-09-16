@@ -28,4 +28,5 @@ extend type Mutation {
   setStaffDefaultFacility(userID: ID!, facilityID: ID!): Boolean!
   setClientDefaultFacility(userID: ID!, facilityID: ID!): Boolean!
   addFacilitiesToStaffProfile(staffID: ID!, facilities: [ID!]!): Boolean!
+  removeFacilitiesFromStaffProfile(staffID: ID!, facilities: [ID!]!): Boolean!
 }

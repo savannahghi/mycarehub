@@ -318,3 +318,8 @@ func (d *MyCareHubDb) UpdateStaff(ctx context.Context, staff *domain.StaffProfil
 func (d *MyCareHubDb) AddFacilitiesToStaffProfile(ctx context.Context, staffID string, facilities []string) error {
 	return d.update.AddFacilitiesToStaffProfile(ctx, staffID, facilities)
 }
+
+// RemoveFacilitiesFromStaffProfile updates the staff profile and removes the specified facilities in their assigned facilities
+func (d *MyCareHubDb) RemoveFacilitiesFromStaffProfile(ctx context.Context, staffID string, facilities []string) error {
+	return d.update.RemoveFacilitiesFromStaffProfile(ctx, staffID, facilities)
+}

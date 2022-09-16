@@ -5301,3 +5301,101 @@ func TestUseCasesUserImpl_GetUserLinkedFacilities(t *testing.T) {
 		})
 	}
 }
+
+func TestUseCasesUserImpl_RemoveFacilitiesFromStaffProfile(t *testing.T) {
+	type args struct {
+		ctx        context.Context
+		staffID    string
+		facilities []string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy Case: remove facilities from staff profile",
+			args: args{
+				ctx:        context.Background(),
+				staffID:    uuid.NewString(),
+				facilities: []string{uuid.NewString()},
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Sad Case: missing staff id",
+			args: args{
+				ctx:        context.Background(),
+				facilities: []string{uuid.NewString()},
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad Case: missing facility",
+			args: args{
+				ctx:        context.Background(),
+				staffID:    uuid.NewString(),
+				facilities: []string{},
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad Case: failed to get staff profile by staff id",
+			args: args{
+				ctx:        context.Background(),
+				staffID:    uuid.NewString(),
+				facilities: []string{uuid.NewString()},
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad Case: failed to remove facilities from staff profile",
+			args: args{
+				ctx:        context.Background(),
+				staffID:    uuid.NewString(),
+				facilities: []string{uuid.NewString()},
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			fakeDB := pgMock.NewPostgresMock()
+			fakeExtension := extensionMock.NewFakeExtension()
+			fakeOTP := otpMock.NewOTPUseCaseMock()
+			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
+			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
+			fakePubsub := pubsubMock.NewPubsubServiceMock()
+			fakeClinical := clinicalMock.NewClinicalServiceMock()
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakeGetStream, fakePubsub, fakeClinical)
+
+			if tt.name == "Sad Case: failed to get staff profile by staff id" {
+				fakeDB.MockGetStaffProfileByStaffIDFn = func(ctx context.Context, staffID string) (*domain.StaffProfile, error) {
+					return nil, fmt.Errorf("failed to get staff profile by staff id")
+				}
+			}
+
+			if tt.name == "Sad Case: failed to remove facilities from staff profile" {
+				fakeDB.MockRemoveFacilitiesFromStaffProfileFn = func(ctx context.Context, staffID string, facilities []string) error {
+					return fmt.Errorf("failed to remove facilities from staff profile")
+				}
+			}
+
+			got, err := us.RemoveFacilitiesFromStaffProfile(tt.args.ctx, tt.args.staffID, tt.args.facilities)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCasesUserImpl.RemoveFacilitiesFromStaffProfile() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("UseCasesUserImpl.RemoveFacilitiesFromStaffProfile() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

@@ -1547,3 +1547,42 @@ func TestPGInstance_AddFacilitiesToStaffProfile(t *testing.T) {
 		})
 	}
 }
+
+func TestPGInstance_RemoveFacilitiesFromStaffProfile(t *testing.T) {
+	type args struct {
+		ctx        context.Context
+		staffID    string
+		facilities []string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: remove facilities from staff profile",
+			args: args{
+				ctx:        context.Background(),
+				staffID:    staffID,
+				facilities: []string{facilityToRemoveFromUserProfile},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: failed remove facilities from staff profile, invalid staff ID",
+			args: args{
+				ctx:        context.Background(),
+				staffID:    "Invalid",
+				facilities: []string{facilityToRemoveFromUserProfile},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := testingDB.RemoveFacilitiesFromStaffProfile(tt.args.ctx, tt.args.staffID, tt.args.facilities); (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.RemoveFacilitiesFromStaffProfile() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}

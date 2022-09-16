@@ -56,11 +56,12 @@ var (
 	identifierID                       = "bcbdaf68-3d36-4365-b575-4182d6749af5"
 	clientToAddCaregiver               = "00a6a0cd-42ac-417b-97d9-e939a1232de2"
 	// Facility variables
-	facilityID                 = "4181df12-ca96-4f28-b78b-8e8ad88b25df"
-	facilityToAddToUserProfile = "5181df12-ca96-4f28-b78b-8e8ad88b25de"
-	mflCode                    = 324459
-	inactiveMflCode            = 229900
-	mflCodeToInactivate        = 223900
+	facilityID                      = "4181df12-ca96-4f28-b78b-8e8ad88b25df"
+	facilityToAddToUserProfile      = "5181df12-ca96-4f28-b78b-8e8ad88b25de"
+	facilityToRemoveFromUserProfile = "bdc22436-e314-43f2-bb39-ba1ab332f9b0"
+	mflCode                         = 324459
+	inactiveMflCode                 = 229900
+	mflCodeToInactivate             = 223900
 	// Pin variables
 	salt, encryptedPin string
 	// Securityquestions variables
@@ -188,35 +189,36 @@ func TestMain(m *testing.M) {
 		testfixtures.Dialect("postgres"),
 		testfixtures.Template(),
 		testfixtures.TemplateData(template.FuncMap{
-			"salt":                            salt,
-			"hash":                            encryptedPin,
-			"valid_to":                        time.Now().Add(500).String(),
-			"test_phone":                      "\"" + testPhone + "\"",
-			"test_user_id":                    userID,
-			"user_with_roles_id":              userWithRolesID,
-			"test_user_id2":                   userID2,
-			"staff_user_id":                   userIDtoAssignStaff,
-			"test_flavour":                    testFlavour,
-			"test_organisation_id":            orgID,
-			"future_time":                     futureTime.String(),
-			"test_otp":                        "\"" + testOTP + "\"",
-			"treatment_buddy_id":              treatmentBuddyID,
-			"treatment_buddy_id2":             treatmentBuddyID2,
-			"test_fhir_patient_id":            fhirPatientID,
-			"test_fhir_patient_id2":           fhirPatientID2,
-			"test_emr_health_record_id":       testEmrHealthRecordID,
-			"test_emr_health_record_id2":      testEmrHealthRecordID2,
-			"test_facility_id":                facilityID,
-			"facility_to_add_to_user_profile": facilityToAddToUserProfile,
-			"test_chv_id":                     testChvID,
-			"test_chv_id2":                    testChvID2,
-			"test_password":                   gofakeit.Password(false, false, true, true, false, 10),
-			"test_terms_id":                   termsID,
-			"test_terms_text":                 termsText,
-			"security_question_id":            securityQuestionID,
-			"security_question_id2":           securityQuestionID2,
-			"security_question_id3":           securityQuestionID3,
-			"security_question_id4":           securityQuestionID4,
+			"salt":                                 salt,
+			"hash":                                 encryptedPin,
+			"valid_to":                             time.Now().Add(500).String(),
+			"test_phone":                           "\"" + testPhone + "\"",
+			"test_user_id":                         userID,
+			"user_with_roles_id":                   userWithRolesID,
+			"test_user_id2":                        userID2,
+			"staff_user_id":                        userIDtoAssignStaff,
+			"test_flavour":                         testFlavour,
+			"test_organisation_id":                 orgID,
+			"future_time":                          futureTime.String(),
+			"test_otp":                             "\"" + testOTP + "\"",
+			"treatment_buddy_id":                   treatmentBuddyID,
+			"treatment_buddy_id2":                  treatmentBuddyID2,
+			"test_fhir_patient_id":                 fhirPatientID,
+			"test_fhir_patient_id2":                fhirPatientID2,
+			"test_emr_health_record_id":            testEmrHealthRecordID,
+			"test_emr_health_record_id2":           testEmrHealthRecordID2,
+			"test_facility_id":                     facilityID,
+			"facility_to_add_to_user_profile":      facilityToAddToUserProfile,
+			"facility_to_remove_from_user_profile": facilityToRemoveFromUserProfile,
+			"test_chv_id":                          testChvID,
+			"test_chv_id2":                         testChvID2,
+			"test_password":                        gofakeit.Password(false, false, true, true, false, 10),
+			"test_terms_id":                        termsID,
+			"test_terms_text":                      termsText,
+			"security_question_id":                 securityQuestionID,
+			"security_question_id2":                securityQuestionID2,
+			"security_question_id3":                securityQuestionID3,
+			"security_question_id4":                securityQuestionID4,
 
 			"security_question_response_id":  securityQuestionResponseID,
 			"security_question_response_id2": securityQuestionResponseID2,

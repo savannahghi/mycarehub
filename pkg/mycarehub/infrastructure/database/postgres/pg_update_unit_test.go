@@ -1808,3 +1808,49 @@ func TestMyCareHubDb_AddFacilitiesToStaffProfile(t *testing.T) {
 		})
 	}
 }
+
+func TestMyCareHubDb_RemoveFacilitiesFromStaffProfile(t *testing.T) {
+	type args struct {
+		ctx        context.Context
+		staffID    string
+		facilities []string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: remove facilities from  staff profile",
+			args: args{
+				ctx:        context.Background(),
+				staffID:    uuid.NewString(),
+				facilities: []string{uuid.NewString()},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: failed to remove facilities from  staff profile",
+			args: args{
+				ctx:        context.Background(),
+				staffID:    uuid.NewString(),
+				facilities: []string{uuid.NewString()},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeGorm := gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+			if tt.name == "Sad case: failed to remove facilities from  staff profile" {
+				fakeGorm.MockRemoveFacilitiesFromStaffProfileFn = func(ctx context.Context, staffID string, facilities []string) error {
+					return fmt.Errorf("failed to remove facilities from staff profile")
+				}
+			}
+			if err := d.RemoveFacilitiesFromStaffProfile(tt.args.ctx, tt.args.staffID, tt.args.facilities); (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.RemoveFacilitiesFromStaffProfile() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}

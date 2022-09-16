@@ -165,4 +165,5 @@ type Update interface {
 	UpdateClientServiceRequest(ctx context.Context, serviceRequest *domain.ServiceRequest, updateData map[string]interface{}) error
 	UpdateStaff(ctx context.Context, staff *domain.StaffProfile, updates map[string]interface{}) error
 	AddFacilitiesToStaffProfile(ctx context.Context, staffID string, facilities []string) error
+	RemoveFacilitiesFromStaffProfile(ctx context.Context, staffID string, facilities []string) error
 }

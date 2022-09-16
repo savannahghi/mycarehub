@@ -40,6 +40,7 @@ type Update interface {
 	UpdateClientServiceRequest(ctx context.Context, clientServiceRequest *ClientServiceRequest, updateData map[string]interface{}) error
 	UpdateStaff(ctx context.Context, staff *StaffProfile, updates map[string]interface{}) (*StaffProfile, error)
 	AddFacilitiesToStaffProfile(ctx context.Context, staffID string, facilities []string) error
+	RemoveFacilitiesFromStaffProfile(ctx context.Context, staffID string, facilities []string) error
 }
 
 // ReactivateFacility performs the actual re-activation of the facility in the database
@@ -696,5 +697,33 @@ func (db *PGInstance) AddFacilitiesToStaffProfile(ctx context.Context, staffID s
 		return fmt.Errorf("failed to commit add clients to facilities transaction: %w", err)
 	}
 
+	return nil
+}
+
+func (db *PGInstance) RemoveFacilitiesFromStaffProfile(ctx context.Context, staffID string, facilities []string) error {
+	staffFacilities := StaffFacilities{}
+
+	tx := db.DB.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	for _, facilityID := range facilities {
+		err := tx.Where(&StaffFacilities{
+			StaffID:    &staffID,
+			FacilityID: &facilityID,
+		}).Delete(&staffFacilities).Error
+		if err != nil {
+			return err
+		}
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		helpers.ReportErrorToSentry(err)
+		tx.Rollback()
+		return fmt.Errorf("failed transaction commit to update staff profile: %v", err)
+	}
 	return nil
 }
