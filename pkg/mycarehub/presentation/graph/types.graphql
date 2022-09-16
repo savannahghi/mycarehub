@@ -665,3 +665,28 @@ type SurveyServiceRequestUserPage {
   users: [SurveyServiceRequestUser]!
   pagination: Pagination!
 }
+
+type FacilityOutputPage {
+  Pagination: Pagination!
+  Facilities: [FacilityOutput]!
+}
+
+type FacilityOutput {
+  ID: String!
+  name: String!
+  code: Int!
+  phone: String!
+  active: Boolean!
+  county: String!
+  description: String!
+  fhirOrganisationID: String!
+  workStationDetails: WorkStationDetailsOutput!
+}
+
+type WorkStationDetailsOutput  {
+	Notifications:  Int!
+	Surveys: Int!
+	Articles: Int!
+	Messages: Int!
+	ServiceRequests: Int!
+}

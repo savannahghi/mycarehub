@@ -111,9 +111,9 @@ type Query interface {
 	GetScreeningToolQuestionResponsesByResponseID(ctx context.Context, responseID string) ([]*ScreeningToolQuestionResponse, error)
 	GetSurveysWithServiceRequests(ctx context.Context, facilityID string) ([]*UserSurvey, error)
 	GetClientsSurveyServiceRequest(ctx context.Context, facilityID string, projectID int, formID string, pagination *domain.Pagination) ([]*ClientServiceRequest, *domain.Pagination, error)
-	GetStaffFacilities(ctx context.Context, staffFacility StaffFacilities) ([]*StaffFacilities, error)
-	GetClientFacilities(ctx context.Context, clientFacility ClientFacilities) ([]*ClientFacilities, error)
 	GetNotificationsCount(ctx context.Context, notification Notification) (int, error)
+	GetStaffFacilities(ctx context.Context, staffFacility StaffFacilities, pagination *domain.Pagination) ([]*StaffFacilities, *domain.Pagination, error)
+	GetClientFacilities(ctx context.Context, clientFacility ClientFacilities, pagination *domain.Pagination) ([]*ClientFacilities, *domain.Pagination, error)
 }
 
 // GetFacilityStaffs returns a list of staff at a particular facility
@@ -1769,8 +1769,9 @@ func (db *PGInstance) GetClientsSurveyServiceRequest(ctx context.Context, facili
 }
 
 // GetStaffFacilities gets facilities belonging to a given staff
-func (db *PGInstance) GetStaffFacilities(ctx context.Context, staffFacility StaffFacilities) ([]*StaffFacilities, error) {
+func (db *PGInstance) GetStaffFacilities(ctx context.Context, staffFacility StaffFacilities, pagination *domain.Pagination) ([]*StaffFacilities, *domain.Pagination, error) {
 	var staffFacilities []*StaffFacilities
+	var count int64
 
 	tx := db.DB.Model(&staffFacilities)
 
@@ -1781,18 +1782,29 @@ func (db *PGInstance) GetStaffFacilities(ctx context.Context, staffFacility Staf
 		tx = tx.Where("facility_id = ?", staffFacility.FacilityID)
 	}
 
-	if err := tx.Find(&staffFacilities).Error; err != nil {
-		helpers.ReportErrorToSentry(err)
-		return nil, fmt.Errorf("failed to get staff facilities: %w", err)
+	if pagination != nil {
+		if err := tx.Count(&count).Error; err != nil {
+			helpers.ReportErrorToSentry(err)
+			return nil, nil, err
+		}
+
+		pagination.Count = count
+		paginateQuery(tx, pagination)
 	}
 
-	return staffFacilities, nil
+	if err := tx.Find(&staffFacilities).Error; err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, nil, fmt.Errorf("failed to get staff facilities: %w", err)
+	}
+
+	return staffFacilities, pagination, nil
 
 }
 
 // GetClientFacilities gets facilities belonging to a given client
-func (db *PGInstance) GetClientFacilities(ctx context.Context, clientFacility ClientFacilities) ([]*ClientFacilities, error) {
+func (db *PGInstance) GetClientFacilities(ctx context.Context, clientFacility ClientFacilities, pagination *domain.Pagination) ([]*ClientFacilities, *domain.Pagination, error) {
 	var clientFacilities []*ClientFacilities
+	var count int64
 
 	tx := db.DB.Model(&clientFacilities)
 
@@ -1803,12 +1815,21 @@ func (db *PGInstance) GetClientFacilities(ctx context.Context, clientFacility Cl
 		tx = tx.Where("facility_id = ?", clientFacility.FacilityID)
 	}
 
-	if err := tx.Find(&clientFacilities).Error; err != nil {
-		helpers.ReportErrorToSentry(err)
-		return nil, fmt.Errorf("failed to get client facilities: %w", err)
+	if pagination != nil {
+		if err := tx.Count(&count).Error; err != nil {
+			return nil, nil, fmt.Errorf("failed to execute count query: %v", err)
+		}
+
+		pagination.Count = count
+		paginateQuery(tx, pagination)
 	}
 
-	return clientFacilities, nil
+	if err := tx.Find(&clientFacilities).Error; err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, nil, fmt.Errorf("failed to get client facilities: %w", err)
+	}
+
+	return clientFacilities, pagination, nil
 
 }
 

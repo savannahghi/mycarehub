@@ -226,7 +226,7 @@ func (d *MyCareHubDb) UpdateClient(ctx context.Context, client *domain.ClientPro
 		clientList = append(clientList, enums.ClientType(k))
 	}
 
-	clientFacilities, err := d.GetClientFacilities(ctx, dto.ClientFacilityInput{ClientID: client.ID})
+	clientFacilities, _, err := d.GetClientFacilities(ctx, dto.ClientFacilityInput{ClientID: client.ID}, nil)
 	if err != nil {
 		return nil, err
 	}

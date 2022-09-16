@@ -163,8 +163,8 @@ type GormMock struct {
 	MockGetScreeningToolResponseByIDFn                   func(ctx context.Context, id string) (*gorm.ScreeningToolResponse, error)
 	MockGetScreeningToolQuestionResponsesByResponseIDFn  func(ctx context.Context, responseID string) ([]*gorm.ScreeningToolQuestionResponse, error)
 	MockGetSurveysWithServiceRequestsFn                  func(ctx context.Context, facilityID string) ([]*gorm.UserSurvey, error)
-	MockGetStaffFacilitiesFn                             func(ctx context.Context, staffFacility gorm.StaffFacilities) ([]*gorm.StaffFacilities, error)
-	MockGetClientFacilitiesFn                            func(ctx context.Context, clientFacility gorm.ClientFacilities) ([]*gorm.ClientFacilities, error)
+	MockGetStaffFacilitiesFn                             func(ctx context.Context, staffFacility gorm.StaffFacilities, pagination *domain.Pagination) ([]*gorm.StaffFacilities, *domain.Pagination, error)
+	MockGetClientFacilitiesFn                            func(ctx context.Context, clientFacility gorm.ClientFacilities, pagination *domain.Pagination) ([]*gorm.ClientFacilities, *domain.Pagination, error)
 	MockUpdateStaffFn                                    func(ctx context.Context, staff *gorm.StaffProfile, updates map[string]interface{}) (*gorm.StaffProfile, error)
 	MockAddFacilitiesToStaffProfileFn                    func(ctx context.Context, staffID string, facilities []string) error
 	MockAddFacilitiesToClientProfileFn                   func(ctx context.Context, clientID string, facilities []string) error
@@ -1354,23 +1354,29 @@ func NewGormMock() *GormMock {
 				},
 			}, nil
 		},
-		MockGetStaffFacilitiesFn: func(ctx context.Context, staffFacility gorm.StaffFacilities) ([]*gorm.StaffFacilities, error) {
+		MockGetStaffFacilitiesFn: func(ctx context.Context, staffFacility gorm.StaffFacilities, pagination *domain.Pagination) ([]*gorm.StaffFacilities, *domain.Pagination, error) {
 			return []*gorm.StaffFacilities{
-				{
-					ID:         ID,
-					StaffID:    &UUID,
-					FacilityID: &UUID,
-				},
-			}, nil
+					{
+						ID:         ID,
+						StaffID:    &UUID,
+						FacilityID: &UUID,
+					},
+				}, &domain.Pagination{
+					Limit:       10,
+					CurrentPage: 2,
+				}, nil
 		},
-		MockGetClientFacilitiesFn: func(ctx context.Context, clientFacility gorm.ClientFacilities) ([]*gorm.ClientFacilities, error) {
+		MockGetClientFacilitiesFn: func(ctx context.Context, clientFacility gorm.ClientFacilities, pagination *domain.Pagination) ([]*gorm.ClientFacilities, *domain.Pagination, error) {
 			return []*gorm.ClientFacilities{
-				{
-					ID:         ID,
-					ClientID:   &UUID,
-					FacilityID: &UUID,
-				},
-			}, nil
+					{
+						ID:         ID,
+						ClientID:   &UUID,
+						FacilityID: &UUID,
+					},
+				}, &domain.Pagination{
+					Limit:       10,
+					CurrentPage: 2,
+				}, nil
 		},
 		MockUpdateStaffFn: func(ctx context.Context, staff *gorm.StaffProfile, updates map[string]interface{}) (*gorm.StaffProfile, error) {
 			return staff, nil
@@ -2093,13 +2099,13 @@ func (gm *GormMock) GetClientsSurveyServiceRequest(ctx context.Context, facility
 }
 
 // GetStaffFacilities mocks the implementation of getting a list of staff facilities
-func (gm *GormMock) GetStaffFacilities(ctx context.Context, staffFacility gorm.StaffFacilities) ([]*gorm.StaffFacilities, error) {
-	return gm.MockGetStaffFacilitiesFn(ctx, staffFacility)
+func (gm *GormMock) GetStaffFacilities(ctx context.Context, staffFacility gorm.StaffFacilities, pagination *domain.Pagination) ([]*gorm.StaffFacilities, *domain.Pagination, error) {
+	return gm.MockGetStaffFacilitiesFn(ctx, staffFacility, pagination)
 }
 
 // GetClientFacilities mocks the implementation of getting a list of client facilities
-func (gm *GormMock) GetClientFacilities(ctx context.Context, clientFacility gorm.ClientFacilities) ([]*gorm.ClientFacilities, error) {
-	return gm.MockGetClientFacilitiesFn(ctx, clientFacility)
+func (gm *GormMock) GetClientFacilities(ctx context.Context, clientFacility gorm.ClientFacilities, pagination *domain.Pagination) ([]*gorm.ClientFacilities, *domain.Pagination, error) {
+	return gm.MockGetClientFacilitiesFn(ctx, clientFacility, pagination)
 }
 
 // UpdateStaff mock the implementation of updating a staff profile

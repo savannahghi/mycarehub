@@ -4910,13 +4910,13 @@ func TestUseCasesUserImpl_SetStaffDefaultFacility(t *testing.T) {
 			}
 
 			if tt.name == "Sad case: failed to update default facility, invalid facility id" {
-				fakeDB.MockGetStaffFacilitiesFn = func(ctx context.Context, input dto.StaffFacilityInput) ([]*domain.Facility, error) {
-					return nil, fmt.Errorf("an error occurred")
+				fakeDB.MockGetStaffFacilitiesFn = func(ctx context.Context, input dto.StaffFacilityInput, pagination *domain.Pagination) ([]*domain.Facility, *domain.Pagination, error) {
+					return nil, nil, fmt.Errorf("failed to get staff facilities")
 				}
 			}
 			if tt.name == "Sad case: staff not assigned to facility" {
-				fakeDB.MockGetStaffFacilitiesFn = func(ctx context.Context, input dto.StaffFacilityInput) ([]*domain.Facility, error) {
-					return nil, pkgGorm.ErrRecordNotFound
+				fakeDB.MockGetStaffFacilitiesFn = func(ctx context.Context, input dto.StaffFacilityInput, pagination *domain.Pagination) ([]*domain.Facility, *domain.Pagination, error) {
+					return nil, nil, pkgGorm.ErrRecordNotFound
 				}
 			}
 
@@ -5019,14 +5019,14 @@ func TestUseCasesUserImpl_SetClientDefaultFacility(t *testing.T) {
 			}
 
 			if tt.name == "Sad case: failed to update default facility, invalid facility id" {
-				fakeDB.MockGetClientFacilitiesFn = func(ctx context.Context, input dto.ClientFacilityInput) ([]*domain.Facility, error) {
-					return nil, fmt.Errorf("an error occurred")
+				fakeDB.MockGetClientFacilitiesFn = func(ctx context.Context, input dto.ClientFacilityInput, pagination *domain.Pagination) ([]*domain.Facility, *domain.Pagination, error) {
+					return nil, nil, fmt.Errorf("failed to get client facilities")
 				}
 			}
 
 			if tt.name == "Sad case: client not assigned to facility" {
-				fakeDB.MockGetClientFacilitiesFn = func(ctx context.Context, input dto.ClientFacilityInput) ([]*domain.Facility, error) {
-					return nil, pkgGorm.ErrRecordNotFound
+				fakeDB.MockGetClientFacilitiesFn = func(ctx context.Context, input dto.ClientFacilityInput, pagination *domain.Pagination) ([]*domain.Facility, *domain.Pagination, error) {
+					return nil, nil, pkgGorm.ErrRecordNotFound
 				}
 			}
 
@@ -5123,7 +5123,8 @@ func TestUseCasesUserImpl_AddFacilitiesToStaffProfile(t *testing.T) {
 
 func TestUseCasesUserImpl_GetUserLinkedFacilities(t *testing.T) {
 	type args struct {
-		ctx context.Context
+		ctx        context.Context
+		pagination *dto.PaginationsInput
 	}
 	tests := []struct {
 		name    string
@@ -5135,6 +5136,10 @@ func TestUseCasesUserImpl_GetUserLinkedFacilities(t *testing.T) {
 			name: "Happy Case - Successfully get client linked facilities",
 			args: args{
 				ctx: context.Background(),
+				pagination: &dto.PaginationsInput{
+					CurrentPage: 1,
+					Limit:       10,
+				},
 			},
 			wantErr: false,
 		},
@@ -5142,6 +5147,10 @@ func TestUseCasesUserImpl_GetUserLinkedFacilities(t *testing.T) {
 			name: "Happy Case - Successfully get staff linked facilities",
 			args: args{
 				ctx: context.Background(),
+				pagination: &dto.PaginationsInput{
+					CurrentPage: 1,
+					Limit:       10,
+				},
 			},
 			wantErr: false,
 		},
@@ -5149,6 +5158,10 @@ func TestUseCasesUserImpl_GetUserLinkedFacilities(t *testing.T) {
 			name: "Sad Case - Fail to get logged in user",
 			args: args{
 				ctx: context.Background(),
+				pagination: &dto.PaginationsInput{
+					CurrentPage: 1,
+					Limit:       10,
+				},
 			},
 			wantErr: true,
 		},
@@ -5156,6 +5169,10 @@ func TestUseCasesUserImpl_GetUserLinkedFacilities(t *testing.T) {
 			name: "Sad Case - Fail to get user profile by user id",
 			args: args{
 				ctx: context.Background(),
+				pagination: &dto.PaginationsInput{
+					CurrentPage: 1,
+					Limit:       10,
+				},
 			},
 			wantErr: true,
 		},
@@ -5163,6 +5180,10 @@ func TestUseCasesUserImpl_GetUserLinkedFacilities(t *testing.T) {
 			name: "Sad Case - Fail to get client profile by user id",
 			args: args{
 				ctx: context.Background(),
+				pagination: &dto.PaginationsInput{
+					CurrentPage: 1,
+					Limit:       10,
+				},
 			},
 			wantErr: true,
 		},
@@ -5170,6 +5191,10 @@ func TestUseCasesUserImpl_GetUserLinkedFacilities(t *testing.T) {
 			name: "Sad Case - Fail to get client facilities",
 			args: args{
 				ctx: context.Background(),
+				pagination: &dto.PaginationsInput{
+					CurrentPage: 1,
+					Limit:       10,
+				},
 			},
 			wantErr: true,
 		},
@@ -5177,6 +5202,10 @@ func TestUseCasesUserImpl_GetUserLinkedFacilities(t *testing.T) {
 			name: "Sad Case - Fail to get staff profile by user id",
 			args: args{
 				ctx: context.Background(),
+				pagination: &dto.PaginationsInput{
+					CurrentPage: 1,
+					Limit:       10,
+				},
 			},
 			wantErr: true,
 		},
@@ -5184,6 +5213,10 @@ func TestUseCasesUserImpl_GetUserLinkedFacilities(t *testing.T) {
 			name: "Sad Case - Fail to get staff facilities",
 			args: args{
 				ctx: context.Background(),
+				pagination: &dto.PaginationsInput{
+					CurrentPage: 1,
+					Limit:       10,
+				},
 			},
 			wantErr: true,
 		},
@@ -5191,6 +5224,10 @@ func TestUseCasesUserImpl_GetUserLinkedFacilities(t *testing.T) {
 			name: "Sad Case - Invalid user type",
 			args: args{
 				ctx: context.Background(),
+				pagination: &dto.PaginationsInput{
+					CurrentPage: 1,
+					Limit:       10,
+				},
 			},
 			wantErr: true,
 		},
@@ -5253,8 +5290,8 @@ func TestUseCasesUserImpl_GetUserLinkedFacilities(t *testing.T) {
 					}, nil
 				}
 
-				fakeDB.MockGetClientFacilitiesFn = func(ctx context.Context, input dto.ClientFacilityInput) ([]*domain.Facility, error) {
-					return nil, fmt.Errorf("failed to get client facilities")
+				fakeDB.MockGetClientFacilitiesFn = func(ctx context.Context, input dto.ClientFacilityInput, pagination *domain.Pagination) ([]*domain.Facility, *domain.Pagination, error) {
+					return nil, nil, fmt.Errorf("failed to get client facilities")
 				}
 			}
 
@@ -5277,8 +5314,8 @@ func TestUseCasesUserImpl_GetUserLinkedFacilities(t *testing.T) {
 					}, nil
 				}
 
-				fakeDB.MockGetStaffFacilitiesFn = func(ctx context.Context, input dto.StaffFacilityInput) ([]*domain.Facility, error) {
-					return nil, fmt.Errorf("failed to get staff facilities")
+				fakeDB.MockGetStaffFacilitiesFn = func(ctx context.Context, input dto.StaffFacilityInput, pagination *domain.Pagination) ([]*domain.Facility, *domain.Pagination, error) {
+					return nil, nil, fmt.Errorf("failed to get staff facilities")
 				}
 			}
 
@@ -5290,7 +5327,7 @@ func TestUseCasesUserImpl_GetUserLinkedFacilities(t *testing.T) {
 				}
 			}
 
-			got, err := us.GetUserLinkedFacilities(tt.args.ctx)
+			got, err := us.GetUserLinkedFacilities(tt.args.ctx, *tt.args.pagination)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCasesUserImpl.GetUserLinkedFacilities() error = %v, wantErr %v", err, tt.wantErr)
 				return
