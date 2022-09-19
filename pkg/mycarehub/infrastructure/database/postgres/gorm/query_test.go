@@ -1533,6 +1533,14 @@ func TestPGInstance_GetClientsPendingServiceRequestsCount(t *testing.T) {
 			},
 			wantErr: false,
 		},
+		{
+			name: "Sad case - unable to get clients service request count with invalid facility ID",
+			args: args{
+				ctx:        ctx,
+				facilityID: "facilityID",
+			},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
