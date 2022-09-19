@@ -483,6 +483,52 @@ func (d *MyCareHubDb) RegisterClient(ctx context.Context, payload *domain.Client
 	}, nil
 }
 
+// RegisterCaregiver registers a new caregiver on the platform
+func (d *MyCareHubDb) RegisterCaregiver(ctx context.Context, input *domain.CaregiverRegistration) (*domain.CaregiverProfile, error) {
+	user := &gorm.User{
+		Username:    input.User.Username,
+		Name:        input.User.Name,
+		Gender:      input.User.Gender,
+		DateOfBirth: input.User.DateOfBirth,
+		UserType:    input.User.UserType,
+		Flavour:     input.User.Flavour,
+		Active:      input.User.Active,
+	}
+
+	contact := &gorm.Contact{
+		ContactType:  input.Contact.ContactType,
+		ContactValue: input.Contact.ContactValue,
+		Active:       input.Contact.Active,
+		OptedIn:      input.Contact.Active,
+		Flavour:      input.Contact.Flavour,
+	}
+
+	caregiver := &gorm.NCaregiver{
+		Active:          input.Caregiver.Active,
+		CaregiverNumber: input.Caregiver.CaregiverNumber,
+	}
+
+	err := d.create.RegisterCaregiver(ctx, user, contact, caregiver)
+	if err != nil {
+		return nil, err
+	}
+
+	profile := domain.CaregiverProfile{
+		ID: caregiver.ID,
+		User: domain.User{
+			ID:       user.UserID,
+			Username: user.Username,
+			UserType: user.UserType,
+			Name:     user.Name,
+			Gender:   user.Gender,
+			Active:   user.Active,
+		},
+		CaregiverNumber: caregiver.CaregiverNumber,
+	}
+
+	return &profile, nil
+}
+
 // CreateIdentifier creates a new identifier
 func (d *MyCareHubDb) CreateIdentifier(ctx context.Context, identifier domain.Identifier) (*domain.Identifier, error) {
 	i := &gorm.Identifier{

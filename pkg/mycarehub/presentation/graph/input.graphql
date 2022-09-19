@@ -56,11 +56,18 @@ input FeedbackResponseInput {
 }
 
 input CaregiverInput {
-  clientID: String!
-  firstName: String!
-  lastName: String!
-  phoneNumber: String!
-  caregiverType: CaregiverType!
+  name: String
+  gender: Gender
+  dateOfBirth: Date
+  phoneNumber: String
+  caregiverNumber: String
+  sendInvite: Boolean
+
+  # To be deprecated
+  firstName: String
+  lastName: String
+  clientID: String
+  caregiverType: CaregiverType
 }
 
 input ClientRegistrationInput {
@@ -144,10 +151,6 @@ input FilterParam {
   fieldValue: Any!
 }
 
-input RescheduleAppointmentInput {
-  appointmentID: String!
-  clientID: String!
-}
 
 input FirebaseSimpleNotificationInput {
   title: String!

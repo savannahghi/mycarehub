@@ -177,6 +177,13 @@ type ClientRegistrationPayload struct {
 	Client           ClientProfile
 }
 
+// CaregiverRegistration is the input used for creating a caregiver
+type CaregiverRegistration struct {
+	User      *User      `json:"user"`
+	Contact   *Contact   `json:"contact"`
+	Caregiver *Caregiver `json:"caregiver"`
+}
+
 // StaffRegistrationPayload carries with it the staff registration details
 type StaffRegistrationPayload struct {
 	UserProfile     User

@@ -33,6 +33,7 @@ type Create interface {
 	RegisterStaff(ctx context.Context, user *User, contact *Contact, identifier *Identifier, staffProfile *StaffProfile) (*StaffProfile, error)
 	SaveFeedback(ctx context.Context, feedback *Feedback) error
 	RegisterClient(ctx context.Context, user *User, contact *Contact, identifier *Identifier, client *Client) (*Client, error)
+	RegisterCaregiver(ctx context.Context, user *User, contact *Contact, caregiver *NCaregiver) error
 	CreateQuestionnaire(ctx context.Context, input *Questionnaire) error
 	CreateScreeningTool(ctx context.Context, input *ScreeningTool) error
 	CreateQuestion(ctx context.Context, input *Question) error
@@ -519,6 +520,38 @@ func (db *PGInstance) RegisterClient(ctx context.Context, user *User, contact *C
 	}
 
 	return client, nil
+}
+
+// RegisterCaregiver registers a new caregiver
+func (db *PGInstance) RegisterCaregiver(ctx context.Context, user *User, contact *Contact, caregiver *NCaregiver) error {
+	tx := db.DB.Begin()
+
+	err := tx.Create(user).Error
+	if err != nil {
+		tx.Rollback()
+		return fmt.Errorf("failed to create user: %w", err)
+	}
+
+	contact.UserID = user.UserID
+	err = tx.Create(contact).Error
+	if err != nil {
+		tx.Rollback()
+		return fmt.Errorf("failed to create user: %w", err)
+	}
+
+	caregiver.UserID = *user.UserID
+	err = tx.Create(caregiver).Error
+	if err != nil {
+		tx.Rollback()
+		return fmt.Errorf("failed to create caregiver: %w", err)
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		tx.Rollback()
+		return fmt.Errorf("failed to commit create caregiver transaction: %w", err)
+	}
+
+	return nil
 }
 
 // CreateIdentifier creates a new identifier
