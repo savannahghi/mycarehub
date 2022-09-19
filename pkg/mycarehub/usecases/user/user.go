@@ -83,6 +83,7 @@ type IClientCaregiver interface {
 	GetClientCaregiver(ctx context.Context, clientID string) (*domain.Caregiver, error)
 	CreateOrUpdateClientCaregiver(ctx context.Context, clientCaregiver *dto.CaregiverInput) (bool, error)
 	TransferClientToFacility(ctx context.Context, clientID *string, facilityID *string) (bool, error)
+	AssignCaregiver(ctx context.Context, input dto.ClientCaregiverInput) (bool, error)
 }
 
 // IRegisterUser interface defines a method signature that is used to register users
@@ -1761,5 +1762,35 @@ func (us *UseCasesUserImpl) RemoveFacilitiesFromClientProfile(ctx context.Contex
 		helpers.ReportErrorToSentry(err)
 		return false, fmt.Errorf("failed to remove client facilities: %w", err)
 	}
+	return true, nil
+}
+
+// AssignCaregiver is used to assign a caregiver to a client
+func (us *UseCasesUserImpl) AssignCaregiver(ctx context.Context, input dto.ClientCaregiverInput) (bool, error) {
+	userProfile, err := us.ExternalExt.GetLoggedInUserUID(ctx)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, exceptions.GetLoggedInUserUIDErr(err)
+	}
+
+	staffProfile, err := us.Query.GetStaffProfileByUserID(ctx, userProfile)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, exceptions.StaffProfileNotFoundErr(err)
+	}
+
+	caregiver := &domain.CaregiverClient{
+		CaregiverID:      input.CaregiverID,
+		ClientID:         input.ClientID,
+		RelationshipType: input.CaregiverType,
+		AssignedBy:       *staffProfile.ID,
+	}
+
+	err = us.Create.AddCaregiverToClient(ctx, caregiver)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, fmt.Errorf("failed to add caregiver to client: %w", err)
+	}
+
 	return true, nil
 }

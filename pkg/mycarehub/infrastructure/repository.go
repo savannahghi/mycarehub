@@ -42,6 +42,7 @@ type Create interface {
 	RegisterCaregiver(ctx context.Context, input *domain.CaregiverRegistration) (*domain.CaregiverProfile, error)
 	CreateScreeningTool(ctx context.Context, input *domain.ScreeningTool) error
 	CreateScreeningToolResponse(ctx context.Context, input *domain.QuestionnaireScreeningToolResponse) (*string, error)
+	AddCaregiverToClient(ctx context.Context, clientCaregiver *domain.CaregiverClient) error
 }
 
 // Delete represents all the deletion action interfaces

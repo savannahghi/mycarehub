@@ -1372,31 +1372,31 @@ func (c *NCaregiver) TableName() string {
 	return "caregivers_caregiver"
 }
 
-// CaregiverClients stores clients assigned to a caregiver and the associated relationship details
-type CaregiverClients struct {
+// CaregiverClient stores clients assigned to a caregiver and the associated relationship details
+type CaregiverClient struct {
 	Base
 
-	CaregiverID        string     `gorm:"column:caregiver_id;not null"`
-	ClientID           string     `gorm:"column:client_id;not null"`
-	Active             bool       `gorm:"column:active"`
-	RelationshipType   string     `gorm:"column:relationship_type;not null"`
-	CaregiverConsent   *bool      `gorm:"column:caregiver_consent"`
-	CaregiverConsentAt *time.Time `gorm:"column:caregiver_consent_at"`
-	ClientConsent      *bool      `gorm:"column:client_consent"`
-	ClientConsentAt    *time.Time `gorm:"column:client_consent_at"`
+	CaregiverID        string              `gorm:"column:caregiver_id;not null"`
+	ClientID           string              `gorm:"column:client_id;not null"`
+	Active             bool                `gorm:"column:active"`
+	RelationshipType   enums.CaregiverType `gorm:"column:relationship_type;not null"`
+	CaregiverConsent   *bool               `gorm:"column:caregiver_consent"`
+	CaregiverConsentAt *time.Time          `gorm:"column:caregiver_consent_at"`
+	ClientConsent      *bool               `gorm:"column:client_consent"`
+	ClientConsentAt    *time.Time          `gorm:"column:client_consent_at"`
 
 	OrganisationID string `gorm:"column:organisation_id;not null"`
 	AssignedBy     string `gorm:"column:assigned_by;not null"`
 }
 
 // BeforeCreate is a hook run before creating a caregiver client
-func (c *CaregiverClients) BeforeCreate(tx *gorm.DB) (err error) {
+func (c *CaregiverClient) BeforeCreate(tx *gorm.DB) (err error) {
 	c.OrganisationID = OrganizationID
 
 	return nil
 }
 
 // TableName references the table name in the database
-func (c *CaregiverClients) TableName() string {
+func (c *CaregiverClient) TableName() string {
 	return "caregivers_caregiver_client"
 }

@@ -9,7 +9,7 @@
   phone_number: "+123456789"
   caregiver_type: FATHER
 
-- id: 28b20a42-cbb8-4553-aedb-c575602d04fc
+- id: {{.test_client_caregiver_one_id}}
   created: 2021-11-22 21:16:29.23639+03
   updated: 2021-11-22 21:16:29.23639+03
   active: true

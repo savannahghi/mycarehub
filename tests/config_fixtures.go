@@ -65,7 +65,8 @@ var (
 	securityQuestionResponseID4 = "7225e76b-7780-46a9-a217-8e858789a869"
 
 	// Caregiver
-	testCaregiverID = "26b20a42-cbb8-4553-aedb-c539602d04fc"
+	testCaregiverID      = "26b20a42-cbb8-4553-aedb-c593602d04fc"
+	testClientCaregiver1 = "28b20a42-cbb8-4553-aedb-c575602d04fc"
 
 	//Terms
 	termsText = "Test terms"
@@ -232,8 +233,9 @@ func setupFixtures() {
 			"system_admin_role":          systemAdminRole,
 			"content_management_role":    contentManagementRole,
 
-			"community_id":           communityID,
-			"community_id_to_delete": communityIDToDelete,
+			"community_id":                 communityID,
+			"community_id_to_delete":       communityIDToDelete,
+			"test_client_caregiver_one_id": testClientCaregiver1,
 
 			"screenintoolsquestion_id": screeningToolsQuestionID,
 			"screenintoolsresponse_id": screeningToolsResponseID,

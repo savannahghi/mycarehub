@@ -82,6 +82,10 @@ func (r *mutationResolver) RemoveFacilitiesFromClientProfile(ctx context.Context
 	return r.mycarehub.User.RemoveFacilitiesFromClientProfile(ctx, clientID, facilities)
 }
 
+func (r *mutationResolver) AssignCaregiver(ctx context.Context, input dto.ClientCaregiverInput) (bool, error) {
+	return r.mycarehub.User.AssignCaregiver(ctx, input)
+}
+
 func (r *queryResolver) GetCurrentTerms(ctx context.Context, flavour feedlib.Flavour) (*domain.TermsOfService, error) {
 	r.checkPreconditions()
 	return r.mycarehub.Terms.GetCurrentTerms(ctx, flavour)

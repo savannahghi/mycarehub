@@ -2039,3 +2039,65 @@ func TestPGInstance_RegisterCaregiver(t *testing.T) {
 		})
 	}
 }
+
+func TestPGInstance_AddCaregiverToClient(t *testing.T) {
+	ctx := context.Background()
+	now := time.Now()
+	ok := true
+
+	type args struct {
+		ctx             context.Context
+		clientCaregiver *gorm.CaregiverClient
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: add new caregiver to client",
+			args: args{
+				ctx: ctx,
+				clientCaregiver: &gorm.CaregiverClient{
+					CaregiverID:        "8ecbbc80-24c8-421a-9f1a-e14e12678ef2",
+					ClientID:           clientID,
+					Active:             true,
+					RelationshipType:   enums.CaregiverTypeFather,
+					CaregiverConsent:   &ok,
+					CaregiverConsentAt: &now,
+					ClientConsent:      &ok,
+					ClientConsentAt:    &now,
+					OrganisationID:     orgID,
+					AssignedBy:         staffID,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: unable to add new caregiver to client",
+			args: args{
+				ctx: ctx,
+				clientCaregiver: &gorm.CaregiverClient{
+					CaregiverID:        testCaregiverID,
+					ClientID:           "clientID",
+					Active:             true,
+					RelationshipType:   enums.CaregiverTypeFather,
+					CaregiverConsent:   &ok,
+					CaregiverConsentAt: &now,
+					ClientConsent:      &ok,
+					ClientConsentAt:    &now,
+					OrganisationID:     orgID,
+					AssignedBy:         staffID,
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := testingDB.AddCaregiverToClient(tt.args.ctx, tt.args.clientCaregiver); (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.AddCaregiverToClient() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}

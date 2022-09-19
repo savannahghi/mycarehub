@@ -1,4 +1,14 @@
-- id: 8ecbbc80-24c8-421a-9f1a-e14e67128ef2
+- id: {{.test_caregiver_id}}
+  active: true
+  created: 2021-11-22 21:16:29.23639+03
+  created_by: NULL
+  updated: 2021-11-22 21:16:29.23639+03
+  updated_by: NULL
+  organisation_id: {{.test_organisation_id}}
+  user_id: {{.test_user_id}}
+  caregiver_number: CG01
+
+- id: 8ecbbc80-24c8-421a-9f1a-e14e12678ef2
   active: true
   created: 2021-11-22 21:16:29.23639+03
   created_by: NULL
