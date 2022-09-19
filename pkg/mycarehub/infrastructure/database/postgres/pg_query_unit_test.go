@@ -2448,12 +2448,12 @@ func TestMyCareHubDb_GetPendingServiceRequestsCount(t *testing.T) {
 			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
 
 			if tt.name == "Sad case" {
-				fakeGorm.MockGetPendingServiceRequestsCountFn = func(ctx context.Context, facilityID string) (*domain.ServiceRequestsCount, error) {
+				fakeGorm.MockGetClientPendingServiceRequestsCountFn = func(ctx context.Context, facilityID string) (*domain.ServiceRequestsCount, error) {
 					return nil, fmt.Errorf("an error occurred")
 				}
 			}
 			if tt.name == "Sad case - empty facility ID" {
-				fakeGorm.MockGetPendingServiceRequestsCountFn = func(ctx context.Context, facilityID string) (*domain.ServiceRequestsCount, error) {
+				fakeGorm.MockGetClientPendingServiceRequestsCountFn = func(ctx context.Context, facilityID string) (*domain.ServiceRequestsCount, error) {
 					return nil, fmt.Errorf("an error occurred")
 				}
 			}
@@ -6713,6 +6713,36 @@ func TestMyCareHubDb_GetStaffFacilities(t *testing.T) {
 			},
 			wantErr: true,
 		},
+		{
+			name: "sad case: unable to get staff notification count",
+			args: args{
+				ctx: ctx,
+				input: dto.StaffFacilityInput{
+					StaffID:    &staffID,
+					FacilityID: &facilityID,
+				},
+				pagination: &domain.Pagination{
+					Limit:       5,
+					CurrentPage: 1,
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "sad case: unable to get clients service request count",
+			args: args{
+				ctx: ctx,
+				input: dto.StaffFacilityInput{
+					StaffID:    &staffID,
+					FacilityID: &facilityID,
+				},
+				pagination: &domain.Pagination{
+					Limit:       5,
+					CurrentPage: 1,
+				},
+			},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -6726,6 +6756,16 @@ func TestMyCareHubDb_GetStaffFacilities(t *testing.T) {
 			if tt.name == "sad case: failed to retrieve facility" {
 				fakeGorm.MockRetrieveFacilityFn = func(ctx context.Context, id *string, isActive bool) (*gorm.Facility, error) {
 					return nil, fmt.Errorf("failed to retrieve facility")
+				}
+			}
+			if tt.name == "sad case: unable to get staff notification count" {
+				fakeGorm.MockGetNotificationsCountFn = func(ctx context.Context, notification gorm.Notification) (int, error) {
+					return 0, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "sad case: unable to get clients service request count" {
+				fakeGorm.MockGetClientPendingServiceRequestsCountFn = func(ctx context.Context, facilityID string) (*domain.ServiceRequestsCount, error) {
+					return nil, fmt.Errorf("an error occurred")
 				}
 			}
 

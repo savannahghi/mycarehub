@@ -69,7 +69,7 @@ type GormMock struct {
 	MockInProgressByFn                                   func(ctx context.Context, requestID string, staffID string) (bool, error)
 	MockGetClientProfileByClientIDFn                     func(ctx context.Context, clientID string) (*gorm.Client, error)
 	MockGetServiceRequestsFn                             func(ctx context.Context, requestType, requestStatus *string, facilityID string) ([]*gorm.ClientServiceRequest, error)
-	MockGetPendingServiceRequestsCountFn                 func(ctx context.Context, facilityID string) (*domain.ServiceRequestsCount, error)
+	MockGetClientPendingServiceRequestsCountFn           func(ctx context.Context, facilityID string) (*domain.ServiceRequestsCount, error)
 	MockCheckUserRoleFn                                  func(ctx context.Context, userID string, role string) (bool, error)
 	MockCheckUserPermissionFn                            func(ctx context.Context, userID string, permission string) (bool, error)
 	MockAssignRolesFn                                    func(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error)
@@ -792,7 +792,7 @@ func NewGormMock() *GormMock {
 		MockCreateClientCaregiverFn: func(ctx context.Context, clientID string, clientCaregiver *gorm.Caregiver) error {
 			return nil
 		},
-		MockGetPendingServiceRequestsCountFn: func(ctx context.Context, facilityID string) (*domain.ServiceRequestsCount, error) {
+		MockGetClientPendingServiceRequestsCountFn: func(ctx context.Context, facilityID string) (*domain.ServiceRequestsCount, error) {
 			return &domain.ServiceRequestsCount{
 				Total: 0,
 				RequestsTypeCount: []*domain.RequestTypeCount{
@@ -1628,7 +1628,7 @@ func (gm *GormMock) GetClientProfileByClientID(ctx context.Context, clientID str
 
 // GetClientsPendingServiceRequestsCount mocks the implementation of getting the service requests count
 func (gm *GormMock) GetClientsPendingServiceRequestsCount(ctx context.Context, facilityID string) (*domain.ServiceRequestsCount, error) {
-	return gm.MockGetPendingServiceRequestsCountFn(ctx, facilityID)
+	return gm.MockGetClientPendingServiceRequestsCountFn(ctx, facilityID)
 }
 
 // GetServiceRequests mocks the implementation of getting service requests by type

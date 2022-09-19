@@ -2420,6 +2420,11 @@ func (d *MyCareHubDb) GetStaffFacilities(ctx context.Context, input dto.StaffFac
 			return nil, nil, err
 		}
 
+		staffPendingServiceRequest, err := d.query.GetClientsPendingServiceRequestsCount(ctx, *f.FacilityID)
+		if err != nil {
+			return nil, nil, err
+		}
+
 		facilities = append(facilities, &domain.Facility{
 			ID:                 facility.FacilityID,
 			Name:               facility.Name,
@@ -2430,7 +2435,8 @@ func (d *MyCareHubDb) GetStaffFacilities(ctx context.Context, input dto.StaffFac
 			Description:        facility.Description,
 			FHIROrganisationID: facility.FHIROrganisationID,
 			WorkStationDetails: domain.WorkStationDetails{
-				Notifications: notificationCount,
+				Notifications:   notificationCount,
+				ServiceRequests: staffPendingServiceRequest.Total,
 			},
 		})
 	}
@@ -2466,7 +2472,7 @@ func (d *MyCareHubDb) GetClientFacilities(ctx context.Context, input dto.ClientF
 
 		notification := &gorm.Notification{
 			FacilityID: facility.FacilityID,
-			Flavour:    feedlib.FlavourPro,
+			Flavour:    feedlib.FlavourConsumer,
 		}
 
 		notificationCount, err := d.query.GetNotificationsCount(ctx, *notification)
