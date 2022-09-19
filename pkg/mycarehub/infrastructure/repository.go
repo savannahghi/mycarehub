@@ -167,4 +167,5 @@ type Update interface {
 	UpdateStaff(ctx context.Context, staff *domain.StaffProfile, updates map[string]interface{}) error
 	AddFacilitiesToClientProfile(ctx context.Context, clientID string, facilities []string) error
 	AddFacilitiesToStaffProfile(ctx context.Context, staffID string, facilities []string) error
+	AddCaregiverToClient(ctx context.Context, clientCaregiver *domain.CaregiverClients) error
 }

@@ -78,6 +78,10 @@ func (r *mutationResolver) AddFacilitiesToClientProfile(ctx context.Context, cli
 	return r.mycarehub.User.AddFacilitiesToClientProfile(ctx, clientID, facilities)
 }
 
+func (r *mutationResolver) AddCaregiverToClient(ctx context.Context, input dto.ClientCaregiverInput) (bool, error) {
+	return r.mycarehub.User.AddCaregiverToClient(ctx, input)
+}
+
 func (r *queryResolver) GetCurrentTerms(ctx context.Context, flavour feedlib.Flavour) (*domain.TermsOfService, error) {
 	r.checkPreconditions()
 	return r.mycarehub.Terms.GetCurrentTerms(ctx, flavour)

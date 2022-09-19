@@ -1,6 +1,10 @@
 package domain
 
-import "github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
+import (
+	"time"
+
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
+)
 
 // Caregiver maps the schema for the table that stores the caregiver
 type Caregiver struct {
@@ -21,4 +25,18 @@ type CaregiverProfile struct {
 	ID              string `json:"id"`
 	User            User   `json:"user"`
 	CaregiverNumber string `json:"caregiver_number"`
+}
+
+// CaregiverClients models the clients
+type CaregiverClients struct {
+	CaregiverID        string              `json:"caregiver_id"`
+	ClientID           string              `json:"client_id"`
+	Active             bool                `json:"active"`
+	RelationshipType   enums.CaregiverType `json:"relationship_type"`
+	CaregiverConsent   *bool               `json:"caregiver_consent"`
+	CaregiverConsentAt *time.Time          `json:"caregiver_consent_at"`
+	ClientConsent      *bool               `json:"client_consent"`
+	ClientConsentAt    *time.Time          `json:"client_consent_at"`
+	OrganisationID     string              `json:"organisation_id"`
+	AssignedBy         string              `json:"assigned_by"`
 }

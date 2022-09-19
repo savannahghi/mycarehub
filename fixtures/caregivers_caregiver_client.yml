@@ -1,0 +1,12 @@
+- caregiver_id: {{.test_caregiver_id}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  client_id: {{.test_client_id}}
+  active: true
+  relationship_type: SIBLING
+  caregiver_consent: true
+  caregiver_consent_at: 2021-11-22 21:16:29.23639+03
+  client_consent: true
+  client_consent_at: 2021-11-22 21:16:29.23639+03
+  organisation_id: {{.test_organisation_id}}
+  assigned_by: {{.staff_id}}

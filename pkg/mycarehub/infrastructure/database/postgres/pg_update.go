@@ -323,3 +323,16 @@ func (d *MyCareHubDb) AddFacilitiesToStaffProfile(ctx context.Context, staffID s
 func (d *MyCareHubDb) AddFacilitiesToClientProfile(ctx context.Context, clientID string, facilities []string) error {
 	return d.update.AddFacilitiesToClientProfile(ctx, clientID, facilities)
 }
+
+// AddCaregiverToClient is used to assign a caregiver to a client
+func (d *MyCareHubDb) AddCaregiverToClient(ctx context.Context, clientCaregiver *domain.CaregiverClients) error {
+	caregiverClient := &gorm.CaregiverClients{
+		CaregiverID:      clientCaregiver.CaregiverID,
+		ClientID:         clientCaregiver.ClientID,
+		RelationshipType: clientCaregiver.RelationshipType,
+		Active:           true,
+		AssignedBy:       clientCaregiver.AssignedBy,
+	}
+
+	return d.update.AddCaregiverToClient(ctx, caregiverClient)
+}

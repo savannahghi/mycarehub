@@ -41,6 +41,7 @@ type Update interface {
 	UpdateStaff(ctx context.Context, staff *StaffProfile, updates map[string]interface{}) (*StaffProfile, error)
 	AddFacilitiesToStaffProfile(ctx context.Context, staffID string, facilities []string) error
 	AddFacilitiesToClientProfile(ctx context.Context, clientID string, facilities []string) error
+	AddCaregiverToClient(ctx context.Context, clientCaregiver *CaregiverClients) error
 }
 
 // ReactivateFacility performs the actual re-activation of the facility in the database
@@ -726,6 +727,34 @@ func (db *PGInstance) AddFacilitiesToClientProfile(ctx context.Context, clientID
 		helpers.ReportErrorToSentry(err)
 		tx.Rollback()
 		return fmt.Errorf("failed to commit add clients to facilities transaction: %w", err)
+	}
+
+	return nil
+}
+
+// AddCaregiverToClient adds a caregiver to a client
+func (db *PGInstance) AddCaregiverToClient(ctx context.Context, clientCaregiver *CaregiverClients) error {
+
+	tx := db.DB.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	err := tx.Model(&CaregiverClients{}).Where(&CaregiverClients{ClientID: clientCaregiver.ClientID}).Updates(&CaregiverClients{
+		CaregiverID:      clientCaregiver.CaregiverID,
+		RelationshipType: clientCaregiver.RelationshipType,
+		AssignedBy:       clientCaregiver.AssignedBy,
+	}).Error
+	if err != nil {
+		tx.Rollback()
+		return fmt.Errorf("failed to create client caregiver: %w", err)
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		tx.Rollback()
+		return fmt.Errorf("failed to commit add clients to caregivers transaction: %w", err)
 	}
 
 	return nil

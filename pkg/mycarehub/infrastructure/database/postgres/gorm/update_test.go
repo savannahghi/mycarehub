@@ -1604,3 +1604,38 @@ func TestPGInstance_AddFacilitiesToClientProfile(t *testing.T) {
 		})
 	}
 }
+
+func TestPGInstance_AddCaregiverToClient(t *testing.T) {
+	ctx := context.Background()
+
+	type args struct {
+		ctx             context.Context
+		clientCaregiver *gorm.CaregiverClients
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: add new caregiver to client",
+			args: args{
+				ctx: ctx,
+				clientCaregiver: &gorm.CaregiverClients{
+					ClientID:    clientID,
+					CaregiverID: testCaregiverID,
+					Active:      true,
+					AssignedBy:  staffID,
+				},
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := testingDB.AddCaregiverToClient(tt.args.ctx, tt.args.clientCaregiver); (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.AddCaregiverToClient() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}

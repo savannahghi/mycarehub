@@ -49,6 +49,7 @@ type UserUseCaseMock struct {
 	MockAddFacilitiesToClientProfileFn  func(ctx context.Context, clientID string, facilities []string) (bool, error)
 	MockGetUserLinkedFacilitiesFn       func(ctx context.Context, paginationInput dto.PaginationsInput) (*dto.FacilityOutputPage, error)
 	MockRegisterCaregiver               func(ctx context.Context, input dto.CaregiverInput) (*domain.CaregiverProfile, error)
+	MockAddCaregiverToClientFn          func(ctx context.Context, input dto.ClientCaregiverInput) (bool, error)
 }
 
 // NewUserUseCaseMock creates in initializes create type mocks
@@ -140,6 +141,9 @@ func NewUserUseCaseMock() *UserUseCaseMock {
 			return &dto.ClientRegistrationOutput{
 				ID: uuid.New().String(),
 			}, nil
+		},
+		MockAddCaregiverToClientFn: func(ctx context.Context, input dto.ClientCaregiverInput) (bool, error) {
+			return true, nil
 		},
 		MockRefreshGetStreamTokenFn: func(ctx context.Context, userID string) (*domain.GetStreamToken, error) {
 			return &domain.GetStreamToken{
@@ -449,4 +453,9 @@ func (f *UserUseCaseMock) AddFacilitiesToClientProfile(ctx context.Context, clie
 // RegisterCaregiver is used to register a caregiver
 func (f *UserUseCaseMock) RegisterCaregiver(ctx context.Context, input dto.CaregiverInput) (*domain.CaregiverProfile, error) {
 	return f.MockRegisterCaregiver(ctx, input)
+}
+
+// AddCaregiverToClient mocks the implementation of adding a caregiver to a client
+func (f *UserUseCaseMock) AddCaregiverToClient(ctx context.Context, input dto.ClientCaregiverInput) (bool, error) {
+	return f.MockAddCaregiverToClientFn(ctx, input)
 }
