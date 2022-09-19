@@ -114,6 +114,7 @@ type Query interface {
 	GetNotificationsCount(ctx context.Context, notification Notification) (int, error)
 	GetStaffFacilities(ctx context.Context, staffFacility StaffFacilities, pagination *domain.Pagination) ([]*StaffFacilities, *domain.Pagination, error)
 	GetClientFacilities(ctx context.Context, clientFacility ClientFacilities, pagination *domain.Pagination) ([]*ClientFacilities, *domain.Pagination, error)
+	GetClientsSurveyCount(ctx context.Context, userID string) (int, error)
 }
 
 // GetFacilityStaffs returns a list of staff at a particular facility
@@ -1860,6 +1861,19 @@ func (db *PGInstance) GetNotificationsCount(ctx context.Context, notification No
 	if err := tx.Find(&notification).Count(&count).Error; err != nil {
 		helpers.ReportErrorToSentry(err)
 		return 0, fmt.Errorf("failed to get notifications count: %w", err)
+	}
+
+	return int(count), nil
+}
+
+// GetClientsSurveyCount retrieves the total number of clients survey
+func (db *PGInstance) GetClientsSurveyCount(ctx context.Context, userID string) (int, error) {
+	var count int64
+	var survey UserSurvey
+
+	if err := db.DB.Where("common_usersurveys.user_id = ? AND has_submitted = ?", userID, false).
+		Find(&survey).Count(&count).Error; err != nil {
+		return 0, fmt.Errorf("failed to execute count query: %v", err)
 	}
 
 	return int(count), nil

@@ -170,6 +170,7 @@ type GormMock struct {
 	MockAddFacilitiesToClientProfileFn                   func(ctx context.Context, clientID string, facilities []string) error
 	MockGetNotificationsCountFn                          func(ctx context.Context, notification gorm.Notification) (int, error)
 	MockRegisterCaregiverFn                              func(ctx context.Context, user *gorm.User, contact *gorm.Contact, caregiver *gorm.NCaregiver) error
+	MockGetClientsSurveyCountFn                          func(ctx context.Context, userID string) (int, error)
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -445,6 +446,9 @@ func NewGormMock() *GormMock {
 		MockRetrieveFacilityFn: func(ctx context.Context, id *string, isActive bool) (*gorm.Facility, error) {
 
 			return facility, nil
+		},
+		MockGetClientsSurveyCountFn: func(ctx context.Context, userID string) (int, error) {
+			return 1, nil
 		},
 		MockGetStaffPendingServiceRequestsCountFn: func(ctx context.Context, facilityID string) (*domain.ServiceRequestsCount, error) {
 			return &domain.ServiceRequestsCount{
@@ -2110,6 +2114,11 @@ func (gm *GormMock) GetStaffFacilities(ctx context.Context, staffFacility gorm.S
 // GetClientFacilities mocks the implementation of getting a list of client facilities
 func (gm *GormMock) GetClientFacilities(ctx context.Context, clientFacility gorm.ClientFacilities, pagination *domain.Pagination) ([]*gorm.ClientFacilities, *domain.Pagination, error) {
 	return gm.MockGetClientFacilitiesFn(ctx, clientFacility, pagination)
+}
+
+// GetClientsSurveyCount mocks the implementation of getting clients survey count
+func (gm *GormMock) GetClientsSurveyCount(ctx context.Context, userID string) (int, error) {
+	return gm.MockGetClientsSurveyCountFn(ctx, userID)
 }
 
 // UpdateStaff mock the implementation of updating a staff profile

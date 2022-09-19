@@ -7,6 +7,15 @@ type Facility {
   county: String!
   description: String!
   fhirOrganisationID: String!
+  workStationDetails: WorkStationDetails!
+}
+
+type WorkStationDetails  {
+	Notifications:  Int!
+	Surveys: Int!
+	Articles: Int!
+	Messages: Int!
+	ServiceRequests: Int!
 }
 
 type Pagination {
@@ -674,25 +683,5 @@ type SurveyServiceRequestUserPage {
 
 type FacilityOutputPage {
   Pagination: Pagination!
-  Facilities: [FacilityOutput]!
-}
-
-type FacilityOutput {
-  ID: String!
-  name: String!
-  code: Int!
-  phone: String!
-  active: Boolean!
-  county: String!
-  description: String!
-  fhirOrganisationID: String!
-  workStationDetails: WorkStationDetailsOutput!
-}
-
-type WorkStationDetailsOutput  {
-	Notifications:  Int!
-	Surveys: Int!
-	Articles: Int!
-	Messages: Int!
-	ServiceRequests: Int!
+  Facilities: [Facility]!
 }

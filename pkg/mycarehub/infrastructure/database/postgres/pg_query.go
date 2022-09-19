@@ -2441,6 +2441,11 @@ func (d *MyCareHubDb) GetStaffFacilities(ctx context.Context, input dto.StaffFac
 
 // GetClientFacilities gets a list of client facilities
 func (d *MyCareHubDb) GetClientFacilities(ctx context.Context, input dto.ClientFacilityInput, pagination *domain.Pagination) ([]*domain.Facility, *domain.Pagination, error) {
+	userProfile, err := d.query.GetClientProfileByClientID(ctx, *input.ClientID)
+	if err != nil {
+		return nil, nil, err
+	}
+
 	facilities := []*domain.Facility{}
 
 	clientFacility := gorm.ClientFacilities{
@@ -2469,6 +2474,11 @@ func (d *MyCareHubDb) GetClientFacilities(ctx context.Context, input dto.ClientF
 			return nil, nil, err
 		}
 
+		surveyCount, err := d.query.GetClientsSurveyCount(ctx, *userProfile.UserID)
+		if err != nil {
+			return nil, nil, err
+		}
+
 		facilities = append(facilities, &domain.Facility{
 			ID:                 facility.FacilityID,
 			Name:               facility.Name,
@@ -2480,6 +2490,7 @@ func (d *MyCareHubDb) GetClientFacilities(ctx context.Context, input dto.ClientF
 			FHIROrganisationID: facility.FHIROrganisationID,
 			WorkStationDetails: domain.WorkStationDetails{
 				Notifications: notificationCount,
+				Surveys:       surveyCount,
 			},
 		})
 	}
