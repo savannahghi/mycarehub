@@ -107,6 +107,11 @@ type ISearchStaffUser interface {
 	SearchStaffUser(ctx context.Context, searchParameter string) ([]*domain.StaffProfile, error)
 }
 
+// ISearchCaregiverUser interface contain the method used to search for caregiver(s) from the database
+type ISearchCaregiverUser interface {
+	SearchCaregiverUser(ctx context.Context, searchParameter string) ([]*domain.CaregiverProfile, error)
+}
+
 // IConsent interface contains the method used to opt out a client
 type IConsent interface {
 	Consent(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (bool, error)
@@ -159,6 +164,7 @@ type UseCasesUser interface {
 	IClientProfile
 	IDeleteUser
 	IUserFacility
+	ISearchCaregiverUser
 }
 
 // UseCasesUserImpl represents user implementation object
@@ -1713,4 +1719,15 @@ func (us *UseCasesUserImpl) GetUserLinkedFacilities(ctx context.Context, paginat
 	default:
 		return nil, fmt.Errorf("the user has an invalid user type")
 	}
+}
+
+// SearchCaregiverUser is used to search for a caregiver user
+func (us *UseCasesUserImpl) SearchCaregiverUser(ctx context.Context, searchParameter string) ([]*domain.CaregiverProfile, error) {
+	caregiverProfile, err := us.Query.SearchCaregiverUser(ctx, searchParameter)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
+	return caregiverProfile, nil
 }

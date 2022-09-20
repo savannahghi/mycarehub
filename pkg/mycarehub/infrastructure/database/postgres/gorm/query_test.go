@@ -5006,3 +5006,34 @@ func TestPGInstance_GetClientsSurveyCount(t *testing.T) {
 		})
 	}
 }
+
+func TestPGInstance_SearchCaregiverUser(t *testing.T) {
+	type args struct {
+		ctx             context.Context
+		searchParameter string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    []*gorm.NCaregiver
+		wantErr bool
+	}{
+		{
+			name: "happy case: search caregiver user",
+			args: args{
+				ctx:             context.Background(),
+				searchParameter: testCaregiverNumber,
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := testingDB.SearchCaregiverUser(tt.args.ctx, tt.args.searchParameter)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.SearchCaregiverUser() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}

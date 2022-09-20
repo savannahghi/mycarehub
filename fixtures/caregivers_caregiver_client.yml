@@ -1,0 +1,14 @@
+- caregiver_id: 9ecbbc80-24c8-421a-9f1a-e14e90128ef2
+  client_id: {{.test_client_id}}
+  active: true
+  created: 2021-11-22 21:16:29.23639+03
+  created_by: NULL
+  updated: 2021-11-22 21:16:29.23639+03
+  updated_by: NULL
+  organisation_id: {{.test_organisation_id}}
+  assigned_by: {{.staff_id}}
+  relationship_type: FATHER
+  caregiver_consent: true
+  caregiver_consent_at: 2021-11-22 21:16:29.23639+03
+  client_consent: true
+  client_consent_at: 2021-11-22 21:16:29.23639+03

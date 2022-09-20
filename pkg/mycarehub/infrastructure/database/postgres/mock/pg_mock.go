@@ -164,6 +164,7 @@ type PostgresMock struct {
 	MockAddFacilitiesToClientProfileFn                   func(ctx context.Context, clientID string, facilities []string) error
 	MockGetUserFacilitiesFn                              func(ctx context.Context, user *domain.User, pagination *domain.Pagination) ([]*domain.Facility, *domain.Pagination, error)
 	MockRegisterCaregiverFn                              func(ctx context.Context, input *domain.CaregiverRegistration) (*domain.CaregiverProfile, error)
+	MockSearchCaregiverUserFn                            func(ctx context.Context, searchParameter string) ([]*domain.CaregiverProfile, error)
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -396,6 +397,13 @@ func NewPostgresMock() *PostgresMock {
 					FormID:    ID,
 				},
 			}, nil
+		},
+		MockSearchCaregiverUserFn: func(ctx context.Context, searchParameter string) ([]*domain.CaregiverProfile, error) {
+			return []*domain.CaregiverProfile{{
+				ID:              ID,
+				User:            *userProfile,
+				CaregiverNumber: gofakeit.SSN(),
+			}}, nil
 		},
 		MockInactivateFacilityFn: func(ctx context.Context, mflCode *int) (bool, error) {
 			return true, nil
@@ -2046,4 +2054,9 @@ func (gm *PostgresMock) GetUserFacilities(ctx context.Context, user *domain.User
 // RegisterCaregiver registers a new caregiver on the platform
 func (gm *PostgresMock) RegisterCaregiver(ctx context.Context, input *domain.CaregiverRegistration) (*domain.CaregiverProfile, error) {
 	return gm.MockRegisterCaregiverFn(ctx, input)
+}
+
+// SearchCaregiverUser mocks the implementation of searching caregivers
+func (gm *PostgresMock) SearchCaregiverUser(ctx context.Context, searchParameter string) ([]*domain.CaregiverProfile, error) {
+	return gm.MockSearchCaregiverUserFn(ctx, searchParameter)
 }

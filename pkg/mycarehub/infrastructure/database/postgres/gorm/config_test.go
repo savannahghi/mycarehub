@@ -157,6 +157,8 @@ var (
 	// surveys
 	projectID = 1
 	formID    = "8ecbbc80-24c8-421a-9f1a-e14e12678ef4"
+
+	testCaregiverNumber = "CG0001"
 )
 
 func TestMain(m *testing.M) {
@@ -291,6 +293,7 @@ func TestMain(m *testing.M) {
 			"test_second_choice_id":                                secondChoiceID,
 			"test_questionnaires_screeningtoolquestionresponse_id": screeningToolQuestionResponseID,
 			"screening_tool_service_request_id2":                   screeningToolServiceRequestID2,
+			"test_caregiver_number":                                testCaregiverNumber,
 
 			"test_project_id": projectID,
 			"test_form_id":    formID,
@@ -339,6 +342,8 @@ func TestMain(m *testing.M) {
 			"../../../../../../fixtures/questionnaires_questioninputchoice.yml",
 			"../../../../../../fixtures/questionnaires_screeningtoolresponse.yml",
 			"../../../../../../fixtures/questionnaires_screeningtoolquestionresponse.yml",
+			"../../../../../../fixtures/caregivers_caregiver.yml",
+			"../../../../../../fixtures/caregivers_caregiver_client.yml",
 		),
 		// uncomment when running tests locally, if your db is not a test db
 		// Ensure the testing db in the ci is named `test`

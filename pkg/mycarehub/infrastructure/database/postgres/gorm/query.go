@@ -115,6 +115,7 @@ type Query interface {
 	GetStaffFacilities(ctx context.Context, staffFacility StaffFacilities, pagination *domain.Pagination) ([]*StaffFacilities, *domain.Pagination, error)
 	GetClientFacilities(ctx context.Context, clientFacility ClientFacilities, pagination *domain.Pagination) ([]*ClientFacilities, *domain.Pagination, error)
 	GetClientsSurveyCount(ctx context.Context, userID string) (int, error)
+	SearchCaregiverUser(ctx context.Context, searchParameter string) ([]*NCaregiver, error)
 }
 
 // GetFacilityStaffs returns a list of staff at a particular facility
@@ -611,6 +612,23 @@ func (db *PGInstance) SearchStaffProfile(ctx context.Context, searchParameter st
 	}
 
 	return staff, nil
+}
+
+// SearchCaregiverUser searches and retrieves caregiver user(s) based on pattern matching against the username, phone number or the caregiver number
+func (db *PGInstance) SearchCaregiverUser(ctx context.Context, searchParameter string) ([]*NCaregiver, error) {
+	var caregivers []*NCaregiver
+
+	if err := db.DB.Joins("JOIN users_user ON users_user.id = caregivers_caregiver.user_id").
+		Joins("JOIN common_contact on users_user.id = common_contact.user_id").
+		Where(
+			db.DB.Where("caregivers_caregiver.caregiver_number ILIKE ? ", "%"+searchParameter+"%").
+				Or("users_user.username ILIKE ? ", "%"+searchParameter+"%").
+				Or("common_contact.contact_value ILIKE ?", "%"+searchParameter+"%"),
+		).Where("users_user.is_active = ?", true).Find(&caregivers).Error; err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, fmt.Errorf("unable to get caregiver user %w", err)
+	}
+	return caregivers, nil
 }
 
 // CheckUserHasPin performs a look-up on the pins' table to check whether a user has a pin
