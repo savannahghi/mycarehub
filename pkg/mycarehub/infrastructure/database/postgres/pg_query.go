@@ -181,6 +181,23 @@ func (d *MyCareHubDb) GetUserProfileByUserID(ctx context.Context, userID string)
 	return d.mapProfileObjectToDomain(user), nil
 }
 
+// GetCaregiverByUserID returns the caregiver record of the provided user ID
+func (d *MyCareHubDb) GetCaregiverByUserID(ctx context.Context, userID string) (*domain.Caregiver, error) {
+	cgv, err := d.query.GetCaregiverByUserID(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	caregiver := &domain.Caregiver{
+		ID:              cgv.ID,
+		UserID:          cgv.UserID,
+		CaregiverNumber: cgv.CaregiverNumber,
+		Active:          cgv.Active,
+	}
+
+	return caregiver, nil
+}
+
 // GetSecurityQuestions fetches all the security questions
 func (d *MyCareHubDb) GetSecurityQuestions(ctx context.Context, flavour feedlib.Flavour) ([]*domain.SecurityQuestion, error) {
 	var securityQuestion []*domain.SecurityQuestion

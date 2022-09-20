@@ -49,6 +49,7 @@ type GormMock struct {
 	MockCheckIfPhoneNumberExistsFn                       func(ctx context.Context, phone string, isOptedIn bool, flavour feedlib.Flavour) (bool, error)
 	MockVerifyOTPFn                                      func(ctx context.Context, payload *dto.VerifyOTPInput) (bool, error)
 	MockGetClientProfileByUserIDFn                       func(ctx context.Context, userID string) (*gorm.Client, error)
+	MockGetCaregiverByUserIDFn                           func(ctx context.Context, userID string) (*gorm.NCaregiver, error)
 	MockGetStaffProfileByUserIDFn                        func(ctx context.Context, userID string) (*gorm.StaffProfile, error)
 	MockGetClientsSurveyServiceRequestFn                 func(ctx context.Context, facilityID string, projectID int, formID string, pagination *domain.Pagination) ([]*gorm.ClientServiceRequest, *domain.Pagination, error)
 	MockCheckUserHasPinFn                                func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
@@ -386,6 +387,15 @@ func NewGormMock() *GormMock {
 		MockGetFacilityStaffsFn: func(ctx context.Context, facilityID string) ([]*gorm.StaffProfile, error) {
 			return []*gorm.StaffProfile{
 				staff,
+			}, nil
+		},
+		MockGetCaregiverByUserIDFn: func(ctx context.Context, userID string) (*gorm.NCaregiver, error) {
+			return &gorm.NCaregiver{
+				ID:              gofakeit.UUID(),
+				Active:          true,
+				CaregiverNumber: gofakeit.SSN(),
+				OrganisationID:  gofakeit.UUID(),
+				UserID:          userID,
 			}, nil
 		},
 		MockCreateUserFn: func(ctx context.Context, user *gorm.User) error {
@@ -1494,6 +1504,11 @@ func (gm *GormMock) GetCurrentTerms(ctx context.Context, flavour feedlib.Flavour
 // GetUserProfileByUserID mocks the implementation of retrieving a user profile by user ID
 func (gm *GormMock) GetUserProfileByUserID(ctx context.Context, userID *string) (*gorm.User, error) {
 	return gm.MockGetUserProfileByUserIDFn(ctx, userID)
+}
+
+// GetCaregiverByUserID returns the caregiver record of the provided user ID
+func (gm *GormMock) GetCaregiverByUserID(ctx context.Context, userID string) (*gorm.NCaregiver, error) {
+	return gm.MockGetCaregiverByUserIDFn(ctx, userID)
 }
 
 // SaveTemporaryUserPin mocks the implementation of saving a temporary user pin

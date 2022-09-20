@@ -237,6 +237,7 @@ func (us *UseCasesUserImpl) Login(ctx context.Context, input *dto.LoginInput) (*
 	steps := []loginFunc{
 		us.userProfileCheck,
 		us.checkUserIsActive,
+		us.caregiverProfileCheck,
 		us.clientProfileCheck,
 		us.staffProfileCheck,
 		us.pinResetRequestCheck,
