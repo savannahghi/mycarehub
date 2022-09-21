@@ -141,7 +141,7 @@ type IUserFacility interface {
 	SetStaffDefaultFacility(ctx context.Context, userID string, facilityID string) (bool, error)
 	SetClientDefaultFacility(ctx context.Context, userID string, facilityID string) (bool, error)
 	AddFacilitiesToStaffProfile(ctx context.Context, staffID string, facilities []string) (bool, error)
-	GetUserLinkedFacilities(ctx context.Context, paginationInput dto.PaginationsInput) (*dto.FacilityOutputPage, error)
+	GetUserLinkedFacilities(ctx context.Context, userID string, paginationInput dto.PaginationsInput) (*dto.FacilityOutputPage, error)
 	RemoveFacilitiesFromClientProfile(ctx context.Context, clientID string, facilities []string) (bool, error)
 }
 
@@ -1664,19 +1664,18 @@ func (us *UseCasesUserImpl) AddFacilitiesToStaffProfile(ctx context.Context, sta
 }
 
 // GetUserLinkedFacilities returns all the facilities that are linked to a user
-func (us *UseCasesUserImpl) GetUserLinkedFacilities(ctx context.Context, paginationInput dto.PaginationsInput) (*dto.FacilityOutputPage, error) {
+func (us *UseCasesUserImpl) GetUserLinkedFacilities(ctx context.Context, userID string, paginationInput dto.PaginationsInput) (*dto.FacilityOutputPage, error) {
 	if err := paginationInput.Validate(); err != nil {
 		return nil, err
+	}
+
+	if userID == "" {
+		return nil, fmt.Errorf("userID is required")
 	}
 
 	page := &domain.Pagination{
 		Limit:       paginationInput.Limit,
 		CurrentPage: paginationInput.CurrentPage,
-	}
-
-	userID, err := us.ExternalExt.GetLoggedInUserUID(ctx)
-	if err != nil {
-		return nil, exceptions.GetLoggedInUserUIDErr(err)
 	}
 
 	userProfile, err := us.Query.GetUserProfileByUserID(ctx, userID)

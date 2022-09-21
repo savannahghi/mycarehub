@@ -6,7 +6,7 @@ extend type Query {
   searchStaffUser(searchParameter: String!): [StaffProfile!]
   searchCaregiverUser(searchParameter: String!): [CaregiverProfile!]
   getClientProfileByCCCNumber(CCCNumber: String!): ClientProfile!
-  getUserLinkedFacilities(paginationInput: PaginationsInput!): FacilityOutputPage
+  getUserLinkedFacilities(userID: ID! paginationInput: PaginationsInput!): FacilityOutputPage
 }
 
 extend type Mutation {
