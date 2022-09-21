@@ -5124,6 +5124,7 @@ func TestUseCasesUserImpl_AddFacilitiesToStaffProfile(t *testing.T) {
 func TestUseCasesUserImpl_GetUserLinkedFacilities(t *testing.T) {
 	type args struct {
 		ctx        context.Context
+		userID     string
 		pagination *dto.PaginationsInput
 	}
 	tests := []struct {
@@ -5135,7 +5136,8 @@ func TestUseCasesUserImpl_GetUserLinkedFacilities(t *testing.T) {
 		{
 			name: "Happy Case - Successfully get client linked facilities",
 			args: args{
-				ctx: context.Background(),
+				ctx:    context.Background(),
+				userID: uuid.NewString(),
 				pagination: &dto.PaginationsInput{
 					CurrentPage: 1,
 					Limit:       10,
@@ -5146,7 +5148,8 @@ func TestUseCasesUserImpl_GetUserLinkedFacilities(t *testing.T) {
 		{
 			name: "Happy Case - Successfully get staff linked facilities",
 			args: args{
-				ctx: context.Background(),
+				ctx:    context.Background(),
+				userID: uuid.NewString(),
 				pagination: &dto.PaginationsInput{
 					CurrentPage: 1,
 					Limit:       10,
@@ -5155,7 +5158,15 @@ func TestUseCasesUserImpl_GetUserLinkedFacilities(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "Sad Case - Fail to get logged in user",
+			name: "Sad Case - Invalid pagination input",
+			args: args{
+				ctx:        context.Background(),
+				pagination: &dto.PaginationsInput{},
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - Fail to get staff linked facilities, missing user ID",
 			args: args{
 				ctx: context.Background(),
 				pagination: &dto.PaginationsInput{
@@ -5168,7 +5179,8 @@ func TestUseCasesUserImpl_GetUserLinkedFacilities(t *testing.T) {
 		{
 			name: "Sad Case - Fail to get user profile by user id",
 			args: args{
-				ctx: context.Background(),
+				ctx:    context.Background(),
+				userID: uuid.NewString(),
 				pagination: &dto.PaginationsInput{
 					CurrentPage: 1,
 					Limit:       10,
@@ -5179,7 +5191,8 @@ func TestUseCasesUserImpl_GetUserLinkedFacilities(t *testing.T) {
 		{
 			name: "Sad Case - Fail to get client profile by user id",
 			args: args{
-				ctx: context.Background(),
+				ctx:    context.Background(),
+				userID: uuid.NewString(),
 				pagination: &dto.PaginationsInput{
 					CurrentPage: 1,
 					Limit:       10,
@@ -5190,7 +5203,8 @@ func TestUseCasesUserImpl_GetUserLinkedFacilities(t *testing.T) {
 		{
 			name: "Sad Case - Fail to get client facilities",
 			args: args{
-				ctx: context.Background(),
+				ctx:    context.Background(),
+				userID: uuid.NewString(),
 				pagination: &dto.PaginationsInput{
 					CurrentPage: 1,
 					Limit:       10,
@@ -5201,7 +5215,8 @@ func TestUseCasesUserImpl_GetUserLinkedFacilities(t *testing.T) {
 		{
 			name: "Sad Case - Fail to get staff profile by user id",
 			args: args{
-				ctx: context.Background(),
+				ctx:    context.Background(),
+				userID: uuid.NewString(),
 				pagination: &dto.PaginationsInput{
 					CurrentPage: 1,
 					Limit:       10,
@@ -5212,7 +5227,8 @@ func TestUseCasesUserImpl_GetUserLinkedFacilities(t *testing.T) {
 		{
 			name: "Sad Case - Fail to get staff facilities",
 			args: args{
-				ctx: context.Background(),
+				ctx:    context.Background(),
+				userID: uuid.NewString(),
 				pagination: &dto.PaginationsInput{
 					CurrentPage: 1,
 					Limit:       10,
@@ -5223,7 +5239,8 @@ func TestUseCasesUserImpl_GetUserLinkedFacilities(t *testing.T) {
 		{
 			name: "Sad Case - Invalid user type",
 			args: args{
-				ctx: context.Background(),
+				ctx:    context.Background(),
+				userID: uuid.NewString(),
 				pagination: &dto.PaginationsInput{
 					CurrentPage: 1,
 					Limit:       10,
@@ -5256,12 +5273,6 @@ func TestUseCasesUserImpl_GetUserLinkedFacilities(t *testing.T) {
 					return &domain.User{
 						UserType: "STAFF",
 					}, nil
-				}
-			}
-
-			if tt.name == "Sad Case - Fail to get logged in user" {
-				fakeExtension.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return "", fmt.Errorf("failed to get logged in user ID")
 				}
 			}
 
@@ -5327,7 +5338,7 @@ func TestUseCasesUserImpl_GetUserLinkedFacilities(t *testing.T) {
 				}
 			}
 
-			got, err := us.GetUserLinkedFacilities(tt.args.ctx, *tt.args.pagination)
+			got, err := us.GetUserLinkedFacilities(tt.args.ctx, tt.args.userID, *tt.args.pagination)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCasesUserImpl.GetUserLinkedFacilities() error = %v, wantErr %v", err, tt.wantErr)
 				return

@@ -541,7 +541,7 @@ type ComplexityRoot struct {
 		GetSurveyServiceRequestUser             func(childComplexity int, facilityID string, projectID int, formID string, paginationInput dto.PaginationsInput) int
 		GetSurveyWithServiceRequest             func(childComplexity int, facilityID string) int
 		GetUserBookmarkedContent                func(childComplexity int, userID string) int
-		GetUserLinkedFacilities                 func(childComplexity int, paginationInput dto.PaginationsInput) int
+		GetUserLinkedFacilities                 func(childComplexity int, userID string, paginationInput dto.PaginationsInput) int
 		GetUserRoles                            func(childComplexity int, userID string) int
 		GetUserSurveyForms                      func(childComplexity int, userID string) int
 		InviteMembersToCommunity                func(childComplexity int, communityID string, memberIDs []string) int
@@ -978,7 +978,7 @@ type QueryResolver interface {
 	SearchStaffUser(ctx context.Context, searchParameter string) ([]*domain.StaffProfile, error)
 	SearchCaregiverUser(ctx context.Context, searchParameter string) ([]*domain.CaregiverProfile, error)
 	GetClientProfileByCCCNumber(ctx context.Context, cCCNumber string) (*domain.ClientProfile, error)
-	GetUserLinkedFacilities(ctx context.Context, paginationInput dto.PaginationsInput) (*dto.FacilityOutputPage, error)
+	GetUserLinkedFacilities(ctx context.Context, userID string, paginationInput dto.PaginationsInput) (*dto.FacilityOutputPage, error)
 }
 
 type executableSchema struct {
@@ -3852,7 +3852,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.GetUserLinkedFacilities(childComplexity, args["paginationInput"].(dto.PaginationsInput)), true
+		return e.complexity.Query.GetUserLinkedFacilities(childComplexity, args["userID"].(string), args["paginationInput"].(dto.PaginationsInput)), true
 
 	case "Query.getUserRoles":
 		if e.complexity.Query.GetUserRoles == nil {
@@ -6857,7 +6857,7 @@ type FacilityOutputPage {
   searchStaffUser(searchParameter: String!): [StaffProfile!]
   searchCaregiverUser(searchParameter: String!): [CaregiverProfile!]
   getClientProfileByCCCNumber(CCCNumber: String!): ClientProfile!
-  getUserLinkedFacilities(paginationInput: PaginationsInput!): FacilityOutputPage
+  getUserLinkedFacilities(userID: ID! paginationInput: PaginationsInput!): FacilityOutputPage
 }
 
 extend type Mutation {
@@ -8940,15 +8940,24 @@ func (ec *executionContext) field_Query_getUserBookmarkedContent_args(ctx contex
 func (ec *executionContext) field_Query_getUserLinkedFacilities_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 dto.PaginationsInput
-	if tmp, ok := rawArgs["paginationInput"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("paginationInput"))
-		arg0, err = ec.unmarshalNPaginationsInput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐPaginationsInput(ctx, tmp)
+	var arg0 string
+	if tmp, ok := rawArgs["userID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userID"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["paginationInput"] = arg0
+	args["userID"] = arg0
+	var arg1 dto.PaginationsInput
+	if tmp, ok := rawArgs["paginationInput"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("paginationInput"))
+		arg1, err = ec.unmarshalNPaginationsInput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐPaginationsInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["paginationInput"] = arg1
 	return args, nil
 }
 
@@ -27878,7 +27887,7 @@ func (ec *executionContext) _Query_getUserLinkedFacilities(ctx context.Context, 
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().GetUserLinkedFacilities(rctx, fc.Args["paginationInput"].(dto.PaginationsInput))
+		return ec.resolvers.Query().GetUserLinkedFacilities(rctx, fc.Args["userID"].(string), fc.Args["paginationInput"].(dto.PaginationsInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
