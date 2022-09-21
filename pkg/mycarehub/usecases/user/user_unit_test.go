@@ -5536,6 +5536,25 @@ func TestUseCasesUserImpl_RegisterCaregiver(t *testing.T) {
 			},
 			wantErr: true,
 		},
+		{
+			name: "sad case: fail to send invite",
+			args: args{
+				ctx: context.Background(),
+				input: dto.CaregiverInput{
+					Name:   gofakeit.Name(),
+					Gender: enumutils.GenderMale,
+					DateOfBirth: scalarutils.Date{
+						Year:  10,
+						Month: 10,
+						Day:   10,
+					},
+					PhoneNumber:     gofakeit.Phone(),
+					CaregiverNumber: gofakeit.SSN(),
+					SendInvite:      true,
+				},
+			},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -5567,6 +5586,16 @@ func TestUseCasesUserImpl_RegisterCaregiver(t *testing.T) {
 
 				fakeDB.MockRegisterCaregiverFn = func(ctx context.Context, input *domain.CaregiverRegistration) (*domain.CaregiverProfile, error) {
 					return nil, fmt.Errorf("failed to register caregiver")
+				}
+			}
+
+			if tt.name == "sad case: fail to send invite" {
+				fakeDB.MockCheckIfPhoneNumberExistsFn = func(ctx context.Context, phone string, isOptedIn bool, flavour feedlib.Flavour) (bool, error) {
+					return false, nil
+				}
+
+				fakeExtension.MockSendInviteSMSFn = func(ctx context.Context, phoneNumber, message string) error {
+					return fmt.Errorf("failed to send invite sms")
 				}
 			}
 

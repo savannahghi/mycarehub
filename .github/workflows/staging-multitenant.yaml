@@ -1,15 +1,14 @@
 name: Multitenant Staging Deployment
 
-on: 
+on:
   push:
     branches:
       - develop-v2
-      - staging-environment-deployment
 
 env:
   # Schema Registry CLI command version
   CLI_VERSION: v0.0.2
-    
+
 jobs:
   deploy_to_multitenant_staging:
     strategy:
@@ -24,8 +23,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - id: 'auth'
-        uses: 'google-github-actions/auth@v0'
+      - id: "auth"
+        uses: "google-github-actions/auth@v0"
         with:
           credentials_json: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}
           project_id: ${{ secrets.GOOGLE_CLOUD_PROJECT }}
@@ -33,22 +32,22 @@ jobs:
       # Configure Docker to use the gcloud command-line tool as a credential
       # helper for authentication
       - run: |-
-         gcloud --quiet auth configure-docker
-     
+          gcloud --quiet auth configure-docker
+
       - name: Build and Push Image
         run: |-
           docker build -t eu.gcr.io/${{ secrets.GOOGLE_CLOUD_PROJECT }}/${{ secrets.GCR_NAME }}:$GITHUB_SHA .
           docker push eu.gcr.io/${{ secrets.GOOGLE_CLOUD_PROJECT }}/${{ secrets.GCR_NAME }}:$GITHUB_SHA
-      
+
       - name: Install Go
         uses: actions/setup-go@v3
         with:
           go-version: ${{ matrix.go-version }}
-      
+
       - name: Install migrate cli
         run: |
           go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@v4.15.2
-      
+
       - name: Install cloudsql proxy
         uses: mattes/gce-cloudsql-proxy-action@v1
         with:
@@ -62,13 +61,13 @@ jobs:
         run: |
           export POSTGRESQL_URL="postgres://${{ secrets.MYCAREHUB_DB_USER }}:${{ secrets.MYCAREHUB_DB_PASS }}@$POSTGRES_HOST:$POSTGRES_PORT/${{ secrets.DB_NAME }}?sslmode=disable"
           migrate -database ${POSTGRESQL_URL} -path db/migrations up
-        
+
       - name: Deploy to Google Cloud Run
-        uses: 'google-github-actions/deploy-cloudrun@v0'
+        uses: "google-github-actions/deploy-cloudrun@v0"
         with:
           service: ${{ secrets.SERVICE_NAME }}
-          region: 'europe-west1'
-          image: 'eu.gcr.io/${{ secrets.GOOGLE_CLOUD_PROJECT }}/${{ secrets.GCR_NAME }}:${{  github.sha }}'
+          region: "europe-west1"
+          image: "eu.gcr.io/${{ secrets.GOOGLE_CLOUD_PROJECT }}/${{ secrets.GCR_NAME }}:${{  github.sha }}"
           env_vars: |
             GOOGLE_CLOUD_PROJECT=${{ secrets.GOOGLE_CLOUD_PROJECT }}
             FIREBASE_WEB_API_KEY=${{ secrets.FIREBASE_WEB_API_KEY }}
@@ -135,7 +134,6 @@ jobs:
             CONSUMER_APP_NAME=${{ secrets.CONSUMER_APP_NAME }}
             PRO_APP_NAME=${{ secrets.PRO_APP_NAME }}
 
-
   # push_schema_staging_registry:
   #   name: Publish schema to staging schema registry
   #   strategy:
@@ -164,5 +162,3 @@ jobs:
   #         go install github.com/savannahghi/bewellcli@$CLI_VERSION
   #         bewellcli service validate-schema --name mycarehub --version $GITHUB_SHA --url https://mycarehub-staging.savannahghi.org/graphql
   #         bewellcli service push-schema --name mycarehub --version $GITHUB_SHA --url https://mycarehub-staging.savannahghi.org/graphql
-
-      
