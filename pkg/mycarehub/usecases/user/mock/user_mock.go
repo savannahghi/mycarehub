@@ -17,40 +17,41 @@ import (
 
 // UserUseCaseMock mocks the implementation of usecase methods.
 type UserUseCaseMock struct {
-	MockLoginFn                         func(ctx context.Context, input *dto.LoginInput) (*domain.LoginResponse, bool)
-	MockInviteUserFn                    func(ctx context.Context, userID string, phoneNumber string, flavour feedlib.Flavour, reinvite bool) (bool, error)
-	MockSavePinFn                       func(ctx context.Context, input dto.PINInput) (bool, error)
-	MockSetNickNameFn                   func(ctx context.Context, userID string, nickname string) (bool, error)
-	MockRequestPINResetFn               func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (string, error)
-	MockResetPINFn                      func(ctx context.Context, input dto.UserResetPinInput) (bool, error)
-	MockRefreshTokenFn                  func(ctx context.Context, userID string) (*domain.AuthCredentials, error)
-	MockVerifyPINFn                     func(ctx context.Context, userID string, flavour feedlib.Flavour, pin string) (bool, error)
-	MockGetClientCaregiverFn            func(ctx context.Context, clientID string) (*domain.Caregiver, error)
-	MockCreateOrUpdateClientCaregiverFn func(ctx context.Context, caregiverInput *dto.CaregiverInput) (bool, error)
-	MockRegisterClientFn                func(ctx context.Context, input *dto.ClientRegistrationInput) (*dto.ClientRegistrationOutput, error)
-	MockRefreshGetStreamTokenFn         func(ctx context.Context, userID string) (*domain.GetStreamToken, error)
-	MockSearchClientUserFn              func(ctx context.Context, searchParameter string) ([]*domain.ClientProfile, error)
-	MockCompleteOnboardingTourFn        func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
-	MockRegisterKenyaEMRPatientsFn      func(ctx context.Context, input []*dto.PatientRegistrationPayload) ([]*dto.PatientRegistrationPayload, error)
-	MockRegisteredFacilityPatientsFn    func(ctx context.Context, input dto.PatientSyncPayload) (*dto.PatientSyncResponse, error)
-	MockSetUserPINFn                    func(ctx context.Context, input dto.PINInput) (bool, error)
-	MockSearchStaffUserFn               func(ctx context.Context, searchParameter string) ([]*domain.StaffProfile, error)
-	MockConsentFn                       func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (bool, error)
-	MockGetUserProfileFn                func(ctx context.Context, userID string) (*domain.User, error)
-	MockAddClientFHIRIDFn               func(ctx context.Context, input dto.ClientFHIRPayload) error
-	MockGenerateTemporaryPinFn          func(ctx context.Context, userID string, flavour feedlib.Flavour) (string, error)
-	MockRegisterPushTokenFn             func(ctx context.Context, token string) (bool, error)
-	MockGetClientProfileByCCCNumberFn   func(ctx context.Context, cccNumber string) (*domain.ClientProfile, error)
-	MockRegisterStaffFn                 func(ctx context.Context, input dto.StaffRegistrationInput) (*dto.StaffRegistrationOutput, error)
-	MockDeleteUserFn                    func(ctx context.Context, payload *dto.PhoneInput) (bool, error)
-	MockTransferClientToFacilityFn      func(ctx context.Context, clientID *string, facilityID *string) (bool, error)
-	MockSetStaffDefaultFacilityFn       func(ctx context.Context, userID string, facilityID string) (bool, error)
-	MockSetClientDefaultFacilityFn      func(ctx context.Context, userID string, facilityID string) (bool, error)
-	MockAddFacilitiesToStaffProfileFn   func(ctx context.Context, staffID string, facilities []string) (bool, error)
-	MockAddFacilitiesToClientProfileFn  func(ctx context.Context, clientID string, facilities []string) (bool, error)
-	MockGetUserLinkedFacilitiesFn       func(ctx context.Context, paginationInput dto.PaginationsInput) (*dto.FacilityOutputPage, error)
-	MockRegisterCaregiver               func(ctx context.Context, input dto.CaregiverInput) (*domain.CaregiverProfile, error)
-	MockSearchCaregiverUserFn           func(ctx context.Context, searchParameter string) ([]*domain.CaregiverProfile, error)
+	MockLoginFn                             func(ctx context.Context, input *dto.LoginInput) (*domain.LoginResponse, bool)
+	MockInviteUserFn                        func(ctx context.Context, userID string, phoneNumber string, flavour feedlib.Flavour, reinvite bool) (bool, error)
+	MockSavePinFn                           func(ctx context.Context, input dto.PINInput) (bool, error)
+	MockSetNickNameFn                       func(ctx context.Context, userID string, nickname string) (bool, error)
+	MockRequestPINResetFn                   func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (string, error)
+	MockResetPINFn                          func(ctx context.Context, input dto.UserResetPinInput) (bool, error)
+	MockRefreshTokenFn                      func(ctx context.Context, userID string) (*domain.AuthCredentials, error)
+	MockVerifyPINFn                         func(ctx context.Context, userID string, flavour feedlib.Flavour, pin string) (bool, error)
+	MockGetClientCaregiverFn                func(ctx context.Context, clientID string) (*domain.Caregiver, error)
+	MockCreateOrUpdateClientCaregiverFn     func(ctx context.Context, caregiverInput *dto.CaregiverInput) (bool, error)
+	MockRegisterClientFn                    func(ctx context.Context, input *dto.ClientRegistrationInput) (*dto.ClientRegistrationOutput, error)
+	MockRefreshGetStreamTokenFn             func(ctx context.Context, userID string) (*domain.GetStreamToken, error)
+	MockSearchClientUserFn                  func(ctx context.Context, searchParameter string) ([]*domain.ClientProfile, error)
+	MockCompleteOnboardingTourFn            func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
+	MockRegisterKenyaEMRPatientsFn          func(ctx context.Context, input []*dto.PatientRegistrationPayload) ([]*dto.PatientRegistrationPayload, error)
+	MockRegisteredFacilityPatientsFn        func(ctx context.Context, input dto.PatientSyncPayload) (*dto.PatientSyncResponse, error)
+	MockSetUserPINFn                        func(ctx context.Context, input dto.PINInput) (bool, error)
+	MockSearchStaffUserFn                   func(ctx context.Context, searchParameter string) ([]*domain.StaffProfile, error)
+	MockConsentFn                           func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (bool, error)
+	MockGetUserProfileFn                    func(ctx context.Context, userID string) (*domain.User, error)
+	MockAddClientFHIRIDFn                   func(ctx context.Context, input dto.ClientFHIRPayload) error
+	MockGenerateTemporaryPinFn              func(ctx context.Context, userID string, flavour feedlib.Flavour) (string, error)
+	MockRegisterPushTokenFn                 func(ctx context.Context, token string) (bool, error)
+	MockGetClientProfileByCCCNumberFn       func(ctx context.Context, cccNumber string) (*domain.ClientProfile, error)
+	MockRegisterStaffFn                     func(ctx context.Context, input dto.StaffRegistrationInput) (*dto.StaffRegistrationOutput, error)
+	MockDeleteUserFn                        func(ctx context.Context, payload *dto.PhoneInput) (bool, error)
+	MockTransferClientToFacilityFn          func(ctx context.Context, clientID *string, facilityID *string) (bool, error)
+	MockSetStaffDefaultFacilityFn           func(ctx context.Context, userID string, facilityID string) (bool, error)
+	MockSetClientDefaultFacilityFn          func(ctx context.Context, userID string, facilityID string) (bool, error)
+	MockRemoveFacilitiesFromClientProfileFn func(ctx context.Context, clientID string, facilities []string) (bool, error)
+	MockAddFacilitiesToStaffProfileFn       func(ctx context.Context, staffID string, facilities []string) (bool, error)
+	MockGetUserLinkedFacilitiesFn           func(ctx context.Context, paginationInput dto.PaginationsInput) (*dto.FacilityOutputPage, error)
+	MockAddFacilitiesToClientProfileFn      func(ctx context.Context, clientID string, facilities []string) (bool, error)
+	MockRegisterCaregiver                   func(ctx context.Context, input dto.CaregiverInput) (*domain.CaregiverProfile, error)
+	MockSearchCaregiverUserFn               func(ctx context.Context, searchParameter string) ([]*domain.CaregiverProfile, error)
 }
 
 // NewUserUseCaseMock creates in initializes create type mocks
@@ -332,6 +333,9 @@ func NewUserUseCaseMock() *UserUseCaseMock {
 		MockAddFacilitiesToClientProfileFn: func(ctx context.Context, clientID string, facilities []string) (bool, error) {
 			return true, nil
 		},
+		MockRemoveFacilitiesFromClientProfileFn: func(ctx context.Context, clientID string, facilities []string) (bool, error) {
+			return true, nil
+		},
 	}
 }
 
@@ -503,4 +507,9 @@ func (f *UserUseCaseMock) RegisterCaregiver(ctx context.Context, input dto.Careg
 // SearchCaregiverUser mocks the implementation of searching caregiver profile using their caregiver number.
 func (f *UserUseCaseMock) SearchCaregiverUser(ctx context.Context, searchParameter string) ([]*domain.CaregiverProfile, error) {
 	return f.MockSearchCaregiverUserFn(ctx, searchParameter)
+}
+
+// RemoveFacilitiesFromClientProfile mocks the implementation of removing facilities from a client profile
+func (f *UserUseCaseMock) RemoveFacilitiesFromClientProfile(ctx context.Context, clientID string, facilities []string) (bool, error) {
+	return f.MockRemoveFacilitiesFromClientProfileFn(ctx, clientID, facilities)
 }

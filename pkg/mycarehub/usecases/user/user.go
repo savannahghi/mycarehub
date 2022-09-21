@@ -142,6 +142,7 @@ type IUserFacility interface {
 	SetClientDefaultFacility(ctx context.Context, userID string, facilityID string) (bool, error)
 	AddFacilitiesToStaffProfile(ctx context.Context, staffID string, facilities []string) (bool, error)
 	GetUserLinkedFacilities(ctx context.Context, paginationInput dto.PaginationsInput) (*dto.FacilityOutputPage, error)
+	RemoveFacilitiesFromClientProfile(ctx context.Context, clientID string, facilities []string) (bool, error)
 }
 
 // UseCasesUser group all business logic usecases related to user
@@ -1730,4 +1731,36 @@ func (us *UseCasesUserImpl) SearchCaregiverUser(ctx context.Context, searchParam
 	}
 
 	return caregiverProfile, nil
+}
+
+// RemoveFacilitiesFromClientProfile updates the client facility list to remove assigned facilities except the default facility
+func (us *UseCasesUserImpl) RemoveFacilitiesFromClientProfile(ctx context.Context, clientID string, facilities []string) (bool, error) {
+	if clientID == "" {
+		err := fmt.Errorf("client ID cannot be empty")
+		helpers.ReportErrorToSentry(err)
+		return false, err
+	}
+	if len(facilities) < 1 {
+		err := fmt.Errorf("facilities cannot be empty")
+		helpers.ReportErrorToSentry(err)
+		return false, err
+	}
+
+	client, err := us.Query.GetClientProfileByClientID(ctx, clientID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, fmt.Errorf("failed to get client profile %w", err)
+	}
+
+	for _, facilityID := range facilities {
+		if client.FacilityID == facilityID {
+			return false, fmt.Errorf("cannot delete default facility ID: %s, please select another facility", facilityID)
+		}
+	}
+	err = us.Delete.RemoveFacilitiesFromClientProfile(ctx, clientID, facilities)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, fmt.Errorf("failed to remove client facilities: %w", err)
+	}
+	return true, nil
 }

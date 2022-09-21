@@ -175,3 +175,42 @@ func TestPGInstance_DeleteCommunity(t *testing.T) {
 		})
 	}
 }
+
+func TestPGInstance_RemoveFacilitiesFromClientProfile(t *testing.T) {
+	type args struct {
+		ctx        context.Context
+		clientID   string
+		facilities []string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: remove facilities from client profile",
+			args: args{
+				ctx:        context.Background(),
+				clientID:   clientID,
+				facilities: []string{facilityToRemoveFromUserProfile},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: failed remove facilities from client profile, invalid client ID",
+			args: args{
+				ctx:        context.Background(),
+				clientID:   "Invalid",
+				facilities: []string{facilityToRemoveFromUserProfile},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := testingDB.RemoveFacilitiesFromClientProfile(tt.args.ctx, tt.args.clientID, tt.args.facilities); (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.RemoveFacilitiesFromClientProfile() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
