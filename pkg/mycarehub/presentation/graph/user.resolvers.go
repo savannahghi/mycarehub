@@ -99,6 +99,10 @@ func (r *queryResolver) SearchStaffUser(ctx context.Context, searchParameter str
 	return r.mycarehub.User.SearchStaffUser(ctx, searchParameter)
 }
 
+func (r *queryResolver) SearchCaregiverUser(ctx context.Context, searchParameter string) ([]*domain.CaregiverProfile, error) {
+	return r.mycarehub.User.SearchCaregiverUser(ctx, searchParameter)
+}
+
 func (r *queryResolver) GetClientProfileByCCCNumber(ctx context.Context, cCCNumber string) (*domain.ClientProfile, error) {
 	return r.mycarehub.User.GetClientProfileByCCCNumber(ctx, cCCNumber)
 }

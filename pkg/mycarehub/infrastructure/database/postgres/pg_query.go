@@ -426,6 +426,38 @@ func (d *MyCareHubDb) SearchStaffProfile(ctx context.Context, searchParameter st
 	return staffProfiles, nil
 }
 
+// SearchCaregiverUser searches for the caregiver user(s) based on the passed parameter.
+//
+// Search parameter can be username, phonenumber or caregiver number.
+func (d *MyCareHubDb) SearchCaregiverUser(ctx context.Context, searchParameter string) ([]*domain.CaregiverProfile, error) {
+	var caregiverProfiles []*domain.CaregiverProfile
+
+	caregivers, err := d.query.SearchCaregiverUser(ctx, searchParameter)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
+	for _, caregiver := range caregivers {
+		userProfile, err := d.query.GetUserProfileByUserID(ctx, &caregiver.UserID)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return nil, err
+		}
+		user := createMapUser(userProfile)
+
+		caregiverProfile := &domain.CaregiverProfile{
+			ID:              caregiver.ID,
+			User:            *user,
+			CaregiverNumber: caregiver.CaregiverNumber,
+		}
+
+		caregiverProfiles = append(caregiverProfiles, caregiverProfile)
+	}
+
+	return caregiverProfiles, nil
+}
+
 // CheckUserHasPin performs a look up on the pins table to check whether a user has a pin
 func (d *MyCareHubDb) CheckUserHasPin(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
 	if userID == "" {

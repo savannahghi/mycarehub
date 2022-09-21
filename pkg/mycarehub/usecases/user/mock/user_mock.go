@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/feedlib"
+	"github.com/savannahghi/interserviceclient"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
@@ -49,6 +50,7 @@ type UserUseCaseMock struct {
 	MockAddFacilitiesToClientProfileFn  func(ctx context.Context, clientID string, facilities []string) (bool, error)
 	MockGetUserLinkedFacilitiesFn       func(ctx context.Context, paginationInput dto.PaginationsInput) (*dto.FacilityOutputPage, error)
 	MockRegisterCaregiver               func(ctx context.Context, input dto.CaregiverInput) (*domain.CaregiverProfile, error)
+	MockSearchCaregiverUserFn           func(ctx context.Context, searchParameter string) ([]*domain.CaregiverProfile, error)
 }
 
 // NewUserUseCaseMock creates in initializes create type mocks
@@ -70,6 +72,44 @@ func NewUserUseCaseMock() *UserUseCaseMock {
 		StaffNumber:       "test-staff-101",
 		Facilities:        []*domain.Facility{},
 		DefaultFacilityID: uuid.New().String(),
+	}
+
+	user := &domain.User{
+		ID:       &UUID,
+		Username: "test",
+		UserType: "test",
+		Name:     "test",
+		Gender:   enumutils.GenderMale,
+		Active:   true,
+		Contacts: &domain.Contact{
+			ID:           &UUID,
+			ContactType:  "phone",
+			ContactValue: interserviceclient.TestUserPhoneNumber,
+			Active:       false,
+			OptedIn:      false,
+			UserID:       &UUID,
+			Flavour:      feedlib.FlavourPro,
+		},
+		PushTokens:             []string{},
+		LastSuccessfulLogin:    &time.Time{},
+		LastFailedLogin:        &time.Time{},
+		FailedLoginCount:       0,
+		NextAllowedLogin:       &time.Time{},
+		PinChangeRequired:      false,
+		HasSetPin:              false,
+		HasSetSecurityQuestion: false,
+		IsPhoneVerified:        false,
+		TermsAccepted:          false,
+		AcceptedTermsID:        0,
+		Flavour:                "",
+		Suspended:              false,
+		Avatar:                 "",
+		Roles:                  []*domain.AuthorityRole{},
+		Permissions:            []*domain.AuthorityPermission{},
+		DateOfBirth:            &time.Time{},
+		FailedSecurityCount:    0,
+		PinUpdateRequired:      false,
+		HasSetNickname:         false,
 	}
 
 	return &UserUseCaseMock{
@@ -226,6 +266,15 @@ func NewUserUseCaseMock() *UserUseCaseMock {
 		},
 		MockAddClientFHIRIDFn: func(ctx context.Context, input dto.ClientFHIRPayload) error {
 			return nil
+		},
+		MockSearchCaregiverUserFn: func(ctx context.Context, searchParameter string) ([]*domain.CaregiverProfile, error) {
+			return []*domain.CaregiverProfile{
+				{
+					ID:              UUID,
+					User:            *user,
+					CaregiverNumber: "CG001",
+				},
+			}, nil
 		},
 		MockGenerateTemporaryPinFn: func(ctx context.Context, userID string, flavour feedlib.Flavour) (string, error) {
 			return "1234", nil
@@ -449,4 +498,9 @@ func (f *UserUseCaseMock) AddFacilitiesToClientProfile(ctx context.Context, clie
 // RegisterCaregiver is used to register a caregiver
 func (f *UserUseCaseMock) RegisterCaregiver(ctx context.Context, input dto.CaregiverInput) (*domain.CaregiverProfile, error) {
 	return f.MockRegisterCaregiver(ctx, input)
+}
+
+// SearchCaregiverUser mocks the implementation of searching caregiver profile using their caregiver number.
+func (f *UserUseCaseMock) SearchCaregiverUser(ctx context.Context, searchParameter string) ([]*domain.CaregiverProfile, error) {
+	return f.MockSearchCaregiverUserFn(ctx, searchParameter)
 }

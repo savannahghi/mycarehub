@@ -171,6 +171,7 @@ type GormMock struct {
 	MockGetNotificationsCountFn                          func(ctx context.Context, notification gorm.Notification) (int, error)
 	MockRegisterCaregiverFn                              func(ctx context.Context, user *gorm.User, contact *gorm.Contact, caregiver *gorm.NCaregiver) error
 	MockGetClientsSurveyCountFn                          func(ctx context.Context, userID string) (int, error)
+	MockSearchCaregiverUserFn                            func(ctx context.Context, searchParameter string) ([]*gorm.NCaregiver, error)
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -587,6 +588,17 @@ func NewGormMock() *GormMock {
 
 		MockInactivateFacilityFn: func(ctx context.Context, mflCode *int) (bool, error) {
 			return true, nil
+		},
+		MockSearchCaregiverUserFn: func(ctx context.Context, searchParameter string) ([]*gorm.NCaregiver, error) {
+			return []*gorm.NCaregiver{
+				{
+					ID:              UUID,
+					Active:          true,
+					CaregiverNumber: "CG001",
+					OrganisationID:  UUID,
+					UserID:          UUID,
+				},
+			}, nil
 		},
 		MockReactivateFacilityFn: func(ctx context.Context, mflCode *int) (bool, error) {
 			return true, nil
@@ -2144,4 +2156,9 @@ func (gm *GormMock) GetNotificationsCount(ctx context.Context, notification gorm
 // RegisterCaregiver registers a new caregiver
 func (gm *GormMock) RegisterCaregiver(ctx context.Context, user *gorm.User, contact *gorm.Contact, caregiver *gorm.NCaregiver) error {
 	return gm.MockRegisterCaregiverFn(ctx, user, contact, caregiver)
+}
+
+// SearchCaregiverUser mocks the searching of caregiver user
+func (gm *GormMock) SearchCaregiverUser(ctx context.Context, searchParameter string) ([]*gorm.NCaregiver, error) {
+	return gm.MockSearchCaregiverUserFn(ctx, searchParameter)
 }

@@ -5573,3 +5573,59 @@ func TestUseCasesUserImpl_RegisterCaregiver(t *testing.T) {
 		})
 	}
 }
+
+func TestUseCasesUserImpl_SearchCaregiverUser(t *testing.T) {
+	type args struct {
+		ctx             context.Context
+		searchParameter string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "happy case: search caregiver user",
+			args: args{
+				ctx:             context.Background(),
+				searchParameter: gofakeit.Name(),
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: unable to search caregiver user",
+			args: args{
+				ctx:             context.Background(),
+				searchParameter: gofakeit.Name(),
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			fakeExtension := extensionMock.NewFakeExtension()
+			fakeOTP := otpMock.NewOTPUseCaseMock()
+			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
+			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
+			fakePubsub := pubsubMock.NewPubsubServiceMock()
+			fakeClinical := clinicalMock.NewClinicalServiceMock()
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakeGetStream, fakePubsub, fakeClinical)
+
+			if tt.name == "Sad case: unable to search caregiver user" {
+				fakeDB.MockSearchCaregiverUserFn = func(ctx context.Context, searchParameter string) ([]*domain.CaregiverProfile, error) {
+					return nil, fmt.Errorf("failed to search caregiver user")
+				}
+			}
+			got, err := us.SearchCaregiverUser(tt.args.ctx, tt.args.searchParameter)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCasesUserImpl.SearchCaregiverUser() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected a response but got %v", got)
+				return
+			}
+		})
+	}
+}
