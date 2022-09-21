@@ -172,6 +172,7 @@ type PostgresMock struct {
 	MockRemoveFacilitiesFromStaffProfileFn               func(ctx context.Context, staffID string, facilities []string) error
 	MockGetCaregiverManagedClientsFn                     func(ctx context.Context, caregiverID string, pagination *domain.Pagination) ([]*domain.ManagedClient, *domain.Pagination, error)
 	MockListClientsCaregiversFn                          func(ctx context.Context, clientID string, pagination *domain.Pagination) (*domain.ClientCaregivers, *domain.Pagination, error)
+	MockUpdateCaregiverClientFn                          func(ctx context.Context, caregiverClient *domain.CaregiverClient, updateData map[string]interface{}) error
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -535,6 +536,9 @@ func NewPostgresMock() *PostgresMock {
 			}, nil
 		},
 		MockSaveNotificationFn: func(ctx context.Context, payload *domain.Notification) error {
+			return nil
+		},
+		MockUpdateCaregiverClientFn: func(ctx context.Context, caregiverClient *domain.CaregiverClient, updateData map[string]interface{}) error {
 			return nil
 		},
 		MockCreateStaffServiceRequestFn: func(ctx context.Context, serviceRequestInput *dto.ServiceRequestInput) error {
@@ -2155,4 +2159,9 @@ func (gm *PostgresMock) GetCaregiverManagedClients(ctx context.Context, caregive
 // ListClientsCaregivers mocks the implementation of listing clients caregivers
 func (gm *PostgresMock) ListClientsCaregivers(ctx context.Context, clientID string, pagination *domain.Pagination) (*domain.ClientCaregivers, *domain.Pagination, error) {
 	return gm.MockListClientsCaregiversFn(ctx, clientID, pagination)
+}
+
+// UpdateCaregiverClient mocks the action of updating a caregiver client details for either client or caregiver.
+func (gm *PostgresMock) UpdateCaregiverClient(ctx context.Context, caregiverClient *domain.CaregiverClient, updateData map[string]interface{}) error {
+	return gm.MockUpdateCaregiverClientFn(ctx, caregiverClient, updateData)
 }

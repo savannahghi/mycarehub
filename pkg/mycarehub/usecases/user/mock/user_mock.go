@@ -57,6 +57,7 @@ type UserUseCaseMock struct {
 	MockRegisterClientAsCaregiverFn         func(ctx context.Context, clientID string, caregiverNumber string) (*domain.CaregiverProfile, error)
 	MockGetCaregiverManagedClientsFn        func(ctx context.Context, caregiverID string, input dto.PaginationsInput) (*dto.ManagedClientOutputPage, error)
 	MockListClientsCaregiversFn             func(ctx context.Context, clientID string, pagination *dto.PaginationsInput) (*dto.CaregiverProfileOutputPage, error)
+	MockConsentToAClientCaregiverFn         func(ctx context.Context, clientID string, caregiverID string, consent bool) (bool, error)
 }
 
 // NewUserUseCaseMock creates in initializes create type mocks
@@ -282,6 +283,9 @@ func NewUserUseCaseMock() *UserUseCaseMock {
 			return []*domain.ClientProfile{client}, nil
 		},
 		MockCompleteOnboardingTourFn: func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
+			return true, nil
+		},
+		MockConsentToAClientCaregiverFn: func(ctx context.Context, clientID string, caregiverID string, consent bool) (bool, error) {
 			return true, nil
 		},
 		MockRegisterKenyaEMRPatientsFn: func(ctx context.Context, input []*dto.PatientRegistrationPayload) ([]*dto.PatientRegistrationPayload, error) {
@@ -623,4 +627,9 @@ func (f *UserUseCaseMock) GetCaregiverManagedClients(ctx context.Context, caregi
 // ListClientsCaregivers mocks the implementation of listing a client's caregivers
 func (f *UserUseCaseMock) ListClientsCaregivers(ctx context.Context, clientID string, pagination *dto.PaginationsInput) (*dto.CaregiverProfileOutputPage, error) {
 	return f.MockListClientsCaregiversFn(ctx, clientID, pagination)
+}
+
+// ConsentToAClientCaregiver mocks the implementation of a client acknowledging to having a certain caregiver assigned to them.
+func (f *UserUseCaseMock) ConsentToAClientCaregiver(ctx context.Context, clientID string, caregiverID string, consent bool) (bool, error) {
+	return f.MockConsentToAClientCaregiverFn(ctx, clientID, caregiverID, consent)
 }

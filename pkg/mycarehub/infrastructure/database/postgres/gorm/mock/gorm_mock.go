@@ -179,6 +179,7 @@ type GormMock struct {
 	MockGetCaregiversClientFn                            func(ctx context.Context, caregiverClient gorm.CaregiverClient) ([]*gorm.CaregiverClient, error)
 	MockListClientsCaregiversFn                          func(ctx context.Context, clientID string, pagination *domain.Pagination) ([]*gorm.CaregiverClient, *domain.Pagination, error)
 	MockGetCaregiverProfileByCaregiverIDFn               func(ctx context.Context, caregiverID string) (*gorm.Caregiver, error)
+	MockUpdateCaregiverClientFn                          func(ctx context.Context, caregiverClient *gorm.CaregiverClient, updates map[string]interface{}) error
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -1374,6 +1375,9 @@ func NewGormMock() *GormMock {
 				},
 			}, nil
 		},
+		MockUpdateCaregiverClientFn: func(ctx context.Context, caregiverClient *gorm.CaregiverClient, updates map[string]interface{}) error {
+			return nil
+		},
 		MockGetScreeningToolServiceRequestOfRespondentsFn: func(ctx context.Context, facilityID string, screeningToolID string, searchTerm string, pagination *domain.Pagination) ([]*gorm.ClientServiceRequest, *domain.Pagination, error) {
 			nextPage := 2
 			return []*gorm.ClientServiceRequest{
@@ -2272,4 +2276,9 @@ func (gm *GormMock) ListClientsCaregivers(ctx context.Context, clientID string, 
 // GetCaregiverProfileByCaregiverID mocks the implementation of getting a caregiver profile by caregiver ID
 func (gm *GormMock) GetCaregiverProfileByCaregiverID(ctx context.Context, caregiverID string) (*gorm.Caregiver, error) {
 	return gm.MockGetCaregiverProfileByCaregiverIDFn(ctx, caregiverID)
+}
+
+// UpdateCaregiverClient mocks the accepting of caregiver consent
+func (gm *GormMock) UpdateCaregiverClient(ctx context.Context, caregiverClient *gorm.CaregiverClient, updates map[string]interface{}) error {
+	return gm.MockUpdateCaregiverClientFn(ctx, caregiverClient, updates)
 }
