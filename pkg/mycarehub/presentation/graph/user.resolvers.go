@@ -94,6 +94,10 @@ func (r *mutationResolver) ConsentToAClientCaregiver(ctx context.Context, client
 	return r.mycarehub.User.ConsentToAClientCaregiver(ctx, clientID, caregiverID, consent)
 }
 
+func (r *mutationResolver) ConsentToManagingClient(ctx context.Context, caregiverID string, clientID string, consent bool) (bool, error) {
+	return r.mycarehub.User.ConsentToManagingClient(ctx, caregiverID, clientID, consent)
+}
+
 func (r *queryResolver) GetCurrentTerms(ctx context.Context, flavour feedlib.Flavour) (*domain.TermsOfService, error) {
 	r.checkPreconditions()
 	return r.mycarehub.Terms.GetCurrentTerms(ctx, flavour)

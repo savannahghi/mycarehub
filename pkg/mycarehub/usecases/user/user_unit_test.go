@@ -5960,3 +5960,67 @@ func TestUseCasesUserImpl_ConsentToAClientCaregiver(t *testing.T) {
 		})
 	}
 }
+
+func TestUseCasesUserImpl_ConsentToManagingClient(t *testing.T) {
+	type args struct {
+		ctx         context.Context
+		caregiverID string
+		clientID    string
+		consent     bool
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy Case: consent to managing client",
+			args: args{
+				ctx:         context.Background(),
+				caregiverID: uuid.NewString(),
+				clientID:    uuid.NewString(),
+				consent:     true,
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Sad Case: unable to consent to managing client",
+			args: args{
+				ctx:         context.Background(),
+				caregiverID: uuid.NewString(),
+				clientID:    uuid.NewString(),
+				consent:     true,
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			fakeExtension := extensionMock.NewFakeExtension()
+			fakeOTP := otpMock.NewOTPUseCaseMock()
+			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
+			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
+			fakePubsub := pubsubMock.NewPubsubServiceMock()
+			fakeClinical := clinicalMock.NewClinicalServiceMock()
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakeGetStream, fakePubsub, fakeClinical)
+
+			if tt.name == "Sad Case: unable to consent to managing client" {
+				fakeDB.MockUpdateCaregiverClientFn = func(ctx context.Context, caregiverClient *domain.CaregiverClient, updateData map[string]interface{}) error {
+					return fmt.Errorf("unable to consent to managing client")
+				}
+			}
+			got, err := us.ConsentToManagingClient(tt.args.ctx, tt.args.caregiverID, tt.args.clientID, tt.args.consent)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCasesUserImpl.ConsentToManagingClient() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("UseCasesUserImpl.ConsentToManagingClient() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

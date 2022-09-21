@@ -442,6 +442,9 @@ func NewPostgresMock() *PostgresMock {
 				CaregiverNumber: gofakeit.SSN(),
 			}}, nil
 		},
+		MockUpdateCaregiverClientFn: func(ctx context.Context, caregiverClient *domain.CaregiverClient, updateData map[string]interface{}) error {
+			return nil
+		},
 		MockInactivateFacilityFn: func(ctx context.Context, mflCode *int) (bool, error) {
 			return true, nil
 		},
@@ -536,9 +539,6 @@ func NewPostgresMock() *PostgresMock {
 			}, nil
 		},
 		MockSaveNotificationFn: func(ctx context.Context, payload *domain.Notification) error {
-			return nil
-		},
-		MockUpdateCaregiverClientFn: func(ctx context.Context, caregiverClient *domain.CaregiverClient, updateData map[string]interface{}) error {
 			return nil
 		},
 		MockCreateStaffServiceRequestFn: func(ctx context.Context, serviceRequestInput *dto.ServiceRequestInput) error {

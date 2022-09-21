@@ -58,6 +58,7 @@ type UserUseCaseMock struct {
 	MockGetCaregiverManagedClientsFn        func(ctx context.Context, caregiverID string, input dto.PaginationsInput) (*dto.ManagedClientOutputPage, error)
 	MockListClientsCaregiversFn             func(ctx context.Context, clientID string, pagination *dto.PaginationsInput) (*dto.CaregiverProfileOutputPage, error)
 	MockConsentToAClientCaregiverFn         func(ctx context.Context, clientID string, caregiverID string, consent bool) (bool, error)
+	MockConsentToManagingClientFn           func(ctx context.Context, caregiverID string, clientID string, consent bool) (bool, error)
 }
 
 // NewUserUseCaseMock creates in initializes create type mocks
@@ -383,6 +384,9 @@ func NewUserUseCaseMock() *UserUseCaseMock {
 		MockAddFacilitiesToStaffProfileFn: func(ctx context.Context, staffID string, facilities []string) (bool, error) {
 			return true, nil
 		},
+		MockConsentToManagingClientFn: func(ctx context.Context, caregiverID string, clientID string, consent bool) (bool, error) {
+			return true, nil
+		},
 		MockGetUserLinkedFacilitiesFn: func(ctx context.Context, userID string, paginationInput dto.PaginationsInput) (*dto.FacilityOutputPage, error) {
 			id := gofakeit.UUID()
 			return &dto.FacilityOutputPage{
@@ -632,4 +636,9 @@ func (f *UserUseCaseMock) ListClientsCaregivers(ctx context.Context, clientID st
 // ConsentToAClientCaregiver mocks the implementation of a client acknowledging to having a certain caregiver assigned to them.
 func (f *UserUseCaseMock) ConsentToAClientCaregiver(ctx context.Context, clientID string, caregiverID string, consent bool) (bool, error) {
 	return f.MockConsentToAClientCaregiverFn(ctx, clientID, caregiverID, consent)
+}
+
+// ConsentToManagingClient mock the implementation of a caregiver acknowledging or offering their consent to act on behalf of the client.
+func (f *UserUseCaseMock) ConsentToManagingClient(ctx context.Context, caregiverID string, clientID string, consent bool) (bool, error) {
+	return f.MockConsentToManagingClientFn(ctx, caregiverID, clientID, consent)
 }

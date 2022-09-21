@@ -664,6 +664,9 @@ func NewGormMock() *GormMock {
 					TotalPages:  20,
 				}, nil
 		},
+		MockUpdateCaregiverClientFn: func(ctx context.Context, caregiverClient *gorm.CaregiverClient, updates map[string]interface{}) error {
+			return nil
+		},
 		MockReactivateFacilityFn: func(ctx context.Context, mflCode *int) (bool, error) {
 			return true, nil
 		},
@@ -1374,9 +1377,6 @@ func NewGormMock() *GormMock {
 					OrganisationID: UUID,
 				},
 			}, nil
-		},
-		MockUpdateCaregiverClientFn: func(ctx context.Context, caregiverClient *gorm.CaregiverClient, updates map[string]interface{}) error {
-			return nil
 		},
 		MockGetScreeningToolServiceRequestOfRespondentsFn: func(ctx context.Context, facilityID string, screeningToolID string, searchTerm string, pagination *domain.Pagination) ([]*gorm.ClientServiceRequest, *domain.Pagination, error) {
 			nextPage := 2
