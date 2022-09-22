@@ -39,6 +39,7 @@ type Create interface {
 	CreateQuestion(ctx context.Context, input *Question) error
 	CreateQuestionChoice(ctx context.Context, input *QuestionInputChoice) error
 	CreateScreeningToolResponse(ctx context.Context, screeningToolResponse *ScreeningToolResponse, screeningToolQuestionResponses []*ScreeningToolQuestionResponse) (*string, error)
+	AddCaregiverToClient(ctx context.Context, clientCaregiver *CaregiverClient) error
 }
 
 // GetOrCreateFacility is used to get or create a facility
@@ -758,4 +759,13 @@ func (db *PGInstance) CreateScreeningToolResponse(ctx context.Context, screening
 	}
 
 	return &screeningToolResponse.ID, nil
+}
+
+// AddCaregiverToClient adds a caregiver to a client
+func (db *PGInstance) AddCaregiverToClient(ctx context.Context, clientCaregiver *CaregiverClient) error {
+	if err := db.DB.Create(&clientCaregiver).Error; err != nil {
+		return fmt.Errorf("failed to create client caregiver: %w", err)
+	}
+
+	return nil
 }

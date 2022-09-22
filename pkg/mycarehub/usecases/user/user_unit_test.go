@@ -5706,7 +5706,6 @@ func TestUseCasesUserImpl_RemoveFacilitiesFromClientProfile(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-
 			fakeDB := pgMock.NewPostgresMock()
 			fakeExtension := extensionMock.NewFakeExtension()
 			fakeOTP := otpMock.NewOTPUseCaseMock()
@@ -5735,6 +5734,112 @@ func TestUseCasesUserImpl_RemoveFacilitiesFromClientProfile(t *testing.T) {
 			}
 			if got != tt.want {
 				t.Errorf("UseCasesUserImpl.RemoveFacilitiesFromClientProfile() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestUseCasesUserImpl_AssignCaregiver(t *testing.T) {
+	ID := gofakeit.UUID()
+	CaregiverID := gofakeit.UUID()
+	CaregiverType := enums.CaregiverTypeFather
+
+	type args struct {
+		ctx   context.Context
+		input dto.ClientCaregiverInput
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "happy case: add caregiver to client",
+			args: args{
+				ctx: nil,
+				input: dto.ClientCaregiverInput{
+					ClientID:      ID,
+					CaregiverID:   CaregiverID,
+					CaregiverType: CaregiverType,
+				},
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "sad case: unable to add caregiver to client",
+			args: args{
+				ctx: nil,
+				input: dto.ClientCaregiverInput{
+					ClientID:      ID,
+					CaregiverID:   CaregiverID,
+					CaregiverType: CaregiverType,
+				},
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "sad case: unable to get logged in user",
+			args: args{
+				ctx: nil,
+				input: dto.ClientCaregiverInput{
+					ClientID:      ID,
+					CaregiverID:   CaregiverID,
+					CaregiverType: CaregiverType,
+				},
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "sad case: unable to get staff profile",
+			args: args{
+				ctx: nil,
+				input: dto.ClientCaregiverInput{
+					ClientID:      ID,
+					CaregiverID:   CaregiverID,
+					CaregiverType: CaregiverType,
+				},
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			fakeExtension := extensionMock.NewFakeExtension()
+			fakeOTP := otpMock.NewOTPUseCaseMock()
+			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
+			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
+			fakePubsub := pubsubMock.NewPubsubServiceMock()
+			fakeClinical := clinicalMock.NewClinicalServiceMock()
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakeGetStream, fakePubsub, fakeClinical)
+
+			if tt.name == "sad case: unable to add caregiver to client" {
+				fakeDB.MockAddCaregiverToClientFn = func(ctx context.Context, clientCaregiver *domain.CaregiverClient) error {
+					return fmt.Errorf("failed to add caregiver to client")
+				}
+			}
+			if tt.name == "sad case: unable to get logged in user" {
+				fakeExtension.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "", fmt.Errorf("failed to get logged in user")
+				}
+			}
+			if tt.name == "sad case: unable to get staff profile" {
+				fakeDB.MockGetStaffProfileByUserIDFn = func(ctx context.Context, staffID string) (*domain.StaffProfile, error) {
+					return nil, fmt.Errorf("failed to get staff profile")
+				}
+			}
+			got, err := us.AssignCaregiver(tt.args.ctx, tt.args.input)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCasesUserImpl.AddCaregiverToClient() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("UseCasesUserImpl.AddCaregiverToClient() = %v, want %v", got, tt.want)
 			}
 		})
 	}

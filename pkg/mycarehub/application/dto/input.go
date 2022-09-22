@@ -709,3 +709,10 @@ type ClientFacilityInput struct {
 	ClientID   *string `json:"clientID"`
 	FacilityID *string `json:"facilityID"`
 }
+
+// ClientCaregiverInput is the input for used to assign a caregiver to a client
+type ClientCaregiverInput struct {
+	ClientID      string              `json:"clientID"`
+	CaregiverID   string              `json:"caregiverID"`
+	CaregiverType enums.CaregiverType `json:"relationshipType"`
+}

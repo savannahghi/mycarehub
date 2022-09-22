@@ -76,7 +76,8 @@ var (
 	securityQuestionResponseID4 = "7225e76b-7780-46a9-a217-8e858789a869"
 
 	// Caregiver
-	testCaregiverID = "26b20a42-cbb8-4553-aedb-c539602d04fc"
+	testCaregiverID      = "26b20a42-cbb8-4553-aedb-c593602d04fc"
+	testClientCaregiver1 = "28b20a42-cbb8-4553-aedb-c575602d04fc"
 
 	//Terms
 	termsText = "Test terms"
@@ -236,6 +237,7 @@ func TestMain(m *testing.M) {
 			"staff_default_facility":         facilityID,
 			"staff_id":                       staffID,
 			"staff_with_roles_id":            staffWithRolesID,
+			"test_client_caregiver_one_id":   testClientCaregiver1,
 
 			"test_service_request_id": serviceRequestID,
 			"test_client_id":          clientID,

@@ -773,3 +773,16 @@ func (d *MyCareHubDb) CreateScreeningToolResponse(ctx context.Context, input *do
 	return d.create.CreateScreeningToolResponse(ctx, screeningToolResponse, screeningToolQuestionResponses)
 
 }
+
+// AddCaregiverToClient is used to assign a caregiver to a client
+func (d *MyCareHubDb) AddCaregiverToClient(ctx context.Context, clientCaregiver *domain.CaregiverClient) error {
+	caregiverClient := &gorm.CaregiverClient{
+		CaregiverID:      clientCaregiver.CaregiverID,
+		ClientID:         clientCaregiver.ClientID,
+		RelationshipType: clientCaregiver.RelationshipType,
+		Active:           true,
+		AssignedBy:       clientCaregiver.AssignedBy,
+	}
+
+	return d.create.AddCaregiverToClient(ctx, caregiverClient)
+}

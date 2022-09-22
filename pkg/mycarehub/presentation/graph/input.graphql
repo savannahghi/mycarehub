@@ -228,3 +228,9 @@ input SurveyResponseInput {
   formID: String!
   submitterID: Int!
 }
+
+input ClientCaregiverInput {
+  clientID: String!
+  caregiverID: String!
+  caregiverType: CaregiverType!
+}

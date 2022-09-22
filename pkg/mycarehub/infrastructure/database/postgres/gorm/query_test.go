@@ -1433,28 +1433,28 @@ func TestPGInstance_GetClientCaregiver(t *testing.T) {
 		caregiverID string
 	}
 
-	caregiver := &gorm.Caregiver{}
-
-	err := testingDB.DB.Where("id = ?", testCaregiverID).First(&caregiver).Error
-	if err != nil {
-		t.Errorf("failed to get caregiver: %v", err)
-	}
-
 	tests := []struct {
 		name    string
 		args    args
-		want    *gorm.Caregiver
 		wantErr bool
 	}{
 		{
 			name: "happy case: get client caregiver",
 			args: args{
 				ctx:         context.Background(),
-				caregiverID: testCaregiverID,
+				caregiverID: testClientCaregiver1,
 			},
 
-			want:    caregiver,
 			wantErr: false,
+		},
+		{
+			name: "Sad case: unable to get client caregiver",
+			args: args{
+				ctx:         context.Background(),
+				caregiverID: "test",
+			},
+
+			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
@@ -1464,8 +1464,9 @@ func TestPGInstance_GetClientCaregiver(t *testing.T) {
 				t.Errorf("PGInstance.GetClientCaregiver() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("PGInstance.GetClientCaregiver() = %v, want %v", got, tt.want)
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected a response but got %v", got)
+				return
 			}
 		})
 	}

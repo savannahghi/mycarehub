@@ -1843,3 +1843,60 @@ func TestMyCareHubDb_CreateScreeningToolResponse(t *testing.T) {
 		})
 	}
 }
+
+func TestMyCareHubDb_AddCaregiverToClient(t *testing.T) {
+	type args struct {
+		ctx             context.Context
+		clientCaregiver *domain.CaregiverClient
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: add caregiver to client",
+			args: args{
+				ctx: context.Background(),
+				clientCaregiver: &domain.CaregiverClient{
+					CaregiverID:      uuid.NewString(),
+					ClientID:         uuid.NewString(),
+					RelationshipType: enums.CaregiverTypeFather,
+					Active:           true,
+					AssignedBy:       uuid.NewString(),
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: unable to add caregiver to client",
+			args: args{
+				ctx: context.Background(),
+				clientCaregiver: &domain.CaregiverClient{
+					CaregiverID:      uuid.NewString(),
+					ClientID:         uuid.NewString(),
+					RelationshipType: enums.CaregiverTypeFather,
+					Active:           true,
+					AssignedBy:       uuid.NewString(),
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeGorm := gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			if tt.name == "Sad case: unable to add caregiver to client" {
+				fakeGorm.MockAddCaregiverToClientFn = func(ctx context.Context, clientCaregiver *gorm.CaregiverClient) error {
+					return fmt.Errorf("unable to add caregiver to client")
+				}
+			}
+
+			if err := d.AddCaregiverToClient(tt.args.ctx, tt.args.clientCaregiver); (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.AddCaregiverToClient() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
