@@ -116,6 +116,8 @@ type Query interface {
 	GetClientFacilities(ctx context.Context, clientFacility ClientFacilities, pagination *domain.Pagination) ([]*ClientFacilities, *domain.Pagination, error)
 	GetClientsSurveyCount(ctx context.Context, userID string) (int, error)
 	SearchCaregiverUser(ctx context.Context, searchParameter string) ([]*Caregiver, error)
+	GetCaregiverManagedClients(ctx context.Context, caregiverID string, pagination *domain.Pagination) ([]*Client, *domain.Pagination, error)
+	GetCaregiversClient(ctx context.Context, caregiverClient CaregiverClient) ([]*CaregiverClient, error)
 }
 
 // GetFacilityStaffs returns a list of staff at a particular facility
@@ -1894,4 +1896,54 @@ func (db *PGInstance) GetClientsSurveyCount(ctx context.Context, userID string) 
 	}
 
 	return int(count), nil
+}
+
+// GetCaregiversClient queries the association table for an occurrence of a caregiver's  client
+func (db *PGInstance) GetCaregiversClient(ctx context.Context, caregiverClient CaregiverClient) ([]*CaregiverClient, error) {
+	caregiversClients := []*CaregiverClient{}
+	tx := db.DB.Model(&caregiverClient)
+
+	if caregiverClient.CaregiverID != "" {
+		tx = tx.Where("caregiver_id = ?", caregiverClient.CaregiverID)
+	}
+	if caregiverClient.ClientID != "" {
+		tx = tx.Where("client_id = ?", caregiverClient.ClientID)
+	}
+
+	if err := tx.Find(&caregiversClients).Error; err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, fmt.Errorf("failed to get caregivers's client: %w", err)
+	}
+
+	return caregiversClients, nil
+
+}
+
+// GetCaregiverManagedClients lists clients who are managed by the caregivers
+// The clients should have given their consent to be managed by the caregivers
+func (db *PGInstance) GetCaregiverManagedClients(ctx context.Context, caregiverID string, pagination *domain.Pagination) ([]*Client, *domain.Pagination, error) {
+
+	var clients []*Client
+	var count int64
+
+	tx := db.DB.Model(&clients)
+
+	tx = tx.Joins("JOIN caregivers_caregiver_client ON clients_client.id = caregivers_caregiver_client.client_id").
+		Where("caregivers_caregiver_client.caregiver_id = ?", caregiverID).Where("caregivers_caregiver_client.client_consent = ?", true)
+
+	if pagination != nil {
+		if err := tx.Count(&count).Error; err != nil {
+			return nil, nil, fmt.Errorf("failed to execute count query: %v", err)
+		}
+
+		pagination.Count = count
+		paginateQuery(tx, pagination)
+	}
+
+	if err := tx.Find(&clients).Error; err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, nil, fmt.Errorf("failed to get caregivers clients: %w", err)
+	}
+
+	return clients, pagination, nil
 }

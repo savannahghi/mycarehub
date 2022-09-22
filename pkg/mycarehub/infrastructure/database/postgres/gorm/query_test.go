@@ -5033,3 +5033,129 @@ func TestPGInstance_GetCaregiverByUserID(t *testing.T) {
 		})
 	}
 }
+
+func TestPGInstance_GetCaregiversClient(t *testing.T) {
+	type args struct {
+		ctx             context.Context
+		caregiverClient gorm.CaregiverClient
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy Case: get caregiver's client",
+			args: args{
+				ctx: nil,
+				caregiverClient: gorm.CaregiverClient{
+					CaregiverID: testCaregiverID,
+					ClientID:    clientID,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Happy Case: get caregiver's client, no caregiver id",
+			args: args{
+				ctx: nil,
+				caregiverClient: gorm.CaregiverClient{
+					ClientID: clientID,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Happy Case: get caregiver's client, no client id",
+			args: args{
+				ctx: nil,
+				caregiverClient: gorm.CaregiverClient{
+					CaregiverID: testCaregiverID,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Happy Case: get caregiver's client, no caregiver client params",
+			args: args{
+				ctx: nil,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad Case: invalid ID",
+			args: args{
+				ctx: nil,
+				caregiverClient: gorm.CaregiverClient{
+					CaregiverID: testCaregiverID,
+					ClientID:    "invalid",
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := testingDB.GetCaregiversClient(tt.args.ctx, tt.args.caregiverClient)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.GetCaregiversClient() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected value but got %v", got)
+			}
+		})
+	}
+}
+
+func TestPGInstance_GetCaregiverManagedClients(t *testing.T) {
+	type args struct {
+		ctx         context.Context
+		caregiverID string
+		pagination  *domain.Pagination
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy Case: get managed clients",
+			args: args{
+				ctx:         nil,
+				caregiverID: testCaregiverID,
+				pagination: &domain.Pagination{
+					Limit:       1,
+					CurrentPage: 1,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad Case: failed to get managed clients, invalid caregiver id",
+			args: args{
+				ctx:         nil,
+				caregiverID: "invalid",
+				pagination: &domain.Pagination{
+					Limit:       1,
+					CurrentPage: 1,
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, _, err := testingDB.GetCaregiverManagedClients(tt.args.ctx, tt.args.caregiverID, tt.args.pagination)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.GetCaregiverManagedClients() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected value but got %v", got)
+			}
+
+		})
+	}
+}

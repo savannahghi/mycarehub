@@ -170,6 +170,7 @@ type PostgresMock struct {
 	MockRemoveFacilitiesFromClientProfileFn              func(ctx context.Context, clientID string, facilities []string) error
 	MockAddCaregiverToClientFn                           func(ctx context.Context, clientCaregiver *domain.CaregiverClient) error
 	MockRemoveFacilitiesFromStaffProfileFn               func(ctx context.Context, staffID string, facilities []string) error
+	MockGetCaregiverManagedClientsFn                     func(ctx context.Context, caregiverID string, pagination *domain.Pagination) ([]*domain.ManagedClient, *domain.Pagination, error)
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -302,6 +303,19 @@ func NewPostgresMock() *PostgresMock {
 		CreatedAt:             time.Now(),
 		PhoneNumber:           phone,
 		ClientName:            name,
+	}
+
+	paginationOutput := &domain.Pagination{
+		Limit:        10,
+		CurrentPage:  1,
+		Count:        1,
+		TotalPages:   1,
+		NextPage:     nil,
+		PreviousPage: nil,
+		Sort: &domain.SortParam{
+			Field:     "id",
+			Direction: enums.SortDataTypeDesc,
+		},
 	}
 
 	return &PostgresMock{
@@ -1358,6 +1372,16 @@ func NewPostgresMock() *PostgresMock {
 		MockRemoveFacilitiesFromStaffProfileFn: func(ctx context.Context, staffID string, facilities []string) error {
 			return nil
 		},
+		MockGetCaregiverManagedClientsFn: func(ctx context.Context, caregiverID string, pagination *domain.Pagination) ([]*domain.ManagedClient, *domain.Pagination, error) {
+			trueValue := true
+			return []*domain.ManagedClient{
+				{
+					ClientProfile:    clientProfile,
+					CaregiverConsent: &trueValue,
+					ClientConsent:    &trueValue,
+				},
+			}, paginationOutput, nil
+		},
 	}
 }
 
@@ -2105,4 +2129,9 @@ func (gm *PostgresMock) AddCaregiverToClient(ctx context.Context, clientCaregive
 // RemoveFacilitiesFromStaffProfile mocks the implementation of removing facilities from a staff profile
 func (gm *PostgresMock) RemoveFacilitiesFromStaffProfile(ctx context.Context, staffID string, facilities []string) error {
 	return gm.MockRemoveFacilitiesFromStaffProfileFn(ctx, staffID, facilities)
+}
+
+// GetCaregiverManagedClients mocks the implementation of getting caregiver's managed clients
+func (gm *PostgresMock) GetCaregiverManagedClients(ctx context.Context, caregiverID string, pagination *domain.Pagination) ([]*domain.ManagedClient, *domain.Pagination, error) {
+	return gm.MockGetCaregiverManagedClientsFn(ctx, caregiverID, pagination)
 }

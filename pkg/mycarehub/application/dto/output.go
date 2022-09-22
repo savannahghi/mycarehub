@@ -299,3 +299,9 @@ type FacilityOutputPage struct {
 	Pagination *domain.Pagination
 	Facilities []*domain.Facility
 }
+
+// ManagedClientOutputPage returns a paginated list of managed client profiles
+type ManagedClientOutputPage struct {
+	Pagination     *domain.Pagination      `json:"pagination"`
+	ManagedClients []*domain.ManagedClient `json:"managedClients"`
+}

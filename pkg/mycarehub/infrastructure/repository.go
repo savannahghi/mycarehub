@@ -137,6 +137,7 @@ type Query interface {
 	GetStaffFacilities(ctx context.Context, input dto.StaffFacilityInput, pagination *domain.Pagination) ([]*domain.Facility, *domain.Pagination, error)
 	GetClientFacilities(ctx context.Context, input dto.ClientFacilityInput, pagination *domain.Pagination) ([]*domain.Facility, *domain.Pagination, error)
 	SearchCaregiverUser(ctx context.Context, searchParameter string) ([]*domain.CaregiverProfile, error)
+	GetCaregiverManagedClients(ctx context.Context, caregiverID string, pagination *domain.Pagination) ([]*domain.ManagedClient, *domain.Pagination, error)
 }
 
 // Update represents all the update action interfaces
