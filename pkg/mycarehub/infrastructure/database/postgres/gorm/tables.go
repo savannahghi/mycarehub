@@ -473,8 +473,6 @@ type Client struct {
 
 	CHVUserID *string `gorm:"column:chv_id"`
 
-	CaregiverID *string `gorm:"column:caregiver_id"`
-
 	OrganisationID string `gorm:"column:organisation_id"`
 
 	UserID *string `gorm:"column:user_id;not null"`
@@ -703,32 +701,6 @@ func (c *ClientHealthDiaryQuote) BeforeCreate(tx *gorm.DB) (err error) {
 // TableName references the table that we map data from
 func (ClientHealthDiaryQuote) TableName() string {
 	return "clients_healthdiaryquote"
-}
-
-// Caregiver is the gorms caregiver model
-type Caregiver struct {
-	Base
-	CaregiverID   *string             `gorm:"column:id"`
-	FirstName     string              `gorm:"column:first_name"`
-	LastName      string              `gorm:"column:last_name"`
-	PhoneNumber   string              `gorm:"column:phone_number"`
-	CaregiverType enums.CaregiverType `gorm:"column:caregiver_type"`
-	Active        bool                `gorm:"column:active"`
-
-	OrganisationID string `gorm:"column:organisation_id"`
-}
-
-// BeforeCreate is a hook run before creating Caregiver content
-func (c *Caregiver) BeforeCreate(tx *gorm.DB) (err error) {
-	id := uuid.New().String()
-	c.CaregiverID = &id
-	c.OrganisationID = OrganizationID
-	return
-}
-
-// TableName references the table that we map data from
-func (Caregiver) TableName() string {
-	return "clients_caregiver"
 }
 
 // AuthorityRole is the gorms authority role model
@@ -1345,9 +1317,9 @@ func (s *ClientFacilities) TableName() string {
 	return "clients_client_facilities"
 }
 
-// NCaregiver is the caregiver profile information for a user
+// Caregiver is the caregiver profile information for a user
 // TODO: remove "N" when original caregiver is removed
-type NCaregiver struct {
+type Caregiver struct {
 	Base
 
 	ID              string `gorm:"primaryKey;column:id"`
@@ -1359,7 +1331,7 @@ type NCaregiver struct {
 }
 
 // BeforeCreate is a hook run before creating a caregiver
-func (c *NCaregiver) BeforeCreate(tx *gorm.DB) (err error) {
+func (c *Caregiver) BeforeCreate(tx *gorm.DB) (err error) {
 	id := uuid.New().String()
 	c.ID = id
 	c.OrganisationID = OrganizationID
@@ -1368,7 +1340,7 @@ func (c *NCaregiver) BeforeCreate(tx *gorm.DB) (err error) {
 }
 
 // TableName references the table name in the database
-func (c *NCaregiver) TableName() string {
+func (c *Caregiver) TableName() string {
 	return "caregivers_caregiver"
 }
 

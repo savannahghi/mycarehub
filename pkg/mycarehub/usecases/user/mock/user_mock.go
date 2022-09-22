@@ -59,13 +59,6 @@ type UserUseCaseMock struct {
 // NewUserUseCaseMock creates in initializes create type mocks
 func NewUserUseCaseMock() *UserUseCaseMock {
 	var UUID = uuid.New().String()
-	caregiver := &domain.Caregiver{
-		ID:            UUID,
-		FirstName:     gofakeit.FirstName(),
-		LastName:      gofakeit.LastName(),
-		PhoneNumber:   gofakeit.Phone(),
-		CaregiverType: enums.CaregiverTypeFather,
-	}
 
 	staff := &domain.StaffProfile{
 		ID:                &UUID,
@@ -173,9 +166,7 @@ func NewUserUseCaseMock() *UserUseCaseMock {
 		MockSearchStaffUserFn: func(ctx context.Context, searchParameter string) ([]*domain.StaffProfile, error) {
 			return []*domain.StaffProfile{staff}, nil
 		},
-		MockGetClientCaregiverFn: func(ctx context.Context, clientID string) (*domain.Caregiver, error) {
-			return caregiver, nil
-		},
+
 		MockCreateOrUpdateClientCaregiverFn: func(ctx context.Context, caregiverInput *dto.CaregiverInput) (bool, error) {
 			return true, nil
 		},

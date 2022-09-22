@@ -677,22 +677,6 @@ func (d *MyCareHubDb) GetClientHealthDiaryEntries(ctx context.Context, clientID 
 	return healthDiaryEntries, nil
 }
 
-// GetClientCaregiver retrieves the caregiver for the specified client
-func (d *MyCareHubDb) GetClientCaregiver(ctx context.Context, caregiverID string) (*domain.Caregiver, error) {
-	caregiver, err := d.query.GetClientCaregiver(ctx, caregiverID)
-	if err != nil {
-		return nil, err
-	}
-
-	return &domain.Caregiver{
-		ID:            *caregiver.CaregiverID,
-		FirstName:     caregiver.FirstName,
-		LastName:      caregiver.LastName,
-		PhoneNumber:   caregiver.PhoneNumber,
-		CaregiverType: caregiver.CaregiverType,
-	}, nil
-}
-
 // GetClientProfileByClientID retrieves the client for the specified clientID
 func (d *MyCareHubDb) GetClientProfileByClientID(ctx context.Context, clientID string) (*domain.ClientProfile, error) {
 	response, err := d.query.GetClientProfileByClientID(ctx, clientID)
@@ -721,7 +705,6 @@ func (d *MyCareHubDb) GetClientProfileByClientID(ctx context.Context, clientID s
 		OrganisationID:          response.OrganisationID,
 		FacilityID:              response.FacilityID,
 		CHVUserID:               response.CHVUserID,
-		CaregiverID:             response.CaregiverID,
 		UserID:                  *response.UserID,
 	}, nil
 
@@ -999,7 +982,6 @@ func (d *MyCareHubDb) GetClientsInAFacility(ctx context.Context, facilityID stri
 			OrganisationID:          cli.OrganisationID,
 			FacilityID:              cli.FacilityID,
 			CHVUserID:               cli.CHVUserID,
-			CaregiverID:             cli.CaregiverID,
 			UserID:                  *cli.UserID,
 		}
 		clients = append(clients, client)
@@ -1085,7 +1067,6 @@ func (d *MyCareHubDb) GetClientsByParams(ctx context.Context, params gorm.Client
 			OrganisationID:          c.OrganisationID,
 			FacilityID:              c.FacilityID,
 			CHVUserID:               c.CHVUserID,
-			CaregiverID:             c.CaregiverID,
 		})
 	}
 
@@ -2056,7 +2037,6 @@ func (d *MyCareHubDb) GetClientsByFilterParams(ctx context.Context, facilityID *
 			OrganisationID:          c.OrganisationID,
 			FacilityID:              c.FacilityID,
 			CHVUserID:               c.CHVUserID,
-			CaregiverID:             c.CaregiverID,
 		})
 	}
 

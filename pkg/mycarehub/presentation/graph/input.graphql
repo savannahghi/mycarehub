@@ -56,18 +56,12 @@ input FeedbackResponseInput {
 }
 
 input CaregiverInput {
-  name: String
-  gender: Gender
-  dateOfBirth: Date
-  phoneNumber: String
-  caregiverNumber: String
+  name: String!
+  gender: Gender!
+  dateOfBirth: Date!
+  phoneNumber: String!
+  caregiverNumber: String!
   sendInvite: Boolean
-
-  # To be deprecated
-  firstName: String
-  lastName: String
-  clientID: String
-  caregiverType: CaregiverType
 }
 
 input ClientRegistrationInput {

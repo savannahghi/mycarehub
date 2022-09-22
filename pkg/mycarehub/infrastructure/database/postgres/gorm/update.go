@@ -7,7 +7,6 @@ import (
 
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 )
 
@@ -22,7 +21,6 @@ type Update interface {
 	InvalidatePIN(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
 	UpdateIsCorrectSecurityQuestionResponse(ctx context.Context, userID string, isCorrectSecurityQuestionResponse bool) (bool, error)
 	SetInProgressBy(ctx context.Context, requestID string, staffID string) (bool, error)
-	UpdateClientCaregiver(ctx context.Context, caregiverInput *dto.CaregiverInput) error
 	ResolveStaffServiceRequest(ctx context.Context, staffID *string, serviceRequestID *string, verificattionStatus string) (bool, error)
 	AssignRoles(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error)
 	RevokeRoles(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error)
@@ -211,46 +209,6 @@ func (db *PGInstance) UpdateClient(ctx context.Context, client *Client, updates 
 	}
 
 	return updateClient, nil
-}
-
-// UpdateClientCaregiver updates the caregiver for a client
-func (db *PGInstance) UpdateClientCaregiver(ctx context.Context, caregiverInput *dto.CaregiverInput) error {
-	var (
-		client Client
-	)
-
-	tx := db.DB.Begin()
-	defer func() {
-		if r := recover(); r != nil {
-			tx.Rollback()
-		}
-	}()
-	if err := tx.Error; err != nil {
-		return fmt.Errorf("failed to initialize database transaction %v", err)
-	}
-
-	if err := tx.Model(&Client{}).Where(&Client{ID: &caregiverInput.ClientID}).First(&client).Error; err != nil {
-		tx.Rollback()
-		return fmt.Errorf("failed to get client: %v", err)
-	}
-
-	err := tx.Model(&Caregiver{}).Where(&Caregiver{CaregiverID: client.CaregiverID}).Updates(map[string]interface{}{
-		"first_name":     caregiverInput.FirstName,
-		"last_name":      caregiverInput.LastName,
-		"phone_number":   caregiverInput.PhoneNumber,
-		"caregiver_type": caregiverInput.CaregiverType,
-	}).Error
-	if err != nil {
-		tx.Rollback()
-		return fmt.Errorf("failed to update caregiver: %v", err)
-	}
-
-	if err := tx.Commit().Error; err != nil {
-		tx.Rollback()
-		return fmt.Errorf("transaction commit to update client caregiver failed: %v", err)
-	}
-
-	return nil
 }
 
 // ResolveStaffServiceRequest resolves the service request for a given staff

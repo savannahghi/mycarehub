@@ -1427,51 +1427,6 @@ func TestPGInstance_GetClientHealthDiaryEntries(t *testing.T) {
 	}
 }
 
-func TestPGInstance_GetClientCaregiver(t *testing.T) {
-	type args struct {
-		ctx         context.Context
-		caregiverID string
-	}
-
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		{
-			name: "happy case: get client caregiver",
-			args: args{
-				ctx:         context.Background(),
-				caregiverID: testClientCaregiver1,
-			},
-
-			wantErr: false,
-		},
-		{
-			name: "Sad case: unable to get client caregiver",
-			args: args{
-				ctx:         context.Background(),
-				caregiverID: "test",
-			},
-
-			wantErr: true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got, err := testingDB.GetClientCaregiver(tt.args.ctx, tt.args.caregiverID)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("PGInstance.GetClientCaregiver() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !tt.wantErr && got == nil {
-				t.Errorf("expected a response but got %v", got)
-				return
-			}
-		})
-	}
-}
-
 func TestPGInstance_GetClientByClientID(t *testing.T) {
 	type args struct {
 		ctx      context.Context
@@ -5016,7 +4971,7 @@ func TestPGInstance_SearchCaregiverUser(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    []*gorm.NCaregiver
+		want    []*gorm.Caregiver
 		wantErr bool
 	}{
 		{

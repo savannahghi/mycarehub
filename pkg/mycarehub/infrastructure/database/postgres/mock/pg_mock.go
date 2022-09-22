@@ -695,15 +695,6 @@ func NewPostgresMock() *PostgresMock {
 		MockInProgressByFn: func(ctx context.Context, requestID, staffID string) (bool, error) {
 			return true, nil
 		},
-		MockGetClientCaregiverFn: func(ctx context.Context, caregiverID string) (*domain.Caregiver, error) {
-			return &domain.Caregiver{
-				ID:            "26b20a42-cbb8-4553-aedb-c539602d04fc",
-				FirstName:     "test",
-				LastName:      "test",
-				PhoneNumber:   "+61412345678",
-				CaregiverType: enums.CaregiverTypeFather,
-			}, nil
-		},
 		MockUpdateClientCaregiverFn: func(ctx context.Context, caregiverInput *dto.CaregiverInput) error {
 			return nil
 		},

@@ -13,7 +13,6 @@
   current_facility_id: {{.test_facility_id}}
   chv_id: {{.test_chv_id}}
   user_id: {{.test_user_id}}
-  caregiver_id: {{.test_caregiver_id}}
 
 
 # client to record health diary
@@ -31,22 +30,6 @@
   current_facility_id: {{.test_facility_id}}
   chv_id: {{.test_chv_id2}}
   user_id: {{.test_user_id2}}
-
-  # client to add caregiver
-- id: 00a6a0cd-42ac-417b-97d9-e939a1232de2
-  created: 2021-11-22 21:16:29.23639+03
-  updated: 2021-11-22 21:16:29.23639+03
-  active: true
-  client_types: '{PMTCT}'
-  enrollment_date: 2021-11-22 21:16:29.23639+03
-  fhir_patient_id: {{.user_id_to_add_caregiver}}
-  emr_health_record_id: {{.user_id_to_add_caregiver}}
-  treatment_buddy: {{.test_treatment_buddy_id2}}
-  counselled: true
-  organisation_id: {{.test_organisation_id}}
-  current_facility_id: {{.test_facility_id}}
-  chv_id: {{.user_id_to_add_caregiver}}
-  user_id: {{.user_id_to_add_caregiver}}
   
 # client with unresolved request
 - id: {{.test_client_id_with_unresolved_request}}
@@ -93,4 +76,3 @@
   current_facility_id: {{.test_facility_id}}
   chv_id: {{.user_with_roles_id}}
   user_id: {{.user_with_roles_id}}
-  caregiver_id: 28b20a42-cbb8-4553-aedb-c593602d04fc

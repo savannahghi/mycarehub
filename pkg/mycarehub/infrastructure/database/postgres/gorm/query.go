@@ -46,7 +46,7 @@ type Query interface {
 	CheckIfPhoneNumberExists(ctx context.Context, phone string, isOptedIn bool, flavour feedlib.Flavour) (bool, error)
 	VerifyOTP(ctx context.Context, payload *dto.VerifyOTPInput) (bool, error)
 	GetClientProfileByUserID(ctx context.Context, userID string) (*Client, error)
-	GetCaregiverByUserID(ctx context.Context, userID string) (*NCaregiver, error)
+	GetCaregiverByUserID(ctx context.Context, userID string) (*Caregiver, error)
 	GetClientProfileByCCCNumber(ctx context.Context, CCCNumber string) (*Client, error)
 	GetStaffProfileByUserID(ctx context.Context, userID string) (*StaffProfile, error)
 	CheckUserHasPin(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
@@ -58,7 +58,6 @@ type Query interface {
 	CanRecordHeathDiary(ctx context.Context, clientID string) (bool, error)
 	GetClientHealthDiaryQuote(ctx context.Context, limit int) ([]*ClientHealthDiaryQuote, error)
 	GetClientHealthDiaryEntries(ctx context.Context, params map[string]interface{}) ([]*ClientHealthDiaryEntry, error)
-	GetClientCaregiver(ctx context.Context, caregiverID string) (*Caregiver, error)
 	GetClientProfileByClientID(ctx context.Context, clientID string) (*Client, error)
 	GetServiceRequests(ctx context.Context, requestType, requestStatus *string, facilityID string) ([]*ClientServiceRequest, error)
 	GetStaffServiceRequests(ctx context.Context, requestType, requestStatus *string, facilityID string) ([]*StaffServiceRequest, error)
@@ -116,7 +115,7 @@ type Query interface {
 	GetStaffFacilities(ctx context.Context, staffFacility StaffFacilities, pagination *domain.Pagination) ([]*StaffFacilities, *domain.Pagination, error)
 	GetClientFacilities(ctx context.Context, clientFacility ClientFacilities, pagination *domain.Pagination) ([]*ClientFacilities, *domain.Pagination, error)
 	GetClientsSurveyCount(ctx context.Context, userID string) (int, error)
-	SearchCaregiverUser(ctx context.Context, searchParameter string) ([]*NCaregiver, error)
+	SearchCaregiverUser(ctx context.Context, searchParameter string) ([]*Caregiver, error)
 }
 
 // GetFacilityStaffs returns a list of staff at a particular facility
@@ -585,10 +584,10 @@ func (db *PGInstance) GetClientProfileByUserID(ctx context.Context, userID strin
 }
 
 // GetCaregiverByUserID returns the caregiver record of the provided user ID
-func (db *PGInstance) GetCaregiverByUserID(ctx context.Context, userID string) (*NCaregiver, error) {
-	var caregiver *NCaregiver
+func (db *PGInstance) GetCaregiverByUserID(ctx context.Context, userID string) (*Caregiver, error) {
+	var caregiver *Caregiver
 
-	if err := db.DB.Where(NCaregiver{UserID: userID}).First(&caregiver).Error; err != nil {
+	if err := db.DB.Where(Caregiver{UserID: userID}).First(&caregiver).Error; err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed to get caregiver by user ID %v: %w", userID, err)
 	}
@@ -628,8 +627,8 @@ func (db *PGInstance) SearchStaffProfile(ctx context.Context, searchParameter st
 }
 
 // SearchCaregiverUser searches and retrieves caregiver user(s) based on pattern matching against the username, phone number or the caregiver number
-func (db *PGInstance) SearchCaregiverUser(ctx context.Context, searchParameter string) ([]*NCaregiver, error) {
-	var caregivers []*NCaregiver
+func (db *PGInstance) SearchCaregiverUser(ctx context.Context, searchParameter string) ([]*Caregiver, error) {
+	var caregivers []*Caregiver
 
 	if err := db.DB.Joins("JOIN users_user ON users_user.id = caregivers_caregiver.user_id").
 		Joins("JOIN common_contact on users_user.id = common_contact.user_id").
@@ -850,19 +849,6 @@ func (db *PGInstance) GetClientsPendingServiceRequestsCount(ctx context.Context,
 	}
 
 	return &serviceRequestsCount, nil
-}
-
-// GetClientCaregiver fetches a client's caregiver from the database
-func (db *PGInstance) GetClientCaregiver(ctx context.Context, caregiverID string) (*Caregiver, error) {
-	var (
-		caregiver Caregiver
-	)
-
-	err := db.DB.Where(&Caregiver{CaregiverID: &caregiverID}).First(&caregiver).Error
-	if err != nil {
-		return nil, fmt.Errorf("failed to get caregiver: %v", err)
-	}
-	return &caregiver, nil
 }
 
 // GetClientProfileByClientID fetches a client from the database
