@@ -305,3 +305,9 @@ type ManagedClientOutputPage struct {
 	Pagination     *domain.Pagination      `json:"pagination"`
 	ManagedClients []*domain.ManagedClient `json:"managedClients"`
 }
+
+// CaregiverProfileOutputPage returns a paginated list of users caregiver profile
+type CaregiverProfileOutputPage struct {
+	Pagination       *domain.Pagination       `json:"pagination"`
+	ClientCaregivers *domain.ClientCaregivers `json:"clientCaregivers"`
+}

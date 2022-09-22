@@ -7042,3 +7042,85 @@ func TestMyCareHubDb_GetCaregiverManagedClients(t *testing.T) {
 		})
 	}
 }
+
+func TestMyCareHubDb_ListClientsCaregivers(t *testing.T) {
+	type args struct {
+		ctx        context.Context
+		clientID   string
+		pagination *domain.Pagination
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "happy case: list clients caregivers",
+			args: args{
+				ctx:      context.Background(),
+				clientID: "CL001",
+				pagination: &domain.Pagination{
+					Limit:       5,
+					CurrentPage: 1,
+					Count:       30,
+					TotalPages:  50,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "sad case: unable to list clients caregivers",
+			args: args{
+				ctx:      context.Background(),
+				clientID: "CL001",
+				pagination: &domain.Pagination{
+					Limit:       5,
+					CurrentPage: 1,
+					Count:       30,
+					TotalPages:  50,
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "sad case: unable to get caregiver profile by caregiver ID",
+			args: args{
+				ctx:      context.Background(),
+				clientID: "CL001",
+				pagination: &domain.Pagination{
+					Limit:       5,
+					CurrentPage: 1,
+					Count:       30,
+					TotalPages:  50,
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeGorm := gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			if tt.name == "sad case: unable to list clients caregivers" {
+				fakeGorm.MockListClientsCaregiversFn = func(ctx context.Context, clientID string, pagination *domain.Pagination) ([]*gorm.CaregiverClient, *domain.Pagination, error) {
+					return nil, nil, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "sad case: unable to get caregiver profile by caregiver ID" {
+				fakeGorm.MockGetCaregiverProfileByCaregiverIDFn = func(ctx context.Context, caregiverID string) (*gorm.Caregiver, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+			got, _, err := d.ListClientsCaregivers(tt.args.ctx, tt.args.clientID, tt.args.pagination)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.ListClientsCaregivers() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			if !tt.wantErr && got == nil {
+				t.Errorf("did not expect error, got: %v", err)
+			}
+		})
+	}
+}

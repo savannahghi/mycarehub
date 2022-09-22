@@ -83,6 +83,7 @@ type IClientCaregiver interface {
 	RegisterClientAsCaregiver(ctx context.Context, clientID string, caregiverNumber string) (*domain.CaregiverProfile, error)
 	TransferClientToFacility(ctx context.Context, clientID *string, facilityID *string) (bool, error)
 	AssignCaregiver(ctx context.Context, input dto.ClientCaregiverInput) (bool, error)
+	ListClientsCaregivers(ctx context.Context, clientID string, pagination *dto.PaginationsInput) (*dto.CaregiverProfileOutputPage, error)
 }
 
 // ICaregiversClients is an interface that contains all the caregiver clients use cases
@@ -1829,5 +1830,28 @@ func (us *UseCasesUserImpl) GetCaregiverManagedClients(ctx context.Context, care
 	return &dto.ManagedClientOutputPage{
 		Pagination:     pageInfo,
 		ManagedClients: managedClients,
+	}, nil
+}
+
+// ListClientsCaregivers returns a list of caregivers for a client
+func (us *UseCasesUserImpl) ListClientsCaregivers(ctx context.Context, clientID string, pagination *dto.PaginationsInput) (*dto.CaregiverProfileOutputPage, error) {
+	if err := pagination.Validate(); err != nil {
+		return nil, err
+	}
+
+	page := &domain.Pagination{
+		Limit:       pagination.Limit,
+		CurrentPage: pagination.CurrentPage,
+	}
+
+	caregivers, pageInfo, err := us.Query.ListClientsCaregivers(ctx, clientID, page)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, fmt.Errorf("failed to list client caregivers: %w", err)
+	}
+
+	return &dto.CaregiverProfileOutputPage{
+		Pagination:       pageInfo,
+		ClientCaregivers: caregivers,
 	}, nil
 }

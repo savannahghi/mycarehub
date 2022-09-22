@@ -122,3 +122,7 @@ func (r *queryResolver) GetUserLinkedFacilities(ctx context.Context, userID stri
 func (r *queryResolver) GetCaregiverManagedClients(ctx context.Context, caregiverID string, paginationInput dto.PaginationsInput) (*dto.ManagedClientOutputPage, error) {
 	return r.mycarehub.User.GetCaregiverManagedClients(ctx, caregiverID, paginationInput)
 }
+
+func (r *queryResolver) ListClientsCaregivers(ctx context.Context, clientID string, paginationInput *dto.PaginationsInput) (*dto.CaregiverProfileOutputPage, error) {
+	return r.mycarehub.User.ListClientsCaregivers(ctx, clientID, paginationInput)
+}

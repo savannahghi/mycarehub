@@ -56,6 +56,7 @@ type UserUseCaseMock struct {
 	MockRemoveFacilitiesFromStaffProfileFn  func(ctx context.Context, staffID string, facilities []string) (bool, error)
 	MockRegisterClientAsCaregiverFn         func(ctx context.Context, clientID string, caregiverNumber string) (*domain.CaregiverProfile, error)
 	MockGetCaregiverManagedClientsFn        func(ctx context.Context, caregiverID string, input dto.PaginationsInput) (*dto.ManagedClientOutputPage, error)
+	MockListClientsCaregiversFn             func(ctx context.Context, clientID string, pagination *dto.PaginationsInput) (*dto.CaregiverProfileOutputPage, error)
 }
 
 // NewUserUseCaseMock creates in initializes create type mocks
@@ -235,6 +236,25 @@ func NewUserUseCaseMock() *UserUseCaseMock {
 		MockRefreshGetStreamTokenFn: func(ctx context.Context, userID string) (*domain.GetStreamToken, error) {
 			return &domain.GetStreamToken{
 				Token: uuid.New().String(),
+			}, nil
+		},
+		MockListClientsCaregiversFn: func(ctx context.Context, clientID string, pagination *dto.PaginationsInput) (*dto.CaregiverProfileOutputPage, error) {
+			return &dto.CaregiverProfileOutputPage{
+				Pagination: &domain.Pagination{
+					Limit:       10,
+					CurrentPage: 1,
+					TotalPages:  100,
+				},
+				ClientCaregivers: &domain.ClientCaregivers{
+					Caregivers: []*domain.CaregiverProfile{
+						{
+							ID:              UUID,
+							User:            *user,
+							CaregiverNumber: "CG001",
+						},
+					},
+					Consented: true,
+				},
 			}, nil
 		},
 		MockRegisterStaffFn: func(ctx context.Context, input dto.StaffRegistrationInput) (*dto.StaffRegistrationOutput, error) {
@@ -598,4 +618,9 @@ func (f *UserUseCaseMock) RemoveFacilitiesFromStaffProfile(ctx context.Context, 
 // GetCaregiverManagedClients mocks the implementation of getting caregiver's managed clients
 func (f *UserUseCaseMock) GetCaregiverManagedClients(ctx context.Context, caregiverID string, input dto.PaginationsInput) (*dto.ManagedClientOutputPage, error) {
 	return f.MockGetCaregiverManagedClientsFn(ctx, caregiverID, input)
+}
+
+// ListClientsCaregivers mocks the implementation of listing a client's caregivers
+func (f *UserUseCaseMock) ListClientsCaregivers(ctx context.Context, clientID string, pagination *dto.PaginationsInput) (*dto.CaregiverProfileOutputPage, error) {
+	return f.MockListClientsCaregiversFn(ctx, clientID, pagination)
 }

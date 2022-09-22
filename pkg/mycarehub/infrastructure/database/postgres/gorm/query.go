@@ -118,6 +118,8 @@ type Query interface {
 	SearchCaregiverUser(ctx context.Context, searchParameter string) ([]*Caregiver, error)
 	GetCaregiverManagedClients(ctx context.Context, caregiverID string, pagination *domain.Pagination) ([]*Client, *domain.Pagination, error)
 	GetCaregiversClient(ctx context.Context, caregiverClient CaregiverClient) ([]*CaregiverClient, error)
+	GetCaregiverProfileByCaregiverID(ctx context.Context, caregiverID string) (*Caregiver, error)
+	ListClientsCaregivers(ctx context.Context, clientID string, pagination *domain.Pagination) ([]*CaregiverClient, *domain.Pagination, error)
 }
 
 // GetFacilityStaffs returns a list of staff at a particular facility
@@ -1851,6 +1853,39 @@ func (db *PGInstance) GetClientFacilities(ctx context.Context, clientFacility Cl
 
 	return clientFacilities, pagination, nil
 
+}
+
+// GetCaregiverProfileByCaregiverID retrieves the caregivers profile based on the user ID provided
+func (db *PGInstance) GetCaregiverProfileByCaregiverID(ctx context.Context, caregiverID string) (*Caregiver, error) {
+	var caregiver *Caregiver
+	if err := db.DB.Where(&Caregiver{ID: caregiverID}).Preload("UserProfile.Contacts").Preload(clause.Associations).First(&caregiver).Error; err != nil {
+		return nil, fmt.Errorf("failed to get caregiver by user ID %v: %v", caregiverID, err)
+	}
+
+	return caregiver, nil
+}
+
+// ListClientsCaregivers retrieves a list of clients caregivers
+func (db *PGInstance) ListClientsCaregivers(ctx context.Context, clientID string, pagination *domain.Pagination) ([]*CaregiverClient, *domain.Pagination, error) {
+	var caregiverClients []*CaregiverClient
+	var count int64
+
+	tx := db.DB.Model(&CaregiverClient{}).Where(&CaregiverClient{ClientID: clientID})
+
+	if pagination != nil {
+		if err := tx.Count(&count).Error; err != nil {
+			return nil, nil, fmt.Errorf("failed to execute count query: %v", err)
+		}
+
+		pagination.Count = count
+		paginateQuery(tx, pagination)
+	}
+
+	if err := tx.Find(&caregiverClients).Error; err != nil {
+		return nil, nil, fmt.Errorf("failed to execute paginated query: %v", err)
+	}
+
+	return caregiverClients, pagination, nil
 }
 
 // GetNotificationsCount fetches the total number of user's notifications in a given facility

@@ -2594,3 +2594,36 @@ func (d *MyCareHubDb) GetCaregiverManagedClients(ctx context.Context, caregiverI
 	return managedClients, pageInfo, nil
 
 }
+
+// ListClientsCaregivers retrieves a list of clients caregivers
+func (d *MyCareHubDb) ListClientsCaregivers(ctx context.Context, clientID string, pagination *domain.Pagination) (*domain.ClientCaregivers, *domain.Pagination, error) {
+	caregivers := []*domain.CaregiverProfile{}
+
+	clientCaregivers, pageInfo, err := d.query.ListClientsCaregivers(ctx, clientID, pagination)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	caregiversClient := &domain.ClientCaregivers{}
+	for _, clientCaregiver := range clientCaregivers {
+		caregiver, err := d.query.GetCaregiverProfileByCaregiverID(ctx, clientCaregiver.CaregiverID)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		user := createMapUser(&caregiver.UserProfile)
+
+		caregivers = append(caregivers, &domain.CaregiverProfile{
+			ID:              clientID,
+			User:            *user,
+			CaregiverNumber: caregiver.CaregiverNumber,
+		})
+
+		caregiversClient = &domain.ClientCaregivers{
+			Caregivers: caregivers,
+			Consented:  *clientCaregiver.CaregiverConsent,
+		}
+	}
+
+	return caregiversClient, pageInfo, nil
+}
