@@ -18,7 +18,6 @@ type Create interface {
 	CreateHealthDiaryEntry(ctx context.Context, healthDiaryInput *ClientHealthDiaryEntry) error
 	CreateServiceRequest(ctx context.Context, serviceRequestInput *ClientServiceRequest) error
 	CreateStaffServiceRequest(ctx context.Context, serviceRequestInput *StaffServiceRequest) error
-	CreateClientCaregiver(ctx context.Context, clientID string, clientCaregiver *Caregiver) error
 	CreateCommunity(ctx context.Context, community *Community) (*Community, error)
 	GetOrCreateNextOfKin(ctx context.Context, person *RelatedPerson, clientID, contactID string) error
 	GetOrCreateContact(ctx context.Context, contact *Contact) (*Contact, error)
@@ -33,7 +32,7 @@ type Create interface {
 	RegisterStaff(ctx context.Context, user *User, contact *Contact, identifier *Identifier, staffProfile *StaffProfile) (*StaffProfile, error)
 	SaveFeedback(ctx context.Context, feedback *Feedback) error
 	RegisterClient(ctx context.Context, user *User, contact *Contact, identifier *Identifier, client *Client) (*Client, error)
-	RegisterCaregiver(ctx context.Context, user *User, contact *Contact, caregiver *NCaregiver) error
+	RegisterCaregiver(ctx context.Context, user *User, contact *Contact, caregiver *Caregiver) error
 	CreateQuestionnaire(ctx context.Context, input *Questionnaire) error
 	CreateScreeningTool(ctx context.Context, input *ScreeningTool) error
 	CreateQuestion(ctx context.Context, input *Question) error
@@ -218,39 +217,6 @@ func (db *PGInstance) CreateStaffServiceRequest(ctx context.Context, serviceRequ
 	}
 
 	return nil
-}
-
-// CreateClientCaregiver is used to create a caregiver
-func (db *PGInstance) CreateClientCaregiver(ctx context.Context, clientID string, clientCaregiver *Caregiver) error {
-	tx := db.DB.Begin()
-	defer func() {
-		if r := recover(); r != nil {
-			tx.Rollback()
-		}
-	}()
-	if err := tx.Error; err != nil {
-		return fmt.Errorf("failed initialize database transaction %v", err)
-	}
-
-	err := tx.Create(clientCaregiver).Error
-	if err != nil {
-		tx.Rollback()
-		return fmt.Errorf("failed to create caregiver: %v", err)
-	}
-
-	err = tx.Model(&Client{}).Where(&Client{ID: &clientID}).Updates(map[string]interface{}{"caregiver_id": clientCaregiver.CaregiverID}).Error
-	if err != nil {
-		tx.Rollback()
-		return fmt.Errorf("failed to update client with caregiver id: %v", err)
-	}
-
-	if err := tx.Commit().Error; err != nil {
-		tx.Rollback()
-		return fmt.Errorf("transaction commit to create caregiver failed: %v", err)
-	}
-
-	return nil
-
 }
 
 // CreateCommunity creates a channel in the database
@@ -524,7 +490,7 @@ func (db *PGInstance) RegisterClient(ctx context.Context, user *User, contact *C
 }
 
 // RegisterCaregiver registers a new caregiver
-func (db *PGInstance) RegisterCaregiver(ctx context.Context, user *User, contact *Contact, caregiver *NCaregiver) error {
+func (db *PGInstance) RegisterCaregiver(ctx context.Context, user *User, contact *Contact, caregiver *Caregiver) error {
 	tx := db.DB.Begin()
 
 	err := tx.Create(user).Error

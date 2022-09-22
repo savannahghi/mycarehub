@@ -9,15 +9,9 @@ import (
 // Caregiver maps the schema for the table that stores the caregiver
 type Caregiver struct {
 	ID              string `json:"id"`
-	UserID          string
-	CaregiverNumber string
-
-	// Deprecated
-	FirstName     string              `json:"firstName"`
-	LastName      string              `json:"lastName"`
-	PhoneNumber   string              `json:"phoneNumber"`
-	CaregiverType enums.CaregiverType `json:"caregiverType"`
-	Active        bool                `json:"active"`
+	UserID          string `json:"userID"`
+	CaregiverNumber string `json:"caregiverNumber"`
+	Active          bool   `json:"active"`
 }
 
 // CaregiverProfile is the profile for a caregiver with user's name

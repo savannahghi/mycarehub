@@ -297,7 +297,6 @@ func setupFixtures() {
 			"../fixtures/users_userotp.yml",
 			"../fixtures/common_facility.yml",
 			"../fixtures/users_userpin.yml",
-			"../fixtures/clients_caregiver.yml",
 			"../fixtures/clients_client.yml",
 			"../fixtures/clients_client_contacts.yml",
 			"../fixtures/staff_staff.yml",

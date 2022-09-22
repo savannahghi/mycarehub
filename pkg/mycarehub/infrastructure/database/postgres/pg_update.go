@@ -78,11 +78,6 @@ func (d *MyCareHubDb) SetInProgressBy(ctx context.Context, requestID string, sta
 	return d.update.SetInProgressBy(ctx, requestID, staffID)
 }
 
-// UpdateClientCaregiver updates the caregiver for a client
-func (d *MyCareHubDb) UpdateClientCaregiver(ctx context.Context, caregiverInput *dto.CaregiverInput) error {
-	return d.update.UpdateClientCaregiver(ctx, caregiverInput)
-}
-
 // ResolveServiceRequest resolves a service request
 func (d *MyCareHubDb) ResolveServiceRequest(ctx context.Context, staffID *string, serviceRequestID *string, status string, action []string, comment *string) error {
 	serviceRequest, err := d.query.GetServiceRequestByID(ctx, *serviceRequestID)
@@ -250,7 +245,6 @@ func (d *MyCareHubDb) UpdateClient(ctx context.Context, client *domain.ClientPro
 		FacilityID:              c.FacilityID,
 		FacilityName:            facilitiesMap[c.FacilityID],
 		CHVUserID:               c.CHVUserID,
-		CaregiverID:             c.CaregiverID,
 		Facilities:              clientFacilities,
 	}, nil
 }

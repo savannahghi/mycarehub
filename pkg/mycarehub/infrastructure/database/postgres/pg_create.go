@@ -207,23 +207,6 @@ func (d *MyCareHubDb) CreateStaffServiceRequest(ctx context.Context, serviceRequ
 	return nil
 }
 
-// CreateClientCaregiver creates a client's caregiver
-func (d *MyCareHubDb) CreateClientCaregiver(ctx context.Context, caregiverInput *dto.CaregiverInput) error {
-	caregiver := &gorm.Caregiver{
-		FirstName:     caregiverInput.FirstName,
-		LastName:      caregiverInput.LastName,
-		PhoneNumber:   caregiverInput.PhoneNumber,
-		CaregiverType: caregiverInput.CaregiverType,
-	}
-
-	err := d.create.CreateClientCaregiver(ctx, caregiverInput.ClientID, caregiver)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
 // CreateCommunity creates a channel in the database
 func (d *MyCareHubDb) CreateCommunity(ctx context.Context, communityInput *dto.CommunityInput) (*domain.Community, error) {
 
@@ -503,7 +486,7 @@ func (d *MyCareHubDb) RegisterCaregiver(ctx context.Context, input *domain.Careg
 		Flavour:      input.Contact.Flavour,
 	}
 
-	caregiver := &gorm.NCaregiver{
+	caregiver := &gorm.Caregiver{
 		Active:          input.Caregiver.Active,
 		CaregiverNumber: input.Caregiver.CaregiverNumber,
 	}

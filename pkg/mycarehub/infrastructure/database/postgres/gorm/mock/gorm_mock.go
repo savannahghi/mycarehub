@@ -49,7 +49,7 @@ type GormMock struct {
 	MockCheckIfPhoneNumberExistsFn                       func(ctx context.Context, phone string, isOptedIn bool, flavour feedlib.Flavour) (bool, error)
 	MockVerifyOTPFn                                      func(ctx context.Context, payload *dto.VerifyOTPInput) (bool, error)
 	MockGetClientProfileByUserIDFn                       func(ctx context.Context, userID string) (*gorm.Client, error)
-	MockGetCaregiverByUserIDFn                           func(ctx context.Context, userID string) (*gorm.NCaregiver, error)
+	MockGetCaregiverByUserIDFn                           func(ctx context.Context, userID string) (*gorm.Caregiver, error)
 	MockGetStaffProfileByUserIDFn                        func(ctx context.Context, userID string) (*gorm.StaffProfile, error)
 	MockGetClientsSurveyServiceRequestFn                 func(ctx context.Context, facilityID string, projectID int, formID string, pagination *domain.Pagination) ([]*gorm.ClientServiceRequest, *domain.Pagination, error)
 	MockCheckUserHasPinFn                                func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
@@ -64,8 +64,6 @@ type GormMock struct {
 	MockCanRecordHeathDiaryFn                            func(ctx context.Context, clientID string) (bool, error)
 	MockGetClientHealthDiaryQuoteFn                      func(ctx context.Context, limit int) ([]*gorm.ClientHealthDiaryQuote, error)
 	MockGetClientHealthDiaryEntriesFn                    func(ctx context.Context, params map[string]interface{}) ([]*gorm.ClientHealthDiaryEntry, error)
-	MockCreateClientCaregiverFn                          func(ctx context.Context, clientID string, clientCaregiver *gorm.Caregiver) error
-	MockGetClientCaregiverFn                             func(ctx context.Context, caregiverID string) (*gorm.Caregiver, error)
 	MockUpdateClientCaregiverFn                          func(ctx context.Context, caregiverInput *dto.CaregiverInput) error
 	MockInProgressByFn                                   func(ctx context.Context, requestID string, staffID string) (bool, error)
 	MockGetClientProfileByClientIDFn                     func(ctx context.Context, clientID string) (*gorm.Client, error)
@@ -170,9 +168,9 @@ type GormMock struct {
 	MockAddFacilitiesToStaffProfileFn                    func(ctx context.Context, staffID string, facilities []string) error
 	MockAddFacilitiesToClientProfileFn                   func(ctx context.Context, clientID string, facilities []string) error
 	MockGetNotificationsCountFn                          func(ctx context.Context, notification gorm.Notification) (int, error)
-	MockRegisterCaregiverFn                              func(ctx context.Context, user *gorm.User, contact *gorm.Contact, caregiver *gorm.NCaregiver) error
+	MockRegisterCaregiverFn                              func(ctx context.Context, user *gorm.User, contact *gorm.Contact, caregiver *gorm.Caregiver) error
 	MockGetClientsSurveyCountFn                          func(ctx context.Context, userID string) (int, error)
-	MockSearchCaregiverUserFn                            func(ctx context.Context, searchParameter string) ([]*gorm.NCaregiver, error)
+	MockSearchCaregiverUserFn                            func(ctx context.Context, searchParameter string) ([]*gorm.Caregiver, error)
 	MockRemoveFacilitiesFromClientProfileFn              func(ctx context.Context, clientID string, facilities []string) error
 	MockAddCaregiverToClientFn                           func(ctx context.Context, clientCaregiver *gorm.CaregiverClient) error
 	MockRemoveFacilitiesFromStaffProfileFn               func(ctx context.Context, staffID string, facilities []string) error
@@ -283,7 +281,6 @@ func NewGormMock() *GormMock {
 		FacilityID:              uuid.New().String(),
 		CHVUserID:               &UUID,
 		UserID:                  &UUID,
-		CaregiverID:             &UUID,
 	}
 
 	userProfile := &gorm.User{
@@ -365,7 +362,7 @@ func NewGormMock() *GormMock {
 		MockCreateMetricFn: func(ctx context.Context, metric *gorm.Metric) error {
 			return nil
 		},
-		MockRegisterCaregiverFn: func(ctx context.Context, user *gorm.User, contact *gorm.Contact, caregiver *gorm.NCaregiver) error {
+		MockRegisterCaregiverFn: func(ctx context.Context, user *gorm.User, contact *gorm.Contact, caregiver *gorm.Caregiver) error {
 			return nil
 		},
 		MockCreateNotificationFn: func(ctx context.Context, notification *gorm.Notification) error {
@@ -390,8 +387,8 @@ func NewGormMock() *GormMock {
 				staff,
 			}, nil
 		},
-		MockGetCaregiverByUserIDFn: func(ctx context.Context, userID string) (*gorm.NCaregiver, error) {
-			return &gorm.NCaregiver{
+		MockGetCaregiverByUserIDFn: func(ctx context.Context, userID string) (*gorm.Caregiver, error) {
+			return &gorm.Caregiver{
 				ID:              gofakeit.UUID(),
 				Active:          true,
 				CaregiverNumber: gofakeit.SSN(),
@@ -602,8 +599,8 @@ func NewGormMock() *GormMock {
 		MockInactivateFacilityFn: func(ctx context.Context, mflCode *int) (bool, error) {
 			return true, nil
 		},
-		MockSearchCaregiverUserFn: func(ctx context.Context, searchParameter string) ([]*gorm.NCaregiver, error) {
-			return []*gorm.NCaregiver{
+		MockSearchCaregiverUserFn: func(ctx context.Context, searchParameter string) ([]*gorm.Caregiver, error) {
+			return []*gorm.Caregiver{
 				{
 					ID:              UUID,
 					Active:          true,
@@ -817,9 +814,6 @@ func NewGormMock() *GormMock {
 				},
 			}, nil
 		},
-		MockCreateClientCaregiverFn: func(ctx context.Context, clientID string, clientCaregiver *gorm.Caregiver) error {
-			return nil
-		},
 		MockGetClientPendingServiceRequestsCountFn: func(ctx context.Context, facilityID string) (*domain.ServiceRequestsCount, error) {
 			return &domain.ServiceRequestsCount{
 				Total: 0,
@@ -830,18 +824,6 @@ func NewGormMock() *GormMock {
 					},
 				},
 			}, nil
-		},
-		MockGetClientCaregiverFn: func(ctx context.Context, caregiverID string) (*gorm.Caregiver, error) {
-			ID := uuid.New().String()
-			return &gorm.Caregiver{
-				CaregiverID:   &ID,
-				FirstName:     "test",
-				LastName:      "test",
-				PhoneNumber:   gofakeit.Phone(),
-				CaregiverType: enums.CaregiverTypeFather,
-				Active:        true,
-			}, nil
-
 		},
 		MockUpdateClientCaregiverFn: func(ctx context.Context, caregiverInput *dto.CaregiverInput) error {
 			return nil
@@ -1511,7 +1493,7 @@ func (gm *GormMock) GetUserProfileByUserID(ctx context.Context, userID *string) 
 }
 
 // GetCaregiverByUserID returns the caregiver record of the provided user ID
-func (gm *GormMock) GetCaregiverByUserID(ctx context.Context, userID string) (*gorm.NCaregiver, error) {
+func (gm *GormMock) GetCaregiverByUserID(ctx context.Context, userID string) (*gorm.Caregiver, error) {
 	return gm.MockGetCaregiverByUserIDFn(ctx, userID)
 }
 
@@ -1638,16 +1620,6 @@ func (gm *GormMock) GetClientHealthDiaryQuote(ctx context.Context, limit int) ([
 // GetClientHealthDiaryEntries mocks the implementation of getting all health diary entries that belong to a specific user
 func (gm *GormMock) GetClientHealthDiaryEntries(ctx context.Context, params map[string]interface{}) ([]*gorm.ClientHealthDiaryEntry, error) {
 	return gm.MockGetClientHealthDiaryEntriesFn(ctx, params)
-}
-
-// CreateClientCaregiver mocks the implementation of creating a caregiver
-func (gm *GormMock) CreateClientCaregiver(ctx context.Context, clientID string, caregiver *gorm.Caregiver) error {
-	return gm.MockCreateClientCaregiverFn(ctx, clientID, caregiver)
-}
-
-// GetClientCaregiver mocks the implementation of getting a caregiver
-func (gm *GormMock) GetClientCaregiver(ctx context.Context, caregiverID string) (*gorm.Caregiver, error) {
-	return gm.MockGetClientCaregiverFn(ctx, caregiverID)
 }
 
 // UpdateClientCaregiver mocks the implementation of updating a caregiver
@@ -2181,12 +2153,12 @@ func (gm *GormMock) GetNotificationsCount(ctx context.Context, notification gorm
 }
 
 // RegisterCaregiver registers a new caregiver
-func (gm *GormMock) RegisterCaregiver(ctx context.Context, user *gorm.User, contact *gorm.Contact, caregiver *gorm.NCaregiver) error {
+func (gm *GormMock) RegisterCaregiver(ctx context.Context, user *gorm.User, contact *gorm.Contact, caregiver *gorm.Caregiver) error {
 	return gm.MockRegisterCaregiverFn(ctx, user, contact, caregiver)
 }
 
 // SearchCaregiverUser mocks the searching of caregiver user
-func (gm *GormMock) SearchCaregiverUser(ctx context.Context, searchParameter string) ([]*gorm.NCaregiver, error) {
+func (gm *GormMock) SearchCaregiverUser(ctx context.Context, searchParameter string) ([]*gorm.Caregiver, error) {
 	return gm.MockSearchCaregiverUserFn(ctx, searchParameter)
 }
 

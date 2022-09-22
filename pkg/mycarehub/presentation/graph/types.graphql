@@ -195,13 +195,6 @@ type ClientHealthDiaryEntry {
   clientName: String
 }
 
-type Caregiver {
-  firstName: String!
-  lastName: String!
-  phoneNumber: String!
-  caregiverType: CaregiverType!
-}
-
 type ServiceRequest {
   ID: String!
   RequestType: String!

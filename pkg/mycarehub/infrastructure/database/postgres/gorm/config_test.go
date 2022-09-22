@@ -54,7 +54,6 @@ var (
 	clientID2                          = "00a6a0cd-42ac-417b-97d9-e939a1232de1"
 	contactID                          = "bdc22436-e314-43f2-bb39-ba1ab332f9b0"
 	identifierID                       = "bcbdaf68-3d36-4365-b575-4182d6749af5"
-	clientToAddCaregiver               = "00a6a0cd-42ac-417b-97d9-e939a1232de2"
 	// Facility variables
 	facilityID                      = "4181df12-ca96-4f28-b78b-8e8ad88b25df"
 	facilityToAddToUserProfile      = "5181df12-ca96-4f28-b78b-8e8ad88b25de"
@@ -316,7 +315,6 @@ func TestMain(m *testing.M) {
 			"../../../../../../fixtures/users_userotp.yml",
 			"../../../../../../fixtures/common_facility.yml",
 			"../../../../../../fixtures/users_userpin.yml",
-			"../../../../../../fixtures/clients_caregiver.yml",
 			"../../../../../../fixtures/clients_client.yml",
 			"../../../../../../fixtures/clients_client_contacts.yml",
 			"../../../../../../fixtures/clients_client_facilities.yml",

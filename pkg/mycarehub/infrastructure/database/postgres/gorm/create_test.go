@@ -619,58 +619,6 @@ func TestPGInstance_CreateServiceRequest(t *testing.T) {
 	}
 }
 
-func TestPGInstance_CreateClientCaregiver(t *testing.T) {
-	ctx := context.Background()
-	type args struct {
-		ctx             context.Context
-		clientID        string
-		clientCaregiver *gorm.Caregiver
-	}
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		{
-			name: "Happy case",
-			args: args{
-				ctx:      ctx,
-				clientID: clientToAddCaregiver,
-				clientCaregiver: &gorm.Caregiver{
-					FirstName:     gofakeit.Name(),
-					LastName:      gofakeit.Name(),
-					PhoneNumber:   testPhone,
-					CaregiverType: enums.CaregiverTypeFather,
-					Active:        true,
-				},
-			},
-			wantErr: false,
-		},
-		{
-			name: "invalid: invalid input",
-			args: args{
-				ctx:      ctx,
-				clientID: clientToAddCaregiver,
-				clientCaregiver: &gorm.Caregiver{
-					FirstName:     gofakeit.Name(),
-					LastName:      gofakeit.Name(),
-					PhoneNumber:   gofakeit.Phone(),
-					CaregiverType: enums.CaregiverType(gofakeit.HipsterSentence(20)),
-					Active:        true,
-				},
-			},
-			wantErr: true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if err := testingDB.CreateClientCaregiver(tt.args.ctx, tt.args.clientID, tt.args.clientCaregiver); (err != nil) != tt.wantErr {
-				t.Errorf("PGInstance.CreateClientCaregiver() error = %v, wantErr %v", err, tt.wantErr)
-			}
-		})
-	}
-}
-
 func TestPGInstance_CreateHealthDiaryEntry(t *testing.T) {
 	ctx := context.Background()
 
@@ -1426,7 +1374,6 @@ func TestPGInstance_RegisterClient(t *testing.T) {
 	FHIRPatientID := "26b30a43-cbb8-4773-aedb-c539602d04fc"
 	HealthPatientID := "29b30a42-cbb8-4553-aedb-c539602d04fc"
 	chvID := userIDToRegisterClient
-	caregiverID := "28b20a42-cbb8-4553-aedb-c575602d04fc"
 
 	invalidID := "invalidID"
 	contactData := &gorm.Contact{
@@ -1464,7 +1411,6 @@ func TestPGInstance_RegisterClient(t *testing.T) {
 		OrganisationID:          orgID,
 		FacilityID:              facilityID,
 		CHVUserID:               &chvID,
-		CaregiverID:             &caregiverID,
 	}
 	InvalidClientData := &gorm.Client{
 		ID:                      &invalidID,
@@ -1479,7 +1425,6 @@ func TestPGInstance_RegisterClient(t *testing.T) {
 		OrganisationID:          orgID,
 		FacilityID:              facilityID,
 		CHVUserID:               &chvID,
-		CaregiverID:             &caregiverID,
 	}
 	userProfile := &gorm.User{
 		UserID:                 &userIDToRegisterClient,
@@ -1996,7 +1941,7 @@ func TestPGInstance_RegisterCaregiver(t *testing.T) {
 		ctx       context.Context
 		user      *gorm.User
 		contact   *gorm.Contact
-		caregiver *gorm.NCaregiver
+		caregiver *gorm.Caregiver
 	}
 	tests := []struct {
 		name    string
@@ -2023,7 +1968,7 @@ func TestPGInstance_RegisterCaregiver(t *testing.T) {
 					OptedIn:      false,
 					Flavour:      feedlib.FlavourConsumer,
 				},
-				caregiver: &gorm.NCaregiver{
+				caregiver: &gorm.Caregiver{
 					CaregiverNumber: gofakeit.SSN(),
 					Active:          true,
 				},
