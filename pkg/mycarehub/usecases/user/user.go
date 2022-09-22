@@ -948,6 +948,13 @@ func (us *UseCasesUserImpl) RegisterCaregiver(ctx context.Context, input dto.Car
 		return nil, err
 	}
 
+	if input.SendInvite {
+		_, err := us.InviteUser(ctx, *profile.User.ID, input.PhoneNumber, feedlib.FlavourConsumer, false)
+		if err != nil {
+			return nil, fmt.Errorf("failed to invite client: %w", err)
+		}
+	}
+
 	return profile, nil
 }
 
