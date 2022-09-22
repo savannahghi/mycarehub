@@ -2046,3 +2046,48 @@ func TestPGInstance_AddCaregiverToClient(t *testing.T) {
 		})
 	}
 }
+
+func TestPGInstance_CreateCaregiver(t *testing.T) {
+
+	type args struct {
+		ctx       context.Context
+		caregiver *gorm.Caregiver
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "happy case: create a caregiver",
+			args: args{
+				ctx: context.Background(),
+				caregiver: &gorm.Caregiver{
+					Active:          true,
+					CaregiverNumber: gofakeit.SSN(),
+					UserID:          userIDtoAssignClient,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "sad case: invalid user id",
+			args: args{
+				ctx: context.Background(),
+				caregiver: &gorm.Caregiver{
+					Active:          true,
+					CaregiverNumber: gofakeit.SSN(),
+					UserID:          "invalid",
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := testingDB.CreateCaregiver(tt.args.ctx, tt.args.caregiver); (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.CreateCaregiver() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}

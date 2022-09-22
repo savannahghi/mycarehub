@@ -33,6 +33,7 @@ type Create interface {
 	SaveFeedback(ctx context.Context, feedback *Feedback) error
 	RegisterClient(ctx context.Context, user *User, contact *Contact, identifier *Identifier, client *Client) (*Client, error)
 	RegisterCaregiver(ctx context.Context, user *User, contact *Contact, caregiver *Caregiver) error
+	CreateCaregiver(ctx context.Context, caregiver *Caregiver) error
 	CreateQuestionnaire(ctx context.Context, input *Questionnaire) error
 	CreateScreeningTool(ctx context.Context, input *ScreeningTool) error
 	CreateQuestion(ctx context.Context, input *Question) error
@@ -516,6 +517,16 @@ func (db *PGInstance) RegisterCaregiver(ctx context.Context, user *User, contact
 	if err := tx.Commit().Error; err != nil {
 		tx.Rollback()
 		return fmt.Errorf("failed to commit create caregiver transaction: %w", err)
+	}
+
+	return nil
+}
+
+// CreateCaregiver creates a caregiver record linked to a user
+func (db *PGInstance) CreateCaregiver(ctx context.Context, caregiver *Caregiver) error {
+	err := db.DB.Create(caregiver).Error
+	if err != nil {
+		return fmt.Errorf("failed to create caregiver: %w", err)
 	}
 
 	return nil

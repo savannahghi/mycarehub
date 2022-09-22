@@ -5317,6 +5317,83 @@ func TestUseCasesUserImpl_RegisterCaregiver(t *testing.T) {
 	}
 }
 
+func TestUseCasesUserImpl_RegisterClientAsCaregiver(t *testing.T) {
+
+	type args struct {
+		ctx             context.Context
+		clientID        string
+		caregiverNumber string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "happy case: create a caregiver",
+			args: args{
+				ctx:             nil,
+				clientID:        gofakeit.UUID(),
+				caregiverNumber: gofakeit.SSN(),
+			},
+			wantErr: false,
+		},
+		{
+			name: "sad case: get client error",
+			args: args{
+				ctx:             nil,
+				clientID:        gofakeit.UUID(),
+				caregiverNumber: gofakeit.SSN(),
+			},
+			wantErr: true,
+		},
+		{
+			name: "sad case: create caregiver error",
+			args: args{
+				ctx:             nil,
+				clientID:        gofakeit.UUID(),
+				caregiverNumber: gofakeit.SSN(),
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			fakeExtension := extensionMock.NewFakeExtension()
+			fakeOTP := otpMock.NewOTPUseCaseMock()
+			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
+			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
+			fakePubsub := pubsubMock.NewPubsubServiceMock()
+			fakeClinical := clinicalMock.NewClinicalServiceMock()
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakeGetStream, fakePubsub, fakeClinical)
+
+			if tt.name == "sad case: get client error" {
+				fakeDB.MockGetClientProfileByClientIDFn = func(ctx context.Context, clientID string) (*domain.ClientProfile, error) {
+					return nil, fmt.Errorf("failed to get client")
+				}
+			}
+
+			if tt.name == "sad case: create caregiver error" {
+				fakeDB.MockCreateCaregiverFn = func(ctx context.Context, caregiver domain.Caregiver) (*domain.Caregiver, error) {
+					return nil, fmt.Errorf("failed to create caregiver")
+				}
+			}
+
+			got, err := us.RegisterClientAsCaregiver(tt.args.ctx, tt.args.clientID, tt.args.caregiverNumber)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCasesUserImpl.RegisterClientAsCaregiver() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected a response but got %v", got)
+				return
+			}
+		})
+	}
+}
+
 func TestUseCasesUserImpl_SearchCaregiverUser(t *testing.T) {
 	type args struct {
 		ctx             context.Context

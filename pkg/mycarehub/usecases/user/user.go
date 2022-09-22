@@ -80,6 +80,7 @@ type IPIN interface {
 // IClientCaregiver is an interface that contains all the client caregiver use cases
 type IClientCaregiver interface {
 	RegisterCaregiver(ctx context.Context, input dto.CaregiverInput) (*domain.CaregiverProfile, error)
+	RegisterClientAsCaregiver(ctx context.Context, clientID string, caregiverNumber string) (*domain.CaregiverProfile, error)
 	TransferClientToFacility(ctx context.Context, clientID *string, facilityID *string) (bool, error)
 	AssignCaregiver(ctx context.Context, input dto.ClientCaregiverInput) (bool, error)
 }
@@ -891,6 +892,30 @@ func (us *UseCasesUserImpl) RegisterCaregiver(ctx context.Context, input dto.Car
 	}
 
 	return profile, nil
+}
+
+// RegisterClientAsCaregiver adds a caregiver profile to a client
+func (us *UseCasesUserImpl) RegisterClientAsCaregiver(ctx context.Context, clientID string, caregiverNumber string) (*domain.CaregiverProfile, error) {
+	client, err := us.Query.GetClientProfileByClientID(ctx, clientID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get client details: %w", err)
+	}
+
+	// create caregiver
+	caregiver, err := us.Create.CreateCaregiver(ctx, domain.Caregiver{
+		UserID:          client.UserID,
+		CaregiverNumber: caregiverNumber,
+		Active:          true,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to create caregiver: %w", err)
+	}
+
+	return &domain.CaregiverProfile{
+		ID:              caregiver.ID,
+		User:            *client.User,
+		CaregiverNumber: caregiver.CaregiverNumber,
+	}, nil
 }
 
 // RefreshGetStreamToken update a getstream token as soon as a token exception occurs. The implementation
