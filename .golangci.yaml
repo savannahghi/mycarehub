@@ -3,6 +3,7 @@ run:
   skip-dirs:
     - pkg/mycarehub/presentation/graph/
   linters:
+    disable-all: true
     enable:
       - deadcode
       - errcheck
@@ -14,10 +15,29 @@ run:
       - typecheck
       - unused
       - varcheck
-      - golint
+      - asciicheck
+      - bodyclose
+      - dogsled
+      - exhaustive
+      - exportloopref
+      - gocognit
+      - goconst
+      - gofmt
+      - goheader
+      - goimports
       - gosec
       - misspell
+      - nakedret
+      - nestif
+      - noctx
+      - rowserrcheck
+      - sqlclosecheck
+      - unconvert
+      - unparam
+      - whitespace
       - gocyclo
+      - golint
+
 
   linters-settings:
     staticcheck:

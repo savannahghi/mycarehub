@@ -2,6 +2,7 @@ package user
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -13,6 +14,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/utils"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
+	"gorm.io/gorm"
 )
 
 // loginFunc is an execution in the login process to perform checks and build the login response
@@ -58,6 +60,13 @@ func (us *UseCasesUserImpl) clientProfileCheck(ctx context.Context, credentials 
 
 	switch credentials.Flavour {
 	case feedlib.FlavourConsumer:
+		// If the user is only a caregiver
+		// don't proceed with client logic
+		if user.UserType == enums.CaregiverUser &&
+			response.GetCaregiverProfile() != nil {
+			return true
+		}
+
 		clientProfile, err := us.Query.GetClientProfileByUserID(ctx, *user.ID)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
@@ -111,6 +120,13 @@ func (us *UseCasesUserImpl) pinResetRequestCheck(ctx context.Context, credential
 
 	switch credentials.Flavour {
 	case feedlib.FlavourConsumer:
+		// If the user is only a caregiver
+		// don't proceed with client logic
+		if response.GetUserProfile().UserType == enums.CaregiverUser &&
+			response.GetCaregiverProfile() != nil {
+			return true
+		}
+
 		client := response.GetClientProfile()
 
 		status, err := us.Query.CheckIfClientHasUnresolvedServiceRequests(ctx, *client.ID, enums.ServiceRequestTypePinReset.String())
@@ -334,6 +350,13 @@ func (us *UseCasesUserImpl) addGetStreamToken(ctx context.Context, credentials *
 
 	switch credentials.Flavour {
 	case feedlib.FlavourConsumer:
+		// If the user is only a caregiver
+		// don't proceed with client logic
+		if userProfile.UserType == enums.CaregiverUser &&
+			response.GetCaregiverProfile() != nil {
+			return true
+		}
+
 		client := response.GetClientProfile()
 
 		user = &stream.User{
@@ -405,6 +428,44 @@ func (us *UseCasesUserImpl) addRolesPermissions(ctx context.Context, credentials
 		return false
 	}
 	response.SetPermissions(permissions)
+
+	return true
+}
+
+// checks whether a caregiver profile exists and assigns
+// - There should be a caregiver profile
+func (us *UseCasesUserImpl) caregiverProfileCheck(ctx context.Context, credentials *dto.LoginInput, response domain.ILoginResponse) bool {
+	user := response.GetUserProfile()
+
+	switch credentials.Flavour {
+	case feedlib.FlavourConsumer:
+		// 1. Check if caregiver profile exists
+		caregiver, err := us.Query.GetCaregiverByUserID(ctx, *user.ID)
+		if err != nil {
+			// User is a client without caregiver profile proceed i.e client that isn't a caregiver
+			if errors.Is(err, gorm.ErrRecordNotFound) && user.UserType == enums.ClientUser {
+				return true
+			}
+
+			helpers.ReportErrorToSentry(err)
+
+			// TODO: Caregiver error message
+			message := exceptions.ProfileNotFoundErr(err).Error()
+			code := exceptions.ProfileNotFound.Code()
+			response.SetResponseCode(code, message)
+
+			return false
+		}
+
+		profile := &domain.CaregiverProfile{
+			ID:              caregiver.ID,
+			UserID:          caregiver.UserID,
+			User:            *user,
+			CaregiverNumber: caregiver.CaregiverNumber,
+		}
+
+		response.SetCaregiverProfile(profile)
+	}
 
 	return true
 }

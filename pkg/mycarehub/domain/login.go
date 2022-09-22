@@ -2,11 +2,12 @@ package domain
 
 // Response models the response that will be returned after a user logs in
 type Response struct {
-	User            *User           `json:"-"`
-	Client          *ClientProfile  `json:"clientProfile"`
-	Staff           *StaffProfile   `json:"staffProfile"`
-	AuthCredentials AuthCredentials `json:"credentials"`
-	GetStreamToken  string          `json:"getStreamToken"`
+	User            *User             `json:"-"`
+	Client          *ClientProfile    `json:"clientProfile"`
+	Staff           *StaffProfile     `json:"staffProfile"`
+	Caregiver       *CaregiverProfile `json:"caregiverProfile"`
+	AuthCredentials AuthCredentials   `json:"credentials"`
+	GetStreamToken  string            `json:"getStreamToken"`
 }
 
 // LoginResponse models the response to be returned on successful login
@@ -18,6 +19,8 @@ type LoginResponse struct {
 	RetryTime        float64 `json:"retryTime,omitempty"`
 	Attempts         int     `json:"attempts,omitempty"`
 	FailedLoginCount int     `json:"failed_login_count,omitempty"`
+	IsCaregiver      bool    `json:"is_caregiver,omitempty"`
+	IsClient         bool    `json:"is_client,omitempty"`
 }
 
 // ILoginResponse represents a login response getter and setter
@@ -27,6 +30,9 @@ type ILoginResponse interface {
 
 	SetClientProfile(client *ClientProfile)
 	GetClientProfile() *ClientProfile
+
+	SetCaregiverProfile(caregiver *CaregiverProfile)
+	GetCaregiverProfile() *CaregiverProfile
 
 	SetStaffProfile(staff *StaffProfile)
 	GetStaffProfile() *StaffProfile
@@ -52,9 +58,10 @@ type ILoginResponse interface {
 func NewLoginResponse() *LoginResponse {
 	return &LoginResponse{
 		Response: &Response{
-			User:   nil,
-			Client: nil,
-			Staff:  nil,
+			User:      nil,
+			Client:    nil,
+			Staff:     nil,
+			Caregiver: nil,
 		},
 	}
 }
@@ -66,6 +73,11 @@ func (l *LoginResponse) SetUserProfile(user *User) {
 	if l.Response.Client != nil {
 		l.Response.Client.UserID = *user.ID
 		l.Response.Client.User = user
+	}
+
+	if l.Response.Caregiver != nil {
+		l.Response.Caregiver.UserID = *user.ID
+		l.Response.Caregiver.User = *user
 	}
 
 	if l.Response.Staff != nil {
@@ -84,11 +96,23 @@ func (l *LoginResponse) GetUserProfile() *User {
 // SetClientProfile sets the client profile
 func (l *LoginResponse) SetClientProfile(client *ClientProfile) {
 	l.Response.Client = client
+	l.IsClient = true
 }
 
 // GetClientProfile retrieves the client profile
 func (l *LoginResponse) GetClientProfile() *ClientProfile {
 	return l.Response.Client
+}
+
+// SetCaregiverProfile sets the client profile
+func (l *LoginResponse) SetCaregiverProfile(caregiver *CaregiverProfile) {
+	l.Response.Caregiver = caregiver
+	l.IsCaregiver = true
+}
+
+// GetCaregiverProfile retrieves the client profile
+func (l *LoginResponse) GetCaregiverProfile() *CaregiverProfile {
+	return l.Response.Caregiver
 }
 
 // SetStaffProfile sets the staff profile

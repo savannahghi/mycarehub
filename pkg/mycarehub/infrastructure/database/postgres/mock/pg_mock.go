@@ -34,6 +34,7 @@ type PostgresMock struct {
 	MockInactivateFacilityFn                             func(ctx context.Context, mflCode *int) (bool, error)
 	MockReactivateFacilityFn                             func(ctx context.Context, mflCode *int) (bool, error)
 	MockGetUserProfileByUserIDFn                         func(ctx context.Context, userID string) (*domain.User, error)
+	MockGetCaregiverByUserIDFn                           func(ctx context.Context, userID string) (*domain.Caregiver, error)
 	MockSaveTemporaryUserPinFn                           func(ctx context.Context, pinData *domain.UserPIN) (bool, error)
 	MockGetCurrentTermsFn                                func(ctx context.Context, flavour feedlib.Flavour) (*domain.TermsOfService, error)
 	MockAcceptTermsFn                                    func(ctx context.Context, userID *string, termsID *int) (bool, error)
@@ -314,6 +315,14 @@ func NewPostgresMock() *PostgresMock {
 		},
 		MockUpdateNotificationFn: func(ctx context.Context, notification *domain.Notification, updateData map[string]interface{}) error {
 			return nil
+		},
+		MockGetCaregiverByUserIDFn: func(ctx context.Context, userID string) (*domain.Caregiver, error) {
+			return &domain.Caregiver{
+				ID:              ID,
+				UserID:          userID,
+				CaregiverNumber: gofakeit.SSN(),
+				Active:          false,
+			}, nil
 		},
 		MockGetNotificationFn: func(ctx context.Context, notificationID string) (*domain.Notification, error) {
 			return &domain.Notification{
@@ -1431,6 +1440,11 @@ func (gm *PostgresMock) SaveTemporaryUserPin(ctx context.Context, pinData *domai
 // AcceptTerms mocks the implementation of accept current terms of service
 func (gm *PostgresMock) AcceptTerms(ctx context.Context, userID *string, termsID *int) (bool, error) {
 	return gm.MockAcceptTermsFn(ctx, userID, termsID)
+}
+
+// GetCaregiverByUserID returns the caregiver record of the provided user ID
+func (gm *PostgresMock) GetCaregiverByUserID(ctx context.Context, userID string) (*domain.Caregiver, error) {
+	return gm.MockGetCaregiverByUserIDFn(ctx, userID)
 }
 
 // SavePin mocks the implementation of saving a user pin

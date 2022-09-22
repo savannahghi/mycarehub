@@ -23,6 +23,7 @@ type Caregiver struct {
 // CaregiverProfile is the profile for a caregiver with user's name
 type CaregiverProfile struct {
 	ID              string `json:"id"`
+	UserID          string `json:"userID"`
 	User            User   `json:"user"`
 	CaregiverNumber string `json:"caregiver_number"`
 }

@@ -46,6 +46,7 @@ type Query interface {
 	CheckIfPhoneNumberExists(ctx context.Context, phone string, isOptedIn bool, flavour feedlib.Flavour) (bool, error)
 	VerifyOTP(ctx context.Context, payload *dto.VerifyOTPInput) (bool, error)
 	GetClientProfileByUserID(ctx context.Context, userID string) (*Client, error)
+	GetCaregiverByUserID(ctx context.Context, userID string) (*NCaregiver, error)
 	GetClientProfileByCCCNumber(ctx context.Context, CCCNumber string) (*Client, error)
 	GetStaffProfileByUserID(ctx context.Context, userID string) (*StaffProfile, error)
 	CheckUserHasPin(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
@@ -581,6 +582,18 @@ func (db *PGInstance) GetClientProfileByUserID(ctx context.Context, userID strin
 		return nil, fmt.Errorf("failed to get client by user ID %v: %v", userID, err)
 	}
 	return &client, nil
+}
+
+// GetCaregiverByUserID returns the caregiver record of the provided user ID
+func (db *PGInstance) GetCaregiverByUserID(ctx context.Context, userID string) (*NCaregiver, error) {
+	var caregiver *NCaregiver
+
+	if err := db.DB.Where(NCaregiver{UserID: userID}).First(&caregiver).Error; err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, fmt.Errorf("failed to get caregiver by user ID %v: %w", userID, err)
+	}
+
+	return caregiver, nil
 }
 
 // GetStaffProfileByUserID returns the staff profile

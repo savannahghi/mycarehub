@@ -5038,3 +5038,43 @@ func TestPGInstance_SearchCaregiverUser(t *testing.T) {
 		})
 	}
 }
+
+func TestPGInstance_GetCaregiverByUserID(t *testing.T) {
+	type args struct {
+		ctx    context.Context
+		userID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "sad case: invalid user id",
+			args: args{
+				ctx:    context.Background(),
+				userID: "invalid",
+			},
+			wantErr: true,
+		},
+		{
+			name: "sad case: missing caregiver",
+			args: args{
+				ctx:    context.Background(),
+				userID: userIDtoAssignStaff,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			_, err := testingDB.GetCaregiverByUserID(tt.args.ctx, tt.args.userID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.GetCaregiverByUserID() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+		})
+	}
+}
