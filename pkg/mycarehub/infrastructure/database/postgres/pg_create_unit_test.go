@@ -1845,3 +1845,61 @@ func TestMyCareHubDb_AddCaregiverToClient(t *testing.T) {
 		})
 	}
 }
+
+func TestMyCareHubDb_CreateCaregiver(t *testing.T) {
+
+	type args struct {
+		ctx       context.Context
+		caregiver domain.Caregiver
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "happy case: create caregiver",
+			args: args{
+				ctx: context.Background(),
+				caregiver: domain.Caregiver{
+					UserID:          gofakeit.UUID(),
+					CaregiverNumber: gofakeit.SSN(),
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "sad case: create caregiver error",
+			args: args{
+				ctx: context.Background(),
+				caregiver: domain.Caregiver{
+					UserID:          gofakeit.UUID(),
+					CaregiverNumber: gofakeit.SSN(),
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var fakeGorm = gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			if tt.name == "sad case: create caregiver error" {
+				fakeGorm.MockCreateCaregiverFn = func(ctx context.Context, caregiver *gorm.Caregiver) error {
+					return fmt.Errorf("failed to create caregiver")
+				}
+			}
+
+			got, err := d.CreateCaregiver(tt.args.ctx, tt.args.caregiver)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.CreateCaregiver() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected a response but got: %v", got)
+				return
+			}
+		})
+	}
+}

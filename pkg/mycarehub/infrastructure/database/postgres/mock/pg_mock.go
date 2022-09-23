@@ -165,6 +165,7 @@ type PostgresMock struct {
 	MockAddFacilitiesToClientProfileFn                   func(ctx context.Context, clientID string, facilities []string) error
 	MockGetUserFacilitiesFn                              func(ctx context.Context, user *domain.User, pagination *domain.Pagination) ([]*domain.Facility, *domain.Pagination, error)
 	MockRegisterCaregiverFn                              func(ctx context.Context, input *domain.CaregiverRegistration) (*domain.CaregiverProfile, error)
+	MockCreateCaregiverFn                                func(ctx context.Context, caregiver domain.Caregiver) (*domain.Caregiver, error)
 	MockSearchCaregiverUserFn                            func(ctx context.Context, searchParameter string) ([]*domain.CaregiverProfile, error)
 	MockRemoveFacilitiesFromClientProfileFn              func(ctx context.Context, clientID string, facilities []string) error
 	MockAddCaregiverToClientFn                           func(ctx context.Context, clientCaregiver *domain.CaregiverClient) error
@@ -309,6 +310,14 @@ func NewPostgresMock() *PostgresMock {
 				ID:              ID,
 				User:            *userProfile,
 				CaregiverNumber: gofakeit.SSN(),
+			}, nil
+		},
+		MockCreateCaregiverFn: func(ctx context.Context, caregiver domain.Caregiver) (*domain.Caregiver, error) {
+			return &domain.Caregiver{
+				ID:              gofakeit.UUID(),
+				UserID:          gofakeit.UUID(),
+				CaregiverNumber: gofakeit.SSN(),
+				Active:          true,
 			}, nil
 		},
 		MockCreateMetricFn: func(ctx context.Context, payload *domain.Metric) error {
@@ -2071,6 +2080,11 @@ func (gm *PostgresMock) GetUserFacilities(ctx context.Context, user *domain.User
 // RegisterCaregiver registers a new caregiver on the platform
 func (gm *PostgresMock) RegisterCaregiver(ctx context.Context, input *domain.CaregiverRegistration) (*domain.CaregiverProfile, error) {
 	return gm.MockRegisterCaregiverFn(ctx, input)
+}
+
+// CreateCaregiver creates a caregiver record using the provided input
+func (gm *PostgresMock) CreateCaregiver(ctx context.Context, caregiver domain.Caregiver) (*domain.Caregiver, error) {
+	return gm.MockCreateCaregiverFn(ctx, caregiver)
 }
 
 // SearchCaregiverUser mocks the implementation of searching caregivers

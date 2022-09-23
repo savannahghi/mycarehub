@@ -512,6 +512,27 @@ func (d *MyCareHubDb) RegisterCaregiver(ctx context.Context, input *domain.Careg
 	return &profile, nil
 }
 
+// CreateCaregiver creates a caregiver record using the provided input
+func (d *MyCareHubDb) CreateCaregiver(ctx context.Context, caregiver domain.Caregiver) (*domain.Caregiver, error) {
+	cgv := &gorm.Caregiver{
+		Active:          caregiver.Active,
+		CaregiverNumber: caregiver.CaregiverNumber,
+		UserID:          caregiver.UserID,
+	}
+
+	err := d.create.CreateCaregiver(ctx, cgv)
+	if err != nil {
+		return nil, err
+	}
+
+	return &domain.Caregiver{
+		ID:              cgv.ID,
+		UserID:          cgv.UserID,
+		CaregiverNumber: cgv.CaregiverNumber,
+		Active:          cgv.Active,
+	}, nil
+}
+
 // CreateIdentifier creates a new identifier
 func (d *MyCareHubDb) CreateIdentifier(ctx context.Context, identifier domain.Identifier) (*domain.Identifier, error) {
 	i := &gorm.Identifier{

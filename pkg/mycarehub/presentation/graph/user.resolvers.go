@@ -38,6 +38,10 @@ func (r *mutationResolver) RegisterCaregiver(ctx context.Context, input dto.Care
 	return r.mycarehub.User.RegisterCaregiver(ctx, input)
 }
 
+func (r *mutationResolver) RegisterClientAsCaregiver(ctx context.Context, clientID string, caregiverNumber string) (*domain.CaregiverProfile, error) {
+	return r.mycarehub.User.RegisterClientAsCaregiver(ctx, clientID, caregiverNumber)
+}
+
 func (r *mutationResolver) OptOut(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (bool, error) {
 	return r.mycarehub.User.Consent(ctx, phoneNumber, flavour)
 }

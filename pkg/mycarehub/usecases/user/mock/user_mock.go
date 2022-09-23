@@ -54,6 +54,7 @@ type UserUseCaseMock struct {
 	MockSearchCaregiverUserFn               func(ctx context.Context, searchParameter string) ([]*domain.CaregiverProfile, error)
 	MockAssignCaregiverFn                   func(ctx context.Context, input dto.ClientCaregiverInput) (bool, error)
 	MockRemoveFacilitiesFromStaffProfileFn  func(ctx context.Context, staffID string, facilities []string) (bool, error)
+	MockRegisterClientAsCaregiverFn         func(ctx context.Context, clientID string, caregiverNumber string) (*domain.CaregiverProfile, error)
 }
 
 // NewUserUseCaseMock creates in initializes create type mocks
@@ -127,6 +128,15 @@ func NewUserUseCaseMock() *UserUseCaseMock {
 			}, true
 		},
 		MockRegisterCaregiver: func(ctx context.Context, input dto.CaregiverInput) (*domain.CaregiverProfile, error) {
+			return &domain.CaregiverProfile{
+				ID: UUID,
+				User: domain.User{
+					ID: &UUID,
+				},
+				CaregiverNumber: gofakeit.SSN(),
+			}, nil
+		},
+		MockRegisterClientAsCaregiverFn: func(ctx context.Context, clientID, caregiverNumber string) (*domain.CaregiverProfile, error) {
 			return &domain.CaregiverProfile{
 				ID: UUID,
 				User: domain.User{
@@ -496,6 +506,11 @@ func (f *UserUseCaseMock) GetUserLinkedFacilities(ctx context.Context, userID st
 // AddFacilitiesToClientProfile mocks the implementation of adding facilities to a client profile
 func (f *UserUseCaseMock) AddFacilitiesToClientProfile(ctx context.Context, clientID string, facilities []string) (bool, error) {
 	return f.MockAddFacilitiesToClientProfileFn(ctx, clientID, facilities)
+}
+
+// RegisterClientAsCaregiver adds a caregiver profile to a client
+func (f *UserUseCaseMock) RegisterClientAsCaregiver(ctx context.Context, clientID string, caregiverNumber string) (*domain.CaregiverProfile, error) {
+	return f.MockRegisterClientAsCaregiverFn(ctx, clientID, caregiverNumber)
 }
 
 // RegisterCaregiver is used to register a caregiver

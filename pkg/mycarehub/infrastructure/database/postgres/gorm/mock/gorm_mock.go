@@ -169,6 +169,7 @@ type GormMock struct {
 	MockAddFacilitiesToClientProfileFn                   func(ctx context.Context, clientID string, facilities []string) error
 	MockGetNotificationsCountFn                          func(ctx context.Context, notification gorm.Notification) (int, error)
 	MockRegisterCaregiverFn                              func(ctx context.Context, user *gorm.User, contact *gorm.Contact, caregiver *gorm.Caregiver) error
+	MockCreateCaregiverFn                                func(ctx context.Context, caregiver *gorm.Caregiver) error
 	MockGetClientsSurveyCountFn                          func(ctx context.Context, userID string) (int, error)
 	MockSearchCaregiverUserFn                            func(ctx context.Context, searchParameter string) ([]*gorm.Caregiver, error)
 	MockRemoveFacilitiesFromClientProfileFn              func(ctx context.Context, clientID string, facilities []string) error
@@ -380,6 +381,9 @@ func NewGormMock() *GormMock {
 			}, nil
 		},
 		MockUpdateNotificationFn: func(ctx context.Context, notification *gorm.Notification, updateData map[string]interface{}) error {
+			return nil
+		},
+		MockCreateCaregiverFn: func(ctx context.Context, caregiver *gorm.Caregiver) error {
 			return nil
 		},
 		MockGetFacilityStaffsFn: func(ctx context.Context, facilityID string) ([]*gorm.StaffProfile, error) {
@@ -2155,6 +2159,11 @@ func (gm *GormMock) GetNotificationsCount(ctx context.Context, notification gorm
 // RegisterCaregiver registers a new caregiver
 func (gm *GormMock) RegisterCaregiver(ctx context.Context, user *gorm.User, contact *gorm.Contact, caregiver *gorm.Caregiver) error {
 	return gm.MockRegisterCaregiverFn(ctx, user, contact, caregiver)
+}
+
+// CreateCaregiver creates a caregiver record linked to a user
+func (gm *GormMock) CreateCaregiver(ctx context.Context, caregiver *gorm.Caregiver) error {
+	return gm.MockCreateCaregiverFn(ctx, caregiver)
 }
 
 // SearchCaregiverUser mocks the searching of caregiver user

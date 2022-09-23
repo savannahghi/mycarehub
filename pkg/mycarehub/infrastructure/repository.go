@@ -39,6 +39,7 @@ type Create interface {
 	SaveFeedback(ctx context.Context, payload *domain.FeedbackResponse) error
 	RegisterClient(ctx context.Context, payload *domain.ClientRegistrationPayload) (*domain.ClientProfile, error)
 	RegisterCaregiver(ctx context.Context, input *domain.CaregiverRegistration) (*domain.CaregiverProfile, error)
+	CreateCaregiver(ctx context.Context, caregiver domain.Caregiver) (*domain.Caregiver, error)
 	CreateScreeningTool(ctx context.Context, input *domain.ScreeningTool) error
 	CreateScreeningToolResponse(ctx context.Context, input *domain.QuestionnaireScreeningToolResponse) (*string, error)
 	AddCaregiverToClient(ctx context.Context, clientCaregiver *domain.CaregiverClient) error
