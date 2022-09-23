@@ -85,6 +85,7 @@ type IClientCaregiver interface {
 	AssignCaregiver(ctx context.Context, input dto.ClientCaregiverInput) (bool, error)
 	ListClientsCaregivers(ctx context.Context, clientID string, pagination *dto.PaginationsInput) (*dto.CaregiverProfileOutputPage, error)
 	ConsentToAClientCaregiver(ctx context.Context, clientID string, caregiverID string, consent bool) (bool, error)
+	ConsentToManagingClient(ctx context.Context, caregiverID string, clientID string, consent bool) (bool, error)
 }
 
 // ICaregiversClients is an interface that contains all the caregiver clients use cases
@@ -1872,6 +1873,26 @@ func (us *UseCasesUserImpl) ConsentToAClientCaregiver(ctx context.Context, clien
 	if err := us.Update.UpdateCaregiverClient(ctx, caregiverClient, updateData); err != nil {
 		helpers.ReportErrorToSentry(err)
 		return false, fmt.Errorf("failed to update client consent: %w", err)
+	}
+
+	return true, nil
+}
+
+// ConsentToManagingClient is used to update caregiver as having consented to offer their service to a caregiver
+func (us *UseCasesUserImpl) ConsentToManagingClient(ctx context.Context, caregiverID string, clientID string, consent bool) (bool, error) {
+	caregiverClient := &domain.CaregiverClient{
+		CaregiverID: caregiverID,
+		ClientID:    clientID,
+	}
+
+	updateData := map[string]interface{}{
+		"caregiver_consent":    consent,
+		"caregiver_consent_at": time.Now(),
+	}
+
+	if err := us.Update.UpdateCaregiverClient(ctx, caregiverClient, updateData); err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, err
 	}
 
 	return true, nil

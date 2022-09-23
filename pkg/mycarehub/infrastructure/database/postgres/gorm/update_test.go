@@ -1576,7 +1576,7 @@ func TestPGInstance_UpdateCaregiverClient(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "Happy case: update caregiver client",
+			name: "Happy case: update consent",
 			args: args{
 				ctx: context.Background(),
 				caregiverClient: &gorm.CaregiverClient{
@@ -1590,7 +1590,7 @@ func TestPGInstance_UpdateCaregiverClient(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "Sad case: unable to update caregiver client",
+			name: "Sad case: unable to update consent",
 			args: args{
 				ctx: context.Background(),
 				caregiverClient: &gorm.CaregiverClient{

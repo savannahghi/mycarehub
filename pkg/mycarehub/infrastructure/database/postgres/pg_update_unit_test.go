@@ -1875,7 +1875,7 @@ func TestMyCareHubDb_UpdateCaregiverClient(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "Happy case: update caregiver client",
+			name: "Happy case: update consent",
 			args: args{
 				ctx: context.Background(),
 				caregiverClient: &domain.CaregiverClient{
@@ -1890,7 +1890,7 @@ func TestMyCareHubDb_UpdateCaregiverClient(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "Sad case: unable to update caregiver client",
+			name: "Sad case: unable to update consent",
 			args: args{
 				ctx: context.Background(),
 				caregiverClient: &domain.CaregiverClient{
@@ -1910,9 +1910,9 @@ func TestMyCareHubDb_UpdateCaregiverClient(t *testing.T) {
 			fakeGorm := gormMock.NewGormMock()
 			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
 
-			if tt.name == "Sad case: unable to update caregiver client" {
+			if tt.name == "Sad case: unable to update consent" {
 				fakeGorm.MockUpdateCaregiverClientFn = func(ctx context.Context, caregiverClient *gorm.CaregiverClient, updates map[string]interface{}) error {
-					return fmt.Errorf("unable to update caregiver client")
+					return fmt.Errorf("unable to update caregiver consent")
 				}
 			}
 			if err := d.UpdateCaregiverClient(tt.args.ctx, tt.args.caregiverClient, tt.args.updateData); (err != nil) != tt.wantErr {
