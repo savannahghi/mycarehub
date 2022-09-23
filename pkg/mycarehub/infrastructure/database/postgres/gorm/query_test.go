@@ -5159,3 +5159,88 @@ func TestPGInstance_GetCaregiverManagedClients(t *testing.T) {
 		})
 	}
 }
+
+func TestPGInstance_GetCaregiverProfileByCaregiverID(t *testing.T) {
+	type args struct {
+		ctx         context.Context
+		caregiverID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "happy case: get caregiver profile by caregiver id",
+			args: args{
+				ctx:         context.Background(),
+				caregiverID: testCaregiverID,
+			},
+			wantErr: false,
+		},
+		{
+			name: "sad case: unable to get caregiver profile by caregiver id",
+			args: args{
+				ctx:         context.Background(),
+				caregiverID: "testCaregiverID",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := testingDB.GetCaregiverProfileByCaregiverID(tt.args.ctx, tt.args.caregiverID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.GetCaregiverProfileByCaregiverID() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}
+
+func TestPGInstance_ListClientsCaregivers(t *testing.T) {
+	type args struct {
+		ctx        context.Context
+		clientID   string
+		pagination *domain.Pagination
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "happy case: list clients caregivers",
+			args: args{
+				ctx:      context.Background(),
+				clientID: clientID,
+				pagination: &domain.Pagination{
+					Limit:       10,
+					CurrentPage: 1,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "sad case: unable to list clients caregivers",
+			args: args{
+				ctx:      context.Background(),
+				clientID: "clientID",
+				pagination: &domain.Pagination{
+					Limit:       10,
+					CurrentPage: 1,
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, _, err := testingDB.ListClientsCaregivers(tt.args.ctx, tt.args.clientID, tt.args.pagination)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.ListClientsCaregivers() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}

@@ -108,10 +108,20 @@ type ComplexityRoot struct {
 		User            func(childComplexity int) int
 	}
 
+	CaregiverProfileOutputPage struct {
+		ClientCaregivers func(childComplexity int) int
+		Pagination       func(childComplexity int) int
+	}
+
 	CategoryDetail struct {
 		CategoryIcon func(childComplexity int) int
 		CategoryName func(childComplexity int) int
 		ID           func(childComplexity int) int
+	}
+
+	ClientCaregivers struct {
+		Caregivers func(childComplexity int) int
+		Consented  func(childComplexity int) int
 	}
 
 	ClientHealthDiaryEntry struct {
@@ -551,6 +561,7 @@ type ComplexityRoot struct {
 		GetUserRoles                            func(childComplexity int, userID string) int
 		GetUserSurveyForms                      func(childComplexity int, userID string) int
 		InviteMembersToCommunity                func(childComplexity int, communityID string, memberIDs []string) int
+		ListClientsCaregivers                   func(childComplexity int, clientID string, paginationInput *dto.PaginationsInput) int
 		ListCommunities                         func(childComplexity int, input *stream_chat.QueryOption) int
 		ListCommunityBannedMembers              func(childComplexity int, communityID string) int
 		ListCommunityMembers                    func(childComplexity int, communityID string, input *stream_chat.QueryOption) int
@@ -987,6 +998,7 @@ type QueryResolver interface {
 	GetClientProfileByCCCNumber(ctx context.Context, cCCNumber string) (*domain.ClientProfile, error)
 	GetUserLinkedFacilities(ctx context.Context, userID string, paginationInput dto.PaginationsInput) (*dto.FacilityOutputPage, error)
 	GetCaregiverManagedClients(ctx context.Context, caregiverID string, paginationInput dto.PaginationsInput) (*dto.ManagedClientOutputPage, error)
+	ListClientsCaregivers(ctx context.Context, clientID string, paginationInput *dto.PaginationsInput) (*dto.CaregiverProfileOutputPage, error)
 }
 
 type executableSchema struct {
@@ -1200,6 +1212,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.CaregiverProfile.User(childComplexity), true
 
+	case "CaregiverProfileOutputPage.clientCaregivers":
+		if e.complexity.CaregiverProfileOutputPage.ClientCaregivers == nil {
+			break
+		}
+
+		return e.complexity.CaregiverProfileOutputPage.ClientCaregivers(childComplexity), true
+
+	case "CaregiverProfileOutputPage.pagination":
+		if e.complexity.CaregiverProfileOutputPage.Pagination == nil {
+			break
+		}
+
+		return e.complexity.CaregiverProfileOutputPage.Pagination(childComplexity), true
+
 	case "CategoryDetail.categoryIcon":
 		if e.complexity.CategoryDetail.CategoryIcon == nil {
 			break
@@ -1220,6 +1246,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.CategoryDetail.ID(childComplexity), true
+
+	case "ClientCaregivers.caregivers":
+		if e.complexity.ClientCaregivers.Caregivers == nil {
+			break
+		}
+
+		return e.complexity.ClientCaregivers.Caregivers(childComplexity), true
+
+	case "ClientCaregivers.consented":
+		if e.complexity.ClientCaregivers.Consented == nil {
+			break
+		}
+
+		return e.complexity.ClientCaregivers.Consented(childComplexity), true
 
 	case "ClientHealthDiaryEntry.active":
 		if e.complexity.ClientHealthDiaryEntry.Active == nil {
@@ -3928,6 +3968,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.InviteMembersToCommunity(childComplexity, args["communityID"].(string), args["memberIDs"].([]string)), true
+
+	case "Query.listClientsCaregivers":
+		if e.complexity.Query.ListClientsCaregivers == nil {
+			break
+		}
+
+		args, err := ec.field_Query_listClientsCaregivers_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.ListClientsCaregivers(childComplexity, args["clientID"].(string), args["paginationInput"].(*dto.PaginationsInput)), true
 
 	case "Query.listCommunities":
 		if e.complexity.Query.ListCommunities == nil {
@@ -6882,7 +6934,6 @@ type FacilityOutputPage {
   Facilities: [Facility]!
 }
 
-
 type ManagedClient {
 	clientProfile: ClientProfile 
 	caregiverConsent: Boolean
@@ -6892,6 +6943,15 @@ type ManagedClient {
 type ManagedClientOutputPage{
 	pagination: Pagination 
 	ManagedClients: [ManagedClient]!
+}
+type CaregiverProfileOutputPage {
+  pagination: Pagination!
+  clientCaregivers: ClientCaregivers!
+}
+
+type ClientCaregivers {
+	caregivers: [CaregiverProfile]!
+	consented: Boolean!
 }
 `, BuiltIn: false},
 	{Name: "../user.graphql", Input: `extend type Query {
@@ -6903,6 +6963,7 @@ type ManagedClientOutputPage{
   getClientProfileByCCCNumber(CCCNumber: String!): ClientProfile!
   getUserLinkedFacilities(userID: ID! paginationInput: PaginationsInput!): FacilityOutputPage
   getCaregiverManagedClients(caregiverID: ID!, paginationInput: PaginationsInput!): ManagedClientOutputPage
+  listClientsCaregivers(clientID: String!, paginationInput: PaginationsInput): CaregiverProfileOutputPage
 }
 
 extend type Mutation {
@@ -9119,6 +9180,30 @@ func (ec *executionContext) field_Query_inviteMembersToCommunity_args(ctx contex
 	return args, nil
 }
 
+func (ec *executionContext) field_Query_listClientsCaregivers_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["clientID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clientID"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["clientID"] = arg0
+	var arg1 *dto.PaginationsInput
+	if tmp, ok := rawArgs["paginationInput"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("paginationInput"))
+		arg1, err = ec.unmarshalOPaginationsInput2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐPaginationsInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["paginationInput"] = arg1
+	return args, nil
+}
+
 func (ec *executionContext) field_Query_listCommunities_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -10838,6 +10923,114 @@ func (ec *executionContext) fieldContext_CaregiverProfile_caregiverNumber(ctx co
 	return fc, nil
 }
 
+func (ec *executionContext) _CaregiverProfileOutputPage_pagination(ctx context.Context, field graphql.CollectedField, obj *dto.CaregiverProfileOutputPage) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CaregiverProfileOutputPage_pagination(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Pagination, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*domain.Pagination)
+	fc.Result = res
+	return ec.marshalNPagination2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐPagination(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CaregiverProfileOutputPage_pagination(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CaregiverProfileOutputPage",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "Limit":
+				return ec.fieldContext_Pagination_Limit(ctx, field)
+			case "CurrentPage":
+				return ec.fieldContext_Pagination_CurrentPage(ctx, field)
+			case "Count":
+				return ec.fieldContext_Pagination_Count(ctx, field)
+			case "TotalPages":
+				return ec.fieldContext_Pagination_TotalPages(ctx, field)
+			case "NextPage":
+				return ec.fieldContext_Pagination_NextPage(ctx, field)
+			case "PreviousPage":
+				return ec.fieldContext_Pagination_PreviousPage(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Pagination", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CaregiverProfileOutputPage_clientCaregivers(ctx context.Context, field graphql.CollectedField, obj *dto.CaregiverProfileOutputPage) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CaregiverProfileOutputPage_clientCaregivers(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ClientCaregivers, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*domain.ClientCaregivers)
+	fc.Result = res
+	return ec.marshalNClientCaregivers2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐClientCaregivers(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CaregiverProfileOutputPage_clientCaregivers(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CaregiverProfileOutputPage",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "caregivers":
+				return ec.fieldContext_ClientCaregivers_caregivers(ctx, field)
+			case "consented":
+				return ec.fieldContext_ClientCaregivers_consented(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ClientCaregivers", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _CategoryDetail_ID(ctx context.Context, field graphql.CollectedField, obj *domain.CategoryDetail) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_CategoryDetail_ID(ctx, field)
 	if err != nil {
@@ -10965,6 +11158,102 @@ func (ec *executionContext) fieldContext_CategoryDetail_categoryIcon(ctx context
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ClientCaregivers_caregivers(ctx context.Context, field graphql.CollectedField, obj *domain.ClientCaregivers) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ClientCaregivers_caregivers(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Caregivers, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*domain.CaregiverProfile)
+	fc.Result = res
+	return ec.marshalNCaregiverProfile2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐCaregiverProfile(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ClientCaregivers_caregivers(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ClientCaregivers",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_CaregiverProfile_id(ctx, field)
+			case "user":
+				return ec.fieldContext_CaregiverProfile_user(ctx, field)
+			case "caregiverNumber":
+				return ec.fieldContext_CaregiverProfile_caregiverNumber(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CaregiverProfile", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ClientCaregivers_consented(ctx context.Context, field graphql.CollectedField, obj *domain.ClientCaregivers) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ClientCaregivers_consented(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Consented, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ClientCaregivers_consented(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ClientCaregivers",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
 		},
 	}
 	return fc, nil
@@ -28230,6 +28519,64 @@ func (ec *executionContext) fieldContext_Query_getCaregiverManagedClients(ctx co
 	return fc, nil
 }
 
+func (ec *executionContext) _Query_listClientsCaregivers(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_listClientsCaregivers(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().ListClientsCaregivers(rctx, fc.Args["clientID"].(string), fc.Args["paginationInput"].(*dto.PaginationsInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*dto.CaregiverProfileOutputPage)
+	fc.Result = res
+	return ec.marshalOCaregiverProfileOutputPage2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐCaregiverProfileOutputPage(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_listClientsCaregivers(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "pagination":
+				return ec.fieldContext_CaregiverProfileOutputPage_pagination(ctx, field)
+			case "clientCaregivers":
+				return ec.fieldContext_CaregiverProfileOutputPage_clientCaregivers(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CaregiverProfileOutputPage", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_listClientsCaregivers_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query__service(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query__service(ctx, field)
 	if err != nil {
@@ -40181,6 +40528,41 @@ func (ec *executionContext) _CaregiverProfile(ctx context.Context, sel ast.Selec
 	return out
 }
 
+var caregiverProfileOutputPageImplementors = []string{"CaregiverProfileOutputPage"}
+
+func (ec *executionContext) _CaregiverProfileOutputPage(ctx context.Context, sel ast.SelectionSet, obj *dto.CaregiverProfileOutputPage) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, caregiverProfileOutputPageImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("CaregiverProfileOutputPage")
+		case "pagination":
+
+			out.Values[i] = ec._CaregiverProfileOutputPage_pagination(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "clientCaregivers":
+
+			out.Values[i] = ec._CaregiverProfileOutputPage_clientCaregivers(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var categoryDetailImplementors = []string{"CategoryDetail"}
 
 func (ec *executionContext) _CategoryDetail(ctx context.Context, sel ast.SelectionSet, obj *domain.CategoryDetail) graphql.Marshaler {
@@ -40208,6 +40590,41 @@ func (ec *executionContext) _CategoryDetail(ctx context.Context, sel ast.Selecti
 		case "categoryIcon":
 
 			out.Values[i] = ec._CategoryDetail_categoryIcon(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var clientCaregiversImplementors = []string{"ClientCaregivers"}
+
+func (ec *executionContext) _ClientCaregivers(ctx context.Context, sel ast.SelectionSet, obj *domain.ClientCaregivers) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, clientCaregiversImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ClientCaregivers")
+		case "caregivers":
+
+			out.Values[i] = ec._ClientCaregivers_caregivers(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "consented":
+
+			out.Values[i] = ec._ClientCaregivers_consented(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
@@ -44047,6 +44464,26 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Concurrently(i, func() graphql.Marshaler {
 				return rrm(innerCtx)
 			})
+		case "listClientsCaregivers":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_listClientsCaregivers(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
 		case "_service":
 			field := field
 
@@ -46413,6 +46850,44 @@ func (ec *executionContext) marshalNCaregiverProfile2githubᚗcomᚋsavannahghi�
 	return ec._CaregiverProfile(ctx, sel, &v)
 }
 
+func (ec *executionContext) marshalNCaregiverProfile2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐCaregiverProfile(ctx context.Context, sel ast.SelectionSet, v []*domain.CaregiverProfile) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOCaregiverProfile2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐCaregiverProfile(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	return ret
+}
+
 func (ec *executionContext) marshalNCaregiverProfile2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐCaregiverProfile(ctx context.Context, sel ast.SelectionSet, v *domain.CaregiverProfile) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
@@ -46436,6 +46911,16 @@ func (ec *executionContext) marshalNCaregiverType2githubᚗcomᚋsavannahghiᚋm
 func (ec *executionContext) unmarshalNClientCaregiverInput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐClientCaregiverInput(ctx context.Context, v interface{}) (dto.ClientCaregiverInput, error) {
 	res, err := ec.unmarshalInputClientCaregiverInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNClientCaregivers2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐClientCaregivers(ctx context.Context, sel ast.SelectionSet, v *domain.ClientCaregivers) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._ClientCaregivers(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNClientHealthDiaryEntry2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐClientHealthDiaryEntry(ctx context.Context, sel ast.SelectionSet, v []*domain.ClientHealthDiaryEntry) graphql.Marshaler {
@@ -48947,6 +49432,20 @@ func (ec *executionContext) marshalOCaregiverProfile2ᚕᚖgithubᚗcomᚋsavann
 	return ret
 }
 
+func (ec *executionContext) marshalOCaregiverProfile2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐCaregiverProfile(ctx context.Context, sel ast.SelectionSet, v *domain.CaregiverProfile) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._CaregiverProfile(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOCaregiverProfileOutputPage2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐCaregiverProfileOutputPage(ctx context.Context, sel ast.SelectionSet, v *dto.CaregiverProfileOutputPage) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._CaregiverProfileOutputPage(ctx, sel, v)
+}
+
 func (ec *executionContext) marshalOCategoryDetail2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐCategoryDetail(ctx context.Context, sel ast.SelectionSet, v domain.CategoryDetail) graphql.Marshaler {
 	return ec._CategoryDetail(ctx, sel, &v)
 }
@@ -50120,6 +50619,14 @@ func (ec *executionContext) marshalOPagination2ᚖgithubᚗcomᚋsavannahghiᚋm
 		return graphql.Null
 	}
 	return ec._Pagination(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOPaginationsInput2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐPaginationsInput(ctx context.Context, v interface{}) (*dto.PaginationsInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputPaginationsInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalOQueryOption2ᚖgithubᚗcomᚋGetStreamᚋstreamᚑchatᚑgoᚋv5ᚐQueryOption(ctx context.Context, v interface{}) (*stream_chat.QueryOption, error) {

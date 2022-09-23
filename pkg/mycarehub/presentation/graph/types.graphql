@@ -679,7 +679,6 @@ type FacilityOutputPage {
   Facilities: [Facility]!
 }
 
-
 type ManagedClient {
 	clientProfile: ClientProfile 
 	caregiverConsent: Boolean
@@ -689,4 +688,13 @@ type ManagedClient {
 type ManagedClientOutputPage{
 	pagination: Pagination 
 	ManagedClients: [ManagedClient]!
+}
+type CaregiverProfileOutputPage {
+  pagination: Pagination!
+  clientCaregivers: ClientCaregivers!
+}
+
+type ClientCaregivers {
+	caregivers: [CaregiverProfile]!
+	consented: Boolean!
 }

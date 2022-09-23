@@ -1328,6 +1328,7 @@ type Caregiver struct {
 
 	OrganisationID string `gorm:"column:organisation_id;not null"`
 	UserID         string `gorm:"column:user_id"`
+	UserProfile    User   `gorm:"ForeignKey:user_id;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;not null"`
 }
 
 // BeforeCreate is a hook run before creating a caregiver

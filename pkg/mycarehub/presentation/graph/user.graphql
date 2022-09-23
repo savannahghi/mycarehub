@@ -7,6 +7,7 @@ extend type Query {
   getClientProfileByCCCNumber(CCCNumber: String!): ClientProfile!
   getUserLinkedFacilities(userID: ID! paginationInput: PaginationsInput!): FacilityOutputPage
   getCaregiverManagedClients(caregiverID: ID!, paginationInput: PaginationsInput!): ManagedClientOutputPage
+  listClientsCaregivers(clientID: String!, paginationInput: PaginationsInput): CaregiverProfileOutputPage
 }
 
 extend type Mutation {

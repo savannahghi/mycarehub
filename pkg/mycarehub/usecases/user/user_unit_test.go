@@ -5718,7 +5718,6 @@ func TestUseCasesUserImpl_RemoveFacilitiesFromStaffProfile(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-
 			fakeDB := pgMock.NewPostgresMock()
 			fakeExtension := extensionMock.NewFakeExtension()
 			fakeOTP := otpMock.NewOTPUseCaseMock()
@@ -5827,6 +5826,73 @@ func TestUseCasesUserImpl_GetCaregiverManagedClients(t *testing.T) {
 			}
 			if !tt.wantErr && got == nil {
 				t.Errorf("did not expect error, got: %v", err)
+			}
+		})
+	}
+}
+
+func TestUseCasesUserImpl_ListClientsCaregivers(t *testing.T) {
+	type args struct {
+		ctx        context.Context
+		clientID   string
+		pagination *dto.PaginationsInput
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *dto.CaregiverProfileOutputPage
+		wantErr bool
+	}{
+		{
+			name: "Happy Case: list clients caregivers",
+			args: args{
+				ctx:      context.Background(),
+				clientID: uuid.NewString(),
+				pagination: &dto.PaginationsInput{
+					Limit:       10,
+					CurrentPage: 1,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad Case: unable to list clients caregivers",
+			args: args{
+				ctx:      context.Background(),
+				clientID: uuid.NewString(),
+				pagination: &dto.PaginationsInput{
+					Limit:       10,
+					CurrentPage: 1,
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			fakeExtension := extensionMock.NewFakeExtension()
+			fakeOTP := otpMock.NewOTPUseCaseMock()
+			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
+			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
+			fakePubsub := pubsubMock.NewPubsubServiceMock()
+			fakeClinical := clinicalMock.NewClinicalServiceMock()
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakeGetStream, fakePubsub, fakeClinical)
+
+			if tt.name == "Sad Case: unable to list clients caregivers" {
+				fakeDB.MockListClientsCaregiversFn = func(ctx context.Context, clientID string, pagination *domain.Pagination) (*domain.ClientCaregivers, *domain.Pagination, error) {
+					return nil, nil, fmt.Errorf("unable to list clients caregivers")
+				}
+			}
+			got, err := us.ListClientsCaregivers(tt.args.ctx, tt.args.clientID, tt.args.pagination)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCasesUserImpl.ListClientsCaregivers() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected a response but got %v", got)
+				return
 			}
 		})
 	}

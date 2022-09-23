@@ -42,3 +42,9 @@ type ManagedClient struct {
 	CaregiverConsent *bool          `json:"caregiverConsent"`
 	ClientConsent    *bool          `json:"clientConsent"`
 }
+
+// ClientCaregivers is the model that holds the client's caregivers
+type ClientCaregivers struct {
+	Caregivers []*CaregiverProfile `json:"caregivers"`
+	Consented  bool                `json:"consent"`
+}
