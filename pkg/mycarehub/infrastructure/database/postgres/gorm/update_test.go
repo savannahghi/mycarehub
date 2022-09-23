@@ -1563,3 +1563,52 @@ func TestPGInstance_AddFacilitiesToClientProfile(t *testing.T) {
 		})
 	}
 }
+
+func TestPGInstance_UpdateCaregiverClient(t *testing.T) {
+	type args struct {
+		ctx             context.Context
+		caregiverClient *gorm.CaregiverClient
+		updateData      map[string]interface{}
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: update caregiver client",
+			args: args{
+				ctx: context.Background(),
+				caregiverClient: &gorm.CaregiverClient{
+					ClientID: clientID,
+				},
+				updateData: map[string]interface{}{
+					"client_consent":    true,
+					"client_consent_at": time.Now(),
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: unable to update caregiver client",
+			args: args{
+				ctx: context.Background(),
+				caregiverClient: &gorm.CaregiverClient{
+					ClientID: "clientID",
+				},
+				updateData: map[string]interface{}{
+					"client_consent":    true,
+					"client_consent_at": time.Now(),
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := testingDB.UpdateCaregiverClient(tt.args.ctx, tt.args.caregiverClient, tt.args.updateData); (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.UpdateCaregiverClient() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}

@@ -1862,3 +1862,62 @@ func TestMyCareHubDb_RemoveFacilitiesFromStaffProfile(t *testing.T) {
 		})
 	}
 }
+
+func TestMyCareHubDb_UpdateCaregiverClient(t *testing.T) {
+	type args struct {
+		ctx             context.Context
+		caregiverClient *domain.CaregiverClient
+		updateData      map[string]interface{}
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: update caregiver client",
+			args: args{
+				ctx: context.Background(),
+				caregiverClient: &domain.CaregiverClient{
+					CaregiverID: uuid.NewString(),
+					ClientID:    uuid.NewString(),
+				},
+				updateData: map[string]interface{}{
+					"caregiver_consent_at": time.Now(),
+					"caregiver_consent":    true,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: unable to update caregiver client",
+			args: args{
+				ctx: context.Background(),
+				caregiverClient: &domain.CaregiverClient{
+					CaregiverID: uuid.NewString(),
+					ClientID:    uuid.NewString(),
+				},
+				updateData: map[string]interface{}{
+					"caregiver_consent_at": time.Now(),
+					"caregiver_consent":    true,
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeGorm := gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			if tt.name == "Sad case: unable to update caregiver client" {
+				fakeGorm.MockUpdateCaregiverClientFn = func(ctx context.Context, caregiverClient *gorm.CaregiverClient, updates map[string]interface{}) error {
+					return fmt.Errorf("unable to update caregiver client")
+				}
+			}
+			if err := d.UpdateCaregiverClient(tt.args.ctx, tt.args.caregiverClient, tt.args.updateData); (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.UpdateCaregiverClient() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}

@@ -39,6 +39,7 @@ type Update interface {
 	UpdateStaff(ctx context.Context, staff *StaffProfile, updates map[string]interface{}) (*StaffProfile, error)
 	AddFacilitiesToStaffProfile(ctx context.Context, staffID string, facilities []string) error
 	AddFacilitiesToClientProfile(ctx context.Context, clientID string, facilities []string) error
+	UpdateCaregiverClient(ctx context.Context, caregiverClient *CaregiverClient, updateData map[string]interface{}) error
 }
 
 // ReactivateFacility performs the actual re-activation of the facility in the database
@@ -684,6 +685,16 @@ func (db *PGInstance) AddFacilitiesToClientProfile(ctx context.Context, clientID
 		helpers.ReportErrorToSentry(err)
 		tx.Rollback()
 		return fmt.Errorf("failed to commit add clients to facilities transaction: %w", err)
+	}
+
+	return nil
+}
+
+// UpdateCaregiverClient updates details for a particular caregiver client
+func (db *PGInstance) UpdateCaregiverClient(ctx context.Context, caregiverClient *CaregiverClient, updateData map[string]interface{}) error {
+	err := db.DB.Model(&caregiverClient).Where(&caregiverClient).Updates(updateData).Error
+	if err != nil {
+		return fmt.Errorf("failed to update caregiver client: %v", err)
 	}
 
 	return nil

@@ -84,6 +84,7 @@ type IClientCaregiver interface {
 	TransferClientToFacility(ctx context.Context, clientID *string, facilityID *string) (bool, error)
 	AssignCaregiver(ctx context.Context, input dto.ClientCaregiverInput) (bool, error)
 	ListClientsCaregivers(ctx context.Context, clientID string, pagination *dto.PaginationsInput) (*dto.CaregiverProfileOutputPage, error)
+	ConsentToAClientCaregiver(ctx context.Context, clientID string, caregiverID string, consent bool) (bool, error)
 }
 
 // ICaregiversClients is an interface that contains all the caregiver clients use cases
@@ -1854,4 +1855,24 @@ func (us *UseCasesUserImpl) ListClientsCaregivers(ctx context.Context, clientID 
 		Pagination:       pageInfo,
 		ClientCaregivers: caregivers,
 	}, nil
+}
+
+// ConsentToAClientCaregiver is used to mark whether the client has acknowledged to having a certain caregiver assigned to them
+func (us *UseCasesUserImpl) ConsentToAClientCaregiver(ctx context.Context, clientID string, caregiverID string, consent bool) (bool, error) {
+	caregiverClient := &domain.CaregiverClient{
+		ClientID:    clientID,
+		CaregiverID: caregiverID,
+	}
+
+	updateData := map[string]interface{}{
+		"client_consent":    consent,
+		"client_consent_at": time.Now(),
+	}
+
+	if err := us.Update.UpdateCaregiverClient(ctx, caregiverClient, updateData); err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, fmt.Errorf("failed to update client consent: %w", err)
+	}
+
+	return true, nil
 }

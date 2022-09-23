@@ -35,4 +35,5 @@ extend type Mutation {
   removeFacilitiesFromClientProfile(clientID: ID!, facilities: [ID!]!): Boolean!
   assignCaregiver(input: ClientCaregiverInput!): Boolean!
   removeFacilitiesFromStaffProfile(staffID: ID!, facilities: [ID!]!): Boolean!
+  consentToAClientCaregiver(clientID: ID!, caregiverID: ID!, consent: Boolean!): Boolean!
 }

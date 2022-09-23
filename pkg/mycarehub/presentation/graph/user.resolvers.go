@@ -90,6 +90,10 @@ func (r *mutationResolver) RemoveFacilitiesFromStaffProfile(ctx context.Context,
 	return r.mycarehub.User.RemoveFacilitiesFromStaffProfile(ctx, staffID, facilities)
 }
 
+func (r *mutationResolver) ConsentToAClientCaregiver(ctx context.Context, clientID string, caregiverID string, consent bool) (bool, error) {
+	return r.mycarehub.User.ConsentToAClientCaregiver(ctx, clientID, caregiverID, consent)
+}
+
 func (r *queryResolver) GetCurrentTerms(ctx context.Context, flavour feedlib.Flavour) (*domain.TermsOfService, error) {
 	r.checkPreconditions()
 	return r.mycarehub.Terms.GetCurrentTerms(ctx, flavour)

@@ -443,6 +443,7 @@ type ComplexityRoot struct {
 		BookmarkContent                    func(childComplexity int, userID string, contentItemID int) int
 		CollectMetric                      func(childComplexity int, input domain.Metric) int
 		CompleteOnboardingTour             func(childComplexity int, userID string, flavour feedlib.Flavour) int
+		ConsentToAClientCaregiver          func(childComplexity int, clientID string, caregiverID string, consent bool) int
 		CreateCommunity                    func(childComplexity int, input dto.CommunityInput) int
 		CreateFacility                     func(childComplexity int, input dto.FacilityInput) int
 		CreateHealthDiaryEntry             func(childComplexity int, clientID string, note *string, mood string, reportToStaff bool) int
@@ -939,6 +940,7 @@ type MutationResolver interface {
 	RemoveFacilitiesFromClientProfile(ctx context.Context, clientID string, facilities []string) (bool, error)
 	AssignCaregiver(ctx context.Context, input dto.ClientCaregiverInput) (bool, error)
 	RemoveFacilitiesFromStaffProfile(ctx context.Context, staffID string, facilities []string) (bool, error)
+	ConsentToAClientCaregiver(ctx context.Context, clientID string, caregiverID string, consent bool) (bool, error)
 }
 type QueryResolver interface {
 	FetchClientAppointments(ctx context.Context, clientID string, paginationInput dto.PaginationsInput, filters []*firebasetools.FilterParam) (*domain.AppointmentsPage, error)
@@ -2863,6 +2865,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.CompleteOnboardingTour(childComplexity, args["userID"].(string), args["flavour"].(feedlib.Flavour)), true
+
+	case "Mutation.consentToAClientCaregiver":
+		if e.complexity.Mutation.ConsentToAClientCaregiver == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_consentToAClientCaregiver_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.ConsentToAClientCaregiver(childComplexity, args["clientID"].(string), args["caregiverID"].(string), args["consent"].(bool)), true
 
 	case "Mutation.createCommunity":
 		if e.complexity.Mutation.CreateCommunity == nil {
@@ -6991,6 +7005,7 @@ extend type Mutation {
   removeFacilitiesFromClientProfile(clientID: ID!, facilities: [ID!]!): Boolean!
   assignCaregiver(input: ClientCaregiverInput!): Boolean!
   removeFacilitiesFromStaffProfile(staffID: ID!, facilities: [ID!]!): Boolean!
+  consentToAClientCaregiver(clientID: ID!, caregiverID: ID!, consent: Boolean!): Boolean!
 }
 `, BuiltIn: false},
 	{Name: "../../../../../federation/directives.graphql", Input: `
@@ -7359,6 +7374,39 @@ func (ec *executionContext) field_Mutation_completeOnboardingTour_args(ctx conte
 		}
 	}
 	args["flavour"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_consentToAClientCaregiver_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["clientID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clientID"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["clientID"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["caregiverID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("caregiverID"))
+		arg1, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["caregiverID"] = arg1
+	var arg2 bool
+	if tmp, ok := rawArgs["consent"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("consent"))
+		arg2, err = ec.unmarshalNBoolean2bool(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["consent"] = arg2
 	return args, nil
 }
 
@@ -23989,6 +24037,61 @@ func (ec *executionContext) fieldContext_Mutation_removeFacilitiesFromStaffProfi
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_removeFacilitiesFromStaffProfile_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_consentToAClientCaregiver(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_consentToAClientCaregiver(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().ConsentToAClientCaregiver(rctx, fc.Args["clientID"].(string), fc.Args["caregiverID"].(string), fc.Args["consent"].(bool))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_consentToAClientCaregiver(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_consentToAClientCaregiver_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -43010,6 +43113,15 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_removeFacilitiesFromStaffProfile(ctx, field)
+			})
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "consentToAClientCaregiver":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_consentToAClientCaregiver(ctx, field)
 			})
 
 			if out.Values[i] == graphql.Null {

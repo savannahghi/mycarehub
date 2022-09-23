@@ -317,3 +317,13 @@ func (d *MyCareHubDb) AddFacilitiesToStaffProfile(ctx context.Context, staffID s
 func (d *MyCareHubDb) AddFacilitiesToClientProfile(ctx context.Context, clientID string, facilities []string) error {
 	return d.update.AddFacilitiesToClientProfile(ctx, clientID, facilities)
 }
+
+// UpdateCaregiverClient updates the caregiver client details for either the caregiver or client.
+func (d *MyCareHubDb) UpdateCaregiverClient(ctx context.Context, caregiverClient *domain.CaregiverClient, updateData map[string]interface{}) error {
+	gormCaregiverClient := &gorm.CaregiverClient{
+		ClientID:    caregiverClient.ClientID,
+		CaregiverID: caregiverClient.CaregiverID,
+	}
+
+	return d.update.UpdateCaregiverClient(ctx, gormCaregiverClient, updateData)
+}
