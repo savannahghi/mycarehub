@@ -6930,3 +6930,115 @@ func TestMyCareHubDb_SearchCaregiverUser(t *testing.T) {
 		})
 	}
 }
+
+func TestMyCareHubDb_GetCaregiverManagedClients(t *testing.T) {
+	type args struct {
+		ctx         context.Context
+		caregiverID string
+		pagination  *domain.Pagination
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy Case: get caregiver's clients",
+			args: args{
+				ctx:         context.Background(),
+				caregiverID: uuid.NewString(),
+				pagination: &domain.Pagination{
+					Limit:       10,
+					CurrentPage: 1,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad Case: failed to get caregiver's clients",
+			args: args{
+				ctx:         context.Background(),
+				caregiverID: uuid.NewString(),
+				pagination: &domain.Pagination{
+					Limit:       10,
+					CurrentPage: 1,
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad Case: failed to get user profile by user id",
+			args: args{
+				ctx:         context.Background(),
+				caregiverID: uuid.NewString(),
+				pagination: &domain.Pagination{
+					Limit:       10,
+					CurrentPage: 1,
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad Case: failed to get client facilities",
+			args: args{
+				ctx:         context.Background(),
+				caregiverID: uuid.NewString(),
+				pagination: &domain.Pagination{
+					Limit:       10,
+					CurrentPage: 1,
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad Case: failed to get caregiver cclient association",
+			args: args{
+				ctx:         context.Background(),
+				caregiverID: uuid.NewString(),
+				pagination: &domain.Pagination{
+					Limit:       10,
+					CurrentPage: 1,
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeGorm := gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			if tt.name == "Sad Case: failed to get caregiver's clients" {
+				fakeGorm.MockGetCaregiverManagedClientsFn = func(ctx context.Context, caregiverID string, pagination *domain.Pagination) ([]*gorm.Client, *domain.Pagination, error) {
+					return nil, nil, fmt.Errorf("failed to get caregivers's client")
+				}
+			}
+
+			if tt.name == "Sad Case: failed to get user profile by user id" {
+				fakeGorm.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID *string) (*gorm.User, error) {
+					return nil, fmt.Errorf("failed to get user profile by user ID")
+				}
+			}
+
+			if tt.name == "Sad Case: failed to get client facilities" {
+				fakeGorm.MockGetClientFacilitiesFn = func(ctx context.Context, clientFacility gorm.ClientFacilities, pagination *domain.Pagination) ([]*gorm.ClientFacilities, *domain.Pagination, error) {
+					return nil, nil, fmt.Errorf("failed to get client facilities")
+				}
+			}
+
+			if tt.name == "Sad Case: failed to get caregiver cclient association" {
+				fakeGorm.MockGetCaregiversClientFn = func(ctx context.Context, caregiverClient gorm.CaregiverClient) ([]*gorm.CaregiverClient, error) {
+					return nil, fmt.Errorf("failed to get client's caregivers")
+				}
+			}
+			got, _, err := d.GetCaregiverManagedClients(tt.args.ctx, tt.args.caregiverID, tt.args.pagination)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.GetCaregiverManagedClients() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("did not expect error, got: %v", err)
+			}
+		})
+	}
+}

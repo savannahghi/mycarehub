@@ -175,6 +175,8 @@ type GormMock struct {
 	MockRemoveFacilitiesFromClientProfileFn              func(ctx context.Context, clientID string, facilities []string) error
 	MockAddCaregiverToClientFn                           func(ctx context.Context, clientCaregiver *gorm.CaregiverClient) error
 	MockRemoveFacilitiesFromStaffProfileFn               func(ctx context.Context, staffID string, facilities []string) error
+	MockGetCaregiverManagedClientsFn                     func(ctx context.Context, caregiverID string, pagination *domain.Pagination) ([]*gorm.Client, *domain.Pagination, error)
+	MockGetCaregiversClientFn                            func(ctx context.Context, caregiverClient gorm.CaregiverClient) ([]*gorm.CaregiverClient, error)
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -356,6 +358,19 @@ func NewGormMock() *GormMock {
 			ResolvedAt:     &laterTime,
 			ResolvedByID:   &UUID,
 			Meta:           `{"formID": "test", "projectID": 1, "submitterID": 1, "surveyName": "test"}`,
+		},
+	}
+
+	paginationOutput := &domain.Pagination{
+		Limit:        10,
+		CurrentPage:  1,
+		Count:        1,
+		TotalPages:   1,
+		NextPage:     nil,
+		PreviousPage: nil,
+		Sort: &domain.SortParam{
+			Field:     "id",
+			Direction: enums.SortDataTypeDesc,
 		},
 	}
 
@@ -1418,6 +1433,25 @@ func NewGormMock() *GormMock {
 		MockRemoveFacilitiesFromStaffProfileFn: func(ctx context.Context, staffID string, facilities []string) error {
 			return nil
 		},
+		MockGetCaregiverManagedClientsFn: func(ctx context.Context, caregiverID string, pagination *domain.Pagination) ([]*gorm.Client, *domain.Pagination, error) {
+			return []*gorm.Client{clientProfile}, paginationOutput, nil
+		},
+		MockGetCaregiversClientFn: func(ctx context.Context, caregiverClient gorm.CaregiverClient) ([]*gorm.CaregiverClient, error) {
+			trueValue := true
+			return []*gorm.CaregiverClient{
+				{
+					CaregiverID:        uuid.NewString(),
+					ClientID:           uuid.NewString(),
+					Active:             true,
+					RelationshipType:   enums.CaregiverTypeHealthCareProfessional,
+					CaregiverConsent:   &trueValue,
+					CaregiverConsentAt: &nowTime,
+					ClientConsent:      &trueValue,
+					ClientConsentAt:    &nowTime,
+					AssignedBy:         uuid.NewString(),
+				},
+			}, nil
+		},
 	}
 }
 
@@ -2184,4 +2218,14 @@ func (gm *GormMock) AddCaregiverToClient(ctx context.Context, clientCaregiver *g
 // RemoveFacilitiesFromStaffProfile mocks the implementation of removing facilities from a staff profile
 func (gm *GormMock) RemoveFacilitiesFromStaffProfile(ctx context.Context, staffID string, facilities []string) error {
 	return gm.MockRemoveFacilitiesFromStaffProfileFn(ctx, staffID, facilities)
+}
+
+// GetCaregiverManagedClients mocks the implementation of getting caregiver's managed clients
+func (gm *GormMock) GetCaregiverManagedClients(ctx context.Context, caregiverID string, pagination *domain.Pagination) ([]*gorm.Client, *domain.Pagination, error) {
+	return gm.MockGetCaregiverManagedClientsFn(ctx, caregiverID, pagination)
+}
+
+// GetCaregiversClient mocks the implementation of getting a record of client - caregiver association
+func (gm *GormMock) GetCaregiversClient(ctx context.Context, caregiverClient gorm.CaregiverClient) ([]*gorm.CaregiverClient, error) {
+	return gm.MockGetCaregiversClientFn(ctx, caregiverClient)
 }

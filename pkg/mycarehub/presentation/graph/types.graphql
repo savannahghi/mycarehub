@@ -678,3 +678,15 @@ type FacilityOutputPage {
   Pagination: Pagination!
   Facilities: [Facility]!
 }
+
+
+type ManagedClient {
+	clientProfile: ClientProfile 
+	caregiverConsent: Boolean
+	clientConsent: Boolean               
+}
+
+type ManagedClientOutputPage{
+	pagination: Pagination 
+	ManagedClients: [ManagedClient]!
+}

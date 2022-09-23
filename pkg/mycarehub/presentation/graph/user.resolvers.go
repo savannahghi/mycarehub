@@ -118,3 +118,7 @@ func (r *queryResolver) GetClientProfileByCCCNumber(ctx context.Context, cCCNumb
 func (r *queryResolver) GetUserLinkedFacilities(ctx context.Context, userID string, paginationInput dto.PaginationsInput) (*dto.FacilityOutputPage, error) {
 	return r.mycarehub.User.GetUserLinkedFacilities(ctx, userID, paginationInput)
 }
+
+func (r *queryResolver) GetCaregiverManagedClients(ctx context.Context, caregiverID string, paginationInput dto.PaginationsInput) (*dto.ManagedClientOutputPage, error) {
+	return r.mycarehub.User.GetCaregiverManagedClients(ctx, caregiverID, paginationInput)
+}

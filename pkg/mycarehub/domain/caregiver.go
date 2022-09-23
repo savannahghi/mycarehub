@@ -35,3 +35,10 @@ type CaregiverClient struct {
 	OrganisationID     string              `json:"organisation_id"`
 	AssignedBy         string              `json:"assigned_by"`
 }
+
+// ManagedClient represents a client who is managed by a caregiver
+type ManagedClient struct {
+	ClientProfile    *ClientProfile `json:"clientProfile"`
+	CaregiverConsent *bool          `json:"caregiverConsent"`
+	ClientConsent    *bool          `json:"clientConsent"`
+}

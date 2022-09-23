@@ -5751,3 +5751,83 @@ func TestUseCasesUserImpl_RemoveFacilitiesFromStaffProfile(t *testing.T) {
 		})
 	}
 }
+
+func TestUseCasesUserImpl_GetCaregiverManagedClients(t *testing.T) {
+	type args struct {
+		ctx         context.Context
+		caregiverID string
+		input       dto.PaginationsInput
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: get managed clients",
+			args: args{
+				ctx:         context.Background(),
+				caregiverID: uuid.NewString(),
+				input: dto.PaginationsInput{
+					Limit:       10,
+					CurrentPage: 1,
+					Sort: dto.SortsInput{
+						Direction: enums.SortDataTypeDesc,
+						Field:     "id",
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: failed to get managed clients",
+			args: args{
+				ctx:         context.Background(),
+				caregiverID: uuid.NewString(),
+				input: dto.PaginationsInput{
+					Limit:       10,
+					CurrentPage: 1,
+					Sort: dto.SortsInput{
+						Direction: enums.SortDataTypeDesc,
+						Field:     "id",
+					},
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: failed to validate pagination input",
+			args: args{
+				ctx:         context.Background(),
+				caregiverID: uuid.NewString(),
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			fakeExtension := extensionMock.NewFakeExtension()
+			fakeOTP := otpMock.NewOTPUseCaseMock()
+			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
+			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
+			fakePubsub := pubsubMock.NewPubsubServiceMock()
+			fakeClinical := clinicalMock.NewClinicalServiceMock()
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakeGetStream, fakePubsub, fakeClinical)
+
+			if tt.name == "Sad case: failed to get managed clients" {
+				fakeDB.MockGetCaregiverManagedClientsFn = func(ctx context.Context, caregiverID string, pagination *domain.Pagination) ([]*domain.ManagedClient, *domain.Pagination, error) {
+					return nil, nil, fmt.Errorf("failed to get managed clients")
+				}
+			}
+			got, err := us.GetCaregiverManagedClients(tt.args.ctx, tt.args.caregiverID, tt.args.input)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCasesUserImpl.GetCaregiverManagedClients() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("did not expect error, got: %v", err)
+			}
+		})
+	}
+}

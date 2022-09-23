@@ -55,11 +55,22 @@ type UserUseCaseMock struct {
 	MockAssignCaregiverFn                   func(ctx context.Context, input dto.ClientCaregiverInput) (bool, error)
 	MockRemoveFacilitiesFromStaffProfileFn  func(ctx context.Context, staffID string, facilities []string) (bool, error)
 	MockRegisterClientAsCaregiverFn         func(ctx context.Context, clientID string, caregiverNumber string) (*domain.CaregiverProfile, error)
+	MockGetCaregiverManagedClientsFn        func(ctx context.Context, caregiverID string, input dto.PaginationsInput) (*dto.ManagedClientOutputPage, error)
 }
 
 // NewUserUseCaseMock creates in initializes create type mocks
 func NewUserUseCaseMock() *UserUseCaseMock {
 	var UUID = uuid.New().String()
+	name := gofakeit.Name()
+	facilityInput := &domain.Facility{
+		ID:          &UUID,
+		Name:        name,
+		Code:        1234,
+		Phone:       gofakeit.Phone(),
+		Active:      true,
+		County:      gofakeit.Name(),
+		Description: gofakeit.Sentence(5),
+	}
 
 	staff := &domain.StaffProfile{
 		ID:                &UUID,
@@ -107,6 +118,39 @@ func NewUserUseCaseMock() *UserUseCaseMock {
 		FailedSecurityCount:    0,
 		PinUpdateRequired:      false,
 		HasSetNickname:         false,
+	}
+	clientProfile := &domain.ClientProfile{
+		ID:                      &UUID,
+		User:                    user,
+		Active:                  false,
+		ClientTypes:             []enums.ClientType{},
+		UserID:                  UUID,
+		TreatmentEnrollmentDate: &time.Time{},
+		FHIRPatientID:           &UUID,
+		HealthRecordID:          &UUID,
+		TreatmentBuddy:          "",
+		ClientCounselled:        true,
+		OrganisationID:          UUID,
+		FacilityID:              UUID,
+		FacilityName:            name,
+		CHVUserID:               &UUID,
+		CHVUserName:             name,
+		CaregiverID:             &UUID,
+		CCCNumber:               "123456789",
+		Facilities:              []*domain.Facility{facilityInput},
+	}
+
+	paginationOutput := &domain.Pagination{
+		Limit:        10,
+		CurrentPage:  1,
+		Count:        1,
+		TotalPages:   1,
+		NextPage:     nil,
+		PreviousPage: nil,
+		Sort: &domain.SortParam{
+			Field:     "id",
+			Direction: enums.SortDataTypeDesc,
+		},
 	}
 
 	return &UserUseCaseMock{
@@ -296,7 +340,7 @@ func NewUserUseCaseMock() *UserUseCaseMock {
 				User:                    &domain.User{},
 				Active:                  true,
 				ClientTypes:             []enums.ClientType{enums.ClientTypePmtct},
-				UserID:                  id,
+				UserID:                  UUID,
 				TreatmentEnrollmentDate: &time.Time{},
 				HealthRecordID:          &id,
 				ClientCounselled:        false,
@@ -344,6 +388,19 @@ func NewUserUseCaseMock() *UserUseCaseMock {
 		},
 		MockRemoveFacilitiesFromStaffProfileFn: func(ctx context.Context, staffID string, facilities []string) (bool, error) {
 			return true, nil
+		},
+		MockGetCaregiverManagedClientsFn: func(ctx context.Context, caregiverID string, input dto.PaginationsInput) (*dto.ManagedClientOutputPage, error) {
+			trueValue := true
+			return &dto.ManagedClientOutputPage{
+				Pagination: paginationOutput,
+				ManagedClients: []*domain.ManagedClient{
+					{
+						ClientProfile:    clientProfile,
+						CaregiverConsent: &trueValue,
+						ClientConsent:    &trueValue,
+					},
+				},
+			}, nil
 		},
 	}
 }
@@ -536,4 +593,9 @@ func (f *UserUseCaseMock) AssignCaregiver(ctx context.Context, input dto.ClientC
 // RemoveFacilitiesFromStaffProfile mocks the implementation of removing facilities from a staff profile
 func (f *UserUseCaseMock) RemoveFacilitiesFromStaffProfile(ctx context.Context, staffID string, facilities []string) (bool, error) {
 	return f.MockRemoveFacilitiesFromStaffProfileFn(ctx, staffID, facilities)
+}
+
+// GetCaregiverManagedClients mocks the implementation of getting caregiver's managed clients
+func (f *UserUseCaseMock) GetCaregiverManagedClients(ctx context.Context, caregiverID string, input dto.PaginationsInput) (*dto.ManagedClientOutputPage, error) {
+	return f.MockGetCaregiverManagedClientsFn(ctx, caregiverID, input)
 }
