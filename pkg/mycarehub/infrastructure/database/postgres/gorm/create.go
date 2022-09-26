@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	"gorm.io/gorm"
 )
 
@@ -47,7 +46,6 @@ func (db *PGInstance) GetOrCreateFacility(ctx context.Context, facility *Facilit
 	}
 	err := db.DB.Create(facility).Error
 	if err != nil {
-		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed to create a facility: %v", err)
 	}
 	return facility, nil
@@ -60,7 +58,6 @@ func (db *PGInstance) SaveTemporaryUserPin(ctx context.Context, pinPayload *PIND
 	}
 	err := db.DB.Create(pinPayload).Error
 	if err != nil {
-		helpers.ReportErrorToSentry(err)
 		return false, fmt.Errorf("failed to save a pin: %v", err)
 	}
 	return true, nil
@@ -70,7 +67,6 @@ func (db *PGInstance) SaveTemporaryUserPin(ctx context.Context, pinPayload *PIND
 func (db *PGInstance) SavePin(ctx context.Context, pinData *PINData) (bool, error) {
 	err := db.DB.Create(pinData).Error
 	if err != nil {
-		helpers.ReportErrorToSentry(err)
 		return false, fmt.Errorf("failed to save pin data: %v", err)
 	}
 
@@ -81,7 +77,6 @@ func (db *PGInstance) SavePin(ctx context.Context, pinData *PINData) (bool, erro
 func (db *PGInstance) SaveFeedback(ctx context.Context, feedback *Feedback) error {
 	err := db.DB.Create(feedback).Error
 	if err != nil {
-		helpers.ReportErrorToSentry(err)
 		return fmt.Errorf("failed to save feedback: %v", err)
 	}
 	return nil
@@ -97,14 +92,12 @@ func (db *PGInstance) SaveOTP(ctx context.Context, otpInput *UserOTP) error {
 	err := db.DB.Model(&UserOTP{}).Where(&UserOTP{PhoneNumber: otpInput.PhoneNumber, Flavour: otpInput.Flavour}).
 		Updates(map[string]interface{}{"is_valid": false}).Error
 	if err != nil {
-		helpers.ReportErrorToSentry(err)
 		return fmt.Errorf("failed to update OTP data: %v", err)
 	}
 
 	//Save the OTP by setting valid to true
 	err = db.DB.Create(otpInput).Error
 	if err != nil {
-		helpers.ReportErrorToSentry(err)
 		return fmt.Errorf("failed to save otp data")
 	}
 	return nil
@@ -128,22 +121,18 @@ func (db *PGInstance) SaveSecurityQuestionResponse(ctx context.Context, security
 		}
 		err := tx.Model(&SecurityQuestionResponse{}).Where(&SecurityQuestionResponse{UserID: questionResponse.UserID, QuestionID: questionResponse.QuestionID}).First(&questionResponse).Error
 		if err == nil {
-			helpers.ReportErrorToSentry(err)
 			err := tx.Model(&SecurityQuestionResponse{}).Where(&SecurityQuestionResponse{UserID: questionResponse.UserID, QuestionID: questionResponse.QuestionID}).Updates(&SaveSecurityQuestionResponseUpdatePayload).Error
 			if err != nil {
-				helpers.ReportErrorToSentry(err)
 				tx.Rollback()
 				return fmt.Errorf("failed to update security question response data: %v", err)
 			}
 		} else if err == gorm.ErrRecordNotFound {
 			err = tx.Create(&questionResponse).Error
 			if err != nil {
-				helpers.ReportErrorToSentry(err)
 				tx.Rollback()
 				return fmt.Errorf("failed to create security question response data: %v", err)
 			}
 		} else {
-			helpers.ReportErrorToSentry(err)
 			tx.Rollback()
 			return fmt.Errorf("failed to get security question response data: %v", err)
 		}
@@ -163,7 +152,6 @@ func (db *PGInstance) CreateHealthDiaryEntry(ctx context.Context, healthDiaryInp
 
 	err := tx.Create(healthDiaryInput).Error
 	if err != nil {
-		helpers.ReportErrorToSentry(err)
 		tx.Rollback()
 		return err
 	}
@@ -187,7 +175,6 @@ func (db *PGInstance) CreateServiceRequest(
 
 	err := tx.Create(serviceRequestInput).Error
 	if err != nil {
-		helpers.ReportErrorToSentry(err)
 		tx.Rollback()
 		return err
 	}
@@ -206,7 +193,6 @@ func (db *PGInstance) CreateStaffServiceRequest(ctx context.Context, serviceRequ
 
 	err := tx.Create(serviceRequestInput).Error
 	if err != nil {
-		helpers.ReportErrorToSentry(err)
 		return err
 	}
 
@@ -255,7 +241,6 @@ func (db *PGInstance) CreateClientCaregiver(ctx context.Context, clientID string
 func (db *PGInstance) CreateCommunity(ctx context.Context, community *Community) (*Community, error) {
 	err := db.DB.Create(community).Error
 	if err != nil {
-		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed to create a community: %v", err)
 	}
 	return community, nil
@@ -383,13 +368,11 @@ func (db *PGInstance) CreateUser(ctx context.Context, user *User) error {
 
 	err := tx.Create(user).Error
 	if err != nil {
-		helpers.ReportErrorToSentry(err)
 		tx.Rollback()
 		return fmt.Errorf("failed to create user: %w", err)
 	}
 
 	if err := tx.Commit().Error; err != nil {
-		helpers.ReportErrorToSentry(err)
 		tx.Rollback()
 		return fmt.Errorf("failed to commit create user transaction: %w", err)
 	}
@@ -403,7 +386,6 @@ func (db *PGInstance) CreateClient(ctx context.Context, client *Client, contactI
 
 	err := tx.Create(client).Error
 	if err != nil {
-		helpers.ReportErrorToSentry(err)
 		tx.Rollback()
 		return fmt.Errorf("failed to create client: %w", err)
 	}
@@ -415,7 +397,6 @@ func (db *PGInstance) CreateClient(ctx context.Context, client *Client, contactI
 	}
 	err = tx.Where(contact).FirstOrCreate(&contact).Error
 	if err != nil {
-		helpers.ReportErrorToSentry(err)
 		tx.Rollback()
 		return fmt.Errorf("failed to get or create client contact: %w", err)
 	}
@@ -427,13 +408,11 @@ func (db *PGInstance) CreateClient(ctx context.Context, client *Client, contactI
 	}
 	err = tx.Where(identifier).FirstOrCreate(&identifier).Error
 	if err != nil {
-		helpers.ReportErrorToSentry(err)
 		tx.Rollback()
 		return fmt.Errorf("failed to get or create client identifier: %w", err)
 	}
 
 	if err := tx.Commit().Error; err != nil {
-		helpers.ReportErrorToSentry(err)
 		tx.Rollback()
 		return fmt.Errorf("failed to commit create client transaction: %w", err)
 	}
@@ -515,13 +494,11 @@ func (db *PGInstance) CreateIdentifier(ctx context.Context, identifier *Identifi
 
 	err := tx.Create(identifier).Error
 	if err != nil {
-		helpers.ReportErrorToSentry(err)
 		tx.Rollback()
 		return fmt.Errorf("failed to create identifier: %w", err)
 	}
 
 	if err := tx.Commit().Error; err != nil {
-		helpers.ReportErrorToSentry(err)
 		tx.Rollback()
 		return fmt.Errorf("failed to commit create identifier transaction: %w", err)
 	}
@@ -535,13 +512,11 @@ func (db *PGInstance) CreateNotification(ctx context.Context, notification *Noti
 
 	err := tx.Create(notification).Error
 	if err != nil {
-		helpers.ReportErrorToSentry(err)
 		tx.Rollback()
 		return fmt.Errorf("failed to create notification: %w", err)
 	}
 
 	if err := tx.Commit().Error; err != nil {
-		helpers.ReportErrorToSentry(err)
 		tx.Rollback()
 		return fmt.Errorf("failed to commit create notification transaction: %w", err)
 	}
@@ -557,7 +532,6 @@ func (db *PGInstance) CreateUserSurveys(ctx context.Context, userSurveys []*User
 
 	err := db.DB.Create(userSurveys).Error
 	if err != nil {
-		helpers.ReportErrorToSentry(err)
 		return fmt.Errorf("failed to create user survey: %w", err)
 	}
 
@@ -568,7 +542,6 @@ func (db *PGInstance) CreateUserSurveys(ctx context.Context, userSurveys []*User
 func (db *PGInstance) CreateMetric(ctx context.Context, metric *Metric) error {
 	err := db.DB.Create(metric).Error
 	if err != nil {
-		helpers.ReportErrorToSentry(err)
 		return fmt.Errorf("failed to create metric: %w", err)
 	}
 
@@ -605,7 +578,6 @@ func (db *PGInstance) RegisterStaff(ctx context.Context, user *User, contact *Co
 	staffProfile.UserID = *user.UserID
 	err = tx.Create(staffProfile).First(&staffProfile).Error
 	if err != nil {
-		helpers.ReportErrorToSentry(err)
 		tx.Rollback()
 		return nil, fmt.Errorf("failed to create staff profile: %w", err)
 	}
@@ -617,7 +589,6 @@ func (db *PGInstance) RegisterStaff(ctx context.Context, user *User, contact *Co
 	}
 	err = tx.Where(contactLink).FirstOrCreate(&contactLink).Error
 	if err != nil {
-		helpers.ReportErrorToSentry(err)
 		tx.Rollback()
 		return nil, fmt.Errorf("failed to get or create staff contact: %w", err)
 	}
@@ -629,13 +600,11 @@ func (db *PGInstance) RegisterStaff(ctx context.Context, user *User, contact *Co
 	}
 	err = tx.Where(identifierLink).FirstOrCreate(&identifierLink).Error
 	if err != nil {
-		helpers.ReportErrorToSentry(err)
 		tx.Rollback()
 		return nil, fmt.Errorf("failed to get or create staff identifier: %w", err)
 	}
 
 	if err := tx.Commit().Error; err != nil {
-		helpers.ReportErrorToSentry(err)
 		tx.Rollback()
 		return nil, fmt.Errorf("failed to commit create staff profile transaction: %w", err)
 	}
@@ -680,7 +649,6 @@ func (db *PGInstance) CreateScreeningToolResponse(ctx context.Context, screening
 	tx := db.DB.Begin()
 
 	if err := tx.Create(screeningToolResponse).Error; err != nil {
-		helpers.ReportErrorToSentry(err)
 		tx.Rollback()
 		return nil, fmt.Errorf("failed to create screening tool response: %w", err)
 	}
@@ -688,14 +656,12 @@ func (db *PGInstance) CreateScreeningToolResponse(ctx context.Context, screening
 	for _, questionResponse := range screeningToolQuestionResponses {
 		questionResponse.ScreeningToolResponseID = screeningToolResponse.ID
 		if err := tx.Create(questionResponse).Error; err != nil {
-			helpers.ReportErrorToSentry(err)
 			tx.Rollback()
 			return nil, fmt.Errorf("failed to create screening tool question response: %w", err)
 		}
 	}
 
 	if err := tx.Commit().Error; err != nil {
-		helpers.ReportErrorToSentry(err)
 		tx.Rollback()
 		return nil, fmt.Errorf("failed to commit create screening tool response transaction: %w", err)
 	}
