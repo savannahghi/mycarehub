@@ -1786,7 +1786,7 @@ func (db *PGInstance) ListClientsCaregivers(ctx context.Context, clientID string
 		paginateQuery(tx, pagination)
 	}
 
-	if err := tx.Find(&caregiverClients).Error; err != nil {
+	if err := tx.Order(clause.OrderByColumn{Column: clause.Column{Name: "created"}, Desc: true}).Find(&caregiverClients).Error; err != nil {
 		return nil, nil, fmt.Errorf("failed to execute paginated query: %v", err)
 	}
 

@@ -427,7 +427,7 @@ func (d *MyCareHubDb) SearchStaffProfile(ctx context.Context, searchParameter st
 //
 // Search parameter can be username, phonenumber or caregiver number.
 func (d *MyCareHubDb) SearchCaregiverUser(ctx context.Context, searchParameter string) ([]*domain.CaregiverProfile, error) {
-	var caregiverProfiles []*domain.CaregiverProfile
+	caregiverProfiles := []*domain.CaregiverProfile{}
 
 	caregivers, err := d.query.SearchCaregiverUser(ctx, searchParameter)
 	if err != nil {
