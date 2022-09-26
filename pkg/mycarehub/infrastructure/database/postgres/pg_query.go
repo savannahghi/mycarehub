@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 	"fmt"
+	"log"
 	"strconv"
 	"time"
 
@@ -12,7 +13,6 @@ import (
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/exceptions"
 	"github.com/savannahghi/scalarutils"
 
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/utils"
@@ -25,7 +25,6 @@ func (d *MyCareHubDb) SearchFacility(ctx context.Context, searchParameter *strin
 	var facility []*domain.Facility
 	facilities, err := d.query.SearchFacility(ctx, searchParameter)
 	if err != nil {
-		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed to get facilities: %w", err)
 	}
 
@@ -58,7 +57,6 @@ func (d *MyCareHubDb) RetrieveFacility(ctx context.Context, id *string, isActive
 	}
 	facilitySession, err := d.query.RetrieveFacility(ctx, id, isActive)
 	if err != nil {
-		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed query and retrieve one facility: %s", err)
 	}
 
@@ -69,7 +67,6 @@ func (d *MyCareHubDb) RetrieveFacility(ctx context.Context, id *string, isActive
 func (d *MyCareHubDb) RetrieveFacilityByMFLCode(ctx context.Context, MFLCode int, isActive bool) (*domain.Facility, error) {
 	facilitySession, err := d.query.RetrieveFacilityByMFLCode(ctx, MFLCode, isActive)
 	if err != nil {
-		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed query and retrieve facility by MFLCode: %s", err)
 	}
 
@@ -82,7 +79,6 @@ func (d *MyCareHubDb) ListFacilities(
 	ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationsInput *dto.PaginationsInput) (*domain.FacilityPage, error) {
 	// if user did not provide current page, throw an error
 	if err := paginationsInput.Validate(); err != nil {
-		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("pagination input validation failed: %v", err)
 	}
 
@@ -109,7 +105,6 @@ func (d *MyCareHubDb) ListFacilities(
 
 	facilities, err := d.query.ListFacilities(ctx, searchTerm, filtersOutput, &paginationOutput)
 	if err != nil {
-		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed to get facilities: %v", err)
 	}
 	return facilities, nil
@@ -123,7 +118,6 @@ func (d *MyCareHubDb) GetUserProfileByPhoneNumber(ctx context.Context, phoneNumb
 
 	user, err := d.query.GetUserProfileByPhoneNumber(ctx, phoneNumber, flavour)
 	if err != nil {
-		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed to get user profile by phonenumber: %v", err)
 	}
 
@@ -137,7 +131,6 @@ func (d *MyCareHubDb) GetUserPINByUserID(ctx context.Context, userID string, fla
 	}
 	pinData, err := d.query.GetUserPINByUserID(ctx, userID, flavour)
 	if err != nil {
-		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed query and retrieve user PIN data: %s", err)
 	}
 
@@ -156,7 +149,6 @@ func (d *MyCareHubDb) GetUserPINByUserID(ctx context.Context, userID string, fla
 func (d *MyCareHubDb) GetCurrentTerms(ctx context.Context, flavour feedlib.Flavour) (*domain.TermsOfService, error) {
 	terms, err := d.query.GetCurrentTerms(ctx, flavour)
 	if err != nil {
-		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed to get current terms of service: %v", err)
 	}
 
@@ -174,7 +166,6 @@ func (d *MyCareHubDb) GetUserProfileByUserID(ctx context.Context, userID string)
 
 	user, err := d.query.GetUserProfileByUserID(ctx, &userID)
 	if err != nil {
-		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed to get user profile by user ID: %v", err)
 	}
 
@@ -187,7 +178,6 @@ func (d *MyCareHubDb) GetSecurityQuestions(ctx context.Context, flavour feedlib.
 
 	allSecurityQuestions, err := d.query.GetSecurityQuestions(ctx, flavour)
 	if err != nil {
-		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("unable to get security questions: %v", err)
 	}
 
@@ -215,7 +205,6 @@ func (d *MyCareHubDb) GetSecurityQuestions(ctx context.Context, flavour feedlib.
 func (d *MyCareHubDb) GetSecurityQuestionByID(ctx context.Context, securityQuestionID *string) (*domain.SecurityQuestion, error) {
 	securityQuestion, err := d.query.GetSecurityQuestionByID(ctx, securityQuestionID)
 	if err != nil {
-		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed to get security question by ID: %v", err)
 	}
 
@@ -237,7 +226,6 @@ func (d *MyCareHubDb) GetSecurityQuestionResponse(ctx context.Context, questionI
 
 	response, err := d.query.GetSecurityQuestionResponse(ctx, questionID, userID)
 	if err != nil {
-		helpers.ReportErrorToSentry(err)
 		return nil, err
 	}
 
@@ -257,7 +245,6 @@ func (d *MyCareHubDb) CheckIfPhoneNumberExists(ctx context.Context, phone string
 	}
 	exists, err := d.query.CheckIfPhoneNumberExists(ctx, phone, isOptedIn, flavour)
 	if err != nil {
-		helpers.ReportErrorToSentry(err)
 		return false, fmt.Errorf("failed check whether phone exists: %s", err)
 	}
 
@@ -285,7 +272,6 @@ func (d *MyCareHubDb) GetClientProfileByUserID(ctx context.Context, userID strin
 
 	client, err := d.query.GetClientProfileByUserID(ctx, userID)
 	if err != nil {
-		helpers.ReportErrorToSentry(err)
 		return nil, err
 	}
 
@@ -296,13 +282,12 @@ func (d *MyCareHubDb) GetClientProfileByUserID(ctx context.Context, userID strin
 
 	facility, err := d.query.RetrieveFacility(ctx, &client.FacilityID, true)
 	if err != nil {
-		helpers.ReportErrorToSentry(err)
 		return nil, err
 	}
 
 	facilities, _, err := d.GetClientFacilities(ctx, dto.ClientFacilityInput{ClientID: client.ID}, nil)
 	if err != nil {
-		helpers.ReportErrorToSentry(err)
+		log.Printf("failed to get client facilities: %v", err)
 	}
 
 	user := createMapUser(&client.User)
@@ -332,19 +317,17 @@ func (d *MyCareHubDb) GetStaffProfileByUserID(ctx context.Context, userID string
 
 	staff, err := d.query.GetStaffProfileByUserID(ctx, userID)
 	if err != nil {
-		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("unable to get staff profile: %v", err)
 	}
 
 	staffDefaultFacility, err := d.query.RetrieveFacility(ctx, &staff.DefaultFacilityID, true)
 	if err != nil {
-		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("unable to get the staff facility: %v", err)
 	}
 
 	facilities, _, err := d.GetStaffFacilities(ctx, dto.StaffFacilityInput{StaffID: staff.ID}, nil)
 	if err != nil {
-		helpers.ReportErrorToSentry(err)
+		log.Printf("failed to get staff facilities: %v", err)
 	}
 
 	user := createMapUser(&staff.UserProfile)
@@ -371,7 +354,6 @@ func (d *MyCareHubDb) GetFacilityStaffs(ctx context.Context, facilityID string) 
 	for _, s := range staffs {
 		userProfile, err := d.query.GetUserProfileByUserID(ctx, &s.UserID)
 		if err != nil {
-			helpers.ReportErrorToSentry(err)
 			return nil, err
 		}
 		user := createMapUser(userProfile)
@@ -399,14 +381,12 @@ func (d *MyCareHubDb) SearchStaffProfile(ctx context.Context, searchParameter st
 
 	staffs, err := d.query.SearchStaffProfile(ctx, searchParameter)
 	if err != nil {
-		helpers.ReportErrorToSentry(err)
 		return nil, err
 	}
 
 	for _, s := range staffs {
 		userProfile, err := d.query.GetUserProfileByUserID(ctx, &s.UserID)
 		if err != nil {
-			helpers.ReportErrorToSentry(err)
 			return nil, err
 		}
 		user := createMapUser(userProfile)
@@ -434,7 +414,6 @@ func (d *MyCareHubDb) CheckUserHasPin(ctx context.Context, userID string, flavou
 
 	exists, err := d.query.CheckUserHasPin(ctx, userID, flavour)
 	if err != nil {
-		helpers.ReportErrorToSentry(err)
 		return false, err
 	}
 
@@ -452,7 +431,6 @@ func (d *MyCareHubDb) GetOTP(ctx context.Context, phoneNumber string, flavour fe
 
 	otp, err := d.query.GetOTP(ctx, phoneNumber, flavour)
 	if err != nil {
-		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed to get OTP: %v", err)
 	}
 
@@ -474,7 +452,6 @@ func (d *MyCareHubDb) GetUserSecurityQuestionsResponses(ctx context.Context, use
 
 	securityQuestionResponses, err := d.query.GetUserSecurityQuestionsResponses(ctx, userID)
 	if err != nil {
-		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed to get security questions: %v", err)
 	}
 
@@ -532,7 +509,6 @@ func (d *MyCareHubDb) GetContactByUserID(ctx context.Context, userID *string, co
 func (d *MyCareHubDb) CanRecordHeathDiary(ctx context.Context, userID string) (bool, error) {
 	canRecord, err := d.query.CanRecordHeathDiary(ctx, userID)
 	if err != nil {
-		helpers.ReportErrorToSentry(err)
 		return false, err
 	}
 
@@ -544,7 +520,6 @@ func (d *MyCareHubDb) GetClientHealthDiaryQuote(ctx context.Context, limit int) 
 	var clientHealthDiaryQuotes []*domain.ClientHealthDiaryQuote
 	clientHealthDiaryQuote, err := d.query.GetClientHealthDiaryQuote(ctx, limit)
 	if err != nil {
-		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed to fetch client health diary quote: %v", err)
 	}
 	for _, quote := range clientHealthDiaryQuote {
@@ -564,13 +539,11 @@ func (d *MyCareHubDb) GetPendingServiceRequestsCount(ctx context.Context, facili
 	}
 	clientsPendingServiceRequestsCount, err := d.query.GetClientsPendingServiceRequestsCount(ctx, facilityID)
 	if err != nil {
-		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed to fetch clients pending service requests count: %v", err)
 	}
 
 	staffPendingServiceRequestsCount, err := d.query.GetStaffPendingServiceRequestsCount(ctx, facilityID)
 	if err != nil {
-		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed to fetch staff pending service requests count: %v", err)
 	}
 
@@ -597,14 +570,12 @@ func (d *MyCareHubDb) GetClientHealthDiaryEntries(ctx context.Context, clientID 
 
 	clientHealthDiaryEntry, err := d.query.GetClientHealthDiaryEntries(ctx, queryParams)
 	if err != nil {
-		helpers.ReportErrorToSentry(err)
 		return nil, err
 	}
 
 	//Get user profile information using the client ID
 	clientProfile, err := d.query.GetClientProfileByClientID(ctx, clientID)
 	if err != nil {
-		helpers.ReportErrorToSentry(err)
 		return nil, err
 	}
 
@@ -684,13 +655,11 @@ func (d *MyCareHubDb) GetServiceRequests(ctx context.Context, requestType, reque
 	case feedlib.FlavourConsumer:
 		clientServiceRequests, err := d.query.GetServiceRequests(ctx, requestType, requestStatus, facilityID)
 		if err != nil {
-			helpers.ReportErrorToSentry(err)
 			return nil, err
 		}
 
 		serviceRequests, err := d.ReturnClientsServiceRequests(ctx, clientServiceRequests)
 		if err != nil {
-			helpers.ReportErrorToSentry(err)
 			return nil, err
 		}
 
@@ -702,13 +671,11 @@ func (d *MyCareHubDb) GetServiceRequests(ctx context.Context, requestType, reque
 		}
 		staffServiceRequests, err := d.query.GetStaffServiceRequests(ctx, requestType, requestStatus, facilityID)
 		if err != nil {
-			helpers.ReportErrorToSentry(err)
 			return nil, err
 		}
 
 		serviceRequests, err := d.ReturnStaffServiceRequests(ctx, staffServiceRequests)
 		if err != nil {
-			helpers.ReportErrorToSentry(err)
 			return nil, err
 		}
 		return serviceRequests, nil
@@ -729,14 +696,12 @@ func (d *MyCareHubDb) ReturnClientsServiceRequests(ctx context.Context, clientSe
 	for _, serviceRequest := range clientServiceRequests {
 		clientProfile, err := d.query.GetClientProfileByClientID(ctx, serviceRequest.ClientID)
 		if err != nil {
-			helpers.ReportErrorToSentry(err)
 			return nil, err
 		}
 
 		if serviceRequest.Meta != "" {
 			meta, err = utils.ConvertJSONStringToMap(serviceRequest.Meta)
 			if err != nil {
-				helpers.ReportErrorToSentry(err)
 				return nil, fmt.Errorf("error converting meta json string to map: %v", err)
 			}
 		}
@@ -744,7 +709,6 @@ func (d *MyCareHubDb) ReturnClientsServiceRequests(ctx context.Context, clientSe
 		if serviceRequest.ResolvedByID != nil {
 			resolvedBy, err := d.query.GetUserProfileByStaffID(ctx, *serviceRequest.ResolvedByID)
 			if err != nil {
-				helpers.ReportErrorToSentry(err)
 				return nil, err
 			}
 			resolvedByName = resolvedBy.Name
@@ -783,14 +747,12 @@ func (d *MyCareHubDb) ReturnStaffServiceRequests(ctx context.Context, staffServi
 	for _, serviceReq := range staffServiceRequests {
 		staffProfile, err := d.query.GetStaffProfileByStaffID(ctx, serviceReq.StaffID)
 		if err != nil {
-			helpers.ReportErrorToSentry(err)
 			return nil, err
 		}
 
 		if serviceReq.Meta != "" {
 			meta, err = utils.ConvertJSONStringToMap(serviceReq.Meta)
 			if err != nil {
-				helpers.ReportErrorToSentry(err)
 				return nil, fmt.Errorf("error converting meta json string to map: %v", err)
 			}
 		}
@@ -798,7 +760,6 @@ func (d *MyCareHubDb) ReturnStaffServiceRequests(ctx context.Context, staffServi
 		if serviceReq.ResolvedByID != nil {
 			resolvedBy, err := d.query.GetUserProfileByStaffID(ctx, *serviceReq.ResolvedByID)
 			if err != nil {
-				helpers.ReportErrorToSentry(err)
 				return nil, err
 			}
 			resolvedByName = resolvedBy.Name
@@ -841,7 +802,6 @@ func (d *MyCareHubDb) GetUserRoles(ctx context.Context, userID string) ([]*domai
 	var roles []*domain.AuthorityRole
 	rolesList, err := d.query.GetUserRoles(ctx, userID)
 	if err != nil {
-		helpers.ReportErrorToSentry(err)
 		return nil, err
 	}
 
@@ -861,7 +821,6 @@ func (d *MyCareHubDb) GetUserPermissions(ctx context.Context, userID string) ([]
 	var permissions []*domain.AuthorityPermission
 	permissionsList, err := d.query.GetUserPermissions(ctx, userID)
 	if err != nil {
-		helpers.ReportErrorToSentry(err)
 		return nil, err
 	}
 
@@ -884,7 +843,6 @@ func (d *MyCareHubDb) CheckIfUsernameExists(ctx context.Context, username string
 
 	ok, err := d.query.CheckIfUsernameExists(ctx, username)
 	if err != nil {
-		helpers.ReportErrorToSentry(err)
 		return false, err
 	}
 
@@ -898,7 +856,6 @@ func (d *MyCareHubDb) GetCommunityByID(ctx context.Context, communityID string) 
 	}
 	community, err := d.query.GetCommunityByID(ctx, communityID)
 	if err != nil {
-		helpers.ReportErrorToSentry(err)
 		return nil, err
 	}
 
@@ -926,7 +883,6 @@ func (d *MyCareHubDb) CheckFacilityExistsByMFLCode(ctx context.Context, MFLCode 
 func (d *MyCareHubDb) GetClientsInAFacility(ctx context.Context, facilityID string) ([]*domain.ClientProfile, error) {
 	clientProfiles, err := d.query.GetClientsInAFacility(ctx, facilityID)
 	if err != nil {
-		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed to fetch clients that belong to a facility: %v", err)
 	}
 	var clients []*domain.ClientProfile
@@ -968,7 +924,6 @@ func (d *MyCareHubDb) GetRecentHealthDiaryEntries(
 	var healthDiaryEntries []*domain.ClientHealthDiaryEntry
 	clientHealthDiaryEntry, err := d.query.GetRecentHealthDiaryEntries(ctx, lastSyncTime, *client.ID)
 	if err != nil {
-		helpers.ReportErrorToSentry(err)
 		return nil, err
 	}
 
@@ -976,14 +931,14 @@ func (d *MyCareHubDb) GetRecentHealthDiaryEntries(
 	if err != nil {
 		// This should not be blocking. In an event where an identifier value is not found, is should not
 		// fail and return
-		helpers.ReportErrorToSentry(err)
+		log.Printf("failed to get client CCC number: %v", err)
 	}
 
 	contact, err := d.query.GetContactByUserID(ctx, &client.UserID, "PHONE")
 	if err != nil {
 		// This should not be blocking. In an event where an identifier value is not found, is should not
 		// fail and return
-		helpers.ReportErrorToSentry(err)
+		log.Printf("failed to get client phone number: %v", err)
 	}
 
 	for _, healthdiary := range clientHealthDiaryEntry {
@@ -1068,7 +1023,6 @@ func (d *MyCareHubDb) GetClientCCCIdentifier(ctx context.Context, clientID strin
 func (d *MyCareHubDb) GetHealthDiaryEntryByID(ctx context.Context, healthDiaryEntryID string) (*domain.ClientHealthDiaryEntry, error) {
 	healthDiaryEntry, err := d.query.GetHealthDiaryEntryByID(ctx, healthDiaryEntryID)
 	if err != nil {
-		helpers.ReportErrorToSentry(err)
 		return nil, err
 	}
 
@@ -1090,14 +1044,12 @@ func (d *MyCareHubDb) GetServiceRequestsForKenyaEMR(ctx context.Context, payload
 
 	facility, err := d.query.RetrieveFacilityByMFLCode(ctx, payload.MFLCode, true)
 	if err != nil {
-		helpers.ReportErrorToSentry(err)
 		return nil, err
 	}
 
 	serviceRequests := []*domain.ServiceRequest{}
 	allServiceRequests, err := d.query.GetServiceRequestsForKenyaEMR(ctx, *facility.FacilityID, *payload.LastSyncTime)
 	if err != nil {
-		helpers.ReportErrorToSentry(err)
 		return nil, err
 	}
 	for _, serviceReq := range allServiceRequests {
@@ -1107,7 +1059,6 @@ func (d *MyCareHubDb) GetServiceRequestsForKenyaEMR(ctx context.Context, payload
 		)
 		clientProfile, err := d.query.GetClientProfileByClientID(ctx, serviceReq.ClientID)
 		if err != nil {
-			helpers.ReportErrorToSentry(err)
 			return nil, err
 		}
 
@@ -1115,7 +1066,6 @@ func (d *MyCareHubDb) GetServiceRequestsForKenyaEMR(ctx context.Context, payload
 		if err != nil {
 			// This should not be blocking. In an event where an identifier value is not found, is should not
 			// fail and return
-			helpers.ReportErrorToSentry(err)
 			continue
 		}
 
@@ -1125,7 +1075,6 @@ func (d *MyCareHubDb) GetServiceRequestsForKenyaEMR(ctx context.Context, payload
 
 		meta, err := utils.ConvertJSONStringToMap(serviceReq.Meta)
 		if err != nil {
-			helpers.ReportErrorToSentry(err)
 			return nil, err
 		}
 		if serviceReq.RequestType == string(enums.ServiceRequestTypeScreeningToolsRedFlag) {
@@ -1135,7 +1084,6 @@ func (d *MyCareHubDb) GetServiceRequestsForKenyaEMR(ctx context.Context, payload
 
 		userProfile, err := d.query.GetUserProfileByUserID(ctx, clientProfile.UserID)
 		if err != nil {
-			helpers.ReportErrorToSentry(err)
 			return nil, err
 		}
 
@@ -1168,7 +1116,6 @@ func (d *MyCareHubDb) GetAssessmentResponses(ctx context.Context, facilityID str
 	answeredQuestions, err := d.query.GetAnsweredScreeningToolQuestions(ctx, facilityID, toolType)
 	responsesMap := make(map[string]bool)
 	if err != nil {
-		helpers.ReportErrorToSentry(err)
 		return nil, err
 	}
 
@@ -1180,13 +1127,11 @@ func (d *MyCareHubDb) GetAssessmentResponses(ctx context.Context, facilityID str
 
 		clientProfile, err := d.query.GetClientProfileByClientID(ctx, answeredQuestion.ClientID)
 		if err != nil {
-			helpers.ReportErrorToSentry(err)
 			return nil, err
 		}
 
 		userProfile, err := d.query.GetUserProfileByUserID(ctx, clientProfile.UserID)
 		if err != nil {
-			helpers.ReportErrorToSentry(err)
 			return nil, err
 		}
 		responses = append(responses, &domain.ScreeningToolAssessmentResponse{
@@ -1204,14 +1149,12 @@ func (d *MyCareHubDb) GetScreeningToolQuestions(ctx context.Context, questionTyp
 	var screeningToolQuestions []*domain.ScreeningToolQuestion
 	screeningToolQuestionsList, err := d.query.GetScreeningToolQuestions(ctx, questionType)
 	if err != nil {
-		helpers.ReportErrorToSentry(err)
 		return nil, err
 	}
 
 	for _, screeningToolQuestion := range screeningToolQuestionsList {
 		choices, err := utils.ConvertJSONStringToMap(screeningToolQuestion.ResponseChoices)
 		if err != nil {
-			helpers.ReportErrorToSentry(err)
 			return nil, fmt.Errorf("error converting response choices json string to map: %v", err)
 		}
 
@@ -1220,7 +1163,6 @@ func (d *MyCareHubDb) GetScreeningToolQuestions(ctx context.Context, questionTyp
 		if screeningToolQuestion.Meta != "" {
 			meta, err = utils.ConvertJSONStringToMap(screeningToolQuestion.Meta)
 			if err != nil {
-				helpers.ReportErrorToSentry(err)
 				return nil, fmt.Errorf("error converting meta json string to map: %v", err)
 			}
 		}
@@ -1331,7 +1273,6 @@ func (d *MyCareHubDb) ListSurveyRespondents(ctx context.Context, projectID int, 
 	for _, a := range respondents {
 		userProfile, err := d.query.GetUserProfileByUserID(ctx, &a.UserID)
 		if err != nil {
-			helpers.ReportErrorToSentry(err)
 			return nil, nil, err
 		}
 
@@ -1378,13 +1319,11 @@ func (d *MyCareHubDb) ListAvailableNotificationTypes(ctx context.Context, params
 func (d *MyCareHubDb) GetScreeningToolQuestionByQuestionID(ctx context.Context, questionID string) (*domain.ScreeningToolQuestion, error) {
 	screeningToolQuestion, err := d.query.GetScreeningToolQuestionByQuestionID(ctx, questionID)
 	if err != nil {
-		helpers.ReportErrorToSentry(err)
 		return nil, err
 	}
 
 	choices, err := utils.ConvertJSONStringToMap(screeningToolQuestion.ResponseChoices)
 	if err != nil {
-		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("error converting response choices json string to map: %v", err)
 	}
 
@@ -1393,7 +1332,6 @@ func (d *MyCareHubDb) GetScreeningToolQuestionByQuestionID(ctx context.Context, 
 	if screeningToolQuestion.Meta != "" {
 		meta, err = utils.ConvertJSONStringToMap(screeningToolQuestion.Meta)
 		if err != nil {
-			helpers.ReportErrorToSentry(err)
 			return nil, fmt.Errorf("error converting meta json string to map: %v", err)
 		}
 	}
@@ -1416,19 +1354,16 @@ func (d *MyCareHubDb) GetScreeningToolQuestionByQuestionID(ctx context.Context, 
 func (d *MyCareHubDb) GetClientProfileByCCCNumber(ctx context.Context, CCCNumber string) (*domain.ClientProfile, error) {
 	clientProfile, err := d.query.GetClientProfileByCCCNumber(ctx, CCCNumber)
 	if err != nil {
-		helpers.ReportErrorToSentry(err)
 		return nil, err
 	}
 
 	userProfile, err := d.query.GetUserProfileByUserID(ctx, clientProfile.UserID)
 	if err != nil {
-		helpers.ReportErrorToSentry(err)
 		return nil, err
 	}
 
 	cccIdentifier, err := d.query.GetClientCCCIdentifier(ctx, *clientProfile.ID)
 	if err != nil {
-		helpers.ReportErrorToSentry(err)
 		return nil, err
 	}
 
@@ -1461,7 +1396,6 @@ func (d *MyCareHubDb) GetClientProfileByCCCNumber(ctx context.Context, CCCNumber
 func (d *MyCareHubDb) SearchClientProfile(ctx context.Context, searchParameter string) ([]*domain.ClientProfile, error) {
 	clientProfile, err := d.query.SearchClientProfile(ctx, searchParameter)
 	if err != nil {
-		helpers.ReportErrorToSentry(err)
 		return nil, err
 	}
 
@@ -1470,14 +1404,12 @@ func (d *MyCareHubDb) SearchClientProfile(ctx context.Context, searchParameter s
 	for _, c := range clientProfile {
 		userProfile, err := d.query.GetUserProfileByUserID(ctx, c.UserID)
 		if err != nil {
-			helpers.ReportErrorToSentry(err)
 			return nil, err
 		}
 		user := createMapUser(userProfile)
 
 		identifier, err := d.query.GetClientCCCIdentifier(ctx, *c.ID)
 		if err != nil {
-			helpers.ReportErrorToSentry(err)
 			return nil, err
 		}
 		var clientList []enums.ClientType
@@ -1517,7 +1449,6 @@ func (d *MyCareHubDb) CheckIfClientHasUnresolvedServiceRequests(ctx context.Cont
 func (d *MyCareHubDb) GetAllRoles(ctx context.Context) ([]*domain.AuthorityRole, error) {
 	roles, err := d.query.GetAllRoles(ctx)
 	if err != nil {
-		helpers.ReportErrorToSentry(err)
 		return nil, err
 	}
 
@@ -1539,7 +1470,6 @@ func (d *MyCareHubDb) GetAllRoles(ctx context.Context) ([]*domain.AuthorityRole,
 func (d *MyCareHubDb) GetUserProfileByStaffID(ctx context.Context, staffID string) (*domain.User, error) {
 	userProfile, err := d.query.GetUserProfileByStaffID(ctx, staffID)
 	if err != nil {
-		helpers.ReportErrorToSentry(err)
 		return nil, err
 	}
 
@@ -1551,13 +1481,11 @@ func (d *MyCareHubDb) GetUserProfileByStaffID(ctx context.Context, staffID strin
 func (d *MyCareHubDb) GetServiceRequestByID(ctx context.Context, serviceRequestID string) (*domain.ServiceRequest, error) {
 	serviceRequest, err := d.query.GetServiceRequestByID(ctx, serviceRequestID)
 	if err != nil {
-		helpers.ReportErrorToSentry(err)
 		return nil, err
 	}
 
 	metadata, err := utils.ConvertJSONStringToMap(serviceRequest.Meta)
 	if err != nil {
-		helpers.ReportErrorToSentry(err)
 		return nil, err
 	}
 
@@ -1581,7 +1509,6 @@ func (d *MyCareHubDb) GetServiceRequestByID(ctx context.Context, serviceRequestI
 func (d *MyCareHubDb) GetStaffProfileByStaffID(ctx context.Context, staffID string) (*domain.StaffProfile, error) {
 	staffProfile, err := d.query.GetStaffProfileByStaffID(ctx, staffID)
 	if err != nil {
-		helpers.ReportErrorToSentry(err)
 		return nil, err
 	}
 	user := createMapUser(&staffProfile.UserProfile)
@@ -1600,19 +1527,16 @@ func (d *MyCareHubDb) GetStaffProfileByStaffID(ctx context.Context, staffID stri
 func (d *MyCareHubDb) GetAppointmentServiceRequests(ctx context.Context, lastSyncTime time.Time, mflCode string) ([]domain.AppointmentServiceRequests, error) {
 	MFLCode, err := strconv.Atoi(mflCode)
 	if err != nil {
-		helpers.ReportErrorToSentry(err)
 		return nil, err
 	}
 
 	facility, err := d.query.RetrieveFacilityByMFLCode(ctx, MFLCode, true)
 	if err != nil {
-		helpers.ReportErrorToSentry(err)
 		return nil, err
 	}
 
 	serviceRequests, err := d.query.GetAppointmentServiceRequests(ctx, lastSyncTime, *facility.FacilityID)
 	if err != nil {
-		helpers.ReportErrorToSentry(err)
 		return nil, err
 	}
 
@@ -1620,7 +1544,6 @@ func (d *MyCareHubDb) GetAppointmentServiceRequests(ctx context.Context, lastSyn
 	for _, request := range serviceRequests {
 		metaMap, err := utils.ConvertJSONStringToMap(request.Meta)
 		if err != nil {
-			helpers.ReportErrorToSentry(err)
 			return nil, err
 		}
 
@@ -1634,7 +1557,6 @@ func (d *MyCareHubDb) GetAppointmentServiceRequests(ctx context.Context, lastSyn
 		param := gorm.Appointment{ID: appointmentID}
 		appointment, err := d.query.GetAppointment(ctx, &param)
 		if err != nil {
-			helpers.ReportErrorToSentry(err)
 			return nil, err
 		}
 
@@ -1645,13 +1567,11 @@ func (d *MyCareHubDb) GetAppointmentServiceRequests(ctx context.Context, lastSyn
 		}
 		rescheduleTime, err = time.Parse(time.RFC3339, valueRescheduleTime.(string))
 		if err != nil {
-			helpers.ReportErrorToSentry(err)
 			return nil, err
 		}
 
 		suggestedDate, err := utils.ConvertTimeToScalarDate(rescheduleTime)
 		if err != nil {
-			helpers.ReportErrorToSentry(err)
 			return nil, err
 		}
 
@@ -1659,7 +1579,6 @@ func (d *MyCareHubDb) GetAppointmentServiceRequests(ctx context.Context, lastSyn
 		if request.InProgressByID != nil {
 			inProgressBy, err := d.GetUserProfileByStaffID(ctx, *request.InProgressByID)
 			if err != nil {
-				helpers.ReportErrorToSentry(err)
 				return nil, err
 			}
 			inProgressByName = inProgressBy.Name
@@ -1669,7 +1588,6 @@ func (d *MyCareHubDb) GetAppointmentServiceRequests(ctx context.Context, lastSyn
 		if request.ResolvedByID != nil {
 			resolvedBy, err := d.GetUserProfileByStaffID(ctx, *request.ResolvedByID)
 			if err != nil {
-				helpers.ReportErrorToSentry(err)
 				return nil, err
 			}
 			resolvedByName = resolvedBy.Name
@@ -1677,13 +1595,11 @@ func (d *MyCareHubDb) GetAppointmentServiceRequests(ctx context.Context, lastSyn
 
 		clientProfile, err := d.query.GetClientProfileByClientID(ctx, request.ClientID)
 		if err != nil {
-			helpers.ReportErrorToSentry(err)
 			return nil, err
 		}
 
 		identifier, err := d.GetClientCCCIdentifier(ctx, request.ClientID)
 		if err != nil {
-			helpers.ReportErrorToSentry(err)
 			continue
 		}
 
@@ -1715,7 +1631,6 @@ func (d *MyCareHubDb) GetFacilitiesWithoutFHIRID(ctx context.Context) ([]*domain
 	var facilities []*domain.Facility
 	results, err := d.query.GetFacilitiesWithoutFHIRID(ctx)
 	if err != nil {
-		helpers.ReportErrorToSentry(err)
 		return nil, err
 	}
 
@@ -1749,14 +1664,12 @@ func (d *MyCareHubDb) GetAppointment(ctx context.Context, params domain.Appointm
 
 	appointment, err := d.query.GetAppointment(ctx, parameters)
 	if err != nil {
-		helpers.ReportErrorToSentry(err)
 		return nil, err
 	}
 
 	date := appointment.Date
 	appointmentDate, err := scalarutils.NewDate(date.Day(), int(date.Month()), date.Year())
 	if err != nil {
-		helpers.ReportErrorToSentry(err)
 		return nil, err
 	}
 
@@ -1777,7 +1690,6 @@ func (d *MyCareHubDb) GetAppointment(ctx context.Context, params domain.Appointm
 func (d *MyCareHubDb) GetClientServiceRequests(ctx context.Context, requestType, status, clientID, facilityID string) ([]*domain.ServiceRequest, error) {
 	serviceRequests, err := d.query.GetClientServiceRequests(ctx, requestType, status, clientID, facilityID)
 	if err != nil {
-		helpers.ReportErrorToSentry(err)
 		return nil, err
 	}
 
@@ -1785,7 +1697,6 @@ func (d *MyCareHubDb) GetClientServiceRequests(ctx context.Context, requestType,
 	for _, r := range serviceRequests {
 		meta, err := utils.ConvertJSONStringToMap(r.Meta)
 		if err != nil {
-			helpers.ReportErrorToSentry(err)
 			return nil, err
 		}
 		serviceRequestList = append(serviceRequestList,
@@ -1809,7 +1720,6 @@ func (d *MyCareHubDb) GetClientServiceRequests(ctx context.Context, requestType,
 func (d *MyCareHubDb) GetActiveScreeningToolResponses(ctx context.Context, clientID string) ([]*domain.ScreeningToolQuestionResponse, error) {
 	responses, err := d.query.GetActiveScreeningToolResponses(ctx, clientID)
 	if err != nil {
-		helpers.ReportErrorToSentry(err)
 		return nil, err
 	}
 
@@ -1840,7 +1750,6 @@ func (d *MyCareHubDb) GetUserSurveyForms(ctx context.Context, params map[string]
 
 	surveys, err := d.query.GetUserSurveyForms(ctx, params)
 	if err != nil {
-		helpers.ReportErrorToSentry(err)
 		return nil, err
 	}
 
@@ -1868,14 +1777,12 @@ func (d *MyCareHubDb) GetUserSurveyForms(ctx context.Context, params map[string]
 func (d *MyCareHubDb) GetSharedHealthDiaryEntries(ctx context.Context, clientID string, facilityID string) ([]*domain.ClientHealthDiaryEntry, error) {
 	clientProfile, err := d.query.GetClientProfileByClientID(ctx, clientID)
 	if err != nil {
-		helpers.ReportErrorToSentry(err)
 		return nil, err
 	}
 
 	var healthDiaryEntries []*domain.ClientHealthDiaryEntry
 	entries, err := d.query.GetSharedHealthDiaryEntries(ctx, clientID, facilityID)
 	if err != nil {
-		helpers.ReportErrorToSentry(err)
 		return nil, err
 	}
 
@@ -1902,7 +1809,6 @@ func (d *MyCareHubDb) GetSharedHealthDiaryEntries(ctx context.Context, clientID 
 func (d *MyCareHubDb) GetClientScreeningToolResponsesByToolType(ctx context.Context, clientID, toolType string, active bool) ([]*domain.ScreeningToolQuestionResponse, error) {
 	responses, err := d.query.GetClientScreeningToolResponsesByToolType(ctx, clientID, toolType, active)
 	if err != nil {
-		helpers.ReportErrorToSentry(err)
 		return nil, err
 	}
 
@@ -1926,12 +1832,10 @@ func (d *MyCareHubDb) GetClientScreeningToolResponsesByToolType(ctx context.Cont
 func (d *MyCareHubDb) GetClientScreeningToolServiceRequestByToolType(ctx context.Context, clientID, toolType, status string) (*domain.ServiceRequest, error) {
 	serviceRequest, err := d.query.GetClientScreeningToolServiceRequestByToolType(ctx, clientID, toolType, status)
 	if err != nil {
-		helpers.ReportErrorToSentry(err)
 		return nil, err
 	}
 	meta, err := utils.ConvertJSONStringToMap(serviceRequest.Meta)
 	if err != nil {
-		helpers.ReportErrorToSentry(err)
 		return nil, err
 	}
 
@@ -1957,7 +1861,6 @@ func (d *MyCareHubDb) CheckIfStaffHasUnresolvedServiceRequests(ctx context.Conte
 func (d *MyCareHubDb) GetNotification(ctx context.Context, notificationID string) (*domain.Notification, error) {
 	n, err := d.query.GetNotification(ctx, notificationID)
 	if err != nil {
-		helpers.ReportErrorToSentry(err)
 		return nil, err
 	}
 
@@ -1977,7 +1880,6 @@ func (d *MyCareHubDb) GetNotification(ctx context.Context, notificationID string
 func (d *MyCareHubDb) GetClientsByFilterParams(ctx context.Context, facilityID *string, filterParams *dto.ClientFilterParamsInput) ([]*domain.ClientProfile, error) {
 	clients, err := d.query.GetClientsByFilterParams(ctx, *facilityID, filterParams)
 	if err != nil {
-		helpers.ReportErrorToSentry(err)
 		return nil, err
 	}
 
@@ -1989,7 +1891,6 @@ func (d *MyCareHubDb) GetClientsByFilterParams(ctx context.Context, facilityID *
 		}
 		user, err := d.query.GetUserProfileByUserID(ctx, c.UserID)
 		if err != nil {
-			helpers.ReportErrorToSentry(err)
 			return nil, err
 		}
 		domainUser := createMapUser(user)
@@ -2018,7 +1919,6 @@ func (d *MyCareHubDb) GetClientsByFilterParams(ctx context.Context, facilityID *
 func (d *MyCareHubDb) SearchClientServiceRequests(ctx context.Context, searchParameter string, requestType string, facilityID string) ([]*domain.ServiceRequest, error) {
 	serviceRequests, err := d.query.SearchClientServiceRequests(ctx, searchParameter, requestType, facilityID)
 	if err != nil {
-		helpers.ReportErrorToSentry(err)
 		return nil, err
 	}
 
@@ -2029,7 +1929,6 @@ func (d *MyCareHubDb) SearchClientServiceRequests(ctx context.Context, searchPar
 func (d *MyCareHubDb) SearchStaffServiceRequests(ctx context.Context, searchParameter string, requestType string, facilityID string) ([]*domain.ServiceRequest, error) {
 	serviceRequests, err := d.query.SearchStaffServiceRequests(ctx, searchParameter, requestType, facilityID)
 	if err != nil {
-		helpers.ReportErrorToSentry(err)
 		return nil, err
 	}
 
@@ -2040,19 +1939,16 @@ func (d *MyCareHubDb) SearchStaffServiceRequests(ctx context.Context, searchPara
 func (d *MyCareHubDb) GetScreeningToolByID(ctx context.Context, toolID string) (*domain.ScreeningTool, error) {
 	tool, err := d.query.GetScreeningToolByID(ctx, toolID)
 	if err != nil {
-		helpers.ReportErrorToSentry(err)
 		return nil, err
 	}
 
 	questionnaire, err := d.query.GetQuestionnaireByID(ctx, tool.QuestionnaireID)
 	if err != nil {
-		helpers.ReportErrorToSentry(err)
 		return nil, err
 	}
 
 	questionsPayload, err := d.query.GetQuestionsByQuestionnaireID(ctx, questionnaire.ID)
 	if err != nil {
-		helpers.ReportErrorToSentry(err)
 		return nil, err
 	}
 
@@ -2062,7 +1958,6 @@ func (d *MyCareHubDb) GetScreeningToolByID(ctx context.Context, toolID string) (
 		choices := []domain.QuestionInputChoice{}
 		choicesPayload, err := d.query.GetQuestionInputChoicesByQuestionID(ctx, q.ID)
 		if err != nil {
-			helpers.ReportErrorToSentry(err)
 			return nil, err
 		}
 		for _, c := range choicesPayload {
@@ -2125,7 +2020,6 @@ func (d *MyCareHubDb) GetScreeningToolByID(ctx context.Context, toolID string) (
 func (d *MyCareHubDb) GetAvailableScreeningTools(ctx context.Context, clientID string, facilityID string) ([]*domain.ScreeningTool, error) {
 	screeningTools, err := d.query.GetAvailableScreeningTools(ctx, clientID, facilityID)
 	if err != nil {
-		helpers.ReportErrorToSentry(err)
 		return nil, err
 	}
 
@@ -2142,7 +2036,6 @@ func (d *MyCareHubDb) GetAvailableScreeningTools(ctx context.Context, clientID s
 
 		questionnaire, err := d.query.GetQuestionnaireByID(ctx, s.QuestionnaireID)
 		if err != nil {
-			helpers.ReportErrorToSentry(err)
 			return nil, err
 		}
 
@@ -2172,7 +2065,6 @@ func (d *MyCareHubDb) GetAvailableScreeningTools(ctx context.Context, clientID s
 func (d *MyCareHubDb) GetFacilityRespondedScreeningTools(ctx context.Context, facilityID string, pagination *domain.Pagination) ([]*domain.ScreeningTool, *domain.Pagination, error) {
 	screeningTools, pageInfo, err := d.query.GetFacilityRespondedScreeningTools(ctx, facilityID, pagination)
 	if err != nil {
-		helpers.ReportErrorToSentry(err)
 		return nil, nil, err
 	}
 
@@ -2180,7 +2072,6 @@ func (d *MyCareHubDb) GetFacilityRespondedScreeningTools(ctx context.Context, fa
 	for _, s := range screeningTools {
 		questionnaire, err := d.query.GetQuestionnaireByID(ctx, s.QuestionnaireID)
 		if err != nil {
-			helpers.ReportErrorToSentry(err)
 			return nil, nil, err
 		}
 
@@ -2210,7 +2101,6 @@ func (d *MyCareHubDb) GetScreeningToolRespondents(ctx context.Context, facilityI
 
 	serviceRequests, pageInfo, err := d.query.GetScreeningToolServiceRequestOfRespondents(ctx, facilityID, screeningToolID, searchTerm, page)
 	if err != nil {
-		helpers.ReportErrorToSentry(err)
 		return nil, nil, err
 	}
 
@@ -2219,18 +2109,15 @@ func (d *MyCareHubDb) GetScreeningToolRespondents(ctx context.Context, facilityI
 	for _, s := range serviceRequests {
 		meta, err := utils.ConvertJSONStringToMap(s.Meta)
 		if err != nil {
-			helpers.ReportErrorToSentry(err)
 			return nil, nil, err
 		}
 		responseID := meta["response_id"].(string)
 		response, err := d.query.GetScreeningToolResponseByID(ctx, responseID)
 		if err != nil {
-			helpers.ReportErrorToSentry(err)
 			return nil, nil, err
 		}
 		client, err := d.query.GetClientProfileByClientID(ctx, s.ClientID)
 		if err != nil {
-			helpers.ReportErrorToSentry(err)
 			return nil, nil, err
 		}
 		respondent := &domain.ScreeningToolRespondent{
@@ -2252,17 +2139,14 @@ func (d *MyCareHubDb) GetScreeningToolRespondents(ctx context.Context, facilityI
 func (d *MyCareHubDb) GetScreeningToolResponseByID(ctx context.Context, id string) (*domain.QuestionnaireScreeningToolResponse, error) {
 	response, err := d.query.GetScreeningToolResponseByID(ctx, id)
 	if err != nil {
-		helpers.ReportErrorToSentry(err)
 		return nil, err
 	}
 	screeningToolResponses, err := d.query.GetScreeningToolQuestionResponsesByResponseID(ctx, response.ID)
 	if err != nil {
-		helpers.ReportErrorToSentry(err)
 		return nil, err
 	}
 	screeningTool, err := d.GetScreeningToolByID(ctx, response.ScreeningToolID)
 	if err != nil {
-		helpers.ReportErrorToSentry(err)
 		return nil, err
 	}
 	questionResponsesPayload := []*domain.QuestionnaireScreeningToolQuestionResponse{}
@@ -2299,7 +2183,6 @@ func (d *MyCareHubDb) GetScreeningToolResponseByID(ctx context.Context, id strin
 func (d *MyCareHubDb) GetSurveysWithServiceRequests(ctx context.Context, facilityID string) ([]*dto.SurveysWithServiceRequest, error) {
 	surveys, err := d.query.GetSurveysWithServiceRequests(ctx, facilityID)
 	if err != nil {
-		helpers.ReportErrorToSentry(err)
 		return nil, err
 	}
 
