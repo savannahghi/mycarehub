@@ -7002,6 +7002,30 @@ func TestMyCareHubDb_GetCaregiverManagedClients(t *testing.T) {
 			},
 			wantErr: true,
 		},
+		{
+			name: "Sad Case: failed to get notification count",
+			args: args{
+				ctx:         context.Background(),
+				caregiverID: uuid.NewString(),
+				pagination: &domain.Pagination{
+					Limit:       10,
+					CurrentPage: 1,
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad Case: failed to get survey count",
+			args: args{
+				ctx:         context.Background(),
+				caregiverID: uuid.NewString(),
+				pagination: &domain.Pagination{
+					Limit:       10,
+					CurrentPage: 1,
+				},
+			},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -7029,6 +7053,18 @@ func TestMyCareHubDb_GetCaregiverManagedClients(t *testing.T) {
 			if tt.name == "Sad Case: failed to get caregiver cclient association" {
 				fakeGorm.MockGetCaregiversClientFn = func(ctx context.Context, caregiverClient gorm.CaregiverClient) ([]*gorm.CaregiverClient, error) {
 					return nil, fmt.Errorf("failed to get client's caregivers")
+				}
+			}
+
+			if tt.name == "Sad Case: failed to get notification count" {
+				fakeGorm.MockGetNotificationsCountFn = func(ctx context.Context, notification gorm.Notification) (int, error) {
+					return 0, fmt.Errorf("an error occurred")
+				}
+			}
+
+			if tt.name == "Sad Case: failed to get survey count" {
+				fakeGorm.MockGetClientsSurveyCountFn = func(ctx context.Context, userID string) (int, error) {
+					return 0, fmt.Errorf("an error occurred")
 				}
 			}
 			got, _, err := d.GetCaregiverManagedClients(tt.args.ctx, tt.args.caregiverID, tt.args.pagination)
