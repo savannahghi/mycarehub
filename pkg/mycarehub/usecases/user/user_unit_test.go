@@ -6024,3 +6024,65 @@ func TestUseCasesUserImpl_ConsentToManagingClient(t *testing.T) {
 		})
 	}
 }
+
+func TestUseCasesUserImpl_ListCaregiverConsents(t *testing.T) {
+	type args struct {
+		ctx             context.Context
+		caregiverID     string
+		paginationInput *dto.PaginationsInput
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *dto.CaregiverProfileOutputPage
+		wantErr bool
+	}{
+		{
+			name: "Happy Case: list caregiver consents",
+			args: args{
+				ctx:         context.Background(),
+				caregiverID: uuid.NewString(),
+				paginationInput: &dto.PaginationsInput{
+					Limit:       30,
+					CurrentPage: 1,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad Case: unable to list caregiver consents",
+			args: args{
+				ctx:         context.Background(),
+				caregiverID: uuid.NewString(),
+				paginationInput: &dto.PaginationsInput{
+					Limit:       30,
+					CurrentPage: 1,
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			fakeExtension := extensionMock.NewFakeExtension()
+			fakeOTP := otpMock.NewOTPUseCaseMock()
+			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
+			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
+			fakePubsub := pubsubMock.NewPubsubServiceMock()
+			fakeClinical := clinicalMock.NewClinicalServiceMock()
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakeGetStream, fakePubsub, fakeClinical)
+
+			if tt.name == "Sad Case: unable to list caregiver consents" {
+				fakeDB.MockListClientsCaregiversFn = func(ctx context.Context, clientID string, pagination *domain.Pagination) (*domain.ClientCaregivers, *domain.Pagination, error) {
+					return nil, nil, fmt.Errorf("unable to list caregiver consents")
+				}
+			}
+			_, err := us.ListCaregiverConsents(tt.args.ctx, tt.args.caregiverID, tt.args.paginationInput)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCasesUserImpl.ListCaregiverConsents() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}

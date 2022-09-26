@@ -86,6 +86,7 @@ type IClientCaregiver interface {
 	ListClientsCaregivers(ctx context.Context, clientID string, pagination *dto.PaginationsInput) (*dto.CaregiverProfileOutputPage, error)
 	ConsentToAClientCaregiver(ctx context.Context, clientID string, caregiverID string, consent bool) (bool, error)
 	ConsentToManagingClient(ctx context.Context, caregiverID string, clientID string, consent bool) (bool, error)
+	ListCaregiverConsents(ctx context.Context, clientID string, paginationInput *dto.PaginationsInput) (*dto.CaregiverProfileOutputPage, error)
 }
 
 // ICaregiversClients is an interface that contains all the caregiver clients use cases
@@ -1896,4 +1897,27 @@ func (us *UseCasesUserImpl) ConsentToManagingClient(ctx context.Context, caregiv
 	}
 
 	return true, nil
+}
+
+// ListCaregiverConsents returns a list of clients who have consented to be managed by the caregiver
+func (us *UseCasesUserImpl) ListCaregiverConsents(ctx context.Context, clientID string, paginationInput *dto.PaginationsInput) (*dto.CaregiverProfileOutputPage, error) {
+	if err := paginationInput.Validate(); err != nil {
+		return nil, err
+	}
+
+	page := &domain.Pagination{
+		Limit:       paginationInput.Limit,
+		CurrentPage: paginationInput.CurrentPage,
+	}
+
+	caregivers, pageInfo, err := us.Query.ListClientsCaregivers(ctx, clientID, page)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, fmt.Errorf("failed to list client caregivers: %w", err)
+	}
+
+	return &dto.CaregiverProfileOutputPage{
+		Pagination:       pageInfo,
+		ClientCaregivers: caregivers,
+	}, nil
 }

@@ -134,3 +134,7 @@ func (r *queryResolver) GetCaregiverManagedClients(ctx context.Context, caregive
 func (r *queryResolver) ListClientsCaregivers(ctx context.Context, clientID string, paginationInput *dto.PaginationsInput) (*dto.CaregiverProfileOutputPage, error) {
 	return r.mycarehub.User.ListClientsCaregivers(ctx, clientID, paginationInput)
 }
+
+func (r *queryResolver) ListCaregiverConsents(ctx context.Context, clientID string, paginationInput *dto.PaginationsInput) (*dto.CaregiverProfileOutputPage, error) {
+	return r.mycarehub.User.ListCaregiverConsents(ctx, clientID, paginationInput)
+}

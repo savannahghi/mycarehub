@@ -59,6 +59,7 @@ type UserUseCaseMock struct {
 	MockListClientsCaregiversFn             func(ctx context.Context, clientID string, pagination *dto.PaginationsInput) (*dto.CaregiverProfileOutputPage, error)
 	MockConsentToAClientCaregiverFn         func(ctx context.Context, clientID string, caregiverID string, consent bool) (bool, error)
 	MockConsentToManagingClientFn           func(ctx context.Context, caregiverID string, clientID string, consent bool) (bool, error)
+	MockListCaregiverConsentsFn             func(ctx context.Context, clientID string, paginationInput *dto.PaginationsInput) (*dto.CaregiverProfileOutputPage, error)
 }
 
 // NewUserUseCaseMock creates in initializes create type mocks
@@ -206,6 +207,23 @@ func NewUserUseCaseMock() *UserUseCaseMock {
 		},
 		MockResetPINFn: func(ctx context.Context, input dto.UserResetPinInput) (bool, error) {
 			return true, nil
+		},
+		MockListCaregiverConsentsFn: func(ctx context.Context, clientID string, paginationInput *dto.PaginationsInput) (*dto.CaregiverProfileOutputPage, error) {
+			okBool := true
+			return &dto.CaregiverProfileOutputPage{
+				Pagination: paginationOutput,
+				ClientCaregivers: &domain.ClientCaregivers{
+					Caregivers: []*domain.CaregiverProfile{
+						{
+							ID:              UUID,
+							UserID:          UUID,
+							User:            *user,
+							CaregiverNumber: "CG001",
+						},
+					},
+					Consented: okBool,
+				},
+			}, nil
 		},
 		MockRefreshTokenFn: func(ctx context.Context, userID string) (*domain.AuthCredentials, error) {
 			return &domain.AuthCredentials{
@@ -641,4 +659,9 @@ func (f *UserUseCaseMock) ConsentToAClientCaregiver(ctx context.Context, clientI
 // ConsentToManagingClient mock the implementation of a caregiver acknowledging or offering their consent to act on behalf of the client.
 func (f *UserUseCaseMock) ConsentToManagingClient(ctx context.Context, caregiverID string, clientID string, consent bool) (bool, error) {
 	return f.MockConsentToManagingClientFn(ctx, caregiverID, clientID, consent)
+}
+
+// ListCaregiverConsents mocks the implementation of listing a caregiver's consents
+func (f *UserUseCaseMock) ListCaregiverConsents(ctx context.Context, clientID string, paginationInput *dto.PaginationsInput) (*dto.CaregiverProfileOutputPage, error) {
+	return f.MockListCaregiverConsentsFn(ctx, clientID, paginationInput)
 }
