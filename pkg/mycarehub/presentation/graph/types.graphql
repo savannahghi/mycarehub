@@ -682,7 +682,8 @@ type FacilityOutputPage {
 type ManagedClient {
 	clientProfile: ClientProfile 
 	caregiverConsent: Boolean
-	clientConsent: Boolean               
+	clientConsent: Boolean 
+  workStationDetails: WorkStationDetails         
 }
 
 type ManagedClientOutputPage{

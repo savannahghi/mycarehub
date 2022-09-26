@@ -38,9 +38,10 @@ type CaregiverClient struct {
 
 // ManagedClient represents a client who is managed by a caregiver
 type ManagedClient struct {
-	ClientProfile    *ClientProfile `json:"clientProfile"`
-	CaregiverConsent *bool          `json:"caregiverConsent"`
-	ClientConsent    *bool          `json:"clientConsent"`
+	ClientProfile      *ClientProfile     `json:"clientProfile"`
+	CaregiverConsent   *bool              `json:"caregiverConsent"`
+	ClientConsent      *bool              `json:"clientConsent"`
+	WorkStationDetails WorkStationDetails `json:"workStationDetails"`
 }
 
 // ClientCaregivers is the model that holds the client's caregivers

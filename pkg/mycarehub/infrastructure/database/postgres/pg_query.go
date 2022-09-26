@@ -2458,15 +2458,29 @@ func (d *MyCareHubDb) GetCaregiverManagedClients(ctx context.Context, caregiverI
 			clientConsent = &falseValue
 		}
 
+		notification := &gorm.Notification{
+			UserID:  client.UserID,
+			Flavour: feedlib.FlavourConsumer,
+		}
+
+		notificationCount, err := d.query.GetNotificationsCount(ctx, *notification)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		surveyCount, err := d.query.GetClientsSurveyCount(ctx, *userProfile.ID)
+		if err != nil {
+			return nil, nil, err
+		}
+
 		managedClient := &domain.ManagedClient{
-			ClientProfile: &domain.ClientProfile{
-				ID:         client.ID,
-				User:       userProfile,
-				FacilityID: client.FacilityID,
-				Facilities: clientFacilities,
-			},
+			ClientProfile:    &domain.ClientProfile{ID: client.ID, User: userProfile, FacilityID: client.FacilityID, Facilities: clientFacilities},
 			CaregiverConsent: caregiverConsent,
 			ClientConsent:    clientConsent,
+			WorkStationDetails: domain.WorkStationDetails{
+				Notifications: notificationCount,
+				Surveys:       surveyCount,
+			},
 		}
 		managedClients = append(managedClients, managedClient)
 

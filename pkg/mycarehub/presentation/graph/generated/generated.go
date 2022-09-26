@@ -375,9 +375,10 @@ type ComplexityRoot struct {
 	}
 
 	ManagedClient struct {
-		CaregiverConsent func(childComplexity int) int
-		ClientConsent    func(childComplexity int) int
-		ClientProfile    func(childComplexity int) int
+		CaregiverConsent   func(childComplexity int) int
+		ClientConsent      func(childComplexity int) int
+		ClientProfile      func(childComplexity int) int
+		WorkStationDetails func(childComplexity int) int
 	}
 
 	ManagedClientOutputPage struct {
@@ -2489,6 +2490,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ManagedClient.ClientProfile(childComplexity), true
+
+	case "ManagedClient.workStationDetails":
+		if e.complexity.ManagedClient.WorkStationDetails == nil {
+			break
+		}
+
+		return e.complexity.ManagedClient.WorkStationDetails(childComplexity), true
 
 	case "ManagedClientOutputPage.ManagedClients":
 		if e.complexity.ManagedClientOutputPage.ManagedClients == nil {
@@ -6965,7 +6973,8 @@ type FacilityOutputPage {
 type ManagedClient {
 	clientProfile: ClientProfile 
 	caregiverConsent: Boolean
-	clientConsent: Boolean               
+	clientConsent: Boolean 
+  workStationDetails: WorkStationDetails         
 }
 
 type ManagedClientOutputPage{
@@ -19303,6 +19312,59 @@ func (ec *executionContext) fieldContext_ManagedClient_clientConsent(ctx context
 	return fc, nil
 }
 
+func (ec *executionContext) _ManagedClient_workStationDetails(ctx context.Context, field graphql.CollectedField, obj *domain.ManagedClient) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ManagedClient_workStationDetails(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.WorkStationDetails, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(domain.WorkStationDetails)
+	fc.Result = res
+	return ec.marshalOWorkStationDetails2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐWorkStationDetails(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ManagedClient_workStationDetails(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ManagedClient",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "Notifications":
+				return ec.fieldContext_WorkStationDetails_Notifications(ctx, field)
+			case "Surveys":
+				return ec.fieldContext_WorkStationDetails_Surveys(ctx, field)
+			case "Articles":
+				return ec.fieldContext_WorkStationDetails_Articles(ctx, field)
+			case "Messages":
+				return ec.fieldContext_WorkStationDetails_Messages(ctx, field)
+			case "ServiceRequests":
+				return ec.fieldContext_WorkStationDetails_ServiceRequests(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type WorkStationDetails", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _ManagedClientOutputPage_pagination(ctx context.Context, field graphql.CollectedField, obj *dto.ManagedClientOutputPage) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_ManagedClientOutputPage_pagination(ctx, field)
 	if err != nil {
@@ -19403,6 +19465,8 @@ func (ec *executionContext) fieldContext_ManagedClientOutputPage_ManagedClients(
 				return ec.fieldContext_ManagedClient_caregiverConsent(ctx, field)
 			case "clientConsent":
 				return ec.fieldContext_ManagedClient_clientConsent(ctx, field)
+			case "workStationDetails":
+				return ec.fieldContext_ManagedClient_workStationDetails(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ManagedClient", field.Name)
 		},
@@ -42381,6 +42445,10 @@ func (ec *executionContext) _ManagedClient(ctx context.Context, sel ast.Selectio
 
 			out.Values[i] = ec._ManagedClient_clientConsent(ctx, field, obj)
 
+		case "workStationDetails":
+
+			out.Values[i] = ec._ManagedClient_workStationDetails(ctx, field, obj)
+
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -51723,6 +51791,10 @@ func (ec *executionContext) marshalOUserSurvey2ᚕᚖgithubᚗcomᚋsavannahghi�
 	}
 
 	return ret
+}
+
+func (ec *executionContext) marshalOWorkStationDetails2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐWorkStationDetails(ctx context.Context, sel ast.SelectionSet, v domain.WorkStationDetails) graphql.Marshaler {
+	return ec._WorkStationDetails(ctx, sel, &v)
 }
 
 func (ec *executionContext) marshalO__EnumValue2ᚕgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐEnumValueᚄ(ctx context.Context, sel ast.SelectionSet, v []introspection.EnumValue) graphql.Marshaler {
