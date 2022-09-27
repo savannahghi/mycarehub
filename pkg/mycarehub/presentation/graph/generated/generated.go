@@ -5974,8 +5974,9 @@ input CaregiverInput {
   gender: Gender!
   dateOfBirth: Date!
   phoneNumber: String!
-  caregiverNumber: String!
+  caregiverNumber: String
   sendInvite: Boolean
+  assignedClients: [ClientCaregiverInput]
 }
 
 input ClientRegistrationInput {
@@ -6139,7 +6140,7 @@ input SurveyResponseInput {
 
 input ClientCaregiverInput {
   clientID: String!
-  caregiverID: String!
+  caregiverID: String
   caregiverType: CaregiverType!
 }
 `, BuiltIn: false},
@@ -38997,7 +38998,7 @@ func (ec *executionContext) unmarshalInputCaregiverInput(ctx context.Context, ob
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("caregiverNumber"))
-			it.CaregiverNumber, err = ec.unmarshalNString2string(ctx, v)
+			it.CaregiverNumber, err = ec.unmarshalOString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -39006,6 +39007,14 @@ func (ec *executionContext) unmarshalInputCaregiverInput(ctx context.Context, ob
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sendInvite"))
 			it.SendInvite, err = ec.unmarshalOBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "assignedClients":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("assignedClients"))
+			it.AssignedClients, err = ec.unmarshalOClientCaregiverInput2ᚕgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐClientCaregiverInput(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -39036,7 +39045,7 @@ func (ec *executionContext) unmarshalInputClientCaregiverInput(ctx context.Conte
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("caregiverID"))
-			it.CaregiverID, err = ec.unmarshalNString2string(ctx, v)
+			it.CaregiverID, err = ec.unmarshalOString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -49781,6 +49790,31 @@ func (ec *executionContext) marshalOCategoryDetail2ᚕgithubᚗcomᚋsavannahghi
 	wg.Wait()
 
 	return ret
+}
+
+func (ec *executionContext) unmarshalOClientCaregiverInput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐClientCaregiverInput(ctx context.Context, v interface{}) (dto.ClientCaregiverInput, error) {
+	res, err := ec.unmarshalInputClientCaregiverInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOClientCaregiverInput2ᚕgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐClientCaregiverInput(ctx context.Context, v interface{}) ([]dto.ClientCaregiverInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]dto.ClientCaregiverInput, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalOClientCaregiverInput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐClientCaregiverInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
 }
 
 func (ec *executionContext) unmarshalOClientFilterParamsInput2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐClientFilterParamsInput(ctx context.Context, v interface{}) (*dto.ClientFilterParamsInput, error) {

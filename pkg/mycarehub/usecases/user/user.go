@@ -857,7 +857,7 @@ func (us *UseCasesUserImpl) RegisterCaregiver(ctx context.Context, input dto.Car
 		return nil, fmt.Errorf("phone number %v already exists", normalized)
 	}
 
-	username := fmt.Sprintf("%v-%v", input.Name, input.CaregiverNumber)
+	username := fmt.Sprintf("%v-%v", input.Name, normalized)
 	dob := input.DateOfBirth.AsTime()
 	user := &domain.User{
 		Username:    username,
@@ -890,13 +890,29 @@ func (us *UseCasesUserImpl) RegisterCaregiver(ctx context.Context, input dto.Car
 
 	profile, err := us.Create.RegisterCaregiver(ctx, payload)
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return nil, err
 	}
 
 	if input.SendInvite {
 		_, err := us.InviteUser(ctx, *profile.User.ID, input.PhoneNumber, feedlib.FlavourConsumer, false)
 		if err != nil {
-			return nil, fmt.Errorf("failed to invite client: %w", err)
+			helpers.ReportErrorToSentry(err)
+			return nil, fmt.Errorf("failed to invite caregiver: %w", err)
+		}
+	}
+
+	if len(input.AssignedClients) > 0 {
+		for _, client := range input.AssignedClients {
+			_, err = us.AssignCaregiver(ctx, dto.ClientCaregiverInput{
+				ClientID:      client.ClientID,
+				CaregiverID:   profile.ID,
+				CaregiverType: client.CaregiverType,
+			})
+			if err != nil {
+				helpers.ReportErrorToSentry(err)
+				return nil, fmt.Errorf("failed to assign client to caregiver: %w", err)
+			}
 		}
 	}
 
@@ -1745,6 +1761,10 @@ func (us *UseCasesUserImpl) RemoveFacilitiesFromClientProfile(ctx context.Contex
 
 // AssignCaregiver is used to assign a caregiver to a client
 func (us *UseCasesUserImpl) AssignCaregiver(ctx context.Context, input dto.ClientCaregiverInput) (bool, error) {
+	if input.CaregiverID == "" {
+		return false, fmt.Errorf("caregiver ID is required")
+	}
+
 	userProfile, err := us.ExternalExt.GetLoggedInUserUID(ctx)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)

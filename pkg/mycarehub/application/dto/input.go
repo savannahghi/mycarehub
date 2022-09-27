@@ -256,17 +256,13 @@ type FeedbackEmail struct {
 
 // CaregiverInput defines the field passed when creating a caregiver
 type CaregiverInput struct {
-	Name            string           `json:"name"`
-	Gender          enumutils.Gender `json:"gender"`
-	DateOfBirth     scalarutils.Date `json:"dateOfBirth"`
-	PhoneNumber     string           `json:"phoneNumber"`
-	CaregiverNumber string           `json:"caregiverNumber"`
-	SendInvite      bool             `json:"sendInvite"`
-
-	ClientID      string              `json:"clientID"`
-	FirstName     string              `json:"firstName"`
-	LastName      string              `json:"lastName"`
-	CaregiverType enums.CaregiverType `json:"caregiverType"`
+	Name            string                 `json:"name"`
+	Gender          enumutils.Gender       `json:"gender"`
+	DateOfBirth     scalarutils.Date       `json:"dateOfBirth"`
+	PhoneNumber     string                 `json:"phoneNumber"`
+	CaregiverNumber string                 `json:"caregiverNumber"`
+	SendInvite      bool                   `json:"sendInvite"`
+	AssignedClients []ClientCaregiverInput `json:"assignedClients"`
 }
 
 // Validate helps with validation of CaregiverInput fields

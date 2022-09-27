@@ -5159,6 +5159,12 @@ func TestUseCasesUserImpl_RegisterCaregiver(t *testing.T) {
 					PhoneNumber:     gofakeit.Phone(),
 					CaregiverNumber: gofakeit.SSN(),
 					SendInvite:      false,
+					AssignedClients: []dto.ClientCaregiverInput{
+						{
+							ClientID:      gofakeit.UUID(),
+							CaregiverType: enums.CaregiverTypeFather,
+						},
+					},
 				},
 			},
 			wantErr: false,
@@ -5258,6 +5264,31 @@ func TestUseCasesUserImpl_RegisterCaregiver(t *testing.T) {
 			},
 			wantErr: true,
 		},
+		{
+			name: "sad case: fail to assign client",
+			args: args{
+				ctx: context.Background(),
+				input: dto.CaregiverInput{
+					Name:   gofakeit.Name(),
+					Gender: enumutils.GenderMale,
+					DateOfBirth: scalarutils.Date{
+						Year:  10,
+						Month: 10,
+						Day:   10,
+					},
+					PhoneNumber:     gofakeit.Phone(),
+					CaregiverNumber: gofakeit.SSN(),
+					SendInvite:      true,
+					AssignedClients: []dto.ClientCaregiverInput{
+						{
+							ClientID:      gofakeit.UUID(),
+							CaregiverType: enums.CaregiverTypeFather,
+						},
+					},
+				},
+			},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -5299,6 +5330,16 @@ func TestUseCasesUserImpl_RegisterCaregiver(t *testing.T) {
 
 				fakeExtension.MockSendInviteSMSFn = func(ctx context.Context, phoneNumber, message string) error {
 					return fmt.Errorf("failed to send invite sms")
+				}
+			}
+
+			if tt.name == "sad case: fail to assign client" {
+				fakeDB.MockCheckIfPhoneNumberExistsFn = func(ctx context.Context, phone string, isOptedIn bool, flavour feedlib.Flavour) (bool, error) {
+					return false, nil
+				}
+
+				fakeDB.MockAddCaregiverToClientFn = func(ctx context.Context, clientCaregiver *domain.CaregiverClient) error {
+					return fmt.Errorf("failed to assign caregiver")
 				}
 			}
 
@@ -5575,6 +5616,18 @@ func TestUseCasesUserImpl_AssignCaregiver(t *testing.T) {
 			},
 			want:    true,
 			wantErr: false,
+		},
+		{
+			name: "sad case: missing caregiver ID",
+			args: args{
+				ctx: nil,
+				input: dto.ClientCaregiverInput{
+					ClientID:      ID,
+					CaregiverType: CaregiverType,
+				},
+			},
+			want:    false,
+			wantErr: true,
 		},
 		{
 			name: "sad case: unable to add caregiver to client",
