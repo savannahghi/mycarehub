@@ -60,8 +60,9 @@ input CaregiverInput {
   gender: Gender!
   dateOfBirth: Date!
   phoneNumber: String!
-  caregiverNumber: String!
+  caregiverNumber: String
   sendInvite: Boolean
+  assignedClients: [ClientCaregiverInput]
 }
 
 input ClientRegistrationInput {
@@ -225,6 +226,6 @@ input SurveyResponseInput {
 
 input ClientCaregiverInput {
   clientID: String!
-  caregiverID: String!
+  caregiverID: String
   caregiverType: CaregiverType!
 }
