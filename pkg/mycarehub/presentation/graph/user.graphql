@@ -5,7 +5,6 @@ extend type Query {
   searchClientUser(searchParameter: String!): [ClientProfile!]
   searchStaffUser(searchParameter: String!): [StaffProfile!]
   getClientProfileByCCCNumber(CCCNumber: String!): ClientProfile!
-  getUserLinkedFacilities(paginationInput: PaginationsInput!): FacilityOutputPage
 }
 
 extend type Mutation {
@@ -15,7 +14,6 @@ extend type Mutation {
   createOrUpdateClientCaregiver(caregiverInput: CaregiverInput): Boolean!
   registerClient(input: ClientRegistrationInput): ClientRegistrationOutput!
   registerStaff(input: StaffRegistrationInput!): StaffRegistrationOutput!
-  registerCaregiver(input: CaregiverInput!): CaregiverProfile!
   optOut(phoneNumber: String!, flavour: Flavour!): Boolean!
   setPushToken(token: String!): Boolean!
   inviteUser(
@@ -25,9 +23,5 @@ extend type Mutation {
     reinvite: Boolean
   ): Boolean!
   setUserPIN(input: PINInput): Boolean!
-  transferClientToFacility(clientId: ID!, facilityID: ID!): Boolean!
-  setStaffDefaultFacility(userID: ID!, facilityID: ID!): Boolean!
-  setClientDefaultFacility(userID: ID!, facilityID: ID!): Boolean!
-  addFacilitiesToStaffProfile(staffID: ID!, facilities: [ID!]!): Boolean!
-  addFacilitiesToClientProfile(clientID: ID!, facilities: [ID!]!): Boolean!
+  transferClientToFacility(clientId: ID!, facilityId: ID!): Boolean!
 }

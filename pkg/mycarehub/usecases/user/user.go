@@ -79,7 +79,6 @@ type IPIN interface {
 
 // IClientCaregiver is an interface that contains all the client caregiver use cases
 type IClientCaregiver interface {
-	RegisterCaregiver(ctx context.Context, input dto.CaregiverInput) (*domain.CaregiverProfile, error)
 	GetClientCaregiver(ctx context.Context, clientID string) (*domain.Caregiver, error)
 	CreateOrUpdateClientCaregiver(ctx context.Context, clientCaregiver *dto.CaregiverInput) (bool, error)
 	TransferClientToFacility(ctx context.Context, clientID *string, facilityID *string) (bool, error)
@@ -121,22 +120,11 @@ type IUserProfile interface {
 // IClientProfile interface contains method signatures related to a client profile
 type IClientProfile interface {
 	AddClientFHIRID(ctx context.Context, input dto.ClientFHIRPayload) error
-	AddFacilitiesToClientProfile(ctx context.Context, clientID string, facilities []string) (bool, error)
 }
 
 // IDeleteUser interface define the method signature that is used to delete user
 type IDeleteUser interface {
 	DeleteUser(ctx context.Context, payload *dto.PhoneInput) (bool, error)
-}
-
-// IUserFacility interface represents the user facility usecases
-type IUserFacility interface {
-	// SetDefaultFacility enables a client or a staff user to set their default facility from
-	// a list of their assigned facilities
-	SetStaffDefaultFacility(ctx context.Context, userID string, facilityID string) (bool, error)
-	SetClientDefaultFacility(ctx context.Context, userID string, facilityID string) (bool, error)
-	AddFacilitiesToStaffProfile(ctx context.Context, staffID string, facilities []string) (bool, error)
-	GetUserLinkedFacilities(ctx context.Context, paginationInput dto.PaginationsInput) (*dto.FacilityOutputPage, error)
 }
 
 // UseCasesUser group all business logic usecases related to user
@@ -158,7 +146,6 @@ type UseCasesUser interface {
 	IUserProfile
 	IClientProfile
 	IDeleteUser
-	IUserFacility
 }
 
 // UseCasesUserImpl represents user implementation object
@@ -834,7 +821,7 @@ func (us *UseCasesUserImpl) RegisterClient(
 	}
 
 	handle := fmt.Sprintf("@%v", registeredClient.User.Username)
-	cmsUserPayload := &dto.PubsubCreateCMSClientPayload{
+	cmsUserPayload := &dto.CMSClientOutput{
 		UserID:      registeredClient.UserID,
 		Name:        registeredClient.User.Name,
 		Gender:      registeredClient.User.Gender,
@@ -883,62 +870,6 @@ func (us *UseCasesUserImpl) RegisterClient(
 		CurrentFacilityID: registeredClient.FacilityID,
 		Organisation:      registeredClient.OrganisationID,
 	}, nil
-}
-
-// RegisterCaregiver is used to register a caregiver
-func (us *UseCasesUserImpl) RegisterCaregiver(ctx context.Context, input dto.CaregiverInput) (*domain.CaregiverProfile, error) {
-	normalized, err := converterandformatter.NormalizeMSISDN(input.PhoneNumber)
-	if err != nil {
-		helpers.ReportErrorToSentry(err)
-		return nil, fmt.Errorf("unable to normalize phone number: %w", err)
-	}
-
-	phoneExists, err := us.Query.CheckIfPhoneNumberExists(ctx, *normalized, false, feedlib.FlavourConsumer)
-	if err != nil {
-		helpers.ReportErrorToSentry(err)
-		return nil, fmt.Errorf("unable to check if phone number exists: %w", err)
-	}
-	if phoneExists {
-		return nil, fmt.Errorf("phone number %v already exists", normalized)
-	}
-
-	username := fmt.Sprintf("%v-%v", input.Name, input.CaregiverNumber)
-	dob := input.DateOfBirth.AsTime()
-	user := &domain.User{
-		Username:    username,
-		Name:        input.Name,
-		Gender:      enumutils.Gender(strings.ToUpper(input.Gender.String())),
-		DateOfBirth: &dob,
-		UserType:    enums.CaregiverUser,
-		Flavour:     feedlib.FlavourConsumer,
-		Active:      true,
-	}
-
-	contact := &domain.Contact{
-		ContactType:  "PHONE",
-		ContactValue: *normalized,
-		Active:       true,
-		OptedIn:      false,
-		Flavour:      feedlib.FlavourConsumer,
-	}
-
-	caregiver := &domain.Caregiver{
-		CaregiverNumber: input.CaregiverNumber,
-		Active:          true,
-	}
-
-	payload := &domain.CaregiverRegistration{
-		User:      user,
-		Contact:   contact,
-		Caregiver: caregiver,
-	}
-
-	profile, err := us.Create.RegisterCaregiver(ctx, payload)
-	if err != nil {
-		return nil, err
-	}
-
-	return profile, nil
 }
 
 // RefreshGetStreamToken update a getstream token as soon as a token exception occurs. The implementation
@@ -1173,7 +1104,7 @@ func (us *UseCasesUserImpl) RegisterStaff(ctx context.Context, input dto.StaffRe
 	identifierExists, err := us.Query.CheckIdentifierExists(ctx, "NATIONAL_ID", input.IDNumber)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return nil, fmt.Errorf("unable to check the existence of the identifier: %w", err)
+		return nil, fmt.Errorf("unable to check the existece of the identifier: %w", err)
 	}
 	if identifierExists {
 		return nil, fmt.Errorf("identifier %v of identifier already exists", input.IDNumber)
@@ -1196,7 +1127,7 @@ func (us *UseCasesUserImpl) RegisterStaff(ctx context.Context, input dto.StaffRe
 
 	username := fmt.Sprintf("%v-%v", input.StaffName, input.StaffName)
 	dob := input.DateOfBirth.AsTime()
-	user := &domain.User{
+	usr := &domain.User{
 		Username:    username,
 		Name:        input.StaffName,
 		Gender:      enumutils.Gender(strings.ToUpper(input.Gender.String())),
@@ -1252,7 +1183,7 @@ func (us *UseCasesUserImpl) RegisterStaff(ctx context.Context, input dto.StaffRe
 	}
 
 	staffRegistrationPayload := &domain.StaffRegistrationPayload{
-		UserProfile:     *user,
+		UserProfile:     *usr,
 		Phone:           *contactData,
 		StaffIdentifier: *identifierData,
 		Staff:           *staffData,
@@ -1273,33 +1204,7 @@ func (us *UseCasesUserImpl) RegisterStaff(ctx context.Context, input dto.StaffRe
 		return nil, fmt.Errorf("unable to assign roles: %w", err)
 	}
 
-	handle := fmt.Sprintf("@%v", username)
-	cmsStaffPayload := &dto.PubsubCreateCMSStaffPayload{
-		UserID:      staff.UserID,
-		Name:        staff.User.Name,
-		Gender:      staff.User.Gender,
-		UserType:    staff.User.UserType,
-		PhoneNumber: *normalized,
-		Handle:      handle,
-		Flavour:     staff.User.Flavour,
-		DateOfBirth: scalarutils.Date{
-			Year:  staff.User.DateOfBirth.Year(),
-			Month: int(staff.User.DateOfBirth.Month()),
-			Day:   staff.User.DateOfBirth.Day(),
-		},
-		StaffNumber:    staff.StaffNumber,
-		StaffID:        *staff.ID,
-		FacilityID:     staff.DefaultFacilityID,
-		FacilityName:   facility.Name,
-		OrganisationID: staff.OrganisationID,
-	}
-
-	err = us.Pubsub.NotifyCreateCMSStaff(ctx, cmsStaffPayload)
-	if err != nil {
-		helpers.ReportErrorToSentry(err)
-		log.Printf("failed to publish staff creation event to the staff creation topic: %v", err)
-	}
-
+	// 12. Invite them into the platform
 	if input.InviteStaff {
 		_, err := us.InviteUser(ctx, staff.UserID, input.PhoneNumber, feedlib.FlavourPro, false)
 		if err != nil {
@@ -1556,161 +1461,4 @@ func (us *UseCasesUserImpl) TransferClientToFacility(ctx context.Context, client
 		}
 	}
 	return true, nil
-}
-
-// SetStaffDefaultFacility enables a staff to set the default facility
-func (us *UseCasesUserImpl) SetStaffDefaultFacility(ctx context.Context, userID string, facilityID string) (bool, error) {
-	staff, err := us.Query.GetStaffProfileByUserID(ctx, userID)
-	if err != nil {
-		helpers.ReportErrorToSentry(err)
-		return false, err
-	}
-
-	facilities, _, err := us.Query.GetStaffFacilities(ctx, dto.StaffFacilityInput{StaffID: staff.ID, FacilityID: &facilityID}, nil)
-	if err != nil {
-		return false, fmt.Errorf("failed to get staff facilities %w", err)
-	}
-
-	if len(facilities) != 1 {
-		return false, fmt.Errorf("staff user does not have  facility ID %s", facilityID)
-	}
-
-	update := map[string]interface{}{
-		"default_facility_id": facilityID,
-	}
-	err = us.Update.UpdateStaff(ctx, staff, update)
-	if err != nil {
-		helpers.ReportErrorToSentry(err)
-		return false, err
-	}
-	return true, nil
-}
-
-// SetClientDefaultFacility enables a client to set the default facility
-func (us *UseCasesUserImpl) SetClientDefaultFacility(ctx context.Context, userID string, facilityID string) (bool, error) {
-
-	client, err := us.Query.GetClientProfileByUserID(ctx, userID)
-	if err != nil {
-		helpers.ReportErrorToSentry(err)
-		return false, err
-	}
-
-	facilities, _, err := us.Query.GetClientFacilities(ctx, dto.ClientFacilityInput{ClientID: client.ID, FacilityID: &facilityID}, nil)
-	if err != nil {
-		return false, fmt.Errorf("failed to get client facilities %w", err)
-	}
-
-	if len(facilities) != 1 {
-		return false, fmt.Errorf("client user does not have  facility ID %s", facilityID)
-	}
-
-	update := map[string]interface{}{
-		"current_facility_id": facilityID,
-	}
-	_, err = us.Update.UpdateClient(ctx, client, update)
-	if err != nil {
-		helpers.ReportErrorToSentry(err)
-		return false, err
-	}
-
-	return true, nil
-}
-
-// AddFacilitiesToClientProfile updates the client facility list
-func (us *UseCasesUserImpl) AddFacilitiesToClientProfile(ctx context.Context, clientID string, facilities []string) (bool, error) {
-	if clientID == "" {
-		err := fmt.Errorf("client ID cannot be empty")
-		helpers.ReportErrorToSentry(err)
-		return false, err
-	}
-	if len(facilities) < 1 {
-		err := fmt.Errorf("facilities cannot be empty")
-		helpers.ReportErrorToSentry(err)
-		return false, err
-	}
-	err := us.Update.AddFacilitiesToClientProfile(ctx, clientID, facilities)
-	if err != nil {
-		helpers.ReportErrorToSentry(err)
-		return false, fmt.Errorf("failed to update client facilities: %w", err)
-	}
-	return true, nil
-}
-
-// AddFacilitiesToStaffProfile updates the staff facility list
-func (us *UseCasesUserImpl) AddFacilitiesToStaffProfile(ctx context.Context, staffID string, facilities []string) (bool, error) {
-	if staffID == "" {
-		err := fmt.Errorf("staff ID cannot be empty")
-		helpers.ReportErrorToSentry(err)
-		return false, err
-	}
-	if len(facilities) < 1 {
-		err := fmt.Errorf("facilities cannot be empty")
-		helpers.ReportErrorToSentry(err)
-		return false, err
-	}
-	err := us.Update.AddFacilitiesToStaffProfile(ctx, staffID, facilities)
-	if err != nil {
-		helpers.ReportErrorToSentry(err)
-		return false, fmt.Errorf("failed to update staff facilities: %w", err)
-	}
-	return true, nil
-}
-
-// GetUserLinkedFacilities returns all the facilities that are linked to a user
-func (us *UseCasesUserImpl) GetUserLinkedFacilities(ctx context.Context, paginationInput dto.PaginationsInput) (*dto.FacilityOutputPage, error) {
-	if err := paginationInput.Validate(); err != nil {
-		return nil, err
-	}
-
-	page := &domain.Pagination{
-		Limit:       paginationInput.Limit,
-		CurrentPage: paginationInput.CurrentPage,
-	}
-
-	userID, err := us.ExternalExt.GetLoggedInUserUID(ctx)
-	if err != nil {
-		return nil, exceptions.GetLoggedInUserUIDErr(err)
-	}
-
-	userProfile, err := us.Query.GetUserProfileByUserID(ctx, userID)
-	if err != nil {
-		return nil, exceptions.UserNotFoundError(err)
-	}
-
-	switch userProfile.UserType {
-	case enums.ClientUser:
-		clientProfile, err := us.Query.GetClientProfileByUserID(ctx, userID)
-		if err != nil {
-			return nil, exceptions.ClientProfileNotFoundErr(err)
-		}
-
-		facilities, pageInfo, err := us.Query.GetClientFacilities(ctx, dto.ClientFacilityInput{ClientID: clientProfile.ID}, page)
-		if err != nil {
-			return nil, fmt.Errorf("failed to get client facilities")
-		}
-
-		return &dto.FacilityOutputPage{
-			Pagination: pageInfo,
-			Facilities: facilities,
-		}, nil
-
-	case enums.StaffUser:
-		staffProfile, err := us.Query.GetStaffProfileByUserID(ctx, userID)
-		if err != nil {
-			return nil, exceptions.ClientProfileNotFoundErr(err)
-		}
-
-		facilities, pageInfo, err := us.Query.GetStaffFacilities(ctx, dto.StaffFacilityInput{StaffID: staffProfile.ID}, page)
-		if err != nil {
-			return nil, fmt.Errorf("failed to get client facilities")
-		}
-
-		return &dto.FacilityOutputPage{
-			Pagination: pageInfo,
-			Facilities: facilities,
-		}, nil
-
-	default:
-		return nil, fmt.Errorf("the user has an invalid user type")
-	}
 }

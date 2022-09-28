@@ -88,11 +88,10 @@ type ClientProfile struct {
 	FacilityID   string `json:"facilityID"`
 	FacilityName string `json:"facilityName"`
 
-	CHVUserID   *string     `json:"chvUserID"`
-	CHVUserName string      `json:"chvUserName"`
-	CaregiverID *string     `json:"caregiverID"`
-	CCCNumber   string      `json:"CCCNumber"`
-	Facilities  []*Facility `json:"facilities"` // TODO: needs at least one
+	CHVUserID   *string `json:"chvUserID"`
+	CHVUserName string  `json:"chvUserName"`
+	CaregiverID *string `json:"caregiverID"`
+	CCCNumber   string  `json:"CCCNumber"`
 }
 
 // StaffProfile represents the staff profile model
@@ -107,13 +106,12 @@ type StaffProfile struct {
 
 	StaffNumber string `json:"staff_number"`
 
-	Facilities []*Facility `json:"facilities"` // TODO: needs at least one
+	Facilities []Facility `json:"facilities"` // TODO: needs at least one
 
 	// A UI switcher optionally toggles the default
 	// TODO: the list of facilities to switch between is strictly those that the user is assigned to
 	DefaultFacilityID   string `json:"default_facility"` // TODO: required, FK to facility
 	DefaultFacilityName string `json:"defaultFacilityName"`
-	OrganisationID      string `json:"organisationID"`
 }
 
 // AuthCredentials is the authentication credentials for a given user
@@ -175,13 +173,6 @@ type ClientRegistrationPayload struct {
 	Phone            Contact
 	ClientIdentifier Identifier
 	Client           ClientProfile
-}
-
-// CaregiverRegistration is the input used for creating a caregiver
-type CaregiverRegistration struct {
-	User      *User      `json:"user"`
-	Contact   *Contact   `json:"contact"`
-	Caregiver *Caregiver `json:"caregiver"`
 }
 
 // StaffRegistrationPayload carries with it the staff registration details

@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/savannahghi/feedlib"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -26,6 +27,7 @@ func (db *PGInstance) DeleteFacility(ctx context.Context, mflcode int) (bool, er
 
 	err := db.DB.Where("mfl_code", mflcode).First(&Facility{}).Delete(&Facility{}).Error
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return false, fmt.Errorf("an error occurred while deleting: %v", err)
 	}
 
@@ -48,6 +50,7 @@ func (db *PGInstance) DeleteStaffProfile(ctx context.Context, staffID string) er
 	var staffIdentifiers []StaffIdentifiers
 	err := tx.Model(&StaffIdentifiers{}).Where(&StaffIdentifiers{StaffID: &staffID}).Find(&staffIdentifiers).Error
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		tx.Rollback()
 		return fmt.Errorf("an error occurred while fetching staff identifiers: %v", err)
 	}
@@ -55,6 +58,7 @@ func (db *PGInstance) DeleteStaffProfile(ctx context.Context, staffID string) er
 	for _, staffIdentifier := range staffIdentifiers {
 		err := tx.Model(&StaffIdentifiers{}).Unscoped().Where(&StaffIdentifiers{StaffID: staffIdentifier.StaffID}).Delete(&StaffIdentifiers{}).Error
 		if err != nil {
+			helpers.ReportErrorToSentry(err)
 			tx.Rollback()
 			return fmt.Errorf("an error occurred while deleting staff identifiers: %v", err)
 		}
@@ -64,6 +68,7 @@ func (db *PGInstance) DeleteStaffProfile(ctx context.Context, staffID string) er
 	var staffContacts []StaffContacts
 	err = tx.Model(&StaffContacts{}).Where(&StaffContacts{StaffID: &staffID}).Find(&staffContacts).Error
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		tx.Rollback()
 		return fmt.Errorf("an error occurred while fetching staff contacts: %v", err)
 	}
@@ -71,12 +76,14 @@ func (db *PGInstance) DeleteStaffProfile(ctx context.Context, staffID string) er
 	for _, staffContact := range staffContacts {
 		err = tx.Model(&StaffContacts{}).Unscoped().Where(&StaffContacts{StaffID: staffContact.StaffID}).Delete(&StaffContacts{}).Error
 		if err != nil {
+			helpers.ReportErrorToSentry(err)
 			tx.Rollback()
 			return fmt.Errorf("an error occurred while deleting staff contacts: %v", err)
 		}
 
 		err = tx.Model(&Contact{}).Unscoped().Where(&Contact{ContactID: staffContact.ContactID, Flavour: feedlib.FlavourPro}).First(&Contact{}).Delete(&Contact{}).Error
 		if err != nil {
+			helpers.ReportErrorToSentry(err)
 			tx.Rollback()
 			return fmt.Errorf("an error occurred while deleting contacts: %v", err)
 		}
@@ -86,6 +93,7 @@ func (db *PGInstance) DeleteStaffProfile(ctx context.Context, staffID string) er
 	var staffFacilities []StaffFacilities
 	err = tx.Model(&StaffFacilities{}).Where(&StaffFacilities{StaffID: &staffID}).Find(&staffFacilities).Error
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		tx.Rollback()
 		return fmt.Errorf("an error occurred while fetching staff facilities: %v", err)
 	}
@@ -93,6 +101,7 @@ func (db *PGInstance) DeleteStaffProfile(ctx context.Context, staffID string) er
 	for _, staffFacility := range staffFacilities {
 		err = tx.Model(&StaffFacilities{}).Unscoped().Where(&StaffFacilities{StaffID: staffFacility.StaffID}).First(&StaffFacilities{}).Delete(&StaffFacilities{}).Error
 		if err != nil {
+			helpers.ReportErrorToSentry(err)
 			tx.Rollback()
 			return fmt.Errorf("an error occurred while deleting staff facilities: %v", err)
 		}
@@ -100,6 +109,7 @@ func (db *PGInstance) DeleteStaffProfile(ctx context.Context, staffID string) er
 
 	err = tx.Model(&StaffProfile{}).Unscoped().Where("id", staffID).First(&StaffProfile{}).Delete(&StaffProfile{}).Error
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		tx.Rollback()
 		return fmt.Errorf("an error occurred while deleting staff profile: %v", err)
 	}
@@ -134,6 +144,7 @@ func (db *PGInstance) DeleteUser(
 	case feedlib.FlavourConsumer:
 		err := tx.Unscoped().Preload(clause.Associations).Delete(&Client{ID: clientID}).Error
 		if err != nil {
+			helpers.ReportErrorToSentry(err)
 			tx.Rollback()
 			return fmt.Errorf("failed to delete client profile: %w", err)
 		}
@@ -146,6 +157,7 @@ func (db *PGInstance) DeleteUser(
 
 	err := tx.Unscoped().Delete(&User{UserID: &userID}).Error
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return fmt.Errorf("an error occurred while deleting user profile: %w", err)
 	}
 
@@ -161,6 +173,7 @@ func (db *PGInstance) DeleteUser(
 func (db *PGInstance) DeleteCommunity(ctx context.Context, communityID string) error {
 	err := db.DB.Where("id = ?", communityID).Delete(&Community{}).Error
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		// skip error if not found
 		if err == gorm.ErrRecordNotFound {
 			return nil

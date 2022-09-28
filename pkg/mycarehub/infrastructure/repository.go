@@ -39,7 +39,6 @@ type Create interface {
 	RegisterStaff(ctx context.Context, staffRegistrationPayload *domain.StaffRegistrationPayload) (*domain.StaffProfile, error)
 	SaveFeedback(ctx context.Context, payload *domain.FeedbackResponse) error
 	RegisterClient(ctx context.Context, payload *domain.ClientRegistrationPayload) (*domain.ClientProfile, error)
-	RegisterCaregiver(ctx context.Context, input *domain.CaregiverRegistration) (*domain.CaregiverProfile, error)
 	CreateScreeningTool(ctx context.Context, input *domain.ScreeningTool) error
 	CreateScreeningToolResponse(ctx context.Context, input *domain.QuestionnaireScreeningToolResponse) (*string, error)
 }
@@ -131,8 +130,6 @@ type Query interface {
 	GetScreeningToolResponseByID(ctx context.Context, id string) (*domain.QuestionnaireScreeningToolResponse, error)
 	GetSurveyServiceRequestUser(ctx context.Context, facilityID string, projectID int, formID string, pagination *domain.Pagination) ([]*domain.SurveyServiceRequestUser, *domain.Pagination, error)
 	GetSurveysWithServiceRequests(ctx context.Context, facilityID string) ([]*dto.SurveysWithServiceRequest, error)
-	GetStaffFacilities(ctx context.Context, input dto.StaffFacilityInput, pagination *domain.Pagination) ([]*domain.Facility, *domain.Pagination, error)
-	GetClientFacilities(ctx context.Context, input dto.ClientFacilityInput, pagination *domain.Pagination) ([]*domain.Facility, *domain.Pagination, error)
 }
 
 // Update represents all the update action interfaces
@@ -164,7 +161,4 @@ type Update interface {
 	UpdateNotification(ctx context.Context, notification *domain.Notification, updateData map[string]interface{}) error
 	UpdateUserSurveys(ctx context.Context, survey *domain.UserSurvey, updateData map[string]interface{}) error
 	UpdateClientServiceRequest(ctx context.Context, serviceRequest *domain.ServiceRequest, updateData map[string]interface{}) error
-	UpdateStaff(ctx context.Context, staff *domain.StaffProfile, updates map[string]interface{}) error
-	AddFacilitiesToClientProfile(ctx context.Context, clientID string, facilities []string) error
-	AddFacilitiesToStaffProfile(ctx context.Context, staffID string, facilities []string) error
 }

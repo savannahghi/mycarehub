@@ -14,13 +14,12 @@ const (
 	HealthcareWorkerUser UsersType = "HEALTHCAREWORKER"
 	ClientUser           UsersType = "CLIENT"
 	StaffUser            UsersType = "STAFF"
-	CaregiverUser        UsersType = "CAREGIVER"
 )
 
 // IsValid returns true if a user is valid
 func (m UsersType) IsValid() bool {
 	switch m {
-	case HealthcareWorkerUser, ClientUser, StaffUser, CaregiverUser:
+	case HealthcareWorkerUser, ClientUser, StaffUser:
 		return true
 	}
 	return false

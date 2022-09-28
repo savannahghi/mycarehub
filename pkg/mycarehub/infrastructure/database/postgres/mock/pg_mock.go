@@ -157,18 +157,11 @@ type PostgresMock struct {
 	MockGetScreeningToolRespondentsFn                    func(ctx context.Context, facilityID string, screeningToolID string, searchTerm string, paginationInput *dto.PaginationsInput) ([]*domain.ScreeningToolRespondent, *domain.Pagination, error)
 	MockGetScreeningToolResponseByIDFn                   func(ctx context.Context, id string) (*domain.QuestionnaireScreeningToolResponse, error)
 	MockGetSurveysWithServiceRequestsFn                  func(ctx context.Context, facilityID string) ([]*dto.SurveysWithServiceRequest, error)
-	MockGetStaffFacilitiesFn                             func(ctx context.Context, input dto.StaffFacilityInput, pagination *domain.Pagination) ([]*domain.Facility, *domain.Pagination, error)
-	MockGetClientFacilitiesFn                            func(ctx context.Context, input dto.ClientFacilityInput, pagination *domain.Pagination) ([]*domain.Facility, *domain.Pagination, error)
-	MockUpdateStaffFn                                    func(ctx context.Context, staff *domain.StaffProfile, updates map[string]interface{}) error
-	MockAddFacilitiesToStaffProfileFn                    func(ctx context.Context, staffID string, facilities []string) error
-	MockAddFacilitiesToClientProfileFn                   func(ctx context.Context, clientID string, facilities []string) error
-	MockGetUserFacilitiesFn                              func(ctx context.Context, user *domain.User, pagination *domain.Pagination) ([]*domain.Facility, *domain.Pagination, error)
-	MockRegisterCaregiverFn                              func(ctx context.Context, input *domain.CaregiverRegistration) (*domain.CaregiverProfile, error)
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
 func NewPostgresMock() *PostgresMock {
-	ID := "f3f8f8f8-f3f8-f3f8-f3f8-f3f8f8f8f8f8"
+	ID := uuid.New().String()
 	screeningUUID := "f3f8f8f8-f3f8-f3f8-f3f8-f3f8f8f8f8f8"
 
 	name := gofakeit.Name()
@@ -258,7 +251,6 @@ func NewPostgresMock() *PostgresMock {
 		CHVUserName:             name,
 		CaregiverID:             &ID,
 		CCCNumber:               "123456789",
-		Facilities:              []*domain.Facility{facilityInput},
 	}
 	staff := &domain.StaffProfile{
 		ID:                &ID,
@@ -266,7 +258,7 @@ func NewPostgresMock() *PostgresMock {
 		UserID:            uuid.New().String(),
 		Active:            false,
 		StaffNumber:       gofakeit.BeerAlcohol(),
-		Facilities:        []*domain.Facility{facilityInput},
+		Facilities:        []domain.Facility{*facilityInput},
 		DefaultFacilityID: gofakeit.BeerAlcohol(),
 	}
 
@@ -299,13 +291,6 @@ func NewPostgresMock() *PostgresMock {
 	}
 
 	return &PostgresMock{
-		MockRegisterCaregiverFn: func(ctx context.Context, input *domain.CaregiverRegistration) (*domain.CaregiverProfile, error) {
-			return &domain.CaregiverProfile{
-				ID:              ID,
-				User:            *userProfile,
-				CaregiverNumber: gofakeit.SSN(),
-			}, nil
-		},
 		MockCreateMetricFn: func(ctx context.Context, payload *domain.Metric) error {
 			return nil
 		},
@@ -372,18 +357,6 @@ func NewPostgresMock() *PostgresMock {
 				IsValid:   false,
 			}, nil
 		},
-		MockGetUserFacilitiesFn: func(ctx context.Context, user *domain.User, pagination *domain.Pagination) ([]*domain.Facility, *domain.Pagination, error) {
-			nextPage := 2
-			previousPage := 0
-			return []*domain.Facility{facilityInput}, &domain.Pagination{
-				Limit:        10,
-				CurrentPage:  1,
-				Count:        20,
-				TotalPages:   30,
-				NextPage:     &nextPage,
-				PreviousPage: &previousPage,
-			}, nil
-		},
 		MockGetUserProfileByPhoneNumberFn: func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*domain.User, error) {
 			return userProfile, nil
 		},
@@ -410,7 +383,7 @@ func NewPostgresMock() *PostgresMock {
 				UserID:            ID,
 				Active:            false,
 				StaffNumber:       "TEST-00",
-				Facilities:        []*domain.Facility{},
+				Facilities:        []domain.Facility{},
 				DefaultFacilityID: ID,
 			}, nil
 		},
@@ -1286,49 +1259,6 @@ func NewPostgresMock() *PostgresMock {
 				},
 			}, nil
 		},
-		MockGetStaffFacilitiesFn: func(ctx context.Context, input dto.StaffFacilityInput, pagination *domain.Pagination) ([]*domain.Facility, *domain.Pagination, error) {
-			return []*domain.Facility{
-					{
-						ID:                 &ID,
-						Name:               name,
-						Code:               code,
-						Phone:              phone,
-						Active:             true,
-						County:             county,
-						Description:        description,
-						FHIROrganisationID: ID,
-					},
-				}, &domain.Pagination{
-					CurrentPage: 1,
-					Limit:       10,
-				}, nil
-		},
-		MockGetClientFacilitiesFn: func(ctx context.Context, input dto.ClientFacilityInput, pagination *domain.Pagination) ([]*domain.Facility, *domain.Pagination, error) {
-			return []*domain.Facility{
-					{
-						ID:                 &ID,
-						Name:               name,
-						Code:               code,
-						Phone:              phone,
-						Active:             true,
-						County:             county,
-						Description:        description,
-						FHIROrganisationID: ID,
-					},
-				}, &domain.Pagination{
-					CurrentPage: 1,
-					Limit:       10,
-				}, nil
-		},
-		MockUpdateStaffFn: func(ctx context.Context, st *domain.StaffProfile, updates map[string]interface{}) error {
-			return nil
-		},
-		MockAddFacilitiesToStaffProfileFn: func(ctx context.Context, staffID string, facilities []string) error {
-			return nil
-		},
-		MockAddFacilitiesToClientProfileFn: func(ctx context.Context, clientID string, facilities []string) error {
-			return nil
-		},
 	}
 }
 
@@ -2011,39 +1941,4 @@ func (gm *PostgresMock) GetSurveysWithServiceRequests(ctx context.Context, facil
 // GetSurveyServiceRequestUser mocks the implementation of getting users with survey service request
 func (gm *PostgresMock) GetSurveyServiceRequestUser(ctx context.Context, facilityID string, projectID int, formID string, pagination *domain.Pagination) ([]*domain.SurveyServiceRequestUser, *domain.Pagination, error) {
 	return gm.MockGetUsersWithSurveyServiceRequestFn(ctx, facilityID, projectID, formID, pagination)
-}
-
-// GetStaffFacilities mocks the implementation of getting staff facilities
-func (gm *PostgresMock) GetStaffFacilities(ctx context.Context, input dto.StaffFacilityInput, pagination *domain.Pagination) ([]*domain.Facility, *domain.Pagination, error) {
-	return gm.MockGetStaffFacilitiesFn(ctx, input, pagination)
-}
-
-// GetClientFacilities mocks the implementation of getting client facilities
-func (gm *PostgresMock) GetClientFacilities(ctx context.Context, input dto.ClientFacilityInput, pagination *domain.Pagination) ([]*domain.Facility, *domain.Pagination, error) {
-	return gm.MockGetClientFacilitiesFn(ctx, input, pagination)
-}
-
-// UpdateStaff mocks the implementation of updating the staff profile
-func (gm *PostgresMock) UpdateStaff(ctx context.Context, staff *domain.StaffProfile, updates map[string]interface{}) error {
-	return gm.MockUpdateStaffFn(ctx, staff, updates)
-}
-
-// AddFacilitiesToStaffProfile mocks the implementation of adding facilities to a staff profile
-func (gm *PostgresMock) AddFacilitiesToStaffProfile(ctx context.Context, staffID string, facilities []string) error {
-	return gm.MockAddFacilitiesToStaffProfileFn(ctx, staffID, facilities)
-}
-
-// AddFacilitiesToClientProfile mocks the implementation of adding facilities to a client profile
-func (gm *PostgresMock) AddFacilitiesToClientProfile(ctx context.Context, clientID string, facilities []string) error {
-	return gm.MockAddFacilitiesToClientProfileFn(ctx, clientID, facilities)
-}
-
-// GetUserFacilities mocks the implementation of getting user facilities
-func (gm *PostgresMock) GetUserFacilities(ctx context.Context, user *domain.User, pagination *domain.Pagination) ([]*domain.Facility, *domain.Pagination, error) {
-	return gm.MockGetUserFacilitiesFn(ctx, user, pagination)
-}
-
-// RegisterCaregiver registers a new caregiver on the platform
-func (gm *PostgresMock) RegisterCaregiver(ctx context.Context, input *domain.CaregiverRegistration) (*domain.CaregiverProfile, error) {
-	return gm.MockRegisterCaregiverFn(ctx, input)
 }

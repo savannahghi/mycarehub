@@ -34,26 +34,3 @@
   is_read: false
   facility_id: {{.staff_default_facility}}
 
-- id: bf33ba36-30bc-477e-9a7b-bcb54da0bdff
-  organisation_id: {{.test_organisation_id}}
-  created: 2021-11-22 21:16:29.23639+03
-  updated: 2021-11-22 21:16:29.23639+03
-  active: true
-  title: a test notification
-  body: this test notification is urgent
-  flavour: PRO
-  notification_type: APPOINTMENT
-  is_read: false
-  user_id: {{.test_user_id_to_register_staff}}
-
-- id: f512284b-9e77-404d-a64b-3dd9deef32ef
-  organisation_id: {{.test_organisation_id}}
-  created: 2021-11-22 21:16:29.23639+03
-  updated: 2021-11-22 21:16:29.23639+03
-  active: true
-  title: a test notification
-  body: this test notification is urgent
-  flavour: PRO
-  notification_type: SERVICE_REQUEST
-  is_read: false
-  facility_id: {{.staff_default_facility}}

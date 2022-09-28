@@ -43,12 +43,6 @@ type UserUseCaseMock struct {
 	MockRegisterStaffFn                 func(ctx context.Context, input dto.StaffRegistrationInput) (*dto.StaffRegistrationOutput, error)
 	MockDeleteUserFn                    func(ctx context.Context, payload *dto.PhoneInput) (bool, error)
 	MockTransferClientToFacilityFn      func(ctx context.Context, clientID *string, facilityID *string) (bool, error)
-	MockSetStaffDefaultFacilityFn       func(ctx context.Context, userID string, facilityID string) (bool, error)
-	MockSetClientDefaultFacilityFn      func(ctx context.Context, userID string, facilityID string) (bool, error)
-	MockAddFacilitiesToStaffProfileFn   func(ctx context.Context, staffID string, facilities []string) (bool, error)
-	MockAddFacilitiesToClientProfileFn  func(ctx context.Context, clientID string, facilities []string) (bool, error)
-	MockGetUserLinkedFacilitiesFn       func(ctx context.Context, paginationInput dto.PaginationsInput) (*dto.FacilityOutputPage, error)
-	MockRegisterCaregiver               func(ctx context.Context, input dto.CaregiverInput) (*domain.CaregiverProfile, error)
 }
 
 // NewUserUseCaseMock creates in initializes create type mocks
@@ -68,7 +62,7 @@ func NewUserUseCaseMock() *UserUseCaseMock {
 		UserID:            uuid.New().String(),
 		Active:            true,
 		StaffNumber:       "test-staff-101",
-		Facilities:        []*domain.Facility{},
+		Facilities:        []domain.Facility{},
 		DefaultFacilityID: uuid.New().String(),
 	}
 
@@ -89,15 +83,6 @@ func NewUserUseCaseMock() *UserUseCaseMock {
 				Message:  "Success",
 				Code:     10,
 			}, true
-		},
-		MockRegisterCaregiver: func(ctx context.Context, input dto.CaregiverInput) (*domain.CaregiverProfile, error) {
-			return &domain.CaregiverProfile{
-				ID: UUID,
-				User: domain.User{
-					ID: &UUID,
-				},
-				CaregiverNumber: gofakeit.SSN(),
-			}, nil
 		},
 		MockInviteUserFn: func(ctx context.Context, userID string, phoneNumber string, flavour feedlib.Flavour, reinvite bool) (bool, error) {
 			return true, nil
@@ -250,39 +235,6 @@ func NewUserUseCaseMock() *UserUseCaseMock {
 		MockTransferClientToFacilityFn: func(ctx context.Context, clientID *string, facilityID *string) (bool, error) {
 			return true, nil
 		},
-		MockSetStaffDefaultFacilityFn: func(ctx context.Context, userID string, facilityID string) (bool, error) {
-			return true, nil
-		},
-		MockSetClientDefaultFacilityFn: func(ctx context.Context, userID string, facilityID string) (bool, error) {
-			return true, nil
-		},
-		MockAddFacilitiesToStaffProfileFn: func(ctx context.Context, staffID string, facilities []string) (bool, error) {
-			return true, nil
-		},
-		MockGetUserLinkedFacilitiesFn: func(ctx context.Context, paginationInput dto.PaginationsInput) (*dto.FacilityOutputPage, error) {
-			id := gofakeit.UUID()
-			return &dto.FacilityOutputPage{
-				Pagination: &domain.Pagination{
-					Limit:       10,
-					CurrentPage: 1,
-				},
-				Facilities: []*domain.Facility{
-					{
-						ID:                 &id,
-						Name:               "Test Facility",
-						Code:               0,
-						Phone:              "",
-						Active:             false,
-						County:             "",
-						Description:        "",
-						FHIROrganisationID: "",
-					},
-				},
-			}, nil
-		},
-		MockAddFacilitiesToClientProfileFn: func(ctx context.Context, clientID string, facilities []string) (bool, error) {
-			return true, nil
-		},
 	}
 }
 
@@ -419,34 +371,4 @@ func (f *UserUseCaseMock) DeleteUser(ctx context.Context, payload *dto.PhoneInpu
 // TransferClientToFacility mocks the implementation of transferring a client to a facility
 func (f *UserUseCaseMock) TransferClientToFacility(ctx context.Context, clientID *string, facilityID *string) (bool, error) {
 	return f.MockTransferClientToFacilityFn(ctx, clientID, facilityID)
-}
-
-// SetStaffDefaultFacility mocks the implementation of setting a default facility for a staff
-func (f *UserUseCaseMock) SetStaffDefaultFacility(ctx context.Context, userID string, facilityID string) (bool, error) {
-	return f.MockSetStaffDefaultFacilityFn(ctx, userID, facilityID)
-}
-
-// SetClientDefaultFacility mocks the implementation of setting a default facility for a client
-func (f *UserUseCaseMock) SetClientDefaultFacility(ctx context.Context, userID string, facilityID string) (bool, error) {
-	return f.MockSetClientDefaultFacilityFn(ctx, userID, facilityID)
-}
-
-// AddFacilitiesToStaffProfile mocks the implementation of adding facilities to a staff profile
-func (f *UserUseCaseMock) AddFacilitiesToStaffProfile(ctx context.Context, staffID string, facilities []string) (bool, error) {
-	return f.MockAddFacilitiesToStaffProfileFn(ctx, staffID, facilities)
-}
-
-// GetUserLinkedFacilities mocks the implementation of getting a user's linked facilities
-func (f *UserUseCaseMock) GetUserLinkedFacilities(ctx context.Context, paginationInput dto.PaginationsInput) (*dto.FacilityOutputPage, error) {
-	return f.MockGetUserLinkedFacilitiesFn(ctx, paginationInput)
-}
-
-// AddFacilitiesToClientProfile mocks the implementation of adding facilities to a client profile
-func (f *UserUseCaseMock) AddFacilitiesToClientProfile(ctx context.Context, clientID string, facilities []string) (bool, error) {
-	return f.MockAddFacilitiesToClientProfileFn(ctx, clientID, facilities)
-}
-
-// RegisterCaregiver is used to register a caregiver
-func (f *UserUseCaseMock) RegisterCaregiver(ctx context.Context, input dto.CaregiverInput) (*domain.CaregiverProfile, error) {
-	return f.MockRegisterCaregiver(ctx, input)
 }

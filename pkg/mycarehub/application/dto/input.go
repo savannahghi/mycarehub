@@ -256,16 +256,10 @@ type FeedbackEmail struct {
 
 // CaregiverInput defines the field passed when creating a caregiver
 type CaregiverInput struct {
-	Name            string           `json:"name"`
-	Gender          enumutils.Gender `json:"gender"`
-	DateOfBirth     scalarutils.Date `json:"dateOfBirth"`
-	PhoneNumber     string           `json:"phoneNumber"`
-	CaregiverNumber string           `json:"caregiverNumber"`
-	SendInvite      bool             `json:"sendInvite"`
-
 	ClientID      string              `json:"clientID"`
 	FirstName     string              `json:"firstName"`
 	LastName      string              `json:"lastName"`
+	PhoneNumber   string              `json:"phoneNumber"`
 	CaregiverType enums.CaregiverType `json:"caregiverType"`
 }
 
@@ -696,16 +690,4 @@ type SurveyResponseInput struct {
 	ProjectID   int
 	FormID      string
 	SubmitterID int
-}
-
-// StaffFacilityInput is the input for getting a staff facility from the through table
-type StaffFacilityInput struct {
-	StaffID    *string `json:"staffID"`
-	FacilityID *string `json:"facilityID"`
-}
-
-// ClientFacilityInput is the input for getting a client facility from the through table
-type ClientFacilityInput struct {
-	ClientID   *string `json:"clientID"`
-	FacilityID *string `json:"facilityID"`
 }
