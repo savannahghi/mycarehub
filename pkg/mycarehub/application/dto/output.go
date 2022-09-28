@@ -252,8 +252,8 @@ type SurveysWithServiceRequest struct {
 	FormID    string `json:"formID"`
 }
 
-// PubsubCreateCMSClientPayload contains the user's data model to be used to publish the user who is to be created in the content CMS service.
-type PubsubCreateCMSClientPayload struct {
+// CMSClientOutput contains the user's data model to be used to publish the user who is to be created in the content CMS service.
+type CMSClientOutput struct {
 	// user details
 	UserID      string           `json:"user_id"`
 	Name        string           `json:"name"`
@@ -275,27 +275,4 @@ type PubsubCreateCMSClientPayload struct {
 
 	// organisation details
 	OrganisationID string `json:"organisation_id"`
-}
-
-// PubsubCreateCMSStaffPayload is the payload passed when creating a staff user on the CMS service
-type PubsubCreateCMSStaffPayload struct {
-	UserID         string           `json:"user_id"`
-	Name           string           `json:"name"`
-	Gender         enumutils.Gender `json:"gender"`
-	UserType       enums.UsersType  `json:"user_type"`
-	PhoneNumber    string           `json:"phone_number"`
-	Handle         string           `json:"handle"`
-	Flavour        feedlib.Flavour  `json:"flavour"`
-	DateOfBirth    scalarutils.Date `json:"date_of_birth"`
-	StaffNumber    string           `json:"staff_number"`
-	StaffID        string           `json:"staff_id"`
-	FacilityID     string           `json:"facility_id"`
-	FacilityName   string           `json:"facility_name"`
-	OrganisationID string           `json:"organisation_id"`
-}
-
-//FacilityOutputPage returns a paginated list of users facility
-type FacilityOutputPage struct {
-	Pagination *domain.Pagination
-	Facilities []*domain.Facility
 }

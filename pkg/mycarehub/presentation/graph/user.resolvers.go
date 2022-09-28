@@ -38,10 +38,6 @@ func (r *mutationResolver) RegisterStaff(ctx context.Context, input dto.StaffReg
 	return r.mycarehub.User.RegisterStaff(ctx, input)
 }
 
-func (r *mutationResolver) RegisterCaregiver(ctx context.Context, input dto.CaregiverInput) (*domain.CaregiverProfile, error) {
-	return r.mycarehub.User.RegisterCaregiver(ctx, input)
-}
-
 func (r *mutationResolver) OptOut(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (bool, error) {
 	return r.mycarehub.User.Consent(ctx, phoneNumber, flavour)
 }
@@ -60,22 +56,6 @@ func (r *mutationResolver) SetUserPin(ctx context.Context, input *dto.PINInput) 
 
 func (r *mutationResolver) TransferClientToFacility(ctx context.Context, clientID string, facilityID string) (bool, error) {
 	return r.mycarehub.User.TransferClientToFacility(ctx, &clientID, &facilityID)
-}
-
-func (r *mutationResolver) SetStaffDefaultFacility(ctx context.Context, userID string, facilityID string) (bool, error) {
-	return r.mycarehub.User.SetStaffDefaultFacility(ctx, userID, facilityID)
-}
-
-func (r *mutationResolver) SetClientDefaultFacility(ctx context.Context, userID string, facilityID string) (bool, error) {
-	return r.mycarehub.User.SetClientDefaultFacility(ctx, userID, facilityID)
-}
-
-func (r *mutationResolver) AddFacilitiesToStaffProfile(ctx context.Context, staffID string, facilities []string) (bool, error) {
-	return r.mycarehub.User.AddFacilitiesToStaffProfile(ctx, staffID, facilities)
-}
-
-func (r *mutationResolver) AddFacilitiesToClientProfile(ctx context.Context, clientID string, facilities []string) (bool, error) {
-	return r.mycarehub.User.AddFacilitiesToClientProfile(ctx, clientID, facilities)
 }
 
 func (r *queryResolver) GetCurrentTerms(ctx context.Context, flavour feedlib.Flavour) (*domain.TermsOfService, error) {
@@ -101,8 +81,4 @@ func (r *queryResolver) SearchStaffUser(ctx context.Context, searchParameter str
 
 func (r *queryResolver) GetClientProfileByCCCNumber(ctx context.Context, cCCNumber string) (*domain.ClientProfile, error) {
 	return r.mycarehub.User.GetClientProfileByCCCNumber(ctx, cCCNumber)
-}
-
-func (r *queryResolver) GetUserLinkedFacilities(ctx context.Context, paginationInput dto.PaginationsInput) (*dto.FacilityOutputPage, error) {
-	return r.mycarehub.User.GetUserLinkedFacilities(ctx, paginationInput)
 }

@@ -831,8 +831,7 @@ func (us *UseCasesCommunitiesImpl) RecommendedCommunities(ctx context.Context, c
 		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("an error occurred: %v", err)
 	}
-	communities := []*domain.Community{}
-
+	var communities []*domain.Community
 	for _, channel := range streamChannelsResponse.Channels {
 		if _, ok := joinedChannelsMap[channel.ID]; ok {
 			continue

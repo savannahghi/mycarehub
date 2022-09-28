@@ -41,14 +41,3 @@
   county: Kajiado
   description: Operates from Monday to Friday
   organisation_id: {{.test_organisation_id}}
-
-  # facility to add to user profile
-- id: {{.facility_to_add_to_user_profile}}
-  created: 2021-11-22 21:16:29.23639+03
-  updated: 2021-11-22 21:16:29.23639+03
-  name: Karen hospital
-  mfl_code: 724459
-  active: true
-  county: Nairobi
-  description: Operates from Monday to Friday
-  organisation_id: {{.test_organisation_id}}

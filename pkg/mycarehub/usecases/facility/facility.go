@@ -10,7 +10,6 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
 	pubsubmessaging "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/pubsub"
@@ -73,12 +72,11 @@ type IUpdateFacility interface {
 
 // UseCaseFacilityImpl represents facility implementation object
 type UseCaseFacilityImpl struct {
-	Create      infrastructure.Create
-	Query       infrastructure.Query
-	Delete      infrastructure.Delete
-	Update      infrastructure.Update
-	Pubsub      pubsubmessaging.ServicePubsub
-	ExternalExt extension.ExternalMethodsExtension
+	Create infrastructure.Create
+	Query  infrastructure.Query
+	Delete infrastructure.Delete
+	Update infrastructure.Update
+	Pubsub pubsubmessaging.ServicePubsub
 }
 
 // NewFacilityUsecase returns a new facility service
@@ -88,7 +86,7 @@ func NewFacilityUsecase(
 	delete infrastructure.Delete,
 	update infrastructure.Update,
 	pubsub pubsubmessaging.ServicePubsub,
-) UseCasesFacility {
+) *UseCaseFacilityImpl {
 	return &UseCaseFacilityImpl{
 		Create: create,
 		Query:  query,

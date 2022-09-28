@@ -17,8 +17,6 @@ type Facility struct {
 	County             string `json:"county"` // TODO: Controlled list of counties
 	Description        string `json:"description"`
 	FHIROrganisationID string `json:"fhirOrganisationId"`
-
-	WorkStationDetails WorkStationDetails `json:"workStationDetails"`
 }
 
 //FacilityPage returns a list of paginates facilities

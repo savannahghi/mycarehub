@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/savannahghi/feedlib"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 )
@@ -37,9 +38,6 @@ type Update interface {
 	UpdateUser(ctx context.Context, user *User, updateData map[string]interface{}) error
 	UpdateNotification(ctx context.Context, notification *Notification, updateData map[string]interface{}) error
 	UpdateClientServiceRequest(ctx context.Context, clientServiceRequest *ClientServiceRequest, updateData map[string]interface{}) error
-	UpdateStaff(ctx context.Context, staff *StaffProfile, updates map[string]interface{}) (*StaffProfile, error)
-	AddFacilitiesToStaffProfile(ctx context.Context, staffID string, facilities []string) error
-	AddFacilitiesToClientProfile(ctx context.Context, clientID string, facilities []string) error
 }
 
 // ReactivateFacility performs the actual re-activation of the facility in the database
@@ -51,6 +49,7 @@ func (db *PGInstance) ReactivateFacility(ctx context.Context, mflCode *int) (boo
 	err := db.DB.Model(&Facility{}).Where(&Facility{Code: *mflCode, Active: false}).
 		Updates(&Facility{Active: true}).Error
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return false, err
 	}
 
@@ -66,6 +65,7 @@ func (db *PGInstance) InactivateFacility(ctx context.Context, mflCode *int) (boo
 	err := db.DB.Model(&Facility{}).Where(&Facility{Code: *mflCode, Active: true}).
 		Updates(&Facility{Active: false}).Error
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return false, err
 	}
 
@@ -80,6 +80,7 @@ func (db *PGInstance) AcceptTerms(ctx context.Context, userID *string, termsID *
 
 	if err := db.DB.Model(&User{}).Where(&User{UserID: userID}).
 		Updates(&User{TermsAccepted: true, AcceptedTermsID: termsID}).Error; err != nil {
+		helpers.ReportErrorToSentry(err)
 		return false, fmt.Errorf("an error occurred while updating the user: %v", err)
 	}
 
@@ -93,6 +94,7 @@ func (db *PGInstance) SetNickName(ctx context.Context, userID *string, nickname 
 	}
 	err := db.DB.Model(&User{}).Where(&User{UserID: userID}).Updates(&User{Username: *nickname}).Error
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return false, fmt.Errorf("failed to set nickname")
 	}
 
@@ -109,6 +111,7 @@ func (db *PGInstance) SetInProgressBy(ctx context.Context, requestID string, sta
 		"in_progress_by_id": staffID,
 		"in_progress_at":    time.Now(),
 	}).Error; err != nil {
+		helpers.ReportErrorToSentry(err)
 		return false, fmt.Errorf("failed to update the service request: %v", err)
 	}
 	return true, nil
@@ -129,6 +132,7 @@ func (db *PGInstance) CompleteOnboardingTour(ctx context.Context, userID string,
 		"is_phone_verified":          true,
 	}).Error
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return false, err
 	}
 	return true, nil
@@ -142,6 +146,7 @@ func (db *PGInstance) InvalidatePIN(ctx context.Context, userID string, flavour 
 	}
 	err := db.DB.Model(&PINData{}).Where(&PINData{UserID: userID, IsValid: true, Flavour: flavour}).Select("active").Updates(PINData{IsValid: false}).Error
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return false, fmt.Errorf("an error occurred while invalidating the pin: %v", err)
 	}
 	return true, nil
@@ -157,6 +162,7 @@ func (db *PGInstance) UpdateIsCorrectSecurityQuestionResponse(ctx context.Contex
 		"is_correct": isCorrectSecurityQuestionResponse,
 	}).Error
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return false, fmt.Errorf("an error occurred while updating the is correct security question response: %v", err)
 	}
 	return true, nil
@@ -177,22 +183,26 @@ func (db *PGInstance) UpdateClient(ctx context.Context, client *Client, updates 
 		}
 	}()
 	if err := tx.Error; err != nil {
+		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed to initialize database transaction %v", err)
 	}
 
 	err := tx.Model(updateClient).Where(client).Updates(updates).Error
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		tx.Rollback()
 		return nil, fmt.Errorf("failed to update client profile: %v", err)
 	}
 
 	err = tx.First(updateClient, client.ID).Error
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		tx.Rollback()
 		return nil, fmt.Errorf("failed to retrieve client profile: %v", err)
 	}
 
 	if err := tx.Commit().Error; err != nil {
+		helpers.ReportErrorToSentry(err)
 		tx.Rollback()
 		return nil, fmt.Errorf("failed transaction commit to update client profile: %v", err)
 	}
@@ -250,6 +260,7 @@ func (db *PGInstance) ResolveStaffServiceRequest(ctx context.Context, staffID *s
 		ResolvedAt:   &currentTime,
 	}).Error
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return false, fmt.Errorf("failed to update staff's service request: %v", err)
 	}
 
@@ -269,11 +280,13 @@ func (db *PGInstance) AssignRoles(ctx context.Context, userID string, roles []en
 		}
 	}()
 	if err := tx.Error; err != nil {
+		helpers.ReportErrorToSentry(err)
 		return false, fmt.Errorf("failed to initialize database transaction %v", err)
 	}
 
 	err := tx.Model(&User{}).Where(&User{UserID: &userID}).First(&user).Error
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		tx.Rollback()
 		return false, fmt.Errorf("failed to get user: %v", err)
 	}
@@ -285,18 +298,21 @@ func (db *PGInstance) AssignRoles(ctx context.Context, userID string, roles []en
 
 		err := tx.Raw(`SELECT id FROM authority_authorityrole WHERE name = ?`, role.String()).Row().Scan(&roleID)
 		if err != nil {
+			helpers.ReportErrorToSentry(err)
 			tx.Rollback()
 			return false, fmt.Errorf("failed to get authority role: %v", err)
 		}
 
 		err = tx.Model(&AuthorityRoleUser{}).Where(&AuthorityRoleUser{UserID: user.UserID, RoleID: &roleID}).FirstOrCreate(&AuthorityRoleUser{}).Error
 		if err != nil {
+			helpers.ReportErrorToSentry(err)
 			tx.Rollback()
 			return false, fmt.Errorf("failed to assign role: %v", err)
 		}
 	}
 
 	if err := tx.Commit().Error; err != nil {
+		helpers.ReportErrorToSentry(err)
 		tx.Rollback()
 		return false, fmt.Errorf("transaction commit to update user roles failed: %v", err)
 	}
@@ -315,11 +331,13 @@ func (db *PGInstance) RevokeRoles(ctx context.Context, userID string, roles []en
 		}
 	}()
 	if err := tx.Error; err != nil {
+		helpers.ReportErrorToSentry(err)
 		return false, fmt.Errorf("failed to initialize database transaction %v", err)
 	}
 
 	err := tx.Model(&User{}).Where(&User{UserID: &userID}).First(&user).Error
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		tx.Rollback()
 		return false, fmt.Errorf("failed to get user: %v", err)
 	}
@@ -329,18 +347,21 @@ func (db *PGInstance) RevokeRoles(ctx context.Context, userID string, roles []en
 
 		err := tx.Raw(`SELECT id FROM authority_authorityrole WHERE name = ?`, role.String()).Row().Scan(&roleID)
 		if err != nil {
+			helpers.ReportErrorToSentry(err)
 			tx.Rollback()
 			return false, fmt.Errorf("failed to get authority role: %v", err)
 		}
 
 		err = tx.Model(&AuthorityRoleUser{}).Where(&AuthorityRoleUser{UserID: user.UserID, RoleID: &roleID}).Delete(&AuthorityRoleUser{}).Error
 		if err != nil {
+			helpers.ReportErrorToSentry(err)
 			tx.Rollback()
 			return false, fmt.Errorf("failed to revoke role: %v", err)
 		}
 	}
 
 	if err := tx.Commit().Error; err != nil {
+		helpers.ReportErrorToSentry(err)
 		tx.Rollback()
 		return false, fmt.Errorf("transaction commit to update user roles failed: %v", err)
 	}
@@ -361,12 +382,14 @@ func (db *PGInstance) UpdateAppointment(ctx context.Context, appointment *Appoin
 		}
 	}()
 	if err := tx.Error; err != nil {
+		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed to initialize database transaction %v", err)
 	}
 
 	if appointment.ID != "" {
 		err := tx.Model(&Appointment{}).Where(&Appointment{ID: appointment.ID}).First(&appointmentToUpdate).Error
 		if err != nil {
+			helpers.ReportErrorToSentry(err)
 			tx.Rollback()
 			return nil, fmt.Errorf("failed to get appointment: %v", err)
 		}
@@ -377,11 +400,13 @@ func (db *PGInstance) UpdateAppointment(ctx context.Context, appointment *Appoin
 
 	err := tx.Model(&Appointment{}).Where(&Appointment{ID: appointmentToUpdate.ID}).Updates(updateData).Error
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		tx.Rollback()
 		return nil, fmt.Errorf("failed to update appointment: %v", err)
 	}
 
 	if err := tx.Commit().Error; err != nil {
+		helpers.ReportErrorToSentry(err)
 		tx.Rollback()
 		return nil, fmt.Errorf("transaction commit to update appointment failed: %v", err)
 	}
@@ -403,11 +428,13 @@ func (db *PGInstance) InvalidateScreeningToolResponse(ctx context.Context, clien
 		}
 	}()
 	if err := tx.Error; err != nil {
+		helpers.ReportErrorToSentry(err)
 		return fmt.Errorf("failed to initialize database transaction %v", err)
 	}
 
 	err := tx.Model(&Client{}).Where(&Client{ID: &clientID}).First(&client).Error
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		tx.Rollback()
 		return fmt.Errorf("failed to get client: %v", err)
 	}
@@ -418,11 +445,13 @@ func (db *PGInstance) InvalidateScreeningToolResponse(ctx context.Context, clien
 			QuestionID: questionID,
 		}).Updates(map[string]interface{}{"active": false}).Error
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		tx.Rollback()
 		return fmt.Errorf("failed to invalidate screening tool response: %v", err)
 	}
 
 	if err := tx.Commit().Error; err != nil {
+		helpers.ReportErrorToSentry(err)
 		tx.Rollback()
 		return fmt.Errorf("transaction commit to update screening tool response failed: %v", err)
 	}
@@ -438,6 +467,7 @@ func (db *PGInstance) UpdateServiceRequests(ctx context.Context, payload []*Clie
 		}
 	}()
 	if err := tx.Error; err != nil {
+		helpers.ReportErrorToSentry(err)
 		return false, fmt.Errorf("unable to initialize database transaction: %v", err)
 	}
 
@@ -448,11 +478,13 @@ func (db *PGInstance) UpdateServiceRequests(ctx context.Context, payload []*Clie
 			"resolved_at":    k.ResolvedAt,
 		}).Error
 		if err != nil {
+			helpers.ReportErrorToSentry(err)
 			return false, fmt.Errorf("unable to update client's service request: %v", err)
 		}
 	}
 
 	if err := tx.Commit().Error; err != nil {
+		helpers.ReportErrorToSentry(err)
 		tx.Rollback()
 		return false, fmt.Errorf("unable to commit transaction: %v", err)
 	}
@@ -466,6 +498,7 @@ func (db *PGInstance) UpdateUserPinChangeRequiredStatus(ctx context.Context, use
 		"pin_change_required": status,
 	}).Error
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return err
 	}
 	return nil
@@ -477,6 +510,7 @@ func (db *PGInstance) UpdateUserPinUpdateRequiredStatus(ctx context.Context, use
 		"pin_update_required": status,
 	}).Error
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return err
 	}
 	return nil
@@ -486,6 +520,7 @@ func (db *PGInstance) UpdateUserPinUpdateRequiredStatus(ctx context.Context, use
 func (db *PGInstance) UpdateHealthDiary(ctx context.Context, clientHealthDiaryEntry *ClientHealthDiaryEntry, updateData map[string]interface{}) error {
 	err := db.DB.Model(&ClientHealthDiaryEntry{}).Where(&clientHealthDiaryEntry).Updates(updateData).Error
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return fmt.Errorf("unable to update health diary shares status for client: %v", err)
 	}
 
@@ -495,6 +530,7 @@ func (db *PGInstance) UpdateHealthDiary(ctx context.Context, clientHealthDiaryEn
 // UpdateUserSurveys updates the user surveys. The update is performed with regard to the data passed in the survey model.
 func (db *PGInstance) UpdateUserSurveys(ctx context.Context, survey *UserSurvey, updateData map[string]interface{}) error {
 	if err := db.DB.Model(&UserSurvey{}).Where(&survey).Updates(updateData).Error; err != nil {
+		helpers.ReportErrorToSentry(err)
 		return fmt.Errorf("an error occurred while updating the user surveys: %w", err)
 	}
 
@@ -505,6 +541,7 @@ func (db *PGInstance) UpdateUserSurveys(ctx context.Context, survey *UserSurvey,
 func (db *PGInstance) UpdateUser(ctx context.Context, user *User, updateData map[string]interface{}) error {
 	err := db.DB.Model(&User{}).Where(&User{UserID: user.UserID}).Updates(updateData).Error
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return fmt.Errorf("unable to update user: %v", err)
 	}
 
@@ -515,16 +552,18 @@ func (db *PGInstance) UpdateUser(ctx context.Context, user *User, updateData map
 func (db *PGInstance) UpdateFacility(ctx context.Context, facility *Facility, updateData map[string]interface{}) error {
 	err := db.DB.Model(&Facility{}).Where(&Facility{FacilityID: facility.FacilityID}).Updates(updateData).Error
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return fmt.Errorf("unable to update facility: %v", err)
 	}
 
 	return nil
 }
 
-// UpdateNotification updates a notification with the new data
+//UpdateNotification updates a notification with the new data
 func (db *PGInstance) UpdateNotification(ctx context.Context, notification *Notification, updateData map[string]interface{}) error {
 	err := db.DB.Model(&Notification{}).Where(&Notification{ID: notification.ID}).Updates(updateData).Error
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return fmt.Errorf("unable to update notification: %w", err)
 	}
 
@@ -546,11 +585,13 @@ func (db *PGInstance) UpdateFailedSecurityQuestionsAnsweringAttempts(ctx context
 		}
 	}()
 	if err := tx.Error; err != nil {
+		helpers.ReportErrorToSentry(err)
 		return fmt.Errorf("failied initialize database transaction %v", err)
 	}
 
 	err := tx.Model(&User{}).Where(&User{UserID: &userID}).First(&user).Error
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		tx.Rollback()
 		return fmt.Errorf("failed to get user: %v", err)
 	}
@@ -559,11 +600,13 @@ func (db *PGInstance) UpdateFailedSecurityQuestionsAnsweringAttempts(ctx context
 		"failed_security_count": failCount,
 	}).Error
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		tx.Rollback()
 		return fmt.Errorf("failed to update user failed security count: %v", err)
 	}
 
 	if err := tx.Commit().Error; err != nil {
+		helpers.ReportErrorToSentry(err)
 		tx.Rollback()
 		return fmt.Errorf("transaction commit to update user failed: %v", err)
 	}
@@ -574,103 +617,8 @@ func (db *PGInstance) UpdateFailedSecurityQuestionsAnsweringAttempts(ctx context
 func (db *PGInstance) UpdateClientServiceRequest(ctx context.Context, clientServiceRequest *ClientServiceRequest, updateData map[string]interface{}) error {
 	err := db.DB.Model(&ClientServiceRequest{}).Where(&ClientServiceRequest{ID: clientServiceRequest.ID}).Updates(&updateData).Error
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return fmt.Errorf("unable to update client service request: %v", err)
-	}
-
-	return nil
-}
-
-// UpdateStaff updates staff profile information
-func (db *PGInstance) UpdateStaff(ctx context.Context, staff *StaffProfile, updates map[string]interface{}) (*StaffProfile, error) {
-	updateStaff := &StaffProfile{}
-
-	if staff.ID == nil {
-		return nil, fmt.Errorf("staff id is required")
-	}
-
-	tx := db.DB.Begin()
-	defer func() {
-		if r := recover(); r != nil {
-			tx.Rollback()
-		}
-	}()
-	if err := tx.Error; err != nil {
-		return nil, fmt.Errorf("failed to initialize database transaction %v", err)
-	}
-
-	err := tx.Model(updateStaff).Where(staff).Updates(updates).Error
-	if err != nil {
-		tx.Rollback()
-		return nil, fmt.Errorf("failed to update staff profile: %v", err)
-	}
-
-	err = tx.First(updateStaff, staff.ID).Error
-	if err != nil {
-		tx.Rollback()
-		return nil, fmt.Errorf("failed to retrieve staff profile: %v", err)
-	}
-
-	if err := tx.Commit().Error; err != nil {
-		tx.Rollback()
-		return nil, fmt.Errorf("failed transaction commit to update staff profile: %v", err)
-	}
-
-	return updateStaff, nil
-}
-
-// AddFacilitiesToStaffProfile enables facilities to be added to the staff profile
-func (db *PGInstance) AddFacilitiesToStaffProfile(ctx context.Context, staffID string, facilities []string) error {
-	tx := db.DB.Begin()
-	defer func() {
-		if r := recover(); r != nil {
-			tx.Rollback()
-		}
-	}()
-
-	for _, facilityID := range facilities {
-		staffFacilities := StaffFacilities{
-			StaffID:    &staffID,
-			FacilityID: &facilityID,
-		}
-		err := tx.Where(staffFacilities).FirstOrCreate(&staffFacilities).Error
-		if err != nil {
-			tx.Rollback()
-			return fmt.Errorf("failed to create staff facilities: %w", err)
-		}
-	}
-
-	if err := tx.Commit().Error; err != nil {
-		tx.Rollback()
-		return fmt.Errorf("failed to commit add staff to facilities transaction: %w", err)
-	}
-
-	return nil
-}
-
-// AddFacilitiesToClientProfile enables addition of facilities to a client profile
-func (db *PGInstance) AddFacilitiesToClientProfile(ctx context.Context, clientID string, facilities []string) error {
-	tx := db.DB.Begin()
-	defer func() {
-		if r := recover(); r != nil {
-			tx.Rollback()
-		}
-	}()
-
-	for _, facilityID := range facilities {
-		clientFacilities := ClientFacilities{
-			ClientID:   &clientID,
-			FacilityID: &facilityID,
-		}
-		err := tx.Where(clientFacilities).FirstOrCreate(&clientFacilities).Error
-		if err != nil {
-			tx.Rollback()
-			return fmt.Errorf("failed to create client facilities: %w", err)
-		}
-	}
-
-	if err := tx.Commit().Error; err != nil {
-		tx.Rollback()
-		return fmt.Errorf("failed to commit add clients to facilities transaction: %w", err)
 	}
 
 	return nil

@@ -7,15 +7,6 @@ type Facility {
   county: String!
   description: String!
   fhirOrganisationID: String!
-  workStationDetails: WorkStationDetails!
-}
-
-type WorkStationDetails  {
-	Notifications:  Int!
-	Surveys: Int!
-	Articles: Int!
-	Messages: Int!
-	ServiceRequests: Int!
 }
 
 type Pagination {
@@ -390,12 +381,6 @@ type StaffProfile {
   DefaultFacilityID: String!
 }
 
-type CaregiverProfile {
-  id: ID!
-  user: User!
-  caregiverNumber: String!
-}
-
 type ScreeningToolAssessmentResponse {
   clientName: String!
   dateAnswered: Time!
@@ -630,15 +615,15 @@ type QuestionnaireScreeningToolQuestionResponse {
   id: String!
   active: Boolean!
   screeningToolResponseID: String!
-  questionID: String!
+	questionID: String! 
   questionType: QuestionType
   selectMultiple: Boolean
   responseValueType: QuestionResponseValueType
   sequence: Int
   questionText: String
-  response: String!
+	response:   String! 
   normalizedResponse: Map
-  score: Int
+	score:      Int    
 }
 
 type ScreeningToolRespondent {
@@ -679,9 +664,4 @@ type SurveyServiceRequestUser {
 type SurveyServiceRequestUserPage {
   users: [SurveyServiceRequestUser]!
   pagination: Pagination!
-}
-
-type FacilityOutputPage {
-  Pagination: Pagination!
-  Facilities: [Facility]!
 }

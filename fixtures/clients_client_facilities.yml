@@ -1,4 +1,0 @@
-# clients_client_facilities.yml
-- id: 1
-  client_id: {{.test_client_id}}
-  facility_id: {{.test_facility_id}}

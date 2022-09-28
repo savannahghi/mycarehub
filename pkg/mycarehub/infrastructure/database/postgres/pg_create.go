@@ -7,6 +7,7 @@ import (
 
 	"github.com/lib/pq"
 	"github.com/savannahghi/enumutils"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
@@ -21,6 +22,7 @@ import (
 // TODO: Make the create method idempotent
 func (d *MyCareHubDb) GetOrCreateFacility(ctx context.Context, facility *dto.FacilityInput) (*domain.Facility, error) {
 	if err := facility.Validate(); err != nil {
+		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("facility input validation failed: %s", err)
 	}
 
@@ -36,6 +38,7 @@ func (d *MyCareHubDb) GetOrCreateFacility(ctx context.Context, facility *dto.Fac
 
 	facilitySession, err := d.create.GetOrCreateFacility(ctx, facilityObj)
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed to create facility: %v", err)
 	}
 
@@ -56,6 +59,7 @@ func (d *MyCareHubDb) SaveTemporaryUserPin(ctx context.Context, pinData *domain.
 
 	_, err := d.create.SaveTemporaryUserPin(ctx, pinObj)
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return false, fmt.Errorf("failed to save user pin: %v", err)
 	}
 
@@ -77,6 +81,7 @@ func (d *MyCareHubDb) SavePin(ctx context.Context, pinInput *domain.UserPIN) (bo
 
 	_, err := d.create.SavePin(ctx, pinObj)
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return false, fmt.Errorf("failed to save user pin: %v", err)
 	}
 
@@ -98,6 +103,7 @@ func (d *MyCareHubDb) SaveOTP(ctx context.Context, otpInput *domain.OTP) error {
 
 	err := d.create.SaveOTP(ctx, otpObject)
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return fmt.Errorf("failed to save OTP")
 	}
 
@@ -119,6 +125,7 @@ func (d *MyCareHubDb) SaveSecurityQuestionResponse(ctx context.Context, security
 
 	err := d.create.SaveSecurityQuestionResponse(ctx, securityQuestionResponseObj)
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return fmt.Errorf("failed to save security question response data")
 	}
 
@@ -139,6 +146,7 @@ func (d *MyCareHubDb) CreateHealthDiaryEntry(ctx context.Context, healthDiaryInp
 
 	err := d.create.CreateHealthDiaryEntry(ctx, healthDiaryResponse)
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return err
 	}
 
@@ -151,6 +159,7 @@ func (d *MyCareHubDb) CreateHealthDiaryEntry(ctx context.Context, healthDiaryInp
 func (d *MyCareHubDb) CreateServiceRequest(ctx context.Context, serviceRequestInput *dto.ServiceRequestInput) error {
 	meta, err := json.Marshal(serviceRequestInput.Meta)
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return fmt.Errorf("failed to marshal meta data: %v", err)
 	}
 	serviceRequest := &gorm.ClientServiceRequest{
@@ -165,6 +174,7 @@ func (d *MyCareHubDb) CreateServiceRequest(ctx context.Context, serviceRequestIn
 
 	err = d.create.CreateServiceRequest(ctx, serviceRequest)
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return err
 	}
 
@@ -175,6 +185,7 @@ func (d *MyCareHubDb) CreateServiceRequest(ctx context.Context, serviceRequestIn
 func (d *MyCareHubDb) CreateStaffServiceRequest(ctx context.Context, serviceRequestInput *dto.ServiceRequestInput) error {
 	meta, err := json.Marshal(serviceRequestInput.Meta)
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return fmt.Errorf("failed to marshal meta data: %v", err)
 	}
 	serviceRequest := &gorm.StaffServiceRequest{
@@ -189,6 +200,7 @@ func (d *MyCareHubDb) CreateStaffServiceRequest(ctx context.Context, serviceRequ
 
 	err = d.create.CreateStaffServiceRequest(ctx, serviceRequest)
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return err
 	}
 
@@ -239,6 +251,7 @@ func (d *MyCareHubDb) CreateCommunity(ctx context.Context, communityInput *dto.C
 
 	channel, err := d.create.CreateCommunity(ctx, input)
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return nil, err
 	}
 
@@ -335,6 +348,7 @@ func (d *MyCareHubDb) AnswerScreeningToolQuestions(ctx context.Context, screenin
 	}
 	err := d.create.AnswerScreeningToolQuestions(ctx, screeningToolResponsesObj)
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return err
 	}
 	return nil
@@ -469,52 +483,6 @@ func (d *MyCareHubDb) RegisterClient(ctx context.Context, payload *domain.Client
 	}, nil
 }
 
-// RegisterCaregiver registers a new caregiver on the platform
-func (d *MyCareHubDb) RegisterCaregiver(ctx context.Context, input *domain.CaregiverRegistration) (*domain.CaregiverProfile, error) {
-	user := &gorm.User{
-		Username:    input.User.Username,
-		Name:        input.User.Name,
-		Gender:      input.User.Gender,
-		DateOfBirth: input.User.DateOfBirth,
-		UserType:    input.User.UserType,
-		Flavour:     input.User.Flavour,
-		Active:      input.User.Active,
-	}
-
-	contact := &gorm.Contact{
-		ContactType:  input.Contact.ContactType,
-		ContactValue: input.Contact.ContactValue,
-		Active:       input.Contact.Active,
-		OptedIn:      input.Contact.Active,
-		Flavour:      input.Contact.Flavour,
-	}
-
-	caregiver := &gorm.NCaregiver{
-		Active:          input.Caregiver.Active,
-		CaregiverNumber: input.Caregiver.CaregiverNumber,
-	}
-
-	err := d.create.RegisterCaregiver(ctx, user, contact, caregiver)
-	if err != nil {
-		return nil, err
-	}
-
-	profile := domain.CaregiverProfile{
-		ID: caregiver.ID,
-		User: domain.User{
-			ID:       user.UserID,
-			Username: user.Username,
-			UserType: user.UserType,
-			Name:     user.Name,
-			Gender:   user.Gender,
-			Active:   user.Active,
-		},
-		CaregiverNumber: caregiver.CaregiverNumber,
-	}
-
-	return &profile, nil
-}
-
 // CreateIdentifier creates a new identifier
 func (d *MyCareHubDb) CreateIdentifier(ctx context.Context, identifier domain.Identifier) (*domain.Identifier, error) {
 	i := &gorm.Identifier{
@@ -583,6 +551,7 @@ func (d *MyCareHubDb) CreateUserSurveys(ctx context.Context, surveys []*dto.User
 func (d *MyCareHubDb) CreateMetric(ctx context.Context, payload *domain.Metric) error {
 	event, err := json.Marshal(payload.Event)
 	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return fmt.Errorf("failed to marshal meta data: %v", err)
 	}
 
@@ -614,7 +583,7 @@ func (d *MyCareHubDb) SaveFeedback(ctx context.Context, payload *domain.Feedback
 
 // RegisterStaff registers a new staff member into the portal
 func (d *MyCareHubDb) RegisterStaff(ctx context.Context, payload *domain.StaffRegistrationPayload) (*domain.StaffProfile, error) {
-	user := &gorm.User{
+	usr := &gorm.User{
 		Username:    payload.UserProfile.Username,
 		Name:        payload.UserProfile.Name,
 		Gender:      payload.UserProfile.Gender,
@@ -647,7 +616,7 @@ func (d *MyCareHubDb) RegisterStaff(ctx context.Context, payload *domain.StaffRe
 		DefaultFacilityID: payload.Staff.DefaultFacilityID,
 	}
 
-	staff, err := d.create.RegisterStaff(ctx, user, contact, identifier, staffProfile)
+	staff, err := d.create.RegisterStaff(ctx, usr, contact, identifier, staffProfile)
 	if err != nil {
 		return nil, err
 	}
@@ -658,8 +627,6 @@ func (d *MyCareHubDb) RegisterStaff(ctx context.Context, payload *domain.StaffRe
 		Active:            staff.Active,
 		StaffNumber:       staff.StaffNumber,
 		DefaultFacilityID: staff.DefaultFacilityID,
-		User:              createMapUser(user),
-		OrganisationID:    staff.OrganisationID,
 	}, nil
 }
 

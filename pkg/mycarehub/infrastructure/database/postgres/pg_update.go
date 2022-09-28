@@ -226,16 +226,6 @@ func (d *MyCareHubDb) UpdateClient(ctx context.Context, client *domain.ClientPro
 		clientList = append(clientList, enums.ClientType(k))
 	}
 
-	clientFacilities, _, err := d.GetClientFacilities(ctx, dto.ClientFacilityInput{ClientID: client.ID}, nil)
-	if err != nil {
-		return nil, err
-	}
-	facilitiesMap := make(map[string]string)
-
-	for _, f := range clientFacilities {
-		facilitiesMap[*f.ID] = f.Name
-	}
-
 	return &domain.ClientProfile{
 		ID:                      c.ID,
 		Active:                  c.Active,
@@ -248,10 +238,8 @@ func (d *MyCareHubDb) UpdateClient(ctx context.Context, client *domain.ClientPro
 		ClientCounselled:        c.ClientCounselled,
 		OrganisationID:          c.OrganisationID,
 		FacilityID:              c.FacilityID,
-		FacilityName:            facilitiesMap[c.FacilityID],
 		CHVUserID:               c.CHVUserID,
 		CaregiverID:             c.CaregiverID,
-		Facilities:              clientFacilities,
 	}, nil
 }
 
@@ -303,23 +291,4 @@ func (d *MyCareHubDb) UpdateClientServiceRequest(ctx context.Context, clientServ
 	}
 
 	return d.update.UpdateClientServiceRequest(ctx, gormServiceRequest, updateData)
-}
-
-// UpdateStaff updates the staff details for a particular staff
-func (d *MyCareHubDb) UpdateStaff(ctx context.Context, staff *domain.StaffProfile, updates map[string]interface{}) error {
-	_, err := d.update.UpdateStaff(ctx, &gorm.StaffProfile{ID: staff.ID}, updates)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-// AddFacilitiesToStaffProfile updates the current facility list of a client
-func (d *MyCareHubDb) AddFacilitiesToStaffProfile(ctx context.Context, staffID string, facilities []string) error {
-	return d.update.AddFacilitiesToStaffProfile(ctx, staffID, facilities)
-}
-
-// AddFacilitiesToClientProfile updates the current facility list of a client
-func (d *MyCareHubDb) AddFacilitiesToClientProfile(ctx context.Context, clientID string, facilities []string) error {
-	return d.update.AddFacilitiesToClientProfile(ctx, clientID, facilities)
 }

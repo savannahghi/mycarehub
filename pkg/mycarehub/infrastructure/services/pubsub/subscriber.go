@@ -22,11 +22,10 @@ const (
 )
 
 var (
+	registerClientPath = "client_registration"
 	cmsServiceBaseURL  = serverutils.MustGetEnvVar("CONTENT_SERVICE_BASE_URL")
 	removeClientPath   = "client_remove"
 	removeStaffPath    = "staff_remove"
-	registerStaffPath  = "staff_registration"
-	registerClientPath = "client_registration"
 )
 
 // ReceivePubSubPushMessages receives and processes a pubsub message
@@ -146,7 +145,7 @@ func (ps ServicePubSubMessaging) ReceivePubSubPushMessages(
 		}
 
 	case ps.AddPubSubNamespace(common.CreateCMSClientTopicName, MyCareHubServiceName):
-		var data dto.PubsubCreateCMSClientPayload
+		var data dto.CMSClientOutput
 		err := json.Unmarshal(message.Message.Data, &data)
 		if err != nil {
 			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
@@ -156,7 +155,7 @@ func (ps ServicePubSubMessaging) ReceivePubSubPushMessages(
 			return
 		}
 
-		clientInput := &dto.PubsubCreateCMSClientPayload{
+		clientInput := &dto.PubSubCMSClientInput{
 			UserID:         data.UserID,
 			Name:           data.Name,
 			Gender:         data.Gender,
@@ -182,51 +181,6 @@ func (ps ServicePubSubMessaging) ReceivePubSubPushMessages(
 			}, http.StatusBadRequest)
 			return
 		}
-		if resp.StatusCode != http.StatusCreated {
-			err := fmt.Errorf("invalid status code :%v", resp.StatusCode)
-			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
-				Err:     err,
-				Message: err.Error(),
-			}, http.StatusBadRequest)
-			return
-		}
-
-	case ps.AddPubSubNamespace(common.CreateCMSStaffTopicName, MyCareHubServiceName):
-		var data dto.PubsubCreateCMSStaffPayload
-		err := json.Unmarshal(message.Message.Data, &data)
-		if err != nil {
-			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
-				Err:     err,
-				Message: err.Error(),
-			}, http.StatusBadRequest)
-		}
-
-		staffInput := &dto.PubsubCreateCMSStaffPayload{
-			UserID:         data.UserID,
-			Name:           data.Name,
-			Gender:         data.Gender,
-			UserType:       data.UserType,
-			PhoneNumber:    data.PhoneNumber,
-			Handle:         data.Handle,
-			Flavour:        data.Flavour,
-			DateOfBirth:    data.DateOfBirth,
-			StaffNumber:    data.StaffNumber,
-			StaffID:        data.StaffID,
-			FacilityID:     data.FacilityID,
-			FacilityName:   data.FacilityName,
-			OrganisationID: data.OrganisationID,
-		}
-
-		registerStaffAPIEndpoint := fmt.Sprintf("%s/%s", cmsServiceBaseURL, registerStaffPath)
-		resp, err := ps.baseExt.MakeRequest(ctx, http.MethodPost, registerStaffAPIEndpoint, staffInput)
-		if err != nil {
-			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
-				Err:     err,
-				Message: err.Error(),
-			}, http.StatusBadRequest)
-			return
-		}
-
 		if resp.StatusCode != http.StatusCreated {
 			err := fmt.Errorf("invalid status code :%v", resp.StatusCode)
 			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{

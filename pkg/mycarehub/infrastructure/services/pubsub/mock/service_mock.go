@@ -32,10 +32,9 @@ type FakeServicePubSub struct {
 	MockNotifyCreateTestResultFn   func(ctx context.Context, testResult *dto.PatientTestResultOutput) error
 	MockNotifyCreateOrganizationFn func(ctx context.Context, facility *domain.Facility) error
 	MockNotifyGetStreamEventFn     func(ctx context.Context, event *dto.GetStreamEvent) error
-	MockNotifyCreateCMSUserFn      func(ctx context.Context, user *dto.PubsubCreateCMSClientPayload) error
+	MockNotifyCreateCMSUserFn      func(ctx context.Context, user *dto.CMSClientOutput) error
 	MockNotifyDeleteCMSClientFn    func(ctx context.Context, user *dto.DeleteCMSUserPayload) error
 	MockNotifyDeleteCMSStaffFn     func(ctx context.Context, user *dto.DeleteCMSUserPayload) error
-	MockNotifyCreateCMSStaffFn     func(ctx context.Context, user *dto.PubsubCreateCMSStaffPayload) error
 }
 
 // NewPubsubServiceMock mocks the pubsub service implementation
@@ -73,16 +72,13 @@ func NewPubsubServiceMock() *FakeServicePubSub {
 		MockNotifyGetStreamEventFn: func(ctx context.Context, event *dto.GetStreamEvent) error {
 			return nil
 		},
-		MockNotifyCreateCMSUserFn: func(ctx context.Context, user *dto.PubsubCreateCMSClientPayload) error {
+		MockNotifyCreateCMSUserFn: func(ctx context.Context, user *dto.CMSClientOutput) error {
 			return nil
 		},
 		MockNotifyDeleteCMSClientFn: func(ctx context.Context, user *dto.DeleteCMSUserPayload) error {
 			return nil
 		},
 		MockNotifyDeleteCMSStaffFn: func(ctx context.Context, user *dto.DeleteCMSUserPayload) error {
-			return nil
-		},
-		MockNotifyCreateCMSStaffFn: func(ctx context.Context, user *dto.PubsubCreateCMSStaffPayload) error {
 			return nil
 		},
 	}
@@ -147,7 +143,7 @@ func (m *FakeServicePubSub) NotifyGetStreamEvent(ctx context.Context, event *dto
 }
 
 // NotifyCreateCMSClient mocks the implementation of publishing create cms user events to a pubsub topic
-func (m *FakeServicePubSub) NotifyCreateCMSClient(ctx context.Context, user *dto.PubsubCreateCMSClientPayload) error {
+func (m *FakeServicePubSub) NotifyCreateCMSClient(ctx context.Context, user *dto.CMSClientOutput) error {
 	return m.MockNotifyCreateCMSUserFn(ctx, user)
 }
 
@@ -159,9 +155,4 @@ func (m *FakeServicePubSub) NotifyDeleteCMSClient(ctx context.Context, user *dto
 // NotifyDeleteCMSStaff mocks the implementation of publishing delete cms staff events to a pubsub topic
 func (m *FakeServicePubSub) NotifyDeleteCMSStaff(ctx context.Context, user *dto.DeleteCMSUserPayload) error {
 	return m.MockNotifyDeleteCMSStaffFn(ctx, user)
-}
-
-// NotifyCreateCMSStaff mocks the implementation of publishing create cms staff events to a pubsub topic
-func (m *FakeServicePubSub) NotifyCreateCMSStaff(ctx context.Context, user *dto.PubsubCreateCMSStaffPayload) error {
-	return m.MockNotifyCreateCMSStaffFn(ctx, user)
 }
