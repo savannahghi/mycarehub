@@ -821,7 +821,7 @@ func (us *UseCasesUserImpl) RegisterClient(
 	}
 
 	handle := fmt.Sprintf("@%v", registeredClient.User.Username)
-	cmsUserPayload := &dto.CMSClientOutput{
+	cmsUserPayload := &dto.PubsubCreateCMSClientPayload{
 		UserID:      registeredClient.UserID,
 		Name:        registeredClient.User.Name,
 		Gender:      registeredClient.User.Gender,
@@ -1104,7 +1104,7 @@ func (us *UseCasesUserImpl) RegisterStaff(ctx context.Context, input dto.StaffRe
 	identifierExists, err := us.Query.CheckIdentifierExists(ctx, "NATIONAL_ID", input.IDNumber)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return nil, fmt.Errorf("unable to check the existece of the identifier: %w", err)
+		return nil, fmt.Errorf("unable to check the existence of the identifier: %w", err)
 	}
 	if identifierExists {
 		return nil, fmt.Errorf("identifier %v of identifier already exists", input.IDNumber)
@@ -1127,7 +1127,7 @@ func (us *UseCasesUserImpl) RegisterStaff(ctx context.Context, input dto.StaffRe
 
 	username := fmt.Sprintf("%v-%v", input.StaffName, input.StaffName)
 	dob := input.DateOfBirth.AsTime()
-	usr := &domain.User{
+	user := &domain.User{
 		Username:    username,
 		Name:        input.StaffName,
 		Gender:      enumutils.Gender(strings.ToUpper(input.Gender.String())),
@@ -1183,7 +1183,7 @@ func (us *UseCasesUserImpl) RegisterStaff(ctx context.Context, input dto.StaffRe
 	}
 
 	staffRegistrationPayload := &domain.StaffRegistrationPayload{
-		UserProfile:     *usr,
+		UserProfile:     *user,
 		Phone:           *contactData,
 		StaffIdentifier: *identifierData,
 		Staff:           *staffData,
@@ -1204,7 +1204,33 @@ func (us *UseCasesUserImpl) RegisterStaff(ctx context.Context, input dto.StaffRe
 		return nil, fmt.Errorf("unable to assign roles: %w", err)
 	}
 
-	// 12. Invite them into the platform
+	handle := fmt.Sprintf("@%v", username)
+	cmsStaffPayload := &dto.PubsubCreateCMSStaffPayload{
+		UserID:      staff.UserID,
+		Name:        staff.User.Name,
+		Gender:      staff.User.Gender,
+		UserType:    staff.User.UserType,
+		PhoneNumber: *normalized,
+		Handle:      handle,
+		Flavour:     staff.User.Flavour,
+		DateOfBirth: scalarutils.Date{
+			Year:  staff.User.DateOfBirth.Year(),
+			Month: int(staff.User.DateOfBirth.Month()),
+			Day:   staff.User.DateOfBirth.Day(),
+		},
+		StaffNumber:    staff.StaffNumber,
+		StaffID:        *staff.ID,
+		FacilityID:     staff.DefaultFacilityID,
+		FacilityName:   facility.Name,
+		OrganisationID: staff.OrganisationID,
+	}
+
+	err = us.Pubsub.NotifyCreateCMSStaff(ctx, cmsStaffPayload)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		log.Printf("failed to publish staff creation event to the staff creation topic: %v", err)
+	}
+
 	if input.InviteStaff {
 		_, err := us.InviteUser(ctx, staff.UserID, input.PhoneNumber, feedlib.FlavourPro, false)
 		if err != nil {

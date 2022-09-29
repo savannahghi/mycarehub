@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"testing"
 
+	"cloud.google.com/go/pubsub"
 	"github.com/brianvoe/gofakeit"
 	"github.com/google/uuid"
 	"github.com/savannahghi/enumutils"
@@ -346,7 +347,7 @@ func TestServicePubSubMessaging_NotifyGetStreamEvent(t *testing.T) {
 	}
 }
 
-func TestServicePubSubMessaging_NotifyCreateCMSUser(t *testing.T) {
+func TestServicePubSubMessaging_NotifyCreateCMSClient(t *testing.T) {
 	fakeExtension := extensionMock.NewFakeExtension()
 	fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 	fakeDB := pgMock.NewPostgresMock()
@@ -356,7 +357,7 @@ func TestServicePubSubMessaging_NotifyCreateCMSUser(t *testing.T) {
 
 	type args struct {
 		ctx  context.Context
-		user *dto.CMSClientOutput
+		user *dto.PubsubCreateCMSClientPayload
 	}
 	tests := []struct {
 		name    string
@@ -367,7 +368,7 @@ func TestServicePubSubMessaging_NotifyCreateCMSUser(t *testing.T) {
 			name: "Happy Case - Successfully publish to create cms user topic",
 			args: args{
 				ctx: context.Background(),
-				user: &dto.CMSClientOutput{
+				user: &dto.PubsubCreateCMSClientPayload{
 					UserID:      uuid.New().String(),
 					Name:        gofakeit.BeerAlcohol(),
 					Gender:      enumutils.GenderFemale,
@@ -473,6 +474,91 @@ func TestServicePubSubMessaging_NotifyDeleteCMSStaff(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if err := ps.NotifyDeleteCMSStaff(tt.args.ctx, tt.args.staff); (err != nil) != tt.wantErr {
 				t.Errorf("ServicePubSubMessaging.NotifyDeleteCMSStaff() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestServicePubSubMessaging_NotifyCreateCMSStaff(t *testing.T) {
+	type args struct {
+		ctx  context.Context
+		user *dto.PubsubCreateCMSStaffPayload
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Successfully publish to create cms user(staff) topic",
+			args: args{
+				ctx: nil,
+				user: &dto.PubsubCreateCMSStaffPayload{
+					UserID:      uuid.New().String(),
+					Name:        gofakeit.BeerAlcohol(),
+					Gender:      enumutils.GenderFemale,
+					UserType:    enums.ClientUser,
+					PhoneNumber: interserviceclient.TestUserPhoneNumber,
+					Handle:      fmt.Sprintf("@%v", gofakeit.Username()),
+					Flavour:     feedlib.FlavourConsumer,
+					DateOfBirth: scalarutils.Date{
+						Year:  2000,
+						Month: 3,
+						Day:   13,
+					},
+					StaffNumber:    "123",
+					StaffID:        "123",
+					FacilityID:     uuid.New().String(),
+					FacilityName:   "test",
+					OrganisationID: uuid.New().String(),
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad Case - Unable to publish to create cms user(staff) topic",
+			args: args{
+				ctx: nil,
+				user: &dto.PubsubCreateCMSStaffPayload{
+					UserID:      uuid.New().String(),
+					Name:        gofakeit.BeerAlcohol(),
+					Gender:      enumutils.GenderFemale,
+					UserType:    enums.ClientUser,
+					PhoneNumber: interserviceclient.TestUserPhoneNumber,
+					Handle:      fmt.Sprintf("@%v", gofakeit.Username()),
+					Flavour:     feedlib.FlavourConsumer,
+					DateOfBirth: scalarutils.Date{
+						Year:  2000,
+						Month: 3,
+						Day:   13,
+					},
+					StaffNumber:    "123",
+					StaffID:        "123",
+					FacilityID:     uuid.New().String(),
+					FacilityName:   "test",
+					OrganisationID: uuid.New().String(),
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeExtension := extensionMock.NewFakeExtension()
+			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
+			fakeDB := pgMock.NewPostgresMock()
+			fakeFCMService := fakeFCM.NewFCMServiceMock()
+
+			ps, _ := pubsubmessaging.NewServicePubSubMessaging(fakeExtension, fakeGetStream, fakeDB, fakeFCMService)
+
+			if tt.name == "Sad Case - Unable to publish to create cms user(staff) topic" {
+				fakeExtension.MockPublishToPubsubFn = func(ctx context.Context, pubsubClient *pubsub.Client, topicID, environment, serviceName, version string, payload []byte) error {
+					return fmt.Errorf("error")
+				}
+			}
+
+			if err := ps.NotifyCreateCMSStaff(tt.args.ctx, tt.args.user); (err != nil) != tt.wantErr {
+				t.Errorf("ServicePubSubMessaging.NotifyCreateCMSStaff() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
