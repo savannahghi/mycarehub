@@ -10,5 +10,5 @@ import (
 )
 
 func (r *mutationResolver) CollectMetric(ctx context.Context, input domain.Metric) (bool, error) {
-	return r.mycarehub.Metrics.CollectMetric(ctx, input)
+	return r.mycarehub.Metrics.CollectMetric(ctx, &input)
 }
