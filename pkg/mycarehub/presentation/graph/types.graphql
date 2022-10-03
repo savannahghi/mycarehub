@@ -366,6 +366,7 @@ type ClientProfile {
   TreatmentBuddy: String
   ClientCounselled: Boolean
   FacilityID: String
+  FacilityName: String
   CHVUserID: String
   CHVUserName: String
   CaregiverID: String
@@ -379,6 +380,7 @@ type StaffProfile {
   Active: Boolean!
   StaffNumber: String!
   DefaultFacilityID: String!
+  DefaultFacilityName: String
 }
 
 type ScreeningToolAssessmentResponse {

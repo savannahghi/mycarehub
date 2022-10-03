@@ -392,13 +392,19 @@ func (d *MyCareHubDb) SearchStaffProfile(ctx context.Context, searchParameter st
 		}
 		user := createMapUser(userProfile)
 
+		facility, err := d.query.RetrieveFacility(ctx, &s.DefaultFacilityID, true)
+		if err != nil {
+			return nil, err
+		}
+
 		staffProfile := &domain.StaffProfile{
-			ID:                s.ID,
-			User:              user,
-			UserID:            s.UserID,
-			Active:            s.Active,
-			StaffNumber:       s.StaffNumber,
-			DefaultFacilityID: s.DefaultFacilityID,
+			ID:                  s.ID,
+			User:                user,
+			UserID:              s.UserID,
+			Active:              s.Active,
+			StaffNumber:         s.StaffNumber,
+			DefaultFacilityID:   s.DefaultFacilityID,
+			DefaultFacilityName: facility.Name,
 		}
 
 		staffProfiles = append(staffProfiles, staffProfile)
@@ -1409,6 +1415,11 @@ func (d *MyCareHubDb) SearchClientProfile(ctx context.Context, searchParameter s
 		}
 		user := createMapUser(userProfile)
 
+		facility, err := d.query.RetrieveFacility(ctx, &c.FacilityID, true)
+		if err != nil {
+			return nil, err
+		}
+
 		identifier, err := d.query.GetClientCCCIdentifier(ctx, *c.ID)
 		if err != nil {
 			return nil, err
@@ -1431,6 +1442,7 @@ func (d *MyCareHubDb) SearchClientProfile(ctx context.Context, searchParameter s
 			ClientCounselled:        c.ClientCounselled,
 			OrganisationID:          c.OrganisationID,
 			FacilityID:              c.FacilityID,
+			FacilityName:            facility.Name,
 			CHVUserID:               c.CHVUserID,
 			CCCNumber:               identifier.IdentifierValue,
 		}
