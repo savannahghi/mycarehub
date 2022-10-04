@@ -860,7 +860,7 @@ func TestMyCareHubDb_CreateClient(t *testing.T) {
 				client: domain.ClientProfile{
 					Active:                  true,
 					UserID:                  userID,
-					FacilityID:              gofakeit.UUID(),
+					DefaultFacilityID:       gofakeit.UUID(),
 					ClientCounselled:        true,
 					ClientTypes:             clientTypeList,
 					TreatmentEnrollmentDate: &enrollment,

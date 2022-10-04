@@ -85,8 +85,8 @@ type ClientProfile struct {
 
 	OrganisationID string `json:"organisationID"`
 
-	FacilityID   string `json:"facilityID"`
-	FacilityName string `json:"facilityName"`
+	DefaultFacilityID   string `json:"defaultFacilityID"`
+	DefaultFacilityName string `json:"defaultFacilityName"`
 
 	CHVUserID   *string `json:"chvUserID"`
 	CHVUserName string  `json:"chvUserName"`

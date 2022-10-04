@@ -792,7 +792,7 @@ func (us *UseCasesUserImpl) RegisterClient(
 	client := &domain.ClientProfile{
 		ClientTypes:             clientTypes,
 		TreatmentEnrollmentDate: &clientEnrollmentDate,
-		FacilityID:              *facility.ID,
+		DefaultFacilityID:       *facility.ID,
 		ClientCounselled:        input.Counselled,
 		Active:                  true,
 	}
@@ -841,7 +841,7 @@ func (us *UseCasesUserImpl) RegisterClient(
 			Month: int(registeredClient.TreatmentEnrollmentDate.Month()),
 			Day:   registeredClient.TreatmentEnrollmentDate.Day(),
 		},
-		FacilityID:     registeredClient.FacilityID,
+		FacilityID:     registeredClient.DefaultFacilityID,
 		FacilityName:   facility.Name,
 		OrganisationID: registeredClient.OrganisationID,
 	}
@@ -867,7 +867,7 @@ func (us *UseCasesUserImpl) RegisterClient(
 		TreatmentBuddy:    registeredClient.TreatmentBuddy,
 		Counselled:        registeredClient.ClientCounselled,
 		UserID:            registeredClient.UserID,
-		CurrentFacilityID: registeredClient.FacilityID,
+		CurrentFacilityID: registeredClient.DefaultFacilityID,
 		Organisation:      registeredClient.OrganisationID,
 	}, nil
 }
@@ -940,7 +940,7 @@ func (us *UseCasesUserImpl) createClient(ctx context.Context, patient dto.Patien
 	enrollment := patient.EnrollmentDate.AsTime()
 	newClient := domain.ClientProfile{
 		UserID:                  *user.ID,
-		FacilityID:              *facility.ID,
+		DefaultFacilityID:       *facility.ID,
 		ClientCounselled:        patient.Counselled,
 		ClientTypes:             clientList,
 		TreatmentEnrollmentDate: &enrollment,
@@ -1457,7 +1457,7 @@ func (us *UseCasesUserImpl) TransferClientToFacility(ctx context.Context, client
 		return false, err
 	}
 
-	currentClientFacilityID = clientProfile.FacilityID
+	currentClientFacilityID = clientProfile.DefaultFacilityID
 
 	_, err = us.Update.UpdateClient(
 		ctx,
