@@ -297,8 +297,8 @@ func (d *MyCareHubDb) GetClientProfileByUserID(ctx context.Context, userID strin
 		TreatmentBuddy:          client.TreatmentBuddy,
 		ClientCounselled:        client.ClientCounselled,
 		OrganisationID:          client.OrganisationID,
-		FacilityID:              client.FacilityID,
-		FacilityName:            facility.Name,
+		DefaultFacilityID:       client.FacilityID,
+		DefaultFacilityName:     facility.Name,
 		CHVUserID:               client.CHVUserID,
 	}, nil
 }
@@ -648,7 +648,7 @@ func (d *MyCareHubDb) GetClientProfileByClientID(ctx context.Context, clientID s
 		TreatmentBuddy:          response.TreatmentBuddy,
 		ClientCounselled:        response.ClientCounselled,
 		OrganisationID:          response.OrganisationID,
-		FacilityID:              response.FacilityID,
+		DefaultFacilityID:       response.FacilityID,
 		CHVUserID:               response.CHVUserID,
 		CaregiverID:             response.CaregiverID,
 		UserID:                  *response.UserID,
@@ -911,7 +911,7 @@ func (d *MyCareHubDb) GetClientsInAFacility(ctx context.Context, facilityID stri
 			TreatmentBuddy:          cli.TreatmentBuddy,
 			ClientCounselled:        cli.ClientCounselled,
 			OrganisationID:          cli.OrganisationID,
-			FacilityID:              cli.FacilityID,
+			DefaultFacilityID:       cli.FacilityID,
 			CHVUserID:               cli.CHVUserID,
 			CaregiverID:             cli.CaregiverID,
 			UserID:                  *cli.UserID,
@@ -996,7 +996,7 @@ func (d *MyCareHubDb) GetClientsByParams(ctx context.Context, params gorm.Client
 			TreatmentBuddy:          c.TreatmentBuddy,
 			ClientCounselled:        c.ClientCounselled,
 			OrganisationID:          c.OrganisationID,
-			FacilityID:              c.FacilityID,
+			DefaultFacilityID:       c.FacilityID,
 			CHVUserID:               c.CHVUserID,
 			CaregiverID:             c.CaregiverID,
 		})
@@ -1392,7 +1392,7 @@ func (d *MyCareHubDb) GetClientProfileByCCCNumber(ctx context.Context, CCCNumber
 		TreatmentBuddy:          clientProfile.TreatmentBuddy,
 		ClientCounselled:        clientProfile.ClientCounselled,
 		OrganisationID:          clientProfile.OrganisationID,
-		FacilityID:              clientProfile.FacilityID,
+		DefaultFacilityID:       clientProfile.FacilityID,
 		CHVUserID:               clientProfile.CHVUserID,
 		CCCNumber:               cccIdentifier.IdentifierValue,
 	}, nil
@@ -1441,8 +1441,8 @@ func (d *MyCareHubDb) SearchClientProfile(ctx context.Context, searchParameter s
 			TreatmentBuddy:          c.TreatmentBuddy,
 			ClientCounselled:        c.ClientCounselled,
 			OrganisationID:          c.OrganisationID,
-			FacilityID:              c.FacilityID,
-			FacilityName:            facility.Name,
+			DefaultFacilityID:       c.FacilityID,
+			DefaultFacilityName:     facility.Name,
 			CHVUserID:               c.CHVUserID,
 			CCCNumber:               identifier.IdentifierValue,
 		}
@@ -1919,7 +1919,7 @@ func (d *MyCareHubDb) GetClientsByFilterParams(ctx context.Context, facilityID *
 			TreatmentBuddy:          c.TreatmentBuddy,
 			ClientCounselled:        c.ClientCounselled,
 			OrganisationID:          c.OrganisationID,
-			FacilityID:              c.FacilityID,
+			DefaultFacilityID:       c.FacilityID,
 			CHVUserID:               c.CHVUserID,
 			CaregiverID:             c.CaregiverID,
 		})

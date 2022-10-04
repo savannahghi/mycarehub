@@ -237,7 +237,7 @@ func (d *MyCareHubDb) UpdateClient(ctx context.Context, client *domain.ClientPro
 		TreatmentBuddy:          c.TreatmentBuddy,
 		ClientCounselled:        c.ClientCounselled,
 		OrganisationID:          c.OrganisationID,
-		FacilityID:              c.FacilityID,
+		DefaultFacilityID:       c.FacilityID,
 		CHVUserID:               c.CHVUserID,
 		CaregiverID:             c.CaregiverID,
 	}, nil

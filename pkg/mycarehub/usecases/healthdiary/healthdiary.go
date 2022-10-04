@@ -127,7 +127,7 @@ func (h UseCasesHealthDiaryImpl) CreateHealthDiaryEntry(
 			Flavour:     feedlib.FlavourConsumer,
 			RequestType: enums.ServiceRequestTypeRedFlag.String(),
 			Request:     fmt.Sprintf("%s is feeling very sad. Please reach out and help them to feel better.", clientProfile.User.Name),
-			FacilityID:  clientProfile.FacilityID,
+			FacilityID:  clientProfile.DefaultFacilityID,
 			ClientName:  &clientProfile.User.Name,
 			Meta: map[string]interface{}{
 				"note": healthDiaryEntry.Note,

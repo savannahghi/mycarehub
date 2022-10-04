@@ -365,8 +365,8 @@ type ClientProfile {
   HealthRecordID: String
   TreatmentBuddy: String
   ClientCounselled: Boolean
-  FacilityID: String
-  FacilityName: String
+  DefaultFacilityID: String!
+  DefaultFacilityName: String
   CHVUserID: String
   CHVUserName: String
   CaregiverID: String
