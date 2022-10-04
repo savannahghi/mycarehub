@@ -14,3 +14,8 @@ type Metric struct {
 	Event     map[string]interface{} `json:"event"`
 	Timestamp time.Time              `json:"timestamp"`
 }
+
+// AddEvent adds/updates a key value pair to the map
+func (m *Metric) AddEvent(key string, value interface{}) {
+	m.Event[key] = value
+}

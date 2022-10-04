@@ -13,6 +13,7 @@ import (
 	"github.com/savannahghi/errorcodeutil"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases"
 	"github.com/savannahghi/serverutils"
@@ -513,14 +514,20 @@ func (h *MyCareHubHandlersInterfacesImpl) RefreshGetStreamToken() http.HandlerFu
 // It accepts multiple record for registration.
 func (h *MyCareHubHandlersInterfacesImpl) RegisterKenyaEMRPatients() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		metric, collect := h.usecase.Metrics.MetricCollector(context.Background(), enums.MetricTypeEMRRegisterPatient)
+		defer collect()
+
 		ctx := r.Context()
 
 		payload := &dto.PatientsPayload{}
 		serverutils.DecodeJSONToTargetStruct(w, r, payload)
 
+		metric.AddEvent("payload", payload)
+
 		if len(payload.Patients) == 0 {
 			err := fmt.Errorf("expected at least one patient")
 			helpers.ReportErrorToSentry(err)
+			metric.AddEvent("error", err.Error())
 			serverutils.WriteJSONResponse(w, serverutils.ErrorMap(err), http.StatusBadRequest)
 			return
 		}
@@ -528,9 +535,12 @@ func (h *MyCareHubHandlersInterfacesImpl) RegisterKenyaEMRPatients() http.Handle
 		response, err := h.usecase.User.RegisterKenyaEMRPatients(ctx, payload.Patients)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
+			metric.AddEvent("error", err.Error())
 			serverutils.WriteJSONResponse(w, serverutils.ErrorMap(err), http.StatusInternalServerError)
 			return
 		}
+
+		metric.AddEvent("response", response)
 
 		serverutils.WriteJSONResponse(w, response, http.StatusCreated)
 	}
@@ -540,6 +550,9 @@ func (h *MyCareHubHandlersInterfacesImpl) RegisterKenyaEMRPatients() http.Handle
 // in the specified facility.
 func (h *MyCareHubHandlersInterfacesImpl) GetClientHealthDiaryEntries() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		metric, collect := h.usecase.Metrics.MetricCollector(context.Background(), enums.MetricTypeEMRHealthDiary)
+		defer collect()
+
 		ctx := r.Context()
 		MFLCode, err := strconv.Atoi(r.URL.Query().Get("MFLCODE"))
 		if err != nil {
@@ -566,9 +579,12 @@ func (h *MyCareHubHandlersInterfacesImpl) GetClientHealthDiaryEntries() http.Han
 			LastSyncTime: &syncTime,
 		}
 
+		metric.AddEvent("payload", payload)
+
 		if payload.MFLCode == 0 || payload.LastSyncTime == nil {
 			err := fmt.Errorf("expected `MFLCODE` and `lastSyncTime` to be defined")
 			helpers.ReportErrorToSentry(err)
+			metric.AddEvent("error", err.Error())
 			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
 				Err:     err,
 				Message: err.Error(),
@@ -579,10 +595,12 @@ func (h *MyCareHubHandlersInterfacesImpl) GetClientHealthDiaryEntries() http.Han
 		response, err := h.usecase.HealthDiary.GetFacilityHealthDiaryEntries(ctx, *payload)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
+			metric.AddEvent("error", err.Error())
 			serverutils.WriteJSONResponse(w, serverutils.ErrorMap(err), http.StatusInternalServerError)
 			return
 		}
 
+		metric.AddEvent("response", response)
 		serverutils.WriteJSONResponse(w, response, http.StatusOK)
 	}
 }
@@ -590,6 +608,9 @@ func (h *MyCareHubHandlersInterfacesImpl) GetClientHealthDiaryEntries() http.Han
 // RegisteredFacilityPatients handler for syncing newly registered patients for a facility
 func (h *MyCareHubHandlersInterfacesImpl) RegisteredFacilityPatients() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		metric, collect := h.usecase.Metrics.MetricCollector(context.Background(), enums.MetricTypeEMRSyncPatient)
+		defer collect()
+
 		ctx := r.Context()
 		MFLCode, err := strconv.Atoi(r.URL.Query().Get("MFLCODE"))
 		if err != nil {
@@ -616,9 +637,12 @@ func (h *MyCareHubHandlersInterfacesImpl) RegisteredFacilityPatients() http.Hand
 			SyncTime: &syncTime,
 		}
 
+		metric.AddEvent("payload", payload)
+
 		if payload.MFLCode == 0 {
 			err := fmt.Errorf("expected `MFLCODE` to be defined")
 			helpers.ReportErrorToSentry(err)
+			metric.AddEvent("error", err.Error())
 			serverutils.WriteJSONResponse(w, serverutils.ErrorMap(err), http.StatusBadRequest)
 			return
 		}
@@ -626,9 +650,12 @@ func (h *MyCareHubHandlersInterfacesImpl) RegisteredFacilityPatients() http.Hand
 		response, err := h.usecase.User.RegisteredFacilityPatients(ctx, *payload)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
+			metric.AddEvent("error", err.Error())
 			serverutils.WriteJSONResponse(w, serverutils.ErrorMap(err), http.StatusInternalServerError)
 			return
 		}
+
+		metric.AddEvent("response", response)
 
 		serverutils.WriteJSONResponse(w, response, http.StatusOK)
 	}
@@ -695,6 +722,9 @@ func (h *MyCareHubHandlersInterfacesImpl) DeleteUser() http.HandlerFunc {
 
 // GetServiceRequestsForKenyaEMR gets all the service requests from MyCareHub
 func (h *MyCareHubHandlersInterfacesImpl) GetServiceRequestsForKenyaEMR(ctx context.Context, r *http.Request, w http.ResponseWriter) {
+	metric, collect := h.usecase.Metrics.MetricCollector(context.Background(), enums.MetricTypeEMRServiceRequestGet)
+	defer collect()
+
 	MFLCode, err := strconv.Atoi(r.URL.Query().Get("MFLCODE"))
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
@@ -704,6 +734,7 @@ func (h *MyCareHubHandlersInterfacesImpl) GetServiceRequestsForKenyaEMR(ctx cont
 		}, http.StatusBadRequest)
 		return
 	}
+
 	syncTime, err := time.Parse(time.RFC3339, r.URL.Query().Get("lastSyncTime"))
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
@@ -713,13 +744,18 @@ func (h *MyCareHubHandlersInterfacesImpl) GetServiceRequestsForKenyaEMR(ctx cont
 		}, http.StatusBadRequest)
 		return
 	}
+
 	payload := &dto.ServiceRequestPayload{
 		MFLCode:      MFLCode,
 		LastSyncTime: &syncTime,
 	}
+
+	metric.AddEvent("payload", payload)
+
 	if payload.MFLCode == 0 || payload.LastSyncTime == nil {
 		err := fmt.Errorf("expected `MFLCODE` and `lastSyncTime` to be defined")
 		helpers.ReportErrorToSentry(err)
+		metric.AddEvent("error", err.Error())
 		serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
 			Err:     err,
 			Message: err.Error(),
@@ -730,21 +766,30 @@ func (h *MyCareHubHandlersInterfacesImpl) GetServiceRequestsForKenyaEMR(ctx cont
 	serviceRequests, err := h.usecase.ServiceRequest.GetServiceRequestsForKenyaEMR(ctx, payload)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
+		metric.AddEvent("error", err.Error())
 		serverutils.WriteJSONResponse(w, serverutils.ErrorMap(err), http.StatusBadRequest)
 		return
 	}
+
+	metric.AddEvent("response", serviceRequests)
 
 	serverutils.WriteJSONResponse(w, serviceRequests, http.StatusOK)
 }
 
 //UpdateServiceRequests is an endpoint used to update service requests from KenyaEMR to MyCareHub
 func (h *MyCareHubHandlersInterfacesImpl) UpdateServiceRequests(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+	metric, collect := h.usecase.Metrics.MetricCollector(context.Background(), enums.MetricTypeEMRServiceRequestUpdate)
+	defer collect()
+
 	payload := &dto.UpdateServiceRequestsPayload{}
 	serverutils.DecodeJSONToTargetStruct(w, r, payload)
+
+	metric.AddEvent("payload", payload)
 
 	if len(payload.ServiceRequests) == 0 {
 		err := fmt.Errorf("no service requests payload defined")
 		helpers.ReportErrorToSentry(err)
+		metric.AddEvent("error", err.Error())
 		serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
 			Err:     err,
 			Message: err.Error(),
@@ -755,9 +800,12 @@ func (h *MyCareHubHandlersInterfacesImpl) UpdateServiceRequests(ctx context.Cont
 	_, err := h.usecase.ServiceRequest.UpdateServiceRequestsFromKenyaEMR(ctx, payload)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
+		metric.AddEvent("error", err.Error())
 		serverutils.WriteJSONResponse(w, serverutils.ErrorMap(err), http.StatusBadRequest)
 		return
 	}
+
+	metric.AddEvent("success", true)
 
 	serverutils.WriteJSONResponse(w, okResp{Status: true}, http.StatusOK)
 }
@@ -766,13 +814,19 @@ func (h *MyCareHubHandlersInterfacesImpl) UpdateServiceRequests(ctx context.Cont
 // The appointment can be a POST, handled as a create or PUT handled as an update to existing appointment
 func (h *MyCareHubHandlersInterfacesImpl) CreateOrUpdateKenyaEMRAppointments() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		metric, collect := h.usecase.Metrics.MetricCollector(context.Background(), enums.MetricTypeEMRAppointments)
+		defer collect()
+
 		ctx := r.Context()
 		payload := &dto.FacilityAppointmentsPayload{}
 		serverutils.DecodeJSONToTargetStruct(w, r, payload)
 
+		metric.AddEvent("payload", payload)
+
 		if payload.MFLCode == "" {
 			err := fmt.Errorf("expected an MFL code to be defined")
 			helpers.ReportErrorToSentry(err)
+			metric.AddEvent("error", err.Error())
 			serverutils.WriteJSONResponse(w, serverutils.ErrorMap(err), http.StatusBadRequest)
 			return
 		}
@@ -780,6 +834,7 @@ func (h *MyCareHubHandlersInterfacesImpl) CreateOrUpdateKenyaEMRAppointments() h
 		if len(payload.Appointments) == 0 {
 			err := fmt.Errorf("expected at least one appointment to be defined")
 			helpers.ReportErrorToSentry(err)
+			metric.AddEvent("error", err.Error())
 			serverutils.WriteJSONResponse(w, serverutils.ErrorMap(err), http.StatusBadRequest)
 			return
 		}
@@ -787,9 +842,12 @@ func (h *MyCareHubHandlersInterfacesImpl) CreateOrUpdateKenyaEMRAppointments() h
 		response, err := h.usecase.Appointment.CreateOrUpdateKenyaEMRAppointments(ctx, *payload)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
+			metric.AddEvent("error", err.Error())
 			serverutils.WriteJSONResponse(w, serverutils.ErrorMap(err), http.StatusBadRequest)
 			return
 		}
+
+		metric.AddEvent("response", response)
 
 		serverutils.WriteJSONResponse(w, response, http.StatusCreated)
 	}
@@ -854,12 +912,18 @@ func (h *MyCareHubHandlersInterfacesImpl) GetUserProfile() http.HandlerFunc {
 // AddPatientsRecords handles bulk creation of patient records
 func (h *MyCareHubHandlersInterfacesImpl) AddPatientsRecords() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		metric, collect := h.usecase.Metrics.MetricCollector(context.Background(), enums.MetricTypeEMRPatientRecords)
+		defer collect()
+
 		payload := &dto.PatientsRecordsPayload{}
 		serverutils.DecodeJSONToTargetStruct(w, r, payload)
+
+		metric.AddEvent("payload", payload)
 
 		if payload.MFLCode == "" {
 			err := fmt.Errorf("expected an MFL code to be defined")
 			helpers.ReportErrorToSentry(err)
+			metric.AddEvent("error", err.Error())
 			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
 				Err:     err,
 				Message: err.Error(),
@@ -870,6 +934,7 @@ func (h *MyCareHubHandlersInterfacesImpl) AddPatientsRecords() http.HandlerFunc 
 		if len(payload.Records) == 0 {
 			err := fmt.Errorf("expected at least one record to be defined")
 			helpers.ReportErrorToSentry(err)
+			metric.AddEvent("error", err.Error())
 			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
 				Err:     err,
 				Message: err.Error(),
@@ -880,6 +945,7 @@ func (h *MyCareHubHandlersInterfacesImpl) AddPatientsRecords() http.HandlerFunc 
 		err := h.usecase.Appointment.AddPatientsRecords(r.Context(), *payload)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
+			metric.AddEvent("error", err.Error())
 			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
 				Err:     err,
 				Message: err.Error(),
@@ -887,6 +953,7 @@ func (h *MyCareHubHandlersInterfacesImpl) AddPatientsRecords() http.HandlerFunc 
 			return
 		}
 
+		metric.AddEvent("success", true)
 		serverutils.WriteJSONResponse(w, okResp{Status: true}, http.StatusCreated)
 	}
 }
@@ -947,9 +1014,13 @@ func (h *MyCareHubHandlersInterfacesImpl) AppointmentsServiceRequests() http.Han
 
 // GetAppointmentServiceRequests handler for syncing red-flags from the my carehub endpoint to Kenya EMR for display
 func (h *MyCareHubHandlersInterfacesImpl) GetAppointmentServiceRequests(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+	metric, collect := h.usecase.Metrics.MetricCollector(context.Background(), enums.MetricTypeEMRServiceRequestGet)
+	defer collect()
+
 	MFLCode, err := strconv.Atoi(r.URL.Query().Get("MFLCODE"))
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
+		metric.AddEvent("error", err.Error())
 		serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
 			Err:     err,
 			Message: err.Error(),
@@ -960,6 +1031,7 @@ func (h *MyCareHubHandlersInterfacesImpl) GetAppointmentServiceRequests(ctx cont
 	lastSyncTime, err := time.Parse(time.RFC3339, r.URL.Query().Get("lastSyncTime"))
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
+		metric.AddEvent("error", err.Error())
 		serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
 			Err:     err,
 			Message: err.Error(),
@@ -971,6 +1043,9 @@ func (h *MyCareHubHandlersInterfacesImpl) GetAppointmentServiceRequests(ctx cont
 		MFLCode:      MFLCode,
 		LastSyncTime: &lastSyncTime,
 	}
+
+	metric.AddEvent("payload", payload)
+	metric.AddEvent("requestType", enums.ServiceRequestTypeAppointments)
 
 	if payload.MFLCode == 0 {
 		err := fmt.Errorf("expected `MFLCODE` to be defined")
@@ -985,6 +1060,9 @@ func (h *MyCareHubHandlersInterfacesImpl) GetAppointmentServiceRequests(ctx cont
 		serverutils.WriteJSONResponse(w, serverutils.ErrorMap(err), http.StatusInternalServerError)
 		return
 	}
+
+	metric.AddEvent("response", response)
+
 	serverutils.WriteJSONResponse(w, response, http.StatusOK)
 }
 
