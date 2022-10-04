@@ -147,7 +147,7 @@ func (q *UseCaseQuestionnaireImpl) RespondToScreeningTool(ctx context.Context, i
 	payload := &domain.QuestionnaireScreeningToolResponse{
 		Active:          true,
 		ScreeningToolID: input.ScreeningToolID,
-		FacilityID:      clientProfile.FacilityID,
+		FacilityID:      *clientProfile.DefaultFacility.ID,
 		ClientID:        input.ClientID,
 	}
 
@@ -196,7 +196,7 @@ func (q *UseCaseQuestionnaireImpl) RespondToScreeningTool(ctx context.Context, i
 			Status:      enums.ServiceRequestStatusPending.String(),
 			Request:     serviceRequest,
 			ClientID:    input.ClientID,
-			FacilityID:  clientProfile.FacilityID,
+			FacilityID:  *clientProfile.DefaultFacility.ID,
 			ClientName:  &clientProfile.User.Name,
 			Flavour:     feedlib.FlavourConsumer,
 			Meta: map[string]interface{}{

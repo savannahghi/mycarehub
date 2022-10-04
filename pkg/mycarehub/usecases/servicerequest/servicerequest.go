@@ -131,7 +131,7 @@ func (u *UseCasesServiceRequestImpl) CreateServiceRequest(ctx context.Context, i
 			Request:     input.Request,
 			Status:      "PENDING",
 			ClientID:    input.ClientID,
-			FacilityID:  clientProfile.FacilityID,
+			FacilityID:  *clientProfile.DefaultFacility.ID,
 			Meta:        input.Meta,
 		}
 		err = u.Create.CreateServiceRequest(ctx, serviceRequestInput)
@@ -151,7 +151,7 @@ func (u *UseCasesServiceRequestImpl) CreateServiceRequest(ctx context.Context, i
 			helpers.ReportErrorToSentry(err)
 		}
 
-		facility, err := u.Query.RetrieveFacility(ctx, &clientProfile.FacilityID, true)
+		facility, err := u.Query.RetrieveFacility(ctx, clientProfile.DefaultFacility.ID, true)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
 		}
@@ -187,7 +187,7 @@ func (u *UseCasesServiceRequestImpl) CreateServiceRequest(ctx context.Context, i
 			Request:     input.Request,
 			Status:      "PENDING",
 			StaffID:     input.StaffID,
-			FacilityID:  staffProfile.DefaultFacilityID,
+			FacilityID:  *staffProfile.DefaultFacility.ID,
 		}
 		err = u.Create.CreateStaffServiceRequest(ctx, serviceRequestInput)
 		if err != nil {
@@ -418,7 +418,7 @@ func (u *UseCasesServiceRequestImpl) CreatePinResetServiceRequest(ctx context.Co
 			RequestType: enums.ServiceRequestTypePinReset.String(),
 			Request:     "Change PIN Request",
 			ClientID:    *clientProfile.ID,
-			FacilityID:  clientProfile.FacilityID,
+			FacilityID:  *clientProfile.DefaultFacility.ID,
 			Flavour:     feedlib.FlavourConsumer,
 			Meta:        meta,
 		}
@@ -449,7 +449,7 @@ func (u *UseCasesServiceRequestImpl) CreatePinResetServiceRequest(ctx context.Co
 			RequestType: enums.ServiceRequestTypeStaffPinReset.String(),
 			Request:     "Change PIN Request",
 			StaffID:     *staffProfile.ID,
-			FacilityID:  staffProfile.DefaultFacilityID,
+			FacilityID:  *staffProfile.DefaultFacility.ID,
 			Flavour:     feedlib.FlavourPro,
 		}
 

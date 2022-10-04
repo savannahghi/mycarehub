@@ -261,8 +261,7 @@ func NewPostgresMock() *PostgresMock {
 		TreatmentBuddy:          "",
 		ClientCounselled:        true,
 		OrganisationID:          ID,
-		FacilityID:              ID,
-		FacilityName:            name,
+		DefaultFacility:         facilityInput,
 		CHVUserID:               &ID,
 		CHVUserName:             name,
 		CaregiverID:             &ID,
@@ -270,13 +269,13 @@ func NewPostgresMock() *PostgresMock {
 		Facilities:              []*domain.Facility{facilityInput},
 	}
 	staff := &domain.StaffProfile{
-		ID:                &ID,
-		User:              userProfile,
-		UserID:            uuid.New().String(),
-		Active:            false,
-		StaffNumber:       gofakeit.BeerAlcohol(),
-		Facilities:        []*domain.Facility{facilityInput},
-		DefaultFacilityID: gofakeit.BeerAlcohol(),
+		ID:              &ID,
+		User:            userProfile,
+		UserID:          uuid.New().String(),
+		Active:          false,
+		StaffNumber:     gofakeit.BeerAlcohol(),
+		Facilities:      []*domain.Facility{facilityInput},
+		DefaultFacility: facilityInput,
 	}
 
 	serviceRequests := []*domain.ServiceRequest{
@@ -468,13 +467,13 @@ func NewPostgresMock() *PostgresMock {
 		},
 		MockGetStaffProfileByStaffIDFn: func(ctx context.Context, staffID string) (*domain.StaffProfile, error) {
 			return &domain.StaffProfile{
-				ID:                &ID,
-				User:              userProfile,
-				UserID:            ID,
-				Active:            false,
-				StaffNumber:       "TEST-00",
-				Facilities:        []*domain.Facility{},
-				DefaultFacilityID: ID,
+				ID:              &ID,
+				User:            userProfile,
+				UserID:          ID,
+				Active:          false,
+				StaffNumber:     "TEST-00",
+				Facilities:      []*domain.Facility{},
+				DefaultFacility: facilityInput,
 			}, nil
 		},
 		MockGetCurrentTermsFn: func(ctx context.Context, flavour feedlib.Flavour) (*domain.TermsOfService, error) {
@@ -766,6 +765,10 @@ func NewPostgresMock() *PostgresMock {
 				ID:          &ID,
 				User:        userProfile,
 				CaregiverID: &ID,
+				DefaultFacility: &domain.Facility{
+					ID:   &ID,
+					Name: name,
+				},
 			}
 			return client, nil
 		},

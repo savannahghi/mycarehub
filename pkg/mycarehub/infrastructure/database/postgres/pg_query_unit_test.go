@@ -1774,6 +1774,14 @@ func TestMyCareHubDb_GetStaffProfileByUserID(t *testing.T) {
 			},
 			wantErr: true,
 		},
+		{
+			name: "Sad Case - Unable to retrieve facility",
+			args: args{
+				ctx:    ctx,
+				userID: uuid.New().String(),
+			},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -1795,6 +1803,16 @@ func TestMyCareHubDb_GetStaffProfileByUserID(t *testing.T) {
 			if tt.name == "Sad Case - Missing user ID" {
 				fakeGorm.MockGetStaffProfileByUserIDFn = func(ctx context.Context, userID string) (*gorm.StaffProfile, error) {
 					return nil, fmt.Errorf("failed to get staff profile by user ID")
+				}
+			}
+			if tt.name == "Sad Case - Unable to retrieve facility" {
+				fakeGorm.MockGetStaffProfileByUserIDFn = func(ctx context.Context, userID string) (*gorm.StaffProfile, error) {
+					return &gorm.StaffProfile{
+						DefaultFacilityID: "1234",
+					}, nil
+				}
+				fakeGorm.MockRetrieveFacilityFn = func(ctx context.Context, id *string, isActive bool) (*gorm.Facility, error) {
+					return nil, fmt.Errorf("failed to get facility by id")
 				}
 			}
 

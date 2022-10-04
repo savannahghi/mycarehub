@@ -143,7 +143,7 @@ func (n UseCaseNotificationImpl) FetchNotifications(ctx context.Context, userID 
 		if err != nil {
 			return nil, err
 		}
-		parameters.FacilityID = &staff.DefaultFacilityID
+		parameters.FacilityID = staff.DefaultFacility.ID
 	}
 
 	var notificationFilters []*firebasetools.FilterParam
@@ -203,7 +203,7 @@ func (n UseCaseNotificationImpl) SendNotification(
 	return n.FCM.SendNotification(ctx, payload)
 }
 
-//ReadNotifications indicates that the notification as bee
+// ReadNotifications indicates that the notification as bee
 func (n UseCaseNotificationImpl) ReadNotifications(ctx context.Context, ids []string) (bool, error) {
 
 	for _, id := range ids {
@@ -224,7 +224,7 @@ func (n UseCaseNotificationImpl) ReadNotifications(ctx context.Context, ids []st
 	return true, nil
 }
 
-//FetchNotificationTypeFilters fetches the available notification types for a user
+// FetchNotificationTypeFilters fetches the available notification types for a user
 func (n UseCaseNotificationImpl) FetchNotificationTypeFilters(ctx context.Context, flavour feedlib.Flavour) ([]*domain.NotificationTypeFilter, error) {
 	userID, err := n.ExternalExt.GetLoggedInUserUID(ctx)
 	if err != nil {
@@ -240,7 +240,7 @@ func (n UseCaseNotificationImpl) FetchNotificationTypeFilters(ctx context.Contex
 		if err != nil {
 			return nil, err
 		}
-		parameters.FacilityID = &staff.DefaultFacilityID
+		parameters.FacilityID = staff.DefaultFacility.ID
 	}
 
 	notificationTypes, err := n.Query.ListAvailableNotificationTypes(ctx, parameters)

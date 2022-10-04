@@ -367,8 +367,7 @@ type ClientProfile {
   HealthRecordID: String
   TreatmentBuddy: String
   ClientCounselled: Boolean
-  FacilityID: String
-  FacilityName: String
+  DefaultFacility: Facility!
   CHVUserID: String
   CHVUserName: String
   CaregiverID: String
@@ -381,8 +380,7 @@ type StaffProfile {
   UserID: String!
   Active: Boolean!
   StaffNumber: String!
-  DefaultFacilityID: String!
-  DefaultFacilityName: String
+  DefaultFacility: Facility!
 }
 
 type CaregiverProfile {
@@ -517,6 +515,7 @@ type Toxic {
 type AvailableScreeningTools {
   toolType: ScreeningToolType!
 }
+
 type ScreeningToolResponse {
   toolIndex: Int!
   tool: String!

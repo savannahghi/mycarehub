@@ -182,7 +182,7 @@ func (u *UsecaseSurveysImpl) VerifySurveySubmission(ctx context.Context, input d
 			Flavour:     feedlib.FlavourConsumer,
 			RequestType: enums.ServiceRequestTypeSurveyRedFlag.String(),
 			Request:     fmt.Sprintf("%s survey response from %s.", surveys[0].Title, client.User.Name),
-			FacilityID:  client.FacilityID,
+			FacilityID:  *client.DefaultFacility.ID,
 			ClientName:  &client.User.Name,
 			Meta: map[string]interface{}{
 				"projectID":   input.ProjectID,

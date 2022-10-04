@@ -760,7 +760,7 @@ func (us *UseCasesUserImpl) RegisterClient(
 	client := &domain.ClientProfile{
 		ClientTypes:             clientTypes,
 		TreatmentEnrollmentDate: &clientEnrollmentDate,
-		FacilityID:              *facility.ID,
+		DefaultFacility:         &domain.Facility{ID: facility.ID},
 		ClientCounselled:        input.Counselled,
 		Active:                  true,
 	}
@@ -809,7 +809,7 @@ func (us *UseCasesUserImpl) RegisterClient(
 			Month: int(registeredClient.TreatmentEnrollmentDate.Month()),
 			Day:   registeredClient.TreatmentEnrollmentDate.Day(),
 		},
-		FacilityID:     registeredClient.FacilityID,
+		FacilityID:     *registeredClient.DefaultFacility.ID,
 		FacilityName:   facility.Name,
 		OrganisationID: registeredClient.OrganisationID,
 	}
@@ -835,7 +835,7 @@ func (us *UseCasesUserImpl) RegisterClient(
 		TreatmentBuddy:    registeredClient.TreatmentBuddy,
 		Counselled:        registeredClient.ClientCounselled,
 		UserID:            registeredClient.UserID,
-		CurrentFacilityID: registeredClient.FacilityID,
+		CurrentFacilityID: *registeredClient.DefaultFacility.ID,
 		Organisation:      registeredClient.OrganisationID,
 	}, nil
 }
@@ -1011,7 +1011,7 @@ func (us *UseCasesUserImpl) createClient(ctx context.Context, patient dto.Patien
 	enrollment := patient.EnrollmentDate.AsTime()
 	newClient := domain.ClientProfile{
 		UserID:                  *user.ID,
-		FacilityID:              *facility.ID,
+		DefaultFacility:         &domain.Facility{ID: facility.ID},
 		ClientCounselled:        patient.Counselled,
 		ClientTypes:             clientList,
 		TreatmentEnrollmentDate: &enrollment,
@@ -1247,10 +1247,9 @@ func (us *UseCasesUserImpl) RegisterStaff(ctx context.Context, input dto.StaffRe
 	}
 
 	staffData := &domain.StaffProfile{
-		Active:              true,
-		StaffNumber:         input.StaffNumber,
-		DefaultFacilityID:   *facility.ID,
-		DefaultFacilityName: facility.Name,
+		Active:          true,
+		StaffNumber:     input.StaffNumber,
+		DefaultFacility: facility,
 	}
 
 	staffRegistrationPayload := &domain.StaffRegistrationPayload{
@@ -1291,7 +1290,7 @@ func (us *UseCasesUserImpl) RegisterStaff(ctx context.Context, input dto.StaffRe
 		},
 		StaffNumber:    staff.StaffNumber,
 		StaffID:        *staff.ID,
-		FacilityID:     staff.DefaultFacilityID,
+		FacilityID:     *staff.DefaultFacility.ID,
 		FacilityName:   facility.Name,
 		OrganisationID: staff.OrganisationID,
 	}
@@ -1314,7 +1313,7 @@ func (us *UseCasesUserImpl) RegisterStaff(ctx context.Context, input dto.StaffRe
 		Active:          staff.Active,
 		StaffNumber:     input.StaffNumber,
 		UserID:          staff.UserID,
-		DefaultFacility: staff.DefaultFacilityID,
+		DefaultFacility: *staff.DefaultFacility.ID,
 	}, nil
 }
 
@@ -1528,7 +1527,7 @@ func (us *UseCasesUserImpl) TransferClientToFacility(ctx context.Context, client
 		return false, err
 	}
 
-	currentClientFacilityID = clientProfile.FacilityID
+	currentClientFacilityID = *clientProfile.DefaultFacility.ID
 
 	_, err = us.Update.UpdateClient(
 		ctx,
@@ -1747,7 +1746,7 @@ func (us *UseCasesUserImpl) RemoveFacilitiesFromClientProfile(ctx context.Contex
 	}
 
 	for _, facilityID := range facilities {
-		if client.FacilityID == facilityID {
+		if *client.DefaultFacility.ID == facilityID {
 			return false, fmt.Errorf("cannot delete default facility ID: %s, please select another facility", facilityID)
 		}
 	}
@@ -1814,7 +1813,7 @@ func (us *UseCasesUserImpl) RemoveFacilitiesFromStaffProfile(ctx context.Context
 	}
 
 	for _, facilityID := range facilities {
-		if staff.DefaultFacilityID == facilityID {
+		if *staff.DefaultFacility.ID == facilityID {
 			return false, fmt.Errorf("cannot delete default facility ID: %s, please select another facility", facilityID)
 		}
 	}

@@ -2047,8 +2047,7 @@ func TestUseCasesUserImpl_RegisterClient(t *testing.T) {
 		TreatmentBuddy:          "",
 		ClientCounselled:        true,
 		OrganisationID:          ID,
-		FacilityID:              ID,
-		FacilityName:            facility.Name,
+		DefaultFacility:         facility,
 		CHVUserID:               &ID,
 		CHVUserName:             "name",
 		CaregiverID:             &ID,
@@ -2901,7 +2900,12 @@ func TestUseCasesUserImpl_RegisterKenyaEMRPatients(t *testing.T) {
 
 				fakeDB.MockCreateClientFn = func(ctx context.Context, client domain.ClientProfile, contactID, identifierID string) (*domain.ClientProfile, error) {
 					id := gofakeit.UUID()
-					return &domain.ClientProfile{ID: &id}, nil
+					return &domain.ClientProfile{
+						ID: &id,
+						DefaultFacility: &domain.Facility{
+							ID: &id,
+						},
+					}, nil
 				}
 
 				fakePubsub.MockNotifyCreatePatientFn = func(ctx context.Context, client *dto.PatientCreationOutput) error {
@@ -2949,7 +2953,9 @@ func TestUseCasesUserImpl_RegisterKenyaEMRPatients(t *testing.T) {
 
 				fakeDB.MockCreateClientFn = func(ctx context.Context, client domain.ClientProfile, contactID, identifierID string) (*domain.ClientProfile, error) {
 					id := gofakeit.UUID()
-					return &domain.ClientProfile{ID: &id}, nil
+					return &domain.ClientProfile{ID: &id, DefaultFacility: &domain.Facility{
+						ID: &id,
+					}}, nil
 				}
 
 				fakePubsub.MockNotifyCreatePatientFn = func(ctx context.Context, client *dto.PatientCreationOutput) error {
@@ -2996,7 +3002,9 @@ func TestUseCasesUserImpl_RegisterKenyaEMRPatients(t *testing.T) {
 
 				fakeDB.MockCreateClientFn = func(ctx context.Context, client domain.ClientProfile, contactID, identifierID string) (*domain.ClientProfile, error) {
 					id := gofakeit.UUID()
-					return &domain.ClientProfile{ID: &id}, nil
+					return &domain.ClientProfile{ID: &id, DefaultFacility: &domain.Facility{
+						ID: &id,
+					}}, nil
 				}
 
 				fakePubsub.MockNotifyCreatePatientFn = func(ctx context.Context, client *dto.PatientCreationOutput) error {
@@ -3038,7 +3046,9 @@ func TestUseCasesUserImpl_RegisterKenyaEMRPatients(t *testing.T) {
 
 				fakeDB.MockCreateClientFn = func(ctx context.Context, client domain.ClientProfile, contactID, identifierID string) (*domain.ClientProfile, error) {
 					id := gofakeit.UUID()
-					return &domain.ClientProfile{ID: &id}, nil
+					return &domain.ClientProfile{ID: &id, DefaultFacility: &domain.Facility{
+						ID: &id,
+					}}, nil
 				}
 
 				fakePubsub.MockNotifyCreatePatientFn = func(ctx context.Context, client *dto.PatientCreationOutput) error {
@@ -4103,6 +4113,10 @@ func TestUseCasesUserImpl_TransferClientToFacility(t *testing.T) {
 				fakeDB.MockGetClientProfileByClientIDFn = func(ctx context.Context, clientID string) (*domain.ClientProfile, error) {
 					return &domain.ClientProfile{
 						ID: &ID,
+						DefaultFacility: &domain.Facility{
+							ID:   &ID,
+							Name: gofakeit.Name(),
+						},
 					}, nil
 				}
 				fakeDB.MockUpdateClientFn = func(ctx context.Context, client *domain.ClientProfile, updates map[string]interface{}) (*domain.ClientProfile, error) {
@@ -4115,12 +4129,19 @@ func TestUseCasesUserImpl_TransferClientToFacility(t *testing.T) {
 				fakeDB.MockGetClientProfileByClientIDFn = func(ctx context.Context, clientID string) (*domain.ClientProfile, error) {
 					return &domain.ClientProfile{
 						ID: &ID,
+						DefaultFacility: &domain.Facility{
+							ID:   &ID,
+							Name: gofakeit.Name(),
+						},
 					}, nil
 				}
 				// update the client profile
 				fakeDB.MockUpdateClientFn = func(ctx context.Context, client *domain.ClientProfile, updates map[string]interface{}) (*domain.ClientProfile, error) {
 					return &domain.ClientProfile{
 						ID: &ID,
+						DefaultFacility: &domain.Facility{
+							ID: &ID,
+						},
 					}, nil
 				}
 
@@ -4134,12 +4155,18 @@ func TestUseCasesUserImpl_TransferClientToFacility(t *testing.T) {
 				fakeDB.MockGetClientProfileByClientIDFn = func(ctx context.Context, clientID string) (*domain.ClientProfile, error) {
 					return &domain.ClientProfile{
 						ID: &ID,
+						DefaultFacility: &domain.Facility{
+							ID: &ID,
+						},
 					}, nil
 				}
 				// update the client profile
 				fakeDB.MockUpdateClientFn = func(ctx context.Context, client *domain.ClientProfile, updates map[string]interface{}) (*domain.ClientProfile, error) {
 					return &domain.ClientProfile{
 						ID: &ID,
+						DefaultFacility: &domain.Facility{
+							ID: &ID,
+						},
 					}, nil
 				}
 				// get Service Requests
@@ -4231,13 +4258,12 @@ func TestUseCasesUserImpl_RegisterStaff(t *testing.T) {
 	}
 
 	staffProfile := &domain.StaffProfile{
-		ID:                  &ID,
-		User:                userProfile,
-		UserID:              *userProfile.ID,
-		Active:              true,
-		StaffNumber:         "1234",
-		DefaultFacilityID:   *facility.ID,
-		DefaultFacilityName: facility.Name,
+		ID:              &ID,
+		User:            userProfile,
+		UserID:          *userProfile.ID,
+		Active:          true,
+		StaffNumber:     "1234",
+		DefaultFacility: facility,
 	}
 
 	type args struct {
