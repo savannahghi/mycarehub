@@ -484,6 +484,10 @@ func TestUseCaseQuestionnaireImpl_RespondToScreeningTool(t *testing.T) {
 				fakeDB.MockGetClientProfileByClientIDFn = func(ctx context.Context, clientID string) (*domain.ClientProfile, error) {
 					return &domain.ClientProfile{
 						ID: &UUID,
+						DefaultFacility: &domain.Facility{
+							ID:   &UUID,
+							Name: gofakeit.Name(),
+						},
 					}, nil
 				}
 				fakeDB.MockGetScreeningToolByIDFn = func(ctx context.Context, id string) (*domain.ScreeningTool, error) {
@@ -497,6 +501,10 @@ func TestUseCaseQuestionnaireImpl_RespondToScreeningTool(t *testing.T) {
 						ID: &UUID,
 						User: &domain.User{
 							ID:   new(string),
+							Name: gofakeit.Name(),
+						},
+						DefaultFacility: &domain.Facility{
+							ID:   &UUID,
 							Name: gofakeit.Name(),
 						},
 					}, nil
@@ -525,6 +533,10 @@ func TestUseCaseQuestionnaireImpl_RespondToScreeningTool(t *testing.T) {
 				fakeDB.MockGetClientProfileByClientIDFn = func(ctx context.Context, clientID string) (*domain.ClientProfile, error) {
 					return &domain.ClientProfile{
 						ID: &UUID,
+						DefaultFacility: &domain.Facility{
+							ID:   &UUID,
+							Name: gofakeit.Name(),
+						},
 					}, nil
 				}
 				fakeDB.MockGetScreeningToolByIDFn = func(ctx context.Context, id string) (*domain.ScreeningTool, error) {
@@ -540,6 +552,10 @@ func TestUseCaseQuestionnaireImpl_RespondToScreeningTool(t *testing.T) {
 						ID: &UUID,
 						User: &domain.User{
 							ID:   new(string),
+							Name: gofakeit.Name(),
+						},
+						DefaultFacility: &domain.Facility{
+							ID:   &UUID,
 							Name: gofakeit.Name(),
 						},
 					}, nil
@@ -569,6 +585,10 @@ func TestUseCaseQuestionnaireImpl_RespondToScreeningTool(t *testing.T) {
 						ID: &UUID,
 						User: &domain.User{
 							ID:   new(string),
+							Name: gofakeit.Name(),
+						},
+						DefaultFacility: &domain.Facility{
+							ID:   &UUID,
 							Name: gofakeit.Name(),
 						},
 					}, nil

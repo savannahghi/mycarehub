@@ -92,41 +92,44 @@ func (t *ServiceScreeningToolsImpl) GetScreeningToolQuestions(ctx context.Contex
 
 // AnswerScreeningToolQuestions answer screening tools questions
 // a condition is a collection of values collected when answering a set of screening tool questions.
-// 		some of the data we can save in the condition includes:
-// 			1. response value
-// 			2. meta data of the question
-// 			3. the number of times the a given choice has been selected for the given set of questions (based on `ToolType`)
+//
+//	some of the data we can save in the condition includes:
+//		1. response value
+//		2. meta data of the question
+//		3. the number of times the a given choice has been selected for the given set of questions (based on `ToolType`)
+//
 // Example:
-// 		given a set of screening tool questions:
-// 		[
-// 			{
-// 				"ID": "fe8f8f8f-8f8f-8f8f-8f8f-8f8f8f8f8f8f",
-// 				"Question": "In the past, has anyone made you feel threatened, fearful or in danger?",
-// 				"ToolType": "VIOLENCE_ASSESSMENT",
-// 				"ResponseChoices": map[string]interface{}{"1": "Yes", "2": "No"},
-// 				"ResponseType": "INTEGER",
-// 				"ResponseCategory": "SINGLE_CHOICE",
-// 				"Active": true,
-// 				"Sequence": 0
-// 				"Meta": map[string]interface{}{
-// 					"helper_text": "Emotional violence Assessment",
-// 					"violence_type": "EMOTIONAL",
-// 					"violence_code": "GBV-EV",
-// 				}
-// 			}
-// 		]
-// 		we can formulate a condition like:
-// 		we assume the user answered yes for this question
-// 		{
-// 			"VIOLENCE_ASSESSMENT_question_number_0": "yes", // response value
-// 			"VIOLENCE_ASSESSMENT_question_number_0_meta": {
-// 				"helper_text": "Emotional violence Assessment",
-// 				"violence_type": "EMOTIONAL",
-// 				"violence_code": "GBV-EV",
-// 			},// meta data of question number 0
-// 			"VIOLENCE_ASSESSMENT_yes_count": 1, // number of times question of tool type VIOLENCE_ASSESSMENT has been answered yes
-// 			"VIOLENCE_ASSESSMENT_no_count": 0, // number of times question of tool type VIOLENCE_ASSESSMENT has been answered no
-// 		}
+//
+//	given a set of screening tool questions:
+//	[
+//		{
+//			"ID": "fe8f8f8f-8f8f-8f8f-8f8f-8f8f8f8f8f8f",
+//			"Question": "In the past, has anyone made you feel threatened, fearful or in danger?",
+//			"ToolType": "VIOLENCE_ASSESSMENT",
+//			"ResponseChoices": map[string]interface{}{"1": "Yes", "2": "No"},
+//			"ResponseType": "INTEGER",
+//			"ResponseCategory": "SINGLE_CHOICE",
+//			"Active": true,
+//			"Sequence": 0
+//			"Meta": map[string]interface{}{
+//				"helper_text": "Emotional violence Assessment",
+//				"violence_type": "EMOTIONAL",
+//				"violence_code": "GBV-EV",
+//			}
+//		}
+//	]
+//	we can formulate a condition like:
+//	we assume the user answered yes for this question
+//	{
+//		"VIOLENCE_ASSESSMENT_question_number_0": "yes", // response value
+//		"VIOLENCE_ASSESSMENT_question_number_0_meta": {
+//			"helper_text": "Emotional violence Assessment",
+//			"violence_type": "EMOTIONAL",
+//			"violence_code": "GBV-EV",
+//		},// meta data of question number 0
+//		"VIOLENCE_ASSESSMENT_yes_count": 1, // number of times question of tool type VIOLENCE_ASSESSMENT has been answered yes
+//		"VIOLENCE_ASSESSMENT_no_count": 0, // number of times question of tool type VIOLENCE_ASSESSMENT has been answered no
+//	}
 func (t *ServiceScreeningToolsImpl) AnswerScreeningToolQuestions(ctx context.Context, screeningToolResponses []*dto.ScreeningToolQuestionResponseInput) (bool, error) {
 	condition := make(map[string]interface{})
 	serviceRequests := make([]*domain.ServiceRequest, 0)
@@ -176,7 +179,7 @@ func (t *ServiceScreeningToolsImpl) AnswerScreeningToolQuestions(ctx context.Con
 			serviceRequest.Active = true
 			serviceRequest.Status = enums.ServiceRequestStatusPending.String()
 			serviceRequest.ClientID = screeningToolResponse.ClientID
-			serviceRequest.FacilityID = clientProfile.FacilityID
+			serviceRequest.FacilityID = *clientProfile.DefaultFacility.ID
 			serviceRequest.Meta = map[string]interface{}{
 				"question_id":         screeningToolQuestion.ID,
 				"question_type":       screeningToolQuestion.ToolType,
@@ -282,7 +285,7 @@ func (t *ServiceScreeningToolsImpl) GetAvailableScreeningToolQuestions(ctx conte
 		enums.ServiceRequestTypeScreeningToolsRedFlag.String(),
 		enums.ServiceRequestStatusPending.String(),
 		clientID,
-		clientProfile.FacilityID,
+		*clientProfile.DefaultFacility.ID,
 	)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)

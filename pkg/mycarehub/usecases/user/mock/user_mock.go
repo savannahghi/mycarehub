@@ -76,13 +76,13 @@ func NewUserUseCaseMock() *UserUseCaseMock {
 	}
 
 	staff := &domain.StaffProfile{
-		ID:                &UUID,
-		User:              &domain.User{},
-		UserID:            uuid.New().String(),
-		Active:            true,
-		StaffNumber:       "test-staff-101",
-		Facilities:        []*domain.Facility{},
-		DefaultFacilityID: uuid.New().String(),
+		ID:              &UUID,
+		User:            &domain.User{},
+		UserID:          uuid.New().String(),
+		Active:          true,
+		StaffNumber:     "test-staff-101",
+		Facilities:      []*domain.Facility{},
+		DefaultFacility: facilityInput,
 	}
 
 	user := &domain.User{
@@ -134,8 +134,7 @@ func NewUserUseCaseMock() *UserUseCaseMock {
 		TreatmentBuddy:          "",
 		ClientCounselled:        true,
 		OrganisationID:          UUID,
-		FacilityID:              UUID,
-		FacilityName:            name,
+		DefaultFacility:         facilityInput,
 		CHVUserID:               &UUID,
 		CHVUserName:             name,
 		CaregiverID:             &UUID,
@@ -265,7 +264,7 @@ func NewUserUseCaseMock() *UserUseCaseMock {
 				Active:          true,
 				StaffNumber:     staff.StaffNumber,
 				UserID:          staff.UserID,
-				DefaultFacility: staff.DefaultFacilityID,
+				DefaultFacility: *staff.DefaultFacility.ID,
 			}, nil
 		},
 		MockSearchClientUserFn: func(ctx context.Context, searchParameter string) ([]*domain.ClientProfile, error) {

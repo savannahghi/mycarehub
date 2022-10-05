@@ -874,6 +874,7 @@ func TestMyCareHubDb_CreateClient(t *testing.T) {
 	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
 	enrollment := time.Now()
 	userID := gofakeit.UUID()
+	UUID := gofakeit.UUID()
 	var clientTypeList []enums.ClientType
 	clientTypeList = append(clientTypeList, enums.AllClientType...)
 
@@ -894,9 +895,11 @@ func TestMyCareHubDb_CreateClient(t *testing.T) {
 			args: args{
 				ctx: context.Background(),
 				client: domain.ClientProfile{
-					Active:                  true,
-					UserID:                  userID,
-					FacilityID:              gofakeit.UUID(),
+					Active: true,
+					UserID: userID,
+					DefaultFacility: &domain.Facility{
+						ID: &UUID,
+					},
 					ClientCounselled:        true,
 					ClientTypes:             clientTypeList,
 					TreatmentEnrollmentDate: &enrollment,
@@ -1319,12 +1322,15 @@ func TestMyCareHubDb_RegisterStaff(t *testing.T) {
 	}
 
 	staff := &domain.StaffProfile{
-		ID:                &ID,
-		User:              userProfile,
-		UserID:            uuid.New().String(),
-		Active:            false,
-		StaffNumber:       gofakeit.BeerAlcohol(),
-		DefaultFacilityID: gofakeit.BeerAlcohol(),
+		ID:          &ID,
+		User:        userProfile,
+		UserID:      uuid.New().String(),
+		Active:      false,
+		StaffNumber: gofakeit.BeerAlcohol(),
+		DefaultFacility: &domain.Facility{
+			ID:   &ID,
+			Name: gofakeit.Name(),
+		},
 	}
 
 	contact := &domain.Contact{
@@ -1493,6 +1499,9 @@ func TestMyCareHubDb_RegisterClient(t *testing.T) {
 					Client: domain.ClientProfile{
 						ID:          &UID,
 						ClientTypes: []enums.ClientType{"PMTCT"},
+						DefaultFacility: &domain.Facility{
+							ID: &UID,
+						},
 					},
 				},
 			},
@@ -1523,6 +1532,9 @@ func TestMyCareHubDb_RegisterClient(t *testing.T) {
 					Client: domain.ClientProfile{
 						ID:          &UID,
 						ClientTypes: []enums.ClientType{"PMTCT"},
+						DefaultFacility: &domain.Facility{
+							ID: &UID,
+						},
 					},
 				},
 			},

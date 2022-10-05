@@ -151,9 +151,8 @@ type ComplexityRoot struct {
 		CaregiverID             func(childComplexity int) int
 		ClientCounselled        func(childComplexity int) int
 		ClientTypes             func(childComplexity int) int
+		DefaultFacility         func(childComplexity int) int
 		FHIRPatientID           func(childComplexity int) int
-		FacilityID              func(childComplexity int) int
-		FacilityName            func(childComplexity int) int
 		HealthRecordID          func(childComplexity int) int
 		ID                      func(childComplexity int) int
 		TreatmentBuddy          func(childComplexity int) int
@@ -765,13 +764,12 @@ type ComplexityRoot struct {
 	}
 
 	StaffProfile struct {
-		Active              func(childComplexity int) int
-		DefaultFacilityID   func(childComplexity int) int
-		DefaultFacilityName func(childComplexity int) int
-		ID                  func(childComplexity int) int
-		StaffNumber         func(childComplexity int) int
-		User                func(childComplexity int) int
-		UserID              func(childComplexity int) int
+		Active          func(childComplexity int) int
+		DefaultFacility func(childComplexity int) int
+		ID              func(childComplexity int) int
+		StaffNumber     func(childComplexity int) int
+		User            func(childComplexity int) int
+		UserID          func(childComplexity int) int
 	}
 
 	StaffRegistrationOutput struct {
@@ -1408,26 +1406,19 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ClientProfile.ClientTypes(childComplexity), true
 
+	case "ClientProfile.DefaultFacility":
+		if e.complexity.ClientProfile.DefaultFacility == nil {
+			break
+		}
+
+		return e.complexity.ClientProfile.DefaultFacility(childComplexity), true
+
 	case "ClientProfile.FHIRPatientID":
 		if e.complexity.ClientProfile.FHIRPatientID == nil {
 			break
 		}
 
 		return e.complexity.ClientProfile.FHIRPatientID(childComplexity), true
-
-	case "ClientProfile.FacilityID":
-		if e.complexity.ClientProfile.FacilityID == nil {
-			break
-		}
-
-		return e.complexity.ClientProfile.FacilityID(childComplexity), true
-
-	case "ClientProfile.FacilityName":
-		if e.complexity.ClientProfile.FacilityName == nil {
-			break
-		}
-
-		return e.complexity.ClientProfile.FacilityName(childComplexity), true
 
 	case "ClientProfile.HealthRecordID":
 		if e.complexity.ClientProfile.HealthRecordID == nil {
@@ -5064,19 +5055,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.StaffProfile.Active(childComplexity), true
 
-	case "StaffProfile.DefaultFacilityID":
-		if e.complexity.StaffProfile.DefaultFacilityID == nil {
+	case "StaffProfile.DefaultFacility":
+		if e.complexity.StaffProfile.DefaultFacility == nil {
 			break
 		}
 
-		return e.complexity.StaffProfile.DefaultFacilityID(childComplexity), true
-
-	case "StaffProfile.DefaultFacilityName":
-		if e.complexity.StaffProfile.DefaultFacilityName == nil {
-			break
-		}
-
-		return e.complexity.StaffProfile.DefaultFacilityName(childComplexity), true
+		return e.complexity.StaffProfile.DefaultFacility(childComplexity), true
 
 	case "StaffProfile.ID":
 		if e.complexity.StaffProfile.ID == nil {
@@ -6675,8 +6659,7 @@ type ClientProfile {
   HealthRecordID: String
   TreatmentBuddy: String
   ClientCounselled: Boolean
-  FacilityID: String
-  FacilityName: String
+  DefaultFacility: Facility!
   CHVUserID: String
   CHVUserName: String
   CaregiverID: String
@@ -6689,8 +6672,7 @@ type StaffProfile {
   UserID: String!
   Active: Boolean!
   StaffNumber: String!
-  DefaultFacilityID: String!
-  DefaultFacilityName: String
+  DefaultFacility: Facility!
 }
 
 type CaregiverProfile {
@@ -6825,6 +6807,7 @@ type Toxic {
 type AvailableScreeningTools {
   toolType: ScreeningToolType!
 }
+
 type ScreeningToolResponse {
   toolIndex: Int!
   tool: String!
@@ -12341,8 +12324,8 @@ func (ec *executionContext) fieldContext_ClientProfile_ClientCounselled(ctx cont
 	return fc, nil
 }
 
-func (ec *executionContext) _ClientProfile_FacilityID(ctx context.Context, field graphql.CollectedField, obj *domain.ClientProfile) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_ClientProfile_FacilityID(ctx, field)
+func (ec *executionContext) _ClientProfile_DefaultFacility(ctx context.Context, field graphql.CollectedField, obj *domain.ClientProfile) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ClientProfile_DefaultFacility(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -12355,69 +12338,51 @@ func (ec *executionContext) _ClientProfile_FacilityID(ctx context.Context, field
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.FacilityID, nil
+		return obj.DefaultFacility, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
 	}
 	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalOString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_ClientProfile_FacilityID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "ClientProfile",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _ClientProfile_FacilityName(ctx context.Context, field graphql.CollectedField, obj *domain.ClientProfile) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_ClientProfile_FacilityName(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
 		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.FacilityName, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
 		return graphql.Null
 	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(string)
+	res := resTmp.(*domain.Facility)
 	fc.Result = res
-	return ec.marshalOString2string(ctx, field.Selections, res)
+	return ec.marshalNFacility2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐFacility(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_ClientProfile_FacilityName(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_ClientProfile_DefaultFacility(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "ClientProfile",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
+			switch field.Name {
+			case "ID":
+				return ec.fieldContext_Facility_ID(ctx, field)
+			case "name":
+				return ec.fieldContext_Facility_name(ctx, field)
+			case "code":
+				return ec.fieldContext_Facility_code(ctx, field)
+			case "phone":
+				return ec.fieldContext_Facility_phone(ctx, field)
+			case "active":
+				return ec.fieldContext_Facility_active(ctx, field)
+			case "county":
+				return ec.fieldContext_Facility_county(ctx, field)
+			case "description":
+				return ec.fieldContext_Facility_description(ctx, field)
+			case "fhirOrganisationID":
+				return ec.fieldContext_Facility_fhirOrganisationID(ctx, field)
+			case "workStationDetails":
+				return ec.fieldContext_Facility_workStationDetails(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Facility", field.Name)
 		},
 	}
 	return fc, nil
@@ -19273,8 +19238,8 @@ func (ec *executionContext) fieldContext_ManagedClient_clientProfile(ctx context
 				return ec.fieldContext_ClientProfile_TreatmentBuddy(ctx, field)
 			case "ClientCounselled":
 				return ec.fieldContext_ClientProfile_ClientCounselled(ctx, field)
-			case "FacilityID":
-				return ec.fieldContext_ClientProfile_FacilityID(ctx, field)
+			case "DefaultFacility":
+				return ec.fieldContext_ClientProfile_DefaultFacility(ctx, field)
 			case "CHVUserID":
 				return ec.fieldContext_ClientProfile_CHVUserID(ctx, field)
 			case "CHVUserName":
@@ -28494,10 +28459,8 @@ func (ec *executionContext) fieldContext_Query_searchClientUser(ctx context.Cont
 				return ec.fieldContext_ClientProfile_TreatmentBuddy(ctx, field)
 			case "ClientCounselled":
 				return ec.fieldContext_ClientProfile_ClientCounselled(ctx, field)
-			case "FacilityID":
-				return ec.fieldContext_ClientProfile_FacilityID(ctx, field)
-			case "FacilityName":
-				return ec.fieldContext_ClientProfile_FacilityName(ctx, field)
+			case "DefaultFacility":
+				return ec.fieldContext_ClientProfile_DefaultFacility(ctx, field)
 			case "CHVUserID":
 				return ec.fieldContext_ClientProfile_CHVUserID(ctx, field)
 			case "CHVUserName":
@@ -28570,10 +28533,8 @@ func (ec *executionContext) fieldContext_Query_searchStaffUser(ctx context.Conte
 				return ec.fieldContext_StaffProfile_Active(ctx, field)
 			case "StaffNumber":
 				return ec.fieldContext_StaffProfile_StaffNumber(ctx, field)
-			case "DefaultFacilityID":
-				return ec.fieldContext_StaffProfile_DefaultFacilityID(ctx, field)
-			case "DefaultFacilityName":
-				return ec.fieldContext_StaffProfile_DefaultFacilityName(ctx, field)
+			case "DefaultFacility":
+				return ec.fieldContext_StaffProfile_DefaultFacility(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type StaffProfile", field.Name)
 		},
@@ -28709,10 +28670,8 @@ func (ec *executionContext) fieldContext_Query_getClientProfileByCCCNumber(ctx c
 				return ec.fieldContext_ClientProfile_TreatmentBuddy(ctx, field)
 			case "ClientCounselled":
 				return ec.fieldContext_ClientProfile_ClientCounselled(ctx, field)
-			case "FacilityID":
-				return ec.fieldContext_ClientProfile_FacilityID(ctx, field)
-			case "FacilityName":
-				return ec.fieldContext_ClientProfile_FacilityName(ctx, field)
+			case "DefaultFacility":
+				return ec.fieldContext_ClientProfile_DefaultFacility(ctx, field)
 			case "CHVUserID":
 				return ec.fieldContext_ClientProfile_CHVUserID(ctx, field)
 			case "CHVUserName":
@@ -34247,8 +34206,8 @@ func (ec *executionContext) fieldContext_StaffProfile_StaffNumber(ctx context.Co
 	return fc, nil
 }
 
-func (ec *executionContext) _StaffProfile_DefaultFacilityID(ctx context.Context, field graphql.CollectedField, obj *domain.StaffProfile) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_StaffProfile_DefaultFacilityID(ctx, field)
+func (ec *executionContext) _StaffProfile_DefaultFacility(ctx context.Context, field graphql.CollectedField, obj *domain.StaffProfile) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_StaffProfile_DefaultFacility(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -34261,7 +34220,7 @@ func (ec *executionContext) _StaffProfile_DefaultFacilityID(ctx context.Context,
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.DefaultFacilityID, nil
+		return obj.DefaultFacility, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -34273,60 +34232,39 @@ func (ec *executionContext) _StaffProfile_DefaultFacilityID(ctx context.Context,
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*domain.Facility)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNFacility2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐFacility(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_StaffProfile_DefaultFacilityID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_StaffProfile_DefaultFacility(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "StaffProfile",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _StaffProfile_DefaultFacilityName(ctx context.Context, field graphql.CollectedField, obj *domain.StaffProfile) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_StaffProfile_DefaultFacilityName(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.DefaultFacilityName, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalOString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_StaffProfile_DefaultFacilityName(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "StaffProfile",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
+			switch field.Name {
+			case "ID":
+				return ec.fieldContext_Facility_ID(ctx, field)
+			case "name":
+				return ec.fieldContext_Facility_name(ctx, field)
+			case "code":
+				return ec.fieldContext_Facility_code(ctx, field)
+			case "phone":
+				return ec.fieldContext_Facility_phone(ctx, field)
+			case "active":
+				return ec.fieldContext_Facility_active(ctx, field)
+			case "county":
+				return ec.fieldContext_Facility_county(ctx, field)
+			case "description":
+				return ec.fieldContext_Facility_description(ctx, field)
+			case "fhirOrganisationID":
+				return ec.fieldContext_Facility_fhirOrganisationID(ctx, field)
+			case "workStationDetails":
+				return ec.fieldContext_Facility_workStationDetails(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Facility", field.Name)
 		},
 	}
 	return fc, nil
@@ -41195,14 +41133,13 @@ func (ec *executionContext) _ClientProfile(ctx context.Context, sel ast.Selectio
 
 			out.Values[i] = ec._ClientProfile_ClientCounselled(ctx, field, obj)
 
-		case "FacilityID":
+		case "DefaultFacility":
 
-			out.Values[i] = ec._ClientProfile_FacilityID(ctx, field, obj)
+			out.Values[i] = ec._ClientProfile_DefaultFacility(ctx, field, obj)
 
-		case "FacilityName":
-
-			out.Values[i] = ec._ClientProfile_FacilityName(ctx, field, obj)
-
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "CHVUserID":
 
 			out.Values[i] = ec._ClientProfile_CHVUserID(ctx, field, obj)
@@ -46069,17 +46006,13 @@ func (ec *executionContext) _StaffProfile(ctx context.Context, sel ast.Selection
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "DefaultFacilityID":
+		case "DefaultFacility":
 
-			out.Values[i] = ec._StaffProfile_DefaultFacilityID(ctx, field, obj)
+			out.Values[i] = ec._StaffProfile_DefaultFacility(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "DefaultFacilityName":
-
-			out.Values[i] = ec._StaffProfile_DefaultFacilityName(ctx, field, obj)
-
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

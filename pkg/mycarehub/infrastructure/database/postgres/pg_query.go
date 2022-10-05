@@ -319,10 +319,18 @@ func (d *MyCareHubDb) GetClientProfileByUserID(ctx context.Context, userID strin
 		TreatmentBuddy:          client.TreatmentBuddy,
 		ClientCounselled:        client.ClientCounselled,
 		OrganisationID:          client.OrganisationID,
-		FacilityID:              client.FacilityID,
-		FacilityName:            facility.Name,
-		Facilities:              facilities,
-		CHVUserID:               client.CHVUserID,
+		DefaultFacility: &domain.Facility{
+			ID:                 &client.FacilityID,
+			Name:               facility.Name,
+			Code:               facility.Code,
+			Phone:              facility.Phone,
+			Active:             facility.Active,
+			County:             facility.County,
+			Description:        facility.Description,
+			FHIROrganisationID: facility.FHIROrganisationID,
+		},
+		Facilities: facilities,
+		CHVUserID:  client.CHVUserID,
 	}, nil
 }
 
@@ -349,14 +357,22 @@ func (d *MyCareHubDb) GetStaffProfileByUserID(ctx context.Context, userID string
 
 	user := createMapUser(&staff.UserProfile)
 	return &domain.StaffProfile{
-		ID:                  staff.ID,
-		User:                user,
-		UserID:              staff.UserID,
-		Active:              staff.Active,
-		StaffNumber:         staff.StaffNumber,
-		Facilities:          facilities,
-		DefaultFacilityID:   staff.DefaultFacilityID,
-		DefaultFacilityName: staffDefaultFacility.Name,
+		ID:          staff.ID,
+		User:        user,
+		UserID:      staff.UserID,
+		Active:      staff.Active,
+		StaffNumber: staff.StaffNumber,
+		Facilities:  facilities,
+		DefaultFacility: &domain.Facility{
+			ID:                 &staff.DefaultFacilityID,
+			Name:               staffDefaultFacility.Name,
+			Code:               staffDefaultFacility.Code,
+			Phone:              staffDefaultFacility.Phone,
+			Active:             staffDefaultFacility.Active,
+			County:             staffDefaultFacility.County,
+			Description:        staffDefaultFacility.Description,
+			FHIROrganisationID: staffDefaultFacility.FHIROrganisationID,
+		},
 	}, nil
 }
 
@@ -376,12 +392,14 @@ func (d *MyCareHubDb) GetFacilityStaffs(ctx context.Context, facilityID string) 
 		user := createMapUser(userProfile)
 
 		staffProfile := &domain.StaffProfile{
-			ID:                s.ID,
-			User:              user,
-			UserID:            s.UserID,
-			Active:            s.Active,
-			StaffNumber:       s.StaffNumber,
-			DefaultFacilityID: s.DefaultFacilityID,
+			ID:          s.ID,
+			User:        user,
+			UserID:      s.UserID,
+			Active:      s.Active,
+			StaffNumber: s.StaffNumber,
+			DefaultFacility: &domain.Facility{
+				ID: &s.DefaultFacilityID,
+			},
 		}
 
 		staffProfiles = append(staffProfiles, staffProfile)
@@ -414,13 +432,15 @@ func (d *MyCareHubDb) SearchStaffProfile(ctx context.Context, searchParameter st
 		}
 
 		staffProfile := &domain.StaffProfile{
-			ID:                  s.ID,
-			User:                user,
-			UserID:              s.UserID,
-			Active:              s.Active,
-			StaffNumber:         s.StaffNumber,
-			DefaultFacilityID:   s.DefaultFacilityID,
-			DefaultFacilityName: facility.Name,
+			ID:          s.ID,
+			User:        user,
+			UserID:      s.UserID,
+			Active:      s.Active,
+			StaffNumber: s.StaffNumber,
+			DefaultFacility: &domain.Facility{
+				ID:   &s.DefaultFacilityID,
+				Name: facility.Name,
+			},
 		}
 
 		staffProfiles = append(staffProfiles, staffProfile)
@@ -678,9 +698,11 @@ func (d *MyCareHubDb) GetClientProfileByClientID(ctx context.Context, clientID s
 		TreatmentBuddy:          response.TreatmentBuddy,
 		ClientCounselled:        response.ClientCounselled,
 		OrganisationID:          response.OrganisationID,
-		FacilityID:              response.FacilityID,
-		CHVUserID:               response.CHVUserID,
-		UserID:                  *response.UserID,
+		DefaultFacility: &domain.Facility{
+			ID: &response.FacilityID,
+		},
+		CHVUserID: response.CHVUserID,
+		UserID:    *response.UserID,
 	}, nil
 
 }
@@ -940,9 +962,11 @@ func (d *MyCareHubDb) GetClientsInAFacility(ctx context.Context, facilityID stri
 			TreatmentBuddy:          cli.TreatmentBuddy,
 			ClientCounselled:        cli.ClientCounselled,
 			OrganisationID:          cli.OrganisationID,
-			FacilityID:              cli.FacilityID,
-			CHVUserID:               cli.CHVUserID,
-			UserID:                  *cli.UserID,
+			DefaultFacility: &domain.Facility{
+				ID: &cli.FacilityID,
+			},
+			CHVUserID: cli.CHVUserID,
+			UserID:    *cli.UserID,
 		}
 		clients = append(clients, client)
 	}
@@ -1024,8 +1048,10 @@ func (d *MyCareHubDb) GetClientsByParams(ctx context.Context, params gorm.Client
 			TreatmentBuddy:          c.TreatmentBuddy,
 			ClientCounselled:        c.ClientCounselled,
 			OrganisationID:          c.OrganisationID,
-			FacilityID:              c.FacilityID,
-			CHVUserID:               c.CHVUserID,
+			DefaultFacility: &domain.Facility{
+				ID: &c.FacilityID,
+			},
+			CHVUserID: c.CHVUserID,
 		})
 	}
 
@@ -1419,9 +1445,11 @@ func (d *MyCareHubDb) GetClientProfileByCCCNumber(ctx context.Context, CCCNumber
 		TreatmentBuddy:          clientProfile.TreatmentBuddy,
 		ClientCounselled:        clientProfile.ClientCounselled,
 		OrganisationID:          clientProfile.OrganisationID,
-		FacilityID:              clientProfile.FacilityID,
-		CHVUserID:               clientProfile.CHVUserID,
-		CCCNumber:               cccIdentifier.IdentifierValue,
+		DefaultFacility: &domain.Facility{
+			ID: &clientProfile.FacilityID,
+		},
+		CHVUserID: clientProfile.CHVUserID,
+		CCCNumber: cccIdentifier.IdentifierValue,
 	}, nil
 }
 
@@ -1468,10 +1496,12 @@ func (d *MyCareHubDb) SearchClientProfile(ctx context.Context, searchParameter s
 			TreatmentBuddy:          c.TreatmentBuddy,
 			ClientCounselled:        c.ClientCounselled,
 			OrganisationID:          c.OrganisationID,
-			FacilityID:              c.FacilityID,
-			FacilityName:            facility.Name,
-			CHVUserID:               c.CHVUserID,
-			CCCNumber:               identifier.IdentifierValue,
+			DefaultFacility: &domain.Facility{
+				ID:   &c.FacilityID,
+				Name: facility.Name,
+			},
+			CHVUserID: c.CHVUserID,
+			CCCNumber: identifier.IdentifierValue,
 		}
 
 		clients = append(clients, client)
@@ -1554,12 +1584,14 @@ func (d *MyCareHubDb) GetStaffProfileByStaffID(ctx context.Context, staffID stri
 	user := createMapUser(&staffProfile.UserProfile)
 
 	return &domain.StaffProfile{
-		ID:                staffProfile.ID,
-		User:              user,
-		UserID:            staffProfile.UserID,
-		Active:            staffProfile.Active,
-		StaffNumber:       staffProfile.StaffNumber,
-		DefaultFacilityID: staffProfile.DefaultFacilityID,
+		ID:          staffProfile.ID,
+		User:        user,
+		UserID:      staffProfile.UserID,
+		Active:      staffProfile.Active,
+		StaffNumber: staffProfile.StaffNumber,
+		DefaultFacility: &domain.Facility{
+			ID: &staffProfile.DefaultFacilityID,
+		},
 	}, nil
 }
 
@@ -1946,8 +1978,10 @@ func (d *MyCareHubDb) GetClientsByFilterParams(ctx context.Context, facilityID *
 			TreatmentBuddy:          c.TreatmentBuddy,
 			ClientCounselled:        c.ClientCounselled,
 			OrganisationID:          c.OrganisationID,
-			FacilityID:              c.FacilityID,
-			CHVUserID:               c.CHVUserID,
+			DefaultFacility: &domain.Facility{
+				ID: &c.FacilityID,
+			},
+			CHVUserID: c.CHVUserID,
 		})
 	}
 
@@ -2486,7 +2520,14 @@ func (d *MyCareHubDb) GetCaregiverManagedClients(ctx context.Context, caregiverI
 		}
 
 		managedClient := &domain.ManagedClient{
-			ClientProfile:    &domain.ClientProfile{ID: client.ID, User: userProfile, FacilityID: client.FacilityID, Facilities: clientFacilities},
+			ClientProfile: &domain.ClientProfile{
+				ID:   client.ID,
+				User: userProfile,
+				DefaultFacility: &domain.Facility{
+					ID: &client.FacilityID,
+				},
+				Facilities: clientFacilities,
+			},
 			CaregiverConsent: caregiverConsent,
 			ClientConsent:    clientConsent,
 			WorkStationDetails: domain.WorkStationDetails{
