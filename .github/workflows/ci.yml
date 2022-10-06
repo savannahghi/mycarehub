@@ -109,7 +109,7 @@ jobs:
           # Maps tcp port 5432 on service container to the host
           - 5432:5432
     steps:       
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3.1.0
       - uses: 'google-github-actions/auth@v0'
         with:
           credentials_json: '${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}'
@@ -200,7 +200,7 @@ jobs:
           # Maps tcp port 5432 on service container to the host
           - 5432:5432
     steps:       
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3.1.0
       - uses: 'google-github-actions/auth@v0'
         with:
           credentials_json: '${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}'
