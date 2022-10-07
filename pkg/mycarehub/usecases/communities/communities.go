@@ -817,11 +817,11 @@ func (us *UseCasesCommunitiesImpl) RecommendedCommunities(ctx context.Context, c
 
 	query := &stream.QueryOption{
 		Filter: map[string]interface{}{
-			"clientType": clientTypes,
-			"gender":     []string{clientGender},
-			"minimumAge": map[string]interface{}{"$lte": age},
-			"maximumAge": map[string]interface{}{"$gte": age},
-			"inviteOnly": false,
+			"ClientType": clientTypes,
+			"Gender":     []string{clientGender},
+			"MinimumAge": map[string]interface{}{"$lte": age},
+			"MaximumAge": map[string]interface{}{"$gte": age},
+			"InviteOnly": false,
 		},
 		Limit: limit,
 	}
