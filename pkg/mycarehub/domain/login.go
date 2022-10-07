@@ -19,8 +19,8 @@ type LoginResponse struct {
 	RetryTime        float64 `json:"retryTime,omitempty"`
 	Attempts         int     `json:"attempts,omitempty"`
 	FailedLoginCount int     `json:"failed_login_count,omitempty"`
-	IsCaregiver      bool    `json:"is_caregiver,omitempty"`
-	IsClient         bool    `json:"is_client,omitempty"`
+	IsCaregiver      bool    `json:"is_caregiver"`
+	IsClient         bool    `json:"is_client"`
 }
 
 // ILoginResponse represents a login response getter and setter
