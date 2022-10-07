@@ -7,17 +7,17 @@ import (
 
 	"github.com/brianvoe/gofakeit"
 	"github.com/google/uuid"
-	openSourceDto "github.com/savannahghi/engagementcore/pkg/engagement/application/common/dto"
-	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/interserviceclient"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	extensionMock "github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension/mock"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	pgMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/mock"
+	smsMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/sms/mock"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/otp"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/otp/mock"
 	"github.com/savannahghi/profileutils"
+	"github.com/savannahghi/silcomms"
 	"github.com/segmentio/ksuid"
 )
 
@@ -104,7 +104,8 @@ func TestUseCaseOTPImpl_GenerateAndSendOTP(t *testing.T) {
 			fakeOTP := mock.NewOTPUseCaseMock()
 			fakeDB := pgMock.NewPostgresMock()
 			fakeExtension := extensionMock.NewFakeExtension()
-			o := otp.NewOTPUseCase(fakeDB, fakeDB, fakeExtension)
+			fakeSMS := smsMock.NewSMSServiceMock()
+			o := otp.NewOTPUseCase(fakeDB, fakeDB, fakeExtension, fakeSMS)
 
 			if tt.name == "Sad Case - Fail to generate otp" {
 				fakeExtension.MockGenerateOTPFn = func(ctx context.Context) (string, error) {
@@ -145,8 +146,8 @@ func TestUseCaseOTPImpl_GenerateAndSendOTP(t *testing.T) {
 			}
 
 			if tt.name == "Sad Case - Fail to send SMS" {
-				fakeExtension.MockSendSMSFn = func(ctx context.Context, phoneNumbers string, message string, from enumutils.SenderID) (*openSourceDto.SendMessageResponse, error) {
-					return nil, fmt.Errorf("failed to send SMS")
+				fakeSMS.MockSendSMSFn = func(ctx context.Context, message string, recipients []string) (*silcomms.BulkSMSResponse, error) {
+					return nil, fmt.Errorf("an error occurred")
 				}
 			}
 
@@ -191,7 +192,8 @@ func TestUseCaseOTPImpl_GenerateOTP(t *testing.T) {
 			fakeOTP := mock.NewOTPUseCaseMock()
 			fakeDB := pgMock.NewPostgresMock()
 			fakeExtension := extensionMock.NewFakeExtension()
-			o := otp.NewOTPUseCase(fakeDB, fakeDB, fakeExtension)
+			fakeSMS := smsMock.NewSMSServiceMock()
+			o := otp.NewOTPUseCase(fakeDB, fakeDB, fakeExtension, fakeSMS)
 
 			if tt.name == "Sad Case - Fail to generate otp" {
 				fakeOTP.MockGenerateAndSendOTPFn = func(
@@ -382,7 +384,8 @@ func TestUseCaseOTPImpl_VerifyPhoneNumber(t *testing.T) {
 			_ = mock.NewOTPUseCaseMock()
 			fakeDB := pgMock.NewPostgresMock()
 			fakeExtension := extensionMock.NewFakeExtension()
-			o := otp.NewOTPUseCase(fakeDB, fakeDB, fakeExtension)
+			fakeSMS := smsMock.NewSMSServiceMock()
+			o := otp.NewOTPUseCase(fakeDB, fakeDB, fakeExtension, fakeSMS)
 
 			if tt.name == "Sad Case - Fail to save otp" {
 				fakeDB.MockSaveOTPFn = func(ctx context.Context, otpInput *domain.OTP) error {
@@ -397,8 +400,8 @@ func TestUseCaseOTPImpl_VerifyPhoneNumber(t *testing.T) {
 			}
 
 			if tt.name == "Sad Case - fail to send SMS" {
-				fakeExtension.MockSendSMSFn = func(ctx context.Context, phoneNumbers string, message string, from enumutils.SenderID) (*openSourceDto.SendMessageResponse, error) {
-					return nil, fmt.Errorf("failed to send SMS")
+				fakeSMS.MockSendSMSFn = func(ctx context.Context, message string, recipients []string) (*silcomms.BulkSMSResponse, error) {
+					return nil, fmt.Errorf("an error occurred")
 				}
 			}
 
@@ -579,7 +582,8 @@ func TestMyCareHubDb_VerifyOTP_Unittest(t *testing.T) {
 			_ = mock.NewOTPUseCaseMock()
 			fakeDB := pgMock.NewPostgresMock()
 			fakeExtension := extensionMock.NewFakeExtension()
-			o := otp.NewOTPUseCase(fakeDB, fakeDB, fakeExtension)
+			fakeSMS := smsMock.NewSMSServiceMock()
+			o := otp.NewOTPUseCase(fakeDB, fakeDB, fakeExtension, fakeSMS)
 
 			if tt.name == "Sad case - no user ID" {
 				fakeDB.MockVerifyOTPFn = func(ctx context.Context, payload *dto.VerifyOTPInput) (bool, error) {
@@ -692,7 +696,8 @@ func TestUseCaseOTPImpl_GenerateRetryOTP(t *testing.T) {
 			_ = mock.NewOTPUseCaseMock()
 			fakeDB := pgMock.NewPostgresMock()
 			fakeExtension := extensionMock.NewFakeExtension()
-			o := otp.NewOTPUseCase(fakeDB, fakeDB, fakeExtension)
+			fakeSMS := smsMock.NewSMSServiceMock()
+			o := otp.NewOTPUseCase(fakeDB, fakeDB, fakeExtension, fakeSMS)
 
 			if tt.name == "Sad case - failed to generate and retry to send otp" {
 				fakeExtension.MockGenerateRetryOTPFn = func(ctx context.Context, payload *dto.SendRetryOTPPayload) (string, error) {
@@ -787,11 +792,12 @@ func TestUseCaseOTPImpl_SendOTP(t *testing.T) {
 			_ = mock.NewOTPUseCaseMock()
 			fakeDB := pgMock.NewPostgresMock()
 			fakeExtension := extensionMock.NewFakeExtension()
-			o := otp.NewOTPUseCase(fakeDB, fakeDB, fakeExtension)
+			fakeSMS := smsMock.NewSMSServiceMock()
+			o := otp.NewOTPUseCase(fakeDB, fakeDB, fakeExtension, fakeSMS)
 
 			if tt.name == "Sad Case - Fail to send an otp to kenyan number" {
-				fakeExtension.MockSendSMSFn = func(ctx context.Context, phoneNumbers string, message string, from enumutils.SenderID) (*openSourceDto.SendMessageResponse, error) {
-					return nil, fmt.Errorf("failed to send sms")
+				fakeSMS.MockSendSMSFn = func(ctx context.Context, message string, recipients []string) (*silcomms.BulkSMSResponse, error) {
+					return nil, fmt.Errorf("an error occurred")
 				}
 			}
 

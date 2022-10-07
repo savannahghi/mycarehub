@@ -14,6 +14,7 @@ import (
 	extensionMock "github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension/mock"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	pgMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/mock"
+	smsMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/sms/mock"
 	notificationMock "github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/notification/mock"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/servicerequest"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/servicerequest/mock"
@@ -170,6 +171,8 @@ func TestUseCasesServiceRequestImpl_CreateServiceRequest(t *testing.T) {
 			fakeExtension := extensionMock.NewFakeExtension()
 			fakeUser := userMock.NewUserUseCaseMock()
 			fakeNotification := notificationMock.NewServiceNotificationMock()
+			fakeSMS := smsMock.NewSMSServiceMock()
+			u := servicerequest.NewUseCaseServiceRequestImpl(fakeDB, fakeDB, fakeDB, fakeExtension, fakeUser, fakeNotification, fakeSMS)
 
 			if tt.name == "Sad Case - Fail to create a service request" {
 				fakeDB.MockCreateStaffServiceRequestFn = func(ctx context.Context, serviceRequestInput *dto.ServiceRequestInput) error {
@@ -216,7 +219,6 @@ func TestUseCasesServiceRequestImpl_CreateServiceRequest(t *testing.T) {
 				}
 			}
 
-			u := servicerequest.NewUseCaseServiceRequestImpl(fakeDB, fakeDB, fakeDB, fakeExtension, fakeUser, fakeNotification)
 			got, err := u.CreateServiceRequest(tt.args.ctx, tt.args.serviceRequestInput)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCasesServiceRequestImpl.CreateServiceRequest() error = %v, wantErr %v", err, tt.wantErr)
@@ -290,7 +292,8 @@ func TestUseCasesServiceRequestImpl_InProgressBy(t *testing.T) {
 			fakeExtension := extensionMock.NewFakeExtension()
 			fakeUser := userMock.NewUserUseCaseMock()
 			fakeNotification := notificationMock.NewServiceNotificationMock()
-			u := servicerequest.NewUseCaseServiceRequestImpl(fakeDB, fakeDB, fakeDB, fakeExtension, fakeUser, fakeNotification)
+			fakeSMS := smsMock.NewSMSServiceMock()
+			u := servicerequest.NewUseCaseServiceRequestImpl(fakeDB, fakeDB, fakeDB, fakeExtension, fakeUser, fakeNotification, fakeSMS)
 
 			if tt.name == "Sad case" {
 				fakeDB.MockInProgressByFn = func(ctx context.Context, requestID, staffID string) (bool, error) {
@@ -382,7 +385,8 @@ func TestUseCasesServiceRequestImpl_GetServiceRequests(t *testing.T) {
 			fakeExtension := extensionMock.NewFakeExtension()
 			fakeUser := userMock.NewUserUseCaseMock()
 			fakeNotification := notificationMock.NewServiceNotificationMock()
-			u := servicerequest.NewUseCaseServiceRequestImpl(fakeDB, fakeDB, fakeDB, fakeExtension, fakeUser, fakeNotification)
+			fakeSMS := smsMock.NewSMSServiceMock()
+			u := servicerequest.NewUseCaseServiceRequestImpl(fakeDB, fakeDB, fakeDB, fakeExtension, fakeUser, fakeNotification, fakeSMS)
 
 			if tt.name == "Sad Case - Fail to get service requests" {
 				fakeDB.MockGetServiceRequestsFn = func(ctx context.Context, requestType, requestStatus *string, facilityID string, flavour feedlib.Flavour) ([]*domain.ServiceRequest, error) {
@@ -502,7 +506,8 @@ func TestUseCasesServiceRequestImpl_ResolveServiceRequest(t *testing.T) {
 			fakeExtension := extensionMock.NewFakeExtension()
 			fakeUser := userMock.NewUserUseCaseMock()
 			fakeNotification := notificationMock.NewServiceNotificationMock()
-			u := servicerequest.NewUseCaseServiceRequestImpl(fakeDB, fakeDB, fakeDB, fakeExtension, fakeUser, fakeNotification)
+			fakeSMS := smsMock.NewSMSServiceMock()
+			u := servicerequest.NewUseCaseServiceRequestImpl(fakeDB, fakeDB, fakeDB, fakeExtension, fakeUser, fakeNotification, fakeSMS)
 
 			if tt.name == "Sad Case - Fail to resolve service request" {
 				fakeDB.MockResolveServiceRequestFn = func(ctx context.Context, staffID, serviceRequestID *string, status string, action []string, comment *string) error {
@@ -645,7 +650,8 @@ func TestUseCasesServiceRequestImpl_GetPendingServiceRequestsCount(t *testing.T)
 			fakeExtension := extensionMock.NewFakeExtension()
 			fakeUser := userMock.NewUserUseCaseMock()
 			fakeNotification := notificationMock.NewServiceNotificationMock()
-			u := servicerequest.NewUseCaseServiceRequestImpl(fakeDB, fakeDB, fakeDB, fakeExtension, fakeUser, fakeNotification)
+			fakeSMS := smsMock.NewSMSServiceMock()
+			u := servicerequest.NewUseCaseServiceRequestImpl(fakeDB, fakeDB, fakeDB, fakeExtension, fakeUser, fakeNotification, fakeSMS)
 
 			if tt.name == "Sad case" {
 				fakeDB.MockGetPendingServiceRequestsCountFn = func(ctx context.Context, facilityID string) (*domain.ServiceRequestsCountResponse, error) {
@@ -686,7 +692,8 @@ func TestUseCasesServiceRequestImpl_GetServiceRequestsForKenyaEMR(t *testing.T) 
 	fakeExtension := extensionMock.NewFakeExtension()
 	fakeUser := userMock.NewUserUseCaseMock()
 	fakeNotification := notificationMock.NewServiceNotificationMock()
-	u := servicerequest.NewUseCaseServiceRequestImpl(fakeDB, fakeDB, fakeDB, fakeExtension, fakeUser, fakeNotification)
+	fakeSMS := smsMock.NewSMSServiceMock()
+	u := servicerequest.NewUseCaseServiceRequestImpl(fakeDB, fakeDB, fakeDB, fakeExtension, fakeUser, fakeNotification, fakeSMS)
 
 	currentTime := time.Now()
 
@@ -927,7 +934,8 @@ func TestUseCasesServiceRequestImpl_UpdateServiceRequestsFromKenyaEMR(t *testing
 			fakeExtension := extensionMock.NewFakeExtension()
 			fakeUser := userMock.NewUserUseCaseMock()
 			fakeNotification := notificationMock.NewServiceNotificationMock()
-			u := servicerequest.NewUseCaseServiceRequestImpl(fakeDB, fakeDB, fakeDB, fakeExtension, fakeUser, fakeNotification)
+			fakeSMS := smsMock.NewSMSServiceMock()
+			u := servicerequest.NewUseCaseServiceRequestImpl(fakeDB, fakeDB, fakeDB, fakeExtension, fakeUser, fakeNotification, fakeSMS)
 
 			if tt.name == "happy case: appointment service request" {
 				fakeDB.MockGetServiceRequestByIDFn = func(ctx context.Context, id string) (*domain.ServiceRequest, error) {
@@ -1151,7 +1159,8 @@ func TestUseCasesServiceRequestImpl_CreatePinResetServiceRequest(t *testing.T) {
 			fakeExtension := extensionMock.NewFakeExtension()
 			fakeUser := userMock.NewUserUseCaseMock()
 			fakeNotification := notificationMock.NewServiceNotificationMock()
-			u := servicerequest.NewUseCaseServiceRequestImpl(fakeDB, fakeDB, fakeDB, fakeExtension, fakeUser, fakeNotification)
+			fakeSMS := smsMock.NewSMSServiceMock()
+			u := servicerequest.NewUseCaseServiceRequestImpl(fakeDB, fakeDB, fakeDB, fakeExtension, fakeUser, fakeNotification, fakeSMS)
 
 			if tt.name == "Sad Case - Fail to create service request" {
 				fakeDB.MockCreateServiceRequestFn = func(ctx context.Context, serviceRequestInput *dto.ServiceRequestInput) error {
@@ -1386,7 +1395,8 @@ func TestUseCasesServiceRequestImpl_VerifyPinResetServiceRequest(t *testing.T) {
 			fakeUser := userMock.NewUserUseCaseMock()
 			fakeServiceRequest := mock.NewServiceRequestUseCaseMock()
 			fakeNotification := notificationMock.NewServiceNotificationMock()
-			u := servicerequest.NewUseCaseServiceRequestImpl(fakeDB, fakeDB, fakeDB, fakeExtension, fakeUser, fakeNotification)
+			fakeSMS := smsMock.NewSMSServiceMock()
+			u := servicerequest.NewUseCaseServiceRequestImpl(fakeDB, fakeDB, fakeDB, fakeExtension, fakeUser, fakeNotification, fakeSMS)
 
 			if tt.name == "Sad Case - Fail to get logged in user" {
 				fakeExtension.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
@@ -1476,7 +1486,8 @@ func TestUseCasesServiceRequestImpl_VerifyStaffPinResetServiceRequest(t *testing
 	fakeUser := userMock.NewUserUseCaseMock()
 	_ = mock.NewServiceRequestUseCaseMock()
 	fakeNotification := notificationMock.NewServiceNotificationMock()
-	u := servicerequest.NewUseCaseServiceRequestImpl(fakeDB, fakeDB, fakeDB, fakeExtension, fakeUser, fakeNotification)
+	fakeSMS := smsMock.NewSMSServiceMock()
+	u := servicerequest.NewUseCaseServiceRequestImpl(fakeDB, fakeDB, fakeDB, fakeExtension, fakeUser, fakeNotification, fakeSMS)
 
 	type args struct {
 		ctx                context.Context
@@ -1673,7 +1684,8 @@ func TestUseCasesServiceRequestImpl_SearchServiceRequests(t *testing.T) {
 	fakeUser := userMock.NewUserUseCaseMock()
 	_ = mock.NewServiceRequestUseCaseMock()
 	fakeNotification := notificationMock.NewServiceNotificationMock()
-	u := servicerequest.NewUseCaseServiceRequestImpl(fakeDB, fakeDB, fakeDB, fakeExtension, fakeUser, fakeNotification)
+	fakeSMS := smsMock.NewSMSServiceMock()
+	u := servicerequest.NewUseCaseServiceRequestImpl(fakeDB, fakeDB, fakeDB, fakeExtension, fakeUser, fakeNotification, fakeSMS)
 
 	type args struct {
 		ctx         context.Context
