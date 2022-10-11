@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
@@ -14,6 +13,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
+	serviceSMS "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/sms"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/notification"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/user"
 	"gorm.io/gorm"
@@ -92,6 +92,7 @@ type UseCasesServiceRequestImpl struct {
 	ExternalExt  extension.ExternalMethodsExtension
 	User         user.UseCasesUser
 	Notification notification.UseCaseNotification
+	SMS          serviceSMS.IServiceSMS
 }
 
 // NewUseCaseServiceRequestImpl creates a new service request instance
@@ -102,6 +103,7 @@ func NewUseCaseServiceRequestImpl(
 	ext extension.ExternalMethodsExtension,
 	user user.UseCasesUser,
 	notification notification.UseCaseNotification,
+	sms serviceSMS.IServiceSMS,
 ) *UseCasesServiceRequestImpl {
 	return &UseCasesServiceRequestImpl{
 		Create:       create,
@@ -110,6 +112,7 @@ func NewUseCaseServiceRequestImpl(
 		ExternalExt:  ext,
 		User:         user,
 		Notification: notification,
+		SMS:          sms,
 	}
 }
 
@@ -574,8 +577,9 @@ func (u *UseCasesServiceRequestImpl) VerifyServiceRequestResponse(
 				"For enquiries call us on %s.", user.Name, callCenterNumber,
 		)
 
-		_, err := u.ExternalExt.SendSMS(ctx, phoneNumber, text, enumutils.SenderIDBewell)
+		_, err := u.SMS.SendSMS(ctx, text, []string{phoneNumber})
 		if err != nil {
+			helpers.ReportErrorToSentry(err)
 			return false, err
 		}
 
@@ -612,8 +616,9 @@ func (u *UseCasesServiceRequestImpl) VerifyServiceRequestResponse(
 				"Your One Time PIN is %s.", user.Name, tempPin,
 		)
 
-		_, err = u.ExternalExt.SendSMS(ctx, phoneNumber, text, enumutils.SenderIDBewell)
-		if err != nil {
+		_, sendErr := u.SMS.SendSMS(ctx, text, []string{phoneNumber})
+		if sendErr != nil {
+			helpers.ReportErrorToSentry(err)
 			return false, err
 		}
 

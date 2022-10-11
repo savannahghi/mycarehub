@@ -16,6 +16,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/fcm"
 	streamService "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/getstream"
 	pubsubmessaging "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/pubsub"
+	serviceSMS "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/sms"
 	surveyInstance "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/surveys"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases"
 	appointment "github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/appointments"
@@ -36,6 +37,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/terms"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/user"
 	"github.com/savannahghi/serverutils"
+	"github.com/savannahghi/silcomms"
 )
 
 var (
@@ -56,16 +58,16 @@ func InitializeTestService(ctx context.Context) (*usecases.MyCareHub, error) {
 		return nil, fmt.Errorf("can't instantiate test repository: %v", err)
 	}
 
-	// add organization
-	// createOrganization(pg)
-
 	externalExt := externalExtension.NewExternalMethodsImpl()
 
 	fcmService := fcm.NewService()
 
 	db := postgres.NewMyCareHubDb(pg, pg, pg, pg)
 
-	otpUseCase := otp.NewOTPUseCase(db, db, externalExt)
+	silCommsLib := silcomms.NewSILCommsLib()
+	smsService := serviceSMS.NewServiceSMS(silCommsLib)
+
+	otpUseCase := otp.NewOTPUseCase(db, db, externalExt, smsService)
 	getStream := streamService.NewServiceGetStream(&stream.Client{})
 
 	pubsub, err := pubsubmessaging.NewServicePubSubMessaging(externalExt, getStream, db, fcmService)
@@ -88,8 +90,8 @@ func InitializeTestService(ctx context.Context) (*usecases.MyCareHub, error) {
 	appointmentUsecase := appointment.NewUseCaseAppointmentsImpl(externalExt, db, db, db, pubsub, notificationUseCase)
 	communityUsecase := communities.NewUseCaseCommunitiesImpl(getStream, externalExt, db, db, pubsub, notificationUseCase, db)
 	authorityUseCase := authority.NewUsecaseAuthority(db, db, externalExt, notificationUseCase)
-	userUsecase := user.NewUseCasesUserImpl(db, db, db, db, externalExt, otpUseCase, authorityUseCase, getStream, pubsub, clinicalService)
-	serviceRequestUseCase := servicerequest.NewUseCaseServiceRequestImpl(db, db, db, externalExt, userUsecase, notificationUseCase)
+	userUsecase := user.NewUseCasesUserImpl(db, db, db, db, externalExt, otpUseCase, authorityUseCase, getStream, pubsub, clinicalService, smsService)
+	serviceRequestUseCase := servicerequest.NewUseCaseServiceRequestImpl(db, db, db, externalExt, userUsecase, notificationUseCase, smsService)
 	healthDiaryUseCase := healthdiary.NewUseCaseHealthDiaryImpl(db, db, db, serviceRequestUseCase)
 	screeningToolsUsecases := screeningtools.NewUseCasesScreeningTools(db, db, db, externalExt)
 

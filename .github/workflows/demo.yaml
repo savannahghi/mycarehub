@@ -133,6 +133,10 @@ jobs:
             PRO_APP_IDENTIFIER=${{ secrets.PRO_APP_IDENTIFIER }}
             CONSUMER_APP_NAME=${{ secrets.CONSUMER_APP_NAME }}
             PRO_APP_NAME=${{ secrets.PRO_APP_NAME }}
+            SIL_COMMS_BASE_URL=${{ secrets.SIL_COMMS_BASE_URL }}
+            SIL_COMMS_EMAIL=${{ secrets.SIL_COMMS_EMAIL }}
+            SIL_COMMS_PASSWORD=${{ secrets.SIL_COMMS_PASSWORD }}
+            SIL_COMMS_SENDER_ID=${{ secrets.SIL_COMMS_SENDER_ID }}
 
   push_schema_demo_registry:
     name: Publish schema to demo schema registry
@@ -147,7 +151,7 @@ jobs:
       REGISTRY_URL: ${{ secrets.DEMO_SCHEMA_REGISTRY_URL }}
     steps:
       - name: Checkout working branches
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3.1.0
 
       # Install Go
       - name: Install Go

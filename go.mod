@@ -30,8 +30,9 @@ require (
 	github.com/savannahghi/pubsubtools v0.0.3
 	github.com/savannahghi/scalarutils v0.0.4
 	github.com/savannahghi/serverutils v0.0.7
+	github.com/savannahghi/silcomms v0.0.2
 	github.com/segmentio/ksuid v1.0.4
-	github.com/sirupsen/logrus v1.8.1
+	github.com/sirupsen/logrus v1.9.0
 	github.com/stretchr/testify v1.7.5
 	github.com/tj/assert v0.0.3
 	github.com/vektah/gqlparser/v2 v2.4.5

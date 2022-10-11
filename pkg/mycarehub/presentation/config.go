@@ -24,6 +24,7 @@ import (
 	streamService "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/getstream"
 	loginservice "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/login"
 	pubsubmessaging "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/pubsub"
+	serviceSMS "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/sms"
 	surveyInstance "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/surveys"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/presentation/graph"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/presentation/graph/generated"
@@ -47,6 +48,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/terms"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/user"
 	"github.com/savannahghi/serverutils"
+	"github.com/savannahghi/silcomms"
 	log "github.com/sirupsen/logrus"
 	"go.opentelemetry.io/contrib/instrumentation/github.com/gorilla/mux/otelmux"
 )
@@ -101,7 +103,10 @@ func Router(ctx context.Context) (*mux.Router, error) {
 		log.Fatalf("failed to start getstream client: %v", err)
 	}
 
-	otpUseCase := otp.NewOTPUseCase(db, db, externalExt)
+	silCommsLib := silcomms.NewSILCommsLib()
+	smsService := serviceSMS.NewServiceSMS(silCommsLib)
+
+	otpUseCase := otp.NewOTPUseCase(db, db, externalExt, smsService)
 
 	getStream := streamService.NewServiceGetStream(streamClient)
 
@@ -121,7 +126,7 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	clinicalClient := externalExtension.NewInterServiceClient(clinicalDepsName, externalExt)
 	clinicalService := clinical.NewServiceClinical(clinicalClient)
 
-	userUsecase := user.NewUseCasesUserImpl(db, db, db, db, externalExt, otpUseCase, authorityUseCase, getStream, pubSub, clinicalService)
+	userUsecase := user.NewUseCasesUserImpl(db, db, db, db, externalExt, otpUseCase, authorityUseCase, getStream, pubSub, clinicalService, smsService)
 
 	termsUsecase := terms.NewUseCasesTermsOfService(db, db)
 
@@ -131,7 +136,7 @@ func Router(ctx context.Context) (*mux.Router, error) {
 
 	feedbackUsecase := feedback.NewUsecaseFeedback(db, db, externalExt)
 
-	serviceRequestUseCase := servicerequest.NewUseCaseServiceRequestImpl(db, db, db, externalExt, userUsecase, notificationUseCase)
+	serviceRequestUseCase := servicerequest.NewUseCaseServiceRequestImpl(db, db, db, externalExt, userUsecase, notificationUseCase, smsService)
 
 	communitiesUseCase := communities.NewUseCaseCommunitiesImpl(getStream, externalExt, db, db, pubSub, notificationUseCase, db)
 
@@ -362,7 +367,7 @@ func PrepareServer(ctx context.Context, port int, allowedOrigins []string) *http
 	return srv
 }
 
-//HealthStatusCheck endpoint to check if the server is working.
+// HealthStatusCheck endpoint to check if the server is working.
 func HealthStatusCheck(w http.ResponseWriter, r *http.Request) {
 	err := json.NewEncoder(w).Encode(true)
 	if err != nil {
