@@ -26,11 +26,6 @@ func TestUsecaseFeedbackImpl_SendFeedback(t *testing.T) {
 		Feedback:          "test",
 		RequiresFollowUp:  true,
 	}
-	noUserIDFeedback := &dto.FeedbackResponseInput{
-		UserID:           "",
-		Feedback:         "test",
-		RequiresFollowUp: true,
-	}
 	noMessageFeedback := &dto.FeedbackResponseInput{
 		UserID:           "user-id",
 		Feedback:         "",
@@ -56,31 +51,13 @@ func TestUsecaseFeedbackImpl_SendFeedback(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "Happy case",
+			name: "Happy case: send feedback",
 			args: args{
 				ctx:     ctx,
 				payload: feedbackInput,
 			},
 			want:    true,
 			wantErr: false,
-		},
-		{
-			name: "Sad case",
-			args: args{
-				ctx:     ctx,
-				payload: feedbackInput,
-			},
-			want:    false,
-			wantErr: true,
-		},
-		{
-			name: "Sad case - no user ID",
-			args: args{
-				ctx:     ctx,
-				payload: noUserIDFeedback,
-			},
-			want:    false,
-			wantErr: true,
 		},
 		{
 			name: "Sad case - no message",
@@ -118,6 +95,15 @@ func TestUsecaseFeedbackImpl_SendFeedback(t *testing.T) {
 			want:    false,
 			wantErr: true,
 		},
+		{
+			name: "Sad case - unable go get client profile",
+			args: args{
+				ctx:     ctx,
+				payload: invalidFeedbackType,
+			},
+			want:    false,
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -127,16 +113,6 @@ func TestUsecaseFeedbackImpl_SendFeedback(t *testing.T) {
 
 			f := feedback.NewUsecaseFeedback(fakeDB, fakeDB, fakeExtension)
 
-			if tt.name == "Sad case" {
-				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
-					return nil, fmt.Errorf("an error occurred while sending feedback")
-				}
-			}
-			if tt.name == "Sad case - no user ID" {
-				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
-					return nil, fmt.Errorf("an error occurred while sending feedback")
-				}
-			}
 			if tt.name == "Sad case - no message" {
 				fakeFeedback.MockSendFeedbackFn = func(ctx context.Context, payload *dto.FeedbackResponseInput) (bool, error) {
 					return false, fmt.Errorf("an error occurred while sending feedback")
@@ -155,6 +131,11 @@ func TestUsecaseFeedbackImpl_SendFeedback(t *testing.T) {
 			if tt.name == "Sad case - unable to persist feedback" {
 				fakeDB.MockSaveFeedbackFn = func(ctx context.Context, feedback *domain.FeedbackResponse) error {
 					return fmt.Errorf("an error occurred while saving feedback")
+				}
+			}
+			if tt.name == "Sad case - unable go get client profile" {
+				fakeDB.MockGetClientProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.ClientProfile, error) {
+					return nil, fmt.Errorf("an error occurred while getting client profile")
 				}
 			}
 			got, err := f.SendFeedback(tt.args.ctx, tt.args.payload)

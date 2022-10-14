@@ -561,6 +561,8 @@ func (d *MyCareHubDb) SaveFeedback(ctx context.Context, payload *domain.Feedback
 		Feedback:          payload.Feedback,
 		RequiresFollowUp:  payload.RequiresFollowUp,
 		PhoneNumber:       payload.PhoneNumber,
+		FacilityID:        payload.Facility,
+		Gender:            payload.Gender,
 	}
 
 	return d.create.SaveFeedback(ctx, feedback)

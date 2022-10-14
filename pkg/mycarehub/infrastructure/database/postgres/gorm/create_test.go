@@ -1368,6 +1368,8 @@ func TestPGInstance_SaveFeedback(t *testing.T) {
 		RequiresFollowUp:  true,
 		PhoneNumber:       interserviceclient.TestUserPhoneNumber,
 		OrganisationID:    orgID,
+		Gender:            enumutils.GenderFemale,
+		FacilityID:        facilityID,
 	}
 
 	invalidFeedback := &gorm.Feedback{

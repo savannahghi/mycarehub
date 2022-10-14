@@ -547,7 +547,7 @@ func (db *PGInstance) VerifyOTP(ctx context.Context, payload *dto.VerifyOTPInput
 // GetClientProfileByUserID returns the client profile based on the user ID provided
 func (db *PGInstance) GetClientProfileByUserID(ctx context.Context, userID string) (*Client, error) {
 	var client Client
-	if err := db.DB.Where(&Client{UserID: &userID}).Preload(clause.Associations).First(&client).Error; err != nil {
+	if err := db.DB.Where(&Client{UserID: &userID}).Preload("User.Contacts").Preload(clause.Associations).First(&client).Error; err != nil {
 		return nil, fmt.Errorf("failed to get client by user ID %v: %v", userID, err)
 	}
 	return &client, nil

@@ -252,6 +252,8 @@ type FeedbackEmail struct {
 	ServiceName       string
 	Feedback          string
 	PhoneNumber       string
+	Facility          string
+	Gender            enumutils.Gender
 }
 
 // CaregiverInput defines the field passed when creating a caregiver
@@ -351,7 +353,7 @@ type PatientSyncPayload struct {
 	SyncTime *time.Time `json:"lastSyncTime"`
 }
 
-//ServiceRequestPayload defines the payload from KenyaEMR used to fetch
+// ServiceRequestPayload defines the payload from KenyaEMR used to fetch
 // service requests.
 type ServiceRequestPayload struct {
 	MFLCode      int        `json:"MFLCODE"`

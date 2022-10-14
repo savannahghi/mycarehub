@@ -1147,14 +1147,16 @@ func (Metric) TableName() string {
 type Feedback struct {
 	Base
 
-	ID                string `gorm:"primaryKey;column:id"`
-	Active            bool   `gorm:"column:active"`
-	FeedbackType      string `gorm:"column:feedback_type"`
-	SatisfactionLevel int    `gorm:"column:satisfaction_level"`
-	ServiceName       string `gorm:"column:service_name"`
-	Feedback          string `gorm:"column:feedback"`
-	RequiresFollowUp  bool   `gorm:"column:requires_followup"`
-	PhoneNumber       string `gorm:"column:phone_number"`
+	ID                string           `gorm:"primaryKey;column:id"`
+	Active            bool             `gorm:"column:active"`
+	FeedbackType      string           `gorm:"column:feedback_type"`
+	SatisfactionLevel int              `gorm:"column:satisfaction_level"`
+	ServiceName       string           `gorm:"column:service_name"`
+	Feedback          string           `gorm:"column:feedback"`
+	RequiresFollowUp  bool             `gorm:"column:requires_followup"`
+	PhoneNumber       string           `gorm:"column:phone_number"`
+	Gender            enumutils.Gender `gorm:"column:gender"`
+	FacilityID        string           `gorm:"column:facility_id"`
 
 	OrganisationID string `gorm:"column:organisation_id"`
 	UserID         string `gorm:"column:user_id"`
