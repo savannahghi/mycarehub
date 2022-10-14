@@ -51,25 +51,29 @@ func (f *UsecaseFeedbackImpl) SendFeedback(ctx context.Context, payload *dto.Fee
 		return false, fmt.Errorf("feedback input cannot be empty")
 	}
 
-	userProfile, err := f.Query.GetUserProfileByUserID(ctx, payload.UserID)
+	clientProfile, err := f.Query.GetClientProfileByUserID(ctx, payload.UserID)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return false, fmt.Errorf("unable to get user profile: %v", err)
+		return false, fmt.Errorf("unable to get client profile: %v", err)
 	}
 
-	feedbackSubject := fmt.Sprintf("%s's feedback", userProfile.Name)
+	feedbackSubject := fmt.Sprintf("%s's feedback", clientProfile.User.Name)
 
 	feedbackInput := &dto.FeedbackEmail{
-		User:              userProfile.Name,
+		User:              clientProfile.User.Name,
 		FeedbackType:      payload.FeedbackType,
 		SatisfactionLevel: payload.SatisfactionLevel,
 		Feedback:          payload.Feedback,
+		Facility:          clientProfile.DefaultFacilityName,
+		Gender:            clientProfile.User.Gender,
 	}
+
 	if payload.FeedbackType == enums.ServiceFeedbackType {
 		feedbackInput.ServiceName = payload.ServiceName
 	}
+
 	if payload.RequiresFollowUp {
-		phoneNumber := fmt.Sprintf("Phone Number: %s", userProfile.Contacts.ContactValue)
+		phoneNumber := fmt.Sprintf("Phone Number: %s", clientProfile.User.Contacts.ContactValue)
 		feedbackInput.PhoneNumber = phoneNumber
 	}
 
@@ -81,7 +85,9 @@ func (f *UsecaseFeedbackImpl) SendFeedback(ctx context.Context, payload *dto.Fee
 		ServiceName:       payload.ServiceName,
 		Feedback:          payload.Feedback,
 		RequiresFollowUp:  payload.RequiresFollowUp,
-		PhoneNumber:       userProfile.Contacts.ContactValue,
+		PhoneNumber:       clientProfile.User.Contacts.ContactValue,
+		Facility:          clientProfile.DefaultFacilityID,
+		Gender:            clientProfile.User.Gender,
 	}
 
 	err = f.Create.SaveFeedback(ctx, feedbackData)

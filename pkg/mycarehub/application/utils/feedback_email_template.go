@@ -94,6 +94,24 @@ const FeedbackNotificationEmail = `
           </div>
         </div>
         {{end}}
+        <div>
+          <div style="width: 50%;margin-bottom: 30px;">
+            <strong style="display: block;margin-bottom: 5px;">Name</strong>
+            <span>{{.User}}</span>
+          </div>
+        </div>
+        <div>
+          <div style="width: 50%;margin-bottom: 30px;">
+            <strong style="display: block;margin-bottom: 5px;">Facility</strong>
+            <span>{{.Facility}}</span>
+          </div>
+        </div>
+        <div>
+          <div style="width: 50%;margin-bottom: 30px;">
+            <strong style="display: block;margin-bottom: 5px;">Gender</strong>
+            <span>{{.Gender}}</span>
+          </div>
+        </div>
       </td>
     </tr>
 
