@@ -694,25 +694,21 @@ func (d *MyCareHubDb) GetServiceRequests(ctx context.Context, requestType, reque
 
 // ReturnClientsServiceRequests returns all the clients service requests
 func (d *MyCareHubDb) ReturnClientsServiceRequests(ctx context.Context, clientServiceRequests []*gorm.ClientServiceRequest) ([]*domain.ServiceRequest, error) {
-	var (
-		serviceRequests []*domain.ServiceRequest
-		meta            map[string]interface{}
-		resolvedByName  string
-	)
+	var serviceRequests []*domain.ServiceRequest
 
 	for _, serviceRequest := range clientServiceRequests {
 		clientProfile, err := d.query.GetClientProfileByClientID(ctx, serviceRequest.ClientID)
 		if err != nil {
 			return nil, err
 		}
-
+		var meta map[string]interface{}
 		if serviceRequest.Meta != "" {
 			meta, err = utils.ConvertJSONStringToMap(serviceRequest.Meta)
 			if err != nil {
 				return nil, fmt.Errorf("error converting meta json string to map: %v", err)
 			}
 		}
-
+		var resolvedByName string
 		if serviceRequest.ResolvedByID != nil {
 			resolvedBy, err := d.query.GetUserProfileByStaffID(ctx, *serviceRequest.ResolvedByID)
 			if err != nil {
@@ -745,25 +741,21 @@ func (d *MyCareHubDb) ReturnClientsServiceRequests(ctx context.Context, clientSe
 
 // ReturnStaffServiceRequests returns a response of all the staffs service requests
 func (d *MyCareHubDb) ReturnStaffServiceRequests(ctx context.Context, staffServiceRequests []*gorm.StaffServiceRequest) ([]*domain.ServiceRequest, error) {
-	var (
-		serviceRequests []*domain.ServiceRequest
-		meta            map[string]interface{}
-		resolvedByName  string
-	)
+	var serviceRequests []*domain.ServiceRequest
 
 	for _, serviceReq := range staffServiceRequests {
 		staffProfile, err := d.query.GetStaffProfileByStaffID(ctx, serviceReq.StaffID)
 		if err != nil {
 			return nil, err
 		}
-
+		var meta map[string]interface{}
 		if serviceReq.Meta != "" {
 			meta, err = utils.ConvertJSONStringToMap(serviceReq.Meta)
 			if err != nil {
 				return nil, fmt.Errorf("error converting meta json string to map: %v", err)
 			}
 		}
-
+		var resolvedByName string
 		if serviceReq.ResolvedByID != nil {
 			resolvedBy, err := d.query.GetUserProfileByStaffID(ctx, *serviceReq.ResolvedByID)
 			if err != nil {
