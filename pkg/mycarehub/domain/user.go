@@ -60,6 +60,8 @@ type User struct {
 	FailedSecurityCount int                    `json:"failedSecurityCount"`
 	PinUpdateRequired   bool                   `json:"pinUpdateRequired"`
 	HasSetNickname      bool                   `json:"hasSetNickname"`
+
+	OrganizationID string
 }
 
 // ClientProfile holds the details of end users who are not using the system in

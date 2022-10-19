@@ -1,6 +1,7 @@
 package gorm_test
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"log"
@@ -15,6 +16,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/testutils"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/utils"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
 )
 
@@ -161,6 +163,14 @@ var (
 
 	testCaregiverNumber = "CG0001"
 )
+
+func addOrganizationContext(ctx context.Context) context.Context {
+	return context.WithValue(
+		context.Background(),
+		utils.OrganisationContextKey,
+		orgID,
+	)
+}
 
 func TestMain(m *testing.M) {
 	isLocalDB := testutils.CheckIfCurrentDBIsLocal()

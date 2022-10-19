@@ -26,7 +26,7 @@ func (db *PGInstance) DeleteFacility(ctx context.Context, mflcode int) (bool, er
 		return false, fmt.Errorf("MFL code cannot be empty")
 	}
 
-	err := db.DB.Where("mfl_code", mflcode).First(&Facility{}).Delete(&Facility{}).Error
+	err := db.DB.Scopes(OrganisationScope(ctx)).Where("mfl_code", mflcode).First(&Facility{}).Delete(&Facility{}).Error
 	if err != nil {
 		return false, fmt.Errorf("an error occurred while deleting: %v", err)
 	}
@@ -161,7 +161,7 @@ func (db *PGInstance) DeleteUser(
 
 // DeleteCommunity deletes the specified community from the database
 func (db *PGInstance) DeleteCommunity(ctx context.Context, communityID string) error {
-	err := db.DB.Where("id = ?", communityID).Delete(&Community{}).Error
+	err := db.DB.Scopes(OrganisationScope(ctx)).Where("id = ?", communityID).Delete(&Community{}).Error
 	if err != nil {
 		// skip error if not found
 		if err == gorm.ErrRecordNotFound {
@@ -176,7 +176,7 @@ func (db *PGInstance) DeleteCommunity(ctx context.Context, communityID string) e
 func (db *PGInstance) RemoveFacilitiesFromClientProfile(ctx context.Context, clientID string, facilities []string) error {
 	clientFacilities := ClientFacilities{}
 
-	tx := db.DB.Begin()
+	tx := db.DB.Scopes(OrganisationScope(ctx)).Begin()
 	defer func() {
 		if r := recover(); r != nil {
 			tx.Rollback()
@@ -204,7 +204,7 @@ func (db *PGInstance) RemoveFacilitiesFromClientProfile(ctx context.Context, cli
 func (db *PGInstance) RemoveFacilitiesFromStaffProfile(ctx context.Context, staffID string, facilities []string) error {
 	staffFacilities := StaffFacilities{}
 
-	tx := db.DB.Begin()
+	tx := db.DB.Scopes(OrganisationScope(ctx)).Begin()
 	defer func() {
 		if r := recover(); r != nil {
 			tx.Rollback()
