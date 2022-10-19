@@ -10,7 +10,9 @@ import (
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/utils"
 	"github.com/savannahghi/serverutils"
+	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -48,9 +50,19 @@ type Facility struct {
 
 // BeforeCreate is a hook run before creating a new facility
 func (f *Facility) BeforeCreate(tx *gorm.DB) (err error) {
+	ctx := tx.Statement.Context
+	orgID, err := utils.GetOrganisationIDFromContext(ctx)
+	if err != nil {
+		logrus.Println("failed to get organisation from context")
+	}
+	if orgID == "" {
+		orgID = OrganizationID
+	}
+
 	id := uuid.New().String()
 	f.FacilityID = &id
-	f.OrganisationID = OrganizationID
+	f.OrganisationID = orgID
+
 	return
 }
 
@@ -78,9 +90,18 @@ type FacilityAttachment struct {
 
 // BeforeCreate is a hook run before creating a new facility
 func (f *FacilityAttachment) BeforeCreate(tx *gorm.DB) (err error) {
+	ctx := tx.Statement.Context
+	orgID, err := utils.GetOrganisationIDFromContext(ctx)
+	if err != nil {
+		logrus.Println("failed to get organisation from context")
+	}
+	if orgID == "" {
+		orgID = OrganizationID
+	}
+
 	id := uuid.New().String()
 	f.ID = &id
-	f.OrganisationID = OrganizationID
+	f.OrganisationID = orgID
 	return nil
 }
 
@@ -111,9 +132,19 @@ type AuditLog struct {
 
 // BeforeCreate is a hook run before creating a new facility
 func (f *AuditLog) BeforeCreate(tx *gorm.DB) (err error) {
+	ctx := tx.Statement.Context
+	orgID, err := utils.GetOrganisationIDFromContext(ctx)
+	if err != nil {
+		logrus.Println("failed to get organisation from context")
+	}
+	if orgID == "" {
+		orgID = OrganizationID
+	}
+
 	id := uuid.New().String()
 	f.ID = &id
-	f.OrganisationID = OrganizationID
+	f.OrganisationID = orgID
+
 	return nil
 }
 
@@ -139,9 +170,19 @@ type Address struct {
 
 // BeforeCreate is a hook run before creating a new facility
 func (f *Address) BeforeCreate(tx *gorm.DB) (err error) {
+	ctx := tx.Statement.Context
+	orgID, err := utils.GetOrganisationIDFromContext(ctx)
+	if err != nil {
+		logrus.Println("failed to get organisation from context")
+	}
+	if orgID == "" {
+		orgID = OrganizationID
+	}
+
 	id := uuid.New().String()
 	f.ID = &id
-	f.OrganisationID = OrganizationID
+	f.OrganisationID = orgID
+
 	return nil
 }
 
@@ -220,9 +261,18 @@ type User struct {
 
 // BeforeCreate is a hook run before creating a new user
 func (u *User) BeforeCreate(tx *gorm.DB) (err error) {
+	ctx := tx.Statement.Context
+	orgID, err := utils.GetOrganisationIDFromContext(ctx)
+	if err != nil {
+		logrus.Println("failed to get organisation from context")
+	}
+	if orgID == "" {
+		orgID = OrganizationID
+	}
+
 	id := uuid.New().String()
 	u.UserID = &id
-	u.OrganisationID = OrganizationID
+	u.OrganisationID = orgID
 	u.IsSuperuser = false
 	u.IsStaff = false
 	u.DateJoined = time.Now().UTC().Format(time.RFC1123Z)
@@ -285,9 +335,19 @@ type Contact struct {
 
 // BeforeCreate is a hook run before creating a new contact
 func (c *Contact) BeforeCreate(tx *gorm.DB) (err error) {
+	ctx := tx.Statement.Context
+	orgID, err := utils.GetOrganisationIDFromContext(ctx)
+	if err != nil {
+		logrus.Println("failed to get organisation from context")
+	}
+	if orgID == "" {
+		orgID = OrganizationID
+	}
+
 	id := uuid.New().String()
 	c.ContactID = &id
-	c.OrganisationID = OrganizationID
+	c.OrganisationID = orgID
+
 	return
 }
 
@@ -353,6 +413,7 @@ type Organisation struct {
 // BeforeCreate is a hook run before creating a new organisation
 func (t *Organisation) BeforeCreate(tx *gorm.DB) (err error) {
 	t.ID = &OrganizationID
+
 	return
 }
 
@@ -378,9 +439,19 @@ type SecurityQuestion struct {
 
 // BeforeCreate is a hook run before creating security question
 func (s *SecurityQuestion) BeforeCreate(tx *gorm.DB) (err error) {
+	ctx := tx.Statement.Context
+	orgID, err := utils.GetOrganisationIDFromContext(ctx)
+	if err != nil {
+		logrus.Println("failed to get organisation from context")
+	}
+	if orgID == "" {
+		orgID = OrganizationID
+	}
+
 	id := uuid.New().String()
 	s.SecurityQuestionID = &id
-	s.OrganisationID = OrganizationID
+	s.OrganisationID = orgID
+
 	return
 }
 
@@ -429,9 +500,18 @@ type SecurityQuestionResponse struct {
 // BeforeCreate function is called before creating a security question response
 // It generates the organisation id and response ID
 func (s *SecurityQuestionResponse) BeforeCreate(tx *gorm.DB) (err error) {
+	ctx := tx.Statement.Context
+	orgID, err := utils.GetOrganisationIDFromContext(ctx)
+	if err != nil {
+		logrus.Println("failed to get organisation from context")
+	}
+	if orgID == "" {
+		orgID = OrganizationID
+	}
+
 	id := uuid.New().String()
 	s.ResponseID = id
-	s.OrganisationID = OrganizationID
+	s.OrganisationID = orgID
 	s.Timestamp = time.Now()
 	// is_correct default to true since the user setting the security question responses will initially set
 	// them correctly
@@ -481,9 +561,19 @@ type Client struct {
 
 // BeforeCreate is a hook run before creating a client profile
 func (c *Client) BeforeCreate(tx *gorm.DB) (err error) {
+	ctx := tx.Statement.Context
+	orgID, err := utils.GetOrganisationIDFromContext(ctx)
+	if err != nil {
+		logrus.Println("failed to get organisation from context")
+	}
+	if orgID == "" {
+		orgID = OrganizationID
+	}
+
 	id := uuid.New().String()
 	c.ID = &id
-	c.OrganisationID = OrganizationID
+	c.OrganisationID = orgID
+
 	return
 }
 
@@ -572,9 +662,19 @@ type StaffProfile struct {
 
 // BeforeCreate is a hook run before creating a staff profile
 func (s *StaffProfile) BeforeCreate(tx *gorm.DB) (err error) {
+	ctx := tx.Statement.Context
+	orgID, err := utils.GetOrganisationIDFromContext(ctx)
+	if err != nil {
+		logrus.Println("failed to get organisation from context")
+	}
+	if orgID == "" {
+		orgID = OrganizationID
+	}
+
 	id := uuid.New().String()
 	s.ID = &id
-	s.OrganisationID = OrganizationID
+	s.OrganisationID = orgID
+
 	return
 }
 
@@ -601,9 +701,19 @@ type ClientHealthDiaryEntry struct {
 
 // BeforeCreate is a hook run before creating a client Health Diary Entry
 func (c *ClientHealthDiaryEntry) BeforeCreate(tx *gorm.DB) (err error) {
+	ctx := tx.Statement.Context
+	orgID, err := utils.GetOrganisationIDFromContext(ctx)
+	if err != nil {
+		logrus.Println("failed to get organisation from context")
+	}
+	if orgID == "" {
+		orgID = OrganizationID
+	}
+
 	id := uuid.New().String()
 	c.ClientHealthDiaryEntryID = &id
-	c.OrganisationID = OrganizationID
+	c.OrganisationID = orgID
+
 	return
 }
 
@@ -635,9 +745,19 @@ type ClientServiceRequest struct {
 
 // BeforeCreate is a hook called before creating a service request.
 func (c *ClientServiceRequest) BeforeCreate(tx *gorm.DB) (err error) {
+	ctx := tx.Statement.Context
+	orgID, err := utils.GetOrganisationIDFromContext(ctx)
+	if err != nil {
+		logrus.Println("failed to get organisation from context")
+	}
+	if orgID == "" {
+		orgID = OrganizationID
+	}
+
 	id := uuid.New().String()
 	c.ID = &id
-	c.OrganisationID = OrganizationID
+	c.OrganisationID = orgID
+
 	return
 }
 
@@ -667,9 +787,19 @@ type StaffServiceRequest struct {
 
 // BeforeCreate is a hook called before creating a service request.
 func (c *StaffServiceRequest) BeforeCreate(tx *gorm.DB) (err error) {
+	ctx := tx.Statement.Context
+	orgID, err := utils.GetOrganisationIDFromContext(ctx)
+	if err != nil {
+		logrus.Println("failed to get organisation from context")
+	}
+	if orgID == "" {
+		orgID = OrganizationID
+	}
+
 	id := uuid.New().String()
 	c.ID = &id
-	c.OrganisationID = OrganizationID
+	c.OrganisationID = orgID
+
 	return
 }
 
@@ -692,9 +822,19 @@ type ClientHealthDiaryQuote struct {
 
 // BeforeCreate is a hook run before creating view count
 func (c *ClientHealthDiaryQuote) BeforeCreate(tx *gorm.DB) (err error) {
+	ctx := tx.Statement.Context
+	orgID, err := utils.GetOrganisationIDFromContext(ctx)
+	if err != nil {
+		logrus.Println("failed to get organisation from context")
+	}
+	if orgID == "" {
+		orgID = OrganizationID
+	}
+
 	id := uuid.New().String()
 	c.ClientHealthDiaryQuoteID = &id
-	c.OrganisationID = OrganizationID
+	c.OrganisationID = orgID
+
 	return
 }
 
@@ -715,9 +855,19 @@ type AuthorityRole struct {
 
 // BeforeCreate is a hook run before creating authority role
 func (c *AuthorityRole) BeforeCreate(tx *gorm.DB) (err error) {
+	ctx := tx.Statement.Context
+	orgID, err := utils.GetOrganisationIDFromContext(ctx)
+	if err != nil {
+		logrus.Println("failed to get organisation from context")
+	}
+	if orgID == "" {
+		orgID = OrganizationID
+	}
+
 	id := uuid.New().String()
 	c.AuthorityRoleID = &id
-	c.OrganisationID = OrganizationID
+	c.OrganisationID = orgID
+
 	return
 }
 
@@ -737,9 +887,19 @@ type AuthorityPermission struct {
 
 // BeforeCreate is a hook run before creating authority permission
 func (c *AuthorityPermission) BeforeCreate(tx *gorm.DB) (err error) {
+	ctx := tx.Statement.Context
+	orgID, err := utils.GetOrganisationIDFromContext(ctx)
+	if err != nil {
+		logrus.Println("failed to get organisation from context")
+	}
+	if orgID == "" {
+		orgID = OrganizationID
+	}
+
 	id := uuid.New().String()
 	c.AuthorityPermissionID = &id
-	c.OrganisationID = OrganizationID
+	c.OrganisationID = orgID
+
 	return
 }
 
@@ -780,9 +940,19 @@ type Community struct {
 
 // BeforeCreate is a hook run before creating a community
 func (c *Community) BeforeCreate(tx *gorm.DB) (err error) {
+	ctx := tx.Statement.Context
+	orgID, err := utils.GetOrganisationIDFromContext(ctx)
+	if err != nil {
+		logrus.Println("failed to get organisation from context")
+	}
+	if orgID == "" {
+		orgID = OrganizationID
+	}
+
 	id := uuid.New().String()
 	c.ID = id
-	c.OrganisationID = OrganizationID
+	c.OrganisationID = orgID
+
 	return
 }
 
@@ -815,10 +985,19 @@ func (i *Identifier) TableName() string {
 
 // BeforeCreate is a hook run before creating authority permission
 func (i *Identifier) BeforeCreate(tx *gorm.DB) (err error) {
+	ctx := tx.Statement.Context
+	orgID, err := utils.GetOrganisationIDFromContext(ctx)
+	if err != nil {
+		logrus.Println("failed to get organisation from context")
+	}
+	if orgID == "" {
+		orgID = OrganizationID
+	}
+
 	id := uuid.New().String()
 
 	i.ID = id
-	i.OrganisationID = OrganizationID
+	i.OrganisationID = orgID
 
 	return
 }
@@ -881,9 +1060,18 @@ func (r *RelatedPerson) TableName() string {
 
 // BeforeCreate is a hook run before creating a related person
 func (r *RelatedPerson) BeforeCreate(tx *gorm.DB) (err error) {
+	ctx := tx.Statement.Context
+	orgID, err := utils.GetOrganisationIDFromContext(ctx)
+	if err != nil {
+		logrus.Println("failed to get organisation from context")
+	}
+	if orgID == "" {
+		orgID = OrganizationID
+	}
+
 	id := uuid.New().String()
 	r.ID = id
-	r.OrganisationID = OrganizationID
+	r.OrganisationID = orgID
 
 	return
 }
@@ -931,9 +1119,19 @@ type ScreeningToolQuestion struct {
 
 // BeforeCreate is a hook run before creating a screening tools question
 func (c *ScreeningToolQuestion) BeforeCreate(tx *gorm.DB) (err error) {
+	ctx := tx.Statement.Context
+	orgID, err := utils.GetOrganisationIDFromContext(ctx)
+	if err != nil {
+		logrus.Println("failed to get organisation from context")
+	}
+	if orgID == "" {
+		orgID = OrganizationID
+	}
+
 	id := uuid.New().String()
 	c.ID = id
-	c.OrganisationID = OrganizationID
+	c.OrganisationID = orgID
+
 	return
 }
 
@@ -957,9 +1155,19 @@ type ScreeningToolsResponse struct {
 
 // BeforeCreate is a hook run before creating a screening tools response
 func (c *ScreeningToolsResponse) BeforeCreate(tx *gorm.DB) (err error) {
+	ctx := tx.Statement.Context
+	orgID, err := utils.GetOrganisationIDFromContext(ctx)
+	if err != nil {
+		logrus.Println("failed to get organisation from context")
+	}
+	if orgID == "" {
+		orgID = OrganizationID
+	}
+
 	id := uuid.New().String()
 	c.ID = id
-	c.OrganisationID = OrganizationID
+	c.OrganisationID = orgID
+
 	return
 }
 
@@ -987,9 +1195,19 @@ type Appointment struct {
 
 // BeforeCreate is a hook run before creating an appointment
 func (a *Appointment) BeforeCreate(tx *gorm.DB) (err error) {
+	ctx := tx.Statement.Context
+	orgID, err := utils.GetOrganisationIDFromContext(ctx)
+	if err != nil {
+		logrus.Println("failed to get organisation from context")
+	}
+	if orgID == "" {
+		orgID = OrganizationID
+	}
+
 	id := uuid.New().String()
 	a.ID = id
-	a.OrganisationID = OrganizationID
+	a.OrganisationID = orgID
+
 	return
 }
 
@@ -1017,9 +1235,19 @@ type Notification struct {
 
 // BeforeCreate is a hook run before creating an appointment
 func (n *Notification) BeforeCreate(tx *gorm.DB) (err error) {
+	ctx := tx.Statement.Context
+	orgID, err := utils.GetOrganisationIDFromContext(ctx)
+	if err != nil {
+		logrus.Println("failed to get organisation from context")
+	}
+	if orgID == "" {
+		orgID = OrganizationID
+	}
+
 	id := uuid.New().String()
 	n.ID = id
-	n.OrganisationID = OrganizationID
+	n.OrganisationID = orgID
+
 	return
 }
 
@@ -1086,9 +1314,19 @@ type UserSurvey struct {
 
 // BeforeCreate is a hook run before creating a user survey model
 func (u *UserSurvey) BeforeCreate(tx *gorm.DB) (err error) {
+	ctx := tx.Statement.Context
+	orgID, err := utils.GetOrganisationIDFromContext(ctx)
+	if err != nil {
+		logrus.Println("failed to get organisation from context")
+	}
+	if orgID == "" {
+		orgID = OrganizationID
+	}
+
 	id := uuid.New().String()
 	u.ID = id
-	u.OrganisationID = OrganizationID
+	u.OrganisationID = orgID
+
 	return
 }
 
@@ -1134,9 +1372,19 @@ type Feedback struct {
 
 // BeforeCreate is a hook run before creating an appointment
 func (f *Feedback) BeforeCreate(tx *gorm.DB) (err error) {
+	ctx := tx.Statement.Context
+	orgID, err := utils.GetOrganisationIDFromContext(ctx)
+	if err != nil {
+		logrus.Println("failed to get organisation from context")
+	}
+	if orgID == "" {
+		orgID = OrganizationID
+	}
+
 	id := uuid.New().String()
 	f.ID = id
-	f.OrganisationID = OrganizationID
+	f.OrganisationID = orgID
+
 	return
 }
 
@@ -1158,9 +1406,19 @@ type Questionnaire struct {
 
 // BeforeCreate is a hook run before creating a questionnaire
 func (q *Questionnaire) BeforeCreate(tx *gorm.DB) (err error) {
+	ctx := tx.Statement.Context
+	orgID, err := utils.GetOrganisationIDFromContext(ctx)
+	if err != nil {
+		logrus.Println("failed to get organisation from context")
+	}
+	if orgID == "" {
+		orgID = OrganizationID
+	}
+
 	id := uuid.New().String()
 	q.ID = id
-	q.OrganisationID = OrganizationID
+	q.OrganisationID = orgID
+
 	return
 }
 
@@ -1186,9 +1444,19 @@ type ScreeningTool struct {
 
 // BeforeCreate is a hook run before creating a screening tool
 func (f *ScreeningTool) BeforeCreate(tx *gorm.DB) (err error) {
+	ctx := tx.Statement.Context
+	orgID, err := utils.GetOrganisationIDFromContext(ctx)
+	if err != nil {
+		logrus.Println("failed to get organisation from context")
+	}
+	if orgID == "" {
+		orgID = OrganizationID
+	}
+
 	id := uuid.New().String()
 	f.ID = id
-	f.OrganisationID = OrganizationID
+	f.OrganisationID = orgID
+
 	return
 }
 
@@ -1215,9 +1483,19 @@ type Question struct {
 
 // BeforeCreate is a hook run before creating a question
 func (q *Question) BeforeCreate(tx *gorm.DB) (err error) {
+	ctx := tx.Statement.Context
+	orgID, err := utils.GetOrganisationIDFromContext(ctx)
+	if err != nil {
+		logrus.Println("failed to get organisation from context")
+	}
+	if orgID == "" {
+		orgID = OrganizationID
+	}
+
 	id := uuid.New().String()
 	q.ID = id
-	q.OrganisationID = OrganizationID
+	q.OrganisationID = orgID
+
 	return
 }
 
@@ -1241,9 +1519,19 @@ type QuestionInputChoice struct {
 
 // BeforeCreate is a hook run before creating a question input choice
 func (q *QuestionInputChoice) BeforeCreate(tx *gorm.DB) (err error) {
+	ctx := tx.Statement.Context
+	orgID, err := utils.GetOrganisationIDFromContext(ctx)
+	if err != nil {
+		logrus.Println("failed to get organisation from context")
+	}
+	if orgID == "" {
+		orgID = OrganizationID
+	}
+
 	id := uuid.New().String()
 	q.ID = id
-	q.OrganisationID = OrganizationID
+	q.OrganisationID = orgID
+
 	return
 }
 
@@ -1267,9 +1555,19 @@ type ScreeningToolResponse struct {
 
 // BeforeCreate is a hook run before creating a screening tool response
 func (s *ScreeningToolResponse) BeforeCreate(tx *gorm.DB) (err error) {
+	ctx := tx.Statement.Context
+	orgID, err := utils.GetOrganisationIDFromContext(ctx)
+	if err != nil {
+		logrus.Println("failed to get organisation from context")
+	}
+	if orgID == "" {
+		orgID = OrganizationID
+	}
+
 	id := uuid.New().String()
 	s.ID = id
-	s.OrganisationID = OrganizationID
+	s.OrganisationID = orgID
+
 	return
 }
 
@@ -1293,9 +1591,19 @@ type ScreeningToolQuestionResponse struct {
 
 // BeforeCreate is a hook run before creating a screening tool question response
 func (s *ScreeningToolQuestionResponse) BeforeCreate(tx *gorm.DB) (err error) {
+	ctx := tx.Statement.Context
+	orgID, err := utils.GetOrganisationIDFromContext(ctx)
+	if err != nil {
+		logrus.Println("failed to get organisation from context")
+	}
+	if orgID == "" {
+		orgID = OrganizationID
+	}
+
 	id := uuid.New().String()
 	s.ID = id
-	s.OrganisationID = OrganizationID
+	s.OrganisationID = orgID
+
 	return
 }
 
@@ -1333,9 +1641,18 @@ type Caregiver struct {
 
 // BeforeCreate is a hook run before creating a caregiver
 func (c *Caregiver) BeforeCreate(tx *gorm.DB) (err error) {
+	ctx := tx.Statement.Context
+	orgID, err := utils.GetOrganisationIDFromContext(ctx)
+	if err != nil {
+		logrus.Println("failed to get organisation from context")
+	}
+	if orgID == "" {
+		orgID = OrganizationID
+	}
+
 	id := uuid.New().String()
 	c.ID = id
-	c.OrganisationID = OrganizationID
+	c.OrganisationID = orgID
 
 	return nil
 }
@@ -1364,7 +1681,16 @@ type CaregiverClient struct {
 
 // BeforeCreate is a hook run before creating a caregiver client
 func (c *CaregiverClient) BeforeCreate(tx *gorm.DB) (err error) {
-	c.OrganisationID = OrganizationID
+	ctx := tx.Statement.Context
+	orgID, err := utils.GetOrganisationIDFromContext(ctx)
+	if err != nil {
+		logrus.Println("failed to get organisation from context")
+	}
+	if orgID == "" {
+		orgID = OrganizationID
+	}
+
+	c.OrganisationID = orgID
 
 	return nil
 }

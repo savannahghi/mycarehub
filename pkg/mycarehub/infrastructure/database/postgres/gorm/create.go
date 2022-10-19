@@ -46,7 +46,7 @@ func (db *PGInstance) GetOrCreateFacility(ctx context.Context, facility *Facilit
 	if facility == nil {
 		return nil, fmt.Errorf("facility must be provided")
 	}
-	err := db.DB.Create(facility).Error
+	err := db.DB.WithContext(ctx).Create(facility).Error
 	if err != nil {
 		return nil, fmt.Errorf("failed to create a facility: %v", err)
 	}
@@ -58,7 +58,7 @@ func (db *PGInstance) SaveTemporaryUserPin(ctx context.Context, pinPayload *PIND
 	if pinPayload == nil {
 		return false, fmt.Errorf("pinPayload must be provided")
 	}
-	err := db.DB.Create(pinPayload).Error
+	err := db.DB.WithContext(ctx).Create(pinPayload).Error
 	if err != nil {
 		return false, fmt.Errorf("failed to save a pin: %v", err)
 	}
@@ -67,7 +67,7 @@ func (db *PGInstance) SaveTemporaryUserPin(ctx context.Context, pinPayload *PIND
 
 // SavePin saves the pin to the database
 func (db *PGInstance) SavePin(ctx context.Context, pinData *PINData) (bool, error) {
-	err := db.DB.Create(pinData).Error
+	err := db.DB.WithContext(ctx).Create(pinData).Error
 	if err != nil {
 		return false, fmt.Errorf("failed to save pin data: %v", err)
 	}
@@ -77,7 +77,7 @@ func (db *PGInstance) SavePin(ctx context.Context, pinData *PINData) (bool, erro
 
 // SaveFeedback saves the feedback to the database
 func (db *PGInstance) SaveFeedback(ctx context.Context, feedback *Feedback) error {
-	err := db.DB.Create(feedback).Error
+	err := db.DB.WithContext(ctx).Create(feedback).Error
 	if err != nil {
 		return fmt.Errorf("failed to save feedback: %v", err)
 	}
@@ -91,14 +91,14 @@ func (db *PGInstance) SaveOTP(ctx context.Context, otpInput *UserOTP) error {
 		return fmt.Errorf("phone number cannot be empty")
 	}
 
-	err := db.DB.Model(&UserOTP{}).Where(&UserOTP{PhoneNumber: otpInput.PhoneNumber, Flavour: otpInput.Flavour}).
+	err := db.DB.WithContext(ctx).Model(&UserOTP{}).Where(&UserOTP{PhoneNumber: otpInput.PhoneNumber, Flavour: otpInput.Flavour}).
 		Updates(map[string]interface{}{"is_valid": false}).Error
 	if err != nil {
 		return fmt.Errorf("failed to update OTP data: %v", err)
 	}
 
 	//Save the OTP by setting valid to true
-	err = db.DB.Create(otpInput).Error
+	err = db.DB.WithContext(ctx).Create(otpInput).Error
 	if err != nil {
 		return fmt.Errorf("failed to save otp data")
 	}
@@ -108,7 +108,7 @@ func (db *PGInstance) SaveOTP(ctx context.Context, otpInput *UserOTP) error {
 // SaveSecurityQuestionResponse saves the security question response to the database if it does not exist,
 // otherwise it updates the existing one
 func (db *PGInstance) SaveSecurityQuestionResponse(ctx context.Context, securityQuestionResponse []*SecurityQuestionResponse) error {
-	tx := db.DB.Begin()
+	tx := db.DB.WithContext(ctx).Begin()
 	defer func() {
 		if r := recover(); r != nil {
 			tx.Rollback()
@@ -150,7 +150,7 @@ func (db *PGInstance) SaveSecurityQuestionResponse(ctx context.Context, security
 // CreateHealthDiaryEntry records the health diary entries from a client. This is necessary for engagement with clients
 // on a day-by-day basis
 func (db *PGInstance) CreateHealthDiaryEntry(ctx context.Context, healthDiaryInput *ClientHealthDiaryEntry) error {
-	tx := db.DB.Begin()
+	tx := db.DB.WithContext(ctx).Begin()
 
 	err := tx.Create(healthDiaryInput).Error
 	if err != nil {
@@ -173,7 +173,7 @@ func (db *PGInstance) CreateServiceRequest(
 	ctx context.Context,
 	serviceRequestInput *ClientServiceRequest,
 ) error {
-	tx := db.DB.Begin()
+	tx := db.DB.WithContext(ctx).Begin()
 
 	err := tx.Create(serviceRequestInput).Error
 	if err != nil {
@@ -191,7 +191,7 @@ func (db *PGInstance) CreateServiceRequest(
 
 // CreateStaffServiceRequest creates a new staff service request
 func (db *PGInstance) CreateStaffServiceRequest(ctx context.Context, serviceRequestInput *StaffServiceRequest) error {
-	tx := db.DB.Begin()
+	tx := db.DB.WithContext(ctx).Begin()
 
 	err := tx.Create(serviceRequestInput).Error
 	if err != nil {
@@ -208,7 +208,7 @@ func (db *PGInstance) CreateStaffServiceRequest(ctx context.Context, serviceRequ
 
 // CreateCommunity creates a channel in the database
 func (db *PGInstance) CreateCommunity(ctx context.Context, community *Community) (*Community, error) {
-	err := db.DB.Create(community).Error
+	err := db.DB.WithContext(ctx).Create(community).Error
 	if err != nil {
 		return nil, fmt.Errorf("failed to create a community: %v", err)
 	}
@@ -219,7 +219,7 @@ func (db *PGInstance) CreateCommunity(ctx context.Context, community *Community)
 // The client ID and contact ID are used to link the created person with a client
 // and the associated contact for the person
 func (db *PGInstance) GetOrCreateNextOfKin(ctx context.Context, person *RelatedPerson, clientID, contactID string) error {
-	tx := db.DB.Begin()
+	tx := db.DB.WithContext(ctx).Begin()
 	defer func() {
 		if r := recover(); r != nil {
 			tx.Rollback()
@@ -264,7 +264,7 @@ func (db *PGInstance) GetOrCreateNextOfKin(ctx context.Context, person *RelatedP
 
 // GetOrCreateContact creates a person's contact in the database if they do not exist or gets them if they already exist
 func (db *PGInstance) GetOrCreateContact(ctx context.Context, contact *Contact) (*Contact, error) {
-	tx := db.DB.Begin()
+	tx := db.DB.WithContext(ctx).Begin()
 	defer func() {
 		if r := recover(); r != nil {
 			tx.Rollback()
@@ -287,7 +287,7 @@ func (db *PGInstance) GetOrCreateContact(ctx context.Context, contact *Contact) 
 
 // CreateAppointment creates an appointment in the database
 func (db *PGInstance) CreateAppointment(ctx context.Context, appointment *Appointment) error {
-	tx := db.DB.Begin()
+	tx := db.DB.WithContext(ctx).Begin()
 	defer func() {
 		if r := recover(); r != nil {
 			tx.Rollback()
@@ -310,7 +310,7 @@ func (db *PGInstance) CreateAppointment(ctx context.Context, appointment *Appoin
 
 // AnswerScreeningToolQuestions answers the screening tool questions
 func (db *PGInstance) AnswerScreeningToolQuestions(ctx context.Context, screeningToolResponses []*ScreeningToolsResponse) error {
-	tx := db.DB.Begin()
+	tx := db.DB.WithContext(ctx).Begin()
 	defer func() {
 		if r := recover(); r != nil {
 			tx.Rollback()
@@ -333,7 +333,7 @@ func (db *PGInstance) AnswerScreeningToolQuestions(ctx context.Context, screenin
 
 // CreateUser creates a new user
 func (db *PGInstance) CreateUser(ctx context.Context, user *User) error {
-	tx := db.DB.Begin()
+	tx := db.DB.WithContext(ctx).Begin()
 
 	err := tx.Create(user).Error
 	if err != nil {
@@ -351,7 +351,7 @@ func (db *PGInstance) CreateUser(ctx context.Context, user *User) error {
 
 // CreateClient creates a new client
 func (db *PGInstance) CreateClient(ctx context.Context, client *Client, contactID, identifierID string) error {
-	tx := db.DB.Begin()
+	tx := db.DB.WithContext(ctx).Begin()
 
 	err := tx.Create(client).Error
 	if err != nil {
@@ -391,7 +391,7 @@ func (db *PGInstance) CreateClient(ctx context.Context, client *Client, contactI
 
 // RegisterClient registers a client with the system
 func (db *PGInstance) RegisterClient(ctx context.Context, user *User, contact *Contact, identifier *Identifier, client *Client) (*Client, error) {
-	tx := db.DB.Begin()
+	tx := db.DB.WithContext(ctx).Begin()
 	defer func() {
 		if r := recover(); r != nil {
 			tx.Rollback()
@@ -470,7 +470,7 @@ func (db *PGInstance) RegisterClient(ctx context.Context, user *User, contact *C
 
 // RegisterCaregiver registers a new caregiver
 func (db *PGInstance) RegisterCaregiver(ctx context.Context, user *User, contact *Contact, caregiver *Caregiver) error {
-	tx := db.DB.Begin()
+	tx := db.DB.WithContext(ctx).Begin()
 
 	err := tx.Create(user).Error
 	if err != nil {
@@ -502,7 +502,7 @@ func (db *PGInstance) RegisterCaregiver(ctx context.Context, user *User, contact
 
 // CreateCaregiver creates a caregiver record linked to a user
 func (db *PGInstance) CreateCaregiver(ctx context.Context, caregiver *Caregiver) error {
-	err := db.DB.Create(caregiver).Error
+	err := db.DB.WithContext(ctx).Create(caregiver).Error
 	if err != nil {
 		return fmt.Errorf("failed to create caregiver: %w", err)
 	}
@@ -512,7 +512,7 @@ func (db *PGInstance) CreateCaregiver(ctx context.Context, caregiver *Caregiver)
 
 // CreateIdentifier creates a new identifier
 func (db *PGInstance) CreateIdentifier(ctx context.Context, identifier *Identifier) error {
-	tx := db.DB.Begin()
+	tx := db.DB.WithContext(ctx).Begin()
 
 	err := tx.Create(identifier).Error
 	if err != nil {
@@ -530,7 +530,7 @@ func (db *PGInstance) CreateIdentifier(ctx context.Context, identifier *Identifi
 
 // CreateNotification saves a notification to the database
 func (db *PGInstance) CreateNotification(ctx context.Context, notification *Notification) error {
-	tx := db.DB.Begin()
+	tx := db.DB.WithContext(ctx).Begin()
 
 	err := tx.Create(notification).Error
 	if err != nil {
@@ -552,7 +552,7 @@ func (db *PGInstance) CreateUserSurveys(ctx context.Context, userSurveys []*User
 		return nil
 	}
 
-	err := db.DB.Create(userSurveys).Error
+	err := db.DB.WithContext(ctx).Create(userSurveys).Error
 	if err != nil {
 		return fmt.Errorf("failed to create user survey: %w", err)
 	}
@@ -562,7 +562,7 @@ func (db *PGInstance) CreateUserSurveys(ctx context.Context, userSurveys []*User
 
 // CreateMetric saves a metric to the database
 func (db *PGInstance) CreateMetric(ctx context.Context, metric *Metric) error {
-	err := db.DB.Create(metric).Error
+	err := db.DB.WithContext(ctx).Create(metric).Error
 	if err != nil {
 		return fmt.Errorf("failed to create metric: %w", err)
 	}
@@ -572,7 +572,7 @@ func (db *PGInstance) CreateMetric(ctx context.Context, metric *Metric) error {
 
 // RegisterStaff registers a staff member to the database
 func (db *PGInstance) RegisterStaff(ctx context.Context, user *User, contact *Contact, identifier *Identifier, staffProfile *StaffProfile) (*StaffProfile, error) {
-	tx := db.DB.Begin()
+	tx := db.DB.WithContext(ctx).Begin()
 
 	// create user
 	err := tx.Create(user).First(&user).Error
@@ -647,7 +647,7 @@ func (db *PGInstance) RegisterStaff(ctx context.Context, user *User, contact *Co
 
 // CreateQuestionnaire saves a questionnaire to the database
 func (db *PGInstance) CreateQuestionnaire(ctx context.Context, input *Questionnaire) error {
-	if err := db.DB.Create(&input).Error; err != nil {
+	if err := db.DB.WithContext(ctx).Create(&input).Error; err != nil {
 		return fmt.Errorf("failed to create questionnaire: %w", err)
 	}
 	return nil
@@ -655,7 +655,7 @@ func (db *PGInstance) CreateQuestionnaire(ctx context.Context, input *Questionna
 
 // CreateScreeningTool saves a screening tool to the database
 func (db *PGInstance) CreateScreeningTool(ctx context.Context, input *ScreeningTool) error {
-	if err := db.DB.Create(&input).Error; err != nil {
+	if err := db.DB.WithContext(ctx).Create(&input).Error; err != nil {
 		return fmt.Errorf("failed to create screening tool: %w", err)
 	}
 	return nil
@@ -663,7 +663,7 @@ func (db *PGInstance) CreateScreeningTool(ctx context.Context, input *ScreeningT
 
 // CreateQuestion saves a question to the database
 func (db *PGInstance) CreateQuestion(ctx context.Context, input *Question) error {
-	if err := db.DB.Create(&input).Error; err != nil {
+	if err := db.DB.WithContext(ctx).Create(&input).Error; err != nil {
 		return fmt.Errorf("failed to create question: %w", err)
 	}
 	return nil
@@ -671,7 +671,7 @@ func (db *PGInstance) CreateQuestion(ctx context.Context, input *Question) error
 
 // CreateQuestionChoice saves a question choice to the database
 func (db *PGInstance) CreateQuestionChoice(ctx context.Context, input *QuestionInputChoice) error {
-	if err := db.DB.Create(&input).Error; err != nil {
+	if err := db.DB.WithContext(ctx).Create(&input).Error; err != nil {
 		return fmt.Errorf("failed to create question choice: %w", err)
 	}
 	return nil
@@ -679,7 +679,7 @@ func (db *PGInstance) CreateQuestionChoice(ctx context.Context, input *QuestionI
 
 // CreateScreeningToolResponse saves a screening tool response to the database and returns the response ID
 func (db *PGInstance) CreateScreeningToolResponse(ctx context.Context, screeningToolResponse *ScreeningToolResponse, screeningToolQuestionResponses []*ScreeningToolQuestionResponse) (*string, error) {
-	tx := db.DB.Begin()
+	tx := db.DB.WithContext(ctx).Begin()
 
 	if err := tx.Create(screeningToolResponse).Error; err != nil {
 		tx.Rollback()
@@ -704,7 +704,7 @@ func (db *PGInstance) CreateScreeningToolResponse(ctx context.Context, screening
 
 // AddCaregiverToClient adds a caregiver to a client
 func (db *PGInstance) AddCaregiverToClient(ctx context.Context, clientCaregiver *CaregiverClient) error {
-	if err := db.DB.Create(&clientCaregiver).Error; err != nil {
+	if err := db.DB.WithContext(ctx).Create(&clientCaregiver).Error; err != nil {
 		return fmt.Errorf("failed to create client caregiver: %w", err)
 	}
 

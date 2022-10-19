@@ -11,8 +11,6 @@ import (
 	"time"
 
 	"github.com/brianvoe/gofakeit"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/testutils"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/segmentio/ksuid"
 )
 
@@ -263,37 +261,12 @@ func TestCreateFacility(t *testing.T) {
 func TestInactivateFacility(t *testing.T) {
 	ctx := context.Background()
 
-	i, err := testutils.InitializeTestService(ctx)
-	if err != nil {
-		t.Errorf("an error occurred: %v", err)
-	}
-
 	graphQLURL := fmt.Sprintf("%s/%s", baseURL, "graphql")
 
 	headers, err := GetGraphQLHeaders(ctx)
 	if err != nil {
 		t.Errorf("failed to get GraphQL headers: %v", err)
 		return
-	}
-
-	mflcode := rand.Intn(1000000)
-	facilityName := ksuid.New().String()
-	description := gofakeit.HipsterSentence(10)
-	fhirOrganisationID := gofakeit.UUID()
-
-	facilityInput := &dto.FacilityInput{
-		Name:               facilityName,
-		Code:               mflcode,
-		Phone:              "+254711223344",
-		Active:             true,
-		County:             "Baringo",
-		Description:        description,
-		FHIROrganisationID: fhirOrganisationID,
-	}
-
-	facility, err := i.Facility.GetOrCreateFacility(ctx, facilityInput)
-	if err != nil {
-		t.Errorf("an error occurred: %v", err)
 	}
 
 	graphqlMutation := `
@@ -318,7 +291,7 @@ func TestInactivateFacility(t *testing.T) {
 				query: map[string]interface{}{
 					"query": graphqlMutation,
 					"variables": map[string]interface{}{
-						"mflCode": facility.Code,
+						"mflCode": 992912,
 					},
 				},
 			},
@@ -416,37 +389,12 @@ func TestInactivateFacility(t *testing.T) {
 func TestReactivateFacility(t *testing.T) {
 	ctx := context.Background()
 
-	i, err := testutils.InitializeTestService(ctx)
-	if err != nil {
-		t.Errorf("an error occurred: %v", err)
-	}
-
 	graphQLURL := fmt.Sprintf("%s/%s", baseURL, "graphql")
 
 	headers, err := GetGraphQLHeaders(ctx)
 	if err != nil {
 		t.Errorf("failed to get GraphQL headers: %v", err)
 		return
-	}
-
-	mflcode := rand.Intn(1000000)
-	facilityName := ksuid.New().String()
-	description := gofakeit.HipsterSentence(10)
-	fhirOrganisationID := gofakeit.UUID()
-
-	facilityInput := &dto.FacilityInput{
-		Name:               facilityName,
-		Code:               mflcode,
-		Phone:              "+254711223344",
-		Active:             false,
-		County:             "Baringo",
-		Description:        description,
-		FHIROrganisationID: fhirOrganisationID,
-	}
-
-	facility, err := i.Facility.GetOrCreateFacility(ctx, facilityInput)
-	if err != nil {
-		t.Errorf("an error occurred: %v", err)
 	}
 
 	graphqlMutation := `
@@ -471,7 +419,7 @@ func TestReactivateFacility(t *testing.T) {
 				query: map[string]interface{}{
 					"query": graphqlMutation,
 					"variables": map[string]interface{}{
-						"mflCode": facility.Code,
+						"mflCode": 22990001,
 					},
 				},
 			},
