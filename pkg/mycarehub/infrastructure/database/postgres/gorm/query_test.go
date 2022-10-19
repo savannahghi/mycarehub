@@ -2703,7 +2703,7 @@ func TestPGInstance_ListAvailableNotificationTypes(t *testing.T) {
 					Flavour: feedlib.FlavourConsumer,
 				},
 			},
-			want:    []enums.NotificationType{enums.NotificationTypeAppointment},
+			want:    []enums.NotificationType{enums.NotificationTypeAppointment, enums.NotificationTypeServiceRequest},
 			wantErr: false,
 		},
 		{
@@ -2716,7 +2716,7 @@ func TestPGInstance_ListAvailableNotificationTypes(t *testing.T) {
 					Flavour:    feedlib.FlavourPro,
 				},
 			},
-			want:    []enums.NotificationType{enums.NotificationTypeServiceRequest},
+			want:    []enums.NotificationType{enums.NotificationTypeAppointment, enums.NotificationTypeServiceRequest},
 			wantErr: false,
 		},
 	}
@@ -2727,8 +2727,10 @@ func TestPGInstance_ListAvailableNotificationTypes(t *testing.T) {
 				t.Errorf("PGInstance.ListAvailableNotificationTypes() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("PGInstance.ListAvailableNotificationTypes() = %v, want %v", got, tt.want)
+
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected notifications not to be nil for %v", tt.name)
+				return
 			}
 		})
 	}
