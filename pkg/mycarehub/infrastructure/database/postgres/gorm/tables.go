@@ -254,6 +254,7 @@ func (u *User) BeforeDelete(tx *gorm.DB) (err error) {
 	tx.Unscoped().Where(&SecurityQuestionResponse{UserID: *u.UserID}).Delete(&SecurityQuestionResponse{})
 	tx.Unscoped().Where(&UserOTP{UserID: *u.UserID}).Delete(&UserOTP{})
 	tx.Unscoped().Where(&Notification{UserID: u.UserID}).Delete(&Notification{})
+	tx.Unscoped().Where(&Feedback{UserID: *u.UserID}).Delete(&Feedback{})
 	tx.Unscoped().Where(&UserSurvey{UserID: *u.UserID}).Delete(&UserSurvey{})
 	tx.Unscoped().Where(&AuthorityRoleUser{UserID: u.UserID}).Delete(&AuthorityRoleUser{})
 	tx.Unscoped().Where(&Metric{UserID: u.UserID}).Delete(&Metric{})
