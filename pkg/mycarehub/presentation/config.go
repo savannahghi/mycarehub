@@ -50,7 +50,6 @@ import (
 	"github.com/savannahghi/serverutils"
 	"github.com/savannahghi/silcomms"
 	log "github.com/sirupsen/logrus"
-	"go.opentelemetry.io/contrib/instrumentation/github.com/gorilla/mux/otelmux"
 )
 
 const (
@@ -166,7 +165,6 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	internalHandlers := internalRest.NewMyCareHubHandlersInterfaces(*useCase)
 
 	r := mux.NewRouter() // gorilla mux
-	r.Use(otelmux.Middleware(serverutils.MetricsCollectorService("mycarehub")))
 	r.Use(
 		handlers.RecoveryHandler(
 			handlers.PrintRecoveryStack(true),
