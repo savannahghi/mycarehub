@@ -26,7 +26,9 @@ func (db *PGInstance) DeleteFacility(ctx context.Context, mflcode int) (bool, er
 		return false, fmt.Errorf("MFL code cannot be empty")
 	}
 
-	err := db.DB.Scopes(OrganisationScope(ctx)).Where("mfl_code", mflcode).First(&Facility{}).Delete(&Facility{}).Error
+	var facility Facility
+
+	err := db.DB.Scopes(OrganisationScope(ctx, facility.TableName())).Where("mfl_code", mflcode).First(&Facility{}).Delete(&Facility{}).Error
 	if err != nil {
 		return false, fmt.Errorf("an error occurred while deleting: %v", err)
 	}
@@ -36,7 +38,8 @@ func (db *PGInstance) DeleteFacility(ctx context.Context, mflcode int) (bool, er
 
 // DeleteStaffProfile will do the actual deletion of a staff profile from the database
 func (db *PGInstance) DeleteStaffProfile(ctx context.Context, staffID string) error {
-	tx := db.DB.Scopes(OrganisationScope(ctx)).Begin()
+	var staff StaffProfile
+	tx := db.DB.Begin()
 	defer func() {
 		if r := recover(); r != nil {
 			tx.Rollback()
@@ -100,7 +103,7 @@ func (db *PGInstance) DeleteStaffProfile(ctx context.Context, staffID string) er
 		}
 	}
 
-	err = tx.Model(&StaffProfile{}).Unscoped().Where("id", staffID).First(&StaffProfile{}).Delete(&StaffProfile{}).Error
+	err = tx.Scopes(OrganisationScope(ctx, staff.TableName())).Model(&StaffProfile{}).Unscoped().Where("id", staffID).First(&StaffProfile{}).Delete(&StaffProfile{}).Error
 	if err != nil {
 		tx.Rollback()
 		return fmt.Errorf("an error occurred while deleting staff profile: %v", err)
@@ -122,7 +125,7 @@ func (db *PGInstance) DeleteUser(
 	staffID *string,
 	flavour feedlib.Flavour,
 ) error {
-	tx := db.DB.Scopes(OrganisationScope(ctx)).Begin()
+	tx := db.DB.Begin()
 	defer func() {
 		if r := recover(); r != nil {
 			tx.Rollback()
@@ -161,7 +164,9 @@ func (db *PGInstance) DeleteUser(
 
 // DeleteCommunity deletes the specified community from the database
 func (db *PGInstance) DeleteCommunity(ctx context.Context, communityID string) error {
-	err := db.DB.Scopes(OrganisationScope(ctx)).Where("id = ?", communityID).Delete(&Community{}).Error
+	var community Community
+
+	err := db.DB.Scopes(OrganisationScope(ctx, community.TableName())).Where("id = ?", communityID).Delete(&Community{}).Error
 	if err != nil {
 		// skip error if not found
 		if err == gorm.ErrRecordNotFound {
@@ -176,7 +181,7 @@ func (db *PGInstance) DeleteCommunity(ctx context.Context, communityID string) e
 func (db *PGInstance) RemoveFacilitiesFromClientProfile(ctx context.Context, clientID string, facilities []string) error {
 	clientFacilities := ClientFacilities{}
 
-	tx := db.DB.Scopes(OrganisationScope(ctx)).Begin()
+	tx := db.DB.Begin()
 	defer func() {
 		if r := recover(); r != nil {
 			tx.Rollback()
@@ -204,7 +209,7 @@ func (db *PGInstance) RemoveFacilitiesFromClientProfile(ctx context.Context, cli
 func (db *PGInstance) RemoveFacilitiesFromStaffProfile(ctx context.Context, staffID string, facilities []string) error {
 	staffFacilities := StaffFacilities{}
 
-	tx := db.DB.Scopes(OrganisationScope(ctx)).Begin()
+	tx := db.DB.Begin()
 	defer func() {
 		if r := recover(); r != nil {
 			tx.Rollback()
