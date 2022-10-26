@@ -12,8 +12,6 @@ import (
 )
 
 func TestPGInstance_DeleteFacility(t *testing.T) {
-	ctx := context.Background()
-
 	ID := uuid.New().String()
 	name := ksuid.New().String()
 	code := rand.Intn(1000000)
@@ -31,7 +29,7 @@ func TestPGInstance_DeleteFacility(t *testing.T) {
 		FHIROrganisationID: FHIROrganisationID,
 	}
 
-	facility, err := testingDB.GetOrCreateFacility(ctx, facility)
+	facility, err := testingDB.GetOrCreateFacility(addOrganizationContext(context.Background()), facility)
 	if err != nil {
 		t.Errorf("failed to create test facility: %v", err)
 		return
@@ -50,7 +48,7 @@ func TestPGInstance_DeleteFacility(t *testing.T) {
 		{
 			name: "Happy Case - Successfully delete facility",
 			args: args{
-				ctx:     ctx,
+				ctx:     addOrganizationContext(context.Background()),
 				mflcode: facility.Code,
 			},
 			want:    true,
@@ -59,7 +57,7 @@ func TestPGInstance_DeleteFacility(t *testing.T) {
 		{
 			name: "Sad Case - Fail to delete facility",
 			args: args{
-				ctx: ctx,
+				ctx: addOrganizationContext(context.Background()),
 			},
 			want:    false,
 			wantErr: true,
@@ -67,7 +65,7 @@ func TestPGInstance_DeleteFacility(t *testing.T) {
 		{
 			name: "Sad Case - Invalid facility",
 			args: args{
-				ctx:     ctx,
+				ctx:     addOrganizationContext(context.Background()),
 				mflcode: 789555,
 			},
 			want:    false,
@@ -89,7 +87,6 @@ func TestPGInstance_DeleteFacility(t *testing.T) {
 }
 
 func TestPGInstance_DeleteStaffProfile(t *testing.T) {
-	ctx := context.Background()
 
 	type args struct {
 		ctx     context.Context
@@ -104,7 +101,7 @@ func TestPGInstance_DeleteStaffProfile(t *testing.T) {
 		{
 			name: "Happy Case - Successfully delete staff profile",
 			args: args{
-				ctx:     ctx,
+				ctx:     addOrganizationContext(context.Background()),
 				staffID: staffIDToDelete,
 			},
 			want:    true,
@@ -113,7 +110,7 @@ func TestPGInstance_DeleteStaffProfile(t *testing.T) {
 		{
 			name: "Sad Case - Unable delete staff profile",
 			args: args{
-				ctx:     ctx,
+				ctx:     addOrganizationContext(context.Background()),
 				staffID: uuid.New().String(),
 			},
 			want:    false,
@@ -132,7 +129,6 @@ func TestPGInstance_DeleteStaffProfile(t *testing.T) {
 }
 
 func TestPGInstance_DeleteCommunity(t *testing.T) {
-	ctx := context.Background()
 	type args struct {
 		ctx         context.Context
 		communityID string
@@ -145,7 +141,7 @@ func TestPGInstance_DeleteCommunity(t *testing.T) {
 		{
 			name: "Happy Case - Successfully delete community",
 			args: args{
-				ctx:         ctx,
+				ctx:         addOrganizationContext(context.Background()),
 				communityID: communityIDToDelete,
 			},
 			wantErr: false,
@@ -153,7 +149,7 @@ func TestPGInstance_DeleteCommunity(t *testing.T) {
 		{
 			name: "Sad Case - Unable delete community, not found",
 			args: args{
-				ctx:         ctx,
+				ctx:         addOrganizationContext(context.Background()),
 				communityID: uuid.New().String(),
 			},
 			wantErr: false, // skip error checking for this case
@@ -161,7 +157,7 @@ func TestPGInstance_DeleteCommunity(t *testing.T) {
 		{
 			name: "Sad Case - Unable delete community, invalid id",
 			args: args{
-				ctx:         ctx,
+				ctx:         addOrganizationContext(context.Background()),
 				communityID: "invalid id",
 			},
 			wantErr: true,

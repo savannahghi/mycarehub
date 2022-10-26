@@ -31,6 +31,17 @@
   description: Operates from Monday to Friday
   organisation_id: {{.test_organisation_id}}
 
+  # inactive facility
+- id: 4188df12-ca96-4f28-b78b-8e8ad88b35ef
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  name: Lakipia hospital
+  mfl_code: 22990001
+  active: false
+  county: Laikipia
+  description: Operates from Monday to Friday
+  organisation_id: {{.test_organisation_id}}
+
   # facility to inactivate
 - id: 4181df12-ca96-4f28-b78b-8e8ad88b25ee
   created: 2021-11-22 21:16:29.23639+03

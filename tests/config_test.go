@@ -101,7 +101,7 @@ func GetBearerTokenHeader(ctx context.Context) (string, error) {
 		return "", fmt.Errorf("nil firebase user")
 	}
 
-	customToken, err := firebasetools.CreateFirebaseCustomToken(ctx, user.UID)
+	customToken, err := firebasetools.CreateFirebaseCustomToken(ctx, userID)
 	if err != nil {
 		return "", fmt.Errorf("can't create custom token: %s", err)
 	}
