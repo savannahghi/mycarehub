@@ -1,7 +1,7 @@
 BEGIN;
 
 ALTER TABLE common_feedback
-    ADD COLUMN gender varchar(15) NOT NULL,
-    ADD COLUMN facility_id varchar(255) NOT NULL;
+    ADD COLUMN IF NOT EXISTS gender varchar(15) NOT NULL,
+    ADD COLUMN IF NOT EXISTS facility_id varchar(255) NOT NULL;
 
 COMMIT;

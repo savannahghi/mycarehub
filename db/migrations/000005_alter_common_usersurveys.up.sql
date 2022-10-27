@@ -1,3 +1,4 @@
 BEGIN;
-ALTER TABLE common_usersurveys ADD submitted_at TIMESTAMP WITH TIME ZONE;
+ALTER TABLE common_usersurveys 
+ADD COLUMN IF NOT EXISTS submitted_at TIMESTAMP WITH TIME ZONE;
 COMMIT;
