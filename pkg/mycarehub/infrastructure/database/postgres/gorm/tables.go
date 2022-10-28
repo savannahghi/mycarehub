@@ -718,7 +718,7 @@ func (c *ClientHealthDiaryEntry) BeforeCreate(tx *gorm.DB) (err error) {
 }
 
 // TableName references the table that we map data from
-func (ClientHealthDiaryEntry) TableName() string {
+func (c *ClientHealthDiaryEntry) TableName() string {
 	return "clients_healthdiaryentry"
 }
 
@@ -957,7 +957,7 @@ func (c *Community) BeforeCreate(tx *gorm.DB) (err error) {
 }
 
 // TableName references the table that we map data from
-func (Community) TableName() string {
+func (c *Community) TableName() string {
 	return "communities_community"
 }
 

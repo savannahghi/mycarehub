@@ -735,7 +735,7 @@ func TestPGInstance_InvalidateScreeningToolResponse(t *testing.T) {
 	}
 }
 
-func TestPGInstance_UpdateServiceRequestsFromKenyaEMR(t *testing.T) {
+func TestPGInstance_UpdateServiceRequests(t *testing.T) {
 
 	pg, err := gorm.NewPGInstance()
 	if err != nil {
@@ -829,7 +829,7 @@ func TestPGInstance_UpdateAppointment(t *testing.T) {
 		{
 			name: "Happy case: update an appointment using id",
 			args: args{
-				ctx: context.Background(),
+				ctx: addOrganizationContext(context.Background()),
 				payload: &gorm.Appointment{
 					ID: appointmentID,
 				},
@@ -844,7 +844,7 @@ func TestPGInstance_UpdateAppointment(t *testing.T) {
 		{
 			name: "Sad case: update non-existent appointment",
 			args: args{
-				ctx: context.Background(),
+				ctx: addOrganizationContext(context.Background()),
 				payload: &gorm.Appointment{
 					ID: gofakeit.UUID(),
 				},
@@ -859,7 +859,7 @@ func TestPGInstance_UpdateAppointment(t *testing.T) {
 		{
 			name: "Sad case: update appointment missing ids",
 			args: args{
-				ctx:     context.Background(),
+				ctx:     addOrganizationContext(context.Background()),
 				payload: &gorm.Appointment{},
 				updateData: map[string]interface{}{
 					"client_id": clientID,
@@ -898,7 +898,7 @@ func TestPGInstance_UpdateUserPinUpdateRequiredStatus(t *testing.T) {
 		{
 			name: "Happy case: update user pin update required status",
 			args: args{
-				ctx:     context.Background(),
+				ctx:     addOrganizationContext(context.Background()),
 				userID:  userID2,
 				flavour: feedlib.FlavourConsumer,
 				status:  true,
@@ -930,7 +930,7 @@ func TestPGInstance_UpdateClient(t *testing.T) {
 		{
 			name: "Happy case: update client profile",
 			args: args{
-				ctx: context.Background(),
+				ctx: addOrganizationContext(context.Background()),
 				client: &gorm.Client{
 					ID: &clientID,
 				},
@@ -1406,7 +1406,7 @@ func TestPGInstance_UpdateStaff(t *testing.T) {
 		{
 			name: "Happy case: update staff profile",
 			args: args{
-				ctx:     context.Background(),
+				ctx:     addOrganizationContext(context.Background()),
 				staff:   &gorm.StaffProfile{ID: &staffID},
 				updates: map[string]interface{}{"active": true},
 			},
@@ -1416,7 +1416,7 @@ func TestPGInstance_UpdateStaff(t *testing.T) {
 		{
 			name: "Sad case: update staff profile",
 			args: args{
-				ctx:     context.Background(),
+				ctx:     addOrganizationContext(context.Background()),
 				staff:   &gorm.StaffProfile{ID: &invalidID},
 				updates: map[string]interface{}{"active": true},
 			},
@@ -1563,7 +1563,7 @@ func TestPGInstance_UpdateCaregiverClient(t *testing.T) {
 		{
 			name: "Happy case: update consent",
 			args: args{
-				ctx: context.Background(),
+				ctx: addOrganizationContext(context.Background()),
 				caregiverClient: &gorm.CaregiverClient{
 					ClientID: clientID,
 				},
@@ -1577,7 +1577,7 @@ func TestPGInstance_UpdateCaregiverClient(t *testing.T) {
 		{
 			name: "Sad case: unable to update consent",
 			args: args{
-				ctx: context.Background(),
+				ctx: addOrganizationContext(context.Background()),
 				caregiverClient: &gorm.CaregiverClient{
 					ClientID: "clientID",
 				},
