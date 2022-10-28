@@ -9,6 +9,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 )
 
+// CollectMetric is the resolver for the collectMetric field.
 func (r *mutationResolver) CollectMetric(ctx context.Context, input domain.Metric) (bool, error) {
 	return r.mycarehub.Metrics.CollectMetric(ctx, input)
 }

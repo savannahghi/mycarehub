@@ -387,6 +387,7 @@ type CaregiverProfile {
   id: ID!
   user: User!
   caregiverNumber: String!
+  isClient: Boolean
 }
 
 type ScreeningToolAssessmentResponse {

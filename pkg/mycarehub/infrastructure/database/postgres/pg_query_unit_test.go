@@ -6984,6 +6984,14 @@ func TestMyCareHubDb_SearchCaregiverUser(t *testing.T) {
 			},
 			wantErr: true,
 		},
+		{
+			name: "Sad case: unable to get client profile by user ID",
+			args: args{
+				ctx:             context.Background(),
+				searchParameter: "CG001",
+			},
+			wantErr: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -6997,6 +7005,11 @@ func TestMyCareHubDb_SearchCaregiverUser(t *testing.T) {
 			}
 			if tt.name == "Sad case: unable to get user profile by user ID" {
 				fakeGorm.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID *string) (*gorm.User, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case: unable to get client profile by user ID" {
+				fakeGorm.MockGetClientProfileByUserIDFn = func(ctx context.Context, userID string) (*gorm.Client, error) {
 					return nil, fmt.Errorf("an error occurred")
 				}
 			}

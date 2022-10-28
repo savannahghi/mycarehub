@@ -10,14 +10,17 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 )
 
+// AssignOrRevokeRoles is the resolver for the assignOrRevokeRoles field.
 func (r *mutationResolver) AssignOrRevokeRoles(ctx context.Context, userID string, roles []*enums.UserRoleType) (bool, error) {
 	return r.mycarehub.Authority.AssignOrRevokeRoles(ctx, userID, roles)
 }
 
+// GetUserRoles is the resolver for the getUserRoles field.
 func (r *queryResolver) GetUserRoles(ctx context.Context, userID string) ([]*domain.AuthorityRole, error) {
 	return r.mycarehub.Authority.GetUserRoles(ctx, userID)
 }
 
+// GetAllAuthorityRoles is the resolver for the getAllAuthorityRoles field.
 func (r *queryResolver) GetAllAuthorityRoles(ctx context.Context) ([]*domain.AuthorityRole, error) {
 	return r.mycarehub.Authority.GetAllRoles(ctx)
 }
