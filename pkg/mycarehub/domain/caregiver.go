@@ -20,6 +20,7 @@ type CaregiverProfile struct {
 	UserID          string `json:"userID"`
 	User            User   `json:"user"`
 	CaregiverNumber string `json:"caregiver_number"`
+	IsClient        bool   `json:"is_client"`
 }
 
 // CaregiverClient models the clients

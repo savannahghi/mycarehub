@@ -13,14 +13,17 @@ import (
 	"github.com/savannahghi/scalarutils"
 )
 
+// RescheduleAppointment is the resolver for the rescheduleAppointment field.
 func (r *mutationResolver) RescheduleAppointment(ctx context.Context, appointmentID string, date scalarutils.Date) (bool, error) {
 	return r.mycarehub.Appointment.RescheduleClientAppointment(ctx, appointmentID, date)
 }
 
+// FetchClientAppointments is the resolver for the fetchClientAppointments field.
 func (r *queryResolver) FetchClientAppointments(ctx context.Context, clientID string, paginationInput dto.PaginationsInput, filters []*firebasetools.FilterParam) (*domain.AppointmentsPage, error) {
 	return r.mycarehub.Appointment.FetchClientAppointments(ctx, clientID, paginationInput, filters)
 }
 
+// NextRefill is the resolver for the nextRefill field.
 func (r *queryResolver) NextRefill(ctx context.Context, clientID string) (*scalarutils.Date, error) {
 	return r.mycarehub.Appointment.NextRefill(ctx, clientID)
 }

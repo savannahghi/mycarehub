@@ -9,6 +9,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 )
 
+// SendFeedback is the resolver for the sendFeedback field.
 func (r *mutationResolver) SendFeedback(ctx context.Context, input dto.FeedbackResponseInput) (bool, error) {
 	r.checkPreconditions()
 

@@ -467,10 +467,22 @@ func (d *MyCareHubDb) SearchCaregiverUser(ctx context.Context, searchParameter s
 		}
 		user := createMapUser(userProfile)
 
+		clientProfile, err := d.query.GetClientProfileByUserID(ctx, *userProfile.UserID)
+		if err != nil {
+			// Do not lock the search if no client profile is found since we are only using the response to know if the caregiver is a client
+			log.Printf("unable to get client profile: %v", err)
+		}
+
+		var isClient bool
+		if clientProfile != nil {
+			isClient = true
+		}
+
 		caregiverProfile := &domain.CaregiverProfile{
 			ID:              caregiver.ID,
 			User:            *user,
 			CaregiverNumber: caregiver.CaregiverNumber,
+			IsClient:        isClient,
 		}
 
 		caregiverProfiles = append(caregiverProfiles, caregiverProfile)

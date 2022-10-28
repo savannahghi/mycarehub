@@ -105,6 +105,7 @@ type ComplexityRoot struct {
 	CaregiverProfile struct {
 		CaregiverNumber func(childComplexity int) int
 		ID              func(childComplexity int) int
+		IsClient        func(childComplexity int) int
 		User            func(childComplexity int) int
 	}
 
@@ -1209,6 +1210,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.CaregiverProfile.ID(childComplexity), true
+
+	case "CaregiverProfile.isClient":
+		if e.complexity.CaregiverProfile.IsClient == nil {
+			break
+		}
+
+		return e.complexity.CaregiverProfile.IsClient(childComplexity), true
 
 	case "CaregiverProfile.user":
 		if e.complexity.CaregiverProfile.User == nil {
@@ -6679,6 +6687,7 @@ type CaregiverProfile {
   id: ID!
   user: User!
   caregiverNumber: String!
+  isClient: Boolean
 }
 
 type ScreeningToolAssessmentResponse {
@@ -7037,7 +7046,7 @@ extend type Mutation {
 	{Name: "../../../../../federation/directives.graphql", Input: `
 	scalar _Any
 	scalar _FieldSet
-	
+
 	directive @external on FIELD_DEFINITION
 	directive @requires(fields: _FieldSet!) on FIELD_DEFINITION
 	directive @provides(fields: _FieldSet!) on FIELD_DEFINITION
@@ -11030,6 +11039,47 @@ func (ec *executionContext) fieldContext_CaregiverProfile_caregiverNumber(ctx co
 	return fc, nil
 }
 
+func (ec *executionContext) _CaregiverProfile_isClient(ctx context.Context, field graphql.CollectedField, obj *domain.CaregiverProfile) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CaregiverProfile_isClient(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.IsClient, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CaregiverProfile_isClient(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CaregiverProfile",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _CaregiverProfileOutputPage_pagination(ctx context.Context, field graphql.CollectedField, obj *dto.CaregiverProfileOutputPage) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_CaregiverProfileOutputPage_pagination(ctx, field)
 	if err != nil {
@@ -11315,6 +11365,8 @@ func (ec *executionContext) fieldContext_ClientCaregivers_caregivers(ctx context
 				return ec.fieldContext_CaregiverProfile_user(ctx, field)
 			case "caregiverNumber":
 				return ec.fieldContext_CaregiverProfile_caregiverNumber(ctx, field)
+			case "isClient":
+				return ec.fieldContext_CaregiverProfile_isClient(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type CaregiverProfile", field.Name)
 		},
@@ -23439,6 +23491,8 @@ func (ec *executionContext) fieldContext_Mutation_registerCaregiver(ctx context.
 				return ec.fieldContext_CaregiverProfile_user(ctx, field)
 			case "caregiverNumber":
 				return ec.fieldContext_CaregiverProfile_caregiverNumber(ctx, field)
+			case "isClient":
+				return ec.fieldContext_CaregiverProfile_isClient(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type CaregiverProfile", field.Name)
 		},
@@ -23502,6 +23556,8 @@ func (ec *executionContext) fieldContext_Mutation_registerClientAsCaregiver(ctx 
 				return ec.fieldContext_CaregiverProfile_user(ctx, field)
 			case "caregiverNumber":
 				return ec.fieldContext_CaregiverProfile_caregiverNumber(ctx, field)
+			case "isClient":
+				return ec.fieldContext_CaregiverProfile_isClient(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type CaregiverProfile", field.Name)
 		},
@@ -28595,6 +28651,8 @@ func (ec *executionContext) fieldContext_Query_searchCaregiverUser(ctx context.C
 				return ec.fieldContext_CaregiverProfile_user(ctx, field)
 			case "caregiverNumber":
 				return ec.fieldContext_CaregiverProfile_caregiverNumber(ctx, field)
+			case "isClient":
+				return ec.fieldContext_CaregiverProfile_isClient(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type CaregiverProfile", field.Name)
 		},
@@ -38973,7 +39031,12 @@ func (ec *executionContext) unmarshalInputAgeRangeInput(ctx context.Context, obj
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"lowerBound", "upperBound"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "lowerBound":
 			var err error
@@ -39004,7 +39067,12 @@ func (ec *executionContext) unmarshalInputCaregiverInput(ctx context.Context, ob
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"name", "gender", "dateOfBirth", "phoneNumber", "caregiverNumber", "sendInvite", "assignedClients"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "name":
 			var err error
@@ -39075,7 +39143,12 @@ func (ec *executionContext) unmarshalInputClientCaregiverInput(ctx context.Conte
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"clientID", "caregiverID", "caregiverType"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "clientID":
 			var err error
@@ -39114,7 +39187,12 @@ func (ec *executionContext) unmarshalInputClientFilterParamsInput(ctx context.Co
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"clientTypes", "ageRange", "gender"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "clientTypes":
 			var err error
@@ -39153,7 +39231,12 @@ func (ec *executionContext) unmarshalInputClientRegistrationInput(ctx context.Co
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"facility", "clientTypes", "clientName", "gender", "dateOfBirth", "phoneNumber", "enrollmentDate", "cccNumber", "counselled", "inviteClient"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "facility":
 			var err error
@@ -39248,7 +39331,12 @@ func (ec *executionContext) unmarshalInputCommunityInput(ctx context.Context, ob
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"name", "description", "ageRange", "gender", "clientType", "inviteOnly"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "name":
 			var err error
@@ -39311,7 +39399,12 @@ func (ec *executionContext) unmarshalInputFacilityInput(ctx context.Context, obj
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"name", "code", "phone", "active", "county", "description"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "name":
 			var err error
@@ -39374,7 +39467,12 @@ func (ec *executionContext) unmarshalInputFeedbackResponseInput(ctx context.Cont
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"userID", "feedbackType", "satisfactionLevel", "serviceName", "feedback", "requiresFollowUp"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "userID":
 			var err error
@@ -39437,7 +39535,12 @@ func (ec *executionContext) unmarshalInputFilterParam(ctx context.Context, obj i
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"fieldName", "fieldType", "comparisonOperation", "fieldValue"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "fieldName":
 			var err error
@@ -39484,7 +39587,12 @@ func (ec *executionContext) unmarshalInputFiltersInput(ctx context.Context, obj 
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"DataType", "Value"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "DataType":
 			var err error
@@ -39515,7 +39623,12 @@ func (ec *executionContext) unmarshalInputFirebaseSimpleNotificationInput(ctx co
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"title", "body", "imageURL", "data"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "title":
 			var err error
@@ -39562,7 +39675,12 @@ func (ec *executionContext) unmarshalInputMetricInput(ctx context.Context, obj i
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"userID", "type", "event"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "userID":
 			var err error
@@ -39601,7 +39719,12 @@ func (ec *executionContext) unmarshalInputNotificationFilters(ctx context.Contex
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"isRead", "notificationTypes"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "isRead":
 			var err error
@@ -39632,7 +39755,12 @@ func (ec *executionContext) unmarshalInputPINInput(ctx context.Context, obj inte
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"userID", "pin", "confirmPIN", "flavour"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "userID":
 			var err error
@@ -39679,7 +39807,12 @@ func (ec *executionContext) unmarshalInputPaginationsInput(ctx context.Context, 
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"Limit", "CurrentPage", "Sort"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "Limit":
 			var err error
@@ -39718,7 +39851,12 @@ func (ec *executionContext) unmarshalInputQueryOption(ctx context.Context, obj i
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"filter", "sort", "userID", "limit", "offset", "messageLimit", "memberLimit"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "filter":
 			var err error
@@ -39789,7 +39927,12 @@ func (ec *executionContext) unmarshalInputQuestionInput(ctx context.Context, obj
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"text", "questionType", "responseValueType", "required", "selectMultiple", "sequence", "choices"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "text":
 			var err error
@@ -39860,7 +40003,12 @@ func (ec *executionContext) unmarshalInputQuestionInputChoiceInput(ctx context.C
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"choice", "value", "score"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "choice":
 			var err error
@@ -39899,7 +40047,12 @@ func (ec *executionContext) unmarshalInputQuestionnaireInput(ctx context.Context
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"name", "description", "questions"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "name":
 			var err error
@@ -39938,7 +40091,12 @@ func (ec *executionContext) unmarshalInputQuestionnaireScreeningToolQuestionResp
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"questionID", "response"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "questionID":
 			var err error
@@ -39969,7 +40127,12 @@ func (ec *executionContext) unmarshalInputQuestionnaireScreeningToolResponseInpu
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"screeningToolID", "clientID", "questionResponses"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "screeningToolID":
 			var err error
@@ -40008,7 +40171,12 @@ func (ec *executionContext) unmarshalInputScreeningToolInput(ctx context.Context
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"questionnaire", "threshold", "clientTypes", "genders", "ageRange"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "questionnaire":
 			var err error
@@ -40063,7 +40231,12 @@ func (ec *executionContext) unmarshalInputScreeningToolQuestionResponseInput(ctx
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"clientID", "questionID", "response"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "clientID":
 			var err error
@@ -40102,7 +40275,12 @@ func (ec *executionContext) unmarshalInputSecurityQuestionResponseInput(ctx cont
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"userID", "securityQuestionID", "response"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "userID":
 			var err error
@@ -40141,7 +40319,12 @@ func (ec *executionContext) unmarshalInputServiceRequestInput(ctx context.Contex
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"Active", "RequestType", "Status", "Request", "ClientID", "InProgressBy", "ResolvedBy", "FacilityID", "ClientName", "Flavour", "Meta"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "Active":
 			var err error
@@ -40244,7 +40427,12 @@ func (ec *executionContext) unmarshalInputShareContentInput(ctx context.Context,
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"UserID", "ContentID", "Channel"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "UserID":
 			var err error
@@ -40283,7 +40471,12 @@ func (ec *executionContext) unmarshalInputSortOption(ctx context.Context, obj in
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"field", "direction"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "field":
 			var err error
@@ -40314,7 +40507,12 @@ func (ec *executionContext) unmarshalInputSortsInput(ctx context.Context, obj in
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"Direction", "Field"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "Direction":
 			var err error
@@ -40345,7 +40543,12 @@ func (ec *executionContext) unmarshalInputStaffRegistrationInput(ctx context.Con
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"facility", "staffName", "gender", "dateOfBirth", "phoneNumber", "idNumber", "staffNumber", "staffRoles", "inviteStaff"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "facility":
 			var err error
@@ -40432,7 +40635,12 @@ func (ec *executionContext) unmarshalInputSurveyResponseInput(ctx context.Contex
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"projectID", "formID", "submitterID"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "projectID":
 			var err error
@@ -40471,7 +40679,12 @@ func (ec *executionContext) unmarshalInputVerifySurveySubmissionInput(ctx contex
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"projectID", "formID", "submitterID"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "projectID":
 			var err error
@@ -40840,6 +41053,10 @@ func (ec *executionContext) _CaregiverProfile(ctx context.Context, sel ast.Selec
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "isClient":
+
+			out.Values[i] = ec._CaregiverProfile_isClient(ctx, field, obj)
+
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
