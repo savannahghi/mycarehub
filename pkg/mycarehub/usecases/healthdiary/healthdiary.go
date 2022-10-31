@@ -116,7 +116,7 @@ func (h UseCasesHealthDiaryImpl) CreateHealthDiaryEntry(
 			healthDiaryEntry.SharedAt = &currentTime
 		}
 
-		err := h.Create.CreateHealthDiaryEntry(ctx, healthDiaryEntry)
+		healthDiaryEntry, err := h.Create.CreateHealthDiaryEntry(ctx, healthDiaryEntry)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
 			return false, fmt.Errorf("failed to save health diary entry")
@@ -130,7 +130,8 @@ func (h UseCasesHealthDiaryImpl) CreateHealthDiaryEntry(
 			FacilityID:  clientProfile.DefaultFacilityID,
 			ClientName:  &clientProfile.User.Name,
 			Meta: map[string]interface{}{
-				"note": healthDiaryEntry.Note,
+				"note":               healthDiaryEntry.Note,
+				"healthDiaryEntryID": healthDiaryEntry.ID,
 			},
 		}
 
@@ -155,7 +156,7 @@ func (h UseCasesHealthDiaryImpl) CreateHealthDiaryEntry(
 		if reportToStaff {
 			healthDiaryEntry.SharedAt = &currentTime
 		}
-		err := h.Create.CreateHealthDiaryEntry(ctx, healthDiaryEntry)
+		_, err := h.Create.CreateHealthDiaryEntry(ctx, healthDiaryEntry)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
 			return false, fmt.Errorf("failed to save health diary entry")
