@@ -20,28 +20,29 @@ import (
 
 // FakeExtensionImpl mocks the external calls logic
 type FakeExtensionImpl struct {
-	MockComparePINFn                      func(rawPwd string, salt string, encodedPwd string, options *extension.Options) bool
-	MockCreateFirebaseCustomTokenFn       func(ctx context.Context, uid string) (string, error)
-	MockAuthenticateCustomFirebaseTokenFn func(customAuthToken string) (*firebasetools.FirebaseUserTokens, error)
-	MockGenerateTempPINFn                 func(ctx context.Context) (string, error)
-	MockEncryptPINFn                      func(rawPwd string, options *extension.Options) (string, string)
-	MockSendSMSFn                         func(ctx context.Context, phoneNumbers string, message string, from enumutils.SenderID) (*openSourceDto.SendMessageResponse, error)
-	MockGenerateAndSendOTPFn              func(ctx context.Context, phoneNumber string) (string, error)
-	MockGenerateOTPFn                     func(ctx context.Context) (string, error)
-	MockGenerateRetryOTPFn                func(ctx context.Context, payload *dto.SendRetryOTPPayload) (string, error)
-	MockSendSMSViaTwilioFn                func(ctx context.Context, phonenumber, message string) error
-	MockSendInviteSMSFn                   func(ctx context.Context, phoneNumber, message string) error
-	MockSendFeedbackFn                    func(ctx context.Context, subject, feedbackMessage string) (bool, error)
-	MockGetLoggedInUserUIDFn              func(ctx context.Context) (string, error)
-	MockMakeRequestFn                     func(ctx context.Context, method string, path string, body interface{}) (*http.Response, error)
-	MockLoginFn                           func(ctx context.Context) http.HandlerFunc
-	MockNamespacePubsubIdentifierFn       func(serviceName string, topicID string, environment string, version string) string
-	MockPublishToPubsubFn                 func(ctx context.Context, pubsubClient *pubsub.Client, topicID string, environment string, serviceName string, version string, payload []byte) error
-	MockEnsureTopicsExistFn               func(ctx context.Context, pubsubClient *pubsub.Client, topicIDs []string) error
-	MockEnsureSubscriptionsExistFn        func(ctx context.Context, pubsubClient *pubsub.Client, topicSubscriptionMap map[string]string, callbackURL string) error
-	MockVerifyPubSubJWTAndDecodePayloadFn func(w http.ResponseWriter, r *http.Request) (*pubsubtools.PubSubPayload, error)
-	MockLoadDepsFromYAMLFn                func() (*interserviceclient.DepsConfig, error)
-	MockSetupISCclientFn                  func(config interserviceclient.DepsConfig, serviceName string) (*interserviceclient.InterServiceClient, error)
+	MockComparePINFn                          func(rawPwd string, salt string, encodedPwd string, options *extension.Options) bool
+	MockCreateFirebaseCustomTokenFn           func(ctx context.Context, uid string) (string, error)
+	MockAuthenticateCustomFirebaseTokenFn     func(customAuthToken string) (*firebasetools.FirebaseUserTokens, error)
+	MockGenerateTempPINFn                     func(ctx context.Context) (string, error)
+	MockEncryptPINFn                          func(rawPwd string, options *extension.Options) (string, string)
+	MockSendSMSFn                             func(ctx context.Context, phoneNumbers string, message string, from enumutils.SenderID) (*openSourceDto.SendMessageResponse, error)
+	MockGenerateAndSendOTPFn                  func(ctx context.Context, phoneNumber string) (string, error)
+	MockGenerateOTPFn                         func(ctx context.Context) (string, error)
+	MockGenerateRetryOTPFn                    func(ctx context.Context, payload *dto.SendRetryOTPPayload) (string, error)
+	MockSendSMSViaTwilioFn                    func(ctx context.Context, phonenumber, message string) error
+	MockSendInviteSMSFn                       func(ctx context.Context, phoneNumber, message string) error
+	MockSendFeedbackFn                        func(ctx context.Context, subject, feedbackMessage string) (bool, error)
+	MockGetLoggedInUserUIDFn                  func(ctx context.Context) (string, error)
+	MockMakeRequestFn                         func(ctx context.Context, method string, path string, body interface{}) (*http.Response, error)
+	MockLoginFn                               func(ctx context.Context) http.HandlerFunc
+	MockNamespacePubsubIdentifierFn           func(serviceName string, topicID string, environment string, version string) string
+	MockPublishToPubsubFn                     func(ctx context.Context, pubsubClient *pubsub.Client, topicID string, environment string, serviceName string, version string, payload []byte) error
+	MockEnsureTopicsExistFn                   func(ctx context.Context, pubsubClient *pubsub.Client, topicIDs []string) error
+	MockEnsureSubscriptionsExistFn            func(ctx context.Context, pubsubClient *pubsub.Client, topicSubscriptionMap map[string]string, callbackURL string) error
+	MockVerifyPubSubJWTAndDecodePayloadFn     func(w http.ResponseWriter, r *http.Request) (*pubsubtools.PubSubPayload, error)
+	MockLoadDepsFromYAMLFn                    func() (*interserviceclient.DepsConfig, error)
+	MockSetupISCclientFn                      func(config interserviceclient.DepsConfig, serviceName string) (*interserviceclient.InterServiceClient, error)
+	MockCreateFirebaseCustomTokenWithClaimsFn func(ctx context.Context, uid string, claims map[string]interface{}) (string, error)
 }
 
 // NewFakeExtension initializes a new instance of the external calls mock
@@ -82,7 +83,9 @@ func NewFakeExtension() *FakeExtensionImpl {
 		MockCreateFirebaseCustomTokenFn: func(ctx context.Context, uid string) (string, error) {
 			return uuid.New().String(), nil
 		},
-
+		MockCreateFirebaseCustomTokenWithClaimsFn: func(ctx context.Context, uid string, claims map[string]interface{}) (string, error) {
+			return uuid.New().String(), nil
+		},
 		MockAuthenticateCustomFirebaseTokenFn: func(customAuthToken string) (*firebasetools.FirebaseUserTokens, error) {
 			return &firebasetools.FirebaseUserTokens{
 				IDToken:      uuid.New().String(),
@@ -287,4 +290,10 @@ func (f *FakeExtensionImpl) LoadDepsFromYAML() (*interserviceclient.DepsConfig, 
 // SetupISCclient creates an isc client
 func (f *FakeExtensionImpl) SetupISCclient(config interserviceclient.DepsConfig, serviceName string) (*interserviceclient.InterServiceClient, error) {
 	return f.MockSetupISCclientFn(config, serviceName)
+}
+
+// CreateFirebaseCustomTokenWithClaims creates a custom auth token for the user with the
+// indicated UID and additional claims
+func (f *FakeExtensionImpl) CreateFirebaseCustomTokenWithClaims(ctx context.Context, uid string, claims map[string]interface{}) (string, error) {
+	return f.MockCreateFirebaseCustomTokenWithClaimsFn(ctx, uid, claims)
 }
