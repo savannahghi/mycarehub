@@ -18,7 +18,6 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/utils"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/serverutils"
 )
@@ -194,13 +193,9 @@ func (db *PGInstance) SearchFacility(ctx context.Context, searchParameter *strin
 // GetFacilitiesWithoutFHIRID fetches all the healthcare facilities in the platform without FHIR Organisation ID
 func (db *PGInstance) GetFacilitiesWithoutFHIRID(ctx context.Context) ([]*Facility, error) {
 	var facility []*Facility
-	orgID, err := utils.GetOrganisationIDFromContext(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get organisation id from context: %v", err)
-	}
 
-	err = db.DB.Raw(
-		`SELECT * FROM common_facility WHERE fhir_organization_id IS NULL AND organisation_id = ? `, orgID).Scan(&facility).Error
+	err := db.DB.Raw(
+		`SELECT * FROM common_facility WHERE fhir_organization_id IS NULL`).Scan(&facility).Error
 	if err != nil {
 		return nil, fmt.Errorf("failed to query all facilities %v", err)
 	}
@@ -516,12 +511,7 @@ func (db *PGInstance) GetNotification(ctx context.Context, notificationID string
 func (db *PGInstance) GetAnsweredScreeningToolQuestions(ctx context.Context, facilityID string, toolType string) ([]*ScreeningToolsResponse, error) {
 	var screeningToolResponses []*ScreeningToolsResponse
 
-	orgID, err := utils.GetOrganisationIDFromContext(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get organisation ID from context: %w", err)
-	}
-
-	err = db.DB.Raw(
+	err := db.DB.Raw(
 		`
 		SELECT * FROM screeningtools_screeningtoolsquestion
 		JOIN screeningtools_screeningtoolsresponse
@@ -535,9 +525,7 @@ func (db *PGInstance) GetAnsweredScreeningToolQuestions(ctx context.Context, fac
 		AND tool_type = ? 
 		AND clients_servicerequest.meta->>'question_type'  = ?
 		AND clients_client.current_facility_id = ?
-		AND screeningtools_screeningtoolsresponse.organisation_id = ?
-		AND clients_client.organisation_id = ?
-		`, true, toolType, toolType, facilityID, orgID, orgID).
+		`, true, toolType, toolType, facilityID).
 		Scan(&screeningToolResponses).Error
 
 	if err != nil {
@@ -967,19 +955,15 @@ func (db *PGInstance) GetStaffServiceRequests(ctx context.Context, requestType, 
 // CheckUserRole checks if a user has a specific role
 func (db *PGInstance) CheckUserRole(ctx context.Context, userID string, role string) (bool, error) {
 	var returneduserID string
-	orgID, err := utils.GetOrganisationIDFromContext(ctx)
-	if err != nil {
-		return false, fmt.Errorf("failed to get organisation id from context: %v", err)
-	}
 
-	err = db.DB.Raw(
+	err := db.DB.Raw(
 		`
 		SELECT user_id 
 		FROM authority_authorityrole_users 
 		WHERE user_id = ? 
 		AND authority_authorityrole_users.authorityrole_id = 
-		(SELECT id FROM authority_authorityrole WHERE name = ? AND organisation_id = ?)
-		`, userID, role, orgID).Scan(&returneduserID).Error
+		(SELECT id FROM authority_authorityrole WHERE name = ?)
+		`, userID, role).Scan(&returneduserID).Error
 
 	if returneduserID == "" {
 		return false, nil
@@ -995,12 +979,8 @@ func (db *PGInstance) CheckUserRole(ctx context.Context, userID string, role str
 // CheckUserPermission checks if a user has a specific permission
 func (db *PGInstance) CheckUserPermission(ctx context.Context, userID string, permission string) (bool, error) {
 	var returneduserID string
-	orgID, err := utils.GetOrganisationIDFromContext(ctx)
-	if err != nil {
-		return false, fmt.Errorf("failed to get organisation id from context: %v", err)
-	}
 
-	err = db.DB.Raw(
+	err := db.DB.Raw(
 		`
 		SELECT user_id 
 		FROM authority_authorityrole_users 
@@ -1008,11 +988,11 @@ func (db *PGInstance) CheckUserPermission(ctx context.Context, userID string, pe
 		(
 			SELECT 	authorityrole_id 
 			FROM authority_authorityrole_permissions
-			WHERE authoritypermission_id = (SELECT id FROM authority_authoritypermission WHERE name = ? AND organisation_id = ?)
+			WHERE authoritypermission_id = (SELECT id FROM authority_authoritypermission WHERE name = ?)
 		)
 		And 
 		user_id = ?
-		`, permission, orgID, userID).Scan(&returneduserID).Error
+		`, permission, userID).Scan(&returneduserID).Error
 
 	if returneduserID == "" {
 		return false, nil
@@ -1028,19 +1008,14 @@ func (db *PGInstance) CheckUserPermission(ctx context.Context, userID string, pe
 // GetUserRoles fetches a user's roles from the database
 func (db *PGInstance) GetUserRoles(ctx context.Context, userID string) ([]*AuthorityRole, error) {
 	var roles []*AuthorityRole
-	orgID, err := utils.GetOrganisationIDFromContext(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get organisation id from context: %v", err)
-	}
 
-	err = db.DB.Raw(
+	err := db.DB.Raw(
 		`
-		SELECT * 
-		FROM authority_authorityrole_users 
-		JOIN authority_authorityrole ON authority_authorityrole_users.authorityrole_id = authority_authorityrole.id
-		WHERE user_id = ?
-		AND authority_authorityrole.organisation_id = ?
-		`, userID, orgID,
+        SELECT * 
+        FROM authority_authorityrole_users 
+        JOIN authority_authorityrole ON authority_authorityrole_users.authorityrole_id = authority_authorityrole.id
+        WHERE user_id = ?
+        `, userID,
 	).Find(&roles).Error
 
 	if err != nil {
@@ -1053,19 +1028,15 @@ func (db *PGInstance) GetUserRoles(ctx context.Context, userID string) ([]*Autho
 // GetUserPermissions fetches a user's permissions from the database
 func (db *PGInstance) GetUserPermissions(ctx context.Context, userID string) ([]*AuthorityPermission, error) {
 	var permissions []*AuthorityPermission
-	orgID, err := utils.GetOrganisationIDFromContext(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get organisation id from context: %v", err)
-	}
 
-	err = db.DB.Raw(
+	err := db.DB.Raw(
 		`
-		SELECT authority_authoritypermission.created, authority_authoritypermission.updated, authority_authoritypermission.id, authority_authoritypermission.name, authority_authoritypermission.organisation_id
-		FROM authority_authorityrole_users 
-		JOIN authority_authorityrole_permissions ON authority_authorityrole_users.authorityrole_id = authority_authorityrole_permissions.authorityrole_id
-		JOIN authority_authoritypermission ON authority_authorityrole_permissions.authoritypermission_id = authority_authoritypermission.id
-		WHERE user_id = ? AND authority_authoritypermission.organisation_id = ?
-		`, userID, orgID).Find(&permissions).Error
+        SELECT authority_authoritypermission.created, authority_authoritypermission.updated, authority_authoritypermission.id, authority_authoritypermission.name, authority_authoritypermission.organisation_id
+        FROM authority_authorityrole_users 
+        JOIN authority_authorityrole_permissions ON authority_authorityrole_users.authorityrole_id = authority_authorityrole_permissions.authorityrole_id
+        JOIN authority_authoritypermission ON authority_authorityrole_permissions.authoritypermission_id = authority_authoritypermission.id
+        WHERE authority_authorityrole_users.user_id = ?
+        `, userID).Find(&permissions).Error
 
 	if err != nil {
 		return nil, fmt.Errorf("failed to get user permissions: %v", err)
@@ -1303,17 +1274,12 @@ func (db *PGInstance) SearchClientProfile(ctx context.Context, searchParameter s
 func (db *PGInstance) GetUserProfileByStaffID(ctx context.Context, staffID string) (*User, error) {
 	var user User
 
-	orgID, err := utils.GetOrganisationIDFromContext(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get organisation id from context: %v", err)
-	}
-
 	if err := db.DB.Raw(`
 	 SELECT * FROM users_user
 	 WHERE id = (
 		SELECT user_id FROM staff_staff
-		WHERE id = ? AND organisation_id = ?
-	)`, staffID, orgID).Scan(&user).Error; err != nil {
+		WHERE id = ?
+	)`, staffID).Scan(&user).Error; err != nil {
 		return nil, fmt.Errorf("failed to get user profile by staff ID: %v", err)
 	}
 
