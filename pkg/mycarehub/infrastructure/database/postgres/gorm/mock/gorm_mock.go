@@ -59,7 +59,7 @@ type GormMock struct {
 	MockInvalidatePINFn                                  func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
 	MockGetContactByUserIDFn                             func(ctx context.Context, userID *string, contactType string) (*gorm.Contact, error)
 	MockUpdateIsCorrectSecurityQuestionResponseFn        func(ctx context.Context, userID string, isCorrectSecurityQuestionResponse bool) (bool, error)
-	MockCreateHealthDiaryEntryFn                         func(ctx context.Context, healthDiaryInput *gorm.ClientHealthDiaryEntry) error
+	MockCreateHealthDiaryEntryFn                         func(ctx context.Context, healthDiaryInput *gorm.ClientHealthDiaryEntry) (*gorm.ClientHealthDiaryEntry, error)
 	MockCreateServiceRequestFn                           func(ctx context.Context, serviceRequestInput *gorm.ClientServiceRequest) error
 	MockCanRecordHeathDiaryFn                            func(ctx context.Context, clientID string) (bool, error)
 	MockGetClientHealthDiaryQuoteFn                      func(ctx context.Context, limit int) ([]*gorm.ClientHealthDiaryQuote, error)
@@ -846,8 +846,18 @@ func NewGormMock() *GormMock {
 		MockUpdateIsCorrectSecurityQuestionResponseFn: func(ctx context.Context, userID string, isCorrectSecurityQuestionResponse bool) (bool, error) {
 			return true, nil
 		},
-		MockCreateHealthDiaryEntryFn: func(ctx context.Context, healthDiaryInput *gorm.ClientHealthDiaryEntry) error {
-			return nil
+		MockCreateHealthDiaryEntryFn: func(ctx context.Context, healthDiaryInput *gorm.ClientHealthDiaryEntry) (*gorm.ClientHealthDiaryEntry, error) {
+			return &gorm.ClientHealthDiaryEntry{
+				ClientHealthDiaryEntryID: &UUID,
+				Active:                   true,
+				Mood:                     "VERY_SAD",
+				Note:                     gofakeit.BS(),
+				EntryType:                "HOME_PAGE_HEALTH_DIARY_ENTRY",
+				ShareWithHealthWorker:    false,
+				SharedAt:                 &nowTime,
+				ClientID:                 uuid.NewString(),
+				OrganisationID:           uuid.NewString(),
+			}, nil
 		},
 		MockCreateServiceRequestFn: func(ctx context.Context, serviceRequestInput *gorm.ClientServiceRequest) error {
 			return nil
@@ -1672,7 +1682,7 @@ func (gm *GormMock) UpdateIsCorrectSecurityQuestionResponse(ctx context.Context,
 }
 
 // CreateHealthDiaryEntry mocks the method for creating a health diary entry
-func (gm *GormMock) CreateHealthDiaryEntry(ctx context.Context, healthDiaryInput *gorm.ClientHealthDiaryEntry) error {
+func (gm *GormMock) CreateHealthDiaryEntry(ctx context.Context, healthDiaryInput *gorm.ClientHealthDiaryEntry) (*gorm.ClientHealthDiaryEntry, error) {
 	return gm.MockCreateHealthDiaryEntryFn(ctx, healthDiaryInput)
 }
 
