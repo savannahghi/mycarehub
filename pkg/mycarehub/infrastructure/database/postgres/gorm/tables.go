@@ -45,7 +45,8 @@ type Facility struct {
 	FHIROrganisationID string `gorm:"column:fhir_organization_id"`
 
 	// Foreign Keys
-	OrganisationID string `gorm:"column:organisation_id;not null"`
+	OrganisationID string  `gorm:"column:organisation_id;not null"`
+	ProgramID      *string `gorm:"column:program_id"`
 }
 
 // BeforeCreate is a hook run before creating a new facility
@@ -127,7 +128,8 @@ type AuditLog struct {
 	Notes      string       `gorm:"column:notes"`
 	Payload    pgtype.JSONB `gorm:"column:payload"`
 
-	OrganisationID string `gorm:"column:organisation_id;not null"`
+	OrganisationID string  `gorm:"column:organisation_id;not null"`
+	ProgramID      *string `gorm:"column:program_id"`
 }
 
 // BeforeCreate is a hook run before creating a new facility
@@ -166,6 +168,8 @@ type Address struct {
 	Country     string  `gorm:"column:country;not null"`
 
 	OrganisationID string `gorm:"column:organisation_id;not null"`
+
+	ProgramID *string `gorm:"column:program_id"`
 }
 
 // BeforeCreate is a hook run before creating a new facility
@@ -255,8 +259,9 @@ type User struct {
 	PinUpdateRequired   bool       `gorm:"column:pin_update_required"`
 	HasSetNickname      bool       `gorm:"column:has_set_nickname"`
 
-	OrganisationID  string `gorm:"column:organisation_id"`
-	AcceptedTermsID *int   `gorm:"column:accepted_terms_of_service_id"` // foreign key to version of terms they accepted
+	OrganisationID  string  `gorm:"column:organisation_id"`
+	ProgramID       *string `gorm:"column:program_id"`
+	AcceptedTermsID *int    `gorm:"column:accepted_terms_of_service_id"` // foreign key to version of terms they accepted
 }
 
 // BeforeCreate is a hook run before creating a new user
@@ -331,6 +336,7 @@ type Contact struct {
 
 	UserID         *string `gorm:"column:user_id;not null"`
 	OrganisationID string  `gorm:"column:organisation_id"`
+	ProgramID      *string `gorm:"column:program_id"`
 }
 
 // BeforeCreate is a hook run before creating a new contact
@@ -386,6 +392,8 @@ type TermsOfService struct {
 	ValidFrom *time.Time      `gorm:"column:valid_from;not null"`
 	ValidTo   *time.Time      `gorm:"column:valid_to;not null"`
 	Active    bool            `gorm:"column:active;not null"`
+
+	ProgramID *string `gorm:"column:program_id"`
 }
 
 // TableName customizes how the table name is generated
@@ -434,7 +442,8 @@ type SecurityQuestion struct {
 	Active             bool                               `gorm:"column:active"`
 	Sequence           *int                               `gorm:"column:sequence"` // for sorting
 
-	OrganisationID string `gorm:"column:organisation_id"`
+	OrganisationID string  `gorm:"column:organisation_id"`
+	ProgramID      *string `gorm:"column:program_id"`
 }
 
 // BeforeCreate is a hook run before creating security question
@@ -493,8 +502,9 @@ type SecurityQuestionResponse struct {
 	Timestamp  time.Time `gorm:"column:timestamp"`
 	IsCorrect  bool      `gorm:"column:is_correct"`
 
-	UserID         string `gorm:"column:user_id"`
-	OrganisationID string `gorm:"column:organisation_id"`
+	UserID         string  `gorm:"column:user_id"`
+	OrganisationID string  `gorm:"column:organisation_id"`
+	ProgramID      *string `gorm:"column:program_id"`
 }
 
 // BeforeCreate function is called before creating a security question response
@@ -554,6 +564,8 @@ type Client struct {
 	CHVUserID *string `gorm:"column:chv_id"`
 
 	OrganisationID string `gorm:"column:organisation_id"`
+
+	ProgramID *string `gorm:"column:program_id"`
 
 	UserID *string `gorm:"column:user_id;not null"`
 	User   User    `gorm:"ForeignKey:user_id;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;not null"`
@@ -618,9 +630,10 @@ type ClientFacility struct {
 	ID     *string `gorm:"column:id"`
 	Active bool    `gorm:"column:active"`
 
-	OrganisationID string `gorm:"column:organisation_id"`
-	ClientID       string `gorm:"column:client_id"`
-	FacilityID     string `gorm:"column:facility_id"`
+	OrganisationID string  `gorm:"column:organisation_id"`
+	ClientID       string  `gorm:"column:client_id"`
+	FacilityID     string  `gorm:"column:facility_id"`
+	ProgramID      *string `gorm:"column:program_id"`
 }
 
 // TableName represents the client facility table name
@@ -655,6 +668,8 @@ type StaffProfile struct {
 	DefaultFacilityID string `gorm:"column:default_facility_id"` // TODO: required, FK to facility
 
 	OrganisationID string `gorm:"column:organisation_id"`
+
+	ProgramID *string `gorm:"column:program_id"`
 
 	UserID      string `gorm:"column:user_id"` // foreign key to user
 	UserProfile User   `gorm:"ForeignKey:user_id;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;not null"`
@@ -695,8 +710,9 @@ type ClientHealthDiaryEntry struct {
 	ShareWithHealthWorker    bool       `gorm:"column:share_with_health_worker"`
 	SharedAt                 *time.Time `gorm:"column:shared_at"`
 
-	ClientID       string `gorm:"column:client_id"`
-	OrganisationID string `gorm:"column:organisation_id"`
+	ClientID       string  `gorm:"column:client_id"`
+	OrganisationID string  `gorm:"column:organisation_id"`
+	ProgramID      *string `gorm:"column:program_id"`
 }
 
 // BeforeCreate is a hook run before creating a client Health Diary Entry
@@ -741,6 +757,7 @@ type ClientServiceRequest struct {
 	ResolvedByID   *string `gorm:"column:resolved_by_id"`
 	FacilityID     string  `gorm:"column:facility_id"`
 	ClientID       string  `gorm:"column:client_id"`
+	ProgramID      *string `gorm:"column:program_id"`
 }
 
 // BeforeCreate is a hook called before creating a service request.
@@ -783,6 +800,7 @@ type StaffServiceRequest struct {
 	OrganisationID    string  `gorm:"column:organisation_id"`
 	ResolvedByID      *string `gorm:"column:resolved_by_id"`
 	DefaultFacilityID *string `gorm:"column:facility_id"`
+	ProgramID         *string `gorm:"column:program_id"`
 }
 
 // BeforeCreate is a hook called before creating a service request.
@@ -818,6 +836,8 @@ type ClientHealthDiaryQuote struct {
 	Author                   string  `gorm:"column:by"`
 
 	OrganisationID string `gorm:"column:organisation_id"`
+
+	ProgramID *string `gorm:"column:program_id"`
 }
 
 // BeforeCreate is a hook run before creating view count
@@ -851,6 +871,8 @@ type AuthorityRole struct {
 	Active          bool    `gorm:"column:active"`
 
 	OrganisationID string `gorm:"column:organisation_id"`
+
+	ProgramID *string `gorm:"column:program_id"`
 }
 
 // BeforeCreate is a hook run before creating authority role
@@ -883,6 +905,8 @@ type AuthorityPermission struct {
 	Name                  string  `gorm:"column:name"`
 
 	OrganisationID string `gorm:"column:organisation_id"`
+
+	ProgramID *string `gorm:"column:program_id"`
 }
 
 // BeforeCreate is a hook run before creating authority permission
@@ -935,7 +959,8 @@ type Community struct {
 	InviteOnly   bool           `gorm:"column:invite_only"`
 	Discoverable bool           `gorm:"column:discoverable"`
 
-	OrganisationID string `gorm:"column:organisation_id"`
+	OrganisationID string  `gorm:"column:organisation_id"`
+	ProgramID      *string `gorm:"column:program_id"`
 }
 
 // BeforeCreate is a hook run before creating a community
@@ -976,6 +1001,8 @@ type Identifier struct {
 	IsPrimaryIdentifier bool      `gorm:"column:is_primary_identifier"`
 
 	OrganisationID string `gorm:"column:organisation_id;not null"`
+
+	ProgramID *string `gorm:"column:program_id"`
 }
 
 // TableName references the table that we map data from
@@ -1051,6 +1078,8 @@ type RelatedPerson struct {
 	RelationshipType string `gorm:"column:relationship_type"`
 
 	OrganisationID string `gorm:"column:organisation_id;not null"`
+
+	ProgramID *string `gorm:"column:program_id"`
 }
 
 // TableName references the table that we map data from
@@ -1114,7 +1143,8 @@ type ScreeningToolQuestion struct {
 	Active           bool   `gorm:"column:active"`
 	Meta             string `gorm:"column:meta"`
 
-	OrganisationID string `gorm:"column:organisation_id"`
+	OrganisationID string  `gorm:"column:organisation_id"`
+	ProgramID      *string `gorm:"column:program_id"`
 }
 
 // BeforeCreate is a hook run before creating a screening tools question
@@ -1148,9 +1178,10 @@ type ScreeningToolsResponse struct {
 	Response string `gorm:"column:response"`
 	Active   bool   `gorm:"column:active"`
 
-	ClientID       string `gorm:"column:client_id"`
-	QuestionID     string `gorm:"column:question_id"`
-	OrganisationID string `gorm:"column:organisation_id"`
+	ClientID       string  `gorm:"column:client_id"`
+	QuestionID     string  `gorm:"column:question_id"`
+	OrganisationID string  `gorm:"column:organisation_id"`
+	ProgramID      *string `gorm:"column:program_id"`
 }
 
 // BeforeCreate is a hook run before creating a screening tools response
@@ -1188,9 +1219,10 @@ type Appointment struct {
 	Date                      time.Time `gorm:"column:date"`
 	HasRescheduledAppointment bool      `gorm:"column:has_rescheduled_appointment"`
 
-	OrganisationID string `gorm:"column:organisation_id;not null"`
-	ClientID       string `gorm:"column:client_id"`
-	FacilityID     string `gorm:"column:facility_id"`
+	OrganisationID string  `gorm:"column:organisation_id;not null"`
+	ClientID       string  `gorm:"column:client_id"`
+	FacilityID     string  `gorm:"column:facility_id"`
+	ProgramID      *string `gorm:"column:program_id"`
 }
 
 // BeforeCreate is a hook run before creating an appointment
@@ -1231,6 +1263,7 @@ type Notification struct {
 	UserID         *string `gorm:"column:user_id"`
 	FacilityID     *string `gorm:"column:facility_id"`
 	OrganisationID string  `gorm:"column:organisation_id;not null"`
+	ProgramID      *string `gorm:"column:program_id"`
 }
 
 // BeforeCreate is a hook run before creating an appointment
@@ -1310,6 +1343,8 @@ type UserSurvey struct {
 
 	UserID         string `gorm:"user_id"`
 	OrganisationID string `gorm:"organisation_id"`
+
+	ProgramID *string `gorm:"program_id"`
 }
 
 // BeforeCreate is a hook run before creating a user survey model
@@ -1368,6 +1403,8 @@ type Feedback struct {
 
 	OrganisationID string `gorm:"column:organisation_id"`
 	UserID         string `gorm:"column:user_id"`
+
+	ProgramID *string `gorm:"column:program_id"`
 }
 
 // BeforeCreate is a hook run before creating an appointment
@@ -1398,10 +1435,11 @@ type Questionnaire struct {
 	Base
 	OrganisationID string `gorm:"column:organisation_id"`
 
-	ID          string `gorm:"primaryKey;column:id"`
-	Active      bool   `gorm:"column:active"`
-	Name        string `gorm:"column:name"`
-	Description string `gorm:"column:description"`
+	ID          string  `gorm:"primaryKey;column:id"`
+	Active      bool    `gorm:"column:active"`
+	Name        string  `gorm:"column:name"`
+	Description string  `gorm:"column:description"`
+	ProgramID   *string `gorm:"column:program_id"`
 }
 
 // BeforeCreate is a hook run before creating a questionnaire
@@ -1430,7 +1468,8 @@ func (Questionnaire) TableName() string {
 // ScreeningTool defines the screening tool database models
 type ScreeningTool struct {
 	Base
-	OrganisationID string `gorm:"column:organisation_id"`
+	OrganisationID string  `gorm:"column:organisation_id"`
+	ProgramID      *string `gorm:"column:program_id"`
 
 	ID              string         `gorm:"primaryKey;column:id"`
 	Active          bool           `gorm:"column:active"`
@@ -1468,7 +1507,8 @@ func (ScreeningTool) TableName() string {
 // Question defines the question database models
 type Question struct {
 	Base
-	OrganisationID string `gorm:"column:organisation_id"`
+	OrganisationID string  `gorm:"column:organisation_id"`
+	ProgramID      *string `gorm:"column:program_id"`
 
 	ID                string `gorm:"primaryKey;column:id"`
 	Active            bool   `gorm:"column:active"`
@@ -1507,7 +1547,8 @@ func (Question) TableName() string {
 // QuestionInputChoice defines the question input choice database models
 type QuestionInputChoice struct {
 	Base
-	OrganisationID string `gorm:"column:organisation_id"`
+	OrganisationID string  `gorm:"column:organisation_id"`
+	ProgramID      *string `gorm:"column:program_id"`
 
 	ID         string `gorm:"primaryKey;column:id"`
 	Active     bool   `gorm:"column:active"`
@@ -1543,7 +1584,8 @@ func (QuestionInputChoice) TableName() string {
 // ScreeningToolResponse defines the screening tool response database models
 type ScreeningToolResponse struct {
 	Base
-	OrganisationID string `gorm:"column:organisation_id"`
+	OrganisationID string  `gorm:"column:organisation_id"`
+	ProgramID      *string `gorm:"column:program_id"`
 
 	ID              string `gorm:"primaryKey;column:id"`
 	Active          bool   `gorm:"column:active"`
@@ -1579,7 +1621,8 @@ func (ScreeningToolResponse) TableName() string {
 // ScreeningToolQuestionResponse defines the screening tool question response database models
 type ScreeningToolQuestionResponse struct {
 	Base
-	OrganisationID string `gorm:"column:organisation_id"`
+	OrganisationID string  `gorm:"column:organisation_id"`
+	ProgramID      *string `gorm:"column:program_id"`
 
 	ID                      string `gorm:"primaryKey;column:id"`
 	Active                  bool   `gorm:"column:active"`
@@ -1634,9 +1677,10 @@ type Caregiver struct {
 	Active          bool   `gorm:"column:active"`
 	CaregiverNumber string `gorm:"column:caregiver_number"`
 
-	OrganisationID string `gorm:"column:organisation_id;not null"`
-	UserID         string `gorm:"column:user_id"`
-	UserProfile    User   `gorm:"ForeignKey:user_id;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;not null"`
+	OrganisationID string  `gorm:"column:organisation_id;not null"`
+	UserID         string  `gorm:"column:user_id"`
+	UserProfile    User    `gorm:"ForeignKey:user_id;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;not null"`
+	ProgramID      *string `gorm:"column:program_id"`
 }
 
 // BeforeCreate is a hook run before creating a caregiver
@@ -1675,8 +1719,9 @@ type CaregiverClient struct {
 	ClientConsent      *bool               `gorm:"column:client_consent"`
 	ClientConsentAt    *time.Time          `gorm:"column:client_consent_at"`
 
-	OrganisationID string `gorm:"column:organisation_id;not null"`
-	AssignedBy     string `gorm:"column:assigned_by;not null"`
+	OrganisationID string  `gorm:"column:organisation_id;not null"`
+	AssignedBy     string  `gorm:"column:assigned_by;not null"`
+	ProgramID      *string `gorm:"column:program_id"`
 }
 
 // BeforeCreate is a hook run before creating a caregiver client
