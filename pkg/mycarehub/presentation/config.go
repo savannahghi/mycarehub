@@ -176,6 +176,8 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	// Add Middleware that records the metrics for HTTP routes
 	r.Use(serverutils.CustomHTTPRequestMetricsMiddleware())
 
+	r.Use(DefaultOrganisationMiddleware())
+
 	// Shared unauthenticated routes
 	// openSourcePresentation.SharedUnauthenticatedRoutes(h, r)
 	r.Path("/ide").HandlerFunc(playground.Handler("GraphQL IDE", "/graphql"))
@@ -328,7 +330,7 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	// Graphql route
 	authR := r.Path("/graphql").Subrouter()
 	authR.Use(firebasetools.AuthenticationMiddleware(firebaseApp))
-	authR.Use(OrganisationMiddleware(db))
+	authR.Use(OrganisationMiddleware())
 	authR.Methods(
 		http.MethodPost,
 		http.MethodGet,

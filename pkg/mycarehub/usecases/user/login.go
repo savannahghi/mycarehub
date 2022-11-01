@@ -309,7 +309,10 @@ func (us *UseCasesUserImpl) checkPIN(ctx context.Context, credentials *dto.Login
 func (us *UseCasesUserImpl) addAuthCredentials(ctx context.Context, credentials *dto.LoginInput, response domain.ILoginResponse) bool {
 	user := response.GetUserProfile()
 
-	customToken, err := us.ExternalExt.CreateFirebaseCustomToken(ctx, *user.ID)
+	claims := map[string]interface{}{
+		"organisationID": user.OrganizationID,
+	}
+	customToken, err := us.ExternalExt.CreateFirebaseCustomTokenWithClaims(ctx, *user.ID, claims)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 

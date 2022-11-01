@@ -91,17 +91,10 @@ func GetGraphQLHeaders(ctx context.Context) (map[string]string, error) {
 
 // GetBearerTokenHeader gets bearer Token Header
 func GetBearerTokenHeader(ctx context.Context) (string, error) {
-	TestUserEmail := "test@bewell.co.ke"
-	user, err := firebasetools.GetOrCreateFirebaseUser(ctx, TestUserEmail)
-	if err != nil {
-		return "", fmt.Errorf("can't get or create firebase user: %s", err)
+	claims := map[string]interface{}{
+		"organisationID": orgID,
 	}
-
-	if user == nil {
-		return "", fmt.Errorf("nil firebase user")
-	}
-
-	customToken, err := firebasetools.CreateFirebaseCustomToken(ctx, userID)
+	customToken, err := firebasetools.CreateFirebaseCustomTokenWithClaims(ctx, userID, claims)
 	if err != nil {
 		return "", fmt.Errorf("can't create custom token: %s", err)
 	}

@@ -39,6 +39,7 @@ type ISCClientExtension interface {
 // called from external libraries. Adding this layer will help write unit tests
 type ExternalMethodsExtension interface {
 	CreateFirebaseCustomToken(ctx context.Context, uid string) (string, error)
+	CreateFirebaseCustomTokenWithClaims(ctx context.Context, uid string, claims map[string]interface{}) (string, error)
 	AuthenticateCustomFirebaseToken(customAuthToken string) (*firebasetools.FirebaseUserTokens, error)
 	ComparePIN(rawPwd string, salt string, encodedPwd string, options *extension.Options) bool
 	EncryptPIN(rawPwd string, options *extension.Options) (string, string)
@@ -94,6 +95,12 @@ func NewExternalMethodsImpl() ExternalMethodsExtension {
 // indicated UID
 func (e *External) CreateFirebaseCustomToken(ctx context.Context, uid string) (string, error) {
 	return firebasetools.CreateFirebaseCustomToken(ctx, uid)
+}
+
+// CreateFirebaseCustomTokenWithClaims creates a custom auth token for the user with the
+// indicated UID and additional claims
+func (e *External) CreateFirebaseCustomTokenWithClaims(ctx context.Context, uid string, claims map[string]interface{}) (string, error) {
+	return firebasetools.CreateFirebaseCustomTokenWithClaims(ctx, uid, claims)
 }
 
 // AuthenticateCustomFirebaseToken takes a custom Firebase auth token and tries to fetch an ID token

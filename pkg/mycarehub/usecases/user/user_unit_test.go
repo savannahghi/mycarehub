@@ -351,7 +351,7 @@ func TestUseCasesUserImpl_Login_Unittest(t *testing.T) {
 			}
 
 			if tt.name == "Sad Case - Fail to create firebase token" {
-				fakeExtension.MockCreateFirebaseCustomTokenFn = func(ctx context.Context, uid string) (string, error) {
+				fakeExtension.MockCreateFirebaseCustomTokenWithClaimsFn = func(ctx context.Context, uid string, claims map[string]interface{}) (string, error) {
 					return "", fmt.Errorf("failed to create custom token")
 				}
 			}
