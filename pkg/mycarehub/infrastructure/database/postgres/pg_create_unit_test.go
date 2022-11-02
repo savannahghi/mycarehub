@@ -445,12 +445,12 @@ func TestMyCareHubDb_CreateHealthDiaryEntry(t *testing.T) {
 			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
 
 			if tt.name == "Sad Case - Fail to create health diary entry" {
-				fakeGorm.MockCreateHealthDiaryEntryFn = func(ctx context.Context, healthDiaryInput *gorm.ClientHealthDiaryEntry) error {
-					return fmt.Errorf("failed to create health diary entry")
+				fakeGorm.MockCreateHealthDiaryEntryFn = func(ctx context.Context, healthDiaryInput *gorm.ClientHealthDiaryEntry) (*gorm.ClientHealthDiaryEntry, error) {
+					return nil, fmt.Errorf("failed to create health diary entry")
 				}
 			}
 
-			if err := d.CreateHealthDiaryEntry(tt.args.ctx, tt.args.healthDiaryInput); (err != nil) != tt.wantErr {
+			if _, err := d.CreateHealthDiaryEntry(tt.args.ctx, tt.args.healthDiaryInput); (err != nil) != tt.wantErr {
 				t.Errorf("MyCareHubDb.CreateHealthDiaryEntry() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})

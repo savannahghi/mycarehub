@@ -126,7 +126,7 @@ func (d *MyCareHubDb) SaveSecurityQuestionResponse(ctx context.Context, security
 }
 
 // CreateHealthDiaryEntry is used to add a health diary record to the database.
-func (d *MyCareHubDb) CreateHealthDiaryEntry(ctx context.Context, healthDiaryInput *domain.ClientHealthDiaryEntry) error {
+func (d *MyCareHubDb) CreateHealthDiaryEntry(ctx context.Context, healthDiaryInput *domain.ClientHealthDiaryEntry) (*domain.ClientHealthDiaryEntry, error) {
 	healthDiaryResponse := &gorm.ClientHealthDiaryEntry{
 		Active:                healthDiaryInput.Active,
 		Mood:                  healthDiaryInput.Mood,
@@ -137,12 +137,22 @@ func (d *MyCareHubDb) CreateHealthDiaryEntry(ctx context.Context, healthDiaryInp
 		ClientID:              healthDiaryInput.ClientID,
 	}
 
-	err := d.create.CreateHealthDiaryEntry(ctx, healthDiaryResponse)
+	healthDiaryEntry, err := d.create.CreateHealthDiaryEntry(ctx, healthDiaryResponse)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	return &domain.ClientHealthDiaryEntry{
+		ID:                    healthDiaryEntry.ClientHealthDiaryEntryID,
+		Active:                healthDiaryEntry.Active,
+		Mood:                  healthDiaryEntry.Mood,
+		Note:                  healthDiaryEntry.Mood,
+		EntryType:             healthDiaryEntry.EntryType,
+		ShareWithHealthWorker: healthDiaryEntry.ShareWithHealthWorker,
+		SharedAt:              healthDiaryEntry.SharedAt,
+		ClientID:              healthDiaryEntry.ClientID,
+		CreatedAt:             healthDiaryEntry.CreatedAt,
+	}, nil
 }
 
 // CreateServiceRequest creates  a service request which will be handled by a staff user.
