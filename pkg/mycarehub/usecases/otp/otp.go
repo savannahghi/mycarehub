@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/savannahghi/converterandformatter"
-	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/interserviceclient"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
@@ -15,6 +14,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
+	serviceSMS "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/sms"
 	"github.com/savannahghi/serverutils"
 
 	"github.com/savannahghi/profileutils"
@@ -85,6 +85,7 @@ type UseCaseOTPImpl struct {
 	Create      infrastructure.Create
 	Query       infrastructure.Query
 	ExternalExt extension.ExternalMethodsExtension
+	SMS         serviceSMS.IServiceSMS
 }
 
 // NewOTPUseCase initializes a new OTP service
@@ -92,11 +93,13 @@ func NewOTPUseCase(
 	create infrastructure.Create,
 	query infrastructure.Query,
 	externalExt extension.ExternalMethodsExtension,
+	sms serviceSMS.IServiceSMS,
 ) *UseCaseOTPImpl {
 	return &UseCaseOTPImpl{
 		Create:      create,
 		Query:       query,
 		ExternalExt: externalExt,
+		SMS:         sms,
 	}
 }
 
@@ -292,11 +295,12 @@ func (o *UseCaseOTPImpl) SendOTP(
 	message string,
 ) (string, error) {
 	if interserviceclient.IsKenyanNumber(phoneNumber) {
-		_, err := o.ExternalExt.SendSMS(ctx, phoneNumber, message, enumutils.SenderIDBewell)
+		_, err := o.SMS.SendSMS(ctx, message, []string{phoneNumber})
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
 			return "", fmt.Errorf("failed to send OTP verification code to recipient")
 		}
+
 	} else {
 		// Make the request to twilio
 		err := o.ExternalExt.SendSMSViaTwilio(ctx, phoneNumber, message)
