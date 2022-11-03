@@ -241,20 +241,16 @@ func NewUserUseCaseMock() *UserUseCaseMock {
 		},
 		MockListClientsCaregiversFn: func(ctx context.Context, clientID string, pagination *dto.PaginationsInput) (*dto.CaregiverProfileOutputPage, error) {
 			return &dto.CaregiverProfileOutputPage{
-				Pagination: &domain.Pagination{
-					Limit:       10,
-					CurrentPage: 1,
-					TotalPages:  100,
-				},
-				ClientCaregivers: &domain.ClientCaregivers{
-					Caregivers: []*domain.CaregiverProfile{
-						{
-							ID:              UUID,
-							User:            *user,
-							CaregiverNumber: "CG001",
+				Pagination: &domain.Pagination{Limit: 10, CurrentPage: 1, TotalPages: 100},
+				Caregivers: []*domain.CaregiverProfile{
+					{
+						ID:              UUID,
+						User:            *user,
+						CaregiverNumber: "CG001",
+						Consent: domain.ConsentStatus{
+							ConsentStatus: enums.ConsentStateAccepted,
 						},
 					},
-					Consented: true,
 				},
 			}, nil
 		},
@@ -417,14 +413,13 @@ func NewUserUseCaseMock() *UserUseCaseMock {
 			return true, nil
 		},
 		MockGetCaregiverManagedClientsFn: func(ctx context.Context, caregiverID string, input dto.PaginationsInput) (*dto.ManagedClientOutputPage, error) {
-			trueValue := true
 			return &dto.ManagedClientOutputPage{
 				Pagination: paginationOutput,
 				ManagedClients: []*domain.ManagedClient{
 					{
 						ClientProfile:    clientProfile,
-						CaregiverConsent: &trueValue,
-						ClientConsent:    &trueValue,
+						CaregiverConsent: enums.ConsentStateAccepted,
+						ClientConsent:    enums.ConsentStateAccepted,
 					},
 				},
 			}, nil

@@ -457,9 +457,11 @@ func NewPostgresMock() *PostgresMock {
 							ID:              ID,
 							User:            *userProfile,
 							CaregiverNumber: gofakeit.SSN(),
+							Consent: domain.ConsentStatus{
+								ConsentStatus: enums.ConsentStateAccepted,
+							},
 						},
 					},
-					Consented: true,
 				}, &domain.Pagination{
 					Limit:       10,
 					CurrentPage: 1,
@@ -1396,12 +1398,11 @@ func NewPostgresMock() *PostgresMock {
 			return nil
 		},
 		MockGetCaregiverManagedClientsFn: func(ctx context.Context, caregiverID string, pagination *domain.Pagination) ([]*domain.ManagedClient, *domain.Pagination, error) {
-			trueValue := true
 			return []*domain.ManagedClient{
 				{
 					ClientProfile:    clientProfile,
-					CaregiverConsent: &trueValue,
-					ClientConsent:    &trueValue,
+					CaregiverConsent: enums.ConsentStateAccepted,
+					ClientConsent:    enums.ConsentStateAccepted,
 				},
 			}, paginationOutput, nil
 		},

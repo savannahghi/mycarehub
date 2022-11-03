@@ -294,7 +294,7 @@ type PubsubCreateCMSStaffPayload struct {
 	OrganisationID string           `json:"organisation_id"`
 }
 
-//FacilityOutputPage returns a paginated list of users facility
+// FacilityOutputPage returns a paginated list of users facility
 type FacilityOutputPage struct {
 	Pagination *domain.Pagination
 	Facilities []*domain.Facility
@@ -308,6 +308,6 @@ type ManagedClientOutputPage struct {
 
 // CaregiverProfileOutputPage returns a paginated list of users caregiver profile
 type CaregiverProfileOutputPage struct {
-	Pagination       *domain.Pagination       `json:"pagination"`
-	ClientCaregivers *domain.ClientCaregivers `json:"clientCaregivers"`
+	Pagination *domain.Pagination         `json:"pagination"`
+	Caregivers []*domain.CaregiverProfile `json:"caregivers"`
 }

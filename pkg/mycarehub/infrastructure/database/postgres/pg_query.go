@@ -2468,7 +2468,6 @@ func (d *MyCareHubDb) GetClientFacilities(ctx context.Context, input dto.ClientF
 // GetCaregiverManagedClients lists clients who are managed by the caregivers
 // The clients should have given their consent to be managed by the caregivers
 func (d *MyCareHubDb) GetCaregiverManagedClients(ctx context.Context, caregiverID string, pagination *domain.Pagination) ([]*domain.ManagedClient, *domain.Pagination, error) {
-	falseValue := false
 	managedClients := []*domain.ManagedClient{}
 	clientProfiles, pageInfo, err := d.query.GetCaregiverManagedClients(ctx, caregiverID, pagination)
 	if err != nil {
@@ -2500,14 +2499,6 @@ func (d *MyCareHubDb) GetCaregiverManagedClients(ctx context.Context, caregiverI
 
 		caregiverConsent := clientsCaregivers[0].CaregiverConsent
 		clientConsent := clientsCaregivers[0].ClientConsent
-
-		if caregiverConsent == nil {
-			caregiverConsent = &falseValue
-		}
-
-		if clientConsent == nil {
-			clientConsent = &falseValue
-		}
 
 		notification := &gorm.Notification{
 			UserID:  client.UserID,
@@ -2570,11 +2561,13 @@ func (d *MyCareHubDb) ListClientsCaregivers(ctx context.Context, clientID string
 			ID:              clientID,
 			User:            *user,
 			CaregiverNumber: caregiver.CaregiverNumber,
+			Consent: domain.ConsentStatus{
+				ConsentStatus: clientCaregiver.CaregiverConsent,
+			},
 		})
 
 		caregiversClient = &domain.ClientCaregivers{
 			Caregivers: caregivers,
-			Consented:  *clientCaregiver.CaregiverConsent,
 		}
 	}
 

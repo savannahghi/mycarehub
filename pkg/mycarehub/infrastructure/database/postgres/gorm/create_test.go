@@ -1983,7 +1983,6 @@ func TestPGInstance_RegisterCaregiver(t *testing.T) {
 func TestPGInstance_AddCaregiverToClient(t *testing.T) {
 
 	now := time.Now()
-	ok := true
 
 	type args struct {
 		ctx             context.Context
@@ -2003,9 +2002,9 @@ func TestPGInstance_AddCaregiverToClient(t *testing.T) {
 					ClientID:           clientID,
 					Active:             true,
 					RelationshipType:   enums.CaregiverTypeFather,
-					CaregiverConsent:   &ok,
+					CaregiverConsent:   enums.ConsentStateAccepted,
 					CaregiverConsentAt: &now,
-					ClientConsent:      &ok,
+					ClientConsent:      enums.ConsentStateAccepted,
 					ClientConsentAt:    &now,
 					OrganisationID:     orgID,
 					AssignedBy:         staffID,
@@ -2022,9 +2021,9 @@ func TestPGInstance_AddCaregiverToClient(t *testing.T) {
 					ClientID:           "clientID",
 					Active:             true,
 					RelationshipType:   enums.CaregiverTypeFather,
-					CaregiverConsent:   &ok,
+					CaregiverConsent:   enums.ConsentStateAccepted,
 					CaregiverConsentAt: &now,
-					ClientConsent:      &ok,
+					ClientConsent:      enums.ConsentStateAccepted,
 					ClientConsentAt:    &now,
 					OrganisationID:     orgID,
 					AssignedBy:         staffID,
