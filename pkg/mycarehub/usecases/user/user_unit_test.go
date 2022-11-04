@@ -24,6 +24,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	extensionMock "github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension/mock"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/utils"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
 	pgMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/mock"
@@ -35,7 +36,6 @@ import (
 	otpMock "github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/otp/mock"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/user"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/user/mock"
-	"github.com/savannahghi/onboarding/pkg/onboarding/application/extension"
 	"github.com/savannahghi/scalarutils"
 	"github.com/savannahghi/silcomms"
 	"github.com/segmentio/ksuid"
@@ -144,18 +144,6 @@ func TestUseCasesUserImpl_Login_Unittest(t *testing.T) {
 		},
 		{
 			name: "Sad case - unable to get user PIN By User ID",
-			args: args{
-				ctx: ctx,
-				input: &dto.LoginInput{
-					PhoneNumber: &phoneNumber,
-					PIN:         &PIN,
-					Flavour:     flavour,
-				},
-			},
-			want1: false,
-		},
-		{
-			name: "Sad case - pin mismatch",
 			args: args{
 				ctx: ctx,
 				input: &dto.LoginInput{
@@ -326,6 +314,38 @@ func TestUseCasesUserImpl_Login_Unittest(t *testing.T) {
 
 			u := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakeGetStream, fakePubsub, fakeClinical, fakeSMS)
 
+			if tt.name == "Happy case: consumer login" {
+				currentTime := time.Now()
+				laterTime := currentTime.Add(time.Minute * 2005)
+				salt, encryptedPin := utils.EncryptPIN("1234", nil)
+				fakeDB.MockGetUserPINByUserIDFn = func(ctx context.Context, userID string, flavour feedlib.Flavour) (*domain.UserPIN, error) {
+					return &domain.UserPIN{
+						UserID:    userID,
+						HashedPIN: encryptedPin,
+						ValidFrom: time.Now(),
+						ValidTo:   laterTime,
+						Flavour:   "CONSUMER",
+						IsValid:   true,
+						Salt:      salt,
+					}, nil
+				}
+			}
+			if tt.name == "Happy case: Login pro" {
+				currentTime := time.Now()
+				laterTime := currentTime.Add(time.Minute * 2005)
+				salt, encryptedPin := utils.EncryptPIN("1234", nil)
+				fakeDB.MockGetUserPINByUserIDFn = func(ctx context.Context, userID string, flavour feedlib.Flavour) (*domain.UserPIN, error) {
+					return &domain.UserPIN{
+						UserID:    userID,
+						HashedPIN: encryptedPin,
+						ValidFrom: time.Now(),
+						ValidTo:   laterTime,
+						Flavour:   "PRO",
+						IsValid:   true,
+						Salt:      salt,
+					}, nil
+				}
+			}
 			if tt.name == "Sad case - fail to get user profile by phonenumber" {
 				fakeDB.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*domain.User, error) {
 					return nil, fmt.Errorf("failed to get user profile by phone number")
@@ -341,12 +361,6 @@ func TestUseCasesUserImpl_Login_Unittest(t *testing.T) {
 			if tt.name == "Sad case - unable to get user PIN By User ID" {
 				fakeDB.MockGetUserPINByUserIDFn = func(ctx context.Context, userID string, flavour feedlib.Flavour) (*domain.UserPIN, error) {
 					return nil, fmt.Errorf("failed to get user PIN by user ID")
-				}
-			}
-
-			if tt.name == "Sad case - pin mismatch" {
-				fakeExtension.MockComparePINFn = func(rawPwd, salt, encodedPwd string, options *extension.Options) bool {
-					return false
 				}
 			}
 
@@ -397,6 +411,20 @@ func TestUseCasesUserImpl_Login_Unittest(t *testing.T) {
 				}
 			}
 			if tt.name == "Sad Case - Unable to create getstream token" {
+				currentTime := time.Now()
+				laterTime := currentTime.Add(time.Minute * 2005)
+				salt, encryptedPin := utils.EncryptPIN("1234", nil)
+				fakeDB.MockGetUserPINByUserIDFn = func(ctx context.Context, userID string, flavour feedlib.Flavour) (*domain.UserPIN, error) {
+					return &domain.UserPIN{
+						UserID:    userID,
+						HashedPIN: encryptedPin,
+						ValidFrom: time.Now(),
+						ValidTo:   laterTime,
+						Flavour:   "PRO",
+						IsValid:   true,
+						Salt:      salt,
+					}, nil
+				}
 				fakeGetStream.MockCreateGetStreamUserTokenFn = func(ctx context.Context, userID string) (string, error) {
 					return "", fmt.Errorf("failed to create getstream token")
 				}
@@ -426,18 +454,60 @@ func TestUseCasesUserImpl_Login_Unittest(t *testing.T) {
 				}
 			}
 			if tt.name == "Happy Case - should not fail when CCC number is not found" {
+				currentTime := time.Now()
+				laterTime := currentTime.Add(time.Minute * 2005)
+				salt, encryptedPin := utils.EncryptPIN("1234", nil)
+				fakeDB.MockGetUserPINByUserIDFn = func(ctx context.Context, userID string, flavour feedlib.Flavour) (*domain.UserPIN, error) {
+					return &domain.UserPIN{
+						UserID:    userID,
+						HashedPIN: encryptedPin,
+						ValidFrom: time.Now(),
+						ValidTo:   laterTime,
+						Flavour:   "CONSUMER",
+						IsValid:   true,
+						Salt:      salt,
+					}, nil
+				}
 				fakeDB.MockGetClientCCCIdentifier = func(ctx context.Context, clientID string) (*domain.Identifier, error) {
 					return nil, fmt.Errorf("failed to get client ccc number identifier value")
 				}
 			}
 
 			if tt.name == "Sad Case - Unable to create getstream user PRO" {
+				currentTime := time.Now()
+				laterTime := currentTime.Add(time.Minute * 2005)
+				salt, encryptedPin := utils.EncryptPIN("1234", nil)
+				fakeDB.MockGetUserPINByUserIDFn = func(ctx context.Context, userID string, flavour feedlib.Flavour) (*domain.UserPIN, error) {
+					return &domain.UserPIN{
+						UserID:    userID,
+						HashedPIN: encryptedPin,
+						ValidFrom: time.Now(),
+						ValidTo:   laterTime,
+						Flavour:   "CONSUMER",
+						IsValid:   true,
+						Salt:      salt,
+					}, nil
+				}
 				fakeGetStream.MockCreateGetStreamUserFn = func(ctx context.Context, user *stream_chat.User) (*stream_chat.UpsertUserResponse, error) {
 					return nil, fmt.Errorf("an error occurred")
 				}
 			}
 
 			if tt.name == "Sad Case - Unable to create getstream user CONSUMER" {
+				currentTime := time.Now()
+				laterTime := currentTime.Add(time.Minute * 2005)
+				salt, encryptedPin := utils.EncryptPIN("1234", nil)
+				fakeDB.MockGetUserPINByUserIDFn = func(ctx context.Context, userID string, flavour feedlib.Flavour) (*domain.UserPIN, error) {
+					return &domain.UserPIN{
+						UserID:    userID,
+						HashedPIN: encryptedPin,
+						ValidFrom: time.Now(),
+						ValidTo:   laterTime,
+						Flavour:   "CONSUMER",
+						IsValid:   true,
+						Salt:      salt,
+					}, nil
+				}
 				fakeGetStream.MockCreateGetStreamUserFn = func(ctx context.Context, user *stream_chat.User) (*stream_chat.UpsertUserResponse, error) {
 					return nil, fmt.Errorf("an error occurred")
 				}
@@ -580,28 +650,6 @@ func TestUnit_InviteUser(t *testing.T) {
 			args: args{
 				ctx:         ctx,
 				userID:      "12345",
-				phoneNumber: validPhone,
-				flavour:     validFlavour,
-			},
-			wantErr: true,
-			want:    false,
-		},
-		{
-			name: "valid: generated a temporary PIN successfully",
-			args: args{
-				ctx:         ctx,
-				userID:      userID,
-				phoneNumber: validPhone,
-				flavour:     validFlavour,
-			},
-			wantErr: false,
-			want:    true,
-		},
-		{
-			name: "invalid: failed go generate temporary pin",
-			args: args{
-				ctx:         ctx,
-				userID:      userID,
 				phoneNumber: validPhone,
 				flavour:     validFlavour,
 			},
@@ -773,18 +821,6 @@ func TestUnit_InviteUser(t *testing.T) {
 				}
 			}
 
-			if tt.name == "valid: generated a temporary PIN successfully" {
-				fakeExtension.MockGenerateTempPINFn = func(ctx context.Context) (string, error) {
-					return uuid.New().String(), nil
-				}
-			}
-
-			if tt.name == "invalid: failed go generate temporary pin" {
-				fakeExtension.MockGenerateTempPINFn = func(ctx context.Context) (string, error) {
-					return "", fmt.Errorf("failed to generate temporary pin")
-				}
-			}
-
 			if tt.name == "valid: saved temporary pin successfully" {
 				fakeDB.MockSaveTemporaryUserPinFn = func(ctx context.Context, pinData *domain.UserPIN) (bool, error) {
 					return true, nil
@@ -853,8 +889,6 @@ func TestUseCasesUserImpl_SetUserPIN(t *testing.T) {
 	invalidPINString := "invalid"
 	invalidInput := ""
 	flavour := feedlib.FlavourConsumer
-
-	nonMatchedPin := "0000"
 
 	type args struct {
 		ctx   context.Context
@@ -945,20 +979,6 @@ func TestUseCasesUserImpl_SetUserPIN(t *testing.T) {
 					UserID:     &UserID,
 					PIN:        &shortPIN,
 					ConfirmPIN: &shortPIN,
-					Flavour:    flavour,
-				},
-			},
-			want:    false,
-			wantErr: true,
-		},
-		{
-			name: "invalid: confirm pin mismatch",
-			args: args{
-				ctx: ctx,
-				input: dto.PINInput{
-					UserID:     &UserID,
-					PIN:        &PIN,
-					ConfirmPIN: &nonMatchedPin,
 					Flavour:    flavour,
 				},
 			},
@@ -1065,12 +1085,6 @@ func TestUseCasesUserImpl_SetUserPIN(t *testing.T) {
 			if tt.name == "invalid: pin length short" {
 				fakeDB.MockSavePinFn = func(ctx context.Context, pin *domain.UserPIN) (bool, error) {
 					return false, fmt.Errorf("pin length is too short")
-				}
-			}
-
-			if tt.name == "invalid: confirm pin mismatch" {
-				fakeExtension.MockComparePINFn = func(rawPwd string, salt string, encodedPwd string, options *extension.Options) bool {
-					return false
 				}
 			}
 
@@ -1819,28 +1833,6 @@ func TestUseCasesUserImpl_VerifyPIN(t *testing.T) {
 			wantErr: true,
 			want:    false,
 		},
-		{
-			name: "invalid: pin mismatch",
-			args: args{
-				ctx:     ctx,
-				userID:  uuid.New().String(),
-				flavour: feedlib.FlavourConsumer,
-				pin:     "1234",
-			},
-			wantErr: true,
-			want:    false,
-		},
-		{
-			name: "invalid: failed to compare pin",
-			args: args{
-				ctx:     ctx,
-				userID:  uuid.New().String(),
-				flavour: feedlib.FlavourConsumer,
-				pin:     "1234",
-			},
-			wantErr: true,
-			want:    false,
-		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -1856,32 +1848,26 @@ func TestUseCasesUserImpl_VerifyPIN(t *testing.T) {
 
 			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakeGetStream, fakePubsub, fakeClinical, fakeSMS)
 
+			if tt.name == "Happy Case - Successfully verify pin" {
+				fakeDB.MockGetUserPINByUserIDFn = func(ctx context.Context, userID string, flavour feedlib.Flavour) (*domain.UserPIN, error) {
+					currentTime := time.Now()
+					laterTime := currentTime.Add(time.Minute * 2005)
+					salt, encryptedPin := utils.EncryptPIN("1234", nil)
+					return &domain.UserPIN{
+						UserID:    userID,
+						HashedPIN: encryptedPin,
+						ValidFrom: currentTime,
+						ValidTo:   laterTime,
+						Flavour:   flavour,
+						IsValid:   false,
+						Salt:      salt,
+					}, nil
+				}
+			}
+
 			if tt.name == "invalid: failed to get user pin by user id" {
 				fakeDB.MockGetUserPINByUserIDFn = func(ctx context.Context, userID string, flavour feedlib.Flavour) (*domain.UserPIN, error) {
 					return nil, fmt.Errorf("failed to get user pin by user id")
-				}
-			}
-
-			if tt.name == "invalid: pin mismatch" {
-				fakeDB.MockGetUserPINByUserIDFn = func(ctx context.Context, userID string, flavour feedlib.Flavour) (*domain.UserPIN, error) {
-					return &domain.UserPIN{
-						UserID:    userID,
-						HashedPIN: gofakeit.UUID(),
-						ValidFrom: time.Now().AddDate(0, 0, -1),
-						ValidTo:   time.Now().AddDate(0, 0, 10),
-						Flavour:   feedlib.FlavourConsumer,
-						IsValid:   true,
-						Salt:      gofakeit.UUID(),
-					}, nil
-				}
-				fakeExtension.MockComparePINFn = func(rawPwd string, salt string, encodedPwd string, options *extension.Options) bool {
-					return false
-				}
-			}
-
-			if tt.name == "invalid: failed to compare pin" {
-				fakeExtension.MockComparePINFn = func(rawPwd string, salt string, encodedPwd string, options *extension.Options) bool {
-					return false
 				}
 			}
 

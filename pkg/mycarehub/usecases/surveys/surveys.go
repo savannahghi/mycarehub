@@ -306,7 +306,6 @@ func (u *UsecaseSurveysImpl) SendClientSurveyLinks(ctx context.Context, facility
 			helpers.ReportErrorToSentry(err)
 		}
 
-		fmt.Println(userSurveys)
 		if len(userSurveys) > 0 {
 			continue
 		}

@@ -243,7 +243,7 @@ func (us *UseCasesUserImpl) checkPIN(ctx context.Context, credentials *dto.Login
 		return false
 	}
 
-	matched := us.ExternalExt.ComparePIN(
+	matched := utils.ComparePIN(
 		*credentials.PIN,
 		userPIN.Salt,
 		userPIN.HashedPIN,

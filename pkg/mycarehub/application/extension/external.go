@@ -18,7 +18,6 @@ import (
 	"github.com/savannahghi/firebasetools"
 	"github.com/savannahghi/interserviceclient"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
-	"github.com/savannahghi/onboarding/pkg/onboarding/application/extension"
 	"github.com/savannahghi/pubsubtools"
 	"github.com/savannahghi/serverutils"
 	"github.com/sirupsen/logrus"
@@ -41,9 +40,6 @@ type ExternalMethodsExtension interface {
 	CreateFirebaseCustomToken(ctx context.Context, uid string) (string, error)
 	CreateFirebaseCustomTokenWithClaims(ctx context.Context, uid string, claims map[string]interface{}) (string, error)
 	AuthenticateCustomFirebaseToken(customAuthToken string) (*firebasetools.FirebaseUserTokens, error)
-	ComparePIN(rawPwd string, salt string, encodedPwd string, options *extension.Options) bool
-	EncryptPIN(rawPwd string, options *extension.Options) (string, string)
-	GenerateTempPIN(ctx context.Context) (string, error)
 	SendSMS(ctx context.Context, phoneNumbers string, message string, from enumutils.SenderID) (*openSourceDto.SendMessageResponse, error)
 	GenerateAndSendOTP(ctx context.Context, phoneNumber string) (string, error)
 	GenerateOTP(ctx context.Context) (string, error)
@@ -67,7 +63,6 @@ type ExternalMethodsExtension interface {
 
 // External type implements external methods
 type External struct {
-	pinExt          extension.PINExtension
 	otpExtension    engagementOTP.ImplOTP
 	twilioExtension engagementTwilio.ImplTwilio
 	smsExtension    engagementSMS.UsecaseSMS
@@ -76,14 +71,12 @@ type External struct {
 
 // NewExternalMethodsImpl creates a new instance of the external methods
 func NewExternalMethodsImpl() ExternalMethodsExtension {
-	pinExtension := extension.NewPINExtensionImpl()
 	otpExt := engagementOTP.NewOTP(engagementInfra.NewInteractor())
 	twilioExt := engagementTwilio.NewImplTwilio(engagementInfra.NewInteractor())
 	smsExt := engagementSMS.NewSMS(engagementInfra.NewInteractor())
 	emailExt := engagementEmail.NewMail(engagementInfra.NewInteractor())
 
 	return &External{
-		pinExt:          pinExtension,
 		otpExtension:    *otpExt,
 		twilioExtension: *twilioExt,
 		smsExtension:    smsExt,
@@ -108,26 +101,6 @@ func (e *External) CreateFirebaseCustomTokenWithClaims(ctx context.Context, uid 
 // Otherwise, an error is returned
 func (e *External) AuthenticateCustomFirebaseToken(customAuthToken string) (*firebasetools.FirebaseUserTokens, error) {
 	return firebasetools.AuthenticateCustomFirebaseToken(customAuthToken)
-}
-
-// ComparePIN takes four arguments, the raw password, its generated salt, the encoded password,
-// and a pointer to the Options struct, and returns a boolean value determining whether the password is the correct one or not.
-// Passing `nil` as the last argument resorts to default options.
-func (e *External) ComparePIN(rawPwd string, salt string, encodedPwd string, options *extension.Options) bool {
-	return e.pinExt.ComparePIN(rawPwd, salt, encodedPwd, nil)
-}
-
-// EncryptPIN takes two arguments, a raw pin, and a pointer to an Options struct.
-// In order to use default options, pass `nil` as the second argument.
-// It returns the generated salt and encoded key for the user.
-func (e *External) EncryptPIN(rawPwd string, options *extension.Options) (string, string) {
-	return e.pinExt.EncryptPIN(rawPwd, nil)
-}
-
-// GenerateTempPIN generates a temporary One Time PIN for a user
-// The PIN will have 4 digits formatted as a string
-func (e *External) GenerateTempPIN(ctx context.Context) (string, error) {
-	return e.pinExt.GenerateTempPIN(ctx)
 }
 
 // SendSMS does the actual delivery of messages to the provided phone numbers
