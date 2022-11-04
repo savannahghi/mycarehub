@@ -20,6 +20,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/utils"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
@@ -29,7 +30,6 @@ import (
 	serviceSMS "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/sms"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/authority"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/otp"
-	"github.com/savannahghi/onboarding/pkg/onboarding/application/utils"
 	"github.com/savannahghi/scalarutils"
 	"github.com/savannahghi/serverutils"
 )
@@ -170,7 +170,7 @@ func NewUseCasesUserImpl(
 	query infrastructure.Query,
 	delete infrastructure.Delete,
 	update infrastructure.Update,
-	externalExt extension.ExternalMethodsExtension,
+	externalExt extension.ExternalMethodsExtension, // TODO: Work still in progress to remove some external methods
 	otp otp.UsecaseOTP,
 	authority authority.UsecaseAuthority,
 	getstream getstream.ServiceGetStream,
@@ -302,7 +302,7 @@ func (us *UseCasesUserImpl) InviteUser(ctx context.Context, userID string, phone
 
 // GenerateTemporaryPin generates a temporary user pin and invalidates the previous user pins
 func (us *UseCasesUserImpl) GenerateTemporaryPin(ctx context.Context, userID string, flavour feedlib.Flavour) (string, error) {
-	tempPin, err := us.ExternalExt.GenerateTempPIN(ctx)
+	tempPin, err := utils.GenerateTempPIN(ctx)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return "", exceptions.GeneratePinErr(fmt.Errorf("failed to generate temporary pin: %v", err))
@@ -318,7 +318,7 @@ func (us *UseCasesUserImpl) GenerateTemporaryPin(ctx context.Context, userID str
 
 	pinExpiryDate := time.Now().AddDate(0, 0, pinExpiryDaysInt)
 
-	salt, encryptedTempPin := us.ExternalExt.EncryptPIN(tempPin, nil)
+	salt, encryptedTempPin := utils.EncryptPIN(tempPin, nil)
 	pinPayload := &domain.UserPIN{
 		UserID:    userID,
 		HashedPIN: encryptedTempPin,
@@ -364,9 +364,9 @@ func (us *UseCasesUserImpl) SetUserPIN(ctx context.Context, input dto.PINInput) 
 		return false, exceptions.ValidatePINDigitsErr(err)
 	}
 
-	salt, encryptedPIN := us.ExternalExt.EncryptPIN(*input.PIN, nil)
+	salt, encryptedPIN := utils.EncryptPIN(*input.PIN, nil)
 
-	isMatch := us.ExternalExt.ComparePIN(*input.ConfirmPIN, salt, encryptedPIN, nil)
+	isMatch := utils.ComparePIN(*input.ConfirmPIN, salt, encryptedPIN, nil)
 	if !isMatch {
 		return false, exceptions.PinMismatchError()
 	}
@@ -552,7 +552,7 @@ func (us *UseCasesUserImpl) ResetPIN(ctx context.Context, input dto.UserResetPin
 		return false, exceptions.InternalErr(fmt.Errorf("failed to verify otp: %v", err))
 	}
 
-	salt, encryptedPin := us.ExternalExt.EncryptPIN(input.PIN, nil)
+	salt, encryptedPin := utils.EncryptPIN(input.PIN, nil)
 	expiryDate, err := helpers.GetPinExpiryDate()
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
@@ -640,7 +640,7 @@ func (us *UseCasesUserImpl) VerifyPIN(ctx context.Context, userID string, flavou
 	}
 
 	// If pin data does not match, this means the user cant access the data
-	matched := us.ExternalExt.ComparePIN(pin, pinData.Salt, pinData.HashedPIN, nil)
+	matched := utils.ComparePIN(pin, pinData.Salt, pinData.HashedPIN, nil)
 	if !matched {
 		return false, exceptions.PinMismatchError()
 	}

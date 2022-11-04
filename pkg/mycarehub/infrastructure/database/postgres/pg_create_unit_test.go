@@ -13,7 +13,7 @@ import (
 	"github.com/savannahghi/interserviceclient"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/utils"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
 	gormMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm/mock"
@@ -125,13 +125,11 @@ func TestMyCareHubDb_SaveTemporaryUserPin(t *testing.T) {
 	ID := uuid.New().String()
 	flavor := feedlib.FlavourConsumer
 
-	newExtension := extension.NewExternalMethodsImpl()
-
-	tempPin, err := newExtension.GenerateTempPIN(ctx)
+	tempPin, err := utils.GenerateTempPIN(ctx)
 	if err != nil {
 		t.Errorf("failed to generate temporary pin: %v", err)
 	}
-	salt, encryptedTempPin := newExtension.EncryptPIN(tempPin, nil)
+	salt, encryptedTempPin := utils.EncryptPIN(tempPin, nil)
 
 	pinPayload := &domain.UserPIN{
 		UserID:    ID,

@@ -12,7 +12,6 @@ import (
 	"github.com/savannahghi/firebasetools"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension/mock"
-	"github.com/savannahghi/onboarding/pkg/onboarding/application/extension"
 	"github.com/segmentio/ksuid"
 	"github.com/stretchr/testify/assert"
 )
@@ -138,39 +137,6 @@ func TestExternal_AuthenticateCustomFirebaseToken(t *testing.T) {
 				return
 			}
 
-		})
-	}
-}
-
-func TestExternal_ComparePIN(t *testing.T) {
-	type args struct {
-		rawPwd     string
-		salt       string
-		encodedPwd string
-		options    *extension.Options
-	}
-	tests := []struct {
-		name   string
-		args   args
-		want   bool
-		panics bool
-	}{
-		{
-			name:   "invalid: missing params",
-			args:   args{},
-			panics: true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if tt.panics {
-				fcComparePIN := func() { _ = ext.ComparePIN(tt.args.rawPwd, tt.args.salt, tt.args.encodedPwd, tt.args.options) }
-				assert.Panics(t, fcComparePIN)
-				return
-			}
-			if got := ext.ComparePIN(tt.args.rawPwd, tt.args.salt, tt.args.encodedPwd, tt.args.options); got != tt.want {
-				t.Errorf("External.ComparePIN() = %v, want %v", got, tt.want)
-			}
 		})
 	}
 }
