@@ -104,25 +104,21 @@ type ComplexityRoot struct {
 
 	CaregiverProfile struct {
 		CaregiverNumber func(childComplexity int) int
+		Consent         func(childComplexity int) int
 		ID              func(childComplexity int) int
 		IsClient        func(childComplexity int) int
 		User            func(childComplexity int) int
 	}
 
 	CaregiverProfileOutputPage struct {
-		ClientCaregivers func(childComplexity int) int
-		Pagination       func(childComplexity int) int
+		Caregivers func(childComplexity int) int
+		Pagination func(childComplexity int) int
 	}
 
 	CategoryDetail struct {
 		CategoryIcon func(childComplexity int) int
 		CategoryName func(childComplexity int) int
 		ID           func(childComplexity int) int
-	}
-
-	ClientCaregivers struct {
-		Caregivers func(childComplexity int) int
-		Consented  func(childComplexity int) int
 	}
 
 	ClientHealthDiaryEntry struct {
@@ -204,6 +200,10 @@ type ComplexityRoot struct {
 		User             func(childComplexity int) int
 		UserID           func(childComplexity int) int
 		UserType         func(childComplexity int) int
+	}
+
+	ConsentStatus struct {
+		ConsentStatus func(childComplexity int) int
 	}
 
 	Contact struct {
@@ -1204,6 +1204,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.CaregiverProfile.CaregiverNumber(childComplexity), true
 
+	case "CaregiverProfile.consent":
+		if e.complexity.CaregiverProfile.Consent == nil {
+			break
+		}
+
+		return e.complexity.CaregiverProfile.Consent(childComplexity), true
+
 	case "CaregiverProfile.id":
 		if e.complexity.CaregiverProfile.ID == nil {
 			break
@@ -1225,12 +1232,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.CaregiverProfile.User(childComplexity), true
 
-	case "CaregiverProfileOutputPage.clientCaregivers":
-		if e.complexity.CaregiverProfileOutputPage.ClientCaregivers == nil {
+	case "CaregiverProfileOutputPage.caregivers":
+		if e.complexity.CaregiverProfileOutputPage.Caregivers == nil {
 			break
 		}
 
-		return e.complexity.CaregiverProfileOutputPage.ClientCaregivers(childComplexity), true
+		return e.complexity.CaregiverProfileOutputPage.Caregivers(childComplexity), true
 
 	case "CaregiverProfileOutputPage.pagination":
 		if e.complexity.CaregiverProfileOutputPage.Pagination == nil {
@@ -1259,20 +1266,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.CategoryDetail.ID(childComplexity), true
-
-	case "ClientCaregivers.caregivers":
-		if e.complexity.ClientCaregivers.Caregivers == nil {
-			break
-		}
-
-		return e.complexity.ClientCaregivers.Caregivers(childComplexity), true
-
-	case "ClientCaregivers.consented":
-		if e.complexity.ClientCaregivers.Consented == nil {
-			break
-		}
-
-		return e.complexity.ClientCaregivers.Consented(childComplexity), true
 
 	case "ClientHealthDiaryEntry.active":
 		if e.complexity.ClientHealthDiaryEntry.Active == nil {
@@ -1714,6 +1707,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.CommunityMember.UserType(childComplexity), true
+
+	case "ConsentStatus.consentStatus":
+		if e.complexity.ConsentStatus.ConsentStatus == nil {
+			break
+		}
+
+		return e.complexity.ConsentStatus.ConsentStatus(childComplexity), true
 
 	case "Contact.active":
 		if e.complexity.Contact.Active == nil {
@@ -5881,6 +5881,12 @@ enum QuestionResponseValueType {
   TIME
   DATE
   DATE_TIME
+}
+
+enum ConsentState {
+  PENDING
+  ACCEPTED
+  REJECTED
 }`, BuiltIn: false},
 	{Name: "../facility.graphql", Input: `extend type Mutation {
   createFacility(input: FacilityInput!): Facility!
@@ -6688,6 +6694,7 @@ type CaregiverProfile {
   user: User!
   caregiverNumber: String!
   isClient: Boolean
+  consent: ConsentStatus!
 }
 
 type ScreeningToolAssessmentResponse {
@@ -6983,8 +6990,8 @@ type FacilityOutputPage {
 
 type ManagedClient {
 	clientProfile: ClientProfile 
-	caregiverConsent: Boolean
-	clientConsent: Boolean 
+	caregiverConsent: ConsentState
+	clientConsent: ConsentState
   workStationDetails: WorkStationDetails         
 }
 
@@ -6992,14 +6999,14 @@ type ManagedClientOutputPage{
 	pagination: Pagination 
 	ManagedClients: [ManagedClient]!
 }
+
 type CaregiverProfileOutputPage {
   pagination: Pagination!
-  clientCaregivers: ClientCaregivers!
+  caregivers: [CaregiverProfile]!
 }
 
-type ClientCaregivers {
-	caregivers: [CaregiverProfile]!
-	consented: Boolean!
+type ConsentStatus {
+  consentStatus: ConsentState!
 }
 `, BuiltIn: false},
 	{Name: "../user.graphql", Input: `extend type Query {
@@ -11080,6 +11087,54 @@ func (ec *executionContext) fieldContext_CaregiverProfile_isClient(ctx context.C
 	return fc, nil
 }
 
+func (ec *executionContext) _CaregiverProfile_consent(ctx context.Context, field graphql.CollectedField, obj *domain.CaregiverProfile) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CaregiverProfile_consent(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Consent, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(domain.ConsentStatus)
+	fc.Result = res
+	return ec.marshalNConsentStatus2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐConsentStatus(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CaregiverProfile_consent(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CaregiverProfile",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "consentStatus":
+				return ec.fieldContext_ConsentStatus_consentStatus(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ConsentStatus", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _CaregiverProfileOutputPage_pagination(ctx context.Context, field graphql.CollectedField, obj *dto.CaregiverProfileOutputPage) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_CaregiverProfileOutputPage_pagination(ctx, field)
 	if err != nil {
@@ -11138,8 +11193,8 @@ func (ec *executionContext) fieldContext_CaregiverProfileOutputPage_pagination(c
 	return fc, nil
 }
 
-func (ec *executionContext) _CaregiverProfileOutputPage_clientCaregivers(ctx context.Context, field graphql.CollectedField, obj *dto.CaregiverProfileOutputPage) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_CaregiverProfileOutputPage_clientCaregivers(ctx, field)
+func (ec *executionContext) _CaregiverProfileOutputPage_caregivers(ctx context.Context, field graphql.CollectedField, obj *dto.CaregiverProfileOutputPage) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CaregiverProfileOutputPage_caregivers(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -11152,7 +11207,7 @@ func (ec *executionContext) _CaregiverProfileOutputPage_clientCaregivers(ctx con
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.ClientCaregivers, nil
+		return obj.Caregivers, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -11164,12 +11219,12 @@ func (ec *executionContext) _CaregiverProfileOutputPage_clientCaregivers(ctx con
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*domain.ClientCaregivers)
+	res := resTmp.([]*domain.CaregiverProfile)
 	fc.Result = res
-	return ec.marshalNClientCaregivers2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐClientCaregivers(ctx, field.Selections, res)
+	return ec.marshalNCaregiverProfile2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐCaregiverProfile(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_CaregiverProfileOutputPage_clientCaregivers(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_CaregiverProfileOutputPage_caregivers(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "CaregiverProfileOutputPage",
 		Field:      field,
@@ -11177,12 +11232,18 @@ func (ec *executionContext) fieldContext_CaregiverProfileOutputPage_clientCaregi
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "caregivers":
-				return ec.fieldContext_ClientCaregivers_caregivers(ctx, field)
-			case "consented":
-				return ec.fieldContext_ClientCaregivers_consented(ctx, field)
+			case "id":
+				return ec.fieldContext_CaregiverProfile_id(ctx, field)
+			case "user":
+				return ec.fieldContext_CaregiverProfile_user(ctx, field)
+			case "caregiverNumber":
+				return ec.fieldContext_CaregiverProfile_caregiverNumber(ctx, field)
+			case "isClient":
+				return ec.fieldContext_CaregiverProfile_isClient(ctx, field)
+			case "consent":
+				return ec.fieldContext_CaregiverProfile_consent(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type ClientCaregivers", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type CaregiverProfile", field.Name)
 		},
 	}
 	return fc, nil
@@ -11315,104 +11376,6 @@ func (ec *executionContext) fieldContext_CategoryDetail_categoryIcon(ctx context
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _ClientCaregivers_caregivers(ctx context.Context, field graphql.CollectedField, obj *domain.ClientCaregivers) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_ClientCaregivers_caregivers(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Caregivers, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.([]*domain.CaregiverProfile)
-	fc.Result = res
-	return ec.marshalNCaregiverProfile2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐCaregiverProfile(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_ClientCaregivers_caregivers(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "ClientCaregivers",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_CaregiverProfile_id(ctx, field)
-			case "user":
-				return ec.fieldContext_CaregiverProfile_user(ctx, field)
-			case "caregiverNumber":
-				return ec.fieldContext_CaregiverProfile_caregiverNumber(ctx, field)
-			case "isClient":
-				return ec.fieldContext_CaregiverProfile_isClient(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type CaregiverProfile", field.Name)
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _ClientCaregivers_consented(ctx context.Context, field graphql.CollectedField, obj *domain.ClientCaregivers) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_ClientCaregivers_consented(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Consented, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(bool)
-	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_ClientCaregivers_consented(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "ClientCaregivers",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Boolean does not have child fields")
 		},
 	}
 	return fc, nil
@@ -14201,6 +14164,50 @@ func (ec *executionContext) fieldContext_CommunityMember_userType(ctx context.Co
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConsentStatus_consentStatus(ctx context.Context, field graphql.CollectedField, obj *domain.ConsentStatus) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConsentStatus_consentStatus(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ConsentStatus, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(enums.ConsentState)
+	fc.Result = res
+	return ec.marshalNConsentState2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐConsentState(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConsentStatus_consentStatus(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConsentStatus",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ConsentState does not have child fields")
 		},
 	}
 	return fc, nil
@@ -19330,9 +19337,9 @@ func (ec *executionContext) _ManagedClient_caregiverConsent(ctx context.Context,
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*bool)
+	res := resTmp.(enums.ConsentState)
 	fc.Result = res
-	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
+	return ec.marshalOConsentState2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐConsentState(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_ManagedClient_caregiverConsent(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -19342,7 +19349,7 @@ func (ec *executionContext) fieldContext_ManagedClient_caregiverConsent(ctx cont
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Boolean does not have child fields")
+			return nil, errors.New("field of type ConsentState does not have child fields")
 		},
 	}
 	return fc, nil
@@ -19371,9 +19378,9 @@ func (ec *executionContext) _ManagedClient_clientConsent(ctx context.Context, fi
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*bool)
+	res := resTmp.(enums.ConsentState)
 	fc.Result = res
-	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
+	return ec.marshalOConsentState2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐConsentState(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_ManagedClient_clientConsent(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -19383,7 +19390,7 @@ func (ec *executionContext) fieldContext_ManagedClient_clientConsent(ctx context
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Boolean does not have child fields")
+			return nil, errors.New("field of type ConsentState does not have child fields")
 		},
 	}
 	return fc, nil
@@ -23493,6 +23500,8 @@ func (ec *executionContext) fieldContext_Mutation_registerCaregiver(ctx context.
 				return ec.fieldContext_CaregiverProfile_caregiverNumber(ctx, field)
 			case "isClient":
 				return ec.fieldContext_CaregiverProfile_isClient(ctx, field)
+			case "consent":
+				return ec.fieldContext_CaregiverProfile_consent(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type CaregiverProfile", field.Name)
 		},
@@ -23558,6 +23567,8 @@ func (ec *executionContext) fieldContext_Mutation_registerClientAsCaregiver(ctx 
 				return ec.fieldContext_CaregiverProfile_caregiverNumber(ctx, field)
 			case "isClient":
 				return ec.fieldContext_CaregiverProfile_isClient(ctx, field)
+			case "consent":
+				return ec.fieldContext_CaregiverProfile_consent(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type CaregiverProfile", field.Name)
 		},
@@ -28653,6 +28664,8 @@ func (ec *executionContext) fieldContext_Query_searchCaregiverUser(ctx context.C
 				return ec.fieldContext_CaregiverProfile_caregiverNumber(ctx, field)
 			case "isClient":
 				return ec.fieldContext_CaregiverProfile_isClient(ctx, field)
+			case "consent":
+				return ec.fieldContext_CaregiverProfile_consent(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type CaregiverProfile", field.Name)
 		},
@@ -28910,8 +28923,8 @@ func (ec *executionContext) fieldContext_Query_listClientsCaregivers(ctx context
 			switch field.Name {
 			case "pagination":
 				return ec.fieldContext_CaregiverProfileOutputPage_pagination(ctx, field)
-			case "clientCaregivers":
-				return ec.fieldContext_CaregiverProfileOutputPage_clientCaregivers(ctx, field)
+			case "caregivers":
+				return ec.fieldContext_CaregiverProfileOutputPage_caregivers(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type CaregiverProfileOutputPage", field.Name)
 		},
@@ -41057,6 +41070,13 @@ func (ec *executionContext) _CaregiverProfile(ctx context.Context, sel ast.Selec
 
 			out.Values[i] = ec._CaregiverProfile_isClient(ctx, field, obj)
 
+		case "consent":
+
+			out.Values[i] = ec._CaregiverProfile_consent(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -41085,9 +41105,9 @@ func (ec *executionContext) _CaregiverProfileOutputPage(ctx context.Context, sel
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "clientCaregivers":
+		case "caregivers":
 
-			out.Values[i] = ec._CaregiverProfileOutputPage_clientCaregivers(ctx, field, obj)
+			out.Values[i] = ec._CaregiverProfileOutputPage_caregivers(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
@@ -41130,41 +41150,6 @@ func (ec *executionContext) _CategoryDetail(ctx context.Context, sel ast.Selecti
 		case "categoryIcon":
 
 			out.Values[i] = ec._CategoryDetail_categoryIcon(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch()
-	if invalids > 0 {
-		return graphql.Null
-	}
-	return out
-}
-
-var clientCaregiversImplementors = []string{"ClientCaregivers"}
-
-func (ec *executionContext) _ClientCaregivers(ctx context.Context, sel ast.SelectionSet, obj *domain.ClientCaregivers) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, clientCaregiversImplementors)
-	out := graphql.NewFieldSet(fields)
-	var invalids uint32
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("ClientCaregivers")
-		case "caregivers":
-
-			out.Values[i] = ec._ClientCaregivers_caregivers(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "consented":
-
-			out.Values[i] = ec._ClientCaregivers_consented(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
@@ -41630,6 +41615,34 @@ func (ec *executionContext) _CommunityMember(ctx context.Context, sel ast.Select
 		case "userType":
 
 			out.Values[i] = ec._CommunityMember_userType(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var consentStatusImplementors = []string{"ConsentStatus"}
+
+func (ec *executionContext) _ConsentStatus(ctx context.Context, sel ast.SelectionSet, obj *domain.ConsentStatus) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, consentStatusImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ConsentStatus")
+		case "consentStatus":
+
+			out.Values[i] = ec._ConsentStatus_consentStatus(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
@@ -47478,16 +47491,6 @@ func (ec *executionContext) unmarshalNClientCaregiverInput2githubᚗcomᚋsavann
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNClientCaregivers2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐClientCaregivers(ctx context.Context, sel ast.SelectionSet, v *domain.ClientCaregivers) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
-		}
-		return graphql.Null
-	}
-	return ec._ClientCaregivers(ctx, sel, v)
-}
-
 func (ec *executionContext) marshalNClientHealthDiaryEntry2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐClientHealthDiaryEntry(ctx context.Context, sel ast.SelectionSet, v []*domain.ClientHealthDiaryEntry) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
@@ -47827,6 +47830,20 @@ func (ec *executionContext) marshalNCommunity2ᚖgithubᚗcomᚋsavannahghiᚋmy
 func (ec *executionContext) unmarshalNCommunityInput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐCommunityInput(ctx context.Context, v interface{}) (dto.CommunityInput, error) {
 	res, err := ec.unmarshalInputCommunityInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNConsentState2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐConsentState(ctx context.Context, v interface{}) (enums.ConsentState, error) {
+	var res enums.ConsentState
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNConsentState2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐConsentState(ctx context.Context, sel ast.SelectionSet, v enums.ConsentState) graphql.Marshaler {
+	return v
+}
+
+func (ec *executionContext) marshalNConsentStatus2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐConsentStatus(ctx context.Context, sel ast.SelectionSet, v domain.ConsentStatus) graphql.Marshaler {
+	return ec._ConsentStatus(ctx, sel, &v)
 }
 
 func (ec *executionContext) marshalNContact2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐContact(ctx context.Context, sel ast.SelectionSet, v *domain.Contact) graphql.Marshaler {
@@ -50435,6 +50452,16 @@ func (ec *executionContext) marshalOCommunityMember2ᚖgithubᚗcomᚋsavannahgh
 		return graphql.Null
 	}
 	return ec._CommunityMember(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOConsentState2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐConsentState(ctx context.Context, v interface{}) (enums.ConsentState, error) {
+	var res enums.ConsentState
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOConsentState2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐConsentState(ctx context.Context, sel ast.SelectionSet, v enums.ConsentState) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) marshalOContent2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐContent(ctx context.Context, sel ast.SelectionSet, v *domain.Content) graphql.Marshaler {

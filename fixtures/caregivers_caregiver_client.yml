@@ -8,7 +8,7 @@
   organisation_id: {{.test_organisation_id}}
   assigned_by: {{.staff_id}}
   relationship_type: FATHER
-  caregiver_consent: true
+  caregiver_consent: ACCEPTED
   caregiver_consent_at: 2021-11-22 21:16:29.23639+03
-  client_consent: true
+  client_consent: ACCEPTED
   client_consent_at: 2021-11-22 21:16:29.23639+03

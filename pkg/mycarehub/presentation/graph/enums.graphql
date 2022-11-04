@@ -157,3 +157,9 @@ enum QuestionResponseValueType {
   DATE
   DATE_TIME
 }
+
+enum ConsentState {
+  PENDING
+  ACCEPTED
+  REJECTED
+}

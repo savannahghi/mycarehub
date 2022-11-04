@@ -1568,7 +1568,7 @@ func TestPGInstance_UpdateCaregiverClient(t *testing.T) {
 					ClientID: clientID,
 				},
 				updateData: map[string]interface{}{
-					"client_consent":    true,
+					"client_consent":    enums.ConsentStateAccepted,
 					"client_consent_at": time.Now(),
 				},
 			},
@@ -1582,7 +1582,7 @@ func TestPGInstance_UpdateCaregiverClient(t *testing.T) {
 					ClientID: "clientID",
 				},
 				updateData: map[string]interface{}{
-					"client_consent":    true,
+					"client_consent":    enums.ConsentStateAccepted,
 					"client_consent_at": time.Now(),
 				},
 			},

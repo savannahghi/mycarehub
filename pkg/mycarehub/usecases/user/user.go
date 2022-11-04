@@ -1876,8 +1876,8 @@ func (us *UseCasesUserImpl) ListClientsCaregivers(ctx context.Context, clientID 
 	}
 
 	return &dto.CaregiverProfileOutputPage{
-		Pagination:       pageInfo,
-		ClientCaregivers: caregivers,
+		Pagination: pageInfo,
+		Caregivers: caregivers.Caregivers,
 	}, nil
 }
 

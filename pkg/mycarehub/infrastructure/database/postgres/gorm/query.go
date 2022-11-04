@@ -1990,7 +1990,7 @@ func (db *PGInstance) GetCaregiverManagedClients(ctx context.Context, caregiverI
 	tx := db.DB.Model(&clients)
 
 	tx = tx.Joins("JOIN caregivers_caregiver_client ON clients_client.id = caregivers_caregiver_client.client_id").
-		Where("caregivers_caregiver_client.caregiver_id = ?", caregiverID).Where("caregivers_caregiver_client.client_consent = ?", true)
+		Where("caregivers_caregiver_client.caregiver_id = ?", caregiverID).Where("caregivers_caregiver_client.client_consent = ?", enums.ConsentStateAccepted)
 
 	if pagination != nil {
 		if err := tx.Count(&count).Error; err != nil {

@@ -388,6 +388,7 @@ type CaregiverProfile {
   user: User!
   caregiverNumber: String!
   isClient: Boolean
+  consent: ConsentStatus!
 }
 
 type ScreeningToolAssessmentResponse {
@@ -683,8 +684,8 @@ type FacilityOutputPage {
 
 type ManagedClient {
 	clientProfile: ClientProfile 
-	caregiverConsent: Boolean
-	clientConsent: Boolean 
+	caregiverConsent: ConsentState
+	clientConsent: ConsentState
   workStationDetails: WorkStationDetails         
 }
 
@@ -692,12 +693,12 @@ type ManagedClientOutputPage{
 	pagination: Pagination 
 	ManagedClients: [ManagedClient]!
 }
+
 type CaregiverProfileOutputPage {
   pagination: Pagination!
-  clientCaregivers: ClientCaregivers!
+  caregivers: [CaregiverProfile]!
 }
 
-type ClientCaregivers {
-	caregivers: [CaregiverProfile]!
-	consented: Boolean!
+type ConsentStatus {
+  consentStatus: ConsentState!
 }

@@ -643,7 +643,6 @@ func NewGormMock() *GormMock {
 			}, nil
 		},
 		MockListClientsCaregiversFn: func(ctx context.Context, clientID string, pagination *domain.Pagination) ([]*gorm.CaregiverClient, *domain.Pagination, error) {
-			okBool := true
 			now := time.Now()
 			return []*gorm.CaregiverClient{
 					{
@@ -651,9 +650,9 @@ func NewGormMock() *GormMock {
 						ClientID:           UUID,
 						Active:             true,
 						RelationshipType:   enums.CaregiverTypeFather,
-						CaregiverConsent:   &okBool,
+						CaregiverConsent:   enums.ConsentStateAccepted,
 						CaregiverConsentAt: &now,
-						ClientConsent:      &okBool,
+						ClientConsent:      enums.ConsentStateAccepted,
 						ClientConsentAt:    &now,
 						OrganisationID:     UUID,
 						AssignedBy:         UUID,
@@ -1475,16 +1474,15 @@ func NewGormMock() *GormMock {
 			return []*gorm.Client{clientProfile}, paginationOutput, nil
 		},
 		MockGetCaregiversClientFn: func(ctx context.Context, caregiverClient gorm.CaregiverClient) ([]*gorm.CaregiverClient, error) {
-			trueValue := true
 			return []*gorm.CaregiverClient{
 				{
 					CaregiverID:        uuid.NewString(),
 					ClientID:           uuid.NewString(),
 					Active:             true,
 					RelationshipType:   enums.CaregiverTypeHealthCareProfessional,
-					CaregiverConsent:   &trueValue,
+					CaregiverConsent:   enums.ConsentStateAccepted,
 					CaregiverConsentAt: &nowTime,
-					ClientConsent:      &trueValue,
+					ClientConsent:      enums.ConsentStateAccepted,
 					ClientConsentAt:    &nowTime,
 					AssignedBy:         uuid.NewString(),
 				},

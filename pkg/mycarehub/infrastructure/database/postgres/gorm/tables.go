@@ -1670,9 +1670,9 @@ type CaregiverClient struct {
 	ClientID           string              `gorm:"column:client_id;not null"`
 	Active             bool                `gorm:"column:active"`
 	RelationshipType   enums.CaregiverType `gorm:"column:relationship_type;not null"`
-	CaregiverConsent   *bool               `gorm:"column:caregiver_consent"`
+	CaregiverConsent   enums.ConsentState  `gorm:"column:caregiver_consent"`
 	CaregiverConsentAt *time.Time          `gorm:"column:caregiver_consent_at"`
-	ClientConsent      *bool               `gorm:"column:client_consent"`
+	ClientConsent      enums.ConsentState  `gorm:"column:client_consent"`
 	ClientConsentAt    *time.Time          `gorm:"column:client_consent_at"`
 
 	OrganisationID string `gorm:"column:organisation_id;not null"`
