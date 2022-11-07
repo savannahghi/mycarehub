@@ -25,7 +25,6 @@ require (
 	github.com/savannahghi/feedlib v0.0.6
 	github.com/savannahghi/firebasetools v0.0.17
 	github.com/savannahghi/interserviceclient v0.0.18
-	github.com/savannahghi/onboarding v0.0.30
 	github.com/savannahghi/profileutils v0.0.27
 	github.com/savannahghi/pubsubtools v0.0.3
 	github.com/savannahghi/scalarutils v0.0.4
@@ -36,6 +35,7 @@ require (
 	github.com/stretchr/testify v1.7.5
 	github.com/tj/assert v0.0.3
 	github.com/vektah/gqlparser/v2 v2.4.5
+	github.com/xdg-go/pbkdf2 v1.0.0
 	go.opencensus.io v0.23.0
 	go.opentelemetry.io/contrib/instrumentation/github.com/gorilla/mux/otelmux v0.32.0
 	google.golang.org/api v0.86.0
