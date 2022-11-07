@@ -436,8 +436,10 @@ type ComplexityRoot struct {
 		AddFacilitiesToClientProfile       func(childComplexity int, clientID string, facilities []string) int
 		AddFacilitiesToStaffProfile        func(childComplexity int, staffID string, facilities []string) int
 		AddFacilityContact                 func(childComplexity int, facilityID string, contact string) int
+		AddGroupingPolicy                  func(childComplexity int, subject string, permission dto.PermissionInput) int
 		AddMembersToCommunity              func(childComplexity int, memberIDs []string, communityID string) int
 		AddModerators                      func(childComplexity int, memberIDs []string, communityID string) int
+		AddPolicy                          func(childComplexity int, subject string, permission dto.PermissionInput) int
 		AnswerScreeningToolQuestion        func(childComplexity int, screeningToolResponses []*dto.ScreeningToolQuestionResponseInput) int
 		AssignCaregiver                    func(childComplexity int, input dto.ClientCaregiverInput) int
 		AssignOrRevokeRoles                func(childComplexity int, userID string, roles []*enums.UserRoleType) int
@@ -470,7 +472,9 @@ type ComplexityRoot struct {
 		RejectInvitation                   func(childComplexity int, memberID string, communityID string) int
 		RemoveFacilitiesFromClientProfile  func(childComplexity int, clientID string, facilities []string) int
 		RemoveFacilitiesFromStaffProfile   func(childComplexity int, staffID string, facilities []string) int
+		RemoveGroupingPolicy               func(childComplexity int, subject string, permission dto.PermissionInput) int
 		RemoveMembersFromCommunity         func(childComplexity int, communityID string, memberIDs []string) int
+		RemovePolicy                       func(childComplexity int, subject string, permission dto.PermissionInput) int
 		RescheduleAppointment              func(childComplexity int, appointmentID string, date scalarutils.Date) int
 		ResolveServiceRequest              func(childComplexity int, staffID string, requestID string, action []string, comment *string) int
 		RespondToScreeningTool             func(childComplexity int, input dto.QuestionnaireScreeningToolResponseInput) int
@@ -530,8 +534,10 @@ type ComplexityRoot struct {
 
 	Query struct {
 		CanRecordMood                           func(childComplexity int, clientID string) int
+		CheckAuthorization                      func(childComplexity int, subject string, permission dto.PermissionInput) int
 		CheckIfUserBookmarkedContent            func(childComplexity int, userID string, contentID int) int
 		CheckIfUserHasLikedContent              func(childComplexity int, userID string, contentID int) int
+		CheckPermissions                        func(childComplexity int, subject string, permission dto.PermissionInput) int
 		FetchClientAppointments                 func(childComplexity int, clientID string, paginationInput dto.PaginationsInput, filters []*firebasetools.FilterParam) int
 		FetchNotificationTypeFilters            func(childComplexity int, flavour feedlib.Flavour) int
 		FetchNotifications                      func(childComplexity int, userID string, flavour feedlib.Flavour, paginationInput dto.PaginationsInput, filters *domain.NotificationFilters) int
@@ -565,6 +571,7 @@ type ComplexityRoot struct {
 		GetUserRoles                            func(childComplexity int, userID string) int
 		GetUserSurveyForms                      func(childComplexity int, userID string) int
 		InviteMembersToCommunity                func(childComplexity int, communityID string, memberIDs []string) int
+		IsAuthorized                            func(childComplexity int, permission dto.PermissionInput) int
 		ListClientsCaregivers                   func(childComplexity int, clientID string, paginationInput *dto.PaginationsInput) int
 		ListCommunities                         func(childComplexity int, input *stream_chat.QueryOption) int
 		ListCommunityBannedMembers              func(childComplexity int, communityID string) int
@@ -885,6 +892,10 @@ type ComplexityRoot struct {
 type MutationResolver interface {
 	RescheduleAppointment(ctx context.Context, appointmentID string, date scalarutils.Date) (bool, error)
 	AssignOrRevokeRoles(ctx context.Context, userID string, roles []*enums.UserRoleType) (bool, error)
+	AddPolicy(ctx context.Context, subject string, permission dto.PermissionInput) (bool, error)
+	RemovePolicy(ctx context.Context, subject string, permission dto.PermissionInput) (bool, error)
+	AddGroupingPolicy(ctx context.Context, subject string, permission dto.PermissionInput) (bool, error)
+	RemoveGroupingPolicy(ctx context.Context, subject string, permission dto.PermissionInput) (bool, error)
 	CreateCommunity(ctx context.Context, input dto.CommunityInput) (*domain.Community, error)
 	DeleteCommunities(ctx context.Context, communityIDs []string, hardDelete bool) (bool, error)
 	RejectInvitation(ctx context.Context, memberID string, communityID string) (bool, error)
@@ -951,6 +962,9 @@ type QueryResolver interface {
 	NextRefill(ctx context.Context, clientID string) (*scalarutils.Date, error)
 	GetUserRoles(ctx context.Context, userID string) ([]*domain.AuthorityRole, error)
 	GetAllAuthorityRoles(ctx context.Context) ([]*domain.AuthorityRole, error)
+	CheckPermissions(ctx context.Context, subject string, permission dto.PermissionInput) (bool, error)
+	CheckAuthorization(ctx context.Context, subject string, permission dto.PermissionInput) (bool, error)
+	IsAuthorized(ctx context.Context, permission dto.PermissionInput) (bool, error)
 	ListMembers(ctx context.Context, input *stream_chat.QueryOption) ([]*domain.Member, error)
 	ListCommunityBannedMembers(ctx context.Context, communityID string) ([]*domain.Member, error)
 	InviteMembersToCommunity(ctx context.Context, communityID string, memberIDs []string) (bool, error)
@@ -2776,6 +2790,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.AddFacilityContact(childComplexity, args["facilityID"].(string), args["contact"].(string)), true
 
+	case "Mutation.addGroupingPolicy":
+		if e.complexity.Mutation.AddGroupingPolicy == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_addGroupingPolicy_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.AddGroupingPolicy(childComplexity, args["subject"].(string), args["permission"].(dto.PermissionInput)), true
+
 	case "Mutation.addMembersToCommunity":
 		if e.complexity.Mutation.AddMembersToCommunity == nil {
 			break
@@ -2799,6 +2825,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.AddModerators(childComplexity, args["memberIDs"].([]string), args["communityID"].(string)), true
+
+	case "Mutation.addPolicy":
+		if e.complexity.Mutation.AddPolicy == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_addPolicy_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.AddPolicy(childComplexity, args["subject"].(string), args["permission"].(dto.PermissionInput)), true
 
 	case "Mutation.answerScreeningToolQuestion":
 		if e.complexity.Mutation.AnswerScreeningToolQuestion == nil {
@@ -3184,6 +3222,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.RemoveFacilitiesFromStaffProfile(childComplexity, args["staffID"].(string), args["facilities"].([]string)), true
 
+	case "Mutation.removeGroupingPolicy":
+		if e.complexity.Mutation.RemoveGroupingPolicy == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_removeGroupingPolicy_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.RemoveGroupingPolicy(childComplexity, args["subject"].(string), args["permission"].(dto.PermissionInput)), true
+
 	case "Mutation.removeMembersFromCommunity":
 		if e.complexity.Mutation.RemoveMembersFromCommunity == nil {
 			break
@@ -3195,6 +3245,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.RemoveMembersFromCommunity(childComplexity, args["communityID"].(string), args["memberIDs"].([]string)), true
+
+	case "Mutation.removePolicy":
+		if e.complexity.Mutation.RemovePolicy == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_removePolicy_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.RemovePolicy(childComplexity, args["subject"].(string), args["permission"].(dto.PermissionInput)), true
 
 	case "Mutation.rescheduleAppointment":
 		if e.complexity.Mutation.RescheduleAppointment == nil {
@@ -3598,6 +3660,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.CanRecordMood(childComplexity, args["clientID"].(string)), true
 
+	case "Query.checkAuthorization":
+		if e.complexity.Query.CheckAuthorization == nil {
+			break
+		}
+
+		args, err := ec.field_Query_checkAuthorization_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.CheckAuthorization(childComplexity, args["subject"].(string), args["permission"].(dto.PermissionInput)), true
+
 	case "Query.checkIfUserBookmarkedContent":
 		if e.complexity.Query.CheckIfUserBookmarkedContent == nil {
 			break
@@ -3621,6 +3695,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.CheckIfUserHasLikedContent(childComplexity, args["userID"].(string), args["contentID"].(int)), true
+
+	case "Query.checkPermissions":
+		if e.complexity.Query.CheckPermissions == nil {
+			break
+		}
+
+		args, err := ec.field_Query_checkPermissions_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.CheckPermissions(childComplexity, args["subject"].(string), args["permission"].(dto.PermissionInput)), true
 
 	case "Query.fetchClientAppointments":
 		if e.complexity.Query.FetchClientAppointments == nil {
@@ -4012,6 +4098,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.InviteMembersToCommunity(childComplexity, args["communityID"].(string), args["memberIDs"].([]string)), true
+
+	case "Query.isAuthorized":
+		if e.complexity.Query.IsAuthorized == nil {
+			break
+		}
+
+		args, err := ec.field_Query_isAuthorized_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.IsAuthorized(childComplexity, args["permission"].(dto.PermissionInput)), true
 
 	case "Query.listClientsCaregivers":
 		if e.complexity.Query.ListClientsCaregivers == nil {
@@ -5583,6 +5681,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputNotificationFilters,
 		ec.unmarshalInputPINInput,
 		ec.unmarshalInputPaginationsInput,
+		ec.unmarshalInputPermissionInput,
 		ec.unmarshalInputQueryOption,
 		ec.unmarshalInputQuestionInput,
 		ec.unmarshalInputQuestionInputChoiceInput,
@@ -5679,6 +5778,18 @@ extend type Mutation {
 extend type Query{
   getUserRoles(userID: String!): [AuthorityRole!]
   getAllAuthorityRoles: [AuthorityRole!]
+}`, BuiltIn: false},
+	{Name: "../authorization.graphql", Input: `extend type Mutation {
+	addPolicy(subject: String!,  permission: PermissionInput!): Boolean!
+	removePolicy(subject: String!,  permission: PermissionInput!): Boolean!
+	addGroupingPolicy(subject: String!,  permission: PermissionInput!): Boolean!
+	removeGroupingPolicy(subject: String!,  permission: PermissionInput!): Boolean!
+}
+
+extend type Query{
+    checkPermissions(subject: String!, permission: PermissionInput!): Boolean!
+	checkAuthorization(subject: String!, permission: PermissionInput!): Boolean!
+    isAuthorized(permission: PermissionInput!): Boolean!
 }`, BuiltIn: false},
 	{Name: "../communities.graphql", Input: `extend type Query {
   listMembers(input: QueryOption): [Member]
@@ -6157,7 +6268,14 @@ input ClientCaregiverInput {
   caregiverID: String
   caregiverType: CaregiverType!
 }
-`, BuiltIn: false},
+
+
+input PermissionInput {
+  organizationID: String
+  programID: String
+	object: String 
+	action: String 
+}`, BuiltIn: false},
 	{Name: "../metrics.graphql", Input: `extend type Mutation {
   collectMetric(input: MetricInput!): Boolean!
 }
@@ -7221,6 +7339,30 @@ func (ec *executionContext) field_Mutation_addFacilityContact_args(ctx context.C
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_addGroupingPolicy_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["subject"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("subject"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["subject"] = arg0
+	var arg1 dto.PermissionInput
+	if tmp, ok := rawArgs["permission"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("permission"))
+		arg1, err = ec.unmarshalNPermissionInput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐPermissionInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["permission"] = arg1
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_addMembersToCommunity_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -7266,6 +7408,30 @@ func (ec *executionContext) field_Mutation_addModerators_args(ctx context.Contex
 		}
 	}
 	args["communityID"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_addPolicy_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["subject"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("subject"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["subject"] = arg0
+	var arg1 dto.PermissionInput
+	if tmp, ok := rawArgs["permission"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("permission"))
+		arg1, err = ec.unmarshalNPermissionInput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐPermissionInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["permission"] = arg1
 	return args, nil
 }
 
@@ -7956,6 +8122,30 @@ func (ec *executionContext) field_Mutation_removeFacilitiesFromStaffProfile_args
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_removeGroupingPolicy_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["subject"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("subject"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["subject"] = arg0
+	var arg1 dto.PermissionInput
+	if tmp, ok := rawArgs["permission"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("permission"))
+		arg1, err = ec.unmarshalNPermissionInput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐPermissionInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["permission"] = arg1
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_removeMembersFromCommunity_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -7977,6 +8167,30 @@ func (ec *executionContext) field_Mutation_removeMembersFromCommunity_args(ctx c
 		}
 	}
 	args["memberIDs"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_removePolicy_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["subject"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("subject"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["subject"] = arg0
+	var arg1 dto.PermissionInput
+	if tmp, ok := rawArgs["permission"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("permission"))
+		arg1, err = ec.unmarshalNPermissionInput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐPermissionInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["permission"] = arg1
 	return args, nil
 }
 
@@ -8550,6 +8764,30 @@ func (ec *executionContext) field_Query_canRecordMood_args(ctx context.Context, 
 	return args, nil
 }
 
+func (ec *executionContext) field_Query_checkAuthorization_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["subject"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("subject"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["subject"] = arg0
+	var arg1 dto.PermissionInput
+	if tmp, ok := rawArgs["permission"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("permission"))
+		arg1, err = ec.unmarshalNPermissionInput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐPermissionInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["permission"] = arg1
+	return args, nil
+}
+
 func (ec *executionContext) field_Query_checkIfUserBookmarkedContent_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -8595,6 +8833,30 @@ func (ec *executionContext) field_Query_checkIfUserHasLikedContent_args(ctx cont
 		}
 	}
 	args["contentID"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_checkPermissions_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["subject"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("subject"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["subject"] = arg0
+	var arg1 dto.PermissionInput
+	if tmp, ok := rawArgs["permission"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("permission"))
+		arg1, err = ec.unmarshalNPermissionInput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐPermissionInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["permission"] = arg1
 	return args, nil
 }
 
@@ -9300,6 +9562,21 @@ func (ec *executionContext) field_Query_inviteMembersToCommunity_args(ctx contex
 		}
 	}
 	args["memberIDs"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_isAuthorized_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 dto.PermissionInput
+	if tmp, ok := rawArgs["permission"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("permission"))
+		arg0, err = ec.unmarshalNPermissionInput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐPermissionInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["permission"] = arg0
 	return args, nil
 }
 
@@ -20935,6 +21212,226 @@ func (ec *executionContext) fieldContext_Mutation_assignOrRevokeRoles(ctx contex
 	return fc, nil
 }
 
+func (ec *executionContext) _Mutation_addPolicy(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_addPolicy(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().AddPolicy(rctx, fc.Args["subject"].(string), fc.Args["permission"].(dto.PermissionInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_addPolicy(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_addPolicy_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_removePolicy(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_removePolicy(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().RemovePolicy(rctx, fc.Args["subject"].(string), fc.Args["permission"].(dto.PermissionInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_removePolicy(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_removePolicy_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_addGroupingPolicy(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_addGroupingPolicy(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().AddGroupingPolicy(rctx, fc.Args["subject"].(string), fc.Args["permission"].(dto.PermissionInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_addGroupingPolicy(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_addGroupingPolicy_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_removeGroupingPolicy(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_removeGroupingPolicy(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().RemoveGroupingPolicy(rctx, fc.Args["subject"].(string), fc.Args["permission"].(dto.PermissionInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_removeGroupingPolicy(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_removeGroupingPolicy_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Mutation_createCommunity(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Mutation_createCommunity(ctx, field)
 	if err != nil {
@@ -25371,6 +25868,171 @@ func (ec *executionContext) fieldContext_Query_getAllAuthorityRoles(ctx context.
 			}
 			return nil, fmt.Errorf("no field named %q was found under type AuthorityRole", field.Name)
 		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_checkPermissions(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_checkPermissions(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().CheckPermissions(rctx, fc.Args["subject"].(string), fc.Args["permission"].(dto.PermissionInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_checkPermissions(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_checkPermissions_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_checkAuthorization(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_checkAuthorization(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().CheckAuthorization(rctx, fc.Args["subject"].(string), fc.Args["permission"].(dto.PermissionInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_checkAuthorization(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_checkAuthorization_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_isAuthorized(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_isAuthorized(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().IsAuthorized(rctx, fc.Args["permission"].(dto.PermissionInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_isAuthorized(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_isAuthorized_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
 	}
 	return fc, nil
 }
@@ -39857,6 +40519,58 @@ func (ec *executionContext) unmarshalInputPaginationsInput(ctx context.Context, 
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputPermissionInput(ctx context.Context, obj interface{}) (dto.PermissionInput, error) {
+	var it dto.PermissionInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"organizationID", "programID", "object", "action"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "organizationID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("organizationID"))
+			it.OrganizationID, err = ec.unmarshalOString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "programID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("programID"))
+			it.ProgramID, err = ec.unmarshalOString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "object":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("object"))
+			it.Object, err = ec.unmarshalOString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "action":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("action"))
+			it.Action, err = ec.unmarshalOString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputQueryOption(ctx context.Context, obj interface{}) (stream_chat.QueryOption, error) {
 	var it stream_chat.QueryOption
 	asMap := map[string]interface{}{}
@@ -43053,6 +43767,42 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "addPolicy":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_addPolicy(ctx, field)
+			})
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "removePolicy":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_removePolicy(ctx, field)
+			})
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "addGroupingPolicy":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_addGroupingPolicy(ctx, field)
+			})
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "removeGroupingPolicy":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_removeGroupingPolicy(ctx, field)
+			})
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "createCommunity":
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
@@ -43903,6 +44653,75 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_getAllAuthorityRoles(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "checkPermissions":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_checkPermissions(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "checkAuthorization":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_checkAuthorization(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "isAuthorized":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_isAuthorized(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
 				return res
 			}
 
@@ -48524,6 +49343,11 @@ func (ec *executionContext) marshalNPagination2ᚖgithubᚗcomᚋsavannahghiᚋm
 
 func (ec *executionContext) unmarshalNPaginationsInput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐPaginationsInput(ctx context.Context, v interface{}) (dto.PaginationsInput, error) {
 	res, err := ec.unmarshalInputPaginationsInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNPermissionInput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐPermissionInput(ctx context.Context, v interface{}) (dto.PermissionInput, error) {
+	res, err := ec.unmarshalInputPermissionInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 

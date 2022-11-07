@@ -712,3 +712,15 @@ type ClientCaregiverInput struct {
 	CaregiverID   string              `json:"caregiverID"`
 	CaregiverType enums.CaregiverType `json:"relationshipType"`
 }
+
+type PermissionInput struct {
+	OrganizationID string `json:"organization_id"`
+	ProgramID      string `json:"program_id"`
+	Object         string `json:"object"`
+	Action         string `json:"action"`
+}
+
+type UserGroupInput struct {
+	Name           string `json:"name"`
+	OrganizationID string `json:"organization_id"`
+}

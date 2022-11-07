@@ -791,3 +791,12 @@ func (d *MyCareHubDb) AddCaregiverToClient(ctx context.Context, clientCaregiver 
 
 	return d.create.AddCaregiverToClient(ctx, caregiverClient)
 }
+
+func (d *MyCareHubDb) CreateUserGroup(ctx context.Context, userGroup *dto.UserGroupInput) error {
+	group := &gorm.UserGroup{
+		OrganisationID: userGroup.OrganizationID,
+		Active:         true,
+		Name:           userGroup.Name,
+	}
+	return d.create.CreateUserGroup(ctx, group)
+}

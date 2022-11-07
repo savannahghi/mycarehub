@@ -329,3 +329,7 @@ func (d *MyCareHubDb) UpdateCaregiverClient(ctx context.Context, caregiverClient
 
 	return d.update.UpdateCaregiverClient(ctx, gormCaregiverClient, updateData)
 }
+
+func (d *MyCareHubDb) AssignUserToUserGroup(ctx context.Context, userID string, groupID string) error {
+	return d.update.AssignUserToUserGroup(ctx, userID, groupID)
+}

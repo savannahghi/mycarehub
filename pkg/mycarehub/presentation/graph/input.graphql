@@ -229,3 +229,11 @@ input ClientCaregiverInput {
   caregiverID: String
   caregiverType: CaregiverType!
 }
+
+
+input PermissionInput {
+  organizationID: String
+  programID: String
+	object: String 
+	action: String 
+}

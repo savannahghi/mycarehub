@@ -43,6 +43,7 @@ type Create interface {
 	CreateScreeningTool(ctx context.Context, input *domain.ScreeningTool) error
 	CreateScreeningToolResponse(ctx context.Context, input *domain.QuestionnaireScreeningToolResponse) (*string, error)
 	AddCaregiverToClient(ctx context.Context, clientCaregiver *domain.CaregiverClient) error
+	CreateUserGroup(ctx context.Context, userGroup *dto.UserGroupInput) error
 }
 
 // Delete represents all the deletion action interfaces
@@ -173,4 +174,5 @@ type Update interface {
 	AddFacilitiesToClientProfile(ctx context.Context, clientID string, facilities []string) error
 	AddFacilitiesToStaffProfile(ctx context.Context, staffID string, facilities []string) error
 	UpdateCaregiverClient(ctx context.Context, caregiverClient *domain.CaregiverClient, updateData map[string]interface{}) error
+	AssignUserToUserGroup(ctx context.Context, userID string, groupID string) error
 }

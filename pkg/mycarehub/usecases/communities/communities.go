@@ -11,6 +11,7 @@ import (
 	"github.com/mitchellh/mapstructure"
 	"github.com/savannahghi/enumutils"
 
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/authorization/permissions"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
@@ -21,6 +22,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
 	streamService "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/getstream"
 	pubsubmessaging "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/pubsub"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/authorization"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/notification"
 )
 
@@ -123,6 +125,7 @@ type UseCasesCommunitiesImpl struct {
 	Pubsub           pubsubmessaging.ServicePubsub
 	Notification     notification.UseCaseNotification
 	Delete           infrastructure.Delete
+	Authorization    authorization.UsecaseAuthorization
 }
 
 // NewUseCaseCommunitiesImpl initializes a new communities service
@@ -134,6 +137,7 @@ func NewUseCaseCommunitiesImpl(
 	pubsub pubsubmessaging.ServicePubsub,
 	notification notification.UseCaseNotification,
 	delete infrastructure.Delete,
+	authorization authorization.UsecaseAuthorization,
 ) *UseCasesCommunitiesImpl {
 	return &UseCasesCommunitiesImpl{
 		GetstreamService: getstream,
@@ -143,12 +147,25 @@ func NewUseCaseCommunitiesImpl(
 		Pubsub:           pubsub,
 		Notification:     notification,
 		Delete:           delete,
+		Authorization:    authorization,
 	}
 }
 
 // ListMembers returns list of the members that match QueryOption that's passed as the input
 func (us *UseCasesCommunitiesImpl) ListMembers(ctx context.Context, input *stream.QueryOption) ([]*domain.Member, error) {
 	var query *stream.QueryOption
+
+	ok, err := us.Authorization.IsAuthorized(ctx, dto.PermissionInput{
+		Object: permissions.ListCommunityMembers.Object,
+		Action: permissions.ListCommunityMembers.Action,
+	})
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, fmt.Errorf("an error occurred while checking permissions: %w", err)
+	}
+	if !ok {
+		return nil, fmt.Errorf("user not authorized to perform the operation")
+	}
 
 	if input == nil {
 		query = &stream.QueryOption{

@@ -40,6 +40,7 @@ type Update interface {
 	AddFacilitiesToStaffProfile(ctx context.Context, staffID string, facilities []string) error
 	AddFacilitiesToClientProfile(ctx context.Context, clientID string, facilities []string) error
 	UpdateCaregiverClient(ctx context.Context, caregiverClient *CaregiverClient, updateData map[string]interface{}) error
+	AssignUserToUserGroup(ctx context.Context, userID string, groupID string) error
 }
 
 // ReactivateFacility performs the actual re-activation of the facility in the database
@@ -691,5 +692,12 @@ func (db *PGInstance) UpdateCaregiverClient(ctx context.Context, caregiverClient
 		return fmt.Errorf("failed to update caregiver client: %v", err)
 	}
 
+	return nil
+}
+
+func (db *PGInstance) AssignUserToUserGroup(ctx context.Context, userID string, groupID string) error {
+	if err := db.DB.Create(UsersUserGroup{UserID: &userID, GroupID: &groupID}).Error; err != nil {
+		return err
+	}
 	return nil
 }

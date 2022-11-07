@@ -1699,3 +1699,87 @@ func (c *CaregiverClient) BeforeCreate(tx *gorm.DB) (err error) {
 func (c *CaregiverClient) TableName() string {
 	return "caregivers_caregiver_client"
 }
+
+// CasbinPolicy defines the casbin policy database models
+type CasbinPolicy struct {
+	Base
+	// OrganisationID string `gorm:"column:organisation_id"`
+
+	ID     string `gorm:"primaryKey;column:id"`
+	Active bool   `gorm:"column:active"`
+	PType  string `gorm:"column:p_type"`
+	V0     string `gorm:"column:v0"`
+	V1     string `gorm:"column:v1"`
+	V2     string `gorm:"column:v2"`
+	V3     string `gorm:"column:v3"`
+	V4     string `gorm:"column:v4"`
+	V5     string `gorm:"column:v5"`
+}
+
+// BeforeCreate is a hook run before creating a casbin policy
+func (s *CasbinPolicy) BeforeCreate(tx *gorm.DB) (err error) {
+	// ctx := tx.Statement.Context
+	// orgID, err := utils.GetOrganisationIDFromContext(ctx)
+	// if err != nil {
+	// 	logrus.Println("failed to get organisation from context")
+	// }
+	// if orgID == "" {
+	// 	orgID = OrganizationID
+	// }
+
+	id := uuid.New().String()
+	s.ID = id
+	// s.OrganisationID = orgID
+
+	return
+}
+
+// TableName references the table that we map data from
+func (CasbinPolicy) TableName() string {
+	return "casbin_policy"
+}
+
+// UserGroup defines the user groups database models
+type UserGroup struct {
+	Base
+	OrganisationID string `gorm:"column:organisation_id"`
+
+	ID     string `gorm:"primaryKey;column:id"`
+	Active bool   `gorm:"column:active"`
+	Name   string `gorm:"column:name"`
+}
+
+// BeforeCreate is a hook run before creating a user groups
+func (s *UserGroup) BeforeCreate(tx *gorm.DB) (err error) {
+	ctx := tx.Statement.Context
+	orgID, err := utils.GetOrganisationIDFromContext(ctx)
+	if err != nil {
+		logrus.Println("failed to get organisation from context")
+	}
+	if orgID == "" {
+		orgID = OrganizationID
+	}
+
+	id := uuid.New().String()
+	s.ID = id
+	s.OrganisationID = orgID
+
+	return
+}
+
+// TableName references the table that we map data from
+func (UserGroup) TableName() string {
+	return "user_groups"
+}
+
+// UsersUserGroup links a users with their user groups
+type UsersUserGroup struct {
+	ID      int     `gorm:"primaryKey;column:id;autoincrement"`
+	UserID  *string `gorm:"column:user_id"`
+	GroupID *string `gorm:"column:group_id"`
+}
+
+// TableName references the table that we map data from
+func (c *UsersUserGroup) TableName() string {
+	return "users_user_user_groups"
+}

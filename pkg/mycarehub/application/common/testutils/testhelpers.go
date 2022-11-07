@@ -12,6 +12,7 @@ import (
 	"github.com/kevinburke/twilio-go"
 	"github.com/mailgun/mailgun-go"
 	"github.com/savannahghi/firebasetools"
+	applicationAuthorization "github.com/savannahghi/mycarehub/pkg/mycarehub/application/authorization"
 	externalExtension "github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
@@ -26,6 +27,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases"
 	appointment "github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/appointments"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/authority"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/authorization"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/communities"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/content"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/facility"
@@ -132,12 +134,15 @@ func InitializeTestService(ctx context.Context) (*usecases.MyCareHub, error) {
 	surveysUsecase := surveys.NewUsecaseSurveys(survey, db, db, db, notificationUseCase, serviceRequestUseCase)
 	metricsUsecase := metrics.NewUsecaseMetricsImpl(db)
 	questionnaireUsecase := questionnaires.NewUseCaseQuestionnaire(db, db, db, db)
+	a := applicationAuthorization.NewAuthorizationImpl()
+	authorizationUseCase := authorization.NewUsecaseAuthorization(a)
 
 	i := usecases.NewMyCareHubUseCase(
 		userUsecase, termsUsecase, facilityUseCase,
 		securityQuestionsUsecase, otpUseCase, contentUseCase, feedbackUsecase, healthDiaryUseCase,
 		serviceRequestUseCase, authorityUseCase, communityUsecase, screeningToolsUsecases,
 		appointmentUsecase, notificationUseCase, surveysUsecase, metricsUsecase, questionnaireUsecase,
+		authorizationUseCase,
 	)
 	return i, nil
 }

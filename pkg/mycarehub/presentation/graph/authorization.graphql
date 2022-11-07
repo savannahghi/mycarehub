@@ -1,0 +1,12 @@
+extend type Mutation {
+	addPolicy(subject: String!,  permission: PermissionInput!): Boolean!
+	removePolicy(subject: String!,  permission: PermissionInput!): Boolean!
+	addGroupingPolicy(subject: String!,  permission: PermissionInput!): Boolean!
+	removeGroupingPolicy(subject: String!,  permission: PermissionInput!): Boolean!
+}
+
+extend type Query{
+    checkPermissions(subject: String!, permission: PermissionInput!): Boolean!
+	checkAuthorization(subject: String!, permission: PermissionInput!): Boolean!
+    isAuthorized(permission: PermissionInput!): Boolean!
+}

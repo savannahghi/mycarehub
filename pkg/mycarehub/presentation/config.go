@@ -18,6 +18,7 @@ import (
 	"github.com/mailgun/mailgun-go"
 	"github.com/savannahghi/firebasetools"
 	"github.com/savannahghi/interserviceclient"
+	applicationAuthorization "github.com/savannahghi/mycarehub/pkg/mycarehub/application/authorization"
 	externalExtension "github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
@@ -36,6 +37,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases"
 	appointment "github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/appointments"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/authority"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/authorization"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/communities"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/content"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/facility"
@@ -136,8 +138,10 @@ func Router(ctx context.Context) (*mux.Router, error) {
 		return nil, fmt.Errorf("failed to initialize pubsub messaging service: %w", err)
 	}
 
+	a := applicationAuthorization.NewAuthorizationImpl()
+	authorizationUseCase := authorization.NewUsecaseAuthorization(a, externalExt, db)
 	// Initialize facility usecase
-	facilityUseCase := facility.NewFacilityUsecase(db, db, db, db, pubSub)
+	facilityUseCase := facility.NewFacilityUsecase(db, db, db, db, pubSub, authorizationUseCase)
 
 	// Initialize user usecase
 	notificationUseCase := notification.NewNotificationUseCaseImpl(fcmService, db, db, db, externalExt)
@@ -163,7 +167,7 @@ func Router(ctx context.Context) (*mux.Router, error) {
 
 	serviceRequestUseCase := servicerequest.NewUseCaseServiceRequestImpl(db, db, db, externalExt, userUsecase, notificationUseCase, smsService)
 
-	communitiesUseCase := communities.NewUseCaseCommunitiesImpl(getStream, externalExt, db, db, pubSub, notificationUseCase, db)
+	communitiesUseCase := communities.NewUseCaseCommunitiesImpl(getStream, externalExt, db, db, pubSub, notificationUseCase, db, authorizationUseCase)
 
 	appointmentUsecase := appointment.NewUseCaseAppointmentsImpl(externalExt, db, db, db, pubSub, notificationUseCase)
 
@@ -186,6 +190,7 @@ func Router(ctx context.Context) (*mux.Router, error) {
 		securityQuestionsUsecase, otpUseCase, contentUseCase, feedbackUsecase, healthDiaryUseCase,
 		serviceRequestUseCase, authorityUseCase, communitiesUseCase, screeningToolsUsecases,
 		appointmentUsecase, notificationUseCase, surveysUsecase, metricsUsecase, questionnaireUsecase,
+		authorizationUseCase,
 	)
 
 	internalHandlers := internalRest.NewMyCareHubHandlersInterfaces(*useCase)

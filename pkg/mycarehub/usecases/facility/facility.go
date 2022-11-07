@@ -7,6 +7,7 @@ import (
 
 	"github.com/savannahghi/converterandformatter"
 
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/authorization/permissions"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions"
@@ -14,6 +15,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
 	pubsubmessaging "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/pubsub"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/authorization"
 )
 
 // UseCasesFacility ...
@@ -73,12 +75,13 @@ type IUpdateFacility interface {
 
 // UseCaseFacilityImpl represents facility implementation object
 type UseCaseFacilityImpl struct {
-	Create      infrastructure.Create
-	Query       infrastructure.Query
-	Delete      infrastructure.Delete
-	Update      infrastructure.Update
-	Pubsub      pubsubmessaging.ServicePubsub
-	ExternalExt extension.ExternalMethodsExtension
+	Create        infrastructure.Create
+	Query         infrastructure.Query
+	Delete        infrastructure.Delete
+	Update        infrastructure.Update
+	Pubsub        pubsubmessaging.ServicePubsub
+	ExternalExt   extension.ExternalMethodsExtension
+	Authorization authorization.UsecaseAuthorization
 }
 
 // NewFacilityUsecase returns a new facility service
@@ -88,18 +91,32 @@ func NewFacilityUsecase(
 	delete infrastructure.Delete,
 	update infrastructure.Update,
 	pubsub pubsubmessaging.ServicePubsub,
+	authorization authorization.UsecaseAuthorization,
 ) UseCasesFacility {
 	return &UseCaseFacilityImpl{
-		Create: create,
-		Query:  query,
-		Delete: delete,
-		Update: update,
-		Pubsub: pubsub,
+		Create:        create,
+		Query:         query,
+		Delete:        delete,
+		Update:        update,
+		Pubsub:        pubsub,
+		Authorization: authorization,
 	}
 }
 
 // GetOrCreateFacility creates a new facility
 func (f *UseCaseFacilityImpl) GetOrCreateFacility(ctx context.Context, facility *dto.FacilityInput) (*domain.Facility, error) {
+	ok, err := f.Authorization.IsAuthorized(ctx, dto.PermissionInput{
+		Object: permissions.CreateFacility.Object,
+		Action: permissions.CreateFacility.Action,
+	})
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, fmt.Errorf("an error occurred while checking permissions: %w", err)
+	}
+	if !ok {
+		return nil, fmt.Errorf("user not authorized to perform the operation")
+	}
+
 	fetchedFacility, err := f.RetrieveFacilityByMFLCode(ctx, facility.Code, facility.Active)
 	if err != nil {
 		if strings.Contains(err.Error(), "failed query and retrieve facility by MFLCode") {

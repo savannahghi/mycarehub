@@ -1,6 +1,6 @@
 module github.com/savannahghi/mycarehub
 
-go 1.19
+go 1.18
 
 require (
 	cloud.google.com/go/pubsub v1.26.0
@@ -10,7 +10,9 @@ require (
 	github.com/GoogleCloudPlatform/cloudsql-proxy v1.33.0
 	github.com/basgys/goxml2json v1.1.0
 	github.com/brianvoe/gofakeit v3.18.0+incompatible
+	github.com/casbin/casbin/v2 v2.57.0
 	github.com/cenkalti/backoff/v4 v4.1.3
+	github.com/cychiuae/casbin-pg-adapter v0.0.6
 	github.com/getsentry/sentry-go v0.15.0
 	github.com/go-testfixtures/testfixtures/v3 v3.8.1
 	github.com/google/uuid v1.3.0
@@ -65,6 +67,7 @@ require (
 	cloud.google.com/go/storage v1.27.0 // indirect
 	cloud.google.com/go/trace v1.3.0 // indirect
 	contrib.go.opencensus.io/exporter/stackdriver v0.13.6 // indirect
+	github.com/Knetic/govaluate v3.0.1-0.20171022003610-9aa49832a739+incompatible // indirect
 	github.com/agnivade/levenshtein v1.1.1 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d // indirect
 	github.com/aws/aws-sdk-go v1.37.0 // indirect

@@ -189,3 +189,9 @@ type StaffRegistrationPayload struct {
 	StaffIdentifier Identifier
 	Staff           StaffProfile
 }
+
+type UserGroup struct {
+	ID     string `json:"id"`
+	Active bool   `json:"active"`
+	Name   string `json:"name"`
+}
