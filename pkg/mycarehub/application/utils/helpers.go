@@ -6,6 +6,8 @@ import (
 	"math"
 	"time"
 
+	"github.com/pkg/errors"
+	"github.com/pquerna/otp/totp"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/scalarutils"
 )
@@ -14,6 +16,9 @@ const (
 	// BackOffWaitTime is the base value used for exponential backoff i.e 3**i where i is
 	// number of failed login counts
 	BackOffWaitTime = 3
+
+	issuer      = "Savannah Informatics Limited"
+	accountName = "info@healthcloud.co.ke"
 )
 
 // CalculateNextAllowedLoginTime will be used to calculate the next allowed login time in cases where
@@ -143,4 +148,23 @@ func CheckNewAndRemovedRoleTypes(original, new []enums.UserRoleType) ([]enums.Us
 		}
 	}
 	return removed, additional
+}
+
+// GenerateOTP is used to generate a one time password
+func GenerateOTP() (string, error) {
+	opts := totp.GenerateOpts{
+		Issuer:      issuer,
+		AccountName: accountName,
+	}
+	key, err := totp.Generate(opts)
+	if err != nil {
+		return "", errors.Wrap(err, "generateOTP")
+	}
+
+	code, err := totp.GenerateCode(key.Secret(), time.Now())
+	if err != nil {
+		return "", errors.Wrap(err, "generateOTP > GenerateCode")
+	}
+
+	return code, nil
 }

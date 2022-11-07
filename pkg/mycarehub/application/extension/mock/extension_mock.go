@@ -13,7 +13,6 @@ import (
 	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/firebasetools"
 	"github.com/savannahghi/interserviceclient"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/pubsubtools"
 )
 
@@ -22,11 +21,7 @@ type FakeExtensionImpl struct {
 	MockCreateFirebaseCustomTokenFn       func(ctx context.Context, uid string) (string, error)
 	MockAuthenticateCustomFirebaseTokenFn func(customAuthToken string) (*firebasetools.FirebaseUserTokens, error)
 	MockSendSMSFn                         func(ctx context.Context, phoneNumbers string, message string, from enumutils.SenderID) (*openSourceDto.SendMessageResponse, error)
-	MockGenerateAndSendOTPFn              func(ctx context.Context, phoneNumber string) (string, error)
-	MockGenerateOTPFn                     func(ctx context.Context) (string, error)
-	MockGenerateRetryOTPFn                func(ctx context.Context, payload *dto.SendRetryOTPPayload) (string, error)
 	MockSendSMSViaTwilioFn                func(ctx context.Context, phonenumber, message string) error
-	MockSendInviteSMSFn                   func(ctx context.Context, phoneNumber, message string) error
 	MockSendFeedbackFn                    func(ctx context.Context, subject, feedbackMessage string) (bool, error)
 	MockGetLoggedInUserUIDFn              func(ctx context.Context) (string, error)
 	MockMakeRequestFn                     func(ctx context.Context, method string, path string, body interface{}) (*http.Response, error)
@@ -94,19 +89,7 @@ func NewFakeExtension() *FakeExtensionImpl {
 				},
 			}, nil
 		},
-		MockGenerateAndSendOTPFn: func(ctx context.Context, phoneNumber string) (string, error) {
-			return "111222", nil
-		},
-		MockGenerateOTPFn: func(ctx context.Context) (string, error) {
-			return "111222", nil
-		},
-		MockGenerateRetryOTPFn: func(ctx context.Context, payload *dto.SendRetryOTPPayload) (string, error) {
-			return "test-OTP", nil
-		},
 		MockSendSMSViaTwilioFn: func(ctx context.Context, phonenumber, message string) error {
-			return nil
-		},
-		MockSendInviteSMSFn: func(ctx context.Context, phoneNumber, message string) error {
 			return nil
 		},
 		MockSendFeedbackFn: func(ctx context.Context, subject, feedbackMessage string) (bool, error) {
@@ -167,29 +150,9 @@ func (f *FakeExtensionImpl) SendSMS(ctx context.Context, phoneNumbers string, me
 	return f.MockSendSMSFn(ctx, phoneNumbers, message, from)
 }
 
-// GenerateAndSendOTP mocks the generate and send OTP method
-func (f *FakeExtensionImpl) GenerateAndSendOTP(ctx context.Context, phoneNumber string) (string, error) {
-	return f.MockGenerateAndSendOTPFn(ctx, phoneNumber)
-}
-
-// GenerateOTP mocks the GenerateOTP implementation
-func (f *FakeExtensionImpl) GenerateOTP(ctx context.Context) (string, error) {
-	return f.MockGenerateOTPFn(ctx)
-}
-
-// GenerateRetryOTP mock the implementation of generating a retry OTP
-func (f *FakeExtensionImpl) GenerateRetryOTP(ctx context.Context, payload *dto.SendRetryOTPPayload) (string, error) {
-	return f.MockGenerateRetryOTPFn(ctx, payload)
-}
-
 // SendSMSViaTwilio mocks the implementation of sending a SMS via twilio
 func (f *FakeExtensionImpl) SendSMSViaTwilio(ctx context.Context, phonenumber, message string) error {
 	return f.MockSendSMSViaTwilioFn(ctx, phonenumber, message)
-}
-
-// SendInviteSMS mocks the implementation of sending an invite sms
-func (f *FakeExtensionImpl) SendInviteSMS(ctx context.Context, phoneNumber, message string) error {
-	return f.MockSendInviteSMSFn(ctx, phoneNumber, message)
 }
 
 // SendFeedback mocks the implementation sending feedback
