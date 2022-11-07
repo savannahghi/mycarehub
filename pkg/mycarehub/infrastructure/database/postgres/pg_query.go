@@ -10,11 +10,11 @@ import (
 	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/firebasetools"
-	"github.com/savannahghi/onboarding/pkg/onboarding/application/exceptions"
 	"github.com/savannahghi/scalarutils"
 
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/utils"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
@@ -274,7 +274,7 @@ func (d *MyCareHubDb) VerifyOTP(ctx context.Context, payload *dto.VerifyOTPInput
 		return false, fmt.Errorf("user ID or phone number or OTP cannot be empty")
 	}
 	if !payload.Flavour.IsValid() {
-		return false, exceptions.InvalidFlavourDefinedError()
+		return false, exceptions.InvalidFlavourDefinedErr(fmt.Errorf("invalid flavour defined"))
 	}
 
 	return d.query.VerifyOTP(ctx, payload)
@@ -511,7 +511,7 @@ func (d *MyCareHubDb) GetOTP(ctx context.Context, phoneNumber string, flavour fe
 		return nil, fmt.Errorf("phone number should be provided")
 	}
 	if !flavour.IsValid() {
-		return nil, exceptions.InvalidFlavourDefinedError()
+		return nil, exceptions.InvalidFlavourDefinedErr(fmt.Errorf("invalid flavour defined"))
 	}
 
 	otp, err := d.query.GetOTP(ctx, phoneNumber, flavour)

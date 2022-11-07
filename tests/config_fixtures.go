@@ -13,7 +13,7 @@ import (
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/testutils"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/utils"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
 )
 
@@ -23,8 +23,6 @@ var (
 	orgID     = os.Getenv("DEFAULT_ORG_ID")
 	termsID   = 50005
 	db        *sql.DB
-
-	newExtension extension.ExternalMethodsExtension
 
 	testPhone   = gofakeit.Phone()
 	testFlavour = feedlib.FlavourConsumer
@@ -166,8 +164,7 @@ func setupFixtures() {
 	}
 
 	// setup test variables
-	newExtension = extension.NewExternalMethodsImpl()
-	salt, encryptedPin = newExtension.EncryptPIN("0000", nil)
+	salt, encryptedPin = utils.EncryptPIN("0000", nil)
 
 	fixtures, err = testfixtures.New(
 		testfixtures.Database(db),
