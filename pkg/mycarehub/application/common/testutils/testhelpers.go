@@ -8,6 +8,7 @@ import (
 	"strconv"
 
 	stream "github.com/GetStream/stream-chat-go/v5"
+	"github.com/mailgun/mailgun-go"
 	"github.com/savannahghi/firebasetools"
 	externalExtension "github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres"
@@ -15,6 +16,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/clinical"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/fcm"
 	streamService "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/getstream"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/mail"
 	pubsubmessaging "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/pubsub"
 	serviceSMS "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/sms"
 	surveyInstance "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/surveys"
@@ -42,6 +44,8 @@ import (
 
 var (
 	surveysBaseURL = serverutils.MustGetEnvVar("SURVEYS_BASE_URL")
+	mailGunAPIKey  = serverutils.MustGetEnvVar("MAILGUN_API_KEY")
+	mailGunDomain  = serverutils.MustGetEnvVar("MAILGUN_DOMAIN")
 )
 
 // InitializeTestService sets up the structure that will be used by the usecase layer for
@@ -64,7 +68,10 @@ func InitializeTestService(ctx context.Context) (*usecases.MyCareHub, error) {
 
 	db := postgres.NewMyCareHubDb(pg, pg, pg, pg)
 
-	silCommsLib := silcomms.NewSILCommsLib()
+	silCommsLib, err := silcomms.NewSILCommsLib()
+	if err != nil {
+		return nil, fmt.Errorf("can't instantiate silcomms lib: %v", err)
+	}
 	smsService := serviceSMS.NewServiceSMS(silCommsLib)
 
 	otpUseCase := otp.NewOTPUseCase(db, db, externalExt, smsService)
@@ -84,7 +91,11 @@ func InitializeTestService(ctx context.Context) (*usecases.MyCareHub, error) {
 
 	securityQuestionsUsecase := securityquestions.NewSecurityQuestionsUsecase(db, db, db, externalExt)
 	contentUseCase := content.NewUseCasesContentImplementation(db, db, externalExt)
-	feedbackUsecase := feedback.NewUsecaseFeedback(db, db, externalExt)
+
+	mailClient := mailgun.NewMailgun(mailGunDomain, mailGunAPIKey)
+	mailClient.SetAPIBase(mailgun.ApiBase)
+	mailService := mail.NewServiceMail(mailClient)
+	feedbackUsecase := feedback.NewUsecaseFeedback(db, db, mailService)
 
 	notificationUseCase := notification.NewNotificationUseCaseImpl(fcmService, db, db, db, externalExt)
 	appointmentUsecase := appointment.NewUseCaseAppointmentsImpl(externalExt, db, db, db, pubsub, notificationUseCase)

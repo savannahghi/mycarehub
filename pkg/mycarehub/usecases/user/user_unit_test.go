@@ -16,7 +16,6 @@ import (
 	stream_chat "github.com/GetStream/stream-chat-go/v5"
 	"github.com/brianvoe/gofakeit"
 	"github.com/google/uuid"
-	openSourceDto "github.com/savannahghi/engagementcore/pkg/engagement/application/common/dto"
 	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/firebasetools"
@@ -843,15 +842,9 @@ func TestUnit_InviteUser(t *testing.T) {
 				}
 			}
 			if tt.name == "valid: send invite message success" {
-				fakeExtension.MockSendSMSFn = func(ctx context.Context, phoneNumbers string, message string, from enumutils.SenderID) (*openSourceDto.SendMessageResponse, error) {
-					return &openSourceDto.SendMessageResponse{
-						SMSMessageData: &openSourceDto.SMS{
-							Recipients: []openSourceDto.Recipient{
-								{
-									Number: interserviceclient.TestUserPhoneNumber,
-								},
-							},
-						},
+				fakeSMS.MockSendSMSFn = func(ctx context.Context, message string, recipients []string) (*silcomms.BulkSMSResponse, error) {
+					return &silcomms.BulkSMSResponse{
+						GUID: "123",
 					}, nil
 				}
 			}

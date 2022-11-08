@@ -4,17 +4,14 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"cloud.google.com/go/pubsub"
-	openSourceDto "github.com/savannahghi/engagementcore/pkg/engagement/application/common/dto"
 	engagementInfra "github.com/savannahghi/engagementcore/pkg/engagement/infrastructure"
 	engagementEmail "github.com/savannahghi/engagementcore/pkg/engagement/usecases/mail"
 	engagementOTP "github.com/savannahghi/engagementcore/pkg/engagement/usecases/otp"
 	engagementSMS "github.com/savannahghi/engagementcore/pkg/engagement/usecases/sms"
 	engagementTwilio "github.com/savannahghi/engagementcore/pkg/engagement/usecases/twilio"
-	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/firebasetools"
 	"github.com/savannahghi/interserviceclient"
 	"github.com/savannahghi/pubsubtools"
@@ -39,9 +36,7 @@ type ExternalMethodsExtension interface {
 	CreateFirebaseCustomToken(ctx context.Context, uid string) (string, error)
 	CreateFirebaseCustomTokenWithClaims(ctx context.Context, uid string, claims map[string]interface{}) (string, error)
 	AuthenticateCustomFirebaseToken(customAuthToken string) (*firebasetools.FirebaseUserTokens, error)
-	SendSMS(ctx context.Context, phoneNumbers string, message string, from enumutils.SenderID) (*openSourceDto.SendMessageResponse, error)
 	SendSMSViaTwilio(ctx context.Context, phonenumber, message string) error
-	SendFeedback(ctx context.Context, subject, feedbackMessage string) (bool, error)
 	GetLoggedInUserUID(ctx context.Context) (string, error)
 	MakeRequest(ctx context.Context, method string, path string, body interface{}) (*http.Response, error)
 
@@ -98,24 +93,9 @@ func (e *External) AuthenticateCustomFirebaseToken(customAuthToken string) (*fir
 	return firebasetools.AuthenticateCustomFirebaseToken(customAuthToken)
 }
 
-// SendSMS does the actual delivery of messages to the provided phone numbers
-func (e *External) SendSMS(ctx context.Context, phoneNumbers string, message string, from enumutils.SenderID) (*openSourceDto.SendMessageResponse, error) {
-	return e.smsExtension.Send(ctx, message, phoneNumbers, from)
-}
-
 // SendSMSViaTwilio makes a request to Twilio to send an SMS to a non-kenyan number
 func (e *External) SendSMSViaTwilio(ctx context.Context, phonenumber, message string) error {
 	return e.twilioExtension.SendSMS(ctx, phonenumber, message)
-}
-
-// SendFeedback sends the clients feed email
-func (e *External) SendFeedback(ctx context.Context, subject, feedbackMessage string) (bool, error) {
-	_, err := e.emailExtension.SimpleEmail(ctx, subject, feedbackMessage, nil, serverutils.MustGetEnvVar("MYCAREHUB_ADMIN_EMAIL"))
-	if err != nil {
-		return false, fmt.Errorf("an erro occurred while sending the feedback: %v", err)
-	}
-
-	return true, nil
 }
 
 // GetLoggedInUserUID get the logged in user uid
