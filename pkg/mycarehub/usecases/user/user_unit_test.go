@@ -16,7 +16,6 @@ import (
 	stream_chat "github.com/GetStream/stream-chat-go/v5"
 	"github.com/brianvoe/gofakeit"
 	"github.com/google/uuid"
-	openSourceDto "github.com/savannahghi/engagementcore/pkg/engagement/application/common/dto"
 	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/firebasetools"
@@ -566,7 +565,7 @@ func TestUnit_InviteUser(t *testing.T) {
 			want:    true,
 		},
 		{
-			name: "Happy case - Send invite via twilio",
+			name: "Happy case - Send invite via SMS",
 			args: args{
 				ctx:         ctx,
 				userID:      userID,
@@ -578,7 +577,7 @@ func TestUnit_InviteUser(t *testing.T) {
 			want:    true,
 		},
 		{
-			name: "Sad case - Fail to Send invite via twilio",
+			name: "Sad case - Fail to Send invite via SMS",
 			args: args{
 				ctx:         ctx,
 				userID:      userID,
@@ -700,17 +699,6 @@ func TestUnit_InviteUser(t *testing.T) {
 			want:    false,
 		},
 		{
-			name: "valid: send invite message success",
-			args: args{
-				ctx:         ctx,
-				userID:      userID,
-				phoneNumber: validPhone,
-				flavour:     validFlavour,
-			},
-			wantErr: false,
-			want:    true,
-		},
-		{
 			name: "invalid: send in message error",
 			args: args{
 				ctx:         ctx,
@@ -767,15 +755,15 @@ func TestUnit_InviteUser(t *testing.T) {
 				}
 			}
 
-			if tt.name == "Happy case - Send invite via twilio" {
+			if tt.name == "Happy case - Send invite via SMS" {
 				fakeUserMock.MockInviteUserFn = func(ctx context.Context, userID string, phoneNumber string, flavour feedlib.Flavour, reinvite bool) (bool, error) {
 					return true, nil
 				}
 			}
 
-			if tt.name == "Sad case - Fail to Send invite via twilio" {
-				fakeExtension.MockSendSMSViaTwilioFn = func(ctx context.Context, phonenumber, message string) error {
-					return fmt.Errorf("failed to send sms")
+			if tt.name == "Sad case - Fail to Send invite via SMS" {
+				fakeSMS.MockSendSMSFn = func(ctx context.Context, message string, recipients []string) (*silcomms.BulkSMSResponse, error) {
+					return nil, fmt.Errorf("an error occurred")
 				}
 			}
 
@@ -839,19 +827,6 @@ func TestUnit_InviteUser(t *testing.T) {
 			if tt.name == "invalid: get invite link error" {
 				fakeUserMock.MockInviteUserFn = func(ctx context.Context, userID string, phoneNumber string, flavour feedlib.Flavour, reinvite bool) (bool, error) {
 					return false, fmt.Errorf("failed to get invite link")
-				}
-			}
-			if tt.name == "valid: send invite message success" {
-				fakeExtension.MockSendSMSFn = func(ctx context.Context, phoneNumbers string, message string, from enumutils.SenderID) (*openSourceDto.SendMessageResponse, error) {
-					return &openSourceDto.SendMessageResponse{
-						SMSMessageData: &openSourceDto.SMS{
-							Recipients: []openSourceDto.Recipient{
-								{
-									Number: interserviceclient.TestUserPhoneNumber,
-								},
-							},
-						},
-					}, nil
 				}
 			}
 			if tt.name == "invalid: send in message error" {

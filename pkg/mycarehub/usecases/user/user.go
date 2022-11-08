@@ -278,7 +278,7 @@ func (us *UseCasesUserImpl) InviteUser(ctx context.Context, userID string, phone
 
 	message := helpers.CreateInviteMessage(userProfile, inviteLink, tempPin, flavour)
 	if reinvite {
-		err := us.ExternalExt.SendSMSViaTwilio(ctx, *phone, message)
+		_, err := us.SMS.SendSMS(ctx, message, []string{*phone})
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
 			return false, exceptions.SendSMSErr(fmt.Errorf("failed to send invite SMS: %w", err))

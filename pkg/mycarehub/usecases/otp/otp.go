@@ -7,7 +7,6 @@ import (
 
 	"github.com/savannahghi/converterandformatter"
 	"github.com/savannahghi/feedlib"
-	"github.com/savannahghi/interserviceclient"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions"
@@ -277,29 +276,18 @@ func (o *UseCaseOTPImpl) GenerateRetryOTP(ctx context.Context, payload *dto.Send
 	return retryResponseOTP, nil
 }
 
-// SendOTP sends an OTP message to the specified phonenumber. It checks to see whether the provided
-// phone number is Kenyan and if true, it uses AIT else for foreign numbers, it uses twilio to send
-// the otp
+// SendOTP sends an OTP message to the specified phonenumber.
 func (o *UseCaseOTPImpl) SendOTP(
 	ctx context.Context,
 	phoneNumber string,
 	code string,
 	message string,
 ) (string, error) {
-	if interserviceclient.IsKenyanNumber(phoneNumber) {
-		_, err := o.SMS.SendSMS(ctx, message, []string{phoneNumber})
-		if err != nil {
-			helpers.ReportErrorToSentry(err)
-			return "", fmt.Errorf("failed to send OTP verification code to recipient")
-		}
-
-	} else {
-		// Make the request to twilio
-		err := o.ExternalExt.SendSMSViaTwilio(ctx, phoneNumber, message)
-		if err != nil {
-			helpers.ReportErrorToSentry(err)
-			return "", fmt.Errorf("sms not sent via twilio: %w", err)
-		}
+	_, err := o.SMS.SendSMS(ctx, message, []string{phoneNumber})
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return "", fmt.Errorf("failed to send OTP verification code to recipient")
 	}
+
 	return code, nil
 }

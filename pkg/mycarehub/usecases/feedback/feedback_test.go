@@ -69,15 +69,6 @@ func TestUsecaseFeedbackImpl_SendFeedback(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "Sad case - unable to send message",
-			args: args{
-				ctx:     ctx,
-				payload: noMessageFeedback,
-			},
-			want:    false,
-			wantErr: true,
-		},
-		{
 			name: "Sad case - invalid feedback type",
 			args: args{
 				ctx:     ctx,
@@ -109,17 +100,13 @@ func TestUsecaseFeedbackImpl_SendFeedback(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
 			fakeFeedback := mock.NewFeedbackUsecaseMock()
+			// fakeMailClient := mailMock.NewMailGunClientMock()
 			fakeMailService := mailMock.NewMailServiceMock()
 
 			f := feedback.NewUsecaseFeedback(fakeDB, fakeDB, fakeMailService)
 
 			if tt.name == "Sad case - no message" {
 				fakeFeedback.MockSendFeedbackFn = func(ctx context.Context, payload *dto.FeedbackResponseInput) (bool, error) {
-					return false, fmt.Errorf("an error occurred while sending feedback")
-				}
-			}
-			if tt.name == "Sad case - unable to send message" {
-				fakeMailService.MockSendFeedbackFn = func(ctx context.Context, subject, feedbackMessage string) (bool, error) {
 					return false, fmt.Errorf("an error occurred while sending feedback")
 				}
 			}

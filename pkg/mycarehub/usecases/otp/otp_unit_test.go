@@ -566,8 +566,8 @@ func TestUseCaseOTPImpl_SendOTP(t *testing.T) {
 			}
 
 			if tt.name == "Sad Case - Fail to send an otp to foreign number" {
-				fakeExtension.MockSendSMSViaTwilioFn = func(ctx context.Context, phonenumber, message string) error {
-					return fmt.Errorf("failed to send sms")
+				fakeSMS.MockSendSMSFn = func(ctx context.Context, message string, recipients []string) (*silcomms.BulkSMSResponse, error) {
+					return nil, fmt.Errorf("an error occurred")
 				}
 			}
 

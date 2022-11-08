@@ -62,12 +62,14 @@ require (
 	github.com/boombuler/barcode v1.0.1 // indirect
 	github.com/census-instrumentation/opencensus-proto v0.3.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/facebookgo/ensure v0.0.0-20200202191622-63f1cf65ac4c // indirect
+	github.com/facebookgo/stack v0.0.0-20160209184415-751773369052 // indirect
+	github.com/facebookgo/subset v0.0.0-20200203212716-c811ad88dec4 // indirect
 	github.com/felixge/httpsnoop v1.0.3 // indirect
 	github.com/go-logr/logr v1.2.3 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-playground/locales v0.14.0 // indirect
 	github.com/gobuffalo/envy v1.10.2 // indirect
-	github.com/gobuffalo/here v0.6.6 // indirect
 	github.com/gofrs/uuid v4.2.0+incompatible // indirect
 	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
 	github.com/golang-jwt/jwt/v4 v4.4.2 // indirect
@@ -92,18 +94,8 @@ require (
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/joho/godotenv v1.4.0 // indirect
-	github.com/json-iterator/go v1.1.12 // indirect
-	github.com/kevinburke/go-types v0.0.0-20210723172823-2deba1f80ba7 // indirect
-	github.com/kevinburke/rest v0.0.0-20210506044642-5611499aa33c // indirect
-	github.com/kevinburke/twilio-go v0.0.0-20220615032439-b0fe9b151b0e // indirect
-	github.com/labstack/gommon v0.3.1 // indirect
+	github.com/kr/pretty v0.3.0 // indirect
 	github.com/lithammer/shortuuid v3.0.0+incompatible // indirect
-	github.com/mailgun/mailgun-go/v4 v4.8.1 // indirect
-	github.com/markbates/pkger v0.17.1 // indirect
-	github.com/mattn/go-colorable v0.1.12 // indirect
-	github.com/mattn/go-isatty v0.0.14 // indirect
-	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
-	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/nxadm/tail v1.4.8 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/prometheus/prometheus v0.36.2 // indirect
@@ -112,8 +104,6 @@ require (
 	github.com/shopspring/decimal v1.3.1 // indirect
 	github.com/ttacon/builder v0.0.0-20170518171403-c099f663e1c2 // indirect
 	github.com/ttacon/libphonenumber v1.2.1 // indirect
-	github.com/valyala/bytebufferpool v1.0.0 // indirect
-	github.com/valyala/fasttemplate v1.2.1 // indirect
 	github.com/vmihailenco/msgpack v4.0.4+incompatible // indirect
 	github.com/xeipuuv/gojsonpointer v0.0.0-20190905194746-02993c407bfb // indirect
 	github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415 // indirect
@@ -143,7 +133,6 @@ require (
 	google.golang.org/protobuf v1.28.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
-	moul.io/http2curl v1.0.0 // indirect
 )
 
 require (
@@ -156,5 +145,4 @@ require (
 	github.com/leodido/go-urn v1.2.1 // indirect
 	github.com/lib/pq v1.10.6
 	github.com/mitchellh/mapstructure v1.5.0
-	github.com/savannahghi/engagementcore v0.0.35
 )
