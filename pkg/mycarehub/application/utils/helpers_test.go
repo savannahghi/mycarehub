@@ -342,3 +342,25 @@ func TestCheckNewAndRemovedRoleTypes(t *testing.T) {
 		})
 	}
 }
+
+func TestGenerateOTP(t *testing.T) {
+	tests := []struct {
+		name    string
+		want    string
+		wantErr bool
+	}{
+		{
+			name:    "Happy case - generate OTP",
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := GenerateOTP()
+			if (err != nil) != tt.wantErr {
+				t.Errorf("GenerateOTP() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}

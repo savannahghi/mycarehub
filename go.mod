@@ -19,6 +19,8 @@ require (
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/imroc/req v0.3.2
 	github.com/jackc/pgtype v1.11.0
+	github.com/pkg/errors v0.9.1
+	github.com/pquerna/otp v1.3.0
 	github.com/savannahghi/converterandformatter v0.0.11
 	github.com/savannahghi/enumutils v0.0.3
 	github.com/savannahghi/errorcodeutil v0.0.6
@@ -99,9 +101,7 @@ require (
 	github.com/mattn/go-isatty v0.0.14 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
-	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
-	github.com/pquerna/otp v1.3.0 // indirect
 	github.com/prometheus/prometheus v0.36.2 // indirect
 	github.com/rs/xid v1.4.0 // indirect
 	github.com/shopspring/decimal v1.3.1 // indirect
