@@ -14,7 +14,7 @@ import (
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/interserviceclient"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/utils"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
 	"github.com/segmentio/ksuid"
 )
@@ -381,9 +381,7 @@ func TestPGInstance_SaveOTP(t *testing.T) {
 	generatedAt := time.Now()
 	validUntil := time.Now().AddDate(0, 0, 2)
 
-	ext := extension.NewExternalMethodsImpl()
-
-	otp, err := ext.GenerateOTP(addOrganizationContext(context.Background()))
+	otp, err := utils.GenerateOTP()
 	if err != nil {
 		t.Errorf("unable to generate OTP")
 	}
@@ -405,7 +403,7 @@ func TestPGInstance_SaveOTP(t *testing.T) {
 		t.Errorf("failed to create otp: %v", err)
 	}
 
-	newOTP, err := ext.GenerateOTP(addOrganizationContext(context.Background()))
+	newOTP, err := utils.GenerateOTP()
 	if err != nil {
 		t.Errorf("unable to generate OTP")
 	}

@@ -12,6 +12,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/utils"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
 	serviceSMS "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/sms"
@@ -30,11 +31,6 @@ var (
 	consumerAppName       = serverutils.MustGetEnvVar("CONSUMER_APP_NAME")
 	proAppName            = serverutils.MustGetEnvVar("PRO_APP_NAME")
 )
-
-// IGenerateOTP specifies the method signature for generating an OTP
-type IGenerateOTP interface {
-	GenerateOTP(ctx context.Context) (string, error)
-}
 
 // IverifyPhone specifies the method signature for verifying phone via OTP.
 type IverifyPhone interface {
@@ -69,7 +65,6 @@ type ISendOTP interface {
 
 // UsecaseOTP defines otp service usecases interface
 type UsecaseOTP interface {
-	IGenerateOTP
 	ISendOTP
 	IVerifyOTP
 	IverifyPhone
@@ -125,7 +120,7 @@ func (o *UseCaseOTPImpl) GenerateAndSendOTP(
 		return "", exceptions.UserNotFoundError(err)
 	}
 
-	otp, err := o.GenerateOTP(ctx)
+	otp, err := utils.GenerateOTP()
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return "", fmt.Errorf("failed to generate an OTP")
@@ -170,11 +165,6 @@ func (o *UseCaseOTPImpl) VerifyOTP(ctx context.Context, payload *dto.VerifyOTPIn
 	return o.Query.VerifyOTP(ctx, payload)
 }
 
-// GenerateOTP calls the engagement library to generate a random OTP
-func (o *UseCaseOTPImpl) GenerateOTP(ctx context.Context) (string, error) {
-	return o.ExternalExt.GenerateOTP(ctx)
-}
-
 // VerifyPhoneNumber checks validity of a phone number by sending an OTP to it
 func (o *UseCaseOTPImpl) VerifyPhoneNumber(ctx context.Context, phone string, flavour feedlib.Flavour) (*profileutils.OtpResponse, error) {
 	phoneNumber, err := converterandformatter.NormalizeMSISDN(phone)
@@ -198,7 +188,7 @@ func (o *UseCaseOTPImpl) VerifyPhoneNumber(ctx context.Context, phone string, fl
 		return nil, exceptions.UserNotFoundError(err)
 	}
 
-	otp, err := o.GenerateOTP(ctx)
+	otp, err := utils.GenerateOTP()
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed to generate an OTP")
@@ -248,15 +238,17 @@ func (o *UseCaseOTPImpl) GenerateRetryOTP(ctx context.Context, payload *dto.Send
 		return "", err
 	}
 
-	validPayload := &dto.SendRetryOTPPayload{
-		Phone:   *phoneNumber,
-		Flavour: payload.Flavour,
-	}
-
-	retryResponseOTP, err := o.ExternalExt.GenerateRetryOTP(ctx, validPayload)
+	retryResponseOTP, err := utils.GenerateOTP()
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return "", err
+	}
+
+	// send retry otp
+	_, err = o.SMS.SendSMS(ctx, retryResponseOTP, []string{*phoneNumber})
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return "", fmt.Errorf("failed to send OTP verification code to recipient")
 	}
 
 	userProfile, err := o.Query.GetUserProfileByPhoneNumber(ctx, *phoneNumber, payload.Flavour)

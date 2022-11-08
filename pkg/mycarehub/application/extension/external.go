@@ -17,7 +17,6 @@ import (
 	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/firebasetools"
 	"github.com/savannahghi/interserviceclient"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/pubsubtools"
 	"github.com/savannahghi/serverutils"
 	"github.com/sirupsen/logrus"
@@ -41,11 +40,7 @@ type ExternalMethodsExtension interface {
 	CreateFirebaseCustomTokenWithClaims(ctx context.Context, uid string, claims map[string]interface{}) (string, error)
 	AuthenticateCustomFirebaseToken(customAuthToken string) (*firebasetools.FirebaseUserTokens, error)
 	SendSMS(ctx context.Context, phoneNumbers string, message string, from enumutils.SenderID) (*openSourceDto.SendMessageResponse, error)
-	GenerateAndSendOTP(ctx context.Context, phoneNumber string) (string, error)
-	GenerateOTP(ctx context.Context) (string, error)
-	GenerateRetryOTP(ctx context.Context, payload *dto.SendRetryOTPPayload) (string, error)
 	SendSMSViaTwilio(ctx context.Context, phonenumber, message string) error
-	SendInviteSMS(ctx context.Context, phoneNumber, message string) error
 	SendFeedback(ctx context.Context, subject, feedbackMessage string) (bool, error)
 	GetLoggedInUserUID(ctx context.Context) (string, error)
 	MakeRequest(ctx context.Context, method string, path string, body interface{}) (*http.Response, error)
@@ -108,41 +103,9 @@ func (e *External) SendSMS(ctx context.Context, phoneNumbers string, message str
 	return e.smsExtension.Send(ctx, message, phoneNumbers, from)
 }
 
-// GenerateAndSendOTP generates a new OTP and sends it to the provided phone number
-func (e *External) GenerateAndSendOTP(ctx context.Context, phoneNumber string) (string, error) {
-	return e.otpExtension.GenerateAndSendOTP(ctx, phoneNumber, nil)
-}
-
-// GenerateOTP generates an OTP
-func (e *External) GenerateOTP(ctx context.Context) (string, error) {
-	return e.otpExtension.GenerateOTP(ctx)
-}
-
-// GenerateRetryOTP generates fallback OTPs when Africa is talking sms fails
-func (e *External) GenerateRetryOTP(ctx context.Context, payload *dto.SendRetryOTPPayload) (string, error) {
-	return e.otpExtension.GenerateRetryOTP(ctx, &payload.Phone, 2, nil)
-}
-
 // SendSMSViaTwilio makes a request to Twilio to send an SMS to a non-kenyan number
 func (e *External) SendSMSViaTwilio(ctx context.Context, phonenumber, message string) error {
 	return e.twilioExtension.SendSMS(ctx, phonenumber, message)
-}
-
-// SendInviteSMS is used to send an Invite SMS to a client
-func (e *External) SendInviteSMS(ctx context.Context, phoneNumber, message string) error {
-	if interserviceclient.IsKenyanNumber(phoneNumber) {
-		_, err := e.SendSMS(ctx, phoneNumber, message, enumutils.SenderIDBewell)
-		if err != nil {
-			return fmt.Errorf("failed to send invite sms to recipient")
-		}
-	} else {
-		// Make the request to twilio
-		err := e.SendSMSViaTwilio(ctx, phoneNumber, message)
-		if err != nil {
-			return fmt.Errorf("sms not sent via twilio: %v", err)
-		}
-	}
-	return nil
 }
 
 // SendFeedback sends the clients feed email
