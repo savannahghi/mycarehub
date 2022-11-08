@@ -22,7 +22,6 @@ type FakeExtensionImpl struct {
 	MockAuthenticateCustomFirebaseTokenFn func(customAuthToken string) (*firebasetools.FirebaseUserTokens, error)
 	MockSendSMSFn                         func(ctx context.Context, phoneNumbers string, message string, from enumutils.SenderID) (*openSourceDto.SendMessageResponse, error)
 	MockSendSMSViaTwilioFn                func(ctx context.Context, phonenumber, message string) error
-	MockSendFeedbackFn                    func(ctx context.Context, subject, feedbackMessage string) (bool, error)
 	MockGetLoggedInUserUIDFn              func(ctx context.Context) (string, error)
 	MockMakeRequestFn                     func(ctx context.Context, method string, path string, body interface{}) (*http.Response, error)
 	MockLoginFn                           func(ctx context.Context) http.HandlerFunc
@@ -92,9 +91,6 @@ func NewFakeExtension() *FakeExtensionImpl {
 		MockSendSMSViaTwilioFn: func(ctx context.Context, phonenumber, message string) error {
 			return nil
 		},
-		MockSendFeedbackFn: func(ctx context.Context, subject, feedbackMessage string) (bool, error) {
-			return true, nil
-		},
 		MockGetLoggedInUserUIDFn: func(ctx context.Context) (string, error) {
 			return uuid.New().String(), nil
 		},
@@ -145,19 +141,9 @@ func (f *FakeExtensionImpl) AuthenticateCustomFirebaseToken(customAuthToken stri
 	return f.MockAuthenticateCustomFirebaseTokenFn(customAuthToken)
 }
 
-// SendSMS mocks the send sms method
-func (f *FakeExtensionImpl) SendSMS(ctx context.Context, phoneNumbers string, message string, from enumutils.SenderID) (*openSourceDto.SendMessageResponse, error) {
-	return f.MockSendSMSFn(ctx, phoneNumbers, message, from)
-}
-
 // SendSMSViaTwilio mocks the implementation of sending a SMS via twilio
 func (f *FakeExtensionImpl) SendSMSViaTwilio(ctx context.Context, phonenumber, message string) error {
 	return f.MockSendSMSViaTwilioFn(ctx, phonenumber, message)
-}
-
-// SendFeedback mocks the implementation sending feedback
-func (f *FakeExtensionImpl) SendFeedback(ctx context.Context, subject, feedbackMessage string) (bool, error) {
-	return f.MockSendFeedbackFn(ctx, subject, feedbackMessage)
 }
 
 // GetLoggedInUserUID mocks the implementation of getting a logged in user

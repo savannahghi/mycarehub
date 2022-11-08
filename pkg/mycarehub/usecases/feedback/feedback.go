@@ -9,10 +9,10 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/utils"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/mail"
 )
 
 // SendFeedback groups the methods to send feedbacks
@@ -27,21 +27,21 @@ type UsecaseFeedback interface {
 
 // UsecaseFeedbackImpl represents the feedback implementation
 type UsecaseFeedbackImpl struct {
-	Query       infrastructure.Query
-	Create      infrastructure.Create
-	ExternalExt extension.ExternalMethodsExtension
+	Query  infrastructure.Query
+	Create infrastructure.Create
+	Mail   mail.IServiceMail
 }
 
 // NewUsecaseFeedback is the controller function for the feedback usecase
 func NewUsecaseFeedback(
 	query infrastructure.Query,
 	create infrastructure.Create,
-	externalExt extension.ExternalMethodsExtension,
+	mail mail.IServiceMail,
 ) *UsecaseFeedbackImpl {
 	return &UsecaseFeedbackImpl{
-		Query:       query,
-		Create:      create,
-		ExternalExt: externalExt,
+		Query:  query,
+		Create: create,
+		Mail:   mail,
 	}
 }
 
@@ -104,7 +104,7 @@ func (f *UsecaseFeedbackImpl) SendFeedback(ctx context.Context, payload *dto.Fee
 		return false, fmt.Errorf("unable to create feedback email: %v", err)
 	}
 
-	feedbackSent, err := f.ExternalExt.SendFeedback(ctx, feedbackSubject, writer.String())
+	feedbackSent, err := f.Mail.SendFeedback(ctx, feedbackSubject, writer.String())
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return false, fmt.Errorf("unable to send feedback: %v", err)
