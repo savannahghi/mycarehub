@@ -114,14 +114,14 @@ func TestUseCasesHealthDiaryImpl_CreateHealthDiaryEntry(t *testing.T) {
 			_ = mock.NewHealthDiaryUseCaseMock()
 
 			if tt.name == "Sad Case - Fail to create healthdiary entry for happy mood" {
-				fakeDB.MockCreateHealthDiaryEntryFn = func(ctx context.Context, healthDiaryInput *domain.ClientHealthDiaryEntry) error {
-					return fmt.Errorf("failed to create health diary entry")
+				fakeDB.MockCreateHealthDiaryEntryFn = func(ctx context.Context, healthDiaryInput *domain.ClientHealthDiaryEntry) (*domain.ClientHealthDiaryEntry, error) {
+					return nil, fmt.Errorf("failed to create health diary entry")
 				}
 			}
 
 			if tt.name == "Sad Case - Fail to create healthdiary entry for very sad mood" {
-				fakeDB.MockCreateHealthDiaryEntryFn = func(ctx context.Context, healthDiaryInput *domain.ClientHealthDiaryEntry) error {
-					return fmt.Errorf("failed to create health diary entry")
+				fakeDB.MockCreateHealthDiaryEntryFn = func(ctx context.Context, healthDiaryInput *domain.ClientHealthDiaryEntry) (*domain.ClientHealthDiaryEntry, error) {
+					return nil, fmt.Errorf("failed to create health diary entry")
 				}
 			}
 

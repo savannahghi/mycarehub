@@ -14,7 +14,7 @@ type Create interface {
 	SavePin(ctx context.Context, pinData *PINData) (bool, error)
 	SaveOTP(ctx context.Context, otpInput *UserOTP) error
 	SaveSecurityQuestionResponse(ctx context.Context, securityQuestionResponse []*SecurityQuestionResponse) error
-	CreateHealthDiaryEntry(ctx context.Context, healthDiaryInput *ClientHealthDiaryEntry) error
+	CreateHealthDiaryEntry(ctx context.Context, healthDiaryInput *ClientHealthDiaryEntry) (*ClientHealthDiaryEntry, error)
 	CreateServiceRequest(ctx context.Context, serviceRequestInput *ClientServiceRequest) error
 	CreateStaffServiceRequest(ctx context.Context, serviceRequestInput *StaffServiceRequest) error
 	CreateCommunity(ctx context.Context, community *Community) (*Community, error)
@@ -149,20 +149,20 @@ func (db *PGInstance) SaveSecurityQuestionResponse(ctx context.Context, security
 
 // CreateHealthDiaryEntry records the health diary entries from a client. This is necessary for engagement with clients
 // on a day-by-day basis
-func (db *PGInstance) CreateHealthDiaryEntry(ctx context.Context, healthDiaryInput *ClientHealthDiaryEntry) error {
+func (db *PGInstance) CreateHealthDiaryEntry(ctx context.Context, healthDiary *ClientHealthDiaryEntry) (*ClientHealthDiaryEntry, error) {
 	tx := db.DB.WithContext(ctx).Begin()
 
-	err := tx.Create(healthDiaryInput).Error
+	err := tx.Create(healthDiary).Error
 	if err != nil {
 		tx.Rollback()
-		return err
+		return nil, err
 	}
 
 	if err := tx.Commit().Error; err != nil {
 		tx.Rollback()
-		return fmt.Errorf("failed to commit transaction: %v", err)
+		return nil, fmt.Errorf("failed to commit transaction: %v", err)
 	}
-	return nil
+	return healthDiary, nil
 }
 
 // CreateServiceRequest creates a service request entry into the database. This step is reached only IF the client is

@@ -58,7 +58,7 @@ type PostgresMock struct {
 	MockGetContactByUserIDFn                             func(ctx context.Context, userID *string, contactType string) (*domain.Contact, error)
 	MockUpdateIsCorrectSecurityQuestionResponseFn        func(ctx context.Context, userID string, isCorrectSecurityQuestionResponse bool) (bool, error)
 	MockFetchFacilitiesFn                                func(ctx context.Context) ([]*domain.Facility, error)
-	MockCreateHealthDiaryEntryFn                         func(ctx context.Context, healthDiaryInput *domain.ClientHealthDiaryEntry) error
+	MockCreateHealthDiaryEntryFn                         func(ctx context.Context, healthDiaryInput *domain.ClientHealthDiaryEntry) (*domain.ClientHealthDiaryEntry, error)
 	MockCreateServiceRequestFn                           func(ctx context.Context, serviceRequestInput *dto.ServiceRequestInput) error
 	MockCanRecordHeathDiaryFn                            func(ctx context.Context, userID string) (bool, error)
 	MockGetClientHealthDiaryQuoteFn                      func(ctx context.Context, limit int) ([]*domain.ClientHealthDiaryQuote, error)
@@ -295,7 +295,7 @@ func NewPostgresMock() *PostgresMock {
 	healthDiaryEntry := &domain.ClientHealthDiaryEntry{
 		ID:                    &ID,
 		Active:                false,
-		Mood:                  "test",
+		Mood:                  "VERY_SAD",
 		Note:                  "test",
 		EntryType:             "test",
 		ShareWithHealthWorker: false,
@@ -696,8 +696,8 @@ func NewPostgresMock() *PostgresMock {
 		MockUpdateIsCorrectSecurityQuestionResponseFn: func(ctx context.Context, userID string, isCorrect bool) (bool, error) {
 			return true, nil
 		},
-		MockCreateHealthDiaryEntryFn: func(ctx context.Context, healthDiaryInput *domain.ClientHealthDiaryEntry) error {
-			return nil
+		MockCreateHealthDiaryEntryFn: func(ctx context.Context, healthDiaryInput *domain.ClientHealthDiaryEntry) (*domain.ClientHealthDiaryEntry, error) {
+			return healthDiaryEntry, nil
 		},
 		MockCreateServiceRequestFn: func(ctx context.Context, serviceRequestInput *dto.ServiceRequestInput) error {
 			return nil
@@ -1610,7 +1610,7 @@ func (gm *PostgresMock) FetchFacilities(ctx context.Context) ([]*domain.Facility
 }
 
 // CreateHealthDiaryEntry mocks the method for creating a health diary entry
-func (gm *PostgresMock) CreateHealthDiaryEntry(ctx context.Context, healthDiaryInput *domain.ClientHealthDiaryEntry) error {
+func (gm *PostgresMock) CreateHealthDiaryEntry(ctx context.Context, healthDiaryInput *domain.ClientHealthDiaryEntry) (*domain.ClientHealthDiaryEntry, error) {
 	return gm.MockCreateHealthDiaryEntryFn(ctx, healthDiaryInput)
 }
 
