@@ -4,15 +4,11 @@ import (
 	"context"
 	"log"
 	"os"
-	"reflect"
 	"testing"
 
-	openSourceDto "github.com/savannahghi/engagementcore/pkg/engagement/application/common/dto"
-	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/firebasetools"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension/mock"
 	"github.com/segmentio/ksuid"
-	"github.com/stretchr/testify/assert"
 )
 
 var (
@@ -65,48 +61,6 @@ func TestExternal_CreateFirebaseCustomToken(t *testing.T) {
 			if !tt.wantErr && got == "" {
 				t.Errorf("expected to get a response but got: %v", got)
 				return
-			}
-		})
-	}
-}
-
-func TestExternal_SendFeedback(t *testing.T) {
-	ctx := context.Background()
-
-	type args struct {
-		ctx             context.Context
-		subject         string
-		feedbackMessage string
-	}
-	tests := []struct {
-		name    string
-		args    args
-		want    bool
-		wantErr bool
-		panic   bool
-	}{
-		{
-			name: "invalid: missing params",
-			args: args{
-				ctx: ctx,
-			},
-			panic: true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if tt.panic {
-				fcSendFeedback := func() { _, _ = ext.SendFeedback(tt.args.ctx, tt.args.subject, tt.args.feedbackMessage) }
-				assert.Panics(t, fcSendFeedback)
-				return
-			}
-			got, err := ext.SendFeedback(tt.args.ctx, tt.args.subject, tt.args.feedbackMessage)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("External.SendFeedback() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if got != tt.want {
-				t.Errorf("External.SendFeedback() = %v, want %v", got, tt.want)
 			}
 		})
 	}
@@ -167,46 +121,6 @@ func TestExternal_GetLoggedInUserUID(t *testing.T) {
 			}
 			if got != tt.want {
 				t.Errorf("External.GetLoggedInUserUID() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func TestExternal_SendSMS(t *testing.T) {
-
-	type args struct {
-		ctx          context.Context
-		phoneNumbers string
-		message      string
-		from         enumutils.SenderID
-	}
-	tests := []struct {
-		name    string
-		args    args
-		want    *openSourceDto.SendMessageResponse
-		wantErr bool
-		panics  bool
-	}{
-		{
-			name:   "invalid: missing params",
-			args:   args{},
-			panics: true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if tt.panics {
-				fcSendSMS := func() { _, _ = ext.SendSMS(tt.args.ctx, tt.args.phoneNumbers, tt.args.message, tt.args.from) }
-				assert.Panics(t, fcSendSMS)
-				return
-			}
-			got, err := ext.SendSMS(tt.args.ctx, tt.args.phoneNumbers, tt.args.message, tt.args.from)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("External.SendSMS() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("External.SendSMS() = %v, want %v", got, tt.want)
 			}
 		})
 	}
