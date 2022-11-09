@@ -44,8 +44,8 @@ import (
 
 var (
 	surveysBaseURL = serverutils.MustGetEnvVar("SURVEYS_BASE_URL")
-	MailGunAPIKey  = serverutils.MustGetEnvVar("MAILGUN_API_KEY")
-	MailGunDomain  = serverutils.MustGetEnvVar("MAILGUN_DOMAIN")
+	mailGunAPIKey  = serverutils.MustGetEnvVar("MAILGUN_API_KEY")
+	mailGunDomain  = serverutils.MustGetEnvVar("MAILGUN_DOMAIN")
 )
 
 // InitializeTestService sets up the structure that will be used by the usecase layer for
@@ -92,7 +92,7 @@ func InitializeTestService(ctx context.Context) (*usecases.MyCareHub, error) {
 	securityQuestionsUsecase := securityquestions.NewSecurityQuestionsUsecase(db, db, db, externalExt)
 	contentUseCase := content.NewUseCasesContentImplementation(db, db, externalExt)
 
-	mailClient := mailgun.NewMailgun(MailGunDomain, MailGunAPIKey)
+	mailClient := mailgun.NewMailgun(mailGunDomain, mailGunAPIKey)
 	mailClient.SetAPIBase(mailgun.ApiBase)
 	mailService := mail.NewServiceMail(mailClient)
 	feedbackUsecase := feedback.NewUsecaseFeedback(db, db, mailService)

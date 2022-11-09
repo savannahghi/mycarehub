@@ -79,8 +79,8 @@ var (
 	// surveys
 	surveysBaseURL = serverutils.MustGetEnvVar("SURVEYS_BASE_URL")
 
-	MailGunAPIKey = serverutils.MustGetEnvVar("MAILGUN_API_KEY")
-	MailGunDomain = serverutils.MustGetEnvVar("MAILGUN_DOMAIN")
+	mailGunAPIKey = serverutils.MustGetEnvVar("MAILGUN_API_KEY")
+	mailGunDomain = serverutils.MustGetEnvVar("MAILGUN_DOMAIN")
 
 	clinicalDepsName = "clinical"
 )
@@ -142,7 +142,7 @@ func Router(ctx context.Context) (*mux.Router, error) {
 
 	contentUseCase := content.NewUseCasesContentImplementation(db, db, externalExt)
 
-	mailClient := mailgun.NewMailgun(MailGunDomain, MailGunAPIKey)
+	mailClient := mailgun.NewMailgun(mailGunDomain, mailGunAPIKey)
 	mailClient.SetAPIBase(mailgun.ApiBase)
 	mailService := mail.NewServiceMail(mailClient)
 
