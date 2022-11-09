@@ -8,8 +8,8 @@ import (
 )
 
 var (
-	MailGunFrom = serverutils.MustGetEnvVar("MAILGUN_FROM")
-	MailGunTo   = serverutils.MustGetEnvVar("MYCAREHUB_ADMIN_EMAIL")
+	mailGunFrom = serverutils.MustGetEnvVar("MAILGUN_FROM")
+	mailGunTo   = serverutils.MustGetEnvVar("MYCAREHUB_ADMIN_EMAIL")
 )
 
 // IServiceMail holds the methods to interact with the MailGuns service
@@ -37,7 +37,7 @@ func NewServiceMail(client IMailgunClient) *MailgunServiceImpl {
 
 // SendFeedback sends an email to the feedback email address
 func (mg *MailgunServiceImpl) SendFeedback(ctx context.Context, subject, feedbackMessage string) (bool, error) {
-	m := mg.client.NewMessage(MailGunFrom, subject, feedbackMessage, MailGunTo)
+	m := mg.client.NewMessage(mailGunFrom, subject, feedbackMessage, mailGunTo)
 
 	_, _, err := mg.client.Send(m)
 	if err != nil {
