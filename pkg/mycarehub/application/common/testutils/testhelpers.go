@@ -6,8 +6,10 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"time"
 
 	stream "github.com/GetStream/stream-chat-go/v5"
+	"github.com/kevinburke/twilio-go"
 	"github.com/mailgun/mailgun-go"
 	"github.com/savannahghi/firebasetools"
 	externalExtension "github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
@@ -20,6 +22,7 @@ import (
 	pubsubmessaging "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/pubsub"
 	serviceSMS "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/sms"
 	surveyInstance "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/surveys"
+	serviceTwilio "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/twilio"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases"
 	appointment "github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/appointments"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/authority"
@@ -43,9 +46,15 @@ import (
 )
 
 var (
-	surveysBaseURL = serverutils.MustGetEnvVar("SURVEYS_BASE_URL")
-	mailGunAPIKey  = serverutils.MustGetEnvVar("MAILGUN_API_KEY")
-	mailGunDomain  = serverutils.MustGetEnvVar("MAILGUN_DOMAIN")
+	surveysBaseURL   = serverutils.MustGetEnvVar("SURVEYS_BASE_URL")
+	mailGunAPIKey    = serverutils.MustGetEnvVar("MAILGUN_API_KEY")
+	mailGunDomain    = serverutils.MustGetEnvVar("MAILGUN_DOMAIN")
+	twilioAccountSID = serverutils.MustGetEnvVar("TWILIO_ACCOUNT_SID")
+	twilioAuthToken  = serverutils.MustGetEnvVar("TWILIO_ACCOUNT_AUTH_TOKEN")
+)
+
+const (
+	twilioHTTPClientTimeoutSeconds = 10
 )
 
 // InitializeTestService sets up the structure that will be used by the usecase layer for
@@ -74,7 +83,16 @@ func InitializeTestService(ctx context.Context) (*usecases.MyCareHub, error) {
 	}
 	smsService := serviceSMS.NewServiceSMS(silCommsLib)
 
-	otpUseCase := otp.NewOTPUseCase(db, db, externalExt, smsService)
+	// Twilio
+	httpClient := &http.Client{
+		Timeout: time.Second * twilioHTTPClientTimeoutSeconds,
+	}
+	twilioClient := twilio.NewClient(twilioAccountSID, twilioAuthToken, httpClient)
+	twilioMessageObj := twilioClient.Messages
+	twilioService := serviceTwilio.NewServiceTwilio(twilioMessageObj)
+
+	otpUseCase := otp.NewOTPUseCase(db, db, externalExt, smsService, twilioService)
+
 	getStream := streamService.NewServiceGetStream(&stream.Client{})
 
 	pubsub, err := pubsubmessaging.NewServicePubSubMessaging(externalExt, getStream, db, fcmService)
@@ -101,7 +119,7 @@ func InitializeTestService(ctx context.Context) (*usecases.MyCareHub, error) {
 	appointmentUsecase := appointment.NewUseCaseAppointmentsImpl(externalExt, db, db, db, pubsub, notificationUseCase)
 	communityUsecase := communities.NewUseCaseCommunitiesImpl(getStream, externalExt, db, db, pubsub, notificationUseCase, db)
 	authorityUseCase := authority.NewUsecaseAuthority(db, db, externalExt, notificationUseCase)
-	userUsecase := user.NewUseCasesUserImpl(db, db, db, db, externalExt, otpUseCase, authorityUseCase, getStream, pubsub, clinicalService, smsService)
+	userUsecase := user.NewUseCasesUserImpl(db, db, db, db, externalExt, otpUseCase, authorityUseCase, getStream, pubsub, clinicalService, smsService, twilioService)
 	serviceRequestUseCase := servicerequest.NewUseCaseServiceRequestImpl(db, db, db, externalExt, userUsecase, notificationUseCase, smsService)
 	healthDiaryUseCase := healthdiary.NewUseCaseHealthDiaryImpl(db, db, db, serviceRequestUseCase)
 	screeningToolsUsecases := screeningtools.NewUseCasesScreeningTools(db, db, db, externalExt)

@@ -14,6 +14,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	pgMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/mock"
 	smsMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/sms/mock"
+	twilioMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/twilio/mock"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/otp"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/otp/mock"
 	"github.com/savannahghi/profileutils"
@@ -163,8 +164,9 @@ func TestUseCaseOTPImpl_VerifyPhoneNumber(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
 			fakeExtension := extensionMock.NewFakeExtension()
 			fakeSMS := smsMock.NewSMSServiceMock()
+			fakeTwilio := twilioMock.NewTwilioServiceMock()
 
-			o := otp.NewOTPUseCase(fakeDB, fakeDB, fakeExtension, fakeSMS)
+			o := otp.NewOTPUseCase(fakeDB, fakeDB, fakeExtension, fakeSMS, fakeTwilio)
 
 			if tt.name == "Sad Case - Fail to save otp" {
 				fakeDB.MockSaveOTPFn = func(ctx context.Context, otpInput *domain.OTP) error {
@@ -345,8 +347,9 @@ func TestMyCareHubDb_VerifyOTP_Unittest(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
 			fakeExtension := extensionMock.NewFakeExtension()
 			fakeSMS := smsMock.NewSMSServiceMock()
+			fakeTwilio := twilioMock.NewTwilioServiceMock()
 
-			o := otp.NewOTPUseCase(fakeDB, fakeDB, fakeExtension, fakeSMS)
+			o := otp.NewOTPUseCase(fakeDB, fakeDB, fakeExtension, fakeSMS, fakeTwilio)
 
 			if tt.name == "Sad case - no user ID" {
 				fakeDB.MockVerifyOTPFn = func(ctx context.Context, payload *dto.VerifyOTPInput) (bool, error) {
@@ -460,8 +463,9 @@ func TestUseCaseOTPImpl_GenerateRetryOTP(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
 			fakeExtension := extensionMock.NewFakeExtension()
 			fakeSMS := smsMock.NewSMSServiceMock()
+			fakeTwilio := twilioMock.NewTwilioServiceMock()
 
-			o := otp.NewOTPUseCase(fakeDB, fakeDB, fakeExtension, fakeSMS)
+			o := otp.NewOTPUseCase(fakeDB, fakeDB, fakeExtension, fakeSMS, fakeTwilio)
 
 			if tt.name == "Sad case - unable to check if user exists" {
 				fakeDB.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*domain.User, error) {
@@ -556,8 +560,9 @@ func TestUseCaseOTPImpl_SendOTP(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
 			fakeExtension := extensionMock.NewFakeExtension()
 			fakeSMS := smsMock.NewSMSServiceMock()
+			fakeTwilio := twilioMock.NewTwilioServiceMock()
 
-			o := otp.NewOTPUseCase(fakeDB, fakeDB, fakeExtension, fakeSMS)
+			o := otp.NewOTPUseCase(fakeDB, fakeDB, fakeExtension, fakeSMS, fakeTwilio)
 
 			if tt.name == "Sad Case - Fail to send an otp to kenyan number" {
 				fakeSMS.MockSendSMSFn = func(ctx context.Context, message string, recipients []string) (*silcomms.BulkSMSResponse, error) {
@@ -566,7 +571,7 @@ func TestUseCaseOTPImpl_SendOTP(t *testing.T) {
 			}
 
 			if tt.name == "Sad Case - Fail to send an otp to foreign number" {
-				fakeExtension.MockSendSMSViaTwilioFn = func(ctx context.Context, phonenumber, message string) error {
+				fakeTwilio.MockSendSMSViaTwilioFn = func(ctx context.Context, phonenumber, message string) error {
 					return fmt.Errorf("failed to send sms")
 				}
 			}

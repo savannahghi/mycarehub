@@ -16,6 +16,7 @@ import (
 	getStreamMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/getstream/mock"
 	pubsubMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/pubsub/mock"
 	smsMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/sms/mock"
+	twilioMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/twilio/mock"
 	authorityMock "github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/authority/mock"
 	otpMock "github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/otp/mock"
 	"gorm.io/gorm"
@@ -135,8 +136,9 @@ func TestUseCasesUserImpl_caregiverProfileCheck(t *testing.T) {
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
 			fakeClinical := clinicalMock.NewClinicalServiceMock()
 			fakeSMS := smsMock.NewSMSServiceMock()
+			fakeTwilio := twilioMock.NewTwilioServiceMock()
 
-			us := NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakeGetStream, fakePubsub, fakeClinical, fakeSMS)
+			us := NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakeGetStream, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
 
 			if tt.name == "happy case: client without caregiver profile" {
 				fakeDB.MockGetCaregiverByUserIDFn = func(ctx context.Context, userID string) (*domain.Caregiver, error) {
