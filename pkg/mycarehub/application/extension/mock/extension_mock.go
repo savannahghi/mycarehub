@@ -9,8 +9,6 @@ import (
 
 	"cloud.google.com/go/pubsub"
 	"github.com/google/uuid"
-	openSourceDto "github.com/savannahghi/engagementcore/pkg/engagement/application/common/dto"
-	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/firebasetools"
 	"github.com/savannahghi/interserviceclient"
 	"github.com/savannahghi/pubsubtools"
@@ -20,8 +18,6 @@ import (
 type FakeExtensionImpl struct {
 	MockCreateFirebaseCustomTokenFn       func(ctx context.Context, uid string) (string, error)
 	MockAuthenticateCustomFirebaseTokenFn func(customAuthToken string) (*firebasetools.FirebaseUserTokens, error)
-	MockSendSMSFn                         func(ctx context.Context, phoneNumbers string, message string, from enumutils.SenderID) (*openSourceDto.SendMessageResponse, error)
-	MockSendSMSViaTwilioFn                func(ctx context.Context, phonenumber, message string) error
 	MockGetLoggedInUserUIDFn              func(ctx context.Context) (string, error)
 	MockMakeRequestFn                     func(ctx context.Context, method string, path string, body interface{}) (*http.Response, error)
 	MockLoginFn                           func(ctx context.Context) http.HandlerFunc
@@ -77,20 +73,6 @@ func NewFakeExtension() *FakeExtensionImpl {
 				ExpiresIn:    "1000",
 			}, nil
 		},
-		MockSendSMSFn: func(ctx context.Context, phoneNumbers string, message string, from enumutils.SenderID) (*openSourceDto.SendMessageResponse, error) {
-			return &openSourceDto.SendMessageResponse{
-				SMSMessageData: &openSourceDto.SMS{
-					Recipients: []openSourceDto.Recipient{
-						{
-							Number: interserviceclient.TestUserPhoneNumber,
-						},
-					},
-				},
-			}, nil
-		},
-		MockSendSMSViaTwilioFn: func(ctx context.Context, phonenumber, message string) error {
-			return nil
-		},
 		MockGetLoggedInUserUIDFn: func(ctx context.Context) (string, error) {
 			return uuid.New().String(), nil
 		},
@@ -139,11 +121,6 @@ func (f *FakeExtensionImpl) CreateFirebaseCustomToken(ctx context.Context, uid s
 // AuthenticateCustomFirebaseToken mocks the authenticate custom firebase token method
 func (f *FakeExtensionImpl) AuthenticateCustomFirebaseToken(customAuthToken string) (*firebasetools.FirebaseUserTokens, error) {
 	return f.MockAuthenticateCustomFirebaseTokenFn(customAuthToken)
-}
-
-// SendSMSViaTwilio mocks the implementation of sending a SMS via twilio
-func (f *FakeExtensionImpl) SendSMSViaTwilio(ctx context.Context, phonenumber, message string) error {
-	return f.MockSendSMSViaTwilioFn(ctx, phonenumber, message)
 }
 
 // GetLoggedInUserUID mocks the implementation of getting a logged in user

@@ -16,6 +16,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
 	serviceSMS "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/sms"
+	serviceTwilio "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/twilio"
 	"github.com/savannahghi/serverutils"
 
 	"github.com/savannahghi/profileutils"
@@ -81,6 +82,7 @@ type UseCaseOTPImpl struct {
 	Query       infrastructure.Query
 	ExternalExt extension.ExternalMethodsExtension
 	SMS         serviceSMS.IServiceSMS
+	Twilio      serviceTwilio.ITwilioService
 }
 
 // NewOTPUseCase initializes a new OTP service
@@ -89,12 +91,14 @@ func NewOTPUseCase(
 	query infrastructure.Query,
 	externalExt extension.ExternalMethodsExtension,
 	sms serviceSMS.IServiceSMS,
+	twilio serviceTwilio.ITwilioService,
 ) *UseCaseOTPImpl {
 	return &UseCaseOTPImpl{
 		Create:      create,
 		Query:       query,
 		ExternalExt: externalExt,
 		SMS:         sms,
+		Twilio:      twilio,
 	}
 }
 
@@ -295,11 +299,12 @@ func (o *UseCaseOTPImpl) SendOTP(
 
 	} else {
 		// Make the request to twilio
-		err := o.ExternalExt.SendSMSViaTwilio(ctx, phoneNumber, message)
+		err := o.Twilio.SendSMSViaTwilio(ctx, phoneNumber, message)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
 			return "", fmt.Errorf("sms not sent via twilio: %w", err)
 		}
 	}
+
 	return code, nil
 }

@@ -4,12 +4,12 @@ import (
 	"context"
 )
 
-// MailGunClientMock mocks the mailgun's client service library implementations
+// MailServiceMock mocks the mailgun's client service library implementations
 type MailServiceMock struct {
 	MockSendFeedbackFn func(ctx context.Context, subject, feedbackMessage string) (bool, error)
 }
 
-// NewMailGunClientMock initializes the mock client
+// NewMailServiceMock initializes the mock client
 func NewMailServiceMock() *MailServiceMock {
 	return &MailServiceMock{
 		MockSendFeedbackFn: func(ctx context.Context, subject, feedbackMessage string) (bool, error) {

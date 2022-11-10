@@ -7,11 +7,6 @@ import (
 	"net/http"
 
 	"cloud.google.com/go/pubsub"
-	engagementInfra "github.com/savannahghi/engagementcore/pkg/engagement/infrastructure"
-	engagementEmail "github.com/savannahghi/engagementcore/pkg/engagement/usecases/mail"
-	engagementOTP "github.com/savannahghi/engagementcore/pkg/engagement/usecases/otp"
-	engagementSMS "github.com/savannahghi/engagementcore/pkg/engagement/usecases/sms"
-	engagementTwilio "github.com/savannahghi/engagementcore/pkg/engagement/usecases/twilio"
 	"github.com/savannahghi/firebasetools"
 	"github.com/savannahghi/interserviceclient"
 	"github.com/savannahghi/pubsubtools"
@@ -35,7 +30,6 @@ type ISCClientExtension interface {
 type ExternalMethodsExtension interface {
 	CreateFirebaseCustomToken(ctx context.Context, uid string) (string, error)
 	AuthenticateCustomFirebaseToken(customAuthToken string) (*firebasetools.FirebaseUserTokens, error)
-	SendSMSViaTwilio(ctx context.Context, phonenumber, message string) error
 	GetLoggedInUserUID(ctx context.Context) (string, error)
 	MakeRequest(ctx context.Context, method string, path string, body interface{}) (*http.Response, error)
 
@@ -52,25 +46,11 @@ type ExternalMethodsExtension interface {
 
 // External type implements external methods
 type External struct {
-	otpExtension    engagementOTP.ImplOTP
-	twilioExtension engagementTwilio.ImplTwilio
-	smsExtension    engagementSMS.UsecaseSMS
-	emailExtension  engagementEmail.UsecaseMail
 }
 
 // NewExternalMethodsImpl creates a new instance of the external methods
 func NewExternalMethodsImpl() ExternalMethodsExtension {
-	otpExt := engagementOTP.NewOTP(engagementInfra.NewInteractor())
-	twilioExt := engagementTwilio.NewImplTwilio(engagementInfra.NewInteractor())
-	smsExt := engagementSMS.NewSMS(engagementInfra.NewInteractor())
-	emailExt := engagementEmail.NewMail(engagementInfra.NewInteractor())
-
-	return &External{
-		otpExtension:    *otpExt,
-		twilioExtension: *twilioExt,
-		smsExtension:    smsExt,
-		emailExtension:  emailExt,
-	}
+	return &External{}
 }
 
 // CreateFirebaseCustomToken creates a custom auth token for the user with the
@@ -84,11 +64,6 @@ func (e *External) CreateFirebaseCustomToken(ctx context.Context, uid string) (s
 // Otherwise, an error is returned
 func (e *External) AuthenticateCustomFirebaseToken(customAuthToken string) (*firebasetools.FirebaseUserTokens, error) {
 	return firebasetools.AuthenticateCustomFirebaseToken(customAuthToken)
-}
-
-// SendSMSViaTwilio makes a request to Twilio to send an SMS to a non-kenyan number
-func (e *External) SendSMSViaTwilio(ctx context.Context, phonenumber, message string) error {
-	return e.twilioExtension.SendSMS(ctx, phonenumber, message)
 }
 
 // GetLoggedInUserUID get the logged in user uid

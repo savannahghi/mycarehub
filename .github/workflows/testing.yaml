@@ -77,7 +77,6 @@ jobs:
             REPOSITORY=${{ secrets.REPOSITORY }}
             SERVICE_HOST=${{ secrets.SERVICE_HOST }}
             GOOGLE_PROJECT_NUMBER=${{ secrets.GOOGLE_PROJECT_NUMBER }}
-            JAEGER_URL=${{ secrets.JAEGER_URL }}
             SENTRY_DSN=${{ secrets.SENTRY_DSN }}
             POSTGRES_USER=${{ secrets.MYCAREHUB_DB_USER }}
             POSTGRES_PASSWORD=${{ secrets.MYCAREHUB_DB_PASS }}
@@ -88,38 +87,12 @@ jobs:
             PRO_INVITE_LINK=${{ secrets.PRO_INVITE_LINK }}
             CONSUMER_INVITE_LINK=${{ secrets.CONSUMER_INVITE_LINK }}
             SENSITIVE_CONTENT_SECRET_KEY=${{ secrets.SENSITIVE_CONTENT_SECRET_KEY }}
-            GHOST_CMS_API_ENDPOINT=${{ secrets.GHOST_CMS_API_ENDPOINT }}
-            GHOST_CMS_API_KEY=${{ secrets.GHOST_CMS_API_KEY }}
             MAILGUN_API_KEY=${{ secrets.MAILGUN_API_KEY }}
             MAILGUN_DOMAIN=${{ secrets.MAILGUN_DOMAIN }}
             MAILGUN_FROM=${{ secrets.MAILGUN_FROM }}
-            SEND_IN_BLUE_API_KEY=${{ secrets.SEND_IN_BLUE_API_KEY }}
-            SEND_IN_BLUE_ENABLED=${{ secrets.SEND_IN_BLUE_ENABLED }}
-            TWILIO_VIDEO_SID=${{ secrets.TWILIO_VIDEO_SID }}
-            TWILIO_VIDEO_SECRET=${{ secrets.TWILIO_VIDEO_SECRET }}
-            TWILIO_ACCOUNT_SID=${{ secrets.TWILIO_ACCOUNT_SID }}
-            TWILIO_ACCOUNT_AUTH_TOKEN=${{ secrets.TWILIO_ACCOUNT_AUTH_TOKEN }}
-            TWILIO_SMS_NUMBER=${{ secrets.TWILIO_SMS_NUMBER }}
-            SERVER_PUBLIC_DOMAIN=${{ secrets.SERVER_PUBLIC_DOMAIN }}
-            AIT_API_KEY=${{ secrets.AIT_API_KEY }}
-            AIT_USERNAME=${{ secrets.AIT_USERNAME }}
-            AIT_SENDER_ID=${{ secrets.AIT_SENDER_ID }}
-            AIT_ENVIRONMENT=${{ secrets.AIT_ENVIRONMENT }}
-            TWILIO_WHATSAPP_SID=${{ secrets.TWILIO_WHATSAPP_SID }}
-            TWILIO_WHATSAPP_AUTH_TOKEN=${{ secrets.TWILIO_WHATSAPP_AUTH_TOKEN }}
-            TWILIO_WHATSAPP_SENDER=${{ secrets.TWILIO_WHATSAPP_SENDER }}
-            TWILIO_REGION=${{ secrets.TWILIO_REGION }}
-            TWILIO_VIDEO_API_URL=${{ secrets.TWILIO_VIDEO_API_URL }}
-            AIT_BEWELL_API_KEY=${{ secrets.AIT_BEWELL_API_KEY }}
-            AIT_BEWELL_USERNAME=${{ secrets.AIT_BEWELL_USERNAME }}
-            AIT_BEWELL_SENDER_ID=${{ secrets.AIT_BEWELL_SENDER_ID }}
-            TESTING_TWILIO_ACCOUNT_AUTH_TOKEN=${{ secrets.TESTING_TWILIO_ACCOUNT_AUTH_TOKEN }}
-            TESTING_TWILIO_ACCOUNT_SID=${{ secrets.TESTING_TWILIO_ACCOUNT_SID }}
-            TEST_TWILIO_SMS_NUMBER=${{ secrets.TEST_TWILIO_SMS_NUMBER }}
             DJANGO_AUTHORIZATION_TOKEN=${{ secrets.DJANGO_AUTHORIZATION_TOKEN }}
             CONTENT_API_URL=${{ secrets.CONTENT_API_URL }}
             CONTENT_SERVICE_BASE_URL=${{ secrets.CONTENT_SERVICE_BASE_URL }}
-            ROOT_COLLECTION_SUFFIX=${{ secrets.ROOT_COLLECTION_SUFFIX }}
             GOOGLE_CLOUD_STORAGE_URL=${{ secrets.GOOGLE_CLOUD_STORAGE_URL }}
             INVITE_PIN_EXPIRY_DAYS=${{ secrets.INVITE_PIN_EXPIRY_DAYS }}
             PIN_EXPIRY_DAYS=${{ secrets.PIN_EXPIRY_DAYS }}
@@ -138,6 +111,9 @@ jobs:
             SIL_COMMS_EMAIL=${{ secrets.SIL_COMMS_EMAIL }}
             SIL_COMMS_PASSWORD=${{ secrets.SIL_COMMS_PASSWORD }}
             SIL_COMMS_SENDER_ID=${{ secrets.SIL_COMMS_SENDER_ID }}
+            TWILIO_ACCOUNT_SID=${{ secrets.TWILIO_ACCOUNT_SID }}
+            TWILIO_ACCOUNT_AUTH_TOKEN=${{ secrets.TWILIO_ACCOUNT_AUTH_TOKEN }}
+            TWILIO_SMS_NUMBER=${{ secrets.TWILIO_SMS_NUMBER }}
   
   push_schema_test_registry:
     name: Publish schema to schema registry
