@@ -8,9 +8,9 @@ import (
 	"github.com/google/uuid"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
-	extensionMock "github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension/mock"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	pgMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/mock"
+	mailMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/mail/mock"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/feedback"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/feedback/mock"
 )
@@ -123,9 +123,9 @@ func TestUsecaseFeedbackImpl_SendFeedback(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
 			fakeFeedback := mock.NewFeedbackUsecaseMock()
-			fakeExtension := extensionMock.NewFakeExtension()
+			fakeMailService := mailMock.NewMailServiceMock()
 
-			f := feedback.NewUsecaseFeedback(fakeDB, fakeDB, fakeExtension)
+			f := feedback.NewUsecaseFeedback(fakeDB, fakeDB, fakeMailService)
 
 			if tt.name == "Sad case" {
 				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
@@ -143,12 +143,12 @@ func TestUsecaseFeedbackImpl_SendFeedback(t *testing.T) {
 				}
 			}
 			if tt.name == "Sad case - unable to send message" {
-				fakeExtension.MockSendFeedbackFn = func(ctx context.Context, subject, feedbackMessage string) (bool, error) {
+				fakeMailService.MockSendFeedbackFn = func(ctx context.Context, subject, feedbackMessage string) (bool, error) {
 					return false, fmt.Errorf("an error occurred while sending feedback")
 				}
 			}
 			if tt.name == "Sad case - invalid feedback type" {
-				fakeExtension.MockSendFeedbackFn = func(ctx context.Context, subject, feedbackMessage string) (bool, error) {
+				fakeMailService.MockSendFeedbackFn = func(ctx context.Context, subject, feedbackMessage string) (bool, error) {
 					return false, fmt.Errorf("an error occurred while sending feedback")
 				}
 			}

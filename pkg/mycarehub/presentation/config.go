@@ -14,6 +14,7 @@ import (
 	stream "github.com/GetStream/stream-chat-go/v5"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
+	"github.com/mailgun/mailgun-go"
 	"github.com/savannahghi/firebasetools"
 	"github.com/savannahghi/interserviceclient"
 	externalExtension "github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
@@ -23,6 +24,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/fcm"
 	streamService "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/getstream"
 	loginservice "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/login"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/mail"
 	pubsubmessaging "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/pubsub"
 	serviceSMS "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/sms"
 	surveyInstance "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/surveys"
@@ -76,6 +78,9 @@ var (
 	// surveys
 	surveysBaseURL = serverutils.MustGetEnvVar("SURVEYS_BASE_URL")
 
+	mailGunAPIKey = serverutils.MustGetEnvVar("MAILGUN_API_KEY")
+	mailGunDomain = serverutils.MustGetEnvVar("MAILGUN_DOMAIN")
+
 	clinicalDepsName = "clinical"
 )
 
@@ -102,7 +107,10 @@ func Router(ctx context.Context) (*mux.Router, error) {
 		log.Fatalf("failed to start getstream client: %v", err)
 	}
 
-	silCommsLib := silcomms.NewSILCommsLib()
+	silCommsLib, err := silcomms.NewSILCommsLib()
+	if err != nil {
+		log.Fatalf("failed to start silcomms client: %v", err)
+	}
 	smsService := serviceSMS.NewServiceSMS(silCommsLib)
 
 	otpUseCase := otp.NewOTPUseCase(db, db, externalExt, smsService)
@@ -133,7 +141,11 @@ func Router(ctx context.Context) (*mux.Router, error) {
 
 	contentUseCase := content.NewUseCasesContentImplementation(db, db, externalExt)
 
-	feedbackUsecase := feedback.NewUsecaseFeedback(db, db, externalExt)
+	mailClient := mailgun.NewMailgun(mailGunDomain, mailGunAPIKey)
+	mailClient.SetAPIBase(mailgun.ApiBase)
+	mailService := mail.NewServiceMail(mailClient)
+
+	feedbackUsecase := feedback.NewUsecaseFeedback(db, db, mailService)
 
 	serviceRequestUseCase := servicerequest.NewUseCaseServiceRequestImpl(db, db, db, externalExt, userUsecase, notificationUseCase, smsService)
 
