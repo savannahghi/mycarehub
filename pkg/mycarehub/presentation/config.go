@@ -14,6 +14,7 @@ import (
 	stream "github.com/GetStream/stream-chat-go/v5"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
+	"github.com/kevinburke/twilio-go"
 	"github.com/mailgun/mailgun-go"
 	"github.com/savannahghi/firebasetools"
 	"github.com/savannahghi/interserviceclient"
@@ -28,6 +29,7 @@ import (
 	pubsubmessaging "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/pubsub"
 	serviceSMS "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/sms"
 	surveyInstance "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/surveys"
+	serviceTwilio "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/twilio"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/presentation/graph"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/presentation/graph/generated"
 	internalRest "github.com/savannahghi/mycarehub/pkg/mycarehub/presentation/rest"
@@ -55,7 +57,8 @@ import (
 )
 
 const (
-	serverTimeoutSeconds = 120
+	serverTimeoutSeconds           = 120
+	twilioHTTPClientTimeoutSeconds = 10
 )
 
 // AllowedOrigins is list of CORS origins allowed to interact with
@@ -80,6 +83,9 @@ var (
 
 	mailGunAPIKey = serverutils.MustGetEnvVar("MAILGUN_API_KEY")
 	mailGunDomain = serverutils.MustGetEnvVar("MAILGUN_DOMAIN")
+
+	twilioAccountSID = serverutils.MustGetEnvVar("TWILIO_ACCOUNT_SID")
+	twilioAuthToken  = serverutils.MustGetEnvVar("TWILIO_ACCOUNT_AUTH_TOKEN")
 
 	clinicalDepsName = "clinical"
 )
@@ -113,7 +119,15 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	}
 	smsService := serviceSMS.NewServiceSMS(silCommsLib)
 
-	otpUseCase := otp.NewOTPUseCase(db, db, externalExt, smsService)
+	// Twilio
+	httpClient := &http.Client{
+		Timeout: time.Second * twilioHTTPClientTimeoutSeconds,
+	}
+	twilioClient := twilio.NewClient(twilioAccountSID, twilioAuthToken, httpClient)
+	twilioMessageObj := twilioClient.Messages
+	twilioService := serviceTwilio.NewServiceTwilio(twilioMessageObj)
+
+	otpUseCase := otp.NewOTPUseCase(db, db, externalExt, smsService, twilioService)
 
 	getStream := streamService.NewServiceGetStream(streamClient)
 
@@ -133,7 +147,7 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	clinicalClient := externalExtension.NewInterServiceClient(clinicalDepsName, externalExt)
 	clinicalService := clinical.NewServiceClinical(clinicalClient)
 
-	userUsecase := user.NewUseCasesUserImpl(db, db, db, db, externalExt, otpUseCase, authorityUseCase, getStream, pubSub, clinicalService, smsService)
+	userUsecase := user.NewUseCasesUserImpl(db, db, db, db, externalExt, otpUseCase, authorityUseCase, getStream, pubSub, clinicalService, smsService, twilioService)
 
 	termsUsecase := terms.NewUseCasesTermsOfService(db, db)
 

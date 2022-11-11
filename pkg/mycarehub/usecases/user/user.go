@@ -28,6 +28,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/getstream"
 	pubsubmessaging "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/pubsub"
 	serviceSMS "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/sms"
+	serviceTwilio "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/twilio"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/authority"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/otp"
 	"github.com/savannahghi/scalarutils"
@@ -192,6 +193,7 @@ type UseCasesUserImpl struct {
 	Pubsub      pubsubmessaging.ServicePubsub
 	Clinical    clinical.IServiceClinical
 	SMS         serviceSMS.IServiceSMS
+	Twilio      serviceTwilio.ITwilioService
 }
 
 // NewUseCasesUserImpl returns a new user service
@@ -207,6 +209,7 @@ func NewUseCasesUserImpl(
 	pubsub pubsubmessaging.ServicePubsub,
 	clinical clinical.IServiceClinical,
 	sms serviceSMS.IServiceSMS,
+	twilio serviceTwilio.ITwilioService,
 ) *UseCasesUserImpl {
 	return &UseCasesUserImpl{
 		Create:      create,
@@ -220,6 +223,7 @@ func NewUseCasesUserImpl(
 		Pubsub:      pubsub,
 		Clinical:    clinical,
 		SMS:         sms,
+		Twilio:      twilio,
 	}
 }
 
@@ -309,7 +313,7 @@ func (us *UseCasesUserImpl) InviteUser(ctx context.Context, userID string, phone
 
 	message := helpers.CreateInviteMessage(userProfile, inviteLink, tempPin, flavour)
 	if reinvite {
-		err := us.ExternalExt.SendSMSViaTwilio(ctx, *phone, message)
+		err := us.Twilio.SendSMSViaTwilio(ctx, *phone, message)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
 			return false, exceptions.SendSMSErr(fmt.Errorf("failed to send invite SMS: %w", err))

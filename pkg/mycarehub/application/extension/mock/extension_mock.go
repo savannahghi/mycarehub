@@ -18,7 +18,6 @@ import (
 type FakeExtensionImpl struct {
 	MockCreateFirebaseCustomTokenFn           func(ctx context.Context, uid string) (string, error)
 	MockAuthenticateCustomFirebaseTokenFn     func(customAuthToken string) (*firebasetools.FirebaseUserTokens, error)
-	MockSendSMSViaTwilioFn                    func(ctx context.Context, phonenumber, message string) error
 	MockGetLoggedInUserUIDFn                  func(ctx context.Context) (string, error)
 	MockMakeRequestFn                         func(ctx context.Context, method string, path string, body interface{}) (*http.Response, error)
 	MockLoginFn                               func(ctx context.Context) http.HandlerFunc
@@ -77,9 +76,6 @@ func NewFakeExtension() *FakeExtensionImpl {
 				ExpiresIn:    "1000",
 			}, nil
 		},
-		MockSendSMSViaTwilioFn: func(ctx context.Context, phonenumber, message string) error {
-			return nil
-		},
 		MockGetLoggedInUserUIDFn: func(ctx context.Context) (string, error) {
 			return uuid.New().String(), nil
 		},
@@ -128,11 +124,6 @@ func (f *FakeExtensionImpl) CreateFirebaseCustomToken(ctx context.Context, uid s
 // AuthenticateCustomFirebaseToken mocks the authenticate custom firebase token method
 func (f *FakeExtensionImpl) AuthenticateCustomFirebaseToken(customAuthToken string) (*firebasetools.FirebaseUserTokens, error) {
 	return f.MockAuthenticateCustomFirebaseTokenFn(customAuthToken)
-}
-
-// SendSMSViaTwilio mocks the implementation of sending a SMS via twilio
-func (f *FakeExtensionImpl) SendSMSViaTwilio(ctx context.Context, phonenumber, message string) error {
-	return f.MockSendSMSViaTwilioFn(ctx, phonenumber, message)
 }
 
 // GetLoggedInUserUID mocks the implementation of getting a logged in user
