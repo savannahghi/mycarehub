@@ -1525,346 +1525,346 @@ ADD
 ALTER TABLE IF EXISTS
     "screeningtools_screeningtoolsresponse"
 ADD
-    FOREIGN KEY ("updated_by") REFERENCES "users_user" ("id");
+    CONSTRAINT "screeningtools_screeningtoolsresponse_updated_by_fkey" FOREIGN KEY ("updated_by") REFERENCES "users_user" ("id");
 
 ALTER TABLE IF EXISTS
     "screeningtools_screeningtoolsresponse"
 ADD
-    FOREIGN KEY ("client_id") REFERENCES "clients_client" ("id");
+    CONSTRAINT "screeningtools_screeningtoolsresponse_client_id_fkey" FOREIGN KEY ("client_id") REFERENCES "clients_client" ("id");
 
 ALTER TABLE IF EXISTS
     "screeningtools_screeningtoolsresponse"
 ADD
-    FOREIGN KEY ("organisation_id") REFERENCES "common_organisation" ("id");
+    CONSTRAINT "screeningtools_screeningtoolsresponse_organisation_id_fkey" FOREIGN KEY ("organisation_id") REFERENCES "common_organisation" ("id");
 
 ALTER TABLE IF EXISTS
     "screeningtools_screeningtoolsresponse"
 ADD
-    FOREIGN KEY ("question_id") REFERENCES "screeningtools_screeningtoolsquestion" ("id");
+    CONSTRAINT "screeningtools_screeningtoolsresponse_question_id_fkey" FOREIGN KEY ("question_id") REFERENCES "screeningtools_screeningtoolsquestion" ("id");
 
 ALTER TABLE IF EXISTS
     "screeningtools_screeningtoolsresponse"
 ADD
-    FOREIGN KEY ("program_id") REFERENCES "common_program" ("id");
+    CONSTRAINT "screeningtools_screeningtoolsresponse_program_id_fkey" FOREIGN KEY ("program_id") REFERENCES "common_program" ("id");
 
 ALTER TABLE IF EXISTS
     "staff_servicerequest"
 ADD
-    FOREIGN KEY ("created_by") REFERENCES "users_user" ("id");
+    CONSTRAINT "staff_servicerequest_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "users_user" ("id");
 
 ALTER TABLE IF EXISTS
     "staff_servicerequest"
 ADD
-    FOREIGN KEY ("updated_by") REFERENCES "users_user" ("id");
+    CONSTRAINT "staff_servicerequest_updated_by_fkey" FOREIGN KEY ("updated_by") REFERENCES "users_user" ("id");
 
 ALTER TABLE IF EXISTS
     "staff_servicerequest"
 ADD
-    FOREIGN KEY ("organisation_id") REFERENCES "common_organisation" ("id");
+    CONSTRAINT "staff_servicerequest_organisation_id_fkey" FOREIGN KEY ("organisation_id") REFERENCES "common_organisation" ("id");
 
 ALTER TABLE IF EXISTS
     "staff_servicerequest"
 ADD
-    FOREIGN KEY ("resolved_by_id") REFERENCES "staff_staff" ("id");
+    CONSTRAINT "staff_servicerequest_resolved_by_id_fkey" FOREIGN KEY ("resolved_by_id") REFERENCES "staff_staff" ("id");
 
 ALTER TABLE IF EXISTS
     "staff_servicerequest"
 ADD
-    FOREIGN KEY ("staff_id") REFERENCES "staff_staff" ("id");
+    CONSTRAINT "staff_servicerequest_staff_id_fkey" FOREIGN KEY ("staff_id") REFERENCES "staff_staff" ("id");
 
 ALTER TABLE IF EXISTS
     "staff_servicerequest"
 ADD
-    FOREIGN KEY ("facility_id") REFERENCES "common_facility" ("id");
+    CONSTRAINT "staff_servicerequest_facility_id_fkey" FOREIGN KEY ("facility_id") REFERENCES "common_facility" ("id");
 
 ALTER TABLE IF EXISTS
     "staff_servicerequest"
 ADD
-    FOREIGN KEY ("program_id") REFERENCES "common_program" ("id");
+    CONSTRAINT "staff_servicerequest_program_id_fkey" FOREIGN KEY ("program_id") REFERENCES "common_program" ("id");
 
 ALTER TABLE IF EXISTS
     "users_metric"
 ADD
-    FOREIGN KEY ("created_by") REFERENCES "users_user" ("id");
+    CONSTRAINT "users_metric_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "users_user" ("id");
 
 ALTER TABLE IF EXISTS
     "users_metric"
 ADD
-    FOREIGN KEY ("updated_by") REFERENCES "users_user" ("id");
+    CONSTRAINT "users_metric_updated_by_fkey" FOREIGN KEY ("updated_by") REFERENCES "users_user" ("id");
 
 ALTER TABLE IF EXISTS
     "users_metric"
 ADD
-    FOREIGN KEY ("user_id") REFERENCES "users_user" ("id");
+    CONSTRAINT "users_metric_organisation_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users_user" ("id");
 
 ALTER TABLE IF EXISTS
     "users_userpin"
 ADD
-    FOREIGN KEY ("created_by") REFERENCES "users_user" ("id");
+    CONSTRAINT "users_userpin_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "users_user" ("id");
 
 ALTER TABLE IF EXISTS
     "users_userpin"
 ADD
-    FOREIGN KEY ("updated_by") REFERENCES "users_user" ("id");
+    CONSTRAINT "users_userpin_updated_by_fkey" FOREIGN KEY ("updated_by") REFERENCES "users_user" ("id");
 
 ALTER TABLE IF EXISTS
     "users_userpin"
 ADD
-    FOREIGN KEY ("user_id") REFERENCES "users_user" ("id");
+    CONSTRAINT "users_userpin_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users_user" ("id");
 
 ALTER TABLE IF EXISTS
     "users_userpin"
 ADD
-    FOREIGN KEY ("organisation_id") REFERENCES "common_organisation" ("id");
+    CONSTRAINT "users_userpin_organisation_id_fkey" FOREIGN KEY ("organisation_id") REFERENCES "common_organisation" ("id");
 
 ALTER TABLE IF EXISTS
     "users_userotp"
 ADD
-    FOREIGN KEY ("user_id") REFERENCES "users_user" ("id");
+    CONSTRAINT "users_userotp_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users_user" ("id");
 
 ALTER TABLE IF EXISTS
     "users_userotp"
 ADD
-    FOREIGN KEY ("created_by") REFERENCES "users_user" ("id");
+    CONSTRAINT "users_userotp_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "users_user" ("id");
 
 ALTER TABLE IF EXISTS
     "users_userotp"
 ADD
-    FOREIGN KEY ("updated_by") REFERENCES "users_user" ("id");
+    CONSTRAINT "users_userotp_updated_by_fkey" FOREIGN KEY ("updated_by") REFERENCES "users_user" ("id");
 
 ALTER TABLE IF EXISTS
     "questionnaires_questionnaire"
 ADD
-    FOREIGN KEY ("created_by") REFERENCES "users_user" ("id");
+    CONSTRAINT "questionnaires_questionnaire_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "users_user" ("id");
 
 ALTER TABLE IF EXISTS
     "questionnaires_questionnaire"
 ADD
-    FOREIGN KEY ("updated_by") REFERENCES "users_user" ("id");
+    CONSTRAINT "questionnaires_questionnaire_updated_by_fkey" FOREIGN KEY ("updated_by") REFERENCES "users_user" ("id");
 
 ALTER TABLE IF EXISTS
     "questionnaires_questionnaire"
 ADD
-    FOREIGN KEY ("organisation_id") REFERENCES "common_organisation" ("id");
+    CONSTRAINT "questionnaires_questionnaire_organisation_id_fkey" FOREIGN KEY ("organisation_id") REFERENCES "common_organisation" ("id");
 
 ALTER TABLE IF EXISTS
     "questionnaires_questionnaire"
 ADD
-    FOREIGN KEY ("program_id") REFERENCES "common_program" ("id");
+    CONSTRAINT "questionnaires_questionnaire_program_id_fkey" FOREIGN KEY ("program_id") REFERENCES "common_program" ("id");
 
 ALTER TABLE IF EXISTS
     "questionnaires_screeningtool"
 ADD
-    FOREIGN KEY ("created_by") REFERENCES "users_user" ("id");
+    CONSTRAINT "questionnaires_screeningtool_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "users_user" ("id");
 
 ALTER TABLE IF EXISTS
     "questionnaires_screeningtool"
 ADD
-    FOREIGN KEY ("updated_by") REFERENCES "users_user" ("id");
+    CONSTRAINT "questionnaires_screeningtool_updated_by_fkey" FOREIGN KEY ("updated_by") REFERENCES "users_user" ("id");
 
 ALTER TABLE IF EXISTS
     "questionnaires_screeningtool"
 ADD
-    FOREIGN KEY ("organisation_id") REFERENCES "common_organisation" ("id");
+    CONSTRAINT "questionnaires_screeningtool_organisation_id_fkey" FOREIGN KEY ("organisation_id") REFERENCES "common_organisation" ("id");
 
 ALTER TABLE IF EXISTS
     "questionnaires_screeningtool"
 ADD
-    FOREIGN KEY ("questionnaire_id") REFERENCES "questionnaires_questionnaire" ("id");
+    CONSTRAINT "questionnaires_screeningtool_questionnaire_id_fkey" FOREIGN KEY ("questionnaire_id") REFERENCES "questionnaires_questionnaire" ("id");
 
 ALTER TABLE IF EXISTS
     "questionnaires_screeningtool"
 ADD
-    FOREIGN KEY ("program_id") REFERENCES "common_program" ("id");
+    CONSTRAINT "questionnaires_screeningtool_program_id_fkey" FOREIGN KEY ("program_id") REFERENCES "common_program" ("id");
 
 ALTER TABLE IF EXISTS
     "questionnaires_question"
 ADD
-    FOREIGN KEY ("created_by") REFERENCES "users_user" ("id");
+    CONSTRAINT "questionnaires_question_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "users_user" ("id");
 
 ALTER TABLE IF EXISTS
     "questionnaires_question"
 ADD
-    FOREIGN KEY ("updated_by") REFERENCES "users_user" ("id");
+    CONSTRAINT "questionnaires_question_updated_by_fkey" FOREIGN KEY ("updated_by") REFERENCES "users_user" ("id");
 
 ALTER TABLE IF EXISTS
     "questionnaires_question"
 ADD
-    FOREIGN KEY ("organisation_id") REFERENCES "common_organisation" ("id");
+    CONSTRAINT "questionnaires_question_organisation_id_fkey" FOREIGN KEY ("organisation_id") REFERENCES "common_organisation" ("id");
 
 ALTER TABLE IF EXISTS
     "questionnaires_question"
 ADD
-    FOREIGN KEY ("questionnaire_id") REFERENCES "questionnaires_questionnaire" ("id");
+    CONSTRAINT "questionnaires_question_questionnaire_id_fkey" FOREIGN KEY ("questionnaire_id") REFERENCES "questionnaires_questionnaire" ("id");
 
 ALTER TABLE IF EXISTS
     "questionnaires_question"
 ADD
-    FOREIGN KEY ("program_id") REFERENCES "common_program" ("id");
+    CONSTRAINT "questionnaires_question_program_id_fkey" FOREIGN KEY ("program_id") REFERENCES "common_program" ("id");
 
 ALTER TABLE IF EXISTS
     "questionnaires_questioninputchoice"
 ADD
-    FOREIGN KEY ("created_by") REFERENCES "users_user" ("id");
+    CONSTRAINT "questionnaires_questioninputchoice_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "users_user" ("id");
 
 ALTER TABLE IF EXISTS
     "questionnaires_questioninputchoice"
 ADD
-    FOREIGN KEY ("updated_by") REFERENCES "users_user" ("id");
+    CONSTRAINT "questionnaires_questioninputchoice_updated_by_fkey" FOREIGN KEY ("updated_by") REFERENCES "users_user" ("id");
 
 ALTER TABLE IF EXISTS
     "questionnaires_questioninputchoice"
 ADD
-    FOREIGN KEY ("organisation_id") REFERENCES "common_organisation" ("id");
+    CONSTRAINT "questionnaires_questioninputchoice_organisation_id_fkey" FOREIGN KEY ("organisation_id") REFERENCES "common_organisation" ("id");
 
 ALTER TABLE IF EXISTS
     "questionnaires_questioninputchoice"
 ADD
-    FOREIGN KEY ("question_id") REFERENCES "questionnaires_question" ("id");
+    CONSTRAINT "questionnaires_questioninputchoice_question_id_fkey" FOREIGN KEY ("question_id") REFERENCES "questionnaires_question" ("id");
 
 ALTER TABLE IF EXISTS
     "questionnaires_questioninputchoice"
 ADD
-    FOREIGN KEY ("program_id") REFERENCES "common_program" ("id");
+    CONSTRAINT "questionnaires_questioninputchoice_program_id_fkey" FOREIGN KEY ("program_id") REFERENCES "common_program" ("id");
 
 ALTER TABLE IF EXISTS
     "questionnaires_screeningtoolresponse"
 ADD
-    FOREIGN KEY ("created_by") REFERENCES "users_user" ("id");
+    CONSTRAINT "questionnaires_screeningtoolresponse_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "users_user" ("id");
 
 ALTER TABLE IF EXISTS
     "questionnaires_screeningtoolresponse"
 ADD
-    FOREIGN KEY ("updated_by") REFERENCES "users_user" ("id");
+    CONSTRAINT "questionnaires_screeningtoolresponse_updated_by_fkey" FOREIGN KEY ("updated_by") REFERENCES "users_user" ("id");
 
 ALTER TABLE IF EXISTS
     "questionnaires_screeningtoolresponse"
 ADD
-    FOREIGN KEY ("organisation_id") REFERENCES "common_organisation" ("id");
+    CONSTRAINT "questionnaires_screeningtoolresponse_organisation_id_fkey" FOREIGN KEY ("organisation_id") REFERENCES "common_organisation" ("id");
 
 ALTER TABLE IF EXISTS
     "questionnaires_screeningtoolresponse"
 ADD
-    FOREIGN KEY ("screeningtool_id") REFERENCES "questionnaires_screeningtool" ("id");
+    CONSTRAINT "questionnaires_screeningtoolresponse_screeningtool_id_fkey" FOREIGN KEY ("screeningtool_id") REFERENCES "questionnaires_screeningtool" ("id");
 
 ALTER TABLE IF EXISTS
     "questionnaires_screeningtoolresponse"
 ADD
-    FOREIGN KEY ("facility_id") REFERENCES "common_facility" ("id");
+    CONSTRAINT "questionnaires_screeningtoolresponse_facility_id_fkey" FOREIGN KEY ("facility_id") REFERENCES "common_facility" ("id");
 
 ALTER TABLE IF EXISTS
     "questionnaires_screeningtoolresponse"
 ADD
-    FOREIGN KEY ("client_id") REFERENCES "clients_client" ("id");
+    CONSTRAINT "questionnaires_screeningtoolresponse_client_id_fkey" FOREIGN KEY ("client_id") REFERENCES "clients_client" ("id");
 
 ALTER TABLE IF EXISTS
     "questionnaires_screeningtoolresponse"
 ADD
-    FOREIGN KEY ("program_id") REFERENCES "common_program" ("id");
+    CONSTRAINT "questionnaires_screeningtoolresponse_program_id_fkey" FOREIGN KEY ("program_id") REFERENCES "common_program" ("id");
 
 ALTER TABLE IF EXISTS
     "questionnaires_screeningtoolquestionresponse"
 ADD
-    FOREIGN KEY ("created_by") REFERENCES "users_user" ("id");
+    CONSTRAINT "questionnaires_screeningtoolquestionresponse_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "users_user" ("id");
 
 ALTER TABLE IF EXISTS
     "questionnaires_screeningtoolquestionresponse"
 ADD
-    FOREIGN KEY ("updated_by") REFERENCES "users_user" ("id");
+    CONSTRAINT "questionnaires_screeningtoolquestionresponse_updated_by_fkey" FOREIGN KEY ("updated_by") REFERENCES "users_user" ("id");
 
 ALTER TABLE IF EXISTS
     "questionnaires_screeningtoolquestionresponse"
 ADD
-    FOREIGN KEY ("organisation_id") REFERENCES "common_organisation" ("id");
+    CONSTRAINT "questionnaires_screeningtoolquestionresponse_organisation_id_fkey" FOREIGN KEY ("organisation_id") REFERENCES "common_organisation" ("id");
 
 ALTER TABLE IF EXISTS
     "questionnaires_screeningtoolquestionresponse"
 ADD
-    FOREIGN KEY ("screeningtoolresponse_id") REFERENCES "questionnaires_screeningtoolresponse" ("id");
+    CONSTRAINT "questionnaires_screeningtoolquestionresponse_screeningtoolresponse_id_fkey" FOREIGN KEY ("screeningtoolresponse_id") REFERENCES "questionnaires_screeningtoolresponse" ("id");
 
 ALTER TABLE IF EXISTS
     "questionnaires_screeningtoolquestionresponse"
 ADD
-    FOREIGN KEY ("question_id") REFERENCES "questionnaires_question" ("id");
+   CONSTRAINT "questionnaires_screeningtoolquestionresponse_question_id_fkey" FOREIGN KEY ("question_id") REFERENCES "questionnaires_question" ("id");
 
 ALTER TABLE IF EXISTS
     "questionnaires_screeningtoolquestionresponse"
 ADD
-    FOREIGN KEY ("program_id") REFERENCES "common_program" ("id");
+   CONSTRAINT "questionnaires_screeningtoolquestionresponse_program_id_fkey" FOREIGN KEY ("program_id") REFERENCES "common_program" ("id");
 
 ALTER TABLE IF EXISTS
     "questionnaires_screeningtoolquestionresponse"
 ADD
-    FOREIGN KEY ("facility_id") REFERENCES "common_facility" ("id");
+    CONSTRAINT "questionnaires_screeningtoolquestionresponse_facility_id_fkey" FOREIGN KEY ("facility_id") REFERENCES "common_facility" ("id");
 
 ALTER TABLE IF EXISTS
     "clients_client_facilities"
 ADD
-    FOREIGN KEY ("client_id") REFERENCES "clients_client" ("id");
+    CONSTRAINT "clients_client_facilities_client_id_fkey" FOREIGN KEY ("client_id") REFERENCES "clients_client" ("id");
 
 ALTER TABLE IF EXISTS
     "clients_client_facilities"
 ADD
-    FOREIGN KEY ("facility_id") REFERENCES "common_facility" ("id");
+    CONSTRAINT "clients_client_facilities_facility_id_fkey" FOREIGN KEY ("facility_id") REFERENCES "common_facility" ("id");
 
 ALTER TABLE IF EXISTS
     "caregivers_caregiver"
 ADD
-    FOREIGN KEY ("created_by") REFERENCES "users_user" ("id");
+    CONSTRAINT "caregivers_caregiver_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "users_user" ("id");
 
 ALTER TABLE IF EXISTS
     "caregivers_caregiver"
 ADD
-    FOREIGN KEY ("updated_by") REFERENCES "users_user" ("id");
+    CONSTRAINT "caregivers_caregiver_updated_by_fkey" FOREIGN KEY ("updated_by") REFERENCES "users_user" ("id");
 
 ALTER TABLE IF EXISTS
     "caregivers_caregiver"
 ADD
-    FOREIGN KEY ("organisation_id") REFERENCES "common_organisation" ("id");
+    CONSTRAINT "caregivers_caregiver_organisation_id_fkey" FOREIGN KEY ("organisation_id") REFERENCES "common_organisation" ("id");
 
 ALTER TABLE IF EXISTS
     "caregivers_caregiver"
 ADD
-    FOREIGN KEY ("user_id") REFERENCES "users_user" ("id");
+    CONSTRAINT "caregivers_caregiver_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users_user" ("id");
 
 ALTER TABLE IF EXISTS
     "caregivers_caregiver"
 ADD
-    FOREIGN KEY ("program_id") REFERENCES "common_program" ("id");
+    CONSTRAINT "caregivers_caregiver_program_id_fkey" FOREIGN KEY ("program_id") REFERENCES "common_program" ("id");
 
 ALTER TABLE IF EXISTS
     "caregivers_caregiver_client"
 ADD
-    FOREIGN KEY ("caregiver_id") REFERENCES "caregivers_caregiver" ("id");
+    CONSTRAINT "caregivers_caregiver_client_caregiver_id_fkey" FOREIGN KEY ("caregiver_id") REFERENCES "caregivers_caregiver" ("id");
 
 ALTER TABLE IF EXISTS
     "caregivers_caregiver_client"
 ADD
-    FOREIGN KEY ("client_id") REFERENCES "clients_client" ("id");
+    CONSTRAINT "caregivers_caregiver_client_client_id_fkey" FOREIGN KEY ("client_id") REFERENCES "clients_client" ("id");
 
 ALTER TABLE IF EXISTS
     "caregivers_caregiver_client"
 ADD
-    FOREIGN KEY ("created_by") REFERENCES "users_user" ("id");
+    CONSTRAINT "caregivers_caregiver_client_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "users_user" ("id");
 
 ALTER TABLE IF EXISTS
     "caregivers_caregiver_client"
 ADD
-    FOREIGN KEY ("updated_by") REFERENCES "users_user" ("id");
+    CONSTRAINT "caregivers_caregiver_client_updated_by_fkey" FOREIGN KEY ("updated_by") REFERENCES "users_user" ("id");
 
 ALTER TABLE IF EXISTS
     "caregivers_caregiver_client"
 ADD
-    FOREIGN KEY ("organisation_id") REFERENCES "common_organisation" ("id");
+    CONSTRAINT "caregivers_caregiver_client_organisation_id_fkey" FOREIGN KEY ("organisation_id") REFERENCES "common_organisation" ("id");
 
 ALTER TABLE IF EXISTS
     "caregivers_caregiver_client"
 ADD
-    FOREIGN KEY ("assigned_by") REFERENCES "staff_staff" ("id");
+    CONSTRAINT "caregivers_caregiver_client_assigned_by_fkey" FOREIGN KEY ("assigned_by") REFERENCES "staff_staff" ("id");
 
 ALTER TABLE IF EXISTS
     "caregivers_caregiver_client"
 ADD
-    FOREIGN KEY ("program_id") REFERENCES "common_program" ("id");
+    CONSTRAINT "caregivers_caregiver_client_program_id_fkey" FOREIGN KEY ("program_id") REFERENCES "common_program" ("id");
 
 COMMIT;
