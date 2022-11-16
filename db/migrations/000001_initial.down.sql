@@ -608,7 +608,7 @@ DROP
 ALTER TABLE
     IF EXISTS "common_notification"
 DROP
-    CONSTRAINT "common_notification_organisation_id_fkey"
+    CONSTRAINT "common_notification_organisation_id_fkey";
 
 ALTER TABLE
     IF EXISTS "common_notification"
@@ -695,347 +695,347 @@ ALTER TABLE
 DROP
     CONSTRAINT "screeningtools_screeningtoolsresponse_created_by_fkey";
 
-ALTER TABLE 
+ALTER TABLE
     IF EXISTS "screeningtools_screeningtoolsresponse"
 DROP
     CONSTRAINT "screeningtools_screeningtoolsresponse_updated_by_fkey";
 
-ALTER TABLE 
+ALTER TABLE
     IF EXISTS "screeningtools_screeningtoolsresponse"
 DROP
     CONSTRAINT "screeningtools_screeningtoolsresponse_client_id_fkey";
 
-ALTER TABLE 
+ALTER TABLE
     IF EXISTS "screeningtools_screeningtoolsresponse"
 DROP
     CONSTRAINT "screeningtools_screeningtoolsresponse_organisation_id_fkey";
 
-ALTER TABLE 
+ALTER TABLE
     IF EXISTS "screeningtools_screeningtoolsresponse"
 DROP
     CONSTRAINT "screeningtools_screeningtoolsresponse_question_id_fkey";
 
-ALTER TABLE 
+ALTER TABLE
     IF EXISTS "screeningtools_screeningtoolsresponse"
 DROP
     CONSTRAINT "screeningtools_screeningtoolsresponse_program_id_fkey";
 
-ALTER TABLE 
+ALTER TABLE
     IF EXISTS "staff_servicerequest"
 DROP
     CONSTRAINT "staff_servicerequest_created_by_fkey";
 
-ALTER TABLE 
+ALTER TABLE
     IF EXISTS "staff_servicerequest"
 DROP
     CONSTRAINT "staff_servicerequest_updated_by_fkey";
 
-ALTER TABLE 
+ALTER TABLE
     IF EXISTS "staff_servicerequest"
 DROP
     CONSTRAINT "staff_servicerequest_organisation_id_fkey";
 
-ALTER TABLE 
+ALTER TABLE
     IF EXISTS "staff_servicerequest"
 DROP
     CONSTRAINT "staff_servicerequest_resolved_by_id_fkey";
 
-ALTER TABLE 
+ALTER TABLE
     IF EXISTS "staff_servicerequest"
 DROP
     CONSTRAINT "staff_servicerequest_staff_id_fkey";
 
-ALTER TABLE 
+ALTER TABLE
     IF EXISTS "staff_servicerequest"
 DROP
     CONSTRAINT "staff_servicerequest_facility_id_fkey";
 
-ALTER TABLE 
+ALTER TABLE
     IF EXISTS "staff_servicerequest"
 DROP
     CONSTRAINT "staff_servicerequest_program_id_fkey";
 
-ALTER TABLE 
+ALTER TABLE
     IF EXISTS "users_metric"
 DROP
     CONSTRAINT "users_metric_created_by_fkey";
 
-ALTER TABLE 
+ALTER TABLE
     IF EXISTS "users_metric"
 DROP
     CONSTRAINT "users_metric_updated_by_fkey";
 
-ALTER TABLE 
+ALTER TABLE
     IF EXISTS "users_metric"
 DROP
     CONSTRAINT "users_metric_organisation_id_fkey";
 
-ALTER TABLE 
+ALTER TABLE
     IF EXISTS "users_userpin"
 DROP
     CONSTRAINT "users_userpin_created_by_fkey";
 
-ALTER TABLE 
+ALTER TABLE
     IF EXISTS "users_userpin"
 DROP
     CONSTRAINT "users_userpin_updated_by_fkey";
 
-ALTER TABLE 
+ALTER TABLE
     IF EXISTS "users_userpin"
 DROP
     CONSTRAINT "users_userpin_user_id_fkey";
 
-ALTER TABLE 
+ALTER TABLE
     IF EXISTS "users_userpin"
 DROP
     CONSTRAINT "users_userpin_organisation_id_fkey";
 
-ALTER TABLE 
+ALTER TABLE
     IF EXISTS "users_userotp"
 DROP
     CONSTRAINT "users_userotp_user_id_fkey";
 
-ALTER TABLE 
+ALTER TABLE
     IF EXISTS "users_userotp"
 DROP
     CONSTRAINT "users_userotp_created_by_fkey";
 
-ALTER TABLE 
+ALTER TABLE
     IF EXISTS "users_userotp"
 DROP
     CONSTRAINT "users_userotp_updated_by_fkey";
 
-ALTER TABLE 
+ALTER TABLE
     IF EXISTS "questionnaires_questionnaire"
 DROP
     CONSTRAINT "questionnaires_questionnaire_created_by_fkey";
 
-ALTER TABLE 
+ALTER TABLE
     IF EXISTS "questionnaires_questionnaire"
 DROP
     CONSTRAINT "questionnaires_questionnaire_updated_by_fkey";
 
-ALTER TABLE 
+ALTER TABLE
     IF EXISTS "questionnaires_questionnaire"
 DROP
     CONSTRAINT "questionnaires_questionnaire_organisation_id_fkey";
 
-ALTER TABLE 
+ALTER TABLE
     IF EXISTS "questionnaires_questionnaire"
 DROP
     CONSTRAINT "questionnaires_questionnaire_program_id_fkey";
 
-ALTER TABLE 
+ALTER TABLE
     IF EXISTS "questionnaires_screeningtool"
 DROP
     CONSTRAINT "questionnaires_screeningtool_created_by_fkey";
 
-ALTER TABLE 
+ALTER TABLE
     IF EXISTS "questionnaires_screeningtool"
 DROP
     CONSTRAINT "questionnaires_screeningtool_updated_by_fkey";
 
-ALTER TABLE 
+ALTER TABLE
     IF EXISTS "questionnaires_screeningtool"
 DROP
     CONSTRAINT "questionnaires_screeningtool_organisation_id_fkey";
 
-ALTER TABLE 
+ALTER TABLE
     IF EXISTS "questionnaires_screeningtool"
 DROP
     CONSTRAINT "questionnaires_screeningtool_questionnaire_id_fkey";
 
-ALTER TABLE 
+ALTER TABLE
     IF EXISTS "questionnaires_screeningtool"
 DROP
     CONSTRAINT "questionnaires_screeningtool_program_id_fkey";
 
-ALTER TABLE 
+ALTER TABLE
     IF EXISTS "questionnaires_question"
 DROP
     CONSTRAINT "questionnaires_question_created_by_fkey";
 
-ALTER TABLE 
+ALTER TABLE
     IF EXISTS "questionnaires_question"
 DROP
     CONSTRAINT "questionnaires_question_updated_by_fkey";
 
-ALTER TABLE 
+ALTER TABLE
     IF EXISTS "questionnaires_question"
 DROP
     CONSTRAINT "questionnaires_question_organisation_id_fkey";
 
-ALTER TABLE 
+ALTER TABLE
     IF EXISTS "questionnaires_question"
 DROP
     CONSTRAINT "questionnaires_question_questionnaire_id_fkey";
 
-ALTER TABLE 
+ALTER TABLE
     IF EXISTS "questionnaires_question"
 DROP
     CONSTRAINT "questionnaires_question_program_id_fkey";
 
-ALTER TABLE 
+ALTER TABLE
     IF EXISTS "questionnaires_questioninputchoice"
 DROP
     CONSTRAINT "questionnaires_questioninputchoice_created_by_fkey";
 
-ALTER TABLE 
+ALTER TABLE
     IF EXISTS "questionnaires_questioninputchoice"
 DROP
     CONSTRAINT "questionnaires_questioninputchoice_updated_by_fkey";
 
-ALTER TABLE 
+ALTER TABLE
     IF EXISTS "questionnaires_questioninputchoice"
 DROP
     CONSTRAINT "questionnaires_questioninputchoice_organisation_id_fkey";
 
-ALTER TABLE 
+ALTER TABLE
     IF EXISTS "questionnaires_questioninputchoice"
 DROP
     CONSTRAINT "questionnaires_questioninputchoice_question_id_fkey";
 
-ALTER TABLE 
+ALTER TABLE
     IF EXISTS "questionnaires_questioninputchoice"
 DROP
     CONSTRAINT "questionnaires_questioninputchoice_program_id_fkey";
 
-ALTER TABLE 
+ALTER TABLE
     IF EXISTS "questionnaires_screeningtoolresponse"
 DROP
     CONSTRAINT "questionnaires_screeningtoolresponse_created_by_fkey";
 
-ALTER TABLE 
+ALTER TABLE
     IF EXISTS "questionnaires_screeningtoolresponse"
 DROP
     CONSTRAINT "questionnaires_screeningtoolresponse_updated_by_fkey";
 
-ALTER TABLE 
+ALTER TABLE
     IF EXISTS "questionnaires_screeningtoolresponse"
 DROP
     CONSTRAINT "questionnaires_screeningtoolresponse_organisation_id_fkey";
 
-ALTER TABLE 
+ALTER TABLE
     IF EXISTS "questionnaires_screeningtoolresponse"
 DROP
     CONSTRAINT "questionnaires_screeningtoolresponse_screeningtool_id_fkey";
 
-ALTER TABLE 
+ALTER TABLE
     IF EXISTS "questionnaires_screeningtoolresponse"
 DROP
     CONSTRAINT "questionnaires_screeningtoolresponse_facility_id_fkey";
 
-ALTER TABLE 
+ALTER TABLE
     IF EXISTS "questionnaires_screeningtoolresponse"
 DROP
     CONSTRAINT "questionnaires_screeningtoolresponse_client_id_fkey";
 
-ALTER TABLE 
+ALTER TABLE
     IF EXISTS "questionnaires_screeningtoolresponse"
 DROP
     CONSTRAINT "questionnaires_screeningtoolresponse_program_id_fkey";
 
-ALTER TABLE 
+ALTER TABLE
     IF EXISTS "questionnaires_screeningtoolquestionresponse"
 DROP
     CONSTRAINT "questionnaires_screeningtoolquestionresponse_created_by_fkey";
 
-ALTER TABLE 
+ALTER TABLE
     IF EXISTS "questionnaires_screeningtoolquestionresponse"
 DROP
     CONSTRAINT "questionnaires_screeningtoolquestionresponse_updated_by_fkey";
 
-ALTER TABLE 
+ALTER TABLE
     IF EXISTS "questionnaires_screeningtoolquestionresponse"
 DROP
     CONSTRAINT "questionnaires_screeningtoolquestionresponse_organisation_id_fkey";
 
-ALTER TABLE 
+ALTER TABLE
     IF EXISTS "questionnaires_screeningtoolquestionresponse"
 DROP
     CONSTRAINT "questionnaires_screeningtoolquestionresponse_screeningtoolresponse_id_fkey";
 
-ALTER TABLE 
+ALTER TABLE
     IF EXISTS "questionnaires_screeningtoolquestionresponse"
 DROP
    CONSTRAINT "questionnaires_screeningtoolquestionresponse_question_id_fkey";
 
-ALTER TABLE 
+ALTER TABLE
     IF EXISTS "questionnaires_screeningtoolquestionresponse"
 DROP
    CONSTRAINT "questionnaires_screeningtoolquestionresponse_program_id_fkey";
 
-ALTER TABLE 
+ALTER TABLE
     IF EXISTS "questionnaires_screeningtoolquestionresponse"
 DROP
     CONSTRAINT "questionnaires_screeningtoolquestionresponse_facility_id_fkey";
 
-ALTER TABLE 
+ALTER TABLE
     IF EXISTS "clients_client_facilities"
 DROP
     CONSTRAINT "clients_client_facilities_client_id_fkey";
 
-ALTER TABLE 
+ALTER TABLE
     IF EXISTS "clients_client_facilities"
 DROP
     CONSTRAINT "clients_client_facilities_facility_id_fkey";
 
-ALTER TABLE 
+ALTER TABLE
     IF EXISTS "caregivers_caregiver"
 DROP
     CONSTRAINT "caregivers_caregiver_created_by_fkey";
 
-ALTER TABLE 
+ALTER TABLE
     IF EXISTS "caregivers_caregiver"
 DROP
     CONSTRAINT "caregivers_caregiver_updated_by_fkey";
 
-ALTER TABLE 
+ALTER TABLE
     IF EXISTS "caregivers_caregiver"
 DROP
     CONSTRAINT "caregivers_caregiver_organisation_id_fkey";
 
-ALTER TABLE 
+ALTER TABLE
     IF EXISTS "caregivers_caregiver"
 DROP
     CONSTRAINT "caregivers_caregiver_user_id_fkey";
 
-ALTER TABLE 
+ALTER TABLE
     IF EXISTS "caregivers_caregiver"
 DROP
     CONSTRAINT "caregivers_caregiver_program_id_fkey";
 
-ALTER TABLE 
+ALTER TABLE
     IF EXISTS "caregivers_caregiver_client"
 DROP
     CONSTRAINT "caregivers_caregiver_client_caregiver_id_fkey";
 
-ALTER TABLE 
+ALTER TABLE
     IF EXISTS "caregivers_caregiver_client"
 DROP
     CONSTRAINT "caregivers_caregiver_client_client_id_fkey";
 
-ALTER TABLE 
+ALTER TABLE
     IF EXISTS "caregivers_caregiver_client"
 DROP
     CONSTRAINT "caregivers_caregiver_client_created_by_fkey";
 
-ALTER TABLE 
+ALTER TABLE
     IF EXISTS "caregivers_caregiver_client"
 DROP
     CONSTRAINT "caregivers_caregiver_client_updated_by_fkey";
 
-ALTER TABLE 
+ALTER TABLE
     IF EXISTS "caregivers_caregiver_client"
 DROP
     CONSTRAINT "caregivers_caregiver_client_organisation_id_fkey";
 
-ALTER TABLE 
+ALTER TABLE
     IF EXISTS "caregivers_caregiver_client"
 DROP
     CONSTRAINT "caregivers_caregiver_client_assigned_by_fkey";
 
-ALTER TABLE 
+ALTER TABLE
     IF EXISTS "caregivers_caregiver_client"
 DROP
     CONSTRAINT "caregivers_caregiver_client_program_id_fkey";
@@ -1120,13 +1120,13 @@ DROP TABLE IF EXISTS "clients_healthdiaryquote";
 
 DROP TABLE IF EXISTS "clients_identifier";
 
-DROP TABLE IF EXISTS "clients_relatedperson_DROPresses";
+DROP TABLE IF EXISTS "clients_relatedperson_addresses";
 
 DROP TABLE IF EXISTS "clients_relatedperson";
 
 DROP TABLE IF EXISTS "common_securityquestion";
 
-DROP TABLE IF EXISTS "common_DROPress";
+DROP TABLE IF EXISTS "common_address";
 
 DROP TABLE IF EXISTS "common_auditlog";
 
