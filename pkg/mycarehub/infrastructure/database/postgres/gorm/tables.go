@@ -34,34 +34,19 @@ type Base struct {
 type Facility struct {
 	Base
 
-	FacilityID *string `gorm:"primaryKey;unique;column:id"`
-	Name       string  `gorm:"column:name;unique;not null"`
-	// MFL Code for Kenyan facilities, globally unique
-	Code               int    `gorm:"unique;column:mfl_code;not null"`
-	Active             bool   `gorm:"column:active;not null"`
-	County             string `gorm:"column:county;not null"` // TODO: Controlled list of counties
-	Phone              string `gorm:"column:phone"`
-	Description        string `gorm:"column:description;not null"`
-	FHIROrganisationID string `gorm:"column:fhir_organization_id"`
-
-	// Foreign Keys
-	OrganisationID string `gorm:"column:organisation_id;not null"`
+	FacilityID         *string `gorm:"primaryKey;unique;column:id"`
+	Name               string  `gorm:"column:name;unique;not null"`
+	Active             bool    `gorm:"column:active;not null"`
+	Country            string  `gorm:"column:country;not null"`
+	Phone              string  `gorm:"column:phone"`
+	Description        string  `gorm:"column:description;not null"`
+	FHIROrganisationID string  `gorm:"column:fhir_organization_id"`
 }
 
 // BeforeCreate is a hook run before creating a new facility
 func (f *Facility) BeforeCreate(tx *gorm.DB) (err error) {
-	ctx := tx.Statement.Context
-	orgID, err := utils.GetOrganisationIDFromContext(ctx)
-	if err != nil {
-		logrus.Println("failed to get organisation from context")
-	}
-	if orgID == "" {
-		orgID = OrganizationID
-	}
-
 	id := uuid.New().String()
 	f.FacilityID = &id
-	f.OrganisationID = orgID
 
 	return
 }
@@ -71,43 +56,29 @@ func (Facility) TableName() string {
 	return "common_facility"
 }
 
-// FacilityAttachment holds any document attached to a facility.
-type FacilityAttachment struct {
+// FacilityIdentifier stores a facilities identifiers
+type FacilityIdentifier struct {
 	Base
 
-	ID           *string   `gorm:"primaryKey;column:id"`
-	Title        string    `gorm:"column:title;not null"`
-	Active       bool      `gorm:"column:active;not null"`
-	Data         string    `gorm:"column:data;not null"`
-	Description  string    `gorm:"column:description"`
-	CreationDate time.Time `gorm:"creation_date:title;not null"`
-	AspectRatio  string    `gorm:"column:aspect_ratio"`
-	Notes        string    `gorm:"column:notes"`
+	ID     string `gorm:"primaryKey;unique;column:id"`
+	Active bool   `gorm:"column:active;not null"`
+	Type   string `gorm:"column:identifier_type;not null"`
+	Value  string `gorm:"column:identifier_value;not null"`
 
-	FacilityID     string `gorm:"column:facility_id;not null"`
-	OrganisationID string `gorm:"column:organisation_id;not null"`
+	FacilityID string `gorm:"column:facility_id;not null"`
 }
 
 // BeforeCreate is a hook run before creating a new facility
-func (f *FacilityAttachment) BeforeCreate(tx *gorm.DB) (err error) {
-	ctx := tx.Statement.Context
-	orgID, err := utils.GetOrganisationIDFromContext(ctx)
-	if err != nil {
-		logrus.Println("failed to get organisation from context")
-	}
-	if orgID == "" {
-		orgID = OrganizationID
-	}
-
+func (f *FacilityIdentifier) BeforeCreate(tx *gorm.DB) (err error) {
 	id := uuid.New().String()
-	f.ID = &id
-	f.OrganisationID = orgID
-	return nil
+	f.ID = id
+
+	return
 }
 
 // TableName customizes how the table name is generated
-func (FacilityAttachment) TableName() string {
-	return "common_facilityattachment"
+func (FacilityIdentifier) TableName() string {
+	return "common_facility_identifier"
 }
 
 // AuditLog is used to record all sensitive changes e.g
@@ -193,23 +164,13 @@ func (Address) TableName() string {
 
 // User represents the table data structure for a user
 type User struct {
-	// Base
+	Base
 
-	UserID *string `gorm:"primaryKey;unique;column:id"` // globally unique ID
-
-	Username string `gorm:"column:username;unique;not null"` // @handle, also globally unique; nickname
-
-	// DisplayName string `gorm:"column:display_name"` // user's preferred display name
-
-	FirstName  string `gorm:"column:first_name;not null"` // given name
-	MiddleName string `gorm:"column:middle_name"`
-	LastName   string `gorm:"column:last_name;not null"`
-
-	UserType enums.UsersType `gorm:"column:user_type;not null"`
-
-	Gender enumutils.Gender `gorm:"column:gender;not null"`
-
-	Active bool `gorm:"column:is_active;not null"`
+	UserID   *string          `gorm:"primaryKey;unique;column:id"`
+	Username string           `gorm:"column:username;unique;not null"`
+	UserType enums.UsersType  `gorm:"column:user_type;not null"`
+	Gender   enumutils.Gender `gorm:"column:gender;not null"`
+	Active   bool             `gorm:"column:active;not null"`
 
 	Contacts Contact `gorm:"ForeignKey:UserID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;not null"` // TODO: validate, ensure
 
@@ -240,23 +201,16 @@ type User struct {
 	HasSetPin              bool            `gorm:"column:has_set_pin"`
 	HasSetSecurityQuestion bool            `gorm:"column:has_set_security_questions"`
 	IsPhoneVerified        bool            `gorm:"column:is_phone_verified"`
+	IsSuperuser            bool            `gorm:"column:is_superuser"`
+	Name                   string          `gorm:"column:name"`
+	DateOfBirth            *time.Time      `gorm:"column:date_of_birth"`
+	FailedSecurityCount    int             `gorm:"column:failed_security_count"`
+	PinUpdateRequired      bool            `gorm:"column:pin_update_required"`
+	HasSetNickname         bool            `gorm:"column:has_set_nickname"`
 
-	Password            string     `gorm:"column:password"`
-	IsSuperuser         bool       `gorm:"column:is_superuser"`
-	IsStaff             bool       `gorm:"column:is_staff"`
-	Email               string     `gorm:"column:email"`
-	DateJoined          string     `gorm:"column:date_joined"`
-	Name                string     `gorm:"column:name"`
-	IsApproved          bool       `gorm:"column:is_approved"`
-	ApprovalNotified    bool       `gorm:"column:approval_notified"`
-	Handle              string     `gorm:"column:handle"`
-	DateOfBirth         *time.Time `gorm:"column:date_of_birth"`
-	FailedSecurityCount int        `gorm:"column:failed_security_count"`
-	PinUpdateRequired   bool       `gorm:"column:pin_update_required"`
-	HasSetNickname      bool       `gorm:"column:has_set_nickname"`
-
-	OrganisationID  string `gorm:"column:organisation_id"`
-	AcceptedTermsID *int   `gorm:"column:accepted_terms_of_service_id"` // foreign key to version of terms they accepted
+	OrganisationID   string `gorm:"column:organisation_id"`
+	CurrentProgramID string `gorm:"column:current_program_id"`
+	AcceptedTermsID  *int   `gorm:"column:accepted_terms_of_service_id"`
 }
 
 // BeforeCreate is a hook run before creating a new user
@@ -274,19 +228,12 @@ func (u *User) BeforeCreate(tx *gorm.DB) (err error) {
 	u.UserID = &id
 	u.OrganisationID = orgID
 	u.IsSuperuser = false
-	u.IsStaff = false
-	u.DateJoined = time.Now().UTC().Format(time.RFC1123Z)
-	u.IsApproved = false
-	u.ApprovalNotified = false
-	u.Handle = "@" + u.Username
 
 	login := time.Now()
 
 	u.NextAllowedLogin = &login
 	u.FailedLoginCount = 0
 	u.FailedSecurityCount = 0
-	u.IsApproved = false
-	u.ApprovalNotified = false
 	u.TermsAccepted = false
 	u.IsSuspended = false
 	u.PinChangeRequired = true
@@ -402,7 +349,8 @@ type Organisation struct {
 	Active          bool    `gorm:"column:active;not null"`
 	OrgCode         string  `gorm:"column:org_code;not null;unique"`
 	Code            int     `gorm:"column:code;not null;unique"`
-	Name            string  `gorm:"column:organisation_name;not null;unique"`
+	Name            string  `gorm:"column:name;not null;unique"`
+	Description     string  `gorm:"column:description"`
 	EmailAddress    string  `gorm:"column:email_address;not null"`
 	PhoneNumber     string  `gorm:"column:phone_number;not null"`
 	PostalAddress   string  `gorm:"column:postal_address;not null"`
@@ -457,7 +405,7 @@ func (s *SecurityQuestion) BeforeCreate(tx *gorm.DB) (err error) {
 
 // TableName customizes how the table name is generated
 func (SecurityQuestion) TableName() string {
-	return "clients_securityquestion"
+	return "common_securityquestion"
 }
 
 // UserOTP maps the schema for the table that stores the user's OTP
@@ -523,7 +471,7 @@ func (s *SecurityQuestionResponse) BeforeCreate(tx *gorm.DB) (err error) {
 
 // TableName customizes how the table name is generated
 func (SecurityQuestionResponse) TableName() string {
-	return "clients_securityquestionresponse"
+	return "common_securityquestionresponse"
 }
 
 // Client holds the details of end users who are not using the system in
@@ -590,7 +538,6 @@ func (c *Client) BeforeDelete(tx *gorm.DB) (err error) {
 	userID := clientProfile.User.UserID
 
 	tx.Unscoped().Select(clause.Associations).Where(&Contact{UserID: userID}).Delete(&Contact{})
-	tx.Unscoped().Where(&ClientContacts{ClientID: &clientID}).Delete(&ClientContacts{})
 	tx.Unscoped().Where(&ClientFacility{ClientID: clientID}).Delete(&ClientFacility{})
 	tx.Unscoped().Where("identifier_id", clientIdentifiers.IdentifierID).Delete(&ClientIdentifiers{})
 	tx.Unscoped().Where("id", clientIdentifiers.IdentifierID).Delete(&Identifier{})
@@ -652,7 +599,7 @@ type StaffProfile struct {
 
 	Facilities []Facility `gorm:"ForeignKey:FacilityID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;not null"` // TODO: needs at least one
 
-	DefaultFacilityID string `gorm:"column:default_facility_id"` // TODO: required, FK to facility
+	DefaultFacilityID string `gorm:"column:current_facility_id"` // TODO: required, FK to facility
 
 	OrganisationID string `gorm:"column:organisation_id"`
 
@@ -1026,18 +973,6 @@ func (c *ClientRelatedPerson) TableName() string {
 	return "clients_client_related_persons"
 }
 
-// ClientContacts links a client with their contacts
-type ClientContacts struct {
-	ID        int     `gorm:"primaryKey;column:id;autoincrement"`
-	ClientID  *string `gorm:"column:client_id"`
-	ContactID *string `gorm:"column:contact_id"`
-}
-
-// TableName references the table that we map data from
-func (c *ClientContacts) TableName() string {
-	return "clients_client_contacts"
-}
-
 // RelatedPerson represents information for a person related to another user
 type RelatedPerson struct {
 	Base
@@ -1266,18 +1201,6 @@ type StaffIdentifiers struct {
 // TableName references the table that we map data from
 func (s *StaffIdentifiers) TableName() string {
 	return "staff_staff_identifiers"
-}
-
-// StaffContacts links a staff with their contacts
-type StaffContacts struct {
-	ID        int     `gorm:"primaryKey;column:id;autoincrement"`
-	StaffID   *string `gorm:"column:staff_id"`
-	ContactID *string `gorm:"column:contact_id"`
-}
-
-// TableName references the table that we map data from
-func (c *StaffContacts) TableName() string {
-	return "staff_staff_contacts"
 }
 
 // StaffFacilities links a staff with their facilities

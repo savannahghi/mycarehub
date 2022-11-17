@@ -10,8 +10,6 @@ type Facility struct {
 	// unique within this structure
 	Name string `json:"name"`
 
-	// MFL Code for Kenyan facilities, globally unique
-	Code               int    `json:"code"`
 	Phone              string `json:"phone"`
 	Active             bool   `json:"active"`
 	County             string `json:"county"` // TODO: Controlled list of counties

@@ -2,7 +2,9 @@
 - id: 1
   client_id: {{.test_client_id}}
   facility_id: {{.test_facility_id}}
+  
 
 - id: 2
   client_id: {{.test_client_id}}
   facility_id: {{.facility_to_remove_from_user_profile}}
+  

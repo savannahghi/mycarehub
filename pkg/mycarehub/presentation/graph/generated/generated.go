@@ -286,7 +286,6 @@ type ComplexityRoot struct {
 
 	Facility struct {
 		Active             func(childComplexity int) int
-		Code               func(childComplexity int) int
 		County             func(childComplexity int) int
 		Description        func(childComplexity int) int
 		FHIROrganisationID func(childComplexity int) int
@@ -2078,13 +2077,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Facility.Active(childComplexity), true
-
-	case "Facility.code":
-		if e.complexity.Facility.Code == nil {
-			break
-		}
-
-		return e.complexity.Facility.Code(childComplexity), true
 
 	case "Facility.county":
 		if e.complexity.Facility.County == nil {
@@ -6307,7 +6299,6 @@ extend type Mutation {
 	{Name: "../types.graphql", Input: `type Facility {
   ID: String!
   name: String!
-  code: Int!
   phone: String!
   active: Boolean!
   county: String!
@@ -12382,8 +12373,6 @@ func (ec *executionContext) fieldContext_ClientProfile_DefaultFacility(ctx conte
 				return ec.fieldContext_Facility_ID(ctx, field)
 			case "name":
 				return ec.fieldContext_Facility_name(ctx, field)
-			case "code":
-				return ec.fieldContext_Facility_code(ctx, field)
 			case "phone":
 				return ec.fieldContext_Facility_phone(ctx, field)
 			case "active":
@@ -16645,50 +16634,6 @@ func (ec *executionContext) fieldContext_Facility_name(ctx context.Context, fiel
 	return fc, nil
 }
 
-func (ec *executionContext) _Facility_code(ctx context.Context, field graphql.CollectedField, obj *domain.Facility) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Facility_code(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Code, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(int)
-	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Facility_code(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Facility",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Int does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _Facility_phone(ctx context.Context, field graphql.CollectedField, obj *domain.Facility) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Facility_phone(ctx, field)
 	if err != nil {
@@ -17066,8 +17011,6 @@ func (ec *executionContext) fieldContext_FacilityOutputPage_Facilities(ctx conte
 				return ec.fieldContext_Facility_ID(ctx, field)
 			case "name":
 				return ec.fieldContext_Facility_name(ctx, field)
-			case "code":
-				return ec.fieldContext_Facility_code(ctx, field)
 			case "phone":
 				return ec.fieldContext_Facility_phone(ctx, field)
 			case "active":
@@ -17188,8 +17131,6 @@ func (ec *executionContext) fieldContext_FacilityPage_Facilities(ctx context.Con
 				return ec.fieldContext_Facility_ID(ctx, field)
 			case "name":
 				return ec.fieldContext_Facility_name(ctx, field)
-			case "code":
-				return ec.fieldContext_Facility_code(ctx, field)
 			case "phone":
 				return ec.fieldContext_Facility_phone(ctx, field)
 			case "active":
@@ -21945,8 +21886,6 @@ func (ec *executionContext) fieldContext_Mutation_createFacility(ctx context.Con
 				return ec.fieldContext_Facility_ID(ctx, field)
 			case "name":
 				return ec.fieldContext_Facility_name(ctx, field)
-			case "code":
-				return ec.fieldContext_Facility_code(ctx, field)
 			case "phone":
 				return ec.fieldContext_Facility_phone(ctx, field)
 			case "active":
@@ -26344,8 +26283,6 @@ func (ec *executionContext) fieldContext_Query_searchFacility(ctx context.Contex
 				return ec.fieldContext_Facility_ID(ctx, field)
 			case "name":
 				return ec.fieldContext_Facility_name(ctx, field)
-			case "code":
-				return ec.fieldContext_Facility_code(ctx, field)
 			case "phone":
 				return ec.fieldContext_Facility_phone(ctx, field)
 			case "active":
@@ -26416,8 +26353,6 @@ func (ec *executionContext) fieldContext_Query_retrieveFacility(ctx context.Cont
 				return ec.fieldContext_Facility_ID(ctx, field)
 			case "name":
 				return ec.fieldContext_Facility_name(ctx, field)
-			case "code":
-				return ec.fieldContext_Facility_code(ctx, field)
 			case "phone":
 				return ec.fieldContext_Facility_phone(ctx, field)
 			case "active":
@@ -26491,8 +26426,6 @@ func (ec *executionContext) fieldContext_Query_retrieveFacilityByMFLCode(ctx con
 				return ec.fieldContext_Facility_ID(ctx, field)
 			case "name":
 				return ec.fieldContext_Facility_name(ctx, field)
-			case "code":
-				return ec.fieldContext_Facility_code(ctx, field)
 			case "phone":
 				return ec.fieldContext_Facility_phone(ctx, field)
 			case "active":
@@ -34320,8 +34253,6 @@ func (ec *executionContext) fieldContext_StaffProfile_DefaultFacility(ctx contex
 				return ec.fieldContext_Facility_ID(ctx, field)
 			case "name":
 				return ec.fieldContext_Facility_name(ctx, field)
-			case "code":
-				return ec.fieldContext_Facility_code(ctx, field)
 			case "phone":
 				return ec.fieldContext_Facility_phone(ctx, field)
 			case "active":
@@ -42170,13 +42101,6 @@ func (ec *executionContext) _Facility(ctx context.Context, sel ast.SelectionSet,
 		case "name":
 
 			out.Values[i] = ec._Facility_name(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "code":
-
-			out.Values[i] = ec._Facility_code(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++

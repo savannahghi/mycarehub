@@ -8,3 +8,4 @@
   facility_id: {{.test_facility_id}}
   client_id: {{.test_client_id}}
   aggregate_score: 1
+  program_id: {{.test_program_id}}

@@ -9,3 +9,4 @@
   genders: '{male}'
   min_age: 14
   max_age: 25
+  program_id: {{.test_program_id}}
