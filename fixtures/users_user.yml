@@ -24,6 +24,7 @@
   is_superuser: false
   date_of_birth: RAW=NOW() + INTERVAL '-20 year'
   active: true
+  current_program_id: {{.test_program_id}}
 
 - id: 6ecbbc80-24c8-421a-9f1a-e14e12678ee0
   username: test user
@@ -50,6 +51,7 @@
   is_superuser: false
   date_of_birth: RAW=NOW() + INTERVAL '-20 year'
   active: true
+  current_program_id: {{.test_program_id}}
 
 # treatment buddy
 - id: 5ecbbc80-24c8-421a-9f1a-e14e12678ee1
@@ -77,6 +79,7 @@
   is_superuser: false
   date_of_birth: RAW=NOW() + INTERVAL '-20 year'
   active: true
+  current_program_id: {{.test_program_id}}
 
   # Test user to invalidate
 - id: 5ecbbc80-24c8-421a-9f1a-e14e12678ee0
@@ -104,6 +107,7 @@
   is_superuser: false
   date_of_birth: RAW=NOW() + INTERVAL '-20 year'
   active: true
+  current_program_id: {{.test_program_id}}
 
 # user to accept terms of service
 - id: 4ecbbc80-24c8-421a-9f1a-e14e12678ee0
@@ -131,6 +135,7 @@
   is_superuser: false
   date_of_birth: RAW=NOW() + INTERVAL '-20 year'
   active: true
+  current_program_id: {{.test_program_id}}
 
 # user to increase failed login count
 - id: 7ecbbc80-24c8-421a-9f1a-e14e12678ee0
@@ -158,6 +163,7 @@
   is_superuser: false
   date_of_birth: RAW=NOW() + INTERVAL '-20 year'
   active: true
+  current_program_id: {{.test_program_id}}
 
 # user to increase failed login time
 - id: 8ecbbc80-24c8-421a-9f1a-e14e12678ee0
@@ -185,6 +191,7 @@
   is_superuser: false
   date_of_birth: RAW=NOW() + INTERVAL '-21 year'
   active: true
+  current_program_id: {{.test_program_id}}
 
   # user to update next allowed login time
 - id: 9ecbbc80-24c8-421a-9f1a-e14e12678ee0
@@ -212,6 +219,7 @@
   is_superuser: false
   date_of_birth: RAW=NOW() + INTERVAL '-21 year'
   active: true
+  current_program_id: {{.test_program_id}}
 
    # user update pin change required status
 - id: 5ecbbc80-24b8-421a-9f1a-e14e12678ee0
@@ -239,6 +247,7 @@
   is_superuser: false
   date_of_birth: RAW=NOW() + INTERVAL '-21 year'
   active: false
+  current_program_id: {{.test_program_id}}
 
   # test user to save pin
 - id: 8ecbbc80-24c8-421a-9f1a-e14e12678ef0
@@ -266,6 +275,7 @@
   is_superuser: false
   date_of_birth: RAW=NOW() + INTERVAL '-21 year'
   active: true
+  current_program_id: {{.test_program_id}}
 
   # test user to add caregiver
 - id: 8ecbbc80-24c8-421a-9f1a-e14e12678ef1
@@ -293,6 +303,7 @@
   is_superuser: false
   date_of_birth: RAW=NOW() + INTERVAL '-21 year'
   active: true
+  current_program_id: {{.test_program_id}}
 
   # test user to add staff
 - id: {{.staff_user_id}}
@@ -320,6 +331,7 @@
   is_superuser: false
   date_of_birth: RAW=NOW() + INTERVAL '-21 year'
   active: true
+  current_program_id: {{.test_program_id}}
 
   # test test user client  with unresolved service requests
 - id: {{.client_user_unresolved_request_id}}
@@ -347,6 +359,7 @@
   is_superuser: false
   date_of_birth: RAW=NOW() + INTERVAL '-21 year'
   active: true
+  current_program_id: {{.test_program_id}}
 
   # test user to add failed security count
 - id: {{.user_failed_security_count_id}}
@@ -374,6 +387,7 @@
   is_superuser: false
   date_of_birth: RAW=NOW() + INTERVAL '-21 year'
   active: true
+  current_program_id: {{.test_program_id}}
 
 - id: 4181df12-ca96-4f28-b78b-8e8ad88b25df
   username: test client
@@ -400,6 +414,7 @@
   is_superuser: false
   date_of_birth: RAW=NOW() + INTERVAL '-21 year'
   active: true
+  current_program_id: {{.test_program_id}}
 
 
   # staff user with unresolved service request
@@ -428,6 +443,7 @@
   is_superuser: false
   date_of_birth: RAW=NOW() + INTERVAL '-21 year'
   active: true
+  current_program_id: {{.test_program_id}}
 
  # staff user with unresolved service request
 - id: {{.user_with_roles_id}}
@@ -455,6 +471,7 @@
   is_superuser: false
   date_of_birth: RAW=NOW() + INTERVAL '-21 year'
   active: true
+  current_program_id: {{.test_program_id}}
 
 - id: {{.test_staff_user_id_to_delete}}
   username: test_staff_user_id_to_delete
@@ -480,6 +497,7 @@
   organisation_id: {{.test_organisation_id}}
   is_superuser: false
   active: true
+  current_program_id: {{.test_program_id}}
 
 - id: {{.test_user_id_to_delete}}
   username: test_user_id_to_delete
@@ -505,6 +523,7 @@
   organisation_id: {{.test_organisation_id}}
   is_superuser: false
   active: true
+  current_program_id: {{.test_program_id}}
 
 - id: {{.test_user_id_to_register_client}}
   username: test_user_id_to_register_client
@@ -530,6 +549,7 @@
   organisation_id: {{.test_organisation_id}}
   is_superuser: false
   active: true
+  current_program_id: {{.test_program_id}}
 
 - id: {{.test_user_id_to_register_staff}}
   username: test_user_id_to_register_staff
@@ -555,3 +575,4 @@
   organisation_id: {{.test_organisation_id}}
   is_superuser: false
   active: true
+  current_program_id: {{.test_program_id}}
