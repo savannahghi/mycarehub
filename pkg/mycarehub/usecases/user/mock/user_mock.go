@@ -68,7 +68,6 @@ func NewUserUseCaseMock() *UserUseCaseMock {
 	facilityInput := &domain.Facility{
 		ID:          &UUID,
 		Name:        name,
-		Code:        1234,
 		Phone:       gofakeit.Phone(),
 		Active:      true,
 		County:      gofakeit.Name(),
@@ -393,7 +392,6 @@ func NewUserUseCaseMock() *UserUseCaseMock {
 					{
 						ID:                 &id,
 						Name:               "Test Facility",
-						Code:               0,
 						Phone:              "",
 						Active:             false,
 						County:             "",

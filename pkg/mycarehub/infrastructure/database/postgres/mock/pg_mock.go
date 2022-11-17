@@ -181,7 +181,6 @@ func NewPostgresMock() *PostgresMock {
 	screeningUUID := "f3f8f8f8-f3f8-f3f8-f3f8-f3f8f8f8f8f8"
 
 	name := gofakeit.Name()
-	code := gofakeit.Number(0, 100)
 	county := "Nairobi"
 	phone := interserviceclient.TestUserPhoneNumber
 	description := gofakeit.HipsterSentence(15)
@@ -202,7 +201,6 @@ func NewPostgresMock() *PostgresMock {
 	facilityInput := &domain.Facility{
 		ID:          &ID,
 		Name:        name,
-		Code:        code,
 		Phone:       phone,
 		Active:      true,
 		County:      county,
@@ -226,7 +224,6 @@ func NewPostgresMock() *PostgresMock {
 			{
 				ID:          &ID,
 				Name:        name,
-				Code:        code,
 				Active:      true,
 				County:      county,
 				Description: description,
@@ -1353,7 +1350,6 @@ func NewPostgresMock() *PostgresMock {
 					{
 						ID:                 &ID,
 						Name:               name,
-						Code:               code,
 						Phone:              phone,
 						Active:             true,
 						County:             county,
@@ -1370,7 +1366,6 @@ func NewPostgresMock() *PostgresMock {
 					{
 						ID:                 &ID,
 						Name:               name,
-						Code:               code,
 						Phone:              phone,
 						Active:             true,
 						County:             county,

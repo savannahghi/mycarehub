@@ -11,6 +11,7 @@
   client_id: 26b20a42-cbb8-4553-aedb-c539602d04fc
   in_progress_by_id: null
   organisation_id: {{.test_organisation_id}}
+  program_id: {{.test_program_id}}
   resolved_by_id: {{.staff_id}}
   facility_id: {{.test_facility_id}}
   meta: null
@@ -30,6 +31,7 @@
   resolved_by_id: null
   client_id: {{.test_client_id}}
   organisation_id: {{.test_organisation_id}}
+  program_id: {{.test_program_id}}
   facility_id: {{.test_facility_id}}
   meta: null
 
@@ -48,6 +50,7 @@
   resolved_by_id: null
   client_id: {{.test_client_id_with_unresolved_request}}
   organisation_id: {{.test_organisation_id}}
+  program_id: {{.test_program_id}}
   facility_id: {{.test_facility_id}}
   meta: null
 
@@ -65,6 +68,7 @@
   resolved_by_id: null
   client_id: {{.test_client_id_with_unresolved_request}}
   organisation_id: {{.test_organisation_id}}
+  program_id: {{.test_program_id}}
   facility_id: {{.test_facility_id}}
   meta: null
 
@@ -80,6 +84,7 @@
   client_id: 26b20a42-cbb8-4553-aedb-c539602d04fc
   in_progress_by_id: null
   organisation_id: {{.test_organisation_id}}
+  program_id: {{.test_program_id}}
   resolved_by_id: null
   facility_id: {{.test_facility_id}}
   
@@ -97,6 +102,7 @@
   resolved_by_id: null
   client_id: {{.test_client_id}}
   organisation_id: {{.test_organisation_id}}
+  program_id: {{.test_program_id}}
   facility_id: {{.test_facility_id}}
   meta: { "question_id": {{.screenintoolsquestion_id}}, "question_type": "VIOLENCE_ASSESSMENT",}
 
@@ -113,5 +119,6 @@
   resolved_by_id: null
   client_id: {{.test_client_id}}
   organisation_id: {{.test_organisation_id}}
+  program_id: {{.test_program_id}}
   facility_id: {{.test_facility_id}}
   meta: { "response_id": {{.screenintoolsresponse_id}} }

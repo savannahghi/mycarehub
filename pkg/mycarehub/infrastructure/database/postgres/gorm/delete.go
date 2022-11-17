@@ -65,28 +65,6 @@ func (db *PGInstance) DeleteStaffProfile(ctx context.Context, staffID string) er
 		}
 	}
 
-	// Get staff contact
-	var staffContacts []StaffContacts
-	err = tx.Model(&StaffContacts{}).Where(&StaffContacts{StaffID: &staffID}).Find(&staffContacts).Error
-	if err != nil {
-		tx.Rollback()
-		return fmt.Errorf("an error occurred while fetching staff contacts: %v", err)
-	}
-
-	for _, staffContact := range staffContacts {
-		err = tx.Model(&StaffContacts{}).Unscoped().Where(&StaffContacts{StaffID: staffContact.StaffID}).Delete(&StaffContacts{}).Error
-		if err != nil {
-			tx.Rollback()
-			return fmt.Errorf("an error occurred while deleting staff contacts: %v", err)
-		}
-
-		err = tx.Model(&Contact{}).Unscoped().Where(&Contact{ContactID: staffContact.ContactID, Flavour: feedlib.FlavourPro}).First(&Contact{}).Delete(&Contact{}).Error
-		if err != nil {
-			tx.Rollback()
-			return fmt.Errorf("an error occurred while deleting contacts: %v", err)
-		}
-	}
-
 	// Get staff facilities
 	var staffFacilities []StaffFacilities
 	err = tx.Model(&StaffFacilities{}).Where(&StaffFacilities{StaffID: &staffID}).Find(&staffFacilities).Error

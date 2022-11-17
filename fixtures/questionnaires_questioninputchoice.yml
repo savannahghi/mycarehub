@@ -7,6 +7,7 @@
   choice: "0"
   value: "yes"
   score: 1
+  program_id: {{.test_program_id}}
 
 - id: {{.test_second_choice_id}}
   organisation_id: {{.test_organisation_id}}
@@ -17,3 +18,4 @@
   choice: "1"
   value: "no"
   score: 0
+  program_id: {{.test_program_id}}

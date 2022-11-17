@@ -159,6 +159,8 @@ var (
 	formID    = "8ecbbc80-24c8-421a-9f1a-e14e12678ef4"
 
 	testCaregiverNumber = "CG0001"
+
+	programID = "6ecbbc80-24c8-421a-9f1a-e14e12678ee0"
 )
 
 func addOrganizationContext(ctx context.Context) context.Context {
@@ -306,6 +308,8 @@ func TestMain(m *testing.M) {
 
 			"test_project_id": projectID,
 			"test_form_id":    formID,
+
+			"test_program_id": programID,
 		}),
 		// this is the directory containing the YAML files.
 		// The file name should be the same as the table name
@@ -314,18 +318,16 @@ func TestMain(m *testing.M) {
 			"../../../../../../fixtures/common_organisation.yml",
 			"../../../../../../fixtures/users_user.yml",
 			"../../../../../../fixtures/users_termsofservice.yml",
-			"../../../../../../fixtures/clients_securityquestion.yml",
-			"../../../../../../fixtures/clients_securityquestionresponse.yml",
+			"../../../../../../fixtures/common_securityquestion.yml",
+			"../../../../../../fixtures/common_securityquestionresponse.yml",
 			"../../../../../../fixtures/common_contact.yml",
 			"../../../../../../fixtures/common_notification.yml",
 			"../../../../../../fixtures/users_userotp.yml",
 			"../../../../../../fixtures/common_facility.yml",
 			"../../../../../../fixtures/users_userpin.yml",
 			"../../../../../../fixtures/clients_client.yml",
-			"../../../../../../fixtures/clients_client_contacts.yml",
 			"../../../../../../fixtures/clients_client_facilities.yml",
 			"../../../../../../fixtures/staff_staff.yml",
-			"../../../../../../fixtures/staff_staff_contacts.yml",
 			"../../../../../../fixtures/staff_staff_identifiers.yml",
 			"../../../../../../fixtures/clients_servicerequest.yml",
 			"../../../../../../fixtures/staff_staff_facilities.yml",

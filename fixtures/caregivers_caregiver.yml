@@ -5,6 +5,7 @@
   updated: 2021-11-22 21:16:29.23639+03
   updated_by: NULL
   organisation_id: {{.test_organisation_id}}
+  program_id: {{.test_program_id}}
   user_id: {{.test_user_id}}
   caregiver_number: CG01
 
@@ -15,5 +16,6 @@
   updated: 2021-11-22 21:16:29.23639+03
   updated_by: NULL
   organisation_id: {{.test_organisation_id}}
+  program_id: {{.test_program_id}}
   user_id: {{.test_user_id2}}
   caregiver_number: {{.test_caregiver_number}}

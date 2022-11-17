@@ -11,3 +11,4 @@
   response_category: SINGLE_CHOICE
   sequence: 0
   meta: null
+  program_id: {{.test_program_id}}

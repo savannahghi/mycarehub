@@ -1,3 +1,0 @@
-- id: 1
-  client_id: {{.test_client_id_to_delete}}
-  contact_id: {{.contact_id_to_delete}}

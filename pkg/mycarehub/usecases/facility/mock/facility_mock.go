@@ -27,7 +27,6 @@ type FacilityUsecaseMock struct {
 func NewFacilityUsecaseMock() *FacilityUsecaseMock {
 	ID := uuid.New().String()
 	name := gofakeit.Name()
-	code := gofakeit.Number(0, 1000)
 	county := "Nairobi"
 	phone := interserviceclient.TestUserPhoneNumber
 	description := gofakeit.HipsterSentence(15)
@@ -36,7 +35,6 @@ func NewFacilityUsecaseMock() *FacilityUsecaseMock {
 	facilityInput := &domain.Facility{
 		ID:                 &ID,
 		Name:               name,
-		Code:               code,
 		Phone:              phone,
 		Active:             true,
 		County:             county,
@@ -62,7 +60,6 @@ func NewFacilityUsecaseMock() *FacilityUsecaseMock {
 			{
 				ID:          &ID,
 				Name:        name,
-				Code:        code,
 				Phone:       phone,
 				Active:      true,
 				County:      county,

@@ -5,7 +5,7 @@
   active: true
   org_code: testCode
   code: 123
-  organisation_name: test org
+  name: test org
   email_address: test@email.com
   phone_number: "+254123456789"
   postal_address: 123 test
