@@ -5,4 +5,5 @@
   active: true
   name: "TB ASSESSMENT"
   description: "TB ASSESSMENT DESCRIPTION"
+  program_id: {{.test_program_id}}
 

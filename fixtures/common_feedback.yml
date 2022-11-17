@@ -11,3 +11,4 @@
   requires_followup: false
   phone_number: "+79998887766"
   organisation_id: {{.test_organisation_id}}
+  program_id: {{.test_program_id}}

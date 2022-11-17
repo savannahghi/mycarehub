@@ -13,6 +13,7 @@
   invite_only: true
   discoverable: true
   organisation_id: {{.test_organisation_id}}
+  program_id: {{.test_program_id}}
 
 
 - id: {{.community_id_to_delete}}
@@ -28,3 +29,4 @@
   invite_only: true
   discoverable: true
   organisation_id: {{.test_organisation_id}}
+  program_id: {{.test_program_id}}

@@ -194,7 +194,6 @@ func NewGormMock() *GormMock {
 	ID := gofakeit.Number(300, 400)
 	UUID := uuid.New().String()
 	name := gofakeit.Name()
-	code := 1234567890
 	county := "Nairobi"
 	description := gofakeit.HipsterSentence(15)
 	phoneContact := gofakeit.Phone()
@@ -204,9 +203,8 @@ func NewGormMock() *GormMock {
 	facility := &gorm.Facility{
 		FacilityID:  &UUID,
 		Name:        name,
-		Code:        code,
 		Active:      true,
-		County:      county,
+		Country:     county,
 		Phone:       phoneContact,
 		Description: description,
 	}
@@ -229,7 +227,6 @@ func NewGormMock() *GormMock {
 			{
 				ID:          &UUID,
 				Name:        name,
-				Code:        code,
 				Active:      true,
 				County:      county,
 				Description: description,
@@ -245,9 +242,6 @@ func NewGormMock() *GormMock {
 		User: gorm.User{
 			UserID:                 &UUID,
 			Username:               gofakeit.Name(),
-			FirstName:              gofakeit.Name(),
-			MiddleName:             name,
-			LastName:               gofakeit.Name(),
 			UserType:               enums.HealthcareWorkerUser,
 			Gender:                 enumutils.GenderMale,
 			Active:                 true,
@@ -267,15 +261,8 @@ func NewGormMock() *GormMock {
 			HasSetSecurityQuestion: true,
 			IsPhoneVerified:        true,
 			OrganisationID:         uuid.New().String(),
-			Password:               gofakeit.Name(),
 			IsSuperuser:            true,
-			IsStaff:                true,
-			Email:                  gofakeit.Email(),
-			DateJoined:             gofakeit.BeerIbu(),
 			Name:                   name,
-			IsApproved:             true,
-			ApprovalNotified:       true,
-			Handle:                 "@test",
 			DateOfBirth:            &currentTime,
 		},
 		TreatmentEnrollmentDate: &currentTime,
@@ -292,9 +279,6 @@ func NewGormMock() *GormMock {
 	userProfile := &gorm.User{
 		UserID:                 &UUID,
 		Username:               gofakeit.Name(),
-		FirstName:              gofakeit.Name(),
-		MiddleName:             name,
-		LastName:               gofakeit.Name(),
 		UserType:               enums.HealthcareWorkerUser,
 		Gender:                 enumutils.GenderMale,
 		Active:                 true,
@@ -314,15 +298,8 @@ func NewGormMock() *GormMock {
 		HasSetSecurityQuestion: true,
 		IsPhoneVerified:        true,
 		OrganisationID:         uuid.New().String(),
-		Password:               "test",
 		IsSuperuser:            true,
-		IsStaff:                true,
-		Email:                  gofakeit.Email(),
-		DateJoined:             gofakeit.BeerIbu(),
 		Name:                   name,
-		IsApproved:             true,
-		ApprovalNotified:       true,
-		Handle:                 "@test",
 		DateOfBirth:            &currentTime,
 	}
 

@@ -7,11 +7,10 @@
   enrollment_date: 2021-11-22 21:16:29.23639+03
   fhir_patient_id: {{.test_fhir_patient_id}}
   emr_health_record_id: {{.test_emr_health_record_id}}
-  treatment_buddy: {{.test_treatment_buddy_id}}
   counselled: true
   organisation_id: {{.test_organisation_id}}
+  program_id: {{.test_program_id}}
   current_facility_id: {{.test_facility_id}}
-  chv_id: {{.test_chv_id}}
   user_id: {{.test_user_id}}
 
 
@@ -24,11 +23,10 @@
   enrollment_date: 2021-11-22 21:16:29.23639+03
   fhir_patient_id: {{.test_fhir_patient_id2}}
   emr_health_record_id: {{.test_emr_health_record_id2}}
-  treatment_buddy: {{.test_treatment_buddy_id2}}
   counselled: true
   organisation_id: {{.test_organisation_id}}
+  program_id: {{.test_program_id}}
   current_facility_id: {{.test_facility_id}}
-  chv_id: {{.test_chv_id2}}
   user_id: {{.test_user_id2}}
   
 # client with unresolved request
@@ -40,11 +38,10 @@
   enrollment_date: 2021-11-22 21:16:29.23639+03
   fhir_patient_id: {{.client_user_unresolved_request_id}}
   emr_health_record_id: {{.client_user_unresolved_request_id}}
-  treatment_buddy: {{.test_treatment_buddy_id2}}
   counselled: true
   organisation_id: {{.test_organisation_id}}
+  program_id: {{.test_program_id}}
   current_facility_id: {{.test_facility_id}}
-  chv_id: {{.client_user_unresolved_request_id}}
   user_id: {{.client_user_unresolved_request_id}}
 
 - id: {{.test_client_id_to_delete}}
@@ -55,11 +52,10 @@
   enrollment_date: 2021-11-22 21:16:29.23639+03
   fhir_patient_id: {{.test_fhir_patient_id3}}
   emr_health_record_id: {{.test_fhir_patient_id3}}
-  treatment_buddy: {{.test_treatment_buddy_id2}}
   counselled: true
   organisation_id: {{.test_organisation_id}}
+  program_id: {{.test_program_id}}
   current_facility_id: {{.test_facility_id}}
-  chv_id: {{.client_user_unresolved_request_id}}
   user_id: {{.test_user_id_to_delete}}
 
 - id: 26b30a42-cbb8-4773-aedb-c539602d04fc
@@ -70,9 +66,8 @@
   enrollment_date: 2021-11-22 21:16:29.23639+03
   fhir_patient_id: 26b30a42-cbb8-4773-aedb-c539602d04fc
   emr_health_record_id: 29b30a42-cbb8-4573-aedb-c539602d04fc
-  treatment_buddy: {{.test_treatment_buddy_id}}
   counselled: true
   organisation_id: {{.test_organisation_id}}
+  program_id: {{.test_program_id}}
   current_facility_id: {{.test_facility_id}}
-  chv_id: {{.user_with_roles_id}}
   user_id: {{.user_with_roles_id}}

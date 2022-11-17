@@ -36,10 +36,9 @@ func (d *MyCareHubDb) SearchFacility(ctx context.Context, searchParameter *strin
 		singleFacility := domain.Facility{
 			ID:                 m.FacilityID,
 			Name:               m.Name,
-			Code:               m.Code,
 			Phone:              m.Phone,
 			Active:             m.Active,
-			County:             m.County,
+			County:             m.Country,
 			Description:        m.Description,
 			FHIROrganisationID: m.FHIROrganisationID,
 		}
@@ -322,10 +321,9 @@ func (d *MyCareHubDb) GetClientProfileByUserID(ctx context.Context, userID strin
 		DefaultFacility: &domain.Facility{
 			ID:                 &client.FacilityID,
 			Name:               facility.Name,
-			Code:               facility.Code,
 			Phone:              facility.Phone,
 			Active:             facility.Active,
-			County:             facility.County,
+			County:             facility.Country,
 			Description:        facility.Description,
 			FHIROrganisationID: facility.FHIROrganisationID,
 		},
@@ -366,10 +364,9 @@ func (d *MyCareHubDb) GetStaffProfileByUserID(ctx context.Context, userID string
 		DefaultFacility: &domain.Facility{
 			ID:                 &staff.DefaultFacilityID,
 			Name:               staffDefaultFacility.Name,
-			Code:               staffDefaultFacility.Code,
 			Phone:              staffDefaultFacility.Phone,
 			Active:             staffDefaultFacility.Active,
-			County:             staffDefaultFacility.County,
+			County:             staffDefaultFacility.Country,
 			Description:        staffDefaultFacility.Description,
 			FHIROrganisationID: staffDefaultFacility.FHIROrganisationID,
 		},
@@ -1694,7 +1691,6 @@ func (d *MyCareHubDb) GetAppointmentServiceRequests(ctx context.Context, lastSyn
 			ClientName:    &clientProfile.User.Name,
 			ClientContact: &clientProfile.User.Contacts.ContactValue,
 			CCCNumber:     identifier.IdentifierValue,
-			MFLCODE:       strconv.Itoa(facility.Code),
 		}
 
 		appointmentServiceRequests = append(appointmentServiceRequests, m)
@@ -1715,10 +1711,9 @@ func (d *MyCareHubDb) GetFacilitiesWithoutFHIRID(ctx context.Context) ([]*domain
 		facilities = append(facilities, &domain.Facility{
 			ID:                 f.FacilityID,
 			Name:               f.Name,
-			Code:               f.Code,
 			Phone:              f.Phone,
 			Active:             f.Active,
-			County:             f.County,
+			County:             f.Country,
 			Description:        f.Description,
 			FHIROrganisationID: f.FHIROrganisationID,
 		})
@@ -2389,10 +2384,9 @@ func (d *MyCareHubDb) GetStaffFacilities(ctx context.Context, input dto.StaffFac
 		facilities = append(facilities, &domain.Facility{
 			ID:                 facility.FacilityID,
 			Name:               facility.Name,
-			Code:               facility.Code,
 			Phone:              facility.Phone,
 			Active:             facility.Active,
-			County:             facility.County,
+			County:             facility.Country,
 			Description:        facility.Description,
 			FHIROrganisationID: facility.FHIROrganisationID,
 			WorkStationDetails: domain.WorkStationDetails{
@@ -2449,10 +2443,9 @@ func (d *MyCareHubDb) GetClientFacilities(ctx context.Context, input dto.ClientF
 		facilities = append(facilities, &domain.Facility{
 			ID:                 facility.FacilityID,
 			Name:               facility.Name,
-			Code:               facility.Code,
 			Phone:              facility.Phone,
 			Active:             facility.Active,
-			County:             facility.County,
+			County:             facility.Country,
 			Description:        facility.Description,
 			FHIROrganisationID: facility.FHIROrganisationID,
 			WorkStationDetails: domain.WorkStationDetails{

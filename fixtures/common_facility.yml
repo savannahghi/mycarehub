@@ -3,21 +3,19 @@
   created: 2021-11-22 21:16:29.23639+03
   updated: 2021-11-22 21:16:29.23639+03
   name: Nairobi hospital
-  mfl_code: 324459
   active: true
-  county: Nairobi
+  country: Baringo
   description: Operates from Monday to Friday
-  organisation_id: {{.test_organisation_id}}
+  
 
 - id: 4181df12-ca96-4f28-b78b-8e8ad88b25de
   created: 2021-11-22 21:16:29.23639+03
   updated: 2021-11-22 21:16:29.23639+03
   name: Baringo hospital
-  mfl_code: 324460
   active: true
-  county: Baringo
+  country: Baringo
   description: Operates from Monday to Friday
-  organisation_id: {{.test_organisation_id}}
+  
 
 
 # inactive facility
@@ -25,52 +23,47 @@
   created: 2021-11-22 21:16:29.23639+03
   updated: 2021-11-22 21:16:29.23639+03
   name: Laikipia hospital
-  mfl_code: 229900
   active: false
-  county: Laikipia
+  country: Laikipia
   description: Operates from Monday to Friday
-  organisation_id: {{.test_organisation_id}}
+  
 
   # inactive facility
 - id: 4188df12-ca96-4f28-b78b-8e8ad88b35ef
   created: 2021-11-22 21:16:29.23639+03
   updated: 2021-11-22 21:16:29.23639+03
   name: Lakipia hospital
-  mfl_code: 22990001
   active: false
-  county: Laikipia
+  country: Laikipia
   description: Operates from Monday to Friday
-  organisation_id: {{.test_organisation_id}}
+  
 
   # facility to inactivate
 - id: 4181df12-ca96-4f28-b78b-8e8ad88b25ee
   created: 2021-11-22 21:16:29.23639+03
   updated: 2021-11-22 21:16:29.23639+03
   name: Kajiado hospital
-  mfl_code: 223900
   active: true
-  county: Kajiado
+  country: Kajiado
   description: Operates from Monday to Friday
-  organisation_id: {{.test_organisation_id}}
+  
 
   # facility to add to user profile
 - id: {{.facility_to_add_to_user_profile}}
   created: 2021-11-22 21:16:29.23639+03
   updated: 2021-11-22 21:16:29.23639+03
   name: Karen hospital
-  mfl_code: 724459
   active: true
-  county: Nairobi
+  country: Kajiado
   description: Operates from Monday to Friday
-  organisation_id: {{.test_organisation_id}}
+  
 
     # facility to remove from user profile
 - id: {{.facility_to_remove_from_user_profile}}
   created: 2021-11-22 21:16:29.23639+03
   updated: 2021-11-22 21:16:29.23639+03
   name: Kiambu Hospital
-  mfl_code: 992912
   active: true
-  county: Nairobi
+  country: Kajiado
   description: Operates from Monday to Friday
-  organisation_id: {{.test_organisation_id}}
+  

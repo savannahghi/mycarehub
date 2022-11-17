@@ -2,7 +2,6 @@ package gorm_test
 
 import (
 	"context"
-	"math/rand"
 	"strconv"
 	"testing"
 	"time"
@@ -22,25 +21,22 @@ import (
 func TestPGInstance_GetOrCreateFacility(t *testing.T) {
 
 	name := ksuid.New().String()
-	code := rand.Intn(1000000)
 	county := gofakeit.Name()
 	description := gofakeit.HipsterSentence(15)
 	FHIROrganisationID := uuid.New().String()
 
 	facility := &gorm.Facility{
 		Name:               name,
-		Code:               code,
 		Active:             true,
-		County:             county,
+		Country:            county,
 		Description:        description,
 		FHIROrganisationID: FHIROrganisationID,
 	}
 
 	invalidFacility := &gorm.Facility{
 		Name:        name,
-		Code:        -458789,
 		Active:      true,
-		County:      county,
+		Country:     county,
 		Description: description,
 	}
 
@@ -76,9 +72,8 @@ func TestPGInstance_GetOrCreateFacility(t *testing.T) {
 				ctx: addOrganizationContext(context.Background()),
 				facility: &gorm.Facility{
 					Name:        name,
-					Code:        code,
 					Active:      true,
-					County:      gofakeit.HipsterSentence(50),
+					Country:     gofakeit.HipsterSentence(50),
 					Description: description,
 				},
 			},
@@ -1416,9 +1411,6 @@ func TestPGInstance_RegisterClient(t *testing.T) {
 	userProfile := &gorm.User{
 		UserID:                 &userIDToRegisterClient,
 		Username:               gofakeit.Name(),
-		FirstName:              gofakeit.Name(),
-		MiddleName:             gofakeit.BeerAlcohol(),
-		LastName:               gofakeit.Name(),
 		UserType:               enums.HealthcareWorkerUser,
 		Gender:                 enumutils.GenderMale,
 		Active:                 true,
@@ -1438,15 +1430,8 @@ func TestPGInstance_RegisterClient(t *testing.T) {
 		HasSetSecurityQuestion: true,
 		IsPhoneVerified:        true,
 		OrganisationID:         uuid.New().String(),
-		Password:               "test",
 		IsSuperuser:            true,
-		IsStaff:                true,
-		Email:                  gofakeit.Email(),
-		DateJoined:             gofakeit.BeerIbu(),
 		Name:                   gofakeit.BeerBlg(),
-		IsApproved:             true,
-		ApprovalNotified:       true,
-		Handle:                 "@test",
 		DateOfBirth:            &currentTime,
 	}
 	type args struct {
@@ -1503,9 +1488,6 @@ func TestPGInstance_RegisterStaff(t *testing.T) {
 	userProfile := &gorm.User{
 		UserID:                 &userToRegisterStaff,
 		Username:               gofakeit.Name(),
-		FirstName:              gofakeit.Name(),
-		MiddleName:             gofakeit.BeerAlcohol(),
-		LastName:               gofakeit.Name(),
 		UserType:               enums.HealthcareWorkerUser,
 		Gender:                 enumutils.GenderMale,
 		Active:                 true,
@@ -1525,15 +1507,8 @@ func TestPGInstance_RegisterStaff(t *testing.T) {
 		HasSetSecurityQuestion: true,
 		IsPhoneVerified:        true,
 		OrganisationID:         uuid.New().String(),
-		Password:               "test",
 		IsSuperuser:            true,
-		IsStaff:                true,
-		Email:                  gofakeit.Email(),
-		DateJoined:             gofakeit.BeerIbu(),
 		Name:                   gofakeit.BeerBlg(),
-		IsApproved:             true,
-		ApprovalNotified:       true,
-		Handle:                 "@test",
 		DateOfBirth:            &currentTime,
 	}
 

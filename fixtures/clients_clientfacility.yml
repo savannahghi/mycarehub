@@ -7,4 +7,5 @@
   client_id: {{.test_client_id}}
   facility_id: {{.test_facility_id}}
   organisation_id: {{.test_organisation_id}}
+  program_id: {{.test_program_id}}
   notes: notes
