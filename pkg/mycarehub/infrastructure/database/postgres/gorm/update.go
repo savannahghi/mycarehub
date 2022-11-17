@@ -48,14 +48,6 @@ func (db *PGInstance) ReactivateFacility(ctx context.Context, mflCode *int) (boo
 		return false, fmt.Errorf("mflCode cannot be empty")
 	}
 
-	var facility Facility
-
-	err := db.DB.WithContext(ctx).Scopes(OrganisationScope(ctx, facility.TableName())).Model(&Facility{}).Where(&Facility{Code: *mflCode, Active: false}).
-		Updates(&Facility{Active: true}).Error
-	if err != nil {
-		return false, err
-	}
-
 	return true, nil
 }
 
@@ -63,14 +55,6 @@ func (db *PGInstance) ReactivateFacility(ctx context.Context, mflCode *int) (boo
 func (db *PGInstance) InactivateFacility(ctx context.Context, mflCode *int) (bool, error) {
 	if mflCode == nil {
 		return false, fmt.Errorf("mflCode cannot be empty")
-	}
-
-	var facility Facility
-
-	err := db.DB.WithContext(ctx).Scopes(OrganisationScope(ctx, facility.TableName())).Model(&Facility{}).Where(&Facility{Code: *mflCode, Active: true}).
-		Updates(&Facility{Active: false}).Error
-	if err != nil {
-		return false, err
 	}
 
 	return true, nil

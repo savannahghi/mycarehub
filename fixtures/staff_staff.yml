@@ -5,8 +5,9 @@
   user_id: {{.staff_user_id}}
   active: true
   staff_number: {{.staff_number}}
-  default_facility_id: {{.staff_default_facility}}
+  current_facility_id: {{.staff_default_facility}}
   organisation_id: {{.test_organisation_id}}
+  program_id: {{.test_program_id}}
 
 # staff with unresolved service request
 - id: {{.staff_unresolved_request_id}}
@@ -15,8 +16,9 @@
   user_id: {{.staff_user_unresolved_request_id}}
   active: true
   staff_number: "376736723"
-  default_facility_id: {{.staff_default_facility}}
+  current_facility_id: {{.staff_default_facility}}
   organisation_id: {{.test_organisation_id}}
+  program_id: {{.test_program_id}}
 
 
 - id: {{.staff_with_roles_id}}
@@ -25,8 +27,9 @@
   user_id: {{.user_with_roles_id}}
   active: true
   staff_number: "1234567890"
-  default_facility_id: {{.staff_default_facility}}
+  current_facility_id: {{.staff_default_facility}}
   organisation_id: {{.test_organisation_id}}
+  program_id: {{.test_program_id}}
 
 - id: {{.staff_id_to_delete}}
   created: 2021-11-22 21:16:29.23639+03
@@ -34,8 +37,9 @@
   user_id: {{.test_user_id_to_delete}}
   active: true
   staff_number: "1234567890"
-  default_facility_id: {{.staff_default_facility}}
+  current_facility_id: {{.staff_default_facility}}
   organisation_id: {{.test_organisation_id}}
+  program_id: {{.test_program_id}}
 
 - id: {{.staff_id_to_register}}
   created: 2021-11-22 21:16:29.23639+03
@@ -43,5 +47,6 @@
   user_id: {{.test_user_id_to_register_staff}}
   active: true
   staff_number: "123445679890"
-  default_facility_id: {{.staff_default_facility}}
+  current_facility_id: {{.staff_default_facility}}
   organisation_id: {{.test_organisation_id}}
+  program_id: {{.test_program_id}}

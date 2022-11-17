@@ -3,6 +3,7 @@
   updated: 2021-11-22 21:16:29.23639+03
   active: true
   organisation_id: {{.test_organisation_id}}
+  program_id: {{.test_program_id}}
   valid_from: 2021-11-22 21:16:29.23639+03
   identifier_type: CCC
   identifier_value: "123456"
@@ -15,6 +16,7 @@
   updated: 2021-11-22 21:16:29.23639+03
   active: true
   organisation_id: {{.test_organisation_id}}
+  program_id: {{.test_program_id}}
   valid_from: 2021-11-22 21:16:29.23639+03
   identifier_type: NATIONAL_ID
   identifier_value: "12345678"
@@ -27,6 +29,7 @@
   updated: 2021-11-22 21:16:29.23639+03
   active: true
   organisation_id: {{.test_organisation_id}}
+  program_id: {{.test_program_id}}
   valid_from: 2021-11-22 21:16:29.23639+03
   identifier_type: CCC
   identifier_value: "1001"
@@ -39,6 +42,7 @@
   updated: 2021-11-22 21:16:29.23639+03
   active: true
   organisation_id: {{.test_organisation_id}}
+  program_id: {{.test_program_id}}
   valid_from: 2021-11-22 21:16:29.23639+03
   identifier_type: NATIONAL_ID
   identifier_value: {{.test_ransdom_identifier_value}}
@@ -51,6 +55,7 @@
   updated: 2021-11-22 21:16:29.23639+03
   active: true
   organisation_id: {{.test_organisation_id}}
+  program_id: {{.test_program_id}}
   valid_from: 2021-11-22 21:16:29.23639+03
   identifier_type: CCC
   identifier_value: "1234567890"
@@ -63,6 +68,7 @@
   updated: 2021-11-22 21:16:29.23639+03
   active: true
   organisation_id: {{.test_organisation_id}}
+  program_id: {{.test_program_id}}
   valid_from: 2021-11-22 21:16:29.23639+03
   identifier_type: NATIONAL_ID
   identifier_value: "4545454545"

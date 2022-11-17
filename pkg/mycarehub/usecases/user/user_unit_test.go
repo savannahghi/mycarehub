@@ -2024,7 +2024,6 @@ func TestUseCasesUserImpl_RegisterClient(t *testing.T) {
 	facility := &domain.Facility{
 		ID:                 &ID,
 		Name:               gofakeit.Name(),
-		Code:               20,
 		Phone:              interserviceclient.TestUserPhoneNumber,
 		Active:             true,
 		County:             gofakeit.Name(),
@@ -4301,7 +4300,6 @@ func TestUseCasesUserImpl_RegisterStaff(t *testing.T) {
 	facility := &domain.Facility{
 		ID:                 &ID,
 		Name:               gofakeit.Name(),
-		Code:               20,
 		Phone:              interserviceclient.TestUserPhoneNumber,
 		Active:             true,
 		County:             gofakeit.Name(),

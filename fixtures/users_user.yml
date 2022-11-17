@@ -1,10 +1,9 @@
 # users_user.yml
 - id: 6ecbbc80-24c8-421a-9f1a-e14e12678ef0
   username: test user@
+  created: RAW=NOW()
+  updated: RAW=NOW()
   name: test user@
-  first_name: first name@
-  middle_name: middle name@
-  last_name: last name@
   user_type: client
   gender: male
   last_successful_login: RAW=NOW()
@@ -22,23 +21,15 @@
   has_set_security_questions: true
   is_phone_verified: true
   organisation_id: {{.test_organisation_id}}
-  password: {{.test_password}}
   is_superuser: false
-  is_staff: false
-  email: test@example.co
-  date_joined: RAW=NOW()
   date_of_birth: RAW=NOW() + INTERVAL '-20 year'
-  is_approved: true
-  is_active: true
-  approval_notified: false
-  handle: "@us"
+  active: true
 
 - id: 6ecbbc80-24c8-421a-9f1a-e14e12678ee0
   username: test user
+  created: RAW=NOW()
+  updated: RAW=NOW()
   name: test user
-  first_name: first name
-  middle_name: middle name
-  last_name: last name
   user_type: client
   gender: male
   last_successful_login: RAW=NOW()
@@ -56,24 +47,16 @@
   has_set_security_questions: true
   is_phone_verified: true
   organisation_id: {{.test_organisation_id}}
-  password: {{.test_password}}
   is_superuser: false
-  is_staff: false
-  email: test@example.com
-  date_joined: RAW=NOW()
   date_of_birth: RAW=NOW() + INTERVAL '-20 year'
-  is_approved: true
-  is_active: true
-  approval_notified: false
-  handle: "@user"
+  active: true
 
 # treatment buddy
 - id: 5ecbbc80-24c8-421a-9f1a-e14e12678ee1
   username: test user0
+  created: RAW=NOW()
+  updated: RAW=NOW()
   name: test user0
-  first_name: first name
-  middle_name: middle name0
-  last_name: last name0
   user_type: client
   gender: male
   last_successful_login: RAW=NOW()
@@ -91,24 +74,16 @@
   has_set_security_questions: true
   is_phone_verified: true
   organisation_id: {{.test_organisation_id}}
-  password: {{.test_password}}
   is_superuser: false
-  is_staff: false
-  email: test@example.com0
-  date_joined: RAW=NOW()
   date_of_birth: RAW=NOW() + INTERVAL '-20 year'
-  is_approved: true
-  is_active: true
-  approval_notified: false
-  handle: "@user0"
+  active: true
 
   # Test user to invalidate
 - id: 5ecbbc80-24c8-421a-9f1a-e14e12678ee0
   username: test user1
+  created: RAW=NOW()
+  updated: RAW=NOW()
   name: test user1
-  first_name: first name1
-  middle_name: middle name1
-  last_name: last name1
   user_type: client
   gender: male
   last_successful_login: RAW=NOW()
@@ -126,24 +101,16 @@
   has_set_security_questions: true
   is_phone_verified: true
   organisation_id: {{.test_organisation_id}}
-  password: {{.test_password}}
   is_superuser: false
-  is_staff: false
-  email: test1@example.com
-  date_joined: RAW=NOW()
   date_of_birth: RAW=NOW() + INTERVAL '-20 year'
-  is_approved: true
-  is_active: true
-  approval_notified: false
-  handle: "@user1"
+  active: true
 
 # user to accept terms of service
 - id: 4ecbbc80-24c8-421a-9f1a-e14e12678ee0
   username: test user2
+  created: RAW=NOW()
+  updated: RAW=NOW()
   name: test user2
-  first_name: first name2
-  middle_name: middle name2
-  last_name: last name2
   user_type: client
   gender: male
   last_successful_login: RAW=NOW()
@@ -161,24 +128,16 @@
   has_set_security_questions: true
   is_phone_verified: true
   organisation_id: {{.test_organisation_id}}
-  password: {{.test_password}}
   is_superuser: false
-  is_staff: false
-  email: test2@example.com
-  date_joined: RAW=NOW()
   date_of_birth: RAW=NOW() + INTERVAL '-20 year'
-  is_approved: true
-  is_active: true
-  approval_notified: false
-  handle: "@user2"
+  active: true
 
 # user to increase failed login count
 - id: 7ecbbc80-24c8-421a-9f1a-e14e12678ee0
   username: test user3
+  created: RAW=NOW()
+  updated: RAW=NOW()
   name: test user3
-  first_name: first name3
-  middle_name: middle name3
-  last_name: last name3
   user_type: client
   gender: male
   last_successful_login: RAW=NOW()
@@ -196,24 +155,16 @@
   has_set_security_questions: true
   is_phone_verified: true
   organisation_id: {{.test_organisation_id}}
-  password: {{.test_password}}
   is_superuser: false
-  is_staff: false
-  email: test3@example.com
-  date_joined: RAW=NOW()
   date_of_birth: RAW=NOW() + INTERVAL '-20 year'
-  is_approved: true
-  is_active: true
-  approval_notified: false
-  handle: "@user3"
+  active: true
 
 # user to increase failed login time
 - id: 8ecbbc80-24c8-421a-9f1a-e14e12678ee0
   username: test user4
+  created: RAW=NOW()
+  updated: RAW=NOW()
   name: test user4
-  first_name: first name4
-  middle_name: middle name4
-  last_name: last name4
   user_type: client
   gender: male
   last_successful_login: RAW=NOW()
@@ -231,24 +182,16 @@
   has_set_security_questions: true
   is_phone_verified: true
   organisation_id: {{.test_organisation_id}}
-  password: {{.test_password}}
   is_superuser: false
-  is_staff: false
-  email: test4@example.com
-  date_joined: RAW=NOW()
   date_of_birth: RAW=NOW() + INTERVAL '-21 year'
-  is_approved: true
-  is_active: true
-  approval_notified: false
-  handle: "@user4"
+  active: true
 
   # user to update next allowed login time
 - id: 9ecbbc80-24c8-421a-9f1a-e14e12678ee0
   username: test user5
+  created: RAW=NOW()
+  updated: RAW=NOW()
   name: test user5
-  first_name: first name5
-  middle_name: middle name5
-  last_name: last name5
   user_type: client
   gender: male
   last_successful_login: RAW=NOW()
@@ -266,24 +209,16 @@
   has_set_security_questions: true
   is_phone_verified: true
   organisation_id: {{.test_organisation_id}}
-  password: {{.test_password}}
   is_superuser: false
-  is_staff: false
-  email: test5@example.com
-  date_joined: RAW=NOW()
   date_of_birth: RAW=NOW() + INTERVAL '-21 year'
-  is_approved: true
-  is_active: true
-  approval_notified: false
-  handle: "@user5"
+  active: true
 
    # user update pin change required status
 - id: 5ecbbc80-24b8-421a-9f1a-e14e12678ee0
   username: test user6
+  created: RAW=NOW()
+  updated: RAW=NOW()
   name: test user6
-  first_name: first name6
-  middle_name: middle name6
-  last_name: last name6
   user_type: client
   gender: male
   last_successful_login: RAW=NOW()
@@ -301,24 +236,16 @@
   has_set_security_questions: true
   is_phone_verified: true
   organisation_id: {{.test_organisation_id}}
-  password: {{.test_password}}
   is_superuser: false
-  is_staff: false
-  email: test6@example.com
-  date_joined: RAW=NOW()
   date_of_birth: RAW=NOW() + INTERVAL '-21 year'
-  is_approved: true
-  is_active: false
-  approval_notified: false
-  handle: "@user6"
+  active: false
 
   # test user to save pin
 - id: 8ecbbc80-24c8-421a-9f1a-e14e12678ef0
   username: test user7
+  created: RAW=NOW()
+  updated: RAW=NOW()
   name: test user7
-  first_name: first name7
-  middle_name: middle name7
-  last_name: last name7
   user_type: client
   gender: male
   last_successful_login: RAW=NOW()
@@ -336,24 +263,16 @@
   has_set_security_questions: true
   is_phone_verified: true
   organisation_id: {{.test_organisation_id}}
-  password: {{.test_password}}
   is_superuser: false
-  is_staff: false
-  email: test7@example.com
-  date_joined: RAW=NOW()
   date_of_birth: RAW=NOW() + INTERVAL '-21 year'
-  is_approved: true
-  is_active: true
-  approval_notified: false
-  handle: "@user7"
+  active: true
 
   # test user to add caregiver
 - id: 8ecbbc80-24c8-421a-9f1a-e14e12678ef1
   username: test user8
+  created: RAW=NOW()
+  updated: RAW=NOW()
   name: test user8
-  first_name: first name8
-  middle_name: middle name8
-  last_name: last name8
   user_type: client
   gender: male
   last_successful_login: RAW=NOW()
@@ -371,24 +290,16 @@
   has_set_security_questions: true
   is_phone_verified: true
   organisation_id: {{.test_organisation_id}}
-  password: {{.test_password}}
   is_superuser: false
-  is_staff: false
-  email: test@example8.co
-  date_joined: RAW=NOW()
   date_of_birth: RAW=NOW() + INTERVAL '-21 year'
-  is_approved: true
-  is_active: true
-  approval_notified: false
-  handle: "@us8"
+  active: true
 
   # test user to add staff
 - id: {{.staff_user_id}}
   username: test staff user
+  created: RAW=NOW()
+  updated: RAW=NOW()
   name: test staff
-  first_name: first name8
-  middle_name: middle name8
-  last_name: last name8
   user_type: staff
   gender: male
   last_successful_login: RAW=NOW()
@@ -406,24 +317,16 @@
   has_set_security_questions: true
   is_phone_verified: true
   organisation_id: {{.test_organisation_id}}
-  password: {{.test_password}}
   is_superuser: false
-  is_staff: false
-  email: test@example8.co
-  date_joined: RAW=NOW()
   date_of_birth: RAW=NOW() + INTERVAL '-21 year'
-  is_approved: true
-  is_active: true
-  approval_notified: false
-  handle: "@usstaff"
+  active: true
 
   # test test user client  with unresolved service requests
 - id: {{.client_user_unresolved_request_id}}
   username: test client user10
+  created: RAW=NOW()
+  updated: RAW=NOW()
   name: test client10
-  first_name: first name10
-  middle_name: middle name10
-  last_name: last name10
   user_type: client
   gender: male
   last_successful_login: RAW=NOW()
@@ -441,24 +344,16 @@
   has_set_security_questions: true
   is_phone_verified: true
   organisation_id: {{.test_organisation_id}}
-  password: {{.test_password}}
   is_superuser: false
-  is_staff: false
-  email: test@example10.co
-  date_joined: RAW=NOW()
   date_of_birth: RAW=NOW() + INTERVAL '-21 year'
-  is_approved: true
-  is_active: true
-  approval_notified: false
-  handle: "@client10"
+  active: true
 
   # test user to add failed security count
 - id: {{.user_failed_security_count_id}}
   username: test staff user11
+  created: RAW=NOW()
+  updated: RAW=NOW()
   name: test staff11
-  first_name: first name11
-  middle_name: middle name11
-  last_name: last name11
   user_type: client
   gender: male
   last_successful_login: RAW=NOW()
@@ -476,23 +371,15 @@
   has_set_security_questions: true
   is_phone_verified: true
   organisation_id: {{.test_organisation_id}}
-  password: {{.test_password}}
   is_superuser: false
-  is_staff: false
-  email: test@example11.co
-  date_joined: RAW=NOW()
   date_of_birth: RAW=NOW() + INTERVAL '-21 year'
-  is_approved: true
-  is_active: true
-  approval_notified: false
-  handle: "@usstaff11"
+  active: true
 
 - id: 4181df12-ca96-4f28-b78b-8e8ad88b25df
   username: test client
+  created: RAW=NOW()
+  updated: RAW=NOW()
   name: test client
-  first_name: first name
-  middle_name: middle name
-  last_name: last name
   user_type: client
   gender: male
   last_successful_login: RAW=NOW()
@@ -510,25 +397,17 @@
   has_set_security_questions: true
   is_phone_verified: true
   organisation_id: {{.test_organisation_id}}
-  password: {{.test_password}}
   is_superuser: false
-  is_staff: false
-  email: test@example.com
-  date_joined: RAW=NOW()
   date_of_birth: RAW=NOW() + INTERVAL '-21 year'
-  is_approved: true
-  is_active: true
-  approval_notified: false
-  handle: "userIDtoAssignClient"
+  active: true
 
 
   # staff user with unresolved service request
 - id: {{.staff_user_unresolved_request_id}}
   username: test staff user13
+  created: RAW=NOW()
+  updated: RAW=NOW()
   name: test staff13
-  first_name: first name13
-  middle_name: middle name13
-  last_name: last name13
   user_type: client
   gender: male
   last_successful_login: RAW=NOW()
@@ -546,24 +425,16 @@
   has_set_security_questions: true
   is_phone_verified: true
   organisation_id: {{.test_organisation_id}}
-  password: {{.test_password}}
   is_superuser: false
-  is_staff: false
-  email: test@example13.co
-  date_joined: RAW=NOW()
   date_of_birth: RAW=NOW() + INTERVAL '-21 year'
-  is_approved: true
-  is_active: true
-  approval_notified: false
-  handle: "@usstaff13"
+  active: true
 
  # staff user with unresolved service request
 - id: {{.user_with_roles_id}}
   username: test staff user14
+  created: RAW=NOW()
+  updated: RAW=NOW()
   name: test staff14
-  first_name: first name14
-  middle_name: middle name14
-  last_name: last name14
   user_type: client
   gender: male
   last_successful_login: RAW=NOW()
@@ -581,23 +452,15 @@
   has_set_security_questions: true
   is_phone_verified: true
   organisation_id: {{.test_organisation_id}}
-  password: {{.test_password}}
   is_superuser: false
-  is_staff: false
-  email: test@example14.co
-  date_joined: RAW=NOW()
   date_of_birth: RAW=NOW() + INTERVAL '-21 year'
-  is_approved: true
-  is_active: true
-  approval_notified: false
-  handle: "@usstaff14"
+  active: true
 
 - id: {{.test_staff_user_id_to_delete}}
   username: test_staff_user_id_to_delete
+  created: RAW=NOW()
+  updated: RAW=NOW()
   name: test staff
-  first_name: first name8
-  middle_name: middle name8
-  last_name: last name8
   user_type: staff
   gender: male
   last_successful_login: RAW=NOW()
@@ -615,22 +478,14 @@
   has_set_security_questions: true
   is_phone_verified: true
   organisation_id: {{.test_organisation_id}}
-  password: test-pawsord
   is_superuser: false
-  is_staff: false
-  email: test@example8.co
-  date_joined: RAW=NOW()
-  is_approved: true
-  is_active: true
-  approval_notified: false
-  handle: "@test_staff_user_id_to_delete"
+  active: true
 
 - id: {{.test_user_id_to_delete}}
   username: test_user_id_to_delete
+  created: RAW=NOW()
+  updated: RAW=NOW()
   name: test staff
-  first_name: first name8
-  middle_name: middle name8
-  last_name: last name8
   user_type: staff
   gender: male
   last_successful_login: RAW=NOW()
@@ -648,22 +503,14 @@
   has_set_security_questions: true
   is_phone_verified: true
   organisation_id: {{.test_organisation_id}}
-  password: a-consumer-test-password
   is_superuser: false
-  is_staff: false
-  email: test@example8.co
-  date_joined: RAW=NOW()
-  is_approved: true
-  is_active: true
-  approval_notified: false
-  handle: "@test_user_id_to_delete"
+  active: true
 
 - id: {{.test_user_id_to_register_client}}
   username: test_user_id_to_register_client
+  created: RAW=NOW()
+  updated: RAW=NOW()
   name: test client client
-  first_name: first client
-  middle_name: middle client
-  last_name: last client
   user_type: client
   gender: male
   last_successful_login: RAW=NOW()
@@ -681,22 +528,14 @@
   has_set_security_questions: true
   is_phone_verified: true
   organisation_id: {{.test_organisation_id}}
-  password: a-consumer-test-password
   is_superuser: false
-  is_staff: false
-  email: test@example20.co
-  date_joined: RAW=NOW()
-  is_approved: true
-  is_active: true
-  approval_notified: false
-  handle: "@test_user_id_to_register_client"
+  active: true
 
 - id: {{.test_user_id_to_register_staff}}
   username: test_user_id_to_register_staff
+  created: RAW=NOW()
+  updated: RAW=NOW()
   name: test staff staff
-  first_name: first staff
-  middle_name: middle staff
-  last_name: last staff
   user_type: staff
   gender: male
   last_successful_login: RAW=NOW()
@@ -714,12 +553,5 @@
   has_set_security_questions: true
   is_phone_verified: true
   organisation_id: {{.test_organisation_id}}
-  password: a-consumer-test-password
   is_superuser: false
-  is_staff: false
-  email: test@example270.com
-  date_joined: RAW=NOW()
-  is_approved: true
-  is_active: true
-  approval_notified: false
-  handle: "@test_user_id_to_register_staff"
+  active: true

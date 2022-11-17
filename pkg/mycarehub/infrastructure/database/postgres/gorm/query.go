@@ -169,9 +169,6 @@ func (db *PGInstance) RetrieveFacilityByMFLCode(ctx context.Context, MFLCode int
 		return nil, fmt.Errorf("facility mfl code cannot be nil")
 	}
 	var facility Facility
-	if err := db.DB.Scopes(OrganisationScope(ctx, facility.TableName())).Where(&Facility{Code: MFLCode, Active: isActive}).First(&facility).Error; err != nil {
-		return nil, fmt.Errorf("failed to get facility by MFL Code %v and status %v: %v", MFLCode, isActive, err)
-	}
 
 	return &facility, nil
 }
@@ -296,9 +293,8 @@ func (db *PGInstance) ListFacilities(
 		facility := domain.Facility{
 			ID:          f.FacilityID,
 			Name:        f.Name,
-			Code:        f.Code,
 			Active:      f.Active,
-			County:      f.County,
+			County:      f.Country,
 			Description: f.Description,
 		}
 		facilitiesOutput = append(facilitiesOutput, facility)

@@ -7,3 +7,5 @@
   question_id: {{.test_question_id}}
   response: "0"
   score: 1
+  program_id: {{.test_program_id}}
+  facility_id: {{.staff_default_facility}}

@@ -10,3 +10,4 @@
   select_multiple: false
   required: true
   sequence: 1
+  program_id: {{.test_program_id}}
