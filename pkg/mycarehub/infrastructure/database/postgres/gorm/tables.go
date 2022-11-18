@@ -27,11 +27,11 @@ var (
 
 // Base model contains defines common fields across tables
 type Base struct {
-	CreatedAt time.Time `gorm:"column:created;not null"`
-	UpdatedAt time.Time `gorm:"column:updated;not null"`
-	CreatedBy *string   `gorm:"column:created_by"`
-	UpdatedBy *string   `gorm:"column:updated_by"`
-	DeletedAt time.Time `gorm:"column:deleted_at"`
+	CreatedAt time.Time  `gorm:"column:created;not null"`
+	UpdatedAt time.Time  `gorm:"column:updated;not null"`
+	CreatedBy *string    `gorm:"column:created_by"`
+	UpdatedBy *string    `gorm:"column:updated_by"`
+	DeletedAt *time.Time `gorm:"column:deleted_at"`
 }
 
 // Facility models the details of healthcare facilities that are on the platform.
@@ -212,11 +212,10 @@ type User struct {
 	DateOfBirth            *time.Time      `gorm:"column:date_of_birth"`
 	FailedSecurityCount    int             `gorm:"column:failed_security_count"`
 	PinUpdateRequired      bool            `gorm:"column:pin_update_required"`
-	HasSetNickname         bool            `gorm:"column:has_set_nickname"`
 
-	OrganisationID   string `gorm:"column:organisation_id"`
-	CurrentProgramID string `gorm:"column:current_program_id"`
-	AcceptedTermsID  *int   `gorm:"column:accepted_terms_of_service_id"`
+	OrganisationID   string  `gorm:"column:organisation_id"`
+	CurrentProgramID *string `gorm:"column:current_program_id"`
+	AcceptedTermsID  *int    `gorm:"column:accepted_terms_of_service_id"`
 }
 
 // BeforeCreate is a hook run before creating a new user
@@ -247,10 +246,6 @@ func (u *User) BeforeCreate(tx *gorm.DB) (err error) {
 	u.IsPhoneVerified = false
 	u.HasSetSecurityQuestion = false
 	u.PinUpdateRequired = false
-
-	if u.CurrentProgramID == "" {
-		u.CurrentProgramID = ProgramID
-	}
 
 	return
 }
@@ -349,7 +344,24 @@ type PINData struct {
 	Flavour   feedlib.Flavour `gorm:"column:flavour;not null"`
 	Salt      string          `gorm:"column:salt;not null"`
 
-	UserID string `gorm:"column:user_id;not null"`
+	UserID         string `gorm:"column:user_id;not null"`
+	OrganisationID string `gorm:"column:organisation_id"`
+}
+
+// BeforeCreate is a hook run before creating a new contact
+func (p *PINData) BeforeCreate(tx *gorm.DB) (err error) {
+	ctx := tx.Statement.Context
+	orgID, err := utils.GetOrganisationIDFromContext(ctx)
+	if err != nil {
+		logrus.Println("failed to get organisation from context")
+	}
+	if orgID == "" {
+		orgID = OrganizationID
+	}
+
+	p.OrganisationID = orgID
+
+	return
 }
 
 // TableName customizes how the table name is generated
@@ -503,31 +515,19 @@ func (SecurityQuestionResponse) TableName() string {
 type Client struct {
 	Base
 
-	ID *string `gorm:"primaryKey;unique;column:id"`
+	ID                      *string        `gorm:"primaryKey;unique;column:id"`
+	Active                  bool           `gorm:"column:active"`
+	ClientTypes             pq.StringArray `gorm:"type:text[];column:client_types"`
+	TreatmentEnrollmentDate *time.Time     `gorm:"column:enrollment_date"`
+	FHIRPatientID           *string        `gorm:"column:fhir_patient_id"`
+	HealthRecordID          *string        `gorm:"column:emr_health_record_id"`
+	ClientCounselled        bool           `gorm:"column:counselled"`
 
-	Active bool `gorm:"column:active"`
-
-	ClientTypes pq.StringArray `gorm:"type:text[];column:client_types"`
-
-	TreatmentEnrollmentDate *time.Time `gorm:"column:enrollment_date"`
-
-	FHIRPatientID *string `gorm:"column:fhir_patient_id"`
-
-	HealthRecordID *string `gorm:"column:emr_health_record_id"`
-
-	TreatmentBuddy string `gorm:"column:treatment_buddy"`
-
-	ClientCounselled bool `gorm:"column:counselled"`
-
-	FacilityID string `gorm:"column:current_facility_id"`
-
-	CHVUserID *string `gorm:"column:chv_id"`
-
-	OrganisationID string `gorm:"column:organisation_id"`
-	ProgramID      string `gorm:"column:program_id"`
-
-	UserID *string `gorm:"column:user_id;not null"`
-	User   User    `gorm:"ForeignKey:user_id;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;not null"`
+	UserID         *string `gorm:"column:user_id;not null"`
+	User           User    `gorm:"ForeignKey:user_id;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;not null"`
+	FacilityID     string  `gorm:"column:current_facility_id"`
+	OrganisationID string  `gorm:"column:organisation_id"`
+	ProgramID      string  `gorm:"column:program_id"`
 }
 
 // BeforeCreate is a hook run before creating a client profile
@@ -717,6 +717,10 @@ func (c *ClientHealthDiaryEntry) BeforeCreate(tx *gorm.DB) (err error) {
 	id := uuid.New().String()
 	c.ClientHealthDiaryEntryID = &id
 	c.OrganisationID = orgID
+
+	if c.ProgramID == "" {
+		c.ProgramID = ProgramID
+	}
 
 	return
 }
