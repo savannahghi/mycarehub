@@ -487,6 +487,7 @@ ALTER TABLE
 ALTER TABLE
     IF EXISTS "common_notification"
     DROP CONSTRAINT IF EXISTS "common_notification_organisation_id_fkey";
+
 ALTER TABLE
     IF EXISTS "common_notification"
     DROP CONSTRAINT IF EXISTS "common_notification_user_id_fkey";

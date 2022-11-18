@@ -633,6 +633,7 @@ func TestPGInstance_CreateHealthDiaryEntry(t *testing.T) {
 					ShareWithHealthWorker:    true,
 					SharedAt:                 &currentTime,
 					ClientID:                 clientID,
+					ProgramID:                programID,
 					OrganisationID:           uuid.New().String(),
 				},
 			},
@@ -961,6 +962,7 @@ func TestPGInstance_CreateStaffServiceRequest(t *testing.T) {
 					ResolvedAt:        &currentTime,
 					StaffID:           staffID,
 					OrganisationID:    orgID,
+					ProgramID:         programID,
 					DefaultFacilityID: &facilityID,
 					Meta:              meta,
 				},
@@ -1084,6 +1086,7 @@ func TestPGInstance_CreateClient(t *testing.T) {
 					ClientCounselled:        true,
 					ClientTypes:             clientTypeList,
 					TreatmentEnrollmentDate: &enrollment,
+					ProgramID:               programID,
 				},
 				contactID:    contactID,
 				identifierID: identifierID,
@@ -1365,7 +1368,6 @@ func TestPGInstance_RegisterClient(t *testing.T) {
 	currentTime := time.Now()
 	FHIRPatientID := "26b30a43-cbb8-4773-aedb-c539602d04fc"
 	HealthPatientID := "29b30a42-cbb8-4553-aedb-c539602d04fc"
-	chvID := userIDToRegisterClient
 
 	invalidID := "invalidID"
 	contactData := &gorm.Contact{
@@ -1398,11 +1400,10 @@ func TestPGInstance_RegisterClient(t *testing.T) {
 		TreatmentEnrollmentDate: &currentTime,
 		FHIRPatientID:           &FHIRPatientID,
 		HealthRecordID:          &HealthPatientID,
-		TreatmentBuddy:          uuid.New().String(),
 		ClientCounselled:        true,
 		OrganisationID:          orgID,
 		FacilityID:              facilityID,
-		CHVUserID:               &chvID,
+		ProgramID:               programID,
 	}
 	InvalidClientData := &gorm.Client{
 		ID:                      &invalidID,
@@ -1412,11 +1413,9 @@ func TestPGInstance_RegisterClient(t *testing.T) {
 		TreatmentEnrollmentDate: &currentTime,
 		FHIRPatientID:           &FHIRPatientID,
 		HealthRecordID:          &HealthPatientID,
-		TreatmentBuddy:          uuid.New().String(),
 		ClientCounselled:        true,
 		OrganisationID:          orgID,
 		FacilityID:              facilityID,
-		CHVUserID:               &chvID,
 	}
 	userProfile := &gorm.User{
 		UserID:                 &userIDToRegisterClient,
@@ -1543,6 +1542,7 @@ func TestPGInstance_RegisterStaff(t *testing.T) {
 		ValidTo:             time.Now(),
 		IsPrimaryIdentifier: true,
 		OrganisationID:      orgID,
+		ProgramID:           programID,
 	}
 	staff := &gorm.StaffProfile{
 		ID:                &staffID,
@@ -1551,6 +1551,7 @@ func TestPGInstance_RegisterStaff(t *testing.T) {
 		StaffNumber:       "123445679890",
 		DefaultFacilityID: facilityID,
 		OrganisationID:    orgID,
+		ProgramID:         programID,
 	}
 
 	invalidStaff := &gorm.StaffProfile{
@@ -1849,6 +1850,7 @@ func TestPGInstance_CreateScreeningToolResponse(t *testing.T) {
 						Response:                "0",
 						Score:                   1,
 						ProgramID:               programID,
+						FacilityID:              facilityID,
 					},
 				},
 			},
@@ -1955,6 +1957,7 @@ func TestPGInstance_RegisterCaregiver(t *testing.T) {
 				caregiver: &gorm.Caregiver{
 					CaregiverNumber: gofakeit.SSN(),
 					Active:          true,
+					ProgramID:       programID,
 				},
 			},
 			wantErr: false,
@@ -1988,7 +1991,7 @@ func TestPGInstance_AddCaregiverToClient(t *testing.T) {
 				ctx: addOrganizationContext(context.Background()),
 				clientCaregiver: &gorm.CaregiverClient{
 					CaregiverID:        "8ecbbc80-24c8-421a-9f1a-e14e12678ef2",
-					ClientID:           clientID,
+					ClientID:           clientID2,
 					Active:             true,
 					RelationshipType:   enums.CaregiverTypeFather,
 					CaregiverConsent:   enums.ConsentStateAccepted,
@@ -1997,6 +2000,7 @@ func TestPGInstance_AddCaregiverToClient(t *testing.T) {
 					ClientConsentAt:    &now,
 					OrganisationID:     orgID,
 					AssignedBy:         staffID,
+					ProgramID:          programID,
 				},
 			},
 			wantErr: false,
