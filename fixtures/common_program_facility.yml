@@ -1,0 +1,3 @@
+- id: {{.test_program_id}}
+  program_id: {{.test_program_id}}
+  facility_id: {{.test_facility_id}}

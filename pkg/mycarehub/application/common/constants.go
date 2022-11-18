@@ -4,6 +4,9 @@ const (
 	// OrganizationID is the default organization ID that's added to all models on the django side
 	OrganizationID = "DEFAULT_ORG_ID"
 
+	// ProgramID is the default program ID that's added to all models that require program ID
+	ProgramID = "DEFAULT_PROGRAM_ID"
+
 	// CreatePatientTopic is the topic ID for patient creation in clinical service
 	CreatePatientTopic = "patient.create"
 
