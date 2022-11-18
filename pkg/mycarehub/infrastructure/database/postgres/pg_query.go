@@ -315,7 +315,6 @@ func (d *MyCareHubDb) GetClientProfileByUserID(ctx context.Context, userID strin
 		TreatmentEnrollmentDate: client.TreatmentEnrollmentDate,
 		FHIRPatientID:           client.FHIRPatientID,
 		HealthRecordID:          client.HealthRecordID,
-		TreatmentBuddy:          client.TreatmentBuddy,
 		ClientCounselled:        client.ClientCounselled,
 		OrganisationID:          client.OrganisationID,
 		DefaultFacility: &domain.Facility{
@@ -328,7 +327,6 @@ func (d *MyCareHubDb) GetClientProfileByUserID(ctx context.Context, userID strin
 			FHIROrganisationID: facility.FHIROrganisationID,
 		},
 		Facilities: facilities,
-		CHVUserID:  client.CHVUserID,
 	}, nil
 }
 
@@ -704,14 +702,12 @@ func (d *MyCareHubDb) GetClientProfileByClientID(ctx context.Context, clientID s
 		TreatmentEnrollmentDate: response.TreatmentEnrollmentDate,
 		FHIRPatientID:           response.FHIRPatientID,
 		HealthRecordID:          response.HealthRecordID,
-		TreatmentBuddy:          response.TreatmentBuddy,
 		ClientCounselled:        response.ClientCounselled,
 		OrganisationID:          response.OrganisationID,
 		DefaultFacility: &domain.Facility{
 			ID: &response.FacilityID,
 		},
-		CHVUserID: response.CHVUserID,
-		UserID:    *response.UserID,
+		UserID: *response.UserID,
 	}, nil
 
 }
@@ -961,14 +957,12 @@ func (d *MyCareHubDb) GetClientsInAFacility(ctx context.Context, facilityID stri
 			TreatmentEnrollmentDate: cli.TreatmentEnrollmentDate,
 			FHIRPatientID:           cli.FHIRPatientID,
 			HealthRecordID:          cli.HealthRecordID,
-			TreatmentBuddy:          cli.TreatmentBuddy,
 			ClientCounselled:        cli.ClientCounselled,
 			OrganisationID:          cli.OrganisationID,
 			DefaultFacility: &domain.Facility{
 				ID: &cli.FacilityID,
 			},
-			CHVUserID: cli.CHVUserID,
-			UserID:    *cli.UserID,
+			UserID: *cli.UserID,
 		}
 		clients = append(clients, client)
 	}
@@ -1047,13 +1041,11 @@ func (d *MyCareHubDb) GetClientsByParams(ctx context.Context, params gorm.Client
 			TreatmentEnrollmentDate: c.TreatmentEnrollmentDate,
 			FHIRPatientID:           c.FHIRPatientID,
 			HealthRecordID:          c.HealthRecordID,
-			TreatmentBuddy:          c.TreatmentBuddy,
 			ClientCounselled:        c.ClientCounselled,
 			OrganisationID:          c.OrganisationID,
 			DefaultFacility: &domain.Facility{
 				ID: &c.FacilityID,
 			},
-			CHVUserID: c.CHVUserID,
 		})
 	}
 
@@ -1444,13 +1436,11 @@ func (d *MyCareHubDb) GetClientProfileByCCCNumber(ctx context.Context, CCCNumber
 		TreatmentEnrollmentDate: clientProfile.TreatmentEnrollmentDate,
 		FHIRPatientID:           clientProfile.FHIRPatientID,
 		HealthRecordID:          clientProfile.HealthRecordID,
-		TreatmentBuddy:          clientProfile.TreatmentBuddy,
 		ClientCounselled:        clientProfile.ClientCounselled,
 		OrganisationID:          clientProfile.OrganisationID,
 		DefaultFacility: &domain.Facility{
 			ID: &clientProfile.FacilityID,
 		},
-		CHVUserID: clientProfile.CHVUserID,
 		CCCNumber: cccIdentifier.IdentifierValue,
 	}, nil
 }
@@ -1495,14 +1485,12 @@ func (d *MyCareHubDb) SearchClientProfile(ctx context.Context, searchParameter s
 			TreatmentEnrollmentDate: c.TreatmentEnrollmentDate,
 			FHIRPatientID:           c.FHIRPatientID,
 			HealthRecordID:          c.HealthRecordID,
-			TreatmentBuddy:          c.TreatmentBuddy,
 			ClientCounselled:        c.ClientCounselled,
 			OrganisationID:          c.OrganisationID,
 			DefaultFacility: &domain.Facility{
 				ID:   &c.FacilityID,
 				Name: facility.Name,
 			},
-			CHVUserID: c.CHVUserID,
 			CCCNumber: identifier.IdentifierValue,
 		}
 
@@ -1975,13 +1963,11 @@ func (d *MyCareHubDb) GetClientsByFilterParams(ctx context.Context, facilityID *
 			TreatmentEnrollmentDate: c.TreatmentEnrollmentDate,
 			FHIRPatientID:           c.FHIRPatientID,
 			HealthRecordID:          c.HealthRecordID,
-			TreatmentBuddy:          c.TreatmentBuddy,
 			ClientCounselled:        c.ClientCounselled,
 			OrganisationID:          c.OrganisationID,
 			DefaultFacility: &domain.Facility{
 				ID: &c.FacilityID,
 			},
-			CHVUserID: c.CHVUserID,
 		})
 	}
 
