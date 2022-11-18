@@ -1111,6 +1111,7 @@ func TestPGInstance_CanRecordHeathDiary(t *testing.T) {
 		SharedAt:              &sharedAt,
 		ClientID:              clientID2,
 		OrganisationID:        orgID,
+		ProgramID:             programID,
 	}
 	err = pg.DB.WithContext(addOrganizationContext(context.Background())).Create(&canShowHealthDiaryInput).Error
 	if err != nil {
@@ -1130,6 +1131,7 @@ func TestPGInstance_CanRecordHeathDiary(t *testing.T) {
 		SharedAt:              &sharedAt,
 		ClientID:              clientID2,
 		OrganisationID:        orgID,
+		ProgramID:             programID,
 	}
 
 	type args struct {
