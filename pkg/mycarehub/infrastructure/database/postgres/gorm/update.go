@@ -12,8 +12,8 @@ import (
 
 // Update represents all `update` operations to the database
 type Update interface {
-	InactivateFacility(ctx context.Context, mflCode *int) (bool, error)
-	ReactivateFacility(ctx context.Context, mflCode *int) (bool, error)
+	InactivateFacility(ctx context.Context, identifier *FacilityIdentifier) (bool, error)
+	ReactivateFacility(ctx context.Context, identifier *FacilityIdentifier) (bool, error)
 	UpdateFacility(ctx context.Context, facility *Facility, updateData map[string]interface{}) error
 	AcceptTerms(ctx context.Context, userID *string, termsID *int) (bool, error)
 	SetNickName(ctx context.Context, userID *string, nickname *string) (bool, error)
@@ -43,20 +43,62 @@ type Update interface {
 }
 
 // ReactivateFacility performs the actual re-activation of the facility in the database
-func (db *PGInstance) ReactivateFacility(ctx context.Context, mflCode *int) (bool, error) {
-	if mflCode == nil {
-		return false, fmt.Errorf("mflCode cannot be empty")
+func (db *PGInstance) ReactivateFacility(ctx context.Context, identifier *FacilityIdentifier) (bool, error) {
+	var facilityIdentifier FacilityIdentifier
+
+	tx := db.DB.WithContext(ctx).Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	err := tx.Where("common_facility_identifier.identifier_type = ? AND common_facility_identifier.identifier_value = ?", identifier.Type, identifier.Value).
+		First(&facilityIdentifier).Error
+	if err != nil {
+		tx.Rollback()
+		return false, fmt.Errorf("failed to get facility by identifier: %w", err)
 	}
 
+	if err := db.DB.WithContext(ctx).Model(&Facility{}).Where(&Facility{FacilityID: &facilityIdentifier.FacilityID}).
+		Updates(map[string]interface{}{"active": true}).Error; err != nil {
+		tx.Rollback()
+		return false, err
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		return false, fmt.Errorf("failed to commit transaction inactivate facility%v", err)
+	}
 	return true, nil
 }
 
 // InactivateFacility perfoms the actual inactivation of the facility in the database
-func (db *PGInstance) InactivateFacility(ctx context.Context, mflCode *int) (bool, error) {
-	if mflCode == nil {
-		return false, fmt.Errorf("mflCode cannot be empty")
+func (db *PGInstance) InactivateFacility(ctx context.Context, identifier *FacilityIdentifier) (bool, error) {
+	var facilityIdentifier FacilityIdentifier
+
+	tx := db.DB.WithContext(ctx).Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	err := tx.Where("common_facility_identifier.identifier_type = ? AND common_facility_identifier.identifier_value = ?", identifier.Type, identifier.Value).
+		First(&facilityIdentifier).Error
+	if err != nil {
+		tx.Rollback()
+		return false, fmt.Errorf("failed to get facility by identifier: %w", err)
 	}
 
+	if err := db.DB.WithContext(ctx).Model(&Facility{}).Where(&Facility{FacilityID: &facilityIdentifier.FacilityID}).
+		Updates(map[string]interface{}{"active": false}).Error; err != nil {
+		tx.Rollback()
+		return false, err
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		return false, fmt.Errorf("failed to commit transaction inactivate facility%v", err)
+	}
 	return true, nil
 }
 

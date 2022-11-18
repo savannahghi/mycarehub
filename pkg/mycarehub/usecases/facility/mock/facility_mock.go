@@ -12,15 +12,15 @@ import (
 
 // FacilityUsecaseMock mocks the implementation of facility usecase methods
 type FacilityUsecaseMock struct {
-	MockGetOrCreateFacilityFn       func(ctx context.Context, facility *dto.FacilityInput) (*domain.Facility, error)
-	MockRetrieveFacilityFn          func(ctx context.Context, id *string, isActive bool) (*domain.Facility, error)
-	MockRetrieveFacilityByMFLCodeFn func(ctx context.Context, MFLCode int, isActive bool) (*domain.Facility, error)
-	MockGetFacilitiesFn             func(ctx context.Context) ([]*domain.Facility, error)
-	MockListFacilitiesFn            func(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationsInput *dto.PaginationsInput) (*domain.FacilityPage, error)
-	DeleteFacilityFn                func(ctx context.Context, id int) (bool, error)
-	FetchFacilitiesFn               func(ctx context.Context) ([]*domain.Facility, error)
-	MockInactivateFacilityFn        func(ctx context.Context, mflCode *int) (bool, error)
-	MockUpdateFacilityFn            func(ctx context.Context, updateFacilityData *domain.UpdateFacilityPayload) error
+	MockGetOrCreateFacilityFn          func(ctx context.Context, facility *dto.FacilityInput) (*domain.Facility, error)
+	MockRetrieveFacilityFn             func(ctx context.Context, id *string, isActive bool) (*domain.Facility, error)
+	MockRetrieveFacilityByIdentifierFn func(ctx context.Context, MFLCode int, isActive bool) (*domain.Facility, error)
+	MockGetFacilitiesFn                func(ctx context.Context) ([]*domain.Facility, error)
+	MockListFacilitiesFn               func(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationsInput *dto.PaginationsInput) (*domain.FacilityPage, error)
+	DeleteFacilityFn                   func(ctx context.Context, id int) (bool, error)
+	FetchFacilitiesFn                  func(ctx context.Context) ([]*domain.Facility, error)
+	MockInactivateFacilityFn           func(ctx context.Context, mflCode *int) (bool, error)
+	MockUpdateFacilityFn               func(ctx context.Context, updateFacilityData *domain.UpdateFacilityPayload) error
 }
 
 // NewFacilityUsecaseMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -81,7 +81,7 @@ func NewFacilityUsecaseMock() *FacilityUsecaseMock {
 			return facilityInput, nil
 		},
 
-		MockRetrieveFacilityByMFLCodeFn: func(ctx context.Context, MFLCode int, isActive bool) (*domain.Facility, error) {
+		MockRetrieveFacilityByIdentifierFn: func(ctx context.Context, MFLCode int, isActive bool) (*domain.Facility, error) {
 			return facilityInput, nil
 		},
 
@@ -115,9 +115,9 @@ func (f *FacilityUsecaseMock) RetrieveFacility(ctx context.Context, id *string, 
 	return f.MockRetrieveFacilityFn(ctx, id, isActive)
 }
 
-// RetrieveFacilityByMFLCode mocks the implementation of `gorm's` RetrieveFacilityByMFLCode method.
-func (f *FacilityUsecaseMock) RetrieveFacilityByMFLCode(ctx context.Context, MFLCode int, isActive bool) (*domain.Facility, error) {
-	return f.MockRetrieveFacilityByMFLCodeFn(ctx, MFLCode, isActive)
+// RetrieveFacilityByIdentifier mocks the implementation of `gorm's` RetrieveFacilityByIdentifier method.
+func (f *FacilityUsecaseMock) RetrieveFacilityByIdentifier(ctx context.Context, MFLCode int, isActive bool) (*domain.Facility, error) {
+	return f.MockRetrieveFacilityByIdentifierFn(ctx, MFLCode, isActive)
 }
 
 // GetFacilities mocks the implementation of `gorm's` GetFacilities method

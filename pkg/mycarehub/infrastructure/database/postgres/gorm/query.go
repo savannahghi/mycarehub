@@ -29,7 +29,8 @@ var GCSBaseURL = serverutils.MustGetEnvVar(helpers.GoogleCloudStorageURL)
 // Query contains all the db query methods
 type Query interface {
 	RetrieveFacility(ctx context.Context, id *string, isActive bool) (*Facility, error)
-	RetrieveFacilityByMFLCode(ctx context.Context, MFLCode int, isActive bool) (*Facility, error)
+	RetrieveFacilityByIdentifier(ctx context.Context, identifier *FacilityIdentifier, isActive bool) (*Facility, error)
+	RetrieveFacilityIdentifierByFacilityID(ctx context.Context, facilityID *string) (*FacilityIdentifier, error)
 	SearchFacility(ctx context.Context, searchParameter *string) ([]Facility, error)
 	GetFacilitiesWithoutFHIRID(ctx context.Context) ([]*Facility, error)
 	ListFacilities(ctx context.Context, searchTerm *string, filter []*domain.FiltersParam, pagination *domain.FacilityPage) (*domain.FacilityPage, error)
@@ -69,7 +70,7 @@ type Query interface {
 	CheckIfUsernameExists(ctx context.Context, username string) (bool, error)
 	GetCommunityByID(ctx context.Context, communityID string) (*Community, error)
 	CheckIdentifierExists(ctx context.Context, identifierType string, identifierValue string) (bool, error)
-	CheckFacilityExistsByMFLCode(ctx context.Context, MFLCode int) (bool, error)
+	CheckFacilityExistsByIdentifier(ctx context.Context, identifier *FacilityIdentifier) (bool, error)
 	GetClientsInAFacility(ctx context.Context, facilityID string) ([]*Client, error)
 	GetRecentHealthDiaryEntries(ctx context.Context, lastSyncTime time.Time, clientID string) ([]*ClientHealthDiaryEntry, error)
 	GetClientsByParams(ctx context.Context, query Client, lastSyncTime *time.Time) ([]*Client, error)
@@ -134,13 +135,23 @@ func (db PGInstance) GetFacilityStaffs(ctx context.Context, facilityID string) (
 	return staffs, nil
 }
 
+// RetrieveFacilityIdentifierByFacilityID gets a facility identifier by facility id
+func (db PGInstance) RetrieveFacilityIdentifierByFacilityID(ctx context.Context, facilityID *string) (*FacilityIdentifier, error) {
+	facilityIdentifier := &FacilityIdentifier{}
+	if err := db.DB.Where(&FacilityIdentifier{FacilityID: *facilityID}).First(facilityIdentifier).Error; err != nil {
+		return nil, err
+	}
+
+	return facilityIdentifier, nil
+}
+
 // RetrieveFacility fetches a single facility
 func (db *PGInstance) RetrieveFacility(ctx context.Context, id *string, isActive bool) (*Facility, error) {
 	if id == nil {
 		return nil, fmt.Errorf("facility id cannot be nil")
 	}
 	var facility Facility
-	err := db.DB.Scopes(OrganisationScope(ctx, facility.TableName())).Where(&Facility{FacilityID: id, Active: isActive}).First(&facility).Error
+	err := db.DB.Where(&Facility{FacilityID: id, Active: isActive}).First(&facility).Error
 	if err != nil {
 		return nil, fmt.Errorf("failed to get facility by ID %v: %v", id, err)
 	}
@@ -163,12 +174,18 @@ func (db *PGInstance) CheckIfPhoneNumberExists(ctx context.Context, phone string
 	return true, nil
 }
 
-// RetrieveFacilityByMFLCode fetches a single facility using MFL Code
-func (db *PGInstance) RetrieveFacilityByMFLCode(ctx context.Context, MFLCode int, isActive bool) (*Facility, error) {
-	if MFLCode == 0 {
-		return nil, fmt.Errorf("facility mfl code cannot be nil")
+// RetrieveFacilityByIdentifier fetches a single facility using MFL Code
+func (db *PGInstance) RetrieveFacilityByIdentifier(ctx context.Context, identifier *FacilityIdentifier, isActive bool) (*Facility, error) {
+	if identifier.Type == "" || identifier.Value == "" {
+		return nil, fmt.Errorf("facility  identifier cannot be nil")
 	}
 	var facility Facility
+
+	if err := db.DB.Joins("JOIN common_facility_identifier on common_facility.id = common_facility_identifier.facility_id").
+		Where("common_facility_identifier.identifier_type = ? AND common_facility_identifier.identifier_value = ?", identifier.Type, identifier.Value).
+		First(&facility).Error; err != nil {
+		return nil, err
+	}
 
 	return &facility, nil
 }
@@ -1111,10 +1128,10 @@ func (db *PGInstance) CheckIdentifierExists(ctx context.Context, identifierType 
 	return true, nil
 }
 
-// CheckFacilityExistsByMFLCode checks whether a facility exists using the mfl code.
+// CheckFacilityExistsByIdentifier checks whether a facility exists using the mfl code.
 // Used to validate existence of a facility
-func (db *PGInstance) CheckFacilityExistsByMFLCode(ctx context.Context, MFLCode int) (bool, error) {
-	_, err := db.RetrieveFacilityByMFLCode(ctx, MFLCode, true)
+func (db *PGInstance) CheckFacilityExistsByIdentifier(ctx context.Context, identifier *FacilityIdentifier) (bool, error) {
+	_, err := db.RetrieveFacilityByIdentifier(ctx, identifier, true)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return false, nil

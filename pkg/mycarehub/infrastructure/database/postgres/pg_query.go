@@ -59,17 +59,31 @@ func (d *MyCareHubDb) RetrieveFacility(ctx context.Context, id *string, isActive
 		return nil, fmt.Errorf("failed query and retrieve one facility: %s", err)
 	}
 
-	return d.mapFacilityObjectToDomain(facilitySession), nil
-}
-
-// RetrieveFacilityByMFLCode gets a facility by ID from the database
-func (d *MyCareHubDb) RetrieveFacilityByMFLCode(ctx context.Context, MFLCode int, isActive bool) (*domain.Facility, error) {
-	facilitySession, err := d.query.RetrieveFacilityByMFLCode(ctx, MFLCode, isActive)
+	identifierSession, err := d.query.RetrieveFacilityIdentifierByFacilityID(ctx, id)
 	if err != nil {
-		return nil, fmt.Errorf("failed query and retrieve facility by MFLCode: %s", err)
+		return nil, fmt.Errorf("failed retrieve facility identifier: %w", err)
 	}
 
-	return d.mapFacilityObjectToDomain(facilitySession), nil
+	return d.mapFacilityObjectToDomain(facilitySession, identifierSession), nil
+}
+
+// RetrieveFacilityByIdentifier gets a facility by ID from the database
+func (d *MyCareHubDb) RetrieveFacilityByIdentifier(ctx context.Context, identifier *dto.FacilityIdentifierInput, isActive bool) (*domain.Facility, error) {
+	identifierObj := &gorm.FacilityIdentifier{
+		Type:  identifier.Type.String(),
+		Value: identifier.Value,
+	}
+	facilitySession, err := d.query.RetrieveFacilityByIdentifier(ctx, identifierObj, isActive)
+	if err != nil {
+		return nil, fmt.Errorf("failed query and retrieve facility by identifier: %s", err)
+	}
+
+	identifierSession, err := d.query.RetrieveFacilityIdentifierByFacilityID(ctx, facilitySession.FacilityID)
+	if err != nil {
+		return nil, fmt.Errorf("failed retrieve facility identifier: %w", err)
+	}
+
+	return d.mapFacilityObjectToDomain(facilitySession, identifierSession), nil
 }
 
 // ListFacilities gets facilities that are filtered from search and filter,
@@ -929,10 +943,14 @@ func (d *MyCareHubDb) CheckIdentifierExists(ctx context.Context, identifierType 
 	return d.query.CheckIdentifierExists(ctx, identifierType, identifierValue)
 }
 
-// CheckFacilityExistsByMFLCode checks whether a facility exists using the mfl code.
+// CheckFacilityExistsByIdentifier checks whether a facility exists using the mfl code.
 // Used to validate existence of a facility
-func (d *MyCareHubDb) CheckFacilityExistsByMFLCode(ctx context.Context, MFLCode int) (bool, error) {
-	return d.query.CheckFacilityExistsByMFLCode(ctx, MFLCode)
+func (d *MyCareHubDb) CheckFacilityExistsByIdentifier(ctx context.Context, identifier *dto.FacilityIdentifierInput) (bool, error) {
+	identifierObj := &gorm.FacilityIdentifier{
+		Type:  identifier.Type.String(),
+		Value: identifier.Value,
+	}
+	return d.query.CheckFacilityExistsByIdentifier(ctx, identifierObj)
 }
 
 // GetClientsInAFacility fetches all the clients that belong to a specific facility
@@ -1096,7 +1114,12 @@ func (d *MyCareHubDb) GetHealthDiaryEntryByID(ctx context.Context, healthDiaryEn
 // GetServiceRequestsForKenyaEMR retrieves from the database all service requests belonging to a specific facility
 func (d *MyCareHubDb) GetServiceRequestsForKenyaEMR(ctx context.Context, payload *dto.ServiceRequestPayload) ([]*domain.ServiceRequest, error) {
 
-	facility, err := d.query.RetrieveFacilityByMFLCode(ctx, payload.MFLCode, true)
+	mflIdentifier := &gorm.FacilityIdentifier{
+		Type:  enums.FacilityIdentifierTypeMFLCode.String(),
+		Value: strconv.Itoa(payload.MFLCode),
+	}
+
+	facility, err := d.query.RetrieveFacilityByIdentifier(ctx, mflIdentifier, true)
 	if err != nil {
 		return nil, err
 	}
@@ -1587,12 +1610,12 @@ func (d *MyCareHubDb) GetStaffProfileByStaffID(ctx context.Context, staffID stri
 
 // GetAppointmentServiceRequests fetches all service requests of request type appointment given the last sync time
 func (d *MyCareHubDb) GetAppointmentServiceRequests(ctx context.Context, lastSyncTime time.Time, mflCode string) ([]domain.AppointmentServiceRequests, error) {
-	MFLCode, err := strconv.Atoi(mflCode)
-	if err != nil {
-		return nil, err
+	mflIdentifier := &gorm.FacilityIdentifier{
+		Type:  enums.FacilityIdentifierTypeMFLCode.String(),
+		Value: mflCode,
 	}
 
-	facility, err := d.query.RetrieveFacilityByMFLCode(ctx, MFLCode, true)
+	facility, err := d.query.RetrieveFacilityByIdentifier(ctx, mflIdentifier, true)
 	if err != nil {
 		return nil, err
 	}

@@ -11,7 +11,7 @@ import (
 
 // Delete represents all `delete` ops to the database
 type Delete interface {
-	DeleteFacility(ctx context.Context, mflcode int) (bool, error)
+	DeleteFacility(ctx context.Context, identifier *FacilityIdentifier) (bool, error)
 	DeleteUser(ctx context.Context, userID string, clientID *string, staffID *string, flavour feedlib.Flavour) error
 	DeleteStaffProfile(ctx context.Context, staffID string) error
 	DeleteCommunity(ctx context.Context, communityID string) error
@@ -21,14 +21,9 @@ type Delete interface {
 
 // DeleteFacility will do the actual deletion of a facility from the database
 // This operation perform HARD deletion
-func (db *PGInstance) DeleteFacility(ctx context.Context, mflcode int) (bool, error) {
-	if mflcode == 0 {
-		return false, fmt.Errorf("MFL code cannot be empty")
-	}
-
+func (db *PGInstance) DeleteFacility(ctx context.Context, identifier *FacilityIdentifier) (bool, error) {
 	var facility Facility
-
-	err := db.DB.Scopes(OrganisationScope(ctx, facility.TableName())).Where("mfl_code", mflcode).First(&Facility{}).Delete(&Facility{}).Error
+	err := db.DB.Scopes(OrganisationScope(ctx, facility.TableName())).Where("id", identifier.FacilityID).First(&Facility{}).Delete(&Facility{}).Error
 	if err != nil {
 		return false, fmt.Errorf("an error occurred while deleting: %v", err)
 	}

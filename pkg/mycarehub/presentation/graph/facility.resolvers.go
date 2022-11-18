@@ -11,27 +11,27 @@ import (
 )
 
 // CreateFacility is the resolver for the createFacility field.
-func (r *mutationResolver) CreateFacility(ctx context.Context, input dto.FacilityInput) (*domain.Facility, error) {
+func (r *mutationResolver) CreateFacility(ctx context.Context, facility dto.FacilityInput, identifier dto.FacilityIdentifierInput) (*domain.Facility, error) {
 	r.checkPreconditions()
-	return r.mycarehub.Facility.GetOrCreateFacility(ctx, &input)
+	return r.mycarehub.Facility.GetOrCreateFacility(ctx, &facility, &identifier)
 }
 
 // DeleteFacility is the resolver for the deleteFacility field.
-func (r *mutationResolver) DeleteFacility(ctx context.Context, mflCode int) (bool, error) {
+func (r *mutationResolver) DeleteFacility(ctx context.Context, identifier dto.FacilityIdentifierInput) (bool, error) {
 	r.checkPreconditions()
-	return r.mycarehub.Facility.DeleteFacility(ctx, mflCode)
+	return r.mycarehub.Facility.DeleteFacility(ctx, &identifier)
 }
 
 // ReactivateFacility is the resolver for the reactivateFacility field.
-func (r *mutationResolver) ReactivateFacility(ctx context.Context, mflCode int) (bool, error) {
+func (r *mutationResolver) ReactivateFacility(ctx context.Context, identifier dto.FacilityIdentifierInput) (bool, error) {
 	r.checkPreconditions()
-	return r.mycarehub.Facility.ReactivateFacility(ctx, &mflCode)
+	return r.mycarehub.Facility.ReactivateFacility(ctx, &identifier)
 }
 
 // InactivateFacility is the resolver for the inactivateFacility field.
-func (r *mutationResolver) InactivateFacility(ctx context.Context, mflCode int) (bool, error) {
+func (r *mutationResolver) InactivateFacility(ctx context.Context, identifier dto.FacilityIdentifierInput) (bool, error) {
 	r.checkPreconditions()
-	return r.mycarehub.Facility.InactivateFacility(ctx, &mflCode)
+	return r.mycarehub.Facility.InactivateFacility(ctx, &identifier)
 }
 
 // AddFacilityContact is the resolver for the addFacilityContact field.
@@ -52,10 +52,10 @@ func (r *queryResolver) RetrieveFacility(ctx context.Context, id string, active 
 	return r.mycarehub.Facility.RetrieveFacility(ctx, &id, active)
 }
 
-// RetrieveFacilityByMFLCode is the resolver for the retrieveFacilityByMFLCode field.
-func (r *queryResolver) RetrieveFacilityByMFLCode(ctx context.Context, mflCode int, isActive bool) (*domain.Facility, error) {
+// RetrieveFacilityByIdentifier is the resolver for the retrieveFacilityByIdentifier field.
+func (r *queryResolver) RetrieveFacilityByIdentifier(ctx context.Context, identifier dto.FacilityIdentifierInput, isActive bool) (*domain.Facility, error) {
 	r.checkPreconditions()
-	return r.mycarehub.Facility.RetrieveFacilityByMFLCode(ctx, mflCode, isActive)
+	return r.mycarehub.Facility.RetrieveFacilityByIdentifier(ctx, &identifier, isActive)
 }
 
 // ListFacilities is the resolver for the listFacilities field.

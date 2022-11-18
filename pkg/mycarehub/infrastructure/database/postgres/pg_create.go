@@ -19,7 +19,7 @@ import (
 //
 // TODO: Create a helper the checks for all required fields
 // TODO: Make the create method idempotent
-func (d *MyCareHubDb) GetOrCreateFacility(ctx context.Context, facility *dto.FacilityInput) (*domain.Facility, error) {
+func (d *MyCareHubDb) GetOrCreateFacility(ctx context.Context, facility *dto.FacilityInput, identifier *dto.FacilityIdentifierInput) (*domain.Facility, error) {
 	if err := facility.Validate(); err != nil {
 		return nil, fmt.Errorf("facility input validation failed: %s", err)
 	}
@@ -33,12 +33,23 @@ func (d *MyCareHubDb) GetOrCreateFacility(ctx context.Context, facility *dto.Fac
 		FHIROrganisationID: facility.FHIROrganisationID,
 	}
 
-	facilitySession, err := d.create.GetOrCreateFacility(ctx, facilityObj)
+	facilityIdentifierObj := &gorm.FacilityIdentifier{
+		Active: true,
+		Type:   identifier.Type.String(),
+		Value:  identifier.Value,
+	}
+
+	facilitySession, err := d.create.GetOrCreateFacility(ctx, facilityObj, facilityIdentifierObj)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create facility: %v", err)
 	}
 
-	return d.mapFacilityObjectToDomain(facilitySession), nil
+	identifierSession, err := d.query.RetrieveFacilityIdentifierByFacilityID(ctx, facilitySession.FacilityID)
+	if err != nil {
+		return nil, fmt.Errorf("failed retrieve facility identifier: %w", err)
+	}
+
+	return d.mapFacilityObjectToDomain(facilitySession, identifierSession), nil
 }
 
 // SaveTemporaryUserPin does the actual saving of the users PIN in the database

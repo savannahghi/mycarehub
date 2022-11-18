@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"testing"
 	"time"
 
@@ -23,14 +24,12 @@ func TestMyCareHubDb_GetOrCreateFacility(t *testing.T) {
 	ctx := context.Background()
 
 	name := gofakeit.Name()
-	code := gofakeit.Number(300, 400)
 	phone := interserviceclient.TestUserPhoneNumber
 	county := "Nairobi"
 	description := gofakeit.HipsterSentence(15)
 
 	facility := &dto.FacilityInput{
 		Name:        name,
-		Code:        code,
 		Phone:       phone,
 		Active:      true,
 		County:      county,
@@ -44,9 +43,15 @@ func TestMyCareHubDb_GetOrCreateFacility(t *testing.T) {
 		Description: description,
 	}
 
+	identifier := &dto.FacilityIdentifierInput{
+		Type:  enums.FacilityIdentifierTypeMFLCode,
+		Value: strconv.Itoa(gofakeit.Number(10, 10000)),
+	}
+
 	type args struct {
-		ctx      context.Context
-		facility *dto.FacilityInput
+		ctx        context.Context
+		facility   *dto.FacilityInput
+		identifier *dto.FacilityIdentifierInput
 	}
 	tests := []struct {
 		name    string
@@ -57,24 +62,27 @@ func TestMyCareHubDb_GetOrCreateFacility(t *testing.T) {
 		{
 			name: "happy case - valid payload",
 			args: args{
-				ctx:      ctx,
-				facility: facility,
+				ctx:        ctx,
+				facility:   facility,
+				identifier: identifier,
 			},
 			wantErr: false,
 		},
 		{
 			name: "sad case - facility code not defined",
 			args: args{
-				ctx:      ctx,
-				facility: invalidFacility,
+				ctx:        ctx,
+				facility:   invalidFacility,
+				identifier: identifier,
 			},
 			wantErr: true,
 		},
 		{
 			name: "Sad Case - Fail to get ot create facility",
 			args: args{
-				ctx:      ctx,
-				facility: facility,
+				ctx:        ctx,
+				facility:   facility,
+				identifier: identifier,
 			},
 			wantErr: true,
 		},
@@ -85,24 +93,24 @@ func TestMyCareHubDb_GetOrCreateFacility(t *testing.T) {
 			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
 
 			if tt.name == "sad case - facility code not defined" {
-				fakeGorm.MockGetOrCreateFacilityFn = func(ctx context.Context, facility *gorm.Facility) (*gorm.Facility, error) {
+				fakeGorm.MockGetOrCreateFacilityFn = func(ctx context.Context, facility *gorm.Facility, identifier *gorm.FacilityIdentifier) (*gorm.Facility, error) {
 					return nil, fmt.Errorf("failed to create facility")
 				}
 			}
 
 			if tt.name == "sad case - nil facility input" {
-				fakeGorm.MockGetOrCreateFacilityFn = func(ctx context.Context, facility *gorm.Facility) (*gorm.Facility, error) {
+				fakeGorm.MockGetOrCreateFacilityFn = func(ctx context.Context, facility *gorm.Facility, identifier *gorm.FacilityIdentifier) (*gorm.Facility, error) {
 					return nil, fmt.Errorf("failed to create facility")
 				}
 			}
 
 			if tt.name == "Sad Case - Fail to get ot create facility" {
-				fakeGorm.MockGetOrCreateFacilityFn = func(ctx context.Context, facility *gorm.Facility) (*gorm.Facility, error) {
+				fakeGorm.MockGetOrCreateFacilityFn = func(ctx context.Context, facility *gorm.Facility, identifier *gorm.FacilityIdentifier) (*gorm.Facility, error) {
 					return nil, fmt.Errorf("failed to get or create facility")
 				}
 			}
 
-			got, err := d.GetOrCreateFacility(tt.args.ctx, tt.args.facility)
+			got, err := d.GetOrCreateFacility(tt.args.ctx, tt.args.facility, tt.args.identifier)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("MyCareHubDb.GetOrCreateFacility() error = %v, wantErr %v", err, tt.wantErr)
 				return
