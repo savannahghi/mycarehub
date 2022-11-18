@@ -212,9 +212,8 @@ func (db *PGInstance) GetSecurityQuestions(ctx context.Context, flavour feedlib.
 	}
 
 	var securityQuestion []*SecurityQuestion
-	var secQuestion SecurityQuestion
 
-	err := db.DB.Scopes(OrganisationScope(ctx, secQuestion.TableName())).Where(&SecurityQuestion{Flavour: flavour, Active: true}).Find(&securityQuestion).Error
+	err := db.DB.Where(&SecurityQuestion{Flavour: flavour, Active: true}).Find(&securityQuestion).Error
 	if err != nil {
 		return nil, fmt.Errorf("failed to query all security questions %v", err)
 	}
@@ -492,7 +491,7 @@ func (db *PGInstance) GetUserProfileByUserID(ctx context.Context, userID *string
 // GetSecurityQuestionByID fetches a security question using the security question ID
 func (db *PGInstance) GetSecurityQuestionByID(ctx context.Context, securityQuestionID *string) (*SecurityQuestion, error) {
 	var securityQuestion SecurityQuestion
-	if err := db.DB.Scopes(OrganisationScope(ctx, securityQuestion.TableName())).Where(&SecurityQuestion{SecurityQuestionID: securityQuestionID}).First(&securityQuestion).Error; err != nil {
+	if err := db.DB.Where(&SecurityQuestion{SecurityQuestionID: securityQuestionID}).First(&securityQuestion).Error; err != nil {
 		return nil, fmt.Errorf("failed to get security question by ID %v: %w", securityQuestionID, err)
 	}
 	return &securityQuestion, nil
@@ -619,7 +618,7 @@ func (db *PGInstance) SearchStaffProfile(ctx context.Context, searchParameter st
 			db.DB.Scopes(OrganisationScope(ctx, staffModel.TableName())).Where("staff_staff.staff_number ILIKE ? ", "%"+searchParameter+"%").
 				Or("users_user.username ILIKE ? ", "%"+searchParameter+"%").
 				Or("common_contact.contact_value ILIKE ?", "%"+searchParameter+"%"),
-		).Where("users_user.is_active = ?", true).Scopes(OrganisationScope(ctx, user.TableName())).Scopes(OrganisationScope(ctx, contact.TableName())).
+		).Where("users_user.active = ?", true).Scopes(OrganisationScope(ctx, user.TableName())).Scopes(OrganisationScope(ctx, contact.TableName())).
 		Find(&staff).Error; err != nil {
 		return nil, fmt.Errorf("unable to get staff user %w", err)
 	}
@@ -642,7 +641,7 @@ func (db *PGInstance) SearchCaregiverUser(ctx context.Context, searchParameter s
 				Where("caregivers_caregiver.caregiver_number ILIKE ? ", "%"+searchParameter+"%").
 				Or("users_user.username ILIKE ? ", "%"+searchParameter+"%").
 				Or("common_contact.contact_value ILIKE ?", "%"+searchParameter+"%"),
-		).Where("users_user.is_active = ?", true).Scopes(OrganisationScope(ctx, user.TableName())).Scopes(OrganisationScope(ctx, contact.TableName())).
+		).Where("users_user.active = ?", true).Scopes(OrganisationScope(ctx, user.TableName())).Scopes(OrganisationScope(ctx, contact.TableName())).
 		Find(&caregivers).Error; err != nil {
 		return nil, fmt.Errorf("unable to get caregiver user %w", err)
 	}
@@ -1288,7 +1287,7 @@ func (db *PGInstance) SearchClientProfile(ctx context.Context, searchParameter s
 			Where("clients_identifier.identifier_value ILIKE ? AND clients_identifier.identifier_type = ?", "%"+searchParameter+"%", "CCC").
 			Or("users_user.username ILIKE ? ", "%"+searchParameter+"%").
 			Or("common_contact.contact_value ILIKE ?", "%"+searchParameter+"%"),
-		).Scopes(OrganisationScope(ctx, user.TableName())).Where("users_user.is_active = ?", true).Preload(clause.Associations).Find(&client).Error; err != nil {
+		).Scopes(OrganisationScope(ctx, user.TableName())).Where("users_user.active = ?", true).Preload(clause.Associations).Find(&client).Error; err != nil {
 		return nil, fmt.Errorf("failed to get client profile: %w", err)
 	}
 

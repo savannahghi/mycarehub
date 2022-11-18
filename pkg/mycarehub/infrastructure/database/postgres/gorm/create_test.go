@@ -1391,6 +1391,7 @@ func TestPGInstance_RegisterClient(t *testing.T) {
 		ValidFrom:           time.Now(),
 		ValidTo:             time.Now(),
 		IsPrimaryIdentifier: true,
+		ProgramID:           programID,
 	}
 	clientData := &gorm.Client{
 		ID:                      &clientID,
@@ -2053,6 +2054,7 @@ func TestPGInstance_CreateCaregiver(t *testing.T) {
 					Active:          true,
 					CaregiverNumber: gofakeit.SSN(),
 					UserID:          userIDtoAssignClient,
+					ProgramID:       programID,
 				},
 			},
 			wantErr: false,
