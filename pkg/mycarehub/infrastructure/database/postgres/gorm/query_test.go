@@ -1889,6 +1889,7 @@ func TestPGInstance_GetCommunityByID(t *testing.T) {
 		InviteOnly:     true,
 		Discoverable:   true,
 		OrganisationID: uuid.New().String(),
+		ProgramID:      programID,
 	}
 
 	community, err := testingDB.CreateCommunity(addOrganizationContext(context.Background()), communityInput)
@@ -2107,6 +2108,7 @@ func TestPGInstance_GetServiceRequestsForKenyaEMR(t *testing.T) {
 		ResolvedByID:   &staffID,
 		FacilityID:     facilityID,
 		Meta:           `{}`,
+		ProgramID:      programID,
 	}
 
 	err := testingDB.CreateServiceRequest(addOrganizationContext(context.Background()), serviceRequest)

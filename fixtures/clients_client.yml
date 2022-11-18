@@ -13,7 +13,6 @@
   current_facility_id: {{.test_facility_id}}
   user_id: {{.test_user_id}}
 
-
 # client to record health diary
 - id: 00a6a0cd-42ac-417b-97d9-e939a1232de1
   created: 2021-11-22 21:16:29.23639+03
