@@ -239,14 +239,12 @@ func (d *MyCareHubDb) UpdateClient(ctx context.Context, client *domain.ClientPro
 		TreatmentEnrollmentDate: c.TreatmentEnrollmentDate,
 		FHIRPatientID:           c.FHIRPatientID,
 		HealthRecordID:          c.HealthRecordID,
-		TreatmentBuddy:          c.TreatmentBuddy,
 		ClientCounselled:        c.ClientCounselled,
 		OrganisationID:          c.OrganisationID,
 		DefaultFacility: &domain.Facility{
 			ID:   &c.FacilityID,
 			Name: facilitiesMap[c.FacilityID],
 		},
-		CHVUserID:  c.CHVUserID,
 		Facilities: clientFacilities,
 	}, nil
 }

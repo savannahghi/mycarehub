@@ -388,13 +388,11 @@ func (d *MyCareHubDb) CreateClient(ctx context.Context, client domain.ClientProf
 		TreatmentEnrollmentDate: c.TreatmentEnrollmentDate,
 		FHIRPatientID:           c.FHIRPatientID,
 		HealthRecordID:          c.HealthRecordID,
-		TreatmentBuddy:          c.TreatmentBuddy,
 		ClientCounselled:        c.ClientCounselled,
 		OrganisationID:          c.OrganisationID,
 		DefaultFacility: &domain.Facility{
 			ID: &c.FacilityID,
 		},
-		CHVUserID: c.CHVUserID,
 	}, nil
 }
 
@@ -455,7 +453,6 @@ func (d *MyCareHubDb) RegisterClient(ctx context.Context, payload *domain.Client
 		ClientTypes:             clientTypes,
 		TreatmentEnrollmentDate: clientProfile.TreatmentEnrollmentDate,
 		UserID:                  *client.UserID,
-		TreatmentBuddy:          clientProfile.TreatmentBuddy,
 		ClientCounselled:        clientProfile.ClientCounselled,
 		DefaultFacility: &domain.Facility{
 			ID: &clientProfile.FacilityID,

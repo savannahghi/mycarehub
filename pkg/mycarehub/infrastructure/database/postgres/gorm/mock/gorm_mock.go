@@ -268,11 +268,9 @@ func NewGormMock() *GormMock {
 		TreatmentEnrollmentDate: &currentTime,
 		FHIRPatientID:           &fhirID,
 		HealthRecordID:          &UUID,
-		TreatmentBuddy:          gofakeit.Name(),
 		ClientCounselled:        true,
 		OrganisationID:          uuid.New().String(),
 		FacilityID:              uuid.New().String(),
-		CHVUserID:               &UUID,
 		UserID:                  &UUID,
 	}
 
