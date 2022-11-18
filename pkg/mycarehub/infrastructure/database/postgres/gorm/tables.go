@@ -17,8 +17,13 @@ import (
 	"gorm.io/gorm/clause"
 )
 
-// OrganizationID assign a default organisation to a type
-var OrganizationID = serverutils.MustGetEnvVar(common.OrganizationID)
+var (
+	// OrganizationID assign a default organisation to a type
+	OrganizationID = serverutils.MustGetEnvVar(common.OrganizationID)
+
+	// ProgramID assign a default program id to database models
+	ProgramID = serverutils.MustGetEnvVar(common.ProgramID)
+)
 
 // Base model contains defines common fields across tables
 type Base struct {
@@ -26,6 +31,7 @@ type Base struct {
 	UpdatedAt time.Time `gorm:"column:updated;not null"`
 	CreatedBy *string   `gorm:"column:created_by"`
 	UpdatedBy *string   `gorm:"column:updated_by"`
+	DeletedAt time.Time `gorm:"column:deleted_at"`
 }
 
 // Facility models the details of healthcare facilities that are on the platform.
@@ -175,7 +181,7 @@ type User struct {
 	Contacts Contact `gorm:"ForeignKey:UserID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;not null"` // TODO: validate, ensure
 
 	// for the preferred language list, order matters
-	// Languages pq.StringArray `gorm:"type:text[];column:languages;not null"` // TODO: turn this into a slice of enums, start small (en, sw)
+	Languages pq.StringArray `gorm:"type:text[];column:languages;not null"` // TODO: turn this into a slice of enums, start small (en, sw)
 
 	PushTokens pq.StringArray `gorm:"type:text[];column:push_tokens"`
 
@@ -242,6 +248,10 @@ func (u *User) BeforeCreate(tx *gorm.DB) (err error) {
 	u.HasSetSecurityQuestion = false
 	u.PinUpdateRequired = false
 
+	if u.CurrentProgramID == "" {
+		u.CurrentProgramID = ProgramID
+	}
+
 	return
 }
 
@@ -261,6 +271,30 @@ func (u *User) BeforeDelete(tx *gorm.DB) (err error) {
 // TableName customizes how the table name is generated
 func (User) TableName() string {
 	return "users_user"
+}
+
+// CommonProgramUser models the relationship between a user and a program
+type CommonProgramUser struct {
+	ID        string `gorm:"column:id;primary_key"`
+	ProgramID string `gorm:"column:program_id"`
+	UserID    string `gorm:"column:user_id"`
+}
+
+// TableName customizes how the table name is generated
+func (CommonProgramUser) TableName() string {
+	return "common_program_user"
+}
+
+// ProgramFacility models the relationship between a program and a facility
+type ProgramFacility struct {
+	ID         string `gorm:"column:id;primary_key"`
+	ProgramID  string `gorm:"column:program_id"`
+	FacilityID string `gorm:"column:facility_id"`
+}
+
+// TableName customizes how the table name is generated
+func (ProgramFacility) TableName() string {
+	return "common_program_facility"
 }
 
 // Contact hold contact information/details for users
@@ -381,24 +415,12 @@ type SecurityQuestion struct {
 	Flavour            feedlib.Flavour                    `gorm:"column:flavour"`
 	Active             bool                               `gorm:"column:active"`
 	Sequence           *int                               `gorm:"column:sequence"` // for sorting
-
-	OrganisationID string `gorm:"column:organisation_id"`
 }
 
 // BeforeCreate is a hook run before creating security question
 func (s *SecurityQuestion) BeforeCreate(tx *gorm.DB) (err error) {
-	ctx := tx.Statement.Context
-	orgID, err := utils.GetOrganisationIDFromContext(ctx)
-	if err != nil {
-		logrus.Println("failed to get organisation from context")
-	}
-	if orgID == "" {
-		orgID = OrganizationID
-	}
-
 	id := uuid.New().String()
 	s.SecurityQuestionID = &id
-	s.OrganisationID = orgID
 
 	return
 }
@@ -502,6 +524,7 @@ type Client struct {
 	CHVUserID *string `gorm:"column:chv_id"`
 
 	OrganisationID string `gorm:"column:organisation_id"`
+	ProgramID      string `gorm:"column:program_id"`
 
 	UserID *string `gorm:"column:user_id;not null"`
 	User   User    `gorm:"ForeignKey:user_id;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;not null"`
@@ -521,6 +544,10 @@ func (c *Client) BeforeCreate(tx *gorm.DB) (err error) {
 	id := uuid.New().String()
 	c.ID = &id
 	c.OrganisationID = orgID
+
+	if c.ProgramID == "" {
+		c.ProgramID = ProgramID
+	}
 
 	return
 }
@@ -568,6 +595,30 @@ type ClientFacility struct {
 	OrganisationID string `gorm:"column:organisation_id"`
 	ClientID       string `gorm:"column:client_id"`
 	FacilityID     string `gorm:"column:facility_id"`
+	ProgramID      string `gorm:"column:program_id"`
+}
+
+// BeforeCreate is a hook run before creating a client facility
+func (c *ClientFacility) BeforeCreate(tx *gorm.DB) (err error) {
+	ctx := tx.Statement.Context
+	orgID, err := utils.GetOrganisationIDFromContext(ctx)
+	if err != nil {
+		logrus.Println("failed to get organisation from context")
+	}
+
+	if orgID == "" {
+		orgID = OrganizationID
+	}
+
+	id := uuid.New().String()
+	c.ID = &id
+	c.OrganisationID = orgID
+
+	if c.ProgramID == "" {
+		c.ProgramID = ProgramID
+	}
+
+	return
 }
 
 // TableName represents the client facility table name
@@ -605,6 +656,8 @@ type StaffProfile struct {
 
 	UserID      string `gorm:"column:user_id"` // foreign key to user
 	UserProfile User   `gorm:"ForeignKey:user_id;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;not null"`
+
+	ProgramID string `gorm:"column:program_id"` // foreign key to program
 }
 
 // BeforeCreate is a hook run before creating a staff profile
@@ -621,6 +674,10 @@ func (s *StaffProfile) BeforeCreate(tx *gorm.DB) (err error) {
 	id := uuid.New().String()
 	s.ID = &id
 	s.OrganisationID = orgID
+
+	if s.ProgramID == "" {
+		s.ProgramID = ProgramID
+	}
 
 	return
 }
@@ -641,9 +698,9 @@ type ClientHealthDiaryEntry struct {
 	EntryType                string     `gorm:"column:entry_type"`
 	ShareWithHealthWorker    bool       `gorm:"column:share_with_health_worker"`
 	SharedAt                 *time.Time `gorm:"column:shared_at"`
-
-	ClientID       string `gorm:"column:client_id"`
-	OrganisationID string `gorm:"column:organisation_id"`
+	ProgramID                string     `gorm:"column:program_id"`
+	ClientID                 string     `gorm:"column:client_id"`
+	OrganisationID           string     `gorm:"column:organisation_id"`
 }
 
 // BeforeCreate is a hook run before creating a client Health Diary Entry
@@ -683,11 +740,11 @@ type ClientServiceRequest struct {
 	ResolvedAt     *time.Time `gorm:"column:resolved_at"`
 	InProgressByID *string    `gorm:"column:in_progress_by_id"`
 	Meta           string     `gorm:"column:meta"`
-
-	OrganisationID string  `gorm:"column:organisation_id"`
-	ResolvedByID   *string `gorm:"column:resolved_by_id"`
-	FacilityID     string  `gorm:"column:facility_id"`
-	ClientID       string  `gorm:"column:client_id"`
+	ProgramID      string     `gorm:"column:program_id"`
+	OrganisationID string     `gorm:"column:organisation_id"`
+	ResolvedByID   *string    `gorm:"column:resolved_by_id"`
+	FacilityID     string     `gorm:"column:facility_id"`
+	ClientID       string     `gorm:"column:client_id"`
 }
 
 // BeforeCreate is a hook called before creating a service request.
@@ -704,6 +761,10 @@ func (c *ClientServiceRequest) BeforeCreate(tx *gorm.DB) (err error) {
 	id := uuid.New().String()
 	c.ID = &id
 	c.OrganisationID = orgID
+
+	if c.ProgramID == "" {
+		c.ProgramID = ProgramID
+	}
 
 	return
 }
@@ -730,6 +791,7 @@ type StaffServiceRequest struct {
 	OrganisationID    string  `gorm:"column:organisation_id"`
 	ResolvedByID      *string `gorm:"column:resolved_by_id"`
 	DefaultFacilityID *string `gorm:"column:facility_id"`
+	ProgramID         string  `gorm:"column:program_id"`
 }
 
 // BeforeCreate is a hook called before creating a service request.
@@ -747,6 +809,10 @@ func (c *StaffServiceRequest) BeforeCreate(tx *gorm.DB) (err error) {
 	c.ID = &id
 	c.OrganisationID = orgID
 
+	if c.ProgramID == "" {
+		c.ProgramID = ProgramID
+	}
+
 	return
 }
 
@@ -763,8 +829,8 @@ type ClientHealthDiaryQuote struct {
 	Active                   bool    `gorm:"column:active"`
 	Quote                    string  `gorm:"column:quote"`
 	Author                   string  `gorm:"column:by"`
-
-	OrganisationID string `gorm:"column:organisation_id"`
+	ProgramID                string  `gorm:"column:program_id"`
+	OrganisationID           string  `gorm:"column:organisation_id"`
 }
 
 // BeforeCreate is a hook run before creating view count
@@ -781,6 +847,10 @@ func (c *ClientHealthDiaryQuote) BeforeCreate(tx *gorm.DB) (err error) {
 	id := uuid.New().String()
 	c.ClientHealthDiaryQuoteID = &id
 	c.OrganisationID = orgID
+
+	if c.ProgramID == "" {
+		c.ProgramID = ProgramID
+	}
 
 	return
 }
@@ -867,22 +937,34 @@ func (AuthorityRoleUser) TableName() string {
 	return "authority_authorityrole_users"
 }
 
+// AuthorityRolePermission is the gorms authority role permission model
+type AuthorityRolePermission struct {
+	ID           int     `gorm:"primaryKey;column:id;autoincrement"`
+	PermissionID *string `gorm:"column:authoritypermission_id"`
+	RoleID       *string `gorm:"column:authorityrole_id"`
+}
+
+// TableName references the table that we map data from
+func (AuthorityRolePermission) TableName() string {
+	return "authority_authorityrole_permissions"
+}
+
 // Community defines the payload to create a channel
 type Community struct {
 	Base
 
-	ID           string         `gorm:"primaryKey;column:id"`
-	Name         string         `gorm:"column:name"`
-	Description  string         `gorm:"column:description"`
-	Active       bool           `gorm:"column:active"`
-	MinimumAge   int            `gorm:"column:min_age"`
-	MaximumAge   int            `gorm:"column:max_age"`
-	Gender       pq.StringArray `gorm:"type:text[];column:gender"`
-	ClientTypes  pq.StringArray `gorm:"type:text[];column:client_types"`
-	InviteOnly   bool           `gorm:"column:invite_only"`
-	Discoverable bool           `gorm:"column:discoverable"`
-
-	OrganisationID string `gorm:"column:organisation_id"`
+	ID             string         `gorm:"primaryKey;column:id"`
+	Name           string         `gorm:"column:name"`
+	Description    string         `gorm:"column:description"`
+	Active         bool           `gorm:"column:active"`
+	MinimumAge     int            `gorm:"column:min_age"`
+	MaximumAge     int            `gorm:"column:max_age"`
+	Gender         pq.StringArray `gorm:"type:text[];column:gender"`
+	ClientTypes    pq.StringArray `gorm:"type:text[];column:client_types"`
+	InviteOnly     bool           `gorm:"column:invite_only"`
+	Discoverable   bool           `gorm:"column:discoverable"`
+	ProgramID      string         `gorm:"column:program_id"`
+	OrganisationID string         `gorm:"column:organisation_id"`
 }
 
 // BeforeCreate is a hook run before creating a community
@@ -899,6 +981,10 @@ func (c *Community) BeforeCreate(tx *gorm.DB) (err error) {
 	id := uuid.New().String()
 	c.ID = id
 	c.OrganisationID = orgID
+
+	if c.ProgramID == "" {
+		c.ProgramID = ProgramID
+	}
 
 	return
 }
@@ -921,8 +1007,8 @@ type Identifier struct {
 	ValidFrom           time.Time `gorm:"column:valid_from;not null"`
 	ValidTo             time.Time `gorm:"column:valid_to"`
 	IsPrimaryIdentifier bool      `gorm:"column:is_primary_identifier"`
-
-	OrganisationID string `gorm:"column:organisation_id;not null"`
+	OrganisationID      string    `gorm:"column:organisation_id;not null"`
+	ProgramID           string    `gorm:"column:program_id;not null"`
 }
 
 // TableName references the table that we map data from
@@ -945,6 +1031,10 @@ func (i *Identifier) BeforeCreate(tx *gorm.DB) (err error) {
 
 	i.ID = id
 	i.OrganisationID = orgID
+
+	if i.ProgramID == "" {
+		i.ProgramID = ProgramID
+	}
 
 	return
 }
@@ -984,8 +1074,8 @@ type RelatedPerson struct {
 	OtherName        string `gorm:"column:other_name"`
 	Gender           string `gorm:"column:gender"`
 	RelationshipType string `gorm:"column:relationship_type"`
-
-	OrganisationID string `gorm:"column:organisation_id;not null"`
+	ProgramID        string `gorm:"column:program_id"`
+	OrganisationID   string `gorm:"column:organisation_id;not null"`
 }
 
 // TableName references the table that we map data from
@@ -1007,6 +1097,10 @@ func (r *RelatedPerson) BeforeCreate(tx *gorm.DB) (err error) {
 	id := uuid.New().String()
 	r.ID = id
 	r.OrganisationID = orgID
+
+	if r.ProgramID == "" {
+		r.ProgramID = ProgramID
+	}
 
 	return
 }
@@ -1048,8 +1142,8 @@ type ScreeningToolQuestion struct {
 	Sequence         int    `gorm:"column:sequence"`
 	Active           bool   `gorm:"column:active"`
 	Meta             string `gorm:"column:meta"`
-
-	OrganisationID string `gorm:"column:organisation_id"`
+	ProgramID        string `gorm:"column:program_id"`
+	OrganisationID   string `gorm:"column:organisation_id"`
 }
 
 // BeforeCreate is a hook run before creating a screening tools question
@@ -1066,6 +1160,10 @@ func (c *ScreeningToolQuestion) BeforeCreate(tx *gorm.DB) (err error) {
 	id := uuid.New().String()
 	c.ID = id
 	c.OrganisationID = orgID
+
+	if c.ProgramID == "" {
+		c.ProgramID = ProgramID
+	}
 
 	return
 }
@@ -1086,6 +1184,7 @@ type ScreeningToolsResponse struct {
 	ClientID       string `gorm:"column:client_id"`
 	QuestionID     string `gorm:"column:question_id"`
 	OrganisationID string `gorm:"column:organisation_id"`
+	ProgramID      string `gorm:"column:program_id"`
 }
 
 // BeforeCreate is a hook run before creating a screening tools response
@@ -1102,6 +1201,10 @@ func (c *ScreeningToolsResponse) BeforeCreate(tx *gorm.DB) (err error) {
 	id := uuid.New().String()
 	c.ID = id
 	c.OrganisationID = orgID
+
+	if c.ProgramID == "" {
+		c.ProgramID = ProgramID
+	}
 
 	return
 }
@@ -1122,10 +1225,10 @@ type Appointment struct {
 	Provider                  string    `gorm:"column:provider"`
 	Date                      time.Time `gorm:"column:date"`
 	HasRescheduledAppointment bool      `gorm:"column:has_rescheduled_appointment"`
-
-	OrganisationID string `gorm:"column:organisation_id;not null"`
-	ClientID       string `gorm:"column:client_id"`
-	FacilityID     string `gorm:"column:facility_id"`
+	ProgramID                 string    `gorm:"column:program_id"`
+	OrganisationID            string    `gorm:"column:organisation_id;not null"`
+	ClientID                  string    `gorm:"column:client_id"`
+	FacilityID                string    `gorm:"column:facility_id"`
 }
 
 // BeforeCreate is a hook run before creating an appointment
@@ -1143,6 +1246,10 @@ func (a *Appointment) BeforeCreate(tx *gorm.DB) (err error) {
 	a.ID = id
 	a.OrganisationID = orgID
 
+	if a.ProgramID == "" {
+		a.ProgramID = ProgramID
+	}
+
 	return
 }
 
@@ -1155,17 +1262,17 @@ func (Appointment) TableName() string {
 type Notification struct {
 	Base
 
-	ID      string          `gorm:"primaryKey;column:id;"`
-	Active  bool            `gorm:"column:active;not null"`
-	Title   string          `gorm:"column:title"`
-	Body    string          `gorm:"column:body"`
-	Type    string          `gorm:"column:notification_type"`
-	Flavour feedlib.Flavour `gorm:"column:flavour"`
-	IsRead  bool            `gorm:"column:is_read"`
-
-	UserID         *string `gorm:"column:user_id"`
-	FacilityID     *string `gorm:"column:facility_id"`
-	OrganisationID string  `gorm:"column:organisation_id;not null"`
+	ID             string          `gorm:"primaryKey;column:id;"`
+	Active         bool            `gorm:"column:active;not null"`
+	Title          string          `gorm:"column:title"`
+	Body           string          `gorm:"column:body"`
+	Type           string          `gorm:"column:notification_type"`
+	Flavour        feedlib.Flavour `gorm:"column:flavour"`
+	IsRead         bool            `gorm:"column:is_read"`
+	ProgramID      string          `gorm:"column:program_id"`
+	UserID         *string         `gorm:"column:user_id"`
+	FacilityID     *string         `gorm:"column:facility_id"`
+	OrganisationID string          `gorm:"column:organisation_id;not null"`
 }
 
 // BeforeCreate is a hook run before creating an appointment
@@ -1182,6 +1289,10 @@ func (n *Notification) BeforeCreate(tx *gorm.DB) (err error) {
 	id := uuid.New().String()
 	n.ID = id
 	n.OrganisationID = orgID
+
+	if n.ProgramID == "" {
+		n.ProgramID = ProgramID
+	}
 
 	return
 }
@@ -1219,20 +1330,20 @@ func (s *StaffFacilities) TableName() string {
 type UserSurvey struct {
 	Base
 
-	ID           string     `gorm:"id"`
-	Active       bool       `gorm:"active"`
-	Link         string     `gorm:"link"`
-	Title        string     `gorm:"title"`
-	Description  string     `gorm:"description"`
-	HasSubmitted bool       `gorm:"submitted"`
-	FormID       string     `gorm:"form_id"`
-	ProjectID    int        `gorm:"project_id"`
-	LinkID       int        `gorm:"link_id"`
-	Token        string     `gorm:"token"`
-	SubmittedAt  *time.Time `gorm:"submitted_at"`
-
-	UserID         string `gorm:"user_id"`
-	OrganisationID string `gorm:"organisation_id"`
+	ID             string     `gorm:"id"`
+	Active         bool       `gorm:"active"`
+	Link           string     `gorm:"link"`
+	Title          string     `gorm:"title"`
+	Description    string     `gorm:"description"`
+	HasSubmitted   bool       `gorm:"submitted"`
+	FormID         string     `gorm:"form_id"`
+	ProjectID      int        `gorm:"project_id"`
+	LinkID         int        `gorm:"link_id"`
+	Token          string     `gorm:"token"`
+	SubmittedAt    *time.Time `gorm:"submitted_at"`
+	ProgramID      string     `gorm:"program_id"`
+	UserID         string     `gorm:"user_id"`
+	OrganisationID string     `gorm:"organisation_id"`
 }
 
 // BeforeCreate is a hook run before creating a user survey model
@@ -1249,6 +1360,10 @@ func (u *UserSurvey) BeforeCreate(tx *gorm.DB) (err error) {
 	id := uuid.New().String()
 	u.ID = id
 	u.OrganisationID = orgID
+
+	if u.ProgramID == "" {
+		u.ProgramID = ProgramID
+	}
 
 	return
 }
@@ -1288,9 +1403,9 @@ type Feedback struct {
 	Feedback          string `gorm:"column:feedback"`
 	RequiresFollowUp  bool   `gorm:"column:requires_followup"`
 	PhoneNumber       string `gorm:"column:phone_number"`
-
-	OrganisationID string `gorm:"column:organisation_id"`
-	UserID         string `gorm:"column:user_id"`
+	ProgramID         string `gorm:"column:program_id"`
+	OrganisationID    string `gorm:"column:organisation_id"`
+	UserID            string `gorm:"column:user_id"`
 }
 
 // BeforeCreate is a hook run before creating an appointment
@@ -1308,12 +1423,40 @@ func (f *Feedback) BeforeCreate(tx *gorm.DB) (err error) {
 	f.ID = id
 	f.OrganisationID = orgID
 
+	if f.ProgramID == "" {
+		f.ProgramID = ProgramID
+	}
+
 	return
 }
 
 // TableName references the table that we map data from
 func (Feedback) TableName() string {
 	return "common_feedback"
+}
+
+// CommunityClient is represents the relationship between a client and a community. It is basically a through table
+type CommunityClient struct {
+	ID          int     `gorm:"primaryKey;column:id;autoincrement"`
+	CommunityID *string `gorm:"column:community_id"`
+	ClientID    *string `gorm:"column:client_id"`
+}
+
+// TableName references the table that we map data from
+func (CommunityClient) TableName() string {
+	return "communities_community_clients"
+}
+
+// CommunityStaff is represents the relationship between a staff and a community. It is basically a through table
+type CommunityStaff struct {
+	ID          int     `gorm:"primaryKey;column:id;autoincrement"`
+	CommunityID *string `gorm:"column:community_id"`
+	StaffID     *string `gorm:"column:staff_id"`
+}
+
+// TableName references the table that we map data from
+func (CommunityStaff) TableName() string {
+	return "communities_community_staff"
 }
 
 // Questionnaire defines the questionnaire database models
@@ -1325,6 +1468,7 @@ type Questionnaire struct {
 	Active      bool   `gorm:"column:active"`
 	Name        string `gorm:"column:name"`
 	Description string `gorm:"column:description"`
+	ProgramID   string `gorm:"column:program_id"`
 }
 
 // BeforeCreate is a hook run before creating a questionnaire
@@ -1341,6 +1485,10 @@ func (q *Questionnaire) BeforeCreate(tx *gorm.DB) (err error) {
 	id := uuid.New().String()
 	q.ID = id
 	q.OrganisationID = orgID
+
+	if q.ProgramID == "" {
+		q.ProgramID = ProgramID
+	}
 
 	return
 }
@@ -1363,6 +1511,7 @@ type ScreeningTool struct {
 	Genders         pq.StringArray `gorm:"type:text[];column:genders"`
 	MinimumAge      int            `gorm:"column:min_age"`
 	MaximumAge      int            `gorm:"column:max_age"`
+	ProgramID       string         `gorm:"column:program_id"`
 }
 
 // BeforeCreate is a hook run before creating a screening tool
@@ -1379,6 +1528,10 @@ func (f *ScreeningTool) BeforeCreate(tx *gorm.DB) (err error) {
 	id := uuid.New().String()
 	f.ID = id
 	f.OrganisationID = orgID
+
+	if f.ProgramID == "" {
+		f.ProgramID = ProgramID
+	}
 
 	return
 }
@@ -1402,6 +1555,7 @@ type Question struct {
 	SelectMultiple    bool   `gorm:"column:select_multiple"`
 	Required          bool   `gorm:"column:required"`
 	Sequence          int    `gorm:"column:sequence"`
+	ProgramID         string `gorm:"column:program_id"`
 }
 
 // BeforeCreate is a hook run before creating a question
@@ -1438,6 +1592,7 @@ type QuestionInputChoice struct {
 	Choice     string `gorm:"column:choice"`
 	Value      string `gorm:"column:value"`
 	Score      int    `gorm:"column:score"`
+	ProgramID  string `gorm:"column:program_id"`
 }
 
 // BeforeCreate is a hook run before creating a question input choice
@@ -1454,6 +1609,10 @@ func (q *QuestionInputChoice) BeforeCreate(tx *gorm.DB) (err error) {
 	id := uuid.New().String()
 	q.ID = id
 	q.OrganisationID = orgID
+
+	if q.ProgramID == "" {
+		q.ProgramID = ProgramID
+	}
 
 	return
 }
@@ -1474,6 +1633,7 @@ type ScreeningToolResponse struct {
 	FacilityID      string `gorm:"column:facility_id"`
 	ClientID        string `gorm:"column:client_id"`
 	AggregateScore  int    `gorm:"column:aggregate_score"`
+	ProgramID       string `gorm:"column:program_id"`
 }
 
 // BeforeCreate is a hook run before creating a screening tool response
@@ -1490,6 +1650,10 @@ func (s *ScreeningToolResponse) BeforeCreate(tx *gorm.DB) (err error) {
 	id := uuid.New().String()
 	s.ID = id
 	s.OrganisationID = orgID
+
+	if s.ProgramID == "" {
+		s.ProgramID = ProgramID
+	}
 
 	return
 }
@@ -1510,6 +1674,8 @@ type ScreeningToolQuestionResponse struct {
 	QuestionID              string `gorm:"column:question_id"`
 	Response                string `gorm:"column:response"`
 	Score                   int    `gorm:"column:score"`
+	ProgramID               string `gorm:"column:program_id"`
+	FacilityID              string `gorm:"column:facility_id"`
 }
 
 // BeforeCreate is a hook run before creating a screening tool question response
@@ -1526,6 +1692,10 @@ func (s *ScreeningToolQuestionResponse) BeforeCreate(tx *gorm.DB) (err error) {
 	id := uuid.New().String()
 	s.ID = id
 	s.OrganisationID = orgID
+
+	if s.ProgramID == "" {
+		s.ProgramID = ProgramID
+	}
 
 	return
 }
@@ -1560,6 +1730,7 @@ type Caregiver struct {
 	OrganisationID string `gorm:"column:organisation_id;not null"`
 	UserID         string `gorm:"column:user_id"`
 	UserProfile    User   `gorm:"ForeignKey:user_id;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;not null"`
+	ProgramID      string `gorm:"column:program_id"`
 }
 
 // BeforeCreate is a hook run before creating a caregiver
@@ -1576,6 +1747,10 @@ func (c *Caregiver) BeforeCreate(tx *gorm.DB) (err error) {
 	id := uuid.New().String()
 	c.ID = id
 	c.OrganisationID = orgID
+
+	if c.ProgramID == "" {
+		c.ProgramID = ProgramID
+	}
 
 	return nil
 }
@@ -1600,6 +1775,7 @@ type CaregiverClient struct {
 
 	OrganisationID string `gorm:"column:organisation_id;not null"`
 	AssignedBy     string `gorm:"column:assigned_by;not null"`
+	ProgramID      string `gorm:"column:program_id"`
 }
 
 // BeforeCreate is a hook run before creating a caregiver client
@@ -1615,10 +1791,48 @@ func (c *CaregiverClient) BeforeCreate(tx *gorm.DB) (err error) {
 
 	c.OrganisationID = orgID
 
+	if c.ProgramID == "" {
+		c.ProgramID = ProgramID
+	}
+
 	return nil
 }
 
 // TableName references the table name in the database
 func (c *CaregiverClient) TableName() string {
 	return "caregivers_caregiver_client"
+}
+
+// Program is the database model for a program
+type Program struct {
+	Base
+
+	ID             string   `gorm:"primaryKey;column:id"`
+	Active         bool     `gorm:"column:active"`
+	Name           string   `gorm:"column:name"`
+	ClientTypes    []string `gorm:"column:client_types"`
+	OrganisationID string   `gorm:"column:organisation_id;not null"`
+}
+
+// BeforeCreate is a hook run before creating a program
+func (p *Program) BeforeCreate(tx *gorm.DB) (err error) {
+	ctx := tx.Statement.Context
+	orgID, err := utils.GetOrganisationIDFromContext(ctx)
+	if err != nil {
+		logrus.Println("failed to get organisation from context")
+	}
+	if orgID == "" {
+		orgID = OrganizationID
+	}
+
+	id := uuid.New().String()
+	p.ID = id
+	p.OrganisationID = orgID
+
+	return nil
+}
+
+// TableName references the table name in the database
+func (p *Program) TableName() string {
+	return "common_program"
 }

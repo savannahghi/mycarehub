@@ -556,6 +556,7 @@ func TestPGInstance_CreateServiceRequest(t *testing.T) {
 		OrganisationID: orgID,
 		FacilityID:     facilityID,
 		Meta:           meta,
+		ProgramID:      programID,
 	}
 	InvalidServiceRequestInput := &gorm.ClientServiceRequest{
 		Active:         false,
@@ -725,6 +726,7 @@ func TestPGInstance_CreateCommunity(t *testing.T) {
 					ClientTypes:    clientTypeList,
 					InviteOnly:     true,
 					Discoverable:   true,
+					ProgramID:      programID,
 					OrganisationID: uuid.New().String(),
 				},
 			},
@@ -781,6 +783,7 @@ func TestPGInstance_GetOrCreateNextOfKin(t *testing.T) {
 					LastName:         gofakeit.Name(),
 					Gender:           "MALE",
 					RelationshipType: "Next of Kin",
+					ProgramID:        programID,
 				},
 				clientID:  clientID,
 				contactID: contactID,
@@ -859,6 +862,7 @@ func TestPGInstance_AnswerScreeningToolQuestions(t *testing.T) {
 						QuestionID: screeningToolsQuestionID,
 						ClientID:   clientID,
 						Response:   "0",
+						ProgramID:  programID,
 					},
 				},
 			},
@@ -898,6 +902,7 @@ func TestPGInstance_CreateAppointment(t *testing.T) {
 					Reason:                    "Dental",
 					Date:                      time.Now().Add(time.Duration(100)),
 					HasRescheduledAppointment: true,
+					ProgramID:                 programID,
 				},
 			},
 			wantErr: false,
@@ -1171,6 +1176,7 @@ func TestPGInstance_CreateIdentifier(t *testing.T) {
 					IdentifierUse:       "OFFICIAL",
 					Description:         "CCC Number, Primary Identifier",
 					IsPrimaryIdentifier: true,
+					ProgramID:           programID,
 				},
 			},
 			wantErr: false,
@@ -1213,6 +1219,7 @@ func TestPGInstance_CreateNotification(t *testing.T) {
 					IsRead:     false,
 					UserID:     &userID,
 					FacilityID: &facilityID,
+					ProgramID:  programID,
 				},
 			},
 			wantErr: false,
@@ -1247,6 +1254,7 @@ func TestPGInstance_CreateUserSurvey(t *testing.T) {
 						Title:       gofakeit.Name(),
 						Description: gofakeit.Sentence(1),
 						Link:        gofakeit.URL(),
+						ProgramID:   programID,
 					},
 				},
 			},
@@ -1298,6 +1306,7 @@ func TestPGInstance_SaveFeedback(t *testing.T) {
 		RequiresFollowUp:  true,
 		PhoneNumber:       interserviceclient.TestUserPhoneNumber,
 		OrganisationID:    orgID,
+		ProgramID:         programID,
 	}
 
 	invalidFeedback := &gorm.Feedback{
@@ -1310,6 +1319,7 @@ func TestPGInstance_SaveFeedback(t *testing.T) {
 		RequiresFollowUp:  true,
 		PhoneNumber:       interserviceclient.TestUserPhoneNumber,
 		OrganisationID:    orgID,
+		ProgramID:         programID,
 	}
 
 	type args struct {
@@ -1615,6 +1625,7 @@ func TestPGInstance_CreateQuestionnaire(t *testing.T) {
 					Active:      true,
 					Name:        name,
 					Description: gofakeit.Sentence(1),
+					ProgramID:   programID,
 				},
 			},
 			wantErr: false,
@@ -1665,6 +1676,7 @@ func TestPGInstance_CreateScreeningTool(t *testing.T) {
 					Genders:         []string{enumutils.GenderFemale.String()},
 					MinimumAge:      14,
 					MaximumAge:      25,
+					ProgramID:       programID,
 				},
 			},
 			wantErr: false,
@@ -1720,6 +1732,7 @@ func TestPGInstance_CreateQuestion(t *testing.T) {
 					SelectMultiple:    false,
 					Required:          true,
 					Sequence:          1,
+					ProgramID:         programID,
 				},
 			},
 		},
@@ -1772,6 +1785,7 @@ func TestPGInstance_CreateQuestionChoice(t *testing.T) {
 					Choice:     gofakeit.Sentence(1),
 					Value:      "1",
 					Score:      1,
+					ProgramID:  programID,
 				},
 			},
 		},
@@ -1824,6 +1838,7 @@ func TestPGInstance_CreateScreeningToolResponse(t *testing.T) {
 					FacilityID:      facilityID,
 					ClientID:        clientID,
 					AggregateScore:  1,
+					ProgramID:       programID,
 				},
 				screeningToolQuestionResponses: []*gorm.ScreeningToolQuestionResponse{
 					{
@@ -1833,6 +1848,7 @@ func TestPGInstance_CreateScreeningToolResponse(t *testing.T) {
 						QuestionID:              questionID,
 						Response:                "0",
 						Score:                   1,
+						ProgramID:               programID,
 					},
 				},
 			},

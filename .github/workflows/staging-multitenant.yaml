@@ -113,6 +113,7 @@ jobs:
             TWILIO_ACCOUNT_SID=${{ secrets.TWILIO_ACCOUNT_SID }}
             TWILIO_ACCOUNT_AUTH_TOKEN=${{ secrets.TWILIO_ACCOUNT_AUTH_TOKEN }}
             TWILIO_SMS_NUMBER=${{ secrets.TWILIO_SMS_NUMBER }}
+            DEFAULT_PROGRAM_ID=${{ secrets.DEFAULT_PROGRAM_ID }}
 
   # push_schema_staging_registry:
   #   name: Publish schema to staging schema registry

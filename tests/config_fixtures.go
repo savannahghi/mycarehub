@@ -140,6 +140,8 @@ var (
 	// surveys
 	projectID = 1
 	formID    = "8ecbbc80-24c8-421a-9f1a-e14e12678ef4"
+
+	programID = "6ecbbc80-24c8-421a-9f1a-e14e12678ee0"
 )
 
 func setupFixtures() {
@@ -278,6 +280,8 @@ func setupFixtures() {
 
 			"test_project_id": projectID,
 			"test_form_id":    formID,
+
+			"test_program_id": programID,
 		}),
 		// this is the directory containing the YAML files.
 		// The file name should be the same as the table name
@@ -322,6 +326,7 @@ func setupFixtures() {
 			"../fixtures/questionnaires_questioninputchoice.yml",
 			"../fixtures/questionnaires_screeningtoolresponse.yml",
 			"../fixtures/questionnaires_screeningtoolquestionresponse.yml",
+			"../fixtures/common_program.yml",
 		),
 		// uncomment when running tests locally, if your db is not a test db
 		// Ensure the testing db in the ci is named `test`

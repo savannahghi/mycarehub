@@ -758,6 +758,7 @@ func TestPGInstance_UpdateServiceRequests(t *testing.T) {
 		ResolvedByID:   &staffID,
 		FacilityID:     facilityID,
 		Meta:           `{}`,
+		ProgramID:      programID,
 	}
 
 	badServiceRequestID := "badServiceRequestID"
