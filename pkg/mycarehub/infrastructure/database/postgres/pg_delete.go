@@ -2,17 +2,18 @@ package postgres
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/savannahghi/feedlib"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
 )
 
 // DeleteFacility does the actual delete of a facility from the database.
-func (d *MyCareHubDb) DeleteFacility(ctx context.Context, id int) (bool, error) {
-	if id == 0 {
-		return false, fmt.Errorf("an error occurred")
+func (d *MyCareHubDb) DeleteFacility(ctx context.Context, identifier *dto.FacilityIdentifierInput) (bool, error) {
+	identifierObj := &gorm.FacilityIdentifier{
+		FacilityID: identifier.FacilityID,
 	}
-	return d.delete.DeleteFacility(ctx, id)
+	return d.delete.DeleteFacility(ctx, identifierObj)
 }
 
 // DeleteUser method is used to delete a user from the system

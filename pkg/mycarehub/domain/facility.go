@@ -1,5 +1,7 @@
 package domain
 
+import "github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
+
 // Facility models the details of healthcare facilities that are on the platform.
 //
 // e.g CCC clinics, Pharmacies.
@@ -16,6 +18,8 @@ type Facility struct {
 	Description        string `json:"description"`
 	FHIROrganisationID string `json:"fhirOrganisationId"`
 
+	Identifier FacilityIdentifier `json:"identifier"`
+
 	WorkStationDetails WorkStationDetails `json:"workStationDetails"`
 }
 
@@ -29,4 +33,12 @@ type FacilityPage struct {
 type UpdateFacilityPayload struct {
 	FacilityID         string `json:"facilityID"`
 	FHIROrganisationID string `json:"fhirOrganisationID"`
+}
+
+// FacilityIdentifier is the identifier of the facility
+type FacilityIdentifier struct {
+	ID     string                       `json:"id"`
+	Active bool                         `json:"active"`
+	Type   enums.FacilityIdentifierType `json:"type"`
+	Value  string                       `json:"value"`
 }

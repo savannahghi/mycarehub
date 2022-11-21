@@ -746,7 +746,10 @@ func (us *UseCasesUserImpl) RegisterClient(
 		helpers.ReportErrorToSentry(err)
 		return nil, err
 	}
-	exists, err := us.Query.CheckFacilityExistsByMFLCode(ctx, MFLCode)
+	exists, err := us.Query.CheckFacilityExistsByIdentifier(ctx, &dto.FacilityIdentifierInput{
+		Type:  enums.FacilityIdentifierTypeMFLCode,
+		Value: input.Facility,
+	})
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, err
@@ -756,7 +759,10 @@ func (us *UseCasesUserImpl) RegisterClient(
 		return nil, fmt.Errorf("facility with MFLCode %d does not exist", MFLCode)
 	}
 
-	facility, err := us.Query.RetrieveFacilityByMFLCode(ctx, MFLCode, true)
+	facility, err := us.Query.RetrieveFacilityByIdentifier(ctx, &dto.FacilityIdentifierInput{
+		Type:  enums.FacilityIdentifierTypeMFLCode,
+		Value: input.Facility,
+	}, true)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, err
@@ -1049,13 +1055,10 @@ func (us *UseCasesUserImpl) RegisterKenyaEMRPatients(ctx context.Context, input 
 
 	var errs error
 	for _, patient := range input {
-		MFLCode, err := strconv.Atoi(patient.MFLCode)
-		if err != nil {
-			helpers.ReportErrorToSentry(err)
-			return nil, err
-		}
-
-		exists, err := us.Query.CheckFacilityExistsByMFLCode(ctx, MFLCode)
+		exists, err := us.Query.CheckFacilityExistsByIdentifier(ctx, &dto.FacilityIdentifierInput{
+			Type:  enums.FacilityIdentifierTypeMFLCode,
+			Value: patient.MFLCode,
+		})
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
 			return nil, fmt.Errorf("error checking for facility")
@@ -1065,7 +1068,10 @@ func (us *UseCasesUserImpl) RegisterKenyaEMRPatients(ctx context.Context, input 
 			return nil, fmt.Errorf("facility with provided MFL code doesn't exist, code: %v", patient.MFLCode)
 		}
 
-		facility, err := us.Query.RetrieveFacilityByMFLCode(ctx, MFLCode, true)
+		facility, err := us.Query.RetrieveFacilityByIdentifier(ctx, &dto.FacilityIdentifierInput{
+			Type:  enums.FacilityIdentifierTypeMFLCode,
+			Value: patient.MFLCode,
+		}, true)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
 			return nil, fmt.Errorf("error retrieving facility: %v", err)
@@ -1126,7 +1132,10 @@ func (us *UseCasesUserImpl) RegisterKenyaEMRPatients(ctx context.Context, input 
 // from a given time i,e sync time. It is useful to fetch all patient information
 // from Kenya EMR and sync it to mycarehub
 func (us *UseCasesUserImpl) RegisteredFacilityPatients(ctx context.Context, input dto.PatientSyncPayload) (*dto.PatientSyncResponse, error) {
-	exists, err := us.Query.CheckFacilityExistsByMFLCode(ctx, input.MFLCode)
+	exists, err := us.Query.CheckFacilityExistsByIdentifier(ctx, &dto.FacilityIdentifierInput{
+		Type:  enums.FacilityIdentifierTypeMFLCode,
+		Value: strconv.Itoa(input.MFLCode),
+	})
 	if err != nil {
 		return nil, fmt.Errorf("error checking for facility")
 	}
@@ -1135,7 +1144,10 @@ func (us *UseCasesUserImpl) RegisteredFacilityPatients(ctx context.Context, inpu
 	}
 
 	var errs error
-	facility, err := us.Query.RetrieveFacilityByMFLCode(ctx, input.MFLCode, true)
+	facility, err := us.Query.RetrieveFacilityByIdentifier(ctx, &dto.FacilityIdentifierInput{
+		Type:  enums.FacilityIdentifierTypeMFLCode,
+		Value: strconv.Itoa(input.MFLCode),
+	}, true)
 	if err != nil {
 		return nil, fmt.Errorf("error retrieving facility: %v", err)
 	}
@@ -1238,7 +1250,10 @@ func (us *UseCasesUserImpl) RegisterStaff(ctx context.Context, input dto.StaffRe
 		helpers.ReportErrorToSentry(err)
 		return nil, err
 	}
-	exists, err := us.Query.CheckFacilityExistsByMFLCode(ctx, MFLCode)
+	exists, err := us.Query.CheckFacilityExistsByIdentifier(ctx, &dto.FacilityIdentifierInput{
+		Type:  enums.FacilityIdentifierTypeMFLCode,
+		Value: input.Facility,
+	})
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, err
@@ -1248,7 +1263,10 @@ func (us *UseCasesUserImpl) RegisterStaff(ctx context.Context, input dto.StaffRe
 		return nil, fmt.Errorf("facility with MFLCode %d does not exist", MFLCode)
 	}
 
-	facility, err := us.Query.RetrieveFacilityByMFLCode(ctx, MFLCode, true)
+	facility, err := us.Query.RetrieveFacilityByIdentifier(ctx, &dto.FacilityIdentifierInput{
+		Type:  enums.FacilityIdentifierTypeMFLCode,
+		Value: input.Facility,
+	}, true)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, err

@@ -31,24 +31,24 @@ type UseCasesFacility interface {
 type IFacilityCreate interface {
 	// TODO Ensure blank ID when creating
 	// TODO Since `id` is optional, ensure pre-condition check
-	GetOrCreateFacility(ctx context.Context, facility *dto.FacilityInput) (*domain.Facility, error)
+	GetOrCreateFacility(ctx context.Context, facility *dto.FacilityInput, identifier *dto.FacilityIdentifierInput) (*domain.Facility, error)
 }
 
 // IFacilityDelete contains the method to delete a facility
 type IFacilityDelete interface {
 	// TODO Ensure delete is idempotent
-	DeleteFacility(ctx context.Context, id int) (bool, error)
+	DeleteFacility(ctx context.Context, identifier *dto.FacilityIdentifierInput) (bool, error)
 }
 
 // IFacilityInactivate contains the method to activate a facility
 type IFacilityInactivate interface {
 	// TODO Toggle active boolean
-	InactivateFacility(ctx context.Context, mflCode *int) (bool, error)
+	InactivateFacility(ctx context.Context, identifier *dto.FacilityIdentifierInput) (bool, error)
 }
 
 // IFacilityReactivate contains the method to re-activate a facility
 type IFacilityReactivate interface {
-	ReactivateFacility(ctx context.Context, mflCode *int) (bool, error)
+	ReactivateFacility(ctx context.Context, identifier *dto.FacilityIdentifierInput) (bool, error)
 }
 
 // IFacilityList contains the method to list of facilities
@@ -62,7 +62,7 @@ type IFacilityList interface {
 // IFacilityRetrieve contains the method to retrieve a facility
 type IFacilityRetrieve interface {
 	RetrieveFacility(ctx context.Context, id *string, isActive bool) (*domain.Facility, error)
-	RetrieveFacilityByMFLCode(ctx context.Context, MFLCode int, isActive bool) (*domain.Facility, error)
+	RetrieveFacilityByIdentifier(ctx context.Context, identifier *dto.FacilityIdentifierInput, isActive bool) (*domain.Facility, error)
 }
 
 // IUpdateFacility contains the methods for updating a facility
@@ -99,11 +99,11 @@ func NewFacilityUsecase(
 }
 
 // GetOrCreateFacility creates a new facility
-func (f *UseCaseFacilityImpl) GetOrCreateFacility(ctx context.Context, facility *dto.FacilityInput) (*domain.Facility, error) {
-	fetchedFacility, err := f.RetrieveFacilityByMFLCode(ctx, facility.Code, facility.Active)
+func (f *UseCaseFacilityImpl) GetOrCreateFacility(ctx context.Context, facility *dto.FacilityInput, identifier *dto.FacilityIdentifierInput) (*domain.Facility, error) {
+	fetchedFacility, err := f.RetrieveFacilityByIdentifier(ctx, identifier, facility.Active)
 	if err != nil {
-		if strings.Contains(err.Error(), "failed query and retrieve facility by MFLCode") {
-			return f.Create.GetOrCreateFacility(ctx, facility)
+		if strings.Contains(err.Error(), "failed query and retrieve facility by identifier") {
+			return f.Create.GetOrCreateFacility(ctx, facility, identifier)
 		}
 		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed to retrieve facility")
@@ -112,19 +112,19 @@ func (f *UseCaseFacilityImpl) GetOrCreateFacility(ctx context.Context, facility 
 }
 
 // DeleteFacility deletes a facility from the database usinng the MFL Code
-func (f *UseCaseFacilityImpl) DeleteFacility(ctx context.Context, id int) (bool, error) {
-	return f.Delete.DeleteFacility(ctx, id)
+func (f *UseCaseFacilityImpl) DeleteFacility(ctx context.Context, identifier *dto.FacilityIdentifierInput) (bool, error) {
+	return f.Delete.DeleteFacility(ctx, identifier)
 }
 
 // InactivateFacility inactivates the health facility
 // TODO Toggle active boolean
-func (f *UseCaseFacilityImpl) InactivateFacility(ctx context.Context, mflCode *int) (bool, error) {
-	return f.Update.InactivateFacility(ctx, mflCode)
+func (f *UseCaseFacilityImpl) InactivateFacility(ctx context.Context, identifier *dto.FacilityIdentifierInput) (bool, error) {
+	return f.Update.InactivateFacility(ctx, identifier)
 }
 
 // ReactivateFacility activates the inactivated health facility
-func (f *UseCaseFacilityImpl) ReactivateFacility(ctx context.Context, mflCode *int) (bool, error) {
-	return f.Update.ReactivateFacility(ctx, mflCode)
+func (f *UseCaseFacilityImpl) ReactivateFacility(ctx context.Context, identifier *dto.FacilityIdentifierInput) (bool, error) {
+	return f.Update.ReactivateFacility(ctx, identifier)
 }
 
 // RetrieveFacility find the health facility by ID
@@ -136,7 +136,7 @@ func (f *UseCaseFacilityImpl) RetrieveFacility(ctx context.Context, id *string, 
 }
 
 // SearchFacility retrieves one or more facilities from the database based on a search parameter that can be either the
-// facility name or the facility mflcode
+// facility name or the facility identifier
 func (f *UseCaseFacilityImpl) SearchFacility(ctx context.Context, searchParameter *string) ([]*domain.Facility, error) {
 	return f.Query.SearchFacility(ctx, searchParameter)
 }
@@ -181,12 +181,12 @@ func (f *UseCaseFacilityImpl) UpdateFacility(ctx context.Context, facilityUpdate
 	return nil
 }
 
-// RetrieveFacilityByMFLCode find the health facility by MFL Code
-func (f *UseCaseFacilityImpl) RetrieveFacilityByMFLCode(ctx context.Context, MFLCode int, isActive bool) (*domain.Facility, error) {
-	if MFLCode == 0 {
-		return nil, fmt.Errorf("facility MFL code cannot be empty")
+// RetrieveFacilityByIdentifier find the health facility by MFL Code
+func (f *UseCaseFacilityImpl) RetrieveFacilityByIdentifier(ctx context.Context, identifier *dto.FacilityIdentifierInput, isActive bool) (*domain.Facility, error) {
+	if err := identifier.Validate(); err != nil {
+		return nil, err
 	}
-	return f.Query.RetrieveFacilityByMFLCode(ctx, MFLCode, isActive)
+	return f.Query.RetrieveFacilityByIdentifier(ctx, identifier, isActive)
 }
 
 //ListFacilities is responsible for returning a list of paginated facilities

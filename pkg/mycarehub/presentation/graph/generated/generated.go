@@ -447,19 +447,19 @@ type ComplexityRoot struct {
 		ConsentToAClientCaregiver          func(childComplexity int, clientID string, caregiverID string, consent bool) int
 		ConsentToManagingClient            func(childComplexity int, caregiverID string, clientID string, consent bool) int
 		CreateCommunity                    func(childComplexity int, input dto.CommunityInput) int
-		CreateFacility                     func(childComplexity int, input dto.FacilityInput) int
+		CreateFacility                     func(childComplexity int, facility dto.FacilityInput, identifier dto.FacilityIdentifierInput) int
 		CreateHealthDiaryEntry             func(childComplexity int, clientID string, note *string, mood string, reportToStaff bool) int
 		CreateScreeningTool                func(childComplexity int, input dto.ScreeningToolInput) int
 		CreateServiceRequest               func(childComplexity int, input dto.ServiceRequestInput) int
 		DeleteCommunities                  func(childComplexity int, communityIDs []string, hardDelete bool) int
 		DeleteCommunityMessage             func(childComplexity int, messageID string) int
-		DeleteFacility                     func(childComplexity int, mflCode int) int
+		DeleteFacility                     func(childComplexity int, identifier dto.FacilityIdentifierInput) int
 		DemoteModerators                   func(childComplexity int, communityID string, memberIDs []string) int
-		InactivateFacility                 func(childComplexity int, mflCode int) int
+		InactivateFacility                 func(childComplexity int, identifier dto.FacilityIdentifierInput) int
 		InviteUser                         func(childComplexity int, userID string, phoneNumber string, flavour feedlib.Flavour, reinvite *bool) int
 		LikeContent                        func(childComplexity int, userID string, contentID int) int
 		OptOut                             func(childComplexity int, phoneNumber string, flavour feedlib.Flavour) int
-		ReactivateFacility                 func(childComplexity int, mflCode int) int
+		ReactivateFacility                 func(childComplexity int, identifier dto.FacilityIdentifierInput) int
 		ReadNotifications                  func(childComplexity int, ids []string) int
 		RecordSecurityQuestionResponses    func(childComplexity int, input []*dto.SecurityQuestionResponseInput) int
 		RegisterCaregiver                  func(childComplexity int, input dto.CaregiverInput) int
@@ -578,7 +578,7 @@ type ComplexityRoot struct {
 		NextRefill                              func(childComplexity int, clientID string) int
 		RecommendedCommunities                  func(childComplexity int, clientID string, limit int) int
 		RetrieveFacility                        func(childComplexity int, id string, active bool) int
-		RetrieveFacilityByMFLCode               func(childComplexity int, mflCode int, isActive bool) int
+		RetrieveFacilityByIdentifier            func(childComplexity int, identifier dto.FacilityIdentifierInput, isActive bool) int
 		SearchCaregiverUser                     func(childComplexity int, searchParameter string) int
 		SearchClientUser                        func(childComplexity int, searchParameter string) int
 		SearchFacility                          func(childComplexity int, searchParameter *string) int
@@ -901,10 +901,10 @@ type MutationResolver interface {
 	LikeContent(ctx context.Context, userID string, contentID int) (bool, error)
 	UnlikeContent(ctx context.Context, userID string, contentID int) (bool, error)
 	ViewContent(ctx context.Context, userID string, contentID int) (bool, error)
-	CreateFacility(ctx context.Context, input dto.FacilityInput) (*domain.Facility, error)
-	DeleteFacility(ctx context.Context, mflCode int) (bool, error)
-	ReactivateFacility(ctx context.Context, mflCode int) (bool, error)
-	InactivateFacility(ctx context.Context, mflCode int) (bool, error)
+	CreateFacility(ctx context.Context, facility dto.FacilityInput, identifier dto.FacilityIdentifierInput) (*domain.Facility, error)
+	DeleteFacility(ctx context.Context, identifier dto.FacilityIdentifierInput) (bool, error)
+	ReactivateFacility(ctx context.Context, identifier dto.FacilityIdentifierInput) (bool, error)
+	InactivateFacility(ctx context.Context, identifier dto.FacilityIdentifierInput) (bool, error)
 	AddFacilityContact(ctx context.Context, facilityID string, contact string) (bool, error)
 	SendFeedback(ctx context.Context, input dto.FeedbackResponseInput) (bool, error)
 	CreateHealthDiaryEntry(ctx context.Context, clientID string, note *string, mood string, reportToStaff bool) (bool, error)
@@ -966,7 +966,7 @@ type QueryResolver interface {
 	GetFAQs(ctx context.Context, flavour feedlib.Flavour) (*domain.Content, error)
 	SearchFacility(ctx context.Context, searchParameter *string) ([]*domain.Facility, error)
 	RetrieveFacility(ctx context.Context, id string, active bool) (*domain.Facility, error)
-	RetrieveFacilityByMFLCode(ctx context.Context, mflCode int, isActive bool) (*domain.Facility, error)
+	RetrieveFacilityByIdentifier(ctx context.Context, identifier dto.FacilityIdentifierInput, isActive bool) (*domain.Facility, error)
 	ListFacilities(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationInput dto.PaginationsInput) (*domain.FacilityPage, error)
 	CanRecordMood(ctx context.Context, clientID string) (bool, error)
 	GetHealthDiaryQuote(ctx context.Context, limit int) ([]*domain.ClientHealthDiaryQuote, error)
@@ -2922,7 +2922,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateFacility(childComplexity, args["input"].(dto.FacilityInput)), true
+		return e.complexity.Mutation.CreateFacility(childComplexity, args["facility"].(dto.FacilityInput), args["identifier"].(dto.FacilityIdentifierInput)), true
 
 	case "Mutation.createHealthDiaryEntry":
 		if e.complexity.Mutation.CreateHealthDiaryEntry == nil {
@@ -2994,7 +2994,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.DeleteFacility(childComplexity, args["mflCode"].(int)), true
+		return e.complexity.Mutation.DeleteFacility(childComplexity, args["identifier"].(dto.FacilityIdentifierInput)), true
 
 	case "Mutation.demoteModerators":
 		if e.complexity.Mutation.DemoteModerators == nil {
@@ -3018,7 +3018,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.InactivateFacility(childComplexity, args["mflCode"].(int)), true
+		return e.complexity.Mutation.InactivateFacility(childComplexity, args["identifier"].(dto.FacilityIdentifierInput)), true
 
 	case "Mutation.inviteUser":
 		if e.complexity.Mutation.InviteUser == nil {
@@ -3066,7 +3066,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.ReactivateFacility(childComplexity, args["mflCode"].(int)), true
+		return e.complexity.Mutation.ReactivateFacility(childComplexity, args["identifier"].(dto.FacilityIdentifierInput)), true
 
 	case "Mutation.readNotifications":
 		if e.complexity.Mutation.ReadNotifications == nil {
@@ -4168,17 +4168,17 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.RetrieveFacility(childComplexity, args["id"].(string), args["active"].(bool)), true
 
-	case "Query.retrieveFacilityByMFLCode":
-		if e.complexity.Query.RetrieveFacilityByMFLCode == nil {
+	case "Query.retrieveFacilityByIdentifier":
+		if e.complexity.Query.RetrieveFacilityByIdentifier == nil {
 			break
 		}
 
-		args, err := ec.field_Query_retrieveFacilityByMFLCode_args(context.TODO(), rawArgs)
+		args, err := ec.field_Query_retrieveFacilityByIdentifier_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Query.RetrieveFacilityByMFLCode(childComplexity, args["mflCode"].(int), args["isActive"].(bool)), true
+		return e.complexity.Query.RetrieveFacilityByIdentifier(childComplexity, args["identifier"].(dto.FacilityIdentifierInput), args["isActive"].(bool)), true
 
 	case "Query.searchCaregiverUser":
 		if e.complexity.Query.SearchCaregiverUser == nil {
@@ -5566,6 +5566,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputClientFilterParamsInput,
 		ec.unmarshalInputClientRegistrationInput,
 		ec.unmarshalInputCommunityInput,
+		ec.unmarshalInputFacilityIdentifierInput,
 		ec.unmarshalInputFacilityInput,
 		ec.unmarshalInputFeedbackResponseInput,
 		ec.unmarshalInputFilterParam,
@@ -5879,19 +5880,23 @@ enum ConsentState {
   PENDING
   ACCEPTED
   REJECTED
+}
+
+enum FacilityIdentifierType{
+  MFL_CODE
 }`, BuiltIn: false},
 	{Name: "../facility.graphql", Input: `extend type Mutation {
-  createFacility(input: FacilityInput!): Facility!
-  deleteFacility(mflCode: Int!): Boolean!
-  reactivateFacility(mflCode: Int!): Boolean!
-  inactivateFacility(mflCode: Int!): Boolean!
+  createFacility(facility: FacilityInput!, identifier:FacilityIdentifierInput!): Facility!
+  deleteFacility(identifier: FacilityIdentifierInput!): Boolean!
+  reactivateFacility(identifier: FacilityIdentifierInput!): Boolean!
+  inactivateFacility(identifier: FacilityIdentifierInput!): Boolean!
   addFacilityContact(facilityID: ID!, contact: String!): Boolean!
 }
 
 extend type Query {
   searchFacility(searchParameter: String): [Facility]
   retrieveFacility(id: String!, active: Boolean!): Facility
-  retrieveFacilityByMFLCode(mflCode: Int!, isActive: Boolean!): Facility!
+  retrieveFacilityByIdentifier(identifier: FacilityIdentifierInput!, isActive: Boolean!): Facility!
   listFacilities(
     searchTerm: String
     filterInput: [FiltersInput]
@@ -5924,11 +5929,16 @@ scalar Any
 
 input FacilityInput {
   name: String!
-  code: Int!
   phone: String!
   active: Boolean!
   county: String!
   description: String!
+}
+
+input FacilityIdentifierInput {
+  type: FacilityIdentifierType!
+  value: String!
+  facilityID: String
 }
 
 input PaginationsInput {
@@ -7495,14 +7505,23 @@ func (ec *executionContext) field_Mutation_createFacility_args(ctx context.Conte
 	var err error
 	args := map[string]interface{}{}
 	var arg0 dto.FacilityInput
-	if tmp, ok := rawArgs["input"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+	if tmp, ok := rawArgs["facility"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("facility"))
 		arg0, err = ec.unmarshalNFacilityInput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐFacilityInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["input"] = arg0
+	args["facility"] = arg0
+	var arg1 dto.FacilityIdentifierInput
+	if tmp, ok := rawArgs["identifier"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("identifier"))
+		arg1, err = ec.unmarshalNFacilityIdentifierInput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐFacilityIdentifierInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["identifier"] = arg1
 	return args, nil
 }
 
@@ -7620,15 +7639,15 @@ func (ec *executionContext) field_Mutation_deleteCommunityMessage_args(ctx conte
 func (ec *executionContext) field_Mutation_deleteFacility_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 int
-	if tmp, ok := rawArgs["mflCode"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("mflCode"))
-		arg0, err = ec.unmarshalNInt2int(ctx, tmp)
+	var arg0 dto.FacilityIdentifierInput
+	if tmp, ok := rawArgs["identifier"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("identifier"))
+		arg0, err = ec.unmarshalNFacilityIdentifierInput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐFacilityIdentifierInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["mflCode"] = arg0
+	args["identifier"] = arg0
 	return args, nil
 }
 
@@ -7659,15 +7678,15 @@ func (ec *executionContext) field_Mutation_demoteModerators_args(ctx context.Con
 func (ec *executionContext) field_Mutation_inactivateFacility_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 int
-	if tmp, ok := rawArgs["mflCode"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("mflCode"))
-		arg0, err = ec.unmarshalNInt2int(ctx, tmp)
+	var arg0 dto.FacilityIdentifierInput
+	if tmp, ok := rawArgs["identifier"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("identifier"))
+		arg0, err = ec.unmarshalNFacilityIdentifierInput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐFacilityIdentifierInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["mflCode"] = arg0
+	args["identifier"] = arg0
 	return args, nil
 }
 
@@ -7764,15 +7783,15 @@ func (ec *executionContext) field_Mutation_optOut_args(ctx context.Context, rawA
 func (ec *executionContext) field_Mutation_reactivateFacility_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 int
-	if tmp, ok := rawArgs["mflCode"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("mflCode"))
-		arg0, err = ec.unmarshalNInt2int(ctx, tmp)
+	var arg0 dto.FacilityIdentifierInput
+	if tmp, ok := rawArgs["identifier"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("identifier"))
+		arg0, err = ec.unmarshalNFacilityIdentifierInput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐFacilityIdentifierInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["mflCode"] = arg0
+	args["identifier"] = arg0
 	return args, nil
 }
 
@@ -9555,18 +9574,18 @@ func (ec *executionContext) field_Query_recommendedCommunities_args(ctx context.
 	return args, nil
 }
 
-func (ec *executionContext) field_Query_retrieveFacilityByMFLCode_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Query_retrieveFacilityByIdentifier_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 int
-	if tmp, ok := rawArgs["mflCode"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("mflCode"))
-		arg0, err = ec.unmarshalNInt2int(ctx, tmp)
+	var arg0 dto.FacilityIdentifierInput
+	if tmp, ok := rawArgs["identifier"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("identifier"))
+		arg0, err = ec.unmarshalNFacilityIdentifierInput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐFacilityIdentifierInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["mflCode"] = arg0
+	args["identifier"] = arg0
 	var arg1 bool
 	if tmp, ok := rawArgs["isActive"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("isActive"))
@@ -21857,7 +21876,7 @@ func (ec *executionContext) _Mutation_createFacility(ctx context.Context, field 
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateFacility(rctx, fc.Args["input"].(dto.FacilityInput))
+		return ec.resolvers.Mutation().CreateFacility(rctx, fc.Args["facility"].(dto.FacilityInput), fc.Args["identifier"].(dto.FacilityIdentifierInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -21930,7 +21949,7 @@ func (ec *executionContext) _Mutation_deleteFacility(ctx context.Context, field 
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().DeleteFacility(rctx, fc.Args["mflCode"].(int))
+		return ec.resolvers.Mutation().DeleteFacility(rctx, fc.Args["identifier"].(dto.FacilityIdentifierInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -21985,7 +22004,7 @@ func (ec *executionContext) _Mutation_reactivateFacility(ctx context.Context, fi
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().ReactivateFacility(rctx, fc.Args["mflCode"].(int))
+		return ec.resolvers.Mutation().ReactivateFacility(rctx, fc.Args["identifier"].(dto.FacilityIdentifierInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -22040,7 +22059,7 @@ func (ec *executionContext) _Mutation_inactivateFacility(ctx context.Context, fi
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().InactivateFacility(rctx, fc.Args["mflCode"].(int))
+		return ec.resolvers.Mutation().InactivateFacility(rctx, fc.Args["identifier"].(dto.FacilityIdentifierInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -26383,8 +26402,8 @@ func (ec *executionContext) fieldContext_Query_retrieveFacility(ctx context.Cont
 	return fc, nil
 }
 
-func (ec *executionContext) _Query_retrieveFacilityByMFLCode(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Query_retrieveFacilityByMFLCode(ctx, field)
+func (ec *executionContext) _Query_retrieveFacilityByIdentifier(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_retrieveFacilityByIdentifier(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -26397,7 +26416,7 @@ func (ec *executionContext) _Query_retrieveFacilityByMFLCode(ctx context.Context
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().RetrieveFacilityByMFLCode(rctx, fc.Args["mflCode"].(int), fc.Args["isActive"].(bool))
+		return ec.resolvers.Query().RetrieveFacilityByIdentifier(rctx, fc.Args["identifier"].(dto.FacilityIdentifierInput), fc.Args["isActive"].(bool))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -26414,7 +26433,7 @@ func (ec *executionContext) _Query_retrieveFacilityByMFLCode(ctx context.Context
 	return ec.marshalNFacility2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐFacility(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Query_retrieveFacilityByMFLCode(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Query_retrieveFacilityByIdentifier(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Query",
 		Field:      field,
@@ -26449,7 +26468,7 @@ func (ec *executionContext) fieldContext_Query_retrieveFacilityByMFLCode(ctx con
 		}
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Query_retrieveFacilityByMFLCode_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+	if fc.Args, err = ec.field_Query_retrieveFacilityByIdentifier_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -39336,6 +39355,50 @@ func (ec *executionContext) unmarshalInputCommunityInput(ctx context.Context, ob
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputFacilityIdentifierInput(ctx context.Context, obj interface{}) (dto.FacilityIdentifierInput, error) {
+	var it dto.FacilityIdentifierInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"type", "value", "facilityID"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "type":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("type"))
+			it.Type, err = ec.unmarshalNFacilityIdentifierType2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐFacilityIdentifierType(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "value":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("value"))
+			it.Value, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "facilityID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("facilityID"))
+			it.FacilityID, err = ec.unmarshalOString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputFacilityInput(ctx context.Context, obj interface{}) (dto.FacilityInput, error) {
 	var it dto.FacilityInput
 	asMap := map[string]interface{}{}
@@ -39343,7 +39406,7 @@ func (ec *executionContext) unmarshalInputFacilityInput(ctx context.Context, obj
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"name", "code", "phone", "active", "county", "description"}
+	fieldsInOrder := [...]string{"name", "phone", "active", "county", "description"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -39355,14 +39418,6 @@ func (ec *executionContext) unmarshalInputFacilityInput(ctx context.Context, obj
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
 			it.Name, err = ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "code":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("code"))
-			it.Code, err = ec.unmarshalNInt2int(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -44175,7 +44230,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Concurrently(i, func() graphql.Marshaler {
 				return rrm(innerCtx)
 			})
-		case "retrieveFacilityByMFLCode":
+		case "retrieveFacilityByIdentifier":
 			field := field
 
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
@@ -44184,7 +44239,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Query_retrieveFacilityByMFLCode(ctx, field)
+				res = ec._Query_retrieveFacilityByIdentifier(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -48006,6 +48061,21 @@ func (ec *executionContext) marshalNFacility2ᚖgithubᚗcomᚋsavannahghiᚋmyc
 		return graphql.Null
 	}
 	return ec._Facility(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNFacilityIdentifierInput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐFacilityIdentifierInput(ctx context.Context, v interface{}) (dto.FacilityIdentifierInput, error) {
+	res, err := ec.unmarshalInputFacilityIdentifierInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNFacilityIdentifierType2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐFacilityIdentifierType(ctx context.Context, v interface{}) (enums.FacilityIdentifierType, error) {
+	var res enums.FacilityIdentifierType
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNFacilityIdentifierType2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐFacilityIdentifierType(ctx context.Context, sel ast.SelectionSet, v enums.FacilityIdentifierType) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) unmarshalNFacilityInput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐFacilityInput(ctx context.Context, v interface{}) (dto.FacilityInput, error) {

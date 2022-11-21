@@ -25,16 +25,17 @@ type GormMock struct {
 	MockCreateUserFn                                     func(ctx context.Context, user *gorm.User) error
 	MockCreateClientFn                                   func(ctx context.Context, client *gorm.Client, contactID, identifierID string) error
 	MockCreateIdentifierFn                               func(ctx context.Context, identifier *gorm.Identifier) error
-	MockGetOrCreateFacilityFn                            func(ctx context.Context, facility *gorm.Facility) (*gorm.Facility, error)
+	MockGetOrCreateFacilityFn                            func(ctx context.Context, facility *gorm.Facility, identifier *gorm.FacilityIdentifier) (*gorm.Facility, error)
 	MockRetrieveFacilityFn                               func(ctx context.Context, id *string, isActive bool) (*gorm.Facility, error)
-	MockRetrieveFacilityByMFLCodeFn                      func(ctx context.Context, MFLCode int, isActive bool) (*gorm.Facility, error)
+	MockRetrieveFacilityByIdentifierFn                   func(ctx context.Context, identifier *gorm.FacilityIdentifier, isActive bool) (*gorm.Facility, error)
+	MockRetrieveFacilityIdentifierByFacilityIDFn         func(ctx context.Context, facilityID *string) (*gorm.FacilityIdentifier, error)
 	MockSearchFacilityFn                                 func(ctx context.Context, searchParameter *string) ([]gorm.Facility, error)
-	MockDeleteFacilityFn                                 func(ctx context.Context, mflCode int) (bool, error)
+	MockDeleteFacilityFn                                 func(ctx context.Context, identifier *gorm.FacilityIdentifier) (bool, error)
 	MockListFacilitiesFn                                 func(ctx context.Context, searchTerm *string, filter []*domain.FiltersParam, pagination *domain.FacilityPage) (*domain.FacilityPage, error)
 	MockGetUserProfileByPhoneNumberFn                    func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*gorm.User, error)
 	MockGetUserPINByUserIDFn                             func(ctx context.Context, userID string, flavour feedlib.Flavour) (*gorm.PINData, error)
-	MockInactivateFacilityFn                             func(ctx context.Context, mflCode *int) (bool, error)
-	MockReactivateFacilityFn                             func(ctx context.Context, mflCode *int) (bool, error)
+	MockInactivateFacilityFn                             func(ctx context.Context, identifier *gorm.FacilityIdentifier) (bool, error)
+	MockReactivateFacilityFn                             func(ctx context.Context, identifier *gorm.FacilityIdentifier) (bool, error)
 	MockGetUserProfileByUserIDFn                         func(ctx context.Context, userID *string) (*gorm.User, error)
 	MockSaveTemporaryUserPinFn                           func(ctx context.Context, pinData *gorm.PINData) (bool, error)
 	MockGetCurrentTermsFn                                func(ctx context.Context, flavour feedlib.Flavour) (*gorm.TermsOfService, error)
@@ -79,7 +80,7 @@ type GormMock struct {
 	MockRevokeRolesFn                                    func(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error)
 	MockGetCommunityByIDFn                               func(ctx context.Context, communityID string) (*gorm.Community, error)
 	MockCheckIdentifierExists                            func(ctx context.Context, identifierType string, identifierValue string) (bool, error)
-	MockCheckFacilityExistsByMFLCode                     func(ctx context.Context, MFLCode int) (bool, error)
+	MockCheckFacilityExistsByIdentifier                  func(ctx context.Context, identifier *gorm.FacilityIdentifier) (bool, error)
 	MockGetOrCreateNextOfKin                             func(ctx context.Context, person *gorm.RelatedPerson, clientID, contactID string) error
 	MockGetOrCreateContact                               func(ctx context.Context, contact *gorm.Contact) (*gorm.Contact, error)
 	MockGetClientsInAFacilityFn                          func(ctx context.Context, facilityID string) ([]*gorm.Client, error)
@@ -405,7 +406,7 @@ func NewGormMock() *GormMock {
 		MockCreateIdentifierFn: func(ctx context.Context, identifier *gorm.Identifier) error {
 			return nil
 		},
-		MockGetOrCreateFacilityFn: func(ctx context.Context, facility *gorm.Facility) (*gorm.Facility, error) {
+		MockGetOrCreateFacilityFn: func(ctx context.Context, facility *gorm.Facility, identifier *gorm.FacilityIdentifier) (*gorm.Facility, error) {
 			return facility, nil
 		},
 		MockGetFacilityRespondedScreeningToolsFn: func(ctx context.Context, facilityID string, pagination *domain.Pagination) ([]*gorm.ScreeningTool, *domain.Pagination, error) {
@@ -473,7 +474,7 @@ func NewGormMock() *GormMock {
 			return facilities, nil
 		},
 
-		MockDeleteFacilityFn: func(ctx context.Context, mflCode int) (bool, error) {
+		MockDeleteFacilityFn: func(ctx context.Context, identifier *gorm.FacilityIdentifier) (bool, error) {
 			return true, nil
 		},
 		MockGetClientsSurveyServiceRequestFn: func(ctx context.Context, facilityID string, projectID int, formID string, pagination *domain.Pagination) ([]*gorm.ClientServiceRequest, *domain.Pagination, error) {
@@ -482,8 +483,17 @@ func NewGormMock() *GormMock {
 				CurrentPage: 1,
 			}, nil
 		},
-		MockRetrieveFacilityByMFLCodeFn: func(ctx context.Context, MFLCode int, isActive bool) (*gorm.Facility, error) {
+		MockRetrieveFacilityByIdentifierFn: func(ctx context.Context, identifier *gorm.FacilityIdentifier, isActive bool) (*gorm.Facility, error) {
 			return facility, nil
+		},
+		MockRetrieveFacilityIdentifierByFacilityIDFn: func(ctx context.Context, facilityID *string) (*gorm.FacilityIdentifier, error) {
+			return &gorm.FacilityIdentifier{
+				ID:         UUID,
+				Active:     true,
+				Type:       "MFLCode",
+				Value:      "21332433",
+				FacilityID: UUID,
+			}, nil
 		},
 		MockRegisterStaffFn: func(ctx context.Context, user *gorm.User, contact *gorm.Contact, identifier *gorm.Identifier, staffProfile *gorm.StaffProfile) (*gorm.StaffProfile, error) {
 			return staff, nil
@@ -593,7 +603,7 @@ func NewGormMock() *GormMock {
 			return pinData, nil
 		},
 
-		MockInactivateFacilityFn: func(ctx context.Context, mflCode *int) (bool, error) {
+		MockInactivateFacilityFn: func(ctx context.Context, identifier *gorm.FacilityIdentifier) (bool, error) {
 			return true, nil
 		},
 		MockSearchCaregiverUserFn: func(ctx context.Context, searchParameter string) ([]*gorm.Caregiver, error) {
@@ -641,7 +651,7 @@ func NewGormMock() *GormMock {
 		MockUpdateCaregiverClientFn: func(ctx context.Context, caregiverClient *gorm.CaregiverClient, updates map[string]interface{}) error {
 			return nil
 		},
-		MockReactivateFacilityFn: func(ctx context.Context, mflCode *int) (bool, error) {
+		MockReactivateFacilityFn: func(ctx context.Context, identifier *gorm.FacilityIdentifier) (bool, error) {
 			return true, nil
 		},
 		MockGetStaffServiceRequestsFn: func(ctx context.Context, requestType, requestStatus *string, facilityID string) ([]*gorm.StaffServiceRequest, error) {
@@ -950,7 +960,7 @@ func NewGormMock() *GormMock {
 				},
 			}, nil
 		},
-		MockCheckFacilityExistsByMFLCode: func(ctx context.Context, MFLCode int) (bool, error) {
+		MockCheckFacilityExistsByIdentifier: func(ctx context.Context, identifier *gorm.FacilityIdentifier) (bool, error) {
 			return true, nil
 		},
 		MockCheckIdentifierExists: func(ctx context.Context, identifierType, identifierValue string) (bool, error) {
@@ -1487,8 +1497,8 @@ func (gm *GormMock) DeleteUser(ctx context.Context, userID string, clientID *str
 }
 
 // GetOrCreateFacility mocks the implementation of `gorm's` GetOrCreateFacility method.
-func (gm *GormMock) GetOrCreateFacility(ctx context.Context, facility *gorm.Facility) (*gorm.Facility, error) {
-	return gm.MockGetOrCreateFacilityFn(ctx, facility)
+func (gm *GormMock) GetOrCreateFacility(ctx context.Context, facility *gorm.Facility, identifier *gorm.FacilityIdentifier) (*gorm.Facility, error) {
+	return gm.MockGetOrCreateFacilityFn(ctx, facility, identifier)
 }
 
 // RetrieveFacility mocks the implementation of `gorm's` RetrieveFacility method.
@@ -1496,9 +1506,14 @@ func (gm *GormMock) RetrieveFacility(ctx context.Context, id *string, isActive b
 	return gm.MockRetrieveFacilityFn(ctx, id, isActive)
 }
 
-// RetrieveFacilityByMFLCode mocks the implementation of `gorm's` RetrieveFacility method.
-func (gm *GormMock) RetrieveFacilityByMFLCode(ctx context.Context, MFLCode int, isActive bool) (*gorm.Facility, error) {
-	return gm.MockRetrieveFacilityByMFLCodeFn(ctx, MFLCode, isActive)
+// RetrieveFacilityByIdentifier mocks the implementation of `gorm's` RetrieveFacility method.
+func (gm *GormMock) RetrieveFacilityByIdentifier(ctx context.Context, identifier *gorm.FacilityIdentifier, isActive bool) (*gorm.Facility, error) {
+	return gm.MockRetrieveFacilityByIdentifierFn(ctx, identifier, isActive)
+}
+
+// RetrieveFacilityIdentifierByFacilityID mocks the implementation of getting facility identifier by facility id
+func (gm *GormMock) RetrieveFacilityIdentifierByFacilityID(ctx context.Context, facilityID *string) (*gorm.FacilityIdentifier, error) {
+	return gm.MockRetrieveFacilityIdentifierByFacilityIDFn(ctx, facilityID)
 }
 
 // UpdateUserSurveys mocks the implementation of `gorm's` UpdateUserSurveys method.
@@ -1512,8 +1527,8 @@ func (gm *GormMock) SearchFacility(ctx context.Context, searchParameter *string)
 }
 
 // DeleteFacility mocks the implementation of  DeleteFacility method.
-func (gm *GormMock) DeleteFacility(ctx context.Context, mflcode int) (bool, error) {
-	return gm.MockDeleteFacilityFn(ctx, mflcode)
+func (gm *GormMock) DeleteFacility(ctx context.Context, identifier *gorm.FacilityIdentifier) (bool, error) {
+	return gm.MockDeleteFacilityFn(ctx, identifier)
 }
 
 // ListFacilities mocks the implementation of  ListFacilities method.
@@ -1532,13 +1547,13 @@ func (gm *GormMock) GetUserPINByUserID(ctx context.Context, userID string, flavo
 }
 
 // InactivateFacility mocks the implementation of inactivating the active status of a particular facility
-func (gm *GormMock) InactivateFacility(ctx context.Context, mflCode *int) (bool, error) {
-	return gm.MockInactivateFacilityFn(ctx, mflCode)
+func (gm *GormMock) InactivateFacility(ctx context.Context, identifier *gorm.FacilityIdentifier) (bool, error) {
+	return gm.MockInactivateFacilityFn(ctx, identifier)
 }
 
 // ReactivateFacility mocks the implementation of re-activating the active status of a particular facility
-func (gm *GormMock) ReactivateFacility(ctx context.Context, mflCode *int) (bool, error) {
-	return gm.MockReactivateFacilityFn(ctx, mflCode)
+func (gm *GormMock) ReactivateFacility(ctx context.Context, identifier *gorm.FacilityIdentifier) (bool, error) {
+	return gm.MockReactivateFacilityFn(ctx, identifier)
 }
 
 // GetCurrentTerms mocks the implementation of getting all the current terms of service.
@@ -1756,9 +1771,9 @@ func (gm *GormMock) CheckIdentifierExists(ctx context.Context, identifierType st
 	return gm.MockCheckIdentifierExists(ctx, identifierType, identifierValue)
 }
 
-// CheckFacilityExistsByMFLCode mocks checking a facility by MFL Code
-func (gm *GormMock) CheckFacilityExistsByMFLCode(ctx context.Context, MFLCode int) (bool, error) {
-	return gm.MockCheckFacilityExistsByMFLCode(ctx, MFLCode)
+// CheckFacilityExistsByIdentifier mocks checking a facility by MFL Code
+func (gm *GormMock) CheckFacilityExistsByIdentifier(ctx context.Context, identifier *gorm.FacilityIdentifier) (bool, error) {
+	return gm.MockCheckFacilityExistsByIdentifier(ctx, identifier)
 }
 
 // GetOrCreateNextOfKin mocks creating a related person

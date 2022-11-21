@@ -15,19 +15,21 @@ import (
 )
 
 // ReactivateFacility changes the status of an active facility from false to true
-func (d *MyCareHubDb) ReactivateFacility(ctx context.Context, mflCode *int) (bool, error) {
-	if mflCode == nil {
-		return false, fmt.Errorf("facility's MFL Code cannot be empty")
+func (d *MyCareHubDb) ReactivateFacility(ctx context.Context, identifier *dto.FacilityIdentifierInput) (bool, error) {
+	identifierObj := &gorm.FacilityIdentifier{
+		Type:  identifier.Type.String(),
+		Value: identifier.Value,
 	}
-	return d.update.ReactivateFacility(ctx, mflCode)
+	return d.update.ReactivateFacility(ctx, identifierObj)
 }
 
 // InactivateFacility changes the status of an active facility from true to false
-func (d *MyCareHubDb) InactivateFacility(ctx context.Context, mflCode *int) (bool, error) {
-	if mflCode == nil {
-		return false, fmt.Errorf("facility's MFL Code cannot be empty")
+func (d *MyCareHubDb) InactivateFacility(ctx context.Context, identifier *dto.FacilityIdentifierInput) (bool, error) {
+	identifierObj := &gorm.FacilityIdentifier{
+		Type:  identifier.Type.String(),
+		Value: identifier.Value,
 	}
-	return d.update.InactivateFacility(ctx, mflCode)
+	return d.update.InactivateFacility(ctx, identifierObj)
 }
 
 // AcceptTerms can be used to accept or review terms of service
