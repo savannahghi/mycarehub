@@ -1,0 +1,84 @@
+- id: {{.facility_identifier_id}}
+  active: true
+  created: 2021-11-22 21:16:29.23639+03
+  created_by: {{.staff_user_id}}
+  updated: 2021-11-22 21:16:29.23639+03
+  updated_by: {{.staff_user_id}}
+  deleted_at: null
+  identifier_type: {{.mfl_identifier_type}}
+  identifier_value: !!str {{.mfl_identifier_value}}
+  facility_id: {{.test_facility_id}}
+
+- id: "93de0762-695d-11ed-a1eb-0242ac120002"
+  active: true
+  created: 2021-11-22 21:16:29.23639+03
+  created_by: {{.staff_user_id}}
+  updated: 2021-11-22 21:16:29.23639+03
+  updated_by: {{.staff_user_id}}
+  deleted_at: null
+  identifier_type: {{.mfl_identifier_type}}
+  identifier_value: "989302023001121"
+  facility_id: 4181df12-ca96-4f28-b78b-8e8ad88b25de
+
+# inactive facility
+- id: "e868f69c-6959-11ed-a1eb-0242ac120002"
+  active: true
+  created: 2021-11-22 21:16:29.23639+03
+  created_by: {{.staff_user_id}}
+  updated: 2021-11-22 21:16:29.23639+03
+  updated_by: {{.staff_user_id}}
+  deleted_at: null
+  identifier_type: {{.mfl_identifier_type}}
+  identifier_value:  !!str {{.inactivate_facility_identifier}}
+  facility_id: "4181df12-ca96-4f28-b78b-8e8ad88b25ef"
+
+# inactive facility
+- id: "d2d21b92-695e-11ed-a1eb-0242ac120002"
+  active: true
+  created: 2021-11-22 21:16:29.23639+03
+  created_by: {{.staff_user_id}}
+  updated: 2021-11-22 21:16:29.23639+03
+  updated_by: {{.staff_user_id}}
+  deleted_at: null
+  identifier_type: {{.mfl_identifier_type}}
+  identifier_value:  "3982738927398"
+  facility_id: "4188df12-ca96-4f28-b78b-8e8ad88b35ef"
+
+# facility to inactivate
+- id: "ef83bcb4-6959-11ed-a1eb-0242ac120002"
+  active: true
+  created: 2021-11-22 21:16:29.23639+03
+  created_by: {{.staff_user_id}}
+  updated: 2021-11-22 21:16:29.23639+03
+  updated_by: {{.staff_user_id}}
+  deleted_at: null
+  identifier_type: {{.mfl_identifier_type}}
+  identifier_value: !!str {{.active_facility_identifier}}
+  facility_id: "4181df12-ca96-4f28-b78b-8e8ad88b25ee"
+
+# facility to add to user profile
+- id: {{.facility_identifier_to_add_to_user_profile}}
+  active: true
+  created: 2021-11-22 21:16:29.23639+03
+  created_by: {{.staff_user_id}}
+  updated: 2021-11-22 21:16:29.23639+03
+  updated_by: {{.staff_user_id}}
+  deleted_at: null
+  identifier_type: {{.mfl_identifier_type}}
+  identifier_value: "98329839208309"
+  facility_id: {{.facility_to_add_to_user_profile}}
+
+# facility to remove from user profile
+- id: {{.facility_identifier_to_remove_from_user_profile}}
+  active: true
+  created: 2021-11-22 21:16:29.23639+03
+  created_by: {{.staff_user_id}}
+  updated: 2021-11-22 21:16:29.23639+03
+  updated_by: {{.staff_user_id}}
+  deleted_at: null
+  identifier_type: {{.mfl_identifier_type}}
+  identifier_value:  "809832983232"
+  facility_id: {{.facility_to_remove_from_user_profile}}
+
+
+

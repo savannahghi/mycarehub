@@ -15,7 +15,6 @@ import (
 // FacilityInput describes the facility input
 type FacilityInput struct {
 	Name               string `json:"name" validate:"required,min=3,max=100"`
-	Code               int    `json:"code" validate:"required"`
 	Phone              string `json:"phone" validate:"required"`
 	Active             bool   `json:"active"`
 	County             string `json:"county" validate:"required"`
@@ -25,6 +24,22 @@ type FacilityInput struct {
 
 // Validate helps with validation of facility input fields
 func (f *FacilityInput) Validate() error {
+	v := validator.New()
+
+	err := v.Struct(f)
+
+	return err
+}
+
+// FacilityIdentifierInput is the identifier of the facility
+type FacilityIdentifierInput struct {
+	Type       enums.FacilityIdentifierType `json:"type" validate:"required"`
+	Value      string                       `json:"value" validate:"required"`
+	FacilityID string                       `json:"facilityID"`
+}
+
+// Validate helps with validation of facility identifier input fields
+func (f *FacilityIdentifierInput) Validate() error {
 	v := validator.New()
 
 	err := v.Struct(f)

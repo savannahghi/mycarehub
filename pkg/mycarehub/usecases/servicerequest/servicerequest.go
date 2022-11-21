@@ -128,6 +128,7 @@ func (u *UseCasesServiceRequestImpl) CreateServiceRequest(ctx context.Context, i
 			helpers.ReportErrorToSentry(err)
 			return false, exceptions.ClientProfileNotFoundErr(err)
 		}
+
 		serviceRequestInput := &dto.ServiceRequestInput{
 			Active:      true,
 			RequestType: input.RequestType,

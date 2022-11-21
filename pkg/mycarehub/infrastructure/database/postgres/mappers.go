@@ -1,6 +1,7 @@
 package postgres
 
 import (
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
 )
@@ -44,8 +45,11 @@ func createMapUser(userObject *gorm.User) *domain.User {
 
 // mapFacilityObjectToDomain maps the db facility to a domain model.
 // It fetches the database to fetch items specific to the facility
-func (d *MyCareHubDb) mapFacilityObjectToDomain(facilityObject *gorm.Facility) *domain.Facility {
+func (d *MyCareHubDb) mapFacilityObjectToDomain(facilityObject *gorm.Facility, identifierObject *gorm.FacilityIdentifier) *domain.Facility {
 	if facilityObject == nil {
+		return nil
+	}
+	if identifierObject == nil {
 		return nil
 	}
 
@@ -57,6 +61,12 @@ func (d *MyCareHubDb) mapFacilityObjectToDomain(facilityObject *gorm.Facility) *
 		County:             facilityObject.Country,
 		Description:        facilityObject.Description,
 		FHIROrganisationID: facilityObject.FHIROrganisationID,
+		Identifier: domain.FacilityIdentifier{
+			ID:     identifierObject.ID,
+			Active: identifierObject.Active,
+			Type:   enums.FacilityIdentifierType(identifierObject.Type),
+			Value:  identifierObject.Value,
+		},
 	}
 }
 

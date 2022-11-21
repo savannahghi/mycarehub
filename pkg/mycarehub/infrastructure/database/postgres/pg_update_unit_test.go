@@ -9,6 +9,7 @@ import (
 	"github.com/brianvoe/gofakeit"
 	"github.com/google/uuid"
 	"github.com/savannahghi/feedlib"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
@@ -23,12 +24,9 @@ func TestMyCareHubDb_InactivateFacility(t *testing.T) {
 	var fakeGorm = gormMock.NewGormMock()
 	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
 
-	validMFLCode := gofakeit.Number(0, 100)
-	veryBadMFLCode := gofakeit.Number(10000, 10000000)
-
 	type args struct {
-		ctx     context.Context
-		mflCode *int
+		ctx        context.Context
+		identifier *dto.FacilityIdentifierInput
 	}
 	tests := []struct {
 		name    string
@@ -39,45 +37,30 @@ func TestMyCareHubDb_InactivateFacility(t *testing.T) {
 		{
 			name: "Happy Case",
 			args: args{
-				ctx:     ctx,
-				mflCode: &validMFLCode,
+				ctx: ctx,
+				identifier: &dto.FacilityIdentifierInput{
+					Type:  enums.FacilityIdentifierTypeMFLCode,
+					Value: "8893278372",
+				},
 			},
 			want:    true,
 			wantErr: false,
-		},
-		{
-			name: "Sad Case - empty mflCode",
-			args: args{
-				ctx:     ctx,
-				mflCode: nil,
-			},
-			want:    false,
-			wantErr: true,
-		},
-		{
-			name: "Sad Case - very bad mflCode",
-			args: args{
-				ctx:     ctx,
-				mflCode: &veryBadMFLCode,
-			},
-			want:    false,
-			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.name == "Sad case - empty mflCode" {
-				fakeGorm.MockInactivateFacilityFn = func(ctx context.Context, mflCode *int) (bool, error) {
+				fakeGorm.MockInactivateFacilityFn = func(ctx context.Context, identifier *gorm.FacilityIdentifier) (bool, error) {
 					return false, fmt.Errorf("failed to inactivate facility")
 				}
 			}
 			if tt.name == "Sad Case - very bad mflCode" {
-				fakeGorm.MockInactivateFacilityFn = func(ctx context.Context, mflCode *int) (bool, error) {
+				fakeGorm.MockInactivateFacilityFn = func(ctx context.Context, identifier *gorm.FacilityIdentifier) (bool, error) {
 					return false, fmt.Errorf("failed to inactivate facility")
 				}
 			}
 
-			got, err := d.InactivateFacility(tt.args.ctx, tt.args.mflCode)
+			got, err := d.InactivateFacility(tt.args.ctx, tt.args.identifier)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("MyCareHubDb.InactivateFacility() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -95,12 +78,9 @@ func TestMyCareHubDb_ReactivateFacility(t *testing.T) {
 	var fakeGorm = gormMock.NewGormMock()
 	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
 
-	validMFLCode := gofakeit.Number(0, 100)
-	veryBadMFLCode := gofakeit.Number(10000, 10000000)
-
 	type args struct {
-		ctx     context.Context
-		mflCode *int
+		ctx        context.Context
+		identifier *dto.FacilityIdentifierInput
 	}
 	tests := []struct {
 		name    string
@@ -111,45 +91,30 @@ func TestMyCareHubDb_ReactivateFacility(t *testing.T) {
 		{
 			name: "Happy Case",
 			args: args{
-				ctx:     ctx,
-				mflCode: &validMFLCode,
+				ctx: ctx,
+				identifier: &dto.FacilityIdentifierInput{
+					Type:  enums.FacilityIdentifierTypeMFLCode,
+					Value: "88932783729",
+				},
 			},
 			want:    true,
 			wantErr: false,
-		},
-		{
-			name: "Sad Case - empty mflCode",
-			args: args{
-				ctx:     ctx,
-				mflCode: nil,
-			},
-			want:    false,
-			wantErr: true,
-		},
-		{
-			name: "Sad Case - very bad mflCode",
-			args: args{
-				ctx:     ctx,
-				mflCode: &veryBadMFLCode,
-			},
-			want:    false,
-			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.name == "Sad case - empty mflCode" {
-				fakeGorm.MockReactivateFacilityFn = func(ctx context.Context, mflCode *int) (bool, error) {
+				fakeGorm.MockReactivateFacilityFn = func(ctx context.Context, identifier *gorm.FacilityIdentifier) (bool, error) {
 					return false, fmt.Errorf("failed to inactivate facility")
 				}
 			}
 			if tt.name == "Sad Case - very bad mflCode" {
-				fakeGorm.MockReactivateFacilityFn = func(ctx context.Context, mflCode *int) (bool, error) {
+				fakeGorm.MockReactivateFacilityFn = func(ctx context.Context, identifier *gorm.FacilityIdentifier) (bool, error) {
 					return false, fmt.Errorf("failed to inactivate facility")
 				}
 			}
 
-			got, err := d.ReactivateFacility(tt.args.ctx, tt.args.mflCode)
+			got, err := d.ReactivateFacility(tt.args.ctx, tt.args.identifier)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("MyCareHubDb.InactivateFacility() error = %v, wantErr %v", err, tt.wantErr)
 				return

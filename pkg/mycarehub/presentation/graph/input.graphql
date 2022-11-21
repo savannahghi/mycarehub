@@ -4,11 +4,16 @@ scalar Any
 
 input FacilityInput {
   name: String!
-  code: Int!
   phone: String!
   active: Boolean!
   county: String!
   description: String!
+}
+
+input FacilityIdentifierInput {
+  type: FacilityIdentifierType!
+  value: String!
+  facilityID: String
 }
 
 input PaginationsInput {

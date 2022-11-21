@@ -1,15 +1,15 @@
 extend type Mutation {
-  createFacility(input: FacilityInput!): Facility!
-  deleteFacility(mflCode: Int!): Boolean!
-  reactivateFacility(mflCode: Int!): Boolean!
-  inactivateFacility(mflCode: Int!): Boolean!
+  createFacility(facility: FacilityInput!, identifier:FacilityIdentifierInput!): Facility!
+  deleteFacility(identifier: FacilityIdentifierInput!): Boolean!
+  reactivateFacility(identifier: FacilityIdentifierInput!): Boolean!
+  inactivateFacility(identifier: FacilityIdentifierInput!): Boolean!
   addFacilityContact(facilityID: ID!, contact: String!): Boolean!
 }
 
 extend type Query {
   searchFacility(searchParameter: String): [Facility]
   retrieveFacility(id: String!, active: Boolean!): Facility
-  retrieveFacilityByMFLCode(mflCode: Int!, isActive: Boolean!): Facility!
+  retrieveFacilityByIdentifier(identifier: FacilityIdentifierInput!, isActive: Boolean!): Facility!
   listFacilities(
     searchTerm: String
     filterInput: [FiltersInput]

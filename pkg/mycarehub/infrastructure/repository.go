@@ -19,7 +19,7 @@ type Create interface {
 	CreateUser(ctx context.Context, user domain.User) (*domain.User, error)
 	CreateClient(ctx context.Context, client domain.ClientProfile, contactID, identifierID string) (*domain.ClientProfile, error)
 	CreateIdentifier(ctx context.Context, identifier domain.Identifier) (*domain.Identifier, error)
-	GetOrCreateFacility(ctx context.Context, facility *dto.FacilityInput) (*domain.Facility, error)
+	GetOrCreateFacility(ctx context.Context, facility *dto.FacilityInput, identifier *dto.FacilityIdentifierInput) (*domain.Facility, error)
 	SaveTemporaryUserPin(ctx context.Context, pinData *domain.UserPIN) (bool, error)
 	SavePin(ctx context.Context, pinInput *domain.UserPIN) (bool, error)
 	SaveOTP(ctx context.Context, otpInput *domain.OTP) error
@@ -47,7 +47,7 @@ type Create interface {
 
 // Delete represents all the deletion action interfaces
 type Delete interface {
-	DeleteFacility(ctx context.Context, id int) (bool, error)
+	DeleteFacility(ctx context.Context, identifier *dto.FacilityIdentifierInput) (bool, error)
 	DeleteStaffProfile(ctx context.Context, staffID string) error
 	DeleteUser(ctx context.Context, userID string, clientID *string, staffID *string, flavour feedlib.Flavour) error
 	DeleteCommunity(ctx context.Context, communityID string) error
@@ -61,7 +61,7 @@ type Query interface {
 	RetrieveFacility(ctx context.Context, id *string, isActive bool) (*domain.Facility, error)
 	SearchFacility(ctx context.Context, searchParameter *string) ([]*domain.Facility, error)
 	GetFacilitiesWithoutFHIRID(ctx context.Context) ([]*domain.Facility, error)
-	RetrieveFacilityByMFLCode(ctx context.Context, MFLCode int, isActive bool) (*domain.Facility, error)
+	RetrieveFacilityByIdentifier(ctx context.Context, identifier *dto.FacilityIdentifierInput, isActive bool) (*domain.Facility, error)
 	ListFacilities(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationsInput *dto.PaginationsInput) (*domain.FacilityPage, error)
 	GetUserProfileByPhoneNumber(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*domain.User, error)
 	GetUserPINByUserID(ctx context.Context, userID string, flavour feedlib.Flavour) (*domain.UserPIN, error)
@@ -91,7 +91,7 @@ type Query interface {
 	CheckIfUsernameExists(ctx context.Context, username string) (bool, error)
 	GetCommunityByID(ctx context.Context, communityID string) (*domain.Community, error)
 	CheckIdentifierExists(ctx context.Context, identifierType string, identifierValue string) (bool, error)
-	CheckFacilityExistsByMFLCode(ctx context.Context, MFLCode int) (bool, error)
+	CheckFacilityExistsByIdentifier(ctx context.Context, identifier *dto.FacilityIdentifierInput) (bool, error)
 	GetClientsInAFacility(ctx context.Context, facilityID string) ([]*domain.ClientProfile, error)
 	GetRecentHealthDiaryEntries(ctx context.Context, lastSyncTime time.Time, client *domain.ClientProfile) ([]*domain.ClientHealthDiaryEntry, error)
 	GetClientsByParams(ctx context.Context, params gorm.Client, lastSyncTime *time.Time) ([]*domain.ClientProfile, error)
@@ -143,8 +143,8 @@ type Query interface {
 
 // Update represents all the update action interfaces
 type Update interface {
-	InactivateFacility(ctx context.Context, mflCode *int) (bool, error)
-	ReactivateFacility(ctx context.Context, mflCode *int) (bool, error)
+	InactivateFacility(ctx context.Context, identifier *dto.FacilityIdentifierInput) (bool, error)
+	ReactivateFacility(ctx context.Context, identifier *dto.FacilityIdentifierInput) (bool, error)
 	UpdateFacility(ctx context.Context, facility *domain.Facility, updateData map[string]interface{}) error
 	AcceptTerms(ctx context.Context, userID *string, termsID *int) (bool, error)
 	SetNickName(ctx context.Context, userID *string, nickname *string) (bool, error)

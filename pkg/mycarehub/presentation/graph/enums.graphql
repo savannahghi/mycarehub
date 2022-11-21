@@ -163,3 +163,7 @@ enum ConsentState {
   ACCEPTED
   REJECTED
 }
+
+enum FacilityIdentifierType{
+  MFL_CODE
+}

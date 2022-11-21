@@ -2215,15 +2215,15 @@ func TestUseCasesUserImpl_RegisterClient(t *testing.T) {
 				fakeDB.MockCreateIdentifierFn = func(ctx context.Context, identifier domain.Identifier) (*domain.Identifier, error) {
 					return &ccc, nil
 				}
-				fakeDB.MockCheckFacilityExistsByMFLCode = func(ctx context.Context, MFLCode int) (bool, error) {
+				fakeDB.MockCheckFacilityExistsByIdentifier = func(ctx context.Context, identifier *dto.FacilityIdentifierInput) (bool, error) {
 					return false, fmt.Errorf("unable to check that facility exists")
 				}
 			}
 			if tt.name == "Sad case: unable to retrieve facility by mfl code" {
-				fakeDB.MockCheckFacilityExistsByMFLCode = func(ctx context.Context, MFLCode int) (bool, error) {
+				fakeDB.MockCheckFacilityExistsByIdentifier = func(ctx context.Context, identifier *dto.FacilityIdentifierInput) (bool, error) {
 					return true, nil
 				}
-				fakeDB.MockRetrieveFacilityByMFLCodeFn = func(ctx context.Context, MFLCode int, isActive bool) (*domain.Facility, error) {
+				fakeDB.MockRetrieveFacilityByIdentifierFn = func(ctx context.Context, identifier *dto.FacilityIdentifierInput, isActive bool) (*domain.Facility, error) {
 					return nil, fmt.Errorf("unable to retrieve facility by mfl code")
 				}
 			}
@@ -2258,11 +2258,11 @@ func TestUseCasesUserImpl_RegisterClient(t *testing.T) {
 					return false, nil
 				}
 
-				fakeDB.MockCheckFacilityExistsByMFLCode = func(ctx context.Context, MFLCode int) (bool, error) {
+				fakeDB.MockCheckFacilityExistsByIdentifier = func(ctx context.Context, identifier *dto.FacilityIdentifierInput) (bool, error) {
 					return true, nil
 				}
 
-				fakeDB.MockRetrieveFacilityByMFLCodeFn = func(ctx context.Context, MFLCode int, isActive bool) (*domain.Facility, error) {
+				fakeDB.MockRetrieveFacilityByIdentifierFn = func(ctx context.Context, identifier *dto.FacilityIdentifierInput, isActive bool) (*domain.Facility, error) {
 					id := gofakeit.UUID()
 					return &domain.Facility{ID: &id}, nil
 				}
@@ -2327,7 +2327,7 @@ func TestUseCasesUserImpl_RegisterClient(t *testing.T) {
 				fakeDB.MockCreateUserFn = func(ctx context.Context, user domain.User) (*domain.User, error) {
 					return userProfile, nil
 				}
-				fakeDB.MockCheckFacilityExistsByMFLCode = func(ctx context.Context, MFLCode int) (bool, error) {
+				fakeDB.MockCheckFacilityExistsByIdentifier = func(ctx context.Context, identifier *dto.FacilityIdentifierInput) (bool, error) {
 					return false, nil
 				}
 			}
@@ -2335,10 +2335,10 @@ func TestUseCasesUserImpl_RegisterClient(t *testing.T) {
 				fakeDB.MockCheckIfPhoneNumberExistsFn = func(ctx context.Context, phone string, isOptedIn bool, flavour feedlib.Flavour) (bool, error) {
 					return false, nil
 				}
-				fakeDB.MockCheckFacilityExistsByMFLCode = func(ctx context.Context, MFLCode int) (bool, error) {
+				fakeDB.MockCheckFacilityExistsByIdentifier = func(ctx context.Context, identifier *dto.FacilityIdentifierInput) (bool, error) {
 					return true, nil
 				}
-				fakeDB.MockRetrieveFacilityByMFLCodeFn = func(ctx context.Context, MFLCode int, isActive bool) (*domain.Facility, error) {
+				fakeDB.MockRetrieveFacilityByIdentifierFn = func(ctx context.Context, identifier *dto.FacilityIdentifierInput, isActive bool) (*domain.Facility, error) {
 					id := gofakeit.UUID()
 					return &domain.Facility{ID: &id}, nil
 				}
@@ -2748,33 +2748,33 @@ func TestUseCasesUserImpl_RegisterKenyaEMRPatients(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.name == "Sad case: check facility error" {
-				fakeDB.MockCheckFacilityExistsByMFLCode = func(ctx context.Context, MFLCode int) (bool, error) {
+				fakeDB.MockCheckFacilityExistsByIdentifier = func(ctx context.Context, identifier *dto.FacilityIdentifierInput) (bool, error) {
 					return false, fmt.Errorf("error fetching facility")
 				}
 			}
 
 			if tt.name == "Sad case: facility doesn't exist" {
-				fakeDB.MockCheckFacilityExistsByMFLCode = func(ctx context.Context, MFLCode int) (bool, error) {
+				fakeDB.MockCheckFacilityExistsByIdentifier = func(ctx context.Context, identifier *dto.FacilityIdentifierInput) (bool, error) {
 					return false, nil
 				}
 			}
 
 			if tt.name == "Sad case: cannot retrieve facility" {
-				fakeDB.MockCheckFacilityExistsByMFLCode = func(ctx context.Context, MFLCode int) (bool, error) {
+				fakeDB.MockCheckFacilityExistsByIdentifier = func(ctx context.Context, identifier *dto.FacilityIdentifierInput) (bool, error) {
 					return true, nil
 				}
 
-				fakeDB.MockRetrieveFacilityByMFLCodeFn = func(ctx context.Context, MFLCode int, isActive bool) (*domain.Facility, error) {
+				fakeDB.MockRetrieveFacilityByIdentifierFn = func(ctx context.Context, identifier *dto.FacilityIdentifierInput, isActive bool) (*domain.Facility, error) {
 					return nil, fmt.Errorf("cannot retrieve facility by mfl code")
 				}
 			}
 
 			if tt.name == "Happy case: identifier already exists" {
-				fakeDB.MockCheckFacilityExistsByMFLCode = func(ctx context.Context, MFLCode int) (bool, error) {
+				fakeDB.MockCheckFacilityExistsByIdentifier = func(ctx context.Context, identifier *dto.FacilityIdentifierInput) (bool, error) {
 					return true, nil
 				}
 
-				fakeDB.MockRetrieveFacilityByMFLCodeFn = func(ctx context.Context, MFLCode int, isActive bool) (*domain.Facility, error) {
+				fakeDB.MockRetrieveFacilityByIdentifierFn = func(ctx context.Context, identifier *dto.FacilityIdentifierInput, isActive bool) (*domain.Facility, error) {
 					id := gofakeit.UUID()
 					return &domain.Facility{ID: &id}, nil
 				}
@@ -2785,11 +2785,11 @@ func TestUseCasesUserImpl_RegisterKenyaEMRPatients(t *testing.T) {
 			}
 
 			if tt.name == "Sad case: cannot create user" {
-				fakeDB.MockCheckFacilityExistsByMFLCode = func(ctx context.Context, MFLCode int) (bool, error) {
+				fakeDB.MockCheckFacilityExistsByIdentifier = func(ctx context.Context, identifier *dto.FacilityIdentifierInput) (bool, error) {
 					return true, nil
 				}
 
-				fakeDB.MockRetrieveFacilityByMFLCodeFn = func(ctx context.Context, MFLCode int, isActive bool) (*domain.Facility, error) {
+				fakeDB.MockRetrieveFacilityByIdentifierFn = func(ctx context.Context, identifier *dto.FacilityIdentifierInput, isActive bool) (*domain.Facility, error) {
 					id := gofakeit.UUID()
 					return &domain.Facility{ID: &id}, nil
 				}
@@ -2804,11 +2804,11 @@ func TestUseCasesUserImpl_RegisterKenyaEMRPatients(t *testing.T) {
 			}
 
 			if tt.name == "Sad case: cannot get or create contact" {
-				fakeDB.MockCheckFacilityExistsByMFLCode = func(ctx context.Context, MFLCode int) (bool, error) {
+				fakeDB.MockCheckFacilityExistsByIdentifier = func(ctx context.Context, identifier *dto.FacilityIdentifierInput) (bool, error) {
 					return true, nil
 				}
 
-				fakeDB.MockRetrieveFacilityByMFLCodeFn = func(ctx context.Context, MFLCode int, isActive bool) (*domain.Facility, error) {
+				fakeDB.MockRetrieveFacilityByIdentifierFn = func(ctx context.Context, identifier *dto.FacilityIdentifierInput, isActive bool) (*domain.Facility, error) {
 					id := gofakeit.UUID()
 					return &domain.Facility{ID: &id}, nil
 				}
@@ -2828,11 +2828,11 @@ func TestUseCasesUserImpl_RegisterKenyaEMRPatients(t *testing.T) {
 			}
 
 			if tt.name == "Sad case: cannot create identifier" {
-				fakeDB.MockCheckFacilityExistsByMFLCode = func(ctx context.Context, MFLCode int) (bool, error) {
+				fakeDB.MockCheckFacilityExistsByIdentifier = func(ctx context.Context, identifier *dto.FacilityIdentifierInput) (bool, error) {
 					return true, nil
 				}
 
-				fakeDB.MockRetrieveFacilityByMFLCodeFn = func(ctx context.Context, MFLCode int, isActive bool) (*domain.Facility, error) {
+				fakeDB.MockRetrieveFacilityByIdentifierFn = func(ctx context.Context, identifier *dto.FacilityIdentifierInput, isActive bool) (*domain.Facility, error) {
 					id := gofakeit.UUID()
 					return &domain.Facility{ID: &id}, nil
 				}
@@ -2858,11 +2858,11 @@ func TestUseCasesUserImpl_RegisterKenyaEMRPatients(t *testing.T) {
 			}
 
 			if tt.name == "Sad case: cannot create client" {
-				fakeDB.MockCheckFacilityExistsByMFLCode = func(ctx context.Context, MFLCode int) (bool, error) {
+				fakeDB.MockCheckFacilityExistsByIdentifier = func(ctx context.Context, identifier *dto.FacilityIdentifierInput) (bool, error) {
 					return true, nil
 				}
 
-				fakeDB.MockRetrieveFacilityByMFLCodeFn = func(ctx context.Context, MFLCode int, isActive bool) (*domain.Facility, error) {
+				fakeDB.MockRetrieveFacilityByIdentifierFn = func(ctx context.Context, identifier *dto.FacilityIdentifierInput, isActive bool) (*domain.Facility, error) {
 					id := gofakeit.UUID()
 					return &domain.Facility{ID: &id}, nil
 				}
@@ -2892,11 +2892,11 @@ func TestUseCasesUserImpl_RegisterKenyaEMRPatients(t *testing.T) {
 			}
 
 			if tt.name == "Sad case: cannot publish to patient topic" {
-				fakeDB.MockCheckFacilityExistsByMFLCode = func(ctx context.Context, MFLCode int) (bool, error) {
+				fakeDB.MockCheckFacilityExistsByIdentifier = func(ctx context.Context, identifier *dto.FacilityIdentifierInput) (bool, error) {
 					return true, nil
 				}
 
-				fakeDB.MockRetrieveFacilityByMFLCodeFn = func(ctx context.Context, MFLCode int, isActive bool) (*domain.Facility, error) {
+				fakeDB.MockRetrieveFacilityByIdentifierFn = func(ctx context.Context, identifier *dto.FacilityIdentifierInput, isActive bool) (*domain.Facility, error) {
 					id := gofakeit.UUID()
 					return &domain.Facility{ID: &id}, nil
 				}
@@ -2945,11 +2945,11 @@ func TestUseCasesUserImpl_RegisterKenyaEMRPatients(t *testing.T) {
 			}
 
 			if tt.name == "Sad case: cannot create next of kin contact" {
-				fakeDB.MockCheckFacilityExistsByMFLCode = func(ctx context.Context, MFLCode int) (bool, error) {
+				fakeDB.MockCheckFacilityExistsByIdentifier = func(ctx context.Context, identifier *dto.FacilityIdentifierInput) (bool, error) {
 					return true, nil
 				}
 
-				fakeDB.MockRetrieveFacilityByMFLCodeFn = func(ctx context.Context, MFLCode int, isActive bool) (*domain.Facility, error) {
+				fakeDB.MockRetrieveFacilityByIdentifierFn = func(ctx context.Context, identifier *dto.FacilityIdentifierInput, isActive bool) (*domain.Facility, error) {
 					id := gofakeit.UUID()
 					return &domain.Facility{ID: &id}, nil
 				}
@@ -2989,11 +2989,11 @@ func TestUseCasesUserImpl_RegisterKenyaEMRPatients(t *testing.T) {
 			}
 
 			if tt.name == "Sad case: cannot create next of kin" {
-				fakeDB.MockCheckFacilityExistsByMFLCode = func(ctx context.Context, MFLCode int) (bool, error) {
+				fakeDB.MockCheckFacilityExistsByIdentifier = func(ctx context.Context, identifier *dto.FacilityIdentifierInput) (bool, error) {
 					return true, nil
 				}
 
-				fakeDB.MockRetrieveFacilityByMFLCodeFn = func(ctx context.Context, MFLCode int, isActive bool) (*domain.Facility, error) {
+				fakeDB.MockRetrieveFacilityByIdentifierFn = func(ctx context.Context, identifier *dto.FacilityIdentifierInput, isActive bool) (*domain.Facility, error) {
 					id := gofakeit.UUID()
 					return &domain.Facility{ID: &id}, nil
 				}
@@ -3038,11 +3038,11 @@ func TestUseCasesUserImpl_RegisterKenyaEMRPatients(t *testing.T) {
 			}
 
 			if tt.name == "Happy case: successfully create a client and next of kin" {
-				fakeDB.MockCheckFacilityExistsByMFLCode = func(ctx context.Context, MFLCode int) (bool, error) {
+				fakeDB.MockCheckFacilityExistsByIdentifier = func(ctx context.Context, identifier *dto.FacilityIdentifierInput) (bool, error) {
 					return true, nil
 				}
 
-				fakeDB.MockRetrieveFacilityByMFLCodeFn = func(ctx context.Context, MFLCode int, isActive bool) (*domain.Facility, error) {
+				fakeDB.MockRetrieveFacilityByIdentifierFn = func(ctx context.Context, identifier *dto.FacilityIdentifierInput, isActive bool) (*domain.Facility, error) {
 					id := gofakeit.UUID()
 					return &domain.Facility{ID: &id}, nil
 				}
@@ -3225,33 +3225,33 @@ func TestUseCasesUserImpl_RegisteredFacilityPatients(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 
 			if tt.name == "sad case: error checking facility" {
-				fakeDB.MockCheckFacilityExistsByMFLCode = func(ctx context.Context, MFLCode int) (bool, error) {
+				fakeDB.MockCheckFacilityExistsByIdentifier = func(ctx context.Context, identifier *dto.FacilityIdentifierInput) (bool, error) {
 					return false, fmt.Errorf("error fetching facility")
 				}
 			}
 
 			if tt.name == "sad case: facility doesn't exist" {
-				fakeDB.MockCheckFacilityExistsByMFLCode = func(ctx context.Context, MFLCode int) (bool, error) {
+				fakeDB.MockCheckFacilityExistsByIdentifier = func(ctx context.Context, identifier *dto.FacilityIdentifierInput) (bool, error) {
 					return false, nil
 				}
 			}
 
 			if tt.name == "sad case: error retrieving facility" {
-				fakeDB.MockCheckFacilityExistsByMFLCode = func(ctx context.Context, MFLCode int) (bool, error) {
+				fakeDB.MockCheckFacilityExistsByIdentifier = func(ctx context.Context, identifier *dto.FacilityIdentifierInput) (bool, error) {
 					return true, nil
 				}
 
-				fakeDB.MockRetrieveFacilityByMFLCodeFn = func(ctx context.Context, MFLCode int, isActive bool) (*domain.Facility, error) {
+				fakeDB.MockRetrieveFacilityByIdentifierFn = func(ctx context.Context, identifier *dto.FacilityIdentifierInput, isActive bool) (*domain.Facility, error) {
 					return nil, fmt.Errorf("cannot retrieve facility")
 				}
 			}
 
 			if tt.name == "sad case: error retrieving clients with sync time" {
-				fakeDB.MockCheckFacilityExistsByMFLCode = func(ctx context.Context, MFLCode int) (bool, error) {
+				fakeDB.MockCheckFacilityExistsByIdentifier = func(ctx context.Context, identifier *dto.FacilityIdentifierInput) (bool, error) {
 					return true, nil
 				}
 
-				fakeDB.MockRetrieveFacilityByMFLCodeFn = func(ctx context.Context, MFLCode int, isActive bool) (*domain.Facility, error) {
+				fakeDB.MockRetrieveFacilityByIdentifierFn = func(ctx context.Context, identifier *dto.FacilityIdentifierInput, isActive bool) (*domain.Facility, error) {
 					id := uuid.NewString()
 					return &domain.Facility{ID: &id}, nil
 				}
@@ -3262,11 +3262,11 @@ func TestUseCasesUserImpl_RegisteredFacilityPatients(t *testing.T) {
 			}
 
 			if tt.name == "sad case: error retrieving clients without sync time" {
-				fakeDB.MockCheckFacilityExistsByMFLCode = func(ctx context.Context, MFLCode int) (bool, error) {
+				fakeDB.MockCheckFacilityExistsByIdentifier = func(ctx context.Context, identifier *dto.FacilityIdentifierInput) (bool, error) {
 					return true, nil
 				}
 
-				fakeDB.MockRetrieveFacilityByMFLCodeFn = func(ctx context.Context, MFLCode int, isActive bool) (*domain.Facility, error) {
+				fakeDB.MockRetrieveFacilityByIdentifierFn = func(ctx context.Context, identifier *dto.FacilityIdentifierInput, isActive bool) (*domain.Facility, error) {
 					id := uuid.NewString()
 					return &domain.Facility{ID: &id}, nil
 				}
@@ -3277,11 +3277,11 @@ func TestUseCasesUserImpl_RegisteredFacilityPatients(t *testing.T) {
 			}
 
 			if tt.name == "sad case: error retrieving client identifier" {
-				fakeDB.MockCheckFacilityExistsByMFLCode = func(ctx context.Context, MFLCode int) (bool, error) {
+				fakeDB.MockCheckFacilityExistsByIdentifier = func(ctx context.Context, identifier *dto.FacilityIdentifierInput) (bool, error) {
 					return true, nil
 				}
 
-				fakeDB.MockRetrieveFacilityByMFLCodeFn = func(ctx context.Context, MFLCode int, isActive bool) (*domain.Facility, error) {
+				fakeDB.MockRetrieveFacilityByIdentifierFn = func(ctx context.Context, identifier *dto.FacilityIdentifierInput, isActive bool) (*domain.Facility, error) {
 					id := uuid.NewString()
 					return &domain.Facility{ID: &id}, nil
 				}
@@ -3301,11 +3301,11 @@ func TestUseCasesUserImpl_RegisteredFacilityPatients(t *testing.T) {
 			}
 
 			if tt.name == "happy case: success retrieving new clients with sync time" {
-				fakeDB.MockCheckFacilityExistsByMFLCode = func(ctx context.Context, MFLCode int) (bool, error) {
+				fakeDB.MockCheckFacilityExistsByIdentifier = func(ctx context.Context, identifier *dto.FacilityIdentifierInput) (bool, error) {
 					return true, nil
 				}
 
-				fakeDB.MockRetrieveFacilityByMFLCodeFn = func(ctx context.Context, MFLCode int, isActive bool) (*domain.Facility, error) {
+				fakeDB.MockRetrieveFacilityByIdentifierFn = func(ctx context.Context, identifier *dto.FacilityIdentifierInput, isActive bool) (*domain.Facility, error) {
 					id := uuid.NewString()
 					return &domain.Facility{ID: &id}, nil
 				}
@@ -3325,11 +3325,11 @@ func TestUseCasesUserImpl_RegisteredFacilityPatients(t *testing.T) {
 			}
 
 			if tt.name == "happy case: success retrieving new clients without sync time" {
-				fakeDB.MockCheckFacilityExistsByMFLCode = func(ctx context.Context, MFLCode int) (bool, error) {
+				fakeDB.MockCheckFacilityExistsByIdentifier = func(ctx context.Context, identifier *dto.FacilityIdentifierInput) (bool, error) {
 					return true, nil
 				}
 
-				fakeDB.MockRetrieveFacilityByMFLCodeFn = func(ctx context.Context, MFLCode int, isActive bool) (*domain.Facility, error) {
+				fakeDB.MockRetrieveFacilityByIdentifierFn = func(ctx context.Context, identifier *dto.FacilityIdentifierInput, isActive bool) (*domain.Facility, error) {
 					id := uuid.NewString()
 					return &domain.Facility{ID: &id}, nil
 				}
@@ -4461,7 +4461,7 @@ func TestUseCasesUserImpl_RegisterStaff(t *testing.T) {
 				fakeDB.MockCreateUserFn = func(ctx context.Context, user domain.User) (*domain.User, error) {
 					return userProfile, nil
 				}
-				fakeDB.MockCheckFacilityExistsByMFLCode = func(ctx context.Context, MFLCode int) (bool, error) {
+				fakeDB.MockCheckFacilityExistsByIdentifier = func(ctx context.Context, identifier *dto.FacilityIdentifierInput) (bool, error) {
 					return true, nil
 				}
 				fakeDB.MockRegisterStaffFn = func(ctx context.Context, staffRegistrationPayload *domain.StaffRegistrationPayload) (*domain.StaffProfile, error) {
@@ -4484,7 +4484,7 @@ func TestUseCasesUserImpl_RegisterStaff(t *testing.T) {
 				fakeDB.MockCreateUserFn = func(ctx context.Context, user domain.User) (*domain.User, error) {
 					return userProfile, nil
 				}
-				fakeDB.MockCheckFacilityExistsByMFLCode = func(ctx context.Context, MFLCode int) (bool, error) {
+				fakeDB.MockCheckFacilityExistsByIdentifier = func(ctx context.Context, identifier *dto.FacilityIdentifierInput) (bool, error) {
 					return false, fmt.Errorf("failed to check facility exists")
 				}
 			}
@@ -4498,7 +4498,7 @@ func TestUseCasesUserImpl_RegisterStaff(t *testing.T) {
 				fakeDB.MockCreateUserFn = func(ctx context.Context, user domain.User) (*domain.User, error) {
 					return userProfile, nil
 				}
-				fakeDB.MockCheckFacilityExistsByMFLCode = func(ctx context.Context, MFLCode int) (bool, error) {
+				fakeDB.MockCheckFacilityExistsByIdentifier = func(ctx context.Context, identifier *dto.FacilityIdentifierInput) (bool, error) {
 					return false, nil
 				}
 			}
@@ -4512,10 +4512,10 @@ func TestUseCasesUserImpl_RegisterStaff(t *testing.T) {
 				fakeDB.MockCreateUserFn = func(ctx context.Context, user domain.User) (*domain.User, error) {
 					return userProfile, nil
 				}
-				fakeDB.MockCheckFacilityExistsByMFLCode = func(ctx context.Context, MFLCode int) (bool, error) {
+				fakeDB.MockCheckFacilityExistsByIdentifier = func(ctx context.Context, identifier *dto.FacilityIdentifierInput) (bool, error) {
 					return true, nil
 				}
-				fakeDB.MockRetrieveFacilityByMFLCodeFn = func(ctx context.Context, MFLCode int, isActive bool) (*domain.Facility, error) {
+				fakeDB.MockRetrieveFacilityByIdentifierFn = func(ctx context.Context, identifier *dto.FacilityIdentifierInput, isActive bool) (*domain.Facility, error) {
 					return nil, fmt.Errorf("failed to retrieve facility by MFL Code")
 				}
 			}
@@ -4529,10 +4529,10 @@ func TestUseCasesUserImpl_RegisterStaff(t *testing.T) {
 				fakeDB.MockCreateUserFn = func(ctx context.Context, user domain.User) (*domain.User, error) {
 					return userProfile, nil
 				}
-				fakeDB.MockCheckFacilityExistsByMFLCode = func(ctx context.Context, MFLCode int) (bool, error) {
+				fakeDB.MockCheckFacilityExistsByIdentifier = func(ctx context.Context, identifier *dto.FacilityIdentifierInput) (bool, error) {
 					return true, nil
 				}
-				fakeDB.MockRetrieveFacilityByMFLCodeFn = func(ctx context.Context, MFLCode int, isActive bool) (*domain.Facility, error) {
+				fakeDB.MockRetrieveFacilityByIdentifierFn = func(ctx context.Context, identifier *dto.FacilityIdentifierInput, isActive bool) (*domain.Facility, error) {
 					return facility, nil
 				}
 				fakeDB.MockRegisterStaffFn = func(ctx context.Context, staffRegistrationPayload *domain.StaffRegistrationPayload) (*domain.StaffProfile, error) {
@@ -4549,10 +4549,10 @@ func TestUseCasesUserImpl_RegisterStaff(t *testing.T) {
 				fakeDB.MockCreateUserFn = func(ctx context.Context, user domain.User) (*domain.User, error) {
 					return userProfile, nil
 				}
-				fakeDB.MockCheckFacilityExistsByMFLCode = func(ctx context.Context, MFLCode int) (bool, error) {
+				fakeDB.MockCheckFacilityExistsByIdentifier = func(ctx context.Context, identifier *dto.FacilityIdentifierInput) (bool, error) {
 					return true, nil
 				}
-				fakeDB.MockRetrieveFacilityByMFLCodeFn = func(ctx context.Context, MFLCode int, isActive bool) (*domain.Facility, error) {
+				fakeDB.MockRetrieveFacilityByIdentifierFn = func(ctx context.Context, identifier *dto.FacilityIdentifierInput, isActive bool) (*domain.Facility, error) {
 					return facility, nil
 				}
 				fakeDB.MockRegisterStaffFn = func(ctx context.Context, staffRegistrationPayload *domain.StaffRegistrationPayload) (*domain.StaffProfile, error) {
@@ -4572,10 +4572,10 @@ func TestUseCasesUserImpl_RegisterStaff(t *testing.T) {
 				fakeDB.MockCreateUserFn = func(ctx context.Context, user domain.User) (*domain.User, error) {
 					return userProfile, nil
 				}
-				fakeDB.MockCheckFacilityExistsByMFLCode = func(ctx context.Context, MFLCode int) (bool, error) {
+				fakeDB.MockCheckFacilityExistsByIdentifier = func(ctx context.Context, identifier *dto.FacilityIdentifierInput) (bool, error) {
 					return true, nil
 				}
-				fakeDB.MockRetrieveFacilityByMFLCodeFn = func(ctx context.Context, MFLCode int, isActive bool) (*domain.Facility, error) {
+				fakeDB.MockRetrieveFacilityByIdentifierFn = func(ctx context.Context, identifier *dto.FacilityIdentifierInput, isActive bool) (*domain.Facility, error) {
 					return facility, nil
 				}
 				fakeDB.MockRegisterStaffFn = func(ctx context.Context, staffRegistrationPayload *domain.StaffRegistrationPayload) (*domain.StaffProfile, error) {

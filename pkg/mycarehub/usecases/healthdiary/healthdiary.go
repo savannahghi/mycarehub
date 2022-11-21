@@ -3,6 +3,7 @@ package healthdiary
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/savannahghi/feedlib"
@@ -191,7 +192,10 @@ func (h UseCasesHealthDiaryImpl) GetClientHealthDiaryEntries(ctx context.Context
 // from a specified facility and have not yet been synced to KenyaEMR.
 // This will be used by the KenyaEMR module to retrieve the health diaries and save them into KenyaEMR database
 func (h UseCasesHealthDiaryImpl) GetFacilityHealthDiaryEntries(ctx context.Context, input dto.FetchHealthDiaryEntries) (*dto.HealthDiaryEntriesResponse, error) {
-	exists, err := h.Query.CheckFacilityExistsByMFLCode(ctx, input.MFLCode)
+	exists, err := h.Query.CheckFacilityExistsByIdentifier(ctx, &dto.FacilityIdentifierInput{
+		Type:  enums.FacilityIdentifierTypeMFLCode,
+		Value: strconv.Itoa(input.MFLCode),
+	})
 	if err != nil {
 		return nil, fmt.Errorf("error checking for facility")
 	}
@@ -200,7 +204,10 @@ func (h UseCasesHealthDiaryImpl) GetFacilityHealthDiaryEntries(ctx context.Conte
 		return nil, fmt.Errorf("facility with provided MFL code doesn't exist, code: %v", input.MFLCode)
 	}
 
-	facility, err := h.Query.RetrieveFacilityByMFLCode(ctx, input.MFLCode, true)
+	facility, err := h.Query.RetrieveFacilityByIdentifier(ctx, &dto.FacilityIdentifierInput{
+		Type:  enums.FacilityIdentifierTypeMFLCode,
+		Value: strconv.Itoa(input.MFLCode),
+	}, true)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get facility: %v", err)
 	}

@@ -2968,7 +2968,7 @@ func TestMyCareHubDb_GetServiceRequestsForKenyaEMR(t *testing.T) {
 			}
 
 			if tt.name == "Sad case: Fail to retrieve facility by mfl code" {
-				fakeGorm.MockRetrieveFacilityByMFLCodeFn = func(ctx context.Context, MFLCode int, isActive bool) (*gorm.Facility, error) {
+				fakeGorm.MockRetrieveFacilityByIdentifierFn = func(ctx context.Context, identifier *gorm.FacilityIdentifier, isActive bool) (*gorm.Facility, error) {
 					return nil, fmt.Errorf("failed to retrieve facility by mflcode")
 				}
 			}
@@ -3146,10 +3146,10 @@ func TestMyCareHubDb_CheckIdentifierExists(t *testing.T) {
 	}
 }
 
-func TestMyCareHubDb_CheckFacilityExistsByMFLCode(t *testing.T) {
+func TestMyCareHubDb_CheckFacilityExistsByIdentifier(t *testing.T) {
 	type args struct {
-		ctx     context.Context
-		MFLCode int
+		ctx        context.Context
+		identifier *dto.FacilityIdentifierInput
 	}
 	tests := []struct {
 		name    string
@@ -3160,8 +3160,11 @@ func TestMyCareHubDb_CheckFacilityExistsByMFLCode(t *testing.T) {
 		{
 			name: "Happy case",
 			args: args{
-				ctx:     context.Background(),
-				MFLCode: 12345,
+				ctx: context.Background(),
+				identifier: &dto.FacilityIdentifierInput{
+					Type:  enums.FacilityIdentifierTypeMFLCode,
+					Value: "490843984938948",
+				},
 			},
 			want:    true,
 			wantErr: false,
@@ -3172,13 +3175,13 @@ func TestMyCareHubDb_CheckFacilityExistsByMFLCode(t *testing.T) {
 			var fakeGorm = gormMock.NewGormMock()
 			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
 
-			got, err := d.CheckFacilityExistsByMFLCode(tt.args.ctx, tt.args.MFLCode)
+			got, err := d.CheckFacilityExistsByIdentifier(tt.args.ctx, tt.args.identifier)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("MyCareHubDb.CheckFacilityExistsByMFLCode() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("MyCareHubDb.CheckFacilityExistsByIdentifier() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if got != tt.want {
-				t.Errorf("MyCareHubDb.CheckFacilityExistsByMFLCode() = %v, want %v", got, tt.want)
+				t.Errorf("MyCareHubDb.CheckFacilityExistsByIdentifier() = %v, want %v", got, tt.want)
 			}
 		})
 	}
@@ -4035,15 +4038,6 @@ func TestMyCareHubDb_GetAppointmentServiceRequests(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "Sad case:  invalid mfl code",
-			args: args{
-				ctx:          context.Background(),
-				lastSyncTime: time.Now(),
-				mflCode:      "invalid",
-			},
-			wantErr: true,
-		},
-		{
 			name: "Sad case:  failed to get facility",
 			args: args{
 				ctx:          context.Background(),
@@ -4131,7 +4125,7 @@ func TestMyCareHubDb_GetAppointmentServiceRequests(t *testing.T) {
 			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
 
 			if tt.name == "Sad case:  failed to get facility" {
-				fakeGorm.MockRetrieveFacilityByMFLCodeFn = func(ctx context.Context, MFLCode int, isActive bool) (*gorm.Facility, error) {
+				fakeGorm.MockRetrieveFacilityByIdentifierFn = func(ctx context.Context, identifier *gorm.FacilityIdentifier, isActive bool) (*gorm.Facility, error) {
 					return nil, fmt.Errorf("failed to retrieve facility")
 				}
 			}

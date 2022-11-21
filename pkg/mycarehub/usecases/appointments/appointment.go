@@ -100,20 +100,22 @@ func NewUseCaseAppointmentsImpl(
 
 // CreateOrUpdateKenyaEMRAppointments creates or updates appointments from Kenya EMR
 func (a *UseCasesAppointmentsImpl) CreateOrUpdateKenyaEMRAppointments(ctx context.Context, input dto.FacilityAppointmentsPayload) (*dto.FacilityAppointmentsResponse, error) {
-	MFLCode, err := strconv.Atoi(input.MFLCode)
-	if err != nil {
-		return nil, err
-	}
 
-	exists, err := a.Query.CheckFacilityExistsByMFLCode(ctx, MFLCode)
+	exists, err := a.Query.CheckFacilityExistsByIdentifier(ctx, &dto.FacilityIdentifierInput{
+		Type:  enums.FacilityIdentifierTypeMFLCode,
+		Value: input.MFLCode,
+	})
 	if err != nil {
 		return nil, fmt.Errorf("error checking for facility")
 	}
 	if !exists {
-		return nil, fmt.Errorf("facility with provided MFL code doesn't exist, code: %v", MFLCode)
+		return nil, fmt.Errorf("facility with provided MFL code doesn't exist, code: %v", input.MFLCode)
 	}
 
-	facility, err := a.Query.RetrieveFacilityByMFLCode(ctx, MFLCode, true)
+	facility, err := a.Query.RetrieveFacilityByIdentifier(ctx, &dto.FacilityIdentifierInput{
+		Type:  enums.FacilityIdentifierTypeMFLCode,
+		Value: input.MFLCode,
+	}, true)
 	if err != nil {
 		return nil, fmt.Errorf("error retrieving facility: %v", err)
 	}
@@ -252,13 +254,15 @@ func (a *UseCasesAppointmentsImpl) FetchClientAppointments(ctx context.Context, 
 
 // AddPatientsRecords adds records for multiple clients and is especially useful when performing a bulk creation from KenyaEMR
 func (a *UseCasesAppointmentsImpl) AddPatientsRecords(ctx context.Context, input dto.PatientsRecordsPayload) error {
-
 	MFLCode, err := strconv.Atoi(input.MFLCode)
 	if err != nil {
 		return err
 	}
 
-	exists, err := a.Query.CheckFacilityExistsByMFLCode(ctx, MFLCode)
+	exists, err := a.Query.CheckFacilityExistsByIdentifier(ctx, &dto.FacilityIdentifierInput{
+		Type:  enums.FacilityIdentifierTypeMFLCode,
+		Value: input.MFLCode,
+	})
 	if err != nil {
 		return fmt.Errorf("error checking for facility")
 	}
@@ -289,7 +293,10 @@ func (a *UseCasesAppointmentsImpl) AddPatientRecord(ctx context.Context, input d
 		return fmt.Errorf("ccc number is required")
 	}
 
-	facility, err := a.Query.RetrieveFacilityByMFLCode(ctx, input.MFLCode, true)
+	facility, err := a.Query.RetrieveFacilityByIdentifier(ctx, &dto.FacilityIdentifierInput{
+		Type:  enums.FacilityIdentifierTypeMFLCode,
+		Value: strconv.Itoa(input.MFLCode),
+	}, true)
 	if err != nil {
 		return fmt.Errorf("error retrieving facility with mfl code: %v", input.MFLCode)
 	}
@@ -418,7 +425,10 @@ Vitals:
 // GetAppointmentServiceRequests returns a list of appointment service requests
 func (a *UseCasesAppointmentsImpl) GetAppointmentServiceRequests(ctx context.Context, payload dto.AppointmentServiceRequestInput) (*dto.AppointmentServiceRequestsOutput, error) {
 
-	exists, err := a.Query.CheckFacilityExistsByMFLCode(ctx, payload.MFLCode)
+	exists, err := a.Query.CheckFacilityExistsByIdentifier(ctx, &dto.FacilityIdentifierInput{
+		Type:  enums.FacilityIdentifierTypeMFLCode,
+		Value: strconv.Itoa(payload.MFLCode),
+	})
 	if err != nil {
 		return nil, fmt.Errorf("error checking for facility")
 	}
