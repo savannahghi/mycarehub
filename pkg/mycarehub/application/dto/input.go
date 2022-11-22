@@ -368,7 +368,7 @@ type PatientSyncPayload struct {
 	SyncTime *time.Time `json:"lastSyncTime"`
 }
 
-//ServiceRequestPayload defines the payload from KenyaEMR used to fetch
+// ServiceRequestPayload defines the payload from KenyaEMR used to fetch
 // service requests.
 type ServiceRequestPayload struct {
 	MFLCode      int        `json:"MFLCODE"`
@@ -726,4 +726,16 @@ type ClientCaregiverInput struct {
 	ClientID      string              `json:"clientID"`
 	CaregiverID   string              `json:"caregiverID"`
 	CaregiverType enums.CaregiverType `json:"relationshipType"`
+}
+
+// OrganisationInput is the input for creating an organisation
+type OrganisationInput struct {
+	OrganisationCode string `json:"org_code"`
+	Name             string `json:"name"`
+	Description      string `json:"description"`
+	EmailAddress     string `json:"email_address"`
+	PhoneNumber      string `json:"phone_number"`
+	PostalAddress    string `json:"postal_address"`
+	PhysicalAddress  string `json:"physical_address"`
+	DefaultCountry   string `json:"default_country"`
 }

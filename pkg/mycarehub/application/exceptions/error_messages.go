@@ -177,4 +177,7 @@ const (
 
 	// StaffHasUnresolvedPinResetRequestErrorMsg is the error message displayed when a staff has an unresolved pin reset request
 	StaffHasUnresolvedPinResetRequestErrorMsg = "staff has unresolved pin reset request"
+
+	// FailedToCreateAnOrganizationErrorMsg is the error message displayed when an organization is not created
+	FailedToCreateAnOrganizationErrorMsg = "failed to create an organization"
 )

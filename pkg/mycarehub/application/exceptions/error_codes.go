@@ -411,3 +411,8 @@ const (
 	// Its error code is 82
 	StaffHasUnresolvedPinResetRequestError
 )
+
+const (
+	// FailToCreateOrganisation is the error code for use when the system is unable to create an organisation
+	FailToCreateOrganisation = 90
+)

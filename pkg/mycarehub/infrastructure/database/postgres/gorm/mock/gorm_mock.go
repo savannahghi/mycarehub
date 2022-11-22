@@ -181,6 +181,7 @@ type GormMock struct {
 	MockListClientsCaregiversFn                          func(ctx context.Context, clientID string, pagination *domain.Pagination) ([]*gorm.CaregiverClient, *domain.Pagination, error)
 	MockGetCaregiverProfileByCaregiverIDFn               func(ctx context.Context, caregiverID string) (*gorm.Caregiver, error)
 	MockUpdateCaregiverClientFn                          func(ctx context.Context, caregiverClient *gorm.CaregiverClient, updates map[string]interface{}) error
+	MockCreateOrganisationFn                             func(ctx context.Context, organization *gorm.Organisation) error
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -1483,6 +1484,9 @@ func NewGormMock() *GormMock {
 				},
 			}, nil
 		},
+		MockCreateOrganisationFn: func(ctx context.Context, organization *gorm.Organisation) error {
+			return nil
+		},
 	}
 }
 
@@ -2279,4 +2283,9 @@ func (gm *GormMock) GetCaregiverProfileByCaregiverID(ctx context.Context, caregi
 // UpdateCaregiverClient mocks the accepting of caregiver consent
 func (gm *GormMock) UpdateCaregiverClient(ctx context.Context, caregiverClient *gorm.CaregiverClient, updates map[string]interface{}) error {
 	return gm.MockUpdateCaregiverClientFn(ctx, caregiverClient, updates)
+}
+
+// CreateOrganisation mocks the implementation of creating an organisation
+func (gm *GormMock) CreateOrganisation(ctx context.Context, organisation *gorm.Organisation) error {
+	return gm.MockCreateOrganisationFn(ctx, organisation)
 }

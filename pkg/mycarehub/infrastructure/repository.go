@@ -43,6 +43,7 @@ type Create interface {
 	CreateScreeningTool(ctx context.Context, input *domain.ScreeningTool) error
 	CreateScreeningToolResponse(ctx context.Context, input *domain.QuestionnaireScreeningToolResponse) (*string, error)
 	AddCaregiverToClient(ctx context.Context, clientCaregiver *domain.CaregiverClient) error
+	CreateOrganisation(ctx context.Context, organisation *domain.Organisation) error
 }
 
 // Delete represents all the deletion action interfaces

@@ -1921,3 +1921,68 @@ func TestMyCareHubDb_CreateCaregiver(t *testing.T) {
 		})
 	}
 }
+
+func TestMyCareHubDb_CreateOrganisation(t *testing.T) {
+	type args struct {
+		ctx          context.Context
+		organisation *domain.Organisation
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "happy case: create organisation",
+			args: args{
+				ctx: context.Background(),
+				organisation: &domain.Organisation{
+					Active:           true,
+					OrganisationCode: uuid.New().String(),
+					Name:             gofakeit.Company(),
+					Description:      gofakeit.Sentence(5),
+					EmailAddress:     gofakeit.Email(),
+					PhoneNumber:      gofakeit.Phone(),
+					PostalAddress:    gofakeit.Address().Address,
+					PhysicalAddress:  gofakeit.Address().Address,
+					DefaultCountry:   gofakeit.Country(),
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "sad case: unable to create organisation",
+			args: args{
+				ctx: context.Background(),
+				organisation: &domain.Organisation{
+					Active:           true,
+					OrganisationCode: uuid.New().String(),
+					Name:             gofakeit.Company(),
+					Description:      gofakeit.Sentence(5),
+					EmailAddress:     gofakeit.Email(),
+					PhoneNumber:      gofakeit.Phone(),
+					PostalAddress:    gofakeit.Address().Address,
+					PhysicalAddress:  gofakeit.Address().Address,
+					DefaultCountry:   gofakeit.Country(),
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var fakeGorm = gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			if tt.name == "sad case: unable to create organisation" {
+				fakeGorm.MockCreateOrganisationFn = func(ctx context.Context, organisation *gorm.Organisation) error {
+					return fmt.Errorf("unable to create organisation")
+				}
+			}
+
+			if err := d.CreateOrganisation(tt.args.ctx, tt.args.organisation); (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.CreateOrganisation() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}

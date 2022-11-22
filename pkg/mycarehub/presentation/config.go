@@ -43,6 +43,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/healthdiary"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/metrics"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/notification"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/organisation"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/otp"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/questionnaires"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/screeningtools"
@@ -181,11 +182,14 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	metricsUsecase := metrics.NewUsecaseMetricsImpl(db)
 	questionnaireUsecase := questionnaires.NewUseCaseQuestionnaire(db, db, db, db)
 
+	organisationUsecase := organisation.NewUseCaseOrganisationImpl(db)
+
 	useCase := usecases.NewMyCareHubUseCase(
 		userUsecase, termsUsecase, facilityUseCase,
 		securityQuestionsUsecase, otpUseCase, contentUseCase, feedbackUsecase, healthDiaryUseCase,
 		serviceRequestUseCase, authorityUseCase, communitiesUseCase, screeningToolsUsecases,
 		appointmentUsecase, notificationUseCase, surveysUsecase, metricsUsecase, questionnaireUsecase,
+		organisationUsecase,
 	)
 
 	internalHandlers := internalRest.NewMyCareHubHandlersInterfaces(*useCase)
