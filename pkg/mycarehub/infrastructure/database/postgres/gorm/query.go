@@ -122,6 +122,8 @@ type Query interface {
 	GetCaregiversClient(ctx context.Context, caregiverClient CaregiverClient) ([]*CaregiverClient, error)
 	GetCaregiverProfileByCaregiverID(ctx context.Context, caregiverID string) (*Caregiver, error)
 	ListClientsCaregivers(ctx context.Context, clientID string, pagination *domain.Pagination) ([]*CaregiverClient, *domain.Pagination, error)
+	CheckOrganisationExists(ctx context.Context, organisationID string) (bool, error)
+	CheckIfProgramNameExists(ctx context.Context, organisationID string, programName string) (bool, error)
 }
 
 // GetFacilityStaffs returns a list of staff at a particular facility
@@ -2091,4 +2093,31 @@ func (db *PGInstance) GetCaregiverManagedClients(ctx context.Context, caregiverI
 	}
 
 	return clients, pagination, nil
+}
+
+// CheckOrganisationExists checks if the organisation exists
+func (db *PGInstance) CheckOrganisationExists(ctx context.Context, organisationID string) (bool, error) {
+	var organisation *Organisation
+	err := db.DB.Where(&Organisation{ID: &organisationID}).First(&organisation).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return false, nil
+		}
+		return false, err
+	}
+	return true, nil
+}
+
+// CheckIfProgramNameExists checks if a program exists in the organization
+// the program name should be unique for each program in a given organization
+func (db *PGInstance) CheckIfProgramNameExists(ctx context.Context, organisationID string, programName string) (bool, error) {
+	var program *Program
+	err := db.DB.Where(&Program{Name: programName, OrganisationID: organisationID}).First(&program).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return false, nil
+		}
+		return false, err
+	}
+	return true, nil
 }

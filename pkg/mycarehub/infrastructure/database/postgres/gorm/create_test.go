@@ -2125,3 +2125,88 @@ func TestPGInstance_CreateOrganisation(t *testing.T) {
 		})
 	}
 }
+
+func TestPGInstance_CreateProgram(t *testing.T) {
+	type args struct {
+		ctx     context.Context
+		program *gorm.Program
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: create program",
+			args: args{
+				ctx: context.Background(),
+				program: &gorm.Program{
+					ID:             uuid.NewString(),
+					Active:         true,
+					Name:           gofakeit.BeerBlg(),
+					OrganisationID: orgIDToAddToProgram,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Happy case: create another program in the organization",
+			args: args{
+				ctx: context.Background(),
+				program: &gorm.Program{
+					ID:             uuid.NewString(),
+					Active:         true,
+					Name:           gofakeit.BeerBlg(),
+					OrganisationID: orgID,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: program in the organization already exists",
+			args: args{
+				ctx: context.Background(),
+				program: &gorm.Program{
+					ID:             uuid.NewString(),
+					Active:         true,
+					Name:           programName,
+					OrganisationID: orgID,
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: organization does not exist",
+			args: args{
+				ctx: context.Background(),
+				program: &gorm.Program{
+					ID:             uuid.NewString(),
+					Active:         true,
+					Name:           gofakeit.BeerBlg(),
+					OrganisationID: uuid.NewString(),
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: invalid organization ID",
+			args: args{
+				ctx: context.Background(),
+				program: &gorm.Program{
+					ID:             uuid.NewString(),
+					Active:         true,
+					Name:           gofakeit.BeerBlg(),
+					OrganisationID: "invalid",
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := testingDB.CreateProgram(tt.args.ctx, tt.args.program); (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.CreateProgram() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}

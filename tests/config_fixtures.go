@@ -18,11 +18,12 @@ import (
 )
 
 var (
-	fixtures  *testfixtures.Loader
-	testingDB *gorm.PGInstance
-	orgID     = os.Getenv("DEFAULT_ORG_ID")
-	termsID   = 50005
-	db        *sql.DB
+	fixtures            *testfixtures.Loader
+	testingDB           *gorm.PGInstance
+	orgID               = os.Getenv("DEFAULT_ORG_ID")
+	orgIDToAddToProgram = "452ad3b7-1cfe-4a64-b479-7966642e91f6"
+	termsID             = 50005
+	db                  *sql.DB
 
 	testPhone   = gofakeit.Phone()
 	testFlavour = feedlib.FlavourConsumer
@@ -148,7 +149,8 @@ var (
 	projectID = 1
 	formID    = "8ecbbc80-24c8-421a-9f1a-e14e12678ef4"
 
-	programID = "6ecbbc80-24c8-421a-9f1a-e14e12678ee0"
+	programID   = "6ecbbc80-24c8-421a-9f1a-e14e12678ee0"
+	programName = "test program"
 )
 
 func setupFixtures() {
@@ -295,7 +297,9 @@ func setupFixtures() {
 			"test_project_id": projectID,
 			"test_form_id":    formID,
 
-			"test_program_id": programID,
+			"test_program_id":          programID,
+			"org_id_to_add_to_program": orgIDToAddToProgram,
+			"program_name":             programName,
 		}),
 		// this is the directory containing the YAML files.
 		// The file name should be the same as the table name

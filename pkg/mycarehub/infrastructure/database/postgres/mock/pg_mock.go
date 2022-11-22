@@ -173,6 +173,9 @@ type PostgresMock struct {
 	MockGetCaregiverManagedClientsFn                     func(ctx context.Context, caregiverID string, pagination *domain.Pagination) ([]*domain.ManagedClient, *domain.Pagination, error)
 	MockListClientsCaregiversFn                          func(ctx context.Context, clientID string, pagination *domain.Pagination) (*domain.ClientCaregivers, *domain.Pagination, error)
 	MockUpdateCaregiverClientFn                          func(ctx context.Context, caregiverClient *domain.CaregiverClient, updateData map[string]interface{}) error
+	MockCreateProgramFn                                  func(ctx context.Context, program *dto.ProgramInput) error
+	MockCheckOrganisationExistsFn                        func(ctx context.Context, organisationID string) (bool, error)
+	MockCheckIfProgramNameExistsFn                       func(ctx context.Context, organisationID string, programName string) (bool, error)
 	MockCreateOrganisationFn                             func(ctx context.Context, organisation *domain.Organisation) error
 }
 
@@ -1402,6 +1405,15 @@ func NewPostgresMock() *PostgresMock {
 				},
 			}, paginationOutput, nil
 		},
+		MockCreateProgramFn: func(ctx context.Context, program *dto.ProgramInput) error {
+			return nil
+		},
+		MockCheckOrganisationExistsFn: func(ctx context.Context, organisationID string) (bool, error) {
+			return true, nil
+		},
+		MockCheckIfProgramNameExistsFn: func(ctx context.Context, organisationID string, programName string) (bool, error) {
+			return false, nil
+		},
 		MockCreateOrganisationFn: func(ctx context.Context, organisation *domain.Organisation) error {
 			return nil
 		},
@@ -2167,6 +2179,21 @@ func (gm *PostgresMock) ListClientsCaregivers(ctx context.Context, clientID stri
 // UpdateCaregiverClient mocks the action of updating a caregiver client details for either client or caregiver.
 func (gm *PostgresMock) UpdateCaregiverClient(ctx context.Context, caregiverClient *domain.CaregiverClient, updateData map[string]interface{}) error {
 	return gm.MockUpdateCaregiverClientFn(ctx, caregiverClient, updateData)
+}
+
+// CreateProgram mocks the implementation of creating a program
+func (gm *PostgresMock) CreateProgram(ctx context.Context, program *dto.ProgramInput) error {
+	return gm.MockCreateProgramFn(ctx, program)
+}
+
+// CheckOrganisationExists mocks the implementation checking if the an organisation exists
+func (gm *PostgresMock) CheckOrganisationExists(ctx context.Context, organisationID string) (bool, error) {
+	return gm.MockCheckOrganisationExistsFn(ctx, organisationID)
+}
+
+// CheckIfProgramNameExists mocks the implementation checking if an organisation is associated with a program
+func (gm *PostgresMock) CheckIfProgramNameExists(ctx context.Context, organisationID string, programName string) (bool, error) {
+	return gm.MockCheckIfProgramNameExistsFn(ctx, organisationID, programName)
 }
 
 // CreateOrganisation mocks the implementation of creating an organisation

@@ -44,6 +44,7 @@ type Create interface {
 	CreateScreeningToolResponse(ctx context.Context, input *domain.QuestionnaireScreeningToolResponse) (*string, error)
 	AddCaregiverToClient(ctx context.Context, clientCaregiver *domain.CaregiverClient) error
 	CreateOrganisation(ctx context.Context, organisation *domain.Organisation) error
+	CreateProgram(ctx context.Context, input *dto.ProgramInput) error
 }
 
 // Delete represents all the deletion action interfaces
@@ -140,6 +141,8 @@ type Query interface {
 	SearchCaregiverUser(ctx context.Context, searchParameter string) ([]*domain.CaregiverProfile, error)
 	GetCaregiverManagedClients(ctx context.Context, caregiverID string, pagination *domain.Pagination) ([]*domain.ManagedClient, *domain.Pagination, error)
 	ListClientsCaregivers(ctx context.Context, clientID string, pagination *domain.Pagination) (*domain.ClientCaregivers, *domain.Pagination, error)
+	CheckOrganisationExists(ctx context.Context, organisationID string) (bool, error)
+	CheckIfProgramNameExists(ctx context.Context, organisationID string, programName string) (bool, error)
 }
 
 // Update represents all the update action interfaces

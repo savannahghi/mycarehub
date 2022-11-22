@@ -820,3 +820,13 @@ func (d *MyCareHubDb) CreateOrganisation(ctx context.Context, organisation *doma
 
 	return nil
 }
+
+// CreateProgram enables the creation of a new program
+func (d *MyCareHubDb) CreateProgram(ctx context.Context, input *dto.ProgramInput) error {
+	programInput := &gorm.Program{
+		Active:         true,
+		Name:           input.Name,
+		OrganisationID: input.OrganisationID,
+	}
+	return d.create.CreateProgram(ctx, programInput)
+}

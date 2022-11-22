@@ -6809,3 +6809,112 @@ func TestMyCareHubDb_ListClientsCaregivers(t *testing.T) {
 		})
 	}
 }
+
+func TestMyCareHubDb_CheckOrganisationExists(t *testing.T) {
+	type args struct {
+		ctx            context.Context
+		organisationID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "happy case: check if organisation exists",
+			args: args{
+				ctx:            context.Background(),
+				organisationID: uuid.NewString(),
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "sad case: failed to check if organisation exists",
+			args: args{
+				ctx:            context.Background(),
+				organisationID: uuid.NewString(),
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeGorm := gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			if tt.name == "sad case: failed to check if organisation exists" {
+				fakeGorm.MockCheckOrganisationExistsFn = func(ctx context.Context, organisationID string) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+
+			got, err := d.CheckOrganisationExists(tt.args.ctx, tt.args.organisationID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.CheckOrganisationExists() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("MyCareHubDb.CheckOrganisationExists() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestMyCareHubDb_CheckIfProgramNameExists(t *testing.T) {
+	type args struct {
+		ctx            context.Context
+		organisationID string
+		programName    string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "happy case: check if organisation has a program",
+			args: args{
+				ctx:            context.Background(),
+				organisationID: uuid.NewString(),
+				programName:    gofakeit.Name(),
+			},
+			want:    false, // organization is unique for all programs
+			wantErr: false,
+		},
+		{
+			name: "sad case: failed to check if organisation has a program",
+			args: args{
+				ctx:            context.Background(),
+				organisationID: uuid.NewString(),
+				programName:    gofakeit.Name(),
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeGorm := gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			if tt.name == "sad case: failed to check if organisation has a program" {
+				fakeGorm.MockCheckIfProgramNameExistsFn = func(ctx context.Context, organisationID string, programName string) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+
+			got, err := d.CheckIfProgramNameExists(tt.args.ctx, tt.args.organisationID, tt.args.programName)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.CheckIfProgramNameExists() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("MyCareHubDb.CheckIfProgramNameExists() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

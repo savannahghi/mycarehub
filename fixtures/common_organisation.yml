@@ -13,3 +13,15 @@
   
 
 
+# org id to add to program
+- id: {{.org_id_to_add_to_program}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  active: true
+  org_code: testCode2
+  name: test org 2
+  email_address: test2@email.com
+  phone_number: "+254123456779"
+  postal_address: 123 test2
+  physical_address: test2 address
+  default_country: KEN

@@ -45,6 +45,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/notification"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/organisation"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/otp"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/programs"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/questionnaires"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/screeningtools"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/securityquestions"
@@ -181,6 +182,7 @@ func Router(ctx context.Context) (*mux.Router, error) {
 
 	metricsUsecase := metrics.NewUsecaseMetricsImpl(db)
 	questionnaireUsecase := questionnaires.NewUseCaseQuestionnaire(db, db, db, db)
+	programsUsecase := programs.NewUsecasePrograms(db, db)
 
 	organisationUsecase := organisation.NewUseCaseOrganisationImpl(db)
 
@@ -189,6 +191,7 @@ func Router(ctx context.Context) (*mux.Router, error) {
 		securityQuestionsUsecase, otpUseCase, contentUseCase, feedbackUsecase, healthDiaryUseCase,
 		serviceRequestUseCase, authorityUseCase, communitiesUseCase, screeningToolsUsecases,
 		appointmentUsecase, notificationUseCase, surveysUsecase, metricsUsecase, questionnaireUsecase,
+		programsUsecase,
 		organisationUsecase,
 	)
 

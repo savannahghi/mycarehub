@@ -1,6 +1,6 @@
 BEGIN;
 
-ALTER TABLE "common_organisation"
-  DROP COLUMN code;
+ALTER TABLE IF EXISTS "common_organisation"
+  DROP COLUMN IF EXISTS code;
 
 COMMIT;

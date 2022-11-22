@@ -3,6 +3,5 @@
   updated: 2021-11-22 21:16:29.23639+03
   deleted_at: 2021-11-22 21:16:29.23639+03
   active: true
-  name: test program
-  client_types: '{PMTCT}'
+  name: {{.program_name}}
   organisation_id: 4181df12-ca96-4f28-b78b-8e8ad88b25df

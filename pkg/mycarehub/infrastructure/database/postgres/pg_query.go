@@ -2575,3 +2575,14 @@ func (d *MyCareHubDb) ListClientsCaregivers(ctx context.Context, clientID string
 
 	return caregiversClient, pageInfo, nil
 }
+
+// CheckOrganisationExists check whether an organisation exists
+func (d *MyCareHubDb) CheckOrganisationExists(ctx context.Context, organisationID string) (bool, error) {
+	return d.query.CheckOrganisationExists(ctx, organisationID)
+}
+
+// CheckIfProgramNameExists checks if a program exists in the organization
+// the program name should be unique for each program in a given organization
+func (d *MyCareHubDb) CheckIfProgramNameExists(ctx context.Context, organisationID string, programName string) (bool, error) {
+	return d.query.CheckIfProgramNameExists(ctx, organisationID, programName)
+}
