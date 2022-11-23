@@ -113,6 +113,7 @@ func StaffProfileNotFoundErr(err error) error {
 		Err:     err,
 		Message: StaffProfileNotFoundErrorMsg,
 		Code:    int(ProfileNotFound),
+		Detail:  "A staff profile associated with this user was not found. Please use an account with a staff profile",
 	}
 }
 
@@ -376,6 +377,7 @@ func GetLoggedInUserUIDErr(err error) error {
 		Err:     err,
 		Message: GetLoggedInUserUIDErrorMsg,
 		Code:    int(GetLoggedInUserUIDError),
+		Detail:  "Unable to get the id of the currently logged in user.",
 	}
 }
 

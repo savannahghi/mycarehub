@@ -3,8 +3,11 @@ package gorm_test
 import (
 	"context"
 	"testing"
+	"time"
 
+	"github.com/brianvoe/gofakeit"
 	"github.com/google/uuid"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
 )
 
 func TestPGInstance_DeleteStaffProfile(t *testing.T) {
@@ -166,6 +169,69 @@ func TestPGInstance_RemoveFacilitiesFromStaffProfile(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if err := testingDB.RemoveFacilitiesFromStaffProfile(tt.args.ctx, tt.args.staffID, tt.args.facilities); (err != nil) != tt.wantErr {
 				t.Errorf("PGInstance.RemoveFacilitiesFromStaffProfile() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestPGInstance_DeleteOrganisation(t *testing.T) {
+
+	organisationID := uuid.New().String()
+	invalidOrgID := "invalid"
+	orgInput := &gorm.Organisation{
+		Base: gorm.Base{
+			CreatedAt: time.Now(),
+			UpdatedAt: time.Now(),
+		},
+		ID:               &organisationID,
+		Active:           true,
+		OrganisationCode: "test org",
+		Name:             gofakeit.SSN(),
+		Description:      gofakeit.Sentence(10),
+		EmailAddress:     gofakeit.Email(),
+		PhoneNumber:      gofakeit.Phone(),
+		PostalAddress:    gofakeit.Address().Address,
+		PhysicalAddress:  gofakeit.Address().Address,
+		DefaultCountry:   gofakeit.Country(),
+	}
+
+	// create organisation
+	err := testingDB.CreateOrganisation(context.Background(), orgInput)
+	if err != nil {
+		t.Errorf("PGInstance.CreateOrganisation() error = %v", err)
+		return
+	}
+
+	type args struct {
+		ctx          context.Context
+		organisation *gorm.Organisation
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Successfully delete organisation",
+			args: args{
+				ctx:          context.Background(),
+				organisation: &gorm.Organisation{ID: &organisationID},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad Case - unable to delete organisation",
+			args: args{
+				ctx:          context.Background(),
+				organisation: &gorm.Organisation{ID: &invalidOrgID},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := testingDB.DeleteOrganisation(tt.args.ctx, tt.args.organisation); (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.DeleteOrganisation() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}

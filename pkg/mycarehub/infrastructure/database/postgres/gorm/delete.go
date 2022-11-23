@@ -3,6 +3,7 @@ package gorm
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/savannahghi/feedlib"
 	"gorm.io/gorm"
@@ -17,6 +18,7 @@ type Delete interface {
 	DeleteCommunity(ctx context.Context, communityID string) error
 	RemoveFacilitiesFromClientProfile(ctx context.Context, clientID string, facilities []string) error
 	RemoveFacilitiesFromStaffProfile(ctx context.Context, staffID string, facilities []string) error
+	DeleteOrganisation(ctx context.Context, organisation *Organisation) error
 }
 
 // DeleteFacility will do the actual deletion of a facility from the database
@@ -203,5 +205,19 @@ func (db *PGInstance) RemoveFacilitiesFromStaffProfile(ctx context.Context, staf
 		tx.Rollback()
 		return fmt.Errorf("failed transaction commit to update staff profile: %w", err)
 	}
+	return nil
+}
+
+// DeleteOrganisation deletes the specified organisation from the database
+func (db *PGInstance) DeleteOrganisation(ctx context.Context, organisation *Organisation) error {
+	err := db.DB.Model(&Organisation{}).Where(&Organisation{ID: organisation.ID}).
+		Updates(map[string]interface{}{
+			"active":     false,
+			"deleted_at": time.Now(),
+		}).Error
+	if err != nil {
+		return fmt.Errorf("unable to delete organisation with id: %s", err)
+	}
+
 	return nil
 }

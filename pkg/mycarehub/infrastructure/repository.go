@@ -55,6 +55,7 @@ type Delete interface {
 	DeleteCommunity(ctx context.Context, communityID string) error
 	RemoveFacilitiesFromClientProfile(ctx context.Context, clientID string, facilities []string) error
 	RemoveFacilitiesFromStaffProfile(ctx context.Context, staffID string, facilities []string) error
+	DeleteOrganisation(ctx context.Context, organisation *domain.Organisation) error
 }
 
 // Query contains all query methods

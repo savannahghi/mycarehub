@@ -7,6 +7,8 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/savannahghi/feedlib"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
 	gormMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm/mock"
 )
 
@@ -204,6 +206,55 @@ func TestMyCareHubDb_RemoveFacilitiesFromClientProfile(t *testing.T) {
 
 			if err := d.RemoveFacilitiesFromClientProfile(tt.args.ctx, tt.args.clientID, tt.args.facilities); (err != nil) != tt.wantErr {
 				t.Errorf("MyCareHubDb.RemoveFacilitiesFromClientProfile() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestMyCareHubDb_DeleteOrganisation(t *testing.T) {
+	type args struct {
+		ctx          context.Context
+		organisation *domain.Organisation
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: delete organisation",
+			args: args{
+				ctx: context.Background(),
+				organisation: &domain.Organisation{
+					ID: uuid.NewString(),
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: unable to delete organisation",
+			args: args{
+				ctx: context.Background(),
+				organisation: &domain.Organisation{
+					ID: uuid.NewString(),
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeGorm := gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			if tt.name == "Sad case: unable to delete organisation" {
+				fakeGorm.MockDeleteOrganisationFn = func(ctx context.Context, organisation *gorm.Organisation) error {
+					return fmt.Errorf("unable to delete organisation")
+				}
+			}
+
+			if err := d.DeleteOrganisation(tt.args.ctx, tt.args.organisation); (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.DeleteOrganisation() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}

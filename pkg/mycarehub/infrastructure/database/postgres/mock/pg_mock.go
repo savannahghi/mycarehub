@@ -176,6 +176,7 @@ type PostgresMock struct {
 	MockCreateProgramFn                                  func(ctx context.Context, program *dto.ProgramInput) error
 	MockCheckOrganisationExistsFn                        func(ctx context.Context, organisationID string) (bool, error)
 	MockCheckIfProgramNameExistsFn                       func(ctx context.Context, organisationID string, programName string) (bool, error)
+	MockDeleteOrganisationFn                             func(ctx context.Context, organisation *domain.Organisation) error
 	MockCreateOrganisationFn                             func(ctx context.Context, organisation *domain.Organisation) error
 }
 
@@ -990,6 +991,9 @@ func NewPostgresMock() *PostgresMock {
 			}, nil
 		},
 		MockUpdateUserPinUpdateRequiredStatusFn: func(ctx context.Context, userID string, flavour feedlib.Flavour, status bool) error {
+			return nil
+		},
+		MockDeleteOrganisationFn: func(ctx context.Context, organisation *domain.Organisation) error {
 			return nil
 		},
 		MockUpdateClientFn: func(ctx context.Context, client *domain.ClientProfile, updates map[string]interface{}) (*domain.ClientProfile, error) {
@@ -2199,4 +2203,9 @@ func (gm *PostgresMock) CheckIfProgramNameExists(ctx context.Context, organisati
 // CreateOrganisation mocks the implementation of creating an organisation
 func (gm *PostgresMock) CreateOrganisation(ctx context.Context, organisation *domain.Organisation) error {
 	return gm.MockCreateOrganisationFn(ctx, organisation)
+}
+
+// DeleteOrganisation mocks the implementation of deleting an organisation
+func (gm *PostgresMock) DeleteOrganisation(ctx context.Context, organisation *domain.Organisation) error {
+	return gm.MockDeleteOrganisationFn(ctx, organisation)
 }
