@@ -5268,3 +5268,124 @@ func TestPGInstance_RetrieveFacilityIdentifierByFacilityID(t *testing.T) {
 		})
 	}
 }
+
+func TestPGInstance_CheckOrganisationExists(t *testing.T) {
+	type args struct {
+		ctx            context.Context
+		organisationID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy case: organization exists",
+			args: args{
+				ctx:            context.Background(),
+				organisationID: orgID,
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Sad case: organization does not exists",
+			args: args{
+				ctx:            context.Background(),
+				organisationID: uuid.New().String(),
+			},
+			want:    false,
+			wantErr: false,
+		},
+		{
+			name: "Sad case: invalid organisation ID",
+			args: args{
+				ctx:            context.Background(),
+				organisationID: "invalid",
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			got, err := testingDB.CheckOrganisationExists(tt.args.ctx, tt.args.organisationID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.CheckOrganisationExists() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("PGInstance.CheckOrganisationExists() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestPGInstance_CheckIfProgramNameExists(t *testing.T) {
+	type args struct {
+		ctx            context.Context
+		organisationID string
+		programName    string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy case: organisation not associated with the program",
+			args: args{
+				ctx:            context.Background(),
+				organisationID: orgID,
+				programName:    gofakeit.Name(),
+			},
+			want:    false,
+			wantErr: false,
+		},
+		{
+			name: "Sad case: organization already associated with another program",
+			args: args{
+				ctx:            context.Background(),
+				organisationID: orgID,
+				programName:    programName,
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Sad case: organization does not exists",
+			args: args{
+				ctx:            context.Background(),
+				organisationID: uuid.New().String(),
+				programName:    gofakeit.Name(),
+			},
+			want:    false,
+			wantErr: false,
+		},
+		{
+			name: "Sad case: invalid organisation ID",
+			args: args{
+				ctx:            context.Background(),
+				organisationID: "invalid",
+				programName:    gofakeit.Name(),
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := testingDB.CheckIfProgramNameExists(tt.args.ctx, tt.args.organisationID, tt.args.programName)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.CheckIfProgramNameExists() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("PGInstance.CheckIfProgramNameExists() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

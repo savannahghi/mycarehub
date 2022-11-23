@@ -701,3 +701,10 @@ type CaregiverProfileOutputPage {
 type ConsentStatus {
   consentStatus: ConsentState!
 }
+
+input Program {
+  id: ID!
+  active: Boolean!
+	name: String!
+	organisationID: String!
+}

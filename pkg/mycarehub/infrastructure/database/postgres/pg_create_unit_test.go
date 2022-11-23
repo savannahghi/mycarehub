@@ -1986,3 +1986,53 @@ func TestMyCareHubDb_CreateOrganisation(t *testing.T) {
 		})
 	}
 }
+
+func TestMyCareHubDb_CreateProgram(t *testing.T) {
+	type args struct {
+		ctx   context.Context
+		input *dto.ProgramInput
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: create program",
+			args: args{
+				ctx: context.Background(),
+				input: &dto.ProgramInput{
+					Name:           gofakeit.BeerBlg(),
+					OrganisationID: uuid.NewString(),
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: failed to create program",
+			args: args{
+				ctx: context.Background(),
+				input: &dto.ProgramInput{
+					Name:           gofakeit.BeerBlg(),
+					OrganisationID: uuid.NewString(),
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var fakeGorm = gormMock.NewGormMock()
+
+			if tt.name == "Sad case: failed to create program" {
+				fakeGorm.MockCreateProgramFn = func(ctx context.Context, program *gorm.Program) error {
+					return fmt.Errorf("failed to create program")
+				}
+			}
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+			if err := d.CreateProgram(tt.args.ctx, tt.args.input); (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.CreateProgram() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}

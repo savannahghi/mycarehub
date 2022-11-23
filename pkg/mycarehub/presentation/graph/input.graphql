@@ -235,6 +235,11 @@ input ClientCaregiverInput {
   caregiverType: CaregiverType!
 }
 
+input ProgramInput {
+	name: String!
+	organisationID: String!
+}
+
 input OrganisationInput {
   organisationCode: String!
   name: String!

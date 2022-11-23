@@ -182,6 +182,9 @@ type GormMock struct {
 	MockGetCaregiverProfileByCaregiverIDFn               func(ctx context.Context, caregiverID string) (*gorm.Caregiver, error)
 	MockUpdateCaregiverClientFn                          func(ctx context.Context, caregiverClient *gorm.CaregiverClient, updates map[string]interface{}) error
 	MockCreateOrganisationFn                             func(ctx context.Context, organization *gorm.Organisation) error
+	MockCreateProgramFn                                  func(ctx context.Context, program *gorm.Program) error
+	MockCheckOrganisationExistsFn                        func(ctx context.Context, organisationID string) (bool, error)
+	MockCheckIfProgramNameExistsFn                       func(ctx context.Context, organisationID string, programName string) (bool, error)
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -1487,6 +1490,15 @@ func NewGormMock() *GormMock {
 		MockCreateOrganisationFn: func(ctx context.Context, organization *gorm.Organisation) error {
 			return nil
 		},
+		MockCreateProgramFn: func(ctx context.Context, program *gorm.Program) error {
+			return nil
+		},
+		MockCheckOrganisationExistsFn: func(ctx context.Context, organisationID string) (bool, error) {
+			return true, nil
+		},
+		MockCheckIfProgramNameExistsFn: func(ctx context.Context, organisationID string, programName string) (bool, error) {
+			return false, nil
+		},
 	}
 }
 
@@ -2288,4 +2300,19 @@ func (gm *GormMock) UpdateCaregiverClient(ctx context.Context, caregiverClient *
 // CreateOrganisation mocks the implementation of creating an organisation
 func (gm *GormMock) CreateOrganisation(ctx context.Context, organisation *gorm.Organisation) error {
 	return gm.MockCreateOrganisationFn(ctx, organisation)
+}
+
+// CreateProgram mocks the implementation of creating a program
+func (gm *GormMock) CreateProgram(ctx context.Context, program *gorm.Program) error {
+	return gm.MockCreateProgramFn(ctx, program)
+}
+
+// CheckOrganisationExists mocks the implementation checking if the an organisation exists
+func (gm *GormMock) CheckOrganisationExists(ctx context.Context, organisationID string) (bool, error) {
+	return gm.MockCheckOrganisationExistsFn(ctx, organisationID)
+}
+
+// CheckIfProgramNameExists mocks the implementation checking if an organisation is associated with a program
+func (gm *GormMock) CheckIfProgramNameExists(ctx context.Context, organisationID string, programName string) (bool, error) {
+	return gm.MockCheckIfProgramNameExistsFn(ctx, organisationID, programName)
 }

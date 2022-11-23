@@ -739,3 +739,16 @@ type OrganisationInput struct {
 	PhysicalAddress  string `json:"physical_address"`
 	DefaultCountry   string `json:"default_country"`
 }
+
+// ProgramInput defines the program input structure
+type ProgramInput struct {
+	Name           string `json:"name"  validate:"required"`
+	OrganisationID string `json:"organisationID" validate:"required"`
+}
+
+// Validate helps with validation of a question response input
+func (s ProgramInput) Validate() error {
+	v := validator.New()
+	err := v.Struct(s)
+	return err
+}

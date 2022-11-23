@@ -410,6 +410,18 @@ const (
 	// StaffHasUnresolvedPinResetRequestError implies that the staff has an unresolved pin reset request
 	// Its error code is 82
 	StaffHasUnresolvedPinResetRequestError
+
+	// NonExistentOrganizationError indicates that the organization is not present in the database
+	// it is error code 83
+	NonExistentOrganizationError
+
+	// OrgIDForProgramExistError indicates that another program is already associated with the organization
+	// it is error code 84
+	OrgIDForProgramExistError
+
+	// CreateProgramError means that the system is unable to create a new program
+	// it is error code 85
+	CreateProgramError
 )
 
 const (

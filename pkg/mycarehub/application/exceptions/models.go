@@ -12,7 +12,7 @@ type CustomError struct {
 }
 
 func (e *CustomError) Error() string {
-	return fmt.Sprintf("%d: %s: %s", e.Code, e.Err, e.Detail)
+	return fmt.Sprintf("%d: %s: %s", e.Code, e.Message, e.Detail)
 }
 
 // GetErrorCode returns the error code from custom error

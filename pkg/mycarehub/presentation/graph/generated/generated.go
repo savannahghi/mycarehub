@@ -450,6 +450,7 @@ type ComplexityRoot struct {
 		CreateFacility                     func(childComplexity int, facility dto.FacilityInput, identifier dto.FacilityIdentifierInput) int
 		CreateHealthDiaryEntry             func(childComplexity int, clientID string, note *string, mood string, reportToStaff bool) int
 		CreateOrganisation                 func(childComplexity int, input dto.OrganisationInput) int
+		CreateProgram                      func(childComplexity int, input dto.ProgramInput) int
 		CreateScreeningTool                func(childComplexity int, input dto.ScreeningToolInput) int
 		CreateServiceRequest               func(childComplexity int, input dto.ServiceRequestInput) int
 		DeleteCommunities                  func(childComplexity int, communityIDs []string, hardDelete bool) int
@@ -914,6 +915,7 @@ type MutationResolver interface {
 	SendFCMNotification(ctx context.Context, registrationTokens []string, data map[string]interface{}, notification firebasetools.FirebaseSimpleNotificationInput) (bool, error)
 	ReadNotifications(ctx context.Context, ids []string) (bool, error)
 	CreateOrganisation(ctx context.Context, input dto.OrganisationInput) (bool, error)
+	CreateProgram(ctx context.Context, input dto.ProgramInput) (bool, error)
 	CreateScreeningTool(ctx context.Context, input dto.ScreeningToolInput) (bool, error)
 	RespondToScreeningTool(ctx context.Context, input dto.QuestionnaireScreeningToolResponseInput) (bool, error)
 	AnswerScreeningToolQuestion(ctx context.Context, screeningToolResponses []*dto.ScreeningToolQuestionResponseInput) (bool, error)
@@ -2949,6 +2951,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.CreateOrganisation(childComplexity, args["input"].(dto.OrganisationInput)), true
+
+	case "Mutation.createProgram":
+		if e.complexity.Mutation.CreateProgram == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createProgram_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateProgram(childComplexity, args["input"].(dto.ProgramInput)), true
 
 	case "Mutation.createScreeningTool":
 		if e.complexity.Mutation.CreateScreeningTool == nil {
@@ -5591,6 +5605,8 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputOrganisationInput,
 		ec.unmarshalInputPINInput,
 		ec.unmarshalInputPaginationsInput,
+		ec.unmarshalInputProgram,
+		ec.unmarshalInputProgramInput,
 		ec.unmarshalInputQueryOption,
 		ec.unmarshalInputQuestionInput,
 		ec.unmarshalInputQuestionInputChoiceInput,
@@ -6175,6 +6191,11 @@ input ClientCaregiverInput {
   caregiverType: CaregiverType!
 }
 
+input ProgramInput {
+	name: String!
+	organisationID: String!
+}
+
 input OrganisationInput {
   organisationCode: String!
   name: String!
@@ -6214,6 +6235,10 @@ extend type Mutation {
 }`, BuiltIn: false},
 	{Name: "../otp.graphql", Input: `extend type Query {
   sendOTP(phoneNumber: String!, flavour: Flavour!): String!
+}
+`, BuiltIn: false},
+	{Name: "../programs.graphql", Input: `extend type Mutation {
+  createProgram(input: ProgramInput!): Boolean!
 }
 `, BuiltIn: false},
 	{Name: "../questionnaire.graphql", Input: `extend type Mutation{
@@ -7037,6 +7062,13 @@ type CaregiverProfileOutputPage {
 type ConsentStatus {
   consentStatus: ConsentState!
 }
+
+input Program {
+  id: ID!
+  active: Boolean!
+	name: String!
+	organisationID: String!
+}
 `, BuiltIn: false},
 	{Name: "../user.graphql", Input: `extend type Query {
   getCurrentTerms(flavour: Flavour!): TermsOfService!
@@ -7602,6 +7634,21 @@ func (ec *executionContext) field_Mutation_createOrganisation_args(ctx context.C
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 		arg0, err = ec.unmarshalNOrganisationInput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐOrganisationInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_createProgram_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 dto.ProgramInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNProgramInput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐProgramInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -22577,6 +22624,61 @@ func (ec *executionContext) fieldContext_Mutation_createOrganisation(ctx context
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_createOrganisation_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_createProgram(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_createProgram(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CreateProgram(rctx, fc.Args["input"].(dto.ProgramInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_createProgram(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_createProgram_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -40025,6 +40127,94 @@ func (ec *executionContext) unmarshalInputPaginationsInput(ctx context.Context, 
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputProgram(ctx context.Context, obj interface{}) (domain.Program, error) {
+	var it domain.Program
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"id", "active", "name", "organisationID"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "id":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+			it.ID, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "active":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("active"))
+			it.Active, err = ec.unmarshalNBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			it.Name, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "organisationID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("organisationID"))
+			it.OrganisationID, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputProgramInput(ctx context.Context, obj interface{}) (dto.ProgramInput, error) {
+	var it dto.ProgramInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"name", "organisationID"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			it.Name, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "organisationID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("organisationID"))
+			it.OrganisationID, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputQueryOption(ctx context.Context, obj interface{}) (stream_chat.QueryOption, error) {
 	var it stream_chat.QueryOption
 	asMap := map[string]interface{}{}
@@ -43470,6 +43660,15 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_createOrganisation(ctx, field)
+			})
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "createProgram":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_createProgram(ctx, field)
 			})
 
 			if out.Values[i] == graphql.Null {
@@ -48714,6 +48913,11 @@ func (ec *executionContext) marshalNPagination2ᚖgithubᚗcomᚋsavannahghiᚋm
 
 func (ec *executionContext) unmarshalNPaginationsInput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐPaginationsInput(ctx context.Context, v interface{}) (dto.PaginationsInput, error) {
 	res, err := ec.unmarshalInputPaginationsInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNProgramInput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐProgramInput(ctx context.Context, v interface{}) (dto.ProgramInput, error) {
+	res, err := ec.unmarshalInputProgramInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 

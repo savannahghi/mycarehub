@@ -39,6 +39,7 @@ type Create interface {
 	CreateQuestionChoice(ctx context.Context, input *QuestionInputChoice) error
 	CreateScreeningToolResponse(ctx context.Context, screeningToolResponse *ScreeningToolResponse, screeningToolQuestionResponses []*ScreeningToolQuestionResponse) (*string, error)
 	AddCaregiverToClient(ctx context.Context, clientCaregiver *CaregiverClient) error
+	CreateProgram(ctx context.Context, program *Program) error
 	CreateOrganisation(ctx context.Context, organization *Organisation) error
 }
 
@@ -743,5 +744,13 @@ func (db *PGInstance) CreateOrganisation(ctx context.Context, organization *Orga
 		return fmt.Errorf("failed to create organization: %w", err)
 	}
 
+	return nil
+}
+
+// CreateProgram adds a new program record
+func (db *PGInstance) CreateProgram(ctx context.Context, program *Program) error {
+	if err := db.DB.WithContext(ctx).Create(&program).Error; err != nil {
+		return fmt.Errorf("failed to create program: %w", err)
+	}
 	return nil
 }

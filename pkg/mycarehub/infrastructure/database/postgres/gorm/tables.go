@@ -1811,28 +1811,16 @@ func (c *CaregiverClient) TableName() string {
 type Program struct {
 	Base
 
-	ID             string   `gorm:"primaryKey;column:id"`
-	Active         bool     `gorm:"column:active"`
-	Name           string   `gorm:"column:name"`
-	ClientTypes    []string `gorm:"column:client_types"`
-	OrganisationID string   `gorm:"column:organisation_id;not null"`
+	ID             string `gorm:"primaryKey;column:id"`
+	Active         bool   `gorm:"column:active"`
+	Name           string `gorm:"column:name"`
+	OrganisationID string `gorm:"column:organisation_id;not null"`
 }
 
 // BeforeCreate is a hook run before creating a program
 func (p *Program) BeforeCreate(tx *gorm.DB) (err error) {
-	ctx := tx.Statement.Context
-	orgID, err := utils.GetOrganisationIDFromContext(ctx)
-	if err != nil {
-		logrus.Println("failed to get organisation from context")
-	}
-	if orgID == "" {
-		orgID = OrganizationID
-	}
-
 	id := uuid.New().String()
 	p.ID = id
-	p.OrganisationID = orgID
-
 	return nil
 }
 
