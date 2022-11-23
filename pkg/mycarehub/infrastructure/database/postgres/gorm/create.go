@@ -39,6 +39,7 @@ type Create interface {
 	CreateQuestionChoice(ctx context.Context, input *QuestionInputChoice) error
 	CreateScreeningToolResponse(ctx context.Context, screeningToolResponse *ScreeningToolResponse, screeningToolQuestionResponses []*ScreeningToolQuestionResponse) (*string, error)
 	AddCaregiverToClient(ctx context.Context, clientCaregiver *CaregiverClient) error
+	CreateOrganisation(ctx context.Context, organization *Organisation) error
 }
 
 // GetOrCreateFacility is used to get or create a facility
@@ -731,6 +732,15 @@ func (db *PGInstance) CreateScreeningToolResponse(ctx context.Context, screening
 func (db *PGInstance) AddCaregiverToClient(ctx context.Context, clientCaregiver *CaregiverClient) error {
 	if err := db.DB.WithContext(ctx).Create(&clientCaregiver).Error; err != nil {
 		return fmt.Errorf("failed to create client caregiver: %w", err)
+	}
+
+	return nil
+}
+
+// CreateOrganisation is used to create an organization into the database
+func (db *PGInstance) CreateOrganisation(ctx context.Context, organization *Organisation) error {
+	if err := db.DB.WithContext(ctx).Create(&organization).Error; err != nil {
+		return fmt.Errorf("failed to create organization: %w", err)
 	}
 
 	return nil

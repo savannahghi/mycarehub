@@ -2066,3 +2066,62 @@ func TestPGInstance_CreateCaregiver(t *testing.T) {
 		})
 	}
 }
+
+func TestPGInstance_CreateOrganisation(t *testing.T) {
+	invalidUUID := "1"
+	type args struct {
+		ctx          context.Context
+		organization *gorm.Organisation
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "happy case: create an organisation",
+			args: args{
+				ctx: context.Background(),
+				organization: &gorm.Organisation{
+					ID:               &orgID,
+					Active:           true,
+					OrganisationCode: gofakeit.SSN(),
+					Name:             gofakeit.SSN(),
+					Description:      gofakeit.Sentence(10),
+					EmailAddress:     gofakeit.Email(),
+					PhoneNumber:      gofakeit.Phone(),
+					PostalAddress:    gofakeit.Address().Address,
+					PhysicalAddress:  gofakeit.Address().Address,
+					DefaultCountry:   gofakeit.Country(),
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "sad case: unable to create an organisation with invalid org code",
+			args: args{
+				ctx: context.Background(),
+				organization: &gorm.Organisation{
+					ID:               &invalidUUID,
+					Active:           true,
+					OrganisationCode: uuid.New().String(),
+					Name:             "test",
+					Description:      gofakeit.Sentence(10),
+					EmailAddress:     gofakeit.Email(),
+					PhoneNumber:      gofakeit.Phone(),
+					PostalAddress:    gofakeit.HipsterParagraph(3, 200, 200, " "),
+					PhysicalAddress:  gofakeit.HipsterParagraph(3, 200, 200, " "),
+					DefaultCountry:   gofakeit.Country(),
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := testingDB.CreateOrganisation(tt.args.ctx, tt.args.organization); (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.CreateOrganisation() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}

@@ -234,3 +234,14 @@ input ClientCaregiverInput {
   caregiverID: String
   caregiverType: CaregiverType!
 }
+
+input OrganisationInput {
+  organisationCode: String!
+  name: String!
+  description: String
+  emailAddress: String
+  phoneNumber: String!
+  postalAddress: String
+  physicalAddress: String
+  defaultCountry: String!
+}

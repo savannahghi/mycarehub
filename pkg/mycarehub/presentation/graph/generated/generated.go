@@ -449,6 +449,7 @@ type ComplexityRoot struct {
 		CreateCommunity                    func(childComplexity int, input dto.CommunityInput) int
 		CreateFacility                     func(childComplexity int, facility dto.FacilityInput, identifier dto.FacilityIdentifierInput) int
 		CreateHealthDiaryEntry             func(childComplexity int, clientID string, note *string, mood string, reportToStaff bool) int
+		CreateOrganisation                 func(childComplexity int, input dto.OrganisationInput) int
 		CreateScreeningTool                func(childComplexity int, input dto.ScreeningToolInput) int
 		CreateServiceRequest               func(childComplexity int, input dto.ServiceRequestInput) int
 		DeleteCommunities                  func(childComplexity int, communityIDs []string, hardDelete bool) int
@@ -912,6 +913,7 @@ type MutationResolver interface {
 	CollectMetric(ctx context.Context, input domain.Metric) (bool, error)
 	SendFCMNotification(ctx context.Context, registrationTokens []string, data map[string]interface{}, notification firebasetools.FirebaseSimpleNotificationInput) (bool, error)
 	ReadNotifications(ctx context.Context, ids []string) (bool, error)
+	CreateOrganisation(ctx context.Context, input dto.OrganisationInput) (bool, error)
 	CreateScreeningTool(ctx context.Context, input dto.ScreeningToolInput) (bool, error)
 	RespondToScreeningTool(ctx context.Context, input dto.QuestionnaireScreeningToolResponseInput) (bool, error)
 	AnswerScreeningToolQuestion(ctx context.Context, screeningToolResponses []*dto.ScreeningToolQuestionResponseInput) (bool, error)
@@ -2935,6 +2937,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.CreateHealthDiaryEntry(childComplexity, args["clientID"].(string), args["note"].(*string), args["mood"].(string), args["reportToStaff"].(bool)), true
+
+	case "Mutation.createOrganisation":
+		if e.complexity.Mutation.CreateOrganisation == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createOrganisation_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateOrganisation(childComplexity, args["input"].(dto.OrganisationInput)), true
 
 	case "Mutation.createScreeningTool":
 		if e.complexity.Mutation.CreateScreeningTool == nil {
@@ -5574,6 +5588,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputFirebaseSimpleNotificationInput,
 		ec.unmarshalInputMetricInput,
 		ec.unmarshalInputNotificationFilters,
+		ec.unmarshalInputOrganisationInput,
 		ec.unmarshalInputPINInput,
 		ec.unmarshalInputPaginationsInput,
 		ec.unmarshalInputQueryOption,
@@ -6159,7 +6174,17 @@ input ClientCaregiverInput {
   caregiverID: String
   caregiverType: CaregiverType!
 }
-`, BuiltIn: false},
+
+input OrganisationInput {
+  organisationCode: String!
+  name: String!
+  description: String
+  emailAddress: String
+  phoneNumber: String!
+  postalAddress: String
+  physicalAddress: String
+  defaultCountry: String!
+}`, BuiltIn: false},
 	{Name: "../metrics.graphql", Input: `extend type Mutation {
   collectMetric(input: MetricInput!): Boolean!
 }
@@ -6184,6 +6209,9 @@ extend type Mutation {
   readNotifications(ids: [ID!]!): Boolean!
 }
 `, BuiltIn: false},
+	{Name: "../organisation.graphql", Input: `extend type Mutation {
+    createOrganisation(input: OrganisationInput!): Boolean!    
+}`, BuiltIn: false},
 	{Name: "../otp.graphql", Input: `extend type Query {
   sendOTP(phoneNumber: String!, flavour: Flavour!): String!
 }
@@ -7564,6 +7592,21 @@ func (ec *executionContext) field_Mutation_createHealthDiaryEntry_args(ctx conte
 		}
 	}
 	args["reportToStaff"] = arg3
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_createOrganisation_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 dto.OrganisationInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNOrganisationInput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐOrganisationInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
 	return args, nil
 }
 
@@ -22479,6 +22522,61 @@ func (ec *executionContext) fieldContext_Mutation_readNotifications(ctx context.
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_readNotifications_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_createOrganisation(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_createOrganisation(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CreateOrganisation(rctx, fc.Args["input"].(dto.OrganisationInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_createOrganisation(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_createOrganisation_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -39747,6 +39845,90 @@ func (ec *executionContext) unmarshalInputNotificationFilters(ctx context.Contex
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputOrganisationInput(ctx context.Context, obj interface{}) (dto.OrganisationInput, error) {
+	var it dto.OrganisationInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"organisationCode", "name", "description", "emailAddress", "phoneNumber", "postalAddress", "physicalAddress", "defaultCountry"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "organisationCode":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("organisationCode"))
+			it.OrganisationCode, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			it.Name, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "description":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("description"))
+			it.Description, err = ec.unmarshalOString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "emailAddress":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("emailAddress"))
+			it.EmailAddress, err = ec.unmarshalOString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "phoneNumber":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("phoneNumber"))
+			it.PhoneNumber, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "postalAddress":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("postalAddress"))
+			it.PostalAddress, err = ec.unmarshalOString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "physicalAddress":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("physicalAddress"))
+			it.PhysicalAddress, err = ec.unmarshalOString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "defaultCountry":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("defaultCountry"))
+			it.DefaultCountry, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputPINInput(ctx context.Context, obj interface{}) (dto.PINInput, error) {
 	var it dto.PINInput
 	asMap := map[string]interface{}{}
@@ -43279,6 +43461,15 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_readNotifications(ctx, field)
+			})
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "createOrganisation":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_createOrganisation(ctx, field)
 			})
 
 			if out.Values[i] == graphql.Null {
@@ -48500,6 +48691,11 @@ func (ec *executionContext) unmarshalNOperation2githubᚗcomᚋsavannahghiᚋenu
 
 func (ec *executionContext) marshalNOperation2githubᚗcomᚋsavannahghiᚋenumutilsᚐOperation(ctx context.Context, sel ast.SelectionSet, v enumutils.Operation) graphql.Marshaler {
 	return v
+}
+
+func (ec *executionContext) unmarshalNOrganisationInput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐOrganisationInput(ctx context.Context, v interface{}) (dto.OrganisationInput, error) {
+	res, err := ec.unmarshalInputOrganisationInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalNPagination2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐPagination(ctx context.Context, sel ast.SelectionSet, v domain.Pagination) graphql.Marshaler {

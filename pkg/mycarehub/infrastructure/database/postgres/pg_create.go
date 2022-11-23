@@ -798,3 +798,25 @@ func (d *MyCareHubDb) AddCaregiverToClient(ctx context.Context, clientCaregiver 
 
 	return d.create.AddCaregiverToClient(ctx, caregiverClient)
 }
+
+// CreateOrganisation is used to create a new organisation in the database
+func (d *MyCareHubDb) CreateOrganisation(ctx context.Context, organisation *domain.Organisation) error {
+	org := &gorm.Organisation{
+		Active:           organisation.Active,
+		OrganisationCode: organisation.OrganisationCode,
+		Name:             organisation.Name,
+		Description:      organisation.Description,
+		EmailAddress:     organisation.EmailAddress,
+		PhoneNumber:      organisation.PhoneNumber,
+		PostalAddress:    organisation.PostalAddress,
+		PhysicalAddress:  organisation.PhysicalAddress,
+		DefaultCountry:   organisation.DefaultCountry,
+	}
+
+	err := d.create.CreateOrganisation(ctx, org)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
