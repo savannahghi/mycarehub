@@ -39,6 +39,7 @@ import (
 type ILogin interface {
 	Login(ctx context.Context, input *dto.LoginInput) (*domain.LoginResponse, bool)
 	InviteUser(ctx context.Context, userID string, phoneNumber string, flavour feedlib.Flavour, reinvite bool) (bool, error)
+	FetchContactOrganisations(ctx context.Context, phoneNumber string) ([]*domain.Organisation, error)
 }
 
 // IRefreshToken contains the method refreshing a token
@@ -1941,4 +1942,50 @@ func (us *UseCasesUserImpl) ConsentToManagingClient(ctx context.Context, caregiv
 	}
 
 	return true, nil
+}
+
+// FetchContactOrganisations fetches organisations associated with a provided phone number
+// Provides the organisation options used during login
+//
+// TODO: returned errors(verbose/informative)
+func (us *UseCasesUserImpl) FetchContactOrganisations(ctx context.Context, phoneNumber string) ([]*domain.Organisation, error) {
+	phone, err := converterandformatter.NormalizeMSISDN(phoneNumber)
+	if err != nil {
+		return nil, exceptions.NormalizeMSISDNError(err)
+	}
+
+	contacts, err := us.Query.FindContacts(ctx, "PHONE", *phone)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
+	if len(contacts) == 0 {
+		err := fmt.Errorf("phone number doesn't exist")
+		return nil, err
+	}
+
+	var organisations []*domain.Organisation
+	// tracker is used to ensure an organisation doesent appear twice in response
+	// occurs when the same contact is shared by two people in the same organisation
+	tracker := map[string]bool{}
+
+	for _, contact := range contacts {
+		// skip if already found
+		if tracker[contact.OrganisationID] {
+			continue
+		}
+
+		organisation, err := us.Query.GetOrganisation(ctx, contact.OrganisationID)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return organisations, err
+		}
+
+		tracker[contact.OrganisationID] = true
+		organisations = append(organisations, organisation)
+
+	}
+
+	return organisations, nil
 }

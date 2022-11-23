@@ -56,6 +56,7 @@ type PostgresMock struct {
 	MockGetUserSecurityQuestionsResponsesFn              func(ctx context.Context, userID string) ([]*domain.SecurityQuestionResponse, error)
 	MockInvalidatePINFn                                  func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
 	MockGetContactByUserIDFn                             func(ctx context.Context, userID *string, contactType string) (*domain.Contact, error)
+	MockFindContactsFn                                   func(ctx context.Context, contactType, contactValue string) ([]*domain.Contact, error)
 	MockUpdateIsCorrectSecurityQuestionResponseFn        func(ctx context.Context, userID string, isCorrectSecurityQuestionResponse bool) (bool, error)
 	MockFetchFacilitiesFn                                func(ctx context.Context) ([]*domain.Facility, error)
 	MockCreateHealthDiaryEntryFn                         func(ctx context.Context, healthDiaryInput *domain.ClientHealthDiaryEntry) (*domain.ClientHealthDiaryEntry, error)
@@ -170,6 +171,7 @@ type PostgresMock struct {
 	MockRemoveFacilitiesFromClientProfileFn              func(ctx context.Context, clientID string, facilities []string) error
 	MockAddCaregiverToClientFn                           func(ctx context.Context, clientCaregiver *domain.CaregiverClient) error
 	MockRemoveFacilitiesFromStaffProfileFn               func(ctx context.Context, staffID string, facilities []string) error
+	MockGetOrganisationFn                                func(ctx context.Context, id string) (*domain.Organisation, error)
 	MockGetCaregiverManagedClientsFn                     func(ctx context.Context, caregiverID string, pagination *domain.Pagination) ([]*domain.ManagedClient, *domain.Pagination, error)
 	MockListClientsCaregiversFn                          func(ctx context.Context, clientID string, pagination *domain.Pagination) (*domain.ClientCaregivers, *domain.Pagination, error)
 	MockUpdateCaregiverClientFn                          func(ctx context.Context, caregiverClient *domain.CaregiverClient, updateData map[string]interface{}) error
@@ -360,6 +362,18 @@ func NewPostgresMock() *PostgresMock {
 				IsRead: false,
 			}, nil
 		},
+		MockGetOrganisationFn: func(ctx context.Context, id string) (*domain.Organisation, error) {
+			return &domain.Organisation{
+				ID:               ID,
+				Active:           true,
+				OrganisationCode: gofakeit.SSN(),
+				Name:             gofakeit.Company(),
+				Description:      description,
+				EmailAddress:     gofakeit.Email(),
+				PhoneNumber:      phone,
+				DefaultCountry:   gofakeit.Country(),
+			}, nil
+		},
 		MockGetOrCreateFacilityFn: func(ctx context.Context, facility *dto.FacilityInput, identifier *dto.FacilityIdentifierInput) (*domain.Facility, error) {
 			return facilityInput, nil
 		},
@@ -508,6 +522,18 @@ func NewPostgresMock() *PostgresMock {
 					ContactValue: gofakeit.Phone(),
 					Active:       true,
 					OptedIn:      true,
+				},
+			}, nil
+		},
+		MockFindContactsFn: func(ctx context.Context, contactType, contactValue string) ([]*domain.Contact, error) {
+			return []*domain.Contact{
+				{
+					ID:             &ID,
+					ContactType:    "PHONE",
+					ContactValue:   gofakeit.Phone(),
+					Active:         true,
+					OptedIn:        true,
+					OrganisationID: ID,
 				},
 			}, nil
 		},
@@ -1569,6 +1595,12 @@ func (gm *PostgresMock) GetClientProfileByUserID(ctx context.Context, userID str
 	return gm.MockGetClientProfileByUserIDFn(ctx, userID)
 }
 
+// FindContacts retrieves all the contacts that match the given contact type and value.
+// Contacts can be shared by users thus the same contact can have multiple records stored
+func (gm *PostgresMock) FindContacts(ctx context.Context, contactType, contactValue string) ([]*domain.Contact, error) {
+	return gm.MockFindContactsFn(ctx, contactType, contactValue)
+}
+
 // GetStaffProfileByUserID mocks the method for fetching a staff profile using the user ID
 func (gm *PostgresMock) GetStaffProfileByUserID(ctx context.Context, userID string) (*domain.StaffProfile, error) {
 	return gm.MockGetStaffProfileByUserIDFn(ctx, userID)
@@ -1597,6 +1629,11 @@ func (gm *PostgresMock) CompleteOnboardingTour(ctx context.Context, userID strin
 // GetOTP mocks the implementation of fetching an OTP
 func (gm *PostgresMock) GetOTP(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*domain.OTP, error) {
 	return gm.MockGetOTPFn(ctx, phoneNumber, flavour)
+}
+
+// GetOrganisation retrieves an organisation using the provided id
+func (gm *PostgresMock) GetOrganisation(ctx context.Context, id string) (*domain.Organisation, error) {
+	return gm.MockGetOrganisationFn(ctx, id)
 }
 
 // GetUserSecurityQuestionsResponses mocks the implementation of getting the user's responded security questions

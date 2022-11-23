@@ -150,8 +150,9 @@ type Contact struct {
 	// e.g if it's a shared phone owned by a teenager
 	OptedIn bool `json:"optedIn"`
 
-	UserID  *string
-	Flavour feedlib.Flavour
+	UserID         *string
+	OrganisationID string
+	Flavour        feedlib.Flavour
 }
 
 // Identifier is used to store a user's identifying details e.d ID number, CCC number

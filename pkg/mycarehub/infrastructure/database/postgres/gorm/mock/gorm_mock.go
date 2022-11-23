@@ -143,6 +143,7 @@ type GormMock struct {
 	MockGetClientsByFilterParamsFn                       func(ctx context.Context, facilityID string, filterParams *dto.ClientFilterParamsInput) ([]*gorm.Client, error)
 	MockCreateUserSurveyFn                               func(ctx context.Context, userSurvey []*gorm.UserSurvey) error
 	MockCreateMetricFn                                   func(ctx context.Context, metric *gorm.Metric) error
+	MockFindContactsFn                                   func(ctx context.Context, contactType string, contactValue string) ([]*gorm.Contact, error)
 	MockRegisterStaffFn                                  func(ctx context.Context, user *gorm.User, contact *gorm.Contact, identifier *gorm.Identifier, staffProfile *gorm.StaffProfile) (*gorm.StaffProfile, error)
 	MockUpdateClientServiceRequestFn                     func(ctx context.Context, clientServiceRequest *gorm.ClientServiceRequest, updateData map[string]interface{}) error
 	MockRegisterClientFn                                 func(ctx context.Context, user *gorm.User, contact *gorm.Contact, identifier *gorm.Identifier, client *gorm.Client) (*gorm.Client, error)
@@ -182,6 +183,7 @@ type GormMock struct {
 	MockGetCaregiverProfileByCaregiverIDFn               func(ctx context.Context, caregiverID string) (*gorm.Caregiver, error)
 	MockUpdateCaregiverClientFn                          func(ctx context.Context, caregiverClient *gorm.CaregiverClient, updates map[string]interface{}) error
 	MockDeleteOrganisationFn                             func(ctx context.Context, organisation *gorm.Organisation) error
+	MockGetOrganisationFn                                func(ctx context.Context, id string) (*gorm.Organisation, error)
 	MockCreateOrganisationFn                             func(ctx context.Context, organization *gorm.Organisation) error
 	MockCreateProgramFn                                  func(ctx context.Context, program *gorm.Program) error
 	MockCheckOrganisationExistsFn                        func(ctx context.Context, organisationID string) (bool, error)
@@ -828,12 +830,26 @@ func NewGormMock() *GormMock {
 		},
 		MockGetContactByUserIDFn: func(ctx context.Context, userID *string, contactType string) (*gorm.Contact, error) {
 			return &gorm.Contact{
-				ContactID:    &UUID,
-				UserID:       userID,
-				ContactType:  "PHONE",
-				ContactValue: phoneContact,
-				Active:       true,
-				OptedIn:      true,
+				ID:             UUID,
+				UserID:         userID,
+				Type:           "PHONE",
+				Value:          phoneContact,
+				Active:         true,
+				OptedIn:        true,
+				OrganisationID: UUID,
+			}, nil
+		},
+		MockFindContactsFn: func(ctx context.Context, contactType, contactValue string) ([]*gorm.Contact, error) {
+			return []*gorm.Contact{
+				{
+					ID:             UUID,
+					UserID:         &UUID,
+					Type:           "PHONE",
+					Value:          phoneContact,
+					Active:         true,
+					OptedIn:        true,
+					OrganisationID: UUID,
+				},
 			}, nil
 		},
 		MockUpdateIsCorrectSecurityQuestionResponseFn: func(ctx context.Context, userID string, isCorrectSecurityQuestionResponse bool) (bool, error) {
@@ -1491,6 +1507,18 @@ func NewGormMock() *GormMock {
 				},
 			}, nil
 		},
+		MockGetOrganisationFn: func(ctx context.Context, id string) (*gorm.Organisation, error) {
+			return &gorm.Organisation{
+				ID:               new(string),
+				Active:           true,
+				OrganisationCode: gofakeit.SSN(),
+				Name:             gofakeit.Company(),
+				Description:      description,
+				EmailAddress:     gofakeit.Email(),
+				PhoneNumber:      gofakeit.Phone(),
+				DefaultCountry:   gofakeit.Country(),
+			}, nil
+		},
 		MockCreateOrganisationFn: func(ctx context.Context, organization *gorm.Organisation) error {
 			return nil
 		},
@@ -1509,6 +1537,11 @@ func NewGormMock() *GormMock {
 // DeleteStaffProfile mocks the implementation of deleting a staff
 func (gm *GormMock) DeleteStaffProfile(ctx context.Context, staffID string) error {
 	return gm.MockDeleteStaffProfileFn(ctx, staffID)
+}
+
+// GetOrganisation retrieves an organisation using the provided id
+func (gm *GormMock) GetOrganisation(ctx context.Context, id string) (*gorm.Organisation, error) {
+	return gm.MockGetOrganisationFn(ctx, id)
 }
 
 // DeleteUser mocks the implementation of deleting a user
@@ -1934,6 +1967,12 @@ func (gm *GormMock) UpdateFailedSecurityQuestionsAnsweringAttempts(ctx context.C
 // GetServiceRequestByID mocks the implementation of getting a service request by ID
 func (gm *GormMock) GetServiceRequestByID(ctx context.Context, serviceRequestID string) (*gorm.ClientServiceRequest, error) {
 	return gm.MockGetServiceRequestByIDFn(ctx, serviceRequestID)
+}
+
+// FindContacts retrieves all the contacts that match the given contact type and value.
+// Contacts can be shared by users thus the same contact can have multiple records stored
+func (gm *GormMock) FindContacts(ctx context.Context, contactType, contactValue string) ([]*gorm.Contact, error) {
+	return gm.MockFindContactsFn(ctx, contactType, contactValue)
 }
 
 // UpdateUser mocks the implementation of updating a user profile

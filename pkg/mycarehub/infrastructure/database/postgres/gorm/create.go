@@ -298,7 +298,7 @@ func (db *PGInstance) GetOrCreateContact(ctx context.Context, contact *Contact) 
 		}
 	}()
 
-	err := tx.Where(Contact{ContactValue: contact.ContactValue, Flavour: contact.Flavour}).FirstOrCreate(contact).Error
+	err := tx.Where(Contact{Value: contact.Value, Flavour: contact.Flavour}).FirstOrCreate(contact).Error
 	if err != nil {
 		tx.Rollback()
 		return nil, fmt.Errorf("failed to get or create contact: %v", err)
@@ -433,7 +433,7 @@ func (db *PGInstance) RegisterClient(ctx context.Context, user *User, contact *C
 
 	// create contact
 	contact.UserID = user.UserID
-	err = tx.Where(Contact{ContactValue: contact.ContactValue, Flavour: contact.Flavour}).FirstOrCreate(contact).Error
+	err = tx.Where(Contact{Value: contact.Value, Flavour: contact.Flavour}).FirstOrCreate(contact).Error
 	if err != nil {
 		tx.Rollback()
 		return nil, fmt.Errorf("failed to get or create contact: %v", err)
@@ -610,7 +610,7 @@ func (db *PGInstance) RegisterStaff(ctx context.Context, user *User, contact *Co
 
 	// create contact
 	contact.UserID = user.UserID
-	err = tx.Where(Contact{ContactValue: contact.ContactValue, Flavour: contact.Flavour}).FirstOrCreate(contact).Error
+	err = tx.Where(Contact{Value: contact.Value, Flavour: contact.Flavour}).FirstOrCreate(contact).Error
 	if err != nil {
 		tx.Rollback()
 		return nil, fmt.Errorf("failed to get or create contact: %v", err)

@@ -9,9 +9,9 @@ import (
 // a helper method to create mapped user
 func createMapUser(userObject *gorm.User) *domain.User {
 	contact := &domain.Contact{
-		ID:           userObject.Contacts.ContactID,
-		ContactType:  userObject.Contacts.ContactType,
-		ContactValue: userObject.Contacts.ContactValue,
+		ID:           &userObject.Contacts.ID,
+		ContactType:  userObject.Contacts.Type,
+		ContactValue: userObject.Contacts.Value,
 		Active:       userObject.Contacts.Active,
 		OptedIn:      userObject.Contacts.OptedIn,
 	}

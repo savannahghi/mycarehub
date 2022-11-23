@@ -9,6 +9,7 @@ import (
 	"io"
 	"math"
 	"net/http"
+	"reflect"
 	"strconv"
 	"testing"
 	"time"
@@ -6194,6 +6195,134 @@ func TestUseCasesUserImpl_ConsentToManagingClient(t *testing.T) {
 			}
 			if got != tt.want {
 				t.Errorf("UseCasesUserImpl.ConsentToManagingClient() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestUseCasesUserImpl_FetchContactOrganisations(t *testing.T) {
+
+	type args struct {
+		ctx         context.Context
+		phoneNumber string
+	}
+	tests := []struct {
+		name      string
+		args      args
+		wantCount int
+		wantErr   bool
+	}{
+		{
+			name: "sad case: invalid phone number",
+			args: args{
+				ctx:         context.Background(),
+				phoneNumber: "+123",
+			},
+			wantCount: 0,
+			wantErr:   true,
+		},
+		{
+			name: "sad case: fail to find contacts",
+			args: args{
+				ctx:         context.Background(),
+				phoneNumber: gofakeit.Phone(),
+			},
+			wantCount: 0,
+			wantErr:   true,
+		},
+		{
+			name: "sad case: fail to find organisation",
+			args: args{
+				ctx:         context.Background(),
+				phoneNumber: gofakeit.Phone(),
+			},
+			wantCount: 0,
+			wantErr:   true,
+		},
+		{
+			name: "sad case: contact doesn't exist",
+			args: args{
+				ctx:         context.Background(),
+				phoneNumber: gofakeit.Phone(),
+			},
+			wantCount: 0,
+			wantErr:   true,
+		},
+		{
+			name: "happy case: find organisation",
+			args: args{
+				ctx:         context.Background(),
+				phoneNumber: gofakeit.Phone(),
+			},
+			wantCount: 1,
+			wantErr:   false,
+		},
+		{
+			name: "happy case: multiple similar organisations",
+			args: args{
+				ctx:         context.Background(),
+				phoneNumber: gofakeit.Phone(),
+			},
+			wantCount: 1,
+			wantErr:   false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			fakeExtension := extensionMock.NewFakeExtension()
+			fakeOTP := otpMock.NewOTPUseCaseMock()
+			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
+			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
+			fakePubsub := pubsubMock.NewPubsubServiceMock()
+			fakeClinical := clinicalMock.NewClinicalServiceMock()
+			fakeSMS := smsMock.NewSMSServiceMock()
+			fakeTwilio := twilioMock.NewTwilioServiceMock()
+
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakeGetStream, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+
+			if tt.name == "sad case: fail to find contacts" {
+				fakeDB.MockFindContactsFn = func(ctx context.Context, contactType, contactValue string) ([]*domain.Contact, error) {
+					return nil, fmt.Errorf("failed to find contact")
+				}
+			}
+
+			if tt.name == "sad case: contact doesn't exist" {
+				fakeDB.MockFindContactsFn = func(ctx context.Context, contactType, contactValue string) ([]*domain.Contact, error) {
+					return []*domain.Contact{}, nil
+				}
+			}
+
+			if tt.name == "sad case: fail to find organisation" {
+				fakeDB.MockGetOrganisationFn = func(ctx context.Context, id string) (*domain.Organisation, error) {
+					return nil, fmt.Errorf("failed to find organisation")
+				}
+			}
+
+			if tt.name == "happy case: multiple similar organisations" {
+				fakeDB.MockFindContactsFn = func(ctx context.Context, contactType, contactValue string) ([]*domain.Contact, error) {
+					sameID := gofakeit.UUID()
+					return []*domain.Contact{
+						{
+							OrganisationID: sameID,
+						},
+						{
+							OrganisationID: sameID,
+						},
+						{
+							OrganisationID: sameID,
+						},
+					}, nil
+				}
+			}
+
+			got, err := us.FetchContactOrganisations(tt.args.ctx, tt.args.phoneNumber)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCasesUserImpl.FetchContactOrganisations() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(len(got), tt.wantCount) {
+				t.Errorf("PGInstance.FindContacts() = %v, want %v", got, tt.wantCount)
 			}
 		})
 	}
