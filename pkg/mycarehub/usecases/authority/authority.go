@@ -6,7 +6,7 @@ import (
 
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions/customerrors"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/utils"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
@@ -79,24 +79,24 @@ func (u *UsecaseAuthorityImpl) CheckUserRole(ctx context.Context, role enums.Use
 	if role == "" {
 		err := fmt.Errorf("role must not be empty")
 		helpers.ReportErrorToSentry(err)
-		return exceptions.EmptyInputErr(err)
+		return customerrors.EmptyInputErr(err)
 	}
 
 	loggedInUserID, err := u.ExternalExt.GetLoggedInUserUID(ctx)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return exceptions.GetLoggedInUserUIDErr(err)
+		return customerrors.GetLoggedInUserUIDErr(err)
 	}
 
 	ok, err := u.Query.CheckUserRole(ctx, loggedInUserID, role.String())
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return exceptions.CheckUserRoleErr(err)
+		return customerrors.CheckUserRoleErr(err)
 	}
 	if !ok {
 		err := fmt.Errorf("user is not authorized perform action, missing role: %s", role)
 		helpers.ReportErrorToSentry(err)
-		return exceptions.UserNotAuthorizedErr(err)
+		return customerrors.UserNotAuthorizedErr(err)
 	}
 	return nil
 }
@@ -106,24 +106,24 @@ func (u *UsecaseAuthorityImpl) CheckUserPermission(ctx context.Context, permissi
 	if permission == "" {
 		err := fmt.Errorf("permission must not be empty")
 		helpers.ReportErrorToSentry(err)
-		return exceptions.EmptyInputErr(err)
+		return customerrors.EmptyInputErr(err)
 	}
 
 	loggedInUserID, err := u.ExternalExt.GetLoggedInUserUID(ctx)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return exceptions.GetLoggedInUserUIDErr(err)
+		return customerrors.GetLoggedInUserUIDErr(err)
 	}
 
 	ok, err := u.Query.CheckUserPermission(ctx, loggedInUserID, permission.String())
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return exceptions.CheckUserPermissionErr(err)
+		return customerrors.CheckUserPermissionErr(err)
 	}
 	if !ok {
 		err := fmt.Errorf("user is not authorized perform action, missing permission: %s", permission)
 		helpers.ReportErrorToSentry(err)
-		return exceptions.UserNotAuthorizedErr(err)
+		return customerrors.UserNotAuthorizedErr(err)
 	}
 	return nil
 }
@@ -133,24 +133,24 @@ func (u *UsecaseAuthorityImpl) AssignRoles(ctx context.Context, userID string, r
 	if userID == "" {
 		err := fmt.Errorf("userID must not be empty")
 		helpers.ReportErrorToSentry(err)
-		return false, exceptions.EmptyInputErr(err)
+		return false, customerrors.EmptyInputErr(err)
 	}
 	if len(roles) == 0 {
 		err := fmt.Errorf("roles must not be empty")
 		helpers.ReportErrorToSentry(err)
-		return false, exceptions.EmptyInputErr(err)
+		return false, customerrors.EmptyInputErr(err)
 	}
 	// check if user can assign role
 	err := u.CheckUserPermission(ctx, enums.PermissionTypeCanEditUserRole)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return false, exceptions.UserNotAuthorizedErr(err)
+		return false, customerrors.UserNotAuthorizedErr(err)
 	}
 
 	ok, err := u.Update.AssignRoles(ctx, userID, roles)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return false, exceptions.AssignRolesErr(err)
+		return false, customerrors.AssignRolesErr(err)
 	}
 	return ok, nil
 }
@@ -160,13 +160,13 @@ func (u *UsecaseAuthorityImpl) GetUserRoles(ctx context.Context, userID string) 
 	if userID == "" {
 		err := fmt.Errorf("userID must not be empty")
 		helpers.ReportErrorToSentry(err)
-		return nil, exceptions.EmptyInputErr(err)
+		return nil, customerrors.EmptyInputErr(err)
 	}
 
 	roles, err := u.Query.GetUserRoles(ctx, userID)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return nil, exceptions.GetUserRolesErr(err)
+		return nil, customerrors.GetUserRolesErr(err)
 	}
 	return roles, nil
 }
@@ -176,13 +176,13 @@ func (u *UsecaseAuthorityImpl) GetUserPermissions(ctx context.Context, userID st
 	if userID == "" {
 		err := fmt.Errorf("userID must not be empty")
 		helpers.ReportErrorToSentry(err)
-		return nil, exceptions.EmptyInputErr(err)
+		return nil, customerrors.EmptyInputErr(err)
 	}
 
 	permissions, err := u.Query.GetUserPermissions(ctx, userID)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return nil, exceptions.GetUserPermissionsErr(err)
+		return nil, customerrors.GetUserPermissionsErr(err)
 	}
 	return permissions, nil
 }
@@ -192,24 +192,24 @@ func (u *UsecaseAuthorityImpl) RevokeRoles(ctx context.Context, userID string, r
 	if userID == "" {
 		err := fmt.Errorf("userID must not be empty")
 		helpers.ReportErrorToSentry(err)
-		return false, exceptions.EmptyInputErr(err)
+		return false, customerrors.EmptyInputErr(err)
 	}
 	if len(roles) == 0 {
 		err := fmt.Errorf("roles must not be empty")
 		helpers.ReportErrorToSentry(err)
-		return false, exceptions.EmptyInputErr(err)
+		return false, customerrors.EmptyInputErr(err)
 	}
 	// check if user can revoke role
 	err := u.CheckUserPermission(ctx, enums.PermissionTypeCanEditUserRole)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return false, exceptions.UserNotAuthorizedErr(err)
+		return false, customerrors.UserNotAuthorizedErr(err)
 	}
 
 	ok, err := u.Update.RevokeRoles(ctx, userID, roles)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return false, exceptions.RevokeRolesErr(err)
+		return false, customerrors.RevokeRolesErr(err)
 	}
 	return ok, nil
 }
@@ -219,7 +219,7 @@ func (u *UsecaseAuthorityImpl) GetAllRoles(ctx context.Context) ([]*domain.Autho
 	roles, err := u.Query.GetAllRoles(ctx)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return nil, exceptions.GetAllRolesErr(err)
+		return nil, customerrors.GetAllRolesErr(err)
 	}
 	return roles, nil
 }
@@ -229,7 +229,7 @@ func (u *UsecaseAuthorityImpl) AssignOrRevokeRoles(ctx context.Context, userID s
 	if userID == "" {
 		err := fmt.Errorf("userID must not be empty")
 		helpers.ReportErrorToSentry(err)
-		return false, exceptions.EmptyInputErr(err)
+		return false, customerrors.EmptyInputErr(err)
 	}
 
 	assignedRoles := []enums.UserRoleType{}
@@ -240,13 +240,13 @@ func (u *UsecaseAuthorityImpl) AssignOrRevokeRoles(ctx context.Context, userID s
 	err := u.CheckUserPermission(ctx, enums.PermissionTypeCanEditUserRole)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return false, exceptions.UserNotAuthorizedErr(err)
+		return false, customerrors.UserNotAuthorizedErr(err)
 	}
 
 	currentRoles, err := u.Query.GetUserRoles(ctx, userID)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return false, exceptions.GetUserRolesErr(err)
+		return false, customerrors.GetUserRolesErr(err)
 	}
 
 	currentRoleList := []enums.UserRoleType{}
@@ -263,13 +263,13 @@ func (u *UsecaseAuthorityImpl) AssignOrRevokeRoles(ctx context.Context, userID s
 	_, err = u.Update.RevokeRoles(ctx, userID, currentRoleList)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return false, exceptions.RevokeRolesErr(err)
+		return false, customerrors.RevokeRolesErr(err)
 	}
 
 	_, err = u.Update.AssignRoles(ctx, userID, assignedRoles)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return false, exceptions.AssignRolesErr(err)
+		return false, customerrors.AssignRolesErr(err)
 	}
 
 	revokedRoles, newRoles := utils.CheckNewAndRemovedRoleTypes(currentRoleList, assignedRoles)

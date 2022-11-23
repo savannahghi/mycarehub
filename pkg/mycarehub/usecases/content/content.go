@@ -12,7 +12,7 @@ import (
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions/customerrors"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
@@ -427,7 +427,7 @@ func (u UseCasesContentImpl) UnBookmarkContent(ctx context.Context, userID strin
 // GetUserBookmarkedContent gets the user's pinned/bookmarked content and displays it on their profile
 func (u *UseCasesContentImpl) GetUserBookmarkedContent(ctx context.Context, userID string) (*domain.Content, error) {
 	if userID == "" {
-		return nil, exceptions.EmptyInputErr(fmt.Errorf("user ID must be defined"))
+		return nil, customerrors.EmptyInputErr(fmt.Errorf("user ID must be defined"))
 	}
 
 	params := url.Values{}

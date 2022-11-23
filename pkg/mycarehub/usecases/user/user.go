@@ -19,6 +19,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions/customerrors"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/utils"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
@@ -286,23 +287,23 @@ func (us *UseCasesUserImpl) InviteUser(ctx context.Context, userID string, phone
 	phone, err := converterandformatter.NormalizeMSISDN(phoneNumber)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return false, exceptions.NormalizeMSISDNError(err)
+		return false, customerrors.NormalizeMSISDNError(err)
 	}
 
 	if !flavour.IsValid() {
-		return false, exceptions.InvalidFlavourDefinedErr(fmt.Errorf("flavour is not valid"))
+		return false, customerrors.InvalidFlavourDefinedErr(fmt.Errorf("flavour is not valid"))
 	}
 
 	userProfile, err := us.Query.GetUserProfileByUserID(ctx, userID)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return false, exceptions.UserNotFoundError(err)
+		return false, customerrors.UserNotFoundError(err)
 	}
 
 	inviteLink, err := helpers.GetInviteLink(flavour)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return false, exceptions.GetInviteLinkErr(err)
+		return false, customerrors.GetInviteLinkErr(err)
 	}
 
 	tempPin, err := us.GenerateTemporaryPin(ctx, userID, flavour)
@@ -316,13 +317,13 @@ func (us *UseCasesUserImpl) InviteUser(ctx context.Context, userID string, phone
 		err := us.Twilio.SendSMSViaTwilio(ctx, *phone, message)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
-			return false, exceptions.SendSMSErr(fmt.Errorf("failed to send invite SMS: %w", err))
+			return false, customerrors.SendSMSErr(fmt.Errorf("failed to send invite SMS: %w", err))
 		}
 	} else {
 		_, err := us.SMS.SendSMS(ctx, message, []string{*phone})
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
-			return false, exceptions.SendSMSErr(fmt.Errorf("failed to send invite SMS: %w", err))
+			return false, customerrors.SendSMSErr(fmt.Errorf("failed to send invite SMS: %w", err))
 		}
 	}
 
@@ -340,7 +341,7 @@ func (us *UseCasesUserImpl) GenerateTemporaryPin(ctx context.Context, userID str
 	tempPin, err := utils.GenerateTempPIN(ctx)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return "", exceptions.GeneratePinErr(fmt.Errorf("failed to generate temporary pin: %v", err))
+		return "", customerrors.GeneratePinErr(fmt.Errorf("failed to generate temporary pin: %v", err))
 	}
 
 	pinExpiryDays := serverutils.MustGetEnvVar("INVITE_PIN_EXPIRY_DAYS")
@@ -348,7 +349,7 @@ func (us *UseCasesUserImpl) GenerateTemporaryPin(ctx context.Context, userID str
 	pinExpiryDaysInt, err := strconv.Atoi(pinExpiryDays)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return "", exceptions.InternalErr(fmt.Errorf("failed to convert invite pin expiry days to int"))
+		return "", customerrors.InternalErr(fmt.Errorf("failed to convert invite pin expiry days to int"))
 	}
 
 	pinExpiryDate := time.Now().AddDate(0, 0, pinExpiryDaysInt)
@@ -367,13 +368,13 @@ func (us *UseCasesUserImpl) GenerateTemporaryPin(ctx context.Context, userID str
 	_, err = us.Update.InvalidatePIN(ctx, userID, flavour)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return "", exceptions.InvalidatePinErr(err)
+		return "", customerrors.InvalidatePinErr(err)
 	}
 
 	_, err = us.Create.SaveTemporaryUserPin(ctx, pinPayload)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return "", exceptions.SaveUserPinError(err)
+		return "", customerrors.SaveUserPinError(err)
 	}
 
 	return tempPin, nil
@@ -385,31 +386,31 @@ func (us *UseCasesUserImpl) SetUserPIN(ctx context.Context, input dto.PINInput) 
 
 	if err := input.Validate(); err != nil {
 		helpers.ReportErrorToSentry(err)
-		return false, exceptions.EmptyInputErr(fmt.Errorf("empty value passed in input: %v", err))
+		return false, customerrors.EmptyInputErr(fmt.Errorf("empty value passed in input: %v", err))
 	}
 	userProfile, err := us.Query.GetUserProfileByUserID(ctx, *input.UserID)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return false, exceptions.UserNotFoundError(fmt.Errorf("failed to get a user profile by phonenumber: %v", err))
+		return false, customerrors.UserNotFoundError(fmt.Errorf("failed to get a user profile by phonenumber: %v", err))
 	}
 
 	err = utils.ValidatePIN(*input.PIN)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return false, exceptions.ValidatePINDigitsErr(err)
+		return false, customerrors.ValidatePINDigitsErr(err)
 	}
 
 	salt, encryptedPIN := utils.EncryptPIN(*input.PIN, nil)
 
 	isMatch := utils.ComparePIN(*input.ConfirmPIN, salt, encryptedPIN, nil)
 	if !isMatch {
-		return false, exceptions.PinMismatchError()
+		return false, customerrors.PinMismatchError()
 	}
 
 	expiryDate, err := helpers.GetPinExpiryDate()
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return false, exceptions.InternalErr(err)
+		return false, customerrors.InternalErr(err)
 	}
 
 	pinDataPayload := &domain.UserPIN{
@@ -425,13 +426,13 @@ func (us *UseCasesUserImpl) SetUserPIN(ctx context.Context, input dto.PINInput) 
 	_, err = us.Update.InvalidatePIN(ctx, *input.UserID, input.Flavour)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return false, exceptions.InvalidatePinErr(err)
+		return false, customerrors.InvalidatePinErr(err)
 	}
 
 	_, err = us.Create.SavePin(ctx, pinDataPayload)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return false, exceptions.SaveUserPinError(fmt.Errorf("failed to save user pin: %v", err))
+		return false, customerrors.SaveUserPinError(fmt.Errorf("failed to save user pin: %v", err))
 	}
 
 	err = us.Update.UpdateUser(ctx, userProfile, map[string]interface{}{
@@ -439,7 +440,7 @@ func (us *UseCasesUserImpl) SetUserPIN(ctx context.Context, input dto.PINInput) 
 	})
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return false, exceptions.UpdateProfileErr(fmt.Errorf("failed to update user profile: %v", err))
+		return false, customerrors.UpdateProfileErr(fmt.Errorf("failed to update user profile: %v", err))
 	}
 
 	return true, nil
@@ -454,13 +455,13 @@ func (us *UseCasesUserImpl) SetNickName(ctx context.Context, userID string, nick
 	}
 
 	if exists {
-		return false, exceptions.UserNameExistsErr(fmt.Errorf("username has already been taken"))
+		return false, customerrors.UserNameExistsErr(fmt.Errorf("username has already been taken"))
 	}
 
 	ok, err := us.Update.SetNickName(ctx, &userID, &nickname)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return false, exceptions.FailedToUpdateItemErr(fmt.Errorf("failed to set user nickname %v", err))
+		return false, customerrors.FailedToUpdateItemErr(fmt.Errorf("failed to set user nickname %v", err))
 	}
 
 	err = us.Update.UpdateUser(ctx, &domain.User{ID: &userID}, map[string]interface{}{
@@ -468,7 +469,7 @@ func (us *UseCasesUserImpl) SetNickName(ctx context.Context, userID string, nick
 	})
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return false, exceptions.UpdateProfileErr(fmt.Errorf("failed to update user profile: %v", err))
+		return false, customerrors.UpdateProfileErr(fmt.Errorf("failed to update user profile: %v", err))
 	}
 
 	return ok, err
@@ -479,23 +480,23 @@ func (us *UseCasesUserImpl) RequestPINReset(ctx context.Context, phoneNumber str
 	phone, err := converterandformatter.NormalizeMSISDN(phoneNumber)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return "", exceptions.NormalizeMSISDNError(err)
+		return "", customerrors.NormalizeMSISDNError(err)
 	}
 
 	if !flavour.IsValid() {
-		return "", exceptions.InvalidFlavourDefinedErr(fmt.Errorf("flavour is not valid"))
+		return "", customerrors.InvalidFlavourDefinedErr(fmt.Errorf("flavour is not valid"))
 	}
 
 	userProfile, err := us.Query.GetUserProfileByPhoneNumber(ctx, *phone, flavour)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return "", exceptions.UserNotFoundError(err)
+		return "", customerrors.UserNotFoundError(err)
 	}
 
 	exists, err := us.Query.CheckUserHasPin(ctx, *userProfile.ID, flavour)
 	if !exists {
 		helpers.ReportErrorToSentry(err)
-		return "", exceptions.ExistingPINError(err)
+		return "", customerrors.ExistingPINError(err)
 	}
 
 	code, err := us.OTP.GenerateAndSendOTP(ctx, *phone, flavour)
@@ -543,34 +544,34 @@ func (us *UseCasesUserImpl) ResetPIN(ctx context.Context, input dto.UserResetPin
 
 	if err := input.Validate(); err != nil {
 		helpers.ReportErrorToSentry(err)
-		return false, exceptions.InputValidationErr(fmt.Errorf("failed to validate PIN reset Input: %v", err))
+		return false, customerrors.InputValidationErr(fmt.Errorf("failed to validate PIN reset Input: %v", err))
 	}
 
 	ok := input.Flavour.IsValid()
 	if !ok {
-		return false, exceptions.InvalidFlavourDefinedErr(fmt.Errorf("flavour is not valid"))
+		return false, customerrors.InvalidFlavourDefinedErr(fmt.Errorf("flavour is not valid"))
 	}
 
 	phone, err := converterandformatter.NormalizeMSISDN(input.PhoneNumber)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return false, exceptions.NormalizeMSISDNError(err)
+		return false, customerrors.NormalizeMSISDNError(err)
 	}
 
 	_, err = strconv.ParseInt(input.PIN, 10, 64)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return false, exceptions.PINErr(fmt.Errorf("PIN should be a number: %v", err))
+		return false, customerrors.PINErr(fmt.Errorf("PIN should be a number: %v", err))
 	}
 
 	if len([]byte(input.PIN)) != 4 {
-		return false, exceptions.PINErr(fmt.Errorf("PIN length be 4 digits: %v", err))
+		return false, customerrors.PINErr(fmt.Errorf("PIN length be 4 digits: %v", err))
 	}
 
 	userProfile, err := us.Query.GetUserProfileByPhoneNumber(ctx, *phone, input.Flavour)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return false, exceptions.ContactNotFoundErr(err)
+		return false, customerrors.ContactNotFoundErr(err)
 
 	}
 
@@ -581,17 +582,17 @@ func (us *UseCasesUserImpl) ResetPIN(ctx context.Context, input dto.UserResetPin
 	})
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return false, exceptions.UserNotFoundError(fmt.Errorf("failed to verify otp: %v", err))
+		return false, customerrors.UserNotFoundError(fmt.Errorf("failed to verify otp: %v", err))
 	}
 	if !ok {
-		return false, exceptions.InternalErr(fmt.Errorf("failed to verify otp: %v", err))
+		return false, customerrors.InternalErr(fmt.Errorf("failed to verify otp: %v", err))
 	}
 
 	salt, encryptedPin := utils.EncryptPIN(input.PIN, nil)
 	expiryDate, err := helpers.GetPinExpiryDate()
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return false, exceptions.InternalErr(fmt.Errorf("failed to get pin expiry date: %v", err))
+		return false, customerrors.InternalErr(fmt.Errorf("failed to get pin expiry date: %v", err))
 	}
 
 	pinPayload := &domain.UserPIN{
@@ -607,19 +608,19 @@ func (us *UseCasesUserImpl) ResetPIN(ctx context.Context, input dto.UserResetPin
 	ok, err = us.Update.InvalidatePIN(ctx, *userProfile.ID, input.Flavour)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return false, exceptions.InvalidatePinErr(err)
+		return false, customerrors.InvalidatePinErr(err)
 	}
 	if !ok {
-		return false, exceptions.InvalidatePinErr(err)
+		return false, customerrors.InvalidatePinErr(err)
 	}
 
 	ok, err = us.Create.SavePin(ctx, pinPayload)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return false, exceptions.ResetPinErr(err)
+		return false, customerrors.ResetPinErr(err)
 	}
 	if !ok {
-		return false, exceptions.ResetPinErr(err)
+		return false, customerrors.ResetPinErr(err)
 	}
 
 	return true, nil
@@ -651,18 +652,18 @@ func (us *UseCasesUserImpl) RefreshToken(ctx context.Context, userID string) (*d
 // such as their health diary
 func (us *UseCasesUserImpl) VerifyPIN(ctx context.Context, userID string, flavour feedlib.Flavour, pin string) (bool, error) {
 	if userID == "" {
-		return false, exceptions.UserNotFoundError(fmt.Errorf("user id is empty"))
+		return false, customerrors.UserNotFoundError(fmt.Errorf("user id is empty"))
 	}
 	if !flavour.IsValid() {
-		return false, exceptions.InvalidFlavourDefinedErr(fmt.Errorf("flavour is not valid"))
+		return false, customerrors.InvalidFlavourDefinedErr(fmt.Errorf("flavour is not valid"))
 	}
 	if pin == "" {
-		return false, exceptions.PINErr(fmt.Errorf("pin is empty"))
+		return false, customerrors.PINErr(fmt.Errorf("pin is empty"))
 	}
 	pinData, err := us.Query.GetUserPINByUserID(ctx, userID, flavour)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return false, exceptions.PinNotFoundError(err)
+		return false, customerrors.PinNotFoundError(err)
 	}
 
 	// Check if the pin has expired
@@ -671,13 +672,13 @@ func (us *UseCasesUserImpl) VerifyPIN(ctx context.Context, userID string, flavou
 	currentTime := time.Now()
 	expired := currentTime.After(pinData.ValidTo)
 	if expired {
-		return false, exceptions.ExpiredPinErr()
+		return false, customerrors.ExpiredPinErr()
 	}
 
 	// If pin data does not match, this means the user cant access the data
 	matched := utils.ComparePIN(pin, pinData.Salt, pinData.HashedPIN, nil)
 	if !matched {
-		return false, exceptions.PinMismatchError()
+		return false, customerrors.PinMismatchError()
 	}
 
 	return true, nil
@@ -1394,7 +1395,7 @@ func (us *UseCasesUserImpl) RegisterPushToken(ctx context.Context, token string)
 
 	loggedInUserID, err := us.ExternalExt.GetLoggedInUserUID(ctx)
 	if err != nil {
-		return false, exceptions.GetLoggedInUserUIDErr(err)
+		return false, customerrors.GetLoggedInUserUIDErr(err)
 	}
 
 	var tokens pq.StringArray
@@ -1416,7 +1417,7 @@ func (us *UseCasesUserImpl) GetClientProfileByCCCNumber(ctx context.Context, ccc
 	clientProfile, err := us.Query.GetClientProfileByCCCNumber(ctx, cccNumber)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return nil, exceptions.ProfileNotFoundErr(err)
+		return nil, customerrors.ProfileNotFoundErr(err)
 	}
 
 	return clientProfile, nil
@@ -1544,7 +1545,7 @@ func (us *UseCasesUserImpl) TransferClientToFacility(ctx context.Context, client
 	if clientID == nil || facilityID == nil {
 		err := fmt.Errorf("clientID or facilityID is nil")
 		helpers.ReportErrorToSentry(err)
-		return false, exceptions.EmptyInputErr(err)
+		return false, customerrors.EmptyInputErr(err)
 
 	}
 	clientProfile, err := us.Query.GetClientProfileByClientID(ctx, *clientID)
@@ -1562,7 +1563,7 @@ func (us *UseCasesUserImpl) TransferClientToFacility(ctx context.Context, client
 	)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return false, exceptions.UpdateProfileErr(err)
+		return false, customerrors.UpdateProfileErr(err)
 	}
 
 	serviceRequests, err := us.Query.GetClientServiceRequests(ctx, "", enums.ServiceRequestStatusPending.String(), *clientID, currentClientFacilityID)
@@ -1579,7 +1580,7 @@ func (us *UseCasesUserImpl) TransferClientToFacility(ctx context.Context, client
 		)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
-			return false, exceptions.InternalErr(err)
+			return false, customerrors.InternalErr(err)
 		}
 	}
 	return true, nil
@@ -1700,14 +1701,14 @@ func (us *UseCasesUserImpl) GetUserLinkedFacilities(ctx context.Context, userID 
 
 	userProfile, err := us.Query.GetUserProfileByUserID(ctx, userID)
 	if err != nil {
-		return nil, exceptions.UserNotFoundError(err)
+		return nil, customerrors.UserNotFoundError(err)
 	}
 
 	switch userProfile.UserType {
 	case enums.ClientUser:
 		clientProfile, err := us.Query.GetClientProfileByUserID(ctx, userID)
 		if err != nil {
-			return nil, exceptions.ClientProfileNotFoundErr(err)
+			return nil, customerrors.ClientProfileNotFoundErr(err)
 		}
 
 		facilities, pageInfo, err := us.Query.GetClientFacilities(ctx, dto.ClientFacilityInput{ClientID: clientProfile.ID}, page)
@@ -1723,7 +1724,7 @@ func (us *UseCasesUserImpl) GetUserLinkedFacilities(ctx context.Context, userID 
 	case enums.StaffUser:
 		staffProfile, err := us.Query.GetStaffProfileByUserID(ctx, userID)
 		if err != nil {
-			return nil, exceptions.ClientProfileNotFoundErr(err)
+			return nil, customerrors.ClientProfileNotFoundErr(err)
 		}
 
 		facilities, pageInfo, err := us.Query.GetStaffFacilities(ctx, dto.StaffFacilityInput{StaffID: staffProfile.ID}, page)
@@ -1793,13 +1794,13 @@ func (us *UseCasesUserImpl) AssignCaregiver(ctx context.Context, input dto.Clien
 	userProfile, err := us.ExternalExt.GetLoggedInUserUID(ctx)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return false, exceptions.GetLoggedInUserUIDErr(err)
+		return false, customerrors.GetLoggedInUserUIDErr(err)
 	}
 
 	staffProfile, err := us.Query.GetStaffProfileByUserID(ctx, userProfile)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return false, exceptions.StaffProfileNotFoundErr(err)
+		return false, customerrors.StaffProfileNotFoundErr(err)
 	}
 
 	caregiver := &domain.CaregiverClient{

@@ -10,6 +10,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions/customerrors"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
@@ -126,7 +127,7 @@ func (u *UseCasesServiceRequestImpl) CreateServiceRequest(ctx context.Context, i
 		clientProfile, err := u.Query.GetClientProfileByClientID(ctx, input.ClientID)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
-			return false, exceptions.ClientProfileNotFoundErr(err)
+			return false, customerrors.ClientProfileNotFoundErr(err)
 		}
 
 		serviceRequestInput := &dto.ServiceRequestInput{
@@ -183,7 +184,7 @@ func (u *UseCasesServiceRequestImpl) CreateServiceRequest(ctx context.Context, i
 		staffProfile, err := u.Query.GetStaffProfileByStaffID(ctx, input.StaffID)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
-			return false, exceptions.StaffProfileNotFoundErr(err)
+			return false, customerrors.StaffProfileNotFoundErr(err)
 		}
 		serviceRequestInput := &dto.ServiceRequestInput{
 			Active:      true,
@@ -397,13 +398,13 @@ func (u *UseCasesServiceRequestImpl) CreatePinResetServiceRequest(ctx context.Co
 		userProfile, err := u.Query.GetUserProfileByPhoneNumber(ctx, phoneNumber, feedlib.FlavourConsumer)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
-			return false, exceptions.ProfileNotFoundErr(err)
+			return false, customerrors.ProfileNotFoundErr(err)
 		}
 
 		clientProfile, err := u.Query.GetClientProfileByUserID(ctx, *userProfile.ID)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
-			return false, exceptions.ClientProfileNotFoundErr(err)
+			return false, customerrors.ClientProfileNotFoundErr(err)
 		}
 
 		meta["is_ccc_number_valid"] = true
@@ -439,13 +440,13 @@ func (u *UseCasesServiceRequestImpl) CreatePinResetServiceRequest(ctx context.Co
 		userProfile, err := u.Query.GetUserProfileByPhoneNumber(ctx, phoneNumber, feedlib.FlavourPro)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
-			return false, exceptions.ProfileNotFoundErr(err)
+			return false, customerrors.ProfileNotFoundErr(err)
 		}
 
 		staffProfile, err := u.Query.GetStaffProfileByUserID(ctx, *userProfile.ID)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
-			return false, exceptions.StaffProfileNotFoundErr(err)
+			return false, customerrors.StaffProfileNotFoundErr(err)
 		}
 
 		serviceRequestInput := &dto.ServiceRequestInput{
@@ -481,12 +482,12 @@ func (u *UseCasesServiceRequestImpl) VerifyStaffPinResetServiceRequest(ctx conte
 	loggedInUserID, err := u.ExternalExt.GetLoggedInUserUID(ctx)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return false, exceptions.GetLoggedInUserUIDErr(err)
+		return false, customerrors.GetLoggedInUserUIDErr(err)
 	}
 	loggedInStaffProfile, err := u.Query.GetStaffProfileByUserID(ctx, loggedInUserID)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return false, exceptions.StaffProfileNotFoundErr(err)
+		return false, customerrors.StaffProfileNotFoundErr(err)
 	}
 	userProfile, err := u.Query.GetUserProfileByPhoneNumber(ctx, phoneNumber, feedlib.FlavourPro)
 	if err != nil {
@@ -496,7 +497,7 @@ func (u *UseCasesServiceRequestImpl) VerifyStaffPinResetServiceRequest(ctx conte
 	_, err = u.Query.GetStaffProfileByUserID(ctx, *userProfile.ID)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return false, exceptions.StaffProfileNotFoundErr(err)
+		return false, customerrors.StaffProfileNotFoundErr(err)
 	}
 
 	err = u.Update.UpdateUser(ctx, &domain.User{ID: userProfile.ID}, map[string]interface{}{
@@ -504,7 +505,7 @@ func (u *UseCasesServiceRequestImpl) VerifyStaffPinResetServiceRequest(ctx conte
 	})
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return false, exceptions.UpdateProfileErr(err)
+		return false, customerrors.UpdateProfileErr(err)
 	}
 
 	return u.VerifyServiceRequestResponse(ctx, verificationStatus, phoneNumber, serviceRequestID, userProfile, loggedInStaffProfile, feedlib.FlavourPro)
@@ -534,13 +535,13 @@ func (u *UseCasesServiceRequestImpl) VerifyClientPinResetServiceRequest(
 	loggedInUserID, err := u.ExternalExt.GetLoggedInUserUID(ctx)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return false, exceptions.GetLoggedInUserUIDErr(err)
+		return false, customerrors.GetLoggedInUserUIDErr(err)
 	}
 
 	staff, err := u.Query.GetStaffProfileByUserID(ctx, loggedInUserID)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return false, exceptions.StaffProfileNotFoundErr(err)
+		return false, customerrors.StaffProfileNotFoundErr(err)
 	}
 
 	userProfile, err := u.Query.GetUserProfileByPhoneNumber(ctx, phoneNumber, feedlib.FlavourConsumer)
@@ -557,7 +558,7 @@ func (u *UseCasesServiceRequestImpl) VerifyClientPinResetServiceRequest(
 	})
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return false, exceptions.UpdateProfileErr(err)
+		return false, customerrors.UpdateProfileErr(err)
 	}
 
 	return u.VerifyServiceRequestResponse(ctx, state, phoneNumber, serviceRequestID, userProfile, staff, feedlib.FlavourConsumer)

@@ -10,7 +10,7 @@ import (
 	"math/big"
 	"strconv"
 
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions/customerrors"
 	"github.com/xdg-go/pbkdf2"
 )
 
@@ -128,7 +128,7 @@ func ValidatePINDigits(pin string) error {
 	// ensure pin is only digits
 	_, err := strconv.ParseUint(pin, 10, 64)
 	if err != nil {
-		return exceptions.ValidatePINDigitsErr(err)
+		return customerrors.ValidatePINDigitsErr(err)
 	}
 	return nil
 }

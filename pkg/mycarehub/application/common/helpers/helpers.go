@@ -12,7 +12,7 @@ import (
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/firebasetools"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions/customerrors"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/serverutils"
 )
@@ -106,7 +106,7 @@ func GetPinExpiryDate() (*time.Time, error) {
 	pinExpiryDays := serverutils.MustGetEnvVar("PIN_EXPIRY_DAYS")
 	pinExpiryInt, err := strconv.Atoi(pinExpiryDays)
 	if err != nil {
-		return nil, exceptions.InternalErr(fmt.Errorf("failed to convert PIN expiry days to int: %v", err))
+		return nil, customerrors.InternalErr(fmt.Errorf("failed to convert PIN expiry days to int: %v", err))
 	}
 	expiryDate := time.Now().AddDate(0, 0, pinExpiryInt)
 

@@ -10,7 +10,7 @@ import (
 	"github.com/savannahghi/interserviceclient"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions/customerrors"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/utils"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
@@ -111,17 +111,17 @@ func (o *UseCaseOTPImpl) GenerateAndSendOTP(
 	phone, err := converterandformatter.NormalizeMSISDN(phoneNumber)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return "", exceptions.NormalizeMSISDNError(err)
+		return "", customerrors.NormalizeMSISDNError(err)
 	}
 
 	if !flavour.IsValid() {
-		return "", exceptions.InvalidFlavourDefinedErr(fmt.Errorf("flavour is not valid"))
+		return "", customerrors.InvalidFlavourDefinedErr(fmt.Errorf("flavour is not valid"))
 	}
 
 	userProfile, err := o.Query.GetUserProfileByPhoneNumber(ctx, *phone, flavour)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return "", exceptions.UserNotFoundError(err)
+		return "", customerrors.UserNotFoundError(err)
 	}
 
 	otp, err := utils.GenerateOTP()
@@ -174,7 +174,7 @@ func (o *UseCaseOTPImpl) VerifyPhoneNumber(ctx context.Context, phone string, fl
 	phoneNumber, err := converterandformatter.NormalizeMSISDN(phone)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return nil, exceptions.NormalizeMSISDNError(err)
+		return nil, customerrors.NormalizeMSISDNError(err)
 	}
 
 	exists, err := o.Query.CheckIfPhoneNumberExists(ctx, *phoneNumber, true, flavour)
@@ -189,7 +189,7 @@ func (o *UseCaseOTPImpl) VerifyPhoneNumber(ctx context.Context, phone string, fl
 	userProfile, err := o.Query.GetUserProfileByPhoneNumber(ctx, *phoneNumber, flavour)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return nil, exceptions.UserNotFoundError(err)
+		return nil, customerrors.UserNotFoundError(err)
 	}
 
 	otp, err := utils.GenerateOTP()
@@ -258,7 +258,7 @@ func (o *UseCaseOTPImpl) GenerateRetryOTP(ctx context.Context, payload *dto.Send
 	userProfile, err := o.Query.GetUserProfileByPhoneNumber(ctx, *phoneNumber, payload.Flavour)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return "", exceptions.UserNotFoundError(err)
+		return "", customerrors.UserNotFoundError(err)
 	}
 
 	otpResponsePayload := &domain.OTP{

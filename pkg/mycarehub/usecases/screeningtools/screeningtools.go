@@ -9,7 +9,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions/customerrors"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/utils"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
@@ -84,7 +84,7 @@ func (t *ServiceScreeningToolsImpl) GetScreeningToolQuestions(ctx context.Contex
 	screeningToolsQuestions, err := t.Query.GetScreeningToolQuestions(ctx, *questionType)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return nil, exceptions.ItemNotFoundErr(fmt.Errorf("failed to get screening tools questions: %v", err))
+		return nil, customerrors.ItemNotFoundErr(fmt.Errorf("failed to get screening tools questions: %v", err))
 	}
 
 	return screeningToolsQuestions, nil
@@ -142,7 +142,7 @@ func (t *ServiceScreeningToolsImpl) AnswerScreeningToolQuestions(ctx context.Con
 	clientProfile, err := t.Query.GetClientProfileByClientID(ctx, screeningToolResponses[0].ClientID)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return false, exceptions.ItemNotFoundErr(fmt.Errorf("failed to get client profile: %v", err))
+		return false, customerrors.ItemNotFoundErr(fmt.Errorf("failed to get client profile: %v", err))
 	}
 
 	for _, screeningToolResponse := range screeningToolResponses {
@@ -236,7 +236,7 @@ func (t *ServiceScreeningToolsImpl) GetAvailableScreeningToolQuestions(ctx conte
 	_, err := t.Query.GetClientProfileByClientID(ctx, clientID)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return nil, exceptions.ProfileNotFoundErr(fmt.Errorf("failed to get client profile: %v", err))
+		return nil, customerrors.ProfileNotFoundErr(fmt.Errorf("failed to get client profile: %v", err))
 	}
 
 	for i := range enums.ScreeningToolQuestions {
@@ -248,12 +248,12 @@ func (t *ServiceScreeningToolsImpl) GetAvailableScreeningToolQuestions(ctx conte
 	loggedInUserID, err := t.ExternalExt.GetLoggedInUserUID(ctx)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return nil, exceptions.GetLoggedInUserUIDErr(err)
+		return nil, customerrors.GetLoggedInUserUIDErr(err)
 	}
 	userProfile, err := t.Query.GetUserProfileByUserID(ctx, loggedInUserID)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return nil, exceptions.ProfileNotFoundErr(fmt.Errorf("failed to get user profile: %v", err))
+		return nil, customerrors.ProfileNotFoundErr(fmt.Errorf("failed to get user profile: %v", err))
 	}
 	if userProfile.Gender == "MALE" {
 		delete(validToolTypes, enums.ScreeningToolTypeCUI)
@@ -263,7 +263,7 @@ func (t *ServiceScreeningToolsImpl) GetAvailableScreeningToolQuestions(ctx conte
 	clientProfile, err := t.Query.GetClientProfileByClientID(ctx, clientID)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return nil, exceptions.ProfileNotFoundErr(fmt.Errorf("failed to get client profile: %v", err))
+		return nil, customerrors.ProfileNotFoundErr(fmt.Errorf("failed to get client profile: %v", err))
 	}
 
 	activeScreeningResponses, err := t.Query.GetActiveScreeningToolResponses(ctx, clientID)
@@ -368,7 +368,7 @@ func (t *ServiceScreeningToolsImpl) GetScreeningToolServiceRequestResponses(ctx 
 	client, err := t.Query.GetClientProfileByClientID(ctx, clientID)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return nil, exceptions.ProfileNotFoundErr(fmt.Errorf("failed to get client profile: %v", err))
+		return nil, customerrors.ProfileNotFoundErr(fmt.Errorf("failed to get client profile: %v", err))
 	}
 	clientResponses, err := t.Query.GetClientScreeningToolResponsesByToolType(ctx, clientID, toolType.String(), true)
 	if err != nil {

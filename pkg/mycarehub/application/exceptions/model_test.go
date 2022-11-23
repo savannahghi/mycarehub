@@ -8,8 +8,8 @@ import (
 )
 
 func TestModelHasCustomError(t *testing.T) {
-	customerrors := exceptions.CustomError{}
-	cr := customerrors.Error()
+	exceptions := exceptions.CustomError{}
+	cr := exceptions.Error()
 	assert.NotNil(t, cr)
 }
 

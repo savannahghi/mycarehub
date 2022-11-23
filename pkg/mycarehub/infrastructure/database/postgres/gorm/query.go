@@ -17,7 +17,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions/customerrors"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/utils"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/serverutils"
@@ -475,7 +475,7 @@ func (db *PGInstance) GetUserProfileByPhoneNumber(ctx context.Context, phoneNumb
 // GetUserPINByUserID fetches a user's pin using the user ID and Flavour
 func (db *PGInstance) GetUserPINByUserID(ctx context.Context, userID string, flavour feedlib.Flavour) (*PINData, error) {
 	if !flavour.IsValid() {
-		return nil, exceptions.InvalidFlavourDefinedErr(fmt.Errorf("flavour is not valid"))
+		return nil, customerrors.InvalidFlavourDefinedErr(fmt.Errorf("flavour is not valid"))
 	}
 	var pin PINData
 	if err := db.DB.Where(&PINData{UserID: userID, IsValid: true, Flavour: flavour}).First(&pin).Error; err != nil {
@@ -577,7 +577,7 @@ func (db *PGInstance) VerifyOTP(ctx context.Context, payload *dto.VerifyOTPInput
 		return false, fmt.Errorf("user ID or phone number or OTP cannot be empty")
 	}
 	if !payload.Flavour.IsValid() {
-		return false, exceptions.InvalidFlavourDefinedErr(fmt.Errorf("flavour is not valid"))
+		return false, customerrors.InvalidFlavourDefinedErr(fmt.Errorf("flavour is not valid"))
 	}
 
 	err := db.DB.Model(&UserOTP{}).Where(&UserOTP{PhoneNumber: payload.PhoneNumber, Valid: true, OTP: payload.OTP, Flavour: payload.Flavour}).First(&userOTP).Error

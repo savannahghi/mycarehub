@@ -14,7 +14,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions/customerrors"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/utils"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
@@ -210,7 +210,7 @@ func (us *UseCasesCommunitiesImpl) CreateCommunity(ctx context.Context, input dt
 	loggedInUserID, err := us.ExternalExt.GetLoggedInUserUID(ctx)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return nil, exceptions.GetLoggedInUserUIDErr(err)
+		return nil, customerrors.GetLoggedInUserUIDErr(err)
 	}
 
 	channelMetadata := domain.CommunityMetadata{
@@ -232,7 +232,7 @@ func (us *UseCasesCommunitiesImpl) CreateCommunity(ctx context.Context, input dt
 	staff, err := us.Query.GetStaffProfileByUserID(ctx, loggedInUserID)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return nil, exceptions.GetLoggedInUserUIDErr(err)
+		return nil, customerrors.GetLoggedInUserUIDErr(err)
 	}
 
 	channel, err := us.GetstreamService.CreateChannel(ctx, "messaging", channelResponse.ID, *staff.ID, &stream.ChannelRequest{ExtraData: extraData})
@@ -273,7 +273,7 @@ func (us *UseCasesCommunitiesImpl) InviteMembers(ctx context.Context, communityI
 	loggedInUserID, err := us.ExternalExt.GetLoggedInUserUID(ctx)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return false, exceptions.GetLoggedInUserUIDErr(err)
+		return false, customerrors.GetLoggedInUserUIDErr(err)
 	}
 
 	staffProfile, err := us.Query.GetStaffProfileByUserID(ctx, loggedInUserID)
@@ -579,7 +579,7 @@ func (us *UseCasesCommunitiesImpl) AddModeratorsWithMessage(ctx context.Context,
 	loggedInUserID, err := us.ExternalExt.GetLoggedInUserUID(ctx)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return false, exceptions.GetLoggedInUserUIDErr(err)
+		return false, customerrors.GetLoggedInUserUIDErr(err)
 	}
 
 	staffProfile, err := us.Query.GetStaffProfileByUserID(ctx, loggedInUserID)
@@ -640,7 +640,7 @@ func (us *UseCasesCommunitiesImpl) DemoteModerators(ctx context.Context, communi
 	loggedInUserID, err := us.ExternalExt.GetLoggedInUserUID(ctx)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return false, exceptions.GetLoggedInUserUIDErr(err)
+		return false, customerrors.GetLoggedInUserUIDErr(err)
 	}
 
 	staffProfile, err := us.Query.GetStaffProfileByUserID(ctx, loggedInUserID)

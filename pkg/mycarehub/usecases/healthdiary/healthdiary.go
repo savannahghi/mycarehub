@@ -10,7 +10,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions/customerrors"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/servicerequest"
@@ -169,7 +169,7 @@ func (h UseCasesHealthDiaryImpl) CreateHealthDiaryEntry(
 // CanRecordHeathDiary implements check for eligibility of a health diary to be shown to a user
 func (h UseCasesHealthDiaryImpl) CanRecordHeathDiary(ctx context.Context, clientID string) (bool, error) {
 	if clientID == "" {
-		return false, exceptions.EmptyInputErr(fmt.Errorf("empty client ID value passed in input"))
+		return false, customerrors.EmptyInputErr(fmt.Errorf("empty client ID value passed in input"))
 	}
 	return h.Query.CanRecordHeathDiary(ctx, clientID)
 }
@@ -183,7 +183,7 @@ func (h UseCasesHealthDiaryImpl) GetClientHealthDiaryQuote(ctx context.Context, 
 // GetClientHealthDiaryEntries retrieves all health diary entries that belong to a specific user/client
 func (h UseCasesHealthDiaryImpl) GetClientHealthDiaryEntries(ctx context.Context, clientID string, moodType *enums.Mood, shared *bool) ([]*domain.ClientHealthDiaryEntry, error) {
 	if clientID == "" {
-		return nil, exceptions.EmptyInputErr(fmt.Errorf("missing client ID"))
+		return nil, customerrors.EmptyInputErr(fmt.Errorf("missing client ID"))
 	}
 	return h.Query.GetClientHealthDiaryEntries(ctx, clientID, moodType, shared)
 }

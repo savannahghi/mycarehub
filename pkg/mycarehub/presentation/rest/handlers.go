@@ -14,6 +14,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions/customerrors"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases"
 	"github.com/savannahghi/serverutils"
 )
@@ -115,7 +116,7 @@ func (h *MyCareHubHandlersInterfacesImpl) VerifySecurityQuestions() http.Handler
 			if err != nil {
 				helpers.ReportErrorToSentry(err)
 				serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
-					Err:     exceptions.InternalErr(err),
+					Err:     customerrors.InternalErr(err),
 					Message: err.Error(),
 					Code:    int(exceptions.Internal),
 				}, http.StatusBadRequest)

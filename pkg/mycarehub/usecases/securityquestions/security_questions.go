@@ -12,7 +12,7 @@ import (
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions/customerrors"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
@@ -96,25 +96,25 @@ func (s *UseCaseSecurityQuestionsImpl) RecordSecurityQuestionResponses(ctx conte
 		err := i.Validate()
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
-			return nil, exceptions.InputValidationErr(fmt.Errorf("security question response validation failed: %s", err))
+			return nil, customerrors.InputValidationErr(fmt.Errorf("security question response validation failed: %s", err))
 		}
 
 		securityQuestion, err := s.Query.GetSecurityQuestionByID(ctx, &i.SecurityQuestionID)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
-			return nil, exceptions.ItemNotFoundErr(fmt.Errorf("security question id %s does not exist", i.SecurityQuestionID))
+			return nil, customerrors.ItemNotFoundErr(fmt.Errorf("security question id %s does not exist", i.SecurityQuestionID))
 		}
 
 		err = securityQuestion.Validate(i.Response)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
-			return nil, exceptions.InputValidationErr(fmt.Errorf("security question response %s is invalid: %v", i.Response, err))
+			return nil, customerrors.InputValidationErr(fmt.Errorf("security question response %s is invalid: %v", i.Response, err))
 		}
 
 		encryptedResponse, err := helpers.EncryptSensitiveData(i.Response, SensitiveContentPassphrase)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
-			return nil, exceptions.EncryptionErr(fmt.Errorf("failed to encrypt sensitive data response: %v", err))
+			return nil, customerrors.EncryptionErr(fmt.Errorf("failed to encrypt sensitive data response: %v", err))
 		}
 
 		securityQuestionResponsePayload := &dto.SecurityQuestionResponseInput{
@@ -136,7 +136,7 @@ func (s *UseCaseSecurityQuestionsImpl) RecordSecurityQuestionResponses(ctx conte
 	err := s.Create.SaveSecurityQuestionResponse(ctx, securityQuestionResponseInput)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return nil, exceptions.FailedToSaveItemErr(fmt.Errorf("failed to save security question response data %v", err))
+		return nil, customerrors.FailedToSaveItemErr(fmt.Errorf("failed to save security question response data %v", err))
 	}
 
 	return recordSecurityQuestionResponses, nil
@@ -150,30 +150,30 @@ func (s *UseCaseSecurityQuestionsImpl) VerifySecurityQuestionResponses(
 	failCountInstance := make(map[string]int)
 	if len(responses.SecurityQuestionsInput) == 0 {
 		helpers.ReportErrorToSentry(fmt.Errorf("no responses provided"))
-		return false, exceptions.EmptyInputErr(fmt.Errorf("no responses provided"))
+		return false, customerrors.EmptyInputErr(fmt.Errorf("no responses provided"))
 	}
 	userProfile, err := s.Query.GetUserProfileByPhoneNumber(ctx, responses.SecurityQuestionsInput[0].PhoneNumber, responses.SecurityQuestionsInput[0].Flavour)
 	if err != nil {
-		return false, exceptions.ProfileNotFoundErr(err)
+		return false, customerrors.ProfileNotFoundErr(err)
 	}
 
 	failCount := userProfile.FailedSecurityCount
 	if failCount >= 3 {
 		err := fmt.Errorf("failed: security questions answering attempts exceeded 3 attempts")
 		helpers.ReportErrorToSentry(err)
-		return false, exceptions.FailedSecurityCountExceededErr(err)
+		return false, customerrors.FailedSecurityCountExceededErr(err)
 	}
 	for _, securityQuestionResponse := range responses.SecurityQuestionsInput {
 		questionResponse, err := s.Query.GetSecurityQuestionResponse(ctx, securityQuestionResponse.QuestionID, *userProfile.ID)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
-			return false, exceptions.SecurityQuestionNotFoundErr(fmt.Errorf("security question does not exist"))
+			return false, customerrors.SecurityQuestionNotFoundErr(fmt.Errorf("security question does not exist"))
 		}
 
 		decryptedResponse, err := helpers.DecryptSensitiveData(questionResponse.Response, SensitiveContentPassphrase)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
-			return false, exceptions.InternalErr(fmt.Errorf("failed to decrypt sensitive data response: %v", err))
+			return false, customerrors.InternalErr(fmt.Errorf("failed to decrypt sensitive data response: %v", err))
 		}
 
 		if !strings.EqualFold(securityQuestionResponse.Response, decryptedResponse) {
@@ -181,7 +181,7 @@ func (s *UseCaseSecurityQuestionsImpl) VerifySecurityQuestionResponses(
 			_, err := s.Update.UpdateIsCorrectSecurityQuestionResponse(ctx, *userProfile.ID, false)
 			if err != nil {
 				helpers.ReportErrorToSentry(err)
-				return false, exceptions.InternalErr(fmt.Errorf("failed to update security question response: %v", err))
+				return false, customerrors.InternalErr(fmt.Errorf("failed to update security question response: %v", err))
 			}
 
 			failCount++
@@ -190,11 +190,11 @@ func (s *UseCaseSecurityQuestionsImpl) VerifySecurityQuestionResponses(
 			err = s.Update.UpdateFailedSecurityQuestionsAnsweringAttempts(ctx, *userProfile.ID, failCount)
 			if err != nil {
 				helpers.ReportErrorToSentry(err)
-				return false, exceptions.InternalErr(fmt.Errorf("failed to update security question response fail count %v", err))
+				return false, customerrors.InternalErr(fmt.Errorf("failed to update security question response fail count %v", err))
 			}
 
 			helpers.ReportErrorToSentry(err)
-			return false, exceptions.SecurityQuestionResponseMismatchErr(fmt.Errorf("the security question response does not match: %d attempts left", 3-failCount))
+			return false, customerrors.SecurityQuestionResponseMismatchErr(fmt.Errorf("the security question response does not match: %d attempts left", 3-failCount))
 		}
 	}
 
@@ -202,7 +202,7 @@ func (s *UseCaseSecurityQuestionsImpl) VerifySecurityQuestionResponses(
 		err := s.Update.UpdateFailedSecurityQuestionsAnsweringAttempts(ctx, *userProfile.ID, 0)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
-			return false, exceptions.InternalErr(fmt.Errorf("failed to reset security question response fail count %v", err))
+			return false, customerrors.InternalErr(fmt.Errorf("failed to reset security question response fail count %v", err))
 		}
 	}
 	return true, nil
@@ -214,23 +214,23 @@ func (s *UseCaseSecurityQuestionsImpl) GetUserRespondedSecurityQuestions(ctx con
 	// ensure the phone/flavour is verified
 	if err := input.Validate(); err != nil {
 		helpers.ReportErrorToSentry(err)
-		return nil, exceptions.EmptyInputErr(fmt.Errorf("empty value passed in input: %v", err))
+		return nil, customerrors.EmptyInputErr(fmt.Errorf("empty value passed in input: %v", err))
 	}
 
 	phone, err := converterandformatter.NormalizeMSISDN(input.PhoneNumber)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return nil, exceptions.NormalizeMSISDNError(err)
+		return nil, customerrors.NormalizeMSISDNError(err)
 	}
 
 	if !input.Flavour.IsValid() {
-		return nil, exceptions.InvalidFlavourDefinedErr(fmt.Errorf("flavour is not valid"))
+		return nil, customerrors.InvalidFlavourDefinedErr(fmt.Errorf("flavour is not valid"))
 	}
 
 	userProfile, err := s.Query.GetUserProfileByPhoneNumber(ctx, *phone, input.Flavour)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return nil, exceptions.UserNotFoundError(fmt.Errorf("failed to get a user profile by phonenumber: %v", err))
+		return nil, customerrors.UserNotFoundError(fmt.Errorf("failed to get a user profile by phonenumber: %v", err))
 	}
 
 	// ensure the otp for the phone is valid
@@ -242,18 +242,18 @@ func (s *UseCaseSecurityQuestionsImpl) GetUserRespondedSecurityQuestions(ctx con
 	})
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return nil, exceptions.ItemNotFoundErr(fmt.Errorf("failed to verify otp: %v", err))
+		return nil, customerrors.ItemNotFoundErr(fmt.Errorf("failed to verify otp: %v", err))
 	}
 
 	if !ok {
-		return nil, exceptions.InternalErr(fmt.Errorf("failed to verify otp: %v", err))
+		return nil, customerrors.InternalErr(fmt.Errorf("failed to verify otp: %v", err))
 	}
 
 	// ensure the questions are associated with the user who set the responses
 	securityQuestionResponses, err := s.Query.GetUserSecurityQuestionsResponses(ctx, *userProfile.ID)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return nil, exceptions.ItemNotFoundErr(fmt.Errorf("failed to get security questions: %v", err))
+		return nil, customerrors.ItemNotFoundErr(fmt.Errorf("failed to get security questions: %v", err))
 	}
 
 	if len(securityQuestionResponses) < 3 {
@@ -273,7 +273,7 @@ func (s *UseCaseSecurityQuestionsImpl) GetUserRespondedSecurityQuestions(ctx con
 		securityQuestion, err := s.Query.GetSecurityQuestionByID(ctx, &i.QuestionID)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
-			return nil, exceptions.ItemNotFoundErr(fmt.Errorf("failed to get security question: %v", err))
+			return nil, customerrors.ItemNotFoundErr(fmt.Errorf("failed to get security question: %v", err))
 		}
 		securityQuestions = append(securityQuestions, securityQuestion)
 	}

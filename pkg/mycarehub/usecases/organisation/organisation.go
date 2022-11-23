@@ -5,7 +5,7 @@ import (
 
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions/customerrors"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
@@ -67,7 +67,7 @@ func (u *UseCaseOrganisationImpl) CreateOrganisation(ctx context.Context, input 
 	err := u.Create.CreateOrganisation(ctx, organisation)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return false, exceptions.CreateOrganisationErr(err)
+		return false, customerrors.CreateOrganisationErr(err)
 	}
 
 	return true, nil
@@ -78,13 +78,13 @@ func (u *UseCaseOrganisationImpl) DeleteOrganisation(ctx context.Context, organi
 	loggedInUserID, err := u.ExternalExt.GetLoggedInUserUID(ctx)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return false, exceptions.GetLoggedInUserUIDErr(err)
+		return false, customerrors.GetLoggedInUserUIDErr(err)
 	}
 
 	_, err = u.Query.GetStaffProfileByUserID(ctx, loggedInUserID)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return false, exceptions.StaffProfileNotFoundErr(err)
+		return false, customerrors.StaffProfileNotFoundErr(err)
 	}
 
 	exists, err := u.Query.CheckOrganisationExists(ctx, organisationID)
@@ -94,7 +94,7 @@ func (u *UseCaseOrganisationImpl) DeleteOrganisation(ctx context.Context, organi
 	}
 
 	if !exists {
-		return false, exceptions.NonExistentOrganizationErr(err)
+		return false, customerrors.NonExistentOrganizationErr(err)
 	}
 
 	organisation := &domain.Organisation{

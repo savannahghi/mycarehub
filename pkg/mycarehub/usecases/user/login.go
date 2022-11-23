@@ -12,6 +12,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions/customerrors"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/utils"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"gorm.io/gorm"
@@ -161,7 +162,7 @@ func (us *UseCasesUserImpl) pinResetRequestCheck(ctx context.Context, credential
 	}
 
 	if exists {
-		message := exceptions.ClientHasUnresolvedPinResetRequestErr().Error()
+		message := customerrors.ClientHasUnresolvedPinResetRequestErr().Error()
 		code := exceptions.ClientHasUnresolvedPinResetRequestError.Code()
 		response.SetResponseCode(code, message)
 
@@ -181,7 +182,7 @@ func (us *UseCasesUserImpl) staffProfileCheck(ctx context.Context, credentials *
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
 
-			message := exceptions.StaffProfileNotFoundErr(err).Error()
+			message := customerrors.StaffProfileNotFoundErr(err).Error()
 			code := exceptions.ProfileNotFound.Code()
 			response.SetResponseCode(code, message)
 
@@ -225,7 +226,7 @@ func (us *UseCasesUserImpl) checkPIN(ctx context.Context, credentials *dto.Login
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 
-		message := exceptions.PinNotFoundError(err).Error()
+		message := customerrors.PinNotFoundError(err).Error()
 		code := exceptions.PINNotFound.Code()
 		response.SetResponseCode(code, message)
 
@@ -236,7 +237,7 @@ func (us *UseCasesUserImpl) checkPIN(ctx context.Context, credentials *dto.Login
 	currentTime := time.Now()
 	expired := currentTime.After(userPIN.ValidTo)
 	if expired {
-		message := exceptions.ExpiredPinErr().Error()
+		message := customerrors.ExpiredPinErr().Error()
 		code := exceptions.ExpiredPinError.Code()
 		response.SetResponseCode(code, message)
 
@@ -266,7 +267,7 @@ func (us *UseCasesUserImpl) checkPIN(ctx context.Context, credentials *dto.Login
 		err := us.Update.UpdateUser(ctx, user, userUpdates)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
-			message := exceptions.InternalErr(err).Error()
+			message := customerrors.InternalErr(err).Error()
 			code := exceptions.Internal.Code()
 			response.SetResponseCode(code, message)
 
@@ -276,7 +277,7 @@ func (us *UseCasesUserImpl) checkPIN(ctx context.Context, credentials *dto.Login
 		response.SetFailedLoginCount(user.FailedLoginCount)
 		response.SetUserProfile(user)
 
-		message := exceptions.PinMismatchError().Error()
+		message := customerrors.PinMismatchError().Error()
 		code := exceptions.PINMismatch.Code()
 		response.SetResponseCode(code, message)
 
@@ -294,7 +295,7 @@ func (us *UseCasesUserImpl) checkPIN(ctx context.Context, credentials *dto.Login
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 
-		message := exceptions.InternalErr(err).Error()
+		message := customerrors.InternalErr(err).Error()
 		code := exceptions.Internal.Code()
 		response.SetResponseCode(code, message)
 
@@ -316,7 +317,7 @@ func (us *UseCasesUserImpl) addAuthCredentials(ctx context.Context, credentials 
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 
-		message := exceptions.InternalErr(err).Error()
+		message := customerrors.InternalErr(err).Error()
 		code := exceptions.Internal.Code()
 		response.SetResponseCode(code, message)
 
@@ -327,7 +328,7 @@ func (us *UseCasesUserImpl) addAuthCredentials(ctx context.Context, credentials 
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 
-		message := exceptions.InternalErr(err).Error()
+		message := customerrors.InternalErr(err).Error()
 		code := exceptions.Internal.Code()
 		response.SetResponseCode(code, message)
 
@@ -412,7 +413,7 @@ func (us *UseCasesUserImpl) addRolesPermissions(ctx context.Context, credentials
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 
-		message := exceptions.GetUserRolesErr(err).Error()
+		message := customerrors.GetUserRolesErr(err).Error()
 		code := exceptions.GetUserRolesError.Code()
 		response.SetResponseCode(code, message)
 
@@ -424,7 +425,7 @@ func (us *UseCasesUserImpl) addRolesPermissions(ctx context.Context, credentials
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 
-		message := exceptions.GetUserPermissionsErr(err).Error()
+		message := customerrors.GetUserPermissionsErr(err).Error()
 		code := exceptions.GetUserPermissionsError.Code()
 		response.SetResponseCode(code, message)
 
@@ -453,7 +454,7 @@ func (us *UseCasesUserImpl) caregiverProfileCheck(ctx context.Context, credentia
 			helpers.ReportErrorToSentry(err)
 
 			// TODO: Caregiver error message
-			message := exceptions.ProfileNotFoundErr(err).Error()
+			message := customerrors.ProfileNotFoundErr(err).Error()
 			code := exceptions.ProfileNotFound.Code()
 			response.SetResponseCode(code, message)
 

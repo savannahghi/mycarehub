@@ -6,7 +6,7 @@ import (
 
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions/customerrors"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
 )
@@ -52,7 +52,7 @@ func (t *ServiceTermsImpl) GetCurrentTerms(ctx context.Context, flavour feedlib.
 	termsOfService, err := t.Query.GetCurrentTerms(ctx, flavour)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return nil, exceptions.ItemNotFoundErr(fmt.Errorf("failed to get current terms of service: %v", err))
+		return nil, customerrors.ItemNotFoundErr(fmt.Errorf("failed to get current terms of service: %v", err))
 	}
 
 	return termsOfService, nil
@@ -63,7 +63,7 @@ func (t *ServiceTermsImpl) AcceptTerms(ctx context.Context, userID *string, term
 	ok, err := t.Update.AcceptTerms(ctx, userID, termsID)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return false, exceptions.FailedToUpdateItemErr(fmt.Errorf("failed to accept terms: %v", err))
+		return false, customerrors.FailedToUpdateItemErr(fmt.Errorf("failed to accept terms: %v", err))
 	}
 	return ok, err
 }

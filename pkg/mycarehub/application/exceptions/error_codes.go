@@ -410,7 +410,6 @@ const (
 	// StaffHasUnresolvedPinResetRequestError implies that the staff has an unresolved pin reset request
 	// Its error code is 82
 	StaffHasUnresolvedPinResetRequestError
-
 	// NonExistentOrganizationError indicates that the organization is not present in the database
 	// it is error code 83
 	NonExistentOrganizationError
@@ -422,9 +421,8 @@ const (
 	// CreateProgramError means that the system is unable to create a new program
 	// it is error code 85
 	CreateProgramError
-)
 
-const (
-	// FailToCreateOrganisation is the error code for use when the system is unable to create an organisation
-	FailToCreateOrganisation = 90
+	// FailToCreateOrganisationError is the error code for use when the system is unable to create an organisation
+	// Its error code is 86
+	FailToCreateOrganisationError
 )

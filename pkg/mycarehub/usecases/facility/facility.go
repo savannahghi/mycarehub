@@ -9,7 +9,7 @@ import (
 
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions/customerrors"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
@@ -211,7 +211,7 @@ func (f *UseCaseFacilityImpl) AddFacilityContact(ctx context.Context, facilityID
 	phoneNumber, err := converterandformatter.NormalizeMSISDN(contact)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return false, exceptions.NormalizeMSISDNError(err)
+		return false, customerrors.NormalizeMSISDNError(err)
 	}
 
 	update := map[string]interface{}{

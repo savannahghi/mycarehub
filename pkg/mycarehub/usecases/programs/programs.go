@@ -6,7 +6,7 @@ import (
 
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions/customerrors"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
 )
 
@@ -42,35 +42,35 @@ func NewUsecasePrograms(
 func (u *UsecaseProgramsImpl) CreateProgram(ctx context.Context, input *dto.ProgramInput) (bool, error) {
 	if err := input.Validate(); err != nil {
 		helpers.ReportErrorToSentry(fmt.Errorf("%w", err))
-		return false, exceptions.InputValidationErr(err)
+		return false, customerrors.InputValidationErr(err)
 	}
 
 	exists, err := u.Query.CheckOrganisationExists(ctx, input.OrganisationID)
 	if err != nil {
 		helpers.ReportErrorToSentry(fmt.Errorf("%w", err))
-		return false, exceptions.InternalErr(err)
+		return false, customerrors.InternalErr(err)
 	}
 	if !exists {
 		err := fmt.Errorf("organisation with ID %s does not exist", input.OrganisationID)
 		helpers.ReportErrorToSentry(fmt.Errorf("%w", err))
-		return false, exceptions.NonExistentOrganizationErr(err)
+		return false, customerrors.NonExistentOrganizationErr(err)
 	}
 
 	exists, err = u.Query.CheckIfProgramNameExists(ctx, input.OrganisationID, input.Name)
 	if err != nil {
 		helpers.ReportErrorToSentry(fmt.Errorf("%w", err))
-		return false, exceptions.InternalErr(err)
+		return false, customerrors.InternalErr(err)
 	}
 	if exists {
 		err := fmt.Errorf("a program with organisation ID %s and name %s already exists", input.OrganisationID, input.Name)
 		helpers.ReportErrorToSentry(fmt.Errorf("%w", err))
-		return false, exceptions.OrgIDForProgramExistErr(err)
+		return false, customerrors.OrgIDForProgramExistErr(err)
 	}
 
 	err = u.Create.CreateProgram(ctx, input)
 	if err != nil {
 		helpers.ReportErrorToSentry(fmt.Errorf("%w", err))
-		return false, exceptions.CreateProgramErr(err)
+		return false, customerrors.CreateProgramErr(err)
 	}
 
 	return true, nil
