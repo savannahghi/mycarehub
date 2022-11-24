@@ -827,6 +827,7 @@ func TestMyCareHubDb_CreateUser(t *testing.T) {
 	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
 
 	date := gofakeit.Date()
+	programID := gofakeit.UUID()
 
 	type args struct {
 		ctx  context.Context
@@ -843,12 +844,13 @@ func TestMyCareHubDb_CreateUser(t *testing.T) {
 			args: args{
 				ctx: context.Background(),
 				user: domain.User{
-					Username:    gofakeit.Username(),
-					Name:        gofakeit.Name(),
-					Gender:      enumutils.GenderMale,
-					DateOfBirth: &date,
-					UserType:    enums.ClientUser,
-					Flavour:     feedlib.FlavourConsumer,
+					Username:         gofakeit.Username(),
+					Name:             gofakeit.Name(),
+					Gender:           enumutils.GenderMale,
+					DateOfBirth:      &date,
+					UserType:         enums.ClientUser,
+					Flavour:          feedlib.FlavourConsumer,
+					CurrentProgramID: programID,
 				},
 			},
 			wantErr: false,

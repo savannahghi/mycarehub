@@ -3,6 +3,7 @@ package postgres
 import (
 	"testing"
 
+	"github.com/google/uuid"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
 	"github.com/segmentio/ksuid"
 )
@@ -10,6 +11,7 @@ import (
 func Test_createMapUser(t *testing.T) {
 
 	username := ksuid.New().String()
+	currentProgramID := uuid.New().String()
 
 	type args struct {
 		userObject *gorm.User
@@ -23,7 +25,8 @@ func Test_createMapUser(t *testing.T) {
 			name: "Happy Case",
 			args: args{
 				&gorm.User{
-					Username: username,
+					Username:         username,
+					CurrentProgramID: currentProgramID,
 				},
 			},
 			wantNil: false,

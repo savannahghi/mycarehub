@@ -61,7 +61,8 @@ type User struct {
 	PinUpdateRequired   bool                   `json:"pinUpdateRequired"`
 	HasSetNickname      bool                   `json:"hasSetNickname"`
 
-	OrganizationID string
+	OrganizationID   string
+	CurrentProgramID string
 }
 
 // ClientProfile holds the details of end users who are not using the system in
@@ -94,6 +95,7 @@ type ClientProfile struct {
 	CaregiverID *string     `json:"caregiverID"`
 	CCCNumber   string      `json:"CCCNumber"`
 	Facilities  []*Facility `json:"facilities"` // TODO: needs at least one
+	ProgramID   string      `json:"programID"`
 }
 
 // StaffProfile represents the staff profile model
@@ -112,6 +114,7 @@ type StaffProfile struct {
 
 	DefaultFacility *Facility `json:"defaultFacility"`
 	OrganisationID  string    `json:"organisationID"`
+	ProgramID       string    `json:"programID"`
 }
 
 // AuthCredentials is the authentication credentials for a given user
@@ -165,6 +168,7 @@ type Identifier struct {
 	ValidTo             time.Time `json:"validTo"`
 	IsPrimaryIdentifier bool      `json:"isPrimaryIdentifier"`
 	Active              bool      `json:"active"`
+	ProgramID           string    `json:"programID"`
 }
 
 // ClientRegistrationPayload is the payload for a client registration

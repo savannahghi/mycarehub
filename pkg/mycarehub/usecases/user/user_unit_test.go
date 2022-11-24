@@ -2184,6 +2184,22 @@ func TestUseCasesUserImpl_RegisterClient(t *testing.T) {
 			},
 			wantErr: false,
 		},
+		{
+			name: "Sad case: unable to get logged in user id",
+			args: args{
+				ctx:   context.Background(),
+				input: payload,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: unable to get user profile by user id",
+			args: args{
+				ctx:   context.Background(),
+				input: payload,
+			},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -2361,6 +2377,20 @@ func TestUseCasesUserImpl_RegisterClient(t *testing.T) {
 					return fmt.Errorf("unable to publish cms user to pubsub")
 				}
 			}
+			if tt.name == "Sad case: unable to get logged in user id" {
+				fakeExtension.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "", fmt.Errorf("unable to get logged in user id")
+				}
+			}
+			if tt.name == "Sad case: unable to get user profile by user id" {
+				fakeExtension.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "user-id", nil
+				}
+				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
+					return nil, fmt.Errorf("unable to get user profile by user id")
+				}
+			}
+
 			got, err := us.RegisterClient(tt.args.ctx, tt.args.input)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCasesUserImpl.RegisterClient() error = %v, wantErr %v", err, tt.wantErr)
@@ -4422,6 +4452,22 @@ func TestUseCasesUserImpl_RegisterStaff(t *testing.T) {
 			},
 			wantErr: false,
 		},
+		{
+			name: "Sad case: unable to get logged in user id",
+			args: args{
+				ctx:   context.Background(),
+				input: *payload,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: unable to get user profile by user id",
+			args: args{
+				ctx:   context.Background(),
+				input: *payload,
+			},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -4591,6 +4637,19 @@ func TestUseCasesUserImpl_RegisterStaff(t *testing.T) {
 			if tt.name == "Sad case: unable to publish cms staff to pubsub" {
 				fakePubsub.MockNotifyCreateCMSStaffFn = func(ctx context.Context, user *dto.PubsubCreateCMSStaffPayload) error {
 					return fmt.Errorf("failed to publish cms staff to pubsub")
+				}
+			}
+			if tt.name == "Sad case: unable to get logged in user id" {
+				fakeExtension.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "", fmt.Errorf("unable to get logged in user id")
+				}
+			}
+			if tt.name == "Sad case: unable to get user profile by user id" {
+				fakeExtension.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "user-id", nil
+				}
+				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
+					return nil, fmt.Errorf("unable to get user profile by user id")
 				}
 			}
 

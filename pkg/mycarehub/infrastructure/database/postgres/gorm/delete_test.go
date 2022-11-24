@@ -190,7 +190,7 @@ func TestPGInstance_DeleteOrganisation(t *testing.T) {
 		Description:      gofakeit.Sentence(10),
 		EmailAddress:     gofakeit.Email(),
 		PhoneNumber:      gofakeit.Phone(),
-		PostalAddress:    gofakeit.Address().Address,
+		PostalAddress:    gofakeit.BeerMalt(),
 		PhysicalAddress:  gofakeit.Address().Address,
 		DefaultCountry:   gofakeit.Country(),
 	}
