@@ -181,6 +181,7 @@ type GormMock struct {
 	MockListClientsCaregiversFn                          func(ctx context.Context, clientID string, pagination *domain.Pagination) ([]*gorm.CaregiverClient, *domain.Pagination, error)
 	MockGetCaregiverProfileByCaregiverIDFn               func(ctx context.Context, caregiverID string) (*gorm.Caregiver, error)
 	MockUpdateCaregiverClientFn                          func(ctx context.Context, caregiverClient *gorm.CaregiverClient, updates map[string]interface{}) error
+	MockDeleteOrganisationFn                             func(ctx context.Context, organisation *gorm.Organisation) error
 	MockCreateOrganisationFn                             func(ctx context.Context, organization *gorm.Organisation) error
 	MockCreateProgramFn                                  func(ctx context.Context, program *gorm.Program) error
 	MockCheckOrganisationExistsFn                        func(ctx context.Context, organisationID string) (bool, error)
@@ -501,6 +502,9 @@ func NewGormMock() *GormMock {
 		},
 		MockRegisterStaffFn: func(ctx context.Context, user *gorm.User, contact *gorm.Contact, identifier *gorm.Identifier, staffProfile *gorm.StaffProfile) (*gorm.StaffProfile, error) {
 			return staff, nil
+		},
+		MockDeleteOrganisationFn: func(ctx context.Context, organisation *gorm.Organisation) error {
+			return nil
 		},
 		MockGetAvailableScreeningToolsFn: func(ctx context.Context, clientID, facilityID string) ([]*gorm.ScreeningTool, error) {
 			return []*gorm.ScreeningTool{
@@ -2315,4 +2319,9 @@ func (gm *GormMock) CheckOrganisationExists(ctx context.Context, organisationID 
 // CheckIfProgramNameExists mocks the implementation checking if an organisation is associated with a program
 func (gm *GormMock) CheckIfProgramNameExists(ctx context.Context, organisationID string, programName string) (bool, error) {
 	return gm.MockCheckIfProgramNameExistsFn(ctx, organisationID, programName)
+}
+
+// DeleteOrganisation mocks the implementation of deleting an organisation
+func (gm *GormMock) DeleteOrganisation(ctx context.Context, organisation *gorm.Organisation) error {
+	return gm.MockDeleteOrganisationFn(ctx, organisation)
 }

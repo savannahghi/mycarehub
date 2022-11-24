@@ -13,3 +13,8 @@ import (
 func (r *mutationResolver) CreateOrganisation(ctx context.Context, input dto.OrganisationInput) (bool, error) {
 	return r.mycarehub.Organisation.CreateOrganisation(ctx, input)
 }
+
+// DeleteOrganisation is the resolver for the deleteOrganisation field.
+func (r *mutationResolver) DeleteOrganisation(ctx context.Context, organisationID string) (bool, error) {
+	return r.mycarehub.Organisation.DeleteOrganisation(ctx, organisationID)
+}

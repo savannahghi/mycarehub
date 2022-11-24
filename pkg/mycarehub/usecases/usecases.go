@@ -42,7 +42,7 @@ type MyCareHub struct {
 	Metrics           metrics.UsecaseMetrics
 	Questionnaires    questionnaires.UseCaseQuestionnaire
 	Programs          programs.UsecasePrograms
-	Organisation      organisation.CreateOrganisation
+	Organisation      organisation.UseCaseOrganisation
 }
 
 // NewMyCareHubUseCase initializes a new my care hub instance
@@ -65,7 +65,7 @@ func NewMyCareHubUseCase(
 	metrics metrics.UsecaseMetrics,
 	questionnaires questionnaires.UseCaseQuestionnaire,
 	programs programs.UsecasePrograms,
-	organisation organisation.CreateOrganisation,
+	organisation organisation.UseCaseOrganisation,
 ) *MyCareHub {
 	return &MyCareHub{
 		User:              user,

@@ -6,6 +6,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
 )
@@ -15,17 +16,37 @@ type CreateOrganisation interface {
 	CreateOrganisation(ctx context.Context, input dto.OrganisationInput) (bool, error)
 }
 
+// DeleteOrganisation interface holds the method for deleting an organisation
+type DeleteOrganisation interface {
+	DeleteOrganisation(ctx context.Context, organisationID string) (bool, error)
+}
+
+// UseCaseOrganisation is the interface for the organisation use case
+type UseCaseOrganisation interface {
+	CreateOrganisation
+	DeleteOrganisation
+}
+
 // UseCaseOrganisationImpl implements the CreateOrganisation interface
 type UseCaseOrganisationImpl struct {
-	Create infrastructure.Create
+	Create      infrastructure.Create
+	Delete      infrastructure.Delete
+	Query       infrastructure.Query
+	ExternalExt extension.ExternalMethodsExtension
 }
 
 // NewUseCaseOrganisationImpl creates a new instance of UseCaseOrganisationImpl
 func NewUseCaseOrganisationImpl(
 	create infrastructure.Create,
+	delete infrastructure.Delete,
+	query infrastructure.Query,
+	ext extension.ExternalMethodsExtension,
 ) *UseCaseOrganisationImpl {
 	return &UseCaseOrganisationImpl{
-		Create: create,
+		Create:      create,
+		Delete:      delete,
+		Query:       query,
+		ExternalExt: ext,
 	}
 }
 
@@ -47,6 +68,43 @@ func (u *UseCaseOrganisationImpl) CreateOrganisation(ctx context.Context, input 
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return false, exceptions.CreateOrganisationErr(err)
+	}
+
+	return true, nil
+}
+
+// DeleteOrganisation deletes an organisation
+func (u *UseCaseOrganisationImpl) DeleteOrganisation(ctx context.Context, organisationID string) (bool, error) {
+	loggedInUserID, err := u.ExternalExt.GetLoggedInUserUID(ctx)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, exceptions.GetLoggedInUserUIDErr(err)
+	}
+
+	_, err = u.Query.GetStaffProfileByUserID(ctx, loggedInUserID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, exceptions.StaffProfileNotFoundErr(err)
+	}
+
+	exists, err := u.Query.CheckOrganisationExists(ctx, organisationID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, err
+	}
+
+	if !exists {
+		return false, exceptions.NonExistentOrganizationErr(err)
+	}
+
+	organisation := &domain.Organisation{
+		ID: organisationID,
+	}
+
+	err = u.Delete.DeleteOrganisation(ctx, organisation)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, err
 	}
 
 	return true, nil

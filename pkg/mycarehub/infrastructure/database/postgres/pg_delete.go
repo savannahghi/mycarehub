@@ -5,6 +5,7 @@ import (
 
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
 )
 
@@ -39,4 +40,12 @@ func (d *MyCareHubDb) RemoveFacilitiesFromClientProfile(ctx context.Context, cli
 // RemoveFacilitiesFromStaffProfile updates the staff profile and removes the specified facilities in their assigned facilities
 func (d *MyCareHubDb) RemoveFacilitiesFromStaffProfile(ctx context.Context, staffID string, facilities []string) error {
 	return d.delete.RemoveFacilitiesFromStaffProfile(ctx, staffID, facilities)
+}
+
+// DeleteOrganisation deletes the specified organisation from the database
+func (d *MyCareHubDb) DeleteOrganisation(ctx context.Context, organisation *domain.Organisation) error {
+	org := &gorm.Organisation{
+		ID: &organisation.ID,
+	}
+	return d.delete.DeleteOrganisation(ctx, org)
 }
