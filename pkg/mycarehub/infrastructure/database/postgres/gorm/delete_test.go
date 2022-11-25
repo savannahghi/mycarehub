@@ -186,11 +186,11 @@ func TestPGInstance_DeleteOrganisation(t *testing.T) {
 		ID:               &organisationID,
 		Active:           true,
 		OrganisationCode: "test org",
-		Name:             gofakeit.SSN(),
+		Name:             "ORG-TEST",
 		Description:      gofakeit.Sentence(10),
 		EmailAddress:     gofakeit.Email(),
 		PhoneNumber:      gofakeit.Phone(),
-		PostalAddress:    gofakeit.Address().Address,
+		PostalAddress:    "fake address",
 		PhysicalAddress:  gofakeit.Address().Address,
 		DefaultCountry:   gofakeit.Country(),
 	}

@@ -213,9 +213,9 @@ type User struct {
 	FailedSecurityCount    int             `gorm:"column:failed_security_count"`
 	PinUpdateRequired      bool            `gorm:"column:pin_update_required"`
 
-	OrganisationID   string  `gorm:"column:organisation_id"`
-	CurrentProgramID *string `gorm:"column:current_program_id"`
-	AcceptedTermsID  *int    `gorm:"column:accepted_terms_of_service_id"`
+	OrganisationID   string `gorm:"column:organisation_id"`
+	CurrentProgramID string `gorm:"column:current_program_id"`
+	AcceptedTermsID  *int   `gorm:"column:accepted_terms_of_service_id"`
 }
 
 // BeforeCreate is a hook run before creating a new user
