@@ -19,6 +19,7 @@ type Notification struct {
 	UserID     *string
 	FacilityID *string
 	Flavour    feedlib.Flavour
+	ProgramID  string `json:"programID"`
 }
 
 // NotificationsPage response for fetching notifications

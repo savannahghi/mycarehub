@@ -4,6 +4,25 @@
   updated: 2021-11-22 21:16:29.23639+03
   text: {{.test_terms_text}}
   valid_from: RAW=NOW()
-  valid_to: RAW=NOW()
+  valid_to: RAW=NOW() + INTERVAL '1 year'
   active: true
   
+  # Pro terms
+- id: {{.pro_terms_id}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  text: {{.test_terms_text}}
+  valid_from: RAW=NOW()
+  valid_to: RAW=NOW() + INTERVAL '1 year'
+  active: true
+  flavour: PRO
+  
+  # Consumer terms
+- id: {{.consumer_terms_id}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  text: {{.test_terms_text}}
+  valid_from: RAW=NOW()
+  valid_to: RAW=NOW() + INTERVAL '1 year'
+  active: true
+  flavour: CONSUMER

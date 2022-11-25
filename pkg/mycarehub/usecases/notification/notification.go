@@ -67,6 +67,7 @@ func NewNotificationUseCaseImpl(
 // NotifyUser is used to save and send a FCM notification to a user
 func (n UseCaseNotificationImpl) NotifyUser(ctx context.Context, userProfile *domain.User, notificationPayload *domain.Notification) error {
 	notificationPayload.UserID = userProfile.ID
+	notificationPayload.ProgramID = userProfile.CurrentProgramID
 	if notificationPayload.Body != "" {
 		err := n.Create.SaveNotification(ctx, notificationPayload)
 		if err != nil {

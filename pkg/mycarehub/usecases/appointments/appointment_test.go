@@ -20,12 +20,6 @@ import (
 )
 
 func TestUseCasesAppointmentsImpl_CreateKenyaEMRAppointments(t *testing.T) {
-	fakeDB := pgMock.NewPostgresMock()
-	fakeExtension := extensionMock.NewFakeExtension()
-	fakePubsub := pubsubMock.NewPubsubServiceMock()
-	fakeNotification := notificationMock.NewServiceNotificationMock()
-
-	a := NewUseCaseAppointmentsImpl(fakeExtension, fakeDB, fakeDB, fakeDB, fakePubsub, fakeNotification)
 
 	type args struct {
 		ctx   context.Context
@@ -43,28 +37,6 @@ func TestUseCasesAppointmentsImpl_CreateKenyaEMRAppointments(t *testing.T) {
 				ctx: context.Background(),
 				input: dto.FacilityAppointmentsPayload{
 					MFLCode: "1234",
-					Appointments: []dto.AppointmentPayload{
-						{
-							CCCNumber:         "1234",
-							ExternalID:        gofakeit.UUID(),
-							AppointmentReason: "Dental",
-							AppointmentDate: scalarutils.Date{
-								Year:  2020,
-								Month: 12,
-								Day:   12,
-							},
-						},
-					},
-				},
-			},
-			wantErr: true,
-		},
-		{
-			name: "sad case: invalid MFL code format",
-			args: args{
-				ctx: context.Background(),
-				input: dto.FacilityAppointmentsPayload{
-					MFLCode: "ABD1234",
 					Appointments: []dto.AppointmentPayload{
 						{
 							CCCNumber:         "1234",
@@ -217,6 +189,13 @@ func TestUseCasesAppointmentsImpl_CreateKenyaEMRAppointments(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
+			fakeDB := pgMock.NewPostgresMock()
+			fakeExtension := extensionMock.NewFakeExtension()
+			fakePubsub := pubsubMock.NewPubsubServiceMock()
+			fakeNotification := notificationMock.NewServiceNotificationMock()
+
+			a := NewUseCaseAppointmentsImpl(fakeExtension, fakeDB, fakeDB, fakeDB, fakePubsub, fakeNotification)
+
 			if tt.name == "sad case: error checking facility" {
 				fakeDB.MockCheckFacilityExistsByIdentifier = func(ctx context.Context, identifier *dto.FacilityIdentifierInput) (bool, error) {
 					return false, fmt.Errorf("error retrieving facility")
@@ -265,6 +244,9 @@ func TestUseCasesAppointmentsImpl_CreateKenyaEMRAppointments(t *testing.T) {
 					id := gofakeit.UUID()
 					return &domain.ClientProfile{
 						ID: &id,
+						User: &domain.User{
+							CurrentProgramID: id,
+						},
 					}, nil
 				}
 
@@ -291,6 +273,9 @@ func TestUseCasesAppointmentsImpl_CreateKenyaEMRAppointments(t *testing.T) {
 					id := gofakeit.UUID()
 					return &domain.ClientProfile{
 						ID: &id,
+						User: &domain.User{
+							CurrentProgramID: id,
+						},
 					}, nil
 				}
 
@@ -317,6 +302,9 @@ func TestUseCasesAppointmentsImpl_CreateKenyaEMRAppointments(t *testing.T) {
 					id := gofakeit.UUID()
 					return &domain.ClientProfile{
 						ID: &id,
+						User: &domain.User{
+							CurrentProgramID: id,
+						},
 					}, nil
 				}
 

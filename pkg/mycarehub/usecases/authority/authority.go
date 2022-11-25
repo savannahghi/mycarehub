@@ -33,13 +33,13 @@ type IManageRoles interface {
 
 // IGetRoles contains methods that get the roles
 type IGetRoles interface {
-	GetUserRoles(ctx context.Context, userID string) ([]*domain.AuthorityRole, error)
+	GetUserRoles(ctx context.Context, userID string, organisationID string) ([]*domain.AuthorityRole, error)
 	GetAllRoles(ctx context.Context) ([]*domain.AuthorityRole, error)
 }
 
 // IGetPermissions contains methods that get the permissions
 type IGetPermissions interface {
-	GetUserPermissions(ctx context.Context, userID string) ([]*domain.AuthorityPermission, error)
+	GetUserPermissions(ctx context.Context, userID string, organisationID string) ([]*domain.AuthorityPermission, error)
 }
 
 // UsecaseAuthority groups al the interfaces for the Authority usecase
@@ -156,14 +156,14 @@ func (u *UsecaseAuthorityImpl) AssignRoles(ctx context.Context, userID string, r
 }
 
 // GetUserRoles returns the roles of the user
-func (u *UsecaseAuthorityImpl) GetUserRoles(ctx context.Context, userID string) ([]*domain.AuthorityRole, error) {
+func (u *UsecaseAuthorityImpl) GetUserRoles(ctx context.Context, userID string, organisationID string) ([]*domain.AuthorityRole, error) {
 	if userID == "" {
 		err := fmt.Errorf("userID must not be empty")
 		helpers.ReportErrorToSentry(err)
 		return nil, exceptions.EmptyInputErr(err)
 	}
 
-	roles, err := u.Query.GetUserRoles(ctx, userID)
+	roles, err := u.Query.GetUserRoles(ctx, userID, organisationID)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, exceptions.GetUserRolesErr(err)
@@ -172,14 +172,14 @@ func (u *UsecaseAuthorityImpl) GetUserRoles(ctx context.Context, userID string) 
 }
 
 // GetUserPermissions returns the permissions of the user
-func (u *UsecaseAuthorityImpl) GetUserPermissions(ctx context.Context, userID string) ([]*domain.AuthorityPermission, error) {
+func (u *UsecaseAuthorityImpl) GetUserPermissions(ctx context.Context, userID string, organisationID string) ([]*domain.AuthorityPermission, error) {
 	if userID == "" {
 		err := fmt.Errorf("userID must not be empty")
 		helpers.ReportErrorToSentry(err)
 		return nil, exceptions.EmptyInputErr(err)
 	}
 
-	permissions, err := u.Query.GetUserPermissions(ctx, userID)
+	permissions, err := u.Query.GetUserPermissions(ctx, userID, organisationID)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, exceptions.GetUserPermissionsErr(err)
@@ -243,7 +243,12 @@ func (u *UsecaseAuthorityImpl) AssignOrRevokeRoles(ctx context.Context, userID s
 		return false, exceptions.UserNotAuthorizedErr(err)
 	}
 
-	currentRoles, err := u.Query.GetUserRoles(ctx, userID)
+	user, err := u.Query.GetUserProfileByUserID(ctx, userID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, err
+	}
+	currentRoles, err := u.Query.GetUserRoles(ctx, userID, user.OrganizationID)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return false, exceptions.GetUserRolesErr(err)
@@ -252,12 +257,6 @@ func (u *UsecaseAuthorityImpl) AssignOrRevokeRoles(ctx context.Context, userID s
 	currentRoleList := []enums.UserRoleType{}
 	for _, role := range currentRoles {
 		currentRoleList = append(currentRoleList, role.Name)
-	}
-
-	user, err := u.Query.GetUserProfileByUserID(ctx, userID)
-	if err != nil {
-		helpers.ReportErrorToSentry(err)
-		return false, err
 	}
 
 	_, err = u.Update.RevokeRoles(ctx, userID, currentRoleList)

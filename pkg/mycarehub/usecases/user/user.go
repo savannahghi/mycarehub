@@ -699,6 +699,7 @@ func (us *UseCasesUserImpl) RegisterClient(
 	if err != nil {
 		return nil, err
 	}
+	input.ProgramID = userProfile.CurrentProgramID
 
 	identifierExists, err := us.Query.CheckIdentifierExists(ctx, "CCC", input.CCCNumber)
 	if err != nil {
@@ -959,6 +960,7 @@ func (us *UseCasesUserImpl) RegisterClientAsCaregiver(ctx context.Context, clien
 		UserID:          client.UserID,
 		CaregiverNumber: caregiverNumber,
 		Active:          true,
+		ProgramID:       client.User.CurrentProgramID,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to create caregiver: %w", err)
@@ -994,12 +996,13 @@ func (us *UseCasesUserImpl) createClient(ctx context.Context, patient dto.Patien
 	username := fmt.Sprintf("%s-%s", patient.Name, patient.CCCNumber)
 	dob := patient.DateOfBirth.AsTime()
 	usr := domain.User{
-		Username:    username,
-		Name:        patient.Name,
-		Gender:      enumutils.Gender(strings.ToUpper(patient.Gender)),
-		DateOfBirth: &dob,
-		UserType:    enums.ClientUser,
-		Flavour:     feedlib.FlavourConsumer,
+		Username:         username,
+		Name:             patient.Name,
+		Gender:           enumutils.Gender(strings.ToUpper(patient.Gender)),
+		DateOfBirth:      &dob,
+		UserType:         enums.ClientUser,
+		Flavour:          feedlib.FlavourConsumer,
+		CurrentProgramID: patient.ProgramID,
 	}
 	user, err := us.Create.CreateUser(ctx, usr)
 	if err != nil {
@@ -1028,6 +1031,7 @@ func (us *UseCasesUserImpl) createClient(ctx context.Context, patient dto.Patien
 		IdentifierUse:       "OFFICIAL",
 		Description:         "CCC Number, Primary Identifier",
 		IsPrimaryIdentifier: true,
+		ProgramID:           patient.ProgramID,
 	}
 	identifier, err := us.Create.CreateIdentifier(ctx, ccc)
 	if err != nil {
@@ -1067,6 +1071,18 @@ func (us *UseCasesUserImpl) createClient(ctx context.Context, patient dto.Patien
 func (us *UseCasesUserImpl) RegisterKenyaEMRPatients(ctx context.Context, input []*dto.PatientRegistrationPayload) ([]*dto.PatientRegistrationPayload, error) {
 	patients := []*dto.PatientRegistrationPayload{}
 
+	userID, err := us.ExternalExt.GetLoggedInUserUID(ctx)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
+	userProfile, err := us.Query.GetUserProfileByUserID(ctx, userID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
 	var errs error
 	for _, patient := range input {
 		exists, err := us.Query.CheckFacilityExistsByIdentifier(ctx, &dto.FacilityIdentifierInput{
@@ -1100,6 +1116,7 @@ func (us *UseCasesUserImpl) RegisterKenyaEMRPatients(ctx context.Context, input 
 			continue
 		}
 
+		patient.ProgramID = userProfile.CurrentProgramID
 		var client *domain.ClientProfile
 		if exists {
 			patients = append(patients, patient)
@@ -1128,6 +1145,7 @@ func (us *UseCasesUserImpl) RegisterKenyaEMRPatients(ctx context.Context, input 
 			continue
 		}
 
+		patient.NextOfKin.ProgramID = userProfile.CurrentProgramID
 		err = us.Create.GetOrCreateNextOfKin(ctx, &patient.NextOfKin, *client.ID, *contact.ID)
 		if err != nil {
 			// accumulate errors rather than failing early for each client/patient
@@ -1215,6 +1233,8 @@ func (us *UseCasesUserImpl) RegisterStaff(ctx context.Context, input dto.StaffRe
 	if err != nil {
 		return nil, err
 	}
+
+	input.ProgramID = userProfile.CurrentProgramID
 
 	identifierExists, err := us.Query.CheckIdentifierExists(ctx, "NATIONAL_ID", input.IDNumber)
 	if err != nil {
@@ -1834,6 +1854,7 @@ func (us *UseCasesUserImpl) AssignCaregiver(ctx context.Context, input dto.Clien
 		ClientID:         input.ClientID,
 		RelationshipType: input.CaregiverType,
 		AssignedBy:       *staffProfile.ID,
+		ProgramID:        staffProfile.User.CurrentProgramID,
 	}
 
 	err = us.Create.AddCaregiverToClient(ctx, caregiver)

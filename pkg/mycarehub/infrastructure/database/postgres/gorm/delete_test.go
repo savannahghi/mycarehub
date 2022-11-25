@@ -3,9 +3,7 @@ package gorm_test
 import (
 	"context"
 	"testing"
-	"time"
 
-	"github.com/brianvoe/gofakeit"
 	"github.com/google/uuid"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
 )
@@ -25,7 +23,7 @@ func TestPGInstance_DeleteStaffProfile(t *testing.T) {
 		{
 			name: "Happy Case - Successfully delete staff profile",
 			args: args{
-				ctx:     addOrganizationContext(context.Background()),
+				ctx:     addRequiredContext(context.Background(), t),
 				staffID: staffIDToDelete,
 			},
 			want:    true,
@@ -34,7 +32,7 @@ func TestPGInstance_DeleteStaffProfile(t *testing.T) {
 		{
 			name: "Sad Case - Unable delete staff profile",
 			args: args{
-				ctx:     addOrganizationContext(context.Background()),
+				ctx:     addRequiredContext(context.Background(), t),
 				staffID: uuid.New().String(),
 			},
 			want:    false,
@@ -65,7 +63,7 @@ func TestPGInstance_DeleteCommunity(t *testing.T) {
 		{
 			name: "Happy Case - Successfully delete community",
 			args: args{
-				ctx:         addOrganizationContext(context.Background()),
+				ctx:         addRequiredContext(context.Background(), t),
 				communityID: communityIDToDelete,
 			},
 			wantErr: false,
@@ -73,7 +71,7 @@ func TestPGInstance_DeleteCommunity(t *testing.T) {
 		{
 			name: "Sad Case - Unable delete community, not found",
 			args: args{
-				ctx:         addOrganizationContext(context.Background()),
+				ctx:         addRequiredContext(context.Background(), t),
 				communityID: uuid.New().String(),
 			},
 			wantErr: false, // skip error checking for this case
@@ -81,7 +79,7 @@ func TestPGInstance_DeleteCommunity(t *testing.T) {
 		{
 			name: "Sad Case - Unable delete community, invalid id",
 			args: args{
-				ctx:         addOrganizationContext(context.Background()),
+				ctx:         addRequiredContext(context.Background(), t),
 				communityID: "invalid id",
 			},
 			wantErr: true,
@@ -175,32 +173,7 @@ func TestPGInstance_RemoveFacilitiesFromStaffProfile(t *testing.T) {
 }
 
 func TestPGInstance_DeleteOrganisation(t *testing.T) {
-
-	organisationID := uuid.New().String()
 	invalidOrgID := "invalid"
-	orgInput := &gorm.Organisation{
-		Base: gorm.Base{
-			CreatedAt: time.Now(),
-			UpdatedAt: time.Now(),
-		},
-		ID:               &organisationID,
-		Active:           true,
-		OrganisationCode: "test org",
-		Name:             "ORG-TEST",
-		Description:      gofakeit.Sentence(10),
-		EmailAddress:     gofakeit.Email(),
-		PhoneNumber:      gofakeit.Phone(),
-		PostalAddress:    "fake address",
-		PhysicalAddress:  gofakeit.Address().Address,
-		DefaultCountry:   gofakeit.Country(),
-	}
-
-	// create organisation
-	err := testingDB.CreateOrganisation(context.Background(), orgInput)
-	if err != nil {
-		t.Errorf("PGInstance.CreateOrganisation() error = %v", err)
-		return
-	}
 
 	type args struct {
 		ctx          context.Context
@@ -214,15 +187,15 @@ func TestPGInstance_DeleteOrganisation(t *testing.T) {
 		{
 			name: "Happy Case - Successfully delete organisation",
 			args: args{
-				ctx:          context.Background(),
-				organisation: &gorm.Organisation{ID: &organisationID},
+				ctx:          addRequiredContext(context.Background(), t),
+				organisation: &gorm.Organisation{ID: &organisationIDToDelete},
 			},
 			wantErr: false,
 		},
 		{
 			name: "Sad Case - unable to delete organisation",
 			args: args{
-				ctx:          context.Background(),
+				ctx:          addRequiredContext(context.Background(), t),
 				organisation: &gorm.Organisation{ID: &invalidOrgID},
 			},
 			wantErr: true,

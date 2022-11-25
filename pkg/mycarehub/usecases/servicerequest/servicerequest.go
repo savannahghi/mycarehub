@@ -137,6 +137,7 @@ func (u *UseCasesServiceRequestImpl) CreateServiceRequest(ctx context.Context, i
 			ClientID:    input.ClientID,
 			FacilityID:  *clientProfile.DefaultFacility.ID,
 			Meta:        input.Meta,
+			ProgramID:   clientProfile.User.CurrentProgramID,
 		}
 		err = u.Create.CreateServiceRequest(ctx, serviceRequestInput)
 		if err != nil {
@@ -192,6 +193,7 @@ func (u *UseCasesServiceRequestImpl) CreateServiceRequest(ctx context.Context, i
 			Status:      "PENDING",
 			StaffID:     input.StaffID,
 			FacilityID:  *staffProfile.DefaultFacility.ID,
+			ProgramID:   staffProfile.User.CurrentProgramID,
 		}
 		err = u.Create.CreateStaffServiceRequest(ctx, serviceRequestInput)
 		if err != nil {

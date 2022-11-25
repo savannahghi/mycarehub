@@ -13,6 +13,7 @@ import (
 	"github.com/brianvoe/gofakeit"
 	"github.com/go-testfixtures/testfixtures/v3"
 	"github.com/savannahghi/feedlib"
+	"github.com/savannahghi/firebasetools"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/testutils"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/utils"
@@ -20,12 +21,15 @@ import (
 )
 
 var (
-	fixtures            *testfixtures.Loader
-	testingDB           *gorm.PGInstance
-	orgID               = os.Getenv("DEFAULT_ORG_ID")
-	orgIDToAddToProgram = "a25a69ef-027d-4f57-8ea5-b2e43d9c1d34"
-	termsID             = 50005
-	db                  *sql.DB
+	fixtures               *testfixtures.Loader
+	testingDB              *gorm.PGInstance
+	orgID                  = os.Getenv("DEFAULT_ORG_ID")
+	orgIDToAddToProgram    = "a25a69ef-027d-4f57-8ea5-b2e43d9c1d34"
+	organisationIDToDelete = "1c396506-607c-42d1-8abc-425b1e00d029"
+	termsID                = 50005
+	proTermsID             = 50006
+	consumerTermsID        = 50007
+	db                     *sql.DB
 
 	testPhone   = gofakeit.Phone()
 	testFlavour = feedlib.FlavourConsumer
@@ -93,7 +97,8 @@ var (
 	staffServiceRequestID     = "8ecbbc10-24c8-421a-9f1a-e17f12678ef1"
 	clientsHealthDiaryEntryID = "8ecbbc10-24c8-421a-9f1a-e17f12678ef1"
 	// Service Request
-	serviceRequestID = "8ecbbc80-24c8-421a-9f1a-e14e12678ef2"
+	serviceRequestID               = "8ecbbc80-24c8-421a-9f1a-e14e12678ef2"
+	clientServiceRequestIDToUpdate = "fffbb75c-9138-47e8-a75b-d7ee5df5e9a0"
 
 	// Authority
 	canInviteUserPermissionID    = "8ecbbc80-24c8-421a-9f1a-e14e12678ef3"
@@ -169,12 +174,13 @@ var (
 	programName = "test program"
 )
 
-func addOrganizationContext(ctx context.Context) context.Context {
-	return context.WithValue(
-		context.Background(),
-		utils.OrganisationContextKey,
-		orgID,
-	)
+// addRequiredContext sets the organisation, program and the user context
+func addRequiredContext(ctx context.Context, t *testing.T) context.Context {
+	ctx = context.WithValue(ctx, utils.OrganisationContextKey, orgID)
+	userToken := firebasetools.GetAuthToken(ctx, t)
+	userToken.UID = userID
+	ctx = context.WithValue(ctx, firebasetools.AuthTokenContextKey, userToken)
+	return ctx
 }
 
 func TestMain(m *testing.M) {
@@ -238,26 +244,29 @@ func TestMain(m *testing.M) {
 			"test_chv_id2":                                    testChvID2,
 			"test_password":                                   gofakeit.Password(false, false, true, true, false, 10),
 			"test_terms_id":                                   termsID,
+			"pro_terms_id":                                    proTermsID,
+			"consumer_terms_id":                               consumerTermsID,
 			"test_terms_text":                                 termsText,
 			"security_question_id":                            securityQuestionID,
 			"security_question_id2":                           securityQuestionID2,
 			"security_question_id3":                           securityQuestionID3,
 			"security_question_id4":                           securityQuestionID4,
 
-			"security_question_response_id":  securityQuestionResponseID,
-			"security_question_response_id2": securityQuestionResponseID2,
-			"security_question_response_id3": securityQuestionResponseID3,
-			"security_question_response_id4": securityQuestionResponseID4,
-			"user_id_to_add_caregiver":       userIDtoAddCaregiver,
-			"test_caregiver_id":              testCaregiverID,
-			"staff_number":                   staffNumber,
-			"clients_service_request_id":     clientsServiceRequestID,
-			"staff_service_request_id":       staffServiceRequestID,
-			"clients_healthdiaryentry_id":    clientsHealthDiaryEntryID,
-			"staff_default_facility":         facilityID,
-			"staff_id":                       staffID,
-			"staff_with_roles_id":            staffWithRolesID,
-			"test_client_caregiver_one_id":   testClientCaregiver1,
+			"security_question_response_id":       securityQuestionResponseID,
+			"security_question_response_id2":      securityQuestionResponseID2,
+			"security_question_response_id3":      securityQuestionResponseID3,
+			"security_question_response_id4":      securityQuestionResponseID4,
+			"user_id_to_add_caregiver":            userIDtoAddCaregiver,
+			"test_caregiver_id":                   testCaregiverID,
+			"staff_number":                        staffNumber,
+			"clients_service_request_id":          clientsServiceRequestID,
+			"client_service_request_id_to_update": clientServiceRequestIDToUpdate,
+			"staff_service_request_id":            staffServiceRequestID,
+			"clients_healthdiaryentry_id":         clientsHealthDiaryEntryID,
+			"staff_default_facility":              facilityID,
+			"staff_id":                            staffID,
+			"staff_with_roles_id":                 staffWithRolesID,
+			"test_client_caregiver_one_id":        testClientCaregiver1,
 
 			"test_service_request_id": serviceRequestID,
 			"test_client_id":          clientID,
@@ -325,6 +334,7 @@ func TestMain(m *testing.M) {
 			"test_program_id":          programID,
 			"org_id_to_add_to_program": orgIDToAddToProgram,
 			"program_name":             programName,
+			"org_id_to_delete":         organisationIDToDelete,
 		}),
 		// this is the directory containing the YAML files.
 		// The file name should be the same as the table name

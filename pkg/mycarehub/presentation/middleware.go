@@ -42,21 +42,3 @@ func OrganisationMiddleware() func(http.Handler) http.Handler {
 		)
 	}
 }
-
-// DefaultOrganisationMiddleware is a middleware that retrieves the default organisation and sets it into context for the request
-// TODO: NB: It's temporary and should be removed.
-func DefaultOrganisationMiddleware() func(http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(
-			func(w http.ResponseWriter, r *http.Request) {
-
-				// put the organisation in the context
-				ctx := context.WithValue(r.Context(), utils.OrganisationContextKey, OrganizationID)
-				r = r.WithContext(ctx)
-
-				next.ServeHTTP(w, r)
-
-			},
-		)
-	}
-}

@@ -64,6 +64,7 @@ func (f *UsecaseFeedbackImpl) SendFeedback(ctx context.Context, payload *dto.Fee
 		FeedbackType:      payload.FeedbackType,
 		SatisfactionLevel: payload.SatisfactionLevel,
 		Feedback:          payload.Feedback,
+		ProgramID:         userProfile.CurrentProgramID,
 	}
 	if payload.FeedbackType == enums.ServiceFeedbackType {
 		feedbackInput.ServiceName = payload.ServiceName
@@ -82,6 +83,7 @@ func (f *UsecaseFeedbackImpl) SendFeedback(ctx context.Context, payload *dto.Fee
 		Feedback:          payload.Feedback,
 		RequiresFollowUp:  payload.RequiresFollowUp,
 		PhoneNumber:       userProfile.Contacts.ContactValue,
+		ProgramID:         userProfile.CurrentProgramID,
 	}
 
 	err = f.Create.SaveFeedback(ctx, feedbackData)

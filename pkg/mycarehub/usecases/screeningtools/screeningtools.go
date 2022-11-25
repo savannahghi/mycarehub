@@ -151,6 +151,7 @@ func (t *ServiceScreeningToolsImpl) AnswerScreeningToolQuestions(ctx context.Con
 			return false, fmt.Errorf("screening tool responses are empty: %v", err)
 		}
 
+		screeningToolResponse.ProgramID = clientProfile.User.CurrentProgramID
 		screeningToolQuestion, err := t.Query.GetScreeningToolQuestionByQuestionID(ctx, screeningToolResponse.QuestionID)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)

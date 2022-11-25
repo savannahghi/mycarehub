@@ -3,6 +3,6 @@ extend type Mutation {
 }
 
 extend type Query{
-  getUserRoles(userID: String!): [AuthorityRole!]
+  getUserRoles(userID: String!, organisationID: String!): [AuthorityRole!]
   getAllAuthorityRoles: [AuthorityRole!]
 }

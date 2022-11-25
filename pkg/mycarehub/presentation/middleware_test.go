@@ -28,7 +28,9 @@ func GenerateIDTokenWithOrg(t *testing.T) string {
 	customToken, err := firebasetools.CreateFirebaseCustomTokenWithClaims(
 		ctx,
 		user.UID,
-		map[string]interface{}{"organisationID": testOrgID},
+		map[string]interface{}{
+			"organisationID": testOrgID,
+		},
 	)
 	if err != nil {
 		t.Errorf("unable to get custom token for %#v", user)

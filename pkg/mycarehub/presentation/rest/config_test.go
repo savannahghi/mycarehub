@@ -58,8 +58,8 @@ func startTestServer(ctx context.Context) (*http.Server, string, error) {
 
 func randomPort() int {
 	rand.Seed(time.Now().Unix())
-	min := 32768
-	max := 60999
+	min := 32000
+	max := 32767
 	port := rand.Intn(max-min+1) + min
 	return port
 }

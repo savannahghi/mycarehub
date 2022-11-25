@@ -18,12 +18,15 @@ import (
 )
 
 var (
-	fixtures            *testfixtures.Loader
-	testingDB           *gorm.PGInstance
-	orgID               = os.Getenv("DEFAULT_ORG_ID")
-	orgIDToAddToProgram = "452ad3b7-1cfe-4a64-b479-7966642e91f6"
-	termsID             = 50005
-	db                  *sql.DB
+	fixtures               *testfixtures.Loader
+	testingDB              *gorm.PGInstance
+	orgID                  = os.Getenv("DEFAULT_ORG_ID")
+	orgIDToAddToProgram    = "a25a69ef-027d-4f57-8ea5-b2e43d9c1d34"
+	organisationIDToDelete = "1c396506-607c-42d1-8abc-425b1e00d029"
+	termsID                = 50005
+	proTermsID             = 50006
+	consumerTermsID        = 50007
+	db                     *sql.DB
 
 	testPhone   = gofakeit.Phone()
 	testFlavour = feedlib.FlavourConsumer
@@ -81,9 +84,10 @@ var (
 	staffNumber = "test-Staff-101"
 	staffID     = "8ecbbc80-24c8-421a-9f1a-e14e12678ef1"
 
-	clientsServiceRequestID   = "8ecbbc10-24c8-421a-9f1a-e17f12678ef1"
-	staffServiceRequestID     = "8ecbbc10-24c8-421a-9f1a-e17f12678ef1"
-	clientsHealthDiaryEntryID = "8ecbbc10-24c8-421a-9f1a-e17f12678ef1"
+	clientsServiceRequestID        = "8ecbbc10-24c8-421a-9f1a-e17f12678ef1"
+	clientServiceRequestIDToUpdate = "fffbb75c-9138-47e8-a75b-d7ee5df5e9a0"
+	staffServiceRequestID          = "8ecbbc10-24c8-421a-9f1a-e17f12678ef1"
+	clientsHealthDiaryEntryID      = "8ecbbc10-24c8-421a-9f1a-e17f12678ef1"
 	// Service Request
 	serviceRequestID = "8ecbbc80-24c8-421a-9f1a-e14e12678ef2"
 
@@ -214,6 +218,8 @@ func setupFixtures() {
 			"test_chv_id2":                                    testChvID2,
 			"test_password":                                   gofakeit.Password(false, false, true, true, false, 10),
 			"test_terms_id":                                   termsID,
+			"pro_terms_id":                                    proTermsID,
+			"consumer_terms_id":                               consumerTermsID,
 			"test_terms_text":                                 termsText,
 			"security_question_id":                            securityQuestionID,
 			"security_question_id2":                           securityQuestionID2,
@@ -259,6 +265,7 @@ func setupFixtures() {
 			"appointment_id": appointmentID,
 
 			"client_user_unresolved_request_id":      clientUserUnresolvedRequestID,
+			"client_service_request_id_to_update":    clientServiceRequestIDToUpdate,
 			"test_client_id_with_unresolved_request": clientUnresolvedRequestID,
 			"pending_service_request_id":             pendingServiceRequestID,
 			"in_progress_service_request_id":         inProgressServiceRequestID,
@@ -300,6 +307,7 @@ func setupFixtures() {
 			"test_program_id":          programID,
 			"org_id_to_add_to_program": orgIDToAddToProgram,
 			"program_name":             programName,
+			"org_id_to_delete":         organisationIDToDelete,
 		}),
 		// this is the directory containing the YAML files.
 		// The file name should be the same as the table name
@@ -314,6 +322,7 @@ func setupFixtures() {
 			"../fixtures/common_notification.yml",
 			"../fixtures/users_userotp.yml",
 			"../fixtures/common_facility.yml",
+			"../fixtures/common_facility_identifier.yml",
 			"../fixtures/users_userpin.yml",
 			"../fixtures/clients_client.yml",
 			"../fixtures/clients_client_facilities.yml",

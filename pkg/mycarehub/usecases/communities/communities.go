@@ -235,6 +235,8 @@ func (us *UseCasesCommunitiesImpl) CreateCommunity(ctx context.Context, input dt
 		return nil, exceptions.GetLoggedInUserUIDErr(err)
 	}
 
+	input.ProgramID = staff.User.CurrentProgramID
+
 	channel, err := us.GetstreamService.CreateChannel(ctx, "messaging", channelResponse.ID, *staff.ID, &stream.ChannelRequest{ExtraData: extraData})
 	if err != nil {
 		helpers.ReportErrorToSentry(err)

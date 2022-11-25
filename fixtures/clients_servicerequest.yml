@@ -122,3 +122,20 @@
   program_id: {{.test_program_id}}
   facility_id: {{.test_facility_id}}
   meta: { "response_id": {{.screenintoolsresponse_id}} }
+
+- id: {{.client_service_request_id_to_update}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  active: true
+  request_type: SCREENING_TOOLS_RED_FLAG
+  request: test red flag request
+  status: PENDING
+  in_progress_at: null
+  in_progress_by_id: null
+  resolved_at: null
+  resolved_by_id: null
+  client_id: {{.test_client_id}}
+  organisation_id: {{.test_organisation_id}}
+  program_id: {{.test_program_id}}
+  facility_id: {{.test_facility_id}}
+  meta: { "response_id": {{.screenintoolsresponse_id}} }

@@ -333,6 +333,7 @@ func (u *UsecaseSurveysImpl) SendClientSurveyLinks(ctx context.Context, facility
 			Link:      link,
 			LinkID:    publicAccessToken.ID,
 			Token:     publicAccessToken.Token,
+			ProgramID: client.User.CurrentProgramID,
 		}
 		userSurveyInputs = append(userSurveyInputs, userSurveyInput)
 
@@ -349,9 +350,10 @@ func (u *UsecaseSurveysImpl) SendClientSurveyLinks(ctx context.Context, facility
 	for _, alert := range clientsNotifications {
 		notificationInput := notification.ClientNotificationInput{
 			Survey: &domain.UserSurvey{
-				Link:   alert.survey.Link,
-				Title:  surveyForm.Name,
-				UserID: alert.client.UserID,
+				Link:      alert.survey.Link,
+				Title:     surveyForm.Name,
+				UserID:    alert.client.UserID,
+				ProgramID: alert.client.User.CurrentProgramID,
 			},
 		}
 

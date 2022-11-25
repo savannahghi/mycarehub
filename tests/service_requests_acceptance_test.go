@@ -41,33 +41,33 @@ func Test_CreateServiceRequest(t *testing.T) {
 		wantStatus int
 		wantErr    bool
 	}{
-		// {
-		// 	name: "success: create service request",
-		// 	args: args{
-		// 		query: map[string]interface{}{
-		// 			"query": graphQLMutation,
-		// 			"variables": map[string]interface{}{
-		// 				"input": map[string]interface{}{
-		// 					"Active":       true,
-		// 					"RequestType":  enums.ServiceRequestTypeRedFlag,
-		// 					"Status":       enums.ServiceRequestStatusPending,
-		// 					"Request":      "TEST",
-		// 					"ClientID":     clientID,
-		// 					"InProgressBy": staffID,
-		// 					"ResolvedBy":   staffID,
-		// 					"FacilityID":   facilityID,
-		// 					"ClientName":   gofakeit.BeerName(),
-		// 					"Flavour":      feedlib.FlavourConsumer,
-		// 					"Meta": map[string]interface{}{
-		// 						"test": "test",
-		// 					},
-		// 				},
-		// 			},
-		// 		},
-		// 	},
-		// 	wantStatus: http.StatusOK,
-		// 	wantErr:    false,
-		// },
+		{
+			name: "success: create service request",
+			args: args{
+				query: map[string]interface{}{
+					"query": graphQLMutation,
+					"variables": map[string]interface{}{
+						"input": map[string]interface{}{
+							"Active":       true,
+							"RequestType":  enums.ServiceRequestTypeRedFlag,
+							"Status":       enums.ServiceRequestStatusPending,
+							"Request":      "TEST",
+							"ClientID":     clientID,
+							"InProgressBy": staffID,
+							"ResolvedBy":   staffID,
+							"FacilityID":   facilityID,
+							"ClientName":   gofakeit.BeerName(),
+							"Flavour":      feedlib.FlavourConsumer,
+							"Meta": map[string]interface{}{
+								"test": "test",
+							},
+						},
+					},
+				},
+			},
+			wantStatus: http.StatusOK,
+			wantErr:    false,
+		},
 		{
 			name: "Sad: unable to create service request without client ID",
 			args: args{

@@ -899,9 +899,9 @@ func (d *MyCareHubDb) CheckUserPermission(ctx context.Context, userID string, pe
 }
 
 // GetUserRoles retrieves the roles for the specified user
-func (d *MyCareHubDb) GetUserRoles(ctx context.Context, userID string) ([]*domain.AuthorityRole, error) {
+func (d *MyCareHubDb) GetUserRoles(ctx context.Context, userID string, organisationID string) ([]*domain.AuthorityRole, error) {
 	var roles []*domain.AuthorityRole
-	rolesList, err := d.query.GetUserRoles(ctx, userID)
+	rolesList, err := d.query.GetUserRoles(ctx, userID, organisationID)
 	if err != nil {
 		return nil, err
 	}
@@ -918,9 +918,9 @@ func (d *MyCareHubDb) GetUserRoles(ctx context.Context, userID string) ([]*domai
 }
 
 // GetUserPermissions retrieves the permissions for the specified user
-func (d *MyCareHubDb) GetUserPermissions(ctx context.Context, userID string) ([]*domain.AuthorityPermission, error) {
+func (d *MyCareHubDb) GetUserPermissions(ctx context.Context, userID string, organisationID string) ([]*domain.AuthorityPermission, error) {
 	var permissions []*domain.AuthorityPermission
-	permissionsList, err := d.query.GetUserPermissions(ctx, userID)
+	permissionsList, err := d.query.GetUserPermissions(ctx, userID, organisationID)
 	if err != nil {
 		return nil, err
 	}
