@@ -311,3 +311,16 @@ type CaregiverProfileOutputPage struct {
 	Pagination *domain.Pagination         `json:"pagination"`
 	Caregivers []*domain.CaregiverProfile `json:"caregivers"`
 }
+
+// Organisation represents output for a tenant/organisation
+type Organisation struct {
+	ID          string `json:"id"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+}
+
+// ContactOrganisations is the output for fetching organisations associated with a contact
+type ContactOrganisations struct {
+	Count         int            `json:"count"`
+	Organisations []Organisation `json:"organisations"`
+}

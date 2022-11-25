@@ -45,6 +45,7 @@ type MyCareHubHandlersInterfaces interface {
 	AppointmentsServiceRequests() http.HandlerFunc
 	ReceiveGetstreamEvents() http.HandlerFunc
 	DeleteUser() http.HandlerFunc
+	FetchContactOrganisations() http.HandlerFunc
 }
 
 type okResp struct {
@@ -737,7 +738,7 @@ func (h *MyCareHubHandlersInterfacesImpl) GetServiceRequestsForKenyaEMR(ctx cont
 	serverutils.WriteJSONResponse(w, serviceRequests, http.StatusOK)
 }
 
-//UpdateServiceRequests is an endpoint used to update service requests from KenyaEMR to MyCareHub
+// UpdateServiceRequests is an endpoint used to update service requests from KenyaEMR to MyCareHub
 func (h *MyCareHubHandlersInterfacesImpl) UpdateServiceRequests(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	payload := &dto.UpdateServiceRequestsPayload{}
 	serverutils.DecodeJSONToTargetStruct(w, r, payload)
@@ -1030,5 +1031,43 @@ func (h *MyCareHubHandlersInterfacesImpl) ReceiveGetstreamEvents() http.HandlerF
 			return
 		}
 		serverutils.WriteJSONResponse(w, okResp{Status: true}, http.StatusOK)
+	}
+}
+
+// FetchContactOrganisations fetches organisations associated with the provided contact
+func (h *MyCareHubHandlersInterfacesImpl) FetchContactOrganisations() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		payload := &dto.ContactOrgsInput{}
+		serverutils.DecodeJSONToTargetStruct(w, r, payload)
+
+		if payload.PhoneNumber == "" {
+			err := fmt.Errorf("phone number is required")
+			serverutils.WriteJSONResponse(w, serverutils.ErrorMap(err), http.StatusBadRequest)
+			return
+		}
+
+		organisations, err := h.usecase.User.FetchContactOrganisations(r.Context(), payload.PhoneNumber)
+		if err != nil {
+			serverutils.WriteJSONResponse(w, serverutils.ErrorMap(err), http.StatusBadRequest)
+			return
+		}
+
+		response := dto.ContactOrganisations{
+			Count:         0,
+			Organisations: []dto.Organisation{},
+		}
+
+		for _, organisation := range organisations {
+			org := dto.Organisation{
+				ID:          organisation.ID,
+				Name:        organisation.Name,
+				Description: organisation.Description,
+			}
+
+			response.Count++
+			response.Organisations = append(response.Organisations, org)
+		}
+
+		serverutils.WriteJSONResponse(w, response, http.StatusOK)
 	}
 }

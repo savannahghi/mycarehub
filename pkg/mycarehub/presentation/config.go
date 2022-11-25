@@ -221,6 +221,11 @@ func Router(ctx context.Context) (*mux.Router, error) {
 		http.MethodPost,
 	).HandlerFunc(internalHandlers.LoginByPhone())
 
+	r.Path("/contact_organisations").Methods(
+		http.MethodOptions,
+		http.MethodGet,
+	).HandlerFunc(internalHandlers.FetchContactOrganisations())
+
 	r.Path("/refresh_token").Methods(
 		http.MethodPost,
 		http.MethodOptions,

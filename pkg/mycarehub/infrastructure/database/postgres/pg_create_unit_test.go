@@ -765,10 +765,10 @@ func TestMyCareHubDb_GetOrCreateContact(t *testing.T) {
 			fakeGorm.MockGetOrCreateContact = func(ctx context.Context, contact *gorm.Contact) (*gorm.Contact, error) {
 				id := gofakeit.UUID()
 				return &gorm.Contact{
-					ContactID:    &id,
-					ContactType:  "PHONE",
-					ContactValue: gofakeit.Phone(),
-					Active:       false,
+					ID:     id,
+					Type:   "PHONE",
+					Value:  gofakeit.Phone(),
+					Active: false,
 				}, nil
 			}
 		}

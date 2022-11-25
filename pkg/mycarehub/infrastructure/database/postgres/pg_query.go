@@ -67,6 +67,27 @@ func (d *MyCareHubDb) RetrieveFacility(ctx context.Context, id *string, isActive
 	return d.mapFacilityObjectToDomain(facilitySession, identifierSession), nil
 }
 
+// GetOrganisation retrieves an organisation using the provided id
+func (d *MyCareHubDb) GetOrganisation(ctx context.Context, id string) (*domain.Organisation, error) {
+	record, err := d.query.GetOrganisation(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	return &domain.Organisation{
+		ID:               *record.ID,
+		Active:           record.Active,
+		OrganisationCode: record.OrganisationCode,
+		Name:             record.Name,
+		Description:      record.Description,
+		EmailAddress:     record.EmailAddress,
+		PhoneNumber:      record.PhoneNumber,
+		PostalAddress:    record.PostalAddress,
+		PhysicalAddress:  record.PhysicalAddress,
+		DefaultCountry:   record.DefaultCountry,
+	}, nil
+}
+
 // RetrieveFacilityByIdentifier gets a facility by ID from the database
 func (d *MyCareHubDb) RetrieveFacilityByIdentifier(ctx context.Context, identifier *dto.FacilityIdentifierInput, isActive bool) (*domain.Facility, error) {
 	identifierObj := &gorm.FacilityIdentifier{
@@ -591,9 +612,9 @@ func (d *MyCareHubDb) GetContactByUserID(ctx context.Context, userID *string, co
 	}
 
 	return &domain.Contact{
-		ID:           contact.ContactID,
-		ContactType:  contact.ContactType,
-		ContactValue: contact.ContactValue,
+		ID:           &contact.ID,
+		ContactType:  contact.Type,
+		ContactValue: contact.Value,
 		Active:       contact.Active,
 		OptedIn:      contact.OptedIn,
 	}, nil
@@ -684,7 +705,7 @@ func (d *MyCareHubDb) GetClientHealthDiaryEntries(ctx context.Context, clientID 
 			SharedAt:              healthdiary.SharedAt,
 			ClientID:              healthdiary.ClientID,
 			CreatedAt:             healthdiary.CreatedAt,
-			PhoneNumber:           clientProfile.User.Contacts.ContactValue,
+			PhoneNumber:           clientProfile.User.Contacts.Value,
 			ClientName:            clientProfile.User.Name,
 		}
 		healthDiaryEntries = append(healthDiaryEntries, healthDiaryEntry)
@@ -801,7 +822,7 @@ func (d *MyCareHubDb) ReturnClientsServiceRequests(ctx context.Context, clientSe
 			ResolvedByName: &resolvedByName,
 			FacilityID:     serviceRequest.FacilityID,
 			ClientName:     &clientProfile.User.Name,
-			ClientContact:  &clientProfile.User.Contacts.ContactValue,
+			ClientContact:  &clientProfile.User.Contacts.Value,
 			Meta:           meta,
 		}
 		serviceRequests = append(serviceRequests, serviceRequest)
@@ -847,7 +868,7 @@ func (d *MyCareHubDb) ReturnStaffServiceRequests(ctx context.Context, staffServi
 			ResolvedByName: &resolvedByName,
 			FacilityID:     staffProfile.DefaultFacilityID,
 			StaffName:      &staffProfile.UserProfile.Name,
-			StaffContact:   &staffProfile.UserProfile.Contacts.ContactValue,
+			StaffContact:   &staffProfile.UserProfile.Contacts.Value,
 			Meta:           meta,
 		}
 
@@ -1029,7 +1050,7 @@ func (d *MyCareHubDb) GetRecentHealthDiaryEntries(
 			ClientID:              healthdiary.ClientID,
 			CreatedAt:             healthdiary.CreatedAt,
 			CCCNumber:             clientIdentifier.IdentifierValue,
-			PhoneNumber:           contact.ContactValue,
+			PhoneNumber:           contact.Value,
 			ClientName:            client.User.Name,
 		}
 		healthDiaryEntries = append(healthDiaryEntries, healthDiaryEntry)
@@ -1176,7 +1197,7 @@ func (d *MyCareHubDb) GetServiceRequestsForKenyaEMR(ctx context.Context, payload
 			ResolvedBy:         serviceReq.ResolvedByID,
 			FacilityID:         serviceReq.FacilityID,
 			ClientName:         &userProfile.Name,
-			ClientContact:      &userProfile.Contacts.ContactValue,
+			ClientContact:      &userProfile.Contacts.Value,
 			CCCNumber:          &clientIdentifier.IdentifierValue,
 			ScreeningToolName:  screeningToolName,
 			ScreeningToolScore: screeningToolScore,
@@ -1700,7 +1721,7 @@ func (d *MyCareHubDb) GetAppointmentServiceRequests(ctx context.Context, lastSyn
 			ResolvedAt:    request.ResolvedAt,
 			ResolvedBy:    &resolvedByName,
 			ClientName:    &clientProfile.User.Name,
-			ClientContact: &clientProfile.User.Contacts.ContactValue,
+			ClientContact: &clientProfile.User.Contacts.Value,
 			CCCNumber:     identifier.IdentifierValue,
 		}
 
@@ -1880,7 +1901,7 @@ func (d *MyCareHubDb) GetSharedHealthDiaryEntries(ctx context.Context, clientID 
 			SharedAt:              k.SharedAt,
 			ClientID:              k.ClientID,
 			CreatedAt:             k.CreatedAt,
-			PhoneNumber:           clientProfile.User.Contacts.ContactValue,
+			PhoneNumber:           clientProfile.User.Contacts.Value,
 			ClientName:            clientProfile.User.Name,
 		})
 	}
@@ -2208,7 +2229,7 @@ func (d *MyCareHubDb) GetScreeningToolRespondents(ctx context.Context, facilityI
 			ServiceRequestID:        *s.ID,
 			ServiceRequest:          s.Request,
 			Name:                    client.User.Name,
-			PhoneNumber:             client.User.Contacts.ContactValue,
+			PhoneNumber:             client.User.Contacts.Value,
 		}
 
 		respondents = append(respondents, respondent)
@@ -2346,7 +2367,7 @@ func (d *MyCareHubDb) GetSurveyServiceRequestUser(ctx context.Context, facilityI
 			SubmitterID:      submitterID,
 			SurveyName:       surveyName,
 			ServiceRequestID: *s.ID,
-			PhoneNumber:      clientProfile.User.Contacts.ContactValue,
+			PhoneNumber:      clientProfile.User.Contacts.Value,
 		}
 
 		mapped = append(mapped, m)
@@ -2407,6 +2428,33 @@ func (d *MyCareHubDb) GetStaffFacilities(ctx context.Context, input dto.StaffFac
 
 	return facilities, pageInfo, nil
 
+}
+
+// FindContacts retrieves all the contacts that match the given contact type and value.
+// Contacts can be shared by users thus the same contact can have multiple records stored
+func (d *MyCareHubDb) FindContacts(ctx context.Context, contactType, contactValue string) ([]*domain.Contact, error) {
+	records, err := d.query.FindContacts(ctx, contactType, contactValue)
+	if err != nil {
+		return nil, err
+	}
+
+	var contacts []*domain.Contact
+	for _, record := range records {
+		contact := domain.Contact{
+			ID:             &record.ID,
+			ContactType:    record.Type,
+			ContactValue:   record.Value,
+			Active:         record.Active,
+			OptedIn:        record.OptedIn,
+			UserID:         record.UserID,
+			Flavour:        record.Flavour,
+			OrganisationID: record.OrganisationID,
+		}
+
+		contacts = append(contacts, &contact)
+	}
+
+	return contacts, nil
 }
 
 // GetClientFacilities gets a list of client facilities

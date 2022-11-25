@@ -33,6 +33,7 @@ type Query interface {
 	RetrieveFacilityIdentifierByFacilityID(ctx context.Context, facilityID *string) (*FacilityIdentifier, error)
 	SearchFacility(ctx context.Context, searchParameter *string) ([]Facility, error)
 	GetFacilitiesWithoutFHIRID(ctx context.Context) ([]*Facility, error)
+	GetOrganisation(ctx context.Context, id string) (*Organisation, error)
 	ListFacilities(ctx context.Context, searchTerm *string, filter []*domain.FiltersParam, pagination *domain.FacilityPage) (*domain.FacilityPage, error)
 	ListNotifications(ctx context.Context, params *Notification, filters []*firebasetools.FilterParam, pagination *domain.Pagination) ([]*Notification, *domain.Pagination, error)
 	ListSurveyRespondents(ctx context.Context, params map[string]interface{}, pagination *domain.Pagination) ([]*UserSurvey, *domain.Pagination, error)
@@ -57,6 +58,7 @@ type Query interface {
 	GetStaffPendingServiceRequestsCount(ctx context.Context, facilityID string) (*domain.ServiceRequestsCount, error)
 	GetUserSecurityQuestionsResponses(ctx context.Context, userID string) ([]*SecurityQuestionResponse, error)
 	GetContactByUserID(ctx context.Context, userID *string, contactType string) (*Contact, error)
+	FindContacts(ctx context.Context, contactType string, contactValue string) ([]*Contact, error)
 	CanRecordHeathDiary(ctx context.Context, clientID string) (bool, error)
 	GetClientHealthDiaryQuote(ctx context.Context, limit int) ([]*ClientHealthDiaryQuote, error)
 	GetClientHealthDiaryEntries(ctx context.Context, params map[string]interface{}) ([]*ClientHealthDiaryEntry, error)
@@ -160,13 +162,25 @@ func (db *PGInstance) RetrieveFacility(ctx context.Context, id *string, isActive
 	return &facility, nil
 }
 
+// GetOrganisation retrieves an organisation using the provided id
+func (db *PGInstance) GetOrganisation(ctx context.Context, id string) (*Organisation, error) {
+	var organisation Organisation
+
+	err := db.DB.Where(&Organisation{ID: &id, Active: true}).First(&organisation).Error
+	if err != nil {
+		return nil, fmt.Errorf("failed to get organisation by ID %s err: %w", id, err)
+	}
+
+	return &organisation, nil
+}
+
 // CheckIfPhoneNumberExists checks if phone exists in the database.
 func (db *PGInstance) CheckIfPhoneNumberExists(ctx context.Context, phone string, isOptedIn bool, flavour feedlib.Flavour) (bool, error) {
 	var contact Contact
 	if phone == "" || !flavour.IsValid() {
 		return false, fmt.Errorf("invalid flavour: %v", flavour)
 	}
-	err := db.DB.Scopes(OrganisationScope(ctx, contact.TableName())).Model(&Contact{}).Where(&Contact{ContactValue: phone, OptedIn: isOptedIn, Flavour: flavour}).First(&contact).Error
+	err := db.DB.Scopes(OrganisationScope(ctx, contact.TableName())).Model(&Contact{}).Where(&Contact{Value: phone, OptedIn: isOptedIn, Flavour: flavour}).First(&contact).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return false, nil
@@ -713,7 +727,7 @@ func (db *PGInstance) GetContactByUserID(ctx context.Context, userID *string, co
 	if contactType != "PHONE" && contactType != "EMAIL" {
 		return nil, fmt.Errorf("contact type must be PHONE or EMAIL")
 	}
-	if err := db.DB.Scopes(OrganisationScope(ctx, contact.TableName())).Where(&Contact{UserID: userID, ContactType: contactType}).First(&contact).Error; err != nil {
+	if err := db.DB.Scopes(OrganisationScope(ctx, contact.TableName())).Where(&Contact{UserID: userID, Type: contactType}).First(&contact).Error; err != nil {
 		return nil, fmt.Errorf("failed to get contact: %v", err)
 	}
 	return &contact, nil
@@ -2031,6 +2045,18 @@ func (db *PGInstance) GetNotificationsCount(ctx context.Context, notification No
 	}
 
 	return int(count), nil
+}
+
+// FindContacts retrieves all the contacts that match the given contact type and value.
+// Contacts can be shared by users thus the same contact can have multiple records stored
+func (db *PGInstance) FindContacts(ctx context.Context, contactType, contactValue string) ([]*Contact, error) {
+	var contacts []*Contact
+
+	if err := db.DB.Where(Contact{Type: contactType, Value: contactValue}).Find(&contacts).Error; err != nil {
+		return nil, fmt.Errorf("failed to find contacts: %w", err)
+	}
+
+	return contacts, nil
 }
 
 // GetClientsSurveyCount retrieves the total number of clients survey

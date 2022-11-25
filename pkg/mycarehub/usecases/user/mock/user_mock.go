@@ -30,6 +30,7 @@ type UserUseCaseMock struct {
 	MockRegisterClientFn                    func(ctx context.Context, input *dto.ClientRegistrationInput) (*dto.ClientRegistrationOutput, error)
 	MockRefreshGetStreamTokenFn             func(ctx context.Context, userID string) (*domain.GetStreamToken, error)
 	MockSearchClientUserFn                  func(ctx context.Context, searchParameter string) ([]*domain.ClientProfile, error)
+	MockFetchContactOrganisationsFn         func(ctx context.Context, phoneNumber string) ([]*domain.Organisation, error)
 	MockCompleteOnboardingTourFn            func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
 	MockRegisterKenyaEMRPatientsFn          func(ctx context.Context, input []*dto.PatientRegistrationPayload) ([]*dto.PatientRegistrationPayload, error)
 	MockRegisteredFacilityPatientsFn        func(ctx context.Context, input dto.PatientSyncPayload) (*dto.PatientSyncResponse, error)
@@ -179,6 +180,21 @@ func NewUserUseCaseMock() *UserUseCaseMock {
 					ID: &UUID,
 				},
 				CaregiverNumber: gofakeit.SSN(),
+			}, nil
+		},
+
+		MockFetchContactOrganisationsFn: func(ctx context.Context, phoneNumber string) ([]*domain.Organisation, error) {
+			return []*domain.Organisation{
+				{
+					ID:               gofakeit.UUID(),
+					Active:           true,
+					OrganisationCode: gofakeit.SSN(),
+					Name:             gofakeit.Company(),
+					Description:      "some description",
+					EmailAddress:     gofakeit.Email(),
+					PhoneNumber:      gofakeit.Phone(),
+					DefaultCountry:   gofakeit.Country(),
+				},
 			}, nil
 		},
 		MockRegisterClientAsCaregiverFn: func(ctx context.Context, clientID, caregiverNumber string) (*domain.CaregiverProfile, error) {
@@ -428,6 +444,12 @@ func NewUserUseCaseMock() *UserUseCaseMock {
 // Login mocks the login functionality
 func (f *UserUseCaseMock) Login(ctx context.Context, input *dto.LoginInput) (*domain.LoginResponse, bool) {
 	return f.MockLoginFn(ctx, input)
+}
+
+// FetchContactOrganisations fetches organisations associated with a provided phone number
+// Provides the organisation options used during login
+func (f *UserUseCaseMock) FetchContactOrganisations(ctx context.Context, phoneNumber string) ([]*domain.Organisation, error) {
+	return f.MockFetchContactOrganisationsFn(ctx, phoneNumber)
 }
 
 // InviteUser mocks the invite functionality

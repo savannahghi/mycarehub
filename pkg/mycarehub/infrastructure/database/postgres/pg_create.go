@@ -284,12 +284,12 @@ func (d *MyCareHubDb) GetOrCreateNextOfKin(ctx context.Context, person *dto.Next
 func (d *MyCareHubDb) GetOrCreateContact(ctx context.Context, contact *domain.Contact) (*domain.Contact, error) {
 
 	ct := &gorm.Contact{
-		Active:       true,
-		ContactType:  contact.ContactType,
-		ContactValue: contact.ContactValue,
-		UserID:       contact.UserID,
-		Flavour:      contact.Flavour,
-		OptedIn:      contact.OptedIn,
+		Active:  true,
+		Type:    contact.ContactType,
+		Value:   contact.ContactValue,
+		UserID:  contact.UserID,
+		Flavour: contact.Flavour,
+		OptedIn: contact.OptedIn,
 	}
 
 	c, err := d.create.GetOrCreateContact(ctx, ct)
@@ -298,9 +298,9 @@ func (d *MyCareHubDb) GetOrCreateContact(ctx context.Context, contact *domain.Co
 	}
 
 	return &domain.Contact{
-		ID:           c.ContactID,
-		ContactType:  *c.ContactID,
-		ContactValue: c.ContactValue,
+		ID:           &c.ID,
+		ContactType:  c.Type,
+		ContactValue: c.Value,
 		Active:       c.Active,
 		OptedIn:      c.OptedIn,
 	}, nil
@@ -420,11 +420,11 @@ func (d *MyCareHubDb) RegisterClient(ctx context.Context, payload *domain.Client
 	}
 
 	contact := &gorm.Contact{
-		ContactType:  payload.Phone.ContactType,
-		ContactValue: payload.Phone.ContactValue,
-		Active:       payload.Phone.Active,
-		OptedIn:      payload.Phone.Active,
-		Flavour:      payload.Phone.Flavour,
+		Type:    payload.Phone.ContactType,
+		Value:   payload.Phone.ContactValue,
+		Active:  payload.Phone.Active,
+		OptedIn: payload.Phone.Active,
+		Flavour: payload.Phone.Flavour,
 	}
 
 	identifier := &gorm.Identifier{
@@ -486,11 +486,11 @@ func (d *MyCareHubDb) RegisterCaregiver(ctx context.Context, input *domain.Careg
 	}
 
 	contact := &gorm.Contact{
-		ContactType:  input.Contact.ContactType,
-		ContactValue: input.Contact.ContactValue,
-		Active:       input.Contact.Active,
-		OptedIn:      input.Contact.Active,
-		Flavour:      input.Contact.Flavour,
+		Type:    input.Contact.ContactType,
+		Value:   input.Contact.ContactValue,
+		Active:  input.Contact.Active,
+		OptedIn: input.Contact.Active,
+		Flavour: input.Contact.Flavour,
 	}
 
 	caregiver := &gorm.Caregiver{
@@ -650,11 +650,11 @@ func (d *MyCareHubDb) RegisterStaff(ctx context.Context, payload *domain.StaffRe
 	}
 
 	contact := &gorm.Contact{
-		ContactType:  payload.Phone.ContactType,
-		ContactValue: payload.Phone.ContactValue,
-		Active:       payload.Phone.Active,
-		OptedIn:      payload.Phone.Active,
-		Flavour:      payload.Phone.Flavour,
+		Type:    payload.Phone.ContactType,
+		Value:   payload.Phone.ContactValue,
+		Active:  payload.Phone.Active,
+		OptedIn: payload.Phone.Active,
+		Flavour: payload.Phone.Flavour,
 	}
 
 	identifier := &gorm.Identifier{

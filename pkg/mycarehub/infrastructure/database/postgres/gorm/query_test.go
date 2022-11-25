@@ -4936,6 +4936,95 @@ func TestPGInstance_GetClientsSurveyCount(t *testing.T) {
 	}
 }
 
+func TestPGInstance_FindContacts(t *testing.T) {
+	type args struct {
+		ctx          context.Context
+		contactType  string
+		contactValue string
+	}
+	tests := []struct {
+		name      string
+		args      args
+		wantCount int
+		wantErr   bool
+	}{
+		{
+			name: "happy case: find contacts",
+			args: args{
+				ctx:          addOrganizationContext(context.Background()),
+				contactType:  "PHONE",
+				contactValue: testPhone,
+			},
+			wantCount: 2,
+			wantErr:   false,
+		},
+		{
+			name: "happy case: no contacts",
+			args: args{
+				ctx:          addOrganizationContext(context.Background()),
+				contactType:  "PHONE",
+				contactValue: gofakeit.Phone(),
+			},
+			wantCount: 0,
+			wantErr:   false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := testingDB.FindContacts(tt.args.ctx, tt.args.contactType, tt.args.contactValue)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.FindContacts() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(len(got), tt.wantCount) {
+				t.Errorf("PGInstance.FindContacts() = %v, want %v", got, tt.wantCount)
+			}
+		})
+	}
+}
+
+func TestPGInstance_GetOrganisation(t *testing.T) {
+
+	type args struct {
+		ctx context.Context
+		id  string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "happy case: fetch an organisation",
+			args: args{
+				ctx: context.Background(),
+				id:  orgID,
+			},
+			wantErr: false,
+		},
+		{
+			name: "sad case: fetch using invalid id",
+			args: args{
+				ctx: context.Background(),
+				id:  gofakeit.UUID(),
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := testingDB.GetOrganisation(tt.args.ctx, tt.args.id)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.GetOrganisation() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("did not expect error, got %s", err)
+			}
+		})
+	}
+}
+
 func TestPGInstance_SearchCaregiverUser(t *testing.T) {
 	type args struct {
 		ctx             context.Context

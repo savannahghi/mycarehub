@@ -296,10 +296,10 @@ func (ProgramFacility) TableName() string {
 type Contact struct {
 	Base
 
-	ContactID    *string `gorm:"primaryKey;unique;column:id"`
-	ContactType  string  `gorm:"column:contact_type;not null"`         // TODO enum
-	ContactValue string  `gorm:"unique;column:contact_value;not null"` // TODO Validate: phones are E164, emails are valid
-	Active       bool    `gorm:"column:active;not null"`
+	ID     string `gorm:"primaryKey;unique;column:id"`
+	Type   string `gorm:"column:contact_type;not null"`
+	Value  string `gorm:"unique;column:contact_value;not null"`
+	Active bool   `gorm:"column:active;not null"`
 	// a user may opt not to be contacted via this contact
 	// e.g if it's a shared phone owned by a teenager
 	OptedIn bool            `gorm:"column:opted_in;not null"`
@@ -320,8 +320,7 @@ func (c *Contact) BeforeCreate(tx *gorm.DB) (err error) {
 		orgID = OrganizationID
 	}
 
-	id := uuid.New().String()
-	c.ContactID = &id
+	c.ID = uuid.New().String()
 	c.OrganisationID = orgID
 
 	return

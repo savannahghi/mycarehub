@@ -803,9 +803,9 @@ func TestPGInstance_GetOrCreateContact(t *testing.T) {
 			args: args{
 				ctx: addOrganizationContext(context.Background()),
 				contact: &gorm.Contact{
-					Active:       true,
-					ContactType:  "Phone",
-					ContactValue: gofakeit.Phone(),
+					Active: true,
+					Type:   "Phone",
+					Value:  gofakeit.Phone(),
 				},
 			},
 		},
@@ -822,7 +822,7 @@ func TestPGInstance_GetOrCreateContact(t *testing.T) {
 				return
 			}
 
-			if !tt.wantErr && got == nil && got.ContactID == nil {
+			if !tt.wantErr && got == nil && got.ID == "" {
 				t.Errorf("expected contact not to be nil for %v", tt.name)
 				return
 			}
@@ -1357,9 +1357,9 @@ func TestPGInstance_RegisterClient(t *testing.T) {
 
 	invalidID := "invalidID"
 	contactData := &gorm.Contact{
-		ContactID:      &contactID,
-		ContactType:    "PHONE",
-		ContactValue:   testPhone,
+		ID:             contactID,
+		Type:           "PHONE",
+		Value:          testPhone,
 		Active:         true,
 		OptedIn:        true,
 		UserID:         &userID,
@@ -1509,9 +1509,9 @@ func TestPGInstance_RegisterStaff(t *testing.T) {
 	}
 
 	contactData := &gorm.Contact{
-		ContactID:      &contactIDToRegisterStaff,
-		ContactType:    "PHONE",
-		ContactValue:   "+123445679890",
+		ID:             contactIDToRegisterStaff,
+		Type:           "PHONE",
+		Value:          "+123445679890",
 		Active:         true,
 		OptedIn:        true,
 		UserID:         &userToRegisterStaff,
@@ -1935,11 +1935,11 @@ func TestPGInstance_RegisterCaregiver(t *testing.T) {
 					Active:      true,
 				},
 				contact: &gorm.Contact{
-					ContactType:  "PHONE",
-					ContactValue: gofakeit.Phone(),
-					Active:       true,
-					OptedIn:      false,
-					Flavour:      feedlib.FlavourConsumer,
+					Type:    "PHONE",
+					Value:   gofakeit.Phone(),
+					Active:  true,
+					OptedIn: false,
+					Flavour: feedlib.FlavourConsumer,
 				},
 				caregiver: &gorm.Caregiver{
 					CaregiverNumber: gofakeit.SSN(),
