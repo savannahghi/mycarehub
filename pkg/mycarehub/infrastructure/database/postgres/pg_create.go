@@ -347,13 +347,14 @@ func (d *MyCareHubDb) AnswerScreeningToolQuestions(ctx context.Context, screenin
 func (d *MyCareHubDb) CreateUser(ctx context.Context, user domain.User) (*domain.User, error) {
 
 	u := &gorm.User{
-		Active:      true,
-		Username:    user.Username,
-		Name:        user.Name,
-		Gender:      user.Gender,
-		DateOfBirth: user.DateOfBirth,
-		UserType:    user.UserType,
-		Flavour:     user.Flavour,
+		Active:           true,
+		Username:         user.Username,
+		Name:             user.Name,
+		Gender:           user.Gender,
+		DateOfBirth:      user.DateOfBirth,
+		UserType:         user.UserType,
+		Flavour:          user.Flavour,
+		CurrentProgramID: user.CurrentProgramID,
 	}
 
 	err := d.create.CreateUser(ctx, u)
@@ -410,13 +411,14 @@ func (d *MyCareHubDb) CreateClient(ctx context.Context, client domain.ClientProf
 // RegisterClient registers a client in the database
 func (d *MyCareHubDb) RegisterClient(ctx context.Context, payload *domain.ClientRegistrationPayload) (*domain.ClientProfile, error) {
 	usr := &gorm.User{
-		Username:    payload.UserProfile.Username,
-		Name:        payload.UserProfile.Name,
-		Gender:      payload.UserProfile.Gender,
-		DateOfBirth: payload.UserProfile.DateOfBirth,
-		UserType:    payload.UserProfile.UserType,
-		Flavour:     payload.UserProfile.Flavour,
-		Active:      payload.UserProfile.Active,
+		Username:         payload.UserProfile.Username,
+		Name:             payload.UserProfile.Name,
+		Gender:           payload.UserProfile.Gender,
+		DateOfBirth:      payload.UserProfile.DateOfBirth,
+		UserType:         payload.UserProfile.UserType,
+		Flavour:          payload.UserProfile.Flavour,
+		Active:           payload.UserProfile.Active,
+		CurrentProgramID: payload.UserProfile.CurrentProgramID,
 	}
 
 	contact := &gorm.Contact{
@@ -434,6 +436,7 @@ func (d *MyCareHubDb) RegisterClient(ctx context.Context, payload *domain.Client
 		Description:         payload.ClientIdentifier.Description,
 		IsPrimaryIdentifier: payload.ClientIdentifier.IsPrimaryIdentifier,
 		Active:              payload.ClientIdentifier.Active,
+		ProgramID:           payload.ClientIdentifier.ProgramID,
 	}
 
 	var pgClientTypes pq.StringArray
@@ -446,6 +449,7 @@ func (d *MyCareHubDb) RegisterClient(ctx context.Context, payload *domain.Client
 		FacilityID:              *payload.Client.DefaultFacility.ID,
 		ClientCounselled:        payload.Client.ClientCounselled,
 		Active:                  payload.Client.Active,
+		ProgramID:               payload.Client.ProgramID,
 	}
 
 	client, err := d.create.RegisterClient(ctx, usr, contact, identifier, clientProfile)
@@ -640,13 +644,14 @@ func (d *MyCareHubDb) SaveFeedback(ctx context.Context, payload *domain.Feedback
 // RegisterStaff registers a new staff member into the portal
 func (d *MyCareHubDb) RegisterStaff(ctx context.Context, payload *domain.StaffRegistrationPayload) (*domain.StaffProfile, error) {
 	user := &gorm.User{
-		Username:    payload.UserProfile.Username,
-		Name:        payload.UserProfile.Name,
-		Gender:      payload.UserProfile.Gender,
-		DateOfBirth: payload.UserProfile.DateOfBirth,
-		UserType:    payload.UserProfile.UserType,
-		Flavour:     payload.UserProfile.Flavour,
-		Active:      payload.UserProfile.Active,
+		Username:         payload.UserProfile.Username,
+		Name:             payload.UserProfile.Name,
+		Gender:           payload.UserProfile.Gender,
+		DateOfBirth:      payload.UserProfile.DateOfBirth,
+		UserType:         payload.UserProfile.UserType,
+		Flavour:          payload.UserProfile.Flavour,
+		Active:           payload.UserProfile.Active,
+		CurrentProgramID: payload.UserProfile.CurrentProgramID,
 	}
 
 	contact := &gorm.Contact{
@@ -664,12 +669,14 @@ func (d *MyCareHubDb) RegisterStaff(ctx context.Context, payload *domain.StaffRe
 		Description:         payload.StaffIdentifier.Description,
 		IsPrimaryIdentifier: payload.StaffIdentifier.IsPrimaryIdentifier,
 		Active:              payload.StaffIdentifier.Active,
+		ProgramID:           payload.StaffIdentifier.ProgramID,
 	}
 
 	staffProfile := &gorm.StaffProfile{
 		Active:            payload.Staff.Active,
 		StaffNumber:       payload.Staff.StaffNumber,
 		DefaultFacilityID: *payload.Staff.DefaultFacility.ID,
+		ProgramID:         payload.Staff.ProgramID,
 	}
 
 	staff, err := d.create.RegisterStaff(ctx, user, contact, identifier, staffProfile)

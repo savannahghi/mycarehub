@@ -690,6 +690,16 @@ func (us *UseCasesUserImpl) RegisterClient(
 	ctx context.Context,
 	input *dto.ClientRegistrationInput,
 ) (*dto.ClientRegistrationOutput, error) {
+	loggedInUserID, err := us.ExternalExt.GetLoggedInUserUID(ctx)
+	if err != nil {
+		return nil, exceptions.GetLoggedInUserUIDErr(err)
+	}
+
+	userProfile, err := us.Query.GetUserProfileByUserID(ctx, loggedInUserID)
+	if err != nil {
+		return nil, err
+	}
+
 	identifierExists, err := us.Query.CheckIdentifierExists(ctx, "CCC", input.CCCNumber)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
@@ -716,13 +726,14 @@ func (us *UseCasesUserImpl) RegisterClient(
 	username := fmt.Sprintf("%v-%v", input.ClientName, input.CCCNumber)
 	dob := input.DateOfBirth.AsTime()
 	usr := &domain.User{
-		Username:    username,
-		Name:        input.ClientName,
-		Gender:      enumutils.Gender(strings.ToUpper(input.Gender.String())),
-		DateOfBirth: &dob,
-		UserType:    enums.ClientUser,
-		Flavour:     feedlib.FlavourConsumer,
-		Active:      true,
+		Username:         username,
+		Name:             input.ClientName,
+		Gender:           enumutils.Gender(strings.ToUpper(input.Gender.String())),
+		DateOfBirth:      &dob,
+		UserType:         enums.ClientUser,
+		Flavour:          feedlib.FlavourConsumer,
+		Active:           true,
+		CurrentProgramID: userProfile.CurrentProgramID,
 	}
 
 	phone := &domain.Contact{
@@ -740,6 +751,7 @@ func (us *UseCasesUserImpl) RegisterClient(
 		Description:         "CCC Number, Primary Identifier",
 		IsPrimaryIdentifier: true,
 		Active:              true,
+		ProgramID:           userProfile.CurrentProgramID,
 	}
 
 	MFLCode, err := strconv.Atoi(input.Facility)
@@ -778,6 +790,7 @@ func (us *UseCasesUserImpl) RegisterClient(
 		DefaultFacility:         &domain.Facility{ID: facility.ID},
 		ClientCounselled:        input.Counselled,
 		Active:                  true,
+		ProgramID:               userProfile.CurrentProgramID,
 	}
 
 	registrationPayload := &domain.ClientRegistrationPayload{
@@ -1193,6 +1206,16 @@ func (us *UseCasesUserImpl) RegisteredFacilityPatients(ctx context.Context, inpu
 
 // RegisterStaff is used to register a staff user on our application
 func (us *UseCasesUserImpl) RegisterStaff(ctx context.Context, input dto.StaffRegistrationInput) (*dto.StaffRegistrationOutput, error) {
+	loggedInUserID, err := us.ExternalExt.GetLoggedInUserUID(ctx)
+	if err != nil {
+		return nil, exceptions.GetLoggedInUserUIDErr(err)
+	}
+
+	userProfile, err := us.Query.GetUserProfileByUserID(ctx, loggedInUserID)
+	if err != nil {
+		return nil, err
+	}
+
 	identifierExists, err := us.Query.CheckIdentifierExists(ctx, "NATIONAL_ID", input.IDNumber)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
@@ -1220,13 +1243,14 @@ func (us *UseCasesUserImpl) RegisterStaff(ctx context.Context, input dto.StaffRe
 	username := fmt.Sprintf("%v-%v", input.StaffName, input.StaffName)
 	dob := input.DateOfBirth.AsTime()
 	user := &domain.User{
-		Username:    username,
-		Name:        input.StaffName,
-		Gender:      enumutils.Gender(strings.ToUpper(input.Gender.String())),
-		DateOfBirth: &dob,
-		UserType:    enums.StaffUser,
-		Flavour:     feedlib.FlavourPro,
-		Active:      true,
+		Username:         username,
+		Name:             input.StaffName,
+		Gender:           enumutils.Gender(strings.ToUpper(input.Gender.String())),
+		DateOfBirth:      &dob,
+		UserType:         enums.StaffUser,
+		Flavour:          feedlib.FlavourPro,
+		Active:           true,
+		CurrentProgramID: userProfile.CurrentProgramID,
 	}
 
 	contactData := &domain.Contact{
@@ -1244,6 +1268,7 @@ func (us *UseCasesUserImpl) RegisterStaff(ctx context.Context, input dto.StaffRe
 		Description:         "NATIONAL ID, Official Identifier",
 		IsPrimaryIdentifier: true,
 		Active:              true,
+		ProgramID:           userProfile.CurrentProgramID,
 	}
 
 	MFLCode, err := strconv.Atoi(input.Facility)
@@ -1277,6 +1302,7 @@ func (us *UseCasesUserImpl) RegisterStaff(ctx context.Context, input dto.StaffRe
 		Active:          true,
 		StaffNumber:     input.StaffNumber,
 		DefaultFacility: facility,
+		ProgramID:       userProfile.CurrentProgramID,
 	}
 
 	staffRegistrationPayload := &domain.StaffRegistrationPayload{

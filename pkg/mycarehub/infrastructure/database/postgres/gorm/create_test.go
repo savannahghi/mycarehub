@@ -1017,13 +1017,14 @@ func TestPGInstance_CreateUser(t *testing.T) {
 			args: args{
 				ctx: addOrganizationContext(context.Background()),
 				user: &gorm.User{
-					Active:      true,
-					Username:    gofakeit.Username(),
-					Name:        gofakeit.Name(),
-					Gender:      enumutils.GenderMale,
-					DateOfBirth: &date,
-					UserType:    enums.ClientUser,
-					Flavour:     feedlib.FlavourConsumer,
+					Active:           true,
+					Username:         gofakeit.Username(),
+					Name:             gofakeit.Name(),
+					Gender:           enumutils.GenderMale,
+					DateOfBirth:      &date,
+					UserType:         enums.ClientUser,
+					Flavour:          feedlib.FlavourConsumer,
+					CurrentProgramID: programID,
 				},
 			},
 			wantErr: false,
@@ -1429,6 +1430,7 @@ func TestPGInstance_RegisterClient(t *testing.T) {
 		IsSuperuser:            true,
 		Name:                   gofakeit.BeerBlg(),
 		DateOfBirth:            &currentTime,
+		CurrentProgramID:       programID,
 	}
 	type args struct {
 		ctx        context.Context
@@ -1506,6 +1508,7 @@ func TestPGInstance_RegisterStaff(t *testing.T) {
 		IsSuperuser:            true,
 		Name:                   gofakeit.BeerBlg(),
 		DateOfBirth:            &currentTime,
+		CurrentProgramID:       programID,
 	}
 
 	contactData := &gorm.Contact{
@@ -1926,13 +1929,14 @@ func TestPGInstance_RegisterCaregiver(t *testing.T) {
 			args: args{
 				ctx: addOrganizationContext(context.Background()),
 				user: &gorm.User{
-					Username:    gofakeit.Username(),
-					Name:        gofakeit.Name(),
-					Gender:      enumutils.GenderMale,
-					DateOfBirth: &dob,
-					UserType:    enums.CaregiverUser,
-					Flavour:     feedlib.FlavourConsumer,
-					Active:      true,
+					Username:         gofakeit.Username(),
+					Name:             gofakeit.Name(),
+					Gender:           enumutils.GenderMale,
+					DateOfBirth:      &dob,
+					UserType:         enums.CaregiverUser,
+					Flavour:          feedlib.FlavourConsumer,
+					Active:           true,
+					CurrentProgramID: programID,
 				},
 				contact: &gorm.Contact{
 					Type:    "PHONE",
@@ -2085,12 +2089,12 @@ func TestPGInstance_CreateOrganisation(t *testing.T) {
 				organization: &gorm.Organisation{
 					ID:               &orgID,
 					Active:           true,
-					OrganisationCode: gofakeit.SSN(),
-					Name:             gofakeit.SSN(),
+					OrganisationCode: "ORG-123",
+					Name:             "ORG001",
 					Description:      gofakeit.Sentence(10),
 					EmailAddress:     gofakeit.Email(),
 					PhoneNumber:      gofakeit.Phone(),
-					PostalAddress:    gofakeit.Address().Address,
+					PostalAddress:    "fake address",
 					PhysicalAddress:  gofakeit.Address().Address,
 					DefaultCountry:   gofakeit.Country(),
 				},
@@ -2104,13 +2108,13 @@ func TestPGInstance_CreateOrganisation(t *testing.T) {
 				organization: &gorm.Organisation{
 					ID:               &invalidUUID,
 					Active:           true,
-					OrganisationCode: uuid.New().String(),
+					OrganisationCode: "ORG-321",
 					Name:             "test",
 					Description:      gofakeit.Sentence(10),
 					EmailAddress:     gofakeit.Email(),
 					PhoneNumber:      gofakeit.Phone(),
-					PostalAddress:    gofakeit.HipsterParagraph(3, 200, 200, " "),
-					PhysicalAddress:  gofakeit.HipsterParagraph(3, 200, 200, " "),
+					PostalAddress:    gofakeit.HipsterSentence(99),
+					PhysicalAddress:  gofakeit.HipsterSentence(102),
 					DefaultCountry:   gofakeit.Country(),
 				},
 			},
