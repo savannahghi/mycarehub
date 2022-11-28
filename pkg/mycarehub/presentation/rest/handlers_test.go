@@ -2597,24 +2597,6 @@ func TestMyCareHubHandlersInterfacesImpl_FetchContactOrganisations(t *testing.T)
 		return
 	}
 
-	invalidInput := &dto.ContactOrgsInput{
-		PhoneNumber: "",
-	}
-	invalidPayload, err := json.Marshal(invalidInput)
-	if err != nil {
-		t.Errorf("failed to marshal payload")
-		return
-	}
-
-	invalidPhoneInput := &dto.ContactOrgsInput{
-		PhoneNumber: "+243333",
-	}
-	invalidPhonePayload, err := json.Marshal(invalidPhoneInput)
-	if err != nil {
-		t.Errorf("failed to marshal payload")
-		return
-	}
-
 	type args struct {
 		url        string
 		httpMethod string
@@ -2631,17 +2613,17 @@ func TestMyCareHubHandlersInterfacesImpl_FetchContactOrganisations(t *testing.T)
 			args: args{
 				url:        fmt.Sprintf("%s/contact_organisations", baseURL),
 				httpMethod: http.MethodGet,
-				body:       bytes.NewBuffer(invalidPayload),
+				body:       nil,
 			},
 			wantStatus: http.StatusBadRequest,
 			wantErr:    true,
 		},
 		{
-			name: "Sad Case - Empty payload",
+			name: "Sad Case - Invalide phone number",
 			args: args{
-				url:        fmt.Sprintf("%s/contact_organisations", baseURL),
+				url:        fmt.Sprintf("%s/contact_organisations?phoneNumber=%s", baseURL, gofakeit.Phone()),
 				httpMethod: http.MethodGet,
-				body:       bytes.NewBuffer(invalidPhonePayload),
+				body:       nil,
 			},
 			wantStatus: http.StatusBadRequest,
 			wantErr:    true,

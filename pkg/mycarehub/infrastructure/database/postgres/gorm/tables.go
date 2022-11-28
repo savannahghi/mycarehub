@@ -268,15 +268,15 @@ func (User) TableName() string {
 	return "users_user"
 }
 
-// CommonProgramUser models the relationship between a user and a program
-type CommonProgramUser struct {
-	ID        string `gorm:"column:id;primary_key"`
+// ProgramUser models the relationship between a user and a program
+type ProgramUser struct {
+	ID        string `gorm:"column:id;primary_key;autoincrement"`
 	ProgramID string `gorm:"column:program_id"`
 	UserID    string `gorm:"column:user_id"`
 }
 
 // TableName customizes how the table name is generated
-func (CommonProgramUser) TableName() string {
+func (ProgramUser) TableName() string {
 	return "common_program_user"
 }
 

@@ -1,3 +1,3 @@
-- id: 4181df12-ca96-4f38-b78b-8e8ad88b25df
+- id: 1
   program_id: {{.test_program_id}}
   user_id: {{.test_user_id}}

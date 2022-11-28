@@ -1,3 +1,8 @@
 extend type Mutation {
   createProgram(input: ProgramInput!): Boolean!
+  setCurrentProgram(id: ID!): Boolean!
+}
+
+extend type Query {
+  listUserPrograms(userID: ID!): [Program]
 }

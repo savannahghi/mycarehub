@@ -185,6 +185,7 @@ type GormMock struct {
 	MockDeleteOrganisationFn                             func(ctx context.Context, organisation *gorm.Organisation) error
 	MockGetOrganisationFn                                func(ctx context.Context, id string) (*gorm.Organisation, error)
 	MockCreateOrganisationFn                             func(ctx context.Context, organization *gorm.Organisation) error
+	MockGetUserProgramsFn                                func(ctx context.Context, userID string) ([]*gorm.Program, error)
 	MockCreateProgramFn                                  func(ctx context.Context, program *gorm.Program) error
 	MockCheckOrganisationExistsFn                        func(ctx context.Context, organisationID string) (bool, error)
 	MockCheckIfProgramNameExistsFn                       func(ctx context.Context, organisationID string, programName string) (bool, error)
@@ -1097,6 +1098,16 @@ func NewGormMock() *GormMock {
 				OrganisationID:   uuid.New().String(),
 			}, nil
 		},
+		MockGetUserProgramsFn: func(ctx context.Context, userID string) ([]*gorm.Program, error) {
+			return []*gorm.Program{
+				{
+					ID:             UUID,
+					Active:         true,
+					Name:           "Fake Program",
+					OrganisationID: UUID,
+				},
+			}, nil
+		},
 		MockInvalidateScreeningToolResponseFn: func(ctx context.Context, clientID string, questionID string) error {
 			return nil
 		},
@@ -1672,6 +1683,11 @@ func (gm *GormMock) GetSecurityQuestionResponse(ctx context.Context, questionID 
 // CheckIfPhoneNumberExists mock the implementation of checking the existence of phone number
 func (gm *GormMock) CheckIfPhoneNumberExists(ctx context.Context, phone string, isOptedIn bool, flavour feedlib.Flavour) (bool, error) {
 	return gm.MockCheckIfPhoneNumberExistsFn(ctx, phone, isOptedIn, flavour)
+}
+
+// GetUserPrograms retrieves all programs associated with a user
+func (gm *GormMock) GetUserPrograms(ctx context.Context, userID string) ([]*gorm.Program, error) {
+	return gm.MockGetUserProgramsFn(ctx, userID)
 }
 
 // VerifyOTP mocks the implementation of verify otp
