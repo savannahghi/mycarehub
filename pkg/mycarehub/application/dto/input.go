@@ -752,8 +752,3 @@ func (s ProgramInput) Validate() error {
 	err := v.Struct(s)
 	return err
 }
-
-// ContactOrgsInput defines the input for fetching the associated phone number organisations
-type ContactOrgsInput struct {
-	PhoneNumber string `json:"phoneNumber,omitempty"`
-}

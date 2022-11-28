@@ -125,6 +125,7 @@ type Query interface {
 	GetCaregiverProfileByCaregiverID(ctx context.Context, caregiverID string) (*Caregiver, error)
 	ListClientsCaregivers(ctx context.Context, clientID string, pagination *domain.Pagination) ([]*CaregiverClient, *domain.Pagination, error)
 	CheckOrganisationExists(ctx context.Context, organisationID string) (bool, error)
+	GetUserPrograms(ctx context.Context, userID string) ([]*Program, error)
 	CheckIfProgramNameExists(ctx context.Context, organisationID string, programName string) (bool, error)
 }
 
@@ -2137,7 +2138,7 @@ func (db *PGInstance) CheckOrganisationExists(ctx context.Context, organisationI
 // CheckIfProgramNameExists checks if a program exists in the organization
 // the program name should be unique for each program in a given organization
 func (db *PGInstance) CheckIfProgramNameExists(ctx context.Context, organisationID string, programName string) (bool, error) {
-	var program *Program
+	var program Program
 	err := db.DB.Where(&Program{Name: programName, OrganisationID: organisationID}).First(&program).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -2146,4 +2147,26 @@ func (db *PGInstance) CheckIfProgramNameExists(ctx context.Context, organisation
 		return false, err
 	}
 	return true, nil
+}
+
+// GetUserPrograms retrieves all programs associated with a user
+func (db *PGInstance) GetUserPrograms(ctx context.Context, userID string) ([]*Program, error) {
+	userPrograms := []ProgramUser{}
+	err := db.DB.Where(ProgramUser{UserID: userID}).Find(&userPrograms).Error
+	if err != nil {
+		return nil, fmt.Errorf("failed to find user %s programs err: %w", userID, err)
+	}
+
+	var programs []*Program
+	for _, userProgram := range userPrograms {
+		var program Program
+		err = db.DB.Where(&Program{ID: userProgram.ProgramID}).First(&program).Error
+		if err != nil {
+			return nil, fmt.Errorf("failed to find program %s err: %w", userProgram.ProgramID, err)
+		}
+
+		programs = append(programs, &program)
+	}
+
+	return programs, nil
 }

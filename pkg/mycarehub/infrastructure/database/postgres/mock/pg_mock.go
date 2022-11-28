@@ -34,6 +34,7 @@ type PostgresMock struct {
 	MockInactivateFacilityFn                             func(ctx context.Context, identifier *dto.FacilityIdentifierInput) (bool, error)
 	MockReactivateFacilityFn                             func(ctx context.Context, identifier *dto.FacilityIdentifierInput) (bool, error)
 	MockGetUserProfileByUserIDFn                         func(ctx context.Context, userID string) (*domain.User, error)
+	MockGetUserProgramsFn                                func(ctx context.Context, userID string) ([]*domain.Program, error)
 	MockGetCaregiverByUserIDFn                           func(ctx context.Context, userID string) (*domain.Caregiver, error)
 	MockSaveTemporaryUserPinFn                           func(ctx context.Context, pinData *domain.UserPIN) (bool, error)
 	MockGetCurrentTermsFn                                func(ctx context.Context, flavour feedlib.Flavour) (*domain.TermsOfService, error)
@@ -372,6 +373,16 @@ func NewPostgresMock() *PostgresMock {
 				EmailAddress:     gofakeit.Email(),
 				PhoneNumber:      phone,
 				DefaultCountry:   gofakeit.Country(),
+			}, nil
+		},
+		MockGetUserProgramsFn: func(ctx context.Context, userID string) ([]*domain.Program, error) {
+			return []*domain.Program{
+				{
+					ID:             ID,
+					Active:         true,
+					Name:           "Test Program",
+					OrganisationID: ID,
+				},
 			}, nil
 		},
 		MockGetOrCreateFacilityFn: func(ctx context.Context, facility *dto.FacilityInput, identifier *dto.FacilityIdentifierInput) (*domain.Facility, error) {
@@ -1523,6 +1534,11 @@ func (gm *PostgresMock) GetCurrentTerms(ctx context.Context, flavour feedlib.Fla
 // GetUserProfileByUserID mocks the implementation of fetching a user profile by userID
 func (gm *PostgresMock) GetUserProfileByUserID(ctx context.Context, userID string) (*domain.User, error) {
 	return gm.MockGetUserProfileByUserIDFn(ctx, userID)
+}
+
+// GetUserPrograms retrieves all programs associated with a user
+func (gm *PostgresMock) GetUserPrograms(ctx context.Context, userID string) ([]*domain.Program, error) {
+	return gm.MockGetUserProgramsFn(ctx, userID)
 }
 
 // SaveTemporaryUserPin mocks the implementation of saving a temporary user pin

@@ -1037,16 +1037,14 @@ func (h *MyCareHubHandlersInterfacesImpl) ReceiveGetstreamEvents() http.HandlerF
 // FetchContactOrganisations fetches organisations associated with the provided contact
 func (h *MyCareHubHandlersInterfacesImpl) FetchContactOrganisations() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		payload := &dto.ContactOrgsInput{}
-		serverutils.DecodeJSONToTargetStruct(w, r, payload)
-
-		if payload.PhoneNumber == "" {
+		phoneNumber := r.URL.Query().Get("phoneNumber")
+		if phoneNumber == "" {
 			err := fmt.Errorf("phone number is required")
 			serverutils.WriteJSONResponse(w, serverutils.ErrorMap(err), http.StatusBadRequest)
 			return
 		}
 
-		organisations, err := h.usecase.User.FetchContactOrganisations(r.Context(), payload.PhoneNumber)
+		organisations, err := h.usecase.User.FetchContactOrganisations(r.Context(), phoneNumber)
 		if err != nil {
 			serverutils.WriteJSONResponse(w, serverutils.ErrorMap(err), http.StatusBadRequest)
 			return

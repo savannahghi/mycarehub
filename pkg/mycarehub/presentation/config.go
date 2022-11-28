@@ -182,7 +182,7 @@ func Router(ctx context.Context) (*mux.Router, error) {
 
 	metricsUsecase := metrics.NewUsecaseMetricsImpl(db)
 	questionnaireUsecase := questionnaires.NewUseCaseQuestionnaire(db, db, db, db)
-	programsUsecase := programs.NewUsecasePrograms(db, db)
+	programsUsecase := programs.NewUsecasePrograms(db, db, db, externalExt)
 
 	organisationUsecase := organisation.NewUseCaseOrganisationImpl(db, db, db, externalExt)
 

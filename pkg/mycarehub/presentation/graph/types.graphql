@@ -702,7 +702,7 @@ type ConsentStatus {
   consentStatus: ConsentState!
 }
 
-input Program {
+type Program {
   id: ID!
   active: Boolean!
 	name: String!
