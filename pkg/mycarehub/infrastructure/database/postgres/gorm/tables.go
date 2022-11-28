@@ -282,7 +282,7 @@ func (ProgramUser) TableName() string {
 
 // ProgramFacility models the relationship between a program and a facility
 type ProgramFacility struct {
-	ID         string `gorm:"column:id;primary_key"`
+	ID         int    `gorm:"primaryKey;column:id;autoincrement"`
 	ProgramID  string `gorm:"column:program_id"`
 	FacilityID string `gorm:"column:facility_id"`
 }

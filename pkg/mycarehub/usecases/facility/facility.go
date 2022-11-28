@@ -32,6 +32,7 @@ type IFacilityCreate interface {
 	// TODO Ensure blank ID when creating
 	// TODO Since `id` is optional, ensure pre-condition check
 	GetOrCreateFacility(ctx context.Context, facility *dto.FacilityInput, identifier *dto.FacilityIdentifierInput) (*domain.Facility, error)
+	AddFacilityToProgram(ctx context.Context, facilityIDs []string) (bool, error)
 }
 
 // IFacilityDelete contains the method to delete a facility
@@ -88,13 +89,15 @@ func NewFacilityUsecase(
 	delete infrastructure.Delete,
 	update infrastructure.Update,
 	pubsub pubsubmessaging.ServicePubsub,
+	ext extension.ExternalMethodsExtension,
 ) UseCasesFacility {
 	return &UseCaseFacilityImpl{
-		Create: create,
-		Query:  query,
-		Delete: delete,
-		Update: update,
-		Pubsub: pubsub,
+		Create:      create,
+		Query:       query,
+		Delete:      delete,
+		Update:      update,
+		Pubsub:      pubsub,
+		ExternalExt: ext,
 	}
 }
 
@@ -189,7 +192,7 @@ func (f *UseCaseFacilityImpl) RetrieveFacilityByIdentifier(ctx context.Context, 
 	return f.Query.RetrieveFacilityByIdentifier(ctx, identifier, isActive)
 }
 
-//ListFacilities is responsible for returning a list of paginated facilities
+// ListFacilities is responsible for returning a list of paginated facilities
 func (f *UseCaseFacilityImpl) ListFacilities(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationsInput *dto.PaginationsInput) (*domain.FacilityPage, error) {
 	if searchTerm == nil {
 		return nil, fmt.Errorf("search term cannot be nil")
@@ -223,6 +226,29 @@ func (f *UseCaseFacilityImpl) AddFacilityContact(ctx context.Context, facilityID
 	}
 
 	err = f.Update.UpdateFacility(ctx, facility, update)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, err
+	}
+
+	return true, nil
+}
+
+// AddFacilityToProgram is used to add a facility to a program that the currently logged in user (who should be a staff) is.
+func (f *UseCaseFacilityImpl) AddFacilityToProgram(ctx context.Context, facilityIDs []string) (bool, error) {
+	uid, err := f.ExternalExt.GetLoggedInUserUID(ctx)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, err
+	}
+
+	staffProfile, err := f.Query.GetStaffProfileByUserID(ctx, uid)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, err
+	}
+
+	err = f.Create.AddFacilityToProgram(ctx, staffProfile.User.CurrentProgramID, facilityIDs)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return false, err

@@ -50,3 +50,13 @@
   current_facility_id: {{.staff_default_facility}}
   organisation_id: {{.test_organisation_id}}
   program_id: {{.test_program_id}}
+
+- id: 2063dd58-4550-4340-a003-6dcf51d3ee10
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  user_id: {{.test_user_id}}
+  active: true
+  staff_number: {{.staff_number}}
+  current_facility_id: {{.staff_default_facility}}
+  organisation_id: {{.test_organisation_id}}
+  program_id: {{.test_program_id}}

@@ -835,5 +835,11 @@ func (d *MyCareHubDb) CreateProgram(ctx context.Context, input *dto.ProgramInput
 		Name:           input.Name,
 		OrganisationID: input.OrganisationID,
 	}
+
 	return d.create.CreateProgram(ctx, programInput)
+}
+
+// AddFacilityToProgram is used to add a facility to a program which the currently logged in staff member belongs to.
+func (d *MyCareHubDb) AddFacilityToProgram(ctx context.Context, programID string, facilityIDs []string) error {
+	return d.create.AddFacilityToProgram(ctx, programID, facilityIDs)
 }

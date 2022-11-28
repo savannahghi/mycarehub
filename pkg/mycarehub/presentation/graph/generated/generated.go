@@ -435,6 +435,7 @@ type ComplexityRoot struct {
 		AddFacilitiesToClientProfile       func(childComplexity int, clientID string, facilities []string) int
 		AddFacilitiesToStaffProfile        func(childComplexity int, staffID string, facilities []string) int
 		AddFacilityContact                 func(childComplexity int, facilityID string, contact string) int
+		AddFacilityToProgram               func(childComplexity int, facilityIDs []string) int
 		AddMembersToCommunity              func(childComplexity int, memberIDs []string, communityID string) int
 		AddModerators                      func(childComplexity int, memberIDs []string, communityID string) int
 		AnswerScreeningToolQuestion        func(childComplexity int, screeningToolResponses []*dto.ScreeningToolQuestionResponseInput) int
@@ -918,6 +919,7 @@ type MutationResolver interface {
 	ReactivateFacility(ctx context.Context, identifier dto.FacilityIdentifierInput) (bool, error)
 	InactivateFacility(ctx context.Context, identifier dto.FacilityIdentifierInput) (bool, error)
 	AddFacilityContact(ctx context.Context, facilityID string, contact string) (bool, error)
+	AddFacilityToProgram(ctx context.Context, facilityIDs []string) (bool, error)
 	SendFeedback(ctx context.Context, input dto.FeedbackResponseInput) (bool, error)
 	CreateHealthDiaryEntry(ctx context.Context, clientID string, note *string, mood string, reportToStaff bool) (bool, error)
 	ShareHealthDiaryEntry(ctx context.Context, healthDiaryEntryID string, shareEntireHealthDiary bool) (bool, error)
@@ -2784,6 +2786,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.AddFacilityContact(childComplexity, args["facilityID"].(string), args["contact"].(string)), true
+
+	case "Mutation.addFacilityToProgram":
+		if e.complexity.Mutation.AddFacilityToProgram == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_addFacilityToProgram_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.AddFacilityToProgram(childComplexity, args["facilityIDs"].([]string)), true
 
 	case "Mutation.addMembersToCommunity":
 		if e.complexity.Mutation.AddMembersToCommunity == nil {
@@ -5998,6 +6012,7 @@ enum FacilityIdentifierType{
   reactivateFacility(identifier: FacilityIdentifierInput!): Boolean!
   inactivateFacility(identifier: FacilityIdentifierInput!): Boolean!
   addFacilityContact(facilityID: ID!, contact: String!): Boolean!
+  addFacilityToProgram(facilityIDs: [ID!]!): Boolean!
 }
 
 extend type Query {
@@ -7361,6 +7376,21 @@ func (ec *executionContext) field_Mutation_addFacilityContact_args(ctx context.C
 		}
 	}
 	args["contact"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_addFacilityToProgram_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 []string
+	if tmp, ok := rawArgs["facilityIDs"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("facilityIDs"))
+		arg0, err = ec.unmarshalNID2ᚕstringᚄ(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["facilityIDs"] = arg0
 	return args, nil
 }
 
@@ -22366,6 +22396,61 @@ func (ec *executionContext) fieldContext_Mutation_addFacilityContact(ctx context
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_addFacilityContact_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_addFacilityToProgram(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_addFacilityToProgram(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().AddFacilityToProgram(rctx, fc.Args["facilityIDs"].([]string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_addFacilityToProgram(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_addFacilityToProgram_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -44020,6 +44105,15 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_addFacilityContact(ctx, field)
+			})
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "addFacilityToProgram":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_addFacilityToProgram(ctx, field)
 			})
 
 			if out.Values[i] == graphql.Null {

@@ -10,6 +10,7 @@ import (
 	"github.com/savannahghi/interserviceclient"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
+	extensionMock "github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension/mock"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	pgMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/mock"
 	pubsubMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/pubsub/mock"
@@ -162,7 +163,9 @@ func TestUseCaseFacilityImpl_RetrieveFacility_Unittest(t *testing.T) {
 
 			fakeDB := pgMock.NewPostgresMock()
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
-			f := facility.NewFacilityUsecase(fakeDB, fakeDB, fakeDB, fakeDB, fakePubsub)
+			fakeExt := extensionMock.NewFakeExtension()
+
+			f := facility.NewFacilityUsecase(fakeDB, fakeDB, fakeDB, fakeDB, fakePubsub, fakeExt)
 
 			if tt.name == "Sad case - no id" {
 				fakeFacility.MockRetrieveFacilityFn = func(ctx context.Context, id *string, isActive bool) (*domain.Facility, error) {
@@ -330,8 +333,9 @@ func TestUnit_ListFacilities(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
 			fakeFacility := mock.NewFacilityUsecaseMock()
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
+			fakeExt := extensionMock.NewFakeExtension()
 
-			f := facility.NewFacilityUsecase(fakeDB, fakeDB, fakeDB, fakeDB, fakePubsub)
+			f := facility.NewFacilityUsecase(fakeDB, fakeDB, fakeDB, fakeDB, fakePubsub, fakeExt)
 
 			if tt.name == "Sad case- empty search term" {
 				fakeFacility.MockListFacilitiesFn = func(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationsInput *dto.PaginationsInput) (*domain.FacilityPage, error) {
@@ -435,8 +439,9 @@ func TestUseCaseFacilityImpl_Inactivate_Unittest(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
+			fakeExt := extensionMock.NewFakeExtension()
 
-			f := facility.NewFacilityUsecase(fakeDB, fakeDB, fakeDB, fakeDB, fakePubsub)
+			f := facility.NewFacilityUsecase(fakeDB, fakeDB, fakeDB, fakeDB, fakePubsub, fakeExt)
 
 			if tt.name == "Sad Case - empty mflCode" {
 				fakeDB.MockInactivateFacilityFn = func(ctx context.Context, identifier *dto.FacilityIdentifierInput) (bool, error) {
@@ -536,8 +541,9 @@ func TestUseCaseFacilityImpl_Reactivate_Unittest(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
+			fakeExt := extensionMock.NewFakeExtension()
 
-			f := facility.NewFacilityUsecase(fakeDB, fakeDB, fakeDB, fakeDB, fakePubsub)
+			f := facility.NewFacilityUsecase(fakeDB, fakeDB, fakeDB, fakeDB, fakePubsub, fakeExt)
 
 			if tt.name == "Sad Case - empty mflCode" {
 				fakeDB.MockReactivateFacilityFn = func(ctx context.Context, identifier *dto.FacilityIdentifierInput) (bool, error) {
@@ -613,8 +619,9 @@ func TestUseCaseFacilityImpl_DeleteFacility(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
 			fakeFacility := mock.NewFacilityUsecaseMock()
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
+			fakeExt := extensionMock.NewFakeExtension()
 
-			f := facility.NewFacilityUsecase(fakeDB, fakeDB, fakeDB, fakeDB, fakePubsub)
+			f := facility.NewFacilityUsecase(fakeDB, fakeDB, fakeDB, fakeDB, fakePubsub, fakeExt)
 
 			if tt.name == "Happy Case - Successfully delete facility" {
 				fakeFacility.DeleteFacilityFn = func(ctx context.Context, id int) (bool, error) {
@@ -662,9 +669,10 @@ func TestUseCaseFacilityImpl_FetchFacilities(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
-
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
-			f := facility.NewFacilityUsecase(fakeDB, fakeDB, fakeDB, fakeDB, fakePubsub)
+			fakeExt := extensionMock.NewFakeExtension()
+
+			f := facility.NewFacilityUsecase(fakeDB, fakeDB, fakeDB, fakeDB, fakePubsub, fakeExt)
 
 			got, err := f.SearchFacility(tt.args.ctx, tt.args.searchParameter)
 			if (err != nil) != tt.wantErr {
@@ -683,7 +691,9 @@ func TestUseCaseFacilityImpl_SyncFacilities(t *testing.T) {
 	ctx := context.Background()
 	fakeDB := pgMock.NewPostgresMock()
 	fakePubsub := pubsubMock.NewPubsubServiceMock()
-	f := facility.NewFacilityUsecase(fakeDB, fakeDB, fakeDB, fakeDB, fakePubsub)
+	fakeExt := extensionMock.NewFakeExtension()
+
+	f := facility.NewFacilityUsecase(fakeDB, fakeDB, fakeDB, fakeDB, fakePubsub, fakeExt)
 
 	type args struct {
 		ctx context.Context
@@ -745,7 +755,9 @@ func TestUseCaseFacilityImpl_UpdateFacility(t *testing.T) {
 	ctx := context.Background()
 	fakeDB := pgMock.NewPostgresMock()
 	fakePubsub := pubsubMock.NewPubsubServiceMock()
-	f := facility.NewFacilityUsecase(fakeDB, fakeDB, fakeDB, fakeDB, fakePubsub)
+	fakeExt := extensionMock.NewFakeExtension()
+
+	f := facility.NewFacilityUsecase(fakeDB, fakeDB, fakeDB, fakeDB, fakePubsub, fakeExt)
 
 	UUID := uuid.New().String()
 
@@ -849,7 +861,9 @@ func TestUseCaseFacilityImpl_AddFacilityContact(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
-			f := facility.NewFacilityUsecase(fakeDB, fakeDB, fakeDB, fakeDB, fakePubsub)
+			fakeExt := extensionMock.NewFakeExtension()
+
+			f := facility.NewFacilityUsecase(fakeDB, fakeDB, fakeDB, fakeDB, fakePubsub, fakeExt)
 
 			if tt.name == "sad case: fail to update facility" {
 				fakeDB.MockUpdateFacilityFn = func(ctx context.Context, facility *domain.Facility, updateData map[string]interface{}) error {
@@ -864,6 +878,95 @@ func TestUseCaseFacilityImpl_AddFacilityContact(t *testing.T) {
 			}
 			if got != tt.want {
 				t.Errorf("UseCaseFacilityImpl.AddFacilityContact() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestUseCaseFacilityImpl_AddFacilityToProgram(t *testing.T) {
+	type args struct {
+		ctx        context.Context
+		userID     string
+		facilityID []string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "happy case: success adding facility to program",
+			args: args{
+				ctx:        context.Background(),
+				userID:     gofakeit.UUID(),
+				facilityID: []string{gofakeit.UUID()},
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "sad case: unable to get logged in user",
+			args: args{
+				ctx:        context.Background(),
+				userID:     gofakeit.UUID(),
+				facilityID: []string{gofakeit.UUID()},
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "sad case: unable to get staff profile",
+			args: args{
+				ctx:        context.Background(),
+				userID:     gofakeit.UUID(),
+				facilityID: []string{gofakeit.UUID()},
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "sad case: fail to add facility to program",
+			args: args{
+				ctx:        context.Background(),
+				userID:     gofakeit.UUID(),
+				facilityID: []string{gofakeit.UUID()},
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			fakePubsub := pubsubMock.NewPubsubServiceMock()
+			fakeExt := extensionMock.NewFakeExtension()
+
+			f := facility.NewFacilityUsecase(fakeDB, fakeDB, fakeDB, fakeDB, fakePubsub, fakeExt)
+
+			if tt.name == "sad case: unable to get logged in user" {
+				fakeExt.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "", fmt.Errorf("failed to get logged in user")
+				}
+			}
+			if tt.name == "sad case: unable to get staff profile" {
+				fakeDB.MockGetStaffProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.StaffProfile, error) {
+					return nil, fmt.Errorf("unable to get staff profile")
+				}
+			}
+			if tt.name == "sad case: fail to add facility to program" {
+				fakeDB.MockAddFacilityToProgramFn = func(ctx context.Context, programID string, facilityID []string) error {
+					return fmt.Errorf("failed to add facility to program")
+				}
+			}
+
+			got, err := f.AddFacilityToProgram(tt.args.ctx, tt.args.facilityID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCaseFacilityImpl.AddFacilityToProgram() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("UseCaseFacilityImpl.AddFacilityToProgram() = %v, want %v", got, tt.want)
 			}
 		})
 	}
